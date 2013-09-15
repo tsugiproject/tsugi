@@ -87,12 +87,11 @@ function checkKey($db, $p, $profile_table, $post) {
 		$sql .= "
 		LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service 
 		LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id AND 
-			s.service_id = r.service_id AND r.sourcedid_sha256 = :sourcedid";
+			r.sourcedid_sha256 = :sourcedid";
 	}
 	$sql .= "\nWHERE k.key_sha256 = :key LIMIT 1\n";
 	
 	echo($sql);
-	
 	$stmt = $db->prepare($sql);
 	$parms = array(
 		':key' => lti_sha256($post['key']),
@@ -187,7 +186,9 @@ function insertNew(&$row, $db, $p, $post) {
 		$actions[] = "=== Inserted membership id=".$row['membership_id']." role=".$row['role'].
 			" user=".$row['user_id']." context=".$row['context_id']."\n";
 	}
-	
+
+	// We need to handle the case where the service URL changes but we already have a sourcedid
+	$oldserviceid = $row['service_id'];
 	if ( $row['service_id'] === null && $post['service'] && $post['sourcedid'] ) {
 		$sql = "INSERT INTO {$p}lti_service 
 			( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
@@ -199,6 +200,16 @@ function insertNew(&$row, $db, $p, $post) {
 			':key_id' => $row['key_id']));
 		$row['service_id'] = $db->lastInsertId();
 		$actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service']."\n";
+	}
+
+	// If we just created a new service entry but we already had a result entry, update it
+	if ( $oldserviceid === null && $row['result_id'] !== null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {
+		$sql = "UPDATE {$p}lti_result SET service_id = :service_id WHERE result_id = :result_id";
+		$stmt = $db->prepare($sql);
+		$stmt->execute(array(
+			':service_id' => $row['service_id'],
+			':result_id' => $row['result_id']));
+		$actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n";
 	}
 	
 	if ( $row['result_id'] === null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {

@@ -169,10 +169,11 @@ create table webauto_lti_result (
 	result_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 	link_id			MEDIUMINT NOT NULL, 
 	user_id			MEDIUMINT NOT NULL,
-	service_id		MEDIUMINT NOT NULL,
 
 	sourcedid		VARCHAR(2048) NOT NULL,
 	sourcedid_sha256	CHAR(64) NOT NULL,
+
+	service_id		MEDIUMINT NOT NULL,
 
 	grade			FLOAT NULL,
 	note			VARCHAR(2048) NOT NULL,
@@ -196,7 +197,8 @@ create table webauto_lti_result (
         REFERENCES `webauto_lti_service` (`service_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(link_id, user_id, service_id, sourcedid_sha256),
+	-- Note service_id is not part of the key on purpose
+	KEY(link_id, user_id, sourcedid_sha256),
 	PRIMARY KEY (result_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
