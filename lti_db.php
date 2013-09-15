@@ -67,9 +67,14 @@ function checkKey($db, $p, $profile_table, $post) {
 		p.profile_id, p.displayname AS profile_displayname, p.email AS profile_email";
 	}
 
-	if ( $post['service'] && $post['sourcedid'] ) {
+	if ( $post['service'] ) {
 		$sql .= ",
-		s.service_id, r.result_id, r.sourcedid";
+		s.service_id";
+	}
+
+	if ( $post['sourcedid'] ) {
+		$sql .= ",
+		r.result_id, r.sourcedid";
 	}
 
 	$sql .="\nFROM {$p}lti_key AS k 
@@ -83,9 +88,12 @@ function checkKey($db, $p, $profile_table, $post) {
 		LEFT JOIN {$profile_table} AS p ON u.user_id = p.user_id";
 	}
 
-	if ( $post['service'] && $post['sourcedid'] ) {
+	if ( $post['service'] ) {
 		$sql .= "
-		LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service 
+		LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service";
+	}
+	if ( $post['sourcedid'] ) {
+		$sql .= "
 		LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id AND 
 			r.sourcedid_sha256 = :sourcedid";
 	}
@@ -99,8 +107,11 @@ function checkKey($db, $p, $profile_table, $post) {
 		':link' => lti_sha256($post['link_id']), 
 		':user' => lti_sha256($post['user_id']));
 	
-	if ( $post['service'] && $post['sourcedid'] ) {
+	if ( $post['service'] ) {
 		$parms[':service'] = lti_sha256($post['service']);
+	}
+
+	if ( $post['sourcedid'] ) {
 		$parms[':sourcedid'] = lti_sha256($post['sourcedid']);
 	}
 	
