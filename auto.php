@@ -1,51 +1,11 @@
-<?php 
-error_reporting(E_ALL & ~E_NOTICE);
-ini_set("display_errors", 1);
+<?php
 
-// Load up the LTI Support code
+require_once 'setup.php';
 require_once 'config.php';
-require_once 'lti_db.php';
-
 session_start();
-header('Content-Type: text/html; charset=utf-8'); 
 
 print "<pre>\n";
+print "Welcome to Auto...\n";
+print_r($_SESSION['lti']);
+print "</pre>\n";
 
-$post = extractPost();
-if ( $post === false ) {
-	die("missing required element");
-}
-
-try {
-	$db = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $ex){
-	die($ex->getMessage());
-}
-
-echo("==   CHECKKEY   ===\n");
-// $row = checkKey($db, $CFG->dbprefix, false, $post);
-$row = checkKey($db, $CFG->dbprefix, "sample_profile", $post);
-echo("==   BACK   ===\n");
-var_dump($row);
-$valid = verifyKeyAndSecret($post['key'],$row['secret']);
-if ( $valid === true ) {
-	// OK
-} else {
-	print_r($valid);
-	die();
-}
-echo("===   ADJUSTING  ========\n");
-$actions = adjustData($db, $CFG->dbprefix, $row, $post);
-print_r($actions);
-echo("==   ADJUST DONE   ===\n");
-var_dump($row);
-
-print "\nRaw POST Parameters:\n\n";
-ksort($_POST);
-foreach($_POST as $key => $value ) {
-    if (get_magic_quotes_gpc()) $value = stripslashes($value);
-    print htmlentities($key) . "=" . htmlentities($value) . " (".mb_detect_encoding($value).")\n";
-}
-
-?>

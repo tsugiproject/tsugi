@@ -52,6 +52,12 @@ function extractPost() {
 	return $retval;
 }
 
+function getCompositeKey($post, $secret) {
+	$comp = $secret .'::'. $post['key'] .'::'. $post['context_id'] .'::'. 
+		$post['link_id']  .'::'. $post['user_id'] .'::' . $_SERVER['HTTP_USER_AGENT'];
+	return md5($comp);
+}
+
 // Returns as much as we have in all the tables
 // Assume..  $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 function checkKey($db, $p, $profile_table, $post) {
@@ -69,7 +75,7 @@ function checkKey($db, $p, $profile_table, $post) {
 
 	if ( $post['service'] ) {
 		$sql .= ",
-		s.service_id";
+		s.service_id, s.service_key AS service";
 	}
 
 	if ( $post['sourcedid'] ) {

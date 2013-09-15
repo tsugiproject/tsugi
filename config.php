@@ -15,5 +15,6 @@ $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 $CFG->dbprefix  = 'webauto_';
 $CFG->dbaeskey	= 'ltiaes';
+$CFG->sessionsalt = "lkjdslkjdslj";
 
 // No trailing tag to avoid white space
