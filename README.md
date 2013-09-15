@@ -1,11 +1,15 @@
-webauto
-=======
+WebAuto - An Autograder for Web Content
+=======================================
 
-This is my automatic grading program for web sites
+This is my automatic grading program for web sites that I am 
+building initially for my Fall 2013 SI664 course.  One day I will
+make it more general - but for now - it just needs to work for
+one class :)
 
-For now this is simply prototype code that I am putting together - 
-it is not ready to use at all.  This is under construction.   If 
-you want to see an autograder actually working, you can look at my 
+**For now this is simply prototype code that I am putting together - 
+it is not ready to use at all.  This is under construction.**   
+
+If you want to see an autograder actually working, you can look at my 
 Pyrthon autograder:
 
 * https://lti-tools.dr-chuck.com/pythonauto/
