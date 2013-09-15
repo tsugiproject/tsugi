@@ -151,6 +151,8 @@ create table webauto_lti_service (
 
 	key_id			MEDIUMINT NOT NULL, 
 
+	format			VARCHAR(1024) NULL,
+
 	json			TEXT NULL,
 	created_at		DATETIME NOT NULL,
 	updated_at		DATETIME NOT NULL,
@@ -173,7 +175,7 @@ create table webauto_lti_result (
 	sourcedid		VARCHAR(2048) NOT NULL,
 	sourcedid_sha256	CHAR(64) NOT NULL,
 
-	service_id		MEDIUMINT NOT NULL,
+	service_id		MEDIUMINT NULL,
 
 	grade			FLOAT NULL,
 	note			VARCHAR(2048) NOT NULL,

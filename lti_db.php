@@ -212,6 +212,7 @@ function insertNew(&$row, $db, $p, $post) {
 		$actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n";
 	}
 	
+	// If we don'have a result but do have a service - link them together
 	if ( $row['result_id'] === null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {
 		$sql = "INSERT INTO {$p}lti_result 
 			( sourcedid, sourcedid_sha256, service_id, link_id, user_id, created_at, updated_at ) VALUES
@@ -225,6 +226,21 @@ function insertNew(&$row, $db, $p, $post) {
 			':user_id' => $row['user_id']));
 		$row['result_id'] = $db->lastInsertId();
 		$actions[] = "=== Inserted result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n";
+	}
+
+	// If we don'have a result and do not have a service - just store the result (prep for LTI 2.0)
+	if ( $row['result_id'] === null && $row['service_id'] === null && ! $post['service'] && $post['sourcedid'] ) {
+		$sql = "INSERT INTO {$p}lti_result 
+			( sourcedid, sourcedid_sha256, link_id, user_id, created_at, updated_at ) VALUES
+			( :sourcedid, :sourcedid_sha256, :link_id, :user_id, NOW(), NOW() )";
+		$stmt = $db->prepare($sql);
+		$stmt->execute(array(
+			':sourcedid' => $post['sourcedid'],
+			':sourcedid_sha256' => lti_sha256($post['sourcedid']),
+			':link_id' => $row['link_id'],
+			':user_id' => $row['user_id']));
+		$row['result_id'] = $db->lastInsertId();
+		$actions[] = "=== Inserted LTI 2.0 result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n";
 	}
 
 	// Restore ERRMODE
