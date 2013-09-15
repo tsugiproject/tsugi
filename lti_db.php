@@ -125,13 +125,6 @@ function checkKey($db, $p, $profile_table, $post) {
 
 // Insert the missing bits...
 function insertNew(&$row, $db, $p, $post) {
-	// Unescape each time we use this stuff
-	$FIXED = array();
-	foreach($_POST as $key => $value ) {
-		if (get_magic_quotes_gpc()) $value = stripslashes($value);
-		$FIXED[$key] = $value;
-	}
-
 	$errormode = $db->getAttribute(PDO::ATTR_ERRMODE);
 	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -151,14 +144,14 @@ function insertNew(&$row, $db, $p, $post) {
 		$actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title']."\n";
 	}
 	
-	if ( $row['link_id'] === null && isset($FIXED['resource_link_id']) ) {
+	if ( $row['link_id'] === null && isset($post['link_id']) ) {
 		$sql = "INSERT INTO {$p}lti_link 
 			( link_key, link_sha256, title, context_id, created_at, updated_at ) VALUES
 				( :link_key, :link_sha256, :title, :context_id, NOW(), NOW() )";
 		$stmt = $db->prepare($sql);
 		$stmt->execute(array(
-			':link_key' => $FIXED['resource_link_id'],
-			':link_sha256' => lti_sha256($FIXED['resource_link_id']),
+			':link_key' => $post['link_id'],
+			':link_sha256' => lti_sha256($post['link_id']),
 			':title' => $post['link_title'],
 			':context_id' => $row['context_id']));
 		$row['link_id'] = $db->lastInsertId();
@@ -166,14 +159,14 @@ function insertNew(&$row, $db, $p, $post) {
 		$actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title']."\n";
 	}
 	
-	if ( $row['user_id'] === null && isset($FIXED['user_id']) ) {
+	if ( $row['user_id'] === null && isset($post['user_id']) ) {
 		$sql = "INSERT INTO {$p}lti_user 
 			( user_key, user_sha256, displayname, email, key_id, created_at, updated_at ) VALUES
 			( :user_key, :user_sha256, :displayname, :email, :key_id, NOW(), NOW() )";
 		$stmt = $db->prepare($sql);
 		$stmt->execute(array(
-			':user_key' => $FIXED['user_id'],
-			':user_sha256' => lti_sha256($FIXED['user_id']),
+			':user_key' => $post['user_id'],
+			':user_sha256' => lti_sha256($post['user_id']),
 			':displayname' => $post['user_displayname'],
 			':email' => $post['user_email'],
 			':key_id' => $row['key_id']));
