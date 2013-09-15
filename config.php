@@ -13,7 +13,7 @@ $CFG->database  = 'webauto';
 $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=webauto';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
-$CFG->dbprefix  = 'webauto';
+$CFG->dbprefix  = 'webauto_';
 $CFG->dbaeskey	= 'ltiaes';
 
 // No trailing tag to avoid white space

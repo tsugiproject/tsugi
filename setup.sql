@@ -23,11 +23,11 @@ create table webauto_lti_key (
 	PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-drop table if exists webauto_lti_course;
-create table webauto_lti_course (
-	course_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
-	course_sha256	CHAR(64) NOT NULL,
-	course_key		VARCHAR(4096) NOT NULL,
+drop table if exists webauto_lti_context;
+create table webauto_lti_context (
+	context_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
+	context_sha256	CHAR(64) NOT NULL,
+	context_key		VARCHAR(4096) NOT NULL,
 
 	key_id			MEDIUMINT NOT NULL, 
 
@@ -37,13 +37,13 @@ create table webauto_lti_course (
 	created_at		DATETIME NOT NULL,
 	updated_at		DATETIME NOT NULL,
 
-    CONSTRAINT `webauto_lti_course_ibfk_1`
+    CONSTRAINT `webauto_lti_context_ibfk_1`
         FOREIGN KEY (`key_id`)
         REFERENCES `webauto_lti_key` (`key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(key_id, course_sha256),
-	PRIMARY KEY (course_id)
+	KEY(key_id, context_sha256),
+	PRIMARY KEY (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 drop table if exists webauto_lti_link;
@@ -52,7 +52,7 @@ create table webauto_lti_link (
 	link_sha256	CHAR(64) NOT NULL,
 	link_key	VARCHAR(4096) NOT NULL,
 
-	course_id		MEDIUMINT NOT NULL, 
+	context_id		MEDIUMINT NOT NULL, 
 
 	title			VARCHAR(2048) NULL,
 
@@ -61,8 +61,8 @@ create table webauto_lti_link (
 	updated_at		DATETIME NOT NULL,
 
     CONSTRAINT `webauto_lti_link_ibfk_1`
-        FOREIGN KEY (`course_id`)
-        REFERENCES `webauto_lti_course` (`course_id`)
+        FOREIGN KEY (`context_id`)
+        REFERENCES `webauto_lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
 	KEY(link_sha256),
@@ -121,7 +121,7 @@ drop table if exists webauto_lti_membership;
 create table webauto_lti_membership (
 	membership_id	MEDIUMINT NOT NULL AUTO_INCREMENT,
 
-	course_id		MEDIUMINT NOT NULL, 
+	context_id		MEDIUMINT NOT NULL, 
 	user_id			MEDIUMINT NOT NULL, 
 
 	role			SMALLINT NULL,
@@ -130,8 +130,8 @@ create table webauto_lti_membership (
 	updated_at		DATETIME NOT NULL,
 
     CONSTRAINT `webauto_lti_membership_ibfk_1`
-        FOREIGN KEY (`course_id`)
-        REFERENCES `webauto_lti_course` (`course_id`)
+        FOREIGN KEY (`context_id`)
+        REFERENCES `webauto_lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
     CONSTRAINT `webauto_lti_membership_ibfk_2`
@@ -139,7 +139,7 @@ create table webauto_lti_membership (
         REFERENCES `webauto_lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(course_id, user_id),
+	KEY(context_id, user_id),
 	PRIMARY KEY (membership_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
