@@ -13,13 +13,13 @@ Here are some relevant URLs:
 
 IMS Learning Tools Interoperability:
 
-http://www.imsglobal.org/
-http://www.imsglobal.org/lti/
-http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html
-http://developers.imsglobal.org/
-https://vimeo.com/34168694
+* http://www.imsglobal.org/
+* http://www.imsglobal.org/lti/
+* http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html
+* http://developers.imsglobal.org/
+* https://vimeo.com/34168694
 
 Goutte:
 
-https://github.com/fabpot/Goutte
+* https://github.com/fabpot/Goutte
 
