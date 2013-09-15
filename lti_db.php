@@ -123,9 +123,9 @@ function checkKey($db, $p, $profile_table, $post) {
 	return $row;
 }
 
-// Insert the missing bits...
+// Insert the missing bits and update the new bits...
 // TODO: Contemplate the deep mystery of transactions here
-function insertNew(&$row, $db, $p, $post) {
+function adjustData($db, $p, &$row, $post) {
 	$errormode = $db->getAttribute(PDO::ATTR_ERRMODE);
 	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -247,18 +247,6 @@ function insertNew(&$row, $db, $p, $post) {
 		$row['result_id'] = $db->lastInsertId();
 		$actions[] = "=== Inserted LTI 2.0 result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n";
 	}
-
-	// Restore ERRMODE
-	$db->setAttribute(PDO::ATTR_ERRMODE, $errormode);
-	return $actions;
-}
-
-// Handle Updates
-function doUpdates($db, $p, $row, $post) {
-	$errormode = $db->getAttribute(PDO::ATTR_ERRMODE);
-	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-	$actions = array();
 
 	// Here we handle updates to context_title, link_title, user_displayname, user_email, or role
 	if ( $post['context_title'] != $row['context_title'] ) {

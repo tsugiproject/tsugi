@@ -35,15 +35,11 @@ if ( $valid === true ) {
 	print_r($valid);
 	die();
 }
-echo("===============\n");
-$actions = insertNew($row, $db, $CFG->dbprefix, $post);
+echo("===   ADJUSTING  ========\n");
+$actions = adjustData($db, $CFG->dbprefix, $row, $post);
 print_r($actions);
-echo("==   INSERT DONE   ===\n");
+echo("==   ADJUST DONE   ===\n");
 var_dump($row);
-
-$actions = doUpdates($db, $CFG->dbprefix, $row, $post);
-print_r($actions);
-echo("==   UPDATE DONE   ===\n");
 
 print "\nRaw POST Parameters:\n\n";
 ksort($_POST);
