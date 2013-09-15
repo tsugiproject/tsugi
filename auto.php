@@ -3,7 +3,6 @@ error_reporting(E_ALL & ~E_NOTICE);
 ini_set("display_errors", 1);
 
 // Load up the LTI Support code
-require_once 'lib/lti_util.php';
 require_once 'config.php';
 require_once 'lti_db.php';
 
@@ -29,8 +28,16 @@ echo("==   CHECKKEY   ===\n");
 $row = checkKey($db, $CFG->dbprefix, false, $post);
 echo("==   BACK   ===\n");
 var_dump($row);
+$valid = verifyKeyAndSecret($post['key'],$row['secret']);
+if ( $valid === true ) {
+	// OK
+} else {
+	print_r($valid);
+	die();
+}
 echo("===============\n");
-insertNew($row, $db, $CFG->dbprefix, $post);
+$actions = insertNew($row, $db, $CFG->dbprefix, $post);
+print_r($actions);
 echo("==   BACK   ===\n");
 var_dump($row);
 

@@ -1,5 +1,7 @@
 <?php 
 
+require_once 'lib/OAuth.php';
+
 // Convienence method to wrap sha256
 function lti_sha256($val) {
 	return hash('sha256', $val);
@@ -53,36 +55,41 @@ function extractPost() {
 // Returns as much as we have in all the tables
 // Assume..  $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 function checkKey($db, $p, $profile_table, $post) {
+	$errormode = $db->getAttribute(PDO::ATTR_ERRMODE);
+	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$sql = "SELECT k.key_id, k.secret, c.context_id, c.title AS context_title, 
 		l.link_id, l.title AS link_title, 
 		u.user_id, u.displayname AS user_displayname, u.email AS user_email,
-		m.membership_id, m.role\n";
+		m.membership_id, m.role";
 
 	if ( $profile_table ) {
-		$sql .= ", p.profile_id, p.displayname AS profile_displayname, p.email AS profile_email\n";
+		$sql .= ",
+		p.profile_id, p.displayname AS profile_displayname, p.email AS profile_email";
 	}
 
 	if ( $post['service'] && $post['sourcedid'] ) {
-		$sql .= ", s.service_id, r.result_id, r.sourcedid\n";
+		$sql .= ",
+		s.service_id, r.result_id, r.sourcedid";
 	}
 
-	$sql .="
-		FROM {$p}lti_key AS k 
+	$sql .="\nFROM {$p}lti_key AS k 
 		LEFT JOIN {$p}lti_context AS c ON k.key_id = c.key_id AND c.context_sha256 = :context 
 		LEFT JOIN {$p}lti_link AS l ON c.context_id = l.context_id AND l.link_sha256 = :link
 		LEFT JOIN {$p}lti_user AS u ON k.key_id = u.key_id AND u.user_sha256 = :user
-		LEFT JOIN {$p}lti_membership AS m ON u.user_id = m.user_id AND c.context_id = m.context_id\n";
+		LEFT JOIN {$p}lti_membership AS m ON u.user_id = m.user_id AND c.context_id = m.context_id";
 
 	if ( $profile_table ) {
-		$sql .= "LEFT JOIN {$profile_table} AS p ON u.user_id = p.user_id\n";
+		$sql .= "
+		LEFT JOIN {$profile_table} AS p ON u.user_id = p.user_id";
 	}
 
 	if ( $post['service'] && $post['sourcedid'] ) {
-		$sql .= "LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service 
-				LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id AND 
-						s.service_id = r.service_id AND r.sourcedid_sha256 = :sourcedid\n";
+		$sql .= "
+		LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service 
+		LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id AND 
+			s.service_id = r.service_id AND r.sourcedid_sha256 = :sourcedid";
 	}
-	$sql .= "WHERE k.key_sha256 = :key LIMIT 1\n";
+	$sql .= "\nWHERE k.key_sha256 = :key LIMIT 1\n";
 	
 	echo($sql);
 	
@@ -100,7 +107,9 @@ function checkKey($db, $p, $profile_table, $post) {
 	
 	$stmt->execute($parms);
 	$row = $stmt->fetch(PDO::FETCH_ASSOC);
-	var_dump($row);
+
+	// Restore ERRMODE
+	$db->setAttribute(PDO::ATTR_ERRMODE, $errormode);
 	return $row;
 }
 
@@ -113,6 +122,10 @@ function insertNew(&$row, $db, $p, $post) {
 		$FIXED[$key] = $value;
 	}
 
+	$errormode = $db->getAttribute(PDO::ATTR_ERRMODE);
+	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+	$actions = array();
 	if ( $row['context_id'] === null) {
 		$sql = "INSERT INTO {$p}lti_context 
 			( context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
@@ -125,7 +138,7 @@ function insertNew(&$row, $db, $p, $post) {
 			':key_id' => $row['key_id']));
 		$row['context_id'] = $db->lastInsertId();
 		$row['context_title'] = $post['context_title'];
-		echo("=== Inserted context id=".$row['context_id']." ".$row['context_title']."\n");
+		$actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title']."\n";
 	}
 	
 	if ( $row['link_id'] === null && isset($FIXED['resource_link_id']) ) {
@@ -140,7 +153,7 @@ function insertNew(&$row, $db, $p, $post) {
 			':context_id' => $row['context_id']));
 		$row['link_id'] = $db->lastInsertId();
 		$row['link_title'] = $post['link_title'];
-		echo("=== Inserted link id=".$row['link_id']." ".$row['link_title']."\n");
+		$actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title']."\n";
 	}
 	
 	if ( $row['user_id'] === null && isset($FIXED['user_id']) ) {
@@ -157,7 +170,7 @@ function insertNew(&$row, $db, $p, $post) {
 		$row['user_id'] = $db->lastInsertId();
 		$row['user_email'] = $post['user_email'];
 		$row['user_displayname'] = $post['user_displayname'];
-		echo("=== Inserted user id=".$row['user_id']." ".$row['user_email']."\n");
+		$actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email']."\n";
 	}
 	
 	if ( $row['membership_id'] === null && $row['context_id'] !== null && $row['user_id'] !== null ) {
@@ -171,8 +184,8 @@ function insertNew(&$row, $db, $p, $post) {
 			':role' => $post['role']));
 		$row['membership_id'] = $db->lastInsertId();
 		$row['role'] = $post['role'];
-		echo("=== Inserted membership id=".$row['membership_id']." role=".$row['role'].
-			" user=".$row['user_id']." context=".$row['context_id']."\n");
+		$actions[] = "=== Inserted membership id=".$row['membership_id']." role=".$row['role'].
+			" user=".$row['user_id']." context=".$row['context_id']."\n";
 	}
 	
 	if ( $row['service_id'] === null && $post['service'] && $post['sourcedid'] ) {
@@ -185,7 +198,7 @@ function insertNew(&$row, $db, $p, $post) {
 			':service_sha256' => lti_sha256($post['service']),
 			':key_id' => $row['key_id']));
 		$row['service_id'] = $db->lastInsertId();
-		echo("=== Inserted service id=".$row['service_id']." ".$post['service']."\n");
+		$actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service']."\n";
 	}
 	
 	if ( $row['result_id'] === null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {
@@ -200,8 +213,80 @@ function insertNew(&$row, $db, $p, $post) {
 			':link_id' => $row['link_id'],
 			':user_id' => $row['user_id']));
 		$row['result_id'] = $db->lastInsertId();
-		echo("=== Inserted result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n");
+		$actions[] = "=== Inserted result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n";
+	}
+
+	// Restore ERRMODE
+	$db->setAttribute(PDO::ATTR_ERRMODE, $errormode);
+	return $actions;
+}
+
+
+// TODO: Handle Updates
+
+// Verify the message signature
+function verifyKeyAndSecret($key, $secret) {
+	if ( ! ($key && $secret) ) return array("Missing key or secret", "");
+	$store = new DbTrivialOAuthDataStore();
+	$store->add_consumer($key, $secret);
+
+	$server = new OAuthServer($store);
+
+	$method = new OAuthSignatureMethod_HMAC_SHA1();
+	$server->add_signature_method($method);
+	$request = OAuthRequest::from_request();
+
+	$basestring = $request->get_signature_base_string();
+
+	try {
+		$server->verify_request($request);
+		return true;
+	} catch (Exception $e) {
+		return array($e->getMessage(), $basestring);;
 	}
 }
 
+/**
+ * A Trivial memory-based store - no support for tokens
+ */
+class DbTrivialOAuthDataStore extends OAuthDataStore {
+    private $consumers = array();
+
+    function add_consumer($consumer_key, $consumer_secret) {
+        $this->consumers[$consumer_key] = $consumer_secret;
+    }
+
+    function lookup_consumer($consumer_key) {
+        if ( strpos($consumer_key, "http://" ) === 0 ) {
+            $consumer = new OAuthConsumer($consumer_key,"secret", NULL);
+            return $consumer;
+        }
+        if ( $this->consumers[$consumer_key] ) {
+            $consumer = new OAuthConsumer($consumer_key,$this->consumers[$consumer_key], NULL);
+            return $consumer;
+        }
+        return NULL;
+    }
+
+    function lookup_token($consumer, $token_type, $token) {
+        return new OAuthToken($consumer, "");
+    }
+
+    // Return NULL if the nonce has not been used
+    // Return $nonce if the nonce was previously used
+    function lookup_nonce($consumer, $token, $nonce, $timestamp) {
+        // Should add some clever logic to keep nonces from
+        // being reused - for no we are really trusting
+		// that the timestamp will save us
+        return NULL;
+    }
+
+    function new_request_token($consumer) {
+        return NULL;
+    }
+
+    function new_access_token($token, $consumer) {
+        return NULL;
+    }
+}
 ?>
