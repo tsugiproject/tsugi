@@ -38,8 +38,12 @@ if ( $valid === true ) {
 echo("===============\n");
 $actions = insertNew($row, $db, $CFG->dbprefix, $post);
 print_r($actions);
-echo("==   BACK   ===\n");
+echo("==   INSERT DONE   ===\n");
 var_dump($row);
+
+$actions = doUpdates($db, $CFG->dbprefix, $row, $post);
+print_r($actions);
+echo("==   UPDATE DONE   ===\n");
 
 print "\nRaw POST Parameters:\n\n";
 ksort($_POST);

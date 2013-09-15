@@ -252,8 +252,58 @@ function insertNew(&$row, $db, $p, $post) {
 	return $actions;
 }
 
+// Handle Updates
+function doUpdates($db, $p, $row, $post) {
+	$errormode = $db->getAttribute(PDO::ATTR_ERRMODE);
+	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-// TODO: Handle Updates
+	$actions = array();
+
+	// Here we handle updates to context_title, link_title, user_displayname, user_email, or role
+	if ( $post['context_title'] != $row['context_title'] ) {
+		$stmt = $db->prepare("UPDATE {$p}lti_context SET title = :title WHERE context_id = :context_id");
+		$stmt->execute(array(
+			':title' => $post['context_title'],
+			':context_id' => $row['context_id']));
+		$actions[] = "=== Updated context=".$row['context_id']." title=".$post['context_title'];
+	}
+
+	if ( $post['link_title'] != $row['link_title'] ) {
+		$stmt = $db->prepare("UPDATE {$p}lti_link SET title = :title WHERE link_id = :link_id");
+		$stmt->execute(array(
+			':title' => $post['link_title'],
+			':link_id' => $row['link_id']));
+		$actions[] = "=== Updated link=".$row['link_id']." title=".$post['link_title'];
+	}
+
+	if ( $post['user_displayname'] != $row['user_displayname'] ) {
+		$stmt = $db->prepare("UPDATE {$p}lti_user SET displayname = :displayname WHERE user_id = :user_id");
+		$stmt->execute(array(
+			':displayname' => $post['user_displayname'],
+			':user_id' => $row['user_id']));
+		$actions[] = "=== Updated user=".$row['user_id']." displayname=".$post['user_displayname'];
+	}
+
+	if ( $post['user_email'] != $row['user_email'] ) {
+		$stmt = $db->prepare("UPDATE {$p}lti_user SET email = :email WHERE user_id = :user_id");
+		$stmt->execute(array(
+			':email' => $post['user_email'],
+			':user_id' => $row['user_id']));
+		$actions[] = "=== Updated user=".$row['user_id']." email=".$post['user_email'];
+	}
+
+	if ( $post['role'] != $row['role'] ) {
+		$stmt = $db->prepare("UPDATE {$p}lti_membership SET role = :role WHERE membership_id = :membership_id");
+		$stmt->execute(array(
+			':role' => $post['role'],
+			':membership_id' => $row['membership_id']));
+		$actions[] = "=== Updated membership=".$row['membership_id']." role=".$post['role'];
+	}
+
+	// Restore ERRMODE
+	$db->setAttribute(PDO::ATTR_ERRMODE, $errormode);
+	return $actions;
+}
 
 // Verify the message signature
 function verifyKeyAndSecret($key, $secret) {
