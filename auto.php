@@ -24,8 +24,8 @@ try {
 }
 
 echo("==   CHECKKEY   ===\n");
-// $row = checkKey($db, $CFG->dbprefix, "{$CFG->dbprefix}lti_profile", $post);
-$row = checkKey($db, $CFG->dbprefix, false, $post);
+// $row = checkKey($db, $CFG->dbprefix, false, $post);
+$row = checkKey($db, $CFG->dbprefix, "sample_profile", $post);
 echo("==   BACK   ===\n");
 var_dump($row);
 $valid = verifyKeyAndSecret($post['key'],$row['secret']);

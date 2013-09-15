@@ -95,28 +95,6 @@ create table webauto_lti_user (
 	PRIMARY KEY (user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-drop table if exists webauto_lti_profile;
-create table webauto_lti_profile (
-	profile_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
-
-	user_id			MEDIUMINT NOT NULL, 
-
-	displayname		VARCHAR(2048) NULL,
-	email			VARCHAR(2048) NULL,
-	locale			CHAR(63) NULL,
-
-	json			TEXT NULL,
-	created_at		DATETIME NOT NULL,
-	updated_at		DATETIME NOT NULL,
-
-    CONSTRAINT `webauto_lti_profile_ibfk_1`
-        FOREIGN KEY (`user_id`)
-        REFERENCES `webauto_lti_user` (`user_id`)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-
-	PRIMARY KEY (profile_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8;
-
 drop table if exists webauto_lti_membership;
 create table webauto_lti_membership (
 	membership_id	MEDIUMINT NOT NULL AUTO_INCREMENT,
@@ -199,9 +177,26 @@ create table webauto_lti_result (
         REFERENCES `webauto_lti_service` (`service_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-	-- Note service_id is not part of the key on purpose
+	-- Note service_id is not part of the key on purpose 
+	-- It is data that can change and can be null in LTI 2.0
 	KEY(link_id, user_id, sourcedid_sha256),
 	PRIMARY KEY (result_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+-- Profile hangs out as a leaf 
+drop table if exists sample_profile;
+create table sample_profile (
+	profile_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
+
+	displayname		VARCHAR(2048) NULL,
+	email			VARCHAR(2048) NULL,
+	locale			CHAR(63) NULL,
+
+	json			TEXT NULL,
+	created_at		DATETIME NOT NULL,
+	updated_at		DATETIME NOT NULL,
+
+	PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 insert into webauto_lti_key (key_sha256, key_key, secret) values ( '5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', '12345', 'secret')

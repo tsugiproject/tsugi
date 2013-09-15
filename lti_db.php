@@ -85,7 +85,7 @@ function checkKey($db, $p, $profile_table, $post) {
 
 	if ( $profile_table ) {
 		$sql .= "
-		LEFT JOIN {$profile_table} AS p ON u.user_id = p.user_id";
+		LEFT JOIN {$profile_table} AS p ON u.profile_id = p.profile_id";
 	}
 
 	if ( $post['service'] ) {
@@ -124,6 +124,7 @@ function checkKey($db, $p, $profile_table, $post) {
 }
 
 // Insert the missing bits...
+// TODO: Contemplate the deep mystery of transactions here
 function insertNew(&$row, $db, $p, $post) {
 	$errormode = $db->getAttribute(PDO::ATTR_ERRMODE);
 	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
