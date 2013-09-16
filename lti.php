@@ -19,16 +19,15 @@ try {
 	die($ex->getMessage());
 }
 
-echo("==   CHECKKEY   ===\n");
-// $row = checkKey($db, $CFG->dbprefix, false, $post);
-$row = checkKey($db, $CFG->dbprefix, "sample_profile", $post);
-echo("==   BACK   ===\n");
-var_dump($row);
+// $row = checkKey($db, $CFG->dbprefix, "sample_profile", $post);
+$row = checkKey($db, $CFG->dbprefix, false, $post);
+
 $valid = verifyKeyAndSecret($post['key'],$row['secret']);
 if ( $valid === false ) {
 	print_r($valid);
 	die();
 }
+
 // Make sure this does not leak out
 unset($row['secret']);
 $actions = adjustData($db, $CFG->dbprefix, $row, $post);
