@@ -4,6 +4,10 @@ require_once "../setup.php";
 
 session_start();
 
+require_once "includes/vendor/autoload.php";
+require_once "includes/Goutte/Client.php";
+use Goutte\Client;
+
 require_once 'gradelib.php';
 doTop();
 
@@ -29,6 +33,15 @@ $url = $_GET['url'];
 
 echo("<p>&nbsp;</p><h4>This is not really grading $url - everyone gets 100% on this test</h4>\n");
 
+line_out("Retrieving ".htmlent_utf8($url)."...");
+flush();
+$client = new Client();
+
+$crawler = $client->request('GET', $url);
+$html = $crawler->html();
+line_out("Retrieved ".strlen($html)." characters.");
+togglePre("Show retrieved page",$html);
+
 if ( $displayname ) {
     echo("<p>This is your name as known in the LMS:<br/><strong>\n");
     echo(htmlent_utf8($displayname));
@@ -38,9 +51,13 @@ if ( $displayname ) {
 
 flush();
 $retval = sendGrade(1.0);
-if ( $retval == true ) {
+if ( $retval === true ) {
     success_out("Grade sent to server.");
 } else if ( is_string($retval) ) {
     error_out("Grade not sent: ".$retval);
+} else {
+    echo("<pre>\n");
+    var_dump($retval);
+    echo("</pre>\n");
 }
 flush();

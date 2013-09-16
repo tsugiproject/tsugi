@@ -75,13 +75,15 @@ if ( strpos($h1, "Dr. Chuck") !== false ) {
 			success_out("Grade sent to server.");
 		} else if ( is_string($retval) ) {
 			error_out("Grade not sent: ".$retval);
-		}
+        } else {
+            echo("<pre>\n");
+            var_dump($retval);
+            echo("</pre>\n");
+        }
 	} else {
 		line_out("Test run only - grade not sent to server");
 	}
 } else {
     error_out("Did not find Hello World in the h1 tag - assignment not complete!");
 }
-
-
 

@@ -50,10 +50,20 @@ function togglePre($title, $html) {
 }
 
 function sendGrade($grade) {
+    try {
+        return sendGradeInternal($grade);
+	} catch(Exception $e) {
+		$msg = "Grade Exception: ".$e->getMessage();
+		error_log($msg);
+        return $msg;
+    } 
+}
+
+function sendGradeInternal($grade) {
 	if ( ! isset($_SESSION['lti']) ) return;
 	$lti = $_SESSION['lti'];
 	if ( ! ( isset($lti['service']) && isset($lti['sourcedid']) &&
-		isset($lti['key_key']) && isset($lti['secret']) ) ) return;
+		isset($lti['key_key']) && isset($lti['secret']) ) ) return "Missing required data";
 
 	$method="POST";
 	$content_type = "application/xml";
@@ -73,13 +83,20 @@ function sendGrade($grade) {
 	global $LastOAuthBodyBaseString;
 	$lbs = $LastOAuthBodyBaseString;
 	togglePre("Grade API Response (debug)",$response);
+    $status = "Failure to store grade";
 	try {
 		$retval = parseResponse($response);
-		if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') return true;
-		if ( isset($retval['imsx_description']) ) return $retval['imsx_description'];
-		return "Failure to store grade";
+		if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
+            $status = true;
+		} else if ( isset($retval['imsx_description']) ) {
+            $status = $retval['imsx_description'];
+        }
 	} catch(Exception $e) {
-		return $e->getMessage();
+		$status = $e->getMessage();
 	}
+    $note = $status;
+    if ( $note == true ) $note = 'Success';
+    error_log('Grade sent '.$grade.' for '.$lti['user_displayname'].' '.$note);
+    return $status;
 }
 
