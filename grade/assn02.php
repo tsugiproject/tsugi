@@ -74,8 +74,8 @@ if ( $displayname && strpos($h1,$displayname) !== false ) {
 
 if ( strpos($h1, "Dr. Chuck") !== false ) {
     error_out("You need to put your own name in the h1 tag - assignment not complete!");
-} else if ( strpos($h1, "Hello World") !== false ) {
-    success_out("Found Hello World in the h1 tag - assignment correct!");
+} else if ( strpos($h1, 'Hello') !== false ) {
+    success_out("Found 'Hello' in the h1 tag - assignment correct!");
     if ( isset($_GET['grade']) ) {
 		$retval = sendGrade(1.0);
 		if ( $retval == true ) {
