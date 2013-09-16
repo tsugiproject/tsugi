@@ -43,13 +43,13 @@ foreach($_POST as $key => $value ) {
 }
 */
 
-$url = "auto.php";
+$url = "grade/assn01.php";
 $query = false;
 if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
 	$query = true;
 	$url .= '?' . $_SERVER['QUERY_STRING'];
 }
-if ( true || headers_sent() ) {
+if ( headers_sent() ) {
 	echo('<a href="'.$url.'">Click to continue</a>');
 } else { 
 	$url .= $query ? '&' : '?';

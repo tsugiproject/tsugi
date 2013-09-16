@@ -39,11 +39,11 @@ function dataToggle(divName) {
 function togglePre($title, $html) {
     global $div_id;
     $div_id = $div_id + 1;
-    echo('<h4>'.htmlent_utf8($title));
-    echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">Toggle</a>)</h4>'."\n");
+    echo('<strong>'.htmlent_utf8($title));
+    echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">Toggle</a>)</strong>'."\n");
     echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
     echo(htmlent_utf8($html));
-    echo("</pre>\n");
+    echo("</pre><br/>\n");
 }
 
 function sendGrade($grade) {
@@ -62,11 +62,20 @@ function sendGrade($grade) {
 		array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
 		getPOXGradeRequest());
 
+	line_out('Sending grade to '.$lti['service']);
+
 	togglePre("Grade API Request",$postBody);
 	$response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], $content_type, $postBody);
 	global $LastOAuthBodyBaseString;
 	$lbs = $LastOAuthBodyBaseString;
 	togglePre("Grade API Response",$response);
-
+	try {
+		$retval = parseResponse($response);
+		if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') return true;
+		if ( isset($retval['imsx_description']) ) return $retval['imsx_description'];
+		return "Failure to store grade";
+	} catch(Exception $e) {
+		return $e->getMessage();
+	}
 }
 

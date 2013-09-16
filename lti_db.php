@@ -105,7 +105,7 @@ function checkKey($db, $p, $profile_table, $post) {
 	}
 	$sql .= "\nWHERE k.key_sha256 = :key LIMIT 1\n";
 	
-	echo($sql);
+	// echo($sql);
 	$stmt = $db->prepare($sql);
 	$parms = array(
 		':key' => lti_sha256($post['key']),
