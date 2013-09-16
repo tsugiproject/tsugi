@@ -13,7 +13,7 @@ and then determines if a web site passes the unit tests.
 </p>
 <form action="grade/assn02.php" target="_blank">
 URL to grade:
-<input type="text" name="url" value="http://drchuck.byethost18.com/" size="100">
+<input type="text" name="url" value="http://csevumich.byethost18.com/howdy.php" size="100">
 <input type="submit">
 </form>
 <p>

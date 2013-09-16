@@ -24,7 +24,7 @@ if ( $displayname ) {
 echo('
 <form>
 Please enter the URL of your web site to grade:<br/>
-<input type="text" name="url" value="http://drchuck.byethost18.com/" size="100"><br/>
+<input type="text" name="url" value="http://csevumich.byethost18.com/howdy.php" size="100"><br/>
 <input type="checkbox" name="grade" checked="yes">Send Grade (uncheck for a dry run)<br/>
 <input type="submit" value="Grade">
 </form>
@@ -91,6 +91,6 @@ if ( strpos($h1, "Dr. Chuck") !== false ) {
 		line_out("Test run only - grade not sent to server");
 	}
 } else {
-    error_out("Did not find Hello World in the h1 tag - assignment not complete!");
+    error_out("Did not find 'Hello' in the h1 tag - assignment not complete!");
 }
 
