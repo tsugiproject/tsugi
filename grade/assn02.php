@@ -18,18 +18,26 @@ if ( isset($_SESSION['lti']) ) {
 }
 
 if ( !isset($_GET['url']) ) {
+if ( $displayname ) {
+    echo("<p>&nbsp;</p><p><b>Hello $displayname</b> - welcome to the autograder.</p>\n");
+}
 echo('
 <form>
 Please enter the URL of your web site to grade:<br/>
 <input type="text" name="url" value="http://drchuck.byethost18.com/" size="100"><br/>
-<input type="checkbox" name="grade"> Submit for grading<br/>
+<input type="checkbox" name="grade" checked="yes">Send Grade (uncheck for a dry run)<br/>
 <input type="submit" value="Grade">
 </form>
 ');
-echo("<p>Hello $displayname.  By entering a URL in this field and submitting it for 
+if ( $displayname ) {
+echo("By entering a URL in this field and submitting it for 
 grading, you are representing that this is your own work.  Do not submit someone else's
 web site for grading.
 ");
+}
+echo("<p>You can run this autograder as many times as you like and the last submitted
+grade will be recorded.  Make sure to double-check the course Gradebook to verify
+that your grade has been sent.</p>\n");
 return;
 }
 
