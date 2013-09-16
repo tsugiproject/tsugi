@@ -351,8 +351,8 @@ class OAuthRequest {
     $parts = parse_url($this->http_url);
 
     $port = @$parts['port'];
-    $scheme = $parts['scheme'];
-    $host = $parts['host'];
+    $scheme = isset($parts['scheme']) ? $parts['scheme'] : false;
+    $host = isset($parts['host']) ? $parts['host'] : false;
     $path = @$parts['path'];
 
     $port or $port = ($scheme == 'https') ? '443' : '80';
