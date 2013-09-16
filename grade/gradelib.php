@@ -60,10 +60,15 @@ function sendGrade($grade) {
 }
 
 function sendGradeInternal($grade) {
-	if ( ! isset($_SESSION['lti']) ) return;
+	if ( ! isset($_SESSION['lti']) ) {
+        return "Session not set up for grade return";
+    }
 	$lti = $_SESSION['lti'];
 	if ( ! ( isset($lti['service']) && isset($lti['sourcedid']) &&
-		isset($lti['key_key']) && isset($lti['secret']) ) ) return "Missing required data";
+		isset($lti['key_key']) && isset($lti['secret']) ) ) {
+		error_log('Session is missing required data');
+        return "Missing required data";
+    }
 
 	$method="POST";
 	$content_type = "application/xml";
