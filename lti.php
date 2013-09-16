@@ -35,22 +35,29 @@ $actions = adjustData($db, $CFG->dbprefix, $row, $post);
 $_SESSION['lti'] = $row;
 
 /*
-print "\nRaw POST Parameters:\n\n";
+print "\n<pre>\nRaw POST Parameters:\n\n";
 ksort($_POST);
 foreach($_POST as $key => $value ) {
     if (get_magic_quotes_gpc()) $value = stripslashes($value);
     print htmlentities($key) . "=" . htmlentities($value) . " (".mb_detect_encoding($value).")\n";
 }
+print "\n</pre>\n";
+flush();
 */
 
-$url = "grade/free.php";
+// See if we have a custom assignment setting.
+$url = 'grade/free.php';
+if ( isset($_POST['custom_assn'] ) ) {
+    $url = 'grade/'.$_POST['custom_assn'].'.php';
+}
+
 $query = false;
 if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
 	$query = true;
 	$url .= '?' . $_SERVER['QUERY_STRING'];
 }
 if ( headers_sent() ) {
-	echo('<a href="'.$url.'">Click to continue</a>');
+	echo('<p><a href="'.$url.'">Click to continue</a></p>');
 } else { 
 	$url .= $query ? '&' : '?';
 	$url .= session_name() . '=' . session_id();
