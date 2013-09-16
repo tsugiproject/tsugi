@@ -9,8 +9,11 @@ one class :)
 **For now this is simply prototype code that I am putting together - 
 it is not ready to use at all.  This is under construction.**   
 
-If you want to see an autograder actually working, you can look at my 
-Pyrthon autograder:
+If you want to see this autograder actually working, you can play online:
+
+* https://lti-tools.dr-chuck.com/webauto/
+
+You could also play with my more advanced Python autograder:
 
 * https://lti-tools.dr-chuck.com/pythonauto/
 * https://lti-tools.dr-chuck.com/pythonauto/lms.php
