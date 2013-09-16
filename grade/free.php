@@ -4,11 +4,11 @@ require_once "../setup.php";
 
 session_start();
 
-require_once "includes/vendor/autoload.php";
-require_once "includes/Goutte/Client.php";
+require_once "../lib/goutte/vendor/autoload.php";
+require_once "../lib/goutte/Goutte/Client.php";
 use Goutte\Client;
+require_once '../lib/gradelib.php';
 
-require_once 'gradelib.php';
 doTop();
 
 $displayname = false;
