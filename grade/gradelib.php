@@ -1,12 +1,6 @@
 <?php
 
-function htmlspec_utf8($string) {
-    return htmlspecialchars($string,ENT_QUOTES,$encoding = 'UTF-8');
-}
-
-function htmlent_utf8($string) {
-    return htmlentities($string,ENT_QUOTES,$encoding = 'UTF-8');
-}
+include_once "../lib/lti_util.php";
 
 function line_out($output) {
 	echo(htmlent_utf8($output)."<br/>\n");
@@ -18,14 +12,6 @@ function error_out($output) {
 
 function success_out($output) {
 	echo('<span style="color:green"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
-}
-
-function isCli() {
-     if(php_sapi_name() == 'cli' && empty($_SERVER['REMOTE_ADDR'])) {
-          return true;
-     } else {
-          return false;
-     }
 }
 
 function doTop() {
@@ -58,5 +44,29 @@ function togglePre($title, $html) {
     echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
     echo(htmlent_utf8($html));
     echo("</pre>\n");
+}
+
+function sendGrade($grade) {
+	if ( ! isset($_SESSION['lti']) ) return;
+	$lti = $_SESSION['lti'];
+	if ( ! ( isset($lti['service']) && isset($lti['sourcedid']) &&
+		isset($lti['key_key']) && isset($lti['secret']) ) ) return;
+
+	$method="POST";
+	$content_type = "application/xml";
+	$sourcedid = htmlspecialchars($lti['sourcedid']);
+
+	$operation = 'replaceResultRequest';
+	$postBody = str_replace(
+		array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
+		array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
+		getPOXGradeRequest());
+
+	togglePre("Grade API Request",$postBody);
+	$response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], $content_type, $postBody);
+	global $LastOAuthBodyBaseString;
+	$lbs = $LastOAuthBodyBaseString;
+	togglePre("Grade API Response",$response);
+
 }
 

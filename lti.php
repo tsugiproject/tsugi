@@ -28,11 +28,10 @@ if ( $valid === false ) {
 	die();
 }
 
-// Make sure this does not leak out
-unset($row['secret']);
 $actions = adjustData($db, $CFG->dbprefix, $row, $post);
 
 // Put the information into the row variable
+// TODO: do AES on the secret
 $_SESSION['lti'] = $row;
 
 /*
@@ -50,7 +49,7 @@ if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
 	$query = true;
 	$url .= '?' . $_SERVER['QUERY_STRING'];
 }
-if ( headers_sent() ) {
+if ( true || headers_sent() ) {
 	echo('<a href="'.$url.'">Click to continue</a>');
 } else { 
 	$url .= $query ? '&' : '?';
