@@ -810,6 +810,7 @@ function post_socket($endpoint, $data, $moreheaders=false) {
   if ( ! function_exists('stream_get_transports') ) return false;
     $url = parse_url($endpoint);
 
+    if (!isset($url['scheme'])) return false;
     if (!isset($url['port'])) {
       if ($url['scheme'] == 'http') { $url['port']=80; }
       elseif ($url['scheme'] == 'https') { $url['port']=443; }
