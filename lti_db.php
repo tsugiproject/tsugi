@@ -148,7 +148,7 @@ function adjustData($db, $p, &$row, $post) {
 			':key_id' => $row['key_id']));
 		$row['context_id'] = $db->lastInsertId();
 		$row['context_title'] = $post['context_title'];
-		$actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title']."\n";
+		$actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title'];
 	}
 	
 	if ( $row['link_id'] === null && isset($post['link_id']) ) {
@@ -163,7 +163,7 @@ function adjustData($db, $p, &$row, $post) {
 			':context_id' => $row['context_id']));
 		$row['link_id'] = $db->lastInsertId();
 		$row['link_title'] = $post['link_title'];
-		$actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title']."\n";
+		$actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title'];
 	}
 	
 	if ( $row['user_id'] === null && isset($post['user_id']) ) {
@@ -180,7 +180,7 @@ function adjustData($db, $p, &$row, $post) {
 		$row['user_id'] = $db->lastInsertId();
 		$row['user_email'] = $post['user_email'];
 		$row['user_displayname'] = $post['user_displayname'];
-		$actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email']."\n";
+		$actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email'];
 	}
 	
 	if ( $row['membership_id'] === null && $row['context_id'] !== null && $row['user_id'] !== null ) {
@@ -195,7 +195,7 @@ function adjustData($db, $p, &$row, $post) {
 		$row['membership_id'] = $db->lastInsertId();
 		$row['role'] = $post['role'];
 		$actions[] = "=== Inserted membership id=".$row['membership_id']." role=".$row['role'].
-			" user=".$row['user_id']." context=".$row['context_id']."\n";
+			" user=".$row['user_id']." context=".$row['context_id'];
 	}
 
 	// We need to handle the case where the service URL changes but we already have a sourcedid
@@ -210,7 +210,8 @@ function adjustData($db, $p, &$row, $post) {
 			':service_sha256' => lti_sha256($post['service']),
 			':key_id' => $row['key_id']));
 		$row['service_id'] = $db->lastInsertId();
-		$actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service']."\n";
+		$row['service'] = $post['service'];
+		$actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service'];
 	}
 
 	// If we just created a new service entry but we already had a result entry, update it
@@ -220,7 +221,7 @@ function adjustData($db, $p, &$row, $post) {
 		$stmt->execute(array(
 			':service_id' => $row['service_id'],
 			':result_id' => $row['result_id']));
-		$actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n";
+		$actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
 	}
 	
 	// If we don'have a result but do have a service - link them together
@@ -236,7 +237,8 @@ function adjustData($db, $p, &$row, $post) {
 			':link_id' => $row['link_id'],
 			':user_id' => $row['user_id']));
 		$row['result_id'] = $db->lastInsertId();
-		$actions[] = "=== Inserted result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n";
+		$row['sourcedid'] = $post['sourcedid'];
+		$actions[] = "=== Inserted result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
 	}
 
 	// If we don'have a result and do not have a service - just store the result (prep for LTI 2.0)
@@ -251,7 +253,7 @@ function adjustData($db, $p, &$row, $post) {
 			':link_id' => $row['link_id'],
 			':user_id' => $row['user_id']));
 		$row['result_id'] = $db->lastInsertId();
-		$actions[] = "=== Inserted LTI 2.0 result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid']."\n";
+		$actions[] = "=== Inserted LTI 2.0 result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
 	}
 
 	// Here we handle updates to context_title, link_title, user_displayname, user_email, or role
@@ -297,6 +299,9 @@ function adjustData($db, $p, &$row, $post) {
 
 	// Restore ERRMODE
 	$db->setAttribute(PDO::ATTR_ERRMODE, $errormode);
+    foreach ($actions as $action) {
+        error_log($action);
+    }
 	return $actions;
 }
 

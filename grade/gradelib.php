@@ -67,6 +67,13 @@ function sendGradeInternal($grade) {
 	if ( ! ( isset($lti['service']) && isset($lti['sourcedid']) &&
 		isset($lti['key_key']) && isset($lti['secret']) ) ) {
 		error_log('Session is missing required data');
+        ob_start();
+        $x = $lti;
+        if ( isset($x['secret']) ) $x['secret'] = MD5($x['secret']);
+        var_dump($x);
+        $result = ob_get_clean();
+        error_log($result);
+        togglePre('Internal error - please send this to Chuck',$result);
         return "Missing required data";
     }
 
