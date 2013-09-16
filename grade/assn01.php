@@ -4,8 +4,13 @@ require_once "../setup.php";
 
 session_start();
 
-require_once 'goutte.phar';
+// require_once 'goutte.phar';
+// use Goutte\Client;
+
+require_once "includes/vendor/autoload.php";
+require_once "includes/Goutte/Client.php";
 use Goutte\Client;
+
 require_once 'gradelib.php';
 doTop();
 

@@ -1,0 +1,1 @@
+<?php throw new \LogicException('This PHAR file can only be used from the CLI.'); __HALT_COMPILER();
