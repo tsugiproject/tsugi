@@ -4,14 +4,17 @@ include_once "../lib/lti_util.php";
 
 function line_out($output) {
 	echo(htmlent_utf8($output)."<br/>\n");
+    flush();
 }
 
 function error_out($output) {
 	echo('<span style="color:red"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
+    flush();
 }
 
 function success_out($output) {
 	echo('<span style="color:green"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
+    flush();
 }
 
 function doTop() {
@@ -64,11 +67,12 @@ function sendGrade($grade) {
 
 	line_out('Sending grade to '.$lti['service']);
 
-	togglePre("Grade API Request",$postBody);
+	togglePre("Grade API Request (debug)",$postBody);
+    flush();
 	$response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], $content_type, $postBody);
 	global $LastOAuthBodyBaseString;
 	$lbs = $LastOAuthBodyBaseString;
-	togglePre("Grade API Response",$response);
+	togglePre("Grade API Response (debug)",$response);
 	try {
 		$retval = parseResponse($response);
 		if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') return true;

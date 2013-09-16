@@ -43,7 +43,7 @@ foreach($_POST as $key => $value ) {
 }
 */
 
-$url = "grade/assn01.php";
+$url = "grade/free.php";
 $query = false;
 if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
 	$query = true;
