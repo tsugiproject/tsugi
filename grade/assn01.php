@@ -44,6 +44,8 @@ line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
 $client = new Client();
 
+do_analytics();
+
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
 line_out("Retrieved ".strlen($html)." characters.");

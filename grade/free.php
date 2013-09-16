@@ -33,6 +33,8 @@ $url = $_GET['url'];
 
 echo("<p>&nbsp;</p><h4>This is not really grading $url - everyone gets 100% on this test</h4>\n");
 
+do_analytics();
+
 line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
 $client = new Client();

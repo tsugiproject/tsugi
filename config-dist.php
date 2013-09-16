@@ -14,7 +14,11 @@ $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=webauto';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 $CFG->dbprefix  = 'webauto_';
-$CFG->dbaeskey	= 'ltiaes';
-$CFG->sessionsalt = "lkjdslkjdslj";
+$CFG->dbaeskey	= 'something-very-secret';
+$CFG->sessionsalt = "something-very-secret";
+
+// Set to false if you do not want analytics
+$CFG->analytics_key = "UA-423997-16";
+$CFG->analytics_name = "dr-chuck.com";
 
 // No trailing tag to avoid white space

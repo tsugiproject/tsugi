@@ -1,3 +1,7 @@
+<?php
+require_once "setup.php";
+require_once "config.php";
+?>
 <html>
 <head>
 </head>
@@ -13,5 +17,7 @@ URL to grade:
 <input type="text" name="url" value="http://drchuck.byethost18.com/" size="100">
 <input type="submit">
 </form>
+
+<?php do_analytics(); ?>
 
 </body>
