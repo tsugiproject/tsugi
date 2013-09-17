@@ -45,6 +45,7 @@ return;
 $grade = 0;
 $url = $_GET['url'];
 
+error_log("Grading ".$url);
 line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
 $client = new Client();
@@ -72,25 +73,38 @@ if ( $displayname && strpos($h1,$displayname) !== false ) {
 	line_out("Warning: Unable to find $displayname in the h1 tag");
 }
 
+$success = "";
+$failure = "";
 if ( strpos($h1, "Dr. Chuck") !== false ) {
-    error_out("You need to put your own name in the h1 tag - assignment not complete!");
+    $failure = "You need to put your own name in the h1 tag - assignment not complete!";
 } else if ( strpos($h1, 'Hello') !== false ) {
-    success_out("Found 'Hello' in the h1 tag - assignment correct!");
+    $success = "Found 'Hello' in the h1 tag - assignment correct!";
     if ( isset($_GET['grade']) ) {
 		$retval = sendGrade(1.0);
 		if ( $retval == true ) {
-			success_out("Grade sent to server.");
+			$success = "Grade sent to server (100%)";
 		} else if ( is_string($retval) ) {
-			error_out("Grade not sent: ".$retval);
+			$failure = "Grade not sent: ".$retval;
         } else {
             echo("<pre>\n");
             var_dump($retval);
             echo("</pre>\n");
+            $failure = "Internal error";
         }
 	} else {
-		line_out("Test run only - grade not sent to server");
+		$success = "Test run only - grade not sent to server";
 	}
 } else {
-    error_out("Did not find 'Hello' in the h1 tag - assignment not complete!");
+    $failure = "Did not find 'Hello' in the h1 tag - assignment not complete!";
+}
+
+if ( strlen($success) > 0 ) {
+    success_out($success);
+    error_log($success);
+} else if ( strlen($failure) > 0 ) {
+    error_out($failure);
+    error_log($failure);
+} else {
+    error_log("No status");
 }
 
