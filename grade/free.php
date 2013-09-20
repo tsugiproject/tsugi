@@ -1,35 +1,10 @@
 <?php
 
-require_once "../setup.php";
-
-session_start();
-
-require_once "../lib/goutte/vendor/autoload.php";
-require_once "../lib/goutte/Goutte/Client.php";
+require_once "header.php";
 use Goutte\Client;
-require_once '../lib/gradelib.php';
-
-doTop();
-
-$displayname = false;
-if ( isset($_SESSION['lti']) ) {
-	$lti = $_SESSION['lti'];
-	$displayname = $lti['user_displayname'];
-}
-
-if ( !isset($_GET['url']) ) {
-echo('
-<form>
-Please enter the URL of your web site to grade:<br/>
-<input type="text" name="url" value="http://drchuck.byethost18.com/" size="100"><br/>
-<input type="submit" value="Grade">
-</form>
-');
-return;
-}
 
 $grade = 0;
-$url = $_GET['url'];
+$url = getUrl();
 
 echo("<p>&nbsp;</p><h4>This is not really grading $url - everyone gets 100% on this test</h4>\n");
 

@@ -12,8 +12,13 @@ This is a simple autograder that runs a set of unit tests on a web site
 and then determines if a web site passes the unit tests. 
 </p>
 <form action="grade/assn02.php" target="_blank">
-URL to grade:
+Assignment 2 URL to grade:
 <input type="text" name="url" value="http://csevumich.byethost18.com/howdy.php" size="100">
+<input type="submit">
+</form>
+<form action="grade/assn03.php" target="_blank">
+Assignment 3 URL to grade:
+<input type="text" name="url" value="http://www.php-intro.com/assn/games/rps.php" size="100">
 <input type="submit">
 </form>
 <p>
