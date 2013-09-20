@@ -7,6 +7,32 @@ session_start();
 require_once "../lib/goutte/vendor/autoload.php";
 require_once "../lib/goutte/Goutte/Client.php";
 
+function getUrl() {
+	global $displayname;
+	if ( isset($_GET['url']) ) return $_GET['url'];
+
+	if ( $displayname ) {
+		echo("<p>&nbsp;</p><p><b>Hello $displayname</b> - welcome to the autograder.</p>\n");
+	}
+	echo('<form>
+		Please enter the URL of your web site to grade:<br/>
+		<input type="text" name="url" value="http://csevumich.byethost18.com/howdy.php" size="100"><br/>
+		<input type="checkbox" name="grade">Send Grade (leave unchecked for a dry run)<br/>
+		<input type="submit" value="Grade">
+		</form>');
+	if ( $displayname ) {
+		echo("By entering a URL in this field and submitting it for 
+		grading, you are representing that this is your own work.  Do not submit someone else's
+		web site for grading.
+		");
+	}
+
+	echo("<p>You can run this autograder as many times as you like and the last submitted
+	grade will be recorded.  Make sure to double-check the course Gradebook to verify
+	that your grade has been sent.</p>\n");
+	exit();
+}
+
 function line_out($output) {
 	echo(htmlent_utf8($output)."<br/>\n");
     flush();
@@ -31,7 +57,6 @@ function togglePre($title, $html) {
     echo(htmlent_utf8($html));
     echo("</pre><br/>\n");
 }
-
 function sendGrade($grade) {
     try {
         return sendGradeInternal($grade);
@@ -101,31 +126,44 @@ if ( isset($_SESSION['lti']) ) {
     $displayname = $lti['user_displayname'];
 }
 
-function getUrl() {
+function testPassed($grade) {
 	global $displayname;
-	if ( isset($_GET['url']) ) return $_GET['url'];
 
-	if ( $displayname ) {
-		echo("<p>&nbsp;</p><p><b>Hello $displayname</b> - welcome to the autograder.</p>\n");
+	success_out("Test passed - congratulations");
+
+	if ( $displayname === false || ! isset($_SESSION['lti']) ) {
+		line_out('Not setup to return a grade..');
+		exit();
 	}
-	echo('<form>
-		Please enter the URL of your web site to grade:<br/>
-		<input type="text" name="url" value="http://csevumich.byethost18.com/howdy.php" size="100"><br/>
-		<input type="checkbox" name="grade">Send Grade (leave unchecked for a dry run)<br/>
-		<input type="submit" value="Grade">
-		</form>');
-	if ( $displayname ) {
-		echo("By entering a URL in this field and submitting it for 
-		grading, you are representing that this is your own work.  Do not submit someone else's
-		web site for grading.
-		");
+	
+	if ( ! isset($_GET['grade']) ) {
+		line_out('Dry run - no grade sent.');
+		exit();
 	}
 
-	echo("<p>You can run this autograder as many times as you like and the last submitted
-	grade will be recorded.  Make sure to double-check the course Gradebook to verify
-	that your grade has been sent.</p>\n");
-	exit();
+	$retval = sendGrade($grade);
+	if ( $retval == true ) {
+		$success = "Grade sent to server (100%)";
+	} else if ( is_string($retval) ) {
+		$failure = "Grade not sent: ".$retval;
+	} else {
+		echo("<pre>\n");
+		var_dump($retval);
+		echo("</pre>\n");
+		$failure = "Internal error";
+	}
+
+	if ( strlen($success) > 0 ) {
+		success_out($success);
+		error_log($success);
+	} else if ( strlen($failure) > 0 ) {
+		error_out($failure);
+		error_log($failure);
+	} else {
+		error_log("No status");
+	}
 }
+
 
 ?><html>
 <head>

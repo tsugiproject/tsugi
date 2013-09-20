@@ -42,6 +42,19 @@ for ( $i=0; $i<5; $i++) {
     $crawler = $client->submit($form);
     $html = $crawler->html();
     togglePre('Show retrieved page',$html);
+	if ( $displayname !== false ) {
+		try {
+			$h1 = $crawler->filter('h1')->text();
+			line_out("Found h1 tag...");
+		} catch(Exception $ex) {
+			error_out("Did not find title tag");
+			continue;
+		}
+		if ( strpos($title,$displayname) === false ) {
+			error_out("Did not find '$displayname' in title tag");
+			continue;
+		}
+	}
     
     $matches = Array();
     preg_match('/Your Play=([^ ]*) Computer Play=([^ ]*) Result=(.*)/',$html,$matches);
@@ -58,4 +71,11 @@ for ( $i=0; $i<5; $i++) {
 	}
 }
 
+if ( ! $success ) {
+	error_out('Please fix and re-test.');
+    exit();
+}
+
+// Attempt to send a grade if requested
+testPassed(1.0);
 
