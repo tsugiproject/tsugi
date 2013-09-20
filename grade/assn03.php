@@ -7,6 +7,7 @@ line_out("Grading SI664 Assignment 3");
 
 $grade = 0;
 $url = getUrl('http://www.php-intro.com/assn/games/rps.php');
+error_log("ASSN03 ".$url);
 
 line_out("Initial page ".htmlent_utf8($url)."...");
 flush();
@@ -69,7 +70,7 @@ for ( $i=0; $i<5; $i++) {
     $matches = Array();
     preg_match('/Your Play=([^ ]*) Computer Play=([^ ]*) Result=(.*)/',$html,$matches);
 	if ( count($matches) != 4 ) {
-		line_error('Could not find properly formatted line starting with "Your Play="');
+		error_out('Could not find properly formatted line starting with "Your Play="');
 		continue;
 	}
     line_out('Found:'.$matches[0]);
