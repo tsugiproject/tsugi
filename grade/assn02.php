@@ -8,7 +8,7 @@ line_out("Grading SI664 Assignment 2");
 $url = getUrl('http://csevumich.byethost18.com/howdy.php');
 $grade = 0;
 
-error_log("Grading ".$url);
+error_log("ASSN02 ".$url);
 line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
 
