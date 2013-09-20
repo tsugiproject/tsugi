@@ -23,8 +23,10 @@ try {
 $row = checkKey($db, $CFG->dbprefix, false, $post);
 
 $valid = verifyKeyAndSecret($post['key'],$row['secret']);
-if ( $valid === false ) {
+if ( $valid !== true ) {
+    print "<pre>\n";
 	print_r($valid);
+    print "</pre>\n";
 	die();
 }
 
