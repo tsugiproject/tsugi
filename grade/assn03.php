@@ -38,7 +38,13 @@ function check($matches) {
 
 $success = true;
 for ( $i=0; $i<5; $i++) {
-    $form = $crawler->selectButton('Play')->form();
+    try {
+        $form = $crawler->selectButton('Play')->form();
+    } catch(Exception $ex) {
+		error_out("Did not find form with a 'Play' button");
+	    $success = false;
+		break;
+	}
     $form['human'] = $i % 3;
 	line_out("Playing ".$names[$i % 3]);
     $crawler = $client->submit($form);
@@ -46,15 +52,17 @@ for ( $i=0; $i<5; $i++) {
     togglePre('Show retrieved page',$html);
 	if ( $displayname !== false ) {
 		try {
-			$h1 = $crawler->filter('h1')->text();
-			line_out("Found h1 tag...");
+			$title = $crawler->filter('title')->text();
+			line_out("Found title tag...");
 		} catch(Exception $ex) {
 			error_out("Did not find title tag");
-			continue;
+		    $success = false;
+			break;
 		}
 		if ( strpos($title,$displayname) === false ) {
 			error_out("Did not find '$displayname' in title tag");
-			continue;
+		    $success = false;
+			break;
 		}
 	}
     
