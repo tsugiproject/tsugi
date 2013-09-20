@@ -3,8 +3,10 @@
 require_once "header.php";
 use Goutte\Client;
 
+line_out("Grading SI664 Assignment 3");
+
 $grade = 0;
-$url = getUrl();
+$url = getUrl('http://www.php-intro.com/assn/games/rps.php');
 
 line_out("Initial page ".htmlent_utf8($url)."...");
 flush();

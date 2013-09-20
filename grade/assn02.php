@@ -3,7 +3,9 @@
 require_once "header.php";
 use Goutte\Client;
 
-$url = getUrl();
+line_out("Grading SI664 Assignment 2");
+
+$url = getUrl('http://csevumich.byethost18.com/howdy.php');
 $grade = 0;
 
 error_log("Grading ".$url);

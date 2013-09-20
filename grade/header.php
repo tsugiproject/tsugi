@@ -7,7 +7,7 @@ session_start();
 require_once "../lib/goutte/vendor/autoload.php";
 require_once "../lib/goutte/Goutte/Client.php";
 
-function getUrl() {
+function getUrl($sample) {
 	global $displayname;
 	if ( isset($_GET['url']) ) return $_GET['url'];
 
@@ -16,7 +16,7 @@ function getUrl() {
 	}
 	echo('<form>
 		Please enter the URL of your web site to grade:<br/>
-		<input type="text" name="url" value="http://csevumich.byethost18.com/howdy.php" size="100"><br/>
+		<input type="text" name="url" value="'.$sample.'" size="100"><br/>
 		<input type="checkbox" name="grade">Send Grade (leave unchecked for a dry run)<br/>
 		<input type="submit" value="Grade">
 		</form>');
