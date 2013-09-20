@@ -45,7 +45,7 @@ for ( $i=0; $i<5; $i++) {
 	    $success = false;
 		break;
 	}
-    $form['human'] = $i % 3;
+    $form['human'] = $i % 3; // Set the drop-down
 	line_out("Playing ".$names[$i % 3]);
     $crawler = $client->submit($form);
     $html = $crawler->html();

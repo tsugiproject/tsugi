@@ -11,9 +11,9 @@ $grade = 0;
 error_log("Grading ".$url);
 line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
-$client = new Client();
 
-do_analytics();
+// http://symfony.com/doc/current/components/dom_crawler.html
+$client = new Client();
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();

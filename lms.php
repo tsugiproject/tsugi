@@ -36,6 +36,7 @@ require_once("lib/lti_util.php");
       "tool_consumer_info_version" => "1.1",
       "tool_consumer_instance_guid" => "lmsng.school.edu",
       "tool_consumer_instance_description" => "University of School (LMSng)",
+      "custom_assn" => "free",
       // 'launch_presentation_return_url' => $cur_url
       );
 

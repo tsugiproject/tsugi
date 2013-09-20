@@ -262,6 +262,7 @@ function adjustData($db, $p, &$row, $post) {
 		$stmt->execute(array(
 			':title' => $post['context_title'],
 			':context_id' => $row['context_id']));
+		$row['context_title'] = $post['context_title'];
 		$actions[] = "=== Updated context=".$row['context_id']." title=".$post['context_title'];
 	}
 
@@ -270,6 +271,7 @@ function adjustData($db, $p, &$row, $post) {
 		$stmt->execute(array(
 			':title' => $post['link_title'],
 			':link_id' => $row['link_id']));
+		$row['link_title'] = $post['link_title'];
 		$actions[] = "=== Updated link=".$row['link_id']." title=".$post['link_title'];
 	}
 
@@ -278,6 +280,7 @@ function adjustData($db, $p, &$row, $post) {
 		$stmt->execute(array(
 			':displayname' => $post['user_displayname'],
 			':user_id' => $row['user_id']));
+		$row['user_displayname'] = $post['user_displayname'];
 		$actions[] = "=== Updated user=".$row['user_id']." displayname=".$post['user_displayname'];
 	}
 
@@ -286,6 +289,7 @@ function adjustData($db, $p, &$row, $post) {
 		$stmt->execute(array(
 			':email' => $post['user_email'],
 			':user_id' => $row['user_id']));
+		$row['user_email'] = $post['user_email'];
 		$actions[] = "=== Updated user=".$row['user_id']." email=".$post['user_email'];
 	}
 
@@ -294,13 +298,14 @@ function adjustData($db, $p, &$row, $post) {
 		$stmt->execute(array(
 			':role' => $post['role'],
 			':membership_id' => $row['membership_id']));
+		$row['role'] = $post['role'];
 		$actions[] = "=== Updated membership=".$row['membership_id']." role=".$post['role'];
 	}
 
 	// Restore ERRMODE
 	$db->setAttribute(PDO::ATTR_ERRMODE, $errormode);
     foreach ($actions as $action) {
-        error_log($action);
+        echo($action);
     }
 	return $actions;
 }

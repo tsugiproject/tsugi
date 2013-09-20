@@ -3,12 +3,10 @@
 require_once "header.php";
 use Goutte\Client;
 
+echo("<p>&nbsp;</p><h4>This is only for fun - everyone gets 100% on this test</h4>\n");
+
 $grade = 0;
-$url = getUrl();
-
-echo("<p>&nbsp;</p><h4>This is not really grading $url - everyone gets 100% on this test</h4>\n");
-
-do_analytics();
+$url = getUrl('http://www.php-intro.com/assn/games/rps.php');
 
 line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
@@ -26,7 +24,7 @@ if ( $displayname ) {
         full credit on actual assignments.</p>\n");
 }
 
-flush();
+// Everyone gets 100%!
 $retval = sendGrade(1.0);
 if ( $retval === true ) {
     success_out("Grade sent to server.");
