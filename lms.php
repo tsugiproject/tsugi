@@ -37,6 +37,11 @@ require_once("lib/lti_util.php");
       "tool_consumer_instance_guid" => "lmsng.school.edu",
       "tool_consumer_instance_description" => "University of School (LMSng)",
       "custom_assn" => "free",
+	  "custom_due" => "2016-12-12 10:00:00.5",
+	  // http://www.php.net/manual/en/timezones.php
+	  "custom_timezone" => "Pacific/Honolulu",
+	  "custom_penalty_time" => "" . 60*60*24,
+	  "custom_penalty_cost" => "0.2"
       // 'launch_presentation_return_url' => $cur_url
       );
 
@@ -92,7 +97,7 @@ function lmsdataToggle() {
   echo("</fieldset><p>");
   echo("<fieldset><legend>Launch Data</legend>\n");
   foreach ($lmsdata as $k => $val ) {
-      echo($k.": <input type=\"text\" name=\"".$k."\" value=\"");
+      echo($k.": <input type=\"text\" size=\"30\" name=\"".$k."\" value=\"");
       echo(htmlspecialchars($val));
       echo("\"><br/>\n");
   }

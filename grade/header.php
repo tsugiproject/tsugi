@@ -7,12 +7,48 @@ session_start();
 require_once "../lib/goutte/vendor/autoload.php";
 require_once "../lib/goutte/Goutte/Client.php";
 
-// CHeck to see if we were launched from LTI, and if so set the 
+// Check to see if we were launched from LTI, and if so set the 
 // displayname varalble for the rest of the code
 $displayname = false;
 if ( isset($_SESSION['lti']) ) {
     $lti = $_SESSION['lti'];
     $displayname = $lti['user_displayname'];
+}
+
+// Check if this has a due date..
+$duedate = false;
+$duedatestr = false;
+$diff = -1;
+$penalty = false;
+if ( isset($_SESSION['due']) ) {
+	date_default_timezone_set('Pacific/Honolulu'); // Lets be generous
+	if ( isset($_SESSION['timezone']) ) {
+		date_default_timezone_set($_SESSION['timezone']);
+	}
+    $duedate = strtotime($_SESSION['due']);
+	if ( $duedate !== false ) {
+		$duedatestr = $_SESSION['due'];
+		//  If it is just a date - add nearly an entire day of time...
+		if ( strlen($duedatestr) <= 10 ) $duedate = $duedate + 24*60*60 - 1;
+		$diff = time() - $duedate;
+	}
+}
+
+// Should be a percentage off between 0.0 and 1.0
+if ( $duedate && $diff > 0 ) {
+	$penalty_time = isset($_SESSION['penalty_time']) ? $_SESSION['penalty_time'] + 0 : 24*60*60;
+	$penalty_cost = isset($_SESSION['penalty_cost']) ? $_SESSION['penalty_cost'] + 0.0 : 0.2;
+	$penalty_exact = $diff / $penalty_time;
+	$penalties = intval($penalty_exact) + 1;
+    $penalty = $penalties * $penalty_cost;
+	if ( $penalty < 0 ) $penalty = 0;
+	if ( $penalty > 1 ) $penalty = 1;
+	$dayspastdue = $diff / (24*60*60);
+	$percent = intval($penalty * 100);
+	echo('<p style="color:red">It is currently '.sprintf("%10.2f",$dayspastdue)." days\n");
+	echo('past the due date ('.htmlentities($duedatestr).') so your penalty is '.$percent." percent.\n");
+	echo("This autograder sends the <em>latest</em> grade <b>not</b> the highest grade. So if you re-send\n");
+	echo("a grade after the due date, your score in the LMS might go down.</p>\n");
 }
 
 function getUrl($sample) {
@@ -139,13 +175,13 @@ function testPassed($grade) {
 	}
 	
 	if ( ! isset($_GET['grade']) ) {
-		line_out('Dry run - no grade sent.');
+		line_out('Dry run - grade of ('.intval($grade*100).'%) was not sent.');
 		exit();
 	}
 
 	$retval = sendGrade($grade);
 	if ( $retval == true ) {
-		$success = "Grade sent to server (100%)";
+		$success = "Grade sent to server (".intval($grade*100)."%)";
 	} else if ( is_string($retval) ) {
 		$failure = "Grade not sent: ".$retval;
 	} else {

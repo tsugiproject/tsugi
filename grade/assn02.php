@@ -43,9 +43,11 @@ if ( strpos($h1, "Dr. Chuck") !== false ) {
 } else if ( strpos($h1, 'Hello') !== false ) {
     $success = "Found 'Hello' in the h1 tag - assignment correct!";
     if ( isset($_GET['grade']) ) {
-		$retval = sendGrade(1.0);
+		$grade = 1.0;
+		if ( $penalty !== false ) $grade = $grade * (1.0 - $penalty);
+		$retval = sendGrade($grade);
 		if ( $retval == true ) {
-			$success = "Grade sent to server (100%)";
+			$success = "Grade sent to server (".intval($grade*100)."%)";
 		} else if ( is_string($retval) ) {
 			$failure = "Grade not sent: ".$retval;
         } else {

@@ -5,6 +5,7 @@ require_once 'lti_db.php';
 
 $post = extractPost();
 if ( $post === false ) {
+	error_log("Missing post data");
 	die("Missing data");
 }
 $session_id = getCompositeKey($post, $CFG->sessionsalt);
@@ -16,6 +17,7 @@ try {
 	$db = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $ex){
+	error_log("DB connection: "+$ex->getMessage());
 	die($ex->getMessage());
 }
 
@@ -24,6 +26,7 @@ $row = checkKey($db, $CFG->dbprefix, false, $post);
 
 $valid = verifyKeyAndSecret($post['key'],$row['secret']);
 if ( $valid !== true ) {
+	error_log("Key / Secret fail key=".$post['key']);
     print "<pre>\n";
 	print_r($valid);
     print "</pre>\n";
@@ -51,6 +54,42 @@ flush();
 $url = 'grade/free.php';
 if ( isset($_POST['custom_assn'] ) ) {
     $url = 'grade/'.$_POST['custom_assn'].'.php';
+    $_SESSION['assn'] = $_POST['custom_assn'];
+}
+
+if ( isset($_POST['custom_due'] ) ) {
+	$when = strtotime($_POST['custom_due']);
+	if ( $when === false ) {
+		echo("<p>Error, bad setting for custom_due=".htmlentities($_POST['custom_due'])."</p>");
+		error_log("Bad custom_due=".$_POST['custom_due']);
+		flush();
+	} else {
+		$_SESSION['due'] = $_POST['custom_due'];
+	}
+}
+
+if ( isset($_POST['custom_timezone'] ) ) {
+	$_SESSION['timezone'] = $_POST['timezone'];
+}
+
+if ( isset($_POST['custom_penalty_time'] ) ) {
+	if ( $_POST['custom_penalty_time'] + 0 == 0 ) {
+		echo("<p>Error, bad setting for custom_penalty_time=".htmlentities($_POST['custom_penalty_time'])."</p>");
+		error_log("Bad custom_penalty_time=".$_POST['custom_penalty_time']);
+		flush();
+	} else {
+		$_SESSION['penalty_time'] = $_POST['custom_penalty_time'];
+	}
+}
+
+if ( isset($_POST['custom_penalty_cost'] ) ) {
+	if ( $_POST['custom_penalty_cost'] + 0 == 0 ) {
+		echo("<p>Error, bad setting for custom_penalty_cost=".htmlentities($_POST['custom_penalty_cost'])."</p>");
+		error_log("Bad custom_penalty_cost=".$_POST['custom_penalty_cost']);
+		flush();
+	} else {
+		$_SESSION['penalty_cost'] = $_POST['custom_penalty_cost'];
+	}
 }
 
 $query = false;
