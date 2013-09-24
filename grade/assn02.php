@@ -38,27 +38,13 @@ if ( $displayname && strpos($h1,$displayname) !== false ) {
 
 $success = "";
 $failure = "";
+$grade = 0.0;
+
 if ( strpos($h1, "Dr. Chuck") !== false ) {
     $failure = "You need to put your own name in the h1 tag - assignment not complete!";
 } else if ( strpos($h1, 'Hello') !== false ) {
     $success = "Found 'Hello' in the h1 tag - assignment correct!";
-    if ( isset($_GET['grade']) ) {
-		$grade = 1.0;
-		if ( $penalty !== false ) $grade = $grade * (1.0 - $penalty);
-		$retval = sendGrade($grade);
-		if ( $retval == true ) {
-			$success = "Grade sent to server (".intval($grade*100)."%)";
-		} else if ( is_string($retval) ) {
-			$failure = "Grade not sent: ".$retval;
-        } else {
-            echo("<pre>\n");
-            var_dump($retval);
-            echo("</pre>\n");
-            $failure = "Internal error";
-        }
-	} else {
-		$success = "Test run only - grade not sent to server";
-	}
+	$grade = 1.0;
 } else {
     $failure = "Did not find 'Hello' in the h1 tag - assignment not complete!";
 }
@@ -69,7 +55,12 @@ if ( strlen($success) > 0 ) {
 } else if ( strlen($failure) > 0 ) {
     error_out($failure);
     error_log($failure);
+    exit();
 } else {
     error_log("No status");
+    exit();
 }
 
+// Send grade
+if ( $penalty !== false ) $grade = $grade * (1.0 - $penalty);
+if ( $grade > 0.0 ) testPassed($grade);

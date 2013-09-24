@@ -87,8 +87,8 @@ if ( ! $success ) {
     exit();
 }
 
-// Attempt to send a grade if requested
+// Send a grade if requested
 $grade = 1.0;
 if ( $penalty !== false ) $grade = $grade * (1.0 - $penalty);
-testPassed($grade);
+if ( $grade > 0.0 ) testPassed($grade);
 
