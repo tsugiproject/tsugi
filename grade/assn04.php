@@ -196,10 +196,13 @@ $url = $link->getURI();
 $passed++;
 
 } catch (Exception $ex) {
-    echo("<pre>\n");
-    echo('Caught exception: '.$e->getMessage()."\n");
-    echo($e->getTraceAsString());
-    echo("</pre>\n");
+    error_out("The autograder did not find something it was looking for in your HTML - test ended.");
+    error_log($ex->getMessage());
+    error_log($ex->getTraceAsString());
+    $detail = "This indicates the source code line where the test stopped.\n" .
+        "It may not make any sense without looking at the source code for the test.\n".
+        'Caught exception: '.$ex->getMessage()."\n".$ex->getTraceAsString()."\n";
+    togglePre("Internal error detail.",$detail);
 }
 
 // There is a maximum of 20 passes for this test
