@@ -48,6 +48,9 @@ IMS Learning Tools Interoperability.
 </p>
 <p>
 You can simulate an IMS LTI launch to this tool using <a href="lms.php">this link</a>.
+To use this feature, you will need to set up the database connection and run the 
+<strong>setup.sql</strong>
+script.
 <p>
 The source for this autograder is available at
 <a href="https://github.com/csev/webauto" target="_new">GitHub</a> and is

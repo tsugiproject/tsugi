@@ -1,0 +1,14 @@
+To set up the database for this application,
+
+(1) Copy config-dist.php to config.php and update the values
+
+(2) Run the setup.sql to create the tables and populate the
+initial key.
+
+You can change the secret from '12345' to anything you like. 
+If you want to change the key - also do a new SHA256 calculation as
+that is used as the indexed logical key.  There are many SHA256
+calculators on the web.
+
+/Chuck
+Mon Sep 30 20:46:13 EDT 2013

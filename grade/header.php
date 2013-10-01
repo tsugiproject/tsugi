@@ -204,7 +204,8 @@ function testPassed($grade) {
 }
 
 function checkTitle($crawler) {
-    if ( $displayname === true ) return true;
+    global $displayname;
+    if ( $displayname === false ) return true;
 
     try {
         $title = $crawler->filter('title')->text();

@@ -827,8 +827,8 @@ function post_socket($endpoint, $data, $moreheaders=false) {
 
     $uri = "/";
     if ( isset($url['path'])) $uri = $url['path'];
-    if ( strlen($url['query']) > 0 ) $uri .= '?'.$url['query'];
-    if ( strlen($url['fragment']) > 0 ) $uri .= '#'.$url['fragment'];
+    if ( isset($url['query']) ) $uri .= '?'.$url['query'];
+    if ( isset($url['fragment']) ) $uri .= '#'.$url['fragment'];
 
     $headers =  "POST ".$uri." HTTP/1.0".$eol.
                 "Host: ".$url['host'].$hostport.$eol.
