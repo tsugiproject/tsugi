@@ -51,9 +51,9 @@ flush();
 */
 
 // See if we have a custom assignment setting.
-$url = 'grade/free.php';
+$url = $CFG->folder . '/free.php';
 if ( isset($_POST['custom_assn'] ) ) {
-    $url = 'grade/'.$_POST['custom_assn'].'.php';
+    $url = $CFG->folder . '/'.$_POST['custom_assn'].'.php';
     $_SESSION['assn'] = $_POST['custom_assn'];
 }
 

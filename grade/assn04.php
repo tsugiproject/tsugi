@@ -1,9 +1,9 @@
 <?php
 
-require_once "header.php";
+require_once "../lib/header.php";
 use Goutte\Client;
 
-line_out("Grading SI664 Assignment 4");
+line_out("Grading PHP-Intro Assignment 4");
 
 $url = getUrl('http://www.php-intro.com/assn/cart');
 $grade = 0;
@@ -12,17 +12,15 @@ error_log("ASSN04 ".$url);
 line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
 
-// http://api.symfony.com/2.3/Symfony/Component/BrowserKit.html
 $client = new Client();
 
 $crawler = $client->request('GET', $url);
 
-//  Yes, one gigantic unindented try/catch block
+// Yes, one gigantic unindented try/catch block
 $passed = 0;
 $titlepassed = true;
 try {
-// http://symfony.com/doc/current/components/dom_crawler.html
-// http://api.symfony.com/2.3/Symfony/Component/DomCrawler/Crawler.html
+
 $html = $crawler->html();
 togglePre("Show retrieved page",$html);
 

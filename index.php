@@ -1,12 +1,13 @@
-<?php
-require_once "setup.php";
+<?php require_once "setup.php";
 require_once "config.php";
 ?>
 <html>
 <head>
 </head>
 <body style="font: sans-serif;">
-<h1>Welcome to SI664 Prototype Web Autograder</h1>
+<h1>Welcome to 
+<?php echo($CFG->servicename); ?>
+Autograder</h1>
 <p>
 This is a simple autograder that runs a set of unit tests on a web site
 and then determines if a web site passes the unit tests. 
@@ -16,12 +17,12 @@ Assignment 2 URL to grade:
 <input type="text" name="url" value="http://csevumich.byethost18.com/howdy.php" size="100">
 <input type="submit">
 </form>
-<form action="grade/assn03.php" target="_blank">
+<form action="<?php echo($CFG->folder); ?>/assn03.php" target="_blank">
 Assignment 3 URL to grade:
 <input type="text" name="url" value="http://www.php-intro.com/assn/games/rps.php" size="100">
 <input type="submit">
 </form>
-<form action="grade/assn04.php" target="_blank">
+<form action="<?php echo($CFG->folder); ?>/assn04.php" target="_blank">
 Assignment 4 URL to grade:
 <input type="text" name="url" value="http://www.php-intro.com/assn/cart/" size="100">
 <input type="submit">

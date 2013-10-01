@@ -1,9 +1,9 @@
 <?php
 
-require_once "header.php";
+require_once "../lib/header.php";
 use Goutte\Client;
 
-line_out("Grading SI664 Assignment 3");
+line_out("Grading PHP-Intro Assignment 3");
 
 $grade = 0;
 $url = getUrl('http://www.php-intro.com/assn/games/rps.php');

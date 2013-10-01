@@ -1,6 +1,6 @@
 <?php
 
-require_once "header.php";
+require_once "../lib/header.php";
 use Goutte\Client;
 
 echo("<p>&nbsp;</p><h4>This is only for fun - everyone gets 100% on this test</h4>\n");
