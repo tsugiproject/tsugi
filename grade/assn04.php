@@ -20,7 +20,6 @@ $crawler = $client->request('GET', $url);
 // http://symfony.com/doc/current/components/dom_crawler.html
 // http://api.symfony.com/2.3/Symfony/Component/DomCrawler/Crawler.html
 $html = $crawler->html();
-line_out("Retrieved ".strlen($html)." characters.");
 togglePre("Show retrieved page",$html);
 
 line_out("Looking for login link.");
@@ -30,19 +29,36 @@ line_out("Retrieving ".htmlent_utf8($url)."...");
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-line_out("Retrieved ".strlen($html)." characters.");
 togglePre("Show retrieved page",$html);
 
+// Log in fail
 line_out("Looking for the form with a 'Log In' submit button");
-// http://api.symfony.com/2.3/Symfony/Component/BrowserKit
 $form = $crawler->selectButton('Log In')->form();
 // var_dump($form->getPhpValues());
-line_out("Setting the account and pw fields in the form");
+line_out("Setting bad account and pw fields in the form");
+$form->setValues(array("account" => "bob", "pw" => "hellokitty"));
+$crawler = $client->submit($form);
+
+$html = $crawler->html();
+togglePre("Show retrieved page",$html);
+
+line_out("Checking to see if there was a POST redirect to a GET");
+$method = $client->getRequest()->getMethod();
+if ( $method != "get" ) {
+    error_out('Expecting POST to Redirect to GET - found '.$method);
+}
+
+line_out("Looking for a red 'Incorrect password' message");
+if ( strpos($html, 'Incorrect password') === false ) {
+    error_out("Could not find 'Incorrect password'");
+}
+
+// Log in correctly
+line_out("Setting the correct account and pw fields in the form");
 $form->setValues(array("account" => "bob", "pw" => "umsi"));
 $crawler = $client->submit($form);
 
 $html = $crawler->html();
-line_out("Retrieved ".strlen($html)." characters.");
 togglePre("Show retrieved page",$html);
 
 line_out("Looking for a green 'Logged in' message");
@@ -56,7 +72,6 @@ line_out("Setting the sugar, spice, and vanilla fields in the form");
 $form->setValues(array("sugar" => "1", "spice" => "2", "vanilla" => "3"));
 $crawler = $client->submit($form);
 $html = $crawler->html();
-line_out("Retrieved ".strlen($html)." characters.");
 togglePre("Show retrieved page",$html);
 
 line_out("Checking to see if there was a POST redirect to a GET");
@@ -79,7 +94,6 @@ $url = $client->getRequest()->getUri();
 line_out("Doing a refresh (GET) of ".htmlentities($url));
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-line_out("Retrieved ".strlen($html)." characters.");
 togglePre("Show retrieved page",$html);
 
 line_out("Looking for the absence of a green 'Logged in' message");
@@ -101,7 +115,6 @@ line_out("Setting the sugar=0, spice=$spice, and vanilla=0 in the form");
 $form->setValues(array("sugar" => "0", "spice" => $spice, "vanilla" => "0"));
 $crawler = $client->submit($form);
 $html = $crawler->html();
-line_out("Retrieved ".strlen($html)." characters.");
 togglePre("Show retrieved page",$html);
 
 line_out("Checking to see if there was a POST redirect to a GET");
@@ -134,7 +147,6 @@ $url = $link->getURI();
 line_out("Retrieving ".htmlent_utf8($url)."...");
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-line_out("Retrieved ".strlen($html)." characters.");
 togglePre("Show retrieved page",$html);
 
 line_out("Looking for login link.");

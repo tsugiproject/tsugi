@@ -27,11 +27,27 @@ Assignment 4 URL to grade:
 <input type="submit">
 </form>
 <p>
+Here is some documentation on the software used to build these unit tests:
+<ul>
+<li><a href="http://symfony.com/doc/current/components/dom_crawler.html" target="_new">
+http://symfony.com/doc/current/components/dom_crawler.html
+</a></li>
+<li><a href="http://api.symfony.com/2.3/Symfony/Component/BrowserKit.html" target="_new">
+http://api.symfony.com/2.3/Symfony/Component/BrowserKit.html
+</a></li>
+<li><a href="http://api.symfony.com/2.3/Symfony/Component/DomCrawler/Crawler.html" target="_new">
+http://api.symfony.com/2.3/Symfony/Component/DomCrawler/Crawler.html
+</a></li>
+</ul>
+</p>
+<p>
 This tool can use IMS Learning Tools Interoperability to pass the grades back to a LMS.
 If you are using this particlaur page, no grades will be sent to an LMS.  To have grade routing back
 to an LMS, you need to launch this software using an LMS that supports 
 IMS Learning Tools Interoperability.
 </p>
+<p>
+You can simulate an IMS LTI launch to this tool using <a href="lms.php">this link</a>.
 <p>
 The source for this autograder is available at
 <a href="https://github.com/csev/webauto" target="_new">GitHub</a> and is

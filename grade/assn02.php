@@ -17,7 +17,6 @@ $client = new Client();
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-line_out("Retrieved ".strlen($html)." characters.");
 togglePre("Show retrieved page",$html);
 
 line_out("Searching for h1 tag...");
