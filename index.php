@@ -21,6 +21,11 @@ Assignment 3 URL to grade:
 <input type="text" name="url" value="http://www.php-intro.com/assn/games/rps.php" size="100">
 <input type="submit">
 </form>
+<form action="grade/assn04.php" target="_blank">
+Assignment 4 URL to grade:
+<input type="text" name="url" value="http://www.php-intro.com/assn/cart/" size="100">
+<input type="submit">
+</form>
 <p>
 This tool can use IMS Learning Tools Interoperability to pass the grades back to a LMS.
 If you are using this particlaur page, no grades will be sent to an LMS.  To have grade routing back

@@ -202,6 +202,19 @@ function testPassed($grade) {
 	}
 }
 
+function checkTitle($crawler) {
+    if ( $displayname === true ) return true;
+
+    try {
+        $title = $crawler->filter('title')->text();
+    } catch(Exception $ex) {
+        return "Did not find title tag";
+    }
+    if ( strpos($title,$displayname) === false ) {
+        return "Did not find '$displayname' in title tag";
+    }
+    return true;
+}
 
 ?><html>
 <head>
