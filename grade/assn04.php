@@ -179,9 +179,22 @@ if ( $order_total == $good_total ) {
     error_out("Order total of $order_total does not match expected $good_total");
 }
 
-line_out("Looking for Logout link.");
-$link = $crawler->selectLink('Logout')->link();
-$url = $link->getURI();
+line_out("Looking for Logout Button.");
+try {
+    $logout = $crawler->selectButton('Logout');
+    $onclick = $logout->attr('onclick');
+    var_dump($logout);
+    preg_match("/.*location.*=.*'(.*?)'/",$onclick,$matches);
+    if ( count($matches) == 2 ) {
+        $url = $matches[1];
+    }
+} catch (Exception $ex) {
+    $url = false;
+    line_out("Looking for Logout Anchor Tag.");
+    $link = $crawler->selectLink('Logout')->link();
+    $url = $link->getURI();
+}
+
 line_out("Retrieving ".htmlent_utf8($url)."...");
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
