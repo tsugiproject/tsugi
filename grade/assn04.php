@@ -183,7 +183,6 @@ line_out("Looking for Logout Button.");
 try {
     $logout = $crawler->selectButton('Logout');
     $onclick = $logout->attr('onclick');
-    var_dump($logout);
     preg_match("/.*location.*=.*'(.*?)'/",$onclick,$matches);
     if ( count($matches) == 2 ) {
         $url = $matches[1];
