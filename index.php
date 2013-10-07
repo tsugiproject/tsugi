@@ -6,8 +6,7 @@ require_once "config.php";
 </head>
 <body style="font: sans-serif;">
 <h1>Welcome to 
-<?php echo($CFG->servicename); ?>
-Autograder</h1>
+<?php echo($CFG->servicename); ?> Autograder</h1>
 <p>
 This is a simple autograder that runs a set of unit tests on a web site
 and then determines if a web site passes the unit tests. 
@@ -25,6 +24,11 @@ Assignment 3 URL to grade:
 <form action="<?php echo($CFG->folder); ?>/assn04.php" target="_blank">
 Assignment 4 URL to grade:
 <input type="text" name="url" value="http://www.php-intro.com/assn/cart/" size="100">
+<input type="submit">
+</form>
+<form action="<?php echo($CFG->folder); ?>/assn05.php" target="_blank">
+Assignment 5 URL to grade:
+<input type="text" name="url" value="http://www.php-intro.com/assn/tracks" size="100">
 <input type="submit">
 </form>
 <p>
