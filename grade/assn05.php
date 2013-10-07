@@ -192,8 +192,7 @@ while (True ) {
     togglePre("Internal error detail.",$detail);
 }
 
-// There is a maximum of 20 passes for this test
-$perfect = 20;
+$perfect = 16;
 $score = $passed * (1.0 / $perfect);
 if ( $score < 0 ) $score = 0;
 if ( $score > 1 ) $score = 1;

@@ -166,6 +166,7 @@ if ( strpos($html, 'Logged in') === false ) {
 line_out("Looking for 'Order total:'");
 preg_match('/Order total: ([0-9.]*)/',$html,$matches);
 // print_r($matches);
+$order_total = 0.0;
 if ( count($matches) == 2 ) {
     $order_total = $matches[1] + 0.0;
     line_out("Found order total = ".$order_total." (".$matches[1].")");
