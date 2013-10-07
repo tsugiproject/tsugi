@@ -151,7 +151,7 @@ checkPostRedirect($client);
 
 line_out("Making sure '$title' has been deleted");
 if ( strpos($html,$title) > 0 ) {
-    line_error("Entry '$title' not deleted");
+    error_out("Entry '$title' not deleted");
 } else {
     $passed++;
 }
@@ -182,6 +182,66 @@ while (True ) {
     checkPostRedirect($client);
 }
 
+line_out("Testing for HTML injection (proper use of htmlentities)...");
+line_out("Looking for Add New link.");
+$link = $crawler->selectLink('Add New')->link();
+$url = $link->getURI();
+line_out("Retrieving ".htmlent_utf8($url)."...");
+
+$crawler = $client->request('GET', $url);
+$html = $crawler->html();
+togglePre("Show retrieved page",$html);
+$passed++;
+
+line_out("Looking for the form with a 'Add New' submit button");
+$form = $crawler->selectButton('Add New')->form();
+$title = 'AC<DC'.sprintf("%03d",rand(1,100));
+$plays = rand(1,100);
+$rating = rand(1,100);
+line_out("Entering title=$title, plays=$plays, rating=$rating");
+$form->setValues(array("title" => $title, "plays" => $plays, "rating" => $rating));
+$crawler = $client->submit($form);
+$passed++;
+
+$html = $crawler->html();
+togglePre("Show retrieved page",$html);
+checkPostRedirect($client);
+
+$pos = strpos($html, "AC&lt;DC");
+if ( $pos > 0 ) {
+    $passed+=2;
+} else {
+    error_out("Found HTML Injection");
+    throw new Exception("Found HTML Injection");
+}
+$pos2 = strpos($html, "delete.php", $pos);
+line_out("Looking for delete.php link associated with '$title' entry");
+$pos3 = strpos($html, '"', $pos2);
+$editlink = substr($html,$pos2,$pos3-$pos2);
+line_out("Retrieving ".htmlent_utf8($editlink)."...");
+
+$crawler = $client->request('GET', $editlink);
+$html = $crawler->html();
+togglePre("Show retrieved page",$html);
+$passed++;
+
+$pos = strpos($html, "AC&lt;DC");
+if ( $pos > 0 ) {
+    $passed+=2;
+} else {
+    error_out("Found HTML Injection");
+    throw new Exception("Found HTML Injection");
+}
+
+line_out("Looking for the form with a 'Delete' submit button");
+$form = $crawler->selectButton('Delete')->form();
+$crawler = $client->submit($form);
+$html = $crawler->html();
+togglePre("Show retrieved page",$html);
+$passed++;
+checkPostRedirect($client);
+
+
 } catch (Exception $ex) {
     error_out("The autograder did not find something it was looking for in your HTML - test ended.");
     error_log($ex->getMessage());
@@ -192,7 +252,7 @@ while (True ) {
     togglePre("Internal error detail.",$detail);
 }
 
-$perfect = 16;
+$perfect = 26;
 $score = $passed * (1.0 / $perfect);
 if ( $score < 0 ) $score = 0;
 if ( $score > 1 ) $score = 1;
