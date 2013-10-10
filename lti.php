@@ -1,7 +1,8 @@
 <?php 
 require_once 'setup.php';
 require_once 'config.php';
-require_once 'lti_db.php';
+require_once 'db.php';
+require_once 'lib/lti_db.php';
 
 $post = extractPost();
 if ( $post === false ) {
@@ -12,14 +13,6 @@ $session_id = getCompositeKey($post, $CFG->sessionsalt);
 session_id($session_id);
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
-
-try {
-	$db = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $ex){
-	error_log("DB connection: "+$ex->getMessage());
-	die($ex->getMessage());
-}
 
 // $row = checkKey($db, $CFG->dbprefix, "sample_profile", $post);
 $row = checkKey($db, $CFG->dbprefix, false, $post);

@@ -32,9 +32,11 @@ IMS Learning Tools Interoperability:
 * http://developers.imsglobal.org/
 * https://vimeo.com/34168694
 
-Goutte:
+Goutte and BrowserKit:
 
 * https://github.com/fabpot/Goutte
+* http://api.symfony.com/2.3/Symfony/Component/BrowserKit.html
+* http://api.symfony.com/2.3/Symfony/Component/DomCrawler/Crawler.html
 
 As part of this code development, I am re-working the IMS LTI code 
 to be (a) scalable, multi-tenant-aware, and more elegant and (b) 
