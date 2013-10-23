@@ -60,7 +60,7 @@ function getCompositeKey($post, $secret) {
 
 // Returns as much as we have in all the tables
 // Assume..  $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-function checkKey($db, $p, $profile_table, $post) {
+function loadAllData($db, $p, $profile_table, $post) {
 	$errormode = $db->getAttribute(PDO::ATTR_ERRMODE);
 	$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$sql = "SELECT k.key_id, k.key_key, k.secret, c.context_id, c.title AS context_title, 

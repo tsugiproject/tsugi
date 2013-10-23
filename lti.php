@@ -4,19 +4,30 @@ require_once 'config.php';
 require_once 'db.php';
 require_once 'lib/lti_db.php';
 
+// Pull LTI data out of the incoming $_POST and map into the same
+// keys that we use in our database (i.e. like $row)
 $post = extractPost();
 if ( $post === false ) {
 	error_log("Missing post data");
 	die("Missing data");
 }
+
+// We make up a Session ID Key because we don't want a new one
+// each time the same user launches the same link.
 $session_id = getCompositeKey($post, $CFG->sessionsalt);
 session_id($session_id);
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
 
-// $row = checkKey($db, $CFG->dbprefix, "sample_profile", $post);
-$row = checkKey($db, $CFG->dbprefix, false, $post);
+// Read all of the data from the database with a very long
+// LEFT JOIN and get all the dat we have back in the $row variable
+$row = loadAllData($db, $CFG->dbprefix, false, $post);
 
+// Add a LEFT JOIN on the profile table
+// $row = checkKey($db, $CFG->dbprefix, "sample_profile", $post);
+
+// Use returned data to check the OAuth signature on the
+// incoming data
 $valid = verifyKeyAndSecret($post['key'],$row['secret']);
 if ( $valid !== true ) {
 	error_log("Key / Secret fail key=".$post['key']);
@@ -32,21 +43,11 @@ $actions = adjustData($db, $CFG->dbprefix, $row, $post);
 // TODO: do AES on the secret
 $_SESSION['lti'] = $row;
 
-/*
-print "\n<pre>\nRaw POST Parameters:\n\n";
-ksort($_POST);
-foreach($_POST as $key => $value ) {
-    if (get_magic_quotes_gpc()) $value = stripslashes($value);
-    print htmlentities($key) . "=" . htmlentities($value) . " (".mb_detect_encoding($value).")\n";
-}
-print "\n</pre>\n";
-flush();
-*/
-
 // See if we have a custom assignment setting.
-$url = $CFG->folder . '/free.php';
+$url = 'mod/php-intro/custom.php';
 if ( isset($_POST['custom_assn'] ) ) {
-    $url = $CFG->folder . '/'.$_POST['custom_assn'].'.php';
+    $url = $_POST['custom_assn'];
+	if ( strpos('mod/',$url) === false ) $url = 'mod/php-intro/'.$url.'.php';  // Compatiblity
     $_SESSION['assn'] = $_POST['custom_assn'];
 }
 

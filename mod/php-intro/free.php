@@ -1,6 +1,7 @@
 <?php
 
-require_once "../lib/header.php";
+require_once "../../config.php";
+require_once $CFG->dirroot."/lib/header.php";
 use Goutte\Client;
 
 echo("<p>&nbsp;</p><h4>This is only for fun - everyone gets 100% on this test</h4>\n");

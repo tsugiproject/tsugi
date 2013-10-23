@@ -1,11 +1,11 @@
 <?php
-require_once "../setup.php";
-include_once "../lib/lti_util.php";
+require_once $CFG->dirroot."/setup.php";
+include_once $CFG->dirroot."/lib/lti_util.php";
 
 session_start();
 
-require_once "../lib/goutte/vendor/autoload.php";
-require_once "../lib/goutte/Goutte/Client.php";
+require_once $CFG->dirroot."/lib/goutte/vendor/autoload.php";
+require_once $CFG->dirroot."/lib/goutte/Goutte/Client.php";
 
 // Check to see if we were launched from LTI, and if so set the 
 // displayname varalble for the rest of the code

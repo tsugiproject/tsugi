@@ -38,7 +38,7 @@ require_once("lib/lti_util.php");
       "tool_consumer_info_version" => "1.1",
       "tool_consumer_instance_guid" => "lmsng.ischool.edu",
       "tool_consumer_instance_description" => "University of Information",
-      "custom_assn" => "free",
+      "custom_assn" => "mod/php-intro/free.php",
 	  "custom_due" => "2016-12-12 10:00:00.5",
 	  // http://www.php.net/manual/en/timezones.php
 	  "custom_timezone" => "Pacific/Honolulu",
