@@ -14,13 +14,16 @@ session_start();
 <p>This is a very simple reference implementation of the 
 LMS side (i.e. consumer) for 
 <a href="http://developers.imsglobal.org/" target="_blank">IMS Learning 
-Tools Interoperability</a>.</p>
+Tools Interoperability</a>.
+Change the <b>custom_assn</b> field below to choose which tool you would like to launch.
+</p>
 <?php
 require_once("lib/lti_util.php");
 
     $cur_url = curPageURL();
 
     $lmsdata = array(
+      "custom_assn" => "mod/php-intro/free.php",
       "resource_link_id" => "120988f929-274612",
       "resource_link_title" => "Weekly Blog",
       "resource_link_description" => "A weekly blog.",
@@ -38,7 +41,6 @@ require_once("lib/lti_util.php");
       "tool_consumer_info_version" => "1.1",
       "tool_consumer_instance_guid" => "lmsng.ischool.edu",
       "tool_consumer_instance_description" => "University of Information",
-      "custom_assn" => "mod/php-intro/free.php",
 	  "custom_due" => "2016-12-12 10:00:00.5",
 	  // http://www.php.net/manual/en/timezones.php
 	  "custom_timezone" => "Pacific/Honolulu",

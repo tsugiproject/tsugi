@@ -7,7 +7,6 @@ $CFG = new stdClass();
 // No trailing slash
 $CFG->wwwroot = 'http://localhost/~csev/webauto';
 $CFG->dirroot = realpath(dirname(__FILE__));
-$CFG->folder = 'grade'; // Assignments folder
 $CFG->servicename = 'PHP-Intro';
 
 
