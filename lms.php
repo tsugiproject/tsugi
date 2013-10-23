@@ -91,7 +91,7 @@ function lmsdataToggle() {
   echo("<form method=\"post\">\n");
   echo("<input type=\"submit\" name=\"launch\" value=\"Launch\">\n");
   echo("<input type=\"submit\" name=\"debug\" value=\"Debug Launch\">\n");
-echo('<input type="submit" onclick="javascript:lmsdataToggle();return false;" value="Toggle Input Data">');
+echo('<input type="submit" onclick="javascript:lmsdataToggle();return false;" value="Toggle Launch Data">');
   if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
     echo("<div id=\"lmsDataForm\" style=\"display:none\">\n");
   } else {
