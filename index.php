@@ -24,9 +24,11 @@ This tool can use IMS Learning Tools Interoperability to pass the grades back to
 If you are using this particlaur page, no grades will be sent to an LMS.  To have grade routing back
 to an LMS, you need to launch this software using an LMS that supports 
 IMS Learning Tools Interoperability.
-You can simulate an IMS LTI launch to this tool using <a href="lms.php">this link</a>.
-To use this feature, you will need to set up the database connection and run the 
-<strong>setup.sql</strong>
+<p></p>
+You can simulate an IMS LTI launch to this tool using 
+<a href="lms.php">this link</a>.
+To use this feature, you will need to set up the database connection and 
+run the database commands in the file <strong>setup.sql</strong>
 script.
 <p>
 For more information on IMS LTI, see these links:
