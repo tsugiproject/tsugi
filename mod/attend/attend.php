@@ -96,16 +96,18 @@ echo('<input type="submit" name="send" value="Record attendance"><br/>');
 echo("\n</form>\n");
 
 if ( $instructor ) {
-	$stmt = $db->prepare("SELECT user_id,attend FROM {$p}attend 
+	$stmt = $db->prepare("SELECT user_id,attend,ipaddr FROM {$p}attend 
 			WHERE link_id = :LI ORDER BY attend DESC, user_id");
 	$stmt->execute(array(':LI' => $LTI['link_id']));
 	echo('<table border="1">'."\n");
-	echo("<tr><th>User</th><th>Attendance</th></tr>\n");
+	echo("<tr><th>User</th><th>Attendance</th><th>IP Address</th></tr>\n");
 	while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
 		echo "<tr><td>";
 		echo($row['user_id']);
 		echo("</td><td>");
 		echo($row['attend']);
+		echo("</td><td>");
+		echo(htmlentities($row['ipaddr']));
 		echo("</td></tr>\n");
 	}
 	echo("</table>\n");

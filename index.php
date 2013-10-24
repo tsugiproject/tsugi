@@ -17,6 +17,7 @@ This framework is designed to host many tools.  Here are the tools that are
 currently present in this instance:
 <ul>
 <li><a href="mod/php-intro">An autograder that runs unit tests on web sites</a></li>
+<li>An attendance taking application</li>
 </ul>
 <p>
 This tool can use IMS Learning Tools Interoperability to pass the grades back to a LMS.
