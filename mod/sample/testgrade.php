@@ -11,7 +11,7 @@ if ( isset($_POST['grade']) )  {
 	$gradetosend = $_POST['grade'] + 0.0;
 	if ( $gradetosend < 0.0 || $gradetosend > 1.0 ) {
 		$_SESSION['error'] = "Grade out of range";
-		header('Location: test.php?'.session_name().'='.session_id());
+		header('Location: testgrade.php?'.session_name().'='.session_id());
 		return;
 	}
 
@@ -30,7 +30,7 @@ if ( isset($_POST['grade']) )  {
 	}
 
 	// Redirect to ourself with the session ID as a GET parameter.
-    header('Location: test.php?'.session_name().'='.session_id());
+    header('Location: testgrade.php?'.session_name().'='.session_id());
 	return;
 }
 ?>
