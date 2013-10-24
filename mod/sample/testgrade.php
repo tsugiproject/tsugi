@@ -49,10 +49,9 @@ if ( isset($_SESSION['success']) ) {
 }
 
 if ( $displayname ) {
-    echo("<p>This is your name as known in the LMS:<br/><strong>\n");
+    echo("<p>Welcome <strong>\n");
     echo(htmlent_utf8($displayname));
-    echo("</strong><br/>\nYou will want to use this name in your web pages to get 
-        full credit on actual assignments.</p>\n");
+	echo("</strong></p>\n");
 }
 
 if ( isset($_SESSION['gradetosend']) ) {
@@ -80,7 +79,7 @@ Enter grade:
 </form>
 <?php
 
-echo("<p>The key in the webauto_lti_result is:".$_SESSION['lti']['result_id']."</p>\n");
+echo('<p>$_SESSION["lti"]["result_id"] is: '.$_SESSION['lti']['result_id']."</p>\n");
 
 echo("<p>Here is the session information:\n<pre>\n");
 var_dump($_SESSION);

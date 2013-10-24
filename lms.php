@@ -41,7 +41,7 @@ $learnerdata = array(
 );
 
 $lmsdata = array(
-      "custom_assn" => "mod/php-intro/free.php",
+      "custom_assn" => "mod/sample/testgrade.php",
       "roles" => "Instructor",  // or Learner
       "lis_person_name_full" => 'Jane Q. Public',
       "lis_person_name_family" => 'Public',

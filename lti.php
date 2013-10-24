@@ -18,6 +18,11 @@ session_id($session_id);
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
 
+// Since we might reuse session IDs, clean it out
+foreach($_SESSION as $k => $v ) {
+	unset($_SESSION[$k]);
+}
+
 // Read all of the data from the database with a very long
 // LEFT JOIN and get all the dat we have back in the $row variable
 $row = loadAllData($db, $CFG->dbprefix, false, $post);
