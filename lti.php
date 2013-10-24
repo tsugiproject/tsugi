@@ -62,7 +62,7 @@ if ( isset($_POST['custom_due'] ) ) {
 }
 
 if ( isset($_POST['custom_timezone'] ) ) {
-	$_SESSION['timezone'] = $_POST['timezone'];
+	$_SESSION['timezone'] = $_POST['custom_timezone'];
 }
 
 if ( isset($_POST['custom_penalty_time'] ) ) {

@@ -6,7 +6,7 @@ use Goutte\Client;
 
 line_out("Grading PHP-Intro Assignment 5");
 
-$url = getUrl('http://www.php-intro.com/assn/cart');
+$url = getUrl('http://www.php-intro.com/assn/tracks');
 $grade = 0;
 
 error_log("ASSN05 ".$url);
@@ -44,7 +44,7 @@ $passed++;
 // Add new fail
 line_out("Looking for the form with a 'Add New' submit button");
 $form = $crawler->selectButton('Add New')->form();
-line_out("Setting non-integer values in plays and rating and leaving title blank");
+line_out("Setting non-integer values in the plays and rating form fields and leaving title blank");
 $form->setValues(array("plays" => "many", "rating" => "awesome"));
 $crawler = $client->submit($form);
 $passed++;
