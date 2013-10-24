@@ -36,6 +36,15 @@ if ( isset($_POST['code']) && $instructor ) {
     return;
 } else if ( isset($_POST['code']) ) { // Student
 	if ( $old_code == $_POST['code'] ) {
+		$sql = "INSERT INTO {$p}attend 
+			(link_id, user_id, ipaddr, attend, updated_at) 
+			VALUES ( :LI, :UI, :IP, NOW(), NOW() ) 
+			ON DUPLICATE KEY UPDATE updated_at = NOW()";
+		$stmt = $db->prepare($sql);
+		$stmt->execute(array(
+			':LI' => $LTI['link_id'],
+			':UI' => $LTI['user_id'],
+			':IP' => $_SERVER["REMOTE_ADDR"]));
 	    $_SESSION['success'] = 'Attendance Recorded...';
 	} else {
 	    $_SESSION['error'] = 'Code incorrect';
@@ -85,6 +94,22 @@ echo('<input type="text" name="code" value=""> ');
 echo('<input type="submit" name="send" value="Record attendance"><br/>');
 }
 echo("\n</form>\n");
+
+if ( $instructor ) {
+	$stmt = $db->prepare("SELECT user_id,attend FROM {$p}attend 
+			WHERE link_id = :LI ORDER BY attend DESC, user_id");
+	$stmt->execute(array(':LI' => $LTI['link_id']));
+	echo('<table border="1">'."\n");
+	echo("<tr><th>User</th><th>Attendance</th></tr>\n");
+	while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
+		echo "<tr><td>";
+		echo($row['user_id']);
+		echo("</td><td>");
+		echo($row['attend']);
+		echo("</td></tr>\n");
+	}
+	echo("</table>\n");
+}
 
 echo("<p>Here is the session information:\n<pre>\n");
 var_dump($_SESSION);

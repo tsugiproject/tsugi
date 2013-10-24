@@ -9,14 +9,14 @@ create table webauto_attend_code (
 		REFERENCES `webauto_lti_link` (`link_id`)
 		ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(link_id)
+	UNIQUE(link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 drop table if exists webauto_attend;
 create table webauto_attend (
 	link_id		MEDIUMINT NOT NULL,
 	user_id		MEDIUMINT NOT NULL,
-	attend		DATETIME NOT NULL,
+	attend		DATE NOT NULL,
 	ipaddr		varchar(64),
 	updated_at	DATETIME NOT NULL,
 
@@ -30,6 +30,6 @@ create table webauto_attend (
 		REFERENCES `webauto_lti_user` (`user_id`)
 		ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(link_id, user_id, attend)
+	UNIQUE(link_id, user_id, attend)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
