@@ -1,8 +1,6 @@
 <?php
-require_once $CFG->dirroot."/setup.php";
+// A library for webscraping graders
 include_once $CFG->dirroot."/lib/lti_util.php";
-
-session_start();
 
 require_once $CFG->dirroot."/lib/goutte/vendor/autoload.php";
 require_once $CFG->dirroot."/lib/goutte/Goutte/Client.php";
@@ -102,6 +100,22 @@ function togglePre($title, $html) {
     echo(htmlent_utf8($html));
     echo("</pre><br/>\n");
 }
+
+function togglePreScript() {
+return '<script language="javascript"> 
+function dataToggle(divName) {
+    var ele = document.getElementById(divName);
+    if(ele.style.display == "block") {
+        ele.style.display = "none";
+    }
+    else {
+        ele.style.display = "block";
+    }
+} 
+  //]]> 
+</script>';
+}
+
 function sendGrade($grade) {
     try {
         return sendGradeInternal($grade);
@@ -217,24 +231,3 @@ function checkTitle($crawler) {
     }
     return true;
 }
-
-?><html>
-<head>
-  <title>Automatic Web Grading Tool</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<script language="javascript"> 
-function dataToggle(divName) {
-    var ele = document.getElementById(divName);
-    if(ele.style.display == "block") {
-        ele.style.display = "none";
-    }
-    else {
-        ele.style.display = "block";
-    }
-} 
-  //]]> 
-</script>
-</head>
-<body style="font-family:sans-serif; background-color:#add8e6">
-<?php do_analytics(); ?>
-

@@ -1,5 +1,4 @@
 <?php 
-require_once 'setup.php';
 require_once 'config.php';
 require_once 'db.php';
 require_once 'lib/lti_db.php';

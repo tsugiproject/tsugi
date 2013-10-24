@@ -1,7 +1,7 @@
 <?php
 
 require_once "../../config.php";
-require_once $CFG->dirroot."/lib/header.php";
+require_once "header.php";
 use Goutte\Client;
 
 line_out("Grading PHP-Intro Assignment 3");

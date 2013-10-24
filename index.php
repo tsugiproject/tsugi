@@ -1,4 +1,4 @@
-<?php require_once "setup.php";
+<?php 
 require_once "config.php";
 ?>
 <html>
@@ -33,6 +33,7 @@ For more information on IMS LTI, see these links:
 <li><a href="http://developers.imsglobal.org/" target="_new">IMS LTI Developers Site</a></li>
 <li><a href="https://vimeo.com/34168694" target="_new">Video Introduction to IMS LTI</a></li>
 <li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Specification</a></li>
+<li><a href="http://www.oauth.net"/ target="_new">A Link to the OAuth (message signing) web site</a></li>
 <li><a href="http://www.imsglobal.org/" target="_new">IMS Global Learning Consortium Web Site</a></li>
 </ul>
 <p>

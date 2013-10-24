@@ -22,4 +22,6 @@ $CFG->sessionsalt = "something-very-secret";
 $CFG->analytics_key = "UA-423997-16";
 $CFG->analytics_name = "dr-chuck.com";
 
+require_once $CFG->dirroot."/setup.php";
+
 // No trailing tag to avoid white space
