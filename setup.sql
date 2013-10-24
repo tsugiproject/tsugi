@@ -7,7 +7,15 @@ grant all on webauto.* to ltiuser@'127.0.0.1' identified by 'ltipassword';
 
 use webauto;
 
+drop table if exists sample_profile;
+drop table if exists webauto_lti_result;
+drop table if exists webauto_lti_service;
+drop table if exists webauto_lti_membership;
+drop table if exists webauto_lti_link;
+drop table if exists webauto_lti_context;
+drop table if exists webauto_lti_user;
 drop table if exists webauto_lti_key;
+
 create table webauto_lti_key (
 	key_id			MEDIUMINT NOT NULL AUTO_INCREMENT,
 	key_sha256		CHAR(64) NOT NULL UNIQUE,
@@ -19,11 +27,10 @@ create table webauto_lti_key (
 	created_at		DATETIME NOT NULL,
 	updated_at		DATETIME NOT NULL,
 
-	KEY(key_sha256),
+	UNIQUE(key_sha256),
 	PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-drop table if exists webauto_lti_context;
 create table webauto_lti_context (
 	context_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 	context_sha256	CHAR(64) NOT NULL,
@@ -42,11 +49,10 @@ create table webauto_lti_context (
         REFERENCES `webauto_lti_key` (`key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(key_id, context_sha256),
+	UNIQUE(key_id, context_sha256),
 	PRIMARY KEY (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-drop table if exists webauto_lti_link;
 create table webauto_lti_link (
 	link_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 	link_sha256	CHAR(64) NOT NULL,
@@ -65,11 +71,10 @@ create table webauto_lti_link (
         REFERENCES `webauto_lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(link_sha256),
+	UNIQUE(link_sha256),
 	PRIMARY KEY (link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-drop table if exists webauto_lti_user;
 create table webauto_lti_user (
 	user_id			MEDIUMINT NOT NULL AUTO_INCREMENT,
 	user_sha256		CHAR(64) NOT NULL,
@@ -91,11 +96,10 @@ create table webauto_lti_user (
 	    REFERENCES `webauto_lti_key` (`key_id`) 
 	    ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(key_id, user_sha256),
+	UNIQUE(key_id, user_sha256),
 	PRIMARY KEY (user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-drop table if exists webauto_lti_membership;
 create table webauto_lti_membership (
 	membership_id	MEDIUMINT NOT NULL AUTO_INCREMENT,
 
@@ -117,11 +121,10 @@ create table webauto_lti_membership (
         REFERENCES `webauto_lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(context_id, user_id),
+	UNIQUE(context_id, user_id),
 	PRIMARY KEY (membership_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-drop table if exists webauto_lti_service;
 create table webauto_lti_service (
 	service_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 	service_sha256	CHAR(64) NOT NULL,
@@ -140,11 +143,10 @@ create table webauto_lti_service (
         REFERENCES `webauto_lti_key` (`key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-	KEY(key_id, service_sha256),
+	UNIQUE(key_id, service_sha256),
 	PRIMARY KEY (service_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-drop table if exists webauto_lti_result;
 create table webauto_lti_result (
 	result_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 	link_id			MEDIUMINT NOT NULL, 
@@ -179,12 +181,11 @@ create table webauto_lti_result (
 
 	-- Note service_id is not part of the key on purpose 
 	-- It is data that can change and can be null in LTI 2.0
-	KEY(link_id, user_id, sourcedid_sha256),
+	UNIQUE(link_id, user_id, sourcedid_sha256),
 	PRIMARY KEY (result_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 -- Profile hangs out as a leaf 
-drop table if exists sample_profile;
 create table sample_profile (
 	profile_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 
