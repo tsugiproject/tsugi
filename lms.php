@@ -20,20 +20,38 @@ Change the <b>custom_assn</b> field below to choose which tool you would like to
 <?php
 require_once("lib/lti_util.php");
 
-    $cur_url = curPageURL();
+$cur_url = curPageURL();
 
-    $lmsdata = array(
+$instdata = array(
+      "lis_person_name_full" => 'Jane Instructor',
+      "lis_person_name_family" => 'Instructor',
+      "lis_person_name_given" => 'Jane',
+      "lis_person_contact_email_primary" => "inst@ischool.edu",
+      "lis_person_sourcedid" => "ischool.edu:inst",
+      "roles" => "Instructor"
+);
+
+$learnerdata = array(
+      "lis_person_name_full" => 'Sue Student',
+      "lis_person_name_family" => 'Student',
+      "lis_person_name_given" => 'Sue',
+      "lis_person_contact_email_primary" => "student@ischool.edu",
+      "lis_person_sourcedid" => "ischool.edu:student",
+      "roles" => "Learner"
+);
+
+$lmsdata = array(
       "custom_assn" => "mod/php-intro/free.php",
-      "resource_link_id" => "120988f929-274612",
-      "resource_link_title" => "Weekly Blog",
-      "resource_link_description" => "A weekly blog.",
-      "user_id" => "292832126",
       "roles" => "Instructor",  // or Learner
       "lis_person_name_full" => 'Jane Q. Public',
       "lis_person_name_family" => 'Public',
       "lis_person_name_given" => 'Given',
-      "lis_person_contact_email_primary" => "user@ischool.edu",
-      "lis_person_sourcedid" => "ischool.edu:user",
+      "lis_person_contact_email_primary" => "inst@ischool.edu",
+      "lis_person_sourcedid" => "ischool.edu:inst",
+      "resource_link_id" => "120988f929-274612",
+      "resource_link_title" => "Weekly Blog",
+      "resource_link_description" => "A weekly blog.",
+      "user_id" => "292832126",
       "context_id" => "456434513",
       "context_label" => "SI106",
       "context_title" => "Introduction to Programming",
@@ -49,11 +67,23 @@ require_once("lib/lti_util.php");
       // 'launch_presentation_return_url' => $cur_url
       );
 
-  foreach ($lmsdata as $k => $val ) {
-      if ( $_POST[$k] && strlen($_POST[$k]) > 0 ) {
-          $lmsdata[$k] = $_POST[$k];
-      }
-  }
+foreach ($lmsdata as $k => $val ) {
+	if ( $_POST[$k] && strlen($_POST[$k]) > 0 ) {
+		$lmsdata[$k] = $_POST[$k];
+	}
+}
+
+if ( isset($_POST['learner']) ) {
+	foreach ( $learnerdata as $k => $val ) {
+          $lmsdata[$k] = $learnerdata[$k];
+	}
+}
+
+if ( isset($_POST['instructor']) ) {
+	foreach ( $instdata as $k => $val ) {
+          $lmsdata[$k] = $instdata[$k];
+	}
+}
 
   $key = trim($_REQUEST["key"]);
   if ( ! $key ) $key = "12345";
@@ -91,7 +121,7 @@ function lmsdataToggle() {
   echo("<form method=\"post\">\n");
   echo("<input type=\"submit\" name=\"launch\" value=\"Launch\">\n");
   echo("<input type=\"submit\" name=\"debug\" value=\"Debug Launch\">\n");
-echo('<input type="submit" onclick="javascript:lmsdataToggle();return false;" value="Toggle Launch Data">');
+  echo('<input type="submit" onclick="javascript:lmsdataToggle();return false;" value="Toggle Launch Data">');
   if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
     echo("<div id=\"lmsDataForm\" style=\"display:none\">\n");
   } else {
@@ -104,6 +134,9 @@ echo('<input type="submit" onclick="javascript:lmsdataToggle();return false;" va
   echo("<br/>Secret: <input type\"text\" name=\"secret\" $disabled size=\"60\" value=\"$secret\">\n");
   echo("</fieldset><p>");
   echo("<fieldset><legend>Launch Data</legend>\n");
+  echo("<input type=\"submit\" name=\"instructor\" value=\"Instructor data\">\n");
+  echo("<input type=\"submit\" name=\"learner\" value=\"Learner data\">\n");
+  echo("<br/>\n");
   foreach ($lmsdata as $k => $val ) {
       echo($k.": <input type=\"text\" size=\"30\" name=\"".$k."\" value=\"");
       echo(htmlspecialchars($val));
