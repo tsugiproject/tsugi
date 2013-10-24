@@ -23,6 +23,15 @@ function htmlent_utf8($string) {
 	return htmlentities($string,ENT_QUOTES,$encoding = 'UTF-8');
 }
 
+function sessionize($url) {
+    if ( ini_get('session.use_cookies') != '0' ) return $url;
+	$parameter = session_name().'='.session_id();
+	if ( strpos($url, $parameter) !== false ) return $url;
+	$url = $url . (strpos($url,'?') > 0 ? "&" : "?");
+	$url = $url . $parameter;
+	return $url;
+}
+
 // Basic LTI Class that does the setup and provides utility
 // functions
 class BLTI {

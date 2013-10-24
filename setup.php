@@ -9,8 +9,6 @@ error_reporting(E_ALL & ~E_NOTICE);
 error_reporting(E_ALL );
 ini_set('display_errors', 1);
 
-require_once "config.php";
-
 function do_analytics() {
     global $CFG;
     if ( $CFG->analytics_key ) { ?>
