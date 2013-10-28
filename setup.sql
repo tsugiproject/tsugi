@@ -1,6 +1,6 @@
 -- This builds the tables for the MySql Data model
 
-drop database webauto;
+drop database if exists webauto;
 create database webauto DEFAULT CHARACTER SET utf8;
 grant all on webauto.* to ltiuser@'localhost' identified by 'ltipassword';
 grant all on webauto.* to ltiuser@'127.0.0.1' identified by 'ltipassword';
