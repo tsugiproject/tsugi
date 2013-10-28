@@ -15,7 +15,7 @@ $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=webauto';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 $CFG->dbprefix  = 'webauto_';
-$CFG->dbaeskey	= 'something-very-secret';
+$CFG->dbasekey  = 'something-very-secret';
 $CFG->sessionsalt = "something-very-secret";
 
 // Set to false if you do not want analytics
