@@ -1,4 +1,5 @@
 <?php
+
 if ( ! defined('COOKIE_SESSION') ) {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);
@@ -8,6 +9,8 @@ if ( ! defined('COOKIE_SESSION') ) {
 error_reporting(E_ALL & ~E_NOTICE);
 error_reporting(E_ALL );
 ini_set('display_errors', 1);
+
+date_default_timezone_set('America/New_York');
 
 function do_analytics() {
     global $CFG;
