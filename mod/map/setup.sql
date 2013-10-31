@@ -6,7 +6,7 @@ create table webauto_context_map (
     attend      DATE NOT NULL,
     lat         FLOAT,
     lng         FLOAT,
-	color       INTEGER,
+    color       INTEGER,
     updated_at  DATETIME NOT NULL,
 
     CONSTRAINT `webauto_context_map_ibfk_1`
