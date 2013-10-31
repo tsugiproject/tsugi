@@ -28,7 +28,7 @@ $instdata = array(
       "lis_person_name_given" => 'Jane',
       "lis_person_contact_email_primary" => "inst@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:inst",
-      "user_id" => "998928898",
+      "user_id" => "292832126",
       "roles" => "Instructor"
 );
 
@@ -38,22 +38,24 @@ $learnerdata = array(
       "lis_person_name_given" => 'Sue',
       "lis_person_contact_email_primary" => "student@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:student",
-      "user_id" => "292832126",
+      "user_id" => "998928898",
       "roles" => "Learner"
 );
 
 $lmsdata = array(
       "custom_assn" => "mod/map/map.php",
-      "roles" => "Instructor",  // or Learner
-      "lis_person_name_full" => 'Jane Q. Public',
-      "lis_person_name_family" => 'Public',
-      "lis_person_name_given" => 'Given',
+
+      "lis_person_name_full" => 'Jane Instructor',
+      "lis_person_name_family" => 'Instructor',
+      "lis_person_name_given" => 'Jane',
       "lis_person_contact_email_primary" => "inst@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:inst",
+      "user_id" => "292832126",
+      "roles" => "Instructor",
+
       "resource_link_id" => "120988f929-274612",
       "resource_link_title" => "Weekly Blog",
       "resource_link_description" => "A weekly blog.",
-      "user_id" => "292832126",
       "context_id" => "456434513",
       "context_label" => "SI106",
       "context_title" => "Introduction to Programming",

@@ -6,6 +6,9 @@ if ( ! defined('COOKIE_SESSION') ) {
     ini_set('session.use_trans_sid',1); 
 }
 
+if ( ! isset($CFG) ) die("Please configure this product using config.php");
+if ( ! isset($CFG->staticroot) ) die('$CFG->staticroot not defined see https://github.com/csev/webauto/issues/2');
+
 error_reporting(E_ALL & ~E_NOTICE);
 error_reporting(E_ALL );
 ini_set('display_errors', 1);
