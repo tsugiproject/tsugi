@@ -6,6 +6,7 @@ $CFG = new stdClass();
 
 // No trailing slash
 $CFG->wwwroot = 'http://localhost/~csev/webauto';
+$CFG->staticroot = $CFG->wwwroot;
 $CFG->dirroot = realpath(dirname(__FILE__));
 $CFG->servicename = 'PHP-Intro';
 

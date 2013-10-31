@@ -28,6 +28,7 @@ $instdata = array(
       "lis_person_name_given" => 'Jane',
       "lis_person_contact_email_primary" => "inst@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:inst",
+      "user_id" => "998928898",
       "roles" => "Instructor"
 );
 
@@ -37,11 +38,12 @@ $learnerdata = array(
       "lis_person_name_given" => 'Sue',
       "lis_person_contact_email_primary" => "student@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:student",
+      "user_id" => "292832126",
       "roles" => "Learner"
 );
 
 $lmsdata = array(
-      "custom_assn" => "mod/sample/testgrade.php",
+      "custom_assn" => "mod/map/map.php",
       "roles" => "Instructor",  // or Learner
       "lis_person_name_full" => 'Jane Q. Public',
       "lis_person_name_family" => 'Public',
