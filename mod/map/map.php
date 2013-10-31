@@ -10,8 +10,8 @@ if ( !isset($_SESSION['lti']) ) {
 	die('This tool need to be launched using LTI');
 }
 $LTI = $_SESSION['lti'];
-if ( !isset($LTI['user_id']) || !isset($LTI['link_id']) ) {
-	die('A user_id and link_id are required for this tool to function.');
+if ( !isset($LTI['user_id']) || !isset($LTI['context_id']) ) {
+	die('A user_id and context_id are required for this tool to function.');
 }
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
@@ -36,7 +36,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
 // Retrieve our row
 $stmt = $db->prepare("SELECT lat,lng FROM {$p}context_map 
 		WHERE context_id = :CID AND user_id = :UID");
-$stmt->execute(array(":CID" => $LTI['link_id'], ":UID" => $LTI['user_id']));
+$stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 // The default for latitude and longitude
 $lat = 42.279070216140425;
@@ -51,7 +51,7 @@ $stmt = $db->prepare("SELECT lat,lng,displayname FROM {$p}context_map
 		JOIN {$p}lti_user
 		ON {$p}context_map.user_id = {$p}lti_user.user_id
 		WHERE context_id = :CID AND {$p}context_map.user_id <> :UID");
-$stmt->execute(array(":CID" => $LTI['link_id'], ":UID" => $LTI['user_id']));
+$stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
 $points = array();
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
 	$points[] = array($row['lat']+0.0,$row['lng']+0.0);
