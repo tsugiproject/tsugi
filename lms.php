@@ -32,13 +32,23 @@ $instdata = array(
       "roles" => "Instructor"
 );
 
-$learnerdata = array(
+$learner1 = array(
       "lis_person_name_full" => 'Sue Student',
       "lis_person_name_family" => 'Student',
       "lis_person_name_given" => 'Sue',
       "lis_person_contact_email_primary" => "student@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:student",
       "user_id" => "998928898",
+      "roles" => "Learner"
+);
+
+$learner2 = array(
+      "lis_person_name_full" => 'Ed Student',
+      "lis_person_name_family" => 'Student',
+      "lis_person_name_given" => 'Ed',
+      "lis_person_contact_email_primary" => "ed@ischool.edu",
+      "lis_person_sourcedid" => "ischool.edu:ed",
+      "user_id" => "121212331",
       "roles" => "Learner"
 );
 
@@ -77,9 +87,15 @@ foreach ($lmsdata as $k => $val ) {
 	}
 }
 
-if ( isset($_POST['learner']) ) {
-	foreach ( $learnerdata as $k => $val ) {
-          $lmsdata[$k] = $learnerdata[$k];
+if ( isset($_POST['learner1']) ) {
+	foreach ( $learner1 as $k => $val ) {
+          $lmsdata[$k] = $learner1[$k];
+	}
+}
+
+if ( isset($_POST['learner2']) ) {
+	foreach ( $learner2 as $k => $val ) {
+          $lmsdata[$k] = $learner2[$k];
 	}
 }
 
@@ -138,8 +154,9 @@ function lmsdataToggle() {
   echo("<br/>Secret: <input type\"text\" name=\"secret\" $disabled size=\"60\" value=\"$secret\">\n");
   echo("</fieldset><p>");
   echo("<fieldset><legend>Launch Data</legend>\n");
-  echo("<input type=\"submit\" name=\"instructor\" value=\"Instructor data\">\n");
-  echo("<input type=\"submit\" name=\"learner\" value=\"Learner data\">\n");
+  echo("<input type=\"submit\" name=\"instructor\" value=\"Jane Instructor\">\n");
+  echo("<input type=\"submit\" name=\"learner1\" value=\"Sue Student\">\n");
+  echo("<input type=\"submit\" name=\"learner2\" value=\"Ed Student\">\n");
   echo("<br/>\n");
   foreach ($lmsdata as $k => $val ) {
       echo($k.": <input type=\"text\" size=\"30\" name=\"".$k."\" value=\"");
