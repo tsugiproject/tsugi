@@ -14,6 +14,16 @@ if ( !isset($LTI['user_id']) || !isset($LTI['link_id']) ) {
 	die('A user_id and link_id are required for this tool to function.');
 }
 $p = $CFG->dbprefix;
+$instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
+
+// The reset operation is a normal POST - not AJAX
+if ( $instructor && isset($_POST['reset']) ) {
+    $sql = "DELETE FROM {$p}rps WHERE link_id = :LI";
+    $stmt = $db->prepare($sql);
+    $stmt->execute(array(':LI' => $LTI['link_id']));
+    header( 'Location: '.sessionize('index.php') ) ;
+    return;
+}
 
 ?>
 <html><head><title>Playing Rock Paper Scissors in
@@ -109,10 +119,13 @@ leaders();
 
 </head>
 <body>
-<form id="rpsform">
+<form id="rpsform" method="post">
 <input type="submit" id="rock" name="rock" value="Rock"/>
 <input type="submit" id="paper" name="paper" value="Paper"/>
 <input type="submit" id="scissors" name="scissors" value="Scissors"/>
+<?php if ( $instructor ) { ?>
+<input type="submit" name="reset" value="Reset"/>
+<?php } ?>
 </form>
 <p id="error" style="color:red"></p>
 <p id="success" style="color:green"></p>
