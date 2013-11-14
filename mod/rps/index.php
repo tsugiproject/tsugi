@@ -51,6 +51,7 @@ function play(strategy) {
 				$("#success").html("You lost to "+data.displayname);
 			}
 			$("#rpsform input").attr("disabled", false);
+			leaders();  // Immediately update the leaderboard
 		}
   });
   return false;
@@ -77,8 +78,33 @@ function check(guid) {
 			$("#success").html("You lost to "+data.displayname);
 		}
 		$("#rpsform input").attr("disabled", false);
+		leaders();  // Immediately update the leaderboard
   });
 }
+
+var OLD_TIMEOUT = false;
+function leaders() {
+	if ( OLD_TIMEOUT ) {
+		clearTimeout(OLD_TIMEOUT);
+		OLD_TIMEOUT = false;
+	}
+	window.console && console.log('Updating leaders...');
+	$.getJSON('<?php echo(sessionize('stats.php')); ?>', function(data) {
+		window.console && console.log(data);
+		$("#leaders").html("");
+		$("#leaders").append("<ol>\n");
+		for (var i = 0; i < data.length; i++) {
+			entry = data[i];
+			$("#leaders").append("<li>"+entry.name+' ('+entry.games+') score='+entry.score+"</li>\n");
+			console.log(data[i]);
+		}
+		$("#leaders").append("</ol>\n");
+		OLD_TIMEOUT = setTimeout('leaders()', 20000);
+  });
+}
+
+// Run for the first time
+leaders();
 </script>
 
 </head>
@@ -93,5 +119,9 @@ function check(guid) {
 <p id="status" style="display:none">
 <img id="spinner" src="spinner.gif">
 <span id="statustext" style="color:orange"></span>
+</p>
+<div>
+<p><b>Leaderboard</b></p>
+<p id="leaders">
 </p>
 </body>
