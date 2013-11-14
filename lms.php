@@ -26,7 +26,8 @@ function findTools($dir, &$retval) {
 }
 $tools = array();
 findTools("mod",$tools);
-findTools("solution",$tools);
+findTools("solutions",$tools);
+findTools("samples",$tools);
 ?>
 <html>
 <head>

@@ -23,12 +23,12 @@ $stmt = $db->prepare("SELECT play1, play2, user1_id, user2_id,
         ON {$p}rps.user1_id = U1.user_id AND {$p}rps.user2_id = U2.user_id 
         WHERE link_id = :LI AND play1 IS NOT NULL AND play2 IS NOT NULL");
 $stmt->execute(array(":LI" => $LTI['link_id']));
-$scores = array();
-$games = array();
-$scores = array();
-$users = array();
+
+$users = array();  // user_id => displayname
+$scores = array(); // user_id => net score
+$games = array();  // user_id => games played
+
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
-	// Accumulate the user_id's mapped to names
 	$user1 = $row['user1_id'];
 	$user2 = $row['user2_id'];
 	if ( !isset($users[$user1]) ){
