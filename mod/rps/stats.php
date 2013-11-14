@@ -49,7 +49,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
 	if ( $row['play1'] == $row['play2'] ) continue;
 
 	// See is player 1 lost..
-    if ( (($row['play1'] + 1) % 2) == $row['play2'] ) {
+    if ( (($row['play1'] + 1) % 3) == $row['play2'] ) {
 		$scores[$user1] = $scores[$user1] - 1;
 		$scores[$user2] = $scores[$user2] + 1;
 	} else {
