@@ -29,7 +29,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
 		':LAT' => $_POST['lat'],
 		':LNG' => $_POST['lng']));
     $_SESSION['success'] = 'Location updated...';
-	header( 'Location: '.sessionize('map.php') ) ;
+	header( 'Location: '.sessionize('index.php') ) ;
 	return;
 }
 

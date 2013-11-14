@@ -32,7 +32,7 @@ if ( isset($_POST['code']) && $instructor ) {
         ':CO' => $_POST['code'],
         ':ID' => $LTI['link_id']));
     $_SESSION['success'] = 'Code updated';
-    header( 'Location: '.sessionize('attend.php') ) ;
+    header( 'Location: '.sessionize('index.php') ) ;
     return;
 } else if ( isset($_POST['code']) ) { // Student
 	if ( $old_code == $_POST['code'] ) {
@@ -49,7 +49,7 @@ if ( isset($_POST['code']) && $instructor ) {
 	} else {
 	    $_SESSION['error'] = 'Code incorrect';
 	}
-	header( 'Location: '.sessionize('attend.php') ) ;
+	header( 'Location: '.sessionize('index.php') ) ;
 	return;
 }
 
