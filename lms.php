@@ -78,7 +78,7 @@ $learner2 = array(
 );
 
 $lmsdata = array(
-      "custom_assn" => "mod/map/map.php",
+      "custom_assn" => "mod/map/index.php",
 
       "lis_person_name_full" => 'Jane Instructor',
       "lis_person_name_family" => 'Instructor',

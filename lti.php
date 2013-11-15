@@ -51,7 +51,6 @@ $_SESSION['lti'] = $row;
 $url = 'mod/php-intro/custom.php';
 if ( isset($_POST['custom_assn'] ) ) {
     $url = $_POST['custom_assn'];
-	if ( strpos($url, 'mod/') === false ) $url = 'mod/php-intro/'.$url.'.php';  // Compatiblity
     $_SESSION['assn'] = $_POST['custom_assn'];
 }
 
