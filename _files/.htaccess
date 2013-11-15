@@ -1,0 +1,9 @@
+# Note - it is best to not have this in your www space
+# This folder is just here for use in default situations
+# you should reconfigure $CFG->dataroot to point to somewhere
+# outside your web area if you can do that.
+
+# we have a subfolder called "a" so we don't have to open write
+# permission on this folder with the .htaccess file
+
+deny from all

@@ -8,8 +8,8 @@ $CFG = new stdClass();
 $CFG->wwwroot = 'http://localhost/~csev/webauto';
 $CFG->staticroot = $CFG->wwwroot;
 $CFG->dirroot = realpath(dirname(__FILE__));
+$CFG->dataroot = $CFG->dirroot + '/_files/a';
 $CFG->servicename = 'PHP-Intro';
-
 
 $CFG->database  = 'webauto';
 $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=webauto';
@@ -20,8 +20,8 @@ $CFG->dbasekey  = 'something-very-secret';
 $CFG->sessionsalt = "something-very-secret";
 
 // Set to false if you do not want analytics
-$CFG->analytics_key = "UA-423997-16";
-$CFG->analytics_name = "dr-chuck.com";
+$CFG->analytics_key = false;  // "UA-423997-16";
+$CFG->analytics_name = false; // "dr-chuck.com";
 
 require_once $CFG->dirroot."/setup.php";
 
