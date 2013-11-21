@@ -2,23 +2,14 @@
 
 function getFolderName($LTI)
 {
-    $foldername = $LTI['link_id'];
-    $foldername = md5($foldername);
-    $root = sys_get_temp_dir();
+	global $CFG;
+    $foldername = $LTI['context_id'];
+    $root = sys_get_temp_dir(); // ends in slash
+	if (strlen($root) > 1 && substr($root, -1) == '/') $root = substr($root,0,-1);
     if ( isset($CFG->dataroot) ) $root = $CFG->dataroot;
-    $root = $root . '/dropbox';
+    $root = $root . '/lti_files';
     if ( !file_exists($root) ) mkdir($root);
     $foldername = $root.'/' . $foldername;
-    return $foldername;
-}
-
-function getStudentFolder($LTI)
-{
-    $foldername = $LTI['link_id'];
-    $userkey = $LTI['user_id'];
-    $foldername = md5($foldername);
-    $userkey = md5($userkey);
-    $foldername = dirname(__FILE__).'/upload/' . $foldername . '-students/' . $userkey . '/';
     return $foldername;
 }
 

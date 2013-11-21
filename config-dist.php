@@ -11,7 +11,8 @@ $CFG->staticroot = $CFG->wwwroot;
 // $CFG->bootstrap = "//netdna.bootstrapcdn.com/bootstrap/3.0.2";
 $CFG->bootstrap = $CFG->staticroot . "/bootstrap";
 $CFG->dirroot = realpath(dirname(__FILE__));
-$CFG->dataroot = $CFG->dirroot . '/_files/a';
+// If you don't set dataroot it will be in temp space (dev test only)
+// $CFG->dataroot = $CFG->dirroot . '/_files/a';
 $CFG->servicename = 'PHP-Intro';
 $CFG->timezone = 'America/New_York';
 
