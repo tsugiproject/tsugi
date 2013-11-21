@@ -210,8 +210,10 @@ function doSubmitTool(name) {
 				}
 				?>
                 <li class="divider"></li>
-                <li><a href="#">Separated link</a></li>
                 <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
+				<li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
+				<li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
+                <li><a href="http://www.oauth.net/" target="_blank">OAuth Documentation</a></li>
               </ul>
             </li>
           </ul>
