@@ -28,6 +28,7 @@ $tools = array();
 findTools("mod",$tools);
 findTools("solutions",$tools);
 findTools("samples",$tools);
+findTools("tmp",$tools);
 ?>
 <html>
 <head>

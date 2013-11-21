@@ -7,9 +7,13 @@ $CFG = new stdClass();
 // No trailing slash
 $CFG->wwwroot = 'http://localhost/~csev/webauto';
 $CFG->staticroot = $CFG->wwwroot;
+// Bootstrap recommended CDN
+// $CFG->bootstrap = "//netdna.bootstrapcdn.com/bootstrap/3.0.2";
+$CFG->bootstrap = $CFG->staticroot . "/bootstrap";
 $CFG->dirroot = realpath(dirname(__FILE__));
-$CFG->dataroot = $CFG->dirroot + '/_files/a';
+$CFG->dataroot = $CFG->dirroot . '/_files/a';
 $CFG->servicename = 'PHP-Intro';
+$CFG->timezone = 'America/New_York';
 
 $CFG->database  = 'webauto';
 $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=webauto';
