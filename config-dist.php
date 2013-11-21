@@ -9,7 +9,7 @@ $CFG->wwwroot = 'http://localhost/~csev/webauto';
 $CFG->staticroot = $CFG->wwwroot;
 // Bootstrap recommended CDN
 // $CFG->bootstrap = "//netdna.bootstrapcdn.com/bootstrap/3.0.2";
-$CFG->bootstrap = $CFG->staticroot . "/bootstrap";
+$CFG->bootstrap = $CFG->staticroot . "/static/bootstrap";
 $CFG->dirroot = realpath(dirname(__FILE__));
 // If you don't set dataroot it will be in temp space (dev test only)
 // $CFG->dataroot = $CFG->dirroot . '/_files/a';
