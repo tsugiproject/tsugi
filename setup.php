@@ -27,4 +27,21 @@ ini_set('display_errors', 1);
 
 date_default_timezone_set($CFG->timezone);
 
+function htmlspec_utf8($string) {
+    return htmlspecialchars($string,ENT_QUOTES,$encoding = 'UTF-8');
+}
+
+function htmlent_utf8($string) {
+    return htmlentities($string,ENT_QUOTES,$encoding = 'UTF-8');
+}
+
+function sessionize($url) {
+    if ( ini_get('session.use_cookies') != '0' ) return $url;
+    $parameter = session_name().'='.session_id();
+    if ( strpos($url, $parameter) !== false ) return $url;
+    $url = $url . (strpos($url,'?') > 0 ? "&" : "?");
+    $url = $url . $parameter;
+    return $url;
+}
+
 // No trailer
