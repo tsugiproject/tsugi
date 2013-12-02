@@ -2,6 +2,7 @@
 # Logging in with Google accounts requires setting special identity, so this example shows how to do it.
 require_once '../../config.php';
 require_once $CFG->dirroot."/lib/lightopenid/openid.php";
+header('Content-Type: text/html; charset=utf-8');
 
 try {
     # Change 'localhost' to your domain name.
@@ -31,6 +32,10 @@ try {
         $firstName = isset($userAttributes['namePerson/first']) ? $userAttributes['namePerson/first'] : false;
         $lastName = isset($userAttributes['namePerson/last']) ? $userAttributes['namePerson/last'] : false;
         $userEmail = isset($userAttributes['contact/email']) ? $userAttributes['contact/email'] : false;
+        echo("\n<pre>\nAttributes:\n");
+		echo("First:"+htmlspec_utf8($firstName)."\n");
+		echo("\n</pre>\n");
+		echo)
 		// Off we go...
     }
 } catch(ErrorException $e) {
