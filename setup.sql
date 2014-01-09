@@ -1,22 +1,22 @@
 -- This builds the tables for the MySql Data model
 
-drop database if exists webauto;
-create database webauto DEFAULT CHARACTER SET utf8;
-grant all on webauto.* to ltiuser@'localhost' identified by 'ltipassword';
-grant all on webauto.* to ltiuser@'127.0.0.1' identified by 'ltipassword';
+drop database if exists tsugi;
+create database tsugi DEFAULT CHARACTER SET utf8;
+grant all on tsugi.* to ltiuser@'localhost' identified by 'ltipassword';
+grant all on tsugi.* to ltiuser@'127.0.0.1' identified by 'ltipassword';
 
-use webauto;
+use tsugi;
 
-drop table if exists sample_profile;
-drop table if exists webauto_lti_result;
-drop table if exists webauto_lti_service;
-drop table if exists webauto_lti_membership;
-drop table if exists webauto_lti_link;
-drop table if exists webauto_lti_context;
-drop table if exists webauto_lti_user;
-drop table if exists webauto_lti_key;
+drop table if exists tsugi_sample_profile;
+drop table if exists tsugi_lti_result;
+drop table if exists tsugi_lti_service;
+drop table if exists tsugi_lti_membership;
+drop table if exists tsugi_lti_link;
+drop table if exists tsugi_lti_context;
+drop table if exists tsugi_lti_user;
+drop table if exists tsugi_lti_key;
 
-create table webauto_lti_key (
+create table tsugi_lti_key (
 	key_id			MEDIUMINT NOT NULL AUTO_INCREMENT,
 	key_sha256		CHAR(64) NOT NULL UNIQUE,
 	key_key			VARCHAR(4096) NOT NULL,
@@ -31,7 +31,7 @@ create table webauto_lti_key (
 	PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-create table webauto_lti_context (
+create table tsugi_lti_context (
 	context_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 	context_sha256	CHAR(64) NOT NULL,
 	context_key		VARCHAR(4096) NOT NULL,
@@ -44,16 +44,16 @@ create table webauto_lti_context (
 	created_at		DATETIME NOT NULL,
 	updated_at		DATETIME NOT NULL,
 
-    CONSTRAINT `webauto_lti_context_ibfk_1`
+    CONSTRAINT `tsugi_lti_context_ibfk_1`
         FOREIGN KEY (`key_id`)
-        REFERENCES `webauto_lti_key` (`key_id`)
+        REFERENCES `tsugi_lti_key` (`key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
 	UNIQUE(key_id, context_sha256),
 	PRIMARY KEY (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-create table webauto_lti_link (
+create table tsugi_lti_link (
 	link_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 	link_sha256	CHAR(64) NOT NULL,
 	link_key	VARCHAR(4096) NOT NULL,
@@ -66,16 +66,16 @@ create table webauto_lti_link (
 	created_at		DATETIME NOT NULL,
 	updated_at		DATETIME NOT NULL,
 
-    CONSTRAINT `webauto_lti_link_ibfk_1`
+    CONSTRAINT `tsugi_lti_link_ibfk_1`
         FOREIGN KEY (`context_id`)
-        REFERENCES `webauto_lti_context` (`context_id`)
+        REFERENCES `tsugi_lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
 	UNIQUE(link_sha256),
 	PRIMARY KEY (link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-create table webauto_lti_user (
+create table tsugi_lti_user (
 	user_id			MEDIUMINT NOT NULL AUTO_INCREMENT,
 	user_sha256		CHAR(64) NOT NULL,
 	user_key		VARCHAR(4096) NOT NULL,
@@ -91,16 +91,16 @@ create table webauto_lti_user (
 	created_at		DATETIME NOT NULL,
 	updated_at		DATETIME NOT NULL,
 
-	CONSTRAINT `webauto_lti_user_ibfk_1` 
+	CONSTRAINT `tsugi_lti_user_ibfk_1` 
 	    FOREIGN KEY (`key_id`) 
-	    REFERENCES `webauto_lti_key` (`key_id`) 
+	    REFERENCES `tsugi_lti_key` (`key_id`) 
 	    ON DELETE CASCADE ON UPDATE CASCADE,
 
 	UNIQUE(key_id, user_sha256),
 	PRIMARY KEY (user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-create table webauto_lti_membership (
+create table tsugi_lti_membership (
 	membership_id	MEDIUMINT NOT NULL AUTO_INCREMENT,
 
 	context_id		MEDIUMINT NOT NULL, 
@@ -111,21 +111,21 @@ create table webauto_lti_membership (
 	created_at		DATETIME NOT NULL,
 	updated_at		DATETIME NOT NULL,
 
-    CONSTRAINT `webauto_lti_membership_ibfk_1`
+    CONSTRAINT `tsugi_lti_membership_ibfk_1`
         FOREIGN KEY (`context_id`)
-        REFERENCES `webauto_lti_context` (`context_id`)
+        REFERENCES `tsugi_lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    CONSTRAINT `webauto_lti_membership_ibfk_2`
+    CONSTRAINT `tsugi_lti_membership_ibfk_2`
         FOREIGN KEY (`user_id`)
-        REFERENCES `webauto_lti_user` (`user_id`)
+        REFERENCES `tsugi_lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
 	UNIQUE(context_id, user_id),
 	PRIMARY KEY (membership_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-create table webauto_lti_service (
+create table tsugi_lti_service (
 	service_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 	service_sha256	CHAR(64) NOT NULL,
 	service_key		VARCHAR(4096) NOT NULL,
@@ -138,16 +138,16 @@ create table webauto_lti_service (
 	created_at		DATETIME NOT NULL,
 	updated_at		DATETIME NOT NULL,
 
-    CONSTRAINT `webauto_lti_service_ibfk_1`
+    CONSTRAINT `tsugi_lti_service_ibfk_1`
         FOREIGN KEY (`key_id`)
-        REFERENCES `webauto_lti_key` (`key_id`)
+        REFERENCES `tsugi_lti_key` (`key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
 	UNIQUE(key_id, service_sha256),
 	PRIMARY KEY (service_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-create table webauto_lti_result (
+create table tsugi_lti_result (
 	result_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 	link_id			MEDIUMINT NOT NULL, 
 	user_id			MEDIUMINT NOT NULL,
@@ -164,19 +164,19 @@ create table webauto_lti_result (
 	created_at		DATETIME NOT NULL,
 	updated_at		DATETIME NOT NULL,
 
-    CONSTRAINT `webauto_lti_result_ibfk_1`
+    CONSTRAINT `tsugi_lti_result_ibfk_1`
         FOREIGN KEY (`link_id`)
-        REFERENCES `webauto_lti_link` (`link_id`)
+        REFERENCES `tsugi_lti_link` (`link_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    CONSTRAINT `webauto_lti_result_ibfk_2`
+    CONSTRAINT `tsugi_lti_result_ibfk_2`
         FOREIGN KEY (`user_id`)
-        REFERENCES `webauto_lti_user` (`user_id`)
+        REFERENCES `tsugi_lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    CONSTRAINT `webauto_lti_result_ibfk_3`
+    CONSTRAINT `tsugi_lti_result_ibfk_3`
         FOREIGN KEY (`service_id`)
-        REFERENCES `webauto_lti_service` (`service_id`)
+        REFERENCES `tsugi_lti_service` (`service_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
 	-- Note service_id is not part of the key on purpose 
@@ -186,7 +186,7 @@ create table webauto_lti_result (
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 -- Profile hangs out as a leaf 
-create table sample_profile (
+create table tsugi_sample_profile (
 	profile_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 
 	displayname		VARCHAR(2048) NULL,
@@ -200,5 +200,7 @@ create table sample_profile (
 	PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-insert into webauto_lti_key (key_sha256, key_key, secret) values ( '5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', '12345', 'secret')
+insert into tsugi_lti_key (key_sha256, key_key, secret) values ( '5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', '12345', 'secret')
+
+insert into tsugi_lti_key (key_sha256, key_key) values ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', 'google.com')
 

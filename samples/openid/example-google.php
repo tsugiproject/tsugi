@@ -2,6 +2,7 @@
 # Logging in with Google accounts requires setting special identity, so this example shows how to do it.
 require_once '../../config.php';
 require_once $CFG->dirroot."/lib/lightopenid/openid.php";
+header('Content-Type: text/html; charset=utf-8');
 
 try {
     # Change 'localhost' to your domain name.

@@ -267,5 +267,27 @@ function lmsDie($message=false) {
     die();
 }
 
+function findTools($dir, &$retval, $filename="index.php") {
+    if ( is_dir($dir) ) {
+        if ($dh = opendir($dir)) {
+            while (($sub = readdir($dh)) !== false) {
+                if ( strpos($sub, ".") === 0 ) continue;
+                $path = $dir . '/' . $sub;
+                if ( ! is_dir($path) ) continue;
+                if ( $sh = opendir($path)) {
+                    while (($file = readdir($sh)) !== false) {
+                        if ( $file == $filename ) {
+                            $retval[] = $path  ."/" . $file;
+                            break;
+                        }
+                    }
+                    closedir($sh);
+                }
+            }
+            closedir($dh);
+        }
+    }
+}
+
 // No trailer
 

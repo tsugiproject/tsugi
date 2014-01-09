@@ -2,7 +2,11 @@
 
 require_once $CFG->dirroot."/lib/lms_lib.php";  // During transition
 
-if ( ! defined('COOKIE_SESSION') ) {
+// Check if we already have a COOKIE-based session or have been asked to 
+// Make a session cookie
+if ( isset($_COOKIE['PHPSESSID']) || defined('COOKIE_SESSION') ) {
+	// Do nothing - let the session be in a cookie
+} else {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);
     ini_set('session.use_trans_sid',1); 

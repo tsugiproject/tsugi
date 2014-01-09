@@ -1,33 +1,16 @@
 <?php
+// In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
 require_once("config.php");
+require_once("lib/lms_lib.php");
 require_once("lib/lti_util.php");
 
 error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 ini_set("display_errors", 1);
 header('Content-Type: text/html; charset=utf-8');
 session_start();
-function findTools($dir, &$retval) {
-	if ( is_dir($dir) ) {
-		if ($dh = opendir($dir)) {
-			while (($sub = readdir($dh)) !== false) {
-				if ( strpos($sub, ".") === 0 ) continue;
-				$path = $dir . '/' . $sub;
-				if ( ! is_dir($path) ) continue;
-				if ( $sh = opendir($path)) {
-					while (($file = readdir($sh)) !== false) {
-						if ( $file == "index.php" ) {
-							$retval[] = $path  ."/" . $file;
-							break;
-						}
-					}
-					closedir($sh);
-				}
-			}
-			closedir($dh);
-		}
-	}
-}
+
+// Load tools form various folders
 $tools = array();
 findTools("mod",$tools);
 findTools("solutions",$tools);
@@ -194,7 +177,7 @@ function doSubmitTool(name) {
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">SI664</a>
+          <a class="navbar-brand" href="#">TSUGI</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">

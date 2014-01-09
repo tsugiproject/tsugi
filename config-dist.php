@@ -20,7 +20,7 @@ $CFG->database  = 'webauto';
 $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=webauto';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
-$CFG->dbprefix  = 'webauto_';
+$CFG->dbprefix  = 'tsugi_';
 $CFG->dbasekey  = 'something-very-secret';
 $CFG->sessionsalt = "something-very-secret";
 

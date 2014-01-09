@@ -18,7 +18,7 @@ session_id($session_id);
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
 
-// Since we might reuse session IDs, clean it out
+// Since we might reuse session IDs, clean everything out
 foreach($_SESSION as $k => $v ) {
 	unset($_SESSION[$k]);
 }
