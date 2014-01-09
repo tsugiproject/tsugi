@@ -2,9 +2,8 @@
 
 require_once $CFG->dirroot."/lib/lms_lib.php";  // During transition
 
-// Check if we already have a COOKIE-based session or have been asked to 
-// Make a session cookie
-if ( isset($_COOKIE['PHPSESSID']) || defined('COOKIE_SESSION') ) {
+// Check if we have been asked to do cookie or cookieless sessions
+if ( defined('COOKIE_SESSION') ) {
 	// Do nothing - let the session be in a cookie
 } else {
     ini_set('session.use_cookies', '0');
@@ -13,7 +12,7 @@ if ( isset($_COOKIE['PHPSESSID']) || defined('COOKIE_SESSION') ) {
 }
 
 if ( ! isset($CFG) ) die("Please configure this product using config.php");
-if ( ! isset($CFG->staticroot) ) die('$CFG->staticroot not defined see https://github.com/csev/webauto/issues/2');
+if ( ! isset($CFG->staticroot) ) die('$CFG->staticroot not defined in config.php');
 if ( ! isset($CFG->bootstrap) ) die('$CFG->bootstrap not defined in config.php');
 if ( ! isset($CFG->timezone) ) die('$CFG->timezone not defined in config.php');
 

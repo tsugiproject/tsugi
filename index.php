@@ -2,7 +2,6 @@
 // In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
 require_once("config.php");
-require_once("lib/lms_lib.php");
 require_once("lib/lti_util.php");
 
 error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);

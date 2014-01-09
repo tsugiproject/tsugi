@@ -5,7 +5,7 @@ global $CFG;
 $CFG = new stdClass();
 
 // No trailing slash
-$CFG->wwwroot = 'http://localhost/~csev/webauto';
+$CFG->wwwroot = 'http://localhost/~csev/tsugi';
 $CFG->staticroot = $CFG->wwwroot;
 // Bootstrap recommended CDN
 // $CFG->bootstrap = "//netdna.bootstrapcdn.com/bootstrap/3.0.2";
@@ -16,8 +16,8 @@ $CFG->dirroot = realpath(dirname(__FILE__));
 $CFG->servicename = 'PHP-Intro';
 $CFG->timezone = 'America/New_York';
 
-$CFG->database  = 'webauto';
-$CFG->pdo       = 'mysql:host=127.0.0.1;dbname=webauto';
+$CFG->database  = 'tsugi';
+$CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 $CFG->dbprefix  = 'tsugi_';
