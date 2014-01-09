@@ -7,7 +7,6 @@ grant all on tsugi.* to ltiuser@'127.0.0.1' identified by 'ltipassword';
 
 use tsugi;
 
-drop table if exists tsugi_profile;
 drop table if exists tsugi_lti_result;
 drop table if exists tsugi_lti_service;
 drop table if exists tsugi_lti_membership;
@@ -15,6 +14,7 @@ drop table if exists tsugi_lti_link;
 drop table if exists tsugi_lti_context;
 drop table if exists tsugi_lti_user;
 drop table if exists tsugi_lti_key;
+drop table if exists tsugi_profile;
 
 create table tsugi_lti_key (
 	key_id			MEDIUMINT NOT NULL AUTO_INCREMENT,
