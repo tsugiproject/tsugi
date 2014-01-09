@@ -28,7 +28,7 @@ foreach($_SESSION as $k => $v ) {
 $row = loadAllData($db, $CFG->dbprefix, false, $post);
 
 // Add a LEFT JOIN on the profile table
-// $row = checkKey($db, $CFG->dbprefix, "sample_profile", $post);
+// $row = checkKey($db, $CFG->dbprefix, $CFG->dbprefix . "_profile", $post);
 
 // Use returned data to check the OAuth signature on the
 // incoming data

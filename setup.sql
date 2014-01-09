@@ -7,7 +7,7 @@ grant all on tsugi.* to ltiuser@'127.0.0.1' identified by 'ltipassword';
 
 use tsugi;
 
-drop table if exists tsugi_sample_profile;
+drop table if exists tsugi_profile;
 drop table if exists tsugi_lti_result;
 drop table if exists tsugi_lti_service;
 drop table if exists tsugi_lti_membership;
@@ -186,7 +186,7 @@ create table tsugi_lti_result (
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 -- Profile hangs out as a leaf 
-create table tsugi_sample_profile (
+create table tsugi_profile (
 	profile_id		MEDIUMINT NOT NULL AUTO_INCREMENT,
 
 	displayname		VARCHAR(2048) NULL,
