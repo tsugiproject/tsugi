@@ -1,0 +1,54 @@
+<?php
+
+// If the table does not exist, these create statements will be used
+// And the version will be set to 1
+$DATABASE_INSTALL = array( 
+array( "{$CFG->dbprefix}blob_file", 
+"create table {$CFG->dbprefix}blob_file (
+    file_id      MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
+    file_sha256  CHAR(64) NOT NULL, 
+
+    context_id   MEDIUMINT NULL,
+	file_name    VARCHAR(2048),
+    deleted      TINYINT(1),
+	contenttype  VARCHAR(256) NULL,
+    path         VARCHAR(2048) NULL,
+
+    data_id      LONGBLOB NULL,
+
+    json         TEXT NULL,
+    created_at   DATETIME NOT NULL,
+    accessed_at  DATETIME NOT NULL,
+
+    INDEX `{$CFG->dbprefix}blob_indx_1` USING HASH (`file_sha256`),
+
+    CONSTRAINT `{$CFG->dbprefix}blob_ibfk_1`
+        FOREIGN KEY (`context_id`)
+        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}blob_data", 
+"create table {$CFG->dbprefix}blob_data (
+    data_id      MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
+    data_sha256  CHAR(64) NOT NULL, 
+
+    content      LONGBLOB NULL,
+
+    created_at   DATETIME NOT NULL,
+    accessed_at  DATETIME NOT NULL,
+
+    INDEX `{$CFG->dbprefix}blob_data_indx_1` USING HASH (`data_sha256`)
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8")
+);
+
+$DATABASE_UNINSTALL = array(
+"drop table if exists {$CFG->dbprefix}blob_file",
+"drop table if exists {$CFG->dbprefix}blob_data");
+
+// No upgrades yet
+$DATABASE_UPGRADE = function($oldversion) { return 1; };
+
+
