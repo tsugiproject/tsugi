@@ -10,6 +10,12 @@ try {
     die($ex->getMessage());
 }
 
+function pdoQueryDie($db, $sql, $arr=FALSE, $error_log=TRUE) {
+    $stmt = pdoQuery($db, $sql, $arr, $error_log);
+    if ( ! $stmt->success ) die($stmt->errorImplode);
+    return $stmt;
+}
+
 // Run a PDO Query with lots of error checking
 function pdoQuery($db, $sql, $arr=FALSE, $error_log=TRUE) {
     $errormode = $db->getAttribute(PDO::ATTR_ERRMODE);

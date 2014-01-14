@@ -35,6 +35,8 @@ array( "{$CFG->dbprefix}peer_submit",
     user_id    MEDIUMINT NOT NULL,
 
     json         TEXT NULL,
+    note         TEXT NULL,
+    reflect      TEXT NULL,
     flag         BOOLEAN,
 
     updated_at  DATETIME NOT NULL,

@@ -26,18 +26,20 @@ if ( isset($_POST['json']) ) {
     $json = json_encode($json);
     $stmt = pdoQuery($db,
         "INSERT INTO {$p}peer_assn 
-            (link_id, json) VALUES ( :ID, :JSON ) 
-            ON DUPLICATE KEY UPDATE json = :JSON",
+            (link_id, json, created_at, updated_at) 
+            VALUES ( :ID, :JSON, NOW(), NOW()) 
+            ON DUPLICATE KEY UPDATE json = :JSON, updated_at = NOW()",
         array(
             ':JSON' => $json,
             ':ID' => $LTI['link_id'])
         );
     if ( $stmt->success ) {
-        $_SESSION['success'] = 'Code updated';
+        $_SESSION['success'] = 'Assignment updated';
+        header( 'Location: '.sessionize('index.php') ) ;
     } else {
         $_SESSION['error'] = $stmt->errorImplode;
+        header( 'Location: '.sessionize('configure.php') ) ;
     }
-    header( 'Location: '.sessionize('configure.php') ) ;
     return;
 }
 
@@ -59,11 +61,13 @@ if ( strlen($json) < 1 ) {
               "type" : "image", 
               "points" : 3
             },
-            { "title" : "Image of Your PHP Application (with your name)", 
+            { "title" : "Image of PHP code running with your name", 
               "type" : "image", 
               "points" : 3
             }
-        ]
+        ],
+        "mingraders" : 1,
+        "maxgraders" : 3
     }';
     $json = json_decode($json);
     if ( $json === null ) die("Bad JSON constant");
@@ -86,7 +90,8 @@ if ( ! $instructor ) die("Requires instructor role");
 <?php echo($json); ?>
 </textarea>
 <br/>
-<input type="submit">
+<input type="submit" value="Save">
+<input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
 </form>
 <?php
 

@@ -1,0 +1,7 @@
+# Before you make thes larger, make sure your
+# database is configured to take larger blobs
+
+php_value upload_max_filesize 2M
+php_value post_max_size 2M
+php_value max_execution_time 3000
+php_value max_input_time 3000
