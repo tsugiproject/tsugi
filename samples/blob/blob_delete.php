@@ -8,29 +8,31 @@ require_once "blob_util.php";
 session_start();
 
 // Sanity checks
-requireData(array('user_id', 'link_id'));
+requireData(array('context_id', 'link_id'));
 $LTI = $_SESSION['lti'];
 
-
-$fn = $_REQUEST['file'];
-if ( strlen($fn) < 1 ) {
-    die("File name not found");
+$id = $_REQUEST['id'];
+if ( strlen($id) < 1 ) {
+    die("File not found");
 }
 
-$fn = fixFileName($fn);
-$foldername = getFolderName($LTI);
-$filename = $foldername . '/' . fixFileName($fn);
+$p = $CFG->dbprefix;
+$stmt = $db->prepare("SELECT file_name FROM {$p}sample_blob 
+            WHERE file_id = :ID AND context_id = :CID");
+$stmt->execute(array(":ID" => $id, ":CID" => $LTI['context_id']));
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$fn = $row['file_name'];
+
+if ( $row === false ) {
+    die("File not found");
+}
 
 if ( isset($_POST["doDelete"]) ) {
-    $foldername = getFolderName($LTI);
-    $filename = $foldername . '/' . fixFileName($_POST['file']);
-    if ( unlink($filename) ) { 
-        $_SESSION['success'] = 'File deleted';
-        header( 'Location: '.sessionize('index.php') ) ;
-    } else {
-        $_SESSION['err'] = 'File delete failed';
-        header( 'Location: '.sessionize('index.php') ) ;
-    }
+    $stmt = $db->prepare("DELETE FROM {$p}sample_blob
+            WHERE file_id = :ID AND context_id = :CID");
+    $stmt->execute(array(":ID" => $id, ":CID" => $LTI['context_id']));
+    $_SESSION['success'] = 'File deleted';
+    header( 'Location: '.sessionize('index.php') ) ;
     return;
 }
 
@@ -38,14 +40,13 @@ if ( isset($_POST["doDelete"]) ) {
 headerContent();
 flashMessages();
 
-echo '<h4 style="color:red">Are you sure you want to delete: ' .$fn. "</h4>\n"; 
+echo '<h4 style="color:red">Are you sure you want to delete: ' .htmlent_utf8($fn). "</h4>\n"; 
 ?>
 <form name=myform enctype="multipart/form-data" method="post">
-    <input type=hidden name="file" value="<?php echo $_REQUEST['file']; ?>">
+<input type=hidden name="id" value="<?php echo $_REQUEST['id']; ?>">
 <p><input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
 <input type=submit name=doDelete value="Delete"></p>
 </form>
 <?php
-debugLog('Folder: '.$foldername);
 
 footerContent();

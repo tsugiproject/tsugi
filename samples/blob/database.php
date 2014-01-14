@@ -21,9 +21,9 @@ array( "{$CFG->dbprefix}sample_blob",
     created_at   DATETIME NOT NULL,
     accessed_at  DATETIME NOT NULL,
 
-    INDEX `{$CFG->dbprefix}blob_indx_1` USING HASH (`file_sha256`),
+    INDEX `{$CFG->dbprefix}sample_blob_indx_1` USING HASH (`file_sha256`),
 
-    CONSTRAINT `{$CFG->dbprefix}blob_ibfk_1`
+    CONSTRAINT `{$CFG->dbprefix}sample_blob_ibfk_1`
         FOREIGN KEY (`context_id`)
         REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
         ON DELETE SET NULL ON UPDATE CASCADE

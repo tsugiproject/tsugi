@@ -8,7 +8,7 @@ require_once "blob_util.php";
 session_start();
 
 // Sanity checks
-requireData(array('user_id', 'context_id'));
+requireData(array('context_id'));
 $LTI = $_SESSION['lti'];
 
 $id = $_REQUEST['id'];
@@ -17,9 +17,9 @@ if ( strlen($id) < 1 ) {
 }
 
 $p = $CFG->dbprefix;
-$stmt = $db->prepare("SELECT contenttype, content FROM {$p}blob 
+$stmt = $db->prepare("SELECT contenttype, content FROM {$p}sample_blob 
 			WHERE file_id = :ID AND context_id = :CID");
-$stmt->execute(array(":ID" => $id, ":CID" => $LTI['user_id']));
+$stmt->execute(array(":ID" => $id, ":CID" => $LTI['context_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ( $row === false ) {

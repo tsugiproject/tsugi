@@ -8,7 +8,7 @@ require_once "blob_util.php";
 session_start();
 
 // Sanity checks
-requireData(array('user_id', 'context_id'));
+requireData(array('context_id'));
 $LTI = $_SESSION['lti'];
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
@@ -30,7 +30,7 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
 	}
 
 	$fp = fopen($_FILES['uploaded_file']['tmp_name'], "rb");
-	$stmt = $db->prepare("INSERT INTO {$p}blob 
+	$stmt = $db->prepare("INSERT INTO {$p}sample_blob 
 		(context_id, file_name, contenttype, content, created_at) 
 		VALUES (?, ?, ?, ?, NOW())");
 
@@ -66,7 +66,7 @@ welcomeUserCourse($LTI);
 $foldername = getFolderName($LTI);
 if ( !file_exists($foldername) ) mkdir ($foldername);
 
-$stmt = $db->prepare("SELECT file_id, file_name FROM {$p}blob
+$stmt = $db->prepare("SELECT file_id, file_name FROM {$p}sample_blob
         WHERE context_id = :CI");
 $stmt->execute(array(":CI" => $LTI['context_id']));
 
