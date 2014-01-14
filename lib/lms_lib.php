@@ -289,5 +289,33 @@ function findTools($dir, &$retval, $filename="index.php") {
     }
 }
 
+function findFiles($filename="index.php", $reldir=false) {
+    global $CFG;
+    $files = array();
+    foreach ( $CFG->tool_folders as $dir ) {
+        if ( $reldir !== false ) $dir = $reldir . $dir;
+        if ( is_dir($dir) ) {
+            if ($dh = opendir($dir)) {
+                while (($sub = readdir($dh)) !== false) {
+                    if ( strpos($sub, ".") === 0 ) continue;
+                    $path = $dir . '/' . $sub;
+                    if ( ! is_dir($path) ) continue;
+                    if ( $sh = opendir($path)) {
+                        while (($file = readdir($sh)) !== false) {
+                            if ( $file == $filename ) {
+                                $files[] = $path  ."/" . $file;
+                                break;
+                            }
+                        }
+                        closedir($sh);
+                    }
+                }
+                closedir($dh);
+            }
+        }
+    }
+    return $files;
+}
+
 // No trailer
 

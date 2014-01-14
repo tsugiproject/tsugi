@@ -24,6 +24,8 @@ $CFG->dbprefix  = 'tsugi_';
 $CFG->dbasekey  = 'something-very-secret';
 $CFG->sessionsalt = "something-very-secret";
 
+$CFG->tool_folders = array("core", "mod", "samples");
+
 // Set to false if you do not want analytics
 $CFG->analytics_key = false;  // "UA-423997-16";
 $CFG->analytics_name = false; // "dr-chuck.com";
