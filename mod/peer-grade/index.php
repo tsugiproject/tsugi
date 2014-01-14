@@ -38,8 +38,8 @@ if ( $assn_id != false && $json != null && isset($_POST['notes']) ) {
     }
 
     $blob_ids = array();
+    $partno = 0;
     foreach ( $json->parts as $part ) {
-        $partno = 0;
         if ( $part->type == 'image' ) {
             $fname = 'uploaded_file_'.$partno;
             $partno++;
@@ -123,10 +123,24 @@ if ( $submit_row == false ) {
     echo('</form>');
     echo("\n<p>Make sure each file is smaller than 1MB.</p>\n");
     footerContent();
+    return;
 }
 
 // We have a submission already
 $submit = json_decode($submit_row['json']);
-print_r($submit);
+$blob_ids = $submit->blob_ids;
+$partno = 0;
+foreach ( $json->parts as $part ) {
+    if ( $part->type == "image" ) {
+        $blob_id = $blob_ids[$partno++];
+        $url = getAccessUrlForBlob($blob_id);
+        echo ('<a href="'.sessionize($url).'" target="_blank">');
+        echo ('<img src="'.sessionize($url).'" width="120"></a>'."\n");
+    }
+}
+
+if ( strlen($submit->notes) > 1 ) {
+    echo("<p>Notes: ".htmlent_utf8($submit->notes)."</p>\n");
+}
 
 footerContent();

@@ -50,8 +50,17 @@ function uploadFileToBlob($db, $LTI, $FILE_DESCRIPTOR)
 	    $stmt->execute();
         $id = 0+$db->lastInsertId();
 	    $db->commit();
+        fclose($fp);
         return $id;
     }
-
     return false;
+}
+
+// Does not do access control checks - access.php does the access
+// control checks
+function getAccessUrlForBlob($blob_id) 
+{
+    global $CFG;
+    $url = $CFG->wwwroot . '/core/blob/access.php?id='.$blob_id;
+    return $url;
 }
