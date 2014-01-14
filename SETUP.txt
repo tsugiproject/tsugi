@@ -1,14 +1,29 @@
 To set up the database for this application,
 
-(1) Copy config-dist.php to config.php and update the values
+(1) Create a database if you can do so:
 
-(2) Run the setup.sql to create the tables and populate the
-initial key.
+create database tsugi DEFAULT CHARACTER SET utf8;
+grant all on tsugi.* to ltiuser@'localhost' identified by 'ltipassword';
+grant all on tsugi.* to ltiuser@'127.0.0.1' identified by 'ltipassword';
 
-You can change the secret from '12345' to anything you like. 
-If you want to change the key - also do a new SHA256 calculation as
-that is used as the indexed logical key.  There are many SHA256
-calculators on the web.
+It is OK if you already have a databse or your hosting provider forces you to 
+share a database across applications.  You can set a prefix for all the 
+tables in the config.php file
+
+(2) Copy config-dist.php to config.php and update the values as appropriate
+If you made a database set the "dbprefix" to an empty string.  If you are
+sharing a database across several applications, set the prefix to something
+like "tsugi_".
+
+(3) Run the 
+
+http://hostname/tsugi/admin/upgrade.php
+
+To create the needed tables.  Note that in the lti_key table already
+has some entries - you can changs the secret in the '12345' entry
+if you like.  If you want to change the key - also do a new SHA256 
+calculation as that is used as the indexed logical key.  There are 
+many SHA256 calculators on the web.
 
 /Chuck
-Mon Sep 30 20:46:13 EDT 2013
+Mon Jan 13 20:57:42 EST 2014

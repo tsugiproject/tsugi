@@ -82,7 +82,7 @@ foreach($tools as $tool ) {
             if ( is_array($data) && isset($data['version']) ) $version = $data['version']+0;
         }
         echo("-- Current data model version $version <br/>\n");
-        $newversion = $DATABASE_UPGRADE($version);
+        $newversion = $DATABASE_UPGRADE($db, $version);
         if ( $newversion != $version ) {
             echo("-- Upgraded to data model version $newversion <br/>\n");
             $sql = "UPDATE {$plugins} SET version = :version WHERE plugin_path = :plugin_path";
