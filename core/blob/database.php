@@ -14,7 +14,7 @@ array( "{$CFG->dbprefix}blob_file",
 	contenttype  VARCHAR(256) NULL,
     path         VARCHAR(2048) NULL,
 
-    data_id      LONGBLOB NULL,
+    content      LONGBLOB NULL,
 
     json         TEXT NULL,
     created_at   DATETIME NOT NULL,
@@ -27,26 +27,10 @@ array( "{$CFG->dbprefix}blob_file",
         REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
         ON DELETE SET NULL ON UPDATE CASCADE
 
-) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
-
-array( "{$CFG->dbprefix}blob_data", 
-"create table {$CFG->dbprefix}blob_data (
-    data_id      MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
-    data_sha256  CHAR(64) NOT NULL, 
-
-    content      LONGBLOB NULL,
-
-    created_at   DATETIME NOT NULL,
-    accessed_at  DATETIME NOT NULL,
-
-    INDEX `{$CFG->dbprefix}blob_data_indx_1` USING HASH (`data_sha256`)
-
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
 
-$DATABASE_UNINSTALL = array(
-"drop table if exists {$CFG->dbprefix}blob_file",
-"drop table if exists {$CFG->dbprefix}blob_data");
+$DATABASE_UNINSTALL = "drop table if exists {$CFG->dbprefix}blob_file";
 
 // No upgrades yet
 $DATABASE_UPGRADE = function($oldversion) { return 1; };

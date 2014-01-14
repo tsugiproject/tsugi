@@ -6,9 +6,9 @@ function loadSubmission($db, $LTI, $assn_id)
     $submit_row = false;
     if ( $assn_id != false ) {
         $stmt = pdoQueryDie($db,
-            "SELECT submit_id, note, reflect FROM {$CFG->dbprefix}peer_submit 
-                WHERE submit_id = :AID AND user_id = :UID",
-            array(":AID" => $assn_id, ":UID" => $LTI['link_id'])
+            "SELECT submit_id, json, note, reflect FROM {$CFG->dbprefix}peer_submit 
+                WHERE assn_id = :AID AND user_id = :UID",
+            array(":AID" => $assn_id, ":UID" => $LTI['user_id'])
         );
         $submit_row = $stmt->fetch(PDO::FETCH_ASSOC);
     }
