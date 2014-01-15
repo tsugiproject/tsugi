@@ -90,32 +90,6 @@ function success_out($output) {
     flush();
 }
 
-function togglePre($title, $html) {
-    global $div_id;
-    $div_id = $div_id + 1;
-    echo('<strong>'.htmlent_utf8($title));
-    echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">Toggle</a>)</strong>'."\n");
-    echo(' ('.strlen($html).' characters)'."\n");
-    echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
-    echo(htmlent_utf8($html));
-    echo("</pre><br/>\n");
-}
-
-function togglePreScript() {
-return '<script language="javascript"> 
-function dataToggle(divName) {
-    var ele = document.getElementById(divName);
-    if(ele.style.display == "block") {
-        ele.style.display = "none";
-    }
-    else {
-        ele.style.display = "block";
-    }
-} 
-  //]]> 
-</script>';
-}
-
 function sendGrade($grade) {
     try {
         return sendGradeInternal($grade);

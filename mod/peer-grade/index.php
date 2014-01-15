@@ -30,7 +30,6 @@ if ( $row !== false ) {
 $submit_id = false;
 $submit_row = loadSubmission($db, $assn_id, $LTI['user_id']);
 if ( $submit_row !== false ) $submit_id = $submit_row['submit_id'];
-$part_rows = loadParts($db, $LTI, $submit_row);
 
 if ( $assn_id != false && $assn_json != null && isset($_POST['notes']) ) {
     if ( $submit_row !== false ) {

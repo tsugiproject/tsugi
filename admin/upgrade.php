@@ -1,10 +1,16 @@
 <?php 
-
 require_once("../config.php");
 require_once("../db.php");
+require_once("../lib/lms_lib.php");
+?>
+<html>
+<head>
+<?php echo(togglePreScript()); ?>
+</head>
+<body>
+<?php
 
 $p = $CFG->dbprefix;
-
 echo("Checking plugins table...<br/>\n");
 $plugins = "{$p}lms_plugins";
 $table_fields = pdoMetadata($db, $plugins);
@@ -58,7 +64,7 @@ foreach($tools as $tool ) {
                 echo("-- Creating table ".$entry[0]."<br/>\n");
                 $q = pdoQuery($db, $entry[1]);
                 if ( ! $q->success ) die("Unable to create ".$entry[1]." ".$q->errorImplode."<br/>".$entry[1] );
-                echo("-- Created table ".$entry[0]."<br/>\n");
+                togglePre("-- Created table ".$entry[0], $entry[1]);
                 $sql = "INSERT INTO {$plugins} 
                     ( plugin_path, version, created_at, updated_at ) VALUES
                     ( :plugin_path, 1, NOW(), NOW() )
@@ -94,4 +100,7 @@ foreach($tools as $tool ) {
 
 }
 
+?>
+</body>
+</html>
 

@@ -1,9 +1,7 @@
 <?php
 
 $DATABASE_UNINSTALL = array(
-"drop table if exists {$CFG->dbprefix}peer_flag",
 "drop table if exists {$CFG->dbprefix}peer_grade",
-"drop table if exists {$CFG->dbprefix}peer_part",
 "drop table if exists {$CFG->dbprefix}peer_submit",
 "drop table if exists {$CFG->dbprefix}peer_assn"
 );
@@ -37,7 +35,6 @@ array( "{$CFG->dbprefix}peer_submit",
     json         TEXT NULL,
     note         TEXT NULL,
     reflect      TEXT NULL,
-    flag         BOOLEAN,
 
     updated_at  DATETIME NOT NULL,
     created_at  DATETIME NOT NULL,
@@ -55,37 +52,12 @@ array( "{$CFG->dbprefix}peer_submit",
     UNIQUE(assn_id, user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8") ,
 
-array( "{$CFG->dbprefix}peer_part",
-"create table {$CFG->dbprefix}peer_part (
-    part_id      MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
-    submit_id    MEDIUMINT NOT NULL,
-    partno       MEDIUMINT NOT NULL,
-
-    note        TEXT NULL,
-    blob_id     MEDIUMINT NULL,
-
-    json         TEXT NULL,
-
-    updated_at  DATETIME NOT NULL,
-    created_at  DATETIME NOT NULL,
-
-    CONSTRAINT `{$CFG->dbprefix}peer_part_ibfk_1`
-        FOREIGN KEY (`submit_id`)
-        REFERENCES `{$CFG->dbprefix}peer_submit` (`submit_id`)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-
-    -- Perhaps should foreign key the blob
-
-    UNIQUE(part_id, submit_id, partno)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8") ,
-
 array( "{$CFG->dbprefix}peer_grade",
 "create table {$CFG->dbprefix}peer_grade (
     grade_id     MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
     submit_id    MEDIUMINT NOT NULL,
     user_id      MEDIUMINT NOT NULL, -- The user doing the grading
 
-    flag         BOOLEAN,
     points       DOUBLE NULL,
     note         TEXT NULL,
 
