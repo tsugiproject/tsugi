@@ -210,12 +210,10 @@ $DATABASE_UPGRADE = function($db, $oldversion) {
     $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret) values 
         ( '5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', '12345', 'secret')";
     $q = pdoQuery($db, $sql);
-    if ( ! $q->success ) die("Unable to insert initial data ".$q->errorimplode."<br/>\n");
 
     $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key) values 
         ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', 'google.com')";
     $q = pdoQuery($db, $sql);
-    if ( ! $q->success ) die("Unable to insert initial data ".$q->errorimplode."<br/>\n");
     return 2;
 }; // Don't forget the semicolon on anonumous functions :)
 

@@ -91,7 +91,11 @@ foreach($tools as $tool ) {
         $newversion = $DATABASE_UPGRADE($db, $version);
         if ( $newversion != $version ) {
             echo("-- Upgraded to data model version $newversion <br/>\n");
-            $sql = "UPDATE {$plugins} SET version = :version WHERE plugin_path = :plugin_path";
+            $sql = "INSERT INTO {$plugins} 
+                ( plugin_path, version, created_at, updated_at ) VALUES
+                ( :plugin_path, :version, NOW(), NOW() )
+                ON DUPLICATE KEY 
+                UPDATE version = :version, updated_at = NOW()";
             $values = array( ":version" => $newversion, ":plugin_path" => $path);
             $q = pdoQuery($db, $sql, $values);
             if ( ! $q->success ) die("Unable to update version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
