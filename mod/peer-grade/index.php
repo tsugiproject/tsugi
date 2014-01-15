@@ -27,7 +27,9 @@ if ( $row !== false ) {
 }
 
 // Load up the submission and parts if they exist
+$submit_id = false;
 $submit_row = loadSubmission($db, $assn_id, $LTI['user_id']);
+if ( $submit_row !== false ) $submit_id = $submit_row['submit_id'];
 $part_rows = loadParts($db, $LTI, $submit_row);
 
 if ( $assn_id != false && $assn_json != null && isset($_POST['notes']) ) {
@@ -100,6 +102,30 @@ if ( $row !== false ) {
 // See how much grading is left to do
 $to_grade = loadUngraded($db, $LTI, $assn_id);
 
+$grade_count = 0;
+$stmt = pdoQueryDie($db,
+    "SELECT COUNT(grade_id) AS grade_count 
+     FROM {$p}peer_submit AS S JOIN {$p}peer_grade AS G
+     ON S.submit_id = G.submit_id
+        WHERE S.assn_id = :AID AND G.user_id = :UID",
+    array( ':AID' => $assn_id, ':UID' => $LTI['user_id'])
+);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+if ( $row !== false ) {
+    $grade_count = $row['grade_count']+0;
+}
+
+// Retrieve our grades...
+$our_grades = false;
+if ( $submit_id !== false ) {
+    $stmt = pdoQueryDie($db,
+        "SELECT points, note FROM {$p}peer_grade 
+            WHERE submit_id = :SID",
+        array( ':SID' => $submit_id)
+    );
+    $our_grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+    
 // View 
 headerContent();
 ?>
@@ -153,5 +179,19 @@ if ( $submit_row == false ) {
 // We have a submission already
 $submit_json = json_decode($submit_row['json']);
 showSubmission($assn_json, $submit_json);
+
+if ( count($our_grades) < 1 ) {
+    echo("<p>No one has graded your submission yet.</p>");
+    footerContent();
+    return;
+} 
+
+echo("<p>You have the following grades from other students:</p>");
+echo('<table border="1">'."\n<tr><th>Points<//th><th>Comments</th></tr>\n");
+
+foreach ( $our_grades as $grade ) {
+    echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td></tr>\n");
+}
+echo("</table>\n");
 
 footerContent();
