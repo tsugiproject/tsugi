@@ -130,7 +130,7 @@ showSubmission($assn_json, $submit_json);
 echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 ?>
 <form method="post">
-<input type="hidden" value="<?php echo($to_grade_row['submit_id']); ?>" name="submit_id">
+<input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="number" min="0" max="<?php echo($assn_json->maxpoints); ?>" name="points">
 (<?php echo($assn_json->maxpoints); ?> maximum points)<br/>
 Comments:<br/>
