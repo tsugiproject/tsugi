@@ -18,15 +18,15 @@ $p = $CFG->dbprefix;
 $stmt = pdoQueryDie($db,
     "SELECT S.user_id AS user_id, email, displayname, S.submit_id as submit_id, 
         MAX(points) as max_points, COUNT(points) as count_points, C.grade_count as grade_count
-    FROM tsugi_peer_assn AS A JOIN tsugi_peer_submit as S 
-    LEFT JOIN tsugi_peer_grade AS G 
+    FROM {$p}peer_assn AS A JOIN {$p}peer_submit as S 
+    LEFT JOIN {$p}peer_grade AS G 
         ON A.assn_id = S.assn_id AND S.submit_id = G.submit_id
-    JOIN tsugi_lti_user AS U
+    JOIN {$p}lti_user AS U
         ON S.user_id = U.user_id
     LEFT JOIN (
         SELECT G.user_id AS user_id, count(G.user_id) as grade_count
-        FROM tsugi_peer_assn AS A JOIN tsugi_peer_submit as S 
-        JOIN tsugi_peer_grade AS G 
+        FROM {$p}peer_assn AS A JOIN {$p}peer_submit as S 
+        JOIN {$p}peer_grade AS G 
             ON A.assn_id = S.assn_id AND S.submit_id = G.submit_id
         WHERE A.link_id = 1
         GROUP BY G.user_id 

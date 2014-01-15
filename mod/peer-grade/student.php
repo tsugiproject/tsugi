@@ -41,6 +41,9 @@ if ( $submit_row !== false ) {
     $submit_id = $submit_row['submit_id']+0;
 }
 
+// Load user info
+$user_row = loadUserInfo($db, $user_id);
+
 // Retrieve our grades...
 $our_grades = false;
 if ( $submit_id !== false ) {
@@ -82,7 +85,10 @@ headerContent();
 <body>
 <?php
 flashMessages();
-welcomeUserCourse($LTI);
+
+if ( $user_row != false ) {
+    echo("<p>".htmlent_utf8($user_row['displayname'])." (".htmlent_utf8($user_row['email']).")</p>\n");
+}
 
 if ( $submit_row === false ) {
     echo("<p>This student has not made a submission.</p>\n");

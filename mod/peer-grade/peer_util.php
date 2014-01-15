@@ -1,5 +1,18 @@
 <?php
 
+function loadUserInfo($db, $user_id) 
+{
+    global $CFG;
+    $user_row = false;
+    $stmt = pdoQueryDie($db,
+        "SELECT displayname, email FROM {$CFG->dbprefix}lti_user
+            WHERE user_id = :UID",
+        array(":UID" => $user_id)
+    );
+    $user_row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $user_row;
+}
+
 function loadSubmission($db, $assn_id, $user_id) 
 {
     global $CFG;

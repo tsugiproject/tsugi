@@ -96,6 +96,11 @@ if ( $user_id === false ) {
     $user_id = $to_grade_row['user_id'];
 }
 
+$user_row = false;
+if ( $instructor ) {
+    $user_row = loadUserInfo($db, $user_id);
+}
+
 $submit_row = loadSubmission($db, $assn_id, $user_id);
 if ( $submit_row !== null ) {
     $submit_id = $submit_row['submit_id'];
@@ -115,7 +120,9 @@ headerContent();
 <body>
 <?php
 flashMessages();
-welcomeUserCourse($LTI);
+if ( $user_row != false ) {
+    echo("<p>".htmlent_utf8($user_row['displayname'])." (".htmlent_utf8($user_row['email']).")</p>\n");
+}
 ?>
 <p><b>Please be careful, you cannot revise grades after you submit them.</b></p>
 <?php
