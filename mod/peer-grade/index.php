@@ -45,7 +45,7 @@ if ( $assn_id != false && $assn_json != null && isset($_POST['notes']) ) {
             $fname = 'uploaded_file_'.$partno;
             $partno++;
             if( ! isset($_FILES[$fname]) ) {
-                $_SESSION['error'] = 'Problem with uplaoded files - perhaps too much data was uploaded';
+                $_SESSION['error'] = 'Problem with uploaded files - perhaps too much data was uploaded';
                 die( 'Location: '.sessionize('index.php') ) ;
                 return;
             }
@@ -134,6 +134,10 @@ headerContent();
 flashMessages();
 welcomeUserCourse($LTI);
 
+if ( $assn_json != null ) {
+    echo("<p><b>".$assn_json->title."</b></p>\n");
+}
+
 if ( $instructor ) {
     echo('<p><a href="configure.php">Configure this Assignment</a> | ');
     echo('<a href="admin.php">Explore Grade Data</a></p>');
@@ -145,16 +149,20 @@ if ( $assn_json == null ) {
     return;
 } 
 
-echo("<p><b>".$assn_json->title."</b></p>\n");
-
-echo("<p> You have graded ".$grade_count."/".$assn_json->minassess." other student submissions.
-You can grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
-
 if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxassess ) ) {
     echo('<p><a href="grade.php">Grade other students</a></p>'."\n");
+} else {
+    echo('<p>There are no submisions waiting to be graded. Please check back later.</p>');
 }
 
+echo("<p> You have graded ".$grade_count."/".$assn_json->minassess." other student submissions.
+You must grade at least ".$assn_json->minassess." other submissions for full credit on this assignment.
+You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
+
+echo("<p><b>Your Submission:</b></p>\n");
+
 if ( $submit_row == false ) {
+    echo('<p>'.htmlent_utf8($assn_json->description)."</p>\n");
     echo('<form name="myform" enctype="multipart/form-data" method="post" action="'.
          sessionize('index.php').'">');
 
@@ -162,7 +170,7 @@ if ( $submit_row == false ) {
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == "image" ) {
             echo("\n<p>");
-            echo(htmlent_utf8($part->title).' ('.$part->points.' points) '."\n");
+            echo(htmlent_utf8($part->title)."\n");
             echo('<input name="uploaded_file_'.$partno.'" type="file"><p/>');
             $partno++;
         }
