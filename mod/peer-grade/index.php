@@ -19,18 +19,18 @@ $stmt = pdoQueryDie($db,
     array(":ID" => $LTI['link_id'])
 );
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
-$json = null;
+$assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
-    $json = json_decode($row['json']);
+    $assn_json = json_decode($row['json']);
     $assn_id = $row['assn_id'];
 }
 
 // Load up the submission and parts if they exist
-$submit_row = loadSubmission($db, $LTI, $assn_id);
+$submit_row = loadSubmission($db, $assn_id, $LTI['user_id']);
 $part_rows = loadParts($db, $LTI, $submit_row);
 
-if ( $assn_id != false && $json != null && isset($_POST['notes']) ) {
+if ( $assn_id != false && $assn_json != null && isset($_POST['notes']) ) {
     if ( $submit_row !== false ) {
         $_SESSION['error'] = 'Cannot submit an assignment twice';
         header( 'Location: '.sessionize('index.php') ) ;
@@ -39,7 +39,7 @@ if ( $assn_id != false && $json != null && isset($_POST['notes']) ) {
 
     $blob_ids = array();
     $partno = 0;
-    foreach ( $json->parts as $part ) {
+    foreach ( $assn_json->parts as $part ) {
         if ( $part->type == 'image' ) {
             $fname = 'uploaded_file_'.$partno;
             $partno++;
@@ -83,6 +83,23 @@ if ( $assn_id != false && $json != null && isset($_POST['notes']) ) {
     return;
 }
 
+// Check to see how much grading we have done
+$grade_count = 0;
+$stmt = pdoQueryDie($db,
+    "SELECT COUNT(grade_id) AS grade_count 
+     FROM {$p}peer_submit AS S JOIN {$p}peer_grade AS G
+     ON S.submit_id = G.submit_id
+        WHERE S.assn_id = :AID AND G.user_id = :UID",
+    array( ':AID' => $assn_id, ':UID' => $LTI['user_id'])
+);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+if ( $row !== false ) {
+    $grade_count = $row['grade_count']+0;
+}
+
+// See how much grading is left to do
+$to_grade = loadUngraded($db, $LTI, $assn_id);
+
 // View 
 headerContent();
 ?>
@@ -96,20 +113,27 @@ if ( $instructor ) {
     echo('<p><a href="configure.php">Configure this Assignment</a></p>');
 }
 
-if ( $json == null ) {
+if ( $assn_json == null ) {
     echo('<p>This assignment is not yet configured</p>');
     footerContent();
     return;
 } 
 
-echo("<p><b>".$json->title."</b></p>\n");
+echo("<p><b>".$assn_json->title."</b></p>\n");
+
+echo("<p> You have graded ".$grade_count."/".$assn_json->minassess." other student submissions.
+You can grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
+
+if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxassess ) ) {
+    echo('<p><a href="grade.php">Grade other students</a></p>'."\n");
+}
 
 if ( $submit_row == false ) {
     echo('<form name="myform" enctype="multipart/form-data" method="post" action="'.
          sessionize('index.php').'">');
 
     $partno = 0;
-    foreach ( $json->parts as $part ) {
+    foreach ( $assn_json->parts as $part ) {
         if ( $part->type == "image" ) {
             echo("\n<p>");
             echo(htmlent_utf8($part->title).' ('.$part->points.' points) '."\n");
@@ -127,20 +151,7 @@ if ( $submit_row == false ) {
 }
 
 // We have a submission already
-$submit = json_decode($submit_row['json']);
-$blob_ids = $submit->blob_ids;
-$partno = 0;
-foreach ( $json->parts as $part ) {
-    if ( $part->type == "image" ) {
-        $blob_id = $blob_ids[$partno++];
-        $url = getAccessUrlForBlob($blob_id);
-        echo ('<a href="'.sessionize($url).'" target="_blank">');
-        echo ('<img src="'.sessionize($url).'" width="120"></a>'."\n");
-    }
-}
-
-if ( strlen($submit->notes) > 1 ) {
-    echo("<p>Notes: ".htmlent_utf8($submit->notes)."</p>\n");
-}
+$submit_json = json_decode($submit_row['json']);
+showSubmission($assn_json, $submit_json);
 
 footerContent();

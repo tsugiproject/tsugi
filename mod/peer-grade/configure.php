@@ -58,16 +58,15 @@ if ( strlen($json) < 1 ) {
     $json = '{ "title" : "Assignment title",
         "parts" : [ 
             { "title" : "Image of MySqlAdmin", 
-              "type" : "image", 
-              "points" : 3
+              "type" : "image" 
             },
             { "title" : "Image of PHP code running with your name", 
-              "type" : "image", 
-              "points" : 3
+              "type" : "image"
             }
         ],
-        "mingraders" : 1,
-        "maxgraders" : 3
+        "maxpoints" : 6,
+        "minassess" : 2,
+        "maxassess" : 5
     }';
     $json = json_decode($json);
     if ( $json === null ) die("Bad JSON constant");
@@ -85,6 +84,7 @@ flashMessages();
 if ( ! $instructor ) die("Requires instructor role");
 
 ?>
+<p>Remember to be careful if this assignment has submissions.</p>
 <form method="post">
 <textarea name="json" rows="15" cols="80">
 <?php echo($json); ?>
