@@ -136,7 +136,8 @@ flashMessages();
 welcomeUserCourse($LTI);
 
 if ( $instructor ) {
-    echo('<p><a href="configure.php">Configure this Assignment</a></p>');
+    echo('<p><a href="configure.php">Configure this Assignment</a> | ');
+    echo('<a href="admin.php">Explore Grade Data</a></p>');
 }
 
 if ( $assn_json == null ) {
@@ -187,7 +188,7 @@ if ( count($our_grades) < 1 ) {
 } 
 
 echo("<p>You have the following grades from other students:</p>");
-echo('<table border="1">'."\n<tr><th>Points<//th><th>Comments</th></tr>\n");
+echo('<table border="1">'."\n<tr><th>Points</th><th>Comments</th></tr>\n");
 
 foreach ( $our_grades as $grade ) {
     echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td></tr>\n");

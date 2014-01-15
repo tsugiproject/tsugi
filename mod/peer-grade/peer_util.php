@@ -37,7 +37,7 @@ function loadUngraded($db, $LTI, $assn_id)
 {
     global $CFG;
     $stmt = pdoQueryDie($db,
-        "SELECT S.submit_id, S.created_at, count(G.user_id) AS submit_count 
+        "SELECT S.submit_id, S.user_id, S.created_at, count(G.user_id) AS submit_count 
             FROM {$CFG->dbprefix}peer_submit AS S LEFT JOIN {$CFG->dbprefix}peer_grade AS G 
             ON S.submit_id = G.submit_id 
             WHERE S.assn_id = :AID AND S.user_id != :UID AND 

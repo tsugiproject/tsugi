@@ -13,6 +13,16 @@ $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isInstructor($LTI);
 $p = $CFG->dbprefix;
 
+$user_id = false;
+$url_goback = 'index.php';
+$url_stay = 'grade.php';
+if ( isset($_REQUEST['user_id']) ) {
+    if ( ! $instructor ) die("Only instructors can grade specific students'");
+    $user_id = $_REQUEST['user_id'];
+    $url_goback = 'student.php?user_id='.$user_id;
+    $url_stay = 'grade.php?user_id='.$user_id;
+}
+
 // Model 
 $stmt = pdoQueryDie($db,
     "SELECT assn_id, json FROM {$p}peer_assn WHERE link_id = :ID",
@@ -28,7 +38,7 @@ if ( $row !== false ) {
 
 if ( $assn_id == false ) {
     $_SESSION['error'] = 'This assignment is not yet set up';
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.sessionize($url_goback) ) ;
     return;
 }
 
@@ -36,14 +46,14 @@ if ( $assn_id == false ) {
 if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
     if ( strlen($_POST['points']) < 1 ) {
         $_SESSION['error'] = 'Points are required';
-        header( 'Location: '.sessionize('grade.php') ) ;
+        header( 'Location: '.sessionize($url_stay) ) ;
         return;
     }
     $points = $_POST['points']+0;
     if ( !isset($_SESSION['peer_submit_id']) || $_SESSION['peer_submit_id'] != $_POST['submit_id'] ) {
         unset($_SESSION['peer_submit_id']);
         $_SESSION['error'] = 'Error in submission id';
-        header( 'Location: '.sessionize('grade.php') ) ;
+        header( 'Location: '.sessionize($url_stay) ) ;
         return;
     }
     unset($_SESSION['peer_submit_id']);
@@ -65,34 +75,36 @@ if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
     } else {
         $_SESSION['error'] = $stmt->errorImplode;
     }
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.sessionize($url_goback) ) ;
     return;
 }
 unset($_SESSION['peer_submit_id']);
  
-// Load the the 10 oldest ungraded submissions
-$to_grade = loadUngraded($db, $LTI, $assn_id);
-if ( count($to_grade) < 1 ) {
-    $_SESSION['success'] = 'There are no submissions to grade';
-    header( 'Location: '.sessionize('index.php') ) ;
-    return;
+$submit_id = false;
+$submit_json = null;
+if ( $user_id === false ) {
+    // Load the the 10 oldest ungraded submissions
+    $to_grade = loadUngraded($db, $LTI, $assn_id);
+    if ( count($to_grade) < 1 ) {
+        $_SESSION['success'] = 'There are no submissions to grade';
+        header( 'Location: '.sessionize($url_goback) ) ;
+        return;
+    }
+
+    // Grab the oldest one
+    $to_grade_row = $to_grade[0];
+    $user_id = $to_grade_row['user_id'];
 }
 
-// Grab the oldest one
-$to_grade_row = $to_grade[0];
-$stmt = pdoQueryDie($db,
-    "SELECT json FROM {$CFG->dbprefix}peer_submit 
-        WHERE submit_id = :SID",
-    array(":SID" => $to_grade_row['submit_id'])
-);
-$submit_row = $stmt->fetch(PDO::FETCH_ASSOC);
-$submit_json = null;
+$submit_row = loadSubmission($db, $assn_id, $user_id);
 if ( $submit_row !== null ) {
+    $submit_id = $submit_row['submit_id'];
     $submit_json = json_decode($submit_row['json']);
 }
+
 if ( $submit_json === null ) {
-    $_SESSION['error'] = 'Unable to load submission '.$to_grade_row['submit_id'];
-    header( 'Location: '.sessionize('index.php') ) ;
+    $_SESSION['error'] = 'Unable to load submission '.$user_id;
+    header( 'Location: '.sessionize($url_goback) ) ;
     return;
 }
 
@@ -116,9 +128,9 @@ showSubmission($assn_json, $submit_json);
 Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" value="Grade">
-<input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
+<input type=submit name=doCancel onclick="location='<?php echo(sessionize($url_goback));?>'; return false;" value="Cancel">
 </form>
 <?php
 
-$_SESSION['peer_submit_id'] = $to_grade_row['submit_id'];
+$_SESSION['peer_submit_id'] = $submit_id;
 footerContent();
