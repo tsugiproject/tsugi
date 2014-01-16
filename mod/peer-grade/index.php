@@ -177,7 +177,7 @@ if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxasses
     echo('<p>There are no submisions waiting to be graded. Please check back later.</p>');
 }
 
-echo("<p> You have graded ".$grade_count."/".$assn_json->minassess." other student submissions.
+echo("<p> You have graded ".$grade_count." other student submissions.
 You must grade at least ".$assn_json->minassess." other submissions for full credit on this assignment.
 You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
 
