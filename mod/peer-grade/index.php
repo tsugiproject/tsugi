@@ -207,7 +207,7 @@ function loadgrade() {
         if ( data.grade ) {
             $("#gradeinfo").html('Your current grade is '+data.grade*100.0+'%');
         } else {
-            $("#gradeinfo").html('The server had a problem computing or storing your grade.');
+            $("#gradeinfo").html('You do not have a grade.');
             window.console && console.log('Take a screen shot of the console output and send to support...');
         }
     });

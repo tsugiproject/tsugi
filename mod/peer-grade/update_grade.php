@@ -33,7 +33,7 @@ if ( $assn_id == false ) {
 
 // Compute the user's grade
 $grade = computeGrade($db, $assn_id, $assn_json, $user_id);
-if ( $grade < 0 ) {
+if ( $grade <= 0 ) {
     json_error('Nothing to grade for this user', $row);
     return;
 }
