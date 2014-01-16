@@ -485,7 +485,7 @@ function sendGradeInternal($grade, $verbose, $db,  $result) {
 
     // Check if the grade was already sent...
     if ( isset($result['grade']) && $grade == $result['grade'] ) {
-        error_log("Grade result_id=".$result['result_id']." grade= $grade alredy sent...");
+        error_log("Grade result_id=".$result['result_id']." grade= $grade already sent...");
         return true;
     }
 
