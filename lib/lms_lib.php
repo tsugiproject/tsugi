@@ -447,7 +447,7 @@ function safeVarDump($x) {
         return $result;
 }
 
-function sendGrade($grade, $verbose=true, $db=false, $result) {
+function sendGrade($grade, $verbose=true, $db=false, $result=false) {
 	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
