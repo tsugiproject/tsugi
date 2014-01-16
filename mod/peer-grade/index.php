@@ -70,6 +70,7 @@ if ( $assn_id != false && $assn_json != null && isset($_POST['notes']) ) {
             ':JSON' => $json,
             ':UID' => $LTI['user_id'])
         );
+    cache_clear('peer_submit');
     if ( $stmt->success ) {
         $_SESSION['success'] = 'Assignment submitted';
         header( 'Location: '.sessionize('index.php') ) ;

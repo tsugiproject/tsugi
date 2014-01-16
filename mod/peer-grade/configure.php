@@ -34,6 +34,7 @@ if ( isset($_POST['json']) ) {
             ':JSON' => $json,
             ':ID' => $LTI['link_id'])
         );
+    clearCache("peer_assn");
     if ( $stmt->success ) {
         $_SESSION['success'] = 'Assignment updated';
         header( 'Location: '.sessionize('index.php') ) ;

@@ -66,6 +66,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
             ':POINTS' => $points,
             ':NOTE' => $_POST['note'])
     );
+    cacheClear('peer_grade');
     if ( ! $stmt->success ) {
         $_SESSION['error'] = $stmt->errorImplode;
         header( 'Location: '.sessionize($url_goback) ) ;

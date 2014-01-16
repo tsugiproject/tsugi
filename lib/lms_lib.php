@@ -532,5 +532,39 @@ function json_output($json_data) {
     echo(json_encode($json_data));
 }
 
+function checkCache($cacheloc, $cachekey)
+{
+    $cacheloc = "cache_" . $cacheloc;
+    if ( isset($_SESSION[$cacheloc]) ) {
+        $cache_row = $_SESSION[$cacheloc];
+        if ( $cache_row[0] == $cachekey ) {
+            error_log("Cache hit $cacheloc");
+            return $cache_row[1];
+        }
+        unset($_SESSION[$cacheloc]);
+    }
+    return null;
+}
+
+// Don't cache the non-existence of something
+function setCache($cacheloc, $cachekey, $cacheval)
+{
+    $cacheloc = "cache_" . $cacheloc;
+    if ( $cacheval === null || $cacheval == false ) {
+        unset($_SESSION[$cacheloc]);
+        return;
+    }
+    $_SESSION[$cacheloc] = array($cachekey, $cacheval);
+}
+
+function clearCache($cacheloc)
+{
+    $cacheloc = "cache_" . $cacheloc;
+    if ( isset($_SESSION[$cacheloc]) ) {
+        error_log("Cache clear $cacheloc");
+    }
+    unset($_SESSION[$cacheloc]);
+}
+
 // No trailer
 
