@@ -588,7 +588,7 @@ function cacheCheck($cacheloc, $cachekey)
 function cacheSet($cacheloc, $cachekey, $cacheval)
 {
     $cacheloc = "cache_" . $cacheloc;
-    if ( $cacheval === null || $cacheval == false ) {
+    if ( $cacheval === null || $cacheval === false ) {
         unset($_SESSION[$cacheloc]);
         return;
     }

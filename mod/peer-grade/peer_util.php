@@ -11,10 +11,9 @@ function loadUserInfo($db, $user_id)
             WHERE user_id = :UID",
         array(":UID" => $user_id)
     );
-    $user_row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $_SESSION['lti_user'] = array($user_id, $user_row);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
     cacheSet($cacheloc, $user_id, $row);
-    return $user_row;
+    return $row;
 }
 
 // Loads the assignment associated with this link
@@ -41,15 +40,14 @@ function loadSubmission($db, $assn_id, $user_id)
     $submit_row = cacheCheck($cacheloc, $cachekey);
     if ( $submit_row != null ) return $submit_row;
     $submit_row = false;
-    if ( $assn_id != false ) {
-        $stmt = pdoQueryDie($db,
-            "SELECT submit_id, json, note, reflect FROM {$CFG->dbprefix}peer_submit 
-                WHERE assn_id = :AID AND user_id = :UID",
-            array(":AID" => $assn_id, ":UID" => $user_id)
-        );
-        $submit_row = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-    cacheCheck($cacheloc, $cachekey, $submit_row);
+
+    $stmt = pdoQueryDie($db,
+        "SELECT submit_id, json, note, reflect FROM {$CFG->dbprefix}peer_submit 
+            WHERE assn_id = :AID AND user_id = :UID",
+        array(":AID" => $assn_id, ":UID" => $user_id)
+    );
+    $submit_row = $stmt->fetch(PDO::FETCH_ASSOC);
+    cacheSet($cacheloc, $cachekey, $submit_row);
     return $submit_row;
 }
 
