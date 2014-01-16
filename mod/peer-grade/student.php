@@ -69,7 +69,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['doDelete']) ) {
             WHERE grade_id = :GID",
         array( ':GID' => $_POST['grade_id'])
     );
-    cache_clear('peer_grade');
+    cacheClear('peer_grade');
     error_log("Instructor deleted grade entry for ".$user_id);
     $_SESSION['success'] = "Grade entry deleted.";
     header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;

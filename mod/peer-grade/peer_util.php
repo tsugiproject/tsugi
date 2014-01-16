@@ -4,7 +4,7 @@ function loadUserInfo($db, $user_id)
 {
     global $CFG;
     $cacheloc = 'lti_user';
-    $row = checkCache($cacheloc, $user_id);
+    $row = cacheCheck($cacheloc, $user_id);
     if ( $row != null ) return $row;
     $stmt = pdoQueryDie($db,
         "SELECT displayname, email FROM {$CFG->dbprefix}lti_user
@@ -13,7 +13,7 @@ function loadUserInfo($db, $user_id)
     );
     $user_row = $stmt->fetch(PDO::FETCH_ASSOC);
     $_SESSION['lti_user'] = array($user_id, $user_row);
-    setCache($cacheloc, $user_id, $row);
+    cacheSet($cacheloc, $user_id, $row);
     return $user_row;
 }
 
@@ -22,14 +22,14 @@ function loadAssignment($db, $LTI)
 {
     global $CFG;
     $cacheloc = 'peer_assn';
-    $row = checkCache($cacheloc, $LTI['link_id']);
+    $row = cacheCheck($cacheloc, $LTI['link_id']);
     if ( $row != null ) return $row;
     $stmt = pdoQueryDie($db,
         "SELECT assn_id, json FROM {$CFG->dbprefix}peer_assn WHERE link_id = :ID",
         array(":ID" => $LTI['link_id'])
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    setCache($cacheloc, $LTI['link_id'], $row);
+    cacheSet($cacheloc, $LTI['link_id'], $row);
     return $row;
 }
 
@@ -38,7 +38,7 @@ function loadSubmission($db, $assn_id, $user_id)
     global $CFG;
     $cacheloc = 'peer_submit';
     $cachekey = $assn_id + "::" + $user_id;
-    $submit_row = checkCache($cacheloc, $cachekey);
+    $submit_row = cacheCheck($cacheloc, $cachekey);
     if ( $submit_row != null ) return $submit_row;
     $submit_row = false;
     if ( $assn_id != false ) {
@@ -49,7 +49,7 @@ function loadSubmission($db, $assn_id, $user_id)
         );
         $submit_row = $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    setCache($cacheloc, $cachekey, $submit_row);
+    cacheCheck($cacheloc, $cachekey, $submit_row);
     return $submit_row;
 }
 

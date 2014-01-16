@@ -410,10 +410,15 @@ function dataToggle(divName) {
 </script>';
 }
 
-function lookupSourceDID($db, $LTI, $user_id) {
+// Looks up a result for a potentially different user_id so we make
+// sure they are in the smame key/ context / link as the current user
+// hence the complex query to make sure we don't cross silos
+function lookupResult($db, $LTI, $user_id) {
     global $CFG;
     $stmt = pdoQueryDie($db,
-        "SELECT sourcedid FROM {$CFG->dbprefix}lti_result AS R
+        "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id, 
+            sourcedid, service_id, grade, note, R.json AS json
+        FROM {$CFG->dbprefix}lti_result AS R
         JOIN {$CFG->dbprefix}lti_link AS L
             ON L.link_id = R.link_id AND R.link_id = :LID
         JOIN {$CFG->dbprefix}lti_user AS U
@@ -427,8 +432,7 @@ function lookupSourceDID($db, $LTI, $user_id) {
             ":CID" => $LTI['context_id'], ":UID" => $user_id)
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ( $row == false ) return false;
-    return $row['sourcedid'];
+    return $row;
 }
 
 // Clean out the array of 'secret' keys
@@ -443,13 +447,13 @@ function safeVarDump($x) {
         return $result;
 }
 
-function sendGrade($grade, $sourcedid=false, $verbose=true) {
+function sendGrade($grade, $verbose=true, $db=false, $result) {
 	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
     try {
-        if ( $sourcedid === false ) $sourcedid = $_SESSION['lti']['sourcedid'];
-        return sendGradeInternal($grade, $sourcedid, $verbose);
+        if ( $result === false ) $result = $_SESSION['lti'];
+        return sendGradeInternal($grade, $verbose, $db, $result);
 	} catch(Exception $e) {
 		$msg = "Grade Exception: ".$e->getMessage();
 		error_log($msg);
@@ -457,20 +461,37 @@ function sendGrade($grade, $sourcedid=false, $verbose=true) {
     } 
 }
 
-function sendGradeInternal($grade, $sourcedid, $verbose) {
+function sendGradeInternal($grade, $verbose, $db,  $result) {
+    global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
 	$lti = $_SESSION['lti'];
 	if ( ! ( isset($lti['service']) && isset($lti['sourcedid']) &&
-		isset($lti['key_key']) && isset($lti['secret']) ) ) {
+		isset($lti['key_key']) && isset($lti['secret']) && 
+        array_key_exists('grade', $lti) ) ) {
 		error_log('Session is missing required data');
-        $result = safeVarDump($lti);
-        error_log($result);
-        return "Missing required data";
+        $debug = safeVarDump($lti);
+        error_log($debug);
+        return "Missing required session data";
+    }
+
+	if ( ! ( isset($result['sourcedid']) && isset($result['result_id']) &&
+        array_key_exists('grade', $result) ) ) {
+		error_log('Result is missing required data');
+        $debug = safeVarDump($result);
+        error_log($debug);
+        return "Missing required result data";
+    }
+
+    // Check if the grade was already sent...
+    if ( isset($result['grade']) && $grade == $result['grade'] ) {
+        error_log("Grade result_id=".$result['result_id']." grade= $grade alredy sent...");
+        return true;
     }
 
 	$method="POST";
 	$content_type = "application/xml";
+    $sourcedid = $result['sourcedid'];
 	$sourcedid = htmlspecialchars($sourcedid);
 
 	$operation = 'replaceResultRequest';
@@ -504,6 +525,23 @@ function sendGradeInternal($grade, $sourcedid, $verbose) {
     $note = $status;
     if ( $note == true ) $note = 'Success';
     error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_displayname'].' '.$note);
+
+    // Update result in the database and in the LTI session area
+    $_SESSION['lti']['grade'] = $grade;
+    if ( $db !== false ) {
+        $stmt = pdoQuery($db,
+            "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade, updated_at = NOW() WHERE result_id = :RID",
+            array(
+                ':grade' => $grade,
+                ':RID' => $result['result_id'])
+        );
+        if ( $stmt->success ) {
+            error_log("Grade updated result_id=".$result['result_id']." grade=$grade");
+        } else {
+            error_log("Grade NOT updated result_id=".$result['result_id']." grade=$grade");
+        }
+        cacheClear('lti_result');
+    }
     return $status;
 }
 
@@ -532,7 +570,7 @@ function json_output($json_data) {
     echo(json_encode($json_data));
 }
 
-function checkCache($cacheloc, $cachekey)
+function cacheCheck($cacheloc, $cachekey)
 {
     $cacheloc = "cache_" . $cacheloc;
     if ( isset($_SESSION[$cacheloc]) ) {
@@ -547,7 +585,7 @@ function checkCache($cacheloc, $cachekey)
 }
 
 // Don't cache the non-existence of something
-function setCache($cacheloc, $cachekey, $cacheval)
+function cacheSet($cacheloc, $cachekey, $cacheval)
 {
     $cacheloc = "cache_" . $cacheloc;
     if ( $cacheval === null || $cacheval == false ) {
@@ -557,7 +595,7 @@ function setCache($cacheloc, $cachekey, $cacheval)
     $_SESSION[$cacheloc] = array($cachekey, $cacheval);
 }
 
-function clearCache($cacheloc)
+function cacheClear($cacheloc)
 {
     $cacheloc = "cache_" . $cacheloc;
     if ( isset($_SESSION[$cacheloc]) ) {

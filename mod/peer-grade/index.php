@@ -70,7 +70,7 @@ if ( $assn_id != false && $assn_json != null && isset($_POST['notes']) ) {
             ':JSON' => $json,
             ':UID' => $LTI['user_id'])
         );
-    cache_clear('peer_submit');
+    cacheClear('peer_submit');
     if ( $stmt->success ) {
         $_SESSION['success'] = 'Assignment submitted';
         header( 'Location: '.sessionize('index.php') ) ;
@@ -131,13 +131,14 @@ headerContent();
 flashMessages();
 welcomeUserCourse($LTI);
 
-if ( $assn_json != null ) {
-    echo("<p><b>".$assn_json->title."</b></p>\n");
-}
-
 if ( $instructor ) {
     echo('<p><a href="configure.php">Configure this Assignment</a> | ');
-    echo('<a href="admin.php">Explore Grade Data</a></p>');
+    echo('<a href="admin.php">Explore Grade Data</a> | ');
+    echo('<a href="debug.php">Debug Tool</a></p>');
+}
+
+if ( $assn_json != null ) {
+    echo("<p><b>".$assn_json->title."</b></p>\n");
 }
 
 if ( $assn_json == null ) {

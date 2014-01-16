@@ -80,7 +80,7 @@ function loadAllData($db, $p, $profile_table, $post) {
 
 	if ( $post['sourcedid'] ) {
 		$sql .= ",
-		r.result_id, r.sourcedid";
+		r.result_id, r.sourcedid, r.grade";
 	}
 
 	$sql .="\nFROM {$p}lti_key AS k 

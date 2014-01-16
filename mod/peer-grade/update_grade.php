@@ -38,14 +38,14 @@ if ( $grade <= 0 ) {
     return;
 }
 
-// Lookup the coursedid if we are grading the non-current user
-$sourcedid = false;
+// Lookup the result row if we are grading the non-current user
+$result = false;
 if ( $user_id != $LTI['user_id'] ) {
-    $sourcedid = lookupSourceDID($db, $LTI, $user_id);
+    $result = lookupResult($db, $LTI, $user_id);
 }
 
 // Send the grade
-$status = sendGrade($grade, $sourcedid, false);
+$status = sendGrade($grade, false, $db, $result);
 if ( $status === true ) {
     if ( $user_id != $LTI['user_id'] ) {
         json_output(array("status" => $status, "detail" => $LastPOXGradeResponse));

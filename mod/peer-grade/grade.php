@@ -78,8 +78,8 @@ if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
     $grade = computeGrade($db, $assn_id, $assn_json, $user_id);
     $_SESSION['success'] = 'Grade submitted';
     if ( $grade > 0 ) {
-        $sourcedid = lookupSourceDID($db, $LTI, $user_id);
-        $status = sendGrade($grade, $sourcedid, false); // This is the slow bit
+        $result = lookupResult($db, $LTI, $user_id);
+        $status = sendGrade($grade, false, $db, $result); // This is the slow bit
         if ( $status === true ) {
             $_SESSION['success'] = 'Grade submitted to server';
         } else {
