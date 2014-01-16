@@ -14,11 +14,7 @@ $instructor = isInstructor($LTI);
 $p = $CFG->dbprefix;
 
 // Model 
-$stmt = pdoQueryDie($db,
-    "SELECT assn_id, json FROM {$p}peer_assn WHERE link_id = :ID",
-    array(":ID" => $LTI['link_id'])
-);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$row = loadAssignment($db, $LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -124,7 +120,7 @@ if ( $submit_id !== false ) {
     );
     $our_grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-    
+
 // View 
 headerContent();
 ?>
@@ -149,19 +145,8 @@ if ( $assn_json == null ) {
     return;
 } 
 
-if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxassess ) ) {
-    echo('<p><a href="grade.php">Grade other students</a></p>'."\n");
-} else {
-    echo('<p>There are no submisions waiting to be graded. Please check back later.</p>');
-}
-
-echo("<p> You have graded ".$grade_count."/".$assn_json->minassess." other student submissions.
-You must grade at least ".$assn_json->minassess." other submissions for full credit on this assignment.
-You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
-
-echo("<p><b>Your Submission:</b></p>\n");
-
 if ( $submit_row == false ) {
+    echo("<p><b>Please Upload Your Submission:</b></p>\n");
     echo('<p>'.htmlent_utf8($assn_json->description)."</p>\n");
     echo('<form name="myform" enctype="multipart/form-data" method="post" action="'.
          sessionize('index.php').'">');
@@ -184,22 +169,53 @@ if ( $submit_row == false ) {
     return;
 }
 
+if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxassess ) ) {
+    echo('<p><a href="grade.php">Grade other students</a></p>'."\n");
+} else {
+    echo('<p>There are no submisions waiting to be graded. Please check back later.</p>');
+}
+
+echo("<p> You have graded ".$grade_count."/".$assn_json->minassess." other student submissions.
+You must grade at least ".$assn_json->minassess." other submissions for full credit on this assignment.
+You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
+
 // We have a submission already
 $submit_json = json_decode($submit_row['json']);
+echo("<p><b>Your Submission:</b></p>\n");
 showSubmission($assn_json, $submit_json);
 
 if ( count($our_grades) < 1 ) {
     echo("<p>No one has graded your submission yet.</p>");
-    footerContent();
-    return;
-} 
+} else {
+    echo("<p>You have the following grades from other students:</p>");
+    echo('<table border="1">'."\n<tr><th>Points</th><th>Comments</th></tr>\n");
 
-echo("<p>You have the following grades from other students:</p>");
-echo('<table border="1">'."\n<tr><th>Points</th><th>Comments</th></tr>\n");
-
-foreach ( $our_grades as $grade ) {
-    echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td></tr>\n");
+    foreach ( $our_grades as $grade ) {
+        echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td></tr>\n");
+    }
+    echo("</table>\n");
 }
-echo("</table>\n");
+?>
+<p>
+<div id="gradeinfo">Calculating grade....</div>
+</p>
+<script type="text/javascript">
+function loadgrade() {
+    window.console && console.log('Loading and updating your grade...');
+    $.getJSON('<?php echo(sessionize('update_grade.php')); ?>', function(data) {
+        window.console && console.log(data);
+        if ( data.grade ) {
+            $("#gradeinfo").html('Your current grade is '+data.grade*100.0+'%');
+        } else {
+            $("#gradeinfo").html('The server had a problem computing or storing your grade.');
+            window.console && console.log('Take a screen shot of the console output and send to support...');
+        }
+    });
+}
+</script>
+<?php
+// After jquery gets loaded at the *very* end...
+footerContent('<script type="text/javascript">
+$(document).ready(function() { loadgrade(); } );
+</script>');
 
-footerContent();

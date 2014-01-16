@@ -3,6 +3,7 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/db.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once "peer_util.php";
 
 session_start();
 
@@ -43,13 +44,8 @@ if ( isset($_POST['json']) ) {
     return;
 }
 
-// Load up the old
-$stmt = pdoQuery($db,
-    "SELECT json FROM {$p}peer_assn WHERE link_id = :ID",
-    array(":ID" => $LTI['link_id'])
-);
-if ( ! $stmt->success ) die(htmlent_utf8($stmt->errorImplode));
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+// Load up the assignment 
+$row = loadAssignment($db, $LTI);
 $json = "";
 if ( $row !== false ) $json = $row['json'];
 
@@ -66,8 +62,10 @@ if ( strlen($json) < 1 ) {
               "type" : "image"
             }
         ],
+        "totalpoints" : 10,
         "maxpoints" : 6,
         "minassess" : 2,
+        "assesspoints" : 2,
         "maxassess" : 5
     }';
     $json = json_decode($json);

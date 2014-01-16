@@ -16,19 +16,15 @@ $p = $CFG->dbprefix;
 $user_id = false;
 $url_goback = 'index.php';
 $url_stay = 'grade.php';
-if ( isset($_REQUEST['user_id']) ) {
+if ( isset($_GET['user_id']) ) {
     if ( ! $instructor ) die("Only instructors can grade specific students'");
-    $user_id = $_REQUEST['user_id'];
+    $user_id = $_GET['user_id'];
     $url_goback = 'student.php?user_id='.$user_id;
     $url_stay = 'grade.php?user_id='.$user_id;
 }
 
 // Model 
-$stmt = pdoQueryDie($db,
-    "SELECT assn_id, json FROM {$p}peer_assn WHERE link_id = :ID",
-    array(":ID" => $LTI['link_id'])
-);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$row = loadAssignment($db, $LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -70,10 +66,24 @@ if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
             ':POINTS' => $points,
             ':NOTE' => $_POST['note'])
     );
-    if ( $stmt->success ) {
-        $_SESSION['success'] = 'Grade submitted';
-    } else {
+    if ( ! $stmt->success ) {
         $_SESSION['error'] = $stmt->errorImplode;
+        header( 'Location: '.sessionize($url_goback) ) ;
+        return;
+    }
+
+    // Attempt to update the user's grade, may take a second..
+    $user_id = $_POST['user_id']+0; 
+    $grade = computeGrade($db, $assn_id, $assn_json, $user_id);
+    $_SESSION['success'] = 'Grade submitted';
+    if ( $grade > 0 ) {
+        $sourcedid = lookupSourceDID($db, $LTI, $user_id);
+        $status = sendGrade($grade, $sourcedid, false); // This is the slow bit
+        if ( $status === true ) {
+            $_SESSION['success'] = 'Grade submitted to server';
+        } else {
+            error_log("Problem sending grade ".$status);
+        }
     }
     header( 'Location: '.sessionize($url_goback) ) ;
     return;
@@ -131,6 +141,7 @@ echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 ?>
 <form method="post">
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
+<input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <input type="number" min="0" max="<?php echo($assn_json->maxpoints); ?>" name="points">
 (<?php echo($assn_json->maxpoints); ?> maximum points)<br/>
 Comments:<br/>

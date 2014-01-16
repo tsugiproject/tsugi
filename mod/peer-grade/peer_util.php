@@ -13,6 +13,17 @@ function loadUserInfo($db, $user_id)
     return $user_row;
 }
 
+// Loads the assignment associated with this link
+function loadAssignment($db, $LTI)
+{
+    global $CFG;
+    $stmt = pdoQueryDie($db,
+        "SELECT assn_id, json FROM {$CFG->dbprefix}peer_assn WHERE link_id = :ID",
+        array(":ID" => $LTI['link_id'])
+    );
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 function loadSubmission($db, $assn_id, $user_id) 
 {
     global $CFG;
@@ -63,4 +74,42 @@ function showSubmission($assn_json, $submit_json)
     if ( strlen($submit_json->notes) > 1 ) {
         echo("<p>Notes: ".htmlent_utf8($submit_json->notes)."</p>\n");
     }
+}
+
+function computeGrade($db, $assn_id, $assn_json, $user_id)
+{
+    global $CFG;
+    $stmt = pdoQueryDie($db,
+        "SELECT S.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id, 
+            MAX(points) as max_points, COUNT(points) as count_points, C.grade_count as grade_count
+        FROM {$CFG->dbprefix}peer_submit as S 
+        JOIN {$CFG->dbprefix}peer_grade AS G 
+            ON S.submit_id = G.submit_id
+        JOIN {$CFG->dbprefix}lti_user AS U
+            ON S.user_id = U.user_id
+        LEFT JOIN (
+            SELECT G.user_id AS user_id, count(G.user_id) as grade_count
+            FROM {$CFG->dbprefix}peer_submit as S 
+            JOIN {$CFG->dbprefix}peer_grade AS G 
+                ON S.submit_id = G.submit_id
+            WHERE S.assn_id = :AID AND G.user_id = :UID
+            ) AS C
+            ON U.user_id = C.user_id
+        WHERE S.assn_id = :AID AND S.user_id = :UID",
+        array(":AID" => $assn_id, ":UID" => $user_id)
+    );
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ( $row == false || $row['user_id']+0 == 0 ) return -1;
+
+    // Compute the overall points
+    $assnpoints = $row['max_points']+0;
+    if ( $assnpoints < 0 ) $assnpoints = 0;
+    if ( $assnpoints > $assn_json->maxpoints ) $assnpoints = $assn_json->maxpoints;
+
+    $gradecount = $row['grade_count']+0;
+    if ( $gradecount < 0 ) $gradecount = 0;
+    if ( $gradecount > $assn_json->minassess ) $gradecount = $assn_json->minassess;
+    $gradepoints = $gradecount * $assn_json->assesspoints;
+    return ($assnpoints + $gradepoints) / $assn_json->totalpoints;
 }

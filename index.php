@@ -112,7 +112,7 @@ if ( isset($_POST['instructor']) ) {
 
   $outcomes = trim($_REQUEST["outcomes"]);
   if ( ! $outcomes ) {
-      $outcomes = str_replace("lms.php","common/tool_consumer_outcome.php",$cur_url);
+      $outcomes = str_replace("index.php","common/tool_consumer_outcome.php",$cur_url);
       $outcomes .= "?b64=" . htmlentities($b64);
   }
 

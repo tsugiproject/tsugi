@@ -17,11 +17,8 @@ $p = $CFG->dbprefix;
 if ( !isset($_REQUEST['user_id']) ) die("user_id parameter required");
 $user_id = $_REQUEST['user_id'];
 
-$stmt = pdoQueryDie($db,
-    "SELECT assn_id, json FROM {$p}peer_assn WHERE link_id = :ID",
-    array(":ID" => $LTI['link_id'])
-);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
+// Load the assignment
+$row = loadAssignment($db, $LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {

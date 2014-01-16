@@ -116,15 +116,16 @@ body {
     $HEAD_CONTENT_SENT = true;
 }
 
-function footerContent() {
+function footerContent($onload=false) {
     global $CFG;
-?>
-    <script src="<?php echo($CFG->staticroot); ?>/static/js/jquery-1.10.2.min.js"></script>
-    <script src="<?php echo($CFG->bootstrap); ?>/js/bootstrap.min.js"></script>
-	<?php do_analytics(); ?>
-</body>
-</html>
-<?php
+    echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");
+    echo('<script src="'.$CFG->bootstrap.'/js/bootstrap.min.js"></script>'."\n");
+	do_analytics(); 
+	echo(togglePreScript());
+    if ( $onload !== false ) {
+        echo("\n".$onload."\n");
+    }
+    echo("\n</body>\n</html>\n");
 }
 
 function do_analytics() {
@@ -407,6 +408,128 @@ function dataToggle(divName) {
     }
 } 
 </script>';
+}
+
+function lookupSourceDID($db, $LTI, $user_id) {
+    global $CFG;
+    $stmt = pdoQueryDie($db,
+        "SELECT sourcedid FROM {$CFG->dbprefix}lti_result AS R
+        JOIN {$CFG->dbprefix}lti_link AS L
+            ON L.link_id = R.link_id AND R.link_id = :LID
+        JOIN {$CFG->dbprefix}lti_user AS U
+            ON U.user_id = R.user_id AND U.user_id = :UID
+        JOIN {$CFG->dbprefix}lti_context AS C
+            ON L.context_id = C.context_id AND C.context_id = :CID
+        JOIN {$CFG->dbprefix}lti_key AS K
+            ON C.key_id = K.key_id AND U.key_id = K.key_id AND K.key_id = :KID
+        WHERE R.user_id = :UID AND K.key_id = :KID and U.user_id = :UID AND L.link_id = :LID",
+        array(":KID" => $LTI['key_id'], ":LID" => $LTI['link_id'], 
+            ":CID" => $LTI['context_id'], ":UID" => $user_id)
+    );
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ( $row == false ) return false;
+    return $row['sourcedid'];
+}
+
+// Clean out the array of 'secret' keys
+function safeVarDump($x) {
+        ob_start();
+        if ( isset($x['secret']) ) $x['secret'] = MD5($x['secret']);
+        if ( is_array($x) ) foreach ( $x as &$v ) {
+            if ( is_array($v) && isset($v['secret']) ) $v['secret'] = MD5($v['secret']);
+        }
+        var_dump($x);
+        $result = ob_get_clean();
+        return $result;
+}
+
+function sendGrade($grade, $sourcedid=false, $verbose=true) {
+	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
+        return "Session not set up for grade return";
+    }
+    try {
+        if ( $sourcedid === false ) $sourcedid = $_SESSION['lti']['sourcedid'];
+        return sendGradeInternal($grade, $sourcedid, $verbose);
+	} catch(Exception $e) {
+		$msg = "Grade Exception: ".$e->getMessage();
+		error_log($msg);
+        return $msg;
+    } 
+}
+
+function sendGradeInternal($grade, $sourcedid, $verbose) {
+    global $LastPOXGradeResponse;
+    $LastPOXGradeResponse = false;;
+	$lti = $_SESSION['lti'];
+	if ( ! ( isset($lti['service']) && isset($lti['sourcedid']) &&
+		isset($lti['key_key']) && isset($lti['secret']) ) ) {
+		error_log('Session is missing required data');
+        $result = safeVarDump($lti);
+        error_log($result);
+        return "Missing required data";
+    }
+
+	$method="POST";
+	$content_type = "application/xml";
+	$sourcedid = htmlspecialchars($sourcedid);
+
+	$operation = 'replaceResultRequest';
+	$postBody = str_replace(
+		array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
+		array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
+		getPOXGradeRequest());
+
+	if ( $verbose ) line_out('Sending grade to '.$lti['service']);
+
+	if ( $verbose ) togglePre("Grade API Request (debug)",$postBody);
+    if ( $verbose ) flush();
+
+	$response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], 
+        $content_type, $postBody);
+	global $LastOAuthBodyBaseString;
+	$lbs = $LastOAuthBodyBaseString;
+	if ( $verbose ) togglePre("Grade API Response (debug)",$response);
+    $LastPOXGradeResponse = $response;
+    $status = "Failure to store grade";
+	try {
+		$retval = parseResponse($response);
+		if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
+            $status = true;
+		} else if ( isset($retval['imsx_description']) ) {
+            $status = $retval['imsx_description'];
+        }
+	} catch(Exception $e) {
+		$status = $e->getMessage();
+	}
+    $note = $status;
+    if ( $note == true ) $note = 'Success';
+    error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_displayname'].' '.$note);
+    return $status;
+}
+
+function line_out($output) {
+	echo(htmlent_utf8($output)."<br/>\n");
+    flush();
+}
+
+function error_out($output) {
+	echo('<span style="color:red"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
+    flush();
+}
+
+function success_out($output) {
+	echo('<span style="color:green"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
+    flush();
+}
+
+function json_error($message,$detail="") {
+    header('Content-Type: application/json; charset=utf-8');
+    echo(json_encode(array("error" => $message, "detail" => $detail)));
+}
+
+function json_output($json_data) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo(json_encode($json_data));
 }
 
 // No trailer
