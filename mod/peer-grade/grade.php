@@ -38,7 +38,33 @@ if ( $assn_id == false ) {
     return;
 }
 
-// Handle the incoming post data
+
+// Handle the flag data
+if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
+    if ( !isset($_SESSION['peer_submit_id']) || $_SESSION['peer_submit_id'] != $_POST['submit_id'] ) {
+        unset($_SESSION['peer_submit_id']);
+        $_SESSION['error'] = 'Error in submission id';
+        header( 'Location: '.sessionize($url_stay) ) ;
+        return;
+    }
+
+    $submit_id = $_POST['submit_id']+0; 
+    $stmt = pdoQueryDie($db,
+        "INSERT INTO {$p}peer_flag 
+            (submit_id, user_id, note, created_at, updated_at) 
+            VALUES ( :SID, :UID, :NOTE, NOW(), NOW()) 
+            ON DUPLICATE KEY UPDATE note = :NOTE, updated_at = NOW()",
+        array(
+            ':SID' => $submit_id,
+            ':UID' => $LTI['user_id'],
+            ':NOTE' => $_POST['note'])
+    );
+    $_SESSION['success'] = "Flagged for the instructor to examine";
+    header( 'Location: '.sessionize($url_stay) ) ;
+    return;
+}
+
+// Handle the grade data
 if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
     if ( strlen($_POST['points']) < 1 ) {
         $_SESSION['error'] = 'Points are required';
@@ -155,9 +181,20 @@ echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" value="Grade">
-<input type=submit name=doCancel onclick="location='<?php echo(sessionize($url_goback));?>'; return false;" value="Cancel">
+<input type="submit" name="showFlag" onclick="$('#flagform').toggle(); return false;" value="Flag">
+<input type="submit" name="doCancel" onclick="location='<?php echo(sessionize($url_goback));?>'; return false;" value="Cancel">
+</form>
+<form method="post" id="flagform" style="display:none">
+<p>Please be considerate when flagging an item.  It does not mean
+that something is inappropriate - it simply brings the item to the 
+attention of the instructor.</p>
+<input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
+<input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
+<textarea rows="5" cols="60" name="note"></textarea><br/>
+<input type="submit" name="doFlag" value="Submit To Instructor">
+<input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag">
 </form>
 <?php
 
-$_SESSION['peer_submit_id'] = $submit_id;
+$_SESSION['peer_submit_id'] = $submit_id;  // Our CSRF touch
 footerContent();

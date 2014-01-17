@@ -1,6 +1,7 @@
 <?php
 
 $DATABASE_UNINSTALL = array(
+"drop table if exists {$CFG->dbprefix}peer_flag",
 "drop table if exists {$CFG->dbprefix}peer_grade",
 "drop table if exists {$CFG->dbprefix}peer_submit",
 "drop table if exists {$CFG->dbprefix}peer_assn"
@@ -72,6 +73,31 @@ array( "{$CFG->dbprefix}peer_grade",
         ON DELETE CASCADE ON UPDATE CASCADE,
 
     UNIQUE(submit_id, user_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8") ,
+
+array( "{$CFG->dbprefix}peer_flag",
+"create table {$CFG->dbprefix}peer_flag (
+    flag_id      MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
+    submit_id    MEDIUMINT NOT NULL,
+    grade_id     MEDIUMINT NULL,
+    user_id      MEDIUMINT NOT NULL, -- The user doing the flagging
+
+    note         TEXT NULL,
+    response     TEXT NULL,
+    handled      BOOLEAN NOT NULL DEFAULT FALSE,
+    respond_id   MEDIUMINT NOT NULL,  -- The responder's user_id
+
+    json         TEXT NULL,
+
+    updated_at  DATETIME NOT NULL,
+    created_at  DATETIME NOT NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}peer_flag_ibfk_1`
+        FOREIGN KEY (`submit_id`)
+        REFERENCES `{$CFG->dbprefix}peer_submit` (`submit_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    UNIQUE(submit_id, grade_id, user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8") ,
 
 );

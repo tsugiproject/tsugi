@@ -116,6 +116,20 @@ body {
     $HEAD_CONTENT_SENT = true;
 }
 
+function startBody() {
+    echo("\n</head>\n<body>\n");
+    if ( count($_POST) > 0 ) {
+        $dump = safeVarDump($_POST);
+        echo('<p style="color:red">Error - Unhandled POST request</p>');
+        echo("\n<pre>\n");
+        echo($dump);
+        echo("\n</pre>\n");
+        error_log("Unhandled POST request");
+        error_log($dump);
+        die();
+    }
+}
+
 function footerContent($onload=false) {
     global $CFG;
     echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");

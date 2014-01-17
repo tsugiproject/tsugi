@@ -11,6 +11,7 @@ session_start();
 // Sanity checks
 $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isInstructor($LTI);
+$user_id = $LTI['user_id'];
 $p = $CFG->dbprefix;
 
 // Model 
@@ -27,7 +28,10 @@ $submit_id = false;
 $submit_row = loadSubmission($db, $assn_id, $LTI['user_id']);
 if ( $submit_row !== false ) $submit_id = $submit_row['submit_id'];
 
-if ( $assn_id != false && $assn_json != null && isset($_POST['notes']) ) {
+
+// Handle the submission post
+if ( $assn_id != false && $assn_json != null && 
+    isset($_POST['notes']) && isset($_POST['doSubmit']) ) {
     if ( $submit_row !== false ) {
         $_SESSION['error'] = 'Cannot submit an assignment twice';
         header( 'Location: '.sessionize('index.php') ) ;
@@ -115,19 +119,51 @@ if ( $row !== false ) {
 $our_grades = false;
 if ( $submit_id !== false ) {
     $stmt = pdoQueryDie($db,
-        "SELECT points, note FROM {$p}peer_grade 
+        "SELECT grade_id, points, note FROM {$p}peer_grade 
             WHERE submit_id = :SID",
         array( ':SID' => $submit_id)
     );
     $our_grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// Handle the flag...
+if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
+    isset($_POST['submit_id']) && isset($_POST['grade_id']) && isset($_POST['note']) && 
+    isset($_POST['doFlag']) && $submit_id == $_POST['submit_id'] ) {
+
+    // Make sure we have a valid grade_id
+    $found = false;
+    foreach ( $our_grades as $grade ) {
+        if ( $grade['grade_id'] == $_POST['grade_id'] ) {
+            $found = true;
+        }
+    }
+    if ( ! $found ) {
+        $_SESSION['error'] = 'Cannot a grade that is not yours';
+        header( 'Location: '.sessionize('index.php') ) ;
+        return;
+    }
+    
+    $grade_id = $_POST['grade_id']+0;
+    $stmt = pdoQueryDie($db,
+        "INSERT INTO {$p}peer_flag 
+            (submit_id, grade_id, user_id, note, created_at, updated_at) 
+            VALUES ( :SID, :GID, :UID, :NOTE, NOW(), NOW()) 
+            ON DUPLICATE KEY UPDATE note = :NOTE, updated_at = NOW()",
+        array(
+            ':SID' => $submit_id,
+            ':GID' => $grade_id,
+            ':UID' => $LTI['user_id'],
+            ':NOTE' => $_POST['note'])
+    );
+    $_SESSION['success'] = "Flagged for the instructor to examine";
+    header( 'Location: '.sessionize($url_stay) ) ;
+    return;
+}
+
 // View 
 headerContent();
-?>
-</head>
-<body>
-<?php
+startBody();
 flashMessages();
 welcomeUserCourse($LTI);
 
@@ -158,7 +194,7 @@ if ( $submit_row == false ) {
         if ( $part->type == "image" ) {
             echo("\n<p>");
             echo(htmlent_utf8($part->title)."\n");
-            echo('<input name="uploaded_file_'.$partno.'" type="file"><p/>');
+            echo('<input name="uploaded_file_'.$partno.'" type="file"> (Please use JPG files)<p/>');
             $partno++;
         }
     }
@@ -190,14 +226,29 @@ if ( count($our_grades) < 1 ) {
     echo("<p>No one has graded your submission yet.</p>");
 } else {
     echo("<p>You have the following grades from other students:</p>");
-    echo('<table border="1">'."\n<tr><th>Points</th><th>Comments</th></tr>\n");
+    echo('<table border="1">'."\n<tr><th>Points</th><th>Comments</th><th>Action</th></tr>\n");
 
     foreach ( $our_grades as $grade ) {
-        echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td></tr>\n");
+        echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>\n".
+        '<td><form><input type="submit" name="showFlag" value="Flag"
+        onclick="$(\'#flag_grade_id\').val(\''.$grade['grade_id'].'\'); $(\'#flagform\').toggle(); return false;">'.
+        "</form></tr>\n");
     }
     echo("</table>\n");
 }
 ?>
+<form method="post" id="flagform" style="display:none">
+<p>&nbsp;</p>
+<p>Please be considerate when flagging an item.  It does not mean
+that something is inappropriate - it simply brings the item to the
+attention of the instructor.</p>
+<input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
+<input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
+<input type="hidden" value="" id="flag_grade_id" name="grade_id">
+<textarea rows="5" cols="60" name="note"></textarea><br/>
+<input type="submit" name="doFlag" value="Submit To Instructor">
+<input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag">
+</form>
 <p>
 <div id="gradeinfo">Calculating grade....</div>
 </p>
