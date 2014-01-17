@@ -91,6 +91,21 @@ if ( isset($_POST['grade_id']) && isset($_POST['doDelete']) ) {
     return;
 }
 
+// Retrieve our grades...
+$our_flags = false;
+if ( $submit_id !== false ) {
+    $stmt = pdoQueryDie($db,
+        "SELECT flag_id, F.user_id AS user_id, grade_id, note, handled, response,
+            F.updated_at AS updated_at, displayname, email
+        FROM {$p}peer_flag AS F
+        JOIN {$p}lti_user as U
+            ON F.user_id = U.user_id
+        WHERE submit_id = :SID",
+        array( ':SID' => $submit_id)
+    );
+    $our_flags = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 // View 
 headerContent();
 startBody();
@@ -125,16 +140,34 @@ if ( count($our_grades) < 1 ) {
 } else {
     echo("<p>Grading activity:</p>");
     echo('<table border="1" style="margin:3px">');
-    echo("\n<tr><th>Points</th><th>Comments</th><th>Action</th></tr>\n");
+    echo("\n<tr><th>Points</th><th>Comments</th><th>Grade Id</th><th>Action</th></tr>\n");
 
     foreach ( $our_grades as $grade ) {
-        echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>".
+        echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>
+        <td>".htmlent_utf8($grade['grade_id'])."</td>".
         '<td> <form method="post"><input type="hidden" name="grade_id" value="'.$grade['grade_id'].'">'.
         '<input type="hidden" name="user_id" value="'.$user_id.'">'.
         '<input type="submit" name="doDelete" value="delete"></form></td>'.
         "</tr>\n");
     }
     echo("</table>\n");
+}
+
+if ( $our_flags !== false && count($our_flags) > 0 ) {
+    echo('<p style="color:red">This entry has the following flags:<br/>'."\n");
+    echo('<table border="1"><tr>');
+    echo("\n<th>Name</th><th>Email</th><th>Grade_Id</th><th>Comment</th><th>Time</th></tr>");
+    foreach ( $our_flags as $flag ) {
+        echo("\n<tr>");
+        echo("<td>".htmlent_utf8($flag['displayname'])."</td>\n");
+        echo("<td>".htmlent_utf8($flag['email'])."</td>\n");
+        echo("<td>".htmlent_utf8($flag['grade_id'])."</td>\n");
+        echo("<td>".htmlent_utf8($flag['note'])."</td>\n");
+        echo("<td>".htmlent_utf8($flag['updated_at'])."</td>\n");
+        echo("</tr>\n");
+    }
+    echo("</table>\n");
+    echo("</p>\n");
 }
 
 ?>
