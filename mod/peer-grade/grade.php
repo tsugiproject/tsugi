@@ -45,7 +45,14 @@ if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
         header( 'Location: '.sessionize($url_stay) ) ;
         return;
     }
+    
     $points = $_POST['points']+0;
+    if ( $points < 0 || $points > $assn_json->maxpoints ) {
+        $_SESSION['error'] = 'Points must be between 0 and '.$assn_json->maxpoints;
+        header( 'Location: '.sessionize($url_stay) ) ;
+        return;
+    }
+        
     if ( !isset($_SESSION['peer_submit_id']) || $_SESSION['peer_submit_id'] != $_POST['submit_id'] ) {
         unset($_SESSION['peer_submit_id']);
         $_SESSION['error'] = 'Error in submission id';
