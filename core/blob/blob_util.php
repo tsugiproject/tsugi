@@ -2,10 +2,10 @@
 
 function getFolderName($LTI)
 {
-	global $CFG;
+    global $CFG;
     $foldername = $LTI['context_id'];
     $root = sys_get_temp_dir(); // ends in slash
-	if (strlen($root) > 1 && substr($root, -1) == '/') $root = substr($root,0,-1);
+    if (strlen($root) > 1 && substr($root, -1) == '/') $root = substr($root,0,-1);
     if ( isset($CFG->dataroot) ) $root = $CFG->dataroot;
     $root = $root . '/lti_files';
     if ( !file_exists($root) ) mkdir($root);
@@ -32,26 +32,43 @@ function uploadFileToBlob($db, $LTI, $FILE_DESCRIPTOR)
     
     if( $FILE_DESCRIPTOR['error'] == 0)
     {
-	    $filename = basename($FILE_DESCRIPTOR['name']);
-	    if ( strpos($filename, '.php') !== false ) {
+        $filename = basename($FILE_DESCRIPTOR['name']);
+        if ( strpos($filename, '.php') !== false ) {
             return false;
-	    }
+        }
 
-	    $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
-	    $stmt = $db->prepare("INSERT INTO {$CFG->dbprefix}blob_file 
-		    (context_id, file_name, contenttype, content, created_at) 
-		    VALUES (?, ?, ?, ?, NOW())");
+        // $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
+        $data = file_get_contents($FILE_DESCRIPTOR['tmp_name']); 
+        $sha256 = lti_sha256($data);
+
+        $stmt = pdoQueryDie($db,
+            "SELECT file_id, file_sha256 from {$CFG->dbprefix}blob_file
+            WHERE context_id = :CID AND file_sha256 = :SHA",
+            array(":CID" => $LTI['context_id'], ":SHA" => $sha256)
+        );
+        $row = $stmt->fetch(PDO::FETCH_NUM);
+        if ( $row !== false ) {
+            error_log("Already had instance of $filename");
+            $row[0] = $row[0]+0;  // Make sure the id is an integer
+            return $row;
+        }
+
+        $stmt = $db->prepare("INSERT INTO {$CFG->dbprefix}blob_file 
+            (context_id, file_sha256, file_name, contenttype, content, created_at) 
+            VALUES (?, ?, ?, ?, ?, NOW())");
     
-	    $stmt->bindParam(1, $LTI['context_id']);
-	    $stmt->bindParam(2, $filename);
-	    $stmt->bindParam(3, $FILE_DESCRIPTOR['type']);
-	    $stmt->bindParam(4, $fp, PDO::PARAM_LOB);
-	    $db->beginTransaction();
-	    $stmt->execute();
+        $stmt->bindParam(1, $LTI['context_id']);
+        $stmt->bindParam(2, $sha256);
+        $stmt->bindParam(3, $filename);
+        $stmt->bindParam(4, $FILE_DESCRIPTOR['type']);
+        // $stmt->bindParam(5, $fp, PDO::PARAM_LOB);
+        $stmt->bindParam(5, $data, PDO::PARAM_LOB);
+        $db->beginTransaction();
+        $stmt->execute();
         $id = 0+$db->lastInsertId();
-	    $db->commit();
+        $db->commit();
         fclose($fp);
-        return $id;
+        return array($id, $sha256);
     }
     return false;
 }

@@ -2,11 +2,6 @@
 
 require_once 'lib/OAuth.php';
 
-// Convienence method to wrap sha256
-function lti_sha256($val) {
-	return hash('sha256', $val);
-}
-
 // Extract info from $_POST applying our business rules and using our
 // naming conventions
 function extractPost() {

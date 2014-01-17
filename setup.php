@@ -38,6 +38,11 @@ function htmlent_utf8($string) {
     return htmlentities($string,ENT_QUOTES,$encoding = 'UTF-8');
 }
 
+// Convienence method to wrap sha256
+function lti_sha256($val) {
+    return hash('sha256', $val);
+}
+
 function sessionize($url) {
     if ( ini_get('session.use_cookies') != '0' ) return $url;
     $parameter = session_name().'='.session_id();

@@ -77,6 +77,7 @@ function showSubmission($assn_json, $submit_json)
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == "image" ) {
             $blob_id = $blob_ids[$partno++];
+            if ( is_array($blob_id) ) $blob_id = $blob_id[0];
             $url = getAccessUrlForBlob($blob_id);
             echo ('<a href="'.sessionize($url).'" target="_blank">');
             echo ('<img src="'.sessionize($url).'" width="120"></a>'."\n");
@@ -112,7 +113,7 @@ function computeGrade($db, $assn_id, $assn_json, $user_id)
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ( $row == false || $row['user_id']+0 == 0 ) return -1;
+    if ( $row === false || $row['user_id']+0 == 0 ) return -1;
 
     // Compute the overall points
     $assnpoints = $row['max_points']+0;
