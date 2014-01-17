@@ -18,7 +18,7 @@ $p = $CFG->dbprefix;
 $stmt = pdoQueryDie($db,
     "SELECT A.link_id, A.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id, 
         MAX(points) as max_points, MIN(points) AS min_points, COUNT(points) as count_points, 
-        COUNT(flag_id) as flag_count, C.grade_count as grade_count
+        COUNT(DISTINCT flag_id) as flag_count, C.grade_count as grade_count
     FROM {$p}peer_assn AS A JOIN {$p}peer_submit as S 
         ON A.assn_id = S.assn_id
     LEFT JOIN {$p}peer_grade AS G 
