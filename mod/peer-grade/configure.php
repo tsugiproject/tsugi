@@ -77,10 +77,7 @@ $json = json_indent($json);
 
 // View 
 headerContent();
-?>
-</head>
-<body>
-<?php
+startBody();
 flashMessages();
 if ( ! $instructor ) die("Requires instructor role");
 

@@ -159,10 +159,7 @@ if ( $submit_json === null ) {
 
 // View 
 headerContent();
-?>
-</head>
-<body>
-<?php
+startBody();
 flashMessages();
 if ( $user_row != false ) {
     echo("<p>".htmlent_utf8($user_row['displayname'])." (".htmlent_utf8($user_row['email']).")</p>\n");

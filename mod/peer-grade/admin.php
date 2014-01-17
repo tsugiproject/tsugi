@@ -42,10 +42,7 @@ $stmt = pdoQueryDie($db,
 
 // View 
 headerContent();
-?>
-</head>
-<body>
-<?php
+startBody();
 flashMessages();
 welcomeUserCourse($LTI);
 

@@ -93,10 +93,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['doDelete']) ) {
 
 // View 
 headerContent();
-?>
-</head>
-<body>
-<?php
+startBody();
 flashMessages();
 
 if ( $user_row != false ) {

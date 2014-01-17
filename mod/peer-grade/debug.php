@@ -13,10 +13,7 @@ $instructor = isInstructor($LTI);
 if ( ! $instructor ) die("Instructor only");
 
 headerContent();
-?>
-</head>
-<body>
-<?php
+startBody();
 flashMessages();
 welcomeUserCourse($LTI);
 
