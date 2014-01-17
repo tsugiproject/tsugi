@@ -38,6 +38,21 @@ if ( $submit_row !== false ) {
     $submit_id = $submit_row['submit_id']+0;
 }
 
+// Handle incoming post to delete the entire submission
+if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
+    $stmt = pdoQueryDie($db,
+        "DELETE FROM {$p}peer_submit 
+            WHERE submit_id = :SID",
+        array( ':SID' => $submit_id)
+    );
+    error_log("Instructor deleted submission for ".$user_id);
+    cacheClear('peer_grade');
+    cacheClear('peer_submit');
+    $_SESSION['success'] = "Submit entry deleted.";
+    header( 'Location: '.sessionize('admin.php') ) ;
+    return;
+}
+
 // Load user info
 $user_row = loadUserInfo($db, $user_id);
 
@@ -96,6 +111,17 @@ if ( $submit_row === false ) {
 }
 
 echo('<p><a href="grade.php?user_id='.$user_id.'">Grade this student</a></p>'."\n");
+if ( isset($_GET['delete']) ) {
+    echo('<form method="post">
+        <input type="hidden" name="user_id" value="'.$user_id.'">
+        <input type="submit" name="deleteSubmit" value="Complete Delete">
+        <input type="submit" name="doCancel" value="Cancel Delete"
+            onclick="location=\''.sessionize('student.php?user_id='.$user_id).'\'; return false;">
+        </form>');
+} else {
+    echo('<p><a href="student.php?delete=yes&user_id='.$user_id.'">Delete this 
+        submission and grades (allows student to resubmit)</a></p>'."\n");
+}
 
 if ( count($our_grades) < 1 ) {
     echo("<p>No one has graded this submission yet.</p>");
