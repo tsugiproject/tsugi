@@ -104,7 +104,7 @@ if ( $submit_row === false ) {
     echo("<p>This student has not made a submission.</p>\n");
 } else {
     $submit_json = json_decode($submit_row['json']);
-    showSubmission($assn_json, $submit_json);
+    showSubmission($LTI, $assn_json, $submit_json);
 }
 
 echo('<p><a href="grade.php?user_id='.$user_id.'">Grade this student</a></p>'."\n");

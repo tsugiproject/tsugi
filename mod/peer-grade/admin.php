@@ -18,11 +18,13 @@ $p = $CFG->dbprefix;
 $stmt = pdoQueryDie($db,
     "SELECT A.link_id, A.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id, 
         MAX(points) as max_points, MIN(points) AS min_points, COUNT(points) as count_points, 
-        C.grade_count as grade_count
+        COUNT(flag_id) as flag_count, C.grade_count as grade_count
     FROM {$p}peer_assn AS A JOIN {$p}peer_submit as S 
         ON A.assn_id = S.assn_id
     LEFT JOIN {$p}peer_grade AS G 
         ON S.submit_id = G.submit_id
+    LEFT JOIN {$p}peer_flag AS F 
+        ON S.submit_id = F.submit_id
     JOIN {$p}lti_user AS U
         ON S.user_id = U.user_id
     LEFT JOIN (
@@ -48,7 +50,7 @@ welcomeUserCourse($LTI);
 
 echo('<table border="1">');
 echo("\n<tr><th>User</th><th>Email</th><th>Max Score</th>
-    <th>Min Score</th><th>Scores</th><th>Graded</th></tr>\n");
+    <th>Min Score</th><th>Scores</th><th>Graded</th><th>Flagged</th></tr>\n");
 
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     echo('<tr><td><a href="student.php?user_id='.$row['user_id'].'">'.htmlent_utf8($row['displayname'])."</a></td>
@@ -57,6 +59,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         <td>".htmlent_utf8($row['min_points'])."</td>
         <td>".htmlent_utf8($row['count_points'])."</td>
         <td>".htmlent_utf8($row['grade_count'])."</td>
+        <td>".htmlent_utf8($row['flag_count'])."</td>
     </tr>\n");
 }
 echo("</table>\n");

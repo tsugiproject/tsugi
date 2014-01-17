@@ -167,7 +167,7 @@ if ( $user_row != false ) {
 ?>
 <p><b>Please be careful, you cannot revise grades after you submit them.</b></p>
 <?php
-showSubmission($assn_json, $submit_json);
+showSubmission($LTI, $assn_json, $submit_json);
 echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 ?>
 <form method="post">

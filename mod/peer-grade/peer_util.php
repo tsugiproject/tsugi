@@ -42,8 +42,9 @@ function loadSubmission($db, $assn_id, $user_id)
     $submit_row = false;
 
     $stmt = pdoQueryDie($db,
-        "SELECT submit_id, json, note, reflect FROM {$CFG->dbprefix}peer_submit 
-            WHERE assn_id = :AID AND user_id = :UID",
+        "SELECT submit_id, json, note, reflect
+            FROM {$CFG->dbprefix}peer_submit AS S
+            WHERE assn_id = :AID AND S.user_id = :UID",
         array(":AID" => $assn_id, ":UID" => $user_id)
     );
     $submit_row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -70,7 +71,7 @@ function loadUngraded($db, $LTI, $assn_id)
     return $stmt->fetchAll();
 }
 
-function showSubmission($assn_json, $submit_json)
+function showSubmission($LTI, $assn_json, $submit_json)
 {
     $blob_ids = $submit_json->blob_ids;
     $partno = 0;

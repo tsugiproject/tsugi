@@ -220,7 +220,7 @@ You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p
 // We have a submission already
 $submit_json = json_decode($submit_row['json']);
 echo("<p><b>Your Submission:</b></p>\n");
-showSubmission($assn_json, $submit_json);
+showSubmission($LTI, $assn_json, $submit_json);
 
 if ( count($our_grades) < 1 ) {
     echo("<p>No one has graded your submission yet.</p>");
