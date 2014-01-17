@@ -524,7 +524,7 @@ function sendGradeInternal($grade, $verbose, $db,  $result) {
 	}
     $note = $status;
     if ( $note == true ) $note = 'Success';
-    error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_displayname'].' '.$note);
+    error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$note);
 
     // Update result in the database and in the LTI session area
     $_SESSION['lti']['grade'] = $grade;
