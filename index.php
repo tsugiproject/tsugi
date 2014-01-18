@@ -18,71 +18,16 @@ findTools("tmp",$tools);
 
 $cur_url = curPageURL();
 
-$instdata = array(
-      "lis_person_name_full" => 'Jane Instructor',
-      "lis_person_name_family" => 'Instructor',
-      "lis_person_name_given" => 'Jane',
-      "lis_person_contact_email_primary" => "inst@ischool.edu",
-      "lis_person_sourcedid" => "ischool.edu:inst",
-      "user_id" => "292832126",
-      "roles" => "Instructor"
-);
+require_once("index-data.php");
 
-$learner1 = array(
-      "lis_person_name_full" => 'Sue Student',
-      "lis_person_name_family" => 'Student',
-      "lis_person_name_given" => 'Sue',
-      "lis_person_contact_email_primary" => "student@ischool.edu",
-      "lis_person_sourcedid" => "ischool.edu:student",
-      "user_id" => "998928898",
-      "roles" => "Learner"
-);
-
-$learner2 = array(
-      "lis_person_name_full" => 'Ed Student',
-      "lis_person_name_family" => 'Student',
-      "lis_person_name_given" => 'Ed',
-      "lis_person_contact_email_primary" => "ed@ischool.edu",
-      "lis_person_sourcedid" => "ischool.edu:ed",
-      "user_id" => "121212331",
-      "roles" => "Learner"
-);
-
-$lmsdata = array(
-      "custom_assn" => "mod/map/index.php",
-
-      "lis_person_name_full" => 'Jane Instructor',
-      "lis_person_name_family" => 'Instructor',
-      "lis_person_name_given" => 'Jane',
-      "lis_person_contact_email_primary" => "inst@ischool.edu",
-      "lis_person_sourcedid" => "ischool.edu:inst",
-      "user_id" => "292832126",
-      "roles" => "Instructor",
-
-      "resource_link_id" => "120988f929-274612",
-      "resource_link_title" => "Weekly Blog",
-      "resource_link_description" => "A weekly blog.",
-      "context_id" => "456434513",
-      "context_label" => "SI106",
-      "context_title" => "Introduction to Programming",
-      "tool_consumer_info_product_family_code" => "ims",
-      "tool_consumer_info_version" => "1.1",
-      "tool_consumer_instance_guid" => "lmsng.ischool.edu",
-      "tool_consumer_instance_description" => "University of Information",
-	  "custom_due" => "2016-12-12 10:00:00.5",
-	  // http://www.php.net/manual/en/timezones.php
-	  "custom_timezone" => "Pacific/Honolulu",
-	  "custom_penalty_time" => "" . 60*60*24,
-	  "custom_penalty_cost" => "0.2"
-      // 'launch_presentation_return_url' => $cur_url
-      );
-
+// Merge post data into  data
 foreach ($lmsdata as $k => $val ) {
 	if ( $_POST[$k] && strlen($_POST[$k]) > 0 ) {
 		$lmsdata[$k] = $_POST[$k];
 	}
 }
 
+// Switch user data if requested
 if ( isset($_POST['learner1']) ) {
 	foreach ( $learner1 as $k => $val ) {
           $lmsdata[$k] = $learner1[$k];
@@ -101,23 +46,24 @@ if ( isset($_POST['instructor']) ) {
 	}
 }
 
-  $key = trim($_REQUEST["key"]);
-  if ( ! $key ) $key = "12345";
-  $secret = trim($_REQUEST["secret"]);
-  if ( ! $secret ) $secret = "secret";
-  $endpoint = trim($_REQUEST["endpoint"]);
-  $b64 = base64_encode($key.":::".$secret);
-  if ( ! $endpoint ) $endpoint = str_replace("index.php","lti.php",$cur_url);
-  $cssurl = str_replace("lms.php","lms.css",$cur_url);
+// Set up default LTI data
+$key = trim($_REQUEST["key"]);
+if ( ! $key ) $key = "12345";
+$secret = trim($_REQUEST["secret"]);
+if ( ! $secret ) $secret = "secret";
+$endpoint = trim($_REQUEST["endpoint"]);
+$b64 = base64_encode($key.":::".$secret);
+if ( ! $endpoint ) $endpoint = str_replace("index.php","lti.php",$cur_url);
+$cssurl = str_replace("lms.php","lms.css",$cur_url);
 
-  $outcomes = trim($_REQUEST["outcomes"]);
-  if ( ! $outcomes ) {
-      $outcomes = str_replace("index.php","common/tool_consumer_outcome.php",$cur_url);
-      $outcomes .= "?b64=" . htmlentities($b64);
-  }
+$outcomes = trim($_REQUEST["outcomes"]);
+if ( ! $outcomes ) {
+    $outcomes = str_replace("index.php","common/tool_consumer_outcome.php",$cur_url);
+    $outcomes .= "?b64=" . htmlentities($b64);
+}
 
-  $tool_consumer_instance_guid = $lmsdata['tool_consumer_instance_guid'];
-  $tool_consumer_instance_description = $lmsdata['tool_consumer_instance_description'];
+$tool_consumer_instance_guid = $lmsdata['tool_consumer_instance_guid'];
+$tool_consumer_instance_description = $lmsdata['tool_consumer_instance_description'];
 
 function doActive($field) {
     if ( isset($_POST[$field]) ) echo(' class="active" ');
@@ -148,6 +94,11 @@ function doSubmit(name) {
 	nei.setAttribute('name', name);
 	nei.setAttribute('value', '');
 	document.getElementById("actionform").appendChild(nei);
+	nei = document.createElement('input');
+	nei.setAttribute('type', 'hidden');
+	nei.setAttribute('name', 'launch');
+	nei.setAttribute('value', '');
+	document.getElementById("actionform").appendChild(nei);
 	document.getElementById("actionform").submit();
 }
 
@@ -163,10 +114,8 @@ function doSubmitTool(name) {
 </script>
 </head>
 <body>
-
   <form method="post" id="actionform">
     <div class="container">
-
       <!-- Static navbar -->
       <div class="navbar navbar-default" role="navigation">
         <div class="navbar-header">
@@ -215,62 +164,63 @@ function doSubmitTool(name) {
 
       <div>
 <?php
-  if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
+
+if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
 		// isset($_POST['instructor']) || isset($_POST['learner1']) || isset($_POST['learner2']) ) {
     echo("<div id=\"lmsDataForm\" style=\"display:none\">\n");
-  } else {
+} else {
     echo("<div id=\"lmsDataForm\" style=\"display:block\">\n");
-  }
-  echo("<fieldset><legend>LTI Resource</legend>\n");
-  $disabled = '';
-  echo("Launch URL: <input size=\"60\" type=\"text\" $disabled size=\"60\" name=\"endpoint\" value=\"$endpoint\">\n");
-  echo("<br/>Key: <input type\"text\" name=\"key\" $disabled size=\"60\" value=\"$key\">\n");
-  echo("<br/>Secret: <input type\"text\" name=\"secret\" $disabled size=\"60\" value=\"$secret\">\n");
-  echo("</fieldset><p>");
-  echo("<fieldset><legend>Launch Data</legend>\n");
-  foreach ($lmsdata as $k => $val ) {
-      echo($k.": <input id=\"".$k."\" type=\"text\" size=\"30\" name=\"".$k."\" value=\"");
-      echo(htmlspecialchars($val));
-      echo("\">");
-	  if ( $k == "custom_assn" && count($tools) > 0 ) {
+}
+echo("<fieldset><legend>LTI Resource</legend>\n");
+$disabled = '';
+echo("Launch URL: <input size=\"60\" type=\"text\" $disabled size=\"60\" name=\"endpoint\" value=\"$endpoint\">\n");
+echo("<br/>Key: <input type\"text\" name=\"key\" $disabled size=\"60\" value=\"$key\">\n");
+echo("<br/>Secret: <input type\"text\" name=\"secret\" $disabled size=\"60\" value=\"$secret\">\n");
+echo("</fieldset><p>");
+echo("<fieldset><legend>Launch Data</legend>\n");
+foreach ($lmsdata as $k => $val ) {
+    echo($k.": <input id=\"".$k."\" type=\"text\" size=\"30\" name=\"".$k."\" value=\"");
+    echo(htmlspecialchars($val));
+    echo("\">");
+    if ( $k == "custom_assn" && count($tools) > 0 ) {
 		echo('<select id="comboA" onchange="getComboA(this)">'."\n");
 		echo('<option value="">Switch tool</option>'."\n");
 		foreach ($tools as $tool ) {
 			echo('<option value="'.$tool.'">'.$tool.'</option>'."\n");
 		}
 		echo('</select>'."\n");
-      }
+    }
 	  echo("<br/>\n");
-  }
-  echo("</fieldset>\n");
-  echo("</div>\n");
-  echo("</form>\n");
+}
+echo("</fieldset>\n");
+echo("</div>\n");
+echo("</form>\n");
 
-  $parms = $lmsdata;
-  // Cleanup parms before we sign
-  foreach( $parms as $k => $val ) {
+$parms = $lmsdata;
+// Cleanup parms before we sign
+foreach( $parms as $k => $val ) {
     if (strlen(trim($parms[$k]) ) < 1 ) {
        unset($parms[$k]);
     }
-  }
+}
 
-  // Add oauth_callback to be compliant with the 1.0A spec
-  $parms["oauth_callback"] = "about:blank";
-  if ( $outcomes ) {
+// Add oauth_callback to be compliant with the 1.0A spec
+$parms["oauth_callback"] = "about:blank";
+if ( $outcomes ) {
     $parms["lis_outcome_service_url"] = $outcomes;
     $parms["lis_result_sourcedid"] = "feb-123-456-2929::28883";
-  }
+}
     
-  $parms['launch_presentation_css_url'] = $cssurl;
+$parms['launch_presentation_css_url'] = $cssurl;
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
-  $parms = signParameters($parms, $endpoint, "POST", $key, $secret, 
-"Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
+    $parms = signParameters($parms, $endpoint, "POST", $key, $secret, 
+        "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
 
-  $content = postLaunchHTML($parms, $endpoint, isset($_POST['debug']), 
-     "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency");
-  echo("<hr>\n");
-  print($content);
+    $content = postLaunchHTML($parms, $endpoint, isset($_POST['debug']), 
+       "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency");
+    echo("<hr>\n");
+    print($content);
 }
 ?>
       </div>

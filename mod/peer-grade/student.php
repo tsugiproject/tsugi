@@ -57,15 +57,7 @@ if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
 $user_row = loadUserInfo($db, $user_id);
 
 // Retrieve our grades...
-$our_grades = false;
-if ( $submit_id !== false ) {
-    $stmt = pdoQueryDie($db,
-        "SELECT grade_id, points, note FROM {$p}peer_grade 
-            WHERE submit_id = :SID",
-        array( ':SID' => $submit_id)
-    );
-    $our_grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+$our_grades = retrieveSubmissionGrades($db, $submit_id);
 
 // Handle incoming post to delete a grade entry
 if ( isset($_POST['grade_id']) && isset($_POST['doDelete']) ) {
@@ -91,7 +83,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['doDelete']) ) {
     return;
 }
 
-// Retrieve our grades...
+// Retrieve our flags...
 $our_flags = false;
 if ( $submit_id !== false ) {
     $stmt = pdoQueryDie($db,
@@ -140,15 +132,20 @@ if ( count($our_grades) < 1 ) {
 } else {
     echo("<p>Grading activity:</p>");
     echo('<table border="1" style="margin:3px">');
-    echo("\n<tr><th>Points</th><th>Comments</th><th>Grade Id</th><th>Action</th></tr>\n");
+    echo("\n<tr><th>User</th><th>Email</th><th>Points</th>
+        <th>Comments</th><th>Grade Id</th><th>Action</th></tr>\n");
 
     foreach ( $our_grades as $grade ) {
-        echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>
+        echo("<tr>
+        <td>".htmlent_utf8($grade['displayname'])."</td>
+        <td>".htmlent_utf8($grade['email'])."</td>
+        <td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>
         <td>".htmlent_utf8($grade['grade_id'])."</td>".
-        '<td> <form method="post"><input type="hidden" name="grade_id" value="'.$grade['grade_id'].'">'.
-        '<input type="hidden" name="user_id" value="'.$user_id.'">'.
-        '<input type="submit" name="doDelete" value="delete"></form></td>'.
-        "</tr>\n");
+        '<td> <form method="post"><input type="hidden" 
+            name="grade_id" value="'.$grade['grade_id'].'">
+        <input type="hidden" name="user_id" value="'.$user_id.'">
+        <input type="submit" name="doDelete" value="delete"></form></td>'.
+        "\n</tr>\n");
     }
     echo("</table>\n");
 }

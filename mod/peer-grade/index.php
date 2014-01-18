@@ -102,29 +102,11 @@ if ( $row !== false ) {
 // See how much grading is left to do
 $to_grade = loadUngraded($db, $LTI, $assn_id);
 
-$grade_count = 0;
-$stmt = pdoQueryDie($db,
-    "SELECT COUNT(grade_id) AS grade_count 
-     FROM {$p}peer_submit AS S JOIN {$p}peer_grade AS G
-     ON S.submit_id = G.submit_id
-        WHERE S.assn_id = :AID AND G.user_id = :UID",
-    array( ':AID' => $assn_id, ':UID' => $LTI['user_id'])
-);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
-if ( $row !== false ) {
-    $grade_count = $row['grade_count']+0;
-}
+// See how many grades I have done
+$grade_count = loadMyGradeCount($db, $LTI, $assn_id);
 
 // Retrieve our grades...
-$our_grades = false;
-if ( $submit_id !== false ) {
-    $stmt = pdoQueryDie($db,
-        "SELECT grade_id, points, note FROM {$p}peer_grade 
-            WHERE submit_id = :SID",
-        array( ':SID' => $submit_id)
-    );
-    $our_grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+$our_grades = retrieveSubmissionGrades($db, $submit_id);
 
 // Handle the flag...
 if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&

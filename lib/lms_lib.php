@@ -595,7 +595,7 @@ function cacheCheck($cacheloc, $cachekey)
         }
         unset($_SESSION[$cacheloc]);
     }
-    return null;
+    return false;
 }
 
 // Don't cache the non-existence of something

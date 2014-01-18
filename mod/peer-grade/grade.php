@@ -38,15 +38,8 @@ if ( $assn_id == false ) {
     return;
 }
 
-
 // Handle the flag data
 if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
-    if ( !isset($_SESSION['peer_submit_id']) || $_SESSION['peer_submit_id'] != $_POST['submit_id'] ) {
-        unset($_SESSION['peer_submit_id']);
-        $_SESSION['error'] = 'Error in submission id';
-        header( 'Location: '.sessionize($url_stay) ) ;
-        return;
-    }
 
     $submit_id = $_POST['submit_id']+0; 
     $stmt = pdoQueryDie($db,
@@ -65,7 +58,16 @@ if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
 }
 
 // Handle the grade data
-if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
+if ( isset($_POST['points']) && isset($_POST['submit_id']) &&
+    isset($_SESSION['peer_submit_id']) && isset($_POST['user_id']) ) {
+
+    if ( $_SESSION['peer_submit_id'] != $_POST['submit_id'] ) {
+        unset($_SESSION['peer_submit_id']);
+        $_SESSION['error'] = 'Error in submission id';
+        header( 'Location: '.sessionize($url_goback) ) ;
+        return;
+    }
+
     if ( strlen($_POST['points']) < 1 ) {
         $_SESSION['error'] = 'Points are required';
         header( 'Location: '.sessionize($url_stay) ) ;
@@ -78,13 +80,23 @@ if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
         header( 'Location: '.sessionize($url_stay) ) ;
         return;
     }
-        
-    if ( !isset($_SESSION['peer_submit_id']) || $_SESSION['peer_submit_id'] != $_POST['submit_id'] ) {
-        unset($_SESSION['peer_submit_id']);
-        $_SESSION['error'] = 'Error in submission id';
-        header( 'Location: '.sessionize($url_stay) ) ;
+
+    // Check to see if user_id is correct for this submit_id
+    $user_id = $_POST['user_id']+0; 
+    $submit_row = loadSubmission($db, $assn_id, $user_id);
+    if ( $submit_row === null || $submit_row['submit_id'] != $_POST['submit_id']) {
+        $_SESSION['error'] = 'Mis-match between user_id and session_id';
+        header( 'Location: '.sessionize($url_goback) ) ;
         return;
     }
+
+    $grade_count = loadMyGradeCount($db, $LTI, $assn_id);
+    if ( $grade_count > $assn_json->maxassess ) {
+        $_SESSION['error'] = 'You have already graded more than '.$assn_json->maxassess.' submissions';
+        header( 'Location: '.sessionize($url_goback) ) ;
+        return;
+    }
+
     unset($_SESSION['peer_submit_id']);
     $submit_id = $_POST['submit_id']+0; 
 
@@ -107,7 +119,6 @@ if ( isset($_POST['points']) && isset($_POST['submit_id']) ) {
     }
 
     // Attempt to update the user's grade, may take a second..
-    $user_id = $_POST['user_id']+0; 
     $grade = computeGrade($db, $assn_id, $assn_json, $user_id);
     $_SESSION['success'] = 'Grade submitted';
     if ( $grade > 0 ) {
@@ -140,11 +151,6 @@ if ( $user_id === false ) {
     $user_id = $to_grade_row['user_id'];
 }
 
-$user_row = false;
-if ( $instructor ) {
-    $user_row = loadUserInfo($db, $user_id);
-}
-
 $submit_row = loadSubmission($db, $assn_id, $user_id);
 if ( $submit_row !== null ) {
     $submit_id = $submit_row['submit_id'];
@@ -161,12 +167,9 @@ if ( $submit_json === null ) {
 headerContent();
 startBody();
 flashMessages();
-if ( $user_row != false ) {
-    echo("<p>".htmlent_utf8($user_row['displayname'])." (".htmlent_utf8($user_row['email']).")</p>\n");
-}
-?>
-<p><b>Please be careful, you cannot revise grades after you submit them.</b></p>
-<?php
+
+echo("<p><b>Please be careful, you cannot revise grades after you submit them.</b></p>\n");
+
 showSubmission($LTI, $assn_json, $submit_json);
 echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 ?>
