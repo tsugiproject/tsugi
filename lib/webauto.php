@@ -52,7 +52,10 @@ if ( $duedate && $diff > 0 ) {
 
 function getUrl($sample) {
 	global $displayname;
-	if ( isset($_GET['url']) ) return $_GET['url'];
+	if ( isset($_GET['url']) ) {
+        echo('<p><a href="#" onclick="window.location.href = window.location.href; return false;">Re-run this test</a></p>'."\n");
+        return $_GET['url'];
+    }
 
 	if ( $displayname ) {
 		echo("<p>&nbsp;</p><p><b>Hello $displayname</b> - welcome to the autograder.</p>\n");
