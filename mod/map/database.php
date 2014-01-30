@@ -7,8 +7,8 @@ $DATABASE_UNINSTALL = array(
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}context_map",
 "create table {$CFG->dbprefix}context_map (
-    context_id  MEDIUMINT NOT NULL,
-    user_id     MEDIUMINT NOT NULL,
+    context_id  INTEGER NOT NULL,
+    user_id     INTEGER NOT NULL,
     attend      DATE NOT NULL,
     lat         FLOAT,
     lng         FLOAT,

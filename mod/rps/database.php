@@ -8,10 +8,10 @@ $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}rps",
 "create table {$CFG->dbprefix}rps (
     rps_guid    varchar(64) NOT NULL,
-    link_id     MEDIUMINT NOT NULL,
-    user1_id    MEDIUMINT NOT NULL,
+    link_id     INTEGER NOT NULL,
+    user1_id    INTEGER NOT NULL,
     play1       INTEGER NOT NULL,
-    user2_id    MEDIUMINT,
+    user2_id    INTEGER,
     play2       INTEGER,
     started_at  DATETIME NOT NULL,
     finished_at  DATETIME,

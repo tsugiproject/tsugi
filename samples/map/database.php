@@ -5,8 +5,8 @@ $DATABASE_UNINSTALL = "drop table if exists {$CFG->dbprefix}sample_map";
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}sample_map",
 "create table {$CFG->dbprefix}sample_map (
-    context_id  MEDIUMINT NOT NULL,
-    user_id     MEDIUMINT NOT NULL,
+    context_id  INTEGER NOT NULL,
+    user_id     INTEGER NOT NULL,
     attend      DATE NOT NULL,
     lat         FLOAT,
     lng         FLOAT,

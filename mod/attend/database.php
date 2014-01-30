@@ -8,7 +8,7 @@ $DATABASE_INSTALL = array(
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}attend_code",
 "create table {$CFG->dbprefix}attend_code (
-    link_id     MEDIUMINT NOT NULL,
+    link_id     INTEGER NOT NULL,
     code        varchar(64) NOT NULL,
     updated_at  DATETIME NOT NULL,
 
@@ -22,8 +22,8 @@ array( "{$CFG->dbprefix}attend_code",
 
 array( "{$CFG->dbprefix}attend",
 "create table {$CFG->dbprefix}attend (
-    link_id     MEDIUMINT NOT NULL,
-    user_id     MEDIUMINT NOT NULL,
+    link_id     INTEGER NOT NULL,
+    user_id     INTEGER NOT NULL,
     attend      DATE NOT NULL,
     ipaddr      varchar(64),
     updated_at  DATETIME NOT NULL,

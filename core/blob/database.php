@@ -5,10 +5,10 @@
 $DATABASE_INSTALL = array( 
 array( "{$CFG->dbprefix}blob_file", 
 "create table {$CFG->dbprefix}blob_file (
-    file_id      MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
+    file_id      INTEGER NOT NULL KEY AUTO_INCREMENT,
     file_sha256  CHAR(64) NOT NULL, 
 
-    context_id   MEDIUMINT NULL,
+    context_id   INTEGER NULL,
 	file_name    VARCHAR(2048),
     deleted      TINYINT(1),
 	contenttype  VARCHAR(256) NULL,

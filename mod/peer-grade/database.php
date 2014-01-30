@@ -10,8 +10,8 @@ $DATABASE_UNINSTALL = array(
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}peer_assn",
 "create table {$CFG->dbprefix}peer_assn (
-    assn_id    MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
-    link_id    MEDIUMINT NOT NULL,
+    assn_id    INTEGER NOT NULL KEY AUTO_INCREMENT,
+    link_id    INTEGER NOT NULL,
     due_at     DATETIME NOT NULL,
 
     json         TEXT NULL,
@@ -29,9 +29,9 @@ array( "{$CFG->dbprefix}peer_assn",
 
 array( "{$CFG->dbprefix}peer_submit",
 "create table {$CFG->dbprefix}peer_submit (
-    submit_id  MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
-    assn_id    MEDIUMINT NOT NULL,
-    user_id    MEDIUMINT NOT NULL,
+    submit_id  INTEGER NOT NULL KEY AUTO_INCREMENT,
+    assn_id    INTEGER NOT NULL,
+    user_id    INTEGER NOT NULL,
 
     json         TEXT NULL,
     note         TEXT NULL,
@@ -55,9 +55,9 @@ array( "{$CFG->dbprefix}peer_submit",
 
 array( "{$CFG->dbprefix}peer_grade",
 "create table {$CFG->dbprefix}peer_grade (
-    grade_id     MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
-    submit_id    MEDIUMINT NOT NULL,
-    user_id      MEDIUMINT NOT NULL, -- The user doing the grading
+    grade_id     INTEGER NOT NULL KEY AUTO_INCREMENT,
+    submit_id    INTEGER NOT NULL,
+    user_id      INTEGER NOT NULL, -- The user doing the grading
 
     points       DOUBLE NULL,
     note         TEXT NULL,
@@ -77,15 +77,15 @@ array( "{$CFG->dbprefix}peer_grade",
 
 array( "{$CFG->dbprefix}peer_flag",
 "create table {$CFG->dbprefix}peer_flag (
-    flag_id      MEDIUMINT NOT NULL KEY AUTO_INCREMENT,
-    submit_id    MEDIUMINT NOT NULL,
-    grade_id     MEDIUMINT NULL,
-    user_id      MEDIUMINT NOT NULL, -- The user doing the flagging
+    flag_id      INTEGER NOT NULL KEY AUTO_INCREMENT,
+    submit_id    INTEGER NOT NULL,
+    grade_id     INTEGER NULL,
+    user_id      INTEGER NOT NULL, -- The user doing the flagging
 
     note         TEXT NULL,
     response     TEXT NULL,
     handled      BOOLEAN NOT NULL DEFAULT FALSE,
-    respond_id   MEDIUMINT NOT NULL,  -- The responder's user_id
+    respond_id   INTEGER NOT NULL,  -- The responder's user_id
 
     json         TEXT NULL,
 

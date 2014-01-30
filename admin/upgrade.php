@@ -19,7 +19,7 @@ if ( $table_fields === false ) {
     echo("Creating plugins table...<br/>\n");
     $sql = "
 create table {$plugins} (
-    plugin_id        MEDIUMINT NOT NULL AUTO_INCREMENT,
+    plugin_id        INTEGER NOT NULL AUTO_INCREMENT,
     plugin_path      VARCHAR(255) NOT NULL,
 
     version          BIGINT NOT NULL,
