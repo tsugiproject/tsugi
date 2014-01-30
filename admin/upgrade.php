@@ -47,6 +47,16 @@ if ( count($tools) < 1 ) {
     return;
 }
 
+// A simple precedence order..   Will have to improve this.
+foreach($tools as $k => $tool ) {
+    if ( strpos($tool,"core/lti/database.php") && $k != 0 ) {
+        $tmp = $tools[0];
+        $tools[0] = $tools[$k];
+        $tools[$k] = $tmp;
+        break;
+    }
+}
+
 foreach($tools as $tool ) {
     $path = str_replace("../","",$tool);
     echo("Checking $path ...<br/>\n");
