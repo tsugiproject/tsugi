@@ -94,7 +94,6 @@ function initialize() { }
 
 <?php } ?>
 
-$(document).ready(function () { initialize(); });
 </script>
 <div class="container">
 <?php
@@ -170,10 +169,10 @@ How would you like to be shown in maps.<br/>
 
   <div id="latlong" style="display:none" class="control-group">
     <p>Latitude: <input size="30" type="text" id="latbox" name="lat" class="disabled"
-    <?php echo(' value="'.htmlencode($lat).'" '); ?>
+    <?php echo(' value="'.htmlent_utf8($lat).'" '); ?>
     ></p>
     <p>Longitude: <input size="30" type="text" id="lngbox" name="lng" class="disabled"
-    <?php echo(' value="'.htmlencode($lng).'" '); ?>
+    <?php echo(' value="'.htmlent_utf8($lng).'" '); ?>
     ></p>
   </div>
 
@@ -186,4 +185,7 @@ in the middle of a bar.  :)
 </form>
 <?php 
 
-footerContent();
+// After jquery gets loaded at the *very* end...
+footerContent('<script type="text/javascript">
+$(document).ready(function() { initialize(); } );
+</script>');
