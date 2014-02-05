@@ -19,12 +19,10 @@ session_start();
 header('Content-Type: text/html; charset=utf-8'); 
 
 // Since we might reuse session IDs, clean everything out
-foreach($_SESSION as $k => $v ) {
-	unset($_SESSION[$k]);
-}
+session_unset();
 
 // Read all of the data from the database with a very long
-// LEFT JOIN and get all the dat we have back in the $row variable
+// LEFT JOIN and get all the data we have back in the $row variable
 $row = loadAllData($db, $CFG->dbprefix, false, $post);
 
 // Add a LEFT JOIN on the profile table

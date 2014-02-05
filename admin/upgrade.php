@@ -1,7 +1,13 @@
 <?php 
+define('COOKIE_SESSION', true);
 require_once("../config.php");
+session_start();
+require_once("gate.php");
+if ( ! isset($_SESSION["admin"]) ) return;
+
 require_once("../db.php");
 require_once("../lib/lms_lib.php");
+
 ?>
 <html>
 <head>

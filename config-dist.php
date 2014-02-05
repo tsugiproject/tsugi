@@ -16,6 +16,8 @@ $CFG->dirroot = realpath(dirname(__FILE__));
 $CFG->servicename = 'PHP-Intro';
 $CFG->timezone = 'America/New_York';
 
+$CFG->DEVELOPER = false;  // Change to true for shortcuts
+
 $CFG->database  = 'tsugi';
 $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
 $CFG->dbuser    = 'ltiuser';
@@ -23,6 +25,8 @@ $CFG->dbpass    = 'ltipassword';
 $CFG->dbprefix  = 'tsugi_';
 $CFG->dbasekey  = 'something-very-secret';
 $CFG->sessionsalt = "something-very-secret";
+
+$CFG->adminpw = 'zap';
 
 $CFG->tool_folders = array("core", "mod", "samples");
 
