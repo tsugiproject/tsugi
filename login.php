@@ -13,11 +13,11 @@ $stmt = pdoQueryDie($db,
         WHERE key_sha256 = :SHA LIMIT 1",
     array('SHA' => lti_sha256('google.com'))
 );
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
-if ( $row === false ) {
+$key_row = $stmt->fetch(PDO::FETCH_ASSOC);
+if ( $key_row === false ) {
     die('Error: No key defined for accounts from google.com');
 }
-$google_key_id = $row['key_id']+0;
+$google_key_id = $key_row['key_id']+0;
 if ( $google_key_id < 1 ) {
     die('Error: No key for accounts from google.com');
 }
@@ -77,69 +77,121 @@ if ( $doLogin ) {
         header('Location: index.php');
         return;
     } else {
-        $user_sha = lti_sha256($identity);
+        $userSHA = lti_sha256($identity);
         $displayName = $firstName . ' ' . $lastName;
+
+        // Load the profile checking to see if everything
         $stmt = pdoQueryDie($db,
-            "SELECT user_id, profile_id, displayname, email
-                 FROM {$CFG->dbprefix}lti_user 
-                WHERE user_sha256 = :SHA AND key_id = :ID LIMIT 1",
-            array('SHA' => $user_sha, ":ID" => $google_key_id)
+            "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
+                P.email as email, U.user_id as user_id
+                FROM {$CFG->dbprefix}profile AS P
+                LEFT JOIN {$CFG->dbprefix}lti_user AS U
+                ON P.profile_id = U.profile_id AND P.email = U.email AND 
+                    P.displayname = U.displayname AND user_sha256 = profile_sha256 AND
+                    P.key_id = U.key_id
+                WHERE profile_sha256 = :SHA AND P.key_id = :ID LIMIT 1",
+            array('SHA' => $userSHA, ":ID" => $google_key_id)
         );
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        $theid = false;
-        $didinsert = false;
-        if ( $row !== false ) { // Lets update!
-            $theid = $row['user_id'];
-            if ( $row['email'] != $userEmail || $row['displayname'] != $displayName ) {
-                $stmt = pdoQuery($db,
-                    "UPDATE {$CFG->dbprefix}lti_user
-                     SET email=:EMAIL, displayname=:DN, modified_at=NOW(), login_at=NOW()
-                     WHERE user_id=:ID",
-                    array(':EMAIL' => $userEmail, ':DN' => $displayName, ':ID' => $theid)
-                );
-            } else { 
-                $stmt = pdoQuery($db,
-                    "UPDATE {$CFG->dbprefix}lti_user SET login_at=NOW() WHERE id=:ID",
-                    array(':ID' => $theid)
-                );
-            }
-            if ( $stmt-> success ) {
-                error_log('User-Update:'.$identity.','.$firstName.','.$lastName.','.$userEmail);
-            } else {
-                error_log('Fail-SQL:'.$identity.','.$firstName.','.$lastName.','.$userEmail.','.mysql_error().','.$sql);
-                $_SESSION["error"] = "Internal database error, sorry";
-                header('Location: index.php');
-                return;
-            }
-            $stmt = pdoQuery($db,
-                "INSERT INTO {$CFG->dbprefix}lti_user  
-                (user_sha256, key_id, email, displayname, created_at, modified_at, login_at) ".
-                    "VALUES ( :SHA, :KEY, :EMAIL, :DN, NOW(), NOW(), NOW() )",
-                 array('SHA' => $userSHA, ':KEY' => $google_key_id,
+        $profile_row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $profile_id = 0;
+        $user_id = 0;
+
+        // Make sure we have a profile for this person
+        if ( $profile_row === false ) {
+            $stmt = pdoQueryDie($db,
+                "INSERT INTO {$CFG->dbprefix}profile  
+                (profile_sha256, profile_key, key_id, email, displayname, created_at, updated_at, login_at) ".
+                    "VALUES ( :SHA, :UKEY, :KEY, :EMAIL, :DN, NOW(), NOW(), NOW() )",
+                 array('SHA' => $userSHA, ':UKEY' => $identity, ':KEY' => $google_key_id,
                     ':EMAIL' => $userEmail, ':DN' => $displayName)
             );
 
-            if ( ! $stmt->success ) {
-                $theid = mysql_insert_id();
-                error_log('User-Insert:'.$identity.','.$displayName.','.$userEmail.','.$theid);
-                $didinsert = true;
-            } else {
-                error_log('Fail-SQL:'.$identity.','.$dispayName.','.$userEmail.','.mysql_error().','.$sql);
-                $_SESSION["error"] = "Internal database error, sorry";
-                header('Location: index.php');
-                return;
+            if ( $stmt->success) $profile_id = $db->lastInsertId();
+
+            error_log('Profile-Insert:'.$identity.','.$displayName.','.$userEmail.','.$profile_id);
+        } else {
+            $profile_id = $profile_row['profile_id']+0;
+            // Check to see if everything is already fine
+            if ( $profile_row['email'] == $userEmail && $profile_row['displayname']  ) {
+                $user_id = $profile_row['user_id']+0;
             }
+            $stmt = pdoQueryDie($db,
+                "UPDATE {$CFG->dbprefix}profile  
+                SET email = :EMAIL, displayname = :DN, login_at = NOW()
+                WHERE profile_id = :PRID",
+                 array('PRID' => $profile_id, 
+                    ':EMAIL' => $userEmail, ':DN' => $displayName)
+            );
         }
 
+        // Must have profile...
+         if ( $profile_id < 1 ) {
+            error_log('Fail-SQL-Profile:'.$identity.','.$displayName.','.$userEmail.','.$stmt->errorImplode);
+            $_SESSION["error"] = "Internal database error, sorry";
+            header('Location: index.php');
+            return;
+         }
+
+        // Load user...
+        if ( $user_id < 1 ) {
+            $stmt = pdoQueryDie($db,
+                "SELECT user_id FROM {$CFG->dbprefix}lti_user 
+                WHERE user_sha256 = :SHA AND key_id = :ID LIMIT 1",
+                array('SHA' => $userSHA, ":ID" => $google_key_id)
+            );
+            $user_row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user_id = 0;
+        }
+
+        // Insert / update the user
+        $didinsert = false;
+        if ( $user_id > 0 ) { 
+            // The user data is fine...
+        } else if ( $user_row === false ) { // Lets insert!
+            $stmt = pdoQuery($db,
+                "INSERT INTO {$CFG->dbprefix}lti_user  
+                (user_sha256, user_key, key_id, profile_id, 
+                    email, displayname, created_at, updated_at, login_at) ".
+                "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, NOW(), NOW(), NOW() )",
+                 array('SHA' => $userSHA, ':UKEY' => $identity, ':KEY' => $google_key_id,
+                    ':PROF' => $profile_id, ':EMAIL' => $userEmail, ':DN' => $displayName)
+            );
+
+            if ( $stmt->success ) {
+                $user_id = $db->lastInsertId();
+                error_log('User-Insert:'.$identity.','.$displayName.','.$userEmail.','.$user_id);
+                $didinsert = true;
+            }
+        } else {  // Lets update!
+            $user_id = $user_row['user_id']+0;
+            $stmt = pdoQueryDie($db,
+                "UPDATE {$CFG->dbprefix}lti_user
+                 SET email=:EMAIL, displayname=:DN, profile_id = :PRID, login_at=NOW()
+                 WHERE user_id=:ID",
+                array(':EMAIL' => $userEmail, ':DN' => $displayName, 
+                    ':ID' => $user_id, ':PRID' => $profile_id)
+            );
+            error_log('User-Update:'.$identity.','.$displayName.','.$userEmail);
+        }
+
+        if ( $user_id < 1 ) {
+             error_log('No User Entry:'.$identity.','.$displayName.','.$userEmail);
+             $_SESSION["error"] = "Internal database error, sorry";
+             header('Location: index.php');
+             return;
+         }
+
+        // We made a user and made a displayname
         $welcome = "Welcome ";
         if ( ! $didinsert ) $welcome .= "back ";
         $_SESSION["success"] = $welcome.($displayName)." (".$userEmail.")";
-        $_SESSION["id"] = $theid;
+        $_SESSION["id"] = $user_id;
         $_SESSION["email"] = $userEmail;
         $_SESSION["displayname"] = $displayName;
+        $_SESSION["profile_id"] = $profile_id;
         // Set the secure cookie
         $guid = MD5($identity);
-        $ct = create_secure_cookie($theid,$guid);
+        $ct = create_secure_cookie($user_id,$guid);
         setcookie($CFG->cookiename,$ct,time() + (86400 * 45)); // 86400 = 1 day
 
         if ( $didinsert ) {

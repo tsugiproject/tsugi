@@ -188,19 +188,26 @@ array( "{$CFG->dbprefix}lti_result",
     PRIMARY KEY (result_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
-// Profile hangs out as a leaf 
+// Profile is denormalized and not tightly connected to allow
+// for reconnecting
 array( "{$CFG->dbprefix}profile",
 "create table {$CFG->dbprefix}profile (
     profile_id          INTEGER NOT NULL AUTO_INCREMENT,
+    profile_sha256      CHAR(64) NOT NULL UNIQUE,
+    profile_key         VARCHAR(4096) NOT NULL,
+
+    key_id              INTEGER NOT NULL,
 
     displayname         VARCHAR(2048) NULL,
     email               VARCHAR(2048) NULL,
     locale              CHAR(63) NULL,
 
     json                TEXT NULL,
+    login_at            DATETIME NOT NULL,
     created_at          DATETIME NOT NULL,
     updated_at          DATETIME NOT NULL,
 
+    UNIQUE(profile_id, profile_sha256),
     PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
