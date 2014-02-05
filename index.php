@@ -27,7 +27,9 @@ headerContent();
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li><a href="dev.php">Developer</a></li>
+            <?php if ( isset($_SESSION['id']) ) { ?>
             <li><a href="admin/upgrade.php" target="_blank">Admin</a></li>
+            <?php } ?>
 
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
