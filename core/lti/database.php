@@ -87,6 +87,7 @@ array( "{$CFG->dbprefix}lti_user",
     locale              CHAR(63) NULL,
 
     json                TEXT NULL,
+    login_at            DATETIME NOT NULL,
     created_at          DATETIME NOT NULL,
     updated_at          DATETIME NOT NULL,
 

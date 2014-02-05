@@ -5,7 +5,7 @@ require_once 'lib/OAuth.php';
 // Extract info from $_POST applying our business rules and using our
 // naming conventions
 function extractPost() {
-	// Unescape each time we use this stuff
+	// Unescape each time we use this stuff - somedy we won't need this...
 	$FIXED = array();
 	foreach($_POST as $key => $value ) {
 		if (get_magic_quotes_gpc()) $value = stripslashes($value);

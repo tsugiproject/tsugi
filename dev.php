@@ -156,7 +156,7 @@ function doSubmitTool(name) {
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="about.php">About</a></li>
+            <li><a href="about-dev.php">Help</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo($lmsdata['lis_person_name_full']);?><b class="caret"></b></a>
               <ul class="dropdown-menu">

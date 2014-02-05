@@ -11,6 +11,10 @@ if ( $post === false ) {
 	die("Missing data");
 }
 
+if ( $post['key'] == '12345' && ! $CFG->DEVELOPER) {
+    die('You can only use key 12345 in developer mode');
+}
+
 // We make up a Session ID Key because we don't want a new one
 // each time the same user launches the same link.
 $session_id = getCompositeKey($post, $CFG->sessionsalt);

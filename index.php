@@ -41,19 +41,25 @@ headerContent();
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="about.php">About</a></li>
+            <?php if ( isset($_SESSION['id']) ) { ?>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo('lis_person_name_full');?><b class="caret"></b></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo($_SESSION['displayname']);?><b class="caret"></b></a>
               <ul class="dropdown-menu">
-				<li><a href="#" onclick="doSubmit('instructor');return false;">Jane Instructor</a></li>
-				<li><a href="#" onclick="doSubmit('learner1');return false;">Sue Student</a></li>
-				<li><a href="#" onclick="doSubmit('learner2');return false;">Ed Student</a></li>
+				<li><a href="logout.php">Logout</a></li>
               </ul>
             </li>
+            <?php } else { ?>
+            <li><a href="login.php">Login</a></li>
+            <?php } ?>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
 
       <div>
+<?php
+flashMessages();
+?>
+        <p>YO I AM CONTENT</p>
       </div> <!-- /container -->
 
 <?php footerContent(); 

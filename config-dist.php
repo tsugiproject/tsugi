@@ -13,10 +13,10 @@ $CFG->bootstrap = $CFG->staticroot . "/static/bootstrap";
 $CFG->dirroot = realpath(dirname(__FILE__));
 // If you don't set dataroot it will be in temp space (dev test only)
 // $CFG->dataroot = $CFG->dirroot . '/_files/a';
-$CFG->servicename = 'PHP-Intro';
+$CFG->servicename = 'TSUGI (dev)';
 $CFG->timezone = 'America/New_York';
 
-$CFG->DEVELOPER = false;  // Change to true for shortcuts
+$CFG->DEVELOPER = false;  // Change to true to enable testing screens
 
 $CFG->database  = 'tsugi';
 $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
@@ -26,7 +26,14 @@ $CFG->dbprefix  = 'tsugi_';
 $CFG->dbasekey  = 'something-very-secret';
 $CFG->sessionsalt = "something-very-secret";
 
-$CFG->adminpw = 'zap';
+$CFG->adminpw = 'something-super-secret!';  // Change this!
+
+$CFG->OFFLINE = false;  // Set to true if you have no network connection at all
+
+// This supports the auto-login via long-term cookie 
+$CFG->cookiesecret = '2f518066blahblahlongstring5fd09d757a289b543';
+$CFG->cookiename = 'autochuckonline';
+$CFG->cookiepad = '390b246ea9';
 
 $CFG->tool_folders = array("core", "mod", "samples");
 

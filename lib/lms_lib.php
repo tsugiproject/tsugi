@@ -653,7 +653,7 @@ function extract_secure_cookie($encr,$debug=false) {
 // See: http://php.net/manual/en/function.setcookie.php
 function delete_secure_cookie() {
     global $CFG;
-    setcookie($CFG->cookiename,'',time() - 100); // Expire in 100 seconds 
+    setcookie($CFG->cookiename,'',time() - 100); // Expire 100 seconds ago
     session_unset();
 }
 
