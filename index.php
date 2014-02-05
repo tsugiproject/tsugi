@@ -47,6 +47,7 @@ headerContent();
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo($_SESSION['displayname']);?><b class="caret"></b></a>
               <ul class="dropdown-menu">
+				<li><a href="profile.php">Profile</a></li>
 				<li><a href="logout.php">Logout</a></li>
               </ul>
             </li>
@@ -61,7 +62,14 @@ headerContent();
 <?php
 flashMessages();
 ?>
-        <p>YO I AM CONTENT</p>
+<p>
+Hello and welcome to <b><?php echo($CFG->servicename); ?></b>.
+Generally this system is used to provide cloud-hosted learning tools that are plugged
+into a Learning Management Systems like Sakai, Coursera, or Blackboard using 
+IMS Learning Tools Interoperability.  You can sign in to this system 
+and create a profile and as you use tools from various courses you can 
+associate those tools and courses with your profile.
+</p>
       </div> <!-- /container -->
 
 <?php footerContent(); 
