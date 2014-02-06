@@ -109,11 +109,11 @@ if ( strpos($html, 'Logged in') === false ) {
     error_out("Should not have found 'Logged in'");
 }
 
-line_out("Looking for 'Order total: 19.05'");
-if ( strpos($html, 'Order total: 19.05') !== false ) {
+line_out("Looking for '19.05'");
+if ( strpos($html, '19.05') !== false ) {
     $passed++;
 } else {
-    error_out("Could not find 'Order total: 19.05'");
+    error_out("Could not find '19.05'");
 }
 
 $url = $client->getRequest()->getUri();
