@@ -26,8 +26,10 @@ headerContent();
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
+            <?php if ( $CFG->DEVELOPER ) { ?>
             <li><a href="dev.php">Developer</a></li>
-            <?php if ( isset($_SESSION['id']) ) { ?>
+            <?php } ?>
+            <?php if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) { ?>
             <li><a href="admin/upgrade.php" target="_blank">Admin</a></li>
             <?php } ?>
 
@@ -61,11 +63,16 @@ headerContent();
       <div>
 <?php
 flashMessages();
+if ( $CFG->DEVELOPER ) {
+    echo '<div class="alert alert-danger" style="margin-top: 10px;">'.
+        'Note: Currently this server is running in developer mode.'.
+        "\n</div>\n";
+}
 ?>
 <p>
 Hello and welcome to <b><?php echo($CFG->servicename); ?></b>.
 Generally this system is used to provide cloud-hosted learning tools that are plugged
-into a Learning Management Systems like Sakai, Coursera, or Blackboard using 
+into a Learning Management systems like Sakai, Coursera, or Blackboard using 
 IMS Learning Tools Interoperability.  You can sign in to this system 
 and create a profile and as you use tools from various courses you can 
 associate those tools and courses with your profile.
