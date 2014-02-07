@@ -8,9 +8,7 @@ require_once "files_util.php";
 session_start();
 
 // Sanity checks
-requireData(array('user_id', 'link_id'));
-$LTI = $_SESSION['lti'];
-
+$LTI = requireData(array('user_id', 'link_id'));
 
 $fn = $_REQUEST['file'];
 if ( strlen($fn) < 1 ) {

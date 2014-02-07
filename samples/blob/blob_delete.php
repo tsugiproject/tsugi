@@ -8,8 +8,7 @@ require_once "blob_util.php";
 session_start();
 
 // Sanity checks
-requireData(array('context_id', 'link_id'));
-$LTI = $_SESSION['lti'];
+$LTI = requireData(array('context_id', 'link_id'));
 
 $id = $_REQUEST['id'];
 if ( strlen($id) < 1 ) {

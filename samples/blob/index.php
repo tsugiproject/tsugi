@@ -8,8 +8,7 @@ require_once "blob_util.php";
 session_start();
 
 // Sanity checks
-requireData(array('context_id'));
-$LTI = $_SESSION['lti'];
+$LTI = requireData(array('context_id', 'role'));
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 // Model 

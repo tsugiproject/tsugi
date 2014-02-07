@@ -6,13 +6,7 @@ require_once $CFG->dirroot."/lib/lti_util.php";
 session_start();
 
 // Sanity checks
-if ( !isset($_SESSION['lti']) ) {
-	die('This tool need to be launched using LTI');
-}
-$LTI = $_SESSION['lti'];
-if ( !isset($LTI['user_id']) || !isset($LTI['context_id']) ) {
-	die('A user_id and context_id are required for this tool to function.');
-}
+$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;

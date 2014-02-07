@@ -8,8 +8,7 @@ require_once "files_util.php";
 session_start();
 
 // Sanity checks
-requireData(array('user_id', 'context_id'));
-$LTI = $_SESSION['lti'];
+$LTI = requireData(array('user_id', 'context_id'));
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 // Model 

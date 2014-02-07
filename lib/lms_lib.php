@@ -42,7 +42,7 @@ function doCSS($context=false) {
 // and return the LMS Data
 function requireData($needed) {
 	if ( !isset($_SESSION['lti']) ) {
-		die('This tool need to be launched using LTI');
+		die('This tool needs to be launched using LTI');
 	}
 	$LTI = $_SESSION['lti'];
 	if ( is_string($needed) && ! isset($LTI[$needed]) ) {
