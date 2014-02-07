@@ -77,6 +77,14 @@ IMS Learning Tools Interoperability.  You can sign in to this system
 and create a profile and as you use tools from various courses you can 
 associate those tools and courses with your profile.
 </p>
+<p>
+Other than logging in and setting up your profile, there is nothing much you can 
+do at this screen.  Things happen when your instructor starts using the tools
+hosted on this server in their LMS systems.  If you are an instructor and would
+like to experiment with these tools (it is early days) send a note to Dr. Chuck.
+You can look at the source code for this software at 
+<a href="https://github.com/csev/tsugi" target="_blank">https://github.com/csev/tsugi</a>.
+</p>
       </div> <!-- /container -->
 
 <?php footerContent(); 
