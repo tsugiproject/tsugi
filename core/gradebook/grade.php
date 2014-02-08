@@ -12,7 +12,7 @@ $instructor = isInstructor($LTI);
 if ( ! $instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 
-// Gets counts and max of the submissions
+// Get basic grade data
 $stmt = pdoQueryDie($db,
     "SELECT R.result_id AS result_id, grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
     FROM {$p}lti_result AS R

@@ -211,7 +211,17 @@ function load_files() {
     function gradeit() {
         $("#check").hide();
         $("#spinner").show();
-        $.getJSON('<? echo sessionize('grade.php'); ?>', function(data) {
+
+        var grade = 1.0;
+        var code = document.getElementById("code").value;
+        var toSend = { grade : grade, code : code };
+
+        $.ajax({
+            type: "POST",
+            url: "<? echo sessionize('grade.php'); ?>",
+            dataType: "json",
+            data: toSend
+        }).done( function (data) {
             console.log(data);
             $("#spinner").hide();
             if ( data["status"] == "success") {
@@ -259,10 +269,10 @@ startBody();
 <form style="height:100%;">
 <button onclick="runit()" type="button">Check Code</button>
 <?php
-// if ( $context->valid && $context->getOutcomeService() !== false ) {
    if ( $instructor ){
+       echo(' <a href="'.sessionize("../../core/gradebook/grade.php").'" target="_blank">View Grades</a>'."\n");
 ?>
-<span id="grade" style="display:none">To test grading launch as a Learner.</span>
+<span id="grade" style="display:none"></span>
 <?php } else { ?>
 <button id="grade" onclick="gradeit()" type="button" style="display:none">Submit Grade</button>
 <?php } 
