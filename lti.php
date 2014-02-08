@@ -48,6 +48,7 @@ $actions = adjustData($db, $CFG->dbprefix, $row, $post);
 // Put the information into the row variable
 // TODO: do AES on the secret
 $_SESSION['lti'] = $row;
+$_SESSION['lti_post'] = $_POST;
 
 // See if we have a custom assignment setting.
 $url = 'mod/php-intro/custom.php';

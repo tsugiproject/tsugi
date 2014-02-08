@@ -467,7 +467,7 @@ function sendGrade($grade, $verbose=true, $db=false, $result=false) {
     }
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        return sendGradeInternal($grade, $verbose, $db, $result);
+        return sendGradeInternal($grade, null, null, $verbose, $db, $result);
 	} catch(Exception $e) {
 		$msg = "Grade Exception: ".$e->getMessage();
 		error_log($msg);
@@ -475,7 +475,21 @@ function sendGrade($grade, $verbose=true, $db=false, $result=false) {
     } 
 }
 
-function sendGradeInternal($grade, $verbose, $db,  $result) {
+function sendGradeDetail($grade, $note=null, $json=null, $verbose, $db=false, $result=false) {
+	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
+        return "Session not set up for grade return";
+    }
+    try {
+        if ( $result === false ) $result = $_SESSION['lti'];
+        return sendGradeInternal($grade, $note, $json, false, $db, $result);
+	} catch(Exception $e) {
+		$msg = "Grade Exception: ".$e->getMessage();
+		error_log($msg);
+        return $msg;
+    } 
+}
+
+function sendGradeInternal($grade, $note, $json, $verbose, $db,  $result) {
     global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
@@ -500,53 +514,57 @@ function sendGradeInternal($grade, $verbose, $db,  $result) {
     // Check if the grade was already sent...
     if ( isset($result['grade']) && $grade == $result['grade'] ) {
         error_log("Grade result_id=".$result['result_id']." grade= $grade already sent...");
-        return true;
+        $status = true;
+    } else {
+
+	    $method="POST";
+	    $content_type = "application/xml";
+        $sourcedid = $result['sourcedid'];
+	    $sourcedid = htmlspecialchars($sourcedid);
+    
+	    $operation = 'replaceResultRequest';
+	    $postBody = str_replace(
+		    array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
+		    array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
+		    getPOXGradeRequest());
+    
+	    if ( $verbose ) line_out('Sending grade to '.$lti['service']);
+
+	    if ( $verbose ) togglePre("Grade API Request (debug)",$postBody);
+        if ( $verbose ) flush();
+
+	    $response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], 
+            $content_type, $postBody);
+	    global $LastOAuthBodyBaseString;
+	    $lbs = $LastOAuthBodyBaseString;
+	    if ( $verbose ) togglePre("Grade API Response (debug)",$response);
+        $LastPOXGradeResponse = $response;
+        $status = "Failure to store grade";
+	    try {
+		    $retval = parseResponse($response);
+		    if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
+                $status = true;
+		    } else if ( isset($retval['imsx_description']) ) {
+                $status = $retval['imsx_description'];
+            }
+	    } catch(Exception $e) {
+		    $status = $e->getMessage();
+	    }
+        $detail = $status;
+        if ( $detail == true ) $detail = 'Success';
+        error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail);
     }
-
-	$method="POST";
-	$content_type = "application/xml";
-    $sourcedid = $result['sourcedid'];
-	$sourcedid = htmlspecialchars($sourcedid);
-
-	$operation = 'replaceResultRequest';
-	$postBody = str_replace(
-		array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
-		array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
-		getPOXGradeRequest());
-
-	if ( $verbose ) line_out('Sending grade to '.$lti['service']);
-
-	if ( $verbose ) togglePre("Grade API Request (debug)",$postBody);
-    if ( $verbose ) flush();
-
-	$response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], 
-        $content_type, $postBody);
-	global $LastOAuthBodyBaseString;
-	$lbs = $LastOAuthBodyBaseString;
-	if ( $verbose ) togglePre("Grade API Response (debug)",$response);
-    $LastPOXGradeResponse = $response;
-    $status = "Failure to store grade";
-	try {
-		$retval = parseResponse($response);
-		if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
-            $status = true;
-		} else if ( isset($retval['imsx_description']) ) {
-            $status = $retval['imsx_description'];
-        }
-	} catch(Exception $e) {
-		$status = $e->getMessage();
-	}
-    $note = $status;
-    if ( $note == true ) $note = 'Success';
-    error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$note);
 
     // Update result in the database and in the LTI session area
     $_SESSION['lti']['grade'] = $grade;
     if ( $db !== false ) {
         $stmt = pdoQuery($db,
-            "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade, updated_at = NOW() WHERE result_id = :RID",
+            "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade, note = :note, 
+                json = :json, updated_at = NOW() WHERE result_id = :RID",
             array(
                 ':grade' => $grade,
+                ':note' => $note,
+                ':json' => $json,
                 ':RID' => $result['result_id'])
         );
         if ( $stmt->success ) {

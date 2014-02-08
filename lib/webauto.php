@@ -1,5 +1,6 @@
 <?php
 // A library for webscraping graders
+require_once $CFG->dirroot."/db.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
@@ -9,9 +10,11 @@ require_once $CFG->dirroot."/lib/goutte/Goutte/Client.php";
 // Check to see if we were launched from LTI, and if so set the 
 // displayname varalble for the rest of the code
 $displayname = false;
+$instructor = false;
 if ( isset($_SESSION['lti']) ) {
     $lti = $_SESSION['lti'];
     $displayname = $lti['user_displayname'];
+    $instructor = isInstructor($_SESSION['lti']);
 }
 
 // Check if this has a due date..
@@ -52,6 +55,7 @@ if ( $duedate && $diff > 0 ) {
 
 function getUrl($sample) {
 	global $displayname;
+	global $instructor;
 	if ( isset($_GET['url']) ) {
         echo('<p><a href="#" onclick="window.location.href = window.location.href; return false;">Re-run this test</a></p>'."\n");
         return $_GET['url'];
@@ -60,6 +64,11 @@ function getUrl($sample) {
 	if ( $displayname ) {
 		echo("<p>&nbsp;</p><p><b>Hello $displayname</b> - welcome to the autograder.</p>\n");
 	}
+
+	if ( $instructor ) {
+		echo('<p><a href="'.sessionize("../../core/gradebook/grade.php").'" target="_blank">Grade detail</a></p>'."\n");
+    }
+
 	echo('<form>
 		Please enter the URL of your web site to grade:<br/>
 		<input type="text" name="url" value="'.$sample.'" size="100"><br/>
@@ -94,7 +103,8 @@ function testPassed($grade) {
 		exit();
 	}
 
-	$retval = sendGrade($grade);
+    global $db;
+	$retval = sendGrade($grade, true, $db);
 	if ( $retval == true ) {
 		$success = "Grade sent to server (".intval($grade*100)."%)";
 	} else if ( is_string($retval) ) {

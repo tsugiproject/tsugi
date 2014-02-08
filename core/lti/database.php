@@ -161,7 +161,7 @@ array( "{$CFG->dbprefix}lti_result",
     service_id         INTEGER NULL,
 
     grade              FLOAT NULL,
-    note               VARCHAR(2048) NOT NULL,
+    note               VARCHAR(2048) NULL,
 
     json               TEXT NULL,
     created_at         DATETIME NOT NULL,
