@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
@@ -13,7 +13,7 @@ if ( ! $instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 
 // Get basic grade data
-$stmt = pdoQueryDie($db,
+$stmt = pdoQueryDie($pdo,
     "SELECT R.result_id AS result_id, grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
     FROM {$p}lti_result AS R
     JOIN {$p}lti_user AS U ON R.user_id = U.user_id

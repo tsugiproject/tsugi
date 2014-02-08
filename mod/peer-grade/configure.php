@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "peer_util.php";
@@ -25,7 +25,7 @@ if ( isset($_POST['json']) ) {
     }
 
     $json = json_encode($json);
-    $stmt = pdoQuery($db,
+    $stmt = pdoQuery($pdo,
         "INSERT INTO {$p}peer_assn 
             (link_id, json, created_at, updated_at) 
             VALUES ( :ID, :JSON, NOW(), NOW()) 
@@ -46,7 +46,7 @@ if ( isset($_POST['json']) ) {
 }
 
 // Load up the assignment 
-$row = loadAssignment($db, $LTI);
+$row = loadAssignment($pdo, $LTI);
 $json = "";
 if ( $row !== false ) $json = $row['json'];
 

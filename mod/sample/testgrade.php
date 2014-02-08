@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once "../../db.php";
+require_once "../../pdo.php";
 
 session_start();
 // Set up global variables from session

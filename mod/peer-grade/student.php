@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
@@ -18,7 +18,7 @@ if ( !isset($_REQUEST['user_id']) ) die("user_id parameter required");
 $user_id = $_REQUEST['user_id'];
 
 // Load the assignment
-$row = loadAssignment($db, $LTI);
+$row = loadAssignment($pdo, $LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -33,14 +33,14 @@ if ( $assn_id === false ) {
 }
 
 $submit_id = false;
-$submit_row = loadSubmission($db, $assn_id, $user_id);
+$submit_row = loadSubmission($pdo, $assn_id, $user_id);
 if ( $submit_row !== false ) {
     $submit_id = $submit_row['submit_id']+0;
 }
 
 // Handle incoming post to delete the entire submission
 if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "DELETE FROM {$p}peer_submit 
             WHERE submit_id = :SID",
         array( ':SID' => $submit_id)
@@ -54,10 +54,10 @@ if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
 }
 
 // Load user info
-$user_row = loadUserInfo($db, $user_id);
+$user_row = loadUserInfo($pdo, $user_id);
 
 // Retrieve our grades...
-$our_grades = retrieveSubmissionGrades($db, $submit_id);
+$our_grades = retrieveSubmissionGrades($pdo, $submit_id);
 
 // Handle incoming post to delete a grade entry
 if ( isset($_POST['grade_id']) && isset($_POST['doDelete']) ) {
@@ -71,7 +71,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['doDelete']) ) {
         header( 'Location: '.sessionize('index.php') ) ;
         return;
     }
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "DELETE FROM {$p}peer_grade 
             WHERE grade_id = :GID",
         array( ':GID' => $_POST['grade_id'])
@@ -86,7 +86,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['doDelete']) ) {
 // Retrieve our flags...
 $our_flags = false;
 if ( $submit_id !== false ) {
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "SELECT flag_id, F.user_id AS user_id, grade_id, note, handled, response,
             F.updated_at AS updated_at, displayname, email
         FROM {$p}peer_flag AS F

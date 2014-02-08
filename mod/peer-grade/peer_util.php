@@ -1,12 +1,12 @@
 <?php
 
-function loadUserInfo($db, $user_id) 
+function loadUserInfo($pdo, $user_id) 
 {
     global $CFG;
     $cacheloc = 'lti_user';
     $row = cacheCheck($cacheloc, $user_id);
     if ( $row != false ) return $row;
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "SELECT displayname, email FROM {$CFG->dbprefix}lti_user
             WHERE user_id = :UID",
         array(":UID" => $user_id)
@@ -17,13 +17,13 @@ function loadUserInfo($db, $user_id)
 }
 
 // Loads the assignment associated with this link
-function loadAssignment($db, $LTI)
+function loadAssignment($pdo, $LTI)
 {
     global $CFG;
     $cacheloc = 'peer_assn';
     $row = cacheCheck($cacheloc, $LTI['link_id']);
     if ( $row != false ) return $row;
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "SELECT assn_id, json FROM {$CFG->dbprefix}peer_assn WHERE link_id = :ID",
         array(":ID" => $LTI['link_id'])
     );
@@ -32,7 +32,7 @@ function loadAssignment($db, $LTI)
     return $row;
 }
 
-function loadSubmission($db, $assn_id, $user_id) 
+function loadSubmission($pdo, $assn_id, $user_id) 
 {
     global $CFG;
     $cacheloc = 'peer_submit';
@@ -41,7 +41,7 @@ function loadSubmission($db, $assn_id, $user_id)
     if ( $submit_row != false ) return $submit_row;
     $submit_row = false;
 
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "SELECT submit_id, json, note, reflect
             FROM {$CFG->dbprefix}peer_submit AS S
             WHERE assn_id = :AID AND S.user_id = :UID",
@@ -53,10 +53,10 @@ function loadSubmission($db, $assn_id, $user_id)
 }
 
 // Check for ungraded submissions
-function loadUngraded($db, $LTI, $assn_id)
+function loadUngraded($pdo, $LTI, $assn_id)
 {
     global $CFG;
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "SELECT S.submit_id, S.user_id, S.created_at, count(G.user_id) AS submit_count 
             FROM {$CFG->dbprefix}peer_submit AS S LEFT JOIN {$CFG->dbprefix}peer_grade AS G 
             ON S.submit_id = G.submit_id 
@@ -90,10 +90,10 @@ function showSubmission($LTI, $assn_json, $submit_json)
     }
 }
 
-function computeGrade($db, $assn_id, $assn_json, $user_id)
+function computeGrade($pdo, $assn_id, $assn_json, $user_id)
 {
     global $CFG;
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "SELECT S.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id, 
             MAX(points) as max_points, COUNT(points) as count_points, C.grade_count as grade_count
         FROM {$CFG->dbprefix}peer_submit as S 
@@ -129,13 +129,13 @@ function computeGrade($db, $assn_id, $assn_json, $user_id)
 }
 
 // Load the count of grades for this user for an assignment
-function loadMyGradeCount($db, $LTI, $assn_id) {
+function loadMyGradeCount($pdo, $LTI, $assn_id) {
     global $CFG;
     $cacheloc = 'peer_grade';
     $cachekey = $assn_id + "::" + $LTI['user_id'];
     $grade_count = cacheCheck($cacheloc, $cachekey);
     if ( $grade_count != false ) return $grade_count;
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "SELECT COUNT(grade_id) AS grade_count 
         FROM {$CFG->dbprefix}peer_submit AS S 
         JOIN {$CFG->dbprefix}peer_grade AS G
@@ -154,11 +154,11 @@ function loadMyGradeCount($db, $LTI, $assn_id) {
 // Retrieve grades for a submission
 // Not cached because another user may have added a grade
 // a moment ago
-function retrieveSubmissionGrades($db, $submit_id)
+function retrieveSubmissionGrades($pdo, $submit_id)
 {
     global $CFG;
     if ( $submit_id === false ) return false;
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "SELECT grade_id, points, note, displayname, email
         FROM {$CFG->dbprefix}peer_grade AS G
         JOIN {$CFG->dbprefix}lti_user as U

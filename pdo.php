@@ -3,24 +3,24 @@
 require_once("config.php");
 
 try {
-    $db = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $ex){
     error_log("DB connection: "+$ex->getMessage());
     die($ex->getMessage());
 }
 
-function pdoQueryDie($db, $sql, $arr=FALSE, $error_log=TRUE) {
-    $stmt = pdoQuery($db, $sql, $arr, $error_log);
+function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+    $stmt = pdoQuery($pdo, $sql, $arr, $error_log);
     if ( ! $stmt->success ) die($stmt->errorImplode);
     return $stmt;
 }
 
 // Run a PDO Query with lots of error checking
-function pdoQuery($db, $sql, $arr=FALSE, $error_log=TRUE) {
-    $errormode = $db->getAttribute(PDO::ATTR_ERRMODE);
+function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+    $errormode = $pdo->getAttribute(PDO::ATTR_ERRMODE);
 	if ( $errormode != PDO::ERRMODE_EXCEPTION) {
-		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	}
     $q = FALSE;
     $success = FALSE;
@@ -29,7 +29,7 @@ function pdoQuery($db, $sql, $arr=FALSE, $error_log=TRUE) {
     $start = microtime(true);
     // debugLog($sql, $arr);
     try {
-        $q = $db->prepare($sql);
+        $q = $pdo->prepare($sql);
         if ( $arr === FALSE ) {
             $success = $q->execute();
         } else {
@@ -51,14 +51,14 @@ function pdoQuery($db, $sql, $arr=FALSE, $error_log=TRUE) {
     if ( !isset($q->errorImplode) ) $q->errorImplode = implode(':',$q->errorInfo);
     // Restore ERRMODE if we changed it
 	if ( $errormode != PDO::ERRMODE_EXCEPTION) {
-		$db->setAttribute(PDO::ATTR_ERRMODE, $errormode);
+		$pdo->setAttribute(PDO::ATTR_ERRMODE, $errormode);
 	}
     return $q;
 }
 
-function pdoMetadata($db, $tablename) {
+function pdoMetadata($pdo, $tablename) {
     $sql = "SHOW COLUMNS FROM ".$tablename;
-    $q = pdoQuery($db, $sql);
+    $q = pdoQuery($pdo, $sql);
     if ( $q->success ) {
         return $q->fetchAll();
     } else {

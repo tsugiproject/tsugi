@@ -212,16 +212,16 @@ array( "{$CFG->dbprefix}profile",
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
 
-$DATABASE_UPGRADE = function($db, $oldversion) {
+$DATABASE_UPGRADE = function($pdo, $oldversion) {
     global $CFG;
     if ( $oldversion >= 2 ) return 2;
     $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret) values 
         ( '5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', '12345', 'secret')";
-    $q = pdoQuery($db, $sql);
+    $q = pdoQuery($pdo, $sql);
 
     $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key) values 
         ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', 'google.com')";
-    $q = pdoQuery($db, $sql);
+    $q = pdoQuery($pdo, $sql);
     return 2;
 }; // Don't forget the semicolon on anonymous functions :)
 

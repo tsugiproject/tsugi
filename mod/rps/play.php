@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 
 session_start();
@@ -11,7 +11,7 @@ $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 
 $p = $CFG->dbprefix;
 if ( isset($_GET['game']) ) { // I am player 1 since I made this game
-	$stmt = $db->prepare("SELECT play1, play2, displayname FROM {$p}rps 
+	$stmt = $pdo->prepare("SELECT play1, play2, displayname FROM {$p}rps 
 		LEFT JOIN {$p}lti_user ON {$p}rps.user2_id = {$p}lti_user.user_id
 		WHERE rps_guid = :GUID");
 	$stmt->execute(array(":GUID" => $_GET['game']));
@@ -37,22 +37,22 @@ if ( $play < 0 || $play > 2 ) {
 }
 
 // Check to see if there is an open game
-$stmt = $db->prepare("SELECT rps_guid, play1, play2, displayname FROM {$p}rps 
+$stmt = $pdo->prepare("SELECT rps_guid, play1, play2, displayname FROM {$p}rps 
 	LEFT JOIN {$p}lti_user ON {$p}rps.user1_id = {$p}lti_user.user_id
 	WHERE play2 IS NULL ORDER BY started_at ASC LIMIT 1");
-$stmt1 = $db->prepare("UPDATE {$p}rps SET user2_id = :U2ID, play2 = :PLAY
+$stmt1 = $pdo->prepare("UPDATE {$p}rps SET user2_id = :U2ID, play2 = :PLAY
 	WHERE rps_guid = :GUID");
 
 // Check to see if there is an open game we can complete
-$db->beginTransaction();
+$pdo->beginTransaction();
 $stmt->execute();
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 if ( $row == FALSE ) {
-	$db->rollBack();
+	$pdo->rollBack();
 } else {
 	$stmt1->execute(array(":U2ID" => $LTI['user_id'], ":PLAY" => $play,
 		":GUID" => $row['rps_guid']));
-	$db->commit();
+	$pdo->commit();
 	$tie = $play == $row['play1'];
 	$row['tie'] = $tie;
 	// I am player 2 because I finshed this game
@@ -64,7 +64,7 @@ if ( $row == FALSE ) {
 
 // Start a new game...
 $guid = uniqid();
-$stmt = $db->prepare("INSERT INTO {$p}rps 
+$stmt = $pdo->prepare("INSERT INTO {$p}rps 
 	(rps_guid, link_id, user1_id, play1, started_at) 
 	VALUES ( :GUID, :LID, :UID, :PLAY, NOW() )");
 $stmt->execute(array(":GUID" => $guid, ":LID" => $LTI['link_id'],

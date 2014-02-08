@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 
 session_start();
@@ -13,7 +13,7 @@ $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 // The reset operation is a normal POST - not AJAX
 if ( $instructor && isset($_POST['reset']) ) {
     $sql = "DELETE FROM {$p}rps WHERE link_id = :LI";
-    $stmt = $db->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     $stmt->execute(array(':LI' => $LTI['link_id']));
     header( 'Location: '.sessionize('index.php') ) ;
     return;

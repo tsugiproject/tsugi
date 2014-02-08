@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "blob_util.php";
@@ -16,7 +16,7 @@ if ( strlen($id) < 1 ) {
 }
 
 $p = $CFG->dbprefix;
-$stmt = $db->prepare("SELECT file_name FROM {$p}sample_blob 
+$stmt = $pdo->prepare("SELECT file_name FROM {$p}sample_blob 
             WHERE file_id = :ID AND context_id = :CID");
 $stmt->execute(array(":ID" => $id, ":CID" => $LTI['context_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -27,7 +27,7 @@ if ( $row === false ) {
 }
 
 if ( isset($_POST["doDelete"]) ) {
-    $stmt = $db->prepare("DELETE FROM {$p}sample_blob
+    $stmt = $pdo->prepare("DELETE FROM {$p}sample_blob
             WHERE file_id = :ID AND context_id = :CID");
     $stmt->execute(array(":ID" => $id, ":CID" => $LTI['context_id']));
     $_SESSION['success'] = 'File deleted';

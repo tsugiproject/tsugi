@@ -427,9 +427,9 @@ function dataToggle(divName) {
 // Looks up a result for a potentially different user_id so we make
 // sure they are in the smame key/ context / link as the current user
 // hence the complex query to make sure we don't cross silos
-function lookupResult($db, $LTI, $user_id) {
+function lookupResult($pdo, $LTI, $user_id) {
     global $CFG;
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id, 
             sourcedid, service_id, grade, note, R.json AS json
         FROM {$CFG->dbprefix}lti_result AS R
@@ -461,13 +461,13 @@ function safeVarDump($x) {
         return $result;
 }
 
-function sendGrade($grade, $verbose=true, $db=false, $result=false) {
+function sendGrade($grade, $verbose=true, $pdo=false, $result=false) {
 	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        return sendGradeInternal($grade, null, null, $verbose, $db, $result);
+        return sendGradeInternal($grade, null, null, $verbose, $pdo, $result);
 	} catch(Exception $e) {
 		$msg = "Grade Exception: ".$e->getMessage();
 		error_log($msg);
@@ -475,13 +475,13 @@ function sendGrade($grade, $verbose=true, $db=false, $result=false) {
     } 
 }
 
-function sendGradeDetail($grade, $note=null, $json=null, $verbose, $db=false, $result=false) {
+function sendGradeDetail($grade, $note=null, $json=null, $verbose, $pdo=false, $result=false) {
 	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        return sendGradeInternal($grade, $note, $json, false, $db, $result);
+        return sendGradeInternal($grade, $note, $json, false, $pdo, $result);
 	} catch(Exception $e) {
 		$msg = "Grade Exception: ".$e->getMessage();
 		error_log($msg);
@@ -489,7 +489,7 @@ function sendGradeDetail($grade, $note=null, $json=null, $verbose, $db=false, $r
     } 
 }
 
-function sendGradeInternal($grade, $note, $json, $verbose, $db,  $result) {
+function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
     global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
@@ -557,8 +557,8 @@ function sendGradeInternal($grade, $note, $json, $verbose, $db,  $result) {
 
     // Update result in the database and in the LTI session area
     $_SESSION['lti']['grade'] = $grade;
-    if ( $db !== false ) {
-        $stmt = pdoQuery($db,
+    if ( $pdo !== false ) {
+        $stmt = pdoQuery($pdo,
             "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade, note = :note, 
                 json = :json, updated_at = NOW() WHERE result_id = :RID",
             array(

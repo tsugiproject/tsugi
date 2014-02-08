@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 session_start();
 
 // Sanity checks
@@ -13,7 +13,7 @@ $grade = 1.0;
 $code = $_POST['code'];
 $json = json_encode(array("code" => $code));
 
-$retval = sendGradeDetail($grade, null, $json, false, $db, false);
+$retval = sendGradeDetail($grade, null, $json, false, $pdo, false);
 if ( is_string($retval) ) {
     echo json_encode(Array("status" => "failure", "detail" => $retval));
     return;

@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 
 session_start();
@@ -10,7 +10,7 @@ header('Content-type: application/json');
 $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 
 $p = $CFG->dbprefix;
-$stmt = $db->prepare("SELECT play1, play2, user1_id, user2_id, 
+$stmt = $pdo->prepare("SELECT play1, play2, user1_id, user2_id, 
 		U1.displayname AS displayname1, U2.displayname AS displayname2 
 		FROM {$p}rps
         JOIN {$p}lti_user AS U1 JOIN {$p}lti_user AS U2

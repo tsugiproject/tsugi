@@ -1,6 +1,6 @@
 <?php
 // A library for webscraping graders
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
@@ -103,8 +103,8 @@ function testPassed($grade) {
 		exit();
 	}
 
-    global $db;
-	$retval = sendGrade($grade, true, $db);
+    global $pdo;
+	$retval = sendGrade($grade, true, $pdo);
 	if ( $retval == true ) {
 		$success = "Grade sent to server (".intval($grade*100)."%)";
 	} else if ( is_string($retval) ) {

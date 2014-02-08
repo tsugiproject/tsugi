@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "peer_util.php";
@@ -18,7 +18,7 @@ $user_id = $LTI['user_id'];
 if ( isset($_REQUEST['user_id']) ) $user_id = $_REQUEST['user_id'];
 
 // Model 
-$row = loadAssignment($db, $LTI);
+$row = loadAssignment($pdo, $LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -32,7 +32,7 @@ if ( $assn_id == false ) {
 }
 
 // Compute the user's grade
-$grade = computeGrade($db, $assn_id, $assn_json, $user_id);
+$grade = computeGrade($pdo, $assn_id, $assn_json, $user_id);
 if ( $grade <= 0 ) {
     json_error('Nothing to grade for this user', $row);
     return;
@@ -41,11 +41,11 @@ if ( $grade <= 0 ) {
 // Lookup the result row if we are grading the non-current user
 $result = false;
 if ( $user_id != $LTI['user_id'] ) {
-    $result = lookupResult($db, $LTI, $user_id);
+    $result = lookupResult($pdo, $LTI, $user_id);
 }
 
 // Send the grade
-$status = sendGrade($grade, false, $db, $result);
+$status = sendGrade($grade, false, $pdo, $result);
 if ( $status === true ) {
     if ( $user_id != $LTI['user_id'] ) {
         json_output(array("status" => $status, "detail" => $LastPOXGradeResponse));

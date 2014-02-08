@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "blob_util.php";
@@ -29,7 +29,7 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
 	}
 
 	$fp = fopen($_FILES['uploaded_file']['tmp_name'], "rb");
-	$stmt = $db->prepare("INSERT INTO {$p}sample_blob 
+	$stmt = $pdo->prepare("INSERT INTO {$p}sample_blob 
 		(context_id, file_name, contenttype, content, created_at) 
 		VALUES (?, ?, ?, ?, NOW())");
 
@@ -37,9 +37,9 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
 	$stmt->bindParam(2, $filename);
 	$stmt->bindParam(3, $_FILES['uploaded_file']['type']);
 	$stmt->bindParam(4, $fp, PDO::PARAM_LOB);
-	$db->beginTransaction();
+	$pdo->beginTransaction();
 	$stmt->execute();
-	$db->commit();
+	$pdo->commit();
 
     $_SESSION['success'] = 'File uploaded';
 	header( 'Location: '.sessionize('index.php') ) ;
@@ -65,7 +65,7 @@ welcomeUserCourse($LTI);
 $foldername = getFolderName($LTI);
 if ( !file_exists($foldername) ) mkdir ($foldername);
 
-$stmt = $db->prepare("SELECT file_id, file_name FROM {$p}sample_blob
+$stmt = $pdo->prepare("SELECT file_id, file_name FROM {$p}sample_blob
         WHERE context_id = :CI");
 $stmt->execute(array(":CI" => $LTI['context_id']));
 

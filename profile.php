@@ -2,7 +2,7 @@
 // In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
 require_once("config.php");
-require_once("db.php");
+require_once("pdo.php");
 require_once("lib/lti_util.php");
 
 header('Content-Type: text/html; charset=utf-8');
@@ -12,7 +12,7 @@ if ( ! isset($_SESSION['profile_id']) ) {
     header('Location: login.php');
     return;
 }
-$stmt = pdoQueryDie($db,
+$stmt = pdoQueryDie($pdo,
     "SELECT json FROM {$CFG->dbprefix}profile WHERE profile_id = :PID",
     array('PID' => $_SESSION['profile_id'])
 );
@@ -35,7 +35,7 @@ if ( isset($_POST['subscribe']) ) {
         $profile->lng = $_POST['lng']+0.0 ;
     }
     $new_json = json_encode($profile);
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "UPDATE {$CFG->dbprefix}profile SET json= :JSON 
         WHERE profile_id = :PID",
         array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])

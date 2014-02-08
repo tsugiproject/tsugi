@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
@@ -15,7 +15,7 @@ if ( ! $instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 
 // Gets counts and max of the submissions
-$stmt = pdoQueryDie($db,
+$stmt = pdoQueryDie($pdo,
     "SELECT A.link_id, A.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id, 
         MAX(points) as max_points, MIN(points) AS min_points, COUNT(points) as count_points, 
         COUNT(DISTINCT flag_id) as flag_count, C.grade_count as grade_count

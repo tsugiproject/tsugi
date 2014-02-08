@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
@@ -15,7 +15,7 @@ $user_id = $LTI['user_id'];
 $p = $CFG->dbprefix;
 
 // Model 
-$row = loadAssignment($db, $LTI);
+$row = loadAssignment($pdo, $LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -25,7 +25,7 @@ if ( $row !== false ) {
 
 // Load up the submission and parts if they exist
 $submit_id = false;
-$submit_row = loadSubmission($db, $assn_id, $LTI['user_id']);
+$submit_row = loadSubmission($pdo, $assn_id, $LTI['user_id']);
 if ( $submit_row !== false ) $submit_id = $submit_row['submit_id'];
 
 
@@ -50,7 +50,7 @@ if ( $assn_id != false && $assn_json != null &&
                 return;
             }
             $fdes = $_FILES[$fname];
-            $blob_id = uploadFileToBlob($db, $LTI, $fdes);
+            $blob_id = uploadFileToBlob($pdo, $LTI, $fdes);
             if ( $blob_id === false ) {
                 $_SESSION['error'] = 'Problem storing files';
                 die( 'Location: '.sessionize('index.php') ) ;
@@ -64,7 +64,7 @@ if ( $assn_id != false && $assn_json != null &&
     $submission->notes = $_POST['notes'];
     $submission->blob_ids = $blob_ids;
     $json = json_encode($submission);
-    $stmt = pdoQuery($db,
+    $stmt = pdoQuery($pdo,
         "INSERT INTO {$p}peer_submit 
             (assn_id, user_id, json, created_at, updated_at) 
             VALUES ( :AID, :UID, :JSON, NOW(), NOW()) 
@@ -87,7 +87,7 @@ if ( $assn_id != false && $assn_json != null &&
 
 // Check to see how much grading we have done
 $grade_count = 0;
-$stmt = pdoQueryDie($db,
+$stmt = pdoQueryDie($pdo,
     "SELECT COUNT(grade_id) AS grade_count 
      FROM {$p}peer_submit AS S JOIN {$p}peer_grade AS G
      ON S.submit_id = G.submit_id
@@ -100,13 +100,13 @@ if ( $row !== false ) {
 }
 
 // See how much grading is left to do
-$to_grade = loadUngraded($db, $LTI, $assn_id);
+$to_grade = loadUngraded($pdo, $LTI, $assn_id);
 
 // See how many grades I have done
-$grade_count = loadMyGradeCount($db, $LTI, $assn_id);
+$grade_count = loadMyGradeCount($pdo, $LTI, $assn_id);
 
 // Retrieve our grades...
-$our_grades = retrieveSubmissionGrades($db, $submit_id);
+$our_grades = retrieveSubmissionGrades($pdo, $submit_id);
 
 // Handle the flag...
 if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
@@ -127,7 +127,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
     }
     
     $grade_id = $_POST['grade_id']+0;
-    $stmt = pdoQueryDie($db,
+    $stmt = pdoQueryDie($pdo,
         "INSERT INTO {$p}peer_flag 
             (submit_id, grade_id, user_id, note, created_at, updated_at) 
             VALUES ( :SID, :GID, :UID, :NOTE, NOW(), NOW()) 

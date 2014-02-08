@@ -1,14 +1,14 @@
 <?php
 define('COOKIE_SESSION', true);
 require_once "config.php";
-require_once "db.php";
+require_once "pdo.php";
 require_once 'lib/lms_lib.php';
 require_once 'lib/lightopenid/openid.php';
 
 session_start();
 
 // First we make sure that there is a google.com key
-$stmt = pdoQueryDie($db,
+$stmt = pdoQueryDie($pdo,
     "SELECT key_id FROM {$CFG->dbprefix}lti_key 
         WHERE key_sha256 = :SHA LIMIT 1",
     array('SHA' => lti_sha256('google.com'))
@@ -81,7 +81,7 @@ if ( $doLogin ) {
         $displayName = $firstName . ' ' . $lastName;
 
         // Load the profile checking to see if everything
-        $stmt = pdoQueryDie($db,
+        $stmt = pdoQueryDie($pdo,
             "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
                 P.email as email, U.user_id as user_id
                 FROM {$CFG->dbprefix}profile AS P
@@ -98,7 +98,7 @@ if ( $doLogin ) {
 
         // Make sure we have a profile for this person
         if ( $profile_row === false ) {
-            $stmt = pdoQueryDie($db,
+            $stmt = pdoQueryDie($pdo,
                 "INSERT INTO {$CFG->dbprefix}profile  
                 (profile_sha256, profile_key, key_id, email, displayname, created_at, updated_at, login_at) ".
                     "VALUES ( :SHA, :UKEY, :KEY, :EMAIL, :DN, NOW(), NOW(), NOW() )",
@@ -106,7 +106,7 @@ if ( $doLogin ) {
                     ':EMAIL' => $userEmail, ':DN' => $displayName)
             );
 
-            if ( $stmt->success) $profile_id = $db->lastInsertId();
+            if ( $stmt->success) $profile_id = $pdo->lastInsertId();
 
             error_log('Profile-Insert:'.$identity.','.$displayName.','.$userEmail.','.$profile_id);
         } else {
@@ -115,7 +115,7 @@ if ( $doLogin ) {
             if ( $profile_row['email'] == $userEmail && $profile_row['displayname']  ) {
                 $user_id = $profile_row['user_id']+0;
             }
-            $stmt = pdoQueryDie($db,
+            $stmt = pdoQueryDie($pdo,
                 "UPDATE {$CFG->dbprefix}profile  
                 SET email = :EMAIL, displayname = :DN, login_at = NOW()
                 WHERE profile_id = :PRID",
@@ -134,7 +134,7 @@ if ( $doLogin ) {
 
         // Load user...
         if ( $user_id < 1 ) {
-            $stmt = pdoQueryDie($db,
+            $stmt = pdoQueryDie($pdo,
                 "SELECT user_id FROM {$CFG->dbprefix}lti_user 
                 WHERE user_sha256 = :SHA AND key_id = :ID LIMIT 1",
                 array('SHA' => $userSHA, ":ID" => $google_key_id)
@@ -148,7 +148,7 @@ if ( $doLogin ) {
         if ( $user_id > 0 ) { 
             // The user data is fine...
         } else if ( $user_row === false ) { // Lets insert!
-            $stmt = pdoQuery($db,
+            $stmt = pdoQuery($pdo,
                 "INSERT INTO {$CFG->dbprefix}lti_user  
                 (user_sha256, user_key, key_id, profile_id, 
                     email, displayname, created_at, updated_at, login_at) ".
@@ -158,13 +158,13 @@ if ( $doLogin ) {
             );
 
             if ( $stmt->success ) {
-                $user_id = $db->lastInsertId();
+                $user_id = $pdo->lastInsertId();
                 error_log('User-Insert:'.$identity.','.$displayName.','.$userEmail.','.$user_id);
                 $didinsert = true;
             }
         } else {  // Lets update!
             $user_id = $user_row['user_id']+0;
-            $stmt = pdoQueryDie($db,
+            $stmt = pdoQueryDie($pdo,
                 "UPDATE {$CFG->dbprefix}lti_user
                  SET email=:EMAIL, displayname=:DN, profile_id = :PRID, login_at=NOW()
                  WHERE user_id=:ID",

@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 
 session_start();
@@ -10,7 +10,7 @@ $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 // Model 
 $p = $CFG->dbprefix;
-$stmt = $db->prepare("SELECT code FROM {$p}attend_code WHERE link_id = :ID");
+$stmt = $pdo->prepare("SELECT code FROM {$p}attend_code WHERE link_id = :ID");
 $stmt->execute(array(":ID" => $LTI['link_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 $old_code = "";
@@ -20,7 +20,7 @@ if ( isset($_POST['code']) && $instructor ) {
     $sql = "INSERT INTO {$p}attend_code 
 			(link_id, code) VALUES ( :ID, :CO ) 
 			ON DUPLICATE KEY UPDATE code = :CO";
-    $stmt = $db->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     $stmt->execute(array(
         ':CO' => $_POST['code'],
         ':ID' => $LTI['link_id']));
@@ -33,7 +33,7 @@ if ( isset($_POST['code']) && $instructor ) {
 			(link_id, user_id, ipaddr, attend, updated_at) 
 			VALUES ( :LI, :UI, :IP, NOW(), NOW() ) 
 			ON DUPLICATE KEY UPDATE updated_at = NOW()";
-		$stmt = $db->prepare($sql);
+		$stmt = $pdo->prepare($sql);
 		$stmt->execute(array(
 			':LI' => $LTI['link_id'],
 			':UI' => $LTI['user_id'],
@@ -89,7 +89,7 @@ echo('<input type="submit" name="send" value="Record attendance"><br/>');
 echo("\n</form>\n");
 
 if ( $instructor ) {
-	$stmt = $db->prepare("SELECT user_id,attend,ipaddr FROM {$p}attend 
+	$stmt = $pdo->prepare("SELECT user_id,attend,ipaddr FROM {$p}attend 
 			WHERE link_id = :LI ORDER BY attend DESC, user_id");
 	$stmt->execute(array(':LI' => $LTI['link_id']));
 	echo('<table border="1">'."\n");

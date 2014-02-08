@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/db.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 
 session_start();
@@ -16,7 +16,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
 		VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 
 		ON DUPLICATE KEY 
 		UPDATE lat = :LAT, lng = :LNG, updated_at = NOW()";
-	$stmt = $db->prepare($sql);
+	$stmt = $pdo->prepare($sql);
 	$stmt->execute(array(
 		':CID' => $LTI['context_id'],
 		':UID' => $LTI['user_id'],
@@ -28,7 +28,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
 }
 
 // Retrieve our row
-$stmt = $db->prepare("SELECT lat,lng FROM {$p}context_map 
+$stmt = $pdo->prepare("SELECT lat,lng FROM {$p}context_map 
 		WHERE context_id = :CID AND user_id = :UID");
 $stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -41,7 +41,7 @@ if ( $row !== false ) {
 }
 
 //Retrieve the other rows
-$stmt = $db->prepare("SELECT lat,lng,displayname FROM {$p}context_map 
+$stmt = $pdo->prepare("SELECT lat,lng,displayname FROM {$p}context_map 
 		JOIN {$p}lti_user
 		ON {$p}context_map.user_id = {$p}lti_user.user_id
 		WHERE context_id = :CID AND {$p}context_map.user_id <> :UID");

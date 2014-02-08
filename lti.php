@@ -1,6 +1,6 @@
 <?php 
 require_once 'config.php';
-require_once 'db.php';
+require_once 'pdo.php';
 require_once 'lib/lti_db.php';
 
 // Pull LTI data out of the incoming $_POST and map into the same
@@ -27,10 +27,10 @@ session_unset();
 
 // Read all of the data from the database with a very long
 // LEFT JOIN and get all the data we have back in the $row variable
-$row = loadAllData($db, $CFG->dbprefix, false, $post);
+$row = loadAllData($pdo, $CFG->dbprefix, false, $post);
 
 // Add a LEFT JOIN on the profile table
-// $row = checkKey($db, $CFG->dbprefix, $CFG->dbprefix . "_profile", $post);
+// $row = checkKey($pdo, $CFG->dbprefix, $CFG->dbprefix . "_profile", $post);
 
 // Use returned data to check the OAuth signature on the
 // incoming data
@@ -43,7 +43,7 @@ if ( $valid !== true ) {
 	die();
 }
 
-$actions = adjustData($db, $CFG->dbprefix, $row, $post);
+$actions = adjustData($pdo, $CFG->dbprefix, $row, $post);
 
 // Put the information into the row variable
 // TODO: do AES on the secret

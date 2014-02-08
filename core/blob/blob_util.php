@@ -25,7 +25,7 @@ function fixFileName($name)
     return $new;
 }
 
-function uploadFileToBlob($db, $LTI, $FILE_DESCRIPTOR) 
+function uploadFileToBlob($pdo, $LTI, $FILE_DESCRIPTOR) 
 {
     global $CFG;
     if( $FILE_DESCRIPTOR['error'] == 1) return false;
@@ -41,7 +41,7 @@ function uploadFileToBlob($db, $LTI, $FILE_DESCRIPTOR)
         // $sha256 = lti_sha256($data);
 
         $sha256 = hash_file('sha256', $FILE_DESCRIPTOR['tmp_name']);
-        $stmt = pdoQueryDie($db,
+        $stmt = pdoQueryDie($pdo,
             "SELECT file_id, file_sha256 from {$CFG->dbprefix}blob_file
             WHERE context_id = :CID AND file_sha256 = :SHA",
             array(":CID" => $LTI['context_id'], ":SHA" => $sha256)
@@ -54,7 +54,7 @@ function uploadFileToBlob($db, $LTI, $FILE_DESCRIPTOR)
         }
 
         $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
-        $stmt = $db->prepare("INSERT INTO {$CFG->dbprefix}blob_file 
+        $stmt = $pdo->prepare("INSERT INTO {$CFG->dbprefix}blob_file 
             (context_id, file_sha256, file_name, contenttype, content, created_at) 
             VALUES (?, ?, ?, ?, ?, NOW())");
     
@@ -64,10 +64,10 @@ function uploadFileToBlob($db, $LTI, $FILE_DESCRIPTOR)
         $stmt->bindParam(4, $FILE_DESCRIPTOR['type']);
         $stmt->bindParam(5, $fp, PDO::PARAM_LOB);
         // $stmt->bindParam(5, $data, PDO::PARAM_LOB);
-        $db->beginTransaction();
+        $pdo->beginTransaction();
         $stmt->execute();
-        $id = 0+$db->lastInsertId();
-        $db->commit();
+        $id = 0+$pdo->lastInsertId();
+        $pdo->commit();
         fclose($fp);
         return array($id, $sha256);
     }
