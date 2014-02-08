@@ -14,7 +14,7 @@ $p = $CFG->dbprefix;
 
 // Gets counts and max of the submissions
 $stmt = pdoQueryDie($db,
-    "SELECT R.result_id AS result_id, grade, note, R.json AS json, displayname, email
+    "SELECT R.result_id AS result_id, grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
     FROM {$p}lti_result AS R
     JOIN {$p}lti_user AS U ON R.user_id = U.user_id
     WHERE R.link_id = :LID
@@ -29,12 +29,14 @@ flashMessages();
 welcomeUserCourse($LTI);
 
 echo('<table border="1">');
-echo("\n<tr><th><th>Email</th><th>Grade</th></tr>\n");
+echo("\n<tr><th>Name<th>Email</th><th>Grade</th><th>Date</th></tr>\n");
 
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
-    echo('<tr><td><a href="detail.php?result_id='.$row['result_id'].'">'.htmlent_utf8($row['displayname'])."</a></td>
+    // echo('<tr><td><a href="detail.php?result_id='.$row['result_id'].'">'.htmlent_utf8($row['displayname'])."</a></td>
+    echo('<tr><td>'.htmlent_utf8($row['displayname'])."</td>
         <td>".htmlent_utf8($row['email'])."</td>
         <td>".htmlent_utf8($row['grade'])."</td>
+        <td>".htmlent_utf8($row['updated_at'])."</td>
     </tr>\n");
 }
 echo("</table>\n");
