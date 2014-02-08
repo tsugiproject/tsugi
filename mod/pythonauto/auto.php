@@ -218,7 +218,7 @@ function load_files() {
 
         $.ajax({
             type: "POST",
-            url: "<? echo sessionize('grade.php'); ?>",
+            url: "<? echo sessionize('sendgrade.php'); ?>",
             dataType: "json",
             data: toSend
         }).done( function (data) {
