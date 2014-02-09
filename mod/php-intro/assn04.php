@@ -165,12 +165,14 @@ if ( strpos($html, 'Logged in') === false ) {
 }
 
 line_out("Looking for 'Order total:'");
-preg_match('/Order total:.*([0-9.]*)/',$html,$matches);
-// print_r($matches);
+$pos = strpos($html,'Order total');
+$rest = substr($html,$pos+11);
+
+preg_match('/[0-9][0-9.]*/',$rest,$matches);
 $order_total = 0.0;
-if ( count($matches) == 2 ) {
-    $order_total = $matches[1] + 0.0;
-    line_out("Found order total = ".$order_total." (".$matches[1].")");
+if ( count($matches) > 0 ) {
+    $order_total = $matches[0] + 0.0;
+    line_out("Found order total = ".$order_total);
     $passed++;
 }
 
