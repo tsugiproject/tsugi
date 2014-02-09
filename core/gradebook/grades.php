@@ -22,6 +22,10 @@ startBody();
 flashMessages();
 welcomeUserCourse($LTI);
 
-showGrades($stmt, false);
+if ( isset($GRADE_DETAIL_CLASS) && is_object($GRADE_DETAIL_CLASS) ) {
+    showGrades($stmt, $GRADE_DETAIL_CLASS);
+} else {
+    showGrades($stmt, false);
+}
 
 footerContent();

@@ -89,5 +89,5 @@ if ( ! $success ) {
 // Send a grade if requested
 $grade = 1.0;
 if ( $penalty !== false ) $grade = $grade * (1.0 - $penalty);
-if ( $grade > 0.0 ) testPassed($grade);
+if ( $grade > 0.0 ) testPassed($grade, $url);
 

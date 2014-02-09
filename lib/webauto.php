@@ -66,7 +66,7 @@ function getUrl($sample) {
 	}
 
 	if ( $instructor ) {
-		echo('<p><a href="'.sessionize("../../core/gradebook/grade.php").'" target="_blank">Grade detail</a></p>'."\n");
+		echo('<p><a href="'.sessionize("grades.php").'" target="_blank">Grade detail</a></p>'."\n");
     }
 
 	echo('<form>
@@ -88,7 +88,7 @@ function getUrl($sample) {
 	exit();
 }
 
-function testPassed($grade) {
+function testPassed($grade, $url) {
 	global $displayname;
 
 	success_out("Test passed - congratulations");
@@ -104,7 +104,8 @@ function testPassed($grade) {
 	}
 
     global $pdo;
-	$retval = sendGrade($grade, true, $pdo);
+    $json = json_encode(array("url" => $url));
+    $retval = sendGradeDetail($grade, null, $json, true, $pdo, false);
 	if ( $retval == true ) {
 		$success = "Grade sent to server (".intval($grade*100)."%)";
 	} else if ( is_string($retval) ) {

@@ -38,6 +38,12 @@ function htmlent_utf8($string) {
     return htmlentities($string,ENT_QUOTES,$encoding = 'UTF-8');
 }
 
+// Makes sure a string is safe as an href
+function safe_href($string) {
+    return str_replace(array('"', '<'),
+        array('&quot;',''), $string);
+}
+
 // Convienence method to wrap sha256
 function lti_sha256($val) {
     return hash('sha256', $val);

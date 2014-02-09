@@ -235,5 +235,5 @@ if ( ! $titlepassed ) {
     return;
 }
 
-if ( $score > 0.0 ) testPassed($score);
+if ( $score > 0.0 ) testPassed($score, $url);
 

@@ -1,5 +1,7 @@
 <?php
 
+require_once "classes.php";
+
 function loadGrades($pdo) {
     global $CFG;
     $LTI = requireData(array('link_id', 'role'));
@@ -18,6 +20,26 @@ function loadGrades($pdo) {
         array(":LID" => $LTI['link_id'])
     );
     return $stmt;
+}
+
+// $detail is either false or a class with methods
+function showGrades($stmt, $detail = false) {
+    echo('<table border="1">');
+    echo("\n<tr><th>Name<th>Email</th><th>Grade</th><th>Date</th></tr>\n");
+
+    while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
+        echo('<tr><td>');
+        if ( $detail ) {
+            $detail->link($row);
+        } else {
+            echo(htmlent_utf8($row['displayname']));
+        }
+        echo("</td>\n<td>".htmlent_utf8($row['email'])."</td>
+            <td>".htmlent_utf8($row['grade'])."</td>
+            <td>".htmlent_utf8($row['updated_at'])."</td>
+        </tr>\n");
+    }
+    echo("</table>\n");
 }
 
 function loadGrade($pdo, $user_id) {
@@ -41,22 +63,11 @@ function loadGrade($pdo, $user_id) {
     return $row;
 }
 
-// $detail is either false or a class with methods
-function showGrades($stmt, $detail = false) {
-    echo('<table border="1">');
-    echo("\n<tr><th>Name<th>Email</th><th>Grade</th><th>Date</th></tr>\n");
-
-    while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
-        echo('<tr><td>');
-        if ( $detail ) {
-            $detail->link($row);
-        } else {
-            echo(htmlent_utf8($row['displayname']));
-        }
-        echo("</td>\n<td>".htmlent_utf8($row['email'])."</td>
-            <td>".htmlent_utf8($row['grade'])."</td>
-            <td>".htmlent_utf8($row['updated_at'])."</td>
-        </tr>\n");
-    }
-    echo("</table>\n");
+function showGradeInfo($row) {
+    echo('<p><a href="'.sessionize("grades.php").'">Back to All Grades</a>'."</p><p>\n");
+    echo("User Name: ".htmlent_utf8($row['displayname'])."<br/>\n");
+    echo("User Email: ".htmlent_utf8($row['email'])."<br/>\n");
+    echo("Last Submision: ".htmlent_utf8($row['updated_at'])."<br/>\n");
+    echo("Score: ".htmlent_utf8($row['grade'])."<br/>\n");
+    echo("</p>\n");
 }
