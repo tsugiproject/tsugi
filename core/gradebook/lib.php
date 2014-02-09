@@ -14,7 +14,7 @@ function loadGrades($pdo) {
         FROM {$p}lti_result AS R
         JOIN {$p}lti_user AS U ON R.user_id = U.user_id
         WHERE R.link_id = :LID
-        GROUP BY U.email",
+        ORDER BY updated_at DESC",
         array(":LID" => $LTI['link_id'])
     );
     return $stmt;

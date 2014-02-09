@@ -23,7 +23,7 @@ startBody();
 flashMessages();
 welcomeUserCourse($LTI);
 
-echo('<p><a href="'.sessionize("grades.php").'">Done</a>'."<br/>\n");
+echo('<p><a href="'.sessionize("grades.php").'">Back to All Grades</a>'."</p><p>\n");
 echo("User Name: ".htmlent_utf8($row['displayname'])."<br/>\n");
 echo("User Email: ".htmlent_utf8($row['email'])."<br/>\n");
 echo("Last Submision: ".htmlent_utf8($row['updated_at'])."<br/>\n");
