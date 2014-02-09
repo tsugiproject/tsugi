@@ -164,10 +164,10 @@ function do_analytics() {
                 echo("_gaq.push(['_setCustomVar', 1, 'consumer_key', '".$_SESSION['lti']['key_key']."', 2]);\n");
             }
             if ( isset($_SESSION['lti']['context_id']) ) {
-                echo("_gaq.push(['_setCustomVar', 1, 'context_id', '".$_SESSION['lti']['context_id']."', 2]);\n");
+                echo("_gaq.push(['_setCustomVar', 2, 'context_id', '".$_SESSION['lti']['context_id']."', 2]);\n");
             }
             if ( isset($_SESSION['lti']['context_title']) ) {
-                echo("_gaq.push(['_setCustomVar', 1, 'context_title', '".$_SESSION['lti']['context_title']."', 2]);\n");
+                echo("_gaq.push(['_setCustomVar', 3, 'context_title', '".$_SESSION['lti']['context_title']."', 2]);\n");
             }
         }
         echo("</script>\n");
