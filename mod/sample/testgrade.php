@@ -81,6 +81,3 @@ Enter grade:
 
 echo('<p>$_SESSION["lti"]["result_id"] is: '.$_SESSION['lti']['result_id']."</p>\n");
 
-echo("<p>Here is the session information:\n<pre>\n");
-var_dump($_SESSION);
-echo("\n</pre>\n");

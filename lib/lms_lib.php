@@ -1,5 +1,7 @@
 <?php
 
+require_once "lti_util.php";
+
 function flashMessages() {
     if ( isset($_SESSION['error']) ) {
         echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
@@ -156,9 +158,20 @@ function do_analytics() {
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 
-</script>
 <?php
-    }  // if 
+        if ( isset($_SESSION) && isset($_SESSION['lti']) ) {
+            if ( isset($_SESSION['lti']['key_key']) ) {
+                echo("_gaq.push(['_setCustomVar', 1, 'consumer_key', '".$_SESSION['lti']['key_key']."', 2]);\n");
+            }
+            if ( isset($_SESSION['lti']['context_id']) ) {
+                echo("_gaq.push(['_setCustomVar', 1, 'context_id', '".$_SESSION['lti']['context_id']."', 2]);\n");
+            }
+            if ( isset($_SESSION['lti']['context_title']) ) {
+                echo("_gaq.push(['_setCustomVar', 1, 'context_title', '".$_SESSION['lti']['context_title']."', 2]);\n");
+            }
+        }
+        echo("</script>\n");
+    }  // if analytics is on...
 }
 
 function addSession($location) {
@@ -264,13 +277,6 @@ function dumpPost() {
         }
         print "</pre>";
 }
-
-function dumpSession() {
-        print "<pre>\n";
-        print_r($SESSION);
-        print "</pre>";
-}
-
 
 function json_indent($json) {
     $result      = '';

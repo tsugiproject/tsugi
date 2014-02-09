@@ -1,7 +1,6 @@
 <?php
 
 require_once "../../config.php";
-require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 session_start();
@@ -29,8 +28,6 @@ if ( $retval === true ) {
 }
 
 togglePre("Session data",safeVarDump($_SESSION));
-
-flush();
 
 footerContent();
 

@@ -3,6 +3,7 @@ require_once "../../config.php";
 
 session_start();
 // Set up global values from session
+require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/lib/webauto.php";
 
 ?><html>

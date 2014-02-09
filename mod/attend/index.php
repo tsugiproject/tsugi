@@ -1,6 +1,7 @@
 <?php
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
+require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/lib/lti_util.php";
 
 session_start();
@@ -105,7 +106,5 @@ if ( $instructor ) {
 	}
 	echo("</table>\n");
 }
-
-echo("<p>Here is the session information:\n<pre>\n");
-var_dump($_SESSION);
-echo("\n</pre>\n");
+<?php
+footerContent();
