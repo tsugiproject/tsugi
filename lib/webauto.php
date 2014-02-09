@@ -65,7 +65,7 @@ function getUrl($sample) {
 	}
 
 	if ( $instructor ) {
-		echo('<p><a href="'.sessionize("grades.php").'" target="_blank">Grade detail</a></p>'."\n");
+		echo('<p><a href="grades.php" target="_blank">Grade detail</a></p>'."\n");
     }
 
 	echo('<form>
