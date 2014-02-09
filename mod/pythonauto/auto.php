@@ -270,7 +270,7 @@ startBody();
 <button onclick="runit()" type="button">Check Code</button>
 <?php
    if ( $instructor ){
-       echo(' <a href="'.sessionize("../../core/gradebook/grade.php").'" target="_blank">View Grades</a>'."\n");
+       echo(' <a href="'.sessionize("grades.php").'" target="_blank">View Grades</a>'."\n");
 ?>
 <span id="grade" style="display:none"></span>
 <?php } else { ?>

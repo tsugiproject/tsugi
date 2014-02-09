@@ -9,7 +9,8 @@ function loadGrades($pdo) {
 
     // Get basic grade data
     $stmt = pdoQueryDie($pdo,
-        "SELECT R.result_id AS result_id, grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
+        "SELECT R.result_id AS result_id, R.user_id AS user_id,
+            grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
         FROM {$p}lti_result AS R
         JOIN {$p}lti_user AS U ON R.user_id = U.user_id
         WHERE R.link_id = :LID
@@ -17,6 +18,27 @@ function loadGrades($pdo) {
         array(":LID" => $LTI['link_id'])
     );
     return $stmt;
+}
+
+function loadGrade($pdo, $user_id) {
+    global $CFG;
+    $LTI = requireData(array('link_id', 'role'));
+    $instructor = isInstructor($LTI);
+    if ( ! $instructor ) die("Requires instructor role");
+    $p = $CFG->dbprefix;
+
+    // Get basic grade data
+    $stmt = pdoQueryDie($pdo,
+        "SELECT R.result_id AS result_id, R.user_id AS user_id,
+            grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
+        FROM {$p}lti_result AS R
+        JOIN {$p}lti_user AS U ON R.user_id = U.user_id
+        WHERE R.link_id = :LID AND R.user_id = :UID
+        GROUP BY U.email",
+        array(":LID" => $LTI['link_id'], ":UID" => $user_id)
+    );
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row;
 }
 
 // $detail is either false or a class with methods
@@ -27,7 +49,7 @@ function showGrades($stmt, $detail = false) {
     while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         echo('<tr><td>');
         if ( $detail ) {
-            $detail->link($row['displayname'], $row['result_id']);
+            $detail->link($row);
         } else {
             echo(htmlent_utf8($row['displayname']));
         }
