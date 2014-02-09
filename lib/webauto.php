@@ -1,7 +1,6 @@
 <?php
 // A library for webscraping graders
 require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lti_util.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 require_once $CFG->dirroot."/lib/goutte/vendor/autoload.php";
