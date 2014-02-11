@@ -230,6 +230,7 @@ function load_files() {
     }
 
     function resetcode() {
+        if ( ! confirm("Are you sure you want to reset the code area to the initial provided sample code?") ) return;
         document.getElementById("code").value = document.getElementById("resetcode").value;
     }
 
