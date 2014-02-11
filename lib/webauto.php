@@ -55,8 +55,13 @@ if ( $duedate && $diff > 0 ) {
 function getUrl($sample) {
 	global $displayname;
 	global $instructor;
+    global $pdo;
 	if ( isset($_GET['url']) ) {
         echo('<p><a href="#" onclick="window.location.href = window.location.href; return false;">Re-run this test</a></p>'."\n");
+        if ( isset($_SESSION['lti']) ) {
+            $json = json_encode(array("url" => $_GET['url']));
+            $retval = updateGradeJSON($pdo, $json);
+        }
         return $_GET['url'];
     }
 

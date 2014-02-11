@@ -583,6 +583,19 @@ function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
     return $status;
 }
 
+function updateGradeJSON($pdo, $json) {
+    global $CFG;
+    $LTI = requireData(array('result_id'));
+
+    $stmt = pdoQueryDie($pdo,
+        "UPDATE {$CFG->dbprefix}lti_result SET json = :json, updated_at = NOW() 
+            WHERE result_id = :RID",
+        array(
+            ':json' => $json,
+            ':RID' => $LTI['result_id'])
+    );
+}
+
 function line_out($output) {
 	echo(htmlent_utf8($output)."<br/>\n");
     flush();

@@ -1,6 +1,8 @@
 <?php
 require_once "../../config.php";
+require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once $CFG->dirroot."/core/gradebook/lib.php";
 session_start();
 
 require_once "exercises.php";
@@ -10,6 +12,14 @@ $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isInstructor($LTI);
 $user_id = $LTI['user_id'];
 $p = $CFG->dbprefix;
+
+// Get the current user's grade data also checks session
+$row = loadGrade($pdo);
+$OLDCODE = false;
+if ( $row !== false && isset($row['json'])) {
+    $json = json_decode($row['json']);
+    if ( isset($json->code) ) $OLDCODE = $json->code;
+}
 
 headerContent();
 
@@ -189,6 +199,17 @@ function load_files() {
             return false;
         }
         $("#spinner").show();
+
+        var toSend = { code : prog };
+        $.ajax({
+            type: "POST",
+            url: "<? echo sessionize('sendcode.php'); ?>",
+            dataType: "json",
+            data: toSend
+        }).done( function (data) {
+            console.log("Code updated on server.");
+        });
+
         var output = document.getElementById("output");
         output.innerHTML = '';
         if ( window.GLOBAL_TIMER != false ) window.clearInterval(window.GLOBAL_TIMER);
@@ -208,6 +229,10 @@ function load_files() {
         return false;
     }
 
+    function resetcode() {
+        document.getElementById("code").value = document.getElementById("resetcode").value;
+    }
+
     function gradeit() {
         $("#check").hide();
         $("#spinner").show();
@@ -222,7 +247,7 @@ function load_files() {
             dataType: "json",
             data: toSend
         }).done( function (data) {
-            console.log(data);
+            window.console && console.log(data);
             $("#spinner").hide();
             if ( data["status"] == "success") {
                 $("#gradegood").show();
@@ -268,8 +293,11 @@ startBody();
 </div>
 <form style="height:100%;">
 <button onclick="runit()" type="button">Check Code</button>
-<?php
-   if ( $instructor ){
+<?php 
+    if ( strlen($CODE) > 0 ) {
+        echo('<button onclick="resetcode()" type="button">Reset Code</button>');
+    }
+    if ( $instructor ) {
        echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
 ?>
 <span id="grade" style="display:none"></span>
@@ -291,7 +319,13 @@ if ( ! isset($_GET["done"]) ) {
 <br/>
 Enter/Edit Your Python Code Here:<br/>
 <textarea id="code" cols="80" style="font-family:Courier,fixed;font-size:16px;color:blue;width:99%;">
-<?php echo($CODE); ?>
+<?php 
+if ( $OLDCODE !== false ) {
+    echo(htmlentities($OLDCODE));
+} else {
+    echo(htmlentities($CODE));
+}
+?>
 </textarea>
 </form>
 </div>
@@ -311,6 +345,9 @@ Enter/Edit Your Python Code Here:<br/>
 <center>
 This autograder is based on <a href="http://skulpt.org/" target="_new">Skulpt</a>.
 </center>
+<textarea id="resetcode" cols="80" style="display:none">
+<?php   echo(htmlentities($CODE)); ?>
+</textarea>
 </div>
 <?php
 footerContent('<script type="text/javascript">

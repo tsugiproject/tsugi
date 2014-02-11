@@ -42,11 +42,12 @@ function showGrades($stmt, $detail = false) {
     echo("</table>\n");
 }
 
-function loadGrade($pdo, $user_id) {
+function loadGrade($pdo, $user_id=false) {
     global $CFG;
-    $LTI = requireData(array('link_id', 'role'));
+    $LTI = requireData(array('user_id', 'link_id', 'role'));
     $instructor = isInstructor($LTI);
-    if ( ! $instructor ) die("Requires instructor role");
+    if ( ! $instructor && $user_id !== false ) die("Requires instructor role");
+    if ( $user_id == false ) $user_id = $LTI['user_id'];
     $p = $CFG->dbprefix;
 
     // Get basic grade data
