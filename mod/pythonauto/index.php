@@ -20,13 +20,13 @@ I am preparing this as an experimental MOOC for my SI301 course in January.
 Send comments to Dr. Chuck.
 </p>
 <ul class="nav nav-pills nav-stacked">
-<li><a href="<?php echo(sessionize('auto.php?exercise=hello&done=index.php')); ?>">Hello World</a></li>
-<li><a href="<?php echo(sessionize('auto.php?exercise=2.2&done=index.php')); ?>">Exercise 2.2</a></li>
-<li><a href="<?php echo(sessionize('auto.php?exercise=2.3&done=index.php')); ?>">Exercise 2.3</a></li>
-<li><a href="<?php echo(sessionize('auto.php?exercise=3.1&done=index.php')); ?>">Exercise 3.1</a></li>
-<li><a href="<?php echo(sessionize('auto.php?exercise=3.3&done=index.php')); ?>">Exercise 3.3</a></li>
-<li><a href="<?php echo(sessionize('auto.php?exercise=loop&done=index.php')); ?>">For loop</a></li>
-<li><a href="<?php echo(sessionize('auto.php?done=index.php')); ?>">Counting the lines in a file</a></li>
+<li><a href="<?php echo('auto.php?exercise=hello&done=index.php'); ?>" target="blank">Hello World</a></li>
+<li><a href="<?php echo('auto.php?exercise=2.2&done=index.php'); ?>" target="blank">Exercise 2.2</a></li>
+<li><a href="<?php echo('auto.php?exercise=2.3&done=index.php'); ?>" target="blank">Exercise 2.3</a></li>
+<li><a href="<?php echo('auto.php?exercise=3.1&done=index.php'); ?>" target="blank">Exercise 3.1</a></li>
+<li><a href="<?php echo('auto.php?exercise=3.3&done=index.php'); ?>" target="blank">Exercise 3.3</a></li>
+<li><a href="<?php echo('auto.php?exercise=loop&done=index.php'); ?>" target="blank">For loop</a></li>
+<li><a href="<?php echo('auto.php?done=index.php'); ?>" target="blank">Counting the lines in a file</a></li>
 </ul>
 <p>
 If the auto.php script is launched using 
@@ -44,10 +44,6 @@ that folks will use to write their code.  I want them to write code on
 their 
 <a href="http://www.pythonlearn.com/install.php" target="_new">computers</a>
 and turn in their assignments for grading here.
-</p>
-<p>
-This is open source and the code is here avaiable on
-<a href="https://github.com/csev/pythonauto" target="_new">Github</a>.
 </p>
 </div>
 <?
