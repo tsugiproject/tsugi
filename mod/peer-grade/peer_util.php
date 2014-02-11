@@ -74,15 +74,22 @@ function loadUngraded($pdo, $LTI, $assn_id)
 function showSubmission($LTI, $assn_json, $submit_json)
 {
     $blob_ids = $submit_json->blob_ids;
-    $partno = 0;
+    $urls = $submit_json->urls;
+    $blobno = 0;
+    $urlno = 0;
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == "image" ) {
-            $blob_id = $blob_ids[$partno++];
+            $blob_id = $blob_ids[$blobno++];
             if ( is_array($blob_id) ) $blob_id = $blob_id[0];
             $url = getAccessUrlForBlob($blob_id);
             echo ('<a href="'.sessionize($url).'" target="_blank">');
             echo ('<img src="'.sessionize($url).'" width="120"></a>'."\n");
+        } else if ( $part->type == "url" ) {
+            $url = $urls[$urlno++];
+            echo ('<p><a href="'.safe_href($url).'" target="_blank">');
+            echo (htmlentities(safe_href($url)).'</a> (Will launch in new window)'."\n");
         }
+        
     }
 
     if ( strlen($submit_json->notes) > 1 ) {

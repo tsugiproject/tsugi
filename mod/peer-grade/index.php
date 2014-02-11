@@ -38,11 +38,11 @@ if ( $assn_id != false && $assn_json != null &&
     }
 
     $blob_ids = array();
+    $urls = array();
     $partno = 0;
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == 'image' ) {
             $fname = 'uploaded_file_'.$partno;
-            $partno++;
             if( ! isset($_FILES[$fname]) ) {
                 $_SESSION['error'] = 'Problem with uploaded files - perhaps too much data was uploaded';
                 die( 'Location: '.sessionize('index.php') ) ;
@@ -52,16 +52,26 @@ if ( $assn_id != false && $assn_json != null &&
             $blob_id = uploadFileToBlob($pdo, $LTI, $fdes);
             if ( $blob_id === false ) {
                 $_SESSION['error'] = 'Problem storing files';
-                die( 'Location: '.sessionize('index.php') ) ;
+                header( 'Location: '.sessionize('index.php') ) ;
                 return;
             }
             $blob_ids[] = $blob_id;
+        } else if ( $part->type == 'url' ) {
+            $url = $_POST['input_url_'.$partno];
+            if ( strpos($url,'http://') === false && strpos($url,'http://') === false ) {
+                $_SESSION['error'] = 'URLs must start with http:// or https:// ';
+                header( 'Location: '.sessionize('index.php') ) ;
+                return;
+            }
+            $urls[] = $_POST['input_url_'.$partno];
         }
+        $partno++;
     }
 
     $submission = new stdClass();
     $submission->notes = $_POST['notes'];
     $submission->blob_ids = $blob_ids;
+    $submission->urls = $urls;
     $json = json_encode($submission);
     $stmt = pdoQuery($pdo,
         "INSERT INTO {$p}peer_submit 
@@ -172,12 +182,14 @@ if ( $submit_row == false ) {
 
     $partno = 0;
     foreach ( $assn_json->parts as $part ) {
+        echo("\n<p>");
+        echo(htmlent_utf8($part->title)."\n");
         if ( $part->type == "image" ) {
-            echo("\n<p>");
-            echo(htmlent_utf8($part->title)."\n");
-            echo('<input name="uploaded_file_'.$partno.'" type="file"> (Please use JPG files)<p/>');
-            $partno++;
+            echo('<input name="uploaded_file_'.$partno.'" type="file"> (Please use JPG files)</p>');
+        } else if ( $part->type == "url" ) {
+            echo('<input name="input_url_'.$partno.'" type="url" size="80"></p>');
         }
+        $partno++;
     }
     echo("<p>Enter optional comments below</p>\n");
     echo('<textarea rows="5" cols="60" name="notes"></textarea><br/>');

@@ -82,13 +82,13 @@ if ( ! $instructor ) die("Requires instructor role");
 
 ?>
 <p>Remember to be careful if this assignment has submissions.</p>
-<form method="post">
-<textarea name="json" rows="15" cols="80">
+<form method="post" style="margin-left:5%;">
+<textarea name="json" rows="15" cols="80" style="width:95%" >
 <?php echo($json); ?>
 </textarea>
-<br/>
+<p>
 <input type="submit" value="Save">
-<input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
+<input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel"></p>
 </form>
 <?php
 
