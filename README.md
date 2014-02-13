@@ -8,27 +8,25 @@ If you want to see this code actually working, you can play online:
 
 * https://lti-tools.dr-chuck.com/tsugi/
 
-This will be built using two basic technologies: (1) IMS Learning Tools
-Interoperability for the LMS integration and grade flow and (2) Goutte
-to do the actual unit tests to evaluate the sites and compute the grades.
-Here are some relevant URLs:
+To install this software follow these steps:
 
-IMS Learning Tools Interoperability:
+* Check the code out from GitHub
 
-* http://www.imsglobal.org/
-* http://www.imsglobal.org/lti/
-* http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html
-* http://developers.imsglobal.org/
-* https://vimeo.com/34168694
+* Create a database and get authentication info for the database
 
-Goutte and BrowserKit:
+* Copy the file config-dist.php to config.php and edit the file
+to put in the appropriate values.  Make sure to change all the secrets.
+If you are just getting started turn on DEVELOPER mode so you can launch 
+the tools easily
 
-* https://github.com/fabpot/Goutte
-* http://api.symfony.com/2.3/Symfony/Component/BrowserKit.html
-* http://api.symfony.com/2.3/Symfony/Component/DomCrawler/Crawler.html
+* Go to the main page, and click on "Admin" to make all the database
+tables - you will need the Admin password you just put into config.php
+If all goes well, lots of table should be created.  You can run upgrade.php
+more than once - it will automatically detect that it has been run.
 
-As part of this code development, I am re-working the IMS LTI code 
-to be (a) scalable, multi-tenant-aware, and more elegant and (b) 
-start laying the ground work for supporting IMS LTI 2.0
-when it comes out.
+* At that point you can play with and/or develop new tools
+
+/Chuck
+
+Thu Feb 13 10:08:00 EST 2014
 
