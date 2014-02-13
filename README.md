@@ -26,6 +26,17 @@ more than once - it will automatically detect that it has been run.
 
 * At that point you can play with and/or develop new tools
 
+MAMP NOTES
+----------
+
+    $CFG->wwwroot = 'http://localhost:8888/tsugi';
+    $CFG->dbprefix  = '';
+
+    CREATE DATABASE tsugi;
+
+    GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
+    GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+
 /Chuck
 
 Thu Feb 13 10:08:00 EST 2014
