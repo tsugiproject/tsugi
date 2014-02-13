@@ -29,13 +29,22 @@ more than once - it will automatically detect that it has been run.
 MAMP NOTES
 ----------
 
+    cd /Applications/MAMP/htdocs/
+    git clone https://github.com/csev/tsugi.git
+    cd tsugi
+    cp config-dist.php config.php
+    
+    edit config.php - some values
     $CFG->wwwroot = 'http://localhost:8888/tsugi';
     $CFG->dbprefix  = '';
 
-    CREATE DATABASE tsugi;
+    Make a database using PhpMyAdmin:
 
+    CREATE DATABASE tsugi;
     GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+
+    Visit  http://localhost:8888/tsugi and go to 'Admin' to create tables.
 
 /Chuck
 
