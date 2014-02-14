@@ -307,7 +307,7 @@ startBody();
 <?php } 
 // } ?>
 <?php
-if ( ! isset($_GET["done"]) ) {
+if ( isset($_GET["done"]) ) {
   $url = $_GET['done'];
   echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
 }

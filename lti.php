@@ -100,8 +100,6 @@ if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
 if ( headers_sent() ) {
 	echo('<p><a href="'.$url.'">Click to continue</a></p>');
 } else { 
-	$url .= $query ? '&' : '?';
-	$url .= session_name() . '=' . session_id();
-    header('Location: '.$url);
+    header('Location: '.sessionize($url));
 }
 ?>
