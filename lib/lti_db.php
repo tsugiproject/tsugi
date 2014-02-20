@@ -95,8 +95,7 @@ function loadAllData($pdo, $p, $profile_table, $post) {
 	}
 	if ( $post['sourcedid'] ) {
 		$sql .= "
-		LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id AND 
-			r.sourcedid_sha256 = :sourcedid";
+		LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id";
 	}
 	$sql .= "\nWHERE k.key_sha256 = :key LIMIT 1\n";
 	
@@ -112,10 +111,6 @@ function loadAllData($pdo, $p, $profile_table, $post) {
 		$parms[':service'] = lti_sha256($post['service']);
 	}
 
-	if ( $post['sourcedid'] ) {
-		$parms[':sourcedid'] = lti_sha256($post['sourcedid']);
-	}
-	
 	$stmt->execute($parms);
 	$row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -249,6 +244,19 @@ function adjustData($pdo, $p, &$row, $post) {
 			':user_id' => $row['user_id']));
 		$row['result_id'] = $pdo->lastInsertId();
 		$actions[] = "=== Inserted LTI 2.0 result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
+	}
+
+	// Here we handle updates to sourcedid
+	if ( $row['result_id'] != null && $post['sourcedid'] != null && $post['sourcedid'] != $row['sourcedid'] ) {
+		$stmt = $pdo->prepare("UPDATE {$p}lti_result 
+            SET sourcedid = :sourcedid, sourcedid_sha256 = :sourcedid_sha256
+            WHERE result_id = :result_id");
+		$stmt->execute(array(
+			':sourcedid' => $post['sourcedid'],
+			':sourcedid_sha256' => lti_sha256($post['sourcedid']),
+			':result_id' => $row['result_id']));
+		$row['sourcedid'] = $post['sourcedid'];
+		$actions[] = "=== Updated sourcedid=".$row['sourcedid'];
 	}
 
 	// Here we handle updates to context_title, link_title, user_displayname, user_email, or role
