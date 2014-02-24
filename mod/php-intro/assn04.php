@@ -165,7 +165,7 @@ if ( strpos($html, 'Logged in') === false ) {
 }
 
 line_out("Looking for 'Order total:'");
-$pos = strpos($html,'Order total');
+$pos = strpos(strtolower($html),'order total');
 $rest = substr($html,$pos+11);
 
 preg_match('/[0-9][0-9.]*/',$rest,$matches);
