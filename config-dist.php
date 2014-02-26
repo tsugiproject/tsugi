@@ -11,7 +11,9 @@ $CFG = new stdClass();
 
 // This is the URL where the software is hosted
 // Do not add a trailing slash to this string 
-$CFG->wwwroot = 'http://localhost/~csev/tsugi';
+// If you get this value wonr, the first problem will be that CSS files will not load
+$CFG->wwwroot = 'http://localhost/tsugi';
+# $CFG->wwwroot = 'http://localhost:8888/tsugi';   // For MAMP
 
 // This allows you to serve the materials in the static folder using 
 // a content distribution network - it is normal and typical for this 
@@ -49,8 +51,8 @@ $CFG->DEVELOPER = true;
 // You need to point this at a database with am account and password
 // that can create tables.   To make the initial tables go into Admin
 // to run the upgrade.php script which auto-creates the tables.
-$CFG->database  = 'tsugi';
 $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
+$CFG->database  = 'tsugi';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 

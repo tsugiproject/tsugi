@@ -26,8 +26,8 @@ more than once - it will automatically detect that it has been run.
 
 * At that point you can play with and/or develop new tools
 
-MAMP NOTES
-----------
+MAMP NOTES (Macintosh)
+----------------------
 
     cd /Applications/MAMP/htdocs/
     git clone https://github.com/csev/tsugi.git
@@ -45,6 +45,26 @@ MAMP NOTES
     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
 
     Visit  http://localhost:8888/tsugi and go to 'Admin' to create tables.
+
+XAMPP NOTES (Windows)
+---------------------
+
+    cd \xampp\htdocs
+    git clone https://github.com/csev/tsugi.git
+    cd tsugi
+    copy config-dist.php config.php
+    
+    edit config.php - some values
+    $CFG->wwwroot = 'http://localhost/tsugi';
+    $CFG->dbprefix  = '';
+
+    Make a database using PhpMyAdmin:
+
+    CREATE DATABASE tsugi;
+    GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
+    GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+
+    Visit  http://localhost/tsugi and go to 'Admin' to create tables.
 
 /Chuck
 
