@@ -9,11 +9,45 @@ unset($CFG);
 global $CFG;
 $CFG = new stdClass();
 
+// This is how the system will refer to itself.
+$CFG->servicename = 'TSUGI (dev)';
+
 // This is the URL where the software is hosted
 // Do not add a trailing slash to this string 
 // If you get this value wonr, the first problem will be that CSS files will not load
 $CFG->wwwroot = 'http://localhost/tsugi';
 # $CFG->wwwroot = 'http://localhost:8888/tsugi';   // For MAMP
+
+// Database connection information to configure the PDO connection
+// You need to point this at a database with am account and password
+// that can create tables.   To make the initial tables go into Admin
+// to run the upgrade.php script which auto-creates the tables.
+$CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
+# $CFG->pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
+$CFG->dbuser    = 'ltiuser';
+$CFG->dbpass    = 'ltipassword';
+
+// The dbprefix allows you to give all the tables a prefix
+// in case your hosting only gives you one database.  This
+// can be short like "t_" and can even be an empty string if you 
+// can make a separate database for each instance of TSUGI.
+// This allows you to host multiple instances of TSUIG in a 
+// single database if your hosting choices are limited.
+$CFG->dbprefix  = 't_';
+
+// This is the PW that you need to access the Administration
+// features of this application.
+$CFG->adminpw = 'something-super-secret-2f518066bd757a289b543!'; 
+
+// When this is true it enables a Developer test harness that can launch
+// tools using LTI.  It allows quick testing without setting up an LMS 
+// course, etc.
+$CFG->DEVELOPER = true;
+
+// Default time zone - see http://www.php.net/....
+$CFG->timezone = 'America/New_York';
+
+// Most of the fields below can be left as-is
 
 // This allows you to serve the materials in the static folder using 
 // a content distribution network - it is normal and typical for this 
@@ -35,39 +69,6 @@ $CFG->dirroot = realpath(dirname(__FILE__));
 // may have no other choice to leave this unset (default)
 // Make sure that this folder is readable and writable by the web server.
 # $CFG->dataroot = $CFG->dirroot . '/_files/a';
-
-// This is how the system will refer to itself.
-$CFG->servicename = 'TSUGI (dev)';
-
-// Default time zone - see http://www.php.net/....
-$CFG->timezone = 'America/New_York';
-
-// When this is true it enables a Developer test harness that can launch
-// tools using LTI.  It allows quick testing without setting up an LMS 
-// course, etc.
-$CFG->DEVELOPER = true;
-
-// Database connection information to configure the PDO connection
-// You need to point this at a database with am account and password
-// that can create tables.   To make the initial tables go into Admin
-// to run the upgrade.php script which auto-creates the tables.
-$CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
-# $CFG->pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
-$CFG->database  = 'tsugi';
-$CFG->dbuser    = 'ltiuser';
-$CFG->dbpass    = 'ltipassword';
-
-// The dbprefix allows you to give all the tables a prefix
-// in case your hosting only gives you one database.  This
-// can be short like "t_" and can even be an empty string if you 
-// can make a separate database for each instance of TSUGI.
-// This allows you to host multiple instances of TSUIG in a 
-// single database if your hosting choices are limited.
-$CFG->dbprefix  = 'tsugi_';
-
-// This is the PW that you need to access the Administration
-// features of this application.
-$CFG->adminpw = 'something-super-secret-2f518066bd757a289b543!'; 
 
 // These values configure the cookie used to record the overall 
 // login in a long-lived encrypted cookie.   Look at the library 

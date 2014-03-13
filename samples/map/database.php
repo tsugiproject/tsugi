@@ -7,7 +7,6 @@ array( "{$CFG->dbprefix}sample_map",
 "create table {$CFG->dbprefix}sample_map (
     context_id  INTEGER NOT NULL,
     user_id     INTEGER NOT NULL,
-    attend      DATE NOT NULL,
     lat         FLOAT,
     lng         FLOAT,
     color       INTEGER,

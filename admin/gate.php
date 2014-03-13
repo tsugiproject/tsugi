@@ -2,8 +2,12 @@
 
 require_once("../lib/lms_lib.php");
 
-if ( $CFG->adminpw == "something-super-secret!" || 
-    ! ( isset($_SESSION['id']) || $CFG->DEVELOPER) ) {
+if ( strpos($CFG->adminpw,"something-super-secret") === 0 ) {
+    unset($_SESSION["admin"]);
+    die('Please set an $CFG->adminpw to a value');
+}
+
+if ( ! ( isset($_SESSION['id']) || $CFG->DEVELOPER) ) {
     unset($_SESSION["admin"]);
     header('HTTP/1.x 404 Not Found');
     die();

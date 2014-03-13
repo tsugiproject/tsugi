@@ -9,7 +9,6 @@ array( "{$CFG->dbprefix}context_map",
 "create table {$CFG->dbprefix}context_map (
     context_id  INTEGER NOT NULL,
     user_id     INTEGER NOT NULL,
-    attend      DATE NOT NULL,
     lat         FLOAT,
     lng         FLOAT,
     color       INTEGER,
