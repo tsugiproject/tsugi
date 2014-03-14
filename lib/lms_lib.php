@@ -555,6 +555,8 @@ function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
             }
 	    } catch(Exception $e) {
 		    $status = $e->getMessage();
+            error_log('Grade failure:'.$status);
+            error_log($response);
 	    }
         $detail = $status;
         if ( $detail == true ) $detail = 'Success';

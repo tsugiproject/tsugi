@@ -10,4 +10,5 @@ Thumbs.db
 solutions
 tmp
 config.php
+error_log
 *.swp

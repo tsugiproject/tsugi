@@ -20,8 +20,10 @@ if ( !isset ( $_REQUEST['b64'] ) ) {
    die("Missing b64 parameter");
 }
 
+// Make sure to add the file to the session id in case
+// multiple people are running this on the same server
 $b64 = $_REQUEST['b64'];
-session_id(md5($b64));
+session_id(md5($b64 . __FILE__));
 session_start();
 
 require_once("../lib/lti_util.php");

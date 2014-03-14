@@ -47,9 +47,12 @@ function extractPost() {
 	return $retval;
 }
 
-function getCompositeKey($post, $secret) {
-	$comp = $secret .'::'. $post['key'] .'::'. $post['context_id'] .'::'. 
-		$post['link_id']  .'::'. $post['user_id'] .'::' . $_SERVER['HTTP_USER_AGENT'];
+// Make sure to include the file in case multiple instances are running
+// on the same server and they have not changed the session secret
+function getCompositeKey($post, $session_secret) {
+	$comp = $session_secret .'::'. $post['key'] .'::'. $post['context_id'] .'::'. 
+		$post['link_id']  .'::'. $post['user_id'] .'::'. 
+        $_SERVER['HTTP_USER_AGENT'] . '::' . __FILE__;
 	return md5($comp);
 }
 
