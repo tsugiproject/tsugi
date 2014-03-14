@@ -22,6 +22,6 @@ array( "{$CFG->dbprefix}sample_map",
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    UNIQUE(context_id, user_id, attend)
+    UNIQUE(context_id, user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"));
 

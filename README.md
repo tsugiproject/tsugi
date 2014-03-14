@@ -40,7 +40,7 @@ MAMP NOTES (Macintosh)
 
     Make a database using PhpMyAdmin:
 
-    CREATE DATABASE tsugi;
+    CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
     GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
 
@@ -60,7 +60,7 @@ XAMPP NOTES (Windows)
 
     Make a database using PhpMyAdmin:
 
-    CREATE DATABASE tsugi;
+    CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
     GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
 
