@@ -40,6 +40,7 @@ MAMP NOTES (Macintosh)
     
     edit config.php - some values
     $CFG->wwwroot = 'http://localhost:8888/tsugi';
+    $CFG->pdo = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; 
     $CFG->dbprefix  = '';
     $CFG->adminpw = '....';
 
