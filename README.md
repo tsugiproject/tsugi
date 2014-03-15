@@ -26,6 +26,10 @@ more than once - it will automatically detect that it has been run.
 
 * At that point you can play with and/or develop new tools
 
+Note: Make sure that none of the folders in the path to the tsugi
+folder have any spaces in them.  You may get signature errors
+if you use folders with blanks in them.
+
 MAMP NOTES (Macintosh)
 ----------------------
 
@@ -37,6 +41,7 @@ MAMP NOTES (Macintosh)
     edit config.php - some values
     $CFG->wwwroot = 'http://localhost:8888/tsugi';
     $CFG->dbprefix  = '';
+    $CFG->adminpw = '....';
 
     Make a database using PhpMyAdmin:
 
@@ -44,7 +49,8 @@ MAMP NOTES (Macintosh)
     GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
 
-    Visit  http://localhost:8888/tsugi and go to 'Admin' to create tables.
+    Visit  http://localhost:8888/tsugi and go to 'Admin' and enter the
+    adminpw to automatically create all necessary tables.
 
 XAMPP NOTES (Windows)
 ---------------------
@@ -57,6 +63,7 @@ XAMPP NOTES (Windows)
     edit config.php - some values
     $CFG->wwwroot = 'http://localhost/tsugi';
     $CFG->dbprefix  = '';
+    $CFG->adminpw = '....';
 
     Make a database using PhpMyAdmin:
 
@@ -64,9 +71,10 @@ XAMPP NOTES (Windows)
     GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
 
-    Visit  http://localhost/tsugi and go to 'Admin' to create tables.
+    Visit  http://localhost:8888/tsugi and go to 'Admin' and enter the
+    adminpw to automatically create all necessary tables.
 
 /Chuck
 
-Thu Feb 13 10:08:00 EST 2014
+Sat Mar 15 19:35:49 EDT 2014
 

@@ -25,7 +25,6 @@ if ( isset($_POST['passphrase']) ) {
         error_log("Admin bad pw IP=".$_SERVER["REMOTE_ADDR"].
             (isset($_SESSION['id']) ? " id=". $_SESSION['id'].' email='.$_SESSION['email'] : " developer mode"));
     }
-    error_log("Redirecting to ".$_SERVER['PHP_SELF']);
     header("Location: ".$_SERVER['PHP_SELF']);
     $REDIRECTED = true;
     return;
