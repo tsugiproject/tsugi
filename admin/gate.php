@@ -2,6 +2,8 @@
 
 require_once("../lib/lms_lib.php");
 
+$REDIRECTED = false;
+
 if ( strpos($CFG->adminpw,"something-super-secret") === 0 ) {
     unset($_SESSION["admin"]);
     die('Please set an $CFG->adminpw to a value');
@@ -23,7 +25,9 @@ if ( isset($_POST['passphrase']) ) {
         error_log("Admin bad pw IP=".$_SERVER["REMOTE_ADDR"].
             (isset($_SESSION['id']) ? " id=". $_SESSION['id'].' email='.$_SESSION['email'] : " developer mode"));
     }
+    error_log("Redirecting to ".$_SERVER['PHP_SELF']);
     header("Location: ".$_SERVER['PHP_SELF']);
+    $REDIRECTED = true;
     return;
 }
 
@@ -46,6 +50,5 @@ if ( ! isset($_SESSION['admin']) ) {
 
 <?php 
     footerContent();
-    return;
 }
 

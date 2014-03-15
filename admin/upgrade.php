@@ -3,7 +3,7 @@ define('COOKIE_SESSION', true);
 require_once("../config.php");
 session_start();
 require_once("gate.php");
-if ( ! isset($_SESSION["admin"]) ) return;
+if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 require_once("../pdo.php");
 require_once("../lib/lms_lib.php");
@@ -78,6 +78,7 @@ foreach($tools as $tool ) {
             $table_fields = pdoMetadata($pdo, $entry[0]);
             if ( $table_fields === false ) {
                 echo("-- Creating table ".$entry[0]."<br/>\n");
+                error_log("-- Creating table ".$entry[0]);
                 $q = pdoQuery($pdo, $entry[1]);
                 if ( ! $q->success ) die("Unable to create ".$entry[1]." ".$q->errorImplode."<br/>".$entry[1] );
                 togglePre("-- Created table ".$entry[0], $entry[1]);
