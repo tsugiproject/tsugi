@@ -555,12 +555,16 @@ function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
             }
 	    } catch(Exception $e) {
 		    $status = $e->getMessage();
-            error_log('Grade failure:'.$status);
-            error_log($response);
 	    }
         $detail = $status;
-        if ( $detail == true ) $detail = 'Success';
-        error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail);
+        if ( $detail === true ) {
+            $detail = 'Success';
+            error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail);
+        } else {
+            error_log('Grade failure:'.$status);
+            error_log($response);
+            return $status;
+        }
     }
 
     // Update result in the database and in the LTI session area

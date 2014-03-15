@@ -386,12 +386,9 @@ class OAuthRequest {
   /**
    * builds the Authorization: header
    */
-  public function to_header() {
-    $out ='Authorization: OAuth realm=""';
+  public function to_header_internal($start) {
+    $out = $start;
     $comma = ',';
-    // Hack for RoR implementations that do not handle realm properly
-    // $out ='Authorization: OAuth ';
-    // $comma = '';
     $total = array();
     foreach ($this->parameters as $k => $v) {
       if (substr($k, 0, 5) != "oauth") continue;
@@ -406,6 +403,13 @@ class OAuthRequest {
       $comma = ',';
     }
     return $out;
+  }
+
+  public function to_header() {
+    return $this->to_header_internal('Authorization: OAuth realm=""');
+  }
+  public function to_alternate_header() {
+    return $this->to_header_internal('X-Oauth1-Authorization: OAuth realm=""');
   }
 
   public function __toString() {
@@ -722,7 +726,7 @@ class OAuthUtil {
   }
 
   // helper to try to sort out headers for people who aren't running apache
-  public static function get_headers() {
+  public static function get_headers_internal() {
     if (function_exists('apache_request_headers')) {
       // we need this to get the actual Authorization: header
       // because apache tends to tell us it doesn't exist
@@ -745,6 +749,17 @@ class OAuthUtil {
       }
     }
     return $out;
+  }
+
+  // Helper to deal with proxy configurations that "eat" the Authorization:
+  // header on our behalf - fall back to the alternate Authorization header.
+  public static function get_headers() {
+    $headers = OAuthUtil::get_headers_internal();
+    if ( ! is_array($headers) ) return $headers;
+    if ( (! isset($headers['Authorization'])) && isset($headers['X-Oauth1-Authorization']) ) {
+        $headers['Authorization'] = $headers['X-Oauth1-Authorization'];
+    }
+    return $headers;
   }
 
   // This function takes a input like a=b&a=c&d=e and returns the parsed

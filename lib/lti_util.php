@@ -374,7 +374,8 @@ function sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consu
     $LastOAuthBodyBaseString = $acc_req->get_signature_base_string();
 
     $header = $acc_req->to_header();
-    $header = $header . "\r\nContent-Type: " . $content_type . "\r\n";
+    $altheader = $acc_req->to_alternate_header();
+    $header = $header . "\r\n" . $altheader . "\r\nContent-Type: " . $content_type . "\r\n";
 
     global $LastPOSTHeader;
     $LastPOSTHeader = $header;

@@ -49,15 +49,19 @@ $b64 = explode(":::", $b64dec);
 
 $oauth_consumer_key = $b64[0];
 $oauth_consumer_secret = $b64[1];
+$operation = "unknown";
 
 if ( strlen($oauth_consumer_key) < 1 || strlen($oauth_consumer_secret) < 1 ) {
-   echo(sprintf($response,uniqid(),'failure', "Missing key/secret B64=$b64dec B64key=$oauth_consumer_key secret=$oauth_consumer_secret",$message_ref,""));
+   echo(sprintf($response,uniqid(),'failure', "Missing key/secret B64=$b64dec B64key=$oauth_consumer_key secret=$oauth_consumer_secret",$message_ref,$operation,""));
    exit();
 }
 
 $header_key = getOAuthKeyFromHeaders();
-if ( $header_key != $oauth_consumer_key ) {
-   echo(sprintf($response,uniqid(),'failure', "B64key=$oauth_consumer_key HDR=$header_key",$message_ref,""));
+if ( strlen($header_key) < 1 ) {
+   echo(sprintf($response,uniqid(),'failure', "Empty header key. Note that some proxy configurations do not pass the Authorization header.",$message_ref,$operation,""));
+   exit();
+} else if ( $header_key != $oauth_consumer_key ) {
+   echo(sprintf($response,uniqid(),'failure', "B64key=$oauth_consumer_key HDR=$header_key",$message_ref,$operation,""));
    exit();
 }
 
@@ -75,7 +79,7 @@ try {
     global $LastOAuthBodyBaseString;
 	global $LastOAuthBodyHashInfo;
     $retval = sprintf($response,uniqid(),'failure', $e->getMessage().
-        " B64key=$oauth_consumer_key HDRkey=$header_key secret=$oauth_consumer_secret",uniqid(),"") .
+        " B64key=$oauth_consumer_key HDRkey=$header_key secret=$oauth_consumer_secret",uniqid(),$operation,"") .
         "<!--\n".
         "Base String:\n".$LastOAuthBodyBaseString."\n".
 		"Hash Info:\n".$LastOAuthBodyHashInfo."\n-->\n";
@@ -86,8 +90,8 @@ try {
 
 
 $sourcedid = (string) $parms->resultRecord->sourcedGUID->sourcedId;
-if ( !isset($sourcedid) && strlen($coursedid) > 0 ) {
-   echo(sprintf($response,uniqid(),'failure', "Missing required lis_result_sourcedid",$message_ref,""));
+if ( !isset($sourcedid) && strlen($sourcedid) > 0 ) {
+   echo(sprintf($response,uniqid(),'failure', "Missing required lis_result_sourcedid",$message_ref,$operation,""));
    exit();
 }
 
@@ -122,12 +126,12 @@ if ( $operation == "replaceResultRequest" ) {
       </result>
     </readResultResponse>';
     $body = sprintf($body,$score);
-    echo(sprintf($response,uniqid(),'success', "Score read successfully",$message_ref,$body));
+    echo(sprintf($response,uniqid(),'success', "Score read successfully",$message_ref,$operation,$body));
 } else if ( $operation == "deleteResultRequest" ) {
     unset( $gradebook[$sourcedid]);
     echo(sprintf($response,uniqid(),'success', "Score deleted",$message_ref,$operation,$body_tag));
 } else {
-    echo(sprintf($response,uniqid(),'unsupported', "Operation not supported - $operation",$message_ref,""));
+    echo(sprintf($response,uniqid(),'unsupported', "Operation not supported - $operation",$message_ref,$operation,""));
 }
 $_SESSION['cert_gradebook'] = $gradebook;
 // print_r($gradebook);
