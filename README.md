@@ -1,8 +1,9 @@
 TSUGI - A Framework for Building PHP-Based Learning Tools
 =========================================================
 
-**For now this is simply prototype code that I am putting together - 
-it is not ready to use at all.  This is under construction.**   
+This project is in early days.  Its goal is to build a scalable
+multi-tenant "tool" hosting environment based on the emerging IMS
+standards.
 
 If you want to see this code actually working, you can play online:
 
@@ -85,5 +86,5 @@ XAMPP NOTES (Windows)
 
 /Chuck
 
-Sat Mar 15 19:35:49 EDT 2014
+Sun Mar 16 08:18:19 EDT 2014
 
