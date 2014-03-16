@@ -33,6 +33,14 @@ Note: Make sure that none of the folders in the path to the tsugi
 folder have any spaces in them.  You may get signature errors
 if you use folders with blanks in them.
 
+Installation Video
+------------------
+
+I have recorded a simple video describing the install/config steps
+for this software on 
+
+    http://www.youtube.com/watch?v=YNl1kJ1Z154
+
 MAMP NOTES (Macintosh)
 ----------------------
 
@@ -75,7 +83,7 @@ XAMPP NOTES (Windows)
     GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
 
-    Visit  http://localhost:8888/tsugi and go to 'Admin' and enter the
+    Visit  http://localhost/tsugi and go to 'Admin' and enter the
     adminpw to automatically create all necessary tables.
 
 /Chuck
