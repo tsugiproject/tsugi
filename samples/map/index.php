@@ -11,10 +11,11 @@ $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;
 if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
-    $lat = $row['lat']+0;
-    $lng = $row['lng']+0;
-    if ( abs($lat) > 90 ) $lat = 89.9;
-    if ( abs($lng) > 180 ) $lng = 179.9;
+    if ( abs($_POST['lat']) > 85 || abs($_POST['lng']) > 180 ) {
+        $_SESSION['error'] = "Latitude or longitude out of range";
+        header( 'Location: '.sessionize('index.php') ) ;
+        return;
+    }
 	$sql = "INSERT INTO {$p}sample_map 
 		(context_id, user_id, lat, lng, updated_at) 
 		VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 

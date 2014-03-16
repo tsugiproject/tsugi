@@ -20,7 +20,7 @@ $points = array();
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
 	$lat = $row['lat']+0;
 	$lng = $row['lng']+0;
-    if ( abs($lat) > 90 ) $lat = 89.9;
+    if ( abs($lat) > 85 ) $lat = 0;
     if ( abs($lng) > 180 ) $lng = 179.9;
 	$points[] = array($lat, $lng, $row['displayname']);
 }
@@ -34,10 +34,8 @@ $row = $stmt->fetch(PDO::FETCH_ASSOC);
 $lat = 42.279070216140425;
 $lng = -83.73981015789798;
 if ( $row !== false ) {
-	$lat = $row['lat']+0;
-	$lng = $row['lng']+0;
-    if ( abs($lat) > 90 ) $lat = 89.9;
-    if ( abs($lng) > 180 ) $lng = 179.9;
+    if ( abs($row['lat']) < 85 ) $lat = $row['lat'];
+    if ( abs($row['lng']) < 180 ) $lng = $row['lng'];
 }
 
 
