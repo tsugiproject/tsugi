@@ -336,6 +336,10 @@ function json_indent($json) {
     return $result;
 }
 
+function header_json() {
+    header('Content-type: application/json');
+}
+
 function lmsDie($message=false) {
     global $CFG, $DEBUG_STRING;
     if($message !== false) echo($message);
