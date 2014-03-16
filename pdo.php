@@ -1,7 +1,5 @@
 <?php
 
-require_once("config.php");
-
 try {
     $pdo = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

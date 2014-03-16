@@ -3,6 +3,7 @@
 define('COOKIE_SESSION', true);
 require_once("config.php");
 require_once("lib/lti_util.php");
+require_once("sanity.php");
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
