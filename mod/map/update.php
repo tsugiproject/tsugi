@@ -10,6 +10,12 @@ $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 
 $p = $CFG->dbprefix;
 if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
+    $lat = $_POST['lat']+0;
+    $lng = $_POST['lng']+0;
+    if ( abs($lat) > 90 || abs($lng) > 180 ) {
+        echo(json_encode(array('status'=> 'failure', 'lat' => $lat, 'lng' =>  $lng)));
+        return;
+    }
 	$sql = "INSERT INTO {$p}context_map 
 		(context_id, user_id, lat, lng, updated_at) 
 		VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 
@@ -19,9 +25,9 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
 	$stmt->execute(array(
 		':CID' => $LTI['context_id'],
 		':UID' => $LTI['user_id'],
-		':LAT' => $_POST['lat'],
-		':LNG' => $_POST['lng']));
-    echo(json_encode(array("status"=> "success")));
+		':LAT' => $lat,
+		':LNG' => $lng));
+    echo(json_encode(array('status'=> 'success', 'lat' => $lat, 'lng' =>  $lng)));
     return;
 }
-echo(json_encode(array("status"=> "failure")));
+echo(json_encode(array('status'=> 'failure')));

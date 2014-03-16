@@ -10,6 +10,20 @@ $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;
+//Retrieve the other rows
+$stmt = $pdo->prepare("SELECT lat,lng,displayname FROM {$p}context_map 
+		JOIN {$p}lti_user
+		ON {$p}context_map.user_id = {$p}lti_user.user_id
+		WHERE context_id = :CID AND {$p}context_map.user_id <> :UID");
+$stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
+$points = array();
+while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
+	$lat = $row['lat']+0;
+	$lng = $row['lng']+0;
+    if ( abs($lat) > 90 ) $lat = 89.9;
+    if ( abs($lng) > 180 ) $lng = 179.9;
+	$points[] = array($lat, $lng, $row['displayname']);
+}
 
 // Retrieve our row
 $stmt = $pdo->prepare("SELECT lat,lng FROM {$p}context_map 
@@ -20,20 +34,12 @@ $row = $stmt->fetch(PDO::FETCH_ASSOC);
 $lat = 42.279070216140425;
 $lng = -83.73981015789798;
 if ( $row !== false ) {
-	$lat = $row['lat'];
-	$lng = $row['lng'];
+	$lat = $row['lat']+0;
+	$lng = $row['lng']+0;
+    if ( abs($lat) > 90 ) $lat = 89.9;
+    if ( abs($lng) > 180 ) $lng = 179.9;
 }
 
-//Retrieve the other rows
-$stmt = $pdo->prepare("SELECT lat,lng,displayname FROM {$p}context_map 
-		JOIN {$p}lti_user
-		ON {$p}context_map.user_id = {$p}lti_user.user_id
-		WHERE context_id = :CID AND {$p}context_map.user_id <> :UID");
-$stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
-$points = array();
-while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
-	$points[] = array($row['lat']+0.0,$row['lng']+0.0);
-}
 
 ?>
 <html><head><title>Map for 
@@ -64,11 +70,9 @@ function initialize_map() {
   });
 
   google.maps.event.addListener(marker, 'dragend', function (event) {
-	// getPosition returns a google.maps.LatLng class for
-	// for the dropped marker
+	// getPosition returns a google.maps.LatLng class 
 	window.console && console.log(this.getPosition());
-
-	// TODO: Fix these next two lines - search the web for a solution
+    // Update on the server
     $.post( '<?php echo(sessionize('update.php')); ?>', 
       { 'lat': this.getPosition().lat(), 'lng' : this.getPosition().lng() },
       function( data ) {
