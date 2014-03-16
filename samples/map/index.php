@@ -11,6 +11,10 @@ $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;
 if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
+    $lat = $row['lat']+0;
+    $lng = $row['lng']+0;
+    if ( abs($lat) > 90 ) $lat = 89.9;
+    if ( abs($lng) > 180 ) $lng = 179.9;
 	$sql = "INSERT INTO {$p}sample_map 
 		(context_id, user_id, lat, lng, updated_at) 
 		VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 
@@ -36,8 +40,8 @@ $row = $stmt->fetch(PDO::FETCH_ASSOC);
 $lat = 42.279070216140425;
 $lng = -83.73981015789798;
 if ( $row !== false ) {
-	$lat = $row['lat'];
-	$lng = $row['lng'];
+    if ( abs($row['lat']) <= 90 ) $lat = $row['lat'];
+    if ( abs($row['lng']) <= 180 ) $lng = $row['lng'];
 }
 
 //Retrieve the other rows
@@ -48,6 +52,8 @@ $stmt = $pdo->prepare("SELECT lat,lng,displayname FROM {$p}sample_map
 $stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
 $points = array();
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
+    if ( abs($row['lat']) > 90 ) $row['lat'] = 89;
+    if ( abs($row['lng']) > 180 ) $row['lng'] = 179;
 	$points[] = array($row['lat']+0.0,$row['lng']+0.0);
 }
 
