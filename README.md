@@ -10,6 +10,9 @@ If you want to see this code actually working, you can play online:
 
 To install this software follow these steps:
 
+* Pre-requisites - git installed and working at the command prompt
+and a PHP/MySql environment installed
+
 * Check the code out from GitHub
 
 * Create a database and get authentication info for the database
