@@ -70,9 +70,7 @@ function initialize_map() {
   });
 
   google.maps.event.addListener(marker, 'dragend', function (event) {
-	// getPosition returns a google.maps.LatLng class 
 	window.console && console.log(this.getPosition());
-    // Update on the server
     $.post( '<?php echo(sessionize('update.php')); ?>', 
       { 'lat': this.getPosition().lat(), 'lng' : this.getPosition().lng() },
       function( data ) {
@@ -95,8 +93,7 @@ function initialize_map() {
       position: newLatlng,
       map: map,
       icon: iconpath + icon,
-      // TODO: See if you can get the user's displayname here
-      title : "TODO: name would be here"
+      title : row[2]
      });
   }
 }
@@ -107,17 +104,6 @@ other_points =
 </script>
 </head>
 <body style="font-family: sans-serif;" onload="initialize_map();">
-<?php
-if ( isset($_SESSION['error']) ) {
-    echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
-    unset($_SESSION['error']);
-}
-if ( isset($_SESSION['success']) ) {
-    echo '<p style="color:green">'.$_SESSION['success']."</p>\n";
-    unset($_SESSION['success']);
-}
-
-?>
 <div id="map_canvas" style="margin: 10px; width:95%; height:500px"></div>
 <?php
 

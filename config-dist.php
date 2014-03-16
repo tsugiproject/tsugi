@@ -14,7 +14,8 @@ $CFG->servicename = 'TSUGI (dev)';
 
 // This is the URL where the software is hosted
 // Do not add a trailing slash to this string 
-// If you get this value wonr, the first problem will be that CSS files will not load
+// If you get this value wrong, the first problem will 
+// be that CSS files will not load
 $CFG->wwwroot = 'http://localhost/tsugi';
 # $CFG->wwwroot = 'http://localhost:8888/tsugi';   // For MAMP
 
@@ -36,7 +37,7 @@ $CFG->dbpass    = 'ltipassword';
 $CFG->dbprefix  = 't_';
 
 // This is the PW that you need to access the Administration
-// features of this application.
+// features of this application.   You should change this.
 $CFG->adminpw = 'something-super-secret-2f518066bd757a289b543!'; 
 
 // When this is true it enables a Developer test harness that can launch
