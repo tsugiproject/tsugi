@@ -11,4 +11,5 @@ solutions
 tmp
 config.php
 error_log
+php-solutions
 *.swp
