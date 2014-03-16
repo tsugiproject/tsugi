@@ -10,22 +10,6 @@ $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;
-if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
-	$sql = "INSERT INTO {$p}context_map 
-		(context_id, user_id, lat, lng, updated_at) 
-		VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 
-		ON DUPLICATE KEY 
-		UPDATE lat = :LAT, lng = :LNG, updated_at = NOW()";
-	$stmt = $pdo->prepare($sql);
-	$stmt->execute(array(
-		':CID' => $LTI['context_id'],
-		':UID' => $LTI['user_id'],
-		':LAT' => $_POST['lat'],
-		':LNG' => $_POST['lng']));
-    $_SESSION['success'] = 'Location updated...';
-	header( 'Location: '.sessionize('index.php') ) ;
-	return;
-}
 
 // Retrieve our row
 $stmt = $pdo->prepare("SELECT lat,lng FROM {$p}context_map 
@@ -83,9 +67,16 @@ function initialize_map() {
 	// getPosition returns a google.maps.LatLng class for
 	// for the dropped marker
 	window.console && console.log(this.getPosition());
+
 	// TODO: Fix these next two lines - search the web for a solution
-    document.getElementById("latbox").value = 71.0;
-    document.getElementById("lngbox").value = -41.0;
+    $.post( '<?php echo(sessionize('update.php')); ?>', 
+      { 'lat': this.getPosition().lat(), 'lng' : this.getPosition().lng() },
+      function( data ) {
+          window.console && console.log(data);
+      }
+    ).error( function() { 
+      window.console && console.log('error'); 
+    });
   });
 
   // Add the other points
@@ -105,7 +96,6 @@ function initialize_map() {
      });
   }
 }
-
 // Load the other points 
 other_points = 
 <?php echo( json_encode($points));?> 
@@ -124,13 +114,17 @@ if ( isset($_SESSION['success']) ) {
 }
 
 ?>
-<div id="map_canvas" style="margin: 10px; width:500px; max-width: 100%; height:500px"></div>
-<form method="post">
- Latitude: <input size="30" type="text" id="latbox" name="lat" 
-  <?php echo(' value="'.htmlent_utf8($lat).'" '); ?> >
- Longitude: <input size="30" type="text" id="lngbox" name="lng"
-  <?php echo(' value="'.htmlent_utf8($lng).'" '); ?> >
- <button type="submit">Save Location</button>
-</form>
+<div id="map_canvas" style="margin: 10px; width:95%; height:500px"></div>
 <?php
-footerContent();
+
+footerStart();
+?>
+<script type="text/javascript">
+$(window).resize(function() {
+  window.console && console.log('.resize() called. width='+
+    $(window).width()+' height='+$(window).height());
+});
+</script>
+<?
+footerEnd();
+

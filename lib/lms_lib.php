@@ -131,17 +131,25 @@ function startBody() {
         die();
     }
 }
-
-function footerContent($onload=false) {
+function footerStart() {
     global $CFG;
     echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");
     echo('<script src="'.$CFG->bootstrap.'/js/bootstrap.min.js"></script>'."\n");
 	do_analytics(); 
 	echo(togglePreScript());
+}
+
+function footerEnd() {
+    echo("\n</body>\n</html>\n");
+}
+
+function footerContent($onload=false) {
+    global $CFG;
+    footerStart();
     if ( $onload !== false ) {
         echo("\n".$onload."\n");
     }
-    echo("\n</body>\n</html>\n");
+    footerEnd();
 }
 
 function do_analytics() {
