@@ -1,5 +1,5 @@
-TSUGI - A Simple Framework for Building PHP-Based Learning Tools
-================================================================
+TSUGI - A Framework for Building PHP-Based Learning Tools
+=========================================================
 
 **For now this is simply prototype code that I am putting together - 
 it is not ready to use at all.  This is under construction.**   
