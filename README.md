@@ -39,7 +39,7 @@ Installation Video
 I have recorded a simple video describing the install/config steps
 for this software on 
 
-    http://www.youtube.com/watch?v=YNl1kJ1Z154
+* http://www.youtube.com/watch?v=YNl1kJ1Z154
 
 MAMP NOTES (Macintosh)
 ----------------------
