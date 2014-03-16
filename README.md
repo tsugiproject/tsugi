@@ -8,6 +8,11 @@ If you want to see this code actually working, you can play online:
 
 * https://lti-tools.dr-chuck.com/tsugi/
 
+I have recorded a simple video describing the install/config steps
+for this software on 
+
+* http://www.youtube.com/watch?v=YNl1kJ1Z154
+
 To install this software follow these steps:
 
 * Pre-requisites - git installed and working at the command prompt
@@ -32,14 +37,6 @@ more than once - it will automatically detect that it has been run.
 Note: Make sure that none of the folders in the path to the tsugi
 folder have any spaces in them.  You may get signature errors
 if you use folders with blanks in them.
-
-Installation Video
-------------------
-
-I have recorded a simple video describing the install/config steps
-for this software on 
-
-* http://www.youtube.com/watch?v=YNl1kJ1Z154
 
 MAMP NOTES (Macintosh)
 ----------------------
