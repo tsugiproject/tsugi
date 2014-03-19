@@ -74,7 +74,7 @@ function loadUngraded($pdo, $LTI, $assn_id)
 function showSubmission($LTI, $assn_json, $submit_json)
 {
     $blob_ids = $submit_json->blob_ids;
-    $urls = $submit_json->urls;
+    $urls = isset($submit_json->urls) ? $submit_json->urls : array();;
     $blobno = 0;
     $urlno = 0;
     foreach ( $assn_json->parts as $part ) {
