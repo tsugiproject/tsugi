@@ -5,7 +5,6 @@ session_start();
 headerContent();
 startBody();
 ?>
-<div style="padding: 0px 15px 0px 15px;">
 <h1>AutoGrader for Python for Informatics</h1>
 <p>
 Welcome to my *very early* protype auto-grader for Python using the 
@@ -45,6 +44,5 @@ their
 <a href="http://www.pythonlearn.com/install.php" target="_new">computers</a>
 and turn in their assignments for grading here.
 </p>
-</div>
 <?
 footerContent();

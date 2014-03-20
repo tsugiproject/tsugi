@@ -301,7 +301,7 @@ word-wrap: break-word; /* IE 5.5+ */
 <?php
 startBody();
 ?>
-<div id="overall">
+<div id="overall" style="border: 3px solid black;">
 <div id="inputs">
 <div class="well" style="background-color: #EEE8AA">
 <?php echo($QTEXT); ?>
@@ -378,20 +378,21 @@ function compute_divs() {
 	if ( $avail > 700 ) $avail = 700;
     $favail = $avail - $ft + $ot;
 
-    $('#overall').width('100%').height($avail);
-    $('#inputs').width('50%').height($avail);
-    $('#forminput').width('1000%').height($favail);
-    $('#outputs').width('50%').height($avail);
+    $('#overall').width('95%').height($avail);
+    $('#inputs').width('45%').height($avail);
+    $('#forminput').width('95%').height($favail);
+    $('#outputs').width('45%').height($avail);
     $('#textarea').height('100%');
     $('#output').height('100%');
     $('#desired').height('100%');
+
     if ( window.SPLIT_1 == false ) {
         window.SPLIT_1 = $('#overall').split({orientation:'vertical', limit:100});
         window.console && console.log(window.SPLIT_1);
         window.SPLIT_2 = $('#outputs').split({orientation:'horizontal', limit:100});
     } else {
-        window.SPLIT_1.refresh();
-        window.SPLIT_2.refresh();
+        window.SPLIT_1.position('50%');
+        window.SPLIT_2.position('50%');
     }
     window.console && console.log('avail='+$avail+' favail='+$favail);
 } 
@@ -412,7 +413,7 @@ function load_cm() {
 
  $().ready(function(){
     // I cannot make this reliable :(
-    // $(window).resize(function () { compute_divs(); console.log('zap'); });
+    $(window).resize(function () { compute_divs(); console.log('zap'); });
     window.MOBILE = $(window).width() <= 480;
     // window.MOBILE = TRUE;
     load_files();
