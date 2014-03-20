@@ -161,22 +161,20 @@ function load_files() {
         }
     }
 
-    // http://stackoverflow.com/questions/3000649/trim-spaces-from-start-and-end-of-string
-    function trim1 (str) {
-        return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-    }
-
     function outf(text)
     {
-        // console.log('Text='+text);
+        // console.log('Text='+text+':');
         var output = document.getElementById("output");
         oldtext = output.innerHTML;
+        // window.console && console.log(oldtext);
         oldtext = oldtext.replace(/<span.*span>/g,"")
         text = text.replace(/</g, '&lt;');
-        newtext = trim1(oldtext + text);
+        newtext = oldtext + text;
         output.innerHTML = newtext;
-        var desired = trim1(document.getElementById("desired").innerHTML);
+        var desired = document.getElementById("desired").innerHTML;
 
+        // desired = $.trim(desired);
+        // newtext = $.trim(newtext);
         deslines = desired.split('\n');
         newlines = newtext.split('\n');
         newoutput = '';
@@ -187,6 +185,10 @@ function load_files() {
             if ( i > 0 ) newoutput += '\n';
             nl = newlines[i];
             newoutput += nl;
+            // Extra blank lines are no problem.
+            if ( i >= deslines.length && $.trim(nl) == '' ) {
+                continue;
+            }
             if ( i >= deslines.length ) {
                 if ( !err ) newoutput += '<span style="color:red"> &larr; Extra output</span>';
                 err = true;
@@ -305,7 +307,7 @@ startBody();
 <button onclick="runit()" type="button">Check Code</button>
 <?php 
     if ( strlen($CODE) > 0 ) {
-        echo('<button onclick="resetcode()" type="button">Sample Code</button>');
+        echo('<button onclick="resetcode()" type="button">Reset Code</button>');
     }
     if ( $instructor ) {
        echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
@@ -418,12 +420,6 @@ function load_cm() {
         compute_divs();
         load_cm();
     }
-<?php
-    if ( $OLDCODE !== false ) {
-        echo('alert("Your previously submitted code has been reloaded. "+
-        "You can press \'Sample Code\' to go back to the original sample code.");');
-    }
-?>
  });
 </script>
 <?php
