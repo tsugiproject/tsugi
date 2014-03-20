@@ -79,15 +79,18 @@ function builtinRead(x)
 }
 
 function makefilediv(name,text) {
-    var msgContainer = document.createElement('div');
-    msgContainer.setAttribute('id', name);  //set id
-    msgContainer.setAttribute('style', 'display:none');  //set CSS
     text.replace("&","&amp;");
     text.replace("<","&lt;");
+/*
+    var msgContainer = document.createElement('div');
 
     var msg2 = document.createTextNode(text);
     msgContainer.appendChild(msg2);
+    msgContainer.setAttribute('id', name);  //set id
+    msgContainer.setAttribute('style', 'display:none');  //set CSS
     document.body.appendChild(msgContainer);
+*/
+    $('body').append('<div id="'+name+'" style="display: none">'+text+'</div>');
 }
 
 // May want this under the control of the exercises.
@@ -158,6 +161,11 @@ function load_files() {
         }
     }
 
+    // http://stackoverflow.com/questions/3000649/trim-spaces-from-start-and-end-of-string
+    function trim1 (str) {
+        return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+    }
+
     function outf(text)
     {
         // console.log('Text='+text);
@@ -165,9 +173,9 @@ function load_files() {
         oldtext = output.innerHTML;
         oldtext = oldtext.replace(/<span.*span>/g,"")
         text = text.replace(/</g, '&lt;');
-        newtext = oldtext + text;
+        newtext = trim1(oldtext + text);
         output.innerHTML = newtext;
-        var desired = document.getElementById("desired").innerHTML;
+        var desired = trim1(document.getElementById("desired").innerHTML);
 
         deslines = desired.split('\n');
         newlines = newtext.split('\n');
