@@ -256,7 +256,7 @@ function load_files() {
     }
 
     function resetcode() {
-        if ( ! confirm("Are you sure you want to reset the code area to the initial provided sample code?") ) return;
+        if ( ! confirm("Are you sure you want to reset the code area to the original sample code?") ) return;
         if ( window.CM_EDITOR !== false ) window.CM_EDITOR.toTextArea();
         window.CM_EDITOR = false;
         document.getElementById("code").value = document.getElementById("resetcode").value;
