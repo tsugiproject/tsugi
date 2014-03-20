@@ -155,7 +155,6 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
 // View 
 headerContent();
 startBody();
-echo('<div style="padding: 15px 15px 15px 15px;">'."\n");
 flashMessages();
 welcomeUserCourse($LTI);
 
@@ -261,7 +260,6 @@ function loadgrade() {
     });
 }
 </script>
-</div>
 <?php
 // After jquery gets loaded at the *very* end...
 footerContent('<script type="text/javascript">

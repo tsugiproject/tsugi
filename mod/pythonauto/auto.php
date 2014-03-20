@@ -301,7 +301,6 @@ word-wrap: break-word; /* IE 5.5+ */
 <?php
 startBody();
 ?>
-<div style="padding: 0px 15px 0px 15px;">
 <div id="overall">
 <div id="inputs">
 <div class="well" style="background-color: #EEE8AA">
@@ -363,7 +362,6 @@ This autograder is based on <a href="http://skulpt.org/" target="_blank">Skulpt<
 <textarea id="resetcode" cols="80" style="display:none">
 <?php   echo(htmlentities($CODE)); ?>
 </textarea>
-</div>
 <?php
 footerStart();
 ?>

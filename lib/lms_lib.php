@@ -120,7 +120,7 @@ body {
 }
 
 function startBody() {
-    echo("\n</head>\n<body>\n");
+    echo("\n</head>\n<body style=\"padding: 15px 15px 15px 15px;\">\n");
     if ( count($_POST) > 0 ) {
         $dump = safeVarDump($_POST);
         echo('<p style="color:red">Error - Unhandled POST request</p>');
