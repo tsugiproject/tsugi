@@ -307,7 +307,7 @@ startBody();
 <div class="well" style="background-color: #EEE8AA">
 <?php echo($QTEXT); ?>
 </div>
-<form>
+<form id="forminput">
 <button onclick="runit()" type="button">Check Code</button>
 <?php 
     if ( strlen($CODE) > 0 ) {
@@ -382,30 +382,35 @@ footerStart();
 function compute_divs() {
 	$doc = $(window).height();
 	$ot = $('#overall').offset().top;
-    window.console && console.log('doc='+$doc+' overall='+$ot);
+	$ft = $('#forminput').offset().top;
+    window.console && console.log('doc='+$doc+' ft='+$ft+' overall='+$ot);
 	$avail = $doc - ($ot - 30);
 	if ( $avail < 400 ) $avail = 400;
 	if ( $avail > 700 ) $avail = 700;
+    $favail = $avail - $ft + $ot;
 
     $('#overall').width('100%').height($avail);
-    $('#inputs').width('100%').height($avail/2);
-    $('#outputs').width('100%').height($avail/2);
+    $('#inputs').width('50%').height($avail);
+    $('#forminput').width('1000%').height($favail);
+    $('#outputs').width('50%').height($avail);
+    $('#textarea').height('100%');
     $('#output').height('100%');
     $('#desired').height('100%');
     if ( window.SPLIT_1 == false ) {
-        window.SPLIT_1 = $('#overall').split({orientation:'horizontal', limit:100});
+        window.SPLIT_1 = $('#overall').split({orientation:'vertical', limit:100});
         window.console && console.log(window.SPLIT_1);
-        window.SPLIT_2 = $('#outputs').split({orientation:'vertical', limit:100});
+        window.SPLIT_2 = $('#outputs').split({orientation:'horizontal', limit:100});
     } else {
         window.SPLIT_1.refresh();
         window.SPLIT_2.refresh();
     }
-    window.console && console.log('avail='+$avail);
+    window.console && console.log('avail='+$avail+' favail='+$favail);
 } 
 
+// Setup Codemirror
 function load_cm() {
-    // Setup Codemirror
-    window.CM_EDITOR = CodeMirror.fromTextArea(document.getElementById("code"), {
+    window.CM_EDITOR = CodeMirror.fromTextArea(document.getElementById("code"), 
+    {
         mode: {name: "python",
         version: 2,
         singleLineStringErrors: false},
@@ -413,12 +418,14 @@ function load_cm() {
         indentUnit: 4,
         matchBrackets: true
     });
+    window.CM_EDITOR.setSize('100%', '100%');
 }
 
  $().ready(function(){
     // I cannot make this reliable :(
     // $(window).resize(function () { compute_divs(); console.log('zap'); });
     window.MOBILE = $(window).width() <= 480;
+    // window.MOBILE = TRUE;
     load_files();
     if ( MOBILE === false ) {
         compute_divs();
