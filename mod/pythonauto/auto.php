@@ -322,16 +322,7 @@ startBody();
 <?php } 
 // } ?>
 <?php
-if ( isset($_GET["done"]) ) {
-  $url = $_GET['done'];
-  if ( $url == "_close" ) {
-    echo("<button onclick=\"window.close();\" type=\"button\">Done</button>\n");
-  } else if ( strpos($url, "http") !== false ) {
-    echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
-  } else {
-    echo("<button onclick=\"window.location='".sessionize($url)."';\" type=\"button\">Done</button>\n");
-  }
-}
+doneButton();
 ?>
 <img id="spinner" src="skulpt/spinner.gif" style="vertical-align: middle;display: none">
 <span id="redo" style="color:red;display:none"> Please Correct your code and re-run. </span>

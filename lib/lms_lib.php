@@ -418,6 +418,24 @@ function findFiles($filename="index.php", $reldir=false) {
     return $files;
 }
 
+function doneButton() {
+    $url = false;
+	if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
+        $url = $_SESSION['lti_post']['custom_done'];
+    } else if ( isset($_GET["done"]) ) {
+        $url = $_GET['done'];
+    }
+    if ( $url === false ) return;
+
+    if ( $url == "_close" ) {
+        echo("<button onclick=\"window.close();\" type=\"button\">Done</button>\n");
+    } else if ( strpos($url, "http") !== false ) {
+        echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
+    } else {
+        echo("<button onclick=\"window.location='".sessionize($url)."';\" type=\"button\">Done</button>\n");
+    }
+}
+
 function togglePre($title, $html) {
     global $div_id;
     $div_id = $div_id + 1;
