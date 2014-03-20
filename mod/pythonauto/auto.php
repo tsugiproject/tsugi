@@ -312,8 +312,10 @@ if ( isset($_GET["done"]) ) {
   $url = $_GET['done'];
   if ( $url == "_close" ) {
     echo("<button onclick=\"window.close();\" type=\"button\">Done</button>\n");
-  } else {
+  } else if ( strpos($url, "http") !== false ) {
     echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
+  } else {
+    echo("<button onclick=\"window.location='".sessionize($url)."';\" type=\"button\">Done</button>\n");
   }
 }
 ?>
