@@ -67,8 +67,12 @@ body { font-family: sans-serif; }
 <link href="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.css" rel="stylesheet"/>
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.js"></script>
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/python.js"></script>
+<!--
 <script src="skulpt/skulpt.js?v=1" type="text/javascript"></script>
 <script src="skulpt/builtin.js?v=1" type="text/javascript"></script>
+-->
+<script src="skulpt-new/skulpt.min.js?v=1" type="text/javascript"></script>
+<script src="skulpt-new/skulpt-stdlib.js?v=1" type="text/javascript"></script>
 <script type="text/javascript">
 
 function builtinRead(x)
