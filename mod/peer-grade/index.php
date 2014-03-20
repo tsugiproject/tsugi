@@ -185,7 +185,7 @@ if ( $submit_row == false ) {
         echo("\n<p>");
         echo(htmlent_utf8($part->title)."\n");
         if ( $part->type == "image" ) {
-            echo('<input name="uploaded_file_'.$partno.'" type="file"> (Please use JPG files)</p>');
+            echo('<input name="uploaded_file_'.$partno.'" type="file"> (Please use PNG or JPG files)</p>');
         } else if ( $part->type == "url" ) {
             echo('<input name="input_url_'.$partno.'" type="url" size="80"></p>');
         }
@@ -261,8 +261,13 @@ function loadgrade() {
 }
 </script>
 <?php
-// After jquery gets loaded at the *very* end...
-footerContent('<script type="text/javascript">
-$(document).ready(function() { loadgrade(); } );
-</script>');
+footerStart();
+?>
+<script type="text/javascript">
+$(document).ready(function() { 
+    loadgrade(); 
+} );
+</script>
+<?php
+footerEnd();
 
