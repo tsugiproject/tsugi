@@ -61,7 +61,12 @@ if ( $EX === false ) {
 ?>
 <style>
 body { font-family: sans-serif; }
+.inputarea { width: 100%; height: 250px; }
 </style>
+<link href="<?php echo($CFG->staticroot); ?>/static/css/jquery.splitter.css" rel="stylesheet"/>
+<link href="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.css" rel="stylesheet"/>
+<script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.js"></script>
+<script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/python.js"></script>
 <script src="skulpt/skulpt.js?v=1" type="text/javascript"></script>
 <script src="skulpt/builtin.js?v=1" type="text/javascript"></script>
 <script type="text/javascript">
@@ -109,6 +114,10 @@ function load_files() {
 ?>
     window.GLOBAL_ERROR = true;
     window.GLOBAL_TIMER = false;
+    window.CM_EDITOR = false;
+    window.SPLIT_1 = false;
+    window.SPLIT_2 = false;
+    window.MOBILE = false;
 
     if (typeof console == "undefined") {
         console = {log: function() {}};
@@ -193,7 +202,10 @@ function load_files() {
     function runit()
     {
         hideall();
+        if ( window.CM_EDITOR !== false ) window.CM_EDITOR.save();
         var prog = document.getElementById("code").value;
+        window.console && console.log('code');
+        window.console && console.log(prog);
         if ( prog.length < 1 ) {
             alert("You do not have any Python code");
             return false;
@@ -231,7 +243,10 @@ function load_files() {
 
     function resetcode() {
         if ( ! confirm("Are you sure you want to reset the code area to the initial provided sample code?") ) return;
+        if ( window.CM_EDITOR !== false ) window.CM_EDITOR.toTextArea();
+        window.CM_EDITOR = false;
         document.getElementById("code").value = document.getElementById("resetcode").value;
+        if ( window.MOBILE === false ) load_cm();
     }
 
     function gradeit() {
@@ -259,21 +274,6 @@ function load_files() {
         return false;
     }
 
-function doc_ready() {
-	$doc = $(window).height();
-	$fh = $("#footer").height();
-	$it = $('#inputs').offset().top;
-	$ct = $('#code').offset().top;
-    $qh = $ct - $it;
-	$avail = $doc - $ct - $fh;
-	if ( $avail < 400 ) $avail = 400;
-	if ( $avail > 900 ) $avail = 900;
-	$ch = $avail * 0.5;
-	$("#inputs").height($qh+$ch);
-	$("#outputs").height($avail*0.5);
-	$('#code').height($ch -15);
-    load_files();
-} 
 </script>
 <style>
 pre {
@@ -288,15 +288,16 @@ word-wrap: break-word; /* IE 5.5+ */
 startBody();
 ?>
 <div style="padding: 0px 15px 0px 15px;">
-<div id="inputs" style="height:300px;">
+<div id="overall">
+<div id="inputs">
 <div class="well" style="background-color: #EEE8AA">
 <?php echo($QTEXT); ?>
 </div>
-<form style="height:100%;">
+<form>
 <button onclick="runit()" type="button">Check Code</button>
 <?php 
     if ( strlen($CODE) > 0 ) {
-        echo('<button onclick="resetcode()" type="button">Reset Code</button>');
+        echo('<button onclick="resetcode()" type="button">Sample Code</button>');
     }
     if ( $instructor ) {
        echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
@@ -309,7 +310,11 @@ startBody();
 <?php
 if ( isset($_GET["done"]) ) {
   $url = $_GET['done'];
-  echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
+  if ( $url == "_close" ) {
+    echo("<button onclick=\"window.close();\" type=\"button\">Done</button>\n");
+  } else {
+    echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
+  }
 }
 ?>
 <img id="spinner" src="skulpt/spinner.gif" style="vertical-align: middle;display: none">
@@ -318,8 +323,9 @@ if ( isset($_GET["done"]) ) {
 <span id="gradegood" style="color:green;display:none"> Grade Updated. </span>
 <span id="gradebad" style="color:red;display:none"> Error storing grade. </span>
 <br/>
-Enter/Edit Your Python Code Here:<br/>
-<textarea id="code" cols="80" style="font-family:Courier,fixed;font-size:16px;color:blue;width:99%;">
+&nbsp;<br/>
+<div id="textarea" class="inputarea">
+<textarea id="code" style="width:100%; height: 100%; font-family:Courier,fixed;font-size:16px;color:blue;">
 <?php 
 if ( $OLDCODE !== false ) {
     echo(htmlentities($OLDCODE));
@@ -328,29 +334,87 @@ if ( $OLDCODE !== false ) {
 }
 ?>
 </textarea>
-</form>
 </div>
-<div id="outputs" style="height:300px; min-height:200px;">
-<div id="left" style="padding:8px;width:47%;float:right;height:100%;overflow:scroll;border:1px solid black">
-<b>Desired Output</b>
-<pre id="desired" style="height:100%"><?php echo($DESIRED); echo("\n"); ?>
+</div>
+<div id="outputs">
+<div id="left">
+<b>Your Output</b>
+<pre id="output" class="inputarea"></pre>
 </pre>
 </div>
-<div id="right" style="padding: 8px;width:47%;height:100%;float:left;overflow:scroll;border:1px solid black">
-<b>Your Output</b>
-<pre id="output" style="height:100%;"></pre>
+<div id="right">
+<b>Desired Output</b>
+<pre id="desired" class="inputarea"><?php echo($DESIRED); echo("\n"); ?>
 </div>
 </div>
-<div id="footer">
-<br clear="all"/>
-<center>
-This autograder is based on <a href="http://skulpt.org/" target="_new">Skulpt</a>.
-</center>
+</div>
+</form>
+</div>
+<div id="footer" style="text-align: center">
+This autograder is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> and
+<a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
 <textarea id="resetcode" cols="80" style="display:none">
 <?php   echo(htmlentities($CODE)); ?>
 </textarea>
 </div>
 <?php
-footerContent('<script type="text/javascript">
-$(document).ready(function() { doc_ready(); } );
-</script>');
+footerStart();
+?>
+<script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/js/jquery.splitter-0.14.0.js"></script>
+<script type="text/javascript">
+// $(document).ready(function() { doc_ready(); } );
+function compute_divs() {
+	$doc = $(window).height();
+	$ot = $('#overall').offset().top;
+    window.console && console.log('doc='+$doc+' overall='+$ot);
+	$avail = $doc - ($ot - 30);
+	if ( $avail < 400 ) $avail = 400;
+	if ( $avail > 700 ) $avail = 700;
+
+    $('#overall').width('100%').height($avail);
+    $('#inputs').width('100%').height($avail/2);
+    $('#outputs').width('100%').height($avail/2);
+    $('#output').height('100%');
+    $('#desired').height('100%');
+    if ( window.SPLIT_1 == false ) {
+        window.SPLIT_1 = $('#overall').split({orientation:'horizontal', limit:100});
+        window.console && console.log(window.SPLIT_1);
+        window.SPLIT_2 = $('#outputs').split({orientation:'vertical', limit:100});
+    } else {
+        window.SPLIT_1.refresh();
+        window.SPLIT_2.refresh();
+    }
+    window.console && console.log('avail='+$avail);
+} 
+
+function load_cm() {
+    // Setup Codemirror
+    window.CM_EDITOR = CodeMirror.fromTextArea(document.getElementById("code"), {
+        mode: {name: "python",
+        version: 2,
+        singleLineStringErrors: false},
+        lineNumbers: true,
+        indentUnit: 4,
+        matchBrackets: true
+    });
+}
+
+ $().ready(function(){
+    // I cannot make this reliable :(
+    // $(window).resize(function () { compute_divs(); console.log('zap'); });
+    window.MOBILE = $(window).width() <= 480;
+    load_files();
+    if ( MOBILE === false ) {
+        compute_divs();
+        load_cm();
+    }
+<?php
+    if ( $OLDCODE !== false ) {
+        echo('alert("Your previously submitted code has been reloaded. "+
+        "You can press \'Sample Code\' to go back to the original sample code.");');
+    }
+?>
+ });
+</script>
+<?php
+footerEnd();
