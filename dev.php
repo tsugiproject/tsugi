@@ -61,7 +61,7 @@ if ( ! $secret ) $secret = "secret";
 $endpoint = trim($_REQUEST["endpoint"]);
 $b64 = base64_encode($key.":::".$secret);
 if ( ! $endpoint ) $endpoint = str_replace("dev.php","lti.php",$cur_url);
-$cssurl = str_replace("lms.php","lms.css",$cur_url);
+$cssurl = str_replace("dev.php","lms.css",$cur_url);
 
 $outcomes = trim($_REQUEST["outcomes"]);
 if ( ! $outcomes ) {
@@ -223,7 +223,6 @@ foreach( $parms as $k => $val ) {
 $parms["oauth_callback"] = "about:blank";
 if ( $outcomes ) {
     $parms["lis_outcome_service_url"] = $outcomes;
-    $parms["lis_result_sourcedid"] = "feb-123-456-2929::28883";
 }
     
 $parms['launch_presentation_css_url'] = $cssurl;

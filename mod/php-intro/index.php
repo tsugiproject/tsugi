@@ -32,13 +32,6 @@ Assignment 5 URL to grade:
 <input type="text" name="url" value="http://www.php-intro.com/assn/tracks" size="100">
 <input type="submit">
 </form>
-<!--
-<form action="assn06.php" target="_blank">
-Assignment 6 URL to grade:
-<input type="text" name="url" value="http://localhost/~csev/webauto/lms.php" size="100">
-<input type="submit">
-</form>
--->
 <p>
 Here is some documentation on the software used to build these unit tests:
 <ul>

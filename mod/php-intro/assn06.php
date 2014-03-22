@@ -11,7 +11,6 @@ $url = getUrl('http://www.php-intro.com/assn/tracks');
 $grade = 0;
 
 error_log("ASSN06 ".$url);
-line_out("-- The intial URL shuold be the url of lms.php");
 line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
 
