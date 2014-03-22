@@ -47,6 +47,7 @@ function dumpTable($stmt, $view=false) {
             echo("<td>");
             if ( $link_name !== false ) {
                 echo('<a href="'.$view.$link_name."=".$link_val.'">');
+                if ( strlen($v) < 1 ) $v = $link_name.':'.$link_val;
             }
             echo(htmlent_utf8($v));
             if ( $link_name !== false ) {
@@ -765,11 +766,14 @@ function loadUserInfo($pdo, $user_id)
     $row = cacheCheck($cacheloc, $user_id);
     if ( $row != false ) return $row;
     $stmt = pdoQueryDie($pdo,
-        "SELECT displayname, email FROM {$CFG->dbprefix}lti_user
+        "SELECT displayname, email, user_key FROM {$CFG->dbprefix}lti_user
             WHERE user_id = :UID",
         array(":UID" => $user_id)
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ( strlen($row['displayname']) < 1 || strlen($row['user_key']) > 0 ) {
+        $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
+    }
     cacheSet($cacheloc, $user_id, $row);
     return $row;
 }
