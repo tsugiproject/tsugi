@@ -94,6 +94,7 @@ function headerContent($headCSS=false) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo($CFG->servicename); ?></title>
     <!-- Le styles -->
+    <link href="<?php echo($CFG->staticroot); ?>/static/css/custom-theme/jquery-ui-1.10.0.custom.css" rel="stylesheet">
     <link href="<?php echo($CFG->bootstrap); ?>/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?php echo($CFG->bootstrap); ?>/css/bootstrap-theme.min.css" rel="stylesheet">
 
@@ -181,6 +182,25 @@ function do_analytics() {
         }
         echo("</script>\n");
     }  // if analytics is on...
+}
+
+// Gets an absolute static path to the specified file
+function getLocalStatic($file) {
+    global $CFG;
+    $path = getPwd($file);
+    return $CFG->staticroot . "/" . $path;
+}
+
+function getPwd($file) {
+    global $CFG;
+    $root = $CFG->dirroot;
+    $path = realpath(dirname($file));
+    $root .= '/'; // Add the trailing slash
+    if ( strlen($path) < strlen($root) ) return false;
+    // The root must be the prefix of path
+    if ( strpos($path, $root) !== 0 ) return false;
+    $retval = substr($path, strlen($root));
+    return $retval;
 }
 
 function addSession($location) {
