@@ -12,8 +12,9 @@ $p = $CFG->dbprefix;
 
 // Gets counts and max of the submissions
 $stmt = pdoQueryDie($pdo,
-    "SELECT R.result_id AS result_id, R.link_id AS link_id, R.grade AS grade, 
-        R.note AS note, R.updated_at as updated_at, L.title as title
+    // "SELECT R.result_id AS result_id, R.link_id AS link_id, R.grade AS grade, 
+    "SELECT L.title as title, R.grade AS grade, 
+        R.note AS note, R.updated_at as updated_at
     FROM {$p}lti_result AS R JOIN {$p}lti_link as L 
         ON R.link_id = L.link_id
     WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL",
@@ -24,7 +25,6 @@ $stmt = pdoQueryDie($pdo,
 headerContent();
 startBody();
 flashMessages();
-welcomeUserCourse($LTI);
 
 echo('<table border="1">');
 $first = true;
@@ -44,12 +44,5 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     echo("</tr>\n");
 }
 echo("</table>\n");
-
-?>
-<form method="post">
-<br/>
-<input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
-</form>
-<?
 
 footerContent();
