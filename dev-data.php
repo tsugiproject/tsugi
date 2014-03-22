@@ -40,7 +40,7 @@ $lmsdata = array(
       "user_id" => "292832126",
       "roles" => "Instructor",
 
-      "resource_link_id" => "120988f929-274612",
+      "resource_link_id" => "292832126",
       "resource_link_title" => "Weekly Blog",
       "resource_link_description" => "A weekly blog.",
       "context_id" => "456434513",

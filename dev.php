@@ -109,6 +109,18 @@ function doSubmit(name) {
 	document.getElementById("actionform").submit();
 }
 
+// From KimKha - http://stackoverflow.com/questions/194846/is-there-any-kind-of-hashcode-function-in-javascript
+String.prototype.hashCode = function(){
+    var hash = 0;
+    if (this.length == 0) return hash;
+    for (var i = 0; i < this.length; i++) {
+        var character = this.charCodeAt(i);
+        hash = ((hash<<5)-hash)+character;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+}
+
 function doSubmitTool(name) {
 	nei = document.createElement('input');
 	nei.setAttribute('type', 'hidden');
@@ -116,6 +128,7 @@ function doSubmitTool(name) {
 	nei.setAttribute('value', '');
 	document.getElementById("actionform").appendChild(nei);
 	$("input[name='custom_assn']").val(name);
+	$("input[name='resource_link_id']").val(name.hashCode());
 	document.getElementById("actionform").submit();
 }
 </script>
@@ -189,15 +202,7 @@ foreach ($lmsdata as $k => $val ) {
     echo($k.": <input id=\"".$k."\" type=\"text\" size=\"30\" name=\"".$k."\" value=\"");
     echo(htmlspecialchars($val));
     echo("\">");
-    if ( $k == "custom_assn" && count($tools) > 0 ) {
-		echo('<select id="comboA" onchange="getComboA(this)">'."\n");
-		echo('<option value="">Switch tool</option>'."\n");
-		foreach ($tools as $tool ) {
-			echo('<option value="'.$tool.'">'.$tool.'</option>'."\n");
-		}
-		echo('</select>'."\n");
-    }
-	  echo("<br/>\n");
+    echo("<br/>\n");
 }
 echo("</fieldset>\n");
 echo("</div>\n");
