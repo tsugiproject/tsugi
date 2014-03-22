@@ -13,7 +13,6 @@ if ( defined('COOKIE_SESSION') ) {
 
 if ( ! isset($CFG) ) die("Please configure this product using config.php");
 if ( ! isset($CFG->staticroot) ) die('$CFG->staticroot not defined in config.php');
-if ( ! isset($CFG->bootstrap) ) die('$CFG->bootstrap not defined in config.php');
 if ( ! isset($CFG->timezone) ) die('$CFG->timezone not defined in config.php');
 if ( strpos($CFG->dbprefix, ' ') !== false ) die('$CFG->dbprefix cannot have spaces in it');
 

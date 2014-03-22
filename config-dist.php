@@ -55,12 +55,6 @@ $CFG->timezone = 'America/New_York';
 // to be the same as wwwroot
 $CFG->staticroot = $CFG->wwwroot;
 
-// Allows bootstrap files to come from a different CDN than the rest
-// of the static files.   In particular Bootstrap provides its files
-// via the following netdna URL 
-$CFG->bootstrap = $CFG->staticroot . "/static/bootstrap";
-# $CFG->bootstrap = "//netdna.bootstrapcdn.com/bootstrap/3.0.2";
-
 // This should not be changes.  It allows included files to reference
 // library files with an absolute path.
 $CFG->dirroot = realpath(dirname(__FILE__));

@@ -95,8 +95,8 @@ function headerContent($headCSS=false) {
     <title><?php echo($CFG->servicename); ?></title>
     <!-- Le styles -->
     <link href="<?php echo($CFG->staticroot); ?>/static/css/custom-theme/jquery-ui-1.10.0.custom.css" rel="stylesheet">
-    <link href="<?php echo($CFG->bootstrap); ?>/css/bootstrap.min.css" rel="stylesheet">
-    <link href="<?php echo($CFG->bootstrap); ?>/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
 
 <style> <!-- from navbar.css -->
 body {
@@ -136,7 +136,7 @@ function startBody() {
 function footerStart() {
     global $CFG;
     echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");
-    echo('<script src="'.$CFG->bootstrap.'/js/bootstrap.min.js"></script>'."\n");
+    echo('<script src="'.$CFG->staticroot.'/static/bootstrap/js/bootstrap.min.js"></script>'."\n");
 	do_analytics(); 
 	echo(togglePreScript());
 }
