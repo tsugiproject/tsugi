@@ -1,11 +1,16 @@
 <?php
 
-try {
+if ( defined('PDO_WILL_CATCH') ) {
     $pdo = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $ex){
-    error_log("DB connection: "+$ex->getMessage());
-    die($ex->getMessage());
+} else {
+    try {
+        $pdo = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch(PDOException $ex){
+        error_log("DB connection: "+$ex->getMessage());
+        die($ex->getMessage());
+    }
 }
 
 function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {

@@ -12,6 +12,9 @@ headerContent();
 ?>
 </head>
 <body>
+<?php
+require_once("sanity-db.php");
+?>
   <form method="post" id="actionform">
     <div class="container">
       <!-- Static navbar -->
@@ -69,6 +72,7 @@ if ( $CFG->DEVELOPER ) {
         'Note: Currently this server is running in developer mode.'.
         "\n</div>\n";
 }
+
 ?>
 <p>
 Hello and welcome to <b><?php echo($CFG->servicename); ?></b>.

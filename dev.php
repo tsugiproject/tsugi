@@ -118,7 +118,7 @@ String.prototype.hashCode = function(){
         hash = ((hash<<5)-hash)+character;
         hash = hash & hash; // Convert to 32bit integer
     }
-    return hash;
+    return Math.abs(hash);
 }
 
 function doSubmitTool(name) {
@@ -129,6 +129,9 @@ function doSubmitTool(name) {
 	document.getElementById("actionform").appendChild(nei);
 	$("input[name='custom_assn']").val(name);
 	$("input[name='resource_link_id']").val(name.hashCode());
+    pieces = name.split('/');
+	$("input[name='resource_link_title']").val('Activity: '+pieces[1]);
+	$("input[name='lis_result_sourcedid']").val('sdid:'+name.hashCode());
 	document.getElementById("actionform").submit();
 }
 </script>
