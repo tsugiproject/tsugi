@@ -13,6 +13,52 @@ function flashMessages() {
     }
 }
 
+function dumpTable($stmt, $view=false) {
+    if ( $view !== false ) {
+        if ( strpos($view, '?') !== false ) {
+            $view .= '&';
+        } else {
+            $view .= '?';
+        }
+    }
+    echo('<table border="1">');
+    $first = true;
+    while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
+        if ( $first ) {
+            echo("\n<tr>\n");
+            foreach($row as $k => $v ) {
+                if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
+                    continue;
+                }
+                echo("<th>".htmlent_utf8($k)."</th>\n");
+            }
+            echo("</tr>\n");
+        }
+        $first = false;
+
+        $link_name = false;
+        echo("\n<tr>\n");
+        foreach($row as $k => $v ) {
+            if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
+                $link_name = $k;
+                $link_val = $v;
+                continue;
+            }
+            echo("<td>");
+            if ( $link_name !== false ) {
+                echo('<a href="'.$view.$link_name."=".$link_val.'">');
+            }
+            echo(htmlent_utf8($v));
+            if ( $link_name !== false ) {
+                echo('</a>');
+            }
+            $link_name = false;
+            echo("</td>\n");
+        }
+        echo("</tr>\n");
+    }
+    echo("</table>\n");
+}
 function welcomeUserCourse($LTI) {
 	echo("<p>Welcome");
 	if ( isset($LTI['user_displayname']) ) {
@@ -710,6 +756,38 @@ function cacheClear($cacheloc)
         error_log("Cache clear $cacheloc");
     }
     unset($_SESSION[$cacheloc]);
+}
+
+function loadUserInfo($pdo, $user_id)
+{
+    global $CFG;
+    $cacheloc = 'lti_user';
+    $row = cacheCheck($cacheloc, $user_id);
+    if ( $row != false ) return $row;
+    $stmt = pdoQueryDie($pdo,
+        "SELECT displayname, email FROM {$CFG->dbprefix}lti_user
+            WHERE user_id = :UID",
+        array(":UID" => $user_id)
+    );
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    cacheSet($cacheloc, $user_id, $row);
+    return $row;
+}
+
+function loadLinkInfo($pdo, $link_id)
+{
+    global $CFG;
+    $cacheloc = 'lti_link';
+    $row = cacheCheck($cacheloc, $link_id);
+    if ( $row != false ) return $row;
+    $stmt = pdoQueryDie($pdo,
+        "SELECT title FROM {$CFG->dbprefix}lti_link
+            WHERE link_id = :LID",
+        array(":LID" => $link_id)
+    );
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    cacheSet($cacheloc, $link_id, $row);
+    return $row;
 }
 
 require_once("crypt/aes.class.php"); 

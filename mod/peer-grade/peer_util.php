@@ -1,21 +1,5 @@
 <?php
 
-function loadUserInfo($pdo, $user_id) 
-{
-    global $CFG;
-    $cacheloc = 'lti_user';
-    $row = cacheCheck($cacheloc, $user_id);
-    if ( $row != false ) return $row;
-    $stmt = pdoQueryDie($pdo,
-        "SELECT displayname, email FROM {$CFG->dbprefix}lti_user
-            WHERE user_id = :UID",
-        array(":UID" => $user_id)
-    );
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    cacheSet($cacheloc, $user_id, $row);
-    return $row;
-}
-
 // Loads the assignment associated with this link
 function loadAssignment($pdo, $LTI)
 {
