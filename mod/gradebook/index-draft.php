@@ -25,6 +25,7 @@ startBody();
 flashMessages();
 welcomeUserCourse($LTI);
 ?>
+<h1>This is under construction - it really does nothing at this point</h1>
 <div id="yo">
 <table id="list2"></table>
 <div id="pager2"></div>
