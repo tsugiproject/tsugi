@@ -67,13 +67,17 @@ function showSubmission($LTI, $assn_json, $submit_json)
             if ( is_array($blob_id) ) $blob_id = $blob_id[0];
             $url = getAccessUrlForBlob($blob_id);
             echo ('<a href="'.sessionize($url).'" target="_blank">');
-            echo ('<img src="'.sessionize($url).'" width="120"></a>'."\n");
+            echo ('<img src="'.sessionize($url).'" width="240"></a>'."\n");
         } else if ( $part->type == "url" ) {
             $url = $urls[$urlno++];
             echo ('<p><a href="'.safe_href($url).'" target="_blank">');
             echo (htmlentities(safe_href($url)).'</a> (Will launch in new window)'."\n");
         }
         
+    }
+
+    if ( $blobno > 0 ) {
+        echo("<p>Images will open in a new window.</p>\n");
     }
 
     if ( strlen($submit_json->notes) > 1 ) {
