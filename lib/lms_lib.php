@@ -503,6 +503,22 @@ function doneButton() {
     }
 }
 
+function doneBootstrap() {
+    $url = false;
+	if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
+        $url = $_SESSION['lti_post']['custom_done'];
+    } else if ( isset($_GET["done"]) ) {
+        $url = $_GET['done'];
+    }
+    if ( $url === false ) return;
+
+    if ( $url == "_close" ) {
+        echo("<a href=\"$\" onclick=\"window.close();\" class=\"btn btn-default\">Done</a>\n");
+    } else {
+        echo("<a href==\"$url\"  class=\"btn btn-default\">Done</button>\n");
+    }
+}
+
 function togglePre($title, $html) {
     global $div_id;
     $div_id = $div_id + 1;

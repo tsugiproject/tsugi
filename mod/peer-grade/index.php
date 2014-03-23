@@ -201,11 +201,17 @@ if ( $submit_row == false ) {
     return;
 }
 
+echo("<p>");
 if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxassess ) ) {
-    echo('<p><a href="grade.php">Grade other students</a></p>'."\n");
+    echo('<a href="grade.php" class="btn btn-default">Grade other students</a> '."\n");
+    // Add a done button if needed
 } else {
-    echo('<p>There are no submisions waiting to be graded. Please check back later.</p>');
+    echo('There are no submisions waiting to be graded. Please check back later.</p>');
+    
 }
+doneBootStrap();
+echo("</p>\n");
+
 
 echo("<p> You have graded ".$grade_count." other student submissions.
 You must grade at least ".$assn_json->minassess." submissions for full credit on this assignment.
