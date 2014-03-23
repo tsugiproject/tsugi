@@ -281,7 +281,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$actions[] = "=== Updated link=".$row['link_id']." title=".$post['link_title'];
 	}
 
-	if ( $post['user_displayname'] != $row['user_displayname'] ) {
+	if ( $post['user_displayname'] != $row['user_displayname'] && strlen($post['user_displayname']) > 0 ) {
 		$stmt = $pdo->prepare("UPDATE {$p}lti_user SET displayname = :displayname WHERE user_id = :user_id");
 		$stmt->execute(array(
 			':displayname' => $post['user_displayname'],
@@ -290,7 +290,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$actions[] = "=== Updated user=".$row['user_id']." displayname=".$post['user_displayname'];
 	}
 
-	if ( $post['user_email'] != $row['user_email'] ) {
+	if ( $post['user_email'] != $row['user_email'] && strlen($post['user_email']) > 0 ) {
 		$stmt = $pdo->prepare("UPDATE {$p}lti_user SET email = :email WHERE user_id = :user_id");
 		$stmt->execute(array(
 			':email' => $post['user_email'],

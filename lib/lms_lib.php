@@ -771,7 +771,7 @@ function loadUserInfo($pdo, $user_id)
         array(":UID" => $user_id)
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ( strlen($row['displayname']) < 1 || strlen($row['user_key']) > 0 ) {
+    if ( strlen($row['displayname']) < 1 && strlen($row['user_key']) > 0 ) {
         $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
     }
     cacheSet($cacheloc, $user_id, $row);
