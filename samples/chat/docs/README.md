@@ -43,8 +43,11 @@ the chat messages for each `link\_id` the schema for this table is as follows:
         created_at  DATETIME NOT NULL
     ...
 
-* `chatlist.php` - This retrieves the current chats for the current link\_id and
-provides them in a JSON format.
+* `index.php` - This is a very minimal file just enough to 
+launch `chatlist.php` and set up the PHPSESSIONID
+
+* `chatlist.php` - This retrieves the current chats for the 
+current link\_id and provides them in a JSON format.
 
 * `spinner.gif` - A spinner to be shown and hidden while the chats are being 
 retrieved.
@@ -52,6 +55,6 @@ retrieved.
 What Is Needed
 --------------
 
-What is needed for this application is the `index.php` file to orchestrate the
-application.
+What is needed for this application is to extend the `index.php` 
+file to orchestrate the application.
 
