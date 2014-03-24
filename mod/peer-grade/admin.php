@@ -15,14 +15,15 @@ $p = $CFG->dbprefix;
 
 // Gets counts and max of the submissions
 $query_parms = array(":LID" => $LTI['link_id']);
-$orderfields = array("S.user_id", "displayname", "email", "user_key", "max_points", "min_points","count_points");
-$searchfields = array("S.user_id", "displayname", "email", "user_key");
+$orderfields =  array("S.user_id", "displayname", "email", "S.updated_at", "user_key", "max_points", "min_points","count_points");
+$searchfields = array("S.user_id", "displayname", "email", "S.updated_at", "user_key");
 
 // Note that inner where is lower case and outer WHERE is upper case on purpose
 $sql = 
     "SELECT S.user_id AS user_id, displayname, email, S.submit_id as _submit_id, 
         MAX(points) as max_score, MIN(points) AS min_score, COUNT(points) as scores, 
-        COUNT(DISTINCT flag_id) as flagged, C.grade_count as grade_count, user_key
+        COUNT(DISTINCT flag_id) as flagged, C.grade_count as grade_count, 
+        MAX(S.updated_at) AS updated_at, user_key
     FROM {$p}peer_assn AS A JOIN {$p}peer_submit as S 
         ON A.assn_id = S.assn_id
     LEFT JOIN {$p}peer_grade AS G 

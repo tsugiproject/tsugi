@@ -1031,7 +1031,8 @@ onclick="document.getElementById('paged_search_box').value = '';"
 <tr>
 <?
     $first = true;
-    if ( $view === false ) $view = basename($_SERVER['PHP_SELF']);
+    $thispage = basename($_SERVER['PHP_SELF']);
+    if ( $view === false ) $view = $thispage;
     foreach ( $rows as $row ) {
         $count--;
         if ( $count < 0 ) break;
@@ -1055,7 +1056,7 @@ onclick="document.getElementById('paged_search_box').value = '';"
                 }
                 $stuff = do_url($params,$override);
                 echo('<th>');
-                echo(' <a href="index.php');
+                echo(' <a href="'.$thispage);
                 if ( strlen($stuff) > 0 ) {
                     echo("?");
                     echo($stuff);
