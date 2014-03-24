@@ -866,5 +866,227 @@ function test_secure_cookie() {
 
 // test_secure_cookie();
 
+function do_form($values, $override=Array()) {
+    foreach (array_merge($values,$override) as $key => $value) {
+        if ( $value === false ) continue;
+        if ( is_string($value) && strlen($value) < 1 ) continue;
+        if ( is_int($value) && $value === 0 ) continue;
+        echo('<input type="hidden" name="'.htmlent_utf8($key).
+             '" value="'.htmlent_utf8($value).'">'."\n");
+    }
+}
+
+function do_url($values, $override=Array()) {
+    $retval = '';
+    foreach (array_merge($values,$override) as $key => $value) {
+        if ( $value === false ) continue;
+        if ( is_string($value) && strlen($value) < 1 ) continue;
+        if ( is_int($value) && $value === 0 ) continue;
+        if ( strlen($retval) > 0 ) $retval .= '&';
+        $retval .= urlencode($key) . "=" . urlencode($value);
+    }
+    return $retval;
+}
+
+// Function to lookup and match things like R.updated_at to updated_at
+function matchColumns($colname, $columns) {
+    foreach ($columns as $v) {
+        if ( $colname == $v ) return true;
+        if ( strlen($v) < 2 ) continue;
+        if ( substr($v,1,1) != '.' ) continue;
+        if ( substr($v,2) == $colname ) return true;
+    }
+    return false;
+}
+
+$DEFAULT_PAGE_LENGTH = 2;
+// Requires  the keyword WHERE to be upper case 
+// We will add the ORDER BY clause at the end using the first field in $orderfields
+// by default
+function pagedPDOQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=false, $params=false) {
+    global $DEFAULT_PAGE_LENGTH;
+    if ( $params == false ) $params = $_GET;
+    if ( $orderfields == false ) $orderfields = $searchfields;
+
+    $searchtext = '';
+    if ( count($searchfields) > 0 && isset($params['search_text']) ) {
+        for($i=0; $i < count($searchfields); $i++ ) {
+            if ( $i > 0 ) $searchtext .= " OR ";
+            $searchtext .= $searchfields[$i]." LIKE :SEARCH".$i;
+            $queryvalues[':SEARCH'.$i] = '%'.$params['search_text'].'%';
+        }
+    }
+
+    $ordertext = '';
+    if ( isset($params['order_by']) && matchColumns($params['order_by'], $orderfields) ) { 
+        $ordertext = $params['order_by']." ";
+        if ( isset($params['desc']) && $params['desc'] == 1) {
+            $ordertext .= "DESC ";
+        }
+    } else if ( count($orderfields) > 0 ) {
+        $ordertext = $orderfields[0]." ";
+    }
+
+    $page_start = isset($params['page_start']) ? $params['page_start']+0 : 0;
+    if ( $page_start < 0 ) $page_start = 0;
+    $page_length = isset($params['page_length']) ? $params['page_length']+0 : $DEFAULT_PAGE_LENGTH;
+    if ( $page_length < 0 ) $page_length = 0;
+
+    $desc = '';
+    if ( isset($params['desc']) ) { 
+        $desc = $params['desc']+0;
+    }
+
+    $limittext = '';
+    if ( $page_start < 1 ) {
+        $limittext = "".($page_length+1);
+    } else {
+        $limittext = "".$page_start.", ".($page_length+1);
+    }
+
+    // Fix up the SQL Query
+    $newsql = $sql;
+    if ( strlen($searchtext) > 0 ) {
+        $newsql = str_replace("WHERE", "WHERE ( ".$searchtext." ) AND ", $newsql);
+    }
+    if ( strlen($ordertext) > 0 ) {
+        $newsql .= "\nORDER BY ".$ordertext." ";
+    }
+    if ( strlen($limittext) > 0 ) {
+        $newsql .= "\nLIMIT ".$limittext." ";
+    }
+    return $newsql . "\n";
+}
+
+function pagedPDOTable($pdo, $sql, &$queryvalues, $searchfields=array(), $orderfields=false, $params=false) {
+    global $DEFAULT_PAGE_LENGTH;
+    if ( $params === false ) $params = $_GET;
+    if ( $orderfields === false ) $orderfields = $searchfields;
+
+    $page_start = isset($params['page_start']) ? $params['page_start']+0 : 0;
+    if ( $page_start < 0 ) $page_start = 0;
+    $page_length = isset($params['page_length']) ? $params['page_length']+0 : $DEFAULT_PAGE_LENGTH;
+    if ( $page_length < 0 ) $page_length = 0;
+
+    $search = '';
+    if ( isset($params['search_text']) ) {
+        $search = $params['search_text'];
+    }
+
+    $stmt = pdoQueryDie($pdo, $sql, $queryvalues);
+
+    $rows = array();
+    $count = 0;
+    while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
+        array_push($rows, $row);
+        $count = $count + 1;
+    }
+
+    $have_more = false;
+    if ( $count > $page_length ) {
+        $have_more = true;
+        $count = $page_length;
+    }
+
+    echo('<div style="float:right">');
+    if ( $page_start > 0 ) {
+        echo('<form style="display: inline">');
+        echo('<input type="submit" value="Back">');
+        $page_back = $page_start - $page_length;
+        if ( $page_back < 0 ) $page_back = 0;
+        do_form($params,Array('page_start' => $page_back));
+        echo("</form>\n");
+    }
+    if ( $have_more ) {
+        echo('<form style="display: inline">');
+        echo('<input type="submit" value="Next"> ');
+        $page_next = $page_start + $page_length;
+        do_form($params,Array('page_start' => $page_next));
+        echo("</form>\n");
+    }
+    echo("</div>\n");
+    echo('<form>');
+    echo('<input type="text" id="paged_search_box" value="'.htmlent_utf8($search).'" name="search_text">');
+    do_form($params,Array('search_text' => false, 'page_start' => false));
+?>
+<input type="submit" value="Search">
+<input type="submit" value="Clear Search" 
+onclick="document.getElementById('paged_search_box').value = '';"
+>
+</form>
+
+<table border="1">
+<tr>
+<?
+    $first = true;
+    $view = "index.php";
+    foreach ( $rows as $row ) {
+        $count--;
+        if ( $count < 0 ) break;
+        if ( $first ) {
+            echo("\n<tr>\n");
+            $desc = isset($params['desc']) ? $params['desc'] + 0 : 0;
+            $order_by = isset($params['order_by']) ? $params['order_by'] : '';
+            foreach($row as $k => $v ) {
+                if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
+                    continue;
+                }
+
+                $override = Array('order_by' => $k, 'desc' => 0, 'page_start' => false);
+                $d = $desc;
+                $color = "black";
+                if ( $k == $order_by || $order_by == '' && $k == 'id' ) {
+                    $d = ($desc + 1) % 2;
+                    $override['desc'] = $d;
+                    $color = $d == 1 ?  'green' : 'red';
+                }
+                $stuff = do_url($params,$override);
+                echo('<th>');
+                echo(' <a href="index.php');
+                if ( strlen($stuff) > 0 ) {
+                    echo("?");
+                    echo($stuff);
+                }
+                echo('" style="color: '.$color.'">');
+                echo(ucfirst($k));
+                echo("</a></th>\n");
+            }
+            echo("</tr>\n");
+        }
+        $first = false;
+
+        $link_name = false;
+        echo("\n<tr>\n");
+        foreach($row as $k => $v ) {
+            if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
+                $link_name = $k;
+                $link_val = $v;
+                continue;
+            }
+            echo("<td>");
+            if ( $link_name !== false ) {
+                echo('<a href="'.$view.$link_name."=".$link_val.'">');
+                if ( strlen($v) < 1 ) $v = $link_name.':'.$link_val;
+            }
+            echo(htmlent_utf8($v));
+            if ( $link_name !== false ) {
+                echo('</a>');
+            }
+            $link_name = false;
+            echo("</td>\n");
+        }
+        echo("</tr>\n");
+    }
+    echo("</table>\n");
+    // echo("<pre>\n");
+    // echo($sql); 
+    // echo("\n</pre>\n");
+}
+
+function pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields=false, $params=false) {
+    $newsql = pagedPDOQuery($sql, $query_parms, $searchfields, $orderfields, $params);
+    pagedPDOTable($pdo, $newsql, $query_parms, $searchfields, $orderfields, $params);
+}
+
 // No trailer
 

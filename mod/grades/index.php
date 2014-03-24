@@ -11,11 +11,21 @@ $instructor = isInstructor($LTI);
 $p = $CFG->dbprefix;
 
 $user_info = false;
-$link_info = false;
 $links = array();
 $user_stmt = false;
 $class_stmt = false;
+$class_sql = false;
 $result_stmt = false;
+
+$link_id = 0;
+if ( isset($_GET['link_id']) ) {
+    $link_id = $_GET['link_id']+0;
+}
+
+$link_info = false;
+if ( $instructor && $link_id > 0 ) {
+    $link_info = loadLinkInfo($pdo, $link_id);
+}
 
 if ( $instructor && isset($_GET['viewall'] ) ) {
     $result_stmt = pdoQueryDie($pdo,
@@ -31,17 +41,15 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
     );
 
 } else if ( $instructor && isset($_GET['link_id'] ) ) {
-    $link_id = $_GET['link_id']+0;
-    $class_stmt = pdoQueryDie($pdo,
+    $class_query_parms = array(":LID" => $link_id, ":CID" => $LTI['context_id']);
+    $class_sql = 
         "SELECT R.user_id AS user_id, displayname, grade, R.updated_at as updated_at
         FROM {$p}lti_result AS R JOIN {$p}lti_link as L 
             ON R.link_id = L.link_id
         JOIN {$p}lti_user as U
             ON R.user_id = U.user_id
-        WHERE R.link_id = :LID AND L.context_id = :CID AND R.grade IS NOT NULL",
-        array(":LID" => $link_id, ":CID" => $LTI['context_id'])
-    );
-    $link_info = loadLinkInfo($pdo, $link_id);
+        WHERE R.link_id = :LID AND L.context_id = :CID AND R.grade IS NOT NULL";
+    // $class_stmt = pdoQueryDie($pdo, $class_sql, $class_query_parms);
 
 } else { // Gets grades for the current or specified 
     $user_id = $LTI['user_id'];
@@ -77,8 +85,8 @@ flashMessages();
 
 if ( $instructor ) {
 ?>
-  <a href="<?php echo(sessionize('index.php?viewall=yes')); ?>" class="btn btn-default">Class Summary</a> 
-  <a href="<?php echo(sessionize('index.php')); ?>" class="btn btn-default">My Grades</a> 
+  <a href="index.php?viewall=yes" class="btn btn-default">Class Summary</a> 
+  <a href="index.php" class="btn btn-default">My Grades</a> 
 <?php
 if ( $links !== false && count($links) > 0 ) {
 ?>
@@ -116,11 +124,17 @@ if ( $result_stmt !== false ) {
     dumpTable($result_stmt, 'index.php');
 }
 
-if ( $class_stmt !== false ) {
+if ( $class_sql !== false ) {
     if ( $link_info !== false ) {
         echo("<p>Results for ".$link_info['title']."</p>\n");
     }
-    dumpTable($class_stmt, 'index.php');
+    // dumpTable($class_stmt, 'index.php');
+
+    $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at");
+    pagedPDO($pdo, $class_sql, $class_query_parms, $searchfields);
+    // $newsql = pagedPDOQuery($class_sql, $class_query_parms, $searchfields);
+    // pagedPDOTable($pdo, $newsql, $class_query_parms, $searchfields);
+
 }
 
 
