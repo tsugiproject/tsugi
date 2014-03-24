@@ -1025,6 +1025,9 @@ onclick="document.getElementById('paged_search_box').value = '';"
         echo("<p>Nothing to display.</p>\n");
         return;
     }
+// print_r($orderfields);
+// echo("<hr>\n");
+// print_r($rows[0]);
 ?>
 
 <table border="1">
@@ -1043,6 +1046,11 @@ onclick="document.getElementById('paged_search_box').value = '';"
             foreach($row as $k => $v ) {
                 if ( strpos($k, "_") === 0 ) continue;
                 if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
+                    continue;
+                }
+
+                if ( ! matchColumns($k, $orderfields ) ) {
+                    echo("<th>".ucwords(str_replace('_',' ',$k))."</th>\n");
                     continue;
                 }
 

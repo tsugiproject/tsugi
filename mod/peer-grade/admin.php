@@ -15,7 +15,7 @@ $p = $CFG->dbprefix;
 
 // Gets counts and max of the submissions
 $query_parms = array(":LID" => $LTI['link_id']);
-$orderfields =  array("S.user_id", "displayname", "email", "S.updated_at", "user_key", "max_points", "min_points","count_points");
+$orderfields =  array("S.user_id", "displayname", "email", "S.updated_at", "user_key", "max_score", "scores", "flagged", "min_score","grade_count");
 $searchfields = array("S.user_id", "displayname", "email", "S.updated_at", "user_key");
 
 // Note that inner where is lower case and outer WHERE is upper case on purpose
