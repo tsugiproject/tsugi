@@ -60,6 +60,7 @@ function dumpTable($stmt, $view=false) {
     }
     echo("</table>\n");
 }
+
 function welcomeUserCourse($LTI) {
 	echo("<p>Welcome");
 	if ( isset($LTI['user_displayname']) ) {
@@ -899,7 +900,7 @@ function matchColumns($colname, $columns) {
     return false;
 }
 
-$DEFAULT_PAGE_LENGTH = 2;
+$DEFAULT_PAGE_LENGTH = 20;
 // Requires  the keyword WHERE to be upper case 
 // We will add the ORDER BY clause at the end using the first field in $orderfields
 // by default
@@ -1014,6 +1015,12 @@ function pagedPDOTable($pdo, $sql, &$queryvalues, $searchfields=array(), $orderf
 onclick="document.getElementById('paged_search_box').value = '';"
 >
 </form>
+<?php
+    if ( $count < 1 ) {
+        echo("<p>Nothing to display.</p>\n");
+        return;
+    }
+?>
 
 <table border="1">
 <tr>

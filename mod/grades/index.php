@@ -12,10 +12,9 @@ $p = $CFG->dbprefix;
 
 $user_info = false;
 $links = array();
-$user_stmt = false;
-$class_stmt = false;
+$user_sql = false;
 $class_sql = false;
-$result_stmt = false;
+$summary_sql = false;
 
 $link_id = 0;
 if ( isset($_GET['link_id']) ) {
@@ -28,20 +27,21 @@ if ( $instructor && $link_id > 0 ) {
 }
 
 if ( $instructor && isset($_GET['viewall'] ) ) {
-    $result_stmt = pdoQueryDie($pdo,
-        "SELECT R.user_id AS user_id, displayname, email, COUNT(grade) AS grade_count
+    $query_parms = array(":CID" => $LTI['context_id']);
+    $orderfields = array("R.user_id", "displayname", "email", "user_key", "grade_count");
+    $searchfields = array("R.user_id", "displayname", "email", "user_key");
+    $summary_sql = 
+        "SELECT R.user_id AS user_id, displayname, email, COUNT(grade) AS grade_count, user_key
         FROM {$p}lti_result AS R JOIN {$p}lti_link as L 
             ON R.link_id = L.link_id
         JOIN {$p}lti_user as U
             ON R.user_id = U.user_id
         WHERE L.context_id = :CID AND R.grade IS NOT NULL
-        GROUP BY R.user_id
-        ORDER BY email ASC",
-        array(":CID" => $LTI['context_id'])
-    );
+        GROUP BY R.user_id";
 
 } else if ( $instructor && isset($_GET['link_id'] ) ) {
-    $class_query_parms = array(":LID" => $link_id, ":CID" => $LTI['context_id']);
+    $query_parms = array(":LID" => $link_id, ":CID" => $LTI['context_id']);
+    $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at");
     $class_sql = 
         "SELECT R.user_id AS user_id, displayname, grade, R.updated_at as updated_at
         FROM {$p}lti_result AS R JOIN {$p}lti_link as L 
@@ -49,7 +49,6 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
         JOIN {$p}lti_user as U
             ON R.user_id = U.user_id
         WHERE R.link_id = :LID AND L.context_id = :CID AND R.grade IS NOT NULL";
-    // $class_stmt = pdoQueryDie($pdo, $class_sql, $class_query_parms);
 
 } else { // Gets grades for the current or specified 
     $user_id = $LTI['user_id'];
@@ -57,14 +56,14 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
         $user_id = $_GET['user_id'] + 0;
     }
 
-    $user_stmt = pdoQueryDie($pdo,
+    $query_parms = array(":UID" => $user_id, ":CID" => $LTI['context_id']);
+    $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at");
+    $user_sql = 
         "SELECT L.title as title, R.grade AS grade, 
             R.note AS note, R.updated_at as updated_at
         FROM {$p}lti_result AS R JOIN {$p}lti_link as L 
             ON R.link_id = L.link_id
-        WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL",
-        array(":UID" => $user_id, ":CID" => $LTI['context_id'])
-    );
+        WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
     $user_info = loadUserInfo($pdo, $user_id);
 }
 
@@ -113,28 +112,22 @@ if ( $links !== false && count($links) > 0 ) {
 
 echo("<p>Class: ".$LTI['context_title']."</p>\n");
 
-if ( $user_stmt !== false ) {
+if ( $user_sql !== false ) {
     if ( $user_info !== false ) {
         echo("<p>Results for ".$user_info['displayname']."</p>\n");
     }
-    dumpTable($user_stmt);
+    pagedPDO($pdo, $user_sql, $query_parms, $searchfields);
 }
 
-if ( $result_stmt !== false ) {
-    dumpTable($result_stmt, 'index.php');
+if ( $summary_sql !== false ) {
+    pagedPDO($pdo, $summary_sql, $query_parms, $searchfields, $orderfields);
 }
 
 if ( $class_sql !== false ) {
     if ( $link_info !== false ) {
         echo("<p>Results for ".$link_info['title']."</p>\n");
     }
-    // dumpTable($class_stmt, 'index.php');
-
-    $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at");
-    pagedPDO($pdo, $class_sql, $class_query_parms, $searchfields);
-    // $newsql = pagedPDOQuery($class_sql, $class_query_parms, $searchfields);
-    // pagedPDOTable($pdo, $newsql, $class_query_parms, $searchfields);
-
+    pagedPDO($pdo, $class_sql, $query_parms, $searchfields);
 }
 
 
