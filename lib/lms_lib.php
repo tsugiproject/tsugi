@@ -900,10 +900,15 @@ function matchColumns($colname, $columns) {
     return false;
 }
 
-$DEFAULT_PAGE_LENGTH = 20;
-// Requires  the keyword WHERE to be upper case 
+$DEFAULT_PAGE_LENGTH = 20;  // Setting this to 2 is good for debugging
+
+// Requires the keyword WHERE to be upper case - if a query has more than one WHERE clause
+// they should all be lower case except the one where the LIKE clauses will be added.
+
 // We will add the ORDER BY clause at the end using the first field in $orderfields
-// by default
+// is there is not a 'order_by' in $params
+
+// Normally $params should just default to $_GET
 function pagedPDOQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=false, $params=false) {
     global $DEFAULT_PAGE_LENGTH;
     if ( $params == false ) $params = $_GET;
@@ -959,7 +964,7 @@ function pagedPDOQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=
     return $newsql . "\n";
 }
 
-function pagedPDOTable($pdo, $sql, &$queryvalues, $searchfields=array(), $orderfields=false, $params=false) {
+function pagedPDOTable($pdo, $sql, &$queryvalues, $searchfields=array(), $orderfields=false, $view=false, $params=false) {
     global $DEFAULT_PAGE_LENGTH;
     if ( $params === false ) $params = $_GET;
     if ( $orderfields === false ) $orderfields = $searchfields;
@@ -1026,7 +1031,7 @@ onclick="document.getElementById('paged_search_box').value = '';"
 <tr>
 <?
     $first = true;
-    $view = "index.php";
+    if ( $view === false ) $view = basename($_SERVER['PHP_SELF']);
     foreach ( $rows as $row ) {
         $count--;
         if ( $count < 0 ) break;
@@ -1035,6 +1040,7 @@ onclick="document.getElementById('paged_search_box').value = '';"
             $desc = isset($params['desc']) ? $params['desc'] + 0 : 0;
             $order_by = isset($params['order_by']) ? $params['order_by'] : '';
             foreach($row as $k => $v ) {
+                if ( strpos($k, "_") === 0 ) continue;
                 if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
                     continue;
                 }
@@ -1055,7 +1061,7 @@ onclick="document.getElementById('paged_search_box').value = '';"
                     echo($stuff);
                 }
                 echo('" style="color: '.$color.'">');
-                echo(ucfirst($k));
+                echo(ucwords(str_replace('_',' ',$k)));
                 echo("</a></th>\n");
             }
             echo("</tr>\n");
@@ -1065,6 +1071,7 @@ onclick="document.getElementById('paged_search_box').value = '';"
         $link_name = false;
         echo("\n<tr>\n");
         foreach($row as $k => $v ) {
+            if ( strpos($k, "_") === 0 ) continue;
             if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
                 $link_name = $k;
                 $link_val = $v;
@@ -1085,14 +1092,12 @@ onclick="document.getElementById('paged_search_box').value = '';"
         echo("</tr>\n");
     }
     echo("</table>\n");
-    // echo("<pre>\n");
-    // echo($sql); 
-    // echo("\n</pre>\n");
 }
 
-function pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields=false, $params=false) {
+function pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields=false, $view=false, $params=false) {
     $newsql = pagedPDOQuery($sql, $query_parms, $searchfields, $orderfields, $params);
-    pagedPDOTable($pdo, $newsql, $query_parms, $searchfields, $orderfields, $params);
+    // echo("<pre>\n$newsql\n</pre>\n");
+    pagedPDOTable($pdo, $newsql, $query_parms, $searchfields, $orderfields, $view, $params);
 }
 
 // No trailer
