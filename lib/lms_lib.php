@@ -1072,7 +1072,7 @@ onclick="document.getElementById('paged_search_box').value = '';"
             }
             echo("<td>");
             if ( $link_name !== false ) {
-                echo('<a href="'.$view.$link_name."=".$link_val.'">');
+                echo('<a href="'.$view.'?'.$link_name."=".$link_val.'">');
                 if ( strlen($v) < 1 ) $v = $link_name.':'.$link_val;
             }
             echo(htmlent_utf8($v));
