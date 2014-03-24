@@ -161,7 +161,8 @@ function load_files() {
             $("#redo").show();
         } else {
             $("#check").show();
-            $("#grade").show();
+            // $("#grade").show();
+            gradeit();
         }
     }
 
@@ -264,6 +265,7 @@ function load_files() {
     }
 
     function gradeit() {
+        window.console && console.log("Sending grade...");
         $("#check").hide();
         $("#spinner").show();
 
@@ -277,6 +279,7 @@ function load_files() {
             dataType: "json",
             data: toSend
         }).done( function (data) {
+            window.console && console.log("Grade response received...");
             window.console && console.log(data);
             $("#spinner").hide();
             if ( data["status"] == "success") {
@@ -326,8 +329,8 @@ doneButton();
 <img id="spinner" src="skulpt/spinner.gif" style="vertical-align: middle;display: none">
 <span id="redo" style="color:red;display:none"> Please Correct your code and re-run. </span>
 <span id="check" style="color:green;display:none"> Congratulations the exercise is complete. </span>
-<span id="gradegood" style="color:green;display:none"> Grade Updated. </span>
-<span id="gradebad" style="color:red;display:none"> Error storing grade. </span>
+<span id="gradegood" style="color:green;display:none"> Grade updated on server. </span>
+<span id="gradebad" style="color:red;display:none"> Error storing grade on server. </span>
 <br/>
 &nbsp;<br/>
 <div id="textarea" class="inputarea">
