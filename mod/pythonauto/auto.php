@@ -236,7 +236,7 @@ function load_files() {
         var toSend = { code : prog };
         $.ajax({
             type: "POST",
-            url: "<? echo sessionize('sendcode.php'); ?>",
+            url: "<?php echo sessionize('sendcode.php'); ?>",
             dataType: "json",
             data: toSend
         }).done( function (data) {
@@ -281,7 +281,7 @@ function load_files() {
 
         $.ajax({
             type: "POST",
-            url: "<? echo sessionize('sendgrade.php'); ?>",
+            url: "<?php echo sessionize('sendgrade.php'); ?>",
             dataType: "json",
             data: toSend
         }).done( function (data) {

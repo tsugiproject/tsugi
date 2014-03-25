@@ -160,8 +160,8 @@ body {
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
-      <script src="<? echo($CFG->wwwroot); ?>/static/html5shiv/html5shiv.js"></script>
-      <script src="<? echo($CFG->wwwroot); ?>/static/respond/respond.min.js"></script>
+      <script src="<?php echo($CFG->wwwroot); ?>/static/html5shiv/html5shiv.js"></script>
+      <script src="<?php echo($CFG->wwwroot); ?>/static/respond/respond.min.js"></script>
     <![endif]-->
 
 <?php
@@ -1040,7 +1040,8 @@ onclick="document.getElementById('paged_search_box').value = '';"
 
 <table border="1">
 <tr>
-<?
+<?php
+
     $first = true;
     $thispage = basename($_SERVER['PHP_SELF']);
     if ( $view === false ) $view = $thispage;
@@ -1083,10 +1084,10 @@ onclick="document.getElementById('paged_search_box').value = '';"
             }
             echo("</tr>\n");
         }
-        $first = false;
 
+        $first = false;
         $link_name = false;
-        echo("\n<tr>\n");
+        echo("<tr>\n");
         foreach($row as $k => $v ) {
             if ( strpos($k, "_") === 0 ) continue;
             if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
@@ -1118,4 +1119,3 @@ function pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields=false, $
 }
 
 // No trailer
-
