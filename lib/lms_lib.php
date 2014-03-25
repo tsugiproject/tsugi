@@ -486,6 +486,14 @@ function findFiles($filename="index.php", $reldir=false) {
     return $files;
 }
 
+function getCustom($varname) {
+	if ( isset($_SESSION['lti_post']) && 
+            isset($_SESSION['lti_post']['custom_'.$varname]) ) {
+        return $_SESSION['lti_post']['custom_'.$varname];
+    }
+    return false;
+}
+
 function doneButton() {
     $url = false;
 	if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {

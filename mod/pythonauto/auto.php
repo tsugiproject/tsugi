@@ -23,6 +23,7 @@ if ( $row !== false && isset($row['json'])) {
 
 headerContent();
 
+// Defaults
 $QTEXT = 'Please write a Python program to open the file 
 "mbox-short.txt" and count the number of lines in the file and 
 match the desired output below:';
@@ -36,11 +37,16 @@ for line in fh:
 print count,"Lines"
 ';
 $CHECKS = false;
-$ex = "count";
 $EX = true;
 
-if ( isset($_REQUEST["exercise"]) ) {
+// Check which exercise we are supposed to do
+$ex = getCustom('exercise');
+if ( $ex === false && isset($_REQUEST["exercise"]) ) {
     $ex = $_REQUEST["exercise"];
+}
+if ( $ex === false ) {
+    $ex = "count";
+} else {
     $EX = false;
     if ( isset($EXERCISES[$ex]) ) $EX = $EXERCISES[$ex];
     if ( $EX !== false ) {
