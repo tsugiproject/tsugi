@@ -19,7 +19,4 @@ src="<?php echo($CFG->staticroot); ?>/static/js/jquery-1.10.2.min.js"></script>
 <p>
 <a style="color:grey" href="chatlist.php" target="_blank">Launch chatlist.php</a>
 </p>
-<p id="messages">
-<img id="spinner" src="spinner.gif">
-</p>
 </body>
