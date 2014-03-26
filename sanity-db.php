@@ -29,8 +29,8 @@ Once you have the database, account and password you must update your
 <code>config.php</code> with this information.</p>
 ");
     } else if ( strpos($msg, 'Access denied for user') !== false ) {
-        echo('<p>It appears that you have successfully created your database
-but are unable to access it due to a problem with the user and password.
+        echo('<p>It appears that you are unable to access 
+your database due to a problem with the user and password.
 The user and password for the database conneciton are setup using either a 
 SQL <code>GRANT</code> command or created in an adminstration tool like CPanel.
 Or perhaps a system administrator created the database and gave you the

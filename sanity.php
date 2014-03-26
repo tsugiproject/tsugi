@@ -1,4 +1,10 @@
 <?php
+
+if ( ! isset($CFG) ) { 
+    die('Software not configured, please copy config-dist.php to config.php and 
+	edit config.php according to the instructions.');
+}
+
 if (!defined('PHP_VERSION_ID')) {
     $version = explode('.', PHP_VERSION);
 

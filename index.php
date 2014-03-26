@@ -1,9 +1,9 @@
 <?php
 // In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
-require_once("config.php");
-require_once("lib/lti_util.php");
+include_once("config.php");
 require_once("sanity.php");
+require_once("lib/lti_util.php");
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
