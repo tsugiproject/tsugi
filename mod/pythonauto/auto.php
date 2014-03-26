@@ -278,8 +278,8 @@ function load_files() {
         $("#check").hide();
         $("#spinner").show();
 
-        var oldgrade = <?php echo($row['grade']); ?>;
-        var grade = 1.0 - <?php echo($dueDate->penalty); ?>;
+        var oldgrade = <?php echo($row && isset($row['grade']) ? $row['grade'] : '0.0'); ?>;
+        var grade = 1.0 - <?php echo( $dueDate->penalty); ?>;
         if ( oldgrade > grade ) grade = oldgrade;  // Never go down
         window.console && console.log("Sending grade="+grade);
         var code = document.getElementById("code").value;
