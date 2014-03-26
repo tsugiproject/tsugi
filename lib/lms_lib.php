@@ -685,6 +685,7 @@ function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
             error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail);
         } else {
             error_log('Grade failure:'.$status);
+            error_log($lti['service']);
             error_log($response);
             return $status;
         }
