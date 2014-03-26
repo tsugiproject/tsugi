@@ -13,6 +13,21 @@ if ( defined('PDO_WILL_CATCH') ) {
     }
 }
 
+function pdoRowDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+    $stmt = pdoQueryDie($pdo, $sql, $arr, $error_log);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row;
+}
+
+function pdoAllRowsDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+    $stmt = pdoQueryDie($pdo, $sql, $arr, $error_log);
+    $rows = array();
+    while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
+        array_push($rows, $row);
+    }
+    return $rows;
+}
+
 function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     $stmt = pdoQuery($pdo, $sql, $arr, $error_log);
     if ( ! $stmt->success ) die($stmt->errorImplode);

@@ -2,6 +2,7 @@
 // In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
 require_once("config.php");
+require_once("pdo.php");
 session_start();
 
 // We must be an administrator or in developer mode
@@ -10,10 +11,44 @@ if ( ! ( isset($_SESSION["admin"]) || $CFG->DEVELOPER )  ) {
     return;
 }
 
+$key = '12345';
+if ( is_string($CFG->DEVELOPER) ) $key = $CFG->DEVELOPER;
+$row = pdoRowDie($pdo, 
+    "SELECT secret FROM {$CFG->dbprefix}lti_key WHERE key_key = :DKEY",
+    array(':DKEY' => $key));
+$secret = $row ? $row['secret'] : false;
+if ( $secret === false ) {
+    $_SESSION['error'] = 'Developer mode not properly configured';
+    header("Location: index.php");
+    return;
+}
+
+if ( isset($_POST['loginsecret']) ) {
+    if ( $_POST['loginsecret'] == $secret ) {
+        $_SESSION['developer'] = 'yes';
+        header("Location: dev.php");
+        return;
+    }
+    $_SESSION['error'] = 'Incorrect secret';
+    header("Location: index.php");
+    return;
+}
+
+if ( ! isset($_SESSION['developer'] ) ) {
+?>
+<html><head><body>
+<p>Please enter the developer password:</p>
+<form method="post">
+<input type="text" name="loginsecret" size="40">
+<input type="submit" value="Login">
+</form>
+</body>
+<?
+    return;
+}
+
 require_once("lib/lti_util.php");
 
-error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
-ini_set("display_errors", 1);
 header('Content-Type: text/html; charset=utf-8');
 
 // Load tools from various folders
@@ -29,7 +64,7 @@ require_once("dev-data.php");
 
 // Merge post data into  data
 foreach ($lmsdata as $k => $val ) {
-	if ( $_POST[$k] && strlen($_POST[$k]) > 0 ) {
+	if ( isset($_POST[$k]) && strlen($_POST[$k]) > 0 ) {
 		$lmsdata[$k] = $_POST[$k];
 	}
 }
@@ -54,16 +89,13 @@ if ( isset($_POST['instructor']) ) {
 }
 
 // Set up default LTI data
-$key = trim($_REQUEST["key"]);
-if ( ! $key ) $key = "12345";
-$secret = trim($_REQUEST["secret"]);
 if ( ! $secret ) $secret = "secret";
-$endpoint = trim($_REQUEST["endpoint"]);
+$endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
 $b64 = base64_encode($key.":::".$secret);
 if ( ! $endpoint ) $endpoint = str_replace("dev.php","lti.php",$cur_url);
 $cssurl = str_replace("dev.php","lms.css",$cur_url);
 
-$outcomes = trim($_REQUEST["outcomes"]);
+$outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
 if ( ! $outcomes ) {
     $outcomes = str_replace("dev.php","common/tool_consumer_outcome.php",$cur_url);
     $outcomes .= "?b64=" . htmlentities($b64);
