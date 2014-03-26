@@ -21,6 +21,9 @@ if ( $row !== false && isset($row['json'])) {
     if ( isset($json->code) ) $OLDCODE = $json->code;
 }
 
+// Get any due date information
+$dueDate = getDueDate();
+
 headerContent();
 
 // Defaults
@@ -77,8 +80,8 @@ body { font-family: sans-serif; }
 <script src="skulpt/skulpt.js?v=1" type="text/javascript"></script>
 <script src="skulpt/builtin.js?v=1" type="text/javascript"></script>
 -->
-<script src="skulpt-new/skulpt.min.js?v=1" type="text/javascript"></script>
-<script src="skulpt-new/skulpt-stdlib.js?v=1" type="text/javascript"></script>
+<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt.min.js?v=1" type="text/javascript"></script>
+<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt-stdlib.js?v=1" type="text/javascript"></script>
 <script type="text/javascript">
 
 function builtinRead(x)
@@ -107,13 +110,13 @@ function makefilediv(name,text) {
 // Instead of always retrieving them
 
 function load_files() {
-    $.get('romeo.txt', function(data) {
+    $.get('<?php echo(getLocalStatic(__FILE__)); ?>/static/files/romeo.txt', function(data) {
         makefilediv('romeo.txt', data);
     });
-    $.get('words.txt', function(data) {
+    $.get('<?php echo(getLocalStatic(__FILE__)); ?>/static/files/words.txt', function(data) {
         makefilediv('words.txt', data);
     });
-    $.get('mbox-short.txt', function(data) {
+    $.get('<?php echo(getLocalStatic(__FILE__)); ?>/static/files/mbox-short.txt', function(data) {
         makefilediv('mbox-short.txt', data);
     });
 }
@@ -141,6 +144,7 @@ function load_files() {
         $("#grade").hide();
         $("#redo").hide();
         $("#gradegood").hide();
+        $("#gradelow").hide();
         $("#gradebad").hide();
     }
 
@@ -271,11 +275,13 @@ function load_files() {
     }
 
     function gradeit() {
-        window.console && console.log("Sending grade...");
         $("#check").hide();
         $("#spinner").show();
 
-        var grade = 1.0;
+        var oldgrade = <?php echo($row['grade']); ?>;
+        var grade = 1.0 - <?php echo($dueDate->penalty); ?>;
+        if ( oldgrade > grade ) grade = oldgrade;  // Never go down
+        window.console && console.log("Sending grade="+grade);
         var code = document.getElementById("code").value;
         var toSend = { grade : grade, code : code };
 
@@ -313,6 +319,11 @@ startBody();
 <div id="overall" style="border: 3px solid black;">
 <div id="inputs">
 <div class="well" style="background-color: #EEE8AA">
+<?php
+if ( $dueDate->message ) {
+    echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
+}
+?>
 <?php echo($QTEXT); ?>
 </div>
 <form id="forminput">
@@ -336,6 +347,7 @@ doneButton();
 <span id="redo" style="color:red;display:none"> Please Correct your code and re-run. </span>
 <span id="check" style="color:green;display:none"> Congratulations the exercise is complete. </span>
 <span id="gradegood" style="color:green;display:none"> Grade updated on server. </span>
+<span id="gradelow" style="color:green;display:none"> Grade updated on server. </span>
 <span id="gradebad" style="color:red;display:none"> Error storing grade on server. </span>
 <br/>
 &nbsp;<br/>
@@ -422,7 +434,7 @@ function load_cm() {
 
  $().ready(function(){
     // I cannot make this reliable :(
-    $(window).resize(function () { compute_divs(); console.log('zap'); });
+    $(window).resize(function () { compute_divs(); });
     window.MOBILE = $(window).width() <= 480;
     // window.MOBILE = TRUE;
     load_files();
