@@ -1,5 +1,7 @@
 <?php
 
+if ( isset($CFG->upgrading) && $CFG->upgrading === true ) require_once("upgrading.php");
+
 require_once $CFG->dirroot."/lib/lms_lib.php";  // During transition
 
 // Check if we have been asked to do cookie or cookieless sessions

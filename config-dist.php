@@ -9,6 +9,10 @@ unset($CFG);
 global $CFG;
 $CFG = new stdClass();
 
+// Set to true to redirect to the upgrading.php script
+// Also copy upgrading-dist.php to upgrading.php and add your message
+$CFG->upgrading = false;
+
 // This is how the system will refer to itself.
 $CFG->servicename = 'TSUGI (dev)';
 
