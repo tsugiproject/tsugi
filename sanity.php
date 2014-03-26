@@ -1,8 +1,8 @@
 <?php
 
 if ( ! isset($CFG) ) { 
-    die('Software not configured, please copy config-dist.php to config.php and 
-	edit config.php according to the instructions.');
+    die('This software is not correctly configured, please copy config-dist.php to 
+	config.php and edit config.php according to the installation instructions.');
 }
 
 if (!defined('PHP_VERSION_ID')) {
