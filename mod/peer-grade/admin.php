@@ -58,6 +58,6 @@ pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields, "student.php");
 <br/>
 <input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
 </form>
-<?
+<?php
 
 footerContent();

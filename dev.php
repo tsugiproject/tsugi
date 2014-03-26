@@ -43,7 +43,7 @@ if ( ! isset($_SESSION['developer'] ) ) {
 <input type="submit" value="Login">
 </form>
 </body>
-<?
+<?php
     return;
 }
 

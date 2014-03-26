@@ -44,5 +44,5 @@ their
 <a href="http://www.pythonlearn.com/install.php" target="_new">computers</a>
 and turn in their assignments for grading here.
 </p>
-<?
+<?php
 footerContent();

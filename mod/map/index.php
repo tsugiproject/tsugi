@@ -113,6 +113,6 @@ $(window).resize(function() {
     $(window).width()+' height='+$(window).height());
 });
 </script>
-<?
+<?php
 footerEnd();
 

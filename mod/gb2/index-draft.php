@@ -64,6 +64,6 @@ jQuery("#list2").jqGrid({
 });
 jQuery("#list2").jqGrid('navGrid','#pager2',{edit:false,add:false,del:false});
 </script>
-<?
+<?php
 footerEnd();
 
