@@ -382,6 +382,7 @@ function sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consu
 
     return do_post($endpoint,$body,$header);
 }
+
 function get_post_sent_debug() {
     global $LastPOSTMethod;
     global $LastPOSTURL;
@@ -432,6 +433,7 @@ function do_post($url, $body, $header) {
     $lastPOSTResponse = post_socket($url, $body, $header);
     $LastPOSTMethod = "Socket";
     if ( $lastPOSTResponse !== false ) return $lastPOSTResponse;
+    // Timeout does not seem to yet work in post_stream
     $lastPOSTResponse = post_stream($url, $body, $header);
     $LastPOSTMethod = "Stream";
     if ( $lastPOSTResponse !== false ) return $lastPOSTResponse;
@@ -445,6 +447,7 @@ function do_post($url, $body, $header) {
 
 // From: http://php.net/manual/en/function.file-get-contents.php
 function post_socket($endpoint, $data, $moreheaders=false) {
+  global $sendOAuthBodyPOSTTimeout;
   if ( ! function_exists('fsockopen') ) return false;
   if ( ! function_exists('stream_get_transports') ) return false;
     $url = parse_url($endpoint);
@@ -483,12 +486,25 @@ function post_socket($endpoint, $data, $moreheaders=false) {
     // echo("PORT=".$url['port']);
     $hostname = $url['host'];
     if ( $url['port'] == 443 ) $hostname = "ssl://" . $hostname;
+    $timeout = 10;
+    if ( isset($sendOAuthBodyPOSTTimeout) ) $timeout = $sendOAuthBodyPOSTTimeout;
     try {
-        $fp = fsockopen($hostname, $url['port'], $errno, $errstr, 30);
+        $fp = fsockopen($hostname, $url['port'], $errno, $errstr, $timeout);
+        stream_set_timeout($fp, $timeout);
+        stream_set_blocking($fp, TRUE );
         if($fp) {
             fputs($fp, $headers);
             $result = '';
-            while(!feof($fp)) { $result .= fgets($fp, 128); }
+            while(!feof($fp)) { 
+                $data = fgets($fp, 1024); 
+                if ( $data === false ) {
+                    $info = stream_get_meta_data($fp);
+                    if ($info['timed_out']) {
+                        throw new Exception('Time out');
+                    }
+                }
+                $result .= $data;
+            }
             fclose($fp);
             // removes HTTP response headers
             $pattern="/^.*\r\n\r\n/s";
@@ -496,15 +512,21 @@ function post_socket($endpoint, $data, $moreheaders=false) {
             return $result;
         }
     } catch(Exception $e) {
-        return false;
+        error_log("post_socket error=".$e->getMessage());
+        throw $e;
     }
     return false;
 }
 
 function post_stream($url, $body, $header) {
+    global $sendOAuthBodyPOSTTimeout;
+    $timeout = 10;
+    if ( isset($sendOAuthBodyPOSTTimeout) ) $timeout = $sendOAuthBodyPOSTTimeout;
+
     $params = array('http' => array(
         'method' => 'POST',
         'content' => $body,
+        'timeout' => $timeout*1.0, 
         'header' => $header
         ));
 
@@ -513,7 +535,8 @@ function post_stream($url, $body, $header) {
         $fp = @fopen($url, 'r', false, $ctx);
         $response = @stream_get_contents($fp);
     } catch (Exception $e) {
-        return false;
+        error_log("post_stream error=".$e->getMessage());
+        throw $e;
     }
     return $response;
 }
@@ -523,6 +546,7 @@ function post_curl($url, $body, $header) {
   global $last_http_response;
   global $LastHeadersSent;
   global $LastHeadersReceived;
+  global $sendOAuthBodyPOSTTimeout;
 
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, $url);
@@ -541,6 +565,10 @@ function post_curl($url, $body, $header) {
 
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // ask for results to be returned
   curl_setopt($ch, CURLOPT_HEADER, 1);
+  $timeout = 10;
+  if ( isset($sendOAuthBodyPOSTTimeout) ) $timeout = $sendOAuthBodyPOSTTimeout;
+  curl_setopt($ch,CURLOPT_TIMEOUT,$timeout);
+  curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);
 /*
   if(CurlHelper::checkHttpsURL($url)) {
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -551,6 +579,10 @@ function post_curl($url, $body, $header) {
   // Send to remote and return data to caller.
   $result = curl_exec($ch);
   $info = curl_getinfo($ch);
+  if ( curl_errno($ch) == 28 ) {
+    error_log("CURL Timed out - ".$url);
+    throw new Exception('Time out');
+  }
   $last_http_response = $info['http_code'];
   $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
   $LastHeadersReceived = substr($result, 0, $header_size);

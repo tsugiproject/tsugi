@@ -1,4 +1,5 @@
 <?php
+// error_log("Sleeping...");sleep(20);error_log("Sleep done");
 if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
  error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 } else { 
