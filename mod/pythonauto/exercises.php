@@ -231,7 +231,7 @@ You can download the sample data at
 <a href="http://www.pythonlearn.com/code/mbox-short.txt" target="_blank">
 http://www.pythonlearn.com/code/mbox-short.txt</a> when you are testing 
 below enter <b>mbox-short.txt</b> as the file name.',
-"desired" => "Average spam confidence: 0.7507185185185187",
+"desired" => "Average spam confidence: 0.750718518519",
 "code" => '# Use the file name mbox-short.txt as the file name
 fname = raw_input("Enter file name: ")
 fh = open(fname)
