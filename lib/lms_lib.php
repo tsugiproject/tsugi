@@ -757,7 +757,7 @@ function cacheCheck($cacheloc, $cachekey)
     if ( isset($_SESSION[$cacheloc]) ) {
         $cache_row = $_SESSION[$cacheloc];
         if ( $cache_row[0] == $cachekey ) {
-            error_log("Cache hit $cacheloc");
+            // error_log("Cache hit $cacheloc");
             return $cache_row[1];
         }
         unset($_SESSION[$cacheloc]);
@@ -780,7 +780,7 @@ function cacheClear($cacheloc)
 {
     $cacheloc = "cache_" . $cacheloc;
     if ( isset($_SESSION[$cacheloc]) ) {
-        error_log("Cache clear $cacheloc");
+        // error_log("Cache clear $cacheloc");
     }
     unset($_SESSION[$cacheloc]);
 }

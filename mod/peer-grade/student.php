@@ -52,6 +52,22 @@ if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
     return;
 }
 
+// Compute grade
+$computed_grade = computeGrade($pdo, $assn_id, $assn_json, $user_id);
+if ( isset($_POST['resendSubmit']) ) {
+    $result = lookupResult($pdo, $LTI, $user_id);
+    $_SESSION['lti']['grade'] = -1;  // Force a resend
+    $status = sendGrade($computed_grade, false, $pdo, $result); // This is the slow bit
+    if ( $status === true ) {
+        $_SESSION['success'] = 'Grade submitted to server';
+    } else {
+        error_log("Problem sending grade ".$status);
+        $_SESSION['error'] = 'Error: '.$status;
+    }
+    header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
+    return;
+}
+
 // Load user info
 $user_row = loadUserInfo($pdo, $user_id);
 
@@ -97,6 +113,7 @@ if ( $submit_id !== false ) {
     $our_flags = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+
 // View 
 headerContent();
 startBody();
@@ -124,6 +141,21 @@ if ( isset($_GET['delete']) ) {
 } else {
     echo('<p><a href="student.php?delete=yes&user_id='.$user_id.'">Delete this 
         submission and grades (allows student to resubmit)</a></p>'."\n");
+}
+
+echo("<p>Computed grade: ".$computed_grade."<br/>\n");
+echo("Stored grade: ".$LTI['grade']."</p>\n");
+
+if ( isset($_GET['resend']) ) {
+    echo('<form method="post">
+        <input type="hidden" name="user_id" value="'.$user_id.'">
+        <input type="submit" name="resendSubmit" value="Resend the Grade">
+        <input type="submit" name="doCancel" value="Cancel Resend"
+            onclick="location=\''.sessionize('student.php?user_id='.$user_id).'\'; return false;">
+        </form>');
+} else {
+    echo('<p><a href="student.php?resend=yes&user_id='.$user_id.'">
+        Resend computed grade to the LMS</a></p>');
 }
 
 if ( count($our_grades) < 1 ) {
@@ -165,7 +197,6 @@ if ( $our_flags !== false && count($our_flags) > 0 ) {
     echo("</table>\n");
     echo("</p>\n");
 }
-
 ?>
 <form method="post">
 <br/>
