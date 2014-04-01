@@ -69,7 +69,7 @@ array( "{$CFG->dbprefix}lti_link",
         REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    UNIQUE(link_sha256),
+    UNIQUE(link_sha256, context_id),
     PRIMARY KEY (link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
