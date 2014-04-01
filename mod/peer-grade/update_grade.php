@@ -44,14 +44,17 @@ if ( $user_id != $LTI['user_id'] ) {
 }
 
 // Send the grade
-$status = sendGrade($grade, false, $pdo, $result);
+// $status = sendGrade($grade, false, $pdo, $result);
+$debuglog = array();
+$status = sendGradeDetail($grade, null, null, $debuglog, $pdo, $result); // This is the slow bit
+
 if ( $status === true ) {
     if ( $user_id != $LTI['user_id'] ) {
-        json_output(array("status" => $status, "detail" => $LastPOXGradeResponse));
+        json_output(array("status" => $status, "debug" => $debuglog));
     } else { 
-        json_output(array("status" => $status, "grade" => $grade, "detail" => $LastPOXGradeResponse));
+        json_output(array("status" => $status, "grade" => $grade, "debug" => $debuglog));
     }
 } else { 
-    json_error($status, $LastPOXGradeResponse);
+    json_error($status, $debuglog);
 }
 

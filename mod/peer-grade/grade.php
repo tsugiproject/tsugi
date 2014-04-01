@@ -122,7 +122,10 @@ if ( isset($_POST['points']) && isset($_POST['submit_id']) &&
     $_SESSION['success'] = 'Grade submitted';
     if ( $grade > 0 ) {
         $result = lookupResult($pdo, $LTI, $user_id);
-        $status = sendGrade($grade, false, $pdo, $result); // This is the slow bit
+        // $status = sendGrade($grade, false, $pdo, $result); // This is the slow bit
+        $debuglog = array();
+        $status = sendGradeDetail($computed_grade, null, null, $debuglog, $pdo, $result); // This is the slow bit
+
         if ( $status === true ) {
             $_SESSION['success'] = 'Grade submitted to server';
         } else {

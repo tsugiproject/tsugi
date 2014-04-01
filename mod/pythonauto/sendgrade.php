@@ -13,13 +13,13 @@ $grade = 1.0;
 $code = $_POST['code'];
 $json = json_encode(array("code" => $code));
 
-$retval = sendGradeDetail($grade, null, $json, false, $pdo, false);
+$debuglog = array();
+$retval = sendGradeDetail($grade, null, $json, $debuglog, $pdo, false);
 if ( is_string($retval) ) {
-    echo json_encode(Array("status" => "failure", "detail" => $retval));
+    echo json_encode(Array("status" => "failure", "detail" => $retval, "debuglog" => $debuglog));
     return;
 }
 
-$retval = Array("status" => "success");
-if ( isset($_GET["debug"]) ) $retval['debug'] = $debug;
+$retval = Array("status" => "success", "debuglog" => $debuglog);
 echo json_encode($retval);
 ?>

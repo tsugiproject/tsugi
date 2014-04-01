@@ -299,6 +299,11 @@ function load_files() {
             } else {
                 $("#gradebad").show();
             }
+        }).error( function(data) {;
+            window.console && console.log("Grade response received...");
+            window.console && console.log(data);
+            $("#spinner").hide();
+            $("#gradebad").show();
         });
         return false;
     }

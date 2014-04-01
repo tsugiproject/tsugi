@@ -56,14 +56,19 @@ if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
 $computed_grade = computeGrade($pdo, $assn_id, $assn_json, $user_id);
 if ( isset($_POST['resendSubmit']) ) {
     $result = lookupResult($pdo, $LTI, $user_id);
+    // Force a resend
     $_SESSION['lti']['grade'] = -1;  // Force a resend
-    $status = sendGrade($computed_grade, false, $pdo, $result); // This is the slow bit
+    $result['grade'] = -1;
+    $debuglog = array();
+    // $status = sendGrade($computed_grade, $debuglog, $pdo, $result); // This is the slow bit
+    $status = sendGradeDetail($computed_grade, null, null, $debuglog, $pdo, $result); // This is the slow bit
     if ( $status === true ) {
         $_SESSION['success'] = 'Grade submitted to server';
     } else {
         error_log("Problem sending grade ".$status);
         $_SESSION['error'] = 'Error: '.$status;
     }
+    $_SESSION['debuglog'] = $debuglog;
     header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
     return;
 }
@@ -118,6 +123,13 @@ if ( $submit_id !== false ) {
 headerContent();
 startBody();
 flashMessages();
+
+if ( isset($_SESSION['debuglog']) ) {
+    echo("<p>Grade send log below:</p>\n");
+    dumpGradeDebug($_SESSION['debuglog']);
+    unset($_SESSION['debuglog']);
+    echo("<p></p>\n");
+}
 
 if ( $user_row != false ) {
     echo("<p>".htmlent_utf8($user_row['displayname'])." (".htmlent_utf8($user_row['email']).")</p>\n");

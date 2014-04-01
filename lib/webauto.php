@@ -109,7 +109,9 @@ function testPassed($grade, $url) {
 
     global $pdo;
     $json = json_encode(array("url" => $url));
-    $retval = sendGradeDetail($grade, null, $json, true, $pdo, false);
+    $debuglog = array();
+    $retval = sendGradeDetail($grade, null, $json, $debuglog, $pdo, false);
+    dumpGradeDebug($dumplog);
 	if ( $retval == true ) {
 		$success = "Grade sent to server (".intval($grade*100)."%)";
 	} else if ( is_string($retval) ) {

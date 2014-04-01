@@ -594,31 +594,49 @@ function sendGrade($grade, $verbose=true, $pdo=false, $result=false) {
 	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
+    $debuglog = array();
+    $retval = false;
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        return sendGradeInternal($grade, null, null, $verbose, $pdo, $result);
+        $retval = sendGradeInternal($grade, null, null, $debuglog, $pdo, $result);
 	} catch(Exception $e) {
-		$msg = "Grade Exception: ".$e->getMessage();
-		error_log($msg);
-        return $msg;
+		$retval = "Grade Exception: ".$e->getMessage();
+		error_log($retval);
+        $debuglog[] = $retval;
     } 
+    if ( $verbose ) dumpGradeDebug($debuglog);
+    return $retval;
 }
 
-function sendGradeDetail($grade, $note=null, $json=null, $verbose, $pdo=false, $result=false) {
+function dumpGradeDebug($debuglog) {
+    if ( ! is_array($debuglog) ) return;
+
+    foreach ( $debuglog as $k => $v ) {
+        if ( count($v) > 1 ) {
+            togglePre($v[0], $v[1]);
+        } else { 
+            line_out($v[0]);
+        }
+    }
+}
+
+function sendGradeDetail($grade, $note=null, $json=null, &$debuglog, $pdo=false, $result=false) {
 	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
+    $retval = false;
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        return sendGradeInternal($grade, $note, $json, false, $pdo, $result);
+        $retval = sendGradeInternal($grade, $note, $json, $debuglog, $pdo, $result);
 	} catch(Exception $e) {
-		$msg = "Grade Exception: ".$e->getMessage();
-		error_log($msg);
-        return $msg;
-    } 
+		$retval = "Grade Exception: ".$e->getMessage();
+        $debuglog[] = $retval;
+		error_log($retval);
+    }
+    return $retval;
 }
 
-function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
+function sendGradeInternal($grade, $note, $json, &$debuglog, $pdo,  $result) {
     global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
@@ -641,8 +659,11 @@ function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
     }
 
     // Check if the grade was already sent...
-    if ( isset($result['grade']) && $grade == $result['grade'] ) {
-        error_log("Grade result_id=".$result['result_id']." grade= $grade already sent...");
+    $ONLYSENDONCE = false;
+    if ( $ONLYSENDONCE && isset($result['grade']) && $grade == $result['grade'] ) {
+        $msg = "Grade result_id=".$result['result_id']." grade= $grade already sent...";
+        if ( is_array($debuglog) ) $debuglog[] = $msg;
+        error_log($msg);
         $status = true;
     } else {
 
@@ -657,16 +678,15 @@ function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
 		    array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
 		    getPOXGradeRequest());
     
-	    if ( $verbose ) line_out('Sending grade to '.$lti['service']);
+	    if ( is_array($debuglog) ) $debuglog[] = array('Sending '.$grade.' to '.$lti['service'].' sourcedid='.$sourcedid);
 
-	    if ( $verbose ) togglePre("Grade API Request (debug)",$postBody);
-        if ( $verbose ) flush();
+	    if ( is_array($debuglog) )  $debuglog[] = array('Grade API Request (debug)',$postBody);
 
 	    $response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], 
             $content_type, $postBody);
 	    global $LastOAuthBodyBaseString;
 	    $lbs = $LastOAuthBodyBaseString;
-	    if ( $verbose ) togglePre("Grade API Response (debug)",$response);
+	    if ( is_array($debuglog) )  $debuglog[] = array("Grade API Response (debug)",$response);
         $LastPOXGradeResponse = $response;
         $status = "Failure to store grade";
 	    try {
@@ -678,13 +698,18 @@ function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
             }
 	    } catch(Exception $e) {
 		    $status = $e->getMessage();
+	        if ( is_array($debuglog) )  $debuglog[] = array("Exception: ".$status);
 	    }
         $detail = $status;
         if ( $detail === true ) {
             $detail = 'Success';
-            error_log('Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail);
+            $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
+            error_log($msg);
+	        if ( is_array($debuglog) )  $debuglog[] = array($msg);
         } else {
-            error_log('Grade failure:'.$status);
+            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
+            error_log($msg);
+	        if ( is_array($debuglog) )  $debuglog[] = array($msg);
             error_log($lti['service']);
             error_log($response);
             return $status;
@@ -704,10 +729,12 @@ function sendGradeInternal($grade, $note, $json, $verbose, $pdo,  $result) {
                 ':RID' => $result['result_id'])
         );
         if ( $stmt->success ) {
-            error_log("Grade updated result_id=".$result['result_id']." grade=$grade");
+            $msg = "Grade updated result_id=".$result['result_id']." grade=$grade";
         } else {
-            error_log("Grade NOT updated result_id=".$result['result_id']." grade=$grade");
+            $msg = "Grade NOT updated result_id=".$result['result_id']." grade=$grade";
         }
+        error_log($msg);
+        if ( is_array($debuglog) )  $debuglog[] = array($msg);
         cacheClear('lti_result');
     }
     return $status;
