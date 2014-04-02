@@ -335,7 +335,7 @@ if ( $dueDate->message ) {
 <button onclick="runit()" type="button">Check Code</button>
 <?php 
 if ( strlen($CODE) > 0 ) {
-    echo('<button onclick="resetcode()" type="button">Reset Code</button>');
+    echo('<button onclick="resetcode()" type="button">Reset Code</button> ');
 }
 doneButton();
 if ( $instructor ) {
