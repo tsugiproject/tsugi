@@ -74,7 +74,7 @@ body { font-family: sans-serif; }
 </style>
 <link href="<?php echo($CFG->staticroot); ?>/static/css/jquery.splitter.css" rel="stylesheet"/>
 <link href="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.css" rel="stylesheet"/>
-<script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.js"></script>
+<script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirrorepl.js"></script>
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/python.js"></script>
 <!--
 <script src="skulpt/skulpt.js?v=1" type="text/javascript"></script>
@@ -334,19 +334,13 @@ if ( $dueDate->message ) {
 <form id="forminput">
 <button onclick="runit()" type="button">Check Code</button>
 <?php 
-    if ( strlen($CODE) > 0 ) {
-        echo('<button onclick="resetcode()" type="button">Reset Code</button>');
-    }
-    if ( $instructor ) {
-       echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
-?>
-<span id="grade" style="display:none"></span>
-<?php } else { ?>
-<button id="grade" onclick="gradeit()" type="button" style="display:none">Submit Grade</button>
-<?php } 
-// } ?>
-<?php
+if ( strlen($CODE) > 0 ) {
+    echo('<button onclick="resetcode()" type="button">Reset Code</button>');
+}
 doneButton();
+if ( $instructor ) {
+   echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
+}
 ?>
 <img id="spinner" src="skulpt/spinner.gif" style="vertical-align: middle;display: none">
 <span id="redo" style="color:red;display:none"> Please Correct your code and re-run. </span>
@@ -434,7 +428,8 @@ function load_cm() {
         indentUnit: 4,
         matchBrackets: true
     });
-    window.CM_EDITOR.setSize('100%', '100%');
+    // Not so good when using codemirrorepl.js
+    // window.CM_EDITOR.setSize('100%', '100%');
 }
 
  $().ready(function(){
