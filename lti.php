@@ -7,8 +7,9 @@ require_once 'lib/lti_db.php';
 // keys that we use in our database (i.e. like $row)
 $post = extractPost();
 if ( $post === false ) {
-	error_log("Missing post data");
-	die("Missing data");
+    error_log("Missing post data");
+    header("Location: lti/nopost.php");
+    return;
 }
 
 if ( $post['key'] == '12345' && ! $CFG->DEVELOPER) {
@@ -51,8 +52,10 @@ $_SESSION['lti'] = $row;
 $_SESSION['lti_post'] = $_POST;
 
 // See if we have a custom assignment setting.
-$url = 'mod/php-intro/custom.php';
-if ( isset($_POST['custom_assn'] ) ) {
+if ( ! isset($_POST['custom_assn'] ) ) {
+    header("Location: lti/noredir.php");
+    return;
+} else {
     $url = $_POST['custom_assn'];
     $_SESSION['assn'] = $_POST['custom_assn'];
 }

@@ -1,9 +1,8 @@
 <?php 
 require_once "../../config.php";
+session_start();
+headerContent();
 ?>
-<!DOCTYPE>
-<html>
-<head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Skulpt</title>
     <link rel="stylesheet" type="text/css" media="all" href="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.css">
@@ -14,11 +13,28 @@ require_once "../../config.php";
     <script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt.min.js" type="text/javascript"></script>
     <script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt-stdlib.js" type="text/javascript"></script>
 </head>
-<body>
-<div class="page">
-    <textarea id="interactive" cols="85" rows="1"></textarea>
-<hr/>
-
+<?php
+startBody();
+?>
+<div class="page" style="padding: 5px; border: 3px solid grey">
+    <textarea id="interactive" cols="85" rows="10" ></textarea>
+<div style="height:80px"></div>
 </div>
-</body>
-</html>
+<div class="notes">
+You can type Python commands at the 
+above chevron prompt (>>>).  Some commands might be:
+<pre>
+>>> print "hello world"
+>>> x = 123
+>>> x = x + 100
+>>> print x
+</pre>
+The error messages might be a little different than the Python that runs on your desktop.
+</p>
+</div>
+<p>
+This interactive Python application is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> and
+<a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
+</p>
+<?php
+footerContent();

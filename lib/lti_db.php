@@ -263,7 +263,7 @@ function adjustData($pdo, $p, &$row, $post) {
 	}
 
 	// Here we handle updates to context_title, link_title, user_displayname, user_email, or role
-	if ( $post['context_title'] != $row['context_title'] ) {
+	if ( isset($post['context_title']) && $post['context_title'] != $row['context_title'] ) {
 		$stmt = $pdo->prepare("UPDATE {$p}lti_context SET title = :title WHERE context_id = :context_id");
 		$stmt->execute(array(
 			':title' => $post['context_title'],
@@ -272,7 +272,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$actions[] = "=== Updated context=".$row['context_id']." title=".$post['context_title'];
 	}
 
-	if ( $post['link_title'] != $row['link_title'] ) {
+	if ( isset($post['link_title']) && $post['link_title'] != $row['link_title'] ) {
 		$stmt = $pdo->prepare("UPDATE {$p}lti_link SET title = :title WHERE link_id = :link_id");
 		$stmt->execute(array(
 			':title' => $post['link_title'],
@@ -281,7 +281,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$actions[] = "=== Updated link=".$row['link_id']." title=".$post['link_title'];
 	}
 
-	if ( $post['user_displayname'] != $row['user_displayname'] && strlen($post['user_displayname']) > 0 ) {
+	if ( isset($post['user_displayname']) && $post['user_displayname'] != $row['user_displayname'] && strlen($post['user_displayname']) > 0 ) {
 		$stmt = $pdo->prepare("UPDATE {$p}lti_user SET displayname = :displayname WHERE user_id = :user_id");
 		$stmt->execute(array(
 			':displayname' => $post['user_displayname'],
@@ -290,7 +290,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$actions[] = "=== Updated user=".$row['user_id']." displayname=".$post['user_displayname'];
 	}
 
-	if ( $post['user_email'] != $row['user_email'] && strlen($post['user_email']) > 0 ) {
+	if ( isset($post['user_email']) && $post['user_email'] != $row['user_email'] && strlen($post['user_email']) > 0 ) {
 		$stmt = $pdo->prepare("UPDATE {$p}lti_user SET email = :email WHERE user_id = :user_id");
 		$stmt->execute(array(
 			':email' => $post['user_email'],
@@ -299,7 +299,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$actions[] = "=== Updated user=".$row['user_id']." email=".$post['user_email'];
 	}
 
-	if ( $post['role'] != $row['role'] ) {
+	if ( isset($post['role']) && $post['role'] != $row['role'] ) {
 		$stmt = $pdo->prepare("UPDATE {$p}lti_membership SET role = :role WHERE membership_id = :membership_id");
 		$stmt->execute(array(
 			':role' => $post['role'],
