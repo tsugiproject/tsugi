@@ -20,7 +20,7 @@ startBody();
     <textarea id="interactive" cols="85" rows="10" ></textarea>
 <div style="height:80px"></div>
 </div>
-<div class="notes">
+<div class="notes" style="padding:20px;">
 You can type Python commands at the 
 above chevron prompt (>>>).  Some commands might be:
 <pre>
@@ -29,7 +29,8 @@ above chevron prompt (>>>).  Some commands might be:
 >>> x = x + 100
 >>> print x
 </pre>
-The error messages might be a little different than the Python that runs on your desktop.
+This is an experimental tool and the 
+error messages might be a little different than the Python that runs on your desktop.
 </p>
 </div>
 <p>

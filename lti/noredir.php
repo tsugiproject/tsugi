@@ -4,7 +4,7 @@ headerContent();
 </head>
 <body style="padding:10px;">
 <div class="alert alert-danger" style="margin: 10px;">
-<p>This request is missing custom parameters to ocnfigure which tool you would
+<p>This request is missing custom parameters to configure which tool you would
 like to select to run on this system.   You Learning Management system can 
 set these custom parameters as key/value pairs.
 </p>
