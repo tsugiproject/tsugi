@@ -8,7 +8,7 @@ require_once 'lib/lti_db.php';
 $post = extractPost();
 if ( $post === false ) {
     error_log("Missing post data");
-    header("Location: lti/nopost.php");
+    require("lti/nopost.php");
     return;
 }
 
@@ -53,7 +53,7 @@ $_SESSION['lti_post'] = $_POST;
 
 // See if we have a custom assignment setting.
 if ( ! isset($_POST['custom_assn'] ) ) {
-    header("Location: lti/noredir.php");
+    require("lti/noredir.php");
     return;
 } else {
     $url = $_POST['custom_assn'];

@@ -310,9 +310,6 @@ function adjustData($pdo, $p, &$row, $post) {
 
 	// Restore ERRMODE
 	$pdo->setAttribute(PDO::ATTR_ERRMODE, $errormode);
-    foreach ($actions as $action) {
-        echo($action);
-    }
 	return $actions;
 }
 
