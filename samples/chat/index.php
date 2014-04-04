@@ -8,7 +8,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 session_start();
 
 // Retrieve the launch data if present
-$LTI = requireData(array('user_id', 'result_id', 'role','context_id'));
+$LTI = requireData(array('user_id', 'result_id', 'role','link_id'));
 
 ?>
 <html><head>
