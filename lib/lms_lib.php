@@ -92,8 +92,21 @@ function doCSS($context=false) {
 // and return the LMS Data
 function requireData($needed) {
 	if ( !isset($_SESSION['lti']) ) {
-		die('This tool needs to be launched using LTI');
+        if ( ini_get('session.use_cookies') == '0' ) {
+            $sess = session_name();
+            if ( isset($_POST[$sess]) || isset($_GET[$sess]) ) {
+                // We tried to set a session..
+            } else {
+                if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
+		            die('Missing '.$sess.' from POST data');
+                } else {
+		            die('Missing '.$sess.'= on URL (Missing call to sessionize?)');
+                }
+            }
+        }
+        die('This tool needs to be launched using LTI');
 	}
+
 	$LTI = $_SESSION['lti'];
 	if ( is_string($needed) && ! isset($LTI[$needed]) ) {
 		die("This tool requires ".$needed);
