@@ -376,6 +376,8 @@ if ( $OLDCODE !== false ) {
 <div id="footer" style="text-align: center">
 This autograder is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> and
 <a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
+The source code for this auto-grader is available on
+<a href="https://github.com/csev/tsugi" target="_blank">on GitHub</a>.
 <textarea id="resetcode" cols="80" style="display:none">
 <?php   echo(htmlentities($CODE)); ?>
 </textarea>
