@@ -18,7 +18,7 @@ togglePre("Session data",safeVarDump($_SESSION));
 
 ?>
 <form method="post">
-<input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
+<input type="submit" name="doDone" onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Done">
 </form>
 <?php
 flush();

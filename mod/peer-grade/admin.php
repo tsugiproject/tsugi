@@ -54,7 +54,7 @@ pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields, "student.php");
 ?>
 <form method="post">
 <br/>
-<input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
+<input type="submit" name="doDone" onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Done">
 </form>
 <?php
 

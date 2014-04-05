@@ -113,7 +113,7 @@ function requireData($needed) {
     }
 
     // Start a session if it has not been started..
-    if ( session_status() !== PHP_SESSION_ACTIVE ) {
+    if ( session_id() == "" ) {
         session_start();  // Should reassociate
     }
 

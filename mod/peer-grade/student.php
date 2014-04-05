@@ -210,7 +210,7 @@ if ( $our_flags !== false && count($our_flags) > 0 ) {
 ?>
 <form method="post">
 <br/>
-<input type=submit name=doCancel onclick="location='<?php echo(sessionize('admin.php'));?>'; return false;" value="Cancel">
+<input type="submit" name="doDone" onclick="location='<?php echo(sessionize('admin.php'));?>'; return false;" value="Done">
 </form>
 <?php
 
