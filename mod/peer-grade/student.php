@@ -58,7 +58,6 @@ if ( isset($_POST['resendSubmit']) ) {
     $_SESSION['lti']['grade'] = -1;  // Force a resend
     $result['grade'] = -1;
     $debuglog = array();
-    // $status = sendGrade($computed_grade, $debuglog, $pdo, $result); // This is the slow bit
     $status = sendGradeDetail($computed_grade, null, null, $debuglog, $pdo, $result); // This is the slow bit
     if ( $status === true ) {
         $_SESSION['success'] = 'Grade submitted to server';
