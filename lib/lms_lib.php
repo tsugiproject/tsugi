@@ -89,32 +89,46 @@ function doCSS($context=false) {
 }
 
 // Make sure we have the values we need in the LTI session
-// and return the LMS Data
+// This routine will not start a session if none exists.  It will
+// die is there if no session_name() (PHPSESSID) cookie or 
+// parameter.  No need to create any fresh sessions here.
 function requireData($needed) {
-	if ( !isset($_SESSION['lti']) ) {
-        if ( ini_get('session.use_cookies') == '0' ) {
-            $sess = session_name();
-            if ( isset($_POST[$sess]) || isset($_GET[$sess]) ) {
-                // We tried to set a session..
+
+    // Check to see if the session already exists.
+    $sess = session_name();
+    if ( ini_get('session.use_cookies') != '0' ) {
+        if ( ! isset($_COOKIE[$sess]) ) {
+            die("Missing session cookie");
+        }
+    } else { // non-cookie session
+        if ( isset($_POST[$sess]) || isset($_GET[$sess]) ) {
+            // We tried to set a session..
+        } else {
+            if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
+                die('Missing '.$sess.' from POST data');
             } else {
-                if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-		            die('Missing '.$sess.' from POST data');
-                } else {
-		            die('Missing '.$sess.'= on URL (Missing call to sessionize?)');
-                }
+                die('Missing '.$sess.'= on URL (Missing call to sessionize?)');
             }
         }
+    }
+
+    // Start a session if it has not been started..
+    if ( session_status() !== PHP_SESSION_ACTIVE ) {
+        session_start();  // Should reassociate
+    }
+
+	if ( !isset($_SESSION['lti']) ) {
         die('This tool needs to be launched using LTI');
 	}
 
 	$LTI = $_SESSION['lti'];
 	if ( is_string($needed) && ! isset($LTI[$needed]) ) {
-		die("This tool requires ".$needed);
+		die("This tool requires an LTI launch parameter:".$needed);
 	}
 	if ( is_array($needed) ) {
 		foreach ( $needed as $feature ) {
 			if ( isset($LTI[$feature]) ) continue;
-			die("This tool requires ".$feature);
+			die("This tool requires an LTI launch parameter:".$feature);
 		}
 	}
     return $LTI;

@@ -1,7 +1,6 @@
 <?php
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
-session_start();
 
 // Sanity checks
 $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));

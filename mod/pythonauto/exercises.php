@@ -517,5 +517,3 @@ for key, val in lst :
 
 
 );
-?>
-
