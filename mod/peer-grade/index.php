@@ -159,7 +159,7 @@ welcomeUserCourse($LTI);
 if ( $instructor ) {
     echo('<p><a href="configure.php" class="btn btn-default">Configure this Assignment</a> ');
     echo('<a href="admin.php" class="btn btn-default">Explore Grade Data</a> ');
-    echo('<a href="debug.php" class="btn btn-default">Debug Tool</a></p>');
+    echo('<a href="debug.php" class="btn btn-default">Session Dump</a></p>');
 }
 
 if ( $assn_json != null ) {
