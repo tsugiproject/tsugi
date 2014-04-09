@@ -108,13 +108,13 @@ function makefilediv(name,text) {
 // Instead of always retrieving them
 
 function load_files() {
-    $.get('<?php echo(getLocalStatic(__FILE__)); ?>/static/files/romeo.txt', function(data) {
+    $.get('static/files/romeo.txt', function(data) {
         makefilediv('romeo.txt', data);
     });
-    $.get('<?php echo(getLocalStatic(__FILE__)); ?>/static/files/words.txt', function(data) {
+    $.get('static/files/words.txt', function(data) {
         makefilediv('words.txt', data);
     });
-    $.get('<?php echo(getLocalStatic(__FILE__)); ?>/static/files/mbox-short.txt', function(data) {
+    $.get('static/files/mbox-short.txt', function(data) {
         makefilediv('mbox-short.txt', data);
     });
 }
