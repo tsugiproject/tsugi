@@ -50,6 +50,7 @@ if ( $assn_id != false && $assn_json != null &&
             $safety = checkFileSafety($fdes);
             if ( $safety !== true ) {
                 $_SESSION['error'] = $safety;
+                error_log("File Error: ".$safety);
                 header( 'Location: '.sessionize('index.php') ) ;
                 return;
             }

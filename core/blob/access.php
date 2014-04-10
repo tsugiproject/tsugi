@@ -22,10 +22,14 @@ $stmt->execute(array(":ID" => $id, ":CID" => $LTI['context_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ( $row === false ) {
+    error_log('File not loaded: '.$id);
     die("File not loaded");
 }
 
-if ( ! safeFileSuffix($row['file_name']) ) die('Unsafe file suffix');
+if ( ! safeFileSuffix($row['file_name']) )  {
+    error_log('Unsafe file suffix: '.$row['file_name']);
+    die('Unsafe file suffix');
+}
 
 $mimetype = $row['contenttype'];
 // die($mimetype);
