@@ -51,6 +51,16 @@ $actions = adjustData($pdo, $CFG->dbprefix, $row, $post);
 $_SESSION['lti'] = $row;
 $_SESSION['lti_post'] = $_POST;
 
+$breadcrumb = "Launch,";
+$breadcrumb .= isset($row['key_id']) ? $row['key_id'] : '';
+$breadcrumb .= ',';
+$breadcrumb .= isset($row['user_id']) ? $row['user_id'] : '';
+$breadcrumb .= ',';
+$breadcrumb .= isset($_POST['user_id']) ? str_replace(',',';', $_POST['user_id']) : '';
+$breadcrumb .= ',';
+$breadcrumb .= $session_id;
+error_log($breadcrumb);
+
 // See if we have a custom assignment setting.
 if ( ! isset($_POST['custom_assn'] ) ) {
     require("lti/noredir.php");
