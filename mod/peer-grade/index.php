@@ -43,10 +43,17 @@ if ( $assn_id != false && $assn_json != null &&
             $fname = 'uploaded_file_'.$partno;
             if( ! isset($_FILES[$fname]) ) {
                 $_SESSION['error'] = 'Problem with uploaded files - perhaps too much data was uploaded';
-                die( 'Location: '.sessionize('index.php') ) ;
+                header( 'Location: '.sessionize('index.php') ) ;
                 return;
             }
             $fdes = $_FILES[$fname];
+            $safety = checkFileSafety($fdes);
+            if ( $safety !== true ) {
+                $_SESSION['error'] = $safety;
+                header( 'Location: '.sessionize('index.php') ) ;
+                return;
+            }
+
             $blob_id = uploadFileToBlob($pdo, $LTI, $fdes);
             if ( $blob_id === false ) {
                 $_SESSION['error'] = 'Problem storing files';

@@ -25,9 +25,47 @@ function fixFileName($name)
     return $new;
 }
 
-function uploadFileToBlob($pdo, $LTI, $FILE_DESCRIPTOR) 
+// http://stackoverflow.com/questions/3592834/bad-file-extensions-that-should-be-avoided-on-a-file-upload-site
+$BAD_FILE_SUFFIXES = "/(\.|\/)(bat|exe|cmd|sh|php|pl|cgi|386|dll|com|torrent|js|app|jar|pif|vb|vbscript|wsf|asp|cer|csr|jsp|drv|sys|ade|adp|bas|chm|cpl|crt|csh|fxp|hlp|hta|inf|ins|isp|jse|htaccess|htpasswd|ksh|lnk|mdb|mde|mdt|mdw|msc|msi|msp|mst|ops|pcd|prg|reg|scr|sct|shb|shs|url|vbe|vbs|wsc|wsf|wsh|zip|tar|gz|gzip|rar|ar|cpio|shar|iso|bz2|lz|rz|7z|dmg|z|tbz2|sit|sitx|sea|xar|zipx)$/i";
+
+function safeFileSuffix($filename)
+{
+    global $BAD_FILE_SUFFIXES;
+
+    if ( preg_match($BAD_FILE_SUFFIXES, $filename) ) return false;
+    return  true;
+}
+
+function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "image/jpeg") ) 
+{
+    global $BAD_FILE_SUFFIXES;
+
+    $retval = true;
+    $filename = false;
+
+    if( $FILE_DESCRIPTOR['error'] == 1) {
+        $retval = "General upload failure";
+    } else if( $FILE_DESCRIPTOR['error'] == 0) {
+        $filename = basename($FILE_DESCRIPTOR['name']);
+        if ( preg_match($BAD_FILE_SUFFIXES, $filename) ) $retval = "File suffix not allowed";
+
+        $contenttype = $FILE_DESCRIPTOR['type'];
+        if ( ! in_array($contenttype, $CONTENT_TYPES) ) $retval = "Content type ".$contenttype." not allowed";
+    } else {
+        $retval = "Upload failure=".$FILE_DESCRIPTOR['error'];
+    }
+    if ( $retval !== true ) {
+        error_log($retval." file=".$filename);
+    }
+    return $retval;
+}
+
+function uploadFileToBlob($pdo, $LTI, $FILE_DESCRIPTOR, $SAFETY_CHECK=true) 
 {
     global $CFG;
+
+    if ( $SAFETY_CHECK && checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
+
     if( $FILE_DESCRIPTOR['error'] == 1) return false;
     
     if( $FILE_DESCRIPTOR['error'] == 0)

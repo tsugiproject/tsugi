@@ -16,7 +16,7 @@ if ( strlen($id) < 1 ) {
 }
 
 $p = $CFG->dbprefix;
-$stmt = $pdo->prepare("SELECT contenttype, content FROM {$p}blob_file 
+$stmt = $pdo->prepare("SELECT contenttype, content, file_name FROM {$p}blob_file 
 			WHERE file_id = :ID AND context_id = :CID");
 $stmt->execute(array(":ID" => $id, ":CID" => $LTI['context_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -24,6 +24,8 @@ $row = $stmt->fetch(PDO::FETCH_ASSOC);
 if ( $row === false ) {
     die("File not loaded");
 }
+
+if ( ! safeFileSuffix($row['file_name']) ) die('Unsafe file suffix');
 
 $mimetype = $row['contenttype'];
 // die($mimetype);
