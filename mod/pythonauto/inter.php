@@ -29,12 +29,13 @@ above chevron prompt (>>>).  Some commands might be:
 >>> x = x + 100
 >>> print x
 </pre>
-This is an experimental tool and the 
-error messages might be a little different than the Python that runs on your desktop.
+This is an experimental in-browser Python interpreter.  The 
+error messages and output will be a little different than the Python that runs on your desktop.
+This only supports a subset of Python 2.6 (i.e. it is not Python 3.0).
 </p>
 </div>
 <p>
-This interactive Python application is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> and
+This interactive Python interpreter is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> and
 <a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
 </p>
 <?php
