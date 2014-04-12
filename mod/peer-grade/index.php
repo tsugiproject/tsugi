@@ -11,6 +11,13 @@ $instructor = isInstructor($LTI);
 $user_id = $LTI['user_id'];
 $p = $CFG->dbprefix;
 
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
+    $_SESSION['error'] = 'File upload size exceeded, please re-upload a smaller file';
+    error_log("Upload size exceeded");
+    header('Location: '.sessionize('index.php'));
+    return;
+}
+
 // Model 
 $row = loadAssignment($pdo, $LTI);
 $assn_json = null;
@@ -24,7 +31,6 @@ if ( $row !== false ) {
 $submit_id = false;
 $submit_row = loadSubmission($pdo, $assn_id, $LTI['user_id']);
 if ( $submit_row !== false ) $submit_id = $submit_row['submit_id'];
-
 
 // Handle the submission post
 if ( $assn_id != false && $assn_json != null && 
@@ -42,22 +48,22 @@ if ( $assn_id != false && $assn_json != null &&
         if ( $part->type == 'image' ) {
             $fname = 'uploaded_file_'.$partno;
             if( ! isset($_FILES[$fname]) ) {
-                $_SESSION['error'] = 'Problem with uploaded files - perhaps too much data was uploaded';
+                $_SESSION['error'] = 'Problem with uploaded files - perhaps your files were too large';
                 header( 'Location: '.sessionize('index.php') ) ;
                 return;
             }
             $fdes = $_FILES[$fname];
             $safety = checkFileSafety($fdes);
             if ( $safety !== true ) {
-                $_SESSION['error'] = $safety;
-                error_log("File Error: ".$safety);
+                $_SESSION['error'] = "This only supports PNG or JPG images with a .png or .jpg extenision.  Error: ".$safety;
+                error_log("Upload Error: ".$safety);
                 header( 'Location: '.sessionize('index.php') ) ;
                 return;
             }
 
             $blob_id = uploadFileToBlob($pdo, $LTI, $fdes);
             if ( $blob_id === false ) {
-                $_SESSION['error'] = 'Problem storing files';
+                $_SESSION['error'] = 'Problem storing files in server';
                 header( 'Location: '.sessionize('index.php') ) ;
                 return;
             }
