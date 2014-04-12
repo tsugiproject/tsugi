@@ -64,7 +64,7 @@ function loadAllData($pdo, $p, $profile_table, $post) {
 	$sql = "SELECT k.key_id, k.key_key, k.secret, c.context_id, c.title AS context_title, 
 		l.link_id, l.title AS link_title, 
 		u.user_id, u.displayname AS user_displayname, u.email AS user_email,
-		m.membership_id, m.role";
+		m.membership_id, m.role, m.role_override";
 
 	if ( $profile_table ) {
 		$sql .= ",

@@ -45,6 +45,12 @@ if ( $valid !== true ) {
 
 $actions = adjustData($pdo, $CFG->dbprefix, $row, $post);
 
+// If there is an appropriate role override variable, we use that role
+if ( isset($row['role_override']) && isset($row['role']) && 
+       $row['role_override'] > $row['role'] ) {
+    $row['role'] = $row['role_override'];
+}
+
 // Put the information into the row variable
 // TODO: do AES on the secret
 $_SESSION['lti'] = $row;
