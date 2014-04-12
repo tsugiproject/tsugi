@@ -63,6 +63,8 @@ foreach($tools as $k => $tool ) {
     }
 }
 
+$maxversion = 0;
+$maxpath = '';
 foreach($tools as $tool ) {
     $path = str_replace("../","",$tool);
     echo("Checking $path ...<br/>\n");
@@ -106,6 +108,14 @@ foreach($tools as $tool ) {
         }
         echo("-- Current data model version $version <br/>\n");
         $newversion = $DATABASE_UPGRADE($pdo, $version);
+        if ( $newversion > $maxversion ) {
+            $maxversion = $version;
+            $maxpath = $path;
+        }
+        if ( $newversion > $CFG->dbversion ) {
+            echo("-- WARNING: Database version=$newversion for $path higher than 
+                \$CFG->dbversion=$CFG->dbversion in setup.php<br/>\n");
+        }
         if ( $newversion != $version ) {
             echo("-- Upgraded to data model version $newversion <br/>\n");
             $sql = "INSERT INTO {$plugins} 
@@ -118,7 +128,13 @@ foreach($tools as $tool ) {
             if ( ! $q->success ) die("Unable to update version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
         }
     }
+}
 
+echo("\n<br/>Highest database version=$maxversion in $maxpath<br/>\n");
+
+if ( $maxversion != $CFG->dbversion ) {
+   echo("-- WARNING: You should set \$CFG->dbversion=$maxversion in setup.php 
+        before distributing this version of the code.<br/>\n");
 }
 
 ?>

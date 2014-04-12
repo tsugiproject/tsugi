@@ -13,7 +13,7 @@ if ( $post === false ) {
 }
 
 if ( $post['key'] == '12345' && ! $CFG->DEVELOPER) {
-    die('You can only use key 12345 in developer mode');
+    dieWithErrorLog('You can only use key 12345 in developer mode');
 }
 
 // We make up a Session ID Key because we don't want a new one
@@ -37,11 +37,10 @@ $row = loadAllData($pdo, $CFG->dbprefix, false, $post);
 // incoming data
 $valid = verifyKeyAndSecret($post['key'],$row['secret']);
 if ( $valid !== true ) {
-	error_log("Key / Secret fail key=".$post['key']);
     print "<pre>\n";
 	print_r($valid);
     print "</pre>\n";
-	die();
+	dieWithErrorLog("Key / Secret fail key=".$post['key']);
 }
 
 $actions = adjustData($pdo, $CFG->dbprefix, $row, $post);

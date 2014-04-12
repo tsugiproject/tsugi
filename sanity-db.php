@@ -73,9 +73,8 @@ to see if this message goes away.</p>");
 target="_blank">tsugi.org</a>');
 
     echo("\n</div>\n");
-    die();
+    dieWithErrorLog("Database error ".$msg);
 }   
-
 
 // Now check the plugins table to see if it exists
 $p = $CFG->dbprefix;
@@ -91,4 +90,15 @@ in the <code>\$CFG->adminpw</code> setting.
 </p>
 ");
     echo("\n</div>\n");
+}   
+
+// Now check to see if a database upgrade might be necessary
+$row = pdoRowDie($pdo, "SELECT MAX(version) AS version FROM {$plugins}");
+$actualdbversion = $row['version'];
+if ( $actualdbversion < $CFG->dbversion ) {
+    echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
+    echo("<p>Warning: Database version=$actualdbversion should be
+    software version=$CFG->dbversion - please run admin/upgrade.php</p>\n");
+    echo("\n</div>\n");
+    error_log("Warning: DB current version=$actualdbversion expected version=$CFG->dbversion");
 }   

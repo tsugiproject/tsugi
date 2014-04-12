@@ -15,11 +15,11 @@ $stmt = pdoQueryDie($pdo,
 );
 $key_row = $stmt->fetch(PDO::FETCH_ASSOC);
 if ( $key_row === false ) {
-    die('Error: No key defined for accounts from google.com');
+    dieWithErrorLog('Error: No key defined for accounts from google.com');
 }
 $google_key_id = $key_row['key_id']+0;
 if ( $google_key_id < 1 ) {
-    die('Error: No key for accounts from google.com');
+    dieWithErrorLog('Error: No key for accounts from google.com');
 }
 
 $errormsg = false;

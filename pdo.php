@@ -9,7 +9,7 @@ if ( defined('PDO_WILL_CATCH') ) {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     } catch(PDOException $ex){
         error_log("DB connection: "+$ex->getMessage());
-        die($ex->getMessage());
+        die($ex->getMessage()); // with error_log
     }
 }
 
@@ -30,7 +30,10 @@ function pdoAllRowsDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
 
 function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     $stmt = pdoQuery($pdo, $sql, $arr, $error_log);
-    if ( ! $stmt->success ) die($stmt->errorImplode);
+    if ( ! $stmt->success ) {
+        error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
+        die($stmt->errorImplode); // with error_log
+    }
     return $stmt;
 }
 
@@ -59,9 +62,15 @@ function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
         if ( $error_log ) error_log($message);
     }
 	if ( ! is_object($q) ) $q = stdClass();
-    if ( isset( $q->success ) ) die("PDO::Statement should not have success member");
+    if ( isset( $q->success ) ) {
+        error_log("PDO::Statement should not have success member");
+        die("PDO::Statement should not have success member"); // with error_log
+    }
     $q->success = $success;
-    if ( isset( $q->ellapsed_time ) ) die("PDO::Statement should not have ellapsed_time member");
+    if ( isset( $q->ellapsed_time ) ) {
+        error_log("PDO::Statement should not have ellapsed_time member");
+        die("PDO::Statement should not have ellapsed_time member"); // with error_log
+    }
     $q->ellapsed_time = microtime(true)-$start;
 	// In case we build this...
     if ( !isset($q->errorCode) ) $q->errorCode = '42000';
