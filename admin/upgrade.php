@@ -109,7 +109,7 @@ foreach($tools as $tool ) {
         echo("-- Current data model version $version <br/>\n");
         $newversion = $DATABASE_UPGRADE($pdo, $version);
         if ( $newversion > $maxversion ) {
-            $maxversion = $version;
+            $maxversion = $newversion;
             $maxpath = $path;
         }
         if ( $newversion > $CFG->dbversion ) {
