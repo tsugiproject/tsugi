@@ -63,11 +63,32 @@ function showSubmission($LTI, $assn_json, $submit_json)
     $urlno = 0;
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == "image" ) {
+            // This test triggeres when an assignment is reconfigured 
+            // and old submissions have too few blobs
+            if ( $blobno >= count($blob_ids) ) continue;
             $blob_id = $blob_ids[$blobno++];
             if ( is_array($blob_id) ) $blob_id = $blob_id[0];
             $url = getAccessUrlForBlob($blob_id);
-            echo ('<a href="'.sessionize($url).'" target="_blank">');
+            $title = 'Student image';
+            if( isset($part->title) && strlen($part->title) > 0 ) $title = $part->title;
+            echo ('<a href="#" onclick="$(\'#myModal_'.$blobno.'\').modal();"');
+            echo ('alt="'.htmlent_utf8($title).'" title="'.htmlent_utf8($title).'">');
             echo ('<img src="'.sessionize($url).'" width="240"></a>'."\n");
+?>
+<div class="modal fade" id="myModal_<?php echo($blobno); ?>">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title"><?php echo(htmlent_utf8($title)); ?></h4>
+      </div>
+      <div class="modal-body">
+        <img src="<?php echo(sessionize($url)); ?>" style="width:100%">
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<?php
         } else if ( $part->type == "url" ) {
             $url = $urls[$urlno++];
             echo ('<p><a href="'.safe_href($url).'" target="_blank">');
@@ -77,7 +98,7 @@ function showSubmission($LTI, $assn_json, $submit_json)
     }
 
     if ( $blobno > 0 ) {
-        echo("<p>Images will open in a new window.</p>\n");
+        echo("<p>Click on each image to see a larger view of the image.</p>\n");
     }
 
     if ( strlen($submit_json->notes) > 1 ) {
