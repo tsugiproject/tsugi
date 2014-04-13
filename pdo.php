@@ -29,9 +29,16 @@ function pdoAllRowsDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
 }
 
 function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+    global $CFG;
     $stmt = pdoQuery($pdo, $sql, $arr, $error_log);
     if ( ! $stmt->success ) {
         error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
+        if ( isset($CFG) && isset($CFG->dirroot) ) {
+            $sanity = $CFG->dirroot."/sanity-db.php";
+            if ( file_exists($sanity) ) {
+                include_once($sanity);
+            }
+        }
         die($stmt->errorImplode); // with error_log
     }
     return $stmt;

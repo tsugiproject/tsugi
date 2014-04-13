@@ -103,7 +103,6 @@ function loadAllData($pdo, $p, $profile_table, $post) {
 	$sql .= "\nWHERE k.key_sha256 = :key LIMIT 1\n";
 	
 	// echo($sql);
-	$stmt = $pdo->prepare($sql);
 	$parms = array(
 		':key' => lti_sha256($post['key']),
 		':context' => lti_sha256($post['context_id']),
@@ -114,8 +113,7 @@ function loadAllData($pdo, $p, $profile_table, $post) {
 		$parms[':service'] = lti_sha256($post['service']);
 	}
 
-	$stmt->execute($parms);
-	$row = $stmt->fetch(PDO::FETCH_ASSOC);
+	$row = pdoRowDie($pdo, $sql, $parms);
 
 	// Restore ERRMODE
 	$pdo->setAttribute(PDO::ATTR_ERRMODE, $errormode);
@@ -133,8 +131,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$sql = "INSERT INTO {$p}lti_context 
 			( context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
 			( :context_key, :context_sha256, :title, :key_id, NOW(), NOW() )";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute(array(
+		pdoQueryDie($pdo, $sql, array(
 			':context_key' => $post['context_id'],
 			':context_sha256' => lti_sha256($post['context_id']),
 			':title' => $post['context_title'],
@@ -148,8 +145,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$sql = "INSERT INTO {$p}lti_link 
 			( link_key, link_sha256, title, context_id, created_at, updated_at ) VALUES
 				( :link_key, :link_sha256, :title, :context_id, NOW(), NOW() )";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute(array(
+		pdoQueryDie($pdo, $sql, array(
 			':link_key' => $post['link_id'],
 			':link_sha256' => lti_sha256($post['link_id']),
 			':title' => $post['link_title'],
@@ -163,8 +159,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$sql = "INSERT INTO {$p}lti_user 
 			( user_key, user_sha256, displayname, email, key_id, created_at, updated_at ) VALUES
 			( :user_key, :user_sha256, :displayname, :email, :key_id, NOW(), NOW() )";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute(array(
+		pdoQueryDie($pdo, $sql, array(
 			':user_key' => $post['user_id'],
 			':user_sha256' => lti_sha256($post['user_id']),
 			':displayname' => $post['user_displayname'],
@@ -180,8 +175,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$sql = "INSERT INTO {$p}lti_membership 
 			( context_id, user_id, role, created_at, updated_at ) VALUES
 			( :context_id, :user_id, :role, NOW(), NOW() )";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute(array(
+		pdoQueryDie($pdo, $sql, array(
 			':context_id' => $row['context_id'],
 			':user_id' => $row['user_id'],
 			':role' => $post['role']));
@@ -197,8 +191,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$sql = "INSERT INTO {$p}lti_service 
 			( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
 			( :service_key, :service_sha256, :key_id, NOW(), NOW() )";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute(array(
+		pdoQueryDie($pdo, $sql, array(
 			':service_key' => $post['service'],
 			':service_sha256' => lti_sha256($post['service']),
 			':key_id' => $row['key_id']));
@@ -210,8 +203,7 @@ function adjustData($pdo, $p, &$row, $post) {
 	// If we just created a new service entry but we already had a result entry, update it
 	if ( $oldserviceid === null && $row['result_id'] !== null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {
 		$sql = "UPDATE {$p}lti_result SET service_id = :service_id WHERE result_id = :result_id";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute(array(
+		pdoQueryDie($pdo, $sql, array(
 			':service_id' => $row['service_id'],
 			':result_id' => $row['result_id']));
 		$actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
@@ -222,8 +214,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$sql = "INSERT INTO {$p}lti_result 
 			( sourcedid, sourcedid_sha256, service_id, link_id, user_id, created_at, updated_at ) VALUES
 			( :sourcedid, :sourcedid_sha256, :service_id, :link_id, :user_id, NOW(), NOW() )";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute(array(
+		pdoQueryDie($pdo, $sql, array(
 			':sourcedid' => $post['sourcedid'],
 			':sourcedid_sha256' => lti_sha256($post['sourcedid']),
 			':service_id' => $row['service_id'],
@@ -239,8 +230,7 @@ function adjustData($pdo, $p, &$row, $post) {
 		$sql = "INSERT INTO {$p}lti_result 
 			( sourcedid, sourcedid_sha256, link_id, user_id, created_at, updated_at ) VALUES
 			( :sourcedid, :sourcedid_sha256, :link_id, :user_id, NOW(), NOW() )";
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute(array(
+		pdoQueryDie($pdo, $sql, array(
 			':sourcedid' => $post['sourcedid'],
 			':sourcedid_sha256' => lti_sha256($post['sourcedid']),
 			':link_id' => $row['link_id'],
@@ -251,10 +241,10 @@ function adjustData($pdo, $p, &$row, $post) {
 
 	// Here we handle updates to sourcedid
 	if ( $row['result_id'] != null && $post['sourcedid'] != null && $post['sourcedid'] != $row['sourcedid'] ) {
-		$stmt = $pdo->prepare("UPDATE {$p}lti_result 
+		$sql = "UPDATE {$p}lti_result 
             SET sourcedid = :sourcedid, sourcedid_sha256 = :sourcedid_sha256
-            WHERE result_id = :result_id");
-		$stmt->execute(array(
+            WHERE result_id = :result_id";
+		pdoQueryDie($pdo, $sql, array(
 			':sourcedid' => $post['sourcedid'],
 			':sourcedid_sha256' => lti_sha256($post['sourcedid']),
 			':result_id' => $row['result_id']));
@@ -264,8 +254,8 @@ function adjustData($pdo, $p, &$row, $post) {
 
 	// Here we handle updates to context_title, link_title, user_displayname, user_email, or role
 	if ( isset($post['context_title']) && $post['context_title'] != $row['context_title'] ) {
-		$stmt = $pdo->prepare("UPDATE {$p}lti_context SET title = :title WHERE context_id = :context_id");
-		$stmt->execute(array(
+		$sql = "UPDATE {$p}lti_context SET title = :title WHERE context_id = :context_id";
+		pdoQueryDie($pdo, $sql, array(
 			':title' => $post['context_title'],
 			':context_id' => $row['context_id']));
 		$row['context_title'] = $post['context_title'];
@@ -273,8 +263,8 @@ function adjustData($pdo, $p, &$row, $post) {
 	}
 
 	if ( isset($post['link_title']) && $post['link_title'] != $row['link_title'] ) {
-		$stmt = $pdo->prepare("UPDATE {$p}lti_link SET title = :title WHERE link_id = :link_id");
-		$stmt->execute(array(
+		$sql = "UPDATE {$p}lti_link SET title = :title WHERE link_id = :link_id";
+		pdoQueryDie($pdo, $sql, array(
 			':title' => $post['link_title'],
 			':link_id' => $row['link_id']));
 		$row['link_title'] = $post['link_title'];
@@ -282,8 +272,8 @@ function adjustData($pdo, $p, &$row, $post) {
 	}
 
 	if ( isset($post['user_displayname']) && $post['user_displayname'] != $row['user_displayname'] && strlen($post['user_displayname']) > 0 ) {
-		$stmt = $pdo->prepare("UPDATE {$p}lti_user SET displayname = :displayname WHERE user_id = :user_id");
-		$stmt->execute(array(
+		$sql = "UPDATE {$p}lti_user SET displayname = :displayname WHERE user_id = :user_id";
+		pdoQueryDie($pdo, $sql, array(
 			':displayname' => $post['user_displayname'],
 			':user_id' => $row['user_id']));
 		$row['user_displayname'] = $post['user_displayname'];
@@ -291,8 +281,8 @@ function adjustData($pdo, $p, &$row, $post) {
 	}
 
 	if ( isset($post['user_email']) && $post['user_email'] != $row['user_email'] && strlen($post['user_email']) > 0 ) {
-		$stmt = $pdo->prepare("UPDATE {$p}lti_user SET email = :email WHERE user_id = :user_id");
-		$stmt->execute(array(
+		$sql = "UPDATE {$p}lti_user SET email = :email WHERE user_id = :user_id";
+		pdoQueryDie($pdo, $sql, array(
 			':email' => $post['user_email'],
 			':user_id' => $row['user_id']));
 		$row['user_email'] = $post['user_email'];
@@ -300,8 +290,8 @@ function adjustData($pdo, $p, &$row, $post) {
 	}
 
 	if ( isset($post['role']) && $post['role'] != $row['role'] ) {
-		$stmt = $pdo->prepare("UPDATE {$p}lti_membership SET role = :role WHERE membership_id = :membership_id");
-		$stmt->execute(array(
+		$sql = "UPDATE {$p}lti_membership SET role = :role WHERE membership_id = :membership_id";
+		pdoQueryDie($pdo, $sql, array(
 			':role' => $post['role'],
 			':membership_id' => $row['membership_id']));
 		$row['role'] = $post['role'];
