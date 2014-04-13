@@ -88,7 +88,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id']) &&
     }
 
     $grade_count = loadMyGradeCount($pdo, $LTI, $assn_id);
-    if ( $grade_count > $assn_json->maxassess ) {
+    if ( $grade_count > $assn_json->maxassess && ! $instructor ) {
         $_SESSION['error'] = 'You have already graded more than '.$assn_json->maxassess.' submissions';
         header( 'Location: '.sessionize($url_goback) ) ;
         return;
