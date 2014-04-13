@@ -9,6 +9,10 @@ $user_id = $LTI['user_id'];
 
 $grade = 1.0;
 
+if ( ! isset($_POST['code']) ) {
+    echo(json_encode(array("error" => "Missing code")));
+    return;
+}
 $code = $_POST['code'];
 $json = json_encode(array("code" => $code));
 
