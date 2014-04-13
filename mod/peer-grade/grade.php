@@ -176,7 +176,7 @@ echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <input type="number" min="0" max="<?php echo($assn_json->maxpoints); ?>" name="points">
-(<?php echo($assn_json->maxpoints); ?> maximum points)<br/>
+(<?php echo($assn_json->maxpoints); ?> points for full credit)<br/>
 Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" value="Grade">
