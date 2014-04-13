@@ -169,6 +169,10 @@ flashMessages();
 
 echo("<p><b>Please be careful, you cannot revise grades after you submit them.</b></p>\n");
 
+echo('<div style="border: 1px solid black; padding:3px">');
+echo("<p><h4>".$assn_json->title."</h4></p>\n");
+echo('<p>'.htmlent_utf8($assn_json->description)."</p>\n");
+echo('</div>');
 showSubmission($LTI, $assn_json, $submit_json);
 echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 ?>

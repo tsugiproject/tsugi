@@ -177,7 +177,10 @@ if ( $instructor ) {
 }
 
 if ( $assn_json != null ) {
-    echo("<p><b>".$assn_json->title."</b></p>\n");
+    echo('<div style="border: 1px solid black">');
+    echo("<p><h4>".$assn_json->title."</h4></p>\n");
+    echo('<p>'.htmlent_utf8($assn_json->description)."</p>\n");
+    echo('</div>');
 }
 
 if ( $assn_json == null ) {
@@ -188,7 +191,6 @@ if ( $assn_json == null ) {
 
 if ( $submit_row == false ) {
     echo("<p><b>Please Upload Your Submission:</b></p>\n");
-    echo('<p>'.htmlent_utf8($assn_json->description)."</p>\n");
     echo('<form name="myform" enctype="multipart/form-data" method="post" action="'.
          sessionize('index.php').'">');
 

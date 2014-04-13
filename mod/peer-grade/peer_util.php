@@ -57,8 +57,9 @@ function loadUngraded($pdo, $LTI, $assn_id)
 
 function showSubmission($LTI, $assn_json, $submit_json)
 {
+    echo('<div style="padding:5px">');
     $blob_ids = $submit_json->blob_ids;
-    $urls = isset($submit_json->urls) ? $submit_json->urls : array();;
+    $urls = isset($submit_json->urls) ? $submit_json->urls : array();
     $blobno = 0;
     $urlno = 0;
     foreach ( $assn_json->parts as $part ) {
@@ -71,7 +72,7 @@ function showSubmission($LTI, $assn_json, $submit_json)
             $url = getAccessUrlForBlob($blob_id);
             $title = 'Student image';
             if( isset($part->title) && strlen($part->title) > 0 ) $title = $part->title;
-            echo ('<a href="#" onclick="$(\'#myModal_'.$blobno.'\').modal();"');
+            echo (' <a href="#" onclick="$(\'#myModal_'.$blobno.'\').modal();"');
             echo ('alt="'.htmlent_utf8($title).'" title="'.htmlent_utf8($title).'">');
             echo ('<img src="'.sessionize($url).'" width="240"></a>'."\n");
 ?>
@@ -92,10 +93,11 @@ function showSubmission($LTI, $assn_json, $submit_json)
         } else if ( $part->type == "url" ) {
             $url = $urls[$urlno++];
             echo ('<p><a href="'.safe_href($url).'" target="_blank">');
-            echo (htmlentities(safe_href($url)).'</a> (Will launch in new window)'."\n");
+            echo (htmlentities(safe_href($url)).'</a> (Will launch in new window)</p>'."\n");
         }
         
     }
+    echo("<br/>&nbsp;<br/>\n");
 
     if ( $blobno > 0 ) {
         echo("<p>Click on each image to see a larger view of the image.</p>\n");
@@ -104,6 +106,7 @@ function showSubmission($LTI, $assn_json, $submit_json)
     if ( strlen($submit_json->notes) > 1 ) {
         echo("<p>Notes: ".htmlent_utf8($submit_json->notes)."</p>\n");
     }
+    echo('<div style="padding:3px">');
 }
 
 function computeGrade($pdo, $assn_id, $assn_json, $user_id)
