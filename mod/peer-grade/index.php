@@ -258,7 +258,9 @@ attention of the instructor.</p>
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <input type="hidden" value="" id="flag_grade_id" name="grade_id">
 <textarea rows="5" cols="60" name="note"></textarea><br/>
-<input type="submit" name="doFlag" value="Submit To Instructor">
+<input type="submit" name="doFlag" 
+    onclick="return confirm('Are you sure you want to bring this peer-grade entry to the attention of the instructor?');" 
+    value="Submit To Instructor">
 <input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag">
 </form>
 <p>

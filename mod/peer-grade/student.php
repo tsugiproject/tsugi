@@ -77,7 +77,7 @@ $user_row = loadUserInfo($pdo, $user_id);
 $our_grades = retrieveSubmissionGrades($pdo, $submit_id);
 
 // Handle incoming post to delete a grade entry
-if ( isset($_POST['grade_id']) && isset($_POST['doDelete']) ) {
+if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
     // Make sure this is deleting a legit grading entry...
     $found = false;
     if ( $our_grades != false ) foreach ( $our_grades as $grade ) {
@@ -115,6 +115,30 @@ if ( $submit_id !== false ) {
     $our_flags = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// Handle incoming post to delete a flag entry
+if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
+    // Make sure this is a legit flag entry
+    $found = false;
+    if ( $our_flags != false ) foreach ( $our_flags as $flag ) {
+        if ($_POST['flag_id'] == $flag['flag_id'] ) $found = true;
+    }
+    if ( ! $found ) {
+        $_SESSION['error'] = "Flag entry not found.";
+        header( 'Location: '.sessionize('index.php') ) ;
+        return;
+    }
+    $stmt = pdoQueryDie($pdo,
+        "DELETE FROM {$p}peer_flag 
+            WHERE flag_id = :FID",
+        array( ':FID' => $_POST['flag_id'])
+    );
+    cacheClear('peer_flag');
+    cacheClear('peer_grade');
+    error_log("Instructor deleted flag=".$_POST['flag_id']." for ".$user_id);
+    $_SESSION['success'] = "Flag entry deleted.";
+    header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
+    return;
+}
 
 // View 
 headerContent();
@@ -184,7 +208,7 @@ if ( count($our_grades) < 1 ) {
         '<td> <form method="post"><input type="hidden" 
             name="grade_id" value="'.$grade['grade_id'].'">
         <input type="hidden" name="user_id" value="'.$user_id.'">
-        <input type="submit" name="doDelete" value="delete"></form></td>'.
+        <input type="submit" name="deleteGrade" value="delete"></form></td>'.
         "\n</tr>\n");
     }
     echo("</table>\n");
@@ -193,14 +217,17 @@ if ( count($our_grades) < 1 ) {
 if ( $our_flags !== false && count($our_flags) > 0 ) {
     echo('<p style="color:red">This entry has the following flags:<br/>'."\n");
     echo('<table border="1"><tr>');
-    echo("\n<th>Name</th><th>Email</th><th>Grade_Id</th><th>Comment</th><th>Time</th></tr>");
+    echo("\n<th>Name</th><th>Email</th><th>Flag_Id</th><th>Comment</th><th>Time</th><th>Action</th></tr>");
     foreach ( $our_flags as $flag ) {
         echo("\n<tr>");
         echo("<td>".htmlent_utf8($flag['displayname'])."</td>\n");
         echo("<td>".htmlent_utf8($flag['email'])."</td>\n");
-        echo("<td>".htmlent_utf8($flag['grade_id'])."</td>\n");
+        echo("<td>".htmlent_utf8($flag['flag_id'])."</td>\n");
         echo("<td>".htmlent_utf8($flag['note'])."</td>\n");
         echo("<td>".htmlent_utf8($flag['updated_at'])."</td>\n");
+        echo('<td> <form method="post"><input type="hidden" 
+            name="flag_id" value="'.$flag['flag_id'].'">
+        <input type="submit" name="deleteFlag" value="delete"></form></td>');
         echo("</tr>\n");
     }
     echo("</table>\n");
