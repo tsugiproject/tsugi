@@ -33,7 +33,7 @@ function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     $stmt = pdoQuery($pdo, $sql, $arr, $error_log);
     if ( ! $stmt->success ) {
         error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
-        if ( isset($CFG) && isset($CFG->dirroot) ) {
+        if ( isset($CFG) && isset($CFG->dirroot) && isset($CFG->DEVELOPER) && $CFG->DEVELOPER) {
             $sanity = $CFG->dirroot."/sanity-db.php";
             if ( file_exists($sanity) ) {
                 include_once($sanity);
