@@ -160,7 +160,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
             ':NOTE' => $_POST['note'])
     );
     $_SESSION['success'] = "Flagged for the instructor to examine";
-    header( 'Location: '.sessionize($url_stay) ) ;
+    header( 'Location: '.sessionize('index.php') ) ;
     return;
 }
 
