@@ -98,16 +98,16 @@ function requireData($needed) {
     $sess = session_name();
     if ( ini_get('session.use_cookies') != '0' ) {
         if ( ! isset($_COOKIE[$sess]) ) {
-            die("Missing session cookie");
+            dieWithErrorLog("Missing session cookie");
         }
     } else { // non-cookie session
         if ( isset($_POST[$sess]) || isset($_GET[$sess]) ) {
             // We tried to set a session..
         } else {
             if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-                die('Missing '.$sess.' from POST data');
+                dieWithErrorLog('Missing '.$sess.' from POST data');
             } else {
-                die('Missing '.$sess.'= on URL (Missing call to sessionize?)');
+                dieWithErrorLog('Missing '.$sess.'= on URL (Missing call to sessionize?)');
             }
         }
     }
@@ -118,17 +118,17 @@ function requireData($needed) {
     }
 
 	if ( !isset($_SESSION['lti']) ) {
-        die('This tool needs to be launched using LTI');
+        dieWithErrorLog('This tool needs to be launched using LTI');
 	}
 
 	$LTI = $_SESSION['lti'];
 	if ( is_string($needed) && ! isset($LTI[$needed]) ) {
-		die("This tool requires an LTI launch parameter:".$needed);
+		dieWithErrorLog("This tool requires an LTI launch parameter:".$needed);
 	}
 	if ( is_array($needed) ) {
 		foreach ( $needed as $feature ) {
 			if ( isset($LTI[$feature]) ) continue;
-			die("This tool requires an LTI launch parameter:".$feature);
+			dieWithErrorLog("This tool requires an LTI launch parameter:".$feature);
 		}
 	}
     return $LTI;
@@ -203,9 +203,8 @@ function startBody() {
         echo("\n<pre>\n");
         echo($dump);
         echo("\n</pre>\n");
-        error_log("Unhandled POST request");
         error_log($dump);
-        die();
+        dieWithErrorLog("Unhandled POST request");
     }
 }
 function footerStart() {
@@ -448,7 +447,7 @@ function lmsDie($message=false) {
             echo("\n</pre>\n");
         }
     }
-    die();
+    die();  // lmsDie
 }
 
 // http://stackoverflow.com/questions/2840755/how-to-determine-the-max-file-upload-limit-in-php
