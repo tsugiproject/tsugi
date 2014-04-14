@@ -207,8 +207,8 @@ if ( $submit_row == false ) {
     }
     echo("<p>Enter optional comments below</p>\n");
     echo('<textarea rows="5" cols="60" name="notes"></textarea><br/>');
-    echo('<input type="submit" name="doSubmit" value="Submit"> ');
-    doneButton();
+    echo('<input type="submit" name="doSubmit" value="Submit" class="btn btn-default"> ');
+    doneBootStrap();
     echo('</form>');
     echo("\n<p>Make sure each file is smaller than 1MB.</p>\n");
     footerContent();
