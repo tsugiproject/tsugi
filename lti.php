@@ -28,10 +28,8 @@ session_unset();
 
 // Read all of the data from the database with a very long
 // LEFT JOIN and get all the data we have back in the $row variable
-$row = loadAllData($pdo, $CFG->dbprefix, false, $post);
-
-// Add a LEFT JOIN on the profile table
-// $row = checkKey($pdo, $CFG->dbprefix, $CFG->dbprefix . "_profile", $post);
+// $row = loadAllData($pdo, $CFG->dbprefix, false, $post);
+$row = loadAllData($pdo, $CFG->dbprefix, $CFG->dbprefix."profile", $post);
 
 // Use returned data to check the OAuth signature on the
 // incoming data
