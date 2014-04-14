@@ -64,7 +64,7 @@ function loadAllData($pdo, $p, $profile_table, $post) {
 	$sql = "SELECT k.key_id, k.key_key, k.secret, c.context_id, c.title AS context_title, 
 		l.link_id, l.title AS link_title, 
 		u.user_id, u.displayname AS user_displayname, u.email AS user_email,
-        u.subscribe AS subscribe,
+        u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
 		m.membership_id, m.role, m.role_override";
 
 	if ( $profile_table ) {
@@ -169,6 +169,7 @@ function adjustData($pdo, $p, &$row, $post) {
 			':key_id' => $row['key_id']));
 		$row['user_id'] = $pdo->lastInsertId();
 		$row['user_email'] = $post['user_email'];
+		$row['user_sha256'] = lti_sha256($post['user_id']);
 		$row['user_displayname'] = $post['user_displayname'];
 		$actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email'];
 	}
