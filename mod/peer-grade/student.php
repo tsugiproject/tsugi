@@ -35,17 +35,25 @@ if ( $submit_row !== false ) {
     $submit_id = $submit_row['submit_id']+0;
 }
 
+// Load user info
+$user_row = loadUserInfo($pdo, $user_id);
+
 // Handle incoming post to delete the entire submission
 if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
+    $retval = mailDeleteSubmit($pdo, $user_id, $assn_json);
     $stmt = pdoQueryDie($pdo,
         "DELETE FROM {$p}peer_submit 
             WHERE submit_id = :SID",
         array( ':SID' => $submit_id)
     );
-    error_log("Instructor deleted submission for ".$user_id);
+    $msg = "Deleted submission for $user_id";
+    if ( $retval ) $msg .= ', e-mail notice sent.';
+    error_log($msg);
     cacheClear('peer_grade');
     cacheClear('peer_submit');
-    $_SESSION['success'] = "Submit entry deleted.";
+    $msg = "Submission deleted";
+    if ( $retval ) $msg .= ', e-mail notice sent.';
+    $_SESSION['success'] = $msg;
     header( 'Location: '.sessionize('admin.php') ) ;
     return;
 }
@@ -69,9 +77,6 @@ if ( isset($_POST['resendSubmit']) ) {
     header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
     return;
 }
-
-// Load user info
-$user_row = loadUserInfo($pdo, $user_id);
 
 // Retrieve our grades...
 $our_grades = retrieveSubmissionGrades($pdo, $submit_id);

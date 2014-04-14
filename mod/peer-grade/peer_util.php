@@ -189,3 +189,31 @@ function retrieveSubmissionGrades($pdo, $submit_id)
     return $our_grades;
 }
 
+function mailDeleteSubmit($pdo, $user_id, $assn_json)
+{
+    global $CFG;
+    if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return false;
+    $user_row = loadUserInfo($pdo, $user_id);
+    if ( $user_row === false ) return false;
+    $to = $user_row['email'];
+    if ( strlen($to) < 1 || strpos($to,'@') === false ) return false;
+    if ( !isset($_SESSION['lti']) ) return false;
+    $LTI = $_SESSION['lti'];
+
+    $name = $user_row['displayname'];
+
+    $token = compute_mail_check($user_id);
+    $subject = 'From '.$CFG->servicename.', Your Peer Graded Entry Has Been Reset';
+    $E = '\n';
+    if ( isset($CFG->maileol) ) $E = $CFG->maileol;
+
+    $message = "This is an automated message.  Your peer-graded entry has been reset.$E$E";
+    if ( isset($LTI['context_title']) ) $message .= 'Course Title: '.$LTI['context_title'].$E;
+    if ( isset($LTI['link_title']) ) $message .= 'Assignment: '.$LTI['link_title'].$E;
+    if ( isset($LTI['user_displayname']) ) $message .= 'Staff member doing reset: '.$LTI['user_displayname'].$E;
+    $message .= "{$E}You may now re-submit your peer-graded assignment.$E";
+
+    // echo $to, $subject, $message, $user_id, $token;
+    $retval = mailSend($to, $subject, $message, $user_id, $token);
+    return $retval;
+}

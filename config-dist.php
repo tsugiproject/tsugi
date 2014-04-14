@@ -76,6 +76,12 @@ $CFG->cookiesecret = 'something-highly-secret-2f518066bd757a289b543';
 $CFG->cookiename = 'TSUGIAUTO';
 $CFG->cookiepad = '390b246ea9'; 
 
+// Where the bulk mail comes from - should be a real address with a wildcard box you check
+$CFG->maildomain = false;  // Don't send mail
+# $CFG->maildomain = 'mail.example.com';
+$CFG->mailsecret = '1234pleasechangeme';
+$CFG->maileol = "\n";  // Depends on your mailer - may need to be \r\n
+
 // This is ued to make sure that out constructed session ids
 // based on resource_link_id, oauth_consumer_key, etc are not
 // predictable or guessable.   Just make this a long random string.
