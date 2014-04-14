@@ -204,7 +204,7 @@ function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)
     $name = $user_row['displayname'];
     $token = compute_mail_check($user_id);
     $subject = 'From '.$CFG->servicename.', Your Peer Graded Entry Has Been Reset';
-    $E = '\n';
+    $E = "\n";
     if ( isset($CFG->maileol) ) $E = $CFG->maileol;
 
     $message = "This is an automated message.  Your peer-graded entry has been reset.$E$E";
@@ -214,8 +214,8 @@ function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)
 
     $fixnote = trim($note);
     if ( strlen($fixnote) > 0 ) {
-        if ( $E != "\n" ) $fixnote = str_replace("\n",$E,$note);
-        $message .= "Notes regarding this action:".$E.$note.$E;
+        if ( $E != "\n" ) $fixnote = str_replace("\n",$E,$fixnote);
+        $message .= "Notes regarding this action:".$E.$fixnote.$E;
     }
     $message .= "{$E}You may now re-submit your peer-graded assignment.$E";
 
