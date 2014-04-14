@@ -172,8 +172,8 @@ echo('<p><a href="grade.php?user_id='.$user_id.'">Grade this student</a></p>'."\
 if ( isset($_GET['delete']) ) {
     echo('<form method="post">
         <input type="hidden" name="user_id" value="'.$user_id.'">
-        <input type="submit" name="deleteSubmit" value="Complete Delete">
-        <input type="submit" name="doCancel" value="Cancel Delete"
+        <input type="submit" name="deleteSubmit" value="Complete Delete" class="btn btn-danger">
+        <input type="submit" name="doCancel" value="Cancel Delete" class="btn btn-normal"
             onclick="location=\''.sessionize('student.php?user_id='.$user_id).'\'; return false;">
         </form>');
 } else {
@@ -187,8 +187,8 @@ echo("Stored grade: ".$LTI['grade']."</p>\n");
 if ( isset($_GET['resend']) ) {
     echo('<form method="post">
         <input type="hidden" name="user_id" value="'.$user_id.'">
-        <input type="submit" name="resendSubmit" value="Resend the Grade">
-        <input type="submit" name="doCancel" value="Cancel Resend"
+        <input type="submit" name="resendSubmit" value="Resend the Grade" class="btn btn-warning">
+        <input type="submit" name="doCancel" value="Cancel Resend" class="btn btn-normal"
             onclick="location=\''.sessionize('student.php?user_id='.$user_id).'\'; return false;">
         </form>');
 } else {
@@ -200,7 +200,8 @@ if ( $our_grades === false || count($our_grades) < 1 ) {
     echo("<p>No one has graded this submission yet.</p>");
 } else {
     echo("<p>Grading activity:</p>");
-    echo('<table border="1" style="margin:3px">');
+    echo('<div style="margin:3px;">');
+    echo('<table border="1" class="table table-hover table-condensed table-responsive">');
     echo("\n<tr><th>User</th><th>Email</th><th>Points</th>
         <th>Comments</th><th>Grade Id</th><th>Action</th></tr>\n");
 
@@ -213,15 +214,17 @@ if ( $our_grades === false || count($our_grades) < 1 ) {
         '<td> <form method="post"><input type="hidden" 
             name="grade_id" value="'.$grade['grade_id'].'">
         <input type="hidden" name="user_id" value="'.$user_id.'">
-        <input type="submit" name="deleteGrade" value="delete"></form></td>'.
+        <input type="submit" name="deleteGrade" value="delete" class="btn btn-danger"></form></td>'.
         "\n</tr>\n");
     }
     echo("</table>\n");
+    echo("</div>\n");
 }
 
 if ( $our_flags !== false && count($our_flags) > 0 ) {
-    echo('<p style="color:red">This entry has the following flags:<br/>'."\n");
-    echo('<table border="1"><tr>');
+    echo('<p style="color:red">This entry has the following flags:</p>'."\n");
+    echo('<div style="margin:3px;">');
+    echo('<table border="1" class="table table-hover table-condensed table-responsive"><tr>');
     echo("\n<th>Name</th><th>Email</th><th>Flag_Id</th><th>Comment</th><th>Time</th><th>Action</th></tr>");
     foreach ( $our_flags as $flag ) {
         echo("\n<tr>");
@@ -232,16 +235,17 @@ if ( $our_flags !== false && count($our_flags) > 0 ) {
         echo("<td>".htmlent_utf8($flag['updated_at'])."</td>\n");
         echo('<td> <form method="post"><input type="hidden" 
             name="flag_id" value="'.$flag['flag_id'].'">
-        <input type="submit" name="deleteFlag" value="delete"></form></td>');
+        <input type="submit" name="deleteFlag" value="delete" class="btn btn-danger"></form></td>');
         echo("</tr>\n");
     }
     echo("</table>\n");
-    echo("</p>\n");
+    echo("</div>\n");
 }
 ?>
 <form method="post">
 <br/>
-<input type="submit" name="doDone" onclick="location='<?php echo(sessionize('admin.php'));?>'; return false;" value="Done">
+<input type="submit" name="doDone" class="btn btn-normal"
+onclick="location='<?php echo(sessionize('admin.php'));?>'; return false;" value="Done">
 </form>
 <?php
 

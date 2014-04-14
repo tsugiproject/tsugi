@@ -1062,7 +1062,7 @@ function pagedPDOTable($pdo, $sql, &$queryvalues, $searchfields=array(), $orderf
     echo('<div style="float:right">');
     if ( $page_start > 0 ) {
         echo('<form style="display: inline">');
-        echo('<input type="submit" value="Back">');
+        echo('<input type="submit" value="Back" class="btn btn-default">');
         $page_back = $page_start - $page_length;
         if ( $page_back < 0 ) $page_back = 0;
         do_form($params,Array('page_start' => $page_back));
@@ -1070,7 +1070,7 @@ function pagedPDOTable($pdo, $sql, &$queryvalues, $searchfields=array(), $orderf
     }
     if ( $have_more ) {
         echo('<form style="display: inline">');
-        echo('<input type="submit" value="Next"> ');
+        echo('<input type="submit" value="Next" class="btn btn-default"> ');
         $page_next = $page_start + $page_length;
         do_form($params,Array('page_start' => $page_next));
         echo("</form>\n");
@@ -1080,8 +1080,8 @@ function pagedPDOTable($pdo, $sql, &$queryvalues, $searchfields=array(), $orderf
     echo('<input type="text" id="paged_search_box" value="'.htmlent_utf8($search).'" name="search_text">');
     do_form($params,Array('search_text' => false, 'page_start' => false));
 ?>
-<input type="submit" value="Search">
-<input type="submit" value="Clear Search" 
+<input type="submit" value="Search" class="btn btn-default">
+<input type="submit" value="Clear Search" class="btn btn-default"
 onclick="document.getElementById('paged_search_box').value = '';"
 >
 </form>
@@ -1095,7 +1095,8 @@ onclick="document.getElementById('paged_search_box').value = '';"
 // print_r($rows[0]);
 ?>
 
-<table border="1">
+<div style="padding:3px;">
+<table border="1" class="table table-hover table-condensed table-responsive">
 <tr>
 <?php
 
@@ -1167,6 +1168,7 @@ onclick="document.getElementById('paged_search_box').value = '';"
         echo("</tr>\n");
     }
     echo("</table>\n");
+    echo("</div>\n");
 }
 
 function pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields=false, $view=false, $params=false) {
