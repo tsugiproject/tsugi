@@ -196,7 +196,7 @@ if ( isset($_GET['resend']) ) {
         Resend computed grade to the LMS</a></p>');
 }
 
-if ( count($our_grades) < 1 ) {
+if ( $our_grades === false || count($our_grades) < 1 ) {
     echo("<p>No one has graded this submission yet.</p>");
 } else {
     echo("<p>Grading activity:</p>");
