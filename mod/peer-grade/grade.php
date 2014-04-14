@@ -183,9 +183,9 @@ echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 (<?php echo($assn_json->maxpoints); ?> points for full credit)<br/>
 Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
-<input type="submit" value="Grade">
-<input type="submit" name="showFlag" onclick="$('#flagform').toggle(); return false;" value="Flag">
-<input type="submit" name="doCancel" onclick="location='<?php echo(sessionize($url_goback));?>'; return false;" value="Cancel">
+<input type="submit" value="Grade" class="btn btn-primary">
+<input type="submit" name="showFlag" onclick="$('#flagform').toggle(); return false;" value="Flag" class="btn btn-danger">
+<input type="submit" name="doCancel" onclick="location='<?php echo(sessionize($url_goback));?>'; return false;" value="Cancel" class="btn btn-default">
 </form>
 <form method="post" id="flagform" style="display:none">
 <p>Please be considerate when flagging an item.  Only use
@@ -195,8 +195,8 @@ flagging when instructor attention is needed.</p>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" name="doFlag" 
     onclick="return confirm('Are you sure you want to bring this student submission to the attention of the instructor?');" 
-    value="Submit To Instructor">
-<input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag">
+    value="Submit To Instructor" class="btn btn-primary">
+<input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag" class="btn btn-default">
 </form>
 <?php
 

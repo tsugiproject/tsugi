@@ -239,17 +239,19 @@ showSubmission($LTI, $assn_json, $submit_json);
 if ( count($our_grades) < 1 ) {
     echo("<p>No one has graded your submission yet.</p>");
 } else {
-    echo("<p>You have the following grades from other students:</p>");
-    echo('<table border="1">'."\n<tr><th>Points</th><th>Comments</th><th>Action</th></tr>\n");
+    echo("<div style=\"padding:3px\"><p>You have the following grades from other students:</p>");
+    echo('<table border="1" class="table table-hover table-condensed table-responsive">');
+    echo("\n<tr><th>Points</th><th>Comments</th><th>Action</th></tr>\n");
 
     foreach ( $our_grades as $grade ) {
         echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>\n".
         '<td><form><input type="submit" name="showFlag" value="Flag"
-        onclick="$(\'#flag_grade_id\').val(\''.$grade['grade_id'].'\'); $(\'#flagform\').toggle(); return false;">'.
+        onclick="$(\'#flag_grade_id\').val(\''.$grade['grade_id'].'\'); $(\'#flagform\').toggle(); return false;" class="btn btn-danger">'.
         "</form></tr>\n");
     }
     echo("</table>\n");
 }
+doneBootstrap();
 ?>
 <form method="post" id="flagform" style="display:none">
 <p>&nbsp;</p>
@@ -262,8 +264,8 @@ attention of the instructor.</p>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" name="doFlag" 
     onclick="return confirm('Are you sure you want to bring this peer-grade entry to the attention of the instructor?');" 
-    value="Submit To Instructor">
-<input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag">
+    value="Submit To Instructor"  class="btn btn-primary">
+<input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag" class="btn btn-default">
 </form>
 <p>
 <div id="gradeinfo">Calculating grade....</div>
