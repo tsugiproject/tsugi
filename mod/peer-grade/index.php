@@ -52,7 +52,16 @@ if ( $assn_id != false && $assn_json != null &&
                 header( 'Location: '.sessionize('index.php') ) ;
                 return;
             }
+
             $fdes = $_FILES[$fname];
+
+            // Check to see if they left off a file
+            if( $fdes['error'] == 4) {
+                $_SESSION['error'] = 'Missing file, make sure to select all files before pressing submit';
+                header( 'Location: '.sessionize('index.php') ) ;
+                return;
+            }
+
             $safety = checkFileSafety($fdes);
             if ( $safety !== true ) {
                 $_SESSION['error'] = "This only supports PNG or JPG images with a .png or .jpg extenision.  Error: ".$safety;
