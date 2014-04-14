@@ -85,6 +85,7 @@ array( "{$CFG->dbprefix}lti_user",
     displayname         VARCHAR(2048) NULL,
     email               VARCHAR(2048) NULL,
     locale              CHAR(63) NULL,
+    subscribe           SMALLINT NULL,
 
     json                TEXT NULL,
     login_at            DATETIME NOT NULL,
@@ -202,6 +203,7 @@ array( "{$CFG->dbprefix}profile",
     displayname         VARCHAR(2048) NULL,
     email               VARCHAR(2048) NULL,
     locale              CHAR(63) NULL,
+    subscribe           SMALLINT NULL,
 
     json                TEXT NULL,
     login_at            DATETIME NOT NULL,
@@ -240,6 +242,18 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $q = pdoQueryDie($pdo, $sql);
     }
 
-    return 2014041200;
+    // Version 2014041300 improvements
+    if ( $oldversion < 2014041300 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD subscribe SMALLINT";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}profile ADD subscribe SMALLINT";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+    }
+
+    return 2014041300;
 }; // Don't forget the semicolon on anonymous functions :)
 

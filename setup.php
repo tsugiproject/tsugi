@@ -14,7 +14,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";  // During transition
 // database upgrade messages it should be the max of all versions in 
 // all database.php files.
 // TODO: Automate the "max checking" 
-$CFG->dbversion = 2014041200;
+$CFG->dbversion = 2014041300;
 
 // Check if we have been asked to do cookie or cookieless sessions
 if ( defined('COOKIE_SESSION') ) {
