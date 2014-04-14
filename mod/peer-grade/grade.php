@@ -169,6 +169,10 @@ flashMessages();
 
 echo("<p><b>Please be careful, you cannot revise grades after you submit them.</b></p>\n");
 
+echo('<div style="border: 1px solid black; padding:3px">');
+echo("<p><h4>".$assn_json->title."</h4></p>\n");
+echo('<p>'.htmlent_utf8($assn_json->description)."</p>\n");
+echo('</div>');
 showSubmission($LTI, $assn_json, $submit_json);
 echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 ?>
@@ -176,7 +180,7 @@ echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <input type="number" min="0" max="<?php echo($assn_json->maxpoints); ?>" name="points">
-(<?php echo($assn_json->maxpoints); ?> maximum points)<br/>
+(<?php echo($assn_json->maxpoints); ?> points for full credit)<br/>
 Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" value="Grade">
