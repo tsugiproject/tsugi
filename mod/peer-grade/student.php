@@ -228,7 +228,7 @@ if ( $our_flags !== false && count($our_flags) > 0 ) {
 }
 
 if ( $grades_received === false || count($grades_received) < 1 ) {
-    echo("<p>No one has graded this $user_display submission yet.</p>");
+    echo("<p>No one has graded this submission $user_display.</p>");
 } else {
     echo("<p>Grades Received$user_display:</p>");
     echo('<div style="margin:3px;">');
@@ -252,7 +252,7 @@ if ( $grades_received === false || count($grades_received) < 1 ) {
 }
 
 if ( $grades_given === false || count($grades_given) < 1 ) {
-    echo("<p>Nothin has been graded $user_display yet.</p>");
+    echo("<p>Nothing has been graded $user_display yet.</p>");
 } else {
     echo("<p>Grades Given$user_display:</p>");
     echo('<div style="margin:3px;">');
