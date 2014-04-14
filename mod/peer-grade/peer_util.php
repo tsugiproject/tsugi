@@ -189,19 +189,19 @@ function retrieveSubmissionGrades($pdo, $submit_id)
     return $our_grades;
 }
 
-function mailDeleteSubmit($pdo, $user_id, $assn_json)
+function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)
 {
     global $CFG;
     if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return false;
+
+    $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
+
     $user_row = loadUserInfo($pdo, $user_id);
     if ( $user_row === false ) return false;
     $to = $user_row['email'];
     if ( strlen($to) < 1 || strpos($to,'@') === false ) return false;
-    if ( !isset($_SESSION['lti']) ) return false;
-    $LTI = $_SESSION['lti'];
 
     $name = $user_row['displayname'];
-
     $token = compute_mail_check($user_id);
     $subject = 'From '.$CFG->servicename.', Your Peer Graded Entry Has Been Reset';
     $E = '\n';
@@ -211,7 +211,22 @@ function mailDeleteSubmit($pdo, $user_id, $assn_json)
     if ( isset($LTI['context_title']) ) $message .= 'Course Title: '.$LTI['context_title'].$E;
     if ( isset($LTI['link_title']) ) $message .= 'Assignment: '.$LTI['link_title'].$E;
     if ( isset($LTI['user_displayname']) ) $message .= 'Staff member doing reset: '.$LTI['user_displayname'].$E;
+
+    $fixnote = trim($note);
+    if ( strlen($fixnote) > 0 ) {
+        if ( $E != "\n" ) $fixnote = str_replace("\n",$E,$note);
+        $message .= "Notes regarding this action:".$E.$note.$E;
+    }
     $message .= "{$E}You may now re-submit your peer-graded assignment.$E";
+
+    $stmt = pdoQueryDie($pdo,
+        "INSERT INTO {$CFG->dbprefix}mail_sent
+            (context_id, link_id, user_to, user_from, subject, body, created_at)
+            VALUES ( :CID, :LID, :UTO, :UFR, :SUB, :BOD, NOW() )",
+        array( ":CID" => $LTI['context_id'], ":LID" => $LTI['link_id'],
+            ":UTO" => $user_id, ":UFR" => $LTI['user_id'],
+            ":SUB" => $subject, ":BOD" => $message)
+    );
 
     // echo $to, $subject, $message, $user_id, $token;
     $retval = mailSend($to, $subject, $message, $user_id, $token);

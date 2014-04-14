@@ -40,7 +40,8 @@ $user_row = loadUserInfo($pdo, $user_id);
 
 // Handle incoming post to delete the entire submission
 if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
-    $retval = mailDeleteSubmit($pdo, $user_id, $assn_json);
+    $note = isset($_POST['deleteNote']) ? $_POST['deleteNote'] : '';
+    $retval = mailDeleteSubmit($pdo, $user_id, $assn_json, $note);
     $stmt = pdoQueryDie($pdo,
         "DELETE FROM {$p}peer_submit 
             WHERE submit_id = :SID",
@@ -172,6 +173,9 @@ echo('<p><a href="grade.php?user_id='.$user_id.'">Grade this student</a></p>'."\
 if ( isset($_GET['delete']) ) {
     echo('<form method="post">
         <input type="hidden" name="user_id" value="'.$user_id.'">
+        <label for="deleteNote">Enter an optional note to send to the student</label><br/>
+        <textarea name="deleteNote" id="deleteNote" style="width:60%" rows="5">
+        </textarea><br/>
         <input type="submit" name="deleteSubmit" value="Complete Delete" class="btn btn-danger">
         <input type="submit" name="doCancel" value="Cancel Delete" class="btn btn-normal"
             onclick="location=\''.sessionize('student.php?user_id='.$user_id).'\'; return false;">
