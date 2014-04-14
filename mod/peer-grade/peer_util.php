@@ -177,7 +177,7 @@ function retrieveSubmissionGrades($pdo, $submit_id)
 {
     global $CFG;
     if ( $submit_id === false ) return false;
-    $stmt = pdoQueryDie($pdo,
+    $grades_received = pdoAllRowsDie($pdo,
         "SELECT grade_id, points, note, displayname, email
         FROM {$CFG->dbprefix}peer_grade AS G
         JOIN {$CFG->dbprefix}lti_user as U
@@ -185,8 +185,23 @@ function retrieveSubmissionGrades($pdo, $submit_id)
         WHERE G.submit_id = :SID",
         array( ':SID' => $submit_id)
     );
-    $our_grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    return $our_grades;
+    return $grades_received;
+}
+
+function retrieveGradesGiven($pdo, $assn_id, $user_id)
+{
+    global $CFG;
+    $grades_given = pdoAllRowsDie($pdo,
+        "SELECT grade_id, points, G.note AS note, displayname, email
+        FROM {$CFG->dbprefix}peer_grade AS G
+        JOIN {$CFG->dbprefix}peer_submit AS S
+            ON G.submit_id = S.submit_id
+        JOIN {$CFG->dbprefix}lti_user as U
+            ON S.user_id = U.user_id
+        WHERE G.user_id = :UID AND S.assn_id = :AID",
+        array( ':AID' => $assn_id, ':UID' => $user_id)
+    );
+    return $grades_given;
 }
 
 function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)

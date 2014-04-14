@@ -43,7 +43,7 @@ if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
     $note = isset($_POST['deleteNote']) ? $_POST['deleteNote'] : '';
     $retval = mailDeleteSubmit($pdo, $user_id, $assn_json, $note);
     $stmt = pdoQueryDie($pdo,
-        "DELETE FROM {$p}peer_submit 
+        "DELETE FROM {$p}peer_submit
             WHERE submit_id = :SID",
         array( ':SID' => $submit_id)
     );
@@ -80,13 +80,13 @@ if ( isset($_POST['resendSubmit']) ) {
 }
 
 // Retrieve our grades...
-$our_grades = retrieveSubmissionGrades($pdo, $submit_id);
+$grades_received = retrieveSubmissionGrades($pdo, $submit_id);
 
 // Handle incoming post to delete a grade entry
 if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
     // Make sure this is deleting a legit grading entry...
     $found = false;
-    if ( $our_grades != false ) foreach ( $our_grades as $grade ) {
+    if ( $grades_received != false ) foreach ( $grades_received as $grade ) {
         if ($_POST['grade_id'] == $grade['grade_id'] ) $found = true;
     }
     if ( ! $found ) {
@@ -95,7 +95,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
         return;
     }
     $stmt = pdoQueryDie($pdo,
-        "DELETE FROM {$p}peer_grade 
+        "DELETE FROM {$p}peer_grade
             WHERE grade_id = :GID",
         array( ':GID' => $_POST['grade_id'])
     );
@@ -134,7 +134,7 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
         return;
     }
     $stmt = pdoQueryDie($pdo,
-        "DELETE FROM {$p}peer_flag 
+        "DELETE FROM {$p}peer_flag
             WHERE flag_id = :FID",
         array( ':FID' => $_POST['flag_id'])
     );
@@ -146,7 +146,10 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
     return;
 }
 
-// View 
+// Reteieve the grades that we have given
+$grades_given = retrieveGradesGiven($pdo, $assn_id, $user_id);
+
+// View
 headerContent();
 startBody();
 flashMessages();
@@ -158,8 +161,10 @@ if ( isset($_SESSION['debuglog']) ) {
     echo("<p></p>\n");
 }
 
+$user_display = false;
 if ( $user_row != false ) {
-    echo("<p>".htmlent_utf8($user_row['displayname'])." (".htmlent_utf8($user_row['email']).")</p>\n");
+    $user_display = htmlent_utf8($user_row['displayname'])." (".htmlent_utf8($user_row['email']).")";
+    echo("<p>".$user_display."</p>\n");
 }
 
 if ( $submit_row === false ) {
@@ -181,7 +186,7 @@ if ( isset($_GET['delete']) ) {
             onclick="location=\''.sessionize('student.php?user_id='.$user_id).'\'; return false;">
         </form>');
 } else {
-    echo('<p><a href="student.php?delete=yes&user_id='.$user_id.'">Delete this 
+    echo('<p><a href="student.php?delete=yes&user_id='.$user_id.'">Delete this
         submission and grades (allows student to resubmit)</a></p>'."\n");
 }
 
@@ -200,22 +205,43 @@ if ( isset($_GET['resend']) ) {
         Resend computed grade to the LMS</a></p>');
 }
 
-if ( $our_grades === false || count($our_grades) < 1 ) {
-    echo("<p>No one has graded this submission yet.</p>");
+if ( $user_display !== false ) $user_display = " by ".$user_display;
+
+if ( $our_flags !== false && count($our_flags) > 0 ) {
+    echo("<p style=\"color:red\">This entry $user_display has the following flags:</p>\n");
+    echo('<div style="margin:3px;">');
+    echo('<table border="1" class="table table-hover table-condensed table-responsive"><tr>');
+    echo("\n<th>Flagged By</th><th>Email</th><th>Comment</th><th>Time</th><th>Action</th></tr>");
+    foreach ( $our_flags as $flag ) {
+        echo("\n<tr>");
+        echo("<td>".htmlent_utf8($flag['displayname'])."</td>\n");
+        echo("<td>".htmlent_utf8($flag['email'])."</td>\n");
+        echo("<td>".htmlent_utf8($flag['note'])."</td>\n");
+        echo("<td>".htmlent_utf8($flag['updated_at'])."</td>\n");
+        echo('<td> <form method="post"><input type="hidden"
+            name="flag_id" value="'.$flag['flag_id'].'">
+        <input type="submit" name="deleteFlag" value="delete" class="btn btn-danger"></form></td>');
+        echo("</tr>\n");
+    }
+    echo("</table>\n");
+    echo("</div>\n");
+}
+
+if ( $grades_received === false || count($grades_received) < 1 ) {
+    echo("<p>No one has graded this $user_display submission yet.</p>");
 } else {
-    echo("<p>Grading activity:</p>");
+    echo("<p>Grades Received$user_display:</p>");
     echo('<div style="margin:3px;">');
     echo('<table border="1" class="table table-hover table-condensed table-responsive">');
     echo("\n<tr><th>User</th><th>Email</th><th>Points</th>
-        <th>Comments</th><th>Grade Id</th><th>Action</th></tr>\n");
+        <th>Comments</th><th>Action</th></tr>\n");
 
-    foreach ( $our_grades as $grade ) {
+    foreach ( $grades_received as $grade ) {
         echo("<tr>
         <td>".htmlent_utf8($grade['displayname'])."</td>
         <td>".htmlent_utf8($grade['email'])."</td>
-        <td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>
-        <td>".htmlent_utf8($grade['grade_id'])."</td>".
-        '<td> <form method="post"><input type="hidden" 
+        <td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>".
+        '<td> <form method="post"><input type="hidden"
             name="grade_id" value="'.$grade['grade_id'].'">
         <input type="hidden" name="user_id" value="'.$user_id.'">
         <input type="submit" name="deleteGrade" value="delete" class="btn btn-danger"></form></td>'.
@@ -225,26 +251,30 @@ if ( $our_grades === false || count($our_grades) < 1 ) {
     echo("</div>\n");
 }
 
-if ( $our_flags !== false && count($our_flags) > 0 ) {
-    echo('<p style="color:red">This entry has the following flags:</p>'."\n");
+if ( $grades_given === false || count($grades_given) < 1 ) {
+    echo("<p>Nothin has been graded $user_display yet.</p>");
+} else {
+    echo("<p>Grades Given$user_display:</p>");
     echo('<div style="margin:3px;">');
-    echo('<table border="1" class="table table-hover table-condensed table-responsive"><tr>');
-    echo("\n<th>Name</th><th>Email</th><th>Flag_Id</th><th>Comment</th><th>Time</th><th>Action</th></tr>");
-    foreach ( $our_flags as $flag ) {
-        echo("\n<tr>");
-        echo("<td>".htmlent_utf8($flag['displayname'])."</td>\n");
-        echo("<td>".htmlent_utf8($flag['email'])."</td>\n");
-        echo("<td>".htmlent_utf8($flag['flag_id'])."</td>\n");
-        echo("<td>".htmlent_utf8($flag['note'])."</td>\n");
-        echo("<td>".htmlent_utf8($flag['updated_at'])."</td>\n");
-        echo('<td> <form method="post"><input type="hidden" 
-            name="flag_id" value="'.$flag['flag_id'].'">
-        <input type="submit" name="deleteFlag" value="delete" class="btn btn-danger"></form></td>');
-        echo("</tr>\n");
+    echo('<table border="1" class="table table-hover table-condensed table-responsive">');
+    echo("\n<tr><th>User</th><th>Email</th><th>Points</th>
+        <th>Comments</th><th>Action</th></tr>\n");
+
+    foreach ( $grades_given as $grade ) {
+        echo("<tr>
+        <td>".htmlent_utf8($grade['displayname'])."</td>
+        <td>".htmlent_utf8($grade['email'])."</td>
+        <td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>".
+        '<td> <form method="post"><input type="hidden"
+            name="grade_id" value="'.$grade['grade_id'].'">
+        <input type="hidden" name="user_id" value="'.$user_id.'">
+        <input type="submit" name="deleteGrade" value="delete" class="btn btn-danger"></form></td>'.
+        "\n</tr>\n");
     }
     echo("</table>\n");
     echo("</div>\n");
 }
+
 ?>
 <form method="post">
 <br/>
