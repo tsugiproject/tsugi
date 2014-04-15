@@ -93,6 +93,7 @@ function doCSS($context=false) {
 // die is there if no session_name() (PHPSESSID) cookie or 
 // parameter.  No need to create any fresh sessions here.
 function requireData($needed) {
+    global $CFG;
 
     // Check to see if the session already exists.
     $sess = session_name();
@@ -137,6 +138,23 @@ function requireData($needed) {
             $_SESSION['REMOTE_ADDR'] != $_SERVER['REMOTE_ADDR'] ) {
             error_log("DIE: REMOTE_ADDR ".$_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
             die('Session address has expired'); // with error_log
+        }
+    }
+
+    // See if we need to extend our session (heartbeat)
+    // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
+    if ( isset($CFG->sessionlifetime) ) {
+        if (isset($_SESSION['LAST_ACTIVITY']) ) {
+            $heartbeat = $CFG->sessionlifetime/3;
+            $ellapsed = time() - $_SESSION['LAST_ACTIVITY'];
+            if ( $ellapsed > $heartbeat ) {
+                $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+                // TODO: Remove this after verification
+                $filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
+                error_log("Heartbeat ".session_id().' '.$ellapsed.' '.$filename);
+            }
+        } else {
+            $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
         }
     }
 

@@ -47,6 +47,8 @@ ini_set('display_errors', 1);
 
 if ( isset($CFG->sessionlifetime) ) {
     ini_set('session.gc_maxlifetime', $CFG->sessionlifetime);
+} else {
+    $CFG->sessionlifetime = ini_get('session.gc_maxlifetime');
 }
 
 date_default_timezone_set($CFG->timezone);
