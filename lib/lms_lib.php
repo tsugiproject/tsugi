@@ -88,6 +88,27 @@ function doCSS($context=false) {
     }
 }
 
+// See if we need to extend our session (heartbeat)
+// http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
+function checkHeartBeat() {
+    if ( session_id() == "" ) return;  // This should not start the session
+
+    if ( isset($CFG->sessionlifetime) ) {
+        if (isset($_SESSION['LAST_ACTIVITY']) ) {
+            $heartbeat = $CFG->sessionlifetime/3;
+            $ellapsed = time() - $_SESSION['LAST_ACTIVITY'];
+            if ( $ellapsed > $heartbeat ) {
+                $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+                // TODO: Remove this after verification
+                $filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
+                error_log("Heartbeat ".session_id().' '.$ellapsed.' '.$filename);
+            }
+        } else {
+            $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+        }
+    }
+}
+
 // Make sure we have the values we need in the LTI session
 // This routine will not start a session if none exists.  It will
 // die is there if no session_name() (PHPSESSID) cookie or 
@@ -141,22 +162,8 @@ function requireData($needed) {
         }
     }
 
-    // See if we need to extend our session (heartbeat)
-    // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
-    if ( isset($CFG->sessionlifetime) ) {
-        if (isset($_SESSION['LAST_ACTIVITY']) ) {
-            $heartbeat = $CFG->sessionlifetime/3;
-            $ellapsed = time() - $_SESSION['LAST_ACTIVITY'];
-            if ( $ellapsed > $heartbeat ) {
-                $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
-                // TODO: Remove this after verification
-                $filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
-                error_log("Heartbeat ".session_id().' '.$ellapsed.' '.$filename);
-            }
-        } else {
-            $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
-        }
-    }
+    // Check to see if the session needs to be extended
+    checkHeartBeat();
 
 	$LTI = $_SESSION['lti'];
 	if ( is_string($needed) && ! isset($LTI[$needed]) ) {
@@ -250,6 +257,22 @@ function footerStart() {
     echo('<script src="'.$CFG->staticroot.'/static/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
 	do_analytics(); 
 	echo(togglePreScript());
+    if ( isset($CFG->sessionlifetime) ) {
+        $heartbeat = ( $CFG->sessionlifetime * 1000) / 3;
+        // $heartbeat = 4000;
+?>
+<script type="text/javascript">
+function doHeartBeat() {
+    window.console && console.log('Calling heartbeat to extend session');
+    $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>', function(data) {
+        window.console && console.log(data);
+        setTimeout('doHeartBeat()', <?php echo($heartbeat); ?>);
+    });
+}
+setTimeout('doHeartBeat()', <?php echo($heartbeat); ?>);
+</script>
+<?php
+    }
 }
 
 function footerEnd() {
