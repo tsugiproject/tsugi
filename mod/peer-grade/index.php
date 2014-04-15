@@ -217,14 +217,13 @@ if ( $submit_row == false ) {
     echo("<p>Enter optional comments below</p>\n");
     echo('<textarea rows="5" cols="60" name="notes"></textarea><br/>');
     echo('<input type="submit" name="doSubmit" value="Submit" class="btn btn-default"> ');
-    doneBootStrap();
+    doneBootStrap('Cancel');
     echo('</form>');
     echo("\n<p>Make sure each file is smaller than 1MB.</p>\n");
     footerContent();
     return;
 }
 
-echo("<p>");
 if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxassess ) ) {
     echo('<a href="grade.php" class="btn btn-default">Grade other students</a> '."\n");
     // Add a done button if needed
@@ -232,9 +231,6 @@ if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxasses
     echo('There are no submisions waiting to be graded. Please check back later.</p>');
     
 }
-doneBootStrap();
-echo("</p>\n");
-
 
 echo("<p> You have graded ".$grade_count." other student submissions.
 You must grade at least ".$assn_json->minassess." submissions for full credit on this assignment.

@@ -559,7 +559,7 @@ function doneButton() {
     }
 }
 
-function doneBootstrap() {
+function doneBootstrap($text="Done") {
     $url = false;
 	if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
         $url = $_SESSION['lti_post']['custom_done'];
@@ -568,10 +568,13 @@ function doneBootstrap() {
     }
     if ( $url === false ) return;
 
+    $button = "btn-success";
+    if ( $text == "Cancel" ) $button = "btn-warning";
+
     if ( $url == "_close" ) {
-        echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn btn-success\">Done</a>\n");
+        echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn ".$button."\">".$text."</a>\n");
     } else {
-        echo("<a href==\"$url\"  class=\"btn btn-success\">Done</button>\n");
+        echo("<a href==\"$url\"  class=\"btn ".$button."\">".$text."</button>\n");
     }
 }
 

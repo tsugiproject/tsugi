@@ -283,7 +283,7 @@ if ( $grades_given === false || count($grades_given) < 1 ) {
 ?>
 <form method="post">
 <br/>
-<input type="submit" name="doDone" class="btn btn-normal"
+<input type="submit" name="doDone" class="btn btn-success"
 onclick="location='<?php echo(sessionize('admin.php'));?>'; return false;" value="Done">
 </form>
 <?php
