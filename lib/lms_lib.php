@@ -569,9 +569,9 @@ function doneBootstrap() {
     if ( $url === false ) return;
 
     if ( $url == "_close" ) {
-        echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn btn-default\">Done</a>\n");
+        echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn btn-success\">Done</a>\n");
     } else {
-        echo("<a href==\"$url\"  class=\"btn btn-default\">Done</button>\n");
+        echo("<a href==\"$url\"  class=\"btn btn-success\">Done</button>\n");
     }
 }
 
