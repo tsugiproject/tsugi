@@ -98,7 +98,7 @@ function requireData($needed) {
     $sess = session_name();
     if ( ini_get('session.use_cookies') != '0' ) {
         if ( ! isset($_COOKIE[$sess]) ) {
-            dieWithErrorLog("Missing session cookie");
+            dieWithErrorLog("Missing session cookie - please re-launch");
         }
     } else { // non-cookie session
         if ( isset($_POST[$sess]) || isset($_GET[$sess]) ) {
@@ -117,22 +117,26 @@ function requireData($needed) {
         session_start();  // Should reassociate
     }
 
+    // TODO: Change this to a warning once we get more data
 	if ( !isset($_SESSION['lti']) ) {
-        dieWithErrorLog('This tool needs to be launched using LTI');
+        dieWithErrorLog('Session expired - please re-launch');
 	}
 
     // Check to see if we switched browsers or IP addresses
+    // TODO: Change these to warnings once we get more data
     if ( isset($_SESSION['HTTP_USER_AGENT']) ) {
         if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
             $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
-            error_log("DIE: (not) HTTP_USER_AGENT ".$_SESSION['HTTP_USER_AGENT'].
+            error_log("DIE: HTTP_USER_AGENT ".$_SESSION['HTTP_USER_AGENT'].
                 ' ::: '.$_SERVER['HTTP_USER_AGENT']);
+            die('Session has expired'); // with error_log
         }
     }
     if ( isset($_SESSION['REMOTE_ADDR']) ) {
         if ( (!isset($_SERVER['REMOTE_ADDR'])) ||
             $_SESSION['REMOTE_ADDR'] != $_SERVER['REMOTE_ADDR'] ) {
-            error_log("DIE: (not) REMOTE_ADDR ".$_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
+            error_log("DIE: REMOTE_ADDR ".$_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
+            die('Session address has expired'); // with error_log
         }
     }
 

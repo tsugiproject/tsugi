@@ -105,6 +105,9 @@ $CFG->OFFLINE = false;
 // as well as making lists of tools in various UI places.
 $CFG->tool_folders = array("core", "mod", "samples");
 
+// Extend the session time - in seconds
+$CFG->sessionlifetime = 3000;
+
 // Leave these here
 require_once $CFG->dirroot."/setup.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";

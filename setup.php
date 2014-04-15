@@ -41,10 +41,13 @@ if ( ! isset($CFG->dataroot) ) {
 	$CFG->dataroot = $tmp;
 }
 
-
 error_reporting(E_ALL & ~E_NOTICE);
 error_reporting(E_ALL );
 ini_set('display_errors', 1);
+
+if ( isset($CFG->sessionlifetime) ) {
+    ini_set('session.gc_maxlifetime', $CFG->sessionlifetime);
+}
 
 date_default_timezone_set($CFG->timezone);
 
