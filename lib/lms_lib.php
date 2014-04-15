@@ -109,6 +109,10 @@ function checkHeartBeat() {
     }
 }
 
+function send403() {
+    header("HTTP/1.1 403 Forbidden");
+}
+
 // Make sure we have the values we need in the LTI session
 // This routine will not start a session if none exists.  It will
 // die is there if no session_name() (PHPSESSID) cookie or 
@@ -120,6 +124,7 @@ function requireData($needed) {
     $sess = session_name();
     if ( ini_get('session.use_cookies') != '0' ) {
         if ( ! isset($_COOKIE[$sess]) ) {
+            send403();
             dieWithErrorLog("Missing session cookie - please re-launch");
         }
     } else { // non-cookie session
@@ -127,8 +132,10 @@ function requireData($needed) {
             // We tried to set a session..
         } else {
             if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
+                send403();
                 dieWithErrorLog('Missing '.$sess.' from POST data');
             } else {
+                send403();
                 dieWithErrorLog('Missing '.$sess.'= on URL (Missing call to sessionize?)');
             }
         }
@@ -143,6 +150,7 @@ function requireData($needed) {
 	if ( !isset($_SESSION['lti']) ) {
         $debug = safeVarDump($_SESSION);
         error_log($debug);
+        send403();
         dieWithErrorLog('Session expired - please re-launch', session_id()); // with error_log
 	}
 
@@ -151,6 +159,7 @@ function requireData($needed) {
     if ( isset($_SESSION['HTTP_USER_AGENT']) ) {
         if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
             $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
+            send403();
             dieWithErrorLog("Sesison has expired", "DIE: HTTP_USER_AGENT ".$_SESSION['HTTP_USER_AGENT'].
                 ' ::: '.$_SERVER['HTTP_USER_AGENT']);
         }
@@ -158,6 +167,7 @@ function requireData($needed) {
     if ( isset($_SESSION['REMOTE_ADDR']) ) {
         if ( (!isset($_SERVER['REMOTE_ADDR'])) ||
             $_SESSION['REMOTE_ADDR'] != $_SERVER['REMOTE_ADDR'] ) {
+            send403();
             dieWithErrorLog('Session address has expired', "DIE: REMOTE_ADDR ".$_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
         }
     }
@@ -258,7 +268,7 @@ function footerStart() {
 	do_analytics(); 
 	echo(togglePreScript());
     if ( isset($CFG->sessionlifetime) ) {
-        $heartbeat = ( $CFG->sessionlifetime * 1000) / 3;
+        $heartbeat = ( $CFG->sessionlifetime * 1000) / 4;
         // $heartbeat = 4000;
 ?>
 <script type="text/javascript">
@@ -266,10 +276,10 @@ function doHeartBeat() {
     window.console && console.log('Calling heartbeat to extend session');
     $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>', function(data) {
         window.console && console.log(data);
-        setTimeout('doHeartBeat()', <?php echo($heartbeat); ?>);
+        setTimeout(doHeartBeat, <?php echo($heartbeat); ?>);
     });
 }
-setTimeout('doHeartBeat()', <?php echo($heartbeat); ?>);
+setTimeout(doHeartBeat, <?php echo($heartbeat); ?>);
 </script>
 <?php
     }
