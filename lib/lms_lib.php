@@ -121,6 +121,21 @@ function requireData($needed) {
         dieWithErrorLog('This tool needs to be launched using LTI');
 	}
 
+    // Check to see if we switched browsers or IP addresses
+    if ( isset($_SESSION['HTTP_USER_AGENT']) ) {
+        if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
+            $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
+            error_log("DIE: (not) HTTP_USER_AGENT ".$_SESSION['HTTP_USER_AGENT'].
+                ' ::: '.$_SERVER['HTTP_USER_AGENT']);
+        }
+    }
+    if ( isset($_SESSION['REMOTE_ADDR']) ) {
+        if ( (!isset($_SERVER['REMOTE_ADDR'])) ||
+            $_SESSION['REMOTE_ADDR'] != $_SERVER['REMOTE_ADDR'] ) {
+            error_log("DIE: (not) REMOTE_ADDR ".$_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
+        }
+    }
+
 	$LTI = $_SESSION['lti'];
 	if ( is_string($needed) && ! isset($LTI[$needed]) ) {
 		dieWithErrorLog("This tool requires an LTI launch parameter:".$needed);

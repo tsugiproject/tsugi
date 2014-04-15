@@ -53,6 +53,8 @@ if ( isset($row['role_override']) && isset($row['role']) &&
 // TODO: do AES on the secret
 $_SESSION['lti'] = $row;
 $_SESSION['lti_post'] = $_POST;
+if ( isset($_SERVER['HTTP_USER_AGENT']) ) $_SESSION['HTTP_USER_AGENT'] = $_SERVER['HTTP_USER_AGENT'];
+if ( isset($_SERVER['REMOTE_ADDR']) ) $_SESSION['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
 
 // See if we have a custom assignment setting.
 if ( ! isset($_POST['custom_assn'] ) ) {
