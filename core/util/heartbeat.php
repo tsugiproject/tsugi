@@ -7,7 +7,7 @@ $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
 
 // TODO: Remove when tested
 $filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
-error_log("Heartbeat.php ".session_id().' '.$filename);
+// error_log("Heartbeat.php ".session_id().' '.$filename);
 
 $retval = array("success" => true);
 $retval['lti'] = isset($_SESSION['lti']);

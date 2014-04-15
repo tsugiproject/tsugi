@@ -141,7 +141,9 @@ function requireData($needed) {
 
     // TODO: Change this to a warning once we get more data
 	if ( !isset($_SESSION['lti']) ) {
-        dieWithErrorLog('Session expired - please re-launch');
+        $debug = safeVarDump($_SESSION);
+        error_log($debug);
+        dieWithErrorLog('Session expired - please re-launch', session_id()); // with error_log
 	}
 
     // Check to see if we switched browsers or IP addresses
@@ -149,16 +151,14 @@ function requireData($needed) {
     if ( isset($_SESSION['HTTP_USER_AGENT']) ) {
         if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
             $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
-            error_log("DIE: HTTP_USER_AGENT ".$_SESSION['HTTP_USER_AGENT'].
+            dieWithErrorLog("Sesison has expired", "DIE: HTTP_USER_AGENT ".$_SESSION['HTTP_USER_AGENT'].
                 ' ::: '.$_SERVER['HTTP_USER_AGENT']);
-            die('Session has expired'); // with error_log
         }
     }
     if ( isset($_SESSION['REMOTE_ADDR']) ) {
         if ( (!isset($_SERVER['REMOTE_ADDR'])) ||
             $_SESSION['REMOTE_ADDR'] != $_SERVER['REMOTE_ADDR'] ) {
-            error_log("DIE: REMOTE_ADDR ".$_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
-            die('Session address has expired'); // with error_log
+            dieWithErrorLog('Session address has expired', "DIE: REMOTE_ADDR ".$_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
         }
     }
 

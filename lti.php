@@ -25,6 +25,7 @@ header('Content-Type: text/html; charset=utf-8');
 
 // Since we might reuse session IDs, clean everything out
 session_unset();
+$_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
 
 // Read all of the data from the database with a very long
 // LEFT JOIN and get all the data we have back in the $row variable
@@ -113,14 +114,19 @@ if ( isset($_POST['custom_penalty_cost'] ) ) {
 	}
 }
 
+// Send us to where we are going next...
 $query = false;
 if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
 	$query = true;
 	$url .= '?' . $_SERVER['QUERY_STRING'];
 }
+
+$location = sessionize($url);
+session_write_close();  // TO avoid any race conditions...
+
 if ( headers_sent() ) {
 	echo('<p><a href="'.$url.'">Click to continue</a></p>');
 } else { 
-    header('Location: '.sessionize($url));
+    header('Location: '.$location);
 }
 ?>

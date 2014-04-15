@@ -49,9 +49,10 @@ function extractPost() {
 
 // Make sure to include the file in case multiple instances are running
 // on the same server and they have not changed the session secret
+// Also make these change every 30 minutes
 function getCompositeKey($post, $session_secret) {
 	$comp = $session_secret .'::'. $post['key'] .'::'. $post['context_id'] .'::'. 
-		$post['link_id']  .'::'. $post['user_id'] .'::'. 
+		$post['link_id']  .'::'. $post['user_id'] .'::'. intval(time() / 1800) .
         $_SERVER['HTTP_USER_AGENT'] . '::' . __FILE__;
 	return md5($comp);
 }

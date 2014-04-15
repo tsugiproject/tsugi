@@ -1,12 +1,16 @@
 <?php
 
-function dieWithErrorLog($msg) {
-    error_log("DIE: ".$msg);
+function dieWithErrorLog($msg, $extra=false) {
+    error_log("DIE: ".$msg.' '.$extra);
+    printStackTrace();
+    die($msg); // with error_log
+}
+
+function printStackTrace() {
     ob_start();
     debug_print_backtrace();
     $data = ob_get_clean();
     error_log($data);
-    die($msg); // with error_log
 }
 
 if ( isset($CFG->upgrading) && $CFG->upgrading === true ) require_once("upgrading.php");
