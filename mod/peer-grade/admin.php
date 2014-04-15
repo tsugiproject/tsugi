@@ -39,8 +39,14 @@ startBody();
 flashMessages();
 welcomeUserCourse($LTI);
 
-// Make us a paged table
-pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields, "student.php");
+// Make us a paged table and by default sort by flagged descending
+$parm = $_GET;
+if ( ! isset($parm['order_by']) ) {
+    $parm['order_by'] = 'flagged';
+    $parm['desc'] = '1';
+}
+
+pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields, "student.php", $parm);
 
 ?>
 <form method="post">
