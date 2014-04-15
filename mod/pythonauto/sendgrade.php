@@ -21,4 +21,3 @@ if ( is_string($retval) ) {
 
 $retval = Array("status" => "success", "debuglog" => $debuglog);
 echo json_encode($retval);
-?>
