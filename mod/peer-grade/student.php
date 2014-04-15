@@ -39,7 +39,12 @@ if ( $submit_row !== false ) {
 $user_row = loadUserInfo($pdo, $user_id);
 
 // Handle incoming post to delete the entire submission
-if ( isset($_POST['deleteSubmit']) && $submit_id != false ) {
+if ( isset($_POST['deleteSubmit']) ) {
+    if ( $submit_id == false ) {
+        $_SESSION['error'] = "Could not load submission.";
+        header( 'Location: '.sessionize('index.php') ) ;
+        return;
+    }
     $note = isset($_POST['deleteNote']) ? $_POST['deleteNote'] : '';
     $retval = mailDeleteSubmit($pdo, $user_id, $assn_json, $note);
     $stmt = pdoQueryDie($pdo,

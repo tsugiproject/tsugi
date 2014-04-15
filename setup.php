@@ -2,6 +2,10 @@
 
 function dieWithErrorLog($msg) {
     error_log("DIE: ".$msg);
+    ob_start();
+    debug_print_backtrace();
+    $data = ob_get_clean();
+    error_log($data);
     die($msg); // with error_log
 }
 
