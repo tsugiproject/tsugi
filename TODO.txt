@@ -3,3 +3,5 @@ Remove session_start() before requireData() in the samples after SIx64 finishes.
 
 Remove old version of bootstrap.
 
+Build lti.php load balancer.
+

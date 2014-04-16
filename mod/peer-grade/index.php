@@ -227,14 +227,15 @@ if ( $submit_row == false ) {
 if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxassess ) ) {
     echo('<a href="grade.php" class="btn btn-default">Grade other students</a> '."\n");
     // Add a done button if needed
-} else {
-    echo('There are no submisions waiting to be graded. Please check back later.</p>');
-    
-}
-
-echo("<p> You have graded ".$grade_count." other student submissions.
+    echo("<p> You have graded ".$grade_count." other student submissions.
 You must grade at least ".$assn_json->minassess." submissions for full credit on this assignment.
 You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
+
+} else if ( count($to_grade) > 0 ) {
+    echo('<p>You have graded the maximum number of submissions. Congratulations!<p>');
+} else {
+    echo('<p>There are no submisions waiting to be graded. Please check back later.</p>');
+}
 
 // We have a submission already
 $submit_json = json_decode($submit_row['json']);
