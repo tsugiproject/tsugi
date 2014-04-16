@@ -160,20 +160,18 @@ function requireData($needed) {
         if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
             $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
             send403();
-            dieWithErrorLog("Sesison has expired", "DIE: HTTP_USER_AGENT ".$_SESSION['HTTP_USER_AGENT'].
-                ' ::: '.$_SERVER['HTTP_USER_AGENT']);
+            dieWithErrorLog("Sesison has expired", " ".session_id()." HTTP_USER_AGENT ".
+                $_SESSION['HTTP_USER_AGENT'].' ::: '.$_SERVER['HTTP_USER_AGENT']);
         }
     }
     if ( isset($_SESSION['REMOTE_ADDR']) ) {
         if ( (!isset($_SERVER['REMOTE_ADDR'])) ||
             $_SESSION['REMOTE_ADDR'] != $_SERVER['REMOTE_ADDR'] ) {
             send403();
-            dieWithErrorLog('Session address has expired', "DIE: REMOTE_ADDR ".$_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
+            dieWithErrorLog('Session address has expired', " ".session_id()." REMOTE_ADDR ".
+                $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
         }
     }
-
-    // Check to see if the session needs to be extended
-    checkHeartBeat();
 
 	$LTI = $_SESSION['lti'];
 	if ( is_string($needed) && ! isset($LTI[$needed]) ) {
@@ -185,6 +183,13 @@ function requireData($needed) {
 			dieWithErrorLog("This tool requires an LTI launch parameter:".$feature);
 		}
 	}
+
+    // Check to see if the session needs to be extended due to this request
+    checkHeartBeat();
+
+    // Restart the number of continuous heartbeats
+    $_SESSION['HEARTBEAT_COUNT'] = 0;
+
     return $LTI;
 }
 
@@ -274,12 +279,12 @@ function footerStart() {
 <script type="text/javascript">
 function doHeartBeat() {
     window.console && console.log('Calling heartbeat to extend session');
+    $.ajaxSetup({ cache: false }); // For IE...
     $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>', function(data) {
         window.console && console.log(data);
-        setTimeout(doHeartBeat, <?php echo($heartbeat); ?>);
     });
 }
-setTimeout(doHeartBeat, <?php echo($heartbeat); ?>);
+setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
 </script>
 <?php
     }
@@ -503,8 +508,17 @@ function json_indent($json) {
     return $result;
 }
 
+// http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers
+// http://www.php.net/manual/en/function.header.php
+function noCacheHeader() {
+    header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+    header('Pragma: no-cache'); // HTTP 1.0.
+    header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past - proxies
+}
+
 function header_json() {
     header('Content-type: application/json');
+    noCacheHeader();
 }
 
 function lmsDie($message=false) {

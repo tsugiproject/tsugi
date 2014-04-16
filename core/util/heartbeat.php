@@ -2,14 +2,29 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
+header_json();
+
+
 session_start();
-$_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
 
-// TODO: Remove when tested
-$filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
-// error_log("Heartbeat.php ".session_id().' '.$filename);
+// See how long since the last update of the activity time
+$seconds = 0;
+$now = time();
+if ( isset($_SESSION['LAST_ACTIVITY']) ) {
+    $seconds = $now - $_SESSION['LAST_ACTIVITY'];
+}
+$_SESSION['LAST_ACTIVITY'] = $now; // update last activity time stamp
 
-$retval = array("success" => true);
+// Count the successive heartbeats without a request/response cycle
+if ( ! isset($_SESSION['HEARTBEAT_COUNT']) ) $_SESSION['HEARTBEAT_COUNT'] = 0;
+$count = $_SESSION['HEARTBEAT_COUNT']++;
+
+if ( $count > 10 && ( $count % 100 ) == 0 ) {
+    error_log("Heartbeat.php ".session_id().' '.$count);
+}
+
+$retval = array("success" => true, "seconds" => $seconds, 
+        "now" => $now, "count" => $count);
 $retval['lti'] = isset($_SESSION['lti']);
 $retval['sessionlifetime'] = $CFG->sessionlifetime;
 echo(json_encode($retval));
