@@ -1,9 +1,16 @@
 <?php
+
+if ( isset($_GET[session_name()]) ) {
+    $cookie = false;
+} else {
+    define('COOKIE_SESSION', true);
+    $cookie = true;
+}
+
 require_once "../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 header_json();
-
 
 session_start();
 
@@ -24,7 +31,9 @@ if ( $count > 10 && ( $count % 100 ) == 0 ) {
 }
 
 $retval = array("success" => true, "seconds" => $seconds, 
-        "now" => $now, "count" => $count);
+        "now" => $now, "count" => $count, "cookie" => $cookie,
+        "id" => session_id());
 $retval['lti'] = isset($_SESSION['lti']);
+// $retval['lti'] = false;
 $retval['sessionlifetime'] = $CFG->sessionlifetime;
 echo(json_encode($retval));

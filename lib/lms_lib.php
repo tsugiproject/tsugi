@@ -95,7 +95,7 @@ function checkHeartBeat() {
 
     if ( isset($CFG->sessionlifetime) ) {
         if (isset($_SESSION['LAST_ACTIVITY']) ) {
-            $heartbeat = $CFG->sessionlifetime/3;
+            $heartbeat = $CFG->sessionlifetime/4;
             $ellapsed = time() - $_SESSION['LAST_ACTIVITY'];
             if ( $ellapsed > $heartbeat ) {
                 $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
@@ -273,18 +273,27 @@ function footerStart() {
 	do_analytics(); 
 	echo(togglePreScript());
     if ( isset($CFG->sessionlifetime) ) {
-        $heartbeat = ( $CFG->sessionlifetime * 1000) / 4;
-        // $heartbeat = 4000;
+        $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
+        // $heartbeat = 10000;
 ?>
 <script type="text/javascript">
+$HEARTBEAT_INTERVAL = false;
 function doHeartBeat() {
     window.console && console.log('Calling heartbeat to extend session');
     $.ajaxSetup({ cache: false }); // For IE...
     $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>', function(data) {
         window.console && console.log(data);
+        if ( data.lti || data.cookie ) {
+            // No problem
+        } else {
+            clearInterval($HEARTBEAT_INTERVAL);
+            $HEARTBEAT_INTERVAL = false;
+            alert('Your session has expired');
+            window.location.href = "about:blank";
+        }
     });
 }
-setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
+$HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
 </script>
 <?php
     }
