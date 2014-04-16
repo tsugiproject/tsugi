@@ -146,12 +146,15 @@ function requireData($needed) {
         session_start();  // Should reassociate
     }
 
-    // TODO: Change this to a warning once we get more data
+    // This happens from time to time when someone closes and reopens a laptop
+    // Or their computer goes to sleep and wakes back up hours later.
+    // So it is just a warning - nothing much we can do except tell them.
 	if ( !isset($_SESSION['lti']) ) {
-        $debug = safeVarDump($_SESSION);
-        error_log($debug);
+        // $debug = safeVarDump($_SESSION);
+        // error_log($debug);
         send403();
-        dieWithErrorLog('Session expired - please re-launch', session_id()); // with error_log
+        error_log('Session expired - please re-launch '.session_id()); 
+        die('Session expired - please re-launch'); // with error_log
 	}
 
     // Check to see if we switched browsers or IP addresses
