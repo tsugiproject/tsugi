@@ -152,8 +152,7 @@ function requireData($needed) {
 	if ( !isset($_SESSION['lti']) ) {
         // $debug = safeVarDump($_SESSION);
         // error_log($debug);
-        send403();
-        error_log('Session expired - please re-launch '.session_id()); 
+        send403(); error_log('Session expired - please re-launch '.session_id()); 
         die('Session expired - please re-launch'); // with error_log
 	}
 
@@ -167,12 +166,19 @@ function requireData($needed) {
                 $_SESSION['HTTP_USER_AGENT'].' ::: '.$_SERVER['HTTP_USER_AGENT']);
         }
     }
-    if ( isset($_SESSION['REMOTE_ADDR']) ) {
-        if ( (!isset($_SERVER['REMOTE_ADDR'])) ||
-            $_SESSION['REMOTE_ADDR'] != $_SERVER['REMOTE_ADDR'] ) {
-            send403();
-            dieWithErrorLog('Session address has expired', " ".session_id()." REMOTE_ADDR ".
-                $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
+
+    // We only check the first three octets as some systems wander throught the addresses on
+    // class C - Perhaps it is even NAT - who knows - but we forgive those on the same Class C
+    if ( isset($_SESSION['REMOTE_ADDR']) && isset($_SERVER['REMOTE_ADDR']) ) {
+        $sess_pieces = explode('.',$_SESSION['REMOTE_ADDR']);
+        $serv_pieces = explode('.',$_SERVER['REMOTE_ADDR']);
+        if ( count($sess_pieces) == 4 && count($serv_pieces) == 4 ) {
+            if ( $sess_pieces[0] != $serv_pieces[0] || $sess_pieces[1] != $serv_pieces[1] ||
+                $sess_pieces[2] != $serv_pieces[2] ) {
+                send403();
+                dieWithErrorLog('Session address has expired', " ".session_id()." REMOTE_ADDR ".
+                    $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
+            }
         }
     }
 
