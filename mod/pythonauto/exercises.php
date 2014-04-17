@@ -28,7 +28,9 @@ as shown below.",
 "2.2" => Array (
 "qtext" => "<b>2.2</b> Write a program that uses <b>raw_input</b> 
 to prompt a user for their name and then
-welcomes them.  Note that <b>raw_input</b> will pop a dialog box.",
+welcomes them.  Note that <b>raw_input</b> will pop a dialog box.
+Enter <b>Sarah</b> in the pop-up box when you are prompted so your 
+output will match the desired output below.",
 "desired" => "Hello Sarah",
 "code" => '# The code below almost works
 
