@@ -162,6 +162,7 @@ function requireData($needed) {
         if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
             $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
             send403();
+            session_destroy();
             dieWithErrorLog("Sesison has expired", " ".session_id()." HTTP_USER_AGENT ".
                 $_SESSION['HTTP_USER_AGENT'].' ::: '.$_SERVER['HTTP_USER_AGENT']);
         }
@@ -175,6 +176,7 @@ function requireData($needed) {
         if ( count($sess_pieces) == 4 && count($serv_pieces) == 4 ) {
             if ( $sess_pieces[0] != $serv_pieces[0] || $sess_pieces[1] != $serv_pieces[1] ||
                 $sess_pieces[2] != $serv_pieces[2] ) {
+                session_destroy();
                 send403();
                 dieWithErrorLog('Session address has expired', " ".session_id()." REMOTE_ADDR ".
                     $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
