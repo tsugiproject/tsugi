@@ -85,4 +85,24 @@ function sessionize($url) {
     return $url;
 }
 
+function reConstructQuery($baseurl, $newparms=false) {
+    foreach ( $_GET as $k => $v ) {
+        if ( $k == session_name() ) continue;
+        if ( is_array($newparms) && array_key_exists($k, $newparms) ) continue;
+        $baseurl = addUrlParm($baseurl, $k, $v);
+    }
+    if ( is_array($newparms) ) foreach ( $newparms as $k => $v ) {
+        $baseurl = addUrlParm($baseurl, $k, $v);
+    }
+
+    return $baseurl;
+}
+
+function addUrlParm($url, $key, $val) {
+    $url .= strpos($url,'?') === false ? '?' : '&';
+    $url .= urlencode($key) . '=' . urlencode($val);
+    return $url;
+}
+    
+
 // No trailer

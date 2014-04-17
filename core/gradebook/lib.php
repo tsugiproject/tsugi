@@ -42,6 +42,7 @@ function showGrades($stmt, $detail = false) {
     echo("</table>\n");
 }
 
+// Not cached
 function loadGrade($pdo, $user_id=false) {
     global $CFG;
     $LTI = requireData(array('user_id', 'link_id', 'role'));
@@ -71,4 +72,26 @@ function showGradeInfo($row) {
     echo("Last Submision: ".htmlent_utf8($row['updated_at'])."<br/>\n");
     echo("Score: ".htmlent_utf8($row['grade'])."<br/>\n");
     echo("</p>\n");
+}
+
+function updateJSON($pdo, $newdata=false) {
+    if ( $newdata == false ) return;
+    $row = loadGrade($pdo);
+    $data = array();
+    if ( $row !== false && isset($row['json'])) {
+        $data = json_decode($row['json'], true);
+    }
+
+    $changed = false;
+    foreach ($newdata as $k => $v ) {
+        if ( (!isset($data[$k])) || $data[$k] != $v ) {
+            $data[$k] = $v;
+            $changed = true;
+        }
+    }
+
+    if ( $changed === false ) return;
+
+    $jstr = json_encode($data);
+    $retval = updateGradeJSON($pdo, $jstr);
 }

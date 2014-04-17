@@ -14,10 +14,23 @@ $p = $CFG->dbprefix;
 // Get the current user's grade data also checks session
 $row = loadGrade($pdo);
 $OLDCODE = false;
+$json = array();
+$editor = 1;
 if ( $row !== false && isset($row['json'])) {
-    $json = json_decode($row['json']);
-    if ( isset($json->code) ) $OLDCODE = $json->code;
+    $json = json_decode($row['json'], true);
+    if ( isset($json["code"]) ) $OLDCODE = $json["code"];
+    if ( isset($json["editor"]) ) $editor = $json["editor"];
 }
+
+if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0' ) ) {
+    $neweditor = $_GET['editor']+0;
+    if ( $editor != $neweditor ) {
+        updateJSON($pdo, array("editor" => $neweditor));
+        $json['editor'] = $neweditor;
+        $editor = $neweditor;
+    }
+}
+$codemirror = $editor == 1;
 
 // Get any due date information
 $dueDate = getDueDate();
@@ -71,13 +84,11 @@ body { font-family: sans-serif; }
 .inputarea { width: 100%; height: 250px; }
 </style>
 <link href="<?php echo($CFG->staticroot); ?>/static/css/jquery.splitter.css" rel="stylesheet"/>
+<?php if ( $codemirror ) { ?>
 <link href="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.css" rel="stylesheet"/>
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.js"></script>
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/python.js"></script>
-<!--
-<script src="skulpt/skulpt.js?v=1" type="text/javascript"></script>
-<script src="skulpt/builtin.js?v=1" type="text/javascript"></script>
--->
+<?php } ?>
 <script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt.min.js?v=1" type="text/javascript"></script>
 <script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt-stdlib.js?v=1" type="text/javascript"></script>
 <script type="text/javascript">
@@ -292,7 +303,7 @@ function load_files() {
             window.console && console.log("Grade response received...");
             window.console && console.log(data);
             $("#spinner").hide();
-            if ( data["status"] == "success") {
+            if ( data.status == "success") {
                 $("#gradegood").show();
             } else {
                 $("#gradebad").show();
@@ -374,8 +385,19 @@ if ( $OLDCODE !== false ) {
 </form>
 </div>
 <div id="footer" style="text-align: center">
-This autograder supports Python 2.7 and is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> and
-<a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
+Setting: 
+<?php
+    if ( $codemirror ) {
+        $editurl = reConstructQuery('auto.php',array("editor" => 0));
+        $textval = "Hide editor";
+    } else {
+        $editurl = reConstructQuery('auto.php',array("editor" => 1));
+        $textval = "Show editor";
+    }
+    echo('<a href="'.$editurl.'">'.$textval.'</a>.  ');
+?>
+This autograder supports Python 2.7 and is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> 
+and <a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
 The source code for this auto-grader is available on
 <a href="https://github.com/csev/tsugi" target="_blank">on GitHub</a>.
 <textarea id="resetcode" cols="80" style="display:none">
@@ -416,6 +438,7 @@ function compute_divs() {
     window.console && console.log('avail='+$avail+' favail='+$favail);
 } 
 
+<?php if ( $codemirror ) { ?>
 // Setup Codemirror
 function load_cm() {
     window.CM_EDITOR = CodeMirror.fromTextArea(document.getElementById("code"), 
@@ -429,6 +452,7 @@ function load_cm() {
     });
     window.CM_EDITOR.setSize('100%', '100%');
 }
+<?php } ?>
 
  $().ready(function(){
     // I cannot make this reliable :(
@@ -438,7 +462,9 @@ function load_cm() {
     load_files();
     if ( MOBILE === false ) {
         compute_divs();
+<?php if ( $codemirror ) { ?>
         load_cm();
+<?php } ?>
     }
  });
 </script>
