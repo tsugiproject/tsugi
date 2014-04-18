@@ -157,12 +157,32 @@ function load_files() {
         $("#gradebad").hide();
     }
 
+    // http://stackoverflow.com/questions/1418050/string-strip-for-javascript
+    if(typeof(String.prototype.trim) === "undefined")
+    {
+        String.prototype.trim = function() 
+        {
+            return String(this).replace(/^\s+|\s+$/g, '');
+        };
+    }
+
     function finalcheck() {
         if ( window.GLOBAL_TIMER != false ) window.clearInterval(window.GLOBAL_TIMER);
         window.GLOBAL_TIMER = false;
         hideall();
         $("#spinner").hide();
         var prog = document.getElementById("code").value;
+        var lines = prog.split("\n");
+        prog = '';
+        for ( var i = 0; i < lines.length; i++ ) {
+            line = lines[i];
+            if ( line.substring(0,1) == '#' ) continue;
+            var pos = line.indexOf('#');
+            if ( pos > 0 ) {
+                line = line.substring(0,pos);
+            }
+            prog = prog + line + "\n";
+        }
         for ( var key in window.CHECKS ) {
             // The key can be inverted if the first character is !
             if ( key.length > 1 && key.substring(0,1) == '!' ) {
