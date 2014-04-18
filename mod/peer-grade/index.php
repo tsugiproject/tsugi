@@ -249,13 +249,20 @@ if ( count($our_grades) < 1 ) {
     echo('<table border="1" class="table table-hover table-condensed table-responsive">');
     echo("\n<tr><th>Points</th><th>Comments</th><th>Action</th></tr>\n");
 
+    $max_points = false;
     foreach ( $our_grades as $grade ) {
-        echo("<tr><td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>\n".
+        if ( $max_points === false ) $max_points = $grade['points'];
+        $show = $grade['points'];
+        if ( $show < $max_points ) $show = '';
+        echo("<tr><td>".$show."</td><td>".htmlent_utf8($grade['note'])."</td>\n".
         '<td><form><input type="submit" name="showFlag" value="Flag"
         onclick="$(\'#flag_grade_id\').val(\''.$grade['grade_id'].'\'); $(\'#flagform\').toggle(); return false;" class="btn btn-danger">'.
         "</form></tr>\n");
     }
     echo("</table>\n");
+    if ( $max_points !== false ) {
+        echo("<p>Your overall score from your peers: $max_points </p>\n");
+    }
 }
 doneBootstrap();
 ?>

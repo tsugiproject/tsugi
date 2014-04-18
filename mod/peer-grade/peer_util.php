@@ -182,7 +182,8 @@ function retrieveSubmissionGrades($pdo, $submit_id)
         FROM {$CFG->dbprefix}peer_grade AS G
         JOIN {$CFG->dbprefix}lti_user as U
             ON G.user_id = U.user_id
-        WHERE G.submit_id = :SID",
+        WHERE G.submit_id = :SID
+        ORDER BY points DESC",
         array( ':SID' => $submit_id)
     );
     return $grades_received;
