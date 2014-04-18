@@ -56,7 +56,7 @@ hrs = raw_input("Enter Hours:")',
 "raw_input" => "You must prompt the pay and rate using the raw_input() function.",
 "print" => "You must use the print statement to print the output.",
 "float" => "You should use the built-in float() function to convert from a string to a float.",
-"!96.25" => "You must actually calculate the pay.")),
+"!96.25\"" => "You must actually calculate the pay.")),
 
 
 "3.1" => Array(
