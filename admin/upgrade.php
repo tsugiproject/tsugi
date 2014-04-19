@@ -86,10 +86,11 @@ foreach($tools as $tool ) {
                 togglePre("-- Created table ".$entry[0], $entry[1]);
                 $sql = "INSERT INTO {$plugins} 
                     ( plugin_path, version, created_at, updated_at ) VALUES
-                    ( :plugin_path, 1, NOW(), NOW() )
+                    ( :plugin_path, :version, NOW(), NOW() )
                     ON DUPLICATE KEY 
-                    UPDATE version = 1, updated_at = NOW()";
-                $values = array( ":plugin_path" => $path);
+                    UPDATE version = :version, updated_at = NOW()";
+                $values = array( ":plugin_path" => $path, 
+                        ":version" => $CFG->dbversion);
                 $q = pdoQuery($pdo, $sql, $values);
                 if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
             }
@@ -101,7 +102,7 @@ foreach($tools as $tool ) {
         $sql = "SELECT version FROM {$plugins} WHERE plugin_path = :plugin_path";
         $values = array( ":plugin_path" => $path);
         $q = pdoQuery($pdo, $sql, $values);
-        $version = 0;
+        $version = $CFG->dbversion;
         if ( $q->success ) {
             $data = $q->fetch(PDO::FETCH_ASSOC);
             if ( is_array($data) && isset($data['version']) ) $version = $data['version']+0;
@@ -116,7 +117,7 @@ foreach($tools as $tool ) {
             echo("-- WARNING: Database version=$newversion for $path higher than 
                 \$CFG->dbversion=$CFG->dbversion in setup.php<br/>\n");
         }
-        if ( $newversion != $version ) {
+        if ( $newversion > $version ) {
             echo("-- Upgraded to data model version $newversion <br/>\n");
             $sql = "INSERT INTO {$plugins} 
                 ( plugin_path, version, created_at, updated_at ) VALUES

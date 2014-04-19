@@ -90,15 +90,16 @@ in the <code>\$CFG->adminpw</code> setting.
 </p>
 ");
     echo("\n</div>\n");
-}   
-
 // Now check to see if a database upgrade might be necessary
-$row = pdoRowDie($pdo, "SELECT MAX(version) AS version FROM {$plugins}");
-$actualdbversion = $row['version'];
-if ( $actualdbversion < $CFG->dbversion ) {
-    echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
-    echo("<p>Warning: Database version=$actualdbversion should be
-    software version=$CFG->dbversion - please run admin/upgrade.php</p>\n");
-    echo("\n</div>\n");
-    error_log("Warning: DB current version=$actualdbversion expected version=$CFG->dbversion");
-}   
+} else {
+    $row = pdoRowDie($pdo, "SELECT MAX(version) AS version FROM {$plugins}");
+    $actualdbversion = $row['version'];
+    if ( $actualdbversion < $CFG->dbversion ) {
+        echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
+        echo("<p>Warning: Database version=$actualdbversion should be
+        software version=$CFG->dbversion - please run admin/upgrade.php</p>\n");
+        echo("\n</div>\n");
+        error_log("Warning: DB current version=$actualdbversion expected version=$CFG->dbversion");
+    }   
+}
+
