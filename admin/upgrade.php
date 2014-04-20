@@ -69,6 +69,7 @@ foreach($tools as $tool ) {
     $path = str_replace("../","",$tool);
     echo("Checking $path ...<br/>\n");
     unset($DATABASE_INSTALL);
+    unset($DATABASE_POST_CREATE);
     unset($DATABASE_UNINSTALL);
     unset($DATABASE_UPGRADE);
     require($tool);
@@ -93,6 +94,10 @@ foreach($tools as $tool ) {
                         ":version" => $CFG->dbversion);
                 $q = pdoQuery($pdo, $sql, $values);
                 if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
+                // Do the POST-Create
+                if ( isset($DATABASE_POST_CREATE) && $DATABASE_POST_CREATE !== false ) {
+                    $DATABASE_POST_CREATE($pdo, $entry[0]);
+                }
             }
         }
     }
