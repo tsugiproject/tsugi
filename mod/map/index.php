@@ -115,7 +115,7 @@ function initialize_map() {
 	var newLatlng = new google.maps.LatLng(row[0], row[1]);
 	var iconpath = '<?php echo($CFG->staticroot); ?>/static/img/icons/';
     console.log(row);
-	var icon = row[3] ? 'blue.png' : 'green.png';
+	var icon = row[3] ? 'green-dot.png' : 'green.png';
     var marker = new google.maps.Marker({
       position: newLatlng,
       map: map,
