@@ -12,6 +12,9 @@ array( "{$CFG->dbprefix}context_map",
     lat         FLOAT,
     lng         FLOAT,
     color       INTEGER,
+    email       TINYINT,
+    name        TINYINT,
+    first       TINYINT,
     updated_at  DATETIME NOT NULL,
 
     CONSTRAINT `{$CFG->dbprefix}context_map_ibfk_1`
@@ -29,3 +32,26 @@ array( "{$CFG->dbprefix}context_map",
 
 );
 
+
+$DATABASE_UPGRADE = function($pdo, $oldversion) {
+    global $CFG;
+
+    // Version 2014041200 improvements
+    if ( $oldversion < 2014042000 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}context_map ADD email TINYINT";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}context_map ADD name TINYINT";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}context_map ADD first TINYINT";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+    }
+    return 2014042000;
+};

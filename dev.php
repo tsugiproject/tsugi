@@ -35,6 +35,8 @@ if ( isset($_POST['loginsecret']) ) {
 }
 
 if ( ! isset($_SESSION['developer'] ) ) {
+headerContent();
+startBody();
 ?>
 <html><head><body>
 <p>Please enter the developer password:</p>
@@ -44,6 +46,7 @@ if ( ! isset($_SESSION['developer'] ) ) {
 </form>
 </body>
 <?php
+footerContent();
     return;
 }
 
@@ -64,7 +67,7 @@ require_once("dev-data.php");
 
 // Merge post data into  data
 foreach ($lmsdata as $k => $val ) {
-	if ( isset($_POST[$k]) && strlen($_POST[$k]) > 0 ) {
+	if ( isset($_POST[$k]) ) {
 		$lmsdata[$k] = $_POST[$k];
 	}
 }
@@ -79,6 +82,12 @@ if ( isset($_POST['learner1']) ) {
 if ( isset($_POST['learner2']) ) {
 	foreach ( $learner2 as $k => $val ) {
           $lmsdata[$k] = $learner2[$k];
+	}
+}
+
+if ( isset($_POST['learner3']) ) {
+	foreach ( $learner3 as $k => $val ) {
+          $lmsdata[$k] = $learner3[$k];
 	}
 }
 
@@ -206,11 +215,16 @@ function doSubmitTool(name) {
           <ul class="nav navbar-nav navbar-right">
             <li><a href="about-dev.php">Help</a></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo($lmsdata['lis_person_name_full']);?><b class="caret"></b></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    <?php if ( strlen($lmsdata['lis_person_name_full']) > 0 ) echo($lmsdata['lis_person_name_full']);
+                        else echo('Anonymous');
+                    ?>
+                    <b class="caret"></b></a>
               <ul class="dropdown-menu">
 				<li><a href="#" onclick="doSubmit('instructor');return false;">Jane Instructor</a></li>
 				<li><a href="#" onclick="doSubmit('learner1');return false;">Sue Student</a></li>
 				<li><a href="#" onclick="doSubmit('learner2');return false;">Ed Student</a></li>
+				<li><a href="#" onclick="doSubmit('learner3');return false;">Anonymous</a></li>
               </ul>
             </li>
           </ul>

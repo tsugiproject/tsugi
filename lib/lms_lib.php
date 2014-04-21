@@ -2,6 +2,11 @@
 
 require_once "lti_util.php";
 
+function getSpinnerUrl() {
+    global $CFG;
+    return $CFG->staticroot . '/static/img/spinner.gif';
+}
+
 function flashMessages() {
     if ( isset($_SESSION['error']) ) {
         echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
@@ -59,6 +64,30 @@ function dumpTable($stmt, $view=false) {
         echo("</tr>\n");
     }
     echo("</table>\n");
+}
+
+function getNameAndEmail($LTI) {
+    $display = '';
+    if ( isset($LTI['user_displayname']) && strlen($LTI['user_displayname']) > 0 ) {
+        $display = $LTI['user_displayname'];
+    }
+    if ( isset($LTI['user_email']) && strlen($LTI['user_email']) > 0 ) { 
+        if ( strlen($display) > 0 ) {
+            $display .= ' ('.$LTI['user_email'].')';
+        } else {
+            $display = $LTI['user_email'];
+        }
+    }
+    $dieplay = trim($display);
+    if ( strlen($display) < 1 ) return false;
+    return $display;
+}
+
+function getFirstName($displayname) {
+    if ( $displayname === false ) return false;
+    $pieces = explode(' ',$displayname);
+    if ( count($pieces) > 0 ) return $pieces[0];
+    return false;
 }
 
 function welcomeUserCourse($LTI) {

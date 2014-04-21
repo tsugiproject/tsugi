@@ -29,6 +29,16 @@ $learner2 = array(
       "roles" => "Learner"
 );
 
+$learner3 = array(
+      "lis_person_name_full" => '',
+      "lis_person_name_family" => '',
+      "lis_person_name_given" => '',
+      "lis_person_contact_email_primary" => '',
+      "lis_person_sourcedid" => "ischool.edu:ed",
+      "user_id" => "777777777",
+      "roles" => "Learner"
+);
+
 $lmsdata = array(
       "custom_assn" => "mod/map/index.php",
 
