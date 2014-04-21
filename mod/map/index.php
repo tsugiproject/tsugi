@@ -33,6 +33,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         else $name = '';
         if ( $row['allow_email'] != 1 ) $email = '';
     }
+    $info = ($row['allow_name'] == 1 || $row['allow_first'] == 1 || $row['allow_email'] == 1)+0;
     $display = $name;
     if ( strlen($email) > 0 ) {
         if ( strlen($display) > 0 ) {
@@ -42,7 +43,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         }
     }
 
-	$points[] = array($lat, $lng, $display);
+	$points[] = array($lat, $lng, $display, $info);
 }
 ;
 // Retrieve our row
@@ -114,7 +115,7 @@ function initialize_map() {
 	var newLatlng = new google.maps.LatLng(row[0], row[1]);
 	var iconpath = '<?php echo($CFG->staticroot); ?>/static/img/icons/';
     console.log(row);
-	var icon = (row[2] && row[2].length > 0) ? 'blue.png' : 'green.png';
+	var icon = row[3] ? 'blue.png' : 'green.png';
     var marker = new google.maps.Marker({
       position: newLatlng,
       map: map,
