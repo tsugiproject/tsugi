@@ -158,6 +158,8 @@ function adjustData($pdo, $p, &$row, $post) {
 		$actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title'];
 	}
 	
+    $user_displayname = isset($post['user_displayname']) ? $post['user_displayname'] : null;
+    $user_email = isset($post['user_email']) ? $post['user_email'] : null;
 	if ( $row['user_id'] === null && isset($post['user_id']) ) {
 		$sql = "INSERT INTO {$p}lti_user 
 			( user_key, user_sha256, displayname, email, key_id, created_at, updated_at ) VALUES
@@ -165,13 +167,13 @@ function adjustData($pdo, $p, &$row, $post) {
 		pdoQueryDie($pdo, $sql, array(
 			':user_key' => $post['user_id'],
 			':user_sha256' => lti_sha256($post['user_id']),
-			':displayname' => $post['user_displayname'],
-			':email' => $post['user_email'],
+			':displayname' => $user_displayname,
+			':email' => $user_email,
 			':key_id' => $row['key_id']));
 		$row['user_id'] = $pdo->lastInsertId();
-		$row['user_email'] = $post['user_email'];
+		$row['user_email'] = $user_email;
 		$row['user_sha256'] = lti_sha256($post['user_id']);
-		$row['user_displayname'] = $post['user_displayname'];
+		$row['user_displayname'] = $user_displayname;
 		$actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email'];
 	}
 	
