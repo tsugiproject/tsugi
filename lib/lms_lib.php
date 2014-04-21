@@ -78,7 +78,7 @@ function getNameAndEmail($LTI) {
             $display = $LTI['user_email'];
         }
     }
-    $dieplay = trim($display);
+    $display = trim($display);
     if ( strlen($display) < 1 ) return false;
     return $display;
 }
@@ -193,7 +193,7 @@ function requireData($needed) {
             send403();
             session_destroy();
             dieWithErrorLog("Sesison has expired", " ".session_id()." HTTP_USER_AGENT ".
-                $_SESSION['HTTP_USER_AGENT'].' ::: '.$_SERVER['HTTP_USER_AGENT']);
+                $_SESSION['HTTP_USER_AGENT'].' ::: '.$_SERVER['HTTP_USER_AGENT'], 'die:');
         }
     }
 
@@ -208,7 +208,7 @@ function requireData($needed) {
                 session_destroy();
                 send403();
                 dieWithErrorLog('Session address has expired', " ".session_id()." REMOTE_ADDR ".
-                    $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR']);
+                    $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR'], 'die:');
             }
         }
     }

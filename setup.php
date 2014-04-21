@@ -1,7 +1,7 @@
 <?php
 
-function dieWithErrorLog($msg, $extra=false) {
-    error_log("DIE: ".$msg.' '.$extra);
+function dieWithErrorLog($msg, $extra=false, $prefix="DIE:") {
+    error_log($prefix.' '.$msg.' '.$extra);
     printStackTrace();
     die($msg); // with error_log
 }
