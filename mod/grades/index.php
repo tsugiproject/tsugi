@@ -39,9 +39,10 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
 
 } else if ( $instructor && isset($_GET['link_id'] ) ) {
     $query_parms = array(":LID" => $link_id, ":CID" => $LTI['context_id']);
-    $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at");
+    $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at", "retrieved_at");
     $class_sql = 
-        "SELECT R.user_id AS user_id, displayname, grade, R.updated_at as updated_at
+        "SELECT R.user_id AS user_id, displayname, grade, 
+            R.updated_at as updated_at, server_grade, retrieved_at
         FROM {$p}lti_result AS R JOIN {$p}lti_link as L 
             ON R.link_id = L.link_id
         JOIN {$p}lti_user as U
@@ -54,13 +55,16 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
         $user_id = $_GET['user_id'] + 0;
     }
 
+    // http://stackoverflow.com/questions/5602907/calculate-difference-between-two-datetimes
     $query_parms = array(":UID" => $user_id, ":CID" => $LTI['context_id']);
-    $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at");
+    $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at", "retrieved_at");
     $user_sql = 
-        "SELECT L.title as title, R.grade AS grade, 
-            R.note AS note, R.updated_at as updated_at
-        FROM {$p}lti_result AS R JOIN {$p}lti_link as L 
-            ON R.link_id = L.link_id
+        "SELECT R.result_id AS result_id, L.title as title, R.grade AS grade, R.note AS note, 
+            R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, service_key,
+            TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now
+        FROM {$p}lti_result AS R 
+        JOIN {$p}lti_link as L ON R.link_id = L.link_id
+        JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
     $user_info = loadUserInfo($pdo, $user_id);
 }
@@ -114,7 +118,88 @@ if ( $user_sql !== false ) {
     if ( $user_info !== false ) {
         echo("<p>Results for ".$user_info['displayname']."</p>\n");
     }
-    pagedPDO($pdo, $user_sql, $query_parms, $searchfields);
+    // pagedPDO($pdo, $user_sql, $query_parms, $searchfields);
+
+    // Temporarily make this small since each entry is costly
+    $DEFAULT_PAGE_LENGTH = 10; 
+    $newsql = pagedPDOQuery($user_sql, $query_parms, $searchfields);
+    // echo("<pre>\n$newsql\n</pre>\n");
+    $rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
+
+    // Scan to see if there are any un-retrieved server grades
+    $newrows = array();
+    foreach ( $rows as $row ) {
+        $newrow = $row;
+        unset($newrow['result_id']);
+        unset($newrow['diff_in_seconds']);
+        unset($newrow['time_now']);
+        unset($newrow['server_grade']);
+        unset($newrow['sourcedid']);
+        unset($newrow['service_key']);
+        $newrow['note'] = '';
+        if ( $row['grade'] <= 0.0 ) {
+            $newrows[] = $newrow;
+            continue;
+        }
+        
+        $diff = $row['diff_in_seconds'];
+
+        // $newrow['note'] = $row['retrieved_at'].' diff='.$diff.' '.
+            // $row['server_grade'].' '.$row['sourcedid'].' '.$row['service_key'];
+
+        $RETRIEVE_INTERVAL = 60;
+        $newnote['note'] = " "+$diff;
+
+        if ( !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] || 
+            $diff > $RETRIEVE_INTERVAL ) {
+            $server_grade = getGrade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
+            if ( $server_grade === false ) {
+                echo('<pre class="alert alert-danger">'."\n");
+                echoLog("Problem Retrieving Grade: ".session_id()." result_id=".$row['result_id']."\n".
+                    "grade=".$row['grade']." updated=".$row['updated_at']."\n".
+                    "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']);
+                echo("\nProblem Retrieving Grade - Please take a screen shot of this page.\n");
+                echo("</pre>\n");
+                $newrow['note'] = "Problem Retrieving Server Grade";
+                $newrows[] = $newrow;
+                continue;
+            } else if ( $server_grade > 0.0 ) {
+                $newrow['note'] .= ' Server grade retrieved.';
+            } else {
+                $newrow['note'] .= ' Server grade checked.';
+            }
+            $row['server_grade'] = $server_grade;
+            $newrow['retrieved_at'] = $row['time_now'];
+            $row['retrieved_at'] = $row['time_now'];
+        }
+        
+        // Now check to see if we need to update the server_grade
+        if ( $row['server_grade'] < $row['grade'] ) {
+            error_log("Patching server grade: ".session_id()." result_id=".$row['result_id']."\n".
+                    "grade=".$row['grade']." updated=".$row['updated_at']."\n".
+                    "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']);
+            
+            $debuglog = array();
+            $status = sendGradeWebService($row['grade'], $row['sourcedid'], $row['service_key'], $debuglog);
+
+            if ( $status === true ) {
+                $newrow['note'] .= " Server grade updated.";
+            } else {
+                echo('<pre class="alert alert-danger">'."\n");
+                echoLog("Problem Updating Grade: ".session_id()." result_id=".$row['result_id']."\n".
+                    "grade=".$row['grade']." updated=".$row['updated_at']."\n".
+                    "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
+                    "status=".$status);
+                echo("\nProblem Retrieving Grade - Please take a screen shot of this page.\n");
+                echo("</pre>\n");
+                $newrow['note'] .= " Problem Updating Server Grade";
+            }
+        }
+        
+        $newrows[] = $newrow;
+    }
+    
+    pagedPDOTable($newrows, $searchfields);
 }
 
 if ( $summary_sql !== false ) {

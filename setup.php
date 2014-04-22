@@ -6,6 +6,11 @@ function dieWithErrorLog($msg, $extra=false, $prefix="DIE:") {
     die($msg); // with error_log
 }
 
+function echoLog($msg) {
+    echo($msg);
+    error_log(str_replace("\n"," ",$msg));
+}
+
 function printStackTrace() {
     ob_start();
     debug_print_backtrace();

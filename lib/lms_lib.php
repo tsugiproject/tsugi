@@ -887,62 +887,24 @@ function sendGradeInternal($grade, $note, $json, &$debuglog, $pdo,  $result) {
         return "Missing required result data";
     }
 
-    // Check if the grade was already sent...
-    $ONLYSENDONCE = false;
-    if ( $ONLYSENDONCE && isset($result['grade']) && $grade == $result['grade'] ) {
-        $msg = "Grade result_id=".$result['result_id']." grade= $grade already sent...";
-        if ( is_array($debuglog) ) $debuglog[] = $msg;
+    $sourcedid = $result['sourcedid'];
+    // TODO: Should this be result?
+    $service = $lti['service'];
+    $status = sendGradeWebService($grade, $sourcedid, $service, $debuglog);
+
+    $detail = $status;
+    if ( $detail === true ) {
+        $detail = 'Success';
+        $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
         error_log($msg);
-        $status = true;
+     if ( is_array($debuglog) )  $debuglog[] = array($msg);
     } else {
-
-	    $method="POST";
-	    $content_type = "application/xml";
-        $sourcedid = $result['sourcedid'];
-	    $sourcedid = htmlspecialchars($sourcedid);
-    
-	    $operation = 'replaceResultRequest';
-	    $postBody = str_replace(
-		    array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
-		    array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
-		    getPOXGradeRequest());
-    
-	    if ( is_array($debuglog) ) $debuglog[] = array('Sending '.$grade.' to '.$lti['service'].' sourcedid='.$sourcedid);
-
-	    if ( is_array($debuglog) )  $debuglog[] = array('Grade API Request (debug)',$postBody);
-
-	    $response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], 
-            $content_type, $postBody);
-	    global $LastOAuthBodyBaseString;
-	    $lbs = $LastOAuthBodyBaseString;
-	    if ( is_array($debuglog) )  $debuglog[] = array("Grade API Response (debug)",$response);
-        $LastPOXGradeResponse = $response;
-        $status = "Failure to store grade";
-	    try {
-		    $retval = parseResponse($response);
-		    if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
-                $status = true;
-		    } else if ( isset($retval['imsx_description']) ) {
-                $status = $retval['imsx_description'];
-            }
-	    } catch(Exception $e) {
-		    $status = $e->getMessage();
-	        if ( is_array($debuglog) )  $debuglog[] = array("Exception: ".$status);
-	    }
-        $detail = $status;
-        if ( $detail === true ) {
-            $detail = 'Success';
-            $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
-            error_log($msg);
-	        if ( is_array($debuglog) )  $debuglog[] = array($msg);
-        } else {
-            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
-            error_log($msg);
-	        if ( is_array($debuglog) )  $debuglog[] = array($msg);
-            error_log($lti['service']);
-            error_log($response);
-            return $status;
-        }
+        $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
+        error_log($msg);
+     if ( is_array($debuglog) )  $debuglog[] = array($msg);
+        error_log($lti['service']);
+        error_log($response);
+        return $status;
     }
 
     // Update result in the database and in the LTI session area
@@ -965,6 +927,53 @@ function sendGradeInternal($grade, $note, $json, &$debuglog, $pdo,  $result) {
         error_log($msg);
         if ( is_array($debuglog) )  $debuglog[] = array($msg);
         cacheClear('lti_result');
+    }
+    return $status;
+}
+
+function sendGradeWebService($grade, $sourcedid, $service, &$debuglog=false) {
+    global $CFG;
+    global $LastPOXGradeResponse;
+    $LastPOXGradeResponse = false;;
+	$lti = $_SESSION['lti'];
+	if ( !isset($lti['key_key']) || !isset($lti['secret']) ) {
+		error_log('Session is missing required data');
+        $debug = safeVarDump($lti);
+        error_log($debug);
+        return "Missing required session data";
+    }
+
+    $method="POST";
+    $content_type = "application/xml";
+    $sourcedid = htmlspecialchars($sourcedid);
+    
+    $operation = 'replaceResultRequest';
+    $postBody = str_replace(
+        array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
+        array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
+        getPOXGradeRequest());
+    
+    if ( is_array($debuglog) ) $debuglog[] = array('Sending '.$grade.' to '.$lti['service'].' sourcedid='.$sourcedid);
+
+    if ( is_array($debuglog) )  $debuglog[] = array('Grade API Request (debug)',$postBody);
+
+    $response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], 
+        $content_type, $postBody);
+    global $LastOAuthBodyBaseString;
+    $lbs = $LastOAuthBodyBaseString;
+    if ( is_array($debuglog) )  $debuglog[] = array("Grade API Response (debug)",$response);
+    $LastPOXGradeResponse = $response;
+    $status = "Failure to store grade";
+    try {
+        $retval = parseResponse($response);
+        if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
+            $status = true;
+        } else if ( isset($retval['imsx_description']) ) {
+            $status = $retval['imsx_description'];
+        }
+    } catch(Exception $e) {
+        $status = $e->getMessage();
+        if ( is_array($debuglog) )  $debuglog[] = array("Exception: ".$status);
     }
     return $status;
 }
@@ -1231,7 +1240,7 @@ function pagedPDOQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=
     return $newsql . "\n";
 }
 
-function pagedPDOTable($pdo, $sql, &$queryvalues, $searchfields=array(), $orderfields=false, $view=false, $params=false) {
+function pagedPDOTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false) {
     global $DEFAULT_PAGE_LENGTH;
     if ( $params === false ) $params = $_GET;
     if ( $orderfields === false ) $orderfields = $searchfields;
@@ -1246,15 +1255,7 @@ function pagedPDOTable($pdo, $sql, &$queryvalues, $searchfields=array(), $orderf
         $search = $params['search_text'];
     }
 
-    $stmt = pdoQueryDie($pdo, $sql, $queryvalues);
-
-    $rows = array();
-    $count = 0;
-    while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
-        array_push($rows, $row);
-        $count = $count + 1;
-    }
-
+    $count = count($rows);
     $have_more = false;
     if ( $count > $page_length ) {
         $have_more = true;
@@ -1375,8 +1376,12 @@ onclick="document.getElementById('paged_search_box').value = '';"
 
 function pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields=false, $view=false, $params=false) {
     $newsql = pagedPDOQuery($sql, $query_parms, $searchfields, $orderfields, $params);
-    // echo("<pre>\n$newsql\n</pre>\n");
-    pagedPDOTable($pdo, $newsql, $query_parms, $searchfields, $orderfields, $view, $params);
+
+    //echo("<pre>\n$newsql\n</pre>\n");
+
+    $rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
+
+    pagedPDOTable($rows, $searchfields, $orderfields, $view, $params);
 }
 
 // Check if this has a due date..
