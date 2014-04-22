@@ -1028,6 +1028,12 @@ function json_output($json_data) {
     echo(json_encode($json_data));
 }
 
+// No Buffering
+function noBuffer() {
+    ini_set('output_buffering', 'off');
+    ini_set('zlib.output_compression', false);
+}
+
 function cacheCheck($cacheloc, $cachekey)
 {
     $cacheloc = "cache_" . $cacheloc;

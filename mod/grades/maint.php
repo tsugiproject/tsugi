@@ -3,6 +3,9 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
+// No Buffering
+noBuffer();
+
 // Sanity checks
 $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isInstructor($LTI);
@@ -35,6 +38,12 @@ if ( isset($_POST['resetServerGrades']) ) {
     return;
 }
 
+// http://manzzup.blogspot.com/2013/11/real-time-updating-of-php-output-using.html
+function superFlush() {
+    echo str_pad("",1024," ");
+    flush();
+}
+
 if ( isset($_POST['getServerGrades']) ) {
     $row = pdoRowDie($pdo,
         "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
@@ -53,11 +62,11 @@ if ( isset($_POST['getServerGrades']) ) {
 
     headerContent();
     echo(togglePreScript());
+    session_write_close();
     echo("</head><body>\n");
-    echo('<p id="abort"><a href="maint.php?link_id='.$link_id.'">Interrupt 
-        Maintenance Process</a></p>'."\n");
 
     echo("Records to be processed: ".$total."<br/>");
+    superFlush();
 
     $stmt = pdoQueryDie($pdo,
         "SELECT result_id, sourcedid, service_key FROM {$p}lti_result AS R
@@ -82,35 +91,33 @@ if ( isset($_POST['getServerGrades']) ) {
         if ( $grade == false ) {
             $fail++;
             togglePre("Error at ".$count.' / '.$total.' ('.$ets.')',$LastPOXGradeResponse);
-            flush();
+            superFlush();
         } else {
             $success++;
             // echo("Grade=".$grade."<br/>\n");
             // print_r($row); echo("<br/>\n");
             if ( $success % 10 == 0 ) {
                 echo("Grade=$grade ($ets) $count / $total <br/>\n");
-                flush();
+                superFlush();
             }
         }
-        $_SESSION['error'] = 'Interrupted at '.$count.' / '.$total. ' success='.$success.' fail='.$fail;
-        if ( $count > 100 ) break;
+        if ( $count > 1000 ) break;
     }
-    unset($_SESSION['error']);
+    // unset($_SESSION['error']);
     $et = (microtime(true) - $begin) ;
     $ets = sprintf("%1.3f",$et);
 
     $msg = $count . " Records processed ".$ets." seconds. success=".$success.' fail='.$fail;
-    $_SESSION["success"] = $msg;
     echo($msg."<br/>\n");
-    echo('<script type="text/javascript"> document.getElementById("abort").style.display = "none"; </script>');
-    echo('<a href="maint.php?link_id='.$link_id.'">Continue</a></p>'."\n");
+    echo('<script type="text/javascript"> alert("Retrieve Server Grades Complete"); </script>');
     return;
 }
 
-if ( isset($_POST['checkServerGrades']) || isset($_POST['fixServerGrades']) ) {
+if ( isset($_POST['fixServerGrades']) ) {
     headerContent();
     echo(togglePreScript());
     echo("</head><body>\n");
+    session_write_close();
 
     $stmt = pdoQueryDie($pdo,
         "SELECT result_id, link_id, grade, server_grade, note, 
@@ -150,30 +157,129 @@ if ( isset($_POST['checkServerGrades']) || isset($_POST['fixServerGrades']) ) {
         }
     }
 
-    if ( isset($_POST['fixServerGrades']) ) {
-        $msg = $count . " Mis-matched grade entries. fixed=$success fail=$fail";
-    } else {
-        $msg = $count . " Mis-matched grade entries.";
-    }
-    $_SESSION["success"] = $msg;
+    $msg = $count . " Mis-matched grade entries. fixed=$success fail=$fail";
     echo($msg."<br/>\n");
-    echo('<a href="maint.php?link_id='.$link_id.'">Continue</a></p>'."\n");
+    echo('<script type="text/javascript"> alert("Fix Mis-matched Grades Complete"); </script>');
     return;
 }
 
+// Check how much work we have to do
+$row = pdoRowDie($pdo,
+    "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
+    JOIN {$p}lti_service AS S ON R.service_id = S.service_id
+    WHERE link_id = :LID AND grade IS NOT NULL AND 
+        (server_grade IS NULL OR retrieved_at < R.updated_at) AND
+        sourcedid IS NOT NULL AND service_key IS NOT NULL",
+    array(":LID" => $link_id)
+);
+$toretrieve = $row['count'];
+
+$row = pdoRowDie($pdo,
+    "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
+    JOIN {$p}lti_service AS S ON R.service_id = S.service_id
+    WHERE link_id = :LID AND grade IS NOT NULL AND 
+        sourcedid IS NOT NULL AND service_key IS NOT NULL",
+    array(":LID" => $link_id)
+);
+$total = $row['count'];
+
 // View 
 headerContent();
+?>
+<script type="text/javascript">
+function showFrame() {
+    $('#my_iframe').prop('src', 'about:blank');  // Seems not to work
+    document.getElementById('iframediv').style.display = "block";
+}
+</script>
+<?php
 startBody();
 flashMessages();
+
+$iframeurl = sessionize($CFG->wwwroot . '/mod/grades/maint.php?link_id=' . $link_id);
 ?>
 
-<form method="post">
-  <button name="resetServerGrades" class="btn btn-default">Restart Server Grade Retrieval</button>
-  <button name="getServerGrades" class="btn btn-default">Retrieve Server Grades</button>
-  <button name="checkServerGrades" class="btn btn-default">Check Server Grades</button>
-  <button name="fixServerGrades" class="btn btn-warning">Fix Server Grades</button>
+<div>
+<form style="display: inline" method="POST" target="my_iframe" action="<?php echo($iframeurl); ?>">
+  <button name="fixServerGrades" onclick="showFrame();" class="btn btn-warning">Fix Mis-matched Grades</button>
+  <button name="getServerGrades" onclick="showFrame();" class="btn btn-warning">Retrieve Server Grades</button>
+</form>
+<form method="post" style="display: inline">
+  <button name="resetServerGrades" class="btn btn-danger">Restart Server Grade Retrieval</button>
   <button onclick="window.close();" class="btn btn-primary">Done</button>
-</post>
+</div>
+<p>These are maintenance tools make sure you know how to use them. 
+<ul> 
+<li><b>Fix Mis-matched Grades</b> copies our local grade to the server 
+when there is a mismatch between the local grade and our most recent 
+server grade.  It is quick unless there are a lot of mis-matches.
+</li>
+<li><b>Retrieve Server Grades</b> calls a web service to pul down a 
+copy of the grade stored in the server that have not yet 
+been retrieved.  This process takes abut 0.3 seconds per "grade to retrieve".
+</li>
+<li><b>Restart Server Grade Retrieval</b> - resets the local 
+copies of server grades so that the next <b>Retrieve Server Grades</b>
+will retrieve all grades.</li>
+</ul>
+<pre>
+Context: <?php echo($LTI['context_id']); 
+    if ( isset($LTI['context_title']) ) echo(' '.htmlent_utf8($LTI['context_title'])) ; ?> 
+Link id: <?php echo($link_id); 
+    if ( isset($link_info['title']) ) echo(' '.htmlent_utf8($link_info['title'])) ; ?> 
+</pre>
+
+<p><b>Total results:</b> <span id="total"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
+<img id="totspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+</p>
+<p><b>Grades to Retrieve:</b> <span id="toretrieve"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
+<img id="retspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+</p>
+<p><b>Mis-matched Grades:</b> <span id="mismatch"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
+<img id="misspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+</p>
+
+<div id="iframediv" style="display:none">
+<p>Depending on buffering - output in this iframe may take a while to appear.
+Make sure to scroll to the bottom to see the current activity.  
+The number of grades to retrieve will be updated above even if you do 
+not see output below.  Is you want to abort this job, navigate away using 
+"Done" and them come back to this page.  This job may take so long it times out.
+That is OK - simply come back and restart it - it will pick up where it left off.
+</p>
+<iframe id="my_iframe" width="98%" height="600px" style="border: 1px black solid">
+</iframe>
+</div>
+
 
 <?php
-footerContent();
+footerStart();
+?>
+<script type="text/javascript">
+$UPDATE_INTERVAL = false;
+function updateNumbers() {
+    window.console && console.log('Calling updateNumbers');
+    $.ajaxSetup({ cache: false }); // For IE...
+    $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/mod/grades/maintcount.php?link_id='.$link_id)); ?>', 
+    function(data) {
+        if ( $UPDATE_INTERVAL === false ) $UPDATE_INTERVAL = setInterval(updateNumbers,15000);
+        window.console && console.log(data);
+        $('#totspinner').hide();
+        $('#retspinner').hide();
+        $('#misspinner').hide();
+        oldtotal = $('#total').text();
+        window.console.log("old="+oldtotal);
+        $('#total').text(data.total);
+        if ( oldtotal.length > 1 && oldtotal != data.total ) $('#totspinner').show();
+        oldtoretrieve = $('#toretrieve').text();
+        $('#toretrieve').text(data.toretrieve);
+        if ( oldtoretrieve.length > 1 && oldtoretrieve != data.toretrieve ) $('#retspinner').show();
+        oldmismatch = $('#mismatch').text();
+        $('#mismatch').text(data.mismatch);
+        if ( oldmismatch.length > 1 && oldmismatch != data.mismatch ) $('#misspinner').show();
+    });
+}
+updateNumbers();
+</script>
+<?
+footerEnd();
