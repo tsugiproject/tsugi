@@ -754,12 +754,28 @@ function safeVarDump($x) {
         return $result;
 }
 
-function getGrade($sourcedid, $service) {
+function getGrade($pdo, $result_id, $sourcedid, $service) {
+    global $CFG;
+    $grade = getGradeWebService($sourcedid, $service);
+    if ( $grade == false ) return;
+  
+    // UPDATE the retrieved grade
+    $stmt = pdoQueryDie($pdo,
+        "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade, 
+            retrieved_at = NOW() WHERE result_id = :RID",
+        array( ':server_grade' => $grade, ":RID" => $result_id)
+    );
+    return $grade;
+}
+
+function getGradeWebService($sourcedid, $service) {
     global $CFG;
     global $LastPOXGradeResponse;
     global $LastPOXGradeParse;
+    global $LastPOXGradeError;
     $LastPOXGradeResponse = false;
     $LastPOXGradeParse = false;
+    $LastPOXGradeError = false;
     $lti = $_SESSION['lti'];
     if ( ! ( isset($lti['key_key']) && isset($lti['secret']) ) ) {
         error_log('Session is missing required data');
@@ -785,15 +801,22 @@ function getGrade($sourcedid, $service) {
     $grade = false;
     try {
         $retval = parseResponse($response);
-        if ( is_array($retval) && isset($retval['textString'])) $grade = $retval['textString']+0.0;
+        $LastPOXGradeParse = $retval;
+        if ( is_array($retval) ) {
+		    if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
+                if ( isset($retval['textString'])) $grade = $retval['textString']+0.0;
+		    } else if ( isset($retval['imsx_description']) ) {
+                $LastPOXGradeError = $retval['imsx_description'];
+                error_log("Grade read failure: "+$LastPOXGradeError);
+                return false;
+            }
+        }
     } catch(Exception $e) {
-        $retval = $e->getMessage();
+        $LastPOXGradeError = $e->getMessage();
+        error_log("Grade read failure: "+$LastPOXGradeError);
+        return false;
     }
-    
-    $LastPOXGradeParse = $retval;
-
     return $grade;
-
 }
 
 function sendGrade($grade, $verbose=true, $pdo=false, $result=false) {

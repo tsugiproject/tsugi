@@ -40,7 +40,7 @@ if ( isset($_POST['getServerGrades']) ) {
         "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE link_id = :LID AND grade IS NOT NULL AND 
-            server_grade IS NULL AND
+            (server_grade IS NULL OR retrieved_at < R.updated_at) AND
             sourcedid IS NOT NULL AND service_key IS NOT NULL",
         array(":LID" => $link_id)
     );
@@ -63,7 +63,7 @@ if ( isset($_POST['getServerGrades']) ) {
         "SELECT result_id, sourcedid, service_key FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE link_id = :LID AND grade IS NOT NULL AND 
-            server_grade IS NULL AND
+            (server_grade IS NULL OR retrieved_at < R.updated_at) AND
             sourcedid IS NOT NULL AND service_key IS NOT NULL",
         array(":LID" => $link_id)
     );
@@ -75,7 +75,8 @@ if ( isset($_POST['getServerGrades']) ) {
     while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         $count = $count + 1;
         $start = microtime(true);
-        $grade = getGrade($row['sourcedid'], $row['service_key']);
+        // UPDATEs automatically on success
+        $grade = getGrade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
         $et = (microtime(true) - $start) ;
         $ets = sprintf("%1.3f",$et);
         if ( $grade == false ) {
@@ -90,11 +91,6 @@ if ( isset($_POST['getServerGrades']) ) {
                 echo("Grade=$grade ($ets) $count / $total <br/>\n");
                 flush();
             }
-            $lstmt = pdoQueryDie($pdo,
-                "UPDATE {$p}lti_result SET server_grade=:GRA, retrieved_at=NOW()
-                WHERE result_id = :RID",
-                array(":GRA" => $grade, ":RID" => $row['result_id'])
-            );
         }
         $_SESSION['error'] = 'Interrupted at '.$count.' / '.$total. ' success='.$success.' fail='.$fail;
         if ( $count > 100 ) break;

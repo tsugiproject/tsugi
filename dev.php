@@ -100,7 +100,7 @@ if ( isset($_POST['instructor']) ) {
 // Set up default LTI data
 if ( ! $secret ) $secret = "secret";
 $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
-$b64 = base64_encode($key.":::".$secret);
+$b64 = base64_encode($key.":::".$secret.':::');
 if ( ! $endpoint ) $endpoint = str_replace("dev.php","lti.php",$cur_url);
 $cssurl = str_replace("dev.php","lms.css",$cur_url);
 
@@ -108,6 +108,7 @@ $outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
 if ( ! $outcomes ) {
     $outcomes = str_replace("dev.php","common/tool_consumer_outcome.php",$cur_url);
     $outcomes .= "?b64=" . htmlentities($b64);
+    $lmsdata['lis_result_sourcedid'] = MD5($lmsdata['context_id'].$lmsdata['user_id'].$lmsdata['resource_link_id']);
 }
 
 $tool_consumer_instance_guid = $lmsdata['tool_consumer_instance_guid'];

@@ -88,8 +88,6 @@ try {
     exit();
 }
 
-
-
 $sourcedid = (string) $parms->resultRecord->sourcedGUID->sourcedId;
 if ( !isset($sourcedid) && strlen($sourcedid) > 0 ) {
    echo(sprintf($response,uniqid(),'failure', "Missing required lis_result_sourcedid",$message_ref,$operation,""));

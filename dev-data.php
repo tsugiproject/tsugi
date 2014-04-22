@@ -53,7 +53,6 @@ $lmsdata = array(
       "resource_link_id" => "292832126",
       "resource_link_title" => "Weekly Blog",
       "resource_link_description" => "A weekly blog.",
-      "lis_result_sourcedid" => "sdid:292832126",
       "context_id" => "456434513",
       "context_label" => "SI106",
       "context_title" => "Introduction to Programming",
