@@ -905,13 +905,10 @@ function sendGradeInternal($grade, $note, $json, &$debuglog, $pdo,  $result) {
         $detail = 'Success';
         $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
         error_log($msg);
-     if ( is_array($debuglog) )  $debuglog[] = array($msg);
+        if ( is_array($debuglog) )  $debuglog[] = array($msg);
     } else {
         $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
         error_log($msg);
-     if ( is_array($debuglog) )  $debuglog[] = array($msg);
-        error_log($lti['service']);
-        error_log($response);
         return $status;
     }
 

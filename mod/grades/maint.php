@@ -144,16 +144,15 @@ if ( isset($_POST['fixServerGrades']) ) {
         echo("local=".$row['grade']." server=".$row['server_grade']);
         echo("<br/>\n");
         $count = $count + 1;
-        if ( isset($_POST['fixServerGrades']) ) {
-            $debuglog = array();
-            $status = sendGradeDetail($row['grade'], null, null, $debuglog, $pdo, $row); // This is the slow bit
-            if ( $status === true ) {
-                echo('Grade submitted to server'."<br/>\n");
-                $success++;
-            } else {
-                echo("Problem sending grade ".$status."<br/>\n");
-                $fail++;
-            }
+
+        $debuglog = array();
+        $status = sendGradeDetail($row['grade'], null, null, $debuglog, $pdo, $row); // This is the slow bit
+        if ( $status === true ) {
+            echo('Grade submitted to server'."<br/>\n");
+            $success++;
+        } else {
+            echo("Problem sending grade ".$status."<br/>\n");
+            $fail++;
         }
     }
 
@@ -264,7 +263,7 @@ function updateNumbers() {
     $.ajaxSetup({ cache: false }); // For IE...
     $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/mod/grades/maintcount.php?link_id='.$link_id)); ?>', 
     function(data) {
-        if ( $UPDATE_INTERVAL === false ) $UPDATE_INTERVAL = setInterval(updateNumbers,15000);
+        if ( $UPDATE_INTERVAL === false ) $UPDATE_INTERVAL = setInterval(updateNumbers,10000);
         window.console && console.log(data);
         $('#totspinner').hide();
         $('#retspinner').hide();
