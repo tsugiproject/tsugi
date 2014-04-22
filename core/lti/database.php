@@ -164,10 +164,12 @@ array( "{$CFG->dbprefix}lti_result",
 
     grade              FLOAT NULL,
     note               VARCHAR(2048) NULL,
+    server_grade       FLOAT NULL,
 
     json               TEXT NULL,
     created_at         DATETIME NOT NULL,
     updated_at         DATETIME NOT NULL,
+    retrieved_at       DATETIME NOT NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_result_ibfk_1`
         FOREIGN KEY (`link_id`)
@@ -258,6 +260,18 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $q = pdoQueryDie($pdo, $sql);
     }
 
-    return 2014041300;
+    // Version 2014042100 improvements
+    if ( $oldversion < 2014042100 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD server_grade FLOAT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD retrieved_at DATETIME NOT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+    }
+
+    return 2014042100;
 }; // Don't forget the semicolon on anonymous functions :)
 
