@@ -75,7 +75,7 @@ function initialize_map() {
   window.console && console.log("Building map...");
 
   var myOptions = {
-     zoom: 2,
+     zoom: 3,
      center: myLatlng,
      mapTypeId: google.maps.MapTypeId.ROADMAP
   }
@@ -164,6 +164,8 @@ if ( $display ) {
                 else if ( $row['email'] == 1 ) echo("checked"); ?>
             >
             Share your email on the map<br/>
+            </p><p>To set your location drag the large red pin to your location.  The
+            new location is updated as sson as you move the pin.</p>
         </form>    
       </div>
       <div class="modal-footer">
@@ -205,7 +207,7 @@ To configure your privacy options double-click on the large red pointer.
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <?php } ?>
-<div id="map_canvas" style="margin: 10px; width:95%; height:500px"></div>
+<div id="map_canvas" style="margin: 10px; width:95%; height:600px"></div>
 <?php
 footerStart();
 ?>
