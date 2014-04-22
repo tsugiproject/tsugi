@@ -42,6 +42,7 @@ $QTEXT = 'Please write a Python program to open the file
 "mbox-short.txt" and count the number of lines in the file and 
 match the desired output below:';
 $DESIRED = '1910 Lines';
+$DESIRED2 = '';
 $CODE = 'fh = open("mbox-short.txt", "r")
 
 count = 0
@@ -67,12 +68,14 @@ if ( $ex === false ) {
         $CODE = '';
         $QTEXT = $EX["qtext"];
         $DESIRED = $EX["desired"];
+        $DESIRED2 = isset($EX["desired2"]) ? $EX["desired2"] : '';
         if ( isset($EX["code"]) ) $CODE = $EX["code"];
         if ( isset($EX["checks"]) ) $CHECKS = json_encode($EX["checks"]);
     }
 } 
 
 $DESIRED = rtrim($DESIRED);
+$DESIRED2 = rtrim($DESIRED2);
 if ( $EX === false ) {
     echo("</head><body><h1>Error, exercise ".htmlentities($ex).
         " is not available.  Please see your instructor.</h1></body>");
@@ -216,10 +219,10 @@ function load_files() {
         newtext = oldtext + text;
         output.innerHTML = newtext;
         var desired = document.getElementById("desired").innerHTML;
+        var desired2 = document.getElementById("desired2").innerHTML;
 
-        // desired = $.trim(desired);
-        // newtext = $.trim(newtext);
         deslines = desired.split('\n');
+        deslines2 = desired2.split('\n');
         newlines = newtext.split('\n');
         newoutput = '';
         err = false;
@@ -239,7 +242,11 @@ function load_files() {
                 continue;
             }
             dl = deslines[i];
-            if ( dl != nl ) {
+            dl2 = dl;
+            if ( i < deslines2.length ) {
+                dl2 = deslines2[i];
+            }
+            if ( dl != nl && dl2 != nl) {
                 if ( !err ) newoutput += '<span style="color:red"> &larr; Mismatch</span>';
                 err = true;
                 continue;
@@ -398,7 +405,8 @@ if ( $OLDCODE !== false ) {
 </div>
 <div id="right">
 <b>Desired Output</b>
-<pre id="desired" class="inputarea"><?php echo($DESIRED); echo("\n"); ?>
+<pre id="desired" class="inputarea"><?php echo($DESIRED); echo("\n"); ?></pre>
+<span id="desired2" style="display:none"><?php echo($DESIRED2); echo("\n"); ?></span>
 </div>
 </div>
 </div>
