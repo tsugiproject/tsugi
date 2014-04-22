@@ -754,6 +754,48 @@ function safeVarDump($x) {
         return $result;
 }
 
+function getGrade($sourcedid, $service) {
+    global $CFG;
+    global $LastPOXGradeResponse;
+    global $LastPOXGradeParse;
+    $LastPOXGradeResponse = false;
+    $LastPOXGradeParse = false;
+    $lti = $_SESSION['lti'];
+    if ( ! ( isset($lti['key_key']) && isset($lti['secret']) ) ) {
+        error_log('Session is missing required data');
+        $debug = safeVarDump($lti);
+        error_log($debug);
+        return "Missing required session data";
+    }
+
+    $method="POST";
+    $content_type = "application/xml";
+    $sourcedid = htmlspecialchars($sourcedid);
+    
+    $operation = 'readResultRequest';
+    $postBody = str_replace(
+        array('SOURCEDID', 'OPERATION','MESSAGE'),
+        array($sourcedid, $operation, uniqid()),
+        getPOXRequest());
+
+    $response = sendOAuthBodyPOST($method, $service, $lti['key_key'], $lti['secret'], 
+        $content_type, $postBody);
+    $LastPOXGradeResponse = $response;
+
+    $grade = false;
+    try {
+        $retval = parseResponse($response);
+        if ( is_array($retval) && isset($retval['textString'])) $grade = $retval['textString']+0.0;
+    } catch(Exception $e) {
+        $retval = $e->getMessage();
+    }
+    
+    $LastPOXGradeParse = $retval;
+
+    return $grade;
+
+}
+
 function sendGrade($grade, $verbose=true, $pdo=false, $result=false) {
 	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
@@ -998,13 +1040,15 @@ function loadUserInfo($pdo, $user_id)
 function loadLinkInfo($pdo, $link_id)
 {
     global $CFG;
+    $LTI = requireData(array('context_id'));
+
     $cacheloc = 'lti_link';
     $row = cacheCheck($cacheloc, $link_id);
     if ( $row != false ) return $row;
     $stmt = pdoQueryDie($pdo,
-        "SELECT title FROM {$CFG->dbprefix}lti_link
-            WHERE link_id = :LID",
-        array(":LID" => $link_id)
+        "SELECT title FROM {$CFG->dbprefix}lti_link 
+            WHERE link_id = :LID AND context_id = :CID",
+        array(":LID" => $link_id, ":CID" => $LTI['context_id'])
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     cacheSet($cacheloc, $link_id, $row);

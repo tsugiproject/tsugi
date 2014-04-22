@@ -123,7 +123,9 @@ if ( $summary_sql !== false ) {
 
 if ( $class_sql !== false ) {
     if ( $link_info !== false ) {
-        echo("<p>Results for ".$link_info['title']."</p>\n");
+        echo("<p>Results for ".$link_info['title']);
+        echo(' (<a href="maint.php?link_id='.$link_id.'" target="_new">Maintenance 
+            tasks</a>)'."</p>\n");
     }
     pagedPDO($pdo, $class_sql, $query_parms, $searchfields);
 }
