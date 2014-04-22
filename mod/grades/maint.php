@@ -88,9 +88,9 @@ if ( isset($_POST['getServerGrades']) ) {
         $grade = getGrade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
         $et = (microtime(true) - $start) ;
         $ets = sprintf("%1.3f",$et);
-        if ( $grade == false ) {
+        if ( is_string($grade) ) {
             $fail++;
-            togglePre("Error at ".$count.' / '.$total.' ('.$ets.')',$LastPOXGradeResponse);
+            togglePre("Error at ".$count.' / '.$total.' ('.$ets.')',$grade);
             superFlush();
         } else {
             $success++;
@@ -151,8 +151,50 @@ if ( isset($_POST['fixServerGrades']) ) {
             echo('Grade submitted to server'."<br/>\n");
             $success++;
         } else {
+            echo('<pre class="alert alert-danger">'."\n");
+            $msg = "result_id=".$row['result_id']."\n".
+                "grade=".$row['grade']." server_grade=".$row['server_grade']."\n".
+                "error=".$status;
+            echoLog("Problem Sending Grade: ".session_id()."\n".$msg."\n".
+              "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
+            echo("</pre>\n");
+
+            togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
+            superFlush();
             echo("Problem sending grade ".$status."<br/>\n");
             $fail++;
+            continue;
+        }
+
+        // Check to see if the grade we sent is really there - Also updates our local table
+        $server_grade = getGrade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
+        if ( is_string($server_grade) ) {
+            echo('<pre class="alert alert-danger">'."\n");
+            $msg = "result_id=".$row['result_id']."\n".
+                "grade=".$row['grade']." updated=".$row['updated_at']."\n".
+                "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
+                "error=".$server_grade;
+
+            echoLog("Problem Updating Grade: ".session_id()."\n".$msg."\n".
+              "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
+            echo("</pre>\n");
+
+
+            error_log("Error re-retrieving grade: ".session_id().' result_id='.$row['result_id'].
+                ' sourcedid='+$row['sourcedid']+' service_key='+$row['service_key']);
+            
+            togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
+            superFlush();
+            $fail++;
+            continue;
+        } else if ( $server_grade != $row['grade'] ) {
+        
+
+        } else {
+        }
+        if ( $success % 10 == 0 ) {
+            echo("Grade=$grade ($ets) $count / $total <br/>\n");
+            superFlush();
         }
     }
 
@@ -187,8 +229,9 @@ headerContent();
 ?>
 <script type="text/javascript">
 function showFrame() {
-    $('#my_iframe').prop('src', 'about:blank');  // Seems not to work
+    $('#my_iframe').prop('src', '<?php echo($CFG->wwwroot.'/mod/grades/blank.html'); ?>');
     document.getElementById('iframediv').style.display = "block";
+    $('#clear').show();
 }
 </script>
 <?php
@@ -206,7 +249,10 @@ $iframeurl = sessionize($CFG->wwwroot . '/mod/grades/maint.php?link_id=' . $link
 <form method="post" style="display: inline">
   <button name="resetServerGrades" 
     onclick="return confirm('Are you sure you want to clear out all of the previously retrieved server grades?');"
-class="btn btn-danger">Restart Server Grade Retrieval</button>
+class="btn btn-danger">Reset Local Server Grades</button>
+  <a href="#" id="clear" style="display: none" onclick="
+    $('#my_iframe').prop('src', '<?php echo($CFG->wwwroot.'/mod/grades/blank.html'); ?>');return false;"
+    class="btn btn-primary">Clear/Stop Frame</a>
   <button onclick="window.close();" class="btn btn-primary">Done</button>
 </div>
 <p>These are maintenance tools make sure you know how to use them. 
@@ -219,7 +265,7 @@ server grade.  It is quick unless there are a lot of mis-matches.
 copy of the grade stored in the server that have not yet 
 been retrieved.  This process takes abut 0.3 seconds per "grade to retrieve".
 </li>
-<li><b>Restart Server Grade Retrieval</b> - resets the local 
+<li><b>Reset Local Server Grades</b> - resets the local 
 copies of server grades so that the next <b>Retrieve Server Grades</b>
 will retrieve all grades.</li>
 </ul>
@@ -242,10 +288,10 @@ Link id: <?php echo($link_id);
 
 <div id="iframediv" style="display:none">
 <p>Depending on buffering - output in this iframe may take a while to appear.
-Make sure to scroll to the bottom to see the current activity.  
+Once the output starts, make sure to scroll to the bottom to see the current activity.  
 The number of grades to retrieve will be updated above even if you do 
 not see output below.  Is you want to abort this job, navigate away using 
-"Done" and them come back to this page.  This job may take so long it times out.
+"Clear/Stop" and be a little patient.  This job may take so long it times out.
 That is OK - simply come back and restart it - it will pick up where it left off.
 </p>
 <iframe id="my_iframe" width="98%" height="600px" style="border: 1px black solid">
