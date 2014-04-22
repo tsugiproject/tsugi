@@ -11,6 +11,11 @@ function echoLog($msg) {
     error_log(str_replace("\n"," ",$msg));
 }
 
+function safeSessionId() {
+    $retval = session_id();
+    if ( strlen($retval) > 10 ) return '**********'.substr($retval,5);
+}
+
 function printStackTrace() {
     ob_start();
     debug_print_backtrace();

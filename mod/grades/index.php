@@ -155,10 +155,15 @@ if ( $user_sql !== false ) {
             $server_grade = getGrade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
             if ( is_string($server_grade)) {
                 echo('<pre class="alert alert-danger">'."\n");
-                echoLog("Problem Retrieving Grade: ".session_id()." result_id=".$row['result_id']."\n".
+                $msg = "result_id=".$row['result_id']."\n".
                     "grade=".$row['grade']." updated=".$row['updated_at']."\n".
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
-                    "error=".$server_grade);
+                    "error=".$server_grade;
+            
+                echo("Problem Retrieving Grade: ".safeSessionId()." ".$msg);
+                error_log("Problem Retrieving Grade: ".session_id()."\n".$msg."\n".
+                  "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
+
                 echo("\nProblem Retrieving Grade - Please take a screen shot of this page.\n");
                 echo("</pre>\n");
                 $newrow['note'] = "Problem Retrieving Server Grade: ".$server_grade;
@@ -187,10 +192,17 @@ if ( $user_sql !== false ) {
                 $newrow['note'] .= " Server grade updated.";
             } else {
                 echo('<pre class="alert alert-danger">'."\n");
-                echoLog("Problem Updating Grade: ".session_id()." result_id=".$row['result_id']."\n".
+
+                $msg = "result_id=".$row['result_id']."\n".
                     "grade=".$row['grade']." updated=".$row['updated_at']."\n".
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
-                    "status=".$status);
+                    "error=".$server_grade;
+            
+                echo("Problem Updating Grade: ".safeSessionId()." ".$msg);
+                error_log("Problem Updating Grade: ".session_id()."\n".$msg."\n".
+                  "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
+
+
                 echo("\nProblem Retrieving Grade - Please take a screen shot of this page.\n");
                 echo("</pre>\n");
                 $newrow['note'] .= " Problem Updating Server Grade";
