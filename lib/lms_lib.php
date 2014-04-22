@@ -192,8 +192,10 @@ function requireData($needed) {
             $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
             send403();
             session_destroy();
-            dieWithErrorLog("Sesison has expired", " ".session_id()." HTTP_USER_AGENT ".
-                $_SESSION['HTTP_USER_AGENT'].' ::: '.$_SERVER['HTTP_USER_AGENT'], 'die:');
+            dieWithErrorLog("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
+                $_SESSION['HTTP_USER_AGENT'].' ::: '.
+                isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Empty user agent',
+            'die:');
         }
     }
 
@@ -757,7 +759,7 @@ function safeVarDump($x) {
 function getGrade($pdo, $result_id, $sourcedid, $service) {
     global $CFG;
     $grade = getGradeWebService($sourcedid, $service);
-    if ( $grade == false ) return;
+    if ( is_string($grade) ) return $grade;
   
     // UPDATE the retrieved grade
     $stmt = pdoQueryDie($pdo,
@@ -798,6 +800,12 @@ function getGradeWebService($sourcedid, $service) {
         $content_type, $postBody);
     $LastPOXGradeResponse = $response;
 
+    $status = "Failure to retrieve grade";
+    if ( strpos($response, '<?xml') !== 0 ) {
+        error_log("Fatal XML Grade Read: ".session_id().' '.$response);
+        return "Unable to read XML from web service.";
+    }
+
     $grade = false;
     try {
         $retval = parseResponse($response);
@@ -808,13 +816,13 @@ function getGradeWebService($sourcedid, $service) {
 		    } else if ( isset($retval['imsx_description']) ) {
                 $LastPOXGradeError = $retval['imsx_description'];
                 error_log("Grade read failure: "+$LastPOXGradeError);
-                return false;
+                return $LastPOXGradeError;
             }
         }
     } catch(Exception $e) {
         $LastPOXGradeError = $e->getMessage();
         error_log("Grade read failure: "+$LastPOXGradeError);
-        return false;
+        return $LastPOXGradeError;
     }
     return $grade;
 }
@@ -964,6 +972,10 @@ function sendGradeWebService($grade, $sourcedid, $service, &$debuglog=false) {
     if ( is_array($debuglog) )  $debuglog[] = array("Grade API Response (debug)",$response);
     $LastPOXGradeResponse = $response;
     $status = "Failure to store grade";
+    if ( strpos($response, '<?xml') !== 0 ) {
+        error_log("Fatal XML Grade Update: ".session_id().' '.$response);
+        return $status;
+    }
     try {
         $retval = parseResponse($response);
         if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {

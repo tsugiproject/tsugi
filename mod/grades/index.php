@@ -39,7 +39,7 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
 
 } else if ( $instructor && isset($_GET['link_id'] ) ) {
     $query_parms = array(":LID" => $link_id, ":CID" => $LTI['context_id']);
-    $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at", "retrieved_at");
+    $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at", "server_grade", "retrieved_at");
     $class_sql = 
         "SELECT R.user_id AS user_id, displayname, grade, 
             R.updated_at as updated_at, server_grade, retrieved_at
@@ -153,14 +153,15 @@ if ( $user_sql !== false ) {
         if ( !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] || 
             $diff > $RETRIEVE_INTERVAL ) {
             $server_grade = getGrade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
-            if ( $server_grade === false ) {
+            if ( is_string($server_grade)) {
                 echo('<pre class="alert alert-danger">'."\n");
                 echoLog("Problem Retrieving Grade: ".session_id()." result_id=".$row['result_id']."\n".
                     "grade=".$row['grade']." updated=".$row['updated_at']."\n".
-                    "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']);
+                    "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
+                    "error=".$server_grade);
                 echo("\nProblem Retrieving Grade - Please take a screen shot of this page.\n");
                 echo("</pre>\n");
-                $newrow['note'] = "Problem Retrieving Server Grade";
+                $newrow['note'] = "Problem Retrieving Server Grade: ".$server_grade;
                 $newrows[] = $newrow;
                 continue;
             } else if ( $server_grade > 0.0 ) {
