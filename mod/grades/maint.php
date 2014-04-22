@@ -205,7 +205,9 @@ $iframeurl = sessionize($CFG->wwwroot . '/mod/grades/maint.php?link_id=' . $link
   <button name="getServerGrades" onclick="showFrame();" class="btn btn-warning">Retrieve Server Grades</button>
 </form>
 <form method="post" style="display: inline">
-  <button name="resetServerGrades" class="btn btn-danger">Restart Server Grade Retrieval</button>
+  <button name="resetServerGrades" 
+    onclick="return confirm('Are you sure you want to clear out all of the previously retrieved server grades?');"
+class="btn btn-danger">Restart Server Grade Retrieval</button>
   <button onclick="window.close();" class="btn btn-primary">Done</button>
 </div>
 <p>These are maintenance tools make sure you know how to use them. 
