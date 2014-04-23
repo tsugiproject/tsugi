@@ -87,24 +87,24 @@ if ( isset($_POST['reGradePeer']) ) {
             WHERE result_id = :RID",
                 array(":GRA" => $computed_grade, ":RID" => $row['result_id'])
         );
-        $changed++;
 
         // Send the grade to the server
         $debuglog = array();
         $status = sendGradeDetail($computed_grade, null, null, $debuglog, $pdo, $row); // This is the slow bit
         if ( $status === true ) {
-            echo('Grade $computed_grade submitted to server'."<br/>\n");
-            $success++;
+            echo(htmlent_utf8($row['displayname']).' ('.htmlent_utf8($row['email']).') ');
+            echo("Grade $computed_grade submitted to server<br/>\n");
+            $changed++;
         } else {
             echo('<pre class="alert alert-danger">'."\n");
             $msg = "result_id=".$row['result_id']."\n".
-                "grade=".$row['grade']." computed_grade=".$computed_crade."\n".
+                "grade=".$row['grade']." computed_grade=".$computed_grade."\n".
                 "error=".$status;
             echoLog("Problem Sending Grade: ".session_id()."\n".$msg."\n".
               "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
-            togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
+            togglePre("Error sending grade",$LastPOXGradeResponse);
             flush();
             echo("Problem sending grade ".$status."<br/>\n");
             $fail++;
@@ -166,9 +166,11 @@ Link id: <?php echo($link_id);
 
 <div id="iframediv" style="display:none">
 <p>Depending on buffering - output in this iframe may take a while to appear.
+The numer above will update as the job progreses.
 Once the output starts, make sure to scroll to the bottom to see the current activity.  
 If you want to abort this job, navigate away using "Done".
-This job may take so long it times out.
+This job may take so long it times out.  If it times out you can restart it
+and it willpick up where it left off.
 </p>
 <iframe id="my_iframe" width="98%" height="600px" style="border: 1px black solid">
 </iframe>
