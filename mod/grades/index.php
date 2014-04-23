@@ -147,7 +147,7 @@ if ( $user_sql !== false ) {
         // $newrow['note'] = $row['retrieved_at'].' diff='.$diff.' '.
             // $row['server_grade'].' '.$row['sourcedid'].' '.$row['service_key'];
 
-        $RETRIEVE_INTERVAL = 1800;
+        $RETRIEVE_INTERVAL = 14400; // Four Hours
         $newnote['note'] = " "+$diff;
 
         if ( !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] || 
