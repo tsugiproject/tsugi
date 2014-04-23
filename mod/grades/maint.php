@@ -204,26 +204,6 @@ if ( isset($_POST['fixServerGrades']) ) {
     return;
 }
 
-// Check how much work we have to do
-$row = pdoRowDie($pdo,
-    "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
-    JOIN {$p}lti_service AS S ON R.service_id = S.service_id
-    WHERE link_id = :LID AND grade IS NOT NULL AND 
-        (server_grade IS NULL OR retrieved_at < R.updated_at) AND
-        sourcedid IS NOT NULL AND service_key IS NOT NULL",
-    array(":LID" => $link_id)
-);
-$toretrieve = $row['count'];
-
-$row = pdoRowDie($pdo,
-    "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
-    JOIN {$p}lti_service AS S ON R.service_id = S.service_id
-    WHERE link_id = :LID AND grade IS NOT NULL AND 
-        sourcedid IS NOT NULL AND service_key IS NOT NULL",
-    array(":LID" => $link_id)
-);
-$total = $row['count'];
-
 // View 
 headerContent();
 ?>
@@ -290,7 +270,7 @@ Link id: <?php echo($link_id);
 <p>Depending on buffering - output in this iframe may take a while to appear.
 Once the output starts, make sure to scroll to the bottom to see the current activity.  
 The number of grades to retrieve will be updated above even if you do 
-not see output below.  Is you want to abort this job, navigate away using 
+not see output below.  Is you want to abort this job, press
 "Clear/Stop" and be a little patient.  This job may take so long it times out.
 That is OK - simply come back and restart it - it will pick up where it left off.
 </p>

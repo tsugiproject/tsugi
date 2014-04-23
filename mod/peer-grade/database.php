@@ -37,6 +37,8 @@ array( "{$CFG->dbprefix}peer_submit",
     note         TEXT NULL,
     reflect      TEXT NULL,
 
+    regrade      TINYINT NULL;
+
     updated_at  DATETIME NOT NULL,
     created_at  DATETIME NOT NULL,
 
@@ -101,4 +103,18 @@ array( "{$CFG->dbprefix}peer_flag",
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8") ,
 
 );
+
+$DATABASE_UPGRADE = function($pdo, $oldversion) {
+    global $CFG;
+
+    // Version 2014042200 improvements
+    if ( $oldversion < 2014042200 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}peer_submit ADD regrade TINYINT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+    }
+
+    return 2014042200;
+}; // Don't forget the semicolon on anonymous functions :)
 
