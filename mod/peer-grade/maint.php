@@ -73,9 +73,11 @@ if ( isset($_POST['reGradePeer']) ) {
         );
 
         if ( $row['grade'] >= $computed_grade ) {
+            echo(htmlent_utf8($row['displayname']).' ('.htmlent_utf8($row['email']).') ');
             if ( $row['grade'] > $computed_grade ) {
-                echo(htmlent_utf8($row['displayname']).' ('.htmlent_utf8($row['email']).') ');
-                echo('grade='.$row['grade'].' computed='.$computed_grade.' (unchanged)<br/>');
+                echo('grade='.$row['grade'].' computed='.$computed_grade." (unchanged)<br/>\n");
+            } else {
+                echo('grade='.$row['grade']." (matched)<br/>\n");
             }
             $unchanged++;
             continue;
@@ -166,7 +168,7 @@ Link id: <?php echo($link_id);
 
 <div id="iframediv" style="display:none">
 <p>Depending on buffering - output in this iframe may take a while to appear.
-The numer above will update as the job progreses.
+The number above will update as the job progreses.
 Once the output starts, make sure to scroll to the bottom to see the current activity.  
 If you want to abort this job, navigate away using "Done".
 This job may take so long it times out.  If it times out you can restart it

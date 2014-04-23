@@ -38,12 +38,6 @@ if ( isset($_POST['resetServerGrades']) ) {
     return;
 }
 
-// http://manzzup.blogspot.com/2013/11/real-time-updating-of-php-output-using.html
-function superFlush() {
-    echo str_pad("",1024," ");
-    flush();
-}
-
 if ( isset($_POST['getServerGrades']) ) {
     $row = pdoRowDie($pdo,
         "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
@@ -66,7 +60,7 @@ if ( isset($_POST['getServerGrades']) ) {
     echo("</head><body>\n");
 
     echo("Records to be processed: ".$total."<br/>");
-    superFlush();
+    flush();
 
     $stmt = pdoQueryDie($pdo,
         "SELECT result_id, sourcedid, service_key FROM {$p}lti_result AS R
@@ -91,14 +85,14 @@ if ( isset($_POST['getServerGrades']) ) {
         if ( is_string($grade) ) {
             $fail++;
             togglePre("Error at ".$count.' / '.$total.' ('.$ets.')',$grade);
-            superFlush();
+            flush();
         } else {
             $success++;
             // echo("Grade=".$grade."<br/>\n");
             // print_r($row); echo("<br/>\n");
             if ( $success % 10 == 0 ) {
                 echo("Grade=$grade ($ets) $count / $total <br/>\n");
-                superFlush();
+                flush();
             }
         }
         if ( $count > 1000 ) break;
@@ -160,7 +154,7 @@ if ( isset($_POST['fixServerGrades']) ) {
             echo("</pre>\n");
 
             togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
-            superFlush();
+            flush();
             echo("Problem sending grade ".$status."<br/>\n");
             $fail++;
             continue;
@@ -184,7 +178,7 @@ if ( isset($_POST['fixServerGrades']) ) {
                 ' sourcedid='+$row['sourcedid']+' service_key='+$row['service_key']);
             
             togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
-            superFlush();
+            flush();
             $fail++;
             continue;
         } else if ( $server_grade != $row['grade'] ) {
@@ -194,7 +188,7 @@ if ( isset($_POST['fixServerGrades']) ) {
         }
         if ( $success % 10 == 0 ) {
             echo("Grade=$grade ($ets) $count / $total <br/>\n");
-            superFlush();
+            flush();
         }
     }
 
