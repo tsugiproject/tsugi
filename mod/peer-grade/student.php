@@ -196,7 +196,6 @@ if ( isset($_GET['delete']) ) {
 }
 
 echo("<p>Computed grade: ".$computed_grade."<br/>\n");
-echo("Stored grade: ".$LTI['grade']."</p>\n");
 
 if ( isset($_GET['resend']) ) {
     echo('<form method="post">

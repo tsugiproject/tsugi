@@ -46,7 +46,7 @@ if ( isset($_POST['reGradePeer']) ) {
 
     $stmt = pdoQueryDie($pdo,
         "SELECT submit_id, S.user_id AS user_id, R.result_id AS result_id,
-                grade, sourcedid, service_key
+                grade, sourcedid, service_key, displayname, email
             FROM {$CFG->dbprefix}peer_submit AS S
             JOIN {$CFG->dbprefix}peer_assn AS A 
                 ON S.assn_id = A.assn_id
@@ -54,6 +54,8 @@ if ( isset($_POST['reGradePeer']) ) {
                 ON S.user_id = R.user_id AND A.link_id = R.link_id
             JOIN {$CFG->dbprefix}lti_service AS X 
                 ON R.service_id = X.service_id
+            JOIN {$CFG->dbprefix}lti_user AS U 
+                ON R.user_id = U.user_id
             WHERE S.assn_id = :AID AND regrade IS NULL",
         array(":AID" => $assn_id)
     );
@@ -71,6 +73,10 @@ if ( isset($_POST['reGradePeer']) ) {
         );
 
         if ( $row['grade'] >= $computed_grade ) {
+            if ( $row['grade'] > $computed_grade ) {
+                echo(htmlent_utf8($row['displayname']).' ('.htmlent_utf8($row['email']).') ');
+                echo('grade='.$row['grade'].' computed='.$computed_grade.' (unchanged)<br/>');
+            }
             $unchanged++;
             continue;
         }
