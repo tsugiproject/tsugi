@@ -68,7 +68,8 @@ program (the pay should be 498.75).  You should use <b>raw_input</b> to
 read a string and <b>float()</b> to convert the string to a number.
 Do not worry about error checking the user input - assume the user types numbers properly.
 ",
-"desired" => "Pay: 498.75",
+"desired" => "498.75",
+"desired2" => "Pay: 498.75",
 "code" => 'hrs = raw_input("Enter Hours:")
 h = float(hrs)',
 "checks" => Array(
@@ -106,13 +107,14 @@ to compute gross pay.  Award time-and-a-half for the hourly rate for all hours
 worked above 40 hours.  
 Put the logic to do the computation of time-and-a-half in a function called <b>computepay()</b>
 and use the function to do the computation.  The function should return a value.
-Use 45 hours and a rate of 10.00 per hour to test the 
-program (the pay should be 475.0).  You should use <b>raw_input</b> to 
+Use 45 hours and a rate of 10.50 per hour to test the 
+program (the pay should be 498.75).  
+You should use <b>raw_input</b> to 
 read a string and <b>float()</b> to convert the string to a number.
 Do not worry about error checking the user input unless you want to - 
 you can assume the user types numbers properly.
 ",
-"desired" => "Pay: 475",
+"desired" => "498.75",
 "code" => 'def computepay(h,r):
     return 42.37
 
