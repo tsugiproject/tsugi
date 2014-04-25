@@ -1,6 +1,7 @@
 <?php
 require_once "../../config.php";
 require_once "../../pdo.php";
+require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 session_start();
 // Set up global variables from session

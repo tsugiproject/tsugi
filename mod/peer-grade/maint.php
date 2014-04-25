@@ -2,6 +2,7 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once "peer_util.php";
 
 // No Buffering
@@ -92,7 +93,7 @@ if ( isset($_POST['reGradePeer']) ) {
 
         // Send the grade to the server
         $debuglog = array();
-        $status = sendGradeDetail($computed_grade, null, null, $debuglog, $pdo, $row); // This is the slow bit
+        $status = sendGradeDetail($computed_grade, $debuglog, $pdo, $row); // This is the slow bit
         if ( $status === true ) {
             echo(htmlent_utf8($row['displayname']).' ('.htmlent_utf8($row['email']).') ');
             echo("Grade $computed_grade submitted to server<br/>\n");

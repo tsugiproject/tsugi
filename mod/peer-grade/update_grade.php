@@ -2,6 +2,7 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once "peer_util.php";
 
 // Sanity checks
@@ -42,9 +43,8 @@ if ( $user_id != $LTI['user_id'] ) {
 }
 
 // Send the grade
-// $status = sendGrade($grade, false, $pdo, $result);
 $debuglog = array();
-$status = sendGradeDetail($grade, null, null, $debuglog, $pdo, $result); // This is the slow bit
+$status = sendGradeDetail($grade, $debuglog, $pdo, $result); // This is the slow bit
 
 if ( $status === true ) {
     if ( $user_id != $LTI['user_id'] ) {

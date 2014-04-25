@@ -6,7 +6,7 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once "exercises.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = requireData(array('user_id', 'link_id', 'role','context_id', 'result_id'));
 $instructor = isInstructor($LTI);
 $user_id = $LTI['user_id'];
 $p = $CFG->dbprefix;
@@ -25,7 +25,7 @@ if ( $row !== false && isset($row['json'])) {
 if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0' ) ) {
     $neweditor = $_GET['editor']+0;
     if ( $editor != $neweditor ) {
-        updateJSON($pdo, array("editor" => $neweditor));
+        updateGradeJSON($pdo, array("editor" => $neweditor));
         $json['editor'] = $neweditor;
         $editor = $neweditor;
     }
@@ -318,6 +318,8 @@ function load_files() {
         var grade = 1.0 - <?php echo( $dueDate->penalty); ?>;
         if ( oldgrade > grade ) grade = oldgrade;  // Never go down
         window.console && console.log("Sending grade="+grade);
+
+        if ( window.CM_EDITOR !== false ) window.CM_EDITOR.save();
         var code = document.getElementById("code").value;
         var toSend = { grade : grade, code : code };
 

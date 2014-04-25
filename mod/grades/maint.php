@@ -2,6 +2,7 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 // No Buffering
 noBuffer();
@@ -140,7 +141,7 @@ if ( isset($_POST['fixServerGrades']) ) {
         $count = $count + 1;
 
         $debuglog = array();
-        $status = sendGradeDetail($row['grade'], null, null, $debuglog, $pdo, $row); // This is the slow bit
+        $status = sendGradeDetail($row['grade'], $debuglog, $pdo, $row); // This is the slow bit
         if ( $status === true ) {
             echo('Grade submitted to server'."<br/>\n");
             $success++;

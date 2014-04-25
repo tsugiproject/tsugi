@@ -1,6 +1,7 @@
 <?php
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
+require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 // Sanity checks
 $LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
@@ -10,10 +11,11 @@ $user_id = $LTI['user_id'];
 $grade = 1.0;
 
 $code = $_POST['code'];
-$json = json_encode(array("code" => $code));
+updateGradeJSON($pdo, array("code" => $code));
+$_SESSION['pythonauto_lastcode'] = $code;
 
 $debuglog = array();
-$retval = sendGradeDetail($grade, null, $json, $debuglog, $pdo, false);
+$retval = sendGradeDetail($grade, $debuglog, $pdo, false);
 if ( is_string($retval) ) {
     echo json_encode(Array("status" => "failure", "detail" => $retval, "debuglog" => $debuglog));
     return;

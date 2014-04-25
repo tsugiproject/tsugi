@@ -2,6 +2,7 @@
 // A library for webscraping graders
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 require_once $CFG->dirroot."/lib/goutte/vendor/autoload.php";
 require_once $CFG->dirroot."/lib/goutte/Goutte/Client.php";
@@ -59,8 +60,7 @@ function getUrl($sample) {
 	if ( isset($_GET['url']) ) {
         echo('<p><a href="#" onclick="window.location.href = window.location.href; return false;">Re-run this test</a></p>'."\n");
         if ( isset($_SESSION['lti']) ) {
-            $json = json_encode(array("url" => $_GET['url']));
-            $retval = updateGradeJSON($pdo, $json);
+            $retval = updateGradeJSON($pdo, array("url" => $_GET['url']));
         }
         return $_GET['url'];
     }
@@ -108,9 +108,9 @@ function testPassed($grade, $url) {
 	}
 
     global $pdo;
-    $json = json_encode(array("url" => $url));
+    updateGradeJSON($pdo,json_encode(array("url" => $url)));
     $debuglog = array();
-    $retval = sendGradeDetail($grade, null, $json, $debuglog, $pdo, false);
+    $retval = sendGradeDetail($grade, $debuglog, $pdo, false);
     dumpGradeDebug($dumplog);
 	if ( $retval == true ) {
 		$success = "Grade sent to server (".intval($grade*100)."%)";

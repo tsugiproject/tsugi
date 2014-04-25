@@ -2,6 +2,7 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
@@ -123,7 +124,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     if ( $grade > 0 ) {
         $result = lookupResult($pdo, $LTI, $user_id);
         $debuglog = array();
-        $status = sendGradeDetail($grade, null, null, $debuglog, $pdo, $result); // This is the slow bit
+        $status = sendGradeDetail($grade, $debuglog, $pdo, $result); // This is the slow bit
 
         if ( $status === true ) {
             $_SESSION['success'] = 'Grade submitted to server';

@@ -2,6 +2,7 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
@@ -72,7 +73,7 @@ if ( isset($_POST['resendSubmit']) ) {
     $_SESSION['lti']['grade'] = -1;  // Force a resend
     $result['grade'] = -1;
     $debuglog = array();
-    $status = sendGradeDetail($computed_grade, null, null, $debuglog, $pdo, $result); // This is the slow bit
+    $status = sendGradeDetail($computed_grade, $debuglog, $pdo, $result); // This is the slow bit
     if ( $status === true ) {
         $_SESSION['success'] = 'Grade submitted to server';
     } else {
