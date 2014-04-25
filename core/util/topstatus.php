@@ -47,5 +47,6 @@ if ( (!isset($_SESSION['TOP_CHECK'])) || $_SESSION['TOP_CHECK'] < 1) {
 // cycle in requireData()
 
 $_SESSION['SET_TOP_COOKIE'] = 1;
-echo(json_encode(array("cookie_name" => 'TSUGI_TOP_SESSION', "cookie_value" => session_id())));
+echo(json_encode(array("session_name" => session_name(), "cookie_name" => 'TSUGI_TOP_SESSION', 
+    "cookie_value" => session_id())));
 

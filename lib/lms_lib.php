@@ -411,6 +411,13 @@ function checkTopStatus() {
                 window.console && console.log('Setting cookie '+cstring);
                 document.cookie = cstring;
             }
+            if ( getCookie(data.session_name).length > 0 ) {
+                window.console && console.log('Cookie '+data.session_name+' already set.');
+            } else {
+                cstring = data.session_name+'='+data.cookie_value+'; path=/';
+                window.console && console.log('Setting cookie '+cstring);
+                document.cookie = cstring;
+            }
         }
     });
 }
