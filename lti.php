@@ -19,6 +19,20 @@ if ( $post['key'] == '12345' && ! $CFG->DEVELOPER) {
 // We make up a Session ID Key because we don't want a new one
 // each time the same user launches the same link.
 $session_id = getCompositeKey($post, $CFG->sessionsalt);
+
+// Decide if we are going to use cookie or cookiless sessions for this tool
+// We override the decisions in setup.php if the planets line up...
+// This will only happen after a second launch to the same link
+$sessiontype="normal";
+$topsession = isset($_COOKIE['TSUGI_TOP_SESSION']) ? $_COOKIE['TSUGI_TOP_SESSION'] : false;
+$cookiesession = isset($_COOKIE[session_name()]) ? $_COOKIE[session_name()] : false;
+if ( $topsession && $cookiesession && $topsession == $cookiesession && $topsession == $session_id ) {
+    ini_set('session.use_cookies', '1');
+    ini_set('session.use_only_cookies',1);
+    ini_set('session.use_trans_sid',0);
+    $sessiontype="cookie";
+}
+
 session_id($session_id);
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
@@ -57,6 +71,7 @@ $_SESSION['lti_post'] = $_POST;
 if ( isset($_SERVER['HTTP_USER_AGENT']) ) $_SESSION['HTTP_USER_AGENT'] = $_SERVER['HTTP_USER_AGENT'];
 if ( isset($_SERVER['REMOTE_ADDR']) ) $_SESSION['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
 $_SESSION['CSRF_TOKEN'] = uniqid();
+$_SESSION['TOP_CHECK'] = 20;
 
 // See if we have a custom assignment setting.
 if ( ! isset($_POST['custom_assn'] ) ) {
@@ -77,6 +92,8 @@ $breadcrumb .= ',';
 $breadcrumb .= $session_id;
 $breadcrumb .= ',';
 $breadcrumb .= $url;
+$breadcrumb .= ',';
+$breadcrumb .= $sessiontype;
 error_log($breadcrumb);
 
 
