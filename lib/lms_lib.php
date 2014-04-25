@@ -142,6 +142,24 @@ function send403() {
     header("HTTP/1.1 403 Forbidden");
 }
 
+// Returns true for a good referrer and false if we could not verify it
+function checkReferer() {
+    global $CFG;
+    return isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],$CFG->wwwroot) === 0 ;
+}
+
+// Returns true for a good CSRF and false if we could not verify it
+function checkCSRF() {
+    global $CFG;
+    if ( ! isset($_SESSION['CSRF_TOKEN']) ) return false;
+    $token = $_SESSION['CSRF_TOKEN'];
+    if ( isset($_POST['CSRF_TOKEN']) && $token == $_POST['CSRF_TOKEN'] ) return true;
+    $headers = array_change_key_case(apache_request_headers());
+    if ( isset($headers['x-csrf-token']) && $token == $headers['x-csrf-token'] ) return true;
+    if ( isset($headers['x-csrftoken']) && $token == $headers['x-csrftoken'] ) return true;
+    return false;
+}
+
 // Make sure we have the values we need in the LTI session
 // This routine will not start a session if none exists.  It will
 // die is there if no session_name() (PHPSESSID) cookie or 
@@ -185,9 +203,12 @@ function requireData($needed) {
         die('Session expired - please re-launch'); // with error_log
 	}
 
+    // Check the referrer...
+    $trusted = checkReferer() || checkCSRF();
+
     // Check to see if we switched browsers or IP addresses
     // TODO: Change these to warnings once we get more data
-    if ( isset($_SESSION['HTTP_USER_AGENT']) ) {
+    if ( (!$trusted) && isset($_SESSION['HTTP_USER_AGENT']) ) {
         if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
             $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
             send403();
@@ -200,7 +221,7 @@ function requireData($needed) {
 
     // We only check the first three octets as some systems wander throught the addresses on
     // class C - Perhaps it is even NAT - who knows - but we forgive those on the same Class C
-    if ( isset($_SESSION['REMOTE_ADDR']) && isset($_SERVER['REMOTE_ADDR']) ) {
+    if ( (!$trusted) &&  isset($_SESSION['REMOTE_ADDR']) && isset($_SERVER['REMOTE_ADDR']) ) {
         $sess_pieces = explode('.',$_SESSION['REMOTE_ADDR']);
         $serv_pieces = explode('.',$_SERVER['REMOTE_ADDR']);
         if ( count($sess_pieces) == 4 && count($serv_pieces) == 4 ) {
@@ -291,6 +312,9 @@ body {
     <![endif]-->
 
 <?php
+    if ( isset($_SESSION['CSRF_TOKEN']) ) {
+        echo('<script type="text/javascript">CSRF_TOKEN = "'.$_SESSION['CSRF_TOKEN'].'";</script>'."\n");
+    }
     $HEAD_CONTENT_SENT = true;
 }
 
@@ -317,7 +341,7 @@ function footerStart() {
         // $heartbeat = 10000;
 ?>
 <script type="text/javascript">
-$HEARTBEAT_INTERVAL = false;
+HEARTBEAT_INTERVAL = false;
 function doHeartBeat() {
     window.console && console.log('Calling heartbeat to extend session');
     $.ajaxSetup({ cache: false }); // For IE...
@@ -326,14 +350,14 @@ function doHeartBeat() {
         if ( data.lti || data.cookie ) {
             // No problem
         } else {
-            clearInterval($HEARTBEAT_INTERVAL);
-            $HEARTBEAT_INTERVAL = false;
+            clearInterval(HEARTBEAT_INTERVAL);
+            HEARTBEAT_INTERVAL = false;
             alert('Your session has expired');
             window.location.href = "about:blank";
         }
     });
 }
-$HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
+HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
 </script>
 <?php
     }

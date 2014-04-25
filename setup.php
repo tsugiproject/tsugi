@@ -29,9 +29,9 @@ require_once $CFG->dirroot."/lib/lms_lib.php";  // During transition
 
 // This is where we change the overall database version to trigger
 // upgrade checking - don't change this unless you want to trigger
-// database upgrade messages it should be the max of all versions in 
+// database upgrade messages it should be the max of all versions in
 // all database.php files.
-// TODO: Automate the "max checking" 
+// TODO: Automate the "max checking"
 $CFG->dbversion = 2014042200;
 
 // Check if we have been asked to do cookie or cookieless sessions
@@ -40,7 +40,7 @@ if ( defined('COOKIE_SESSION') ) {
 } else {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);
-    ini_set('session.use_trans_sid',1); 
+    ini_set('session.use_trans_sid',1);
 }
 
 if ( ! isset($CFG) ) dieWithErrorLog("Please configure this product using config.php");
@@ -48,7 +48,7 @@ if ( ! isset($CFG->staticroot) ) dieWithErrorLog('$CFG->staticroot not defined i
 if ( ! isset($CFG->timezone) ) dieWithErrorLog('$CFG->timezone not defined in config.php');
 if ( strpos($CFG->dbprefix, ' ') !== false ) dieWithErrorLog('$CFG->dbprefix cannot have spaces in it');
 
-// Set this to the temporary folder if not set - dev only 
+// Set this to the temporary folder if not set - dev only
 if ( ! isset($CFG->dataroot) ) {
 	$tmp = sys_get_temp_dir();
     if (strlen($tmp) > 1 && substr($tmp, -1) == '/') $tmp = substr($tmp,0,-1);
@@ -113,6 +113,21 @@ function addUrlParm($url, $key, $val) {
     $url .= urlencode($key) . '=' . urlencode($val);
     return $url;
 }
-    
+
+// Request headers for earlier version of PHP and nginx
+// http://www.php.net/manual/en/function.getallheaders.php
+if (!function_exists('apache_request_headers')) {
+    function apache_request_headers() {
+        foreach($_SERVER as $key=>$value) {
+            if (substr($key,0,5)=="HTTP_") {
+                $key=str_replace(" ","-",ucwords(strtolower(str_replace("_"," ",substr($key,5)))));
+                $out[$key]=$value;
+            } else {
+                $out[$key]=$value;
+            }
+        }
+        return $out;
+    }
+}
 
 // No trailer
