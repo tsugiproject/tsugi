@@ -50,6 +50,7 @@ if ( defined('COOKIE_SESSION') ) {
 } else if ( $topsession && $cookiesession && $topsession == $cookiesession ) {
     // error_log("Using Cookie session ".$topsession);
 
+/*
 // Ready to switch on the next request/response cycle
 } else if ( $topsession && $ncsession && $topsession == $ncsession && 
         ( $cookiesession === false || $topsession == $cookiesession ) ) {
@@ -58,6 +59,7 @@ if ( defined('COOKIE_SESSION') ) {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);
     ini_set('session.use_trans_sid',1);
+*/
 } else {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);

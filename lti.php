@@ -71,7 +71,7 @@ $_SESSION['lti_post'] = $_POST;
 if ( isset($_SERVER['HTTP_USER_AGENT']) ) $_SESSION['HTTP_USER_AGENT'] = $_SERVER['HTTP_USER_AGENT'];
 if ( isset($_SERVER['REMOTE_ADDR']) ) $_SESSION['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
 $_SESSION['CSRF_TOKEN'] = uniqid();
-$_SESSION['TOP_CHECK'] = 20;
+$_SESSION['TOP_CHECK'] = 3;
 
 // See if we have a custom assignment setting.
 if ( ! isset($_POST['custom_assn'] ) ) {
