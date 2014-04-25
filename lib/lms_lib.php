@@ -314,6 +314,8 @@ body {
 <?php
     if ( isset($_SESSION['CSRF_TOKEN']) ) {
         echo('<script type="text/javascript">CSRF_TOKEN = "'.$_SESSION['CSRF_TOKEN'].'";</script>'."\n");
+    } else {
+        echo('<script type="text/javascript">CSRF_TOKEN = "TODORemoveThis";</script>'."\n");
     }
     $HEAD_CONTENT_SENT = true;
 }
@@ -344,7 +346,12 @@ function footerStart() {
 HEARTBEAT_INTERVAL = false;
 function doHeartBeat() {
     window.console && console.log('Calling heartbeat to extend session');
-    $.ajaxSetup({ cache: false }); // For IE...
+    $.ajaxSetup({ 
+        cache: false,
+        headers : {
+            'X-CSRF-Token' : CSRF_TOKEN
+        }
+    });
     $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>', function(data) {
         window.console && console.log(data);
         if ( data.lti || data.cookie ) {

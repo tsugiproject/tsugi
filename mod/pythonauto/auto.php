@@ -278,6 +278,10 @@ function load_files() {
             type: "POST",
             url: "<?php echo sessionize('sendcode.php'); ?>",
             dataType: "json",
+            beforeSend: function (request)
+            {
+                request.setRequestHeader("X-CSRF-Token", CSRF_TOKEN);
+            },
             data: toSend
         }).done( function (data) {
             console.log("Code updated on server.");
@@ -327,6 +331,10 @@ function load_files() {
             type: "POST",
             url: "<?php echo sessionize('sendgrade.php'); ?>",
             dataType: "json",
+            beforeSend: function (request)
+            {
+                request.setRequestHeader("X-CSRF-Token", CSRF_TOKEN);
+            },
             data: toSend
         }).done( function (data) {
             window.console && console.log("Grade response received...");
