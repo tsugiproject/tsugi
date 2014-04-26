@@ -465,8 +465,12 @@ if ( $dueDate->message ) {
     }
     echo('<button onclick="$(\'#info\').modal();return false;" type="button">Info</button>'."\n");
     doneButton();
-    if ( $instructor && $EX !== false ) {
-       echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
+    if ( $instructor ) {
+        if ( $EX === false ) {
+            echo(' <a href="grades.php" target="_blank">View Student Code</a>'."\n");
+        } else {
+            echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
+        }
     }
 ?>
 <img id="spinner" src="skulpt/spinner.gif" style="vertical-align: middle;display: none">
