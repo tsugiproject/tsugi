@@ -342,6 +342,7 @@ function load_files() {
             $("#spinner").hide();
             if ( data.status == "success") {
                 $("#gradegood").show();
+                $('#curgrade').text('1');
             } else {
                 $("#gradebad").show();
             }
@@ -367,6 +368,49 @@ word-wrap: break-word; /* IE 5.5+ */
 <?php
 startBody();
 ?>
+
+
+<div class="modal fade" id="info">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">
+<?php 
+if ( isset($LTI['link_title']) ) {
+    echo("Assignment: ".htmlent_utf8($LTI['link_title']));
+} else {
+    welcomeUserCourse($LTI); 
+}
+?></h4>
+      </div>
+      <div class="modal-body">
+<?php if ( isset($LTI['grade']) ) { ?>
+        <p style="border: blue 1px solid">Your current grade in this 
+        exercise is <span id="curgrade"><?php echo($LTI['grade']); ?></span>.</p>
+<?php } ?>
+        <p>Your goal in this auto grader is to write or paste in a program that implements the specifications
+        of the assignment.  You run the program by pressing "Check Code".  
+        The output of your program is displayed in the "Your Output" section of the screen.  
+        If your output does match the "Desired Output", you will not get a score.  
+        Even if "Your Output" matches "Desired Output" exactly, 
+        the autograder still does a few checks of your source code to make sure that you 
+        implemented the assignment as expected. These messages
+        can also help struggling students with clues as to what might be missing.
+        </p>
+        <p>
+        This autograder keeps your highest score, not your last score.  You either get full credit (1.0) or
+        no credit (0.0) when you run your code - but if you have a 1.0 score and you do a failed run,
+        your score will not be changed.
+        </p>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
+
 <div id="overall" style="border: 3px solid black;">
 <div id="inputs">
 <div class="well" style="background-color: #EEE8AA">
@@ -383,6 +427,7 @@ if ( $dueDate->message ) {
     if ( strlen($CODE) > 0 ) {
         echo('<button onclick="resetcode()" type="button">Reset Code</button> ');
     }
+    echo('<button onclick="$(\'#info\').modal();return false;" type="button">Info</button>'."\n");
     doneButton();
     if ( $instructor ) {
        echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
