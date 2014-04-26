@@ -332,42 +332,27 @@ function startBody() {
         dieWithErrorLog("Unhandled POST request");
     }
 }
+
 function footerStart() {
     global $CFG;
     echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");
     echo('<script src="'.$CFG->staticroot.'/static/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
-	do_analytics(); 
-	echo(togglePreScript());
+
+    // Serve this locally during early development - Move to CDN when stable
+    echo('<script src="'.$CFG->wwwroot.'/static/js/tsugiscripts.js"></script>'."\n");
+
     if ( isset($CFG->sessionlifetime) ) {
         $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
         // $heartbeat = 10000;
 ?>
 <script type="text/javascript">
-HEARTBEAT_INTERVAL = false;
-function doHeartBeat() {
-    window.console && console.log('Calling heartbeat to extend session');
-    $.ajaxSetup({ 
-        cache: false,
-        headers : {
-            'X-CSRF-Token' : CSRF_TOKEN
-        }
-    });
-    $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>', function(data) {
-        window.console && console.log(data);
-        if ( data.lti || data.cookie ) {
-            // No problem
-        } else {
-            clearInterval(HEARTBEAT_INTERVAL);
-            HEARTBEAT_INTERVAL = false;
-            alert('Your session has expired');
-            window.location.href = "about:blank";
-        }
-    });
-}
+HEARTBEAT_URL = '<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>';
 HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
 </script>
 <?php
     }
+
+	do_analytics(); 
 }
 
 function footerEnd() {
