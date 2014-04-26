@@ -165,7 +165,9 @@ if ( $display ) {
             >
             Share your email on the map<br/>
             </p><p>To set your location drag the large red pin to your location.  The
-            new location is updated as sson as you move the pin.</p>
+            new location is updated as soon as you move the pin.  Your location will 
+            always appear to you as a large, red pin.   When others see you, they will 
+            see a green pin.</p>
         </form>    
       </div>
       <div class="modal-footer">
@@ -176,7 +178,6 @@ if ( $display ) {
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <?php } ?>
-<?php if ( $firsttime ) { ?>
 <div class="modal fade" id="howdy">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -190,11 +191,15 @@ if ( $display ) {
   If you are concerned about privacy, simply put the
   location somewhere <i>near</i> where you live.  Perhaps in the same country, state, or city
   instead of your exact location.  If you do not want to share your location, simply do 
-  not move the red pointer.
+  not move the red pointer.  All of the other students are shown as green pins.  When you 
+  are looking at the map, you will always be the large, red pin.  When others see you, they will
+  see a green pin.  The green pins with dots are the ones who have shared some of their information.
+  Hover over these pins with dots to see the other student's information.
 <?php if ( $display ) { ?>
 </p><p>
 You can choose to be anonymous or share your first name, full name or email if you would like.
-To configure your privacy options double-click on the large red pointer.
+To configure your privacy options double-click on the large red pointer that represents your
+location.
 <?php } ?>
         </p>
         
@@ -206,7 +211,6 @@ To configure your privacy options double-click on the large red pointer.
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
-<?php } ?>
 <div id="map_canvas" style="margin: 10px; width:95%; height:600px"></div>
 <?php
 footerStart();
@@ -236,9 +240,7 @@ $(document).ready(function() {
         });
         return false;
       });
-<?php if ( $firsttime ) { ?>
     $('#howdy').modal();
-<?php } ?>
 } );
 </script>
 <?php
