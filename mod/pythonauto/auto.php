@@ -378,7 +378,7 @@ startBody();
         <h4 class="modal-title">
 <?php 
 if ( isset($LTI['link_title']) ) {
-    echo("Assignment: ".htmlent_utf8($LTI['link_title']));
+    echo(htmlent_utf8($LTI['link_title']));
 } else {
     welcomeUserCourse($LTI); 
 }
@@ -393,9 +393,10 @@ if ( isset($LTI['link_title']) ) {
         of the assignment.  You run the program by pressing "Check Code".  
         The output of your program is displayed in the "Your Output" section of the screen.  
         If your output does match the "Desired Output", you will not get a score.  
+        </p><p>
         Even if "Your Output" matches "Desired Output" exactly, 
         the autograder still does a few checks of your source code to make sure that you 
-        implemented the assignment as expected. These messages
+        implemented the assignment using the expected techniques from the chapter. These messages
         can also help struggling students with clues as to what might be missing.
         </p>
         <p>
