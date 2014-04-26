@@ -34,32 +34,9 @@ require_once $CFG->dirroot."/lib/lms_lib.php";  // During transition
 // TODO: Automate the "max checking"
 $CFG->dbversion = 2014042200;
 
-// If we are the top frame, code will set the TSUGI_TOP_SESSION cookie
-// and we can switch from cookieless to cookie based sessions if either
-// (a) we don't yet have a PHPSESSION cookie or (b) we have a PHPSESSION
-// cookie and it matches TSUGI_TOP_SESSION
-$topsession = isset($_COOKIE['TSUGI_TOP_SESSION']) ? $_COOKIE['TSUGI_TOP_SESSION'] : false;
-$cookiesession = isset($_COOKIE[session_name()]) ? $_COOKIE[session_name()] : false;
-$ncsession  = isset($_GET[session_name()]) ? $_GET[session_name()] : false;
-$ncsession  = isset($_POST[session_name()]) ? $_POST[session_name()] : $ncsession;
-
+// Check if we have been asked to do cookie or cookieless sessions
 if ( defined('COOKIE_SESSION') ) {
 	// Do nothing - let the session be in a cookie
-
-// We have switched to a cookie session in a top frame
-} else if ( $topsession && $cookiesession && $topsession == $cookiesession ) {
-    // error_log("Using Cookie session ".$topsession);
-
-/*
-// Ready to switch on the next request/response cycle
-} else if ( $topsession && $ncsession && $topsession == $ncsession && 
-        ( $cookiesession === false || $topsession == $cookiesession ) ) {
-    error_log("Switching to Cookie session ".$topsession);
-    setcookie(session_name(), $topsession, 0, '/');  // Domain cookie
-    ini_set('session.use_cookies', '0');
-    ini_set('session.use_only_cookies',0);
-    ini_set('session.use_trans_sid',1);
-*/
 } else {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);

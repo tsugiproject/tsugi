@@ -215,7 +215,7 @@ function requireData($needed) {
             dieWithErrorLog("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
                 $_SESSION['HTTP_USER_AGENT'].' ::: '.
                 isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Empty user agent',
-            'die:');
+            'DIE:');
         }
     }
 
@@ -229,7 +229,7 @@ function requireData($needed) {
                 $sess_pieces[2] != $serv_pieces[2] ) {
                 send403();
                 dieWithErrorLog('Session address has expired', " ".session_id()." REMOTE_ADDR ".
-                    $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR'], 'die:');
+                    $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR'], 'DIE:');
             }
         }
     }
@@ -335,16 +335,6 @@ function startBody() {
 function footerStart() {
     global $CFG;
     echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");
-?>
-<script type="text/javascript">
-    $.ajaxSetup({ 
-        cache: false,
-        headers : {
-            'X-CSRF-Token' : CSRF_TOKEN
-        }
-    });
-</script>
-<?php
     echo('<script src="'.$CFG->staticroot.'/static/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
 	do_analytics(); 
 	echo(togglePreScript());
@@ -356,6 +346,12 @@ function footerStart() {
 HEARTBEAT_INTERVAL = false;
 function doHeartBeat() {
     window.console && console.log('Calling heartbeat to extend session');
+    $.ajaxSetup({ 
+        cache: false,
+        headers : {
+            'X-CSRF-Token' : CSRF_TOKEN
+        }
+    });
     $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>', function(data) {
         window.console && console.log(data);
         if ( data.lti || data.cookie ) {
@@ -370,63 +366,6 @@ function doHeartBeat() {
 }
 HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
 </script>
-<?php
-    }
-
-    // If we are using cookieless sessions - lets see if we are the top frame
-    if (  (! isset($_COOKIE[session_name()])) && ini_get('session.use_cookies') == '0' 
-            && isset($_SESSION['TOP_CHECK']) && $_SESSION['TOP_CHECK'] > 0 ) {
-        $_SESSION['TOP_CHECK']--;  // Only do so many times..
-?>
-<script type="text/javascript">
-// http://www.w3schools.com/js/js_cookies.asp
-function getCookie(cname)
-{
-    var name = cname + "=";
-    var ca = document.cookie.split(';');
-    for(var i=0; i<ca.length; i++) 
-    {
-        var c = ca[i].trim();
-        if (c.indexOf(name)==0) return c.substring(name.length,c.length);
-    }
-    return "";
-}
-
-function checkTopStatus() {
-    topframe = 'false';
-    try {
-        topframe = window.self === window.top ? 'true' : 'false';
-    } catch (e) {
-        topframe = 'false';
-    }
-
-    window.console && console.log('Letting TSUGI know we are the top frame...');
-    $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/core/util/topstatus.php')); ?>&top='+topframe, function(data) {
-        window.console && console.log(data);
-        if ( data.cookie_name && data.cookie_value) {
-            if ( getCookie(data.cookie_name).length > 0 ) {
-                window.console && console.log('Cookie '+data.cookie_name+' already set.');
-            } else {
-                cstring = data.cookie_name+'='+data.cookie_value+'; path=/';
-                window.console && console.log('Setting cookie '+cstring);
-                document.cookie = cstring;
-            }
-            if ( getCookie(data.session_name).length > 0 ) {
-                window.console && console.log('Cookie '+data.session_name+' already set.');
-            } else {
-                cstring = data.session_name+'='+data.cookie_value+'; path=/';
-                window.console && console.log('Setting cookie '+cstring);
-                document.cookie = cstring;
-            }
-        }
-    });
-}
-$(document).ready( function () {
-    setTimeout(checkTopStatus,3000);  // Let the page settle after ready
-});
-</script>
-
-
 <?php
     }
 }
