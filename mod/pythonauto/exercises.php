@@ -172,6 +172,20 @@ number and print it out.",
 '!"0.8475"' =>  "You must actually pull the data from the string.")
 ),
 
+"fopen" => Array(
+"qtext" => 'This Python program opens the file 
+"mbox-short.txt" and counts the number of lines in the file.',
+"desired" => "1910 Lines",
+"code" => 'fh = open("mbox-short.txt", "r")
+
+count = 0
+for line in fh:
+   count = count + 1
+
+print count,"Lines"
+'
+),
+
 "7.1" => Array(
 "qtext" => "<b>7.1</b> Write a program that prompts for a file name, then opens that file
 and reads through the file, and print the contents of the file in upper case.  Use

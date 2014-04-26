@@ -20,12 +20,13 @@ Send comments to Dr. Chuck.
 </p>
 <ul class="nav nav-pills nav-stacked">
 <li><a href="<?php echo('auto.php?exercise=hello&done=index.php'); ?>" target="blank">Hello World</a></li>
+<li><a href="<?php echo('auto.php?done=index.php'); ?>" target="blank">Code Playground</a></li>
 <li><a href="<?php echo('auto.php?exercise=2.2&done=index.php'); ?>" target="blank">Exercise 2.2</a></li>
 <li><a href="<?php echo('auto.php?exercise=2.3&done=index.php'); ?>" target="blank">Exercise 2.3</a></li>
 <li><a href="<?php echo('auto.php?exercise=3.1&done=index.php'); ?>" target="blank">Exercise 3.1</a></li>
 <li><a href="<?php echo('auto.php?exercise=3.3&done=index.php'); ?>" target="blank">Exercise 3.3</a></li>
 <li><a href="<?php echo('auto.php?exercise=loop&done=index.php'); ?>" target="blank">For loop</a></li>
-<li><a href="<?php echo('auto.php?done=index.php'); ?>" target="blank">Counting the lines in a file</a></li>
+<li><a href="<?php echo('auto.php?exercise=fopen&done=index.php'); ?>" target="blank">Counting the lines in a file</a></li>
 </ul>
 <p>
 If the auto.php script is launched using 

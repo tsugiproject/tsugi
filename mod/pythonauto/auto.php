@@ -38,49 +38,44 @@ $dueDate = getDueDate();
 headerContent();
 
 // Defaults
-$QTEXT = 'Please write a Python program to open the file 
-"mbox-short.txt" and count the number of lines in the file and 
-match the desired output below:';
-$DESIRED = '1910 Lines';
-$DESIRED2 = '';
-$CODE = 'fh = open("mbox-short.txt", "r")
+$QTEXT = 'You can write any code you like in the window below.  There are three files
+loaded and ready for you to open if you want to do file processing:
+"mbox-short.txt", "romeo.txt", and "words.txt".';
+$DESIRED = false;
+$CODE = 'fh = open("romeo.txt", "r")
 
 count = 0
 for line in fh:
-   count = count + 1
+    print line.strip()
+    count = count + 1
 
-print count,"Lines"
-';
+print count,"Lines"';
 $CHECKS = false;
-$EX = true;
+$EX = false;
 
 // Check which exercise we are supposed to do
 $ex = getCustom('exercise');
 if ( $ex === false && isset($_REQUEST["exercise"]) ) {
     $ex = $_REQUEST["exercise"];
 }
-if ( $ex === false ) {
-    $ex = "count";
-} else {
-    $EX = false;
+if ( $ex !== false && $ex != "code" ) {
     if ( isset($EXERCISES[$ex]) ) $EX = $EXERCISES[$ex];
     if ( $EX !== false ) {
         $CODE = '';
         $QTEXT = $EX["qtext"];
         $DESIRED = $EX["desired"];
         $DESIRED2 = isset($EX["desired2"]) ? $EX["desired2"] : '';
+        $DESIRED = rtrim($DESIRED);
+        $DESIRED2 = rtrim($DESIRED2);
         if ( isset($EX["code"]) ) $CODE = $EX["code"];
         if ( isset($EX["checks"]) ) $CHECKS = json_encode($EX["checks"]);
     }
+    if ( $EX === false ) {
+        echo("</head><body><h1>Error, exercise ".htmlentities($ex).
+            " is not available.  Please see your instructor.</h1></body>");
+        return;
+    }
 } 
-
-$DESIRED = rtrim($DESIRED);
-$DESIRED2 = rtrim($DESIRED2);
-if ( $EX === false ) {
-    echo("</head><body><h1>Error, exercise ".htmlentities($ex).
-        " is not available.  Please see your instructor.</h1></body>");
-    return;
-}
 ?>
 <style>
 body { font-family: sans-serif; }
@@ -155,6 +150,7 @@ function load_files() {
         $("#check").hide();
         $("#grade").hide();
         $("#redo").hide();
+        $("#complete").hide();
         $("#gradegood").hide();
         $("#gradelow").hide();
         $("#gradebad").hide();
@@ -200,7 +196,11 @@ function load_files() {
         }
 
         if ( window.GLOBAL_ERROR ) {
+<?php if ( $EX !== false ) { ?>
             $("#redo").show();
+<?php } else { ?>
+            $("#complete").show();
+<?php } ?>
         } else {
             $("#check").show();
             // $("#grade").show();
@@ -218,7 +218,13 @@ function load_files() {
         text = text.replace(/</g, '&lt;');
         newtext = oldtext + text;
         output.innerHTML = newtext;
-        var desired = document.getElementById("desired").innerHTML;
+
+        if ( window.GLOBAL_TIMER != false ) window.clearInterval(window.GLOBAL_TIMER);
+        window.GLOBAL_TIMER = setTimeout("finalcheck();",1500);
+
+        var desired = document.getElementById("desired");
+        if ( desired == null ) return;
+        var desired = desired.innerHTML;
         var desired2 = document.getElementById("desired2").innerHTML;
 
         deslines = desired.split('\n');
@@ -226,8 +232,6 @@ function load_files() {
         newlines = newtext.split('\n');
         newoutput = '';
         err = false;
-        if ( window.GLOBAL_TIMER != false ) window.clearInterval(window.GLOBAL_TIMER);
-        window.GLOBAL_TIMER = setTimeout("finalcheck();",1500);
         for ( i=0, newlength = newlines.length; i < newlength; i++ ) {
             if ( i > 0 ) newoutput += '\n';
             nl = newlines[i];
@@ -273,6 +277,7 @@ function load_files() {
         }
         $("#spinner").show();
 
+<?php if ( isset($LTI['result_id']) ) { ?>
         var toSend = { code : prog };
         $.ajax({
             type: "POST",
@@ -286,6 +291,7 @@ function load_files() {
         }).done( function (data) {
             console.log("Code updated on server.");
         });
+<?php } ?>
 
         var output = document.getElementById("output");
         output.innerHTML = '';
@@ -385,6 +391,30 @@ if ( isset($LTI['link_title']) ) {
 ?></h4>
       </div>
       <div class="modal-body">
+<?php if ( $EX === false ) { ?>
+        <p>This is an open-ended space for you to write and execute Python programs.
+        This page does not check our output and it does not send a grade back.  It is
+        here as a place for you to develop small programs and test things out.
+        </p>
+<?php if ( isset($LTI['result_id']) ) { ?>
+        <p>
+        Whatever code you type will be saved and restored when you come back to this
+        page.</p>
+<?php } ?>
+        <p>
+        Remember that this is an in-browser Python emulator and as your programs get 
+        more sophisticated, you may encounter situations where this Python emulator
+        gives <i>different</i> results than the real Python 2.7 
+        running on your laptop, desktop, or server.  It is intended to be used 
+        for simple programs being developed by beginning programmers while they 
+        are learning to program.
+        </p> <p>
+        There are three files loaded into this environment from the 
+        <a href="http://www.pythonlearn.com/" target="_blank">Python for Informatics</a>
+        web site and ready for you to open if you want to 
+        do file processing: "mbox-short.txt", "romeo.txt", and "words.txt".
+        </p>
+<?php } else { ?>
 <?php if ( isset($LTI['grade']) ) { ?>
         <p style="border: blue 1px solid">Your current grade in this 
         exercise is <span id="curgrade"><?php echo($LTI['grade']); ?></span>.</p>
@@ -404,6 +434,7 @@ if ( isset($LTI['link_title']) ) {
         no credit (0.0) when you run your code - but if you have a 1.0 score and you do a failed run,
         your score will not be changed.
         </p>
+<?php } ?>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -423,19 +454,24 @@ if ( $dueDate->message ) {
 <?php echo($QTEXT); ?>
 </div>
 <form id="forminput">
-<button onclick="runit()" type="button">Check Code</button>
 <?php 
+    if ( $EX !== false ) {
+        echo('<button onclick="runit()" type="button">Check Code</button>'."\n");
+    } else {
+        echo('<button onclick="runit()" type="button">Run Python</button>'."\n");
+    }
     if ( strlen($CODE) > 0 ) {
         echo('<button onclick="resetcode()" type="button">Reset Code</button> ');
     }
     echo('<button onclick="$(\'#info\').modal();return false;" type="button">Info</button>'."\n");
     doneButton();
-    if ( $instructor ) {
+    if ( $instructor && $EX !== false ) {
        echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
     }
 ?>
 <img id="spinner" src="skulpt/spinner.gif" style="vertical-align: middle;display: none">
-<span id="redo" style="color:red;display:none"> Please Correct your code and re-run. </span>
+<span id="redo" style="color:red;display:none"> Please correct your code and re-run. </span>
+<span id="complete" style="color:green;display:none"> Execution complete. </span>
 <span id="gradegood" style="color:green;display:none"> Grade updated on server. </span>
 <span id="gradelow" style="color:green;display:none"> Grade updated on server. </span>
 <span id="gradebad" style="color:red;display:none"> Error storing grade on server. </span>
@@ -459,11 +495,13 @@ if ( $OLDCODE !== false ) {
 <pre id="output" class="inputarea"></pre>
 </pre>
 </div>
+<?php if ( $EX !== false ) { ?>
 <div id="right">
 <b>Desired Output</b>
 <pre id="desired" class="inputarea"><?php echo($DESIRED); echo("\n"); ?></pre>
 <span id="desired2" style="display:none"><?php echo($DESIRED2); echo("\n"); ?></span>
 </div>
+<?php } ?>
 </div>
 </div>
 </form>
@@ -480,7 +518,7 @@ Setting:
     }
     echo('<a href="'.$editurl.'">'.$textval.'</a>.  ');
 ?>
-This autograder supports Python 2.7 and is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> 
+This software supports Python 2.7 and is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> 
 and <a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
 The source code for this auto-grader is available on
 <a href="https://github.com/csev/tsugi" target="_blank">on GitHub</a>.
@@ -509,15 +547,21 @@ function compute_divs() {
     $('#outputs').width('45%').height($avail);
     $('#textarea').height('100%');
     $('#output').height('100%');
+<?php if ( $EX !== false ) { ?>
     $('#desired').height('100%');
+<?php } ?>
 
     if ( window.SPLIT_1 == false ) {
         window.SPLIT_1 = $('#overall').split({orientation:'vertical', limit:100});
         window.console && console.log(window.SPLIT_1);
+<?php if ( $EX !== false ) { ?>
         window.SPLIT_2 = $('#outputs').split({orientation:'horizontal', limit:100});
+<?php } ?>
     } else {
         window.SPLIT_1.position('50%');
+<?php if ( $EX !== false ) { ?>
         window.SPLIT_2.position('50%');
+<?php } ?>
     }
     window.console && console.log('avail='+$avail+' favail='+$favail);
 } 
@@ -539,6 +583,9 @@ function load_cm() {
 <?php } ?>
 
  $().ready(function(){
+<?php if ( $EX === false ) { ?>
+    $('#info').modal();
+<? } ?>
     // I cannot make this reliable :(
     $(window).resize(function () { compute_divs(); });
     window.MOBILE = $(window).width() <= 480;
