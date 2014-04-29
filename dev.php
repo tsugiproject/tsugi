@@ -67,34 +67,34 @@ require_once("dev-data.php");
 
 // Merge post data into  data
 foreach ($lmsdata as $k => $val ) {
-	if ( isset($_POST[$k]) ) {
-		$lmsdata[$k] = $_POST[$k];
-	}
+    if ( isset($_POST[$k]) ) {
+        $lmsdata[$k] = $_POST[$k];
+    }
 }
 
 // Switch user data if requested
 if ( isset($_POST['learner1']) ) {
-	foreach ( $learner1 as $k => $val ) {
+    foreach ( $learner1 as $k => $val ) {
           $lmsdata[$k] = $learner1[$k];
-	}
+    }
 }
 
 if ( isset($_POST['learner2']) ) {
-	foreach ( $learner2 as $k => $val ) {
+    foreach ( $learner2 as $k => $val ) {
           $lmsdata[$k] = $learner2[$k];
-	}
+    }
 }
 
 if ( isset($_POST['learner3']) ) {
-	foreach ( $learner3 as $k => $val ) {
+    foreach ( $learner3 as $k => $val ) {
           $lmsdata[$k] = $learner3[$k];
-	}
+    }
 }
 
 if ( isset($_POST['instructor']) ) {
-	foreach ( $instdata as $k => $val ) {
+    foreach ( $instdata as $k => $val ) {
           $lmsdata[$k] = $instdata[$k];
-	}
+    }
 }
 
 // Set up default LTI data
@@ -134,21 +134,21 @@ function lmsdataToggle() {
 function getComboA(sel) {
     var value = sel.options[sel.selectedIndex].value;  
     var ele = document.getElementById("custom_assn");
-	ele.value = value;
+    ele.value = value;
 }
 
 function doSubmit(name) {
-	nei = document.createElement('input');
-	nei.setAttribute('type', 'hidden');
-	nei.setAttribute('name', name);
-	nei.setAttribute('value', '');
-	document.getElementById("actionform").appendChild(nei);
-	nei = document.createElement('input');
-	nei.setAttribute('type', 'hidden');
-	nei.setAttribute('name', 'launch');
-	nei.setAttribute('value', '');
-	document.getElementById("actionform").appendChild(nei);
-	document.getElementById("actionform").submit();
+    nei = document.createElement('input');
+    nei.setAttribute('type', 'hidden');
+    nei.setAttribute('name', name);
+    nei.setAttribute('value', '');
+    document.getElementById("actionform").appendChild(nei);
+    nei = document.createElement('input');
+    nei.setAttribute('type', 'hidden');
+    nei.setAttribute('name', 'launch');
+    nei.setAttribute('value', '');
+    document.getElementById("actionform").appendChild(nei);
+    document.getElementById("actionform").submit();
 }
 
 // From KimKha - http://stackoverflow.com/questions/194846/is-there-any-kind-of-hashcode-function-in-javascript
@@ -164,17 +164,17 @@ String.prototype.hashCode = function(){
 }
 
 function doSubmitTool(name) {
-	nei = document.createElement('input');
-	nei.setAttribute('type', 'hidden');
-	nei.setAttribute('name', 'launch');
-	nei.setAttribute('value', '');
-	document.getElementById("actionform").appendChild(nei);
-	$("input[name='custom_assn']").val(name);
-	$("input[name='resource_link_id']").val(name.hashCode());
+    nei = document.createElement('input');
+    nei.setAttribute('type', 'hidden');
+    nei.setAttribute('name', 'launch');
+    nei.setAttribute('value', '');
+    document.getElementById("actionform").appendChild(nei);
+    $("input[name='custom_assn']").val(name);
+    $("input[name='resource_link_id']").val(name.hashCode());
     pieces = name.split('/');
-	$("input[name='resource_link_title']").val('Activity: '+pieces[1]);
-	$("input[name='lis_result_sourcedid']").val('sdid:'+name.hashCode());
-	document.getElementById("actionform").submit();
+    $("input[name='resource_link_title']").val('Activity: '+pieces[1]);
+    $("input[name='lis_result_sourcedid']").val('sdid:'+name.hashCode());
+    document.getElementById("actionform").submit();
 }
 </script>
 </head>
@@ -200,15 +200,15 @@ function doSubmitTool(name) {
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tools<b class="caret"></b></a>
               <ul class="dropdown-menu">
-				<?php
-				foreach ($tools as $tool ) {
-					echo('<li><a href="#" onclick="doSubmitTool(\''.$tool.'\');return false;">'.$tool.'</a></li>'."\n");
-				}
-				?>
+                <?php
+                foreach ($tools as $tool ) {
+                    echo('<li><a href="#" onclick="doSubmitTool(\''.$tool.'\');return false;">'.$tool.'</a></li>'."\n");
+                }
+                ?>
                 <li class="divider"></li>
                 <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
-				<li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
-				<li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
+                <li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
+                <li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
                 <li><a href="http://www.oauth.net/" target="_blank">OAuth Documentation</a></li>
               </ul>
             </li>
@@ -222,10 +222,10 @@ function doSubmitTool(name) {
                     ?>
                     <b class="caret"></b></a>
               <ul class="dropdown-menu">
-				<li><a href="#" onclick="doSubmit('instructor');return false;">Jane Instructor</a></li>
-				<li><a href="#" onclick="doSubmit('learner1');return false;">Sue Student</a></li>
-				<li><a href="#" onclick="doSubmit('learner2');return false;">Ed Student</a></li>
-				<li><a href="#" onclick="doSubmit('learner3');return false;">Anonymous</a></li>
+                <li><a href="#" onclick="doSubmit('instructor');return false;">Jane Instructor</a></li>
+                <li><a href="#" onclick="doSubmit('learner1');return false;">Sue Student</a></li>
+                <li><a href="#" onclick="doSubmit('learner2');return false;">Ed Student</a></li>
+                <li><a href="#" onclick="doSubmit('learner3');return false;">Anonymous</a></li>
               </ul>
             </li>
           </ul>
@@ -236,7 +236,7 @@ function doSubmitTool(name) {
 <?php
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
-		// isset($_POST['instructor']) || isset($_POST['learner1']) || isset($_POST['learner2']) ) {
+        // isset($_POST['instructor']) || isset($_POST['learner1']) || isset($_POST['learner2']) ) {
     echo("<div id=\"lmsDataForm\" style=\"display:none\">\n");
 } else {
     echo("<div id=\"lmsDataForm\" style=\"display:block\">\n");

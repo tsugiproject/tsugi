@@ -12,7 +12,7 @@ array( "{$CFG->dbprefix}sample_chat",
 "create table {$CFG->dbprefix}sample_chat (
     link_id     INTEGER NOT NULL,
     user_id     INTEGER NOT NULL,
-	chat        VARCHAR(1042) NOT NULL,
+    chat        VARCHAR(1042) NOT NULL,
     created_at  DATETIME NOT NULL,
 
     CONSTRAINT `{$CFG->dbprefix}sample_chat_ibfk_1`

@@ -162,9 +162,9 @@ function getGradeWebService($sourcedid, $service) {
         $retval = parseResponse($response);
         $LastPOXGradeParse = $retval;
         if ( is_array($retval) ) {
-		    if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
+            if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
                 if ( isset($retval['textString'])) $grade = $retval['textString']+0.0;
-		    } else if ( isset($retval['imsx_description']) ) {
+            } else if ( isset($retval['imsx_description']) ) {
                 $LastPOXGradeError = $retval['imsx_description'];
                 error_log("Grade read failure: "+$LastPOXGradeError);
                 return $LastPOXGradeError;
@@ -179,7 +179,7 @@ function getGradeWebService($sourcedid, $service) {
 }
 
 function sendGrade($grade, $verbose=true, $pdo=false, $result=false) {
-	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
+    if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
     $debuglog = array();
@@ -187,9 +187,9 @@ function sendGrade($grade, $verbose=true, $pdo=false, $result=false) {
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
         $retval = sendGradeInternal($grade, null, $debuglog, $pdo, $result);
-	} catch(Exception $e) {
-		$retval = "Grade Exception: ".$e->getMessage();
-		error_log($retval);
+    } catch(Exception $e) {
+        $retval = "Grade Exception: ".$e->getMessage();
+        error_log($retval);
         $debuglog[] = $retval;
     } 
     if ( $verbose ) dumpGradeDebug($debuglog);
@@ -209,17 +209,17 @@ function dumpGradeDebug($debuglog) {
 }
 
 function sendGradeDetail($grade, &$debuglog, $pdo=false, $result=false) {
-	if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
+    if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
     $retval = false;
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
         $retval = sendGradeInternal($grade, $debuglog, $pdo, $result);
-	} catch(Exception $e) {
-		$retval = "Grade Exception: ".$e->getMessage();
+    } catch(Exception $e) {
+        $retval = "Grade Exception: ".$e->getMessage();
         $debuglog[] = $retval;
-		error_log($retval);
+        error_log($retval);
     }
     return $retval;
 }
@@ -228,19 +228,19 @@ function sendGradeInternal($grade, &$debuglog, $pdo,  $result) {
     global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
-	$lti = $_SESSION['lti'];
-	if ( ! ( isset($lti['service']) && isset($lti['sourcedid']) &&
-		isset($lti['key_key']) && isset($lti['secret']) && 
+    $lti = $_SESSION['lti'];
+    if ( ! ( isset($lti['service']) && isset($lti['sourcedid']) &&
+        isset($lti['key_key']) && isset($lti['secret']) && 
         array_key_exists('grade', $lti) ) ) {
-		error_log('Session is missing required data');
+        error_log('Session is missing required data');
         $debug = safeVarDump($lti);
         error_log($debug);
         return "Missing required session data";
     }
 
-	if ( ! ( isset($result['sourcedid']) && isset($result['result_id']) &&
+    if ( ! ( isset($result['sourcedid']) && isset($result['result_id']) &&
         array_key_exists('grade', $result) ) ) {
-		error_log('Result is missing required data');
+        error_log('Result is missing required data');
         $debug = safeVarDump($result);
         error_log($debug);
         return "Missing required result data";
@@ -288,9 +288,9 @@ function sendGradeWebService($grade, $sourcedid, $service, &$debuglog=false) {
     global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
-	$lti = $_SESSION['lti'];
-	if ( !isset($lti['key_key']) || !isset($lti['secret']) ) {
-		error_log('Session is missing required data');
+    $lti = $_SESSION['lti'];
+    if ( !isset($lti['key_key']) || !isset($lti['secret']) ) {
+        error_log('Session is missing required data');
         $debug = safeVarDump($lti);
         error_log($debug);
         return "Missing required session data";

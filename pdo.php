@@ -47,9 +47,9 @@ function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
 // Run a PDO Query with lots of error checking
 function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     $errormode = $pdo->getAttribute(PDO::ATTR_ERRMODE);
-	if ( $errormode != PDO::ERRMODE_EXCEPTION) {
-		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	}
+    if ( $errormode != PDO::ERRMODE_EXCEPTION) {
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    }
     $q = FALSE;
     $success = FALSE;
     $message = '';
@@ -68,7 +68,7 @@ function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
         $message = $e->getMessage();
         if ( $error_log ) error_log($message);
     }
-	if ( ! is_object($q) ) $q = stdClass();
+    if ( ! is_object($q) ) $q = stdClass();
     if ( isset( $q->success ) ) {
         error_log("PDO::Statement should not have success member");
         die("PDO::Statement should not have success member"); // with error_log
@@ -79,14 +79,14 @@ function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
         die("PDO::Statement should not have ellapsed_time member"); // with error_log
     }
     $q->ellapsed_time = microtime(true)-$start;
-	// In case we build this...
+    // In case we build this...
     if ( !isset($q->errorCode) ) $q->errorCode = '42000';
     if ( !isset($q->errorInfo) ) $q->errorInfo = Array('42000', '42000', $message);
     if ( !isset($q->errorImplode) ) $q->errorImplode = implode(':',$q->errorInfo);
     // Restore ERRMODE if we changed it
-	if ( $errormode != PDO::ERRMODE_EXCEPTION) {
-		$pdo->setAttribute(PDO::ATTR_ERRMODE, $errormode);
-	}
+    if ( $errormode != PDO::ERRMODE_EXCEPTION) {
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, $errormode);
+    }
     return $q;
 }
 

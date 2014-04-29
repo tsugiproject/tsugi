@@ -389,9 +389,9 @@ function get_post_sent_debug() {
     global $LastHeadersSent;
 
     $ret = "POST Used: " . $LastPOSTMethod . "\n" . 
-	     $LastPOSTURL . "\n\n" .
-		 $LastHeadersSent . "\n";
-	return $ret;
+         $LastPOSTURL . "\n\n" .
+         $LastHeadersSent . "\n";
+    return $ret;
 }
 
 function get_post_received_debug() {
@@ -401,10 +401,10 @@ function get_post_received_debug() {
     global $LastHeadersReceived;
 
     $ret = "POST Used: " . $LastPOSTMethod . "\n" .
-		 "HTTP Response: " . $last_http_response . "\n" .
-	     $LastPOSTURL . "\n" .
-		 $LastHeadersReceived . "\n";
-	return $ret;
+         "HTTP Response: " . $last_http_response . "\n" .
+         $LastPOSTURL . "\n" .
+         $LastHeadersReceived . "\n";
+    return $ret;
 }
 
 // Sadly this tries several approaches depending on 
@@ -419,7 +419,7 @@ function do_post($url, $body, $header) {
     global $LastHeadersReceived;
     global $LastPostResponse;
 
-	$LastPOSTURL = $url;
+    $LastPOSTURL = $url;
     $LastPOSTMethod = false;
     $LastHeadersSent = false;
     $last_http_response = false;
@@ -722,51 +722,51 @@ function parseResponse($response) {
 // This is setup to be displayed in <pre> tags as newlines are added
 function compare_base_strings($string1, $string2)
 {
-	if ( $string1 == $string2 ) return true;
+    if ( $string1 == $string2 ) return true;
 
-	$out2 = "";
-	$out1 = "";
+    $out2 = "";
+    $out1 = "";
     $chars = 0;
-	$oops = false;
+    $oops = false;
     for($i=0; $i<strlen($string1)&&$i<strlen($string2); $i++) {
-		if ( $oops || $string1[$i] == $string2[$i] ) {
-			$out1 = $out1 . $string1[$i];
-			$out2 = $out2 . $string2[$i];
-		} else { 
-			$out1 = $out1 . ' ->' . $string1[$i] .'<- ';
-			$out2 = $out2 . ' ->' . $string2[$i] .'<- ';
-			$oops = true;
-		}
-		$chars = $chars + 1;
-		if ( $chars > 79 ) {
-			$out1 .= "\n";
-			$out2 .= "\n";
-			$chars = 0;
-		}
-	}
-	if ( $i < strlen($string1) ) {
-		$out2 = $out2 . ' -> truncated ';
-		for($i=0; $i<strlen($string1); $i++) {
-			$out1 = $out1 . $string1[$i];
-			$chars = $chars + 1;
-			if ( $chars > 79 ) {
-				$out1 .= "\n";
-				$chars = 0;
-			}
-		}
-	}
+        if ( $oops || $string1[$i] == $string2[$i] ) {
+            $out1 = $out1 . $string1[$i];
+            $out2 = $out2 . $string2[$i];
+        } else { 
+            $out1 = $out1 . ' ->' . $string1[$i] .'<- ';
+            $out2 = $out2 . ' ->' . $string2[$i] .'<- ';
+            $oops = true;
+        }
+        $chars = $chars + 1;
+        if ( $chars > 79 ) {
+            $out1 .= "\n";
+            $out2 .= "\n";
+            $chars = 0;
+        }
+    }
+    if ( $i < strlen($string1) ) {
+        $out2 = $out2 . ' -> truncated ';
+        for($i=0; $i<strlen($string1); $i++) {
+            $out1 = $out1 . $string1[$i];
+            $chars = $chars + 1;
+            if ( $chars > 79 ) {
+                $out1 .= "\n";
+                $chars = 0;
+            }
+        }
+    }
 
-	if ( $i < strlen($string2) ) {
-		$out1 = $out1 . ' -> truncated ';
-		for($i=0; $i<strlen($string2); $i++) {
-			$out2 = $out2 . $string2[$i];
-			$chars = $chars + 2;
-			if ( $chars > 79 ) {
-				$out2 .= "\n";
-				$chars = 0;
-			}
-		}
-	}
-	return $out1 . "\n-------------\n" . $out2 . "\n";
+    if ( $i < strlen($string2) ) {
+        $out1 = $out1 . ' -> truncated ';
+        for($i=0; $i<strlen($string2); $i++) {
+            $out2 = $out2 . $string2[$i];
+            $chars = $chars + 2;
+            if ( $chars > 79 ) {
+                $out2 .= "\n";
+                $chars = 0;
+            }
+        }
+    }
+    return $out1 . "\n-------------\n" . $out2 . "\n";
 }
 ?>

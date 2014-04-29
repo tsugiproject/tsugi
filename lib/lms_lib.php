@@ -91,20 +91,20 @@ function getFirstName($displayname) {
 }
 
 function welcomeUserCourse($LTI) {
-	echo("<p>Welcome");
-	if ( isset($LTI['user_displayname']) ) {
-		echo(" ");
-		echo(htmlent_utf8($LTI['user_displayname']));
-	}
-	if ( isset($LTI['context_title']) ) {
-		echo(" from ");
-		echo(htmlent_utf8($LTI['context_title']));
-	}
+    echo("<p>Welcome");
+    if ( isset($LTI['user_displayname']) ) {
+        echo(" ");
+        echo(htmlent_utf8($LTI['user_displayname']));
+    }
+    if ( isset($LTI['context_title']) ) {
+        echo(" from ");
+        echo(htmlent_utf8($LTI['context_title']));
+    }
 
-	if ( isInstructor($LTI) ) {
-		echo(" (Instructor)");
-	}
-	echo("</p>\n");
+    if ( isInstructor($LTI) ) {
+        echo(" (Instructor)");
+    }
+    echo("</p>\n");
 }
 
 function doCSS($context=false) {
@@ -196,12 +196,12 @@ function requireData($needed) {
     // This happens from time to time when someone closes and reopens a laptop
     // Or their computer goes to sleep and wakes back up hours later.
     // So it is just a warning - nothing much we can do except tell them.
-	if ( !isset($_SESSION['lti']) ) {
+    if ( !isset($_SESSION['lti']) ) {
         // $debug = safeVarDump($_SESSION);
         // error_log($debug);
         send403(); error_log('Session expired - please re-launch '.session_id()); 
         die('Session expired - please re-launch'); // with error_log
-	}
+    }
 
     // Check the referrer...
     $trusted = checkReferer() || checkCSRF();
@@ -234,16 +234,16 @@ function requireData($needed) {
         }
     }
 
-	$LTI = $_SESSION['lti'];
-	if ( is_string($needed) && ! isset($LTI[$needed]) ) {
-		dieWithErrorLog("This tool requires an LTI launch parameter:".$needed);
-	}
-	if ( is_array($needed) ) {
-		foreach ( $needed as $feature ) {
-			if ( isset($LTI[$feature]) ) continue;
-			dieWithErrorLog("This tool requires an LTI launch parameter:".$feature);
-		}
-	}
+    $LTI = $_SESSION['lti'];
+    if ( is_string($needed) && ! isset($LTI[$needed]) ) {
+        dieWithErrorLog("This tool requires an LTI launch parameter:".$needed);
+    }
+    if ( is_array($needed) ) {
+        foreach ( $needed as $feature ) {
+            if ( isset($LTI[$feature]) ) continue;
+            dieWithErrorLog("This tool requires an LTI launch parameter:".$feature);
+        }
+    }
 
     // Check to see if the session needs to be extended due to this request
     checkHeartBeat();
@@ -255,7 +255,7 @@ function requireData($needed) {
 }
 
 function isInstructor($LTI) {
-	return isset($LTI['role']) && $LTI['role'] != 0 ;
+    return isset($LTI['role']) && $LTI['role'] != 0 ;
 }
 
 // TODO: deal with headers sent...
@@ -279,7 +279,7 @@ function requireAdmin() {
 
 function headerContent($headCSS=false) {
     global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL;
-	global $CFG;
+    global $CFG;
     if ( $HEAD_CONTENT_SENT === true ) return;
     header('Content-Type: text/html; charset=utf-8');
 ?><!DOCTYPE html>
@@ -352,7 +352,7 @@ HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
 <?php
     }
 
-	do_analytics(); 
+    do_analytics(); 
 }
 
 function footerEnd() {
@@ -664,7 +664,7 @@ function findFiles($filename="index.php", $reldir=false) {
 }
 
 function getCustom($varname) {
-	if ( isset($_SESSION['lti_post']) && 
+    if ( isset($_SESSION['lti_post']) && 
             isset($_SESSION['lti_post']['custom_'.$varname]) ) {
         return $_SESSION['lti_post']['custom_'.$varname];
     }
@@ -673,7 +673,7 @@ function getCustom($varname) {
 
 function doneButton() {
     $url = false;
-	if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
+    if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
         $url = $_SESSION['lti_post']['custom_done'];
     } else if ( isset($_GET["done"]) ) {
         $url = $_GET['done'];
@@ -691,7 +691,7 @@ function doneButton() {
 
 function doneBootstrap($text="Done") {
     $url = false;
-	if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
+    if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
         $url = $_SESSION['lti_post']['custom_done'];
     } else if ( isset($_GET["done"]) ) {
         $url = $_GET['done'];
@@ -771,17 +771,17 @@ function safeVarDump($x) {
 }
 
 function line_out($output) {
-	echo(htmlent_utf8($output)."<br/>\n");
+    echo(htmlent_utf8($output)."<br/>\n");
     flush();
 }
 
 function error_out($output) {
-	echo('<span style="color:red"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
+    echo('<span style="color:red"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
     flush();
 }
 
 function success_out($output) {
-	echo('<span style="color:green"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
+    echo('<span style="color:green"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
     flush();
 }
 
@@ -1188,7 +1188,7 @@ function getDueDate() {
 
     date_default_timezone_set('Pacific/Honolulu'); // Lets be generous
     if ( getCustom('timezone') ) {
-	    date_default_timezone_set(getCustom('timezone'));
+        date_default_timezone_set(getCustom('timezone'));
     }
 
     if ( $duedate === false ) return $retval;
@@ -1201,18 +1201,18 @@ function getDueDate() {
     $retval->duedatestr = $duedatestr;
     // Should be a percentage off between 0.0 and 1.0
     if ( $diff > 0 ) {
-	    $penalty_time = getCustom('penalty_time') ? getCustom('penalty_time') + 0 : 24*60*60;
-	    $penalty_cost = getCustom('penalty_cost') ? getCustom('penalty_cost') + 0.0 : 0.2;
-	    $penalty_exact = $diff / $penalty_time;
-	    $penalties = intval($penalty_exact) + 1;
+        $penalty_time = getCustom('penalty_time') ? getCustom('penalty_time') + 0 : 24*60*60;
+        $penalty_cost = getCustom('penalty_cost') ? getCustom('penalty_cost') + 0.0 : 0.2;
+        $penalty_exact = $diff / $penalty_time;
+        $penalties = intval($penalty_exact) + 1;
         $penalty = $penalties * $penalty_cost;
-	    if ( $penalty < 0 ) $penalty = 0;
-	    if ( $penalty > 1 ) $penalty = 1;
-	    $retval->penalty = $penalty;
-	    $retval->dayspastdue = $diff / (24*60*60);
-	    $retval->percent = intval($penalty * 100);
+        if ( $penalty < 0 ) $penalty = 0;
+        if ( $penalty > 1 ) $penalty = 1;
+        $retval->penalty = $penalty;
+        $retval->dayspastdue = $diff / (24*60*60);
+        $retval->percent = intval($penalty * 100);
         $retval ->message = 'It is currently '.sprintf("%10.2f",$retval->dayspastdue)." days\n".
-	    'past the due date ('.htmlentities($duedatestr).') so your late penalty is '.$retval->percent." percent.\n";
+        'past the due date ('.htmlentities($duedatestr).') so your late penalty is '.$retval->percent." percent.\n";
     }
     return $retval;
 }

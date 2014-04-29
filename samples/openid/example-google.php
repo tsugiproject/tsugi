@@ -27,16 +27,16 @@ try {
         $identity = $openid->identity;
         $userAttributes = $openid->getAttributes();
         echo("\n<pre>\nAttributes:\n");
-		print_r($userAttributes);
-		echo("\n</pre>\n");
+        print_r($userAttributes);
+        echo("\n</pre>\n");
         $firstName = isset($userAttributes['namePerson/first']) ? $userAttributes['namePerson/first'] : false;
         $lastName = isset($userAttributes['namePerson/last']) ? $userAttributes['namePerson/last'] : false;
         $userEmail = isset($userAttributes['contact/email']) ? $userAttributes['contact/email'] : false;
         echo("\n<pre>\nAttributes:\n");
-		echo("First:"+htmlspec_utf8($firstName)."\n");
-		echo("\n</pre>\n");
-		echo)
-		// Off we go...
+        echo("First:"+htmlspec_utf8($firstName)."\n");
+        echo("\n</pre>\n");
+        echo)
+        // Off we go...
     }
 } catch(ErrorException $e) {
     echo $e->getMessage();

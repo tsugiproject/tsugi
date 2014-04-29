@@ -14,9 +14,9 @@ $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 $p = $CFG->dbprefix;
 
 if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 1) {
-	$_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
-	header( 'Location: '.sessionize('index.php') ) ;
-	return;
+    $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
+    header( 'Location: '.sessionize('index.php') ) ;
+    return;
 }
 
 if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
@@ -29,15 +29,15 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
    $newname = $foldername.'/'.$filename;
    if ((move_uploaded_file($_FILES['uploaded_file']['tmp_name'],$newname)))
    {
-		$_SESSION['success'] = 'File uploaded';
-		header( 'Location: '.sessionize('index.php') ) ;
+        $_SESSION['success'] = 'File uploaded';
+        header( 'Location: '.sessionize('index.php') ) ;
    }
    else
-	{
-		$_SESSION['err'] = 'File upload failed';
-		header( 'Location: '.sessionize('index.php') ) ;
-	}
-	return;
+    {
+        $_SESSION['err'] = 'File upload failed';
+        header( 'Location: '.sessionize('index.php') ) ;
+    }
+    return;
 }
 
 // Sometimes, if the MAX_UPLOAD_SIZE is exceeded, it deletes all of $_POST
@@ -63,14 +63,14 @@ if ( !file_exists($foldername) ) mkdir ($foldername);
 $finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
 $count = 0;
 foreach (glob($foldername."/*") as $filename) {
-	$fn = substr($filename,strlen($foldername)+1);
-	echo '<li><a href="files_serve.php?file='.$fn.'" target="_new">'.$fn.'</a>';
-	if ( isInstructor($LTI) ) {
-		echo ' (<a href="files_delete.php?file='.$fn.'">Delete</a>)';
-	}
-	echo '</li>';
-	$count = $count + 1;
-	debugLog($filename . " " . finfo_file($finfo, $filename));
+    $fn = substr($filename,strlen($foldername)+1);
+    echo '<li><a href="files_serve.php?file='.$fn.'" target="_new">'.$fn.'</a>';
+    if ( isInstructor($LTI) ) {
+        echo ' (<a href="files_delete.php?file='.$fn.'">Delete</a>)';
+    }
+    echo '</li>';
+    $count = $count + 1;
+    debugLog($filename . " " . finfo_file($finfo, $filename));
 }
 if ( $count == 0 ) echo "<p>No Files Found</p>\n";
 

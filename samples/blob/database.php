@@ -11,10 +11,10 @@ array( "{$CFG->dbprefix}sample_blob",
     file_sha256  CHAR(64) NOT NULL, 
 
     context_id   INTEGER NULL,
-	file_name    VARCHAR(2048),
+    file_name    VARCHAR(2048),
     deleted      TINYINT(1),
     content      LONGBLOB NULL,
-	contenttype  VARCHAR(256) NULL,
+    contenttype  VARCHAR(256) NULL,
     path         VARCHAR(2048) NULL,
 
     json         TEXT NULL,

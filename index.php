@@ -41,8 +41,8 @@ require_once("sanity-db.php");
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
-				<li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
-				<li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
+                <li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
+                <li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
                 <li><a href="http://www.oauth.net/" target="_blank">OAuth Documentation</a></li>
               </ul>
             </li>
@@ -53,8 +53,8 @@ require_once("sanity-db.php");
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo($_SESSION['displayname']);?><b class="caret"></b></a>
               <ul class="dropdown-menu">
-				<li><a href="profile.php">Profile</a></li>
-				<li><a href="logout.php">Logout</a></li>
+                <li><a href="profile.php">Profile</a></li>
+                <li><a href="logout.php">Logout</a></li>
               </ul>
             </li>
             <?php } else { ?>

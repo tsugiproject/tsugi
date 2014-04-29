@@ -536,13 +536,13 @@ footerStart();
 <script type="text/javascript">
 // $(document).ready(function() { doc_ready(); } );
 function compute_divs() {
-	$doc = $(window).height();
-	$ot = $('#overall').offset().top;
-	$ft = $('#forminput').offset().top;
+    $doc = $(window).height();
+    $ot = $('#overall').offset().top;
+    $ft = $('#forminput').offset().top;
     window.console && console.log('doc='+$doc+' ft='+$ft+' overall='+$ot);
-	$avail = $doc - ($ot - 30);
-	if ( $avail < 400 ) $avail = 400;
-	if ( $avail > 700 ) $avail = 700;
+    $avail = $doc - ($ot - 30);
+    if ( $avail < 400 ) $avail = 400;
+    if ( $avail > 700 ) $avail = 700;
     $favail = $avail - $ft + $ot;
 
     $('#overall').width('95%').height($avail);

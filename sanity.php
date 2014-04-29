@@ -2,7 +2,7 @@
 
 if ( ! isset($CFG) ) { 
     dieWithErrorLog('This software is not correctly configured, please copy config-dist.php to 
-	config.php and edit config.php according to the installation instructions.');
+    config.php and edit config.php according to the installation instructions.');
 }
 
 if (!defined('PHP_VERSION_ID')) {

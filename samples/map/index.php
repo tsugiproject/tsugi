@@ -16,25 +16,25 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
         header( 'Location: '.sessionize('index.php') ) ;
         return;
     }
-	$sql = "INSERT INTO {$p}sample_map 
-		(context_id, user_id, lat, lng, updated_at) 
-		VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 
-		ON DUPLICATE KEY 
-		UPDATE lat = :LAT, lng = :LNG, updated_at = NOW()";
-	$stmt = $pdo->prepare($sql);
-	$stmt->execute(array(
-		':CID' => $LTI['context_id'],
-		':UID' => $LTI['user_id'],
-		':LAT' => $_POST['lat'],
-		':LNG' => $_POST['lng']));
+    $sql = "INSERT INTO {$p}sample_map 
+        (context_id, user_id, lat, lng, updated_at) 
+        VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 
+        ON DUPLICATE KEY 
+        UPDATE lat = :LAT, lng = :LNG, updated_at = NOW()";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(array(
+        ':CID' => $LTI['context_id'],
+        ':UID' => $LTI['user_id'],
+        ':LAT' => $_POST['lat'],
+        ':LNG' => $_POST['lng']));
     $_SESSION['success'] = 'Location updated...';
-	header( 'Location: '.sessionize('index.php') ) ;
-	return;
+    header( 'Location: '.sessionize('index.php') ) ;
+    return;
 }
 
 // Retrieve our row
 $stmt = $pdo->prepare("SELECT lat,lng FROM {$p}sample_map 
-		WHERE context_id = :CID AND user_id = :UID");
+        WHERE context_id = :CID AND user_id = :UID");
 $stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 // The default for latitude and longitude
@@ -47,15 +47,15 @@ if ( $row !== false ) {
 
 //Retrieve the other rows
 $stmt = $pdo->prepare("SELECT lat,lng,displayname FROM {$p}sample_map 
-		JOIN {$p}lti_user
-		ON {$p}sample_map.user_id = {$p}lti_user.user_id
-		WHERE context_id = :CID AND {$p}sample_map.user_id <> :UID");
+        JOIN {$p}lti_user
+        ON {$p}sample_map.user_id = {$p}lti_user.user_id
+        WHERE context_id = :CID AND {$p}sample_map.user_id <> :UID");
 $stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
 $points = array();
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     if ( abs($row['lat']) > 90 ) $row['lat'] = 89;
     if ( abs($row['lng']) > 180 ) $row['lng'] = 179;
-	$points[] = array($row['lat']+0.0,$row['lng']+0.0);
+    $points[] = array($row['lat']+0.0,$row['lng']+0.0);
 }
 
 ?>
@@ -87,10 +87,10 @@ function initialize_map() {
   });
 
   google.maps.event.addListener(marker, 'dragend', function (event) {
-	// getPosition returns a google.maps.LatLng class for
-	// for the dropped marker
-	window.console && console.log(this.getPosition());
-	// TODO: Fix these next two lines - search the web for a solution
+    // getPosition returns a google.maps.LatLng class for
+    // for the dropped marker
+    window.console && console.log(this.getPosition());
+    // TODO: Fix these next two lines - search the web for a solution
     document.getElementById("latbox").value = 71.0;
     document.getElementById("lngbox").value = -41.0;
   });
@@ -98,11 +98,11 @@ function initialize_map() {
   // Add the other points
   window.console && console.log("Loading "+other_points.length+" points");
   for ( var i = 0; i < other_points.length; i++ ) {
-	var row = other_points[i];
-	// if ( i < 3 ) { alert(row); }
-	var newLatlng = new google.maps.LatLng(row[0], row[1]);
-	var iconpath = '<?php echo($CFG->staticroot); ?>/static/img/icons/';
-	var icon = 'green.png';
+    var row = other_points[i];
+    // if ( i < 3 ) { alert(row); }
+    var newLatlng = new google.maps.LatLng(row[0], row[1]);
+    var iconpath = '<?php echo($CFG->staticroot); ?>/static/img/icons/';
+    var icon = 'green.png';
     var marker = new google.maps.Marker({
       position: newLatlng,
       map: map,

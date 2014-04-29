@@ -17,7 +17,7 @@ if ( strlen($id) < 1 ) {
 
 $p = $CFG->dbprefix;
 $stmt = $pdo->prepare("SELECT contenttype, content FROM {$p}sample_blob 
-			WHERE file_id = :ID AND context_id = :CID");
+            WHERE file_id = :ID AND context_id = :CID");
 $stmt->execute(array(":ID" => $id, ":CID" => $LTI['context_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 

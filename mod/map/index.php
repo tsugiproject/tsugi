@@ -12,16 +12,16 @@ $p = $CFG->dbprefix;
 $stmt = $pdo->prepare("SELECT lat,lng,{$p}context_map.email AS allow_email, name AS allow_name,
             {$p}context_map.first AS allow_first, displayname, {$p}lti_user.email AS email 
         FROM {$p}context_map 
-		JOIN {$p}lti_user
-		ON {$p}context_map.user_id = {$p}lti_user.user_id
-		WHERE context_id = :CID AND {$p}context_map.user_id <> :UID");
+        JOIN {$p}lti_user
+        ON {$p}context_map.user_id = {$p}lti_user.user_id
+        WHERE context_id = :CID AND {$p}context_map.user_id <> :UID");
 $stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
 $points = array();
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     if ( !isset($row['lat']) ) continue;
     if ( !isset($row['lng']) ) continue;
-	$lat = $row['lat']+0;
-	$lng = $row['lng']+0;
+    $lat = $row['lat']+0;
+    $lng = $row['lng']+0;
     if ( $lat == 0 && $lng == 0 ) continue;
     if ( abs($lat) > 85 ) $lat = 0;
     if ( abs($lng) > 180 ) $lng = 179.9;
@@ -43,12 +43,12 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         }
     }
 
-	$points[] = array($lat, $lng, $display, $info);
+    $points[] = array($lat, $lng, $display, $info);
 }
 ;
 // Retrieve our row
 $stmt = $pdo->prepare("SELECT lat,lng,name,first,email FROM {$p}context_map 
-		WHERE context_id = :CID AND user_id = :UID");
+        WHERE context_id = :CID AND user_id = :UID");
 $stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 // The default for latitude and longitude
@@ -90,7 +90,7 @@ function initialize_map() {
   });
 
   google.maps.event.addListener(marker, 'dragend', function (event) {
-	window.console && console.log(this.getPosition());
+    window.console && console.log(this.getPosition());
     $.post( '<?php echo(sessionize('update.php')); ?>', 
       { 'lat': this.getPosition().lat(), 'lng' : this.getPosition().lng() },
       function( data ) {
@@ -110,12 +110,12 @@ function initialize_map() {
   // Add the other points
   window.console && console.log("Loading "+other_points.length+" points");
   for ( var i = 0; i < other_points.length; i++ ) {
-	var row = other_points[i];
-	// if ( i < 3 ) { alert(row); }
-	var newLatlng = new google.maps.LatLng(row[0], row[1]);
-	var iconpath = '<?php echo($CFG->staticroot); ?>/static/img/icons/';
+    var row = other_points[i];
+    // if ( i < 3 ) { alert(row); }
+    var newLatlng = new google.maps.LatLng(row[0], row[1]);
+    var iconpath = '<?php echo($CFG->staticroot); ?>/static/img/icons/';
     console.log(row);
-	var icon = row[3] ? 'green-dot.png' : 'green.png';
+    var icon = row[3] ? 'green-dot.png' : 'green.png';
     var marker = new google.maps.Marker({
       position: newLatlng,
       map: map,

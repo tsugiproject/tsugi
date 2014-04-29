@@ -32,76 +32,76 @@ $(document).ready(function(){
 });
 
 function play(strategy) {
-	$("#success").html("");
-	$("#error").html("");
-	$("#statustext").html("Playing...");
-	$("#rpsform input").attr("disabled", true);
-	$("#status").show();
-	window.console && console.log('Played '+strategy);
-	$.getJSON('<?php echo(sessionize('play.php')); ?>&play='+strategy, function(data) {
-		window.console && console.log(data);
-		if ( data.guid ) {
-			$("#statustext").html("Waiting for opponent...");
-			check(data.guid); // Start the checking process
-		} else {
-			$("#status").hide();
-			if ( data.tie ) {
-				$("#success").html("You tied "+data.displayname);
-			} else if ( data.win ) {
-				$("#success").html("You beat "+data.displayname);
-			} else { 
-				$("#success").html("You lost to "+data.displayname);
-			}
-			$("#rpsform input").attr("disabled", false);
-			leaders();  // Immediately update the leaderboard
-		}
+    $("#success").html("");
+    $("#error").html("");
+    $("#statustext").html("Playing...");
+    $("#rpsform input").attr("disabled", true);
+    $("#status").show();
+    window.console && console.log('Played '+strategy);
+    $.getJSON('<?php echo(sessionize('play.php')); ?>&play='+strategy, function(data) {
+        window.console && console.log(data);
+        if ( data.guid ) {
+            $("#statustext").html("Waiting for opponent...");
+            check(data.guid); // Start the checking process
+        } else {
+            $("#status").hide();
+            if ( data.tie ) {
+                $("#success").html("You tied "+data.displayname);
+            } else if ( data.win ) {
+                $("#success").html("You beat "+data.displayname);
+            } else { 
+                $("#success").html("You lost to "+data.displayname);
+            }
+            $("#rpsform input").attr("disabled", false);
+            leaders();  // Immediately update the leaderboard
+        }
   });
   return false;
 }
 
 var GLOBAL_GUID;
 function check(guid) {
-	GLOBAL_GUID = guid;
-	window.console && console.log('Checking game '+guid);
-	$.getJSON('<?php echo(sessionize('play.php')); ?>&game='+guid, function(data) {
-		window.console && console.log(data);
-		window.console && console.log(GLOBAL_GUID);
-		if ( ! data.displayname ) {
-			window.console && console.log("Need to wait some more...");
-			setTimeout('check("'+GLOBAL_GUID+'")', 4000);
-			return;
-		}
-		$("#status").hide();
-		if ( data.tie ) {
-			$("#success").html("You tied "+data.displayname);
-		} else if ( data.win ) {
-			$("#success").html("You beat "+data.displayname);
-		} else { 
-			$("#success").html("You lost to "+data.displayname);
-		}
-		$("#rpsform input").attr("disabled", false);
-		leaders();  // Immediately update the leaderboard
+    GLOBAL_GUID = guid;
+    window.console && console.log('Checking game '+guid);
+    $.getJSON('<?php echo(sessionize('play.php')); ?>&game='+guid, function(data) {
+        window.console && console.log(data);
+        window.console && console.log(GLOBAL_GUID);
+        if ( ! data.displayname ) {
+            window.console && console.log("Need to wait some more...");
+            setTimeout('check("'+GLOBAL_GUID+'")', 4000);
+            return;
+        }
+        $("#status").hide();
+        if ( data.tie ) {
+            $("#success").html("You tied "+data.displayname);
+        } else if ( data.win ) {
+            $("#success").html("You beat "+data.displayname);
+        } else { 
+            $("#success").html("You lost to "+data.displayname);
+        }
+        $("#rpsform input").attr("disabled", false);
+        leaders();  // Immediately update the leaderboard
   });
 }
 
 var OLD_TIMEOUT = false;
 function leaders() {
-	if ( OLD_TIMEOUT ) {
-		clearTimeout(OLD_TIMEOUT);
-		OLD_TIMEOUT = false;
-	}
-	window.console && console.log('Updating leaders...');
-	$.getJSON('<?php echo(sessionize('stats.php')); ?>', function(data) {
-		window.console && console.log(data);
-		$("#leaders").html("");
-		$("#leaders").append("<ol>\n");
-		for (var i = 0; i < data.length; i++) {
-			entry = data[i];
-			$("#leaders").append("<li>"+entry.name+' ('+entry.games+') score='+entry.score+"</li>\n");
-			console.log(data[i]);
-		}
-		$("#leaders").append("</ol>\n");
-		OLD_TIMEOUT = setTimeout('leaders()', 20000);
+    if ( OLD_TIMEOUT ) {
+        clearTimeout(OLD_TIMEOUT);
+        OLD_TIMEOUT = false;
+    }
+    window.console && console.log('Updating leaders...');
+    $.getJSON('<?php echo(sessionize('stats.php')); ?>', function(data) {
+        window.console && console.log(data);
+        $("#leaders").html("");
+        $("#leaders").append("<ol>\n");
+        for (var i = 0; i < data.length; i++) {
+            entry = data[i];
+            $("#leaders").append("<li>"+entry.name+' ('+entry.games+') score='+entry.score+"</li>\n");
+            console.log(data[i]);
+        }
+        $("#leaders").append("</ol>\n");
+        OLD_TIMEOUT = setTimeout('leaders()', 20000);
   });
 }
 

@@ -36,7 +36,7 @@ $CFG->dbversion = 2014042200;
 
 // Check if we have been asked to do cookie or cookieless sessions
 if ( defined('COOKIE_SESSION') ) {
-	// Do nothing - let the session be in a cookie
+    // Do nothing - let the session be in a cookie
 } else {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);
@@ -50,9 +50,9 @@ if ( strpos($CFG->dbprefix, ' ') !== false ) dieWithErrorLog('$CFG->dbprefix can
 
 // Set this to the temporary folder if not set - dev only
 if ( ! isset($CFG->dataroot) ) {
-	$tmp = sys_get_temp_dir();
+    $tmp = sys_get_temp_dir();
     if (strlen($tmp) > 1 && substr($tmp, -1) == '/') $tmp = substr($tmp,0,-1);
-	$CFG->dataroot = $tmp;
+    $CFG->dataroot = $tmp;
 }
 
 error_reporting(E_ALL & ~E_NOTICE);
