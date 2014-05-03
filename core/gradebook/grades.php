@@ -4,8 +4,6 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "lib.php";
 
-session_start();
-
 // Sanity checks
 $LTI = requireData(array('user_id', 'link_id', 'role','context_id', "result_id"));
 $instructor = isInstructor($LTI);

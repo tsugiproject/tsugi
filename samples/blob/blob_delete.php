@@ -4,8 +4,6 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "blob_util.php";
 
-session_start();
-
 // Sanity checks
 $LTI = requireData(array('context_id', 'link_id'));
 

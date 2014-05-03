@@ -4,8 +4,6 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
-session_start();
-
 // Retrieve the launch data if present
 $LTI = requireData(array('user_id', 'result_id', 'role','context_id'));
 $p = $CFG->dbprefix;

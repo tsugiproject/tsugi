@@ -3,13 +3,12 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
-session_start();
-header_json();
-
 // Retrieve the launch data if present
 $LTI = requireData(array('user_id', 'result_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 $displayname = $LTI['user_displayname'];
+
+header_json();
 
 // Cleanup old chats
 $stmt = $pdo->prepare("DELETE FROM {$p}sample_chat 

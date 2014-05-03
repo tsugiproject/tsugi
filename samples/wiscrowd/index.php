@@ -3,8 +3,6 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
-session_start();
-
 // Retrieve required launch data from session
 $LTI = requireData(array('user_id', 'user_displayname', 
     'context_title', 'role','link_id'));
