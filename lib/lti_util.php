@@ -683,6 +683,7 @@ function replaceResultRequest($grade, $sourcedid, $endpoint, $oauth_consumer_key
         array($sourcedid, $grade, $operation, uniqid()),
         getPOXGradeRequest());
 
+    // error_log("OAC="+ $oauth_consumer_key + " OAS=".$oauth_consumer_secret);
     $response = sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $postBody);
     return parseResponse($response);
 }
@@ -693,12 +694,16 @@ function parseResponse($response) {
         $xml = new SimpleXMLElement($response);
         $imsx_header = $xml->imsx_POXHeader->children();
         $parms = $imsx_header->children();
+        if ( ! $parms ) throw new Exception('Unable to find imsx_POXHeader->children()');
         $status_info = $parms->imsx_statusInfo;
+        if ( ! $status_info ) throw new Exception('Unable to find imsx_POXHeader->imsx_statusInfo');
         $retval['imsx_codeMajor'] = (string) $status_info->imsx_codeMajor;
         $retval['imsx_severity'] = (string) $status_info->imsx_severity;
         $retval['imsx_description'] = (string) $status_info->imsx_description;
         $retval['imsx_messageIdentifier'] = (string) $parms->imsx_messageIdentifier;
-        $imsx_body = $xml->imsx_POXBody->children();
+        $imsx_body = $xml->imsx_POXBody;
+        if ( ! $imsx_body ) throw new Exception('Unable to find imsx_POXBody->children()');
+        $imsx_body = $imsx_body->children();  // Go down one more to get the operation
         $operation = $imsx_body->getName();
         $retval['response'] = $operation;
         $parms = $imsx_body->children();
@@ -708,8 +713,12 @@ function parseResponse($response) {
 
     if ( $operation == 'readResultResponse' ) {
        try {
-           $retval['language'] =(string) $parms->result->resultScore->language;
-           $retval['textString'] = (string) $parms->result->resultScore->textString;
+           $result = $parms->result;
+           if ( ! $result ) throw new Exception('Unable to find imsx_POXBody->result');
+           $resultScore = $result->resultScore;
+           if ( ! $resultScore ) throw new Exception('Unable to find result->resultScore');
+           $retval['language'] =(string) $resultScore->language;
+           $retval['textString'] = (string) $resultScore->textString;
        } catch (Exception $e) {
             throw new Exception("Error: Body parse error: ".$e->getMessage());
        }
