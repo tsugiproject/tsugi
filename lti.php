@@ -1,6 +1,7 @@
 <?php 
 require_once 'config.php';
 require_once 'pdo.php';
+require_once 'lib/lms_lib.php';
 require_once 'lib/lti_db.php';
 
 // Pull LTI data out of the incoming $_POST and map into the same
@@ -66,6 +67,9 @@ $_SESSION['lti_post'] = $_POST;
 if ( isset($_SERVER['HTTP_USER_AGENT']) ) $_SESSION['HTTP_USER_AGENT'] = $_SERVER['HTTP_USER_AGENT'];
 if ( isset($_SERVER['REMOTE_ADDR']) ) $_SESSION['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
 $_SESSION['CSRF_TOKEN'] = uniqid();
+
+// Check if we can auto-login the system user
+if ( getCustom('dologin', false) && $pdo !== false ) login_secure_cookie($pdo);
 
 // See if we have a custom assignment setting.
 if ( ! isset($_POST['custom_assn'] ) ) {

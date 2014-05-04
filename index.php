@@ -4,9 +4,17 @@ define('COOKIE_SESSION', true);
 include_once("config.php");
 require_once("sanity.php");
 require_once("lib/lti_util.php");
+try {
+    define('PDO_WILL_CATCH', true);
+    require_once("pdo.php");
+} catch(PDOException $ex){
+    $pdo = false;  // sanity-db-well re-check this below
+}
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
+
+if ( $pdo !== false ) login_secure_cookie($pdo);
 
 headerContent();
 ?>

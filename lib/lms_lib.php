@@ -663,12 +663,12 @@ function findFiles($filename="index.php", $reldir=false) {
     return $files;
 }
 
-function getCustom($varname) {
+function getCustom($varname, $default=false) {
     if ( isset($_SESSION['lti_post']) && 
             isset($_SESSION['lti_post']['custom_'.$varname]) ) {
         return $_SESSION['lti_post']['custom_'.$varname];
     }
-    return false;
+    return $default;
 }
 
 function doneButton() {
@@ -927,6 +927,73 @@ function test_secure_cookie() {
 }
 
 // test_secure_cookie();
+
+// We have a user - set their secure cookie
+function set_secure_cookie($user_id, $userSHA) {
+    global $CFG;
+    $ct = create_secure_cookie($user_id,$userSHA);
+    setcookie($CFG->cookiename,$ct,time() + (86400 * 45)); // 86400 = 1 day
+}
+
+// Check the secure cookie and set login information appropriately
+function login_secure_cookie ($pdo) {
+    global $CFG;
+    $pieces = false;
+    $id = false;
+
+    // Only do this if we are not already logged in...
+    if ( isset($_SESSION["id"]) || !isset($_COOKIE[$CFG->cookiename]) ||
+            !isset($CFG->cookiepad) || $CFG->cookiepad === false) {
+        return;
+    }
+    
+    $ct = $_COOKIE[$CFG->cookiename];
+    // error_log("Cookie: $ct \n");
+    $pieces = extract_secure_cookie($ct);
+    if ( $pieces === false ) {
+        error_log('Decrypt fail:'.$ct);
+        delete_secure_cookie();
+        return;
+    }
+
+    // Convert to an integer and check valid
+    $user_id = $pieces[0] + 0;
+    $userSHA = $pieces[1];
+    if ( $user_id < 1 ) {
+        $user_id = false;
+        $pieces = false;
+        error_log('Decrypt bad ID:'.$pieces[0].','.$ct);
+        delete_secure_cookie();
+        return;
+    }
+    
+    $row = pdoRowDie($pdo,
+        "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
+            P.email as email, U.user_id as user_id
+            FROM {$CFG->dbprefix}profile AS P
+            LEFT JOIN {$CFG->dbprefix}lti_user AS U
+            ON P.profile_id = U.profile_id AND user_sha256 = profile_sha256 AND
+                P.key_id = U.key_id 
+            WHERE profile_sha256 = :SHA AND U.user_id = :UID LIMIT 1",
+        array('SHA' => $userSHA, ":UID" => $user_id)
+    );
+
+    if ( $row === false ) {
+        error_log("Unable to load user_id=$user_id SHA=$userSHA");
+        delete_secure_cookie();
+        return;
+    }
+
+    $_SESSION["id"] = $row['user_id'];
+    $_SESSION["email"] = $row['email'];
+    $_SESSION["displayname"] = $row['displayname'];
+    $_SESSION["profile_id"] = $row['profile_id'];
+
+    error_log('Autologin:'.$row['user_id'].','.$row['displayname'].','.
+        $row['email'].','.$row['profile_id']);
+
+}
+
 
 function do_form($values, $override=Array()) {
     foreach (array_merge($values,$override) as $key => $value) {

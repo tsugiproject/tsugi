@@ -189,10 +189,9 @@ if ( $doLogin ) {
         $_SESSION["email"] = $userEmail;
         $_SESSION["displayname"] = $displayName;
         $_SESSION["profile_id"] = $profile_id;
+
         // Set the secure cookie
-        $guid = MD5($identity);
-        $ct = create_secure_cookie($user_id,$guid);
-        setcookie($CFG->cookiename,$ct,time() + (86400 * 45)); // 86400 = 1 day
+        set_secure_cookie($user_id,$userSHA);
 
         if ( $didinsert ) {
             header('Location: profile.php');
