@@ -90,6 +90,8 @@ $breadcrumb .= ',';
 $breadcrumb .= $session_id;
 $breadcrumb .= ',';
 $breadcrumb .= $url;
+$breadcrumb .= ',';
+$breadcrumb .= isset($_SESSION['email']) ? $_SESSION['email'] : '';
 error_log($breadcrumb);
 
 
