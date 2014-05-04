@@ -98,7 +98,7 @@ if ( isset($_POST['instructor']) ) {
 }
 
 // Set up default LTI data
-if ( ! $secret ) $secret = "secret";
+$secret = isset($_REQUEST["secret"]) ? trim($_REQUEST["secret"]) : "secret";
 $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
 $b64 = base64_encode($key.":::".$secret.':::');
 if ( ! $endpoint ) $endpoint = str_replace("dev.php","lti.php",$cur_url);

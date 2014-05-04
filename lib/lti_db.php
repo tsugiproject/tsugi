@@ -327,7 +327,7 @@ function verifyKeyAndSecret($key, $secret) {
         $server->verify_request($request);
         return true;
     } catch (Exception $e) {
-        return array($e->getMessage(), $basestring);;
+        return array($e->getMessage(), $basestring);
     }
 }
 

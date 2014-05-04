@@ -32,6 +32,15 @@ $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
 // $row = loadAllData($pdo, $CFG->dbprefix, false, $post);
 $row = loadAllData($pdo, $CFG->dbprefix, $CFG->dbprefix."profile", $post);
 
+$delta = 0;
+if ( isset($_POST['oauth_timestamp']) ) {
+    $server_time = $_POST['oauth_timestamp']+0;
+    $delta = abs(time() -  $server_time);
+    if ( $delta > 480 ) { // More than four minutes is getting close
+        error_log("Warning: Time skew, delta=".$delta." sever_time=".$server_time." our_time=".time());
+    }
+}
+
 // Use returned data to check the OAuth signature on the
 // incoming data
 $valid = verifyKeyAndSecret($post['key'],$row['secret']);
@@ -39,7 +48,7 @@ if ( $valid !== true ) {
     print "<pre>\n";
     print_r($valid);
     print "</pre>\n";
-    dieWithErrorLog("Key / Secret fail key=".$post['key']);
+    dieWithErrorLog("OAuth validation fail key=".$post['key']." delta=".$delta." error=".$valid[0]);
 }
 
 $actions = adjustData($pdo, $CFG->dbprefix, $row, $post);
