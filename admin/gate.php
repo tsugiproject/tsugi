@@ -39,9 +39,10 @@ if ( count($_POST) > 0 ) {
 if ( ! isset($_SESSION['admin']) ) {
   headerContent();
   startBody();
+  topNav();
 ?>
 <form method="post">
-<label for="passphrase"><br/>
+<label for="passphrase">Admin Unlock:<br/>
 <input type="password" name="passphrase" size="80">
 </label>
 <input type="submit">
