@@ -19,6 +19,10 @@ array( "{$CFG->dbprefix}lti_key",
 
     secret              VARCHAR(4096) NULL,
 
+    -- This is the owner of this key - it is not a foreign key
+    -- on purpose to avoid potential circular foreign keys
+    user_id             INTEGER NULL, 
+
     json                TEXT NULL,
     created_at          DATETIME NOT NULL,
     updated_at          DATETIME NOT NULL,
@@ -272,6 +276,14 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $q = pdoQueryDie($pdo, $sql);
     }
 
-    return 2014042100;
+    // Version 2014050500 improvements
+    if ( $oldversion < 2014050500 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD user_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+    }
+
+    return 2014050500;
 }; // Don't forget the semicolon on anonymous functions :)
 

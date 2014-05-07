@@ -268,6 +268,10 @@ function requireLogin() {
     }
 }
 
+function is_admin() {
+    return isset( $_SESSION['admin']) && $_SESSION['admin'] == 'yes';
+}
+
 function requireAdmin() {
     global $CFG;
     if ( $_SESSION['admin'] != 'yes' ) {
@@ -407,6 +411,22 @@ function getLocalStatic($file) {
     return $CFG->staticroot . "/" . $path;
 }
 
+function get_current_file($file) {
+    global $CFG;
+    $root = $CFG->dirroot;
+    $path = realpath($file);
+    if ( strlen($path) < strlen($root) ) return false;
+    // The root must be the prefix of path
+    if ( strpos($path, $root) !== 0 ) return false;
+    $retval = substr($path, strlen($root));
+    return $retval;
+}
+
+function get_current_file_url($file) {
+    global $CFG;
+    return $CFG->wwwroot.get_current_file($file);
+}
+
 function getPwd($file) {
     global $CFG;
     $root = $CFG->dirroot;
@@ -417,6 +437,12 @@ function getPwd($file) {
     if ( strpos($path, $root) !== 0 ) return false;
     $retval = substr($path, strlen($root));
     return $retval;
+}
+
+function getPwdFull($file) {
+    global $CFG;
+    $path = getPwd($file);
+    return $CFG->wwwroot . "/" . $path;
 }
 
 function addSession($location) {
@@ -1081,7 +1107,11 @@ function pagedPDOQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=
     // Fix up the SQL Query
     $newsql = $sql;
     if ( strlen($searchtext) > 0 ) {
-        $newsql = str_replace("WHERE", "WHERE ( ".$searchtext." ) AND ", $newsql);
+        if ( strpos("WHERE", $searchtext ) !== false ) {
+            $newsql = str_replace("WHERE", "WHERE ( ".$searchtext." ) AND ", $newsql);
+        } else {
+            $newsql .= "\nWHERE ( ".$searchtext." ) ";
+        }
     }
     if ( strlen($ordertext) > 0 ) {
         $newsql .= "\nORDER BY ".$ordertext." ";
@@ -1090,6 +1120,10 @@ function pagedPDOQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=
         $newsql .= "\nLIMIT ".$limittext." ";
     }
     return $newsql . "\n";
+}
+
+function field_to_title($name) {
+    return ucwords(str_replace('_',' ',$name));
 }
 
 function pagedPDOTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false) {
@@ -1172,7 +1206,7 @@ onclick="document.getElementById('paged_search_box').value = '';"
                 }
 
                 if ( ! matchColumns($k, $orderfields ) ) {
-                    echo("<th>".ucwords(str_replace('_',' ',$k))."</th>\n");
+                    echo("<th>".field_to_title($k)."</th>\n");
                     continue;
                 }
 
@@ -1324,5 +1358,294 @@ function mailSend($to, $subject, $message, $id, $token) {
     return mail($to,$subject,$msg,$headers);
 }
 
+function topNav() {
+    global $CFG;
+    $R = $CFG->wwwroot . '/';
+?>
+    <div class="container">
+      <!-- Static navbar -->
+      <div class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.php">TSUGI</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <?php if ( $CFG->DEVELOPER ) { ?>
+            <li><a href="<?php echo($R); ?>dev.php">Developer</a></li>
+            <?php } ?>
+            <?php if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) { ?>
+            <li><a href="<?php echo($R); ?>admin/index.php">Admin</a></li>
+            <?php } ?>
+
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
+                <li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
+                <li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
+                <li><a href="http://www.oauth.net/" target="_blank">OAuth Documentation</a></li>
+              </ul>
+            </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="<?php echo($R); ?>about.php">About</a></li>
+            <?php if ( isset($_SESSION['id']) ) { ?>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo($_SESSION['displayname']);?><b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="<?php echo($R); ?>profile.php">Profile</a></li>
+                <?php if ( $CFG->providekeys && $CFG->owneremail ) { ?>
+                <li><a href="<?php echo($R); ?>core/key/index.php">Use this service</a></li>
+                <?php } ?>
+                <li><a href="<?php echo($R); ?>logout.php">Logout</a></li>
+              </ul>
+            </li>
+            <?php } else { ?>
+            <li><a href="<?php echo($R); ?>login.php">Login</a></li>
+            <?php } ?>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+<?
+}
+
+function crud_select_sql($tablename, $fields, $where_clause=false) {
+    $sql = "SELECT ";
+    $first = true;
+    foreach ( $fields as $field ) {
+        if ( ! $first ) $sql .= ', ';
+        $sql .= $field;
+        $first = false;
+    }
+    $sql .= "\n FROM ".$tablename;
+    if ( $where_clause && strlen($where_clause) > 0 ) $sql .= "\nWHERE ".$where_clause;
+    return $sql;
+}
+
+// Inner code starts here
+define('CRUD_UPDATE_SUCCESS', 0);
+define('CRUD_UPDATE_FAIL', 1);
+define('CRUD_UPDATE_NONE', 2);
+function crud_update_handle($pdo, $tablename, $fields, $query_parms=array(),
+    $where_clause=false, $allow_edit=false, $allow_delete=false) 
+{
+    $key = $fields['0'];
+
+    if ( !isset($_REQUEST[$key]) ) {
+        $_SESSION['error'] = "Required $key= parameter";
+        return CRUD_UPDATE_FAIL;
+    }
+
+    // Inner WHERE clause
+    $key_value = $_REQUEST[$key] + 0;
+    if ( $where_clause === false || strlen($where_clause) < 1 ) {
+        $where_clause = "$key = :KID";
+    } else { 
+        $where_clause = "( ".$where_clause." ) AND $key = :KID";
+    }
+    $query_parms[":KID"] = $key_value;
+
+    $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
+
+    $sql = crud_select_sql($tablename, $fields, $where_clause);
+    $row = pdoRowDie($pdo, $sql, $query_parms);
+    if ( $row === false ) {
+        $_SESSION['error'] = "Unable to retrieve row";
+        return CRUD_UPDATE_FAIL;
+    }
+
+    // We know we are OK because we already retrieved the row
+    if ( $allow_delete && isset($_POST['doDelete']) ) {
+        $sql = "DELETE FROM $tablename WHERE $where_clause";
+        $stmt = pdoQueryDie($pdo, $sql, $query_parms);
+        $_SESSION['success'] = _("Record deleted");
+        return CRUD_UPDATE_SUCCESS;
+    }
+
+    // The update
+    if ( $allow_edit && $do_edit && isset($_POST['doUpdate']) && count($_POST) > 0 ) {
+        $set = '';
+        $parms = $query_parms;
+        for($i=0; $i < count($fields); $i++ ) {
+            $field = $fields[$i];
+            if ( $i == 0 && strpos($field, "_id") > 0 ) continue;
+            if ( $field != 'updated_at' && strpos($field, "_at") > 0 ) continue;
+
+            if ( strlen($set) > 0 ) $set .= ', ';
+            if ( $field == 'updated_at' ) {
+                $set .= $field."= NOW()";
+                continue;
+            }
+            if ( !isset($_POST[$field]) ) {
+                $_SESSION['error'] = _("Missing POST field: ").$field;
+                return CRUD_UPDATE_FAIL;
+            }
+            $set .= $field."= :".$i;
+            $parms[':'.$i] = $_POST[$field];
+        }
+        $sql = "UPDATE $tablename SET $set WHERE $where_clause";
+        $stmt = pdoQueryDie($pdo, $sql, $parms);
+        $_SESSION['success'] = "Record Updated";
+        return CRUD_UPDATE_SUCCESS;
+    }
+    return $row;
+}
+
+function crud_update_form($row, $fields, $current, $from_location, $allow_edit=false, $allow_delete=false) 
+{
+    $key = $fields['0'];
+    if ( !isset($_REQUEST[$key]) ) {
+        return "Required $key= parameter";
+    }
+    $key_value = $_REQUEST[$key] + 0;
+    $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
+
+    echo('<form method="post">'."\n");
+    echo('<a href="'.$from_location.'" class="btn btn-default">Done</a>'."\n");
+    if ( $allow_edit ) {
+        if ( $do_edit ) {
+            echo('<a href="'.$current.'?'.$key.'='.$key_value.'" class="btn btn-success">'._("Cancel Edit").'</a>'."\n");
+        } else {
+            echo('<a href="'.$current.'?'.$key.'='.$key_value.'&edit=yes" class="btn btn-warning">'._("Edit").'</a>'."\n");
+        }
+    }
+    if ( $allow_delete ) {
+        echo('<input type="hidden" name="'.$key.'" value="'.$key_value.'">'."\n");
+        echo('<input type="submit" name="doDelete" class="btn btn-danger" value="'._("Delete").'"');
+        echo(" onclick=\"return confirm('Are you sure you want to delete this record?');\">\n");
+    }
+    echo("</form>\n");
+    
+    echo("<p>\n");
+    if ( $do_edit ) echo('<form method="post">'."\n");
+    
+    for($i=0; $i < count($fields); $i++ ) {
+        $field = $fields[$i];
+        $value = $row[$field];
+        if ( ! $do_edit ) {
+            echo('<p><strong>'.field_to_title($field)."</strong></p>\n");
+            if ( strpos($field, "secret") !== false ) {
+                echo("<p onclick=\"$('#stars_{$i}').toggle();$('#text_{$i}').toggle();\">\n");
+                echo("<span id=\"stars_{$i}\">***********</span>\n");
+                echo("<span style=\"display: none;\" id=\"text_{$i}\">".htmlent_utf8($value).'</span>');
+                echo("\n</p>\n");
+            } else {
+                echo("<p>".htmlent_utf8($value)."</p>\n");
+            }
+            continue;
+        }
+
+        if ( $i == 0 && strpos($field,"_id") !== false ) {
+            echo('<input type="hidden" name="'.$field.'" value="'.htmlent_utf8($value).'">'."\n");
+            continue;
+        }
+    
+        // Don't allow explicit updating of these fields
+        if ( strpos($field, "_at") > 0 ) continue;
+
+        echo('<div class="form-group">'."\n");
+        echo('<label for="'.$field.'">'.field_to_title($field)."<br/>\n");
+        if ( isset($_POST[$field]) ) {
+            $value = $_POST[$field];
+        }
+
+        if ( strpos($field, "secret") !== false ) {
+            echo('<input id="'.$field.'" type="password" size="80" name="'.$field.'" value="'.
+                    htmlent_utf8($value).'"');
+            echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
+        } else if ( strlen($value) > 60 ) {
+            echo('<textarea rows="10" cols="70" id="'.$field.'" name="'.$field.'">'.htmlent_utf8($value).'</textarea>'."\n");
+        } else {
+            echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'" value="'.htmlent_utf8($value).'">'."\n");
+        }
+        echo("</label>\n</div>");
+    }
+    if ( $do_edit ) {
+        echo('<input type="submit" name="doUpdate" class="btn btn-normal" value="'._("Update").'">');
+        echo('</form>'."\n");
+    }
+    return true;
+}
+
+define('CRUD_INSERT_SUCCESS', 0);
+define('CRUD_INSERT_FAIL', 1);
+define('CRUD_INSERT_NONE', 2);
+
+function crud_insert_handle($pdo, $tablename, $fields) {
+    if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
+        $names = '';
+        $values = '';
+        $parms = array();
+        for($i=0; $i < count($fields); $i++ ) {
+            $field = $fields[$i];
+
+            if ( strlen($names) > 0 ) $names .= ', ';
+            if ( strlen($values) > 0 ) $values .= ', ';
+
+            $names .= $field;
+            if ( strpos($field, "_at") > 0 ) {
+                $values .= "NOW()";
+                continue;
+            }
+
+            $key = $field;
+            if ( strpos($field, "_sha256") !== false ) {
+                $key = str_replace("_sha256", "_key", $field);
+                if ( ! isset($_POST[$key]) ) {
+                    $_SESSION['success'] = "Missing POST field: ".$key;
+                    return CRUD_INSERT_FAIL;
+                }
+                $value = lti_sha256($_POST[$key]);
+            } else {
+                if ( isset($_POST[$field]) ) {
+                    $value = $_POST[$field];
+                } else {
+                    $_SESSION['success'] = "Missing POST field: ".$field;
+                    return CRUD_INSERT_FAIL;
+                }
+            }
+            $parms[':'.$i] = $value;
+            $values .= ":".$i;
+        }
+        $sql = "INSERT INTO $tablename \n( $names ) VALUES ( $values )";
+        $stmt = pdoQueryDie($pdo, $sql, $parms);
+        $_SESSION['success'] = _("Record Inserted");
+        return CRUD_INSERT_SUCCESS;
+    }
+    return CRUD_INSERT_NONE;
+}
+
+function crud_insert_form($fields, $from_location) {
+    echo('<form method="post">'."\n");
+
+    for($i=0; $i < count($fields); $i++ ) {
+        $field = $fields[$i];
+
+        // Don't allow setting of these fields
+        if ( strpos($field, "_at") > 0 ) continue;
+        if ( strpos($field, "_sha256") > 0 ) continue;
+
+        echo('<div class="form-group">'."\n");
+        echo('<label for="'.$field.'">'.field_to_title($field)."<br/>\n");
+
+        if ( strpos($field, "secret") !== false ) {
+            echo('<input id="'.$field.'" type="password" size="80" name="'.$field.'"');
+            echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
+        } else {
+            echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'">'."\n");
+        }
+        echo("</label>\n</div>");
+    }
+
+    echo('<input type="submit" name="doSave" class="btn btn-normal" value="'._("Save").'">'."\n");
+    echo('<a href="'.$from_location.'" class="btn btn-default">Cancel</a>'."\n");
+    echo('</form>'."\n");
+}
 
 // No trailer

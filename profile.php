@@ -56,7 +56,7 @@ $defaultLng = $lng != 0.0 ? $lng : -83.73981015789798;
 
 headerContent();
 startBody();
-
+topNav();
 if ( ! $CFG->OFFLINE ) {
 ?>
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>

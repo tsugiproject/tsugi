@@ -16,6 +16,11 @@ $CFG->upgrading = false;
 // This is how the system will refer to itself.
 $CFG->servicename = 'TSUGI (dev)';
 
+// Information on the owner of this system
+$CFG->ownername = false; // 'Charles Severance';
+$CFG->owneremail = false; // 'request@tsugi.org';
+$CFG->providekeys = false;
+
 // This is the URL where the software is hosted
 // Do not add a trailing slash to this string 
 // If you get this value wrong, the first problem will 

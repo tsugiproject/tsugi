@@ -1,5 +1,11 @@
 <?php
 
+// This is where we change the overall database version to trigger
+// upgrade checking - don't change this unless you want to trigger
+// database upgrade messages it should be the max of all versions in
+// all database.php files.
+$CFG->dbversion = 2014050500;
+
 function dieWithErrorLog($msg, $extra=false, $prefix="DIE:") {
     error_log($prefix.' '.$msg.' '.$extra);
     printStackTrace();
@@ -27,13 +33,6 @@ if ( isset($CFG->upgrading) && $CFG->upgrading === true ) require_once("upgradin
 
 require_once $CFG->dirroot."/lib/lms_lib.php";  // During transition
 
-// This is where we change the overall database version to trigger
-// upgrade checking - don't change this unless you want to trigger
-// database upgrade messages it should be the max of all versions in
-// all database.php files.
-// TODO: Automate the "max checking"
-$CFG->dbversion = 2014042200;
-
 // Check if we have been asked to do cookie or cookieless sessions
 if ( defined('COOKIE_SESSION') ) {
     // Do nothing - let the session be in a cookie
@@ -47,6 +46,10 @@ if ( ! isset($CFG) ) dieWithErrorLog("Please configure this product using config
 if ( ! isset($CFG->staticroot) ) dieWithErrorLog('$CFG->staticroot not defined in config.php');
 if ( ! isset($CFG->timezone) ) dieWithErrorLog('$CFG->timezone not defined in config.php');
 if ( strpos($CFG->dbprefix, ' ') !== false ) dieWithErrorLog('$CFG->dbprefix cannot have spaces in it');
+
+if ( !isset($CFG->ownername) ) $CFG->ownername = false; 
+if ( !isset($CFG->owneremail) ) $CFG->owneremail = false; 
+if ( !isset($CFG->providekeys) ) $CFG->providekeys = false;
 
 // Set this to the temporary folder if not set - dev only
 if ( ! isset($CFG->dataroot) ) {
