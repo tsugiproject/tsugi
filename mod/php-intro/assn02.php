@@ -18,7 +18,7 @@ $client = new Client();
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-togglePre("Show retrieved page",$html);
+html_toggle_pre("Show retrieved page",$html);
 
 line_out("Searching for h1 tag...");
 
@@ -63,5 +63,5 @@ if ( strlen($success) > 0 ) {
 
 // Send grade
 if ( $penalty !== false ) $grade = $grade * (1.0 - $penalty);
-if ( $grade > 0.0 ) testPassed($grade, $url);
+if ( $grade > 0.0 ) webauto_test_passed($grade, $url);
 

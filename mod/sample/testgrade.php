@@ -25,7 +25,7 @@ if ( isset($_POST['grade']) )  {
         // TODO: Update the webauto_lti_result table with 
         // the to be sent grade
 
-        // We pass this in session because the sendGrade() function produces output
+        // We pass this in session because the send_grade() function produces output
         $_SESSION['gradetosend'] = $gradetosend;
         $_SESSION['error'] = "Delete this when the grade is coming from the database!";
     }
@@ -36,7 +36,7 @@ if ( isset($_POST['grade']) )  {
 }
 ?>
 <html><head><title>Testing of the grade code</title>
-<?php echo(togglePreScript());?>
+<?php echo(html_toggle_preScript());?>
 </head>
 <body style="background-color:pink;">
 <?php
@@ -61,7 +61,7 @@ if ( isset($_SESSION['gradetosend']) ) {
 
     // Produces some output, call the XML APIs to
     // send the grade back to the LMS.
-    $retval = sendGrade(1.0);
+    $retval = send_grade(1.0);
     if ( $retval === true ) {
         success_out("Grade sent to server.");
     } else if ( is_string($retval) ) {

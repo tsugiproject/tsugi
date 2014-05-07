@@ -1,7 +1,7 @@
 <?php 
 require_once "../../config.php";
 session_start();
-headerContent();
+html_header_content();
 ?>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Skulpt</title>
@@ -14,7 +14,7 @@ headerContent();
     <script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt-stdlib.js" type="text/javascript"></script>
 </head>
 <?php
-startBody();
+html_start_body();
 ?>
 <div class="page" style="padding: 5px; border: 3px solid grey">
     <textarea id="interactive" cols="85" rows="10" ></textarea>
@@ -39,4 +39,4 @@ This interactive Python interpreter is based on <a href="http://skulpt.org/" tar
 <a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
 </p>
 <?php
-footerContent();
+html_footer_content();

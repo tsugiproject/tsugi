@@ -15,7 +15,7 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! ( isset($_SESSION['id']) || is_admin() ) ) {
-    $_SESSION['login_return'] = getPwdFull(__FILE__) . "/index.php";
+    $_SESSION['login_return'] = html_get_url_full(__FILE__) . "/index.php";
     header('Location: '.$CFG->wwwroot.'/login.php');
     return;
 }
@@ -30,9 +30,9 @@ if ( !is_admin() ) {
     $query_parms = array(":UID" => $_SESSION['id']);
 }
 
-$newsql = pagedPDOQuery($sql, $query_parms, $searchfields);
+$newsql = pdo_paged_query($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
-$rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
+$rows = pdo_all_rows_die($pdo, $newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
     $newrow = $row;
@@ -40,10 +40,10 @@ foreach ( $rows as $row ) {
     $newrows[] = $newrow;
 }
 
-headerContent();
-startBody();
-topNav();
-flashMessages();
+html_header_content();
+html_start_body();
+html_top_nav();
+flash_messages();
 ?>
 <h1>LTI Keys</h1>
 <p>
@@ -54,7 +54,7 @@ flashMessages();
 You have no IMS LTI 1.1 Keys for this system.
 </p>
 <?php } else { 
-    pagedPDOTable($newrows, $searchfields, false, "key-detail.php");
+    pdo_paged_table($newrows, $searchfields, false, "key-detail.php");
 } 
 if ( is_admin() ) { ?>
 <p>
@@ -63,5 +63,5 @@ if ( is_admin() ) { ?>
 <?php } ?>
 
 <?php
-footerContent();
+html_footer_content();
 

@@ -5,8 +5,8 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 
 // Model 
 $p = $CFG->dbprefix;
@@ -22,7 +22,7 @@ if ( isset($_POST['json']) ) {
     }
 
     $json = json_encode($json);
-    $stmt = pdoQuery($pdo,
+    $stmt = pdo_query($pdo,
         "INSERT INTO {$p}peer_assn 
             (link_id, json, created_at, updated_at) 
             VALUES ( :ID, :JSON, NOW(), NOW()) 
@@ -31,7 +31,7 @@ if ( isset($_POST['json']) ) {
             ':JSON' => $json,
             ':ID' => $LTI['link_id'])
         );
-    cacheClear("peer_assn");
+    cache_clear("peer_assn");
     if ( $stmt->success ) {
         $_SESSION['success'] = 'Assignment updated';
         header( 'Location: '.sessionize('index.php') ) ;
@@ -73,9 +73,9 @@ if ( strlen($json) < 1 ) {
 $json = json_indent($json);
 
 // View 
-headerContent();
-startBody();
-flashMessages();
+html_header_content();
+html_start_body();
+flash_messages();
 if ( ! $instructor ) die("Requires instructor role");
 
 ?>
@@ -90,4 +90,4 @@ if ( ! $instructor ) die("Requires instructor role");
 </form>
 <?php
 
-footerContent();
+html_footer_content();

@@ -7,8 +7,8 @@ require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 if ( ! $instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 
@@ -37,7 +37,7 @@ if ( $submit_row !== false ) {
 }
 
 // Load user info
-$user_row = loadUserInfo($pdo, $user_id);
+$user_row = load_user_info($pdo, $user_id);
 
 // Handle incoming post to delete the entire submission
 if ( isset($_POST['deleteSubmit']) ) {
@@ -48,7 +48,7 @@ if ( isset($_POST['deleteSubmit']) ) {
     }
     $note = isset($_POST['deleteNote']) ? $_POST['deleteNote'] : '';
     $retval = mailDeleteSubmit($pdo, $user_id, $assn_json, $note);
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "DELETE FROM {$p}peer_submit
             WHERE submit_id = :SID",
         array( ':SID' => $submit_id)
@@ -56,8 +56,8 @@ if ( isset($_POST['deleteSubmit']) ) {
     $msg = "Deleted submission for $user_id";
     if ( $retval ) $msg .= ', e-mail notice sent.';
     error_log($msg);
-    cacheClear('peer_grade');
-    cacheClear('peer_submit');
+    cache_clear('peer_grade');
+    cache_clear('peer_submit');
     $msg = "Submission deleted";
     if ( $retval ) $msg .= ', e-mail notice sent.';
     $_SESSION['success'] = $msg;
@@ -68,19 +68,19 @@ if ( isset($_POST['deleteSubmit']) ) {
 // Compute grade
 $computed_grade = computeGrade($pdo, $assn_id, $assn_json, $user_id);
 if ( isset($_POST['resendSubmit']) ) {
-    $result = lookupResult($pdo, $LTI, $user_id);
+    $result = lookup_result($pdo, $LTI, $user_id);
     // Force a resend
     $_SESSION['lti']['grade'] = -1;  // Force a resend
     $result['grade'] = -1;
-    $debuglog = array();
-    $status = sendGradeDetail($computed_grade, $debuglog, $pdo, $result); // This is the slow bit
+    $debug_log = array();
+    $status = send_grade_detail($computed_grade, $debug_log, $pdo, $result); // This is the slow bit
     if ( $status === true ) {
         $_SESSION['success'] = 'Grade submitted to server';
     } else {
         error_log("Problem sending grade ".$status);
         $_SESSION['error'] = 'Error: '.$status;
     }
-    $_SESSION['debuglog'] = $debuglog;
+    $_SESSION['debug_log'] = $debug_log;
     header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
     return;
 }
@@ -100,12 +100,12 @@ if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
         header( 'Location: '.sessionize('index.php') ) ;
         return;
     }
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "DELETE FROM {$p}peer_grade
             WHERE grade_id = :GID",
         array( ':GID' => $_POST['grade_id'])
     );
-    cacheClear('peer_grade');
+    cache_clear('peer_grade');
     error_log("Instructor deleted grade entry for ".$user_id);
     $_SESSION['success'] = "Grade entry deleted.";
     header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
@@ -115,7 +115,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
 // Retrieve our flags...
 $our_flags = false;
 if ( $submit_id !== false ) {
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "SELECT flag_id, F.user_id AS user_id, grade_id, note, handled, response,
             F.updated_at AS updated_at, displayname, email
         FROM {$p}peer_flag AS F
@@ -139,13 +139,13 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
         header( 'Location: '.sessionize('index.php') ) ;
         return;
     }
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "DELETE FROM {$p}peer_flag
             WHERE flag_id = :FID",
         array( ':FID' => $_POST['flag_id'])
     );
-    cacheClear('peer_flag');
-    cacheClear('peer_grade');
+    cache_clear('peer_flag');
+    cache_clear('peer_grade');
     error_log("Instructor deleted flag=".$_POST['flag_id']." for ".$user_id);
     $_SESSION['success'] = "Flag entry deleted.";
     header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
@@ -156,14 +156,14 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
 $grades_given = retrieveGradesGiven($pdo, $assn_id, $user_id);
 
 // View
-headerContent();
-startBody();
-flashMessages();
+html_header_content();
+html_start_body();
+flash_messages();
 
-if ( isset($_SESSION['debuglog']) ) {
+if ( isset($_SESSION['debug_log']) ) {
     echo("<p>Grade send log below:</p>\n");
-    dumpGradeDebug($_SESSION['debuglog']);
-    unset($_SESSION['debuglog']);
+    dumpGradeDebug($_SESSION['debug_log']);
+    unset($_SESSION['debug_log']);
     echo("<p></p>\n");
 }
 
@@ -288,4 +288,4 @@ onclick="location='<?php echo(sessionize('admin.php'));?>'; return false;" value
 </form>
 <?php
 
-footerContent();
+html_footer_content();

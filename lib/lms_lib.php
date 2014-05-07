@@ -2,12 +2,12 @@
 
 require_once "lti_util.php";
 
-function getSpinnerUrl() {
+function get_spinner_url() {
     global $CFG;
     return $CFG->staticroot . '/static/img/spinner.gif';
 }
 
-function flashMessages() {
+function flash_messages() {
     if ( isset($_SESSION['error']) ) {
         echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
         unset($_SESSION['error']);
@@ -18,7 +18,7 @@ function flashMessages() {
     }
 }
 
-function dumpTable($stmt, $view=false) {
+function dump_table($stmt, $view=false) {
     if ( $view !== false ) {
         if ( strpos($view, '?') !== false ) {
             $view .= '&';
@@ -66,7 +66,7 @@ function dumpTable($stmt, $view=false) {
     echo("</table>\n");
 }
 
-function getNameAndEmail($LTI) {
+function get_name_and_email($LTI) {
     $display = '';
     if ( isset($LTI['user_displayname']) && strlen($LTI['user_displayname']) > 0 ) {
         $display = $LTI['user_displayname'];
@@ -83,14 +83,14 @@ function getNameAndEmail($LTI) {
     return $display;
 }
 
-function getFirstName($displayname) {
+function get_first_name($displayname) {
     if ( $displayname === false ) return false;
     $pieces = explode(' ',$displayname);
     if ( count($pieces) > 0 ) return $pieces[0];
     return false;
 }
 
-function welcomeUserCourse($LTI) {
+function welcome_user_course($LTI) {
     echo("<p>Welcome");
     if ( isset($LTI['user_displayname']) ) {
         echo(" ");
@@ -101,13 +101,13 @@ function welcomeUserCourse($LTI) {
         echo(htmlent_utf8($LTI['context_title']));
     }
 
-    if ( isInstructor($LTI) ) {
+    if ( is_instructor($LTI) ) {
         echo(" (Instructor)");
     }
     echo("</p>\n");
 }
 
-function doCSS($context=false) {
+function do_css($context=false) {
     global $CFG;
     echo '<link rel="stylesheet" type="text/css" href="'.$CFG->wwwroot.'/static/css/default.css" />'."\n";
     if ( $context !== false ) {
@@ -119,7 +119,7 @@ function doCSS($context=false) {
 
 // See if we need to extend our session (heartbeat)
 // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
-function checkHeartBeat() {
+function check_heart_beat() {
     if ( session_id() == "" ) return;  // This should not start the session
 
     if ( isset($CFG->sessionlifetime) ) {
@@ -138,18 +138,18 @@ function checkHeartBeat() {
     }
 }
 
-function send403() {
+function send_403() {
     header("HTTP/1.1 403 Forbidden");
 }
 
 // Returns true for a good referrer and false if we could not verify it
-function checkReferer() {
+function check_referer() {
     global $CFG;
     return isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],$CFG->wwwroot) === 0 ;
 }
 
 // Returns true for a good CSRF and false if we could not verify it
-function checkCSRF() {
+function check_CSRF() {
     global $CFG;
     if ( ! isset($_SESSION['CSRF_TOKEN']) ) return false;
     $token = $_SESSION['CSRF_TOKEN'];
@@ -164,26 +164,26 @@ function checkCSRF() {
 // This routine will not start a session if none exists.  It will
 // die is there if no session_name() (PHPSESSID) cookie or 
 // parameter.  No need to create any fresh sessions here.
-function requireData($needed) {
+function lti_require_data($needed) {
     global $CFG;
 
     // Check to see if the session already exists.
     $sess = session_name();
     if ( ini_get('session.use_cookies') != '0' ) {
         if ( ! isset($_COOKIE[$sess]) ) {
-            send403();
-            dieWithErrorLog("Missing session cookie - please re-launch");
+            send_403();
+            die_with_error_log("Missing session cookie - please re-launch");
         }
     } else { // non-cookie session
         if ( isset($_POST[$sess]) || isset($_GET[$sess]) ) {
             // We tried to set a session..
         } else {
             if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-                send403();
-                dieWithErrorLog('Missing '.$sess.' from POST data');
+                send_403();
+                die_with_error_log('Missing '.$sess.' from POST data');
             } else {
-                send403();
-                dieWithErrorLog('Missing '.$sess.'= on URL (Missing call to sessionize?)');
+                send_403();
+                die_with_error_log('Missing '.$sess.'= on URL (Missing call to sessionize?)');
             }
         }
     }
@@ -197,22 +197,22 @@ function requireData($needed) {
     // Or their computer goes to sleep and wakes back up hours later.
     // So it is just a warning - nothing much we can do except tell them.
     if ( !isset($_SESSION['lti']) ) {
-        // $debug = safeVarDump($_SESSION);
+        // $debug = safe_var_dump($_SESSION);
         // error_log($debug);
-        send403(); error_log('Session expired - please re-launch '.session_id()); 
+        send_403(); error_log('Session expired - please re-launch '.session_id()); 
         die('Session expired - please re-launch'); // with error_log
     }
 
     // Check the referrer...
-    $trusted = checkReferer() || checkCSRF();
+    $trusted = check_referer() || check_CSRF();
 
     // Check to see if we switched browsers or IP addresses
     // TODO: Change these to warnings once we get more data
     if ( (!$trusted) && isset($_SESSION['HTTP_USER_AGENT']) ) {
         if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
             $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
-            send403();
-            dieWithErrorLog("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
+            send_403();
+            die_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
                 $_SESSION['HTTP_USER_AGENT'].' ::: '.
                 isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Empty user agent',
             'DIE:');
@@ -227,8 +227,8 @@ function requireData($needed) {
         if ( count($sess_pieces) == 4 && count($serv_pieces) == 4 ) {
             if ( $sess_pieces[0] != $serv_pieces[0] || $sess_pieces[1] != $serv_pieces[1] ||
                 $sess_pieces[2] != $serv_pieces[2] ) {
-                send403();
-                dieWithErrorLog('Session address has expired', " ".session_id()." REMOTE_ADDR ".
+                send_403();
+                die_with_error_log('Session address has expired', " ".session_id()." REMOTE_ADDR ".
                     $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR'], 'DIE:');
             }
         }
@@ -236,17 +236,17 @@ function requireData($needed) {
 
     $LTI = $_SESSION['lti'];
     if ( is_string($needed) && ! isset($LTI[$needed]) ) {
-        dieWithErrorLog("This tool requires an LTI launch parameter:".$needed);
+        die_with_error_log("This tool requires an LTI launch parameter:".$needed);
     }
     if ( is_array($needed) ) {
         foreach ( $needed as $feature ) {
             if ( isset($LTI[$feature]) ) continue;
-            dieWithErrorLog("This tool requires an LTI launch parameter:".$feature);
+            die_with_error_log("This tool requires an LTI launch parameter:".$feature);
         }
     }
 
     // Check to see if the session needs to be extended due to this request
-    checkHeartBeat();
+    check_heart_beat();
 
     // Restart the number of continuous heartbeats
     $_SESSION['HEARTBEAT_COUNT'] = 0;
@@ -254,16 +254,16 @@ function requireData($needed) {
     return $LTI;
 }
 
-function isInstructor($LTI) {
+function is_instructor($LTI) {
     return isset($LTI['role']) && $LTI['role'] != 0 ;
 }
 
 // TODO: deal with headers sent...
-function requireLogin() {
+function require_login() {
     global $CFG;
     if ( ! isset($_SESSION['user_id']) ) {
         $_SESSION['error'] = 'Login required';
-        doRedirect($CFG->wwwroot.'/login.php') ;
+        do_redirect($CFG->wwwroot.'/login.php') ;
         exit();
     }
 }
@@ -272,16 +272,16 @@ function is_admin() {
     return isset( $_SESSION['admin']) && $_SESSION['admin'] == 'yes';
 }
 
-function requireAdmin() {
+function require_admin() {
     global $CFG;
     if ( $_SESSION['admin'] != 'yes' ) {
         $_SESSION['error'] = 'Login required';
-        doRedirect($CFG->wwwroot.'/login.php') ;
+        do_redirect($CFG->wwwroot.'/login.php') ;
         exit();
     }
 }
 
-function headerContent($headCSS=false) {
+function html_header_content($headCSS=false) {
     global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL;
     global $CFG;
     if ( $HEAD_CONTENT_SENT === true ) return;
@@ -324,20 +324,20 @@ body {
     $HEAD_CONTENT_SENT = true;
 }
 
-function startBody() {
+function html_start_body() {
     echo("\n</head>\n<body style=\"padding: 15px 15px 15px 15px;\">\n");
     if ( count($_POST) > 0 ) {
-        $dump = safeVarDump($_POST);
+        $dump = safe_var_dump($_POST);
         echo('<p style="color:red">Error - Unhandled POST request</p>');
         echo("\n<pre>\n");
         echo($dump);
         echo("\n</pre>\n");
         error_log($dump);
-        dieWithErrorLog("Unhandled POST request");
+        die_with_error_log("Unhandled POST request");
     }
 }
 
-function footerStart() {
+function html_footer_start() {
     global $CFG;
     echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");
     echo('<script src="'.$CFG->staticroot.'/static/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
@@ -356,23 +356,23 @@ HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
 <?php
     }
 
-    do_analytics(); 
+    html_do_analytics(); 
 }
 
-function footerEnd() {
+function html_footer_end() {
     echo("\n</body>\n</html>\n");
 }
 
-function footerContent($onload=false) {
+function html_footer_content($onload=false) {
     global $CFG;
-    footerStart();
+    html_footer_start();
     if ( $onload !== false ) {
         echo("\n".$onload."\n");
     }
-    footerEnd();
+    html_footer_end();
 }
 
-function do_analytics() {
+function html_do_analytics() {
     global $CFG;
     if ( $CFG->analytics_key ) { ?>
 <script type="text/javascript">
@@ -407,7 +407,7 @@ function do_analytics() {
 // Gets an absolute static path to the specified file
 function getLocalStatic($file) {
     global $CFG;
-    $path = getPwd($file);
+    $path = get_pwd($file);
     return $CFG->staticroot . "/" . $path;
 }
 
@@ -427,7 +427,7 @@ function get_current_file_url($file) {
     return $CFG->wwwroot.get_current_file($file);
 }
 
-function getPwd($file) {
+function get_pwd($file) {
     global $CFG;
     $root = $CFG->dirroot;
     $path = realpath(dirname($file));
@@ -439,13 +439,13 @@ function getPwd($file) {
     return $retval;
 }
 
-function getPwdFull($file) {
+function html_get_url_full($file) {
     global $CFG;
-    $path = getPwd($file);
+    $path = get_pwd($file);
     return $CFG->wwwroot . "/" . $path;
 }
 
-function addSession($location) {
+function add_session($location) {
     if ( stripos($location, '&'.session_name().'=') > 0 ||
          stripos($location, '?'.session_name().'=') > 0 ) return $location;
 
@@ -460,12 +460,12 @@ function addSession($location) {
 
 // Forward to a local URL, adding session if necessary - not that hrefs get altered appropriately 
 // by PHP itself
-function doRedirect($location) {
+function do_redirect($location) {
     if ( headers_sent() ) {
         echo('<a href="'.htmlentities($location).'">Continue</a>'."\n");
     } else {
         if ( ini_get('session.use_cookies') == 0 ) {
-            $location = addSession($location);
+            $location = add_session($location);
         }
         header("Location: $location");
     }
@@ -480,7 +480,7 @@ function debugClear() {
     unset($_SESSION['__zzz_debug']);
 }
 
-function debugLog($text,$mixed=false) {
+function debug_log($text,$mixed=false) {
     global $DEBUG_STRING;
     $sess = (strlen(session_id()) > 0 );
     if ( $sess && isset($_SESSION['__zzz_debug']) ) {
@@ -517,7 +517,7 @@ function debugLog($text,$mixed=false) {
 }
 
 // Calling this clears debug buffer...
-function debugDump() {
+function debug_dump() {
     global $DEBUG_STRING;
     $retval = '';
     $sess = (strlen(session_id()) > 0 );
@@ -538,7 +538,7 @@ function debugDump() {
     return $retval;
 }
 
-function dumpPost() {
+function dump_post() {
         print "<pre>\n";
         print "Raw POST Parameters:\n\n";
         ksort($_POST);
@@ -601,7 +601,7 @@ function json_indent($json) {
 
 // http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers
 // http://www.php.net/manual/en/function.header.php
-function noCacheHeader() {
+function no_cache_header() {
     header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
     header('Pragma: no-cache'); // HTTP 1.0.
     header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past - proxies
@@ -609,10 +609,10 @@ function noCacheHeader() {
 
 function header_json() {
     header('Content-type: application/json');
-    noCacheHeader();
+    no_cache_header();
 }
 
-function lmsDie($message=false) {
+function lms_die($message=false) {
     global $CFG, $DEBUG_STRING;
     if($message !== false) echo($message);
     if ( $CFG->development === TRUE ) {
@@ -622,7 +622,7 @@ function lmsDie($message=false) {
             echo("\n</pre>\n");
         }
     }
-    die();  // lmsDie
+    die();  // lms_die
 }
 
 // http://stackoverflow.com/questions/2840755/how-to-determine-the-max-file-upload-limit-in-php
@@ -631,7 +631,7 @@ function lmsDie($message=false) {
    blob as 1MB.  if you change the .htaccess you need to change the mysql configuration as well. 
    this may not be possible on a low-cst provider.  */
 
-function maxUpload() {
+function max_upload() {
     $max_upload = (int)(ini_get('upload_max_filesize'));
     $max_post = (int)(ini_get('post_max_size'));
     $memory_limit = (int)(ini_get('memory_limit'));
@@ -639,7 +639,7 @@ function maxUpload() {
     return $upload_mb;
 }
 
-function findTools($dir, &$retval, $filename="index.php") {
+function find_tools($dir, &$retval, $filename="index.php") {
     if ( is_dir($dir) ) {
         if ($dh = opendir($dir)) {
             while (($sub = readdir($dh)) !== false) {
@@ -661,7 +661,7 @@ function findTools($dir, &$retval, $filename="index.php") {
     }
 }
 
-function findFiles($filename="index.php", $reldir=false) {
+function find_files($filename="index.php", $reldir=false) {
     global $CFG;
     $files = array();
     foreach ( $CFG->tool_folders as $dir ) {
@@ -689,7 +689,7 @@ function findFiles($filename="index.php", $reldir=false) {
     return $files;
 }
 
-function getCustom($varname, $default=false) {
+function lti_get_custom($varname, $default=false) {
     if ( isset($_SESSION['lti_post']) && 
             isset($_SESSION['lti_post']['custom_'.$varname]) ) {
         return $_SESSION['lti_post']['custom_'.$varname];
@@ -697,7 +697,7 @@ function getCustom($varname, $default=false) {
     return $default;
 }
 
-function doneButton() {
+function html_done_button() {
     $url = false;
     if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
         $url = $_SESSION['lti_post']['custom_done'];
@@ -715,7 +715,7 @@ function doneButton() {
     }
 }
 
-function doneBootstrap($text="Done") {
+function html_done_bootstrap($text="Done") {
     $url = false;
     if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
         $url = $_SESSION['lti_post']['custom_done'];
@@ -734,7 +734,7 @@ function doneBootstrap($text="Done") {
     }
 }
 
-function togglePre($title, $html) {
+function html_toggle_pre($title, $html) {
     global $div_id;
     $div_id = $div_id + 1;
     echo('<strong>'.htmlent_utf8($title));
@@ -745,7 +745,7 @@ function togglePre($title, $html) {
     echo("</pre><br/>\n");
 }
 
-function togglePreScript() {
+function html_toggle_preScript() {
 return '<script language="javascript"> 
 function dataToggle(divName) {
     var ele = document.getElementById(divName);
@@ -762,9 +762,9 @@ function dataToggle(divName) {
 // Looks up a result for a potentially different user_id so we make
 // sure they are in the smame key/ context / link as the current user
 // hence the complex query to make sure we don't cross silos
-function lookupResult($pdo, $LTI, $user_id) {
+function lookup_result($pdo, $LTI, $user_id) {
     global $CFG;
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id, 
             sourcedid, service_id, grade, note, R.json AS json
         FROM {$CFG->dbprefix}lti_result AS R
@@ -785,7 +785,7 @@ function lookupResult($pdo, $LTI, $user_id) {
 }
 
 // Clean out the array of 'secret' keys
-function safeVarDump($x) {
+function safe_var_dump($x) {
         ob_start();
         if ( isset($x['secret']) ) $x['secret'] = MD5($x['secret']);
         if ( is_array($x) ) foreach ( $x as &$v ) {
@@ -827,7 +827,7 @@ function noBuffer() {
     ini_set('zlib.output_compression', false);
 }
 
-function cacheCheck($cacheloc, $cachekey)
+function cache_check($cacheloc, $cachekey)
 {
     $cacheloc = "cache_" . $cacheloc;
     if ( isset($_SESSION[$cacheloc]) ) {
@@ -842,7 +842,7 @@ function cacheCheck($cacheloc, $cachekey)
 }
 
 // Don't cache the non-existence of something
-function cacheSet($cacheloc, $cachekey, $cacheval)
+function cache_set($cacheloc, $cachekey, $cacheval)
 {
     $cacheloc = "cache_" . $cacheloc;
     if ( $cacheval === null || $cacheval === false ) {
@@ -852,7 +852,7 @@ function cacheSet($cacheloc, $cachekey, $cacheval)
     $_SESSION[$cacheloc] = array($cachekey, $cacheval);
 }
 
-function cacheClear($cacheloc)
+function cache_clear($cacheloc)
 {
     $cacheloc = "cache_" . $cacheloc;
     if ( isset($_SESSION[$cacheloc]) ) {
@@ -861,13 +861,13 @@ function cacheClear($cacheloc)
     unset($_SESSION[$cacheloc]);
 }
 
-function loadUserInfo($pdo, $user_id)
+function load_user_info($pdo, $user_id)
 {
     global $CFG;
     $cacheloc = 'lti_user';
-    $row = cacheCheck($cacheloc, $user_id);
+    $row = cache_check($cacheloc, $user_id);
     if ( $row != false ) return $row;
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "SELECT displayname, email, user_key FROM {$CFG->dbprefix}lti_user
             WHERE user_id = :UID",
         array(":UID" => $user_id)
@@ -876,25 +876,25 @@ function loadUserInfo($pdo, $user_id)
     if ( strlen($row['displayname']) < 1 && strlen($row['user_key']) > 0 ) {
         $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
     }
-    cacheSet($cacheloc, $user_id, $row);
+    cache_set($cacheloc, $user_id, $row);
     return $row;
 }
 
-function loadLinkInfo($pdo, $link_id)
+function load_link_info($pdo, $link_id)
 {
     global $CFG;
-    $LTI = requireData(array('context_id'));
+    $LTI = lti_require_data(array('context_id'));
 
     $cacheloc = 'lti_link';
-    $row = cacheCheck($cacheloc, $link_id);
+    $row = cache_check($cacheloc, $link_id);
     if ( $row != false ) return $row;
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "SELECT title FROM {$CFG->dbprefix}lti_link 
             WHERE link_id = :LID AND context_id = :CID",
         array(":LID" => $link_id, ":CID" => $LTI['context_id'])
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    cacheSet($cacheloc, $link_id, $row);
+    cache_set($cacheloc, $link_id, $row);
     return $row;
 }
 
@@ -962,7 +962,7 @@ function set_secure_cookie($user_id, $userSHA) {
 }
 
 // Check the secure cookie and set login information appropriately
-function login_secure_cookie ($pdo) {
+function login_secure_cookie($pdo) {
     global $CFG;
     $pieces = false;
     $id = false;
@@ -993,7 +993,7 @@ function login_secure_cookie ($pdo) {
         return;
     }
     
-    $row = pdoRowDie($pdo,
+    $row = pdo_row_die($pdo,
         "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
             P.email as email, U.user_id as user_id
             FROM {$CFG->dbprefix}profile AS P
@@ -1044,7 +1044,7 @@ function do_url($values, $override=Array()) {
 }
 
 // Function to lookup and match things like R.updated_at to updated_at
-function matchColumns($colname, $columns) {
+function pdo_match_columns($colname, $columns) {
     foreach ($columns as $v) {
         if ( $colname == $v ) return true;
         if ( strlen($v) < 2 ) continue;
@@ -1063,7 +1063,7 @@ $DEFAULT_PAGE_LENGTH = 20;  // Setting this to 2 is good for debugging
 // is there is not a 'order_by' in $params
 
 // Normally $params should just default to $_GET
-function pagedPDOQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=false, $params=false) {
+function pdo_paged_query($sql, &$queryvalues, $searchfields=array(), $orderfields=false, $params=false) {
     global $DEFAULT_PAGE_LENGTH;
     if ( $params == false ) $params = $_GET;
     if ( $orderfields == false ) $orderfields = $searchfields;
@@ -1078,7 +1078,7 @@ function pagedPDOQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=
     }
 
     $ordertext = '';
-    if ( isset($params['order_by']) && matchColumns($params['order_by'], $orderfields) ) { 
+    if ( isset($params['order_by']) && pdo_match_columns($params['order_by'], $orderfields) ) { 
         $ordertext = $params['order_by']." ";
         if ( isset($params['desc']) && $params['desc'] == 1) {
             $ordertext .= "DESC ";
@@ -1107,7 +1107,7 @@ function pagedPDOQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=
     // Fix up the SQL Query
     $newsql = $sql;
     if ( strlen($searchtext) > 0 ) {
-        if ( strpos("WHERE", $searchtext ) !== false ) {
+        if ( strpos($sql,"WHERE" ) !== false ) {
             $newsql = str_replace("WHERE", "WHERE ( ".$searchtext." ) AND ", $newsql);
         } else {
             $newsql .= "\nWHERE ( ".$searchtext." ) ";
@@ -1126,7 +1126,7 @@ function field_to_title($name) {
     return ucwords(str_replace('_',' ',$name));
 }
 
-function pagedPDOTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false) {
+function pdo_paged_table($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false) {
     global $DEFAULT_PAGE_LENGTH;
     if ( $params === false ) $params = $_GET;
     if ( $orderfields === false ) $orderfields = $searchfields;
@@ -1205,7 +1205,7 @@ onclick="document.getElementById('paged_search_box').value = '';"
                     continue;
                 }
 
-                if ( ! matchColumns($k, $orderfields ) ) {
+                if ( ! pdo_match_columns($k, $orderfields ) ) {
                     echo("<th>".field_to_title($k)."</th>\n");
                     continue;
                 }
@@ -1260,18 +1260,18 @@ onclick="document.getElementById('paged_search_box').value = '';"
     echo("</div>\n");
 }
 
-function pagedPDO($pdo, $sql, $query_parms, $searchfields, $orderfields=false, $view=false, $params=false) {
-    $newsql = pagedPDOQuery($sql, $query_parms, $searchfields, $orderfields, $params);
+function pdo_paged_auto($pdo, $sql, $query_parms, $searchfields, $orderfields=false, $view=false, $params=false) {
+    $newsql = pdo_paged_query($sql, $query_parms, $searchfields, $orderfields, $params);
 
     //echo("<pre>\n$newsql\n</pre>\n");
 
-    $rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
+    $rows = pdo_all_rows_die($pdo, $newsql, $query_parms);
 
-    pagedPDOTable($rows, $searchfields, $orderfields, $view, $params);
+    pdo_paged_table($rows, $searchfields, $orderfields, $view, $params);
 }
 
 // Check if this has a due date..
-function getDueDate() {
+function get_due_date() {
     $retval = new stdClass();
     $retval->message = false;
     $retval->penalty = 0;
@@ -1280,7 +1280,7 @@ function getDueDate() {
     $retval->duedate = false;
     $retval->duedatestr = false;
 
-    $duedatestr = getCustom('due');
+    $duedatestr = lti_get_custom('due');
     if ( $duedatestr === false ) return $retval;
     $duedate = strtotime($duedatestr);
 
@@ -1288,8 +1288,8 @@ function getDueDate() {
     $penalty = false;
 
     date_default_timezone_set('Pacific/Honolulu'); // Lets be generous
-    if ( getCustom('timezone') ) {
-        date_default_timezone_set(getCustom('timezone'));
+    if ( lti_get_custom('timezone') ) {
+        date_default_timezone_set(lti_get_custom('timezone'));
     }
 
     if ( $duedate === false ) return $retval;
@@ -1302,8 +1302,8 @@ function getDueDate() {
     $retval->duedatestr = $duedatestr;
     // Should be a percentage off between 0.0 and 1.0
     if ( $diff > 0 ) {
-        $penalty_time = getCustom('penalty_time') ? getCustom('penalty_time') + 0 : 24*60*60;
-        $penalty_cost = getCustom('penalty_cost') ? getCustom('penalty_cost') + 0.0 : 0.2;
+        $penalty_time = lti_get_custom('penalty_time') ? lti_get_custom('penalty_time') + 0 : 24*60*60;
+        $penalty_cost = lti_get_custom('penalty_cost') ? lti_get_custom('penalty_cost') + 0.0 : 0.2;
         $penalty_exact = $diff / $penalty_time;
         $penalties = intval($penalty_exact) + 1;
         $penalty = $penalties * $penalty_cost;
@@ -1324,7 +1324,7 @@ function compute_mail_check($identity) {
     return sha1($CFG->mailsecret . '::' . $identity);
 }
 
-function mailSend($to, $subject, $message, $id, $token) {
+function mail_send($to, $subject, $message, $id, $token) {
     global $CFG;
 
     if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return;
@@ -1332,7 +1332,7 @@ function mailSend($to, $subject, $message, $id, $token) {
     if ( isset($CFG->maileol) && isset($CFG->wwwroot) && isset($CFG->maildomain) ) {
         // All good
     } else {
-        dieWithErrorLog("Incomplete mail configuration in mailSend");
+        die_with_error_log("Incomplete mail configuration in mail_send");
     }
     
     if ( strlen($to) < 1 || strlen($subject) < 1 || strlen($id) < 1 || strlen($token) < 1 ) return false;
@@ -1358,7 +1358,7 @@ function mailSend($to, $subject, $message, $id, $token) {
     return mail($to,$subject,$msg,$headers);
 }
 
-function topNav() {
+function html_top_nav() {
     global $CFG;
     $R = $CFG->wwwroot . '/';
 ?>
@@ -1454,7 +1454,7 @@ function crud_update_handle($pdo, $tablename, $fields, $query_parms=array(),
     $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
 
     $sql = crud_select_sql($tablename, $fields, $where_clause);
-    $row = pdoRowDie($pdo, $sql, $query_parms);
+    $row = pdo_row_die($pdo, $sql, $query_parms);
     if ( $row === false ) {
         $_SESSION['error'] = "Unable to retrieve row";
         return CRUD_UPDATE_FAIL;
@@ -1463,7 +1463,7 @@ function crud_update_handle($pdo, $tablename, $fields, $query_parms=array(),
     // We know we are OK because we already retrieved the row
     if ( $allow_delete && isset($_POST['doDelete']) ) {
         $sql = "DELETE FROM $tablename WHERE $where_clause";
-        $stmt = pdoQueryDie($pdo, $sql, $query_parms);
+        $stmt = pdo_query_die($pdo, $sql, $query_parms);
         $_SESSION['success'] = _("Record deleted");
         return CRUD_UPDATE_SUCCESS;
     }
@@ -1490,7 +1490,7 @@ function crud_update_handle($pdo, $tablename, $fields, $query_parms=array(),
             $parms[':'.$i] = $_POST[$field];
         }
         $sql = "UPDATE $tablename SET $set WHERE $where_clause";
-        $stmt = pdoQueryDie($pdo, $sql, $parms);
+        $stmt = pdo_query_die($pdo, $sql, $parms);
         $_SESSION['success'] = "Record Updated";
         return CRUD_UPDATE_SUCCESS;
     }
@@ -1614,7 +1614,7 @@ function crud_insert_handle($pdo, $tablename, $fields) {
             $values .= ":".$i;
         }
         $sql = "INSERT INTO $tablename \n( $names ) VALUES ( $values )";
-        $stmt = pdoQueryDie($pdo, $sql, $parms);
+        $stmt = pdo_query_die($pdo, $sql, $parms);
         $_SESSION['success'] = _("Record Inserted");
         return CRUD_INSERT_SUCCESS;
     }

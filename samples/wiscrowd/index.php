@@ -4,7 +4,7 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Retrieve required launch data from session
-$LTI = requireData(array('user_id', 'user_displayname', 
+$LTI = lti_require_data(array('user_id', 'user_displayname', 
     'context_title', 'role','link_id'));
 
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
@@ -18,9 +18,9 @@ $p = $CFG->dbprefix;
 // here and leave the list of guesses and average in variables to 
 // fall through to the view below.
 
-headerContent(); // Start the document and begin the <head>
-startBody(); // Finish the </head> and start the <body>
-flashMessages(); // Print out the $_SESSION['success'] and error messages
+html_header_content(); // Start the document and begin the <head>
+html_start_body(); // Finish the </head> and start the <body>
+flash_messages(); // Print out the $_SESSION['success'] and error messages
 
 // A partial form styled using Twitter Bootstrap
 echo('<form method="post">');
@@ -41,4 +41,4 @@ if ( $instructor ) {
 // Finish the body (including loading JavaScript for JQUery and Bootstrap)
 // And put out the common footer material
 
-footerContent();
+html_footer_content();

@@ -5,16 +5,16 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 if ( ! $instructor ) die("Instructor only");
 
-headerContent();
-startBody();
-flashMessages();
-welcomeUserCourse($LTI);
+html_header_content();
+html_start_body();
+flash_messages();
+welcome_user_course($LTI);
 
-togglePre("Session data",safeVarDump($_SESSION));
+html_toggle_pre("Session data",safe_var_dump($_SESSION));
 
 ?>
 <form method="post">
@@ -23,6 +23,6 @@ togglePre("Session data",safeVarDump($_SESSION));
 <?php
 flush();
 
-footerContent();
+html_footer_content();
 
 

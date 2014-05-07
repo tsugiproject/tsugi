@@ -2,8 +2,8 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 session_start();
-headerContent();
-startBody();
+html_header_content();
+html_start_body();
 ?>
 <h1>AutoGrader for Python for Informatics</h1>
 <p>
@@ -46,4 +46,4 @@ their
 and turn in their assignments for grading here.
 </p>
 <?php
-footerContent();
+html_footer_content();

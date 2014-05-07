@@ -6,8 +6,8 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 $p = $CFG->dbprefix;
 
 // Check to see if we are updating the grade for the current 
@@ -39,20 +39,20 @@ if ( $grade <= 0 ) {
 // Lookup the result row if we are grading the non-current user
 $result = false;
 if ( $user_id != $LTI['user_id'] ) {
-    $result = lookupResult($pdo, $LTI, $user_id);
+    $result = lookup_result($pdo, $LTI, $user_id);
 }
 
 // Send the grade
-$debuglog = array();
-$status = sendGradeDetail($grade, $debuglog, $pdo, $result); // This is the slow bit
+$debug_log = array();
+$status = send_grade_detail($grade, $debug_log, $pdo, $result); // This is the slow bit
 
 if ( $status === true ) {
     if ( $user_id != $LTI['user_id'] ) {
-        json_output(array("status" => $status, "debug" => $debuglog));
+        json_output(array("status" => $status, "debug" => $debug_log));
     } else { 
-        json_output(array("status" => $status, "grade" => $grade, "debug" => $debuglog));
+        json_output(array("status" => $status, "grade" => $grade, "debug" => $debug_log));
     }
 } else { 
-    json_error($status, $debuglog);
+    json_error($status, $debug_log);
 }
 

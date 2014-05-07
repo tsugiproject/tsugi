@@ -5,13 +5,13 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "blob_util.php";
 
 // Sanity checks
-$LTI = requireData(array('context_id', 'role'));
+$LTI = lti_require_data(array('context_id', 'role'));
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 // Model 
 $p = $CFG->dbprefix;
 if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 1) {
-    $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
+    $_SESSION['error'] = 'Error: Maximum size of '.max_upload().'MB exceeded.';
     header( 'Location: '.sessionize('index.php') ) ;
     return;
 }
@@ -45,19 +45,19 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
 
 // Sometimes, if the MAX_UPLOAD_SIZE is exceeded, it deletes all of $_POST
 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-    $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
+    $_SESSION['error'] = 'Error: Maximum size of '.max_upload().'MB exceeded.';
     header( 'Location: '.sessionize('index.php') ) ;
     return;
 }
 
 // View 
-headerContent();
+html_header_content();
 ?>
 </head>
 <body>
 <?php
-flashMessages();
-welcomeUserCourse($LTI);
+flash_messages();
+welcome_user_course($LTI);
 
 $foldername = getFolderName($LTI);
 if ( !file_exists($foldername) ) mkdir ($foldername);
@@ -71,7 +71,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     $id = $row['file_id'];
     $fn = $row['file_name'];
     echo '<li><a href="blob_serve.php?id='.$id.'" target="_new">'.htmlent_utf8($fn).'</a>';
-    if ( isInstructor($LTI) ) {
+    if ( is_instructor($LTI) ) {
         echo ' (<a href="blob_delete.php?id='.$id.'">Delete</a>)';
     }
     echo '</li>';
@@ -82,14 +82,14 @@ if ( $count == 0 ) echo "<p>No Files Found</p>\n";
 
 echo("</ul>\n");
 
-if ( isInstructor($LTI) ) { ?>
-<h4>Upload file (max <?php echo(maxUpload());?>MB)</h4>
+if ( is_instructor($LTI) ) { ?>
+<h4>Upload file (max <?php echo(max_upload());?>MB)</h4>
 <form name="myform" enctype="multipart/form-data" method="post" action="<?php sessionize('index.php');?>">
 <p>Upload File: <input name="uploaded_file" type="file"> 
-   <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(maxUpload());?>000000" /> 
+   <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(max_upload());?>000000" /> 
    <input type="submit" name="submit" value="Upload"></p>
 </form>
 <?php
 }
 
-footerContent();
+html_footer_content();

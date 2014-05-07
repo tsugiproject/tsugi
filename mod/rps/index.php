@@ -4,7 +4,7 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
@@ -130,4 +130,4 @@ leaders();
 <p id="leaders">
 </p>
 <?php
-footerContent();
+html_footer_content();

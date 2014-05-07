@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "files_util.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id'));
+$LTI = lti_require_data(array('user_id', 'link_id'));
 
 $fn = $_REQUEST['file'];
 if ( strlen($fn) < 1 ) {

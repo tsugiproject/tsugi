@@ -7,15 +7,15 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 session_start();
 
 // Get the user's grade data also checks session
-$row = loadGrade($pdo, $_REQUEST['user_id']);
+$row = load_grade($pdo, $_REQUEST['user_id']);
 
 // View 
-headerContent();
-startBody();
-flashMessages();
+html_header_content();
+html_start_body();
+flash_messages();
 
 // Show the basic info for this user
-showGradeInfo($row);
+show_grade_info($row);
 
 // Unique detail
 echo("<p>Submitted URL:</p>\n");
@@ -26,4 +26,4 @@ if ( is_object($json) && isset($json->url)) {
     echo("</a></p>\n");
 }
 
-footerContent();
+html_footer_content();

@@ -37,15 +37,15 @@ if ( $row === CRUD_UPDATE_FAIL || $row === CRUD_UPDATE_SUCCESS ) {
     return;
 }
 
-headerContent();
-startBody();
-topNav();
-flashMessages();
+html_header_content();
+html_start_body();
+html_top_nav();
+flash_messages();
 
 echo("<h1>$title</h1>\n<p>\n");
 $retval = crud_update_form($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 
-footerContent();
+html_footer_content();
 

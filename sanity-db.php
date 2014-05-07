@@ -73,13 +73,13 @@ to see if this message goes away.</p>");
 target="_blank">tsugi.org</a>');
 
     echo("\n</div>\n");
-    dieWithErrorLog("Database error ".$msg);
+    die_with_error_log("Database error ".$msg);
 }   
 
 // Now check the plugins table to see if it exists
 $p = $CFG->dbprefix;
 $plugins = "{$p}lms_plugins";
-$table_fields = pdoMetadata($pdo, $plugins);
+$table_fields = pdo_metadata($pdo, $plugins);
 if ( $table_fields === false ) {
     echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
     echo("<p>It appears that your database connection is working properly
@@ -92,7 +92,7 @@ in the <code>\$CFG->adminpw</code> setting.
     echo("\n</div>\n");
 // Now check to see if a database upgrade might be necessary
 } else {
-    $row = pdoRowDie($pdo, "SELECT MAX(version) AS version FROM {$plugins}");
+    $row = pdo_row_die($pdo, "SELECT MAX(version) AS version FROM {$plugins}");
     $actualdbversion = $row['version'];
     if ( $actualdbversion < $CFG->dbversion ) {
         echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");

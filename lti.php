@@ -6,21 +6,21 @@ require_once 'lib/lti_db.php';
 
 // Pull LTI data out of the incoming $_POST and map into the same
 // keys that we use in our database (i.e. like $row)
-$post = extractPost();
+$post = lti_extract_post();
 if ( $post === false ) {
-    $pdata = safeVarDump($_POST);
+    $pdata = safe_var_dump($_POST);
     error_log("Missing post data: ".$pdata);
     require("lti/nopost.php");
     return;
 }
 
 if ( $post['key'] == '12345' && ! $CFG->DEVELOPER) {
-    dieWithErrorLog('You can only use key 12345 in developer mode');
+    die_with_error_log('You can only use key 12345 in developer mode');
 }
 
 // We make up a Session ID Key because we don't want a new one
 // each time the same user launches the same link.
-$session_id = getCompositeKey($post, $CFG->sessionsalt);
+$session_id = lti_get_composite_key($post, $CFG->sessionsalt);
 session_id($session_id);
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
@@ -31,8 +31,8 @@ $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
 
 // Read all of the data from the database with a very long
 // LEFT JOIN and get all the data we have back in the $row variable
-// $row = loadAllData($pdo, $CFG->dbprefix, false, $post);
-$row = loadAllData($pdo, $CFG->dbprefix, $CFG->dbprefix."profile", $post);
+// $row = lti_load_all_data($pdo, $CFG->dbprefix, false, $post);
+$row = lti_load_all_data($pdo, $CFG->dbprefix, $CFG->dbprefix."profile", $post);
 
 $delta = 0;
 if ( isset($_POST['oauth_timestamp']) ) {
@@ -45,15 +45,15 @@ if ( isset($_POST['oauth_timestamp']) ) {
 
 // Use returned data to check the OAuth signature on the
 // incoming data
-$valid = verifyKeyAndSecret($post['key'],$row['secret']);
+$valid = lti_verify_key_and_secret($post['key'],$row['secret']);
 if ( $valid !== true ) {
     print "<pre>\n";
     print_r($valid);
     print "</pre>\n";
-    dieWithErrorLog("OAuth validation fail key=".$post['key']." delta=".$delta." error=".$valid[0]);
+    die_with_error_log("OAuth validation fail key=".$post['key']." delta=".$delta." error=".$valid[0]);
 }
 
-$actions = adjustData($pdo, $CFG->dbprefix, $row, $post);
+$actions = lti_adjust_data($pdo, $CFG->dbprefix, $row, $post);
 
 // If there is an appropriate role override variable, we use that role
 if ( isset($row['role_override']) && isset($row['role']) && 
@@ -70,7 +70,7 @@ if ( isset($_SERVER['REMOTE_ADDR']) ) $_SESSION['REMOTE_ADDR'] = $_SERVER['REMOT
 $_SESSION['CSRF_TOKEN'] = uniqid();
 
 // Check if we can auto-login the system user
-if ( getCustom('dologin', false) && $pdo !== false ) login_secure_cookie($pdo);
+if ( lti_get_custom('dologin', false) && $pdo !== false ) login_secure_cookie($pdo);
 
 // See if we have a custom assignment setting.
 if ( ! isset($_POST['custom_assn'] ) ) {

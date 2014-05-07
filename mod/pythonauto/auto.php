@@ -6,13 +6,13 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once "exercises.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id', 'result_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id', 'result_id'));
+$instructor = is_instructor($LTI);
 $user_id = $LTI['user_id'];
 $p = $CFG->dbprefix;
 
 // Get the current user's grade data also checks session
-$row = loadGrade($pdo);
+$row = load_grade($pdo);
 $OLDCODE = false;
 $json = array();
 $editor = 1;
@@ -25,7 +25,7 @@ if ( $row !== false && isset($row['json'])) {
 if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0' ) ) {
     $neweditor = $_GET['editor']+0;
     if ( $editor != $neweditor ) {
-        updateGradeJSON($pdo, array("editor" => $neweditor));
+        update_grade_json($pdo, array("editor" => $neweditor));
         $json['editor'] = $neweditor;
         $editor = $neweditor;
     }
@@ -33,9 +33,9 @@ if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0
 $codemirror = $editor == 1;
 
 // Get any due date information
-$dueDate = getDueDate();
+$dueDate = get_due_date();
 
-headerContent();
+html_header_content();
 
 // Defaults
 $QTEXT = 'You can write any code you like in the window below.  There are three files
@@ -54,7 +54,7 @@ $CHECKS = false;
 $EX = false;
 
 // Check which exercise we are supposed to do
-$ex = getCustom('exercise');
+$ex = lti_get_custom('exercise');
 if ( $ex === false && isset($_REQUEST["exercise"]) ) {
     $ex = $_REQUEST["exercise"];
 }
@@ -335,7 +335,7 @@ function load_files() {
 
         $.ajax({
             type: "POST",
-            url: "<?php echo sessionize('sendgrade.php'); ?>",
+            url: "<?php echo sessionize('send_grade.php'); ?>",
             dataType: "json",
             beforeSend: function (request)
             {
@@ -372,7 +372,7 @@ word-wrap: break-word; /* IE 5.5+ */
 }
 </style>
 <?php
-startBody();
+html_start_body();
 ?>
 
 
@@ -386,7 +386,7 @@ startBody();
 if ( isset($LTI['link_title']) ) {
     echo(htmlent_utf8($LTI['link_title']));
 } else {
-    welcomeUserCourse($LTI); 
+    welcome_user_course($LTI); 
 }
 ?></h4>
       </div>
@@ -464,7 +464,7 @@ if ( $dueDate->message ) {
         echo('<button onclick="resetcode()" type="button">Reset Code</button> ');
     }
     echo('<button onclick="$(\'#info\').modal();return false;" type="button">Info</button>'."\n");
-    doneButton();
+    html_done_button();
     if ( $instructor ) {
         if ( $EX === false ) {
             echo(' <a href="grades.php" target="_blank">View Student Code</a>'."\n");
@@ -514,10 +514,10 @@ if ( $OLDCODE !== false ) {
 Setting: 
 <?php
     if ( $codemirror ) {
-        $editurl = reConstructQuery('auto.php',array("editor" => 0));
+        $editurl = reconstruct_query('auto.php',array("editor" => 0));
         $textval = "Hide editor";
     } else {
-        $editurl = reConstructQuery('auto.php',array("editor" => 1));
+        $editurl = reconstruct_query('auto.php',array("editor" => 1));
         $textval = "Show editor";
     }
     echo('<a href="'.$editurl.'">'.$textval.'</a>.  ');
@@ -530,7 +530,7 @@ The source code for this auto-grader is available on
 <?php   echo(htmlentities($CODE)); ?>
 </textarea>
 <?php
-footerStart();
+html_footer_start();
 ?>
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/js/jquery.splitter-0.14.0.js"></script>
 <script type="text/javascript">
@@ -604,4 +604,4 @@ function load_cm() {
  });
 </script>
 <?php
-footerEnd();
+html_footer_end();

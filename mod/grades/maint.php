@@ -8,8 +8,8 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 noBuffer();
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 if ( ! $instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
@@ -22,12 +22,12 @@ if ( isset($_GET['link_id']) ) {
 // Load to make sure it is within our context
 $link_info = false;
 if ( $instructor && $link_id > 0 ) {
-    $link_info = loadLinkInfo($pdo, $link_id);
+    $link_info = load_link_info($pdo, $link_id);
 }
 if ( $link_info === false ) die("Invalid link");
 
 if ( isset($_POST['resetServerGrades']) ) {
-    $lstmt = pdoQueryDie($pdo,
+    $lstmt = pdo_query_die($pdo,
         "UPDATE {$p}lti_result SET server_grade=NULL, retrieved_at=NULL
         WHERE link_id = :LID",
         array(":LID" => $link_id)
@@ -40,7 +40,7 @@ if ( isset($_POST['resetServerGrades']) ) {
 }
 
 if ( isset($_POST['getServerGrades']) ) {
-    $row = pdoRowDie($pdo,
+    $row = pdo_row_die($pdo,
         "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE link_id = :LID AND grade IS NOT NULL AND 
@@ -55,15 +55,15 @@ if ( isset($_POST['getServerGrades']) ) {
         return;
     }
 
-    headerContent();
-    echo(togglePreScript());
+    html_header_content();
+    echo(html_toggle_preScript());
     session_write_close();
     echo("</head><body>\n");
 
     echo("Records to be processed: ".$total."<br/>");
     flush();
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "SELECT result_id, sourcedid, service_key FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE link_id = :LID AND grade IS NOT NULL AND 
@@ -80,12 +80,12 @@ if ( isset($_POST['getServerGrades']) ) {
         $count = $count + 1;
         $start = microtime(true);
         // UPDATEs automatically on success
-        $grade = getGrade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
+        $grade = get_grade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
         $et = (microtime(true) - $start) ;
         $ets = sprintf("%1.3f",$et);
         if ( is_string($grade) ) {
             $fail++;
-            togglePre("Error at ".$count.' / '.$total.' ('.$ets.')',$grade);
+            html_toggle_pre("Error at ".$count.' / '.$total.' ('.$ets.')',$grade);
             flush();
         } else {
             $success++;
@@ -109,12 +109,12 @@ if ( isset($_POST['getServerGrades']) ) {
 }
 
 if ( isset($_POST['fixServerGrades']) ) {
-    headerContent();
-    echo(togglePreScript());
+    html_header_content();
+    echo(html_toggle_preScript());
     echo("</head><body>\n");
     session_write_close();
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "SELECT result_id, link_id, grade, server_grade, note, 
             sourcedid, service_key, 
             U.user_id AS user_id, displayname, email 
@@ -140,8 +140,8 @@ if ( isset($_POST['fixServerGrades']) ) {
         echo("<br/>\n");
         $count = $count + 1;
 
-        $debuglog = array();
-        $status = sendGradeDetail($row['grade'], $debuglog, $pdo, $row); // This is the slow bit
+        $debug_log = array();
+        $status = send_grade_detail($row['grade'], $debug_log, $pdo, $row); // This is the slow bit
         if ( $status === true ) {
             echo('Grade submitted to server'."<br/>\n");
             $success++;
@@ -150,11 +150,11 @@ if ( isset($_POST['fixServerGrades']) ) {
             $msg = "result_id=".$row['result_id']."\n".
                 "grade=".$row['grade']." server_grade=".$row['server_grade']."\n".
                 "error=".$status;
-            echoLog("Problem Sending Grade: ".session_id()."\n".$msg."\n".
+            echo_log("Problem Sending Grade: ".session_id()."\n".$msg."\n".
               "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
-            togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
+            html_toggle_pre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
             flush();
             echo("Problem sending grade ".$status."<br/>\n");
             $fail++;
@@ -162,7 +162,7 @@ if ( isset($_POST['fixServerGrades']) ) {
         }
 
         // Check to see if the grade we sent is really there - Also updates our local table
-        $server_grade = getGrade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
+        $server_grade = get_grade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
         if ( is_string($server_grade) ) {
             echo('<pre class="alert alert-danger">'."\n");
             $msg = "result_id=".$row['result_id']."\n".
@@ -170,7 +170,7 @@ if ( isset($_POST['fixServerGrades']) ) {
                 "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
                 "error=".$server_grade;
 
-            echoLog("Problem Updating Grade: ".session_id()."\n".$msg."\n".
+            echo_log("Problem Updating Grade: ".session_id()."\n".$msg."\n".
               "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
@@ -178,7 +178,7 @@ if ( isset($_POST['fixServerGrades']) ) {
             error_log("Error re-retrieving grade: ".session_id().' result_id='.$row['result_id'].
                 ' sourcedid='+$row['sourcedid']+' service_key='+$row['service_key']);
             
-            togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
+            html_toggle_pre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
             flush();
             $fail++;
             continue;
@@ -200,7 +200,7 @@ if ( isset($_POST['fixServerGrades']) ) {
 }
 
 // View 
-headerContent();
+html_header_content();
 ?>
 <script type="text/javascript">
 function showFrame() {
@@ -210,8 +210,8 @@ function showFrame() {
 }
 </script>
 <?php
-startBody();
-flashMessages();
+html_start_body();
+flash_messages();
 
 $iframeurl = sessionize($CFG->wwwroot . '/mod/grades/maint.php?link_id=' . $link_id);
 ?>
@@ -251,14 +251,14 @@ Link id: <?php echo($link_id);
     if ( isset($link_info['title']) ) echo(' '.htmlent_utf8($link_info['title'])) ; ?> 
 </pre>
 
-<p><b>Total results:</b> <span id="total"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
-<img id="totspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+<p><b>Total results:</b> <span id="total"><img src="<?php echo(get_spinner_url()); ?>"></span>
+<img id="totspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
 </p>
-<p><b>Grades to Retrieve:</b> <span id="toretrieve"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
-<img id="retspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+<p><b>Grades to Retrieve:</b> <span id="toretrieve"><img src="<?php echo(get_spinner_url()); ?>"></span>
+<img id="retspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
 </p>
-<p><b>Mis-matched Grades:</b> <span id="mismatch"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
-<img id="misspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+<p><b>Mis-matched Grades:</b> <span id="mismatch"><img src="<?php echo(get_spinner_url()); ?>"></span>
+<img id="misspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
 </p>
 
 <div id="iframediv" style="display:none">
@@ -275,7 +275,7 @@ That is OK - simply come back and restart it - it will pick up where it left off
 
 
 <?php
-footerStart();
+html_footer_start();
 ?>
 <script type="text/javascript">
 $UPDATE_INTERVAL = false;
@@ -304,4 +304,4 @@ function updateNumbers() {
 updateNumbers();
 </script>
 <?
-footerEnd();
+html_footer_end();

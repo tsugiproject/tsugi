@@ -26,10 +26,10 @@ if ( $retval == CRUD_INSERT_SUCCESS || $retval == CRUD_INSERT_FAIL ) {
     return;
 }
 
-headerContent();
-startBody();
-topNav();
-flashMessages();
+html_header_content();
+html_start_body();
+html_top_nav();
+flash_messages();
 
 echo("<h1>Adding Key Entry</h1>\n<p>\n");
 
@@ -37,5 +37,5 @@ crud_insert_form($fields, $from_location);
 
 echo("</p>\n");
 
-footerContent();
+html_footer_content();
 

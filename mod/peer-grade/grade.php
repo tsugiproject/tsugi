@@ -7,8 +7,8 @@ require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 $p = $CFG->dbprefix;
 
 $user_id = false;
@@ -40,7 +40,7 @@ if ( $assn_id == false ) {
 if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
 
     $submit_id = $_POST['submit_id']+0; 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "INSERT INTO {$p}peer_flag 
             (submit_id, user_id, note, created_at, updated_at) 
             VALUES ( :SID, :UID, :NOTE, NOW(), NOW()) 
@@ -100,7 +100,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     unset($_SESSION['peer_submit_id']);
     $submit_id = $_POST['submit_id']+0; 
 
-    $stmt = pdoQuery($pdo,
+    $stmt = pdo_query($pdo,
         "INSERT INTO {$p}peer_grade 
             (submit_id, user_id, points, note, created_at, updated_at) 
             VALUES ( :SID, :UID, :POINTS, :NOTE, NOW(), NOW()) 
@@ -111,7 +111,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
             ':POINTS' => $points,
             ':NOTE' => $_POST['note'])
     );
-    cacheClear('peer_grade');
+    cache_clear('peer_grade');
     if ( ! $stmt->success ) {
         $_SESSION['error'] = $stmt->errorImplode;
         header( 'Location: '.sessionize($url_goback) ) ;
@@ -122,9 +122,9 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     $grade = computeGrade($pdo, $assn_id, $assn_json, $user_id);
     $_SESSION['success'] = 'Grade submitted';
     if ( $grade > 0 ) {
-        $result = lookupResult($pdo, $LTI, $user_id);
-        $debuglog = array();
-        $status = sendGradeDetail($grade, $debuglog, $pdo, $result); // This is the slow bit
+        $result = lookup_result($pdo, $LTI, $user_id);
+        $debug_log = array();
+        $status = send_grade_detail($grade, $debug_log, $pdo, $result); // This is the slow bit
 
         if ( $status === true ) {
             $_SESSION['success'] = 'Grade submitted to server';
@@ -166,9 +166,9 @@ if ( $submit_json === null ) {
 }
 
 // View 
-headerContent();
-startBody();
-flashMessages();
+html_header_content();
+html_start_body();
+flash_messages();
 
 echo("<p><b>Please be careful, you cannot revise grades after you submit them.</b></p>\n");
 
@@ -205,4 +205,4 @@ flagging when instructor attention is needed.</p>
 <?php
 
 $_SESSION['peer_submit_id'] = $submit_id;  // Our CSRF touch
-footerContent();
+html_footer_content();

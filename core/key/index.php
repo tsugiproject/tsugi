@@ -15,7 +15,7 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! ( isset($_SESSION['id']) || is_admin() ) ) {
-    $_SESSION['login_return'] = getPwdFull(__FILE__) . "/index.php";
+    $_SESSION['login_return'] = html_get_url_full(__FILE__) . "/index.php";
     header('Location: '.$CFG->wwwroot.'/login.php');
     return;
 }
@@ -36,7 +36,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         header("Location: index.php");
         return;
     }
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "INSERT INTO {$CFG->dbprefix}key_request  
         (user_id, title, notes, state, lti, created_at, updated_at) 
         VALUES ( :UID, :TITLE, :NOTES, 0, :LTI, NOW(), NOW() )",
@@ -52,7 +52,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
             "\nNotes\n".$_POST['notes']."\n\n".
             "Link: ".get_current_file_url(__FILE__)."\n";
 
-        $retval = mailSend($to, $subject, $message, $user_id, $token);
+        $retval = mail_send($to, $subject, $message, $user_id, $token);
     }
     $_SESSION['success'] = "Record inserted";
     header("Location: index.php");
@@ -68,9 +68,9 @@ if ( !is_admin() ) {
     $query_parms = array(":UID" => $_SESSION['id']);
 }
 
-$newsql = pagedPDOQuery($sql, $query_parms, $searchfields);
+$newsql = pdo_paged_query($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
-$rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
+$rows = pdo_all_rows_die($pdo, $newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
     $newrow = $row;
@@ -85,10 +85,10 @@ foreach ( $rows as $row ) {
     $newrows[] = $newrow;
 }
 
-headerContent();
-startBody();
-topNav();
-flashMessages();
+html_header_content();
+html_start_body();
+html_top_nav();
+flash_messages();
 ?>
 <h1>LTI Key Requests</h1>
 <p>
@@ -151,7 +151,7 @@ using the IMS Learning Tools Interoperability standard.  You can use this page
 to request access to this service.
 </p>
 <?php } else { 
-    pagedPDOTable($newrows, $searchfields);
+    pdo_paged_table($newrows, $searchfields);
 } 
 if ( $goodsession ) { ?>
 <p>
@@ -160,5 +160,5 @@ if ( $goodsession ) { ?>
 <?php } ?>
 
 <?php
-footerContent();
+html_footer_content();
 

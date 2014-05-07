@@ -1,13 +1,13 @@
 <?php
 
-function pdoRowDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
-    $stmt = pdoQueryDie($pdo, $sql, $arr, $error_log);
+function pdo_row_die($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+    $stmt = pdo_query_die($pdo, $sql, $arr, $error_log);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row;
 }
 
-function pdoAllRowsDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
-    $stmt = pdoQueryDie($pdo, $sql, $arr, $error_log);
+function pdo_all_rows_die($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+    $stmt = pdo_query_die($pdo, $sql, $arr, $error_log);
     $rows = array();
     while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         array_push($rows, $row);
@@ -15,9 +15,9 @@ function pdoAllRowsDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     return $rows;
 }
 
-function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+function pdo_query_die($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     global $CFG;
-    $stmt = pdoQuery($pdo, $sql, $arr, $error_log);
+    $stmt = pdo_query($pdo, $sql, $arr, $error_log);
     if ( ! $stmt->success ) {
         error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
         if ( isset($CFG) && isset($CFG->dirroot) && isset($CFG->DEVELOPER) && $CFG->DEVELOPER) {
@@ -32,7 +32,7 @@ function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
 }
 
 // Run a PDO Query with lots of error checking
-function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+function pdo_query($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     $errormode = $pdo->getAttribute(PDO::ATTR_ERRMODE);
     if ( $errormode != PDO::ERRMODE_EXCEPTION) {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -42,7 +42,7 @@ function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     $message = '';
     if ( $arr !== FALSE && ! is_array($arr) ) $arr = Array($arr);
     $start = microtime(true);
-    // debugLog($sql, $arr);
+    // debug_log($sql, $arr);
     try {
         $q = $pdo->prepare($sql);
         if ( $arr === FALSE ) {
@@ -77,9 +77,9 @@ function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     return $q;
 }
 
-function pdoMetadata($pdo, $tablename) {
+function pdo_metadata($pdo, $tablename) {
     $sql = "SHOW COLUMNS FROM ".$tablename;
-    $q = pdoQuery($pdo, $sql);
+    $q = pdo_query($pdo, $sql);
     if ( $q->success ) {
         return $q->fetchAll();
     } else {

@@ -6,23 +6,23 @@
 // all database.php files.
 $CFG->dbversion = 2014050500;
 
-function dieWithErrorLog($msg, $extra=false, $prefix="DIE:") {
+function die_with_error_log($msg, $extra=false, $prefix="DIE:") {
     error_log($prefix.' '.$msg.' '.$extra);
-    printStackTrace();
+    print_stack_trace();
     die($msg); // with error_log
 }
 
-function echoLog($msg) {
+function echo_log($msg) {
     echo($msg);
     error_log(str_replace("\n"," ",$msg));
 }
 
-function safeSessionId() {
+function session_safe_id() {
     $retval = session_id();
     if ( strlen($retval) > 10 ) return '**********'.substr($retval,5);
 }
 
-function printStackTrace() {
+function print_stack_trace() {
     ob_start();
     debug_print_backtrace();
     $data = ob_get_clean();
@@ -42,10 +42,10 @@ if ( defined('COOKIE_SESSION') ) {
     ini_set('session.use_trans_sid',1);
 }
 
-if ( ! isset($CFG) ) dieWithErrorLog("Please configure this product using config.php");
-if ( ! isset($CFG->staticroot) ) dieWithErrorLog('$CFG->staticroot not defined in config.php');
-if ( ! isset($CFG->timezone) ) dieWithErrorLog('$CFG->timezone not defined in config.php');
-if ( strpos($CFG->dbprefix, ' ') !== false ) dieWithErrorLog('$CFG->dbprefix cannot have spaces in it');
+if ( ! isset($CFG) ) die_with_error_log("Please configure this product using config.php");
+if ( ! isset($CFG->staticroot) ) die_with_error_log('$CFG->staticroot not defined in config.php');
+if ( ! isset($CFG->timezone) ) die_with_error_log('$CFG->timezone not defined in config.php');
+if ( strpos($CFG->dbprefix, ' ') !== false ) die_with_error_log('$CFG->dbprefix cannot have spaces in it');
 
 if ( !isset($CFG->ownername) ) $CFG->ownername = false; 
 if ( !isset($CFG->owneremail) ) $CFG->owneremail = false; 
@@ -98,20 +98,20 @@ function sessionize($url) {
     return $url;
 }
 
-function reConstructQuery($baseurl, $newparms=false) {
+function reconstruct_query($baseurl, $newparms=false) {
     foreach ( $_GET as $k => $v ) {
         if ( $k == session_name() ) continue;
         if ( is_array($newparms) && array_key_exists($k, $newparms) ) continue;
-        $baseurl = addUrlParm($baseurl, $k, $v);
+        $baseurl = add_url_parm($baseurl, $k, $v);
     }
     if ( is_array($newparms) ) foreach ( $newparms as $k => $v ) {
-        $baseurl = addUrlParm($baseurl, $k, $v);
+        $baseurl = add_url_parm($baseurl, $k, $v);
     }
 
     return $baseurl;
 }
 
-function addUrlParm($url, $key, $val) {
+function add_url_parm($url, $key, $val) {
     $url .= strpos($url,'?') === false ? '?' : '&';
     $url .= urlencode($key) . '=' . urlencode($val);
     return $url;

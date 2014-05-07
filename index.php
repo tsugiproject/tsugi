@@ -16,15 +16,15 @@ session_start();
 
 if ( $pdo !== false ) login_secure_cookie($pdo);
 
-headerContent();
-startBody();
+html_header_content();
+html_start_body();
 
 require_once("sanity-db.php");
-topNav();
+html_top_nav();
 ?>
       <div>
 <?php
-flashMessages();
+flash_messages();
 if ( $CFG->DEVELOPER ) {
     echo '<div class="alert alert-danger" style="margin-top: 10px;">'.
         'Note: Currently this server is running in developer mode.'.
@@ -50,4 +50,4 @@ You can look at the source code for this software at
 </p>
       </div> <!-- /container -->
 
-<?php footerContent(); 
+<?php html_footer_content(); 

@@ -4,13 +4,13 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;
 $localstatic = getLocalStatic(__FILE__) . '/static';
 
-headerContent();
+html_header_content();
 ?>
 <!--
 <link rel="stylesheet" type="text/css" media="screen" href="http://www.trirand.com/blog/jqgrid/themes/redmond/jquery-ui-custom.css" />
@@ -19,9 +19,9 @@ headerContent();
 -->
 <link href="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/css/ui.jqgrid.css" rel="stylesheet">
 <?php
-startBody();
-flashMessages();
-welcomeUserCourse($LTI);
+html_start_body();
+flash_messages();
+welcome_user_course($LTI);
 ?>
 <h1>This is under construction - it really does nothing at this point</h1>
 <div id="yo">
@@ -29,7 +29,7 @@ welcomeUserCourse($LTI);
 <div id="pager2"></div>
 </div>
 <?php
-footerStart();
+html_footer_start();
 ?>
 <script src="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/js/i18n/grid.locale-en.js" type="text/javascript"></script>
 <script src="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/js/jquery.jqGrid.src.js" type="text/javascript"></script>
@@ -63,5 +63,5 @@ jQuery("#list2").jqGrid({
 jQuery("#list2").jqGrid('navGrid','#pager2',{edit:false,add:false,del:false});
 </script>
 <?php
-footerEnd();
+html_footer_end();
 

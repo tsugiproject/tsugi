@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "blob_util.php";
 
 // Sanity checks
-$LTI = requireData(array('context_id'));
+$LTI = lti_require_data(array('context_id'));
 
 $id = $_REQUEST['id'];
 if ( strlen($id) < 1 ) {

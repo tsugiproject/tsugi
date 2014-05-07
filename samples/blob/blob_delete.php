@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "blob_util.php";
 
 // Sanity checks
-$LTI = requireData(array('context_id', 'link_id'));
+$LTI = lti_require_data(array('context_id', 'link_id'));
 
 $id = $_REQUEST['id'];
 if ( strlen($id) < 1 ) {
@@ -33,8 +33,8 @@ if ( isset($_POST["doDelete"]) ) {
 }
 
 // Switch to view / controller
-headerContent();
-flashMessages();
+html_header_content();
+flash_messages();
 
 echo '<h4 style="color:red">Are you sure you want to delete: ' .htmlent_utf8($fn). "</h4>\n"; 
 ?>
@@ -45,4 +45,4 @@ echo '<h4 style="color:red">Are you sure you want to delete: ' .htmlent_utf8($fn
 </form>
 <?php
 
-footerContent();
+html_footer_content();

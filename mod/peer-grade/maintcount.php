@@ -7,8 +7,8 @@ require_once "peer_util.php";
 header_json();
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 if ( ! $instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
@@ -23,7 +23,7 @@ if ( $assn === false ) {
 }
 
 // Check how much work we have to do
-$row = pdoRowDie($pdo,
+$row = pdo_row_die($pdo,
     "SELECT COUNT(submit_id) AS count FROM {$p}peer_submit AS S
     WHERE assn_id = :AID AND regrade IS NULL",
     array(":AID" => $assn_id)

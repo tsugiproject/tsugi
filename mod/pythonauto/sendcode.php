@@ -4,8 +4,8 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 $user_id = $LTI['user_id'];
 
 if ( ! isset($_POST['code']) ) {
@@ -15,7 +15,7 @@ if ( ! isset($_POST['code']) ) {
 
 // Check to see if the code actually changed
 $code = $_POST['code'];
-updateGradeJSON($pdo, array("code" => $code));
+update_grade_json($pdo, array("code" => $code));
 $_SESSION['pythonauto_lastcode'] = $code;
 
 $retval = Array("status" => "success");

@@ -2,15 +2,15 @@
 
 require_once "classes.php";
 
-function loadGrades($pdo) {
+function load_grades($pdo) {
     global $CFG;
-    $LTI = requireData(array('link_id', 'role'));
-    $instructor = isInstructor($LTI);
+    $LTI = lti_require_data(array('link_id', 'role'));
+    $instructor = is_instructor($LTI);
     if ( ! $instructor ) die("Requires instructor role");
     $p = $CFG->dbprefix;
 
     // Get basic grade data
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "SELECT R.result_id AS result_id, R.user_id AS user_id,
             grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
         FROM {$p}lti_result AS R
@@ -23,7 +23,7 @@ function loadGrades($pdo) {
 }
 
 // $detail is either false or a class with methods
-function showGrades($stmt, $detail = false) {
+function show_grades($stmt, $detail = false) {
     echo('<table border="1">');
     echo("\n<tr><th>Name<th>Email</th><th>Grade</th><th>Date</th></tr>\n");
 
@@ -43,16 +43,16 @@ function showGrades($stmt, $detail = false) {
 }
 
 // Not cached
-function loadGrade($pdo, $user_id=false) {
+function load_grade($pdo, $user_id=false) {
     global $CFG;
-    $LTI = requireData(array('user_id', 'link_id', 'role'));
-    $instructor = isInstructor($LTI);
+    $LTI = lti_require_data(array('user_id', 'link_id', 'role'));
+    $instructor = is_instructor($LTI);
     if ( ! $instructor && $user_id !== false ) die("Requires instructor role");
     if ( $user_id == false ) $user_id = $LTI['user_id'];
     $p = $CFG->dbprefix;
 
     // Get basic grade data
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "SELECT R.result_id AS result_id, R.user_id AS user_id,
             grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
         FROM {$p}lti_result AS R
@@ -65,7 +65,7 @@ function loadGrade($pdo, $user_id=false) {
     return $row;
 }
 
-function showGradeInfo($row) {
+function show_grade_info($row) {
     echo('<p><a href="grades.php">Back to All Grades</a>'."</p><p>\n");
     echo("User Name: ".htmlent_utf8($row['displayname'])."<br/>\n");
     echo("User Email: ".htmlent_utf8($row['email'])."<br/>\n");
@@ -75,12 +75,12 @@ function showGradeInfo($row) {
 }
 
 // newdata can be a string or array (preferred)
-function updateGradeJSON($pdo, $newdata=false) {
+function update_grade_json($pdo, $newdata=false) {
     global $CFG;
     if ( $newdata == false ) return;
     if ( is_string($newdata) ) $newdata = json_decode($newdata, true);
-    $LTI = requireData(array('result_id'));
-    $row = loadGrade($pdo);
+    $LTI = lti_require_data(array('result_id'));
+    $row = load_grade($pdo);
     $data = array();
     if ( $row !== false && isset($row['json'])) {
         $data = json_decode($row['json'], true);
@@ -98,7 +98,7 @@ function updateGradeJSON($pdo, $newdata=false) {
 
     $jstr = json_encode($data);
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "UPDATE {$CFG->dbprefix}lti_result SET json = :json, updated_at = NOW() 
             WHERE result_id = :RID",
         array(
@@ -107,13 +107,13 @@ function updateGradeJSON($pdo, $newdata=false) {
     );
 }
 
-function getGrade($pdo, $result_id, $sourcedid, $service) {
+function get_grade($pdo, $result_id, $sourcedid, $service) {
     global $CFG;
-    $grade = getGradeWebService($sourcedid, $service);
+    $grade = get_grade_web_service($sourcedid, $service);
     if ( is_string($grade) ) return $grade;
   
     // UPDATE the retrieved grade
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade, 
             retrieved_at = NOW() WHERE result_id = :RID",
         array( ':server_grade' => $grade, ":RID" => $result_id)
@@ -121,7 +121,7 @@ function getGrade($pdo, $result_id, $sourcedid, $service) {
     return $grade;
 }
 
-function getGradeWebService($sourcedid, $service) {
+function get_grade_web_service($sourcedid, $service) {
     global $CFG;
     global $LastPOXGradeResponse;
     global $LastPOXGradeParse;
@@ -132,7 +132,7 @@ function getGradeWebService($sourcedid, $service) {
     $lti = $_SESSION['lti'];
     if ( ! ( isset($lti['key_key']) && isset($lti['secret']) ) ) {
         error_log('Session is missing required data');
-        $debug = safeVarDump($lti);
+        $debug = safe_var_dump($lti);
         error_log($debug);
         return "Missing required session data";
     }
@@ -178,53 +178,53 @@ function getGradeWebService($sourcedid, $service) {
     return $grade;
 }
 
-function sendGrade($grade, $verbose=true, $pdo=false, $result=false) {
+function send_grade($grade, $verbose=true, $pdo=false, $result=false) {
     if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
-    $debuglog = array();
+    $debug_log = array();
     $retval = false;
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        $retval = sendGradeInternal($grade, null, $debuglog, $pdo, $result);
+        $retval = send_grade_internal($grade, $debug_log, $pdo, $result);
     } catch(Exception $e) {
         $retval = "Grade Exception: ".$e->getMessage();
         error_log($retval);
-        $debuglog[] = $retval;
+        $debug_log[] = $retval;
     } 
-    if ( $verbose ) dumpGradeDebug($debuglog);
+    if ( $verbose ) dumpGradeDebug($debug_log);
     return $retval;
 }
 
-function dumpGradeDebug($debuglog) {
-    if ( ! is_array($debuglog) ) return;
+function dumpGradeDebug($debug_log) {
+    if ( ! is_array($debug_log) ) return;
 
-    foreach ( $debuglog as $k => $v ) {
+    foreach ( $debug_log as $k => $v ) {
         if ( count($v) > 1 ) {
-            togglePre($v[0], $v[1]);
+            html_toggle_pre($v[0], $v[1]);
         } else { 
             line_out($v[0]);
         }
     }
 }
 
-function sendGradeDetail($grade, &$debuglog, $pdo=false, $result=false) {
+function send_grade_detail($grade, &$debug_log, $pdo=false, $result=false) {
     if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
     $retval = false;
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        $retval = sendGradeInternal($grade, $debuglog, $pdo, $result);
+        $retval = send_grade_internal($grade, $debug_log, $pdo, $result);
     } catch(Exception $e) {
         $retval = "Grade Exception: ".$e->getMessage();
-        $debuglog[] = $retval;
+        $debug_log[] = $retval;
         error_log($retval);
     }
     return $retval;
 }
 
-function sendGradeInternal($grade, &$debuglog, $pdo,  $result) {
+function send_grade_internal($grade, &$debug_log, $pdo,  $result) {
     global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
@@ -233,7 +233,7 @@ function sendGradeInternal($grade, &$debuglog, $pdo,  $result) {
         isset($lti['key_key']) && isset($lti['secret']) && 
         array_key_exists('grade', $lti) ) ) {
         error_log('Session is missing required data');
-        $debug = safeVarDump($lti);
+        $debug = safe_var_dump($lti);
         error_log($debug);
         return "Missing required session data";
     }
@@ -241,7 +241,7 @@ function sendGradeInternal($grade, &$debuglog, $pdo,  $result) {
     if ( ! ( isset($result['sourcedid']) && isset($result['result_id']) &&
         array_key_exists('grade', $result) ) ) {
         error_log('Result is missing required data');
-        $debug = safeVarDump($result);
+        $debug = safe_var_dump($result);
         error_log($debug);
         return "Missing required result data";
     }
@@ -249,14 +249,14 @@ function sendGradeInternal($grade, &$debuglog, $pdo,  $result) {
     $sourcedid = $result['sourcedid'];
     // TODO: Should this be result?
     $service = $lti['service'];
-    $status = sendGradeWebService($grade, $sourcedid, $service, $debuglog);
+    $status = send_grade_web_service($grade, $sourcedid, $service, $debug_log);
 
     $detail = $status;
     if ( $detail === true ) {
         $detail = 'Success';
         $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
         error_log($msg);
-        if ( is_array($debuglog) )  $debuglog[] = array($msg);
+        if ( is_array($debug_log) )  $debug_log[] = array($msg);
     } else {
         $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$detail;
         error_log($msg);
@@ -266,7 +266,7 @@ function sendGradeInternal($grade, &$debuglog, $pdo,  $result) {
     // Update result in the database and in the LTI session area
     $_SESSION['lti']['grade'] = $grade;
     if ( $pdo !== false ) {
-        $stmt = pdoQuery($pdo,
+        $stmt = pdo_query($pdo,
             "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade, 
                 updated_at = NOW() WHERE result_id = :RID",
             array(
@@ -279,19 +279,19 @@ function sendGradeInternal($grade, &$debuglog, $pdo,  $result) {
             $msg = "Grade NOT updated result_id=".$result['result_id']." grade=$grade";
         }
         error_log($msg);
-        if ( is_array($debuglog) )  $debuglog[] = array($msg);
+        if ( is_array($debug_log) )  $debug_log[] = array($msg);
     }
     return $status;
 }
 
-function sendGradeWebService($grade, $sourcedid, $service, &$debuglog=false) {
+function send_grade_web_service($grade, $sourcedid, $service, &$debug_log=false) {
     global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
     $lti = $_SESSION['lti'];
     if ( !isset($lti['key_key']) || !isset($lti['secret']) ) {
         error_log('Session is missing required data');
-        $debug = safeVarDump($lti);
+        $debug = safe_var_dump($lti);
         error_log($debug);
         return "Missing required session data";
     }
@@ -306,15 +306,15 @@ function sendGradeWebService($grade, $sourcedid, $service, &$debuglog=false) {
         array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
         getPOXGradeRequest());
     
-    if ( is_array($debuglog) ) $debuglog[] = array('Sending '.$grade.' to '.$lti['service'].' sourcedid='.$sourcedid);
+    if ( is_array($debug_log) ) $debug_log[] = array('Sending '.$grade.' to '.$lti['service'].' sourcedid='.$sourcedid);
 
-    if ( is_array($debuglog) )  $debuglog[] = array('Grade API Request (debug)',$postBody);
+    if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request (debug)',$postBody);
 
     $response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], 
         $content_type, $postBody);
     global $LastOAuthBodyBaseString;
     $lbs = $LastOAuthBodyBaseString;
-    if ( is_array($debuglog) )  $debuglog[] = array("Grade API Response (debug)",$response);
+    if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response (debug)",$response);
     $LastPOXGradeResponse = $response;
     $status = "Failure to store grade";
     if ( strpos($response, '<?xml') !== 0 ) {
@@ -330,7 +330,7 @@ function sendGradeWebService($grade, $sourcedid, $service, &$debuglog=false) {
         }
     } catch(Exception $e) {
         $status = $e->getMessage();
-        if ( is_array($debuglog) )  $debuglog[] = array("Exception: ".$status);
+        if ( is_array($debug_log) )  $debug_log[] = array("Exception: ".$status);
     }
     return $status;
 }

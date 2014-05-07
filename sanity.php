@@ -1,7 +1,7 @@
 <?php
 
 if ( ! isset($CFG) ) { 
-    dieWithErrorLog('This software is not correctly configured, please copy config-dist.php to 
+    die_with_error_log('This software is not correctly configured, please copy config-dist.php to 
     config.php and edit config.php according to the installation instructions.');
 }
 
@@ -12,10 +12,10 @@ if (!defined('PHP_VERSION_ID')) {
 }
 
 if ( PHP_VERSION_ID < 50300 ) {
-    dieWithErrorLog("This software requires PHP 5.3.0 or later");
+    die_with_error_log("This software requires PHP 5.3.0 or later");
 }
 
 if ( strpos(__FILE__,' ') !== false ) {
-    dieWithErrorLog("This software requires that folder and file names have no spaces ".__FILE__);
+    die_with_error_log("This software requires that folder and file names have no spaces ".__FILE__);
 }
 

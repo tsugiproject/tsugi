@@ -894,7 +894,7 @@ Log:
 SAK-12175
 http://bugs.sakaiproject.org/jira/browse/SAK-12175
 Create methods required for gb integration with the Assignment2 tool
-getGradeDefinitionForStudentForItem
+get_gradeDefinitionForStudentForItem
 
 ----------------------
 This automatic notification message was sent by Sakai Collab (https://collab.sakaiproject.org/portal) from the Source site.

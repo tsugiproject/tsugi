@@ -5,8 +5,8 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 $p = $CFG->dbprefix;
 
 $user_info = false;
@@ -22,7 +22,7 @@ if ( isset($_GET['link_id']) ) {
 
 $link_info = false;
 if ( $instructor && $link_id > 0 ) {
-    $link_info = loadLinkInfo($pdo, $link_id);
+    $link_info = load_link_info($pdo, $link_id);
 }
 
 if ( $instructor && isset($_GET['viewall'] ) ) {
@@ -67,11 +67,11 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
         JOIN {$p}lti_link as L ON R.link_id = L.link_id
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
-    $user_info = loadUserInfo($pdo, $user_id);
+    $user_info = load_user_info($pdo, $user_id);
 }
 
 if ( $instructor ) {
-    $lstmt = pdoQueryDie($pdo,
+    $lstmt = pdo_query_die($pdo,
         "SELECT DISTINCT L.title as title, L.link_id AS link_id 
         FROM {$p}lti_link AS L JOIN {$p}lti_result as R 
             ON L.link_id = R.link_id AND R.grade IS NOT NULL
@@ -81,9 +81,9 @@ if ( $instructor ) {
     $links = $lstmt->fetchAll();    
 }
 // View 
-headerContent();
-startBody();
-flashMessages();
+html_header_content();
+html_start_body();
+flash_messages();
 
 if ( $instructor ) {
 ?>
@@ -119,13 +119,13 @@ if ( $user_sql !== false ) {
     if ( $user_info !== false ) {
         echo("<p>Results for ".$user_info['displayname']."</p>\n");
     }
-    // pagedPDO($pdo, $user_sql, $query_parms, $searchfields);
+    // pdo_paged_auto($pdo, $user_sql, $query_parms, $searchfields);
 
     // Temporarily make this small since each entry is costly
     $DEFAULT_PAGE_LENGTH = 10; 
-    $newsql = pagedPDOQuery($user_sql, $query_parms, $searchfields);
+    $newsql = pdo_paged_query($user_sql, $query_parms, $searchfields);
     // echo("<pre>\n$newsql\n</pre>\n");
-    $rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
+    $rows = pdo_all_rows_die($pdo, $newsql, $query_parms);
 
     // Scan to see if there are any un-retrieved server grades
     $newrows = array();
@@ -153,7 +153,7 @@ if ( $user_sql !== false ) {
 
         if ( !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] || 
             $diff > $RETRIEVE_INTERVAL ) {
-            $server_grade = getGrade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
+            $server_grade = get_grade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
             if ( is_string($server_grade)) {
                 echo('<pre class="alert alert-danger">'."\n");
                 $msg = "result_id=".$row['result_id']."\n".
@@ -161,7 +161,7 @@ if ( $user_sql !== false ) {
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
                     "error=".$server_grade;
             
-                echo("Problem Retrieving Grade: ".safeSessionId()." ".$msg);
+                echo("Problem Retrieving Grade: ".session_safe_id()." ".$msg);
                 error_log("Problem Retrieving Grade: ".session_id()."\n".$msg."\n".
                   "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
 
@@ -186,8 +186,8 @@ if ( $user_sql !== false ) {
                     "grade=".$row['grade']." updated=".$row['updated_at']."\n".
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']);
             
-            $debuglog = array();
-            $status = sendGradeWebService($row['grade'], $row['sourcedid'], $row['service_key'], $debuglog);
+            $debug_log = array();
+            $status = send_grade_web_service($row['grade'], $row['sourcedid'], $row['service_key'], $debug_log);
 
             if ( $status === true ) {
                 $newrow['note'] .= " Server grade updated.";
@@ -199,7 +199,7 @@ if ( $user_sql !== false ) {
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
                     "error=".$server_grade;
             
-                echo("Problem Updating Grade: ".safeSessionId()." ".$msg);
+                echo("Problem Updating Grade: ".session_safe_id()." ".$msg);
                 error_log("Problem Updating Grade: ".session_id()."\n".$msg."\n".
                   "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
 
@@ -213,11 +213,11 @@ if ( $user_sql !== false ) {
         $newrows[] = $newrow;
     }
     
-    pagedPDOTable($newrows, $searchfields);
+    pdo_paged_table($newrows, $searchfields);
 }
 
 if ( $summary_sql !== false ) {
-    pagedPDO($pdo, $summary_sql, $query_parms, $searchfields, $orderfields);
+    pdo_paged_auto($pdo, $summary_sql, $query_parms, $searchfields, $orderfields);
 }
 
 if ( $class_sql !== false ) {
@@ -226,8 +226,8 @@ if ( $class_sql !== false ) {
         echo(' (<a href="maint.php?link_id='.$link_id.'" target="_new">Maintenance 
             tasks</a>)'."</p>\n");
     }
-    pagedPDO($pdo, $class_sql, $query_parms, $searchfields);
+    pdo_paged_auto($pdo, $class_sql, $query_parms, $searchfields);
 }
 
 
-footerContent();
+html_footer_content();

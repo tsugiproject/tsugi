@@ -1,5 +1,5 @@
 <?php
-headerContent();
+html_header_content();
 ?>
 </head>
 <body style="padding:10px;">
@@ -26,4 +26,4 @@ if ( count($_POST) > 0 ) {
     print "</pre>\n";
 }
 
-footerContent();
+html_footer_content();

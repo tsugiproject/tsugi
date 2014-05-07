@@ -14,7 +14,7 @@ $instructor = false;
 if ( isset($_SESSION['lti']) ) {
     $lti = $_SESSION['lti'];
     $displayname = $lti['user_displayname'];
-    $instructor = isInstructor($_SESSION['lti']);
+    $instructor = is_instructor($_SESSION['lti']);
 }
 
 // Check if this has a due date..
@@ -60,7 +60,7 @@ function getUrl($sample) {
     if ( isset($_GET['url']) ) {
         echo('<p><a href="#" onclick="window.location.href = window.location.href; return false;">Re-run this test</a></p>'."\n");
         if ( isset($_SESSION['lti']) ) {
-            $retval = updateGradeJSON($pdo, array("url" => $_GET['url']));
+            $retval = update_grade_json($pdo, array("url" => $_GET['url']));
         }
         return $_GET['url'];
     }
@@ -92,7 +92,7 @@ function getUrl($sample) {
     exit();
 }
 
-function testPassed($grade, $url) {
+function webauto_test_passed($grade, $url) {
     global $displayname;
 
     success_out("Test passed - congratulations");
@@ -108,9 +108,9 @@ function testPassed($grade, $url) {
     }
 
     global $pdo;
-    updateGradeJSON($pdo,json_encode(array("url" => $url)));
-    $debuglog = array();
-    $retval = sendGradeDetail($grade, $debuglog, $pdo, false);
+    update_grade_json($pdo,json_encode(array("url" => $url)));
+    $debug_log = array();
+    $retval = send_grade_detail($grade, $debug_log, $pdo, false);
     dumpGradeDebug($dumplog);
     if ( $retval == true ) {
         $success = "Grade sent to server (".intval($grade*100)."%)";
@@ -134,7 +134,7 @@ function testPassed($grade, $url) {
     }
 }
 
-function checkTitle($crawler) {
+function webauto_check_title($crawler) {
     global $displayname;
     if ( $displayname === false ) return true;
 

@@ -79,7 +79,7 @@ function uploadFileToBlob($pdo, $LTI, $FILE_DESCRIPTOR, $SAFETY_CHECK=true)
         // $sha256 = lti_sha256($data);
 
         $sha256 = hash_file('sha256', $FILE_DESCRIPTOR['tmp_name']);
-        $stmt = pdoQueryDie($pdo,
+        $stmt = pdo_query_die($pdo,
             "SELECT file_id, file_sha256 from {$CFG->dbprefix}blob_file
             WHERE context_id = :CID AND file_sha256 = :SHA",
             array(":CID" => $LTI['context_id'], ":SHA" => $sha256)

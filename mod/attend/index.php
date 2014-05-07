@@ -3,7 +3,7 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 // Model 
@@ -104,4 +104,4 @@ if ( $instructor ) {
     echo("</table>\n");
 }
 
-footerContent();
+html_footer_content();

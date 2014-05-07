@@ -13,7 +13,7 @@ if ( ! ( isset($_SESSION["admin"]) || $CFG->DEVELOPER )  ) {
 
 $key = '12345';
 if ( is_string($CFG->DEVELOPER) ) $key = $CFG->DEVELOPER;
-$row = pdoRowDie($pdo, 
+$row = pdo_row_die($pdo, 
     "SELECT secret FROM {$CFG->dbprefix}lti_key WHERE key_key = :DKEY",
     array(':DKEY' => $key));
 $secret = $row ? $row['secret'] : false;
@@ -35,8 +35,8 @@ if ( isset($_POST['loginsecret']) ) {
 }
 
 if ( ! isset($_SESSION['developer'] ) ) {
-headerContent();
-startBody();
+html_header_content();
+html_start_body();
 ?>
 <html><head><body>
 <p>Please enter the developer password:</p>
@@ -46,7 +46,7 @@ startBody();
 </form>
 </body>
 <?php
-footerContent();
+html_footer_content();
     return;
 }
 
@@ -56,10 +56,10 @@ header('Content-Type: text/html; charset=utf-8');
 
 // Load tools from various folders
 $tools = array();
-findTools("mod",$tools);
-findTools("solutions",$tools);
-findTools("samples",$tools);
-findTools("tmp",$tools);
+find_tools("mod",$tools);
+find_tools("solutions",$tools);
+find_tools("samples",$tools);
+find_tools("tmp",$tools);
 
 $cur_url = curPageURL();
 
@@ -118,7 +118,7 @@ function doActive($field) {
     if ( isset($_POST[$field]) ) echo(' class="active" ');
 }
 
-headerContent();
+html_header_content();
 ?>
 <script language="javascript"> 
 function lmsdataToggle() {
@@ -286,4 +286,4 @@ if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
 ?>
       </div>
     </div> <!-- /container -->
-<?php footerContent(); 
+<?php html_footer_content(); 

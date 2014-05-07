@@ -4,7 +4,7 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
 $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;
@@ -138,4 +138,4 @@ if ( isset($_SESSION['success']) ) {
  <button type="submit">Save Location</button>
 </form>
 <?php
-footerContent();
+html_footer_content();

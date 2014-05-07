@@ -9,8 +9,8 @@ require_once "peer_util.php";
 noBuffer();
 
 // Sanity checks
-$LTI = requireData(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isInstructor($LTI);
+$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$instructor = is_instructor($LTI);
 if ( ! $instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
@@ -27,7 +27,7 @@ if ( $assn === false ) {
 }
 
 if ( isset($_POST['restartReGrade']) ) {
-    $lstmt = pdoQueryDie($pdo,
+    $lstmt = pdo_query_die($pdo,
         "UPDATE {$p}peer_submit SET regrade=NULL
         WHERE assn_id = :AID",
         array(":AID" => $assn_id)
@@ -40,12 +40,12 @@ if ( isset($_POST['restartReGrade']) ) {
 }
 
 if ( isset($_POST['reGradePeer']) ) {
-    headerContent();
-    echo(togglePreScript());
+    html_header_content();
+    echo(html_toggle_preScript());
     echo("</head><body>\n");
     session_write_close();
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = pdo_query_die($pdo,
         "SELECT submit_id, S.user_id AS user_id, R.result_id AS result_id,
                 grade, sourcedid, service_key, displayname, email
             FROM {$CFG->dbprefix}peer_submit AS S
@@ -67,7 +67,7 @@ if ( isset($_POST['reGradePeer']) ) {
     while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         $computed_grade = computeGrade($pdo, $assn_id, $assn_json, $row['user_id']);
 
-        $s2 = pdoQueryDie($pdo,
+        $s2 = pdo_query_die($pdo,
             "UPDATE {$CFG->dbprefix}peer_submit SET regrade=1
             WHERE submit_id = :SID",
             array(":SID" => $row['submit_id'])
@@ -84,7 +84,7 @@ if ( isset($_POST['reGradePeer']) ) {
             continue;
         }
 
-        $s2 = pdoQueryDie($pdo,
+        $s2 = pdo_query_die($pdo,
             "UPDATE {$CFG->dbprefix}lti_result 
             SET grade=:GRA, updated_at=NOW()
             WHERE result_id = :RID",
@@ -92,8 +92,8 @@ if ( isset($_POST['reGradePeer']) ) {
         );
 
         // Send the grade to the server
-        $debuglog = array();
-        $status = sendGradeDetail($computed_grade, $debuglog, $pdo, $row); // This is the slow bit
+        $debug_log = array();
+        $status = send_grade_detail($computed_grade, $debug_log, $pdo, $row); // This is the slow bit
         if ( $status === true ) {
             echo(htmlent_utf8($row['displayname']).' ('.htmlent_utf8($row['email']).') ');
             echo("Grade $computed_grade submitted to server<br/>\n");
@@ -103,11 +103,11 @@ if ( isset($_POST['reGradePeer']) ) {
             $msg = "result_id=".$row['result_id']."\n".
                 "grade=".$row['grade']." computed_grade=".$computed_grade."\n".
                 "error=".$status;
-            echoLog("Problem Sending Grade: ".session_id()."\n".$msg."\n".
+            echo_log("Problem Sending Grade: ".session_id()."\n".$msg."\n".
               "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
-            togglePre("Error sending grade",$LastPOXGradeResponse);
+            html_toggle_pre("Error sending grade",$LastPOXGradeResponse);
             flush();
             echo("Problem sending grade ".$status."<br/>\n");
             $fail++;
@@ -122,7 +122,7 @@ if ( isset($_POST['reGradePeer']) ) {
 }
 
 // View 
-headerContent();
+html_header_content();
 ?>
 <script type="text/javascript">
 function showFrame() {
@@ -130,8 +130,8 @@ function showFrame() {
 }
 </script>
 <?php
-startBody();
-flashMessages();
+html_start_body();
+flash_messages();
 
 $iframeurl = sessionize($CFG->wwwroot . '/mod/peer-grade/maint.php?link_id=' . $link_id);
 ?>
@@ -163,8 +163,8 @@ Link id: <?php echo($link_id);
     if ( isset($LTI['link_title']) ) echo(' '.htmlent_utf8($LTI['link_title'])) ; ?> 
 </pre>
 
-<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
-<img id="totspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(get_spinner_url()); ?>"></span>
+<img id="totspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
 </p>
 
 <div id="iframediv" style="display:none">
@@ -181,7 +181,7 @@ and it willpick up where it left off.
 
 
 <?php
-footerStart();
+html_footer_start();
 ?>
 <script type="text/javascript">
 $UPDATE_INTERVAL = false;
@@ -201,4 +201,4 @@ function updateNumbers() {
 updateNumbers();
 </script>
 <?
-footerEnd();
+html_footer_end();

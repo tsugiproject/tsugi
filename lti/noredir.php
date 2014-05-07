@@ -1,5 +1,5 @@
 <?php
-headerContent();
+html_header_content();
 ?>
 </head>
 <body style="padding:10px;">
@@ -27,7 +27,7 @@ in an iframe.</li>
 <p>
 <?php
 
-$tools = findFiles();
+$tools = find_files();
 if ( count($tools) > 1 ) {
     echo("<p>Tools in this system:</p><ul>\n");
     foreach ($tools as $tool ) {
@@ -36,4 +36,4 @@ if ( count($tools) > 1 ) {
     echo("</ul>\n");
 }
 
-footerContent();
+html_footer_content();
