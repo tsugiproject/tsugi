@@ -8,7 +8,8 @@ require_once 'lib/lti_db.php';
 // keys that we use in our database (i.e. like $row)
 $post = extractPost();
 if ( $post === false ) {
-    error_log("Missing post data");
+    $pdata = safeVarDump($_POST);
+    error_log("Missing post data: ".$pdata);
     require("lti/nopost.php");
     return;
 }
