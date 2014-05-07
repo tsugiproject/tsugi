@@ -43,6 +43,17 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         array(":UID" => $_SESSION['id'], ":TITLE" => $_POST['title'],
             ":NOTES" => $_POST['notes'], ":LTI" => $version)
     );
+    if ( !is_admin() && $CFG->owneremail ) {
+        $user_id = $_SESSION['id'];
+        $token = compute_mail_check($user_id);
+        $to = $CFG->owneremail;
+        $subject = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )';
+        $message = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )\n'.
+            "\nNotes\n".$_POST['notes']."\n\n".
+            "Link: ".get_current_file_url(__FILE__)."\n";
+
+        $retval = mailSend($to, $subject, $message, $user_id, $token);
+    }
     $_SESSION['success'] = "Record inserted";
     header("Location: index.php");
     return;

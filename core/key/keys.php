@@ -20,40 +20,6 @@ if ( ! ( isset($_SESSION['id']) || is_admin() ) ) {
     return;
 }
 
-$goodsession = isset($_SESSION['id']) && isset($_SESSION['email']) && isset($_SESSION['displayname']) &&
-    strlen($_SESSION['id']) > 0 && strlen($_SESSION['email']) > 0 && strlen($_SESSION['displayname']) > 0 ;
-
-if ( ! $goodsession && ! is_admin() ) {
-    $_SESSION['error'] = _("Full name and e-mail required to manage keys");
-    header('Location: '.$CFG->wwwroot);
-    return;
-}
-
-if ( isset($_POST['title']) && isset($_POST['lti']) &&
-        isset($_POST['title']) && isset($_POST['notes']) ) {
-    if ( strlen($_POST['title']) < 1 ) {
-        $_SESSION['error'] = _("Requests must have titles");
-        header("Location: index.php");
-        return;
-    }
-    $version = $_POST['lti']+0;
-    if ( $version != 1 && $version != 2 ) {
-        $_SESSION['error'] = _("LTI Version muse be 1 or 2");
-        header("Location: index.php");
-        return;
-    }
-    $stmt = pdoQueryDie($pdo,
-        "INSERT INTO {$CFG->dbprefix}key_request  
-        (user_id, title, notes, state, lti, created_at, updated_at) 
-        VALUES ( :UID, :TITLE, :NOTES, 0, :LTI, NOW(), NOW() )",
-        array(":UID" => $_SESSION['id'], ":TITLE" => $_POST['title'],
-            ":NOTES" => $_POST['notes'], ":LTI" => $version)
-    );
-    $_SESSION['success'] = "Record inserted";
-    header("Location: index.php");
-    return;
-}
-
 $query_parms = false;
 $searchfields = array("key_id", "key_key", "created_at", "updated_at", "user_id");
 $sql = "SELECT key_id, key_key, secret, created_at, updated_at, user_id
@@ -83,66 +49,14 @@ flashMessages();
 <p>
   <a href="index.php" class="btn btn-default">View Key Requests</a>
 </p>
-<?php if ( $goodsession ) { ?>
-<div class="modal fade" id="request">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="request_form" method="post">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title">Request an API Key</h4>
-      </div>
-      <div class="modal-body">
-            <div class="form-group">
-                <label for="request_name">Name:</label>
-                <input type="name" class="form-control" id="request_name" disabled
-                value="<?php echo(htmlent_utf8($_SESSION['displayname'])); ?>">
-            </div>
-            <div class="form-group">
-                <label for="request_email">Name:</label>
-                <input type="name" class="form-control" id="request_email" disabled
-                value="<?php echo(htmlent_utf8($_SESSION['email'])); ?>">
-            </div>
-            <div class="form-group">
-                <label for="request_title">Title:</label>
-                <input type="name" class="form-control" id="request_title" name="title" required="required">
-            </div>
-
-            <div class="radio">
-                <label>
-                    <input type="radio" name="lti" id="request_lti_1" value="1" checked>
-                    IMS LTI 1.x (You will get a key/secret)
-                </label>
-            </div>
-            <div class="radio">
-                <label>
-                    <input type="radio" name="lti" id="request_lti_2" value="2">
-                    IMS LTI 2.x (You will get a registration URL)
-                </label>
-            </div>
-
-            <label for="request_reason">Reason / Comments:</label>
-            <textarea class="form-control" id="request_reason" name="notes" rows="6"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <input type="submit" id="request_save" class="btn btn-primary" value="Submit Request">
-      </div>
-      </form>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-<?php } ?>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>
-This server hosts various tools that can be integrated into a learning system
-using the IMS Learning Tools Interoperability standard.  You can use this page
-to request access to this service.
+You have no IMS LTI 1.1 Keys for this system.
 </p>
 <?php } else { 
     pagedPDOTable($newrows, $searchfields, false, "key-detail.php");
 } 
-if ( $goodsession ) { ?>
+if ( is_admin() ) { ?>
 <p>
 <a href="key-add.php" class="btn btn-default">Add Key</a>
 </p>
