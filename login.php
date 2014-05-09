@@ -6,6 +6,7 @@ require_once 'lib/lms_lib.php';
 require_once 'lib/lightopenid/openid.php';
 
 session_start();
+error_log('Session in login.php '.session_id());
 
 // First we make sure that there is a google.com key
 $stmt = pdo_query_die($pdo,
@@ -193,7 +194,10 @@ if ( $doLogin ) {
         // Set the secure cookie
         set_secure_cookie($user_id,$userSHA);
 
-        if ( $didinsert ) {
+        if ( isset($_SESSION['login_return']) ) {
+            header('Location: '.$_SESSION['login_return']);
+            unset($_SESSION['login_return']);
+        } else if ( $didinsert ) {
             header('Location: profile.php');
         } else {
             header('Location: index.php');
@@ -205,6 +209,8 @@ html_header_content();
 html_start_body();
 ?>
 <?php
+$login_return = 'index.php';
+if ( isset($_SESSION['login_return']) ) $login_return = $_SESSION['login_return'];
 if ( $errormsg !== false ) {
     echo('<div style="margin-top: 10px;" class="alert alert-error">');
     echo($errormsg);
@@ -228,7 +234,7 @@ We do not want to spend a lot of time verifying identity, resetting passwords,
 detecting robot-login storms, and other issues so we let Google do that hard work. 
 </p>
 <form action="?login" method="post">
-    <input class="btn btn-warning" type="button" onclick="location.href='index.php'; return false;" value="Cancel"/>
+    <input class="btn btn-warning" type="button" onclick="location.href='<?php echo($login_return); ?>'; return false;" value="Cancel"/>
     <button class="btn btn-primary">Login with Google</button>
 </form>
 <p>

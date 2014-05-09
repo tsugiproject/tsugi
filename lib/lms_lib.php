@@ -427,6 +427,11 @@ function get_current_file_url($file) {
     return $CFG->wwwroot.get_current_file($file);
 }
 
+function get_login_url() {
+    global $CFG;
+    return $CFG->wwwroot.'/login.php';
+}
+
 function get_pwd($file) {
     global $CFG;
     $root = $CFG->dirroot;

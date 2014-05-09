@@ -1,4 +1,5 @@
 <?php
+define('COOKIE_SESSION', true);
 require_once("../config.php");
 require_once($CFG->dirroot."/lib/lms_lib.php");
 
@@ -19,11 +20,12 @@ if ( isset($_COOKIE[session_name()]) && $_COOKIE[session_name()] == session_id()
     $register = 'lti2.php?'.session_name().'='.session_id();
 }
 
-error_log(session_id());
+error_log('Session in install '.session_id());
 // Always do post-redirect of that initial post after stashing data in the session
 if ( isset($_POST["lti_message_type"]) && $_POST["lti_message_type"] == "ToolProxyRegistrationRequest" ) {
     $_SESSION['lti2post'] = $_POST;
     header('Location: '.$popup);
+    return;
 }
 
 // Now lets make sure we are in the top window...

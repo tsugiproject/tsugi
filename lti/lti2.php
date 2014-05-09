@@ -1,4 +1,5 @@
 <?php 
+define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once $CFG->dirroot.'/lib/lms_lib.php';
 require_once $CFG->dirroot.'/lib/lti_util.php';
@@ -7,11 +8,19 @@ require_once 'tp_messages.php';
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
 
-echo(session_id());
-
 if ( ! isset($_SESSION['lti2post']) ) {
-var_dump($_SESSION);
     die_with_error_log("Missing LTI 2.0 post data");
+}
+
+error_log("Sesssion in lti2 ".session_id());
+
+if ( ! isset($_SESSION['id']) ) {
+    if ( isset($_REQUEST['login_done']) ) {
+        die_with_error_log("LTI 2 login failed.");
+    }
+    $_SESSION['login_return'] = sessionize(get_current_file_url(__FILE__) ."?login_done=true");
+    header("Location: ".get_login_url());
+    return;
 }
 
 $_POST = $_SESSION['lti2post'];
