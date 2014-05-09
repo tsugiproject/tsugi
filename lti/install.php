@@ -2,10 +2,57 @@
 require_once("../config.php");
 require_once($CFG->dirroot."/lib/lms_lib.php");
 
+// Make sure to deal with the situation where cookies
+// might not be working
+if (isset($_REQUEST[session_name()]) ) {
+    if ( ! isset($_COOKIE[session_name()])) {
+        session_id($_REQUEST[session_name()]);
+    }
+}
+session_start();
+
+if ( isset($_COOKIE[session_name()]) && $_COOKIE[session_name()] == session_id() ) {
+    $popup = 'install.php';
+    $register = 'lti2.php';
+} else { // Add the session id for insurance
+    $popup = 'install.php?'.session_name().'='.session_id();
+    $register = 'lti2.php?'.session_name().'='.session_id();
+}
+
+error_log(session_id());
+// Always do post-redirect of that initial post after stashing data in the session
+if ( isset($_POST["lti_message_type"]) && $_POST["lti_message_type"] == "ToolProxyRegistrationRequest" ) {
+    $_SESSION['lti2post'] = $_POST;
+    header('Location: '.$popup);
+}
+
+// Now lets make sure we are in the top window...
 html_header_content();
 html_start_body();
+echo('<img src="'.html_get_spinner_url().'" id="spinner">');
 ?>
-<h1>YO</h1>
+<div id="popup" style="display:none">
+<p>Please click 
+<a href="<?php echo($popup); ?>" target=_blank">here</a>
+to continue the registration process in a new window.
+</p>
+</div>
 <?php
 html_footer_start();
+?>
+<script type="text/javascript">
+topframe = false;
+try {
+    topframe = window.self === window.top ? true : false;
+} catch (e) {
+    topframe = false;
+}
+if ( topframe ) {
+    window.location.href='<?php echo($register); ?>';
+} else {
+    $("#spinner").hide();
+    $("#popup").show();
+}
+</script>
+<?php
 html_footer_end();

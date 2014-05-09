@@ -7,6 +7,15 @@ require_once 'tp_messages.php';
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
 
+echo(session_id());
+
+if ( ! isset($_SESSION['lti2post']) ) {
+var_dump($_SESSION);
+    die_with_error_log("Missing LTI 2.0 post data");
+}
+
+$_POST = $_SESSION['lti2post'];
+
 $lti_message_type = $_POST["lti_message_type"];
 
 global $div_id;
