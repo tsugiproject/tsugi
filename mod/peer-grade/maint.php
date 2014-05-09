@@ -131,7 +131,7 @@ function showFrame() {
 </script>
 <?php
 html_start_body();
-flash_messages();
+html_flash_messages();
 
 $iframeurl = sessionize($CFG->wwwroot . '/mod/peer-grade/maint.php?link_id=' . $link_id);
 ?>
@@ -163,8 +163,8 @@ Link id: <?php echo($link_id);
     if ( isset($LTI['link_title']) ) echo(' '.htmlent_utf8($LTI['link_title'])) ; ?> 
 </pre>
 
-<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(get_spinner_url()); ?>"></span>
-<img id="totspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
+<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(html_get_spinner_url()); ?>"></span>
+<img id="totspinner" src="<?php echo(html_get_spinner_url()); ?>" style="display:none">
 </p>
 
 <div id="iframediv" style="display:none">

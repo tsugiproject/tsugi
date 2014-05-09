@@ -88,7 +88,7 @@ foreach ( $rows as $row ) {
 html_header_content();
 html_start_body();
 html_top_nav();
-flash_messages();
+html_flash_messages();
 ?>
 <h1>LTI Key Requests</h1>
 <p>

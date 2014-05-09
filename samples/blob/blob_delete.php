@@ -34,7 +34,7 @@ if ( isset($_POST["doDelete"]) ) {
 
 // Switch to view / controller
 html_header_content();
-flash_messages();
+html_flash_messages();
 
 echo '<h4 style="color:red">Are you sure you want to delete: ' .htmlent_utf8($fn). "</h4>\n"; 
 ?>

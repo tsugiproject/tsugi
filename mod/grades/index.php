@@ -83,7 +83,7 @@ if ( $instructor ) {
 // View 
 html_header_content();
 html_start_body();
-flash_messages();
+html_flash_messages();
 
 if ( $instructor ) {
 ?>

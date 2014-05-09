@@ -51,7 +51,7 @@ html_header_content();
 </head>
 <body>
 <?php
-flash_messages();
+html_flash_messages();
 welcome_user_course($LTI);
 
 $foldername = getFolderName($LTI);

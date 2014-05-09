@@ -15,6 +15,389 @@ function is_lti_request() {
    return false;
 }
 
+$ltiUtilTogglePre_div_id = 1;
+// Useful for debugging
+function ltiUtilTogglePre($title, $content) {
+	global $ltiUtilTogglePre_div_id;
+    echo('<b>'.$title);
+    echo(' (<a href="#" onclick="dataToggle('.
+		"'ltiUtilTogglePre_".$ltiUtilTogglePre_div_id."'".');return false;">Toggle</a>)</b><br/>'."\n");
+    echo('<pre id="ltiUtilTogglePre_'.$ltiUtilTogglePre_div_id.'" style="display:none; border: solid 1px">'."\n");
+    echo(htmlent_utf8($content));
+    echo("</pre>\n");
+    $ltiUtilTogglePre_div_id = $ltiUtilTogglePre_div_id + 1;
+}
+
+function ltiUtilToggleHead() {
+   return '<script language="javascript"> 
+function dataToggle(divName) {
+    var ele = document.getElementById(divName);
+    if(ele.style.display == "block") {
+        ele.style.display = "none";
+    }
+    else {
+        ele.style.display = "block";
+    }
+} 
+  //]]> 
+</script>
+';
+}
+
+// Basic LTI Class that does the setup and provides utility
+// functions
+class BLTI {
+
+    public $valid = false;
+    public $complete = false;
+    public $message = false;
+    public $basestring = false;
+    public $info = false;
+    public $row = false;
+    public $context_id = false;  // Override context_id
+    public $consumer_id = false;
+    public $user_id = false;
+    public $course_id = false;
+    public $resource_id = false;
+
+    function __construct($parm=false, $usesession=true, $doredirect=true) {
+
+        // If this request is not an LTI Launch, either
+        // give up or try to retrieve the context from session
+        if ( ! is_lti_request() ) {
+            if ( $usesession === false ) return;
+            if ( strlen(session_id()) > 0 ) {
+                $row = $_SESSION['_lti_row'];
+                if ( isset($row) ) $this->row = $row;
+                $context_id = $_SESSION['_lti_context_id'];
+                if ( isset($context_id) ) $this->context_id = $context_id;
+                $info = $_SESSION['_lti_context'];
+                if ( isset($info) ) {
+                    $this->info = $info;
+                    $this->valid = true;
+                    return;
+                }
+                $this->message = "Could not find context in session";
+                return;
+            }
+            $this->message = "Session not available";
+            return;
+        }
+
+        // Insure we have a valid launch
+        if ( empty($_REQUEST["oauth_consumer_key"]) ) {
+            $this->message = "Missing oauth_consumer_key in request";
+            return;
+        }
+        $oauth_consumer_key = $_REQUEST["oauth_consumer_key"];
+
+        // Find the secret - either form the parameter as a string or
+        // look it up in a database from parameters we are given
+        $secret = false;
+        $row = false;
+        if ( is_string($parm) ) {
+            $secret = $parm;
+        } else if ( ! is_array($parm) ) {
+            $this->message = "Constructor requires a secret or database information.";
+            return;
+        } else {
+            $sql = 'SELECT * FROM '.$parm['table'].' WHERE '.
+                ($parm['key_column'] ? $parm['key_column'] : 'oauth_consumer_key').
+                '='.
+                "'".mysql_real_escape_string($oauth_consumer_key)."'";
+            $result = mysql_query($sql);
+            $num_rows = mysql_num_rows($result);
+            if ( $num_rows != 1 ) {
+                $this->message = "Your consumer is not authorized oauth_consumer_key=".$oauth_consumer_key;
+                return;
+            } else {
+                while ($row = mysql_fetch_assoc($result)) {
+                    $secret = $row[$parms['secret_column']?$parms['secret_column']:'secret'];
+                    $context_id = $row[$parms['context_column']?$parms['context_column']:'context_id'];
+                    if ( $context_id ) $this->context_id = $context_id;
+                    $this->row = $row;
+                    break;
+                }
+                if ( ! is_string($secret) ) {
+                    $this->message = "Could not retrieve secret oauth_consumer_key=".$oauth_consumer_key;
+                    return;
+                }
+            }
+        }
+
+        // Verify the message signature
+        $store = new TrivialOAuthDataStore();
+        $store->add_consumer($oauth_consumer_key, $secret);
+
+        $server = new OAuthServer($store);
+
+        $method = new OAuthSignatureMethod_HMAC_SHA1();
+        $server->add_signature_method($method);
+        $request = OAuthRequest::from_request();
+
+        $this->basestring = $request->get_signature_base_string();
+
+        try {
+            $server->verify_request($request);
+            $this->valid = true;
+        } catch (Exception $e) {
+            $this->message = $e->getMessage();
+            return;
+        }
+
+        // Store the launch information in the session for later
+        $newinfo = array();
+        foreach($_POST as $key => $value ) {
+		    if (get_magic_quotes_gpc()) $value = stripslashes($value);
+            if ( $key == "basiclti_submit" ) continue;
+            if ( strpos($key, "oauth_") === false ) {
+                $newinfo[$key] = $value;
+                continue;
+            }
+            if ( $key == "oauth_consumer_key" ) {
+                $newinfo[$key] = $value;
+                continue;
+            }
+        }
+
+        $this->info = $newinfo;
+        if ( $usesession == true and strlen(session_id()) > 0 ) {
+             $_SESSION['_lti_context'] = $this->info;
+             unset($_SESSION['_lti_row']);
+             unset($_SESSION['_lti_context_id']);
+             if ( $this->row ) $_SESSION['_lti_row'] = $this->row;
+             if ( $this->context_id ) $_SESSION['_lti_context_id'] = $this->context_id;
+        }
+
+        if ( $this->valid && $doredirect ) {
+            $this->redirect();
+            $this->complete = true;
+        }
+    }
+
+    function addSession($location) {
+        if ( ini_get('session.use_cookies') == 0 ) {
+            if ( strpos($location,'?') > 0 ) {
+               $location = $location . '&';
+            } else {
+               $location = $location . '?';
+            }
+            $location = $location . session_name() . '=' . session_id();
+        }
+        return $location;
+    }
+
+    function isInstructor() {
+        $roles = $this->info['roles'];
+        $roles = strtolower($roles);
+        if ( ! ( strpos($roles,"instructor") === false ) ) return true;
+        if ( ! ( strpos($roles,"administrator") === false ) ) return true;
+        return false;
+    }
+
+    function getUserEmail() {
+        $email = $this->info['lis_person_contact_email_primary'];
+        if ( strlen($email) > 0 ) return $email;
+        # Sakai Hack
+        $email = $this->info['lis_person_contact_emailprimary'];
+        if ( strlen($email) > 0 ) return $email;
+        return false;
+    }
+
+    function getUserShortName() {
+        $email = $this->getUserEmail();
+        $givenname = $this->info['lis_person_name_given'];
+        $familyname = $this->info['lis_person_name_family'];
+        $fullname = $this->info['lis_person_name_full'];
+        if ( strlen($email) > 0 ) return $email;
+        if ( strlen($givenname) > 0 ) return $givenname;
+        if ( strlen($familyname) > 0 ) return $familyname;
+        return $this->getUserName();
+    }
+
+    function getUserName() {
+        $givenname = $this->info['lis_person_name_given'];
+        $familyname = $this->info['lis_person_name_family'];
+        $fullname = $this->info['lis_person_name_full'];
+        if ( strlen($fullname) > 0 ) return $fullname;
+        if ( strlen($familyname) > 0 and strlen($givenname) > 0 ) return $givenname + $familyname;
+        if ( strlen($givenname) > 0 ) return $givenname;
+        if ( strlen($familyname) > 0 ) return $familyname;
+        return $this->getUserEmail();
+    }
+
+    // Name spaced
+    function getUserKey() {
+        $oauth = $this->info['oauth_consumer_key'];
+        $id = $this->info['user_id'];
+        if ( strlen($id) > 0 and strlen($oauth) > 0 ) return $oauth . ':' . $id;
+        return false;
+    }
+
+    // Un-Namespaced
+    function getUserLKey() {
+        $id = $this->info['user_id'];
+        if ( strlen($id) > 0 ) return $id;
+        return false;
+    }
+
+    function setUserID($new_id) {
+    $this->user_id = $new_id;
+    }
+
+    function getUserID() {
+    return $this->user_id;
+    }
+
+    function getUserImage() {
+        $image = $this->info['user_image'];
+        if ( strlen($image) > 0 ) return $image;
+        $email = $this->getUserEmail();
+        if ( $email === false ) return false;
+        $size = 40;
+        $grav_url = $_SERVER['HTTPS'] ? 'https://' : 'http://';
+        $grav_url = $grav_url . "www.gravatar.com/avatar.php?gravatar_id=".md5( strtolower($email) )."&size=".$size;
+        return $grav_url;
+    }
+
+    function getResourceKey() {
+        $oauth = $this->info['oauth_consumer_key'];
+        $id = $this->info['resource_link_id'];
+        if ( strlen($id) > 0 and strlen($oauth) > 0 ) return $oauth . ':' . $id;
+        return false;
+    }
+
+    function getResourceLKey() {
+        $id = $this->info['resource_link_id'];
+        if ( strlen($id) > 0 ) return $id;
+        return false;
+    }
+
+    function setResourceID($new_id) {
+    $this->resource_id = $new_id;
+    }
+
+    function getResourceID() {
+    return $this->resource_id;
+    }
+
+    function getResourceTitle() {
+        $title = $this->info['resource_link_title'];
+        if ( strlen($title) > 0 ) return $title;
+        return false;
+    }
+
+    function getConsumerKey() {
+        $oauth = $this->info['oauth_consumer_key'];
+        return $oauth;
+    }
+
+    function setConsumerID($new_id) {
+    $this->consumer_id = $new_id;
+    }
+
+    function getConsumerID() {
+    return $this->consumer_id;
+    }
+
+    function getCourseLKey() {
+        if ( $this->context_id ) return $this->context_id;
+        $id = $this->info['context_id'];
+        if ( strlen($id) > 0 ) return $id;
+        return false;
+    }
+
+    function getCourseKey() {
+        if ( $this->context_id ) return $this->context_id;
+        $oauth = $this->info['oauth_consumer_key'];
+        $id = $this->info['context_id'];
+        if ( strlen($id) > 0 and strlen($oauth) > 0 ) return $oauth . ':' . $id;
+        return false;
+    }
+
+    function setCourseID($new_id) {
+    $this->course_id = $new_id;
+    }
+
+    function getCourseID() {
+    return $this->course_id;
+    }
+
+    function getCourseName() {
+        $label = $this->info['context_label'];
+        $title = $this->info['context_title'];
+        $id = $this->info['context_id'];
+        if ( strlen($label) > 0 ) return $label;
+        if ( strlen($title) > 0 ) return $title;
+        if ( strlen($id) > 0 ) return $id;
+        return false;
+    }
+
+    function getCSS() {
+        $list = $this->info['launch_presentation_css_url'];
+        if ( strlen($list) < 1 ) return array();
+        return explode(',',$list);
+    }
+
+    function getOutcomeService() {
+        $retval = $this->info['lis_outcome_service_url'];
+    if ( strlen($retval) > 1 ) return $retval;
+    return false;
+    }
+
+    function getOutcomeSourceDID() {
+        $retval = $this->info['lis_result_sourcedid'];
+    if ( strlen($retval) > 1 ) return $retval;
+    return false;
+    }
+
+    function redirect($url=false) {
+        if ( $url === false ) {
+      $host = $_SERVER['HTTP_HOST'];
+      $uri = $_SERVER['PHP_SELF'];
+      $location = $_SERVER['HTTPS'] ? 'https://' : 'http://';
+      $location = $location . $host . $uri;
+    } else {
+      $location = $url;
+    }
+
+    if ( headers_sent() ) {
+      echo('<a href="'.htmlent_utf8($location).'">Continue</a>'."\n");
+    } else {
+        $location = htmlent_utf8($this->addSession($location));
+      header("Location: $location");
+    }
+    }
+
+    function dump() {
+        if ( ! $this->valid or $this->info == false ) return "Context not valid\n";
+        $ret = "";
+        if ( $this->isInstructor() ) {
+            $ret .= "isInstructor() = true\n";
+        } else {
+            $ret .= "isInstructor() = false\n";
+        }
+        $ret .= "getConsumerKey() = ".$this->getConsumerKey()."\n";
+        $ret .= "getUserLKey() = ".$this->getUserLKey()."\n";
+        $ret .= "getUserKey() = ".$this->getUserKey()."\n";
+        $ret .= "getUserID() = ".$this->getUserID()."\n";
+        $ret .= "getUserEmail() = ".$this->getUserEmail()."\n";
+        $ret .= "getUserShortName() = ".$this->getUserShortName()."\n";
+        $ret .= "getUserName() = ".$this->getUserName()."\n";
+        $ret .= "getUserImage() = ".$this->getUserImage()."\n";
+        $ret .= "getResourceKey() = ".$this->getResourceKey()."\n";
+        $ret .= "getResourceID() = ".$this->getResourceID()."\n";
+        $ret .= "getResourceTitle() = ".$this->getResourceTitle()."\n";
+        $ret .= "getCourseName() = ".$this->getCourseName()."\n";
+        $ret .= "getCourseKey() = ".$this->getCourseKey()."\n";
+        $ret .= "getCourseID() = ".$this->getCourseID()."\n";
+        $ret .= "getOutcomeSourceDID() = ".$this->getOutcomeSourceDID()."\n";
+        $ret .= "getOutcomeService() = ".$this->getOutcomeService()."\n";
+        return $ret;
+    }
+
+}
+
 /**
  * A Trivial memory-based store - no support for tokens
  */
@@ -30,7 +413,7 @@ class TrivialOAuthDataStore extends OAuthDataStore {
             $consumer = new OAuthConsumer($consumer_key,"secret", NULL);
             return $consumer;
         }
-        if ( $this->consumers[$consumer_key] ) {
+        if ( isset($this->consumers[$consumer_key]) ) {
             $consumer = new OAuthConsumer($consumer_key,$this->consumers[$consumer_key], NULL);
             return $consumer;
         }
@@ -98,7 +481,9 @@ function signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oau
   function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false) {
     global $LastOAuthBodyBaseString;
     $r = "<div id=\"ltiLaunchFormSubmitArea\">\n";
-    if ( $iframeattr ) {
+    if ( $iframeattr =="_blank" ) {
+        $r = "<form action=\"".$endpoint."\" name=\"ltiLaunchForm\" id=\"ltiLaunchForm\" method=\"post\" target=\"_blank\" encType=\"application/x-www-form-urlencoded\">\n" ;
+    } else if ( $iframeattr ) {
         $r = "<form action=\"".$endpoint."\" name=\"ltiLaunchForm\" id=\"ltiLaunchForm\" method=\"post\" target=\"basicltiLaunchFrame\" encType=\"application/x-www-form-urlencoded\">\n" ;
     } else {
         $r = "<form action=\"".$endpoint."\" name=\"ltiLaunchForm\" id=\"ltiLaunchForm\" method=\"post\" encType=\"application/x-www-form-urlencoded\">\n" ;
@@ -147,7 +532,7 @@ function signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oau
         $r .= "</div>\n";
     }
     $r .= "</form>\n";
-    if ( $iframeattr ) {
+    if ( $iframeattr && $iframeattr != '_blank' ) {
         $r .= "<iframe name=\"basicltiLaunchFrame\"  id=\"basicltiLaunchFrame\" src=\"\"\n";
         $r .= $iframeattr . ">\n<p>".get_string("frames_required","basiclti")."</p>\n</iframe>\n";
     }
@@ -175,14 +560,14 @@ function get_string($key,$bundle) {
     return $key;
 }
 
-function do_post_request($url, $data, $optional_headers = null)
+function do_body_request($url, $method, $data, $optional_headers = null)
 {
   if ($optional_headers !== null) {
      $header = $optional_headers . "\r\n";
   }
   $header = $header . "Content-Type: application/x-www-form-urlencoded\r\n";
 
-  return do_post($url,$data,$header);
+  return do_body($url,$method,$data,$header);
 }
 
 
@@ -325,18 +710,58 @@ function handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret)
     return $postdata;
 }
 
+function sendOAuthGET($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $accept_type)
+{
+    $test_token = '';
+    $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
+    $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
+    $parms = array();
+
+    $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, "GET", $endpoint, $parms);
+    $acc_req->sign_request($hmac_method, $test_consumer, $test_token);
+
+    // Pass this back up "out of band" for debugging
+    global $LastOAuthBodyBaseString;
+    $LastOAuthBodyBaseString = $acc_req->get_signature_base_string();
+
+    $header = $acc_req->to_header();
+    $header = $header . "\r\nAccept: " . $accept_type . "\r\n";
+
+    global $LastGETHeader;
+    $LastGETHeader = $header;
+
+    return do_get($endpoint,$header);
+}
+
 function do_get($url, $header = false) {
-    $response = get_stream($url, $header);
-    if ( $response !== false ) return $response;
+    global $LastGETURL;
+    global $LastGETMethod;
+    global $LastHeadersSent;
+    global $last_http_response;
+    global $LastHeadersReceived;
+
+	$LastGETURL = $url;
+    $LastGETMethod = false;
+    $LastHeadersSent = false;
+    $last_http_response = false;
+    $LastHeadersReceived = false;
+    $lastGETResponse = false;
+
+    $LastGETMethod = "CURL";
+    $lastGETResponse = get_curl($url, $header);
+    if ( $lastGETResponse !== false ) return $lastGETResponse;
+    $LastGETMethod = "Stream";
+    $lastGETResponse = get_stream($url, $header);
+    if ( $lastGETResponse !== false ) return $lastGETResponse;
 /*
-    $response = get_socket($url, $header);
-    if ( $response !== false ) return $response;
-    $response = get_curl($url, $header);
-    if ( $response !== false ) return $response;
+    $LastGETMethod = "Socket";
+    $lastGETResponse = get_socket($url, $header);
+    if ( $lastGETResponse !== false ) return $response;
 */
+    $LastGETMethod = "Error";
     echo("Unable to GET<br/>\n");
     echo("Url=$url <br/>\n");
-    echo("Headers:<br/>\n$headers<br/>\n");
+    echo("Header:<br/>\n$header<br/>\n");
     throw new Exception("Unable to get");
 }
 
@@ -348,15 +773,47 @@ function get_stream($url, $header) {
 
     $ctx = stream_context_create($params);
     try {
-        $fp = @fopen($url, 'r', false, $ctx);
-        $response = @stream_get_contents($fp);
+        $response = file_get_contents($url, false, $ctx);
     } catch (Exception $e) {
         return false;
     }
     return $response;
 }
 
-function sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $body)
+function get_curl($url, $header) {
+  if ( ! function_exists('curl_init') ) return false;
+  global $last_http_response;
+  global $LastHeadersSent;
+  global $LastHeadersReceived;
+
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url);
+
+  // Make sure that the header is an array and pitch white space
+  $LastHeadersSent = trim($header);
+  $header = explode("\n", trim($header));
+  $htrim = Array();
+  foreach ( $header as $h ) {
+    $htrim[] = trim($h);
+  }
+  curl_setopt ($ch, CURLOPT_HTTPHEADER, $htrim);
+
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // ask for results to be returned
+  curl_setopt($ch, CURLOPT_HEADER, 1);
+
+  // Send to remote and return data to caller.
+  $result = curl_exec($ch);
+  $info = curl_getinfo($ch);
+  $last_http_response = $info['http_code'];
+  $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+  $LastHeadersReceived = substr($result, 0, $header_size);
+  $body = substr($result, $header_size);
+  if ( $body === false ) $body = "";
+  curl_close($ch);
+  return $body;
+}
+
+function sendOAuthBodyPOST($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $body)
 {
     $hash = base64_encode(sha1($body, TRUE));
 
@@ -366,7 +823,7 @@ function sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consu
     $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
     $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
 
-    $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
+    $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, "POST", $endpoint, $parms);
     $acc_req->sign_request($hmac_method, $test_consumer, $test_token);
 
     // Pass this back up "out of band" for debugging
@@ -374,70 +831,94 @@ function sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consu
     $LastOAuthBodyBaseString = $acc_req->get_signature_base_string();
 
     $header = $acc_req->to_header();
-    $altheader = $acc_req->to_alternate_header();
-    $header = $header . "\r\n" . $altheader . "\r\nContent-Type: " . $content_type . "\r\n";
+    $header = $header . "\r\nContent-Type: " . $content_type . "\r\n";
 
-    global $LastPOSTHeader;
-    $LastPOSTHeader = $header;
-
-    return do_post($endpoint,$body,$header);
+    return do_body($endpoint, "POST", $body,$header);
 }
 
-function get_post_sent_debug() {
-    global $LastPOSTMethod;
-    global $LastPOSTURL;
+
+function get_body_sent_debug() {
+    global $LastBODYURL;
+    global $LastBODYMethod;
+    global $LastBODYImpl;
     global $LastHeadersSent;
 
-    $ret = "POST Used: " . $LastPOSTMethod . "\n" . 
-         $LastPOSTURL . "\n\n" .
-         $LastHeadersSent . "\n";
-    return $ret;
+    $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" . 
+	     $LastBODYURL . "\n\n" .
+		 $LastHeadersSent . "\n";
+	return $ret;
 }
 
-function get_post_received_debug() {
-    global $LastPOSTURL;
+function get_body_received_debug() {
+    global $LastBODYURL;
+    global $LastBODYMethod;
+    global $LastBODYImpl;
+    global $LastHeadersReceived;
     global $last_http_response;
-    global $LastPOSTMethod;
+
+    $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" . 
+		 "HTTP Response Code: " . $last_http_response . "\n" .
+	     $LastBODYURL . "\n" .
+		 $LastHeadersReceived . "\n";
+	return $ret;
+}
+
+function get_get_sent_debug() {
+    global $LastGETMethod;
+    global $LastGETURL;
+    global $LastHeadersSent;
+
+    $ret = "GET Used: " . $LastGETMethod . "\n" . 
+	     $LastGETURL . "\n\n" .
+		 $LastHeadersSent . "\n";
+	return $ret;
+}
+
+function get_get_received_debug() {
+    global $LastGETURL;
+    global $last_http_response;
+    global $LastGETMethod;
     global $LastHeadersReceived;
 
-    $ret = "POST Used: " . $LastPOSTMethod . "\n" .
-         "HTTP Response: " . $last_http_response . "\n" .
-         $LastPOSTURL . "\n" .
-         $LastHeadersReceived . "\n";
-    return $ret;
+    $ret = "GET Used: " . $LastGETMethod . "\n" .
+		 "HTTP Response: " . $last_http_response . "\n" .
+	     $LastGETURL . "\n" .
+		 $LastHeadersReceived . "\n";
+	return $ret;
 }
 
 // Sadly this tries several approaches depending on 
 // the PHP version and configuration.  You can use only one
 // if you know what version of PHP is working and how it will be 
 // configured...
-function do_post($url, $body, $header) {
-    global $LastPOSTURL;
-    global $LastPOSTMethod;
+function do_body($url, $method, $body, $header) {
+    global $LastBODYURL;
+    global $LastBODYMethod;
+    global $LastBODYImpl;
     global $LastHeadersSent;
     global $last_http_response;
     global $LastHeadersReceived;
-    global $LastPostResponse;
+    global $LastBODYResponse;
 
-    $LastPOSTURL = $url;
-    $LastPOSTMethod = false;
+	$LastBODYURL = $url;
+    $LastBODYMethod = $method;
+    $LastBODYImpl = false;
     $LastHeadersSent = false;
     $last_http_response = false;
     $LastHeadersReceived = false;
-    $lastPOSTResponse = false;
+    $LastBODYResponse = false;
 
     // Prefer curl because it checks if it works before trying
-    $lastPOSTResponse = post_curl($url, $body, $header);
-    $LastPOSTMethod = "CURL";
-    if ( $lastPOSTResponse !== false ) return $lastPOSTResponse;
-    $lastPOSTResponse = post_socket($url, $body, $header);
-    $LastPOSTMethod = "Socket";
-    if ( $lastPOSTResponse !== false ) return $lastPOSTResponse;
-    // Timeout does not seem to yet work in post_stream
-    $lastPOSTResponse = post_stream($url, $body, $header);
-    $LastPOSTMethod = "Stream";
-    if ( $lastPOSTResponse !== false ) return $lastPOSTResponse;
-    $LastPOSTMethod = "Error";
+    $LastBODYResponse = body_curl($url, $method, $body, $header);
+    $LastBODYImpl = "CURL";
+    if ( $LastBODYResponse !== false ) return $LastBODYResponse;
+    $LastBODYResponse = body_socket($url, $method, $body, $header);
+    $LastBODYImpl = "Socket";
+    if ( $LastBODYResponse !== false ) return $LastBODYResponse;
+    $LastBODYResponse = body_stream($url, $method, $body, $header);
+    $LastBODYImpl = "Stream";
+    if ( $LastBODYResponse !== false ) return $LastBODYResponse;
+    $LastBODYImpl = "Error";
     echo("Unable to post<br/>\n");
     echo("Url=$url <br/>\n");
     echo("Headers:<br/>\n$header<br/>\n");
@@ -446,13 +927,11 @@ function do_post($url, $body, $header) {
 }
 
 // From: http://php.net/manual/en/function.file-get-contents.php
-function post_socket($endpoint, $data, $moreheaders=false) {
-  global $sendOAuthBodyPOSTTimeout;
+function body_socket($endpoint, $method, $data, $moreheaders=false) {
   if ( ! function_exists('fsockopen') ) return false;
   if ( ! function_exists('stream_get_transports') ) return false;
     $url = parse_url($endpoint);
 
-    if (!isset($url['scheme'])) return false;
     if (!isset($url['port'])) {
       if ($url['scheme'] == 'http') { $url['port']=80; }
       elseif ($url['scheme'] == 'https') { $url['port']=443; }
@@ -469,10 +948,10 @@ function post_socket($endpoint, $data, $moreheaders=false) {
 
     $uri = "/";
     if ( isset($url['path'])) $uri = $url['path'];
-    if ( isset($url['query']) ) $uri .= '?'.$url['query'];
-    if ( isset($url['fragment']) ) $uri .= '#'.$url['fragment'];
+    if ( strlen($url['query']) > 0 ) $uri .= '?'.$url['query'];
+    if ( strlen($url['fragment']) > 0 ) $uri .= '#'.$url['fragment'];
 
-    $headers =  "POST ".$uri." HTTP/1.0".$eol.
+    $headers =  $method." ".$uri." HTTP/1.0".$eol.
                 "Host: ".$url['host'].$hostport.$eol.
                 "Referer: ".$url['protocol'].$url['host'].$url['path'].$eol.
                 "Content-Length: ".strlen($data).$eol;
@@ -486,25 +965,12 @@ function post_socket($endpoint, $data, $moreheaders=false) {
     // echo("PORT=".$url['port']);
     $hostname = $url['host'];
     if ( $url['port'] == 443 ) $hostname = "ssl://" . $hostname;
-    $timeout = 10;
-    if ( isset($sendOAuthBodyPOSTTimeout) ) $timeout = $sendOAuthBodyPOSTTimeout;
     try {
-        $fp = fsockopen($hostname, $url['port'], $errno, $errstr, $timeout);
-        stream_set_timeout($fp, $timeout);
-        stream_set_blocking($fp, TRUE );
+        $fp = fsockopen($hostname, $url['port'], $errno, $errstr, 30);
         if($fp) {
             fputs($fp, $headers);
             $result = '';
-            while(!feof($fp)) { 
-                $data = fgets($fp, 1024); 
-                if ( $data === false ) {
-                    $info = stream_get_meta_data($fp);
-                    if ($info['timed_out']) {
-                        throw new Exception('Time out');
-                    }
-                }
-                $result .= $data;
-            }
+            while(!feof($fp)) { $result .= fgets($fp, 128); }
             fclose($fp);
             // removes HTTP response headers
             $pattern="/^.*\r\n\r\n/s";
@@ -512,21 +978,15 @@ function post_socket($endpoint, $data, $moreheaders=false) {
             return $result;
         }
     } catch(Exception $e) {
-        error_log("post_socket error=".$e->getMessage());
-        throw $e;
+        return false;
     }
     return false;
 }
 
-function post_stream($url, $body, $header) {
-    global $sendOAuthBodyPOSTTimeout;
-    $timeout = 10;
-    if ( isset($sendOAuthBodyPOSTTimeout) ) $timeout = $sendOAuthBodyPOSTTimeout;
-
+function body_stream($url, $method, $body, $header) {
     $params = array('http' => array(
-        'method' => 'POST',
+        'method' => $method,
         'content' => $body,
-        'timeout' => $timeout*1.0, 
         'header' => $header
         ));
 
@@ -535,18 +995,16 @@ function post_stream($url, $body, $header) {
         $fp = @fopen($url, 'r', false, $ctx);
         $response = @stream_get_contents($fp);
     } catch (Exception $e) {
-        error_log("post_stream error=".$e->getMessage());
-        throw $e;
+        return false;
     }
     return $response;
 }
 
-function post_curl($url, $body, $header) {
+function body_curl($url, $method, $body, $header) {
   if ( ! function_exists('curl_init') ) return false;
   global $last_http_response;
   global $LastHeadersSent;
   global $LastHeadersReceived;
-  global $sendOAuthBodyPOSTTimeout;
 
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, $url);
@@ -560,15 +1018,16 @@ function post_curl($url, $body, $header) {
   }
   curl_setopt ($ch, CURLOPT_HTTPHEADER, $htrim);
 
-  curl_setopt($ch, CURLOPT_POST, 1);
+  if ( $method == "POST" ) {
+    curl_setopt($ch, CURLOPT_POST, 1);
+  } else { 
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+  }
+
   curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
 
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // ask for results to be returned
   curl_setopt($ch, CURLOPT_HEADER, 1);
-  $timeout = 10;
-  if ( isset($sendOAuthBodyPOSTTimeout) ) $timeout = $sendOAuthBodyPOSTTimeout;
-  curl_setopt($ch,CURLOPT_TIMEOUT,$timeout);
-  curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);
 /*
   if(CurlHelper::checkHttpsURL($url)) {
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -579,14 +1038,11 @@ function post_curl($url, $body, $header) {
   // Send to remote and return data to caller.
   $result = curl_exec($ch);
   $info = curl_getinfo($ch);
-  if ( curl_errno($ch) == 28 ) {
-    error_log("CURL Timed out - ".$url);
-    throw new Exception('Time out');
-  }
   $last_http_response = $info['http_code'];
   $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
   $LastHeadersReceived = substr($result, 0, $header_size);
   $body = substr($result, $header_size);
+  if ( $body === false ) $body = ''; // Handle empty body
   curl_close($ch);
   return $body;
 }
@@ -683,8 +1139,7 @@ function replaceResultRequest($grade, $sourcedid, $endpoint, $oauth_consumer_key
         array($sourcedid, $grade, $operation, uniqid()),
         getPOXGradeRequest());
 
-    // error_log("OAC="+ $oauth_consumer_key + " OAS=".$oauth_consumer_secret);
-    $response = sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $postBody);
+    $response = sendOAuthBodyPOST($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $postBody);
     return parseResponse($response);
 }
 
@@ -694,16 +1149,12 @@ function parseResponse($response) {
         $xml = new SimpleXMLElement($response);
         $imsx_header = $xml->imsx_POXHeader->children();
         $parms = $imsx_header->children();
-        if ( ! $parms ) throw new Exception('Unable to find imsx_POXHeader->children()');
         $status_info = $parms->imsx_statusInfo;
-        if ( ! $status_info ) throw new Exception('Unable to find imsx_POXHeader->imsx_statusInfo');
         $retval['imsx_codeMajor'] = (string) $status_info->imsx_codeMajor;
         $retval['imsx_severity'] = (string) $status_info->imsx_severity;
         $retval['imsx_description'] = (string) $status_info->imsx_description;
         $retval['imsx_messageIdentifier'] = (string) $parms->imsx_messageIdentifier;
-        $imsx_body = $xml->imsx_POXBody;
-        if ( ! $imsx_body ) throw new Exception('Unable to find imsx_POXBody->children()');
-        $imsx_body = $imsx_body->children();  // Go down one more to get the operation
+        $imsx_body = $xml->imsx_POXBody->children();
         $operation = $imsx_body->getName();
         $retval['response'] = $operation;
         $parms = $imsx_body->children();
@@ -713,12 +1164,8 @@ function parseResponse($response) {
 
     if ( $operation == 'readResultResponse' ) {
        try {
-           $result = $parms->result;
-           if ( ! $result ) throw new Exception('Unable to find imsx_POXBody->result');
-           $resultScore = $result->resultScore;
-           if ( ! $resultScore ) throw new Exception('Unable to find result->resultScore');
-           $retval['language'] =(string) $resultScore->language;
-           $retval['textString'] = (string) $resultScore->textString;
+           $retval['language'] =(string) $parms->result->resultScore->language;
+           $retval['textString'] = (string) $parms->result->resultScore->textString;
        } catch (Exception $e) {
             throw new Exception("Error: Body parse error: ".$e->getMessage());
        }
@@ -731,51 +1178,51 @@ function parseResponse($response) {
 // This is setup to be displayed in <pre> tags as newlines are added
 function compare_base_strings($string1, $string2)
 {
-    if ( $string1 == $string2 ) return true;
+	if ( $string1 == $string2 ) return true;
 
-    $out2 = "";
-    $out1 = "";
+	$out2 = "";
+	$out1 = "";
     $chars = 0;
-    $oops = false;
+	$oops = false;
     for($i=0; $i<strlen($string1)&&$i<strlen($string2); $i++) {
-        if ( $oops || $string1[$i] == $string2[$i] ) {
-            $out1 = $out1 . $string1[$i];
-            $out2 = $out2 . $string2[$i];
-        } else { 
-            $out1 = $out1 . ' ->' . $string1[$i] .'<- ';
-            $out2 = $out2 . ' ->' . $string2[$i] .'<- ';
-            $oops = true;
-        }
-        $chars = $chars + 1;
-        if ( $chars > 79 ) {
-            $out1 .= "\n";
-            $out2 .= "\n";
-            $chars = 0;
-        }
-    }
-    if ( $i < strlen($string1) ) {
-        $out2 = $out2 . ' -> truncated ';
-        for($i=0; $i<strlen($string1); $i++) {
-            $out1 = $out1 . $string1[$i];
-            $chars = $chars + 1;
-            if ( $chars > 79 ) {
-                $out1 .= "\n";
-                $chars = 0;
-            }
-        }
-    }
+		if ( $oops || $string1[$i] == $string2[$i] ) {
+			$out1 = $out1 . $string1[$i];
+			$out2 = $out2 . $string2[$i];
+		} else { 
+			$out1 = $out1 . ' ->' . $string1[$i] .'<- ';
+			$out2 = $out2 . ' ->' . $string2[$i] .'<- ';
+			$oops = true;
+		}
+		$chars = $chars + 1;
+		if ( $chars > 79 ) {
+			$out1 .= "\n";
+			$out2 .= "\n";
+			$chars = 0;
+		}
+	}
+	if ( $i < strlen($string1) ) {
+		$out2 = $out2 . ' -> truncated ';
+		for($i=0; $i<strlen($string1); $i++) {
+			$out1 = $out1 . $string1[$i];
+			$chars = $chars + 1;
+			if ( $chars > 79 ) {
+				$out1 .= "\n";
+				$chars = 0;
+			}
+		}
+	}
 
-    if ( $i < strlen($string2) ) {
-        $out1 = $out1 . ' -> truncated ';
-        for($i=0; $i<strlen($string2); $i++) {
-            $out2 = $out2 . $string2[$i];
-            $chars = $chars + 2;
-            if ( $chars > 79 ) {
-                $out2 .= "\n";
-                $chars = 0;
-            }
-        }
-    }
-    return $out1 . "\n-------------\n" . $out2 . "\n";
+	if ( $i < strlen($string2) ) {
+		$out1 = $out1 . ' -> truncated ';
+		for($i=0; $i<strlen($string2); $i++) {
+			$out2 = $out2 . $string2[$i];
+			$chars = $chars + 2;
+			if ( $chars > 79 ) {
+				$out2 .= "\n";
+				$chars = 0;
+			}
+		}
+	}
+	return $out1 . "\n-------------\n" . $out2 . "\n";
 }
 ?>

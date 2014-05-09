@@ -24,7 +24,7 @@ $sql =
 // View 
 html_header_content();
 html_start_body();
-flash_messages();
+html_flash_messages();
 welcome_user_course($LTI);
 
 if ( isset($GRADE_DETAIL_CLASS) && is_object($GRADE_DETAIL_CLASS) ) {

@@ -168,7 +168,7 @@ if ( $submit_json === null ) {
 // View 
 html_header_content();
 html_start_body();
-flash_messages();
+html_flash_messages();
 
 echo("<p><b>Please be careful, you cannot revise grades after you submit them.</b></p>\n");
 

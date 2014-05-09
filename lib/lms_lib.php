@@ -2,12 +2,12 @@
 
 require_once "lti_util.php";
 
-function get_spinner_url() {
+function html_get_spinner_url() {
     global $CFG;
     return $CFG->staticroot . '/static/img/spinner.gif';
 }
 
-function flash_messages() {
+function html_flash_messages() {
     if ( isset($_SESSION['error']) ) {
         echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
         unset($_SESSION['error']);

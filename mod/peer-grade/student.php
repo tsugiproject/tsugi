@@ -158,7 +158,7 @@ $grades_given = retrieveGradesGiven($pdo, $assn_id, $user_id);
 // View
 html_header_content();
 html_start_body();
-flash_messages();
+html_flash_messages();
 
 if ( isset($_SESSION['debug_log']) ) {
     echo("<p>Grade send log below:</p>\n");

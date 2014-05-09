@@ -20,7 +20,7 @@ html_header_content();
 <link href="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/css/ui.jqgrid.css" rel="stylesheet">
 <?php
 html_start_body();
-flash_messages();
+html_flash_messages();
 welcome_user_course($LTI);
 ?>
 <h1>This is under construction - it really does nothing at this point</h1>

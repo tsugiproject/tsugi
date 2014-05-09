@@ -176,7 +176,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
 // View 
 html_header_content();
 html_start_body();
-flash_messages();
+html_flash_messages();
 welcome_user_course($LTI);
 
 if ( $instructor ) {

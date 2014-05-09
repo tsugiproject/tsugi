@@ -20,7 +20,7 @@ $p = $CFG->dbprefix;
 
 html_header_content(); // Start the document and begin the <head>
 html_start_body(); // Finish the </head> and start the <body>
-flash_messages(); // Print out the $_SESSION['success'] and error messages
+html_flash_messages(); // Print out the $_SESSION['success'] and error messages
 
 // A partial form styled using Twitter Bootstrap
 echo('<form method="post">');

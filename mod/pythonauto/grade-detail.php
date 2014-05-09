@@ -12,7 +12,7 @@ $row = load_grade($pdo, $_REQUEST['user_id']);
 // View 
 html_header_content();
 html_start_body();
-flash_messages();
+html_flash_messages();
 
 // Show the basic info for this user
 show_grade_info($row);

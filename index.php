@@ -24,7 +24,7 @@ html_top_nav();
 ?>
       <div>
 <?php
-flash_messages();
+html_flash_messages();
 if ( $CFG->DEVELOPER ) {
     echo '<div class="alert alert-danger" style="margin-top: 10px;">'.
         'Note: Currently this server is running in developer mode.'.

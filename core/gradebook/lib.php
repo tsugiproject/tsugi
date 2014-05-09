@@ -137,7 +137,6 @@ function get_grade_web_service($sourcedid, $service) {
         return "Missing required session data";
     }
 
-    $method="POST";
     $content_type = "application/xml";
     $sourcedid = htmlspecialchars($sourcedid);
     
@@ -147,7 +146,7 @@ function get_grade_web_service($sourcedid, $service) {
         array($sourcedid, $operation, uniqid()),
         getPOXRequest());
 
-    $response = sendOAuthBodyPOST($method, $service, $lti['key_key'], $lti['secret'], 
+    $response = sendOAuthBodyPOST($service, $lti['key_key'], $lti['secret'], 
         $content_type, $postBody);
     $LastPOXGradeResponse = $response;
 
@@ -296,7 +295,6 @@ function send_grade_web_service($grade, $sourcedid, $service, &$debug_log=false)
         return "Missing required session data";
     }
 
-    $method="POST";
     $content_type = "application/xml";
     $sourcedid = htmlspecialchars($sourcedid);
     
@@ -310,7 +308,7 @@ function send_grade_web_service($grade, $sourcedid, $service, &$debug_log=false)
 
     if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request (debug)',$postBody);
 
-    $response = sendOAuthBodyPOST($method, $lti['service'], $lti['key_key'], $lti['secret'], 
+    $response = sendOAuthBodyPOST($lti['service'], $lti['key_key'], $lti['secret'], 
         $content_type, $postBody);
     global $LastOAuthBodyBaseString;
     $lbs = $LastOAuthBodyBaseString;

@@ -29,7 +29,7 @@ if ( $retval == CRUD_INSERT_SUCCESS || $retval == CRUD_INSERT_FAIL ) {
 html_header_content();
 html_start_body();
 html_top_nav();
-flash_messages();
+html_flash_messages();
 
 echo("<h1>Adding Key Entry</h1>\n<p>\n");
 
