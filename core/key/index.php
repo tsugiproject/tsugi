@@ -60,11 +60,13 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
 }
 
 $query_parms = false;
-$searchfields = array("user_id", "title", "notes", "state", "admin", "created_at", "updated_at");
-$sql = "SELECT request_id, title, notes, state, admin, created_at, updated_at, user_id
-        FROM {$CFG->dbprefix}key_request ";
+$searchfields = array("request_id", "title", "notes", "state", "admin", "created_at", "updated_at");
+$sql = "SELECT request_id, title, notes, state, admin, R.created_at, R.updated_at, email, displayname
+        FROM {$CFG->dbprefix}key_request  as R
+        JOIN {$CFG->dbprefix}lti_user AS U ON R.user_id = U.user_id ";
+        
 if ( !is_admin() ) {
-    $sql .= "\nWHERE user_id = :UID";
+    $sql .= "\nWHERE R.user_id = :UID";
     $query_parms = array(":UID" => $_SESSION['id']);
 }
 
@@ -151,7 +153,7 @@ using the IMS Learning Tools Interoperability standard.  You can use this page
 to request access to this service.
 </p>
 <?php } else { 
-    pdo_paged_table($newrows, $searchfields);
+    pdo_paged_table($newrows, $searchfields, false, "request-detail.php");
 } 
 if ( $goodsession ) { ?>
 <p>
