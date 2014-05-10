@@ -1,6 +1,7 @@
 <?php 
 define('COOKIE_SESSION', true);
 require_once "../config.php";
+require_once "../pdo.php";
 require_once $CFG->dirroot.'/lib/lms_lib.php';
 require_once $CFG->dirroot.'/lib/lti_util.php';
 require_once 'tp_messages.php';
@@ -23,6 +24,39 @@ if ( ! isset($_SESSION['id']) ) {
     return;
 }
 
+// See if this person is allowed to register a tool
+$row = pdo_row_die($pdo,
+    "SELECT request_id, user_id, admin, state, lti 
+        FROM {$CFG->dbprefix}key_request 
+        WHERE user_id = :UID LIMIT 1",
+    array(":UID" => $_SESSION['id'])
+);
+
+if ( $row === false ) {
+    $_SESSION['error'] = 'You have not requested a key for this service.';
+    header('Location: '.$CFG->wwwroot);
+    return;
+}
+
+if ( $row['state'] == 0 ) {
+    $_SESSION['error'] = 'Your key has not yet been approved. '.$row['admin'];
+    header('Location: '.$CFG->wwwroot);
+    return;
+}
+
+if ( $row['state'] != 1 ) {
+    $_SESSION['error'] = 'Your key request was not approved. '.$row['admin'];
+    header('Location: '.$CFG->wwwroot);
+    return;
+}
+
+if ( $row['lti'] != 2 ) {
+    $_SESSION['error'] = 'Your did not request an LTI 2.0 key. '.$row['admin'];
+    header('Location: '.$CFG->wwwroot);
+    return;
+}
+
+// We have a person authorized to use LTI 2.0 on this server
 $_POST = $_SESSION['lti2post'];
 
 $lti_message_type = $_POST["lti_message_type"];
@@ -43,7 +77,7 @@ function togglePre($title, $content) {
 ?>
 <html>
 <head>
-  <title>Sakai External Tool API Test Harness 2.0</title>
+  <title>LTI 2.0 Tool Registration</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <script language="javascript"> 
 function dataToggle(divName) {
@@ -60,7 +94,7 @@ function dataToggle(divName) {
 </head>
 <body style="font-family:sans-serif; background-color:#add8e6">
 <?php
-echo("<p><b>Sakai LTI 2.0 Test Harness</b></p>\n");
+echo("<p><b>LTI 2.0 Registration</b></p>\n");
 
 ksort($_POST);
 $output = "";
