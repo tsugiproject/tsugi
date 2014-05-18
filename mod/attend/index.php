@@ -104,4 +104,4 @@ if ( $instructor ) {
     echo("</table>\n");
 }
 
-html_footer_content();
+$OUTPUT->footer();

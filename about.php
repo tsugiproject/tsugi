@@ -1,7 +1,7 @@
 <?php 
 define('COOKIE_SESSION', true);
 require_once("config.php");
-html_header_content();
+$OUTPUT->header();
 ?>
 </head>
 <body>

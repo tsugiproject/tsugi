@@ -55,8 +55,8 @@ if ( isset($_POST['getServerGrades']) ) {
         return;
     }
 
-    html_header_content();
-    echo(html_toggle_preScript());
+    $OUTPUT->header();
+    echo($OUTPUT->toggle_preScript());
     session_write_close();
     echo("</head><body>\n");
 
@@ -85,7 +85,7 @@ if ( isset($_POST['getServerGrades']) ) {
         $ets = sprintf("%1.3f",$et);
         if ( is_string($grade) ) {
             $fail++;
-            html_toggle_pre("Error at ".$count.' / '.$total.' ('.$ets.')',$grade);
+            $OUTPUT->toggle_pre("Error at ".$count.' / '.$total.' ('.$ets.')',$grade);
             flush();
         } else {
             $success++;
@@ -109,8 +109,8 @@ if ( isset($_POST['getServerGrades']) ) {
 }
 
 if ( isset($_POST['fixServerGrades']) ) {
-    html_header_content();
-    echo(html_toggle_preScript());
+    $OUTPUT->header();
+    echo($OUTPUT->toggle_preScript());
     echo("</head><body>\n");
     session_write_close();
 
@@ -154,7 +154,7 @@ if ( isset($_POST['fixServerGrades']) ) {
               "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
-            html_toggle_pre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
+            $OUTPUT->toggle_pre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
             flush();
             echo("Problem sending grade ".$status."<br/>\n");
             $fail++;
@@ -178,7 +178,7 @@ if ( isset($_POST['fixServerGrades']) ) {
             error_log("Error re-retrieving grade: ".session_id().' result_id='.$row['result_id'].
                 ' sourcedid='+$row['sourcedid']+' service_key='+$row['service_key']);
             
-            html_toggle_pre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
+            $OUTPUT->toggle_pre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
             flush();
             $fail++;
             continue;
@@ -200,7 +200,7 @@ if ( isset($_POST['fixServerGrades']) ) {
 }
 
 // View 
-html_header_content();
+$OUTPUT->header();
 ?>
 <script type="text/javascript">
 function showFrame() {
@@ -210,8 +210,8 @@ function showFrame() {
 }
 </script>
 <?php
-html_start_body();
-html_flash_messages();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 
 $iframeurl = sessionize($CFG->wwwroot . '/mod/grades/maint.php?link_id=' . $link_id);
 ?>
@@ -251,14 +251,14 @@ Link id: <?php echo($link_id);
     if ( isset($link_info['title']) ) echo(' '.htmlent_utf8($link_info['title'])) ; ?> 
 </pre>
 
-<p><b>Total results:</b> <span id="total"><img src="<?php echo(html_get_spinner_url()); ?>"></span>
-<img id="totspinner" src="<?php echo(html_get_spinner_url()); ?>" style="display:none">
+<p><b>Total results:</b> <span id="total"><img src="<?php echo(get_spinner_url()); ?>"></span>
+<img id="totspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
 </p>
-<p><b>Grades to Retrieve:</b> <span id="toretrieve"><img src="<?php echo(html_get_spinner_url()); ?>"></span>
-<img id="retspinner" src="<?php echo(html_get_spinner_url()); ?>" style="display:none">
+<p><b>Grades to Retrieve:</b> <span id="toretrieve"><img src="<?php echo(get_spinner_url()); ?>"></span>
+<img id="retspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
 </p>
-<p><b>Mis-matched Grades:</b> <span id="mismatch"><img src="<?php echo(html_get_spinner_url()); ?>"></span>
-<img id="misspinner" src="<?php echo(html_get_spinner_url()); ?>" style="display:none">
+<p><b>Mis-matched Grades:</b> <span id="mismatch"><img src="<?php echo(get_spinner_url()); ?>"></span>
+<img id="misspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
 </p>
 
 <div id="iframediv" style="display:none">
@@ -275,7 +275,7 @@ That is OK - simply come back and restart it - it will pick up where it left off
 
 
 <?php
-html_footer_start();
+$OUTPUT->footer_start();
 ?>
 <script type="text/javascript">
 $UPDATE_INTERVAL = false;
@@ -304,4 +304,4 @@ function updateNumbers() {
 updateNumbers();
 </script>
 <?
-html_footer_end();
+$OUTPUT->footer_end();

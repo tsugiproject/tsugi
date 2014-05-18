@@ -35,7 +35,7 @@ $codemirror = $editor == 1;
 // Get any due date information
 $dueDate = get_due_date();
 
-html_header_content();
+$OUTPUT->header();
 
 // Defaults
 $QTEXT = 'You can write any code you like in the window below.  There are three files
@@ -374,7 +374,7 @@ word-wrap: break-word; /* IE 5.5+ */
 }
 </style>
 <?php
-html_start_body();
+$OUTPUT->start_body();
 ?>
 
 
@@ -466,7 +466,7 @@ if ( $dueDate->message ) {
         echo('<button onclick="resetcode()" type="button">Reset Code</button> ');
     }
     echo('<button onclick="$(\'#info\').modal();return false;" type="button">Info</button>'."\n");
-    html_done_button();
+    $OUTPUT->done_button();
     if ( $instructor ) {
         if ( $EX === false ) {
             echo(' <a href="grades.php" target="_blank">View Student Code</a>'."\n");
@@ -532,7 +532,7 @@ The source code for this auto-grader is available on
 <?php   echo(htmlentities($CODE)); ?>
 </textarea>
 <?php
-html_footer_start();
+$OUTPUT->footer_start();
 ?>
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/js/jquery.splitter-0.14.0.js"></script>
 <script type="text/javascript">
@@ -606,4 +606,4 @@ function load_cm() {
  });
 </script>
 <?php
-html_footer_end();
+$OUTPUT->footer_end();

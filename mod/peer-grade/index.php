@@ -174,9 +174,9 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
 }
 
 // View 
-html_header_content();
-html_start_body();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 welcome_user_course($LTI);
 
 if ( $instructor ) {
@@ -195,7 +195,7 @@ if ( $assn_json != null ) {
 
 if ( $assn_json == null ) {
     echo('<p>This assignment is not yet configured</p>');
-    html_footer_content();
+    $OUTPUT->footer();
     return;
 } 
 
@@ -218,10 +218,10 @@ if ( $submit_row == false ) {
     echo("<p>Enter optional comments below</p>\n");
     echo('<textarea rows="5" cols="60" name="notes"></textarea><br/>');
     echo('<input type="submit" name="doSubmit" value="Submit" class="btn btn-default"> ');
-    html_done_bootstrap('Cancel');
+    $OUTPUT->done_bootstrap('Cancel');
     echo('</form>');
     echo("\n<p>Make sure each file is smaller than 1MB.</p>\n");
-    html_footer_content();
+    $OUTPUT->footer();
     return;
 }
 
@@ -265,7 +265,7 @@ if ( count($our_grades) < 1 ) {
         echo("<p>Your overall score from your peers: $max_points </p>\n");
     }
 }
-html_done_bootstrap();
+$OUTPUT->done_bootstrap();
 ?>
 <form method="post" id="flagform" style="display:none">
 <p>&nbsp;</p>
@@ -299,7 +299,7 @@ function load_grade() {
 }
 </script>
 <?php
-html_footer_start();
+$OUTPUT->footer_start();
 ?>
 <script type="text/javascript">
 $(document).ready(function() { 
@@ -307,5 +307,5 @@ $(document).ready(function() {
 } );
 </script>
 <?php
-html_footer_end();
+$OUTPUT->footer_end();
 

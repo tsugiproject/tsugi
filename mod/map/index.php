@@ -63,7 +63,7 @@ if ( $row !== false ) {
 $display = get_name_and_email($LTI);
 $firstname = get_first_name($display);
 
-html_header_content();
+$OUTPUT->header();
 ?>
 <script src="//maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 <script type="text/javascript">
@@ -130,7 +130,7 @@ other_points =
 ;
 </script>
 <?php
-html_start_body();
+$OUTPUT->start_body();
 if ( $display ) {
 ?>
 <div class="modal fade" id="prefs">
@@ -142,7 +142,7 @@ if ( $display ) {
       </div>
       <div class="modal-body">
         <p>Map Preferences 
-        <img id="spinner" src="<?php echo(html_get_spinner_url()); ?>" style="display: none">
+        <img id="spinner" src="<?php echo(get_spinner_url()); ?>" style="display: none">
         <span id="save_fail" style="display:none; color:red">Unable to save preferences</span>
         </p>
         <form id="prefs_form">
@@ -206,14 +206,14 @@ location.
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">Go to map</button>
-<?php html_done_bootstrap("Cancel"); ?>
+<?php $OUTPUT->done_bootstrap("Cancel"); ?>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <div id="map_canvas" style="margin: 10px; width:95%; height:600px"></div>
 <?php
-html_footer_start();
+$OUTPUT->footer_start();
 ?>
 <script type="text/javascript">
 $(document).ready(function() { 
@@ -244,5 +244,5 @@ $(document).ready(function() {
 } );
 </script>
 <?php
-html_footer_end();
+$OUTPUT->footer_end();
 

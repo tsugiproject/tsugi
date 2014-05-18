@@ -10,9 +10,9 @@ session_start();
 $row = load_grade($pdo, $_REQUEST['user_id']);
 
 // View 
-html_header_content();
-html_start_body();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 
 // Show the basic info for this user
 show_grade_info($row);
@@ -26,4 +26,4 @@ if ( is_object($json) && isset($json->url)) {
     echo("</a></p>\n");
 }
 
-html_footer_content();
+$OUTPUT->footer();

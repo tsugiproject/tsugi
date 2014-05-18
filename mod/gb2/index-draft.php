@@ -10,7 +10,7 @@ $instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 $p = $CFG->dbprefix;
 $localstatic = getLocalStatic(__FILE__) . '/static';
 
-html_header_content();
+$OUTPUT->header();
 ?>
 <!--
 <link rel="stylesheet" type="text/css" media="screen" href="http://www.trirand.com/blog/jqgrid/themes/redmond/jquery-ui-custom.css" />
@@ -19,8 +19,8 @@ html_header_content();
 -->
 <link href="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/css/ui.jqgrid.css" rel="stylesheet">
 <?php
-html_start_body();
-html_flash_messages();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 welcome_user_course($LTI);
 ?>
 <h1>This is under construction - it really does nothing at this point</h1>
@@ -29,7 +29,7 @@ welcome_user_course($LTI);
 <div id="pager2"></div>
 </div>
 <?php
-html_footer_start();
+$OUTPUT->footer_start();
 ?>
 <script src="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/js/i18n/grid.locale-en.js" type="text/javascript"></script>
 <script src="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/js/jquery.jqGrid.src.js" type="text/javascript"></script>
@@ -63,5 +63,5 @@ jQuery("#list2").jqGrid({
 jQuery("#list2").jqGrid('navGrid','#pager2',{edit:false,add:false,del:false});
 </script>
 <?php
-html_footer_end();
+$OUTPUT->footer_end();
 

@@ -138,4 +138,4 @@ if ( isset($_SESSION['success']) ) {
  <button type="submit">Save Location</button>
 </form>
 <?php
-html_footer_content();
+$OUTPUT->footer();

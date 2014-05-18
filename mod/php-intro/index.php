@@ -53,6 +53,6 @@ to an LMS, you need to launch this software using an LMS that supports
 IMS Learning Tools Interoperability.
 </p>
 
-<?php html_do_analytics(); ?>
+<?php $OUTPUT->do_analytics(); ?>
 
 </body>

@@ -40,8 +40,8 @@ if ( isset($_POST['restartReGrade']) ) {
 }
 
 if ( isset($_POST['reGradePeer']) ) {
-    html_header_content();
-    echo(html_toggle_preScript());
+    $OUTPUT->header();
+    echo($OUTPUT->toggle_preScript());
     echo("</head><body>\n");
     session_write_close();
 
@@ -107,7 +107,7 @@ if ( isset($_POST['reGradePeer']) ) {
               "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
-            html_toggle_pre("Error sending grade",$LastPOXGradeResponse);
+            $OUTPUT->toggle_pre("Error sending grade",$LastPOXGradeResponse);
             flush();
             echo("Problem sending grade ".$status."<br/>\n");
             $fail++;
@@ -122,7 +122,7 @@ if ( isset($_POST['reGradePeer']) ) {
 }
 
 // View 
-html_header_content();
+$OUTPUT->header();
 ?>
 <script type="text/javascript">
 function showFrame() {
@@ -130,8 +130,8 @@ function showFrame() {
 }
 </script>
 <?php
-html_start_body();
-html_flash_messages();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 
 $iframeurl = sessionize($CFG->wwwroot . '/mod/peer-grade/maint.php?link_id=' . $link_id);
 ?>
@@ -163,8 +163,8 @@ Link id: <?php echo($link_id);
     if ( isset($LTI['link_title']) ) echo(' '.htmlent_utf8($LTI['link_title'])) ; ?> 
 </pre>
 
-<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(html_get_spinner_url()); ?>"></span>
-<img id="totspinner" src="<?php echo(html_get_spinner_url()); ?>" style="display:none">
+<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(get_spinner_url()); ?>"></span>
+<img id="totspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
 </p>
 
 <div id="iframediv" style="display:none">
@@ -181,7 +181,7 @@ and it willpick up where it left off.
 
 
 <?php
-html_footer_start();
+$OUTPUT->footer_start();
 ?>
 <script type="text/javascript">
 $UPDATE_INTERVAL = false;
@@ -201,4 +201,4 @@ function updateNumbers() {
 updateNumbers();
 </script>
 <?
-html_footer_end();
+$OUTPUT->footer_end();

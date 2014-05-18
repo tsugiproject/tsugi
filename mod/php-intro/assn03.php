@@ -17,7 +17,7 @@ flush();
 $client = new Client();
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 
 $names = array('Rock', 'Paper', 'Scissors');
 
@@ -49,7 +49,7 @@ for ( $i=0; $i<5; $i++) {
     line_out("Playing ".$names[$i % 3]);
     $crawler = $client->submit($form);
     $html = $crawler->html();
-    html_toggle_pre('Show retrieved page',$html);
+    $OUTPUT->toggle_pre('Show retrieved page',$html);
     if ( $displayname !== false ) {
         try {
             $title = $crawler->filter('title')->text();

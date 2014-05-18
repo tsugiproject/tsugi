@@ -36,7 +36,7 @@ if ( isset($_POST['grade']) )  {
 }
 ?>
 <html><head><title>Testing of the grade code</title>
-<?php echo(html_toggle_preScript());?>
+<?php echo($OUTPUT->toggle_preScript());?>
 </head>
 <body style="background-color:pink;">
 <?php

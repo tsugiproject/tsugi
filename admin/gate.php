@@ -37,9 +37,9 @@ if ( count($_POST) > 0 ) {
 }
 
 if ( ! isset($_SESSION['admin']) ) {
-  html_header_content();
-  html_start_body();
-  html_top_nav();
+  $OUTPUT->header();
+  $OUTPUT->start_body();
+  $OUTPUT->top_nav();
 ?>
 <form method="post">
 <label for="passphrase">Admin Unlock:<br/>
@@ -49,6 +49,6 @@ if ( ! isset($_SESSION['admin']) ) {
 </form>
 
 <?php 
-    html_footer_content();
+    $OUTPUT->footer();
 }
 

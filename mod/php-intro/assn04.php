@@ -23,7 +23,7 @@ $titlepassed = true;
 try {
 
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 
 $retval = webauto_check_title($crawler);
 if ( $retval !== true ) {
@@ -38,7 +38,7 @@ line_out("Retrieving ".htmlent_utf8($url)."...");
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 
 // Log in fail
@@ -51,7 +51,7 @@ $crawler = $client->submit($form);
 $passed++;
 
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 
 line_out("Checking to see if there was a POST redirect to a GET");
 $method = $client->getRequest()->getMethod();
@@ -75,7 +75,7 @@ $crawler = $client->submit($form);
 $passed++;
 
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 
 line_out("Looking for a green 'Logged in' message");
 if ( strpos($html, 'Logged in') !== false ) {
@@ -92,7 +92,7 @@ $form->setValues(array("sugar" => "1", "spice" => "2", "vanilla" => "3"));
 $crawler = $client->submit($form);
 $passed++;
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 
 line_out("Checking to see if there was a POST redirect to a GET");
 $method = $client->getRequest()->getMethod();
@@ -120,7 +120,7 @@ $url = $client->getRequest()->getUri();
 line_out("Doing a refresh (GET) of ".htmlentities($url));
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 
 line_out("Looking for the absence of a green 'Logged in' message");
@@ -147,7 +147,7 @@ $form->setValues(array("sugar" => "0", "spice" => $spice, "vanilla" => "0"));
 $passed++;
 $crawler = $client->submit($form);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 
 line_out("Checking to see if there was a POST redirect to a GET");
 $method = $client->getRequest()->getMethod();
@@ -201,7 +201,7 @@ try {
 line_out("Retrieving ".htmlent_utf8($url)."...");
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 
 line_out("Looking for login link.");
@@ -216,7 +216,7 @@ $passed++;
     $detail = "This indicates the source code line where the test stopped.\n" .
         "It may not make any sense without looking at the source code for the test.\n".
         'Caught exception: '.$ex->getMessage()."\n".$ex->getTraceAsString()."\n";
-    html_toggle_pre("Internal error detail.",$detail);
+    $OUTPUT->toggle_pre("Internal error detail.",$detail);
 }
 
 // There is a maximum of 20 passes for this test

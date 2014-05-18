@@ -73,9 +73,9 @@ if ( strlen($json) < 1 ) {
 $json = json_indent($json);
 
 // View 
-html_header_content();
-html_start_body();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 if ( ! $instructor ) die("Requires instructor role");
 
 ?>
@@ -90,4 +90,4 @@ if ( ! $instructor ) die("Requires instructor role");
 </form>
 <?php
 
-html_footer_content();
+$OUTPUT->footer();

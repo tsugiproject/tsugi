@@ -29,9 +29,9 @@ if ( isset($_POST["lti_message_type"]) && $_POST["lti_message_type"] == "ToolPro
 }
 
 // Now lets make sure we are in the top window...
-html_header_content();
-html_start_body();
-echo('<img src="'.html_get_spinner_url().'" id="spinner">');
+$OUTPUT->header();
+$OUTPUT->start_body();
+echo('<img src="'.get_spinner_url().'" id="spinner">');
 ?>
 <div id="popup" style="display:none">
 <p>Please click 
@@ -40,7 +40,7 @@ to continue the registration process in a new window.
 </p>
 </div>
 <?php
-html_footer_start();
+$OUTPUT->footer_start();
 ?>
 <script type="text/javascript">
 topframe = false;
@@ -57,4 +57,4 @@ if ( topframe ) {
 }
 </script>
 <?php
-html_footer_end();
+$OUTPUT->footer_end();

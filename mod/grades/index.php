@@ -81,9 +81,9 @@ if ( $instructor ) {
     $links = $lstmt->fetchAll();    
 }
 // View 
-html_header_content();
-html_start_body();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 
 if ( $instructor ) {
 ?>
@@ -230,4 +230,4 @@ if ( $class_sql !== false ) {
 }
 
 
-html_footer_content();
+$OUTPUT->footer();

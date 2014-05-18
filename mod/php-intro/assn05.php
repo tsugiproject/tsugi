@@ -24,7 +24,7 @@ $titlepassed = true;
 try {
 
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 
 $retval = webauto_check_title($crawler);
 if ( $retval !== true ) {
@@ -39,7 +39,7 @@ line_out("Retrieving ".htmlent_utf8($url)."...");
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 
 // Add new fail
@@ -51,7 +51,7 @@ $crawler = $client->submit($form);
 $passed++;
 
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 checkPostRedirect($client);
 
 line_out("Expecting 'Bad value for title, plays, or rating'");
@@ -68,7 +68,7 @@ line_out("Retrieving ".htmlent_utf8($url)."...");
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 line_out("Looking for the form with a 'Add New' submit button");
 $form = $crawler->selectButton('Add New')->form();
@@ -81,7 +81,7 @@ $crawler = $client->submit($form);
 $passed++;
 
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 checkPostRedirect($client);
 
 line_out("Looking '$title' entry");
@@ -103,7 +103,7 @@ line_out("Retrieving ".htmlent_utf8($editlink)."...");
 
 $crawler = $client->request('GET', $editlink);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 
 line_out("Looking for the form with a 'Update' submit button");
@@ -114,7 +114,7 @@ line_out("Editing title=$title, plays=$plays, rating=$rating");
 $form->setValues(array("title" => $title, "plays" => $plays, "rating" => $rating));
 $crawler = $client->submit($form);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 checkPostRedirect($client);
 
@@ -138,7 +138,7 @@ line_out("Retrieving ".htmlent_utf8($editlink)."...");
 
 $crawler = $client->request('GET', $editlink);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 
 // Do the Delete
@@ -146,7 +146,7 @@ line_out("Looking for the form with a 'Delete' submit button");
 $form = $crawler->selectButton('Delete')->form();
 $crawler = $client->submit($form);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 checkPostRedirect($client);
 
@@ -170,7 +170,7 @@ while (True ) {
 
     $crawler = $client->request('GET', $editlink);
     $html = $crawler->html();
-    html_toggle_pre("Show retrieved page",$html);
+    $OUTPUT->toggle_pre("Show retrieved page",$html);
     $passed++;
 
     // Do the Delete
@@ -178,7 +178,7 @@ while (True ) {
     $form = $crawler->selectButton('Delete')->form();
     $crawler = $client->submit($form);
     $html = $crawler->html();
-    html_toggle_pre("Show retrieved page",$html);
+    $OUTPUT->toggle_pre("Show retrieved page",$html);
     $passed++;
     checkPostRedirect($client);
 }
@@ -191,7 +191,7 @@ line_out("Retrieving ".htmlent_utf8($url)."...");
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 
 line_out("Looking for the form with a 'Add New' submit button");
@@ -205,7 +205,7 @@ $crawler = $client->submit($form);
 $passed++;
 
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 checkPostRedirect($client);
 
 $pos = strpos($html, "AC&lt;DC");
@@ -223,7 +223,7 @@ line_out("Retrieving ".htmlent_utf8($editlink)."...");
 
 $crawler = $client->request('GET', $editlink);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 
 $pos = strpos($html, "AC&lt;DC");
@@ -238,7 +238,7 @@ line_out("Looking for the form with a 'Delete' submit button");
 $form = $crawler->selectButton('Delete')->form();
 $crawler = $client->submit($form);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 $passed++;
 checkPostRedirect($client);
 
@@ -250,7 +250,7 @@ checkPostRedirect($client);
     $detail = "This indicates the source code line where the test stopped.\n" .
         "It may not make any sense without looking at the source code for the test.\n".
         'Caught exception: '.$ex->getMessage()."\n".$ex->getTraceAsString()."\n";
-    html_toggle_pre("Internal error detail.",$detail);
+    $OUTPUT->toggle_pre("Internal error detail.",$detail);
 }
 
 $perfect = 26;

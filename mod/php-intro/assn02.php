@@ -18,7 +18,7 @@ $client = new Client();
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-html_toggle_pre("Show retrieved page",$html);
+$OUTPUT->toggle_pre("Show retrieved page",$html);
 
 line_out("Searching for h1 tag...");
 

@@ -56,8 +56,8 @@ if ( isset($_POST['grade']) )  {
 }
 
 // Start of the output
-html_header_content();
-html_start_body();
+$OUTPUT->header();
+$OUTPUT->start_body();
 
 if ( isset($_SESSION['error']) ) {
     echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
@@ -87,5 +87,5 @@ echo('<p>$LTI["result_id"] is: '.$LTI['result_id']."</p>\n");
 $dump = safe_var_dump($_SESSION);
 echo("\n<pre>\nSession Dump:\n".$dump."\n</pre>\n");
 
-html_footer_content();
+$OUTPUT->footer();
 

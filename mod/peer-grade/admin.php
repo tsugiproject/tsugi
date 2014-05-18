@@ -34,9 +34,9 @@ $sql =
     GROUP BY S.submit_id";
 
 // View 
-html_header_content();
-html_start_body();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 welcome_user_course($LTI);
 
 // Make us a paged table and by default sort by flagged descending
@@ -55,4 +55,4 @@ pdo_paged_auto($pdo, $sql, $query_parms, $searchfields, $orderfields, "student.p
 </form>
 <?php
 
-html_footer_content();
+$OUTPUT->footer();

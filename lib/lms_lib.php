@@ -2,22 +2,6 @@
 
 require_once "lti_util.php";
 
-function html_get_spinner_url() {
-    global $CFG;
-    return $CFG->staticroot . '/static/img/spinner.gif';
-}
-
-function html_flash_messages() {
-    if ( isset($_SESSION['error']) ) {
-        echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
-        unset($_SESSION['error']);
-    }
-    if ( isset($_SESSION['success']) ) {
-        echo '<p style="color:green">'.$_SESSION['success']."</p>\n";
-        unset($_SESSION['success']);
-    }
-}
-
 function dump_table($stmt, $view=false) {
     if ( $view !== false ) {
         if ( strpos($view, '?') !== false ) {
@@ -281,129 +265,6 @@ function require_admin() {
     }
 }
 
-function html_header_content($headCSS=false) {
-    global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL;
-    global $CFG;
-    if ( $HEAD_CONTENT_SENT === true ) return;
-    header('Content-Type: text/html; charset=utf-8');
-?><!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo($CFG->servicename); ?></title>
-    <!-- Le styles -->
-    <link href="<?php echo($CFG->staticroot); ?>/static/css/custom-theme/jquery-ui-1.10.0.custom.css" rel="stylesheet">
-    <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
-
-<style> <!-- from navbar.css -->
-body {
-  padding-top: 20px;
-  padding-bottom: 20px;
-}
-
-.navbar {
-  margin-bottom: 20px;
-}
-</style>
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="<?php echo($CFG->wwwroot); ?>/static/html5shiv/html5shiv.js"></script>
-      <script src="<?php echo($CFG->wwwroot); ?>/static/respond/respond.min.js"></script>
-    <![endif]-->
-
-<?php
-    if ( isset($_SESSION['CSRF_TOKEN']) ) {
-        echo('<script type="text/javascript">CSRF_TOKEN = "'.$_SESSION['CSRF_TOKEN'].'";</script>'."\n");
-    } else {
-        echo('<script type="text/javascript">CSRF_TOKEN = "TODORemoveThis";</script>'."\n");
-    }
-    $HEAD_CONTENT_SENT = true;
-}
-
-function html_start_body() {
-    echo("\n</head>\n<body style=\"padding: 15px 15px 15px 15px;\">\n");
-    if ( count($_POST) > 0 ) {
-        $dump = safe_var_dump($_POST);
-        echo('<p style="color:red">Error - Unhandled POST request</p>');
-        echo("\n<pre>\n");
-        echo($dump);
-        echo("\n</pre>\n");
-        error_log($dump);
-        die_with_error_log("Unhandled POST request");
-    }
-}
-
-function html_footer_start() {
-    global $CFG;
-    echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");
-    echo('<script src="'.$CFG->staticroot.'/static/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
-
-    // Serve this locally during early development - Move to CDN when stable
-    echo('<script src="'.$CFG->wwwroot.'/static/js/tsugiscripts.js"></script>'."\n");
-
-    if ( isset($CFG->sessionlifetime) ) {
-        $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
-        // $heartbeat = 10000;
-?>
-<script type="text/javascript">
-HEARTBEAT_URL = '<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>';
-HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
-</script>
-<?php
-    }
-
-    html_do_analytics(); 
-}
-
-function html_footer_end() {
-    echo("\n</body>\n</html>\n");
-}
-
-function html_footer_content($onload=false) {
-    global $CFG;
-    html_footer_start();
-    if ( $onload !== false ) {
-        echo("\n".$onload."\n");
-    }
-    html_footer_end();
-}
-
-function html_do_analytics() {
-    global $CFG;
-    if ( $CFG->analytics_key ) { ?>
-<script type="text/javascript">
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', '<?php echo($CFG->analytics_key); ?>']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    // ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
-
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-<?php
-        if ( isset($_SESSION) && isset($_SESSION['lti']) ) {
-            if ( isset($_SESSION['lti']['key_key']) ) {
-                echo("_gaq.push(['_setCustomVar', 1, 'consumer_key', '".$_SESSION['lti']['key_key']."', 2]);\n");
-            }
-            if ( isset($_SESSION['lti']['context_id']) ) {
-                echo("_gaq.push(['_setCustomVar', 2, 'context_id', '".$_SESSION['lti']['context_id']."', 2]);\n");
-            }
-            if ( isset($_SESSION['lti']['context_title']) ) {
-                echo("_gaq.push(['_setCustomVar', 3, 'context_title', '".$_SESSION['lti']['context_title']."', 2]);\n");
-            }
-        }
-        echo("</script>\n");
-    }  // if analytics is on...
-}
-
 // Gets an absolute static path to the specified file
 function getLocalStatic($file) {
     global $CFG;
@@ -444,10 +305,15 @@ function get_pwd($file) {
     return $retval;
 }
 
-function html_get_url_full($file) {
+function get_url_full($file) {
     global $CFG;
     $path = get_pwd($file);
     return $CFG->wwwroot . "/" . $path;
+}
+
+function get_spinner_url() {
+    global $CFG;
+    return $CFG->staticroot . '/static/img/spinner.gif';
 }
 
 function add_session($location) {
@@ -702,68 +568,6 @@ function lti_get_custom($varname, $default=false) {
     return $default;
 }
 
-function html_done_button() {
-    $url = false;
-    if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
-        $url = $_SESSION['lti_post']['custom_done'];
-    } else if ( isset($_GET["done"]) ) {
-        $url = $_GET['done'];
-    }
-    if ( $url === false ) return;
-
-    if ( $url == "_close" ) {
-        echo("<button onclick=\"window.close();\" type=\"button\">Done</button>\n");
-    } else if ( strpos($url, "http") !== false ) {
-        echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
-    } else {
-        echo("<button onclick=\"window.location='".sessionize($url)."';\" type=\"button\">Done</button>\n");
-    }
-}
-
-function html_done_bootstrap($text="Done") {
-    $url = false;
-    if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
-        $url = $_SESSION['lti_post']['custom_done'];
-    } else if ( isset($_GET["done"]) ) {
-        $url = $_GET['done'];
-    }
-    if ( $url === false ) return;
-
-    $button = "btn-success";
-    if ( $text == "Cancel" ) $button = "btn-warning";
-
-    if ( $url == "_close" ) {
-        echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn ".$button."\">".$text."</a>\n");
-    } else {
-        echo("<a href==\"$url\"  class=\"btn ".$button."\">".$text."</button>\n");
-    }
-}
-
-function html_toggle_pre($title, $html) {
-    global $div_id;
-    $div_id = $div_id + 1;
-    echo('<strong>'.htmlent_utf8($title));
-    echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">Toggle</a>)</strong>'."\n");
-    echo(' ('.strlen($html).' characters)'."\n");
-    echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
-    echo(htmlent_utf8($html));
-    echo("</pre><br/>\n");
-}
-
-function html_toggle_preScript() {
-return '<script language="javascript"> 
-function dataToggle(divName) {
-    var ele = document.getElementById(divName);
-    if(ele.style.display == "block") {
-        ele.style.display = "none";
-    }
-    else {
-        ele.style.display = "block";
-    }
-} 
-</script>';
-}
-
 // Looks up a result for a potentially different user_id so we make
 // sure they are in the smame key/ context / link as the current user
 // hence the complex query to make sure we don't cross silos
@@ -977,7 +781,7 @@ function login_secure_cookie($pdo) {
             !isset($CFG->cookiepad) || $CFG->cookiepad === false) {
         return;
     }
-    
+
     $ct = $_COOKIE[$CFG->cookiename];
     // error_log("Cookie: $ct \n");
     $pieces = extract_secure_cookie($ct);
@@ -997,7 +801,7 @@ function login_secure_cookie($pdo) {
         delete_secure_cookie();
         return;
     }
-    
+
     $row = pdo_row_die($pdo,
         "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
             P.email as email, U.user_id as user_id
@@ -1339,7 +1143,7 @@ function mail_send($to, $subject, $message, $id, $token) {
     } else {
         die_with_error_log("Incomplete mail configuration in mail_send");
     }
-    
+
     if ( strlen($to) < 1 || strlen($subject) < 1 || strlen($id) < 1 || strlen($token) < 1 ) return false;
 
     $EOL = $CFG->maileol;
@@ -1361,63 +1165,6 @@ function mail_send($to, $subject, $message, $id, $token) {
     error_log("Mail to: $to $subject");
     // echo $headers;
     return mail($to,$subject,$msg,$headers);
-}
-
-function html_top_nav() {
-    global $CFG;
-    $R = $CFG->wwwroot . '/';
-?>
-    <div class="container">
-      <!-- Static navbar -->
-      <div class="navbar navbar-default" role="navigation">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="index.php">TSUGI</a>
-        </div>
-        <div class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <?php if ( $CFG->DEVELOPER ) { ?>
-            <li><a href="<?php echo($R); ?>dev.php">Developer</a></li>
-            <?php } ?>
-            <?php if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) { ?>
-            <li><a href="<?php echo($R); ?>admin/index.php">Admin</a></li>
-            <?php } ?>
-
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
-                <li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
-                <li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
-                <li><a href="http://www.oauth.net/" target="_blank">OAuth Documentation</a></li>
-              </ul>
-            </li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            <li><a href="<?php echo($R); ?>about.php">About</a></li>
-            <?php if ( isset($_SESSION['id']) ) { ?>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo($_SESSION['displayname']);?><b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li><a href="<?php echo($R); ?>profile.php">Profile</a></li>
-                <?php if ( $CFG->providekeys && $CFG->owneremail ) { ?>
-                <li><a href="<?php echo($R); ?>core/key/index.php">Use this service</a></li>
-                <?php } ?>
-                <li><a href="<?php echo($R); ?>logout.php">Logout</a></li>
-              </ul>
-            </li>
-            <?php } else { ?>
-            <li><a href="<?php echo($R); ?>login.php">Login</a></li>
-            <?php } ?>
-          </ul>
-        </div><!--/.nav-collapse -->
-      </div>
-<?
 }
 
 function crud_select_sql($tablename, $fields, $where_clause=false) {
@@ -1526,10 +1273,10 @@ function crud_update_form($row, $fields, $current, $from_location, $allow_edit=f
         echo(" onclick=\"return confirm('Are you sure you want to delete this record?');\">\n");
     }
     echo("</form>\n");
-    
+
     echo("<p>\n");
     if ( $do_edit ) echo('<form method="post">'."\n");
-    
+
     for($i=0; $i < count($fields); $i++ ) {
         $field = $fields[$i];
         $value = $row[$field];
@@ -1550,7 +1297,7 @@ function crud_update_form($row, $fields, $current, $from_location, $allow_edit=f
             echo('<input type="hidden" name="'.$field.'" value="'.htmlent_utf8($value).'">'."\n");
             continue;
         }
-    
+
         // Don't allow explicit updating of these fields
         if ( strpos($field, "_at") > 0 ) continue;
 
@@ -1653,4 +1400,263 @@ function crud_insert_form($fields, $from_location) {
     echo('</form>'."\n");
 }
 
+class default_renderer {
+
+    function flash_messages() {
+        if ( isset($_SESSION['error']) ) {
+            echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
+            unset($_SESSION['error']);
+        }
+        if ( isset($_SESSION['success']) ) {
+            echo '<p style="color:green">'.$_SESSION['success']."</p>\n";
+            unset($_SESSION['success']);
+        }
+    }
+
+    function header($headCSS=false) {
+        global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL;
+        global $CFG;
+        if ( $HEAD_CONTENT_SENT === true ) return;
+        header('Content-Type: text/html; charset=utf-8');
+    ?><!DOCTYPE html>
+    <html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title><?php echo($CFG->servicename); ?></title>
+        <!-- Le styles -->
+        <link href="<?php echo($CFG->staticroot); ?>/static/css/custom-theme/jquery-ui-1.10.0.custom.css" rel="stylesheet">
+        <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <style> <!-- from navbar.css -->
+    body {
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
+
+    .navbar {
+      margin-bottom: 20px;
+    }
+    </style>
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+          <script src="<?php echo($CFG->wwwroot); ?>/static/html5shiv/html5shiv.js"></script>
+          <script src="<?php echo($CFG->wwwroot); ?>/static/respond/respond.min.js"></script>
+        <![endif]-->
+
+    <?php
+        if ( isset($_SESSION['CSRF_TOKEN']) ) {
+            echo('<script type="text/javascript">CSRF_TOKEN = "'.$_SESSION['CSRF_TOKEN'].'";</script>'."\n");
+        } else {
+            echo('<script type="text/javascript">CSRF_TOKEN = "TODORemoveThis";</script>'."\n");
+        }
+        $HEAD_CONTENT_SENT = true;
+    }
+
+    function start_body() {
+        echo("\n</head>\n<body style=\"padding: 15px 15px 15px 15px;\">\n");
+        if ( count($_POST) > 0 ) {
+            $dump = safe_var_dump($_POST);
+            echo('<p style="color:red">Error - Unhandled POST request</p>');
+            echo("\n<pre>\n");
+            echo($dump);
+            echo("\n</pre>\n");
+            error_log($dump);
+            die_with_error_log("Unhandled POST request");
+        }
+    }
+
+    function footer_start() {
+        global $CFG;
+        echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/static/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
+
+        // Serve this locally during early development - Move to CDN when stable
+        echo('<script src="'.$CFG->wwwroot.'/static/js/tsugiscripts.js"></script>'."\n");
+
+        if ( isset($CFG->sessionlifetime) ) {
+            $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
+            // $heartbeat = 10000;
+    ?>
+    <script type="text/javascript">
+    HEARTBEAT_URL = '<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>';
+    HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
+    </script>
+    <?php
+        }
+
+        $this->do_analytics(); 
+    }
+
+    function footer_end() {
+        echo("\n</body>\n</html>\n");
+    }
+
+    function footer($onload=false) {
+        global $CFG;
+        $this->footer_start();
+        if ( $onload !== false ) {
+            echo("\n".$onload."\n");
+        }
+        $this->footer_end();
+    }
+
+    function do_analytics() {
+        global $CFG;
+        if ( $CFG->analytics_key ) { ?>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', '<?php echo($CFG->analytics_key); ?>']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        // ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    <?php
+            if ( isset($_SESSION) && isset($_SESSION['lti']) ) {
+                if ( isset($_SESSION['lti']['key_key']) ) {
+                    echo("_gaq.push(['_setCustomVar', 1, 'consumer_key', '".$_SESSION['lti']['key_key']."', 2]);\n");
+                }
+                if ( isset($_SESSION['lti']['context_id']) ) {
+                    echo("_gaq.push(['_setCustomVar', 2, 'context_id', '".$_SESSION['lti']['context_id']."', 2]);\n");
+                }
+                if ( isset($_SESSION['lti']['context_title']) ) {
+                    echo("_gaq.push(['_setCustomVar', 3, 'context_title', '".$_SESSION['lti']['context_title']."', 2]);\n");
+                }
+            }
+            echo("</script>\n");
+        }  // if analytics is on...
+    }
+
+    function done_button() {
+        $url = false;
+        if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
+            $url = $_SESSION['lti_post']['custom_done'];
+        } else if ( isset($_GET["done"]) ) {
+            $url = $_GET['done'];
+        }
+        if ( $url === false ) return;
+
+        if ( $url == "_close" ) {
+            echo("<button onclick=\"window.close();\" type=\"button\">Done</button>\n");
+        } else if ( strpos($url, "http") !== false ) {
+            echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
+        } else {
+            echo("<button onclick=\"window.location='".sessionize($url)."';\" type=\"button\">Done</button>\n");
+        }
+    }
+
+    function done_bootstrap($text="Done") {
+        $url = false;
+        if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
+            $url = $_SESSION['lti_post']['custom_done'];
+        } else if ( isset($_GET["done"]) ) {
+            $url = $_GET['done'];
+        }
+        if ( $url === false ) return;
+
+        $button = "btn-success";
+        if ( $text == "Cancel" ) $button = "btn-warning";
+
+        if ( $url == "_close" ) {
+            echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn ".$button."\">".$text."</a>\n");
+        } else {
+            echo("<a href==\"$url\"  class=\"btn ".$button."\">".$text."</button>\n");
+        }
+    }
+
+    function toggle_pre($title, $html) {
+        global $div_id;
+        $div_id = $div_id + 1;
+        echo('<strong>'.htmlent_utf8($title));
+        echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">Toggle</a>)</strong>'."\n");
+        echo(' ('.strlen($html).' characters)'."\n");
+        echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
+        echo(htmlent_utf8($html));
+        echo("</pre><br/>\n");
+    }
+
+    function toggle_preScript() {
+    return '<script language="javascript"> 
+    function dataToggle(divName) {
+        var ele = document.getElementById(divName);
+        if(ele.style.display == "block") {
+            ele.style.display = "none";
+        }
+        else {
+            ele.style.display = "block";
+        }
+    } 
+    </script>';
+    }
+
+    function top_nav() {
+        global $CFG;
+        $R = $CFG->wwwroot . '/';
+    ?>
+        <div class="container">
+          <!-- Static navbar -->
+          <div class="navbar navbar-default" role="navigation">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="index.php">TSUGI</a>
+            </div>
+            <div class="navbar-collapse collapse">
+              <ul class="nav navbar-nav">
+                <?php if ( $CFG->DEVELOPER ) { ?>
+                <li><a href="<?php echo($R); ?>dev.php">Developer</a></li>
+                <?php } ?>
+                <?php if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) { ?>
+                <li><a href="<?php echo($R); ?>admin/index.php">Admin</a></li>
+                <?php } ?>
+
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
+                    <li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
+                    <li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
+                    <li><a href="http://www.oauth.net/" target="_blank">OAuth Documentation</a></li>
+                  </ul>
+                </li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                <li><a href="<?php echo($R); ?>about.php">About</a></li>
+                <?php if ( isset($_SESSION['id']) ) { ?>
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo($_SESSION['displayname']);?><b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="<?php echo($R); ?>profile.php">Profile</a></li>
+                    <?php if ( $CFG->providekeys && $CFG->owneremail ) { ?>
+                    <li><a href="<?php echo($R); ?>core/key/index.php">Use this service</a></li>
+                    <?php } ?>
+                    <li><a href="<?php echo($R); ?>logout.php">Logout</a></li>
+                  </ul>
+                </li>
+                <?php } else { ?>
+                <li><a href="<?php echo($R); ?>login.php">Login</a></li>
+                <?php } ?>
+              </ul>
+            </div><!--/.nav-collapse -->
+          </div>
+    <?
+    }
+}
+
+$OUTPUT = new default_renderer();
+
 // No trailer
+

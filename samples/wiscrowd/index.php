@@ -18,9 +18,9 @@ $p = $CFG->dbprefix;
 // here and leave the list of guesses and average in variables to 
 // fall through to the view below.
 
-html_header_content(); // Start the document and begin the <head>
-html_start_body(); // Finish the </head> and start the <body>
-html_flash_messages(); // Print out the $_SESSION['success'] and error messages
+$OUTPUT->header(); // Start the document and begin the <head>
+$OUTPUT->start_body(); // Finish the </head> and start the <body>
+$OUTPUT->flash_messages(); // Print out the $_SESSION['success'] and error messages
 
 // A partial form styled using Twitter Bootstrap
 echo('<form method="post">');
@@ -41,4 +41,4 @@ if ( $instructor ) {
 // Finish the body (including loading JavaScript for JQUery and Bootstrap)
 // And put out the common footer material
 
-html_footer_content();
+$OUTPUT->footer();

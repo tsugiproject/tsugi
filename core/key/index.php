@@ -15,7 +15,7 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! ( isset($_SESSION['id']) || is_admin() ) ) {
-    $_SESSION['login_return'] = html_get_url_full(__FILE__) . "/index.php";
+    $_SESSION['login_return'] = get_url_full(__FILE__) . "/index.php";
     header('Location: '.$CFG->wwwroot.'/login.php');
     return;
 }
@@ -87,10 +87,10 @@ foreach ( $rows as $row ) {
     $newrows[] = $newrow;
 }
 
-html_header_content();
-html_start_body();
-html_top_nav();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->top_nav();
+$OUTPUT->flash_messages();
 ?>
 <h1>LTI Key Requests</h1>
 <p>
@@ -162,5 +162,5 @@ if ( $goodsession ) { ?>
 <?php } ?>
 
 <?php
-html_footer_content();
+$OUTPUT->footer();
 

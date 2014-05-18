@@ -200,7 +200,7 @@ function dumpGradeDebug($debug_log) {
 
     foreach ( $debug_log as $k => $v ) {
         if ( count($v) > 1 ) {
-            html_toggle_pre($v[0], $v[1]);
+            $OUTPUT->toggle_pre($v[0], $v[1]);
         } else { 
             line_out($v[0]);
         }

@@ -156,9 +156,9 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
 $grades_given = retrieveGradesGiven($pdo, $assn_id, $user_id);
 
 // View
-html_header_content();
-html_start_body();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 
 if ( isset($_SESSION['debug_log']) ) {
     echo("<p>Grade send log below:</p>\n");
@@ -288,4 +288,4 @@ onclick="location='<?php echo(sessionize('admin.php'));?>'; return false;" value
 </form>
 <?php
 
-html_footer_content();
+$OUTPUT->footer();

@@ -54,9 +54,9 @@ $lng = isset($profile->lng) ? $profile->lng+0.0 : 0.0;
 $defaultLat = $lat != 0.0 ? $lat : 42.279070216140425;
 $defaultLng = $lng != 0.0 ? $lng : -83.73981015789798; 
 
-html_header_content();
-html_start_body();
-html_top_nav();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->top_nav();
 if ( ! $CFG->OFFLINE ) {
 ?>
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
@@ -186,6 +186,6 @@ in the middle of a bar.  :)
 <?php 
 
 // After jquery gets loaded at the *very* end...
-html_footer_content('<script type="text/javascript">
+$OUTPUT->footer_content('<script type="text/javascript">
 $(document).ready(function() { initialize(); } );
 </script>');

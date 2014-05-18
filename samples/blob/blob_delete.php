@@ -33,8 +33,8 @@ if ( isset($_POST["doDelete"]) ) {
 }
 
 // Switch to view / controller
-html_header_content();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->flash_messages();
 
 echo '<h4 style="color:red">Are you sure you want to delete: ' .htmlent_utf8($fn). "</h4>\n"; 
 ?>
@@ -45,4 +45,4 @@ echo '<h4 style="color:red">Are you sure you want to delete: ' .htmlent_utf8($fn
 </form>
 <?php
 
-html_footer_content();
+$OUTPUT->footer();

@@ -35,8 +35,8 @@ if ( isset($_POST['loginsecret']) ) {
 }
 
 if ( ! isset($_SESSION['developer'] ) ) {
-html_header_content();
-html_start_body();
+$OUTPUT->header();
+$OUTPUT->start_body();
 ?>
 <html><head><body>
 <p>Please enter the developer password:</p>
@@ -46,7 +46,7 @@ html_start_body();
 </form>
 </body>
 <?php
-html_footer_content();
+$OUTPUT->footer();
     return;
 }
 
@@ -118,7 +118,7 @@ function doActive($field) {
     if ( isset($_POST[$field]) ) echo(' class="active" ');
 }
 
-html_header_content();
+$OUTPUT->header();
 ?>
 <script language="javascript"> 
 function lmsdataToggle() {
@@ -286,4 +286,4 @@ if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
 ?>
       </div>
     </div> <!-- /container -->
-<?php html_footer_content(); 
+<?php $OUTPUT->footer(); 

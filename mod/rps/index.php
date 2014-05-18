@@ -130,4 +130,4 @@ leaders();
 <p id="leaders">
 </p>
 <?php
-html_footer_content();
+$OUTPUT->footer();

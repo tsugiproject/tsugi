@@ -11,7 +11,7 @@ require_once("../lib/lms_lib.php");
 ?>
 <html>
 <head>
-<?php echo(html_toggle_preScript()); ?>
+<?php echo($OUTPUT->toggle_preScript()); ?>
 </head>
 <body>
 <?php
@@ -84,7 +84,7 @@ foreach($tools as $tool ) {
                 error_log("-- Creating table ".$entry[0]);
                 $q = pdo_query($pdo, $entry[1]);
                 if ( ! $q->success ) die("Unable to create ".$entry[1]." ".$q->errorImplode."<br/>".$entry[1] );
-                html_toggle_pre("-- Created table ".$entry[0], $entry[1]);
+                $OUTPUT->toggle_pre("-- Created table ".$entry[0], $entry[1]);
                 $sql = "INSERT INTO {$plugins} 
                     ( plugin_path, version, created_at, updated_at ) VALUES
                     ( :plugin_path, :version, NOW(), NOW() )

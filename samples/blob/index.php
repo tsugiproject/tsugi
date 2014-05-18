@@ -51,12 +51,12 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
 }
 
 // View 
-html_header_content();
+$OUTPUT->header();
 ?>
 </head>
 <body>
 <?php
-html_flash_messages();
+$OUTPUT->flash_messages();
 welcome_user_course($LTI);
 
 $foldername = getFolderName($LTI);
@@ -92,4 +92,4 @@ if ( is_instructor($LTI) ) { ?>
 <?php
 }
 
-html_footer_content();
+$OUTPUT->footer();

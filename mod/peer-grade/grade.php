@@ -166,9 +166,9 @@ if ( $submit_json === null ) {
 }
 
 // View 
-html_header_content();
-html_start_body();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 
 echo("<p><b>Please be careful, you cannot revise grades after you submit them.</b></p>\n");
 
@@ -205,4 +205,4 @@ flagging when instructor attention is needed.</p>
 <?php
 
 $_SESSION['peer_submit_id'] = $submit_id;  // Our CSRF touch
-html_footer_content();
+$OUTPUT->footer();

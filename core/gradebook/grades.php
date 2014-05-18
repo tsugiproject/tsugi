@@ -22,9 +22,9 @@ $sql =
     WHERE R.link_id = :LID";
 
 // View 
-html_header_content();
-html_start_body();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
 welcome_user_course($LTI);
 
 if ( isset($GRADE_DETAIL_CLASS) && is_object($GRADE_DETAIL_CLASS) ) {
@@ -35,4 +35,4 @@ if ( isset($GRADE_DETAIL_CLASS) && is_object($GRADE_DETAIL_CLASS) ) {
 
 pdo_paged_auto($pdo, $sql, $query_parms, $searchfields, $orderfields, "grade-detail.php");
 
-html_footer_content();
+$OUTPUT->footer();

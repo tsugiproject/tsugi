@@ -30,8 +30,8 @@ if ( isset($_POST["doDelete"]) ) {
 }
 
 // Switch to view / controller
-html_header_content();
-html_flash_messages();
+$OUTPUT->header();
+$OUTPUT->flash_messages();
 
 echo '<h4 style="color:red">Are you sure you want to delete: ' .$fn. "</h4>\n"; 
 ?>
@@ -43,4 +43,4 @@ echo '<h4 style="color:red">Are you sure you want to delete: ' .$fn. "</h4>\n";
 <?php
 debug_log('Folder: '.$foldername);
 
-html_footer_content();
+$OUTPUT->footer();

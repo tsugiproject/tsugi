@@ -1,5 +1,5 @@
 <?php
-html_header_content();
+$OUTPUT->header();
 ?>
 </head>
 <body style="padding:10px;">
@@ -36,4 +36,4 @@ if ( count($tools) > 1 ) {
     echo("</ul>\n");
 }
 
-html_footer_content();
+$OUTPUT->footer();

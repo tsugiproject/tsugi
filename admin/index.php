@@ -8,9 +8,9 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 require_once("../pdo.php");
 require_once("../lib/lms_lib.php");
 
-html_header_content();
-html_start_body();
-html_top_nav();
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->top_nav();
 ?>
 <h1>Welcome Adminstrator</h1>
 <ul>
@@ -20,5 +20,5 @@ html_top_nav();
 <?php } ?>
 </ul>
 <?php
-html_footer_content();
+$OUTPUT->footer();
 

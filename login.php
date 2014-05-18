@@ -205,8 +205,8 @@ if ( $doLogin ) {
         return;
     }
 }
-html_header_content();
-html_start_body();
+$OUTPUT->header();
+$OUTPUT->start_body();
 ?>
 <?php
 $login_return = 'index.php';
@@ -246,4 +246,4 @@ information with <?php echo($CFG->servicename); ?>.
 </p>
 </div>
 <?php
-html_footer_content();
+$OUTPUT->footer();

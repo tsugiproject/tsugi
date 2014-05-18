@@ -133,4 +133,21 @@ if (!function_exists('apache_request_headers')) {
     }
 }
 
+/**
+ * A central store of information about the current page we are
+ * generating in response to the user's request.
+ *
+ * @global moodle_page $PAGE
+ * @name $PAGE
+ */
+global $PAGE;
+
+/**
+ * A class that contains the logic to format output pages
+ *
+ * @global object $OUTPUT
+ * @name $OUTPUT
+ */
+global $OUTPUT;
+
 // No trailer
