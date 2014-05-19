@@ -298,7 +298,7 @@ function load_files() {
         if ( window.GLOBAL_TIMER != false ) window.clearInterval(window.GLOBAL_TIMER);
         window.GLOBAL_TIMER = setTimeout("finalcheck();",2500);
         Sk.configure({output:outf, read: builtinRead});
-        Sk.execLimit = 10000; // Ten Seconds
+        // Sk.execLimit = 10000; // Ten Seconds
 
         try {
             var module = Sk.importMainWithBody("<stdin>", false, prog);
