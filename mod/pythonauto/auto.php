@@ -7,8 +7,7 @@ require_once "exercises.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id', 'result_id'));
-$instructor = is_instructor($LTI);
-$user_id = $LTI['user_id'];
+$user_id = $USER->id;
 $p = $CFG->dbprefix;
 
 // Get the current user's grade data also checks session
@@ -385,10 +384,10 @@ $OUTPUT->start_body();
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h4 class="modal-title">
 <?php 
-if ( isset($LTI['link_title']) ) {
-    echo(htmlent_utf8($LTI['link_title']));
+if ( isset($LINK->title) ) {
+    echo(htmlent_utf8($LINK->title));
 } else {
-    welcome_user_course($LTI); 
+    welcome_user_course(); 
 }
 ?></h4>
       </div>
@@ -467,7 +466,7 @@ if ( $dueDate->message ) {
     }
     echo('<button onclick="$(\'#info\').modal();return false;" type="button">Info</button>'."\n");
     $OUTPUT->done_button();
-    if ( $instructor ) {
+    if ( $USER->instructor ) {
         if ( $EX === false ) {
             echo(' <a href="grades.php" target="_blank">View Student Code</a>'."\n");
         } else {

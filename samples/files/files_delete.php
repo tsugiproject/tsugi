@@ -13,11 +13,11 @@ if ( strlen($fn) < 1 ) {
 }
 
 $fn = fixFileName($fn);
-$foldername = getFolderName($LTI);
+$foldername = getFolderName();
 $filename = $foldername . '/' . fixFileName($fn);
 
 if ( isset($_POST["doDelete"]) ) {
-    $foldername = getFolderName($LTI);
+    $foldername = getFolderName();
     $filename = $foldername . '/' . fixFileName($_POST['file']);
     if ( unlink($filename) ) { 
         $_SESSION['success'] = 'File deleted';

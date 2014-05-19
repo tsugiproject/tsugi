@@ -5,7 +5,6 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;
 if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
@@ -21,8 +20,8 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
         UPDATE lat = :LAT, lng = :LNG, updated_at = NOW()";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array(
-        ':CID' => $LTI['context_id'],
-        ':UID' => $LTI['user_id'],
+        ':CID' => $CONTEXT->id,
+        ':UID' => $USER->id,
         ':LAT' => $_POST['lat'],
         ':LNG' => $_POST['lng']));
     $_SESSION['success'] = 'Location updated...';
@@ -33,7 +32,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
 // Retrieve our row
 $stmt = $pdo->prepare("SELECT lat,lng FROM {$p}sample_map 
         WHERE context_id = :CID AND user_id = :UID");
-$stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
+$stmt->execute(array(":CID" => $CONTEXT->id, ":UID" => $USER->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 // The default for latitude and longitude
 $lat = 42.279070216140425;
@@ -48,7 +47,7 @@ $stmt = $pdo->prepare("SELECT lat,lng,displayname FROM {$p}sample_map
         JOIN {$p}lti_user
         ON {$p}sample_map.user_id = {$p}lti_user.user_id
         WHERE context_id = :CID AND {$p}sample_map.user_id <> :UID");
-$stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
+$stmt->execute(array(":CID" => $CONTEXT->id, ":UID" => $USER->id));
 $points = array();
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     if ( abs($row['lat']) > 90 ) $row['lat'] = 89;
@@ -58,7 +57,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
 
 ?>
 <html><head><title>Map for 
-<?php echo($LTI['context_title']); ?>
+<?php echo($CONTEXT->title); ?>
 </title>
 <script src="//maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 <script type="text/javascript">

@@ -5,7 +5,6 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;
 //Retrieve the other rows
@@ -15,7 +14,7 @@ $stmt = $pdo->prepare("SELECT lat,lng,{$p}context_map.email AS allow_email, name
         JOIN {$p}lti_user
         ON {$p}context_map.user_id = {$p}lti_user.user_id
         WHERE context_id = :CID AND {$p}context_map.user_id <> :UID");
-$stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
+$stmt->execute(array(":CID" => $CONTEXT->id, ":UID" => $USER->id));
 $points = array();
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     if ( !isset($row['lat']) ) continue;
@@ -27,7 +26,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     if ( abs($lng) > 180 ) $lng = 179.9;
     $email = $row['email'];
     $name = $row['displayname'];
-    if ( ! $instructor ) {
+    if ( ! $USER->instructor ) {
         if ( $row['allow_name'] == 1 ) $name = $name;  // Show it all
         else if ( $row['allow_first'] == 1 ) $name = get_first_name($name);
         else $name = '';
@@ -49,7 +48,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
 // Retrieve our row
 $stmt = $pdo->prepare("SELECT lat,lng,name,first,email FROM {$p}context_map 
         WHERE context_id = :CID AND user_id = :UID");
-$stmt->execute(array(":CID" => $LTI['context_id'], ":UID" => $LTI['user_id']));
+$stmt->execute(array(":CID" => $CONTEXT->id, ":UID" => $USER->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 // The default for latitude and longitude
 $lat = 42.279070216140425;
@@ -60,7 +59,7 @@ if ( $row !== false ) {
     if ( isset($row['lat']) && abs($row['lat']) < 85 ) $lat = $row['lat'];
     if ( isset($row['lng']) && abs($row['lng']) < 180 ) $lng = $row['lng'];
 }
-$display = get_name_and_email($LTI);
+$display = get_name_and_email();
 $firstname = get_first_name($display);
 
 $OUTPUT->header();
@@ -155,12 +154,12 @@ if ( $display ) {
             Share your first name (<?php echo(htmlent_utf8($firstname)); ?>) on the map<br/>
             <?php } ?>
             <input type="checkbox" name="allow_name" <?php 
-                if ( ! isset($LTI['user_displayname']) ) echo(' style="display:hidden"');
+                if ( ! isset($USER->displayname) ) echo(' style="display:hidden"');
                 else if ( $row['name'] == 1 ) echo("checked"); ?>
             >
             Share your full name on the map<br/>
             <input type="checkbox" name="allow_email" <?php 
-                if ( ! isset($LTI['user_email']) ) echo(' style="display:hidden"');
+                if ( ! isset($USER->email) ) echo(' style="display:hidden"');
                 else if ( $row['email'] == 1 ) echo("checked"); ?>
             >
             Share your email on the map<br/>
@@ -183,7 +182,7 @@ if ( $display ) {
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title"><?php welcome_user_course($LTI); ?></h4>
+        <h4 class="modal-title"><?php welcome_user_course(); ?></h4>
       </div>
       <div class="modal-body">
         <p>This is a map of the participants in the course who have chosen to share their location.

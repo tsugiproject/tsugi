@@ -3,10 +3,9 @@
 require_once "classes.php";
 
 function load_grades($pdo) {
-    global $CFG;
+    global $CFG, $USER, $LINK;
     $LTI = lti_require_data(array('link_id', 'role'));
-    $instructor = is_instructor($LTI);
-    if ( ! $instructor ) die("Requires instructor role");
+    if ( ! $USER->instructor ) die("Requires instructor role");
     $p = $CFG->dbprefix;
 
     // Get basic grade data
@@ -17,7 +16,7 @@ function load_grades($pdo) {
         JOIN {$p}lti_user AS U ON R.user_id = U.user_id
         WHERE R.link_id = :LID
         ORDER BY updated_at DESC",
-        array(":LID" => $LTI['link_id'])
+        array(":LID" => $LINK->id)
     );
     return $stmt;
 }
@@ -44,11 +43,10 @@ function show_grades($stmt, $detail = false) {
 
 // Not cached
 function load_grade($pdo, $user_id=false) {
-    global $CFG;
+    global $CFG, $USER, $LINK;
     $LTI = lti_require_data(array('user_id', 'link_id', 'role'));
-    $instructor = is_instructor($LTI);
-    if ( ! $instructor && $user_id !== false ) die("Requires instructor role");
-    if ( $user_id == false ) $user_id = $LTI['user_id'];
+    if ( ! $USER->instructor && $user_id !== false ) die("Requires instructor role");
+    if ( $user_id == false ) $user_id = $USER->id;
     $p = $CFG->dbprefix;
 
     // Get basic grade data
@@ -59,7 +57,7 @@ function load_grade($pdo, $user_id=false) {
         JOIN {$p}lti_user AS U ON R.user_id = U.user_id
         WHERE R.link_id = :LID AND R.user_id = :UID
         GROUP BY U.email",
-        array(":LID" => $LTI['link_id'], ":UID" => $user_id)
+        array(":LID" => $LINK->id, ":UID" => $user_id)
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row;

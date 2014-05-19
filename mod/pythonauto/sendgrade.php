@@ -5,8 +5,7 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
-$user_id = $LTI['user_id'];
+$user_id = $USER->id;
 
 $grade = 1.0;
 

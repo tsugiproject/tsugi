@@ -9,8 +9,7 @@ noBuffer();
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
-if ( ! $instructor ) die("Requires instructor");
+if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
 // Grab our link_id
@@ -21,7 +20,7 @@ if ( isset($_GET['link_id']) ) {
 
 // Load to make sure it is within our context
 $link_info = false;
-if ( $instructor && $link_id > 0 ) {
+if ( $USER->instructor && $link_id > 0 ) {
     $link_info = load_link_info($pdo, $link_id);
 }
 if ( $link_info === false ) die("Invalid link");
@@ -245,8 +244,8 @@ copies of server grades so that the next <b>Retrieve Server Grades</b>
 will retrieve all grades.</li>
 </ul>
 <pre>
-Context: <?php echo($LTI['context_id']); 
-    if ( isset($LTI['context_title']) ) echo(' '.htmlent_utf8($LTI['context_title'])) ; ?> 
+Context: <?php echo($CONTEXT->id); 
+    if ( isset($CONTEXT->title) ) echo(' '.htmlent_utf8($CONTEXT->title)) ; ?> 
 Link id: <?php echo($link_id); 
     if ( isset($link_info['title']) ) echo(' '.htmlent_utf8($link_info['title'])) ; ?> 
 </pre>

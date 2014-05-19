@@ -7,8 +7,7 @@ header_json();
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
-if ( ! $instructor ) die("Requires instructor");
+if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
 // Grab our link_id
@@ -19,7 +18,7 @@ if ( isset($_GET['link_id']) ) {
 
 // Load to make sure it is within our context
 $link_info = false;
-if ( $instructor && $link_id > 0 ) {
+if ( $USER->instructor && $link_id > 0 ) {
     $link_info = load_link_info($pdo, $link_id);
 }
 if ( $link_info === false ) die("Invalid link");

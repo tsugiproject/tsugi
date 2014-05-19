@@ -4,13 +4,12 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
-if ( ! $instructor ) die("Instructor only");
+if ( ! $USER->instructor ) die("Instructor only");
 
 $OUTPUT->header();
 $OUTPUT->start_body();
 $OUTPUT->flash_messages();
-welcome_user_course($LTI);
+welcome_user_course();
 
 echo("<p>Debug dump of session data.</p>\n");
 $OUTPUT->toggle_pre("Session data",safe_var_dump($_SESSION));

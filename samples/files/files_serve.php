@@ -13,7 +13,7 @@ if ( strlen($fn) < 1 ) {
 }
 
 $fn = fixFileName($fn);
-$foldername = getFolderName($LTI);
+$foldername = getFolderName();
 $filename = $foldername . '/' . fixFileName($fn);
 
 if ( ! file_exists($filename) ) {

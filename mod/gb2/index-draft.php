@@ -5,7 +5,6 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 $p = $CFG->dbprefix;
 $localstatic = getLocalStatic(__FILE__) . '/static';
@@ -21,7 +20,7 @@ $OUTPUT->header();
 <?php
 $OUTPUT->start_body();
 $OUTPUT->flash_messages();
-welcome_user_course($LTI);
+welcome_user_course();
 ?>
 <h1>This is under construction - it really does nothing at this point</h1>
 <div id="yo">

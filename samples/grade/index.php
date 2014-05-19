@@ -7,7 +7,7 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 // Retrieve the launch data if present
 $LTI = lti_require_data(array('user_id', 'result_id', 'role','context_id'));
 $p = $CFG->dbprefix;
-$displayname = $LTI['user_displayname'];
+$displayname = $USER->displayname;
 
 if ( isset($_POST['reset']) ) {
     $sql = "UPDATE {$p}lti_result SET grade = 0.0 WHERE result_id = :RI";

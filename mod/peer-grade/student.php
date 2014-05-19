@@ -8,8 +8,7 @@ require_once "peer_util.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
-if ( ! $instructor ) die("Requires instructor role");
+if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 
 if ( !isset($_REQUEST['user_id']) ) die("user_id parameter required");

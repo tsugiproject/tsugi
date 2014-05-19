@@ -6,7 +6,6 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
 $p = $CFG->dbprefix;
 
 $user_info = false;
@@ -21,12 +20,12 @@ if ( isset($_GET['link_id']) ) {
 }
 
 $link_info = false;
-if ( $instructor && $link_id > 0 ) {
+if ( $USER->instructor && $link_id > 0 ) {
     $link_info = load_link_info($pdo, $link_id);
 }
 
-if ( $instructor && isset($_GET['viewall'] ) ) {
-    $query_parms = array(":CID" => $LTI['context_id']);
+if ( $USER->instructor && isset($_GET['viewall'] ) ) {
+    $query_parms = array(":CID" => $CONTEXT->id);
     $orderfields = array("R.user_id", "displayname", "email", "user_key", "grade_count");
     $searchfields = array("R.user_id", "displayname", "email", "user_key");
     $summary_sql = 
@@ -38,8 +37,8 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
         WHERE L.context_id = :CID AND R.grade IS NOT NULL
         GROUP BY R.user_id";
 
-} else if ( $instructor && isset($_GET['link_id'] ) ) {
-    $query_parms = array(":LID" => $link_id, ":CID" => $LTI['context_id']);
+} else if ( $USER->instructor && isset($_GET['link_id'] ) ) {
+    $query_parms = array(":LID" => $link_id, ":CID" => $CONTEXT->id);
     $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at", "server_grade", "retrieved_at");
     $class_sql = 
         "SELECT R.user_id AS user_id, displayname, grade, 
@@ -51,13 +50,13 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
         WHERE R.link_id = :LID AND L.context_id = :CID AND R.grade IS NOT NULL";
 
 } else { // Gets grades for the current or specified 
-    $user_id = $LTI['user_id'];
-    if ( $instructor && isset($_GET['user_id']) ) {
+    $user_id = $USER->id;
+    if ( $USER->instructor && isset($_GET['user_id']) ) {
         $user_id = $_GET['user_id'] + 0;
     }
 
     // http://stackoverflow.com/questions/5602907/calculate-difference-between-two-datetimes
-    $query_parms = array(":UID" => $user_id, ":CID" => $LTI['context_id']);
+    $query_parms = array(":UID" => $user_id, ":CID" => $CONTEXT->id);
     $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at", "retrieved_at");
     $user_sql = 
         "SELECT R.result_id AS result_id, L.title as title, R.grade AS grade, R.note AS note, 
@@ -70,13 +69,13 @@ if ( $instructor && isset($_GET['viewall'] ) ) {
     $user_info = load_user_info($pdo, $user_id);
 }
 
-if ( $instructor ) {
+if ( $USER->instructor ) {
     $lstmt = pdo_query_die($pdo,
         "SELECT DISTINCT L.title as title, L.link_id AS link_id 
         FROM {$p}lti_link AS L JOIN {$p}lti_result as R 
             ON L.link_id = R.link_id AND R.grade IS NOT NULL
         WHERE L.context_id = :CID",
-        array(":CID" => $LTI['context_id'])
+        array(":CID" => $CONTEXT->id)
     );
     $links = $lstmt->fetchAll();    
 }
@@ -85,7 +84,7 @@ $OUTPUT->header();
 $OUTPUT->start_body();
 $OUTPUT->flash_messages();
 
-if ( $instructor ) {
+if ( $USER->instructor ) {
 ?>
   <a href="index.php?viewall=yes" class="btn btn-default">Class Summary</a> 
   <a href="index.php" class="btn btn-default">My Grades</a> 
@@ -113,7 +112,7 @@ if ( $links !== false && count($links) > 0 ) {
 <?php
 }
 
-echo("<p>Class: ".$LTI['context_title']."</p>\n");
+echo("<p>Class: ".$CONTEXT->title."</p>\n");
 
 if ( $user_sql !== false ) {
     if ( $user_info !== false ) {

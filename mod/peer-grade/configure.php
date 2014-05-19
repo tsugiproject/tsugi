@@ -6,7 +6,6 @@ require_once "peer_util.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
 
 // Model 
 $p = $CFG->dbprefix;
@@ -29,7 +28,7 @@ if ( isset($_POST['json']) ) {
             ON DUPLICATE KEY UPDATE json = :JSON, updated_at = NOW()",
         array(
             ':JSON' => $json,
-            ':ID' => $LTI['link_id'])
+            ':ID' => $LINK->id)
         );
     cache_clear("peer_assn");
     if ( $stmt->success ) {
@@ -76,7 +75,7 @@ $json = json_indent($json);
 $OUTPUT->header();
 $OUTPUT->start_body();
 $OUTPUT->flash_messages();
-if ( ! $instructor ) die("Requires instructor role");
+if ( ! $USER->instructor ) die("Requires instructor role");
 
 ?>
 <p>Remember to be careful if this assignment has submissions.</p>

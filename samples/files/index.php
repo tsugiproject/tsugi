@@ -6,7 +6,6 @@ require_once "files_util.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'context_id'));
-$instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 // Model 
 $p = $CFG->dbprefix;
@@ -22,7 +21,7 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
    $filename =strtolower(basename($_FILES['uploaded_file']['name']));
    $filename = fixFileName($filename);
 
-   $foldername = getFolderName($LTI);
+   $foldername = getFolderName();
    $ext=".".$ext;
    $newname = $foldername.'/'.$filename;
    if ((move_uploaded_file($_FILES['uploaded_file']['tmp_name'],$newname)))
@@ -52,9 +51,9 @@ $OUTPUT->header();
 <body>
 <?php
 $OUTPUT->flash_messages();
-welcome_user_course($LTI);
+welcome_user_course();
 
-$foldername = getFolderName($LTI);
+$foldername = getFolderName();
 debug_log($foldername);
 if ( !file_exists($foldername) ) mkdir ($foldername);
 
@@ -63,7 +62,7 @@ $count = 0;
 foreach (glob($foldername."/*") as $filename) {
     $fn = substr($filename,strlen($foldername)+1);
     echo '<li><a href="files_serve.php?file='.$fn.'" target="_new">'.$fn.'</a>';
-    if ( is_instructor($LTI) ) {
+    if ( $USER->instructor ) {
         echo ' (<a href="files_delete.php?file='.$fn.'">Delete</a>)';
     }
     echo '</li>';
@@ -75,7 +74,7 @@ if ( $count == 0 ) echo "<p>No Files Found</p>\n";
 echo("</ul>\n");
 finfo_close($finfo);
 
-if ( is_instructor($LTI) ) { ?>
+if ( $USER->instructor ) { ?>
 <h4>Upload file (max <?php echo(max_upload());?>MB)</h4>
 <form name="myform" enctype="multipart/form-data" method="post" action="<?php sessionize('index.php');?>">
 <p>Upload File: <input name="uploaded_file" type="file"> 

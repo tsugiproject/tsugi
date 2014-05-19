@@ -150,4 +150,48 @@ global $PAGE;
  */
 global $OUTPUT;
 
+/**
+ * Holds the user table record for the current user. 
+ *
+ * Items found in the user object:
+ *  - $USER->id - The integer primary key for this user in the 'lti_user' table.
+ *  - $USER->sha256 - The string primary key for this user in the 'lti_user' table.
+ *  - $USER->email - The user's email address.
+ *  - $USER->displayname - The user's display name.
+ *  TODO: - $USER->lang - The user's language choice.
+ *
+ * @global object $USER
+ * @name $USER
+ */
+global $USER;
+
+/**
+ * Information about the context (i.e. site or course)
+ *
+ * Items found in the context object:
+ *  - $CONTEXT->id - The integer primary key for this context in the 'lti_context' table.
+ *  - $CONTEXT->sha256 - The string primary key for this context in the 'lti_context' table.
+ *  - $CONTEXT->title - The context title
+ *  TODO: - $CONTEXT->lang - The context language choice.
+ *
+ * @global object $CONTEXT
+ * @name $CONTEXT
+ */
+global $CONTEXT;
+
+/**
+ * Information about the resource link (i.e. link within context)
+ *
+ * Items found in the context object:
+ *  - $LINK->id - The integer primary key for this context in the 'lti_context' table.
+ *  - $LINK->sha256 - The string primary key for this context in the 'lti_context' table.
+ *  - $LINK->title - The context title
+ *
+ * @global object $LINK
+ * @name $LINK
+ */
+global $LINK;
+
+
+
 // No trailer

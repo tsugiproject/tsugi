@@ -15,7 +15,7 @@ if ( strlen($id) < 1 ) {
 $p = $CFG->dbprefix;
 $stmt = $pdo->prepare("SELECT contenttype, content, file_name FROM {$p}blob_file 
             WHERE file_id = :ID AND context_id = :CID");
-$stmt->execute(array(":ID" => $id, ":CID" => $LTI['context_id']));
+$stmt->execute(array(":ID" => $id, ":CID" => $CONTEXT->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ( $row === false ) {

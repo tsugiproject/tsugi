@@ -10,12 +10,11 @@ noBuffer();
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
-if ( ! $instructor ) die("Requires instructor");
+if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
 // Grab our link_id
-$link_id = $LTI['link_id'];
+$link_id = $LINK->id;
 $assn = loadAssignment($pdo, $LTI);
 $assn_json = null;
 $assn_id = false;
@@ -49,13 +48,13 @@ if ( isset($_POST['reGradePeer']) ) {
         "SELECT submit_id, S.user_id AS user_id, R.result_id AS result_id,
                 grade, sourcedid, service_key, displayname, email
             FROM {$CFG->dbprefix}peer_submit AS S
-            JOIN {$CFG->dbprefix}peer_assn AS A 
+            JOIN {$CFG->dbprefix}peer_assn AS A
                 ON S.assn_id = A.assn_id
-            JOIN {$CFG->dbprefix}lti_result AS R 
+            JOIN {$CFG->dbprefix}lti_result AS R
                 ON S.user_id = R.user_id AND A.link_id = R.link_id
-            JOIN {$CFG->dbprefix}lti_service AS X 
+            JOIN {$CFG->dbprefix}lti_service AS X
                 ON R.service_id = X.service_id
-            JOIN {$CFG->dbprefix}lti_user AS U 
+            JOIN {$CFG->dbprefix}lti_user AS U
                 ON R.user_id = U.user_id
             WHERE S.assn_id = :AID AND regrade IS NULL",
         array(":AID" => $assn_id)
@@ -85,7 +84,7 @@ if ( isset($_POST['reGradePeer']) ) {
         }
 
         $s2 = pdo_query_die($pdo,
-            "UPDATE {$CFG->dbprefix}lti_result 
+            "UPDATE {$CFG->dbprefix}lti_result
             SET grade=:GRA, updated_at=NOW()
             WHERE result_id = :RID",
                 array(":GRA" => $computed_grade, ":RID" => $row['result_id'])
@@ -121,7 +120,7 @@ if ( isset($_POST['reGradePeer']) ) {
     return;
 }
 
-// View 
+// View
 $OUTPUT->header();
 ?>
 <script type="text/javascript">
@@ -142,25 +141,25 @@ $iframeurl = sessionize($CFG->wwwroot . '/mod/peer-grade/maint.php?link_id=' . $
 </form>
 <form style="display: inline" method="POST" target="my_iframe" action="<?php echo($iframeurl); ?>">
   <button name="reGradePeer" onclick="showFrame();" class="btn btn-warning">Re-Compute Peer Grades</button>
-  <button onclick="window.close();" class="btn btn-primary">Done</button>
+  <button onclick="window.close();return false;" class="btn btn-primary">Done</button>
 </form>
-<p>These are maintenance tools make sure you know how to use them. 
-<ul> 
+<p>These are maintenance tools make sure you know how to use them.
+<ul>
 <li><b>Re-Compute Peer Grades</b> Loops through all peer-graded submissions
-and re-computes the effective grade, checking to see if the local grade 
+and re-computes the effective grade, checking to see if the local grade
 is correct.  If there is a mis-match, the local grade is updated
-and the new grade is sent to the server.  This process can be stopped 
+and the new grade is sent to the server.  This process can be stopped
 and restarted as it marks entries once they have been regraded.
 </li>
-<li><b>Restart Re-Grades</b> Clears the "regraded" flag for all subissions so that the 
+<li><b>Restart Re-Grades</b> Clears the "regraded" flag for all subissions so that the
 next <b>Re-Compute Peer Grades</b> starts from the beginning.
 </li>
 </ul>
 <pre>
-Context: <?php echo($LTI['context_id']); 
-    if ( isset($LTI['context_title']) ) echo(' '.htmlent_utf8($LTI['context_title'])) ; ?> 
-Link id: <?php echo($link_id); 
-    if ( isset($LTI['link_title']) ) echo(' '.htmlent_utf8($LTI['link_title'])) ; ?> 
+Context: <?php echo($CONTEXT->id);
+    if ( isset($CONTEXT->title) ) echo(' '.htmlent_utf8($CONTEXT->title)) ; ?>
+Link id: <?php echo($link_id);
+    if ( isset($LINK->title) ) echo(' '.htmlent_utf8($LINK->title)) ; ?>
 </pre>
 
 <p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(get_spinner_url()); ?>"></span>
@@ -170,7 +169,7 @@ Link id: <?php echo($link_id);
 <div id="iframediv" style="display:none">
 <p>Depending on buffering - output in this iframe may take a while to appear.
 The number above will update as the job progreses.
-Once the output starts, make sure to scroll to the bottom to see the current activity.  
+Once the output starts, make sure to scroll to the bottom to see the current activity.
 If you want to abort this job, navigate away using "Done".
 This job may take so long it times out.  If it times out you can restart it
 and it willpick up where it left off.
@@ -188,7 +187,7 @@ $UPDATE_INTERVAL = false;
 function updateNumbers() {
     window.console && console.log('Calling updateNumbers');
     $.ajaxSetup({ cache: false }); // For IE...
-    $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/mod/peer-grade/maintcount.php')); ?>', 
+    $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/mod/peer-grade/maintcount.php')); ?>',
     function(data) {
         if ( $UPDATE_INTERVAL === false ) $UPDATE_INTERVAL = setInterval(updateNumbers,10000);
         window.console && console.log(data);

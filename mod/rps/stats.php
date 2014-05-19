@@ -15,7 +15,7 @@ $stmt = $pdo->prepare("SELECT play1, play2, user1_id, user2_id,
         JOIN {$p}lti_user AS U1 JOIN {$p}lti_user AS U2
         ON {$p}rps.user1_id = U1.user_id AND {$p}rps.user2_id = U2.user_id 
         WHERE link_id = :LI AND play1 IS NOT NULL AND play2 IS NOT NULL");
-$stmt->execute(array(":LI" => $LTI['link_id']));
+$stmt->execute(array(":LI" => $LINK->id));
 
 $users = array();  // user_id => displayname
 $scores = array(); // user_id => net score

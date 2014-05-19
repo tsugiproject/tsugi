@@ -6,7 +6,6 @@ require_once "blob_util.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('context_id', 'role'));
-$instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 // Model 
 $p = $CFG->dbprefix;
@@ -30,7 +29,7 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
         (context_id, file_name, contenttype, content, created_at) 
         VALUES (?, ?, ?, ?, NOW())");
 
-    $stmt->bindParam(1, $LTI['context_id']);
+    $stmt->bindParam(1, $CONTEXT->id);
     $stmt->bindParam(2, $filename);
     $stmt->bindParam(3, $_FILES['uploaded_file']['type']);
     $stmt->bindParam(4, $fp, PDO::PARAM_LOB);
@@ -57,21 +56,21 @@ $OUTPUT->header();
 <body>
 <?php
 $OUTPUT->flash_messages();
-welcome_user_course($LTI);
+welcome_user_course();
 
-$foldername = getFolderName($LTI);
+$foldername = getFolderName();
 if ( !file_exists($foldername) ) mkdir ($foldername);
 
 $stmt = $pdo->prepare("SELECT file_id, file_name FROM {$p}sample_blob
         WHERE context_id = :CI");
-$stmt->execute(array(":CI" => $LTI['context_id']));
+$stmt->execute(array(":CI" => $CONTEXT->id));
 
 $count = 0;
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     $id = $row['file_id'];
     $fn = $row['file_name'];
     echo '<li><a href="blob_serve.php?id='.$id.'" target="_new">'.htmlent_utf8($fn).'</a>';
-    if ( is_instructor($LTI) ) {
+    if ( $USER->instructor ) {
         echo ' (<a href="blob_delete.php?id='.$id.'">Delete</a>)';
     }
     echo '</li>';
@@ -82,7 +81,7 @@ if ( $count == 0 ) echo "<p>No Files Found</p>\n";
 
 echo("</ul>\n");
 
-if ( is_instructor($LTI) ) { ?>
+if ( $USER->instructor ) { ?>
 <h4>Upload file (max <?php echo(max_upload());?>MB)</h4>
 <form name="myform" enctype="multipart/form-data" method="post" action="<?php sessionize('index.php');?>">
 <p>Upload File: <input name="uploaded_file" type="file"> 

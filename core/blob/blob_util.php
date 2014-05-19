@@ -1,9 +1,9 @@
 <?php
 
-function getFolderName($LTI)
+function getFolderName()
 {
-    global $CFG;
-    $foldername = $LTI['context_id'];
+    global $CFG, $CONTEXT;
+    $foldername = $CONTEXT->id;
     $root = sys_get_temp_dir(); // ends in slash
     if (strlen($root) > 1 && substr($root, -1) == '/') $root = substr($root,0,-1);
     if ( isset($CFG->dataroot) ) $root = $CFG->dataroot;
@@ -60,9 +60,9 @@ function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "im
     return $retval;
 }
 
-function uploadFileToBlob($pdo, $LTI, $FILE_DESCRIPTOR, $SAFETY_CHECK=true) 
+function uploadFileToBlob($pdo, $FILE_DESCRIPTOR, $SAFETY_CHECK=true) 
 {
-    global $CFG;
+    global $CFG, $CONTEXT;
 
     if ( $SAFETY_CHECK && checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
 
@@ -82,7 +82,7 @@ function uploadFileToBlob($pdo, $LTI, $FILE_DESCRIPTOR, $SAFETY_CHECK=true)
         $stmt = pdo_query_die($pdo,
             "SELECT file_id, file_sha256 from {$CFG->dbprefix}blob_file
             WHERE context_id = :CID AND file_sha256 = :SHA",
-            array(":CID" => $LTI['context_id'], ":SHA" => $sha256)
+            array(":CID" => $CONTEXT->id, ":SHA" => $sha256)
         );
         $row = $stmt->fetch(PDO::FETCH_NUM);
         if ( $row !== false ) {
@@ -96,7 +96,7 @@ function uploadFileToBlob($pdo, $LTI, $FILE_DESCRIPTOR, $SAFETY_CHECK=true)
             (context_id, file_sha256, file_name, contenttype, content, created_at) 
             VALUES (?, ?, ?, ?, ?, NOW())");
     
-        $stmt->bindParam(1, $LTI['context_id']);
+        $stmt->bindParam(1, $CONTEXT->id);
         $stmt->bindParam(2, $sha256);
         $stmt->bindParam(3, $filename);
         $stmt->bindParam(4, $FILE_DESCRIPTOR['type']);

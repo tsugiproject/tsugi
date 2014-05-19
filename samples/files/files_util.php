@@ -1,9 +1,9 @@
 <?php
 
-function getFolderName($LTI)
+function getFolderName()
 {
-    global $CFG;
-    $foldername = $LTI['context_id'];
+    global $CFG, $CONTEXT;
+    $foldername = $CONTEXT->id;
     $root = sys_get_temp_dir(); // ends in slash
     if (strlen($root) > 1 && substr($root, -1) == '/') $root = substr($root,0,-1);
     if ( isset($CFG->dataroot) ) $root = $CFG->dataroot;

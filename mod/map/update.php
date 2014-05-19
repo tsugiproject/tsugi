@@ -21,8 +21,8 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
         UPDATE lat = :LAT, lng = :LNG, updated_at = NOW()";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array(
-        ':CID' => $LTI['context_id'],
-        ':UID' => $LTI['user_id'],
+        ':CID' => $CONTEXT->id,
+        ':UID' => $USER->id,
         ':LAT' => $lat,
         ':LNG' => $lng));
     echo(json_encode(array('status'=> 'success', 'lat' => $lat, 'lng' =>  $lng)));
@@ -38,8 +38,8 @@ if ( isset($_POST['allow_name']) && isset($_POST['allow_email']) &&
         UPDATE name = :NAME, email = :EMAIL, first = :FIRST, updated_at = NOW()";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array(
-        ':CID' => $LTI['context_id'],
-        ':UID' => $LTI['user_id'],
+        ':CID' => $CONTEXT->id,
+        ':UID' => $USER->id,
         ':NAME' => $_POST['allow_name']+0,
         ':FIRST' => $_POST['allow_first']+0,
         ':EMAIL' => $_POST['allow_email']+0));

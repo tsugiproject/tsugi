@@ -49,7 +49,7 @@ $row = $stmt->fetch(PDO::FETCH_ASSOC);
 if ( $row == FALSE ) {
     $pdo->rollBack();
 } else {
-    $stmt1->execute(array(":U2ID" => $LTI['user_id'], ":PLAY" => $play,
+    $stmt1->execute(array(":U2ID" => $USER->id, ":PLAY" => $play,
         ":GUID" => $row['rps_guid']));
     $pdo->commit();
     $tie = $play == $row['play1'];
@@ -66,8 +66,8 @@ $guid = uniqid();
 $stmt = $pdo->prepare("INSERT INTO {$p}rps 
     (rps_guid, link_id, user1_id, play1, started_at) 
     VALUES ( :GUID, :LID, :UID, :PLAY, NOW() )");
-$stmt->execute(array(":GUID" => $guid, ":LID" => $LTI['link_id'],
-    ":UID" => $LTI['user_id'], ":PLAY" => $play));
+$stmt->execute(array(":GUID" => $guid, ":LID" => $LINK->id,
+    ":UID" => $USER->id, ":PLAY" => $play));
 
 echo(json_encode(array("guid" => $guid)));
 

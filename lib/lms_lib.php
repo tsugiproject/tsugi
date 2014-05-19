@@ -50,16 +50,17 @@ function dump_table($stmt, $view=false) {
     echo("</table>\n");
 }
 
-function get_name_and_email($LTI) {
+function get_name_and_email() {
+    global $USER;
     $display = '';
-    if ( isset($LTI['user_displayname']) && strlen($LTI['user_displayname']) > 0 ) {
-        $display = $LTI['user_displayname'];
+    if ( isset($USER->displayname) && strlen($USER->displayname) > 0 ) {
+        $display = $USER->displayname;
     }
-    if ( isset($LTI['user_email']) && strlen($LTI['user_email']) > 0 ) { 
+    if ( isset($USER->email) && strlen($USER->email) > 0 ) { 
         if ( strlen($display) > 0 ) {
-            $display .= ' ('.$LTI['user_email'].')';
+            $display .= ' ('.$USER->email.')';
         } else {
-            $display = $LTI['user_email'];
+            $display = $USER->email;
         }
     }
     $display = trim($display);
@@ -74,18 +75,19 @@ function get_first_name($displayname) {
     return false;
 }
 
-function welcome_user_course($LTI) {
+function welcome_user_course() {
+    global $USER, $CONTEXT;
     echo("<p>Welcome");
-    if ( isset($LTI['user_displayname']) ) {
+    if ( isset($USER->displayname) ) {
         echo(" ");
-        echo(htmlent_utf8($LTI['user_displayname']));
+        echo(htmlent_utf8($USER->displayname));
     }
-    if ( isset($LTI['context_title']) ) {
+    if ( isset($CONTEXT->title) ) {
         echo(" from ");
-        echo(htmlent_utf8($LTI['context_title']));
+        echo(htmlent_utf8($CONTEXT->title));
     }
 
-    if ( is_instructor($LTI) ) {
+    if ( $USER->instructor ) {
         echo(" (Instructor)");
     }
     echo("</p>\n");
@@ -149,7 +151,7 @@ function check_CSRF() {
 // die is there if no session_name() (PHPSESSID) cookie or 
 // parameter.  No need to create any fresh sessions here.
 function lti_require_data($needed) {
-    global $CFG;
+    global $CFG, $USER, $CONTEXT, $LINK;
 
     // Check to see if the session already exists.
     $sess = session_name();
@@ -235,11 +237,37 @@ function lti_require_data($needed) {
     // Restart the number of continuous heartbeats
     $_SESSION['HEARTBEAT_COUNT'] = 0;
 
-    return $LTI;
-}
+    // Populate the $USER $CONTEXT and $LINK objects
+    if ( ! is_object($USER) ) {
+        $USER = new stdClass();
+        if (isset($LTI['user_id']) ) $USER->id = $LTI['user_id'];
+        if (isset($LTI['user_sha256']) ) $USER->sha256 = $LTI['user_sha256'];
+        if (isset($LTI['user_email']) ) $USER->email = $LTI['user_email'];
+        if (isset($LTI['user_displayname']) ) {
+            $USER->displayname = $LTI['user_displayname'];
+            $pieces = explode(' ',$USER->displayname);
+            if ( count($pieces) > 0 ) $USER->firstname = $pieces[0];
+            if ( count($pieces) > 1 ) $USER->lastname = $pieces[count($pieces)-1];
+        }
+        $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
+    }
 
-function is_instructor($LTI) {
-    return isset($LTI['role']) && $LTI['role'] != 0 ;
+    if ( ! is_object($CONTEXT) ) {
+        $CONTEXT = new stdClass();
+        if (isset($LTI['context_id']) ) $CONTEXT->id = $LTI['context_id'];
+        if (isset($LTI['context_sha256']) ) $CONTEXT->sha256 = $LTI['context_sha256'];
+        if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
+    }
+
+    if ( ! is_object($LINK) ) {
+        $LINK = new stdClass();
+        if (isset($LTI['link_id']) ) $LINK->id = $LTI['link_id'];
+        if (isset($LTI['link_sha256']) ) $LINK->sha256 = $LTI['link_sha256'];
+        if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
+    }
+
+    // Return the LTI structure
+    return $LTI;
 }
 
 // TODO: deal with headers sent...

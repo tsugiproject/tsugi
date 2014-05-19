@@ -7,12 +7,11 @@ require_once "peer_util.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
 $p = $CFG->dbprefix;
 
 // Check to see if we are updating the grade for the current 
 // user or another
-$user_id = $LTI['user_id'];
+$user_id = $USER->id;
 if ( isset($_REQUEST['user_id']) ) $user_id = $_REQUEST['user_id'];
 
 // Model 
@@ -38,7 +37,7 @@ if ( $grade <= 0 ) {
 
 // Lookup the result row if we are grading the non-current user
 $result = false;
-if ( $user_id != $LTI['user_id'] ) {
+if ( $user_id != $USER->id ) {
     $result = lookup_result($pdo, $LTI, $user_id);
 }
 
@@ -47,7 +46,7 @@ $debug_log = array();
 $status = send_grade_detail($grade, $debug_log, $pdo, $result); // This is the slow bit
 
 if ( $status === true ) {
-    if ( $user_id != $LTI['user_id'] ) {
+    if ( $user_id != $USER->id ) {
         json_output(array("status" => $status, "debug" => $debug_log));
     } else { 
         json_output(array("status" => $status, "grade" => $grade, "debug" => $debug_log));

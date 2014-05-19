@@ -7,8 +7,7 @@ require_once "peer_util.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
-$user_id = $LTI['user_id'];
+$user_id = $USER->id;
 $p = $CFG->dbprefix;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
@@ -29,7 +28,7 @@ if ( $row !== false ) {
 
 // Load up the submission and parts if they exist
 $submit_id = false;
-$submit_row = loadSubmission($pdo, $assn_id, $LTI['user_id']);
+$submit_row = loadSubmission($pdo, $assn_id, $USER->id);
 if ( $submit_row !== false ) $submit_id = $submit_row['submit_id'];
 
 // Handle the submission post
@@ -70,7 +69,7 @@ if ( $assn_id != false && $assn_json != null &&
                 return;
             }
 
-            $blob_id = uploadFileToBlob($pdo, $LTI, $fdes);
+            $blob_id = uploadFileToBlob($pdo, $fdes);
             if ( $blob_id === false ) {
                 $_SESSION['error'] = 'Problem storing files in server';
                 header( 'Location: '.sessionize('index.php') ) ;
@@ -102,7 +101,7 @@ if ( $assn_id != false && $assn_json != null &&
         array(
             ':AID' => $assn_id,
             ':JSON' => $json,
-            ':UID' => $LTI['user_id'])
+            ':UID' => $USER->id)
         );
     cache_clear('peer_submit');
     if ( $stmt->success ) {
@@ -122,7 +121,7 @@ $stmt = pdo_query_die($pdo,
      FROM {$p}peer_submit AS S JOIN {$p}peer_grade AS G
      ON S.submit_id = G.submit_id
         WHERE S.assn_id = :AID AND G.user_id = :UID",
-    array( ':AID' => $assn_id, ':UID' => $LTI['user_id'])
+    array( ':AID' => $assn_id, ':UID' => $USER->id)
 );
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 if ( $row !== false ) {
@@ -165,7 +164,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
         array(
             ':SID' => $submit_id,
             ':GID' => $grade_id,
-            ':UID' => $LTI['user_id'],
+            ':UID' => $USER->id,
             ':NOTE' => $_POST['note'])
     );
     $_SESSION['success'] = "Flagged for the instructor to examine";
@@ -177,9 +176,9 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
 $OUTPUT->header();
 $OUTPUT->start_body();
 $OUTPUT->flash_messages();
-welcome_user_course($LTI);
+welcome_user_course();
 
-if ( $instructor ) {
+if ( $USER->instructor ) {
     echo('<p><a href="configure.php" class="btn btn-default">Configure this Assignment</a> ');
     echo('<a href="admin.php" class="btn btn-default">Explore Grade Data</a> ');
     echo('<a href="maint.php" target="_new" class="btn btn-default">Grade Maintenance</a> ');
@@ -225,7 +224,7 @@ if ( $submit_row == false ) {
     return;
 }
 
-if ( count($to_grade) > 0 && ($instructor || $grade_count < $assn_json->maxassess ) ) {
+if ( count($to_grade) > 0 && ($USER->instructor || $grade_count < $assn_json->maxassess ) ) {
     echo('<a href="grade.php" class="btn btn-default">Grade other students</a> '."\n");
     // Add a done button if needed
     echo("<p> You have graded ".$grade_count." other student submissions.

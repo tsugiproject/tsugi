@@ -6,20 +6,19 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
-$instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 
 // The reset operation is a normal POST - not AJAX
-if ( $instructor && isset($_POST['reset']) ) {
+if ( $USER->instructor && isset($_POST['reset']) ) {
     $sql = "DELETE FROM {$p}rps WHERE link_id = :LI";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(array(':LI' => $LTI['link_id']));
+    $stmt->execute(array(':LI' => $LINK->id));
     header( 'Location: '.sessionize('index.php') ) ;
     return;
 }
 
 ?>
 <html><head><title>Playing Rock Paper Scissors in
-<?php echo(htmlent_utf8($LTI['context_title'])); ?>
+<?php echo(htmlent_utf8($CONTEXT->title)); ?>
 </title>
 <script type="text/javascript" 
 src="<?php echo($CFG->staticroot); ?>/static/js/jquery-1.10.2.min.js"></script>
@@ -115,7 +114,7 @@ leaders();
 <input type="submit" id="rock" name="rock" value="Rock"/>
 <input type="submit" id="paper" name="paper" value="Paper"/>
 <input type="submit" id="scissors" name="scissors" value="Scissors"/>
-<?php if ( $instructor ) { ?>
+<?php if ( $USER->instructor ) { ?>
 <input type="submit" name="reset" value="Reset"/>
 <?php } ?>
 </form>

@@ -6,15 +6,13 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 // Retrieve required launch data from session
 $LTI = lti_require_data(array('user_id', 'user_displayname', 
     'context_title', 'role','link_id'));
-
-$instructor = isset($LTI['role']) && $LTI['role'] == 1 ;
 $p = $CFG->dbprefix;
 
-// Add all of your POST handling code here.  Use $LTI['link_id']
+// Add all of your POST handling code here.  Use $LINK->id
 // in each of the entries to keep a separate set of guesses for
 // each link.
 
-// Add the SQL to retrieve all the guesses for the $LTI['link_id']
+// Add the SQL to retrieve all the guesses for the $LINK->id
 // here and leave the list of guesses and average in variables to 
 // fall through to the view below.
 
@@ -33,7 +31,7 @@ echo("\n</form>\n");
 // This is here for initial debugging only - it should not be part of the final project.
 // Note that sessionize() is not needed here because PHP autmatically handles
 // PHPSESSID on anchor tags and in forms.
-if ( $instructor ) {
+if ( $USER->instructor ) {
     echo('<p><a href="debug.php" target="_blank">Debug Print Session Data</a></p>');
     echo("\n");
 }

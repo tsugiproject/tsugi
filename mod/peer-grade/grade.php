@@ -8,14 +8,13 @@ require_once "peer_util.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$instructor = is_instructor($LTI);
 $p = $CFG->dbprefix;
 
 $user_id = false;
 $url_goback = 'index.php';
 $url_stay = 'grade.php';
 if ( isset($_GET['user_id']) ) {
-    if ( ! $instructor ) die("Only instructors can grade specific students'");
+    if ( ! $USER->instructor ) die("Only instructors can grade specific students'");
     $user_id = $_GET['user_id'];
     $url_goback = 'student.php?user_id='.$user_id;
     $url_stay = 'grade.php?user_id='.$user_id;
@@ -47,7 +46,7 @@ if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
             ON DUPLICATE KEY UPDATE note = :NOTE, updated_at = NOW()",
         array(
             ':SID' => $submit_id,
-            ':UID' => $LTI['user_id'],
+            ':UID' => $USER->id,
             ':NOTE' => $_POST['note'])
     );
     $_SESSION['success'] = "Flagged for the instructor to examine, please continue grading.";
@@ -91,7 +90,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     }
 
     $grade_count = loadMyGradeCount($pdo, $LTI, $assn_id);
-    if ( $grade_count > $assn_json->maxassess && ! $instructor ) {
+    if ( $grade_count > $assn_json->maxassess && ! $USER->instructor ) {
         $_SESSION['error'] = 'You have already graded more than '.$assn_json->maxassess.' submissions';
         header( 'Location: '.sessionize($url_goback) ) ;
         return;
@@ -107,7 +106,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
             ON DUPLICATE KEY UPDATE points = :POINTS, note = :NOTE, updated_at = NOW()",
         array(
             ':SID' => $submit_id,
-            ':UID' => $LTI['user_id'],
+            ':UID' => $USER->id,
             ':POINTS' => $points,
             ':NOTE' => $_POST['note'])
     );
