@@ -133,6 +133,11 @@ if (!function_exists('apache_request_headers')) {
     }
 }
 
+// Convience method, pattern borrowed from WP
+function _e($message) {
+    echo(_($message));
+}
+
 /**
  * A central store of information about the current page we are
  * generating in response to the user's request.

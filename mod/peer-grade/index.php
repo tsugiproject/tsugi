@@ -7,7 +7,6 @@ require_once "peer_util.php";
 
 // Sanity checks
 $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
-$user_id = $USER->id;
 $p = $CFG->dbprefix;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
@@ -272,7 +271,7 @@ $OUTPUT->done_bootstrap();
 that something is inappropriate - it simply brings the item to the
 attention of the instructor.</p>
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
-<input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
+<input type="hidden" value="<?php echo($USER->id); ?>" name="user_id">
 <input type="hidden" value="" id="flag_grade_id" name="grade_id">
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" name="doFlag" 

@@ -17,7 +17,7 @@ if ( $USER->instructor && isset($_POST['reset']) ) {
 }
 
 ?>
-<html><head><title>Playing Rock Paper Scissors in
+<html><head><title><?php _e("Playing Rock Paper Scissors in"); ?>
 <?php echo(htmlent_utf8($CONTEXT->title)); ?>
 </title>
 <script type="text/javascript" 
@@ -30,26 +30,34 @@ $(document).ready(function(){
   $("#scissors").click( function() { play(2); } ) ;
 });
 
+var I18N = {};
+I18N.playing = '<?php _e("Playing...");?>';
+I18N.played = '<?php _e("Played");?>';
+I18N.waiting = '<?php _e("Waiting for opponent...");?>';
+I18N.tied = '<?php _e("You tied %s");?>';
+I18N.beat = '<?php _e("You defeated %s");?>';
+I18N.lost = '<?php _e("You lost to %s");?>';
+
 function play(strategy) {
     $("#success").html("");
     $("#error").html("");
-    $("#statustext").html("Playing...");
+    $("#statustext").html(I18N.playing);
     $("#rpsform input").attr("disabled", true);
     $("#status").show();
-    window.console && console.log('Played '+strategy);
+    window.console && console.log(I18N.played+strategy);
     $.getJSON('<?php echo(sessionize('play.php')); ?>&play='+strategy, function(data) {
         window.console && console.log(data);
         if ( data.guid ) {
-            $("#statustext").html("Waiting for opponent...");
+            $("#statustext").html(I18N.waiting);
             check(data.guid); // Start the checking process
         } else {
             $("#status").hide();
             if ( data.tie ) {
-                $("#success").html("You tied "+data.displayname);
+                $("#success").html(sprintf(I18N.tied,data.displayname));
             } else if ( data.win ) {
-                $("#success").html("You beat "+data.displayname);
+                $("#success").html(sprintf(I18N.beat,data.displayname));
             } else { 
-                $("#success").html("You lost to "+data.displayname);
+                $("#success").html(sprintf(I18N.lost+data.displayname));
             }
             $("#rpsform input").attr("disabled", false);
             leaders();  // Immediately update the leaderboard
@@ -72,11 +80,11 @@ function check(guid) {
         }
         $("#status").hide();
         if ( data.tie ) {
-            $("#success").html("You tied "+data.displayname);
+            $("#success").html(sprintf(I18N.tied,data.displayname));
         } else if ( data.win ) {
-            $("#success").html("You beat "+data.displayname);
+            $("#success").html(sprintf(I18N.beat,data.displayname));
         } else { 
-            $("#success").html("You lost to "+data.displayname);
+            $("#success").html(sprintf(I18N.lost,data.displayname));
         }
         $("#rpsform input").attr("disabled", false);
         leaders();  // Immediately update the leaderboard
@@ -111,11 +119,11 @@ leaders();
 </head>
 <body>
 <form id="rpsform" method="post">
-<input type="submit" id="rock" name="rock" value="Rock"/>
-<input type="submit" id="paper" name="paper" value="Paper"/>
-<input type="submit" id="scissors" name="scissors" value="Scissors"/>
+<input type="submit" id="rock" name="rock" value="<?php _e("Rock"); ?>"/>
+<input type="submit" id="paper" name="paper" value="<?php _e("Paper"); ?>"/>
+<input type="submit" id="scissors" name="scissors" value="<?php _e("Scissors"); ?>"/>
 <?php if ( $USER->instructor ) { ?>
-<input type="submit" name="reset" value="Reset"/>
+<input type="submit" name="reset" value="<?php _e("Reset"); ?>"/>
 <?php } ?>
 </form>
 <p id="error" style="color:red"></p>
@@ -125,7 +133,7 @@ leaders();
 <span id="statustext" style="color:orange"></span>
 </p>
 <div>
-<p><b>Leaderboard</b></p>
+<p><b><?php _e("Leaderboard"); ?></b></p>
 <p id="leaders">
 </p>
 <?php

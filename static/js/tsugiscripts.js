@@ -33,3 +33,12 @@ function doHeartBeat() {
         }
     });
 }
+
+// https://gist.github.com/flesch/315070
+function sprintf(){
+    var args = Array.prototype.slice.call(arguments);
+    return args.shift().replace(/%s/g, function(){
+        return args.shift();
+    });
+}
+
