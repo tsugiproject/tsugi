@@ -1680,7 +1680,7 @@ class default_renderer {
               </ul>
             </div><!--/.nav-collapse -->
           </div>
-    <?
+    <?php
     }
 }
 
