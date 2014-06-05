@@ -35,53 +35,28 @@ if ( isset($_POST['code']) && $USER->instructor ) {
             ':LI' => $LINK->id,
             ':UI' => $USER->id,
             ':IP' => $_SERVER["REMOTE_ADDR"]));
-        $_SESSION['success'] = 'Attendance Recorded...';
+        $_SESSION['success'] = _('Attendance Recorded...');
     } else {
-        $_SESSION['error'] = 'Code incorrect';
+        $_SESSION['error'] = _('Code incorrect');
     }
     header( 'Location: '.sessionize('index.php') ) ;
     return;
 }
 
 // View 
-?>
-<html><head><title>Attendance tool</title>
-</head>
-<body style="background-color:orange;">
-<?php
-if ( isset($_SESSION['error']) ) {
-    echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
-    unset($_SESSION['error']);
-}
-if ( isset($_SESSION['success']) ) {
-    echo '<p style="color:green">'.$_SESSION['success']."</p>\n";
-    unset($_SESSION['success']);
-}
-
-// A nice welcome...
-echo("<p>Welcome");
-if ( isset($USER->displayname) ) {
-    echo(" ");
-    echo(htmlent_utf8($USER->displayname));
-}
-if ( isset($CONTEXT->title) ) {
-    echo(" from ");
-    echo(htmlent_utf8($CONTEXT->title));
-}
-
-if ( $USER->instructor ) {
-    echo(" (Instructor)");
-}
-echo("</p>\n");
+$OUTPUT->header();
+$OUTPUT->start_body();
+$OUTPUT->flash_messages();
+welcome_user_course();
 
 echo('<form method="post">');
 echo("Enter code:\n");
 if ( $USER->instructor ) {
 echo('<input type="text" name="code" value="'.htmlent_utf8($old_code).'"> ');
-echo('<input type="submit" name="send" value="Update code"><br/>');
+echo('<input type="submit" name="send" value="'._('Update code').'"><br/>');
 } else {
 echo('<input type="text" name="code" value=""> ');
-echo('<input type="submit" name="send" value="Record attendance"><br/>');
+echo('<input type="submit" name="send" value="'._('Record attendance').'"><br/>');
 }
 echo("\n</form>\n");
 
@@ -90,7 +65,7 @@ if ( $USER->instructor ) {
             WHERE link_id = :LI ORDER BY attend DESC, user_id");
     $stmt->execute(array(':LI' => $LINK->id));
     echo('<table border="1">'."\n");
-    echo("<tr><th>User</th><th>Attendance</th><th>IP Address</th></tr>\n");
+    echo("<tr><th>"._("User")."</th><th>"._("Attendance")."</th><th>"._("IP Address")."</th></tr>\n");
     while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         echo "<tr><td>";
         echo($row['user_id']);
