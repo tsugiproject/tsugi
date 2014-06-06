@@ -37,7 +37,7 @@ array( "{$CFG->dbprefix}peer_submit",
     note         TEXT NULL,
     reflect      TEXT NULL,
 
-    regrade      TINYINT NULL;
+    regrade      TINYINT NULL,
 
     updated_at  DATETIME NOT NULL,
     created_at  DATETIME NOT NULL,
