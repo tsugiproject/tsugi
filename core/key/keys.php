@@ -14,8 +14,8 @@ if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! ( isset($_SESSION['id']) || is_admin() ) ) {
-    $_SESSION['login_return'] = get_url_full(__FILE__) . "/index.php";
+if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
+    $_SESSION['login_return'] = getUrlFull(__FILE__) . "/index.php";
     header('Location: '.$CFG->wwwroot.'/login.php');
     return;
 }
@@ -25,14 +25,14 @@ $searchfields = array("key_id", "key_key", "created_at", "updated_at", "user_id"
 $sql = "SELECT key_id, key_key, secret, created_at, updated_at, user_id
         FROM {$CFG->dbprefix}lti_key";
 
-if ( !is_admin() ) {
+if ( !isAdmin() ) {
     $sql .= "\nWHERE user_id = :UID";
     $query_parms = array(":UID" => $_SESSION['id']);
 }
 
-$newsql = pdo_paged_query($sql, $query_parms, $searchfields);
+$newsql = pdoPagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
-$rows = pdo_all_rows_die($pdo, $newsql, $query_parms);
+$rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
     $newrow = $row;
@@ -41,9 +41,9 @@ foreach ( $rows as $row ) {
 }
 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->top_nav();
-$OUTPUT->flash_messages();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
 ?>
 <h1>LTI Keys</h1>
 <p>
@@ -54,9 +54,9 @@ $OUTPUT->flash_messages();
 You have no IMS LTI 1.1 Keys for this system.
 </p>
 <?php } else { 
-    pdo_paged_table($newrows, $searchfields, false, "key-detail.php");
+    pdoPagedTable($newrows, $searchfields, false, "key-detail.php");
 } 
-if ( is_admin() ) { ?>
+if ( isAdmin() ) { ?>
 <p>
 <a href="key-add.php" class="btn btn-default">Add Key</a>
 </p>

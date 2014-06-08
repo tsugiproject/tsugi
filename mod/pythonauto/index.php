@@ -3,7 +3,7 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 session_start();
 $OUTPUT->header();
-$OUTPUT->start_body();
+$OUTPUT->bodyStart();
 ?>
 <h1>AutoGrader for Python for Informatics</h1>
 <p>

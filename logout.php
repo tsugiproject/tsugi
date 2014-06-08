@@ -4,6 +4,6 @@ require_once("config.php");
 require_once("lib/lms_lib.php");
 session_start();
 session_unset();
-delete_secure_cookie();
+deleteSecureCookie();
 
 header('Location: index.php');

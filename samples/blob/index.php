@@ -5,12 +5,12 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "blob_util.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('context_id', 'role'));
+$LTI = ltiRequireData(array('context_id', 'role'));
 
 // Model 
 $p = $CFG->dbprefix;
 if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 1) {
-    $_SESSION['error'] = 'Error: Maximum size of '.max_upload().'MB exceeded.';
+    $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
     header( 'Location: '.sessionize('index.php') ) ;
     return;
 }
@@ -42,9 +42,9 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
     return;
 }
 
-// Sometimes, if the MAX_UPLOAD_SIZE is exceeded, it deletes all of $_POST
+// Sometimes, if the maxUpload_SIZE is exceeded, it deletes all of $_POST
 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-    $_SESSION['error'] = 'Error: Maximum size of '.max_upload().'MB exceeded.';
+    $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
     header( 'Location: '.sessionize('index.php') ) ;
     return;
 }
@@ -55,8 +55,8 @@ $OUTPUT->header();
 </head>
 <body>
 <?php
-$OUTPUT->flash_messages();
-welcome_user_course();
+$OUTPUT->flashMessages();
+welcomeUserCourse();
 
 $foldername = getFolderName();
 if ( !file_exists($foldername) ) mkdir ($foldername);
@@ -82,10 +82,10 @@ if ( $count == 0 ) echo "<p>No Files Found</p>\n";
 echo("</ul>\n");
 
 if ( $USER->instructor ) { ?>
-<h4>Upload file (max <?php echo(max_upload());?>MB)</h4>
+<h4>Upload file (max <?php echo(maxUpload());?>MB)</h4>
 <form name="myform" enctype="multipart/form-data" method="post" action="<?php sessionize('index.php');?>">
 <p>Upload File: <input name="uploaded_file" type="file"> 
-   <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(max_upload());?>000000" /> 
+   <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(maxUpload());?>000000" /> 
    <input type="submit" name="submit" value="Upload"></p>
 </form>
 <?php

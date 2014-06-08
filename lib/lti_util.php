@@ -7,7 +7,7 @@ require_once 'OAuth.php';
 
 // Returns true if this is a Basic LTI message
 // with minimum values to meet the protocol
-function is_lti_request() {
+function ltiIsRequest() {
    $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request" ||
         $_REQUEST["lti_message_type"] == "ToolProxyReregistrationRequest";
    $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0" || $_REQUEST["lti_version"] == "LTI-2p0";
@@ -206,14 +206,14 @@ function get_string($key,$bundle) {
     return $key;
 }
 
-function do_body_request($url, $method, $data, $optional_headers = null)
+function ltiBodyRequest($url, $method, $data, $optional_headers = null)
 {
   if ($optional_headers !== null) {
      $header = $optional_headers . "\r\n";
   }
   $header = $header . "Content-Type: application/x-www-form-urlencoded\r\n";
 
-  return do_body($url,$method,$data,$header);
+  return netDoBody($url,$method,$data,$header);
 }
 
 
@@ -376,10 +376,10 @@ function sendOAuthGET($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $a
     global $LastGETHeader;
     $LastGETHeader = $header;
 
-    return do_get($endpoint,$header);
+    return ltiDoGet($endpoint,$header);
 }
 
-function do_get($url, $header = false) {
+function ltiDoGet($url, $header = false) {
     global $LastGETURL;
     global $LastGETMethod;
     global $LastHeadersSent;
@@ -394,10 +394,10 @@ function do_get($url, $header = false) {
     $lastGETResponse = false;
 
     $LastGETMethod = "CURL";
-    $lastGETResponse = get_curl($url, $header);
+    $lastGETResponse = netGetCurl($url, $header);
     if ( $lastGETResponse !== false ) return $lastGETResponse;
     $LastGETMethod = "Stream";
-    $lastGETResponse = get_stream($url, $header);
+    $lastGETResponse = netGetStream($url, $header);
     if ( $lastGETResponse !== false ) return $lastGETResponse;
 /*
     $LastGETMethod = "Socket";
@@ -411,7 +411,7 @@ function do_get($url, $header = false) {
     throw new Exception("Unable to get");
 }
 
-function get_stream($url, $header) {
+function netGetStream($url, $header) {
     $params = array('http' => array(
         'method' => 'GET',
         'header' => $header
@@ -426,7 +426,7 @@ function get_stream($url, $header) {
     return $response;
 }
 
-function get_curl($url, $header) {
+function netGetCurl($url, $header) {
   if ( ! function_exists('curl_init') ) return false;
   global $last_http_response;
   global $LastHeadersSent;
@@ -479,11 +479,11 @@ function sendOAuthBodyPOST($endpoint, $oauth_consumer_key, $oauth_consumer_secre
     $header = $acc_req->to_header();
     $header = $header . "\r\nContent-Type: " . $content_type . "\r\n";
 
-    return do_body($endpoint, "POST", $body,$header);
+    return netDoBody($endpoint, "POST", $body,$header);
 }
 
 
-function get_body_sent_debug() {
+function netGetBodySentDebug() {
     global $LastBODYURL;
     global $LastBODYMethod;
     global $LastBODYImpl;
@@ -495,7 +495,7 @@ function get_body_sent_debug() {
 	return $ret;
 }
 
-function get_body_received_debug() {
+function netGetBodyReceivedDebug() {
     global $LastBODYURL;
     global $LastBODYMethod;
     global $LastBODYImpl;
@@ -509,7 +509,7 @@ function get_body_received_debug() {
 	return $ret;
 }
 
-function get_get_sent_debug() {
+function netGetGetSentDebug() {
     global $LastGETMethod;
     global $LastGETURL;
     global $LastHeadersSent;
@@ -520,7 +520,7 @@ function get_get_sent_debug() {
 	return $ret;
 }
 
-function get_get_received_debug() {
+function netGetGetReceivedDebug() {
     global $LastGETURL;
     global $last_http_response;
     global $LastGETMethod;
@@ -537,7 +537,7 @@ function get_get_received_debug() {
 // the PHP version and configuration.  You can use only one
 // if you know what version of PHP is working and how it will be 
 // configured...
-function do_body($url, $method, $body, $header) {
+function netDoBody($url, $method, $body, $header) {
     global $LastBODYURL;
     global $LastBODYMethod;
     global $LastBODYImpl;
@@ -555,13 +555,13 @@ function do_body($url, $method, $body, $header) {
     $LastBODYResponse = false;
 
     // Prefer curl because it checks if it works before trying
-    $LastBODYResponse = body_curl($url, $method, $body, $header);
+    $LastBODYResponse = netBodyCurl($url, $method, $body, $header);
     $LastBODYImpl = "CURL";
     if ( $LastBODYResponse !== false ) return $LastBODYResponse;
-    $LastBODYResponse = body_socket($url, $method, $body, $header);
+    $LastBODYResponse = netBodySocket($url, $method, $body, $header);
     $LastBODYImpl = "Socket";
     if ( $LastBODYResponse !== false ) return $LastBODYResponse;
-    $LastBODYResponse = body_stream($url, $method, $body, $header);
+    $LastBODYResponse = netBodyStream($url, $method, $body, $header);
     $LastBODYImpl = "Stream";
     if ( $LastBODYResponse !== false ) return $LastBODYResponse;
     $LastBODYImpl = "Error";
@@ -573,7 +573,7 @@ function do_body($url, $method, $body, $header) {
 }
 
 // From: http://php.net/manual/en/function.file-get-contents.php
-function body_socket($endpoint, $method, $data, $moreheaders=false) {
+function netBodySocket($endpoint, $method, $data, $moreheaders=false) {
   if ( ! function_exists('fsockopen') ) return false;
   if ( ! function_exists('stream_get_transports') ) return false;
     $url = parse_url($endpoint);
@@ -629,7 +629,7 @@ function body_socket($endpoint, $method, $data, $moreheaders=false) {
     return false;
 }
 
-function body_stream($url, $method, $body, $header) {
+function netBodyStream($url, $method, $body, $header) {
     $params = array('http' => array(
         'method' => $method,
         'content' => $body,
@@ -646,7 +646,7 @@ function body_stream($url, $method, $body, $header) {
     return $response;
 }
 
-function body_curl($url, $method, $body, $header) {
+function netBodyCurl($url, $method, $body, $header) {
   if ( ! function_exists('curl_init') ) return false;
   global $last_http_response;
   global $LastHeadersSent;
@@ -822,7 +822,7 @@ function parseResponse($response) {
 // Compares base strings, start of the mis-match
 // Returns true if the strings are identical
 // This is setup to be displayed in <pre> tags as newlines are added
-function compare_base_strings($string1, $string2)
+function ltiCompareBaseStrings($string1, $string2)
 {
 	if ( $string1 == $string2 ) return true;
 

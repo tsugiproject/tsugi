@@ -1,13 +1,13 @@
 <?php
 
-function pdo_row_die($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
-    $stmt = pdo_query_die($pdo, $sql, $arr, $error_log);
+function pdoRowDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+    $stmt = pdoQueryDie($pdo, $sql, $arr, $error_log);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row;
 }
 
-function pdo_all_rows_die($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
-    $stmt = pdo_query_die($pdo, $sql, $arr, $error_log);
+function pdoAllRowsDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+    $stmt = pdoQueryDie($pdo, $sql, $arr, $error_log);
     $rows = array();
     while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         array_push($rows, $row);
@@ -15,9 +15,9 @@ function pdo_all_rows_die($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     return $rows;
 }
 
-function pdo_query_die($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     global $CFG;
-    $stmt = pdo_query($pdo, $sql, $arr, $error_log);
+    $stmt = pdoQuery($pdo, $sql, $arr, $error_log);
     if ( ! $stmt->success ) {
         error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
         if ( isset($CFG) && isset($CFG->dirroot) && isset($CFG->DEVELOPER) && $CFG->DEVELOPER) {
@@ -32,7 +32,7 @@ function pdo_query_die($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
 }
 
 // Run a PDO Query with lots of error checking
-function pdo_query($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
+function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     $errormode = $pdo->getAttribute(PDO::ATTR_ERRMODE);
     if ( $errormode != PDO::ERRMODE_EXCEPTION) {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -77,9 +77,9 @@ function pdo_query($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     return $q;
 }
 
-function pdo_metadata($pdo, $tablename) {
+function pdoMetadata($pdo, $tablename) {
     $sql = "SHOW COLUMNS FROM ".$tablename;
-    $q = pdo_query($pdo, $sql);
+    $q = pdoQuery($pdo, $sql);
     if ( $q->success ) {
         return $q->fetchAll();
     } else {

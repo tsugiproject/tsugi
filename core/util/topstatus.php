@@ -2,7 +2,7 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
-header_json();
+headerJson();
 
 // Nothing for us to do
 if ( ! isset($_GET[session_name()]) ) {
@@ -21,7 +21,7 @@ if ( !isset($_GET['top']) ) {
 }
 
 // Grab the session 
-$LTI = lti_require_data(array('user_id'));
+$LTI = ltiRequireData(array('user_id'));
 
 // This has already been set by someone so nothing to do
 if (isset($_COOKIE['TSUGI_TOP_SESSION']) ) {
@@ -44,7 +44,7 @@ if ( (!isset($_SESSION['TOP_CHECK'])) || $_SESSION['TOP_CHECK'] < 1) {
 // We are the top frame, the cookie has not yet been set.
 // Lets try to set the cookie in JavaScript - but in case that fails, 
 // We will try to set the session cookie on our next request response
-// cycle in lti_require_data()
+// cycle in ltiRequireData()
 
 $_SESSION['SET_TOP_COOKIE'] = 1;
 echo(json_encode(array("session_name" => session_name(), "cookie_name" => 'TSUGI_TOP_SESSION', 

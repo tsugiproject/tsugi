@@ -3,10 +3,10 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
-header_json();
+headerJson();
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
@@ -19,12 +19,12 @@ if ( isset($_GET['link_id']) ) {
 // Load to make sure it is within our context
 $link_info = false;
 if ( $USER->instructor && $link_id > 0 ) {
-    $link_info = load_link_info($pdo, $link_id);
+    $link_info = loadLinkInfo($pdo, $link_id);
 }
 if ( $link_info === false ) die("Invalid link");
 
 // Check how much work we have to do
-$row = pdo_row_die($pdo,
+$row = pdoRowDie($pdo,
     "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
     JOIN {$p}lti_service AS S ON R.service_id = S.service_id
     WHERE link_id = :LID AND grade IS NOT NULL AND 
@@ -34,7 +34,7 @@ $row = pdo_row_die($pdo,
 );
 $toretrieve = $row['count'];
 
-$row = pdo_row_die($pdo,
+$row = pdoRowDie($pdo,
     "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
     JOIN {$p}lti_service AS S ON R.service_id = S.service_id
     WHERE link_id = :LID AND grade IS NOT NULL AND 
@@ -43,7 +43,7 @@ $row = pdo_row_die($pdo,
 );
 $total = $row['count'];
 
-$row = pdo_row_die($pdo,
+$row = pdoRowDie($pdo,
     "SELECT COUNT(*) AS count
     FROM {$p}lti_result AS R
     JOIN {$p}lti_service AS S ON R.service_id = S.service_id

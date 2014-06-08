@@ -27,7 +27,7 @@ in an iframe.</li>
 <p>
 <?php
 
-$tools = find_files();
+$tools = findFiles();
 if ( count($tools) > 1 ) {
     echo("<p>Tools in this system:</p><ul>\n");
     foreach ($tools as $tool ) {

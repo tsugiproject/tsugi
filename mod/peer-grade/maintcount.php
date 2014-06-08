@@ -4,10 +4,10 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "peer_util.php";
 
-header_json();
+headerJson();
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
@@ -22,7 +22,7 @@ if ( $assn === false ) {
 }
 
 // Check how much work we have to do
-$row = pdo_row_die($pdo,
+$row = pdoRowDie($pdo,
     "SELECT COUNT(submit_id) AS count FROM {$p}peer_submit AS S
     WHERE assn_id = :AID AND regrade IS NULL",
     array(":AID" => $assn_id)

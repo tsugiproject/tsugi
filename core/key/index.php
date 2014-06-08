@@ -14,8 +14,8 @@ if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! ( isset($_SESSION['id']) || is_admin() ) ) {
-    $_SESSION['login_return'] = get_url_full(__FILE__) . "/index.php";
+if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
+    $_SESSION['login_return'] = getUrlFull(__FILE__) . "/index.php";
     header('Location: '.$CFG->wwwroot.'/login.php');
     return;
 }
@@ -36,23 +36,23 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         header("Location: index.php");
         return;
     }
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "INSERT INTO {$CFG->dbprefix}key_request  
         (user_id, title, notes, state, lti, created_at, updated_at) 
         VALUES ( :UID, :TITLE, :NOTES, 0, :LTI, NOW(), NOW() )",
         array(":UID" => $_SESSION['id'], ":TITLE" => $_POST['title'],
             ":NOTES" => $_POST['notes'], ":LTI" => $version)
     );
-    if ( !is_admin() && $CFG->owneremail ) {
+    if ( !isAdmin() && $CFG->owneremail ) {
         $user_id = $_SESSION['id'];
-        $token = compute_mail_check($user_id);
+        $token = computeMailCheck($user_id);
         $to = $CFG->owneremail;
         $subject = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )';
         $message = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )\n'.
             "\nNotes\n".$_POST['notes']."\n\n".
-            "Link: ".get_current_file_url(__FILE__)."\n";
+            "Link: ".getCurrentFileUrl(__FILE__)."\n";
 
-        $retval = mail_send($to, $subject, $message, $user_id, $token);
+        $retval = mailSend($to, $subject, $message, $user_id, $token);
     }
     $_SESSION['success'] = "Record inserted";
     header("Location: index.php");
@@ -65,14 +65,14 @@ $sql = "SELECT request_id, title, notes, state, admin, R.created_at, R.updated_a
         FROM {$CFG->dbprefix}key_request  as R
         JOIN {$CFG->dbprefix}lti_user AS U ON R.user_id = U.user_id ";
         
-if ( !is_admin() ) {
+if ( !isAdmin() ) {
     $sql .= "\nWHERE R.user_id = :UID";
     $query_parms = array(":UID" => $_SESSION['id']);
 }
 
-$newsql = pdo_paged_query($sql, $query_parms, $searchfields);
+$newsql = pdoPagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
-$rows = pdo_all_rows_die($pdo, $newsql, $query_parms);
+$rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
     $newrow = $row;
@@ -88,9 +88,9 @@ foreach ( $rows as $row ) {
 }
 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->top_nav();
-$OUTPUT->flash_messages();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
 ?>
 <h1>LTI Key Requests</h1>
 <p>
@@ -153,7 +153,7 @@ using the IMS Learning Tools Interoperability standard.  You can use this page
 to request access to this service.
 </p>
 <?php } else { 
-    pdo_paged_table($newrows, $searchfields, false, "request-detail.php");
+    pdoPagedTable($newrows, $searchfields, false, "request-detail.php");
 } 
 if ( $goodsession ) { ?>
 <p>

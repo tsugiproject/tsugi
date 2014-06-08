@@ -5,14 +5,14 @@ function loadAssignment($pdo, $LTI)
 {
     global $CFG;
     $cacheloc = 'peer_assn';
-    $row = cache_check($cacheloc, $LTI['link_id']);
+    $row = cacheCheck($cacheloc, $LTI['link_id']);
     if ( $row != false ) return $row;
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "SELECT assn_id, json FROM {$CFG->dbprefix}peer_assn WHERE link_id = :ID",
         array(":ID" => $LTI['link_id'])
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    cache_set($cacheloc, $LTI['link_id'], $row);
+    cacheSet($cacheloc, $LTI['link_id'], $row);
     return $row;
 }
 
@@ -21,18 +21,18 @@ function loadSubmission($pdo, $assn_id, $user_id)
     global $CFG;
     $cacheloc = 'peer_submit';
     $cachekey = $assn_id + "::" + $user_id;
-    $submit_row = cache_check($cacheloc, $cachekey);
+    $submit_row = cacheCheck($cacheloc, $cachekey);
     if ( $submit_row != false ) return $submit_row;
     $submit_row = false;
 
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "SELECT submit_id, json, note, reflect
             FROM {$CFG->dbprefix}peer_submit AS S
             WHERE assn_id = :AID AND S.user_id = :UID",
         array(":AID" => $assn_id, ":UID" => $user_id)
     );
     $submit_row = $stmt->fetch(PDO::FETCH_ASSOC);
-    cache_set($cacheloc, $cachekey, $submit_row);
+    cacheSet($cacheloc, $cachekey, $submit_row);
     return $submit_row;
 }
 
@@ -40,7 +40,7 @@ function loadSubmission($pdo, $assn_id, $user_id)
 function loadUngraded($pdo, $LTI, $assn_id)
 {
     global $CFG;
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "SELECT S.submit_id, S.user_id, S.created_at, count(G.user_id) AS submit_count 
             FROM {$CFG->dbprefix}peer_submit AS S LEFT JOIN {$CFG->dbprefix}peer_grade AS G 
             ON S.submit_id = G.submit_id 
@@ -112,7 +112,7 @@ function showSubmission($LTI, $assn_json, $submit_json)
 function computeGrade($pdo, $assn_id, $assn_json, $user_id)
 {
     global $CFG;
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "SELECT S.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id, 
             MAX(points) as max_points, COUNT(points) as count_points, C.grade_count as grade_count
         FROM {$CFG->dbprefix}peer_submit as S 
@@ -152,9 +152,9 @@ function loadMyGradeCount($pdo, $LTI, $assn_id) {
     global $CFG;
     $cacheloc = 'peer_grade';
     $cachekey = $assn_id + "::" + $LTI['user_id'];
-    $grade_count = cache_check($cacheloc, $cachekey);
+    $grade_count = cacheCheck($cacheloc, $cachekey);
     if ( $grade_count != false ) return $grade_count;
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "SELECT COUNT(grade_id) AS grade_count 
         FROM {$CFG->dbprefix}peer_submit AS S 
         JOIN {$CFG->dbprefix}peer_grade AS G
@@ -166,7 +166,7 @@ function loadMyGradeCount($pdo, $LTI, $assn_id) {
     if ( $row !== false ) {
         $grade_count = $row['grade_count']+0;
     }
-    cache_set($cacheloc, $cachekey, $grade_count);
+    cacheSet($cacheloc, $cachekey, $grade_count);
     return $grade_count;
 }
 
@@ -177,7 +177,7 @@ function retrieveSubmissionGrades($pdo, $submit_id)
 {
     global $CFG;
     if ( $submit_id === false ) return false;
-    $grades_received = pdo_all_rows_die($pdo,
+    $grades_received = pdoAllRowsDie($pdo,
         "SELECT grade_id, points, note, displayname, email
         FROM {$CFG->dbprefix}peer_grade AS G
         JOIN {$CFG->dbprefix}lti_user as U
@@ -192,7 +192,7 @@ function retrieveSubmissionGrades($pdo, $submit_id)
 function retrieveGradesGiven($pdo, $assn_id, $user_id)
 {
     global $CFG;
-    $grades_given = pdo_all_rows_die($pdo,
+    $grades_given = pdoAllRowsDie($pdo,
         "SELECT grade_id, points, G.note AS note, displayname, email
         FROM {$CFG->dbprefix}peer_grade AS G
         JOIN {$CFG->dbprefix}peer_submit AS S
@@ -210,15 +210,15 @@ function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)
     global $CFG;
     if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return false;
 
-    $LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+    $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 
-    $user_row = load_user_info($pdo, $user_id);
+    $user_row = loadUserInfo($pdo, $user_id);
     if ( $user_row === false ) return false;
     $to = $user_row['email'];
     if ( strlen($to) < 1 || strpos($to,'@') === false ) return false;
 
     $name = $user_row['displayname'];
-    $token = compute_mail_check($user_id);
+    $token = computeMailCheck($user_id);
     $subject = 'From '.$CFG->servicename.', Your Peer Graded Entry Has Been Reset';
     $E = "\n";
     if ( isset($CFG->maileol) ) $E = $CFG->maileol;
@@ -235,7 +235,7 @@ function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)
     }
     $message .= "{$E}You may now re-submit your peer-graded assignment.$E";
 
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "INSERT INTO {$CFG->dbprefix}mail_sent
             (context_id, link_id, user_to, user_from, subject, body, created_at)
             VALUES ( :CID, :LID, :UTO, :UFR, :SUB, :BOD, NOW() )",
@@ -245,6 +245,6 @@ function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)
     );
 
     // echo $to, $subject, $message, $user_id, $token;
-    $retval = mail_send($to, $subject, $message, $user_id, $token);
+    $retval = mailSend($to, $subject, $message, $user_id, $token);
     return $retval;
 }

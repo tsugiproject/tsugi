@@ -24,7 +24,7 @@ $titlepassed = true;
 try {
 
 $html = $crawler->html();
-$OUTPUT->toggle_pre("Show retrieved page",$html);
+$OUTPUT->togglePre("Show retrieved page",$html);
 
 line_out("Looking for the form with a 'Debug Launch' submit button");
 $form = $crawler->selectButton('Debug Launch')->form();
@@ -32,7 +32,7 @@ $crawler = $client->submit($form);
 $passed++;
 
 $html = $crawler->html();
-$OUTPUT->toggle_pre("Show retrieved page",$html);
+$OUTPUT->togglePre("Show retrieved page",$html);
 
 // Thankfully our primitive web browser ignores target=
 line_out("Looking for the form with a 'Finish Launch' submit button");
@@ -41,7 +41,7 @@ $crawler = $client->submit($form);
 $passed++;
 
 $html = $crawler->html();
-$OUTPUT->toggle_pre("Show retrieved page",$html);
+$OUTPUT->togglePre("Show retrieved page",$html);
 
 line_out("Looking for the form with a 'Send grade' submit button (note case)");
 $form = $crawler->selectButton('Send grade')->form();
@@ -51,7 +51,7 @@ $crawler = $client->submit($form);
 $passed++;
 
 $html = $crawler->html();
-$OUTPUT->toggle_pre("Show retrieved page",$html);
+$OUTPUT->togglePre("Show retrieved page",$html);
 
 
 die("This is only a partial autograder - it needs more work");
@@ -63,7 +63,7 @@ die("This is only a partial autograder - it needs more work");
     $detail = "This indicates the source code line where the test stopped.\n" .
         "It may not make any sense without looking at the source code for the test.\n".
         'Caught exception: '.$ex->getMessage()."\n".$ex->getTraceAsString()."\n";
-    $OUTPUT->toggle_pre("Internal error detail.",$detail);
+    $OUTPUT->togglePre("Internal error detail.",$detail);
 }
 
 $perfect = 26;

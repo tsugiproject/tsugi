@@ -10,7 +10,7 @@ if ( isset($_GET[session_name()]) ) {
 require_once "../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
-header_json();
+headerJson();
 
 session_start();
 

@@ -9,8 +9,8 @@ require_once("../pdo.php");
 require_once("../lib/lms_lib.php");
 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->top_nav();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
 ?>
 <h1>Welcome Adminstrator</h1>
 <ul>

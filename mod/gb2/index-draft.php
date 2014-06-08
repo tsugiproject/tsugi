@@ -4,7 +4,7 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 
 $p = $CFG->dbprefix;
 $localstatic = getLocalStatic(__FILE__) . '/static';
@@ -18,9 +18,9 @@ $OUTPUT->header();
 -->
 <link href="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/css/ui.jqgrid.css" rel="stylesheet">
 <?php
-$OUTPUT->start_body();
-$OUTPUT->flash_messages();
-welcome_user_course();
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
+welcomeUserCourse();
 ?>
 <h1>This is under construction - it really does nothing at this point</h1>
 <div id="yo">
@@ -28,7 +28,7 @@ welcome_user_course();
 <div id="pager2"></div>
 </div>
 <?php
-$OUTPUT->footer_start();
+$OUTPUT->footerStart();
 ?>
 <script src="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/js/i18n/grid.locale-en.js" type="text/javascript"></script>
 <script src="<?php echo($localstatic); ?>/jquery.jqGrid-4.6.0/js/jquery.jqGrid.src.js" type="text/javascript"></script>
@@ -62,5 +62,5 @@ jQuery("#list2").jqGrid({
 jQuery("#list2").jqGrid('navGrid','#pager2',{edit:false,add:false,del:false});
 </script>
 <?php
-$OUTPUT->footer_end();
+$OUTPUT->footerEnd();
 

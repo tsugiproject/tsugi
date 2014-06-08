@@ -19,13 +19,13 @@ if ( ! isset($_SESSION['id']) ) {
     if ( isset($_REQUEST['login_done']) ) {
         die_with_error_log("LTI 2 login failed.");
     }
-    $_SESSION['login_return'] = sessionize(get_current_file_url(__FILE__) ."?login_done=true");
-    header("Location: ".get_login_url());
+    $_SESSION['login_return'] = sessionize(getCurrentFileUrl(__FILE__) ."?login_done=true");
+    header("Location: ".getLoginUrl());
     return;
 }
 
 // See if this person is allowed to register a tool
-$row = pdo_row_die($pdo,
+$row = pdoRowDie($pdo,
     "SELECT request_id, user_id, admin, state, lti 
         FROM {$CFG->dbprefix}key_request 
         WHERE user_id = :UID LIMIT 1",
@@ -131,7 +131,7 @@ $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
 $tc_profile_url = $_POST['tc_profile_url'];
 if ( strlen($tc_profile_url) > 1 ) {
 	echo("Retrieving profile from ".$tc_profile_url."\n");
-    $tc_profile_json = do_get($tc_profile_url);
+    $tc_profile_json = ltiDoGet($tc_profile_url);
 	echo("Retrieved ".strlen($tc_profile_json)." characters.\n");
 	echo("</pre>\n");
     togglePre("Retrieved Consumer Profile",$tc_profile_json);
@@ -188,7 +188,7 @@ $tp_profile = json_decode($tool_proxy);
 if ( $tp_profile == null ) {
 	togglePre("Tool Proxy Raw",htmlent_utf8($tool_proxy));
     $body = json_encode($tp_profile);
-    $body = json_indent($body);
+    $body = jsonIndent($body);
     togglePre("Tool Proxy Parsed",htmlent_utf8($body));
     die("Unable to parse our own internal Tool Proxy (DOH!) error=".json_last_error()."\n");
 }
@@ -240,7 +240,7 @@ $tp_profile->security_contract->tool_service = $tp_services;
 // print_r($tp_profile);
 
 $body = json_encode($tp_profile);
-$body = json_indent($body);
+$body = jsonIndent($body);
 
 echo("Registering....\n");
 echo("Register Endpoint=".$register_url."\n");
@@ -260,14 +260,14 @@ togglePre("Registration Request",htmlent_utf8($body));
 
 $response = sendOAuthBodyPOST($register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body);
 
-togglePre("Registration Request Headers",htmlent_utf8(get_body_sent_debug()));
+togglePre("Registration Request Headers",htmlent_utf8(netGetBodySentDebug()));
 
 global $LastOAuthBodyBaseString;
 togglePre("Registration Request Base String",$LastOAuthBodyBaseString);
 
-togglePre("Registration Response Headers",htmlent_utf8(get_body_received_debug()));
+togglePre("Registration Response Headers",htmlent_utf8(netGetBodyReceivedDebug()));
 
-togglePre("Registration Response",htmlent_utf8(json_indent($response)));
+togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
 
 if ( $last_http_response == 201 || $last_http_response == 200 ) {
   echo('<p><a href="'.$launch_presentation_return_url.'">Continue to launch_presentation_url</a></p>'."\n");
@@ -281,7 +281,7 @@ $responseObject = json_decode($response);
 if ( $responseObject != null && isset($responseObject->base_string) ) {
 	$base_string = $responseObject->base_string;
 	if ( strlen($base_string) > 0 && strlen($LastOAuthBodyBaseString) > 0 && $base_string != $LastOAuthBodyBaseString ) {
-		$compare = compare_base_strings($LastOAuthBodyBaseString, $base_string);
+		$compare = ltiCompareBaseStrings($LastOAuthBodyBaseString, $base_string);
 		togglePre("Compare Base Strings (ours first)",htmlent_utf8($compare));
 	}
 }

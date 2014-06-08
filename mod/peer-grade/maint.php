@@ -9,7 +9,7 @@ require_once "peer_util.php";
 noBuffer();
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
@@ -26,7 +26,7 @@ if ( $assn === false ) {
 }
 
 if ( isset($_POST['restartReGrade']) ) {
-    $lstmt = pdo_query_die($pdo,
+    $lstmt = pdoQueryDie($pdo,
         "UPDATE {$p}peer_submit SET regrade=NULL
         WHERE assn_id = :AID",
         array(":AID" => $assn_id)
@@ -40,11 +40,11 @@ if ( isset($_POST['restartReGrade']) ) {
 
 if ( isset($_POST['reGradePeer']) ) {
     $OUTPUT->header();
-    echo($OUTPUT->toggle_preScript());
+    echo($OUTPUT->togglePreScript());
     echo("</head><body>\n");
     session_write_close();
 
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "SELECT submit_id, S.user_id AS user_id, R.result_id AS result_id,
                 grade, sourcedid, service_key, displayname, email
             FROM {$CFG->dbprefix}peer_submit AS S
@@ -66,7 +66,7 @@ if ( isset($_POST['reGradePeer']) ) {
     while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         $computed_grade = computeGrade($pdo, $assn_id, $assn_json, $row['user_id']);
 
-        $s2 = pdo_query_die($pdo,
+        $s2 = pdoQueryDie($pdo,
             "UPDATE {$CFG->dbprefix}peer_submit SET regrade=1
             WHERE submit_id = :SID",
             array(":SID" => $row['submit_id'])
@@ -83,7 +83,7 @@ if ( isset($_POST['reGradePeer']) ) {
             continue;
         }
 
-        $s2 = pdo_query_die($pdo,
+        $s2 = pdoQueryDie($pdo,
             "UPDATE {$CFG->dbprefix}lti_result
             SET grade=:GRA, updated_at=NOW()
             WHERE result_id = :RID",
@@ -92,7 +92,7 @@ if ( isset($_POST['reGradePeer']) ) {
 
         // Send the grade to the server
         $debug_log = array();
-        $status = send_grade_detail($computed_grade, $debug_log, $pdo, $row); // This is the slow bit
+        $status = gradeSendDetail($computed_grade, $debug_log, $pdo, $row); // This is the slow bit
         if ( $status === true ) {
             echo(htmlent_utf8($row['displayname']).' ('.htmlent_utf8($row['email']).') ');
             echo("Grade $computed_grade submitted to server<br/>\n");
@@ -106,7 +106,7 @@ if ( isset($_POST['reGradePeer']) ) {
               "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
-            $OUTPUT->toggle_pre("Error sending grade",$LastPOXGradeResponse);
+            $OUTPUT->togglePre("Error sending grade",$LastPOXGradeResponse);
             flush();
             echo("Problem sending grade ".$status."<br/>\n");
             $fail++;
@@ -129,8 +129,8 @@ function showFrame() {
 }
 </script>
 <?php
-$OUTPUT->start_body();
-$OUTPUT->flash_messages();
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
 
 $iframeurl = sessionize($CFG->wwwroot . '/mod/peer-grade/maint.php?link_id=' . $link_id);
 ?>
@@ -162,8 +162,8 @@ Link id: <?php echo($link_id);
     if ( isset($LINK->title) ) echo(' '.htmlent_utf8($LINK->title)) ; ?>
 </pre>
 
-<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(get_spinner_url()); ?>"></span>
-<img id="totspinner" src="<?php echo(get_spinner_url()); ?>" style="display:none">
+<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
+<img id="totspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
 </p>
 
 <div id="iframediv" style="display:none">
@@ -180,7 +180,7 @@ and it willpick up where it left off.
 
 
 <?php
-$OUTPUT->footer_start();
+$OUTPUT->footerStart();
 ?>
 <script type="text/javascript">
 $UPDATE_INTERVAL = false;
@@ -200,4 +200,4 @@ function updateNumbers() {
 updateNumbers();
 </script>
 <?
-$OUTPUT->footer_end();
+$OUTPUT->footerEnd();

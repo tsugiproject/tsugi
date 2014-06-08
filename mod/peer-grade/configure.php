@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 
 // Model 
 $p = $CFG->dbprefix;
@@ -21,7 +21,7 @@ if ( isset($_POST['json']) ) {
     }
 
     $json = json_encode($json);
-    $stmt = pdo_query($pdo,
+    $stmt = pdoQuery($pdo,
         "INSERT INTO {$p}peer_assn 
             (link_id, json, created_at, updated_at) 
             VALUES ( :ID, :JSON, NOW(), NOW()) 
@@ -69,12 +69,12 @@ if ( strlen($json) < 1 ) {
     if ( $json === null ) die("Bad JSON constant");
     $json = json_encode($json);
 }
-$json = json_indent($json);
+$json = jsonIndent($json);
 
 // View 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->flash_messages();
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
 if ( ! $USER->instructor ) die("Requires instructor role");
 
 ?>

@@ -14,17 +14,17 @@ try {
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( $pdo !== false ) login_secure_cookie($pdo);
+if ( $pdo !== false ) loginSecureCookie($pdo);
 
 $OUTPUT->header();
-$OUTPUT->start_body();
+$OUTPUT->bodyStart();
 
 require_once("sanity-db.php");
-$OUTPUT->top_nav();
+$OUTPUT->topNav();
 ?>
       <div>
 <?php
-$OUTPUT->flash_messages();
+$OUTPUT->flashMessages();
 if ( $CFG->DEVELOPER ) {
     echo '<div class="alert alert-danger" style="margin-top: 10px;">'.
         'Note: Currently this server is running in developer mode.'.

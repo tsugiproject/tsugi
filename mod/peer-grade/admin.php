@@ -6,7 +6,7 @@ require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 
@@ -34,9 +34,9 @@ $sql =
 
 // View 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->flash_messages();
-welcome_user_course();
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
+welcomeUserCourse();
 
 // Make us a paged table and by default sort by flagged descending
 $parm = $_GET;
@@ -45,7 +45,7 @@ if ( ! isset($parm['order_by']) ) {
     $parm['desc'] = '1';
 }
 
-pdo_paged_auto($pdo, $sql, $query_parms, $searchfields, $orderfields, "student.php", $parm);
+pdoPagedAuto($pdo, $sql, $query_parms, $searchfields, $orderfields, "student.php", $parm);
 
 ?>
 <form method="post">

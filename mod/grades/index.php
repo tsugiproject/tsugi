@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
 $user_info = false;
@@ -21,7 +21,7 @@ if ( isset($_GET['link_id']) ) {
 
 $link_info = false;
 if ( $USER->instructor && $link_id > 0 ) {
-    $link_info = load_link_info($pdo, $link_id);
+    $link_info = loadLinkInfo($pdo, $link_id);
 }
 
 if ( $USER->instructor && isset($_GET['viewall'] ) ) {
@@ -66,11 +66,11 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
         JOIN {$p}lti_link as L ON R.link_id = L.link_id
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
-    $user_info = load_user_info($pdo, $user_id);
+    $user_info = loadUserInfo($pdo, $user_id);
 }
 
 if ( $USER->instructor ) {
-    $lstmt = pdo_query_die($pdo,
+    $lstmt = pdoQueryDie($pdo,
         "SELECT DISTINCT L.title as title, L.link_id AS link_id 
         FROM {$p}lti_link AS L JOIN {$p}lti_result as R 
             ON L.link_id = R.link_id AND R.grade IS NOT NULL
@@ -81,8 +81,8 @@ if ( $USER->instructor ) {
 }
 // View 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->flash_messages();
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
 
 if ( $USER->instructor ) {
 ?>
@@ -118,13 +118,13 @@ if ( $user_sql !== false ) {
     if ( $user_info !== false ) {
         echo("<p>Results for ".$user_info['displayname']."</p>\n");
     }
-    // pdo_paged_auto($pdo, $user_sql, $query_parms, $searchfields);
+    // pdoPagedAuto($pdo, $user_sql, $query_parms, $searchfields);
 
     // Temporarily make this small since each entry is costly
     $DEFAULT_PAGE_LENGTH = 10; 
-    $newsql = pdo_paged_query($user_sql, $query_parms, $searchfields);
+    $newsql = pdoPagedQuery($user_sql, $query_parms, $searchfields);
     // echo("<pre>\n$newsql\n</pre>\n");
-    $rows = pdo_all_rows_die($pdo, $newsql, $query_parms);
+    $rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
 
     // Scan to see if there are any un-retrieved server grades
     $newrows = array();
@@ -152,7 +152,7 @@ if ( $user_sql !== false ) {
 
         if ( !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] || 
             $diff > $RETRIEVE_INTERVAL ) {
-            $server_grade = get_grade($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
+            $server_grade = gradeGet($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
             if ( is_string($server_grade)) {
                 echo('<pre class="alert alert-danger">'."\n");
                 $msg = "result_id=".$row['result_id']."\n".
@@ -186,7 +186,7 @@ if ( $user_sql !== false ) {
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']);
             
             $debug_log = array();
-            $status = send_grade_web_service($row['grade'], $row['sourcedid'], $row['service_key'], $debug_log);
+            $status = gradeSendWebService($row['grade'], $row['sourcedid'], $row['service_key'], $debug_log);
 
             if ( $status === true ) {
                 $newrow['note'] .= " Server grade updated.";
@@ -212,11 +212,11 @@ if ( $user_sql !== false ) {
         $newrows[] = $newrow;
     }
     
-    pdo_paged_table($newrows, $searchfields);
+    pdoPagedTable($newrows, $searchfields);
 }
 
 if ( $summary_sql !== false ) {
-    pdo_paged_auto($pdo, $summary_sql, $query_parms, $searchfields, $orderfields);
+    pdoPagedAuto($pdo, $summary_sql, $query_parms, $searchfields, $orderfields);
 }
 
 if ( $class_sql !== false ) {
@@ -225,7 +225,7 @@ if ( $class_sql !== false ) {
         echo(' (<a href="maint.php?link_id='.$link_id.'" target="_new">Maintenance 
             tasks</a>)'."</p>\n");
     }
-    pdo_paged_auto($pdo, $class_sql, $query_parms, $searchfields);
+    pdoPagedAuto($pdo, $class_sql, $query_parms, $searchfields);
 }
 
 

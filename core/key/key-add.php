@@ -8,32 +8,32 @@ require_once($CFG->dirroot."/lib/lms_lib.php");
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! ( isset($_SESSION['id']) || is_admin() ) ) {
+if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
     die('Must be logged in or admin');
 }
 
 $from_location = "keys.php";
 $tablename = "{$CFG->dbprefix}lti_key";
-if ( is_admin() ) {
+if ( isAdmin() ) {
     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at", "user_id");
 } else {
     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
 }
 
-$retval = crud_insert_handle($pdo, $tablename, $fields);
+$retval = crudInsertHandle($pdo, $tablename, $fields);
 if ( $retval == CRUD_INSERT_SUCCESS || $retval == CRUD_INSERT_FAIL ) {
     header("Location: $from_location");
     return;
 }
 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->top_nav();
-$OUTPUT->flash_messages();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
 
 echo("<h1>Adding Key Entry</h1>\n<p>\n");
 
-crud_insert_form($fields, $from_location);
+crudInsertForm($fields, $from_location);
 
 echo("</p>\n");
 

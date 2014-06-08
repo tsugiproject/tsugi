@@ -10,8 +10,8 @@ require_once $CFG->dirroot."/lib/webauto.php";
 <head>
   <title>Automatic Web Grading Tool</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<?php echo($OUTPUT->toggle_preScript()); ?>
+<?php echo($OUTPUT->togglePreScript()); ?>
 </head>
 <body style="font-family:sans-serif; background-color:#add8e6">
-<?php $OUTPUT->do_analytics(); ?>
+<?php $OUTPUT->doAnalytics(); ?>
 

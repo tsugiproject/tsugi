@@ -13,7 +13,7 @@ if ( ! ( isset($_SESSION["admin"]) || $CFG->DEVELOPER )  ) {
 
 $key = '12345';
 if ( is_string($CFG->DEVELOPER) ) $key = $CFG->DEVELOPER;
-$row = pdo_row_die($pdo, 
+$row = pdoRowDie($pdo, 
     "SELECT secret FROM {$CFG->dbprefix}lti_key WHERE key_key = :DKEY",
     array(':DKEY' => $key));
 $secret = $row ? $row['secret'] : false;
@@ -36,7 +36,7 @@ if ( isset($_POST['loginsecret']) ) {
 
 if ( ! isset($_SESSION['developer'] ) ) {
 $OUTPUT->header();
-$OUTPUT->start_body();
+$OUTPUT->bodyStart();
 ?>
 <html><head><body>
 <p>Please enter the developer password:</p>
@@ -56,10 +56,10 @@ header('Content-Type: text/html; charset=utf-8');
 
 // Load tools from various folders
 $tools = array();
-find_tools("mod",$tools);
-find_tools("solutions",$tools);
-find_tools("samples",$tools);
-find_tools("tmp",$tools);
+findTools("mod",$tools);
+findTools("solutions",$tools);
+findTools("samples",$tools);
+findTools("tmp",$tools);
 
 $cur_url = curPageURL();
 

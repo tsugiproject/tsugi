@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "lib.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id', "result_id"));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id', "result_id"));
 if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 
@@ -22,9 +22,9 @@ $sql =
 
 // View 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->flash_messages();
-welcome_user_course();
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
+welcomeUserCourse();
 
 if ( isset($GRADE_DETAIL_CLASS) && is_object($GRADE_DETAIL_CLASS) ) {
     $detail = $GRADE_DETAIL_CLASS;
@@ -32,6 +32,6 @@ if ( isset($GRADE_DETAIL_CLASS) && is_object($GRADE_DETAIL_CLASS) ) {
     $detail = false;
 }
 
-pdo_paged_auto($pdo, $sql, $query_parms, $searchfields, $orderfields, "grade-detail.php");
+pdoPagedAuto($pdo, $sql, $query_parms, $searchfields, $orderfields, "grade-detail.php");
 
 $OUTPUT->footer();

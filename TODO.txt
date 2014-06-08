@@ -1,7 +1,12 @@
 
-Remove session_start() before lti_require_data() in the samples after SIx64 finishes.
+Remove session_start() before ltiRequireData() in the samples after SIx64 finishes.
 
 Remove old version of bootstrap.
 
 Build lti.php load balancer.
+
+Remove doneButton and use only doneBootstrap
+
+Document lti 1.x launch including done and due date
+
 

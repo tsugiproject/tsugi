@@ -7,7 +7,7 @@ require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
 $user_id = false;
@@ -39,7 +39,7 @@ if ( $assn_id == false ) {
 if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
 
     $submit_id = $_POST['submit_id']+0; 
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "INSERT INTO {$p}peer_flag 
             (submit_id, user_id, note, created_at, updated_at) 
             VALUES ( :SID, :UID, :NOTE, NOW(), NOW()) 
@@ -99,7 +99,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     unset($_SESSION['peer_submit_id']);
     $submit_id = $_POST['submit_id']+0; 
 
-    $stmt = pdo_query($pdo,
+    $stmt = pdoQuery($pdo,
         "INSERT INTO {$p}peer_grade 
             (submit_id, user_id, points, note, created_at, updated_at) 
             VALUES ( :SID, :UID, :POINTS, :NOTE, NOW(), NOW()) 
@@ -121,9 +121,9 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     $grade = computeGrade($pdo, $assn_id, $assn_json, $user_id);
     $_SESSION['success'] = 'Grade submitted';
     if ( $grade > 0 ) {
-        $result = lookup_result($pdo, $LTI, $user_id);
+        $result = lookupResult($pdo, $LTI, $user_id);
         $debug_log = array();
-        $status = send_grade_detail($grade, $debug_log, $pdo, $result); // This is the slow bit
+        $status = gradeSendDetail($grade, $debug_log, $pdo, $result); // This is the slow bit
 
         if ( $status === true ) {
             $_SESSION['success'] = 'Grade submitted to server';
@@ -166,8 +166,8 @@ if ( $submit_json === null ) {
 
 // View 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->flash_messages();
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
 
 echo("<p><b>Please be careful, you cannot revise grades after you submit them.</b></p>\n");
 

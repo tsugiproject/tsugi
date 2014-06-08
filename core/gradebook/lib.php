@@ -2,14 +2,14 @@
 
 require_once "classes.php";
 
-function load_grades($pdo) {
+function gradeLoadAll($pdo) {
     global $CFG, $USER, $LINK;
-    $LTI = lti_require_data(array('link_id', 'role'));
+    $LTI = ltiRequireData(array('link_id', 'role'));
     if ( ! $USER->instructor ) die("Requires instructor role");
     $p = $CFG->dbprefix;
 
     // Get basic grade data
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "SELECT R.result_id AS result_id, R.user_id AS user_id,
             grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
         FROM {$p}lti_result AS R
@@ -22,7 +22,7 @@ function load_grades($pdo) {
 }
 
 // $detail is either false or a class with methods
-function show_grades($stmt, $detail = false) {
+function gradeShowAll($stmt, $detail = false) {
     echo('<table border="1">');
     echo("\n<tr><th>Name<th>Email</th><th>Grade</th><th>Date</th></tr>\n");
 
@@ -42,15 +42,15 @@ function show_grades($stmt, $detail = false) {
 }
 
 // Not cached
-function load_grade($pdo, $user_id=false) {
+function gradeLoad($pdo, $user_id=false) {
     global $CFG, $USER, $LINK;
-    $LTI = lti_require_data(array('user_id', 'link_id', 'role'));
+    $LTI = ltiRequireData(array('user_id', 'link_id', 'role'));
     if ( ! $USER->instructor && $user_id !== false ) die("Requires instructor role");
     if ( $user_id == false ) $user_id = $USER->id;
     $p = $CFG->dbprefix;
 
     // Get basic grade data
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "SELECT R.result_id AS result_id, R.user_id AS user_id,
             grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
         FROM {$p}lti_result AS R
@@ -63,7 +63,7 @@ function load_grade($pdo, $user_id=false) {
     return $row;
 }
 
-function show_grade_info($row) {
+function gradeShowInfo($row) {
     echo('<p><a href="grades.php">Back to All Grades</a>'."</p><p>\n");
     echo("User Name: ".htmlent_utf8($row['displayname'])."<br/>\n");
     echo("User Email: ".htmlent_utf8($row['email'])."<br/>\n");
@@ -73,12 +73,12 @@ function show_grade_info($row) {
 }
 
 // newdata can be a string or array (preferred)
-function update_grade_json($pdo, $newdata=false) {
+function gradeUpdateJson($pdo, $newdata=false) {
     global $CFG;
     if ( $newdata == false ) return;
     if ( is_string($newdata) ) $newdata = json_decode($newdata, true);
-    $LTI = lti_require_data(array('result_id'));
-    $row = load_grade($pdo);
+    $LTI = ltiRequireData(array('result_id'));
+    $row = gradeLoad($pdo);
     $data = array();
     if ( $row !== false && isset($row['json'])) {
         $data = json_decode($row['json'], true);
@@ -96,7 +96,7 @@ function update_grade_json($pdo, $newdata=false) {
 
     $jstr = json_encode($data);
 
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "UPDATE {$CFG->dbprefix}lti_result SET json = :json, updated_at = NOW() 
             WHERE result_id = :RID",
         array(
@@ -105,13 +105,13 @@ function update_grade_json($pdo, $newdata=false) {
     );
 }
 
-function get_grade($pdo, $result_id, $sourcedid, $service) {
+function gradeGet($pdo, $result_id, $sourcedid, $service) {
     global $CFG;
-    $grade = get_grade_web_service($sourcedid, $service);
+    $grade = gradeGetWebService($sourcedid, $service);
     if ( is_string($grade) ) return $grade;
   
     // UPDATE the retrieved grade
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade, 
             retrieved_at = NOW() WHERE result_id = :RID",
         array( ':server_grade' => $grade, ":RID" => $result_id)
@@ -119,7 +119,7 @@ function get_grade($pdo, $result_id, $sourcedid, $service) {
     return $grade;
 }
 
-function get_grade_web_service($sourcedid, $service) {
+function gradeGetWebService($sourcedid, $service) {
     global $CFG;
     global $LastPOXGradeResponse;
     global $LastPOXGradeParse;
@@ -175,7 +175,7 @@ function get_grade_web_service($sourcedid, $service) {
     return $grade;
 }
 
-function send_grade($grade, $verbose=true, $pdo=false, $result=false) {
+function gradeSend($grade, $verbose=true, $pdo=false, $result=false) {
     if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
@@ -183,7 +183,7 @@ function send_grade($grade, $verbose=true, $pdo=false, $result=false) {
     $retval = false;
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        $retval = send_grade_internal($grade, $debug_log, $pdo, $result);
+        $retval = gradeSendInternal($grade, $debug_log, $pdo, $result);
     } catch(Exception $e) {
         $retval = "Grade Exception: ".$e->getMessage();
         error_log($retval);
@@ -198,21 +198,21 @@ function dumpGradeDebug($debug_log) {
 
     foreach ( $debug_log as $k => $v ) {
         if ( count($v) > 1 ) {
-            $OUTPUT->toggle_pre($v[0], $v[1]);
+            $OUTPUT->togglePre($v[0], $v[1]);
         } else { 
             line_out($v[0]);
         }
     }
 }
 
-function send_grade_detail($grade, &$debug_log, $pdo=false, $result=false) {
+function gradeSendDetail($grade, &$debug_log, $pdo=false, $result=false) {
     if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
     $retval = false;
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        $retval = send_grade_internal($grade, $debug_log, $pdo, $result);
+        $retval = gradeSendInternal($grade, $debug_log, $pdo, $result);
     } catch(Exception $e) {
         $retval = "Grade Exception: ".$e->getMessage();
         $debug_log[] = $retval;
@@ -221,7 +221,7 @@ function send_grade_detail($grade, &$debug_log, $pdo=false, $result=false) {
     return $retval;
 }
 
-function send_grade_internal($grade, &$debug_log, $pdo,  $result) {
+function gradeSendInternal($grade, &$debug_log, $pdo,  $result) {
     global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
@@ -246,7 +246,7 @@ function send_grade_internal($grade, &$debug_log, $pdo,  $result) {
     $sourcedid = $result['sourcedid'];
     // TODO: Should this be result?
     $service = $lti['service'];
-    $status = send_grade_web_service($grade, $sourcedid, $service, $debug_log);
+    $status = gradeSendWebService($grade, $sourcedid, $service, $debug_log);
 
     $detail = $status;
     if ( $detail === true ) {
@@ -263,7 +263,7 @@ function send_grade_internal($grade, &$debug_log, $pdo,  $result) {
     // Update result in the database and in the LTI session area
     $_SESSION['lti']['grade'] = $grade;
     if ( $pdo !== false ) {
-        $stmt = pdo_query($pdo,
+        $stmt = pdoQuery($pdo,
             "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade, 
                 updated_at = NOW() WHERE result_id = :RID",
             array(
@@ -281,7 +281,7 @@ function send_grade_internal($grade, &$debug_log, $pdo,  $result) {
     return $status;
 }
 
-function send_grade_web_service($grade, $sourcedid, $service, &$debug_log=false) {
+function gradeSendWebService($grade, $sourcedid, $service, &$debug_log=false) {
     global $CFG;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;

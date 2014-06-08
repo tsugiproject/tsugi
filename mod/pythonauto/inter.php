@@ -14,7 +14,7 @@ $OUTPUT->header();
     <script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt-stdlib.js" type="text/javascript"></script>
 </head>
 <?php
-$OUTPUT->start_body();
+$OUTPUT->bodyStart();
 ?>
 <div class="page" style="padding: 5px; border: 3px solid grey">
     <textarea id="interactive" cols="85" rows="10" ></textarea>

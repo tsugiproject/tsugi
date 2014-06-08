@@ -60,7 +60,7 @@ function getUrl($sample) {
     if ( isset($_GET['url']) ) {
         echo('<p><a href="#" onclick="window.location.href = window.location.href; return false;">Re-run this test</a></p>'."\n");
         if ( isset($_SESSION['lti']) ) {
-            $retval = update_grade_json($pdo, array("url" => $_GET['url']));
+            $retval = gradeUpdateJson($pdo, array("url" => $_GET['url']));
         }
         return $_GET['url'];
     }
@@ -108,9 +108,9 @@ function webauto_test_passed($grade, $url) {
     }
 
     global $pdo;
-    update_grade_json($pdo,json_encode(array("url" => $url)));
+    gradeUpdateJson($pdo,json_encode(array("url" => $url)));
     $debug_log = array();
-    $retval = send_grade_detail($grade, $debug_log, $pdo, false);
+    $retval = gradeSendDetail($grade, $debug_log, $pdo, false);
     dumpGradeDebug($dumplog);
     if ( $retval == true ) {
         $success = "Grade sent to server (".intval($grade*100)."%)";

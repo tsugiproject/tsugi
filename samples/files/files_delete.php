@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "files_util.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id'));
 
 $fn = $_REQUEST['file'];
 if ( strlen($fn) < 1 ) {
@@ -31,7 +31,7 @@ if ( isset($_POST["doDelete"]) ) {
 
 // Switch to view / controller
 $OUTPUT->header();
-$OUTPUT->flash_messages();
+$OUTPUT->flashMessages();
 
 echo '<h4 style="color:red">Are you sure you want to delete: ' .$fn. "</h4>\n"; 
 ?>

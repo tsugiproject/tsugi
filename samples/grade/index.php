@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 // Retrieve the launch data if present
-$LTI = lti_require_data(array('user_id', 'result_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'result_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 $displayname = $USER->displayname;
 
@@ -34,7 +34,7 @@ if ( isset($_POST['grade']) )  {
         $_SESSION['error'] = "Grade lower than $oldgrade - not sent";
     } else {
         // Call the XML APIs to send the grade back to the LMS.
-        $retval = send_grade($gradetosend, false);
+        $retval = gradeSend($gradetosend, false);
         if ( $retval === true ) {
 
             // TODO: Update the tsugi_lti_result table with $gradetosend
@@ -57,7 +57,7 @@ if ( isset($_POST['grade']) )  {
 
 // Start of the output
 $OUTPUT->header();
-$OUTPUT->start_body();
+$OUTPUT->bodyStart();
 
 if ( isset($_SESSION['error']) ) {
     echo '<p style="color:red">'.$_SESSION['error']."</p>\n";

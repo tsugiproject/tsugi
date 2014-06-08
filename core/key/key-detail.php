@@ -8,19 +8,19 @@ require_once($CFG->dirroot."/lib/lms_lib.php");
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! ( isset($_SESSION['id']) || is_admin() ) ) {
+if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
     die('Must be logged in or admin');
 }
 
 $tablename = "{$CFG->dbprefix}lti_key";
-$current = get_current_file_url(__FILE__);
+$current = getCurrentFileUrl(__FILE__);
 $title = "Key Entry";
 $from_location = "keys.php";
 $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-if ( is_admin() ) {
+if ( isAdmin() ) {
     $fields = array("key_id", "key_key", "secret", "created_at", "updated_at", "user_id");
 } else {
     $fields = array("key_id", "key_key", "secret", "created_at", "updated_at");
@@ -29,7 +29,7 @@ if ( is_admin() ) {
 }
 
 // Handle the post data
-$row =  crud_update_handle($pdo, $tablename, $fields, $query_fields,
+$row =  crudUpdateHandle($pdo, $tablename, $fields, $query_fields,
     $where_clause, $allow_edit, $allow_delete);
 
 if ( $row === CRUD_UPDATE_FAIL || $row === CRUD_UPDATE_SUCCESS ) {
@@ -38,12 +38,12 @@ if ( $row === CRUD_UPDATE_FAIL || $row === CRUD_UPDATE_SUCCESS ) {
 }
 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->top_nav();
-$OUTPUT->flash_messages();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
 
 echo("<h1>$title</h1>\n<p>\n");
-$retval = crud_update_form($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
+$retval = crudUpdateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 

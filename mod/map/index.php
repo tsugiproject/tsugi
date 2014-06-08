@@ -4,7 +4,7 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 
 $p = $CFG->dbprefix;
 //Retrieve the other rows
@@ -28,7 +28,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     $name = $row['displayname'];
     if ( ! $USER->instructor ) {
         if ( $row['allow_name'] == 1 ) $name = $name;  // Show it all
-        else if ( $row['allow_first'] == 1 ) $name = get_first_name($name);
+        else if ( $row['allow_first'] == 1 ) $name = getFirstName($name);
         else $name = '';
         if ( $row['allow_email'] != 1 ) $email = '';
     }
@@ -59,8 +59,8 @@ if ( $row !== false ) {
     if ( isset($row['lat']) && abs($row['lat']) < 85 ) $lat = $row['lat'];
     if ( isset($row['lng']) && abs($row['lng']) < 180 ) $lng = $row['lng'];
 }
-$display = get_name_and_email();
-$firstname = get_first_name($display);
+$display = getNameAndEmail();
+$firstname = getFirstName($display);
 
 $OUTPUT->header();
 ?>
@@ -129,7 +129,7 @@ other_points =
 ;
 </script>
 <?php
-$OUTPUT->start_body();
+$OUTPUT->bodyStart();
 if ( $display ) {
 ?>
 <div class="modal fade" id="prefs">
@@ -141,7 +141,7 @@ if ( $display ) {
       </div>
       <div class="modal-body">
         <p>Map Preferences 
-        <img id="spinner" src="<?php echo(get_spinner_url()); ?>" style="display: none">
+        <img id="spinner" src="<?php echo(getSpinnerUrl()); ?>" style="display: none">
         <span id="save_fail" style="display:none; color:red">Unable to save preferences</span>
         </p>
         <form id="prefs_form">
@@ -182,7 +182,7 @@ if ( $display ) {
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title"><?php welcome_user_course(); ?></h4>
+        <h4 class="modal-title"><?php welcomeUserCourse(); ?></h4>
       </div>
       <div class="modal-body">
         <p>This is a map of the participants in the course who have chosen to share their location.
@@ -205,14 +205,14 @@ location.
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">Go to map</button>
-<?php $OUTPUT->done_bootstrap("Cancel"); ?>
+<?php $OUTPUT->doneBootstrap("Cancel"); ?>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <div id="map_canvas" style="margin: 10px; width:95%; height:600px"></div>
 <?php
-$OUTPUT->footer_start();
+$OUTPUT->footerStart();
 ?>
 <script type="text/javascript">
 $(document).ready(function() { 
@@ -243,5 +243,5 @@ $(document).ready(function() {
 } );
 </script>
 <?php
-$OUTPUT->footer_end();
+$OUTPUT->footerEnd();
 

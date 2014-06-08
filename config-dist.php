@@ -76,7 +76,7 @@ $CFG->dirroot = realpath(dirname(__FILE__));
 
 // These values configure the cookie used to record the overall 
 // login in a long-lived encrypted cookie.   Look at the library 
-// code create_secure_cookie() for more detail on how these operate.
+// code createSecureCookie() for more detail on how these operate.
 $CFG->cookiesecret = 'something-highly-secret-2f518066bd757a289b543';
 $CFG->cookiename = 'TSUGIAUTO';
 $CFG->cookiepad = '390b246ea9'; 
@@ -90,7 +90,7 @@ $CFG->maileol = "\n";  // Depends on your mailer - may need to be \r\n
 // This is ued to make sure that out constructed session ids
 // based on resource_link_id, oauth_consumer_key, etc are not
 // predictable or guessable.   Just make this a long random string.
-// See lti_get_composite_key() for detail on how this operates.
+// See ltiGetCompositeKey() for detail on how this operates.
 $CFG->sessionsalt = "something-very-secret-2f518066bd757a289b543";
 
 // Set to false if you do not want analytics - this uses the ga.js

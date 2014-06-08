@@ -230,14 +230,14 @@ $DATABASE_POST_CREATE = function($pdo, $table) {
             ( '5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', '12345', 'secret')";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
 
         // Key is null for the google key - no direct launches or logins allowed
         $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key) values 
             ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', 'google.com')";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
     }
 };
 
@@ -249,7 +249,7 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_membership ADD role_override SMALLINT";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
     }
 
     // Version 2014041300 improvements
@@ -257,11 +257,11 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD subscribe SMALLINT";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
         $sql= "ALTER TABLE {$CFG->dbprefix}profile ADD subscribe SMALLINT";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
     }
 
     // Version 2014042100 improvements
@@ -269,11 +269,11 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD server_grade FLOAT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD retrieved_at DATETIME NOT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
     }
 
     // Version 2014050500 improvements
@@ -281,7 +281,7 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD user_id INTEGER NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
     }
 
     return 2014050500;

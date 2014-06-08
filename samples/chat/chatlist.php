@@ -4,11 +4,11 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Retrieve the launch data if present
-$LTI = lti_require_data(array('user_id', 'result_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'result_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 $displayname = $USER->displayname;
 
-header_json();
+headerJson();
 
 // Cleanup old chats
 $stmt = $pdo->prepare("DELETE FROM {$p}sample_chat 

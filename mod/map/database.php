@@ -41,17 +41,17 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $sql= "ALTER TABLE {$CFG->dbprefix}context_map ADD email TINYINT";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
 
         $sql= "ALTER TABLE {$CFG->dbprefix}context_map ADD name TINYINT";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
 
         $sql= "ALTER TABLE {$CFG->dbprefix}context_map ADD first TINYINT";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdo_query_die($pdo, $sql);
+        $q = pdoQueryDie($pdo, $sql);
     }
     return 2014042000;
 };

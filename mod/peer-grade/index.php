@@ -6,7 +6,7 @@ require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
@@ -92,7 +92,7 @@ if ( $assn_id != false && $assn_json != null &&
     $submission->blob_ids = $blob_ids;
     $submission->urls = $urls;
     $json = json_encode($submission);
-    $stmt = pdo_query($pdo,
+    $stmt = pdoQuery($pdo,
         "INSERT INTO {$p}peer_submit 
             (assn_id, user_id, json, created_at, updated_at) 
             VALUES ( :AID, :UID, :JSON, NOW(), NOW()) 
@@ -115,7 +115,7 @@ if ( $assn_id != false && $assn_json != null &&
 
 // Check to see how much grading we have done
 $grade_count = 0;
-$stmt = pdo_query_die($pdo,
+$stmt = pdoQueryDie($pdo,
     "SELECT COUNT(grade_id) AS grade_count 
      FROM {$p}peer_submit AS S JOIN {$p}peer_grade AS G
      ON S.submit_id = G.submit_id
@@ -155,7 +155,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
     }
     
     $grade_id = $_POST['grade_id']+0;
-    $stmt = pdo_query_die($pdo,
+    $stmt = pdoQueryDie($pdo,
         "INSERT INTO {$p}peer_flag 
             (submit_id, grade_id, user_id, note, created_at, updated_at) 
             VALUES ( :SID, :GID, :UID, :NOTE, NOW(), NOW()) 
@@ -173,9 +173,9 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
 
 // View 
 $OUTPUT->header();
-$OUTPUT->start_body();
-$OUTPUT->flash_messages();
-welcome_user_course();
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
+welcomeUserCourse();
 
 if ( $USER->instructor ) {
     echo('<p><a href="configure.php" class="btn btn-default">Configure this Assignment</a> ');
@@ -216,7 +216,7 @@ if ( $submit_row == false ) {
     echo("<p>Enter optional comments below</p>\n");
     echo('<textarea rows="5" cols="60" name="notes"></textarea><br/>');
     echo('<input type="submit" name="doSubmit" value="Submit" class="btn btn-default"> ');
-    $OUTPUT->done_bootstrap('Cancel');
+    $OUTPUT->doneBootstrap('Cancel');
     echo('</form>');
     echo("\n<p>Make sure each file is smaller than 1MB.</p>\n");
     $OUTPUT->footer();
@@ -263,7 +263,7 @@ if ( count($our_grades) < 1 ) {
         echo("<p>Your overall score from your peers: $max_points </p>\n");
     }
 }
-$OUTPUT->done_bootstrap();
+$OUTPUT->doneBootstrap();
 ?>
 <form method="post" id="flagform" style="display:none">
 <p>&nbsp;</p>
@@ -283,7 +283,7 @@ attention of the instructor.</p>
 <div id="gradeinfo">Calculating grade....</div>
 </p>
 <script type="text/javascript">
-function load_grade() {
+function gradeLoad() {
     window.console && console.log('Loading and updating your grade...');
     $.getJSON('<?php echo(sessionize('update_grade.php')); ?>', function(data) {
         window.console && console.log(data);
@@ -297,13 +297,13 @@ function load_grade() {
 }
 </script>
 <?php
-$OUTPUT->footer_start();
+$OUTPUT->footerStart();
 ?>
 <script type="text/javascript">
 $(document).ready(function() { 
-    load_grade(); 
+    gradeLoad(); 
 } );
 </script>
 <?php
-$OUTPUT->footer_end();
+$OUTPUT->footerEnd();
 

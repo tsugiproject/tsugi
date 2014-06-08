@@ -6,12 +6,12 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once "exercises.php";
 
 // Sanity checks
-$LTI = lti_require_data(array('user_id', 'link_id', 'role','context_id', 'result_id'));
+$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id', 'result_id'));
 $user_id = $USER->id;
 $p = $CFG->dbprefix;
 
 // Get the current user's grade data also checks session
-$row = load_grade($pdo);
+$row = gradeLoad($pdo);
 $OLDCODE = false;
 $json = array();
 $editor = 1;
@@ -24,7 +24,7 @@ if ( $row !== false && isset($row['json'])) {
 if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0' ) ) {
     $neweditor = $_GET['editor']+0;
     if ( $editor != $neweditor ) {
-        update_grade_json($pdo, array("editor" => $neweditor));
+        gradeUpdateJson($pdo, array("editor" => $neweditor));
         $json['editor'] = $neweditor;
         $editor = $neweditor;
     }
@@ -32,7 +32,7 @@ if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0
 $codemirror = $editor == 1;
 
 // Get any due date information
-$dueDate = get_due_date();
+$dueDate = ltiGetDueDate();
 
 $OUTPUT->header();
 
@@ -53,7 +53,7 @@ $CHECKS = false;
 $EX = false;
 
 // Check which exercise we are supposed to do
-$ex = lti_get_custom('exercise');
+$ex = ltiGetCustom('exercise');
 if ( $ex === false && isset($_REQUEST["exercise"]) ) {
     $ex = $_REQUEST["exercise"];
 }
@@ -373,7 +373,7 @@ word-wrap: break-word; /* IE 5.5+ */
 }
 </style>
 <?php
-$OUTPUT->start_body();
+$OUTPUT->bodyStart();
 ?>
 
 
@@ -387,7 +387,7 @@ $OUTPUT->start_body();
 if ( isset($LINK->title) ) {
     echo(htmlent_utf8($LINK->title));
 } else {
-    welcome_user_course(); 
+    welcomeUserCourse(); 
 }
 ?></h4>
       </div>
@@ -465,7 +465,7 @@ if ( $dueDate->message ) {
         echo('<button onclick="resetcode()" type="button">Reset Code</button> ');
     }
     echo('<button onclick="$(\'#info\').modal();return false;" type="button">Info</button>'."\n");
-    $OUTPUT->done_button();
+    $OUTPUT->doneButton();
     if ( $USER->instructor ) {
         if ( $EX === false ) {
             echo(' <a href="grades.php" target="_blank">View Student Code</a>'."\n");
@@ -531,7 +531,7 @@ The source code for this auto-grader is available on
 <?php   echo(htmlentities($CODE)); ?>
 </textarea>
 <?php
-$OUTPUT->footer_start();
+$OUTPUT->footerStart();
 ?>
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/js/jquery.splitter-0.14.0.js"></script>
 <script type="text/javascript">
@@ -605,4 +605,4 @@ function load_cm() {
  });
 </script>
 <?php
-$OUTPUT->footer_end();
+$OUTPUT->footerEnd();

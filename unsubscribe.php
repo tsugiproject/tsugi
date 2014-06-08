@@ -36,7 +36,7 @@ if ( $row === false ) {
 }
 
 require_once("mail/maillib.php");
-$check = compute_mail_check($row[3]);
+$check = computeMailCheck($row[3]);
 if ( $token != $check ) {
     echo("Sorry, token is not valid ");
     error_log("Unsubscribe bad token=$token check=$check");
