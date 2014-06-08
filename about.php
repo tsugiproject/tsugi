@@ -7,7 +7,7 @@ $OUTPUT->header();
 <body>
     <div class="container">
       <div class="jumbotron">
-<h1>LTI Based LMS</h1>
+<h1>LTI Based Learning-Tool Framework</h1>
 <p>
 This is a framework that handles much of the low-level detail of 
 building multi-tenant IMS Learning Tools Interoperability tools.   

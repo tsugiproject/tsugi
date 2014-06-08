@@ -9,6 +9,11 @@ If you want to see this code actually working, you can play online:
 
 * https://lti-tools.dr-chuck.com/tsugi/
 
+Here are several other pages describing this project:
+
+* [About The Project](docs/ABOUT.md)
+* [Coding Standards](docs/CODING.md)
+
 I have recorded a simple video describing the install/config steps
 for this software on 
 
