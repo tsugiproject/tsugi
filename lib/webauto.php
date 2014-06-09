@@ -14,7 +14,7 @@ $instructor = false;
 if ( isset($_SESSION['lti']) ) {
     $lti = $_SESSION['lti'];
     $displayname = $lti['user_displayname'];
-    $instructor = is_instructor($_SESSION['lti']);
+    $instructor = $lti['role'] == 1;
 }
 
 // Check if this has a due date..
