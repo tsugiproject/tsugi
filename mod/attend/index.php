@@ -3,6 +3,18 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
+/* Testing I18N
+// Set language to German
+putenv('LC_ALL=es');
+setlocale(LC_ALL, 'es');
+
+// Specify location of translation tables
+bindtextdomain("attend", "./locale");
+
+// Choose domain
+textdomain("attend");
+*/
+
 $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 
 // Model 
@@ -50,7 +62,7 @@ $OUTPUT->flashMessages();
 welcomeUserCourse();
 
 echo('<form method="post">');
-echo("Enter code:\n");
+echo(_("Enter code:")."\n");
 if ( $USER->instructor ) {
 echo('<input type="text" name="code" value="'.htmlent_utf8($old_code).'"> ');
 echo('<input type="submit" name="send" value="'._('Update code').'"><br/>');
@@ -78,4 +90,8 @@ if ( $USER->instructor ) {
     echo("</table>\n");
 }
 
+echo($_SERVER["HTTP_ACCEPT_LANGUAGE"]);
+
 $OUTPUT->footer();
+
+
