@@ -27,7 +27,7 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 if ( $CFG->DEVELOPER ) {
     echo '<div class="alert alert-danger" style="margin-top: 10px;">'.
-        'Note: Currently this server is running in developer mode.'.
+        _m('Note: Currently this server is running in developer mode.').
         "\n</div>\n";
 }
 

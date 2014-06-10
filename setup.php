@@ -134,15 +134,28 @@ if (!function_exists('apache_request_headers')) {
 }
 
 // Convience method, pattern borrowed from WP
-function _e($message) {
-    echo(_($message));
+function __($message, $textdomain=false) {
+    if ( $textdomain === false ) {
+        return gettext($message);
+    } else {
+        return dgettext($textdomain, $message);
+    }
 }
+
+function _e($message, $textdomain=false) {
+    echo(__($message, $textdomain));
+
+
+function _m($message, $textdomain=false) {
+    return __($message, "master");
+}
+
+bindtextdomain("master", $CFG->dirroot."/locale");
 
 /**
  * A central store of information about the current page we are
  * generating in response to the user's request.
  *
- * @global moodle_page $PAGE
  * @name $PAGE
  */
 global $PAGE;

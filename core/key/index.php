@@ -6,7 +6,7 @@ require_once($CFG->dirroot."/pdo.php");
 require_once($CFG->dirroot."/lib/lms_lib.php");
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) { 
-    $_SESSION['error'] = _("This service does not accept instructor requests for keys");
+    $_SESSION['error'] = _m("This service does not accept instructor requests for keys");
     header('Location: '.$CFG->wwwroot);
     return;
 }
@@ -26,13 +26,13 @@ $goodsession = isset($_SESSION['id']) && isset($_SESSION['email']) && isset($_SE
 if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         isset($_POST['title']) && isset($_POST['notes']) ) {
     if ( strlen($_POST['title']) < 1 ) {
-        $_SESSION['error'] = _("Requests must have titles");
+        $_SESSION['error'] = _m("Requests must have titles");
         header("Location: index.php");
         return;
     }
     $version = $_POST['lti']+0;
     if ( $version != 1 && $version != 2 ) {
-        $_SESSION['error'] = _("LTI Version muse be 1 or 2");
+        $_SESSION['error'] = _m("LTI Version muse be 1 or 2");
         header("Location: index.php");
         return;
     }

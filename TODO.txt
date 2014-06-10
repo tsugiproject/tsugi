@@ -7,6 +7,8 @@ Build lti.php load balancer.
 
 Remove doneButton and use only doneBootstrap
 
+Figure out the top leverl I18N - Wish POEDIT had an exclude
+
 Document lti 1.x launch including done and due date
 
 

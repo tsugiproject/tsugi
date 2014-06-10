@@ -77,18 +77,22 @@ function getFirstName($displayname) {
 
 function welcomeUserCourse() {
     global $USER, $CONTEXT;
-    echo("<p>Welcome");
     if ( isset($USER->displayname) ) {
-        echo(" ");
-        echo(htmlent_utf8($USER->displayname));
-    }
-    if ( isset($CONTEXT->title) ) {
-        echo(" from ");
-        echo(htmlent_utf8($CONTEXT->title));
+        if ( isset($CONTEXT->title) ) {
+            printf(_m("<p>Welcome %s from %s"), htmlent_utf8($USER->displayname), htmlent_utf8($CONTEXT->title));
+        } else {
+            printf(_m("<p>Welcome %s"), htmlent_utf8($USER->displayname));
+        }
+    } else {
+        if ( isset($CONTEXT->title) ) {
+            printf(_m("<p>Welcome from %s"), htmlent_utf8($CONTEXT->title));
+        } else {
+            printf(_m("<p>Welcome "));
+        }
     }
 
     if ( $USER->instructor ) {
-        echo(" (Instructor)");
+        echo(" "._m("(Instructor)"));
     }
     echo("</p>\n");
 }
@@ -1244,7 +1248,7 @@ function crudUpdateHandle($pdo, $tablename, $fields, $query_parms=array(),
     if ( $allow_delete && isset($_POST['doDelete']) ) {
         $sql = "DELETE FROM $tablename WHERE $where_clause";
         $stmt = pdoQueryDie($pdo, $sql, $query_parms);
-        $_SESSION['success'] = _("Record deleted");
+        $_SESSION['success'] = _m("Record deleted");
         return CRUD_UPDATE_SUCCESS;
     }
 
@@ -1263,7 +1267,7 @@ function crudUpdateHandle($pdo, $tablename, $fields, $query_parms=array(),
                 continue;
             }
             if ( !isset($_POST[$field]) ) {
-                $_SESSION['error'] = _("Missing POST field: ").$field;
+                $_SESSION['error'] = _m("Missing POST field: ").$field;
                 return CRUD_UPDATE_FAIL;
             }
             $set .= $field."= :".$i;
@@ -1290,14 +1294,14 @@ function crudUpdateForm($row, $fields, $current, $from_location, $allow_edit=fal
     echo('<a href="'.$from_location.'" class="btn btn-default">Done</a>'."\n");
     if ( $allow_edit ) {
         if ( $do_edit ) {
-            echo('<a href="'.$current.'?'.$key.'='.$key_value.'" class="btn btn-success">'._("Cancel Edit").'</a>'."\n");
+            echo('<a href="'.$current.'?'.$key.'='.$key_value.'" class="btn btn-success">'._m("Cancel Edit").'</a>'."\n");
         } else {
-            echo('<a href="'.$current.'?'.$key.'='.$key_value.'&edit=yes" class="btn btn-warning">'._("Edit").'</a>'."\n");
+            echo('<a href="'.$current.'?'.$key.'='.$key_value.'&edit=yes" class="btn btn-warning">'._m("Edit").'</a>'."\n");
         }
     }
     if ( $allow_delete ) {
         echo('<input type="hidden" name="'.$key.'" value="'.$key_value.'">'."\n");
-        echo('<input type="submit" name="doDelete" class="btn btn-danger" value="'._("Delete").'"');
+        echo('<input type="submit" name="doDelete" class="btn btn-danger" value="'._m("Delete").'"');
         echo(" onclick=\"return confirm('Are you sure you want to delete this record?');\">\n");
     }
     echo("</form>\n");
@@ -1347,7 +1351,7 @@ function crudUpdateForm($row, $fields, $current, $from_location, $allow_edit=fal
         echo("</label>\n</div>");
     }
     if ( $do_edit ) {
-        echo('<input type="submit" name="doUpdate" class="btn btn-normal" value="'._("Update").'">');
+        echo('<input type="submit" name="doUpdate" class="btn btn-normal" value="'._m("Update").'">');
         echo('</form>'."\n");
     }
     return true;
@@ -1395,7 +1399,7 @@ function crudInsertHandle($pdo, $tablename, $fields) {
         }
         $sql = "INSERT INTO $tablename \n( $names ) VALUES ( $values )";
         $stmt = pdoQueryDie($pdo, $sql, $parms);
-        $_SESSION['success'] = _("Record Inserted");
+        $_SESSION['success'] = _m("Record Inserted");
         return CRUD_INSERT_SUCCESS;
     }
     return CRUD_INSERT_NONE;
@@ -1423,7 +1427,7 @@ function crudInsertForm($fields, $from_location) {
         echo("</label>\n</div>");
     }
 
-    echo('<input type="submit" name="doSave" class="btn btn-normal" value="'._("Save").'">'."\n");
+    echo('<input type="submit" name="doSave" class="btn btn-normal" value="'._m("Save").'">'."\n");
     echo('<a href="'.$from_location.'" class="btn btn-default">Cancel</a>'."\n");
     echo('</form>'."\n");
 }
