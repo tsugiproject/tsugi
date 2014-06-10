@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Master TSUGI\n"
-"POT-Creation-Date: 2014-06-10 08:04-0500\n"
-"PO-Revision-Date: 2014-06-10 08:09-0500\n"
+"POT-Creation-Date: 2014-06-10 08:11-0500\n"
+"PO-Revision-Date: 2014-06-10 08:15-0500\n"
 "Last-Translator: Charles Severance <drchuck@gmail.com>\n"
 "Language-Team: TSUGI <drchuck@gmail.com>\n"
 "Language: es\n"
@@ -19,6 +19,18 @@ msgstr ""
 "X-Poedit-SearchPath-2: common\n"
 "X-Poedit-SearchPath-3: core\n"
 "X-Poedit-SearchPath-4: lti\n"
+
+#: core/key/index.php:9 core/key/keys.php:9
+msgid "This service does not accept instructor requests for keys"
+msgstr ""
+
+#: core/key/index.php:29
+msgid "Requests must have titles"
+msgstr ""
+
+#: core/key/index.php:35
+msgid "LTI Version muse be 1 or 2"
+msgstr ""
 
 #: lib/lms_lib.php:82
 #, php-format
