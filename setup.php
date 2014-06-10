@@ -144,7 +144,7 @@ function __($message, $textdomain=false) {
 
 function _e($message, $textdomain=false) {
     echo(__($message, $textdomain));
-
+}
 
 function _m($message, $textdomain=false) {
     return __($message, "master");
