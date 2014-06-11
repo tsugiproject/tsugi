@@ -315,6 +315,24 @@ function getCurrentFile($file) {
     return $retval;
 }
 
+function getScriptPath() {
+    if ( ! isset( $_SERVER['SCRIPT_FILENAME']) ) return false;
+    $script = $_SERVER['SCRIPT_FILENAME'];
+    $path = dirname($script);
+    return $path;
+}
+
+// Get the foldername of the currently called script
+// ["SCRIPT_FILENAME"]=> string(52) "/Applications/MAMP/htdocs/tsugi/mod/attend/index.php"
+// This function will return "attend"
+function getScriptFolder() {
+    $path = getScriptPath();
+    if ( $path === false ) return false;
+    $pieces = explode(DIRECTORY_SEPARATOR, $path);
+    if ( count($pieces) < 1 ) return false;
+    return $pieces[count($pieces)-1];
+}
+
 function getCurrentFileUrl($file) {
     global $CFG;
     return $CFG->wwwroot.getCurrentFile($file);
@@ -1445,6 +1463,9 @@ class DefaultRenderer {
         }
     }
 
+    /**
+     * Emit the HTML for the header.
+    */
     function header($headCSS=false) {
         global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL;
         global $CFG;

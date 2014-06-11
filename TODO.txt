@@ -11,4 +11,7 @@ Figure out the top leverl I18N - Wish POEDIT had an exclude
 
 Document lti 1.x launch including done and due date
 
+Note - Making documentation
+php /Users/csev/dev/phpdoc/phpDocumentor.phar --ignore '*goutte*,*openid*' -d . -t /tmp/z
+http://phpdoc.org/docs/latest/guides/docblocks.html
 

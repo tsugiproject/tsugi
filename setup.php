@@ -31,6 +31,8 @@ function print_stack_trace() {
 
 if ( isset($CFG->upgrading) && $CFG->upgrading === true ) require_once("upgrading.php");
 
+// TODO: Before removing this, make sure to find code below that is dependent on lms_lib
+// is covered properly - or perhaps decide this belongs here forever...
 require_once $CFG->dirroot."/lib/lms_lib.php";  // During transition
 
 // Check if we have been asked to do cookie or cookieless sessions
@@ -151,6 +153,16 @@ function _m($message, $textdomain=false) {
 }
 
 bindtextdomain("master", $CFG->dirroot."/locale");
+
+// Set up the user's locale
+if ( isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
+    $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+    putenv('LC_ALL='.$locale);
+    setlocale(LC_ALL, $locale);
+    $domain = getScriptFolder();
+    bindtextdomain($domain, getScriptPath()."/locale");
+    textdomain($domain);
+}
 
 /**
  * A central store of information about the current page we are

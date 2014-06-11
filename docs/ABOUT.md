@@ -2,9 +2,14 @@ TSUGI - An Standards-Based Learning Tool Framework
 ==================================================
 
 The overall goal of the TSUGI framework is to make it as simple
-as possible to write an LTI 1.x (and soon 2.x) tool and put it
+as possible to write 
+IMS Learning Tools Interoperability™ (LTI)™ tools supporting
+LTI 1.x (and soon 2.x) and put them
 into production.   The framework hides all the detail of the
-IMS standards behind an API.
+IMS standards behind an API. The use of this framework does 
+not automatically imply any type of IMS certification.  Tools and
+products that use this framework must still go through the formal 
+certification process through IMS (www.imsglobal.org).
 
 My overall goal is to create a learning ecosystem that spans all 
 the LMS systems including Sakai, Moodle, Blackboard, Desire2Learn,
@@ -31,5 +36,9 @@ look critically at the code.
 
 \-- Chuck
 Sun Jun  8 12:17:41 EDT 2014
+
+Learning Tools Interoperability™ (LTI™) is a  
+trademark of IMS Global Learning Consortium, Inc. 
+in the United States and/or other countries. (www.imsglobal.org)
 
 

@@ -3,14 +3,6 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
-if ( isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
-    $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
-    putenv('LC_ALL='.$locale);
-    setlocale(LC_ALL, $locale);
-    bindtextdomain("attend", "./locale");
-    textdomain("attend");
-}
-
 $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 
 // Model 
