@@ -36,7 +36,8 @@ if ( $CFG->DEVELOPER ) {
 Hello and welcome to <b><?php echo($CFG->servicename); ?></b>.
 Generally this system is used to provide cloud-hosted learning tools that are plugged
 into a Learning Management systems like Sakai, Coursera, or Blackboard using 
-IMS Learning Tools Interoperability.  You can sign in to this system 
+IMS Learning Tools Interoperability™ (LTI)™.
+You can sign in to this system 
 and create a profile and as you use tools from various courses you can 
 associate those tools and courses with your profile.
 </p>
@@ -47,6 +48,11 @@ hosted on this server in their LMS systems.  If you are an instructor and would
 like to experiment with these tools (it is early days) send a note to Dr. Chuck.
 You can look at the source code for this software at 
 <a href="https://github.com/csev/tsugi" target="_blank">https://github.com/csev/tsugi</a>.
+</p>
+<p>
+Learning Tools Interoperability™ (LTI™) is a
+trademark of IMS Global Learning Consortium, Inc.
+in the United States and/or other countries. (www.imsglobal.org)
 </p>
       </div> <!-- /container -->
 
