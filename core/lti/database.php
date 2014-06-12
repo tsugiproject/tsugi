@@ -21,11 +21,11 @@ array( "{$CFG->dbprefix}lti_key",
 
     -- This is the owner of this key - it is not a foreign key
     -- on purpose to avoid potential circular foreign keys
-    user_id             INTEGER NULL, 
+    user_id             INTEGER NULL,
 
     json                TEXT NULL,
-    created_at          DATETIME NOT NULL,
-    updated_at          DATETIME NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
     UNIQUE(key_sha256),
     PRIMARY KEY (key_id)
@@ -37,13 +37,13 @@ array( "{$CFG->dbprefix}lti_context",
     context_sha256      CHAR(64) NOT NULL,
     context_key         VARCHAR(4096) NOT NULL,
 
-    key_id              INTEGER NOT NULL, 
+    key_id              INTEGER NOT NULL,
 
     title               VARCHAR(2048) NULL,
 
     json                TEXT NULL,
-    created_at          DATETIME NOT NULL,
-    updated_at          DATETIME NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -60,13 +60,13 @@ array( "{$CFG->dbprefix}lti_link",
     link_sha256         CHAR(64) NOT NULL,
     link_key            VARCHAR(4096) NOT NULL,
 
-    context_id          INTEGER NOT NULL, 
+    context_id          INTEGER NOT NULL,
 
     title               VARCHAR(2048) NULL,
 
     json                TEXT NULL,
-    created_at          DATETIME NOT NULL,
-    updated_at          DATETIME NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -93,12 +93,12 @@ array( "{$CFG->dbprefix}lti_user",
 
     json                TEXT NULL,
     login_at            DATETIME NOT NULL,
-    created_at          DATETIME NOT NULL,
-    updated_at          DATETIME NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
-    CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1` 
-        FOREIGN KEY (`key_id`) 
-        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`) 
+    CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
+        FOREIGN KEY (`key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
     UNIQUE(key_id, user_sha256),
@@ -109,14 +109,14 @@ array( "{$CFG->dbprefix}lti_membership",
 "create table {$CFG->dbprefix}lti_membership (
     membership_id       INTEGER NOT NULL AUTO_INCREMENT,
 
-    context_id          INTEGER NOT NULL, 
-    user_id             INTEGER NOT NULL, 
+    context_id          INTEGER NOT NULL,
+    user_id             INTEGER NOT NULL,
 
     role                SMALLINT NULL,
     role_override       SMALLINT NULL,
 
-    created_at          DATETIME NOT NULL,
-    updated_at          DATETIME NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
     CONSTRAINT `{$CFG->dbprefix}lti_membership_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -138,13 +138,13 @@ array( "{$CFG->dbprefix}lti_service",
     service_sha256      CHAR(64) NOT NULL,
     service_key         VARCHAR(4096) NOT NULL,
 
-    key_id              INTEGER NOT NULL, 
+    key_id              INTEGER NOT NULL,
 
     format              VARCHAR(1024) NULL,
 
     json                TEXT NULL,
-    created_at          DATETIME NOT NULL,
-    updated_at          DATETIME NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
     CONSTRAINT `{$CFG->dbprefix}lti_service_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -158,7 +158,7 @@ array( "{$CFG->dbprefix}lti_service",
 array( "{$CFG->dbprefix}lti_result",
 "create table {$CFG->dbprefix}lti_result (
     result_id          INTEGER NOT NULL AUTO_INCREMENT,
-    link_id            INTEGER NOT NULL, 
+    link_id            INTEGER NOT NULL,
     user_id            INTEGER NOT NULL,
 
     sourcedid          VARCHAR(2048) NOT NULL,
@@ -171,8 +171,8 @@ array( "{$CFG->dbprefix}lti_result",
     server_grade       FLOAT NULL,
 
     json               TEXT NULL,
-    created_at         DATETIME NOT NULL,
-    updated_at         DATETIME NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT 0,
     retrieved_at       DATETIME NOT NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_result_ibfk_1`
@@ -190,7 +190,7 @@ array( "{$CFG->dbprefix}lti_result",
         REFERENCES `{$CFG->dbprefix}lti_service` (`service_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    -- Note service_id is not part of the key on purpose 
+    -- Note service_id is not part of the key on purpose
     -- It is data that can change and can be null in LTI 2.0
     UNIQUE(link_id, user_id, sourcedid_sha256),
     PRIMARY KEY (result_id)
@@ -213,8 +213,8 @@ array( "{$CFG->dbprefix}profile",
 
     json                TEXT NULL,
     login_at            DATETIME NOT NULL,
-    created_at          DATETIME NOT NULL,
-    updated_at          DATETIME NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
     UNIQUE(profile_id, profile_sha256),
     PRIMARY KEY (profile_id)
@@ -226,14 +226,14 @@ $DATABASE_POST_CREATE = function($pdo, $table) {
     global $CFG;
 
     if ( $table == "{$CFG->dbprefix}lti_key") {
-        $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret) values 
+        $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret) values
             ( '5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', '12345', 'secret')";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = pdoQueryDie($pdo, $sql);
 
         // Key is null for the google key - no direct launches or logins allowed
-        $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key) values 
+        $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key) values
             ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', 'google.com')";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
@@ -284,6 +284,6 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $q = pdoQueryDie($pdo, $sql);
     }
 
-    return 2014050500;
+    return 2014061200;
 }; // Don't forget the semicolon on anonymous functions :)
 
