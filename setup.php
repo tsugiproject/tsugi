@@ -156,7 +156,12 @@ bindtextdomain("master", $CFG->dirroot."/locale");
 
 // Set up the user's locale
 if ( isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
-    $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+    if ( class_exists('Locale') ) {
+        $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+    } else { // Crude fallback if it is missing
+        $pieces = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+        $locale = $pieces[0];
+    }
     putenv('LC_ALL='.$locale);
     setlocale(LC_ALL, $locale);
     $domain = getScriptFolder();

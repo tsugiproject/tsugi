@@ -37,8 +37,8 @@ look critically at the code.
 \-- Chuck
 Sun Jun  8 12:17:41 EDT 2014
 
-Learning Tools Interoperability™ (LTI™) is a  
-trademark of IMS Global Learning Consortium, Inc. 
-in the United States and/or other countries. (www.imsglobal.org)
+Learning Tools Interoperability™ (LTI™) is a
+trademark of IMS Global Learning Consortium, Inc. in 
+the United States and/or other countries. (www.imsglobal.org)
 
 
