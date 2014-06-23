@@ -66,7 +66,8 @@ hrs = raw_input("Enter Hours:")',
 
 "3.1" => Array(
 "qtext" => "<b>3.1</b> Write a program to prompt the user for hours and rate per hour using raw_input
-to compute gross pay.  Award time-and-a-half for the hourly rate for all hours 
+to compute gross pay.  Pay the hourly rate for the hours up to 40 and 
+1.5 times the hourly rate for all hours 
 worked above 40 hours.  Use 45 hours and a rate of 10.50 per hour to test the 
 program (the pay should be 498.75).  You should use <b>raw_input</b> to 
 read a string and <b>float()</b> to convert the string to a number.
@@ -86,8 +87,9 @@ h = float(hrs)',
 "!498" => "You must actually calculate the pay.")),
 
 "3.3" => Array(
-"qtext" => "<b>3.3</b> Write a program to prompt the user for a score using <b>raw_input</b>.
-Print out a letter grade based on the following table:<br/>
+"qtext" => "<b>3.3</b> Write a program to prompt for a score between 0.0 and 1.0. 
+If the score is out of range, print an error. If the score is between 0.0 and 1.0, 
+print a grade using the following table:<br/>
 Score    Grade<br/>
 >= 0.9     A<br/>
 >= 0.8     B<br/>
