@@ -39,7 +39,7 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 ?>
 <html><head><body>
-<p>Please enter the developer password:</p>
+<p>Please enter the developer password (default is 'secret'):</p>
 <form method="post">
 <input type="text" name="loginsecret" size="40">
 <input type="submit" value="Login">

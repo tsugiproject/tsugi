@@ -4,16 +4,17 @@ $EXERCISES =
 Array(
 "hello" => Array (
 "qtext" => "Write a program that uses a <b>print</b> statement to say 'hello world'
-as shown below.",
+as shown in 'Desired Output'.",
 "desired" => "hello world",
-"code" => 'prinq "hello world"',
+"code" => '# the code below almost works
+prinq "hello world"',
 "checks" => Array(
 "print" => "You must use a print statement within the loop."
 )),
 
 "loop" => Array (
-"qtext" => "Write a program that uses a <b>for</b> loop  and the built-in function 
-<b>range</b> to write out three numbers as shown below.",
+"qtext" => "Write a program that uses a <b>for</b> loop and the built-in function 
+<b>range</b> to write out three numbers as shown in 'Desired Output'.",
 "desired" => "0
 1
 2",
@@ -28,9 +29,9 @@ as shown below.",
 "2.2" => Array (
 "qtext" => "<b>2.2</b> Write a program that uses <b>raw_input</b> 
 to prompt a user for their name and then
-welcomes them.  Note that <b>raw_input</b> will pop a dialog box.
+welcomes them.  Note that <b>raw_input</b> will pop up a dialog box.
 Enter <b>Sarah</b> in the pop-up box when you are prompted so your 
-output will match the desired output below.",
+output will match the desired output.",
 "desired" => "Hello Sarah",
 "code" => '# The code below almost works
 
@@ -43,7 +44,8 @@ print "Howdy"',
 )),
 
 "2.3" => Array(
-"qtext" => "<b>2.3</b> Write a program to prompt the user for hours and rate per hour using raw_input
+"qtext" => "<b>2.3</b> Write a program to prompt the user for 
+hours and rate per hour using raw_input
 to compute gross pay.  Use 35 hours and a rate of 2.75 per hour to test the 
 program (the pay should be 96.25).  You should use <b>raw_input</b> to 
 read a string and <b>float()</b> to convert the string to a number.
@@ -57,6 +59,8 @@ hrs = raw_input("Enter Hours:")',
 "raw_input" => "You must prompt the pay and rate using the raw_input() function.",
 "print" => "You must use the print statement to print the output.",
 "float" => "You should use the built-in float() function to convert from a string to a float.",
+"!35" => "You must convert the data that you read using raw_input().",
+"!2.75" => "You must convert the data that you read using raw_input().",
 "!96.25" => "You must actually calculate the pay.")),
 
 
@@ -77,6 +81,8 @@ h = float(hrs)',
 "print" => "You must use the print statement to print the output.",
 "if" => "You should use an if statement to decide to to the overtime computation or not.",
 "float" => "You should use the built-in float() function to convert from a string to a float.",
+"!45" => "You must read the data using raw_input() and then convert it. The number '45' should not appear in your program.",
+"!10.50" => "You must read the data using raw_input() and then convert it.",
 "!498" => "You must actually calculate the pay.")),
 
 "3.3" => Array(
@@ -137,7 +143,7 @@ print "Pay",p',
 until the user enters 'done'.  Once 'done' is entered, print out the largest and smallest
 of the numbers.  If the user enters anything other than a valid number catch it
 with a try/except and put out an appropriate message and ignore the number.  
-Enter the numbers from the book for problem 5.1 and Match the sample output below.
+Enter the numbers from the book for problem 5.1 and Match the desired output as shown.
 ",
 "desired" => "Invalid input
 Maximum is 7
@@ -243,7 +249,7 @@ and reads through the file, looking for lines of the form:
 X-DSPAM-Confidence:    0.8475
 </pre>
 Count these lines and extract the floating point values from each 
-of the lines and coput the average of those values and produce an output
+of the lines and compute the average of those values and produce an output
 as shown below.
 <p>
 You can download the sample data at 
@@ -390,9 +396,10 @@ print "There were", count, "lines in the file with From as the first word"
 
 "9.4" => Array(
 "qtext" => "<b>9.4</b> Write a program to read through the <b>mbox-short.txt</b> and figure
-out who has the most commits.  The program looks for 'From ' lines and takes the second
+out who has the sent  the greatest number of mail messages.  The program looks 
+for 'From ' lines and takes the second
 word of those lines as the person who sent the mail.  The program creates a Python 
-dictionary that maps the senders mail address to a count of the number of times
+dictionary that maps the sender's mail address to a count of the number of times
 they appear in the file.  After the dictionary is produced, the program reads through
 the dictionary using a maximum loop to find the most prolific committer.",
 "desired" => "cwen@iupui.edu 5",

@@ -423,7 +423,7 @@ if ( isset($LINK->title) ) {
         <p>Your goal in this auto grader is to write or paste in a program that implements the specifications
         of the assignment.  You run the program by pressing "Check Code".  
         The output of your program is displayed in the "Your Output" section of the screen.  
-        If your output does match the "Desired Output", you will not get a score.  
+        If your output does not match the "Desired Output", you will not get a score.  
         </p><p>
         Even if "Your Output" matches "Desired Output" exactly, 
         the autograder still does a few checks of your source code to make sure that you 
