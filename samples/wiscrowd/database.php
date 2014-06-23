@@ -1,6 +1,6 @@
 <?php
 /* 
-This is a sample databse.php file.  When this file is present, 
+This is a sample database.php file.  When this file is present, 
 it is called from the admin/upgrade.php script to create and maintain
 the database tables across tsugi.  This script defines two variables.
 

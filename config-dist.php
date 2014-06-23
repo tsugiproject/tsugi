@@ -87,7 +87,7 @@ $CFG->maildomain = false;  // Don't send mail
 $CFG->mailsecret = '1234pleasechangeme';
 $CFG->maileol = "\n";  // Depends on your mailer - may need to be \r\n
 
-// This is ued to make sure that out constructed session ids
+// This is used to make sure that our constructed session ids
 // based on resource_link_id, oauth_consumer_key, etc are not
 // predictable or guessable.   Just make this a long random string.
 // See ltiGetCompositeKey() for detail on how this operates.
