@@ -257,6 +257,7 @@ function load_files() {
         }
         if ( !err && deslines.length > newlines.length ) {
             newoutput += '<span style="color:red"> &larr; Missing output</span>';
+            err = true;
         }
         window.GLOBAL_ERROR = err;
         console.log(err);
