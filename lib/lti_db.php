@@ -146,7 +146,7 @@ function ltiSetupSession($pdo=false) {
     $breadcrumb .= ',';
     $breadcrumb .= $session_id;
     $breadcrumb .= ',';
-    $breadcrumb .= $url;
+    $breadcrumb .= curPageURL();
     $breadcrumb .= ',';
     $breadcrumb .= isset($_SESSION['email']) ? $_SESSION['email'] : '';
     error_log($breadcrumb);
