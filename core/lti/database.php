@@ -10,6 +10,9 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_key",
 "drop table if exists {$CFG->dbprefix}profile");
 
+// Note that the VARCHAR(4096) xxx_key fields are UNIQUE but not 
+// marked as UNIQUE because of MySQL key index length limitations.
+
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}lti_key",
 "create table {$CFG->dbprefix}lti_key (
@@ -39,7 +42,7 @@ array( "{$CFG->dbprefix}lti_context",
 
     key_id              INTEGER NOT NULL,
 
-    title               VARCHAR(2048) NULL,
+    title               VARCHAR(4096) NULL,
 
     json                TEXT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -62,7 +65,7 @@ array( "{$CFG->dbprefix}lti_link",
 
     context_id          INTEGER NOT NULL,
 
-    title               VARCHAR(2048) NULL,
+    title               VARCHAR(4096) NULL,
 
     json                TEXT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -86,8 +89,8 @@ array( "{$CFG->dbprefix}lti_user",
     key_id              INTEGER NOT NULL,
     profile_id          INTEGER NOT NULL,
 
-    displayname         VARCHAR(2048) NULL,
-    email               VARCHAR(2048) NULL,
+    displayname         VARCHAR(4096) NULL,
+    email               VARCHAR(4096) NULL,
     locale              CHAR(63) NULL,
     subscribe           SMALLINT NULL,
 
@@ -161,13 +164,13 @@ array( "{$CFG->dbprefix}lti_result",
     link_id            INTEGER NOT NULL,
     user_id            INTEGER NOT NULL,
 
-    sourcedid          VARCHAR(2048) NOT NULL,
+    sourcedid          VARCHAR(4096) NOT NULL,
     sourcedid_sha256   CHAR(64) NOT NULL,
 
     service_id         INTEGER NULL,
 
     grade              FLOAT NULL,
-    note               VARCHAR(2048) NULL,
+    note               VARCHAR(4096) NULL,
     server_grade       FLOAT NULL,
 
     json               TEXT NULL,
@@ -206,8 +209,8 @@ array( "{$CFG->dbprefix}profile",
 
     key_id              INTEGER NOT NULL,
 
-    displayname         VARCHAR(2048) NULL,
-    email               VARCHAR(2048) NULL,
+    displayname         VARCHAR(4096) NULL,
+    email               VARCHAR(4096) NULL,
     locale              CHAR(63) NULL,
     subscribe           SMALLINT NULL,
 

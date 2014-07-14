@@ -1,6 +1,7 @@
 <?php
 
 require_once "lti_util.php";
+require_once "lti_db.php";
 
 function dumpTable($stmt, $view=false) {
     if ( $view !== false ) {
@@ -156,6 +157,9 @@ function checkCSRF() {
 // parameter.  No need to create any fresh sessions here.
 function ltiRequireData($needed) {
     global $CFG, $USER, $CONTEXT, $LINK;
+
+    // Check if we are processing an LTI launch.  If so, handle it
+    ltiLaunchCheck();
 
     // Check to see if the session already exists.
     $sess = session_name();

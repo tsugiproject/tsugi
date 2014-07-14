@@ -8,11 +8,13 @@ require_once 'OAuth.php';
 // Returns true if this is a Basic LTI message
 // with minimum values to meet the protocol
 function ltiIsRequest() {
-   $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request" ||
+    if ( !isset($_REQUEST["lti_message_type"]) ) return false;
+    if ( !isset($_REQUEST["lti_version"]) ) return false;
+    $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request" ||
         $_REQUEST["lti_message_type"] == "ToolProxyReregistrationRequest";
-   $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0" || $_REQUEST["lti_version"] == "LTI-2p0";
-   if ($good_message_type and $good_lti_version ) return(true);
-   return false;
+    $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0" || $_REQUEST["lti_version"] == "LTI-2p0";
+    if ($good_message_type and $good_lti_version ) return(true);
+    return false;
 }
 
 $ltiUtilTogglePre_div_id = 1;
