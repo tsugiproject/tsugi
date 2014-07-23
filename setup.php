@@ -152,7 +152,9 @@ function _m($message, $textdomain=false) {
     return __($message, "master");
 }
 
-bindtextdomain("master", $CFG->dirroot."/locale");
+if (function_exists('bindtextdomain')) {
+    bindtextdomain("master", $CFG->dirroot."/locale");
+}
 
 // Set up the user's locale
 if ( isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
