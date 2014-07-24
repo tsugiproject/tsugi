@@ -135,8 +135,9 @@ if (!function_exists('apache_request_headers')) {
     }
 }
 
-// Convience method, pattern borrowed from WP
+// Convience method, pattern borrowed from WordPress
 function __($message, $textdomain=false) {
+    if ( ! function_exists('gettext')) return $message;
     if ( $textdomain === false ) {
         return gettext($message);
     } else {
