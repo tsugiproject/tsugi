@@ -150,7 +150,9 @@ function gradeGetWebService($sourcedid, $service) {
 
     $status = "Failure to retrieve grade";
     if ( strpos($response, '<?xml') !== 0 ) {
-        error_log("Fatal XML Grade Read: ".session_id().' '.$response);
+        error_log("Fatal XML Grade Read: ".session_id()." sourcedid=".$sourcedid);
+        error_log("Detail: service=".$service." key_key=".$lti['key_key']);
+        error_log("Response: ".$response);
         return "Unable to read XML from web service.";
     }
 
@@ -314,7 +316,9 @@ function gradeSendWebService($grade, $sourcedid, $service, &$debug_log=false) {
     $LastPOXGradeResponse = $response;
     $status = "Failure to store grade";
     if ( strpos($response, '<?xml') !== 0 ) {
-        error_log("Fatal XML Grade Update: ".session_id().' '.$response);
+        error_log("Fatal XML Grade Update: ".session_id()." sourcedid=".$sourcedid);
+        error_log("Detail: service=".$service." key_key=".$lti['key_key']);
+        error_log("Response: ".$response);
         return $status;
     }
     try {
