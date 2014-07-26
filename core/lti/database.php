@@ -27,6 +27,7 @@ array( "{$CFG->dbprefix}lti_key",
     user_id             INTEGER NULL,
 
     json                TEXT NULL,
+    settings            VARCHAR(8192) NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -45,6 +46,7 @@ array( "{$CFG->dbprefix}lti_context",
     title               VARCHAR(4096) NULL,
 
     json                TEXT NULL,
+    settings            VARCHAR(8192) NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -68,6 +70,7 @@ array( "{$CFG->dbprefix}lti_link",
     title               VARCHAR(4096) NULL,
 
     json                TEXT NULL,
+    settings            VARCHAR(8192) NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -287,6 +290,22 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $q = pdoQueryDie($pdo, $sql);
     }
 
-    return 2014061200;
+    // Version 2014072600 improvements
+    if ( $oldversion < 2014072600 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD settings VARCHAR(8192) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD settings VARCHAR(8192) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD settings VARCHAR(8192) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = pdoQueryDie($pdo, $sql);
+    }
+
+    return 2014072600;
 }; // Don't forget the semicolon on anonymous functions :)
 

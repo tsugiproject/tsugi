@@ -1,7 +1,6 @@
 <?php 
 
 require_once 'lti_util.php';
-require_once $CFG->dirroot.'/pdo.php';
 
 // Silently check if this is a launch and if so, handle it
 function ltiLaunchCheck() {
