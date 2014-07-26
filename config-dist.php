@@ -19,7 +19,7 @@ $CFG->servicename = 'TSUGI (dev)';
 // Information on the owner of this system
 $CFG->ownername = false; // 'Charles Severance';
 $CFG->owneremail = false; // 'request@tsugi.org';
-$CFG->providekeys = false;
+$CFG->providekeys = false; // Wether or not we accept key requests on this system
 
 // This is the URL where the software is hosted
 // Do not add a trailing slash to this string

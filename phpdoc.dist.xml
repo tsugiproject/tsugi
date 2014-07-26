@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdoc>
+  <parser>
+    <target>phpdoc_tmp</target>
+  </parser>
+  <transformer>
+    <target>phpdoc</target>
+  </transformer>
+  <files>
+    <directory>lib</directory>
+    <directory>core</directory>
+    <ignore>lib/goutte/*</ignore>
+  </files>
+    <transformations>
+        <template name="clean"/>
+    </transformations>
+</phpdoc>

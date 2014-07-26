@@ -14,3 +14,6 @@ upgrading.php
 error_log
 php-solutions
 *.swp
+phpDocumentor.phar
+phpdoc_tmp
+phpdoc

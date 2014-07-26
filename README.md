@@ -13,6 +13,7 @@ Here are several other pages describing this project:
 
 * [About The Project](docs/ABOUT.md)
 * [Coding Standards](docs/CODING.md)
+* [Using PHPDOC](docs/PHPDOC.md)
 * [Internationalizing and Locaizing](docs/I18N.md)
 
 I have recorded a simple video describing the install/config steps
