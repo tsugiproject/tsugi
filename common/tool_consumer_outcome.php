@@ -1,10 +1,7 @@
 <?php
-// error_log("Sleeping...");sleep(20);error_log("Sleep done");
-if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
- error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
-} else { 
- error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
-}
+require_once("../lib/lti_util.php");
+
+use Tsugi\OAuth\OAuthUtil;
 
 $old_error_handler = set_error_handler("myErrorHandler");
 
@@ -26,8 +23,6 @@ if ( !isset ( $_REQUEST['b64'] ) ) {
 $b64 = $_REQUEST['b64'];
 session_id(md5($b64 . __FILE__));
 session_start();
-
-require_once("../lib/lti_util.php");
 
 // For my application, We only allow application/xml
 $request_headers = OAuthUtil::get_headers();
