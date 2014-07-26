@@ -2,9 +2,9 @@
 
 namespace Tsugi;
 use Tsugi\Net;
-    
+
 class Net {
-    function DoGet($url, $header = false) {
+    public static function DoGet($url, $header = false) {
         global $LastGETURL;
         global $LastGETMethod;
         global $LastHeadersSent;
@@ -34,7 +34,7 @@ class Net {
             'method' => 'GET',
             'header' => $header
             ));
-    
+
         $ctx = stream_context_create($params);
         try {
             $response = file_get_contents($url, false, $ctx);
@@ -43,16 +43,16 @@ class Net {
         }
         return $response;
     }
-    
+
     public static function GetCurl($url, $header) {
       if ( ! function_exists('curl_init') ) return false;
       global $last_http_response;
       global $LastHeadersSent;
       global $LastHeadersReceived;
-    
+
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, $url);
-    
+
       // Make sure that the header is an array and pitch white space
       $LastHeadersSent = trim($header);
       $header = explode("\n", trim($header));
@@ -61,10 +61,10 @@ class Net {
         $htrim[] = trim($h);
       }
       curl_setopt ($ch, CURLOPT_HTTPHEADER, $htrim);
-    
+
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // ask for results to be returned
       curl_setopt($ch, CURLOPT_HEADER, 1);
-    
+
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
       $info = curl_getinfo($ch);
@@ -76,57 +76,57 @@ class Net {
       curl_close($ch);
       return $body;
     }
-    
+
     public static function GetBodySentDebug() {
         global $LastBODYURL;
         global $LastBODYMethod;
         global $LastBODYImpl;
         global $LastHeadersSent;
-    
+
         $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" . 
     	     $LastBODYURL . "\n\n" .
     		 $LastHeadersSent . "\n";
     	return $ret;
     }
-    
+
     public static function GetBodyReceivedDebug() {
         global $LastBODYURL;
         global $LastBODYMethod;
         global $LastBODYImpl;
         global $LastHeadersReceived;
         global $last_http_response;
-    
+
         $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" . 
     		 "HTTP Response Code: " . $last_http_response . "\n" .
     	     $LastBODYURL . "\n" .
     		 $LastHeadersReceived . "\n";
     	return $ret;
     }
-    
+
     public static function GetGetSentDebug() {
         global $LastGETMethod;
         global $LastGETURL;
         global $LastHeadersSent;
-    
+
         $ret = "GET Used: " . $LastGETMethod . "\n" . 
     	     $LastGETURL . "\n\n" .
     		 $LastHeadersSent . "\n";
     	return $ret;
     }
-    
+
     public static function GetGetReceivedDebug() {
         global $LastGETURL;
         global $last_http_response;
         global $LastGETMethod;
         global $LastHeadersReceived;
-    
+
         $ret = "GET Used: " . $LastGETMethod . "\n" .
     		 "HTTP Response: " . $last_http_response . "\n" .
     	     $LastGETURL . "\n" .
     		 $LastHeadersReceived . "\n";
     	return $ret;
     }
-    
+
     // Sadly this tries several approaches depending on 
     // the PHP version and configuration.  You can use only one
     // if you know what version of PHP is working and how it will be 
@@ -139,7 +139,7 @@ class Net {
         global $last_http_response;
         global $LastHeadersReceived;
         global $LastBODYResponse;
-    
+
     	$LastBODYURL = $url;
         $LastBODYMethod = $method;
         $LastBODYImpl = false;
@@ -147,7 +147,7 @@ class Net {
         $last_http_response = false;
         $LastHeadersReceived = false;
         $LastBODYResponse = false;
-    
+
         // Prefer curl because it checks if it works before trying
         $LastBODYResponse = NET::BodyCurl($url, $method, $body, $header);
         $LastBODYImpl = "CURL";
@@ -164,32 +164,32 @@ class Net {
         error_log("Body: $body");
         throw new Exception("Unable to POST $url");
     }
-    
+
     // From: http://php.net/manual/en/function.file-get-contents.php
     public static function BodySocket($endpoint, $method, $data, $moreheaders=false) {
       if ( ! function_exists('fsockopen') ) return false;
       if ( ! function_exists('stream_get_transports') ) return false;
         $url = parse_url($endpoint);
-    
+
         if (!isset($url['port'])) {
           if ($url['scheme'] == 'http') { $url['port']=80; }
           elseif ($url['scheme'] == 'https') { $url['port']=443; }
         }
-    
+
         $url['query']=isset($url['query'])?$url['query']:'';
-    
+
         $hostport = ':'.$url['port'];
         if ($url['scheme'] == 'http' && $hostport == ':80' ) $hostport = '';
         if ($url['scheme'] == 'https' && $hostport == ':443' ) $hostport = '';
-    
+
         $url['protocol']=$url['scheme'].'://';
         $eol="\r\n";
-    
+
         $uri = "/";
         if ( isset($url['path'])) $uri = $url['path'];
         if ( strlen($url['query']) > 0 ) $uri .= '?'.$url['query'];
         if ( strlen($url['fragment']) > 0 ) $uri .= '#'.$url['fragment'];
-    
+
         $headers =  $method." ".$uri." HTTP/1.0".$eol.
                     "Host: ".$url['host'].$hostport.$eol.
                     "Referer: ".$url['protocol'].$url['host'].$url['path'].$eol.
@@ -221,14 +221,14 @@ class Net {
         }
         return false;
     }
-    
+
     public static function BodyStream($url, $method, $body, $header) {
         $params = array('http' => array(
             'method' => $method,
             'content' => $body,
             'header' => $header
             ));
-    
+
         $ctx = stream_context_create($params);
         try {
             $fp = @fopen($url, 'r', false, $ctx);
@@ -238,16 +238,16 @@ class Net {
         }
         return $response;
     }
-    
+
     public static function BodyCurl($url, $method, $body, $header) {
       if ( ! function_exists('curl_init') ) return false;
       global $last_http_response;
       global $LastHeadersSent;
       global $LastHeadersReceived;
-    
+
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, $url);
-    
+
       // Make sure that the header is an array and pitch white space
       $LastHeadersSent = trim($header);
       $header = explode("\n", trim($header));
@@ -256,15 +256,15 @@ class Net {
         $htrim[] = trim($h);
       }
       curl_setopt ($ch, CURLOPT_HTTPHEADER, $htrim);
-    
+
       if ( $method == "POST" ) {
         curl_setopt($ch, CURLOPT_POST, 1);
       } else { 
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
       }
-    
+
       curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-    
+
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // ask for results to be returned
       curl_setopt($ch, CURLOPT_HEADER, 1);
     /*
@@ -273,7 +273,7 @@ class Net {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
       }
     */
-    
+
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
       $info = curl_getinfo($ch);
