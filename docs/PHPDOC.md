@@ -9,15 +9,15 @@ directory of tsugi.
 
 Run phpdoc as follows
 
-    rm -r phpdoc phpdoc_tmp
+    rm -r phpdoc tmp_phpdoc
     phpdoc -c phpdoc.dist.xml
-    rm -r phpdoc_tmp
+    rm -r tmp_phpdoc
 
 or
 
-    rm -r phpdoc phpdoc_tmp
+    rm -r phpdoc tmp_phpdoc
     php phpDocumentor.phar -c phpdoc.dist.xml
-    rm -r phpdoc_tmp
+    rm -r tmp_phpdoc
 
 And your documentation will be in *phpdoc*
 
