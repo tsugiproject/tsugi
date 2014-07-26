@@ -3,7 +3,8 @@ TSUGI - A Framework for Building PHP-Based Learning Tools
 
 This project is in early days.  Its goal is to build a scalable
 multi-tenant "tool" hosting environment based on the emerging IMS
-standards.
+standards.  A project in Java with a very similar approach is called 
+the [LTI Starter Kit](https://github.com/azeckoski/lti_starter).
 
 If you want to see this code actually working, you can play online:
 
