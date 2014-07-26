@@ -16,7 +16,3 @@ php-solutions
 *.swp
 phpDocumentor.phar
 phpdoc_tmp
-phpdoc
-phpdoctor
-phpdoctor.ini
-apidocs
