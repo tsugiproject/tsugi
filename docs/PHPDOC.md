@@ -7,6 +7,12 @@ directory of tsugi.
 
     curl -O http://www.phpdoc.org/phpDocumentor.phar 
 
+On ubuntu you should install:
+
+    apt-get install php5-cli
+    apt-get install graphviz
+
+
 Run phpdoc as follows
 
     rm -r phpdoc tmp_phpdoc
@@ -20,4 +26,5 @@ or
     rm -r tmp_phpdoc
 
 And your documentation will be in *phpdoc*
+
 

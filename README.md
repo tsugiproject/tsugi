@@ -12,9 +12,10 @@ If you want to see this code actually working, you can play online:
 Here are several other pages describing this project:
 
 * [About The Project](docs/ABOUT.md)
+* [TSUGI API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
 * [Coding Standards](docs/CODING.md)
-* [Using PHPDOC](docs/PHPDOC.md)
-* [Internationalizing and Locaizing](docs/I18N.md)
+* [Internationalizing and Localizing](docs/I18N.md)
+* [Generating API Docuemntation](docs/PHPDOC.md)
 
 I have recorded a simple video describing the install/config steps
 for this software on 
