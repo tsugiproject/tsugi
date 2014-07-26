@@ -5,6 +5,13 @@ if ( function_exists ( 'libxml_disable_entity_loader' ) ) libxml_disable_entity_
 
 require_once 'OAuth.php';
 
+use \Tsugi\OAuth\TrivialOAuthDataStore;
+use \Tsugi\OAuth\OAuthServer;
+use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;
+use \Tsugi\OAuth\OAuthRequest;
+use \Tsugi\OAuth\OAuthConsumer;;
+use \Tsugi\OAuth\OAuthUtil;
+
 // Returns true if this is a Basic LTI message
 // with minimum values to meet the protocol
 function ltiIsRequest() {
@@ -44,50 +51,6 @@ function dataToggle(divName) {
   //]]> 
 </script>
 ';
-}
-
-/**
- * A Trivial memory-based store - no support for tokens
- */
-class TrivialOAuthDataStore extends OAuthDataStore {
-    private $consumers = array();
-
-    function add_consumer($consumer_key, $consumer_secret) {
-        $this->consumers[$consumer_key] = $consumer_secret;
-    }
-
-    function lookup_consumer($consumer_key) {
-        if ( strpos($consumer_key, "http://" ) === 0 ) {
-            $consumer = new OAuthConsumer($consumer_key,"secret", NULL);
-            return $consumer;
-        }
-        if ( isset($this->consumers[$consumer_key]) ) {
-            $consumer = new OAuthConsumer($consumer_key,$this->consumers[$consumer_key], NULL);
-            return $consumer;
-        }
-        return NULL;
-    }
-
-    function lookup_token($consumer, $token_type, $token) {
-        return new OAuthToken($consumer, "");
-    }
-
-    // Return NULL if the nonce has not been used
-    // Return $nonce if the nonce was previously used
-    function lookup_nonce($consumer, $token, $nonce, $timestamp) {
-        // Should add some clever logic to keep nonces from
-        // being reused - for no we are really trusting
-  // that the timestamp will save us
-        return NULL;
-    }
-
-    function new_request_token($consumer) {
-        return NULL;
-    }
-
-    function new_access_token($token, $consumer) {
-        return NULL;
-    }
 }
 
 function signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oauth_consumer_secret,
@@ -323,7 +286,7 @@ function handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret)
     }
 
     // Verify the message signature
-    $store = new TrivialOAuthDataStore();
+    $store = newTrivialOAuthDataStore();
     $store->add_consumer($oauth_consumer_key, $oauth_consumer_secret);
 
     $server = new OAuthServer($store);

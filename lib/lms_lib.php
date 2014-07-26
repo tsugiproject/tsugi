@@ -778,13 +778,13 @@ function createSecureCookie($id,$guid,$debug=false) {
     global $CFG;
     $pt = $CFG->cookiepad.'::'.$id.'::'.$guid;
     if ( $debug ) echo("PT1: $pt\n");
-    $ct = AesCtr::encrypt($pt, $CFG->cookiesecret, 256) ;
+    $ct = Tsugi\Crypt\AesCtr::encrypt($pt, $CFG->cookiesecret, 256) ;
     return $ct;
 }
 
 function extractSecureCookie($encr,$debug=false) {
     global $CFG;
-    $pt = AesCtr::decrypt($encr, $CFG->cookiesecret, 256) ;
+    $pt = Tsugi\Crypt\AesCtr::decrypt($encr, $CFG->cookiesecret, 256) ;
     if ( $debug ) echo("PT2: $pt\n");
     $pieces = explode('::',$pt);
     if ( count($pieces) != 3 ) return false;

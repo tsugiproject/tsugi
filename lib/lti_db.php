@@ -2,6 +2,11 @@
 
 require_once 'lti_util.php';
 
+use \Tsugi\OAuth\TrivialOAuthDataStore;
+use \Tsugi\OAuth\OAuthServer;
+use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;
+use \Tsugi\OAuth\OAuthRequest;
+
 // Silently check if this is a launch and if so, handle it
 function ltiLaunchCheck() {
     global $CFG, $PDO;
@@ -81,7 +86,7 @@ function ltiSetupSession($pdo=false) {
         die_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0]);
     }
 
-    $actions = ltiAdjustAata($pdo, $CFG->dbprefix, $row, $post);
+    $actions = ltiAdjustData($pdo, $CFG->dbprefix, $row, $post);
 
     // If there is an appropriate role override variable, we use that role
     if ( isset($row['role_override']) && isset($row['role']) && 
@@ -209,10 +214,10 @@ function ltiGetCompositeKey($post, $session_secret) {
 }
 
 // Returns as much as we have in all the tables
-// Assume..  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+// Assume..  $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 function ltiLoadAllData($pdo, $p, $profile_table, $post) {
-    $errormode = $pdo->getAttribute(PDO::ATTR_ERRMODE);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $errormode = $pdo->getAttribute(\PDO::ATTR_ERRMODE);
+    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     $sql = "SELECT k.key_id, k.key_key, k.secret, c.context_id, c.title AS context_title, 
         l.link_id, l.title AS link_title, 
         u.user_id, u.displayname AS user_displayname, u.email AS user_email,
@@ -270,15 +275,15 @@ function ltiLoadAllData($pdo, $p, $profile_table, $post) {
     $row = pdoRowDie($pdo, $sql, $parms);
 
     // Restore ERRMODE
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, $errormode);
+    $pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
     return $row;
 }
 
 // Insert the missing bits and update the new bits...
 // TODO: Contemplate the deep mystery of transactions here
-function ltiAdjustAata($pdo, $p, &$row, $post) {
-    $errormode = $pdo->getAttribute(PDO::ATTR_ERRMODE);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+function ltiAdjustData($pdo, $p, &$row, $post) {
+    $errormode = $pdo->getAttribute(\PDO::ATTR_ERRMODE);
+    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
     $actions = array();
     if ( $row['context_id'] === null) {
@@ -456,14 +461,14 @@ function ltiAdjustAata($pdo, $p, &$row, $post) {
     }
 
     // Restore ERRMODE
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, $errormode);
+    $pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
     return $actions;
 }
 
 // Verify the message signature
 function lti_verify_key_and_secret($key, $secret) {
     if ( ! ($key && $secret) ) return array("Missing key or secret", "");
-    $store = new DbTrivialOAuthDataStore();
+    $store = new TrivialOAuthDataStore();
     $store->add_consumer($key, $secret);
 
     $server = new OAuthServer($store);
@@ -482,46 +487,3 @@ function lti_verify_key_and_secret($key, $secret) {
     }
 }
 
-/**
- * A Trivial memory-based store - no support for tokens
- */
-class DbTrivialOAuthDataStore extends OAuthDataStore {
-    private $consumers = array();
-
-    function add_consumer($consumer_key, $consumer_secret) {
-        $this->consumers[$consumer_key] = $consumer_secret;
-    }
-
-    function lookup_consumer($consumer_key) {
-        if ( strpos($consumer_key, "http://" ) === 0 ) {
-            $consumer = new OAuthConsumer($consumer_key,"secret", NULL);
-            return $consumer;
-        }
-        if ( $this->consumers[$consumer_key] ) {
-            $consumer = new OAuthConsumer($consumer_key,$this->consumers[$consumer_key], NULL);
-            return $consumer;
-        }
-        return NULL;
-    }
-
-    function lookup_token($consumer, $token_type, $token) {
-        return new OAuthToken($consumer, "");
-    }
-
-    // Return NULL if the nonce has not been used
-    // Return $nonce if the nonce was previously used
-    function lookup_nonce($consumer, $token, $nonce, $timestamp) {
-        // Should add some clever logic to keep nonces from
-        // being reused - for no we are really trusting
-        // that the timestamp will save us
-        return NULL;
-    }
-
-    function new_request_token($consumer) {
-        return NULL;
-    }
-
-    function new_access_token($token, $consumer) {
-        return NULL;
-    }
-}

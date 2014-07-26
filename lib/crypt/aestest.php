@@ -1,5 +1,7 @@
 <?php 
 
+namespace Tsugi\Crypt;
+
 // From: http://www.movable-type.co.uk/scripts/aes-php.html
 
   require 'aes.class.php';     // AES PHP implementation

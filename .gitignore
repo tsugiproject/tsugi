@@ -17,3 +17,6 @@ php-solutions
 phpDocumentor.phar
 phpdoc_tmp
 phpdoc
+phpdoctor
+phpdoctor.ini
+apidocs

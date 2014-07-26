@@ -6,6 +6,8 @@
 /*    copyright notice is retainded. No warranty of any form is offered.                          */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
   
+namespace Tsugi\Crypt;
+
 class Aes {
   
   /**

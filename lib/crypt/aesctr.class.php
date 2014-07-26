@@ -5,6 +5,8 @@
 /*    Right of free use is granted for all commercial or non-commercial use providing this        */
 /*    copyright notice is retainded. No warranty of any form is offered.                          */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+
+namespace Tsugi\Crypt;
   
 class AesCtr extends Aes {
   

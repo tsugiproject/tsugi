@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--  How to run this
+    rm -r phpdoc_tmp phpdoc
+    php phpDocumentor.phar -c phpdoc.dist.xml
+    rm -r phpdoc_tmp 
+-->
 <phpdoc>
   <parser>
     <target>phpdoc_tmp</target>
@@ -10,8 +15,11 @@
     <directory>lib</directory>
     <directory>core</directory>
     <ignore>lib/goutte/*</ignore>
+    <ignore>lib/webauto.php</ignore>
+    <ignore>lib/recaptchalib.php</ignore>
   </files>
     <transformations>
         <template name="clean"/>
+        <!-- <template name="responsive-twig"/> -->
     </transformations>
 </phpdoc>
