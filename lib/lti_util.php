@@ -104,6 +104,11 @@ function getPOXResponse()
     return \Tsugi\LTI::getPOXResponse();
 }
 
+function getPOXRequest() 
+{
+    return \Tsugi\LTI::getPOXRequest();
+}
+
 function replaceResultRequest($grade, $sourcedid, $endpoint, $oauth_consumer_key, $oauth_consumer_secret) 
 {
     return \Tsugi\LTI::replaceResultRequest($grade, $sourcedid, $endpoint, $oauth_consumer_key, $oauth_consumer_secret);
