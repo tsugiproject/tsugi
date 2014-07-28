@@ -151,133 +151,6 @@ function checkCSRF() {
     return false;
 }
 
-// Make sure we have the values we need in the LTI session
-// This routine will not start a session if none exists.  It will
-// die is there if no session_name() (PHPSESSID) cookie or 
-// parameter.  No need to create any fresh sessions here.
-function ltiRequireData($needed) {
-    global $CFG, $USER, $CONTEXT, $LINK;
-
-    // Check if we are processing an LTI launch.  If so, handle it
-    ltiLaunchCheck();
-
-    // Check to see if the session already exists.
-    $sess = session_name();
-    if ( ini_get('session.use_cookies') != '0' ) {
-        if ( ! isset($_COOKIE[$sess]) ) {
-            send403();
-            die_with_error_log("Missing session cookie - please re-launch");
-        }
-    } else { // non-cookie session
-        if ( isset($_POST[$sess]) || isset($_GET[$sess]) ) {
-            // We tried to set a session..
-        } else {
-            if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-                send403();
-                die_with_error_log('Missing '.$sess.' from POST data');
-            } else {
-                send403();
-                die_with_error_log('Missing '.$sess.'= on URL (Missing call to sessionize?)');
-            }
-        }
-    }
-
-    // Start a session if it has not been started..
-    if ( session_id() == "" ) {
-        session_start();  // Should reassociate
-    }
-
-    // This happens from time to time when someone closes and reopens a laptop
-    // Or their computer goes to sleep and wakes back up hours later.
-    // So it is just a warning - nothing much we can do except tell them.
-    if ( !isset($_SESSION['lti']) ) {
-        // $debug = safe_var_dump($_SESSION);
-        // error_log($debug);
-        send403(); error_log('Session expired - please re-launch '.session_id()); 
-        die('Session expired - please re-launch'); // with error_log
-    }
-
-    // Check the referrer...
-    $trusted = checkReferer() || checkCSRF();
-
-    // Check to see if we switched browsers or IP addresses
-    // TODO: Change these to warnings once we get more data
-    if ( (!$trusted) && isset($_SESSION['HTTP_USER_AGENT']) ) {
-        if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
-            $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
-            send403();
-            die_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
-                $_SESSION['HTTP_USER_AGENT'].' ::: '.
-                isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Empty user agent',
-            'DIE:');
-        }
-    }
-
-    // We only check the first three octets as some systems wander throught the addresses on
-    // class C - Perhaps it is even NAT - who knows - but we forgive those on the same Class C
-    if ( (!$trusted) &&  isset($_SESSION['REMOTE_ADDR']) && isset($_SERVER['REMOTE_ADDR']) ) {
-        $sess_pieces = explode('.',$_SESSION['REMOTE_ADDR']);
-        $serv_pieces = explode('.',$_SERVER['REMOTE_ADDR']);
-        if ( count($sess_pieces) == 4 && count($serv_pieces) == 4 ) {
-            if ( $sess_pieces[0] != $serv_pieces[0] || $sess_pieces[1] != $serv_pieces[1] ||
-                $sess_pieces[2] != $serv_pieces[2] ) {
-                send403();
-                die_with_error_log('Session address has expired', " ".session_id()." REMOTE_ADDR ".
-                    $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR'], 'DIE:');
-            }
-        }
-    }
-
-    $LTI = $_SESSION['lti'];
-    if ( is_string($needed) && ! isset($LTI[$needed]) ) {
-        die_with_error_log("This tool requires an LTI launch parameter:".$needed);
-    }
-    if ( is_array($needed) ) {
-        foreach ( $needed as $feature ) {
-            if ( isset($LTI[$feature]) ) continue;
-            die_with_error_log("This tool requires an LTI launch parameter:".$feature);
-        }
-    }
-
-    // Check to see if the session needs to be extended due to this request
-    checkHeartBeat();
-
-    // Restart the number of continuous heartbeats
-    $_SESSION['HEARTBEAT_COUNT'] = 0;
-
-    // Populate the $USER $CONTEXT and $LINK objects
-    if ( ! is_object($USER) ) {
-        $USER = new stdClass();
-        if (isset($LTI['user_id']) ) $USER->id = $LTI['user_id'];
-        if (isset($LTI['user_sha256']) ) $USER->sha256 = $LTI['user_sha256'];
-        if (isset($LTI['user_email']) ) $USER->email = $LTI['user_email'];
-        if (isset($LTI['user_displayname']) ) {
-            $USER->displayname = $LTI['user_displayname'];
-            $pieces = explode(' ',$USER->displayname);
-            if ( count($pieces) > 0 ) $USER->firstname = $pieces[0];
-            if ( count($pieces) > 1 ) $USER->lastname = $pieces[count($pieces)-1];
-        }
-        $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
-    }
-
-    if ( ! is_object($CONTEXT) ) {
-        $CONTEXT = new stdClass();
-        if (isset($LTI['context_id']) ) $CONTEXT->id = $LTI['context_id'];
-        if (isset($LTI['context_sha256']) ) $CONTEXT->sha256 = $LTI['context_sha256'];
-        if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
-    }
-
-    if ( ! is_object($LINK) ) {
-        $LINK = new stdClass();
-        if (isset($LTI['link_id']) ) $LINK->id = $LTI['link_id'];
-        if (isset($LTI['link_sha256']) ) $LINK->sha256 = $LTI['link_sha256'];
-        if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
-    }
-
-    // Return the LTI structure
-    return $LTI;
-}
-
 // TODO: deal with headers sent...
 function requireLogin() {
     global $CFG;
@@ -612,14 +485,6 @@ function findFiles($filename="index.php", $reldir=false) {
         }
     }
     return $files;
-}
-
-function ltiGetCustom($varname, $default=false) {
-    if ( isset($_SESSION['lti_post']) && 
-            isset($_SESSION['lti_post']['custom_'.$varname]) ) {
-        return $_SESSION['lti_post']['custom_'.$varname];
-    }
-    return $default;
 }
 
 // Looks up a result for a potentially different user_id so we make
@@ -1132,55 +997,6 @@ function pdoPagedAuto($pdo, $sql, $query_parms, $searchfields, $orderfields=fals
 
     pdoPagedTable($rows, $searchfields, $orderfields, $view, $params);
 }
-
-// Check if this has a due date..
-function ltiGetDueDate() {
-    $retval = new stdClass();
-    $retval->message = false;
-    $retval->penalty = 0;
-    $retval->dayspastdue = 0;
-    $retval->percent = 0;
-    $retval->duedate = false;
-    $retval->duedatestr = false;
-
-    $duedatestr = ltiGetCustom('due');
-    if ( $duedatestr === false ) return $retval;
-    $duedate = strtotime($duedatestr);
-
-    $diff = -1;
-    $penalty = false;
-
-    date_default_timezone_set('Pacific/Honolulu'); // Lets be generous
-    if ( ltiGetCustom('timezone') ) {
-        date_default_timezone_set(ltiGetCustom('timezone'));
-    }
-
-    if ( $duedate === false ) return $retval;
-
-    //  If it is just a date - add nearly an entire day of time...
-    if ( strlen($duedatestr) <= 10 ) $duedate = $duedate + 24*60*60 - 1;
-    $diff = time() - $duedate;
-
-    $retval->duedate = $duedate;
-    $retval->duedatestr = $duedatestr;
-    // Should be a percentage off between 0.0 and 1.0
-    if ( $diff > 0 ) {
-        $penalty_time = ltiGetCustom('penalty_time') ? ltiGetCustom('penalty_time') + 0 : 24*60*60;
-        $penalty_cost = ltiGetCustom('penalty_cost') ? ltiGetCustom('penalty_cost') + 0.0 : 0.2;
-        $penalty_exact = $diff / $penalty_time;
-        $penalties = intval($penalty_exact) + 1;
-        $penalty = $penalties * $penalty_cost;
-        if ( $penalty < 0 ) $penalty = 0;
-        if ( $penalty > 1 ) $penalty = 1;
-        $retval->penalty = $penalty;
-        $retval->dayspastdue = $diff / (24*60*60);
-        $retval->percent = intval($penalty * 100);
-        $retval ->message = 'It is currently '.sprintf("%10.2f",$retval->dayspastdue)." days\n".
-        'past the due date ('.htmlentities($duedatestr).') so your late penalty is '.$retval->percent." percent.\n";
-    }
-    return $retval;
-}
-
 
 function computeMailCheck($identity) {
     global $CFG;

@@ -3,7 +3,9 @@ require_once 'config.php';
 require_once 'pdo.php';
 require_once 'lib/lms_lib.php';
 
-$session_id = ltiSetupSession($pdo);
+use \Tsugi\LTIDB;
+
+$session_id = LTIDB::SetupSession($pdo);
 
 // See if we have a custom assignment setting.
 if ( ! isset($_POST['custom_assn'] ) ) {
