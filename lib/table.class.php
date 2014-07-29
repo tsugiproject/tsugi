@@ -2,6 +2,9 @@
 
 namespace Tsugi;
 
+require_once("crudform.class.php");
+use \Tsugi\CrudForm;
+
 class Table {
 
     public static $DEFAULT_PAGE_LENGTH = 20;  // Setting this to 2 is good for debugging
@@ -104,10 +107,6 @@ class Table {
         return $newsql . "\n";
     }
 
-    public static function fieldToTitle($name) {
-        return ucwords(str_replace('_',' ',$name));
-    }
-
     public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false) {
         if ( $params === false ) $params = $_GET;
         if ( $orderfields === false ) $orderfields = $searchfields;
@@ -187,7 +186,7 @@ class Table {
                     }
 
                     if ( ! Table::matchColumns($k, $orderfields ) ) {
-                        echo("<th>".Table::fieldToTitle($k)."</th>\n");
+                        echo("<th>".CrudForm::fieldToTitle($k)."</th>\n");
                         continue;
                     }
 
