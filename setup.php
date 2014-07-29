@@ -91,8 +91,10 @@ function lti_sha256($val) {
     return hash('sha256', $val);
 }
 
-function sessionize($url) {
+function addSession($url) {
     if ( ini_get('session.use_cookies') != '0' ) return $url;
+    if ( stripos($url, '&'.session_name().'=') > 0 ||
+         stripos($url, '?'.session_name().'=') > 0 ) return $url;
     $parameter = session_name().'='.session_id();
     if ( strpos($url, $parameter) !== false ) return $url;
     $url = $url . (strpos($url,'?') > 0 ? "&" : "?");

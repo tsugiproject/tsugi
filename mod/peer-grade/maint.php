@@ -34,7 +34,7 @@ if ( isset($_POST['restartReGrade']) ) {
 
     $msg = $lstmt->rowcount() . " Records reset.";
     $_SESSION["success"] = $msg;
-    header("Location: ".sessionize('maint.php'));
+    header("Location: ".addSession('maint.php'));
     return;
 }
 
@@ -132,7 +132,7 @@ function showFrame() {
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 
-$iframeurl = sessionize($CFG->wwwroot . '/mod/peer-grade/maint.php?link_id=' . $link_id);
+$iframeurl = addSession($CFG->wwwroot . '/mod/peer-grade/maint.php?link_id=' . $link_id);
 ?>
 
 <div>
@@ -187,7 +187,7 @@ $UPDATE_INTERVAL = false;
 function updateNumbers() {
     window.console && console.log('Calling updateNumbers');
     $.ajaxSetup({ cache: false }); // For IE...
-    $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/mod/peer-grade/maintcount.php')); ?>',
+    $.getJSON('<?php echo(addSession($CFG->wwwroot.'/mod/peer-grade/maintcount.php')); ?>',
     function(data) {
         if ( $UPDATE_INTERVAL === false ) $UPDATE_INTERVAL = setInterval(updateNumbers,10000);
         window.console && console.log(data);

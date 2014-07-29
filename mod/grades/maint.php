@@ -34,7 +34,7 @@ if ( isset($_POST['resetServerGrades']) ) {
 
     $msg = $lstmt->rowcount() . " Records reset.";
     $_SESSION["success"] = $msg;
-    header("Location: ".sessionize('maint.php?link_id='.$link_id));
+    header("Location: ".addSession('maint.php?link_id='.$link_id));
     return;
 }
 
@@ -50,7 +50,7 @@ if ( isset($_POST['getServerGrades']) ) {
     $total = $row['count'];
     if ( $total == 0 ) {
         $_SESSION['success'] = 'No records remain to retrieve';
-        header("Location: ".sessionize('maint.php?link_id='.$link_id));
+        header("Location: ".addSession('maint.php?link_id='.$link_id));
         return;
     }
 
@@ -212,7 +212,7 @@ function showFrame() {
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 
-$iframeurl = sessionize($CFG->wwwroot . '/mod/grades/maint.php?link_id=' . $link_id);
+$iframeurl = addSession($CFG->wwwroot . '/mod/grades/maint.php?link_id=' . $link_id);
 ?>
 
 <div>
@@ -281,7 +281,7 @@ $UPDATE_INTERVAL = false;
 function updateNumbers() {
     window.console && console.log('Calling updateNumbers');
     $.ajaxSetup({ cache: false }); // For IE...
-    $.getJSON('<?php echo(sessionize($CFG->wwwroot.'/mod/grades/maintcount.php?link_id='.$link_id)); ?>', 
+    $.getJSON('<?php echo(addSession($CFG->wwwroot.'/mod/grades/maintcount.php?link_id='.$link_id)); ?>', 
     function(data) {
         if ( $UPDATE_INTERVAL === false ) $UPDATE_INTERVAL = setInterval(updateNumbers,10000);
         window.console && console.log(data);

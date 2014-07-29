@@ -100,7 +100,7 @@ if ( $links !== false && count($links) > 0 ) {
 <?php
     foreach($links as $link) {
         echo('<li><a href="#" onclick="window.location=\'');
-        echo(sessionize('index.php?link_id='.$link['link_id']).'\';">');
+        echo(addSession('index.php?link_id='.$link['link_id']).'\';">');
         echo(htmlent_utf8($link['title']));
         echo("</a></li>\n");
     }

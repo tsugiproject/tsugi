@@ -19,7 +19,7 @@ if ( ! isset($_SESSION['id']) ) {
     if ( isset($_REQUEST['login_done']) ) {
         die_with_error_log("LTI 2 login failed.");
     }
-    $_SESSION['login_return'] = sessionize(getCurrentFileUrl(__FILE__) ."?login_done=true");
+    $_SESSION['login_return'] = addSession(getCurrentFileUrl(__FILE__) ."?login_done=true");
     header("Location: ".getLoginUrl());
     return;
 }

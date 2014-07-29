@@ -29,7 +29,7 @@ echo("\n</form>\n");
 
 // Dump out the session information
 // This is here for initial debugging only - it should not be part of the final project.
-// Note that sessionize() is not needed here because PHP autmatically handles
+// Note that addSession() is not needed here because PHP autmatically handles
 // PHPSESSID on anchor tags and in forms.
 if ( $USER->instructor ) {
     echo('<p><a href="debug.php" target="_blank">Debug Print Session Data</a></p>');

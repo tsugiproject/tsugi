@@ -74,7 +74,7 @@ function showSubmission($LTI, $assn_json, $submit_json)
             if( isset($part->title) && strlen($part->title) > 0 ) $title = $part->title;
             echo (' <a href="#" onclick="$(\'#myModal_'.$blobno.'\').modal();"');
             echo ('alt="'.htmlent_utf8($title).'" title="'.htmlent_utf8($title).'">');
-            echo ('<img src="'.sessionize($url).'" width="240"></a>'."\n");
+            echo ('<img src="'.addSession($url).'" width="240"></a>'."\n");
 ?>
 <div class="modal fade" id="myModal_<?php echo($blobno); ?>">
   <div class="modal-dialog modal-lg">
@@ -84,7 +84,7 @@ function showSubmission($LTI, $assn_json, $submit_json)
         <h4 class="modal-title"><?php echo(htmlent_utf8($title)); ?></h4>
       </div>
       <div class="modal-body">
-        <img src="<?php echo(sessionize($url)); ?>" style="width:100%">
+        <img src="<?php echo(addSession($url)); ?>" style="width:100%">
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->

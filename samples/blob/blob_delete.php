@@ -28,7 +28,7 @@ if ( isset($_POST["doDelete"]) ) {
             WHERE file_id = :ID AND context_id = :CID");
     $stmt->execute(array(":ID" => $id, ":CID" => $CONTEXT->id));
     $_SESSION['success'] = 'File deleted';
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -40,7 +40,7 @@ echo '<h4 style="color:red">Are you sure you want to delete: ' .htmlent_utf8($fn
 ?>
 <form name=myform enctype="multipart/form-data" method="post">
 <input type=hidden name="id" value="<?php echo $_REQUEST['id']; ?>">
-<p><input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
+<p><input type=submit name=doCancel onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Cancel">
 <input type=submit name=doDelete value="Delete"></p>
 </form>
 <?php

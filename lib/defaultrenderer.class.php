@@ -87,7 +87,7 @@ class DefaultRenderer {
             // $heartbeat = 10000;
     ?>
     <script type="text/javascript">
-    HEARTBEAT_URL = '<?php echo(sessionize($CFG->wwwroot.'/core/util/heartbeat.php')); ?>';
+    HEARTBEAT_URL = '<?php echo(addSession($CFG->wwwroot.'/core/util/heartbeat.php')); ?>';
     HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
     </script>
     <?php
@@ -155,7 +155,7 @@ class DefaultRenderer {
         } else if ( strpos($url, "http") !== false ) {
             echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
         } else {
-            echo("<button onclick=\"window.location='".sessionize($url)."';\" type=\"button\">Done</button>\n");
+            echo("<button onclick=\"window.location='".addSession($url)."';\" type=\"button\">Done</button>\n");
         }
     }
 

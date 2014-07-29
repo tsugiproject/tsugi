@@ -25,7 +25,7 @@ if ( $row !== false ) {
 
 if ( $assn_id === false ) {
     $_SESSION['error'] = "This assignment is not yet set up.";
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -42,7 +42,7 @@ $user_row = loadUserInfo($pdo, $user_id);
 if ( isset($_POST['deleteSubmit']) ) {
     if ( $submit_id == false ) {
         $_SESSION['error'] = "Could not load submission.";
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
         return;
     }
     $note = isset($_POST['deleteNote']) ? $_POST['deleteNote'] : '';
@@ -60,7 +60,7 @@ if ( isset($_POST['deleteSubmit']) ) {
     $msg = "Submission deleted";
     if ( $retval ) $msg .= ', e-mail notice sent.';
     $_SESSION['success'] = $msg;
-    header( 'Location: '.sessionize('admin.php') ) ;
+    header( 'Location: '.addSession('admin.php') ) ;
     return;
 }
 
@@ -80,7 +80,7 @@ if ( isset($_POST['resendSubmit']) ) {
         $_SESSION['error'] = 'Error: '.$status;
     }
     $_SESSION['debug_log'] = $debug_log;
-    header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
+    header( 'Location: '.addSession('student.php?user_id='.$user_id) ) ;
     return;
 }
 
@@ -96,7 +96,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
     }
     if ( ! $found ) {
         $_SESSION['error'] = "Grade entry not found.";
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
         return;
     }
     $stmt = pdoQueryDie($pdo,
@@ -107,7 +107,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
     cache_clear('peer_grade');
     error_log("Instructor deleted grade entry for ".$user_id);
     $_SESSION['success'] = "Grade entry deleted.";
-    header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
+    header( 'Location: '.addSession('student.php?user_id='.$user_id) ) ;
     return;
 }
 
@@ -135,7 +135,7 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
     }
     if ( ! $found ) {
         $_SESSION['error'] = "Flag entry not found.";
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
         return;
     }
     $stmt = pdoQueryDie($pdo,
@@ -147,7 +147,7 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
     cache_clear('peer_grade');
     error_log("Instructor deleted flag=".$_POST['flag_id']." for ".$user_id);
     $_SESSION['success'] = "Flag entry deleted.";
-    header( 'Location: '.sessionize('student.php?user_id='.$user_id) ) ;
+    header( 'Location: '.addSession('student.php?user_id='.$user_id) ) ;
     return;
 }
 
@@ -188,7 +188,7 @@ if ( isset($_GET['delete']) ) {
         </textarea><br/>
         <input type="submit" name="deleteSubmit" value="Complete Delete" class="btn btn-danger">
         <input type="submit" name="doCancel" value="Cancel Delete" class="btn btn-normal"
-            onclick="location=\''.sessionize('student.php?user_id='.$user_id).'\'; return false;">
+            onclick="location=\''.addSession('student.php?user_id='.$user_id).'\'; return false;">
         </form>');
 } else {
     echo('<p><a href="student.php?delete=yes&user_id='.$user_id.'">Delete this
@@ -202,7 +202,7 @@ if ( isset($_GET['resend']) ) {
         <input type="hidden" name="user_id" value="'.$user_id.'">
         <input type="submit" name="resendSubmit" value="Resend the Grade" class="btn btn-warning">
         <input type="submit" name="doCancel" value="Cancel Resend" class="btn btn-normal"
-            onclick="location=\''.sessionize('student.php?user_id='.$user_id).'\'; return false;">
+            onclick="location=\''.addSession('student.php?user_id='.$user_id).'\'; return false;">
         </form>');
 } else {
     echo('<p><a href="student.php?resend=yes&user_id='.$user_id.'">
@@ -283,7 +283,7 @@ if ( $grades_given === false || count($grades_given) < 1 ) {
 <form method="post">
 <br/>
 <input type="submit" name="doDone" class="btn btn-success"
-onclick="location='<?php echo(sessionize('admin.php'));?>'; return false;" value="Done">
+onclick="location='<?php echo(addSession('admin.php'));?>'; return false;" value="Done">
 </form>
 <?php
 

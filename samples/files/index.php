@@ -12,7 +12,7 @@ $p = $CFG->dbprefix;
 
 if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 1) {
     $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -27,12 +27,12 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
    if ((move_uploaded_file($_FILES['uploaded_file']['tmp_name'],$newname)))
    {
         $_SESSION['success'] = 'File uploaded';
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
    }
    else
     {
         $_SESSION['err'] = 'File upload failed';
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
     }
     return;
 }
@@ -40,7 +40,7 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
 // Sometimes, if the maxUpload_SIZE is exceeded, it deletes all of $_POST
 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
     $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -76,7 +76,7 @@ finfo_close($finfo);
 
 if ( $USER->instructor ) { ?>
 <h4>Upload file (max <?php echo(maxUpload());?>MB)</h4>
-<form name="myform" enctype="multipart/form-data" method="post" action="<?php sessionize('index.php');?>">
+<form name="myform" enctype="multipart/form-data" method="post" action="<?php addSession('index.php');?>">
 <p>Upload File: <input name="uploaded_file" type="file"> 
    <input type="submit" name="submit" value="Upload"></p>
    <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(maxUpload());?>000000" />

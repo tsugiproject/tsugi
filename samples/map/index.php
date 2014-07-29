@@ -10,7 +10,7 @@ $p = $CFG->dbprefix;
 if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
     if ( abs($_POST['lat']) > 85 || abs($_POST['lng']) > 180 ) {
         $_SESSION['error'] = "Latitude or longitude out of range";
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
         return;
     }
     $sql = "INSERT INTO {$p}sample_map 
@@ -25,7 +25,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
         ':LAT' => $_POST['lat'],
         ':LNG' => $_POST['lng']));
     $_SESSION['success'] = 'Location updated...';
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 

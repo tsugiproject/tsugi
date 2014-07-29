@@ -21,10 +21,10 @@ if ( isset($_POST["doDelete"]) ) {
     $filename = $foldername . '/' . fixFileName($_POST['file']);
     if ( unlink($filename) ) { 
         $_SESSION['success'] = 'File deleted';
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
     } else {
         $_SESSION['err'] = 'File delete failed';
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
     }
     return;
 }
@@ -37,7 +37,7 @@ echo '<h4 style="color:red">Are you sure you want to delete: ' .$fn. "</h4>\n";
 ?>
 <form name=myform enctype="multipart/form-data" method="post">
     <input type=hidden name="file" value="<?php echo $_REQUEST['file']; ?>">
-<p><input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel">
+<p><input type=submit name=doCancel onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Cancel">
 <input type=submit name=doDelete value="Delete"></p>
 </form>
 <?php

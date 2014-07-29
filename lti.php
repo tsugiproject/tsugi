@@ -23,7 +23,7 @@ if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
     $url .= '?' . $_SERVER['QUERY_STRING'];
 }
 
-$location = sessionize($url);
+$location = addSession($url);
 session_write_close();  // To avoid any race conditions...
 
 if ( headers_sent() ) {

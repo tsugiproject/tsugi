@@ -90,7 +90,7 @@ function initialize_map() {
 
   google.maps.event.addListener(marker, 'dragend', function (event) {
     window.console && console.log(this.getPosition());
-    $.post( '<?php echo(sessionize('update.php')); ?>', 
+    $.post( '<?php echo(addSession('update.php')); ?>', 
       { 'lat': this.getPosition().lat(), 'lng' : this.getPosition().lng() },
       function( data ) {
           window.console && console.log(data);
@@ -225,7 +225,7 @@ $(document).ready(function() {
         var allow_first = form.find('input[name="allow_first"]').is(':checked') ? 1 : 0 ;
         var allow_email = form.find('input[name="allow_email"]').is(':checked') ? 1 : 0 ;
         window.console && console.log('Sending POST');
-        $.post( '<?php echo(sessionize('update.php')); ?>', 
+        $.post( '<?php echo(addSession('update.php')); ?>', 
            { 'allow_name': allow_name, 'allow_first': allow_first, 'allow_email': allow_email },
           function( data ) {
               window.console && console.log(data);

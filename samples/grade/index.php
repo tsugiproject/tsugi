@@ -14,7 +14,7 @@ if ( isset($_POST['reset']) ) {
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array(':RI' => $LTI['result_id']));
     $_SESSION['success'] = "Grade reset";
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -22,7 +22,7 @@ if ( isset($_POST['grade']) )  {
     $gradetosend = $_POST['grade'] + 0.0;
     if ( $gradetosend < 0.0 || $gradetosend > 1.0 ) {
         $_SESSION['error'] = "Grade out of range";
-        header('Location: '.sessionize('index.php'));
+        header('Location: '.addSession('index.php'));
         return;
     }
 
@@ -51,7 +51,7 @@ if ( isset($_POST['grade']) )  {
     }
 
     // Redirect to ourself 
-    header('Location: '.sessionize('index.php'));
+    header('Location: '.addSession('index.php'));
     return;
 }
 

@@ -244,19 +244,6 @@ function getSpinnerUrl() {
     return $CFG->staticroot . '/static/img/spinner.gif';
 }
 
-function addSession($location) {
-    if ( stripos($location, '&'.session_name().'=') > 0 ||
-         stripos($location, '?'.session_name().'=') > 0 ) return $location;
-
-    if ( strpos($location,'?') > 0 ) {
-       $location = $location . '&';
-    } else {
-       $location = $location . '?';
-    }
-    $location = $location . session_name() . '=' . session_id();
-    return $location;
-}
-
 // Forward to a local URL, adding session if necessary - not that hrefs get altered appropriately 
 // by PHP itself
 function doRedirect($location) {

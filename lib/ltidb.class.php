@@ -27,7 +27,7 @@ class LTIDB Extends \Tsugi\LTI {
             $url .= '?' . $_SERVER['QUERY_STRING'];
         }
 
-        $location = sessionize($url);
+        $location = addSession($url);
         session_write_close();  // To avoid any race conditions...
 
         if ( headers_sent() ) {
@@ -526,7 +526,7 @@ class LTIDB Extends \Tsugi\LTI {
                     die_with_error_log('Missing '.$sess.' from POST data');
                 } else {
                     send403();
-                    die_with_error_log('Missing '.$sess.'= on URL (Missing call to sessionize?)');
+                    die_with_error_log('Missing '.$sess.'= on URL (Missing call to addSession?)');
                 }
             }
         }

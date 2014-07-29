@@ -16,7 +16,7 @@ if ( isset($_POST['json']) ) {
     $json = json_decode($json);
     if ( $json === null ) {
         $_SESSION['error'] = "Bad JSON Syntax";
-        header( 'Location: '.sessionize('configure.php') ) ;
+        header( 'Location: '.addSession('configure.php') ) ;
         return;
     }
 
@@ -33,10 +33,10 @@ if ( isset($_POST['json']) ) {
     cache_clear("peer_assn");
     if ( $stmt->success ) {
         $_SESSION['success'] = 'Assignment updated';
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
     } else {
         $_SESSION['error'] = $stmt->errorImplode;
-        header( 'Location: '.sessionize('configure.php') ) ;
+        header( 'Location: '.addSession('configure.php') ) ;
     }
     return;
 }
@@ -85,7 +85,7 @@ if ( ! $USER->instructor ) die("Requires instructor role");
 </textarea>
 <p>
 <input type="submit" value="Save">
-<input type=submit name=doCancel onclick="location='<?php echo(sessionize('index.php'));?>'; return false;" value="Cancel"></p>
+<input type=submit name=doCancel onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Cancel"></p>
 </form>
 <?php
 

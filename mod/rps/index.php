@@ -12,7 +12,7 @@ if ( $USER->instructor && isset($_POST['reset']) ) {
     $sql = "DELETE FROM {$p}rps WHERE link_id = :LI";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(array(':LI' => $LINK->id));
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -45,7 +45,7 @@ function play(strategy) {
     $("#rpsform input").attr("disabled", true);
     $("#status").show();
     window.console && console.log(I18N.played+strategy);
-    $.getJSON('<?php echo(sessionize('play.php')); ?>&play='+strategy, function(data) {
+    $.getJSON('<?php echo(addSession('play.php')); ?>&play='+strategy, function(data) {
         window.console && console.log(data);
         if ( data.guid ) {
             $("#statustext").html(I18N.waiting);
@@ -70,7 +70,7 @@ var GLOBAL_GUID;
 function check(guid) {
     GLOBAL_GUID = guid;
     window.console && console.log('Checking game '+guid);
-    $.getJSON('<?php echo(sessionize('play.php')); ?>&game='+guid, function(data) {
+    $.getJSON('<?php echo(addSession('play.php')); ?>&game='+guid, function(data) {
         window.console && console.log(data);
         window.console && console.log(GLOBAL_GUID);
         if ( ! data.displayname ) {
@@ -98,7 +98,7 @@ function leaders() {
         OLD_TIMEOUT = false;
     }
     window.console && console.log('Updating leaders...');
-    $.getJSON('<?php echo(sessionize('stats.php')); ?>', function(data) {
+    $.getJSON('<?php echo(addSession('stats.php')); ?>', function(data) {
         window.console && console.log(data);
         $("#leaders").html("");
         $("#leaders").append("<ol>\n");

@@ -11,7 +11,7 @@ $LTI = ltiRequireData(array('context_id', 'role'));
 $p = $CFG->dbprefix;
 if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 1) {
     $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -20,7 +20,7 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
     $filename = basename($_FILES['uploaded_file']['name']);
     if ( strpos($filename, '.php') !== false ) {
         $_SESSION['error'] = 'Error: Wrong file type.';
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
         return;
     }
 
@@ -38,14 +38,14 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
     $pdo->commit();
 
     $_SESSION['success'] = 'File uploaded';
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
 // Sometimes, if the maxUpload_SIZE is exceeded, it deletes all of $_POST
 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
     $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -83,7 +83,7 @@ echo("</ul>\n");
 
 if ( $USER->instructor ) { ?>
 <h4>Upload file (max <?php echo(maxUpload());?>MB)</h4>
-<form name="myform" enctype="multipart/form-data" method="post" action="<?php sessionize('index.php');?>">
+<form name="myform" enctype="multipart/form-data" method="post" action="<?php addSession('index.php');?>">
 <p>Upload File: <input name="uploaded_file" type="file"> 
    <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(maxUpload());?>000000" /> 
    <input type="submit" name="submit" value="Upload"></p>

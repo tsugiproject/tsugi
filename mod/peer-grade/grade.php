@@ -31,7 +31,7 @@ if ( $row !== false ) {
 
 if ( $assn_id == false ) {
     $_SESSION['error'] = 'This assignment is not yet set up';
-    header( 'Location: '.sessionize($url_goback) ) ;
+    header( 'Location: '.addSession($url_goback) ) ;
     return;
 }
 
@@ -50,7 +50,7 @@ if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
             ':NOTE' => $_POST['note'])
     );
     $_SESSION['success'] = "Flagged for the instructor to examine, please continue grading.";
-    header( 'Location: '.sessionize($url_stay) ) ;
+    header( 'Location: '.addSession($url_stay) ) ;
     return;
 }
 
@@ -63,20 +63,20 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
 
         unset($_SESSION['peer_submit_id']);
         $_SESSION['error'] = 'Error in submission id';
-        header( 'Location: '.sessionize($url_goback) ) ;
+        header( 'Location: '.addSession($url_goback) ) ;
         return;
     }
 
     if ( strlen($_POST['points']) < 1 ) {
         $_SESSION['error'] = 'Points are required';
-        header( 'Location: '.sessionize($url_stay) ) ;
+        header( 'Location: '.addSession($url_stay) ) ;
         return;
     }
     
     $points = $_POST['points']+0;
     if ( $points < 0 || $points > $assn_json->maxpoints ) {
         $_SESSION['error'] = 'Points must be between 0 and '.$assn_json->maxpoints;
-        header( 'Location: '.sessionize($url_stay) ) ;
+        header( 'Location: '.addSession($url_stay) ) ;
         return;
     }
 
@@ -85,14 +85,14 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     $submit_row = loadSubmission($pdo, $assn_id, $user_id);
     if ( $submit_row === null || $submit_row['submit_id'] != $_POST['submit_id']) {
         $_SESSION['error'] = 'Mis-match between user_id and session_id';
-        header( 'Location: '.sessionize($url_goback) ) ;
+        header( 'Location: '.addSession($url_goback) ) ;
         return;
     }
 
     $grade_count = loadMyGradeCount($pdo, $LTI, $assn_id);
     if ( $grade_count > $assn_json->maxassess && ! $USER->instructor ) {
         $_SESSION['error'] = 'You have already graded more than '.$assn_json->maxassess.' submissions';
-        header( 'Location: '.sessionize($url_goback) ) ;
+        header( 'Location: '.addSession($url_goback) ) ;
         return;
     }
 
@@ -113,7 +113,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     cache_clear('peer_grade');
     if ( ! $stmt->success ) {
         $_SESSION['error'] = $stmt->errorImplode;
-        header( 'Location: '.sessionize($url_goback) ) ;
+        header( 'Location: '.addSession($url_goback) ) ;
         return;
     }
 
@@ -131,7 +131,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
             error_log("Problem sending grade ".$status);
         }
     }
-    header( 'Location: '.sessionize($url_goback) ) ;
+    header( 'Location: '.addSession($url_goback) ) ;
     return;
 }
 unset($_SESSION['peer_submit_id']);
@@ -143,7 +143,7 @@ if ( $user_id === false ) {
     $to_grade = loadUngraded($pdo, $LTI, $assn_id);
     if ( count($to_grade) < 1 ) {
         $_SESSION['success'] = 'There are no submissions to grade';
-        header( 'Location: '.sessionize($url_goback) ) ;
+        header( 'Location: '.addSession($url_goback) ) ;
         return;
     }
 
@@ -160,7 +160,7 @@ if ( $submit_row !== null ) {
 
 if ( $submit_json === null ) {
     $_SESSION['error'] = 'Unable to load submission '.$user_id;
-    header( 'Location: '.sessionize($url_goback) ) ;
+    header( 'Location: '.addSession($url_goback) ) ;
     return;
 }
 
@@ -187,7 +187,7 @@ Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" value="Grade" class="btn btn-primary">
 <input type="submit" name="showFlag" onclick="$('#flagform').toggle(); return false;" value="Flag" class="btn btn-danger">
-<input type="submit" name="doCancel" onclick="location='<?php echo(sessionize($url_goback));?>'; return false;" value="Cancel" class="btn btn-default">
+<input type="submit" name="doCancel" onclick="location='<?php echo(addSession($url_goback));?>'; return false;" value="Cancel" class="btn btn-default">
 </form>
 <form method="post" id="flagform" style="display:none">
 <p>Please be considerate when flagging an item.  Only use

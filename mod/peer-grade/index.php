@@ -12,7 +12,7 @@ $p = $CFG->dbprefix;
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
     $_SESSION['error'] = 'File upload size exceeded, please re-upload a smaller file';
     error_log("Upload size exceeded");
-    header('Location: '.sessionize('index.php'));
+    header('Location: '.addSession('index.php'));
     return;
 }
 
@@ -35,7 +35,7 @@ if ( $assn_id != false && $assn_json != null &&
     isset($_POST['notes']) && isset($_POST['doSubmit']) ) {
     if ( $submit_row !== false ) {
         $_SESSION['error'] = 'Cannot submit an assignment twice';
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
         return;
     }
 
@@ -47,7 +47,7 @@ if ( $assn_id != false && $assn_json != null &&
             $fname = 'uploaded_file_'.$partno;
             if( ! isset($_FILES[$fname]) ) {
                 $_SESSION['error'] = 'Problem with uploaded files - perhaps your files were too large';
-                header( 'Location: '.sessionize('index.php') ) ;
+                header( 'Location: '.addSession('index.php') ) ;
                 return;
             }
 
@@ -56,7 +56,7 @@ if ( $assn_id != false && $assn_json != null &&
             // Check to see if they left off a file
             if( $fdes['error'] == 4) {
                 $_SESSION['error'] = 'Missing file, make sure to select all files before pressing submit';
-                header( 'Location: '.sessionize('index.php') ) ;
+                header( 'Location: '.addSession('index.php') ) ;
                 return;
             }
 
@@ -64,14 +64,14 @@ if ( $assn_id != false && $assn_json != null &&
             if ( $safety !== true ) {
                 $_SESSION['error'] = "This only supports PNG or JPG images with a .png or .jpg extenision.  Error: ".$safety;
                 error_log("Upload Error: ".$safety);
-                header( 'Location: '.sessionize('index.php') ) ;
+                header( 'Location: '.addSession('index.php') ) ;
                 return;
             }
 
             $blob_id = uploadFileToBlob($pdo, $fdes);
             if ( $blob_id === false ) {
                 $_SESSION['error'] = 'Problem storing files in server';
-                header( 'Location: '.sessionize('index.php') ) ;
+                header( 'Location: '.addSession('index.php') ) ;
                 return;
             }
             $blob_ids[] = $blob_id;
@@ -79,7 +79,7 @@ if ( $assn_id != false && $assn_json != null &&
             $url = $_POST['input_url_'.$partno];
             if ( strpos($url,'http://') === false && strpos($url,'http://') === false ) {
                 $_SESSION['error'] = 'URLs must start with http:// or https:// ';
-                header( 'Location: '.sessionize('index.php') ) ;
+                header( 'Location: '.addSession('index.php') ) ;
                 return;
             }
             $urls[] = $_POST['input_url_'.$partno];
@@ -105,10 +105,10 @@ if ( $assn_id != false && $assn_json != null &&
     cache_clear('peer_submit');
     if ( $stmt->success ) {
         $_SESSION['success'] = 'Assignment submitted';
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
     } else {
         $_SESSION['error'] = $stmt->errorImplode;
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
     }
     return;
 }
@@ -150,7 +150,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
     }
     if ( ! $found ) {
         $_SESSION['error'] = 'Cannot a grade that is not yours';
-        header( 'Location: '.sessionize('index.php') ) ;
+        header( 'Location: '.addSession('index.php') ) ;
         return;
     }
     
@@ -167,7 +167,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
             ':NOTE' => $_POST['note'])
     );
     $_SESSION['success'] = "Flagged for the instructor to examine";
-    header( 'Location: '.sessionize('index.php') ) ;
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -200,7 +200,7 @@ if ( $assn_json == null ) {
 if ( $submit_row == false ) {
     echo("<p><b>Please Upload Your Submission:</b></p>\n");
     echo('<form name="myform" enctype="multipart/form-data" method="post" action="'.
-         sessionize('index.php').'">');
+         addSession('index.php').'">');
 
     $partno = 0;
     foreach ( $assn_json->parts as $part ) {
@@ -285,7 +285,7 @@ attention of the instructor.</p>
 <script type="text/javascript">
 function gradeLoad() {
     window.console && console.log('Loading and updating your grade...');
-    $.getJSON('<?php echo(sessionize('update_grade.php')); ?>', function(data) {
+    $.getJSON('<?php echo(addSession('update_grade.php')); ?>', function(data) {
         window.console && console.log(data);
         if ( data.grade ) {
             $("#gradeinfo").html('Your current grade is '+data.grade*100.0+'%');
