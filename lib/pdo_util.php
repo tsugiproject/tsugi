@@ -7,7 +7,7 @@ require_once "pdox.class.php";
  */
 function pdoRowDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     global $PDOX;
-    return $PDOX->RowDie($sql, $arr, $error_log);
+    return $PDOX->rowDie($sql, $arr, $error_log);
 }
 
 /**
@@ -15,7 +15,7 @@ function pdoRowDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
  */
 function pdoAllRowsDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     global $PDOX;
-    return $PDOX->AllRowsDie($sql, $arr, $error_log);
+    return $PDOX->allRowsDie($sql, $arr, $error_log);
 }
 
 /**
@@ -23,7 +23,7 @@ function pdoAllRowsDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
  */
 function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     global $PDOX;
-    return $PDOX->QueryDie($sql, $arr, $error_log);
+    return $PDOX->queryDie($sql, $arr, $error_log);
 }
 
 /**
@@ -31,7 +31,7 @@ function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
  */
 function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     global $PDOX;
-    return $PDOX->Query($sql, $arr, $error_log);
+    return $PDOX->query($sql, $arr, $error_log);
 }
 
 /**
@@ -39,6 +39,6 @@ function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
  */
 function pdoMetadata($pdo, $tablename) {
     global $PDOX;
-    return $PDOX->Metadata($tablename);
+    return $PDOX->metadata($tablename);
 }
 

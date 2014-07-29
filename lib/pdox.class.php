@@ -10,14 +10,14 @@ class PDOX {
         $this->pdo = $pdo;
     }
 
-    function RowDie($sql, $arr=FALSE, $error_log=TRUE) {
-        $stmt = $this->QueryDie($sql, $arr, $error_log);
+    function rowDie($sql, $arr=FALSE, $error_log=TRUE) {
+        $stmt = $this->queryDie($sql, $arr, $error_log);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         return $row;
     }
 
-    function AllRowsDie($sql, $arr=FALSE, $error_log=TRUE) {
-        $stmt = $this->QueryDie($sql, $arr, $error_log);
+    function allRowsDie($sql, $arr=FALSE, $error_log=TRUE) {
+        $stmt = $this->queryDie($sql, $arr, $error_log);
         $rows = array();
         while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
             array_push($rows, $row);
@@ -25,9 +25,9 @@ class PDOX {
         return $rows;
     }
 
-    function QueryDie($sql, $arr=FALSE, $error_log=TRUE) {
+    function queryDie($sql, $arr=FALSE, $error_log=TRUE) {
         global $CFG;
-        $stmt = $this->Query($sql, $arr, $error_log);
+        $stmt = $this->query($sql, $arr, $error_log);
         if ( ! $stmt->success ) {
             error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
             if ( isset($CFG) && isset($CFG->dirroot) && isset($CFG->DEVELOPER) && $CFG->DEVELOPER) {
@@ -42,7 +42,7 @@ class PDOX {
     }
 
     // Run a PDO Query with lots of error checking
-    function Query($sql, $arr=FALSE, $error_log=TRUE) {
+    function query($sql, $arr=FALSE, $error_log=TRUE) {
         $errormode = $this->pdo->getAttribute(\PDO::ATTR_ERRMODE);
         if ( $errormode != \PDO::ERRMODE_EXCEPTION) {
             $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -87,9 +87,9 @@ class PDOX {
         return $q;
     }
 
-    function Metadata($tablename) {
+    function metadata($tablename) {
         $sql = "SHOW COLUMNS FROM ".$tablename;
-        $q = $this->Query($sql);
+        $q = $this->query($sql);
         if ( $q->success ) {
             return $q->fetchAll();
         } else {
