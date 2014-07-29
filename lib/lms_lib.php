@@ -788,7 +788,7 @@ function mailSend($to, $subject, $message, $id, $token) {
     return mail($to,$subject,$msg,$headers);
 }
 
-require_once("renderer.class.php");
+require_once("defaultrenderer.class.php");
 
 $OUTPUT = new \Tsugi\DefaultRenderer();
 
