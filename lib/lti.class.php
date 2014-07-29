@@ -18,7 +18,7 @@ class LTI {
 
     // Returns true if this is a Basic LTI message
     // with minimum values to meet the protocol
-    public static function IsRequest() {
+    public static function isRequest() {
         if ( !isset($_REQUEST["lti_message_type"]) ) return false;
         if ( !isset($_REQUEST["lti_version"]) ) return false;
         $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request" ||
@@ -146,14 +146,14 @@ class LTI {
         return $key;
     }
 
-    public static function BodyRequest($url, $method, $data, $optional_headers = null)
+    public static function bodyRequest($url, $method, $data, $optional_headers = null)
     {
       if ($optional_headers !== null) {
          $header = $optional_headers . "\r\n";
       }
       $header = $header . "Content-Type: application/x-www-form-urlencoded\r\n";
 
-      return Net::DoBody($url,$method,$data,$header);
+      return Net::doBody($url,$method,$data,$header);
     }
 
     public static function addCustom(&$parms, $custom) {
@@ -275,7 +275,7 @@ class LTI {
         global $LastGETHeader;
         $LastGETHeader = $header;
 
-        return Net::DoGet($endpoint,$header);
+        return Net::doGet($endpoint,$header);
     }
 
     public static function sendOAuthBodyPOST($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $body)
@@ -298,7 +298,7 @@ class LTI {
         $header = $acc_req->to_header();
         $header = $header . "\r\nContent-Type: " . $content_type . "\r\n";
 
-        return Net::DoBody($endpoint, "POST", $body,$header);
+        return Net::doBody($endpoint, "POST", $body,$header);
     }
 
     /*  $postBody = str_replace(
@@ -430,7 +430,7 @@ class LTI {
     // Compares base strings, start of the mis-match
     // Returns true if the strings are identical
     // This is setup to be displayed in <pre> tags as newlines are added
-    public static function CompareBaseStrings($string1, $string2)
+    public static function compareBaseStrings($string1, $string2)
     {
     	if ( $string1 == $string2 ) return true;
 

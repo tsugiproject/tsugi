@@ -245,13 +245,13 @@ class Table {
         $orderfields=false, $view=false, $params=false) {
         global $PDOX;
 
-        $newsql = Table::pdoPagedQuery($sql, $query_parms, $searchfields, $orderfields, $params);
+        $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields, $params);
 
         //echo("<pre>\n$newsql\n</pre>\n");
 
-        $rows = $PDOX->allRowsDie($pdo, $newsql, $query_parms);
+        $rows = $PDOX->allRowsDie($newsql, $query_parms);
 
-        Table::pdoPagedTable($rows, $searchfields, $orderfields, $view, $params);
+        Table::pagedTable($rows, $searchfields, $orderfields, $view, $params);
     }
 
 }

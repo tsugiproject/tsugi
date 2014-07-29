@@ -13,10 +13,10 @@ use \Tsugi\OAuth\OAuthRequest;
 class LTIDB Extends \Tsugi\LTI {
 
     // Silently check if this is a launch and if so, handle it
-    public static function LaunchCheck() {
+    public static function launchCheck() {
         global $CFG, $PDO;
-        if ( ! LTI::IsRequest() ) return false;
-        $session_id = LTIDB::SetupSession($PDO);
+        if ( ! LTI::isRequest() ) return false;
+        $session_id = LTIDB::setupSession($PDO);
         if ( $session_id === false ) return false;
 
         // Redirect back to ourselves...
@@ -38,7 +38,7 @@ class LTIDB Extends \Tsugi\LTI {
         exit();
     }
 
-    public static function GetCustom($varname, $default=false) {
+    public static function getCustom($varname, $default=false) {
         if ( isset($_SESSION['lti_post']) &&
                 isset($_SESSION['lti_post']['custom_'.$varname]) ) {
             return $_SESSION['lti_post']['custom_'.$varname];
@@ -46,13 +46,13 @@ class LTIDB Extends \Tsugi\LTI {
         return $default;
     }
 
-    public static function SetupSession($pdo=false) {
+    public static function setupSession($pdo=false) {
         global $CFG;
-        if ( ! LTI::IsRequest() ) return false;
+        if ( ! LTI::isRequest() ) return false;
 
         // Pull LTI data out of the incoming $_POST and map into the same
         // keys that we use in our database (i.e. like $row)
-        $post = LTIDB::ExtractPost();
+        $post = LTIDB::extractPost();
         if ( $post === false ) {
             $pdata = safe_var_dump($_POST);
             error_log('Missing post data: '.$pdata);
@@ -66,7 +66,7 @@ class LTIDB Extends \Tsugi\LTI {
 
         // We make up a Session ID Key because we don't want a new one
         // each time the same user launches the same link.
-        $session_id = LTIDB::GetCompositeKey($post, $CFG->sessionsalt);
+        $session_id = LTIDB::getCompositeKey($post, $CFG->sessionsalt);
         session_id($session_id);
         session_start();
         header('Content-Type: text/html; charset=utf-8');
@@ -78,7 +78,7 @@ class LTIDB Extends \Tsugi\LTI {
         // Read all of the data from the database with a very long
         // LEFT JOIN and get all the data we have back in the $row variable
         // $row = LoadAllData($pdo, $CFG->dbprefix, false, $post);
-        $row = LTIDB::LoadAllData($pdo, $CFG->dbprefix, $CFG->dbprefix.'profile', $post);
+        $row = LTIDB::loadAllData($pdo, $CFG->dbprefix, $CFG->dbprefix.'profile', $post);
 
         $delta = 0;
         if ( isset($_POST['oauth_timestamp']) ) {
@@ -91,7 +91,7 @@ class LTIDB Extends \Tsugi\LTI {
 
         // Use returned data to check the OAuth signature on the
         // incoming data
-        $valid = LTIDB::VerifyKeyAndSecret($post['key'],$row['secret']);
+        $valid = LTIDB::verifyKeyAndSecret($post['key'],$row['secret']);
         if ( $valid !== true ) {
             print "<pre>\n";
             print_r($valid);
@@ -99,7 +99,7 @@ class LTIDB Extends \Tsugi\LTI {
             die_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0]);
         }
 
-        $actions = LTIDB::AdjustData($pdo, $CFG->dbprefix, $row, $post);
+        $actions = LTIDB::adjustData($pdo, $CFG->dbprefix, $row, $post);
 
         // If there is an appropriate role override variable, we use that role
         if ( isset($row['role_override']) && isset($row['role']) &&
@@ -116,7 +116,7 @@ class LTIDB Extends \Tsugi\LTI {
         $_SESSION['CSRF_TOKEN'] = uniqid();
 
         // Check if we can auto-login the system user
-        if ( LTIDB::GetCustom('dologin', false) && $pdo !== false ) loginSecureCookie($pdo);
+        if ( LTIDB::getCustom('dologin', false) && $pdo !== false ) loginSecureCookie($pdo);
 
         // Set up basic custom values
         if ( isset($_POST['custom_due'] ) ) {
@@ -173,7 +173,7 @@ class LTIDB Extends \Tsugi\LTI {
 
     // Extract info from $_POST applying our business rules and using our
     // naming conventions
-    public static function ExtractPost() {
+    public static function extractPost() {
         // Unescape each time we use this stuff - somedy we won't need this...
         $FIXED = array();
         foreach($_POST as $key => $value ) {
@@ -219,7 +219,7 @@ class LTIDB Extends \Tsugi\LTI {
     // Make sure to include the file in case multiple instances are running
     // on the same server and they have not changed the session secret
     // Also make these change every 30 minutes
-    public static function GetCompositeKey($post, $session_secret) {
+    public static function getCompositeKey($post, $session_secret) {
         $comp = $session_secret .'::'. $post['key'] .'::'. $post['context_id'] .'::'.
             $post['link_id']  .'::'. $post['user_id'] .'::'. intval(time() / 1800) .
             $_SERVER['HTTP_USER_AGENT'] . '::' . __FILE__;
@@ -228,7 +228,7 @@ class LTIDB Extends \Tsugi\LTI {
 
     // Returns as much as we have in all the tables
     // Assume..  $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    public static function LoadAllData($pdo, $p, $profile_table, $post) {
+    public static function loadAllData($pdo, $p, $profile_table, $post) {
         $errormode = $pdo->getAttribute(\PDO::ATTR_ERRMODE);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $sql = "SELECT k.key_id, k.key_key, k.secret, c.context_id, c.title AS context_title,
@@ -294,7 +294,7 @@ class LTIDB Extends \Tsugi\LTI {
 
     // Insert the missing bits and update the new bits...
     // TODO: Contemplate the deep mystery of transactions here
-    public static function AdjustData($pdo, $p, &$row, $post) {
+    public static function adjustData($pdo, $p, &$row, $post) {
         $errormode = $pdo->getAttribute(\PDO::ATTR_ERRMODE);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
@@ -479,7 +479,7 @@ class LTIDB Extends \Tsugi\LTI {
     }
 
     // Verify the message signature
-    public static function VerifyKeyAndSecret($key, $secret) {
+    public static function verifyKeyAndSecret($key, $secret) {
         if ( ! ($key && $secret) ) return array("Missing key or secret", "");
         $store = new TrivialOAuthDataStore();
         $store->add_consumer($key, $secret);
@@ -504,7 +504,7 @@ class LTIDB Extends \Tsugi\LTI {
     // This routine will not start a session if none exists.  It will
     // die is there if no session_name() (PHPSESSID) cookie or
     // parameter.  No need to create any fresh sessions here.
-    public static function RequireData($needed) {
+    public static function requireData($needed) {
         global $CFG, $USER, $CONTEXT, $LINK;
 
         // Check if we are processing an LTI launch.  If so, handle it
@@ -628,7 +628,7 @@ class LTIDB Extends \Tsugi\LTI {
     }
 
     // Check if this has a due date..
-    public static function GetDueDate() {
+    public static function getDueDate() {
         $retval = new \stdClass();
         $retval->message = false;
         $retval->penalty = 0;
@@ -637,7 +637,7 @@ class LTIDB Extends \Tsugi\LTI {
         $retval->duedate = false;
         $retval->duedatestr = false;
 
-        $duedatestr = LTIDB::GetCustom('due');
+        $duedatestr = LTIDB::getCustom('due');
         if ( $duedatestr === false ) return $retval;
         $duedate = strtotime($duedatestr);
 
@@ -645,8 +645,8 @@ class LTIDB Extends \Tsugi\LTI {
         $penalty = false;
 
         date_default_timezone_set('Pacific/Honolulu'); // Lets be generous
-        if ( LTIDB::GetCustom('timezone') ) {
-            date_default_timezone_set(LTIDB::GetCustom('timezone'));
+        if ( LTIDB::getCustom('timezone') ) {
+            date_default_timezone_set(LTIDB::getCustom('timezone'));
         }
 
         if ( $duedate === false ) return $retval;
@@ -659,8 +659,8 @@ class LTIDB Extends \Tsugi\LTI {
         $retval->duedatestr = $duedatestr;
         // Should be a percentage off between 0.0 and 1.0
         if ( $diff > 0 ) {
-            $penalty_time = LTIDB::GetCustom('penalty_time') ? LTIDB::GetCustom('penalty_time') + 0 : 24*60*60;
-            $penalty_cost = LTIDB::GetCustom('penalty_cost') ? LTIDB::GetCustom('penalty_cost') + 0.0 : 0.2;
+            $penalty_time = LTIDB::getCustom('penalty_time') ? LTIDB::getCustom('penalty_time') + 0 : 24*60*60;
+            $penalty_cost = LTIDB::getCustom('penalty_cost') ? LTIDB::getCustom('penalty_cost') + 0.0 : 0.2;
             $penalty_exact = $diff / $penalty_time;
             $penalties = intval($penalty_exact) + 1;
             $penalty = $penalties * $penalty_cost;

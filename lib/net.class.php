@@ -4,7 +4,7 @@ namespace Tsugi;
 use Tsugi\Net;
 
 class Net {
-    public static function DoGet($url, $header = false) {
+    public static function doGet($url, $header = false) {
         global $LastGETURL;
         global $LastGETMethod;
         global $LastHeadersSent;
@@ -19,17 +19,17 @@ class Net {
         $lastGETResponse = false;
 
         $LastGETMethod = "CURL";
-        $lastGETResponse = Net::GetCurl($url, $header);
+        $lastGETResponse = Net::getCurl($url, $header);
         if ( $lastGETResponse !== false ) return $lastGETResponse;
         $LastGETMethod = "Stream";
-        $lastGETResponse = Net::GetStream($url, $header);
+        $lastGETResponse = Net::getStream($url, $header);
         if ( $lastGETResponse !== false ) return $lastGETResponse;
         error_log("Unable to POST Url=$url");
         error_log("Header: $header");
         throw new Exception("Unable to GET url=".$url);
     }
 
-    public static function GetStream($url, $header) {
+    public static function getStream($url, $header) {
         $params = array('http' => array(
             'method' => 'GET',
             'header' => $header
@@ -44,7 +44,7 @@ class Net {
         return $response;
     }
 
-    public static function GetCurl($url, $header) {
+    public static function getCurl($url, $header) {
       if ( ! function_exists('curl_init') ) return false;
       global $last_http_response;
       global $LastHeadersSent;
@@ -77,7 +77,7 @@ class Net {
       return $body;
     }
 
-    public static function GetBodySentDebug() {
+    public static function getBodySentDebug() {
         global $LastBODYURL;
         global $LastBODYMethod;
         global $LastBODYImpl;
@@ -89,7 +89,7 @@ class Net {
     	return $ret;
     }
 
-    public static function GetBodyReceivedDebug() {
+    public static function getBodyReceivedDebug() {
         global $LastBODYURL;
         global $LastBODYMethod;
         global $LastBODYImpl;
@@ -103,7 +103,7 @@ class Net {
     	return $ret;
     }
 
-    public static function GetGetSentDebug() {
+    public static function getGetSentDebug() {
         global $LastGETMethod;
         global $LastGETURL;
         global $LastHeadersSent;
@@ -114,7 +114,7 @@ class Net {
     	return $ret;
     }
 
-    public static function GetGetReceivedDebug() {
+    public static function getGetReceivedDebug() {
         global $LastGETURL;
         global $last_http_response;
         global $LastGETMethod;
@@ -131,7 +131,7 @@ class Net {
     // the PHP version and configuration.  You can use only one
     // if you know what version of PHP is working and how it will be 
     // configured...
-    public static function DoBody($url, $method, $body, $header) {
+    public static function doBody($url, $method, $body, $header) {
         global $LastBODYURL;
         global $LastBODYMethod;
         global $LastBODYImpl;
@@ -149,13 +149,13 @@ class Net {
         $LastBODYResponse = false;
 
         // Prefer curl because it checks if it works before trying
-        $LastBODYResponse = NET::BodyCurl($url, $method, $body, $header);
+        $LastBODYResponse = NET::bodyCurl($url, $method, $body, $header);
         $LastBODYImpl = "CURL";
         if ( $LastBODYResponse !== false ) return $LastBODYResponse;
-        $LastBODYResponse = NET::BodySocket($url, $method, $body, $header);
+        $LastBODYResponse = NET::bodySocket($url, $method, $body, $header);
         $LastBODYImpl = "Socket";
         if ( $LastBODYResponse !== false ) return $LastBODYResponse;
-        $LastBODYResponse = NET::BodyStream($url, $method, $body, $header);
+        $LastBODYResponse = NET::bodyStream($url, $method, $body, $header);
         $LastBODYImpl = "Stream";
         if ( $LastBODYResponse !== false ) return $LastBODYResponse;
         $LastBODYImpl = "Error";
@@ -166,7 +166,7 @@ class Net {
     }
 
     // From: http://php.net/manual/en/function.file-get-contents.php
-    public static function BodySocket($endpoint, $method, $data, $moreheaders=false) {
+    public static function bodySocket($endpoint, $method, $data, $moreheaders=false) {
       if ( ! function_exists('fsockopen') ) return false;
       if ( ! function_exists('stream_get_transports') ) return false;
         $url = parse_url($endpoint);
@@ -222,7 +222,7 @@ class Net {
         return false;
     }
 
-    public static function BodyStream($url, $method, $body, $header) {
+    public static function bodyStream($url, $method, $body, $header) {
         $params = array('http' => array(
             'method' => $method,
             'content' => $body,
@@ -239,7 +239,7 @@ class Net {
         return $response;
     }
 
-    public static function BodyCurl($url, $method, $body, $header) {
+    public static function bodyCurl($url, $method, $body, $header) {
       if ( ! function_exists('curl_init') ) return false;
       global $last_http_response;
       global $LastHeadersSent;

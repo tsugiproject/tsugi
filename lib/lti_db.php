@@ -11,69 +11,69 @@ use \Tsugi\LTIDB;
  * @deprecated deprecated since refactor to classes
  */
 function ltiLaunchCheck() {
-    return LTIDB::LaunchCheck();
+    return LTIDB::launchCheck();
 }
 
 /**
  * @deprecated deprecated since refactor to classes
  */
 function ltiSetupSession($pdo=false) {
-    return LTIDB::SetupSession($pdo);
+    return LTIDB::setupSession($pdo);
 }
 
 /**
  * @deprecated deprecated since refactor to classes
  */
 function ltiExtractPost() {
-    return LTIDB::ExtractPost();
+    return LTIDB::extractPost();
 }
 
 /**
  * @deprecated deprecated since refactor to classes
  */
 function ltiGetCompositeKey($post, $session_secret) {
-    return LTIDB::GetCompositeKey($post, $session_secret);
+    return LTIDB::getCompositeKey($post, $session_secret);
 }
 
 /**
  * @deprecated deprecated since refactor to classes
  */
 function ltiLoadAllData($pdo, $p, $profile_table, $post) {
-    return LTIDB::LoadAllData($pdo, $p, $profile_table, $post);
+    return LTIDB::loadAllData($pdo, $p, $profile_table, $post);
 }
 
 /**
  * @deprecated deprecated since refactor to classes
  */
 function ltiAdjustData($pdo, $p, &$row, $post) {
-    return LTIDB::AdjustData($pdo, $p, $row, $post);
+    return LTIDB::adjustData($pdo, $p, $row, $post);
 }
 
 /**
  * @deprecated deprecated since refactor to classes
  */
 function lti_verify_key_and_secret($key, $secret) {
-    return LTIDB::VerifyKeyAndSecret($key, $secret);
+    return LTIDB::verifyKeyAndSecret($key, $secret);
 }
 
 /**
  * @deprecated deprecated since refactor to classes
  */
 function ltiGetCustom($varname, $default=false) {
-    return LTIDB::GetCustom($varname, $default);
+    return LTIDB::getCustom($varname, $default);
 }
 
 /**
  * @deprecated deprecated since refactor to classes
  */
 function ltiRequireData($needed) {
-    return LTIDB::RequireData($needed);
+    return LTIDB::requireData($needed);
 }
 
 /**
  * @deprecated deprecated since refactor to classes
  */
 function ltiGetDueDate() {
-    return LTIDB::GetDueDate();
+    return LTIDB::getDueDate();
 }
 

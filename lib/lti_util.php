@@ -42,7 +42,7 @@ function dataToggle(divName) {
  */
 function ltiIsRequest() 
 {
-    return \Tsugi\LTI::IsRequest();
+    return \Tsugi\LTI::isRequest();
 }
 
 /**
@@ -68,7 +68,7 @@ function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false)
  */
 function ltiBodyRequest($url, $method, $data, $optional_headers = null)
 {
-    return \Tsugi\LTI::BodyRequest($url, $method, $data, $optional_headers);
+    return \Tsugi\LTI::bodyRequest($url, $method, $data, $optional_headers);
 }
 
 /**
@@ -172,6 +172,6 @@ function parseResponse($response)
  */
 function ltiCompareBaseStrings($string1, $string2)
 {
-    return \Tsugi\LTI::CompareBaseStrings($string1, $string2);
+    return \Tsugi\LTI::compareBaseStrings($string1, $string2);
 }
 
