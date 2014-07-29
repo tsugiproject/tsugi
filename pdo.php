@@ -1,7 +1,10 @@
 <?php
 
-global $PDO;
+global $PDO, $PDOX;
 $PDO = false;
+$PDOX = false;
+
+require_once($CFG->dirroot."/lib/pdo_util.php");
 
 if ( defined('PDO_WILL_CATCH') ) {
     $pdo = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
@@ -17,5 +20,6 @@ if ( defined('PDO_WILL_CATCH') ) {
 }
 
 $PDO = $pdo;  // Copy to the upper case version
+$PDOX = new \Tsugi\PDOX($pdo);
 
-require_once($CFG->dirroot."/lib/pdo_util.php");
+// 
