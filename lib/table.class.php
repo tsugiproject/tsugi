@@ -2,7 +2,6 @@
 
 namespace Tsugi;
 
-require_once("crudform.class.php");
 use \Tsugi\CrudForm;
 
 class Table {

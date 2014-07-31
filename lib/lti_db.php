@@ -2,9 +2,6 @@
 
 // TODO: Remove lti global functions when all the code is cleaned up
 
-require_once 'lti_util.php';
-require_once 'ltix.class.php';
-
 use \Tsugi\LTIX;
 
 /**

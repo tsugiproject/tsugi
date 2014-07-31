@@ -2,9 +2,6 @@
 
 namespace Tsugi;
 
-require_once 'OAuth.php';
-require_once 'net.class.php';
-
 use \Tsugi\OAuth\TrivialOAuthDataStore;
 use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;

@@ -8,7 +8,7 @@ require_once "exercises.php";
 use \Tsugi\LTIX;
 
 // Sanity checks
-$LTI = LTIX::RequireData(array('user_id', 'link_id', 'role','context_id', 'result_id'));
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id', 'result_id'));
 $user_id = $USER->id;
 $p = $CFG->dbprefix;
 

@@ -1,7 +1,6 @@
 <?php
 
 namespace Tsugi;
-use Tsugi\Net;
 
 class Net {
     public static function doGet($url, $header = false) {
