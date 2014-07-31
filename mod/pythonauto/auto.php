@@ -5,8 +5,10 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once "exercises.php";
 
+use \Tsugi\LTIX;
+
 // Sanity checks
-$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id', 'result_id'));
+$LTI = LTIX::RequireData(array('user_id', 'link_id', 'role','context_id', 'result_id'));
 $user_id = $USER->id;
 $p = $CFG->dbprefix;
 
@@ -32,7 +34,7 @@ if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0
 $codemirror = $editor == 1;
 
 // Get any due date information
-$dueDate = ltiGetDueDate();
+$dueDate = LTIX::getDueDate();
 
 $OUTPUT->header();
 
@@ -53,7 +55,7 @@ $CHECKS = false;
 $EX = false;
 
 // Check which exercise we are supposed to do
-$ex = ltiGetCustom('exercise');
+$ex = LTIX::getCustom('exercise');
 if ( $ex === false && isset($_REQUEST["exercise"]) ) {
     $ex = $_REQUEST["exercise"];
 }

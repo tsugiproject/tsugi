@@ -14,10 +14,3 @@ function ltiRequireData($needed) {
     return LTIX::requireData($needed);
 }
 
-/**
- * @deprecated deprecated since refactor to classes
- */
-function ltiGetDueDate() {
-    return LTIX::getDueDate();
-}
-
