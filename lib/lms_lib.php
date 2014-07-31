@@ -338,7 +338,7 @@ function findFiles($filename="index.php", $reldir=false) {
 // Looks up a result for a potentially different user_id so we make
 // sure they are in the smame key/ context / link as the current user
 // hence the complex query to make sure we don't cross silos
-function lookupResult($pdo, $LTI, $user_id) {
+function lookupResult($LTI, $user_id) {
     global $CFG, $PDOX;
     $stmt = $PDOX->queryDie(
         "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id, 
@@ -403,7 +403,7 @@ function noBuffer() {
     ini_set('zlib.output_compression', false);
 }
 
-function loadUserInfo($pdo, $user_id)
+function loadUserInfoBypass($user_id)
 {
     global $CFG, $PDOX;
     $cacheloc = 'lti_user';
@@ -422,7 +422,7 @@ function loadUserInfo($pdo, $user_id)
     return $row;
 }
 
-function loadLinkInfo($pdo, $link_id)
+function loadUserInfo($link_id)
 {
     global $CFG, $PDOX;
     $LTI = ltiRequireData(array('context_id'));
@@ -501,7 +501,7 @@ function setSecureCookie($user_id, $userSHA) {
 }
 
 // Check the secure cookie and set login information appropriately
-function loginSecureCookie($pdo) {
+function loginSecureCookie() {
     global $CFG, $PDOX;
     $pieces = false;
     $id = false;

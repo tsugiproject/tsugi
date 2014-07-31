@@ -96,7 +96,7 @@ foreach($tools as $tool ) {
                 if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
                 // Do the POST-Create
                 if ( isset($DATABASE_POST_CREATE) && $DATABASE_POST_CREATE !== false ) {
-                    $DATABASE_POST_CREATE($pdo, $entry[0]);
+                    $DATABASE_POST_CREATE($entry[0]);
                 }
             }
         }
@@ -113,7 +113,7 @@ foreach($tools as $tool ) {
             if ( is_array($data) && isset($data['version']) ) $version = $data['version']+0;
         }
         echo("-- Current data model version $version <br/>\n");
-        $newversion = $DATABASE_UPGRADE($pdo, $version);
+        $newversion = $DATABASE_UPGRADE($version);
         if ( $newversion > $maxversion ) {
             $maxversion = $newversion;
             $maxpath = $path;

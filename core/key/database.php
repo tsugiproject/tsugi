@@ -43,7 +43,7 @@ array( "{$CFG->dbprefix}key_request",
 $DATABASE_POST_CREATE = false;
 
 // Called to check if upgrades are needed
-$DATABASE_UPGRADE = function($pdo, $oldversion) {
+$DATABASE_UPGRADE = function($oldversion) {
     global $CFG;
 
     return 2014042200;  // First version where we existed

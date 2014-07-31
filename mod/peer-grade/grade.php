@@ -23,7 +23,7 @@ if ( isset($_GET['user_id']) ) {
 }
 
 // Model 
-$row = loadAssignment($pdo, $LTI);
+$row = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -84,14 +84,14 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
 
     // Check to see if user_id is correct for this submit_id
     $user_id = $_POST['user_id']+0; 
-    $submit_row = loadSubmission($pdo, $assn_id, $user_id);
+    $submit_row = loadSubmission($assn_id, $user_id);
     if ( $submit_row === null || $submit_row['submit_id'] != $_POST['submit_id']) {
         $_SESSION['error'] = 'Mis-match between user_id and session_id';
         header( 'Location: '.addSession($url_goback) ) ;
         return;
     }
 
-    $grade_count = loadMyGradeCount($pdo, $LTI, $assn_id);
+    $grade_count = loadMyGradeCount($LTI, $assn_id);
     if ( $grade_count > $assn_json->maxassess && ! $USER->instructor ) {
         $_SESSION['error'] = 'You have already graded more than '.$assn_json->maxassess.' submissions';
         header( 'Location: '.addSession($url_goback) ) ;
@@ -120,12 +120,12 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     }
 
     // Attempt to update the user's grade, may take a second..
-    $grade = computeGrade($pdo, $assn_id, $assn_json, $user_id);
+    $grade = computeGrade($assn_id, $assn_json, $user_id);
     $_SESSION['success'] = 'Grade submitted';
     if ( $grade > 0 ) {
-        $result = lookupResult($pdo, $LTI, $user_id);
+        $result = lookupResult($LTI, $user_id);
         $debug_log = array();
-        $status = gradeSendDetail($grade, $debug_log, $pdo, $result); // This is the slow bit
+        $status = gradeSendDetail($grade, $debug_log, $result); // This is the slow bit
 
         if ( $status === true ) {
             $_SESSION['success'] = 'Grade submitted to server';
@@ -142,7 +142,7 @@ $submit_id = false;
 $submit_json = null;
 if ( $user_id === false ) {
     // Load the the 10 oldest ungraded submissions
-    $to_grade = loadUngraded($pdo, $LTI, $assn_id);
+    $to_grade = loadUngraded($LTI, $assn_id);
     if ( count($to_grade) < 1 ) {
         $_SESSION['success'] = 'There are no submissions to grade';
         header( 'Location: '.addSession($url_goback) ) ;
@@ -154,7 +154,7 @@ if ( $user_id === false ) {
     $user_id = $to_grade_row['user_id'];
 }
 
-$submit_row = loadSubmission($pdo, $assn_id, $user_id);
+$submit_row = loadSubmission($assn_id, $user_id);
 if ( $submit_row !== null ) {
     $submit_id = $submit_row['submit_id'];
     $submit_json = json_decode($submit_row['json']);

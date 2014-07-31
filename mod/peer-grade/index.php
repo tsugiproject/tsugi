@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
 }
 
 // Model 
-$row = loadAssignment($pdo, $LTI);
+$row = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -29,7 +29,7 @@ if ( $row !== false ) {
 
 // Load up the submission and parts if they exist
 $submit_id = false;
-$submit_row = loadSubmission($pdo, $assn_id, $USER->id);
+$submit_row = loadSubmission($assn_id, $USER->id);
 if ( $submit_row !== false ) $submit_id = $submit_row['submit_id'];
 
 // Handle the submission post
@@ -70,7 +70,7 @@ if ( $assn_id != false && $assn_json != null &&
                 return;
             }
 
-            $blob_id = uploadFileToBlob($pdo, $fdes);
+            $blob_id = uploadFileToBlob($fdes);
             if ( $blob_id === false ) {
                 $_SESSION['error'] = 'Problem storing files in server';
                 header( 'Location: '.addSession('index.php') ) ;
@@ -130,13 +130,13 @@ if ( $row !== false ) {
 }
 
 // See how much grading is left to do
-$to_grade = loadUngraded($pdo, $LTI, $assn_id);
+$to_grade = loadUngraded($LTI, $assn_id);
 
 // See how many grades I have done
-$grade_count = loadMyGradeCount($pdo, $LTI, $assn_id);
+$grade_count = loadMyGradeCount($LTI, $assn_id);
 
 // Retrieve our grades...
-$our_grades = retrieveSubmissionGrades($pdo, $submit_id);
+$our_grades = retrieveSubmissionGrades($submit_id);
 
 // Handle the flag...
 if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&

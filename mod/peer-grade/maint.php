@@ -15,7 +15,7 @@ $p = $CFG->dbprefix;
 
 // Grab our link_id
 $link_id = $LINK->id;
-$assn = loadAssignment($pdo, $LTI);
+$assn = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $assn === false ) {
@@ -64,7 +64,7 @@ if ( isset($_POST['reGradePeer']) ) {
     $changed = 0;
     $fail = 0;
     while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
-        $computed_grade = computeGrade($pdo, $assn_id, $assn_json, $row['user_id']);
+        $computed_grade = computeGrade($assn_id, $assn_json, $row['user_id']);
 
         $s2 = $PDOX->queryDie(
             "UPDATE {$CFG->dbprefix}peer_submit SET regrade=1
@@ -92,7 +92,7 @@ if ( isset($_POST['reGradePeer']) ) {
 
         // Send the grade to the server
         $debug_log = array();
-        $status = gradeSendDetail($computed_grade, $debug_log, $pdo, $row); // This is the slow bit
+        $status = gradeSendDetail($computed_grade, $debug_log, $row); // This is the slow bit
         if ( $status === true ) {
             echo(htmlent_utf8($row['displayname']).' ('.htmlent_utf8($row['email']).') ');
             echo("Grade $computed_grade submitted to server<br/>\n");

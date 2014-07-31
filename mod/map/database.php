@@ -33,7 +33,7 @@ array( "{$CFG->dbprefix}context_map",
 );
 
 
-$DATABASE_UPGRADE = function($pdo, $oldversion) {
+$DATABASE_UPGRADE = function($oldversion) {
     global $CFG;
 
     // Version 2014041200 improvements

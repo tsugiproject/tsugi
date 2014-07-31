@@ -72,7 +72,7 @@ array( "{$CFG->dbprefix}mail_sent",
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
 
-$DATABASE_UPGRADE = function($pdo, $oldversion) {
+$DATABASE_UPGRADE = function($oldversion) {
     global $CFG;
 
     return 1;

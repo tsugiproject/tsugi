@@ -11,7 +11,7 @@ $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
-$assn = loadAssignment($pdo, $LTI);
+$assn = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $assn === false ) {

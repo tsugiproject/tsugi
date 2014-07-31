@@ -13,7 +13,7 @@ $user_id = $USER->id;
 $p = $CFG->dbprefix;
 
 // Get the current user's grade data also checks session
-$row = gradeLoad($pdo);
+$row = gradeLoad();
 $OLDCODE = false;
 $json = array();
 $editor = 1;
@@ -26,7 +26,7 @@ if ( $row !== false && isset($row['json'])) {
 if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0' ) ) {
     $neweditor = $_GET['editor']+0;
     if ( $editor != $neweditor ) {
-        gradeUpdateJson($pdo, array("editor" => $neweditor));
+        gradeUpdateJson(array("editor" => $neweditor));
         $json['editor'] = $neweditor;
         $editor = $neweditor;
     }

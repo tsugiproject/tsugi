@@ -44,7 +44,7 @@ if ( isset($_POST['json']) ) {
 }
 
 // Load up the assignment 
-$row = loadAssignment($pdo, $LTI);
+$row = loadAssignment($LTI);
 $json = "";
 if ( $row !== false ) $json = $row['json'];
 

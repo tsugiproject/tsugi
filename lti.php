@@ -5,7 +5,7 @@ require_once 'lib/lms_lib.php';
 
 use \Tsugi\LTIX;
 
-$session_id = LTIX::setupSession($pdo);
+$session_id = LTIX::setupSession();
 
 // See if we have a custom assignment setting.
 if ( ! isset($_POST['custom_assn'] ) ) {

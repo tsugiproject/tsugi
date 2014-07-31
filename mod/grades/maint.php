@@ -21,7 +21,7 @@ if ( isset($_GET['link_id']) ) {
 // Load to make sure it is within our context
 $link_info = false;
 if ( $USER->instructor && $link_id > 0 ) {
-    $link_info = loadLinkInfo($pdo, $link_id);
+    $link_info = loadUserInfo($link_id);
 }
 if ( $link_info === false ) die("Invalid link");
 
@@ -79,7 +79,7 @@ if ( isset($_POST['getServerGrades']) ) {
         $count = $count + 1;
         $start = microtime(true);
         // UPDATEs automatically on success
-        $grade = gradeGet($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
+        $grade = gradeGet($row['result_id'], $row['sourcedid'], $row['service_key']);
         $et = (microtime(true) - $start) ;
         $ets = sprintf("%1.3f",$et);
         if ( is_string($grade) ) {
@@ -140,7 +140,7 @@ if ( isset($_POST['fixServerGrades']) ) {
         $count = $count + 1;
 
         $debug_log = array();
-        $status = gradeSendDetail($row['grade'], $debug_log, $pdo, $row); // This is the slow bit
+        $status = gradeSendDetail($row['grade'], $debug_log, $row); // This is the slow bit
         if ( $status === true ) {
             echo('Grade submitted to server'."<br/>\n");
             $success++;
@@ -161,7 +161,7 @@ if ( isset($_POST['fixServerGrades']) ) {
         }
 
         // Check to see if the grade we sent is really there - Also updates our local table
-        $server_grade = gradeGet($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
+        $server_grade = gradeGet($row['result_id'], $row['sourcedid'], $row['service_key']);
         if ( is_string($server_grade) ) {
             echo('<pre class="alert alert-danger">'."\n");
             $msg = "result_id=".$row['result_id']."\n".

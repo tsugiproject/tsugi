@@ -4,7 +4,7 @@ namespace Tsugi;
 
 class PDOX {
 
-    private $pdo = null;
+    public $pdo = false;
 
     function __construct($pdo) {
         $this->pdo = $pdo;

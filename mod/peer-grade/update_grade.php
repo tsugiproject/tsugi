@@ -15,7 +15,7 @@ $user_id = $USER->id;
 if ( isset($_REQUEST['user_id']) ) $user_id = $_REQUEST['user_id'];
 
 // Model 
-$row = loadAssignment($pdo, $LTI);
+$row = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -29,7 +29,7 @@ if ( $assn_id == false ) {
 }
 
 // Compute the user's grade
-$grade = computeGrade($pdo, $assn_id, $assn_json, $user_id);
+$grade = computeGrade($assn_id, $assn_json, $user_id);
 if ( $grade <= 0 ) {
     jsonError('Nothing to grade for this user', $row);
     return;
@@ -38,12 +38,12 @@ if ( $grade <= 0 ) {
 // Lookup the result row if we are grading the non-current user
 $result = false;
 if ( $user_id != $USER->id ) {
-    $result = lookupResult($pdo, $LTI, $user_id);
+    $result = lookupResult($LTI, $user_id);
 }
 
 // Send the grade
 $debug_log = array();
-$status = gradeSendDetail($grade, $debug_log, $pdo, $result); // This is the slow bit
+$status = gradeSendDetail($grade, $debug_log, $result); // This is the slow bit
 
 if ( $status === true ) {
     if ( $user_id != $USER->id ) {

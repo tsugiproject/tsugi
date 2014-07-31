@@ -14,7 +14,7 @@ if ( ! isset($_POST['code']) ) {
 
 // Check to see if the code actually changed
 $code = $_POST['code'];
-gradeUpdateJson($pdo, array("code" => $code));
+gradeUpdateJson(array("code" => $code));
 $_SESSION['pythonauto_lastcode'] = $code;
 
 $retval = Array("status" => "success");

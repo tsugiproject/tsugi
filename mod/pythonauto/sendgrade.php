@@ -10,11 +10,11 @@ $user_id = $USER->id;
 $grade = 1.0;
 
 $code = $_POST['code'];
-gradeUpdateJson($pdo, array("code" => $code));
+gradeUpdateJson(array("code" => $code));
 $_SESSION['pythonauto_lastcode'] = $code;
 
 $debug_log = array();
-$retval = gradeSendDetail($grade, $debug_log, $pdo, false);
+$retval = gradeSendDetail($grade, $debug_log, false);
 if ( is_string($retval) ) {
     echo json_encode(Array("status" => "failure", "detail" => $retval, "debug_log" => $debug_log));
     return;

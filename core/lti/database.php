@@ -228,8 +228,8 @@ array( "{$CFG->dbprefix}profile",
 );
 
 // Called after a table has been created...
-$DATABASE_POST_CREATE = function($pdo, $table) {
-    global $CFG;
+$DATABASE_POST_CREATE = function($table) {
+    global $CFG, $PDOX;
 
     if ( $table == "{$CFG->dbprefix}lti_key") {
         $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret) values
@@ -247,8 +247,8 @@ $DATABASE_POST_CREATE = function($pdo, $table) {
     }
 };
 
-$DATABASE_UPGRADE = function($pdo, $oldversion) {
-    global $CFG;
+$DATABASE_UPGRADE = function($oldversion) {
+    global $CFG, $PDOX;
 
     // Version 2014041200 improvements
     if ( $oldversion < 2014041200 ) {

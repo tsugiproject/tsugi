@@ -3,18 +3,18 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
+use \Tsugi\LTIX;
+
 // Sanity checks
-$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 
 header('Content-type: application/json');
 
 $p = $CFG->dbprefix;
 if ( isset($_GET['game']) ) { // I am player 1 since I made this game
-    $stmt = $pdo->prepare("SELECT play1, play2, displayname FROM {$p}rps 
+    $row = $PDOX->rowDie("SELECT play1, play2, displayname FROM {$p}rps 
         LEFT JOIN {$p}lti_user ON {$p}rps.user2_id = {$p}lti_user.user_id
-        WHERE rps_guid = :GUID");
-    $stmt->execute(array(":GUID" => $_GET['game']));
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        WHERE rps_guid = :GUID", array(":GUID" => $_GET['game']));
     if ( $row === FALSE ) {
         echo('{ "error" : "Row not found"}');
         return;

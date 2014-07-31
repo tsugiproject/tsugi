@@ -4,7 +4,7 @@ require_once "classes.php";
 
 use \Tsugi\LTI;
 
-function gradeLoadAll($pdo) {
+function gradeLoadAll() {
     global $CFG, $USER, $LINK, $PDOX;
     $LTI = ltiRequireData(array('link_id', 'role'));
     if ( ! $USER->instructor ) die("Requires instructor role");
@@ -44,7 +44,7 @@ function gradeShowAll($stmt, $detail = false) {
 }
 
 // Not cached
-function gradeLoad($pdo, $user_id=false) {
+function gradeLoad($user_id=false) {
     global $CFG, $USER, $LINK, $PDOX;
     $LTI = ltiRequireData(array('user_id', 'link_id', 'role'));
     if ( ! $USER->instructor && $user_id !== false ) die("Requires instructor role");
@@ -75,12 +75,12 @@ function gradeShowInfo($row) {
 }
 
 // newdata can be a string or array (preferred)
-function gradeUpdateJson($pdo, $newdata=false) {
+function gradeUpdateJson($newdata=false) {
     global $CFG, $PDOX;
     if ( $newdata == false ) return;
     if ( is_string($newdata) ) $newdata = json_decode($newdata, true);
     $LTI = ltiRequireData(array('result_id'));
-    $row = gradeLoad($pdo);
+    $row = gradeLoad();
     $data = array();
     if ( $row !== false && isset($row['json'])) {
         $data = json_decode($row['json'], true);
@@ -107,7 +107,7 @@ function gradeUpdateJson($pdo, $newdata=false) {
     );
 }
 
-function gradeGet($pdo, $result_id, $sourcedid, $service) {
+function gradeGet($result_id, $sourcedid, $service) {
     global $CFG, $PDOX;
     $grade = gradeGetWebService($sourcedid, $service);
     if ( is_string($grade) ) return $grade;
@@ -179,7 +179,7 @@ function gradeGetWebService($sourcedid, $service) {
     return $grade;
 }
 
-function gradeSend($grade, $verbose=true, $pdo=false, $result=false) {
+function gradeSend($grade, $verbose=true, $result=false) {
     if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
@@ -187,7 +187,7 @@ function gradeSend($grade, $verbose=true, $pdo=false, $result=false) {
     $retval = false;
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        $retval = gradeSendInternal($grade, $debug_log, $pdo, $result);
+        $retval = gradeSendInternal($grade, $debug_log, $result);
     } catch(Exception $e) {
         $retval = "Grade Exception: ".$e->getMessage();
         error_log($retval);
@@ -209,14 +209,14 @@ function dumpGradeDebug($debug_log) {
     }
 }
 
-function gradeSendDetail($grade, &$debug_log, $pdo=false, $result=false) {
+function gradeSendDetail($grade, &$debug_log, $result=false) {
     if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
     $retval = false;
     try {
         if ( $result === false ) $result = $_SESSION['lti'];
-        $retval = gradeSendInternal($grade, $debug_log, $pdo, $result);
+        $retval = gradeSendInternal($grade, $debug_log, $result);
     } catch(Exception $e) {
         $retval = "Grade Exception: ".$e->getMessage();
         $debug_log[] = $retval;
@@ -225,7 +225,7 @@ function gradeSendDetail($grade, &$debug_log, $pdo=false, $result=false) {
     return $retval;
 }
 
-function gradeSendInternal($grade, &$debug_log, $pdo,  $result) {
+function gradeSendInternal($grade, &$debug_log, $result) {
     global $CFG, $PDOX;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
@@ -266,7 +266,7 @@ function gradeSendInternal($grade, &$debug_log, $pdo,  $result) {
 
     // Update result in the database and in the LTI session area
     $_SESSION['lti']['grade'] = $grade;
-    if ( $pdo !== false ) {
+    if ( $PDOX !== false ) {
         $stmt = $PDOX->queryReturnError(
             "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade, 
                 updated_at = NOW() WHERE result_id = :RID",

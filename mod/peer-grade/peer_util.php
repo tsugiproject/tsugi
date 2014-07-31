@@ -4,7 +4,7 @@ use \Tsugi\Cache;
 use \Tsugi\LTIX;
 
 // Loads the assignment associated with this link
-function loadAssignment($pdo, $LTI)
+function loadAssignment($LTI)
 {
     global $CFG, $PDOX;
     $cacheloc = 'peer_assn';
@@ -19,7 +19,7 @@ function loadAssignment($pdo, $LTI)
     return $row;
 }
 
-function loadSubmission($pdo, $assn_id, $user_id) 
+function loadSubmission($assn_id, $user_id) 
 {
     global $CFG, $PDOX;
     $cacheloc = 'peer_submit';
@@ -40,7 +40,7 @@ function loadSubmission($pdo, $assn_id, $user_id)
 }
 
 // Check for ungraded submissions
-function loadUngraded($pdo, $LTI, $assn_id)
+function loadUngraded($LTI, $assn_id)
 {
     global $CFG, $PDOX;
     $stmt = $PDOX->queryDie(
@@ -112,7 +112,7 @@ function showSubmission($LTI, $assn_json, $submit_json)
     echo('<div style="padding:3px">');
 }
 
-function computeGrade($pdo, $assn_id, $assn_json, $user_id)
+function computeGrade($assn_id, $assn_json, $user_id)
 {
     global $CFG, $PDOX;
     $stmt = $PDOX->queryDie(
@@ -151,7 +151,7 @@ function computeGrade($pdo, $assn_id, $assn_json, $user_id)
 }
 
 // Load the count of grades for this user for an assignment
-function loadMyGradeCount($pdo, $LTI, $assn_id) {
+function loadMyGradeCount($LTI, $assn_id) {
     global $CFG, $PDOX;
     $cacheloc = 'peer_grade';
     $cachekey = $assn_id + "::" + $LTI['user_id'];
@@ -176,7 +176,7 @@ function loadMyGradeCount($pdo, $LTI, $assn_id) {
 // Retrieve grades for a submission
 // Not cached because another user may have added a grade
 // a moment ago
-function retrieveSubmissionGrades($pdo, $submit_id)
+function retrieveSubmissionGrades($submit_id)
 {
     global $CFG, $PDOX;
     if ( $submit_id === false ) return false;
@@ -192,7 +192,7 @@ function retrieveSubmissionGrades($pdo, $submit_id)
     return $grades_received;
 }
 
-function retrieveGradesGiven($pdo, $assn_id, $user_id)
+function retrieveGradesGiven($assn_id, $user_id)
 {
     global $CFG, $PDOX;
     $grades_given = $PDOX->allRowsDie(
@@ -208,14 +208,14 @@ function retrieveGradesGiven($pdo, $assn_id, $user_id)
     return $grades_given;
 }
 
-function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)
+function mailDeleteSubmit($user_id, $assn_json, $note)
 {
     global $CFG, $PDOX;
     if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return false;
 
     $LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 
-    $user_row = loadUserInfo($pdo, $user_id);
+    $user_row = loadUserInfoBypass($user_id);
     if ( $user_row === false ) return false;
     $to = $user_row['email'];
     if ( strlen($to) < 1 || strpos($to,'@') === false ) return false;

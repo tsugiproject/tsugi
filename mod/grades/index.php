@@ -23,7 +23,7 @@ if ( isset($_GET['link_id']) ) {
 
 $link_info = false;
 if ( $USER->instructor && $link_id > 0 ) {
-    $link_info = loadLinkInfo($pdo, $link_id);
+    $link_info = loadUserInfo($link_id);
 }
 
 if ( $USER->instructor && isset($_GET['viewall'] ) ) {
@@ -68,7 +68,7 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
         JOIN {$p}lti_link as L ON R.link_id = L.link_id
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
-    $user_info = loadUserInfo($pdo, $user_id);
+    $user_info = loadUserInfoBypass($user_id);
 }
 
 if ( $USER->instructor ) {
@@ -154,7 +154,7 @@ if ( $user_sql !== false ) {
 
         if ( !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] || 
             $diff > $RETRIEVE_INTERVAL ) {
-            $server_grade = gradeGet($pdo, $row['result_id'], $row['sourcedid'], $row['service_key']);
+            $server_grade = gradeGet($row['result_id'], $row['sourcedid'], $row['service_key']);
             if ( is_string($server_grade)) {
                 echo('<pre class="alert alert-danger">'."\n");
                 $msg = "result_id=".$row['result_id']."\n".

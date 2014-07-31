@@ -17,7 +17,7 @@ if ( !isset($_REQUEST['user_id']) ) die("user_id parameter required");
 $user_id = $_REQUEST['user_id'];
 
 // Load the assignment
-$row = loadAssignment($pdo, $LTI);
+$row = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -32,13 +32,13 @@ if ( $assn_id === false ) {
 }
 
 $submit_id = false;
-$submit_row = loadSubmission($pdo, $assn_id, $user_id);
+$submit_row = loadSubmission($assn_id, $user_id);
 if ( $submit_row !== false ) {
     $submit_id = $submit_row['submit_id']+0;
 }
 
 // Load user info
-$user_row = loadUserInfo($pdo, $user_id);
+$user_row = loadUserInfoBypass($user_id);
 
 // Handle incoming post to delete the entire submission
 if ( isset($_POST['deleteSubmit']) ) {
@@ -48,7 +48,7 @@ if ( isset($_POST['deleteSubmit']) ) {
         return;
     }
     $note = isset($_POST['deleteNote']) ? $_POST['deleteNote'] : '';
-    $retval = mailDeleteSubmit($pdo, $user_id, $assn_json, $note);
+    $retval = mailDeleteSubmit($user_id, $assn_json, $note);
     $stmt = $PDOX->queryDie(
         "DELETE FROM {$p}peer_submit
             WHERE submit_id = :SID",
@@ -67,14 +67,14 @@ if ( isset($_POST['deleteSubmit']) ) {
 }
 
 // Compute grade
-$computed_grade = computeGrade($pdo, $assn_id, $assn_json, $user_id);
+$computed_grade = computeGrade($assn_id, $assn_json, $user_id);
 if ( isset($_POST['resendSubmit']) ) {
-    $result = lookupResult($pdo, $LTI, $user_id);
+    $result = lookupResult($LTI, $user_id);
     // Force a resend
     $_SESSION['lti']['grade'] = -1;  // Force a resend
     $result['grade'] = -1;
     $debug_log = array();
-    $status = gradeSendDetail($computed_grade, $debug_log, $pdo, $result); // This is the slow bit
+    $status = gradeSendDetail($computed_grade, $debug_log, $result); // This is the slow bit
     if ( $status === true ) {
         $_SESSION['success'] = 'Grade submitted to server';
     } else {
@@ -87,7 +87,7 @@ if ( isset($_POST['resendSubmit']) ) {
 }
 
 // Retrieve our grades...
-$grades_received = retrieveSubmissionGrades($pdo, $submit_id);
+$grades_received = retrieveSubmissionGrades($submit_id);
 
 // Handle incoming post to delete a grade entry
 if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
@@ -154,7 +154,7 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
 }
 
 // Reteieve the grades that we have given
-$grades_given = retrieveGradesGiven($pdo, $assn_id, $user_id);
+$grades_given = retrieveGradesGiven($assn_id, $user_id);
 
 // View
 $OUTPUT->header();

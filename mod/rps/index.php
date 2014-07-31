@@ -3,15 +3,16 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
+use \Tsugi\LTIX;
+
 // Sanity checks
-$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
 // The reset operation is a normal POST - not AJAX
 if ( $USER->instructor && isset($_POST['reset']) ) {
-    $sql = "DELETE FROM {$p}rps WHERE link_id = :LI";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(array(':LI' => $LINK->id));
+    $PDOX->queryDie("DELETE FROM {$p}rps WHERE link_id = :LI",
+        array(':LI' => $LINK->id));
     header( 'Location: '.addSession('index.php') ) ;
     return;
 }

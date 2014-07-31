@@ -11,9 +11,8 @@ class LTIX Extends \Tsugi\LTI {
 
     // Silently check if this is a launch and if so, handle it
     public static function launchCheck() {
-        global $CFG, $PDO;
         if ( ! LTI::isRequest() ) return false;
-        $session_id = self::setupSession($PDO);
+        $session_id = self::setupSession();
         if ( $session_id === false ) return false;
 
         // Redirect back to ourselves...
@@ -43,8 +42,8 @@ class LTIX Extends \Tsugi\LTI {
         return $default;
     }
 
-    public static function setupSession($pdo=false) {
-        global $CFG;
+    public static function setupSession() {
+        global $CFG, $PDOX;
         if ( ! LTI::isRequest() ) return false;
 
         // Pull LTI data out of the incoming $_POST and map into the same
@@ -74,8 +73,8 @@ class LTIX Extends \Tsugi\LTI {
 
         // Read all of the data from the database with a very long
         // LEFT JOIN and get all the data we have back in the $row variable
-        // $row = LoadAllData($pdo, $CFG->dbprefix, false, $post);
-        $row = self::loadAllData($pdo, $CFG->dbprefix, $CFG->dbprefix.'profile', $post);
+        // $row = loadAllData($CFG->dbprefix, false, $post);
+        $row = self::loadAllData($CFG->dbprefix, $CFG->dbprefix.'profile', $post);
 
         $delta = 0;
         if ( isset($_POST['oauth_timestamp']) ) {
@@ -96,7 +95,7 @@ class LTIX Extends \Tsugi\LTI {
             die_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0]);
         }
 
-        $actions = self::adjustData($pdo, $CFG->dbprefix, $row, $post);
+        $actions = self::adjustData($CFG->dbprefix, $row, $post);
 
         // If there is an appropriate role override variable, we use that role
         if ( isset($row['role_override']) && isset($row['role']) &&
@@ -113,7 +112,7 @@ class LTIX Extends \Tsugi\LTI {
         $_SESSION['CSRF_TOKEN'] = uniqid();
 
         // Check if we can auto-login the system user
-        if ( self::getCustom('dologin', false) && $pdo !== false ) loginSecureCookie($pdo);
+        if ( self::getCustom('dologin', false) && isset($PDOX) && $PDOX !== false ) loginSecureCookie();
 
         // Set up basic custom values
         if ( isset($_POST['custom_due'] ) ) {
@@ -224,11 +223,10 @@ class LTIX Extends \Tsugi\LTI {
     }
 
     // Returns as much as we have in all the tables
-    // Assume..  $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-    public static function loadAllData($pdo, $p, $profile_table, $post) {
+    public static function loadAllData($p, $profile_table, $post) {
         global $PDOX;
-        $errormode = $pdo->getAttribute(\PDO::ATTR_ERRMODE);
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $errormode = $PDOX->pdo->getAttribute(\PDO::ATTR_ERRMODE);
+        $PDOX->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $sql = "SELECT k.key_id, k.key_key, k.secret, c.context_id, c.title AS context_title,
             l.link_id, l.title AS link_title,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email,
@@ -286,16 +284,16 @@ class LTIX Extends \Tsugi\LTI {
         $row = $PDOX->rowDie($sql, $parms);
 
         // Restore ERRMODE
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
+        $PDOX->pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
         return $row;
     }
 
     // Insert the missing bits and update the new bits...
     // TODO: Contemplate the deep mystery of transactions here
-    public static function adjustData($pdo, $p, &$row, $post) {
+    public static function adjustData($p, &$row, $post) {
         global $PDOX;
-        $errormode = $pdo->getAttribute(\PDO::ATTR_ERRMODE);
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $errormode = $PDOX->pdo->getAttribute(\PDO::ATTR_ERRMODE);
+        $PDOX->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $actions = array();
         if ( $row['context_id'] === null) {
@@ -307,7 +305,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':context_sha256' => lti_sha256($post['context_id']),
                 ':title' => $post['context_title'],
                 ':key_id' => $row['key_id']));
-            $row['context_id'] = $pdo->lastInsertId();
+            $row['context_id'] = $PDOX->pdo->lastInsertId();
             $row['context_title'] = $post['context_title'];
             $actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title'];
         }
@@ -321,7 +319,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':link_sha256' => lti_sha256($post['link_id']),
                 ':title' => $post['link_title'],
                 ':context_id' => $row['context_id']));
-            $row['link_id'] = $pdo->lastInsertId();
+            $row['link_id'] = $PDOX->pdo->lastInsertId();
             $row['link_title'] = $post['link_title'];
             $actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title'];
         }
@@ -338,7 +336,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':displayname' => $user_displayname,
                 ':email' => $user_email,
                 ':key_id' => $row['key_id']));
-            $row['user_id'] = $pdo->lastInsertId();
+            $row['user_id'] = $PDOX->pdo->lastInsertId();
             $row['user_email'] = $user_email;
             $row['user_sha256'] = lti_sha256($post['user_id']);
             $row['user_displayname'] = $user_displayname;
@@ -353,7 +351,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':context_id' => $row['context_id'],
                 ':user_id' => $row['user_id'],
                 ':role' => $post['role']));
-            $row['membership_id'] = $pdo->lastInsertId();
+            $row['membership_id'] = $PDOX->pdo->lastInsertId();
             $row['role'] = $post['role'];
             $actions[] = "=== Inserted membership id=".$row['membership_id']." role=".$row['role'].
                 " user=".$row['user_id']." context=".$row['context_id'];
@@ -369,7 +367,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':service_key' => $post['service'],
                 ':service_sha256' => lti_sha256($post['service']),
                 ':key_id' => $row['key_id']));
-            $row['service_id'] = $pdo->lastInsertId();
+            $row['service_id'] = $PDOX->pdo->lastInsertId();
             $row['service'] = $post['service'];
             $actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service'];
         }
@@ -394,7 +392,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':service_id' => $row['service_id'],
                 ':link_id' => $row['link_id'],
                 ':user_id' => $row['user_id']));
-            $row['result_id'] = $pdo->lastInsertId();
+            $row['result_id'] = $PDOX->pdo->lastInsertId();
             $row['sourcedid'] = $post['sourcedid'];
             $actions[] = "=== Inserted result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
         }
@@ -409,7 +407,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':sourcedid_sha256' => lti_sha256($post['sourcedid']),
                 ':link_id' => $row['link_id'],
                 ':user_id' => $row['user_id']));
-            $row['result_id'] = $pdo->lastInsertId();
+            $row['result_id'] = $PDOX->pdo->lastInsertId();
             $actions[] = "=== Inserted LTI 2.0 result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
         }
 
@@ -473,7 +471,7 @@ class LTIX Extends \Tsugi\LTI {
         }
 
         // Restore ERRMODE
-        $pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
+        $PDOX->pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
         return $actions;
     }
 

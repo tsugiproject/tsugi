@@ -60,9 +60,9 @@ function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "im
     return $retval;
 }
 
-function uploadFileToBlob($pdo, $FILE_DESCRIPTOR, $SAFETY_CHECK=true) 
+function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true) 
 {
-    global $CFG, $CONTEXT;
+    global $CFG, $CONTEXT, $PDOX;
 
     if ( $SAFETY_CHECK && checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
 
@@ -92,7 +92,7 @@ function uploadFileToBlob($pdo, $FILE_DESCRIPTOR, $SAFETY_CHECK=true)
         }
 
         $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
-        $stmt = $pdo->prepare("INSERT INTO {$CFG->dbprefix}blob_file 
+        $stmt = $PDOX->pdo->prepare("INSERT INTO {$CFG->dbprefix}blob_file 
             (context_id, file_sha256, file_name, contenttype, content, created_at) 
             VALUES (?, ?, ?, ?, ?, NOW())");
     
@@ -102,10 +102,10 @@ function uploadFileToBlob($pdo, $FILE_DESCRIPTOR, $SAFETY_CHECK=true)
         $stmt->bindParam(4, $FILE_DESCRIPTOR['type']);
         $stmt->bindParam(5, $fp, PDO::PARAM_LOB);
         // $stmt->bindParam(5, $data, PDO::PARAM_LOB);
-        $pdo->beginTransaction();
+        $PDOX->pdo->beginTransaction();
         $stmt->execute();
-        $id = 0+$pdo->lastInsertId();
-        $pdo->commit();
+        $id = 0+$PDOX->pdo->lastInsertId();
+        $PDOX->pdo->commit();
         fclose($fp);
         return array($id, $sha256);
     }

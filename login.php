@@ -107,7 +107,7 @@ if ( $doLogin ) {
                     ':EMAIL' => $userEmail, ':DN' => $displayName)
             );
 
-            if ( $stmt->success) $profile_id = $pdo->lastInsertId();
+            if ( $stmt->success) $profile_id = $PDOX->pdo->lastInsertId();
 
             error_log('Profile-Insert:'.$identity.','.$displayName.','.$userEmail.','.$profile_id);
         } else {
@@ -159,7 +159,7 @@ if ( $doLogin ) {
             );
 
             if ( $stmt->success ) {
-                $user_id = $pdo->lastInsertId();
+                $user_id = $PDOX->pdo->lastInsertId();
                 error_log('User-Insert:'.$identity.','.$displayName.','.$userEmail.','.$user_id);
                 $didinsert = true;
             }

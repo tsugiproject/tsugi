@@ -104,7 +104,7 @@ array( "{$CFG->dbprefix}peer_flag",
 
 );
 
-$DATABASE_UPGRADE = function($pdo, $oldversion) {
+$DATABASE_UPGRADE = function($oldversion) {
     global $CFG;
 
     // Version 2014042200 improvements

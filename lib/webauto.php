@@ -56,11 +56,10 @@ if ( $duedate && $diff > 0 ) {
 function getUrl($sample) {
     global $displayname;
     global $instructor;
-    global $pdo;
     if ( isset($_GET['url']) ) {
         echo('<p><a href="#" onclick="window.location.href = window.location.href; return false;">Re-run this test</a></p>'."\n");
         if ( isset($_SESSION['lti']) ) {
-            $retval = gradeUpdateJson($pdo, array("url" => $_GET['url']));
+            $retval = gradeUpdateJson(array("url" => $_GET['url']));
         }
         return $_GET['url'];
     }
@@ -107,10 +106,9 @@ function webauto_test_passed($grade, $url) {
         exit();
     }
 
-    global $pdo;
-    gradeUpdateJson($pdo,json_encode(array("url" => $url)));
+    gradeUpdateJson(json_encode(array("url" => $url)));
     $debug_log = array();
-    $retval = gradeSendDetail($grade, $debug_log, $pdo, false);
+    $retval = gradeSendDetail($grade, $debug_log, false);
     dumpGradeDebug($dumplog);
     if ( $retval == true ) {
         $success = "Grade sent to server (".intval($grade*100)."%)";
