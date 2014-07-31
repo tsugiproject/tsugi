@@ -162,8 +162,8 @@ Link id: <?php echo($link_id);
     if ( isset($LINK->title) ) echo(' '.htmlent_utf8($LINK->title)) ; ?>
 </pre>
 
-<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
-<img id="totspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+<p><b>Remaining Regrades:</b> <span id="total"><img src="<?php echo($OUTPUT->getSpinnerUrl()); ?>"></span>
+<img id="totspinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display:none">
 </p>
 
 <div id="iframediv" style="display:none">

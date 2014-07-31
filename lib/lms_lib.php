@@ -605,13 +605,5 @@ function curPageURL() {
     return $pageURL;
 }
 
-/**
- * @deprecated deprecated since refactor to classes
- */
-function getSpinnerUrl() {
-    global $OUTPUT;
-    return $OUTPUT->getSpinnerUrl();
-}
-
 // No trailer
 

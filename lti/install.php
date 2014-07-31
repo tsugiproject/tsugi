@@ -31,7 +31,7 @@ if ( isset($_POST["lti_message_type"]) && $_POST["lti_message_type"] == "ToolPro
 // Now lets make sure we are in the top window...
 $OUTPUT->header();
 $OUTPUT->bodyStart();
-echo('<img src="'.getSpinnerUrl().'" id="spinner">');
+echo('<img src="'.$OUTPUT->getSpinnerUrl().'" id="spinner">');
 ?>
 <div id="popup" style="display:none">
 <p>Please click 

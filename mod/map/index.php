@@ -141,7 +141,7 @@ if ( $display ) {
       </div>
       <div class="modal-body">
         <p>Map Preferences 
-        <img id="spinner" src="<?php echo(getSpinnerUrl()); ?>" style="display: none">
+        <img id="spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
         <span id="save_fail" style="display:none; color:red">Unable to save preferences</span>
         </p>
         <form id="prefs_form">

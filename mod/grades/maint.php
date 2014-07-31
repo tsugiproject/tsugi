@@ -250,14 +250,14 @@ Link id: <?php echo($link_id);
     if ( isset($link_info['title']) ) echo(' '.htmlent_utf8($link_info['title'])) ; ?> 
 </pre>
 
-<p><b>Total results:</b> <span id="total"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
-<img id="totspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+<p><b>Total results:</b> <span id="total"><img src="<?php echo($OUTPUT->getSpinnerUrl()); ?>"></span>
+<img id="totspinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display:none">
 </p>
-<p><b>Grades to Retrieve:</b> <span id="toretrieve"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
-<img id="retspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+<p><b>Grades to Retrieve:</b> <span id="toretrieve"><img src="<?php echo($OUTPUT->getSpinnerUrl()); ?>"></span>
+<img id="retspinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display:none">
 </p>
-<p><b>Mis-matched Grades:</b> <span id="mismatch"><img src="<?php echo(getSpinnerUrl()); ?>"></span>
-<img id="misspinner" src="<?php echo(getSpinnerUrl()); ?>" style="display:none">
+<p><b>Mis-matched Grades:</b> <span id="mismatch"><img src="<?php echo($OUTPUT->getSpinnerUrl()); ?>"></span>
+<img id="misspinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display:none">
 </p>
 
 <div id="iframediv" style="display:none">
