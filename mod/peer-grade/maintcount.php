@@ -22,7 +22,7 @@ if ( $assn === false ) {
 }
 
 // Check how much work we have to do
-$row = pdoRowDie($pdo,
+$row = $PDOX->rowDie(
     "SELECT COUNT(submit_id) AS count FROM {$p}peer_submit AS S
     WHERE assn_id = :AID AND regrade IS NULL",
     array(":AID" => $assn_id)

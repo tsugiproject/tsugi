@@ -34,7 +34,7 @@ if ( !isAdmin() ) {
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
-$rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
+$rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
     $newrow = $row;

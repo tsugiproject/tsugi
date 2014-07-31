@@ -9,14 +9,14 @@ use \Tsugi\LTI;
 session_start();
 
 // We must be an administrator or in developer mode
-if ( ! ( isset($_SESSION["admin"]) || $CFG->DEVELOPER )  ) { 
+if ( ! ( isset($_SESSION["admin"]) || $CFG->DEVELOPER )  ) {
     header("Location: index.php");
     return;
 }
 
 $key = '12345';
 if ( is_string($CFG->DEVELOPER) ) $key = $CFG->DEVELOPER;
-$row = pdoRowDie($pdo, 
+$row = $PDOX->rowDie(
     "SELECT secret FROM {$CFG->dbprefix}lti_key WHERE key_key = :DKEY",
     array(':DKEY' => $key));
 $secret = $row ? $row['secret'] : false;
@@ -123,7 +123,7 @@ function doActive($field) {
 
 $OUTPUT->header();
 ?>
-<script language="javascript"> 
+<script language="javascript">
 function lmsdataToggle() {
     var ele = document.getElementById("lmsDataForm");
     if(ele.style.display == "block") {
@@ -132,10 +132,10 @@ function lmsdataToggle() {
     else {
         ele.style.display = "block";
     }
-} 
+}
 
 function getComboA(sel) {
-    var value = sel.options[sel.selectedIndex].value;  
+    var value = sel.options[sel.selectedIndex].value;
     var ele = document.getElementById("custom_assn");
     ele.value = value;
 }
@@ -274,14 +274,14 @@ $parms["oauth_callback"] = "about:blank";
 if ( $outcomes ) {
     $parms["lis_outcome_service_url"] = $outcomes;
 }
-    
+
 $parms['launch_presentation_css_url'] = $cssurl;
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
-    $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret, 
+    $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
         "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
 
-    $content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']), 
+    $content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']),
        "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency");
     echo("<hr>\n");
     print($content);
@@ -289,4 +289,4 @@ if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
 ?>
       </div>
     </div> <!-- /container -->
-<?php $OUTPUT->footer(); 
+<?php $OUTPUT->footer();

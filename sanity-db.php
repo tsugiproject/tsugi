@@ -92,7 +92,7 @@ in the <code>\$CFG->adminpw</code> setting.
     echo("\n</div>\n");
 // Now check to see if a database upgrade might be necessary
 } else {
-    $row = pdoRowDie($pdo, "SELECT MAX(version) AS version FROM {$plugins}");
+    $row = $PDOX->rowDie("SELECT MAX(version) AS version FROM {$plugins}");
     $actualdbversion = $row['version'];
     if ( $actualdbversion < $CFG->dbversion ) {
         echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");

@@ -1,15 +1,16 @@
 <?php
 
 use \Tsugi\Cache;
+use \Tsugi\LTIX;
 
 // Loads the assignment associated with this link
 function loadAssignment($pdo, $LTI)
 {
-    global $CFG;
+    global $CFG, $PDOX;
     $cacheloc = 'peer_assn';
     $row = Cache::check($cacheloc, $LTI['link_id']);
     if ( $row != false ) return $row;
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT assn_id, json FROM {$CFG->dbprefix}peer_assn WHERE link_id = :ID",
         array(":ID" => $LTI['link_id'])
     );
@@ -20,14 +21,14 @@ function loadAssignment($pdo, $LTI)
 
 function loadSubmission($pdo, $assn_id, $user_id) 
 {
-    global $CFG;
+    global $CFG, $PDOX;
     $cacheloc = 'peer_submit';
     $cachekey = $assn_id + "::" + $user_id;
     $submit_row = Cache::check($cacheloc, $cachekey);
     if ( $submit_row != false ) return $submit_row;
     $submit_row = false;
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT submit_id, json, note, reflect
             FROM {$CFG->dbprefix}peer_submit AS S
             WHERE assn_id = :AID AND S.user_id = :UID",
@@ -41,8 +42,8 @@ function loadSubmission($pdo, $assn_id, $user_id)
 // Check for ungraded submissions
 function loadUngraded($pdo, $LTI, $assn_id)
 {
-    global $CFG;
-    $stmt = pdoQueryDie($pdo,
+    global $CFG, $PDOX;
+    $stmt = $PDOX->queryDie(
         "SELECT S.submit_id, S.user_id, S.created_at, count(G.user_id) AS submit_count 
             FROM {$CFG->dbprefix}peer_submit AS S LEFT JOIN {$CFG->dbprefix}peer_grade AS G 
             ON S.submit_id = G.submit_id 
@@ -113,8 +114,8 @@ function showSubmission($LTI, $assn_json, $submit_json)
 
 function computeGrade($pdo, $assn_id, $assn_json, $user_id)
 {
-    global $CFG;
-    $stmt = pdoQueryDie($pdo,
+    global $CFG, $PDOX;
+    $stmt = $PDOX->queryDie(
         "SELECT S.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id, 
             MAX(points) as max_points, COUNT(points) as count_points, C.grade_count as grade_count
         FROM {$CFG->dbprefix}peer_submit as S 
@@ -151,12 +152,12 @@ function computeGrade($pdo, $assn_id, $assn_json, $user_id)
 
 // Load the count of grades for this user for an assignment
 function loadMyGradeCount($pdo, $LTI, $assn_id) {
-    global $CFG;
+    global $CFG, $PDOX;
     $cacheloc = 'peer_grade';
     $cachekey = $assn_id + "::" + $LTI['user_id'];
     $grade_count = Cache::check($cacheloc, $cachekey);
     if ( $grade_count != false ) return $grade_count;
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT COUNT(grade_id) AS grade_count 
         FROM {$CFG->dbprefix}peer_submit AS S 
         JOIN {$CFG->dbprefix}peer_grade AS G
@@ -177,9 +178,9 @@ function loadMyGradeCount($pdo, $LTI, $assn_id) {
 // a moment ago
 function retrieveSubmissionGrades($pdo, $submit_id)
 {
-    global $CFG;
+    global $CFG, $PDOX;
     if ( $submit_id === false ) return false;
-    $grades_received = pdoAllRowsDie($pdo,
+    $grades_received = $PDOX->allRowsDie(
         "SELECT grade_id, points, note, displayname, email
         FROM {$CFG->dbprefix}peer_grade AS G
         JOIN {$CFG->dbprefix}lti_user as U
@@ -193,8 +194,8 @@ function retrieveSubmissionGrades($pdo, $submit_id)
 
 function retrieveGradesGiven($pdo, $assn_id, $user_id)
 {
-    global $CFG;
-    $grades_given = pdoAllRowsDie($pdo,
+    global $CFG, $PDOX;
+    $grades_given = $PDOX->allRowsDie(
         "SELECT grade_id, points, G.note AS note, displayname, email
         FROM {$CFG->dbprefix}peer_grade AS G
         JOIN {$CFG->dbprefix}peer_submit AS S
@@ -209,10 +210,10 @@ function retrieveGradesGiven($pdo, $assn_id, $user_id)
 
 function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)
 {
-    global $CFG;
+    global $CFG, $PDOX;
     if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return false;
 
-    $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
+    $LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 
     $user_row = loadUserInfo($pdo, $user_id);
     if ( $user_row === false ) return false;
@@ -237,7 +238,7 @@ function mailDeleteSubmit($pdo, $user_id, $assn_json, $note)
     }
     $message .= "{$E}You may now re-submit your peer-graded assignment.$E";
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "INSERT INTO {$CFG->dbprefix}mail_sent
             (context_id, link_id, user_to, user_from, subject, body, created_at)
             VALUES ( :CID, :LID, :UTO, :UFR, :SUB, :BOD, NOW() )",

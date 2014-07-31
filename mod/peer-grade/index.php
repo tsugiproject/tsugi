@@ -94,7 +94,7 @@ if ( $assn_id != false && $assn_json != null &&
     $submission->blob_ids = $blob_ids;
     $submission->urls = $urls;
     $json = json_encode($submission);
-    $stmt = pdoQuery($pdo,
+    $stmt = $PDOX->queryReturnError(
         "INSERT INTO {$p}peer_submit 
             (assn_id, user_id, json, created_at, updated_at) 
             VALUES ( :AID, :UID, :JSON, NOW(), NOW()) 
@@ -117,7 +117,7 @@ if ( $assn_id != false && $assn_json != null &&
 
 // Check to see how much grading we have done
 $grade_count = 0;
-$stmt = pdoQueryDie($pdo,
+$stmt = $PDOX->queryDie(
     "SELECT COUNT(grade_id) AS grade_count 
      FROM {$p}peer_submit AS S JOIN {$p}peer_grade AS G
      ON S.submit_id = G.submit_id
@@ -157,7 +157,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
     }
     
     $grade_id = $_POST['grade_id']+0;
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "INSERT INTO {$p}peer_flag 
             (submit_id, grade_id, user_id, note, created_at, updated_at) 
             VALUES ( :SID, :GID, :UID, :NOTE, NOW(), NOW()) 

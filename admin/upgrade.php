@@ -39,7 +39,7 @@ create table {$plugins} (
     UNIQUE(plugin_path),
     PRIMARY KEY (plugin_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;";
-    $q = pdoQuery($pdo, $sql);
+    $q = $PDOX->queryReturnError($sql);
     if ( ! $q->success ) die("Unable to create lms_plugins table: ".implode(":", $q->errorInfo) );
     echo("Created plugins table...<br/>\n");
 } 
@@ -82,7 +82,7 @@ foreach($tools as $tool ) {
             if ( $table_fields === false ) {
                 echo("-- Creating table ".$entry[0]."<br/>\n");
                 error_log("-- Creating table ".$entry[0]);
-                $q = pdoQuery($pdo, $entry[1]);
+                $q = $PDOX->queryReturnError($entry[1]);
                 if ( ! $q->success ) die("Unable to create ".$entry[1]." ".$q->errorImplode."<br/>".$entry[1] );
                 $OUTPUT->togglePre("-- Created table ".$entry[0], $entry[1]);
                 $sql = "INSERT INTO {$plugins} 
@@ -92,7 +92,7 @@ foreach($tools as $tool ) {
                     UPDATE version = :version, updated_at = NOW()";
                 $values = array( ":plugin_path" => $path, 
                         ":version" => $CFG->dbversion);
-                $q = pdoQuery($pdo, $sql, $values);
+                $q = $PDOX->queryReturnError($sql, $values);
                 if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
                 // Do the POST-Create
                 if ( isset($DATABASE_POST_CREATE) && $DATABASE_POST_CREATE !== false ) {
@@ -106,7 +106,7 @@ foreach($tools as $tool ) {
     if ( isset($DATABASE_UPGRADE) && $DATABASE_UPGRADE !== false ) {
         $sql = "SELECT version FROM {$plugins} WHERE plugin_path = :plugin_path";
         $values = array( ":plugin_path" => $path);
-        $q = pdoQuery($pdo, $sql, $values);
+        $q = $PDOX->queryReturnError($sql, $values);
         $version = $CFG->dbversion;
         if ( $q->success ) {
             $data = $q->fetch(PDO::FETCH_ASSOC);
@@ -130,7 +130,7 @@ foreach($tools as $tool ) {
                 ON DUPLICATE KEY 
                 UPDATE version = :version, updated_at = NOW()";
             $values = array( ":version" => $newversion, ":plugin_path" => $path);
-            $q = pdoQuery($pdo, $sql, $values);
+            $q = $PDOX->queryReturnError($sql, $values);
             if ( ! $q->success ) die("Unable to update version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
         }
     }

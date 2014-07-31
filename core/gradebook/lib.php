@@ -5,13 +5,13 @@ require_once "classes.php";
 use \Tsugi\LTI;
 
 function gradeLoadAll($pdo) {
-    global $CFG, $USER, $LINK;
+    global $CFG, $USER, $LINK, $PDOX;
     $LTI = ltiRequireData(array('link_id', 'role'));
     if ( ! $USER->instructor ) die("Requires instructor role");
     $p = $CFG->dbprefix;
 
     // Get basic grade data
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT R.result_id AS result_id, R.user_id AS user_id,
             grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
         FROM {$p}lti_result AS R
@@ -45,14 +45,14 @@ function gradeShowAll($stmt, $detail = false) {
 
 // Not cached
 function gradeLoad($pdo, $user_id=false) {
-    global $CFG, $USER, $LINK;
+    global $CFG, $USER, $LINK, $PDOX;
     $LTI = ltiRequireData(array('user_id', 'link_id', 'role'));
     if ( ! $USER->instructor && $user_id !== false ) die("Requires instructor role");
     if ( $user_id == false ) $user_id = $USER->id;
     $p = $CFG->dbprefix;
 
     // Get basic grade data
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT R.result_id AS result_id, R.user_id AS user_id,
             grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
         FROM {$p}lti_result AS R
@@ -76,7 +76,7 @@ function gradeShowInfo($row) {
 
 // newdata can be a string or array (preferred)
 function gradeUpdateJson($pdo, $newdata=false) {
-    global $CFG;
+    global $CFG, $PDOX;
     if ( $newdata == false ) return;
     if ( is_string($newdata) ) $newdata = json_decode($newdata, true);
     $LTI = ltiRequireData(array('result_id'));
@@ -98,7 +98,7 @@ function gradeUpdateJson($pdo, $newdata=false) {
 
     $jstr = json_encode($data);
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "UPDATE {$CFG->dbprefix}lti_result SET json = :json, updated_at = NOW() 
             WHERE result_id = :RID",
         array(
@@ -108,12 +108,12 @@ function gradeUpdateJson($pdo, $newdata=false) {
 }
 
 function gradeGet($pdo, $result_id, $sourcedid, $service) {
-    global $CFG;
+    global $CFG, $PDOX;
     $grade = gradeGetWebService($sourcedid, $service);
     if ( is_string($grade) ) return $grade;
   
     // UPDATE the retrieved grade
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade, 
             retrieved_at = NOW() WHERE result_id = :RID",
         array( ':server_grade' => $grade, ":RID" => $result_id)
@@ -226,7 +226,7 @@ function gradeSendDetail($grade, &$debug_log, $pdo=false, $result=false) {
 }
 
 function gradeSendInternal($grade, &$debug_log, $pdo,  $result) {
-    global $CFG;
+    global $CFG, $PDOX;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
     $lti = $_SESSION['lti'];
@@ -267,7 +267,7 @@ function gradeSendInternal($grade, &$debug_log, $pdo,  $result) {
     // Update result in the database and in the LTI session area
     $_SESSION['lti']['grade'] = $grade;
     if ( $pdo !== false ) {
-        $stmt = pdoQuery($pdo,
+        $stmt = $PDOX->queryReturnError(
             "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade, 
                 updated_at = NOW() WHERE result_id = :RID",
             array(

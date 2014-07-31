@@ -23,7 +23,7 @@ if ( isset($_POST['json']) ) {
     }
 
     $json = json_encode($json);
-    $stmt = pdoQuery($pdo,
+    $stmt = $PDOX->queryReturnError(
         "INSERT INTO {$p}peer_assn 
             (link_id, json, created_at, updated_at) 
             VALUES ( :ID, :JSON, NOW(), NOW()) 

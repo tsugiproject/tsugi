@@ -38,7 +38,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         header("Location: index.php");
         return;
     }
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "INSERT INTO {$CFG->dbprefix}key_request  
         (user_id, title, notes, state, lti, created_at, updated_at) 
         VALUES ( :UID, :TITLE, :NOTES, 0, :LTI, NOW(), NOW() )",
@@ -74,7 +74,7 @@ if ( !isAdmin() ) {
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
-$rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
+$rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
     $newrow = $row;

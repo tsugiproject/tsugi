@@ -26,7 +26,7 @@ if ( $assn === false ) {
 }
 
 if ( isset($_POST['restartReGrade']) ) {
-    $lstmt = pdoQueryDie($pdo,
+    $lstmt = $PDOX->queryDie(
         "UPDATE {$p}peer_submit SET regrade=NULL
         WHERE assn_id = :AID",
         array(":AID" => $assn_id)
@@ -44,7 +44,7 @@ if ( isset($_POST['reGradePeer']) ) {
     echo("</head><body>\n");
     session_write_close();
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT submit_id, S.user_id AS user_id, R.result_id AS result_id,
                 grade, sourcedid, service_key, displayname, email
             FROM {$CFG->dbprefix}peer_submit AS S
@@ -66,7 +66,7 @@ if ( isset($_POST['reGradePeer']) ) {
     while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         $computed_grade = computeGrade($pdo, $assn_id, $assn_json, $row['user_id']);
 
-        $s2 = pdoQueryDie($pdo,
+        $s2 = $PDOX->queryDie(
             "UPDATE {$CFG->dbprefix}peer_submit SET regrade=1
             WHERE submit_id = :SID",
             array(":SID" => $row['submit_id'])
@@ -83,7 +83,7 @@ if ( isset($_POST['reGradePeer']) ) {
             continue;
         }
 
-        $s2 = pdoQueryDie($pdo,
+        $s2 = $PDOX->queryDie(
             "UPDATE {$CFG->dbprefix}lti_result
             SET grade=:GRA, updated_at=NOW()
             WHERE result_id = :RID",

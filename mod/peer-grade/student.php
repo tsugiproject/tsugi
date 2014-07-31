@@ -49,7 +49,7 @@ if ( isset($_POST['deleteSubmit']) ) {
     }
     $note = isset($_POST['deleteNote']) ? $_POST['deleteNote'] : '';
     $retval = mailDeleteSubmit($pdo, $user_id, $assn_json, $note);
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "DELETE FROM {$p}peer_submit
             WHERE submit_id = :SID",
         array( ':SID' => $submit_id)
@@ -101,7 +101,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
         header( 'Location: '.addSession('index.php') ) ;
         return;
     }
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "DELETE FROM {$p}peer_grade
             WHERE grade_id = :GID",
         array( ':GID' => $_POST['grade_id'])
@@ -116,7 +116,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
 // Retrieve our flags...
 $our_flags = false;
 if ( $submit_id !== false ) {
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT flag_id, F.user_id AS user_id, grade_id, note, handled, response,
             F.updated_at AS updated_at, displayname, email
         FROM {$p}peer_flag AS F
@@ -140,7 +140,7 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
         header( 'Location: '.addSession('index.php') ) ;
         return;
     }
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "DELETE FROM {$p}peer_flag
             WHERE flag_id = :FID",
         array( ':FID' => $_POST['flag_id'])

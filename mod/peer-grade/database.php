@@ -112,7 +112,7 @@ $DATABASE_UPGRADE = function($pdo, $oldversion) {
         $sql= "ALTER TABLE {$CFG->dbprefix}peer_submit ADD regrade TINYINT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
-        $q = pdoQueryDie($pdo, $sql);
+        $q = $PDOX->queryDie($sql);
     }
 
     return 2014042200;

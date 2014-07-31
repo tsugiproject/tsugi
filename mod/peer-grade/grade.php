@@ -41,7 +41,7 @@ if ( $assn_id == false ) {
 if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
 
     $submit_id = $_POST['submit_id']+0; 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "INSERT INTO {$p}peer_flag 
             (submit_id, user_id, note, created_at, updated_at) 
             VALUES ( :SID, :UID, :NOTE, NOW(), NOW()) 
@@ -101,7 +101,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     unset($_SESSION['peer_submit_id']);
     $submit_id = $_POST['submit_id']+0; 
 
-    $stmt = pdoQuery($pdo,
+    $stmt = $PDOX->queryReturnError(
         "INSERT INTO {$p}peer_grade 
             (submit_id, user_id, points, note, created_at, updated_at) 
             VALUES ( :SID, :UID, :POINTS, :NOTE, NOW(), NOW()) 

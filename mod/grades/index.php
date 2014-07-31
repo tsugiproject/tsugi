@@ -72,7 +72,7 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
 }
 
 if ( $USER->instructor ) {
-    $lstmt = pdoQueryDie($pdo,
+    $lstmt = $PDOX->queryDie(
         "SELECT DISTINCT L.title as title, L.link_id AS link_id 
         FROM {$p}lti_link AS L JOIN {$p}lti_result as R 
             ON L.link_id = R.link_id AND R.grade IS NOT NULL
@@ -126,7 +126,7 @@ if ( $user_sql !== false ) {
     $DEFAULT_PAGE_LENGTH = 10; 
     $newsql = Table::pagedQuery($user_sql, $query_parms, $searchfields);
     // echo("<pre>\n$newsql\n</pre>\n");
-    $rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
+    $rows = $PDOX->allRowsDie($newsql, $query_parms);
 
     // Scan to see if there are any un-retrieved server grades
     $newrows = array();

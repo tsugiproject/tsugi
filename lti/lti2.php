@@ -27,7 +27,7 @@ if ( ! isset($_SESSION['id']) ) {
 }
 
 // See if this person is allowed to register a tool
-$row = pdoRowDie($pdo,
+$row = $PDOX->rowDie(
     "SELECT request_id, user_id, admin, state, lti 
         FROM {$CFG->dbprefix}key_request 
         WHERE user_id = :UID LIMIT 1",

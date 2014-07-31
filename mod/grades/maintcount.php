@@ -24,7 +24,7 @@ if ( $USER->instructor && $link_id > 0 ) {
 if ( $link_info === false ) die("Invalid link");
 
 // Check how much work we have to do
-$row = pdoRowDie($pdo,
+$row = $PDOX->rowDie(
     "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
     JOIN {$p}lti_service AS S ON R.service_id = S.service_id
     WHERE link_id = :LID AND grade IS NOT NULL AND 
@@ -34,7 +34,7 @@ $row = pdoRowDie($pdo,
 );
 $toretrieve = $row['count'];
 
-$row = pdoRowDie($pdo,
+$row = $PDOX->rowDie(
     "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
     JOIN {$p}lti_service AS S ON R.service_id = S.service_id
     WHERE link_id = :LID AND grade IS NOT NULL AND 
@@ -43,7 +43,7 @@ $row = pdoRowDie($pdo,
 );
 $total = $row['count'];
 
-$row = pdoRowDie($pdo,
+$row = $PDOX->rowDie(
     "SELECT COUNT(*) AS count
     FROM {$p}lti_result AS R
     JOIN {$p}lti_service AS S ON R.service_id = S.service_id

@@ -26,7 +26,7 @@ if ( $USER->instructor && $link_id > 0 ) {
 if ( $link_info === false ) die("Invalid link");
 
 if ( isset($_POST['resetServerGrades']) ) {
-    $lstmt = pdoQueryDie($pdo,
+    $lstmt = $PDOX->queryDie(
         "UPDATE {$p}lti_result SET server_grade=NULL, retrieved_at=NULL
         WHERE link_id = :LID",
         array(":LID" => $link_id)
@@ -39,7 +39,7 @@ if ( isset($_POST['resetServerGrades']) ) {
 }
 
 if ( isset($_POST['getServerGrades']) ) {
-    $row = pdoRowDie($pdo,
+    $row = $PDOX->rowDie(
         "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE link_id = :LID AND grade IS NOT NULL AND 
@@ -62,7 +62,7 @@ if ( isset($_POST['getServerGrades']) ) {
     echo("Records to be processed: ".$total."<br/>");
     flush();
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT result_id, sourcedid, service_key FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE link_id = :LID AND grade IS NOT NULL AND 
@@ -113,7 +113,7 @@ if ( isset($_POST['fixServerGrades']) ) {
     echo("</head><body>\n");
     session_write_close();
 
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT result_id, link_id, grade, server_grade, note, 
             sourcedid, service_key, 
             U.user_id AS user_id, displayname, email 

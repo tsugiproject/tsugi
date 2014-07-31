@@ -339,8 +339,8 @@ function findFiles($filename="index.php", $reldir=false) {
 // sure they are in the smame key/ context / link as the current user
 // hence the complex query to make sure we don't cross silos
 function lookupResult($pdo, $LTI, $user_id) {
-    global $CFG;
-    $stmt = pdoQueryDie($pdo,
+    global $CFG, $PDOX;
+    $stmt = $PDOX->queryDie(
         "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id, 
             sourcedid, service_id, grade, note, R.json AS json
         FROM {$CFG->dbprefix}lti_result AS R
@@ -405,11 +405,11 @@ function noBuffer() {
 
 function loadUserInfo($pdo, $user_id)
 {
-    global $CFG;
+    global $CFG, $PDOX;
     $cacheloc = 'lti_user';
     $row = Cache::check($cacheloc, $user_id);
     if ( $row != false ) return $row;
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT displayname, email, user_key FROM {$CFG->dbprefix}lti_user
             WHERE user_id = :UID",
         array(":UID" => $user_id)
@@ -424,13 +424,13 @@ function loadUserInfo($pdo, $user_id)
 
 function loadLinkInfo($pdo, $link_id)
 {
-    global $CFG;
+    global $CFG, $PDOX;
     $LTI = ltiRequireData(array('context_id'));
 
     $cacheloc = 'lti_link';
     $row = Cache::check($cacheloc, $link_id);
     if ( $row != false ) return $row;
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "SELECT title FROM {$CFG->dbprefix}lti_link 
             WHERE link_id = :LID AND context_id = :CID",
         array(":LID" => $link_id, ":CID" => $LTI['context_id'])
@@ -502,7 +502,7 @@ function setSecureCookie($user_id, $userSHA) {
 
 // Check the secure cookie and set login information appropriately
 function loginSecureCookie($pdo) {
-    global $CFG;
+    global $CFG, $PDOX;
     $pieces = false;
     $id = false;
 
@@ -532,7 +532,7 @@ function loginSecureCookie($pdo) {
         return;
     }
 
-    $row = pdoRowDie($pdo,
+    $row = $PDOX->rowDie(
         "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
             P.email as email, U.user_id as user_id
             FROM {$CFG->dbprefix}profile AS P

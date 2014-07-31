@@ -12,7 +12,7 @@ if ( ! isset($_SESSION['profile_id']) ) {
     header('Location: login.php');
     return;
 }
-$stmt = pdoQueryDie($pdo,
+$stmt = $PDOX->queryDie(
     "SELECT json FROM {$CFG->dbprefix}profile WHERE profile_id = :PID",
     array('PID' => $_SESSION['profile_id'])
 );
@@ -35,7 +35,7 @@ if ( isset($_POST['subscribe']) ) {
         $profile->lng = $_POST['lng']+0.0 ;
     }
     $new_json = json_encode($profile);
-    $stmt = pdoQueryDie($pdo,
+    $stmt = $PDOX->queryDie(
         "UPDATE {$CFG->dbprefix}profile SET json= :JSON 
         WHERE profile_id = :PID",
         array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])

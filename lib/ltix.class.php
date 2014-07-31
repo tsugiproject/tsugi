@@ -226,6 +226,7 @@ class LTIX Extends \Tsugi\LTI {
     // Returns as much as we have in all the tables
     // Assume..  $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     public static function loadAllData($pdo, $p, $profile_table, $post) {
+        global $PDOX;
         $errormode = $pdo->getAttribute(\PDO::ATTR_ERRMODE);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $sql = "SELECT k.key_id, k.key_key, k.secret, c.context_id, c.title AS context_title,
@@ -282,7 +283,7 @@ class LTIX Extends \Tsugi\LTI {
             $parms[':service'] = lti_sha256($post['service']);
         }
 
-        $row = pdoRowDie($pdo, $sql, $parms);
+        $row = $PDOX->rowDie($sql, $parms);
 
         // Restore ERRMODE
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
@@ -292,6 +293,7 @@ class LTIX Extends \Tsugi\LTI {
     // Insert the missing bits and update the new bits...
     // TODO: Contemplate the deep mystery of transactions here
     public static function adjustData($pdo, $p, &$row, $post) {
+        global $PDOX;
         $errormode = $pdo->getAttribute(\PDO::ATTR_ERRMODE);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
@@ -300,7 +302,7 @@ class LTIX Extends \Tsugi\LTI {
             $sql = "INSERT INTO {$p}lti_context
                 ( context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
                 ( :context_key, :context_sha256, :title, :key_id, NOW(), NOW() )";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':context_key' => $post['context_id'],
                 ':context_sha256' => lti_sha256($post['context_id']),
                 ':title' => $post['context_title'],
@@ -314,7 +316,7 @@ class LTIX Extends \Tsugi\LTI {
             $sql = "INSERT INTO {$p}lti_link
                 ( link_key, link_sha256, title, context_id, created_at, updated_at ) VALUES
                     ( :link_key, :link_sha256, :title, :context_id, NOW(), NOW() )";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':link_key' => $post['link_id'],
                 ':link_sha256' => lti_sha256($post['link_id']),
                 ':title' => $post['link_title'],
@@ -330,7 +332,7 @@ class LTIX Extends \Tsugi\LTI {
             $sql = "INSERT INTO {$p}lti_user
                 ( user_key, user_sha256, displayname, email, key_id, created_at, updated_at ) VALUES
                 ( :user_key, :user_sha256, :displayname, :email, :key_id, NOW(), NOW() )";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':user_key' => $post['user_id'],
                 ':user_sha256' => lti_sha256($post['user_id']),
                 ':displayname' => $user_displayname,
@@ -347,7 +349,7 @@ class LTIX Extends \Tsugi\LTI {
             $sql = "INSERT INTO {$p}lti_membership
                 ( context_id, user_id, role, created_at, updated_at ) VALUES
                 ( :context_id, :user_id, :role, NOW(), NOW() )";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':context_id' => $row['context_id'],
                 ':user_id' => $row['user_id'],
                 ':role' => $post['role']));
@@ -363,7 +365,7 @@ class LTIX Extends \Tsugi\LTI {
             $sql = "INSERT INTO {$p}lti_service
                 ( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
                 ( :service_key, :service_sha256, :key_id, NOW(), NOW() )";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':service_key' => $post['service'],
                 ':service_sha256' => lti_sha256($post['service']),
                 ':key_id' => $row['key_id']));
@@ -375,7 +377,7 @@ class LTIX Extends \Tsugi\LTI {
         // If we just created a new service entry but we already had a result entry, update it
         if ( $oldserviceid === null && $row['result_id'] !== null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {
             $sql = "UPDATE {$p}lti_result SET service_id = :service_id WHERE result_id = :result_id";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':service_id' => $row['service_id'],
                 ':result_id' => $row['result_id']));
             $actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
@@ -386,7 +388,7 @@ class LTIX Extends \Tsugi\LTI {
             $sql = "INSERT INTO {$p}lti_result
                 ( sourcedid, sourcedid_sha256, service_id, link_id, user_id, created_at, updated_at ) VALUES
                 ( :sourcedid, :sourcedid_sha256, :service_id, :link_id, :user_id, NOW(), NOW() )";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':sourcedid' => $post['sourcedid'],
                 ':sourcedid_sha256' => lti_sha256($post['sourcedid']),
                 ':service_id' => $row['service_id'],
@@ -402,7 +404,7 @@ class LTIX Extends \Tsugi\LTI {
             $sql = "INSERT INTO {$p}lti_result
                 ( sourcedid, sourcedid_sha256, link_id, user_id, created_at, updated_at ) VALUES
                 ( :sourcedid, :sourcedid_sha256, :link_id, :user_id, NOW(), NOW() )";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':sourcedid' => $post['sourcedid'],
                 ':sourcedid_sha256' => lti_sha256($post['sourcedid']),
                 ':link_id' => $row['link_id'],
@@ -416,7 +418,7 @@ class LTIX Extends \Tsugi\LTI {
             $sql = "UPDATE {$p}lti_result
                 SET sourcedid = :sourcedid, sourcedid_sha256 = :sourcedid_sha256
                 WHERE result_id = :result_id";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':sourcedid' => $post['sourcedid'],
                 ':sourcedid_sha256' => lti_sha256($post['sourcedid']),
                 ':result_id' => $row['result_id']));
@@ -427,7 +429,7 @@ class LTIX Extends \Tsugi\LTI {
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
         if ( isset($post['context_title']) && $post['context_title'] != $row['context_title'] ) {
             $sql = "UPDATE {$p}lti_context SET title = :title WHERE context_id = :context_id";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':title' => $post['context_title'],
                 ':context_id' => $row['context_id']));
             $row['context_title'] = $post['context_title'];
@@ -436,7 +438,7 @@ class LTIX Extends \Tsugi\LTI {
 
         if ( isset($post['link_title']) && $post['link_title'] != $row['link_title'] ) {
             $sql = "UPDATE {$p}lti_link SET title = :title WHERE link_id = :link_id";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':title' => $post['link_title'],
                 ':link_id' => $row['link_id']));
             $row['link_title'] = $post['link_title'];
@@ -445,7 +447,7 @@ class LTIX Extends \Tsugi\LTI {
 
         if ( isset($post['user_displayname']) && $post['user_displayname'] != $row['user_displayname'] && strlen($post['user_displayname']) > 0 ) {
             $sql = "UPDATE {$p}lti_user SET displayname = :displayname WHERE user_id = :user_id";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':displayname' => $post['user_displayname'],
                 ':user_id' => $row['user_id']));
             $row['user_displayname'] = $post['user_displayname'];
@@ -454,7 +456,7 @@ class LTIX Extends \Tsugi\LTI {
 
         if ( isset($post['user_email']) && $post['user_email'] != $row['user_email'] && strlen($post['user_email']) > 0 ) {
             $sql = "UPDATE {$p}lti_user SET email = :email WHERE user_id = :user_id";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':email' => $post['user_email'],
                 ':user_id' => $row['user_id']));
             $row['user_email'] = $post['user_email'];
@@ -463,7 +465,7 @@ class LTIX Extends \Tsugi\LTI {
 
         if ( isset($post['role']) && $post['role'] != $row['role'] ) {
             $sql = "UPDATE {$p}lti_membership SET role = :role WHERE membership_id = :membership_id";
-            pdoQueryDie($pdo, $sql, array(
+            $PDOX->queryDie($sql, array(
                 ':role' => $post['role'],
                 ':membership_id' => $row['membership_id']));
             $row['role'] = $post['role'];
