@@ -508,7 +508,7 @@ class LTIDB Extends \Tsugi\LTI {
         global $CFG, $USER, $CONTEXT, $LINK;
 
         // Check if we are processing an LTI launch.  If so, handle it
-        ltiLaunchCheck();
+        self::launchCheck();
 
         // Check to see if the session already exists.
         $sess = session_name();

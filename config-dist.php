@@ -90,7 +90,7 @@ $CFG->maileol = "\n";  // Depends on your mailer - may need to be \r\n
 // This is used to make sure that our constructed session ids
 // based on resource_link_id, oauth_consumer_key, etc are not
 // predictable or guessable.   Just make this a long random string.
-// See ltiGetCompositeKey() for detail on how this operates.
+// See LTIDB::getCompositeKey() for detail on how this operates.
 $CFG->sessionsalt = "something-very-secret-2f518066bd757a289b543";
 
 // Set to false if you do not want analytics - this uses the ga.js
