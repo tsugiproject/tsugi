@@ -5,6 +5,8 @@ require_once("../../config.php");
 require_once($CFG->dirroot."/pdo.php");
 require_once($CFG->dirroot."/lib/lms_lib.php");
 
+use \Tsugi\Table;
+
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) { 
     $_SESSION['error'] = _("This service does not accept instructor requests for keys");
     header('Location: '.$CFG->wwwroot);
@@ -30,7 +32,7 @@ if ( !isAdmin() ) {
     $query_parms = array(":UID" => $_SESSION['id']);
 }
 
-$newsql = pdoPagedQuery($sql, $query_parms, $searchfields);
+$newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
 $rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
 $newrows = array();
@@ -54,7 +56,7 @@ $OUTPUT->flashMessages();
 You have no IMS LTI 1.1 Keys for this system.
 </p>
 <?php } else { 
-    pdoPagedTable($newrows, $searchfields, false, "key-detail.php");
+    Table::pagedTable($newrows, $searchfields, false, "key-detail.php");
 } 
 if ( isAdmin() ) { ?>
 <p>

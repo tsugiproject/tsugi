@@ -5,6 +5,8 @@ require_once("../../config.php");
 require_once($CFG->dirroot."/pdo.php");
 require_once($CFG->dirroot."/lib/lms_lib.php");
 
+use \Tsugi\Table;
+
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) { 
     $_SESSION['error'] = _m("This service does not accept instructor requests for keys");
     header('Location: '.$CFG->wwwroot);
@@ -70,7 +72,7 @@ if ( !isAdmin() ) {
     $query_parms = array(":UID" => $_SESSION['id']);
 }
 
-$newsql = pdoPagedQuery($sql, $query_parms, $searchfields);
+$newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
 $rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
 $newrows = array();
@@ -153,7 +155,7 @@ using the IMS Learning Tools Interoperability standard.  You can use this page
 to request access to this service.
 </p>
 <?php } else { 
-    pdoPagedTable($newrows, $searchfields, false, "request-detail.php");
+    Table::pagedTable($newrows, $searchfields, false, "request-detail.php");
 } 
 if ( $goodsession ) { ?>
 <p>

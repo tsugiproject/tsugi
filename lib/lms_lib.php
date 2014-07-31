@@ -608,27 +608,6 @@ function curPageURL() {
 /**
  * @deprecated deprecated since refactor to classes
  */
-function pdoPagedQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=false, $params=false) {
-    return \Tsugi\Table::pagedQuery($sql, $queryvalues, $searchfields, $orderfields, $params);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function pdoPagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false) {
-    return \Tsugi\Table::pagedTable($rows, $searchfields, $orderfields, $view, $params);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function pdoPagedAuto($pdo, $sql, $query_parms, $searchfields, $orderfields=false, $view=false, $params=false) {
-    return \Tsugi\Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, $view, $params);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
 function getSpinnerUrl() {
     global $OUTPUT;
     return $OUTPUT->getSpinnerUrl();

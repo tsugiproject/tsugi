@@ -5,6 +5,8 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
+use \Tsugi\Table;
+
 // Sanity checks
 $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor role");
@@ -45,7 +47,7 @@ if ( ! isset($parm['order_by']) ) {
     $parm['desc'] = '1';
 }
 
-pdoPagedAuto($pdo, $sql, $query_parms, $searchfields, $orderfields, "student.php", $parm);
+Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, "student.php", $parm);
 
 ?>
 <form method="post">

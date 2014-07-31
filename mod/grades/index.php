@@ -4,6 +4,8 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
+use \Tsugi\Table;
+
 // Sanity checks
 $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
@@ -118,11 +120,11 @@ if ( $user_sql !== false ) {
     if ( $user_info !== false ) {
         echo("<p>Results for ".$user_info['displayname']."</p>\n");
     }
-    // pdoPagedAuto($pdo, $user_sql, $query_parms, $searchfields);
+    // Table::pagedAuto($user_sql, $query_parms, $searchfields);
 
     // Temporarily make this small since each entry is costly
     $DEFAULT_PAGE_LENGTH = 10; 
-    $newsql = pdoPagedQuery($user_sql, $query_parms, $searchfields);
+    $newsql = Table::pagedQuery($user_sql, $query_parms, $searchfields);
     // echo("<pre>\n$newsql\n</pre>\n");
     $rows = pdoAllRowsDie($pdo, $newsql, $query_parms);
 
@@ -212,11 +214,11 @@ if ( $user_sql !== false ) {
         $newrows[] = $newrow;
     }
     
-    pdoPagedTable($newrows, $searchfields);
+    Table::pagedTable($newrows, $searchfields);
 }
 
 if ( $summary_sql !== false ) {
-    pdoPagedAuto($pdo, $summary_sql, $query_parms, $searchfields, $orderfields);
+    Table::pagedAuto($summary_sql, $query_parms, $searchfields, $orderfields);
 }
 
 if ( $class_sql !== false ) {
@@ -225,7 +227,7 @@ if ( $class_sql !== false ) {
         echo(' (<a href="maint.php?link_id='.$link_id.'" target="_new">Maintenance 
             tasks</a>)'."</p>\n");
     }
-    pdoPagedAuto($pdo, $class_sql, $query_parms, $searchfields);
+    Table::pagedAuto($class_sql, $query_parms, $searchfields);
 }
 
 

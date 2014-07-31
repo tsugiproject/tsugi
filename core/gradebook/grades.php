@@ -4,6 +4,8 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "lib.php";
 
+use \Tsugi\Table;
+
 // Sanity checks
 $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id', "result_id"));
 if ( ! $USER->instructor ) die("Requires instructor role");
@@ -32,6 +34,6 @@ if ( isset($GRADE_DETAIL_CLASS) && is_object($GRADE_DETAIL_CLASS) ) {
     $detail = false;
 }
 
-pdoPagedAuto($pdo, $sql, $query_parms, $searchfields, $orderfields, "grade-detail.php");
+Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, "grade-detail.php");
 
 $OUTPUT->footer();
