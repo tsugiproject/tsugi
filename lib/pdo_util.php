@@ -34,11 +34,3 @@ function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     return $PDOX->query($sql, $arr, $error_log);
 }
 
-/**
- * @deprecated deprecated since refactor to classes
- */
-function pdoMetadata($pdo, $tablename) {
-    global $PDOX;
-    return $PDOX->metadata($tablename);
-}
-

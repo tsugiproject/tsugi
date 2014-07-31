@@ -79,7 +79,7 @@ target="_blank">tsugi.org</a>');
 // Now check the plugins table to see if it exists
 $p = $CFG->dbprefix;
 $plugins = "{$p}lms_plugins";
-$table_fields = pdoMetadata($pdo, $plugins);
+$table_fields = $PDOX->metadata($plugins);
 if ( $table_fields === false ) {
     echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
     echo("<p>It appears that your database connection is working properly

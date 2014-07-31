@@ -19,7 +19,7 @@ require_once("../lib/lms_lib.php");
 $p = $CFG->dbprefix;
 echo("Checking plugins table...<br/>\n");
 $plugins = "{$p}lms_plugins";
-$table_fields = pdoMetadata($pdo, $plugins);
+$table_fields = $PDOX->metadata($plugins);
 
 if ( $table_fields === false ) {
     echo("Creating plugins table...<br/>\n");
@@ -78,7 +78,7 @@ foreach($tools as $tool ) {
     if ( isset($DATABASE_INSTALL) && $DATABASE_INSTALL !== false ) {
         foreach ( $DATABASE_INSTALL as $entry ) {
             echo("-- Checking table ".$entry[0]."<br/>\n");
-            $table_fields = pdoMetadata($pdo, $entry[0]);
+            $table_fields = $PDOX->metadata($entry[0]);
             if ( $table_fields === false ) {
                 echo("-- Creating table ".$entry[0]."<br/>\n");
                 error_log("-- Creating table ".$entry[0]);
