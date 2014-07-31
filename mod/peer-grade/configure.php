@@ -4,6 +4,8 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "peer_util.php";
 
+use \Tsugi\Cache;
+
 // Sanity checks
 $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 
@@ -30,7 +32,7 @@ if ( isset($_POST['json']) ) {
             ':JSON' => $json,
             ':ID' => $LINK->id)
         );
-    cache_clear("peer_assn");
+    Cache::clear("peer_assn");
     if ( $stmt->success ) {
         $_SESSION['success'] = 'Assignment updated';
         header( 'Location: '.addSession('index.php') ) ;

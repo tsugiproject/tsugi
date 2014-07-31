@@ -4,6 +4,8 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "files_util.php";
 
+use \Tsugi\Debug;
+
 // Sanity checks
 $LTI = ltiRequireData(array('user_id', 'context_id'));
 
@@ -54,7 +56,7 @@ $OUTPUT->flashMessages();
 welcomeUserCourse();
 
 $foldername = getFolderName();
-debug_log($foldername);
+Debug::log($foldername);
 if ( !file_exists($foldername) ) mkdir ($foldername);
 
 $finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
@@ -67,7 +69,7 @@ foreach (glob($foldername."/*") as $filename) {
     }
     echo '</li>';
     $count = $count + 1;
-    debug_log($filename . " " . finfo_file($finfo, $filename));
+    Debug::log($filename . " " . finfo_file($finfo, $filename));
 }
 if ( $count == 0 ) echo "<p>No Files Found</p>\n";
 

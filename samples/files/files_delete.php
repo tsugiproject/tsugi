@@ -4,6 +4,8 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "files_util.php";
 
+use \Tsugi\Debug;
+
 // Sanity checks
 $LTI = ltiRequireData(array('user_id', 'link_id'));
 
@@ -41,6 +43,7 @@ echo '<h4 style="color:red">Are you sure you want to delete: ' .$fn. "</h4>\n";
 <input type=submit name=doDelete value="Delete"></p>
 </form>
 <?php
-debug_log('Folder: '.$foldername);
+
+Debug::log('Folder: '.$foldername);
 
 $OUTPUT->footer();

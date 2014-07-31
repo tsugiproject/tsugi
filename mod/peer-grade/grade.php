@@ -6,6 +6,8 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
+use \Tsugi\Cache;
+
 // Sanity checks
 $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
@@ -110,7 +112,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
             ':POINTS' => $points,
             ':NOTE' => $_POST['note'])
     );
-    cache_clear('peer_grade');
+    Cache::clear('peer_grade');
     if ( ! $stmt->success ) {
         $_SESSION['error'] = $stmt->errorImplode;
         header( 'Location: '.addSession($url_goback) ) ;

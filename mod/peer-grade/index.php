@@ -5,6 +5,8 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
+use \Tsugi\Cache;
+
 // Sanity checks
 $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
@@ -102,7 +104,7 @@ if ( $assn_id != false && $assn_json != null &&
             ':JSON' => $json,
             ':UID' => $USER->id)
         );
-    cache_clear('peer_submit');
+    Cache::clear('peer_submit');
     if ( $stmt->success ) {
         $_SESSION['success'] = 'Assignment submitted';
         header( 'Location: '.addSession('index.php') ) ;

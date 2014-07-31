@@ -10,6 +10,8 @@ require_once("crypt/aesctr.class.php");
 require_once("defaultrenderer.class.php");
 require_once("debug.class.php");
 
+use \Tsugi\Cache;
+
 function getNameAndEmail() {
     global $USER;
     $display = '';
@@ -102,10 +104,10 @@ function checkCSRF() {
 
 // TODO: deal with headers sent...
 function requireLogin() {
-    global $CFG;
+    global $CFG, $OUTPUT;
     if ( ! isset($_SESSION['user_id']) ) {
         $_SESSION['error'] = 'Login required';
-        doRedirect($CFG->wwwroot.'/login.php') ;
+        $OUTPUT->doRedirect($CFG->wwwroot.'/login.php') ;
         exit();
     }
 }
@@ -115,10 +117,10 @@ function isAdmin() {
 }
 
 function requireAdmin() {
-    global $CFG;
+    global $CFG, $OUTPUT;
     if ( $_SESSION['admin'] != 'yes' ) {
         $_SESSION['error'] = 'Login required';
-        doRedirect($CFG->wwwroot.'/login.php') ;
+        $OUTPUT->doRedirect($CFG->wwwroot.'/login.php') ;
         exit();
     }
 }
@@ -399,7 +401,7 @@ function loadUserInfo($pdo, $user_id)
 {
     global $CFG;
     $cacheloc = 'lti_user';
-    $row = cacheCheck($cacheloc, $user_id);
+    $row = Cache::check($cacheloc, $user_id);
     if ( $row != false ) return $row;
     $stmt = pdoQueryDie($pdo,
         "SELECT displayname, email, user_key FROM {$CFG->dbprefix}lti_user
@@ -410,7 +412,7 @@ function loadUserInfo($pdo, $user_id)
     if ( strlen($row['displayname']) < 1 && strlen($row['user_key']) > 0 ) {
         $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
     }
-    cacheSet($cacheloc, $user_id, $row);
+    Cache::set($cacheloc, $user_id, $row);
     return $row;
 }
 
@@ -420,7 +422,7 @@ function loadLinkInfo($pdo, $link_id)
     $LTI = ltiRequireData(array('context_id'));
 
     $cacheloc = 'lti_link';
-    $row = cacheCheck($cacheloc, $link_id);
+    $row = Cache::check($cacheloc, $link_id);
     if ( $row != false ) return $row;
     $stmt = pdoQueryDie($pdo,
         "SELECT title FROM {$CFG->dbprefix}lti_link 
@@ -428,7 +430,7 @@ function loadLinkInfo($pdo, $link_id)
         array(":LID" => $link_id, ":CID" => $LTI['context_id'])
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    cacheSet($cacheloc, $link_id, $row);
+    Cache::set($cacheloc, $link_id, $row);
     return $row;
 }
 
@@ -627,114 +629,10 @@ function pdoPagedAuto($pdo, $sql, $query_parms, $searchfields, $orderfields=fals
 /**
  * @deprecated deprecated since refactor to classes
  */
-function dumpTable($stmt, $view=false) {
-    return \Tsugi\Table::dumpTableRaw($stmt, $view);
-}
-
-define('CRUD_UPDATE_SUCCESS', \Tsugi\CrudForm::UPDATE_SUCCESS);
-define('CRUD_UPDATE_FAIL', \Tsugi\CrudForm::UPDATE_FAIL);
-define('CRUD_UPDATE_NONE', \Tsugi\CrudForm::UPDATE_NONE);
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function crudSelectSql($tablename, $fields, $where_clause=false) 
-{
-    return \Tsugi\CrudForm::selectSql($tablename, $fields, $where_clause);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function crudUpdateHandle($pdo, $tablename, $fields, $query_parms=array(),
-    $where_clause=false, $allow_edit=false, $allow_delete=false) 
-{
-    return \Tsugi\CrudForm::updateHandle($tablename, $fields, $query_parms,
-    $where_clause, $allow_edit, $allow_delete);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function crudUpdateForm($row, $fields, $current, $from_location, $allow_edit=false, $allow_delete=false) 
-{
-    return \Tsugi\CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
-}
-
-define('CRUD_INSERT_SUCCESS', \Tsugi\CrudForm::INSERT_SUCCESS);
-define('CRUD_INSERT_FAIL', \Tsugi\CrudForm::INSERT_FAIL);
-define('CRUD_INSERT_NONE', \Tsugi\CrudForm::INSERT_NONE);
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function crudInsertHandle($pdo, $tablename, $fields) 
-{
-    return \Tsugi\CrudForm::insertHandle($tablename, $fields);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function crudInsertForm($fields, $from_location) 
-{
-    return \Tsugi\CrudForm::insertForm($fields, $from_location);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function cacheCheck($cacheloc, $cachekey)
-{
-    return \Tsugi\Cache::check($cacheloc, $cachekey);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function cacheSet($cacheloc, $cachekey, $cacheval)
-{
-    return \Tsugi\Cache::set($cacheloc, $cachekey, $cacheval);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function cache_clear($cacheloc)
-{
-    return \Tsugi\Cache::clear($cacheloc);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
 function getSpinnerUrl() {
     global $OUTPUT;
     return $OUTPUT->getSpinnerUrl();
 }
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function doRedirect($location) {
-    global $OUTPUT;
-    return $OUTPUT->doRedirect($location);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function debug_log($text,$mixed=false) {
-    return \Tsugi\Debug::log($text,$mixed);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
-function dumpPost() {
-    return \Tsugi\Debug::dumpPost();
-}
-
 
 // No trailer
 

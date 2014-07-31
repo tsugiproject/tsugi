@@ -6,6 +6,8 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
+use \Tsugi\Cache;
+
 // Sanity checks
 $LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor role");
@@ -55,8 +57,8 @@ if ( isset($_POST['deleteSubmit']) ) {
     $msg = "Deleted submission for $user_id";
     if ( $retval ) $msg .= ', e-mail notice sent.';
     error_log($msg);
-    cache_clear('peer_grade');
-    cache_clear('peer_submit');
+    Cache::clear('peer_grade');
+    Cache::clear('peer_submit');
     $msg = "Submission deleted";
     if ( $retval ) $msg .= ', e-mail notice sent.';
     $_SESSION['success'] = $msg;
@@ -104,7 +106,7 @@ if ( isset($_POST['grade_id']) && isset($_POST['deleteGrade']) ) {
             WHERE grade_id = :GID",
         array( ':GID' => $_POST['grade_id'])
     );
-    cache_clear('peer_grade');
+    Cache::clear('peer_grade');
     error_log("Instructor deleted grade entry for ".$user_id);
     $_SESSION['success'] = "Grade entry deleted.";
     header( 'Location: '.addSession('student.php?user_id='.$user_id) ) ;
@@ -143,8 +145,8 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
             WHERE flag_id = :FID",
         array( ':FID' => $_POST['flag_id'])
     );
-    cache_clear('peer_flag');
-    cache_clear('peer_grade');
+    Cache::clear('peer_flag');
+    Cache::clear('peer_grade');
     error_log("Instructor deleted flag=".$_POST['flag_id']." for ".$user_id);
     $_SESSION['success'] = "Flag entry deleted.";
     header( 'Location: '.addSession('student.php?user_id='.$user_id) ) ;

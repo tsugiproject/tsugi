@@ -5,6 +5,8 @@ require_once("../../config.php");
 require_once($CFG->dirroot."/pdo.php");
 require_once($CFG->dirroot."/lib/lms_lib.php");
 
+use \Tsugi\CrudForm;
+
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
@@ -29,10 +31,10 @@ if ( isAdmin() ) {
 }
 
 // Handle the post data
-$row =  crudUpdateHandle($pdo, $tablename, $fields, $query_fields,
+$row =  CrudForm::updateHandle($tablename, $fields, $query_fields,
     $where_clause, $allow_edit, $allow_delete);
 
-if ( $row === CRUD_UPDATE_FAIL || $row === CRUD_UPDATE_SUCCESS ) {
+if ( $row === CrudForm::UPDATE_FAIL || $row === CrudForm::UPDATE_SUCCESS ) {
     header("Location: ".$from_location);
     return;
 }
@@ -43,7 +45,7 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 echo("<h1>$title</h1>\n<p>\n");
-$retval = crudUpdateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
+$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 

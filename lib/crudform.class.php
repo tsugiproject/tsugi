@@ -51,7 +51,7 @@ class CRUDForm {
 
         $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
 
-        $sql = crudSelectSql($tablename, $fields, $where_clause);
+        $sql = CrudForm::selectSql($tablename, $fields, $where_clause);
         $row = $PDOX->rowDie($sql, $query_parms);
         if ( $row === false ) {
             $_SESSION['error'] = "Unable to retrieve row";

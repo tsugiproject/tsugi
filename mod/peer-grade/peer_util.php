@@ -1,18 +1,20 @@
 <?php
 
+use \Tsugi\Cache;
+
 // Loads the assignment associated with this link
 function loadAssignment($pdo, $LTI)
 {
     global $CFG;
     $cacheloc = 'peer_assn';
-    $row = cacheCheck($cacheloc, $LTI['link_id']);
+    $row = Cache::check($cacheloc, $LTI['link_id']);
     if ( $row != false ) return $row;
     $stmt = pdoQueryDie($pdo,
         "SELECT assn_id, json FROM {$CFG->dbprefix}peer_assn WHERE link_id = :ID",
         array(":ID" => $LTI['link_id'])
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    cacheSet($cacheloc, $LTI['link_id'], $row);
+    Cache::set($cacheloc, $LTI['link_id'], $row);
     return $row;
 }
 
@@ -21,7 +23,7 @@ function loadSubmission($pdo, $assn_id, $user_id)
     global $CFG;
     $cacheloc = 'peer_submit';
     $cachekey = $assn_id + "::" + $user_id;
-    $submit_row = cacheCheck($cacheloc, $cachekey);
+    $submit_row = Cache::check($cacheloc, $cachekey);
     if ( $submit_row != false ) return $submit_row;
     $submit_row = false;
 
@@ -32,7 +34,7 @@ function loadSubmission($pdo, $assn_id, $user_id)
         array(":AID" => $assn_id, ":UID" => $user_id)
     );
     $submit_row = $stmt->fetch(PDO::FETCH_ASSOC);
-    cacheSet($cacheloc, $cachekey, $submit_row);
+    Cache::set($cacheloc, $cachekey, $submit_row);
     return $submit_row;
 }
 
@@ -152,7 +154,7 @@ function loadMyGradeCount($pdo, $LTI, $assn_id) {
     global $CFG;
     $cacheloc = 'peer_grade';
     $cachekey = $assn_id + "::" + $LTI['user_id'];
-    $grade_count = cacheCheck($cacheloc, $cachekey);
+    $grade_count = Cache::check($cacheloc, $cachekey);
     if ( $grade_count != false ) return $grade_count;
     $stmt = pdoQueryDie($pdo,
         "SELECT COUNT(grade_id) AS grade_count 
@@ -166,7 +168,7 @@ function loadMyGradeCount($pdo, $LTI, $assn_id) {
     if ( $row !== false ) {
         $grade_count = $row['grade_count']+0;
     }
-    cacheSet($cacheloc, $cachekey, $grade_count);
+    Cache::set($cacheloc, $cachekey, $grade_count);
     return $grade_count;
 }
 
