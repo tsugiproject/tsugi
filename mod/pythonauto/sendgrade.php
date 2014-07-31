@@ -4,7 +4,7 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 // Sanity checks
-$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 $user_id = $USER->id;
 
 $grade = 1.0;

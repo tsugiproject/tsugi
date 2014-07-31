@@ -7,7 +7,7 @@ require_once "files_util.php";
 use \Tsugi\Debug;
 
 // Sanity checks
-$LTI = ltiRequireData(array('user_id', 'context_id'));
+$LTI = \Tsugi\LTIX::requireData(array('user_id', 'context_id'));
 
 // Model 
 $p = $CFG->dbprefix;

@@ -4,7 +4,7 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Retrieve required launch data from session
-$LTI = ltiRequireData(array('user_id', 'user_displayname', 
+$LTI = \Tsugi\LTIX::requireData(array('user_id', 'user_displayname', 
     'context_title', 'role','link_id'));
 $p = $CFG->dbprefix;
 

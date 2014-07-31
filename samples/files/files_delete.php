@@ -7,7 +7,7 @@ require_once "files_util.php";
 use \Tsugi\Debug;
 
 // Sanity checks
-$LTI = ltiRequireData(array('user_id', 'link_id'));
+$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id'));
 
 $fn = $_REQUEST['file'];
 if ( strlen($fn) < 1 ) {

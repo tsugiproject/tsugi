@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Instructor only");
 
 $OUTPUT->header();

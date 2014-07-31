@@ -6,7 +6,7 @@ use \Tsugi\LTI;
 
 function gradeLoadAll() {
     global $CFG, $USER, $LINK, $PDOX;
-    $LTI = ltiRequireData(array('link_id', 'role'));
+    $LTI = \Tsugi\LTIX::requireData(array('link_id', 'role'));
     if ( ! $USER->instructor ) die("Requires instructor role");
     $p = $CFG->dbprefix;
 
@@ -46,7 +46,7 @@ function gradeShowAll($stmt, $detail = false) {
 // Not cached
 function gradeLoad($user_id=false) {
     global $CFG, $USER, $LINK, $PDOX;
-    $LTI = ltiRequireData(array('user_id', 'link_id', 'role'));
+    $LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role'));
     if ( ! $USER->instructor && $user_id !== false ) die("Requires instructor role");
     if ( $user_id == false ) $user_id = $USER->id;
     $p = $CFG->dbprefix;
@@ -79,7 +79,7 @@ function gradeUpdateJson($newdata=false) {
     global $CFG, $PDOX;
     if ( $newdata == false ) return;
     if ( is_string($newdata) ) $newdata = json_decode($newdata, true);
-    $LTI = ltiRequireData(array('result_id'));
+    $LTI = \Tsugi\LTIX::requireData(array('result_id'));
     $row = gradeLoad();
     $data = array();
     if ( $row !== false && isset($row['json'])) {

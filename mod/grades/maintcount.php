@@ -6,7 +6,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 headerJson();
 
 // Sanity checks
-$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 

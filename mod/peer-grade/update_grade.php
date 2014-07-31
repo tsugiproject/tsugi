@@ -6,7 +6,7 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once "peer_util.php";
 
 // Sanity checks
-$LTI = ltiRequireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
 // Check to see if we are updating the grade for the current 
