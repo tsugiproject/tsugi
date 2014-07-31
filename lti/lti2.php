@@ -6,6 +6,8 @@ require_once $CFG->dirroot.'/lib/lms_lib.php';
 require_once $CFG->dirroot.'/lib/lti_util.php';
 require_once 'tp_messages.php';
 
+use \Tsugi\LTI;
+
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
 
@@ -61,19 +63,6 @@ $_POST = $_SESSION['lti2post'];
 
 $lti_message_type = $_POST["lti_message_type"];
 
-global $div_id;
-$div_id = 1;
-
-function togglePre($title, $content) {
-    global $div_id;
-	echo('<h4>'.$title);
-	echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">Toggle</a>)</h4>'."\n");
-	echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
-	echo($content);
-	echo("</pre>\n");
-	$div_id = $div_id + 1;
-}
-
 ?>
 <html>
 <head>
@@ -102,7 +91,7 @@ foreach($_POST as $key => $value ) {
     if (get_magic_quotes_gpc()) $value = stripslashes($value);
     $output = $output . htmlent_utf8($key) . "=" . htmlent_utf8($value) . " (".mb_detect_encoding($value).")\n";
 }
-togglePre("Raw POST Parameters", $output);
+$OUTPUT->togglePre("Raw POST Parameters", $output);
 
 
 $output = "";
@@ -111,7 +100,7 @@ foreach($_GET as $key => $value ) {
     if (get_magic_quotes_gpc()) $value = stripslashes($value);
     $output = $output . htmlent_utf8($key) . "=" . htmlent_utf8($value) . " (".mb_detect_encoding($value).")\n";
 }
-if ( strlen($output) > 0 ) togglePre("Raw GET Parameters", $output);
+if ( strlen($output) > 0 ) $OUTPUT->togglePre("Raw GET Parameters", $output);
 
 echo("<pre>\n");
 
@@ -134,7 +123,7 @@ if ( strlen($tc_profile_url) > 1 ) {
     $tc_profile_json = ltiDoGet($tc_profile_url);
 	echo("Retrieved ".strlen($tc_profile_json)." characters.\n");
 	echo("</pre>\n");
-    togglePre("Retrieved Consumer Profile",$tc_profile_json);
+    $OUTPUT->togglePre("Retrieved Consumer Profile",$tc_profile_json);
     $tc_profile = json_decode($tc_profile_json);
 	if ( $tc_profile == null ) {
 		die("Unable to parse tc_profile error=".json_last_error());
@@ -186,10 +175,10 @@ $cur_base = str_replace("tp.php","",$cur_url);
 
 $tp_profile = json_decode($tool_proxy);
 if ( $tp_profile == null ) {
-	togglePre("Tool Proxy Raw",htmlent_utf8($tool_proxy));
+	$OUTPUT->togglePre("Tool Proxy Raw",htmlent_utf8($tool_proxy));
     $body = json_encode($tp_profile);
     $body = jsonIndent($body);
-    togglePre("Tool Proxy Parsed",htmlent_utf8($body));
+    $OUTPUT->togglePre("Tool Proxy Parsed",htmlent_utf8($body));
     die("Unable to parse our own internal Tool Proxy (DOH!) error=".json_last_error()."\n");
 }
 
@@ -256,18 +245,18 @@ unset($_SESSION['reg_password']);
 $_SESSION['reg_key'] = $reg_key;
 $_SESSION['reg_password'] = $reg_password;
 
-togglePre("Registration Request",htmlent_utf8($body));
+$OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
 
-$response = sendOAuthBodyPOST($register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body);
+$response = LTI::sendOAuthBodyPOST($register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body);
 
-togglePre("Registration Request Headers",htmlent_utf8(netGetBodySentDebug()));
+$OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(netGetBodySentDebug()));
 
 global $LastOAuthBodyBaseString;
-togglePre("Registration Request Base String",$LastOAuthBodyBaseString);
+$OUTPUT->togglePre("Registration Request Base String",$LastOAuthBodyBaseString);
 
-togglePre("Registration Response Headers",htmlent_utf8(netGetBodyReceivedDebug()));
+$OUTPUT->togglePre("Registration Response Headers",htmlent_utf8(netGetBodyReceivedDebug()));
 
-togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
+$OUTPUT->togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
 
 if ( $last_http_response == 201 || $last_http_response == 200 ) {
   echo('<p><a href="'.$launch_presentation_return_url.'">Continue to launch_presentation_url</a></p>'."\n");
@@ -281,8 +270,8 @@ $responseObject = json_decode($response);
 if ( $responseObject != null && isset($responseObject->base_string) ) {
 	$base_string = $responseObject->base_string;
 	if ( strlen($base_string) > 0 && strlen($LastOAuthBodyBaseString) > 0 && $base_string != $LastOAuthBodyBaseString ) {
-		$compare = ltiCompareBaseStrings($LastOAuthBodyBaseString, $base_string);
-		togglePre("Compare Base Strings (ours first)",htmlent_utf8($compare));
+		$compare = LTI::compareBaseStrings($LastOAuthBodyBaseString, $base_string);
+		$OUTPUT->togglePre("Compare Base Strings (ours first)",htmlent_utf8($compare));
 	}
 }
 

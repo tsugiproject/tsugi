@@ -2,6 +2,7 @@
 require_once("../lib/lti_util.php");
 
 use Tsugi\OAuth\OAuthUtil;
+use Tsugi\LTI;
 
 $old_error_handler = set_error_handler("myErrorHandler");
 
@@ -37,7 +38,7 @@ if (strpos($hct,'application/xml') === false ) {
 header('Content-Type: application/xml; charset=utf-8'); 
 
 // Get skeleton response
-$response = getPOXResponse();
+$response = LTI::getPOXResponse();
 
 // Pull out the key and secret from the parameter
 $b64dec = base64_decode($b64);
@@ -52,7 +53,7 @@ if ( strlen($oauth_consumer_key) < 1 || strlen($oauth_consumer_secret) < 1 ) {
    exit();
 }
 
-$header_key = getOAuthKeyFromHeaders();
+$header_key = LTI::getOAuthKeyFromHeaders();
 if ( strlen($header_key) < 1 ) {
    echo(sprintf($response,uniqid(),'failure', "Empty header key. Note that some proxy configurations do not pass the Authorization header.",$message_ref,$operation,""));
    exit();
@@ -62,7 +63,7 @@ if ( strlen($header_key) < 1 ) {
 }
 
 try {
-    $body = handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret);
+    $body = LTI::handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret);
     $xml = new SimpleXMLElement($body);
     $imsx_header = $xml->imsx_POXHeader->children();
     $parms = $imsx_header->children();

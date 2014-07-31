@@ -304,7 +304,7 @@ class LTI {
     /*  $postBody = str_replace(
           array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
           array($sourcedid, $_REQUEST['grade'], $operation, uniqid()),
-          getPOXGradeRequest());
+          self::getPOXGradeRequest());
     */
 
     public static function getPOXGradeRequest() {
@@ -337,7 +337,7 @@ class LTI {
     /*  $postBody = str_replace(
           array('SOURCEDID', 'OPERATION','MESSAGE'),
           array($sourcedid, $operation, uniqid()),
-          getPOXRequest());
+          self::getPOXRequest());
     */
     public static function getPOXRequest() {
         return '<?xml version = "1.0" encoding = "UTF-8"?>
@@ -391,7 +391,7 @@ class LTI {
         $postBody = str_replace(
             array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
             array($sourcedid, $grade, $operation, uniqid()),
-            getPOXGradeRequest());
+            self::getPOXGradeRequest());
 
         $response = sendOAuthBodyPOST($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $postBody);
         return parseResponse($response);

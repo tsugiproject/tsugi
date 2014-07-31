@@ -2,6 +2,8 @@
 
 require_once "classes.php";
 
+use \Tsugi\LTI;
+
 function gradeLoadAll($pdo) {
     global $CFG, $USER, $LINK;
     $LTI = ltiRequireData(array('link_id', 'role'));
@@ -142,9 +144,9 @@ function gradeGetWebService($sourcedid, $service) {
     $postBody = str_replace(
         array('SOURCEDID', 'OPERATION','MESSAGE'),
         array($sourcedid, $operation, uniqid()),
-        getPOXRequest());
+        LTI::getPOXRequest());
 
-    $response = sendOAuthBodyPOST($service, $lti['key_key'], $lti['secret'], 
+    $response = LTI::sendOAuthBodyPOST($service, $lti['key_key'], $lti['secret'], 
         $content_type, $postBody);
     $LastPOXGradeResponse = $response;
 
@@ -158,7 +160,7 @@ function gradeGetWebService($sourcedid, $service) {
 
     $grade = false;
     try {
-        $retval = parseResponse($response);
+        $retval = LTI::parseResponse($response);
         $LastPOXGradeParse = $retval;
         if ( is_array($retval) ) {
             if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
@@ -302,13 +304,13 @@ function gradeSendWebService($grade, $sourcedid, $service, &$debug_log=false) {
     $postBody = str_replace(
         array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
         array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
-        getPOXGradeRequest());
+        LTI::getPOXGradeRequest());
     
     if ( is_array($debug_log) ) $debug_log[] = array('Sending '.$grade.' to '.$lti['service'].' sourcedid='.$sourcedid);
 
     if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request (debug)',$postBody);
 
-    $response = sendOAuthBodyPOST($lti['service'], $lti['key_key'], $lti['secret'], 
+    $response = LTI::sendOAuthBodyPOST($lti['service'], $lti['key_key'], $lti['secret'], 
         $content_type, $postBody);
     global $LastOAuthBodyBaseString;
     $lbs = $LastOAuthBodyBaseString;
@@ -322,7 +324,7 @@ function gradeSendWebService($grade, $sourcedid, $service, &$debug_log=false) {
         return $status;
     }
     try {
-        $retval = parseResponse($response);
+        $retval = LTI::parseResponse($response);
         if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
             $status = true;
         } else if ( isset($retval['imsx_description']) ) {

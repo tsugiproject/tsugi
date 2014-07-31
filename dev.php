@@ -3,6 +3,9 @@
 define('COOKIE_SESSION', true);
 require_once("config.php");
 require_once("pdo.php");
+
+use \Tsugi\LTI;
+
 session_start();
 
 // We must be an administrator or in developer mode
@@ -275,10 +278,10 @@ if ( $outcomes ) {
 $parms['launch_presentation_css_url'] = $cssurl;
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
-    $parms = signParameters($parms, $endpoint, "POST", $key, $secret, 
+    $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret, 
         "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
 
-    $content = postLaunchHTML($parms, $endpoint, isset($_POST['debug']), 
+    $content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']), 
        "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency");
     echo("<hr>\n");
     print($content);
