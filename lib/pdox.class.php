@@ -5,7 +5,7 @@ namespace Tsugi;
 class PDOX {
 
     private $pdo = null;
-    
+
     function __construct($pdo) {
         $this->pdo = $pdo;
     }
@@ -60,7 +60,7 @@ class PDOX {
             } else {
                 $success = $q->execute($arr);
             }
-        } catch(Exception $e) {
+        } catch(\Exception $e) {
             $success = FALSE;
             $message = $e->getMessage();
             if ( $error_log ) error_log($message);

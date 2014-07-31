@@ -5,6 +5,8 @@
 ._*
 .Spotlight-V100
 .Trashes
+.idea
+*.swp
 ehthumbs.db
 Thumbs.db
 solutions
@@ -13,7 +15,6 @@ config.php
 upgrading.php
 error_log
 php-solutions
-*.swp
 phpDocumentor.phar
 tmp_phpdoc
 phpdoc
