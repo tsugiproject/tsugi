@@ -10,13 +10,13 @@ use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;
 use \Tsugi\OAuth\OAuthRequest;
 
-class LTIDB Extends \Tsugi\LTI {
+class LTIX Extends \Tsugi\LTI {
 
     // Silently check if this is a launch and if so, handle it
     public static function launchCheck() {
         global $CFG, $PDO;
         if ( ! LTI::isRequest() ) return false;
-        $session_id = LTIDB::setupSession($PDO);
+        $session_id = self::setupSession($PDO);
         if ( $session_id === false ) return false;
 
         // Redirect back to ourselves...
@@ -52,7 +52,7 @@ class LTIDB Extends \Tsugi\LTI {
 
         // Pull LTI data out of the incoming $_POST and map into the same
         // keys that we use in our database (i.e. like $row)
-        $post = LTIDB::extractPost();
+        $post = self::extractPost();
         if ( $post === false ) {
             $pdata = safe_var_dump($_POST);
             error_log('Missing post data: '.$pdata);
@@ -66,7 +66,7 @@ class LTIDB Extends \Tsugi\LTI {
 
         // We make up a Session ID Key because we don't want a new one
         // each time the same user launches the same link.
-        $session_id = LTIDB::getCompositeKey($post, $CFG->sessionsalt);
+        $session_id = self::getCompositeKey($post, $CFG->sessionsalt);
         session_id($session_id);
         session_start();
         header('Content-Type: text/html; charset=utf-8');
@@ -78,7 +78,7 @@ class LTIDB Extends \Tsugi\LTI {
         // Read all of the data from the database with a very long
         // LEFT JOIN and get all the data we have back in the $row variable
         // $row = LoadAllData($pdo, $CFG->dbprefix, false, $post);
-        $row = LTIDB::loadAllData($pdo, $CFG->dbprefix, $CFG->dbprefix.'profile', $post);
+        $row = self::loadAllData($pdo, $CFG->dbprefix, $CFG->dbprefix.'profile', $post);
 
         $delta = 0;
         if ( isset($_POST['oauth_timestamp']) ) {
@@ -91,7 +91,7 @@ class LTIDB Extends \Tsugi\LTI {
 
         // Use returned data to check the OAuth signature on the
         // incoming data
-        $valid = LTIDB::verifyKeyAndSecret($post['key'],$row['secret']);
+        $valid = self::verifyKeyAndSecret($post['key'],$row['secret']);
         if ( $valid !== true ) {
             print "<pre>\n";
             print_r($valid);
@@ -99,7 +99,7 @@ class LTIDB Extends \Tsugi\LTI {
             die_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0]);
         }
 
-        $actions = LTIDB::adjustData($pdo, $CFG->dbprefix, $row, $post);
+        $actions = self::adjustData($pdo, $CFG->dbprefix, $row, $post);
 
         // If there is an appropriate role override variable, we use that role
         if ( isset($row['role_override']) && isset($row['role']) &&
@@ -116,7 +116,7 @@ class LTIDB Extends \Tsugi\LTI {
         $_SESSION['CSRF_TOKEN'] = uniqid();
 
         // Check if we can auto-login the system user
-        if ( LTIDB::getCustom('dologin', false) && $pdo !== false ) loginSecureCookie($pdo);
+        if ( self::getCustom('dologin', false) && $pdo !== false ) loginSecureCookie($pdo);
 
         // Set up basic custom values
         if ( isset($_POST['custom_due'] ) ) {
@@ -637,7 +637,7 @@ class LTIDB Extends \Tsugi\LTI {
         $retval->duedate = false;
         $retval->duedatestr = false;
 
-        $duedatestr = LTIDB::getCustom('due');
+        $duedatestr = self::getCustom('due');
         if ( $duedatestr === false ) return $retval;
         $duedate = strtotime($duedatestr);
 
@@ -645,8 +645,8 @@ class LTIDB Extends \Tsugi\LTI {
         $penalty = false;
 
         date_default_timezone_set('Pacific/Honolulu'); // Lets be generous
-        if ( LTIDB::getCustom('timezone') ) {
-            date_default_timezone_set(LTIDB::getCustom('timezone'));
+        if ( self::getCustom('timezone') ) {
+            date_default_timezone_set(self::getCustom('timezone'));
         }
 
         if ( $duedate === false ) return $retval;
@@ -659,8 +659,8 @@ class LTIDB Extends \Tsugi\LTI {
         $retval->duedatestr = $duedatestr;
         // Should be a percentage off between 0.0 and 1.0
         if ( $diff > 0 ) {
-            $penalty_time = LTIDB::getCustom('penalty_time') ? LTIDB::getCustom('penalty_time') + 0 : 24*60*60;
-            $penalty_cost = LTIDB::getCustom('penalty_cost') ? LTIDB::getCustom('penalty_cost') + 0.0 : 0.2;
+            $penalty_time = self::getCustom('penalty_time') ? self::getCustom('penalty_time') + 0 : 24*60*60;
+            $penalty_cost = self::getCustom('penalty_cost') ? self::getCustom('penalty_cost') + 0.0 : 0.2;
             $penalty_exact = $diff / $penalty_time;
             $penalties = intval($penalty_exact) + 1;
             $penalty = $penalties * $penalty_cost;
