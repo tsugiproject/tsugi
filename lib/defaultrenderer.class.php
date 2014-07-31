@@ -259,4 +259,23 @@ class DefaultRenderer {
           </div>
     <?php
     }
+
+    function getSpinnerUrl() {
+        global $CFG;
+        return $CFG->staticroot . '/static/img/spinner.gif';
+    }
+
+    // Forward to a local URL, adding session if necessary - not that hrefs get altered appropriately 
+    // by PHP itself
+    function doRedirect($location) {
+        if ( headers_sent() ) {
+            echo('<a href="'.htmlentities($location).'">Continue</a>'."\n");
+        } else {
+            if ( ini_get('session.use_cookies') == 0 ) {
+                $location = addSession($location);
+            }
+            header("Location: $location");
+        }
+    }
+
 }

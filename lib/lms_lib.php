@@ -1,56 +1,14 @@
 <?php
 
-require_once "lti_util.php";
-require_once "lti_db.php";
-require_once "table.class.php";
-
-function dumpTable($stmt, $view=false) {
-    if ( $view !== false ) {
-        if ( strpos($view, '?') !== false ) {
-            $view .= '&';
-        } else {
-            $view .= '?';
-        }
-    }
-    echo('<table border="1">');
-    $first = true;
-    while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
-        if ( $first ) {
-            echo("\n<tr>\n");
-            foreach($row as $k => $v ) {
-                if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
-                    continue;
-                }
-                echo("<th>".htmlent_utf8($k)."</th>\n");
-            }
-            echo("</tr>\n");
-        }
-        $first = false;
-
-        $link_name = false;
-        echo("\n<tr>\n");
-        foreach($row as $k => $v ) {
-            if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
-                $link_name = $k;
-                $link_val = $v;
-                continue;
-            }
-            echo("<td>");
-            if ( $link_name !== false ) {
-                echo('<a href="'.$view.$link_name."=".$link_val.'">');
-                if ( strlen($v) < 1 ) $v = $link_name.':'.$link_val;
-            }
-            echo(htmlent_utf8($v));
-            if ( $link_name !== false ) {
-                echo('</a>');
-            }
-            $link_name = false;
-            echo("</td>\n");
-        }
-        echo("</tr>\n");
-    }
-    echo("</table>\n");
-}
+require_once("lti_util.php");
+require_once("lti_db.php");
+require_once("table.class.php");
+require_once("cache.class.php");
+require_once("crudform.class.php");
+require_once("crypt/aes.class.php"); 
+require_once("crypt/aesctr.class.php");
+require_once("defaultrenderer.class.php");
+require_once("debug.class.php");
 
 function getNameAndEmail() {
     global $USER;
@@ -97,16 +55,6 @@ function welcomeUserCourse() {
         echo(" "._m("(Instructor)"));
     }
     echo("</p>\n");
-}
-
-function doCSS($context=false) {
-    global $CFG;
-    echo '<link rel="stylesheet" type="text/css" href="'.$CFG->wwwroot.'/static/css/default.css" />'."\n";
-    if ( $context !== false ) {
-        foreach ( $context->getCSS() as $css ) {
-            echo '<link rel="stylesheet" type="text/css" href="'.$css.'" />'."\n";
-        }
-    }
 }
 
 // See if we need to extend our session (heartbeat)
@@ -237,102 +185,6 @@ function getUrlFull($file) {
     global $CFG;
     $path = getPwd($file);
     return $CFG->wwwroot . "/" . $path;
-}
-
-function getSpinnerUrl() {
-    global $CFG;
-    return $CFG->staticroot . '/static/img/spinner.gif';
-}
-
-// Forward to a local URL, adding session if necessary - not that hrefs get altered appropriately 
-// by PHP itself
-function doRedirect($location) {
-    if ( headers_sent() ) {
-        echo('<a href="'.htmlentities($location).'">Continue</a>'."\n");
-    } else {
-        if ( ini_get('session.use_cookies') == 0 ) {
-            $location = addSession($location);
-        }
-        header("Location: $location");
-    }
-}
-
-// Debugging utilities
-global $DEBUG_STRING;
-$DEBUG_STRING='';
-
-function debugClear() {
-    global $DEBUG_STRING;
-    unset($_SESSION['__zzz_debug']);
-}
-
-function debug_log($text,$mixed=false) {
-    global $DEBUG_STRING;
-    $sess = (strlen(session_id()) > 0 );
-    if ( $sess && isset($_SESSION['__zzz_debug']) ) {
-        if ( strlen($DEBUG_STRING) > 0 && strlen($_SESSION['__zzz_debug']) > 0) {
-            $_SESSION['__zzz_debug'] = $_SESSION['__zzz_debug'] ."\n" . $DEBUG_STRING;
-        } else if ( strlen($DEBUG_STRING) > 0 ) {
-            $_SESSION['__zzz_debug'] = $DEBUG_STRING;
-        }
-        $DEBUG_STRING = $_SESSION['__zzz_debug'];
-    }
-    if ( strlen($text) > 0 ) {
-        if ( strlen($DEBUG_STRING) > 0 ) {
-            if ( substr($DEBUG_STRING,-1) != "\n") $DEBUG_STRING .= "\n";
-        }
-        $DEBUG_STRING .= $text;
-    }
-    if ( $mixed !== false ) {
-        if ( strlen($DEBUG_STRING) > 0 ) {
-            if ( substr($DEBUG_STRING,-1) != "\n") $DEBUG_STRING .= "\n";
-        }
-        if ( $mixed !== $_SESSION ) {
-            $DEBUG_STRING .= print_r($mixed, TRUE);
-        } else { 
-            $tmp = $mixed;
-            unset($tmp['__zzz_debug']);
-            $DEBUG_STRING .= print_r($tmp, TRUE);
-        }
-    }
-    if ( $sess ) { // Move debug to session.
-        $_SESSION['__zzz_debug'] = $DEBUG_STRING;
-        $DEBUG_STRING = '';
-        // echo("<br/>=== LOG $text ====<br/>".$_SESSION['__zzz_debug']."<br/>\n");flush();
-    }
-}
-
-// Calling this clears debug buffer...
-function debugDump() {
-    global $DEBUG_STRING;
-    $retval = '';
-    $sess = (strlen(session_id()) > 0 );
-    if ( $sess ) { 
-        // echo("<br/>=== DUMP ====<br/>".$_SESSION['__zzz_debug']."<br/>\n");flush();
-        if (strlen($_SESSION['__zzz_debug']) > 0) {
-            $retval = $_SESSION['__zzz_debug'];
-            unset($_SESSION['__zzz_debug']);
-        }
-    }
-    if ( strlen($retval) > 0 && strlen($DEBUG_STRING) > 0) {
-        $retval .= "\n";
-    }   
-    if (strlen($DEBUG_STRING) > 0) {
-        $retval .= $DEBUG_STRING;
-        $DEBUG_STRING = '';
-    }
-    return $retval;
-}
-
-function dumpPost() {
-        print "<pre>\n";
-        print "Raw POST Parameters:\n\n";
-        ksort($_POST);
-        foreach($_POST as $key => $value ) {
-            if (get_magic_quotes_gpc()) $value = stripslashes($value);
-            print "$key=$value (".mb_detect_encoding($value).")\n";
-        }
-        print "</pre>";
 }
 
 function jsonIndent($json) {
@@ -543,40 +395,6 @@ function noBuffer() {
     ini_set('zlib.output_compression', false);
 }
 
-function cacheCheck($cacheloc, $cachekey)
-{
-    $cacheloc = "cache_" . $cacheloc;
-    if ( isset($_SESSION[$cacheloc]) ) {
-        $cache_row = $_SESSION[$cacheloc];
-        if ( $cache_row[0] == $cachekey ) {
-            // error_log("Cache hit $cacheloc");
-            return $cache_row[1];
-        }
-        unset($_SESSION[$cacheloc]);
-    }
-    return false;
-}
-
-// Don't cache the non-existence of something
-function cacheSet($cacheloc, $cachekey, $cacheval)
-{
-    $cacheloc = "cache_" . $cacheloc;
-    if ( $cacheval === null || $cacheval === false ) {
-        unset($_SESSION[$cacheloc]);
-        return;
-    }
-    $_SESSION[$cacheloc] = array($cachekey, $cacheval);
-}
-
-function cache_clear($cacheloc)
-{
-    $cacheloc = "cache_" . $cacheloc;
-    if ( isset($_SESSION[$cacheloc]) ) {
-        // error_log("Cache clear $cacheloc");
-    }
-    unset($_SESSION[$cacheloc]);
-}
-
 function loadUserInfo($pdo, $user_id)
 {
     global $CFG;
@@ -613,9 +431,6 @@ function loadLinkInfo($pdo, $link_id)
     cacheSet($cacheloc, $link_id, $row);
     return $row;
 }
-
-require_once("crypt/aes.class.php"); 
-require_once("crypt/aesctr.class.php");
 
 /*
   // initialise password & plaintesxt if not set in post array (shouldn't need stripslashes if magic_quotes is off)
@@ -775,8 +590,6 @@ function mailSend($to, $subject, $message, $id, $token) {
     return mail($to,$subject,$msg,$headers);
 }
 
-require_once("defaultrenderer.class.php");
-
 $OUTPUT = new \Tsugi\DefaultRenderer();
 
 function curPageURL() {
@@ -811,7 +624,13 @@ function pdoPagedAuto($pdo, $sql, $query_parms, $searchfields, $orderfields=fals
     return \Tsugi\Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, $view, $params);
 }
 
-require_once("crudform.class.php");
+/**
+ * @deprecated deprecated since refactor to classes
+ */
+function dumpTable($stmt, $view=false) {
+    return \Tsugi\Table::dumpTableRaw($stmt, $view);
+}
+
 define('CRUD_UPDATE_SUCCESS', \Tsugi\CrudForm::UPDATE_SUCCESS);
 define('CRUD_UPDATE_FAIL', \Tsugi\CrudForm::UPDATE_FAIL);
 define('CRUD_UPDATE_NONE', \Tsugi\CrudForm::UPDATE_NONE);
@@ -861,6 +680,61 @@ function crudInsertForm($fields, $from_location)
 {
     return \Tsugi\CrudForm::insertForm($fields, $from_location);
 }
+
+/**
+ * @deprecated deprecated since refactor to classes
+ */
+function cacheCheck($cacheloc, $cachekey)
+{
+    return \Tsugi\Cache::check($cacheloc, $cachekey);
+}
+
+/**
+ * @deprecated deprecated since refactor to classes
+ */
+function cacheSet($cacheloc, $cachekey, $cacheval)
+{
+    return \Tsugi\Cache::set($cacheloc, $cachekey, $cacheval);
+}
+
+/**
+ * @deprecated deprecated since refactor to classes
+ */
+function cache_clear($cacheloc)
+{
+    return \Tsugi\Cache::clear($cacheloc);
+}
+
+/**
+ * @deprecated deprecated since refactor to classes
+ */
+function getSpinnerUrl() {
+    global $OUTPUT;
+    return $OUTPUT->getSpinnerUrl();
+}
+
+/**
+ * @deprecated deprecated since refactor to classes
+ */
+function doRedirect($location) {
+    global $OUTPUT;
+    return $OUTPUT->doRedirect($location);
+}
+
+/**
+ * @deprecated deprecated since refactor to classes
+ */
+function debug_log($text,$mixed=false) {
+    return \Tsugi\Debug::log($text,$mixed);
+}
+
+/**
+ * @deprecated deprecated since refactor to classes
+ */
+function dumpPost() {
+    return \Tsugi\Debug::dumpPost();
+}
+
 
 // No trailer
 
