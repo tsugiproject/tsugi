@@ -31,6 +31,6 @@ function pdoQueryDie($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
  */
 function pdoQuery($pdo, $sql, $arr=FALSE, $error_log=TRUE) {
     global $PDOX;
-    return $PDOX->query($sql, $arr, $error_log);
+    return $PDOX->queryReturnError($sql, $arr, $error_log);
 }
 
