@@ -10,13 +10,6 @@ use \Tsugi\LTIX;
 /**
  * @deprecated deprecated since refactor to classes
  */
-function ltiGetCustom($varname, $default=false) {
-    return LTIX::getCustom($varname, $default);
-}
-
-/**
- * @deprecated deprecated since refactor to classes
- */
 function ltiRequireData($needed) {
     return LTIX::requireData($needed);
 }
