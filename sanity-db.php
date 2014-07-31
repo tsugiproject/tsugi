@@ -3,14 +3,14 @@
 // Lets check to see if we have a database or not and give a decent error message
 try {
    if ( ! defined('PDO_WILL_CATCH') ) define('PDO_WILL_CATCH', true);
-    require("pdo.php");
+    require_once("pdo.php");
 } catch(PDOException $ex){
     $msg = $ex->getMessage();
-    error_log("DB connection: "+$msg);
+    error_log("DB connection: ".$msg);
     echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
     if ( strpos($msg, 'Unknown database') !== false ) {
         echo("<p>It does not appear as though your database exists.</p>
-<p> If you have full access to your MySql instance (i.e. like 
+<p> If you have full access to your MySql instance (i.e. like
 MAMP or XAMPP, you may need to run commands like this:</p>
 <pre>
     CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
@@ -19,7 +19,7 @@ MAMP or XAMPP, you may need to run commands like this:</p>
 </pre>
 <p>Make sure to choose appropriate passwords when setting this up.</p>
 <p>If you are running in a hosted environment and are using an admin tool like
-CPanel (or equivalent).  You must user this interface to create a database, 
+CPanel (or equivalent).  You must user this interface to create a database,
 user, and password.</p>
 <p>
 In some systems, a database adminstrator will create the database,
@@ -29,13 +29,13 @@ Once you have the database, account and password you must update your
 <code>config.php</code> with this information.</p>
 ");
     } else if ( strpos($msg, 'Access denied for user') !== false ) {
-        echo('<p>It appears that you are unable to access 
+        echo('<p>It appears that you are unable to access
 your database due to a problem with the user and password.
-The user and password for the database conneciton are setup using either a 
+The user and password for the database conneciton are setup using either a
 SQL <code>GRANT</code> command or created in an adminstration tool like CPanel.
 Or perhaps a system administrator created the database and gave you the
 account and password to access the database.</p>
-<p>Make sure to check the values in your <code>config.php</code> for 
+<p>Make sure to check the values in your <code>config.php</code> for
 <pre>
     $CFG->dbuser    = \'ltiuser\';
     $CFG->dbpass    = \'ltipassword\';
@@ -44,19 +44,19 @@ To make sure they match the account and password assigned to your database.
 </p>
 ');
     } else if ( strpos($msg, 'Can\'t connect to MySQL server') !== false ) {
-        echo('<p>It appears that you cannot connect to your MySQL server at 
-all.  The most likely problem is the wrong host or port in this option 
+        echo('<p>It appears that you cannot connect to your MySQL server at
+all.  The most likely problem is the wrong host or port in this option
 in your <code>config.php</code> file:
 <pre>
 $CFG->pdo       = \'mysql:host=127.0.0.1;dbname=tsugi\';
 # $CFG->pdo       = \'mysql:host=127.0.0.1;port=8889;dbname=tsugi\'; // MAMP
 </pre>
-The host may be incorrect - you might try switching from \'127.0.0.1\' to 
-\'localhost\'.   Or if you are on a hosted system with an ISP the name of the 
-database host might be given to you like \'db4263.mysql.1and1.com\' and you 
+The host may be incorrect - you might try switching from \'127.0.0.1\' to
+\'localhost\'.   Or if you are on a hosted system with an ISP the name of the
+database host might be given to you like \'db4263.mysql.1and1.com\' and you
 need to put that host name in the PDO string.</p>
 <p>
-Most systems are configured to use the default MySQL port of 3306 and if you 
+Most systems are configured to use the default MySQL port of 3306 and if you
 omit "port=" in the PDO string it assumes 3306.  If you are using MAMP
 this is usually moved to port 8889.  If neither 3306 nor 8889 works you
 probably have a bad host name.  Or talk to your system administrator.
@@ -74,7 +74,7 @@ target="_blank">tsugi.org</a>');
 
     echo("\n</div>\n");
     die_with_error_log("Database error ".$msg);
-}   
+}
 
 // Now check the plugins table to see if it exists
 $p = $CFG->dbprefix;
@@ -100,6 +100,6 @@ in the <code>\$CFG->adminpw</code> setting.
         software version=$CFG->dbversion - please run admin/upgrade.php</p>\n");
         echo("\n</div>\n");
         error_log("Warning: DB current version=$actualdbversion expected version=$CFG->dbversion");
-    }   
+    }
 }
 
