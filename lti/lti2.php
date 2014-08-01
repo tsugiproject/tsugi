@@ -3,7 +3,6 @@ define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once "../pdo.php";
 require_once $CFG->dirroot.'/lib/lms_lib.php';
-require_once $CFG->dirroot.'/lib/lti_util.php';
 require_once 'tp_messages.php';
 
 use \Tsugi\LTI;

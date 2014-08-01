@@ -3,6 +3,7 @@
 define('COOKIE_SESSION', true);
 require_once("config.php");
 require_once("pdo.php");
+require_once("lib/lms_lib.php");
 
 use \Tsugi\LTI;
 
@@ -52,8 +53,6 @@ $OUTPUT->bodyStart();
 $OUTPUT->footer();
     return;
 }
-
-require_once("lib/lti_util.php");
 
 header('Content-Type: text/html; charset=utf-8');
 

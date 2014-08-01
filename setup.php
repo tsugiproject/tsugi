@@ -6,6 +6,9 @@
 // all database.php files.
 $CFG->dbversion = 2014072600;
 
+// Just turn this off to avoid security holes due to XML parsing
+if ( function_exists ( 'libxml_disable_entity_loader' ) ) libxml_disable_entity_loader();
+
 function die_with_error_log($msg, $extra=false, $prefix="DIE:") {
     error_log($prefix.' '.$msg.' '.$extra);
     print_stack_trace();
