@@ -2,6 +2,25 @@
 
 namespace Tsugi;
 
+/**
+ * This general purpose library for HTTP communications.
+ *
+ * This class attempts to solve the problem that lots of 
+ * PHP environments have different approaches to doing
+ * GET and POST requests.  Some use CURL and others use
+ * context streams.   This code tries one way or another
+ * to figure out the best way to handle these and make
+ * these calls work using whatever library code that
+ * is available.
+ *
+ * The best way for things work is for CURL to be avaialable.
+ * If CURL is available, it is used for everything and 
+ * forks well.
+ *
+ * @todo We need to make this non-static and configure it
+ * so it prefers or exclusively uses a particular transport.
+ * 
+ */
 class Net {
     public static function doGet($url, $header = false) {
         global $LastGETURL;

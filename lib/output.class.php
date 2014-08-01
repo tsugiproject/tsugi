@@ -2,6 +2,42 @@
 
 namespace Tsugi;
 
+/**
+ * This is a class that captures the output conventions of Tusgi.
+ *
+ * In order to be consistent across Tsugi tools we capture the kinds of
+ * HTML conventions we want to use.   This allows us to change our UI
+ * in one place.
+ *
+ * This class is created automatially and placed in a global variable
+ * called $OUTPUT
+ *
+ * A typical Tsugi Tool can get a lot done with the rough outline:
+ *
+ *     $LTI = \Tsugi\LTIX::requireData(array('context_id', 'role'));
+
+ *     // Handle incoming POST data and redirect as necessary...
+ *     if ( ... ) {
+ *         header( 'Location: '.addSession('index.php') ) ;
+ *     }
+ *
+ *     // Done with POST
+ *     $OUTPUT->header();
+ *     $OUTPUT->startBody();
+ *     $OUTPUT->flashMessages();
+ *
+ *     // Output some HTML
+ *
+ *     $OUTPUT->footerStart();
+ *     ?>
+ *        // Stick some JavaScript here...
+ *     <?php
+ *     $OUTPUT->footerEnd();
+ *
+ * This class is likely to grow a bit to capture new needs as they arise.
+ * You can look at the various bits of sample code in the mod and other
+ * tool folders to see patterns of the use of this class.
+ */
 class Output {
 
     function flashMessages() {
@@ -93,7 +129,7 @@ class Output {
     <?php
         }
 
-        $this->doAnalytics(); 
+        $this->doAnalytics();
     }
 
     function footerEnd() {
@@ -190,7 +226,7 @@ class Output {
     }
 
     function togglePreScript() {
-    return '<script language="javascript"> 
+    return '<script language="javascript">
     function dataToggle(divName) {
         var ele = document.getElementById(divName);
         if(ele.style.display == "block") {
@@ -199,7 +235,7 @@ class Output {
         else {
             ele.style.display = "block";
         }
-    } 
+    }
     </script>';
     }
 
@@ -265,8 +301,13 @@ class Output {
         return $CFG->staticroot . '/static/img/spinner.gif';
     }
 
-    // Forward to a local URL, adding session if necessary - not that hrefs get altered appropriately 
-    // by PHP itself
+    /**
+     * Redirect to a local URL, adding session if necessary 
+     *
+     * Note that this is only needed for AJAX and header() calls
+     * as &lt;form> and &lt;a href tags are properly handled already
+     * by the PHP built-in "don't use cookies for session" support.
+     */
     function doRedirect($location) {
         if ( headers_sent() ) {
             echo('<a href="'.htmlentities($location).'">Continue</a>'."\n");

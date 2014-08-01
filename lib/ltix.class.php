@@ -7,6 +7,13 @@ use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;
 use \Tsugi\OAuth\OAuthRequest;
 
+/**
+ * This an extended LTI class that defines how Tsugi tools interact with LTI
+ *
+ * This class deals with all of the session and database/data model 
+ * details that Tsugi tools make use of during runtime.
+ * 
+ */
 class LTIX Extends \Tsugi\LTI {
 
     // Silently check if this is a launch and if so, handle it

@@ -51,10 +51,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
 
 // View 
 $OUTPUT->header();
-?>
-</head>
-<body>
-<?php
+$OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 welcomeUserCourse();
 

@@ -11,6 +11,13 @@ use \Tsugi\OAuth\OAuthUtil;
 
 use \Tsugi\Net;
 
+/**
+ * This is a general purpose LTI class with no Tsugi-specific dependencies.
+ *
+ * This class handles the protocol and OAuth validation and does not 
+ * deal with how to use LTI data during the runtime of the tool.
+ * 
+ */
 class LTI {
 
     // Returns true if this is a Basic LTI message

@@ -4,6 +4,22 @@ namespace Tsugi;
 
 use \Tsugi\CrudForm;
 
+/**
+ * Our class to generate pageable tables.
+ *
+ * This handles all the details for generating pageable, sortable tables
+ * that from a particular database query.
+ *
+ * This is a pretty complex class and for now the best way to understand
+ * it is to look at its use in various places throughout the code.  
+ *
+ * This also interoperates with the CrudForm class in those cases where
+ * a table needs links to a detail page for a row as seen in 
+ * core/key/index.php
+ *
+ * @todo This is still emergent and as new use cases are encountered it
+ * will likely evolve.
+ */
 class Table {
 
     public static $DEFAULT_PAGE_LENGTH = 20;  // Setting this to 2 is good for debugging
@@ -73,7 +89,7 @@ class Table {
 
         $page_start = isset($params['page_start']) ? $params['page_start']+0 : 0;
         if ( $page_start < 0 ) $page_start = 0;
-        $page_length = isset($params['page_length']) ? $params['page_length']+0 : Table::$DEFAULT_PAGE_LENGTH;
+        $page_length = isset($params['page_length']) ? $params['page_length']+0 : self::$DEFAULT_PAGE_LENGTH;
         if ( $page_length < 0 ) $page_length = 0;
 
         $desc = '';
@@ -112,7 +128,7 @@ class Table {
 
         $page_start = isset($params['page_start']) ? $params['page_start']+0 : 0;
         if ( $page_start < 0 ) $page_start = 0;
-        $page_length = isset($params['page_length']) ? $params['page_length']+0 : Table::$DEFAULT_PAGE_LENGTH;
+        $page_length = isset($params['page_length']) ? $params['page_length']+0 : self::$DEFAULT_PAGE_LENGTH;
         if ( $page_length < 0 ) $page_length = 0;
 
         $search = '';

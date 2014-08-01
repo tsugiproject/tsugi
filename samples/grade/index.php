@@ -58,21 +58,9 @@ if ( isset($_POST['grade']) )  {
 // Start of the output
 $OUTPUT->header();
 $OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
+welcomeUserCourse();
 
-if ( isset($_SESSION['error']) ) {
-    echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
-    unset($_SESSION['error']);
-}
-if ( isset($_SESSION['success']) ) {
-    echo '<p style="color:green">'.$_SESSION['success']."</p>\n";
-    unset($_SESSION['success']);
-}
-
-if ( $displayname ) {
-    echo("<p>Welcome <strong>\n");
-    echo(htmlent_utf8($displayname));
-    echo("</strong></p>\n");
-}
 ?>
 <form method="post">
 Enter grade:

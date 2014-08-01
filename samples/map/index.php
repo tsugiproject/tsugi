@@ -55,10 +55,8 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     $points[] = array($row['lat']+0.0,$row['lng']+0.0);
 }
 
+$OUTPUT->header();
 ?>
-<html><head><title>Map for 
-<?php echo($CONTEXT->title); ?>
-</title>
 <script src="//maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 <script type="text/javascript">
 var map;
@@ -115,18 +113,9 @@ other_points =
 <?php echo( json_encode($points));?> 
 ;
 </script>
-</head>
-<body style="font-family: sans-serif;" onload="initialize_map();">
 <?php
-if ( isset($_SESSION['error']) ) {
-    echo '<p style="color:red">'.$_SESSION['error']."</p>\n";
-    unset($_SESSION['error']);
-}
-if ( isset($_SESSION['success']) ) {
-    echo '<p style="color:green">'.$_SESSION['success']."</p>\n";
-    unset($_SESSION['success']);
-}
-
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
 ?>
 <div id="map_canvas" style="margin: 10px; width:500px; max-width: 100%; height:500px"></div>
 <form method="post">
@@ -137,4 +126,10 @@ if ( isset($_SESSION['success']) ) {
  <button type="submit">Save Location</button>
 </form>
 <?php
-$OUTPUT->footer();
+$OUTPUT->footerStart();
+?>
+<script type="text/javascript">
+    initialize_map();
+</script>
+<?php
+$OUTPUT->footerEnd();
