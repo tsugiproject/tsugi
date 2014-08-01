@@ -16,7 +16,12 @@ Here are several other pages describing this project:
 * [TSUGI API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
 * [Coding Standards](docs/CODING.md)
 * [Internationalizing and Localizing](docs/I18N.md)
-* [Generating API Docuemntation](docs/PHPDOC.md)
+* [Generating API Documentation](docs/PHPDOC.md)
+
+If you have been given a key/secret to use a system, here 
+is some rudimentatry LTI 1.0 documentation:
+
+* [Configuring LTI 1.0 Launches](docs/LAUNCHING.md)
 
 I have recorded a simple video describing the install/config steps
 for this software on 
