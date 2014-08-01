@@ -13,20 +13,16 @@ namespace Tsugi;
  * The primary value is in the queryReturnError() function which
  * combines prepare() and execute() as well as adding in extensive
  * error checking.
- *
  * It turns out that to properly check all of the return values
  * and possible errors which can happen using prepare() and execute()
  * is really challenging and not even obvious from the PDO documentation.
  * So we have collected all that wisdom into this method and then use
- * it instead of prepare() and then immediately calling execute()
- * throughout Tsugi.
+ * it throughout Tsugi.
  *
- * The rest of the methods are convienence methods to combine multiple
- * steps into a single call to make tool code more readable.
+ * The rest of the methods are convienence methods to combine common
+ * multi-step operations into a single call to make tool code more readable.
  *
- * While this seems to be bending over backwards, it allows the
- * prepare() and execute() to be collapsed into one call with
- * simple error checking in the calling code.  It makes the calling
+ * While this seems to be bending over backwards, It makes the calling
  * code very succinct as follows:
  *
  *     $stmt = $PDOX->queryDie(
@@ -40,7 +36,7 @@ namespace Tsugi;
  * Not finding a record is non-fatal.  In general SQL syntax errors only
  * happen during development (if you are doing it right) so you might as
  * well die() if there is an SQL syntax error as it most likely indicates
- * a coding bug rather than a data bug.
+ * a coding bug rather than a runtime user error or missing data problem.
  *
  */
 class PDOX extends \PDO {
@@ -70,13 +66,11 @@ class PDOX extends \PDO {
      * $stmt->errorImplode an imploded version of errorInfo suitable for
      * dropping into a log.
      *
-     * While this seems to be bending over backwards, it allows the
-     * prepare() and execute() to be collapsed into one call with
-     * simple error checking in the calling code.
-     *
-     * This function returns a PDO statement that results
-     * from the execute() call if the SQL is well formed.
-     * See above for detail on how the statement is augmented.
+     * @param $sql The SQL to execute in a string.
+     * @param $arr An optional array of the substitition values if needed by the query
+     * @param $error_log Indicates whether or not errors are to be logged. Default is TRUE.
+     * @return \PDOStatement  This is either the real PDOStatement from the prepare() call
+     * or a stdClass mocked to have error indications as described above.
      */
     function queryReturnError($sql, $arr=FALSE, $error_log=TRUE) {
         $errormode = $this->getAttribute(\PDO::ATTR_ERRMODE);
@@ -126,10 +120,11 @@ class PDOX extends \PDO {
     /**
      * Prepare and execute an SQL query or die() in the attempt.
      *
-     * If the SQL is badly formed, this function will die.
-     *
-     * This function returns the statement that results
-     *         from the execute() call if the SQL is well formed.
+     * @param $sql The SQL to execute in a string.  If the SQL is badly formed this function will die.
+     * @param $arr An optional array of the substitition values if needed by the query
+     * @param $error_log Indicates whether or not errors are to be logged. Default is TRUE.
+     * @return \PDOStatement  This is either the real PDOStatement from the prepare() call
+     * or a stdClass mocked to have error indications as described above.
      */
     function queryDie($sql, $arr=FALSE, $error_log=TRUE) {
         global $CFG;
@@ -150,10 +145,11 @@ class PDOX extends \PDO {
     /**
      * Prepare and execute an SQL query and retrieve a single row.
      *
-     * If the SQL is badly formed, this function will die.
-     *
-     * This function returns either the associative array containing
-     * the row or FALSE.
+     * @param $sql The SQL to execute in a string.  If the SQL is badly formed this function will die.
+     * @param $arr An optional array of the substitition values if needed by the query
+     * @param $error_log Indicates whether or not errors are to be logged. Default is TRUE.
+     * @return array This is either the row that was returned or FALSE if no rows were 
+     * returned.
      */
     function rowDie($sql, $arr=FALSE, $error_log=TRUE) {
         $stmt = self::queryDie($sql, $arr, $error_log);
@@ -172,10 +168,11 @@ class PDOX extends \PDO {
      * If code wants to stream the results of a query, they should do their
      * own query and loop through the rows in their own code.
      *
-     * If the SQL is badly formed, this function will die.
-     *
-     * An array of rows from the query.  If there are no rows,
-     * an empty array is returned.
+     * @param $sql The SQL to execute in a string.  If the SQL is badly formed this function will die.
+     * @param $arr An optional array of the substitition values if needed by the query
+     * @param $error_log Indicates whether or not errors are to be logged. Default is TRUE.
+     * @return array This is either the rows that were retrieved or or an empty array
+     * if there were no rows.
      */
     function allRowsDie($sql, $arr=FALSE, $error_log=TRUE) {
         $stmt = self::queryDie($sql, $arr, $error_log);
