@@ -9,75 +9,69 @@ namespace Tsugi;
  * to the underlying PHP PDO class.   These methods combine several
  * PDO calls into a single call for common patterns and add far more
  * extensive error checking and simpler error handling.
+ *
+ * The primary value is in the queryReturnError() function which
+ * combines prepare() and execute() as well as adding in extensive
+ * error checking.
+ *
+ * It turns out that to properly check all of the return values
+ * and possible errors which can happen using prepare() and execute()
+ * is really challenging and not even obvious from the PDO documentation.
+ * So we have collected all that wisdom into this method and then use
+ * it instead of prepare() and execute() throughout Tsugi.
+ *
+ * The rest of the methods are convienent methods to combine multiple
+ * steps into a single call to make tool code more readable.
+ *
+ * While this seems to be bending over backwards, it allows the
+ * prepare() and execute() to be collapsed into one call with
+ * simple error checking in the calling code.  It makes the calling
+ * code very succinct as follows:
+ *     
+ *     $stmt = $PDOX->queryDie(
+ *         "INSERT INTO .... ",
+ *         array('SHA' => $userSHA, ... )
+ *     );
+ *     if ( $stmt->success) $profile_id = $PDOX->lastInsertId();
+ *
+ * Whilst many of these methods seem focused on calling the die() function,
+ * the only time that die() is called is when there is an SQL syntax error.
+ * Not finding a record is non-fatal.  In general SQL syntax errors only 
+ * happen during development (if you are doing it right) so you might as
+ * well die() if there is an SQL syntax error as it most likely indicates 
+ * a coding bug rather than a data bug.
+ *
  */
 class PDOX extends \PDO {
 
     /**
-     * Prepare and execute an SQL query and retrieve a single row.
-     *
-     * If the SQL is badly formed, this function will die.
-     *
-     * This function returns either the associative array containing 
-     * the row or FALSE.
-     */
-    function rowDie($sql, $arr=FALSE, $error_log=TRUE) {
-        $stmt = self::queryDie($sql, $arr, $error_log);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $row;
-    }
-
-    /**
-     * Prepare and execute an SQL query.
-     *
-     * If the SQL is badly formed, this function will die.
-     *
-     * This function returns the statement that results
-     *         from the execute() call if the SQL is well formed.
-     */
-    function queryDie($sql, $arr=FALSE, $error_log=TRUE) {
-        global $CFG;
-        $stmt = self::queryReturnError($sql, $arr, $error_log);
-        if ( ! $stmt->success ) {
-            error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
-            if ( isset($CFG) && isset($CFG->dirroot) && isset($CFG->DEVELOPER) && $CFG->DEVELOPER) {
-                $sanity = $CFG->dirroot."/sanity-db.php";
-                if ( file_exists($sanity) ) {
-                    include_once($sanity);
-                }
-            }
-            die($stmt->errorImplode); // with error_log
-        }
-        return $stmt;
-    }
-
-    /**
      * Prepare and execute an SQL query with lots of error checking.
      *
-     * It turns out that to properly check all of the return values
-     * and possible errors which using prepare() and execute()
-     * we have all that logic one place.
+     * This routine will call prepare() and then execute() with the 
+     * resulting PDOStatement and return the PDOStatement.
+     * If the prepare() fails, we fake up a stdClass() with a few
+     * fields that mimic a simple failed execute().
      *
-     * In order to simplify the error handling for the code making use
-     * of this method, the returned PDO statement is augmented as
-     * follows:
+     *     $stmt->errorCode
+     *     $stmt->errorInfo
      *
+     * We also augment the real or fake PDOStatement with these fields:
+     *
+     *     $stmt->success
+     *     $stmt->ellapsed_time
+     *     $stmt->errorImplode
+     * 
      * $stmt->success is TRUE/FALSE based on the success of the operation
+     * to simplify error checking
+     *
      * $stmt->ellapsed_time includes the length of time the query took
      *
-     * If the prepare fails, we set up the following values to mirror
-     * a execute() failure.
-     *
-     * $q->errorCode
-     *
-     * $q->errorInfo
-     *
-     * We also concatenate the valued in errorInfo in the following attribute:
-     *
-     * $q->errorImplode
+     * $stmt->errorImplode an imploded version of errorInfo suitable for
+     * dropping into a log.
      *
      * While this seems to be bending over backwards, it allows the
      * prepare() and execute() to be collapsed into one call with
-     * simple error checking upon return.
+     * simple error checking in the calling code.  
      *
      * This function returns a PDO statement that results
      * from the execute() call if the SQL is well formed.
@@ -126,6 +120,44 @@ class PDOX extends \PDO {
             $this->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
         }
         return $q;
+    }
+
+    /**
+     * Prepare and execute an SQL query or die() in the attempt.
+     *
+     * If the SQL is badly formed, this function will die.
+     *
+     * This function returns the statement that results
+     *         from the execute() call if the SQL is well formed.
+     */
+    function queryDie($sql, $arr=FALSE, $error_log=TRUE) {
+        global $CFG;
+        $stmt = self::queryReturnError($sql, $arr, $error_log);
+        if ( ! $stmt->success ) {
+            error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
+            if ( isset($CFG) && isset($CFG->dirroot) && isset($CFG->DEVELOPER) && $CFG->DEVELOPER) {
+                $sanity = $CFG->dirroot."/sanity-db.php";
+                if ( file_exists($sanity) ) {
+                    include_once($sanity);
+                }
+            }
+            die($stmt->errorImplode); // with error_log
+        }
+        return $stmt;
+    }
+
+    /**
+     * Prepare and execute an SQL query and retrieve a single row.
+     *
+     * If the SQL is badly formed, this function will die.
+     *
+     * This function returns either the associative array containing 
+     * the row or FALSE.
+     */
+    function rowDie($sql, $arr=FALSE, $error_log=TRUE) {
+        $stmt = self::queryDie($sql, $arr, $error_log);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row;
     }
 
     /**
