@@ -72,8 +72,10 @@ to see it in action unless you make a few student acounts.
 
 Optional custom parameters include:
 
-done=_close if you want it to display a button that closes the window (i.e. 
-you started it in a popup)
+    done=_close
+
+When this is present, the tool will display a "Done" button that closes
+the window.  Use this if you put this in a popup window by itself.
 
 Python Autograder
 -----------------
@@ -95,8 +97,21 @@ Valid exercises include: hello, fopen, loop, 2.2, 2.3, 3.1, 3.3, 4.6,
 
 Optional custom parameters include:
 
-done=_close if you want it to display a button that closes the window (i.e. 
-you started it in a popup)
+    done=_close
+
+When this is present, the tool will display a "Done" button that closes
+the window.  Use this if you put this in a popup window by itself.
+
+    due=2014-01-27
+    penalty_time=34560
+    penalty_cost=0.2
+    timezone=Pacific/Honolulu
+
+These three options set a due date, timezone, penalty period (in seconds) and 
+cost per period.  These are optional.   Other than the due date, values above 
+are the defaults if there is a due date specified.  The due= value is in any 
+format that PHP strtotime() parses - the best trick is to use the ISO 8601 date
+as shown above.
 
 Gradebook Tool
 --------------
