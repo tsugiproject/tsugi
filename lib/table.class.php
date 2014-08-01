@@ -11,10 +11,10 @@ use \Tsugi\Core\CrudForm;
  * that from a particular database query.
  *
  * This is a pretty complex class and for now the best way to understand
- * it is to look at its use in various places throughout the code.  
+ * it is to look at its use in various places throughout the code.
  *
  * This also interoperates with the CrudForm class in those cases where
- * a table needs links to a detail page for a row as seen in 
+ * a table needs links to a detail page for a row as seen in
  * core/key/index.php
  *
  * @todo This is still emergent and as new use cases are encountered it
@@ -255,7 +255,7 @@ class Table {
         echo("</div>\n");
     }
 
-    public static function pagedAuto($sql, $query_parms, $searchfields, 
+    public static function pagedAuto($sql, $query_parms, $searchfields,
         $orderfields=false, $view=false, $params=false) {
         global $PDOX;
 

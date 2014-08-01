@@ -7,7 +7,7 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once $CFG->dirroot."/lib/goutte/vendor/autoload.php";
 require_once $CFG->dirroot."/lib/goutte/Goutte/Client.php";
 
-// Check to see if we were launched from LTI, and if so set the 
+// Check to see if we were launched from LTI, and if so set the
 // displayname varalble for the rest of the code
 $displayname = false;
 $instructor = false;
@@ -79,7 +79,7 @@ function getUrl($sample) {
         <input type="submit" value="Evaluate">
         </form>');
     if ( $displayname ) {
-        echo("By entering a URL in this field and submitting it for 
+        echo("By entering a URL in this field and submitting it for
         grading, you are representing that this is your own work.  Do not submit someone else's
         web site for grading.
         ");
@@ -100,7 +100,7 @@ function webauto_test_passed($grade, $url) {
         line_out('Not setup to return a grade..');
         exit();
     }
-    
+
     if ( ! isset($_GET['grade']) ) {
         line_out('Dry run - grade of ('.intval($grade*100).'%) was not sent.');
         exit();

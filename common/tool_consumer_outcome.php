@@ -35,7 +35,7 @@ if (strpos($hct,'application/xml') === false ) {
    die("Must be content type xml, found ".$hct);
 }
 
-header('Content-Type: application/xml; charset=utf-8'); 
+header('Content-Type: application/xml; charset=utf-8');
 
 // Get skeleton response
 $response = LTI::getPOXResponse();

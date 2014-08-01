@@ -12,7 +12,7 @@ header('Content-type: application/json');
 
 $p = $CFG->dbprefix;
 if ( isset($_GET['game']) ) { // I am player 1 since I made this game
-    $row = $PDOX->rowDie("SELECT play1, play2, displayname FROM {$p}rps 
+    $row = $PDOX->rowDie("SELECT play1, play2, displayname FROM {$p}rps
         LEFT JOIN {$p}lti_user ON {$p}rps.user2_id = {$p}lti_user.user_id
         WHERE rps_guid = :GUID", array(":GUID" => $_GET['game']));
     if ( $row === FALSE ) {
@@ -36,7 +36,7 @@ if ( $play < 0 || $play > 2 ) {
 }
 
 // Check to see if there is an open game
-$stmt = $PDOX->prepare("SELECT rps_guid, play1, play2, displayname FROM {$p}rps 
+$stmt = $PDOX->prepare("SELECT rps_guid, play1, play2, displayname FROM {$p}rps
     LEFT JOIN {$p}lti_user ON {$p}rps.user1_id = {$p}lti_user.user_id
     WHERE play2 IS NULL ORDER BY started_at ASC LIMIT 1");
 $stmt1 = $PDOX->prepare("UPDATE {$p}rps SET user2_id = :U2ID, play2 = :PLAY
@@ -63,8 +63,8 @@ if ( $row == FALSE ) {
 
 // Start a new game...
 $guid = uniqid();
-$stmt = $PDOX->prepare("INSERT INTO {$p}rps 
-    (rps_guid, link_id, user1_id, play1, started_at) 
+$stmt = $PDOX->prepare("INSERT INTO {$p}rps
+    (rps_guid, link_id, user1_id, play1, started_at)
     VALUES ( :GUID, :LID, :UID, :PLAY, NOW() )");
 $stmt->execute(array(":GUID" => $guid, ":LID" => $LINK->id,
     ":UID" => $USER->id, ":PLAY" => $play));

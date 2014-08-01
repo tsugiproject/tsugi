@@ -1,4 +1,4 @@
-<?php 
+<?php
 require_once "../../config.php";
 session_start();
 $OUTPUT->header();
@@ -21,7 +21,7 @@ $OUTPUT->bodyStart();
 <div style="height:80px"></div>
 </div>
 <div class="notes" style="padding:20px;">
-You can type Python commands at the 
+You can type Python commands at the
 above chevron prompt (>>>).  Some commands might be:
 <pre>
 >>> print "hello world"
@@ -29,7 +29,7 @@ above chevron prompt (>>>).  Some commands might be:
 >>> x = x + 100
 >>> print x
 </pre>
-This is an experimental in-browser Python interpreter.  The 
+This is an experimental in-browser Python interpreter.  The
 error messages and output will be a little different than the Python that runs on your desktop.
 This only supports a subset of Python 2.6 (i.e. it is not Python 3.0).
 </p>

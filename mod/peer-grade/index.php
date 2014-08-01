@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
     return;
 }
 
-// Model 
+// Model
 $row = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
@@ -33,7 +33,7 @@ $submit_row = loadSubmission($assn_id, $USER->id);
 if ( $submit_row !== false ) $submit_id = $submit_row['submit_id'];
 
 // Handle the submission post
-if ( $assn_id != false && $assn_json != null && 
+if ( $assn_id != false && $assn_json != null &&
     isset($_POST['notes']) && isset($_POST['doSubmit']) ) {
     if ( $submit_row !== false ) {
         $_SESSION['error'] = 'Cannot submit an assignment twice';
@@ -95,9 +95,9 @@ if ( $assn_id != false && $assn_json != null &&
     $submission->urls = $urls;
     $json = json_encode($submission);
     $stmt = $PDOX->queryReturnError(
-        "INSERT INTO {$p}peer_submit 
-            (assn_id, user_id, json, created_at, updated_at) 
-            VALUES ( :AID, :UID, :JSON, NOW(), NOW()) 
+        "INSERT INTO {$p}peer_submit
+            (assn_id, user_id, json, created_at, updated_at)
+            VALUES ( :AID, :UID, :JSON, NOW(), NOW())
             ON DUPLICATE KEY UPDATE json = :JSON, updated_at = NOW()",
         array(
             ':AID' => $assn_id,
@@ -118,7 +118,7 @@ if ( $assn_id != false && $assn_json != null &&
 // Check to see how much grading we have done
 $grade_count = 0;
 $stmt = $PDOX->queryDie(
-    "SELECT COUNT(grade_id) AS grade_count 
+    "SELECT COUNT(grade_id) AS grade_count
      FROM {$p}peer_submit AS S JOIN {$p}peer_grade AS G
      ON S.submit_id = G.submit_id
         WHERE S.assn_id = :AID AND G.user_id = :UID",
@@ -140,7 +140,7 @@ $our_grades = retrieveSubmissionGrades($submit_id);
 
 // Handle the flag...
 if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
-    isset($_POST['submit_id']) && isset($_POST['grade_id']) && isset($_POST['note']) && 
+    isset($_POST['submit_id']) && isset($_POST['grade_id']) && isset($_POST['note']) &&
     isset($_POST['doFlag']) && $submit_id == $_POST['submit_id'] ) {
 
     // Make sure we have a valid grade_id
@@ -155,12 +155,12 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
         header( 'Location: '.addSession('index.php') ) ;
         return;
     }
-    
+
     $grade_id = $_POST['grade_id']+0;
     $stmt = $PDOX->queryDie(
-        "INSERT INTO {$p}peer_flag 
-            (submit_id, grade_id, user_id, note, created_at, updated_at) 
-            VALUES ( :SID, :GID, :UID, :NOTE, NOW(), NOW()) 
+        "INSERT INTO {$p}peer_flag
+            (submit_id, grade_id, user_id, note, created_at, updated_at)
+            VALUES ( :SID, :GID, :UID, :NOTE, NOW(), NOW())
             ON DUPLICATE KEY UPDATE note = :NOTE, updated_at = NOW()",
         array(
             ':SID' => $submit_id,
@@ -173,7 +173,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
     return;
 }
 
-// View 
+// View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
@@ -197,7 +197,7 @@ if ( $assn_json == null ) {
     echo('<p>This assignment is not yet configured</p>');
     $OUTPUT->footer();
     return;
-} 
+}
 
 if ( $submit_row == false ) {
     echo("<p><b>Please Upload Your Submission:</b></p>\n");
@@ -276,8 +276,8 @@ attention of the instructor.</p>
 <input type="hidden" value="<?php echo($USER->id); ?>" name="user_id">
 <input type="hidden" value="" id="flag_grade_id" name="grade_id">
 <textarea rows="5" cols="60" name="note"></textarea><br/>
-<input type="submit" name="doFlag" 
-    onclick="return confirm('Are you sure you want to bring this peer-grade entry to the attention of the instructor?');" 
+<input type="submit" name="doFlag"
+    onclick="return confirm('Are you sure you want to bring this peer-grade entry to the attention of the instructor?');"
     value="Submit To Instructor"  class="btn btn-primary">
 <input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag" class="btn btn-default">
 </form>
@@ -302,8 +302,8 @@ function gradeLoad() {
 $OUTPUT->footerStart();
 ?>
 <script type="text/javascript">
-$(document).ready(function() { 
-    gradeLoad(); 
+$(document).ready(function() {
+    gradeLoad();
 } );
 </script>
 <?php

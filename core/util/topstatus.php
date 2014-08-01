@@ -20,7 +20,7 @@ if ( !isset($_GET['top']) ) {
     return;
 }
 
-// Grab the session 
+// Grab the session
 $LTI = \Tsugi\Core\LTIX::requireData(array('user_id'));
 
 // This has already been set by someone so nothing to do
@@ -42,11 +42,11 @@ if ( (!isset($_SESSION['TOP_CHECK'])) || $_SESSION['TOP_CHECK'] < 1) {
 }
 
 // We are the top frame, the cookie has not yet been set.
-// Lets try to set the cookie in JavaScript - but in case that fails, 
+// Lets try to set the cookie in JavaScript - but in case that fails,
 // We will try to set the session cookie on our next request response
 // cycle in \Tsugi\Core\LTIX::requireData()
 
 $_SESSION['SET_TOP_COOKIE'] = 1;
-echo(json_encode(array("session_name" => session_name(), "cookie_name" => 'TSUGI_TOP_SESSION', 
+echo(json_encode(array("session_name" => session_name(), "cookie_name" => 'TSUGI_TOP_SESSION',
     "cookie_value" => session_id())));
 

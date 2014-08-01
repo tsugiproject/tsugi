@@ -10,7 +10,7 @@ error_log('Session in login.php '.session_id());
 
 // First we make sure that there is a google.com key
 $stmt = $PDOX->queryDie(
-    "SELECT key_id FROM {$CFG->dbprefix}lti_key 
+    "SELECT key_id FROM {$CFG->dbprefix}lti_key
         WHERE key_sha256 = :SHA LIMIT 1",
     array('SHA' => lti_sha256('google.com'))
 );
@@ -87,7 +87,7 @@ if ( $doLogin ) {
                 P.email as email, U.user_id as user_id
                 FROM {$CFG->dbprefix}profile AS P
                 LEFT JOIN {$CFG->dbprefix}lti_user AS U
-                ON P.profile_id = U.profile_id AND P.email = U.email AND 
+                ON P.profile_id = U.profile_id AND P.email = U.email AND
                     P.displayname = U.displayname AND user_sha256 = profile_sha256 AND
                     P.key_id = U.key_id
                 WHERE profile_sha256 = :SHA AND P.key_id = :ID LIMIT 1",
@@ -100,7 +100,7 @@ if ( $doLogin ) {
         // Make sure we have a profile for this person
         if ( $profile_row === false ) {
             $stmt = $PDOX->queryDie(
-                "INSERT INTO {$CFG->dbprefix}profile  
+                "INSERT INTO {$CFG->dbprefix}profile
                 (profile_sha256, profile_key, key_id, email, displayname, created_at, updated_at, login_at) ".
                     "VALUES ( :SHA, :UKEY, :KEY, :EMAIL, :DN, NOW(), NOW(), NOW() )",
                  array('SHA' => $userSHA, ':UKEY' => $identity, ':KEY' => $google_key_id,
@@ -117,10 +117,10 @@ if ( $doLogin ) {
                 $user_id = $profile_row['user_id']+0;
             }
             $stmt = $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}profile  
+                "UPDATE {$CFG->dbprefix}profile
                 SET email = :EMAIL, displayname = :DN, login_at = NOW()
                 WHERE profile_id = :PRID",
-                 array('PRID' => $profile_id, 
+                 array('PRID' => $profile_id,
                     ':EMAIL' => $userEmail, ':DN' => $displayName)
             );
         }
@@ -136,7 +136,7 @@ if ( $doLogin ) {
         // Load user...
         if ( $user_id < 1 ) {
             $stmt = $PDOX->queryDie(
-                "SELECT user_id FROM {$CFG->dbprefix}lti_user 
+                "SELECT user_id FROM {$CFG->dbprefix}lti_user
                 WHERE user_sha256 = :SHA AND key_id = :ID LIMIT 1",
                 array('SHA' => $userSHA, ":ID" => $google_key_id)
             );
@@ -146,12 +146,12 @@ if ( $doLogin ) {
 
         // Insert / update the user
         $didinsert = false;
-        if ( $user_id > 0 ) { 
+        if ( $user_id > 0 ) {
             // The user data is fine...
         } else if ( $user_row === false ) { // Lets insert!
             $stmt = $PDOX->queryReturnError(
-                "INSERT INTO {$CFG->dbprefix}lti_user  
-                (user_sha256, user_key, key_id, profile_id, 
+                "INSERT INTO {$CFG->dbprefix}lti_user
+                (user_sha256, user_key, key_id, profile_id,
                     email, displayname, created_at, updated_at, login_at) ".
                 "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, NOW(), NOW(), NOW() )",
                  array('SHA' => $userSHA, ':UKEY' => $identity, ':KEY' => $google_key_id,
@@ -169,7 +169,7 @@ if ( $doLogin ) {
                 "UPDATE {$CFG->dbprefix}lti_user
                  SET email=:EMAIL, displayname=:DN, profile_id = :PRID, login_at=NOW()
                  WHERE user_id=:ID",
-                array(':EMAIL' => $userEmail, ':DN' => $displayName, 
+                array(':EMAIL' => $userEmail, ':DN' => $displayName,
                     ':ID' => $user_id, ':PRID' => $profile_id)
             );
             error_log('User-Update:'.$identity.','.$displayName.','.$userEmail);
@@ -229,9 +229,9 @@ if ( $CFG->DEVELOPER ) {
 ?>
 <div style="margin: 30px">
 <p>
-We here at <?php echo($CFG->servicename); ?> use Google Accounts as our sole login.  
-We do not want to spend a lot of time verifying identity, resetting passwords, 
-detecting robot-login storms, and other issues so we let Google do that hard work. 
+We here at <?php echo($CFG->servicename); ?> use Google Accounts as our sole login.
+We do not want to spend a lot of time verifying identity, resetting passwords,
+detecting robot-login storms, and other issues so we let Google do that hard work.
 </p>
 <form action="?login" method="post">
     <input class="btn btn-warning" type="button" onclick="location.href='<?php echo($login_return); ?>'; return false;" value="Cancel"/>
@@ -241,7 +241,7 @@ detecting robot-login storms, and other issues so we let Google do that hard wor
 So you must have a Google account and we will require your
 name and email address to login.  We do not need and do not receive your password - only Google
 will ask you for your password.  When you press login, you will be directed to the Google
-authentication system where you will be given the option to share your 
+authentication system where you will be given the option to share your
 information with <?php echo($CFG->servicename); ?>.
 </p>
 </div>

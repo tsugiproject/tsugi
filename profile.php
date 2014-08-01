@@ -36,7 +36,7 @@ if ( isset($_POST['subscribe']) ) {
     }
     $new_json = json_encode($profile);
     $stmt = $PDOX->queryDie(
-        "UPDATE {$CFG->dbprefix}profile SET json= :JSON 
+        "UPDATE {$CFG->dbprefix}profile SET json= :JSON
         WHERE profile_id = :PID",
         array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
     );
@@ -52,7 +52,7 @@ $lat = isset($profile->lat) ? $profile->lat+0.0 : 0.0;
 $lng = isset($profile->lng) ? $profile->lng+0.0 : 0.0;
 
 $defaultLat = $lat != 0.0 ? $lat : 42.279070216140425;
-$defaultLng = $lng != 0.0 ? $lng : -83.73981015789798; 
+$defaultLng = $lng != 0.0 ? $lng : -83.73981015789798;
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -71,11 +71,11 @@ function initialize() {
      center: myLatlng,
      mapTypeId: google.maps.MapTypeId.ROADMAP
      }
-  map = new google.maps.Map(document.getElementById("map_canvas"), myOptions); 
+  map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 
   var marker = new google.maps.Marker({
   draggable: true,
-  position: myLatlng, 
+  position: myLatlng,
   map: map,
   title: "Your location"
   });
@@ -129,7 +129,7 @@ echo(' ('.$_SESSION['email'].")</h4>\n");
         How much mail would you like us to send?
         <label class="radio">
              <?php radio('subscribe',-1,$subscribe) ?> >
-                No mail will be sent.  
+                No mail will be sent.
         </label>
         <label class="radio">
              <?php radio('subscribe',0,$subscribe) ?> >
@@ -157,9 +157,9 @@ How would you like to be shown in maps.<br/>
 </select>
 <p>
   Move the pointer on the map below until it is at the correct location.
-  If you are concerned about privacy, simply put the 
+  If you are concerned about privacy, simply put the
   location somewhere <i>near</i> where you live.  Perhaps in the same country, state, or city
-  instead of your exact location.  
+  instead of your exact location.
 </p>
   <div class="control-group pull-right hidden-phone">
       <button type="submit" style="margin-top: 40px" class="btn btn-primary">Save Profile Data</button>
@@ -178,12 +178,12 @@ How would you like to be shown in maps.<br/>
 
 <p>
 If you don't even want to reveal your country, put yourself
-in Greenland in the middle of a glacier. One person put their location 
+in Greenland in the middle of a glacier. One person put their location
 in the middle of a bar.  :)
 </p>
 <?php } ?>
 </form>
-<?php 
+<?php
 
 // After jquery gets loaded at the *very* end...
 $OUTPUT->footer_content('<script type="text/javascript">

@@ -9,11 +9,11 @@ $LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context
 header('Content-type: application/json');
 
 $p = $CFG->dbprefix;
-$stmt = $PDOX->prepare("SELECT play1, play2, user1_id, user2_id, 
-        U1.displayname AS displayname1, U2.displayname AS displayname2 
+$stmt = $PDOX->prepare("SELECT play1, play2, user1_id, user2_id,
+        U1.displayname AS displayname1, U2.displayname AS displayname2
         FROM {$p}rps
         JOIN {$p}lti_user AS U1 JOIN {$p}lti_user AS U2
-        ON {$p}rps.user1_id = U1.user_id AND {$p}rps.user2_id = U2.user_id 
+        ON {$p}rps.user1_id = U1.user_id AND {$p}rps.user2_id = U2.user_id
         WHERE link_id = :LI AND play1 IS NOT NULL AND play2 IS NOT NULL");
 $stmt->execute(array(":LI" => $LINK->id));
 
@@ -34,11 +34,11 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         $games[$user2] = 0;
         $scores[$user2] = 0;
     }
-    // Accumulate the games played 
+    // Accumulate the games played
     $games[$user1] = $games[$user1] + 1;
     $games[$user2] = $games[$user2] + 1;
 
-    // Check to see if we had a tie 
+    // Check to see if we had a tie
     if ( $row['play1'] == $row['play2'] ) continue;
 
     // See is player 1 lost..

@@ -30,9 +30,9 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
     $query_parms = array(":CID" => $CONTEXT->id);
     $orderfields = array("R.user_id", "displayname", "email", "user_key", "grade_count");
     $searchfields = array("R.user_id", "displayname", "email", "user_key");
-    $summary_sql = 
+    $summary_sql =
         "SELECT R.user_id AS user_id, displayname, email, COUNT(grade) AS grade_count, user_key
-        FROM {$p}lti_result AS R JOIN {$p}lti_link as L 
+        FROM {$p}lti_result AS R JOIN {$p}lti_link as L
             ON R.link_id = L.link_id
         JOIN {$p}lti_user as U
             ON R.user_id = U.user_id
@@ -42,16 +42,16 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
 } else if ( $USER->instructor && isset($_GET['link_id'] ) ) {
     $query_parms = array(":LID" => $link_id, ":CID" => $CONTEXT->id);
     $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at", "server_grade", "retrieved_at");
-    $class_sql = 
-        "SELECT R.user_id AS user_id, displayname, grade, 
+    $class_sql =
+        "SELECT R.user_id AS user_id, displayname, grade,
             R.updated_at as updated_at, server_grade, retrieved_at
-        FROM {$p}lti_result AS R JOIN {$p}lti_link as L 
+        FROM {$p}lti_result AS R JOIN {$p}lti_link as L
             ON R.link_id = L.link_id
         JOIN {$p}lti_user as U
             ON R.user_id = U.user_id
         WHERE R.link_id = :LID AND L.context_id = :CID AND R.grade IS NOT NULL";
 
-} else { // Gets grades for the current or specified 
+} else { // Gets grades for the current or specified
     $user_id = $USER->id;
     if ( $USER->instructor && isset($_GET['user_id']) ) {
         $user_id = $_GET['user_id'] + 0;
@@ -60,11 +60,11 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
     // http://stackoverflow.com/questions/5602907/calculate-difference-between-two-datetimes
     $query_parms = array(":UID" => $user_id, ":CID" => $CONTEXT->id);
     $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at", "retrieved_at");
-    $user_sql = 
-        "SELECT R.result_id AS result_id, L.title as title, R.grade AS grade, R.note AS note, 
+    $user_sql =
+        "SELECT R.result_id AS result_id, L.title as title, R.grade AS grade, R.note AS note,
             R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, service_key,
             TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now
-        FROM {$p}lti_result AS R 
+        FROM {$p}lti_result AS R
         JOIN {$p}lti_link as L ON R.link_id = L.link_id
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
@@ -73,23 +73,23 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
 
 if ( $USER->instructor ) {
     $lstmt = $PDOX->queryDie(
-        "SELECT DISTINCT L.title as title, L.link_id AS link_id 
-        FROM {$p}lti_link AS L JOIN {$p}lti_result as R 
+        "SELECT DISTINCT L.title as title, L.link_id AS link_id
+        FROM {$p}lti_link AS L JOIN {$p}lti_result as R
             ON L.link_id = R.link_id AND R.grade IS NOT NULL
         WHERE L.context_id = :CID",
         array(":CID" => $CONTEXT->id)
     );
-    $links = $lstmt->fetchAll();    
+    $links = $lstmt->fetchAll();
 }
-// View 
+// View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 
 if ( $USER->instructor ) {
 ?>
-  <a href="index.php?viewall=yes" class="btn btn-default">Class Summary</a> 
-  <a href="index.php" class="btn btn-default">My Grades</a> 
+  <a href="index.php?viewall=yes" class="btn btn-default">Class Summary</a>
+  <a href="index.php" class="btn btn-default">My Grades</a>
 <?php
 if ( $links !== false && count($links) > 0 ) {
 ?>
@@ -123,7 +123,7 @@ if ( $user_sql !== false ) {
     // Table::pagedAuto($user_sql, $query_parms, $searchfields);
 
     // Temporarily make this small since each entry is costly
-    $DEFAULT_PAGE_LENGTH = 10; 
+    $DEFAULT_PAGE_LENGTH = 10;
     $newsql = Table::pagedQuery($user_sql, $query_parms, $searchfields);
     // echo("<pre>\n$newsql\n</pre>\n");
     $rows = $PDOX->allRowsDie($newsql, $query_parms);
@@ -143,7 +143,7 @@ if ( $user_sql !== false ) {
             $newrows[] = $newrow;
             continue;
         }
-        
+
         $diff = $row['diff_in_seconds'];
 
         // $newrow['note'] = $row['retrieved_at'].' diff='.$diff.' '.
@@ -152,7 +152,7 @@ if ( $user_sql !== false ) {
         $RETRIEVE_INTERVAL = 14400; // Four Hours
         $newnote['note'] = " "+$diff;
 
-        if ( !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] || 
+        if ( !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] ||
             $diff > $RETRIEVE_INTERVAL ) {
             $server_grade = gradeGet($row['result_id'], $row['sourcedid'], $row['service_key']);
             if ( is_string($server_grade)) {
@@ -161,7 +161,7 @@ if ( $user_sql !== false ) {
                     "grade=".$row['grade']." updated=".$row['updated_at']."\n".
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
                     "error=".$server_grade;
-            
+
                 echo("Problem Retrieving Grade: ".session_safe_id()." ".$msg);
                 error_log("Problem Retrieving Grade: ".session_id()."\n".$msg."\n".
                   "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
@@ -180,13 +180,13 @@ if ( $user_sql !== false ) {
             $newrow['retrieved_at'] = $row['time_now'];
             $row['retrieved_at'] = $row['time_now'];
         }
-        
+
         // Now check to see if we need to update the server_grade
         if ( $row['server_grade'] < $row['grade'] ) {
             error_log("Patching server grade: ".session_id()." result_id=".$row['result_id']."\n".
                     "grade=".$row['grade']." updated=".$row['updated_at']."\n".
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']);
-            
+
             $debug_log = array();
             $status = gradeSendWebService($row['grade'], $row['sourcedid'], $row['service_key'], $debug_log);
 
@@ -199,7 +199,7 @@ if ( $user_sql !== false ) {
                     "grade=".$row['grade']." updated=".$row['updated_at']."\n".
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
                     "error=".$server_grade;
-            
+
                 echo("Problem Updating Grade: ".session_safe_id()." ".$msg);
                 error_log("Problem Updating Grade: ".session_id()."\n".$msg."\n".
                   "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
@@ -210,10 +210,10 @@ if ( $user_sql !== false ) {
                 $newrow['note'] .= " Problem Updating Server Grade";
             }
         }
-        
+
         $newrows[] = $newrow;
     }
-    
+
     Table::pagedTable($newrows, $searchfields);
 }
 
@@ -224,7 +224,7 @@ if ( $summary_sql !== false ) {
 if ( $class_sql !== false ) {
     if ( $link_info !== false ) {
         echo("<p>Results for ".$link_info['title']);
-        echo(' (<a href="maint.php?link_id='.$link_id.'" target="_new">Maintenance 
+        echo(' (<a href="maint.php?link_id='.$link_id.'" target="_new">Maintenance
             tasks</a>)'."</p>\n");
     }
     Table::pagedAuto($class_sql, $query_parms, $searchfields);

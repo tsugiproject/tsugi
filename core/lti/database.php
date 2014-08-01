@@ -10,7 +10,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_key",
 "drop table if exists {$CFG->dbprefix}profile");
 
-// Note that the VARCHAR(4096) xxx_key fields are UNIQUE but not 
+// Note that the VARCHAR(4096) xxx_key fields are UNIQUE but not
 // marked as UNIQUE because of MySQL key index length limitations.
 
 $DATABASE_INSTALL = array(

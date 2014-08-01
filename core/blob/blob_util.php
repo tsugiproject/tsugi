@@ -36,7 +36,7 @@ function safeFileSuffix($filename)
     return  true;
 }
 
-function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "image/jpeg") ) 
+function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "image/jpeg") )
 {
     global $BAD_FILE_SUFFIXES;
 
@@ -60,14 +60,14 @@ function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "im
     return $retval;
 }
 
-function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true) 
+function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
 {
     global $CFG, $CONTEXT, $PDOX;
 
     if ( $SAFETY_CHECK && checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
 
     if( $FILE_DESCRIPTOR['error'] == 1) return false;
-    
+
     if( $FILE_DESCRIPTOR['error'] == 0)
     {
         $filename = basename($FILE_DESCRIPTOR['name']);
@@ -75,7 +75,7 @@ function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
             return false;
         }
 
-        // $data = file_get_contents($FILE_DESCRIPTOR['tmp_name']); 
+        // $data = file_get_contents($FILE_DESCRIPTOR['tmp_name']);
         // $sha256 = lti_sha256($data);
 
         $sha256 = hash_file('sha256', $FILE_DESCRIPTOR['tmp_name']);
@@ -92,10 +92,10 @@ function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
         }
 
         $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
-        $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file 
-            (context_id, file_sha256, file_name, contenttype, content, created_at) 
+        $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
+            (context_id, file_sha256, file_name, contenttype, content, created_at)
             VALUES (?, ?, ?, ?, ?, NOW())");
-    
+
         $stmt->bindParam(1, $CONTEXT->id);
         $stmt->bindParam(2, $sha256);
         $stmt->bindParam(3, $filename);
@@ -114,7 +114,7 @@ function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
 
 // Does not do access control checks - access.php does the access
 // control checks
-function getAccessUrlForBlob($blob_id) 
+function getAccessUrlForBlob($blob_id)
 {
     global $CFG;
     $url = $CFG->wwwroot . '/core/blob/access.php?id='.$blob_id;

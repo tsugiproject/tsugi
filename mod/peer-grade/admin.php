@@ -18,23 +18,23 @@ $orderfields =  array("S.user_id", "displayname", "email", "S.updated_at", "user
 $searchfields = array("S.user_id", "displayname", "email", "S.updated_at", "user_key");
 
 // Note that inner where is lower case and outer WHERE is upper case on purpose
-$sql = 
-    "SELECT S.user_id AS user_id, displayname, email, S.submit_id as _submit_id, 
-        MAX(points) as max_score, MIN(points) AS min_score, COUNT(points) as scores, 
+$sql =
+    "SELECT S.user_id AS user_id, displayname, email, S.submit_id as _submit_id,
+        MAX(points) as max_score, MIN(points) AS min_score, COUNT(points) as scores,
         COUNT(DISTINCT flag_id) as flagged,
         MAX(S.updated_at) AS updated_at, user_key
-    FROM {$p}peer_assn AS A JOIN {$p}peer_submit as S 
+    FROM {$p}peer_assn AS A JOIN {$p}peer_submit as S
         ON A.assn_id = S.assn_id
-    LEFT JOIN {$p}peer_grade AS G 
+    LEFT JOIN {$p}peer_grade AS G
         ON S.submit_id = G.submit_id
-    LEFT JOIN {$p}peer_flag AS F 
+    LEFT JOIN {$p}peer_flag AS F
         ON S.submit_id = F.submit_id
     JOIN {$p}lti_user AS U
         ON S.user_id = U.user_id
     WHERE A.link_id = :LID
     GROUP BY S.submit_id";
 
-// View 
+// View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();

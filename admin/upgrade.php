@@ -1,4 +1,4 @@
-<?php 
+<?php
 define('COOKIE_SESSION', true);
 require_once("../config.php");
 session_start();
@@ -42,7 +42,7 @@ create table {$plugins} (
     $q = $PDOX->queryReturnError($sql);
     if ( ! $q->success ) die("Unable to create lms_plugins table: ".implode(":", $q->errorInfo) );
     echo("Created plugins table...<br/>\n");
-} 
+}
 
 echo("Checking for any needed upgrades...<br/>\n");
 
@@ -85,12 +85,12 @@ foreach($tools as $tool ) {
                 $q = $PDOX->queryReturnError($entry[1]);
                 if ( ! $q->success ) die("Unable to create ".$entry[1]." ".$q->errorImplode."<br/>".$entry[1] );
                 $OUTPUT->togglePre("-- Created table ".$entry[0], $entry[1]);
-                $sql = "INSERT INTO {$plugins} 
+                $sql = "INSERT INTO {$plugins}
                     ( plugin_path, version, created_at, updated_at ) VALUES
                     ( :plugin_path, :version, NOW(), NOW() )
-                    ON DUPLICATE KEY 
+                    ON DUPLICATE KEY
                     UPDATE version = :version, updated_at = NOW()";
-                $values = array( ":plugin_path" => $path, 
+                $values = array( ":plugin_path" => $path,
                         ":version" => $CFG->dbversion);
                 $q = $PDOX->queryReturnError($sql, $values);
                 if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
@@ -119,15 +119,15 @@ foreach($tools as $tool ) {
             $maxpath = $path;
         }
         if ( $newversion > $CFG->dbversion ) {
-            echo("-- WARNING: Database version=$newversion for $path higher than 
+            echo("-- WARNING: Database version=$newversion for $path higher than
                 \$CFG->dbversion=$CFG->dbversion in setup.php<br/>\n");
         }
         if ( $newversion > $version ) {
             echo("-- Upgraded to data model version $newversion <br/>\n");
-            $sql = "INSERT INTO {$plugins} 
+            $sql = "INSERT INTO {$plugins}
                 ( plugin_path, version, created_at, updated_at ) VALUES
                 ( :plugin_path, :version, NOW(), NOW() )
-                ON DUPLICATE KEY 
+                ON DUPLICATE KEY
                 UPDATE version = :version, updated_at = NOW()";
             $values = array( ":version" => $newversion, ":plugin_path" => $path);
             $q = $PDOX->queryReturnError($sql, $values);
@@ -139,7 +139,7 @@ foreach($tools as $tool ) {
 echo("\n<br/>Highest database version=$maxversion in $maxpath<br/>\n");
 
 if ( $maxversion != $CFG->dbversion ) {
-   echo("-- WARNING: You should set \$CFG->dbversion=$maxversion in setup.php 
+   echo("-- WARNING: You should set \$CFG->dbversion=$maxversion in setup.php
         before distributing this version of the code.<br/>\n");
 }
 

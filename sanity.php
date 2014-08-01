@@ -1,7 +1,7 @@
 <?php
 
-if ( ! isset($CFG) ) { 
-    die_with_error_log('This software is not correctly configured, please copy config-dist.php to 
+if ( ! isset($CFG) ) {
+    die_with_error_log('This software is not correctly configured, please copy config-dist.php to
     config.php and edit config.php according to the installation instructions.');
 }
 

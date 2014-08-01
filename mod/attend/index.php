@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 
 $LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 
-// Model 
+// Model
 $p = $CFG->dbprefix;
 $stmt = $PDOX->prepare("SELECT code FROM {$p}attend_code WHERE link_id = :ID");
 $stmt->execute(array(":ID" => $LINK->id));
@@ -14,8 +14,8 @@ $old_code = "";
 if ( $row !== false ) $old_code = $row['code'];
 
 if ( isset($_POST['code']) && $USER->instructor ) {
-    $sql = "INSERT INTO {$p}attend_code 
-            (link_id, code) VALUES ( :ID, :CO ) 
+    $sql = "INSERT INTO {$p}attend_code
+            (link_id, code) VALUES ( :ID, :CO )
             ON DUPLICATE KEY UPDATE code = :CO";
     $stmt = $PDOX->prepare($sql);
     $stmt->execute(array(
@@ -26,9 +26,9 @@ if ( isset($_POST['code']) && $USER->instructor ) {
     return;
 } else if ( isset($_POST['code']) ) { // Student
     if ( $old_code == $_POST['code'] ) {
-        $sql = "INSERT INTO {$p}attend 
-            (link_id, user_id, ipaddr, attend, updated_at) 
-            VALUES ( :LI, :UI, :IP, NOW(), NOW() ) 
+        $sql = "INSERT INTO {$p}attend
+            (link_id, user_id, ipaddr, attend, updated_at)
+            VALUES ( :LI, :UI, :IP, NOW(), NOW() )
             ON DUPLICATE KEY UPDATE updated_at = NOW()";
         $stmt = $PDOX->prepare($sql);
         $stmt->execute(array(
@@ -43,7 +43,7 @@ if ( isset($_POST['code']) && $USER->instructor ) {
     return;
 }
 
-// View 
+// View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
@@ -61,7 +61,7 @@ echo('<input type="submit" name="send" value="'._('Record attendance').'"><br/>'
 echo("\n</form>\n");
 
 if ( $USER->instructor ) {
-    $stmt = $PDOX->prepare("SELECT user_id,attend,ipaddr FROM {$p}attend 
+    $stmt = $PDOX->prepare("SELECT user_id,attend,ipaddr FROM {$p}attend
             WHERE link_id = :LI ORDER BY attend DESC, user_id");
     $stmt->execute(array(':LI' => $LINK->id));
     echo('<table border="1">'."\n");

@@ -21,10 +21,10 @@ if ( $USER->instructor && isset($_POST['reset']) ) {
 <html><head><title><?php _e("Playing Rock Paper Scissors in"); ?>
 <?php echo(htmlent_utf8($CONTEXT->title)); ?>
 </title>
-<script type="text/javascript" 
+<script type="text/javascript"
 src="<?php echo($CFG->staticroot); ?>/static/js/jquery-1.10.2.min.js"></script>
 <script type="text/javascript">
-$(document).ready(function(){ 
+$(document).ready(function(){
   window.console && console.log('Hello JQuery..');
   $("#rock").click( function() { play(0); } ) ;
   $("#paper").click( function() { play(1); } ) ;
@@ -57,7 +57,7 @@ function play(strategy) {
                 $("#success").html(sprintf(I18N.tied,data.displayname));
             } else if ( data.win ) {
                 $("#success").html(sprintf(I18N.beat,data.displayname));
-            } else { 
+            } else {
                 $("#success").html(sprintf(I18N.lost+data.displayname));
             }
             $("#rpsform input").attr("disabled", false);
@@ -84,7 +84,7 @@ function check(guid) {
             $("#success").html(sprintf(I18N.tied,data.displayname));
         } else if ( data.win ) {
             $("#success").html(sprintf(I18N.beat,data.displayname));
-        } else { 
+        } else {
             $("#success").html(sprintf(I18N.lost,data.displayname));
         }
         $("#rpsform input").attr("disabled", false);

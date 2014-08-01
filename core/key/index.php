@@ -7,7 +7,7 @@ require_once($CFG->dirroot."/lib/lms_lib.php");
 
 use \Tsugi\Core\Table;
 
-if ( $CFG->providekeys === false || $CFG->owneremail === false ) { 
+if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
     $_SESSION['error'] = _m("This service does not accept instructor requests for keys");
     header('Location: '.$CFG->wwwroot);
     return;
@@ -39,8 +39,8 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         return;
     }
     $stmt = $PDOX->queryDie(
-        "INSERT INTO {$CFG->dbprefix}key_request  
-        (user_id, title, notes, state, lti, created_at, updated_at) 
+        "INSERT INTO {$CFG->dbprefix}key_request
+        (user_id, title, notes, state, lti, created_at, updated_at)
         VALUES ( :UID, :TITLE, :NOTES, 0, :LTI, NOW(), NOW() )",
         array(":UID" => $_SESSION['id'], ":TITLE" => $_POST['title'],
             ":NOTES" => $_POST['notes'], ":LTI" => $version)
@@ -66,7 +66,7 @@ $searchfields = array("request_id", "title", "notes", "state", "admin", "created
 $sql = "SELECT request_id, title, notes, state, admin, R.created_at, R.updated_at, email, displayname
         FROM {$CFG->dbprefix}key_request  as R
         JOIN {$CFG->dbprefix}lti_user AS U ON R.user_id = U.user_id ";
-        
+
 if ( !isAdmin() ) {
     $sql .= "\nWHERE R.user_id = :UID";
     $query_parms = array(":UID" => $_SESSION['id']);
@@ -154,9 +154,9 @@ This server hosts various tools that can be integrated into a learning system
 using the IMS Learning Tools Interoperability standard.  You can use this page
 to request access to this service.
 </p>
-<?php } else { 
+<?php } else {
     Table::pagedTable($newrows, $searchfields, false, "request-detail.php");
-} 
+}
 if ( $goodsession ) { ?>
 <p>
 <button type="button" class="btn btn-default" onclick="$('#request').modal();return false;">New Key Request</button>

@@ -1,4 +1,4 @@
-<?php 
+<?php
 $tool_proxy = <<< EOF
 {
   "@context": "http://www.imsglobal.org/imspurl/lti/v2/ctx/ToolProxy",

@@ -99,7 +99,7 @@ function gradeUpdateJson($newdata=false) {
     $jstr = json_encode($data);
 
     $stmt = $PDOX->queryDie(
-        "UPDATE {$CFG->dbprefix}lti_result SET json = :json, updated_at = NOW() 
+        "UPDATE {$CFG->dbprefix}lti_result SET json = :json, updated_at = NOW()
             WHERE result_id = :RID",
         array(
             ':json' => $jstr,
@@ -111,10 +111,10 @@ function gradeGet($result_id, $sourcedid, $service) {
     global $CFG, $PDOX;
     $grade = gradeGetWebService($sourcedid, $service);
     if ( is_string($grade) ) return $grade;
-  
+
     // UPDATE the retrieved grade
     $stmt = $PDOX->queryDie(
-        "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade, 
+        "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade,
             retrieved_at = NOW() WHERE result_id = :RID",
         array( ':server_grade' => $grade, ":RID" => $result_id)
     );
@@ -139,14 +139,14 @@ function gradeGetWebService($sourcedid, $service) {
 
     $content_type = "application/xml";
     $sourcedid = htmlspecialchars($sourcedid);
-    
+
     $operation = 'readResultRequest';
     $postBody = str_replace(
         array('SOURCEDID', 'OPERATION','MESSAGE'),
         array($sourcedid, $operation, uniqid()),
         LTI::getPOXRequest());
 
-    $response = LTI::sendOAuthBodyPOST($service, $lti['key_key'], $lti['secret'], 
+    $response = LTI::sendOAuthBodyPOST($service, $lti['key_key'], $lti['secret'],
         $content_type, $postBody);
     $LastPOXGradeResponse = $response;
 
@@ -192,7 +192,7 @@ function gradeSend($grade, $verbose=true, $result=false) {
         $retval = "Grade Exception: ".$e->getMessage();
         error_log($retval);
         $debug_log[] = $retval;
-    } 
+    }
     if ( $verbose ) dumpGradeDebug($debug_log);
     return $retval;
 }
@@ -203,7 +203,7 @@ function dumpGradeDebug($debug_log) {
     foreach ( $debug_log as $k => $v ) {
         if ( count($v) > 1 ) {
             $OUTPUT->togglePre($v[0], $v[1]);
-        } else { 
+        } else {
             line_out($v[0]);
         }
     }
@@ -231,7 +231,7 @@ function gradeSendInternal($grade, &$debug_log, $result) {
     $LastPOXGradeResponse = false;;
     $lti = $_SESSION['lti'];
     if ( ! ( isset($lti['service']) && isset($lti['sourcedid']) &&
-        isset($lti['key_key']) && isset($lti['secret']) && 
+        isset($lti['key_key']) && isset($lti['secret']) &&
         array_key_exists('grade', $lti) ) ) {
         error_log('Session is missing required data');
         $debug = safe_var_dump($lti);
@@ -268,7 +268,7 @@ function gradeSendInternal($grade, &$debug_log, $result) {
     $_SESSION['lti']['grade'] = $grade;
     if ( $PDOX !== false ) {
         $stmt = $PDOX->queryReturnError(
-            "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade, 
+            "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
                 updated_at = NOW() WHERE result_id = :RID",
             array(
                 ':grade' => $grade,
@@ -299,18 +299,18 @@ function gradeSendWebService($grade, $sourcedid, $service, &$debug_log=false) {
 
     $content_type = "application/xml";
     $sourcedid = htmlspecialchars($sourcedid);
-    
+
     $operation = 'replaceResultRequest';
     $postBody = str_replace(
         array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
         array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
         LTI::getPOXGradeRequest());
-    
+
     if ( is_array($debug_log) ) $debug_log[] = array('Sending '.$grade.' to '.$lti['service'].' sourcedid='.$sourcedid);
 
     if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request (debug)',$postBody);
 
-    $response = LTI::sendOAuthBodyPOST($lti['service'], $lti['key_key'], $lti['secret'], 
+    $response = LTI::sendOAuthBodyPOST($lti['service'], $lti['key_key'], $lti['secret'],
         $content_type, $postBody);
     global $LastOAuthBodyBaseString;
     $lbs = $LastOAuthBodyBaseString;

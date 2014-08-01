@@ -3,7 +3,7 @@ TSUGI - A Framework for Building PHP-Based Learning Tools
 
 This project is in early days.  Its goal is to build a scalable
 multi-tenant "tool" hosting environment based on the emerging IMS
-standards.  A project in Java with a very similar approach is called 
+standards.  A project in Java with a very similar approach is called
 the [LTI Starter Kit](https://github.com/azeckoski/lti_starter).
 
 If you want to see this code actually working, you can play online:
@@ -18,13 +18,13 @@ Here are several other pages describing this project:
 * [Internationalizing and Localizing](docs/I18N.md)
 * [Generating API Documentation](docs/PHPDOC.md)
 
-If you have been given a key/secret to use a system, here 
+If you have been given a key/secret to use a system, here
 is some rudimentatry LTI 1.0 documentation:
 
 * [Configuring LTI 1.0 Launches](docs/LAUNCHING.md)
 
 I have recorded a simple video describing the install/config steps
-for this software on 
+for this software on
 
 * http://www.youtube.com/watch?v=YNl1kJ1Z154
 
@@ -39,7 +39,7 @@ and a PHP/MySql environment installed
 
 * Copy the file config-dist.php to config.php and edit the file
 to put in the appropriate values.  Make sure to change all the secrets.
-If you are just getting started turn on DEVELOPER mode so you can launch 
+If you are just getting started turn on DEVELOPER mode so you can launch
 the tools easily
 
 * Go to the main page, and click on "Admin" to make all the database
@@ -60,10 +60,10 @@ MAMP NOTES (Macintosh)
     git clone https://github.com/csev/tsugi.git
     cd tsugi
     cp config-dist.php config.php
-    
+
     edit config.php - some values
     $CFG->wwwroot = 'http://localhost:8888/tsugi';
-    $CFG->pdo = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; 
+    $CFG->pdo = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi';
     $CFG->dbprefix  = '';
     $CFG->adminpw = '....';
 
@@ -83,7 +83,7 @@ XAMPP NOTES (Windows)
     git clone https://github.com/csev/tsugi.git
     cd tsugi
     copy config-dist.php config.php
-    
+
     edit config.php - some values
     $CFG->wwwroot = 'http://localhost/tsugi';
     $CFG->dbprefix  = '';

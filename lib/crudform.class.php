@@ -5,7 +5,7 @@ namespace Tsugi\Core;
  * This is a class that supports the creation of simple CRUD forms.
  *
  * This code generates HTML pages and makes SQL queries to automate
- * the creation of simple CRUD forms by passing in values, table names, 
+ * the creation of simple CRUD forms by passing in values, table names,
  * and strings.  Here is a code example from core/keys/key-add.php:
  *
  *     $from_location = "keys.php";
@@ -165,7 +165,7 @@ class CrudForm {
      * @param $allow_edit True/false as to whether to show an Edit button
      * @param $allow_delete True/false as to whether to show a Delete button
      */
-    public static function updateForm($row, $fields, $current, $from_location, 
+    public static function updateForm($row, $fields, $current, $from_location,
         $allow_edit=false, $allow_delete=false)
     {
         $key = $fields['0'];
@@ -256,19 +256,19 @@ class CrudForm {
      * This code very much depends on the $_POST data being generated from the
      * form that this class created.   For example it decides to delete or update
      * based on a $_POST field from the button that was pushed.  Also the
-     * primary key comes from the $_POST data, so this routine checks for 
+     * primary key comes from the $_POST data, so this routine checks for
      * consistency and provides a WHERE clause capability to make sure folks
-     * can only update data that belongs to them.  
-     * 
-     * Also this code depends on database column naming conventions - 
-     * in particular it knows that key_id is a primary key. In the above 
+     * can only update data that belongs to them.
+     *
+     * Also this code depends on database column naming conventions -
+     * in particular it knows that key_id is a primary key. In the above
      * example, the ultimate WHERE clause will effectively be as follows:
      *
      *     UPDATE ... WHERE key_id = $_POST['key_id'] AND user_id = $_SESSION['id']
      *
      * This way, even if the user forges the key_id data to be one that does
      * not belong to them, the AND clause will stop the UPDATE from happening.
-     * If this is an administrator that can update any record - simply set 
+     * If this is an administrator that can update any record - simply set
      * the $where_clause to an empty string and $query_fields to an empty
      * array.
      *
@@ -286,7 +286,7 @@ class CrudForm {
      * @param $allow_delete True/false as to whether deleting is allowed
      * @return int Returns the constant for SUCCESS, FAIL, or NONE
      */
-    public static function handleUpdate($tablename, $fields, $where_clause=false, 
+    public static function handleUpdate($tablename, $fields, $where_clause=false,
         $query_parms=array(), $allow_edit=false, $allow_delete=false)
     {
         global $PDOX;

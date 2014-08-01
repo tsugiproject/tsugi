@@ -4,7 +4,7 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Retrieve required launch data from session
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'user_displayname', 
+$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'user_displayname',
     'context_title', 'role','link_id'));
 $p = $CFG->dbprefix;
 
@@ -13,7 +13,7 @@ $p = $CFG->dbprefix;
 // each link.
 
 // Add the SQL to retrieve all the guesses for the $LINK->id
-// here and leave the list of guesses and average in variables to 
+// here and leave the list of guesses and average in variables to
 // fall through to the view below.
 
 $OUTPUT->header(); // Start the document and begin the <head>

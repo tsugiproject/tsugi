@@ -9,7 +9,7 @@ use \Tsugi\Core\Cache;
 // Sanity checks
 $LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 
-// Model 
+// Model
 $p = $CFG->dbprefix;
 
 if ( isset($_POST['json']) ) {
@@ -24,9 +24,9 @@ if ( isset($_POST['json']) ) {
 
     $json = json_encode($json);
     $stmt = $PDOX->queryReturnError(
-        "INSERT INTO {$p}peer_assn 
-            (link_id, json, created_at, updated_at) 
-            VALUES ( :ID, :JSON, NOW(), NOW()) 
+        "INSERT INTO {$p}peer_assn
+            (link_id, json, created_at, updated_at)
+            VALUES ( :ID, :JSON, NOW(), NOW())
             ON DUPLICATE KEY UPDATE json = :JSON, updated_at = NOW()",
         array(
             ':JSON' => $json,
@@ -43,7 +43,7 @@ if ( isset($_POST['json']) ) {
     return;
 }
 
-// Load up the assignment 
+// Load up the assignment
 $row = loadAssignment($LTI);
 $json = "";
 if ( $row !== false ) $json = $row['json'];
@@ -53,11 +53,11 @@ if ( strlen($json) < 1 ) {
     $json = '{ "title" : "Assignment title",
         "description" : "This assignment consists of two images to be uploaded.  This assignment is worth 10 points. 6 points come from your peers and 4 points come from you grading other student\'s submissions.",
         "grading" : "This is a relatively simple assignment.  Don\'t take off points for little mistakes.  If they seem to have done the assignment give them full credit.   Feel free to make suggestions if there are small mistakes.  Please keep your comments positive and useful.  If you do not take grading seriously, the instructors may delete your response and you will lose points.",
-        "parts" : [ 
-            { "title" : "Image of MySqlAdmin", 
-              "type" : "image" 
+        "parts" : [
+            { "title" : "Image of MySqlAdmin",
+              "type" : "image"
             },
-            { "title" : "Image of PHP code running with your name", 
+            { "title" : "Image of PHP code running with your name",
               "type" : "image"
             }
         ],
@@ -73,7 +73,7 @@ if ( strlen($json) < 1 ) {
 }
 $json = jsonIndent($json);
 
-// View 
+// View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();

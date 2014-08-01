@@ -22,7 +22,7 @@ if ( isset($_POST['grade']) )  {
     if ( $gradetosend < $oldgrade ) {
         $_SESSION['error'] = "Grade lower than $oldgrade - not sent";
     } else {
-        // TODO: Update the webauto_lti_result table with 
+        // TODO: Update the webauto_lti_result table with
         // the to be sent grade
 
         // We pass this in session because the gradeSend() function produces output

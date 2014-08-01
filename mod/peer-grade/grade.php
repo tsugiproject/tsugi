@@ -22,7 +22,7 @@ if ( isset($_GET['user_id']) ) {
     $url_stay = 'grade.php?user_id='.$user_id;
 }
 
-// Model 
+// Model
 $row = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
@@ -40,11 +40,11 @@ if ( $assn_id == false ) {
 // Handle the flag data
 if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
 
-    $submit_id = $_POST['submit_id']+0; 
+    $submit_id = $_POST['submit_id']+0;
     $stmt = $PDOX->queryDie(
-        "INSERT INTO {$p}peer_flag 
-            (submit_id, user_id, note, created_at, updated_at) 
-            VALUES ( :SID, :UID, :NOTE, NOW(), NOW()) 
+        "INSERT INTO {$p}peer_flag
+            (submit_id, user_id, note, created_at, updated_at)
+            VALUES ( :SID, :UID, :NOTE, NOW(), NOW())
             ON DUPLICATE KEY UPDATE note = :NOTE, updated_at = NOW()",
         array(
             ':SID' => $submit_id,
@@ -57,10 +57,10 @@ if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
 }
 
 // Handle the grade data
-if ( isset($_POST['points']) && isset($_POST['submit_id']) 
+if ( isset($_POST['points']) && isset($_POST['submit_id'])
     && isset($_POST['user_id']) ) {
 
-    if ( (!isset($_SESSION['peer_submit_id'])) || 
+    if ( (!isset($_SESSION['peer_submit_id'])) ||
         $_SESSION['peer_submit_id'] != $_POST['submit_id'] ) {
 
         unset($_SESSION['peer_submit_id']);
@@ -74,7 +74,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
         header( 'Location: '.addSession($url_stay) ) ;
         return;
     }
-    
+
     $points = $_POST['points']+0;
     if ( $points < 0 || $points > $assn_json->maxpoints ) {
         $_SESSION['error'] = 'Points must be between 0 and '.$assn_json->maxpoints;
@@ -83,7 +83,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     }
 
     // Check to see if user_id is correct for this submit_id
-    $user_id = $_POST['user_id']+0; 
+    $user_id = $_POST['user_id']+0;
     $submit_row = loadSubmission($assn_id, $user_id);
     if ( $submit_row === null || $submit_row['submit_id'] != $_POST['submit_id']) {
         $_SESSION['error'] = 'Mis-match between user_id and session_id';
@@ -99,12 +99,12 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     }
 
     unset($_SESSION['peer_submit_id']);
-    $submit_id = $_POST['submit_id']+0; 
+    $submit_id = $_POST['submit_id']+0;
 
     $stmt = $PDOX->queryReturnError(
-        "INSERT INTO {$p}peer_grade 
-            (submit_id, user_id, points, note, created_at, updated_at) 
-            VALUES ( :SID, :UID, :POINTS, :NOTE, NOW(), NOW()) 
+        "INSERT INTO {$p}peer_grade
+            (submit_id, user_id, points, note, created_at, updated_at)
+            VALUES ( :SID, :UID, :POINTS, :NOTE, NOW(), NOW())
             ON DUPLICATE KEY UPDATE points = :POINTS, note = :NOTE, updated_at = NOW()",
         array(
             ':SID' => $submit_id,
@@ -137,7 +137,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     return;
 }
 unset($_SESSION['peer_submit_id']);
- 
+
 $submit_id = false;
 $submit_json = null;
 if ( $user_id === false ) {
@@ -166,7 +166,7 @@ if ( $submit_json === null ) {
     return;
 }
 
-// View 
+// View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
@@ -198,8 +198,8 @@ flagging when instructor attention is needed.</p>
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <input type="hidden" value="1" name="doFlag">
 <textarea rows="5" cols="60" name="note"></textarea><br/>
-<input type="submit" name="flagSubmit" 
-    onclick="return confirm('Are you sure you want to bring this student submission to the attention of the instructor?');" 
+<input type="submit" name="flagSubmit"
+    onclick="return confirm('Are you sure you want to bring this student submission to the attention of the instructor?');"
     value="Submit To Instructor" class="btn btn-primary">
 <input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag" class="btn btn-default">
 </form>

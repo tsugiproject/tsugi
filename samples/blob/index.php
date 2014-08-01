@@ -7,7 +7,7 @@ require_once "blob_util.php";
 // Sanity checks
 $LTI = \Tsugi\Core\LTIX::requireData(array('context_id', 'role'));
 
-// Model 
+// Model
 $p = $CFG->dbprefix;
 if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 1) {
     $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
@@ -25,8 +25,8 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
     }
 
     $fp = fopen($_FILES['uploaded_file']['tmp_name'], "rb");
-    $stmt = $PDOX->prepare("INSERT INTO {$p}sample_blob 
-        (context_id, file_name, contenttype, content, created_at) 
+    $stmt = $PDOX->prepare("INSERT INTO {$p}sample_blob
+        (context_id, file_name, contenttype, content, created_at)
         VALUES (?, ?, ?, ?, NOW())");
 
     $stmt->bindParam(1, $CONTEXT->id);
@@ -49,7 +49,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
     return;
 }
 
-// View 
+// View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
@@ -81,8 +81,8 @@ echo("</ul>\n");
 if ( $USER->instructor ) { ?>
 <h4>Upload file (max <?php echo(maxUpload());?>MB)</h4>
 <form name="myform" enctype="multipart/form-data" method="post" action="<?php addSession('index.php');?>">
-<p>Upload File: <input name="uploaded_file" type="file"> 
-   <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(maxUpload());?>000000" /> 
+<p>Upload File: <input name="uploaded_file" type="file">
+   <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(maxUpload());?>000000" />
    <input type="submit" name="submit" value="Upload"></p>
 </form>
 <?php

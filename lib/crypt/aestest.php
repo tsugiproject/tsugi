@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Tsugi\Crypt;
 
@@ -6,9 +6,9 @@ namespace Tsugi\Crypt;
 
   require 'aes.class.php';     // AES PHP implementation
   require 'aesctr.class.php';  // AES Counter Mode implementation
-  
+
   $timer = microtime(true);
-  
+
   // initialise password & plaintesxt if not set in post array (shouldn't need stripslashes if magic_quotes is off)
   $pw = 'L0ck it up saf3';
   $pt = 'pssst ... đon’t tell anyøne!';
@@ -17,4 +17,4 @@ namespace Tsugi\Crypt;
   echo("E: ".$encr."\n");
   echo("D: ".$decr."\n");
 
-?> 
+?>

@@ -9,7 +9,7 @@ use \Tsugi\Core\Debug;
 // Sanity checks
 $LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'context_id'));
 
-// Model 
+// Model
 $p = $CFG->dbprefix;
 
 if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 1) {
@@ -46,7 +46,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
     return;
 }
 
-// View 
+// View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
@@ -76,7 +76,7 @@ finfo_close($finfo);
 if ( $USER->instructor ) { ?>
 <h4>Upload file (max <?php echo(maxUpload());?>MB)</h4>
 <form name="myform" enctype="multipart/form-data" method="post" action="<?php addSession('index.php');?>">
-<p>Upload File: <input name="uploaded_file" type="file"> 
+<p>Upload File: <input name="uploaded_file" type="file">
    <input type="submit" name="submit" value="Upload"></p>
    <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(maxUpload());?>000000" />
 </form>

@@ -65,7 +65,7 @@ for ( $i=0; $i<5; $i++) {
             break;
         }
     }
-    
+
     $matches = Array();
     preg_match('/Your Play=([^ ]*) Computer Play=([^ ]*) Result=(.*)/',$html,$matches);
     if ( count($matches) != 4 ) {

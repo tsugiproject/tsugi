@@ -1,4 +1,4 @@
-<?php 
+<?php
 require_once 'config.php';
 require_once 'pdo.php';
 require_once 'lib/lms_lib.php';
@@ -28,7 +28,7 @@ session_write_close();  // To avoid any race conditions...
 
 if ( headers_sent() ) {
     echo('<p><a href="'.$url.'">Click to continue</a></p>');
-} else { 
+} else {
     header('Location: '.$location);
 }
 ?>

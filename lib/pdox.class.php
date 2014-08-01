@@ -148,7 +148,7 @@ class PDOX extends \PDO {
      * @param $sql The SQL to execute in a string.  If the SQL is badly formed this function will die.
      * @param $arr An optional array of the substitition values if needed by the query
      * @param $error_log Indicates whether or not errors are to be logged. Default is TRUE.
-     * @return array This is either the row that was returned or FALSE if no rows were 
+     * @return array This is either the row that was returned or FALSE if no rows were
      * returned.
      */
     function rowDie($sql, $arr=FALSE, $error_log=TRUE) {

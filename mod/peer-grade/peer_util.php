@@ -19,7 +19,7 @@ function loadAssignment($LTI)
     return $row;
 }
 
-function loadSubmission($assn_id, $user_id) 
+function loadSubmission($assn_id, $user_id)
 {
     global $CFG, $PDOX;
     $cacheloc = 'peer_submit';
@@ -44,13 +44,13 @@ function loadUngraded($LTI, $assn_id)
 {
     global $CFG, $PDOX;
     $stmt = $PDOX->queryDie(
-        "SELECT S.submit_id, S.user_id, S.created_at, count(G.user_id) AS submit_count 
-            FROM {$CFG->dbprefix}peer_submit AS S LEFT JOIN {$CFG->dbprefix}peer_grade AS G 
-            ON S.submit_id = G.submit_id 
-            WHERE S.assn_id = :AID AND S.user_id != :UID AND 
-            S.submit_id NOT IN 
+        "SELECT S.submit_id, S.user_id, S.created_at, count(G.user_id) AS submit_count
+            FROM {$CFG->dbprefix}peer_submit AS S LEFT JOIN {$CFG->dbprefix}peer_grade AS G
+            ON S.submit_id = G.submit_id
+            WHERE S.assn_id = :AID AND S.user_id != :UID AND
+            S.submit_id NOT IN
                 ( SELECT DISTINCT submit_id from {$CFG->dbprefix}peer_grade WHERE user_id = :UID)
-            GROUP BY S.submit_id, S.created_at 
+            GROUP BY S.submit_id, S.created_at
             ORDER BY submit_count ASC, S.created_at ASC
             LIMIT 10",
         array(":AID" => $assn_id, ":UID" => $LTI['user_id'])
@@ -67,7 +67,7 @@ function showSubmission($LTI, $assn_json, $submit_json)
     $urlno = 0;
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == "image" ) {
-            // This test triggeres when an assignment is reconfigured 
+            // This test triggeres when an assignment is reconfigured
             // and old submissions have too few blobs
             if ( $blobno >= count($blob_ids) ) continue;
             $blob_id = $blob_ids[$blobno++];
@@ -98,7 +98,7 @@ function showSubmission($LTI, $assn_json, $submit_json)
             echo ('<p><a href="'.safe_href($url).'" target="_blank">');
             echo (htmlentities(safe_href($url)).'</a> (Will launch in new window)</p>'."\n");
         }
-        
+
     }
     echo("<br/>&nbsp;<br/>\n");
 
@@ -116,17 +116,17 @@ function computeGrade($assn_id, $assn_json, $user_id)
 {
     global $CFG, $PDOX;
     $stmt = $PDOX->queryDie(
-        "SELECT S.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id, 
+        "SELECT S.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id,
             MAX(points) as max_points, COUNT(points) as count_points, C.grade_count as grade_count
-        FROM {$CFG->dbprefix}peer_submit as S 
-        JOIN {$CFG->dbprefix}peer_grade AS G 
+        FROM {$CFG->dbprefix}peer_submit as S
+        JOIN {$CFG->dbprefix}peer_grade AS G
             ON S.submit_id = G.submit_id
         JOIN {$CFG->dbprefix}lti_user AS U
             ON S.user_id = U.user_id
         LEFT JOIN (
             SELECT G.user_id AS user_id, count(G.user_id) as grade_count
-            FROM {$CFG->dbprefix}peer_submit as S 
-            JOIN {$CFG->dbprefix}peer_grade AS G 
+            FROM {$CFG->dbprefix}peer_submit as S
+            JOIN {$CFG->dbprefix}peer_grade AS G
                 ON S.submit_id = G.submit_id
             WHERE S.assn_id = :AID AND G.user_id = :UID
             ) AS C
@@ -158,8 +158,8 @@ function loadMyGradeCount($LTI, $assn_id) {
     $grade_count = Cache::check($cacheloc, $cachekey);
     if ( $grade_count != false ) return $grade_count;
     $stmt = $PDOX->queryDie(
-        "SELECT COUNT(grade_id) AS grade_count 
-        FROM {$CFG->dbprefix}peer_submit AS S 
+        "SELECT COUNT(grade_id) AS grade_count
+        FROM {$CFG->dbprefix}peer_submit AS S
         JOIN {$CFG->dbprefix}peer_grade AS G
         ON S.submit_id = G.submit_id
             WHERE S.assn_id = :AID AND G.user_id = :UID",

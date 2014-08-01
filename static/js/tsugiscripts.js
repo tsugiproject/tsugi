@@ -2,7 +2,7 @@
 // Needs to be loaded at the end after JQuery is loaded
 
 // Send the CRF token on all of the non-ajax() calls
-$.ajaxSetup({ 
+$.ajaxSetup({
     cache: false,
     headers : {
         'X-CSRF-Token' : CSRF_TOKEN
@@ -17,7 +17,7 @@ function dataToggle(divName) {
     else {
         ele.style.display = "block";
     }
-} 
+}
 
 function doHeartBeat() {
     window.console && console.log('Calling heartbeat to extend session');

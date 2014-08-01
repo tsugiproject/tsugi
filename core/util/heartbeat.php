@@ -30,7 +30,7 @@ if ( $count > 10 && ( $count % 100 ) == 0 ) {
     error_log("Heartbeat.php ".session_id().' '.$count);
 }
 
-$retval = array("success" => true, "seconds" => $seconds, 
+$retval = array("success" => true, "seconds" => $seconds,
         "now" => $now, "count" => $count, "cookie" => $cookie,
         "id" => session_id());
 $retval['lti'] = isset($_SESSION['lti']);

@@ -1,11 +1,11 @@
-<?php 
+<?php
 require_once "../../config.php";
 ?>
 <html>
 <head>
 </head>
 <body style="font: sans-serif;">
-<h1>Welcome to 
+<h1>Welcome to
 <?php echo($CFG->servicename); ?> Autograder</h1>
 <p>
 This is a simple autograder that runs a set of unit tests on a web site
@@ -49,7 +49,7 @@ http://api.symfony.com/2.3/Symfony/Component/DomCrawler/Crawler.html
 <p>
 This tool can use IMS Learning Tools Interoperability to pass the grades back to a LMS.
 If you are using this particlaur page, no grades will be sent to an LMS.  To have grade routing back
-to an LMS, you need to launch this software using an LMS that supports 
+to an LMS, you need to launch this software using an LMS that supports
 IMS Learning Tools Interoperability.
 </p>
 

@@ -1,4 +1,4 @@
-<?php 
+<?php
 define('COOKIE_SESSION', true);
 require_once("config.php");
 $OUTPUT->header();
@@ -11,7 +11,7 @@ $OUTPUT->header();
 <p>
 This developer screen allows you to quickly test TSUGI applications.
 It allows you to change any LTI lauch parameter and switch
-between a set of user account data.  This feature is intended 
+between a set of user account data.  This feature is intended
 ro test instances running on a developer desktop (i.e. not suitable
 for production) and so to enable this, you need to have the
 <pre>

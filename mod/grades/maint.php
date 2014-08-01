@@ -42,7 +42,7 @@ if ( isset($_POST['getServerGrades']) ) {
     $row = $PDOX->rowDie(
         "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
-        WHERE link_id = :LID AND grade IS NOT NULL AND 
+        WHERE link_id = :LID AND grade IS NOT NULL AND
             (server_grade IS NULL OR retrieved_at < R.updated_at) AND
             sourcedid IS NOT NULL AND service_key IS NOT NULL",
         array(":LID" => $link_id)
@@ -65,7 +65,7 @@ if ( isset($_POST['getServerGrades']) ) {
     $stmt = $PDOX->queryDie(
         "SELECT result_id, sourcedid, service_key FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
-        WHERE link_id = :LID AND grade IS NOT NULL AND 
+        WHERE link_id = :LID AND grade IS NOT NULL AND
             (server_grade IS NULL OR retrieved_at < R.updated_at) AND
             sourcedid IS NOT NULL AND service_key IS NOT NULL",
         array(":LID" => $link_id)
@@ -114,9 +114,9 @@ if ( isset($_POST['fixServerGrades']) ) {
     session_write_close();
 
     $stmt = $PDOX->queryDie(
-        "SELECT result_id, link_id, grade, server_grade, note, 
-            sourcedid, service_key, 
-            U.user_id AS user_id, displayname, email 
+        "SELECT result_id, link_id, grade, server_grade, note,
+            sourcedid, service_key,
+            U.user_id AS user_id, displayname, email
         FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         JOIN {$p}lti_user AS U ON R.user_id = U.user_id
@@ -176,13 +176,13 @@ if ( isset($_POST['fixServerGrades']) ) {
 
             error_log("Error re-retrieving grade: ".session_id().' result_id='.$row['result_id'].
                 ' sourcedid='+$row['sourcedid']+' service_key='+$row['service_key']);
-            
+
             $OUTPUT->togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
             flush();
             $fail++;
             continue;
         } else if ( $server_grade != $row['grade'] ) {
-        
+
 
         } else {
         }
@@ -198,7 +198,7 @@ if ( isset($_POST['fixServerGrades']) ) {
     return;
 }
 
-// View 
+// View
 $OUTPUT->header();
 ?>
 <script type="text/javascript">
@@ -221,7 +221,7 @@ $iframeurl = addSession($CFG->wwwroot . '/mod/grades/maint.php?link_id=' . $link
   <button name="getServerGrades" onclick="showFrame();" class="btn btn-warning">Retrieve Server Grades</button>
 </form>
 <form method="post" style="display: inline">
-  <button name="resetServerGrades" 
+  <button name="resetServerGrades"
     onclick="return confirm('Are you sure you want to clear out all of the previously retrieved server grades?');"
 class="btn btn-danger">Reset Local Server Grades</button>
   <a href="#" id="clear" style="display: none" onclick="
@@ -229,25 +229,25 @@ class="btn btn-danger">Reset Local Server Grades</button>
     class="btn btn-primary">Clear/Stop Frame</a>
   <button onclick="window.close();" class="btn btn-primary">Done</button>
 </div>
-<p>These are maintenance tools make sure you know how to use them. 
-<ul> 
-<li><b>Fix Mis-matched Grades</b> copies our local grade to the server 
-when there is a mismatch between the local grade and our most recent 
+<p>These are maintenance tools make sure you know how to use them.
+<ul>
+<li><b>Fix Mis-matched Grades</b> copies our local grade to the server
+when there is a mismatch between the local grade and our most recent
 server grade.  It is quick unless there are a lot of mis-matches.
 </li>
-<li><b>Retrieve Server Grades</b> calls a web service to pul down a 
-copy of the grade stored in the server that have not yet 
+<li><b>Retrieve Server Grades</b> calls a web service to pul down a
+copy of the grade stored in the server that have not yet
 been retrieved.  This process takes abut 0.3 seconds per "grade to retrieve".
 </li>
-<li><b>Reset Local Server Grades</b> - resets the local 
+<li><b>Reset Local Server Grades</b> - resets the local
 copies of server grades so that the next <b>Retrieve Server Grades</b>
 will retrieve all grades.</li>
 </ul>
 <pre>
-Context: <?php echo($CONTEXT->id); 
-    if ( isset($CONTEXT->title) ) echo(' '.htmlent_utf8($CONTEXT->title)) ; ?> 
-Link id: <?php echo($link_id); 
-    if ( isset($link_info['title']) ) echo(' '.htmlent_utf8($link_info['title'])) ; ?> 
+Context: <?php echo($CONTEXT->id);
+    if ( isset($CONTEXT->title) ) echo(' '.htmlent_utf8($CONTEXT->title)) ; ?>
+Link id: <?php echo($link_id);
+    if ( isset($link_info['title']) ) echo(' '.htmlent_utf8($link_info['title'])) ; ?>
 </pre>
 
 <p><b>Total results:</b> <span id="total"><img src="<?php echo($OUTPUT->getSpinnerUrl()); ?>"></span>
@@ -262,8 +262,8 @@ Link id: <?php echo($link_id);
 
 <div id="iframediv" style="display:none">
 <p>Depending on buffering - output in this iframe may take a while to appear.
-Once the output starts, make sure to scroll to the bottom to see the current activity.  
-The number of grades to retrieve will be updated above even if you do 
+Once the output starts, make sure to scroll to the bottom to see the current activity.
+The number of grades to retrieve will be updated above even if you do
 not see output below.  Is you want to abort this job, press
 "Clear/Stop" and be a little patient.  This job may take so long it times out.
 That is OK - simply come back and restart it - it will pick up where it left off.
@@ -281,7 +281,7 @@ $UPDATE_INTERVAL = false;
 function updateNumbers() {
     window.console && console.log('Calling updateNumbers');
     $.ajaxSetup({ cache: false }); // For IE...
-    $.getJSON('<?php echo(addSession($CFG->wwwroot.'/mod/grades/maintcount.php?link_id='.$link_id)); ?>', 
+    $.getJSON('<?php echo(addSession($CFG->wwwroot.'/mod/grades/maintcount.php?link_id='.$link_id)); ?>',
     function(data) {
         if ( $UPDATE_INTERVAL === false ) $UPDATE_INTERVAL = setInterval(updateNumbers,10000);
         window.console && console.log(data);

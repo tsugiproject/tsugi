@@ -31,7 +31,7 @@ if ( isAdmin() ) {
 }
 
 // Handle the post data
-$row =  CrudForm::handleUpdate($tablename, $fields, $where_clause, 
+$row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
     $query_fields, $allow_edit, $allow_delete);
 
 if ( $row === CrudForm::UPDATE_FAIL || $row === CrudForm::UPDATE_SUCCESS ) {

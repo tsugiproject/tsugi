@@ -1,6 +1,6 @@
 <?php
 
-$EXERCISES = 
+$EXERCISES =
 Array(
 "hello" => Array (
 "qtext" => "Write a program that uses a <b>print</b> statement to say 'hello world'
@@ -13,7 +13,7 @@ prinq "hello world"',
 )),
 
 "loop" => Array (
-"qtext" => "Write a program that uses a <b>for</b> loop and the built-in function 
+"qtext" => "Write a program that uses a <b>for</b> loop and the built-in function
 <b>range</b> to write out three numbers as shown in 'Desired Output'.",
 "desired" => "0
 1
@@ -27,10 +27,10 @@ prinq "hello world"',
 )),
 
 "2.2" => Array (
-"qtext" => "<b>2.2</b> Write a program that uses <b>raw_input</b> 
+"qtext" => "<b>2.2</b> Write a program that uses <b>raw_input</b>
 to prompt a user for their name and then
 welcomes them.  Note that <b>raw_input</b> will pop up a dialog box.
-Enter <b>Sarah</b> in the pop-up box when you are prompted so your 
+Enter <b>Sarah</b> in the pop-up box when you are prompted so your
 output will match the desired output.",
 "desired" => "Hello Sarah",
 "code" => '# The code below almost works
@@ -44,10 +44,10 @@ print "Howdy"',
 )),
 
 "2.3" => Array(
-"qtext" => "<b>2.3</b> Write a program to prompt the user for 
+"qtext" => "<b>2.3</b> Write a program to prompt the user for
 hours and rate per hour using raw_input
-to compute gross pay.  Use 35 hours and a rate of 2.75 per hour to test the 
-program (the pay should be 96.25).  You should use <b>raw_input</b> to 
+to compute gross pay.  Use 35 hours and a rate of 2.75 per hour to test the
+program (the pay should be 96.25).  You should use <b>raw_input</b> to
 read a string and <b>float()</b> to convert the string to a number.
 Do not worry about error checking or bad user data.",
 "desired" => "96.25",
@@ -66,10 +66,10 @@ hrs = raw_input("Enter Hours:")',
 
 "3.1" => Array(
 "qtext" => "<b>3.1</b> Write a program to prompt the user for hours and rate per hour using raw_input
-to compute gross pay.  Pay the hourly rate for the hours up to 40 and 
-1.5 times the hourly rate for all hours 
-worked above 40 hours.  Use 45 hours and a rate of 10.50 per hour to test the 
-program (the pay should be 498.75).  You should use <b>raw_input</b> to 
+to compute gross pay.  Pay the hourly rate for the hours up to 40 and
+1.5 times the hourly rate for all hours
+worked above 40 hours.  Use 45 hours and a rate of 10.50 per hour to test the
+program (the pay should be 498.75).  You should use <b>raw_input</b> to
 read a string and <b>float()</b> to convert the string to a number.
 Do not worry about error checking the user input - assume the user types numbers properly.
 ",
@@ -87,8 +87,8 @@ h = float(hrs)',
 "!498" => "You must actually calculate the pay.")),
 
 "3.3" => Array(
-"qtext" => "<b>3.3</b> Write a program to prompt for a score between 0.0 and 1.0. 
-If the score is out of range, print an error. If the score is between 0.0 and 1.0, 
+"qtext" => "<b>3.3</b> Write a program to prompt for a score between 0.0 and 1.0.
+If the score is out of range, print an error. If the score is between 0.0 and 1.0,
 print a grade using the following table:<br/>
 Score    Grade<br/>
 >= 0.9     A<br/>
@@ -111,15 +111,15 @@ For the test, enter a score of 0.85.
 
 "4.6" => Array(
 "qtext" => "<b>4.6</b> Write a program to prompt the user for hours and rate per hour using raw_input
-to compute gross pay.  Award time-and-a-half for the hourly rate for all hours 
-worked above 40 hours.  
+to compute gross pay.  Award time-and-a-half for the hourly rate for all hours
+worked above 40 hours.
 Put the logic to do the computation of time-and-a-half in a function called <b>computepay()</b>
 and use the function to do the computation.  The function should return a value.
-Use 45 hours and a rate of 10.50 per hour to test the 
-program (the pay should be 498.75).  
-You should use <b>raw_input</b> to 
+Use 45 hours and a rate of 10.50 per hour to test the
+program (the pay should be 498.75).
+You should use <b>raw_input</b> to
 read a string and <b>float()</b> to convert the string to a number.
-Do not worry about error checking the user input unless you want to - 
+Do not worry about error checking the user input unless you want to -
 you can assume the user types numbers properly.
 ",
 "desired" => "498.75",
@@ -141,10 +141,10 @@ print "Pay",p',
 ),
 
 "5.2" => Array(
-"qtext" => "<b>5.2</b> Write a program that repeatedly prompts a user for integer numbers 
+"qtext" => "<b>5.2</b> Write a program that repeatedly prompts a user for integer numbers
 until the user enters 'done'.  Once 'done' is entered, print out the largest and smallest
 of the numbers.  If the user enters anything other than a valid number catch it
-with a try/except and put out an appropriate message and ignore the number.  
+with a try/except and put out an appropriate message and ignore the number.
 Enter the numbers from the book for problem 5.1 and Match the desired output as shown.
 ",
 "desired" => "Invalid input
@@ -168,8 +168,8 @@ print "Maximum", largest',
 ),
 
 "6.5" => Array(
-"qtext" => "<b>6.5</b> Write code using find() and string slicing (see section 6.10) to extract 
-the number at the end of the line below.   Convert the extracted value to a floating point 
+"qtext" => "<b>6.5</b> Write code using find() and string slicing (see section 6.10) to extract
+the number at the end of the line below.   Convert the extracted value to a floating point
 number and print it out.",
 "desired" => "0.8475",
 "code" => 'text = "X-DSPAM-Confidence:    0.8475";',
@@ -181,7 +181,7 @@ number and print it out.",
 ),
 
 "fopen" => Array(
-"qtext" => 'This Python program opens the file 
+"qtext" => 'This Python program opens the file
 "mbox-short.txt" and counts the number of lines in the file.',
 "desired" => "1910 Lines",
 "code" => 'fh = open("mbox-short.txt", "r")
@@ -199,7 +199,7 @@ print count,"Lines"
 and reads through the file, and print the contents of the file in upper case.  Use
 the file <b>words.txt</b> to produce the output below.".
 '<p>
-You can download the sample data at 
+You can download the sample data at
 <a href="http://www.pythonlearn.com/code/words.txt" target="_blank">
 http://www.pythonlearn.com/code/words.txt</a>',
 "desired" => "WRITING PROGRAMS OR PROGRAMMING IS A VERY CREATIVE
@@ -250,13 +250,13 @@ and reads through the file, looking for lines of the form:
 <pre>
 X-DSPAM-Confidence:    0.8475
 </pre>
-Count these lines and extract the floating point values from each 
+Count these lines and extract the floating point values from each
 of the lines and compute the average of those values and produce an output
 as shown below.
 <p>
-You can download the sample data at 
+You can download the sample data at
 <a href="http://www.pythonlearn.com/code/mbox-short.txt" target="_blank">
-http://www.pythonlearn.com/code/mbox-short.txt</a> when you are testing 
+http://www.pythonlearn.com/code/mbox-short.txt</a> when you are testing
 below enter <b>mbox-short.txt</b> as the file name.',
 "desired" => "Average spam confidence: 0.750718518519",
 "code" => '# Use the file name mbox-short.txt as the file name
@@ -294,7 +294,7 @@ function.   The program should build a list of words.  For each word on each lin
 check to see if the word is already in the list and if not append it to the list.
 When the program completes, sort and print the resulting words in alphabetical order.
 <p>
-You can download the sample data at 
+You can download the sample data at
 <a href="http://www.pythonlearn.com/code/romeo.txt" target="_blank">
 http://www.pythonlearn.com/code/romeo.txt</a>',
 "desired" => "['Arise', 'But', 'It', 'Juliet', 'Who', 'already', 'and', 'breaks', 'east', 'envious', 'fair', 'grief', 'is', 'kill', 'light', 'moon', 'pale', 'sick', 'soft', 'sun', 'the', 'through', 'what', 'window', 'with', 'yonder']",
@@ -331,12 +331,12 @@ line.  When you find a line that starts with 'From ' like the following line:
 From stephen.marquard@uct.ac.za Sat Jan  5 09:14:16 2008
 </pre>
 You will parse the From line using split() and print out the second word in the line
-(i.e. the entire address of the person who sent the message).  Then print out 
+(i.e. the entire address of the person who sent the message).  Then print out
 a count at the end.
 <p>
 <b>Hint:</b> make sure not to include the lines that start with 'From:'.".
 '<p>
-You can download the sample data at 
+You can download the sample data at
 <a href="http://www.pythonlearn.com/code/mbox-short.txt" target="_blank">
 http://www.pythonlearn.com/code/mbox-short.txt</a>',
 "desired" => "stephen.marquard@uct.ac.za
@@ -398,9 +398,9 @@ print "There were", count, "lines in the file with From as the first word"
 
 "9.4" => Array(
 "qtext" => "<b>9.4</b> Write a program to read through the <b>mbox-short.txt</b> and figure
-out who has the sent  the greatest number of mail messages.  The program looks 
+out who has the sent  the greatest number of mail messages.  The program looks
 for 'From ' lines and takes the second
-word of those lines as the person who sent the mail.  The program creates a Python 
+word of those lines as the person who sent the mail.  The program creates a Python
 dictionary that maps the sender's mail address to a count of the number of times
 they appear in the file.  After the dictionary is produced, the program reads through
 the dictionary using a maximum loop to find the most prolific committer.",
@@ -445,7 +445,7 @@ using a colon.
 <pre>
 From stephen.marquard@uct.ac.za Sat Jan  5 <b>09</b>:14:16 2008
 </pre>
-Once you have accumulated the counts for each hour, print out the counts, sorted by hour 
+Once you have accumulated the counts for each hour, print out the counts, sorted by hour
 as shown below.  Note that the autograder does not have support for the sorted() function.",
 "desired" => "04 3
 06 1
@@ -485,12 +485,12 @@ for key, val in lst :
 ',
 "checks" => Array(
 "for" => "You need a for loop to read the lines in the file.",
-"sort" => "You need to use list sort() method to sort the list of times.") 
+"sort" => "You need to use list sort() method to sort the list of times.")
 ),
 
 "11.1" => Array (
 "qtext" => '<b>11.1</b> Sadly, the autograder does not support the regular expression library.
-So please write a program that computes the 
+So please write a program that computes the
 <b>Answer to the Ultimate Question of Life, the Universe, and Everything</b>
 [<a href="http://www.youtube.com/watch?v=aboZctrHfK8" target="_blank">more detail</a>].
 Sample output is below.',
@@ -540,7 +540,7 @@ for key, val in lst :
 ',
 "checks" => Array(
 "for" => "You need a for loop to read the lines in the file.",
-"sort" => "You need to use list sort() method to sort the list of times.") 
+"sort" => "You need to use list sort() method to sort the list of times.")
 )
 
 

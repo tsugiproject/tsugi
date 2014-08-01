@@ -302,7 +302,7 @@ class Output {
     }
 
     /**
-     * Redirect to a local URL, adding session if necessary 
+     * Redirect to a local URL, adding session if necessary
      *
      * Note that this is only needed for AJAX and header() calls
      * as &lt;form> and &lt;a href tags are properly handled already

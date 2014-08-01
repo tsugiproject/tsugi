@@ -4,10 +4,10 @@ $OUTPUT->header();
 </head>
 <body style="padding:10px;">
 <div class="alert alert-danger" style="margin: 10px;">
-<p>This request is missing critical lauch data.  This URL is intended to be 
-launched using 
-<a href="http://developers.imsglobal.org/" target="_blank">IMS Learning 
-Tools Interoperability 1.1</a> with POST data that is signed using an 
+<p>This request is missing critical lauch data.  This URL is intended to be
+launched using
+<a href="http://developers.imsglobal.org/" target="_blank">IMS Learning
+Tools Interoperability 1.1</a> with POST data that is signed using an
 OAuth Key and secret that needs to be obtained from the system administrator
 of <b>
 <?php echo($CFG->servicename); ?></b>.  At a minumum this application needs

@@ -9,12 +9,12 @@ require_once "peer_util.php";
 $LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
-// Check to see if we are updating the grade for the current 
+// Check to see if we are updating the grade for the current
 // user or another
 $user_id = $USER->id;
 if ( isset($_REQUEST['user_id']) ) $user_id = $_REQUEST['user_id'];
 
-// Model 
+// Model
 $row = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
@@ -48,10 +48,10 @@ $status = gradeSendDetail($grade, $debug_log, $result); // This is the slow bit
 if ( $status === true ) {
     if ( $user_id != $USER->id ) {
         jsonOutput(array("status" => $status, "debug" => $debug_log));
-    } else { 
+    } else {
         jsonOutput(array("status" => $status, "grade" => $grade, "debug" => $debug_log));
     }
-} else { 
+} else {
     jsonError($status, $debug_log);
 }
 

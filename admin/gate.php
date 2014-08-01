@@ -48,7 +48,7 @@ if ( ! isset($_SESSION['admin']) ) {
 <input type="submit">
 </form>
 
-<?php 
+<?php
     $OUTPUT->footer();
 }
 

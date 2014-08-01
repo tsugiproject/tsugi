@@ -50,7 +50,7 @@ if ( isset($_POST['grade']) )  {
         }
     }
 
-    // Redirect to ourself 
+    // Redirect to ourself
     header('Location: '.addSession('index.php'));
     return;
 }

@@ -76,7 +76,7 @@ if ( $ex !== false && $ex != "code" ) {
             " is not available.  Please see your instructor.</h1></body>");
         return;
     }
-} 
+}
 ?>
 <style>
 body { font-family: sans-serif; }
@@ -160,7 +160,7 @@ function load_files() {
     // http://stackoverflow.com/questions/1418050/string-strip-for-javascript
     if(typeof(String.prototype.trim) === "undefined")
     {
-        String.prototype.trim = function() 
+        String.prototype.trim = function()
         {
             return String(this).replace(/^\s+|\s+$/g, '');
         };
@@ -386,11 +386,11 @@ $OUTPUT->bodyStart();
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h4 class="modal-title">
-<?php 
+<?php
 if ( isset($LINK->title) ) {
     echo(htmlent_utf8($LINK->title));
 } else {
-    welcomeUserCourse(); 
+    welcomeUserCourse();
 }
 ?></h4>
       </div>
@@ -406,30 +406,30 @@ if ( isset($LINK->title) ) {
         page.</p>
 <?php } ?>
         <p>
-        Remember that this is an in-browser Python emulator and as your programs get 
+        Remember that this is an in-browser Python emulator and as your programs get
         more sophisticated, you may encounter situations where this Python emulator
-        gives <i>different</i> results than the real Python 2.7 
-        running on your laptop, desktop, or server.  It is intended to be used 
-        for simple programs being developed by beginning programmers while they 
+        gives <i>different</i> results than the real Python 2.7
+        running on your laptop, desktop, or server.  It is intended to be used
+        for simple programs being developed by beginning programmers while they
         are learning to program.
         </p> <p>
-        There are three files loaded into this environment from the 
+        There are three files loaded into this environment from the
         <a href="http://www.pythonlearn.com/" target="_blank">Python for Informatics</a>
-        web site and ready for you to open if you want to 
+        web site and ready for you to open if you want to
         do file processing: "mbox-short.txt", "romeo.txt", and "words.txt".
         </p>
 <?php } else { ?>
 <?php if ( isset($LTI['grade']) ) { ?>
-        <p style="border: blue 1px solid">Your current grade in this 
+        <p style="border: blue 1px solid">Your current grade in this
         exercise is <span id="curgrade"><?php echo($LTI['grade']); ?></span>.</p>
 <?php } ?>
         <p>Your goal in this auto grader is to write or paste in a program that implements the specifications
-        of the assignment.  You run the program by pressing "Check Code".  
-        The output of your program is displayed in the "Your Output" section of the screen.  
-        If your output does not match the "Desired Output", you will not get a score.  
+        of the assignment.  You run the program by pressing "Check Code".
+        The output of your program is displayed in the "Your Output" section of the screen.
+        If your output does not match the "Desired Output", you will not get a score.
         </p><p>
-        Even if "Your Output" matches "Desired Output" exactly, 
-        the autograder still does a few checks of your source code to make sure that you 
+        Even if "Your Output" matches "Desired Output" exactly,
+        the autograder still does a few checks of your source code to make sure that you
         implemented the assignment using the expected techniques from the chapter. These messages
         can also help struggling students with clues as to what might be missing.
         </p>
@@ -458,7 +458,7 @@ if ( $dueDate->message ) {
 <?php echo($QTEXT); ?>
 </div>
 <form id="forminput">
-<?php 
+<?php
     if ( $EX !== false ) {
         echo('<button onclick="runit()" type="button">Check Code</button>'."\n");
     } else {
@@ -487,7 +487,7 @@ if ( $dueDate->message ) {
 &nbsp;<br/>
 <div id="textarea" class="inputarea">
 <textarea id="code" style="width:100%; height: 100%; font-family:Courier,fixed;font-size:16px;color:blue;">
-<?php 
+<?php
 if ( $OLDCODE !== false ) {
     echo(htmlentities($OLDCODE));
 } else {
@@ -515,7 +515,7 @@ if ( $OLDCODE !== false ) {
 </form>
 </div>
 <div id="footer" style="text-align: center">
-Setting: 
+Setting:
 <?php
     if ( $codemirror ) {
         $editurl = reconstruct_query('auto.php',array("editor" => 0));
@@ -526,7 +526,7 @@ Setting:
     }
     echo('<a href="'.$editurl.'">'.$textval.'</a>.  ');
 ?>
-This software supports Python 2.7 and is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a> 
+This software supports Python 2.7 and is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a>
 and <a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
 The source code for this auto-grader is available on
 <a href="https://github.com/csev/tsugi" target="_blank">on GitHub</a>.
@@ -572,12 +572,12 @@ function compute_divs() {
 <?php } ?>
     }
     window.console && console.log('avail='+$avail+' favail='+$favail);
-} 
+}
 
 <?php if ( $codemirror ) { ?>
 // Setup Codemirror
 function load_cm() {
-    window.CM_EDITOR = CodeMirror.fromTextArea(document.getElementById("code"), 
+    window.CM_EDITOR = CodeMirror.fromTextArea(document.getElementById("code"),
     {
         mode: {name: "python",
         version: 2,

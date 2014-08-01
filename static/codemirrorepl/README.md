@@ -1,6 +1,6 @@
 These files are from skulpt.org - they are based on a fork of CodeMirror
 
-We keep the regular codemirror in place so we can track that as it goes 
+We keep the regular codemirror in place so we can track that as it goes
 forward.
 
 /Chuck

@@ -21,7 +21,7 @@ $filename = $foldername . '/' . fixFileName($fn);
 if ( isset($_POST["doDelete"]) ) {
     $foldername = getFolderName();
     $filename = $foldername . '/' . fixFileName($_POST['file']);
-    if ( unlink($filename) ) { 
+    if ( unlink($filename) ) {
         $_SESSION['success'] = 'File deleted';
         header( 'Location: '.addSession('index.php') ) ;
     } else {
@@ -35,7 +35,7 @@ if ( isset($_POST["doDelete"]) ) {
 $OUTPUT->header();
 $OUTPUT->flashMessages();
 
-echo '<h4 style="color:red">Are you sure you want to delete: ' .$fn. "</h4>\n"; 
+echo '<h4 style="color:red">Are you sure you want to delete: ' .$fn. "</h4>\n";
 ?>
 <form name=myform enctype="multipart/form-data" method="post">
     <input type=hidden name="file" value="<?php echo $_REQUEST['file']; ?>">

@@ -1,11 +1,11 @@
 Writing Module, Class and Function Documentation
 ================================================
 
-If you dont have phpdoc installed, you can download the 
-phar version using this or similar.   Put the file right in the top 
+If you dont have phpdoc installed, you can download the
+phar version using this or similar.   Put the file right in the top
 directory of tsugi.
 
-    curl -O http://www.phpdoc.org/phpDocumentor.phar 
+    curl -O http://www.phpdoc.org/phpDocumentor.phar
 
 On ubuntu you should install:
 
@@ -20,11 +20,11 @@ Run phpdoc as follows
 
     rm -r .tmp_phpdoc .out_phpdoc
     php phpDocumentor.phar -c phpdoc.dist.xml
-    rm -r .tmp_phpdoc 
+    rm -r .tmp_phpdoc
 
 And your documentation will be in .out_phpdoc
 
-The output and parse data have dots by default sothings like grep 
+The output and parse data have dots by default sothings like grep
 dont find them by mistake.
 
 

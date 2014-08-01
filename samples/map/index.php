@@ -13,10 +13,10 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
         header( 'Location: '.addSession('index.php') ) ;
         return;
     }
-    $sql = "INSERT INTO {$p}sample_map 
-        (context_id, user_id, lat, lng, updated_at) 
-        VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 
-        ON DUPLICATE KEY 
+    $sql = "INSERT INTO {$p}sample_map
+        (context_id, user_id, lat, lng, updated_at)
+        VALUES ( :CID, :UID, :LAT, :LNG, NOW() )
+        ON DUPLICATE KEY
         UPDATE lat = :LAT, lng = :LNG, updated_at = NOW()";
     $stmt = $PDOX->prepare($sql);
     $stmt->execute(array(
@@ -30,7 +30,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
 }
 
 // Retrieve our row
-$stmt = $PDOX->prepare("SELECT lat,lng FROM {$p}sample_map 
+$stmt = $PDOX->prepare("SELECT lat,lng FROM {$p}sample_map
         WHERE context_id = :CID AND user_id = :UID");
 $stmt->execute(array(":CID" => $CONTEXT->id, ":UID" => $USER->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -43,7 +43,7 @@ if ( $row !== false ) {
 }
 
 //Retrieve the other rows
-$stmt = $PDOX->prepare("SELECT lat,lng,displayname FROM {$p}sample_map 
+$stmt = $PDOX->prepare("SELECT lat,lng,displayname FROM {$p}sample_map
         JOIN {$p}lti_user
         ON {$p}sample_map.user_id = {$p}lti_user.user_id
         WHERE context_id = :CID AND {$p}sample_map.user_id <> :UID");
@@ -72,11 +72,11 @@ function initialize_map() {
      mapTypeId: google.maps.MapTypeId.ROADMAP
   }
 
-  map = new google.maps.Map(document.getElementById("map_canvas"), myOptions); 
+  map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 
   var marker = new google.maps.Marker({
     draggable: true,
-    position: myLatlng, 
+    position: myLatlng,
     map: map,
     title: "Your location"
   });
@@ -108,9 +108,9 @@ function initialize_map() {
   }
 }
 
-// Load the other points 
-other_points = 
-<?php echo( json_encode($points));?> 
+// Load the other points
+other_points =
+<?php echo( json_encode($points));?>
 ;
 </script>
 <?php
@@ -119,7 +119,7 @@ $OUTPUT->flashMessages();
 ?>
 <div id="map_canvas" style="margin: 10px; width:500px; max-width: 100%; height:500px"></div>
 <form method="post">
- Latitude: <input size="30" type="text" id="latbox" name="lat" 
+ Latitude: <input size="30" type="text" id="latbox" name="lat"
   <?php echo(' value="'.htmlent_utf8($lat).'" '); ?> >
  Longitude: <input size="30" type="text" id="lngbox" name="lng"
   <?php echo(' value="'.htmlent_utf8($lng).'" '); ?> >

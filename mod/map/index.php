@@ -9,8 +9,8 @@ $LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context
 $p = $CFG->dbprefix;
 //Retrieve the other rows
 $stmt = $PDOX->prepare("SELECT lat,lng,{$p}context_map.email AS allow_email, name AS allow_name,
-            {$p}context_map.first AS allow_first, displayname, {$p}lti_user.email AS email 
-        FROM {$p}context_map 
+            {$p}context_map.first AS allow_first, displayname, {$p}lti_user.email AS email
+        FROM {$p}context_map
         JOIN {$p}lti_user
         ON {$p}context_map.user_id = {$p}lti_user.user_id
         WHERE context_id = :CID AND {$p}context_map.user_id <> :UID");
@@ -37,7 +37,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     if ( strlen($email) > 0 ) {
         if ( strlen($display) > 0 ) {
             $display .= ' ('.$email.')';
-        } else { 
+        } else {
             $display = $email;
         }
     }
@@ -46,7 +46,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
 }
 ;
 // Retrieve our row
-$stmt = $PDOX->prepare("SELECT lat,lng,name,first,email FROM {$p}context_map 
+$stmt = $PDOX->prepare("SELECT lat,lng,name,first,email FROM {$p}context_map
         WHERE context_id = :CID AND user_id = :UID");
 $stmt->execute(array(":CID" => $CONTEXT->id, ":UID" => $USER->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -79,24 +79,24 @@ function initialize_map() {
      mapTypeId: google.maps.MapTypeId.ROADMAP
   }
 
-  map = new google.maps.Map(document.getElementById("map_canvas"), myOptions); 
+  map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 
   var marker = new google.maps.Marker({
     draggable: true,
-    position: myLatlng, 
+    position: myLatlng,
     map: map,
     title: "Drag the icon to change your location.  <?php if ($display) echo('Double click to set preferences.'); ?>"
   });
 
   google.maps.event.addListener(marker, 'dragend', function (event) {
     window.console && console.log(this.getPosition());
-    $.post( '<?php echo(addSession('update.php')); ?>', 
+    $.post( '<?php echo(addSession('update.php')); ?>',
       { 'lat': this.getPosition().lat(), 'lng' : this.getPosition().lng() },
       function( data ) {
           window.console && console.log(data);
       }
-    ).error( function() { 
-      window.console && console.log('error'); 
+    ).error( function() {
+      window.console && console.log('error');
     });
   });
 
@@ -119,13 +119,13 @@ function initialize_map() {
       position: newLatlng,
       map: map,
       icon: iconpath + icon,
-      title : row[2] 
+      title : row[2]
      });
   }
 }
-// Load the other points 
-other_points = 
-<?php echo( json_encode($points));?> 
+// Load the other points
+other_points =
+<?php echo( json_encode($points));?>
 ;
 </script>
 <?php
@@ -140,7 +140,7 @@ if ( $display ) {
         <h4 class="modal-title"><?php echo(htmlent_utf8($display)); ?></h4>
       </div>
       <div class="modal-body">
-        <p>Map Preferences 
+        <p>Map Preferences
         <img id="spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
         <span id="save_fail" style="display:none; color:red">Unable to save preferences</span>
         </p>
@@ -148,26 +148,26 @@ if ( $display ) {
             <?php if ( $firstname === false ) { ?>
                 <input type="checkbox" name="allow_first" style="display:hidden">
             <?php } else { ?>
-                <input type="checkbox" name="allow_first" <?php 
+                <input type="checkbox" name="allow_first" <?php
                 if ( $row['first'] == 1 ) echo("checked"); ?>
             >
             Share your first name (<?php echo(htmlent_utf8($firstname)); ?>) on the map<br/>
             <?php } ?>
-            <input type="checkbox" name="allow_name" <?php 
+            <input type="checkbox" name="allow_name" <?php
                 if ( ! isset($USER->displayname) ) echo(' style="display:hidden"');
                 else if ( $row['name'] == 1 ) echo("checked"); ?>
             >
             Share your full name on the map<br/>
-            <input type="checkbox" name="allow_email" <?php 
+            <input type="checkbox" name="allow_email" <?php
                 if ( ! isset($USER->email) ) echo(' style="display:hidden"');
                 else if ( $row['email'] == 1 ) echo("checked"); ?>
             >
             Share your email on the map<br/>
             </p><p>To set your location drag the large red pin to your location.  The
-            new location is updated as soon as you move the pin.  Your location will 
-            always appear to you as a large, red pin.   When others see you, they will 
+            new location is updated as soon as you move the pin.  Your location will
+            always appear to you as a large, red pin.   When others see you, they will
             see a green pin.</p>
-        </form>    
+        </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -189,8 +189,8 @@ if ( $display ) {
   Move the large red pointer on the map until it is at the correct location.
   If you are concerned about privacy, simply put the
   location somewhere <i>near</i> where you live.  Perhaps in the same country, state, or city
-  instead of your exact location.  If you do not want to share your location, simply do 
-  not move the red pointer.  All of the other students are shown as green pins.  When you 
+  instead of your exact location.  If you do not want to share your location, simply do
+  not move the red pointer.  All of the other students are shown as green pins.  When you
   are looking at the map, you will always be the large, red pin.  When others see you, they will
   see a green pin.  The green pins with dots are the ones who have shared some of their information.
   Hover over these pins with dots to see the other student's information.
@@ -201,7 +201,7 @@ To configure your privacy options double-click on the large red pointer that rep
 location.
 <?php } ?>
         </p>
-        
+
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">Go to map</button>
@@ -215,8 +215,8 @@ location.
 $OUTPUT->footerStart();
 ?>
 <script type="text/javascript">
-$(document).ready(function() { 
-    initialize_map(); 
+$(document).ready(function() {
+    initialize_map();
 
     $('#prefs_save').click(function(event) {
         $('#spinner').show();
@@ -225,15 +225,15 @@ $(document).ready(function() {
         var allow_first = form.find('input[name="allow_first"]').is(':checked') ? 1 : 0 ;
         var allow_email = form.find('input[name="allow_email"]').is(':checked') ? 1 : 0 ;
         window.console && console.log('Sending POST');
-        $.post( '<?php echo(addSession('update.php')); ?>', 
+        $.post( '<?php echo(addSession('update.php')); ?>',
            { 'allow_name': allow_name, 'allow_first': allow_first, 'allow_email': allow_email },
           function( data ) {
               window.console && console.log(data);
               $('#spinner').hide();
               $('#prefs').modal('hide');
           }
-        ).error( function() { 
-            window.console && console.log('POST returned error'); 
+        ).error( function() {
+            window.console && console.log('POST returned error');
             $('#spinner').hide();
             $('#save_fail').show();
         });

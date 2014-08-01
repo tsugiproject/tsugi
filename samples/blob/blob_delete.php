@@ -13,7 +13,7 @@ if ( strlen($id) < 1 ) {
 }
 
 $p = $CFG->dbprefix;
-$stmt = $PDOX->prepare("SELECT file_name FROM {$p}sample_blob 
+$stmt = $PDOX->prepare("SELECT file_name FROM {$p}sample_blob
             WHERE file_id = :ID AND context_id = :CID");
 $stmt->execute(array(":ID" => $id, ":CID" => $CONTEXT->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -36,7 +36,7 @@ if ( isset($_POST["doDelete"]) ) {
 $OUTPUT->header();
 $OUTPUT->flashMessages();
 
-echo '<h4 style="color:red">Are you sure you want to delete: ' .htmlent_utf8($fn). "</h4>\n"; 
+echo '<h4 style="color:red">Are you sure you want to delete: ' .htmlent_utf8($fn). "</h4>\n";
 ?>
 <form name=myform enctype="multipart/form-data" method="post">
 <input type=hidden name="id" value="<?php echo $_REQUEST['id']; ?>">

@@ -52,8 +52,8 @@ if ( ! isset($CFG->staticroot) ) die_with_error_log('$CFG->staticroot not define
 if ( ! isset($CFG->timezone) ) die_with_error_log('$CFG->timezone not defined in config.php');
 if ( strpos($CFG->dbprefix, ' ') !== false ) die_with_error_log('$CFG->dbprefix cannot have spaces in it');
 
-if ( !isset($CFG->ownername) ) $CFG->ownername = false; 
-if ( !isset($CFG->owneremail) ) $CFG->owneremail = false; 
+if ( !isset($CFG->ownername) ) $CFG->ownername = false;
+if ( !isset($CFG->owneremail) ) $CFG->owneremail = false;
 if ( !isset($CFG->providekeys) ) $CFG->providekeys = false;
 
 // Set this to the temporary folder if not set - dev only
@@ -194,7 +194,7 @@ global $PAGE;
 global $OUTPUT;
 
 /**
- * Holds the user table record for the current user. 
+ * Holds the user table record for the current user.
  *
  * Items found in the user object:
  *  - $USER->id - The integer primary key for this user in the 'lti_user' table.

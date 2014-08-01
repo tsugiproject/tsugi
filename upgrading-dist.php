@@ -10,7 +10,7 @@ require_once("config.php");
 <center>
 <h1>Sorry, we are working on the <?php echo($CFG->servicename); ?> and will be back in a bit...</h1>
 <p>
-In progress: 
+In progress:
 --- Replace with a message
 <p>
 Work started:

@@ -10,8 +10,8 @@ array( "{$CFG->dbprefix}mail_bulk",
 "create table {$CFG->dbprefix}mail_bulk (
     bulk_id             INTEGER NOT NULL AUTO_INCREMENT,
 
-    user_id             INTEGER NOT NULL, 
-    context_id          INTEGER NOT NULL, 
+    user_id             INTEGER NOT NULL,
+    context_id          INTEGER NOT NULL,
 
     subject             VARCHAR(256) NULL,
     body                TEXT NULL,

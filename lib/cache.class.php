@@ -9,23 +9,23 @@ namespace Tsugi\Core;
  * of user data later in the same request or in a later
  * request.  Everything is saved in $_SESSION.
  *
- * Since the cache is in $_SESSION, it is already per user, 
+ * Since the cache is in $_SESSION, it is already per user,
  * per link_id.  And within that we have "cache locations".
- * Each location, can have one key and one value.  We have 
- * this limitation because we don't want our simple session 
+ * Each location, can have one key and one value.  We have
+ * this limitation because we don't want our simple session
  * based cache to grow forever.  Each location stores only
  * one entry.
- * 
+ *
  * For example in the loadUserInfoByPass() routine, we are
  * looking at users other than our own (usually as instructor).
- * To make sure we only make the SQL query once, we make 
+ * To make sure we only make the SQL query once, we make
  * the following call:
  *
  *     Cache::set('lti_user', $user_id, $row);
  *
  * This will overwrite any other user_id value in the 'lti_user'
  * slot.  In effect there is one 'lti_user' slot and we store a
- * a key (which might change) from call to call and a value (the 
+ * a key (which might change) from call to call and a value (the
  * row of retrieved data).
  *
  * This strictly bounds overall cache data in the session to the
@@ -35,7 +35,7 @@ namespace Tsugi\Core;
 
 class Cache {
 
-    /** 
+    /**
      * Place an entry in the cache.
      *
      * We don't cache null or false if that was our value.
@@ -54,7 +54,7 @@ class Cache {
      * Check and return a value from the cache.
      *
      * Returns false if there is no entry.
-     */    
+     */
     public static function check($cacheloc, $cachekey)
     {
         $cacheloc = "cache_" . $cacheloc;

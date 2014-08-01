@@ -35,18 +35,18 @@ if ( $CFG->DEVELOPER ) {
 <p>
 Hello and welcome to <b><?php echo($CFG->servicename); ?></b>.
 Generally this system is used to provide cloud-hosted learning tools that are plugged
-into a Learning Management systems like Sakai, Coursera, or Blackboard using 
+into a Learning Management systems like Sakai, Coursera, or Blackboard using
 IMS Learning Tools Interoperability™ (LTI)™.
-You can sign in to this system 
-and create a profile and as you use tools from various courses you can 
+You can sign in to this system
+and create a profile and as you use tools from various courses you can
 associate those tools and courses with your profile.
 </p>
 <p>
-Other than logging in and setting up your profile, there is nothing much you can 
+Other than logging in and setting up your profile, there is nothing much you can
 do at this screen.  Things happen when your instructor starts using the tools
 hosted on this server in their LMS systems.  If you are an instructor and would
 like to experiment with these tools (it is early days) send a note to Dr. Chuck.
-You can look at the source code for this software at 
+You can look at the source code for this software at
 <a href="https://github.com/csev/tsugi" target="_blank">https://github.com/csev/tsugi</a>.
 </p>
 <p>
@@ -56,4 +56,4 @@ in the United States and/or other countries. (www.imsglobal.org)
 </p>
       </div> <!-- /container -->
 
-<?php $OUTPUT->footer(); 
+<?php $OUTPUT->footer();

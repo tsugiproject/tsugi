@@ -9,7 +9,7 @@ session_start();
 // Get the user's grade data also checks session
 $row = gradeLoad($_REQUEST['user_id']);
 
-// View 
+// View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();

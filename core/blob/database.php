@@ -2,11 +2,11 @@
 
 // If the table does not exist, these create statements will be used
 // And the version will be set to 1
-$DATABASE_INSTALL = array( 
-array( "{$CFG->dbprefix}blob_file", 
+$DATABASE_INSTALL = array(
+array( "{$CFG->dbprefix}blob_file",
 "create table {$CFG->dbprefix}blob_file (
     file_id      INTEGER NOT NULL KEY AUTO_INCREMENT,
-    file_sha256  CHAR(64) NOT NULL, 
+    file_sha256  CHAR(64) NOT NULL,
 
     context_id   INTEGER NULL,
     file_name    VARCHAR(2048),

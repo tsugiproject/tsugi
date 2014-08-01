@@ -270,7 +270,7 @@ class OAuthRequest {
       $qparms = OAuthUtil::parse_parameters($parts['query']);
       $parameters = array_merge($qparms, $parameters);
     }
-     
+
 
     return new OAuthRequest($http_method, $http_url, $parameters);
   }

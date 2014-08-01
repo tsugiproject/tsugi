@@ -19,10 +19,10 @@ The basic functionality of the tool is
 used, testing of multiple accounts can be done frommultiple tabs of a single
 browser.
 
-* When the user enters a chat and pressed the Chat button it is inserted 
+* When the user enters a chat and pressed the Chat button it is inserted
 into the table at the end with the current time using the MySql NOW() function.
 
-* When the instructor presses the Reset button all the chats for the 
+* When the instructor presses the Reset button all the chats for the
 link\_id are deleted from the table ($LTI['link\_id'])
 
 * New chats are retrieved in the background from `chatlist.php` using AJAX
@@ -43,18 +43,18 @@ the chat messages for each `link\_id` the schema for this table is as follows:
         created_at  DATETIME NOT NULL
     ...
 
-* `index.php` - This is a very minimal file just enough to 
+* `index.php` - This is a very minimal file just enough to
 launch `chatlist.php` and set up the PHPSESSIONID
 
-* `chatlist.php` - This retrieves the current chats for the 
+* `chatlist.php` - This retrieves the current chats for the
 current link\_id and provides them in a JSON format.
 
-* `spinner.gif` - A spinner to be shown and hidden while the chats are being 
+* `spinner.gif` - A spinner to be shown and hidden while the chats are being
 retrieved.
 
 What Is Needed
 --------------
 
-What is needed for this application is to extend the `index.php` 
+What is needed for this application is to extend the `index.php`
 file to orchestrate the application.
 

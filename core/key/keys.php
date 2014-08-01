@@ -7,7 +7,7 @@ require_once($CFG->dirroot."/lib/lms_lib.php");
 
 use \Tsugi\Core\Table;
 
-if ( $CFG->providekeys === false || $CFG->owneremail === false ) { 
+if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
     $_SESSION['error'] = _("This service does not accept instructor requests for keys");
     header('Location: '.$CFG->wwwroot);
     return;
@@ -55,9 +55,9 @@ $OUTPUT->flashMessages();
 <p>
 You have no IMS LTI 1.1 Keys for this system.
 </p>
-<?php } else { 
+<?php } else {
     Table::pagedTable($newrows, $searchfields, false, "key-detail.php");
-} 
+}
 if ( isAdmin() ) { ?>
 <p>
 <a href="key-add.php" class="btn btn-default">Add Key</a>

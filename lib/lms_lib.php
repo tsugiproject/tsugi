@@ -3,7 +3,7 @@
 require_once("cache.class.php");
 require_once("debug.class.php");
 require_once('net.class.php');
-require_once("crypt/aes.class.php"); 
+require_once("crypt/aes.class.php");
 require_once("crypt/aesctr.class.php");
 
 require_once("oauth.class.php");
@@ -24,7 +24,7 @@ function getNameAndEmail() {
     if ( isset($USER->displayname) && strlen($USER->displayname) > 0 ) {
         $display = $USER->displayname;
     }
-    if ( isset($USER->email) && strlen($USER->email) > 0 ) { 
+    if ( isset($USER->email) && strlen($USER->email) > 0 ) {
         if ( strlen($display) > 0 ) {
             $display .= ' ('.$USER->email.')';
         } else {
@@ -213,8 +213,8 @@ function jsonIndent($json) {
         // Are we inside a quoted string?
         if ($char == '"' && $prevChar != '\\') {
             $outOfQuotes = !$outOfQuotes;
-        
-        // If this character is the end of an element, 
+
+        // If this character is the end of an element,
         // output a new line and indent the next line.
         } else if(($char == '}' || $char == ']') && $outOfQuotes) {
             $result .= $newLine;
@@ -223,23 +223,23 @@ function jsonIndent($json) {
                 $result .= $indentStr;
             }
         }
-        
+
         // Add the character to the result string.
         $result .= $char;
 
-        // If the last character was the beginning of an element, 
+        // If the last character was the beginning of an element,
         // output a new line and indent the next line.
         if (($char == ',' || $char == '{' || $char == '[') && $outOfQuotes) {
             $result .= $newLine;
             if ($char == '{' || $char == '[') {
                 $pos ++;
             }
-            
+
             for ($j = 0; $j < $pos; $j++) {
                 $result .= $indentStr;
             }
         }
-        
+
         $prevChar = $char;
     }
     return $result;
@@ -273,8 +273,8 @@ function lmsDie($message=false) {
 
 // http://stackoverflow.com/questions/2840755/how-to-determine-the-max-file-upload-limit-in-php
 // http://www.kavoir.com/2010/02/php-get-the-file-uploading-limit-max-file-size-allowed-to-upload.html
-/* See also the .htaccess file.   Many MySQL servers are configured to have a max size of a 
-   blob as 1MB.  if you change the .htaccess you need to change the mysql configuration as well. 
+/* See also the .htaccess file.   Many MySQL servers are configured to have a max size of a
+   blob as 1MB.  if you change the .htaccess you need to change the mysql configuration as well.
    this may not be possible on a low-cst provider.  */
 
 function maxUpload() {
@@ -341,7 +341,7 @@ function findFiles($filename="index.php", $reldir=false) {
 function lookupResult($LTI, $user_id) {
     global $CFG, $PDOX;
     $stmt = $PDOX->queryDie(
-        "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id, 
+        "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id,
             sourcedid, service_id, grade, note, R.json AS json
         FROM {$CFG->dbprefix}lti_result AS R
         JOIN {$CFG->dbprefix}lti_link AS L
@@ -353,7 +353,7 @@ function lookupResult($LTI, $user_id) {
         JOIN {$CFG->dbprefix}lti_key AS K
             ON C.key_id = K.key_id AND U.key_id = K.key_id AND K.key_id = :KID
         WHERE R.user_id = :UID AND K.key_id = :KID and U.user_id = :UID AND L.link_id = :LID",
-        array(":KID" => $LTI['key_id'], ":LID" => $LTI['link_id'], 
+        array(":KID" => $LTI['key_id'], ":LID" => $LTI['link_id'],
             ":CID" => $LTI['context_id'], ":UID" => $user_id)
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -431,7 +431,7 @@ function loadUserInfo($link_id)
     $row = Cache::check($cacheloc, $link_id);
     if ( $row != false ) return $row;
     $stmt = $PDOX->queryDie(
-        "SELECT title FROM {$CFG->dbprefix}lti_link 
+        "SELECT title FROM {$CFG->dbprefix}lti_link
             WHERE link_id = :LID AND context_id = :CID",
         array(":LID" => $link_id, ":CID" => $LTI['context_id'])
     );
@@ -538,7 +538,7 @@ function loginSecureCookie() {
             FROM {$CFG->dbprefix}profile AS P
             LEFT JOIN {$CFG->dbprefix}lti_user AS U
             ON P.profile_id = U.profile_id AND user_sha256 = profile_sha256 AND
-                P.key_id = U.key_id 
+                P.key_id = U.key_id
             WHERE profile_sha256 = :SHA AND U.user_id = :UID LIMIT 1",
         array('SHA' => $userSHA, ":UID" => $user_id)
     );

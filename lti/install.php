@@ -34,7 +34,7 @@ $OUTPUT->bodyStart();
 echo('<img src="'.$OUTPUT->getSpinnerUrl().'" id="spinner">');
 ?>
 <div id="popup" style="display:none">
-<p>Please click 
+<p>Please click
 <a href="<?php echo($popup); ?>" target=_blank">here</a>
 to continue the registration process in a new window.
 </p>

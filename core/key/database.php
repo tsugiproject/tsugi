@@ -1,7 +1,7 @@
 <?php
 
 if ( ! isset($CFG) ) {
-    die("This file is not supposed to be accessed directly.  It is activated using 
+    die("This file is not supposed to be accessed directly.  It is activated using
         the 'Admin' feature from the main page of the application.");
 }
 

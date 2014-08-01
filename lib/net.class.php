@@ -5,7 +5,7 @@ namespace Tsugi\Util;
 /**
  * This general purpose library for HTTP communications.
  *
- * This class attempts to solve the problem that lots of 
+ * This class attempts to solve the problem that lots of
  * PHP environments have different approaches to doing
  * GET and POST requests.  Some use CURL and others use
  * context streams.   This code tries one way or another
@@ -14,12 +14,12 @@ namespace Tsugi\Util;
  * is available.
  *
  * The best way for things work is for CURL to be avaialable.
- * If CURL is available, it is used for everything and 
+ * If CURL is available, it is used for everything and
  * forks well.
  *
  * @todo We need to make this non-static and configure it
  * so it prefers or exclusively uses a particular transport.
- * 
+ *
  */
 class Net {
     public static function doGet($url, $header = false) {
@@ -101,7 +101,7 @@ class Net {
         global $LastBODYImpl;
         global $LastHeadersSent;
 
-        $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" . 
+        $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" .
     	     $LastBODYURL . "\n\n" .
     		 $LastHeadersSent . "\n";
     	return $ret;
@@ -114,7 +114,7 @@ class Net {
         global $LastHeadersReceived;
         global $last_http_response;
 
-        $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" . 
+        $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" .
     		 "HTTP Response Code: " . $last_http_response . "\n" .
     	     $LastBODYURL . "\n" .
     		 $LastHeadersReceived . "\n";
@@ -126,7 +126,7 @@ class Net {
         global $LastGETURL;
         global $LastHeadersSent;
 
-        $ret = "GET Used: " . $LastGETMethod . "\n" . 
+        $ret = "GET Used: " . $LastGETMethod . "\n" .
     	     $LastGETURL . "\n\n" .
     		 $LastHeadersSent . "\n";
     	return $ret;
@@ -145,9 +145,9 @@ class Net {
     	return $ret;
     }
 
-    // Sadly this tries several approaches depending on 
+    // Sadly this tries several approaches depending on
     // the PHP version and configuration.  You can use only one
-    // if you know what version of PHP is working and how it will be 
+    // if you know what version of PHP is working and how it will be
     // configured...
     public static function doBody($url, $method, $body, $header) {
         global $LastBODYURL;
@@ -277,7 +277,7 @@ class Net {
 
       if ( $method == "POST" ) {
         curl_setopt($ch, CURLOPT_POST, 1);
-      } else { 
+      } else {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
       }
 

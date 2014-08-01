@@ -14,9 +14,9 @@ use \Tsugi\Util\Net;
 /**
  * This is a general purpose LTI class with no Tsugi-specific dependencies.
  *
- * This class handles the protocol and OAuth validation and does not 
+ * This class handles the protocol and OAuth validation and does not
  * deal with how to use LTI data during the runtime of the tool.
- * 
+ *
  */
 class LTI {
 
@@ -446,7 +446,7 @@ class LTI {
     		if ( $oops || $string1[$i] == $string2[$i] ) {
     			$out1 = $out1 . $string1[$i];
     			$out2 = $out2 . $string2[$i];
-    		} else { 
+    		} else {
     			$out1 = $out1 . ' ->' . $string1[$i] .'<- ';
     			$out2 = $out2 . ' ->' . $string2[$i] .'<- ';
     			$oops = true;

@@ -10,14 +10,14 @@ $DEBUG_STRING='';
  * This is a place holder.  Other than dumpPost() it needs a bit of work.
  *
  * The goal here is to greate a debug mode where the code
- * streams out a debug log to a string during a request and 
- * if we are in developer mode and debugging, the log is 
- * shown in the UI in a div that can be toggled like in 
+ * streams out a debug log to a string during a request and
+ * if we are in developer mode and debugging, the log is
+ * shown in the UI in a div that can be toggled like in
  * Wicket or OLAT.
  *
  * But this needs a bit of work to appear in the UI and
  * so for now, please don't use it until it is cleaned up.
- * Also it should stop using global values and stop being 
+ * Also it should stop using global values and stop being
  * static. But other than that, this is sweet code :).
  */
 class Debug {

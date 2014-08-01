@@ -1,4 +1,4 @@
-<?php 
+<?php
 define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once "../pdo.php";
@@ -8,7 +8,7 @@ require_once 'tp_messages.php';
 use \Tsugi\Util\LTI;
 
 session_start();
-header('Content-Type: text/html; charset=utf-8'); 
+header('Content-Type: text/html; charset=utf-8');
 
 if ( ! isset($_SESSION['lti2post']) ) {
     die_with_error_log("Missing LTI 2.0 post data");
@@ -27,8 +27,8 @@ if ( ! isset($_SESSION['id']) ) {
 
 // See if this person is allowed to register a tool
 $row = $PDOX->rowDie(
-    "SELECT request_id, user_id, admin, state, lti 
-        FROM {$CFG->dbprefix}key_request 
+    "SELECT request_id, user_id, admin, state, lti
+        FROM {$CFG->dbprefix}key_request
         WHERE user_id = :UID LIMIT 1",
     array(":UID" => $_SESSION['id'])
 );
@@ -67,7 +67,7 @@ $lti_message_type = $_POST["lti_message_type"];
 <head>
   <title>LTI 2.0 Tool Registration</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<script language="javascript"> 
+<script language="javascript">
 function dataToggle(divName) {
     var ele = document.getElementById(divName);
     if(ele.style.display == "block") {
@@ -76,8 +76,8 @@ function dataToggle(divName) {
     else {
         ele.style.display = "block";
     }
-} 
-  //]]> 
+}
+  //]]>
 </script>
 </head>
 <body style="font-family:sans-serif; background-color:#add8e6">

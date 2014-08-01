@@ -56,7 +56,7 @@ if ( isset($_POST['id']) ) {
 
 ?>
 <h2>Unsubscribing from E-Mail <?php echo($CFG->maildomain); ?></h2>
-<p>If you want to unsubscribe from e-mail from 
+<p>If you want to unsubscribe from e-mail from
 <a href="<?php echo($CFG->wwwroot); ?>"><?php echo($CFG->servicename); ?></a> press
 "Unsubscribe" below.
 </p>
