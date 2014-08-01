@@ -11,7 +11,7 @@ require_once("lti.class.php");
 require_once("ltix.class.php");
 require_once("crudform.class.php");
 require_once("table.class.php");
-require_once("defaultrenderer.class.php");
+require_once("output.class.php");
 
 require_once("lti_util.php");
 require_once("lti_db.php");
@@ -598,7 +598,7 @@ function mailSend($to, $subject, $message, $id, $token) {
     return mail($to,$subject,$msg,$headers);
 }
 
-$OUTPUT = new \Tsugi\DefaultRenderer();
+$OUTPUT = new \Tsugi\Output();
 
 function curPageURL() {
     $pageURL = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on")

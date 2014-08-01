@@ -2,7 +2,7 @@
 
 namespace Tsugi;
 
-class DefaultRenderer {
+class Output {
 
     function flashMessages() {
         if ( isset($_SESSION['error']) ) {
