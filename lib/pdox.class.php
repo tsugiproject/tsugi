@@ -58,12 +58,12 @@ class PDOX extends \PDO {
      *     $stmt->ellapsed_time
      *     $stmt->errorImplode
      *
-     * $stmt->success is TRUE/FALSE based on the success of the operation
+     * <var>$stmt->success</var> is TRUE/FALSE based on the success of the operation
      * to simplify error checking
      *
-     * $stmt->ellapsed_time includes the length of time the query took
+     * <var>$stmt->ellapsed_time</var> includes the length of time the query took
      *
-     * $stmt->errorImplode an imploded version of errorInfo suitable for
+     * <var>$stmt->errorImplode</var> an imploded version of errorInfo suitable for
      * dropping into a log.
      *
      * @param $sql The SQL to execute in a string.

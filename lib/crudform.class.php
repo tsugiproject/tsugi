@@ -19,8 +19,8 @@ namespace Tsugi\Core;
  * form and the file core/key/key-detail.php is a good exmaple of the
  * update case - which is significantly more complex.
  *
- * @todo This code needs to be able to translate and override the labels
- *       on the form.
+ * @TODO This code needs to be able to translate and override the labels
+ * on the form.
  */
 
 class CrudForm {
