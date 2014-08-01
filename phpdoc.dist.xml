@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--  How to run this
-    rm -r phpdoc_tmp phpdoc
+    rm -r .tmp_phpdoc .out_phpdoc
     php phpDocumentor.phar -c phpdoc.dist.xml
-    rm -r phpdoc_tmp 
+    rm -r .tmp_phpdoc 
 -->
 <phpdoc>
   <parser>
     <target>tmp_phpdoc</target>
   </parser>
   <transformer>
-    <target>phpdoc</target>
+    <target>.out_phpdoc</target>
   </transformer>
   <files>
     <directory>lib</directory>

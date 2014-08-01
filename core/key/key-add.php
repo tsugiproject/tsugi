@@ -22,7 +22,7 @@ if ( isAdmin() ) {
     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
 }
 
-$retval = CrudForm::insertHandle($tablename, $fields);
+$retval = CrudForm::handleInsert($tablename, $fields);
 if ( $retval == CrudForm::INSERT_SUCCESS || $retval == CrudForm::INSERT_FAIL ) {
     header("Location: $from_location");
     return;

@@ -6,6 +6,20 @@ namespace Tsugi;
 global $DEBUG_STRING;
 $DEBUG_STRING='';
 
+/**
+ * This is a place holder.  Other than dumpPost() it needs a bit of work.
+ *
+ * The goal here is to greate a debug mode where the code
+ * streams out a debug log to a string during a request and 
+ * if we are in developer mode and debugging, the log is 
+ * shown in the UI in a div that can be toggled like in 
+ * Wicket or OLAT.
+ *
+ * But this needs a bit of work to appear in the UI and
+ * so for now, please don't use it until it is cleaned up.
+ * Also it should stop using global values and stop being 
+ * static. But other than that, this is sweet code :).
+ */
 class Debug {
      public static function clear() {
          global $DEBUG_STRING;
@@ -70,15 +84,18 @@ class Debug {
          return $retval;
      }
 
-     public static function dumpPost() {
-             print "<pre>\n";
-             print "Raw POST Parameters:\n\n";
-             ksort($_POST);
-             foreach($_POST as $key => $value ) {
-                 if (get_magic_quotes_gpc()) $value = stripslashes($value);
-                 print "$key=$value (".mb_detect_encoding($value).")\n";
-             }
-             print "</pre>";
-     }
+    /**
+     * Dump out the contents of the $_POST properly escaped in pre tags.
+     */
+    public static function dumpPost() {
+        print "<pre>\n";
+        print "Raw POST Parameters:\n\n";
+        ksort($_POST);
+        foreach($_POST as $key => $value ) {
+            if (get_magic_quotes_gpc()) $value = stripslashes($value);
+            print "$key=$value (".mb_detect_encoding($value).")\n";
+        }
+        print "</pre>";
+    }
 
 }

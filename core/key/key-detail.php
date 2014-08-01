@@ -16,7 +16,6 @@ if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
 
 $tablename = "{$CFG->dbprefix}lti_key";
 $current = getCurrentFileUrl(__FILE__);
-$title = "Key Entry";
 $from_location = "keys.php";
 $allow_delete = true;
 $allow_edit = true;
@@ -31,8 +30,8 @@ if ( isAdmin() ) {
 }
 
 // Handle the post data
-$row =  CrudForm::updateHandle($tablename, $fields, $query_fields,
-    $where_clause, $allow_edit, $allow_delete);
+$row =  CrudForm::handleUpdate($tablename, $fields, $where_clause, 
+    $query_fields, $allow_edit, $allow_delete);
 
 if ( $row === CrudForm::UPDATE_FAIL || $row === CrudForm::UPDATE_SUCCESS ) {
     header("Location: ".$from_location);
@@ -44,6 +43,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
+$title = "Key Entry";
 echo("<h1>$title</h1>\n<p>\n");
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
 if ( is_string($retval) ) die($retval);

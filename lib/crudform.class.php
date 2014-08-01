@@ -1,101 +1,172 @@
 <?php
 
 namespace Tsugi;
+/**
+ * This is a class that supports the creation of simple CRUD forms.
+ *
+ * This code generates HTML pages and makes SQL queries to automate
+ * the creation of simple CRUD forms by passing in values, table names, 
+ * and strings.  Here is a code example from core/keys/key-add.php:
+ *
+ *     $from_location = "keys.php";
+ *     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
+ *     CrudForm::insertForm($fields, $from_location);
+ *
+ * This will output the HTML for a form that the user can fill in and submit.
+ * The $from_location is used under the "Cancel" button.
+ *
+ * The file core/key/key-add.php is a good example of how to do an insert
+ * form and the file core/key/key-detail.php is a good exmaple of the
+ * update case - which is significantly more complex.
+ *
+ * @todo This code needs to be able to translate and override the labels
+ *       on the form.
+ */
 
-class CRUDForm {
+class CrudForm {
 
-    const UPDATE_SUCCESS = 0;
-    const UPDATE_FAIL = 1;
-    const UPDATE_NONE = 2;
-
+    /**
+     * Indicates that an handleInsert() was successful
+     */
     const INSERT_SUCCESS = 0;
+    /**
+     * Indicates that an handleInsert() failed (likely an SQL problem)
+     */
     const INSERT_FAIL = 1;
+    /**
+     * Indicates that an handleInsert() could not be done because it was missing data.
+     */
     const INSERT_NONE = 2;
 
-    public static function fieldToTitle($name) {
-        return ucwords(str_replace('_',' ',$name));
-    }
+    /**
+     * Indicates that an handleUpdate() was successful
+     */
+    const UPDATE_SUCCESS = 0;
+    /**
+     * Indicates that an handleUpdate() failed (likely an SQL problem)
+     */
+    const UPDATE_FAIL = 1;
+    /**
+     * Indicates that an handleUpdate() could not be done because it was missing data.
+     */
+    const UPDATE_NONE = 2;
 
-    public static function selectSql($tablename, $fields, $where_clause=false) {
-        $sql = "SELECT ";
-        $first = true;
-        foreach ( $fields as $field ) {
-            if ( ! $first ) $sql .= ', ';
-            $sql .= $field;
-            $first = false;
+    /**
+     *  Generate the HTML for an insert form.
+     *
+     * Here is a sample call:
+     *
+     *     $from_location = "keys.php";
+     *     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
+     *     CrudForm::insertForm($fields, $from_location);
+     *
+     * @param $fields An array of fields to prompt for.
+     * @param $from_location A URL to jump to when the user presses 'Cancel'.
+     */
+    public static function insertForm($fields, $from_location) {
+        echo('<form method="post">'."\n");
+
+        for($i=0; $i < count($fields); $i++ ) {
+            $field = $fields[$i];
+
+            // Don't allow setting of these fields
+            if ( strpos($field, "_at") > 0 ) continue;
+            if ( strpos($field, "_sha256") > 0 ) continue;
+
+            echo('<div class="form-group">'."\n");
+            echo('<label for="'.$field.'">'.self::fieldToTitle($field)."<br/>\n");
+
+            if ( strpos($field, "secret") !== false ) {
+                echo('<input id="'.$field.'" type="password" size="80" name="'.$field.'"');
+                echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
+            } else {
+                echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'">'."\n");
+            }
+            echo("</label>\n</div>");
         }
-        $sql .= "\n FROM ".$tablename;
-        if ( $where_clause && strlen($where_clause) > 0 ) $sql .= "\nWHERE ".$where_clause;
-        return $sql;
+
+        echo('<input type="submit" name="doSave" class="btn btn-normal" value="'._m("Save").'">'."\n");
+        echo('<a href="'.$from_location.'" class="btn btn-default">Cancel</a>'."\n");
+        echo('</form>'."\n");
     }
 
-    public static function updateHandle($tablename, $fields, $query_parms=array(),
-        $where_clause=false, $allow_edit=false, $allow_delete=false)
-    {
+    /**
+     * Insert data from a $_POST of one of our generated forms insert form into the database.
+     *
+     * Here is a sample call:
+     *
+     *     $tablename = "tsugi_lti_key";
+     *     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
+     *     CrudForm::handleInsert($tablename, $fields);
+     *
+     * @param $fields An array of fields to be inserted.  These items must be
+     * in the $_POST data as well.
+     * @return int Returns the constant for SUCCESS, FAIL, or NONE
+     */
+    public static function handleInsert($tablename, $fields) {
         global $PDOX;
-        $key = $fields['0'];
-
-        if ( !isset($_REQUEST[$key]) ) {
-            $_SESSION['error'] = "Required $key= parameter";
-            return self::UPDATE_FAIL;
-        }
-
-        // Inner WHERE clause
-        $key_value = $_REQUEST[$key] + 0;
-        if ( $where_clause === false || strlen($where_clause) < 1 ) {
-            $where_clause = "$key = :KID";
-        } else {
-            $where_clause = "( ".$where_clause." ) AND $key = :KID";
-        }
-        $query_parms[":KID"] = $key_value;
-
-        $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
-
-        $sql = CrudForm::selectSql($tablename, $fields, $where_clause);
-        $row = $PDOX->rowDie($sql, $query_parms);
-        if ( $row === false ) {
-            $_SESSION['error'] = "Unable to retrieve row";
-            return self::UPDATE_FAIL;
-        }
-
-        // We know we are OK because we already retrieved the row
-        if ( $allow_delete && isset($_POST['doDelete']) ) {
-            $sql = "DELETE FROM $tablename WHERE $where_clause";
-            $stmt = $PDOX->queryDie($sql, $query_parms);
-            $_SESSION['success'] = _m("Record deleted");
-            return self::UPDATE_SUCCESS;
-        }
-
-        // The update
-        if ( $allow_edit && $do_edit && isset($_POST['doUpdate']) && count($_POST) > 0 ) {
-            $set = '';
-            $parms = $query_parms;
+        if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
+            $names = '';
+            $values = '';
+            $parms = array();
             for($i=0; $i < count($fields); $i++ ) {
                 $field = $fields[$i];
-                if ( $i == 0 && strpos($field, "_id") > 0 ) continue;
-                if ( $field != 'updated_at' && strpos($field, "_at") > 0 ) continue;
 
-                if ( strlen($set) > 0 ) $set .= ', ';
-                if ( $field == 'updated_at' ) {
-                    $set .= $field."= NOW()";
+                if ( strlen($names) > 0 ) $names .= ', ';
+                if ( strlen($values) > 0 ) $values .= ', ';
+
+                $names .= $field;
+                if ( strpos($field, "_at") > 0 ) {
+                    $values .= "NOW()";
                     continue;
                 }
-                if ( !isset($_POST[$field]) ) {
-                    $_SESSION['error'] = _m("Missing POST field: ").$field;
-                    return self::UPDATE_FAIL;
+
+                $key = $field;
+                if ( strpos($field, "_sha256") !== false ) {
+                    $key = str_replace("_sha256", "_key", $field);
+                    if ( ! isset($_POST[$key]) ) {
+                        $_SESSION['success'] = "Missing POST field: ".$key;
+                        return self::INSERT_FAIL;
+                    }
+                    $value = lti_sha256($_POST[$key]);
+                } else {
+                    if ( isset($_POST[$field]) ) {
+                        $value = $_POST[$field];
+                    } else {
+                        $_SESSION['success'] = "Missing POST field: ".$field;
+                        return self::INSERT_FAIL;
+                    }
                 }
-                $set .= $field."= :".$i;
-                $parms[':'.$i] = $_POST[$field];
+                $parms[':'.$i] = $value;
+                $values .= ":".$i;
             }
-            $sql = "UPDATE $tablename SET $set WHERE $where_clause";
+            $sql = "INSERT INTO $tablename \n( $names ) VALUES ( $values )";
             $stmt = $PDOX->queryDie($sql, $parms);
-            $_SESSION['success'] = "Record Updated";
-            return self::UPDATE_SUCCESS;
+            $_SESSION['success'] = _m("Record Inserted");
+            return self::INSERT_SUCCESS;
         }
-        return $row;
+        return self::INSERT_NONE;
     }
 
-    public static function updateForm($row, $fields, $current, $from_location, $allow_edit=false, $allow_delete=false)
+    /**
+     *  Generate the HTML for an update form.
+     *
+     * Here is a sample call:
+     *
+     *     $from_location = "keys.php";
+     *     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
+     *     $current = getCurrentFileUrl(__FILE__);
+     *     $retval = CrudForm::updateForm($row, $fields, $current, $from_location, true, true);
+     *
+     * @param $row The existing data for the fields.
+     * @param $fields An array of fields to be shown.
+     * @param $current The URL of the current HTML page.
+     * @param $from_location A URL to jump to when the user presses 'Cancel'.
+     * @param $allow_edit True/false as to whether to show an Edit button
+     * @param $allow_delete True/false as to whether to show a Delete button
+     */
+    public static function updateForm($row, $fields, $current, $from_location, 
+        $allow_edit=false, $allow_delete=false)
     {
         $key = $fields['0'];
         if ( !isset($_REQUEST[$key]) ) {
@@ -171,76 +242,144 @@ class CRUDForm {
         return true;
     }
 
-    public static function insertHandle($tablename, $fields) {
+    /**
+     * Apply the results of an update form to the database
+     *
+     * Here is a sample call:
+     *
+     *     $tablename = "tsugi_lti_key";
+     *     $fields = array("key_id", "key_key", "secret", "created_at", "updated_at");
+     *     $where_clause .= "user_id = :UID";
+     *     $query_fields = array(":UID" => $_SESSION['id']);
+     *     $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause, $query_fields, true, true);
+     *
+     * This code very much depends on the $_POST data being generated from the
+     * form that this class created.   For example it decides to delete or update
+     * based on a $_POST field from the button that was pushed.  Also the
+     * primary key comes from the $_POST data, so this routine checks for 
+     * consistency and provides a WHERE clause capability to make sure folks
+     * can only update data that belongs to them.  
+     * 
+     * Also this code depends on database column naming conventions - 
+     * in particular it knows that key_id is a primary key. In the above 
+     * example, the ultimate WHERE clause will effectively be as follows:
+     *
+     *     UPDATE ... WHERE key_id = $_POST['key_id'] AND user_id = $_SESSION['id']
+     *
+     * This way, even if the user forges the key_id data to be one that does
+     * not belong to them, the AND clause will stop the UPDATE from happening.
+     * If this is an administrator that can update any record - simply set 
+     * the $where_clause to an empty string and $query_fields to an empty
+     * array.
+     *
+     * If we were editing some context-wide data as instructor, we might add
+     * the current context_id of the logged in instructor to the WHERE clause.
+     *
+     * @param $fields An array of fields to be updated.  These items must be
+     * in the $_POST data as well.  The primary key should be the first field
+     * in the list and end in "_id".
+     * @param $where_clause An optional (can be an empty string) WHERE clause limiting
+     * which primary keys can be updated.
+     * @param $query_parms If there is a where clause, this is an associative array
+     * providing the values for the substitutable items in the WHERE clause.
+     * @param $allow_edit True/false as to whether editing is allowed
+     * @param $allow_delete True/false as to whether deleting is allowed
+     * @return int Returns the constant for SUCCESS, FAIL, or NONE
+     */
+    public static function handleUpdate($tablename, $fields, $where_clause=false, 
+        $query_parms=array(), $allow_edit=false, $allow_delete=false)
+    {
         global $PDOX;
-        if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
-            $names = '';
-            $values = '';
-            $parms = array();
+        $key = $fields['0'];
+
+        if ( !isset($_REQUEST[$key]) ) {
+            $_SESSION['error'] = "Required $key= parameter";
+            return self::UPDATE_FAIL;
+        }
+
+        // Inner WHERE clause
+        $key_value = $_REQUEST[$key] + 0;
+        if ( $where_clause === false || strlen($where_clause) < 1 ) {
+            $where_clause = "$key = :KID";
+        } else {
+            $where_clause = "( ".$where_clause." ) AND $key = :KID";
+        }
+        $query_parms[":KID"] = $key_value;
+
+        $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
+
+        $sql = CrudForm::selectSql($tablename, $fields, $where_clause);
+        $row = $PDOX->rowDie($sql, $query_parms);
+        if ( $row === false ) {
+            $_SESSION['error'] = "Unable to retrieve row";
+            return self::UPDATE_FAIL;
+        }
+
+        // We know we are OK because we already retrieved the row
+        if ( $allow_delete && isset($_POST['doDelete']) ) {
+            $sql = "DELETE FROM $tablename WHERE $where_clause";
+            $stmt = $PDOX->queryDie($sql, $query_parms);
+            $_SESSION['success'] = _m("Record deleted");
+            return self::UPDATE_SUCCESS;
+        }
+
+        // The update
+        if ( $allow_edit && $do_edit && isset($_POST['doUpdate']) && count($_POST) > 0 ) {
+            $set = '';
+            $parms = $query_parms;
             for($i=0; $i < count($fields); $i++ ) {
                 $field = $fields[$i];
+                if ( $i == 0 && strpos($field, "_id") > 0 ) continue;
+                if ( $field != 'updated_at' && strpos($field, "_at") > 0 ) continue;
 
-                if ( strlen($names) > 0 ) $names .= ', ';
-                if ( strlen($values) > 0 ) $values .= ', ';
-
-                $names .= $field;
-                if ( strpos($field, "_at") > 0 ) {
-                    $values .= "NOW()";
+                if ( strlen($set) > 0 ) $set .= ', ';
+                if ( $field == 'updated_at' ) {
+                    $set .= $field."= NOW()";
                     continue;
                 }
-
-                $key = $field;
-                if ( strpos($field, "_sha256") !== false ) {
-                    $key = str_replace("_sha256", "_key", $field);
-                    if ( ! isset($_POST[$key]) ) {
-                        $_SESSION['success'] = "Missing POST field: ".$key;
-                        return self::INSERT_FAIL;
-                    }
-                    $value = lti_sha256($_POST[$key]);
-                } else {
-                    if ( isset($_POST[$field]) ) {
-                        $value = $_POST[$field];
-                    } else {
-                        $_SESSION['success'] = "Missing POST field: ".$field;
-                        return self::INSERT_FAIL;
-                    }
+                if ( !isset($_POST[$field]) ) {
+                    $_SESSION['error'] = _m("Missing POST field: ").$field;
+                    return self::UPDATE_FAIL;
                 }
-                $parms[':'.$i] = $value;
-                $values .= ":".$i;
+                $set .= $field."= :".$i;
+                $parms[':'.$i] = $_POST[$field];
             }
-            $sql = "INSERT INTO $tablename \n( $names ) VALUES ( $values )";
+            $sql = "UPDATE $tablename SET $set WHERE $where_clause";
             $stmt = $PDOX->queryDie($sql, $parms);
-            $_SESSION['success'] = _m("Record Inserted");
-            return self::INSERT_SUCCESS;
+            $_SESSION['success'] = "Record Updated";
+            return self::UPDATE_SUCCESS;
         }
-        return self::INSERT_NONE;
+        return $row;
     }
 
-    public static function insertForm($fields, $from_location) {
-        echo('<form method="post">'."\n");
-
-        for($i=0; $i < count($fields); $i++ ) {
-            $field = $fields[$i];
-
-            // Don't allow setting of these fields
-            if ( strpos($field, "_at") > 0 ) continue;
-            if ( strpos($field, "_sha256") > 0 ) continue;
-
-            echo('<div class="form-group">'."\n");
-            echo('<label for="'.$field.'">'.self::fieldToTitle($field)."<br/>\n");
-
-            if ( strpos($field, "secret") !== false ) {
-                echo('<input id="'.$field.'" type="password" size="80" name="'.$field.'"');
-                echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
-            } else {
-                echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'">'."\n");
-            }
-            echo("</label>\n</div>");
-        }
-
-        echo('<input type="submit" name="doSave" class="btn btn-normal" value="'._m("Save").'">'."\n");
-        echo('<a href="'.$from_location.'" class="btn btn-default">Cancel</a>'."\n");
-        echo('</form>'."\n");
+    /**
+     * Maps a field name to a presentable title.
+     *
+     * @todo Make this translatable and pretty
+     */
+    public static function fieldToTitle($name) {
+        return ucwords(str_replace('_',' ',$name));
     }
+
+    /**
+     * Produce the SELECT statement for a table, set of fields and where clause.
+     *
+     * @param $fields An array of field names to select.
+     * @param $where_clause This is the WHERE clause but should not include
+     * the WHERE keyword.
+     */
+    public static function selectSql($tablename, $fields, $where_clause=false) {
+        $sql = "SELECT ";
+        $first = true;
+        foreach ( $fields as $field ) {
+            if ( ! $first ) $sql .= ', ';
+            $sql .= $field;
+            $first = false;
+        }
+        $sql .= "\n FROM ".$tablename;
+        if ( $where_clause && strlen($where_clause) > 0 ) $sql .= "\nWHERE ".$where_clause;
+        return $sql;
+    }
+
 
 }

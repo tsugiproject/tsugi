@@ -31,8 +31,8 @@ if ( isAdmin() ) {
 }
 
 // Handle the post data
-$row =  CrudForm::updateHandle($tablename, $fields, $query_fields,
-    $where_clause, $allow_edit, $allow_delete);
+$row =  CrudForm::handleUpdate($tablename, $fields, $where_clause, 
+    $query_fields, $allow_edit, $allow_delete);
 
 if ( $row === CrudForm::UPDATE_FAIL || $row === CrudForm::UPDATE_SUCCESS ) {
     header("Location: ".$from_location);
