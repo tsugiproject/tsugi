@@ -11,7 +11,7 @@ $displayname = $USER->displayname;
 
 if ( isset($_POST['reset']) ) {
     $sql = "UPDATE {$p}lti_result SET grade = 0.0 WHERE result_id = :RI";
-    $stmt = $pdo->prepare($sql);
+    $stmt = $PDOX->prepare($sql);
     $stmt->execute(array(':RI' => $LTI['result_id']));
     $_SESSION['success'] = "Grade reset";
     header( 'Location: '.addSession('index.php') ) ;

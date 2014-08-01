@@ -9,7 +9,7 @@ $LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id')
 header('Content-type: application/json');
 
 $p = $CFG->dbprefix;
-$stmt = $pdo->prepare("SELECT play1, play2, user1_id, user2_id, 
+$stmt = $PDOX->prepare("SELECT play1, play2, user1_id, user2_id, 
         U1.displayname AS displayname1, U2.displayname AS displayname2 
         FROM {$p}rps
         JOIN {$p}lti_user AS U1 JOIN {$p}lti_user AS U2

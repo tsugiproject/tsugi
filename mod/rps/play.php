@@ -36,22 +36,22 @@ if ( $play < 0 || $play > 2 ) {
 }
 
 // Check to see if there is an open game
-$stmt = $pdo->prepare("SELECT rps_guid, play1, play2, displayname FROM {$p}rps 
+$stmt = $PDOX->prepare("SELECT rps_guid, play1, play2, displayname FROM {$p}rps 
     LEFT JOIN {$p}lti_user ON {$p}rps.user1_id = {$p}lti_user.user_id
     WHERE play2 IS NULL ORDER BY started_at ASC LIMIT 1");
-$stmt1 = $pdo->prepare("UPDATE {$p}rps SET user2_id = :U2ID, play2 = :PLAY
+$stmt1 = $PDOX->prepare("UPDATE {$p}rps SET user2_id = :U2ID, play2 = :PLAY
     WHERE rps_guid = :GUID");
 
 // Check to see if there is an open game we can complete
-$pdo->beginTransaction();
+$PDOX->beginTransaction();
 $stmt->execute();
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 if ( $row == FALSE ) {
-    $pdo->rollBack();
+    $PDOX->rollBack();
 } else {
     $stmt1->execute(array(":U2ID" => $USER->id, ":PLAY" => $play,
         ":GUID" => $row['rps_guid']));
-    $pdo->commit();
+    $PDOX->commit();
     $tie = $play == $row['play1'];
     $row['tie'] = $tie;
     // I am player 2 because I finshed this game
@@ -63,7 +63,7 @@ if ( $row == FALSE ) {
 
 // Start a new game...
 $guid = uniqid();
-$stmt = $pdo->prepare("INSERT INTO {$p}rps 
+$stmt = $PDOX->prepare("INSERT INTO {$p}rps 
     (rps_guid, link_id, user1_id, play1, started_at) 
     VALUES ( :GUID, :LID, :UID, :PLAY, NOW() )");
 $stmt->execute(array(":GUID" => $guid, ":LID" => $LINK->id,

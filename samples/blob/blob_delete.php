@@ -13,7 +13,7 @@ if ( strlen($id) < 1 ) {
 }
 
 $p = $CFG->dbprefix;
-$stmt = $pdo->prepare("SELECT file_name FROM {$p}sample_blob 
+$stmt = $PDOX->prepare("SELECT file_name FROM {$p}sample_blob 
             WHERE file_id = :ID AND context_id = :CID");
 $stmt->execute(array(":ID" => $id, ":CID" => $CONTEXT->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -24,7 +24,7 @@ if ( $row === false ) {
 }
 
 if ( isset($_POST["doDelete"]) ) {
-    $stmt = $pdo->prepare("DELETE FROM {$p}sample_blob
+    $stmt = $PDOX->prepare("DELETE FROM {$p}sample_blob
             WHERE file_id = :ID AND context_id = :CID");
     $stmt->execute(array(":ID" => $id, ":CID" => $CONTEXT->id));
     $_SESSION['success'] = 'File deleted';

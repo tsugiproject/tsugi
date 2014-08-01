@@ -8,7 +8,7 @@ $LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id')
 
 $p = $CFG->dbprefix;
 //Retrieve the other rows
-$stmt = $pdo->prepare("SELECT lat,lng,{$p}context_map.email AS allow_email, name AS allow_name,
+$stmt = $PDOX->prepare("SELECT lat,lng,{$p}context_map.email AS allow_email, name AS allow_name,
             {$p}context_map.first AS allow_first, displayname, {$p}lti_user.email AS email 
         FROM {$p}context_map 
         JOIN {$p}lti_user
@@ -46,7 +46,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
 }
 ;
 // Retrieve our row
-$stmt = $pdo->prepare("SELECT lat,lng,name,first,email FROM {$p}context_map 
+$stmt = $PDOX->prepare("SELECT lat,lng,name,first,email FROM {$p}context_map 
         WHERE context_id = :CID AND user_id = :UID");
 $stmt->execute(array(":CID" => $CONTEXT->id, ":UID" => $USER->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);

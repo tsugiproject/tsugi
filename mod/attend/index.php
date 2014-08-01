@@ -7,7 +7,7 @@ $LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id')
 
 // Model 
 $p = $CFG->dbprefix;
-$stmt = $pdo->prepare("SELECT code FROM {$p}attend_code WHERE link_id = :ID");
+$stmt = $PDOX->prepare("SELECT code FROM {$p}attend_code WHERE link_id = :ID");
 $stmt->execute(array(":ID" => $LINK->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 $old_code = "";
@@ -17,7 +17,7 @@ if ( isset($_POST['code']) && $USER->instructor ) {
     $sql = "INSERT INTO {$p}attend_code 
             (link_id, code) VALUES ( :ID, :CO ) 
             ON DUPLICATE KEY UPDATE code = :CO";
-    $stmt = $pdo->prepare($sql);
+    $stmt = $PDOX->prepare($sql);
     $stmt->execute(array(
         ':CO' => $_POST['code'],
         ':ID' => $LINK->id));
@@ -30,7 +30,7 @@ if ( isset($_POST['code']) && $USER->instructor ) {
             (link_id, user_id, ipaddr, attend, updated_at) 
             VALUES ( :LI, :UI, :IP, NOW(), NOW() ) 
             ON DUPLICATE KEY UPDATE updated_at = NOW()";
-        $stmt = $pdo->prepare($sql);
+        $stmt = $PDOX->prepare($sql);
         $stmt->execute(array(
             ':LI' => $LINK->id,
             ':UI' => $USER->id,
@@ -61,7 +61,7 @@ echo('<input type="submit" name="send" value="'._('Record attendance').'"><br/>'
 echo("\n</form>\n");
 
 if ( $USER->instructor ) {
-    $stmt = $pdo->prepare("SELECT user_id,attend,ipaddr FROM {$p}attend 
+    $stmt = $PDOX->prepare("SELECT user_id,attend,ipaddr FROM {$p}attend 
             WHERE link_id = :LI ORDER BY attend DESC, user_id");
     $stmt->execute(array(':LI' => $LINK->id));
     echo('<table border="1">'."\n");

@@ -3,18 +3,18 @@
 define('COOKIE_SESSION', true);
 include_once("config.php");
 require_once("sanity.php");
-$pdo = false;
+$PDOX = false;
 try {
     define('PDO_WILL_CATCH', true);
     require_once("pdo.php");
 } catch(PDOException $ex){
-    $pdo = false;  // sanity-db-will re-check this below
+    $PDOX = false;  // sanity-db-will re-check this below
 }
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( $pdo !== false ) loginSecureCookie();
+if ( $PDOX !== false ) loginSecureCookie();
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

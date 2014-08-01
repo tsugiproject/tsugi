@@ -2,13 +2,10 @@
 
 namespace Tsugi;
 
-class PDOX {
-
-    public $pdo = false;
-
-    function __construct($pdo) {
-        $this->pdo = $pdo;
-    }
+/* 
+ * This is our "improved" version of PDO
+ */
+class PDOX extends \PDO {
 
     function rowDie($sql, $arr=FALSE, $error_log=TRUE) {
         $stmt = self::queryDie($sql, $arr, $error_log);
@@ -43,9 +40,9 @@ class PDOX {
 
     // Run a PDO Query with lots of error checking
     function queryReturnError($sql, $arr=FALSE, $error_log=TRUE) {
-        $errormode = $this->pdo->getAttribute(\PDO::ATTR_ERRMODE);
+        $errormode = $this->getAttribute(\PDO::ATTR_ERRMODE);
         if ( $errormode != \PDO::ERRMODE_EXCEPTION) {
-            $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         }
         $q = FALSE;
         $success = FALSE;
@@ -54,7 +51,7 @@ class PDOX {
         $start = microtime(true);
         // debug_log($sql, $arr);
         try {
-            $q = $this->pdo->prepare($sql);
+            $q = $this->prepare($sql);
             if ( $arr === FALSE ) {
                 $success = $q->execute();
             } else {
@@ -82,7 +79,7 @@ class PDOX {
         if ( !isset($q->errorImplode) ) $q->errorImplode = implode(':',$q->errorInfo);
         // Restore ERRMODE if we changed it
         if ( $errormode != \PDO::ERRMODE_EXCEPTION) {
-            $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
+            $this->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
         }
         return $q;
     }

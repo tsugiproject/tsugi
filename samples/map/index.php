@@ -18,7 +18,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
         VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 
         ON DUPLICATE KEY 
         UPDATE lat = :LAT, lng = :LNG, updated_at = NOW()";
-    $stmt = $pdo->prepare($sql);
+    $stmt = $PDOX->prepare($sql);
     $stmt->execute(array(
         ':CID' => $CONTEXT->id,
         ':UID' => $USER->id,
@@ -30,7 +30,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
 }
 
 // Retrieve our row
-$stmt = $pdo->prepare("SELECT lat,lng FROM {$p}sample_map 
+$stmt = $PDOX->prepare("SELECT lat,lng FROM {$p}sample_map 
         WHERE context_id = :CID AND user_id = :UID");
 $stmt->execute(array(":CID" => $CONTEXT->id, ":UID" => $USER->id));
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -43,7 +43,7 @@ if ( $row !== false ) {
 }
 
 //Retrieve the other rows
-$stmt = $pdo->prepare("SELECT lat,lng,displayname FROM {$p}sample_map 
+$stmt = $PDOX->prepare("SELECT lat,lng,displayname FROM {$p}sample_map 
         JOIN {$p}lti_user
         ON {$p}sample_map.user_id = {$p}lti_user.user_id
         WHERE context_id = :CID AND {$p}sample_map.user_id <> :UID");

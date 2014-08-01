@@ -92,7 +92,7 @@ function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
         }
 
         $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
-        $stmt = $PDOX->pdo->prepare("INSERT INTO {$CFG->dbprefix}blob_file 
+        $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file 
             (context_id, file_sha256, file_name, contenttype, content, created_at) 
             VALUES (?, ?, ?, ?, ?, NOW())");
     
@@ -102,10 +102,10 @@ function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
         $stmt->bindParam(4, $FILE_DESCRIPTOR['type']);
         $stmt->bindParam(5, $fp, PDO::PARAM_LOB);
         // $stmt->bindParam(5, $data, PDO::PARAM_LOB);
-        $PDOX->pdo->beginTransaction();
+        $PDOX->beginTransaction();
         $stmt->execute();
-        $id = 0+$PDOX->pdo->lastInsertId();
-        $PDOX->pdo->commit();
+        $id = 0+$PDOX->lastInsertId();
+        $PDOX->commit();
         fclose($fp);
         return array($id, $sha256);
     }

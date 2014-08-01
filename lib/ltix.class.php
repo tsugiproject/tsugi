@@ -225,8 +225,8 @@ class LTIX Extends \Tsugi\LTI {
     // Returns as much as we have in all the tables
     public static function loadAllData($p, $profile_table, $post) {
         global $PDOX;
-        $errormode = $PDOX->pdo->getAttribute(\PDO::ATTR_ERRMODE);
-        $PDOX->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
+        $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $sql = "SELECT k.key_id, k.key_key, k.secret, c.context_id, c.title AS context_title,
             l.link_id, l.title AS link_title,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email,
@@ -284,7 +284,7 @@ class LTIX Extends \Tsugi\LTI {
         $row = $PDOX->rowDie($sql, $parms);
 
         // Restore ERRMODE
-        $PDOX->pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
+        $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
         return $row;
     }
 
@@ -292,8 +292,8 @@ class LTIX Extends \Tsugi\LTI {
     // TODO: Contemplate the deep mystery of transactions here
     public static function adjustData($p, &$row, $post) {
         global $PDOX;
-        $errormode = $PDOX->pdo->getAttribute(\PDO::ATTR_ERRMODE);
-        $PDOX->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
+        $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $actions = array();
         if ( $row['context_id'] === null) {
@@ -305,7 +305,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':context_sha256' => lti_sha256($post['context_id']),
                 ':title' => $post['context_title'],
                 ':key_id' => $row['key_id']));
-            $row['context_id'] = $PDOX->pdo->lastInsertId();
+            $row['context_id'] = $PDOX->lastInsertId();
             $row['context_title'] = $post['context_title'];
             $actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title'];
         }
@@ -319,7 +319,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':link_sha256' => lti_sha256($post['link_id']),
                 ':title' => $post['link_title'],
                 ':context_id' => $row['context_id']));
-            $row['link_id'] = $PDOX->pdo->lastInsertId();
+            $row['link_id'] = $PDOX->lastInsertId();
             $row['link_title'] = $post['link_title'];
             $actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title'];
         }
@@ -336,7 +336,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':displayname' => $user_displayname,
                 ':email' => $user_email,
                 ':key_id' => $row['key_id']));
-            $row['user_id'] = $PDOX->pdo->lastInsertId();
+            $row['user_id'] = $PDOX->lastInsertId();
             $row['user_email'] = $user_email;
             $row['user_sha256'] = lti_sha256($post['user_id']);
             $row['user_displayname'] = $user_displayname;
@@ -351,7 +351,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':context_id' => $row['context_id'],
                 ':user_id' => $row['user_id'],
                 ':role' => $post['role']));
-            $row['membership_id'] = $PDOX->pdo->lastInsertId();
+            $row['membership_id'] = $PDOX->lastInsertId();
             $row['role'] = $post['role'];
             $actions[] = "=== Inserted membership id=".$row['membership_id']." role=".$row['role'].
                 " user=".$row['user_id']." context=".$row['context_id'];
@@ -367,7 +367,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':service_key' => $post['service'],
                 ':service_sha256' => lti_sha256($post['service']),
                 ':key_id' => $row['key_id']));
-            $row['service_id'] = $PDOX->pdo->lastInsertId();
+            $row['service_id'] = $PDOX->lastInsertId();
             $row['service'] = $post['service'];
             $actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service'];
         }
@@ -392,7 +392,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':service_id' => $row['service_id'],
                 ':link_id' => $row['link_id'],
                 ':user_id' => $row['user_id']));
-            $row['result_id'] = $PDOX->pdo->lastInsertId();
+            $row['result_id'] = $PDOX->lastInsertId();
             $row['sourcedid'] = $post['sourcedid'];
             $actions[] = "=== Inserted result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
         }
@@ -407,7 +407,7 @@ class LTIX Extends \Tsugi\LTI {
                 ':sourcedid_sha256' => lti_sha256($post['sourcedid']),
                 ':link_id' => $row['link_id'],
                 ':user_id' => $row['user_id']));
-            $row['result_id'] = $PDOX->pdo->lastInsertId();
+            $row['result_id'] = $PDOX->lastInsertId();
             $actions[] = "=== Inserted LTI 2.0 result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
         }
 
@@ -471,7 +471,7 @@ class LTIX Extends \Tsugi\LTI {
         }
 
         // Restore ERRMODE
-        $PDOX->pdo->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
+        $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
         return $actions;
     }
 

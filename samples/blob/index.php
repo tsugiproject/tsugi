@@ -25,7 +25,7 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
     }
 
     $fp = fopen($_FILES['uploaded_file']['tmp_name'], "rb");
-    $stmt = $pdo->prepare("INSERT INTO {$p}sample_blob 
+    $stmt = $PDOX->prepare("INSERT INTO {$p}sample_blob 
         (context_id, file_name, contenttype, content, created_at) 
         VALUES (?, ?, ?, ?, NOW())");
 
@@ -33,9 +33,9 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
     $stmt->bindParam(2, $filename);
     $stmt->bindParam(3, $_FILES['uploaded_file']['type']);
     $stmt->bindParam(4, $fp, PDO::PARAM_LOB);
-    $pdo->beginTransaction();
+    $PDOX->beginTransaction();
     $stmt->execute();
-    $pdo->commit();
+    $PDOX->commit();
 
     $_SESSION['success'] = 'File uploaded';
     header( 'Location: '.addSession('index.php') ) ;
@@ -61,7 +61,7 @@ welcomeUserCourse();
 $foldername = getFolderName();
 if ( !file_exists($foldername) ) mkdir ($foldername);
 
-$stmt = $pdo->prepare("SELECT file_id, file_name FROM {$p}sample_blob
+$stmt = $PDOX->prepare("SELECT file_id, file_name FROM {$p}sample_blob
         WHERE context_id = :CI");
 $stmt->execute(array(":CI" => $CONTEXT->id));
 

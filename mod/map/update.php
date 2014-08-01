@@ -19,7 +19,7 @@ if ( isset($_POST['lat']) && isset($_POST['lng']) ) {
         VALUES ( :CID, :UID, :LAT, :LNG, NOW() ) 
         ON DUPLICATE KEY 
         UPDATE lat = :LAT, lng = :LNG, updated_at = NOW()";
-    $stmt = $pdo->prepare($sql);
+    $stmt = $PDOX->prepare($sql);
     $stmt->execute(array(
         ':CID' => $CONTEXT->id,
         ':UID' => $USER->id,
@@ -36,7 +36,7 @@ if ( isset($_POST['allow_name']) && isset($_POST['allow_email']) &&
         VALUES ( :CID, :UID, :NAME, :EMAIL, :FIRST, NOW() ) 
         ON DUPLICATE KEY 
         UPDATE name = :NAME, email = :EMAIL, first = :FIRST, updated_at = NOW()";
-    $stmt = $pdo->prepare($sql);
+    $stmt = $PDOX->prepare($sql);
     $stmt->execute(array(
         ':CID' => $CONTEXT->id,
         ':UID' => $USER->id,
