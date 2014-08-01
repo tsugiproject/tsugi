@@ -19,7 +19,7 @@ URL as appropriate.
 You can plug these into your LMS or test using any LTI 
 Consumer harness such as the one I use at:
 
-    https://online.dr-chuck.com/sakai-api-test/lms.php
+https://online.dr-chuck.com/sakai-api-test/lms.php
 
 Here is a list of the tools installed in a server by default.
 
@@ -30,7 +30,7 @@ This is a simple map where students can place themselves and
 decide how much data they want to reveal. Its launch url is of
 the form:
 
-https://lti-tools.dr-chuck.com/tsugi/mod/map/index.php  
+    https://lti-tools.dr-chuck.com/tsugi/mod/map/index.php  
 
 Attendance Tool
 ---------------
@@ -40,7 +40,7 @@ need to enter the code.  The teacher can see who entered the code,
 when it was entered, and what IP was used to enter the code.
 This is really just a starting point.
 
-https://lti-tools.dr-chuck.com/tsugi/attend/map/index.php  
+    https://lti-tools.dr-chuck.com/tsugi/attend/map/index.php  
 
 Rock Paper Scissors
 -------------------
@@ -49,7 +49,7 @@ This is a simple multi-player game of RPS.  My main goal of this
 is to demonstrate transactions in sample code.  But it is a bit 
 of fun and has a little leaderboard.
 
-https://lti-tools.dr-chuck.com/tsugi/attend/map/index.php  
+    https://lti-tools.dr-chuck.com/tsugi/attend/map/index.php  
 
 I also used this as part of my sample Android mobile application.
 but that is another story.
@@ -61,7 +61,7 @@ This is my very simple social peer grader that I use for low-stakes assessment
 in my on-campus and Coursera classes.   It is generally a few images and/or a bit
 of text with a simple grading rubric.  Here is the URL for the peer grading:
 
-https://lti-tools.dr-chuck.com/tsugi/mod/peer-grade/index.php  
+    https://lti-tools.dr-chuck.com/tsugi/mod/peer-grade/index.php  
 
 Make sure to log in first as the instructor and configure the peer-grader and
 save the configuration.  Otherwise students will see the "not yet configured" 
@@ -82,8 +82,8 @@ This is the autograder associated with my Coursera
 Programming for Everybody and Python for Informatics text book.
 This tool launches with the following URL:
 
-https://lti-tools.dr-chuck.com/tsugi/mod/pythonauto/auto.php
-https://lti-tools.dr-chuck.com/tsugi/mod/pythonauto/auto.php?exercise=hello
+    https://lti-tools.dr-chuck.com/tsugi/mod/pythonauto/auto.php
+    https://lti-tools.dr-chuck.com/tsugi/mod/pythonauto/auto.php?exercise=hello
 
 With no exercise it is an interative Python coding environment 
 where you can test out code.  Youcan also specify an exercise which will
@@ -113,7 +113,7 @@ same as the LTI server and fixes errors in the LMS grade automatially.
 In effect it quietly repairs lost grades in the LMS when the student
 checks.
 
-https://lti-tools.dr-chuck.com/tsugi/grades/map/index.php  
+    https://lti-tools.dr-chuck.com/tsugi/grades/map/index.php  
 
 Summary
 =======
