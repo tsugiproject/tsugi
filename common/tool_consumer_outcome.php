@@ -2,7 +2,7 @@
 require_once("../lib/lti_util.php");
 
 use Tsugi\OAuth\OAuthUtil;
-use Tsugi\LTI;
+use Tsugi\Util\LTI;
 
 $old_error_handler = set_error_handler("myErrorHandler");
 

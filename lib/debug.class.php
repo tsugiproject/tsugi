@@ -1,7 +1,7 @@
 <?php
 
 // Debugging utilities - partially implemented
-namespace Tsugi;
+namespace Tsugi\Core;
 
 global $DEBUG_STRING;
 $DEBUG_STRING='';

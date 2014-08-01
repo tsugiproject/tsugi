@@ -5,10 +5,10 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
-use \Tsugi\Table;
+use \Tsugi\Core\Table;
 
 // Sanity checks
-$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 

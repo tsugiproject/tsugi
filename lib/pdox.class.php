@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi;
+namespace Tsugi\Core;
 
 /**
  * This is our "improved" version of PDO

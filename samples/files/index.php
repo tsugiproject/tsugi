@@ -4,10 +4,10 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "files_util.php";
 
-use \Tsugi\Debug;
+use \Tsugi\Core\Debug;
 
 // Sanity checks
-$LTI = \Tsugi\LTIX::requireData(array('user_id', 'context_id'));
+$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'context_id'));
 
 // Model 
 $p = $CFG->dbprefix;

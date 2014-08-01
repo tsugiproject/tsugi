@@ -1,8 +1,8 @@
 <?php
 
-namespace Tsugi;
+namespace Tsugi\Core;
 
-use \Tsugi\CrudForm;
+use \Tsugi\Core\CrudForm;
 
 /**
  * Our class to generate pageable tables.

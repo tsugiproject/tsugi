@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi;
+namespace Tsugi\Util;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
 use \Tsugi\OAuth\OAuthServer;
@@ -9,7 +9,7 @@ use \Tsugi\OAuth\OAuthRequest;
 use \Tsugi\OAuth\OAuthConsumer;;
 use \Tsugi\OAuth\OAuthUtil;
 
-use \Tsugi\Net;
+use \Tsugi\Util\Net;
 
 /**
  * This is a general purpose LTI class with no Tsugi-specific dependencies.

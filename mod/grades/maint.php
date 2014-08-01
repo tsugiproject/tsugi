@@ -8,7 +8,7 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 noBuffer();
 
 // Sanity checks
-$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 

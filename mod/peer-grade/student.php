@@ -6,10 +6,10 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
-use \Tsugi\Cache;
+use \Tsugi\Core\Cache;
 
 // Sanity checks
-$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 

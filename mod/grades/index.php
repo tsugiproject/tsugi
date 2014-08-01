@@ -4,10 +4,10 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
-use \Tsugi\Table;
+use \Tsugi\Core\Table;
 
 // Sanity checks
-$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
 $user_info = false;

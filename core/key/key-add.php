@@ -5,7 +5,7 @@ require_once("../../config.php");
 require_once($CFG->dirroot."/pdo.php");
 require_once($CFG->dirroot."/lib/lms_lib.php");
 
-use \Tsugi\CrudForm;
+use \Tsugi\Core\CrudForm;
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();

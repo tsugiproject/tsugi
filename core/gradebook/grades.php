@@ -4,10 +4,10 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "lib.php";
 
-use \Tsugi\Table;
+use \Tsugi\Core\Table;
 
 // Sanity checks
-$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id', "result_id"));
+$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id', "result_id"));
 if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi;
+namespace Tsugi\Core;
 /**
  * This is a class that supports the creation of simple CRUD forms.
  *

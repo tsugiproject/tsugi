@@ -16,7 +16,7 @@ require_once("output.class.php");
 require_once("lti_util.php");
 require_once("lti_db.php");
 
-use \Tsugi\Cache;
+use \Tsugi\Core\Cache;
 
 function getNameAndEmail() {
     global $USER;
@@ -425,7 +425,7 @@ function loadUserInfoBypass($user_id)
 function loadUserInfo($link_id)
 {
     global $CFG, $PDOX;
-    $LTI = \Tsugi\LTIX::requireData(array('context_id'));
+    $LTI = \Tsugi\Core\LTIX::requireData(array('context_id'));
 
     $cacheloc = 'lti_link';
     $row = Cache::check($cacheloc, $link_id);
@@ -598,7 +598,7 @@ function mailSend($to, $subject, $message, $id, $token) {
     return mail($to,$subject,$msg,$headers);
 }
 
-$OUTPUT = new \Tsugi\Output();
+$OUTPUT = new \Tsugi\Core\Output();
 
 function curPageURL() {
     $pageURL = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on")

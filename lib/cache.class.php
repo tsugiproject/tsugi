@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi;
+namespace Tsugi\Core;
 
 /** A very simple Cache - currently implemented in session
  *

@@ -5,7 +5,7 @@ require_once("config.php");
 require_once("pdo.php");
 require_once("lib/lms_lib.php");
 
-use \Tsugi\LTI;
+use \Tsugi\Util\LTI;
 
 session_start();
 

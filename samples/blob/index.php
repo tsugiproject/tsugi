@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "blob_util.php";
 
 // Sanity checks
-$LTI = \Tsugi\LTIX::requireData(array('context_id', 'role'));
+$LTI = \Tsugi\Core\LTIX::requireData(array('context_id', 'role'));
 
 // Model 
 $p = $CFG->dbprefix;

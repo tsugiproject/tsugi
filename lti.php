@@ -3,7 +3,7 @@ require_once 'config.php';
 require_once 'pdo.php';
 require_once 'lib/lms_lib.php';
 
-use \Tsugi\LTIX;
+use \Tsugi\Core\LTIX;
 
 $session_id = LTIX::setupSession();
 

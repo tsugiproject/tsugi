@@ -3,7 +3,7 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
-$LTI = \Tsugi\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 
 // Model 
 $p = $CFG->dbprefix;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi;
+namespace Tsugi\Util;
 
 /**
  * This general purpose library for HTTP communications.

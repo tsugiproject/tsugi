@@ -3,7 +3,7 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // Sanity checks
-$LTI = \Tsugi\LTIX::requireData(array('user_id', 'role','context_id'));
+$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Instructor only");
 
 $OUTPUT->header();

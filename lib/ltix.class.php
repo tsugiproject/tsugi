@@ -1,11 +1,13 @@
 <?php
 
-namespace Tsugi;
+namespace Tsugi\Core;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
 use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;
 use \Tsugi\OAuth\OAuthRequest;
+
+use \Tsugi\Util\LTI;
 
 /**
  * This an extended LTI class that defines how Tsugi tools interact with LTI
@@ -14,11 +16,11 @@ use \Tsugi\OAuth\OAuthRequest;
  * details that Tsugi tools make use of during runtime.
  * 
  */
-class LTIX Extends \Tsugi\LTI {
+class LTIX Extends LTI {
 
     // Silently check if this is a launch and if so, handle it
     public static function launchCheck() {
-        if ( ! LTI::isRequest() ) return false;
+        if ( ! self::isRequest() ) return false;
         $session_id = self::setupSession();
         if ( $session_id === false ) return false;
 
@@ -51,7 +53,7 @@ class LTIX Extends \Tsugi\LTI {
 
     public static function setupSession() {
         global $CFG, $PDOX;
-        if ( ! LTI::isRequest() ) return false;
+        if ( ! self::isRequest() ) return false;
 
         // Pull LTI data out of the incoming $_POST and map into the same
         // keys that we use in our database (i.e. like $row)

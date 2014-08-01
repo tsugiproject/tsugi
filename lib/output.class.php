@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi;
+namespace Tsugi\Core;
 
 /**
  * This is a class that captures the output conventions of Tusgi.
@@ -14,7 +14,7 @@ namespace Tsugi;
  *
  * A typical Tsugi Tool can get a lot done with the rough outline:
  *
- *     $LTI = \Tsugi\LTIX::requireData(array('context_id', 'role'));
+ *     $LTI = \Tsugi\Core\LTIX::requireData(array('context_id', 'role'));
 
  *     // Handle incoming POST data and redirect as necessary...
  *     if ( ... ) {

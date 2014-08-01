@@ -1,7 +1,7 @@
 <?php
 
-use \Tsugi\Cache;
-use \Tsugi\LTIX;
+use \Tsugi\Core\Cache;
+use \Tsugi\Core\LTIX;
 
 // Loads the assignment associated with this link
 function loadAssignment($LTI)

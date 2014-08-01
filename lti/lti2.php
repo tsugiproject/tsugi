@@ -5,7 +5,7 @@ require_once "../pdo.php";
 require_once $CFG->dirroot.'/lib/lms_lib.php';
 require_once 'tp_messages.php';
 
-use \Tsugi\LTI;
+use \Tsugi\Util\LTI;
 
 session_start();
 header('Content-Type: text/html; charset=utf-8'); 
