@@ -6,7 +6,7 @@
 -->
 <phpdoc>
   <parser>
-    <target>tmp_phpdoc</target>
+    <target>.tmp_phpdoc</target>
   </parser>
   <transformer>
     <target>.out_phpdoc</target>
