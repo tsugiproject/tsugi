@@ -4,24 +4,36 @@ namespace Tsugi;
 
 /* 
  * This is our "improved" version of PDO
+ *
+ * The PDOX class adds a number of non-trivial convienence methods
+ * to the underlying PHP PDO class.   These methods combine several
+ * PDO calls into a single call for common patterns and add far more
+ * extensive error checking and simpler error handling.
  */
 class PDOX extends \PDO {
 
+    /*
+     * Prepare and execute an SQL query and retrieve a single row.
+     *
+     * If the SQL is badly formed, this function will die.
+     *
+     * @return This either returns the associative array containing
+     *         the row or FALSE.
+     */
     function rowDie($sql, $arr=FALSE, $error_log=TRUE) {
         $stmt = self::queryDie($sql, $arr, $error_log);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         return $row;
     }
 
-    function allRowsDie($sql, $arr=FALSE, $error_log=TRUE) {
-        $stmt = self::queryDie($sql, $arr, $error_log);
-        $rows = array();
-        while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
-            array_push($rows, $row);
-        }
-        return $rows;
-    }
-
+    /*
+     * Prepare and execute an SQL query.
+     *
+     * If the SQL is badly formed, this function will die.
+     *
+     * @return This either returns the statement that results
+     *         from the execute() call if the SQL is well formed.
+     */
     function queryDie($sql, $arr=FALSE, $error_log=TRUE) {
         global $CFG;
         $stmt = self::queryReturnError($sql, $arr, $error_log);
@@ -38,7 +50,36 @@ class PDOX extends \PDO {
         return $stmt;
     }
 
-    // Run a PDO Query with lots of error checking
+    /*
+     * Prepare and execute an SQL query with lots of error checking.
+     *
+     * It turns out that to properly check all of the return values
+     * and possible errors which using prepare() and execute()
+     * we have all that logic one place.
+     *
+     * In order to simplify the error handling for the code making use
+     * of this method, the returned PDO statement is augmented as
+     * follows:
+     *
+     * $stmt->success is TRUE/FALSE based on the success of the operation
+     * $stmt->ellapsed_time includes the length of time the query took
+     *
+     * If the prepare fails, we set up the following values to mirror
+     * a execute() failure.
+     *
+     * $q->errorCode
+     * $q->errorInfo
+     *
+     * We also concatenate the valued in errorInfo in the following attribute:
+     * $q->errorImplode
+     *
+     * While this seems a bit obtuse, it allows the prepare() and execute() 
+     * to be collapsed into one call with simple error checking upon return.
+     *
+     * @return This either returns a PDO statement that results
+     *         from the execute() call if the SQL is well formed.
+     *         See above for detia on how the statement is augmented.
+     */
     function queryReturnError($sql, $arr=FALSE, $error_log=TRUE) {
         $errormode = $this->getAttribute(\PDO::ATTR_ERRMODE);
         if ( $errormode != \PDO::ERRMODE_EXCEPTION) {
@@ -84,6 +125,35 @@ class PDOX extends \PDO {
         return $q;
     }
 
+    /*
+     * Prepare and execute an SQL query and retrieve all the rows as an array
+     *
+     * While this might seem like a bad idea, the coding style for Tsugi is
+     * make every query a paged query with a limited number of records to 
+     * be retrieved to in most cases, it is quite reasonable to retrieve 
+     * 10-30 rows into an array.
+     *
+     * If code wants to stream the results of a query, they should do their
+     * own query and loop through the rows in their own code.
+     *
+     * If the SQL is badly formed, this function will die.
+     *
+     * @return An array of rows from the query.  If there are no rows,
+     *         an empty array is returned.
+     */
+    function allRowsDie($sql, $arr=FALSE, $error_log=TRUE) {
+        $stmt = self::queryDie($sql, $arr, $error_log);
+        $rows = array();
+        while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
+            array_push($rows, $row);
+        }
+        return $rows;
+    }
+
+    /*
+     * Retrieve the metadata for a table.
+     * TODO: Sample return data
+     */
     function metadata($tablename) {
         $sql = "SHOW COLUMNS FROM ".$tablename;
         $q = self::queryReturnError($sql);
