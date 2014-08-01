@@ -2,7 +2,7 @@
 
 namespace Tsugi;
 
-/* 
+/**
  * This is our "improved" version of PDO
  *
  * The PDOX class adds a number of non-trivial convienence methods
@@ -12,7 +12,7 @@ namespace Tsugi;
  */
 class PDOX extends \PDO {
 
-    /*
+    /**
      * Prepare and execute an SQL query and retrieve a single row.
      *
      * If the SQL is badly formed, this function will die.
@@ -26,7 +26,7 @@ class PDOX extends \PDO {
         return $row;
     }
 
-    /*
+    /**
      * Prepare and execute an SQL query.
      *
      * If the SQL is badly formed, this function will die.
@@ -50,7 +50,7 @@ class PDOX extends \PDO {
         return $stmt;
     }
 
-    /*
+    /**
      * Prepare and execute an SQL query with lots of error checking.
      *
      * It turns out that to properly check all of the return values
@@ -125,7 +125,7 @@ class PDOX extends \PDO {
         return $q;
     }
 
-    /*
+    /**
      * Prepare and execute an SQL query and retrieve all the rows as an array
      *
      * While this might seem like a bad idea, the coding style for Tsugi is
@@ -150,10 +150,11 @@ class PDOX extends \PDO {
         return $rows;
     }
 
-    /*
+    /**
      * Retrieve the metadata for a table.
-     * TODO: Sample return data
      */
+    //  TODO: Sample return data
+
     function metadata($tablename) {
         $sql = "SHOW COLUMNS FROM ".$tablename;
         $q = self::queryReturnError($sql);
