@@ -17,7 +17,8 @@ class PDOX extends \PDO {
      *
      * If the SQL is badly formed, this function will die.
      *
-     * @return either the associative array containing the row or FALSE.
+     * This function returns either the associative array containing 
+     * the row or FALSE.
      */
     function rowDie($sql, $arr=FALSE, $error_log=TRUE) {
         $stmt = self::queryDie($sql, $arr, $error_log);
@@ -30,7 +31,7 @@ class PDOX extends \PDO {
      *
      * If the SQL is badly formed, this function will die.
      *
-     * @return returns the statement that results
+     * This function returns the statement that results
      *         from the execute() call if the SQL is well formed.
      */
     function queryDie($sql, $arr=FALSE, $error_log=TRUE) {
@@ -78,9 +79,9 @@ class PDOX extends \PDO {
      * prepare() and execute() to be collapsed into one call with
      * simple error checking upon return.
      *
-     * @return a PDO statement that results
-     *         from the execute() call if the SQL is well formed.
-     *         See above for detail on how the statement is augmented.
+     * This function returns a PDO statement that results
+     * from the execute() call if the SQL is well formed.
+     * See above for detail on how the statement is augmented.
      */
     function queryReturnError($sql, $arr=FALSE, $error_log=TRUE) {
         $errormode = $this->getAttribute(\PDO::ATTR_ERRMODE);
@@ -140,8 +141,8 @@ class PDOX extends \PDO {
      *
      * If the SQL is badly formed, this function will die.
      *
-     * @return An array of rows from the query.  If there are no rows,
-     *         an empty array is returned.
+     * An array of rows from the query.  If there are no rows,
+     * an empty array is returned.
      */
     function allRowsDie($sql, $arr=FALSE, $error_log=TRUE) {
         $stmt = self::queryDie($sql, $arr, $error_log);
