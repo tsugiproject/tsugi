@@ -4,8 +4,8 @@ Using these tools from an LTI Consumer
 Depending on the administrator of the Tsugi server, you may
 be able to get an LTI key and secret for the use of the tools 
 on the server.  Tsugi has a capability to let you log in 
-and request keys that can be enabled using the following 
-options in config.php:
+and request keys that can be enabled by the sytem owner 
+using the following options in config.php:
 
     $CFG->ownername = 'Charles Severance';
     $CFG->owneremail = 'csev@umich.edu';
@@ -86,9 +86,9 @@ This tool launches with the following URL:
     https://lti-tools.dr-chuck.com/tsugi/mod/pythonauto/auto.php?exercise=hello
 
 With no exercise it is an interative Python coding environment 
-where you can test out code.  Youcan also specify an exercise which will
+where you can test out code.  You can also specify an exercise which will
 be automatically graded and the grades will be sent back to the LMS
-via LTI.
+via LTI when you properly complete the exercise.
 
 Valid exercises include: hello, fopen, loop, 2.2, 2.3, 3.1, 3.3, 4.6, 
 5.2, 6.5, 7.1, 7.2, 8.4, 9.4, and 10.2.
