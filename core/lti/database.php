@@ -21,10 +21,18 @@ array( "{$CFG->dbprefix}lti_key",
     key_key             VARCHAR(4096) NOT NULL,
 
     secret              VARCHAR(4096) NULL,
+    new_secret          VARCHAR(4096) NULL,
 
     -- This is the owner of this key - it is not a foreign key
     -- on purpose to avoid potential circular foreign keys
+    -- This is null for LTI1 and the user_id for LTI2 keys
+    -- In LTI2, key_key is chosen by the TC so we must not allow
+    -- One TC to take over another's key_key - this must be
+    -- checked carefully in a transation during LTI 2 registration
     user_id             INTEGER NULL,
+
+    consumer_profile    TEXT NULL,
+    new_consumer_profile  TEXT NULL,
 
     json                TEXT NULL,
     settings            TEXT NULL,
@@ -306,6 +314,26 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    return 2014072600;
+    if ( $oldversion < 201408050745 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD new_secret VARCHAR(4016) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD consumer_profile TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+ 
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD new_consumer_profile TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    // When you increase this number in any database.php file,
+    // make sure to update the global value in setup.php
+    return 201408050745;
+
 }; // Don't forget the semicolon on anonymous functions :)
 

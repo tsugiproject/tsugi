@@ -4,7 +4,7 @@
 // upgrade checking - don't change this unless you want to trigger
 // database upgrade messages it should be the max of all versions in
 // all database.php files.
-$CFG->dbversion = 2014072600;
+$CFG->dbversion = 201408050745;
 
 // Just turn this off to avoid security holes due to XML parsing
 if ( function_exists ( 'libxml_disable_entity_loader' ) ) libxml_disable_entity_loader();
@@ -74,6 +74,10 @@ if ( isset($CFG->sessionlifetime) ) {
 }
 
 date_default_timezone_set($CFG->timezone);
+
+function htmlpre_utf8($string) {
+    return str_replace("<","&lt;",$string);
+}
 
 function htmlspec_utf8($string) {
     return htmlspecialchars($string,ENT_QUOTES,$encoding = 'UTF-8');
