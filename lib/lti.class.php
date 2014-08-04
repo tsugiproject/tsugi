@@ -207,7 +207,7 @@ class LTI {
 
         // Must reject application/x-www-form-urlencoded
         if ($request_headers['Content-Type'] == 'application/x-www-form-urlencoded' ) {
-            throw new Exception("OAuth request body signing must not use application/x-www-form-urlencoded");
+            throw new \Exception("OAuth request body signing must not use application/x-www-form-urlencoded");
         }
 
         if (@substr($request_headers['Authorization'], 0, 6) == "OAuth ") {
@@ -220,7 +220,7 @@ class LTI {
         }
 
         if ( ! isset($oauth_body_hash)  ) {
-            throw new Exception("OAuth request body signing requires oauth_body_hash body");
+            throw new \Exception("OAuth request body signing requires oauth_body_hash body");
         }
 
         // Verify the message signature
@@ -241,7 +241,7 @@ class LTI {
             $server->verify_request($request);
         } catch (Exception $e) {
             $message = $e->getMessage();
-            throw new Exception("OAuth signature failed: " . $message);
+            throw new \Exception("OAuth signature failed: " . $message);
         }
 
         $postdata = file_get_contents('php://input');
@@ -253,7 +253,7 @@ class LTI {
         $LastOAuthBodyHashInfo = "hdr_hash=$oauth_body_hash body_len=".strlen($postdata)." body_hash=$hash";
 
         if ( $hash != $oauth_body_hash ) {
-            throw new Exception("OAuth oauth_body_hash mismatch");
+            throw new \Exception("OAuth oauth_body_hash mismatch");
         }
 
         return $postdata;
@@ -417,7 +417,7 @@ class LTI {
             $retval['response'] = $operation;
             $parms = $imsx_body->children();
         } catch (Exception $e) {
-            throw new Exception('Error: Unable to parse XML response' . $e->getMessage());
+            throw new \Exception('Error: Unable to parse XML response' . $e->getMessage());
         }
 
         if ( $operation == 'readResultResponse' ) {
@@ -425,7 +425,7 @@ class LTI {
                $retval['language'] =(string) $parms->result->resultScore->language;
                $retval['textString'] = (string) $parms->result->resultScore->textString;
            } catch (Exception $e) {
-                throw new Exception("Error: Body parse error: ".$e->getMessage());
+                throw new \Exception("Error: Body parse error: ".$e->getMessage());
            }
         }
         return $retval;

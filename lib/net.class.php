@@ -44,7 +44,7 @@ class Net {
         if ( $lastGETResponse !== false ) return $lastGETResponse;
         error_log("Unable to POST Url=$url");
         error_log("Header: $header");
-        throw new Exception("Unable to GET url=".$url);
+        throw new \Exception("Unable to GET url=".$url);
     }
 
     public static function getStream($url, $header) {
@@ -180,7 +180,7 @@ class Net {
         error_log("Unable to GET Url=$url");
         error_log("Header: $header");
         error_log("Body: $body");
-        throw new Exception("Unable to POST $url");
+        throw new \Exception("Unable to POST $url");
     }
 
     // From: http://php.net/manual/en/function.file-get-contents.php

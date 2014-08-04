@@ -95,8 +95,19 @@ class LTIX Extends LTI {
         }
 
         // Use returned data to check the OAuth signature on the
-        // incoming data
+        // incoming data - returns true or an array
         $valid = self::verifyKeyAndSecret($post['key'],$row['secret']);
+
+        // If there is a new_secret it means an LTI2 re-registration is in progress and we
+        // need to check both the current and new secret until the re-registration is committed
+        if ( $valid !== true && strlen($row['new_secret']) > 0 && $row['new_secret'] != $row['secret']) {
+            $valid = self::verifyKeyAndSecret($post['key'],$row['new_secret']);
+            if ( $valid ) {
+                $row['secret'] = $row['new_secret'];
+            }
+            $row['new_secret'] = null;
+        }
+
         if ( $valid !== true ) {
             print "<pre>\n";
             print_r($valid);
@@ -236,7 +247,8 @@ class LTIX Extends LTI {
         global $PDOX;
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        $sql = "SELECT k.key_id, k.key_key, k.secret, c.context_id, c.title AS context_title,
+        $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret,
+            c.context_id, c.title AS context_title,
             l.link_id, l.title AS link_title,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
@@ -501,7 +513,7 @@ class LTIX Extends LTI {
         try {
             $server->verify_request($request);
             return true;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return array($e->getMessage(), $basestring);
         }
     }
