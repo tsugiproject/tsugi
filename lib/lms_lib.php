@@ -261,7 +261,7 @@ function headerJson() {
 function lmsDie($message=false) {
     global $CFG, $DEBUG_STRING;
     if($message !== false) echo($message);
-    if ( $CFG->development === TRUE ) {
+    if ( $CFG->DEVELOPER === TRUE ) {
         if ( strlen($DEBUG_STRING) > 0 ) {
             echo("\n<pre>\n");
             echo(htmlentities($DEBUG_STRING));

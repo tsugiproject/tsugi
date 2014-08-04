@@ -114,7 +114,7 @@ if ( $lti_message_type == "ToolProxyReregistrationRequest" ) {
 	$reg_password = $_POST['reg_password'];
 } else {
 	echo("</pre>");
-	die("lti_message_type not supported ".$lti_message_type);
+	lmsDie("lti_message_type not supported ".$lti_message_type);
 }
 
 $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
@@ -128,18 +128,19 @@ if ( strlen($tc_profile_url) > 1 ) {
     $OUTPUT->togglePre("Retrieved Consumer Profile",$tc_profile_json);
     $tc_profile = json_decode($tc_profile_json);
 	if ( $tc_profile == null ) {
-		die("Unable to parse tc_profile error=".json_last_error());
+		lmsDie("Unable to parse tc_profile error=".json_last_error());
 	}
 } else {
-    die("We must have a tc_profile_url to continue...");
+    lmsDie("We must have a tc_profile_url to continue...");
 }
 
 // Find the registration URL
 
 echo("<pre>\n");
+$oauth_consumer_key = $tc_profile->guid;
 $tc_services = $tc_profile->service_offered;
 echo("Found ".count($tc_services)." services profile..\n");
-if ( count($tc_services) < 1 ) die("At a minimum, we need the service to register ourself - doh!\n");
+if ( count($tc_services) < 1 ) lmsDie("At a minimum, we need the service to register ourself - doh!\n");
 
 // var_dump($tc_services);
 $register_url = false;
@@ -158,7 +159,7 @@ foreach ($tc_services as $tc_service) {
     }
 }
 
-if ( $register_url == false ) die("Must have an application/vnd.ims.lti.v2.toolproxy+json service available in order to do tool_registration.");
+if ( $register_url == false ) lmsDie("Must have an application/vnd.ims.lti.v2.toolproxy+json service available in order to do tool_registration.");
 
 // unset($_SESSION['result_url']);
 // if ( $result_url !== false ) $_SESSION['result_url'] = $result_url;
@@ -168,7 +169,7 @@ echo("\nFound an application/vnd.ims.lti.v2.toolproxy+json service - nice for us
 // Check for capabilities
 $tc_capabilities = $tc_profile->capability_offered;
 echo("Found ".count($tc_capabilities)." capabilities..\n");
-if ( count($tc_capabilities) < 1 ) die("No capabilities found!\n");
+if ( count($tc_capabilities) < 1 ) lmsDie("No capabilities found!\n");
 
 $cur_base = $CFG->wwwroot;
 
@@ -178,7 +179,7 @@ if ( $tp_profile == null ) {
     $body = json_encode($tp_profile);
     $body = jsonIndent($body);
     $OUTPUT->togglePre("Tool Proxy Parsed",htmlent_utf8($body));
-    die("Unable to parse our own internal Tool Proxy (DOH!) error=".json_last_error()."\n");
+    lmsDie("Unable to parse our own internal Tool Proxy (DOH!) error=".json_last_error()."\n");
 }
 
 // Tweak the stock profile
@@ -207,7 +208,7 @@ echo("=================\n");
 echo("Searching for available tools...<br/>\n");
 $tools = findFiles("register.php","../");
 if ( count($tools) < 1 ) {
-    die("No register.php files found...<br/>\n");
+    lmsDie("No register.php files found...<br/>\n");
 }
 
 $toolcount = 0;
@@ -224,7 +225,7 @@ foreach($tools as $tool ) {
             $newhandler->short_name->default_value = $REGISTER_LTI2['short_name'];
             $newhandler->description->default_value = $REGISTER_LTI2['description'];
         } else {
-            die("Missing required name, short_name, and description in ".$tool);
+            lmsDie("Missing required name, short_name, and description in ".$tool);
         }
 
         $script = isset($REGISTER_LTI2['script']) ? $REGISTER_LTI2['script'] : "index.php";
@@ -243,7 +244,7 @@ foreach($tools as $tool ) {
 }
 
 if ( $toolcount < 1 ) {
-    die("No tools to register..");
+    lmsDie("No tools to register..");
 }
 
 
@@ -260,7 +261,8 @@ foreach($tc_capabilities as $capability) {
 $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
 $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
 
-$tp_profile->security_contract->shared_secret = 'secret';
+$shared_secret='sakaiger';
+$tp_profile->security_contract->shared_secret = $shared_secret;
 $tp_services = array();
 foreach($tc_services as $tc_service) {
 	// var_dump($tc_service);
@@ -279,19 +281,84 @@ $tp_profile->security_contract->tool_service = $tp_services;
 $body = json_encode($tp_profile);
 $body = jsonIndent($body);
 
-echo("Registering....\n");
 echo("Register Endpoint=".$register_url."\n");
 echo("Result Endpoint=".$result_url."\n");
-echo("Key=".$reg_key."\n");
+echo("Registration Key=".$reg_key."\n");
 echo("Secret=".$reg_password."\n");
-echo("</pre>\n");
+echo("Consumer Key=".$oauth_consumer_key."\n");
 
-if ( strlen($register_url) < 1 || strlen($reg_key) < 1 || strlen($reg_password) < 1 ) die("Cannot call register_url - insufficient data...\n");
+if ( strlen($register_url) < 1 || strlen($reg_key) < 1 || strlen($reg_password) < 1 ) lmsDie("Cannot call register_url - insufficient data...\n");
 
 unset($_SESSION['reg_key']);
 unset($_SESSION['reg_password']);
 $_SESSION['reg_key'] = $reg_key;
 $_SESSION['reg_password'] = $reg_password;
+
+// Now we are ready to send the registration.  Time to set up the key for the 
+// our side of the security contract.
+
+$key_sha256 = lti_sha256($oauth_consumer_key);
+echo("key_sha256=".$key_sha256."<br>");
+
+// A big issues here is that TCs choose the proxy guid, and we need for 
+// the proxy guids (i.e. oauth_consumer_key) to be unique.  So we mark
+// these with user_id and do not let a second TC slip in and take over
+// an existing key.   So the next few lines of code are really critical.
+// And we can neither use INSERT / UPDATE because we cannot add the user_id 
+// to the unique constraint.
+
+$oldproxy = $PDOX->rowDie(
+    "SELECT key_id, user_id
+        FROM {$CFG->dbprefix}lti_key
+        WHERE key_sha256 = :SHA LIMIT 1",
+    array(":SHA" => $key_sha256)
+);
+
+// Do we already have a key_entry?  If so - it must belong to this user
+// If it exists, we carefully update, making sure not to let a key slide by
+// for the wrong user.
+
+if ( is_array($oldproxy) ) {
+    if ( $oldproxy['user_id'] !== $_SESSION['id'] ) {
+        error_log("Registration key $oauth_consumer_key belongs to user_id=".$oldproxy['user_id'].
+            " requested by user_id=".$_SESSION['id']);
+        lmsDie("Registration key $oauth_consumer_key already exists.");
+    }
+    $retval = $PDOX->queryDie(
+        "UPDATE {$CFG->dbprefix}lti_key SET updated_at = NOW(),
+            new_secret = :SECRET, new_consumer_profile = :PROFILE
+            WHERE key_sha256 = :SHA and user_id = :UID",
+        array(":SECRET" => $shared_secret, ":PROFILE" => $tc_profile_json,
+            ":UID" => $_SESSION['id'], ":SHA" => $key_sha256)
+    );
+
+    if ( ! $retval->success ) {
+        lmsDie("Unable to UPDATE Registration key $oauth_consumer_key ".$retval->errorImplode);
+    }
+
+    echo_log("LTI2 Key $oauth_consumer_key updated.\n");
+
+// If we do not have a key, insert one, checking carefully for a failed insert
+// due to a unique constraint violation.  If this insert fails, it is likely
+// a race condition between competing INSERTs for the same key_id
+} else {
+    $retval = $PDOX->queryDie(
+        "INSERT INTO {$CFG->dbprefix}lti_key 
+            (key_sha256, key_key, user_id, new_secret, new_consumer_profile)
+        VALUES
+            (:SHA, :KEY, :UID, :SECRET, :PROFILE)",
+        array(":SHA" => $key_sha256, ":KEY" => $oauth_consumer_key, 
+            ":UID" => $_SESSION['id'], ":SECRET" => $shared_secret,
+            ":PROFILE" => $tc_profile_json)
+    );
+    if ( ! $retval->success ) {
+        lmsDie("Unable to INSERT Registration key $oauth_consumer_key ".$retval->errorImplode);
+    }
+    echo_log("LTI2 Key $oauth_consumer_key inserted.\n");
+}
+echo("</pre>\n");
+
+// Database all set up.   Lets register!
 
 $OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
 
