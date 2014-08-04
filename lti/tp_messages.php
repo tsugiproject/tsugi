@@ -11,30 +11,30 @@ $tool_proxy = <<< EOF
   "tool_profile": {
     "product_instance": {
       "product_info": {
-        "product_version": "0.3",
+        "product_version": "0.1",
         "technical_description": {
-          "default_value": "Simple LTI 2 PHP Implementation",
+          "default_value": "Tsugi PHP Hosting environment",
           "key": "tool.technical"
         },
         "product_name": {
-          "default_value": "LTI2 PHP Test",
+          "default_value": "TSUGI",
           "key": "tool.name"
         },
         "product_family": {
-          "code": "assessment-tool",
+          "code": "tsugi.org",
           "vendor": {
-            "website": "__REPLACE__",
-            "code": "sakaiproject.org",
+            "website": "http://www.tsugi.org",
+            "code": "tsugi.org",
             "name": {
-              "default_value": "Sakai",
+              "default_value": "Tsugi",
               "key": "tool.vendor.name"
             },
             "timestamp": "2013-05-13T09:08:16-04:00",
             "contact": {
-              "email": "info@sakaiproject.org"
+              "email": "info@tsugi.org"
             },
             "description": {
-              "default_value": "Sakai does many awesome things that are open source.",
+              "default_value": "Tsugi is a framework to host standards-base PHP applications.",
               "key": "tool.vendor.description"
             }
           }
@@ -47,7 +47,7 @@ $tool_proxy = <<< EOF
       "support": {
         "email": "helpdesk@sakaiproject.org"
       },
-      "guid": "fd75124a-140e-470f-944c-114d2d92bb40",
+      "guid": "lti2.example.com",
       "service_provider": {
         "support": {
           "email": "support@sakaiproject.org"

@@ -49,8 +49,13 @@ $CFG->dbprefix  = 't_';
 // features of this application.   You should change this.
 $CFG->adminpw = 'something-super-secret-2f518066bd757a289b543!';
 
-// This is a prefix applied to the tool registration codes for LTI 2.0
-// You may want to keep this default if you want LMS's to use
+// From LTI 2.0 spec: A globally unique identifier for the service provider. 
+// As a best practice, this value should match an Internet domain name 
+// assigned by ICANN, but any globally unique identifier is acceptable.
+$CFG->product_instance_guid = 'lti2.example.com';
+
+// For LTI 2.0 registrations: This is a prefix applied to the tool registration 
+// codes for LTI 2.0. You may want to keep this default if you want LMS's to use
 // the local equivalent for the tools hosted herein.
 $CFG->resource_type_prefix = 'tsugi_';
 

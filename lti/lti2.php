@@ -183,15 +183,18 @@ if ( $tp_profile == null ) {
 
 // Tweak the stock profile
 $tp_profile->tool_consumer_profile = $tc_profile_url;
-
-// I want this *not* to be unique per instance
-$tp_profile->tool_profile->product_instance->guid = "urn:sakaiproject:unit-test";
-$tp_profile->tool_profile->product_instance->service_provider->guid = $CFG->wwwroot;
-
-// Re-register
 $tp_profile->tool_profile->message[0]->path = $CFG->wwwroot;
-$tp_profile->tool_profile->product_instance->product_info->product_family->vendor->website = $cur_base;
-$tp_profile->tool_profile->product_instance->product_info->product_family->vendor->timestamp = "2013-07-13T09:08:16-04:00";
+
+// A globally unique identifier for the service provider. As a best practice, this value should match an Internet domain name assigned by ICANN, but any globally unique identifier is acceptable.
+$instance_guid = isset($CFG->product_instance_guid) ? $CFG->product_instance_guid : "lti2.example.com";
+$tp_profile->tool_profile->product_instance->guid = $instance_guid;
+
+$tp_profile->tool_profile->product_instance->support->email = $CFG->owneremail;
+$tp_profile->tool_profile->product_instance->service_provider->guid = $CFG->wwwroot;
+$tp_profile->tool_profile->product_instance->service_provider->support->email = $CFG->owneremail;
+$tp_profile->tool_profile->product_instance->service_provider->provider_name->default_value = $CFG->ownername;
+$tp_profile->tool_profile->product_instance->service_provider->description->default_value = $CFG->servicename;
+
 
 // Pull out our prototypical resource handler and clear it out
 $handler = $tp_profile->tool_profile->resource_handler[0];
