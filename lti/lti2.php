@@ -6,6 +6,7 @@ require_once $CFG->dirroot.'/lib/lms_lib.php';
 require_once 'tp_messages.php';
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\Net;
 
 session_start();
 header('Content-Type: text/html; charset=utf-8');
@@ -88,7 +89,8 @@ ksort($_POST);
 $output = "";
 foreach($_POST as $key => $value ) {
     if (get_magic_quotes_gpc()) $value = stripslashes($value);
-    $output = $output . htmlent_utf8($key) . "=" . htmlent_utf8($value) . " (".mb_detect_encoding($value).")\n";
+    $output = $output . htmlent_utf8($key) . "=" . htmlent_utf8($value) . 
+        " (".mb_detect_encoding($value).")\n";
 }
 $OUTPUT->togglePre("Raw POST Parameters", $output);
 
@@ -97,7 +99,8 @@ $output = "";
 ksort($_GET);
 foreach($_GET as $key => $value ) {
     if (get_magic_quotes_gpc()) $value = stripslashes($value);
-    $output = $output . htmlent_utf8($key) . "=" . htmlent_utf8($value) . " (".mb_detect_encoding($value).")\n";
+    $output = $output . htmlent_utf8($key) . "=" . htmlent_utf8($value) . 
+        " (".mb_detect_encoding($value).")\n";
 }
 if ( strlen($output) > 0 ) $OUTPUT->togglePre("Raw GET Parameters", $output);
 
@@ -119,7 +122,7 @@ $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
 $tc_profile_url = $_POST['tc_profile_url'];
 if ( strlen($tc_profile_url) > 1 ) {
 	echo("Retrieving profile from ".$tc_profile_url."\n");
-    $tc_profile_json = ltiDoGet($tc_profile_url);
+    $tc_profile_json = Net::doGet($tc_profile_url);
 	echo("Retrieved ".strlen($tc_profile_json)." characters.\n");
 	echo("</pre>\n");
     $OUTPUT->togglePre("Retrieved Consumer Profile",$tc_profile_json);
@@ -166,11 +169,8 @@ echo("\nFound an application/vnd.ims.lti.v2.toolproxy+json service - nice for us
 $tc_capabilities = $tc_profile->capability_offered;
 echo("Found ".count($tc_capabilities)." capabilities..\n");
 if ( count($tc_capabilities) < 1 ) die("No capabilities found!\n");
-echo("Optional money collection phase complete...\n");
-echo("<hr/>");
 
-$cur_url = curPageURL();
-$cur_base = str_replace("tp.php","",$cur_url);
+$cur_base = $CFG->wwwroot;
 
 $tp_profile = json_decode($tool_proxy);
 if ( $tp_profile == null ) {
@@ -184,19 +184,65 @@ if ( $tp_profile == null ) {
 // Tweak the stock profile
 $tp_profile->tool_consumer_profile = $tc_profile_url;
 
+// I want this *not* to be unique per instance
+$tp_profile->tool_profile->product_instance->guid = "urn:sakaiproject:unit-test";
+$tp_profile->tool_profile->product_instance->service_provider->guid = $CFG->wwwroot;
+
 // Re-register
-$tp_profile->tool_profile->message[0]->path = $cur_url;
+$tp_profile->tool_profile->message[0]->path = $CFG->wwwroot;
 $tp_profile->tool_profile->product_instance->product_info->product_family->vendor->website = $cur_base;
 $tp_profile->tool_profile->product_instance->product_info->product_family->vendor->timestamp = "2013-07-13T09:08:16-04:00";
 
-// I want this *not* to be unique per instance
-$tp_profile->tool_profile->product_instance->guid = "urn:sakaiproject:unit-test";
+// Pull out our prototypical resource handler and clear it out
+$handler = $tp_profile->tool_profile->resource_handler[0];
+$tp_profile->tool_profile->resource_handler = array();
+$blank_handler = json_encode($handler);
+echo("=================\n");
+// echo(jsonIndent($blank_handler));
 
-$tp_profile->tool_profile->product_instance->service_provider->guid = "http://www.sakaiproject.org/";
+// Scan the tools folders for registration settings
+echo("Searching for available tools...<br/>\n");
+$tools = findFiles("register.php","../");
+if ( count($tools) < 1 ) {
+    die("No register.php files found...<br/>\n");
+}
 
-// Launch Request
-$tp_profile->tool_profile->resource_handler[0]->message[0]->path = "tool.php";
-$tp_profile->tool_profile->resource_handler[0]->resource_type->code = "sakai-api-test-01";
+$toolcount = 0;
+foreach($tools as $tool ) {
+    $path = str_replace("../","",$tool);
+    echo("Checking $path ...<br/>\n");
+    unset($REGISTER_LTI2);
+    require($tool);
+    if ( isset($REGISTER_LTI2) && is_array($REGISTER_LTI2) ) {
+        $newhandler = json_decode($blank_handler);
+        if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) && 
+            isset($REGISTER_LTI2['description']) ) {
+            $newhandler->name = $REGISTER_LTI2['name'];
+            $newhandler->short_name = $REGISTER_LTI2['short_name'];
+            $newhandler->description = $REGISTER_LTI2['description'];
+        } else {
+            die("Missing required name, short_name, and description in ".$tool);
+        }
+
+        $script = isset($REGISTER_LTI2['script']) ? $REGISTER_LTI2['script'] : "index.php";
+
+        $code = isset($CFG->resource_type_prefix) ? $CFG->resource_type_prefix : '';
+        if ( isset($REGISTER_LTI2->code) ) {
+            $code .= $REGISTER_LTI2->code;
+        } else {
+            $code .= str_replace("/","_",str_replace("/register.php","",$path));
+        }
+        $newhandler->resource_type->code = $code;
+        $newhandler->message[0]->path = "/".str_replace("register.php", $script, $path);
+        $tp_profile->tool_profile->resource_handler[] = $newhandler;
+        $toolcount++;
+    }
+}
+
+if ( $toolcount < 1 ) {
+    die("No tools to register..");
+}
+
 
 // Ask for the kitchen sink...
 foreach($tc_capabilities as $capability) {
@@ -208,8 +254,8 @@ foreach($tc_capabilities as $capability) {
 // Cause an error on registration
 // $tp_profile->tool_profile->resource_handler[0]->message[0]->enabled_capability[] = "Give.me.the.database.password";
 
-$tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $cur_base;
-$tp_profile->tool_profile->base_url_choice[0]->default_base_url = $cur_base;
+$tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
+$tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
 
 $tp_profile->security_contract->shared_secret = 'secret';
 $tp_services = array();
@@ -248,12 +294,12 @@ $OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
 
 $response = LTI::sendOAuthBodyPOST($register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body);
 
-$OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(netGetBodySentDebug()));
+$OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(Net::getBodySentDebug()));
 
 global $LastOAuthBodyBaseString;
 $OUTPUT->togglePre("Registration Request Base String",$LastOAuthBodyBaseString);
 
-$OUTPUT->togglePre("Registration Response Headers",htmlent_utf8(netGetBodyReceivedDebug()));
+$OUTPUT->togglePre("Registration Response Headers",htmlent_utf8(Net::getBodyReceivedDebug()));
 
 $OUTPUT->togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
 

@@ -148,7 +148,7 @@ $tool_proxy = <<< EOF
         },
         "short_name": {
           "default_value": "Sakai Unit",
-          "key": "resource.name"
+          "key": "resource.short.name"
         },
         "description": {
           "default_value": "Sakai PHP Unit Test Decription",

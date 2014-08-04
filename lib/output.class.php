@@ -217,11 +217,11 @@ class Output {
     function togglePre($title, $html) {
         global $div_id;
         $div_id = $div_id + 1;
-        echo('<strong>'.htmlent_utf8($title));
+        echo('<strong>'.htmlpre_utf8($title));
         echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">Toggle</a>)</strong>'."\n");
         echo(' ('.strlen($html).' characters)'."\n");
         echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
-        echo(htmlent_utf8($html));
+        echo(htmlpre_utf8($html));
         echo("</pre><br/>\n");
     }
 

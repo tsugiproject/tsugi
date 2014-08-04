@@ -49,6 +49,11 @@ $CFG->dbprefix  = 't_';
 // features of this application.   You should change this.
 $CFG->adminpw = 'something-super-secret-2f518066bd757a289b543!';
 
+// This is a prefix applied to the tool registration codes for LTI 2.0
+// You may want to keep this default if you want LMS's to use
+// the local equivalent for the tools hosted herein.
+$CFG->resource_type_prefix = 'tsugi_';
+
 // When this is true it enables a Developer test harness that can launch
 // tools using LTI.  It allows quick testing without setting up an LMS
 // course, etc.
