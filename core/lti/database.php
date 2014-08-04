@@ -314,18 +314,18 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    if ( $oldversion < 201408050745 ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD new_secret VARCHAR(4016) NULL";
+    if ( $oldversion < 201408050800 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD new_secret VARCHAR(4016) NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
 
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD consumer_profile TEXT NULL";
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD consumer_profile TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
  
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD new_consumer_profile TEXT NULL";
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD new_consumer_profile TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
@@ -333,7 +333,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201408050745;
+    return 201408050800;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
