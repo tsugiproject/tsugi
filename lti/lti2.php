@@ -217,9 +217,9 @@ foreach($tools as $tool ) {
         $newhandler = json_decode($blank_handler);
         if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) && 
             isset($REGISTER_LTI2['description']) ) {
-            $newhandler->name = $REGISTER_LTI2['name'];
-            $newhandler->short_name = $REGISTER_LTI2['short_name'];
-            $newhandler->description = $REGISTER_LTI2['description'];
+            $newhandler->name->default_value = $REGISTER_LTI2['name'];
+            $newhandler->short_name->default_value = $REGISTER_LTI2['short_name'];
+            $newhandler->description->default_value = $REGISTER_LTI2['description'];
         } else {
             die("Missing required name, short_name, and description in ".$tool);
         }
