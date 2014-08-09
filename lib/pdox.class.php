@@ -131,12 +131,6 @@ class PDOX extends \PDO {
         $stmt = self::queryReturnError($sql, $arr, $error_log);
         if ( ! $stmt->success ) {
             error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
-            if ( isset($CFG) && isset($CFG->dirroot) && isset($CFG->DEVELOPER) && $CFG->DEVELOPER) {
-                $sanity = $CFG->dirroot."/sanity-db.php";
-                if ( file_exists($sanity) ) {
-                    include_once($sanity);
-                }
-            }
             die($stmt->errorImplode); // with error_log
         }
         return $stmt;
