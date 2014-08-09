@@ -155,7 +155,7 @@ class PDOX extends \PDO {
      * Prepare and execute an SQL query and retrieve all the rows as an array
      *
      * While this might seem like a bad idea, the coding style for Tsugi is
-     * make every query a paged query with a limited number of records to
+     * to make every query a paged query with a limited number of records to
      * be retrieved to in most cases, it is quite reasonable to retrieve
      * 10-30 rows into an array.
      *
