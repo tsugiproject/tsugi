@@ -9,6 +9,7 @@ require_once("crypt/aesctr.class.php");
 require_once("oauth.class.php");
 require_once("lti.class.php");
 require_once("ltix.class.php");
+require_once("settings.class.php");
 require_once("crudform.class.php");
 require_once("table.class.php");
 require_once("output.class.php");
