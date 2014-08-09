@@ -304,8 +304,8 @@ class Config {
         $this->dirroot = $dirroot;
         $this->wwwroot = $wwwroot;
         $this->staticroot = $wwwroot;
-        if ( $dataroot == false ) {
-            $this->dataroot = $dirroot + '/_files/a';
+        if ( $dataroot === false ) {
+            $this->dataroot = $dirroot . '/_files/a';
         } else {
             $this->dataroot = $dataroot;
         }
