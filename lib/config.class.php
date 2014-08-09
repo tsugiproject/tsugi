@@ -19,9 +19,14 @@ class Config {
      * Do not add a trailing slash to this string
      * If you get this value wrong, the first problem will
      * be that CSS files will not load
+     *
+     * If you are using MAMP, you should set this to something 
+     * like:
+     *
+     *     $wwwroot = 'http://localhost:8888/tsugi';
+     *
      */
     public $wwwroot = 'http://localhost/tsugi';
-    // public $wwwroot = 'http://localhost:8888/tsugi';   // For MAMP
 
     /**
      * This is how the system will refer to itself.
@@ -30,10 +35,24 @@ class Config {
 
     /**
      * Information on the owner of this system
+     *
+     * The $ownername and $owneremail can be generic values like
+     * "Support Team at Example Com" and "support@example.com"
      */
-    public $ownername = false; // 'Charles Severance';
-    public $owneremail = false; // 'request@tsugi.org';
-    public $providekeys = false; // Wether or not we accept key requests on this system
+    public $ownername = false;
+    public $owneremail = false;
+
+    /**
+     * Whether or not we accept key requests on this system
+     *
+     * Tsugi has a workflow to allow users to come directly to
+     * the Tsugi web site and request an LTI 1.x or 2.x key.
+     * If this value is 'false', this feature is not available.
+     * To enable this feature, you must configure both the 
+     * $ownername and $owneremail parameters so the system
+     * knows who to send the mail for key requests to.
+     */
+    public $providekeys = false; 
 
     /** 
      * Database connection information to configure the PDO connection
@@ -41,9 +60,22 @@ class Config {
      * You need to point this at a database with am account and password
      * that can create tables.   To make the initial tables go into Admin
      * to run the upgrade.php script which auto-creates the tables.
+     *
+     * As an example, to run this on MAMP with its database server on
+     * port 8889 you might use:
+     *
+     *     $pdo = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi';
+     *
+     * You will need to create a database, user, and password
+     * like this:
+     *
+     *     CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
+     *     GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
+     *     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+     *
+     * Of course clever people would choose wiser passwords.
      */
     public $pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
-    // public $pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
     public $dbuser    = 'ltiuser';
     public $dbpass    = 'ltipassword';
 
