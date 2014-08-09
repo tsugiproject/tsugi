@@ -4,29 +4,35 @@
 // and then edit.  Since this has passwords and other secrets
 // never check config.php into a source repository
 
+
+// This is the URL where the software is hosted
+// Do not add a trailing slash to this string
+$wwwroot = 'http://localhost/tsugi';  /// For normal
+// $wwwroot = 'http://localhost:8888/tsugi';   // For MAMP
+
+$dirroot = realpath(dirname(__FILE__));
+require_once($dirroot."/lib/config.class.php");
+
 // We store the configuration in a global object
+// Additional documentation on these fields is 
+// available in that class or in the PHPDoc for that class
 unset($CFG);
 global $CFG;
-$CFG = new stdClass();
+$CFG = new \Tsugi\Config\Config($dirroot, $wwwroot);
+unset($wwwroot);
+unset($dirroot);
 
 // Set to true to redirect to the upgrading.php script
 // Also copy upgrading-dist.php to upgrading.php and add your message
 $CFG->upgrading = false;
 
 // This is how the system will refer to itself.
-$CFG->servicename = 'TSUGI (dev)';
+$CFG->servicename = 'TSUGI';
 
 // Information on the owner of this system
-$CFG->ownername = false; // 'Charles Severance';
-$CFG->owneremail = false; // 'request@tsugi.org';
-$CFG->providekeys = false; // Wether or not we accept key requests on this system
-
-// This is the URL where the software is hosted
-// Do not add a trailing slash to this string
-// If you get this value wrong, the first problem will
-// be that CSS files will not load
-$CFG->wwwroot = 'http://localhost/tsugi';
-// $CFG->wwwroot = 'http://localhost:8888/tsugi';   // For MAMP
+$CFG->ownername = false;  // 'Charles Severance'
+$CFG->owneremail = false; // 'csev@example.com'
+$CFG->providekeys = false;  // true
 
 // Database connection information to configure the PDO connection
 // You need to point this at a database with am account and password
@@ -43,88 +49,47 @@ $CFG->dbpass    = 'ltipassword';
 // can make a separate database for each instance of TSUGI.
 // This allows you to host multiple instances of TSUGI in a
 // single database if your hosting choices are limited.
-$CFG->dbprefix  = 't_';
+$CFG->dbprefix  = '';
 
 // This is the PW that you need to access the Administration
-// features of this application.   You should change this.
-$CFG->adminpw = 'something-super-secret-2f518066bd757a289b543!';
+// features of this application.
+$CFG->adminpw = 'warning:please-change-adminpw-89b543!';
 
 // From LTI 2.0 spec: A globally unique identifier for the service provider. 
 // As a best practice, this value should match an Internet domain name 
 // assigned by ICANN, but any globally unique identifier is acceptable.
 $CFG->product_instance_guid = 'lti2.example.com';
 
-// For LTI 2.0 registrations: This is a prefix applied to the tool registration 
-// codes for LTI 2.0. You may want to keep this default if you want LMS's to use
-// the local equivalent for the tools hosted herein.
-$CFG->resource_type_prefix = 'tsugi_';
-
 // When this is true it enables a Developer test harness that can launch
 // tools using LTI.  It allows quick testing without setting up an LMS
 // course, etc.
 $CFG->DEVELOPER = true;
-
-// Default time zone - see http://www.php.net/....
-$CFG->timezone = 'America/New_York';
-
-// Most of the fields below can be left as-is
-
-// This allows you to serve the materials in the static folder using
-// a content distribution network - it is normal and typical for this
-// to be the same as wwwroot
-$CFG->staticroot = $CFG->wwwroot;
-
-// This should not be changed.  It allows included files to reference
-// library files with an absolute path.
-$CFG->dirroot = realpath(dirname(__FILE__));
-
-// This is where TSUGI will store uploaded files.  It is ideal for this
-// not to be in the same folder as the rest of the application, but you
-// may have no other choice to leave this unset (default)
-// Make sure that this folder is readable and writable by the web server.
-// $CFG->dataroot = $CFG->dirroot . '/_files/a';
-
-// These values configure the cookie used to record the overall
-// login in a long-lived encrypted cookie.   Look at the library
-// code createSecureCookie() for more detail on how these operate.
-$CFG->cookiesecret = 'something-highly-secret-2f518066bd757a289b543';
-$CFG->cookiename = 'TSUGIAUTO';
-$CFG->cookiepad = '390b246ea9';
-
-// Where the bulk mail comes from - should be a real address with a wildcard box you check
-$CFG->maildomain = false;  // Don't send mail
-// $CFG->maildomain = 'mail.example.com';
-$CFG->mailsecret = '1234pleasechangeme';
-$CFG->maileol = "\n";  // Depends on your mailer - may need to be \r\n
-
-// This is used to make sure that our constructed session ids
-// based on resource_link_id, oauth_consumer_key, etc are not
-// predictable or guessable.   Just make this a long random string.
-// See LTIX::getCompositeKey() for detail on how this operates.
-$CFG->sessionsalt = "something-very-secret-2f518066bd757a289b543";
-
-// Set to false if you do not want analytics - this uses the ga.js
-// analytics and sets three custom parameters
-// (oauth_consumer_key, context_id, and context_title)
-// is they are set.
-$CFG->analytics_key = false;  // "UA-423997-16";
-$CFG->analytics_name = false; // "dr-chuck.com";
-
-// This makes it so that when you are completely disconnected, various tools
-// will not access network resources (like Google's map library)
-// Also the Google login will be faked.  Don't run this in production.
-$CFG->OFFLINE = false;
 
 // This allows you to make your own tool folders.  These are scanned
 // for database.php and index.php files to do automatic table creation
 // as well as making lists of tools in various UI places.
 $CFG->tool_folders = array("core", "mod", "samples");
 
-// Extend the session time - in seconds
-$CFG->sessionlifetime = 3000;
+// These values configure the cookie used to record the overall
+// login in a long-lived encrypted cookie.   Look at the library
+// code createSecureCookie() for more detail on how these operate.
+$CFG->cookiesecret = 'warning:please-change-cookie-secret-a289b543';
+$CFG->cookiename = 'TSUGIAUTO';
+$CFG->cookiepad = '390b246ea9';
+
+// Where the bulk mail comes from - should be a real address with a wildcard box you check
+$CFG->maildomain = false; // 'mail.example.com';
+$CFG->mailsecret = 'warning:please-change-mailsecret-92ds29';
+$CFG->maileol = "\n";  // Depends on your mailer - may need to be \r\n
+
+// This is ued to make sure that out constructed session ids
+// based on resource_link_id, oauth_consumer_key, etc are not
+// predictable or guessable.   Just make this a long random string.
+// See LTIX::getCompositeKey() for detail on how this operates.
+$CFG->sessionsalt = "warning:please-change-sessionsalt-89b543";
 
 // Leave these here
-require_once $CFG->dirroot.'/setup.php';
-require_once $CFG->dirroot.'/lib/lms_lib.php';
+require_once $CFG->dirroot."/setup.php";
+require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // No trailing tag to avoid inadvertent white space

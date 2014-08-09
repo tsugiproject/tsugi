@@ -4,7 +4,7 @@ require_once("../lib/lms_lib.php");
 
 $REDIRECTED = false;
 
-if ( strpos($CFG->adminpw,"something-super-secret") === 0 ) {
+if ( strpos($CFG->adminpw,"warning:") === 0 ) {
     unset($_SESSION["admin"]);
     die('Please set an $CFG->adminpw to a value');
 }
