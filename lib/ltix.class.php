@@ -249,7 +249,7 @@ class LTIX Extends LTI {
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret,
             c.context_id, c.title AS context_title,
-            l.link_id, l.title AS link_title, L.settings AS link_settings,
+            l.link_id, l.title AS link_title, l.settings AS link_settings,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
             m.membership_id, m.role, m.role_override";
