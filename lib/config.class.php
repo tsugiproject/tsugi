@@ -55,7 +55,10 @@ class Config {
      * can be short like "t_" and can even be an empty string if you
      * can make a separate database for each instance of TSUGI.
      * This allows you to host multiple instances of TSUGI in a
-     * single database if your hosting choices are limited.
+     * single database if your hosting choices are limited.  For 
+     * example, you might only have one MySql database and host
+     * Moodle tables with an "mdl_" prefix and Tsugi tables with 
+     * a "t_" prefix.
      */
     public $dbprefix  = 't_';
 
