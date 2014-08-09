@@ -215,7 +215,7 @@ class Config {
      * Configure the security for constructing LTI Launch session IDs
      *
      * Since we want to reuse sessions across multiple LTI launches
-     * we construct out session ids from launch data.  See LTIX::getCompositeKey() 
+     * we construct our session ids from launch data.  See LTIX::getCompositeKey() 
      * for detail on how this operates.  But we do not want folks 
      * to be able to guess a session id solely on the launch data so 
      * we add a bit of secret info to each pre-hash string before we hash
