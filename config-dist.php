@@ -1,9 +1,8 @@
 <?php
 
 // Configuration file - copy from config-dist.php to config.php
-// and then edit.  Since this has passwords and other secrets
+// and then edit.  Since config.php has passwords and other secrets
 // never check config.php into a source repository
-
 
 // This is the URL where the software is hosted
 // Do not add a trailing slash to this string
