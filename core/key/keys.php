@@ -5,7 +5,7 @@ require_once("../../config.php");
 require_once($CFG->dirroot."/pdo.php");
 require_once($CFG->dirroot."/lib/lms_lib.php");
 
-use \Tsugi\Core\Table;
+use \Tsugi\UI\Table;
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
     $_SESSION['error'] = _("This service does not accept instructor requests for keys");

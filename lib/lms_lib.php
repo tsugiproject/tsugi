@@ -8,6 +8,10 @@ require_once("crypt/aesctr.class.php");
 
 require_once("oauth.class.php");
 require_once("lti.class.php");
+
+require_once("user.class.php");
+require_once("context.class.php");
+require_once("link.class.php");
 require_once("ltix.class.php");
 require_once("settings.class.php");
 require_once("crudform.class.php");
@@ -599,7 +603,7 @@ function mailSend($to, $subject, $message, $id, $token) {
     return mail($to,$subject,$msg,$headers);
 }
 
-$OUTPUT = new \Tsugi\Core\Output();
+$OUTPUT = new \Tsugi\UI\Output();
 
 function curPageURL() {
     $pageURL = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on")

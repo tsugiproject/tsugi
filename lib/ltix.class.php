@@ -614,7 +614,7 @@ class LTIX Extends LTI {
 
         // Populate the $USER $CONTEXT and $LINK objects
         if ( ! is_object($USER) ) {
-            $USER = new \stdClass();
+            $USER = new \Tsugi\Core\User();
             if (isset($LTI['user_id']) ) $USER->id = $LTI['user_id'];
             if (isset($LTI['user_sha256']) ) $USER->sha256 = $LTI['user_sha256'];
             if (isset($LTI['user_email']) ) $USER->email = $LTI['user_email'];
@@ -628,14 +628,14 @@ class LTIX Extends LTI {
         }
 
         if ( ! is_object($CONTEXT) ) {
-            $CONTEXT = new \stdClass();
+            $CONTEXT = new \Tsugi\Core\Context();
             if (isset($LTI['context_id']) ) $CONTEXT->id = $LTI['context_id'];
             if (isset($LTI['context_sha256']) ) $CONTEXT->sha256 = $LTI['context_sha256'];
             if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
         }
 
         if ( ! is_object($LINK) ) {
-            $LINK = new \stdClass();
+            $LINK = new \Tsugi\Core\Link();
             if (isset($LTI['link_id']) ) $LINK->id = $LTI['link_id'];
             if (isset($LTI['link_sha256']) ) $LINK->sha256 = $LTI['link_sha256'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];

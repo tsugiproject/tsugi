@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\Core;
+namespace Tsugi\UI;
 
 /**
  * This is a class that captures the output conventions of Tusgi.
