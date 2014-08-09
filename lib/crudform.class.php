@@ -26,30 +26,17 @@ namespace Tsugi\UI;
 class CrudForm {
 
     /**
-     * Indicates that an handleInsert() was successful
+     * Indicates that CRUD operation was successful
      */
-    const INSERT_SUCCESS = 0;
+    const CRUD_SUCCESS = 0;
     /**
-     * Indicates that an handleInsert() failed (likely an SQL problem)
+     * Indicates that CRUD operation failed (likely an SQL problem)
      */
-    const INSERT_FAIL = 1;
+    const CRUD_FAIL = 1;
     /**
-     * Indicates that an handleInsert() could not be done because it was missing data.
+     * Indicates that a CRUD operation could not be done because it was missing data.
      */
-    const INSERT_NONE = 2;
-
-    /**
-     * Indicates that an handleUpdate() was successful
-     */
-    const UPDATE_SUCCESS = 0;
-    /**
-     * Indicates that an handleUpdate() failed (likely an SQL problem)
-     */
-    const UPDATE_FAIL = 1;
-    /**
-     * Indicates that an handleUpdate() could not be done because it was missing data.
-     */
-    const UPDATE_NONE = 2;
+    const CRUD_NONE = 2;
 
     /**
      *  Generate the HTML for an insert form.
@@ -126,7 +113,7 @@ class CrudForm {
                     $key = str_replace("_sha256", "_key", $field);
                     if ( ! isset($_POST[$key]) ) {
                         $_SESSION['success'] = "Missing POST field: ".$key;
-                        return self::INSERT_FAIL;
+                        return self::CRUD_FAIL;
                     }
                     $value = lti_sha256($_POST[$key]);
                 } else {
@@ -134,7 +121,7 @@ class CrudForm {
                         $value = $_POST[$field];
                     } else {
                         $_SESSION['success'] = "Missing POST field: ".$field;
-                        return self::INSERT_FAIL;
+                        return self::CRUD_FAIL;
                     }
                 }
                 $parms[':'.$i] = $value;
@@ -143,9 +130,9 @@ class CrudForm {
             $sql = "INSERT INTO $tablename \n( $names ) VALUES ( $values )";
             $stmt = $PDOX->queryDie($sql, $parms);
             $_SESSION['success'] = _m("Record Inserted");
-            return self::INSERT_SUCCESS;
+            return self::CRUD_SUCCESS;
         }
-        return self::INSERT_NONE;
+        return self::CRUD_NONE;
     }
 
     /**
@@ -294,7 +281,7 @@ class CrudForm {
 
         if ( !isset($_REQUEST[$key]) ) {
             $_SESSION['error'] = "Required $key= parameter";
-            return self::UPDATE_FAIL;
+            return self::CRUD_FAIL;
         }
 
         // Inner WHERE clause
@@ -312,7 +299,7 @@ class CrudForm {
         $row = $PDOX->rowDie($sql, $query_parms);
         if ( $row === false ) {
             $_SESSION['error'] = "Unable to retrieve row";
-            return self::UPDATE_FAIL;
+            return self::CRUD_FAIL;
         }
 
         // We know we are OK because we already retrieved the row
@@ -320,7 +307,7 @@ class CrudForm {
             $sql = "DELETE FROM $tablename WHERE $where_clause";
             $stmt = $PDOX->queryDie($sql, $query_parms);
             $_SESSION['success'] = _m("Record deleted");
-            return self::UPDATE_SUCCESS;
+            return self::CRUD_SUCCESS;
         }
 
         // The update
@@ -339,7 +326,7 @@ class CrudForm {
                 }
                 if ( !isset($_POST[$field]) ) {
                     $_SESSION['error'] = _m("Missing POST field: ").$field;
-                    return self::UPDATE_FAIL;
+                    return self::CRUD_FAIL;
                 }
                 $set .= $field."= :".$i;
                 $parms[':'.$i] = $_POST[$field];
@@ -347,7 +334,7 @@ class CrudForm {
             $sql = "UPDATE $tablename SET $set WHERE $where_clause";
             $stmt = $PDOX->queryDie($sql, $parms);
             $_SESSION['success'] = "Record Updated";
-            return self::UPDATE_SUCCESS;
+            return self::CRUD_SUCCESS;
         }
         return $row;
     }

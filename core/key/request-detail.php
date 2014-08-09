@@ -34,7 +34,7 @@ if ( isAdmin() ) {
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
     $query_fields, $allow_edit, $allow_delete);
 
-if ( $row === CrudForm::UPDATE_FAIL || $row === CrudForm::UPDATE_SUCCESS ) {
+if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     header("Location: ".$from_location);
     return;
 }

@@ -23,7 +23,7 @@ if ( isAdmin() ) {
 }
 
 $retval = CrudForm::handleInsert($tablename, $fields);
-if ( $retval == CrudForm::INSERT_SUCCESS || $retval == CrudForm::INSERT_FAIL ) {
+if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
     header("Location: $from_location");
     return;
 }
