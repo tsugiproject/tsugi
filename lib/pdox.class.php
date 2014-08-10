@@ -95,7 +95,7 @@ class PDOX extends \PDO {
             $message = $e->getMessage();
             if ( $error_log ) error_log($message);
         }
-        if ( ! is_object($q) ) $q = stdClass();
+        if ( ! is_object($q) ) $q = new \stdClass();
         if ( isset( $q->success ) ) {
             error_log("\PDO::Statement should not have success member");
             die("\PDO::Statement should not have success member"); // with error_log
