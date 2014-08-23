@@ -8,9 +8,10 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_context",
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_key",
+"drop table if exists {$CFG->dbprefix}lti_nonce",
 "drop table if exists {$CFG->dbprefix}profile");
 
-// Note that the VARCHAR(4096) xxx_key fields are UNIQUE but not
+// Note that the TEXT xxx_key fields are UNIQUE but not
 // marked as UNIQUE because of MySQL key index length limitations.
 
 $DATABASE_INSTALL = array(
@@ -18,21 +19,24 @@ array( "{$CFG->dbprefix}lti_key",
 "create table {$CFG->dbprefix}lti_key (
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
     key_sha256          CHAR(64) NOT NULL UNIQUE,
-    key_key             VARCHAR(4096) NOT NULL,
+    key_key             TEXT NOT NULL,
 
-    secret              VARCHAR(4096) NULL,
-    new_secret          VARCHAR(4096) NULL,
+    secret              TEXT NULL,
+    new_secret          TEXT NULL,
 
     -- This is the owner of this key - it is not a foreign key
     -- on purpose to avoid potential circular foreign keys
     -- This is null for LTI1 and the user_id for LTI2 keys
     -- In LTI2, key_key is chosen by the TC so we must not allow
     -- One TC to take over another's key_key - this must be
-    -- checked carefully in a transation during LTI 2 registration
+    -- checked carefully in a transaction during LTI 2 registration
     user_id             INTEGER NULL,
 
     consumer_profile    TEXT NULL,
     new_consumer_profile  TEXT NULL,
+
+    tool_profile    TEXT NULL,
+    new_tool_profile  TEXT NULL,
 
     json                TEXT NULL,
     settings            TEXT NULL,
@@ -47,11 +51,11 @@ array( "{$CFG->dbprefix}lti_context",
 "create table {$CFG->dbprefix}lti_context (
     context_id          INTEGER NOT NULL AUTO_INCREMENT,
     context_sha256      CHAR(64) NOT NULL,
-    context_key         VARCHAR(4096) NOT NULL,
+    context_key         TEXT NOT NULL,
 
     key_id              INTEGER NOT NULL,
 
-    title               VARCHAR(4096) NULL,
+    title               TEXT NULL,
 
     json                TEXT NULL,
     settings            TEXT NULL,
@@ -71,11 +75,11 @@ array( "{$CFG->dbprefix}lti_link",
 "create table {$CFG->dbprefix}lti_link (
     link_id             INTEGER NOT NULL AUTO_INCREMENT,
     link_sha256         CHAR(64) NOT NULL,
-    link_key            VARCHAR(4096) NOT NULL,
+    link_key            TEXT NOT NULL,
 
     context_id          INTEGER NOT NULL,
 
-    title               VARCHAR(4096) NULL,
+    title               TEXT NULL,
 
     json                TEXT NULL,
     settings            TEXT NULL,
@@ -95,13 +99,13 @@ array( "{$CFG->dbprefix}lti_user",
 "create table {$CFG->dbprefix}lti_user (
     user_id             INTEGER NOT NULL AUTO_INCREMENT,
     user_sha256         CHAR(64) NOT NULL,
-    user_key            VARCHAR(4096) NOT NULL,
+    user_key            TEXT NOT NULL,
 
     key_id              INTEGER NOT NULL,
     profile_id          INTEGER NOT NULL,
 
-    displayname         VARCHAR(4096) NULL,
-    email               VARCHAR(4096) NULL,
+    displayname         TEXT NULL,
+    email               TEXT NULL,
     locale              CHAR(63) NULL,
     subscribe           SMALLINT NULL,
 
@@ -150,7 +154,7 @@ array( "{$CFG->dbprefix}lti_service",
 "create table {$CFG->dbprefix}lti_service (
     service_id          INTEGER NOT NULL AUTO_INCREMENT,
     service_sha256      CHAR(64) NOT NULL,
-    service_key         VARCHAR(4096) NOT NULL,
+    service_key         TEXT NOT NULL,
 
     key_id              INTEGER NOT NULL,
 
@@ -175,13 +179,13 @@ array( "{$CFG->dbprefix}lti_result",
     link_id            INTEGER NOT NULL,
     user_id            INTEGER NOT NULL,
 
-    sourcedid          VARCHAR(4096) NOT NULL,
+    sourcedid          TEXT NOT NULL,
     sourcedid_sha256   CHAR(64) NOT NULL,
 
     service_id         INTEGER NULL,
 
     grade              FLOAT NULL,
-    note               VARCHAR(4096) NULL,
+    note               TEXT NULL,
     server_grade       FLOAT NULL,
 
     json               TEXT NULL,
@@ -210,18 +214,24 @@ array( "{$CFG->dbprefix}lti_result",
     PRIMARY KEY (result_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+array( "{$CFG->dbprefix}lti_nonce",
+"create table {$CFG->dbprefix}lti_nonce (
+    nonce          CHAR(128) NOT NULL,
+    created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
 // Profile is denormalized and not tightly connected to allow
 // for reconnecting
 array( "{$CFG->dbprefix}profile",
 "create table {$CFG->dbprefix}profile (
     profile_id          INTEGER NOT NULL AUTO_INCREMENT,
     profile_sha256      CHAR(64) NOT NULL UNIQUE,
-    profile_key         VARCHAR(4096) NOT NULL,
+    profile_key         TEXT NOT NULL,
 
     key_id              INTEGER NOT NULL,
 
-    displayname         VARCHAR(4096) NULL,
-    email               VARCHAR(4096) NULL,
+    displayname         TEXT NULL,
+    email               TEXT NULL,
     locale              CHAR(63) NULL,
     subscribe           SMALLINT NULL,
 
@@ -253,6 +263,21 @@ $DATABASE_POST_CREATE = function($table) {
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
     }
+
+    if ( $table == "{$CFG->dbprefix}lti_nonce") {
+        $sql = "CREATE EVENT IF NOT EXISTS {$CFG->dbprefix}lti_nonce_auto 
+            ON SCHEDULE EVERY 1 HOUR DO
+            DELETE FROM {$CFG->dbprefix}lti_nonce WHERE created_at < (UNIX_TIMESTAMP() - 3600)";
+        error_log("Post-create: ".$sql);
+        echo("Post-create: ".$sql."<br/>\n");
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal error creating event: ".$q->errorImplode;
+            error_log($message);
+            echo($message);
+        }
+    }
+
 };
 
 $DATABASE_UPGRADE = function($oldversion) {
@@ -331,9 +356,22 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Add fields to line up with SPV's tables as much as possible
+    if ( $oldversion < 201408230900 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD new_tool_profile TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD tool_profile TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201408050800;
+    return 201408230900;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
