@@ -10,26 +10,14 @@ use \Tsugi\Core\Settings;
 
 // Sanity checks
 $LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id', 'result_id'));
-$user_id = $USER->id;
 $p = $CFG->dbprefix;
 
-$oldsettings = Settings::linkGetAll();
-
-// Handle incoming settings POST data
-if ( isset($_POST['settings_internal_post']) && $USER->instructor ) {
-    $newsettings = array();
-    foreach ( $_POST as $k => $v ) {
-        if ( $k == session_name() ) continue;
-        if ( $k == 'settings_internal_post' ) continue;
-        $newsettings[$k] = $v;
-    }
-    // Only update settings if they change
-    if ( array_diff_assoc($oldsettings,$newsettings) ) {
-        Settings::linkSetAll($newsettings);
-        header( 'Location: '.addSession('index.php?howdysuppress=1') ) ;
-        return;
-    }
+if ( $OUTPUT->handleSettingsPost() ) {
+    header( 'Location: '.addSession('index.php?howdysuppress=1') ) ;
+    return;
 }
+
+$oldsettings = Settings::linkGetAll();
 
 // Get the current user's grade data
 $row = gradeLoad();
@@ -553,9 +541,7 @@ if ( $dueDate->message ) {
         echo('<button onclick="resetcode()" type="button">Reset Code</button> ');
     }
     echo('<button onclick="$(\'#info\').modal();return false;" type="button"><span class="glyphicon glyphicon-info-sign"></span></button>'."\n");
-    if ( $USER->instructor ) {
-        echo('<button onclick="$(\'#settings\').modal();return false;" type="button"><span class="glyphicon glyphicon-pencil"></span></button>'."\n");
-    }
+    if ( $USER->instructor ) $OUTPUT->settingsButton();
     $OUTPUT->doneButton();
     if ( $USER->instructor ) {
         if ( $EX === false ) {

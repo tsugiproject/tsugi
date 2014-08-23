@@ -38,6 +38,9 @@ namespace Tsugi\UI;
  * You can look at the various bits of sample code in the mod and other
  * tool folders to see patterns of the use of this class.
  */
+
+use \Tsugi\Core\Settings;
+
 class Output {
 
     function flashMessages() {
@@ -177,35 +180,33 @@ class Output {
         }  // if analytics is on...
     }
 
-    function doneButton() {
-        $url = false;
-        if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
-            $url = $_SESSION['lti_post']['custom_done'];
-        } else if ( isset($_GET["done"]) ) {
-            $url = $_GET['done'];
+    /**
+      * Emit a properly styled done button for use in the launched frame/window
+      *
+      * This is a bit tricky because custom settings can control the "Done" 
+      * behavior.  These settings can come from one of three places: (1) 
+      * in the link settings, (2) from a custom parameter named 'done', or
+      * (3) from a GET parameter done=
+      *
+      * The value for this is a URL, "_close", or "_return".
+      *
+      * TODO: Implement _return
+      */
+    function doneButton($text=false) {
+        if ( $text === false ) $text = _m("Done");
+        $url = Settings::linkGet('done');
+        if ( $url == false ) {
+            if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
+                $url = $_SESSION['lti_post']['custom_done'];
+            } else if ( isset($_GET["done"]) ) {
+                $url = $_GET['done'];
+            }
         }
-        if ( $url === false ) return;
-
-        if ( $url == "_close" ) {
-            echo("<button onclick=\"window.close();\" type=\"button\">Done</button>\n");
-        } else if ( strpos($url, "http") !== false ) {
-            echo("<button onclick=\"window.location='$url';\" type=\"button\">Done</button>\n");
-        } else {
-            echo("<button onclick=\"window.location='".addSession($url)."';\" type=\"button\">Done</button>\n");
-        }
-    }
-
-    function doneBootstrap($text="Done") {
-        $url = false;
-        if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
-            $url = $_SESSION['lti_post']['custom_done'];
-        } else if ( isset($_GET["done"]) ) {
-            $url = $_GET['done'];
-        }
-        if ( $url === false ) return;
+        // If we have no where to go and nothing to do, 
+        if ( $url === false || strlen($url) < 1 ) return;
 
         $button = "btn-success";
-        if ( $text == "Cancel" ) $button = "btn-warning";
+        if ( $text == "Cancel" || $text == _m("Cancel") ) $button = "btn-warning";
 
         if ( $url == "_close" ) {
             echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn ".$button."\">".$text."</a>\n");
@@ -214,11 +215,61 @@ class Output {
         }
     }
 
+    /**
+      * Emit a properly styled close button for use in own popup
+      */
+    function closeButton($text=false) {
+        if ( $text === false ) $text = _m("Done");
+        $button = "btn-success";
+        if ( $text == "Cancel" || $text == _m("Cancel") ) $button = "btn-warning";
+        echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn ".$button."\">".$text."</a>\n");
+    }
+
+    /**
+      * Emit a properly styled "settings" button
+      *
+      * This is just the button, using the pencil icon.  Wrap in a 
+      * span or div tag if you want to move it around
+      */
+    function settingsButton() {
+        echo('<button onclick="$(\'#settings\').modal();return false;" type="button">');
+        echo('<span class="glyphicon glyphicon-pencil"></span></button>'."\n");
+    }
+
+    /**
+     * Handle incoming settings post data
+     *
+     * @return boolean Returns true if there were settings to handle and false
+     * if there was nothing done.  Generally the calling tool will redirect 
+     * when true is returned.
+     *
+     *     if ( $OUTPUT->handleSettingsPost() ) {
+     *         header( 'Location: '.addSession('index.php?howdysuppress=1') ) ;
+     *         return;
+     *     }
+     */
+    function handleSettingsPost() {
+        global $USER;
+
+        if ( isset($_POST['settings_internal_post']) && $USER->instructor ) {
+            $newsettings = array();
+            foreach ( $_POST as $k => $v ) {
+                if ( $k == session_name() ) continue;
+                if ( $k == 'settings_internal_post' ) continue;
+                $newsettings[$k] = $v;
+            }
+            Settings::linkSetAll($newsettings);
+            return true;
+        }
+        return false;
+    }
+
     function togglePre($title, $html) {
         global $div_id;
         $div_id = $div_id + 1;
+        $text = _m('Toggle');
         echo('<strong>'.htmlpre_utf8($title));
-        echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">Toggle</a>)</strong>'."\n");
+        echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">'.$text.'</a>)</strong>'."\n");
         echo(' ('.strlen($html).' characters)'."\n");
         echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
         echo(htmlpre_utf8($html));

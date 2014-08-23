@@ -36,4 +36,7 @@ if ( isset($GRADE_DETAIL_CLASS) && is_object($GRADE_DETAIL_CLASS) ) {
 
 Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, "grade-detail.php");
 
+// Since this is in a popup, put out a done button
+$OUTPUT->closeButton();
+
 $OUTPUT->footer();

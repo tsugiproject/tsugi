@@ -205,7 +205,7 @@ location.
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">Go to map</button>
-<?php $OUTPUT->doneBootstrap("Cancel"); ?>
+<?php $OUTPUT->doneButton("Cancel"); ?>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
