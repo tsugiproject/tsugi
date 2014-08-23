@@ -22,10 +22,13 @@ class Settings {
     {
         global $CFG, $PDOX, $LINK;
         $json = json_encode($keyvals);
-        $q = $PROX->queryDie("UPDATE {$CFG->dbprefix}lti_link 
+        $q = $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_link 
                 SET settings = :SET WHERE link_id = :LID",
             array(":SET" => $json, ":LID" => $LINK->id)
         );
+        if ( isset($_SESSION['lti']) ) {
+            $_SESSION['lti']['link_settings'] = $json;
+        }
     }
 
     /**
@@ -44,9 +47,15 @@ class Settings {
         }
         $row = $PDOX->rowDie("SELECT settings FROM {$CFG->dbprefix}lti_link WHERE link_id = :LID",
             array(":LID" => $LINK->id));
-        if ( $row === false ) return false;
-        $json = $row[0];
-        $retval = json_decode($row[0], true); // No objects
+        if ( $row === false ) return array();
+        $json = $row['settings'];
+        if ( $json === null ) return array();
+        $retval = json_decode($json, true); // No objects
+
+        // Store in session for later
+        if ( isset($_SESSION['lti']) ) {
+            $_SESSION['lti']['link_settings'] = $json;
+        }
         return $retval;
     }
 
@@ -93,6 +102,5 @@ class Settings {
         $newSettings = array_merge($allSettings, $keyvals);
         self::linkSetAll($newSettings);
     }
-
 
 }
