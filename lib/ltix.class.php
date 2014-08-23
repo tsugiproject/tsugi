@@ -133,7 +133,7 @@ class LTIX Extends LTI {
         $_SESSION['CSRF_TOKEN'] = uniqid();
 
         // Check if we can auto-login the system user
-        if ( self::getCustom('dologin', false) && isset($PDOX) && $PDOX !== false ) loginSecureCookie();
+        if ( Settings::linkGet('dologin', false) && isset($PDOX) && $PDOX !== false ) loginSecureCookie();
 
         // Set up basic custom values
         if ( isset($_POST['custom_due'] ) ) {
@@ -656,7 +656,7 @@ class LTIX Extends LTI {
         $retval->duedate = false;
         $retval->duedatestr = false;
 
-        $duedatestr = self::getCustom('due');
+        $duedatestr = Settings::linkGet('due');
         if ( $duedatestr === false ) return $retval;
         $duedate = strtotime($duedatestr);
 
@@ -664,8 +664,8 @@ class LTIX Extends LTI {
         $penalty = false;
 
         date_default_timezone_set('Pacific/Honolulu'); // Lets be generous
-        if ( self::getCustom('timezone') ) {
-            date_default_timezone_set(self::getCustom('timezone'));
+        if ( Settings::linkGet('timezone') ) {
+            date_default_timezone_set(Settings::linkGet('timezone'));
         }
 
         if ( $duedate === false ) return $retval;
@@ -678,8 +678,8 @@ class LTIX Extends LTI {
         $retval->duedatestr = $duedatestr;
         // Should be a percentage off between 0.0 and 1.0
         if ( $diff > 0 ) {
-            $penalty_time = self::getCustom('penalty_time') ? self::getCustom('penalty_time') + 0 : 24*60*60;
-            $penalty_cost = self::getCustom('penalty_cost') ? self::getCustom('penalty_cost') + 0.0 : 0.2;
+            $penalty_time = Settings::linkGet('penalty_time') ? Settings::linkGet('penalty_time') + 0 : 24*60*60;
+            $penalty_cost = Settings::linkGet('penalty_cost') ? Settings::linkGet('penalty_cost') + 0.0 : 0.2;
             $penalty_exact = $diff / $penalty_time;
             $penalties = intval($penalty_exact) + 1;
             $penalty = $penalties * $penalty_cost;
