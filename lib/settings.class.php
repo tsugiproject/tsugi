@@ -47,7 +47,9 @@ class Settings {
     {
         global $CFG, $PDOX, $LINK;
 
-        if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['link_settings_merge']) ) {
+        if ( ! isset($_SESSION['lti']) ) return array();
+
+        if ( isset($_SESSION['lti']['link_settings_merge']) ) {
             return $_SESSION['lti']['link_settings_merge'];
         }
 
@@ -57,14 +59,22 @@ class Settings {
             $value = LTIX::getCustom($k);
             $defaults[$k] = $value;
         }
-        if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['link_settings']) ) {
+        if ( isset($_SESSION['lti']['link_settings']) ) {
             $json = $_SESSION['lti']['link_settings'];
             if ( strlen($json) < 0 ) return $defaults;
             $retval = json_decode($json, true); // No objects
+            $retval = array_merge($defaults, $retval);
+            $_SESSION['lti']['link_settings_array'] = $retval;
             return $retval;
         }
+
+        // Not in session - retrieve from the database
+
+        // We cannot assume the $LINK is fully set up yet...
+        if ( !isset($_SESSION['lti']['link_id']) ) return $defaults;
+
         $row = $PDOX->rowDie("SELECT settings FROM {$CFG->dbprefix}lti_link WHERE link_id = :LID",
-            array(":LID" => $LINK->id));
+            array(":LID" => $_SESSION['lti']['link_id']));
         if ( $row === false ) return $defaults;
         $json = $row['settings'];
         if ( $json === null ) return $defaults;
@@ -72,11 +82,9 @@ class Settings {
         $retval = array_merge($defaults, $retval);
 
         // Store in session for later
-        if ( isset($_SESSION['lti']) ) {
-            $_SESSION['lti']['link_settings'] = $json;
-            $_SESSION['lti']['link_settings_array'] = $retval;
-        }
-        return array_merge($defaults, $retval);
+        $_SESSION['lti']['link_settings'] = $json;
+        $_SESSION['lti']['link_settings_array'] = $retval;
+        return $retval;
     }
 
     /**
