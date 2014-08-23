@@ -533,21 +533,21 @@ if ( $dueDate->message ) {
 <form id="forminput">
 <?php
     if ( $EX !== false ) {
-        echo('<button onclick="runit()" type="button">Check Code</button>'."\n");
+        echo('<button onclick="runit()" class="btn btn-primary" type="button">Check Code</button>'."\n");
     } else {
-        echo('<button onclick="runit()" type="button">Run Python</button>'."\n");
+        echo('<button onclick="runit()" class="btn btn-primary" type="button">Run Python</button>'."\n");
     }
     if ( strlen($CODE) > 0 ) {
-        echo('<button onclick="resetcode()" type="button">Reset Code</button> ');
+        echo('<button onclick="resetcode()" class="btn btn-default" type="button">Reset Code</button> ');
     }
-    echo('<button onclick="$(\'#info\').modal();return false;" type="button"><span class="glyphicon glyphicon-info-sign"></span></button>'."\n");
+    echo('<button onclick="$(\'#info\').modal();return false;" class="btn btn-default" type="button"><span class="glyphicon glyphicon-info-sign"></span></button>'."\n");
     if ( $USER->instructor ) $OUTPUT->settingsButton();
     $OUTPUT->doneButton();
     if ( $USER->instructor ) {
         if ( $EX === false ) {
-            echo(' <a href="grades.php" target="_blank">View Student Code</a>'."\n");
+            echo(' <a href="grades.php" class="btn btn-default" target="_blank">View Student Code</a>'."\n");
         } else {
-            echo(' <a href="grades.php" target="_blank">View Grades</a>'."\n");
+            echo(' <a href="grades.php" class="btn btn-default" target="_blank">View Grades</a>'."\n");
         }
     }
 ?>

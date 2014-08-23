@@ -232,7 +232,7 @@ class Output {
       * span or div tag if you want to move it around
       */
     function settingsButton() {
-        echo('<button onclick="$(\'#settings\').modal();return false;" type="button">');
+        echo('<button onclick="$(\'#settings\').modal();return false;" type="button" class="btn btn-default">');
         echo('<span class="glyphicon glyphicon-pencil"></span></button>'."\n");
     }
 
