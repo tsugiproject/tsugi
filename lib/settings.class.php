@@ -28,6 +28,7 @@ class Settings {
         );
         if ( isset($_SESSION['lti']) ) {
             $_SESSION['lti']['link_settings'] = $json;
+            unset($_SESSION['lti']['link_settings_merge']);
         }
     }
 
@@ -45,7 +46,12 @@ class Settings {
     public static function linkGetAll()
     {
         global $CFG, $PDOX, $LINK;
-        $legacy_fields = array('dologin', 'close', 'due', 'due', 'timezone', 'period', 'cost');
+
+        if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['link_settings_merge']) ) {
+            return $_SESSION['lti']['link_settings_merge'];
+        }
+
+        $legacy_fields = array('dologin', 'close', 'due', 'timezone', 'penalty_time', 'penalty_cost');
         $defaults = array();
         foreach($legacy_fields as $k ) {
             $value = LTIX::getCustom($k);
@@ -63,10 +69,12 @@ class Settings {
         $json = $row['settings'];
         if ( $json === null ) return $defaults;
         $retval = json_decode($json, true); // No objects
+        $retval = array_merge($defaults, $retval);
 
         // Store in session for later
         if ( isset($_SESSION['lti']) ) {
             $_SESSION['lti']['link_settings'] = $json;
+            $_SESSION['lti']['link_settings_array'] = $retval;
         }
         return array_merge($defaults, $retval);
     }
@@ -77,14 +85,15 @@ class Settings {
      * Returns the value found in settings or false if the key was not found.
      *
      * @param $key - The key to get from the settings.
+     * @param $default - What to return if the key is not present
      */
-    public static function linkGet($key)
+    public static function linkGet($key, $default=false)
     {
         $allSettings = self::linkGetAll();
         if ( array_key_exists ($key, $allSettings ) ) {
             return $allSettings[$key];
         } else {
-            return false;
+            return $default;
         }
     }
 

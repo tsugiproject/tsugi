@@ -426,10 +426,10 @@ if ( $USER->instructor ) {
 ?>
             </select>
 <?php
-            $due = isset($oldsettings['due']) ? $oldsettings['due'] : '';
-            $timezone = isset($oldsettings['timezone']) ? $oldsettings['timezone'] : 'Pacific/Honolulu';
-            $time = isset($oldsettings['time']) ? $oldsettings['time'] : 86400;
-            $cost = isset($oldsettings['cost']) ? $oldsettings['cost'] : 0.2;
+            $due = Settings::linkGet('due', '');
+            $timezone = Settings::linkGet('timezone', 'Pacific/Honolulu');
+            $time = Settings::linkGet('penalty_time', 86400);
+            $cost = Settings::linkGet('penalty_cost', 0.2);
 ?>
             <label for="due">
             Please enter a due date in ISO 8601 format (2015-01-30T20:30) or leave blank for no due date.  
@@ -445,10 +445,10 @@ if ( $USER->instructor ) {
             full or partial time period past the due date.  For example to deduct 20% per day, you would
             set the period to be 86400 (24*60*60) and the penalty to be 0.2.
             </p>
-            <label for="time">Please enter the penalty time period in seconds.<br/>
-            <input type="text" value="<?php echo(htmlspec_utf8($time)); ?>" name="time"></label>
-            <label for="cost">Please enter the penalty deduction as a decimal between 0.0 and 1.0.<br/>
-            <input type="text" value="<?php echo(htmlspec_utf8($cost)); ?>" name="cost"></label>
+            <label for="penalty_time">Please enter the penalty time period in seconds.<br/>
+            <input type="text" value="<?php echo(htmlspec_utf8($time)); ?>" name="penalty_time"></label>
+            <label for="penalty_cost">Please enter the penalty deduction as a decimal between 0.0 and 1.0.<br/>
+            <input type="text" value="<?php echo(htmlspec_utf8($cost)); ?>" name="penalty_cost"></label>
         </form>
       </div>
       <div class="modal-footer">
