@@ -17,6 +17,7 @@ require_once("settings.class.php");
 require_once("crudform.class.php");
 require_once("table.class.php");
 require_once("output.class.php");
+require_once("settingsform.class.php");
 
 require_once("lti_util.php");
 require_once("lti_db.php");

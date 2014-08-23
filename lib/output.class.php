@@ -236,34 +236,6 @@ class Output {
         echo('<span class="glyphicon glyphicon-pencil"></span></button>'."\n");
     }
 
-    /**
-     * Handle incoming settings post data
-     *
-     * @return boolean Returns true if there were settings to handle and false
-     * if there was nothing done.  Generally the calling tool will redirect 
-     * when true is returned.
-     *
-     *     if ( $OUTPUT->handleSettingsPost() ) {
-     *         header( 'Location: '.addSession('index.php?howdysuppress=1') ) ;
-     *         return;
-     *     }
-     */
-    function handleSettingsPost() {
-        global $USER;
-
-        if ( isset($_POST['settings_internal_post']) && $USER->instructor ) {
-            $newsettings = array();
-            foreach ( $_POST as $k => $v ) {
-                if ( $k == session_name() ) continue;
-                if ( $k == 'settings_internal_post' ) continue;
-                $newsettings[$k] = $v;
-            }
-            Settings::linkSetAll($newsettings);
-            return true;
-        }
-        return false;
-    }
-
     function togglePre($title, $html) {
         global $div_id;
         $div_id = $div_id + 1;

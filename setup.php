@@ -162,6 +162,10 @@ function _m($message, $textdomain=false) {
     return __($message, "master");
 }
 
+function _me($message, $textdomain=false) {
+    echo(_m($message, $textdomain));
+}
+
 if (function_exists('bindtextdomain')) {
     bindtextdomain("master", $CFG->dirroot."/locale");
 }
