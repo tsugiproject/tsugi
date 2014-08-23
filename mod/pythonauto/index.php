@@ -89,6 +89,12 @@ if ( $ex !== false && $ex != "code" ) {
         return;
     }
 }
+
+// If we are not using settings, update the default settings.
+if ( (! isset($oldsettings['exercise'])) || $oldsettings['exercise'] != $ex ) {
+    $oldsettings['exercise'] = $ex;
+}
+
 ?>
 <style>
 body { font-family: sans-serif; }

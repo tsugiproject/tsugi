@@ -34,29 +34,41 @@ class Settings {
     /**
      * Retrieve an array of all of the link level settings
      *
-     * If there are no settings, return an empty array.
+     * If there are no settings, return an empty array.  
+     *
+     * This routine also looks for legacy custom fields and treats
+     * them as defaults for settings if the corresponding key is not
+     * already present in settings.  This will slowly convert LTI 
+     * 1.x custom parameters under the control of the LMS to LTI 2.x 
+     * style settings under control of our local tools.
      */
     public static function linkGetAll()
     {
         global $CFG, $PDOX, $LINK;
+        $legacy_fields = array('dologin', 'close', 'due', 'due', 'timezone', 'period', 'cost');
+        $defaults = array();
+        foreach($legacy_fields as $k ) {
+            $value = LTIX::getCustom($k);
+            $defaults[$k] = $value;
+        }
         if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['link_settings']) ) {
             $json = $_SESSION['lti']['link_settings'];
-            if ( strlen($json) < 0 ) return array();
+            if ( strlen($json) < 0 ) return $defaults;
             $retval = json_decode($json, true); // No objects
             return $retval;
         }
         $row = $PDOX->rowDie("SELECT settings FROM {$CFG->dbprefix}lti_link WHERE link_id = :LID",
             array(":LID" => $LINK->id));
-        if ( $row === false ) return array();
+        if ( $row === false ) return $defaults;
         $json = $row['settings'];
-        if ( $json === null ) return array();
+        if ( $json === null ) return $defaults;
         $retval = json_decode($json, true); // No objects
 
         // Store in session for later
         if ( isset($_SESSION['lti']) ) {
             $_SESSION['lti']['link_settings'] = $json;
         }
-        return $retval;
+        return array_merge($defaults, $retval);
     }
 
     /**

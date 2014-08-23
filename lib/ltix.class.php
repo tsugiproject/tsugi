@@ -8,6 +8,7 @@ use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;
 use \Tsugi\OAuth\OAuthRequest;
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Core\Settings;
 
 /**
  * This an extended LTI class that defines how Tsugi tools interact with LTI
