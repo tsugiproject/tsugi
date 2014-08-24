@@ -95,6 +95,11 @@ class LTIX Extends LTI {
             }
         }
 
+        // Check the nonce to make sure there is no reuse
+        if ( $row['nonce'] !== null) {
+            die_with_error_log('OAuth nonce error key='.$post['key'].' nonce='.$row['nonce']);
+        }
+
         // Use returned data to check the OAuth signature on the
         // incoming data - returns true or an array
         $valid = self::verifyKeyAndSecret($post['key'],$row['secret']);
@@ -117,6 +122,12 @@ class LTIX Extends LTI {
         }
 
         $actions = self::adjustData($CFG->dbprefix, $row, $post);
+
+        // Record the nonce
+        $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}lti_nonce
+            (key_id, nonce) VALUES ( :key_id, :nonce)",
+            array( ':nonce' => $post['nonce'], ':key_id' => $row['key_id'])
+        );
 
         // If there is an appropriate role override variable, we use that role
         if ( isset($row['role_override']) && isset($row['role']) &&
@@ -199,11 +210,13 @@ class LTIX Extends LTI {
         }
         $retval = array();
         $retval['key'] = isset($FIXED['oauth_consumer_key']) ? $FIXED['oauth_consumer_key'] : null;
+        $retval['nonce'] = isset($FIXED['oauth_nonce']) ? $FIXED['oauth_nonce'] : null;
         $retval['context_id'] = isset($FIXED['context_id']) ? $FIXED['context_id'] : null;
         $retval['link_id'] = isset($FIXED['resource_link_id']) ? $FIXED['resource_link_id'] : null;
         $retval['user_id'] = isset($FIXED['user_id']) ? $FIXED['user_id'] : null;
 
-        if ( $retval['key'] && $retval['context_id'] && $retval['link_id']  && $retval['user_id'] ) {
+        if ( $retval['key'] && $retval['nonce'] && $retval['context_id'] && 
+            $retval['link_id']  && $retval['user_id'] ) {
             // OK To Continue
         } else {
             return false;
@@ -249,6 +262,7 @@ class LTIX Extends LTI {
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret,
+            n.nonce,
             c.context_id, c.title AS context_title,
             l.link_id, l.title AS link_title, l.settings AS link_settings,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email,
@@ -272,6 +286,7 @@ class LTIX Extends LTI {
         }
 
         $sql .="\nFROM {$p}lti_key AS k
+            LEFT JOIN {$p}lti_nonce AS n ON k.key_id = n.key_id AND n.nonce = :nonce
             LEFT JOIN {$p}lti_context AS c ON k.key_id = c.key_id AND c.context_sha256 = :context
             LEFT JOIN {$p}lti_link AS l ON c.context_id = l.context_id AND l.link_sha256 = :link
             LEFT JOIN {$p}lti_user AS u ON k.key_id = u.key_id AND u.user_sha256 = :user
@@ -295,6 +310,7 @@ class LTIX Extends LTI {
         // echo($sql);
         $parms = array(
             ':key' => lti_sha256($post['key']),
+            ':nonce' => substr($post['nonce'],0,128),
             ':context' => lti_sha256($post['context_id']),
             ':link' => lti_sha256($post['link_id']),
             ':user' => lti_sha256($post['user_id']));

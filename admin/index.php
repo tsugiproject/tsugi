@@ -15,6 +15,7 @@ $OUTPUT->topNav();
 <h1>Welcome Adminstrator</h1>
 <ul>
 <li><a href="upgrade.php" target="_new">Upgrade Database</a></li>
+<li><a href="nonce.php" target="_new">Check Nonces</a></li>
 <?php if ( $CFG->providekeys ) { ?>
 <li><a href="../core/key/index.php">Manage Access Keys</a></li>
 <?php } ?>
