@@ -214,14 +214,20 @@ array( "{$CFG->dbprefix}lti_result",
     PRIMARY KEY (result_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+// Nonce is not connected using foreign key for performance
+// and because it is effectively just a temporary cache
 array( "{$CFG->dbprefix}lti_nonce",
 "create table {$CFG->dbprefix}lti_nonce (
     nonce          CHAR(128) NOT NULL,
-    created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    key_id         INTEGER NOT NULL,
+    created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX `{$CFG->dbprefix}nonce_indx_1` USING HASH (`nonce`),
+    UNIQUE(key_id, nonce)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // Profile is denormalized and not tightly connected to allow
-// for reconnecting
+// for disconnecting and reconnecting various user_id values
 array( "{$CFG->dbprefix}profile",
 "create table {$CFG->dbprefix}profile (
     profile_id          INTEGER NOT NULL AUTO_INCREMENT,
@@ -369,9 +375,17 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Version 201408240800 improvements
+    if ( $oldversion < 201408240800 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_nonce ADD key_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201408230900;
+    return 201408240800;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
