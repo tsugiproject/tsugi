@@ -81,7 +81,11 @@ $CFG->maildomain = false; // 'mail.example.com';
 $CFG->mailsecret = 'warning:please-change-mailsecret-92ds29';
 $CFG->maileol = "\n";  // Depends on your mailer - may need to be \r\n
 
-// This is ued to make sure that out constructed session ids
+// Set the nonce clearing factor and expiry time
+$CFG->noncecheck = 100;
+$CFG->noncetime = 1800;
+
+// This is used to make sure that our constructed session ids
 // based on resource_link_id, oauth_consumer_key, etc are not
 // predictable or guessable.   Just make this a long random string.
 // See LTIX::getCompositeKey() for detail on how this operates.

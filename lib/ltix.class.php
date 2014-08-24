@@ -123,11 +123,18 @@ class LTIX Extends LTI {
 
         $actions = self::adjustData($CFG->dbprefix, $row, $post);
 
-        // Record the nonce
-        $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}lti_nonce
-            (key_id, nonce) VALUES ( :key_id, :nonce)",
-            array( ':nonce' => $post['nonce'], ':key_id' => $row['key_id'])
-        );
+        // Record the nonce but first probabilistically check
+        if ( $CFG->noncecheck > 0 ) {
+            if ( (time() % $CFG->noncecheck) == 0 ) {
+                $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}lti_nonce WHERE 
+                    created_at < DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -{$CFG->noncetime} SECOND)");
+                // error_log("Nonce table cleanup done.");
+            }
+            $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}lti_nonce
+                (key_id, nonce) VALUES ( :key_id, :nonce)",
+                array( ':nonce' => $post['nonce'], ':key_id' => $row['key_id'])
+            );
+        }
 
         // If there is an appropriate role override variable, we use that role
         if ( isset($row['role_override']) && isset($row['role']) &&

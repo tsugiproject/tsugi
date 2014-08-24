@@ -262,6 +262,30 @@ class Config {
      */
     public $sessionlifetime = 3000;
 
+    /** 
+     * Set the nonce clearing factor
+     *
+     * If this is zero, we do not store nonces in the database.  If this 
+     * is non-zero we take a modulo of the current time in seconds and
+     * if the remainder is zero, we remove old entries from the nonce
+     * table based on the $noncetime setting.  Setting this to 1 causes
+     * the process to run every time a launch happens - which is nice for
+     * testing the nonce clearing process.
+     */
+    public $noncecheck = 100;
+
+    /** 
+     * Set the expiration time for nonces in seconds
+     *
+     * This is enforced probabilistically depending on the value for 
+     * $noncecheck - We can be assured that when the cleanup run executes
+     * we will purge all nonces that are older than the expiration time.
+     * But unitl the cleanup runs we might have older nonces in the tables
+     * for a while.  It is not harmful to check against more nonces - we just
+     * don't want the table to grow forever.
+     */
+    public $noncetime = 1800;
+
     /**
      * Create the configuration object.
      *
@@ -279,7 +303,7 @@ class Config {
      *         'http://localhost:8888/tsugi');
      *
      * Once the variable is constructed, the public member variables are 
-     * overridden directly by accessing them in the PHP code.
+     * overridden directly by setting them in the PHP code.
      *
      *     $CFG = new \Tsugi ...
      *     $CFG->pdo = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
