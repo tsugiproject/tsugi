@@ -28,7 +28,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     $name = $row['displayname'];
     if ( ! $USER->instructor ) {
         if ( $row['allow_name'] == 1 ) $name = $name;  // Show it all
-        else if ( $row['allow_first'] == 1 ) $name = getFirstName($name);
+        else if ( $row['allow_first'] == 1 ) $name = $USER->getFirstName($name);
         else $name = '';
         if ( $row['allow_email'] != 1 ) $email = '';
     }
@@ -59,8 +59,8 @@ if ( $row !== false ) {
     if ( isset($row['lat']) && abs($row['lat']) < 85 ) $lat = $row['lat'];
     if ( isset($row['lng']) && abs($row['lng']) < 180 ) $lng = $row['lng'];
 }
-$display = getNameAndEmail();
-$firstname = getFirstName($display);
+$display = $USER->getNameAndEmail();
+$firstname = $USER->getFirstName();
 
 $OUTPUT->header();
 ?>

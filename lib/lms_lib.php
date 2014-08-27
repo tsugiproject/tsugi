@@ -24,31 +24,6 @@ require_once("lti_db.php");
 
 use \Tsugi\Core\Cache;
 
-function getNameAndEmail() {
-    global $USER;
-    $display = '';
-    if ( isset($USER->displayname) && strlen($USER->displayname) > 0 ) {
-        $display = $USER->displayname;
-    }
-    if ( isset($USER->email) && strlen($USER->email) > 0 ) {
-        if ( strlen($display) > 0 ) {
-            $display .= ' ('.$USER->email.')';
-        } else {
-            $display = $USER->email;
-        }
-    }
-    $display = trim($display);
-    if ( strlen($display) < 1 ) return false;
-    return $display;
-}
-
-function getFirstName($displayname) {
-    if ( $displayname === false ) return false;
-    $pieces = explode(' ',$displayname);
-    if ( count($pieces) > 0 ) return $pieces[0];
-    return false;
-}
-
 // See if we need to extend our session (heartbeat)
 // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
 function checkHeartBeat() {

@@ -37,4 +37,36 @@ class User {
      * The user's display name
      */
     public $displayname;
+
+    /**
+     * Construct the user's name / email combination 
+     */
+    public function getNameAndEmail() {
+        $display = '';
+        if ( isset($this->displayname) && strlen($this->displayname) > 0 ) {
+            $display = $this->displayname;
+        }
+        if ( isset($this->email) && strlen($this->email) > 0 ) {
+            if ( strlen($display) > 0 ) {
+                $display .= ' ('.$this->email.')';
+            } else {
+                $display = $this->email;
+            }
+        }
+        $display = trim($display);
+        if ( strlen($display) < 1 ) return false;
+        return $display;
+    }
+
+
+    /**
+     * Ge tthe user's first name, falling back to email
+     */
+    function getFirstName($displayname=false) {
+        if ( $displayname === false ) $displayname = $this->getNameAndEmail();
+        if ( $displayname === false ) return false;
+        $pieces = explode(' ',$displayname);
+        if ( count($pieces) > 0 ) return $pieces[0];
+        return false;
+    }
 }
