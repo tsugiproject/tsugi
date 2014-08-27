@@ -414,6 +414,7 @@ if ( $USER->instructor ) {
             </select>
 <?php
     SettingsForm::dueDate();
+    SettingsForm::done();
     SettingsForm::end();
 
 } // end isInstructor() 
@@ -429,7 +430,7 @@ if ( $USER->instructor ) {
 if ( isset($LINK->title) ) {
     echo(htmlent_utf8($LINK->title));
 } else {
-    welcomeUserCourse();
+    $OUTPUT->welcomeUserCourse();
 }
 ?></h4>
       </div>

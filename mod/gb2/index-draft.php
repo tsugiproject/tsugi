@@ -20,7 +20,7 @@ $OUTPUT->header();
 <?php
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-welcomeUserCourse();
+$OUTPUT->welcomeUserCourse();
 ?>
 <h1>This is under construction - it really does nothing at this point</h1>
 <div id="yo">

@@ -59,7 +59,7 @@ if ( isset($_POST['grade']) )  {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-welcomeUserCourse();
+$OUTPUT->welcomeUserCourse();
 
 ?>
 <form method="post">

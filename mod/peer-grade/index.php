@@ -6,10 +6,17 @@ require_once $CFG->dirroot."/core/blob/blob_util.php";
 require_once "peer_util.php";
 
 use \Tsugi\Core\Cache;
+use \Tsugi\Core\Settings;
+use \Tsugi\UI\SettingsForm;
 
 // Sanity checks
 $LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
+
+if ( SettingsForm::handleSettingsPost() ) {
+    header( 'Location: '.addSession('index.php') ) ;
+    return;
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
     $_SESSION['error'] = 'File upload size exceeded, please re-upload a smaller file';
@@ -177,10 +184,18 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-welcomeUserCourse();
+if ( $USER->instructor ) {
+    SettingsForm::start();
+    SettingsForm::dueDate();
+    SettingsForm::done();
+    SettingsForm::end();
+} 
+
+$OUTPUT->welcomeUserCourse();
 
 if ( $USER->instructor ) {
     echo('<p><a href="configure.php" class="btn btn-default">Configure this Assignment</a> ');
+    $OUTPUT->settingsButton();
     echo('<a href="admin.php" class="btn btn-default">Explore Grade Data</a> ');
     echo('<a href="maint.php" target="_new" class="btn btn-default">Grade Maintenance</a> ');
     echo('<a href="debug.php" class="btn btn-default">Session Dump</a></p>');

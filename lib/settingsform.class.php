@@ -107,4 +107,21 @@ class SettingsForm {
 <?php
     }
 
+    /**
+     * Emit the text and form fields to support the done option
+     */
+    public static function done()
+    {
+            $done = Settings::linkGet('done', '');
+?>
+            <label for="done">
+            This option allows you to control the existance and behavior of a "Done" button for this tool.
+            If you leave this blank the tool will assume it is in an iFrame and will not show a Done button.
+            If you put a URL here, a Done button will be shown and when pressed the tool will navigate to
+            the specified URL.  If you expect to launch this tool in a popup, enter "_close" here and 
+            the tool will close its window when Done is pressed.<br/>
+            <input type="text" value="<?php echo(htmlspec_utf8($done)); ?>" size="80" name="done"></label>
+<?php
+    }
+
 }

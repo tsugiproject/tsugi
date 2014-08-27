@@ -180,6 +180,32 @@ class Output {
         }  // if analytics is on...
     }
 
+
+    /**
+      * Welcome the user to the course
+      */
+    function welcomeUserCourse() {
+        global $USER, $CONTEXT;
+        if ( isset($USER->displayname) ) {
+            if ( isset($CONTEXT->title) ) {
+                printf(_m("<p>Welcome %s from %s"), htmlent_utf8($USER->displayname), htmlent_utf8($CONTEXT->title));
+            } else {
+                printf(_m("<p>Welcome %s"), htmlent_utf8($USER->displayname));
+            }
+        } else {
+            if ( isset($CONTEXT->title) ) {
+                printf(_m("<p>Welcome from %s"), htmlent_utf8($CONTEXT->title));
+            } else {
+                printf(_m("<p>Welcome "));
+            }
+        }
+    
+        if ( $USER->instructor ) {
+            echo(" "._m("(Instructor)"));
+        }
+        echo("</p>\n");
+    }
+
     /**
       * Emit a properly styled done button for use in the launched frame/window
       *

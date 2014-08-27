@@ -47,7 +47,7 @@ if ( isset($_POST['code']) && $USER->instructor ) {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-welcomeUserCourse();
+$OUTPUT->welcomeUserCourse();
 
 echo('<form method="post">');
 echo(_("Enter code:")."\n");

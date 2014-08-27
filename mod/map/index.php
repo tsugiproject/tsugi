@@ -182,7 +182,7 @@ if ( $display ) {
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title"><?php welcomeUserCourse(); ?></h4>
+        <h4 class="modal-title"><?php $OUTPUT->welcomeUserCourse(); ?></h4>
       </div>
       <div class="modal-body">
         <p>This is a map of the participants in the course who have chosen to share their location.

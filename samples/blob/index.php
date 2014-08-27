@@ -53,7 +53,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-welcomeUserCourse();
+$OUTPUT->welcomeUserCourse();
 
 $foldername = getFolderName();
 if ( !file_exists($foldername) ) mkdir ($foldername);

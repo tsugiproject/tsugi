@@ -26,7 +26,7 @@ $sql =
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-welcomeUserCourse();
+$OUTPUT->welcomeUserCourse();
 
 if ( isset($GRADE_DETAIL_CLASS) && is_object($GRADE_DETAIL_CLASS) ) {
     $detail = $GRADE_DETAIL_CLASS;

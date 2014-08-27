@@ -38,7 +38,7 @@ $sql =
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-welcomeUserCourse();
+$OUTPUT->welcomeUserCourse();
 
 // Make us a paged table and by default sort by flagged descending
 $parm = $_GET;

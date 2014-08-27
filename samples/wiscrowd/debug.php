@@ -9,7 +9,7 @@ if ( ! $USER->instructor ) die("Instructor only");
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-welcomeUserCourse();
+$OUTPUT->welcomeUserCourse();
 
 echo("<p>Debug dump of session data.</p>\n");
 $OUTPUT->togglePre("Session data",safe_var_dump($_SESSION));

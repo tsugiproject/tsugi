@@ -49,28 +49,6 @@ function getFirstName($displayname) {
     return false;
 }
 
-function welcomeUserCourse() {
-    global $USER, $CONTEXT;
-    if ( isset($USER->displayname) ) {
-        if ( isset($CONTEXT->title) ) {
-            printf(_m("<p>Welcome %s from %s"), htmlent_utf8($USER->displayname), htmlent_utf8($CONTEXT->title));
-        } else {
-            printf(_m("<p>Welcome %s"), htmlent_utf8($USER->displayname));
-        }
-    } else {
-        if ( isset($CONTEXT->title) ) {
-            printf(_m("<p>Welcome from %s"), htmlent_utf8($CONTEXT->title));
-        } else {
-            printf(_m("<p>Welcome "));
-        }
-    }
-
-    if ( $USER->instructor ) {
-        echo(" "._m("(Instructor)"));
-    }
-    echo("</p>\n");
-}
-
 // See if we need to extend our session (heartbeat)
 // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
 function checkHeartBeat() {

@@ -11,7 +11,7 @@ if ( ! $USER->instructor ) die("Instructor only");
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-welcomeUserCourse();
+$OUTPUT->welcomeUserCourse();
 
 $OUTPUT->togglePre("Session data",safe_var_dump($_SESSION));
 
