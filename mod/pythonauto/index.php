@@ -644,11 +644,6 @@ function load_cm() {
         load_cm();
 <?php } ?>
     }
-    $('#settings_save').click(function(event) {
-        $('#settings_spinner').show();
-        $('#settings_form').submit();
-        $('#settings_spinner').hide();
-   });
  });
 </script>
 <?php

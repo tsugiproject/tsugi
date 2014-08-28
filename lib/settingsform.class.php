@@ -44,17 +44,17 @@ class SettingsForm {
 <div class="modal fade" id="settings">
   <div class="modal-dialog">
     <div class="modal-content">
+      <form id="settings_form" method="POST">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h4 class="modal-title"><?php _me('Configure'); ?>
         <?php echo(htmlent_utf8($LINK->title)); ?>
         </h4>
-      </div>
+      </div><!-- / .modal-header -->
       <div class="modal-body">
         <img id="settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
         <span id="save_fail" style="display:none; color:red"><?php _me('Unable to save settings'); ?></span>
         </p>
-        <form id="settings_form" method="POST">
             <input type="hidden" name="settings_internal_post" value="1"/>
 <?php
     }
@@ -64,12 +64,12 @@ class SettingsForm {
      */
     public static function end() {
 ?>
-        </form>
-      </div>
+      </div><!-- / .modal-body -->
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" id="settings_save" class="btn btn-primary">Save changes</button>
-      </div>
+        <button type="button" id="settings_save" onclick="submit();" class="btn btn-primary">Save changes</button>
+      </div><!-- / .modal-footer -->
+    </form>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->

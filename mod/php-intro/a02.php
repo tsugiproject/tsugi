@@ -1,12 +1,13 @@
 <?php
 
-require_once "../../config.php";
-require_once "webauto-old.php";
+require_once "webauto.php";
+
 use Goutte\Client;
 
 line_out("Grading PHP-Intro Assignment 2");
 
 $url = getUrl('http://csevumich.byethost18.com/howdy.php');
+if ( $url === false ) return;
 $grade = 0;
 
 error_log("ASSN02 ".$url);
@@ -55,10 +56,10 @@ if ( strlen($success) > 0 ) {
 } else if ( strlen($failure) > 0 ) {
     error_out($failure);
     error_log($failure);
-    exit();
+    return;
 } else {
     error_log("No status");
-    exit();
+    return;
 }
 
 // Send grade
