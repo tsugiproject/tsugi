@@ -77,6 +77,26 @@ class SettingsForm {
     }
 
     /**
+     * Handle a settings selector box
+     */
+    public static function select($name, $default=false, $fields)
+    {
+        if ( $default === false ) $default = _m('Please Select');
+        $oldsettings = Settings::linkGetAll();
+        echo('<select name="'.$name.'">');
+        echo('<option value="0">'.$default.'</option>');
+        foreach ( $fields as $k => $v ) {
+            if ( is_int($k) ) $k = $v;
+            echo('<option value="'.$k.'"');
+            if ( isset($oldsettings[$name]) && $k == $oldsettings[$name] ) {
+                echo(' selected');
+            }
+            echo('>'.$k.'</option>'."\n");
+        }
+        echo('</select>');
+    }
+
+    /**
      * Emit the text and form fields to support due dates
      */
     public static function dueDate()

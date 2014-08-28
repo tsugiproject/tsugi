@@ -67,8 +67,7 @@ function getUrl($sample) {
     echo('<form>
         Please enter the URL of your web site to grade:<br/>
         <input type="text" name="url" value="'.$sample.'" size="100"><br/>
-        <input type="checkbox" name="grade">Send Grade (leave unchecked for a dry run)<br/>
-        <input type="submit" value="Evaluate">
+        <input type="submit" class="btn btn-primary" value="Evaluate">
         </form>');
     if ( $displayname ) {
         echo("By entering a URL in this field and submitting it for
@@ -93,10 +92,7 @@ function webauto_test_passed($grade, $url) {
         return false;
     }
 
-    if ( ! isset($_GET['grade']) ) {
-        line_out('Dry run - grade of ('.intval($grade*100).'%) was not sent.');
-        return false;
-    }
+    line_out('TODO: Check current grade');
 
     gradeUpdateJson(json_encode(array("url" => $url)));
     $debug_log = array();

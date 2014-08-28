@@ -399,20 +399,7 @@ $OUTPUT->bodyStart();
 
 if ( $USER->instructor ) {
     SettingsForm::start();
-?>
-            <select name="exercise">
-            <option value="0">No Exercise - Python Playground</option>
-<?php
-            foreach ( $EXERCISES as $k => $v ) {
-                echo('<option value="'.$k.'"');
-                if ( isset($oldsettings['exercise']) && $k == $oldsettings['exercise'] ) {
-                    echo(' selected');
-                }
-                echo('>'.$k.'</option>'."\n");
-            }
-?>
-            </select>
-<?php
+    SettingsForm::select('exercise', __('No Exercise - Python Playground'), $EXERCISES);
     SettingsForm::dueDate();
     SettingsForm::done();
     SettingsForm::end();
