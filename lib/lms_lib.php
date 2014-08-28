@@ -491,7 +491,8 @@ function loginSecureCookie() {
         return;
     }
 
-    $row = $PDOX->rowDie(
+    // The profile table might not even exist yet.
+    $stmt = $PDOX->queryReturnError(
         "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
             P.email as email, U.user_id as user_id
             FROM {$CFG->dbprefix}profile AS P
@@ -502,6 +503,9 @@ function loginSecureCookie() {
         array('SHA' => $userSHA, ":UID" => $user_id)
     );
 
+    if ( $stmt->success === false ) return;
+
+    $row = $stmt->fetch(\PDO::FETCH_ASSOC);
     if ( $row === false ) {
         error_log("Unable to load user_id=$user_id SHA=$userSHA");
         deleteSecureCookie();
