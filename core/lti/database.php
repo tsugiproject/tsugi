@@ -110,7 +110,7 @@ array( "{$CFG->dbprefix}lti_user",
     subscribe           SMALLINT NULL,
 
     json                TEXT NULL,
-    login_at            DATETIME NOT NULL,
+    login_at            DATETIME NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -189,9 +189,9 @@ array( "{$CFG->dbprefix}lti_result",
     server_grade       FLOAT NULL,
 
     json               TEXT NULL,
-    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT 0,
-    retrieved_at       DATETIME NOT NULL,
+    created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP NOT NULL DEFAULT 0,
+    retrieved_at       DATETIME NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_result_ibfk_1`
         FOREIGN KEY (`link_id`)
@@ -242,7 +242,7 @@ array( "{$CFG->dbprefix}profile",
     subscribe           SMALLINT NULL,
 
     json                TEXT NULL,
-    login_at            DATETIME NOT NULL,
+    login_at            DATETIME NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -315,7 +315,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD retrieved_at DATETIME NOT NULL";
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD retrieved_at DATETIME NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
