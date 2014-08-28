@@ -102,7 +102,7 @@ array( "{$CFG->dbprefix}lti_user",
     user_key            TEXT NOT NULL,
 
     key_id              INTEGER NOT NULL,
-    profile_id          INTEGER NOT NULL,
+    profile_id          INTEGER NULL,
 
     displayname         TEXT NULL,
     email               TEXT NULL,

@@ -3,7 +3,7 @@
 // Lets check to see if we have a database or not and give a decent error message
 try {
    if ( ! defined('PDO_WILL_CATCH') ) define('PDO_WILL_CATCH', true);
-    require_once("pdo.php");
+    require("pdo.php");
 } catch(PDOException $ex){
     $msg = $ex->getMessage();
     error_log("DB connection: ".$msg);

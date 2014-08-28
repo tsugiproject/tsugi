@@ -5,7 +5,6 @@ $PDOX = false;
 
 require_once($CFG->dirroot."/lib/pdox.class.php");
 
-
 if ( defined('PDO_WILL_CATCH') ) {
     $PDOX = new \Tsugi\Util\PDOX($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
     $PDOX->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
