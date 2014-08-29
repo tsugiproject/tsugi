@@ -19,7 +19,7 @@ $assn = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
 if ( $assn === false ) {
-    die("Not a peer-graded assignment");
+    die("This peer-graded assignment is not yet configured");
 } else {
     $assn_json = json_decode($assn['json']);
     $assn_id = $assn['assn_id'];

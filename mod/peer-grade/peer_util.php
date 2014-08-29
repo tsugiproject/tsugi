@@ -251,3 +251,29 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
     $retval = mailSend($to, $subject, $message, $user_id, $token);
     return $retval;
 }
+
+function getDefaultJson() 
+{
+    $json = '{ "title" : "Assignment title",
+        "description" : "This assignment consists of two images to be uploaded.  This assignment is worth 10 points. 6 points come from your peers and 4 points come from you grading other student\'s submissions.",
+        "grading" : "This is a relatively simple assignment.  Don\'t take off points for little mistakes.  If they seem to have done the assignment give them full credit.   Feel free to make suggestions if there are small mistakes.  Please keep your comments positive and useful.  If you do not take grading seriously, the instructors may delete your response and you will lose points.",
+        "parts" : [
+            { "title" : "Image of MySqlAdmin",
+              "type" : "image"
+            },
+            { "title" : "Image of PHP code running with your name",
+              "type" : "image"
+            }
+        ],
+        "totalpoints" : 10,
+        "maxpoints" : 6,
+        "minassess" : 2,
+        "assesspoints" : 2,
+        "maxassess" : 5
+    }';
+    $json = json_decode($json);
+    if ( $json === null ) die("Bad JSON constant");
+    $json = json_encode($json);
+    // $json = jsonIndent($json);
+    return $json;
+}
