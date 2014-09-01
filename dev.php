@@ -41,8 +41,8 @@ if ( isset($_POST['loginsecret']) ) {
 if ( ! isset($_SESSION['developer'] ) ) {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
+$OUTPUT->topNav();
 ?>
-<html><head><body>
 <p>Please enter the developer password (default is 'secret'):</p>
 <form method="post">
 <input type="text" name="loginsecret" size="40">
@@ -179,8 +179,9 @@ function doSubmitTool(name) {
     document.getElementById("actionform").submit();
 }
 </script>
-</head>
-<body>
+<?php
+$OUTPUT->bodyStart(false);
+?>
   <form method="post" id="actionform">
     <div class="container">
       <!-- Static navbar -->

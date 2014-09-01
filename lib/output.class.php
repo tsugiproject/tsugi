@@ -100,9 +100,9 @@ class Output {
         $HEAD_CONTENT_SENT = true;
     }
 
-    function bodyStart() {
+    function bodyStart($checkpost=true) {
         echo("\n</head>\n<body style=\"padding: 15px 15px 15px 15px;\">\n");
-        if ( count($_POST) > 0 ) {
+        if ( $checkpost && count($_POST) > 0 ) {
             $dump = safe_var_dump($_POST);
             echo('<p style="color:red">Error - Unhandled POST request</p>');
             echo("\n<pre>\n");
@@ -302,7 +302,7 @@ class Output {
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="index.php">TSUGI</a>
+              <a class="navbar-brand" href="<?php echo($R); ?>index.php">TSUGI</a>
             </div>
             <div class="navbar-collapse collapse">
               <ul class="nav navbar-nav">
@@ -318,6 +318,7 @@ class Output {
                   <ul class="dropdown-menu">
                     <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
                     <li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
+                    <li><a href="http://www.imsglobal.org/lti/ltiv2p0/ltiIMGv2p0.html" target="_new">IMS LTI 2.0 Spec</a></li>
                     <li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
                     <li><a href="http://www.oauth.net/" target="_blank">OAuth Documentation</a></li>
                   </ul>
