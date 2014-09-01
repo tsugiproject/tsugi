@@ -34,7 +34,8 @@ if ( $CFG->DEVELOPER ) {
 ?>
 <p>
 Hello and welcome to <b><?php echo($CFG->servicename); ?></b>.
-Generally this system is used to provide cloud-hosted learning tools that are plugged
+This system is running software that provides
+cloud-hosted learning tools that are plugged
 into a Learning Management systems like Sakai, Moodle, Coursera, 
 Canvas, D2L or Blackboard using
 IMS Learning Tools Interoperability™ (LTI)™.
