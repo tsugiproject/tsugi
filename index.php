@@ -35,18 +35,35 @@ if ( $CFG->DEVELOPER ) {
 <p>
 Hello and welcome to <b><?php echo($CFG->servicename); ?></b>.
 Generally this system is used to provide cloud-hosted learning tools that are plugged
-into a Learning Management systems like Sakai, Coursera, or Blackboard using
+into a Learning Management systems like Sakai, Moodle, Coursera, 
+Canvas, D2L or Blackboard using
 IMS Learning Tools Interoperability™ (LTI)™.
+<!-- Not yet supported
 You can sign in to this system
 and create a profile and as you use tools from various courses you can
 associate those tools and courses with your profile.
+-->
 </p>
 <p>
 Other than logging in and setting up your profile, there is nothing much you can
-do at this screen.  Things happen when your instructor starts using the tools
-hosted on this server in their LMS systems.  If you are an instructor and would
-like to experiment with these tools (it is early days) send a note to Dr. Chuck.
-You can look at the source code for this software at
+do at this screen.  
+<?php if ( $CFG->providekeys ) { ?>
+Things happen when your instructor starts using the tools
+hosted on this server in their LMS systems.  
+</p>
+<p>
+If you are an instructor and would
+like to experiment with these tools you can log in with
+a Google account and apply for a key and 
+<?php echo($CFG->ownername); ?>
+ will get back with you.  You can send email questions about this system to 
+<?php echo($CFG->owneremail); ?>.
+<?php } else {?>
+Some Tsugi servers accept key applications from instructors, but 
+this server is not configured to accept applications for keys.
+<?php } ?>
+</p>
+You can install your own instance of Tsugi from 
 <a href="https://github.com/csev/tsugi" target="_blank">https://github.com/csev/tsugi</a>.
 </p>
 <p>
