@@ -34,6 +34,14 @@ class Config {
     public $servicename = 'TSUGI (dev)';
 
     /**
+     * This is how the system will describe itself.
+     *
+     * This should be a sentance and end with a period.  It
+     * can include HTML tags - so be careful.
+     */
+    public $servicedesc = false;
+
+    /**
      * Information on the owner of this system
      *
      * The $ownername and $owneremail can be generic values like

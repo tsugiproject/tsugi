@@ -34,13 +34,14 @@ if ( $CFG->DEVELOPER ) {
 ?>
 <p>
 Hello and welcome to <b><?php echo($CFG->servicename); ?></b>.
-This system is running software that provides
+ <?php if ( $CFG->servicedesc ) echo($CFG->servicedesc); ?>
+ This service is running software that provides
 cloud-hosted learning tools that are plugged
 into a Learning Management systems like Sakai, Moodle, Coursera, 
 Canvas, D2L or Blackboard using
 IMS Learning Tools Interoperability™ (LTI)™.
 <!-- Not yet supported
-You can sign in to this system
+You can sign in to this service
 and create a profile and as you use tools from various courses you can
 associate those tools and courses with your profile.
 -->
@@ -49,7 +50,7 @@ associate those tools and courses with your profile.
 Other than logging in and setting up your profile, there is nothing much you can
 do at this screen.  
 <?php if ( $CFG->providekeys ) { ?>
-Things happen when your instructor starts using the tools
+Things happen when an instructor starts using the tools
 hosted on this server in their LMS systems.  
 </p>
 <p>
@@ -57,7 +58,7 @@ If you are an instructor and would
 like to experiment with these tools you can log in with
 a Google account and apply for a key and 
 <?php echo($CFG->ownername); ?>
- will get back with you.  You can send email questions about this system to 
+ will get back with you.  You can send email questions about this service to 
 <?php echo($CFG->owneremail); ?>.
 <?php } else {?>
 Some Tsugi servers accept key applications from instructors, but 

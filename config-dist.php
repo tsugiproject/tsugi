@@ -27,6 +27,7 @@ $CFG->upgrading = false;
 
 // This is how the system will refer to itself.
 $CFG->servicename = 'TSUGI';
+$CFG->servicedesc = false;
 
 // Information on the owner of this system
 $CFG->ownername = false;  // 'Charles Severance'
