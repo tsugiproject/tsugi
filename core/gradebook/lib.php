@@ -198,6 +198,7 @@ function gradeSend($grade, $verbose=true, $result=false) {
 }
 
 function dumpGradeDebug($debug_log) {
+    global $OUTPUT;
     if ( ! is_array($debug_log) ) return;
 
     foreach ( $debug_log as $k => $v ) {
