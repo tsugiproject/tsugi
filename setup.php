@@ -171,7 +171,7 @@ if (function_exists('bindtextdomain')) {
 }
 
 // Set up the user's locale
-if ( isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
+if ( function_exists('bindtextdomain') && function_exists('textdomain') && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
     if ( class_exists('Locale') ) {
         $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
     } else { // Crude fallback if it is missing

@@ -63,6 +63,9 @@ MAMP NOTES (Macintosh)
 
     edit config.php using a text editor - some values
 
+    Make sure to change $wwwroot to reflect where your server is 
+    hosted or the CSS files will not be loaded.
+
     $wwwroot = 'http://localhost:8888/tsugi';
     $CFG->pdo = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi';
     $CFG->dbprefix  = '';
@@ -86,6 +89,9 @@ XAMPP NOTES (Windows)
     copy config-dist.php config.php
 
     edit config.php using a text editor - some values
+
+    Make sure to change $wwwroot to reflect where your server is 
+    hosted or the CSS files will not be loaded.
 
     $wwwroot = 'http://localhost/tsugi';
     $CFG->dbprefix  = '';
