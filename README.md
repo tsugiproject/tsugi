@@ -69,7 +69,7 @@ MAMP NOTES (Macintosh)
     $wwwroot = 'http://localhost:8888/tsugi';
     $CFG->pdo = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi';
     $CFG->dbprefix  = '';
-    $CFG->adminpw = '....';
+    $CFG->adminpw = ....;
 
     Make a database using PhpMyAdmin:
 
@@ -95,7 +95,7 @@ XAMPP NOTES (Windows)
 
     $wwwroot = 'http://localhost/tsugi';
     $CFG->dbprefix  = '';
-    $CFG->adminpw = '....';
+    $CFG->adminpw = ....;
 
     Make a database using PhpMyAdmin:
 
