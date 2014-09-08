@@ -8,9 +8,12 @@ try {
     $msg = $ex->getMessage();
     error_log("DB connection: ".$msg);
     echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
-    if ( strpos($msg, 'Unknown database') !== false ) {
-        echo("<p>It does not appear as though your database exists.</p>
-<p> If you have full access to your MySql instance (i.e. like
+  if ( strpos($msg, 'Unknown database') !== false ||
+       strpos($msg, 'Access denied for user') !== false ) {
+    echo("<p>An error has occurred.  Either your database has 
+not yet been created or you cannot connect to the database.
+<p><b>Creating a Database</b></p>
+<p>If you have full access to your MySql instance (i.e. like
 MAMP or XAMPP, you may need to run commands like this:</p>
 <pre>
     CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
@@ -26,12 +29,11 @@ In some systems, a database adminstrator will create the database,
 user, and password and simply give them to you.
 <p>
 Once you have the database, account and password you must update your
-<code>config.php</code> with this information.</p>
-");
-    } else if ( strpos($msg, 'Access denied for user') !== false ) {
-        echo('<p>It appears that you are unable to access
-your database due to a problem with the user and password.
-The user and password for the database conneciton are setup using either a
+<code>config.php</code> with this information.</p>");
+echo('
+<p><b>Database Users</b></p>
+<p>
+The user and password for the database connection are setup using either a
 SQL <code>GRANT</code> command or created in an adminstration tool like CPanel.
 Or perhaps a system administrator created the database and gave you the
 account and password to access the database.</p>
@@ -62,9 +64,9 @@ this is usually moved to port 8889.  If neither 3306 nor 8889 works you
 probably have a bad host name.  Or talk to your system administrator.
 </p>
 ');
-    } else {
-        echo("<p>There is a problem with your database connection.</p>\n");
-    }
+} else {
+echo("<p>There is a problem with your database connection.</p>\n");
+}
 
     echo("<p>Database error detail: ".$msg."</p>\n");
     echo("<p>Once you have fixed the problem, come back to this page and refresh

@@ -61,8 +61,9 @@ MAMP NOTES (Macintosh)
     cd tsugi
     cp config-dist.php config.php
 
-    edit config.php - some values
-    $CFG->wwwroot = 'http://localhost:8888/tsugi';
+    edit config.php using a text editor - some values
+
+    $wwwroot = 'http://localhost:8888/tsugi';
     $CFG->pdo = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi';
     $CFG->dbprefix  = '';
     $CFG->adminpw = '....';
@@ -84,8 +85,9 @@ XAMPP NOTES (Windows)
     cd tsugi
     copy config-dist.php config.php
 
-    edit config.php - some values
-    $CFG->wwwroot = 'http://localhost/tsugi';
+    edit config.php using a text editor - some values
+
+    $wwwroot = 'http://localhost/tsugi';
     $CFG->dbprefix  = '';
     $CFG->adminpw = '....';
 
