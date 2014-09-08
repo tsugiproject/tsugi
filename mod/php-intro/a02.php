@@ -31,7 +31,7 @@ try {
     $h1 = "";
 }
 
-if ( $displayname && strpos($h1,$displayname) !== false ) {
+if ( $displayname && stripos($h1,$displayname) !== false ) {
     success_out("Found ($displayname) in the h1 tag");
 } else if ( $displayname ) {
     line_out("Warning: Unable to find $displayname in the h1 tag");
