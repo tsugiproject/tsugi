@@ -97,7 +97,7 @@ function webauto_test_passed($grade, $url) {
     gradeUpdateJson(json_encode(array("url" => $url)));
     $debug_log = array();
     $retval = gradeSendDetail($grade, $debug_log, false);
-    dumpGradeDebug($dumplog);
+    dumpGradeDebug($debug_log);
     if ( $retval == true ) {
         $success = "Grade sent to server (".intval($grade*100)."%)";
     } else if ( is_string($retval) ) {
