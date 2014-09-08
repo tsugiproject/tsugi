@@ -1,7 +1,15 @@
 <?php
 // In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
-include_once("config.php");
+if ( file_exists("config.php") ) {
+    include_once("config.php");
+} else {
+    echo("<pre>\nYou have not yet configured your instance of Tsugi.\n");
+    echo("You need to copy config-dist.php to config.php, edit the file,\n");
+    echo("and then refresh this screen.\n");
+    echo("</pre>\n");
+    die();
+}
 require_once("sanity.php");
 $PDOX = false;
 try {
