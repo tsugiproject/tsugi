@@ -7,6 +7,7 @@ if ( file_exists("config.php") ) {
     echo("<pre>\nYou have not yet configured your instance of Tsugi.\n");
     echo("You need to copy config-dist.php to config.php, edit the file,\n");
     echo("and then refresh this screen.\n");
+    echo("\nSee http://www.tsugi.org/ for complete installation instructions.\n");
     echo("</pre>\n");
     die();
 }
