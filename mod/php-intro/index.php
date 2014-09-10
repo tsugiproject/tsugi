@@ -15,7 +15,7 @@ if ( SettingsForm::handleSettingsPost() ) {
 }
 
 // All the assighments we support
-$assignments = array('a02.php');
+$assignments = array('a02.php', 'a03.php');
 
 // View
 $OUTPUT->header();
