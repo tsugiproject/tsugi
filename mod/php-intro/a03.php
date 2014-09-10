@@ -1,13 +1,14 @@
 <?php
 
 require_once "../../config.php";
-require_once "webauto-old.php";
+require_once "webauto.php";
 require_once "misc.php";
 use Goutte\Client;
 
 line_out("Grading PHP-Intro Assignment 3");
 
 $url = getUrl('http://www.php-intro.com/assn/guess/guess.php');
+if ( $url === false ) return;
 $grade = 0;
 
 error_log("ASSN03 ".$url);

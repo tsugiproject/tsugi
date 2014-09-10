@@ -91,8 +91,13 @@ function webauto_test_passed($grade, $url) {
         line_out('Not setup to return a grade..');
         return false;
     }
+    $LTI = $_SESSION['lti'];
+    $old_grade = isset($LTI['grade']) ? $LTI['grade'] : 0.0;
 
-    line_out('TODO: Check current grade');
+    if ( $grade < $old_grade ) {
+         line_out('New grade is not higher than your previous grade='.$old_grade);
+         line_out('Sending your previous high score');
+    }
 
     gradeUpdateJson(json_encode(array("url" => $url)));
     $debug_log = array();
