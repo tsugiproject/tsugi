@@ -42,7 +42,7 @@ if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0
 $codemirror = $editor == 1;
 
 // Get any due date information
-$dueDate = LTIX::getDueDate();
+$dueDate = SettingsForm::getDueDate();
 
 $OUTPUT->header();
 
@@ -399,7 +399,7 @@ $OUTPUT->bodyStart();
 
 if ( $USER->instructor ) {
     SettingsForm::start();
-    SettingsForm::select('exercise', __('No Exercise - Python Playground'), $EXERCISES);
+    SettingsForm::select('exercise', __('No Exercise - Python Playground'), array_keys($EXERCISES));
     SettingsForm::dueDate();
     SettingsForm::done();
     SettingsForm::end();

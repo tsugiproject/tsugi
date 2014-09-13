@@ -21,18 +21,18 @@ $crawler = $client->request('GET', $url);
 
 // Yes, one gigantic unindented try/catch block
 $passed = 5;
-$titlepassed = true;
+$titlefound = false;
 try {
 
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 
 $retval = webauto_check_title($crawler);
-if ( $retval !== true ) {
+if ( $retval === true ) {
+    $titlefound = true;
+} else {
     error_out($retval);
-    $titlepassed = false;
 }
-
 
 line_out("Looking for 'Missing guess parameter'");
 if ( stripos($html, 'Missing guess parameter') > 0 ) $passed++;
@@ -80,18 +80,9 @@ if ( stripos($html, 'Congratulations - You are right') > 0 ) $passed++;
 }
 
 $perfect = 10;
-$score = $passed * (1.0 / $perfect);
-if ( $score < 0 ) $score = 0;
-if ( $score > 1 ) $score = 1;
-$scorestr = "Score = $score ($passed/$perfect)";
-if ( $penalty === false ) {
-    line_out("Score = $score ($passed/$perfect)");
-} else {
-    $score = $score * (1.0 - $penalty);
-    line_out("Score = $score ($passed/$perfect) penalty=$penalty");
-}
+$score = webauto_compute_effective_score($perfect, $passed, $penalty);
 
-if ( ! $titlepassed ) {
+if ( ! $titlefound ) {
     error_out("These pages do not have proper titles so this grade was not sent");
     return;
 }

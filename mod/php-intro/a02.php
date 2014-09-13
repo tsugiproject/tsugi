@@ -23,6 +23,8 @@ $OUTPUT->togglePre("Show retrieved page",$html);
 
 line_out("Searching for h1 tag...");
 
+$passed = 0;
+$titlefound = false;
 try {
     $h1 = $crawler->filter('h1')->text();
     line_out("Found h1 tag...");
@@ -31,38 +33,25 @@ try {
     $h1 = "";
 }
 
-if ( $displayname && stripos($h1,$displayname) !== false ) {
-    success_out("Found ($displayname) in the h1 tag");
-} else if ( $displayname ) {
-    line_out("Warning: Unable to find $displayname in the h1 tag");
-}
-
-$success = "";
-$failure = "";
-$grade = 0.0;
-
-if ( strpos($h1, "Dr. Chuck") !== false ) {
-    $failure = "You need to put your own name in the h1 tag - assignment not complete!";
-} else if ( strpos($h1, 'Hello') !== false ) {
-    $success = "Found 'Hello' in the h1 tag - assignment correct!";
-    $grade = 1.0;
+if ( strpos($h1, 'Hello') !== false ) {
+    success_out("Found 'Hello' in the h1 tag");
+    $passed += 1;
 } else {
-    $failure = "Did not find 'Hello' in the h1 tag - assignment not complete!";
+    error_out("Did not find 'Hello' in the h1 tag");
 }
 
-if ( strlen($success) > 0 ) {
-    success_out($success);
-    error_log($success);
-} else if ( strlen($failure) > 0 ) {
-    error_out($failure);
-    error_log($failure);
-    return;
-} else {
-    error_log("No status");
-    return;
+if ( $USER->displayname && stripos($h1,$USER->displayname) !== false ) {
+    success_out("Found ($USER->displayname) in the h1 tag");
+    $passed += 1;
+} else if ( $USER->displayname ) {
+    error_out("Did not find $USER->displayname in the h1 tag");
+    error_out("No score sent");
+    // return;
 }
+
+$perfect = 2;
+$score = webauto_compute_effective_score($perfect, $passed, $penalty);
 
 // Send grade
-if ( $penalty !== false ) $grade = $grade * (1.0 - $penalty);
-if ( $grade > 0.0 ) webauto_test_passed($grade, $url);
+if ( $score > 0.0 ) webauto_test_passed($score, $url);
 

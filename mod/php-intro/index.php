@@ -15,24 +15,26 @@ if ( SettingsForm::handleSettingsPost() ) {
 }
 
 // All the assighments we support
-$assignments = array('a02.php', 'a03.php');
+$assignments = array('a02.php' => 'Howdy application', 'a03.php' => 'Guessing Game','a04.php' => 'Rock, Paper, Scissors');
 
 // View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
+
+// Settings button and dialog
+
+echo('<span style="position: fixed; right: 10px; top: 5px;">');
 if ( $USER->instructor ) {
-    echo('<span style="position: fixed; right: 10px; top: 5px;">');
     echo('<a href="grades.php" target="_blank"><button class="btn btn-info">Grade detail</button></a> '."\n");
-    $OUTPUT->settingsButton();
-    echo('</span>');
 }
-if ( $USER->instructor ) {
-    SettingsForm::start();
-    SettingsForm::select("exercise", __('Please select an assignment'),$assignments);
-    SettingsForm::dueDate();
-    SettingsForm::done();
-    SettingsForm::end();
-}
+$OUTPUT->settingsButton();
+echo('</span>');
+
+SettingsForm::start();
+SettingsForm::select("exercise", __('Please select an assignment'),$assignments);
+SettingsForm::dueDate();
+SettingsForm::done();
+SettingsForm::end();
 
 $OUTPUT->flashMessages();
 
@@ -42,7 +44,7 @@ $oldsettings = Settings::linkGetAll();
 
 $assn = Settings::linkGet('exercise');
 
-if ( $assn && in_array($assn, $assignments) ) {
+if ( $assn && isset($assignments[$assn]) ) {
     require($assn);
 } else {
     if ( $USER->instructor ) {

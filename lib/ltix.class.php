@@ -153,7 +153,7 @@ class LTIX Extends LTI {
         // Check if we can auto-login the system user
         if ( Settings::linkGet('dologin', false) && isset($PDOX) && $PDOX !== false ) loginSecureCookie();
 
-        // Set up basic custom values
+        // Set up basic custom values (legacy)
         if ( isset($_POST['custom_due'] ) ) {
             $when = strtotime($_POST['custom_due']);
             if ( $when === false ) {
@@ -667,54 +667,6 @@ class LTIX Extends LTI {
 
         // Return the LTI structure
         return $LTI;
-    }
-
-    // Check if this has a due date..
-    public static function getDueDate() {
-        $retval = new \stdClass();
-        $retval->message = false;
-        $retval->penalty = 0;
-        $retval->dayspastdue = 0;
-        $retval->percent = 0;
-        $retval->duedate = false;
-        $retval->duedatestr = false;
-
-        $duedatestr = Settings::linkGet('due');
-        if ( $duedatestr === false ) return $retval;
-        $duedate = strtotime($duedatestr);
-
-        $diff = -1;
-        $penalty = false;
-
-        date_default_timezone_set('Pacific/Honolulu'); // Lets be generous
-        if ( Settings::linkGet('timezone') ) {
-            date_default_timezone_set(Settings::linkGet('timezone'));
-        }
-
-        if ( $duedate === false ) return $retval;
-
-        //  If it is just a date - add nearly an entire day of time...
-        if ( strlen($duedatestr) <= 10 ) $duedate = $duedate + 24*60*60 - 1;
-        $diff = time() - $duedate;
-
-        $retval->duedate = $duedate;
-        $retval->duedatestr = $duedatestr;
-        // Should be a percentage off between 0.0 and 1.0
-        if ( $diff > 0 ) {
-            $penalty_time = Settings::linkGet('penalty_time') ? Settings::linkGet('penalty_time') + 0 : 24*60*60;
-            $penalty_cost = Settings::linkGet('penalty_cost') ? Settings::linkGet('penalty_cost') + 0.0 : 0.2;
-            $penalty_exact = $diff / $penalty_time;
-            $penalties = intval($penalty_exact) + 1;
-            $penalty = $penalties * $penalty_cost;
-            if ( $penalty < 0 ) $penalty = 0;
-            if ( $penalty > 1 ) $penalty = 1;
-            $retval->penalty = $penalty;
-            $retval->dayspastdue = $diff / (24*60*60);
-            $retval->percent = intval($penalty * 100);
-            $retval ->message = 'It is currently '.sprintf("%10.2f",$retval->dayspastdue)." days\n".
-            'past the due date ('.htmlentities($duedatestr).') so your late penalty is '.$retval->percent." percent.\n";
-        }
-        return $retval;
     }
 
 
