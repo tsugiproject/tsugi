@@ -29,8 +29,8 @@ function check($matches) {
     $co = $map[$matches[2]];
     $result = $matches[3];
     $re=2;
-    if ( strpos($result,"Win") !== false ) $re=0;
-    if ( strpos($result,"Lose") !== false ) $re=1;
+    if ( stripos($result,"Win") !== false ) $re=0;
+    if ( stripos($result,"Lose") !== false ) $re=1;
 
     if ( $me == $co && $re == 2 ) return true;
     if ( ( ($co + 1 ) % 3) == $me && $re == 0 ) return true;
@@ -65,7 +65,7 @@ for ( $i=0; $i<5; $i++) {
     $matches = Array();
     preg_match('/Your Play=([^ ]*) Computer Play=([^ ]*) Result=(.*)/',$html,$matches);
     if ( count($matches) != 4 ) {
-        error_out('Could not find properly formatted line starting with "Your Play="');
+        error_out('Could not find line starting with "Your Play=" (case matters)');
         continue;
     }
     line_out('Found:'.$matches[0]);

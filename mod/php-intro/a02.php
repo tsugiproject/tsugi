@@ -46,7 +46,7 @@ if ( $USER->displayname && stripos($h1,$USER->displayname) !== false ) {
 } else if ( $USER->displayname ) {
     error_out("Did not find $USER->displayname in the h1 tag");
     error_out("No score sent");
-    // return;
+    return;
 }
 
 $perfect = 2;
