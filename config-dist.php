@@ -10,7 +10,7 @@ $wwwroot = 'http://localhost/tsugi';  /// For normal
 // $wwwroot = 'http://localhost:8888/tsugi';   // For MAMP
 
 $dirroot = realpath(dirname(__FILE__));
-require_once($dirroot."/lib/config.class.php");
+require_once($dirroot."/lib/vendor/Tsugi/Config/Config.php");
 
 // We store the configuration in a global object
 // Additional documentation on these fields is 

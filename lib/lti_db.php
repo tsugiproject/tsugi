@@ -2,5 +2,5 @@
 
 require_once('lti_util.php');
 
-require_once("ltix.class.php");
+require_once("vendor/Tsugi/Core/LTIX.php");
 

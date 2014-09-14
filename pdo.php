@@ -3,7 +3,7 @@
 global $PDOX;
 $PDOX = false;
 
-require_once($CFG->dirroot."/lib/pdox.class.php");
+require_once($CFG->dirroot."/lib/vendor/Tsugi/Util/PDOX.php");
 
 if ( defined('PDO_WILL_CATCH') ) {
     $PDOX = new \Tsugi\Util\PDOX($CFG->pdo, $CFG->dbuser, $CFG->dbpass);

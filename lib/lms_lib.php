@@ -1,23 +1,23 @@
 <?php
 
-require_once("cache.class.php");
-require_once("debug.class.php");
-require_once('net.class.php');
-require_once("crypt/aes.class.php");
-require_once("crypt/aesctr.class.php");
+require_once("vendor/Tsugi/Core/Cache.php");
+require_once("vendor/Tsugi/Core/Debug.php");
+require_once('vendor/Tsugi/Util/Net.php');
+require_once("vendor/Tsugi/Crypt/Aes.php");
+require_once("vendor/Tsugi/Crypt/AesCtr.php");
 
-require_once("oauth.class.php");
-require_once("lti.class.php");
+require_once("oauth.classes.php");
+require_once("vendor/Tsugi/Util/LTI.php");
 
-require_once("user.class.php");
-require_once("context.class.php");
-require_once("link.class.php");
-require_once("ltix.class.php");
-require_once("settings.class.php");
-require_once("crudform.class.php");
-require_once("table.class.php");
-require_once("output.class.php");
-require_once("settingsform.class.php");
+require_once("vendor/Tsugi/Core/User.php");
+require_once("vendor/Tsugi/Core/Context.php");
+require_once("vendor/Tsugi/Core/Link.php");
+require_once("vendor/Tsugi/Core/LTIX.php");
+require_once("vendor/Tsugi/Core/Settings.php");
+require_once("vendor/Tsugi/UI/CrudForm.php");
+require_once("vendor/Tsugi/UI/Table.php");
+require_once("vendor/Tsugi/UI/Output.php");
+require_once("vendor/Tsugi/UI/SettingsForm.php");
 
 require_once("lti_util.php");
 require_once("lti_db.php");
