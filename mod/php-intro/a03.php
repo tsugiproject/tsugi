@@ -2,7 +2,6 @@
 
 require_once "../../config.php";
 require_once "webauto.php";
-require_once "misc.php";
 use Goutte\Client;
 
 line_out("Grading PHP-Intro Assignment 3");

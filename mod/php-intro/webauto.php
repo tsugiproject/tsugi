@@ -120,3 +120,14 @@ function webauto_compute_effective_score($perfect, $passed, $penalty) {
     line_out($scorestr);
     return $score;
 }
+
+function webauto_check_post_redirect($client) {
+    global $passed;
+    line_out("Checking to see if there was a POST redirect to a GET");
+    $method = $client->getRequest()->getMethod();
+    if ( $method == "get" ) {
+        $passed++;
+    } else {
+        error_out('Expecting POST to Redirect to GET - found '.$method);
+    }
+}
