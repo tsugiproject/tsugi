@@ -11,7 +11,7 @@ namespace Tsugi\Config;
  * and overide the fields in your config.php.
  */
 
-class Config {
+class ConfigInfo {
 
     /** 
      * The URL where the software is hosted

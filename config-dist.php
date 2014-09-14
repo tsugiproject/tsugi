@@ -10,14 +10,14 @@ $wwwroot = 'http://localhost/tsugi';  /// For normal
 // $wwwroot = 'http://localhost:8888/tsugi';   // For MAMP
 
 $dirroot = realpath(dirname(__FILE__));
-require_once($dirroot."/lib/vendor/Tsugi/Config/Config.php");
+require_once($dirroot."/lib/vendor/Tsugi/Config/ConfigInfo.php");
 
 // We store the configuration in a global object
 // Additional documentation on these fields is 
 // available in that class or in the PHPDoc for that class
 unset($CFG);
 global $CFG;
-$CFG = new \Tsugi\Config\Config($dirroot, $wwwroot);
+$CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
 
