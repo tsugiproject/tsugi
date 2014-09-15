@@ -10,7 +10,7 @@ If you want to see this code actually working, you can play online:
 * https://lti-tools.dr-chuck.com/tsugi/
 
 You can log in to this site and request an account to use with your IMS
-LTI Compatible LMS.  Once you have a key/secret to use the system, here
+LTI compatible LMS.  Once you have a key/secret to use the system, here
 is some rudimentatry LTI 1.0 documentation:
 
 * [Configuring LTI 1.0 Launches](docs/LAUNCHING.md)
