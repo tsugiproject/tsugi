@@ -93,7 +93,7 @@ XAMPP NOTES (Windows)
     adminpw to automatically create all necessary tables.
 
 If you are setting this up on some variation of Linux, the Macintosh 
-instructoions will be the most help.
+instructions will be the most help.
 
 /Chuck
 
