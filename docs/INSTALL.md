@@ -17,6 +17,8 @@ my www.php-intro.com site as to how to install MAMP or XAMPP:
 * Check the code out from GitHub and put it in a directory where 
 your web server can read it
 
+        git clone https://github.com/csev/tsugi.git
+
 * Create a database and get authentication info for the database
  
         CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
