@@ -34,8 +34,11 @@ but I am not eager to have too many adoptions because I expect the code
 will see several refactor phases as various communities start to
 look critically at the code.
 
+A project in Java with a very similar approach is called
+the [LTI Starter Kit](https://github.com/azeckoski/lti_starter).
+
 \-- Chuck
-Sun Jun  8 12:17:41 EDT 2014
+Sun Sep 14 20:21:09 EDT 2014
 
 Learning Tools Interoperability™ (LTI™) is a
 trademark of IMS Global Learning Consortium, Inc. in
