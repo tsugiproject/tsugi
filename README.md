@@ -1,9 +1,9 @@
 TSUGI - A Framework for Building PHP-Based Learning Tools
 =========================================================
 
-This project is in early days.  Its goal is to build a scalable
-multi-tenant "tool" hosting environment based on the emerging IMS
-standards.  
+Welcome to the www.tsugi.org project.  This project is in early days.  Its goal is 
+to build a scalable multi-tenant "tool" hosting environment based on the 
+emerging IMS standards.  
 
 Here are several other pages describing this project:
 
