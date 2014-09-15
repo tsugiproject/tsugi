@@ -181,7 +181,7 @@ if ( function_exists('bindtextdomain') && function_exists('textdomain') && isset
     putenv('LC_ALL='.$locale);
     setlocale(LC_ALL, $locale);
     $domain = getScriptFolder();
-    bindtextdomain($domain, getScriptPath()."/locale");
+    bindtextdomain($domain, getScriptPathFull()."/locale");
     textdomain($domain);
 }
 

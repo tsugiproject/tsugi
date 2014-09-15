@@ -109,6 +109,17 @@ function getCurrentFile($file) {
 }
 
 function getScriptPath() {
+    global $CFG;
+    $path = getScriptPathFull();
+    if ( strpos($path, $CFG->dirroot) === 0 )  { 
+        $x = substr($path, strlen($CFG->dirroot)+1 ) ;
+        return $x;
+    } else {
+        return "";
+    }
+}
+
+function getScriptPathFull() {
     if ( ! isset( $_SERVER['SCRIPT_FILENAME']) ) return false;
     $script = $_SERVER['SCRIPT_FILENAME'];
     $path = dirname($script);
