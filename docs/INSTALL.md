@@ -2,9 +2,9 @@ Installing TSUGI
 ================
 
 I have recorded a simple video describing the install/config steps
-for this software on
+for this software on YouTube:
 
-* http://www.youtube.com/watch?v=YNl1kJ1Z154
+[Installation Video] (https://www.youtube.com/watch?v=Na_QDXp-Y7o&index=1&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw)
 
 To install this software follow these steps:
 
