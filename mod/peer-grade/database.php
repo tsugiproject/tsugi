@@ -1,5 +1,13 @@
 <?php
 
+// To allow this to be called directly or from admin/upgrade.php
+if ( !isset($PDOX) ) {
+    require_once "../../config.php";
+    $CURRENT_FILE = __FILE__;
+    require $CFG->dirroot."/admin/migrate-setup.php";
+}
+
+// Dropping tables
 $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}peer_flag",
 "drop table if exists {$CFG->dbprefix}peer_grade",
@@ -7,6 +15,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}peer_assn"
 );
 
+// Creating tables
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}peer_assn",
 "create table {$CFG->dbprefix}peer_assn (
@@ -104,6 +113,7 @@ array( "{$CFG->dbprefix}peer_flag",
 
 );
 
+// Database upgrade
 $DATABASE_UPGRADE = function($oldversion) {
     global $CFG;
 
@@ -117,4 +127,10 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     return 2014042200;
 }; // Don't forget the semicolon on anonymous functions :)
+
+// Do the actual migration if we are not in admin/upgrade.php
+if ( isset($CURRENT_FILE) ) {
+    include $CFG->dirroot."/admin/migrate-run.php";
+    $OUTPUT->footer();
+}
 
