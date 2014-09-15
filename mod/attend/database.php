@@ -37,6 +37,6 @@ array( "{$CFG->dbprefix}attend",
 
 // Do the actual migration
 if ( isset($CURRENT_FILE) ) {
-    include $CFG->dirroot."/admin/migrate.php";
+    include $CFG->dirroot."/admin/migrate-run.php";
     $OUTPUT->footer();
 }

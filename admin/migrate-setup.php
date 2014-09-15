@@ -14,8 +14,8 @@ if ( !isset($path) ) {
     $path = substr($path,1); // Trim off the initial slash
 }
 
-$p = $CFG->dbprefix;
-$plugins = "{$p}lms_plugins";
+if ( !isset($p) ) $p = $CFG->dbprefix;
+if ( !isset($plugins) ) $plugins = "{$p}lms_plugins";
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

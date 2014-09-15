@@ -73,7 +73,7 @@ foreach($tools as $tool ) {
     unset($DATABASE_UNINSTALL);
     unset($DATABASE_UPGRADE);
     require($tool);
-    require('migrate.php');
+    require('migrate-run.php');
 }
 
 echo("\n<br/>Highest database version=$maxversion in $maxpath<br/>\n");
