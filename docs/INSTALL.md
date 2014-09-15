@@ -11,14 +11,22 @@ To install this software follow these steps:
 * Pre-requisites - git installed and working at the command prompt
 and a PHP/MySql environment installed
 
-* Check the code out from GitHub
+* Check the code out from GitHub and put it in a directory where 
+your web server can read it
 
 * Create a database and get authentication info for the database
+ 
+        CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
+        GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
+        GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
 
 * Copy the file config-dist.php to config.php and edit the file
 to put in the appropriate values.  Make sure to change all the secrets.
 If you are just getting started turn on DEVELOPER mode so you can launch
-the tools easily
+the tools easily.  Each of the fields is documented in the config-dist.php
+file - here is some additional documentation on the configuration values:
+
+    http://do1.dr-chuck.com/tsugi/phpdoc/classes/Tsugi.Config.ConfigInfo.html
 
 * Go to the main page, and click on "Admin" to make all the database
 tables - you will need the Admin password you just put into config.php
@@ -83,6 +91,9 @@ XAMPP NOTES (Windows)
 
     Visit  http://localhost/tsugi and go to 'Admin' and enter the
     adminpw to automatically create all necessary tables.
+
+If you are setting this up on some variation of Linux, the Macintosh 
+instructions will be the most help.
 
 /Chuck
 
