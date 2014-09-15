@@ -17,7 +17,7 @@ is some rudimentatry LTI 1.0 documentation:
 
 Here are several other pages describing this project:
 
-* [Installing Tsugi](docs/INSTALLING.md)
+* [Installing Tsugi](docs/INSTALL.md)
 * [Developer Documentation](docs/DEVELOP.md)
 * [About The Project](docs/ABOUT.md)
 
