@@ -106,12 +106,24 @@ class Settings {
     }
 
     /**
+     * Set or update a key to a new value in link settings.
+     *
+     * @params $key The key to set in settings.
+     * @params $value The value to set for that key
+     */
+    public static function linkSet($key, $value)
+    {
+        $newset = array($key => $value);
+        self::linkUpdate($newset);
+    }
+
+    /**
      * Set or update a number of keys to new values in link settings.
      *
      * @params $keyvals An array of key value pairs that are to be placed in the
      * settings.
      */
-    public static function linkSet($keyvals)
+    public static function linkUpdate($keyvals)
     {
         global $PDOX;
         $allSettings = self::linkGetAll();
