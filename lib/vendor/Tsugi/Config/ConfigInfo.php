@@ -191,8 +191,6 @@ class ConfigInfo {
      * the application, but you may have no other choice to leave this false
      * (default). Make sure that this folder is readable and writable by 
      * the web server.
-     *
-     * If this if false, it will be assumed
      */
     public $dataroot = false;
 
@@ -302,7 +300,7 @@ class ConfigInfo {
      *
      * Example call with constants:
      *
-     *     $CFG = new \Tsugi\Core\Config('/Applications/MAMP/htdocs/tsugi', 
+     *     $CFG = new \Tsugi\Config\ConfigInfo('/Applications/MAMP/htdocs/tsugi', 
      *         'http://localhost:8888/tsugi');
      *
      * Example call in config.php that does not hard-code the actual path:
@@ -311,7 +309,7 @@ class ConfigInfo {
      *         'http://localhost:8888/tsugi');
      *
      * Once the variable is constructed, the public member variables are 
-     * overridden directly by setting them in the PHP code.
+     * overridden directly by setting them in the PHP code in config.php.
      *
      *     $CFG = new \Tsugi ...
      *     $CFG->pdo = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
