@@ -3,10 +3,14 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
+// The Tsugi PHP API Documentation is available at:
+// http://do1.dr-chuck.com/tsugi/phpdoc/namespaces/Tsugi.html
+
 use \Tsugi\Core\Settings;
+use \Tsugi\Core\LTIX;
 
 // Initalize and check the Session details
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 
 // Model
 $p = $CFG->dbprefix;

@@ -130,7 +130,7 @@ function getScriptPathFull() {
 // ["SCRIPT_FILENAME"]=> string(52) "/Applications/MAMP/htdocs/tsugi/mod/attend/index.php"
 // This function will return "attend"
 function getScriptFolder() {
-    $path = getScriptPath();
+    $path = getScriptPathFull();
     if ( $path === false ) return false;
     $pieces = explode(DIRECTORY_SEPARATOR, $path);
     if ( count($pieces) < 1 ) return false;
