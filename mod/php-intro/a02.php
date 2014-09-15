@@ -33,7 +33,7 @@ try {
     $h1 = "";
 }
 
-if ( strpos($h1, 'Hello') !== false ) {
+if ( stripos($h1, 'Hello') !== false ) {
     success_out("Found 'Hello' in the h1 tag");
     $passed += 1;
 } else {

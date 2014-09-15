@@ -100,7 +100,7 @@ function webauto_check_title($crawler) {
     } catch(Exception $ex) {
         return "Did not find title tag";
     }
-    if ( strpos($title,$USER->displayname) === false ) {
+    if ( stripos($title,$USER->displayname) === false ) {
         return "Did not find '$USER->displayname' in title tag";
     }
     return true;
