@@ -1,7 +1,11 @@
 Developing TSUGI Tools
 ======================
 
-I am working on a complete end-to-end tutorial on tool building but
+Here is a video tutorial that covers the _mod/attend_ Tsugi tool:
+
+* [Developing the Attendance Tool in Tsugi](https://www.youtube.com/watch?v=mJnTo8vUyrM&index=3&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw)
+
+This page is a work in progress as more documentation is developed but
 for now this is the documentation I have:
 
 * [TSUGI API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
