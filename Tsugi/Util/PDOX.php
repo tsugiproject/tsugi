@@ -131,7 +131,11 @@ class PDOX extends \PDO {
         $stmt = self::queryReturnError($sql, $arr, $error_log);
         if ( ! $stmt->success ) {
             error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
-            die($stmt->errorImplode); // with error_log
+            if ( $CFG->DEVELOPER ) {
+                die($stmt->errorImplode); // with error_log
+            } else {
+                die('Internal database error');
+            }
         }
         return $stmt;
     }
