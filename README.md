@@ -1,14 +1,13 @@
 TSUGI - A Framework for Building PHP-Based Learning Tools
 =========================================================
 
-<div style="float:right;"><iframe width="420" height="315" src="//www.youtube.com/embed/iDcoWH9PO6I" frameborder="0" allowfullscreen="allowfullscreen">&nbsp;</iframe></div>
-
 Welcome to the www.tsugi.org project.  This project is in early days.  Its goal is 
 to build a scalable multi-tenant "tool" hosting environment based on the 
 emerging IMS standards.  
 
 Here are several other pages describing this project:
 
+* Video Presentation: [Tsugi Overview](https://www.youtube.com/watch?v=iDcoWH9PO6I&index=2&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw)
 * Installing Tsugi: [Documentation](docs/INSTALL.md) ([Video] (https://www.youtube.com/watch?v=Na_QDXp-Y7o&index=1&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw))
 * [Developer Documentation](docs/DEVELOP.md)
 * [About The Project](docs/ABOUT.md)
