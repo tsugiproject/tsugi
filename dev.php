@@ -58,10 +58,10 @@ header('Content-Type: text/html; charset=utf-8');
 
 // Load tools from various folders
 $tools = array();
-findTools("mod",$tools);
-findTools("solutions",$tools);
-findTools("samples",$tools);
-findTools("tmp",$tools);
+foreach( $CFG->tool_folders AS $tool_folder) {
+    if ( $tool_folder == 'core' ) continue;
+    findTools($tool_folder,$tools);
+}
 
 $cur_url = curPageURL();
 
