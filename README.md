@@ -19,7 +19,7 @@ If you want to see this code actually working, you can play online:
 
 You can log in to this site and request an account to use with your IMS
 LTI compatible LMS.  Once you have a key/secret to use the system, here
-is some rudimentary LTI 1.0 documentation:
+is some LTI 1.0 documentation:
 
 * [Configuring LTI 1.0 Launches](docs/LAUNCHING.md)
 
