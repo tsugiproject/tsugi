@@ -5,11 +5,12 @@ Welcome to the www.tsugi.org project.  This project is in early days.  Its goal 
 to build a scalable multi-tenant "tool" hosting environment based on the 
 emerging IMS standards.  
 
-Here are several other pages describing this project:
-
 * Video Presentation: [Tsugi Overview](https://www.youtube.com/watch?v=iDcoWH9PO6I&index=2&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw)
+
+Here are some documentation pages for this project:
+
 * [Installing Tsugi](docs/INSTALL.md)
-* [Developer Documentation](docs/DEVELOP.md)
+* [Developing Tsugi Applications](docs/DEVELOP.md)
 * [About The Project](docs/ABOUT.md)
 
 If you want to see this code actually working, you can play online:
