@@ -14,8 +14,13 @@ if ( SettingsForm::handleSettingsPost() ) {
     return;
 }
 
-// All the assighments we support
-$assignments = array('a02.php' => 'Howdy application', 'a03.php' => 'Guessing Game','a04.php' => 'Rock, Paper, Scissors');
+// All the assignments we support
+$assignments = array(
+    'a02.php' => 'Howdy application', 
+    'a03.php' => 'Guessing Game',
+    'a04.php' => 'Rock, Paper, Scissors',
+    'a05.php' => 'Shopping Cart'
+);
 
 // View
 $OUTPUT->header();
