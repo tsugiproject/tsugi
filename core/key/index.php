@@ -45,7 +45,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         array(":UID" => $_SESSION['id'], ":TITLE" => $_POST['title'],
             ":NOTES" => $_POST['notes'], ":LTI" => $version)
     );
-    if ( !isAdmin() && $CFG->owneremail ) {
+    if ( !isAdmin() && $CFG->owneremail && $CFG->OFFLINE === false) {
         $user_id = $_SESSION['id'];
         $token = computeMailCheck($user_id);
         $to = $CFG->owneremail;

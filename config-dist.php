@@ -92,6 +92,14 @@ $CFG->noncetime = 1800;
 // See LTIX::getCompositeKey() for detail on how this operates.
 $CFG->sessionsalt = "warning:please-change-sessionsalt-89b543";
 
+// Effectively an "airplane mode" for the appliction.
+// Setting this to true makes it so that when you are completely 
+// disconnected, various tools will not access network resources 
+// like Google's map library and hang.  Also the Google login will 
+// be faked.  Don't run this in production.
+
+$CFG->OFFLINE = false;
+
 // Leave these here
 require_once $CFG->dirroot."/setup.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";

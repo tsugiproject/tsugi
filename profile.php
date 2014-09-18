@@ -186,6 +186,10 @@ in the middle of a bar.  :)
 <?php
 
 // After jquery gets loaded at the *very* end...
-$OUTPUT->footer_content('<script type="text/javascript">
+$OUTPUT->footerStart();
+?>
+<script type="text/javascript">
 $(document).ready(function() { initialize(); } );
-</script>');
+</script>
+<?
+$OUTPUT->footerEnd();
