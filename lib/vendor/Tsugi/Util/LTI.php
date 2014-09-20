@@ -6,7 +6,7 @@ use \Tsugi\OAuth\TrivialOAuthDataStore;
 use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;
 use \Tsugi\OAuth\OAuthRequest;
-use \Tsugi\OAuth\OAuthConsumer;;
+use \Tsugi\OAuth\OAuthConsumer;
 use \Tsugi\OAuth\OAuthUtil;
 
 use \Tsugi\Util\Net;
@@ -107,24 +107,24 @@ class LTI {
             $r .= "  //]]> \n" ;
             $r .= "</script>\n";
             $r .= "<a id=\"displayText\" href=\"javascript:basicltiDebugToggle();\">";
-            $r .= LTI::get_string("toggle_debug_data","basiclti")."</a>\n";
+            $r .= self::get_string("toggle_debug_data","basiclti")."</a>\n";
             $r .= "<div id=\"basicltiDebug\" style=\"display:none\">\n";
-            $r .=  "<b>".LTI::get_string("basiclti_endpoint","basiclti")."</b><br/>\n";
+            $r .=  "<b>".self::get_string("basiclti_endpoint","basiclti")."</b><br/>\n";
             $r .= $endpoint . "<br/>\n&nbsp;<br/>\n";
-            $r .=  "<b>".LTI::get_string("basiclti_parameters","basiclti")."</b><br/>\n";
+            $r .=  "<b>".self::get_string("basiclti_parameters","basiclti")."</b><br/>\n";
             foreach($newparms as $key => $value ) {
                 $key = htmlspec_utf8($key);
                 $value = htmlspec_utf8($value);
                 $r .= "$key = $value<br/>\n";
             }
             $r .= "&nbsp;<br/>\n";
-            $r .= "<p><b>".LTI::get_string("basiclti_base_string","basiclti")."</b><br/>\n".$LastOAuthBodyBaseString."</p>\n";
+            $r .= "<p><b>".self::get_string("basiclti_base_string","basiclti")."</b><br/>\n".$LastOAuthBodyBaseString."</p>\n";
             $r .= "</div>\n";
         }
         $r .= "</form>\n";
         if ( $iframeattr && $iframeattr != '_blank' ) {
             $r .= "<iframe name=\"basicltiLaunchFrame\"  id=\"basicltiLaunchFrame\" src=\"\"\n";
-            $r .= $iframeattr . ">\n<p>".LTI::get_string("frames_required","basiclti")."</p>\n</iframe>\n";
+            $r .= $iframeattr . ">\n<p>".self::get_string("frames_required","basiclti")."</p>\n</iframe>\n";
         }
         if ( ! $debug ) {
             $ext_submit = "ext_submit";
@@ -305,11 +305,101 @@ class LTI {
         return Net::doBody($endpoint, "POST", $body,$header);
     }
 
-    /*  $postBody = str_replace(
-          array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
-          array($sourcedid, $_REQUEST['grade'], $operation, uniqid()),
-          self::getPOXGradeRequest());
-    */
+
+    public static function getPOXGrade($sourcedid, $service, $key_key, $secret) {
+        global $LastPOXGradeResponse;
+        global $LastPOXGradeParse;
+        global $LastPOXGradeError;
+        $LastPOXGradeResponse = false;
+        $LastPOXGradeParse = false;
+        $LastPOXGradeError = false;
+
+        $content_type = "application/xml";
+        $sourcedid = htmlspecialchars($sourcedid);
+
+        $operation = 'readResultRequest';
+        $postBody = str_replace(
+            array('SOURCEDID', 'OPERATION','MESSAGE'),
+            array($sourcedid, $operation, uniqid()),
+            self::getPOXRequest());
+
+        $response = self::sendOAuthBodyPOST($service, $key_key, $secret,
+            $content_type, $postBody);
+        $LastPOXGradeResponse = $response;
+
+        $status = "Failure to retrieve grade";
+        if ( strpos($response, '<?xml') !== 0 ) {
+            error_log("Fatal XML Grade Read: ".session_id()." sourcedid=".$sourcedid);
+            error_log("Detail: service=".$service." key_key=".$key_key);
+            error_log("Response: ".$response);
+            return "Unable to read XML from web service.";
+        }
+
+        $grade = false;
+        try {
+            $retval = self::parseResponse($response);
+            $LastPOXGradeParse = $retval;
+            if ( is_array($retval) ) {
+                if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
+                    if ( isset($retval['textString'])) $grade = $retval['textString']+0.0;
+                } else if ( isset($retval['imsx_description']) ) {
+                    $LastPOXGradeError = $retval['imsx_description'];
+                    error_log("Grade read failure: "+$LastPOXGradeError);
+                    return $LastPOXGradeError;
+                }
+            }
+        } catch(Exception $e) {
+            $LastPOXGradeError = $e->getMessage();
+            error_log("Grade read failure: "+$LastPOXGradeError);
+            return $LastPOXGradeError;
+        }
+        return $grade;
+    }
+
+    public static function sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, &$debug_log=false) {
+        global $LastPOXGradeResponse;
+        $LastPOXGradeResponse = false;
+
+        $content_type = "application/xml";
+        $sourcedid = htmlspecialchars($sourcedid);
+
+        $operation = 'replaceResultRequest';
+        $postBody = str_replace(
+            array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
+            array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
+            self::getPOXGradeRequest());
+
+        if ( is_array($debug_log) ) $debug_log[] = array('Sending '.$grade.' to '.$service.' sourcedid='.$sourcedid);
+
+        if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request (debug)',$postBody);
+
+        $response = self::sendOAuthBodyPOST($service, $key_key, $secret,
+            $content_type, $postBody);
+        global $LastOAuthBodyBaseString;
+        $lbs = $LastOAuthBodyBaseString;
+        if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response (debug)",$response);
+        $LastPOXGradeResponse = $response;
+        $status = "Failure to store grade";
+        if ( strpos($response, '<?xml') !== 0 ) {
+            error_log("Fatal XML Grade Update: ".session_id()." sourcedid=".$sourcedid);
+            error_log("Detail: service=".$service." key_key=".$key_key);
+            error_log("Response: ".$response);
+            return $status;
+        }
+        try {
+            $retval = self::parseResponse($response);
+            if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
+                $status = true;
+            } else if ( isset($retval['imsx_description']) ) {
+                $status = $retval['imsx_description'];
+            }
+        } catch(Exception $e) {
+            $status = $e->getMessage();
+            if ( is_array($debug_log) )  $debug_log[] = array("Exception: ".$status);
+        }
+        return $status;
+    }
+
 
     public static function getPOXGradeRequest() {
         return '<?xml version = "1.0" encoding = "UTF-8"?>

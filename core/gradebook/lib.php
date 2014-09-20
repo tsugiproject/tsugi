@@ -109,7 +109,17 @@ function gradeUpdateJson($newdata=false) {
 
 function gradeGet($result_id, $sourcedid, $service) {
     global $CFG, $PDOX;
-    $grade = gradeGetWebService($sourcedid, $service);
+    $lti = $_SESSION['lti'];
+    if ( ! ( isset($lti['key_key']) && isset($lti['secret']) ) ) {
+        error_log('Session is missing required data');
+        $debug = safe_var_dump($lti);
+        error_log($debug);
+        return "Missing required session data";
+    }
+    $key_key = $lti['key_key'];
+    $secret = $lti['secret'];
+    $grade = self::getPOXGrade($sourcedid, $service, $key_key, $secret);
+
     if ( is_string($grade) ) return $grade;
 
     // UPDATE the retrieved grade
@@ -118,64 +128,6 @@ function gradeGet($result_id, $sourcedid, $service) {
             retrieved_at = NOW() WHERE result_id = :RID",
         array( ':server_grade' => $grade, ":RID" => $result_id)
     );
-    return $grade;
-}
-
-function gradeGetWebService($sourcedid, $service) {
-    global $CFG;
-    global $LastPOXGradeResponse;
-    global $LastPOXGradeParse;
-    global $LastPOXGradeError;
-    $LastPOXGradeResponse = false;
-    $LastPOXGradeParse = false;
-    $LastPOXGradeError = false;
-    $lti = $_SESSION['lti'];
-    if ( ! ( isset($lti['key_key']) && isset($lti['secret']) ) ) {
-        error_log('Session is missing required data');
-        $debug = safe_var_dump($lti);
-        error_log($debug);
-        return "Missing required session data";
-    }
-
-    $content_type = "application/xml";
-    $sourcedid = htmlspecialchars($sourcedid);
-
-    $operation = 'readResultRequest';
-    $postBody = str_replace(
-        array('SOURCEDID', 'OPERATION','MESSAGE'),
-        array($sourcedid, $operation, uniqid()),
-        LTI::getPOXRequest());
-
-    $response = LTI::sendOAuthBodyPOST($service, $lti['key_key'], $lti['secret'],
-        $content_type, $postBody);
-    $LastPOXGradeResponse = $response;
-
-    $status = "Failure to retrieve grade";
-    if ( strpos($response, '<?xml') !== 0 ) {
-        error_log("Fatal XML Grade Read: ".session_id()." sourcedid=".$sourcedid);
-        error_log("Detail: service=".$service." key_key=".$lti['key_key']);
-        error_log("Response: ".$response);
-        return "Unable to read XML from web service.";
-    }
-
-    $grade = false;
-    try {
-        $retval = LTI::parseResponse($response);
-        $LastPOXGradeParse = $retval;
-        if ( is_array($retval) ) {
-            if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
-                if ( isset($retval['textString'])) $grade = $retval['textString']+0.0;
-            } else if ( isset($retval['imsx_description']) ) {
-                $LastPOXGradeError = $retval['imsx_description'];
-                error_log("Grade read failure: "+$LastPOXGradeError);
-                return $LastPOXGradeError;
-            }
-        }
-    } catch(Exception $e) {
-        $LastPOXGradeError = $e->getMessage();
-        error_log("Grade read failure: "+$LastPOXGradeError);
-        return $LastPOXGradeError;
-    }
     return $grade;
 }
 
@@ -287,9 +239,7 @@ function gradeSendInternal($grade, &$debug_log, $result) {
 }
 
 function gradeSendWebService($grade, $sourcedid, $service, &$debug_log=false) {
-    global $CFG;
-    global $LastPOXGradeResponse;
-    $LastPOXGradeResponse = false;;
+
     $lti = $_SESSION['lti'];
     if ( !isset($lti['key_key']) || !isset($lti['secret']) ) {
         error_log('Session is missing required data');
@@ -297,43 +247,8 @@ function gradeSendWebService($grade, $sourcedid, $service, &$debug_log=false) {
         error_log($debug);
         return "Missing required session data";
     }
+    $key_key = $lti['key_key'];
+    $secret = $lti['secret'];
 
-    $content_type = "application/xml";
-    $sourcedid = htmlspecialchars($sourcedid);
-
-    $operation = 'replaceResultRequest';
-    $postBody = str_replace(
-        array('SOURCEDID', 'GRADE', 'OPERATION','MESSAGE'),
-        array($sourcedid, $grade.'', 'replaceResultRequest', uniqid()),
-        LTI::getPOXGradeRequest());
-
-    if ( is_array($debug_log) ) $debug_log[] = array('Sending '.$grade.' to '.$lti['service'].' sourcedid='.$sourcedid);
-
-    if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request (debug)',$postBody);
-
-    $response = LTI::sendOAuthBodyPOST($lti['service'], $lti['key_key'], $lti['secret'],
-        $content_type, $postBody);
-    global $LastOAuthBodyBaseString;
-    $lbs = $LastOAuthBodyBaseString;
-    if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response (debug)",$response);
-    $LastPOXGradeResponse = $response;
-    $status = "Failure to store grade";
-    if ( strpos($response, '<?xml') !== 0 ) {
-        error_log("Fatal XML Grade Update: ".session_id()." sourcedid=".$sourcedid);
-        error_log("Detail: service=".$service." key_key=".$lti['key_key']);
-        error_log("Response: ".$response);
-        return $status;
-    }
-    try {
-        $retval = LTI::parseResponse($response);
-        if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
-            $status = true;
-        } else if ( isset($retval['imsx_description']) ) {
-            $status = $retval['imsx_description'];
-        }
-    } catch(Exception $e) {
-        $status = $e->getMessage();
-        if ( is_array($debug_log) )  $debug_log[] = array("Exception: ".$status);
-    }
-    return $status;
+    return LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
 }
