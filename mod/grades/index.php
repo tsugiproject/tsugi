@@ -5,9 +5,10 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
 use \Tsugi\UI\Table;
+use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
 $user_info = false;

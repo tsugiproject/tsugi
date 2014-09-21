@@ -3,8 +3,10 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
+use \Tsugi\Core\LTIX;
+
 // Retrieve required launch data from session
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'user_displayname',
+$LTI = LTIX::requireData(array('user_id', 'user_displayname',
     'context_title', 'role','link_id'));
 $p = $CFG->dbprefix;
 

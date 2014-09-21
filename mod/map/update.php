@@ -3,8 +3,10 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
+use \Tsugi\Core\LTIX;
+
 // Sanity checks
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 
 $p = $CFG->dbprefix;
 if ( isset($_POST['lat']) && isset($_POST['lng']) ) {

@@ -7,10 +7,11 @@ require_once "peer_util.php";
 
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\Settings;
+use \Tsugi\Core\LTIX;
 use \Tsugi\UI\SettingsForm;
 
 // Sanity checks
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
 if ( SettingsForm::handleSettingsPost() ) {

@@ -5,9 +5,10 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "files_util.php";
 
 use \Tsugi\Core\Debug;
+use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'context_id'));
+$LTI = LTIX::requireData(array('user_id', 'context_id'));
 
 // Model
 $p = $CFG->dbprefix;

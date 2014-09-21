@@ -2,6 +2,8 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
+use \Tsugi\Core\LTIX;
+
 headerJson();
 
 // Nothing for us to do
@@ -21,7 +23,7 @@ if ( !isset($_GET['top']) ) {
 }
 
 // Grab the session
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id'));
+$LTI = LTIX::requireData(array('user_id'));
 
 // This has already been set by someone so nothing to do
 if (isset($_COOKIE['TSUGI_TOP_SESSION']) ) {
@@ -44,7 +46,7 @@ if ( (!isset($_SESSION['TOP_CHECK'])) || $_SESSION['TOP_CHECK'] < 1) {
 // We are the top frame, the cookie has not yet been set.
 // Lets try to set the cookie in JavaScript - but in case that fails,
 // We will try to set the session cookie on our next request response
-// cycle in \Tsugi\Core\LTIX::requireData()
+// cycle in LTIX::requireData()
 
 $_SESSION['SET_TOP_COOKIE'] = 1;
 echo(json_encode(array("session_name" => session_name(), "cookie_name" => 'TSUGI_TOP_SESSION',

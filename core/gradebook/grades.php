@@ -5,9 +5,10 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "lib.php";
 
 use \Tsugi\UI\Table;
+use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id', "result_id"));
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id', "result_id"));
 if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 

@@ -5,7 +5,9 @@ use \Tsugi\UI\SettingsForm;
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+use \Tsugi\Core\LTIX;
+
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 
 if ( SettingsForm::handleSettingsPost() ) {

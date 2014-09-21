@@ -23,6 +23,7 @@ require_once("lti_util.php");
 require_once("lti_db.php");
 
 use \Tsugi\Core\Cache;
+use \Tsugi\Core\LTIX;
 
 // See if we need to extend our session (heartbeat)
 // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
@@ -395,7 +396,7 @@ function loadUserInfoBypass($user_id)
 function loadUserInfo($link_id)
 {
     global $CFG, $PDOX;
-    $LTI = \Tsugi\Core\LTIX::requireData(array('context_id'));
+    $LTI = LTIX::requireData(array('context_id'));
 
     $cacheloc = 'lti_link';
     $row = Cache::check($cacheloc, $link_id);

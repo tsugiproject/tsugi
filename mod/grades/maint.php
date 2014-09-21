@@ -4,11 +4,13 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
+use \Tsugi\Core\LTIX;
+
 // No Buffering
 noBuffer();
 
 // Sanity checks
-$LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 

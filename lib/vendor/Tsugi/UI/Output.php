@@ -14,8 +14,10 @@ namespace Tsugi\UI;
  *
  * A typical Tsugi Tool can get a lot done with the rough outline:
  *
- *     $LTI = \Tsugi\Core\LTIX::requireData(array('context_id', 'role'));
-
+ *     use \Tsugi\Core\LTIX;
+ *
+ *     $LTI = LTIX::requireData(array('context_id', 'role'));
+ *
  *     // Handle incoming POST data and redirect as necessary...
  *     if ( ... ) {
  *         header( 'Location: '.addSession('index.php') ) ;
