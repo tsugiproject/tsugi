@@ -66,12 +66,6 @@ $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 $OUTPUT->welcomeUserCourse();
 
-if ( isset($_SESSION['debug_log']) ) {
-    echo("<p>Debug output from grade send:</p>\n");
-    $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
-    unset($_SESSION['debug_log']);
-    echo("<hr/>\n");
-}
 ?>
 <form method="post">
 Enter grade:
@@ -81,7 +75,12 @@ Enter grade:
 </form>
 <?php
 
-echo('<p>$LINK->result_id is: '.$LINK->result_id."</p>\n");
+if ( isset($_SESSION['debug_log']) ) {
+    echo("<p>Debug output from grade send:</p>\n");
+    $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
+    unset($_SESSION['debug_log']);
+    echo("<hr/>\n");
+}
 
 echo("<p>Global Tsugi Objects:</p>\n<pre>\n");
 var_dump($USER);

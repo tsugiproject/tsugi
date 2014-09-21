@@ -125,7 +125,7 @@ function gradeSendDetail($grade, &$debug_log=false, $result=false) {
 }
 
 function gradeSendInternal($grade, &$debug_log, $result) {
-    global $CFG, $PDOX;
+    global $CFG, $PDOX, $LINK;
     global $LastPOXGradeResponse;
     $LastPOXGradeResponse = false;;
     $lti = $_SESSION['lti'];
@@ -163,8 +163,11 @@ function gradeSendInternal($grade, &$debug_log, $result) {
         return $status;
     }
 
-    // Update result in the database and in the LTI session area
+    // Update result in the database and in the LTI session area and $LINK
     $_SESSION['lti']['grade'] = $grade;
+    if ( isset($LINK) ) $LINK->grade = $grade;
+
+    // Update the local copy of the grade in the lti_result table
     if ( $PDOX !== false ) {
         $stmt = $PDOX->queryReturnError(
             "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
