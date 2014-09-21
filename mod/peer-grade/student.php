@@ -164,7 +164,7 @@ $OUTPUT->flashMessages();
 
 if ( isset($_SESSION['debug_log']) ) {
     echo("<p>Grade send log below:</p>\n");
-    dumpGradeDebug($_SESSION['debug_log']);
+    $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
     unset($_SESSION['debug_log']);
     echo("<p></p>\n");
 }

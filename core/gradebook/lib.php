@@ -133,6 +133,8 @@ function gradeGet($result_id, $sourcedid, $service) {
 }
 
 function gradeSend($grade, $verbose=true, $result=false) {
+    global $OUTPUT;
+
     if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
@@ -146,21 +148,8 @@ function gradeSend($grade, $verbose=true, $result=false) {
         error_log($retval);
         $debug_log[] = $retval;
     }
-    if ( $verbose ) dumpGradeDebug($debug_log);
+    if ( $verbose ) $OUTPUT->dumpDebugArray($debug_log);
     return $retval;
-}
-
-function dumpGradeDebug($debug_log) {
-    global $OUTPUT;
-    if ( ! is_array($debug_log) ) return;
-
-    foreach ( $debug_log as $k => $v ) {
-        if ( count($v) > 1 ) {
-            $OUTPUT->togglePre($v[0], $v[1]);
-        } else {
-            line_out($v[0]);
-        }
-    }
 }
 
 function gradeSendDetail($grade, &$debug_log, $result=false) {

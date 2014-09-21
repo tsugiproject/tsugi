@@ -46,7 +46,7 @@ function getUrl($sample) {
 }
 
 function webauto_test_passed($grade, $url) {
-    global $USER;
+    global $USER, $OUTPUT;
 
     success_out("Test passed - congratulations");
 
@@ -67,7 +67,7 @@ function webauto_test_passed($grade, $url) {
     gradeUpdateJson(json_encode(array("url" => $url)));
     $debug_log = array();
     $retval = gradeSendDetail($grade, $debug_log, false);
-    dumpGradeDebug($debug_log);
+    $OUTPUT->dumpDebugArray($debug_log);
     if ( $retval == true ) {
         $success = "Grade sent to server (".$grade.")";
     } else if ( is_string($retval) ) {
