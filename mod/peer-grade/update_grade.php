@@ -44,7 +44,8 @@ if ( $user_id != $USER->id ) {
 }
 
 // Send the grade
-$status = LTIX::gradeSend($grade, $result); // This is the slow bit
+$debug_log = array();
+$status = LTIX::gradeSend($grade, $result, $debug_log); // This is the slow bit
 
 if ( $status === true ) {
     if ( $user_id != $USER->id ) {
