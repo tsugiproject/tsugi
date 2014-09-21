@@ -15,8 +15,7 @@ $code = $_POST['code'];
 gradeUpdateJson(array("code" => $code));
 $_SESSION['pythonauto_lastcode'] = $code;
 
-$debug_log = array();
-$retval = gradeSendDetail($grade, $debug_log, false);
+$retval = LTIX::gradeSend($grade);
 if ( is_string($retval) ) {
     echo json_encode(Array("status" => "failure", "detail" => $retval, "debug_log" => $debug_log));
     return;

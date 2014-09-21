@@ -93,8 +93,7 @@ if ( isset($_POST['reGradePeer']) ) {
         );
 
         // Send the grade to the server
-        $debug_log = array();
-        $status = gradeSendDetail($computed_grade, $debug_log, $row); // This is the slow bit
+        $status = LTIX::gradeSend($computed_grade, $row); // This is the slow bit
         if ( $status === true ) {
             echo(htmlent_utf8($row['displayname']).' ('.htmlent_utf8($row['email']).') ');
             echo("Grade $computed_grade submitted to server<br/>\n");

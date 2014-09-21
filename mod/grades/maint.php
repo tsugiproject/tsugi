@@ -142,7 +142,7 @@ if ( isset($_POST['fixServerGrades']) ) {
         $count = $count + 1;
 
         $debug_log = array();
-        $status = gradeSendDetail($row['grade'], $debug_log, $row); // This is the slow bit
+        $status = LTIX::gradeSend($row['grade'], $row, $debug_log); // This is the slow bit
         if ( $status === true ) {
             echo('Grade submitted to server'."<br/>\n");
             $success++;

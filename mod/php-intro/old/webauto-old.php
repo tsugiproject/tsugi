@@ -109,8 +109,8 @@ function webauto_test_passed($grade, $url) {
 
     gradeUpdateJson(json_encode(array("url" => $url)));
     $debug_log = array();
-    $retval = gradeSendDetail($grade, $debug_log, false);
-    $OUTPUT->dumpDebugArray($dumplog);
+    $retval = LTIX::gradeSend($grade, false, $debug_log);
+    $OUTPUT->dumpDebugArray($debug_log);
     if ( $retval == true ) {
         $success = "Grade sent to server (".intval($grade*100)."%)";
     } else if ( is_string($retval) ) {

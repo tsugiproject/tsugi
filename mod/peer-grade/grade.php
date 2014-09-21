@@ -125,8 +125,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     $_SESSION['success'] = 'Grade submitted';
     if ( $grade > 0 ) {
         $result = lookupResult($LTI, $user_id);
-        $debug_log = array();
-        $status = gradeSendDetail($grade, $debug_log, $result); // This is the slow bit
+        $status = LTIX::gradeSend($grade, $result); // This is the slow bit
 
         if ( $status === true ) {
             $_SESSION['success'] = 'Grade submitted to server';

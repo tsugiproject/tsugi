@@ -74,8 +74,7 @@ if ( isset($_POST['resendSubmit']) ) {
     // Force a resend
     $_SESSION['lti']['grade'] = -1;  // Force a resend
     $result['grade'] = -1;
-    $debug_log = array();
-    $status = gradeSendDetail($computed_grade, $debug_log, $result); // This is the slow bit
+    $status = LTIX::gradeSend($computed_grade, $result); // This is the slow bit
     if ( $status === true ) {
         $_SESSION['success'] = 'Grade submitted to server';
     } else {

@@ -108,10 +108,6 @@ function gradeUpdateJson($newdata=false) {
     );
 }
 
-function gradeSendDetail($grade, &$debug_log=false, $result=false) {
-    return LTIX::gradeSend($grade, $result, $debug_log);
-}
-
 function gradeSendWebService($grade, $sourcedid, $service, &$debug_log=false) {
 
     $lti = $_SESSION['lti'];

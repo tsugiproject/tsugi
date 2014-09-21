@@ -35,15 +35,14 @@ if ( isset($_POST['grade']) )  {
     if ( $gradetosend < $oldgrade ) {
         $_SESSION['error'] = "Grade lower than $oldgrade - not sent";
     } else {
+        // TODO: Decide when *not* to send a grade
+
         // Call the XML APIs to send the grade back to the LMS.
         $debug_log = array();
-        $retval = gradeSendDetail($gradetosend, $debug_log);
+        $retval = LTIX::gradeSend($gradetosend, false, $debug_log);
         $_SESSION['debug_log'] = $debug_log;
 
         if ( $retval === true ) {
-
-            // TODO: Update the tsugi_lti_result table with $gradetosend
-
             $_SESSION['success'] = "Grade $gradetosend sent to server.";
         } else if ( is_string($retval) ) {
             $_SESSION['error'] = "Grade not sent: ".$retval;
