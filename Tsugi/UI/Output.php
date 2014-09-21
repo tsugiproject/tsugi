@@ -201,7 +201,7 @@ class Output {
                 printf(_m("<p>Welcome "));
             }
         }
-    
+
         if ( $USER->instructor ) {
             echo(" "._m("(Instructor)"));
         }
@@ -211,8 +211,8 @@ class Output {
     /**
       * Emit a properly styled done button for use in the launched frame/window
       *
-      * This is a bit tricky because custom settings can control the "Done" 
-      * behavior.  These settings can come from one of three places: (1) 
+      * This is a bit tricky because custom settings can control the "Done"
+      * behavior.  These settings can come from one of three places: (1)
       * in the link settings, (2) from a custom parameter named 'done', or
       * (3) from a GET parameter done=
       *
@@ -230,7 +230,7 @@ class Output {
                 $url = $_GET['done'];
             }
         }
-        // If we have no where to go and nothing to do, 
+        // If we have no where to go and nothing to do,
         if ( $url === false || strlen($url) < 1 ) return;
 
         $button = "btn-success";
@@ -256,7 +256,7 @@ class Output {
     /**
       * Emit a properly styled "settings" button
       *
-      * This is just the button, using the pencil icon.  Wrap in a 
+      * This is just the button, using the pencil icon.  Wrap in a
       * span or div tag if you want to move it around
       */
     function settingsButton() {
@@ -348,6 +348,28 @@ class Output {
     <?php
     }
 
+    /**
+     * Dump a debug array with messages and optional detail
+     *
+     * This kind of debug array comes back from some of the
+     * grade calls.  We loop through printing the messages and
+     * put the detail into a togglable pre tag is present.
+     */
+    function dumpDebugArray($debug_log) {
+        if ( ! is_array($debug_log) ) return;
+
+        foreach ( $debug_log as $k => $v ) {
+            if ( count($v) > 1 ) {
+                $this->togglePre($v[0], $v[1]);
+            } else {
+                line_out($v[0]);
+            }
+        }
+    }
+
+    /**
+      * Get a fully-qualified URL for the spinner.
+      */
     function getSpinnerUrl() {
         global $CFG;
         return $CFG->staticroot . '/static/img/spinner.gif';
