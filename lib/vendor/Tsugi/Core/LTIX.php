@@ -52,6 +52,7 @@ class LTIX Extends LTI {
      * Pull a keyed variable from the LTI data in the current session with default
      */
     public static function sessionGet($varname, $default=false) {
+        if ( ! isset($_SESSION) ) return $default;
         if ( ! isset($_SESSION['lti']) ) return $default;
         $lti = $_SESSION['lti'];
         if ( ! isset($lti[$varname]) ) return $default;
