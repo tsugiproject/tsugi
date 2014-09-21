@@ -167,16 +167,14 @@ class Output {
       })();
 
     <?php
-            if ( isset($_SESSION) && isset($_SESSION['lti']) ) {
-                if ( isset($_SESSION['lti']['key_key']) ) {
-                    echo("_gaq.push(['_setCustomVar', 1, 'consumer_key', '".$_SESSION['lti']['key_key']."', 2]);\n");
-                }
-                if ( isset($_SESSION['lti']['context_id']) ) {
-                    echo("_gaq.push(['_setCustomVar', 2, 'context_id', '".$_SESSION['lti']['context_id']."', 2]);\n");
-                }
-                if ( isset($_SESSION['lti']['context_title']) ) {
-                    echo("_gaq.push(['_setCustomVar', 3, 'context_title', '".$_SESSION['lti']['context_title']."', 2]);\n");
-                }
+            if ( LTIX::sessionGet('key_key') ) {
+                echo("_gaq.push(['_setCustomVar', 1, 'consumer_key', '".$_SESSION['lti']['key_key']."', 2]);\n");
+            }
+            if ( LTIX::sessionGet('context_id') ) {
+                echo("_gaq.push(['_setCustomVar', 2, 'context_id', '".$_SESSION['lti']['context_id']."', 2]);\n");
+            }
+            if ( LTIX::sessionGet('context_title') ) {
+                echo("_gaq.push(['_setCustomVar', 3, 'context_title', '".$_SESSION['lti']['context_title']."', 2]);\n");
             }
             echo("</script>\n");
         }  // if analytics is on...
