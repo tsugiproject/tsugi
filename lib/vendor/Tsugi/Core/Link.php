@@ -18,14 +18,18 @@ class Link {
     public $id;
 
     /**
-     * The string primary key for this link in the 'lti_link' table.
-     */
-    public $sha256;
-
-    /**
      * The link title
      */
     public $title;
+
+    /**
+     * The current grade for the user
+     *
+     * If there is a current grade (float between 0.0 and 1.0)
+     * it is in this variable.  If there is not yet a grade for
+     * this user/link combination, this will be false.
+     */
+    public $grade = false;
 
     /**
      * The result_id for the link (if set)
@@ -36,5 +40,10 @@ class Link {
      * user/link combination.
      */
     public $result_id = false;
+
+    /**
+     * The string logical key for this link in the 'lti_link' table.
+     */
+    public $sha256;
 
 }
