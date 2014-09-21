@@ -7,8 +7,10 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 require_once $CFG->dirroot."/lib/goutte/vendor/autoload.php";
 require_once $CFG->dirroot."/lib/goutte/Goutte/Client.php";
 
+use \Tsugi\Core\LTIX;
+
 // Check to see if we were launched from LTI, and if so set the
-// displayname varalble for the rest of the code
+// displayname variable for the rest of the code
 $displayname = false;
 $instructor = false;
 if ( isset($_SESSION['lti']) ) {

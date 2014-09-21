@@ -8,6 +8,7 @@ require_once $CFG->dirroot."/lib/goutte/vendor/autoload.php";
 require_once $CFG->dirroot."/lib/goutte/Goutte/Client.php";
 
 use \Tsugi\UI\SettingsForm;
+use \Tsugi\Core\LTIX;
 
 // Get any due date information
 $dueDate = SettingsForm::getDueDate();
