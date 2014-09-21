@@ -56,7 +56,7 @@ class Settings {
         $legacy_fields = array('dologin', 'close', 'due', 'timezone', 'penalty_time', 'penalty_cost');
         $defaults = array();
         foreach($legacy_fields as $k ) {
-            $value = LTIX::getCustom($k);
+            $value = LTIX::customGet($k);
             $defaults[$k] = $value;
         }
         if ( isset($_SESSION['lti']['link_settings']) ) {
