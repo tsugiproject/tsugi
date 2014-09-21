@@ -22,10 +22,7 @@ class Context {
      * The integer primary key for this context in the 'lti_context' table.
      */
     public $id;
-    /**
-     * The string primary key for this context in the 'lti_context' table.
-     */
-    public $sha256;
+
     /**
      * The context title
      */

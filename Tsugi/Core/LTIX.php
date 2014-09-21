@@ -300,7 +300,7 @@ class LTIX Extends LTI {
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret,
             n.nonce,
-            c.context_id, c.title AS context_title,
+            c.context_id, c.title AS context_title, context_sha256,
             l.link_id, l.title AS link_title, l.settings AS link_settings,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
@@ -426,7 +426,6 @@ class LTIX Extends LTI {
                 ':key_id' => $row['key_id']));
             $row['user_id'] = $PDOX->lastInsertId();
             $row['user_email'] = $user_email;
-            $row['user_sha256'] = lti_sha256($post['user_id']);
             $row['user_displayname'] = $user_displayname;
             $actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email'];
         }
@@ -665,7 +664,6 @@ class LTIX Extends LTI {
         if ( ! is_object($USER) ) {
             $USER = new \Tsugi\Core\User();
             if (isset($LTI['user_id']) ) $USER->id = $LTI['user_id'];
-            if (isset($LTI['user_sha256']) ) $USER->sha256 = $LTI['user_sha256'];
             if (isset($LTI['user_email']) ) $USER->email = $LTI['user_email'];
             if (isset($LTI['user_displayname']) ) {
                 $USER->displayname = $LTI['user_displayname'];
@@ -679,7 +677,6 @@ class LTIX Extends LTI {
         if ( ! is_object($CONTEXT) ) {
             $CONTEXT = new \Tsugi\Core\Context();
             if (isset($LTI['context_id']) ) $CONTEXT->id = $LTI['context_id'];
-            if (isset($LTI['context_sha256']) ) $CONTEXT->sha256 = $LTI['context_sha256'];
             if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
         }
 
@@ -689,7 +686,6 @@ class LTIX Extends LTI {
             if (isset($LTI['grade']) ) $LINK->grade = $LTI['grade'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
             if (isset($LTI['result_id']) ) $LINK->result_id = $LTI['result_id'];
-            if (isset($LTI['link_sha256']) ) $LINK->sha256 = $LTI['link_sha256'];
         }
 
         // Return the LTI structure
@@ -780,7 +776,7 @@ class LTIX Extends LTI {
       *
       */
     public static function gradeSend($grade, $row=false, &$debug_log=false) {
-        global $CFG, $PDOX, $LINK;
+        global $CFG, $PDOX, $LINK, $USER;
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
 
@@ -800,19 +796,21 @@ class LTIX Extends LTI {
         }
 
         if ( $key_key == false || $secret === false ||
-            $sourcedid === false || $service === false ) {
+            $sourcedid === false || $service === false || 
+            !isset($USER) || !isset($LINK) ) {
             error_log("LTIX::gradeGet is missing required data");
             return false;
         }
 
         $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
 
+        $userinfo = $USER->displayname . ' ('. $USER->id . ')';
         if ( $status === true ) {
-            $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'];
+            $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$userinfo;
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
         } else {
-            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$status;
+            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$userinfo.' '.$status;
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
             return $status;

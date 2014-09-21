@@ -24,11 +24,6 @@ class User {
     public $id;
 
     /**
-     * The string primary key for this user in the 'lti_user' table.
-     */
-    public $sha256;
-
-    /**
      * The user's email
      */
     public $email;
