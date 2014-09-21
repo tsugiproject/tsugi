@@ -3,10 +3,11 @@
 require_once "classes.php";
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Core\LTIX;
 
 function gradeLoadAll() {
     global $CFG, $USER, $LINK, $PDOX;
-    $LTI = \Tsugi\Core\LTIX::requireData(array('link_id', 'role'));
+    $LTI = LTIX::requireData(array('link_id', 'role'));
     if ( ! $USER->instructor ) die("Requires instructor role");
     $p = $CFG->dbprefix;
 
@@ -46,7 +47,7 @@ function gradeShowAll($stmt, $detail = false) {
 // Not cached
 function gradeLoad($user_id=false) {
     global $CFG, $USER, $LINK, $PDOX;
-    $LTI = \Tsugi\Core\LTIX::requireData(array('user_id', 'link_id', 'role'));
+    $LTI = LTIX::requireData(array('user_id', 'link_id', 'role'));
     if ( ! $USER->instructor && $user_id !== false ) die("Requires instructor role");
     if ( $user_id == false ) $user_id = $USER->id;
     $p = $CFG->dbprefix;
@@ -79,7 +80,7 @@ function gradeUpdateJson($newdata=false) {
     global $CFG, $PDOX;
     if ( $newdata == false ) return;
     if ( is_string($newdata) ) $newdata = json_decode($newdata, true);
-    $LTI = \Tsugi\Core\LTIX::requireData(array('result_id'));
+    $LTI = LTIX::requireData(array('result_id'));
     $row = gradeLoad();
     $data = array();
     if ( $row !== false && isset($row['json'])) {
@@ -118,7 +119,7 @@ function gradeGet($result_id, $sourcedid, $service) {
     }
     $key_key = $lti['key_key'];
     $secret = $lti['secret'];
-    $grade = self::getPOXGrade($sourcedid, $service, $key_key, $secret);
+    $grade = LTI::getPOXGrade($sourcedid, $service, $key_key, $secret);
 
     if ( is_string($grade) ) return $grade;
 
