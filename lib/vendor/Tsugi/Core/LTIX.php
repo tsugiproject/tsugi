@@ -688,6 +688,7 @@ class LTIX Extends LTI {
             if (isset($LTI['link_id']) ) $LINK->id = $LTI['link_id'];
             if (isset($LTI['link_sha256']) ) $LINK->sha256 = $LTI['link_sha256'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
+            if (isset($LTI['result_id']) ) $LINK->result_id = $LTI['result_id'];
         }
 
         // Return the LTI structure

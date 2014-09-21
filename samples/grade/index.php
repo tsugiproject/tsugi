@@ -14,7 +14,7 @@ $displayname = $USER->displayname;
 if ( isset($_POST['reset']) ) {
     $sql = "UPDATE {$p}lti_result SET grade = 0.0 WHERE result_id = :RI";
     $stmt = $PDOX->prepare($sql);
-    $stmt->execute(array(':RI' => $LTI['result_id']));
+    $stmt->execute(array(':RI' => $LINK->result_id));
     $_SESSION['success'] = "Grade reset";
     header( 'Location: '.addSession('index.php') ) ;
     return;
@@ -29,14 +29,17 @@ if ( isset($_POST['grade']) )  {
     }
 
     // TODO: Use a SQL SELECT to retrieve the actual grade from tsugi_lti_result
-    // The key for the grade row is in the $LTI['result_id'];
+    // The key for the grade row is in the $LINK->result_id
 
     $oldgrade = 0.5;   // Replace this with the value from the DB
     if ( $gradetosend < $oldgrade ) {
         $_SESSION['error'] = "Grade lower than $oldgrade - not sent";
     } else {
         // Call the XML APIs to send the grade back to the LMS.
-        $retval = gradeSend($gradetosend, false);
+        $debug_log = array();
+        $retval = gradeSendDetail($gradetosend, $debug_log);
+        $_SESSION['debug_log'] = $debug_log;
+
         if ( $retval === true ) {
 
             // TODO: Update the tsugi_lti_result table with $gradetosend
@@ -63,6 +66,12 @@ $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 $OUTPUT->welcomeUserCourse();
 
+if ( isset($_SESSION['debug_log']) ) {
+    echo("<p>Debug output from grade send:</p>\n");
+    $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
+    unset($_SESSION['debug_log']);
+    echo("<hr/>\n");
+}
 ?>
 <form method="post">
 Enter grade:
@@ -72,10 +81,12 @@ Enter grade:
 </form>
 <?php
 
-echo('<p>$LTI["result_id"] is: '.$LTI['result_id']."</p>\n");
+echo('<p>$LINK->result_id is: '.$LINK->result_id."</p>\n");
 
-$dump = safe_var_dump($_SESSION);
-echo("\n<pre>\nSession Dump:\n".$dump."\n</pre>\n");
+echo("<p>Global Tsugi Objects:</p>\n<pre>\n");
+var_dump($USER);
+var_dump($CONTEXT);
+var_dump($LINK);
 
 $OUTPUT->footer();
 

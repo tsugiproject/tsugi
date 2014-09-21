@@ -77,7 +77,7 @@ function gradeShowInfo($row) {
 
 // newdata can be a string or array (preferred)
 function gradeUpdateJson($newdata=false) {
-    global $CFG, $PDOX;
+    global $CFG, $PDOX, $LINK;
     if ( $newdata == false ) return;
     if ( is_string($newdata) ) $newdata = json_decode($newdata, true);
     $LTI = LTIX::requireData(array('result_id'));
@@ -104,31 +104,11 @@ function gradeUpdateJson($newdata=false) {
             WHERE result_id = :RID",
         array(
             ':json' => $jstr,
-            ':RID' => $LTI['result_id'])
+            ':RID' => $LINK->result_id)
     );
 }
 
-function gradeSend($grade, $verbose=true, $result=false) {
-    global $OUTPUT;
-
-    if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
-        return "Session not set up for grade return";
-    }
-    $debug_log = array();
-    $retval = false;
-    try {
-        if ( $result === false ) $result = $_SESSION['lti'];
-        $retval = gradeSendInternal($grade, $debug_log, $result);
-    } catch(Exception $e) {
-        $retval = "Grade Exception: ".$e->getMessage();
-        error_log($retval);
-        $debug_log[] = $retval;
-    }
-    if ( $verbose ) $OUTPUT->dumpDebugArray($debug_log);
-    return $retval;
-}
-
-function gradeSendDetail($grade, &$debug_log, $result=false) {
+function gradeSendDetail($grade, &$debug_log=false, $result=false) {
     if ( ! isset($_SESSION['lti']) || ! isset($_SESSION['lti']['sourcedid']) ) {
         return "Session not set up for grade return";
     }
