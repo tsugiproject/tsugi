@@ -696,7 +696,6 @@ class LTIX Extends LTI {
         return $LTI;
     }
 
-
     /**
       * Load the grade for a particular row and update our local copy
       *
@@ -707,40 +706,141 @@ class LTIX Extends LTI {
       *
       * TODO: Add LTI 2.x support for the JSON style services to this
       *
-      * @param An array with the data that has the result_id, sourcedid,
-      * and service (url)
+      * @param $row An optional array with the data that has the result_id, sourcedid,
+      * and service (url) if this is not present, the data is pulled from the LTI
+      * session for the current user/link combination.
+      * @param $debug_log An (optional) array (by reference) that returns the 
+      * steps that were taken.
+      * Each entry is an array with the [0] element a message and an optional [1]
+      * element as some detail (i.e. like a POST body)
       *
       * @return mixed If this work this returns a float.  If not you get
       * a string with an error.
       *
       */
-    function gradeGet($row) {
+    public static function gradeGet($row=false, &$debug_log=false) {
         global $CFG, $PDOX;
 
         $key_key = self::sessionGet('key_key');
         $secret = self::sessionGet('secret');
-        $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
-        $service = isset($row['service']) ? $row['service'] : false;
+        if ( $row !== false ) {
+            $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
+            $service = isset($row['service']) ? $row['service'] : false;
+            // Fall back to session if it is missing
+            if ( $service === false ) $service = self::sessionGet('service');
+            $result_id = isset($row['result_id']) ? $row['result_id'] : false;
+        } else {
+            $sourcedid = self::sessionGet('sourcedid');
+            $service = self::sessionGet('service');
+            $result_id = self::sessionGet('result_id');
+        }
+
         if ( $key_key == false || $secret === false ||
             $sourcedid === false || $service === false ) {
-            error_log("LTIX::gradeGet is missing reuired data");
+            error_log("LTIX::gradeGet is missing required data");
             return false;
         }
 
-        $grade = LTI::getPOXGrade($sourcedid, $service, $key_key, $secret);
+        $grade = LTI::getPOXGrade($sourcedid, $service, $key_key, $secret, $debug_log);
 
         if ( is_string($grade) ) return $grade;
 
-        $result_id = isset($row['result_id']) ? $row['result_id'] : false;
-
         // UPDATE our local copy of the server's view of the grade
-        $stmt = $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade,
-                retrieved_at = NOW() WHERE result_id = :RID",
-            array( ':server_grade' => $grade, ":RID" => $result_id)
-        );
+        if ( $result_id !== false ) {
+            $stmt = $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade,
+                    retrieved_at = NOW() WHERE result_id = :RID",
+                array( ':server_grade' => $grade, ":RID" => $result_id)
+            );
+        }
         return $grade;
     }
 
+    /**
+      * Send a grade and update our local copy
+      *
+      * Call the right LTI service to send a new grade up to the server.
+      * update our local cached copy of the server_grade and the date
+      * retrieved. This routine pulls the key and secret from the LTIX
+      * session to avoid crossing cross tennant boundaries.
+      *
+      * TODO: Add LTI 2.x support for the JSON style services to this
+      *
+      * @param $grade A new grade - floating point number between 0.0 and 1.0
+      * @param $row An optional array with the data that has the result_id, sourcedid,
+      * and service (url) if this is not present, the data is pulled from the LTI
+      * session for the current user/link combination.
+      * @param $debug_log An (optional) array (by reference) that returns the 
+      * steps that were taken.
+      * Each entry is an array with the [0] element a message and an optional [1]
+      * element as some detail (i.e. like a POST body)
+      *
+      * @return mixed If this work this returns true.  If not, you get
+      * a string with an error.
+      *
+      */
+    public static function gradeSend($grade, $row=false, &$debug_log=false) {
+        global $CFG, $PDOX, $LINK;
+        global $LastPOXGradeResponse;
+        $LastPOXGradeResponse = false;
+
+        // Secret and key from session to avoid crossing tenant boundaries
+        $key_key = self::sessionGet('key_key');
+        $secret = self::sessionGet('secret');
+        if ( $row !== false ) {
+            $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
+            $service = isset($row['service']) ? $row['service'] : false;
+            // Fall back to session if it is missing
+            if ( $service === false ) $service = self::sessionGet('service');
+            $result_id = isset($row['result_id']) ? $row['result_id'] : false;
+        } else {
+            $sourcedid = self::sessionGet('sourcedid');
+            $service = self::sessionGet('service');
+            $result_id = self::sessionGet('result_id');
+        }
+
+        if ( $key_key == false || $secret === false ||
+            $sourcedid === false || $service === false ) {
+            error_log("LTIX::gradeGet is missing required data");
+            return false;
+        }
+
+        $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
+
+        if ( $status === true ) {
+            $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$lti['user_id'];
+            if ( is_array($debug_log) )  $debug_log[] = array($msg);
+            error_log($msg);
+        } else {
+            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$lti['user_id'].' '.$status;
+            if ( is_array($debug_log) )  $debug_log[] = array($msg);
+            error_log($msg);
+            return $status;
+        }
+
+        // Update result in the database and in the LTI session area and $LINK
+        $_SESSION['lti']['grade'] = $grade;
+        if ( isset($LINK) ) $LINK->grade = $grade;
+
+        // Update the local copy of the grade in the lti_result table
+        if ( $PDOX !== false ) {
+            $stmt = $PDOX->queryReturnError(
+                "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
+                    updated_at = NOW() WHERE result_id = :RID",
+                array(
+                    ':grade' => $grade,
+                    ':RID' => $result_id)
+            );
+            if ( $stmt->success ) {
+                $msg = "Grade updated result_id=".$result_id." grade=$grade";
+            } else {
+                $msg = "Grade NOT updated result_id=".$result_id." grade=$grade";
+            }
+            error_log($msg);
+            if ( is_array($debug_log) )  $debug_log[] = array($msg);
+        }
+
+        return $status;
+    }
 
 }
