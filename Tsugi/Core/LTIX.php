@@ -49,7 +49,17 @@ class LTIX Extends LTI {
     }
 
     /**
-     * Pull out a cutom variable from the LTIX session
+     * Pull a keyed variable from the LTI data in the current session.
+     */
+    public static function getLTIData($varname, $default=false) {
+        if ( ! isset($_SESSION['lti']) ) return $default;
+        $lti = $_SESSION['lti'];
+        if ( ! isset($lti[$varname]) ) return $default;
+        return $lti[$varname];
+    }
+
+    /**
+     * Pull out a custom variable from the LTIX session
      */
     public static function getCustom($varname, $default=false) {
         if ( isset($_SESSION['lti_post']) &&
@@ -136,7 +146,7 @@ class LTIX Extends LTI {
         // Record the nonce but first probabilistically check
         if ( $CFG->noncecheck > 0 ) {
             if ( (time() % $CFG->noncecheck) == 0 ) {
-                $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}lti_nonce WHERE 
+                $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}lti_nonce WHERE
                     created_at < DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -{$CFG->noncetime} SECOND)");
                 // error_log("Nonce table cleanup done.");
             }
@@ -236,7 +246,7 @@ class LTIX Extends LTI {
         $retval['link_id'] = isset($FIXED['resource_link_id']) ? $FIXED['resource_link_id'] : null;
         $retval['user_id'] = isset($FIXED['user_id']) ? $FIXED['user_id'] : null;
 
-        if ( $retval['key'] && $retval['nonce'] && $retval['context_id'] && 
+        if ( $retval['key'] && $retval['nonce'] && $retval['context_id'] &&
             $retval['link_id']  && $retval['user_id'] ) {
             // OK To Continue
         } else {
@@ -281,7 +291,7 @@ class LTIX Extends LTI {
      * Load the data from our lti_ tables using one long LEFT JOIN
      *
      * This data may or may not exist - hence the use of the long
-     * LEFT JOIN. 
+     * LEFT JOIN.
      */
     public static function loadAllData($p, $profile_table, $post) {
         global $PDOX;
@@ -355,16 +365,16 @@ class LTIX Extends LTI {
     /**
      * Make sure that the data in our lti_ tables matches the POST data
      *
-     * This routine compares the POST dat to the data pulled from the 
+     * This routine compares the POST dat to the data pulled from the
      * lti_ tables and goes through carefully INSERTing or UPDATING
-     * all the nexessary data in the lti_ tables to make sure that 
+     * all the nexessary data in the lti_ tables to make sure that
      * the lti_ table correctly match all the data from the incoming post.
      *
-     * While this looks like a lot of INSERT and UPDATE statements, 
+     * While this looks like a lot of INSERT and UPDATE statements,
      * the INSERT statements only run when we see a new user/course/link
      * for the first time and after that, we only update is something
      * changes.   S0 in a high percentage of launches we are not seeing
-     * any new or updated data and so this code just falls through and 
+     * any new or updated data and so this code just falls through and
      * does absolutely no SQL.
      */
     public static function adjustData($p, &$row, $post) {
@@ -681,6 +691,51 @@ class LTIX Extends LTI {
 
         // Return the LTI structure
         return $LTI;
+    }
+
+
+    /**
+      * Load the grade for a particular row and update our local copy
+      *
+      * Call the right LTI service to retrieve the server's grade and
+      * update our local cached copy of the server_grade and the date
+      * retrieved.
+      *
+      * TODO: Add LTI 2.x support for the JSON style services to this
+      *
+      * @param An array with the data that has the result_id, sourcedid,
+      * and service (url)
+      *
+      * @return mixed If this work this returns a float.  If not you get
+      * a string with an error.
+      *
+      */
+    function gradeGet($row) {
+        global $CFG, $PDOX;
+
+        $key_key = self::getLTIData('key_key');
+        $secret = self::getLTIData('secret');
+        $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
+        $service = isset($row['service']) ? $row['service'] : false;
+        if ( $key_key == false || $secret === false ||
+            $sourcedid === false || $service === false ) {
+            error_log("LTIX::gradeGet is missing reuired data");
+            return false;
+        }
+
+        $grade = LTI::getPOXGrade($sourcedid, $service, $key_key, $secret);
+
+        if ( is_string($grade) ) return $grade;
+
+        $result_id = isset($row['result_id']) ? $row['result_id'] : false;
+
+        // UPDATE our local copy of the server's view of the grade
+        $stmt = $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade,
+                retrieved_at = NOW() WHERE result_id = :RID",
+            array( ':server_grade' => $grade, ":RID" => $result_id)
+        );
+        return $grade;
     }
 
 
