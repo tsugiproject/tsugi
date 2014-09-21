@@ -41,7 +41,6 @@ class LTI {
      */
     public static function verifyKeyAndSecret($key, $secret) {
         global $LastOAuthBodyBaseString;
-        $LastOAuthBodyBaseString = $request->get_signature_base_string();
         if ( ! ($key && $secret) ) return array("Missing key or secret", "");
         $store = new TrivialOAuthDataStore();
         $store->add_consumer($key, $secret);
