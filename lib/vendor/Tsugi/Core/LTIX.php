@@ -14,7 +14,9 @@ use \Tsugi\Core\Settings;
  * This an extended LTI class that defines how Tsugi tools interact with LTI
  *
  * This class deals with all of the session and database/data model
- * details that Tsugi tools make use of during runtime.
+ * details that Tsugi tools make use of during runtime.  Since this extends
+ * LTI, some of the methods from LTI are low-level while the LTIX-added methods
+ * are higher level.
  *
  */
 class LTIX Extends LTI {

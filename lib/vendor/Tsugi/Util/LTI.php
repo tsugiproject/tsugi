@@ -318,8 +318,22 @@ class LTI {
         return Net::doBody($endpoint, "POST", $body,$header);
     }
 
-
-    public static function getPOXGrade($sourcedid, $service, $key_key, $secret) {
+    /**
+     * Retrieve a grade using the LTI 1.1 protocol (POX)
+     *
+     * This retrieves a grade using the Plain-Old-XML protocol from
+     * IMS LTI 1.1
+     * 
+     * @param debug_log This can either be false or an empty array.  If
+     * this is an array, it is filled with data as the steps progress.
+     * Each step is an array with a string message as the first element
+     * and optional debug detail (i.e. like a post body) as the second
+     * element.
+     *
+     * @return mixed If things go well this returns a float of the existing grade.
+     * If this goes badly, this returns a string with an error message.
+     */
+    public static function getPOXGrade($sourcedid, $service, $key_key, $secret, &$debug_log=false) {
         global $LastPOXGradeResponse;
         global $LastPOXGradeParse;
         global $LastPOXGradeError;
@@ -336,9 +350,13 @@ class LTI {
             array($sourcedid, $operation, uniqid()),
             self::getPOXRequest());
 
+        if ( is_array($debug_log) ) $debug_log[] = array('Loading grade from '.$service.' sourcedid='.$sourcedid);
+        if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request (debug)',$postBody);
+
         $response = self::sendOAuthBodyPOST($service, $key_key, $secret,
             $content_type, $postBody);
         $LastPOXGradeResponse = $response;
+        if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response (debug)",$response);
 
         $status = "Failure to retrieve grade";
         if ( strpos($response, '<?xml') !== 0 ) {
@@ -358,17 +376,34 @@ class LTI {
                 } else if ( isset($retval['imsx_description']) ) {
                     $LastPOXGradeError = $retval['imsx_description'];
                     error_log("Grade read failure: "+$LastPOXGradeError);
+                    if ( is_array($debug_log) )  $debug_log[] = array("Grade read failure: "+$LastPOXGradeError);
                     return $LastPOXGradeError;
                 }
             }
         } catch(Exception $e) {
             $LastPOXGradeError = $e->getMessage();
             error_log("Grade read failure: "+$LastPOXGradeError);
+            if ( is_array($debug_log) )  $debug_log[] = array("Exception: ".$status);
             return $LastPOXGradeError;
         }
         return $grade;
     }
 
+    /**
+     * Senda grade using the LTI 1.1 protocol (POX)
+     *
+     * This sends a grade using the Plain-Old-XML protocol from
+     * IMS LTI 1.1
+     *
+     * @param debug_log This can either be false or an empty array.  If
+     * this is an array, it is filled with data as the steps progress.
+     * Each step is an array with a string message as the first element
+     * and optional debug detail (i.e. like a post body) as the second
+     * element.
+     *
+     * @return mixed If things go well this returns true.
+     * If this goes badly, this returns a string with an error message.
+     */
     public static function sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, &$debug_log=false) {
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
