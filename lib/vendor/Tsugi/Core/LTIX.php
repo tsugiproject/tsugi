@@ -804,13 +804,12 @@ class LTIX Extends LTI {
 
         $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
 
-        $userinfo = $USER->displayname . ' ('. $USER->id . ')';
         if ( $status === true ) {
-            $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$userinfo;
+            $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$USER->id;
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
         } else {
-            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$userinfo.' '.$status;
+            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$userinfo.' '.$USER->id;
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
             return $status;
