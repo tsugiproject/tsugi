@@ -49,9 +49,9 @@ class LTIX Extends LTI {
     }
 
     /**
-     * Pull a keyed variable from the LTI data in the current session.
+     * Pull a keyed variable from the LTI data in the current session with default
      */
-    public static function getLTIData($varname, $default=false) {
+    public static function sessionGet($varname, $default=false) {
         if ( ! isset($_SESSION['lti']) ) return $default;
         $lti = $_SESSION['lti'];
         if ( ! isset($lti[$varname]) ) return $default;
@@ -699,7 +699,8 @@ class LTIX Extends LTI {
       *
       * Call the right LTI service to retrieve the server's grade and
       * update our local cached copy of the server_grade and the date
-      * retrieved.
+      * retrieved. This routine pulls the key and secret from the LTIX
+      * session to avoid crossing cross tennant boundaries.
       *
       * TODO: Add LTI 2.x support for the JSON style services to this
       *
@@ -713,8 +714,8 @@ class LTIX Extends LTI {
     function gradeGet($row) {
         global $CFG, $PDOX;
 
-        $key_key = self::getLTIData('key_key');
-        $secret = self::getLTIData('secret');
+        $key_key = self::sessionGet('key_key');
+        $secret = self::sessionGet('secret');
         $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
         $service = isset($row['service']) ? $row['service'] : false;
         if ( $key_key == false || $secret === false ||
