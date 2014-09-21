@@ -67,7 +67,7 @@ $EX = false;
 if ( isset($oldsettings['exercise']) && $oldsettings['exercise'] != '0' ) {
     $ex = $oldsettings['exercise'];
 } else {
-    $ex = LTIX::getCustom('exercise');
+    $ex = LTIX::customGet('exercise');
 }
 if ( $ex === false && isset($_REQUEST["exercise"]) ) {
     $ex = $_REQUEST["exercise"];

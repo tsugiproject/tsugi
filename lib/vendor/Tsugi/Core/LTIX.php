@@ -61,7 +61,7 @@ class LTIX Extends LTI {
     /**
      * Pull out a custom variable from the LTIX session
      */
-    public static function getCustom($varname, $default=false) {
+    public static function customGet($varname, $default=false) {
         if ( isset($_SESSION['lti_post']) &&
                 isset($_SESSION['lti_post']['custom_'.$varname]) ) {
             return $_SESSION['lti_post']['custom_'.$varname];
