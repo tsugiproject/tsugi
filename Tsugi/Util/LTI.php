@@ -32,6 +32,35 @@ class LTI {
         return false;
     }
 
+    /**
+     * Verify the message signature for this request
+     * 
+     * @return mixed This returns true if the request verified.  If the request did not verify, 
+     * this returns an array with the first element as an error string, and the second element
+     * as the base string of the request.
+     */
+    public static function verifyKeyAndSecret($key, $secret) {
+        global $LastOAuthBodyBaseString;
+        $LastOAuthBodyBaseString = $request->get_signature_base_string();
+        if ( ! ($key && $secret) ) return array("Missing key or secret", "");
+        $store = new TrivialOAuthDataStore();
+        $store->add_consumer($key, $secret);
+
+        $server = new OAuthServer($store);
+
+        $method = new OAuthSignatureMethod_HMAC_SHA1();
+        $server->add_signature_method($method);
+        $request = OAuthRequest::from_request();
+
+        $LastOAuthBodyBaseString = $request->get_signature_base_string();
+
+        try {
+            $server->verify_request($request);
+            return true;
+        } catch (\Exception $e) {
+            return array($e->getMessage(), $LastOAuthBodyBaseString);
+        }
+    }
     public static function signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oauth_consumer_secret,
         $submit_text = false, $org_id = false, $org_desc = false)
     {
@@ -223,25 +252,10 @@ class LTI {
             throw new \Exception("OAuth request body signing requires oauth_body_hash body");
         }
 
-        // Verify the message signature
-        $store = new TrivialOAuthDataStore();
-        $store->add_consumer($oauth_consumer_key, $oauth_consumer_secret);
-
-        $server = new OAuthServer($store);
-
-        $method = new OAuthSignatureMethod_HMAC_SHA1();
-        $server->add_signature_method($method);
-        $request = OAuthRequest::from_request();
-
-        global $LastOAuthBodyBaseString;
-        $LastOAuthBodyBaseString = $request->get_signature_base_string();
-        // echo($LastOAuthBodyBaseString."\n");
-
-        try {
-            $server->verify_request($request);
-        } catch (Exception $e) {
-            $message = $e->getMessage();
-            throw new \Exception("OAuth signature failed: " . $message);
+        // Check the key and secret.
+        $retval = self::verifyKeyAndSecret($oauth_consumer_key, $oauth_consumer_secret);
+        if ( $retval !== true ) {
+            throw new \Exception("OAuth signature failed: " . $retval[0]);
         }
 
         $postdata = file_get_contents('php://input');

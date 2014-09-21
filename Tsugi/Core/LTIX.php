@@ -19,7 +19,9 @@ use \Tsugi\Core\Settings;
  */
 class LTIX Extends LTI {
 
-    // Silently check if this is a launch and if so, handle it
+    /**
+     * Silently check if this is a launch and if so, handle it
+     */
     public static function launchCheck() {
         if ( ! self::isRequest() ) return false;
         $session_id = self::setupSession();
@@ -44,6 +46,9 @@ class LTIX Extends LTI {
         exit();
     }
 
+    /**
+     * Pull out a cutom variable from the LTIX session
+     */
     public static function getCustom($varname, $default=false) {
         if ( isset($_SESSION['lti_post']) &&
                 isset($_SESSION['lti_post']['custom_'.$varname]) ) {
@@ -52,6 +57,9 @@ class LTIX Extends LTI {
         return $default;
     }
 
+    /**
+     * Extract all of the post data, set up data in tables, and set up session.
+     */
     public static function setupSession() {
         global $CFG, $PDOX;
         if ( ! self::isRequest() ) return false;
@@ -206,8 +214,12 @@ class LTIX Extends LTI {
         return $session_id;
     }
 
-    // Extract info from $_POST applying our business rules and using our
-    // naming conventions
+    /**
+     * Pull the LTI POST data into our own data structure
+     *
+     * We follow our naming conventions that match the column names in
+     * our lti_ tables.
+     */
     public static function extractPost() {
         // Unescape each time we use this stuff - somedy we won't need this...
         $FIXED = array();
@@ -263,7 +275,12 @@ class LTIX Extends LTI {
         return md5($comp);
     }
 
-    // Returns as much as we have in all the tables
+    /**
+     * Load the data from our lti_ tables using one long LEFT JOIN
+     *
+     * This data may or may not exist - hence the use of the long
+     * LEFT JOIN. 
+     */
     public static function loadAllData($p, $profile_table, $post) {
         global $PDOX;
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
@@ -333,8 +350,21 @@ class LTIX Extends LTI {
         return $row;
     }
 
-    // Insert the missing bits and update the new bits...
-    // TODO: Contemplate the deep mystery of transactions here
+    /**
+     * Make sure that the data in our lti_ tables matches the POST data
+     *
+     * This routine compares the POST dat to the data pulled from the 
+     * lti_ tables and goes through carefully INSERTing or UPDATING
+     * all the nexessary data in the lti_ tables to make sure that 
+     * the lti_ table correctly match all the data from the incoming post.
+     *
+     * While this looks like a lot of INSERT and UPDATE statements, 
+     * the INSERT statements only run when we see a new user/course/link
+     * for the first time and after that, we only update is something
+     * changes.   S0 in a high percentage of launches we are not seeing
+     * any new or updated data and so this code just falls through and 
+     * does absolutely no SQL.
+     */
     public static function adjustData($p, &$row, $post) {
         global $PDOX;
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
@@ -520,32 +550,14 @@ class LTIX Extends LTI {
         return $actions;
     }
 
-    // Verify the message signature
-    public static function verifyKeyAndSecret($key, $secret) {
-        if ( ! ($key && $secret) ) return array("Missing key or secret", "");
-        $store = new TrivialOAuthDataStore();
-        $store->add_consumer($key, $secret);
-
-        $server = new OAuthServer($store);
-
-        $method = new OAuthSignatureMethod_HMAC_SHA1();
-        $server->add_signature_method($method);
-        $request = OAuthRequest::from_request();
-
-        $basestring = $request->get_signature_base_string();
-
-        try {
-            $server->verify_request($request);
-            return true;
-        } catch (\Exception $e) {
-            return array($e->getMessage(), $basestring);
-        }
-    }
-
-    // Make sure we have the values we need in the LTI session
-    // This routine will not start a session if none exists.  It will
-    // die is there if no session_name() (PHPSESSID) cookie or
-    // parameter.  No need to create any fresh sessions here.
+    /**
+     * Handle launch and/or set up the LTI session and global variables
+     *
+     * Make sure we have the values we need in the LTI session
+     * This routine will not start a session if none exists.  It will
+     * die is there if no session_name() (PHPSESSID) cookie or
+     * parameter.  No need to create any fresh sessions here.
+     */
     public static function requireData($needed) {
         global $CFG, $USER, $CONTEXT, $LINK;
 
