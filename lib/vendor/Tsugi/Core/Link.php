@@ -41,9 +41,4 @@ class Link {
      */
     public $result_id = false;
 
-    /**
-     * The string logical key for this link in the 'lti_link' table.
-     */
-    public $sha256;
-
 }

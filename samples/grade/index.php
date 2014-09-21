@@ -79,13 +79,16 @@ if ( isset($_SESSION['debug_log']) ) {
     echo("<p>Debug output from grade send:</p>\n");
     $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
     unset($_SESSION['debug_log']);
-    echo("<hr/>\n");
 }
 
-echo("<p>Global Tsugi Objects:</p>\n<pre>\n");
+echo("<pre>Global Tsugi Objects:\n\n");
 var_dump($USER);
 var_dump($CONTEXT);
 var_dump($LINK);
+
+echo("\n<hr/>\n");
+echo("Session data (low level):\n");
+echo(safe_var_dump($_SESSION));
 
 $OUTPUT->footer();
 
