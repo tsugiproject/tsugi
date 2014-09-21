@@ -2,6 +2,8 @@
 
 namespace Tsugi\UI;
 
+use Tsugi\Core\LTIX;
+
 /**
  * This is a class that captures the output conventions of Tusgi.
  *
