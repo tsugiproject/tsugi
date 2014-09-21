@@ -81,7 +81,7 @@ if ( isset($_POST['getServerGrades']) ) {
         $count = $count + 1;
         $start = microtime(true);
         // UPDATEs automatically on success
-        $grade = gradeGet($row['result_id'], $row['sourcedid'], $row['service_key']);
+        $grade = LTIX::gradeGet($row);
         $et = (microtime(true) - $start) ;
         $ets = sprintf("%1.3f",$et);
         if ( is_string($grade) ) {
@@ -163,7 +163,7 @@ if ( isset($_POST['fixServerGrades']) ) {
         }
 
         // Check to see if the grade we sent is really there - Also updates our local table
-        $server_grade = gradeGet($row['result_id'], $row['sourcedid'], $row['service_key']);
+        $server_grade = LTIX::gradeGet($row);
         if ( is_string($server_grade) ) {
             echo('<pre class="alert alert-danger">'."\n");
             $msg = "result_id=".$row['result_id']."\n".

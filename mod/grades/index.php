@@ -155,7 +155,7 @@ if ( $user_sql !== false ) {
 
         if ( !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] ||
             $diff > $RETRIEVE_INTERVAL ) {
-            $server_grade = gradeGet($row['result_id'], $row['sourcedid'], $row['service_key']);
+            $server_grade = LTIX::gradeGet($row);
             if ( is_string($server_grade)) {
                 echo('<pre class="alert alert-danger">'."\n");
                 $msg = "result_id=".$row['result_id']."\n".
