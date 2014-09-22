@@ -108,17 +108,3 @@ function gradeUpdateJson($newdata=false) {
     );
 }
 
-function gradeSendWebService($grade, $sourcedid, $service, &$debug_log=false) {
-
-    $lti = $_SESSION['lti'];
-    if ( !isset($lti['key_key']) || !isset($lti['secret']) ) {
-        error_log('Session is missing required data');
-        $debug = safe_var_dump($lti);
-        error_log($debug);
-        return "Missing required session data";
-    }
-    $key_key = $lti['key_key'];
-    $secret = $lti['secret'];
-
-    return LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
-}

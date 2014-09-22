@@ -63,7 +63,7 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
     $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at", "retrieved_at");
     $user_sql =
         "SELECT R.result_id AS result_id, L.title as title, R.grade AS grade, R.note AS note,
-            R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, service_key,
+            R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, service_key as service,
             TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now
         FROM {$p}lti_result AS R
         JOIN {$p}lti_link as L ON R.link_id = L.link_id
@@ -138,7 +138,7 @@ if ( $user_sql !== false ) {
         unset($newrow['time_now']);
         unset($newrow['server_grade']);
         unset($newrow['sourcedid']);
-        unset($newrow['service_key']);
+        unset($newrow['service']);
         $newrow['note'] = '';
         if ( $row['grade'] <= 0.0 ) {
             $newrows[] = $newrow;
@@ -148,7 +148,7 @@ if ( $user_sql !== false ) {
         $diff = $row['diff_in_seconds'];
 
         // $newrow['note'] = $row['retrieved_at'].' diff='.$diff.' '.
-            // $row['server_grade'].' '.$row['sourcedid'].' '.$row['service_key'];
+            // $row['server_grade'].' '.$row['sourcedid'].' '.$row['service'];
 
         $RETRIEVE_INTERVAL = 14400; // Four Hours
         $newnote['note'] = " "+$diff;
@@ -165,7 +165,7 @@ if ( $user_sql !== false ) {
 
                 echo("Problem Retrieving Grade: ".session_safe_id()." ".$msg);
                 error_log("Problem Retrieving Grade: ".session_id()."\n".$msg."\n".
-                  "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
+                  "service=".$row['service']." sourcedid=".$row['sourcedid']);
 
                 echo("\nProblem Retrieving Grade - Please take a screen shot of this page.\n");
                 echo("</pre>\n");
@@ -189,7 +189,7 @@ if ( $user_sql !== false ) {
                     "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']);
 
             $debug_log = array();
-            $status = gradeSendWebService($row['grade'], $row['sourcedid'], $row['service_key'], $debug_log);
+            $status = LTIX::gradeSend($row['grade'], $row, $debug_log);
 
             if ( $status === true ) {
                 $newrow['note'] .= " Server grade updated.";
@@ -203,7 +203,7 @@ if ( $user_sql !== false ) {
 
                 echo("Problem Updating Grade: ".session_safe_id()." ".$msg);
                 error_log("Problem Updating Grade: ".session_id()."\n".$msg."\n".
-                  "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
+                  "service=".$row['service']." sourcedid=".$row['sourcedid']);
 
 
                 echo("\nProblem Retrieving Grade - Please take a screen shot of this page.\n");
