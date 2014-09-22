@@ -11,21 +11,21 @@ use \Tsugi\Util\LTI;
 use \Tsugi\Core\Settings;
 
 /**
- * This an extended LTI class that defines how Tsugi tools interact with LTI
+ * This an opinionated LTI class that defines how Tsugi tools interact with LTI
  *
  * This class deals with all of the session and database/data model
- * details that Tsugi tools make use of during runtime.  Since this extends
- * LTI, some of the methods from LTI are low-level while the LTIX-added methods
- * are higher level.
- *
+ * details that Tsugi tools make use of during runtime.  This makes use of the
+ * lower level \Tsugi\Util\LTI class which is focused on
+ * meeting the protocol requirements.
+ * Most tools will not use LTI at all - just LTIX.
  */
-class LTIX Extends LTI {
+class LTIX {
 
     /**
      * Silently check if this is a launch and if so, handle it
      */
     public static function launchCheck() {
-        if ( ! self::isRequest() ) return false;
+        if ( ! LTI::isRequest() ) return false;
         $session_id = self::setupSession();
         if ( $session_id === false ) return false;
 
@@ -75,7 +75,7 @@ class LTIX Extends LTI {
      */
     public static function setupSession() {
         global $CFG, $PDOX;
-        if ( ! self::isRequest() ) return false;
+        if ( ! LTI::isRequest() ) return false;
 
         // Pull LTI data out of the incoming $_POST and map into the same
         // keys that we use in our database (i.e. like $row)
@@ -123,12 +123,12 @@ class LTIX Extends LTI {
 
         // Use returned data to check the OAuth signature on the
         // incoming data - returns true or an array
-        $valid = self::verifyKeyAndSecret($post['key'],$row['secret']);
+        $valid = LTI::verifyKeyAndSecret($post['key'],$row['secret']);
 
         // If there is a new_secret it means an LTI2 re-registration is in progress and we
         // need to check both the current and new secret until the re-registration is committed
         if ( $valid !== true && strlen($row['new_secret']) > 0 && $row['new_secret'] != $row['secret']) {
-            $valid = self::verifyKeyAndSecret($post['key'],$row['new_secret']);
+            $valid = LTI::verifyKeyAndSecret($post['key'],$row['new_secret']);
             if ( $valid ) {
                 $row['secret'] = $row['new_secret'];
             }
@@ -705,7 +705,7 @@ class LTIX Extends LTI {
       * @param $row An optional array with the data that has the result_id, sourcedid,
       * and service (url) if this is not present, the data is pulled from the LTI
       * session for the current user/link combination.
-      * @param $debug_log An (optional) array (by reference) that returns the 
+      * @param $debug_log An (optional) array (by reference) that returns the
       * steps that were taken.
       * Each entry is an array with the [0] element a message and an optional [1]
       * element as some detail (i.e. like a POST body)
@@ -766,7 +766,7 @@ class LTIX Extends LTI {
       * @param $row An optional array with the data that has the result_id, sourcedid,
       * and service (url) if this is not present, the data is pulled from the LTI
       * session for the current user/link combination.
-      * @param $debug_log An (optional) array (by reference) that returns the 
+      * @param $debug_log An (optional) array (by reference) that returns the
       * steps that were taken.
       * Each entry is an array with the [0] element a message and an optional [1]
       * element as some detail (i.e. like a POST body)
@@ -796,7 +796,7 @@ class LTIX Extends LTI {
         }
 
         if ( $key_key == false || $secret === false ||
-            $sourcedid === false || $service === false || 
+            $sourcedid === false || $service === false ||
             !isset($USER) || !isset($LINK) ) {
             error_log("LTIX::gradeGet is missing required data");
             return false;
