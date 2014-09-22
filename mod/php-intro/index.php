@@ -20,7 +20,8 @@ $assignments = array(
     'a02.php' => 'Howdy application', 
     'a03.php' => 'Guessing Game',
     'a04.php' => 'Rock, Paper, Scissors',
-    'a05.php' => 'Shopping Cart'
+    'a05.php' => 'Shopping Cart',
+    'a06.php' => 'CRUD - Tracks'
 );
 
 // View
