@@ -60,14 +60,21 @@ class LTIX {
     }
 
     /**
+     * Pull a keyed variable from the original LTI post data in the current session with default
+     */
+    public static function postGet($varname, $default=false) {
+        if ( ! isset($_SESSION) ) return $default;
+        if ( ! isset($_SESSION['lti_post']) ) return $default;
+        $lti_post = $_SESSION['lti_post'];
+        if ( ! isset($lti_post[$varname]) ) return $default;
+        return $lti_post[$varname];
+    }
+
+    /**
      * Pull out a custom variable from the LTIX session
      */
     public static function customGet($varname, $default=false) {
-        if ( isset($_SESSION['lti_post']) &&
-                isset($_SESSION['lti_post']['custom_'.$varname]) ) {
-            return $_SESSION['lti_post']['custom_'.$varname];
-        }
-        return $default;
+        return self::postGet('custom_'.$varname, $default);
     }
 
     /**
