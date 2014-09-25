@@ -63,7 +63,7 @@ if ( $method == "get" ) {
 }
 
 line_out("Looking for a red 'Incorrect password' message");
-if ( strpos($html, 'Incorrect password') !== false ) {
+if ( stripos($html, 'Incorrect password') !== false ) {
     $passed++;
 } else {
     error_out("Could not find 'Incorrect password'");
@@ -79,7 +79,7 @@ $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 
 line_out("Looking for a green 'Logged in' message");
-if ( strpos($html, 'Logged in') !== false ) {
+if ( stripos($html, 'Logged in') !== false ) {
     $passed++;
 } else {
     error_out("Could not find 'Logged in'");
@@ -104,14 +104,14 @@ if ( $method == "get" ) {
 }
 
 line_out("Looking for the absence of a green 'Logged in' message");
-if ( strpos($html, 'Logged in') === false ) {
+if ( stripos($html, 'Logged in') === false ) {
     $passed++;
 } else {
     error_out("Should not have found 'Logged in'");
 }
 
 line_out("Looking for '19.05'");
-if ( strpos($html, '19.05') !== false ) {
+if ( stripos($html, '19.05') !== false ) {
     $passed++;
 } else {
     error_out("Could not find '19.05'");
@@ -125,14 +125,14 @@ $OUTPUT->togglePre("Show retrieved page",$html);
 $passed++;
 
 line_out("Looking for the absence of a green 'Logged in' message");
-if ( strpos($html, 'Logged in') === false ) {
+if ( stripos($html, 'Logged in') === false ) {
     $passed++;
 } else {
     error_out("Should not have found 'Logged in'");
 }
 
 line_out("Looking for '19.05'");
-if ( strpos($html, '19.05') !== false ) {
+if ( stripos($html, '19.05') !== false ) {
     $passed++;
 } else {
     error_out("Could not find '19.05'");
@@ -159,14 +159,14 @@ if ( $method == "get" ) {
 }
 
 line_out("Looking for the absence of a green 'Logged in' message");
-if ( strpos($html, 'Logged in') === false ) {
+if ( stripos($html, 'Logged in') === false ) {
     $passed++;
 } else {
     error_out("Should not have found 'Logged in'");
 }
 
 line_out("Looking for 'Order total:'");
-$pos = strpos(strtolower($html),'order total');
+$pos = stripos(strtolower($html),'order total');
 $rest = substr($html,$pos+11);
 
 preg_match('/[0-9][0-9.]*/',$rest,$matches);

@@ -35,38 +35,47 @@ if ( $retval === true ) {
 
 line_out("Looking for 'Missing guess parameter'");
 if ( stripos($html, 'Missing guess parameter') > 0 ) $passed++;
+else error_out("Not found");
 
 // Bad guess
 $u = $url . "?guess=fred";
+line_out("Retrieving ".htmlent_utf8($u));
 $crawler = $client->request('GET', $u);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 line_out("Looking for 'Your guess is not valid'");
 if ( stripos($html, 'Your guess is not valid') > 0 ) $passed++;
+else error_out("Not found");
 
 // Low guess
 $u = $url . "?guess=".rand(1,35);
+line_out("Retrieving ".htmlent_utf8($u));
 $crawler = $client->request('GET', $u);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 line_out("Looking for 'Your guess is too low'");
 if ( stripos($html, 'Your guess is too low') > 0 ) $passed++;
+else error_out("Not found");
 
 // High guess
 $u = $url . "?guess=".rand(45,2000);
+line_out("Retrieving ".htmlent_utf8($u));
 $crawler = $client->request('GET', $u);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 line_out("Looking for 'Your guess is too high'");
 if ( stripos($html, 'Your guess is too high') > 0 ) $passed++;
+else error_out("Not found");
 
 // Good guess
 $u = $url . "?guess=42";
+line_out("Retrieving ".htmlent_utf8($u));
 $crawler = $client->request('GET', $u);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 line_out("Looking for 'Congratulations - You are right'");
-if ( stripos($html, 'Congratulations - You are right') > 0 ) $passed++;
+if ( stripos($html, 'congratulations') > 0 ) $passed++;
+else error_out("Not found");
 
 } catch (Exception $ex) {
     error_out("The autograder did not find something it was looking for in your HTML - test ended.");
