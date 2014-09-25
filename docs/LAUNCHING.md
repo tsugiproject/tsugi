@@ -121,9 +121,7 @@ details.  But that takes time - but I should be working on it soon.
 As this is emergent software, comments, suggestions, and pull
 requests are always welcome.
 
-\-- Chuck
-Wed Sep  3 09:11:18 EDT 2014
-
+---
 Learning Tools Interoperability™ (LTI™) is a
 trademark of IMS Global Learning Consortium, Inc. in
 the United States and/or other countries. (www.imsglobal.org)
