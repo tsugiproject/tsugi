@@ -241,7 +241,7 @@ class LTIX {
      * our lti_ tables.
      */
     public static function extractPost() {
-        // Unescape each time we use this stuff - somedy we won't need this...
+        // Unescape each time we use this stuff - someday we won't need this...
         $FIXED = array();
         foreach($_POST as $key => $value ) {
             if (get_magic_quotes_gpc()) $value = stripslashes($value);
@@ -261,7 +261,16 @@ class LTIX {
             return false;
         }
 
-        $retval['service'] = isset($FIXED['lis_outcome_service_url']) ? $FIXED['lis_outcome_service_url'] : null;
+        $retval['service'] = null;
+        $retval['format'] = null;
+        if ( isset($FIXED['custom_result_url']) ) {
+            $retval['service'] = $FIXED['custom_result_url'];
+            $retval['format'] = 'application/vnd.ims.lis.v2.result+json';
+        } else if ( isset($FIXED['lis_outcome_service_url']) ) {
+            $retval['service'] = $FIXED['lis_outcome_service_url'];
+            $retval['format'] = 'application/vnd.ims.lti.v1.outcome+xml';
+        }
+
         $retval['sourcedid'] = isset($FIXED['lis_result_sourcedid']) ? $FIXED['lis_result_sourcedid'] : null;
 
         $retval['context_title'] = isset($FIXED['context_title']) ? $FIXED['context_title'] : null;
@@ -321,7 +330,7 @@ class LTIX {
 
         if ( $post['service'] ) {
             $sql .= ",
-            s.service_id, s.service_key AS service";
+            s.service_id, s.service_key AS service, s.format AS format";
         }
 
         if ( $post['sourcedid'] ) {
@@ -360,7 +369,7 @@ class LTIX {
             ':user' => lti_sha256($post['user_id']));
 
         if ( $post['service'] ) {
-            $parms[':service'] = lti_sha256($post['service']);
+            $parms[':service'] = lti_sha256($post['service'].'#'.$post['format']);
         }
 
         $row = $PDOX->rowDie($sql, $parms);
@@ -453,16 +462,18 @@ class LTIX {
 
         // We need to handle the case where the service URL changes but we already have a sourcedid
         $oldserviceid = $row['service_id'];
-        if ( $row['service_id'] === null && $post['service'] && $post['sourcedid'] ) {
+        if ( $row['service_id'] === null && $post['format'] && $post['format'] && $post['service'] && $post['sourcedid'] ) {
             $sql = "INSERT INTO {$p}lti_service
-                ( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
-                ( :service_key, :service_sha256, :key_id, NOW(), NOW() )";
+                ( service_key, format, service_sha256, key_id, created_at, updated_at ) VALUES
+                ( :service_key, :format, :service_sha256, :key_id, NOW(), NOW() )";
             $PDOX->queryDie($sql, array(
                 ':service_key' => $post['service'],
-                ':service_sha256' => lti_sha256($post['service']),
+                ':format' => $post['format'],
+                ':service_sha256' => lti_sha256($post['service'].'#'.$post['format']),
                 ':key_id' => $row['key_id']));
             $row['service_id'] = $PDOX->lastInsertId();
             $row['service'] = $post['service'];
+            $row['format'] = $post['format'];
             $actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service'];
         }
 
@@ -475,7 +486,7 @@ class LTIX {
             $actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
         }
 
-        // If we don'have a result but do have a service - link them together
+        // If we don't have a result but do have a service - link them together
         if ( $row['result_id'] === null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {
             $sql = "INSERT INTO {$p}lti_result
                 ( sourcedid, sourcedid_sha256, service_id, link_id, user_id, created_at, updated_at ) VALUES
