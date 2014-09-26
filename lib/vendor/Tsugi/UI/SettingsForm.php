@@ -15,7 +15,7 @@ class SettingsForm {
      * Handle incoming settings post data
      *
      * @return boolean Returns true if there were settings to handle and false
-     * if there was nothing done.  Generally the calling tool will redirect 
+     * if there was nothing done.  Generally the calling tool will redirect
      * when true is returned.
      *
      *     if ( $OUTPUT->handleSettingsPost() ) {
@@ -37,6 +37,17 @@ class SettingsForm {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Output the button and optionally put in the upper right
+     */
+    public static function button($right = false)
+    {
+        GLOBAL $OUTPUT;
+        if ( $right ) echo('<span style="position: fixed; right: 10px; top: 5px;">');
+        $OUTPUT->settingsButton();
+        if ( $right ) echo('</span>');
     }
 
     public static function start() {
@@ -110,7 +121,7 @@ class SettingsForm {
             }
             return;
         }
-        
+
         // Instructor view
         if ( $default === false ) $default = _m('Please Select');
         echo('<select name="'.$name.'">');
@@ -129,8 +140,30 @@ class SettingsForm {
         echo('</select>');
     }
 
-    /** 
-      * Get the due data data in an object 
+    /**
+     * Handle a settings text box
+     */
+    public static function text($name)
+    {
+        global $USER;
+        $oldsettings = Settings::linkGetAll();
+        $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
+        if ( ! $USER->instructor ) {
+            if ( $configured === false ) {
+                echo('<p>Setting '.htmlent_utf8($name).' is not set</p>');
+            } else {
+                echo('<p>'.htmlent_utf8(ucwords($name)).' is set to '.htmlent_utf8($configured).'</p>');
+            }
+            return;
+        }
+
+        // Instructor view
+        echo('<input type="text" size="80" name="'.$name.'"');
+        echo('value="'.htmlent_utf8($configured).'">'."\n");
+    }
+
+    /**
+      * Get the due data data in an object
       */
 
     public static function getDueDate() {
@@ -170,7 +203,7 @@ class SettingsForm {
         //  If it is just a date - add nearly an entire day of time...
         if ( strlen($duedatestr) <= 10 ) $duedate = $duedate + 24*60*60 - 1;
         $diff = time() - $duedate;
-    
+
         $retval->duedate = $duedate;
         $retval->duedatestr = $duedatestr;
         // Should be a percentage off between 0.0 and 1.0
@@ -231,7 +264,7 @@ class SettingsForm {
         }
 ?>
         <label for="due">
-            Please enter a due date in ISO 8601 format (2015-01-30T20:30) or leave blank for no due date.  
+            Please enter a due date in ISO 8601 format (2015-01-30T20:30) or leave blank for no due date.
             You can leave off the time to allow the assignment to be turned in any time during the day.<br/>
         <input type="text" value="<?php echo(htmlspec_utf8($due)); ?>" name="due"></label>
         <label for="timezone">
@@ -240,7 +273,7 @@ class SettingsForm {
             zone to choose - this is why it is the default.<br/>
         <input type="text" value="<?php echo(htmlspec_utf8($timezone)); ?>" name="timezone"></label>
             <p>The next two fields determine the "overall penalty" for being late.  We define a time period
-            (in seconds) and a fractional penalty per time period.  The penalty is assessed for each 
+            (in seconds) and a fractional penalty per time period.  The penalty is assessed for each
             full or partial time period past the due date.  For example to deduct 20% per day, you would
             set the period to be 86400 (24*60*60) and the penalty to be 0.2.
             </p>
@@ -264,7 +297,7 @@ class SettingsForm {
             This option allows you to control the existance and behavior of a "Done" button for this tool.
             If you leave this blank the tool will assume it is in an iFrame and will not show a Done button.
             If you put a URL here, a Done button will be shown and when pressed the tool will navigate to
-            the specified URL.  If you expect to launch this tool in a popup, enter "_close" here and 
+            the specified URL.  If you expect to launch this tool in a popup, enter "_close" here and
             the tool will close its window when Done is pressed.<br/>
         <input type="text" value="<?php echo(htmlspec_utf8($done)); ?>" size="80" name="done"></label>
 <?php
