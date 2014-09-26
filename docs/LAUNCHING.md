@@ -10,7 +10,7 @@ Tsugi supports both LTI 1.x and has support for LTI 2.0 but
 the only LMS that supports LTI 2.0 is Sakai.  So you most 
 likely will need an LTI 1.x key.
 
-You can plug yuor key, secret, and launch url (see below) into your LMS 
+You can plug your key, secret, and launch url (see below) into your LMS 
 or test using any LTI Consumer harness such as the one I use at:
 
 https://online.dr-chuck.com/sakai-api-test/lms.php
@@ -121,9 +121,7 @@ details.  But that takes time - but I should be working on it soon.
 As this is emergent software, comments, suggestions, and pull
 requests are always welcome.
 
-\-- Chuck
-Wed Sep  3 09:11:18 EDT 2014
-
+---
 Learning Tools Interoperability™ (LTI™) is a
 trademark of IMS Global Learning Consortium, Inc. in
 the United States and/or other countries. (www.imsglobal.org)
