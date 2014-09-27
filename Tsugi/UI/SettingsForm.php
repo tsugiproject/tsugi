@@ -40,13 +40,16 @@ class SettingsForm {
     }
 
     /**
-     * Output the button and optionally put in the upper right
-     */
+      * Emit a properly styled "settings" button
+      *
+      * This is just the button, using the pencil icon.  Wrap in a
+      * span or div tag if you want to move it around
+      */
     public static function button($right = false)
     {
-        GLOBAL $OUTPUT;
         if ( $right ) echo('<span style="position: fixed; right: 10px; top: 5px;">');
-        $OUTPUT->settingsButton();
+        echo('<button onclick="$(\'#settings\').modal();return false;" type="button" class="btn btn-default">');
+        echo('<span class="glyphicon glyphicon-pencil"></span></button>'."\n");
         if ( $right ) echo('</span>');
     }
 

@@ -253,17 +253,6 @@ class Output {
         echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn ".$button."\">".$text."</a>\n");
     }
 
-    /**
-      * Emit a properly styled "settings" button
-      *
-      * This is just the button, using the pencil icon.  Wrap in a
-      * span or div tag if you want to move it around
-      */
-    function settingsButton() {
-        echo('<button onclick="$(\'#settings\').modal();return false;" type="button" class="btn btn-default">');
-        echo('<span class="glyphicon glyphicon-pencil"></span></button>'."\n");
-    }
-
     function togglePre($title, $html) {
         global $div_id;
         $div_id = $div_id + 1;
