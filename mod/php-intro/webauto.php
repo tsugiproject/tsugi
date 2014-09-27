@@ -72,8 +72,9 @@ function webauto_test_passed($grade, $url) {
     $old_grade = isset($LTI['grade']) ? $LTI['grade'] : 0.0;
 
     if ( $grade < $old_grade ) {
-         line_out('New grade is not higher than your previous grade='.$old_grade);
-         line_out('Sending your previous high score');
+        line_out('New grade is not higher than your previous grade='.$old_grade);
+        line_out('Sending your previous high score');
+        $grade = $old_grade;
     }
 
     gradeUpdateJson(json_encode(array("url" => $url)));
