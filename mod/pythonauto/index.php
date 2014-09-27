@@ -493,7 +493,7 @@ if ( $dueDate->message ) {
         echo('<button onclick="resetcode()" class="btn btn-default" type="button">Reset Code</button> ');
     }
     echo('<button onclick="$(\'#info\').modal();return false;" class="btn btn-default" type="button"><span class="glyphicon glyphicon-info-sign"></span></button>'."\n");
-    if ( $USER->instructor ) $OUTPUT->settingsButton();
+    if ( $USER->instructor ) SettingsForm::button();
     $OUTPUT->doneButton();
     if ( $USER->instructor ) {
         if ( $EX === false ) {
