@@ -261,16 +261,7 @@ class LTIX {
             return false;
         }
 
-        $retval['service'] = null;
-        $retval['format'] = null;
-        if ( isset($FIXED['custom_result_url']) ) {
-            $retval['service'] = $FIXED['custom_result_url'];
-            $retval['format'] = 'application/vnd.ims.lis.v2.result+json';
-        } else if ( isset($FIXED['lis_outcome_service_url']) ) {
-            $retval['service'] = $FIXED['lis_outcome_service_url'];
-            $retval['format'] = 'application/vnd.ims.lti.v1.outcome+xml';
-        }
-
+        $retval['service'] = isset($FIXED['lis_outcome_service_url']) ? $FIXED['lis_outcome_service_url'] : null;
         $retval['sourcedid'] = isset($FIXED['lis_result_sourcedid']) ? $FIXED['lis_result_sourcedid'] : null;
 
         $retval['context_title'] = isset($FIXED['context_title']) ? $FIXED['context_title'] : null;
@@ -330,7 +321,7 @@ class LTIX {
 
         if ( $post['service'] ) {
             $sql .= ",
-            s.service_id, s.service_key AS service, s.format AS format";
+            s.service_id, s.service_key AS service";
         }
 
         if ( $post['sourcedid'] ) {
@@ -369,7 +360,7 @@ class LTIX {
             ':user' => lti_sha256($post['user_id']));
 
         if ( $post['service'] ) {
-            $parms[':service'] = lti_sha256($post['service'].'#'.$post['format']);
+            $parms[':service'] = lti_sha256($post['service']);
         }
 
         $row = $PDOX->rowDie($sql, $parms);
@@ -462,18 +453,17 @@ class LTIX {
 
         // We need to handle the case where the service URL changes but we already have a sourcedid
         $oldserviceid = $row['service_id'];
-        if ( $row['service_id'] === null && $post['format'] && $post['format'] && $post['service'] && $post['sourcedid'] ) {
+error_log(safe_var_dump($row));
+        if ( $row['service_id'] === null && $post['service'] && $post['sourcedid'] ) {
             $sql = "INSERT INTO {$p}lti_service
-                ( service_key, format, service_sha256, key_id, created_at, updated_at ) VALUES
-                ( :service_key, :format, :service_sha256, :key_id, NOW(), NOW() )";
+                ( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
+                ( :service_key, :service_sha256, :key_id, NOW(), NOW() )";
             $PDOX->queryDie($sql, array(
                 ':service_key' => $post['service'],
-                ':format' => $post['format'],
-                ':service_sha256' => lti_sha256($post['service'].'#'.$post['format']),
+                ':service_sha256' => lti_sha256($post['service']),
                 ':key_id' => $row['key_id']));
             $row['service_id'] = $PDOX->lastInsertId();
             $row['service'] = $post['service'];
-            $row['format'] = $post['format'];
             $actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service'];
         }
 
