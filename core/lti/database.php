@@ -40,6 +40,7 @@ array( "{$CFG->dbprefix}lti_key",
 
     json                TEXT NULL,
     settings            TEXT NULL,
+    settings_url        TEXT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -59,6 +60,7 @@ array( "{$CFG->dbprefix}lti_context",
 
     json                TEXT NULL,
     settings            TEXT NULL,
+    settings_url        TEXT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -83,6 +85,7 @@ array( "{$CFG->dbprefix}lti_link",
 
     json                TEXT NULL,
     settings            TEXT NULL,
+    settings_url        TEXT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -183,6 +186,7 @@ array( "{$CFG->dbprefix}lti_result",
     sourcedid_sha256   CHAR(64) NOT NULL,
 
     service_id         INTEGER NULL,
+    result_url         TEXT NULL,
 
     grade              FLOAT NULL,
     note               TEXT NULL,
@@ -383,9 +387,29 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Version 201409241700 improvements
+    if ( $oldversion < 201409241700 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD settings_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD settings_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD settings_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD result_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201408240800;
+    return 201409241700;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
