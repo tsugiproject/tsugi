@@ -295,7 +295,7 @@ class LTI {
         return Net::doGet($endpoint,$header);
     }
 
-    public static function sendOAuthBodyPOST($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $body)
+    public static function sendOAuthBody($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $body)
     {
         $hash = base64_encode(sha1($body, TRUE));
 
@@ -305,7 +305,7 @@ class LTI {
         $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
         $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
 
-        $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, "POST", $endpoint, $parms);
+        $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
         $acc_req->sign_request($hmac_method, $test_consumer, $test_token);
 
         // Pass this back up "out of band" for debugging
@@ -315,7 +315,7 @@ class LTI {
         $header = $acc_req->to_header();
         $header = $header . "\r\nContent-Type: " . $content_type . "\r\n";
 
-        return Net::doBody($endpoint, "POST", $body,$header);
+        return Net::doBody($endpoint, $method, $body,$header);
     }
 
     /**
@@ -351,12 +351,12 @@ class LTI {
             self::getPOXRequest());
 
         if ( is_array($debug_log) ) $debug_log[] = array('Loading grade from '.$service.' sourcedid='.$sourcedid);
-        if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request (debug)',$postBody);
+        if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request',$postBody);
 
-        $response = self::sendOAuthBodyPOST($service, $key_key, $secret,
+        $response = self::sendOAuthBody("POST", $service, $key_key, $secret,
             $content_type, $postBody);
         $LastPOXGradeResponse = $response;
-        if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response (debug)",$response);
+        if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response",$response);
 
         $status = "Failure to retrieve grade";
         if ( strpos($response, '<?xml') !== 0 ) {
@@ -390,7 +390,7 @@ class LTI {
     }
 
     /**
-     * Senda grade using the LTI 1.1 protocol (POX)
+     * Send a grade using the LTI 1.1 protocol (POX)
      *
      * This sends a grade using the Plain-Old-XML protocol from
      * IMS LTI 1.1
@@ -419,13 +419,13 @@ class LTI {
 
         if ( is_array($debug_log) ) $debug_log[] = array('Sending '.$grade.' to '.$service.' sourcedid='.$sourcedid);
 
-        if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request (debug)',$postBody);
+        if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request',$postBody);
 
-        $response = self::sendOAuthBodyPOST($service, $key_key, $secret,
+        $response = self::sendOAuthBody("POST", $service, $key_key, $secret,
             $content_type, $postBody);
         global $LastOAuthBodyBaseString;
         $lbs = $LastOAuthBodyBaseString;
-        if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response (debug)",$response);
+        if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response",$response);
         $LastPOXGradeResponse = $response;
         $status = "Failure to store grade";
         if ( strpos($response, '<?xml') !== 0 ) {
@@ -535,7 +535,7 @@ class LTI {
             array($sourcedid, $grade, $operation, uniqid()),
             self::getPOXGradeRequest());
 
-        $response = sendOAuthBodyPOST($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $postBody);
+        $response = sendOAuthBody("POST", $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $postBody);
         return parseResponse($response);
     }
 
@@ -567,6 +567,58 @@ class LTI {
            }
         }
         return $retval;
+    }
+
+    /**
+     * Send a grade using the JSON protocol from IMS LTI 2.x
+     *
+     * @param debug_log This can either be false or an empty array.  If
+     * this is an array, it is filled with data as the steps progress.
+     * Each step is an array with a string message as the first element
+     * and optional debug detail (i.e. like a post body) as the second
+     * element.
+     *
+     * @return mixed If things go well this returns true.
+     * If this goes badly, this returns a string with an error message.
+     */
+    public static function sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, &$debug_log=false) {
+        global $LastJSONGradeResponse;
+        $LastJSONGradeResponse = false;
+
+        $content_type = "application/vnd.ims.lis.v2.result+json";
+
+        if ( is_array($debug_log) ) $debug_log[] = array('Sending '.$grade.' to result_url='.$result_url);
+
+        $addStructureRequest = self::getResultJSON($grade, $comment);
+
+        $postBody = jsonIndent(json_encode($addStructureRequest));
+        if ( is_array($debug_log) )  $debug_log[] = array('Grade JSON Request',$postBody);
+
+        $response = self::sendOAuthBody("PUT", $result_url, $key_key,
+            $secret, $content_type, $postBody);
+
+        if ( is_array($debug_log) )  $debug_log[] = array('Grade JSON Response',$response);
+
+        global $LastOAuthBodyBaseString;
+        $lbs = $LastOAuthBodyBaseString;
+        if ( is_array($debug_log) )  $debug_log[] = array('Our base string',$lbs);
+        return true;
+    }
+
+    /**
+     * Return an array suitable for sending to the LTI 2.x result_url
+     */
+    public static function getResultJSON($grade, $comment) {
+        $resultArray = array(
+            "@context" => "http://purl.imsglobal.org/ctx/lis/v2/Result",
+            "@type" => "Result",
+            "comment" => $comment,
+            "resultScore" => array(
+                "@type" => "decimal",
+                "@value" => $grade
+            ),
+        );
+        return $resultArray;
     }
 
     // Compares base strings, start of the mis-match

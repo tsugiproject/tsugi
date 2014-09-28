@@ -362,7 +362,7 @@ echo("</pre>\n");
 
 $OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
 
-$response = LTI::sendOAuthBodyPOST($register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body);
+$response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body);
 
 $OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(Net::getBodySentDebug()));
 

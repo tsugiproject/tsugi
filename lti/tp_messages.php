@@ -94,15 +94,15 @@ $tool_proxy = <<< EOF
                 "fixed": "42"
               },
               {
-                "name": "ltilink_custom_url",
+                "name": "link_settings_url",
                 "variable": "LtiLink.custom.url"
               },
               {
-                "name": "toolproxy_custom_url",
+                "name": "key_settings_url",
                 "variable": "ToolProxy.custom.url"
               },
               {
-                "name": "toolproxybinding_custom_url",
+                "name": "context_settings_url",
                 "variable": "ToolProxyBinding.custom.url"
               },
               {

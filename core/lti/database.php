@@ -176,17 +176,19 @@ array( "{$CFG->dbprefix}lti_service",
     PRIMARY KEY (service_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+// service_id/sourcedid are for LTI 1.x
+// result_url is for LTI 2.x
+// Sometimes we might get both
 array( "{$CFG->dbprefix}lti_result",
 "create table {$CFG->dbprefix}lti_result (
     result_id          INTEGER NOT NULL AUTO_INCREMENT,
     link_id            INTEGER NOT NULL,
     user_id            INTEGER NOT NULL,
 
-    sourcedid          TEXT NOT NULL,
-    sourcedid_sha256   CHAR(64) NOT NULL,
-
-    service_id         INTEGER NULL,
     result_url         TEXT NULL,
+
+    sourcedid          TEXT NULL,
+    service_id         INTEGER NULL,
 
     grade              FLOAT NULL,
     note               TEXT NULL,
@@ -214,7 +216,7 @@ array( "{$CFG->dbprefix}lti_result",
 
     -- Note service_id is not part of the key on purpose
     -- It is data that can change and can be null in LTI 2.0
-    UNIQUE(link_id, user_id, sourcedid_sha256),
+    UNIQUE(link_id, user_id),
     PRIMARY KEY (result_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -275,7 +277,7 @@ $DATABASE_POST_CREATE = function($table) {
     }
 
     if ( $table == "{$CFG->dbprefix}lti_nonce") {
-        $sql = "CREATE EVENT IF NOT EXISTS {$CFG->dbprefix}lti_nonce_auto 
+        $sql = "CREATE EVENT IF NOT EXISTS {$CFG->dbprefix}lti_nonce_auto
             ON SCHEDULE EVERY 1 HOUR DO
             DELETE FROM {$CFG->dbprefix}lti_nonce WHERE created_at < (UNIX_TIMESTAMP() - 3600)";
         error_log("Post-create: ".$sql);
@@ -359,7 +361,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
- 
+
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD new_consumer_profile TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -407,9 +409,21 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Version 201409242100 improvements
+    if ( $oldversion < 201409242100 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result MODIFY sourcedid TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result DROP sourcedid_sha256";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201409241700;
+    return 201409242100;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
