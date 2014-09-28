@@ -15,6 +15,7 @@ $displayname = $USER->displayname;
 
 // Handle the incoming post saving the settings form
 if ( SettingsForm::handleSettingsPost() ) {
+    $_SESSION['debug_log'] = Settings::getDebugArray();
     header( 'Location: '.addSession('index.php') ) ;
     return;
 }
@@ -22,6 +23,7 @@ if ( SettingsForm::handleSettingsPost() ) {
 // Handle our own manual set of the manual_key setting
 if ( isset($_POST['manual_key']) ) {
     Settings::linkSet('manual_key', $_POST['manual_key']);
+    $_SESSION['debug_log'] = Settings::getDebugArray();
     $_SESSION['success'] = "Setting updated";
     header( 'Location: '.addSession('index.php') ) ;
     return;
@@ -60,12 +62,6 @@ echo("<p>The currentsetting for sample_key is: <b>".htmlent_utf8($sk)."</b></p>\
 $mk = Settings::linkGet('manual_key');
 echo("<p>The currentsetting for manual_key is: <b>".htmlent_utf8($mk)."</b></p>\n");
 
-if ( isset($_SESSION['debug_log']) ) {
-    echo("<p>Debug output from setting send:</p>\n");
-    $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
-    unset($_SESSION['debug_log']);
-}
-
 // Lets show how to set a setting in our own code
 if ( $USER->instructor ) {
 ?>
@@ -78,7 +74,13 @@ Enter value for 'manual_key' setting:
 <?php
 }
 
-echo("<pre>Global Tsugi Objects:\n\n");
+if ( isset($_SESSION['debug_log']) && count($_SESSION['debug_log']) > 0) {
+    echo("<p>Debug output from setting send:</p>\n");
+    $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
+}
+unset($_SESSION['debug_log']);
+
+echo("\n<hr/>\n<pre>Global Tsugi Objects:\n\n");
 var_dump($USER);
 var_dump($CONTEXT);
 var_dump($LINK);

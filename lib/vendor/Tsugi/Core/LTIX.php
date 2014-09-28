@@ -819,8 +819,6 @@ class LTIX {
       * retrieved. This routine pulls the key and secret from the LTIX
       * session to avoid crossing cross tennant boundaries.
       *
-      * TODO: Add LTI 2.x support for the JSON style services to this
-      *
       * @param $grade A new grade - floating point number between 0.0 and 1.0
       * @param $row An optional array with the data that has the result_id, sourcedid,
       * and service (url) if this is not present, the data is pulled from the LTI
@@ -906,4 +904,18 @@ class LTIX {
         return $status;
     }
 
+    /**
+      * Send settings to the LMS using the simple JSON approach
+      */
+    public static function settingsSend($settings, $settings_url, &$debug_log=false) {
+        global $CFG, $PDOX, $LINK, $USER;
+        global $LastPOXGradeResponse;
+        $LastPOXGradeResponse = false;
+
+        $key_key = self::sessionGet('key_key');
+        $secret = self::sessionGet('secret');
+
+        $retval = LTI::sendJSONSettings($settings, $settings_url, $key_key, $secret, $debug_log);
+        return $retval;
+    }
 }
