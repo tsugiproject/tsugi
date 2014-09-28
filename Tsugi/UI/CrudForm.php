@@ -16,7 +16,7 @@ namespace Tsugi\UI;
  * The $from_location is used under the "Cancel" button.
  *
  * The file core/key/key-add.php is a good example of how to do an insert
- * form and the file core/key/key-detail.php is a good exmaple of the
+ * form and the file core/key/key-detail.php is a good example of the
  * update case - which is significantly more complex.
  *
  * @TODO This code needs to be able to translate and override the labels

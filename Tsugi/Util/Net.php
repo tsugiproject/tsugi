@@ -17,7 +17,7 @@ namespace Tsugi\Util;
  * If CURL is available, it is used for everything and
  * forks well.
  *
- * @todo We need to make this non-static and configure it
+ * @TODO We need to make this non-static and configure it
  * so it prefers or exclusively uses a particular transport.
  *
  */
@@ -42,7 +42,7 @@ class Net {
         $LastGETMethod = "Stream";
         $lastGETResponse = Net::getStream($url, $header);
         if ( $lastGETResponse !== false ) return $lastGETResponse;
-        error_log("Unable to POST Url=$url");
+        error_log("Unable to GET Url=$url");
         error_log("Header: $header");
         throw new \Exception("Unable to GET url=".$url);
     }
@@ -177,10 +177,10 @@ class Net {
         $LastBODYImpl = "Stream";
         if ( $LastBODYResponse !== false ) return $LastBODYResponse;
         $LastBODYImpl = "Error";
-        error_log("Unable to GET Url=$url");
+        error_log("Unable to $method Url=$url");
         error_log("Header: $header");
         error_log("Body: $body");
-        throw new \Exception("Unable to POST $url");
+        throw new \Exception("Unable to $method $url");
     }
 
     // From: http://php.net/manual/en/function.file-get-contents.php

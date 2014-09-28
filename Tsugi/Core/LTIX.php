@@ -261,24 +261,54 @@ class LTIX {
             return false;
         }
 
+        // LTI 1.x settings and Outcomes
         $retval['service'] = isset($FIXED['lis_outcome_service_url']) ? $FIXED['lis_outcome_service_url'] : null;
         $retval['sourcedid'] = isset($FIXED['lis_result_sourcedid']) ? $FIXED['lis_result_sourcedid'] : null;
 
+        // LTI 2.x settings and Outcomes
+        $retval['result_url'] = isset($FIXED['custom_result_url']) ? $FIXED['custom_result_url'] : null;
+        $retval['link_settings_url'] = isset($FIXED['custom_link_settings_url']) ? $FIXED['custom_link_settings_url'] : null;
+
         $retval['context_title'] = isset($FIXED['context_title']) ? $FIXED['context_title'] : null;
         $retval['link_title'] = isset($FIXED['resource_link_title']) ? $FIXED['resource_link_title'] : null;
+
+        // Getting email from LTI 1.x and LTI 2.x
         $retval['user_email'] = isset($FIXED['lis_person_contact_email_primary']) ? $FIXED['lis_person_contact_email_primary'] : null;
-        if ( isset($FIXED['lis_person_name_full']) ) {
+        $retval['user_email'] = isset($FIXED['custom_person_email_primary']) ? $FIXED['custom_person_email_primary'] : $retval['user_email'];
+
+        // Displayname from LTI 2.x
+        if ( isset($FIXED['person_name_full']) ) {
+            $retval['user_displayname'] = $FIXED['custom_person_name_full'];
+        } else if ( isset($FIXED['custom_person_name_given']) && isset($FIXED['custom_person_name_family']) ) {
+            $retval['user_displayname'] = $FIXED['custom_person_name_given'].' '.$FIXED['custom_person_name_family'];
+        } else if ( isset($FIXED['custom_person_name_given']) ) {
+            $retval['user_displayname'] = $FIXED['custom_person_name_given'];
+        } else if ( isset($FIXED['custom_person_name_family']) ) {
+            $retval['user_displayname'] = $FIXED['custom_person_name_family'];
+
+        // Displayname from LTI 1.x
+        } else if ( isset($FIXED['lis_person_name_full']) ) {
             $retval['user_displayname'] = $FIXED['lis_person_name_full'];
         } else if ( isset($FIXED['lis_person_name_given']) && isset($FIXED['lis_person_name_family']) ) {
             $retval['user_displayname'] = $FIXED['lis_person_name_given'].' '.$FIXED['lis_person_name_family'];
         } else if ( isset($FIXED['lis_person_name_given']) ) {
             $retval['user_displayname'] = $FIXED['lis_person_name_given'];
         } else if ( isset($FIXED['lis_person_name_family']) ) {
-            $retval['user_displayname'] = $FIXED['lis_person_name_given'];
+            $retval['user_displayname'] = $FIXED['lis_person_name_family'];
         }
+
+
+        // Get the role
         $retval['role'] = 0;
-        if ( isset($FIXED['roles']) ) {
-            $roles = strtolower($FIXED['roles']);
+        $roles = '';
+        if ( isset($FIXED['custom_membership_role']) ) { // From LTI 2.x
+            $roles = $FIXED['custom_membership_role'];
+        } else if ( isset($FIXED['roles']) ) { // From LTI 1.x
+            $roles = $FIXED['roles'];
+        }
+
+        if ( strlen($roles) > 0 ) {
+            $roles = strtolower($roles);
             if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = 1;
             if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = 1;
         }
@@ -286,8 +316,8 @@ class LTIX {
     }
 
     // Make sure to include the file in case multiple instances are running
-    // on the same server and they have not changed the session secret
-    // Also make these change every 30 minutes
+    // on the same Operating System instance and they have not changed the
+    // session secret.  Also make these change every 30 minutes
     public static function getCompositeKey($post, $session_secret) {
         $comp = $session_secret .'::'. $post['key'] .'::'. $post['context_id'] .'::'.
             $post['link_id']  .'::'. $post['user_id'] .'::'. intval(time() / 1800) .
@@ -305,10 +335,10 @@ class LTIX {
         global $PDOX;
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret,
+        $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, c.settings_url AS key_settings_url,
             n.nonce,
-            c.context_id, c.title AS context_title, context_sha256,
-            l.link_id, l.title AS link_title, l.settings AS link_settings,
+            c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
+            l.link_id, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
             m.membership_id, m.role, m.role_override";
@@ -324,9 +354,10 @@ class LTIX {
             s.service_id, s.service_key AS service";
         }
 
-        if ( $post['sourcedid'] ) {
+        // If we have an LTI 1.x result or an LTI 2.x result
+        if ( $post['sourcedid'] || $post['result_url'] ) {
             $sql .= ",
-            r.result_id, r.sourcedid, r.grade";
+            r.result_id, r.sourcedid, r.grade, r.result_url";
         }
 
         $sql .="\nFROM {$p}lti_key AS k
@@ -345,7 +376,8 @@ class LTIX {
             $sql .= "
             LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service";
         }
-        if ( $post['sourcedid'] ) {
+
+        if ( $post['sourcedid'] || $post['result_url'] ) {
             $sql .= "
             LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id";
         }
@@ -393,29 +425,33 @@ class LTIX {
         $actions = array();
         if ( $row['context_id'] === null) {
             $sql = "INSERT INTO {$p}lti_context
-                ( context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
-                ( :context_key, :context_sha256, :title, :key_id, NOW(), NOW() )";
+                ( context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
+                ( :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )";
             $PDOX->queryDie($sql, array(
                 ':context_key' => $post['context_id'],
                 ':context_sha256' => lti_sha256($post['context_id']),
+                ':settings_url' => $post['context_settings_url'],
                 ':title' => $post['context_title'],
                 ':key_id' => $row['key_id']));
             $row['context_id'] = $PDOX->lastInsertId();
             $row['context_title'] = $post['context_title'];
+            $row['context_settings_url'] = $post['context_settings_url'];
             $actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title'];
         }
 
         if ( $row['link_id'] === null && isset($post['link_id']) ) {
             $sql = "INSERT INTO {$p}lti_link
-                ( link_key, link_sha256, title, context_id, created_at, updated_at ) VALUES
-                    ( :link_key, :link_sha256, :title, :context_id, NOW(), NOW() )";
+                ( link_key, link_sha256, settings_url, title, context_id, created_at, updated_at ) VALUES
+                    ( :link_key, :link_sha256, :settings_url, :title, :context_id, NOW(), NOW() )";
             $PDOX->queryDie($sql, array(
                 ':link_key' => $post['link_id'],
                 ':link_sha256' => lti_sha256($post['link_id']),
+                ':settings_url' => $post['link_settings_url'],
                 ':title' => $post['link_title'],
                 ':context_id' => $row['context_id']));
             $row['link_id'] = $PDOX->lastInsertId();
             $row['link_title'] = $post['link_title'];
+            $row['link_settings_url'] = $post['link_settings_url'];
             $actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title'];
         }
 
@@ -452,8 +488,8 @@ class LTIX {
         }
 
         // We need to handle the case where the service URL changes but we already have a sourcedid
+        // This is for LTI 1.x only as service is not used for LTI 2.x
         $oldserviceid = $row['service_id'];
-error_log(safe_var_dump($row));
         if ( $row['service_id'] === null && $post['service'] && $post['sourcedid'] ) {
             $sql = "INSERT INTO {$p}lti_service
                 ( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
@@ -468,6 +504,7 @@ error_log(safe_var_dump($row));
         }
 
         // If we just created a new service entry but we already had a result entry, update it
+        // This is for LTI 1.x only as service is not used for LTI 2.x
         if ( $oldserviceid === null && $row['result_id'] !== null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {
             $sql = "UPDATE {$p}lti_result SET service_id = :service_id WHERE result_id = :result_id";
             $PDOX->queryDie($sql, array(
@@ -476,47 +513,48 @@ error_log(safe_var_dump($row));
             $actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
         }
 
-        // If we don't have a result but do have a service - link them together
-        if ( $row['result_id'] === null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {
+        /* The result is somewhat tricky.
+            We can have service and sourcedid for an LTI 1.x result or
+            We can have a result_url for an LTI 2.x result or both.
+        */
+
+        // If we don't have a result but do have a service (LTI 1.x) or result_url (2.x)
+        // create the result..
+        if ( $row['result_id'] === null &&
+            ($post['result_url'] ||  // LTI 2.x
+            ($row['service_id'] !== null && $post['service'] && $post['sourcedid']) ) // LTI 1.x
+        ) {
             $sql = "INSERT INTO {$p}lti_result
-                ( sourcedid, sourcedid_sha256, service_id, link_id, user_id, created_at, updated_at ) VALUES
-                ( :sourcedid, :sourcedid_sha256, :service_id, :link_id, :user_id, NOW(), NOW() )";
+                ( sourcedid, result_url, service_id, link_id, user_id, created_at, updated_at ) VALUES
+                ( :sourcedid, :result_url, :service_id, :link_id, :user_id, NOW(), NOW() )";
             $PDOX->queryDie($sql, array(
+                ':result_url' => $post['result_url'],
                 ':sourcedid' => $post['sourcedid'],
-                ':sourcedid_sha256' => lti_sha256($post['sourcedid']),
                 ':service_id' => $row['service_id'],
                 ':link_id' => $row['link_id'],
                 ':user_id' => $row['user_id']));
             $row['result_id'] = $PDOX->lastInsertId();
             $row['sourcedid'] = $post['sourcedid'];
-            $actions[] = "=== Inserted result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
+            $row['result_url'] = $post['result_url'];
+            $actions[] = "=== Inserted result id=".$row['result_id']." result_url=".$row['result_url'].
+                " service=".$row['service_id']." ".$post['sourcedid'];
         }
 
-        // If we don'have a result and do not have a service - just store the result (prep for LTI 2.0)
-        if ( $row['result_id'] === null && $row['service_id'] === null && ! $post['service'] && $post['sourcedid'] ) {
-            $sql = "INSERT INTO {$p}lti_result
-                ( sourcedid, sourcedid_sha256, link_id, user_id, created_at, updated_at ) VALUES
-                ( :sourcedid, :sourcedid_sha256, :link_id, :user_id, NOW(), NOW() )";
-            $PDOX->queryDie($sql, array(
-                ':sourcedid' => $post['sourcedid'],
-                ':sourcedid_sha256' => lti_sha256($post['sourcedid']),
-                ':link_id' => $row['link_id'],
-                ':user_id' => $row['user_id']));
-            $row['result_id'] = $PDOX->lastInsertId();
-            $actions[] = "=== Inserted LTI 2.0 result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
-        }
-
-        // Here we handle updates to sourcedid
-        if ( $row['result_id'] != null && $post['sourcedid'] != null && $post['sourcedid'] != $row['sourcedid'] ) {
+        // Here we handle updates to sourcedid or result_url
+        if ( $row['result_id'] != null &&
+            ($post['sourcedid'] != $row['sourcedid'] || $post['result_url'] != $row['result_url'] )
+        ) {
             $sql = "UPDATE {$p}lti_result
-                SET sourcedid = :sourcedid, sourcedid_sha256 = :sourcedid_sha256
+                SET sourcedid = :sourcedid, result_url = :result_url
                 WHERE result_id = :result_id";
             $PDOX->queryDie($sql, array(
+                ':result_url' => $post['result_url'],
                 ':sourcedid' => $post['sourcedid'],
-                ':sourcedid_sha256' => lti_sha256($post['sourcedid']),
                 ':result_id' => $row['result_id']));
             $row['sourcedid'] = $post['sourcedid'];
-            $actions[] = "=== Updated sourcedid=".$row['sourcedid'];
+            $row['result_url'] = $post['result_url'];
+            $actions[] = "=== Updated result id=".$row['result_id']." result_url=".$row['result_url'].
+                " sourcedid=".$row['sourcedid'];
         }
 
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
@@ -792,12 +830,14 @@ error_log(safe_var_dump($row));
         $key_key = self::sessionGet('key_key');
         $secret = self::sessionGet('secret');
         if ( $row !== false ) {
+            $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
             // Fall back to session if it is missing
             if ( $service === false ) $service = self::sessionGet('service');
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
         } else {
+            $result_url = self::sessionGet('result_url');
             $sourcedid = self::sessionGet('sourcedid');
             $service = self::sessionGet('service');
             $result_id = self::sessionGet('result_id');
@@ -810,7 +850,12 @@ error_log(safe_var_dump($row));
             return false;
         }
 
-        $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
+        $comment = "YO";
+        if ( strlen($result_url) > 0 ) {
+            $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log);
+        } else {
+            $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
+        }
 
         if ( $status === true ) {
             $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$USER->id;
