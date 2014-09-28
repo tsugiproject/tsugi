@@ -2,6 +2,8 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Core\LTIX;
+
 /**
  * This is a class to provide access to the setting service.
  *
@@ -10,6 +12,16 @@ namespace Tsugi\Core;
  *
  */
 class Settings {
+
+    /**
+      * Retrieve the debug array for the last operation.
+      */
+    public static function getDebugArray()
+    {
+        global $settingsDebugArray;
+        if ( !isset($settingsDebugArray) ) $settingsDebugArray = array();
+        return $settingsDebugArray;
+    }
 
     /**
      * Set all of the the link-level settings.
@@ -21,15 +33,24 @@ class Settings {
     public static function linkSetAll($keyvals)
     {
         global $CFG, $PDOX, $LINK;
+        global $settingsDebugArray;
+
+        $settingsDebugArray = array();
         $json = json_encode($keyvals);
         $q = $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_link 
                 SET settings = :SET WHERE link_id = :LID",
             array(":SET" => $json, ":LID" => $LINK->id)
         );
+        $settingsDebugArray[] = array(count($keyvals)." settings updated link_id=".$LINK->id);
         if ( isset($_SESSION['lti']) ) {
             $_SESSION['lti']['link_settings'] = $json;
             unset($_SESSION['lti']['link_settings_merge']);
         }
+        $settings_url = LTIX::sessionGet('link_settings_url',false);
+        if ( $settings_url === false ) return;
+
+        $settingsDebugArray[] = array("Sending settings to ".$settings_url);
+        $retval = LTIX::settingsSend($keyvals, $settings_url, $settingsDebugArray);
     }
 
     /**

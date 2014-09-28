@@ -602,6 +602,8 @@ class LTI {
         global $LastOAuthBodyBaseString;
         $lbs = $LastOAuthBodyBaseString;
         if ( is_array($debug_log) )  $debug_log[] = array('Our base string',$lbs);
+
+        // TODO: Be smarter about this :)
         return true;
     }
 
@@ -619,6 +621,44 @@ class LTI {
             ),
         );
         return $resultArray;
+    }
+
+    /**
+     * Send setings data using the JSON protocol from IMS LTI 2.x
+     *
+     * @param debug_log This can either be false or an empty array.  If
+     * this is an array, it is filled with data as the steps progress.
+     * Each step is an array with a string message as the first element
+     * and optional debug detail (i.e. like a post body) as the second
+     * element.
+     *
+     * @return mixed If things go well this returns true.
+     * If this goes badly, this returns a string with an error message.
+     */
+    public static function sendJSONSettings($settings, $settings_url, $key_key, $secret, &$debug_log=false) {
+        $content_type = "application/vnd.ims.lti.v2.toolsettings.simple+json";
+
+        if ( is_array($debug_log) ) $debug_log[] = array('Sending '.count($settings).' settings to settings_url='.$settings_url);
+        // Make sure everything is a string
+        $sendsettings = array();
+        foreach ( $settings as $k => $v ) {
+            $sendsettings[$k] = "".$v;
+        }
+
+        $postBody = jsonIndent(json_encode($sendsettings));
+        if ( is_array($debug_log) )  $debug_log[] = array('Settings JSON Request',$postBody);
+
+        $response = self::sendOAuthBody("PUT", $settings_url, $key_key,
+            $secret, $content_type, $postBody);
+
+        if ( is_array($debug_log) )  $debug_log[] = array('Settings JSON Response',$response);
+
+        global $LastOAuthBodyBaseString;
+        $lbs = $LastOAuthBodyBaseString;
+        if ( is_array($debug_log) )  $debug_log[] = array('Our base string',$lbs);
+
+        // TODO: Be better at error checking...
+        return true;
     }
 
     // Compares base strings, start of the mis-match
