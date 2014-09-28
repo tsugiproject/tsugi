@@ -31,7 +31,8 @@ $row = $PDOX->rowDie(
     JOIN {$p}lti_service AS S ON R.service_id = S.service_id
     WHERE link_id = :LID AND grade IS NOT NULL AND
         (server_grade IS NULL OR retrieved_at < R.updated_at) AND
-        sourcedid IS NOT NULL AND service_key IS NOT NULL",
+        (( sourcedid IS NOT NULL AND service_key IS NOT NULL ) OR result_url IS NOT NULL )",
+
     array(":LID" => $link_id)
 );
 $toretrieve = $row['count'];
@@ -40,7 +41,7 @@ $row = $PDOX->rowDie(
     "SELECT COUNT(*) AS count FROM {$p}lti_result AS R
     JOIN {$p}lti_service AS S ON R.service_id = S.service_id
     WHERE link_id = :LID AND grade IS NOT NULL AND
-        sourcedid IS NOT NULL AND service_key IS NOT NULL",
+        (( sourcedid IS NOT NULL AND service_key IS NOT NULL ) OR result_url IS NOT NULL )",
     array(":LID" => $link_id)
 );
 $total = $row['count'];
@@ -52,7 +53,8 @@ $row = $PDOX->rowDie(
     WHERE link_id = :LID AND grade IS NOT NULL AND
         server_grade IS NOT NULL AND
         server_grade < grade AND
-        sourcedid IS NOT NULL AND service_key IS NOT NULL",
+        (( sourcedid IS NOT NULL AND service_key IS NOT NULL ) OR result_url IS NOT NULL )",
+
     array(":LID" => $link_id)
 );
 $mismatch = $row['count'];

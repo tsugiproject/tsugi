@@ -62,7 +62,7 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
     $query_parms = array(":UID" => $user_id, ":CID" => $CONTEXT->id);
     $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at", "retrieved_at");
     $user_sql =
-        "SELECT R.result_id AS result_id, L.title as title, R.grade AS grade, R.note AS note,
+        "SELECT R.result_id AS result_id, result_url, L.title as title, R.grade AS grade, R.note AS note,
             R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, service_key as service,
             TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now
         FROM {$p}lti_result AS R

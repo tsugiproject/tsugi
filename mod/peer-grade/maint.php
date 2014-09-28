@@ -48,7 +48,7 @@ if ( isset($_POST['reGradePeer']) ) {
 
     $stmt = $PDOX->queryDie(
         "SELECT submit_id, S.user_id AS user_id, R.result_id AS result_id,
-                grade, sourcedid, service_key, displayname, email
+                grade, sourcedid, result_url, service_key, displayname, email
             FROM {$CFG->dbprefix}peer_submit AS S
             JOIN {$CFG->dbprefix}peer_assn AS A
                 ON S.assn_id = A.assn_id
@@ -104,7 +104,8 @@ if ( isset($_POST['reGradePeer']) ) {
                 "grade=".$row['grade']." computed_grade=".$computed_grade."\n".
                 "error=".$status;
             echo_log("Problem Sending Grade: ".session_id()."\n".$msg."\n".
-              "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
+              "result_url=".$row['result_url'].
+              " service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
             $OUTPUT->togglePre("Error sending grade",$LastPOXGradeResponse);

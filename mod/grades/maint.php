@@ -46,7 +46,7 @@ if ( isset($_POST['getServerGrades']) ) {
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE link_id = :LID AND grade IS NOT NULL AND
             (server_grade IS NULL OR retrieved_at < R.updated_at) AND
-            sourcedid IS NOT NULL AND service_key IS NOT NULL",
+            (( sourcedid IS NOT NULL AND service_key IS NOT NULL ) OR result_url IS NOT NULL )",
         array(":LID" => $link_id)
     );
     $total = $row['count'];
@@ -65,11 +65,11 @@ if ( isset($_POST['getServerGrades']) ) {
     flush();
 
     $stmt = $PDOX->queryDie(
-        "SELECT result_id, sourcedid, service_key FROM {$p}lti_result AS R
+        "SELECT result_id, result_url, sourcedid, service_key FROM {$p}lti_result AS R
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE link_id = :LID AND grade IS NOT NULL AND
             (server_grade IS NULL OR retrieved_at < R.updated_at) AND
-            sourcedid IS NOT NULL AND service_key IS NOT NULL",
+            (( sourcedid IS NOT NULL AND service_key IS NOT NULL ) OR result_url IS NOT NULL )",
         array(":LID" => $link_id)
     );
 
@@ -116,7 +116,7 @@ if ( isset($_POST['fixServerGrades']) ) {
     session_write_close();
 
     $stmt = $PDOX->queryDie(
-        "SELECT result_id, link_id, grade, server_grade, note,
+        "SELECT result_id, result_url, link_id, grade, server_grade, note,
             sourcedid, service_key,
             U.user_id AS user_id, displayname, email
         FROM {$p}lti_result AS R
@@ -125,7 +125,7 @@ if ( isset($_POST['fixServerGrades']) ) {
         WHERE link_id = :LID AND grade IS NOT NULL AND
             server_grade IS NOT NULL AND
             server_grade < grade AND
-            sourcedid IS NOT NULL AND service_key IS NOT NULL",
+            (( sourcedid IS NOT NULL AND service_key IS NOT NULL ) OR result_url IS NOT NULL )",
         array(":LID" => $link_id)
     );
 
@@ -152,7 +152,8 @@ if ( isset($_POST['fixServerGrades']) ) {
                 "grade=".$row['grade']." server_grade=".$row['server_grade']."\n".
                 "error=".$status;
             echo_log("Problem Sending Grade: ".session_id()."\n".$msg."\n".
-              "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
+                "result_url=".$row['reult_url'].
+                " service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
             $OUTPUT->togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
@@ -172,11 +173,13 @@ if ( isset($_POST['fixServerGrades']) ) {
                 "error=".$server_grade;
 
             echo_log("Problem Updating Grade: ".session_id()."\n".$msg."\n".
-              "service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
+                "result_url=".$row['reult_url'].
+                " service_key=".$row['service_key']." sourcedid=".$row['sourcedid']);
             echo("</pre>\n");
 
 
             error_log("Error re-retrieving grade: ".session_id().' result_id='.$row['result_id'].
+                "result_url=".$row['reult_url'].
                 ' sourcedid='+$row['sourcedid']+' service_key='+$row['service_key']);
 
             $OUTPUT->togglePre("Error retrieving new grade at ".$count,$LastPOXGradeResponse);
