@@ -178,6 +178,12 @@ class LTIX {
         if ( isset($_SERVER['REMOTE_ADDR']) ) $_SESSION['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
         $_SESSION['CSRF_TOKEN'] = uniqid();
 
+        // Save this to make sure the user does not wander unless we launched from the root
+        $scp = getScriptPath();
+        if ( strlen($scp) > 0 ) {
+            $_SESSION['script_path'] = getScriptPath();
+        }
+
         // Check if we can auto-login the system user
         if ( Settings::linkGet('dologin', false) && isset($PDOX) && $PDOX !== false ) loginSecureCookie();
 
@@ -687,6 +693,13 @@ class LTIX {
                         $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR'], 'DIE:');
                 }
             }
+        }
+
+        // Check to see if the user has navigated to a new place in the hierarchy
+        if ( isset($_SESSION['script_path']) && strpos(getScriptPath(), $_SESSION['script_path']) !== 0 ) {
+            send403();
+            die_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
+                $_SESSION['script_path'].' /  '.getScriptPath(), 'DIE:');
         }
 
         $LTI = $_SESSION['lti'];
