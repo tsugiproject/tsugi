@@ -278,6 +278,8 @@ if ( $outcomes ) {
 $parms['launch_presentation_css_url'] = $cssurl;
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
+    // Switch to direct launches instead of going through lti.php
+    $endpoint = str_replace("lti.php",$_POST['custom_assn'],$endpoint);
     $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
         "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
 
