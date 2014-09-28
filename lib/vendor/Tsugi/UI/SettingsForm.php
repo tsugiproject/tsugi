@@ -33,7 +33,9 @@ class SettingsForm {
                 if ( $k == 'settings_internal_post' ) continue;
                 $newsettings[$k] = $v;
             }
-            Settings::linkSetAll($newsettings);
+
+            // Merge these with the existing settings
+            Settings::linkUpdate($newsettings);
             return true;
         }
         return false;

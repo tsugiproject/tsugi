@@ -11,15 +11,6 @@ $LTI = LTIX::requireData(array('user_id', 'result_id', 'role','context_id'));
 $p = $CFG->dbprefix;
 $displayname = $USER->displayname;
 
-if ( isset($_POST['reset']) ) {
-    $sql = "UPDATE {$p}lti_result SET grade = 0.0 WHERE result_id = :RI";
-    $stmt = $PDOX->prepare($sql);
-    $stmt->execute(array(':RI' => $LINK->result_id));
-    $_SESSION['success'] = "Grade reset";
-    header( 'Location: '.addSession('index.php') ) ;
-    return;
-}
-
 if ( isset($_POST['grade']) )  {
     $gradetosend = $_POST['grade'] + 0.0;
     if ( $gradetosend < 0.0 || $gradetosend > 1.0 ) {
@@ -28,16 +19,14 @@ if ( isset($_POST['grade']) )  {
         return;
     }
 
-    // TODO: Use a SQL SELECT to retrieve the actual grade from tsugi_lti_result
-    // The key for the grade row is in the $LINK->result_id
+    // TODO: Look in the $LINK Variable to find the previous grade
+    // to make it so the grade never goes down
+    $prevgrade = 0.5;
 
-    $oldgrade = 0.5;   // Replace this with the value from the DB
-    if ( $gradetosend < $oldgrade ) {
-        $_SESSION['error'] = "Grade lower than $oldgrade - not sent";
+    if ( $gradetosend < $prevgrade ) {
+        $_SESSION['error'] = "Grade lower than $prevgrade - not sent";
     } else {
-        // TODO: Decide when *not* to send a grade
-
-        // Call the XML APIs to send the grade back to the LMS.
+        // Use LTIX to send the grade back to the LMS.
         $debug_log = array();
         $retval = LTIX::gradeSend($gradetosend, false, $debug_log);
         $_SESSION['debug_log'] = $debug_log;
@@ -63,6 +52,7 @@ if ( isset($_POST['grade']) )  {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
+echo("<h1>Grade Test Harness</h1>\n");
 $OUTPUT->welcomeUserCourse();
 
 ?>
@@ -70,7 +60,6 @@ $OUTPUT->welcomeUserCourse();
 Enter grade:
 <input type="number" name="grade" step="0.01" min="0" max="1.0"><br/>
 <input type="submit" name="send" value="Send grade">
-<input type="submit" name="reset" value="Reset grade"><br/>
 </form>
 <?php
 
