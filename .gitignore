@@ -16,6 +16,8 @@ upgrading.php
 error_log
 php-solutions
 phpDocumentor.phar
+phpunit.phar
+phpunit.xml
 .tmp_phpdoc
 .out_phpdoc
 _files
