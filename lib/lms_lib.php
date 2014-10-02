@@ -19,9 +19,6 @@ require_once("vendor/Tsugi/UI/Table.php");
 require_once("vendor/Tsugi/UI/Output.php");
 require_once("vendor/Tsugi/UI/SettingsForm.php");
 
-require_once("lti_util.php");
-require_once("lti_db.php");
-
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
 

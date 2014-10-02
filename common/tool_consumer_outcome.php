@@ -1,5 +1,7 @@
 <?php
-require_once("../lib/lti_util.php");
+require_once('../lib/vendor/Tsugi/Util/Net.php');
+require_once("../lib/oauth.classes.php");
+require_once("../lib/vendor/Tsugi/Util/LTI.php");
 
 use Tsugi\OAuth\OAuthUtil;
 use Tsugi\Util\LTI;
