@@ -47,7 +47,7 @@ class Net {
         throw new \Exception("Unable to GET url=".$url);
     }
 
-    public static function getStream($url, $header) {
+    public static function getStream($url, $header=false) {
         $params = array('http' => array(
             'method' => 'GET',
             'header' => $header
@@ -62,7 +62,7 @@ class Net {
         return $response;
     }
 
-    public static function getCurl($url, $header) {
+    public static function getCurl($url, $header=false) {
       if ( ! function_exists('curl_init') ) return false;
       global $last_http_response;
       global $LastHeadersSent;
