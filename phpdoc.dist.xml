@@ -16,7 +16,6 @@
     <directory>core</directory>
     <ignore>mod/php-intro/lib/goutte/*</ignore>
     <ignore>mod/php-intro/webauto*.php</ignore>
-    <ignore>lib/recaptchalib.php</ignore>
   </files>
     <transformations>
         <template name="clean"/>
