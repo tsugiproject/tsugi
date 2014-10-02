@@ -4,8 +4,8 @@ require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/core/gradebook/lib.php";
 
-require_once $CFG->dirroot."/lib/goutte/vendor/autoload.php";
-require_once $CFG->dirroot."/lib/goutte/Goutte/Client.php";
+require_once "lib/goutte/vendor/autoload.php";
+require_once "lib/goutte/Goutte/Client.php";
 
 use \Tsugi\Core\LTIX;
 
