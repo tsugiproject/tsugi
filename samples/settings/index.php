@@ -9,7 +9,7 @@ use \Tsugi\Core\Settings;
 use \Tsugi\UI\SettingsForm;
 
 // Retrieve the launch data if present
-$LTI = LTIX::requireData(array('user_id', 'role','context_id'));
+$LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 $displayname = $USER->displayname;
 

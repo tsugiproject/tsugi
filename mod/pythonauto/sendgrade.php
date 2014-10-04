@@ -6,7 +6,7 @@ require_once $CFG->dirroot."/core/gradebook/lib.php";
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData();
 $user_id = $USER->id;
 
 $grade = 1.0;

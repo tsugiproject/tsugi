@@ -213,7 +213,7 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
     global $CFG, $PDOX;
     if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return false;
 
-    $LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+    $LTI = LTIX::requireData();
 
     $user_row = loadUserInfoBypass($user_id);
     if ( $user_row === false ) return false;

@@ -8,7 +8,7 @@ use \Tsugi\Core\Debug;
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData(array('user_id', 'link_id'));
+$LTI = LTIX::requireData();
 
 $fn = $_REQUEST['file'];
 if ( strlen($fn) < 1 ) {

@@ -6,8 +6,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 use \Tsugi\Core\LTIX;
 
 // Retrieve required launch data from session
-$LTI = LTIX::requireData(array('user_id', 'user_displayname',
-    'context_title', 'role','link_id'));
+$LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 // Add all of your POST handling code here.  Use $LINK->id

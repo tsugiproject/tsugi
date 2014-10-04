@@ -7,7 +7,7 @@ require_once "blob_util.php";
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData(array('context_id', 'role'));
+$LTI = LTIX::requireData(array(LTIX::CONTEXT, LTIX::LINK));
 
 // Model
 $p = $CFG->dbprefix;

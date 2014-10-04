@@ -393,7 +393,7 @@ function loadUserInfoBypass($user_id)
 function loadUserInfo($link_id)
 {
     global $CFG, $PDOX;
-    $LTI = LTIX::requireData(array('context_id'));
+    $LTI = LTIX::requireData(LTIX::CONTEXT);
 
     $cacheloc = 'lti_link';
     $row = Cache::check($cacheloc, $link_id);

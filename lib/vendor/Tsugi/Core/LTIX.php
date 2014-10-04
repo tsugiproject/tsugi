@@ -21,6 +21,14 @@ use \Tsugi\Core\Settings;
  */
 class LTIX {
 
+    // Indicates that this code requires certain 
+    // launch data to function
+    const CONTEXT = "context_id";
+    const USER = "user_id";
+    const LINK = "link_id";
+    const ALL = "all";
+    const NONE = "none";
+
     /**
      * Silently check if this is a launch and if so, handle it
      */
@@ -519,34 +527,21 @@ class LTIX {
             $actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
         }
 
-        /* The result is somewhat tricky.
-            We can have service and sourcedid for an LTI 1.x result or
-            We can have a result_url for an LTI 2.x result or both.
-        */
-
-        // If we don't have a result but do have a service (LTI 1.x) or result_url (2.x)
-        // create the result..
-        if ( $row['result_id'] === null &&
-            ($post['result_url'] ||  // LTI 2.x
-            ($row['service_id'] !== null && $post['service'] && $post['sourcedid']) ) // LTI 1.x
-        ) {
+        // We always insert a result row if we have a link - we will store
+        // grades locally in this row - even if we cannot send grades
+        if ( $row['result_id'] === null && $row['link_id'] !== null && $row['user_id'] !== null ) {
             $sql = "INSERT INTO {$p}lti_result
-                ( sourcedid, result_url, service_id, link_id, user_id, created_at, updated_at ) VALUES
-                ( :sourcedid, :result_url, :service_id, :link_id, :user_id, NOW(), NOW() )";
+                ( link_id, user_id, created_at, updated_at ) VALUES
+                ( :link_id, :user_id, NOW(), NOW() )";
             $PDOX->queryDie($sql, array(
-                ':result_url' => $post['result_url'],
-                ':sourcedid' => $post['sourcedid'],
-                ':service_id' => $row['service_id'],
                 ':link_id' => $row['link_id'],
                 ':user_id' => $row['user_id']));
             $row['result_id'] = $PDOX->lastInsertId();
-            $row['sourcedid'] = $post['sourcedid'];
-            $row['result_url'] = $post['result_url'];
-            $actions[] = "=== Inserted result id=".$row['result_id']." result_url=".$row['result_url'].
-                " service=".$row['service_id']." ".$post['sourcedid'];
-        }
+            $actions[] = "=== Inserted result id=".$row['result_id'];
+       }
 
-        // Here we handle updates to sourcedid or result_url
+        // Here we handle updates to sourcedid or result_url including if we
+        // jut inserted the result row
         if ( $row['result_id'] != null &&
             ($post['sourcedid'] != $row['sourcedid'] || $post['result_url'] != $row['result_url'] )
         ) {
@@ -621,9 +616,24 @@ class LTIX {
      * This routine will not start a session if none exists.  It will
      * die is there if no session_name() (PHPSESSID) cookie or
      * parameter.  No need to create any fresh sessions here.
+     * 
+     * @param $needed (optional, mixed)  Indicates which of 
+     * the data structures are * needed. If this is omitted, 
+     * this assumes that CONTEXT, LINK, and USER data are required.  
+     * If LTIX::NONE is present, then none of the three are rquired.
+     * If some combination of the three are needed, this accepts
+     * an array of the LTIX::CONTEXT, LTIX: LINK, and LTIX::USER
+     * can be passed in.
+     *
      */
-    public static function requireData($needed) {
+    public static function requireData($needed=self::ALL) {
         global $CFG, $USER, $CONTEXT, $LINK;
+
+        if ( $needed == self::NONE ) $needed = array();
+        if ( $needed == self::ALL ) {
+            $needed = array(self::CONTEXT, self::LINK, self::USER);
+        }
+        if ( is_string($needed) ) $needed = array($needed);
 
         // Check if we are processing an LTI launch.  If so, handle it
         self::launchCheck();
@@ -703,9 +713,6 @@ class LTIX {
         }
 
         $LTI = $_SESSION['lti'];
-        if ( is_string($needed) && ! isset($LTI[$needed]) ) {
-            die_with_error_log("This tool requires an LTI launch parameter:".$needed);
-        }
         if ( is_array($needed) ) {
             foreach ( $needed as $feature ) {
                 if ( isset($LTI[$feature]) ) continue;
@@ -720,9 +727,9 @@ class LTIX {
         $_SESSION['HEARTBEAT_COUNT'] = 0;
 
         // Populate the $USER $CONTEXT and $LINK objects
-        if ( ! is_object($USER) ) {
+        if ( isset($LTI['user_id']) && ! is_object($USER) ) {
             $USER = new \Tsugi\Core\User();
-            if (isset($LTI['user_id']) ) $USER->id = $LTI['user_id'];
+            $USER->id = $LTI['user_id'];
             if (isset($LTI['user_email']) ) $USER->email = $LTI['user_email'];
             if (isset($LTI['user_displayname']) ) {
                 $USER->displayname = $LTI['user_displayname'];
@@ -733,15 +740,15 @@ class LTIX {
             $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
         }
 
-        if ( ! is_object($CONTEXT) ) {
+        if ( isset($LTI['context_id']) && ! is_object($CONTEXT) ) {
             $CONTEXT = new \Tsugi\Core\Context();
-            if (isset($LTI['context_id']) ) $CONTEXT->id = $LTI['context_id'];
+            $CONTEXT->id = $LTI['context_id'];
             if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
         }
 
-        if ( ! is_object($LINK) ) {
+        if ( isset($LTI['link_id']) && ! is_object($LINK) ) {
             $LINK = new \Tsugi\Core\Link();
-            if (isset($LTI['link_id']) ) $LINK->id = $LTI['link_id'];
+            $LINK->id = $LTI['link_id'];
             if (isset($LTI['grade']) ) $LINK->grade = $LTI['grade'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
             if (isset($LTI['result_id']) ) $LINK->result_id = $LTI['result_id'];

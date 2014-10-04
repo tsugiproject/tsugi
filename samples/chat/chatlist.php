@@ -6,7 +6,7 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 use \Tsugi\Core\LTIX;
 
 // Retrieve the launch data if present
-$LTI = LTIX::requireData(array('user_id', 'result_id', 'role','context_id'));
+$LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 $displayname = $USER->displayname;
 

@@ -10,7 +10,7 @@ use \Tsugi\Core\LTIX;
 noBuffer();
 
 // Sanity checks
-$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 

@@ -7,7 +7,7 @@ require_once "blob_util.php";
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData(array('context_id'));
+$LTI = LTIX::requireData(LTIX::CONTEXT);
 
 $id = $_REQUEST['id'];
 if ( strlen($id) < 1 ) {

@@ -189,9 +189,9 @@ if ( function_exists('bindtextdomain') && function_exists('textdomain') && isset
 // global $PAGE;
 
 // Define these globals later.
-global $OUTPUT;
-global $USER;
-global $CONTEXT;
-global $LINK;
+global $OUTPUT, $USER, $CONTEXT, $LINK;
+$USER = false;
+$CONTEXT = false;
+$LINK = false;
 
 // No trailer

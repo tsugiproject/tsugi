@@ -7,7 +7,7 @@ require_once "peer_util.php";
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData();
 if ( ! $USER->instructor ) die("Instructor only");
 
 $OUTPUT->header();

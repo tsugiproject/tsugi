@@ -9,8 +9,8 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 
-// Initalize and check the Session details
-$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+// No parameter means we require CONTEXT, USER, and LINK
+$LTI = LTIX::requireData(); 
 
 // Model
 $p = $CFG->dbprefix;

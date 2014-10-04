@@ -8,7 +8,7 @@ use \Tsugi\Core\Debug;
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData(array('user_id', 'context_id'));
+$LTI = LTIX::requireData();
 
 // Model
 $p = $CFG->dbprefix;

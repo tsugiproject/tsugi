@@ -5,8 +5,8 @@ require_once $CFG->dirroot."/lib/lms_lib.php";
 
 use \Tsugi\Core\LTIX;
 
-// Sanity checks
-$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+// Sanity checks - require all three
+$LTI = LTIX::requireData();
 
 $p = $CFG->dbprefix;
 //Retrieve the other rows

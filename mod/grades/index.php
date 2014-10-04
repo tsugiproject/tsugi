@@ -8,7 +8,7 @@ use \Tsugi\UI\Table;
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 $user_info = false;

@@ -7,7 +7,7 @@ use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\SettingsForm;
 
-$LTI = LTIX::requireData(array('user_id', 'link_id', 'role','context_id'));
+$LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 if ( SettingsForm::handleSettingsPost() ) {
