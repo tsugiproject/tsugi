@@ -18,7 +18,8 @@ use Tsugi\Core\LTIX;
  *
  *     use \Tsugi\Core\LTIX;
  *
- *     $LTI = LTIX::requireData(array('context_id', 'role'));
+ *     // Require CONTEXT, USER, and LINK
+ *     $LTI = LTIX::requireData();
  *
  *     // Handle incoming POST data and redirect as necessary...
  *     if ( ... ) {
