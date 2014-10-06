@@ -538,24 +538,38 @@ class LTIX {
                 ':user_id' => $row['user_id']));
             $row['result_id'] = $PDOX->lastInsertId();
             $actions[] = "=== Inserted result id=".$row['result_id'];
+error_log("=== Inserted result id=".$row['result_id']);
        }
 
         // Here we handle updates to sourcedid or result_url including if we
         // jut inserted the result row
         if ( $row['result_id'] != null &&
-            ($post['sourcedid'] != $row['sourcedid'] || $post['result_url'] != $row['result_url'] )
+            ($post['sourcedid'] != $row['sourcedid'] || $post['result_url'] != $row['result_url'] ||
+            $post['service'] != $row['service'] )
         ) {
+/*
+error_log("    result_id=".$row['result_id']);
+if ( $post['sourcedid'] != $row['sourcedid'] ) 
+    error_log("    post_sourcedid=".$post['sourcedid']." row_sourcedid=".$row['sourcedid'] );
+if ( $post['result_url'] != $row['result_url'] ) 
+    error_log("    post_result_url=".$post['result_url']." row_result_url=".$row['result_url'] );
+if ( $post['service'] != $row['service'] ) 
+    error_log("    post_service=".$post['service']." row_service=".$row['service'] );
+*/
             $sql = "UPDATE {$p}lti_result
-                SET sourcedid = :sourcedid, result_url = :result_url
+                SET sourcedid = :sourcedid, result_url = :result_url, service_id = :service_id
                 WHERE result_id = :result_id";
             $PDOX->queryDie($sql, array(
                 ':result_url' => $post['result_url'],
                 ':sourcedid' => $post['sourcedid'],
+                ':service_id' => $row['service_id'],
                 ':result_id' => $row['result_id']));
             $row['sourcedid'] = $post['sourcedid'];
+            $row['service'] = $post['service'];
             $row['result_url'] = $post['result_url'];
             $actions[] = "=== Updated result id=".$row['result_id']." result_url=".$row['result_url'].
-                " sourcedid=".$row['sourcedid'];
+error_log("=== Updated result id=".$row['result_id']." result_url=".$row['result_url'].
+                " sourcedid=".$row['sourcedid']." service_id=".$row['service_id']);
         }
 
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
@@ -706,7 +720,8 @@ class LTIX {
         }
 
         // Check to see if the user has navigated to a new place in the hierarchy
-        if ( isset($_SESSION['script_path']) && strpos(getScriptPath(), $_SESSION['script_path']) !== 0 ) {
+        if ( isset($_SESSION['script_path']) && getScriptPath() != 'core/blob' && 
+            strpos(getScriptPath(), $_SESSION['script_path']) !== 0 ) {
             send403();
             die_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
                 $_SESSION['script_path'].' /  '.getScriptPath(), 'DIE:');
