@@ -538,7 +538,6 @@ class LTIX {
                 ':user_id' => $row['user_id']));
             $row['result_id'] = $PDOX->lastInsertId();
             $actions[] = "=== Inserted result id=".$row['result_id'];
-error_log("=== Inserted result id=".$row['result_id']);
        }
 
         // Here we handle updates to sourcedid or result_url including if we
@@ -547,15 +546,6 @@ error_log("=== Inserted result id=".$row['result_id']);
             ($post['sourcedid'] != $row['sourcedid'] || $post['result_url'] != $row['result_url'] ||
             $post['service'] != $row['service'] )
         ) {
-/*
-error_log("    result_id=".$row['result_id']);
-if ( $post['sourcedid'] != $row['sourcedid'] ) 
-    error_log("    post_sourcedid=".$post['sourcedid']." row_sourcedid=".$row['sourcedid'] );
-if ( $post['result_url'] != $row['result_url'] ) 
-    error_log("    post_result_url=".$post['result_url']." row_result_url=".$row['result_url'] );
-if ( $post['service'] != $row['service'] ) 
-    error_log("    post_service=".$post['service']." row_service=".$row['service'] );
-*/
             $sql = "UPDATE {$p}lti_result
                 SET sourcedid = :sourcedid, result_url = :result_url, service_id = :service_id
                 WHERE result_id = :result_id";
@@ -568,8 +558,7 @@ if ( $post['service'] != $row['service'] )
             $row['service'] = $post['service'];
             $row['result_url'] = $post['result_url'];
             $actions[] = "=== Updated result id=".$row['result_id']." result_url=".$row['result_url'].
-error_log("=== Updated result id=".$row['result_id']." result_url=".$row['result_url'].
-                " sourcedid=".$row['sourcedid']." service_id=".$row['service_id']);
+                " sourcedid=".$row['sourcedid']." service_id=".$row['service_id'];
         }
 
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
