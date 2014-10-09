@@ -32,7 +32,7 @@ if ( $retval !== true ) {
     $titlefound = false;
 }
 
-line_out("Looking for Add New link.");
+line_out("Looking for Add New link in index.php.");
 $link = $crawler->selectLink('Add New')->link();
 $url = $link->getURI();
 line_out("Retrieving ".htmlent_utf8($url)."...");
@@ -54,14 +54,14 @@ $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 checkPostRedirect($client);
 
-line_out("Expecting 'Bad value for title, plays, or rating'");
+line_out("Expecting 'Bad value for title, plays, or rating' error in index.php");
 if ( strpos(strtolower($html), 'bad value') !== false ) {
     $passed++;
 } else {
     error_out("Could not find 'Bad value for title, plays, or rating'");
 }
 
-line_out("Looking for Add New link.");
+line_out("Looking for Add New link in index.php.");
 $link = $crawler->selectLink('Add New')->link();
 $url = $link->getURI();
 line_out("Retrieving ".htmlent_utf8($url)."...");
@@ -184,7 +184,7 @@ while (True ) {
 }
 
 line_out("Testing for HTML injection (proper use of htmlentities)...");
-line_out("Looking for Add New link.");
+line_out("Looking for Add New link in index.php.");
 $link = $crawler->selectLink('Add New')->link();
 $url = $link->getURI();
 line_out("Retrieving ".htmlent_utf8($url)."...");
