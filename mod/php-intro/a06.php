@@ -208,9 +208,11 @@ $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 checkPostRedirect($client);
 
-$pos = strpos($html, "AC&lt;DC");
-if ( $pos > 0 ) {
+if ( strpos($html, "AC&lt;DC") > 2 ) {
     $passed+=2;
+} else if ( strpos($html, "&amp;lt;") > 2  ) {
+    error_out("It looks like you have double-called htmlentities()");
+    throw new Exception("HTML Injection is incorrect");
 } else {
     error_out("Found HTML Injection");
     throw new Exception("Found HTML Injection");
@@ -226,9 +228,11 @@ $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 $passed++;
 
-$pos = strpos($html, "AC&lt;DC");
-if ( $pos > 0 ) {
+if ( strpos($html, "AC&lt;DC") > 2 ) {
     $passed+=2;
+} else if ( strpos($html, "&amp;lt;") > 2  ) {
+    error_out("It looks like you have double-called htmlentities()");
+    throw new Exception("HTML Injection is incorrect");
 } else {
     error_out("Found HTML Injection");
     throw new Exception("Found HTML Injection");
