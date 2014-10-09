@@ -58,7 +58,7 @@ line_out("Expecting 'Bad value for title, plays, or rating' error in index.php")
 if ( strpos(strtolower($html), 'bad value') !== false ) {
     $passed++;
 } else {
-    error_out("Could not find 'Bad value for title, plays, or rating'");
+    error_out("Could not find flash message with 'Bad value for title, plays, or rating'");
 }
 
 line_out("Looking for Add New link in index.php.");
