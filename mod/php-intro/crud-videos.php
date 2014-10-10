@@ -4,13 +4,13 @@ require_once "../../config.php";
 require_once "webauto.php";
 use Goutte\Client;
 
-line_out("Grading PHP-Intro Assignment 6");
+line_out("Grading PHP-Intro Video Application");
 
-$url = getUrl('http://www.php-intro.com/assn/tracks');
+$url = getUrl('http://www.php-intro.com/exam/mid-w14-videos');
 if ( $url === false ) return;
 $grade = 0;
 
-error_log("ASSN05 ".$url);
+error_log("Videos ".$url);
 line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
 
@@ -32,7 +32,7 @@ if ( $retval !== true ) {
     $titlefound = false;
 }
 
-line_out("Looking for Add New link in index.php.");
+line_out("Looking for Add New link.");
 $link = $crawler->selectLink('Add New')->link();
 $url = $link->getURI();
 line_out("Retrieving ".htmlent_utf8($url)."...");
@@ -45,8 +45,11 @@ $passed++;
 // Add new fail
 line_out("Looking for the form with a 'Add New' submit button");
 $form = $crawler->selectButton('Add New')->form();
-line_out("Setting non-integer values in the plays and rating form fields and leaving title blank");
-$form->setValues(array("plays" => "many", "rating" => "awesome"));
+line_out("-- this autograder expects the form field names to be:");
+line_out("-- url, email, length, and rating");
+line_out("-- if your fields do not match these, the next tests will fail.");
+line_out("Causing Add error, leaving length and rating blank.");
+$form->setValues(array("url" => "Sarah", "email" => "Anytown", "length" => "", "rating" => ""));
 $crawler = $client->submit($form);
 $passed++;
 
@@ -54,29 +57,18 @@ $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 checkPostRedirect($client);
 
-line_out("Expecting 'Bad value for title, plays, or rating' error in index.php");
-if ( strpos(strtolower($html), 'bad value') !== false ) {
+line_out("Expecting 'All values are required'");
+if ( strpos(strtolower($html), 'are required') !== false ) {
     $passed++;
 } else {
-    error_out("Could not find flash message with 'Bad value for title, plays, or rating'");
+    error_out("Could not find 'All values are required'");
 }
 
-line_out("Looking for Add New link in index.php.");
-$link = $crawler->selectLink('Add New')->link();
-$url = $link->getURI();
-line_out("Retrieving ".htmlent_utf8($url)."...");
-
-$crawler = $client->request('GET', $url);
-$html = $crawler->html();
-$OUTPUT->togglePre("Show retrieved page",$html);
-$passed++;
 line_out("Looking for the form with a 'Add New' submit button");
 $form = $crawler->selectButton('Add New')->form();
-$title = 'ACDC'.sprintf("%03d",rand(1,100));
-$plays = rand(1,100);
-$rating = rand(1,100);
-line_out("Entering title=$title, plays=$plays, rating=$rating");
-$form->setValues(array("title" => $title, "plays" => $plays, "rating" => $rating));
+
+line_out("Causing Add error, putting in bad email address.");
+$form->setValues(array("url" => "http://www.php-intro.com", "email" => "PO Box 123", "length" => "12", "rating" => "6"));
 $crawler = $client->submit($form);
 $passed++;
 
@@ -84,19 +76,41 @@ $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 checkPostRedirect($client);
 
-line_out("Looking '$title' entry");
-$pos = strpos($html, $title);
+line_out("Expecting 'Error in input data'");
+if ( strpos(strtolower($html), 'error in') !== false ) {
+    $passed++;
+} else {
+    error_out("Could not find 'Error in input data'");
+}
+
+line_out("Looking for the form with a 'Add New' submit button");
+$form = $crawler->selectButton('Add New')->form();
+$url = 'http://www.php-intro.com/x.php?data='.sprintf("%03d",rand(1,100));
+$email = "sarah@php-intro.com";
+$length = rand(1,100);
+$rating = rand(1,100);
+line_out("Entering url=$url, email=$email, length=$length");
+$form->setValues(array("url" => $url, "email" => $email, "length" => $length, "rating" => "12345"));
+$crawler = $client->submit($form);
+$passed++;
+
+$html = $crawler->html();
+$OUTPUT->togglePre("Show retrieved page",$html);
+checkPostRedirect($client);
+
+line_out("Looking '$url' entry");
+$pos = strpos($html, $url);
 $pos2 = strpos($html, "edit.php", $pos);
 $body = substr($html,$pos,$pos2-$pos);
 # echo "body=",htmlentities($body);
-line_out("Looking for plays=$plays and rating=$rating");
-if ( strpos($body,''.$plays) < 1 || strpos($body,''.$rating) < 1 ) {
-    error_out("Could not find plays=$plays and rating=$rating");
+line_out("Looking for email=$email and length=$length");
+if ( strpos($body,''.$email) < 1 || strpos($body,''.$length) < 1 ) {
+    error_out("Could not find email=$email and length=$length");
 } else {
     $passed++;
 }
 
-line_out("Looking for edit.php link associated with '$title' entry");
+line_out("Looking for edit.php link associated with '$url' entry");
 $pos3 = strpos($html, '"', $pos2);
 $editlink = substr($html,$pos2,$pos3-$pos2);
 line_out("Retrieving ".htmlent_utf8($editlink)."...");
@@ -108,10 +122,10 @@ $passed++;
 
 line_out("Looking for the form with a 'Update' submit button");
 $form = $crawler->selectButton('Update')->form();
-$plays = rand(1,100);
+$length = rand(1,100);
 $rating = rand(1,100);
-line_out("Editing title=$title, plays=$plays, rating=$rating");
-$form->setValues(array("title" => $title, "plays" => $plays, "rating" => $rating));
+line_out("Editing url=$url, length=$length, rating=$rating");
+$form->setValues(array("url" => $url, "email" => $email, "length" => $length, "rating" => "12345"));
 $crawler = $client->submit($form);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
@@ -119,19 +133,19 @@ $passed++;
 checkPostRedirect($client);
 
 // Delete...
-line_out("Looking '$title' entry");
-$pos = strpos($html, $title);
+line_out("Looking '$url' entry");
+$pos = strpos($html, $url);
 $pos2 = strpos($html, "delete.php", $pos);
 $body = substr($html,$pos,$pos2-$pos);
 # echo "body=",htmlentities($body);
-line_out("Looking for plays=$plays and rating=$rating");
-if ( strpos($body,''.$plays) < 1 || strpos($body,''.$rating) < 1 ) {
-    error_out("Could not find plays=$plays and rating=$rating");
+line_out("Looking for email=$email and length=$length");
+if ( strpos($body,''.$email) < 1 || strpos($body,''.$length) < 1 ) {
+    error_out("Could not find email=$email and length=$length");
 } else {
     $passed++;
 }
 
-line_out("Looking for delete.php link associated with '$title' entry");
+line_out("Looking for delete.php link associated with '$url' entry");
 $pos3 = strpos($html, '"', $pos2);
 $editlink = substr($html,$pos2,$pos3-$pos2);
 line_out("Retrieving ".htmlent_utf8($editlink)."...");
@@ -150,16 +164,18 @@ $OUTPUT->togglePre("Show retrieved page",$html);
 $passed++;
 checkPostRedirect($client);
 
-line_out("Making sure '$title' has been deleted");
-if ( strpos($html,$title) > 0 ) {
-    error_out("Entry '$title' not deleted");
+line_out("Making sure '$url' has been deleted");
+if ( strpos($html,$url) > 0 ) {
+    error_out("Entry '$url' not deleted");
 } else {
     $passed++;
 }
 
-line_out("Cleaning up old records...");
+line_out("Cleaning up old Sarah records...");
 while (True ) {
-    $pos2 = strpos($html, "delete.php");
+    $pos = strpos($html, 'Sarah');
+    if ( $pos < 1 ) break;
+    $pos2 = strpos($html, "delete.php", $pos);
     if ( $pos2 < 1 ) break;
     $pos3 = strpos($html, '"', $pos2);
     if ( $pos3 < 1 ) break;
@@ -169,6 +185,7 @@ while (True ) {
     $crawler = $client->request('GET', $editlink);
     $html = $crawler->html();
     $OUTPUT->togglePre("Show retrieved page",$html);
+    $passed++;
 
     // Do the Delete
     line_out("Looking for the form with a 'Delete' submit button");
@@ -176,12 +193,12 @@ while (True ) {
     $crawler = $client->submit($form);
     $html = $crawler->html();
     $OUTPUT->togglePre("Show retrieved page",$html);
+    $passed++;
     checkPostRedirect($client);
-    $passed--; // Since checkPostRedirect() gives a pass
 }
 
 line_out("Testing for HTML injection (proper use of htmlentities)...");
-line_out("Looking for Add New link in index.php.");
+line_out("Looking for Add New link.");
 $link = $crawler->selectLink('Add New')->link();
 $url = $link->getURI();
 line_out("Retrieving ".htmlent_utf8($url)."...");
@@ -193,11 +210,11 @@ $passed++;
 
 line_out("Looking for the form with a 'Add New' submit button");
 $form = $crawler->selectButton('Add New')->form();
-$title = 'AC<DC'.sprintf("%03d",rand(1,100));
-$plays = rand(1,100);
-$rating = rand(1,100);
-line_out("Entering title=$title, plays=$plays, rating=$rating");
-$form->setValues(array("title" => $title, "plays" => $plays, "rating" => $rating));
+$url = 'http://www.php-intro.com/x.php?>data='.sprintf("%03d",rand(1,100));
+$email = "Sarah_is_so_>@php-intro.com";
+$length = rand(1,100);
+line_out("Entering url=$url, email=$email, length=$length");
+$form->setValues(array("url" => $url, "email" => $email, "length" => $length, "rating" => "12345"));
 $crawler = $client->submit($form);
 $passed++;
 
@@ -205,17 +222,19 @@ $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 checkPostRedirect($client);
 
-if ( strpos($html, "AC&lt;DC") > 2 ) {
-    $passed+=2;
-} else if ( strpos($html, "&amp;lt;") > 2  ) {
-    error_out("It looks like you have double-called htmlentities()");
-} else {
+if ( strpos($html, "_>@php") > 0 ) {
     error_out("Found HTML Injection");
+    throw new Exception("Found HTML Injection");
+} else if ( strpos($html, "_&gt;@php") > 0 ) {
+    $passed+=2;
+    line_out("Passed HTML Injection test");
+} else {
+    error_out("Cannot find email address on page");
 }
 
-$pos = strpos($html, $title);
+$pos = strpos($html,"Sarah");
 $pos2 = strpos($html, "delete.php", $pos);
-line_out("Looking for delete.php link associated with '$title' entry");
+line_out("Looking for delete.php link associated with 'Sarah' entry");
 $pos3 = strpos($html, '"', $pos2);
 $editlink = substr($html,$pos2,$pos3-$pos2);
 line_out("Retrieving ".htmlent_utf8($editlink)."...");
@@ -225,13 +244,17 @@ $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 $passed++;
 
-if ( strpos($html, "AC&lt;DC") > 2 ) {
-    $passed+=2;
-} else if ( strpos($html, "&amp;lt;") > 2  ) {
-    error_out("It looks like you have double-called htmlentities()");
-} else {
+if ( strpos($html, "x.php?>data") > 0 ) {
     error_out("Found HTML Injection");
+    throw new Exception("Found HTML Injection");
+} else if ( strpos($html, "x.php?&gt;data") > 0 ) {
+    $passed+=2;
+    line_out("Passed HTML Injection test");
+} else {
+    error_out("Cannot find email address on page");
 }
+
+// $passed+=2;
 
 line_out("Looking for the form with a 'Delete' submit button");
 $form = $crawler->selectButton('Delete')->form();
@@ -252,8 +275,8 @@ checkPostRedirect($client);
     $OUTPUT->togglePre("Internal error detail.",$detail);
 }
 
-// There is a maximum of 26 passes for this test
-$perfect = 26;
+// There is a maximum of 28 passes for this test
+$perfect = 28;
 $score = webauto_compute_effective_score($perfect, $passed, $penalty);
 
 if ( ! $titlefound ) {

@@ -21,7 +21,8 @@ $assignments = array(
     'a03.php' => 'Guessing Game',
     'a04.php' => 'Rock, Paper, Scissors',
     'a05.php' => 'Shopping Cart',
-    'a06.php' => 'CRUD - Tracks'
+    'a06.php' => 'CRUD - Tracks',
+    'crud-videos.php' => 'CRUD - Videos'
 );
 
 // View
