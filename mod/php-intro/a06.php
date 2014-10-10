@@ -217,6 +217,8 @@ if ( strpos($html, "AC&lt;DC") > 2 ) {
     error_out("Found HTML Injection");
     throw new Exception("Found HTML Injection");
 }
+
+$pos = strpos($html, $title);
 $pos2 = strpos($html, "delete.php", $pos);
 line_out("Looking for delete.php link associated with '$title' entry");
 $pos3 = strpos($html, '"', $pos2);
