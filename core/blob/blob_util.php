@@ -65,6 +65,20 @@ function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "im
     return $retval;
 }
 
+/**
+  * Make sure the contents of this file are a PNG or JPEG
+  */
+function isPngOrJpeg($FILE_DESCRIPTOR)
+{
+    if ( !isset($FILE_DESCRIPTOR['name']) ) return false;
+    if ( !isset($FILE_DESCRIPTOR['tmp_name']) ) return false;
+    $info = getimagesize($FILE_DESCRIPTOR['tmp_name']);
+    if ( ! is_array($info) ) return false;
+
+    $image_type = $info[2];
+    return $image_type == IMAGETYPE_JPEG || $image_type == IMAGETYPE_PNG;
+}
+
 function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
 {
     global $CFG, $CONTEXT, $PDOX;

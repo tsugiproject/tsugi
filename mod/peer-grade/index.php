@@ -79,6 +79,13 @@ if ( $assn_id != false && $assn_json != null &&
                 return;
             }
 
+            // Check the kind of file
+            if ( ! isPngOrJpeg($fdes) ) {
+                $_SESSION['error'] = 'Files must either contain JPG, or PNG images';
+                header( 'Location: '.addSession('index.php') ) ;
+                return;
+            }
+
             $blob_id = uploadFileToBlob($fdes);
             if ( $blob_id === false ) {
                 $_SESSION['error'] = 'Problem storing files in server';
