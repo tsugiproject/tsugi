@@ -62,6 +62,7 @@ if ( $assn_id != false && $assn_json != null &&
             }
 
             $fdes = $_FILES[$fname];
+            $filename = isset($fdes['name']) ? basename($fdes['name']) : false;
 
             // Check to see if they left off a file
             if( $fdes['error'] == 4) {
@@ -81,14 +82,15 @@ if ( $assn_id != false && $assn_json != null &&
 
             // Check the kind of file
             if ( ! isPngOrJpeg($fdes) ) {
-                $_SESSION['error'] = 'Files must either contain JPG, or PNG images';
+                $_SESSION['error'] = 'Files must either contain JPG, or PNG images: '.$filename;
+                error_log("Upload Error - Not an Image: ".$filename);
                 header( 'Location: '.addSession('index.php') ) ;
                 return;
             }
 
             $blob_id = uploadFileToBlob($fdes);
             if ( $blob_id === false ) {
-                $_SESSION['error'] = 'Problem storing files in server';
+                $_SESSION['error'] = 'Problem storing file in server: '.$filename;
                 header( 'Location: '.addSession('index.php') ) ;
                 return;
             }
