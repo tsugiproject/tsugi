@@ -45,7 +45,7 @@ function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "im
 
     if ( $FILE_DESCRIPTOR['error'] == 1) {
         $retval = "General upload failure";
-    } else if ( $fdes['error'] == 4) {
+    } else if ( $FILE_DESCRIPTOR['error'] == 4) {
         $retval = 'Missing file, make sure to select file(s) before pressing submit';
     } else if ( $filename === false ) {
         $retval = "Uploaded file has no name";
