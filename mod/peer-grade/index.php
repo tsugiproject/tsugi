@@ -70,9 +70,10 @@ if ( $assn_id != false && $assn_json != null &&
                 return;
             }
 
+            // Sanity-check the file
             $safety = checkFileSafety($fdes);
             if ( $safety !== true ) {
-                $_SESSION['error'] = "This only supports PNG or JPG images with a .png or .jpg extenision.  Error: ".$safety;
+                $_SESSION['error'] = "Error: ".$safety;
                 error_log("Upload Error: ".$safety);
                 header( 'Location: '.addSession('index.php') ) ;
                 return;

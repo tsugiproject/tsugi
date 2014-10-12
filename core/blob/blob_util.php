@@ -41,12 +41,17 @@ function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "im
     global $BAD_FILE_SUFFIXES;
 
     $retval = true;
-    $filename = false;
+    $filename = isset($FILE_DESCRIPTOR['name']) ? basename($FILE_DESCRIPTOR['name']) : false;
 
-    if( $FILE_DESCRIPTOR['error'] == 1) {
+    if ( $FILE_DESCRIPTOR['error'] == 1) {
         $retval = "General upload failure";
-    } else if( $FILE_DESCRIPTOR['error'] == 0) {
-        $filename = basename($FILE_DESCRIPTOR['name']);
+    } else if ( $fdes['error'] == 4) {
+        $retval = 'Missing file, make sure to select file(s) before pressing submit';
+    } else if ( $filename === false ) {
+        $retval = "Uploaded file has no name";
+    } else if ( $FILE_DESCRIPTOR['size'] < 1 ) {
+        $retval = "File is empty: ".$filename;
+    } else if ( $FILE_DESCRIPTOR['error'] == 0 ) {
         if ( preg_match($BAD_FILE_SUFFIXES, $filename) ) $retval = "File suffix not allowed";
 
         $contenttype = $FILE_DESCRIPTOR['type'];
