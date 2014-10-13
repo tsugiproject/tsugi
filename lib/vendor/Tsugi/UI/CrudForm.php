@@ -163,7 +163,7 @@ class CrudForm {
         $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
 
         echo('<form method="post">'."\n");
-        echo('<a href="'.$from_location.'" class="btn btn-default">Done</a>'."\n");
+        echo('<a href="'.$from_location.'" class="btn btn-default">Exit</a>'."\n");
         if ( $allow_edit ) {
             if ( $do_edit ) {
                 echo('<a href="'.$current.'?'.$key.'='.$key_value.'" class="btn btn-success">'._m("Cancel Edit").'</a>'."\n");

@@ -143,7 +143,7 @@ $iframeurl = addSession($CFG->wwwroot . '/mod/peer-grade/maint.php?link_id=' . $
 </form>
 <form style="display: inline" method="POST" target="my_iframe" action="<?php echo($iframeurl); ?>">
   <button name="reGradePeer" onclick="showFrame();" class="btn btn-warning">Re-Compute Peer Grades</button>
-  <button onclick="window.close();return false;" class="btn btn-primary">Done</button>
+  <button onclick="window.close();return false;" class="btn btn-primary">Exit</button>
 </form>
 <p>These are maintenance tools make sure you know how to use them.
 <ul>
@@ -172,7 +172,7 @@ Link id: <?php echo($link_id);
 <p>Depending on buffering - output in this iframe may take a while to appear.
 The number above will update as the job progreses.
 Once the output starts, make sure to scroll to the bottom to see the current activity.
-If you want to abort this job, navigate away using "Done".
+If you want to abort this job, navigate away using "Exit".
 This job may take so long it times out.  If it times out you can restart it
 and it willpick up where it left off.
 </p>

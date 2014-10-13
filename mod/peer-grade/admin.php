@@ -53,7 +53,7 @@ Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, "student.php",
 ?>
 <form method="post">
 <br/>
-<input type="submit" name="doDone" onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Done" class="btn btn-success">
+<input type="submit" name="doExit" onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Exit" class="btn btn-success">
 </form>
 <?php
 

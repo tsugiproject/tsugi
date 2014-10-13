@@ -19,7 +19,7 @@ $OUTPUT->togglePre("Session data",safe_var_dump($_SESSION));
 
 ?>
 <form method="post">
-<input type="submit" name="doDone" onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Done">
+<input type="submit" name="doExit" onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Exit">
 </form>
 <?php
 flush();

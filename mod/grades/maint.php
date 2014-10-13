@@ -232,7 +232,7 @@ class="btn btn-danger">Reset Local Server Grades</button>
   <a href="#" id="clear" style="display: none" onclick="
     $('#my_iframe').prop('src', '<?php echo($CFG->wwwroot.'/mod/grades/blank.html'); ?>');return false;"
     class="btn btn-primary">Clear/Stop Frame</a>
-  <button onclick="window.close();" class="btn btn-primary">Done</button>
+  <button onclick="window.close();" class="btn btn-primary">Exit</button>
 </div>
 <p>These are maintenance tools make sure you know how to use them.
 <ul>
