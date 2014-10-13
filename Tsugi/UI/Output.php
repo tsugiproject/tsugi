@@ -222,7 +222,7 @@ class Output {
       * TODO: Implement _return
       */
     function doneButton($text=false) {
-        if ( $text === false ) $text = _m("Done");
+        if ( $text === false ) $text = _m("Exit");
         $url = Settings::linkGet('done');
         if ( $url == false ) {
             if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
@@ -248,7 +248,7 @@ class Output {
       * Emit a properly styled close button for use in own popup
       */
     function closeButton($text=false) {
-        if ( $text === false ) $text = _m("Done");
+        if ( $text === false ) $text = _m("Exit");
         $button = "btn-success";
         if ( $text == "Cancel" || $text == _m("Cancel") ) $button = "btn-warning";
         echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn ".$button."\">".$text."</a>\n");
