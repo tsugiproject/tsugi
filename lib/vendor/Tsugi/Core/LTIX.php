@@ -884,7 +884,7 @@ class LTIX {
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
         } else {
-            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$userinfo.' '.$USER->id;
+            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$USER->id;
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
             return $status;
