@@ -494,7 +494,7 @@ if ( $dueDate->message ) {
     }
     echo('<button onclick="$(\'#info\').modal();return false;" class="btn btn-default" type="button"><span class="glyphicon glyphicon-info-sign"></span></button>'."\n");
     if ( $USER->instructor ) SettingsForm::button();
-    $OUTPUT->doneButton();
+    $OUTPUT->exitButton();
     if ( $USER->instructor ) {
         if ( $EX === false ) {
             echo(' <a href="grades.php" class="btn btn-default" target="_blank">View Student Code</a>'."\n");

@@ -171,11 +171,9 @@ if ( strpos($html,$url) > 0 ) {
     $passed++;
 }
 
-line_out("Cleaning up old Sarah records...");
+line_out("Cleaning up old records...");
 while (True ) {
-    $pos = strpos($html, 'Sarah');
-    if ( $pos < 1 ) break;
-    $pos2 = strpos($html, "delete.php", $pos);
+    $pos2 = strpos($html, "delete.php");
     if ( $pos2 < 1 ) break;
     $pos3 = strpos($html, '"', $pos2);
     if ( $pos3 < 1 ) break;
@@ -185,7 +183,6 @@ while (True ) {
     $crawler = $client->request('GET', $editlink);
     $html = $crawler->html();
     $OUTPUT->togglePre("Show retrieved page",$html);
-    $passed++;
 
     // Do the Delete
     line_out("Looking for the form with a 'Delete' submit button");
@@ -193,8 +190,9 @@ while (True ) {
     $crawler = $client->submit($form);
     $html = $crawler->html();
     $OUTPUT->togglePre("Show retrieved page",$html);
-    $passed++;
+
     checkPostRedirect($client);
+    $passed--;  // Undo post redirect
 }
 
 line_out("Testing for HTML injection (proper use of htmlentities)...");

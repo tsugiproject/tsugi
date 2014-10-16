@@ -221,7 +221,7 @@ class Output {
       *
       * TODO: Implement _return
       */
-    function doneButton($text=false) {
+    function exitButton($text=false) {
         if ( $text === false ) $text = _m("Exit");
         $url = Settings::linkGet('done');
         if ( $url == false ) {

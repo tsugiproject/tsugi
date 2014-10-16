@@ -244,7 +244,7 @@ if ( $submit_row == false ) {
     echo("<p>Enter optional comments below</p>\n");
     echo('<textarea rows="5" cols="60" name="notes"></textarea><br/>');
     echo('<input type="submit" name="doSubmit" value="Submit" class="btn btn-default"> ');
-    $OUTPUT->doneButton('Cancel');
+    $OUTPUT->exitButton('Cancel');
     echo('</form>');
     echo("\n<p>Make sure each file is smaller than 1MB.</p>\n");
     $OUTPUT->footer();
@@ -291,7 +291,7 @@ if ( count($our_grades) < 1 ) {
         echo("<p>Your overall score from your peers: $max_points </p>\n");
     }
 }
-$OUTPUT->doneButton();
+$OUTPUT->exitButton();
 ?>
 <form method="post" id="flagform" style="display:none">
 <p>&nbsp;</p>
