@@ -53,6 +53,7 @@ if ( isset($_POST['grade']) )  {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
+// Don't change the line below - change the servicename in the configuration
 echo("<h1>Grade Exercise for ".$CFG->servicename."</h1>\n");
 $OUTPUT->welcomeUserCourse();
 
