@@ -282,6 +282,7 @@ class LTIX {
         // LTI 2.x settings and Outcomes
         $retval['result_url'] = isset($FIXED['custom_result_url']) ? $FIXED['custom_result_url'] : null;
         $retval['link_settings_url'] = isset($FIXED['custom_link_settings_url']) ? $FIXED['custom_link_settings_url'] : null;
+        $retval['context_settings_url'] = isset($FIXED['custom_context_settings_url']) ? $FIXED['custom_context_settings_url'] : null;
 
         $retval['context_title'] = isset($FIXED['context_title']) ? $FIXED['context_title'] : null;
         $retval['link_title'] = isset($FIXED['resource_link_title']) ? $FIXED['resource_link_title'] : null;

@@ -92,8 +92,7 @@ if ( !isset($sourcedid) && strlen($sourcedid) > 0 ) {
    exit();
 }
 
-$gradebook = $_SESSION['cert_gradebook'];
-if ( !isset($gradebook) ) $gradebook = Array();
+$gradebook = isset($_SESSION['cert_gradebook']) ? $_SESSION['cert_gradebook'] : Array();
 
 $top_tag = str_replace("Request","Response",$operation);
 $body_tag = "\n<".$top_tag."/>";
