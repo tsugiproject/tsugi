@@ -19,20 +19,29 @@ if ( isset($_POST['grade']) )  {
         return;
     }
 
-    // Use LTIX to send the grade back to the LMS.
-    $debug_log = array();
-    $retval = LTIX::gradeSend($gradetosend, false, $debug_log);
-    $_SESSION['debug_log'] = $debug_log;
+    // TODO: Look in the $LINK Variable to find the previous grade
+    // to make it so the grade never goes down unless the gradetosend
+    // gradetosend is 0.0 - send the 0.0 to reset the grade.
+    $prevgrade = 0.5;
 
-    if ( $retval === true ) {
-        $_SESSION['success'] = "Grade $gradetosend sent to server.";
-    } else if ( is_string($retval) ) {
-        $_SESSION['error'] = "Grade not sent: ".$retval;
+    if ( $gradetosend > 0.0 && $gradetosend < $prevgrade ) {
+        $_SESSION['error'] = "Grade lower than $prevgrade - not sent";
     } else {
-        echo("<pre>\n");
-        var_dump($retval);
-        echo("</pre>\n");
-        die();
+        // Use LTIX to send the grade back to the LMS.
+        $debug_log = array();
+        $retval = LTIX::gradeSend($gradetosend, false, $debug_log);
+        $_SESSION['debug_log'] = $debug_log;
+
+        if ( $retval === true ) {
+            $_SESSION['success'] = "Grade $gradetosend sent to server.";
+        } else if ( is_string($retval) ) {
+            $_SESSION['error'] = "Grade not sent: ".$retval;
+        } else {
+            echo("<pre>\n");
+            var_dump($retval);
+            echo("</pre>\n");
+            die();
+        }
     }
 
     // Redirect to ourself
@@ -44,7 +53,7 @@ if ( isset($_POST['grade']) )  {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-echo("<h1>Grade Test Harness</h1>\n");
+echo("<h1>Grade Exercise for ".$CFG->servicename."</h1>\n");
 $OUTPUT->welcomeUserCourse();
 
 ?>
