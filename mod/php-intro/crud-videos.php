@@ -64,7 +64,7 @@ if ( strpos(strtolower($html), 'are required') !== false ) {
     error_out("Could not find 'All values are required'");
 }
 
-line_out("Looking for the form with a 'Add New' submit button");
+line_out("Looking in add.php for an 'Add New' submit button");
 $form = $crawler->selectButton('Add New')->form();
 
 line_out("Causing Add error, putting in bad email address.");
