@@ -312,6 +312,10 @@ class LTIX {
             $retval['user_displayname'] = $FIXED['lis_person_name_family'];
         }
 
+        // Trim out repeated spaces and/or weird whitespace from the user_displayname
+        if ( isset($retval['user_displayname']) ) {
+            $retval['user_displayname'] = trim(preg_replace('/\s+/', ' ',$retval['user_displayname']));
+        }
 
         // Get the role
         $retval['role'] = 0;

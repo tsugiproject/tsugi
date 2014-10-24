@@ -222,12 +222,11 @@ checkPostRedirect($client);
 
 if ( strpos($html, "_>@php") > 0 ) {
     error_out("Found HTML Injection");
-    throw new Exception("Found HTML Injection");
 } else if ( strpos($html, "_&gt;@php") > 0 ) {
     $passed+=2;
     line_out("Passed HTML Injection test");
 } else {
-    error_out("Cannot find email address on page");
+    error_out("Cannot find "+$email+" on page");
 }
 
 $pos = strpos($html,"Sarah");
@@ -244,12 +243,11 @@ $passed++;
 
 if ( strpos($html, "x.php?>data") > 0 ) {
     error_out("Found HTML Injection");
-    throw new Exception("Found HTML Injection");
 } else if ( strpos($html, "x.php?&gt;data") > 0 ) {
     $passed+=2;
     line_out("Passed HTML Injection test");
 } else {
-    error_out("Cannot find email address on page");
+    error_out("Cannot find url on page");
 }
 
 // $passed+=2;
