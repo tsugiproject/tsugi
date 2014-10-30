@@ -17,6 +17,8 @@ flush();
 
 // http://symfony.com/doc/current/components/dom_crawler.html
 $client = new Client();
+$client->setMaxRedirects(5);
+
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);

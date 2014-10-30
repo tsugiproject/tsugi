@@ -15,13 +15,14 @@ line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
 
 $client = new Client();
-
-$crawler = $client->request('GET', $url);
+$client->setMaxRedirects(5);
 
 // Yes, one gigantic unindented try/catch block
 $passed = 5;
 $titlefound = false;
 try {
+
+$crawler = $client->request('GET', $url);
 
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
