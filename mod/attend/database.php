@@ -5,7 +5,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}attend"
 );
 
-// The SQL to create the necessary tables is the don't exist
+// The SQL to create the tables if they don't exist
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}attend",
 "create table {$CFG->dbprefix}attend (
