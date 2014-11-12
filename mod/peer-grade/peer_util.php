@@ -58,16 +58,19 @@ function loadUngraded($LTI, $assn_id)
     return $stmt->fetchAll();
 }
 
-function showSubmission($LTI, $assn_json, $submit_json)
+function showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id)
 {
+    global $CFG, $PDOX;
     echo('<div style="padding:5px">');
     $blob_ids = $submit_json->blob_ids;
     $urls = isset($submit_json->urls) ? $submit_json->urls : array();
+    $codes = isset($submit_json->codes) ? $submit_json->codes : array();
     $blobno = 0;
     $urlno = 0;
+    $codeno = 0;
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == "image" ) {
-            // This test triggeres when an assignment is reconfigured
+            // This test triggers when an assignment is reconfigured
             // and old submissions have too few blobs
             if ( $blobno >= count($blob_ids) ) continue;
             $blob_id = $blob_ids[$blobno++];
@@ -97,6 +100,40 @@ function showSubmission($LTI, $assn_json, $submit_json)
             $url = $urls[$urlno++];
             echo ('<p><a href="'.safe_href($url).'" target="_blank">');
             echo (htmlentities(safe_href($url)).'</a> (Will launch in new window)</p>'."\n");
+        } else if ( $part->type == "code" ) {
+            $code_id = $codes[$codeno++];
+            $row = $PDOX->rowDie("
+                SELECT data FROM {$CFG->dbprefix}peer_text 
+                WHERE text_id = :TID AND user_id = :UID AND assn_id = :AID",
+                array( ":TID" => $code_id,
+                    ":AID" => $assn_id,
+                    ":UID" => $user_id)
+            );
+            if ( $row === FALSE || strlen($row['data']) < 1 ) {
+                echo("<p>No Code Found</p>\n");
+            } else {
+                echo ('<p>Code: <a href="#" onclick="$(\'#myModal_code_'.$codeno.'\').modal();">');
+                echo(htmlent_utf8($part->title)."</a> (click to view)</p>\n");
+?>
+<div class="modal fade" id="myModal_code_<?php echo($codeno); ?>">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title"><?php echo(htmlent_utf8($part->title)); ?></h4>
+      </div>
+      <div class="modal-body">
+         <pre>
+         <code class="language-<?php echo($part->language); ?>">
+<?php echo (htmlentities($row['data'])); ?>
+         </code>
+         </pre>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<?php
+            }
         }
 
     }
@@ -258,10 +295,18 @@ function getDefaultJson()
         "description" : "This assignment consists of two images to be uploaded.  This assignment is worth 10 points. 6 points come from your peers and 4 points come from you grading other student\'s submissions.",
         "grading" : "This is a relatively simple assignment.  Don\'t take off points for little mistakes.  If they seem to have done the assignment give them full credit.   Feel free to make suggestions if there are small mistakes.  Please keep your comments positive and useful.  If you do not take grading seriously, the instructors may delete your response and you will lose points.",
         "parts" : [
-            { "title" : "Image of MySqlAdmin",
-              "type" : "image"
+            { "title" : "URL of your home page",
+              "type" : "url"
             },
-            { "title" : "Image of PHP code running with your name",
+            { "title" : "Source code of index.php with your name",
+              "type" : "code",
+              "language" : "php"
+            },
+            { "title" : "Some HTML using the bold tag",
+              "type" : "code",
+              "language" : "markup"
+            },
+            { "title" : "Image of your home page",
               "type" : "image"
             }
         ],

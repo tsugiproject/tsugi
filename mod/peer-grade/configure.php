@@ -89,6 +89,12 @@ has started.  The type can be one of the following:
 and must be a JPG or PNG.   These strict limitations are to insure that the database does not get too big
 and that students don't upload viruses for the other students.</li>
 <li>url - This is a url for the user to view.</li>
+<li>code - This is a text area where students can paste in code.  There is an optional
+<b>language</b> attribute that will enable syntax highlighting 
+using the <a href="http://prismjs.com/" target="_blank">Prism</a> syntax highlighter. 
+Available languages include:
+markup, css, javascript, java, php, c, python, sql, or ruby.
+</li>
 </ul>
 </li>
 <li>totalpoints - this is the number of points for the assignment.   Each of the peer-graders

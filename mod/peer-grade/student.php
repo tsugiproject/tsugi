@@ -55,6 +55,12 @@ if ( isset($_POST['deleteSubmit']) ) {
             WHERE submit_id = :SID",
         array( ':SID' => $submit_id)
     );
+    // Since text items are connected to the assignment not submission
+    $stmt = $PDOX->queryDie(
+        "DELETE FROM {$p}peer_text
+            WHERE assn_id = :AID AND user_id = :UID",
+        array( ':AID' => $assn_id, ':UID' => $user_id)
+    );
     $msg = "Deleted submission for $user_id";
     if ( $retval ) $msg .= ', e-mail notice sent.';
     error_log($msg);
@@ -159,6 +165,9 @@ $grades_given = retrieveGradesGiven($assn_id, $user_id);
 
 // View
 $OUTPUT->header();
+?>
+<link href="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.css" rel="stylesheet"/>
+<?php
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 
@@ -179,7 +188,7 @@ if ( $submit_row === false ) {
     echo("<p>This student has not made a submission.</p>\n");
 } else {
     $submit_json = json_decode($submit_row['json']);
-    showSubmission($LTI, $assn_json, $submit_json);
+    showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id);
 }
 
 echo('<p><a href="grade.php?user_id='.$user_id.'">Grade this student</a></p>'."\n");
@@ -290,4 +299,8 @@ onclick="location='<?php echo(addSession('admin.php'));?>'; return false;" value
 </form>
 <?php
 
-$OUTPUT->footer();
+$OUTPUT->footerStart();
+?>
+<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>
+<?php
+$OUTPUT->footerEnd();

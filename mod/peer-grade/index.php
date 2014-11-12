@@ -51,6 +51,7 @@ if ( $assn_id != false && $assn_json != null &&
 
     $blob_ids = array();
     $urls = array();
+    $code_ids = array();
     $partno = 0;
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == 'image' ) {
@@ -103,6 +104,23 @@ if ( $assn_id != false && $assn_json != null &&
                 return;
             }
             $urls[] = $_POST['input_url_'.$partno];
+        } else if ( $part->type == 'code' ) {
+            $code = $_POST['input_code_'.$partno];
+            if( strlen($code) < 1 ) {
+                $_SESSION['error'] = 'Missing: '.$part->title;
+                header( 'Location: '.addSession('index.php') ) ;
+                return;
+            }
+            $PDOX->queryDie("
+                INSERT INTO {$p}peer_text
+                    (assn_id, user_id, data, created_at, updated_at)
+                    VALUES ( :AID, :UID, :DATA, NOW(), NOW() )",
+                array(
+                    ':AID' => $assn_id,
+                    ':DATA' => $code,
+                    ':UID' => $USER->id)
+            );
+            $code_ids[] = $PDOX->lastInsertId();
         }
         $partno++;
     }
@@ -111,6 +129,7 @@ if ( $assn_id != false && $assn_json != null &&
     $submission->notes = $_POST['notes'];
     $submission->blob_ids = $blob_ids;
     $submission->urls = $urls;
+    $submission->codes = $code_ids;
     $json = json_encode($submission);
     $stmt = $PDOX->queryReturnError(
         "INSERT INTO {$p}peer_submit
@@ -193,6 +212,9 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
 
 // View
 $OUTPUT->header();
+?>
+<link href="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.css" rel="stylesheet"/>
+<?php
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 if ( $USER->instructor ) {
@@ -238,11 +260,13 @@ if ( $submit_row == false ) {
             echo('<input name="uploaded_file_'.$partno.'" type="file"> (Please use PNG or JPG files)</p>');
         } else if ( $part->type == "url" ) {
             echo('<input name="input_url_'.$partno.'" type="url" size="80"></p>');
+        } else if ( $part->type == "code" ) {
+            echo('<br/><textarea name="input_code_'.$partno.'" rows="10" style="width: 90%"></textarea></p>');
         }
         $partno++;
     }
     echo("<p>Enter optional comments below</p>\n");
-    echo('<textarea rows="5" cols="60" name="notes"></textarea><br/>');
+    echo('<textarea rows="5" style="width: 90%" name="notes"></textarea><br/>');
     echo('<input type="submit" name="doSubmit" value="Submit" class="btn btn-default"> ');
     $OUTPUT->exitButton('Cancel');
     echo('</form>');
@@ -267,7 +291,7 @@ You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p
 // We have a submission already
 $submit_json = json_decode($submit_row['json']);
 echo("<p><b>Your Submission:</b></p>\n");
-showSubmission($LTI, $assn_json, $submit_json);
+showSubmission($LTI, $assn_json, $submit_json, $assn_id, $USER->id);
 
 if ( count($our_grades) < 1 ) {
     echo("<p>No one has graded your submission yet.</p>");
@@ -332,6 +356,7 @@ $(document).ready(function() {
     gradeLoad();
 } );
 </script>
+<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>
 <?php
 $OUTPUT->footerEnd();
 

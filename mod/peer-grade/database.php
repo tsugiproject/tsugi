@@ -64,6 +64,30 @@ array( "{$CFG->dbprefix}peer_submit",
     UNIQUE(assn_id, user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8") ,
 
+array( "{$CFG->dbprefix}peer_text",
+"create table {$CFG->dbprefix}peer_text (
+    text_id      INTEGER NOT NULL KEY AUTO_INCREMENT,
+    assn_id      INTEGER NOT NULL,
+    user_id      INTEGER NOT NULL,
+
+    data         TEXT NULL,
+    json         TEXT NULL,
+
+    updated_at  DATETIME NOT NULL,
+    created_at  DATETIME NOT NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}peer_text_ibfk_1`
+        FOREIGN KEY (`assn_id`)
+        REFERENCES `{$CFG->dbprefix}peer_assn` (`assn_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}peer_text_ibfk_2`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8") ,
+
 array( "{$CFG->dbprefix}peer_grade",
 "create table {$CFG->dbprefix}peer_grade (
     grade_id     INTEGER NOT NULL KEY AUTO_INCREMENT,
