@@ -10,6 +10,7 @@ for now this is the documentation I have:
 
 * [TSUGI API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
 * [Coding Standards](CODING.md)
+* [TSUGI Data Model Lectures](https://www.youtube.com/watch?v=zXdNQGuXvuo&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw&index=4)
 * [Internationalizing and Localizing](I18N.md)
 * [Notes on generating API Documentation using PhpDoc](PHPDOC.md)
 
