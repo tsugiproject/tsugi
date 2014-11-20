@@ -137,7 +137,8 @@ if ( strlen($tc_profile_url) > 1 ) {
 // Find the registration URL
 
 echo("<pre>\n");
-$oauth_consumer_key = $tc_profile->guid;
+// $oauth_consumer_key = $tc_profile->guid;
+$oauth_consumer_key = $reg_key;
 $tc_services = $tc_profile->service_offered;
 echo("Found ".count($tc_services)." services profile..\n");
 if ( count($tc_services) < 1 ) lmsDie("At a minimum, we need the service to register ourself - doh!\n");
@@ -221,7 +222,7 @@ foreach($tools as $tool ) {
         $newhandler = json_decode($blank_handler);
         if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) && 
             isset($REGISTER_LTI2['description']) ) {
-            $newhandler->name->default_value = $REGISTER_LTI2['name'];
+            $newhandler->resource_name->default_value = $REGISTER_LTI2['name'];
             $newhandler->short_name->default_value = $REGISTER_LTI2['short_name'];
             $newhandler->description->default_value = $REGISTER_LTI2['description'];
         } else {
@@ -267,11 +268,9 @@ $tp_services = array();
 foreach($tc_services as $tc_service) {
 	// var_dump($tc_service);
 	$tp_service = new stdClass;
-	$tp_service->{'@id'} = $tc_service->{'@id'};
-	$tp_service->{'@type'} = $tc_service->{'@type'};
-	$tp_service->format = $tc_service->format;
+	$tp_service->{'@type'} = 'RestServiceProfile';
 	$tp_service->action = $tc_service->action;
-	$tp_service->service = $tc_service->endpoint;
+	$tp_service->service = $tc_service->{'@id'};
 	$tp_services[] = $tp_service;
 }
 // var_dump($tp_services);

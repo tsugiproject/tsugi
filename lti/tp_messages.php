@@ -25,7 +25,7 @@ $tool_proxy = <<< EOF
           "vendor": {
             "website": "http://www.tsugi.org",
             "code": "tsugi.org",
-            "name": {
+            "vendor_name": {
               "default_value": "Tsugi",
               "key": "tool.vendor.name"
             },
@@ -139,10 +139,10 @@ $tool_proxy = <<< EOF
               }
             ],
             "message_type": "basic-lti-launch-request",
-            "enabled_capability" : [ "User.id" ]
+            "enabled_capability" : [ ]
           }
         ],
-        "name": {
+        "resource_name": {
           "default_value": "Sakai PHP Unit Test",
           "key": "resource.name"
         },
