@@ -108,7 +108,7 @@ echo("<pre>\n");
 
 if ( $lti_message_type == "ToolProxyReregistrationRequest" ) {
 	$reg_key = $_POST['oauth_consumer_key'];
-	$reg_password = "secret";
+	$reg_password = "sakaiger";
 } else if ( $lti_message_type == "ToolProxyRegistrationRequest" ) {
 	$reg_key = $_POST['reg_key'];
 	$reg_password = $_POST['reg_password'];
@@ -137,7 +137,8 @@ if ( strlen($tc_profile_url) > 1 ) {
 // Find the registration URL
 
 echo("<pre>\n");
-$oauth_consumer_key = $tc_profile->guid;
+// $oauth_consumer_key = $tc_profile->guid;
+$oauth_consumer_key = $reg_key;
 $tc_services = $tc_profile->service_offered;
 echo("Found ".count($tc_services)." services profile..\n");
 if ( count($tc_services) < 1 ) lmsDie("At a minimum, we need the service to register ourself - doh!\n");
@@ -221,7 +222,7 @@ foreach($tools as $tool ) {
         $newhandler = json_decode($blank_handler);
         if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) && 
             isset($REGISTER_LTI2['description']) ) {
-            $newhandler->name->default_value = $REGISTER_LTI2['name'];
+            $newhandler->resource_name->default_value = $REGISTER_LTI2['name'];
             $newhandler->short_name->default_value = $REGISTER_LTI2['short_name'];
             $newhandler->description->default_value = $REGISTER_LTI2['description'];
         } else {

@@ -21,8 +21,10 @@ if ( isset($_COOKIE[session_name()]) && $_COOKIE[session_name()] == session_id()
 }
 
 error_log('Session in install '.session_id());
+
 // Always do post-redirect of that initial post after stashing data in the session
-if ( isset($_POST["lti_message_type"]) && $_POST["lti_message_type"] == "ToolProxyRegistrationRequest" ) {
+if ( isset($_POST["lti_message_type"]) && 
+    ( $_POST["lti_message_type"] == "ToolProxyRegistrationRequest" || $_POST["lti_message_type"] == "ToolProxyReregistrationRequest" ) ) {
     $_SESSION['lti2post'] = $_POST;
     header('Location: '.$popup);
     return;

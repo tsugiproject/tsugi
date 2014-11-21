@@ -142,7 +142,7 @@ $tool_proxy = <<< EOF
             "enabled_capability" : [ "User.id" ]
           }
         ],
-        "name": {
+        "resource_name": {
           "default_value": "Sakai PHP Unit Test",
           "key": "resource.name"
         },
