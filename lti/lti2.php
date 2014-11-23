@@ -125,8 +125,6 @@ if ( $re_register ) {
 	if ( strlen($reg_password) < 1 ) {
             lmsDie("Registration key $reg_key cannot be re-registered.");
 	}
-echo("Old secret=".$reg_password."\n");
-
 } else if ( $lti_message_type == "ToolProxyRegistrationRequest" ) {
 	$reg_key = $_POST['reg_key'];
 	$key_sha256 = lti_sha256($reg_key);
@@ -291,7 +289,8 @@ foreach($tc_capabilities as $capability) {
 $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
 $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
 
-$shared_secret='sakaiger::'.bin2hex(openssl_random_pseudo_bytes(15));
+// $shared_secret='sakaiger::'.bin2hex(openssl_random_pseudo_bytes(15));
+$shared_secret=bin2hex(openssl_random_pseudo_bytes(15));
 
 $tp_profile->security_contract->shared_secret = $shared_secret;
 $tp_services = array();

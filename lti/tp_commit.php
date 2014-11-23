@@ -13,7 +13,7 @@ $commit = isset($_GET['commit']) ?
     $_GET['commit'] : die('Missing commit');
 $key_sha256 = lti_sha256($oauth_consumer_key);
 
-error_log("Committing key=".$oauth_consumer_key." commit=".$commit);
+error_log("Committing Re-Registration key=".$oauth_consumer_key." commit=".$commit);
 
 $row = $PDOX->rowDie(
     "SELECT secret
@@ -29,8 +29,6 @@ if ( $row == false ) {
     error_log("Transaction $commit not found $oauth_consumer_key");
     die("Transaction not found");
 }
-
-error_log("Secret=".$row['secret']);
 
 $retval = LTI::verifyKeyAndSecret($oauth_consumer_key, $row['secret']);
 if ( $retval !== true ) {
