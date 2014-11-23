@@ -15,7 +15,7 @@ if ( ! isset($_SESSION['lti2post']) ) {
     die_with_error_log("Missing LTI 2.0 post data");
 }
 
-error_log("Sesssion in lti2 ".session_id());
+error_log("Session in lti2 ".session_id());
 
 if ( ! isset($_SESSION['id']) ) {
     if ( isset($_REQUEST['login_done']) ) {
@@ -62,6 +62,7 @@ if ( $row['lti'] != 2 ) {
 $_POST = $_SESSION['lti2post'];
 
 $lti_message_type = $_POST["lti_message_type"];
+$re_register = $lti_message_type == "ToolProxyReregistrationRequest";
 
 ?>
 <html>
@@ -106,11 +107,39 @@ if ( strlen($output) > 0 ) $OUTPUT->togglePre("Raw GET Parameters", $output);
 
 echo("<pre>\n");
 
-if ( $lti_message_type == "ToolProxyReregistrationRequest" ) {
+// For re-registration the logged in user must own the key
+// For registration, the key must not exist and belong to another user
+// We double check the registration scenario in a transaction later
+if ( $re_register ) {
 	$reg_key = $_POST['oauth_consumer_key'];
-	$reg_password = "sakaiger";
+	$key_sha256 = lti_sha256($reg_key);
+	echo("key_sha256=".$key_sha256."<br>");
+	$oldproxy = $PDOX->rowDie(
+	    "SELECT secret
+		FROM {$CFG->dbprefix}lti_key
+		WHERE user_id = :UID AND key_sha256 = :SHA LIMIT 1",
+	    array(":SHA" => $key_sha256,
+		":UID" => $_SESSION['id'])
+	);
+	$reg_password = $oldproxy['secret'];
+	if ( strlen($reg_password) < 1 ) {
+            lmsDie("Registration key $reg_key cannot be re-registered.");
+	}
+echo("Old secret=".$reg_password."\n");
+
 } else if ( $lti_message_type == "ToolProxyRegistrationRequest" ) {
 	$reg_key = $_POST['reg_key'];
+	$key_sha256 = lti_sha256($reg_key);
+	echo("key_sha256=".$key_sha256."<br>");
+	$oldproxy = $PDOX->rowDie(
+	    "SELECT user_id
+		FROM {$CFG->dbprefix}lti_key
+		WHERE key_sha256 = :SHA LIMIT 1",
+	    array(":SHA" => $key_sha256)
+	);
+	if ( is_array($oldproxy) && $oldproxy['user_id'] != $_SESSION['id'] ) {
+            lmsDie("Registration key $reg_key cannot be registered.");
+	}
 	$reg_password = $_POST['reg_password'];
 } else {
 	echo("</pre>");
@@ -262,17 +291,16 @@ foreach($tc_capabilities as $capability) {
 $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
 $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
 
-$shared_secret='sakaiger';
+$shared_secret='sakaiger::'.bin2hex(openssl_random_pseudo_bytes(15));
+
 $tp_profile->security_contract->shared_secret = $shared_secret;
 $tp_services = array();
 foreach($tc_services as $tc_service) {
 	// var_dump($tc_service);
 	$tp_service = new stdClass;
-	$tp_service->{'@id'} = $tc_service->{'@id'};
-	$tp_service->{'@type'} = $tc_service->{'@type'};
-	$tp_service->format = $tc_service->format;
-	$tp_service->action = $tc_service->action;
-	$tp_service->service = $tc_service->endpoint;
+        $tp_service->{'@type'} = 'RestServiceProfile';
+        $tp_service->action = $tc_service->action;
+        $tp_service->service = $tc_service->{'@id'};
 	$tp_services[] = $tp_service;
 }
 // var_dump($tp_services);
@@ -301,36 +329,23 @@ $_SESSION['reg_password'] = $reg_password;
 $key_sha256 = lti_sha256($oauth_consumer_key);
 echo("key_sha256=".$key_sha256."<br>");
 
-// A big issues here is that TCs choose the proxy guid, and we need for 
+// A big issue here is that TCs choose the proxy guid, and we need for 
 // the proxy guids (i.e. oauth_consumer_key) to be unique.  So we mark
 // these with user_id and do not let a second TC slip in and take over
 // an existing key.   So the next few lines of code are really critical.
 // And we can neither use INSERT / UPDATE because we cannot add the user_id 
 // to the unique constraint.
 
-$oldproxy = $PDOX->rowDie(
-    "SELECT key_id, user_id
-        FROM {$CFG->dbprefix}lti_key
-        WHERE key_sha256 = :SHA LIMIT 1",
-    array(":SHA" => $key_sha256)
-);
-
-// Do we already have a key_entry?  If so - it must belong to this user
-// If it exists, we carefully update, making sure not to let a key slide by
-// for the wrong user.
-
-if ( is_array($oldproxy) ) {
-    if ( $oldproxy['user_id'] !== $_SESSION['id'] ) {
-        error_log("Registration key $oauth_consumer_key belongs to user_id=".$oldproxy['user_id'].
-            " requested by user_id=".$_SESSION['id']);
-        lmsDie("Registration key $oauth_consumer_key already exists.");
-    }
+$ack = false;
+if ( $re_register ) {
+    $ack = bin2hex(openssl_random_pseudo_bytes(10));
     $retval = $PDOX->queryDie(
-        "UPDATE {$CFG->dbprefix}lti_key SET updated_at = NOW(),
+        "UPDATE {$CFG->dbprefix}lti_key SET updated_at = NOW(), ack = :ACK,
             new_secret = :SECRET, new_consumer_profile = :PROFILE
             WHERE key_sha256 = :SHA and user_id = :UID",
         array(":SECRET" => $shared_secret, ":PROFILE" => $tc_profile_json,
-            ":UID" => $_SESSION['id'], ":SHA" => $key_sha256)
+            ":UID" => $_SESSION['id'], ":SHA" => $key_sha256, 
+	    ":ACK" => $ack)
     );
 
     if ( ! $retval->success ) {
@@ -345,7 +360,7 @@ if ( is_array($oldproxy) ) {
 } else {
     $retval = $PDOX->queryDie(
         "INSERT INTO {$CFG->dbprefix}lti_key 
-            (key_sha256, key_key, user_id, new_secret, new_consumer_profile)
+            (key_sha256, key_key, user_id, secret, consumer_profile)
         VALUES
             (:SHA, :KEY, :UID, :SECRET, :PROFILE)",
         array(":SHA" => $key_sha256, ":KEY" => $oauth_consumer_key, 
@@ -363,7 +378,13 @@ echo("</pre>\n");
 
 $OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
 
-$response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body);
+$more_headers = array();
+if ( $ack !== false ) {
+    $more_headers[] = 'VND-IMS-ACKNOWLEDGE-URL: '.$CFG->wwwroot.
+	'/lti/tp_commit.php?commit='.urlencode($ack);
+}
+
+$response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body, $more_headers);
 
 $OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(Net::getBodySentDebug()));
 

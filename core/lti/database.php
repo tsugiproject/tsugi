@@ -23,6 +23,7 @@ array( "{$CFG->dbprefix}lti_key",
 
     secret              TEXT NULL,
     new_secret          TEXT NULL,
+    ack                 TEXT NULL,
 
     -- This is the owner of this key - it is not a foreign key
     -- on purpose to avoid potential circular foreign keys
@@ -421,9 +422,17 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Version 201411222200 improvements
+    if ( $oldversion < 201411222200 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD ack TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201409242100;
+    return 201411222200;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
