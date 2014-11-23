@@ -22,6 +22,7 @@ $assignments = array(
     'a04.php' => 'Rock, Paper, Scissors',
     'a05.php' => 'Shopping Cart',
     'a06.php' => 'CRUD - Tracks',
+    'mid-f14-autos.php' => 'CRUD - Autos',
     'crud-videos.php' => 'CRUD - Videos'
 );
 

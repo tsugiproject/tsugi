@@ -295,7 +295,7 @@ class LTI {
         return Net::doGet($endpoint,$header);
     }
 
-    public static function sendOAuthBody($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $body)
+    public static function sendOAuthBody($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $body, $more_headers=false)
     {
         $hash = base64_encode(sha1($body, TRUE));
 
@@ -314,6 +314,10 @@ class LTI {
 
         $header = $acc_req->to_header();
         $header = $header . "\r\nContent-Type: " . $content_type . "\r\n";
+        if ( $more_headers === false ) $more_headers = array();
+        foreach ($more_headers as $more ) {
+            $header = $header . $more . "\r\n";
+        }
 
         return Net::doBody($endpoint, $method, $body,$header);
     }
