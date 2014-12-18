@@ -92,6 +92,13 @@ $CFG->noncetime = 1800;
 // See LTIX::getCompositeKey() for detail on how this operates.
 $CFG->sessionsalt = "warning:please-change-sessionsalt-89b543";
 
+// Timezone
+$CFG->timezone = 'Pacific/Honolulu'; // Nice for due dates
+
+// Analytics
+$CFT->analytics_key = false;  // "UA-423997-16";
+$CFT->analytics_name = false; // "dr-chuck.com";
+
 // Effectively an "airplane mode" for the appliction.
 // Setting this to true makes it so that when you are completely 
 // disconnected, various tools will not access network resources 
