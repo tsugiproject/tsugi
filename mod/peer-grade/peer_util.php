@@ -292,7 +292,7 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
 function getDefaultJson() 
 {
     $json = '{ "title" : "Assignment title",
-        "description" : "This assignment consists of two images to be uploaded.  This assignment is worth 10 points. 6 points come from your peers and 4 points come from you grading other student\'s submissions.",
+        "description" : "This is a sample assignment configuration showing the various kinds of items you can ask for in the assignment.  Change this text to describe what you want to be turned in and perhaps something about the grading scale like - This assignment is worth 10 points. 6 points come from your peers and 4 points come from you grading other student\'s submissions.",
         "grading" : "This is a relatively simple assignment.  Don\'t take off points for little mistakes.  If they seem to have done the assignment give them full credit.   Feel free to make suggestions if there are small mistakes.  Please keep your comments positive and useful.  If you do not take grading seriously, the instructors may delete your response and you will lose points.",
         "parts" : [
             { "title" : "URL of your home page",
@@ -306,7 +306,7 @@ function getDefaultJson()
               "type" : "code",
               "language" : "markup"
             },
-            { "title" : "Image of your home page",
+            { "title" : "Image (JPG or PNG) of your home page (Maximium 1MB per file)",
               "type" : "image"
             }
         ],
