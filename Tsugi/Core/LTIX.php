@@ -662,7 +662,7 @@ class LTIX {
                     die_with_error_log('Missing '.$sess.' from POST data');
                 } else {
                     send403();
-                    die_with_error_log('Missing '.$sess.'= on URL (Missing call to addSession?)');
+                    die_with_error_log('This tool should be launched from a learning system using LTI');
                 }
             }
         }
