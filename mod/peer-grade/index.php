@@ -154,23 +154,14 @@ if ( $assn_id != false && $assn_json != null &&
 
 // Check to see how much grading we have done
 $grade_count = 0;
-$stmt = $PDOX->queryDie(
-    "SELECT COUNT(grade_id) AS grade_count
-     FROM {$p}peer_submit AS S JOIN {$p}peer_grade AS G
-     ON S.submit_id = G.submit_id
-        WHERE S.assn_id = :AID AND G.user_id = :UID",
-    array( ':AID' => $assn_id, ':UID' => $USER->id)
-);
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
-if ( $row !== false ) {
-    $grade_count = $row['grade_count']+0;
+$to_grade = 0;
+if ( $assn_json->maxassess > 0 ) {
+    // See how much grading is left to do
+    $to_grade = loadUngraded($LTI, $assn_id);
+
+    // See how many grades I have done
+    $grade_count = loadMyGradeCount($LTI, $assn_id);
 }
-
-// See how much grading is left to do
-$to_grade = loadUngraded($LTI, $assn_id);
-
-// See how many grades I have done
-$grade_count = loadMyGradeCount($LTI, $assn_id);
 
 // Retrieve our grades...
 $our_grades = retrieveSubmissionGrades($submit_id);
@@ -275,17 +266,19 @@ if ( $submit_row == false ) {
     return;
 }
 
-if ( count($to_grade) > 0 && ($USER->instructor || $grade_count < $assn_json->maxassess ) ) {
-    echo('<a href="grade.php" class="btn btn-default">Peer grade other students</a> '."\n");
-    // Add a done button if needed
-    echo("<p> You have peer graded ".$grade_count." other student submissions.
-You must grade at least ".$assn_json->minassess." submissions for full credit on this assignment.
-You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
-
-} else if ( count($to_grade) > 0 ) {
-    echo('<p>You have graded the maximum number of submissions. Congratulations!<p>');
-} else {
-    echo('<p>There are no submisions waiting to be graded. Please check back later.</p>');
+if ( $assn_json->maxassess > 0 ) {
+    if ( count($to_grade) > 0 && ($USER->instructor || $grade_count < $assn_json->maxassess ) ) {
+        echo('<a href="grade.php" class="btn btn-default">Peer grade other students</a> '."\n");
+        // Add a done button if needed
+        echo("<p> You have peer graded ".$grade_count." other student submissions.
+    You must grade at least ".$assn_json->minassess." submissions for full credit on this assignment.
+    You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
+    
+    } else if ( count($to_grade) > 0 ) {
+        echo('<p>You have graded the maximum number of submissions. Congratulations!<p>');
+    } else {
+        echo('<p>There are no submisions waiting to be graded. Please check back later.</p>');
+    }
 }
 
 // We have a submission already
@@ -307,15 +300,19 @@ if ( count($our_grades) < 1 ) {
     echo("<p>No peers have graded your submission yet.</p>");
 } else {
     echo("<div style=\"padding:3px\"><p>You have the following grades from other students:</p>");
-    echo('<table border="1" class="table table-hover table-condensed table-responsive">');
-    echo("\n<tr><th>Points</th><th>Comments</th><th>Action</th></tr>\n");
+    echo('<table border="1" class="table table-hover table-condensed table-responsive"><tr>');
+    if ( $assn_json->peerpoints > 0 ) echo("<th>Points</th>");
+    echo("<th>Comments</th><th>Action</th></tr>\n");
 
     $max_points = false;
     foreach ( $our_grades as $grade ) {
-        if ( $max_points === false ) $max_points = $grade['points'];
-        $show = $grade['points'];
-        if ( $show < $max_points ) $show = '';
-        echo("<tr><td>".$show."</td><td>".htmlent_utf8($grade['note'])."</td>\n".
+        if ( $assn_json->peerpoints > 0 ) {
+            if ( $max_points === false ) $max_points = $grade['points'];
+            $show = $grade['points'];
+            if ( $show < $max_points ) $show = '';
+            echo("<tr><td>".$show."</td>");
+        }
+        echo("<td>".htmlent_utf8($grade['note'])."</td>\n".
         '<td><form><input type="submit" name="showFlag" value="Flag"
         onclick="$(\'#flag_grade_id\').val(\''.$grade['grade_id'].'\'); $(\'#flagform\').toggle(); return false;" class="btn btn-danger">'.
         "</form></tr>\n");

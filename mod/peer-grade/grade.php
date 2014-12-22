@@ -186,8 +186,10 @@ echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 <form method="post">
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
+<?php if ( $assn_json->peerpoints > 0 ) { ?>
 <input type="number" min="0" max="<?php echo($assn_json->peerpoints); ?>" name="points">
 (<?php echo($assn_json->peerpoints); ?> points for full credit)<br/>
+<?php } ?>
 Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" value="Grade" class="btn btn-primary">

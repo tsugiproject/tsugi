@@ -16,9 +16,23 @@ $p = $CFG->dbprefix;
 if ( isset($_POST['json']) ) {
     $json = $_POST['json'];
     if ( get_magic_quotes_gpc() ) $json = stripslashes($json);
-    $json = json_decode($json);
+    $json = json_decode(upgradeSubmission($json));
     if ( $json === null ) {
         $_SESSION['error'] = "Bad JSON Syntax";
+        header( 'Location: '.addSession('configure.php') ) ;
+        return;
+    }
+
+    // Some sanity checking...
+    if ( $json->totalpoints < 1 ) {
+        $_SESSION['error'] = "totalpoints is required and must be > 1";
+        header( 'Location: '.addSession('configure.php') ) ;
+        return;
+    }
+
+    if ( ( $json->instructorpoints + $json->peerpoints + 
+        ($json->assesspoints*$json->minassess) ) != $json->totalpoints ) {
+        $_SESSION['error'] = "instructorpoints + peerpoints + (assesspoints*minassess) != totalpoints ";
         header( 'Location: '.addSession('configure.php') ) ;
         return;
     }
@@ -77,7 +91,13 @@ and the kinds of changes that are safe to make after the assignment starts.
 <input type="submit" value="Save">
 <input type=submit name=doCancel onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Cancel"></p>
 </form>
-<p><b>Configuration options:</b></p>
+<p><b>Configuration:</b></p>
+<p>This tool can create a range of structured drop boxes using the values below.  
+You can make fully peer-graded assignments, fully instructor-graded assignments, 
+or assignments with a combination of peer-grading and instructor grading.
+Ths configuration is a bit complex - with great flexibility comes subtle complexity. One day
+I will turn this into a pretty UI to make it seem less complex.
+</p>
 <ul>
 <li>The title, description and grading text will be displayed to the user.  These can be edited
 at any time - even after the assignment has started.</li>
@@ -96,18 +116,33 @@ Available languages include:
 markup, css, javascript, java, php, c, python, sql, or ruby.
 </li>
 </ul>
+If you change the type or number of parts while an assessment is live things might 
+actually fail (nasty error messages on student screens).  If you need to make such a 
+change, it is probably better to start over with a 
+new assignment.
 </li>
-<li>totalpoints - this is the number of points for the assignment.   Each of the peer-graders
-will assign a value up to this number.  Currently the grading policy is to take the 
+<li>totalpoints - this is the number of points for the assignment.   
+The value for totalpoints must be the sum of instructorpoints, 
+peerpoints, and assesspoints*minassess. 
+The value totalpoints is required must be above 0.
+</li>
+<li>instructorpoints - this is the number of points that come from the instructor.  
+Leave this as zero for a purely peer-graded assignment.
+Set this to be the same as totalpoints (peerpoints and assesspoints set to zero)
+to create a purely instructor graded drop box.
+</li>
+<li>peerpoints - this is the maximum points that come from the other students assessments.
+Each of the peer-graders
+will assign a value up to this number.  
+Currently the grading policy is to take the 
 highest score from peers since this is really intended for pass/fail assignments and getting
 feedback from peers rather than carefully crafted assignments with subtle differences in the scores.</li>
-<li>instructorpoints - this is the number of points that come from the instructor.  
-Leave this as zero for a purely peer-graded assignment.</li>
-<li>peerpoints - this is the maximum points that come from the other students assessments</li>
-<li>minassess - this is the minimum number of peer assessments each student must do</li>
-<li>maxassess - this is the maximum number of peer assessments the student can do above and beyond
-the minimum</li>
-<li>asssesspoints - this is the number of points students get for each peer assessment that they do</li>
+<li>minassess - this is the minimum number of peer assessments each student must do.  
+If you set peerpoints to zero and minassess to something greater than zero, students will be able
+to comment on their peer submissions but not submit any points</li>
+<li>maxassess - this is the maximum number of peer assessments the student can do.</li>
+<li>asssesspoints - this is the number of points students get for each peer assessment that they do.
+If this is zero, students can do peer assessing/commenting but will get no points for their efforts.</li>
 </ul>
 <p>
 You can change any of these last five point values while an assessment is running, but you should 
@@ -116,11 +151,6 @@ consistent across all students.  Changing 'maxassess' or 'minassess' will not de
 that have already been done - it simply changes the policy in terms of new assessments the students 
 are allowed to do.
 </p>
-<p>
-If you change the type or number of parts while an assessment is live things might 
-actually fail (nasty error messages on student screens).  If you need to make such a 
-change, it is probably better to start over with a 
-new assignment.</p>
 <p>
 This code is open source and relatively easy to work with.   It is entirely possible to add new features
 to this over time if there is interest.

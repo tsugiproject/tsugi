@@ -46,10 +46,20 @@ function upgradeSubmission($json_str)
     if ( strlen(trim($json_str)) < 1 ) return $json_str;
     $json = json_decode($json_str);
     if ( $json === null ) return $json_str;
+
     // Add instructorpoints if they are not there
     if ( ! isset($json->instructorpoints) ) $json->instructorpoints = 0;
+
     // Convert maxpoints to peerpoints
     if ( ( ! isset($json->peerpoints) ) && isset($json->maxpoints) ) $json->peerpoints = $json->maxpoints;
+    unset($json->maxpoints);
+
+    // Allow for things to be optional
+    if ( ! isset($json->totalpoints) ) $json->totalpoints = 0; // Probably an error
+    if ( ! isset($json->assesspoints) ) $json->assesspoints = 0;
+    if ( ! isset($json->maxassess) ) $json->maxassess = 0;
+    if ( ! isset($json->minassess) ) $json->minassess = 0;
+    if ( ! isset($json->peerpoints) ) $json->peerpoints = 0;
     return json_encode($json);
 }
 
