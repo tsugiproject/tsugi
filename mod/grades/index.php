@@ -24,7 +24,7 @@ if ( isset($_GET['link_id']) ) {
 
 $link_info = false;
 if ( $USER->instructor && $link_id > 0 ) {
-    $link_info = loadUserInfo($link_id);
+    $link_info = loadLinkInfo($link_id);
 }
 
 if ( $USER->instructor && isset($_GET['viewall'] ) ) {
