@@ -40,6 +40,11 @@ if ( $submit_row !== false ) {
 
 // Load user info
 $user_row = loadUserInfoBypass($user_id);
+if ( $user_row == false ) {
+    $_SESSION['error'] = "Could not load student data.";
+    header( 'Location: '.addSession('index.php') ) ;
+    return;
+}
 
 // Handle incoming post to delete the entire submission
 if ( isset($_POST['deleteSubmit']) ) {
@@ -213,15 +218,17 @@ $grades_given = retrieveGradesGiven($assn_id, $user_id);
 
 // Retrieve the next and previous users for paging
 $sql = "(SELECT user_id, inst_points FROM ${p}peer_submit 
-        WHERE user_id < :UID ORDER BY user_id DESC LIMIT 1)
+        WHERE user_id < :UID AND assn_id = :AID ORDER BY user_id DESC LIMIT 1)
     UNION (SELECT user_id, inst_points FROM ${p}peer_submit 
-        WHERE user_id > :UID ORDER BY user_id ASC LIMIT 1)";
+        WHERE user_id > :UID AND assn_id = :AID ORDER BY user_id ASC LIMIT 1)";
 if ( $assn_json->instructorpoints > 0 ) {
     $sql .= "UNION (SELECT user_id, inst_points FROM ${p}peer_submit 
-        WHERE user_id > :UID AND inst_points IS NULL ORDER BY user_id ASC LIMIT 1)";
+        WHERE user_id > :UID AND assn_id = :AID AND inst_points IS NULL ORDER BY user_id ASC LIMIT 1)";
 }
 
-$rows = $PDOX->allRowsDie($sql, array(":UID" => $user_id));
+$rows = $PDOX->allRowsDie($sql, 
+    array(":UID" => $user_id, ":AID" => $assn_id)
+);
 
 // View
 $OUTPUT->header();
