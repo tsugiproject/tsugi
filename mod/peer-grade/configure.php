@@ -101,11 +101,13 @@ markup, css, javascript, java, php, c, python, sql, or ruby.
 will assign a value up to this number.  Currently the grading policy is to take the 
 highest score from peers since this is really intended for pass/fail assignments and getting
 feedback from peers rather than carefully crafted assignments with subtle differences in the scores.</li>
-<li>maxpoints - this is the maximum points that comes from the other students</li>
+<li>instructorpoints - this is the number of points that come from the instructor.  
+Leave this as zero for a purely peer-graded assignment.</li>
+<li>peerpoints - this is the maximum points that come from the other students assessments</li>
 <li>minassess - this is the minimum number of peer assessments each student must do</li>
-<li>asssesspoints - this is the number of points students get for each peer assessment that they do</li>
 <li>maxassess - this is the maximum number of peer assessments the student can do above and beyond
 the minimum</li>
+<li>asssesspoints - this is the number of points students get for each peer assessment that they do</li>
 </ul>
 <p>
 You can change any of these last five point values while an assessment is running, but you should 

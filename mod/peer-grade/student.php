@@ -73,6 +73,54 @@ if ( isset($_POST['deleteSubmit']) ) {
     return;
 }
 
+// Handle incoming post to delete the entire submission
+if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
+    if ( $submit_id == false ) {
+        $_SESSION['error'] = "Could not load submission.";
+        header( 'Location: '.addSession('index.php') ) ;
+        return;
+    }
+
+    // Check the legit options here
+    $points = isset($_POST['inst_points']) ? trim($_POST['inst_points']) : null;
+    if ( strlen($points) == 0 || $points === null ) {
+        $points = null;
+    } else if ( is_numeric($points) ) {
+        $points = $points + 0;
+    } else {
+        $_SESSION['error'] = "Points must either by a number or blank.";
+        header( 'Location: '.addSession('student.php?user_id='.$user_id) ) ;
+        return;
+    }
+
+    // Check the range here
+    if ( $points < 0 || $points > $assn_json->instructorpoints ) {
+        $_SESSION['error'] = "Bad value for instructor point value.";
+        header( 'Location: '.addSession('student.php?user_id='.$user_id) ) ;
+        return;
+    }
+
+    $stmt = $PDOX->queryDie(
+        "UPDATE {$p}peer_submit SET 
+            inst_points = :IP, inst_note = :IN
+            WHERE submit_id = :SID",
+        array( ':IP' => $points, 
+            ':IN' => $_POST['inst_note'], 
+            ':SID' => $submit_id)
+    );
+    Cache::clear('peer_grade');
+    Cache::clear('peer_submit');
+    $msg = "Submission updated";
+    $_SESSION['success'] = $msg;
+    if ( isset($_POST['instSubmitAdvance']) && isset($_POST['next_user_id_ungraded']) && is_numeric($_POST['next_user_id_ungraded']) ) {
+        $next_user_id_ungraded = $_POST['next_user_id_ungraded']+0;
+        header( 'Location: '.addSession('student.php?user_id='.$next_user_id_ungraded) ) ;
+    } else {
+        header( 'Location: '.addSession('student.php?user_id='.$user_id) ) ;
+    }
+    return;
+}
+
 // Compute grade
 $computed_grade = computeGrade($assn_id, $assn_json, $user_id);
 if ( isset($_POST['resendSubmit']) ) {
@@ -160,8 +208,20 @@ if ( isset($_POST['flag_id']) && isset($_POST['deleteFlag']) ) {
     return;
 }
 
-// Reteieve the grades that we have given
+// Retrieve the grades that we have given
 $grades_given = retrieveGradesGiven($assn_id, $user_id);
+
+// Retrieve the next and previous users for paging
+$sql = "(SELECT user_id, inst_points FROM ${p}peer_submit 
+        WHERE user_id < :UID ORDER BY user_id DESC LIMIT 1)
+    UNION (SELECT user_id, inst_points FROM ${p}peer_submit 
+        WHERE user_id > :UID ORDER BY user_id ASC LIMIT 1)";
+if ( $assn_json->instructorpoints > 0 ) {
+    $sql .= "UNION (SELECT user_id, inst_points FROM ${p}peer_submit 
+        WHERE user_id > :UID AND inst_points IS NULL ORDER BY user_id ASC LIMIT 1)";
+}
+
+$rows = $PDOX->allRowsDie($sql, array(":UID" => $user_id));
 
 // View
 $OUTPUT->header();
@@ -171,6 +231,16 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 
+$prev_user_id = false;
+$next_user_id = false;
+$next_user_id_ungraded = false;
+foreach ($rows as $row ) {
+    if ( $row['user_id'] < $user_id ) $prev_user_id = $row['user_id'];
+    if ( $row['user_id'] > $user_id && $next_user_id === false ) $next_user_id = $row['user_id'];
+    if ( $assn_json->instructorpoints > 0 && $row['user_id'] > $user_id && 
+        $next_user_id_ungraded === false && strlen($row['inst_points']) < 1 ) $next_user_id_ungraded = $row['user_id'];
+}
+
 if ( isset($_SESSION['debug_log']) ) {
     echo("<p>Grade send log below:</p>\n");
     $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
@@ -179,10 +249,39 @@ if ( isset($_SESSION['debug_log']) ) {
 }
 
 $user_display = false;
+echo('<div style="float:right">');
+if ( $prev_user_id !== false ) {
+    echo('<button class="btn btn-normal"
+        onclick="location=\''.addSession("student.php?user_id=$prev_user_id").'\'; 
+        return false">Previous Student</button> ');
+} else {
+    echo('<button class="btn btn-normal" disabled="disabled">Previous Student</button> ');
+}
+
+if ( $next_user_id !== false ) {
+    echo('<button class="btn btn-normal" 
+        onclick="location=\''.addSession("student.php?user_id=$next_user_id").'\'; 
+        return false">Next Student</button> ');
+} else {
+    echo('<button class="btn btn-normal" disabled="disabled">Next Student</button> ');
+}
+
+if ( $next_user_id_ungraded !== false ) {
+    echo('<button class="btn btn-normal" 
+        onclick="location=\''.addSession("student.php?user_id=$next_user_id_ungraded").'\'; 
+        return false">Next Ungraded Student</button> ');
+} else if ( $assn_json->instructorpoints > 0 ) {
+    echo('<button class="btn btn-normal" disabled="disabled">Next Ungraded Student</button> ');
+}
+echo('<input type="submit" name="doExit" class="btn btn-success"
+    onclick="location=\''.addSession('admin.php').'\'; return false;" value="Exit">');
+echo("</div>");
+
 if ( $user_row != false ) {
     $user_display = htmlent_utf8($user_row['displayname'])." (".htmlent_utf8($user_row['email']).")";
-    echo("<p>".$user_display."</p>\n");
+    echo("<p><b>Grade record for: ".$user_display."</b></p>\n");
 }
+
 
 if ( $submit_row === false ) {
     echo("<p>This student has not made a submission.</p>\n");
@@ -191,7 +290,32 @@ if ( $submit_row === false ) {
     showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id);
 }
 
-echo('<p><a href="grade.php?user_id='.$user_id.'">Grade this student</a></p>'."\n");
+echo('<form method="post">
+      <input type="hidden" name="user_id" value="'.$user_id.'">');
+
+if ( $next_user_id_ungraded !== false ) {
+      echo('<input type="hidden" name="next_user_id_ungraded" value="'.$next_user_id_ungraded.'">');
+}
+
+if ( $assn_json->instructorpoints > 0 ) {
+    echo('<label for="inst_points">Instructor Points</label>
+          <input type="number" name="inst_points" id="inst_points" min="0" ');
+    echo('max="'. $assn_json->instructorpoints.'" value="'.($submit_row["inst_points"]).'">');
+    echo(" (Maximum ". $assn_json->instructorpoints.' points)<br/>');
+}
+
+echo('<label for="inst_note">Instructor Note To Student</label><br/>
+      <textarea name="inst_note" id="inst_note" style="width:60%" rows="5">');
+echo(htmlent_utf8($submit_row['inst_note']));
+echo('</textarea><br/>
+      <input type="submit" name="instSubmit" value="Update" class="btn btn-primary">');
+
+if ( $next_user_id_ungraded !== false ) {
+    echo(' <input type="submit" name="instSubmitAdvance" value="Update and Go To Next Ungraded Student" class="btn btn-primary">');
+}
+echo('</form>');
+
+echo('<p><a href="grade.php?user_id='.$user_id.'">Peer grade this student</a></p>'."\n");
 if ( isset($_GET['delete']) ) {
     echo('<form method="post">
         <input type="hidden" name="user_id" value="'.$user_id.'">
@@ -244,7 +368,7 @@ if ( $our_flags !== false && count($our_flags) > 0 ) {
 }
 
 if ( $grades_received === false || count($grades_received) < 1 ) {
-    echo("<p>No one has graded this submission $user_display.</p>");
+    echo("<p>No peer has graded this submission $user_display.</p>");
 } else {
     echo("<p>Grades Received$user_display:</p>");
     echo('<div style="margin:3px;">');
@@ -290,14 +414,6 @@ if ( $grades_given === false || count($grades_given) < 1 ) {
     echo("</table>\n");
     echo("</div>\n");
 }
-
-?>
-<form method="post">
-<br/>
-<input type="submit" name="doExit" class="btn btn-success"
-onclick="location='<?php echo(addSession('admin.php'));?>'; return false;" value="Exit">
-</form>
-<?php
 
 $OUTPUT->footerStart();
 ?>

@@ -276,9 +276,9 @@ if ( $submit_row == false ) {
 }
 
 if ( count($to_grade) > 0 && ($USER->instructor || $grade_count < $assn_json->maxassess ) ) {
-    echo('<a href="grade.php" class="btn btn-default">Grade other students</a> '."\n");
+    echo('<a href="grade.php" class="btn btn-default">Peer grade other students</a> '."\n");
     // Add a done button if needed
-    echo("<p> You have graded ".$grade_count." other student submissions.
+    echo("<p> You have peer graded ".$grade_count." other student submissions.
 You must grade at least ".$assn_json->minassess." submissions for full credit on this assignment.
 You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
 
@@ -293,8 +293,18 @@ $submit_json = json_decode($submit_row['json']);
 echo("<p><b>Your Submission:</b></p>\n");
 showSubmission($LTI, $assn_json, $submit_json, $assn_id, $USER->id);
 
+if ( $submit_row['inst_points'] > 0 ) {
+    echo("<p>Instructor grade on assignment: ". $submit_row['inst_points']."</p>\n");
+} 
+
+if ( strlen($submit_row['inst_note']) > 0 ) {
+    echo("<p>Instructor Note:<br/>");
+    echo(htmlent_utf8($submit_row['inst_note']));
+    echo("</p>\n");
+}
+
 if ( count($our_grades) < 1 ) {
-    echo("<p>No one has graded your submission yet.</p>");
+    echo("<p>No peers have graded your submission yet.</p>");
 } else {
     echo("<div style=\"padding:3px\"><p>You have the following grades from other students:</p>");
     echo('<table border="1" class="table table-hover table-condensed table-responsive">');

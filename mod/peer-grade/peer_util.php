@@ -15,6 +15,7 @@ function loadAssignment($LTI)
         array(":ID" => $LTI['link_id'])
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $row['json'] = upgradeSubmission($row['json'] );
     Cache::set($cacheloc, $LTI['link_id'], $row);
     return $row;
 }
@@ -29,7 +30,7 @@ function loadSubmission($assn_id, $user_id)
     $submit_row = false;
 
     $stmt = $PDOX->queryDie(
-        "SELECT submit_id, json, note, reflect
+        "SELECT submit_id, json, note, reflect, inst_points, inst_note, inst_id, updated_at
             FROM {$CFG->dbprefix}peer_submit AS S
             WHERE assn_id = :AID AND S.user_id = :UID",
         array(":AID" => $assn_id, ":UID" => $user_id)
@@ -37,6 +38,19 @@ function loadSubmission($assn_id, $user_id)
     $submit_row = $stmt->fetch(PDO::FETCH_ASSOC);
     Cache::set($cacheloc, $cachekey, $submit_row);
     return $submit_row;
+}
+
+// Upgrade a submission to cope with name changes
+function upgradeSubmission($json_str)
+{
+    if ( strlen(trim($json_str)) < 1 ) return $json_str;
+    $json = json_decode($json_str);
+    if ( $json === null ) return $json_str;
+    // Add instructorpoints if they are not there
+    if ( ! isset($json->instructorpoints) ) $json->instructorpoints = 0;
+    // Convert maxpoints to peerpoints
+    if ( ( ! isset($json->peerpoints) ) && isset($json->maxpoints) ) $json->peerpoints = $json->maxpoints;
+    return json_encode($json);
 }
 
 // Check for ungraded submissions
@@ -153,7 +167,7 @@ function computeGrade($assn_id, $assn_json, $user_id)
 {
     global $CFG, $PDOX;
     $stmt = $PDOX->queryDie(
-        "SELECT S.assn_id, S.user_id AS user_id, email, displayname, S.submit_id as submit_id,
+        "SELECT S.assn_id, S.user_id AS user_id, inst_points, email, displayname, S.submit_id as submit_id,
             MAX(points) as max_points, COUNT(points) as count_points, C.grade_count as grade_count
         FROM {$CFG->dbprefix}peer_submit as S
         JOIN {$CFG->dbprefix}peer_grade AS G
@@ -176,15 +190,16 @@ function computeGrade($assn_id, $assn_json, $user_id)
     if ( $row === false || $row['user_id']+0 == 0 ) return -1;
 
     // Compute the overall points
+    $inst_points = $row['inst_points'] + 0;
     $assnpoints = $row['max_points']+0;
     if ( $assnpoints < 0 ) $assnpoints = 0;
-    if ( $assnpoints > $assn_json->maxpoints ) $assnpoints = $assn_json->maxpoints;
+    if ( $assnpoints > $assn_json->peerpoints ) $assnpoints = $assn_json->peerpoints;
 
     $gradecount = $row['grade_count']+0;
     if ( $gradecount < 0 ) $gradecount = 0;
     if ( $gradecount > $assn_json->minassess ) $gradecount = $assn_json->minassess;
     $gradepoints = $gradecount * $assn_json->assesspoints;
-    return ($assnpoints + $gradepoints) / $assn_json->totalpoints;
+    return ($inst_points + $assnpoints + $gradepoints) / $assn_json->totalpoints;
 }
 
 // Load the count of grades for this user for an assignment
@@ -311,9 +326,10 @@ function getDefaultJson()
             }
         ],
         "totalpoints" : 10,
-        "maxpoints" : 6,
-        "minassess" : 2,
+        "instructorpoints" : 0,
+        "peerpoints" : 6,
         "assesspoints" : 2,
+        "minassess" : 2,
         "maxassess" : 5
     }';
     $json = json_decode($json);

@@ -77,8 +77,8 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     }
 
     $points = $_POST['points']+0;
-    if ( $points < 0 || $points > $assn_json->maxpoints ) {
-        $_SESSION['error'] = 'Points must be between 0 and '.$assn_json->maxpoints;
+    if ( $points < 0 || $points > $assn_json->peerpoints ) {
+        $_SESSION['error'] = 'Points must be between 0 and '.$assn_json->peerpoints;
         header( 'Location: '.addSession($url_stay) ) ;
         return;
     }
@@ -186,8 +186,8 @@ echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 <form method="post">
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
-<input type="number" min="0" max="<?php echo($assn_json->maxpoints); ?>" name="points">
-(<?php echo($assn_json->maxpoints); ?> points for full credit)<br/>
+<input type="number" min="0" max="<?php echo($assn_json->peerpoints); ?>" name="points">
+(<?php echo($assn_json->peerpoints); ?> points for full credit)<br/>
 Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" value="Grade" class="btn btn-primary">
