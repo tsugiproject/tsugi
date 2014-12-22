@@ -315,7 +315,10 @@ if ( $next_user_id_ungraded !== false ) {
 }
 echo('</form>');
 
-echo('<p><a href="grade.php?user_id='.$user_id.'">Peer grade this student</a></p>'."\n");
+if ( $assn_json->maxassess > 0 ) {
+    echo('<p><a href="grade.php?user_id='.$user_id.'">Peer grade this student</a></p>'."\n");
+}
+
 if ( isset($_GET['delete']) ) {
     echo('<form method="post">
         <input type="hidden" name="user_id" value="'.$user_id.'">
@@ -373,14 +376,16 @@ if ( $grades_received === false || count($grades_received) < 1 ) {
     echo("<p>Grades Received$user_display:</p>");
     echo('<div style="margin:3px;">');
     echo('<table border="1" class="table table-hover table-condensed table-responsive">');
-    echo("\n<tr><th>User</th><th>Email</th><th>Points</th>
-        <th>Comments</th><th>Action</th></tr>\n");
+    echo("\n<tr><th>User</th><th>Email</th>");
+    if ( $assn_json->peerpoints > 0 ) echo("<th>Points</th>");
+    echo("<th>Comments</th><th>Action</th></tr>\n");
 
     foreach ( $grades_received as $grade ) {
         echo("<tr>
         <td>".htmlent_utf8($grade['displayname'])."</td>
-        <td>".htmlent_utf8($grade['email'])."</td>
-        <td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>".
+        <td>".htmlent_utf8($grade['email'])."</td>");
+        if ( $assn_json->peerpoints > 0 ) echo("<td>".$grade['points']."</td>");
+        echo("<td>".htmlent_utf8($grade['note'])."</td>".
         '<td> <form method="post"><input type="hidden"
             name="grade_id" value="'.$grade['grade_id'].'">
         <input type="hidden" name="user_id" value="'.$user_id.'">
@@ -397,14 +402,16 @@ if ( $grades_given === false || count($grades_given) < 1 ) {
     echo("<p>Grades Given$user_display:</p>");
     echo('<div style="margin:3px;">');
     echo('<table border="1" class="table table-hover table-condensed table-responsive">');
-    echo("\n<tr><th>User</th><th>Email</th><th>Points</th>
-        <th>Comments</th><th>Action</th></tr>\n");
+    echo("\n<tr><th>User</th><th>Email</th>");
+    if ( $assn_json->peerpoints > 0 ) echo("<th>Points</th>");
+    echo("<th>Comments</th><th>Action</th></tr>\n");
 
     foreach ( $grades_given as $grade ) {
         echo("<tr>
         <td>".htmlent_utf8($grade['displayname'])."</td>
-        <td>".htmlent_utf8($grade['email'])."</td>
-        <td>".$grade['points']."</td><td>".htmlent_utf8($grade['note'])."</td>".
+        <td>".htmlent_utf8($grade['email'])."</td>");
+        if ( $assn_json->peerpoints > 0 ) echo("<td>".$grade['points']."</td>");
+        echo("<td>".htmlent_utf8($grade['note'])."</td>".
         '<td> <form method="post"><input type="hidden"
             name="grade_id" value="'.$grade['grade_id'].'">
         <input type="hidden" name="user_id" value="'.$user_id.'">
