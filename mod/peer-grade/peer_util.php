@@ -9,7 +9,6 @@ function loadAssignment($LTI)
     global $CFG, $PDOX;
     $cacheloc = 'peer_assn';
     $row = Cache::check($cacheloc, $LTI['link_id']);
-    if ( $row != false ) $row['json'] = upgradeSubmission($row['json'] );
     if ( $row != false ) return $row;
     $stmt = $PDOX->queryDie(
         "SELECT assn_id, json FROM {$CFG->dbprefix}peer_assn WHERE link_id = :ID",
@@ -49,6 +48,8 @@ function upgradeSubmission($json_str)
     if ( $json === null ) return $json_str;
     // Add instructorpoints if they are not there
     if ( ! isset($json->instructorpoints) ) $json->instructorpoints = 0;
+    // Convert maxpoints to peerpoints
+    if ( ( ! isset($json->peerpoints) ) && isset($json->maxpoints) ) $json->peerpoints = $json->maxpoints;
     return json_encode($json);
 }
 
@@ -192,7 +193,7 @@ function computeGrade($assn_id, $assn_json, $user_id)
     $inst_points = $row['inst_points'] + 0;
     $assnpoints = $row['max_points']+0;
     if ( $assnpoints < 0 ) $assnpoints = 0;
-    if ( $assnpoints > $assn_json->maxpoints ) $assnpoints = $assn_json->maxpoints;
+    if ( $assnpoints > $assn_json->peerpoints ) $assnpoints = $assn_json->peerpoints;
 
     $gradecount = $row['grade_count']+0;
     if ( $gradecount < 0 ) $gradecount = 0;
@@ -326,7 +327,7 @@ function getDefaultJson()
         ],
         "totalpoints" : 10,
         "instructorpoints" : 0,
-        "maxpoints" : 6,
+        "peerpoints" : 6,
         "assesspoints" : 2,
         "minassess" : 2,
         "maxassess" : 5
