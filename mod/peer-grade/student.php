@@ -270,9 +270,11 @@ if ( $next_user_id_ungraded !== false ) {
     echo('<button class="btn btn-normal" 
         onclick="location=\''.addSession("student.php?user_id=$next_user_id_ungraded").'\'; 
         return false">Next Ungraded Student</button> ');
-} else {
+} else if ( $assn_json->instructorpoints > 0 ) {
     echo('<button class="btn btn-normal" disabled="disabled">Next Ungraded Student</button> ');
 }
+echo('<input type="submit" name="doExit" class="btn btn-success"
+    onclick="location=\''.addSession('admin.php').'\'; return false;" value="Exit">');
 echo("</div>");
 
 if ( $user_row != false ) {
@@ -412,14 +414,6 @@ if ( $grades_given === false || count($grades_given) < 1 ) {
     echo("</table>\n");
     echo("</div>\n");
 }
-
-?>
-<form method="post">
-<br/>
-<input type="submit" name="doExit" class="btn btn-success"
-onclick="location='<?php echo(addSession('admin.php'));?>'; return false;" value="Exit">
-</form>
-<?php
 
 $OUTPUT->footerStart();
 ?>

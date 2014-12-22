@@ -9,12 +9,14 @@ function loadAssignment($LTI)
     global $CFG, $PDOX;
     $cacheloc = 'peer_assn';
     $row = Cache::check($cacheloc, $LTI['link_id']);
+    if ( $row != false ) $row['json'] = upgradeSubmission($row['json'] );
     if ( $row != false ) return $row;
     $stmt = $PDOX->queryDie(
         "SELECT assn_id, json FROM {$CFG->dbprefix}peer_assn WHERE link_id = :ID",
         array(":ID" => $LTI['link_id'])
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $row['json'] = upgradeSubmission($row['json'] );
     Cache::set($cacheloc, $LTI['link_id'], $row);
     return $row;
 }
@@ -39,15 +41,16 @@ function loadSubmission($assn_id, $user_id)
     return $submit_row;
 }
 
-/*
 // Upgrade a submission to cope with name changes
 function upgradeSubmission($json_str)
 {
     if ( strlen(trim($json_str)) < 1 ) return $json_str;
     $json = json_decode($json_str);
     if ( $json === null ) return $json_str;
+    // Add instructorpoints if they are not there
+    if ( ! isset($json->instructorpoints) ) $json->instructorpoints = 0;
+    return json_encode($json);
 }
-*/
 
 // Check for ungraded submissions
 function loadUngraded($LTI, $assn_id)
