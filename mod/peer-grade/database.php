@@ -42,14 +42,18 @@ array( "{$CFG->dbprefix}peer_submit",
     assn_id    INTEGER NOT NULL,
     user_id    INTEGER NOT NULL,
 
-    json         TEXT NULL,
-    note         TEXT NULL,
-    reflect      TEXT NULL,
+    json       TEXT NULL,
+    note       TEXT NULL,
+    reflect    TEXT NULL,
 
-    regrade      TINYINT NULL,
+    regrade    TINYINT NULL,
 
-    updated_at  DATETIME NOT NULL,
-    created_at  DATETIME NOT NULL,
+    inst_points   DOUBLE NULL,
+    inst_note  TEXT NULL,
+    inst_id    INTEGER NULL,
+
+    updated_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL,
 
     CONSTRAINT `{$CFG->dbprefix}peer_submit_ibfk_1`
         FOREIGN KEY (`user_id`)
@@ -139,7 +143,7 @@ array( "{$CFG->dbprefix}peer_flag",
 
 // Database upgrade
 $DATABASE_UPGRADE = function($oldversion) {
-    global $CFG;
+    global $CFG, $PDOX;
 
     // Version 2014042200 improvements
     if ( $oldversion < 2014042200 ) {
@@ -149,7 +153,23 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    return 2014042200;
+    // Support for instructor grading
+    if ( $oldversion < 201412222310 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}peer_submit ADD inst_points DOUBLE NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}peer_submit ADD inst_note TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}peer_submit ADD inst_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    return 201412222310;
 }; // Don't forget the semicolon on anonymous functions :)
 
 // Do the actual migration if we are not in admin/upgrade.php

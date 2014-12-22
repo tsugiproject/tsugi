@@ -13,16 +13,22 @@ $LTI = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 
+// Load the assignment data
+$row = loadAssignment($LTI);
+$assn_json = json_decode($row['json']);
+
 // Gets counts and max of the submissions
 $query_parms = array(":LID" => $LINK->id);
-$orderfields =  array("S.user_id", "displayname", "email", "S.updated_at", "user_key", "max_score", "scores", "flagged", "min_score");
+$orderfields =  array("S.user_id", "displayname", "email", "S.updated_at", "user_key", "max_score", "scores", "flagged", "min_score", "inst_points");
+if ( $assn_json->instructorpoints > 0 ) $orderfields[] = "inst_points";
 $searchfields = array("S.user_id", "displayname", "email", "S.updated_at", "user_key");
 
 // Note that inner where is lower case and outer WHERE is upper case on purpose
+$inst_points = $assn_json->instructorpoints > 0 ? "inst_points, " : "";
 $sql =
     "SELECT S.user_id AS user_id, displayname, email, S.submit_id as _submit_id,
         MAX(points) as max_score, MIN(points) AS min_score, COUNT(points) as scores,
-        COUNT(DISTINCT flag_id) as flagged,
+        $inst_points COUNT(DISTINCT flag_id) as flagged,
         MAX(S.updated_at) AS updated_at, user_key
     FROM {$p}peer_assn AS A JOIN {$p}peer_submit as S
         ON A.assn_id = S.assn_id
