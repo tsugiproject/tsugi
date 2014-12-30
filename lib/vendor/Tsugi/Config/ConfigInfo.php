@@ -244,6 +244,13 @@ class ConfigInfo {
     public $analytics_name = false; // "dr-chuck.com";
 
     /** 
+     * Configure universal analytics for this Tsugi instance.
+     *
+     * Set to false if you do not want universal analytics
+     */
+    public $universal_analytics = false;  // "UA-423997-16";
+
+    /** 
      * Effectively an "airplane mode" for the appliction.
      *
      * Setting this to true makes it so that when you are completely 

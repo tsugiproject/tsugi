@@ -95,9 +95,12 @@ $CFG->sessionsalt = "warning:please-change-sessionsalt-89b543";
 // Timezone
 $CFG->timezone = 'Pacific/Honolulu'; // Nice for due dates
 
-// Analytics
+// Old analytics
 $CFT->analytics_key = false;  // "UA-423997-16";
 $CFT->analytics_name = false; // "dr-chuck.com";
+
+// Universal Analytics
+$CFG->universal_analytics = false; // "UA-57880800-1";
 
 // Effectively an "airplane mode" for the appliction.
 // Setting this to true makes it so that when you are completely 
