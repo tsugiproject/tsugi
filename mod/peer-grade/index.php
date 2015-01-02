@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
 $row = loadAssignment($LTI);
 $assn_json = null;
 $assn_id = false;
-if ( $row !== false ) {
+if ( $row !== false && strlen($row['json']) > 0 ) {
     $assn_json = json_decode($row['json']);
     $assn_id = $row['assn_id'];
 }
@@ -155,7 +155,7 @@ if ( $assn_id != false && $assn_json != null &&
 // Check to see how much grading we have done
 $grade_count = 0;
 $to_grade = 0;
-if ( $assn_json->maxassess > 0 ) {
+if ( $assn_json && $assn_json->maxassess > 0 ) {
     // See how much grading is left to do
     $to_grade = loadUngraded($LTI, $assn_id);
 
