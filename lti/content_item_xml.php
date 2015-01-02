@@ -6,7 +6,7 @@ require_once "../config.php";
 ?>
 <cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0" xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0" xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0" xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
   <blti:title>Tsugi</blti:title>
-  <blti:description>Tsugi is a LTI tool hosting environment.</blti:description>
+  <blti:description>Tsugi is a LTI tool hosting environment.  Generally there are one or more tools that you can make use of that are histed in this server.</blti:description>
   <blti:launch_url><?= $CFG->wwwroot ?>/about.php</blti:launch_url>
   <blti:custom>
     <lticm:property name="sub_canvas_account_id">$Canvas.account.id</lticm:property>
