@@ -34,6 +34,11 @@ class User {
     public $displayname;
 
     /**
+     * Is the user an instructor?
+     */
+    public $instructor = false;
+
+    /**
      * Construct the user's name / email combination 
      */
     public function getNameAndEmail() {
