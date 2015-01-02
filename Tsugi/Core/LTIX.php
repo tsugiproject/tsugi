@@ -360,7 +360,8 @@ class LTIX {
             l.link_id, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
-            m.membership_id, m.role, m.role_override";
+            m.membership_id, m.role, m.role_override,
+            r.result_id, r.grade, r.result_url, r.sourcedid";
 
         if ( $profile_table ) {
             $sql .= ",
@@ -373,18 +374,13 @@ class LTIX {
             s.service_id, s.service_key AS service";
         }
 
-        // If we have an LTI 1.x result or an LTI 2.x result
-        if ( $post['sourcedid'] || $post['result_url'] ) {
-            $sql .= ",
-            r.result_id, r.sourcedid, r.grade, r.result_url";
-        }
-
         $sql .="\nFROM {$p}lti_key AS k
             LEFT JOIN {$p}lti_nonce AS n ON k.key_id = n.key_id AND n.nonce = :nonce
             LEFT JOIN {$p}lti_context AS c ON k.key_id = c.key_id AND c.context_sha256 = :context
             LEFT JOIN {$p}lti_link AS l ON c.context_id = l.context_id AND l.link_sha256 = :link
             LEFT JOIN {$p}lti_user AS u ON k.key_id = u.key_id AND u.user_sha256 = :user
-            LEFT JOIN {$p}lti_membership AS m ON u.user_id = m.user_id AND c.context_id = m.context_id";
+            LEFT JOIN {$p}lti_membership AS m ON u.user_id = m.user_id AND c.context_id = m.context_id
+            LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id";
 
         if ( $profile_table ) {
             $sql .= "
@@ -396,10 +392,6 @@ class LTIX {
             LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service";
         }
 
-        if ( $post['sourcedid'] || $post['result_url'] ) {
-            $sql .= "
-            LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id";
-        }
         $sql .= "\nWHERE k.key_sha256 = :key LIMIT 1\n";
 
         // echo($sql);
@@ -506,30 +498,32 @@ class LTIX {
                 " user=".$row['user_id']." context=".$row['context_id'];
         }
 
-        // We need to handle the case where the service URL changes but we already have a sourcedid
-        // This is for LTI 1.x only as service is not used for LTI 2.x
-        $oldserviceid = $row['service_id'];
-        if ( $row['service_id'] === null && $post['service'] && $post['sourcedid'] ) {
-            $sql = "INSERT INTO {$p}lti_service
-                ( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
-                ( :service_key, :service_sha256, :key_id, NOW(), NOW() )";
-            $PDOX->queryDie($sql, array(
-                ':service_key' => $post['service'],
-                ':service_sha256' => lti_sha256($post['service']),
-                ':key_id' => $row['key_id']));
-            $row['service_id'] = $PDOX->lastInsertId();
-            $row['service'] = $post['service'];
-            $actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service'];
-        }
+        if ( isset($post['service'])) {
+            // We need to handle the case where the service URL changes but we already have a sourcedid
+            // This is for LTI 1.x only as service is not used for LTI 2.x
+            $oldserviceid = $row['service_id'];
+            if ( $row['service_id'] === null && $post['service'] ) {
+                $sql = "INSERT INTO {$p}lti_service
+                    ( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
+                    ( :service_key, :service_sha256, :key_id, NOW(), NOW() )";
+                $PDOX->queryDie($sql, array(
+                    ':service_key' => $post['service'],
+                    ':service_sha256' => lti_sha256($post['service']),
+                    ':key_id' => $row['key_id']));
+                $row['service_id'] = $PDOX->lastInsertId();
+                $row['service'] = $post['service'];
+                $actions[] = "=== Inserted service id=".$row['service_id']." ".$post['service'];
+            }
 
-        // If we just created a new service entry but we already had a result entry, update it
-        // This is for LTI 1.x only as service is not used for LTI 2.x
-        if ( $oldserviceid === null && $row['result_id'] !== null && $row['service_id'] !== null && $post['service'] && $post['sourcedid'] ) {
-            $sql = "UPDATE {$p}lti_result SET service_id = :service_id WHERE result_id = :result_id";
-            $PDOX->queryDie($sql, array(
-                ':service_id' => $row['service_id'],
-                ':result_id' => $row['result_id']));
-            $actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id']." ".$post['sourcedid'];
+            // If we just created a new service entry but we already had a result entry, update it
+            // This is for LTI 1.x only as service is not used for LTI 2.x
+            if ( $oldserviceid === null && $row['result_id'] !== null && $row['service_id'] !== null && $post['service'] ) {
+                $sql = "UPDATE {$p}lti_result SET service_id = :service_id WHERE result_id = :result_id";
+                $PDOX->queryDie($sql, array(
+                    ':service_id' => $row['service_id'],
+                    ':result_id' => $row['result_id']));
+                $actions[] = "=== Updated result id=".$row['result_id']." service=".$row['service_id'];
+            }
         }
 
         // We always insert a result row if we have a link - we will store
@@ -545,8 +539,13 @@ class LTIX {
             $actions[] = "=== Inserted result id=".$row['result_id'];
        }
 
+        // Set these values to null if they were not in the post
+        if ( ! isset($post['sourcedid']) ) $post['sourcedid'] = null;
+        if ( ! isset($post['service']) ) $post['service'] = null;
+        if ( ! isset($post['result_url']) ) $post['result_url'] = null;
+
         // Here we handle updates to sourcedid or result_url including if we
-        // jut inserted the result row
+        // just inserted the result row
         if ( $row['result_id'] != null &&
             ($post['sourcedid'] != $row['sourcedid'] || $post['result_url'] != $row['result_url'] ||
             $post['service'] != $row['service'] )
