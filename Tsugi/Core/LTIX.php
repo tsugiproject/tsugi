@@ -68,6 +68,15 @@ class LTIX {
     }
 
     /**
+     * Return the original $_POST array
+     */
+    public static function postArray() {
+        if ( ! isset($_SESSION) ) return array();
+        if ( ! isset($_SESSION['lti_post']) ) return array();
+        return($_SESSION['lti_post']);
+    }
+
+    /**
      * Pull a keyed variable from the original LTI post data in the current session with default
      */
     public static function postGet($varname, $default=false) {
@@ -542,6 +551,7 @@ class LTIX {
         // Set these values to null if they were not in the post
         if ( ! isset($post['sourcedid']) ) $post['sourcedid'] = null;
         if ( ! isset($post['service']) ) $post['service'] = null;
+        if ( ! isset($row['service']) ) $row['service'] = null;
         if ( ! isset($post['result_url']) ) $post['result_url'] = null;
 
         // Here we handle updates to sourcedid or result_url including if we
