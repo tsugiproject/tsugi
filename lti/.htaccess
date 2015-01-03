@@ -2,3 +2,14 @@
 # http://httpd.apache.org/docs/2.2/mod/mod_dir.html#fallbackresource
 
 FallbackResource index.php
+
+# RewriteEngine on
+# RewriteRule ^ - [E=protossl]
+# RewriteCond %{HTTPS} on
+# RewriteRule ^ - [E=protossl:s]
+# RewriteRule "(^|/)\." - [F]
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{REQUEST_FILENAME} !-d
+# RewriteCond %{REQUEST_URI} !=/favicon.ico
+# RewriteRule ^ index.php [L]
+
