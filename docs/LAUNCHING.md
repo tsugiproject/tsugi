@@ -26,6 +26,10 @@ the tool picker under Settings -> Apps ->  App Configuration -> Add New App and
 then using a "Configure by URL" and entering this URL:
 
     https://lti-tools.dr-chuck.com/tsugi/lti/content-item-xml.php
+    
+Here is a video of using this inside of Canvas:
+
+    https://www.youtube.com/watch?v=xd6RhpHUdws&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMh
 
 Substitute the first part of the URL as appropriate depending on 
 where your Tsugi tool is being hosted.
