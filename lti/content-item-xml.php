@@ -1,12 +1,14 @@
 <?php
 require_once "../config.php";
 
-    header("Content-type: application/xml");
-    echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
+// See the end of the file for some documentation references 
+
+header("Content-type: application/xml");
+echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 ?>
 <cartridge_basiclti_link xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0" xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0" xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0" xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
-  <blti:title>Tsugi</blti:title>
-  <blti:description>Tsugi is a LTI tool hosting environment.  Generally there are one or more tools that you can make use of that are histed in this server.</blti:description>
+  <blti:title><?= htmlent_utf8(strip_tags($CFG->servicename)) ?></blti:title>
+  <blti:description><?= htmlent_utf8(strip_tags($CFG->servicedesc)) ?></blti:description>
   <blti:launch_url><?= $CFG->wwwroot ?>/about.php</blti:launch_url>
   <blti:custom>
     <lticm:property name="sub_canvas_account_id">$Canvas.account.id</lticm:property>
@@ -45,4 +47,36 @@ require_once "../config.php";
     <lticm:property name="selection_width">500</lticm:property>
     <lticm:property name="text">Content Extension Tool</lticm:property>
   </blti:extensions>
-</cartridge_basiclti_link>
+</cartridge_basiclti_link><?php
+
+/*
+Best documentation on how it works is here:
+
+https://www.eduappcenter.com/docs/extensions/content
+
+I believe you already have a canvas account and you can install 
+a tool in any course you have or create. If you want to be able 
+to see it in action, you can install this tool:
+
+http://lti-tool-provider.herokuapp.com/
+
+it links to its xml config on that page, it is here:
+
+http://lti-tool-provider.herokuapp.com/tool_config.xml
+
+The trick in that xml is the block: <lticm:options name="editor_button">
+
+That is what makes a button appear in the RCE. The other option of 
+interest to you there is selection for module items which is 
+'resource_selection'. We don't have an UI components to enable those placements. 
+
+These 2 pages show how to configure it in Canvas:
+
+https://www.eduappcenter.com/docs/extensions/canvas_wysiwyg
+https://www.eduappcenter.com/docs/extensions/canvas_link_selection
+
+If you need more details let me know.
+
+- Bracken
+*/
+
