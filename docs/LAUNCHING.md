@@ -15,9 +15,22 @@ or test using any LTI Consumer harness such as the one I use at:
 
 https://online.dr-chuck.com/sakai-api-test/lms.php
 
-Here is a list of the tools installed in a server by default.
+Content Item Extension
+----------------------
+
+Canvas has an extension called "Content Item" that allows the installation
+of a "table of contents" or "picker" tool that allows the easy picking
+and placing of LTI tools.  If you are using Canvas and want to use this feature
+to insert Tsugi links into your courses, you can use this URL to install
+the tool picker under Settings -> Apps ->  App Configuration -> Add New App and
+then using a "Configure by URL" and entering this URL:
+
+    https://lti-tools.dr-chuck.com/tsugi/lti/content-item-xml.php
+
 Substitute the first part of the URL as appropriate depending on 
 where your Tsugi tool is being hosted.
+
+Here is a list of the tools installed on most Tsugi servers by default.
 
 Social Peer Grader
 ------------------
