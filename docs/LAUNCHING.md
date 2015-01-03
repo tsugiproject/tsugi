@@ -29,7 +29,7 @@ then using a "Configure by URL" and entering this URL:
     
 Here is a video of using this inside of Canvas:
 
-    https://www.youtube.com/watch?v=xd6RhpHUdws&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMh
+https://www.youtube.com/watch?v=xd6RhpHUdws&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMh
 
 Substitute the first part of the URL as appropriate depending on 
 where your Tsugi tool is being hosted.
