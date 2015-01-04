@@ -25,7 +25,7 @@ to insert Tsugi links into your courses, you can use this URL to install
 the tool picker under Settings -> Apps ->  App Configuration -> Add New App and
 then using a "Configure by URL" and entering this URL:
 
-    https://lti-tools.dr-chuck.com/tsugi/lti/content-item-xml.php
+    https://lti-tools.dr-chuck.com/tsugi/lti/content-item.xml
     
 Here is a video of using this inside of Canvas:
 
