@@ -8,4 +8,4 @@ if ( $local_path == "content-item.xml" ) {
     return;
 }
 ?>
-<p>TBD</p>
+<p>File not found</p>
