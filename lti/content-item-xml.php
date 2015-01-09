@@ -43,9 +43,15 @@ echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
     <lticm:options name="resource_selection">
       <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/content-item.php</lticm:property>
     </lticm:options>
+    <lticm:options name="homework_submission">
+        <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/content-item.php</lticm:property>
+    </lticm:options>
+    <lticm:property name="icon_url">
+        <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/tsugi.png</lticm:property>
+    </lticm:property>
     <lticm:property name="selection_height">500</lticm:property>
     <lticm:property name="selection_width">500</lticm:property>
-    <lticm:property name="text">Content Extension Tool</lticm:property>
+    <lticm:property name="text"><?= htmlent_utf8(strip_tags($CFG->servicename)) ?></lticm:property>
   </blti:extensions>
 </cartridge_basiclti_link><?php
 
@@ -78,5 +84,7 @@ https://www.eduappcenter.com/docs/extensions/canvas_link_selection
 If you need more details let me know.
 
 - Bracken
+
+Note from: John Jonston - https://www.edu-apps.org/build_xml.html
 */
 
