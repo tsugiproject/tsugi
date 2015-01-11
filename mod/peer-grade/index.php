@@ -49,6 +49,15 @@ if ( $assn_id != false && $assn_json != null &&
         return;
     }
 
+    // Check all files to be within our size limit
+    foreach($_FILES as $fdes) {
+        if ( $fdes['size'] > 1024*1024 ) {
+            $_SESSION['error'] = 'Error - '.$fdes['name'].' has a size of '.$fdes['size'].' (1M max size per file)';
+            header( 'Location: '.addSession('index.php') ) ;
+            return;
+        }
+    }
+
     $blob_ids = array();
     $urls = array();
     $code_ids = array();
@@ -261,7 +270,9 @@ if ( $submit_row == false ) {
     echo('<input type="submit" name="doSubmit" value="Submit" class="btn btn-default"> ');
     $OUTPUT->exitButton('Cancel');
     echo('</form>');
-    echo("\n<p>Make sure each file is smaller than 1MB.</p>\n");
+    $upload_max_size = ini_get('upload_max_filesize');
+    echo("\n<p>Make sure each file is smaller than 1M.  Total upload limited to ");
+    echo(htmlent_utf8($upload_max_size)."</p>\n");
     $OUTPUT->footer();
     return;
 }
