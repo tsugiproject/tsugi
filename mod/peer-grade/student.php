@@ -78,7 +78,7 @@ if ( isset($_POST['deleteSubmit']) ) {
     return;
 }
 
-// Handle incoming post to delete the entire submission
+// Handle incoming post to set the instructor points and update the grade
 if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
     if ( $submit_id == false ) {
         $_SESSION['error'] = "Could not load submission.";
@@ -116,7 +116,17 @@ if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
     Cache::clear('peer_grade');
     Cache::clear('peer_submit');
     $msg = "Submission updated";
-    $_SESSION['success'] = $msg;
+    $computed_grade = computeGrade($assn_id, $assn_json, $user_id); // Does not cache
+    $result = lookupResult($LTI, $user_id);  // Does not cache
+    $result['grade'] = -1; // Force resend
+    $debug_log = array();
+    $status = LTIX::gradeSend($computed_grade, $result, $debug_log); // This is the slow bit
+    if ( $status === true ) {
+        $_SESSION['success'] = 'Grade submitted to server';
+    } else {
+        error_log("Problem sending grade ".$status);
+        $_SESSION['error'] = 'Error: '.$status;
+    }
     if ( isset($_POST['instSubmitAdvance']) && isset($_POST['next_user_id_ungraded']) && is_numeric($_POST['next_user_id_ungraded']) ) {
         $next_user_id_ungraded = $_POST['next_user_id_ungraded']+0;
         header( 'Location: '.addSession('student.php?user_id='.$next_user_id_ungraded) ) ;
@@ -127,9 +137,9 @@ if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
 }
 
 // Compute grade
-$computed_grade = computeGrade($assn_id, $assn_json, $user_id);
+$computed_grade = computeGrade($assn_id, $assn_json, $user_id); // Does not cache
 if ( isset($_POST['resendSubmit']) ) {
-    $result = lookupResult($LTI, $user_id);
+    $result = lookupResult($LTI, $user_id);  // Does not cache
     // Force a resend
     $_SESSION['lti']['grade'] = -1;  // Force a resend
     $result['grade'] = -1;
