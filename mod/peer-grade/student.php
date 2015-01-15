@@ -126,6 +126,7 @@ if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
     } else {
         error_log("Problem sending grade ".$status);
         $_SESSION['error'] = 'Error: '.$status;
+        $_SESSION['debug_log'] = $debug_log;
     }
     if ( isset($_POST['instSubmitAdvance']) && isset($_POST['next_user_id_ungraded']) && is_numeric($_POST['next_user_id_ungraded']) ) {
         $next_user_id_ungraded = $_POST['next_user_id_ungraded']+0;
@@ -231,14 +232,23 @@ $sql = "(SELECT user_id, inst_points FROM ${p}peer_submit
         WHERE user_id < :UID AND assn_id = :AID ORDER BY user_id DESC LIMIT 1)
     UNION (SELECT user_id, inst_points FROM ${p}peer_submit 
         WHERE user_id > :UID AND assn_id = :AID ORDER BY user_id ASC LIMIT 1)";
-if ( $assn_json->instructorpoints > 0 ) {
-    $sql .= "UNION (SELECT user_id, inst_points FROM ${p}peer_submit 
-        WHERE user_id > :UID AND assn_id = :AID AND inst_points IS NULL ORDER BY user_id ASC LIMIT 1)";
-}
-
 $rows = $PDOX->allRowsDie($sql, 
     array(":UID" => $user_id, ":AID" => $assn_id)
 );
+
+// Retrieve ungraded rows in a circular manner
+$ungraded_rows = false;
+if ( $assn_json->instructorpoints > 0 ) {
+    $ungraded_sql = "(SELECT user_id, inst_points FROM ${p}peer_submit 
+        WHERE user_id > :UID AND assn_id = :AID AND inst_points IS NULL ORDER BY user_id ASC LIMIT 1)
+    UNION (SELECT user_id, inst_points FROM ${p}peer_submit 
+        WHERE user_id != :UID AND assn_id = :AID AND inst_points IS NULL ORDER BY user_id ASC LIMIT 1)
+    ";
+    $ungraded_rows = $PDOX->allRowsDie($ungraded_sql, 
+        array(":UID" => $user_id, ":AID" => $assn_id)
+    );
+}
+
 
 // View
 $OUTPUT->header();
@@ -246,49 +256,53 @@ $OUTPUT->header();
 <link href="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.css" rel="stylesheet"/>
 <?php
 $OUTPUT->bodyStart();
-$OUTPUT->flashMessages();
 
 $prev_user_id = false;
 $next_user_id = false;
-$next_user_id_ungraded = false;
 foreach ($rows as $row ) {
     if ( $row['user_id'] < $user_id ) $prev_user_id = $row['user_id'];
     if ( $row['user_id'] > $user_id && $next_user_id === false ) $next_user_id = $row['user_id'];
-    if ( $assn_json->instructorpoints > 0 && $row['user_id'] > $user_id && 
-        $next_user_id_ungraded === false && strlen($row['inst_points']) < 1 ) $next_user_id_ungraded = $row['user_id'];
 }
 
-if ( isset($_SESSION['debug_log']) ) {
-    echo("<p>Grade send log below:</p>\n");
-    $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
-    unset($_SESSION['debug_log']);
-    echo("<p></p>\n");
+$next_user_id_ungraded = false;
+if ( $assn_json->instructorpoints > 0 && count($ungraded_rows) > 0 ) {
+    $next_user_id_ungraded = $ungraded_rows[0]['user_id'];
 }
 
 $user_display = false;
 echo('<div style="float:right">');
 if ( $prev_user_id !== false ) {
     echo('<button class="btn btn-normal"
+        title="Students are ordered by user_id" 
         onclick="location=\''.addSession("student.php?user_id=$prev_user_id").'\'; 
         return false">Previous Student</button> ');
 } else {
-    echo('<button class="btn btn-normal" disabled="disabled">Previous Student</button> ');
+    echo('<button class="btn btn-normal" 
+        title="Students are ordered by user_id" 
+        disabled="disabled">Previous Student</button> ');
 }
 
 if ( $next_user_id !== false ) {
     echo('<button class="btn btn-normal" 
+        title="Students are ordered by user_id" 
         onclick="location=\''.addSession("student.php?user_id=$next_user_id").'\'; 
         return false">Next Student</button> ');
 } else {
-    echo('<button class="btn btn-normal" disabled="disabled">Next Student</button> ');
+    echo('<button class="btn btn-normal" 
+        title="Students are ordered by user_id" 
+        disabled="disabled">Next Student</button> ');
 }
 
 if ( $next_user_id_ungraded !== false ) {
     echo('<button class="btn btn-normal" 
+        title="At the end of ungraded students
+this goes back to the first ungraded student." 
         onclick="location=\''.addSession("student.php?user_id=$next_user_id_ungraded").'\'; 
         return false">Next Ungraded Student</button> ');
 } else if ( $assn_json->instructorpoints > 0 ) {
-    echo('<button class="btn btn-normal" disabled="disabled">Next Ungraded Student</button> ');
+    echo('<button class="btn btn-normal" i
+        title="All students have instrucotr grades"
+        disabled="disabled">Next Ungraded Student</button> ');
 }
 echo('<input type="submit" name="doExit" class="btn btn-success"
     onclick="location=\''.addSession('admin.php').'\'; return false;" value="Exit">');
@@ -299,6 +313,8 @@ if ( $user_row != false ) {
     echo("<p><b>Grade record for: ".$user_display."</b></p>\n");
 }
 
+// Delay flash messages
+$OUTPUT->flashMessages();
 
 if ( $submit_row === false ) {
     echo("<p>This student has not made a submission.</p>\n");
@@ -437,6 +453,14 @@ if ( $grades_given === false || count($grades_given) < 1 ) {
     }
     echo("</table>\n");
     echo("</div>\n");
+}
+
+// Delay the debug output to the bottom
+if ( isset($_SESSION['debug_log']) ) {
+    echo("<p>Grade send log below:</p>\n");
+    $OUTPUT->dumpDebugArray($_SESSION['debug_log']);
+    unset($_SESSION['debug_log']);
+    echo("<p></p>\n");
 }
 
 $OUTPUT->footerStart();
