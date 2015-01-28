@@ -307,7 +307,9 @@ if ( strlen($submit_row['inst_note']) > 0 ) {
     echo("</p>\n");
 }
 
-if ( count($our_grades) < 1 ) {
+if ( $assn_json->maxassess < 1 ) {
+    // Do nothing
+} else if ( count($our_grades) < 1 ) {
     echo("<p>No peers have graded your submission yet.</p>");
 } else {
     echo("<div style=\"padding:3px\"><p>You have the following grades from other students:</p>");
