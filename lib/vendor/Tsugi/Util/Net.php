@@ -296,6 +296,10 @@ class Net {
       $result = curl_exec($ch);
       $info = curl_getinfo($ch);
       $last_http_response = $info['http_code'];
+      if(curl_errno($ch))
+      {
+          error_log('Curl error: ' . curl_error($ch));
+      }
       $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
       $LastHeadersReceived = substr($result, 0, $header_size);
       $body = substr($result, $header_size);
