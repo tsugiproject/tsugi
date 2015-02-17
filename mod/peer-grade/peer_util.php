@@ -147,11 +147,10 @@ function showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id)
         <h4 class="modal-title"><?php echo(htmlent_utf8($part->title)); ?></h4>
       </div>
       <div class="modal-body">
-         <pre class="line-numbers">
-         <code class="language-<?php echo($part->language); ?>">
-<?php echo (htmlentities($row['data'])); ?>
-         </code>
-         </pre>
+<!-- Don't indent or inadvertently add a newline once the pre starts -->
+<pre class="line-numbers"><code class="language-<?php echo($part->language); ?>"><?php echo (htmlentities($row['data'])); ?>
+</code>
+</pre>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->

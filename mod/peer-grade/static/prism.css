@@ -146,7 +146,7 @@ pre.line-numbers > code {
 	pointer-events: none;
 	top: 0;
 	font-size: 100%;
-	left: -8.2em;
+	left: -3.8em;
 	width: 3em; /* works for line-numbers below 1000 lines */
 	letter-spacing: -1px;
 	border-right: 1px solid #999;
@@ -168,7 +168,7 @@ pre.line-numbers > code {
 			content: counter(linenumber);
 			color: #999;
 			display: block;
-			padding-right: 0.4em;
+			padding-right: 0.8em;
 			text-align: right;
 		}
 
