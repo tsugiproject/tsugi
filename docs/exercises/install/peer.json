@@ -1,0 +1,21 @@
+{
+  "title":"Installing and Using GIT",
+  "description":"This assignment is worth 10 points. 5 points are from the instructor, 3 points are from your peers and 2 points come from you grading other student's submissions.",
+  "grading":"Don't take off points for little mistakes.  If they seem to have done the assignment give them full credit.   Feel free to make suggestions if there are small mistakes.  Please keep your comments positive and useful.  If you do not take grading seriously, the instructors may delete your response and you will lose points.",
+  "parts":[
+    {
+      "title":"A screen shot of your 'git clone' checking out PHP-Intro from GitHub.",
+      "type":"image"
+    },
+    {
+      "title":"A screen shot (including URL) of PHP-Intro running on your local computer.",
+      "type":"image"
+    }
+  ],
+  "totalpoints":10,
+  "instructorpoints":5,
+  "peerpoints":3,
+  "assesspoints":1,
+  "minassess":2,
+  "maxassess":5
+}

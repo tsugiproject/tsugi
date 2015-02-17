@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Assignment: Installing GIT and Tsugi</title>
+<style>
+li {padding-top: 0.5em;}
+pre {padding-left: 2em;}
+</style>
+</head>
+<body style="margin-left:5%; margin-bottom: 60px; margin-right: 5%; font-family: sans-serif;">
+<h1>Assignment: Installing GIT and Tsugi</h1>
+<p>
+In this assignment you will install the GIT source code managment software.
+GIT allows you to carefully track changes to source code.
+We can use GIT to store our project in anoy of a number of 
+respositories.  GitHub is probably the most popular public 
+repositories.   If you have an email address ending in ".edu"
+GitHub provides some very nice free options.
+</p>
+<h1>GIT Resources</h1>
+<p>There are several resources you might find useful:
+<ul>
+<li> <a href="http://rogerdudler.github.com/git-guide/files/git_cheat_sheet.pdf" target="_blank">GIT Cheat Sheet</a>
+</li>
+<li>
+<a href="http://git-scm.com/video/what-is-version-control" target="_blank">Video: What Is Version Control</a>
+</li>
+<li>
+<a href="http://git-scm.com/video/what-is-git" target="_blank">Video: What is GIT?</a>
+</li>
+<li>
+<a href="http://git-scm.com/book/en/Distributed-Git-Distributed-Workflows" target="_blank">Book: GIT Workflows</a>
+</li>
+<li>
+<a href="https://www.youtube.com/watch?v=4XpnKHJAok8" target="_blank">
+Video: Linus Torvalds on the creation of GIT 
+</a>
+</li>
+</ul>
+</p>
+<h1>Installing GIT</h1>
+<p>
+The first step is to install GIT if you do not already have it installed.  
+If you have GIT installed - you can skip this step.
+</p>
+<p>
+<ul>
+<li>Macintosh: If you have 10.9 or later open a command line and install git using:
+<pre>
+xcode-select --install
+</pre>
+Then try to run <b>git</b> from the command line to see if it was installed.  
+If that does not work, download and install the GIT client from
+<pre>
+<a href="http://git-scm.com/download/mac" target="_blank">http://git-scm.com/download/mac</a>
+</pre>
+</li>
+<li>Windows: Download and install the GIT client from
+<a href="http://msysgit.github.com/" target="_blank">http://msysgit.github.com/</a>. 
+Note that as you install, you should
+choose <b>Run Git From Windows Command Prompt </b> rather
+than the default of <b>Use Git Bash only </b> as seen in this image:<br/>
+<img src="01-Git-Setup.png" style="margin-top: 5px" width="400px"><br/>
+</ul>
+You do not have to follow these instructions exactly as long as one way or another you 
+have a working git on your computer so you can take the next steps.
+</p>
+<h2>Configuring GIT</h2>
+<p>
+Once you have GIT installed and working from the command line, you 
+need to configure your name and email address with the following commands in the
+command line / terminal:
+<pre>
+git config --global user.name "John Doe"
+
+git config --global user.email johndoe@example.com
+</pre>
+This way you will get credit for any changes you make that you submit to a 
+repository as patches.  
+</p>
+<p>
+In you installed git some other way, just make sure to configure your name and
+email address before starting to use git.
+</p>
+<h1>Installing Tsugi from GitHub</h1>
+<p>
+So now we need to use git to check Tsugi out from GitHub.  
+</p>
+<h2>Tsugi Resources</h2>
+<p>
+Here are some resources for Tsugi installation:
+<ul>
+<li>Tsugi <a href="https://github.com/csev/tsugi/blob/master/docs/INSTALL.md" target="_blank">
+Installation Documentation</a></li>
+<li>Tsugi <a href="https://www.youtube.com/watch?v=Na_QDXp-Y7o&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw" target="_blank">Installation Video</a></li>
+</ul>
+<h2>Installation</h2>
+<p>
+The primary task is to get the code checked out into your web server's web documents 
+folder (i.e. htdocs):
+<pre>
+cd /Applications/MAMP/htdocs
+git clone https://github.com/csev/tsugi.git
+</pre>
+And then follow the rest of the steps inthe installation documentation or video.
+<p>
+Once you copy the file config-dist.php to config.php and edit config.php to set up 
+your global variables and database connection, make sure to set developer mode to 
+TRUE and change the admin password so you can create the tables.  
+Also set the name of the service to be your first name:
+<pre>
+$CFG-&gt;servicename = 'Charles';
+</pre>
+<p>
+Tsugi tries to give you hints when it is improperly configured that guide
+you toward the next step in configuration.  For example if you have a good 
+database connection but no database tables defines, you see the following screen:
+</p>
+<p>
+<center><img src="02-Tsugi-Not-Configured.png" style="width: 90%; border: 1px solid black"></center>
+</p>
+<p>
+In Tsugi, you do not need to run "CREATE TABLE" statements.  Tsugi has an administration
+mode where it does all the needed "CREATE TABLE" statements.
+</p>
+<p>
+Once you have run the "CREATE DATABASE" statements and put the database 
+name, prefix (optional), database id and database pw into config.php -
+you use the Admin feature (with the password from config.php) and it 
+will create your tables.  You should verify that the tables were created 
+using PHPMyAdmin and looking in the "tsugi" database.
+<p>
+When your installation an table initialization is complete, you should see a 
+running Tsugi with your name in the output as follows:
+</p>
+<p>
+<center><img src="03-Tsugi-Installed.png" style="width: 90%; border: 1px solid black"></center>
+</p>
+<h1>What to Hand In</h1>
+<p>
+For this assignment you will hand in:
+<ol>
+<li>A screen shot (including the URL) of Tsugi
+running on your local computer</li>
+<li>A screen shot of PHPMyAdmin showing the tables in the 
+Tsugi database.</li>
+</ol>
+<h1>Sample Screen Shots</h1>
+<p>
+The Tsugi database tables in PHPMyAdmin:<br/>
+<p>
+<center><img src="02-Tsugi-Tables.png" style="width: 90%; border: 1px solid black"></center>
+</p>
+</p>
+<p>
+Provided by: <a href="http://www.php-intro.com/" target="_blank">
+www.tsugi.org</a> <br/>
+</p>
+<center>
+Copyright Creative Commons Attribution
+</center>
+</body>
+</html>
