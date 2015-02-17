@@ -60,8 +60,8 @@ hrs = raw_input("Enter Hours:")',
 "print" => "You must use the print statement to print the output.",
 "float" => "You should use the built-in float() function to convert from a string to a float.",
 "*" => "To multiply the pay and rate after you read them use the '*' operator.",
-"!35" => "You must read both the rate and pay using raw_input().",
-"!2.75" => "You must read both the rate and pay using raw_input().",
+"!35" => "You should not include the input data in your source code. You must read the values for the rate and pay using raw_input().",
+"!2.75" => "You should not include the input data in your source code. You must read the values for the rate and pay using raw_input().",
 "!96.25" => "You must actually calculate the pay.")),
 
 
