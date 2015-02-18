@@ -4,11 +4,11 @@
   "grading":"This assignment is graded by the instructor.",
   "parts":[
     {
-      "title":"A screen shot of your 'git clone' checking out PHP-Intro from GitHub.",
+      "title":"A screen shot (including the URL) of Tsugi running on your local computer with your name in the image",
       "type":"image"
     },
     {
-      "title":"A screen shot (including URL) of PHP-Intro running on your local computer.",
+      "title":"A screen shot of PHPMyAdmin showing the tables in the Tsugi database",
       "type":"image"
     }
   ],
