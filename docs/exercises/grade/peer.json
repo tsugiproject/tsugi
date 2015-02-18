@@ -1,0 +1,34 @@
+{
+  "title":"Inside the Tsugi Grade Tool",
+  "description":"This assignment is worth 10 points.",
+  "grading":"This assignment is graded by the instructor.",
+  "parts":[
+    {
+      "title":"The source code to your modified index.php",
+      "type":"code",
+      "language":"php"
+    },
+    {
+      "title":"Enter a grade of 0.1 and take a screen shot of it sending the grade",
+      "type":"image"
+    },
+    {
+      "title":"Enter a grade of 0.7 and take a screen shot showing it sending the grade",
+      "type":"image"
+    },
+    {
+      "title":"Enter a grade of 0.6 and take a screen shot showing it not sending the grade",
+      "type":"image"
+    },
+    {
+      "title":"A screen shot of your lti_result table showing the 0.7 grade",
+      "type":"image"
+    }
+  ],
+  "totalpoints":10,
+  "instructorpoints":10,
+  "peerpoints":0,
+  "assesspoints":0,
+  "minassess":0,
+  "maxassess":0
+}
