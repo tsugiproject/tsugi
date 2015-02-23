@@ -189,6 +189,12 @@ function load_files() {
         if ( window.GLOBAL_TIMER != false ) window.clearInterval(window.GLOBAL_TIMER);
         window.GLOBAL_TIMER = false;
         hideall();
+        var output = document.getElementById("output");
+        oldtext = output.innerHTML;
+        // console.log('finalcheck oldtext='+oldtext);
+        if ( oldtext.indexOf('42<span') === 0 ) {
+            alert('Although 42 is the answer to the ultimate question of life, the universe, and everything, it appears not to be the correct answer for this assignment.');
+        }
         $("#spinner").hide();
         var prog = document.getElementById("code").value;
         var lines = prog.split("\n");
