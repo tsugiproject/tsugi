@@ -14,8 +14,8 @@ for now this is the documentation I have:
 * [Internationalizing and Localizing](I18N.md)
 * [Notes on generating API Documentation using PhpDoc](PHPDOC.md)
 
-Tsugi Exercises
-===============
+Tsugi Workshop Exercises
+========================
 
 If you want to learn to develop for Tsugi or want to give a Tsugi Workshop, 
 here are a series of exercises that you can work through to increase your understanding of Tsugi:
