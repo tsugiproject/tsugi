@@ -666,7 +666,7 @@ class LTI {
     }
 
     /**
-     * Send a caliper using the JSON protocol from IMS LTI 2.x
+     * Send a JSON body LTI 2.x Style
      *
      * @param debug_log This can either be false or an empty array.  If
      * this is an array, it is filled with data as the steps progress.
@@ -677,15 +677,13 @@ class LTI {
      * @return mixed If things go well this returns true.
      * If this goes badly, this returns a string with an error message.
      */
-    public static function sendJSONCaliper($postBody, $result_url, $key_key, $secret, &$debug_log=false) {
-        global $LastJSONGradeResponse;
-        $LastJSONGradeResponse = false;
+    public static function sendJSONBody($method, $postBody, $content_type,
+            $rest_url, $key_key, $secret, &$debug_log=false) 
+    {
 
-        $content_type = "application/json";
+        if ( is_array($debug_log) ) $debug_log[] = array('Sending '.strlen($postBody).' bytes to rest_url='.$rest_url);
 
-        if ( is_array($debug_log) ) $debug_log[] = array('Sending '.strlen($postBody).' bytes to result_url='.$result_url);
-
-        $response = self::sendOAuthBody("POST", $result_url, $key_key,
+        $response = self::sendOAuthBody($method, $rest_url, $key_key,
             $secret, $content_type, $postBody);
 
         if ( is_array($debug_log) )  $debug_log[] = array('Caliper JSON Response',$response);
@@ -694,7 +692,6 @@ class LTI {
         $lbs = $LastOAuthBodyBaseString;
         if ( is_array($debug_log) )  $debug_log[] = array('Our base string',$lbs);
 
-        // TODO: Be smarter about this :)
         return true;
     }
 

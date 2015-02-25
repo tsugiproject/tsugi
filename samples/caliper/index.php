@@ -13,31 +13,27 @@ $LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 $displayname = $USER->displayname;
 
-if ( isset($_POST['grade']) )  {
-    $gradetosend = $_POST['grade'] + 0.0;
-    if ( $gradetosend < 0.0 || $gradetosend > 1.0 ) {
-        $_SESSION['error'] = "Grade out of range";
-        header('Location: '.addSession('index.php'));
-        return;
-    }
-
-    // Use LTIX to send the grade back to the LMS.
+if ( isset($_POST['caliper'])) {
+    $caliper = Caliper::sensorCanvasPageView(
+        LTIX::sessionGet('user_key'), 
+        $CFG->wwwroot,
+        "samples/grade/index.php"
+    );
+    $_SESSION['caliper'] = $caliper;
     $debug_log = array();
-    $retval = LTIX::gradeSend($gradetosend, false, $debug_log);
-    $_SESSION['debug_log'] = $debug_log;
-
-    if ( $retval === true ) {
-        $_SESSION['success'] = "Grade $gradetosend sent to server.";
-    } else if ( is_string($retval) ) {
-        $_SESSION['error'] = "Grade not sent: ".$retval;
+    $retval = LTIX::caliperSend($caliper, 'application/json', $debug_log);
+/*
+echo("<pre>\n");
+var_dump($caliper);
+echo("</pre>\n");
+die();
+*/
+    if ( $retval ) {
+        $_SESSION['success'] = "Caliper sent.";
     } else {
-        echo("<pre>\n");
-        var_dump($retval);
-        echo("</pre>\n");
-        die();
+        $_SESSION['error'] = "Caliper attempt failed.";
     }
-
-    // Redirect to ourself
+    $_SESSION['debuglog'] = $debug_log;
     header('Location: '.addSession('index.php'));
     return;
 }
@@ -46,15 +42,14 @@ if ( isset($_POST['grade']) )  {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-echo("<h1>Grade Test Harness</h1>\n");
+echo("<h1>Caliper Test Harness</h1>\n");
 $OUTPUT->welcomeUserCourse();
 
 ?>
 <form method="post">
-Enter grade:
-<input type="number" name="grade" step="0.01" min="0" max="1.0"><br/>
-<input type="submit" name="send" value="Send grade">
+<input type="submit" name="caliper" value="Send Caliper Page View">
 </form>
+<br/>
 <?php
 
 if ( isset($_SESSION['debug_log']) ) {

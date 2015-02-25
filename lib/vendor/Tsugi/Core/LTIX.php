@@ -934,9 +934,6 @@ class LTIX {
       * Send settings to the LMS using the simple JSON approach
       */
     public static function settingsSend($settings, $settings_url, &$debug_log=false) {
-        global $CFG, $PDOX, $LINK, $USER;
-        global $LastPOXGradeResponse;
-        $LastPOXGradeResponse = false;
 
         $key_key = self::sessionGet('key_key');
         $secret = self::sessionGet('secret');
@@ -944,4 +941,43 @@ class LTIX {
         $retval = LTI::sendJSONSettings($settings, $settings_url, $key_key, $secret, $debug_log);
         return $retval;
     }
+
+    /**
+     * Send a Caliper Body to the correct URL using the key and secret
+     *
+     * This is not yet a standard or production - it uses the Canvas 
+     * extension only.
+     * 
+     */
+    public static function caliperSend($caliperBody, $content_type='application/json', &$debug_log=false) 
+    {
+
+        $caliperURL = LTIX::postGet('custom_sub_canvas_caliper_url');
+        if ( strlen($caliperURL) == 0 ) {
+            if ( is_array($debug_log) ) $debug_log[] = array('custom_sub_canvas_caliper_url not found in launch data');
+            return false;
+        }
+
+        $key_key = self::sessionGet('key_key');
+        $secret = self::sessionGet('secret');
+
+        $retval = LTI::sendJSONBody("POST", $caliperBody, $content_type, 
+            $caliperURL, $key_key, $secret, $debug_log);
+        return $retval;
+    }
+
+    /**
+     * Send a JSON Body to a URL after looking up the key and secret
+     */
+    public static function jsonSend($method, $postBody, $content_type, 
+        $service_url, &$debug_log=false) {
+
+        $key_key = self::sessionGet('key_key');
+        $secret = self::sessionGet('secret');
+
+        $retval = LTI::sendJSONBody($method, $postBody, $content_type, 
+            $service_url, $key_key, $secret, $debug_log);
+        return $retval;
+    }
+
 }
