@@ -82,13 +82,13 @@ if ( $maxversion > $CFG->dbversion ) {
    echo("-- WARNING: You should set \$CFG->dbversion=$maxversion in setup.php
         before distributing this version of the code.<br/>\n");
 } else if ( $maxversion < $CFG->dbversion ) {
-     echo("-- Updated to data model version $newversion <br/>\n");
+     echo("-- Updating overall data model version to $CFG->dbversion per setup.php<br/>\n");
      $sql = "INSERT INTO {$plugins}
         ( plugin_path, version, created_at, updated_at ) VALUES
         ( :plugin_path, :version, NOW(), NOW() )
         ON DUPLICATE KEY
         UPDATE version = :version, updated_at = NOW()";
-    $values = array( ":version" => $maxversion, ":plugin_path" => "overall-version");
+    $values = array( ":version" => $CFG->dbversion, ":plugin_path" => "overall-version");
     $q = $PDOX->queryReturnError($sql, $values);
     if ( ! $q->success ) die("Unable to update overall version ".$q->errorimplode."<br/>".$entry[1] );
 }
