@@ -14,16 +14,9 @@ for now this is the documentation I have:
 * [Internationalizing and Localizing](I18N.md)
 * [Notes on generating API Documentation using PhpDoc](PHPDOC.md)
 
-Tsugi Workshop Exercises
-========================
+Here are a set of Tsugi Exercises suitable for use in a class or workshop:
 
-If you want to learn to develop for Tsugi or want to give a Tsugi Workshop, 
-here are a series of exercises that you can work through to increase your understanding of Tsugi:
+* [Exercises](EXERCISES.md)
 
-* [Installing GIT and Tsugi](https://lti-tools.dr-chuck.com/tsugi/docs/exercises/install/)
-* [Inside the Tsugi Grade Tool](https://lti-tools.dr-chuck.com/tsugi/docs/exercises/grade/)
-* More coming...
-
-/Chuck
 
 
