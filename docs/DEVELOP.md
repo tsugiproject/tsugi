@@ -23,7 +23,6 @@ here are a series of exercises that you can work through to increase your unders
 * [Installing GIT and Tsugi](https://lti-tools.dr-chuck.com/tsugi/docs/exercises/install/)
 * [Inside the Tsugi Grade Tool](https://lti-tools.dr-chuck.com/tsugi/docs/exercises/grade/)
 * More coming...
-*
 
 /Chuck
 
