@@ -665,6 +665,39 @@ class LTI {
         return true;
     }
 
+    /**
+     * Send a caliper using the JSON protocol from IMS LTI 2.x
+     *
+     * @param debug_log This can either be false or an empty array.  If
+     * this is an array, it is filled with data as the steps progress.
+     * Each step is an array with a string message as the first element
+     * and optional debug detail (i.e. like a post body) as the second
+     * element.
+     *
+     * @return mixed If things go well this returns true.
+     * If this goes badly, this returns a string with an error message.
+     */
+    public static function sendJSONCaliper($postBody, $result_url, $key_key, $secret, &$debug_log=false) {
+        global $LastJSONGradeResponse;
+        $LastJSONGradeResponse = false;
+
+        $content_type = "application/json";
+
+        if ( is_array($debug_log) ) $debug_log[] = array('Sending '.strlen($postBody).' bytes to result_url='.$result_url);
+
+        $response = self::sendOAuthBody("POST", $result_url, $key_key,
+            $secret, $content_type, $postBody);
+
+        if ( is_array($debug_log) )  $debug_log[] = array('Caliper JSON Response',$response);
+
+        global $LastOAuthBodyBaseString;
+        $lbs = $LastOAuthBodyBaseString;
+        if ( is_array($debug_log) )  $debug_log[] = array('Our base string',$lbs);
+
+        // TODO: Be smarter about this :)
+        return true;
+    }
+
     // Compares base strings, start of the mis-match
     // Returns true if the strings are identical
     // This is setup to be displayed in <pre> tags as newlines are added

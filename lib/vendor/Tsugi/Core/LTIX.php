@@ -367,7 +367,7 @@ class LTIX {
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
             l.link_id, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
-            u.user_id, u.displayname AS user_displayname, u.email AS user_email,
+            u.user_id, u.displayname AS user_displayname, u.email AS user_email, user_key,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
             m.membership_id, m.role, m.role_override,
             r.result_id, r.grade, r.result_url, r.sourcedid";
@@ -490,6 +490,7 @@ class LTIX {
             $row['user_id'] = $PDOX->lastInsertId();
             $row['user_email'] = $user_email;
             $row['user_displayname'] = $user_displayname;
+            $row['user_key'] = $post['user_id'];
             $actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email'];
         }
 
