@@ -191,7 +191,11 @@ function load_files() {
         hideall();
         var output = document.getElementById("output");
         oldtext = output.innerHTML;
-        // console.log('finalcheck oldtext='+oldtext);
+        if ( oldtext.trim().length < 1 ) {
+            alert('Your program does not have any output');
+            window.GLOBAL_ERROR = true;
+        }
+        window.console && console.log('finalcheck oldtext='+oldtext);
         if ( oldtext.indexOf('42<span') === 0 ) {
             alert('Although 42 is the answer to the ultimate question of life, the universe, and everything, it appears not to be the correct answer for this assignment.');
         }
@@ -236,7 +240,7 @@ function load_files() {
 
     function outf(text)
     {
-        // console.log('Text='+text+':');
+        // window.console && console.log('Text='+text+':');
         var output = document.getElementById("output");
         oldtext = output.innerHTML;
         // window.console && console.log(oldtext);
