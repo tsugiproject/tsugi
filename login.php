@@ -23,6 +23,10 @@ if ( $google_key_id < 1 ) {
     die_with_error_log('Error: No key for accounts from google.com');
 }
 
+// Google Login Object
+$glog = new \Tsugi\Google\GoogleLogin($CFG->google_client_id,$CFG->google_client_secret,
+      $CFG->wwwroot.'/login.php',$CFG->wwwroot);
+
 $errormsg = false;
 $success = false;
 
@@ -39,35 +43,33 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
     $userEmail = 'fake_person@notgoogle.com';
     $doLogin = true;
 } else {
-    try {
-        $openid = new LightOpenID($CFG->wwwroot);
-        if(!$openid->mode) {
-            if(isset($_GET['login'])) {
-                $openid->identity = 'https://www.google.com/accounts/o8/id';
-                $openid->required = array('contact/email', 'namePerson/first', 'namePerson/last');
-                $openid->optional = array('namePerson/friendly');
-                header('Location: ' . $openid->authUrl());
-                return;
+
+    if ( isset($_GET['code']) ) {
+        if ( isset($_SESSION['GOOGLE_STATE']) && isset($_GET['state']) ) {
+            if ( $_SESSION['GOOGLE_STATE'] != $_GET['state'] ) {
+                $errormsg = "Missing important session data - could not log you in.  Sorry.";
+                error_log("Google Login state mismatch");
+                unset($_SESSION['GOOGLE_STATE']);
             }
         } else {
-            if($openid->mode == 'cancel') {
-                $errormsg = "You have canceled authentication. That's OK but we cannot log you in.  Sorry.";
-                error_log('Google-Cancel');
-            } else if ( ! $openid->validate() ) {
-                $errormsg = 'You were not logged in by Google.  It may be due to a technical problem.';
-                error_log('Google-Fail');
-            } else {
-                $identity = $openid->identity;
-                $userAttributes = $openid->getAttributes();
-                // echo("\n<pre>\n");print_r($userAttributes);echo("\n</pre>\n");
-                $firstName = isset($userAttributes['namePerson/first']) ? $userAttributes['namePerson/first'] : false;
-                $lastName = isset($userAttributes['namePerson/last']) ? $userAttributes['namePerson/last'] : false;
-                $userEmail = isset($userAttributes['contact/email']) ? $userAttributes['contact/email'] : false;
-                $doLogin = true;
-            }
+            $errormsg = "Missing important session data info- could not log you in.  Sorry.";
+            error_log("Error missing state");
+            unset($_SESSION['GOOGLE_STATE']);
         }
-    } catch(ErrorException $e) {
-        $errormsg = $e->getMessage();
+
+        $google_code = $_GET['code'];
+        $authObj = $glog->getAccessToken($google_code);
+        $user = $glog->getUserInfo();
+        // echo("<pre>\nUser\n");print_r($user);echo("</pre>\n");
+        $identity = isset($user->openid_id) ? $user->openid_id :
+            ( isset($user->id) ? $user->id : false );
+        $firstName = isset($user->given_name) ? $user->given_name : false;
+        $lastName = isset($user->family_name) ? $user->family_name : false;
+        $userEmail = isset($user->email) ? $user->email : false;
+        $userAvatar = isset($user->picture) ? $user->picture : false;
+        $userHomePage = isset($user->link) ? $user->link : false;
+        // echo("i=$identity f=$firstName l=$lastName e=$userEmail a=$userAvatar h=$userHomePage\n");
+        $doLogin = true;
     }
 }
 
@@ -205,6 +207,10 @@ if ( $doLogin ) {
         return;
     }
 }
+// We need a login URL
+$_SESSION['GOOGLE_STATE'] = md5(uniqid(rand(), TRUE));
+$loginUrl = $glog->getLoginUrl($_SESSION['GOOGLE_STATE']);
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 ?>
@@ -233,9 +239,9 @@ We here at <?php echo($CFG->servicename); ?> use Google Accounts as our sole log
 We do not want to spend a lot of time verifying identity, resetting passwords,
 detecting robot-login storms, and other issues so we let Google do that hard work.
 </p>
-<form action="?login" method="post">
+<form method="post">
     <input class="btn btn-warning" type="button" onclick="location.href='<?php echo($login_return); ?>'; return false;" value="Cancel"/>
-    <button class="btn btn-primary">Login with Google</button>
+    <input class="btn btn-primary" type="button" onclick="location.href='<?= $loginUrl ?>'; return false;" value="Login with Google" />
 </form>
 <p>
 So you must have a Google account and we will require your

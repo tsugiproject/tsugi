@@ -34,6 +34,11 @@ $CFG->ownername = false;  // 'Charles Severance'
 $CFG->owneremail = false; // 'csev@example.com'
 $CFG->providekeys = false;  // true
 
+// Set these to your API key for your Google Sign on
+// https://console.developers.google.com/
+$CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
+$CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
+
 // Database connection information to configure the PDO connection
 // You need to point this at a database with am account and password
 // that can create tables.   To make the initial tables go into Admin
