@@ -144,6 +144,9 @@ if ( $re_register ) {
 	lmsDie("lti_message_type not supported ".$lti_message_type);
 }
 
+// Check for the tc half secret
+$tc_oauth_half_secret = isset($_POST['tc_oauth_half_secret']) ? $_POST['tc_oauth_half_secret'] : false;
+
 $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
 
 $tc_profile_url = $_POST['tc_profile_url'];
@@ -198,6 +201,8 @@ echo("\nFound an application/vnd.ims.lti.v2.toolproxy+json service - nice for us
 $tc_capabilities = $tc_profile->capability_offered;
 echo("Found ".count($tc_capabilities)." capabilities..\n");
 if ( count($tc_capabilities) < 1 ) lmsDie("No capabilities found!\n");
+
+$oauth_splitsecret = in_array('OAuth.splitsecret', $tc_capabilities);
 
 $cur_base = $CFG->wwwroot;
 
@@ -291,6 +296,10 @@ $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
 
 // $shared_secret='sakaiger::'.bin2hex(openssl_random_pseudo_bytes(15));
 $shared_secret=bin2hex(openssl_random_pseudo_bytes(15));
+if ( $tc_oauth_half_secret && $oauth_splitsecret ) {
+    $tp_oauth_half_secret = bin2hex( openssl_random_pseudo_bytes( 512/8 ) ) ;
+    $shared_secret = $tc_oauth_half_secret . $tp_oauth_half_secret;
+}
 
 $tp_profile->security_contract->shared_secret = $shared_secret;
 $tp_services = array();
@@ -361,7 +370,10 @@ if ( $re_register ) {
         "INSERT INTO {$CFG->dbprefix}lti_key 
             (key_sha256, key_key, user_id, secret, consumer_profile)
         VALUES
-            (:SHA, :KEY, :UID, :SECRET, :PROFILE)",
+            (:SHA, :KEY, :UID, :SECRET, :PROFILE)
+        ON DUPLICATE KEY
+            UPDATE secret = :SECRET, consumer_profile = :PROFILE
+        ",
         array(":SHA" => $key_sha256, ":KEY" => $oauth_consumer_key, 
             ":UID" => $_SESSION['id'], ":SECRET" => $shared_secret,
             ":PROFILE" => $tc_profile_json)
