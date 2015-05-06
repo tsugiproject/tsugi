@@ -178,14 +178,16 @@ $register_url = false;
 $result_url = false;
 foreach ($tc_services as $tc_service) {
     $formats = $tc_service->{'format'};
+    $actions = $tc_service->{'action'};
     $type = $tc_service->{'@type'};
     $id = $tc_service->{'@id'};
     $actions = $tc_service->action;
     if ( ! (is_array($actions) && in_array('POST', $actions)) ) continue;
     foreach($formats as $format) {
-        echo("Service: ".$format." id=".$id."\n");
+        // Canvas includes two entries - only one with POST
+        // The POST entry is the one with a real URL
+        if ( ! in_array("POST",$actions) ) continue;
         if ( $format != "application/vnd.ims.lti.v2.toolproxy+json" ) continue;
-        // var_dump($tc_service);
         $register_url = $tc_service->endpoint;
     }
 }
@@ -280,6 +282,19 @@ if ( $toolcount < 1 ) {
     lmsDie("No tools to register..");
 }
 
+// Only ask for parameters we are allowed to ask for 
+// Canvas rejects us if  we ask for a custom parameter that they did 
+// not offer as capability
+$parameters = $tp_profile->tool_profile->resource_handler[0]->message[0]->parameter;
+$newparms = array();
+foreach($parameters as $parameter) {
+    if ( isset($parameter->variable) ) {
+        if ( ! in_array($parameter->variable, $tc_capabilities) ) continue;
+    }
+    $newparms[] = $parameter;
+}
+// var_dump($newparms);
+$tp_profile->tool_profile->resource_handler[0]->message[0]->parameter = $newparms;
 
 // Ask for the kitchen sink...
 foreach($tc_capabilities as $capability) {
