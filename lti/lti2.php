@@ -144,9 +144,6 @@ if ( $re_register ) {
 	lmsDie("lti_message_type not supported ".$lti_message_type);
 }
 
-// Check for the tc half secret
-$tc_oauth_half_secret = isset($_POST['tc_oauth_half_secret']) ? $_POST['tc_oauth_half_secret'] : false;
-
 $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
 
 $tc_profile_url = $_POST['tc_profile_url'];
@@ -203,9 +200,6 @@ echo("\nFound an application/vnd.ims.lti.v2.toolproxy+json service - nice for us
 $tc_capabilities = $tc_profile->capability_offered;
 echo("Found ".count($tc_capabilities)." capabilities..\n");
 if ( count($tc_capabilities) < 1 ) lmsDie("No capabilities found!\n");
-
-$oauth_splitsecret = in_array('OAuth.splitsecret', $tc_capabilities);
-
 $cur_base = $CFG->wwwroot;
 
 $tp_profile = json_decode($tool_proxy);
@@ -309,14 +303,17 @@ foreach($tc_capabilities as $capability) {
 $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
 $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
 
-// $shared_secret='sakaiger::'.bin2hex(openssl_random_pseudo_bytes(15));
-$shared_secret=bin2hex(openssl_random_pseudo_bytes(15));
-if ( $tc_oauth_half_secret && $oauth_splitsecret ) {
-    $tp_oauth_half_secret = bin2hex( openssl_random_pseudo_bytes( 512/8 ) ) ;
-    $shared_secret = $tc_oauth_half_secret . $tp_oauth_half_secret;
+// Construct the half secret or shared secret
+$shared_secret = bin2hex( openssl_random_pseudo_bytes( 512/8 ) ) ;
+$oauth_splitsecret = in_array('OAuth.splitSecret', $tc_capabilities);
+if ( $oauth_splitsecret ) {
+    $tp_profile->security_contract->tp_oauth_half_secret = $shared_secret;
+    echo("Provider Half Secret:\n".$shared_secret."\n");
+} else {
+    $tp_profile->security_contract->shared_secret = $shared_secret;
+    echo("Shared secret:\n".$shared_secret."\n");
 }
 
-$tp_profile->security_contract->shared_secret = $shared_secret;
 $tp_services = array();
 foreach($tc_services as $tc_service) {
 	// var_dump($tc_service);
@@ -336,7 +333,7 @@ $body = jsonIndent($body);
 echo("Register Endpoint=".$register_url."\n");
 echo("Result Endpoint=".$result_url."\n");
 echo("Registration Key=".$reg_key."\n");
-echo("Secret=".$reg_password."\n");
+echo("Registration Secret=".$reg_password."\n");
 echo("Consumer Key=".$oauth_consumer_key."\n");
 
 if ( strlen($register_url) < 1 || strlen($reg_key) < 1 || strlen($reg_password) < 1 ) lmsDie("Cannot call register_url - insufficient data...\n");
@@ -352,6 +349,48 @@ $_SESSION['reg_password'] = $reg_password;
 $key_sha256 = lti_sha256($oauth_consumer_key);
 echo("key_sha256=".$key_sha256."<br>");
 
+echo("</pre>\n");
+
+// Get the ack value
+$ack = false;
+if ( $re_register ) {
+    $ack = bin2hex(openssl_random_pseudo_bytes(10));
+}
+
+// Lets register!
+$OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
+
+$more_headers = array();
+if ( $ack !== false ) {
+    $more_headers[] = 'VND-IMS-ACKNOWLEDGE-URL: '.$CFG->wwwroot.
+	'/lti/tp_commit.php?commit='.urlencode($ack);
+}
+
+$response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body, $more_headers);
+
+$OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(Net::getBodySentDebug()));
+
+global $LastOAuthBodyBaseString;
+$OUTPUT->togglePre("Registration Request Base String",$LastOAuthBodyBaseString);
+
+$OUTPUT->togglePre("Registration Response Headers",htmlent_utf8(Net::getBodyReceivedDebug()));
+
+$OUTPUT->togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
+
+// Parse the response object and update the shared_secret if needed
+$responseObject = json_decode($response);
+if ( $responseObject != null ) {
+    if ( $oauth_splitsecret && $shared_secret ) {
+        if ( ! isset($responseObject->tc_oauth_half_secret) ) {
+            die_with_error_log("<p>Error: Tool Consumer did not provide oauth_splitsecret</p>\n");
+        } else {
+            $tc_oauth_half_secret = $responseObject->tc_oauth_half_secret;
+            $shared_secret = $tc_oauth_half_secret . $shared_secret;
+            echo("<p>Split Secret: ".$shared_secret."</p>\n");
+        }
+    }
+}
+
 // A big issue here is that TCs choose the proxy guid, and we need for 
 // the proxy guids (i.e. oauth_consumer_key) to be unique.  So we mark
 // these with user_id and do not let a second TC slip in and take over
@@ -359,9 +398,7 @@ echo("key_sha256=".$key_sha256."<br>");
 // And we can neither use INSERT / UPDATE because we cannot add the user_id 
 // to the unique constraint.
 
-$ack = false;
 if ( $re_register ) {
-    $ack = bin2hex(openssl_random_pseudo_bytes(10));
     $retval = $PDOX->queryDie(
         "UPDATE {$CFG->dbprefix}lti_key SET updated_at = NOW(), ack = :ACK,
             new_secret = :SECRET, new_consumer_profile = :PROFILE
@@ -398,28 +435,7 @@ if ( $re_register ) {
     }
     echo_log("LTI2 Key $oauth_consumer_key inserted.\n");
 }
-echo("</pre>\n");
 
-// Database all set up.   Lets register!
-
-$OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
-
-$more_headers = array();
-if ( $ack !== false ) {
-    $more_headers[] = 'VND-IMS-ACKNOWLEDGE-URL: '.$CFG->wwwroot.
-	'/lti/tp_commit.php?commit='.urlencode($ack);
-}
-
-$response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body, $more_headers);
-
-$OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(Net::getBodySentDebug()));
-
-global $LastOAuthBodyBaseString;
-$OUTPUT->togglePre("Registration Request Base String",$LastOAuthBodyBaseString);
-
-$OUTPUT->togglePre("Registration Response Headers",htmlent_utf8(Net::getBodyReceivedDebug()));
-
-$OUTPUT->togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
 
 if ( $last_http_response == 201 || $last_http_response == 200 ) {
   echo('<p><a href="'.$launch_presentation_return_url.'">Continue to launch_presentation_url</a></p>'."\n");
@@ -429,7 +445,6 @@ if ( $last_http_response == 201 || $last_http_response == 200 ) {
 echo("Registration failed, http code=".$last_http_response."\n");
 
 // Check to see if they slid us the base string...
-$responseObject = json_decode($response);
 if ( $responseObject != null && isset($responseObject->base_string) ) {
 	$base_string = $responseObject->base_string;
 	if ( strlen($base_string) > 0 && strlen($LastOAuthBodyBaseString) > 0 && $base_string != $LastOAuthBodyBaseString ) {
