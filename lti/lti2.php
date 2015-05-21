@@ -307,7 +307,7 @@ $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
 $shared_secret = bin2hex( openssl_random_pseudo_bytes( 512/8 ) ) ;
 $oauth_splitsecret = in_array('OAuth.splitSecret', $tc_capabilities);
 if ( $oauth_splitsecret ) {
-    $tp_profile->security_contract->tp_oauth_half_secret = $shared_secret;
+    $tp_profile->security_contract->tp_half_secret = $shared_secret;
     echo("Provider Half Secret:\n".$shared_secret."\n");
 } else {
     $tp_profile->security_contract->shared_secret = $shared_secret;
@@ -362,7 +362,7 @@ $OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
 
 $more_headers = array();
 if ( $ack !== false ) {
-    $more_headers[] = 'VND-IMS-ACKNOWLEDGE-URL: '.$CFG->wwwroot.
+    $more_headers[] = 'VND-IMS-CONFIRM-URL: '.$CFG->wwwroot.
 	'/lti/tp_commit.php?commit='.urlencode($ack);
 }
 
@@ -381,11 +381,11 @@ $OUTPUT->togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
 $responseObject = json_decode($response);
 if ( $responseObject != null ) {
     if ( $oauth_splitsecret && $shared_secret ) {
-        if ( ! isset($responseObject->tc_oauth_half_secret) ) {
+        if ( ! isset($responseObject->tc_half_secret) ) {
             die_with_error_log("<p>Error: Tool Consumer did not provide oauth_splitsecret</p>\n");
         } else {
-            $tc_oauth_half_secret = $responseObject->tc_oauth_half_secret;
-            $shared_secret = $tc_oauth_half_secret . $shared_secret;
+            $tc_half_secret = $responseObject->tc_half_secret;
+            $shared_secret = $tc_half_secret . $shared_secret;
             echo("<p>Split Secret: ".$shared_secret."</p>\n");
         }
     }
