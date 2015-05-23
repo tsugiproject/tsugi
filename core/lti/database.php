@@ -42,6 +42,7 @@ array( "{$CFG->dbprefix}lti_key",
     json                TEXT NULL,
     settings            TEXT NULL,
     settings_url        TEXT NULL,
+    entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -62,6 +63,7 @@ array( "{$CFG->dbprefix}lti_context",
     json                TEXT NULL,
     settings            TEXT NULL,
     settings_url        TEXT NULL,
+    entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -87,6 +89,7 @@ array( "{$CFG->dbprefix}lti_link",
     json                TEXT NULL,
     settings            TEXT NULL,
     settings_url        TEXT NULL,
+    entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -115,6 +118,7 @@ array( "{$CFG->dbprefix}lti_user",
 
     json                TEXT NULL,
     login_at            DATETIME NULL,
+    entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -137,6 +141,7 @@ array( "{$CFG->dbprefix}lti_membership",
     role                SMALLINT NULL,
     role_override       SMALLINT NULL,
 
+    entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -165,6 +170,7 @@ array( "{$CFG->dbprefix}lti_service",
     format              VARCHAR(1024) NULL,
 
     json                TEXT NULL,
+    entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -196,6 +202,7 @@ array( "{$CFG->dbprefix}lti_result",
     server_grade       FLOAT NULL,
 
     json               TEXT NULL,
+    entity_version     INTEGER NOT NULL DEFAULT 0,
     created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP NOT NULL DEFAULT 0,
     retrieved_at       DATETIME NULL,
@@ -227,6 +234,7 @@ array( "{$CFG->dbprefix}lti_nonce",
 "create table {$CFG->dbprefix}lti_nonce (
     nonce          CHAR(128) NOT NULL,
     key_id         INTEGER NOT NULL,
+    entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     INDEX `{$CFG->dbprefix}nonce_indx_1` USING HASH (`nonce`),
@@ -250,6 +258,7 @@ array( "{$CFG->dbprefix}profile",
 
     json                TEXT NULL,
     login_at            DATETIME NULL,
+    entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
 
@@ -430,9 +439,22 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Version 201505222100 improvements
+    if ( $oldversion < 201505222100 ) {
+        $tables = array('lti_key', 'lti_context', 'lti_link', 'lti_user',
+            'lti_nonce', 'lti_membership', 'lti_service', 
+            'lti_result', 'profile');
+        foreach ( $tables as $table ) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} ADD entity_version INTEGER NOT NULL DEFAULT 0";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+        }
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201411222200;
+    return 201505222100;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
