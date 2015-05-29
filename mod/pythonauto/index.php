@@ -107,8 +107,8 @@ body { font-family: sans-serif; }
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/codemirror.js"></script>
 <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/codemirror/python.js"></script>
 <?php } ?>
-<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt.min.js?v=1" type="text/javascript"></script>
-<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt-stdlib.js?v=1" type="text/javascript"></script>
+<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-003/skulpt.min.js?v=1" type="text/javascript"></script>
+<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-003/skulpt-stdlib.js?v=1" type="text/javascript"></script>
 <script type="text/javascript">
 
 function builtinRead(x)
@@ -513,7 +513,7 @@ if ( $dueDate->message ) {
         }
     }
 ?>
-<img id="spinner" src="skulpt/spinner.gif" style="vertical-align: middle;display: none">
+<img id="spinner" src="static/spinner.gif" style="vertical-align: middle;display: none">
 <span id="redo" style="color:red;display:none"> Please correct your code and re-run. </span>
 <span id="complete" style="color:green;display:none"> Execution complete. </span>
 <span id="gradegood" style="color:green;display:none"> Grade updated on server. </span>
