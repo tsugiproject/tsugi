@@ -6,13 +6,20 @@ for this software on YouTube:
 
 [Installation Video] (https://www.youtube.com/watch?v=Na_QDXp-Y7o&index=1&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw)
 
-To install this software follow these steps:
+Pre-Requisites
+--------------
 
-* Pre-requisites - git installed and working at the command prompt
-and a PHP/MySql environment installed - here is a set of screen casts from
-my www.php-intro.com site as to how to install MAMP or XAMPP:
+* [Install GIT] (GITHUB.md) so that it works at the command prompt.
+
+* Install a PHP/MySQL Environment like XAMPP / MAMP following the 
+instructions at:
 
     http://www.php-intro.com/install.php
+
+To install this software follow these steps:
+
+Installation
+------------
 
 * Check the code out from GitHub and put it in a directory where 
 your web server can read it
