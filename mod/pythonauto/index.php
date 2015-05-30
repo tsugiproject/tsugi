@@ -420,27 +420,9 @@ function outf(text) {
 // http://stackoverflow.com/questions/2308134/trim-in-javascript-not-working-in-ie
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/TrimLeft
 
-if(typeof String.prototype.trim !== 'function') {
-    String.prototype.trim = function() {
-        return this.replace(/^\s+|\s+$/g, '');
-    }
-}
-
-if(typeof String.prototype.ltrim !== 'function') {
-    String.prototype.ltrim = function() {
-        return this.replace(/^\s+/,"");
-    }
-}
-
 if(typeof String.prototype.trimLeft !== 'function') {
     String.prototype.trimLeft = function() {
         return this.replace(/^\s+/,"");
-    }
-}
-
-if(typeof String.prototype.rtrim !== 'function') {
-    String.prototype.rtrim = function() {
-        return this.replace(/\s+$/,"");
     }
 }
 
