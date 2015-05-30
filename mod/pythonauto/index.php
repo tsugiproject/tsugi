@@ -238,6 +238,27 @@ function load_files() {
         }
     }
 
+/*
+// Brad Miller Python3 hack - breaks printing of tuples
+function outf(text) {
+    var mypre = document.getElementById(Sk.pre);
+    // bnm python 3
+    x = text;
+    if (x.charAt(0) == '(') {
+        x = x.slice(1, -1);
+        x = '[' + x + ']';
+        try {
+            var xl = eval(x);
+            xl = xl.map(pyStr);
+            x = xl.join(' ');
+        } catch (err) {
+        }
+    }
+    text = x;
+    text = text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>");
+    mypre.innerHTML = mypre.innerHTML + text;
+}
+*/
     function outf(text)
     {
         // window.console && console.log('Text='+text+':');
@@ -328,7 +349,8 @@ function load_files() {
         output.innerHTML = '';
         if ( window.GLOBAL_TIMER != false ) window.clearInterval(window.GLOBAL_TIMER);
         window.GLOBAL_TIMER = setTimeout("finalcheck();",2500);
-        Sk.configure({output:outf, read: builtinRead});
+        //Sk.python3 = false;
+        Sk.configure({output:outf, read: builtinRead, python3: false});
         // Sk.execLimit = 10000; // Ten Seconds
 
         try {
