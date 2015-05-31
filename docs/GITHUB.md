@@ -10,8 +10,8 @@ Download from
 
     http://msysgit.github.io/
 
-When going through the installation, make *sure* to select 
-"Run Git from the Command Prompt" during the installation.
+When going through the installation, make _sure_ to select  "Run Git from the
+Command Prompt" at one of the installation steps.
 
 
 Installing GIT on Mac
@@ -21,8 +21,8 @@ If you have 10.9 or later open a command line and install git using:
 
     xcode-select --install
     
-Then try to run git from the command line to see if it was installed.  
-If that does not work, try to download and install Git from:
+Then try to run git from the command line to see if it was installed. If that 
+does not work, try to download and install Git from:
 
     http://git-scm.com/download/mac
 
