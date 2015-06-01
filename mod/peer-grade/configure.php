@@ -143,6 +143,8 @@ to comment on their peer submissions but not submit any points</li>
 <li>maxassess - this is the maximum number of peer assessments the student can do.</li>
 <li>asssesspoints - this is the number of points students get for each peer assessment that they do.
 If this is zero, students can do peer assessing/commenting but will get no points for their efforts.</li>
+<li>flag - if this is true, students will be given the option to flag submissions and flag
+comments on their submissions.  Setting this to false, turns off the flagging workflow.</li>
 </ul>
 <p>
 You can change any of these last five point values while an assessment is running, but you should 

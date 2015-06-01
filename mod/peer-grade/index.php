@@ -315,7 +315,9 @@ if ( $assn_json->maxassess < 1 ) {
     echo("<div style=\"padding:3px\"><p>You have the following grades from other students:</p>");
     echo('<table border="1" class="table table-hover table-condensed table-responsive"><tr>');
     if ( $assn_json->peerpoints > 0 ) echo("<th>Points</th>");
-    echo("<th>Comments</th><th>Action</th></tr>\n");
+    echo("<th>Comments</th>");
+    if ( $assn_json->flag ) echo("<th>Action</th>");
+    echo("</tr>\n");
 
     $max_points = false;
     foreach ( $our_grades as $grade ) {
@@ -325,10 +327,14 @@ if ( $assn_json->maxassess < 1 ) {
             if ( $show < $max_points ) $show = '';
             echo("<tr><td>".$show."</td>");
         }
-        echo("<td>".htmlent_utf8($grade['note'])."</td>\n".
-        '<td><form><input type="submit" name="showFlag" value="Flag"
-        onclick="$(\'#flag_grade_id\').val(\''.$grade['grade_id'].'\'); $(\'#flagform\').toggle(); return false;" class="btn btn-danger">'.
-        "</form></tr>\n");
+        echo("<td>".htmlent_utf8($grade['note'])."</td>\n");
+    
+        if ( $assn_json->flag ) echo(
+            '<td><form><input type="submit" name="showFlag" value="Flag"'.
+            'onclick="$(\'#flag_grade_id\').val(\''.$grade['grade_id'].
+             '\'); $(\'#flagform\').toggle(); return false;" class="btn btn-danger">'.
+            '</form></td>');
+        echo("</tr>\n");
     }
     echo("</table>\n");
     if ( $max_points !== false ) {

@@ -60,6 +60,7 @@ function upgradeSubmission($json_str)
     if ( ! isset($json->maxassess) ) $json->maxassess = 0;
     if ( ! isset($json->minassess) ) $json->minassess = 0;
     if ( ! isset($json->peerpoints) ) $json->peerpoints = 0;
+    if ( ! isset($json->flag) ) $json->flag = true;
     return json_encode($json);
 }
 
@@ -339,7 +340,8 @@ function getDefaultJson()
         "peerpoints" : 6,
         "assesspoints" : 2,
         "minassess" : 2,
-        "maxassess" : 5
+        "maxassess" : 5,
+        "flag" : true
     }';
     $json = json_decode($json);
     if ( $json === null ) die("Bad JSON constant");

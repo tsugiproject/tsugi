@@ -193,9 +193,12 @@ echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
 <input type="submit" value="Grade" class="btn btn-primary">
+<?php   if ( $assn_json->flag ) { ?>
 <input type="submit" name="showFlag" onclick="$('#flagform').toggle(); return false;" value="Flag" class="btn btn-danger">
+<?php } ?>
 <input type="submit" name="doCancel" onclick="location='<?php echo(addSession($url_goback));?>'; return false;" value="Cancel" class="btn btn-default">
 </form>
+<?php   if ( $assn_json->flag ) { ?>
 <form method="post" id="flagform" style="display:none">
 <p>Please be considerate when flagging an item.  Only use
 flagging when instructor attention is needed.</p>
@@ -208,6 +211,7 @@ flagging when instructor attention is needed.</p>
     value="Submit To Instructor" class="btn btn-primary">
 <input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag" class="btn btn-default">
 </form>
+<?php } ?>
 <?php
 
 $_SESSION['peer_submit_id'] = $submit_id;  // Our CSRF touch
