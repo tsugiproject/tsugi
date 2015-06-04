@@ -61,6 +61,7 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
     // http://stackoverflow.com/questions/5602907/calculate-difference-between-two-datetimes
     $query_parms = array(":UID" => $user_id, ":CID" => $CONTEXT->id);
     $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at", "retrieved_at");
+    $orderfields = array("L.title", "R.note", "R.updated_at", "retrieved_at");
     $user_sql =
         "SELECT R.result_id AS result_id, L.title as title, R.grade AS grade, R.note AS note,
             R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, service_key as service,
@@ -215,7 +216,15 @@ if ( $user_sql !== false ) {
         $newrows[] = $newrow;
     }
 
-    Table::pagedTable($newrows, $searchfields);
+    // Make the grades percentages
+    $showrows = array();
+    foreach ( $newrows as $row ) {
+        $g = $row['grade'] * 100.0;
+        $row['grade'] = sprintf("%1.1f",$g);
+        $showrows[] = $row;
+    }
+
+    Table::pagedTable($showrows, $searchfields, $orderfields);
 }
 
 if ( $summary_sql !== false ) {
