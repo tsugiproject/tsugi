@@ -74,6 +74,9 @@ this server is not configured to accept applications for keys.
 </p>
 You can install your own instance of Tsugi from 
 <a href="https://github.com/csev/tsugi" target="_blank">https://github.com/csev/tsugi</a>.
+A Java version of Tsugi is being developed at
+<a href="https://github.com/csev/tsugi-java-servlet" target="_blank">https://github.com/csev/tsugi-java-servlet</a>.
+This software is used to provision and test the Java version of Tsugi.
 </p>
 <p>
 Learning Tools Interoperability™ (LTI™) is a

@@ -102,6 +102,7 @@ if ( isset($_POST['instructor']) ) {
 // Set up default LTI data
 $secret = isset($_REQUEST["secret"]) ? trim($_REQUEST["secret"]) : "secret";
 $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
+if ( $endpoint == 'false' ) $endpoint = false;
 $b64 = base64_encode($key.":::".$secret.':::');
 if ( ! $endpoint ) $endpoint = str_replace("dev.php","lti.php",$cur_url);
 $cssurl = str_replace("dev.php","lms.css",$cur_url);
@@ -171,6 +172,12 @@ function doSubmitTool(name) {
     nei.setAttribute('name', 'launch');
     nei.setAttribute('value', '');
     document.getElementById("actionform").appendChild(nei);
+    if ( name.indexOf("Java Servlet") == 0 ) {
+        $("input[name='endpoint']").val('http://localhost:8080/tsugi-servlet/hello');
+    } else if ( $("input[name='endpoint']").val() == 'http://localhost:8080/tsugi-servlet/hello') {
+        $("input[name='endpoint']").val('false');
+    }
+    $("input[name='custom_assn']").val(name);
     $("input[name='custom_assn']").val(name);
     $("input[name='resource_link_id']").val(name.hashCode());
     pieces = name.split('/');
@@ -207,6 +214,7 @@ $OUTPUT->bodyStart(false);
                 foreach ($tools as $tool ) {
                     echo('<li><a href="#" onclick="doSubmitTool(\''.$tool.'\');return false;">'.$tool.'</a></li>'."\n");
                 }
+                echo('<li><a href="#" onclick="doSubmitTool(\'Java Servlet\');return false;">Java Servlet (if installed)</a></li>'."\n");
                 ?>
                 <li class="divider"></li>
                 <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
