@@ -88,7 +88,8 @@ class LTIX {
     }
 
     /**
-     * Pull out a custom variable from the LTIX session
+     * Pull out a custom variable from the LTIX session. Do not
+     * include the "custom_" prefix - this is automatic.
      */
     public static function customGet($varname, $default=false) {
         return self::postGet('custom_'.$varname, $default);

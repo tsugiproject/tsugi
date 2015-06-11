@@ -60,7 +60,7 @@ class User {
 
 
     /**
-     * Ge tthe user's first name, falling back to email
+     * Get the user's first name, falling back to email
      */
     function getFirstName($displayname=false) {
         if ( $displayname === false ) $displayname = $this->getNameAndEmail();
