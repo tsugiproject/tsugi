@@ -28,7 +28,7 @@ use Tsugi\Core\LTIX;
  *
  *     // Done with POST
  *     $OUTPUT->header();
- *     $OUTPUT->startBody();
+ *     $OUTPUT->bodyStart();
  *     $OUTPUT->flashMessages();
  *
  *     // Output some HTML
