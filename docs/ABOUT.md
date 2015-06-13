@@ -34,11 +34,12 @@ but I am not eager to have too many adoptions because I expect the code
 will see several refactor phases as various communities start to
 look critically at the code.
 
-A project in Java with a very similar approach is called
-the [LTI Starter Kit](https://github.com/azeckoski/lti_starter).
+There is also a 
+[Java version of Tsugi](https://github.com/csev/tsugi-java-servlet) 
+that is in development.
 
 \-- Chuck
-Sun Sep 14 20:21:09 EDT 2014
+Fri Jun 12 21:34:55 EDT 2015
 
 Learning Tools Interoperability™ (LTI™) is a
 trademark of IMS Global Learning Consortium, Inc. in
