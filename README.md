@@ -23,7 +23,10 @@ is some LTI 1.0 documentation:
 
 * [Configuring LTI 1.0 Launches](docs/LAUNCHING.md)
 
-/Chuck
+You may also be interested in the Java version of this library:
 
-Sun Sep 14 20:23:41 EDT 2014
+* [Java Tsugi web site](http://csev.github.io/tsugi-java/)
+* [Java Tsugi API Docs](http://csev.github.io/tsugi-java/apidocs/index.html)
+
+/Chuck
 
