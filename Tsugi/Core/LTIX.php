@@ -4,7 +4,6 @@ namespace Tsugi\Core;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
 use \Tsugi\OAuth\OAuthServer;
-use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;
 use \Tsugi\OAuth\OAuthRequest;
 
 use \Tsugi\Util\LTI;

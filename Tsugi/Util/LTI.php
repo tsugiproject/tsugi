@@ -5,6 +5,7 @@ namespace Tsugi\Util;
 use \Tsugi\OAuth\TrivialOAuthDataStore;
 use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA1;
+use \Tsugi\OAuth\OAuthSignatureMethod_HMAC_SHA256;
 use \Tsugi\OAuth\OAuthRequest;
 use \Tsugi\OAuth\OAuthConsumer;
 use \Tsugi\OAuth\OAuthUtil;
@@ -49,6 +50,8 @@ class LTI {
 
         $method = new OAuthSignatureMethod_HMAC_SHA1();
         $server->add_signature_method($method);
+        $method = new OAuthSignatureMethod_HMAC_SHA256();
+        $server->add_signature_method($method);
         $request = OAuthRequest::from_request();
 
         $LastOAuthBodyBaseString = $request->get_signature_base_string();
@@ -74,7 +77,12 @@ class LTI {
 
         $test_token = '';
 
+        $oauth_signature_method = isset($parms['oauth_signature_method']) ? $parms['oauth_signature_method'] : false;
+
         $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
+        if ( $oauth_signature_method == "HMAC-SHA256" ) {
+            $hmac_method = new OAuthSignatureMethod_HMAC_SHA256();
+        }
         $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
 
         $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
@@ -272,10 +280,13 @@ class LTI {
         return $postdata;
     }
 
-    public static function sendOAuthGET($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $accept_type)
+    public static function sendOAuthGET($endpoint, $oauth_consumer_key, $oauth_consumer_secret, $accept_type, $signature=false)
     {
         $test_token = '';
         $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
+        if ( $signature == "HMAC-SHA256" ) {
+            $hmac_method = new OAuthSignatureMethod_HMAC_SHA256();
+        }
         $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
         $parms = array();
 
@@ -295,14 +306,20 @@ class LTI {
         return Net::doGet($endpoint,$header);
     }
 
-    public static function sendOAuthBody($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $body, $more_headers=false)
+    public static function sendOAuthBody($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, 
+	$content_type, $body, $more_headers=false, $signature=false)
     {
         $hash = base64_encode(sha1($body, TRUE));
 
         $parms = array('oauth_body_hash' => $hash);
 
         $test_token = '';
+
         $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
+        if ( $signature == "HMAC-SHA256" ) {
+            $hmac_method = new OAuthSignatureMethod_HMAC_SHA256();
+        }
+
         $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
 
         $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
