@@ -111,52 +111,52 @@ echo("<pre>\n");
 // For registration, the key must not exist and belong to another user
 // We double check the registration scenario in a transaction later
 if ( $re_register ) {
-	$reg_key = $_POST['oauth_consumer_key'];
-	$key_sha256 = lti_sha256($reg_key);
-	echo("key_sha256=".$key_sha256."<br>");
-	$oldproxy = $PDOX->rowDie(
-	    "SELECT secret
-		FROM {$CFG->dbprefix}lti_key
-		WHERE user_id = :UID AND key_sha256 = :SHA LIMIT 1",
-	    array(":SHA" => $key_sha256,
-		":UID" => $_SESSION['id'])
-	);
-	$reg_password = $oldproxy['secret'];
-	if ( strlen($reg_password) < 1 ) {
+        $reg_key = $_POST['oauth_consumer_key'];
+        $key_sha256 = lti_sha256($reg_key);
+        echo("key_sha256=".$key_sha256."<br>");
+        $oldproxy = $PDOX->rowDie(
+            "SELECT secret
+                FROM {$CFG->dbprefix}lti_key
+                WHERE user_id = :UID AND key_sha256 = :SHA LIMIT 1",
+            array(":SHA" => $key_sha256,
+                ":UID" => $_SESSION['id'])
+        );
+        $reg_password = $oldproxy['secret'];
+        if ( strlen($reg_password) < 1 ) {
             lmsDie("Registration key $reg_key cannot be re-registered.");
-	}
+        }
 } else if ( $lti_message_type == "ToolProxyRegistrationRequest" ) {
-	$reg_key = $_POST['reg_key'];
-	$key_sha256 = lti_sha256($reg_key);
-	echo("key_sha256=".$key_sha256."<br>");
-	$oldproxy = $PDOX->rowDie(
-	    "SELECT user_id
-		FROM {$CFG->dbprefix}lti_key
-		WHERE key_sha256 = :SHA LIMIT 1",
-	    array(":SHA" => $key_sha256)
-	);
-	if ( is_array($oldproxy) && $oldproxy['user_id'] != $_SESSION['id'] ) {
+        $reg_key = $_POST['reg_key'];
+        $key_sha256 = lti_sha256($reg_key);
+        echo("key_sha256=".$key_sha256."<br>");
+        $oldproxy = $PDOX->rowDie(
+            "SELECT user_id
+                FROM {$CFG->dbprefix}lti_key
+                WHERE key_sha256 = :SHA LIMIT 1",
+            array(":SHA" => $key_sha256)
+        );
+        if ( is_array($oldproxy) && $oldproxy['user_id'] != $_SESSION['id'] ) {
             lmsDie("Registration key $reg_key cannot be registered.");
-	}
-	$reg_password = $_POST['reg_password'];
+        }
+        $reg_password = $_POST['reg_password'];
 } else {
-	echo("</pre>");
-	lmsDie("lti_message_type not supported ".$lti_message_type);
+        echo("</pre>");
+        lmsDie("lti_message_type not supported ".$lti_message_type);
 }
 
 $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
 
 $tc_profile_url = $_POST['tc_profile_url'];
 if ( strlen($tc_profile_url) > 1 ) {
-	echo("Retrieving profile from ".$tc_profile_url."\n");
+        echo("Retrieving profile from ".$tc_profile_url."\n");
     $tc_profile_json = Net::doGet($tc_profile_url);
-	echo("Retrieved ".strlen($tc_profile_json)." characters.\n");
-	echo("</pre>\n");
+        echo("Retrieved ".strlen($tc_profile_json)." characters.\n");
+        echo("</pre>\n");
     $OUTPUT->togglePre("Retrieved Consumer Profile",$tc_profile_json);
     $tc_profile = json_decode($tc_profile_json);
-	if ( $tc_profile == null ) {
-		lmsDie("Unable to parse tc_profile error=".json_last_error());
-	}
+        if ( $tc_profile == null ) {
+                lmsDie("Unable to parse tc_profile error=".json_last_error());
+        }
 } else {
     lmsDie("We must have a tc_profile_url to continue...");
 }
@@ -204,7 +204,7 @@ $cur_base = $CFG->wwwroot;
 
 $tp_profile = json_decode($tool_proxy);
 if ( $tp_profile == null ) {
-	$OUTPUT->togglePre("Tool Proxy Raw",htmlent_utf8($tool_proxy));
+        $OUTPUT->togglePre("Tool Proxy Raw",htmlent_utf8($tool_proxy));
     $body = json_encode($tp_profile);
     $body = jsonIndent($body);
     $OUTPUT->togglePre("Tool Proxy Parsed",htmlent_utf8($body));
@@ -225,13 +225,32 @@ $tp_profile->tool_profile->product_instance->service_provider->support->email = 
 $tp_profile->tool_profile->product_instance->service_provider->provider_name->default_value = $CFG->ownername;
 $tp_profile->tool_profile->product_instance->service_provider->description->default_value = $CFG->servicename;
 
-
 // Pull out our prototypical resource handler and clear it out
 $handler = $tp_profile->tool_profile->resource_handler[0];
 $tp_profile->tool_profile->resource_handler = array();
 $blank_handler = json_encode($handler);
 echo("=================\n");
 // echo(jsonIndent($blank_handler));
+
+// Ask for all the parameter mappings we are interested in
+// Canvas rejects us if  we ask for a custom parameter that they did 
+// not offer as capability
+$requested_parameters = array();
+foreach($desired_parameters as $parameter) {
+    if ( ! in_array($parameter, $tc_capabilities) ) continue;
+    $np = new stdClass();
+    $np->variable = $parameter;
+    $np->name = strtolower(str_replace(".","_",$parameter));
+    $requested_parameters[] = $np;
+}
+// var_dump($requested_parameters);
+
+// Ask for the kitchen sink...
+$enabled_capabilities =array();
+foreach($tc_capabilities as $capability) {
+        if ( "basic-lti-launch-request" == $capability ) continue;
+        $enabled_capabilities[] = $capability;
+}
 
 // Scan the tools folders for registration settings
 echo("Searching for available tools...<br/>\n");
@@ -267,6 +286,8 @@ foreach($tools as $tool ) {
         }
         $newhandler->resource_type->code = $code;
         $newhandler->message[0]->path = "/".str_replace("register.php", $script, $path);
+        $newhandler->message[0]->parameter = $requested_parameters;
+        $newhandler->message[0]->enabled_capability = $enabled_capabilities;
         $tp_profile->tool_profile->resource_handler[] = $newhandler;
         $toolcount++;
     }
@@ -276,31 +297,6 @@ if ( $toolcount < 1 ) {
     lmsDie("No tools to register..");
 }
 
-// Ask for all the parameter mappings we are interested in
-// Canvas rejects us if  we ask for a custom parameter that they did 
-// not offer as capability
-$newparms = array();
-foreach($desired_parameters as $parameter) {
-    if ( ! in_array($parameter, $tc_capabilities) ) continue;
-    $np = new stdClass();
-    $np->variable = $parameter;
-    $np->name = strtolower(str_replace(".","_",$parameter));
-    $newparms[] = $np;
-}
-// var_dump($newparms);
-$tp_profile->tool_profile->resource_handler[0]->message[0]->parameter = $newparms;
-
-
-
-// Ask for the kitchen sink...
-foreach($tc_capabilities as $capability) {
-	if ( "basic-lti-launch-request" == $capability ) continue;
-	if ( in_array($capability, $tp_profile->tool_profile->resource_handler[0]->message[0]->enabled_capability) ) continue;
-	$tp_profile->tool_profile->resource_handler[0]->message[0]->enabled_capability[] = $capability;
-}
-
-// Cause an error on registration
-// $tp_profile->tool_profile->resource_handler[0]->message[0]->enabled_capability[] = "Give.me.the.database.password";
 
 $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
 $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
@@ -318,12 +314,12 @@ if ( $oauth_splitsecret ) {
 
 $tp_services = array();
 foreach($tc_services as $tc_service) {
-	// var_dump($tc_service);
-	$tp_service = new stdClass;
-	$tp_service->{'@type'} = 'RestServiceProfile';
-	$tp_service->action = $tc_service->action;
-	$tp_service->service = $tc_service->{'@id'};
-	$tp_services[] = $tp_service;
+        // var_dump($tc_service);
+        $tp_service = new stdClass;
+        $tp_service->{'@type'} = 'RestServiceProfile';
+        $tp_service->action = $tc_service->action;
+        $tp_service->service = $tc_service->{'@id'};
+        $tp_services[] = $tp_service;
 }
 // var_dump($tp_services);
 $tp_profile->security_contract->tool_service = $tp_services;
@@ -365,7 +361,7 @@ $OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
 $more_headers = array();
 if ( $ack !== false ) {
     $more_headers[] = 'VND-IMS-CONFIRM-URL: '.$CFG->wwwroot.
-	'/lti/tp_commit.php?commit='.urlencode($ack);
+        '/lti/tp_commit.php?commit='.urlencode($ack);
 }
 
 $response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body, $more_headers);
@@ -407,7 +403,7 @@ if ( $re_register ) {
             WHERE key_sha256 = :SHA and user_id = :UID",
         array(":SECRET" => $shared_secret, ":PROFILE" => $tc_profile_json,
             ":UID" => $_SESSION['id'], ":SHA" => $key_sha256, 
-	    ":ACK" => $ack)
+            ":ACK" => $ack)
     );
 
     if ( ! $retval->success ) {
@@ -448,11 +444,11 @@ echo("Registration failed, http code=".$last_http_response."\n");
 
 // Check to see if they slid us the base string...
 if ( $responseObject != null && isset($responseObject->base_string) ) {
-	$base_string = $responseObject->base_string;
-	if ( strlen($base_string) > 0 && strlen($LastOAuthBodyBaseString) > 0 && $base_string != $LastOAuthBodyBaseString ) {
-		$compare = LTI::compareBaseStrings($LastOAuthBodyBaseString, $base_string);
-		$OUTPUT->togglePre("Compare Base Strings (ours first)",htmlent_utf8($compare));
-	}
+        $base_string = $responseObject->base_string;
+        if ( strlen($base_string) > 0 && strlen($LastOAuthBodyBaseString) > 0 && $base_string != $LastOAuthBodyBaseString ) {
+                $compare = LTI::compareBaseStrings($LastOAuthBodyBaseString, $base_string);
+                $OUTPUT->togglePre("Compare Base Strings (ours first)",htmlent_utf8($compare));
+        }
 }
 
 ?>
