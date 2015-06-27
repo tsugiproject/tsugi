@@ -276,19 +276,21 @@ if ( $toolcount < 1 ) {
     lmsDie("No tools to register..");
 }
 
-// Only ask for parameters we are allowed to ask for 
+// Ask for all the parameter mappings we are interested in
 // Canvas rejects us if  we ask for a custom parameter that they did 
 // not offer as capability
-$parameters = $tp_profile->tool_profile->resource_handler[0]->message[0]->parameter;
 $newparms = array();
-foreach($parameters as $parameter) {
-    if ( isset($parameter->variable) ) {
-        if ( ! in_array($parameter->variable, $tc_capabilities) ) continue;
-    }
-    $newparms[] = $parameter;
+foreach($desired_parameters as $parameter) {
+    if ( ! in_array($parameter, $tc_capabilities) ) continue;
+    $np = new stdClass();
+    $np->variable = $parameter;
+    $np->name = strtolower(str_replace(".","_",$parameter));
+    $newparms[] = $np;
 }
 // var_dump($newparms);
 $tp_profile->tool_profile->resource_handler[0]->message[0]->parameter = $newparms;
+
+
 
 // Ask for the kitchen sink...
 foreach($tc_capabilities as $capability) {

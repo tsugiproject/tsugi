@@ -273,9 +273,16 @@ class LTIX {
         $retval = array();
         $retval['key'] = isset($FIXED['oauth_consumer_key']) ? $FIXED['oauth_consumer_key'] : null;
         $retval['nonce'] = isset($FIXED['oauth_nonce']) ? $FIXED['oauth_nonce'] : null;
-        $retval['context_id'] = isset($FIXED['context_id']) ? $FIXED['context_id'] : null;
         $retval['link_id'] = isset($FIXED['resource_link_id']) ? $FIXED['resource_link_id'] : null;
+
+        $user_id = isset($FIXED['person_sourcedid']) ? $FIXED['person_sourcedid'] : null;
+        $user_id = isset($FIXED['user_id']) ? $FIXED['user_id'] : $user_id;
         $retval['user_id'] = isset($FIXED['user_id']) ? $FIXED['user_id'] : null;
+
+	
+        $context_id = isset($FIXED['courseoffering_sourcedid']) ? $FIXED['courseoffering_sourcedid'] : null;
+        $context_id = isset($FIXED['context_id']) ? $FIXED['context_id'] : $context_id;
+        $retval['context_id'] = $context_id;
 
         if ( $retval['key'] && $retval['nonce'] && $retval['context_id'] &&
             $retval['link_id']  && $retval['user_id'] ) {
