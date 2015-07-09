@@ -110,9 +110,12 @@ echo("<pre>\n");
 // For re-registration the logged in user must own the key
 // For registration, the key must not exist and belong to another user
 // We double check the registration scenario in a transaction later
+$tool_proxy_guid = false;
 if ( $re_register ) {
-        $reg_key = $_POST['oauth_consumer_key'];
-        $key_sha256 = lti_sha256($reg_key);
+        $oauth_consumer_key = $_POST['oauth_consumer_key'];
+        $reg_key = $oauth_consumer_key;
+        $tool_proxy_guid = $oauth_consumer_key;
+        $key_sha256 = lti_sha256($oauth_consumer_key);
         echo("key_sha256=".$key_sha256."<br>");
         $oldproxy = $PDOX->rowDie(
             "SELECT secret
@@ -127,7 +130,9 @@ if ( $re_register ) {
         }
 } else if ( $lti_message_type == "ToolProxyRegistrationRequest" ) {
         $reg_key = $_POST['reg_key'];
-        $key_sha256 = lti_sha256($reg_key);
+        $tool_proxy_guid = isset($_POST['tool_proxy_guid']) ? $_POST['tool_proxy_guid'] : $reg_key;
+        $oauth_consumer_key = $tool_proxy_guid;
+        $key_sha256 = lti_sha256($tool_proxy_guid);
         echo("key_sha256=".$key_sha256."<br>");
         $oldproxy = $PDOX->rowDie(
             "SELECT user_id
@@ -164,8 +169,6 @@ if ( strlen($tc_profile_url) > 1 ) {
 // Find the registration URL
 
 echo("<pre>\n");
-// $oauth_consumer_key = $tc_profile->guid;
-$oauth_consumer_key = $reg_key;
 $tc_services = $tc_profile->service_offered;
 echo("Found ".count($tc_services)." services profile..\n");
 if ( count($tc_services) < 1 ) lmsDie("At a minimum, we need the service to register ourself - doh!\n");
@@ -405,6 +408,18 @@ $OUTPUT->togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
 // Parse the response object and update the shared_secret if needed
 $responseObject = json_decode($response);
 if ( $responseObject != null ) {
+
+    $tc_tool_proxy_guid = $responseObject->tool_proxy_guid;
+    if ( $tc_tool_proxy_guid ) {
+        $oauth_consumer_key = $tc_tool_proxy_guid;
+        echo('<p>Tool consumer returned tool_proxy_guid='.$tc_tool_proxy_guid." (using as oauth_consumer_key)</p>\n");
+        if ( $tool_proxy_guid && $tool_proxy_guid != $tc_tool_proxy_guid ) {
+            echo('<p style="color: red;">Error: Returned tool_proxy_guid did not match launch oauth_consumer_key/tool_proxy_guid='.$tool_proxy_guid."</p>\n");
+        }
+    } else {
+        echo('<p style="color: red;">Error: Tool Consumer did not include tool_proxy_guid in its response.</p>'."\n");
+    }
+
     if ( $oauth_splitsecret && $shared_secret ) {
         if ( ! isset($responseObject->tc_half_shared_secret) ) {
             die_with_error_log("<p>Error: Tool Consumer did not provide tc_half_shared_secret</p>\n");
