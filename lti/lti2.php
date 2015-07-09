@@ -246,11 +246,24 @@ foreach($desired_parameters as $parameter) {
 // var_dump($requested_parameters);
 
 // Ask for the kitchen sink...
-$enabled_capabilities =array();
+$enabled_capabilities = array();
+$global_enabled_capabilities = array();
+$hmac256 = false;
 foreach($tc_capabilities as $capability) {
         if ( "basic-lti-launch-request" == $capability ) continue;
+
+        if ( "OAuth.hmac-256" == $capability ) {
+            $hmac256 = true;
+        }
+
+        // promote these up to the top level capabilities
+        if ( "OAuth.splitSecret" == $capability || "OAuth.hmac-sha256" == $capability ) {
+            $global_enabled_capabilities[] = $capability;
+            continue;
+        }
         $enabled_capabilities[] = $capability;
 }
+$tp_profile->enabled_capability = $global_enabled_capabilities;
 
 // Scan the tools folders for registration settings
 echo("Searching for available tools...<br/>\n");
@@ -284,6 +297,20 @@ foreach($tools as $tool ) {
         } else {
             $code .= str_replace("/","_",str_replace("/register.php","",$path));
         }
+
+        if ( isset($REGISTER_LTI2['FontAwesome']) ) {
+            $default_location = new stdCLass();
+            $default_location->path = $REGISTER_LTI2['FontAwesome'];
+            $icon_style = array();
+            $icon_style[] = 'FontAwesome';
+            $icon_info = new stdClass();
+            $icon_info->icon_style = $icon_style;
+            $icon_info->default_location = $default_location;
+            $icons = array();
+            $icons[] = $icon_info;
+            $newhandler->icon_info = $icons;
+        }
+
         $newhandler->resource_type->code = $code;
         $newhandler->message[0]->path = "/".str_replace("register.php", $script, $path);
         $newhandler->message[0]->parameter = $requested_parameters;

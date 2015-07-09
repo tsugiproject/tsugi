@@ -8,6 +8,7 @@ $tool_proxy = <<< EOF
   "nasty_json": "How do you handle these characters < > & ' ",
   "evil_json": "</script><script>alert('evil');</script>",
   "evil_json2": "\"</script><script>alert('evil');</script>",
+  "enabled_capability" : [ ],
   "tool_profile": {
     "product_instance": {
       "product_info": {
