@@ -262,7 +262,6 @@ foreach($tc_capabilities as $capability) {
         // promote these up to the top level capabilities
         if ( "OAuth.splitSecret" == $capability || "OAuth.hmac-sha256" == $capability ) {
             $global_enabled_capabilities[] = $capability;
-            continue;
         }
         $enabled_capabilities[] = $capability;
 }
