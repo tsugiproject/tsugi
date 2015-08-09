@@ -279,7 +279,6 @@ class LTIX {
         $user_id = isset($FIXED['user_id']) ? $FIXED['user_id'] : $user_id;
         $retval['user_id'] = isset($FIXED['user_id']) ? $FIXED['user_id'] : null;
 
-	
         $context_id = isset($FIXED['courseoffering_sourcedid']) ? $FIXED['courseoffering_sourcedid'] : null;
         $context_id = isset($FIXED['context_id']) ? $FIXED['context_id'] : $context_id;
         $retval['context_id'] = $context_id;
@@ -559,8 +558,11 @@ class LTIX {
         // Set these values to null if they were not in the post
         if ( ! isset($post['sourcedid']) ) $post['sourcedid'] = null;
         if ( ! isset($post['service']) ) $post['service'] = null;
-        if ( ! isset($row['service']) ) $row['service'] = null;
         if ( ! isset($post['result_url']) ) $post['result_url'] = null;
+        if ( ! isset($row['service']) ) {
+            $row['service'] = null;
+            $row['service_id'] = null;
+        }
 
         // Here we handle updates to sourcedid or result_url including if we
         // just inserted the result row
