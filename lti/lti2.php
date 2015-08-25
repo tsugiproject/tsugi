@@ -64,6 +64,12 @@ $_POST = $_SESSION['lti2post'];
 $lti_message_type = $_POST["lti_message_type"];
 $re_register = $lti_message_type == "ToolProxyReregistrationRequest";
 
+// Set up the values for the return URL
+$return_url_status = false;
+$return_url_tool_guid = false;
+$return_url_lti_msg = false;
+$return_url_lti_errormsg = false;
+
 ?>
 <html>
 <head>
@@ -216,6 +222,15 @@ if ( $tp_profile == null ) {
 
 // Tweak the stock profile
 $tp_profile->tool_consumer_profile = $tc_profile_url;
+// Copy over the context
+$tp_profile->{'@context'} = $tc_profile->{'@context'};
+for($i=0; $i < count($tp_profile->{'@context'}); $i++ ) {
+    $ctx = $tp_profile->{'@context'}[$i];
+    if ( is_string($ctx) && strpos($ctx,"http://purl.imsglobal.org/ctx/lti/v2/ToolConsumerProfile") !== false ) {
+        $tp_profile->{'@context'}[$i] = "http://www.imsglobal.org/imspurl/lti/v2/ctx/ToolProxy";
+    }
+}
+
 $tp_profile->tool_profile->message[0]->path = $CFG->wwwroot;
 
 // A globally unique identifier for the service provider. As a best practice, this value should match an Internet domain name assigned by ICANN, but any globally unique identifier is acceptable.
@@ -255,8 +270,9 @@ $hmac256 = false;
 foreach($tc_capabilities as $capability) {
         if ( "basic-lti-launch-request" == $capability ) continue;
 
-        if ( "OAuth.hmac-256" == $capability ) {
-            $hmac256 = true;
+        if ( "OAuth.hmac-sha256" == $capability ) {
+            // This is not fully supported beyond registration so we never accept this
+            // $hmac256 = 'HMAC-SHA256';
         }
 
         // promote these up to the top level capabilities
@@ -393,7 +409,7 @@ if ( $ack !== false ) {
         '/lti/tp_commit.php?commit='.urlencode($ack);
 }
 
-$response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body, $more_headers);
+$response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body, $more_headers, $hmac256);
 
 $OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(Net::getBodySentDebug()));
 
