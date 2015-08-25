@@ -246,12 +246,14 @@ class LTI {
             throw new \Exception("OAuth request body signing must not use application/x-www-form-urlencoded");
         }
 
+        $oauth_signature_method = false;
         if (@substr($request_headers['Authorization'], 0, 6) == "OAuth ") {
             $header_parameters = OAuthUtil::split_header($request_headers['Authorization']);
 
             // echo("HEADER PARMS=\n");
             // print_r($header_parameters);
             $oauth_body_hash = $header_parameters['oauth_body_hash'];
+            if ( isset($header_parameters['oauth_signature_method']) ) $oauth_signature_method = $header_parameters['oauth_signature_method'];
             // echo("OBH=".$oauth_body_hash."\n");
         }
 
@@ -268,10 +270,14 @@ class LTI {
         $postdata = file_get_contents('php://input');
         // echo($postdata);
 
-        $hash = base64_encode(sha1($postdata, TRUE));
+        if ( $oauth_signature_method == 'HMAC-SHA256' ) {
+            $hash = base64_encode(hash('sha256', $postdata, TRUE));
+        } else {
+            $hash = base64_encode(sha1($postdata, TRUE));
+        }
 
         global $LastOAuthBodyHashInfo;
-        $LastOAuthBodyHashInfo = "hdr_hash=$oauth_body_hash body_len=".strlen($postdata)." body_hash=$hash";
+        $LastOAuthBodyHashInfo = "hdr_hash=$oauth_body_hash body_len=".strlen($postdata)." body_hash=$hash oauth_signature_method=$oauth_signature_method";
 
         if ( $hash != $oauth_body_hash ) {
             throw new \Exception("OAuth oauth_body_hash mismatch");
@@ -309,16 +315,16 @@ class LTI {
     public static function sendOAuthBody($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, 
 	$content_type, $body, $more_headers=false, $signature=false)
     {
-        $hash = base64_encode(sha1($body, TRUE));
 
+        $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
+        $hash = base64_encode(sha1($body, TRUE));
+        if ( $signature == "HMAC-SHA256" ) {
+            $hmac_method = new OAuthSignatureMethod_HMAC_SHA256();
+            $hash = base64_encode(hash('sha256', $body, TRUE));
+        }
         $parms = array('oauth_body_hash' => $hash);
 
         $test_token = '';
-
-        $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
-        if ( $signature == "HMAC-SHA256" ) {
-            $hmac_method = new OAuthSignatureMethod_HMAC_SHA256();
-        }
 
         $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
 

@@ -268,19 +268,27 @@ class LTIX {
         $FIXED = array();
         foreach($_POST as $key => $value ) {
             if (get_magic_quotes_gpc()) $value = stripslashes($value);
+            if ( strpos($key, "custom_") == 0 ) {
+                $newkey = substr($key,7);
+                if ( !isset($FIXED[$newkey]) ) $FIXED[$newkey] = $value;
+            }
             $FIXED[$key] = $value;
         }
         $retval = array();
         $retval['key'] = isset($FIXED['oauth_consumer_key']) ? $FIXED['oauth_consumer_key'] : null;
         $retval['nonce'] = isset($FIXED['oauth_nonce']) ? $FIXED['oauth_nonce'] : null;
-        $retval['link_id'] = isset($FIXED['resource_link_id']) ? $FIXED['resource_link_id'] : null;
+        $link_id = isset($FIXED['resource_link_id']) ? $FIXED['resource_link_id'] : null;
+        $link_id = isset($FIXED['custom_resource_link_id']) ? $FIXED['custom_resource_link_id'] : $link_id;
+        $retval['link_id'] = $link_id;
 
         $user_id = isset($FIXED['person_sourcedid']) ? $FIXED['person_sourcedid'] : null;
         $user_id = isset($FIXED['user_id']) ? $FIXED['user_id'] : $user_id;
-        $retval['user_id'] = isset($FIXED['user_id']) ? $FIXED['user_id'] : null;
+        $user_id = isset($FIXED['custom_user_id']) ? $FIXED['custom_user_id'] : $user_id;
+        $retval['user_id'] = $user_id;
 
         $context_id = isset($FIXED['courseoffering_sourcedid']) ? $FIXED['courseoffering_sourcedid'] : null;
         $context_id = isset($FIXED['context_id']) ? $FIXED['context_id'] : $context_id;
+        $context_id = isset($FIXED['custom_context_id']) ? $FIXED['custom_context_id'] : $context_id;
         $retval['context_id'] = $context_id;
 
         if ( $retval['key'] && $retval['nonce'] && $retval['context_id'] &&
