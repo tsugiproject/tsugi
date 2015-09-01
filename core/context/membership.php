@@ -18,11 +18,11 @@ if ( ! isAdmin() ) {
 
 $query_parms = false;
 
-$searchfields = array("membership_id", "context_id", "user_id", "role_override", 
+$searchfields = array("membership_id", "context_id", "user_id", "role", "role_override", 
 	"created_at", "updated_at", "email", "displayname", "user_key");
 
 $sql = "SELECT membership_id AS Membership, context_id AS Context, M.user_id as User, 
-            role_override, M.created_at, M.updated_at, email, displayname, user_key
+            role, role_override, M.created_at, M.updated_at, email, displayname, user_key
         FROM {$CFG->dbprefix}lti_membership as M
         JOIN {$CFG->dbprefix}lti_user AS U ON M.user_id = U.user_id
         WHERE context_id = :CID";
