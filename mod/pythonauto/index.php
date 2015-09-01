@@ -682,4 +682,17 @@ function load_cm() {
  });
 </script>
 <?php
+if ( $USER->instructor ) {
+    echo("<!--\n");
+    echo(">Global Tsugi Objects:\n\n");
+    var_dump($USER);
+    var_dump($CONTEXT);
+    var_dump($LINK);
+    echo("\n<hr/>\n");
+    echo("Session data (low level):\n");
+    echo(safe_var_dump($_SESSION));
+    echo("\n-->\n");
+}
+?>
+<?php
 $OUTPUT->footerEnd();
