@@ -20,6 +20,19 @@ $assignments = array(
     'a01.php' => 'Single Table'
 );
 
+$oldsettings = Settings::linkGetAll();
+
+$assn = Settings::linkGet('exercise');
+
+// Get any due date information
+$dueDate = SettingsForm::getDueDate();
+
+// Let the assignment handle the POST
+if ( count($_POST) > 0 && $assn && isset($assignments[$assn]) ) {
+    require($assn);
+    return;
+}
+
 // View
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -43,10 +56,6 @@ $OUTPUT->flashMessages();
 
 $OUTPUT->welcomeUserCourse();
 
-$oldsettings = Settings::linkGetAll();
-
-$assn = Settings::linkGet('exercise');
-
 if ( $assn && isset($assignments[$assn]) ) {
     require($assn);
 } else {
@@ -59,5 +68,4 @@ if ( $assn && isset($assignments[$assn]) ) {
         
 
 $OUTPUT->footer();
-
 
