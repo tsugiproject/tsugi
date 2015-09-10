@@ -77,7 +77,8 @@ Enter the code you get from the instrutions below here (Hint: starts with <?= su
 </p>
 <h1>Instructions</h1>
 <p>
-First, create a database and then create a table in the database called "Ages":
+First, create a MySql database or use an existing database and then create a table 
+in the database called "Ages":
 
 <pre>
 CREATE TABLE Ages ( 
