@@ -1,18 +1,21 @@
 <?php
 
+require_once "Mersenne_Twister.php";
+
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 
 require_once "names.php";
 
 // Compute the stuff for the output
-srand($USER->id+$LINK->id+$CONTEXT->id);
+$code = $USER->id+$LINK->id+$CONTEXT->id;
+$MT = new Mersenne_Twister($code);
 $my_names = array();
 $my_age = array();
-$howmany = rand(4,6);
+$howmany = $MT->getNext(4,6);
 for($i=0; $i < $howmany; $i ++ ) {
-    $name = $names[rand(0,count($names))];
-    $age = rand(13,40);
+    $name = $names[$MT->getNext(0,count($names))];
+    $age = $MT->getNext(13,40);
     $sha = sha1($name.$age);
     $database[] = array($sha,$name,$age);
 }
