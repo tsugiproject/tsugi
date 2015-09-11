@@ -1,7 +1,7 @@
 <?php
 require_once "util.php";
 
-$abs_url = str_replace("lti_config.php", "", curPageURL());
+$abs_url = str_replace("lti_config.php", "convert.php", curPageURL());
 header('Content-Type: text/xml');
 echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 ?>

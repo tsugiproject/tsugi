@@ -1,4 +1,14 @@
 
+GIFT Quiz Tool
+==============
+
+This tool currently contains two pieces of related functionality:
+
+* It can give GIFT-authored quizzes using LTI (index.php)
+* It can convert to QTI 1.2 (convert.php)
+
+These two pieces are related because they share a bunch of library code.
+
 Quiz format convertor from GIFT to QTI 1.2
 ==========================================
 
@@ -19,7 +29,7 @@ idea if I do say so myself.  I like it because I can put quizzes in GitHub :)
 
 You can play with my demo server at:
 
-    http://gift2qti.dr-chuck.com/
+    http://lti-tools.dr-chuck.com/tsugi/mod/gift/convert.php
 
 This is an early version and only supports multipla choice, true/false, and essay
 question types.  Other types wont' be hard - but I ran out of time.
@@ -27,4 +37,4 @@ question types.  Other types wont' be hard - but I ran out of time.
 Comments (and Pull requests) welcome.
 
 -- Chuck
-Wed Jan  7 19:10:57 EST 2015
+Fri Sep 11 10:45:45 EDT 2015
