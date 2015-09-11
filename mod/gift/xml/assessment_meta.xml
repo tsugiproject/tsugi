@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz identifier="__QUIZ_ID__" xmlns="http://canvas.instructure.com/xsd/cccv1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 http://canvas.instructure.com/xsd/cccv1p0.xsd">
+  <title>__TITLE__</title>
+  <description>__DESCRIPTION__</description>
+  <shuffle_answers>false</shuffle_answers>
+  <scoring_policy>keep_highest</scoring_policy>
+  <quiz_type>assignment</quiz_type>
+  <points_possible>7</points_possible>
+  <lockdown_browser_monitor_data></lockdown_browser_monitor_data>
+  <show_correct_answers>true</show_correct_answers>
+  <anonymous_submissions>false</anonymous_submissions>
+  <allowed_attempts>1</allowed_attempts>
+  <one_question_at_a_time>false</one_question_at_a_time>
+  <cant_go_back>false</cant_go_back>
+  <available>false</available>
+  <assignment identifier="ia_also_does_not_matter_66116e237">
+    <title>__TITLE__</title>
+    <workflow_state>unpublished</workflow_state>
+    <quiz_identifierref>__QUIZ_ID__</quiz_identifierref>
+    <points_possible>7</points_possible>
+    <grading_type>points</grading_type>
+    <all_day>false</all_day>
+    <submission_types>online_quiz</submission_types>
+    <position>1</position>
+    <peer_review_count>0</peer_review_count>
+    <peer_reviews>false</peer_reviews>
+    <automatic_peer_reviews>false</automatic_peer_reviews>
+    <muted>false</muted>
+  </assignment>
+  <assignment_group_identifierref>i9cd2_does_not_seem_to_matter_9e7</assignment_group_identifierref>
+</quiz>
