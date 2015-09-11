@@ -64,16 +64,18 @@ if ( isset($_POST['sha1']) ) {
 }
 
 // echo($goodsha);
+if ( $LINK->grade > 0 ) {
+    echo('<p class="alert alert-info">Your current grade on this assignment is: '.($LINK->grade*100.0).'%</p>'."\n");
+}
+
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
 ?>
-<p>Enter the string that you get as the first record from the SELECT statement below
-once you have completed the assignment:
-</p>
 <p>
 <form method="post">
-Enter the code you get from the instrutions below here (Hint: starts with <?= substr($goodsha,0,3) ?>)<br/>
+To get credit for this assignment, perform the instructions below and 
+enter the code you get from the instrutions below here (Hint: starts with <?= substr($goodsha,0,3) ?>)<br/>
 <input type="text" size="80" name="sha1">
 <input type="submit">
 </form>
