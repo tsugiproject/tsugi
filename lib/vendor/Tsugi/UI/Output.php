@@ -48,6 +48,16 @@ use \Tsugi\Core\Settings;
 
 class Output {
 
+    /**
+     * Set the JSON header
+     */
+    function headerJson() {
+        header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+        header('Pragma: no-cache'); // HTTP 1.0.
+        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past - proxies
+        header('Content-type: application/json');
+    }
+
     function flashMessages() {
         if ( isset($_SESSION['error']) ) {
             echo '<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
@@ -63,7 +73,7 @@ class Output {
 
     /**
      * Emit the HTML for the header.
-    */
+     */
     function header($headCSS=false) {
         global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL;
         global $CFG;
@@ -76,9 +86,9 @@ class Output {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?php echo($CFG->servicename); ?></title>
         <!-- Le styles -->
-        <link href="<?php echo($CFG->staticroot); ?>/static/css/custom-theme/jquery-ui-1.10.0.custom.css" rel="stylesheet">
         <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
         <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="<?php echo($CFG->staticroot); ?>/static/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
 
     <style> <!-- from navbar.css -->
     body {
@@ -122,8 +132,10 @@ class Output {
 
     function footerStart() {
         global $CFG;
-        echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.10.2.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.11.3.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/static/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/static/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/static/js/handlebars-v4.0.2.js"></script>'."\n");
 
         // Serve this locally during early development - Move to CDN when stable
         echo('<script src="'.$CFG->wwwroot.'/static/js/tsugiscripts.js"></script>'."\n");
