@@ -2,6 +2,7 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once "parse.php";
 
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
@@ -49,11 +50,43 @@ $gift = $LINK->getJson();
 // Clean up the JSON for presentation
 if ( $gift === false || strlen($gift) < 1 ) {
     echo('<p class="alert-warning">This quiz has not yet been configured</p>'."\n");
-} else {
-    echo("<pre>\n");
-    echo(htmlent_utf8($gift));
-    echo("</pre>\n");
+    $OUTPUT->footer();
+    return;
 }
 
-$OUTPUT->footer();
+// parse the GIFT questions
+$questions = array();
+$errors = array();
+parse_gift($gift, $questions, $errors);
 
+$qj = json_encode($questions);
+
+echo("<pre>\n");
+var_dump($errors);
+echo(htmlent_utf8(jsonIndent($qj)));
+echo("</pre>\n");
+
+$OUTPUT->footerStart();
+
+require_once('templates.php');
+
+?>
+<script>
+$(document).ready(function(){
+    $.getJSON('<?= addSession('quiz.php')?>', function(quiz) {
+        window.console && console.log(quiz);
+/*
+        var source  = $("#list-template").html();
+        var template = Handlebars.compile(source);
+        var context = {};
+        context.loggedin = 
+            <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+        context.profiles = profiles;
+        $('#list-area').replaceWith(template(context));
+*/
+    }).fail( function() { alert('getJSON fail'); } );
+});
+</script>
+
+<?php
+$OUTPUT->footerStart();

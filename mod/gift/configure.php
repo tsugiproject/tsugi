@@ -10,6 +10,7 @@ use \Tsugi\Core\LTIX;
 
 // Sanity checks
 $LTI = LTIX::requireData();
+if ( ! $USER->instructor ) die("Requires instructor role");
 
 // Model
 $p = $CFG->dbprefix;
@@ -64,7 +65,6 @@ if ( $gift === false || strlen($gift) < 1 ) $gift = getSampleGIFT();
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
-if ( ! $USER->instructor ) die("Requires instructor role");
 
 ?>
 <p>Be careful in making any changes if this quiz has submissions.</p>
