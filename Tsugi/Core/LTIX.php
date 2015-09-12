@@ -662,7 +662,7 @@ class LTIX {
      *
      */
     public static function requireData($needed=self::ALL) {
-        global $CFG, $USER, $CONTEXT, $LINK;
+        global $CFG, $USER, $CONTEXT, $LINK, $RESULT;
 
         if ( $needed == self::NONE ) $needed = array();
         if ( $needed == self::ALL ) {
@@ -788,6 +788,11 @@ class LTIX {
             if (isset($LTI['grade']) ) $LINK->grade = $LTI['grade'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
             if (isset($LTI['result_id']) ) $LINK->result_id = $LTI['result_id'];
+        }
+
+        if ( isset($LTI['result_id']) && ! is_object($RESULT) ) {
+            $RESULT = new \Tsugi\Core\Result();
+            $RESULT->id = $LTI['result_id'];
         }
 
         // Return the LTI structure

@@ -11,7 +11,11 @@ namespace Tsugi\Core;
  * like "view profile" or "show all courses"
  */
 
-class Link {
+class Link extends Entity {
+    // Needed to implement the Entity methods
+    protected $TABLE_NAME = "lti_link";
+    protected $PRIMARY_KEY = "link_id";
+
     /**
      * The integer primary key for this link in the 'lti_link' table.
      */
