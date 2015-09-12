@@ -10,9 +10,11 @@ require_once("oauth.classes.php");
 require_once("vendor/Tsugi/Util/LTI.php");
 require_once("vendor/Tsugi/Util/Caliper.php");
 
+require_once("vendor/Tsugi/Core/Entity.php");
 require_once("vendor/Tsugi/Core/User.php");
 require_once("vendor/Tsugi/Core/Context.php");
 require_once("vendor/Tsugi/Core/Link.php");
+require_once("vendor/Tsugi/Core/Result.php");
 require_once("vendor/Tsugi/Core/LTIX.php");
 require_once("vendor/Tsugi/Core/Settings.php");
 require_once("vendor/Tsugi/UI/CrudForm.php");
