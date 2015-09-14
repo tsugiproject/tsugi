@@ -148,11 +148,12 @@ class SettingsForm {
     /**
      * Handle a settings text box
      */
-    public static function text($name)
+    public static function text($name, $title=false)
     {
         global $USER;
         $oldsettings = Settings::linkGetAll();
         $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
+        if ( $title === false ) $title = $name;
         if ( ! $USER->instructor ) {
             if ( $configured === false ) {
                 echo('<p>Setting '.htmlent_utf8($name).' is not set</p>');
@@ -163,8 +164,9 @@ class SettingsForm {
         }
 
         // Instructor view
+        echo('<label for="'.$name.'">'.htmlent_utf8($title)."\n");
         echo('<input type="text" size="80" name="'.$name.'"');
-        echo('value="'.htmlent_utf8($configured).'">'."\n");
+        echo('value="'.htmlent_utf8($configured).'"></label>'."\n");
     }
 
     /**
@@ -233,8 +235,10 @@ class SettingsForm {
      */
     public static function getDueDateDelta($time)
     {
-        if ( $time < 3600 ) {
+        if ( $time < 600 ) {
             $delta = $time . ' seconds';
+        } else if ($time < 3600) {
+            $delta = sprintf("%0.0f",($time/60.0)) . ' minutes';
         } else if ($time <= 86400 ) {
             $delta = sprintf("%0.2f",($time/3600.0)) . ' hours';
         } else {

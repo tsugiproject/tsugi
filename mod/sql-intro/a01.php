@@ -22,7 +22,7 @@ for($i=0; $i < $howmany; $i ++ ) {
 $sorted = $database;
 sort($sorted);
 $goodsha = $sorted[0][0];
-$oldgrade = $LINK->grade;
+$oldgrade = $RESULT->grade;
 
 if ( isset($_POST['sha1']) ) {
     if ( $_POST['sha1'] != $goodsha ) {
