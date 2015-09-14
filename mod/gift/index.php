@@ -3,6 +3,7 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "parse.php";
+// require_once "score.php";
 
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
@@ -16,10 +17,33 @@ if ( SettingsForm::handleSettingsPost() ) {
     return;
 }
 
-$oldsettings = Settings::linkGetAll();
-
 // Get any due date information
 $dueDate = SettingsForm::getDueDate();
+
+// Load the quiz
+$gift = $LINK->getJson();
+
+// parse the quiz questions
+$questions = false;
+$errors = array("No questions found");
+if ( strlen($gift) > 0 ) {
+    $questions = array();
+    $errors = array();
+    parse_gift($gift, $questions, $errors);
+}
+
+
+if ( count($_POST) > 0 ) {
+    if ( $questions == false ) {
+        $_SESSION['error'] ='Internal error: No questions';
+        header( 'Location: '.addSession('index.php') ) ;
+        return;
+    }
+
+    $_SESSION['gift_submit'] = $_POST;
+    header( 'Location: '.addSession('index.php') ) ;
+    return;
+}
 
 // View
 $OUTPUT->header();
@@ -45,8 +69,6 @@ $OUTPUT->flashMessages();
 
 $OUTPUT->welcomeUserCourse();
 
-$gift = $LINK->getJson();
-
 // Clean up the JSON for presentation
 if ( $gift === false || strlen($gift) < 1 ) {
     echo('<p class="alert-warning">This quiz has not yet been configured</p>'."\n");
@@ -59,8 +81,16 @@ $questions = array();
 $errors = array();
 parse_gift($gift, $questions, $errors);
 
-$qj = json_encode($questions);
+?>
+<form method="post">
+<ol id="quiz">
+</ol>
+<input type="submit">
+</form>
 
+<?php
+
+$qj = json_encode($questions);
 echo("<pre>\n");
 var_dump($errors);
 echo(htmlent_utf8(jsonIndent($qj)));
@@ -72,9 +102,29 @@ require_once('templates.php');
 
 ?>
 <script>
+TEMPLATES = [];
 $(document).ready(function(){
     $.getJSON('<?= addSession('quiz.php')?>', function(quiz) {
         window.console && console.log(quiz);
+        for(var i=0; i<quiz.questions.length; i++) {
+            question = quiz.questions[i];
+            type = question.type;
+            console.log(type);
+            if ( TEMPLATES[type] ) {
+                template = $TEMPLATES[type];
+            } else {
+                source  = $('#'+type).html();
+                if ( source == undefined ) {
+                    window.console && console.log("Did not find template for question type="+type);
+                    continue;
+                }
+                template = Handlebars.compile(source);
+                TEMPLATES[type] = template;
+            }
+            $('#quiz').append(template(question));
+
+
+        }
 /*
         var source  = $("#list-template").html();
         var template = Handlebars.compile(source);

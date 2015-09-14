@@ -159,7 +159,8 @@ foreach ( $raw_questions as $raw ) {
                 } else {
                     $incorrect_answers++;
                 }
-                $parsed_answer[] = array($correct, trim($answer_text), trim($feedback));
+                $code = substr(md5(trim($name.$question.$answer_text)),0,10);
+                $parsed_answer[] = array($correct, trim($answer_text), trim($feedback), $code);
                 // Set up for the next one
                 $correct = null;
                 $answer_text = false;
@@ -216,6 +217,7 @@ foreach ( $raw_questions as $raw ) {
     $qobj = new stdClass();
     $qobj->name = $name;
     $qobj->question = $question;
+    $qobj->code = substr(md5($name.$question),0,9);
     $qobj->answer = $answer;
     $qobj->type = $type;
     $qobj->parsed_answer = $parsed_answer;
