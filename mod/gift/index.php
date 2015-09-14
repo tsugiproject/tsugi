@@ -67,9 +67,9 @@ SettingsForm::dueDate();
 SettingsForm::done();
 SettingsForm::end();
 
-$OUTPUT->flashMessages();
-
 $OUTPUT->welcomeUserCourse();
+
+$OUTPUT->flashMessages();
 
 // Clean up the JSON for presentation
 if ( $gift === false || strlen($gift) < 1 ) {
@@ -115,7 +115,7 @@ $(document).ready(function(){
             type = question.type;
             console.log(type);
             if ( TEMPLATES[type] ) {
-                template = $TEMPLATES[type];
+                template = TEMPLATES[type];
             } else {
                 source  = $('#'+type).html();
                 if ( source == undefined ) {
