@@ -60,12 +60,12 @@ class Output {
 
     function flashMessages() {
         if ( isset($_SESSION['error']) ) {
-            echo '<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
+            echo '<div class="alert alert-danger" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
             $_SESSION['error']."</div>\n";
             unset($_SESSION['error']);
         }
         if ( isset($_SESSION['success']) ) {
-            echo '<div class="alert alert-success"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
+            echo '<div class="alert alert-success" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
             $_SESSION['success']."</div>\n";
             unset($_SESSION['success']);
         }
