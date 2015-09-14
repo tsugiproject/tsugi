@@ -785,14 +785,16 @@ class LTIX {
         if ( isset($LTI['link_id']) && ! is_object($LINK) ) {
             $LINK = new \Tsugi\Core\Link();
             $LINK->id = $LTI['link_id'];
-            if (isset($LTI['grade']) ) $LINK->grade = $LTI['grade'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
+            // TODO: Remove these two after switching to $RESULT throughout
+            if (isset($LTI['grade']) ) $LINK->grade = $LTI['grade'];
             if (isset($LTI['result_id']) ) $LINK->result_id = $LTI['result_id'];
         }
 
         if ( isset($LTI['result_id']) && ! is_object($RESULT) ) {
             $RESULT = new \Tsugi\Core\Result();
             $RESULT->id = $LTI['result_id'];
+            if (isset($LTI['grade']) ) $RESULT->grade = $LTI['grade'];
         }
 
         // Return the LTI structure
