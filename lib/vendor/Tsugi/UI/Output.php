@@ -89,6 +89,7 @@ class Output {
         <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
         <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
         <link href="<?php echo($CFG->staticroot); ?>/static/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
+        <link href="<?php echo($CFG->staticroot); ?>/static/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
 
     <style> <!-- from navbar.css -->
     body {

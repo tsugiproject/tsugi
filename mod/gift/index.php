@@ -92,11 +92,13 @@ parse_gift($gift, $questions, $errors);
 
 <?php
 
+/*
 $qj = json_encode($questions);
 echo("<pre>\n");
 var_dump($errors);
 echo(htmlent_utf8(jsonIndent($qj)));
 echo("</pre>\n");
+*/
 
 $OUTPUT->footerStart();
 
@@ -127,16 +129,7 @@ $(document).ready(function(){
 
 
         }
-/*
-        var source  = $("#list-template").html();
-        var template = Handlebars.compile(source);
-        var context = {};
-        context.loggedin = 
-            <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
-        context.profiles = profiles;
-        $('#list-area').replaceWith(template(context));
-*/
-    }).fail( function() { alert('getJSON fail'); } );
+    }).fail( function() { alert('Unable to load quiz data'); } );
 });
 </script>
 

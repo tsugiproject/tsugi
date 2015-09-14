@@ -266,6 +266,20 @@ foreach($questions as $question) {
     $nq->type = $t;
     if ( isset($question->name) ) $nq->name = $question->name;
 
+    if ( $t == 'short_answer_question' ) {
+        if ( isset($submit[$q_code]) ) {
+            $nq->value = $submit[$q_code];
+        }
+    }
+
+    // Because Handlebars can't tell the difference between not set and false
+    if ( $t == 'true_false_question' ) {
+        if ( isset($submit[$q_code]) ) {
+            $nq->value_true = $submit[$q_code] == 'T';
+            $nq->value_false = $submit[$q_code] == 'F';
+        }
+    }
+
     // Score the questions that don't have answers
     $score = null;
     $correct = null;
@@ -288,16 +302,49 @@ foreach($questions as $question) {
         }
     } else if ( $doscore && $t == 'true_false_question' ) {
         if ( isset($submit[$q_code]) ) {
-            $nq->value = $submit[$q_code];
             $score = ($submit[$q_code] == $question->answer) ? 1 : 0;
             $correct = ($score == 1);
         } else {
             $score = 0;
             $correct = false;
         }
-    }
+    } 
 
-    if ( ( $t == 'multiple_choice_question' || $t == 'multiple_answers_question' ) &&
+    if ( $t == 'multiple_choice_question' &&
+        isset($question->parsed_answer) && is_array($question->parsed_answer) ) {
+        $answers = array();
+        $value = false;
+        if ( $doscore ) {
+            $score = 0;
+            $correct = false;
+        }
+        if ( isset($submit[$q_code]) ) {
+            $value = $submit[$q_code];
+            $nq->value = $submit[$q_code];
+        }
+        foreach($question->parsed_answer as $answer ) {
+            $ans = new stdClass();
+            if ( ! is_array($answer) ) continue;
+            if ( count($answer) != 4 ) continue;
+
+            $expected = $answer[0];  // An actual boolean
+            $ans->text = $answer[1];
+            $a_code = $answer[3];
+            $ans->code = $a_code;
+            if ( $value == $a_code ) {
+                $ans->checked = true;
+                if ( $doscore && $expected ) {
+                    $correct = true;
+                    $score = 1;
+                }
+            }
+            $answers[] = $ans;
+        }
+        $nq->answers = $answers;
+
+    } 
+
+    if ( $t == 'multiple_answers_question'  &&
         isset($question->parsed_answer) && is_array($question->parsed_answer) ) {
         $answers = array();
         $got = 0;
@@ -311,31 +358,27 @@ foreach($questions as $question) {
             $a_code = $answer[3];
             $expected = $answer[0];  // An actual boolean
             $oneanswer = $oneanswer || isset($submit[$a_code]);
+            $ans->checked = isset($submit[$a_code]);
             $actual = isset($submit[$a_code]) ? ($submit[$a_code] == 'true') === $expected : false;
             if ( $actual === $expected ) $got++;
             $need++;
             $ans->code = $a_code;
-            if ( $doscore && $t == 'multiple_answers_question' ) {
-                $ans->value = $actual;
+            if ( $doscore ) {
                 $ans->correct = $actual == $expected;
             }
             $answers[] = $ans;
         }
         if ( $doscore ) {
-            if ( $t == 'multiple_choice_question' ) {
-                $correct = $got == $need;
-                $score = $correct ? 1 : 0;
+            $correct = $got == $need;
+            if ( $correct || $oneanswer ) {
+                $score = $correct + 0;
             } else {
-                $correct = $got == $need;
-                if ( $correct || $oneanswer ) {
-                    $score = $got / $need;
-                } else {
-                    $score = 0;
-                }
+                $score = 0;
             }
         }
         $nq->answers = $answers;
     }
+
     if ( $correct !== null ) $nq->correct = $correct;
     if ( $score !== null ) {
         $nq->score = $score;
