@@ -41,6 +41,8 @@ if ( count($_POST) > 0 ) {
     }
 
     $_SESSION['gift_submit'] = $_POST;
+    $quiz = make_quiz($_POST, $questions, $errors);
+    $_SESSION['success'] = 'Score: '.$quiz['score'];
     header( 'Location: '.addSession('index.php') ) ;
     return;
 }
