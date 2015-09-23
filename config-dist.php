@@ -21,6 +21,11 @@ $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
 
+// If you want to experiment with pulling static assets through
+// a Content Data Network (CDN), you can play with Dr. Chuck's
+// static content hosted on CloudFlare
+// $CFG->staticroot = 'https://www.dr-chuck.net/ts';
+
 // Set to true to redirect to the upgrading.php script
 // Also copy upgrading-dist.php to upgrading.php and add your message
 $CFG->upgrading = false;
