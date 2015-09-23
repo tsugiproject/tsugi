@@ -131,6 +131,28 @@ function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
     return false;
 }
 
+function uploadFileToString($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
+{
+    global $CFG, $CONTEXT, $PDOX;
+
+    if ( $SAFETY_CHECK && checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
+
+    if( $FILE_DESCRIPTOR['error'] == 1) return false;
+
+    if( $FILE_DESCRIPTOR['error'] == 0)
+    {
+        $filename = basename($FILE_DESCRIPTOR['name']);
+        if ( strpos($filename, '.php') !== false ) {
+            return false;
+        }
+
+        $data = file_get_contents($FILE_DESCRIPTOR['tmp_name']);
+        return $data;
+    }
+    return false;
+}
+
+
 // Does not do access control checks - access.php does the access
 // control checks
 function getAccessUrlForBlob($blob_id)
