@@ -302,7 +302,8 @@ foreach($questions as $question) {
         }
     } else if ( $doscore && $t == 'true_false_question' ) {
         if ( isset($submit[$q_code]) ) {
-            $score = ($submit[$q_code] == $question->answer) ? 1 : 0;
+            $ans = substr($question->answer, 0, 1);
+            $score = (strtolower($submit[$q_code]) == strtolower($ans) ) ? 1 : 0;
             $correct = ($score == 1);
         } else {
             $score = 0;
