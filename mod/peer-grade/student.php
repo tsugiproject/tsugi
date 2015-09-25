@@ -125,7 +125,7 @@ if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
         $_SESSION['success'] = 'Grade submitted to server';
     } else {
         error_log("Problem sending grade ".$status);
-        $_SESSION['error'] = 'Error: '.$status;
+        $_SESSION['error'] = 'Error sending grade to: '.$status;
         $_SESSION['debug_log'] = $debug_log;
     }
     if ( isset($_POST['instSubmitAdvance']) && isset($_POST['next_user_id_ungraded']) && is_numeric($_POST['next_user_id_ungraded']) ) {
