@@ -1,0 +1,22 @@
+1) How to check that the JSON w3 object doesn't have any errors in it.  When running a file with errors the object is:
+Validator Output:
+{
+  "messages":[
+    {
+      "type":"error",
+      .........
+     ........... 
+    },
+    {
+      "type":"error",
+      "......
+      .....
+    }
+  ]
+}
+Just need to detect one error and then not proceed with code.
+
+2) Merge with current autograder so that we can ensure that our html object is the same that is created by grader.  Currently reading from
+our own file, need to switch to the value of POST.
+
+3) Test it out.

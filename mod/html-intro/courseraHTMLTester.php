@@ -1,12 +1,16 @@
 <?php
 
+// require_once "../lib/header.php";
+// require_once "header.php";
+// use Goutte\Client;
+
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Net;
 
-require_once $CFG->dirroot."/core/blob/blob_util.php";
+//require_once $CFG->dirroot."/core/blob/blob_util.php";
 
-$oldgrade = $RESULT->grade;
+
 if ( isset($_FILES['html_01']) ) {
 
     $fdes = $_FILES['html_01'];
@@ -72,19 +76,38 @@ $return = Net::doBody($validator, "POST", $data, 'Content-type: text/html; chars
 echo("Validator Output:\n");
 echo(htmlentities(jsonIndent($return)));
 
-if ($return.length > 0){
-echo "Your code did not validate.  Please return to the W3 validator at validator.w3.org to check your code.";
-}
-else{
-    echo $data;
-    $dom = new DOMDocument;
-    @$dom->loadHTML($data);
 
-    print("First check that major components are there.\n" . '<br>');
 
-    try {
-      $nodes = $dom->getElementsByTagName('html');
-      if ($nodes->length==1){
+
+
+
+
+
+
+
+
+
+
+print("HTML5 Project\n");
+$grade = 0;
+echo ("\n\nYour grade is  " . $grade);
+
+
+// http://symfony.com/doc/current/components/dom_crawler.html
+// $client = new Client();
+
+//Hardcoding for now...
+$html = "<!DOCTYPE html><html lang=\"en\"><head><meta charset = \"UTF-8\"\><title></title></head><body><header><h1></h1> <nav> <a href=\"\">One</a><a href=\"\">Two</a><a href=\"\">Three</a><a href=\"\">Four</a></nav></header><section><section><section></section><section></section><footer></footer></body></html>";
+// $html = "<!DOCTYPE html><html lang=\"en\"><head>";
+//$html = file_get_contents('final.html');
+$dom = new DOMDocument;
+@$dom->loadHTML($html);
+
+print("First check that major components are there.\n" . '<br>');
+
+try {
+    $nodes = $dom->getElementsByTagName('html');
+    if ($nodes->length==1){
         print("Found html tag!\n" . '<br>');
         print("...making sure English language is specified!" . '<br>');
 
@@ -99,16 +122,16 @@ else{
             }
         }
         $grade+=1;
-     }
-     else
-        print("***Did NOT find html tag!\n" . '<br>');
-    }catch(Exception $ex){
-        error_log("***Did not find html tag!" . '<br>');
     }
+    else
+         print("***Did NOT find html tag!\n" . '<br>');
+}catch(Exception $ex){
+    error_log("***Did not find html tag!" . '<br>');
+}
 
-    try {
-      $nodes = $dom->getElementsByTagName('head');
-      if ($nodes->length==1){
+try {
+    $nodes = $dom->getElementsByTagName('head');
+    if ($nodes->length==1){
         print("Found head tag!\n");
         print("...looking for meta charset..." . '<br>');
         try {
@@ -139,22 +162,22 @@ else{
         }catch(Exception $ex){
             error_log("***Did not find title tag!" . '<br>');
         }
-      }
-    }catch(Exception $ex){
-        error_log("***Did not find head tag!" . '<br>');
     }
+}catch(Exception $ex){
+    error_log("***Did not find head tag!" . '<br>');
+}
   
-    try {
-     $nodes = $dom->getElementsByTagName('body');
-     if ($nodes->length==1){
+try {
+    $nodes = $dom->getElementsByTagName('body');
+    if ($nodes->length==1){
         print("Found body tag!\n" . '<br>');
         $grade+=1;
-        }
-      else
-         print("***Did NOT find body tag or found more than one!\n" . '<br>');
-    }catch(Exception $ex){
-        error_log("***Did not find body tag!");
     }
+    else
+         print("***Did NOT find body tag or found more than one!\n" . '<br>');
+}catch(Exception $ex){
+    error_log("***Did not find body tag!");
+}
 
 try {
     $nodes = $dom->getElementsByTagName('header');
@@ -431,34 +454,4 @@ try {
     error_log("***Did not find footer tag!");
 }
 
-echo ("\n\nYour grade is  " . $grade . "\n\n");
-}
-
-    $gradetosend = $grade;
-    $scorestr = "Your answer is correct, score saved.";
-   
-    if ( $oldgrade > $gradetosend ) {
-        $scorestr = "New score of $gradetosend is < than previous grade of $oldgrade, previous grade kept";
-        $gradetosend = $oldgrade;
-    }
-
-    // Use LTIX to send the grade back to the LMS.
-    $debug_log = array();
-    $retval = LTIX::gradeSend($gradetosend, false, $debug_log);
-    $_SESSION['debug_log'] = $debug_log;
-
-    if ( $retval === true ) {
-        $_SESSION['success'] = $scorestr;
-    } else if ( is_string($retval) ) {
-        $_SESSION['error'] = "Grade not sent: ".$retval;
-    } else {
-        echo("<pre>\n");
-        var_dump($retval);
-        echo("</pre>\n");
-        die();
-    }
-
-    // Redirect to ourself
-    header('Location: '.addSession('index.php'));
-    return;
-
+echo ("\nYour grade is  " . $grade . "\n\n");
