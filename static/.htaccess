@@ -1,2 +1,0 @@
-# http://enable-cors.org/server_apache.html
-Header set Access-Control-Allow-Origin "*"
