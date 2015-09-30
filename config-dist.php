@@ -21,10 +21,19 @@ $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
 
-// If you want to experiment with pulling static assets through
-// a Content Data Network (CDN), you can play with Dr. Chuck's
-// static content hosted on CloudFlare
-// $CFG->staticroot = 'https://www.dr-chuck.net/ts';
+// The static content (Javascript, etc) is part of a git submodule
+// in the folder "static", to get this checked out, use
+/
+//    git clone --recursive https://github.com/csev/tsugi.git
+// 
+// If you don't checkout the static content you can use the copy
+// that is kept on my CloudFlare CDN
+$CFG->staticroot = 'https://www.dr-chuck.net/tsugi';
+
+// If you check out a copy of the static content locally and do not
+// want to use the CDN copy (perhaps you are on a plane or are otherwise
+// not connected) use this configuration optionistead of the above:
+// $CFG->staticroot = $CFG->wwwroot;
 
 // Set to true to redirect to the upgrading.php script
 // Also copy upgrading-dist.php to upgrading.php and add your message
