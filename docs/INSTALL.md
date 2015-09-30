@@ -24,7 +24,7 @@ Installation
 * Check the code out from GitHub and put it in a directory where 
 your web server can read it
 
-        git clone --recursive https://github.com/csev/tsugi.git
+        git clone https://github.com/csev/tsugi.git
 
 * Create a database and get authentication info for the database
  
@@ -55,7 +55,7 @@ MAMP NOTES (Macintosh)
 ----------------------
 
     cd /Applications/MAMP/htdocs/
-    git clone --recursive https://github.com/csev/tsugi.git
+    git clone https://github.com/csev/tsugi.git
     cd tsugi
     cp config-dist.php config.php
 
@@ -82,7 +82,7 @@ XAMPP NOTES (Windows)
 ---------------------
 
     cd \xampp\htdocs
-    git clone --recursive https://github.com/csev/tsugi.git
+    git clone https://github.com/csev/tsugi.git
     cd tsugi
     copy config-dist.php config.php
 

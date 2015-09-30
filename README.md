@@ -28,11 +28,5 @@ You may also be interested in the Java version of this library:
 * [Java Tsugi web site](http://csev.github.io/tsugi-java/)
 * [Java Tsugi API Docs](http://csev.github.io/tsugi-java/apidocs/index.html)
 
-Note: If you are going to check this code out, please use 
-
-    git clone --recursive https://github.com/csev/tsugi.git
-
-To make sure you get the contents of the static folder which is in a git submodule.
-
 /Chuck
 
