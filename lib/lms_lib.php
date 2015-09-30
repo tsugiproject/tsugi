@@ -653,5 +653,22 @@ class Mersenne_Twister
   }
 }
 
+// http://stackoverflow.com/questions/6557805/randomize-a-php-array-with-a-seed
+// http://bost.ocks.org/mike/algorithms/#shuffling
+function Mersenne_Shuffle($arr, $seed=-1)
+{
+    if ( $seed == -1 ) return $arr;
+    $mt = new Mersenne_Twister($seed);
+    $new = $arr;
+    for ($i = count($new) - 1; $i > 0; $i--)
+    {
+        $j = $mt->getNext(0,$i);
+        $tmp = $new[$i];
+        $new[$i] = $new[$j];
+        $new[$j] = $tmp;
+    }
+    return $new;
+}
+
 // No trailer
 

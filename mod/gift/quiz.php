@@ -24,6 +24,7 @@ parse_gift($gift, $questions, $errors);
 
 // Both reduce the visible bits and score the quiz if a submission is present
 $submit = isset($_SESSION['gift_submit']) ? $_SESSION['gift_submit'] : array();
-$retval = make_quiz($submit, $questions, $errors);
+$seed = $USER->id+$LINK->id+$CONTEXT->id;
+$retval = make_quiz($submit, $questions, $errors, $seed);
 
 echo(json_encode($retval));

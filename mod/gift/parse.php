@@ -234,7 +234,7 @@ foreach ( $raw_questions as $raw ) {
 }
 
 
-function make_quiz($submit, $questions, $errors) {
+function make_quiz($submit, $questions, $errors, $seed=-1) {
 
 $retval = array("status" => "failure", "errors" => $errors);
 if ( count($questions) < 1 ) {
@@ -341,8 +341,7 @@ foreach($questions as $question) {
             }
             $answers[] = $ans;
         }
-        $nq->answers = $answers;
-
+        $nq->answers = Mersenne_Shuffle($answers, $seed);
     } 
 
     if ( $t == 'multiple_answers_question'  &&
@@ -377,7 +376,7 @@ foreach($questions as $question) {
                 $score = 0;
             }
         }
-        $nq->answers = $answers;
+        $nq->answers = Mersenne_Shuffle($answers, $seed);
     }
 
     if ( $correct !== null ) $nq->correct = $correct;
