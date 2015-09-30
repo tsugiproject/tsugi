@@ -1,7 +1,5 @@
 <?php
 
-require_once "Mersenne_Twister.php";
-
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 
