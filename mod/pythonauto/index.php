@@ -665,13 +665,20 @@ function load_cm() {
 <?php } ?>
 
  $().ready(function(){
-<?php if ( $EX === false && ! isset($_REQUEST['howdysuppress']) ) { ?>
-    $('#info').modal();
-<? } ?>
     // I cannot make this reliable :(
     $(window).resize(function () { compute_divs(); });
     window.MOBILE = $(window).width() <= 480;
     // window.MOBILE = TRUE;
+<?php if ( $EX === false && ! isset($_REQUEST['howdysuppress']) ) { ?>
+    // You know it is a hack when you are doing setTimeOut() :)
+    $('#info').on('hidden.bs.modal', function (e) {
+        if ( MOBILE === false ) {
+            compute_divs();
+            setTimeout('compute_divs();', 1200);
+        }
+    })
+    $('#info').modal();
+<? } ?>
     load_files();
     if ( MOBILE === false ) {
 <?php if ( $codemirror ) { ?>
