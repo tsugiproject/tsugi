@@ -11,6 +11,7 @@ use \Tsugi\OAuth\OAuthConsumer;
 use \Tsugi\OAuth\OAuthUtil;
 
 use \Tsugi\Util\Net;
+use \Tsugi\Util\Mimeparse;
 
 /**
  * This is a general purpose LTI class with no Tsugi-specific dependencies.
@@ -703,7 +704,6 @@ class LTI {
     public static function sendJSONBody($method, $postBody, $content_type,
             $rest_url, $key_key, $secret, &$debug_log=false) 
     {
-
         if ( is_array($debug_log) ) $debug_log[] = array('Sending '.strlen($postBody).' bytes to rest_url='.$rest_url);
 
         $response = self::sendOAuthBody($method, $rest_url, $key_key,
@@ -716,6 +716,20 @@ class LTI {
         if ( is_array($debug_log) )  $debug_log[] = array('Our base string',$lbs);
 
         return true;
+    }
+
+    /**
+     * ltiLinkAllowed - Returns true if we can return LTI Links for this launch
+     */
+    public static function ltiLinkAllowed($postdata=false) {
+        if ( $postdata === false ) $postData = $_POST;
+        if ( isset($postdata['accept_media_types']) ) {
+            $ltilink_mimetype = 'application/vnd.ims.lti.v1.ltilink';
+            $m = new Mimeparse;
+            $ltilink_allowed = $m->best_match(array($ltilink_mimetype), $postdata['accept_media_types']);
+            return  $ltilink_mimetype == $ltilink_allowed;
+        }
+        return false;
     }
 
     // Compares base strings, start of the mis-match

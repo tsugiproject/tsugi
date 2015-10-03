@@ -1004,4 +1004,11 @@ class LTIX {
         return $retval;
     }
 
+    /**
+     * ltiLinkAllowed - Returns true if we can return LTI Links for this launch
+     */
+    public static function ltiLinkAllowed() {
+        return LTI::ltiLinkAllowed(self::postArray());
+    }
+
 }
