@@ -38,13 +38,13 @@ echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
   </blti:custom>
   <blti:extensions platform="canvas.instructure.com">
     <lticm:options name="editor_button">
-      <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/content-item.php</lticm:property>
+      <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/canvas-content-item.php</lticm:property>
     </lticm:options>
     <lticm:options name="resource_selection">
-      <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/content-item.php</lticm:property>
+      <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/canvas-content-item.php</lticm:property>
     </lticm:options>
     <lticm:options name="homework_submission">
-        <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/content-item.php</lticm:property>
+        <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/canvas-content-item.php</lticm:property>
     </lticm:options>
     <lticm:property name="icon_url">
         <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/tsugi.png</lticm:property>

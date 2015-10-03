@@ -359,7 +359,6 @@ if ( $toolcount < 1 ) {
     lmsDie("No tools to register..");
 }
 
-
 $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
 $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
 
