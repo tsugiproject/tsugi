@@ -70,6 +70,23 @@ $return_url_tool_guid = false;
 $return_url_lti_msg = false;
 $return_url_lti_errormsg = false;
 
+function log_return_die($message) {
+    global $_POST;
+
+    if ( isset($_POST['launch_presentation_return_url']) ) {
+        $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
+        if ( strpos($launch_presentation_return_url,'?') > 0 ) {
+            $launch_presentation_return_url .= '&';
+        } else {
+            $launch_presentation_return_url .= '?';
+        }
+        $launch_presentation_return_url .= "status=failure";
+        $launch_presentation_return_url .= "&lti_errormsg=" . urlencode($message);
+        echo('<p><a href="'.$launch_presentation_return_url.'">Continue to launch_presentation_url</a></p>'."\n");
+    }
+    lmsDie($message);
+}
+
 ?>
 <html>
 <head>
@@ -429,7 +446,7 @@ if ( $responseObject != null ) {
         $oauth_consumer_key = $tc_tool_proxy_guid;
         echo('<p>Tool consumer returned tool_proxy_guid='.$tc_tool_proxy_guid." (using as oauth_consumer_key)</p>\n");
         if ( $tool_proxy_guid && $tool_proxy_guid != $tc_tool_proxy_guid ) {
-            echo('<p style="color: red;">Error: Returned tool_proxy_guid did not match launch oauth_consumer_key/tool_proxy_guid='.$tool_proxy_guid."</p>\n");
+            echo('<p style="color: yellow;">Note: Returned tool_proxy_guid did not match launch oauth_consumer_key/tool_proxy_guid='.$tool_proxy_guid."</p>\n");
         }
     } else {
         echo('<p style="color: red;">Error: Tool Consumer did not include tool_proxy_guid in its response.</p>'."\n");
@@ -437,7 +454,7 @@ if ( $responseObject != null ) {
 
     if ( $oauth_splitsecret && $shared_secret ) {
         if ( ! isset($responseObject->tc_half_shared_secret) ) {
-            die_with_error_log("<p>Error: Tool Consumer did not provide tc_half_shared_secret</p>\n");
+            log_return_die("<p>Error: Tool Consumer did not provide tc_half_shared_secret</p>\n");
         } else {
             $tc_half_shared_secret = $responseObject->tc_half_shared_secret;
             $shared_secret = $tc_half_shared_secret . $shared_secret;
@@ -454,6 +471,7 @@ if ( $responseObject != null ) {
 // to the unique constraint.
 
 if ( $re_register ) {
+    $key_sha256 = lti_sha256($oauth_consumer_key);
     $retval = $PDOX->queryDie(
         "UPDATE {$CFG->dbprefix}lti_key SET updated_at = NOW(), ack = :ACK,
             new_secret = :SECRET, new_consumer_profile = :PROFILE
@@ -464,15 +482,16 @@ if ( $re_register ) {
     );
 
     if ( ! $retval->success ) {
-        lmsDie("Unable to UPDATE Registration key $oauth_consumer_key ".$retval->errorImplode);
+        log_return_die("Unable to UPDATE Registration key $oauth_consumer_key ".$retval->errorImplode);
     }
 
-    echo_log("LTI2 Key $oauth_consumer_key updated.\n");
+    $return_url_lti_message = "LTI2 Key $oauth_consumer_key updated";
 
 // If we do not have a key, insert one, checking carefully for a failed insert
 // due to a unique constraint violation.  If this insert fails, it is likely
 // a race condition between competing INSERTs for the same key_id
 } else {
+    $key_sha256 = lti_sha256($oauth_consumer_key);
     $retval = $PDOX->queryDie(
         "INSERT INTO {$CFG->dbprefix}lti_key 
             (key_sha256, key_key, user_id, secret, consumer_profile)
@@ -486,15 +505,28 @@ if ( $re_register ) {
             ":PROFILE" => $tc_profile_json)
     );
     if ( ! $retval->success ) {
-        lmsDie("Unable to INSERT Registration key $oauth_consumer_key ".$retval->errorImplode);
+        log_return_die("Unable to INSERT Registration key $oauth_consumer_key ".$retval->errorImplode);
     }
-    echo_log("LTI2 Key $oauth_consumer_key inserted.\n");
+    $return_url_lti_message = "LTI2 Key $oauth_consumer_key inserted";
 }
+
+echo_log("$return_url_lti_message \n");
 
 
 if ( $last_http_response == 201 || $last_http_response == 200 ) {
-  echo('<p><a href="'.$launch_presentation_return_url.'">Continue to launch_presentation_url</a></p>'."\n");
-  exit();
+
+    if ( strpos($launch_presentation_return_url,'?') > 0 ) {
+        $launch_presentation_return_url .= '&';
+    } else {
+        $launch_presentation_return_url .= '?';
+    }
+    $launch_presentation_return_url .= "status=success";
+    $launch_presentation_return_url .= "&lti_message=" . urlencode($return_url_lti_message);
+    $launch_presentation_return_url .= "&tool_proxy_guid=" . urlencode($tc_tool_proxy_guid);
+
+
+    echo('<p><a href="'.$launch_presentation_return_url.'">Continue to launch_presentation_url</a></p>'."\n");
+    exit();
 }
 
 echo("Registration failed, http code=".$last_http_response."\n");

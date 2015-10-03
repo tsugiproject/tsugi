@@ -16,7 +16,7 @@ function die_with_error_log($msg, $extra=false, $prefix="DIE:") {
 }
 
 function echo_log($msg) {
-    echo($msg);
+    echo(htmlent_utf8($msg));
     error_log(str_replace("\n"," ",$msg));
 }
 
