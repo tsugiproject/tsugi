@@ -28,7 +28,8 @@ class LTI {
         if ( !isset($_REQUEST["lti_message_type"]) ) return false;
         if ( !isset($_REQUEST["lti_version"]) ) return false;
         $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request" ||
-            $_REQUEST["lti_message_type"] == "ToolProxyReregistrationRequest";
+            $_REQUEST["lti_message_type"] == "ToolProxyReregistrationRequest" ||
+            $_REQUEST["lti_message_type"] == "ContentItemSelectionRequest";
         $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0" || $_REQUEST["lti_version"] == "LTI-2p0";
         if ($good_message_type and $good_lti_version ) return(true);
         return false;
@@ -754,7 +755,7 @@ class LTI {
     }
 
     /**
-     * getLtiLinkJson - Gte a JSON object for an LTI Link Content Item Return
+     * getLtiLinkJson - Get a JSON object for an LTI Link Content Item Return
      *
      * @param url The launch URL of the tool that is about to be placed
      * @param title A plain text title of the content-item.

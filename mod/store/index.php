@@ -8,7 +8,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 
 // No parameter means we require CONTEXT, USER, and LINK
-$LTI = LTIX::requireData();
+$LTI = LTIX::requireData(LTIX::USER);
 
 // Model
 $p = $CFG->dbprefix;
@@ -20,9 +20,6 @@ $tools = array();
 if ( $USER->instructor && $result_url ) {
     $tools = findFiles("register.php","../../");
 }
-
-// Handle the POST
-// TBD
 
 $OUTPUT->header();
 ?>
@@ -119,6 +116,8 @@ foreach($tools as $tool ) {
         $parms["lti_message_type"] = "ContentItemSelection";
         $parms["lti_version"] = "LTI-1p0";
         $parms["content_items"] = $retval;
+        $data = LTIX::postGet('data');
+        if ( $data ) $parms['data'] = $data;
     
         $parms = LTIX::signParameters($parms, $result_url, "POST", "Install Tool");
         $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
