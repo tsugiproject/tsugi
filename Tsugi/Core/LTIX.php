@@ -31,9 +31,9 @@ class LTIX {
     /**
      * Silently check if this is a launch and if so, handle it
      */
-    public static function launchCheck() {
+    public static function launchCheck($needed) {
         if ( ! LTI::isRequest() ) return false;
-        $session_id = self::setupSession();
+        $session_id = self::setupSession($needed);
         if ( $session_id === false ) return false;
 
         // Redirect back to ourselves...
@@ -97,17 +97,16 @@ class LTIX {
     /**
      * Extract all of the post data, set up data in tables, and set up session.
      */
-    public static function setupSession() {
+    public static function setupSession($needed) {
         global $CFG, $PDOX;
         if ( ! LTI::isRequest() ) return false;
 
         // Pull LTI data out of the incoming $_POST and map into the same
         // keys that we use in our database (i.e. like $row)
-        $post = self::extractPost();
+        $post = self::extractPost($needed);
         if ( $post === false ) {
             $pdata = safe_var_dump($_POST);
-            error_log('Missing post data: '.$pdata);
-            require('lti/nopost.php');
+            die_with_error_log('Missing post data: '.$pdata);
             return;
         }
 
@@ -166,7 +165,7 @@ class LTIX {
             die_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0]);
         }
 
-        $actions = self::adjustData($CFG->dbprefix, $row, $post);
+        $actions = self::adjustData($CFG->dbprefix, $row, $post, $needed);
 
         // Record the nonce but first probabilistically check
         if ( $CFG->noncecheck > 0 ) {
@@ -263,7 +262,7 @@ class LTIX {
      * We follow our naming conventions that match the column names in
      * our lti_ tables.
      */
-    public static function extractPost() {
+    public static function extractPost($needed) {
         // Unescape each time we use this stuff - someday we won't need this...
         $FIXED = array();
         foreach($_POST as $key => $value ) {
@@ -291,12 +290,12 @@ class LTIX {
         $context_id = isset($FIXED['custom_context_id']) ? $FIXED['custom_context_id'] : $context_id;
         $retval['context_id'] = $context_id;
 
-        if ( $retval['key'] && $retval['nonce'] && $retval['context_id'] &&
-            $retval['link_id']  && $retval['user_id'] ) {
-            // OK To Continue
-        } else {
-            return false;
-        }
+        // Sanity checks
+        if ( ! $retval['key'] ) return false;
+        if ( ! $retval['nonce'] ) return false;
+        if ( in_array(self::USER, $needed) && ! $retval['user_id'] ) return false;
+        if ( in_array(self::CONTEXT, $needed) && ! $retval['context_id'] ) return false;
+        if ( in_array(self::LINK, $needed) && ! $retval['link_id'] ) return false;
 
         // LTI 1.x settings and Outcomes
         $retval['service'] = isset($FIXED['lis_outcome_service_url']) ? $FIXED['lis_outcome_service_url'] : null;
@@ -451,7 +450,7 @@ class LTIX {
      * any new or updated data and so this code just falls through and
      * does absolutely no SQL.
      */
-    public static function adjustData($p, &$row, $post) {
+    public static function adjustData($p, &$row, $post, $needed) {
         global $PDOX;
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -671,7 +670,7 @@ class LTIX {
         if ( is_string($needed) ) $needed = array($needed);
 
         // Check if we are processing an LTI launch.  If so, handle it
-        self::launchCheck();
+        $newlaunch = self::launchCheck($needed);
 
         // Check to see if the session already exists.
         $sess = session_name();
@@ -681,7 +680,7 @@ class LTIX {
                 die_with_error_log("Missing session cookie - please re-launch");
             }
         } else { // non-cookie session
-            if ( isset($_POST[$sess]) || isset($_GET[$sess]) ) {
+            if ( $newlaunch || isset($_POST[$sess]) || isset($_GET[$sess]) ) {
                 // We tried to set a session..
             } else {
                 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
