@@ -719,15 +719,19 @@ class LTI {
     }
 
     /**
-     * ltiLinkAllowed - Returns true if we can return LTI Links for this launch
+     * ltiLinkUrl - Returns true if we can return LTI Links for this launch
+     *
+     * @return string The content_item_return_url or false
      */
-    public static function ltiLinkAllowed($postdata=false) {
+    public static function ltiLinkUrl($postdata=false) {
         if ( $postdata === false ) $postData = $_POST;
+        if ( ! isset($postdata['content_item_return_url']) ) return false;
         if ( isset($postdata['accept_media_types']) ) {
             $ltilink_mimetype = 'application/vnd.ims.lti.v1.ltilink';
             $m = new Mimeparse;
             $ltilink_allowed = $m->best_match(array($ltilink_mimetype), $postdata['accept_media_types']);
-            return  $ltilink_mimetype == $ltilink_allowed;
+            if ( $ltilink_mimetype != $ltilink_allowed ) return false;
+            return $postdata['content_item_return_url'];
         }
         return false;
     }
