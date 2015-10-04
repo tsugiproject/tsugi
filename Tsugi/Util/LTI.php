@@ -105,7 +105,7 @@ class LTI {
         return $parms;
     }
 
-    public static function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false) {
+    public static function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false, $endform=false) {
         global $LastOAuthBodyBaseString;
         $r = "<div id=\"ltiLaunchFormSubmitArea\">\n";
         if ( $iframeattr =="_blank" ) {
@@ -125,6 +125,7 @@ class LTI {
                 $r .= "<input type=\"hidden\" name=\"";
             }
             $r .= $key;
+            $r .= "\" class=\"btn btn-primary";
             $r .= "\" value=\"";
             $r .= $value;
             $r .= "\"/>\n";
@@ -143,7 +144,7 @@ class LTI {
             $r .= "} \n";
             $r .= "  //]]> \n" ;
             $r .= "</script>\n";
-            $r .= "<a id=\"displayText\" href=\"javascript:basicltiDebugToggle();\">";
+            $r .= "<a id=\"basicltiDebugToggle\" href=\"javascript:basicltiDebugToggle();\">";
             $r .= self::get_string("toggle_debug_data","basiclti")."</a>\n";
             $r .= "<div id=\"basicltiDebug\" style=\"display:none\">\n";
             $r .=  "<b>".self::get_string("basiclti_endpoint","basiclti")."</b><br/>\n";
@@ -158,11 +159,25 @@ class LTI {
             $r .= "<p><b>".self::get_string("basiclti_base_string","basiclti")."</b><br/>\n".$LastOAuthBodyBaseString."</p>\n";
             $r .= "</div>\n";
         }
+        if ( $endform ) $r .= $endform;
         $r .= "</form>\n";
         if ( $iframeattr && $iframeattr != '_blank' ) {
             $r .= "<iframe name=\"basicltiLaunchFrame\"  id=\"basicltiLaunchFrame\" src=\"\"\n";
             $r .= $iframeattr . ">\n<p>".self::get_string("frames_required","basiclti")."</p>\n</iframe>\n";
         }
+        // Remove session_name (i.e. PHPSESSID) if it was added.
+        $r .= " <script type=\"text/javascript\"> \n" .
+            "  //<![CDATA[ \n" .
+            "    var inputs = document.getElementById(\"ltiLaunchForm\").childNodes;\n" .
+            "    for (var i = 0; i < inputs.length; i++)\n" .
+            "    {\n" .
+            "        var thisinput = inputs[i];\n" .
+            "        if ( thisinput.name != '".session_name()."' ) continue;\n" .
+            "        thisinput.parentNode.removeChild(thisinput);\n" .
+            "    }\n" .
+            "  //]]> \n" .
+            " </script> \n";
+
         if ( ! $debug ) {
             $ext_submit = "ext_submit";
             $ext_submit_text = $submit_text;
@@ -748,20 +763,20 @@ class LTI {
      * @param fa_icon The class name of a FontAwesome icon
      *
      */
-    function getLtiLinkJSON($url, $title=false, $text=false, $icon=false, $fa_icon=false ) {
+    public static function getLtiLinkJSON($url, $title=false, $text=false, $icon=false, $fa_icon=false ) {
         $return = '{
             "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem", 
                 "@graph" : [ 
                 { "@type" : "LtiLink",
                     "@id" : ":item2",
-                    "text" : "The mascot for the Sakai Project", 
-                    "title" : "The fearsome mascot of the Sakai Project",
-                    "url" : "http://www.sakaiger.com/images/Sakaiger.png",
+                    "title" : "A cool tool hosted in the Tsugi environment.", 
+                    "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
+                    "url" : "http://www.tsugi.org/",
                     "icon" : {
-                        "@id" : "fa-bullseye",
-                        "fa_icon" : "fa-bullseye",
-                        "width" : 50,
-                        "height" : 50
+                        "@id" : "https://www.dr-chuck.net/tsugi/static/img/default-icon.png",
+                        "fa_icon" : "fa-magic",
+                        "width" : 64,
+                        "height" : 64
                     }
                 }
             ]

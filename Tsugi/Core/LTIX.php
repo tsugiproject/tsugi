@@ -955,6 +955,18 @@ class LTIX {
     }
 
     /**
+     * signParameters - Look up the key and secret and call the underlying code in LTI
+     */
+    public static function signParameters($oldparms, $endpoint, $method, 
+        $submit_text = false, $org_id = false, $org_desc = false) {
+
+        $oauth_consumer_key = self::sessionGet('key_key');
+        $oauth_consumer_secret = self::sessionGet('secret');
+
+        return LTI::signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oauth_consumer_secret,
+            $submit_text, $org_id, $org_desc);
+    }
+    /**
       * Send settings to the LMS using the simple JSON approach
       */
     public static function settingsSend($settings, $settings_url, &$debug_log=false) {
