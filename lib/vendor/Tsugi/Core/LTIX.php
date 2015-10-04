@@ -1005,10 +1005,12 @@ class LTIX {
     }
 
     /**
-     * ltiLinkAllowed - Returns true if we can return LTI Links for this launch
+     * ltiLinkUrl - Returns true if we can return LTI Links for this launch
+     *
+     * @return string The content_item_return_url or false
      */
-    public static function ltiLinkAllowed() {
-        return LTI::ltiLinkAllowed(self::postArray());
+    public static function ltiLinkUrl($postdata=false) {
+        return LTI::ltiLinkUrl(self::postArray());
     }
 
 }
