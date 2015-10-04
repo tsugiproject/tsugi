@@ -41,7 +41,10 @@ $OUTPUT->header();
       height: 100%;
       background-color: white;
       margin: 0;
-      z-index: -100;
+      z-index: 100;
+}
+#basicltiDebugToggle {
+    display: none;
 }
 </style>
 <?php
@@ -72,41 +75,74 @@ if ( count($tools) < 1 ) {
     exit();
 }
 
+$install = false;
 if ( isset($_GET['install']) ) {
     $install = $_GET['install'];
-    echo("<h1>$install</h1>\n");
 }
 
-echo '<div id="box">'."\n";
+if ( $install ) {
+    echo('<div id="install">');
+} else {
+    echo '<div id="box">'."\n";
+}
 $toolcount = 0;
 foreach($tools as $tool ) {
+
+    if ( $install && $install != $tool ) continue;
+
     $path = str_replace("../","",$tool);
     // echo("Checking $path ...<br/>\n");
     unset($REGISTER_LTI2);
     require($tool);
-    if ( isset($REGISTER_LTI2) && is_array($REGISTER_LTI2) ) {
-        if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) && 
-            isset($REGISTER_LTI2['description']) ) {
-        } else {
-            lmsDie("Missing required name, short_name, and description in ".$tool);
-        }
+    if ( ! isset($REGISTER_LTI2) ) continue;
+    if ( ! is_array($REGISTER_LTI2) ) continue;
 
-        $script = isset($REGISTER_LTI2['script']) ? $REGISTER_LTI2['script'] : "index.php";
-        $icon = isset($REGISTER_LTI2['FontAwesome']) ? $REGISTER_LTI2['FontAwesome'] : false;
-
-        $path = $CFG->wwwroot . '/' . str_replace("register.php", $script, $path);
-        echo('<div style="border: 2px, solid, red;" class="card">');
-        if ( $icon ) {
-            echo('<i class="fa '.$icon.' fa-2x" style="float:right; margin: 2px"></i>');
-        }
-        echo('<strong>'.htmlent_utf8($REGISTER_LTI2['name'])."</strong><br>");
-        // echo($path."<br/>\n");
-        // echo($tool."<br/>\n");
-        echo(htmlent_utf8($REGISTER_LTI2['description'])."<br/>\n");
-        echo('<a href="store.php?install='.urlencode($tool).'" class="btn btn-info" role="button">Install Tool</a>');
-        echo("</div>\n");
-        $toolcount++;
+    if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) && 
+        isset($REGISTER_LTI2['description']) ) {
+        // We are happy
+    } else {
+        lmsDie("Missing required name, short_name, and description in ".$tool);
     }
+
+    $title = $REGISTER_LTI2['name'];
+    $text = $REGISTER_LTI2['description'];
+    $fa_icon = isset($REGISTER_LTI2['FontAwesome']) ? $REGISTER_LTI2['FontAwesome'] : false;
+
+    if ( $install ) {
+        if ( $fa_icon ) {
+            echo('<i class="fa '.$fa_icon.' fa-3x" style="color: #1894C7; float:right; margin: 2px"></i>');
+        }
+        echo('<center>');
+        echo("<h1>".htmlent_utf8($title)."</h1>\n");
+        echo("<p>".htmlent_utf8($text)."</p>\n");
+        $script = isset($REGISTER_LTI2['script']) ? $REGISTER_LTI2['script'] : "index.php";
+        $path = $CFG->wwwroot . '/' . str_replace("register.php", $script, $path);
+
+        $json = LTI::getLtiLinkJSON($path, $title, $text, false, $fa_icon);
+        $retval = json_encode($json);
+
+        $parms = array();
+        $parms["lti_message_type"] = "ContentItemSelection";
+        $parms["lti_version"] = "LTI-1p0";
+        $parms["content_items"] = $retval;
+    
+        $parms = LTIX::signParameters($parms, $result_url, "POST", "Install Tool");
+        $endform = '<a href="store.php" class="btn btn-warning">Back to Store</a>';
+        $content = LTI::postLaunchHTML($parms, $result_url, true, false, $endform);
+        echo($content);
+    } else {
+        echo('<div style="border: 2px, solid, red;" class="card">');
+        if ( $fa_icon ) {
+            echo('<a href="store.php?install='.urlencode($tool).'">');
+            echo('<i class="fa '.$fa_icon.' fa-2x" style="color: #1894C7; float:right; margin: 2px"></i>');
+            echo('</a>');
+        }
+        echo('<p><strong>'.htmlent_utf8($title)."</strong></p>");
+        echo('<p>'.htmlent_utf8($text)."</p>\n");
+        echo('<center><a href="store.php?install='.urlencode($tool).'" class="btn btn-default" role="button">Details</a></center>');
+        echo("</div>\n");
+    }
+    $toolcount++;
 }
 echo("</div>\n");
 
@@ -116,6 +152,7 @@ if ( $toolcount < 1 ) {
 
 $OUTPUT->footerStart();
 // https://github.com/LinZap/jquery.waterfall
+if ( ! $install ) {
 ?>
 <script type="text/javascript" src="static/waterfall-light.js"></script>
 <script>
@@ -124,44 +161,5 @@ $(function(){
 });
 </script>
 <?php
+}
 $OUTPUT->footerend();
-exit();
-
-
-
-$content_url = isset($_REQUEST['content_url']) ? $_REQUEST['content_url'] : preg_replace("/json.*$/","tool.php?sakai=98765",curPageUrl());
-
-$oauth_consumer_key = isset($_REQUEST['key']) ? $_REQUEST['key'] : $_SESSION['oauth_consumer_key'];
-$oauth_consumer_secret = isset($_REQUEST['secret']) ? $_REQUEST['secret'] : 'secret';
-$title = isset($_REQUEST['title']) ? $_REQUEST['title'] : "The Awesome Sakaiger Title";
-$text = isset($_REQUEST['text']) ? $_REQUEST['text'] : "The Awesome Sakaiger Text";
-$data = isset($_REQUEST['data']) ? $_REQUEST['data'] : "";
-
-if (strlen($oauth_consumer_secret) < 1 || strlen($oauth_consumer_key) < 1 
-    || strlen($result_url) < 1 ) {
-    var_dump($_SESSION);
-    die("Must have url, reg_password and reg_key in sesison or as GET parameters");
-}
-
-if ( isset($_REQUEST['send']) ) {
-    $parms = array();
-    $parms["lti_message_type"] = "ContentItemSelection";
-    $parms["lti_version"] = "LTI-1p0";
-    if ( isset($_REQUEST['data']) ) {
-        $parms["data"] = $_REQUEST['data'];
-    }
-    $json = getLtiLinkJSON($content_url);
-    $json->{'@graph'}[0]->{'title'} = $title;
-    $json->{'@graph'}[0]->{'text'} = $text;
-    $retval = json_encode($json);
-    $parms["content_items"] = $retval;
-
-    $parms = signParameters($parms, $result_url, "POST", 
-        $oauth_consumer_key, $oauth_consumer_secret,
-        "Finish Content Return");
-
-    $content = postLaunchHTML($parms, $result_url, true);
-    echo($content);
-    return;
-}
-

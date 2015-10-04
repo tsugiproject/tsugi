@@ -393,6 +393,14 @@ class Output {
     }
 
     /**
+      * Get a fully-qualified URL for the default icon image.
+      */
+    function getDefaultIcon() {
+        global $CFG;
+        return $CFG->staticroot . '/static/img/spinner.gif';
+    }
+
+    /**
      * Redirect to a local URL, adding session if necessary
      *
      * Note that this is only needed for AJAX and header() calls
