@@ -721,6 +721,8 @@ class LTI {
     /**
      * ltiLinkUrl - Returns true if we can return LTI Links for this launch
      *
+     * IMS Public Draft: http://www.imsglobal.org/specs/lticiv1p0
+     *
      * @return string The content_item_return_url or false
      */
     public static function ltiLinkUrl($postdata=false) {
@@ -734,6 +736,44 @@ class LTI {
             return $postdata['content_item_return_url'];
         }
         return false;
+    }
+
+    /**
+     * getLtiLinkJson - Gte a JSON object for an LTI Link Content Item Return
+     *
+     * @param url The launch URL of the tool that is about to be placed
+     * @param title A plain text title of the content-item.
+     * @param text A plain text description of the content-item.
+     * @param icon An image URL of an icon
+     * @param fa_icon The class name of a FontAwesome icon
+     *
+     */
+    function getLtiLinkJSON($url, $title=false, $text=false, $icon=false, $fa_icon=false ) {
+        $return = '{
+            "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem", 
+                "@graph" : [ 
+                { "@type" : "LtiLink",
+                    "@id" : ":item2",
+                    "text" : "The mascot for the Sakai Project", 
+                    "title" : "The fearsome mascot of the Sakai Project",
+                    "url" : "http://www.sakaiger.com/images/Sakaiger.png",
+                    "icon" : {
+                        "@id" : "fa-bullseye",
+                        "fa_icon" : "fa-bullseye",
+                        "width" : 50,
+                        "height" : 50
+                    }
+                }
+            ]
+        }';
+
+        $json = json_decode($return);
+        $json->{'@graph'}[0]->url = $url;
+        if ( $title ) $json->{'@graph'}[0]->{'title'} = $title;
+        if ( $text ) $json->{'@graph'}[0]->{'text'} = $text;
+        if ( $icon ) $json->{'@graph'}[0]->{'icon'}->{'@id'} = $icon;
+        if ( $fa_icon ) $json->{'@graph'}[0]->icon->fa_icon = $fa_icon;
+        return $json;
     }
 
     // Compares base strings, start of the mis-match
