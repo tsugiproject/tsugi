@@ -768,9 +768,10 @@ class LTI {
         $return = '{
             "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem", 
                 "@graph" : [ 
-                { "@type" : "LtiLink",
+                { "@type" : "LtiLinkItem",
                     "@id" : ":item2",
                     "title" : "A cool tool hosted in the Tsugi environment.", 
+                    "mediaType" : "application/vnd.ims.lti.v1.ltilink", 
                     "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
                     "url" : "http://www.tsugi.org/",
                     "icon" : {
