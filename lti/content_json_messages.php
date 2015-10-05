@@ -5,7 +5,7 @@ function getLtiLinkJSON($url) {
 $return = '{
   "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem", 
   "@graph" : [ 
-    { "@type" : "LtiLink",
+    { "@type" : "LtiLinkItem",
       "@id" : ":item2",
       "text" : "The mascot for the Sakai Project", 
       "title" : "The fearsome mascot of the Sakai Project",
