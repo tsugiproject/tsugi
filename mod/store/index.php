@@ -1,5 +1,12 @@
 <?php
 require_once "../../config.php";
+
+$local_path = route_get_local_path(__DIR__);
+if ( $local_path == "canvas-config.xml" ) {
+    require_once("canvas-config-xml.php");
+    return;
+}
+
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 

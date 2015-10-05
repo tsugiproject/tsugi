@@ -1,0 +1,5 @@
+# http://stackoverflow.com/questions/16388959/url-rewriting-with-php
+# http://httpd.apache.org/docs/2.2/mod/mod_dir.html#fallbackresource
+
+FallbackResource index.php
+
