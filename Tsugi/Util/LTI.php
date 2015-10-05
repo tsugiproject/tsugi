@@ -774,6 +774,11 @@ class LTI {
                     "mediaType" : "application/vnd.ims.lti.v1.ltilink", 
                     "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
                     "url" : "http://www.tsugi.org/",
+                    "placementAdvice" : {
+	                "presentationDocumentTarget" : "window",
+	                "displayHeight" : 1024,
+	                "displayWidth" : 800
+                    },
                     "icon" : {
                         "@id" : "https://www.dr-chuck.net/tsugi/static/img/default-icon.png",
                         "fa_icon" : "fa-magic",
