@@ -3,6 +3,9 @@ require_once "../../config.php";
 
 // See the end of the file for some documentation references 
 
+$pieces = parse_url($CFG->wwwroot);
+$domain = isset($pieces['host']) ? $pieces['host'] : false;
+
 header("Content-type: application/xml");
 echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 ?>
@@ -37,6 +40,10 @@ echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
     <lticm:property name="user_image">$User.image</lticm:property>
   </blti:custom>
   <blti:extensions platform="canvas.instructure.com">
+     <lticm:property name="privacy_level">public</lticm:property>
+<?php
+     if ( $domain ) echo ('<lticm:property name="domain">'.$domain."</lticm:property>\n");
+?>
     <lticm:property name="icon_url"><?= $CFG->wwwroot ?>/static/img/default-icon.png</lticm:property>
     <lticm:options name="link_selection">
       <lticm:property name="message_type">ContentItemSelectionRequest</lticm:property>
