@@ -447,7 +447,7 @@ using a colon.
 From stephen.marquard@uct.ac.za Sat Jan  5 <b>09</b>:14:16 2008
 </pre>
 Once you have accumulated the counts for each hour, print out the counts, sorted by hour
-as shown below.  Note that the autograder does not have support for the sorted() function.",
+as shown below.",
 "desired" => "04 3
 06 1
 07 1

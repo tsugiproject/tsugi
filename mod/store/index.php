@@ -109,7 +109,9 @@ foreach($tools as $tool ) {
         $script = isset($REGISTER_LTI2['script']) ? $REGISTER_LTI2['script'] : "index.php";
         $path = $CFG->wwwroot . '/' . str_replace("register.php", $script, $path);
 
-        $json = LTI::getLtiLinkJSON($path, $title, $text, false, $fa_icon);
+        // TODO: Check the order of these
+        // $json = LTI::getLtiLinkJSON($path, $title, $text, false, $fa_icon);
+        $json = LTI::getLtiLinkJSON($path, $text, $title, false, $fa_icon);
         $retval = json_encode($json);
 
         $parms = array();
