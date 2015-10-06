@@ -283,6 +283,8 @@ foreach($desired_parameters as $parameter) {
 // Ask for the kitchen sink...
 $enabled_capabilities = array();
 $global_enabled_capabilities = array();
+$canvas_placement_capabilities = array();
+$sakai_contentitem_capabilities = array();
 $hmac256 = false;
 foreach($tc_capabilities as $capability) {
         if ( "basic-lti-launch-request" == $capability ) continue;
@@ -296,8 +298,21 @@ foreach($tc_capabilities as $capability) {
         if ( "OAuth.splitSecret" == $capability || "OAuth.hmac-sha256" == $capability ) {
             $global_enabled_capabilities[] = $capability;
         }
+
+        // Separate out the Canvas placement capabilities
+        if ( strpos($capability,"Canvas.placements.") === 0 ) {
+            $canvas_placement_capabilities[] = $capability;
+            continue;
+        }
+
+	// Separate out the Sakai contentitem capabilities
+        if ( strpos($capability,"Sakai.contentitem.") === 0 ) {
+            $sakai_contentitem_capabilities[] = $capability;
+            continue;
+        }
         $enabled_capabilities[] = $capability;
 }
+
 $tp_profile->enabled_capability = $global_enabled_capabilities;
 
 // Scan the tools folders for registration settings
@@ -306,6 +321,31 @@ $tools = findFiles("register.php","../");
 if ( count($tools) < 1 ) {
     lmsDie("No register.php files found...<br/>\n");
 }
+
+// If Canvas sees an LTI 2.0 tool with no placement advice, the default is linkSelection and assignmentSelection
+
+// Note that as of 8-Oct-2015 Canvas LTI 2.0 does not yet provide:
+// 'Canvas.placements.contentImport' - be part of the import menu
+// 'Canvas.placements.homeworkSubmission' - allow the end-user to pick a file for submission
+// 'Canvas.placements.richtextEditor' - Suitable for putting in the text editor
+// but we include these in case they appear.  They might end up never appearing or having
+// different names - but they are safe to include in our "wish list" below.
+
+// Here are the ones we might get:
+// Canvas.placements.linkSelection - Shows up in modules
+// Canvas.placements.assignmentSelection - Shows up in assignments dropdown
+// Canvas.placements.accountNavigation - Auto installed in the account menu - we don't use this if offered
+// Canvas.placements.courseNavigation - Auto installed in the course menu - we don't use this if offered
+
+$message_desired_capabilities = array(
+  'launch' => array('Canvas.placements.linkSelection', 'Canvas.placements.assignmentSelection'),
+  'launch_result' => array('Canvas.placements.assignmentSelection'),
+  'select_file' => array('Sakai.contentitem.selectFile', 'Canvas.placements.homeworkSubmission'),
+  'select_import' => array('Sakai.contentitem.selectFile', 'Canvas.placements.contentImport'),
+  'select_link' => array('Sakai.contentitem.selectLink', 'Canvas.placements.linkSelection', 'Canvas.placements.richtextEditor'),
+  'select_any' => array('Sakai.contentitem.selectAny', 'Sakai.contentitem.selectFile', 'Sakai.contentitem.selectImport', 
+       'Canvas.placements.assignmentSelection', 'Canvas.placements.linkSelection', 'Canvas.placements.richtextEditor')
+);
 
 $toolcount = 0;
 foreach($tools as $tool ) {
@@ -346,10 +386,53 @@ foreach($tools as $tool ) {
             $newhandler->icon_info = $icons;
         }
 
+        $local_capabilities = $enabled_capabilities;
+
+	// Deal with the tools messages - default is tools can launch_result
+	$launch = false;
+	$select = false;
+	$messages = isset($REGISTER_LTI2['messages']) ? $REGISTER_LTI2['messages'] : array("launch");
+	foreach($messages as $message ) {
+	    $launch = $launch || ( strpos($message,'launch') === 0 );
+	    $select = $select || ( strpos($message,'select') === 0 );
+	    if ( ! isset($message_desired_capabilities[$message] ) ) continue;
+	    foreach ( $message_desired_capabilities[$message] as $desired ) {
+		if ( in_array($desired,$local_capabilities) ) continue; // No dups
+		if ( in_array($desired,$sakai_contentitem_capabilities) ||
+		     in_array($desired,$canvas_placement_capabilities) ) {
+			$local_capabilities[] = $desired;
+		}
+	    }
+	}
+
+	$save_message = $newhandler->message[0];
+	unset($newhandler->message[0]);
+	$message_count = 0;
+
+	if ( $launch && in_array('basic-lti-launch-request', $tc_capabilities) ) {
+            $newmsg = $save_message;
+            $newmsg->path = "/".str_replace("register.php", $script, $path);
+            $newmsg->parameter = $requested_parameters;
+            $newmsg->enabled_capability = $local_capabilities;
+	    $newhandler->message[$message_count++] = $newmsg;
+	}
+
+	// LTI 2.0 on Canvas will tell us when it can handle this -- 06-Oct-15 /Chuck
+	if ( $select && in_array('ContentItemSelectionRequest', $tc_capabilities) ) {
+            $newmsg = $save_message;
+	    $newmsg->message_type = "ContentItemSelectionRequest";
+            $newmsg->path = "/".str_replace("register.php", $script, $path);
+            $newmsg->parameter = $requested_parameters;
+            $newmsg->enabled_capability = $local_capabilities;
+	    $newhandler->message[$message_count++] = $newmsg;
+	}
+
+	if ( $message_count < 1 ) {
+		echo("Could not find a supported message_type in tc_capabilities for: ".$REGISTER_LTI2['name']."\n");
+		continue;
+	}
+
         $newhandler->resource_type->code = $code;
-        $newhandler->message[0]->path = "/".str_replace("register.php", $script, $path);
-        $newhandler->message[0]->parameter = $requested_parameters;
-        $newhandler->message[0]->enabled_capability = $enabled_capabilities;
         $tp_profile->tool_profile->resource_handler[] = $newhandler;
         $toolcount++;
     }
@@ -388,6 +471,7 @@ $tp_profile->security_contract->tool_service = $tp_services;
 
 $body = json_encode($tp_profile);
 $body = jsonIndent($body);
+// echo($body);die();
 
 echo("Register Endpoint=".$register_url."\n");
 echo("Result Endpoint=".$result_url."\n");

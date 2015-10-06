@@ -46,7 +46,7 @@ $OUTPUT->header();
       margin: 0;
       z-index: 100;
 }
-#basicltiDebugToggle {
+#XbasicltiDebugToggle {
     display: none;
 }
 </style>
