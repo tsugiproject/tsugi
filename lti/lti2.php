@@ -248,7 +248,7 @@ for($i=0; $i < count($tp_profile->{'@context'}); $i++ ) {
     }
 }
 
-$tp_profile->tool_profile->message[0]->path = $CFG->wwwroot . '/lti/install.php';
+$tp_profile->tool_profile->message[0]->path = $CFG->wwwroot . '/lti/register.php';
 
 // A globally unique identifier for the service provider. As a best practice, this value should match an Internet domain name assigned by ICANN, but any globally unique identifier is acceptable.
 $instance_guid = isset($CFG->product_instance_guid) ? $CFG->product_instance_guid : "lti2.example.com";
