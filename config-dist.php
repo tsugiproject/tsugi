@@ -21,14 +21,8 @@ $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
 
-// The static content (Javascript, etc) is part of a git submodule
-// in the folder "static", to get this checked out, use
-/
-//    git clone --recursive https://github.com/csev/tsugi.git
-// 
-// If you don't checkout the static content you can use the copy
-// that is kept on my CloudFlare CDN
-$CFG->staticroot = 'https://www.dr-chuck.net/tsugi';
+// You can use my CDN copy of the static content in testing if you like
+// $CFG->staticroot = 'https://www.dr-chuck.net/tsugi';
 
 // If you check out a copy of the static content locally and do not
 // want to use the CDN copy (perhaps you are on a plane or are otherwise

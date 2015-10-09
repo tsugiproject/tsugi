@@ -70,10 +70,7 @@ $tool_proxy = <<< EOF
     "lti_version": "LTI-2p0",
     "message": [
       {
-        "message_type": [
-          "ToolProxyRegistrationRequest",
-          "ToolProxyReregistrationRequest"
-        ],
+        "message_type": "ToolProxyReregistrationRequest",
         "path": "__LAUNCH_REGISTRATION__",
         "parameter": [
           {
