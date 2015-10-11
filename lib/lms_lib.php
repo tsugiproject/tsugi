@@ -8,6 +8,7 @@ require_once("vendor/Tsugi/Crypt/AesCtr.php");
 
 require_once("oauth.classes.php");
 require_once("vendor/Tsugi/Util/Mimeparse.php");
+require_once("vendor/Tsugi/Util/Mersenne_Twister.php");
 require_once("vendor/Tsugi/Util/LTI.php");
 require_once("vendor/Tsugi/Util/Caliper.php");
 

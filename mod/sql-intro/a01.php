@@ -2,6 +2,7 @@
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\Mersenne_Twister;
 
 require_once "names.php";
 
