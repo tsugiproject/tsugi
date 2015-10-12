@@ -60,7 +60,7 @@ if ( $dueDate->message ) {
 This assignment is from Chapter 11 - Regular Expressions in 
 <a href="http://www.pythonlearn.com/book.php" target="_blank">Python for Informatics: Exploring Information</a>.
 In this assignment you will read through and parse a file with text and numbers.  You will extract all the numbers
-in the file and compute the sum of the numbers and enter the sum below:
+in the file and compute the sum of the numbers and enter the sum:<br/>
 <input type="text" size="80" name="sum">
 <input type="submit">
 </form>
