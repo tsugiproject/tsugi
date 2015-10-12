@@ -953,6 +953,41 @@ class LTIX {
         return $status;
     }
 
+    /** Send a grade applying the due date logic and only increasing grades
+     *
+     * Puts messages in the session for a redirect.
+     *
+     * @param $gradetosend - The grade in the range 0.0 .. 1.0
+     * @param $oldgrade - The previous grade in the range 0.0 .. 1.0 (optional)
+     * @param $dueDate - The due date for this assignment
+     */
+    public function gradeSendDueDate($gradetosend, $oldgrade=false, $dueDate=false) {
+        $scorestr = "Your answer is correct, score saved.";
+        if ( $dueDate && $dueDate->penalty > 0 ) {
+            $gradetosend = $gradetosend * (1.0 - $dueDate->penalty);
+            $scorestr = "Effective Score = $gradetosend after ".$dueDate->penalty*100.0." percent late penalty";
+        }
+        if ( $oldgrade && $oldgrade > $gradetosend ) {
+            $scorestr = "New score of $gradetosend is < than previous grade of $oldgrade, previous grade kept";
+            $gradetosend = $oldgrade;
+        }
+    
+        // Use LTIX to send the grade back to the LMS.
+        $debug_log = array();
+        $retval = self::gradeSend($gradetosend, false, $debug_log);
+        $_SESSION['debug_log'] = $debug_log;
+    
+        if ( $retval === true ) {
+            $_SESSION['success'] = $scorestr;
+        } else if ( is_string($retval) ) {
+            $_SESSION['error'] = "Grade not sent: ".$retval;
+        } else {
+            $svd = safe_var_dump($retval);
+            error_log("Grade sending error:".$svd);
+            $_SESSION['error'] = "Grade sending error: ".substr($svd,0,100);
+        }
+    }
+
     /**
      * signParameters - Look up the key and secret and call the underlying code in LTI
      */

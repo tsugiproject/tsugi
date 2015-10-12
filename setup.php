@@ -105,7 +105,7 @@ function route_get_local_path($dir) {
     $cwd = $dir;                        // /Applications/MAMP/htdocs/tsugi/lti
     if ( strlen($cwd) < strlen($root) + 1 ) return false;
     $lwd = substr($cwd,strlen($root));  // /tsugi/lti
-    if ( strlen($root) < strlen($lwd) + 2 ) return false;
+    if ( strlen($uri) < strlen($lwd) + 2 ) return false;
     $local = substr($uri,strlen($lwd)+1); // some/cool/stuff
     return $local;
 }
