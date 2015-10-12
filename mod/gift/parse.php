@@ -220,6 +220,11 @@ foreach ( $raw_questions as $raw ) {
     // echo "\nN: ",$name,"\nQ: ",$question,"\nA: ",$answer,"\nType:",$type,"\n";
     $qobj = new stdClass();
     $qobj->name = $name;
+    if ( strpos($question,'[html]') === 0 ) {
+        $question = ltrim(substr($question,6));
+    } else {
+        $question = htmlentities($question);
+    }
     $qobj->question = $question;
     $qobj->code = $quesno.':'.substr(md5($question),0,9);
     $qobj->answer = $answer;
