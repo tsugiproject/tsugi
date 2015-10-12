@@ -63,7 +63,6 @@ In this assignment you will read through and parse a file with text and numbers.
 in the file and compute the sum of the numbers and enter the sum below:
 <input type="text" size="80" name="sum">
 <input type="submit">
-(Hint: the last two digits of the expected sum are <?= $sum%100 ?>)<br/>
 </form>
 </p>
 <b>Data Files</b>
