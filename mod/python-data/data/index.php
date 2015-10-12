@@ -19,7 +19,7 @@ if ( $local_path == "assn_11_actual.txt" || $local_path == "assn_11_sample.txt" 
         echo("This file contains the actual data for your assignment - good luck!\n\n");
     }
 
-    $handle = fopen("intro.txt", "r");
+    $handle = fopen("../static/intro.txt", "r");
     if ($handle) {
         $count = 0;
         $MT = new Mersenne_Twister($code);
