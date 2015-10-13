@@ -18,6 +18,7 @@ function myErrorHandler($errno, $errstr, $errfile, $errline)
 ini_set("display_errors", 1);
 
 if ( !isset ( $_REQUEST['b64'] ) ) {
+   error_log("Missing b64 parameter");
    die("Missing b64 parameter");
 }
 
@@ -29,11 +30,12 @@ session_start();
 
 // For my application, We only allow application/xml
 $request_headers = OAuthUtil::get_headers();
-$hct = $request_headers['Content-Type'];
-if ( ! isset($hct) ) $hct = $request_headers['Content-type'];
+$hct = isset($request_headers['Content-Type']) ? $request_headers['Content-Type'] : false;
+if ( ! $hct ) $hct = isset($request_headers['Content-type']) ? $request_headers['Content-type'] : false;
 if (strpos($hct,'application/xml') === false ) {
    header('Content-Type: text/plain');
    // print_r($request_headers);
+   error_log("Must be content type xml, found ".$hct);
    die("Must be content type xml, found ".$hct);
 }
 

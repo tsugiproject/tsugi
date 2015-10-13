@@ -962,13 +962,17 @@ class LTIX {
      * @param $dueDate - The due date for this assignment
      */
     public function gradeSendDueDate($gradetosend, $oldgrade=false, $dueDate=false) {
-        $scorestr = "Your answer is correct, score saved.";
+        if ( $gradetosend == 1.0 ) {
+            $scorestr = "Your answer is correct, score saved.";
+        } else {
+            $scorestr = "Your score of ".($gradetosend*100.0)."% has been saved.";
+        }
         if ( $dueDate && $dueDate->penalty > 0 ) {
             $gradetosend = $gradetosend * (1.0 - $dueDate->penalty);
-            $scorestr = "Effective Score = $gradetosend after ".$dueDate->penalty*100.0." percent late penalty";
+            $scorestr = "Effective Score = ".($gradetosend*100.0)."% after ".$dueDate->penalty*100.0." percent late penalty";
         }
         if ( $oldgrade && $oldgrade > $gradetosend ) {
-            $scorestr = "New score of $gradetosend is < than previous grade of $oldgrade, previous grade kept";
+            $scorestr = "New score of ".($gradetosend*100.0)."% is < than previous grade of ".($oldgrade*100.0)."%, previous grade kept";
             $gradetosend = $oldgrade;
         }
     

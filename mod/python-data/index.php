@@ -17,7 +17,8 @@ if ( SettingsForm::handleSettingsPost() ) {
 
 // All the assignments we support
 $assignments = array(
-    'a11.php' => 'Sum with a Regular Expression'
+    'a11.php' => 'Sum with a Regular Expression',
+    'a12a.php' => 'Exploring HyperText Transport Protocol'
 );
 
 $oldsettings = Settings::linkGetAll();

@@ -22,24 +22,82 @@ namespace Tsugi\Util;
  *
  */
 class Net {
+
+    public static function getLastGETURL() {
+        global $LastGETURL;
+        return $LastGETURL;
+    }
+    public static function getLastGETImpl() {
+        global $LastGETImpl;
+        return $LastGETImpl;
+    }
+    public static function getLastHeadersSent() {
+        global $LastHeadersSent;
+        return $LastHeadersSent;
+    }
+    public static function getLastHttpResponse() {
+        global $last_http_response;
+        return $last_http_response;
+    }
+    public static function getLastHeadersReceived() {
+        global $LastHeadersReceived;
+        return $LastHeadersReceived;
+    }
+    public static function getLastBODYURL() {
+        global $LastBODYURL;
+        return $LastBODYURL;
+    }
+    public static function getLastBODYMethod() {
+        global $LastBODYMethod;
+        return $LastBODYMethod;
+    }
+    public static function getLastBODYImpl() {
+        global $LastBODYImpl;
+        return $LastBODYImpl;
+    }
+    public static function getLastBODYContent() {
+        global $LastBODYContent;
+        return $LastBODYContent;
+    }
+
+    /**
+     * Extract a set of header lines into an array
+     * 
+     * Takes a newline separated header sting and returns a key/value array
+     */
+    public static function parseHeaders($headerstr) {
+        $lines = explode("\n",$headerstr);
+        $headermap = array();
+
+        foreach ($lines as $line) {
+            $pos = strpos($line, ':');
+            if ( $pos < 1 ) continue;
+            $key = substr($line,0,$pos);
+            $value = trim(substr($line, $pos+1));
+            if ( strlen($key) < 1 || strlen($value) < 1 ) continue;
+            $headermap[$key] = $value;
+        }
+        return $headermap;
+    }
+
     public static function doGet($url, $header = false) {
         global $LastGETURL;
-        global $LastGETMethod;
+        global $LastGETImpl;
         global $LastHeadersSent;
         global $last_http_response;
         global $LastHeadersReceived;
 
         $LastGETURL = $url;
-        $LastGETMethod = false;
+        $LastGETImpl = false;
         $LastHeadersSent = false;
         $last_http_response = false;
         $LastHeadersReceived = false;
         $lastGETResponse = false;
 
-        $LastGETMethod = "CURL";
+        $LastGETImpl = "CURL";
         $lastGETResponse = Net::getCurl($url, $header);
         if ( $lastGETResponse !== false ) return $lastGETResponse;
-        $LastGETMethod = "Stream";
+        $LastGETImpl = "Stream";
         $lastGETResponse = Net::getStream($url, $header);
         if ( $lastGETResponse !== false ) return $lastGETResponse;
         error_log("Unable to GET Url=$url");
@@ -122,11 +180,11 @@ class Net {
     }
 
     public static function getGetSentDebug() {
-        global $LastGETMethod;
+        global $LastGETImpl;
         global $LastGETURL;
         global $LastHeadersSent;
 
-        $ret = "GET Used: " . $LastGETMethod . "\n" .
+        $ret = "GET Used: " . $LastGETImpl . "\n" .
     	     $LastGETURL . "\n\n" .
     		 $LastHeadersSent . "\n";
     	return $ret;
@@ -135,10 +193,10 @@ class Net {
     public static function getGetReceivedDebug() {
         global $LastGETURL;
         global $last_http_response;
-        global $LastGETMethod;
+        global $LastGETImpl;
         global $LastHeadersReceived;
 
-        $ret = "GET Used: " . $LastGETMethod . "\n" .
+        $ret = "GET Used: " . $LastGETImpl . "\n" .
     		 "HTTP Response: " . $last_http_response . "\n" .
     	     $LastGETURL . "\n" .
     		 $LastHeadersReceived . "\n";
@@ -156,7 +214,7 @@ class Net {
         global $LastHeadersSent;
         global $last_http_response;
         global $LastHeadersReceived;
-        global $LastBODYResponse;
+        global $LastBODYContent;
 
     	$LastBODYURL = $url;
         $LastBODYMethod = $method;
@@ -164,18 +222,18 @@ class Net {
         $LastHeadersSent = false;
         $last_http_response = false;
         $LastHeadersReceived = false;
-        $LastBODYResponse = false;
+        $LastBODYContent = false;
 
         // Prefer curl because it checks if it works before trying
-        $LastBODYResponse = NET::bodyCurl($url, $method, $body, $header);
+        $LastBODYContent = NET::bodyCurl($url, $method, $body, $header);
         $LastBODYImpl = "CURL";
-        if ( $LastBODYResponse !== false ) return $LastBODYResponse;
-        $LastBODYResponse = NET::bodySocket($url, $method, $body, $header);
+        if ( $LastBODYContent !== false ) return $LastBODYContent;
+        $LastBODYContent = NET::bodySocket($url, $method, $body, $header);
         $LastBODYImpl = "Socket";
-        if ( $LastBODYResponse !== false ) return $LastBODYResponse;
-        $LastBODYResponse = NET::bodyStream($url, $method, $body, $header);
+        if ( $LastBODYContent !== false ) return $LastBODYContent;
+        $LastBODYContent = NET::bodyStream($url, $method, $body, $header);
         $LastBODYImpl = "Stream";
-        if ( $LastBODYResponse !== false ) return $LastBODYResponse;
+        if ( $LastBODYContent !== false ) return $LastBODYContent;
         $LastBODYImpl = "Error";
         error_log("Unable to $method Url=$url");
         error_log("Header: $header");
