@@ -961,7 +961,7 @@ class LTIX {
      * @param $oldgrade - The previous grade in the range 0.0 .. 1.0 (optional)
      * @param $dueDate - The due date for this assignment
      */
-    public function gradeSendDueDate($gradetosend, $oldgrade=false, $dueDate=false) {
+    public static function gradeSendDueDate($gradetosend, $oldgrade=false, $dueDate=false) {
         if ( $gradetosend == 1.0 ) {
             $scorestr = "Your answer is correct, score saved.";
         } else {
