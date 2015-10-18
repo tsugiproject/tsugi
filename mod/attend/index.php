@@ -40,9 +40,9 @@ if ( isset($_POST['code']) && isset($_POST['set']) && $USER->instructor ) {
                 ':IP' => $_SERVER["REMOTE_ADDR"]
             )
         );
-        $_SESSION['success'] = _('Attendance Recorded...');
+        $_SESSION['success'] = __('Attendance Recorded...');
     } else {
-        $_SESSION['error'] = _('Code incorrect');
+        $_SESSION['error'] = __('Code incorrect');
     }
     header( 'Location: '.addSession('index.php') ) ;
     return;
