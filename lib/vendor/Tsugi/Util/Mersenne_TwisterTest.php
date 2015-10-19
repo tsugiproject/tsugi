@@ -17,3 +17,23 @@ for($i=0; $i < 30; $i++ ) {
 }
 
 echo "\n";
+
+// Truncated Gaussian
+$hist = array();
+for($i=0;$i<200;$i++) $hist[$i] = 0;
+$tot = 0;
+$cnt = 0;
+for($i=0;$i<10000; $i++) {
+    $tao = 100;
+    $lambda = 0.2;
+    $ran = $MT->gaussian($tao);
+    $hist[$ran]++;
+    $cnt++;
+    $tot = $tot + $ran;
+}
+for($i=0;$i<100;$i++) echo($hist[$i].' ');
+echo("\n");
+$ave = $tot / $cnt;
+echo("lambda=$lambda tau=$tau ave=$ave cnt=$cnt\n");
+
+

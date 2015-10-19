@@ -23,6 +23,7 @@ namespace Tsugi\Util;
 
 class Mersenne_Twister
 {
+  const MAX = 0x8fffffff;
   private $state = array ();
   private $index = 0;
 
@@ -86,5 +87,44 @@ class Mersenne_Twister
     $range = abs($max - $min);
 
     return min($min, $max) + ($y % ($range + 1));
+  }
+
+/**
+ * Return a truncated Gaussian for this class
+ *
+ * @param int $max The maximum value we want to return - the returned value is in 0..$max.
+ * @param float $lambda Controls the steepness of the curve (i.e. the average
+ * of the returned values).  If this is 0.01
+ * it is almost a uniform distribution with an average of about 0.4*$max;  If this 
+ * if this is 1.0, over 2/3 of the time this function will return 0 (i.e. a very quick drop-off).  
+ * Values in the range 0.1 - 0.4 return gaussian distros that are distinctly exponential in drop-off
+ * and have a reasonably interesting average.
+ */
+// http://stats.stackexchange.com/questions/68274/how-to-sample-from-an-exponential-distribution-using-rejection-sampling-in-php
+  public function gaussian($max, $lambda = 0.2) {
+    $tau = $max;
+    $u = 1.0 * $this->getNext(0, self::MAX) / self::MAX;
+    $x = - log(1 - (1 - exp(- $lambda * $tau)) * $u) / $lambda;
+    $ran = (int) $x;
+    if ( $ran >= $max ) $ran=$max-1; // If $tao and $lambda are wack
+    return $ran;
+  }
+
+/**
+ * Shuffle an array using this class
+ */
+// http://stackoverflow.com/questions/6557805/randomize-a-php-array-with-a-seed
+// http://bost.ocks.org/mike/algorithms/#shuffling
+  public function shuffle($arr)
+  {
+    $new = $arr;
+    for ($i = count($new) - 1; $i > 0; $i--)
+    {
+        $j = $this->getNext(0,$i);
+        $tmp = $new[$i];
+        $new[$i] = $new[$j];
+        $new[$j] = $tmp;
+    }
+    return $new;
   }
 }
