@@ -40,18 +40,18 @@ if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
 $url = curPageUrl();
-$sample_url = str_replace('index.php','data/comments_42.xml',$url);
-$actual_url = str_replace('index.php','data/comments_'.$code.'.xml',$url);
+$sample_url = str_replace('index.php','data/comments_42.json',$url);
+$actual_url = str_replace('index.php','data/comments_'.$code.'.json',$url);
 ?>
 <p>
-<b>Extracting Data from XML</b>
+<b>Extracting Data from JSON</b>
 <form method="post">
 This assignment is from Chapter 13 - Using Web Services in 
 <a href="http://www.pythonlearn.com/book.php" target="_blank">Python for Informatics: Exploring Information</a>.
 In this assignment you will write a Python program somewhat similar to 
-<a href="http://www.pythonlearn.com/code/geoxml.py" target="_blank">http://www.pythonlearn.com/code/geoxml.py</a>.  
-The program will prompt for a URL, read the XML data from that URL using 
-<b>urllib</b> and then parse and extract the comment counts from the XML data, 
+<a href="http://www.pythonlearn.com/code/json2.py" target="_blank">http://www.pythonlearn.com/code/json2.py</a>.  
+The program will prompt for a URL, read the JSON data from that URL using 
+<b>urllib</b> and then parse and extract the comment counts from the JSON data, 
 compute the sum of the numbers in the file and enter the sum below:<br/>
 <input type="text" size="20" name="sum">
 <input type="submit" value="Submit Sum">
@@ -75,20 +75,25 @@ own data url for analysis.
 </p>
 <b>Data Format</b>
 <p>
-The data consists of a number of names and comment counts in XML as follows:
+The data consists of a number of names and comment counts in JSON as follows:
 <pre>
-&lt;comment&gt;
-  &lt;name&gt;Matthias&lt;/name&gt;
-  &lt;count&gt;97&lt;/count&gt;
-&lt;/comment&gt;
+{
+  comments: [
+    {
+      name: "Matthias"
+      count: 97
+    },
+    {
+      name: "Geomer"
+      count: 97
+    }
+    ...
+  ]
+}
 </pre>
-You are to look through all the &lt;comment&gt; tags and find the &lt;count&gt; values
-sum the numbers.
 <p>
 Look at the 
-The closest sample code that shows how to parse XML is 
-<a href="http://www.pythonlearn.com/code/geoxml.py" target="_blank">geoxml.py</a>.
-This program will be a little different because it needs to find the 
-&lt;comment&gt; node and then loop through the child nodes of that node.
+The closest sample code that shows how to parse JSON is 
+<a href="http://www.pythonlearn.com/code/json2.py" target="_blank">json2.py</a>.
 </p>
 
