@@ -21,7 +21,9 @@ if ( SettingsForm::handleSettingsPost() ) {
 $assignments = array(
     'a11.php' => 'Sum with a Regular Expression',
     'a12a.php' => 'Exploring HyperText Transport Protocol',
-    'comment_html.php' => 'Sum data from HTML'
+    'comment_html.php' => 'Sum data from HTML',
+    'comment_xml.php' => 'Sum data from XML',
+    'comment_json.php' => 'Sum data from JSON'
 );
 
 $oldsettings = Settings::linkGetAll();

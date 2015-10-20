@@ -40,18 +40,19 @@ if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
 $url = curPageUrl();
-$sample_url = str_replace('index.php','data/comments_42.html',$url);
-$actual_url = str_replace('index.php','data/comments_'.$code.'.html',$url);
+$sample_url = str_replace('index.php','data/comments_42.xml',$url);
+$actual_url = str_replace('index.php','data/comments_'.$code.'.xml',$url);
 ?>
 <p>
-<b>Scraping Numbers from HTML using BeautifulSoup</b>
+<b>Extracting Data from XML</b>
 <form method="post">
-This assignment is from Chapter 12 - Networked Programs in 
+This assignment is from Chapter 13 - Using Web Services in 
 <a href="http://www.pythonlearn.com/book.php" target="_blank">Python for Informatics: Exploring Information</a>.
-In this assignment you will write a Python program similar to 
-<a href="http://www.pythonlearn.com/code/urllink2.py" target="_blank">http://www.pythonlearn.com/code/urllink2.py</a>.  
-The program will use <b>urllib</b> to read the HTML from the data files below, and parse the data, 
-extracting numbers and compute the sum of the numbers in the file and enter the sum below:<br/>
+In this assignment you will write a Python program somewhat similar to 
+<a href="http://www.pythonlearn.com/code/geoxml.py" target="_blank">http://www.pythonlearn.com/code/geoxml.py</a>.  
+The program will prompt for a URL, read the XML data from that URL using 
+<b>urllib</b> and then parse and extract the comment counts from the XML data, 
+compute the sum of the numbers in the file and enter the sum below:<br/>
 <input type="text" size="20" name="sum">
 <input type="submit" value="Submit Sum">
 </form>
@@ -74,32 +75,20 @@ own data url for analysis.
 </p>
 <b>Data Format</b>
 <p>
-The file is a table of names and comment counts.   You can ignore most of the data in the
-filw except for lines lke the following:
+The data consists of a number of names and comment counts in XML as follows:
 <pre>
-&lt;tr>&lt;td>Modu&lt;/td>&lt;td>&lt;span class="comments">90&lt;/span>&lt;/td>&lt;/tr>
-&lt;tr>&lt;td>Kenzie&lt;/td>&lt;td>&lt;span class="comments">88&lt;/span>&lt;/td>&lt;/tr>
-&lt;tr>&lt;td>Hubert&lt;/td>&lt;td>&lt;span class="comments">87&lt;/span>&lt;/td>&lt;/tr>
+&lt;comment&gt;
+  &lt;name&gt;Matthias&lt;/name&gt;
+  &lt;count&gt;97&lt;/count&gt;
+&lt;/comment&gt;
 </pre>
-You are to find all the &lt;span&gt; tags in the file and pull out the numbers from the 
-tag and sum the numbers.
+You are to look through all the &lt;comment&gt; tags and find the &lt;count&gt; values
+sum the numbers.
 <p>
 Look at the 
-<a href="http://www.pythonlearn.com/code/urllink2.py" target="_blank">sample code</a>
-provided.  It shows how to find all of a certain kind of tag, loop through the tags and
-extract the various aspects of the tags.
-<pre>
-...
-# Retrieve all of the anchor tags
-tags = soup('a')
-for tag in tags:
-   # Look at the parts of a tag
-   print 'TAG:',tag
-   print 'URL:',tag.get('href', None)
-   print 'Contents:',tag.contents[0]
-   print 'Attrs:',tag.attrs
-</pre>
-You need to adjust this code to look for span tags and pull out the text content of 
-the span tag, convert them to integers and add them up to complete the assignment.
+The closest sample code that shows how to parse XML is 
+<a href="http://www.pythonlearn.com/code/geoxml.py" target="_blank">geoxml.py</a>.
+This program wil lbe a little different because it needs to find the 
+&lt;comment&gt; node and then loop through the child nodes of that node.
 </p>
 
