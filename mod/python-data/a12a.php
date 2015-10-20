@@ -10,7 +10,6 @@ function mapdown($input) {
 
 // Compute the stuff for the output
 $getUrl = 'http://www.pythonlearn.com/code/intro-short.txt';
-$getUrl = 'http://localhost:8888/pythonlearn/code/intro-short.txt';
 
 $data = Net::doGet($getUrl);
 $response = Net::getLastHttpResponse();
