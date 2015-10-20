@@ -2,6 +2,8 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once "names.php";
+require_once "locations.php";
 
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
@@ -19,7 +21,7 @@ if ( SettingsForm::handleSettingsPost() ) {
 $assignments = array(
     'a11.php' => 'Sum with a Regular Expression',
     'a12a.php' => 'Exploring HyperText Transport Protocol',
-    'a12b.php' => 'Sum data from HTML'
+    'comment_html.php' => 'Sum data from HTML'
 );
 
 $oldsettings = Settings::linkGetAll();

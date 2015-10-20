@@ -88,7 +88,6 @@ if ( strpos($local_path,"geojson") === 0 ) {
     } else {
         echo("<h1>This file contains the actual data for your assignment - good luck!</h1>\n\n");
     }
-    $MT = new Mersenne_Twister($code);
 ?>
 <table border="2">
 <tr>
@@ -96,10 +95,10 @@ if ( strpos($local_path,"geojson") === 0 ) {
 </tr>
 <?php
     $new = getShuffledNames($code);
+    $nums = getRandomNumbers($code,min(50,count($new)),100);
     $data = array();
-    for($i=0; $i<50 && $i < count($new); $i++) {
-        $amount = $MT->getNext(0,100);
-        $data[$new[$i]] = $amount;
+    for($i=0; $i<count($nums); $i++) {
+        $data[$new[$i]] = $nums[$i];
     }
     arsort($data);
     foreach( $data as $k=>$v ) {
@@ -124,13 +123,12 @@ if ( strpos($local_path,"geojson") === 0 ) {
     } else {
         echo("  <note>This file contains the actual data for your assignment - good luck!</note>\n\n");
     }
-    $MT = new Mersenne_Twister($code);
-    $new = getShuffledNames($code);
 
+    $new = getShuffledNames($code);
+    $nums = getRandomNumbers($code,min(50,count($new)),100);
     $data = array();
-    for($i=0; $i<50 && $i < count($new); $i++) {
-        $amount = $MT->getNext(0,100);
-        $data[$new[$i]] = $amount;
+    for($i=0; $i<count($nums); $i++) {
+        $data[$new[$i]] = $nums[$i];
     }
     arsort($data);
     echo("  <comments>\n");
@@ -158,13 +156,11 @@ if ( strpos($local_path,"geojson") === 0 ) {
     } else {
         $arr['note'] = "This file contains the actual data for your assignment</note>";
     }
-    $MT = new Mersenne_Twister($code);
     $new = getShuffledNames($code);
-
+    $nums = getRandomNumbers($code,min(50,count($new)),100);
     $data = array();
-    for($i=0; $i<50 && $i < count($new); $i++) {
-        $amount = $MT->getNext(0,100);
-        $data[$new[$i]] = $amount;
+    for($i=0; $i<count($nums); $i++) {
+        $data[$new[$i]] = $nums[$i];
     }
     arsort($data);
     $comments = array();
@@ -178,12 +174,12 @@ if ( strpos($local_path,"geojson") === 0 ) {
 } else if ( strpos($local_path, "known_by_") === 0 ) {
     header('Content-Type: text/html');
     $code = 0;
-    $name = $names[0];
+    $name = $NAMES[0];
     $pieces = preg_split('/[_.]/',$local_path);
     if ( count($pieces) == 4 ) {
-        $where = array_search($pieces[2], $names);
+        $where = array_search($pieces[2], $NAMES);
         if ( $where !== false ) {
-            $name = $names[$where];
+            $name = $NAMES[$where];
             $code = $where;
         } else {
             $name = $pieces[2];
