@@ -262,7 +262,7 @@ $LOCATIONS = array(
 'George Mason University',
 'UCSD',
 'Erhvervsakademi Sydvest',
-'Acamedy of Fine Arts Warsaw Poland',
+'Academy of Fine Arts Warsaw Poland',
 'K-State',
 'Washington State University',
 'University of Toronto',

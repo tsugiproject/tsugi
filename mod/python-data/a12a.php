@@ -17,8 +17,7 @@ $response = Net::getLastHttpResponse();
 if ( $response != 200 ) {
     die("Response=$response url=$getUrl");
 }
-$headers = Net::getLastHeadersReceived();
-$headers = Net::parseHeaders($headers);
+$headers = Net::parseHeaders();
 
 $fields = array(
     'Last-Modified',
