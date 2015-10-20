@@ -65,7 +65,8 @@ class Net {
      * 
      * Takes a newline separated header sting and returns a key/value array
      */
-    public static function parseHeaders($headerstr) {
+    public static function parseHeaders($headerstr=false) {
+        if ( $headerstr === false ) $headerstr = self::getLastHeadersReceived();
         $lines = explode("\n",$headerstr);
         $headermap = array();
 
