@@ -1,2 +1,9 @@
 
-FallbackResource index.php
+# FallbackResource index.php
+
+# Turn rewriting on
+Options +FollowSymLinks
+RewriteEngine On
+# Redirect requests to index.php
+RewriteRule .* index.php
+
