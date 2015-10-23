@@ -80,7 +80,7 @@ There are three ways that you might retrieve this web page and look at the respo
 program to retrieve the above URL and print out the headers and data.</li>
 <li>Open the URL in a web browser with a developer console or FireBug and manually examine the headers that
 are returned.</li>
-<li>Use the <b>telnet</b> program as shown in lecture to retieve the headers and content.</li>
+<li>Use the <b>telnet</b> program as shown in lecture to retrieve the headers and content.</li>
 </ul>
 </p>
 <p>

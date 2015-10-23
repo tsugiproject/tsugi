@@ -173,7 +173,7 @@ if ( strpos($local_path,"geojson") === 0 ) {
 
 } else if ( strpos($local_path, "known_by_") === 0 ) {
     header('Content-Type: text/html');
-    $code = 0;
+    $code = 12345;
     $name = $NAMES[0];
     $pieces = preg_split('/[_.]/',$local_path);
     if ( count($pieces) == 4 ) {
@@ -183,7 +183,7 @@ if ( strpos($local_path,"geojson") === 0 ) {
             $code = $where;
         } else {
             $name = $pieces[2];
-            $code = 0;
+            $code = 12345;
         }
     }
     
@@ -208,9 +208,10 @@ if ( strpos($local_path,"geojson") === 0 ) {
 <div class="overlay" id="overlay" style="display:none" >
 <center>
 <h2>
-This screen vanishes after a while to make sure that you retrieve and process the data
-in a Python program rather than counting down and doing the assignment 
-without writing a Python program :).
+This screen randomly changes the height between list items and vanishes 
+after a while to make sure that you retrieve and process the data
+in a Python program rather than simply counting down pressing links, and 
+and doing the assignment without writing a Python program :).
 Your Python program can look at the page as long as it likes.
 </h2>
 </center>
@@ -222,7 +223,8 @@ Your Python program can look at the page as long as it likes.
     for($i = 0; $i < count($new) && $i < 100; $i++) {
         if ( $new[$i] == $name ) continue;
         $new_url = str_replace($curr_url, "index.php", "known_by_".$new[$i].".html");
-        echo('<li><a href="'.$new_url.'">'.$new[$i]."</a></li>\n");
+        echo('<li style="margin-top: '.rand(3,25).'px;"><a href="'.$new_url.'">'
+            .$new[$i]."</a></li>\n");
     }
 ?>
 </ul>
@@ -235,7 +237,7 @@ function showHide(id) {
     else 
         el.style.display = 'none';
 }
-setTimeout('showHide("overlay");', 15000);
+setTimeout('showHide("overlay");', 2500);
 
 </script>
 </body>

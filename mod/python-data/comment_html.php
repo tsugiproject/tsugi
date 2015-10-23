@@ -75,7 +75,7 @@ own data url for analysis.
 <b>Data Format</b>
 <p>
 The file is a table of names and comment counts.   You can ignore most of the data in the
-filw except for lines lke the following:
+file except for lines like the following:
 <pre>
 &lt;tr>&lt;td>Modu&lt;/td>&lt;td>&lt;span class="comments">90&lt;/span>&lt;/td>&lt;/tr>
 &lt;tr>&lt;td>Kenzie&lt;/td>&lt;td>&lt;span class="comments">88&lt;/span>&lt;/td>&lt;/tr>

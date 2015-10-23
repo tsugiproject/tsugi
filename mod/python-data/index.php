@@ -22,6 +22,7 @@ $assignments = array(
     'a11.php' => 'Sum with a Regular Expression',
     'a12a.php' => 'Exploring HyperText Transport Protocol',
     'comment_html.php' => 'Sum data from HTML',
+    'knows.php' => 'Follow links in a series of web pages.',
     'comment_xml.php' => 'Sum data from XML',
     'comment_json.php' => 'Sum data from JSON'
 );
