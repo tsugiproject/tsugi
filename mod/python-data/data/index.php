@@ -211,7 +211,9 @@ if ( strpos($local_path,"geojson") === 0 ) {
 This screen randomly changes the height between list items and vanishes 
 after a while to make sure that you retrieve and process the data
 in a Python program rather than simply counting down pressing links, and 
-and doing the assignment without writing a Python program :).
+acnd doing the assignment without writing a Python program :).
+The names are in the same order in the HTML even though they 
+shift around on the screen visually.
 Your Python program can look at the page as long as it likes.
 </h2>
 </center>
@@ -223,7 +225,7 @@ Your Python program can look at the page as long as it likes.
     for($i = 0; $i < count($new) && $i < 100; $i++) {
         if ( $new[$i] == $name ) continue;
         $new_url = str_replace($curr_url, "index.php", "known_by_".$new[$i].".html");
-        echo('<li style="margin-top: '.rand(3,25).'px;"><a href="'.$new_url.'">'
+        echo('<li style="margin-top: '.rand(1,$i+25).'px;"><a href="'.$new_url.'">'
             .$new[$i]."</a></li>\n");
     }
 ?>
