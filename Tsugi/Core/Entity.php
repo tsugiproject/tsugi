@@ -52,4 +52,23 @@ class Entity {
         );
     }
 
+    /**
+     * Set/update a JSON key for this entity
+     *
+     * @params $key The key to be inserted/updated in the JSON
+     * @params $value The value to be inserted/updated in the JSON
+     *
+     */
+    public function setJsonKey($key,$value)
+    {
+        global $CFG, $PDOX;
+
+        $old = $this->getJson();
+        $old_json = json_decode($old);
+        if ( $old_json == null ) $old_json = new \stdClass();
+        $old_json->{$key} = $value;
+        $new = json_encode($old_json);
+        $this->setJson($new);
+    }
+
 }
