@@ -142,6 +142,11 @@ class Net {
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // ask for results to be returned
       curl_setopt($ch, CURLOPT_HEADER, 1);
 
+      // Thanks to more and more PHP's not shipping with CA's installed
+      // This becomes necessary
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
       $info = curl_getinfo($ch);
@@ -344,12 +349,11 @@ class Net {
 
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // ask for results to be returned
       curl_setopt($ch, CURLOPT_HEADER, 1);
-    /*
-      if(CurlHelper::checkHttpsURL($url)) {
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-      }
-    */
+
+      // Thanks to more and more PHP's not shipping with CA's installed
+      // This becomes necessary
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
