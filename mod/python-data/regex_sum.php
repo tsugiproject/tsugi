@@ -4,6 +4,10 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Mersenne_Twister;
 
+$sanity = array(
+  're.findall(' => 'You should use re.findall() to extract the numbers'
+);
+
 // Compute the stuff for the output
 $code = $USER->id+$LINK->id+$CONTEXT->id;
 $MT = new Mersenne_Twister($code);
@@ -32,12 +36,21 @@ for($line=0; $line<$maxlines;$line++) {
 }
 
 $oldgrade = $RESULT->grade;
-if ( isset($_POST['sum']) ) {
+if ( isset($_POST['sum']) && isset($_POST['code']) ) {
     if ( $_POST['sum'] != $sum ) {
         $_SESSION['error'] = "Your sum did not match";
         header('Location: '.addSession('index.php'));
         return;
     }
+
+    $val = validate($sanity, $_POST['code']);
+    if ( is_string($val) ) {
+        $_SESSION['error'] = $val;
+        header('Location: '.addSession('index.php'));
+        return;
+    }
+
+    $RESULT->setJsonKey('code', $_POST['code']);
 
     LTIX::gradeSendDueDate(1.0, $oldgrade, $dueDate);
     // Redirect to ourself
@@ -55,23 +68,18 @@ if ( $dueDate->message ) {
 }
 ?>
 <p>
-<b>Funding Numbers in a Haystack</b>
-<form method="post">
-This assignment is from Chapter 11 - Regular Expressions in 
-<a href="http://www.pythonlearn.com/book.php" target="_blank">Python for Informatics: Exploring Information</a>.
+<b>Finding Numbers in a Haystack</b>
+<p>
 In this assignment you will read through and parse a file with text and numbers.  You will extract all the numbers
-in the file and compute the sum of the numbers and enter the sum:<br/>
-<input type="text" size="20" name="sum">
-<input type="submit" value="Submit Sum">
-</form>
+in the file and compute the sum of the numbers.
 </p>
 <b>Data Files</b>
 <p>
 We provide two files for this assignment.  One is a sample file where we give you the sum for your
 testing and the other is the actual data you need to process for the assignment.  
 <ul>
-<li> <a href="data/assn_11_sample.txt" target="_blank">Download sample data</a> (Sum=<?= $sum_sample ?>) </li>
-<li> <a href="data/assn_11_actual.txt" target="_blank">Download the actual data</a> (Sum ends with <?= $sum%100 ?>)<br/> </li>
+<li> <a href="data/regex_sum_sample.txt" target="_blank">Download sample data</a> (Sum=<?= $sum_sample ?>) </li>
+<li> <a href="data/regex_sum_actual.txt" target="_blank">Download the actual data</a> (Sum ends with <?= $sum%100 ?>)<br/> </li>
 </ul>
 These links open in a new window.
 Make sure to save the file into the same folder as you will be writing your Python program.
@@ -102,7 +110,17 @@ The basic outline of this problem is to read the file, look for integers using t
 <b>re.findall()</b>, looking for a regular expression of <b>'[0-9]+'</b> and then 
 converting the extracted strings to integers and summing up the integers.
 </p>
-<b>Just for Fun</b>
+<p>
+<b>Turn in Assignent</b>
+<form method="post">
+Enter the sum from the actual data and your Python code below:<br/>
+Sum: <input type="text" size="20" name="sum"> (ends with <?= $sum%100 ?>)
+<input type="submit" value="Submit Assignment"><br/>
+Python code:<br/>
+<textarea rows="20" style="width: 90%" name="code"></textarea><br/>
+</form>
+</p>
+<b>Optional: Just for Fun</b>
 <p>
 There are a number of different ways to approach this problem.  While we don't recommend trying
 to write the most compact code possible, it can sometimes be a fun exercise.  Here is a 

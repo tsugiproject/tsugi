@@ -14,10 +14,10 @@ if ( $pos > 0 ) $local_path = substr($local_path,0,$pos);
 if ( strpos($local_path,"geojson") === 0 ) {
     require_once("geojson.php");
     return;
-} else if ( $local_path == "assn_11_actual.txt" || $local_path == "assn_11_sample.txt" ) {
+} else if ( $local_path == "regex_sum_actual.txt" || $local_path == "regex_sum_sample.txt" ) {
     $LTI = LTIX::requireData();
     $code = $USER->id+$LINK->id+$CONTEXT->id;
-    if ( $local_path == "assn_11_sample.txt" ) {
+    if ( $local_path == "regex_sum_sample.txt" ) {
         echo("This file contains the sample data\n\n");
         $code = 42;
     } else {

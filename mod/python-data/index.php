@@ -2,6 +2,7 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once "data_util.php";
 require_once "names.php";
 require_once "locations.php";
 
@@ -19,12 +20,13 @@ if ( SettingsForm::handleSettingsPost() ) {
 
 // All the assignments we support
 $assignments = array(
-    'a11.php' => 'Sum with a Regular Expression',
+    'regex_sum.php' => 'Sum with a Regular Expression',
     'a12a.php' => 'Exploring HyperText Transport Protocol',
     'comment_html.php' => 'Sum data from HTML',
     'knows.php' => 'Follow links in a series of web pages.',
     'comment_xml.php' => 'Sum data from XML',
-    'comment_json.php' => 'Sum data from JSON'
+    'comment_json.php' => 'Sum data from JSON',
+    'geo_json.php' => 'Retrieve data from a JSON API'
 );
 
 $oldsettings = Settings::linkGetAll();
@@ -51,6 +53,7 @@ if ( $USER->instructor ) {
     echo('<a href="grades.php" target="_blank"><button class="btn btn-info">Grade detail</button></a> '."\n");
 }
 SettingsForm::button();
+$OUTPUT->exitButton();
 echo('</span>');
 
 SettingsForm::start();

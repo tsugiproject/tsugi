@@ -33,6 +33,7 @@ if ( $where === false ) {
 // Check to see if we already have this in the cache
 
 $address_sha256 = lti_sha256($address);
+// echo("address=$address address_sha256=$address_sha256\n");
 
 $row = $PDOX->rowDie("SELECT json_content, updated_at FROM {$p}pydata_geo
     WHERE geo_sha256 = :AD",
@@ -58,7 +59,7 @@ if ( $row !== false && strlen($row['json_content']) > 0 ) {
 }
 
 // Must retrieve the information
-$getUrl = 'http://maps.googleapis.com/maps/api/geocode/json?sensor=false&address='.urlencode($where);
+$getUrl = 'http://maps.googleapis.com/maps/api/geocode/json?sensor=false&address='.urlencode($address);
 
 $data = Net::doGet($getUrl);
 $response = Net::getLastHttpResponse();

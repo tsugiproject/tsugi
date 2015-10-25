@@ -84,6 +84,7 @@ $LOCATIONS = array(
 'University of Washington - Bothell',
 'Drexel University and University of Texas at Austin',
 'University of Helsinki',
+'Michigan State University',
 'University of Michigan',
 'Carnegie Mellon University',
 'Kazan Federal University',

@@ -21,3 +21,18 @@ function getRandomNumbers($code, $count=400, $max=10000) {
     }
     return $retval;
 }
+
+function validate($sanity, $code ) {
+    if ( strlen($code) < 1 ) return "Python code is required";
+    foreach($sanity as $match => $message ) {
+        if ( $match[0] == '/' ) {
+            if ( preg_match($match, $code) ) return $message;
+        } else if ( $match[0] == '!' ) {
+            if ( strpos($code,substr($match,1)) !== false ) return $message;
+        } if (strpos($code,$match) === false ) {
+            return $message;
+        }
+    }
+    return true;
+}
+
