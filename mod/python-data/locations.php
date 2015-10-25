@@ -253,7 +253,7 @@ $LOCATIONS = array(
 'Athens Information Technology',
 'Tanta University',
 'Elon University',
-'University of Évora',
+'University of Evora',
 'Drexel',
 'Stevens Institute of Technoloogy',
 'California Polytechnic State University of San Luis Obispo',
