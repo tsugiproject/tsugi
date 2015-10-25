@@ -149,7 +149,7 @@ The answer to the assignment for this execution is "Ze".
 </p>
 <p><b>Turning in the Assignment</b>
 <form method="post">
-Enter the sum last name retrieved and your Python code below:<br/>
+Enter the last name retrieved and your Python code below:<br/>
 Name: <input type="text" size="20" name="name">
 (name stats with <?= substr($actual_last,0,1) ?>)
 <input type="submit" value="Submit Assignment"><br/>
