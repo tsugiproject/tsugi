@@ -31,7 +31,8 @@ class LTIX {
     /**
      * Silently check if this is a launch and if so, handle it
      */
-    public static function launchCheck($needed) {
+    public static function launchCheck($needed=self::ALL) {
+        $needed = self::patchNeeded($needed);
         if ( ! LTI::isRequest() ) return false;
         $session_id = self::setupSession($needed);
         if ( $session_id === false ) return false;
@@ -97,8 +98,9 @@ class LTIX {
     /**
      * Extract all of the post data, set up data in tables, and set up session.
      */
-    public static function setupSession($needed) {
+    public static function setupSession($needed=self::ALL) {
         global $CFG, $PDOX;
+        $needed = self::patchNeeded($needed);
         if ( ! LTI::isRequest() ) return false;
 
         // Pull LTI data out of the incoming $_POST and map into the same
@@ -262,8 +264,9 @@ class LTIX {
      * We follow our naming conventions that match the column names in
      * our lti_ tables.
      */
-    public static function extractPost($needed) {
+    public static function extractPost($needed=self::ALL) {
         // Unescape each time we use this stuff - someday we won't need this...
+        $needed = self::patchNeeded($needed);
         $FIXED = array();
         foreach($_POST as $key => $value ) {
             if (get_magic_quotes_gpc()) $value = stripslashes($value);
@@ -644,6 +647,20 @@ class LTIX {
     }
 
     /**
+     * Patch the value for the list of needed features
+     *
+     * Note - causes no harm if called more than once.
+     */
+    private static function patchNeeded($needed) {
+        if ( $needed == self::NONE ) $needed = array();
+        if ( $needed == self::ALL ) {
+            $needed = array(self::CONTEXT, self::LINK, self::USER);
+        }
+        if ( is_string($needed) ) $needed = array($needed);
+        return $needed;
+    }
+
+    /**
      * Handle launch and/or set up the LTI session and global variables
      *
      * Make sure we have the values we need in the LTI session
@@ -663,11 +680,7 @@ class LTIX {
     public static function requireData($needed=self::ALL) {
         global $CFG, $USER, $CONTEXT, $LINK, $RESULT;
 
-        if ( $needed == self::NONE ) $needed = array();
-        if ( $needed == self::ALL ) {
-            $needed = array(self::CONTEXT, self::LINK, self::USER);
-        }
-        if ( is_string($needed) ) $needed = array($needed);
+        $needed = self::patchNeeded($needed);
 
         // Check if we are processing an LTI launch.  If so, handle it
         $newlaunch = self::launchCheck($needed);
