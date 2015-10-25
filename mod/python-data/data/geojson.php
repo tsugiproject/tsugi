@@ -35,15 +35,16 @@ if ( $where === false ) {
 $address_sha256 = lti_sha256($address);
 // echo("address=$address address_sha256=$address_sha256\n");
 
-$row = $PDOX->rowDie("SELECT json_content, updated_at FROM {$p}pydata_geo
-    WHERE geo_sha256 = :AD",
+$row = $PDOX->rowDie("SELECT json_content, updated_at, NOW() as now 
+    FROM {$p}pydata_geo WHERE geo_sha256 = :AD",
     array(':AD' => $address_sha256)
 );
 
 $json_content = false;
 $updated_at = false;
 if ( $row !== false && strlen($row['json_content']) > 0 ) {
-    $now = time(); 
+    $now_str = $row['now'];
+    $now = strtotime($now_str);
     $updated_at = $row['updated_at'];
     $updated_time = strtotime($updated_at);
     $datediff = $now - $updated_time;

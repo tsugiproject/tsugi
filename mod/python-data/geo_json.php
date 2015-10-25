@@ -51,15 +51,9 @@ $actual_place =  $actual_json->results[0]->place_id;
 
 
 $oldgrade = $RESULT->grade;
-if ( isset($_POST['place_id']) && isset($_POST['count']) && isset($_POST['code']) ) {
+if ( isset($_POST['place_id']) && isset($_POST['code']) ) {
     if ( $_POST['place_id'] != $actual_place ) {
         $_SESSION['error'] = "Your place_id did not match";
-        header('Location: '.addSession('index.php'));
-        return;
-    }
-
-    if ( $_POST['count'] != $actual_count ) {
-        $_SESSION['error'] = "Your count did not match";
         header('Location: '.addSession('index.php'));
         return;
     }
@@ -130,8 +124,7 @@ target="_blank">http://www.pythonlearn.com/code/geojson.py</a>
 <p>
 You can test to see if your program is working with a 
 location of "<?= $sample_location ?>" which will have a 
-<b>place_id</b> of "<?= $sample_place ?>" and 
-a character count of <?= $sample_count ?>.
+<b>place_id</b> of "<?= $sample_place ?>".
 <pre>
 $ python solution.py
 Enter location: <?= $sample_location ?> 
@@ -148,8 +141,7 @@ and enter the <b>place_id</b>
 Hint: The first seven characters of the <b>place_id</b>
 are "<?= substr($actual_place,0,7) ?> ..."<br/>
 <form method="post">
-place_id: <input type="text" size="40" name="place_id"></br>
-character count: <input type="text" size="10" name="count">
+place_id: <input type="text" size="40" name="place_id">
 <input type="submit" value="Submit Assignment"><br/>
 Python code:<br/>
 <textarea rows="20" style="width: 90%" name="code"></textarea><br/>
