@@ -89,7 +89,7 @@ a number of times and report the last name you find.
 </p>
 <p>
 We provide two files for this assignment.  One is a sample file where we give
-you the sum for your testing and the other is the actual data you need 
+you the name for your testing and the other is the actual data you need 
 to process for the assignment
 <ul>
 <li> Sample problem: Start at 
