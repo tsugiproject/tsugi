@@ -107,7 +107,7 @@ or do not want to exceed Google's
 rate limits we have made a copy of a <b>subset</b> of the Google geo location 
 data at this URL:
 <pre>
-<a href="<?= $api_url ?>" target="_blank"><?= $api_url ?></a>
+<a href="<?= deHttps($api_url) ?>" target="_blank"><?= deHttps($api_url) ?></a>
 </pre>
 This API uses the same parameters (sensor and address) as the Google API.  
 If you visit the URL with no parameters, you get a list of all of the 

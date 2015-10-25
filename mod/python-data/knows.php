@@ -93,7 +93,7 @@ you the sum for your testing and the other is the actual data you need
 to process for the assignment
 <ul>
 <li> Sample problem: Start at 
-<a href="<?= $sample_url ?>" target="_blank"><?= $sample_url ?></a> <br/>
+<a href="<?= deHttps($sample_url) ?>" target="_blank"><?= deHttps($sample_url) ?></a> <br/>
 Find the link at position <b><?= $sample_pos+1 ?></b> (the first name is 1).
 Follow that link.  Repeat this process <b><?= $sample_pages ?></b> times.  The 
 answer is the last name that you retrieve.<br/>
@@ -106,7 +106,7 @@ Sequence of names:
 ?>
 Last name in sequence: <?= $sample_last ?><br/>
 </li>
-<li> Actual problem: Start at: <a href="<?= $actual_url ?>" target="_blank"><?= $actual_url ?></a> <br/>
+<li> Actual problem: Start at: <a href="<?= deHttps($actual_url) ?>" target="_blank"><?= deHttps($actual_url) ?></a> <br/>
 Find the link at position <b><?= $actual_pos+1 ?></b> (the first name is 1).
 Follow that link.  Repeat this process <b><?= $actual_pages ?></b> times.  The 
 answer is the last name that you retrieve.<br/>

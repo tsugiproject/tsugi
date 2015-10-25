@@ -68,11 +68,10 @@ compute the sum of the numbers in the file.
 <p>
 We provide two files for this assignment.  One is a sample file where we give you the sum for your
 testing and the other is the actual data you need to process for the assignment.  
-<?= $url ?>
 <ul>
-<li> Sample data: <a href="<?= $sample_url ?>" target="_blank"><?= $sample_url ?>.</a> 
+<li> Sample data: <a href="<?= deHttps($sample_url) ?>" target="_blank"><?= deHttps($sample_url) ?>.</a> 
 (Sum=<?= $sum_sample ?>) </li>
-<li> Actual data: <a href="<?= $actual_url ?>" target="_blank"><?= $actual_url ?></a> 
+<li> Actual data: <a href="<?= deHttps($actual_url) ?>" target="_blank"><?= deHttps($actual_url) ?></a> 
 (Sum ends with <?= $sum%100 ?>)<br/> </li>
 </ul>
 You do not need to save these files to your folder since your
