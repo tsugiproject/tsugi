@@ -9,6 +9,11 @@ $CFG->dbversion = 201505222100;
 // Just turn this off to avoid security holes due to XML parsing
 if ( function_exists ( 'libxml_disable_entity_loader' ) ) libxml_disable_entity_loader();
 
+// Only exists in PHP 5 >= 5.5.0
+if ( ! function_exists ( 'json_last_error_msg' ) ) {
+    function json_last_error_msg() { return ""; }
+}
+
 function die_with_error_log($msg, $extra=false, $prefix="DIE:") {
     error_log($prefix.' '.$msg.' '.$extra);
     print_stack_trace();
