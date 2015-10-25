@@ -6,6 +6,10 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Mersenne_Twister;
 
+$sanity = array(
+  'urllib' => 'You should use urllib to retrieve the data from the URL'
+);
+
 // Compute the stuff for the output
 $code = 42;
 $new = getShuffledNames($code);
@@ -18,12 +22,21 @@ $nums = getRandomNumbers($code,min(50,count($new)),100);
 $sum = array_sum($nums);
 
 $oldgrade = $RESULT->grade;
-if ( isset($_POST['sum']) ) {
+if ( isset($_POST['sum']) && isset($_POST['code']) ) {
     if ( $_POST['sum'] != $sum ) {
         $_SESSION['error'] = "Your sum did not match";
         header('Location: '.addSession('index.php'));
         return;
     }
+
+    $val = validate($sanity, $_POST['code']);
+    if ( is_string($val) ) {
+        $_SESSION['error'] = $val;
+        header('Location: '.addSession('index.php'));
+        return;
+    }
+
+    $RESULT->setJsonKey('code', $_POST['code']);
 
     LTIX::gradeSendDueDate(1.0, $oldgrade, $dueDate);
     // Redirect to ourself
@@ -45,19 +58,13 @@ $actual_url = str_replace('index.php','data/comments_'.$code.'.xml',$url);
 ?>
 <p>
 <b>Extracting Data from XML</b>
-<form method="post">
-This assignment is from Chapter 13 - Using Web Services in 
-<a href="http://www.pythonlearn.com/book.php" target="_blank">Python for Informatics: Exploring Information</a>.
+<p>
 In this assignment you will write a Python program somewhat similar to 
 <a href="http://www.pythonlearn.com/code/geoxml.py" target="_blank">http://www.pythonlearn.com/code/geoxml.py</a>.  
 The program will prompt for a URL, read the XML data from that URL using 
 <b>urllib</b> and then parse and extract the comment counts from the XML data, 
-compute the sum of the numbers in the file and enter the sum below:<br/>
-<input type="text" size="20" name="sum">
-<input type="submit" value="Submit Sum">
-</form>
+compute the sum of the numbers in the file.
 </p>
-<b>Data Files</b>
 <p>
 We provide two files for this assignment.  One is a sample file where we give you the sum for your
 testing and the other is the actual data you need to process for the assignment.  
@@ -89,6 +96,14 @@ Look at the
 The closest sample code that shows how to parse XML is 
 <a href="http://www.pythonlearn.com/code/geoxml.py" target="_blank">geoxml.py</a>.
 This program will be a little different because it needs to find the 
-&lt;comment&gt; node and then loop through the child nodes of that node.
+&lt;comments&gt; node and then loop through the child nodes of that node.
 </p>
-
+<p><b>Turning in the Assignment</b>
+<form method="post">
+Enter the sum from the actual data and your Python code below:<br/>
+Sum: <input type="text" size="20" name="sum">
+(ends with <?= $sum%100 ?>)
+<input type="submit" value="Submit Assignment"><br/>
+Python code:<br/>
+<textarea rows="20" style="width: 90%" name="code"></textarea><br/>
+</form>

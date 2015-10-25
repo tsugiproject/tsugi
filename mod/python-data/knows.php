@@ -6,6 +6,11 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Mersenne_Twister;
 
+$sanity = array(
+  'urllib' => 'You should use urllib to retrieve the HTML Pages',
+  'BeautifulSoup' => 'You should use BeautifulSoup to parse the HTML'
+);
+
 // Compute the stuff for the output
 $sample_pages = 4;
 $sample_pos = 2;
@@ -39,12 +44,21 @@ for($p=0;$p<$actual_pages;$p++) {
 }
 
 $oldgrade = $RESULT->grade;
-if ( isset($_POST['name']) ) {
+if ( isset($_POST['sum']) && isset($_POST['code']) ) {
     if ( $_POST['name'] != $actual_last ) {
         $_SESSION['error'] = "Your name did not match";
         header('Location: '.addSession('index.php'));
         return;
     }
+
+    $val = validate($sanity, $_POST['code']);
+    if ( is_string($val) ) {
+        $_SESSION['error'] = $val;
+        header('Location: '.addSession('index.php'));
+        return;
+    }
+
+    $RESULT->setJsonKey('code', $_POST['code']);
 
     LTIX::gradeSendDueDate(1.0, $oldgrade, $dueDate);
     // Redirect to ourself
@@ -65,23 +79,18 @@ $actual_url = str_replace('index.php','data/known_by_'.$actual_names[0].'.html',
 ?>
 <p>
 <b>Following Links in Python</b>
-<form method="post">
+<p>
 In this assignment you will write a Python program that expands on
 <a href="http://www.pythonlearn.com/code/urllinks.py" target="_blank">http://www.pythonlearn.com/code/urllinks.py</a>.
 The program will use <b>urllib</b> to read the HTML from the data files below, 
 extract the href= vaues from the anchor tags, scan for a tag that is in 
 a particular position from the top and follow that link and repeat the process
-a number of times and report the last name you find below:<br/>
-<input type="text" size="20" name="name">
-<input type="submit" value="Submit Name">
-</form>
+a number of times and report the last name you find.
 </p>
-<b>Data Files</b>
 <p>
 We provide two files for this assignment.  One is a sample file where we give
 you the sum for your testing and the other is the actual data you need 
 to process for the assignment
-<?= $url ?>
 <ul>
 <li> Sample problem: Start at 
 <a href="<?= $sample_url ?>" target="_blank"><?= $sample_url ?></a> <br/>
@@ -122,4 +131,12 @@ a little harder to complete the assignment without writing a Python program.
 But that is not the point.   The point is to write a clever Python program to solve the
 program.
 </p>
-
+<p><b>Turning in the Assignment</b>
+<form method="post">
+Enter the sum last name retrieved and your Python code below:<br/>
+Name: <input type="text" size="20" name="name">
+(name stats with <?= substr($actual_last,0,1) ?>)
+<input type="submit" value="Submit Assignment"><br/>
+Python code:<br/>
+<textarea rows="20" style="width: 90%" name="code"></textarea><br/>
+</form>

@@ -6,6 +6,11 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Mersenne_Twister;
 
+$sanity = array(
+  'urllib' => 'You should use urllib to retrieve the data from the URL',
+  'BeautifulSoup' => 'You should use the BeautifulSoup library to parse the HTML'
+);
+
 // Compute the stuff for the output
 $code = 42;
 $new = getShuffledNames($code);
@@ -18,12 +23,21 @@ $nums = getRandomNumbers($code,min(50,count($new)),100);
 $sum = array_sum($nums);
 
 $oldgrade = $RESULT->grade;
-if ( isset($_POST['sum']) ) {
+if ( isset($_POST['sum']) && isset($_POST['code']) ) {
     if ( $_POST['sum'] != $sum ) {
         $_SESSION['error'] = "Your sum did not match";
         header('Location: '.addSession('index.php'));
         return;
     }
+
+    $val = validate($sanity, $_POST['code']);
+    if ( is_string($val) ) {
+        $_SESSION['error'] = $val;
+        header('Location: '.addSession('index.php'));
+        return;
+    }
+
+    $RESULT->setJsonKey('code', $_POST['code']);
 
     LTIX::gradeSendDueDate(1.0, $oldgrade, $dueDate);
     // Redirect to ourself
@@ -45,18 +59,11 @@ $actual_url = str_replace('index.php','data/comments_'.$code.'.html',$url);
 ?>
 <p>
 <b>Scraping Numbers from HTML using BeautifulSoup</b>
-<form method="post">
-This assignment is from Chapter 12 - Networked Programs in 
-<a href="http://www.pythonlearn.com/book.php" target="_blank">Python for Informatics: Exploring Information</a>.
 In this assignment you will write a Python program similar to 
 <a href="http://www.pythonlearn.com/code/urllink2.py" target="_blank">http://www.pythonlearn.com/code/urllink2.py</a>.  
 The program will use <b>urllib</b> to read the HTML from the data files below, and parse the data, 
-extracting numbers and compute the sum of the numbers in the file and enter the sum below:<br/>
-<input type="text" size="20" name="sum">
-<input type="submit" value="Submit Sum">
-</form>
+extracting numbers and compute the sum of the numbers in the file.
 </p>
-<b>Data Files</b>
 <p>
 We provide two files for this assignment.  One is a sample file where we give you the sum for your
 testing and the other is the actual data you need to process for the assignment.  
@@ -99,7 +106,17 @@ for tag in tags:
    print 'Contents:',tag.contents[0]
    print 'Attrs:',tag.attrs
 </pre>
-You need to adjust this code to look for span tags and pull out the text content of 
-the span tag, convert them to integers and add them up to complete the assignment.
+You need to adjust this code to look for <b>span</b> tags and pull out 
+the text content of the span tag, convert them to integers and 
+add them up to complete the assignment.
 </p>
 
+<p><b>Turning in the Assignment</b>
+<form method="post">
+Enter the sum from the actual data and your Python code below:<br/>
+Sum: <input type="text" size="20" name="sum">
+(ends with <?= $sum%100 ?>)
+<input type="submit" value="Submit Assignment"><br/>
+Python code:<br/>
+<textarea rows="20" style="width: 90%" name="code"></textarea><br/>
+</form>
