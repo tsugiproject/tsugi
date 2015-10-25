@@ -99,10 +99,21 @@ The data consists of a number of names and comment counts in JSON as follows:
 }
 </pre>
 <p>
-Look at the 
-The closest sample code that shows how to parse JSON is 
-<a href="http://www.pythonlearn.com/code/json2.py" target="_blank">json2.py</a>.
+The closest sample code that shows how to parse JSON and extract a list is 
+<a href="http://www.pythonlearn.com/code/json2.py" target="_blank">json2.py</a>.  You might also want 
+to look at
+<a href="http://www.pythonlearn.com/code/geoxml.py" target="_blank">geoxml.py</a>
+to see how to prompt for a URL and retrieve data from a URL.
 </p>
+<p><b>Sample Execution</b></p>
+<pre>
+$ python solution.py 
+Enter location: 
+Retrieving http://pr4e.dr-chuck.com/tsugi/mod/python-data/data/comments_42.json
+Retrieved 2739 characters
+Count: 50
+Sum: 2553
+</pre>
 <p><b>Turning in the Assignment</b>
 <form method="post">
 Enter the sum from the actual data and your Python code below:<br/>

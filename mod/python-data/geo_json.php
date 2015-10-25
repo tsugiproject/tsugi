@@ -120,7 +120,7 @@ properly URL encoded using the <b>urllib.urlencode()</b> fuction as shown in
 <a href="http://www.pythonlearn.com/code/geojson.py" 
 target="_blank">http://www.pythonlearn.com/code/geojson.py</a>
 </p>
-<p><b>Test Data</b></p>
+<p><b>Test Data / Sample Execution</b></p>
 <p>
 You can test to see if your program is working with a 
 location of "<?= $sample_location ?>" which will have a 

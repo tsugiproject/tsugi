@@ -7,7 +7,6 @@ require_once("../locations.php");
 use \Tsugi\Util\Net;
 
 $expire_seconds = 24*60*60;  // Keep in cache for a day
-$expire_seconds = 120;  // Keep in cache for a day
 
 $p = $CFG->dbprefix;
 

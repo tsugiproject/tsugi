@@ -44,7 +44,7 @@ for($p=0;$p<$actual_pages;$p++) {
 }
 
 $oldgrade = $RESULT->grade;
-if ( isset($_POST['sum']) && isset($_POST['code']) ) {
+if ( isset($_POST['name']) && isset($_POST['code']) ) {
     if ( $_POST['name'] != $actual_last ) {
         $_SESSION['error'] = "Your name did not match";
         header('Location: '.addSession('index.php'));
@@ -130,6 +130,22 @@ But frankly with a little effort and patience you can overcome these attempts to
 a little harder to complete the assignment without writing a Python program.
 But that is not the point.   The point is to write a clever Python program to solve the
 program.
+</p>
+<p><b>Sample execution</b>
+<p>
+Here is a sample execution of a solution:
+<pre>
+$ python solution.py 
+Enter URL: http://pr4e.dr-chuck.com/ ... /known_by_Iria.html
+Enter count: 4
+Enter position: 3
+Retrieving: http://pr4e.dr-chuck.com/ ... /known_by_Iria.html
+Retrieving: http://pr4e.dr-chuck.com/ ... /known_by_Freja.html
+Retrieving: http://pr4e.dr-chuck.com/ ... /known_by_Dre.html
+Retrieving: http://pr4e.dr-chuck.com/ ... /known_by_Franklin.html
+Last Url: http://pr4e.dr-chuck.com/ ..../known_by_Ze.html
+</pre>
+The answer to the assignment for this execution is "Ze".
 </p>
 <p><b>Turning in the Assignment</b>
 <form method="post">

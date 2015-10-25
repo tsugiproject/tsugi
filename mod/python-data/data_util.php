@@ -37,6 +37,6 @@ function validate($sanity, $code ) {
 }
 
 function deHttps($url) {
-    return str_replace('https://', 'https://', $url);
+    return str_replace('https://', 'http://', $url);
 }
 

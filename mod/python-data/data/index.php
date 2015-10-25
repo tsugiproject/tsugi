@@ -7,6 +7,10 @@ require_once("../data_util.php");
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\Mersenne_Twister;
 
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
 $local_path = route_get_local_path(__DIR__);
 $pos = strpos($local_path,'?');
 if ( $pos > 0 ) $local_path = substr($local_path,0,$pos);
@@ -220,11 +224,12 @@ Your Python program can look at the page as long as it likes.
 </div>
 <ul>
 <?php
-    $curr_url = getCurrentFileUrl(__FILE__);
+    // $curr_url = getCurrentFileUrl(__FILE__);
+    $curr_url = curPageUrl();
     $new = getShuffledNames($code);
     for($i = 0; $i < count($new) && $i < 100; $i++) {
         if ( $new[$i] == $name ) continue;
-        $new_url = str_replace($curr_url, "index.php", "known_by_".$new[$i].".html");
+        $new_url = deHttps(str_replace("index.php", "known_by_".$new[$i].".html",$curr_url));
         echo('<li style="margin-top: '.rand(1,$i+25).'px;"><a href="'.$new_url.'">'
             .$new[$i]."</a></li>\n");
     }
