@@ -37,6 +37,8 @@ for($line=0; $line<$maxlines;$line++) {
 
 $oldgrade = $RESULT->grade;
 if ( isset($_POST['sum']) && isset($_POST['code']) ) {
+    $RESULT->setJsonKey('code', $_POST['code']);
+
     if ( $_POST['sum'] != $sum ) {
         $_SESSION['error'] = "Your sum did not match";
         header('Location: '.addSession('index.php'));
@@ -49,8 +51,6 @@ if ( isset($_POST['sum']) && isset($_POST['code']) ) {
         header('Location: '.addSession('index.php'));
         return;
     }
-
-    $RESULT->setJsonKey('code', $_POST['code']);
 
     LTIX::gradeSendDueDate(1.0, $oldgrade, $dueDate);
     // Redirect to ourself

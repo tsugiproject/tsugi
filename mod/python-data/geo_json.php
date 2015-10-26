@@ -52,6 +52,8 @@ $actual_place =  $actual_json->results[0]->place_id;
 
 $oldgrade = $RESULT->grade;
 if ( isset($_POST['place_id']) && isset($_POST['code']) ) {
+    $RESULT->setJsonKey('code', $_POST['code']);
+
     if ( $_POST['place_id'] != $actual_place ) {
         $_SESSION['error'] = "Your place_id did not match";
         header('Location: '.addSession('index.php'));
@@ -64,8 +66,6 @@ if ( isset($_POST['place_id']) && isset($_POST['code']) ) {
         header('Location: '.addSession('index.php'));
         return;
     }
-
-    $RESULT->setJsonKey('code', $_POST['code']);
 
     LTIX::gradeSendDueDate(1.0, $oldgrade, $dueDate);
     // Redirect to ourself

@@ -45,6 +45,8 @@ for($p=0;$p<$actual_pages;$p++) {
 
 $oldgrade = $RESULT->grade;
 if ( isset($_POST['name']) && isset($_POST['code']) ) {
+    $RESULT->setJsonKey('code', $_POST['code']);
+
     if ( $_POST['name'] != $actual_last ) {
         $_SESSION['error'] = "Your name did not match";
         header('Location: '.addSession('index.php'));
@@ -57,8 +59,6 @@ if ( isset($_POST['name']) && isset($_POST['code']) ) {
         header('Location: '.addSession('index.php'));
         return;
     }
-
-    $RESULT->setJsonKey('code', $_POST['code']);
 
     LTIX::gradeSendDueDate(1.0, $oldgrade, $dueDate);
     // Redirect to ourself
