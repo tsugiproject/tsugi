@@ -11,8 +11,7 @@ $expire_seconds = 24*60*60;  // Keep in cache for a day
 $p = $CFG->dbprefix;
 
 $address = isset($_GET['address']) ? $_GET['address'] : false;
-// header('Content-Type: application/json; charset=utf-8');
-header('Content-Type: text/plain; charset=utf-8');
+header('Content-Type: application/json; charset=utf-8');
 
 if ( $address === false ) {
     sort($LOCATIONS);
