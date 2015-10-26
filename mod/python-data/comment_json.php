@@ -70,7 +70,7 @@ compute the sum of the numbers in the file and enter the sum below:<br/>
 We provide two files for this assignment.  One is a sample file where we give you the sum for your
 testing and the other is the actual data you need to process for the assignment.  
 <ul>
-<li> Sample data: <a href="<?= deHttps($sample_url) ?>" target="_blank"><?= deHttps($sample_url) ?>.</a> 
+<li> Sample data: <a href="<?= deHttps($sample_url) ?>" target="_blank"><?= deHttps($sample_url) ?></a> 
 (Sum=<?= $sum_sample ?>) </li>
 <li> Actual data: <a href="<?= deHttps($actual_url) ?>" target="_blank"><?= deHttps($actual_url) ?></a> 
 (Sum ends with <?= $sum%100 ?>)<br/> </li>
