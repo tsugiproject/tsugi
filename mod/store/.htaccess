@@ -8,5 +8,6 @@
 Options +FollowSymLinks
 RewriteEngine On
 # Redirect requests to index.php
+RewriteCond %{REQUEST_URI} !\.(?:css|js|jpe?g|gif|png)$ [NC]
 RewriteRule .* index.php
 
