@@ -2,6 +2,7 @@
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\Net;
 use \Tsugi\Util\Mersenne_Twister;
 
 $sanity = array(
@@ -12,27 +13,38 @@ $sanity = array(
 $code = $USER->id+$LINK->id+$CONTEXT->id;
 $MT = new Mersenne_Twister($code);
 
-// Every 10th line, 1-3 numbers 0-9999 each
-$maxlines = 400;
-$sum = 42;
-for($line=0; $line<$maxlines;$line++) {
-    $choose = $MT->getNext(0,9);
-    if ( $choose != 0 ) continue;
-    $howmany = $MT->getNext(1,3);
-    for($nums=0;$nums<$howmany;$nums++) {
-        $sum = $sum + $MT->getNext(1,10000);
-    }
+$url = curPageUrl();
+$sample_url = deHttps(str_replace('index.php','data/regex_sum_42.txt',$url));
+$actual_url = deHttps(str_replace('index.php','data/regex_sum_'.$code.'.txt',$url));
+
+$sample_data = Net::doGet($sample_url);
+$sample_count = strlen($sample_data);
+$response = Net::getLastHttpResponse();
+if ( $response != 200 ) {
+    die("Response=$response url=$sample_url");
 }
 
-$sum_sample = 42;
-$MT = new Mersenne_Twister(42);
-for($line=0; $line<$maxlines;$line++) {
-    $choose = $MT->getNext(0,9);
-    if ( $choose != 0 ) continue;
-    $howmany = $MT->getNext(1,3);
-    for($nums=0;$nums<$howmany;$nums++) {
-        $sum_sample = $sum_sample + $MT->getNext(1,10000);
-    }
+$actual_data = Net::doGet($actual_url);
+$actual_count = strlen($actual_data);
+$response = Net::getLastHttpResponse();
+if ( $response != 200 ) {
+    die("Response=$response url=$actual_url");
+}
+
+$actual_matches = array();
+preg_match_all('/[0-9]+/',$actual_data,$actual_matches);
+$actual_count = count($actual_matches[0]);
+$actual_sum = 0;
+foreach($actual_matches[0] as $match ) {
+    $actual_sum = $actual_sum + $match;
+}
+
+$sample_matches = array();
+preg_match_all('/[0-9]+/',$sample_data,$sample_matches);
+$sample_count = count($sample_matches[0]);
+$sample_sum = 0;
+foreach($sample_matches[0] as $match ) {
+    $sample_sum = $sample_sum + $match;
 }
 
 $oldgrade = $RESULT->grade;
@@ -66,9 +78,6 @@ if ( $LINK->grade > 0 ) {
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
-$url = curPageUrl();
-$sample_url = str_replace('index.php','data/regex_sum_42.txt',$url);
-$actual_url = str_replace('index.php','data/regex_sum_'.$code.'.txt',$url);
 ?>
 <p>
 <b>Finding Numbers in a Haystack</b>
@@ -81,8 +90,10 @@ in the file and compute the sum of the numbers.
 We provide two files for this assignment.  One is a sample file where we give you the sum for your
 testing and the other is the actual data you need to process for the assignment.  
 <ul>
-<li> Sample data: <a href="<?= deHttps($sample_url) ?>" target="_blank"><?= deHttps($sample_url) ?></a> (Sum=<?= $sum_sample ?>) </li>
-<li> Actual data: <a href="<?= deHttps($actual_url) ?>" target="_blank"><?= deHttps($actual_url) ?></a> (Sum ends with <?= $sum%100 ?>)<br/> </li>
+<li> Sample data: <a href="<?= deHttps($sample_url) ?>" target="_blank"><?= deHttps($sample_url) ?></a> 
+(There are <?= $sample_count ?> values with a sum=<?= $sample_sum ?>) </li>
+<li> Actual data: <a href="<?= deHttps($actual_url) ?>" target="_blank"><?= deHttps($actual_url) ?></a> 
+(There are <?= $actual_count ?> values and the sum ends with <?= $actual_sum%1000 ?>)<br/> </li>
 </ul>
 These links open in a new window.
 Make sure to save the file into the same folder as you will be writing your Python program.
