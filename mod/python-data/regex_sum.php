@@ -14,8 +14,8 @@ $code = $USER->id+$LINK->id+$CONTEXT->id;
 $MT = new Mersenne_Twister($code);
 
 $url = curPageUrl();
-$sample_url = deHttps(str_replace('index.php','data/regex_sum_42.txt',$url));
-$actual_url = deHttps(str_replace('index.php','data/regex_sum_'.$code.'.txt',$url));
+$sample_url = str_replace('index.php','data/regex_sum_42.txt',$url);
+$actual_url = str_replace('index.php','data/regex_sum_'.$code.'.txt',$url);
 
 $sample_data = Net::doGet($sample_url);
 $sample_count = strlen($sample_data);
