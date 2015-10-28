@@ -128,7 +128,7 @@ converting the extracted strings to integers and summing up the integers.
 <b>Turn in Assignent</b>
 <form method="post">
 Enter the sum from the actual data and your Python code below:<br/>
-Sum: <input type="text" size="20" name="sum"> (ends with <?= $sum%100 ?>)
+Sum: <input type="text" size="20" name="sum"> (ends with <?= $actual_sum%1000 ?>)
 <input type="submit" value="Submit Assignment"><br/>
 Python code:<br/>
 <textarea rows="20" style="width: 90%" name="code"></textarea><br/>
