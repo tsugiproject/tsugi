@@ -6,7 +6,7 @@ use \Tsugi\Util\Net;
 use \Tsugi\Util\Mersenne_Twister;
 
 $sanity = array(
-  're.findall(' => 'You should use re.findall() to extract the numbers'
+  're.findall' => 'You should use re.findall() to extract the numbers'
 );
 
 // Compute the stuff for the output
