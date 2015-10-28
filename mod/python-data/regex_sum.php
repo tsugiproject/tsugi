@@ -51,7 +51,7 @@ $oldgrade = $RESULT->grade;
 if ( isset($_POST['sum']) && isset($_POST['code']) ) {
     $RESULT->setJsonKey('code', $_POST['code']);
 
-    if ( $_POST['sum'] != $sum ) {
+    if ( $_POST['sum'] != $actual_sum ) {
         $_SESSION['error'] = "Your sum did not match";
         header('Location: '.addSession('index.php'));
         return;
