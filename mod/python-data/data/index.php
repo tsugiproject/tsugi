@@ -18,12 +18,17 @@ if ( $pos > 0 ) $local_path = substr($local_path,0,$pos);
 if ( strpos($local_path,"geojson") === 0 ) {
     require_once("geojson.php");
     return;
-} else if ( $local_path == "regex_sum_actual.txt" || $local_path == "regex_sum_sample.txt" ) {
-    $LTI = LTIX::requireData();
-    $code = $USER->id+$LINK->id+$CONTEXT->id;
-    if ( $local_path == "regex_sum_sample.txt" ) {
+
+// New
+} else if ( strpos($local_path, "regex_sum_") === 0 && strpos($local_path, ".txt") !== false ) {
+    header('Content-Type: text/plain');
+    $code = 42;
+    $pieces = preg_split('/[_.]/',$local_path);
+    if ( count($pieces) == 4 && $pieces[2]+0 > 0 ) {
+        $code = $pieces[2]+0;
+    }
+    if ( $code == 42 ) {
         echo("This file contains the sample data\n\n");
-        $code = 42;
     } else {
         echo("This file contains the actual data for your assignment - good luck!\n\n");
     }
@@ -32,7 +37,6 @@ if ( strpos($local_path,"geojson") === 0 ) {
     if ($handle) {
         $count = 0;
         $MT = new Mersenne_Twister($code);
-        header('Content-Type: text/plain');
         // header('Content-Disposition: attachment; filename='.$local_path.';');
         while (($line = fgets($handle)) !== false) {
             $count++;

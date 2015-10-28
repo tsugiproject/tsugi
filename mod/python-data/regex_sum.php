@@ -66,6 +66,9 @@ if ( $LINK->grade > 0 ) {
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
+$url = curPageUrl();
+$sample_url = str_replace('index.php','data/regex_sum_42.txt',$url);
+$actual_url = str_replace('index.php','data/regex_sum_'.$code.'.txt',$url);
 ?>
 <p>
 <b>Finding Numbers in a Haystack</b>
@@ -78,8 +81,8 @@ in the file and compute the sum of the numbers.
 We provide two files for this assignment.  One is a sample file where we give you the sum for your
 testing and the other is the actual data you need to process for the assignment.  
 <ul>
-<li> <a href="data/regex_sum_sample.txt" target="_blank">Download sample data</a> (Sum=<?= $sum_sample ?>) </li>
-<li> <a href="data/regex_sum_actual.txt" target="_blank">Download the actual data</a> (Sum ends with <?= $sum%100 ?>)<br/> </li>
+<li> Sample data: <a href="<?= deHttps($sample_url) ?>" target="_blank"><?= deHttps($sample_url) ?></a> (Sum=<?= $sum_sample ?>) </li>
+<li> Actual data: <a href="<?= deHttps($actual_url) ?>" target="_blank"><?= deHttps($actual_url) ?></a> (Sum ends with <?= $sum%100 ?>)<br/> </li>
 </ul>
 These links open in a new window.
 Make sure to save the file into the same folder as you will be writing your Python program.
