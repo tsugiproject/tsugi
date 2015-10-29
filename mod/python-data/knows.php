@@ -136,7 +136,7 @@ program.
 Here is a sample execution of a solution:
 <pre>
 $ python solution.py 
-Enter URL: http://pr4e.dr-chuck.com/ ... /known_by_Iria.html
+Enter URL: http://pr4e.dr-chuck.com/ ... /known_by_Fikret.html
 Enter count: 4
 Enter position: 3
 Retrieving: http://pr4e.dr-chuck.com/ ... /known_by_Fikret.html
