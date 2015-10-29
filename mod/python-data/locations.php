@@ -363,3 +363,5 @@ $LOCATIONS = array(
 'NIT ROURKELA',
 'Muskegon Community College'
 );
+
+$LOCATIONS=array_unique($LOCATIONS);
