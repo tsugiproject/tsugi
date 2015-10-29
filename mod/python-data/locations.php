@@ -365,3 +365,4 @@ $LOCATIONS = array(
 );
 
 $LOCATIONS=array_unique($LOCATIONS);
+sort($LOCATIONS);

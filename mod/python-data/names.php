@@ -5992,3 +5992,4 @@ $NAMES = array( 'A',
 'Zuzu');
 
 $NAMES = array_unique($NAMES);
+sort($NAMES);
