@@ -84,7 +84,8 @@ In this assignment you will write a Python program that expands on
 <a href="http://www.pythonlearn.com/code/urllinks.py" target="_blank">http://www.pythonlearn.com/code/urllinks.py</a>.
 The program will use <b>urllib</b> to read the HTML from the data files below, 
 extract the href= vaues from the anchor tags, scan for a tag that is in 
-a particular position from the top and follow that link and repeat the process
+a particular position relative to the first name in the list,
+follow that link and repeat the process
 a number of times and report the last name you find.
 </p>
 <p>
@@ -119,7 +120,8 @@ Sequence of names:
     echo("<br/>\n");
 ?>
 -->
-First character of last name in sequence: <?= substr($actual_last,0,1) ?><br/>
+Hint: The first character of the name of the last page 
+that you will load is: <?= substr($actual_last,0,1) ?><br/>
 </li>
 </ul>
 <b>Strategy</b>

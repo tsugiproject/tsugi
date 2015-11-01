@@ -161,6 +161,24 @@ if (!function_exists('apache_request_headers')) {
     }
 }
 
+// http://stackoverflow.com/questions/3258634/php-how-to-send-http-response-code
+// Backwards compatibility http_response_code
+// For 4.3.0 <= PHP <= 5.4.0
+if (!function_exists('http_response_code'))
+{
+    function http_response_code($newcode = NULL)
+    {
+        static $code = 200;
+        if($newcode !== NULL)
+        {
+            header('X-PHP-Response-Code: '.$newcode, true, $newcode);
+            if(!headers_sent())
+                $code = $newcode;
+        }       
+        return $code;
+    }
+}
+
 // Convience method, pattern borrowed from WordPress
 function __($message, $textdomain=false) {
     if ( ! function_exists('gettext')) return $message;
