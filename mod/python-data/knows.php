@@ -30,10 +30,15 @@ for($p=0;$p<$sample_pages;$p++) {
     $sample_names[] = $name;
 }
 
-$code = $USER->id+$LINK->id+$CONTEXT->id;
+if ( isset($_SESSION['debug']) && is_string($_SESSION['debug']) ) {
+    $code = array_search($_SESSION['debug'], $NAMES);
+    $name = $_SESSION['debug'];
+} else {
+    $code = $USER->id+$LINK->id+$CONTEXT->id;
+    $names = getShuffledNames($code);
+    $name = $names[$actual_pos];
+}
 $actual_names = array();
-$names = getShuffledNames($code);
-$name = $names[$actual_pos];
 $actual_names[] = $name;
 for($p=0;$p<$actual_pages;$p++) {
     $code = array_search($name, $NAMES);
@@ -45,9 +50,14 @@ for($p=0;$p<$actual_pages;$p++) {
 
 $oldgrade = $RESULT->grade;
 if ( isset($_POST['name']) && isset($_POST['code']) ) {
-    if ( $_POST['name'] == 42 ) {
+    if ( $USER->instructor && strpos($_POST['name'],'42') === 0 ) {
+        $pieces = explode(',',$_POST['name']);
         $_SESSION['success'] = "Debug Mode Unlocked";
-        $_SESSION['debug'] = true;
+        if ( count($pieces) == 2 ) {
+            $_SESSION['debug'] = $pieces[1];
+        } else {
+            $_SESSION['debug'] = true;
+        }
         header('Location: '.addSession('index.php'));
         return;
     }
@@ -123,9 +133,8 @@ that you will load is: <?= substr($actual_last,0,1) ?><br/>
 <?php
 if ( isset($_SESSION['debug']) ) {
     echo("<pre>\n");
-    echo("Sequence of names up to but not including the last: \n");
+    echo("Debug sequence of names: \n");
     foreach($actual_names as $name) {
-        if ( $name == $actual_last ) continue;
         echo("  $name\n");
     }
     echo("</pre>\n");
@@ -164,6 +173,11 @@ Enter the last name retrieved and your Python code below:<br/>
 Name: <input type="text" size="20" name="name">
 (name starts with <?= substr($actual_last,0,1) ?>)
 <input type="submit" value="Submit Assignment"><br/>
+<?php
+if ( $USER->instructor ) {
+    echo("<b>Instructor Note:</b> If you want to test a student's data enter '42,Viki' with with starting name of the student's actual data.<br/>");
+}
+?>
 Python code:<br/>
 <textarea rows="20" style="width: 90%" name="code"></textarea><br/>
 </form>

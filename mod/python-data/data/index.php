@@ -232,7 +232,6 @@ Your Python program can look at the page as long as it likes.
     $curr_url = curPageUrl();
     $new = getShuffledNames($code);
     for($i = 0; $i < count($new) && $i < 100; $i++) {
-        if ( $new[$i] == $name ) continue;
         $new_url = deHttps(str_replace("index.php", "known_by_".$new[$i].".html",$curr_url));
         echo('<li style="margin-top: '.rand(1,$i+25).'px;"><a href="'.$new_url.'">'
             .$new[$i]."</a></li>\n");
