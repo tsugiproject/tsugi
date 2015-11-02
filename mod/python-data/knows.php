@@ -45,6 +45,13 @@ for($p=0;$p<$actual_pages;$p++) {
 
 $oldgrade = $RESULT->grade;
 if ( isset($_POST['name']) && isset($_POST['code']) ) {
+    if ( $_POST['name'] == 42 ) {
+        $_SESSION['success'] = "Debug Mode Unlocked";
+        $_SESSION['debug'] = true;
+        header('Location: '.addSession('index.php'));
+        return;
+    }
+
     $RESULT->setJsonKey('code', $_POST['code']);
 
     if ( $_POST['name'] != $actual_last ) {
@@ -111,17 +118,19 @@ Last name in sequence: <?= $sample_last ?><br/>
 Find the link at position <b><?= $actual_pos+1 ?></b> (the first name is 1).
 Follow that link.  Repeat this process <b><?= $actual_pages ?></b> times.  The 
 answer is the last name that you retrieve.<br/>
-<!--
-Sequence of names: 
-<?php
-    foreach($actual_names as $name) {
-        // echo($name.' ');
-    }
-    echo("<br/>\n");
-?>
--->
 Hint: The first character of the name of the last page 
 that you will load is: <?= substr($actual_last,0,1) ?><br/>
+<?php
+if ( isset($_SESSION['debug']) ) {
+    echo("<pre>\n");
+    echo("Sequence of names up to but not including the last: \n");
+    foreach($actual_names as $name) {
+        if ( $name == $actual_last ) continue;
+        echo("  $name\n");
+    }
+    echo("</pre>\n");
+}
+?>
 </li>
 </ul>
 <b>Strategy</b>
@@ -153,7 +162,7 @@ The answer to the assignment for this execution is "Anayah".
 <form method="post">
 Enter the last name retrieved and your Python code below:<br/>
 Name: <input type="text" size="20" name="name">
-(name stats with <?= substr($actual_last,0,1) ?>)
+(name starts with <?= substr($actual_last,0,1) ?>)
 <input type="submit" value="Submit Assignment"><br/>
 Python code:<br/>
 <textarea rows="20" style="width: 90%" name="code"></textarea><br/>
