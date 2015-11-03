@@ -46,10 +46,18 @@ if ( $row !== false && strlen($row['json_content']) > 0 ) {
     $updated_at = $row['updated_at'];
     $updated_time = strtotime($updated_at);
     $datediff = $now - $updated_time;
-    $json_content = json_decode($row['json_content']);
-    if ( $json_content == null ) {
-        error_log("JSON error in cache for $address: ".json_last_error_msg());
+
+    try {
+        $json_content = json_decode($row['json_content']);
+        if ( $json_content == null ) {
+            error_log("JSON error in cache for $address: ".json_last_error_msg());
+        }
+    } catch(Exception $e) { 
+        error_log("DIE: JSON cache failure, address=$address sha256=$address_sha256");
+        error_log("DIE: ".safe_var_dump($row));
+        $json_content = null;
     }
+
     if ( $json_content != null && $datediff < $expire_seconds ) {
         error_log("Retrieved $address from cache delta=$datediff updated_at=".$row['updated_at']);
         echo(jsonIndent(json_encode($json_content)));
