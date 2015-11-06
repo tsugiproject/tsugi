@@ -33,8 +33,9 @@ $sample_data = Net::doGet($sample_url);
 $sample_count = strlen($sample_data);
 $response = Net::getLastHttpResponse();
 $sample_json = json_decode($sample_data);
-if ( $response != 200 || $sample_json == null ) {
-    die("Response=$response url=$sample_url json_error=".json_last_error_msg());
+if ( $response != 200 || $sample_json == null || ( !isset($sample_json->results[0])) ) {
+    error_log("DIE: Sample response=$response url=$sample_url json_error=".json_last_error_msg());
+    die("Sample response=$response url=$sample_url json_error=".json_last_error_msg());
 }
 // echo("<pre>\n");echo(jsonIndent(json_encode($sample_json)));echo("</pre>\n");
 $sample_place =  $sample_json->results[0]->place_id;
@@ -43,8 +44,9 @@ $actual_data = Net::doGet($actual_url);
 $actual_count = strlen($actual_data);
 $response = Net::getLastHttpResponse();
 $actual_json = json_decode($actual_data);
-if ( $response != 200 ) {
-    die("Response=$response url=$actual_url json_error=".json_last_error_msg());
+if ( $response != 200 || $actual_json == null || ( !isset($actual_json->results[0])) ) {
+    error_log("DIE: Actual response=$response url=$actual_url json_error=".json_last_error_msg());
+    die("Actual response=$response url=$actual_url json_error=".json_last_error_msg());
 }
 $actual_place =  $actual_json->results[0]->place_id;
 // echo("sample_place=$sample_place actual_place=$actual_place");
