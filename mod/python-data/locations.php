@@ -1,4 +1,27 @@
 <?php
+
+$GEODATA = false;
+$json_data = false;
+if ( file_exists('locations.txt') ) {
+    $json_data = file_get_contents('locations.txt');
+} else if (file_exists('../locations.txt') ) {
+    $json_data = file_get_contents('../locations.txt');
+}
+
+$json = null;
+if ( $json_data != false ) {
+    $json = json_decode($json_data, true);
+    if ( is_array($json) && count($json) > 10 ) {
+        // OK
+    } else {
+        $json = null;
+    }
+}
+
+if ( $json !== null ) {
+    $LOCATIONS = array_keys($json);
+    $GEODATA = $json;
+} else {
 $LOCATIONS = array(
 'Northeastern University',
 'Technion',
@@ -102,7 +125,6 @@ $LOCATIONS = array(
 'JADAVPUR UNIVERSITY',
 'Gauhati University',
 'Universidad de Buenos Aires',
-'Università degli Studi di Genova',
 'King Mongkuts University of Technology Thonburi',
 'Universidad de la Sabana',
 'Vietnam Forestry University',
@@ -318,7 +340,6 @@ $LOCATIONS = array(
 'Dnipropetrovsk National University',
 'University of Nebraska',
 'University of Warsaw',
-'AGH University of Sience and Technology',
 'University of Pretoria',
 'AGH University of Science and Technology',
 'IU',
@@ -348,6 +369,7 @@ $LOCATIONS = array(
 'NIT ROURKELA',
 'Muskegon Community College'
 );
+}
 
 $LOCATIONS=array_unique($LOCATIONS);
 sort($LOCATIONS);

@@ -28,6 +28,12 @@ if ( $where === false ) {
     return;
 }
 
+// Check to see if we already have this in the variable
+if ( $GEODATA !== false ) {
+    echo($GEODATA[$address]);
+    return;
+}
+
 // Check to see if we already have this in the cache
 
 $address_sha256 = lti_sha256($address);

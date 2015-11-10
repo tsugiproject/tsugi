@@ -28,6 +28,7 @@ echo("Running test...\n");
 // var_dump($LOCATIONS);
 $url = curPageUrl();
 $i = 500;
+$GEO = array();
 foreach ($LOCATIONS as $key => $location) {
     // echo(htmlentities($location)."\n");
     $api_url = str_replace('geo_test.php','data/geojson',$url);
@@ -39,10 +40,17 @@ foreach ($LOCATIONS as $key => $location) {
     if ( $response != 200 || $sample_json == null || ( !isset($sample_json->results[0])) ) {
         echo("*** Bad response=$response url=$sample_url json_error=".json_last_error_msg()."\n");
         echo(jsonIndent($sample_data));
+        continue;
     }
     // echo("<pre>\n");echo(jsonIndent(json_encode($sample_json)));echo("</pre>\n");
+    if ( !isset($sample_json->results[0]->place_id) ) {
+        echo("*** Could not find place_id");
+        echo(jsonIndent($sample_data));
+        continue;
+    }
     $sample_place =  $sample_json->results[0]->place_id;
     // echo("    response=$response place=$sample_place\n");
+    $GEO[$location] = $sample_data;
     if ( $i-- < 1 ) break;
 }
 echo("</pre>\n");
