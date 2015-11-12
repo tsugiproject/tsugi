@@ -99,21 +99,15 @@ within Google Maps.
 <b>API End Points</b>
 </p>
 <p>
-You have two choice in terms of the API endpoint you use for this assignment.
-You can use the Google API directly at this URL:
-<pre>
-<a href="<?= $google_api ?>" target="_blank"><?= $google_api ?></a>
-</pre>
-If you cannot acesss the Google API, do not want to use the Google API,
-or do not want to exceed Google's
-rate limits we have made a copy of a <b>subset</b> of the Google geo location 
-data at this URL:
+To complete this assignment, you should use this API endpoint that has a static subset
+of the Google Data:
 <pre>
 <a href="<?= deHttps($api_url) ?>" target="_blank"><?= deHttps($api_url) ?></a>
 </pre>
 This API uses the same parameters (sensor and address) as the Google API.  
+This API also has no rate limit so you can test as often as you like.
 If you visit the URL with no parameters, you get a list of all of the 
-address values which can be used with our API.
+address values which can be used with this API.
 </p>
 <p>
 To call the API, you need to provide a <b>sensor=false</b> parameter and
@@ -121,6 +115,16 @@ the address that you are requesting as the <b>address=</b> parameter that is
 properly URL encoded using the <b>urllib.urlencode()</b> fuction as shown in 
 <a href="http://www.pythonlearn.com/code/geojson.py" 
 target="_blank">http://www.pythonlearn.com/code/geojson.py</a>
+</p>
+<p>
+Just for fun, you can also test your program with the real Google API:
+<pre>
+<a href="<?= $google_api ?>" target="_blank"><?= $google_api ?></a>
+</pre>
+Singe Google's data is always changing, the data returned from the Google API
+could easily be different than from my local copy API.  And the Google
+API has rate limits.  But you code should work with the Google API 
+with no modifications other than the base URL.
 </p>
 <p><b>Test Data / Sample Execution</b></p>
 <p>
