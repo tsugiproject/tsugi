@@ -123,7 +123,7 @@ Just for fun, you can also test your program with the real Google API:
 </pre>
 Singe Google's data is always changing, the data returned from the Google API
 could easily be different than from my local copy API.  And the Google
-API has rate limits.  But you code should work with the Google API 
+API has rate limits.  But your code should work with the Google API 
 with no modifications other than the base URL.
 </p>
 <p><b>Test Data / Sample Execution</b></p>
