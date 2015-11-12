@@ -1,4 +1,5 @@
 <?php
+require_once("config.php");
 
 // Lets check to see if we have a database or not and give a decent error message
 try {

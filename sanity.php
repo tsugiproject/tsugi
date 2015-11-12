@@ -1,4 +1,5 @@
 <?php
+require_once("config.php");
 
 if ( ! isset($CFG) ) {
     die_with_error_log('This software is not correctly configured, please copy config-dist.php to
@@ -18,4 +19,3 @@ if ( PHP_VERSION_ID < 50300 ) {
 if ( strpos(__FILE__,' ') !== false ) {
     die_with_error_log("This software requires that folder and file names have no spaces ".__FILE__);
 }
-
