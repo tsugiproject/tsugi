@@ -108,11 +108,23 @@ function route_get_local_path($dir) {
     $uri = $_SERVER['REQUEST_URI'];     // /tsugi/lti/some/cool/stuff
     $root = $_SERVER['DOCUMENT_ROOT'];  // /Applications/MAMP/htdocs
     $cwd = $dir;                        // /Applications/MAMP/htdocs/tsugi/lti
-    if ( strlen($cwd) < strlen($root) + 1 ) return substr($uri,1);
+    if ( strlen($cwd) < strlen($root) + 1 ) return false;
     $lwd = substr($cwd,strlen($root));  // /tsugi/lti
-    if ( strlen($uri) < strlen($lwd) + 2 ) return substr($uri,1);
+    if ( strlen($uri) < strlen($lwd) + 2 ) return false;
     $local = substr($uri,strlen($lwd)+1); // some/cool/stuff
     return $local;
+}
+
+function get_request_document() {
+    $uri = $_SERVER['REQUEST_URI'];     // /tsugi/lti/some/cool/stuff
+    $pieces = explode('/',$uri);
+    if ( count($pieces) > 1 ) {
+        $local_path = $pieces[count($pieces)-1];
+        $pos = strpos($local_path,'?');
+        if ( $pos > 0 ) $local_path = substr($local_path,0,$pos);
+        return $local_path;
+    }
+    return false;
 }
 
 function addSession($url) {

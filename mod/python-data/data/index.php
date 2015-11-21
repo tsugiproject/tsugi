@@ -14,7 +14,7 @@ use \Tsugi\Util\Mersenne_Twister;
 header("Cache-Control: max-age=2592000");
 
 
-$local_path = route_get_local_path(__DIR__);
+$local_path = get_request_document();
 $pos = strpos($local_path,'?');
 if ( $pos > 0 ) $local_path = substr($local_path,0,$pos);
 
