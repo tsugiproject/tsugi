@@ -108,9 +108,9 @@ function route_get_local_path($dir) {
     $uri = $_SERVER['REQUEST_URI'];     // /tsugi/lti/some/cool/stuff
     $root = $_SERVER['DOCUMENT_ROOT'];  // /Applications/MAMP/htdocs
     $cwd = $dir;                        // /Applications/MAMP/htdocs/tsugi/lti
-    if ( strlen($cwd) < strlen($root) + 1 ) return false;
+    if ( strlen($cwd) < strlen($root) + 1 ) return substr($uri,1);
     $lwd = substr($cwd,strlen($root));  // /tsugi/lti
-    if ( strlen($uri) < strlen($lwd) + 2 ) return false;
+    if ( strlen($uri) < strlen($lwd) + 2 ) return substr($uri,1);
     $local = substr($uri,strlen($lwd)+1); // some/cool/stuff
     return $local;
 }

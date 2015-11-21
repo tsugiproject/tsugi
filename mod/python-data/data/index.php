@@ -7,9 +7,12 @@ require_once("../data_util.php");
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\Mersenne_Twister;
 
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache");
+// header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+// header("Cache-Control: post-check=0, pre-check=0", false);
+// header("Pragma: no-cache");
+
+header("Cache-Control: max-age=2592000");
+
 
 $local_path = route_get_local_path(__DIR__);
 $pos = strpos($local_path,'?');
