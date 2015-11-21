@@ -272,7 +272,8 @@ if ( strlen($local_path) > 0 ) {
 <p>
 This application has a number of test data sources for
 <a href="http://www.pythonlearn.com/" target="_blank">
-Python for Informatics: Exploring Information</a>.
+Python for Informatics: Exploring Information</a> written by
+<a href="http://www.twitter.com/drchuck" target="_blank">@DrChuck</a>.
 <ul>
 <li><a href="geojson" target="_blank">A subset of data from the Google Geo Coding API</a></li>
 <li><a href="regex_sum_42.txt" target=_"blank">Some data in a text file to be summed</a></li>
