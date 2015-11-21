@@ -256,5 +256,29 @@ setTimeout('showHide("overlay");', 2500);
 
     return;
 }
+if ( strlen($local_path) > 0 ) {
+    echo('<p>File not found '.htmlentities($local_path).'</p>');
+}else {
 ?>
-<p>File not found <?= htmlentities($local_path) ?></p>
+<html>
+<head>
+<title>Data Sources</title>
+</head>
+<body style="font-family: sans-serif;">
+<h1>Test data sources</h1>
+<p>
+This application has a number of test data sources for
+<a href="http://www.pythonlearn.com/" target="_blank">
+Python for Informatics: Exploring Information</a>.
+<ul>
+<li><a href="geojson" target="_blank">A subset of data from the Google Geo Coding API</a></li>
+<li><a href="regex_sum_42.txt" target=_"blank">Some data in a text file to be summed</a></li>
+<li><a href="comments_42.html" target=_"blank">Some data in an html file to be summed</a></li>
+<li><a href="comments_42.xml" target=_"blank">Some data in an xml file to be summed</a></li>
+<li><a href="comments_42.json" target=_"blank">Some data in an json file to be summed</a></li>
+<li><a href="known_by_42.html" target=_"blank">A set of friend lists</a></li>
+</ul>
+
+
+<?php 
+}
