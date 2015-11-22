@@ -125,6 +125,7 @@ The basic outline of this problem is to read the file, look for integers using t
 converting the extracted strings to integers and summing up the integers.
 </p>
 <p>
+<?php httpsWarning($sample_url); ?>
 <b>Turn in Assignent</b>
 <form method="post">
 Enter the sum from the actual data and your Python code below:<br/>

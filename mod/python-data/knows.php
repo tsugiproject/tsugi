@@ -167,6 +167,7 @@ Last Url: http://pr4e.dr-chuck.com/ ... /known_by_Anayah.html
 </pre>
 The answer to the assignment for this execution is "Anayah".
 </p>
+<?php httpsWarning($sample_url); ?>
 <p><b>Turning in the Assignment</b>
 <form method="post">
 Enter the last name retrieved and your Python code below:<br/>

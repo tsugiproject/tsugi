@@ -126,6 +126,7 @@ could easily be different than from my local copy API.  And the Google
 API has rate limits.  But your code should work with the Google API 
 with no modifications other than the base URL.
 </p>
+<?php httpsWarning($api_url); ?>
 <p><b>Test Data / Sample Execution</b></p>
 <p>
 You can test to see if your program is working with a 

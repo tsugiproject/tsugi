@@ -37,6 +37,30 @@ function validate($sanity, $code ) {
 }
 
 function deHttps($url) {
-    return str_replace('https://', 'http://', $url);
+    return $url;
+    // return str_replace('https://', 'http://', $url);
+}
+
+function httpsWarning($url) {
+    if ( strpos($url, 'https://') !== 0 ) return;
+?>
+<p><b>Note:</b> If you get an error when you run your program that complains about 
+<b>CERTIFICATE_VERIFY_FAILED</b> when you call <b>urlopen()</b>, make the following
+changes to your program:
+<pre>
+import urllib
+import json
+<b>import ssl</b>
+
+...
+
+    print 'Retrieving', url
+    <b>scontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)</b>
+    uh = urllib.urlopen(url<b>, context=scontext</b>)
+    data = uh.read()
+</pre>
+This will keep your Python code from rejecting the server's certificate.
+</p>
+<?php
 }
 

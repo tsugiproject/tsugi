@@ -116,7 +116,7 @@ Retrieved 4210 characters
 Count: 50
 Sum: 2553
 </pre>
-
+<?php httpsWarning($sample_url); ?>
 <p><b>Turning in the Assignment</b></p>
 <form method="post">
 Enter the sum from the actual data and your Python code below:<br/>
