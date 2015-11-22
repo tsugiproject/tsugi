@@ -21,7 +21,7 @@ if ( SettingsForm::handleSettingsPost() ) {
 // All the assignments we support
 $assignments = array(
     'regex_sum.php' => 'Sum with a Regular Expression',
-    'a12a.php' => 'Exploring HyperText Transport Protocol',
+    'http_headers.php' => 'Exploring HyperText Transport Protocol',
     'comment_html.php' => 'Sum data from HTML',
     'knows.php' => 'Follow links in a series of web pages.',
     'comment_xml.php' => 'Sum data from XML',

@@ -90,9 +90,8 @@ if ( $LINK->grade > 0 ) {
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
-$url = curPageUrl();
-$sample_url = str_replace('index.php','data/known_by_'.$sample_names[0].'.html',$url);
-$actual_url = str_replace('index.php','data/known_by_'.$actual_names[0].'.html',$url);
+$sample_url = dataUrl('known_by_'.$sample_names[0].'.html');
+$actual_url = dataUrl('known_by_'.$actual_names[0].'.html');
 ?>
 <p>
 <b>Following Links in Python</b>

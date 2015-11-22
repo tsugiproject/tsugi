@@ -2,6 +2,13 @@
 
 use \Tsugi\Util\Mersenne_Twister;
 
+// Global Configuration Options
+
+// $GLOBAL_PYTHON_DATA_URL = false; // To serve locally
+$GLOBAL_PYTHON_DATA_URL = 'http://python-data.dr-chuck.net/';
+
+// $GLOBAL_PYTHON_DATA_REMOVE_HTTPS = true;  // To map data urls to http:
+$GLOBAL_PYTHON_DATA_REMOVE_HTTPS = false;
 
 function getShuffledNames($code) {
     global $NAMES;
@@ -37,6 +44,18 @@ function validate($sanity, $code ) {
 }
 
 function deHttps($url) {
+    global $GLOBAL_PYTHON_DATA_REMOVE_HTTPS;
+    if ( ! $GLOBAL_PYTHON_DATA_REMOVE_HTTPS ) return $url;
     return str_replace('https://', 'http://', $url);
+}
+
+function dataUrl($file) {
+    global $GLOBAL_PYTHON_DATA_URL;
+    if ( is_string($GLOBAL_PYTHON_DATA_URL) ) {
+        return $GLOBAL_PYTHON_DATA_URL.$file;
+    }
+    $url = curPageUrl();
+    $retval = str_replace('index.php','data/'.$file,$url);
+    return $retval;
 }
 

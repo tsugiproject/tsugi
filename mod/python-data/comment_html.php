@@ -51,9 +51,8 @@ if ( $LINK->grade > 0 ) {
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
-$url = curPageUrl();
-$sample_url = str_replace('index.php','data/comments_42.html',$url);
-$actual_url = str_replace('index.php','data/comments_'.$code.'.html',$url);
+$sample_url = dataUrl('comments_42.html');
+$actual_url = dataUrl('comments_'.$code.'.html');
 ?>
 <p>
 <b>Scraping Numbers from HTML using BeautifulSoup</b>

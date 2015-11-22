@@ -52,9 +52,8 @@ if ( $LINK->grade > 0 ) {
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
-$url = curPageUrl();
-$sample_url = str_replace('index.php','data/comments_42.xml',$url);
-$actual_url = str_replace('index.php','data/comments_'.$code.'.xml',$url);
+$sample_url = dataUrl('comments_42.xml');
+$actual_url = dataUrl('comments_'.$code.'.xml');
 ?>
 <p>
 <b>Extracting Data from XML</b>
