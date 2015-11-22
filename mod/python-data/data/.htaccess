@@ -3,7 +3,12 @@
 
 # Turn rewriting on
 Options +FollowSymLinks
-RewriteEngine On
+
 # Redirect requests to index.php
+# RewriteBase /
+RewriteEngine On
 RewriteRule .* index.php
+
+Header set Cache-Control "max-age=604800, public"
+
 

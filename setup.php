@@ -115,6 +115,18 @@ function route_get_local_path($dir) {
     return $local;
 }
 
+function get_request_document() {
+    $uri = $_SERVER['REQUEST_URI'];     // /tsugi/lti/some/cool/stuff
+    $pieces = explode('/',$uri);
+    if ( count($pieces) > 1 ) {
+        $local_path = $pieces[count($pieces)-1];
+        $pos = strpos($local_path,'?');
+        if ( $pos > 0 ) $local_path = substr($local_path,0,$pos);
+        return $local_path;
+    }
+    return false;
+}
+
 function addSession($url) {
     if ( ini_get('session.use_cookies') != '0' ) return $url;
     if ( stripos($url, '&'.session_name().'=') > 0 ||

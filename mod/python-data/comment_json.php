@@ -53,9 +53,8 @@ if ( $LINK->grade > 0 ) {
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
-$url = curPageUrl();
-$sample_url = str_replace('index.php','data/comments_42.json',$url);
-$actual_url = str_replace('index.php','data/comments_'.$code.'.json',$url);
+$sample_url = dataUrl('comments_42.json');
+$actual_url = dataUrl('comments_'.$code.'.json');
 ?>
 <p>
 <b>Extracting Data from JSON</b>

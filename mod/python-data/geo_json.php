@@ -23,8 +23,7 @@ $actual = $MT->shuffle($LOCATIONS);
 $actual_location = $actual[0];
 
 // Retrieve the data
-$url = curPageUrl();
-$api_url = str_replace('index.php','data/geojson',$url);
+$api_url = dataUrl('geojson');
 $google_api = 'http://maps.googleapis.com/maps/api/geocode/json?sensor=false&address=University+of+Michigan';
 $sample_url = $api_url . '?sensor=false&address=' . urlencode($sample_location);
 $actual_url = $api_url . '?sensor=false&address=' . urlencode($actual_location);
