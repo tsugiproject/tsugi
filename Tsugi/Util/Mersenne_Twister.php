@@ -6,7 +6,7 @@ namespace Tsugi\Util;
 /**
  * This provides a deterministic pseudo-random sequence that is seedable
  *
- * Since PHP 5.2.1 mt_srand() and mt_rand() don’t generate 
+ * Since PHP 5.2.1 mt_srand() and mt_rand() don't generate 
  * predictable sequences since PHP 5.2.1.  The following code:
  * 
  * $code = 12345;
@@ -19,6 +19,9 @@ namespace Tsugi\Util;
  * Will always print out:
  * 
  * 2 3 3 6 5 1 5 3 4 2 1 6 5 4 0 6 0 2 0 3 5 6 6 3 1 3 2 6 3 3 
+ * 
+ * Note that this is written for a 64-bit system and will generate
+ * different sequences on 32 and 64 bit systems.
  */
 
 class Mersenne_Twister
