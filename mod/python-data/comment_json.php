@@ -4,23 +4,25 @@ require_once('data_util.php');
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
-use \Tsugi\Util\Mersenne_Twister;
 
 $sanity = array(
   'urllib' => 'You should use urllib to retrieve the data from the URL',
   'json' => 'You should use json to parse the data retrieved from the URL'
 );
 
-// Compute the stuff for the output
-$code = 42;
-$new = getShuffledNames($code);
-$nums = getRandomNumbers($code,min(50,count($new)),100);
-$sum_sample = array_sum($nums);
-
+// A random code
 $code = $USER->id+$LINK->id+$CONTEXT->id;
-$new = getShuffledNames($code);
-$nums = getRandomNumbers($code,min(50,count($new)),100);
-$sum = array_sum($nums);
+
+// Set the data URLs
+$sample_url = dataUrl('comments_42.json');
+$actual_url = dataUrl('comments_'.$code.'.json');
+
+// Compute the sum data
+$json = getJsonOrDie(dataUrl('comments_42.json'));
+$sum_sample = sumCommentJson($json);
+
+$json = getJsonOrDie(dataUrl('comments_'.$code.'.json'));
+$sum = sumCommentJson($json);
 
 $oldgrade = $RESULT->grade;
 if ( isset($_POST['sum']) && isset($_POST['code']) ) {
@@ -53,8 +55,6 @@ if ( $LINK->grade > 0 ) {
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
 }
-$sample_url = dataUrl('comments_42.json');
-$actual_url = dataUrl('comments_'.$code.'.json');
 ?>
 <p>
 <b>Extracting Data from JSON</b>
@@ -107,11 +107,11 @@ to see how to prompt for a URL and retrieve data from a URL.
 <p><b>Sample Execution</b></p>
 <pre>
 $ python solution.py 
-Enter location: 
-Retrieving http://pr4e.dr-chuck.com/tsugi/mod/python-data/data/comments_42.json
-Retrieved 2739 characters
+Enter location: http://python-data.dr-chuck.net/comments_42.json
+Retrieving http://python-data.dr-chuck.net/comments_42.json
+Retrieved 2733 characters
 Count: 50
-Sum: 2553
+Sum: 2482
 </pre>
 <?php httpsWarning($sample_url); ?>
 <p><b>Turning in the Assignment</b>

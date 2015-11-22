@@ -2,23 +2,25 @@
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
-use \Tsugi\Util\Mersenne_Twister;
 
 $sanity = array(
   'urllib' => 'You should use urllib to retrieve the data from the URL',
   'BeautifulSoup' => 'You should use the BeautifulSoup library to parse the HTML'
 );
 
-// Compute the stuff for the output
-$code = 42;
-$new = getShuffledNames($code);
-$nums = getRandomNumbers($code,min(50,count($new)),100);
-$sum_sample = array_sum($nums);
-
+// A random code
 $code = $USER->id+$LINK->id+$CONTEXT->id;
-$new = getShuffledNames($code);
-$nums = getRandomNumbers($code,min(50,count($new)),100);
-$sum = array_sum($nums);
+
+// Set the data URLs
+$sample_url = dataUrl('comments_42.html');
+$actual_url = dataUrl('comments_'.$code.'.html');
+
+// Compute the sum data
+$json = getJsonOrDie(dataUrl('comments_42.json'));
+$sum_sample = sumCommentJson($json);
+
+$json = getJsonOrDie(dataUrl('comments_'.$code.'.json'));
+$sum = sumCommentJson($json);
 
 $oldgrade = $RESULT->grade;
 if ( isset($_POST['sum']) && isset($_POST['code']) ) {
@@ -105,6 +107,15 @@ for tag in tags:
 You need to adjust this code to look for <b>span</b> tags and pull out 
 the text content of the span tag, convert them to integers and 
 add them up to complete the assignment.
+</p>
+<p><b>Sample Execution</b>
+<p>
+<pre>
+$ python solution.py 
+Enter - http://python-data.dr-chuck.net/comments_42.html
+Count 50
+Sum 2482
+</pre>
 </p>
 
 <p><b>Turning in the Assignment</b>

@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\Util\Mersenne_Twister;
+use \Tsugi\Util\Net;
 
 // Global Configuration Options
 
@@ -80,5 +81,25 @@ function dataUrl($file) {
     $url = curPageUrl();
     $retval = str_replace('index.php','data/'.$file,$url);
     return $retval;
+}
+
+function getJsonOrDie($sample_url) {
+    $sample_data = Net::doGet($sample_url);
+    $sample_count = strlen($sample_data);
+    $response = Net::getLastHttpResponse();
+    $sample_json = json_decode($sample_data);
+    if ( $response != 200 || $sample_json == null ) {
+        error_log("DIE: Sample response=$response url=$sample_url json_error=".json_last_error_msg());
+        die("Sample response=$response url=$sample_url json_error=".json_last_error_msg());
+    }
+    return $sample_json;
+}
+
+function sumCommentJson($json) {
+    $total = 0;
+    foreach($json->comments as $comment) {
+        $total = $total + $comment->count;
+    }
+    return $total;
 }
 

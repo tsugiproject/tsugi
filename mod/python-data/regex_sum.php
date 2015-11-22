@@ -3,7 +3,6 @@
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Net;
-use \Tsugi\Util\Mersenne_Twister;
 
 $sanity = array(
   're.findall' => 'You should use re.findall() to extract the numbers'
@@ -11,7 +10,6 @@ $sanity = array(
 
 // Compute the stuff for the output
 $code = $USER->id+$LINK->id+$CONTEXT->id;
-$MT = new Mersenne_Twister($code);
 
 $sample_url = dataUrl('regex_sum_42.txt');
 $actual_url = dataUrl('regex_sum_'.$code.'.txt');
