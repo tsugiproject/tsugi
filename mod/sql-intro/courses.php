@@ -1,6 +1,6 @@
 <?php
 
-$courses = [
+$courses = array(
 'si110',
 'si106', 
 'si206',
@@ -11,5 +11,5 @@ $courses = [
 'si364',
 'si422',
 'si430'
-];
+);
 
