@@ -11,7 +11,7 @@ function makeRoster($code) {
     $retval = array();
     foreach($courses as $k => $course) {
         $new = $MT->shuffle($names);
-        $new = array_slice($new,0,$MT->getNext(17,23));
+        $new = array_slice($new,0,$MT->getNext(17,53));
         $inst = 1;
         foreach($new as $k2 => $name) {
             $retval[] = array($name, $course, $inst);
