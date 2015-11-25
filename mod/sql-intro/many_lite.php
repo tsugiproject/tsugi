@@ -85,12 +85,14 @@ enter the code you get here: <br/>
 <p>
 This appication will read roster data in JSON format, parse the file, and
 then produce an SQLite database that contains a User, Course, and Member table
-and populate thr tables from the data file.
+and populate the tables from the data file.
 </p>
 <p>
 You can base your solution on this code:
 <a href="http://www.pythonlearn.com/code/roster.zip" target="_blank">
-http://www.pythonlearn.com/code/roster.zip</a>
+http://www.pythonlearn.com/code/roster.zip</a> - this code is incomplete
+as you need to add code to store the <b>role</b> column in the <b>Member</b> 
+table to complete the assignment.
 </p>
 <p>
 Here is the URL for your data file:
