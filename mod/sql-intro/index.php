@@ -18,7 +18,8 @@ if ( SettingsForm::handleSettingsPost() ) {
 // All the assignments we support
 $assignments = array(
     'a01.php' => 'Single Table MySQL',
-    'single_lite.php' => 'Single Table SQLITE'
+    'single_lite.php' => 'Single Table SQLITE',
+    'many_lite.php' => 'Manby-to-Many SQLITE'
 );
 
 $oldsettings = Settings::linkGetAll();
