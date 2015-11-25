@@ -282,6 +282,12 @@ Python for Informatics: Exploring Information</a> written by
 <li><a href="comments_42.json" target=_"blank">Some data in an json file to be summed</a></li>
 <li><a href="known_by_42.html" target=_"blank">A set of friend lists</a></li>
 </ul>
+</p>
+<p>
+This data is set up to be served by a Content Data Network (CDN) product like 
+<a href="https://www.cloudflare.com/" target="_blank">CloudFlare</a> to 
+conserve bandwidth and provide quicker access to a worldwide learner
+population.
 
 
 <?php 
