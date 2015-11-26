@@ -83,7 +83,7 @@ enter the code you get here: <br/>
 </p>
 <h1>Instructions</h1>
 <p>
-This appication will read roster data in JSON format, parse the file, and
+This application will read roster data in JSON format, parse the file, and
 then produce an SQLite database that contains a User, Course, and Member table
 and populate the tables from the data file.
 </p>

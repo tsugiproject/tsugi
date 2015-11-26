@@ -18,8 +18,10 @@ if ( SettingsForm::handleSettingsPost() ) {
 // All the assignments we support
 $assignments = array(
     'a01.php' => 'Single Table MySQL',
-    'single_lite.php' => 'Single Table SQLITE',
-    'many_lite.php' => 'Many-to-Many SQLITE'
+    'single_lite.php' => 'Single Table SQLITE (Users)',
+    'count_lite.php' => 'Email Counter SQLITE',
+    'many_one_lite.php' => 'Many-to-One SQLITE (Email)',
+    'many_many_lite.php' => 'Many-to-Many SQLITE (Courses)',
 );
 
 $oldsettings = Settings::linkGetAll();
@@ -31,7 +33,7 @@ $dueDate = SettingsForm::getDueDate();
 
 // Let the assignment handle the POST
 if ( count($_POST) > 0 && $assn && isset($assignments[$assn]) ) {
-    require($assn);
+    include($assn);
     return;
 }
 
@@ -59,7 +61,7 @@ $OUTPUT->flashMessages();
 $OUTPUT->welcomeUserCourse();
 
 if ( $assn && isset($assignments[$assn]) ) {
-    require($assn);
+    include($assn);
 } else {
     if ( $USER->instructor ) {
         echo("<p>Please use settings to select an assignment for this tool.</p>\n");
