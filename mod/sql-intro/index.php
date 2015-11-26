@@ -20,7 +20,7 @@ $assignments = array(
     'a01.php' => 'Single Table MySQL',
     'single_lite.php' => 'Single Table SQLITE (Users)',
     'count_lite.php' => 'Email Counter SQLITE',
-    'many_one_lite.php' => 'Many-to-One SQLITE (Email)',
+    'many_one_lite.php' => 'Many-to-One SQLITE (Tracks)',
     'many_many_lite.php' => 'Many-to-Many SQLITE (Courses)',
 );
 
