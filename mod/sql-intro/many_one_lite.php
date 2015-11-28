@@ -136,7 +136,6 @@ To get credit for this assignment, perform the instructions below and
 upload your SQLite3 database here: <br/>
 <input name="database" type="file"> 
 (Must have a .sqlite suffix and be &lt; 100K in size)<br/>
-Hint: The top organizational count is <?= $answer['iupui.edu'] ?>.<br/>
 <input type="submit">
 </form>
 </p>
