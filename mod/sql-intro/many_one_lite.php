@@ -65,13 +65,26 @@ if ( isset($_FILES['database']) ) {
         return;
     }
 
-    $db = new SQLite3($file);
-    $results = $db->query("
-        SELECT Track.title, Artist.name, Album.title, Genre.name
-            FROM Track JOIN Genre JOIN Album JOIN Artist
-            ON Track.genre_id = Genre.ID and Track.album_id = Album.id
-                AND Album.artist_id = Artist.id
-            ORDER BY Artist.name LIMIT 3");
+    $results = false;
+    try {
+        $db = new SQLite3($file, SQLITE3_OPEN_READONLY);
+        $results = @$db->query("
+            SELECT Track.title, Artist.name, Album.title, Genre.name
+                FROM Track JOIN Genre JOIN Album JOIN Artist
+                ON Track.genre_id = Genre.ID and Track.album_id = Album.id
+                    AND Album.artist_id = Artist.id
+                ORDER BY Artist.name LIMIT 3");
+    } catch(Exception $ex) { 
+        $_SESSION['error'] = "SQL Error: ".$ex->getMessage();
+        header( 'Location: '.addSession('index.php') ) ;
+        return;
+    }
+
+    if ( $results === false ) {
+        $_SESSION['error'] = "SQL Query Error: ".$db->lastErrorMsg();
+        header( 'Location: '.addSession('index.php') ) ;
+        return;
+    }
 
     $good = 0;
     $pos = 0;

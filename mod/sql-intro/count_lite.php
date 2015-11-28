@@ -52,8 +52,23 @@ if ( isset($_FILES['database']) ) {
         return;
     }
 
-    $db = new SQLite3($file);
-    $results = $db->query('SELECT org, count FROM Counts ORDER BY count DESC LIMIT 5');
+    $results = false;
+    try {
+        $db = new SQLite3($file, SQLITE3_OPEN_READONLY);
+        $results = @$db->query('SELECT org, count FROM Counts 
+            ORDER BY count DESC LIMIT 5');
+    } catch(Exception $ex) {
+        $_SESSION['error'] = "SQL Error: ".$ex->getMessage();
+        header( 'Location: '.addSession('index.php') ) ;
+        return;
+    }
+
+    if ( $results === false ) {
+        $_SESSION['error'] = "SQL Query Error: ".$db->lastErrorMsg();
+        header( 'Location: '.addSession('index.php') ) ;
+        return;
+    }
+
     $good = 0;
 
     while ($row = $results->fetchArray()) {
