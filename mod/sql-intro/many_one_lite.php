@@ -137,6 +137,11 @@ upload your SQLite3 database here: <br/>
 <input name="database" type="file"> 
 (Must have a .sqlite suffix and be &lt; 100K in size)<br/>
 <input type="submit">
+<p>
+You do not need to export or convert the database -  simply upload 
+the <b>.sqlite</b> file that your program creates.  See the example code for
+the use of the <b>connect()</b> statement.
+</p>
 </form>
 </p>
 <h1>Musical Track Database</h1>
