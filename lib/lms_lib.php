@@ -264,6 +264,19 @@ function maxUpload() {
     return $upload_mb;
 }
 
+function displaySize($size) {
+    if ( $size > 1024*1024*1024*2 ) {
+        return (int) ($size/(1024*1024*1024))."GB";
+    }
+    if ( $size > 1024*1024*2 ) {
+        return (int) ($size/(1024*1024))."MB";
+    }
+    if ( $size > 1024*2 ) {
+        return (int) ($size/(1024))."KB";
+    }
+    return $size."B";
+}
+
 function findTools($dir, &$retval, $filename="index.php") {
     if ( is_dir($dir) ) {
         if ($dh = opendir($dir)) {

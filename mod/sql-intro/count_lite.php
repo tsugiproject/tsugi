@@ -4,7 +4,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Mersenne_Twister;
 
-$MAX_UPLOAD_FILE_SIZE = 100000;
+$MAX_UPLOAD_FILE_SIZE = 1000000;
 
 require_once "sql_util.php";
 
@@ -30,7 +30,7 @@ if ( isset($_FILES['database']) ) {
     }
 
     if ( $fdes['size'] > $MAX_UPLOAD_FILE_SIZE ) {
-        $_SESSION['error'] = "Uploaded file must be < $MAX_UPLOAD_FILE_SIZE bytes";
+        $_SESSION['error'] = "Uploaded file must be < ".displaySize($MAX_UPLOAD_FILE_SIZE);
         header( 'Location: '.addSession('index.php') ) ;
         return;
     }
@@ -128,7 +128,7 @@ if ( $dueDate->message ) {
 To get credit for this assignment, perform the instructions below and 
 upload your SQLite3 database here:<br/>
 <input name="database" type="file"> 
-(Must have a .sqlite suffix and be &lt; 100K in size)<br/>
+(Must have a .sqlite suffix and be &lt; <?= displaySize($MAX_UPLOAD_FILE_SIZE ) ?> in size)<br/>
 Hint: The top organizational count is <?= $answer['iupui.edu'] ?>.<br/>
 <input type="submit">
 <p>
