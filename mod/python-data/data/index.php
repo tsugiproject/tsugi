@@ -222,7 +222,7 @@ if ( strpos($local_path,"geojson") === 0 ) {
 This screen randomly changes the height between list items and vanishes 
 after a while to make sure that you retrieve and process the data
 in a Python program rather than simply counting down pressing links, and 
-and doing the assignment without writing a Python program :).
+doing the assignment without writing a Python program :).
 The names are in the same order in the HTML even though they 
 shift around on the screen visually.
 Your Python program can look at the page as long as it likes.
