@@ -2,7 +2,7 @@
 
 $title_singular = 'Music Track';
 $title_plural = 'Tracks';
-$reference_implementation = 'http://localhost:8888/php-intro/php-solutions/exams/fin-f15-tracks';
+$reference_implementation = 'http://www.php-intro.com/exams/fin-f15-tracks';
 
 $fields = array(
     array('Title', 'title', false),
