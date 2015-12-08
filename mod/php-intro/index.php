@@ -23,7 +23,8 @@ $assignments = array(
     'a05.php' => 'Shopping Cart',
     'a06.php' => 'CRUD - Tracks',
     'mid-f14-autos.php' => 'CRUD - Autos',
-    'crud-videos.php' => 'CRUD - Videos'
+    'crud-videos.php' => 'CRUD - Videos',
+    'fin-f15-tracks.php' => 'CRUD 15 - Tracks'
 );
 
 // View

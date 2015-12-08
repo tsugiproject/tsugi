@@ -52,9 +52,20 @@ function checkPostRedirect($client) {
     $method = $client->getRequest()->getMethod();
     if ( $method == "get" ) {
         $passed++;
+        markTestPassed("POST Redirect Check");
     } else {
         error_out('Expecting POST to Redirect to GET - found '.$method);
     }
+}
+
+function markTestPassed($message=false) {
+    global $passed;
+    if ( $message ) {
+        success_out("Test passed: ".$message);
+    } else {
+        success_out("Test passed.");
+    }
+    $passed++;
 }
 
 function webauto_test_passed($grade, $url) {
