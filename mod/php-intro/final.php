@@ -240,8 +240,8 @@ while (True ) {
     $OUTPUT->togglePre("Internal error detail.",$detail);
 }
 
-// There is a maximum of 23 passes for this test
-$perfect = 23;
+// There is a maximum 25 passes for this test
+$perfect = 25;
 $score = webauto_compute_effective_score($perfect, $passed, $penalty);
 
 if ( ! $titlefound ) {
