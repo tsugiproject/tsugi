@@ -147,7 +147,8 @@ $pos2 = strpos($html, "edit.php", $pos);
 line_out("Looking for edit.php link associated with '$firststring' entry");
 $pos3 = strpos($html, '"', $pos2);
 $editlink = substr($html,$pos2,$pos3-$pos2);
-line_out("Retrieving ".htmlent_utf8($editlink)."...");
+$editlink = str_replace("&amp;","&",$editlink);
+line_out("Retrieving ".$editlink."...");
 
 $crawler = $client->request('GET', $editlink);
 $html = $crawler->html();
@@ -179,7 +180,8 @@ $pos = strpos($html, $firststring);
 $pos2 = strpos($html, "delete.php", $pos);
 $pos3 = strpos($html, '"', $pos2);
 $editlink = substr($html,$pos2,$pos3-$pos2);
-line_out("Retrieving ".htmlent_utf8($editlink)."...");
+$editlink = str_replace("&amp;","&",$editlink);
+line_out("Retrieving ".$editlink."...");
 
 $crawler = $client->request('GET', $editlink);
 $html = $crawler->html();
@@ -209,7 +211,8 @@ while (True ) {
     $pos3 = strpos($html, '"', $pos2);
     if ( $pos3 < 1 ) break;
     $editlink = substr($html,$pos2,$pos3-$pos2);
-    line_out("Retrieving ".htmlent_utf8($editlink)."...");
+    $editlink = str_replace("&amp;","&",$editlink);
+    line_out("Retrieving ".$editlink."...");
 
     $crawler = $client->request('GET', $editlink);
     $html = $crawler->html();
