@@ -50,6 +50,7 @@ try {
 $crawler = $client->request('GET', $url);
 
 $html = $crawler->html();
+markTestPassed('Index retrieved');
 $OUTPUT->togglePre("Show retrieved page",$html);
 
 $retval = webauto_check_title($crawler);
@@ -58,16 +59,17 @@ if ( $retval !== true ) {
     $titlefound = false;
 }
 
-line_out("Looking for 'Please log in' link on index.php.");
+line_out("Looking for  an anchor tag with text of 'Please log in' (case matters)");
 $link = $crawler->selectLink('Please log in')->link();
 $url = $link->getURI();
 line_out("Retrieving ".htmlent_utf8($url)."...");
 $crawler = $client->request('GET', $url);
+markTestPassed('login page retrieved');
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 
 // Doing a log in
-line_out("Looking for the form with a 'Log In' submit button on login.php");
+line_out('Looking for the form with a value="Log In" submit button');
 $form = $crawler->selectButton('Log In')->form();
 line_out("-- this autograder expects the log in form field names to be:");
 line_out("-- who and pass");
@@ -80,30 +82,29 @@ $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 
 
-line_out("Looking for Add New Entry link in index.php");
+line_out("Looking for anchor tag with 'Add New Entry' as the text");
 $link = $crawler->selectLink('Add New Entry')->link();
 $url = $link->getURI();
 line_out("Retrieving ".htmlent_utf8($url)."...");
 
 $crawler = $client->request('GET', $url);
 $html = $crawler->html();
-$OUTPUT->togglePre("Show retrieved page",$html);
 markTestPassed('Retrieve add.php');
+$OUTPUT->togglePre("Show retrieved page",$html);
 
 // Add new fail
-line_out("Looking for the form with a 'Add' submit button in add.php");
+line_out('Looking for the form with a value="Add" submit button in add.php');
 $form = $crawler->selectButton('Add')->form();
 line_out("-- this autograder expects the form field names to be:");
 line_out("-- ".$fieldlist);
 line_out("-- if your fields do not match these, the next tests will fail.");
-line_out("Causing Add error, leaving all fields blank.");
+line_out("Entering valid data in all the fields so Add is successful.");
 $form->setValues(array());
 $crawler = $client->submit($form);
 markTestPassed('Form submitted');
-
+checkPostRedirect($client);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
-checkPostRedirect($client);
 
 line_out("Expecting 'All values are required'");
 if ( strpos(strtolower($html), 'are required') !== false ) {
@@ -113,7 +114,7 @@ if ( strpos(strtolower($html), 'are required') !== false ) {
 }
 
 // Add new success
-line_out("Looking for the form with a 'Add' submit button in add.php");
+line_out('Looking for the form with a value="Add" submit button in add.php');
 $form = $crawler->selectButton('Add')->form();
 line_out("-- this autograder expects the form field names to be:");
 line_out("-- ".$fieldlist);
@@ -122,10 +123,9 @@ line_out("Causing Add error, leaving all fields blank.");
 $form->setValues($submit);
 $crawler = $client->submit($form);
 markTestPassed('Form data submitted');
-
+checkPostRedirect($client);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
-checkPostRedirect($client);
 
 line_out("Expecting 'Record added'");
 if ( strpos(strtolower($html), 'record added') !== false ) {
@@ -151,20 +151,20 @@ line_out("Retrieving ".htmlent_utf8($editlink)."...");
 
 $crawler = $client->request('GET', $editlink);
 $html = $crawler->html();
-$OUTPUT->togglePre("Show retrieved page",$html);
 markTestPassed("Retrieved $editlink");
+$OUTPUT->togglePre("Show retrieved page",$html);
 
-line_out("Looking for the form with a 'Save' submit button");
+line_out('Looking for the form with a value="Save" submit button');
 $form = $crawler->selectButton('Save')->form();
 line_out("Changing $firstintfield to be 42");
 $xsubmit = $submit;
 $xsubmit[$firstintfield] = 42;
 $form->setValues($xsubmit);
 $crawler = $client->submit($form);
-$html = $crawler->html();
-$OUTPUT->togglePre("Show retrieved page",$html);
 markTestPassed("edit.php submitted");
+$html = $crawler->html();
 checkPostRedirect($client);
+$OUTPUT->togglePre("Show retrieved page",$html);
 
 line_out("Checking edit results");
 if ( strpos(strtolower($html), '42') !== false ) {
@@ -183,17 +183,17 @@ line_out("Retrieving ".htmlent_utf8($editlink)."...");
 
 $crawler = $client->request('GET', $editlink);
 $html = $crawler->html();
-$OUTPUT->togglePre("Show retrieved page",$html);
 markTestPassed("Retrieved delete.php");
+$OUTPUT->togglePre("Show retrieved page",$html);
 
 // Do the Delete
-line_out("Looking for the form with a 'Delete' submit button");
+line_out('Looking for the form with a value="Delete" submit button');
 $form = $crawler->selectButton('Delete')->form();
 $crawler = $client->submit($form);
-$html = $crawler->html();
-$OUTPUT->togglePre("Show retrieved page",$html);
 markTestPassed("Submitted form on delete.php");
+$html = $crawler->html();
 checkPostRedirect($client);
+$OUTPUT->togglePre("Show retrieved page",$html);
 
 line_out("Making sure '$firststring' has been deleted");
 if ( strpos($html,$firststring) > 0 ) {
@@ -216,13 +216,13 @@ while (True ) {
     $OUTPUT->togglePre("Show retrieved page",$html);
 
     // Do the Delete
-    line_out("Looking for the form with a 'Delete' submit button");
+    line_out('Looking for the form with a value="Delete" submit button');
     $form = $crawler->selectButton('Delete')->form();
     $crawler = $client->submit($form);
+    checkPostRedirect($client);
     $html = $crawler->html();
     $OUTPUT->togglePre("Show retrieved page",$html);
 
-    checkPostRedirect($client);
     $passed--;  // Undo post redirect
 }
 
