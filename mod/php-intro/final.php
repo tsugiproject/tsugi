@@ -30,10 +30,16 @@ $firststringfield = False;
 foreach($fields as $field ) {
     if ( strlen($fieldlist) > 0 ) $fieldlist .= ', ';
     $fieldlist .= $field[1];
+    $v2 = isset($field[3]) ? $field[3] : false;
     if ( $field[2] == 'i' ) {
         $submit[$field[1]] = rand(5,99);
         if ( $firstintfield === False ) $firstintfield = $field[1];
         if ( $firstint === False ) $firstint = $submit[$field[1]];
+    } else if ( is_numeric($v2) ) {
+        $submit[$field[1]] = substr(ucwords($WORDS[$wcount]),0,$v2+0);
+        if ( $firststringfield === False ) $firststringfield = $field[1];
+        if ( $firststring === False ) $firststring = $submit[$field[1]];
+        $wcount++;
     } else {
         $submit[$field[1]] = ucwords($WORDS[$wcount]);
         if ( $firststringfield === False ) $firststringfield = $field[1];
