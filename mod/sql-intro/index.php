@@ -48,6 +48,7 @@ if ( $USER->instructor ) {
     echo('<a href="grades.php" target="_blank"><button class="btn btn-info">Grade detail</button></a> '."\n");
 }
 SettingsForm::button();
+$OUTPUT->exitButton();
 echo('</span>');
 
 SettingsForm::start();
