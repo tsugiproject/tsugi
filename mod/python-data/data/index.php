@@ -163,9 +163,9 @@ if ( strpos($local_path,"geojson") === 0 ) {
     
     $arr = array();
     if ( $code == 42 ) {
-        $arr['note'] = "This file contains the sample data for testing</note>";
+        $arr['note'] = "This file contains the sample data for testing";
     } else {
-        $arr['note'] = "This file contains the actual data for your assignment</note>";
+        $arr['note'] = "This file contains the actual data for your assignment";
     }
     $new = getShuffledNames($code);
     $nums = getRandomNumbers($code,min(50,count($new)),100);
