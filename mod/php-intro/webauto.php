@@ -19,7 +19,22 @@ if ( $dueDate->message ) {
 }
 
 function getUrl($sample) {
-    global $USER;
+    global $USER, $access_code;
+
+    if ( isset($access_code) && $access_code ) {
+        if ( isset($_GET['code']) ) {
+            if ( $_GET['code'] != $access_code ) {
+                die('Bad access code');
+            }
+        } else {
+            echo('<form>Please enter the access code:
+            <input type="text" name="code"><br/>
+            <input type="submit" class="btn btn-primary" value="Access">
+            </form>');
+            return false;
+        }
+    }
+
     if ( isset($_GET['url']) ) {
         echo('<p><a href="#" onclick="window.location.href = window.location.href; return false;">Re-run this test</a></p>'."\n");
         if ( isset($_SESSION['lti']) ) {
@@ -30,8 +45,11 @@ function getUrl($sample) {
 
     echo('<form>
         Please enter the URL of your web site to grade:<br/>
-        <input type="text" name="url" value="'.$sample.'" size="100"><br/>
-        <input type="submit" class="btn btn-primary" value="Evaluate">
+        <input type="text" name="url" value="'.$sample.'" size="100"><br/>');
+    if ( isset($_GET['code']) ) {
+        echo('<input type="hidden" name="code" value="'.$_GET['code'].'"><br/>'); 
+    }
+    echo('<input type="submit" class="btn btn-primary" value="Evaluate">
         </form>');
     if ( $USER->displayname ) {
         echo("By entering a URL in this field and submitting it for

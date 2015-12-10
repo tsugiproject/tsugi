@@ -6,7 +6,7 @@ require_once "words.php";
 shuffle($WORDS);
 use Goutte\Client;
 
-line_out("Grading PHP-Intro Final: ".$title_plural);
+line_out("Grading PHP-Intro Final");
 
 $url = getUrl($reference_implementation);
 if ( $url === false ) return;
@@ -211,7 +211,8 @@ if ( strpos($html,$firststring) > 0 ) {
 }
 
 line_out("Cleaning up old records...");
-while (True ) {
+$i = 5;
+while ( $i-- > 0 ) {
     $pos2 = strpos($html, "delete.php");
     if ( $pos2 < 1 ) break;
     $pos3 = strpos($html, '"', $pos2);
