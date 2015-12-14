@@ -4,7 +4,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Mersenne_Twister;
 
-$MAX_UPLOAD_FILE_SIZE = 1000000;
+$MAX_UPLOAD_FILE_SIZE = 1024*1024;
 
 require_once "sql_util.php";
 
@@ -148,7 +148,7 @@ if ( $dueDate->message ) {
 To get credit for this assignment, perform the instructions below and 
 upload your SQLite3 database here: <br/>
 <input name="database" type="file"> 
-(Must have a .sqlite suffix and be &lt; <?= displaySize($MAX_UPLOAD_FILE_SIZE ) ?> in size)<br/>
+(Must have a .sqlite suffix)<br/>
 <input type="submit">
 <p>
 You do not need to export or convert the database -  simply upload 
