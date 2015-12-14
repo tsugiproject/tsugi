@@ -58,10 +58,6 @@ echo("<h1>Grade Exercise for ".$CFG->servicename."</h1>\n");
 $OUTPUT->welcomeUserCourse();
 
 ?>
-<p>
-This is a Tsugi exercise: 
-<a href="spec.htm" target="_blank">Assignment Specification</a>
-</p>
 <form method="post">
 Enter grade:
 <input type="number" name="grade" step="0.01" min="0" max="1.0"><br/>

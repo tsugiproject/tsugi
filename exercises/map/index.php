@@ -125,9 +125,7 @@ $OUTPUT->flashMessages();
   <?php echo(' value="'.htmlent_utf8($lat).'" '); ?> >
  Longitude: <input size="30" type="text" id="lngbox" name="lng"
   <?php echo(' value="'.htmlent_utf8($lng).'" '); ?> >
- <button type="submit">Save Location</button><br/>
-This is a Tsugi exercise:
-<a href="spec.htm" target="_blank">Assignment Specification</a>
+ <button type="submit">Save Location</button>
 </form>
 <?php
 $OUTPUT->footerStart();

@@ -14,8 +14,7 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 ?>
 <p>
-<a style="color:grey" href="chatlist.php" target="_blank">Launch chatlist.php</a> | 
-<a style="color: grey" href="spec/spec.htm" target="_blank">View Specification</a> 
+<a style="color:grey" href="chatlist.php" target="_blank">Launch chatlist.php</a>
 </p>
 <?php
 $OUTPUT->footer();
