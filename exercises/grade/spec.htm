@@ -1,0 +1,70 @@
+<html>
+<head>
+<title>Tsugi Exercise: Sending Only Higher Grades</title>
+</head>
+<body style="font-family: sans-serif;">
+<h1>Tsugi Exercise: Sending Only Higher Grades</h1>
+<p>
+In this assignment we will make a simple modification to a bit of
+sample code in order to make it so that we never send a lower grade
+than a grade that was previously sent.
+</p>
+<h2>Pre-Requisites</h2>
+<p>
+You need to have the Tsugi software installed, with the database configured 
+and up and running.  Please see the instructions at 
+<a href="http://www.tsugi.org" target="_blank">www.tsugi.org</a> to 
+download and install the PHP version of Tsugi.
+</p>
+<h2>Getting Started</h2>
+<p>
+If you go into Developer mode in your Tsugi, you should see two grade 
+applications.  One is <code>samples/grade/index.php</code> and the other is 
+<code>exercises/grade/index.php</code>.   Both of these test an API and web 
+service that allows these tools to send a grade back to the 
+learning management system using IMS Learning Tools Interoperability.  Note 
+that Tsugi automatially detects if the LMS uses XML-style grade APIs
+as in LTI 1.1 or JSON-style grade APIs as in LTI 2.0 and later and uses the
+correct API.
+
+If you play with the application under <code>samples</code>, you will see that it sends 
+any grade between 0.0 and 1.0 inclusive.  So grades can go up and down.   
+Tsugi retains the most recently sent grade in the table lti_result.   
+You can verify the grade that was sent by checking this table each time 
+you run sample/grade/index.php.  This previous grade is available to 
+the application in the global variable <code>$LINK-&gt;grade</code> as you can see 
+in the <code>var_dump()</code> of the Tsugi global objects in the grade code.
+<p>
+You can view the documentation for the <code>$LINK</code> object at:
+<p>
+<a href="http://do1.dr-chuck.com/tsugi/phpdoc/classes/Tsugi.Core.Link.html" 
+target="_blank">http://do1.dr-chuck.com/tsugi/phpdoc/classes/Tsugi.Core.Link.html</a>
+<p>
+If you play with the application code under <code>exercises/grade/index.php</code> you 
+will see that it sends all grades above 0.5 and does not send any grade 
+below 0.5.   You can test the code by first trying to send "0.4" as 
+the grade and it will claim that the grade has already been sent.  Then 
+try to send "0.7" and it will send the grade.   Then try to send "0.6" 
+as the grade and it will send the grade again.
+<p>
+This is the flaw/problem/issue with the <code>exercises/grade/index.php</code>.   It 
+has hard coded the "old value" to always be "0.5". 
+</p> 
+<h2>Your Assignment</h2>
+<p>
+The goal of this program is to make it so that the system never sends back 
+a lower grade than a grade previously sent and stored.   You will find the 
+previous grade in the <code>$LINK-&gt;grade</code>.   If the new grade 
+is not higher than the previous grade you will put out a message 
+a message.   For example if the following sequence were entered, 
+it should have these results:
+<pre>
+    0.2  (sent)
+    0.1  (not sent)
+    0.6 (sent)
+    0.7 (sent)
+    0.6 (not sent)
+</pre>
+The code that is provided in Github is fully functional except it always 
+hard-codes the "previous grade" to 0.5.  
+</p>

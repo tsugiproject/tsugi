@@ -58,6 +58,10 @@ echo("<h1>Grade Exercise for ".$CFG->servicename."</h1>\n");
 $OUTPUT->welcomeUserCourse();
 
 ?>
+<p>
+This is a Tsugi exercise: 
+<a href="spec.htm" target="_blank">Assignment Specification</a>
+</p>
 <form method="post">
 Enter grade:
 <input type="number" name="grade" step="0.01" min="0" max="1.0"><br/>
@@ -71,7 +75,7 @@ if ( isset($_SESSION['debug_log']) ) {
     unset($_SESSION['debug_log']);
 }
 
-echo("<pre>Global Tsugi Objects:\n\n");
+echo("\n<hr>\n<pre>Global Tsugi Objects:\n\n");
 var_dump($USER);
 var_dump($CONTEXT);
 var_dump($LINK);
