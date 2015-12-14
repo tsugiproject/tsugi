@@ -9,7 +9,7 @@ use \Tsugi\UI\Table;
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
     $_SESSION['error'] = _m("This service does not accept instructor requests for keys");
-    header('Location: '.$CFG->wwwroot);
+    header('Location: '.$CFG->wwwroot.'/index.php');
     return;
 }
 
