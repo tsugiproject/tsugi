@@ -1,0 +1,132 @@
+<html>
+<head>
+<title>Tsugi Exercise: Wisdom of Crowds</title>
+<style>
+.center-image {
+    border: 1px black solid; 
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding:10px; width: 80%;
+};
+</style>
+</head>
+<body style="font-family: sans-serif;">
+<h1>Tsugi Exercise: Wisdom of Crowds</h1>
+<p>
+In this assignment, you will add an interactive Wisdom of Crowds 
+application to Tsugi to be launched like all the other tools in Tsugi.  
+</p>
+<p>
+The idea of the book "Wisdom of Crowds" [James Surowecki] is 
+that groups of people have great knowledge when we find a way to 
+pull out the data from the crowd and aggregate it in a meaningful 
+way.   For example, we could poll the class and guess the total of 
+both team's points in the national championship basketball or 
+football game.   Surowecki would expect that the average of 
+our guesses (as long as we don't talk amongst ourselves during 
+the polling) would likely be better than all but a few of the 
+guesses in the class and that "experts" are actually less likely 
+to be right than the crowd.
+</p>
+<p>
+So we write a tool to allow a teacher to collect and average 
+guesses live during class.
+</p>
+<p>
+You can play with the application at 
+</p>
+<p>
+<a href="https://lti-tools.dr-chuck.com/tsugi/" target="_blank">
+https://lti-tools.dr-chuck.com/tsugi/</a>
+</p>
+<p>
+Under <code>solutions/wiscrowd/index.php </code> - you will note that while 
+the sample implementation uses JQuery for things like toggle - it does 
+not use AJAX.   You are not required to use AJAX in this assignment.
+</p>
+<h2>Application Specifications</h2>
+<p>
+The student will see a very simple user interface:
+</p>
+<p>
+<a href="01-StudentView.png" target="_blank">
+<img class="center-image" style="max-width: 900px;" src="01-StudentView.png"></a>
+</p>
+<p>
+Each student can enter a guess and press the guess button.  They can 
+re-enter or change their guess any time.  When they enter the guess, 
+a "Guess recorded" message pops up - but the old guess is not shown to 
+keep students from peeking at each other's guesses.  
+</p>
+<p>
+<a href="02-GuessRecorded.png" target="_blank">
+<img class="center-image" style="max-width: 900px;" src="02-GuessRecorded.png"></a>
+</p>
+<p>
+Your code should use the PHP <code>is_numeric()</code> function to reject 
+non-numeric guesses.
+</p>
+<p>
+<a href="03-NonNumeric.png" target="_blank">
+<img class="center-image" style="max-width: 900px;" src="03-NonNumeric.png"></a>
+</p>
+<p>
+If a student enters a new guess - it must replace the previous guess.   
+There is only one guess per student.  There is no way for a student to 
+remove their guess.
+</p>
+<p>
+The instructor gets a more sophisticated user interface:
+</p>
+<p>
+<a href="04-Instructor.png" target="_blank">
+<img class="center-image" style="max-width: 900px;" src="04-Instructor.png"></a>
+</p>
+<p>
+The instructor is allowed to guess just like any other student.
+</p>
+<p>
+The instructor is allowed to see the guesses and is shown the guesses 
+sorted in descending order.  
+Student names are not shown unless the instructor hovers over the score.   
+</p>
+<p>
+There is a button to completely show or hide all the guess information 
+(i.e. a toggle).  There is a button to re-check the guesses - the 
+re-check can be done either with an AJAX request or a full request/response 
+cycle.  You can also optionally make it so the guesses update periodically 
+asynchronously using AJAX (as in the chat application).  Make sure if the 
+guesses are hidden and if you update the guesses asynchronously they stay 
+hidden after they are updated (should not be hard).  Also there is a 
+<b>Reset</b> button for the instructor to restart the game.
+</p>
+<p>
+Your database table should follow this data model:
+<pre>
+create table {$CFG-&gt;dbprefix}solution_wiscrowd (
+    link_id     INTEGER NOT NULL,
+    user_id     INTEGER NOT NULL,
+    guess       FLOAT,
+    UNIQUE(link_id, user_id)
+)
+</pre>
+You are not required to set up foreign key relationships in your table but 
+they are encouraged.   Please use the <code>database.php</code> pattern and the 
+<b>Update Database</b> feature 
+under <b>Admin</b> to create your table.   You can verify that the table 
+was created successfully using <b>phpMyAdmin</b>.  Note that you can drop your 
+table and re-run the <b>Update Database</b> process as many times as you like to 
+debug your <code>database.php</code> file.
+</p>
+<h2>Turn In</h2>
+
+When you are finished, either demonstrate the application 
+to the instructor or hand in a ZIP file with:
+<ul>
+<li> A screen shot of the teacher showing three
+guesses (from Sue, Jane, and Ed)</li>
+<li>A screen shot of the database table you create to store that </li>
+<li>A folder with all of your your application code (i.e. the entire wiscrowd folder)</li>
+</ul>
+
