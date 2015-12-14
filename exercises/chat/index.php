@@ -14,6 +14,7 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 ?>
 <p>
+<a style="color: grey" href="spec/spec.htm"> | 
 <a style="color:grey" href="chatlist.php" target="_blank">Launch chatlist.php</a>
 </p>
 <?php

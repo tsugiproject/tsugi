@@ -1,0 +1,97 @@
+<html>
+<head>
+<title>Tsugi Exercise: JavaScript/JQuery Chat Application</title>
+<style>
+.center-image {
+    border: 1px black solid; 
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding:10px; width: 80%;
+};
+</style>
+</head>
+<body style="font-family: sans-serif;">
+<h1>Tsugi Exercise: JavaScript/JQuery Chat Application</h1>
+<p>
+In this application we complete a simple JavaScript / JQuery
+Chat application with a different student and instrucotr view.
+</p>
+<p>
+The student has a simple text field and a Chat button:
+<p>
+<a href="student_chat.png" target="_blank">
+<img class="center-image" style="max-width: 953px;" src="student_chat.png"></a>
+</p>
+<p>
+The instructor has a Chat button, reset button, and a link to chatlist.php
+for debugging.
+</p>
+<p>
+<a href="instructor_chat.png" target="_blank">
+<img class="center-image" style="max-width: 953px;" src="instructor_chat.png"></a>
+</p>
+<p>
+The basic functionality of the tool is
+<ul>
+<li>
+Any number of chats can be active.   Note that because cookies are <b>not</b>
+used in Tsugi, testing of multiple accounts can be done from multiple tabs 
+of a single browser without using igcognito mode.
+</li>
+<li>
+When the user enters a chat and pressed the Chat button it is inserted
+into the table at the end with the current time using the 
+MySQL <code>NOW()</code> function.
+</li>
+<li>
+When the instructor presses the Reset button all the chats for the
+<code>$LINK-&gt;id</code>
+are deleted from the <code>sample_chat</code> table.
+</li>
+<li>
+New chats are retrieved in the background from <code>chatlist.php </code> using AJAX
+and displayed.   So if one user enters a chat in one tab, you should be able
+to switch to the other tab and see the new chat without touching anything in
+the application user interface after a few seconds.
+</li>
+</ul>
+</p>
+<h2>Provided files</h2>
+<ul>
+<li><code>database.php</code> - This file automatically creates the table 
+needed to store the chat messages for each <code>link_id</code>. 
+The schema for this table is as follows:
+<pre>
+create table {$CFG-&gt;dbprefix}sample_chat (
+    link_id     INTEGER NOT NULL,
+    user_id     INTEGER NOT NULL,
+    chat        VARCHAR(1042) NOT NULL,
+    created_at  DATETIME NOT NULL
+...
+</pre>
+</li>
+<li><code>index.php</code> - This is a very minimal file just enough to
+launch <code>chatlist.php</code> and set up the PHPSESSIONID</li>
+<li><code>chatlist.php</code> - This retrieves the current chats for the
+current <code>link_id</code> and provides them in a JSON format.
+</li>
+<li><code>spinner.gif</code> - A spinner to be shown and hidden while the 
+chats are being retrieved.
+</ul>
+You will add code to <code>index.php</code> to implement the application.
+</p>
+<h2>Turn In</h2>
+<p>
+If you are doing this for credit, please hand in or demonstrate
+to the instructor:
+<ul>
+<li>The source to your <code>index.php</code></li>
+<li>A screen shot of the instructor user with chat messages from 
+at least one other user</li>
+<li>A screen shot of another user seeing the same messages</li>
+<li>A screen shot of the <code>chatlist.php</code> showing the JSON for 
+the displayed messages</li>
+<li>A screen shot of the <code>sample_chat</code> database table showing 
+the entries for the chat messages.</li>
+</ul>
