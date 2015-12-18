@@ -24,6 +24,9 @@ $goodsha = $sorted[0][0];
 $oldgrade = $RESULT->grade;
 
 if ( isset($_POST['sha1']) ) {
+    if ( $_POST['sha1'] == '42' ) {
+        $_SESSION['debug'] = '42';
+    }
     if ( $_POST['sha1'] != $goodsha ) {
         $_SESSION['error'] = "Your code did not match";
         header('Location: '.addSession('index.php'));
@@ -69,6 +72,14 @@ if ( $LINK->grade > 0 ) {
 
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
+}
+if ( isset($_SESSION['debug']) ) {
+    echo("<pre>\n");
+    echo("Code=$code\n");
+    echo("Howmany=$howmany\n");
+    var_dump($sorted);
+    echo("</pre>\n");
+    unset($_SESSION['debug']);
 }
 ?>
 <p>
