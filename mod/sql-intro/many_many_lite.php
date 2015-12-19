@@ -89,17 +89,21 @@ and populate the tables from the data file.
 </p>
 <p>
 You can base your solution on this code:
-<a href="http://www.pythonlearn.com/code/roster.zip" target="_blank">
-http://www.pythonlearn.com/code/roster.zip</a> - this code is incomplete
-as you need to add code to store the <b>role</b> column in the <b>Member</b> 
-table to complete the assignment.
+<a href="http://www.pythonlearn.com/code/roster.py" target="_blank">
+http://www.pythonlearn.com/code/roster.py</a> - this code is incomplete
+as you need to modify the program to store the <b>role</b> column 
+in the <b>Member</b> table to complete the assignment.
 </p>
 <p>
-Here is the URL for your data file:
-<a href="roster_data.php" target="_blank">Data File</a>.
+Each student gets their own file for the assignment.  Download 
+<a href="roster_data.php" target="_blank">this file</a> and save it
+as <code>roster_data.json</code>.  Move the downloaded file into the same
+folder as your <code>roster.py</code> program.
 </p>
 <p>
-Once the inserts are done, run the following SQL command:
+Once you have made the necessary changes to the program
+and it has been run successfully reading the above JSON data, 
+run the following SQL command:
 <pre>
 SELECT hex(User.name || Course.title || Member.role ) AS X FROM 
     User JOIN Member JOIN Course 

@@ -15,6 +15,7 @@ $LTI = LTIX::requireData();
 // Compute the stuff for the output
 $code = $USER->id+$LINK->id+$CONTEXT->id;
 
+header('Content-Disposition: attachment; filename="roster_data.json"');
 header('Content-Type: application/json; charset=utf-8');
 $roster = makeRoster($code);
 echo(jsonIndent(json_encode($roster)));
