@@ -16,12 +16,12 @@ for($i=0; $i < $howmany; $i ++ ) {
     $name = $names[$MT->getNext(0,count($names)-1)];
     $age = $MT->getNext(13,40);
     $sha = sha1($name.$age);
-    $database[$sha] = array($sha,$name,$age);
+    $database[$sha.'!'] = array($sha,$name,$age);
 }
 $sorted = $database;
 ksort($sorted);
-reset($sorted);
-$goodsha = key($sorted);
+$row = reset($sorted);
+$goodsha = $row[0];
 $oldgrade = $RESULT->grade;
 
 if ( isset($_POST['sha1']) ) {

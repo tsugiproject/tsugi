@@ -16,12 +16,14 @@ for($i=0; $i < $howmany; $i ++ ) {
     $name = $names[$MT->getNext(0,count($names)-1)];
     $age = $MT->getNext(13,40);
     $sha = strtoupper(bin2hex($name.$age));
-    $database[$sha] = array($sha,$name,$age);
+    // http://stackoverflow.com/questions/4100488/a-numeric-string-as-array-key-in-php
+    $database[$sha.'!'] = array($sha,$name,$age);
 }
 $sorted = $database;
 ksort($sorted);
 reset($sorted);
-$goodsha = key($sorted);
+$row = reset($sorted);
+$goodsha = $row[0];
 $oldgrade = $RESULT->grade;
 // die($goodsha);
 
