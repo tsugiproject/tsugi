@@ -16,14 +16,18 @@ for($i=0; $i < $howmany; $i ++ ) {
     $name = $names[$MT->getNext(0,count($names)-1)];
     $age = $MT->getNext(13,40);
     $sha = sha1($name.$age);
-    $database[] = array($sha,$name,$age);
+    $database[$sha] = array($sha,$name,$age);
 }
 $sorted = $database;
-sort($sorted);
-$goodsha = $sorted[0][0];
+ksort($sorted);
+reset($sorted);
+$goodsha = key($sorted);
 $oldgrade = $RESULT->grade;
 
 if ( isset($_POST['sha1']) ) {
+    if ( $_POST['sha1'] == '42' ) {
+        $_SESSION['debug'] = '42';
+    }
     if ( $_POST['sha1'] != $goodsha ) {
         $_SESSION['error'] = "Your code did not match";
         header('Location: '.addSession('index.php'));
@@ -69,6 +73,14 @@ if ( $LINK->grade > 0 ) {
 
 if ( $dueDate->message ) {
     echo('<p style="color:red;">'.$dueDate->message.'</p>'."\n");
+}
+if ( isset($_SESSION['debug']) ) {
+    echo("<pre>\n");
+    echo("Code=$code\n");
+    echo("Howmany=$howmany\n");
+    var_dump($sorted);
+    echo("</pre>\n");
+    unset($_SESSION['debug']);
 }
 ?>
 <p>

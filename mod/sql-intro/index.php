@@ -17,7 +17,7 @@ if ( SettingsForm::handleSettingsPost() ) {
 
 // All the assignments we support
 $assignments = array(
-    'a01.php' => 'Single Table MySQL',
+    'single_mysql.php' => 'Single Table MySQL (Users)',
     'single_lite.php' => 'Single Table SQLITE (Users)',
     'count_lite.php' => 'Email Counter SQLITE',
     'many_one_lite.php' => 'Many-to-One SQLITE (Tracks)',
