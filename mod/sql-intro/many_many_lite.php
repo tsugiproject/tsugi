@@ -13,11 +13,13 @@ $shas = array();
 foreach($roster as $i => $student) {
     $row = $student[0].$student[1].$student[2];
     $sha = strtoupper(bin2hex($row));
-    $shas[] = $sha;
+    // Dang SHAs that have only numbers
+    $shas[] = $sha.'!';
 }
 $sorted = $shas;
 sort($sorted);
 $goodsha = $sorted[0];
+$goodsha = str_replace('!','',$goodsha);
 
 $oldgrade = $RESULT->grade;
 
