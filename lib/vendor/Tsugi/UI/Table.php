@@ -122,7 +122,7 @@ class Table {
         return $newsql . "\n";
     }
 
-    public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false) {
+    public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false) {
         if ( $params === false ) $params = $_GET;
         if ( $orderfields === false ) $orderfields = $searchfields;
 
@@ -168,6 +168,13 @@ class Table {
     <input type="submit" value="Clear Search" class="btn btn-default"
     onclick="document.getElementById('paged_search_box').value = '';"
     >
+    <?php
+    if ( is_array($extra_buttons) ) {
+        foreach($extra_buttons as $button_text => $button_url ) {
+            echo('<a href="'.$button_url.'" class="btn btn-default">'._m($button_text).'</a>'."\n");
+        }
+    }
+    ?>
     </form>
     <?php
         if ( $count < 1 ) {
@@ -247,6 +254,12 @@ class Table {
                     echo('</a>');
                 }
                 $link_name = false;
+                $link_val = false;
+                echo("</td>\n");
+            }
+            if ( $link_val !== false ) {
+                echo("<td>");
+                echo(htmlent_utf8($link_val));
                 echo("</td>\n");
             }
             echo("</tr>\n");

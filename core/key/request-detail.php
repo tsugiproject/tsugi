@@ -45,7 +45,13 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 echo("<h1>$title</h1>\n<p>\n");
-$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
+$extra_buttons = false;
+if ( isAdmin() && $row['state'] == 0 ) {
+    $extra_buttons = array(
+        'Process' => 'approve-key.php?request_id='.$row['request_id']
+    );
+}
+$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, $extra_buttons);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 

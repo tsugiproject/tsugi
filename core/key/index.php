@@ -84,7 +84,7 @@ foreach ( $rows as $row ) {
     } else if ( $state == 1 ) {
         $newrow['state'] = "1 (Approved)";
     } else if ( $state == 2 ) {
-        $newrow['state'] = "3 (Not approved)";
+        $newrow['state'] = "2 (Not approved)";
     }
     $newrows[] = $newrow;
 }

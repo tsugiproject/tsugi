@@ -56,12 +56,12 @@ $OUTPUT->flashMessages();
 You have no IMS LTI 1.1 Keys for this system.
 </p>
 <?php } else {
-    Table::pagedTable($newrows, $searchfields, false, "key-detail.php");
+    $extra_buttons = array(
+        "Insert New Key" => "key-add.php"
+    );
+    Table::pagedTable($newrows, $searchfields, false, "key-detail.php", false, $extra_buttons);
 }
 if ( isAdmin() ) { ?>
-<p>
-<a href="key-add.php" class="btn btn-default">Add Key</a>
-</p>
 <?php } ?>
 
 <?php

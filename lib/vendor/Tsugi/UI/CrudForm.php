@@ -151,9 +151,10 @@ class CrudForm {
      * @param $from_location A URL to jump to when the user presses 'Cancel'.
      * @param $allow_edit True/false as to whether to show an Edit button
      * @param $allow_delete True/false as to whether to show a Delete button
+     * @param $extra_buttons An array of additional buttons to show
      */
     public static function updateForm($row, $fields, $current, $from_location,
-        $allow_edit=false, $allow_delete=false)
+        $allow_edit=false, $allow_delete=false, $extra_buttons=false)
     {
         $key = $fields['0'];
         if ( !isset($_REQUEST[$key]) ) {
@@ -163,12 +164,17 @@ class CrudForm {
         $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
 
         echo('<form method="post">'."\n");
-        echo('<a href="'.$from_location.'" class="btn btn-default">Exit</a>'."\n");
+        echo('<a href="'.$from_location.'" class="btn btn-default">'._m('Exit').'</a>'."\n");
         if ( $allow_edit ) {
             if ( $do_edit ) {
                 echo('<a href="'.$current.'?'.$key.'='.$key_value.'" class="btn btn-success">'._m("Cancel Edit").'</a>'."\n");
             } else {
                 echo('<a href="'.$current.'?'.$key.'='.$key_value.'&edit=yes" class="btn btn-warning">'._m("Edit").'</a>'."\n");
+            }
+        }
+        if ( is_array($extra_buttons) ) {
+            foreach($extra_buttons as $button_text => $button_url ) {
+                echo('<a href="'.$button_url.'" class="btn btn-success">'._m($button_text).'</a>'."\n");
             }
         }
         if ( $allow_delete ) {
