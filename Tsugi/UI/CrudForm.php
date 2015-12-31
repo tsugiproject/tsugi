@@ -167,6 +167,7 @@ class CrudForm {
         echo('<a href="'.$from_location.'" class="btn btn-default">'._m('Exit').'</a>'."\n");
         if ( $allow_edit ) {
             if ( $do_edit ) {
+                echo('<input type="submit" name="doUpdate" class="btn btn-normal" value="'._m("Update").'">'."\n");
                 echo('<a href="'.$current.'?'.$key.'='.$key_value.'" class="btn btn-success">'._m("Cancel Edit").'</a>'."\n");
             } else {
                 echo('<a href="'.$current.'?'.$key.'='.$key_value.'&edit=yes" class="btn btn-warning">'._m("Edit").'</a>'."\n");
@@ -229,7 +230,6 @@ class CrudForm {
             echo("</label>\n</div>");
         }
         if ( $do_edit ) {
-            echo('<input type="submit" name="doUpdate" class="btn btn-normal" value="'._m("Update").'">');
             echo('</form>'."\n");
         }
         return true;
