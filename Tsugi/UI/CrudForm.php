@@ -183,10 +183,8 @@ class CrudForm {
             echo('<input type="submit" name="doDelete" class="btn btn-danger" value="'._m("Delete").'"');
             echo(" onclick=\"return confirm('Are you sure you want to delete this record?');\">\n");
         }
-        echo("</form>\n");
 
         echo("<p>\n");
-        if ( $do_edit ) echo('<form method="post">'."\n");
 
         for($i=0; $i < count($fields); $i++ ) {
             $field = $fields[$i];
@@ -229,9 +227,7 @@ class CrudForm {
             }
             echo("</label>\n</div>");
         }
-        if ( $do_edit ) {
-            echo('</form>'."\n");
-        }
+        echo('</form>'."\n");
         return true;
     }
 
