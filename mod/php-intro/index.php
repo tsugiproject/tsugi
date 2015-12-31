@@ -24,6 +24,7 @@ $assignments = array(
     'a06.php' => 'CRUD - Tracks',
     'mid-f14-autos.php' => 'CRUD - Autos',
     'crud-videos.php' => 'CRUD - Videos',
+    'fin-f15-address.php' => 'CRUD 15 - Address',
     'fin-f15-tracks.php' => 'CRUD 15 - Tracks'
 );
 

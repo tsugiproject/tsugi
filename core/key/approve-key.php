@@ -72,8 +72,8 @@ if ( isset($_POST['doApprove']) && isset($_POST['request_id']) ) {
     // if ( $CFG->owneremail && $CFG->OFFLINE === false) {
     if ( $CFG->owneremail ) {
         $subject = "Key Request Approved from ".$row['displayname'].' ('.$row['email'].' )';
-        $message = "Key Request Approved from ".$row['displayname'].' ('.$row['email'].' )\n'.
-            "System Admin: ".$CFG->ownername." (".$CFG->owneremail.")\n";
+        $message = "Key Request Approved from ".$row['displayname'].' ('.$row['email'].' )'.
+            "\nSystem Admin: ".$CFG->ownername." (".$CFG->owneremail.")\n";
     }
 
     if ( $lti_version == 1 ) {
@@ -92,9 +92,9 @@ if ( isset($_POST['doApprove']) && isset($_POST['request_id']) ) {
             )
         );
         $message .= "\n\nKey: $oauth_consumer_key\n";
-        $message .= "\n\Secret: $oauth_secret\n";
+        $message .= "\nSecret: $oauth_secret\n";
         $message .= "\nInstructions for using your LTI 1.x key are at\n\n";
-        $message .= "https://github.com/csev/tsugi/blob/master/docs/LAUNCHING.md\n\n";
+        $message .= $CFG->wwwroot . "/docs/LAUNCHING.md\n\n";
         error_log("New LTI 1.x Key Inserted: $oauth_consumer_key User: ".$row['email']);
     } else {
         $message .= "\nThe URL for LTI 2.x Registration is at\n\n";
