@@ -1,5 +1,5 @@
-Using these tools from an LTI Consumer
-======================================
+Using these tools from an LTI 1.x Consumer
+==========================================
 
 Depending on the administrator of the Tsugi server, you may
 be able to get an LTI key and secret for the use of the tools
