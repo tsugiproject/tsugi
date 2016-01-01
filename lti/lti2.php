@@ -21,7 +21,8 @@ if ( ! isset($_SESSION['id']) ) {
     if ( isset($_REQUEST['login_done']) ) {
         die_with_error_log("LTI 2 login failed.");
     }
-    $_SESSION['login_return'] = addSession(getCurrentFileUrl(__FILE__) ."?login_done=true");
+    error_log('Redirecting user to login.');
+    $_SESSION['login_return'] = addSession($CFG->wwwroot."/lti/lti2.php?login_done=true");
     header("Location: ".getLoginUrl());
     return;
 }
