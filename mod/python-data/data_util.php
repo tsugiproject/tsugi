@@ -2,6 +2,7 @@
 
 use \Tsugi\Util\Mersenne_Twister;
 use \Tsugi\Util\Net;
+use \Tsugi\Core\LTIX;
 
 // Global Configuration Options
 
