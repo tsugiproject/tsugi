@@ -155,8 +155,24 @@ make sure to empty out the data before each run.
 <p>
 You can use this code as a starting point for your application:
 <a href="http://www.pythonlearn.com/code/emaildb.py" target="_blank">
-http://www.pythonlearn.com/code/emaildb.py</a>.  
+http://www.pythonlearn.com/code/emaildb.py</a>.
+</p>
+<p>
 The data file for this application is the same as in previous assignments:
 <a href="http://www.pythonlearn.com/code/mbox.txt" target="_blank">
-http://www.pythonlearn.com/code/mbox.txt</a>.  
+http://www.pythonlearn.com/code/mbox.txt</a>.
+</p>
+<p>
+Because the sample code is using an <b>UPDATE</b> statement
+and committing the results to the database as each record
+is read in the loop, it might take as long as a few minutes to process
+all the data.  The commit insists on completely writing all the
+data to disk every time it is called.
+</p>
+<p>
+The program can be speeded up greatly by moving the commit operation
+outside of the loop.  In any database program, there is a balance
+between the number of operations you execute between commits and the
+importance of not losing the results of operations that have
+not yet been committed.
 </p>
