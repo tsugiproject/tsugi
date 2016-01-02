@@ -108,8 +108,9 @@ class LTIX {
         $post = self::extractPost($needed);
         if ( $post === false ) {
             $pdata = safe_var_dump($_POST);
-            die_with_error_log('Missing post data: '.$pdata);
-            return;
+            echo("\n<pre>\nMissing Post_data\n$pdata\n</pre>");
+            error_log('Missing post data: '.$pdata);
+            die();
         }
 
         if ( $post['key'] == '12345' && ! $CFG->DEVELOPER) {

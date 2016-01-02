@@ -177,15 +177,17 @@ $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
 
 $tc_profile_url = $_POST['tc_profile_url'];
 if ( strlen($tc_profile_url) > 1 ) {
-        echo("Retrieving profile from ".$tc_profile_url."\n");
-    $tc_profile_json = Net::doGet($tc_profile_url);
-        echo("Retrieved ".strlen($tc_profile_json)." characters.\n");
-        echo("</pre>\n");
+    echo("Retrieving profile from ".$tc_profile_url."\n");
+    $header = "Accept: application/vnd.ims.lti.v2.toolconsumerprofile+json";
+
+    $tc_profile_json = Net::doGet($tc_profile_url, $header);
+    echo("Retrieved ".strlen($tc_profile_json)." characters.\n");
+    echo("</pre>\n");
     $OUTPUT->togglePre("Retrieved Consumer Profile",$tc_profile_json);
     $tc_profile = json_decode($tc_profile_json);
-        if ( $tc_profile == null ) {
-                lmsDie("Unable to parse tc_profile error=".json_last_error());
-        }
+    if ( $tc_profile == null ) {
+        lmsDie("Unable to parse tc_profile error=".json_last_error());
+    }
 } else {
     lmsDie("We must have a tc_profile_url to continue...");
 }
@@ -245,7 +247,8 @@ $tp_profile->{'@context'} = $tc_profile->{'@context'};
 for($i=0; $i < count($tp_profile->{'@context'}); $i++ ) {
     $ctx = $tp_profile->{'@context'}[$i];
     if ( is_string($ctx) && strpos($ctx,"http://purl.imsglobal.org/ctx/lti/v2/ToolConsumerProfile") !== false ) {
-        $tp_profile->{'@context'}[$i] = "http://www.imsglobal.org/imspurl/lti/v2/ctx/ToolProxy";
+        // $tp_profile->{'@context'}[$i] = "http://www.imsglobal.org/imspurl/lti/v2/ctx/ToolProxy";
+        $tp_profile->{'@context'}[$i] = "http://purl.imsglobal.org/ctx/lti/v2/ToolProxy";
     }
 }
 
@@ -258,7 +261,7 @@ $tp_profile->tool_profile->product_instance->guid = $instance_guid;
 $tp_profile->tool_profile->product_instance->support->email = $CFG->owneremail;
 $tp_profile->tool_profile->product_instance->service_provider->guid = $CFG->wwwroot;
 $tp_profile->tool_profile->product_instance->service_provider->support->email = $CFG->owneremail;
-$tp_profile->tool_profile->product_instance->service_provider->provider_name->default_value = $CFG->ownername;
+$tp_profile->tool_profile->product_instance->service_provider->service_provider_name->default_value = $CFG->ownername;
 $tp_profile->tool_profile->product_instance->service_provider->description->default_value = $CFG->servicename;
 
 // Pull out our prototypical resource handler and clear it out
@@ -359,7 +362,7 @@ foreach($tools as $tool ) {
         if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) && 
             isset($REGISTER_LTI2['description']) ) {
             $newhandler->resource_name->default_value = $REGISTER_LTI2['name'];
-            $newhandler->short_name->default_value = $REGISTER_LTI2['short_name'];
+            // $newhandler->short_name->default_value = $REGISTER_LTI2['short_name'];
             $newhandler->description->default_value = $REGISTER_LTI2['description'];
         } else {
             lmsDie("Missing required name, short_name, and description in ".$tool);
@@ -512,38 +515,48 @@ if ( $ack !== false ) {
 
 $response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body, $more_headers, $hmac256);
 
-$OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(Net::getBodySentDebug()));
+$response_code = Net::getLastHttpResponse();
 
 global $LastOAuthBodyBaseString;
+$OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(Net::getBodySentDebug()));
 $OUTPUT->togglePre("Registration Request Base String",$LastOAuthBodyBaseString);
-
+echo("<p>Http Response code = $response_code</p>\n");
 $OUTPUT->togglePre("Registration Response Headers",htmlent_utf8(Net::getBodyReceivedDebug()));
-
 $OUTPUT->togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
 
-// Parse the response object and update the shared_secret if needed
+if ( $response_code != 201 ) {
+    log_return_die("Did not get 201 response code=".$response_code);
+}
+
+if ( strlen($response) < 1 ) {
+    log_return_die("Expecting JSON response - unable to proceed");
+}
+
+// Parse the JSON
 $responseObject = json_decode($response);
-if ( $responseObject != null ) {
+if ( $responseObject == null ) {
+    log_return_die("Unable to parse returned JSON - unable to proceed");
+}
 
-    $tc_tool_proxy_guid = $responseObject->tool_proxy_guid;
-    if ( $tc_tool_proxy_guid ) {
-        $oauth_consumer_key = $tc_tool_proxy_guid;
-        echo('<p>Tool consumer returned tool_proxy_guid='.$tc_tool_proxy_guid." (using as oauth_consumer_key)</p>\n");
-        if ( $tool_proxy_guid && $tool_proxy_guid != $tc_tool_proxy_guid ) {
-            echo('<p style="color: yellow;">Note: Returned tool_proxy_guid did not match launch oauth_consumer_key/tool_proxy_guid='.$tool_proxy_guid."</p>\n");
-        }
-    } else {
-        echo('<p style="color: red;">Error: Tool Consumer did not include tool_proxy_guid in its response.</p>'."\n");
+// Parse the response object and update the shared_secret if needed
+$tc_tool_proxy_guid = $responseObject->tool_proxy_guid;
+if ( $tc_tool_proxy_guid ) {
+    $oauth_consumer_key = $tc_tool_proxy_guid;
+    echo('<p>Tool consumer returned tool_proxy_guid='.$tc_tool_proxy_guid." (using as oauth_consumer_key)</p>\n");
+    if ( $tool_proxy_guid && $tool_proxy_guid != $tc_tool_proxy_guid ) {
+        echo('<p style="color: orange;">Note: Returned tool_proxy_guid did not match launch oauth_consumer_key/tool_proxy_guid='.$tool_proxy_guid."</p>\n");
     }
+} else {
+    echo('<p style="color: red;">Error: Tool Consumer did not include tool_proxy_guid in its response.</p>'."\n");
+}
 
-    if ( $oauth_splitsecret && $shared_secret ) {
-        if ( ! isset($responseObject->tc_half_shared_secret) ) {
-            log_return_die("<p>Error: Tool Consumer did not provide tc_half_shared_secret</p>\n");
-        } else {
-            $tc_half_shared_secret = $responseObject->tc_half_shared_secret;
-            $shared_secret = $tc_half_shared_secret . $shared_secret;
-            echo("<p>Split Secret: ".$shared_secret."</p>\n");
-        }
+if ( $oauth_splitsecret && $shared_secret ) {
+    if ( ! isset($responseObject->tc_half_shared_secret) ) {
+        log_return_die("<p>Error: Tool Consumer did not provide tc_half_shared_secret</p>\n");
+    } else {
+        $tc_half_shared_secret = $responseObject->tc_half_shared_secret;
+        $shared_secret = $tc_half_shared_secret . $shared_secret;
+        echo("<p>Split Secret: ".$shared_secret."</p>\n");
     }
 }
 
