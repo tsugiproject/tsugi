@@ -1,0 +1,4 @@
+.git/ export-ignore
+tests/ export-ignore
+phpunit.xml.dist export-ignore
+phpdoc.dist.xml export-ignore
