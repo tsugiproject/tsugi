@@ -1,5 +1,5 @@
 {
-    "name": "tsugi/php",
+    "name": "tsugi/lib",
     "description": "The PHP Library to build interoperabile learning tools",
     "homepage": "http://www.tsugi.org/",
     "type": "library",
@@ -13,7 +13,12 @@
     }
     ],
     "autoload": {
-        "psr-4": {"Tsugi\\": "src/"}
+        "psr-4": {"Tsugi\\": ""},
+        "exclude-from-classmap": [
+            "/tests/",
+            "phpdoc.dist.xml","
+            phpunit.xml.dist"
+        ]
     },
     "require": {
         "php": ">=5.5.0"
