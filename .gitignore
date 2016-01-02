@@ -19,6 +19,7 @@ php-solutions
 phpDocumentor.phar
 phpunit.phar
 phpunit.xml
+composer.phar
 .tmp_phpdoc
 .out_phpdoc
 _files

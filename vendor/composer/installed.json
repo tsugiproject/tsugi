@@ -1,0 +1,43 @@
+[
+    {
+        "name": "tsugi/php",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/csev/tsugi-php.git",
+            "reference": "1c7c76d4e8ff6c7fbfcef92d67fdf5ecf6b48fd4"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/csev/tsugi-php/zipball/1c7c76d4e8ff6c7fbfcef92d67fdf5ecf6b48fd4",
+            "reference": "1c7c76d4e8ff6c7fbfcef92d67fdf5ecf6b48fd4",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.5.0"
+        },
+        "time": "2016-01-02 18:49:31",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Tsugi\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache 2.0"
+        ],
+        "authors": [
+            {
+                "name": "csev",
+                "email": "drchuck@gmail.com",
+                "homepage": "http://www.dr-chuck.com/",
+                "role": "Developer"
+            }
+        ],
+        "description": "The PHP Library to build interoperabile learning tools",
+        "homepage": "http://www.tsugi.org/"
+    }
+]

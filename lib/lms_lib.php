@@ -1,31 +1,7 @@
 <?php
 
-require_once("vendor/Tsugi/Core/Cache.php");
-require_once("vendor/Tsugi/Core/Debug.php");
-require_once('vendor/Tsugi/Util/Net.php');
-require_once("vendor/Tsugi/Crypt/Aes.php");
-require_once("vendor/Tsugi/Crypt/AesCtr.php");
-
 require_once("oauth.classes.php");
-require_once("vendor/Tsugi/Util/Mimeparse.php");
-require_once("vendor/Tsugi/Util/Mersenne_Twister.php");
-require_once("vendor/Tsugi/Util/LTI.php");
-require_once("vendor/Tsugi/Util/Caliper.php");
-
-require_once("vendor/Tsugi/Core/Entity.php");
-require_once("vendor/Tsugi/Core/User.php");
-require_once("vendor/Tsugi/Core/Context.php");
-require_once("vendor/Tsugi/Core/Link.php");
-require_once("vendor/Tsugi/Core/Result.php");
-require_once("vendor/Tsugi/Core/LTIX.php");
-require_once("vendor/Tsugi/Core/Settings.php");
-require_once("vendor/Tsugi/UI/CrudForm.php");
-require_once("vendor/Tsugi/UI/Table.php");
-require_once("vendor/Tsugi/UI/Output.php");
-require_once("vendor/Tsugi/UI/SettingsForm.php");
-
-require_once("vendor/Tsugi/Google/GoogleLogin.php");
-require_once("vendor/Tsugi/Google/JWT.php");
+require_once($CFG->dirroot."/vendor/autoload.php");
 
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;

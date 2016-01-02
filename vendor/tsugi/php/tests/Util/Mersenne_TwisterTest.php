@@ -1,5 +1,7 @@
 <?php
-require_once "Mersenne_Twister.php";
+
+require_once('src/Util/Mersenne_Twister.php');
+
 
 $should_return = array( 
 2, 3, 3, 6, 5, 1, 5, 3, 4, 2, 1, 6, 5, 4, 0, 

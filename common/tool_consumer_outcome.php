@@ -1,7 +1,6 @@
 <?php
-require_once('../lib/vendor/Tsugi/Util/Net.php');
-require_once("../lib/oauth.classes.php");
-require_once("../lib/vendor/Tsugi/Util/LTI.php");
+require_once('../config.php');
+require_once($CFG->dirroot.'/lib/lms_lib.php');
 
 use Tsugi\OAuth\OAuthUtil;
 use Tsugi\Util\LTI;

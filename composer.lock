@@ -1,0 +1,60 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "933286763daed566d17ff36fd33b0fdc",
+    "content-hash": "2112d1d9077b6d3fcaf97952b108e236",
+    "packages": [
+        {
+            "name": "tsugi/php",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/csev/tsugi-php.git",
+                "reference": "1c7c76d4e8ff6c7fbfcef92d67fdf5ecf6b48fd4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/csev/tsugi-php/zipball/1c7c76d4e8ff6c7fbfcef92d67fdf5ecf6b48fd4",
+                "reference": "1c7c76d4e8ff6c7fbfcef92d67fdf5ecf6b48fd4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Tsugi\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache 2.0"
+            ],
+            "authors": [
+                {
+                    "name": "csev",
+                    "email": "drchuck@gmail.com",
+                    "homepage": "http://www.dr-chuck.com/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "The PHP Library to build interoperabile learning tools",
+            "homepage": "http://www.tsugi.org/",
+            "time": "2016-01-02 18:49:31"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "tsugi/php": 20
+    },
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}

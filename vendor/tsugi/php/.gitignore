@@ -1,0 +1,5 @@
+
+*.swp
+
+phpunit.phar
+phpunit-old.phar
