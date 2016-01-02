@@ -78,7 +78,7 @@ function dataUrl($file) {
     if ( is_string($GLOBAL_PYTHON_DATA_URL) ) {
         return $GLOBAL_PYTHON_DATA_URL.$file;
     }
-    $url = curPageUrl();
+    $url = LTIX::curPageUrl();
     $retval = str_replace('index.php','data/'.$file,$url);
     return $retval;
 }

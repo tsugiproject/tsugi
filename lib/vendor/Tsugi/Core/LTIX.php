@@ -38,12 +38,7 @@ class LTIX {
         if ( $session_id === false ) return false;
 
         // Redirect back to ourselves...
-        $url = curPageURL();
-        $query = false;
-        if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
-            $query = true;
-            $url .= '?' . $_SERVER['QUERY_STRING'];
-        }
+        $url = self::curPageUrlWithQuery();
 
         $location = addSession($url);
         session_write_close();  // To avoid any race conditions...
@@ -149,12 +144,12 @@ class LTIX {
 
         // Use returned data to check the OAuth signature on the
         // incoming data - returns true or an array
-        $valid = LTI::verifyKeyAndSecret($post['key'],$row['secret']);
+        $valid = LTI::verifyKeyAndSecret($post['key'],$row['secret'],self::curPageUrlWithQuery());
 
         // If there is a new_secret it means an LTI2 re-registration is in progress and we
         // need to check both the current and new secret until the re-registration is committed
         if ( $valid !== true && strlen($row['new_secret']) > 0 && $row['new_secret'] != $row['secret']) {
-            $valid = LTI::verifyKeyAndSecret($post['key'],$row['new_secret']);
+            $valid = LTI::verifyKeyAndSecret($post['key'],$row['new_secret'],self::curPageUrlWithQuery());
             if ( $valid ) {
                 $row['secret'] = $row['new_secret'];
             }
@@ -251,7 +246,7 @@ class LTIX {
         $breadcrumb .= ',';
         $breadcrumb .= $session_id;
         $breadcrumb .= ',';
-        $breadcrumb .= curPageURL();
+        $breadcrumb .= self::curPageUrl();
         $breadcrumb .= ',';
         $breadcrumb .= isset($_SESSION['email']) ? $_SESSION['email'] : '';
         error_log($breadcrumb);
@@ -1075,6 +1070,67 @@ class LTIX {
      */
     public static function ltiLinkUrl($postdata=false) {
         return LTI::ltiLinkUrl(self::postArray());
+    }
+
+    /**
+     * curPageUrl - Returns the current URL without the query string
+     *
+     * This is useful when we are running behind a proxy like ngrok
+     * or CloudFlare.  These proxies will accept with the http or 
+     * https version of the URL but our web server will likely only
+     * se the incoming request as http.  So we need to fall back
+     * to $CFG->wwwroot and reconstruct the right URL from there.
+     * Since the wwwroot might have some of the request URI, like
+     * 
+     *     http://tsugi.ngrok.com/tsugi
+     *
+     * We need to parse the wwwroot and put things back together.
+     *
+     * @return string The current page URL
+     */
+    // http://stackoverflow.com/questions/279966/php-self-vs-path-info-vs-script-name-vs-request-uri
+    // REQUEST_URI = PHP_SELF + ? + QUERY_STRING
+    public static function curPageUrl() {
+        global $CFG;
+
+        $pieces = parse_url($CFG->wwwroot);
+
+        if ( isset($pieces['scheme']) ) {
+            $scheme = $pieces['scheme'];
+        } else {
+            $scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on")
+                ? 'http' : 'https';
+        }
+
+        if ( isset($pieces['port']) ) {
+            $port = ':'.$pieces['port'];
+        } else {
+            $port = '';
+            if ( $_SERVER['SERVER_PORT'] != "80" && $_SERVER['SERVER_PORT'] != "443" &&
+                strpos(':', $_SERVER['HTTP_HOST']) < 0 ) {
+                $port =  ':' . $_SERVER['SERVER_PORT'] ;
+            }
+        }
+        $host = isset($pieces['host']) ? $pieces['host'] : $_SERVER['HTTP_HOST'];
+
+        $http_url = $scheme .  '://' . $host .  $port .
+                          $_SERVER['PHP_SELF'];
+        return $http_url;
+    }
+
+    /**
+     * curPageUrlWithQuery - Returns the current URL with the query string
+     *
+     * @return string The current page URL with the query string added
+     */
+    public static function curPageUrlWithQuery() {
+        global $CFG;
+        $url = self::curPageUrl();
+        if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
+            $query = true;
+            $url .= '?' . $_SERVER['QUERY_STRING'];
+        }
+        return $url;
     }
 
 }

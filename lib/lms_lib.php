@@ -599,6 +599,8 @@ function mailSend($to, $subject, $message, $id, $token) {
 
 $OUTPUT = new \Tsugi\UI\Output();
 
+// TODO: Remove this
+/*
 function curPageURL() {
     $pageURL = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on")
              ? 'http'
@@ -609,8 +611,11 @@ function curPageURL() {
     $pageURL .= $_SERVER['PHP_SELF'];
     return $pageURL;
 }
+*/
 
 
+// TODO: Remove this
+/*
 // From www.php.net
 
 class Mersenne_Twister
@@ -687,6 +692,7 @@ function Mersenne_Shuffle($arr, $seed=-1)
     }
     return $new;
 }
+*/
 
 // http://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
 if ( ! function_exists('startsWith') ) {

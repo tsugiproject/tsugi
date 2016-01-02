@@ -62,7 +62,7 @@ if ( isset($_POST['sha1']) ) {
     return;
 }
 
-$url = curPageUrl();
+$url = LTIX::curPageUrl();
 $data_url = str_replace('index.php','roster_data.php',$url);
 
 // echo($goodsha);

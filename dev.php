@@ -6,6 +6,7 @@ require_once("pdo.php");
 require_once("lib/lms_lib.php");
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Core\LTIX;
 
 session_start();
 
@@ -63,7 +64,7 @@ foreach( $CFG->tool_folders AS $tool_folder) {
     findTools($tool_folder,$tools);
 }
 
-$cur_url = curPageURL();
+$cur_url = LTIX::curPageUrl();
 
 require_once("dev-data.php");
 

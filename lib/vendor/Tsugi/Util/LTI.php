@@ -42,7 +42,7 @@ class LTI {
      * this returns an array with the first element as an error string, and the second element
      * as the base string of the request.
      */
-    public static function verifyKeyAndSecret($key, $secret) {
+    public static function verifyKeyAndSecret($key, $secret, $http_url=NULL) {
         global $LastOAuthBodyBaseString;
         if ( ! ($key && $secret) ) return array("Missing key or secret", "");
         $store = new TrivialOAuthDataStore();
@@ -54,7 +54,36 @@ class LTI {
         $server->add_signature_method($method);
         $method = new OAuthSignatureMethod_HMAC_SHA256();
         $server->add_signature_method($method);
-        $request = OAuthRequest::from_request();
+        $http_method = NULL;  // Leave as default
+/*
+        $http_url = NULL; // Default
+        if ( $base_url !== NULL ) {
+            $pieces = parse_url($base_url);
+
+            if ( isset($pieces['scheme']) ) {
+                $scheme = $pieces['scheme'];
+            } else {
+                $scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on")
+                    ? 'http' : 'https';
+            }
+
+            if ( isset($pieces['port']) ) {
+                $port = ':'.$pieces['port'];
+            } else {
+                $port = '';
+                if ( $_SERVER['SERVER_PORT'] != "80" && $_SERVER['SERVER_PORT'] != "443" &&
+                    strpos(':', $_SERVER['HTTP_HOST']) < 0 ) {
+                    $port =  ':' . $_SERVER['SERVER_PORT'] ;
+                }
+            }
+            $host = isset($pieces['host']) ? $pieces['host'] : $_SERVER['HTTP_HOST'];
+
+            $http_url = $scheme .  '://' . $host .  $port .
+                              $_SERVER['REQUEST_URI'];
+        }
+*/
+
+        $request = OAuthRequest::from_request($http_method, $http_url);
 
         $LastOAuthBodyBaseString = $request->get_signature_base_string();
 

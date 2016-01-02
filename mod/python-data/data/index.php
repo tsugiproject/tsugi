@@ -232,7 +232,7 @@ Your Python program can look at the page as long as it likes.
 <ul>
 <?php
     // $curr_url = getCurrentFileUrl(__FILE__);
-    $curr_url = curPageUrl();
+    $curr_url = LTIX::curPageUrl();
     $new = getShuffledNames($code);
     for($i = 0; $i < count($new) && $i < 100; $i++) {
         $new_url = deHttps(str_replace("index.php", "known_by_".$new[$i].".html",$curr_url));

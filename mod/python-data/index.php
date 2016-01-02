@@ -22,11 +22,11 @@ if ( SettingsForm::handleSettingsPost() ) {
 $assignments = array(
     'regex_sum.php' => 'Sum with a Regular Expression',
     'http_headers.php' => 'Exploring HyperText Transport Protocol',
-    'comment_html.php' => 'Sum data from HTML',
+    'comment_html.php' => 'Sum comment data from HTML',
     'knows.php' => 'Follow links in a series of web pages.',
-    'comment_xml.php' => 'Sum data from XML',
-    'comment_json.php' => 'Sum data from JSON',
-    'geo_json.php' => 'Retrieve data from a JSON API'
+    'comment_xml.php' => 'Sum comment data from XML',
+    'comment_json.php' => 'Sum comment data from JSON',
+    'geo_json.php' => 'Retrieve GEO data from a JSON API'
 );
 
 $oldsettings = Settings::linkGetAll();
