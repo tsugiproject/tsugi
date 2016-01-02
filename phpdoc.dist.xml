@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--  How to run this
+    rm -r .tmp_phpdoc .out_phpdoc
+    php phpDocumentor.phar -c phpdoc.dist.xml
+    rm -r .tmp_phpdoc
+-->
+<phpdoc>
+  <parser>
+    <target>.tmp_phpdoc</target>
+  </parser>
+  <transformer>
+    <target>.out_phpdoc</target>
+  </transformer>
+  <files>
+    <directory>lib</directory>
+    <directory>core</directory>
+    <ignore>mod/php-intro/lib/goutte/*</ignore>
+    <ignore>mod/php-intro/webauto*.php</ignore>
+  </files>
+    <transformations>
+        <template name="clean"/>
+        <!-- <template name="responsive-twig"/> -->
+    </transformations>
+</phpdoc>
