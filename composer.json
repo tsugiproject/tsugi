@@ -1,5 +1,5 @@
 {
-    "name": "tsugi/Tsugi",
+    "name": "tsugi/lib",
     "description": "The PHP Library to build interoperabile learning tools",
     "homepage": "http://www.tsugi.org/",
     "type": "library",
