@@ -135,10 +135,12 @@ echo("<pre>\n");
 // For registration, the key must not exist and belong to another user
 // We double check the registration scenario in a transaction later
 $tool_proxy_guid = false;
+$tool_proxy_guid_from_consumer = isset($_POST['tool_proxy_guid']);
 if ( $re_register ) {
         $oauth_consumer_key = $_POST['oauth_consumer_key'];
         $reg_key = $oauth_consumer_key;
         $tool_proxy_guid = $oauth_consumer_key;
+        $tool_proxy_guid_from_consumer = true;
         $key_sha256 = lti_sha256($oauth_consumer_key);
         echo("key_sha256=".$key_sha256."<br>");
         $oldproxy = $PDOX->rowDie(
@@ -171,6 +173,10 @@ if ( $re_register ) {
 } else {
         echo("</pre>");
         lmsDie("lti_message_type not supported ".$lti_message_type);
+}
+
+if ( $tool_proxy_guid_from_consumer ) {
+    echo("We Received a tool_proxy_guid= $tool_proxy_guid \n");
 }
 
 $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
@@ -242,6 +248,10 @@ if ( $tp_profile == null ) {
 
 // Tweak the stock profile
 $tp_profile->tool_consumer_profile = $tc_profile_url;
+if ( $tool_proxy_guid_from_consumer ) {
+    $tp_profile->tool_proxy_guid = $tool_proxy_guid;
+}
+
 // Copy over the context
 $tp_profile->{'@context'} = $tc_profile->{'@context'};
 for($i=0; $i < count($tp_profile->{'@context'}); $i++ ) {
