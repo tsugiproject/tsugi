@@ -266,8 +266,16 @@ class LTIX {
         $FIXED = array();
         foreach($_POST as $key => $value ) {
             if (get_magic_quotes_gpc()) $value = stripslashes($value);
-            if ( strpos($key, "custom_") == 0 ) {
+            if ( strpos($key, "custom_") === 0 ) {
                 $newkey = substr($key,7);
+		// Need to deal with custom_context_id=$Context.id
+		if ( strpos($value,"$") === 0 ) {
+		    $short_value = strtolower(substr($value,1));
+		    $short_value = str_replace('.','_',$short_value);
+		    if ( $newkey == $short_value ) {
+			continue;
+		    }
+		}
                 if ( !isset($FIXED[$newkey]) ) $FIXED[$newkey] = $value;
             }
             $FIXED[$key] = $value;
