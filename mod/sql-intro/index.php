@@ -21,6 +21,7 @@ $assignments = array(
     'single_lite.php' => 'Single Table SQLITE (Users)',
     'count_lite.php' => 'Email Counter SQLITE',
     'many_one_lite.php' => 'Many-to-One SQLITE (Tracks)',
+    'many_many_mysql.php' => 'Many-to-Many MySQL (Courses)',
     'many_many_lite.php' => 'Many-to-Many SQLITE (Courses)',
 );
 
