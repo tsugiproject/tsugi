@@ -64,7 +64,7 @@ foreach( $CFG->tool_folders AS $tool_folder) {
     findTools($tool_folder,$tools);
 }
 
-$cur_url = LTIX::curPageUrl();
+$cur_url = LTIX::curPageUrlScript();
 
 require_once("dev-data.php");
 

@@ -38,7 +38,7 @@ class LTIX {
         if ( $session_id === false ) return false;
 
         // Redirect back to ourselves...
-        $url = self::curPageUrlWithQuery();
+        $url = self::curPageUrl();
 
         $location = addSession($url);
         session_write_close();  // To avoid any race conditions...
@@ -144,12 +144,12 @@ class LTIX {
 
         // Use returned data to check the OAuth signature on the
         // incoming data - returns true or an array
-        $valid = LTI::verifyKeyAndSecret($post['key'],$row['secret'],self::curPageUrlWithQuery());
+        $valid = LTI::verifyKeyAndSecret($post['key'],$row['secret'],self::curPageUrl());
 
         // If there is a new_secret it means an LTI2 re-registration is in progress and we
         // need to check both the current and new secret until the re-registration is committed
         if ( $valid !== true && strlen($row['new_secret']) > 0 && $row['new_secret'] != $row['secret']) {
-            $valid = LTI::verifyKeyAndSecret($post['key'],$row['new_secret'],self::curPageUrlWithQuery());
+            $valid = LTI::verifyKeyAndSecret($post['key'],$row['new_secret'],self::curPageUrl());
             if ( $valid ) {
                 $row['secret'] = $row['new_secret'];
             }
@@ -1081,7 +1081,44 @@ class LTIX {
     }
 
     /**
-     * curPageUrl - Returns the current URL without the query string
+     * curPageUrl - Returns the URL to the currently executing script with query string
+     *
+     * This is useful when we want to do OAuth where we need the exact
+     * incoming path but our host, protocol, and port might be messed up
+     * by a proxy or CDN.
+     *
+     * URL                              Result
+     * http://x.com/data                http://x.com/data
+     * http://x.com/data/index.php      http://x.com/data/index.php
+     * http://x.com/data/index.php?y=1  http://x.com/data/index.php?y=1
+     */
+    public static function curPageUrl() {
+        return self::curPageUrlBase() .  $_SERVER['REQUEST_URI'];
+    }
+
+    /**
+     * curPageUrlScript - Returns the URL to the currently executing script
+     *
+     * This is useful when we want to make a URL to another script at this location.
+     * Often we use this with str_replace().
+     *
+     *     URL                              Result
+     *     http://x.com/data                http://x.com/data/index.php
+     *     http://x.com/data/index.php      http://x.com/data/index.php
+     *     http://x.com/data/index.php?y=1  http://x.com/data/index.php
+     *
+     *      http://stackoverflow.com/questions/279966/php-self-vs-path-info-vs-script-name-vs-request-uri
+     *     
+     *      http://example.com/bob
+     *      REQUEST_URI = /bob
+     *      PHP_SELF = /bob/index.php
+     */
+    public static function curPageUrlScript() {
+        return self::curPageUrlBase() .  $_SERVER['PHP_SELF'];
+    }
+
+    /**
+     * curPageUrlBase - Returns the protocol, host, and port for the current URL
      *
      * This is useful when we are running behind a proxy like ngrok
      * or CloudFlare.  These proxies will accept with the http or 
@@ -1094,11 +1131,15 @@ class LTIX {
      *
      * We need to parse the wwwroot and put things back together.
      *
-     * @return string The current page URL
+     * URL                              Result
+     * http://x.com/data                http://x.com
+     * http://x.com/data/index.php      http://x.com
+     * http://x.com/data/index.php?y=1  http://x.com
+     *
+     * @return string The current page protocol, host, and optionally port URL
      */
-    // http://stackoverflow.com/questions/279966/php-self-vs-path-info-vs-script-name-vs-request-uri
-    // REQUEST_URI = PHP_SELF + ? + QUERY_STRING
-    public static function curPageUrl() {
+
+    public static function curPageUrlBase() {
         global $CFG;
 
         $pieces = parse_url($CFG->wwwroot);
@@ -1121,24 +1162,8 @@ class LTIX {
         }
         $host = isset($pieces['host']) ? $pieces['host'] : $_SERVER['HTTP_HOST'];
 
-        $http_url = $scheme .  '://' . $host .  $port .
-                          $_SERVER['PHP_SELF'];
+        $http_url = $scheme .  '://' . $host .  $port;
         return $http_url;
-    }
-
-    /**
-     * curPageUrlWithQuery - Returns the current URL with the query string
-     *
-     * @return string The current page URL with the query string added
-     */
-    public static function curPageUrlWithQuery() {
-        global $CFG;
-        $url = self::curPageUrl();
-        if ( isset($_SERVER['QUERY_STRING']) && strlen($_SERVER['QUERY_STRING']) > 0) {
-            $query = true;
-            $url .= '?' . $_SERVER['QUERY_STRING'];
-        }
-        return $url;
     }
 
 }

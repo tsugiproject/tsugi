@@ -26,7 +26,7 @@ echo("<pre>\n");
 echo("Running test...\n");
 // Run though all the locations
 // var_dump($LOCATIONS);
-$url = LTIX::curPageUrl();
+$url = LTIX::curPageUrlScript();
 $i = 500;
 foreach ($LOCATIONS as $key => $location) {
     // echo(htmlentities($location)."\n");
