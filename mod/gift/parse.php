@@ -1,5 +1,7 @@
 <?php
 
+use \Tsugi\Util\Mersenne_Twister;
+
 function parse_gift($text, &$questions, &$errors) {
 $raw_questions = array();
 $question = "";
@@ -346,7 +348,8 @@ foreach($questions as $question) {
             }
             $answers[] = $ans;
         }
-        $nq->answers = Mersenne_Shuffle($answers, $seed);
+        $mt = new Mersenne_Twister($seed);
+        $answers = $mt->shuffle($answers);
     } 
 
     if ( $t == 'multiple_answers_question'  &&
@@ -381,7 +384,8 @@ foreach($questions as $question) {
                 $score = 0;
             }
         }
-        $nq->answers = Mersenne_Shuffle($answers, $seed);
+        $mt = new Mersenne_Twister($seed);
+        $nq->answers = $mt->shuffle($answers);
     }
 
     if ( $correct !== null ) $nq->correct = $correct;
