@@ -277,7 +277,7 @@ if ( ! $USER->instructor ) {
     return;
 }
 ?>
-<h1>Instructor Debug</h1>
+<h1>Instructor Only Debug</h1>
 Here is a set of insert statements to achieve this assignment.
 <pre>
 <?
