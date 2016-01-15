@@ -186,10 +186,10 @@ upload your JSON export of the resulting database here: <br/>
 <h1>Tables for the Assignment</h1>
 <p>
 Create the following tables in a database named "roster".  Make sure that 
-your database and tables are named exactly as follows icluding matching case.
+your database and tables are named exactly as follows including matching case.
 <pre>
-DROP TABLE IF EXISTS User;
 DROP TABLE IF EXISTS Member;
+DROP TABLE IF EXISTS User;
 DROP TABLE IF EXISTS Course;
 
 CREATE TABLE User (
