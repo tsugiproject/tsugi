@@ -106,10 +106,11 @@ if ( isset($_FILES['json']) ) {
             header( 'Location: '.addSession('index.php') ) ;
             return;
         }
-        $new[] = array($user_table[$user_id]['name'], $course_table[$course_id]['title'], $role);
+        $new[] = array(trim($user_table[$user_id]['name']), trim($course_table[$course_id]['title']), $role);
     }
 
     usort($new,"compare_func");
+    // echo("\n<pre>\n"); print_r($new); echo("\n</pre>\n"); die();
 
     // Compare the arrays
     for($i=0; $i<max(count($roster),count($new)); $i++) {
