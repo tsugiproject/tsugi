@@ -17,6 +17,7 @@ if ( SettingsForm::handleSettingsPost() ) {
 
 // All the assignments we support
 $assignments = array(
+    'http_headers.php' => 'Exploring HTTP Headers',
     'a02.php' => 'Howdy application', 
     'a03.php' => 'Guessing Game',
     'a04.php' => 'Rock, Paper, Scissors',
@@ -27,6 +28,9 @@ $assignments = array(
     'fin-f15-address.php' => 'CRUD 15 - Address',
     'fin-f15-tracks.php' => 'CRUD 15 - Tracks'
 );
+
+// Get any due date information
+$dueDate = SettingsForm::getDueDate();
 
 // View
 $OUTPUT->header();
