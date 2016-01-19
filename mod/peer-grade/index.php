@@ -237,8 +237,16 @@ if ( $USER->instructor ) {
 if ( $assn_json != null ) {
     echo('<div style="border: 1px solid black">');
     echo("<p><h4>".$assn_json->title."</h4></p>\n");
-    echo('<p>'.htmlent_utf8($assn_json->description)."</p>\n");
-    echo('</div>');
+    echo('<p>'.htmlent_utf8($assn_json->description)."\n");
+    if( isset($assn_json->assignment) ) {
+        echo('<br/>Assignment specification: <a href="'.$assn_json->assignment.'" target="_blank">');
+        echo($assn_json->assignment."</a>\n");
+    }
+    if( isset($assn_json->solution) ) {
+        echo('<br/>Sample solution: <a href="'.$assn_json->solution.'" target="_blank">');
+        echo($assn_json->solution."</a>\n");
+    }
+    echo('</p></div>');
 }
 
 if ( $assn_json == null ) {
@@ -273,6 +281,11 @@ if ( $submit_row == false ) {
     $upload_max_size = ini_get('upload_max_filesize');
     echo("\n<p>Make sure each file is smaller than 1M.  Total upload limited to ");
     echo(htmlent_utf8($upload_max_size)."</p>\n");
+    if ( isset($assn_json->totalpoints) && $assn_json->totalpoints > 0 ) {
+        echo("<p>");
+        echo(pointsDetail($assn_json));
+        echo("</p>");
+    }
     $OUTPUT->footer();
     return;
 }
