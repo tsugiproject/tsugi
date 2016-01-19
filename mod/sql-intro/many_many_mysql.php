@@ -112,6 +112,12 @@ if ( isset($_FILES['json']) ) {
     usort($new,"compare_func");
     // echo("\n<pre>\n"); print_r($new); echo("\n</pre>\n"); die();
 
+    // Check the lengths of the array
+    $msg = '';
+    if ( count($roster) != count($new) ) {
+        $msg = "Expecting ".count($roster)." rows, found ".count($new)." rows. ";
+    }
+
     // Compare the arrays
     for($i=0; $i<max(count($roster),count($new)); $i++) {
         if ( $i > count($roster)-1 ) {
@@ -127,7 +133,7 @@ if ( isset($_FILES['json']) ) {
 
         if ( $roster[$i] == $new[$i] ) continue;
 
-        $_SESSION['error'] = "Expecting row ".($i+1)." to be (" .
+        $_SESSION['error'] = $msg."Expecting row ".($i+1)." to be (" .
           $roster[$i][0].", ".$roster[$i][1].", ".$roster[$i][2].") " .
           "Found (".$new[$i][0].", ".$new[$i][1].", ".$new[$i][2].")";
         header( 'Location: '.addSession('index.php') ) ;
@@ -238,9 +244,10 @@ SQL statement.
 SELECT User.name, Course.title, Member.role
     FROM User JOIN Member JOIN Course 
     ON User.user_id = Member.user_id AND Member.course_id = Course.course_id 
+    ORDER BY Course.title, Member.role DESC, User.name
 </pre>
-The order of the data does not have to be the same as the order of the data presented 
-above.
+The order of the data and number of rows that comes back from this query should be the 
+same as above.  There should be no missing or extra data in your query.
 </p>
 <h1>What Turn In</h1>
 <p>
