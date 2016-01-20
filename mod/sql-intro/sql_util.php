@@ -34,44 +34,34 @@ function load_mysql_json_export($data) {
     $pos = 0;
     $retval = array();
     $errors = array();
-    echo("\n<pre>\n");
-    while ( $pos < strlen($data) ) {
-        $nxt = strpos($data,'// ',$pos);
-        if ( $nxt === false ) break;
-        $com = strpos($data,'// ',$nxt+3);
-        $start = strpos($data,'[{"',$nxt+3);
-        if ( $start === false ) break;
-        if ( $com !== false && $com < $start ) {
-            $pos = $com; // Skip to the next comment
+    $things = explode('//',$data);
+    // echo("<pre>\n");
+    // print_r($things);
+    foreach($things as $thing) {
+        if ( strpos($thing,'[{') === false || strpos($thing, '}]') === false ) {
             continue;
         }
-        $name = trim(substr($data, $nxt+3,$start-$nxt-3));
-        $pieces = explode('.',$name);
-        if ( count($pieces) > 1 ) {
-            $name = $pieces[count($pieces)-1];
+        $thing = trim($thing);
+        $pieces = explode("\n",$thing);
+        // echo("==========\n"); print_r($pieces);
+        if ( count($pieces) != 3 ) continue;
+        $name = trim($pieces[0]);
+        $chunks = explode('.',$name);
+        if ( count($chunks) > 1 ) {
+            $name = $chunks[count($chunks)-1];
         }
-        $end = strpos($data,'"}]',$start);
-        if ( $end === false ) break;
-
-        $json_str = substr($data, $start, 3+$end-$start);
-        $json = json_decode($json_str, true);
+        // echo("name=$name\n");
+        $json = json_decode($pieces[2], true);
         if ( $json === NULL ) {
             $errors[] = "Unable to parse the $name JSON ".json_last_error();
-            $pos = $end;
             continue;
         }
 
         $retval[$name] = $json;
-        if ( count($json) < 1 ) {
-            $pos = $end;
-            continue;
-        }
+        if ( count($json) < 1 ) continue;
 
         $key = strtolower($name).'_id';
-        if ( !isset($json[0][$key]) ) {
-            $pos = $end;
-            continue;
-        }
+        if ( !isset($json[0][$key]) ) continue;
 
         $table = array();
         foreach($json as $row) {
@@ -80,8 +70,8 @@ function load_mysql_json_export($data) {
             }
         }
         $retval[$name."_table"] = $table;
-        $pos = $end;
     }
+
     // echo("<pre>\n"); print_r($retval); echo("</pre>\n");
     return $retval;
 }
