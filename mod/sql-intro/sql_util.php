@@ -50,6 +50,7 @@ function load_mysql_json_export($data) {
         if ( count($chunks) > 1 ) {
             $name = $chunks[count($chunks)-1];
         }
+        $name = strtolower($name);
         // echo("name=$name\n");
         $json = json_decode($pieces[2], true);
         if ( $json === NULL ) {

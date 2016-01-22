@@ -59,18 +59,18 @@ if ( isset($_FILES['json']) ) {
         return;
     }
 
-    if ( isset($tables['User']) && isset($tables['Course']) && isset($tables['Member']) ) {
+    if ( isset($tables['user']) && isset($tables['course']) && isset($tables['member']) ) {
         // OK
     } else {
-        $_SESSION['error'] = "Expecting User, Course, and Member tables";
+        $_SESSION['error'] = "Expecting user, course, and member tables";
         header( 'Location: '.addSession('index.php') ) ;
         return;
     }
 
-    if ( isset($tables['User_table']) && isset($tables['Course_table']) ) {
+    if ( isset($tables['user_table']) && isset($tables['course_table']) ) {
         // OK
     } else {
-        $_SESSION['error'] = "Expecting User and Course tables to have primary keys like user_id";
+        $_SESSION['error'] = "Expecting user and course tables to have primary keys like user_id";
         header( 'Location: '.addSession('index.php') ) ;
         return;
     }
@@ -79,9 +79,9 @@ if ( isset($_FILES['json']) ) {
     $_SESSION['tables'] = $tables;  // For later debugging
 
     // Pull out the bits we need
-    $course_table = $tables['Course_table'];
-    $user_table = $tables['User_table'];
-    $member = $tables['Member'];
+    $course_table = $tables['course_table'];
+    $user_table = $tables['user_table'];
+    $member = $tables['member'];
 
     // Run the joins...
     $new = array();
@@ -89,7 +89,7 @@ if ( isset($_FILES['json']) ) {
         if ( isset($m['course_id']) && isset($m['user_id']) && isset($m['role']) ) {
             // Good
         } else {
-            $_SESSION['error'] = 'Could not find user_id, course_id, or role in Member table';
+            $_SESSION['error'] = 'Could not find user_id, course_id, or role in member table';
             header( 'Location: '.addSession('index.php') ) ;
             return;
         }
