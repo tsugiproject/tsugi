@@ -102,6 +102,28 @@ Enter the header values in each of the fields below and press "Submit".
 <input type="submit">
 </form>
 </p>
+<p>
+<b>Note:</b> If you look at the headers and not all of the headers are present, 
+it may be that your browser is caching the request.  Look for the 
+<a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes" taget="_blank">HTTP
+Response Code</a> in the developer console. Normally you should see a "200" code indicating a 
+normal document retrieval.  If you see a "304" error code, it means that your browser
+is likely using a cached copy of the file.</p>
+<p clear="all">
+To convince yor browser to actually retrieve the
+document, clear your browser cache and re-retrieve the document, or add a key-value pair to 
+the URL like:
+<pre>
+<a href="<?= $getUrl ?>?x=12345" target="_blank"><?= $getUrl ?>?x=12345</a>
+</pre>
+And then retrieve that URL.  To force a fresh retrieval, simply change the value 
+for <code>x=</code>
+to any new value and re-retrieve the page until you get a 200 status code.
+</p>
+<center>
+<a href="http_headers-01.png" target="_blank"><img src="http_headers-01.png" 
+style="width: 40%; min-width: 400px;"></a>
+</center>
 <?php
 if ( $USER->instructor ) {
 echo("\n<hr/>");
