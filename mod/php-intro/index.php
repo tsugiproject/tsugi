@@ -29,8 +29,17 @@ $assignments = array(
     'fin-f15-tracks.php' => 'CRUD 15 - Tracks'
 );
 
+$oldsettings = Settings::linkGetAll();
+
+$assn = Settings::linkGet('exercise');
+
 // Get any due date information
 $dueDate = SettingsForm::getDueDate();
+// Let the assignment handle the POST
+if ( count($_POST) > 0 && $assn && isset($assignments[$assn]) ) {
+    require($assn);
+    return;
+}
 
 // View
 $OUTPUT->header();
@@ -54,10 +63,6 @@ SettingsForm::end();
 $OUTPUT->flashMessages();
 
 $OUTPUT->welcomeUserCourse();
-
-$oldsettings = Settings::linkGetAll();
-
-$assn = Settings::linkGet('exercise');
 
 if ( $assn && isset($assignments[$assn]) ) {
     require($assn);

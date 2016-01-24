@@ -27,7 +27,7 @@ $fields = array(
 );
 
 $oldgrade = $RESULT->grade;
-// If we have a POST, pass to the GET
+// If we have a POST, pass to the GET to be put in the fields
 if ( count($_POST) > 0 ) {
     $_SESSION['postdata'] = $_POST;
 
