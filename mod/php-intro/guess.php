@@ -3,14 +3,43 @@
 require_once "../../config.php";
 require_once "webauto.php";
 use Goutte\Client;
+use \Tsugi\Util\Mersenne_Twister;
 
-line_out("Grading PHP-Intro Assignment 3");
+line_out("Grading PHP-Intro Guessing Assignment (GET)");
 
-$url = getUrl('http://www.php-intro.com/assn/guess/guess.php');
+// Compute the stuff for the output
+$code = $USER->id+$LINK->id+$CONTEXT->id;
+$MT = new Mersenne_Twister($code);
+$correct = $MT->getNext(12,82);
+
+?>
+<p>Assignment specification:
+<a href="http://www.php-intro.com/assn/guess/" target="_blank">http://www.php-intro.com/assn/guess/</a></p>
+<p>For this assignment, each student is given a different "correct" answer which must be used
+in your code.
+Your assignment must accept <strong><?= $correct ?></strong> as the correct
+answer to complete this assignment with full credit. 
+<?php if ( $USER->displayname === false ) { ?>
+Since this autograder does now know your name, all the tests for the assignment
+can be run, but no grade will be returned. </p>
+<?php } else { ?>
+To receive a grade for this assignment, your name 
+(<strong><?= $USER->displayname ?></strong>) must 
+in in the &lt;title&gt; tag in all the pages of your application.
+</p>
+<?php } ?>
+<p>If you need to run this grading program on an application that is running on your
+laptop or desktop computer with a URL like <strong>http://localhost...</strong> you 
+will need to install and use the <a href="https://ngrok.com/" target="_blank">ngrok</a>
+application to get a temporary URL that can be used with this application.
+</p>
+<?php
+
+$url = getUrl('http://www.php-intro.com/code/arrays/guess.php');
 if ( $url === false ) return;
 $grade = 0;
 
-error_log("ASSN03 ".$url);
+error_log("Guess/GET ".$url);
 line_out("Retrieving ".htmlent_utf8($url)."...");
 flush();
 
@@ -38,18 +67,28 @@ line_out("Looking for 'Missing guess parameter'");
 if ( stripos($html, 'Missing guess parameter') > 0 ) $passed++;
 else error_out("Not found");
 
+// Empty guess
+$u = $url . "?guess=";
+line_out("Retrieving ".htmlent_utf8($u));
+$crawler = $client->request('GET', $u);
+$html = $crawler->html();
+$OUTPUT->togglePre("Show retrieved page",$html);
+line_out("Looking for 'Your guess is too short");
+if ( stripos($html, 'Your guess is too short') > 0 ) $passed++;
+else error_out("Not found");
+
 // Bad guess
 $u = $url . "?guess=fred";
 line_out("Retrieving ".htmlent_utf8($u));
 $crawler = $client->request('GET', $u);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
-line_out("Looking for 'Your guess is not valid'");
-if ( stripos($html, 'Your guess is not valid') > 0 ) $passed++;
+line_out("Looking for 'Your guess is not a number");
+if ( stripos($html, 'Your guess is not a number') > 0 ) $passed++;
 else error_out("Not found");
 
 // Low guess
-$u = $url . "?guess=".rand(1,35);
+$u = $url . "?guess=".($correct-1);
 line_out("Retrieving ".htmlent_utf8($u));
 $crawler = $client->request('GET', $u);
 $html = $crawler->html();
@@ -59,7 +98,7 @@ if ( stripos($html, 'Your guess is too low') > 0 ) $passed++;
 else error_out("Not found");
 
 // High guess
-$u = $url . "?guess=".rand(45,2000);
+$u = $url . "?guess=".($correct+1);
 line_out("Retrieving ".htmlent_utf8($u));
 $crawler = $client->request('GET', $u);
 $html = $crawler->html();
@@ -69,7 +108,7 @@ if ( stripos($html, 'Your guess is too high') > 0 ) $passed++;
 else error_out("Not found");
 
 // Good guess
-$u = $url . "?guess=42";
+$u = $url . "?guess=".$correct;
 line_out("Retrieving ".htmlent_utf8($u));
 $crawler = $client->request('GET', $u);
 $html = $crawler->html();
@@ -88,7 +127,7 @@ else error_out("Not found");
     $OUTPUT->togglePre("Internal error detail.",$detail);
 }
 
-$perfect = 10;
+$perfect = 11;
 $score = webauto_compute_effective_score($perfect, $passed, $penalty);
 
 if ( ! $titlefound ) {

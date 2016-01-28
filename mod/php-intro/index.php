@@ -19,7 +19,7 @@ if ( SettingsForm::handleSettingsPost() ) {
 $assignments = array(
     'http_headers.php' => 'Exploring HTTP Headers',
     'a02.php' => 'Howdy application', 
-    'a03.php' => 'Guessing Game',
+    'guess.php' => 'Guessing Game',
     'a04.php' => 'Rock, Paper, Scissors',
     'a05.php' => 'Shopping Cart',
     'a06.php' => 'CRUD - Tracks',
