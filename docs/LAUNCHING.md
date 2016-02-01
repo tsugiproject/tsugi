@@ -7,7 +7,7 @@ on the server.  Tsugi has a capability to let you log in
 and request keys that can be enabled by the sytem owner.
 
 Tsugi supports both LTI 1.x and has support for LTI 2.0 but 
-the only LMS that supports LTI 2.0 is Sakai.  So you most 
+most uses of these tools in an LMS is LTI 1.x.  So you most 
 likely will need an LTI 1.x key.
 
 You can plug your key, secret, and launch url (see below) into your LMS 
