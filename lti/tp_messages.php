@@ -159,7 +159,10 @@ $desired_parameters = array(
     "LtiLink.custom.url",
     "ToolProxy.custom.url",
     "ToolProxyBinding.custom.url",
-    "ToolConsumerProfile.url"
+    "ToolConsumerProfile.url",
+
+    // Ask for all the sakai ext_ parameters for LTI 2.0 Launches
+    "Sakai.extensions.all"
 );
 
 sort($desired_parameters);
