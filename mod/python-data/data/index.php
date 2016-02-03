@@ -235,7 +235,7 @@ Your Python program can look at the page as long as it likes.
     $curr_url = LTIX::curPageUrlScript();
     $new = getShuffledNames($code);
     for($i = 0; $i < count($new) && $i < 100; $i++) {
-        $new_url = deHttps(str_replace("index.php", "known_by_".$new[$i].".html",$curr_url));
+        $new_url = "known_by_".$new[$i].".html";
         echo('<li style="margin-top: '.rand(1,$i+25).'px;"><a href="'.$new_url.'">'
             .$new[$i]."</a></li>\n");
     }
