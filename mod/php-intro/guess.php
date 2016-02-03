@@ -84,7 +84,8 @@ $crawler = $client->request('GET', $u);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 line_out("Looking for 'Your guess is not a number");
-if ( stripos($html, 'Your guess is not a number') > 0 ) $passed++;
+if ( stripos($html, 'Your guess is not a number') > 0 ||
+     stripos($html, 'Your guess is not valid') > 0 ) $passed++;
 else error_out("Not found");
 
 // Low guess
