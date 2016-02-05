@@ -65,7 +65,18 @@ $OUTPUT->flashMessages();
 $OUTPUT->welcomeUserCourse();
 
 if ( $assn && isset($assignments[$assn]) ) {
-    require($assn);
+    try {
+        require($assn);
+    } catch (Exception $ex) {
+        error_out("The autograder did not find something it was looking for in your HTML - test ended.");
+        error_log($ex->getMessage());
+        error_log($ex->getTraceAsString());
+        $detail = 
+            "Check the most recently retrieved page (above) and see why the autograder is uphappy.\n" .
+            "\nThe detail below may only make sense if you look at the source code for the test.\n".
+            'Caught exception: '.$ex->getMessage()."\n".$ex->getTraceAsString()."\n";
+        $OUTPUT->togglePre("Internal error detail.",$detail);
+    }
 } else {
     if ( $USER->instructor ) {
         echo("<p>Please use settings to select an assignment for this tool.</p>\n");

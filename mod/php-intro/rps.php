@@ -94,7 +94,6 @@ checkPostRedirect($client);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 
-
 try {
     $form = $crawler->selectButton('Play')->form();
     markTestPassed('Login success - at game.php');
