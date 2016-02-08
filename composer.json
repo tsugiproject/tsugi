@@ -1,6 +1,6 @@
 {
     "name": "tsugi/lib",
-    "description": "The PHP Library to build interoperabile learning tools",
+    "description": "The PHP Library to build interoperable learning tools",
     "homepage": "http://www.tsugi.org/",
     "type": "library",
     "license": "Apache 2.0",
