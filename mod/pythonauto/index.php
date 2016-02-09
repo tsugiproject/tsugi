@@ -2,7 +2,7 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
-require_once $CFG->dirroot."/core/gradebook/lib.php";
+use \Tsugi\Grades\GradeUtil;
 require_once "exercises.php";
 
 use \Tsugi\Core\LTIX;
@@ -21,7 +21,7 @@ if ( SettingsForm::handleSettingsPost() ) {
 $oldsettings = Settings::linkGetAll();
 
 // Get the current user's grade data
-$row = gradeLoad();
+$row = GradeUtil::gradeLoad();
 $OLDCODE = false;
 $json = array();
 $editor = 1;
@@ -34,7 +34,7 @@ if ( $row !== false && isset($row['json'])) {
 if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0' ) ) {
     $neweditor = $_GET['editor']+0;
     if ( $editor != $neweditor ) {
-        gradeUpdateJson(array("editor" => $neweditor));
+        GradeUtil::gradeUpdateJson(array("editor" => $neweditor));
         $json['editor'] = $neweditor;
         $editor = $neweditor;
     }

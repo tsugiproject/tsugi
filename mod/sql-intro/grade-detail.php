@@ -2,12 +2,12 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
-require_once $CFG->dirroot."/core/gradebook/lib.php";
+use \Tsugi\Grades\GradeUtil;
 
 session_start();
 
 // Get the user's grade data also checks session
-$row = gradeLoad($_REQUEST['user_id']);
+$row = GradeUtil::gradeLoad($_REQUEST['user_id']);
 
 // View
 $OUTPUT->header();
@@ -15,7 +15,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 
 // Show the basic info for this user
-gradeShowInfo($row);
+GradeUtil::gradeShowInfo($row);
 
 // Unique detail
 echo("<p>Submitted URL:</p>\n");

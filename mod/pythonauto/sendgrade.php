@@ -1,7 +1,7 @@
 <?php
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/core/gradebook/lib.php";
+use \Tsugi\Grades\GradeUtil;
 
 use \Tsugi\Core\LTIX;
 
@@ -12,7 +12,7 @@ $user_id = $USER->id;
 $grade = 1.0;
 
 $code = $_POST['code'];
-gradeUpdateJson(array("code" => $code));
+GradeUtil::gradeUpdateJson(array("code" => $code));
 $_SESSION['pythonauto_lastcode'] = $code;
 
 $debug_log = array();

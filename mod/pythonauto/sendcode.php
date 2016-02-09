@@ -1,7 +1,7 @@
 <?php
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/core/gradebook/lib.php";
+use \Tsugi\Grades\GradeUtil;
 
 use \Tsugi\Core\LTIX;
 
@@ -16,7 +16,7 @@ if ( ! isset($_POST['code']) ) {
 
 // Check to see if the code actually changed
 $code = $_POST['code'];
-gradeUpdateJson(array("code" => $code));
+GradeUtil::gradeUpdateJson(array("code" => $code));
 $_SESSION['pythonauto_lastcode'] = $code;
 
 $retval = Array("status" => "success");

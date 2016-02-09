@@ -374,7 +374,7 @@ attention of the instructor.</p>
 <div id="gradeinfo">Calculating grade....</div>
 </p>
 <script type="text/javascript">
-function gradeLoad() {
+function GradeUtil::gradeLoad() {
     window.console && console.log('Loading and updating your grade...');
     $.getJSON('<?php echo(addSession('update_grade.php')); ?>', function(data) {
         window.console && console.log(data);
@@ -392,7 +392,7 @@ $OUTPUT->footerStart();
 ?>
 <script type="text/javascript">
 $(document).ready(function() {
-    gradeLoad();
+    GradeUtil::gradeLoad();
 } );
 </script>
 <script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>

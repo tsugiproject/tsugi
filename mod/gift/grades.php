@@ -2,9 +2,10 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
-require_once $CFG->dirroot."/core/gradebook/lib.php";
+
+use \Tsugi\Grades\GradeUtil;
+use \Tsugi\Grades\UI;
 
 $GRADE_DETAIL_CLASS = new \Tsugi\Grades\SimpleGradeDetail();
 
-// Use the provided gradebook with basic detail
-require_once $CFG->dirroot."/core/gradebook/grades.php";
+UI::GradeTable($GRADE_DETAIL_CLASS);

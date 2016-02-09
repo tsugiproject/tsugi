@@ -2,7 +2,7 @@
 // A library for webscraping graders
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
-require_once $CFG->dirroot."/core/gradebook/lib.php";
+use \Tsugi\Grades\GradeUtil;
 
 require_once "lib/goutte/vendor/autoload.php";
 require_once "lib/goutte/Goutte/Client.php";
@@ -61,7 +61,7 @@ function getUrl($sample) {
     if ( isset($_GET['url']) ) {
         echo('<p><a href="#" onclick="window.location.href = window.location.href; return false;">Re-run this test</a></p>'."\n");
         if ( isset($_SESSION['lti']) ) {
-            $retval = gradeUpdateJson(array("url" => $_GET['url']));
+            $retval = GradeUtil::gradeUpdateJson(array("url" => $_GET['url']));
         }
         return $_GET['url'];
     }
@@ -109,7 +109,7 @@ function webauto_test_passed($grade, $url) {
         exit();
     }
 
-    gradeUpdateJson(json_encode(array("url" => $url)));
+    GradeUtil::gradeUpdateJson(json_encode(array("url" => $url)));
     $debug_log = array();
     $retval = LTIX::gradeSend($grade, false, $debug_log);
     $OUTPUT->dumpDebugArray($debug_log);
