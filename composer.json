@@ -13,7 +13,7 @@
     }
     ],
     "autoload": {
-        "psr-4": {"Tsugi\\": ""},
+        "psr-4": {"Tsugi\\": "src/"},
         "exclude-from-classmap": [
             "/tests/",
             "phpdoc.dist.xml","
