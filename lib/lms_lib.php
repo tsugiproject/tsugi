@@ -1,6 +1,5 @@
 <?php
 
-require_once("oauth.classes.php");
 require_once($CFG->dirroot."/vendor/autoload.php");
 
 use \Tsugi\Core\Cache;
