@@ -130,7 +130,6 @@ $CFG->universal_analytics = false; // "UA-57880800-1";
 $CFG->OFFLINE = false;
 
 // Leave these here
-require_once $CFG->dirroot."/setup.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
-
+require_once $CFG->vendorinclude."/setup.php";
+require_once $CFG->vendorinclude."/lms_lib.php";
 // No trailing tag to avoid inadvertent white space
