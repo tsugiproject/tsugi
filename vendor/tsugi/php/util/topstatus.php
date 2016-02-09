@@ -1,5 +1,6 @@
 <?php
-require_once "../../config.php";
+
+require_once "../../../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 use \Tsugi\Core\LTIX;

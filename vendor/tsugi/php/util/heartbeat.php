@@ -7,7 +7,7 @@ if ( isset($_GET[session_name()]) ) {
     $cookie = true;
 }
 
-require_once "../../config.php";
+require_once "../../../../config.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
 
 headerJson();
