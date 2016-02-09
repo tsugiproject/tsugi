@@ -8,6 +8,8 @@ use \Tsugi\Core\LTIX;
 // Sanity checks
 $LTI = LTIX::requireData();
 
+if ( ! $USER->instructor ) die("Must be instructor");
+
 $id = $_REQUEST['id'];
 if ( strlen($id) < 1 ) {
     die("File not found");
