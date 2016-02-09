@@ -2,9 +2,9 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 require_once $CFG->dirroot."/lib/lms_lib.php";
-require_once "blob_util.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Blob\BlobUtil;
 
 // Sanity checks
 $LTI = LTIX::requireData(array(LTIX::CONTEXT, LTIX::LINK));
@@ -27,7 +27,7 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
     }
 
     $fp = fopen($_FILES['uploaded_file']['tmp_name'], "rb");
-    $stmt = $PDOX->prepare("INSERT INTO {$p}sample_blob
+    $stmt = $PDOX->prepare("INSERT INTO {$p}blob_file
         (context_id, file_name, contenttype, content, created_at)
         VALUES (?, ?, ?, ?, NOW())");
 
@@ -57,10 +57,10 @@ $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 $OUTPUT->welcomeUserCourse();
 
-$foldername = getFolderName();
+$foldername = BlobUtil::getFolderName();
 if ( !file_exists($foldername) ) mkdir ($foldername);
 
-$stmt = $PDOX->prepare("SELECT file_id, file_name FROM {$p}sample_blob
+$stmt = $PDOX->prepare("SELECT file_id, file_name FROM {$p}blob_file
         WHERE context_id = :CI");
 $stmt->execute(array(":CI" => $CONTEXT->id));
 
