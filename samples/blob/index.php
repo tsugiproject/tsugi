@@ -57,9 +57,6 @@ $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 $OUTPUT->welcomeUserCourse();
 
-$foldername = BlobUtil::getFolderName();
-if ( !file_exists($foldername) ) mkdir ($foldername);
-
 $stmt = $PDOX->prepare("SELECT file_id, file_name FROM {$p}blob_file
         WHERE context_id = :CI");
 $stmt->execute(array(":CI" => $CONTEXT->id));
