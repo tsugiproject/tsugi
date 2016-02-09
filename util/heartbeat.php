@@ -8,7 +8,7 @@ if ( isset($_GET[session_name()]) ) {
 }
 
 require_once "../../../../config.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
+require_once $CFG->vendorinclude . "/lms_lib.php";
 
 headerJson();
 
