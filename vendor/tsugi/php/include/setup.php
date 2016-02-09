@@ -41,7 +41,7 @@ if ( isset($CFG->upgrading) && $CFG->upgrading === true ) require_once("upgradin
 
 // TODO: Before removing this, make sure to find code below that is dependent on lms_lib
 // is covered properly - or perhaps decide this belongs here forever...
-require_once $CFG->dirroot."/lib/lms_lib.php";  // During transition
+require_once $CFG->vendorinclude . "/lms_lib.php";
 
 // Check if we have been asked to do cookie or cookieless sessions
 if ( defined('COOKIE_SESSION') ) {
