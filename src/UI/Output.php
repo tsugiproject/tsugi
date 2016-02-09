@@ -146,7 +146,7 @@ class Output {
             // $heartbeat = 10000;
     ?>
     <script type="text/javascript">
-    HEARTBEAT_URL = '<?php echo(addSession($CFG->wwwroot.'/core/util/heartbeat.php')); ?>';
+    HEARTBEAT_URL = '<?php echo(addSession($CFG->vendorroot.'/heartbeat.php')); ?>';
     HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
     </script>
     <?php
