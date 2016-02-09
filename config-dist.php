@@ -24,6 +24,9 @@ $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
 
+// The vendor include
+$CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/php/include";
+
 // You can use my CDN copy of the static content in testing if you like
 // $CFG->staticroot = 'https://www.dr-chuck.net/tsugi';
 
