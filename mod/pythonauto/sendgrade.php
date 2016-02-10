@@ -1,8 +1,7 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/pdo.php";
-use \Tsugi\Grades\GradeUtil;
 
+use \Tsugi\Grades\GradeUtil;
 use \Tsugi\Core\LTIX;
 
 // Sanity checks

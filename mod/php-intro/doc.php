@@ -1,10 +1,8 @@
 <?php
 require_once "../../config.php";
+
 use \Tsugi\Core\Settings;
 use \Tsugi\UI\SettingsForm;
-require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
-
 use \Tsugi\Core\LTIX;
 
 $LTI = LTIX::requireData();

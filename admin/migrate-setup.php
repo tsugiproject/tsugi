@@ -3,7 +3,6 @@
  // Setup the migration scripts
 if ( ! $CFG->DEVELOPER ) die("Cannot run this script except in developer mode");
 
-require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once $CFG->dirroot."/pdo.php";
 
 if ( !isset($maxversion) ) $maxversion = 0;

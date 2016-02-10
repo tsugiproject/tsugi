@@ -1,7 +1,6 @@
 <?php
 require_once 'config.php';
 require_once 'pdo.php';
-require_once 'lib/lms_lib.php';
 
 use \Tsugi\Core\LTIX;
 

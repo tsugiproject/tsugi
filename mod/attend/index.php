@@ -1,7 +1,5 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
 
 // The Tsugi PHP API Documentation is available at:
 // http://do1.dr-chuck.com/tsugi/phpdoc/namespaces/Tsugi.html

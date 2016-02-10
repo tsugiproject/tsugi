@@ -1,7 +1,5 @@
 <?php
 
-require_once("../lib/lms_lib.php");
-
 $REDIRECTED = false;
 
 if ( strpos($CFG->adminpw,"warning:") === 0 ) {

@@ -1,12 +1,10 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
-use \Tsugi\Grades\GradeUtil;
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Caliper;
+use \Tsugi\Grades\GradeUtil;
 
 // Retrieve the launch data if present
 $LTI = LTIX::requireData();

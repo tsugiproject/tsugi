@@ -1,6 +1,5 @@
 <?php
 require_once("../../../config.php");
-require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once("../names.php");
 require_once("../data_util.php");
 

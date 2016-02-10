@@ -1,7 +1,5 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
 
 use \Tsugi\Grades\GradeUtil;
 use \Tsugi\Grades\UI;

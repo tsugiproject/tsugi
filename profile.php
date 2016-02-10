@@ -3,7 +3,6 @@
 define('COOKIE_SESSION', true);
 require_once("config.php");
 require_once("pdo.php");
-require_once("lib/lms_lib.php");
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();

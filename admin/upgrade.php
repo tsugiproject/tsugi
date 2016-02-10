@@ -6,7 +6,6 @@ require_once("gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 require_once("../pdo.php");
-require_once("../lib/lms_lib.php");
 
 ?>
 <html>

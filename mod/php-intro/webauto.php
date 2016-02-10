@@ -1,6 +1,6 @@
 <?php
 require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
+
 use \Tsugi\Grades\GradeUtil;
 
 // A library for webscraping graders

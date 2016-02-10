@@ -29,6 +29,31 @@ class LTIX {
     const NONE = "none";
 
     /**
+     * Get a singleton global connection or set it up if not already set up.
+     */
+    public static function getConnection() {
+        global $PDOX, $CFG;
+
+        if ( isset($PDOX) && is_object($PDOX) && get_class($PDOX) == 'Tsugi\Util\PDOX' ) {
+            return $PDOX;
+        }
+
+        if ( defined('PDO_WILL_CATCH') ) {
+            $PDOX = new \Tsugi\Util\PDOX($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
+            $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        } else {
+            try {
+                $PDOX = new \Tsugi\Util\PDOX($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
+                $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            } catch(PDOException $ex){
+                error_log("DB connection: "+$ex->getMessage());
+                die($ex->getMessage()); // with error_log
+            }
+        }
+        return $PDOX;
+    }
+
+    /**
      * Silently check if this is a launch and if so, handle it
      */
     public static function launchCheck($needed=self::ALL) {
@@ -94,7 +119,8 @@ class LTIX {
      * Extract all of the post data, set up data in tables, and set up session.
      */
     public static function setupSession($needed=self::ALL) {
-        global $CFG, $PDOX;
+        global $CFG;
+
         $needed = self::patchNeeded($needed);
         if ( ! LTI::isRequest() ) return false;
 
@@ -165,6 +191,7 @@ class LTIX {
 
         $actions = self::adjustData($CFG->dbprefix, $row, $post, $needed);
 
+        $PDOX = self::getConnection();
         // Record the nonce but first probabilistically check
         if ( $CFG->noncecheck > 0 ) {
             if ( (time() % $CFG->noncecheck) == 0 ) {
@@ -380,7 +407,7 @@ class LTIX {
      * LEFT JOIN.
      */
     public static function loadAllData($p, $profile_table, $post) {
-        global $PDOX;
+        $PDOX = self::getConnection();
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, c.settings_url AS key_settings_url,
@@ -458,7 +485,9 @@ class LTIX {
      * does absolutely no SQL.
      */
     public static function adjustData($p, &$row, $post, $needed) {
-        global $PDOX;
+
+        $PDOX = self::getConnection();
+
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
@@ -684,6 +713,9 @@ class LTIX {
     public static function requireData($needed=self::ALL) {
         global $CFG, $USER, $CONTEXT, $LINK, $RESULT;
 
+        // Make sure to initialize the global connection object
+        $PDOX = self::getConnection();
+
         $needed = self::patchNeeded($needed);
 
         // Check if we are processing an LTI launch.  If so, handle it
@@ -840,7 +872,9 @@ class LTIX {
       *
       */
     public static function gradeGet($row=false, &$debug_log=false) {
-        global $CFG, $PDOX;
+        global $CFG;
+
+        $PDOX = self::getConnection();
 
         $key_key = self::sessionGet('key_key');
         $secret = self::sessionGet('secret');
@@ -899,9 +933,11 @@ class LTIX {
       *
       */
     public static function gradeSend($grade, $row=false, &$debug_log=false) {
-        global $CFG, $PDOX, $LINK, $USER;
+        global $CFG, $LINK, $USER;
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
+
+        $PDOX = self::getConnection();
 
         // Secret and key from session to avoid crossing tenant boundaries
         $key_key = self::sessionGet('key_key');

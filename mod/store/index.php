@@ -7,9 +7,6 @@ if ( $local_path == "canvas-config.xml" ) {
     return;
 }
 
-require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
-
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;

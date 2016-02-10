@@ -2,7 +2,6 @@
 define('COOKIE_SESSION', true);
 require_once "config.php";
 require_once "pdo.php";
-require_once 'lib/lms_lib.php';
 require_once 'lib/lightopenid/openid.php';
 
 session_start();

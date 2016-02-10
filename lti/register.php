@@ -1,7 +1,6 @@
 <?php
 define('COOKIE_SESSION', true);
 require_once("../config.php");
-require_once($CFG->dirroot."/lib/lms_lib.php");
 
 // Make sure to deal with the situation where cookies
 // might not be working

@@ -1,9 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
 require_once "parse.php";
-// require_once "score.php";
 
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;

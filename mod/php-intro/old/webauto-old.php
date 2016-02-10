@@ -1,13 +1,12 @@
 <?php
 // A library for webscraping graders
 require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
-use \Tsugi\Grades\GradeUtil;
 
 require_once "lib/goutte/vendor/autoload.php";
 require_once "lib/goutte/Goutte/Client.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Grades\GradeUtil;
 
 // Check to see if we were launched from LTI, and if so set the
 // displayname variable for the rest of the code

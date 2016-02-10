@@ -1,13 +1,11 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/pdo.php";
-require_once $CFG->dirroot."/lib/lms_lib.php";
-use \Tsugi\Grades\GradeUtil;
 require_once "exercises.php";
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Settings;
 use \Tsugi\UI\SettingsForm;
+use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
 $LTI = LTIX::requireData();
