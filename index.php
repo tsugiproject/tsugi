@@ -1,4 +1,7 @@
 <?php
+
+use \Tsugi\Core\LTIX;
+
 // In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
 if ( file_exists("config.php") ) {
@@ -13,7 +16,7 @@ require_once("sanity.php");
 $PDOX = false;
 try {
     define('PDO_WILL_CATCH', true);
-    require_once("pdo.php");
+    $PDOX = LTIX::getConnection();
 } catch(PDOException $ex){
     $PDOX = false;  // sanity-db-will re-check this below
 }

@@ -1,10 +1,12 @@
 <?php
 require_once("config.php");
 
+use \Tsugi\Core\LTIX;
+
 // Lets check to see if we have a database or not and give a decent error message
 try {
    if ( ! defined('PDO_WILL_CATCH') ) define('PDO_WILL_CATCH', true);
-    require("pdo.php");
+    $PDOX = LTIX::getConnection();
 } catch(PDOException $ex){
     $msg = $ex->getMessage();
     error_log("DB connection: ".$msg);
@@ -90,6 +92,11 @@ but you have no tables in your database.  To create the initial tables
 needed for this application, use the 'Admin' feature.  You will be prompted
 for the administrator master password as configured in <code>config.php</code>
 in the <code>\$CFG->adminpw</code> setting.
+</p>
+<p>
+If the UI does not look correct(i.e. the CSS files are not loading and this
+text is not outlined in red), you many need to edit the 
+<code>\$CFG->wwwroot</code> setting in the <code>config.php</code> folder.
 </p>
 ");
     echo("\n</div>\n");

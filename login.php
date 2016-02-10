@@ -1,8 +1,11 @@
 <?php
 define('COOKIE_SESSION', true);
 require_once "config.php";
-require_once "pdo.php";
 require_once 'lib/lightopenid/openid.php';
+
+use \Tsugi\Core\LTIX;
+
+$PDOX = LTIX::getConnection();
 
 session_start();
 error_log('Session in login.php '.session_id());

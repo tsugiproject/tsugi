@@ -2,10 +2,11 @@
 // In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
 require_once("config.php");
-require_once("pdo.php");
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
+
+$PDOX = LTIX::getConnection();
 
 session_start();
 
