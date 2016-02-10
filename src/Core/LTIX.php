@@ -869,7 +869,9 @@ class LTIX {
       *
       */
     public static function gradeGet($row=false, &$debug_log=false) {
-        global $CFG, $PDOX;
+        global $CFG;
+
+        $PDOX = self::getConnection();
 
         $key_key = self::sessionGet('key_key');
         $secret = self::sessionGet('secret');
