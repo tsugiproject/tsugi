@@ -713,6 +713,9 @@ class LTIX {
     public static function requireData($needed=self::ALL) {
         global $CFG, $USER, $CONTEXT, $LINK, $RESULT;
 
+        // Make sure to initialize the global connection object
+        $PDOX = self::getConnection();
+
         $needed = self::patchNeeded($needed);
 
         // Check if we are processing an LTI launch.  If so, handle it
