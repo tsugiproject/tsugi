@@ -6,7 +6,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Mersenne_Twister;
 
-$GLOBAL_PYTHON_DATA_URL = false; // To serve locally
+// $GLOBAL_PYTHON_DATA_URL = false; // To serve locally
 
 $sanity = array(
   'urllib' => 'You should use urllib to retrieve the HTML Pages',
@@ -157,14 +157,14 @@ program.
 Here is a sample execution of a solution:
 <pre>
 $ python solution.py 
-Enter URL: http://pr4e.dr-chuck.com/ ... /known_by_Fikret.html
+Enter URL: <?= dataUrl('known_by_Fikret.html')."\n"; ?>
 Enter count: 4
 Enter position: 3
-Retrieving: http://pr4e.dr-chuck.com/ ... /known_by_Fikret.html
-Retrieving: http://pr4e.dr-chuck.com/ ... /known_by_Montgomery.html
-Retrieving: http://pr4e.dr-chuck.com/ ... /known_by_Mhairade.html
-Retrieving: http://pr4e.dr-chuck.com/ ... /known_by_Butchi.html
-Last Url: http://pr4e.dr-chuck.com/ ... /known_by_Anayah.html
+Retrieving: <?= dataUrl('known_by_Fikret.html')."\n"; ?>
+Retrieving: <?= dataUrl('known_by_Montgomery.html')."\n"; ?>
+Retrieving: <?= dataUrl('known_by_Mhairade.html')."\n"; ?>
+Retrieving: <?= dataUrl('known_by_Butchi.html')."\n"; ?>
+Retrieving: <?= dataUrl('known_by_Anayah.html')."\n"; ?>
 </pre>
 The answer to the assignment for this execution is "Anayah".
 </p>
