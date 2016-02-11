@@ -1,7 +1,12 @@
 <?php
-require_once("../../../config.php");
-require_once("../names.php");
-require_once("../data_util.php");
+if ( file_exists('../config.php') ) {
+    require_once("../config.php");
+} else {
+    require_once("../../../config.php");
+}
+
+require_once("names.php");
+require_once("data_util.php");
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\Mersenne_Twister;
@@ -232,9 +237,10 @@ Your Python program can look at the page as long as it likes.
 <?php
     // $curr_url = getCurrentFileUrl(__FILE__);
     $curr_url = LTIX::curPageUrlScript();
+    $curr_url = str_replace("/index.php", "", $curr_url);
     $new = getShuffledNames($code);
     for($i = 0; $i < count($new) && $i < 100; $i++) {
-        $new_url = "known_by_".$new[$i].".html";
+        $new_url = $curr_url."/known_by_".$new[$i].".html";
         echo('<li style="margin-top: '.rand(1,$i+25).'px;"><a href="'.$new_url.'">'
             .$new[$i]."</a></li>\n");
     }

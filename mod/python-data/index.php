@@ -1,8 +1,8 @@
 <?php
 require_once "../../config.php";
-require_once "data_util.php";
-require_once "names.php";
-require_once "locations.php";
+require_once "data/data_util.php";
+require_once "data/names.php";
+require_once "data/locations.php";
 
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;

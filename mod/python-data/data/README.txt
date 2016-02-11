@@ -8,7 +8,7 @@ so it should scale and be fast with a lage number of uses and be responsive
 most of the places in the world.
 
 To get the local serving to work, depending on your hosting provider, 
-change the file data_util.php and change the global variables:
+change the file data/data_util.php and change the global variables:
 
     // Global Configuration Options
     // $GLOBAL_PYTHON_DATA_URL = false; // To serve locally

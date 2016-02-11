@@ -6,6 +6,8 @@ if ( file_exists('locations.txt') ) {
     $json_data = file_get_contents('locations.txt');
 } else if (file_exists('../locations.txt') ) {
     $json_data = file_get_contents('../locations.txt');
+} else if (file_exists('data/locations.txt') ) {
+    $json_data = file_get_contents('data/locations.txt');
 }
 
 $json = null;

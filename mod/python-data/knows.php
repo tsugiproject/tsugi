@@ -1,12 +1,12 @@
 <?php
 
-require_once('data_util.php');
+require_once('data/data_util.php');
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Mersenne_Twister;
 
-// $GLOBAL_PYTHON_DATA_URL = false; // To serve locally
+$GLOBAL_PYTHON_DATA_URL = false; // To serve locally
 
 $sanity = array(
   'urllib' => 'You should use urllib to retrieve the HTML Pages',

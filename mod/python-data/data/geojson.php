@@ -1,6 +1,10 @@
 <?php
-require_once("../../../config.php");
-require_once("../locations.php");
+if ( file_exists('../config.php') ) {
+    require_once("../config.php");
+} else {
+    require_once("../../../config.php");
+}
+require_once("locations.php");
 
 $address = isset($_GET['address']) ? $_GET['address'] : false;
 header('Content-Type: application/json; charset=utf-8');

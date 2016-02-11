@@ -1,6 +1,6 @@
 <?php
 
-require_once('data_util.php');
+require_once('data/data_util.php');
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
