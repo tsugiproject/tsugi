@@ -173,11 +173,19 @@ function doSubmitTool(name) {
     nei.setAttribute('name', 'launch');
     nei.setAttribute('value', '');
     document.getElementById("actionform").appendChild(nei);
+
     if ( name.indexOf("Java Servlet") == 0 ) {
         $("input[name='endpoint']").val('http://localhost:8080/tsugi-servlet/hello');
     } else if ( $("input[name='endpoint']").val() == 'http://localhost:8080/tsugi-servlet/hello') {
         $("input[name='endpoint']").val('false');
     }
+
+    if ( name.indexOf("Tsugi Node") == 0 ) {
+        $("input[name='endpoint']").val('http://localhost:3000/lti');
+    } else if ( $("input[name='endpoint']").val() == 'http://localhost:3000/lti') {
+        $("input[name='endpoint']").val('false');
+    }
+
     $("input[name='custom_assn']").val(name);
     $("input[name='custom_assn']").val(name);
     $("input[name='resource_link_id']").val(name.hashCode());
@@ -216,6 +224,7 @@ $OUTPUT->bodyStart(false);
                     echo('<li><a href="#" onclick="doSubmitTool(\''.$tool.'\');return false;">'.$tool.'</a></li>'."\n");
                 }
                 echo('<li><a href="#" onclick="doSubmitTool(\'Java Servlet\');return false;">Java Servlet (if installed)</a></li>'."\n");
+                echo('<li><a href="#" onclick="doSubmitTool(\'Tsugi Node\');return false;">Tsugi Node (if installed)</a></li>'."\n");
                 ?>
                 <li class="divider"></li>
                 <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
