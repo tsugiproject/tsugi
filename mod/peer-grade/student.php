@@ -251,7 +251,7 @@ if ( $assn_json->instructorpoints > 0 ) {
 // View
 $OUTPUT->header();
 ?>
-<link href="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.css" rel="stylesheet"/>
+<link href="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/prism.css" rel="stylesheet"/>
 <?php
 $OUTPUT->bodyStart();
 
@@ -464,6 +464,6 @@ if ( isset($_SESSION['debug_log']) ) {
 
 $OUTPUT->footerStart();
 ?>
-<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>
+<script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>
 <?php
 $OUTPUT->footerEnd();

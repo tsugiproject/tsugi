@@ -10,8 +10,8 @@ $OUTPUT->header();
     <script src="<?php echo($CFG->staticroot); ?>/static/codemirrorepl/codemirrorepl.js" type="text/javascript"></script>
     <script src="<?php echo($CFG->staticroot); ?>/static/codemirrorepl/repl.js" type="text/javascript"></script>
     <script src="<?php echo($CFG->staticroot); ?>/static/codemirrorepl/python.js" type="text/javascript"></script>
-    <script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt.min.js" type="text/javascript"></script>
-    <script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt-stdlib.js" type="text/javascript"></script>
+    <script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt.min.js" type="text/javascript"></script>
+    <script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt-stdlib.js" type="text/javascript"></script>
 </head>
 <?php
 $OUTPUT->bodyStart();

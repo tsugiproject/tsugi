@@ -167,7 +167,7 @@ if ( $submit_json === null ) {
 // View
 $OUTPUT->header();
 ?>
-<link href="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.css" rel="stylesheet"/>
+<link href="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/prism.css" rel="stylesheet"/>
 <?php
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
@@ -216,7 +216,7 @@ $_SESSION['peer_submit_id'] = $submit_id;  // Our CSRF touch
 
 $OUTPUT->footerStart();
 ?>
-<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>
+<script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>
 </script>
 <?php
 $OUTPUT->footerEnd();

@@ -312,7 +312,7 @@ class ConfigInfo {
      *
      * Example call in config.php that does not hard-code the actual path:
      *
-     *     $CFG = new \Tsugi\Core\Config(realpath(dirname(__FILE__)),
+     *     $CFG = new \Tsugi\Config\ConfigInfo(realpath(dirname(__FILE__)),
      *         'http://localhost:8888/tsugi');
      *
      * Once the variable is constructed, the public member variables are 
@@ -346,6 +346,57 @@ class ConfigInfo {
         } else {
             $this->dataroot = $dataroot;
         }
+    }
+
+    function getCurrentFile($file) {
+        $root = $this->dirroot;
+        $path = realpath($file);
+        if ( strlen($path) < strlen($root) ) return false;
+        // The root must be the prefix of path
+        if ( strpos($path, $root) !== 0 ) return false;
+        $retval = substr($path, strlen($root));
+        return $retval;
+    }
+
+    // Get the foldername of the currently called script
+    // ["SCRIPT_FILENAME"]=> string(52) "/Applications/MAMP/htdocs/tsugi/mod/attend/index.php"
+    // This function will return "attend"
+    function getScriptFolder() {
+        $path = self::getScriptPathFull();
+        if ( $path === false ) return false;
+        $pieces = explode(DIRECTORY_SEPARATOR, $path);
+        if ( count($pieces) < 1 ) return false;
+        return $pieces[count($pieces)-1];
+    }
+
+    function getCurrentFileUrl($file) {
+        return $this->wwwroot.$this->getCurrentFile($file);
+    }
+
+    function getLoginUrl() {
+        return $this->wwwroot.'/login.php';
+    }
+
+    function getUrlFull($file) {
+        $path = getPwd($file);
+        return $this->wwwroot . "/" . $path;
+    }
+
+    public function getScriptPath() {
+        $path = self::getScriptPathFull();
+        if ( strpos($path, $this->dirroot) === 0 )  { 
+            $x = substr($path, strlen($this->dirroot)+1 ) ;
+            return $x;
+        } else {
+            return "";
+        }
+    }
+
+    public static function getScriptPathFull() {
+        if ( ! isset( $_SERVER['SCRIPT_FILENAME']) ) return false;
+        $script = $_SERVER['SCRIPT_FILENAME'];
+        $path = dirname($script);
+        return $path;
     }
 
 }

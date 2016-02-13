@@ -211,7 +211,7 @@ if ( $assn_id != false && $assn_json != null && is_array($our_grades) &&
 // View
 $OUTPUT->header();
 ?>
-<link href="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.css" rel="stylesheet"/>
+<link href="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/prism.css" rel="stylesheet"/>
 <?php
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
@@ -393,7 +393,7 @@ $(document).ready(function() {
     GradeUtil::gradeLoad();
 } );
 </script>
-<script src="<?php echo(getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>
+<script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>
 <?php
 $OUTPUT->footerEnd();
 

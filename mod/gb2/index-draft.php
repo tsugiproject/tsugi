@@ -7,7 +7,7 @@ use \Tsugi\Core\LTIX
 $LTI = LTIX::requireData();
 
 $p = $CFG->dbprefix;
-$localstatic = getLocalStatic(__FILE__) . '/static';
+$localstatic = $OUTPUT::getLocalStatic(__FILE__) . '/static';
 
 $OUTPUT->header();
 ?>
