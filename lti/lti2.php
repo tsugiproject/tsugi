@@ -240,7 +240,7 @@ $tp_profile = json_decode($tool_proxy);
 if ( $tp_profile == null ) {
         $OUTPUT->togglePre("Tool Proxy Raw",htmlent_utf8($tool_proxy));
     $body = json_encode($tp_profile);
-    $body = jsonIndent($body);
+    $body = LTI::jsonIndent($body);
     $OUTPUT->togglePre("Tool Proxy Parsed",htmlent_utf8($body));
     lmsDie("Unable to parse our own internal Tool Proxy (DOH!) error=".json_last_error()."\n");
 }
@@ -278,7 +278,7 @@ $handler = $tp_profile->tool_profile->resource_handler[0];
 $tp_profile->tool_profile->resource_handler = array();
 $blank_handler = json_encode($handler);
 echo("=================\n");
-// echo(jsonIndent($blank_handler));
+// echo(LTI::jsonIndent($blank_handler));
 
 // Ask for all the parameter mappings we are interested in
 // Canvas rejects us if  we ask for a custom parameter that they did 
@@ -483,7 +483,7 @@ $tp_profile->security_contract->tool_service = $tp_services;
 // print_r($tp_profile);
 
 $body = json_encode($tp_profile);
-$body = jsonIndent($body);
+$body = LTI::jsonIndent($body);
 // echo($body);die();
 
 echo("Register Endpoint=".$register_url."\n");
@@ -531,7 +531,7 @@ $OUTPUT->togglePre("Registration Request Headers",htmlent_utf8(Net::getBodySentD
 $OUTPUT->togglePre("Registration Request Base String",$LastOAuthBodyBaseString);
 echo("<p>Http Response code = $response_code</p>\n");
 $OUTPUT->togglePre("Registration Response Headers",htmlent_utf8(Net::getBodyReceivedDebug()));
-$OUTPUT->togglePre("Registration Response",htmlent_utf8(jsonIndent($response)));
+$OUTPUT->togglePre("Registration Response",htmlent_utf8(LTI::jsonIndent($response)));
 
 if ( $response_code != 201 ) {
     log_return_die("Did not get 201 response code=".$response_code);

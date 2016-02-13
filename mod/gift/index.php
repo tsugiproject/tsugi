@@ -2,6 +2,7 @@
 require_once "../../config.php";
 require_once "parse.php";
 
+use \Tsugi\Util\LTIX;
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\SettingsForm;
@@ -180,7 +181,7 @@ $qj = json_encode($questions);
 echo("<pre>\n");
 var_dump($attempt);
 var_dump($errors);
-echo(htmlent_utf8(jsonIndent($qj)));
+echo(htmlent_utf8(LTI::jsonIndent($qj)));
 echo("</pre>\n");
 */
 

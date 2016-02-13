@@ -36,13 +36,13 @@ foreach ($LOCATIONS as $key => $location) {
     $sample_json = json_decode($sample_data);
     if ( $response != 200 || $sample_json == null || ( !isset($sample_json->results[0])) ) {
         echo("*** Bad response=$response url=$sample_url json_error=".json_last_error_msg()."\n");
-        echo(jsonIndent($sample_data));
+        echo(LTI::jsonIndent($sample_data));
         continue;
     }
-    // echo("<pre>\n");echo(jsonIndent(json_encode($sample_json)));echo("</pre>\n");
+    // echo("<pre>\n");echo(\Tsugi\Util\LTI::jsonIndent(json_encode($sample_json)));echo("</pre>\n");
     if ( !isset($sample_json->results[0]->place_id) ) {
         echo("*** Could not find place_id $location\n");
-        // echo(jsonIndent($sample_data));
+        // echo(\Tsugi\Util\LTI::jsonIndent($sample_data));
         continue;
     }
     $sample_place =  $sample_json->results[0]->place_id;

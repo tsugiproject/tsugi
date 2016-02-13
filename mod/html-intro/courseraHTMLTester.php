@@ -74,7 +74,7 @@ $validator = 'https://validator.w3.org/nu/?out=json&parser=html5';
 echo("Calling the validator $validator ... \n");
 $return = Net::doBody($validator, "POST", $data, 'Content-type: text/html; charset=utf-8');
 echo("Validator Output:\n");
-echo(htmlentities(jsonIndent($return)));
+echo(htmlentities(LTI::jsonIndent($return)));
 
 
 

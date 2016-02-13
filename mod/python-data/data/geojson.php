@@ -11,7 +11,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 if ( $address === false ) {
     sort($LOCATIONS);
-    echo(jsonIndent(json_encode($LOCATIONS)));
+    echo(\Tsugi\Util\LTI::jsonIndent(json_encode($LOCATIONS)));
     return;
 }
 
@@ -20,7 +20,7 @@ if ( $where === false ) {
     http_response_code(400);
     $retval = array('error' => 'Address not found in the list of available locations',
     'locations' => $LOCATIONS);
-    echo(jsonIndent(json_encode($retval)));
+    echo(\Tsugi\Util\LTI::jsonIndent(json_encode($retval)));
     return;
 }
 

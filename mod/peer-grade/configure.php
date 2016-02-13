@@ -2,6 +2,7 @@
 require_once "../../config.php";
 require_once "peer_util.php";
 
+use \Tsugi\Util\LTI;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
 
@@ -63,7 +64,7 @@ if ( $row !== false ) $json = $row['json'];
 
 // Clean up the JSON for presentation
 if ( strlen($json) < 1 ) $json = getDefaultJson();
-$json = jsonIndent($json);
+$json = LTI::jsonIndent($json);
 
 // View
 $OUTPUT->header();

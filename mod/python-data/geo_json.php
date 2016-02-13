@@ -36,7 +36,7 @@ if ( $response != 200 || $sample_json == null || ( !isset($sample_json->results[
     error_log("DIE: Sample response=$response url=$sample_url json_error=".json_last_error_msg());
     die("Sample response=$response url=$sample_url json_error=".json_last_error_msg());
 }
-// echo("<pre>\n");echo(jsonIndent(json_encode($sample_json)));echo("</pre>\n");
+// echo("<pre>\n");echo(LTI::jsonIndent(json_encode($sample_json)));echo("</pre>\n");
 $sample_place =  $sample_json->results[0]->place_id;
 
 $actual_data = Net::doGet($actual_url);

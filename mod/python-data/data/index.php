@@ -8,6 +8,7 @@ if ( file_exists('../config.php') ) {
 require_once("names.php");
 require_once("data_util.php");
 
+use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\Mersenne_Twister;
 
@@ -183,7 +184,7 @@ if ( strpos($local_path,"geojson") === 0 ) {
         $comments[] = array('name' => $k, 'count' => $v ) ;
     }
     $arr['comments'] = $comments;
-    echo(jsonIndent(json_encode($arr)));
+    echo(LTI::jsonIndent(json_encode($arr)));
     return;
 
 } else if ( strpos($local_path, "known_by_") === 0 ) {

@@ -346,7 +346,7 @@ function getDefaultJson()
     $json = json_decode($json);
     if ( $json === null ) die("Bad JSON constant");
     $json = json_encode($json);
-    // $json = jsonIndent($json);
+    // $json = \Tsugi\Util\LTI::jsonIndent($json);
     return $json;
 }
 
