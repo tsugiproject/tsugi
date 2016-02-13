@@ -696,7 +696,7 @@ if ( $USER->instructor ) {
     var_dump($LINK);
     echo("\n<hr/>\n");
     echo("Session data (low level):\n");
-    echo(safe_var_dump($_SESSION));
+    echo($OUTPUT->safe_var_dump($_SESSION));
     echo("\n-->\n");
 }
 ?>

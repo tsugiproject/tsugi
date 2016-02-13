@@ -24,14 +24,14 @@ if ( $row !== false ) {
 }
 
 if ( $assn_id == false ) {
-    jsonError('This assignment is not yet set up');
+    $OUTPUT->jsonError('This assignment is not yet set up');
     return;
 }
 
 // Compute the user's grade
 $grade = computeGrade($assn_id, $assn_json, $user_id);
 if ( $grade <= 0 ) {
-    jsonError('Nothing to grade for this user', $row);
+    $OUTPUT->jsonError('Nothing to grade for this user', $row);
     return;
 }
 
@@ -47,11 +47,11 @@ $status = LTIX::gradeSend($grade, $result, $debug_log); // This is the slow bit
 
 if ( $status === true ) {
     if ( $user_id != $USER->id ) {
-        jsonOutput(array("status" => $status, "debug" => $debug_log));
+        $OUTPUT->jsonOutput(array("status" => $status, "debug" => $debug_log));
     } else {
-        jsonOutput(array("status" => $status, "grade" => $grade, "debug" => $debug_log));
+        $OUTPUT->jsonOutput(array("status" => $status, "grade" => $grade, "debug" => $debug_log));
     }
 } else {
-    jsonError($status, $debug_log);
+    $OUTPUT->jsonError($status, $debug_log);
 }
 

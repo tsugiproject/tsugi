@@ -4,13 +4,13 @@ require_once "../../config.php";
 use \Tsugi\Core\LTIX;
 use \Tsugi\Grades\GradeUtil;
 
-// No Buffering
-noBuffer();
-
 // Sanity checks
 $LTI = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
+
+// No Buffering
+$OUTPUT->noBuffer();
 
 // Grab our link_id
 $link_id = 0;

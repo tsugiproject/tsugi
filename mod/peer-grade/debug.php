@@ -17,7 +17,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 $OUTPUT->welcomeUserCourse();
 
-$OUTPUT->togglePre("Session data",safe_var_dump($_SESSION));
+$OUTPUT->togglePre("Session data",$OUTPUT->safe_var_dump($_SESSION));
 
 ?>
 <form method="post">

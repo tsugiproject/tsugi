@@ -13,7 +13,7 @@ $OUTPUT->flashMessages();
 $OUTPUT->welcomeUserCourse();
 
 echo("<p>Debug dump of session data.</p>\n");
-$OUTPUT->togglePre("Session data",safe_var_dump($_SESSION));
+$OUTPUT->togglePre("Session data",$OUTPUT->safe_var_dump($_SESSION));
 
 ?>
 <!-- Note that addSession() is needed in the onclick code because it is

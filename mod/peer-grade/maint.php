@@ -5,13 +5,13 @@ require_once "peer_util.php";
 
 use \Tsugi\Core\LTIX;
 
-// No Buffering
-noBuffer();
-
 // Sanity checks
 $LTI = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
+
+// No Buffering
+$OUTPUT->noBuffer();
 
 // Grab our link_id
 $link_id = $LINK->id;

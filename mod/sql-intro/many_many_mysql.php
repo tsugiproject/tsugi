@@ -40,7 +40,7 @@ if ( isset($_FILES['json']) ) {
     }
 
     if ( $fdes['size'] > $MAX_UPLOAD_FILE_SIZE ) {
-        $_SESSION['error'] = "Uploaded file must be < ".displaySize($MAX_UPLOAD_FILE_SIZE);
+        $_SESSION['error'] = "Uploaded file must be < ".$OUTPUT->displaySize($MAX_UPLOAD_FILE_SIZE);
         header( 'Location: '.addSession('index.php') ) ;
         return;
     }
