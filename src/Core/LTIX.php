@@ -220,9 +220,9 @@ class LTIX {
         $_SESSION['CSRF_TOKEN'] = uniqid();
 
         // Save this to make sure the user does not wander unless we launched from the root
-        $scp = getScriptPath();
+        $scp = $CFG->getScriptPath();
         if ( strlen($scp) > 0 ) {
-            $_SESSION['script_path'] = getScriptPath();
+            $_SESSION['script_path'] = $CFG->getScriptPath();
         }
 
         // Check if we can auto-login the system user

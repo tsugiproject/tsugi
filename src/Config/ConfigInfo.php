@@ -382,6 +382,16 @@ class ConfigInfo {
         return $this->wwwroot . "/" . $path;
     }
 
+    public static function getScriptPath() {
+        $path = self::getScriptPathFull();
+        if ( strpos($path, $this->dirroot) === 0 )  { 
+            $x = substr($path, strlen($this->dirroot)+1 ) ;
+            return $x;
+        } else {
+            return "";
+        }
+    }
+
     public static function getScriptPathFull() {
         if ( ! isset( $_SERVER['SCRIPT_FILENAME']) ) return false;
         $script = $_SERVER['SCRIPT_FILENAME'];
