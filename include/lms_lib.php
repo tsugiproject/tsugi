@@ -28,69 +28,6 @@ function requireAdmin() {
     }
 }
 
-function jsonIndent($json) {
-    $result      = '';
-    $pos         = 0;
-    $strLen      = strlen($json);
-    $indentStr   = '  ';
-    $newLine     = "\n";
-    $prevChar    = '';
-    $outOfQuotes = true;
-
-    $json = str_replace('\/', '/',$json);
-    for ($i=0; $i<=$strLen; $i++) {
-
-        // Grab the next character in the string.
-        $char = substr($json, $i, 1);
-
-        // Are we inside a quoted string?
-        if ($char == '"' && $prevChar != '\\') {
-            $outOfQuotes = !$outOfQuotes;
-
-        // If this character is the end of an element,
-        // output a new line and indent the next line.
-        } else if(($char == '}' || $char == ']') && $outOfQuotes) {
-            $result .= $newLine;
-            $pos --;
-            for ($j=0; $j<$pos; $j++) {
-                $result .= $indentStr;
-            }
-        }
-
-        // Add the character to the result string.
-        $result .= $char;
-
-        // If the last character was the beginning of an element,
-        // output a new line and indent the next line.
-        if (($char == ',' || $char == '{' || $char == '[') && $outOfQuotes) {
-            $result .= $newLine;
-            if ($char == '{' || $char == '[') {
-                $pos ++;
-            }
-
-            for ($j = 0; $j < $pos; $j++) {
-                $result .= $indentStr;
-            }
-        }
-
-        $prevChar = $char;
-    }
-    return $result;
-}
-
-// http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers
-// http://www.php.net/manual/en/function.header.php
-function noCacheHeader() {
-    header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
-    header('Pragma: no-cache'); // HTTP 1.0.
-    header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past - proxies
-}
-
-function headerJson() {
-    header('Content-type: application/json');
-    noCacheHeader();
-}
-
 function lmsDie($message=false) {
     global $CFG, $DEBUG_STRING;
     if($message !== false) {
@@ -119,19 +56,6 @@ function maxUpload() {
     $memory_limit = (int)(ini_get('memory_limit'));
     $upload_mb = min($maxUpload, $max_post, $memory_limit);
     return $upload_mb;
-}
-
-function displaySize($size) {
-    if ( $size > 1024*1024*1024*2 ) {
-        return (int) ($size/(1024*1024*1024))."GB";
-    }
-    if ( $size > 1024*1024*2 ) {
-        return (int) ($size/(1024*1024))."MB";
-    }
-    if ( $size > 1024*2 ) {
-        return (int) ($size/(1024))."KB";
-    }
-    return $size."B";
 }
 
 function findTools($dir, &$retval, $filename="index.php") {
@@ -209,18 +133,6 @@ function lookupResult($LTI, $user_id) {
     return $row;
 }
 
-// Clean out the array of 'secret' keys
-function safe_var_dump($x) {
-        ob_start();
-        if ( isset($x['secret']) ) $x['secret'] = MD5($x['secret']);
-        if ( is_array($x) ) foreach ( $x as &$v ) {
-            if ( is_array($v) && isset($v['secret']) ) $v['secret'] = MD5($v['secret']);
-        }
-        var_dump($x);
-        $result = ob_get_clean();
-        return $result;
-}
-
 function line_out($output) {
     echo(htmlent_utf8($output)."<br/>\n");
     flush();
@@ -234,22 +146,6 @@ function error_out($output) {
 function success_out($output) {
     echo('<span style="color:green"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
     flush();
-}
-
-function jsonError($message,$detail="") {
-    header('Content-Type: application/json; charset=utf-8');
-    echo(json_encode(array("error" => $message, "detail" => $detail)));
-}
-
-function jsonOutput($json_data) {
-    header('Content-Type: application/json; charset=utf-8');
-    echo(json_encode($json_data));
-}
-
-// No Buffering
-function noBuffer() {
-    ini_set('output_buffering', 'off');
-    ini_set('zlib.output_compression', false);
 }
 
 function loadUserInfoBypass($user_id)

@@ -53,9 +53,7 @@ class Output {
      */
     function headerJson() {
         header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
-        header('Pragma: no-cache'); // HTTP 1.0.
-        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past - proxies
-        header('Content-type: application/json');
+        self::noCacheHeader();
     }
 
     function flashMessages() {
@@ -440,6 +438,55 @@ class Output {
         if ( strpos($path, $root) !== 0 ) return false;
         $retval = substr($path, strlen($root));
         return $retval;
+    }
+
+    // http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers
+    // http://www.php.net/manual/en/public static function.header.php
+    public static function noCacheHeader() {
+        header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+        header('Pragma: no-cache'); // HTTP 1.0.
+        header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past - proxies
+    }
+
+    public static function displaySize($size) {
+        if ( $size > 1024*1024*1024*2 ) {
+            return (int) ($size/(1024*1024*1024))."GB";
+        }
+        if ( $size > 1024*1024*2 ) {
+            return (int) ($size/(1024*1024))."MB";
+        }
+        if ( $size > 1024*2 ) {
+            return (int) ($size/(1024))."KB";
+        }
+        return $size."B";
+    }
+
+    // Clean out the array of 'secret' keys
+    public static function safe_var_dump($x) {
+            ob_start();
+            if ( isset($x['secret']) ) $x['secret'] = MD5($x['secret']);
+            if ( is_array($x) ) foreach ( $x as &$v ) {
+                if ( is_array($v) && isset($v['secret']) ) $v['secret'] = MD5($v['secret']);
+            }
+            var_dump($x);
+            $result = ob_get_clean();
+            return $result;
+    }
+
+    public static function jsonError($message,$detail="") {
+        header('Content-Type: application/json; charset=utf-8');
+        echo(json_encode(array("error" => $message, "detail" => $detail)));
+    }
+
+    public static function jsonOutput($json_data) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo(json_encode($json_data));
+    }
+
+    // No Buffering
+    public static function noBuffer() {
+        ini_set('output_buffering', 'off');
+        ini_set('zlib.output_compression', false);
     }
 
 }
