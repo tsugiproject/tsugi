@@ -7,7 +7,12 @@ packagist.
 
 For now this is *not* the gold standard - it is just evolving.
 
-Releasing
+Testing
 ---------
+
+To test:
+
+        php phpunit-old.phar 
+
 
 

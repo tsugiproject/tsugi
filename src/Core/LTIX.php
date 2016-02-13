@@ -725,7 +725,7 @@ class LTIX {
         $sess = session_name();
         if ( ini_get('session.use_cookies') != '0' ) {
             if ( ! isset($_COOKIE[$sess]) ) {
-                send403();
+                self::send403();
                 die_with_error_log("Missing session cookie - please re-launch");
             }
         } else { // non-cookie session
@@ -733,10 +733,10 @@ class LTIX {
                 // We tried to set a session..
             } else {
                 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-                    send403();
+                    self::send403();
                     die_with_error_log('Missing '.$sess.' from POST data');
                 } else {
-                    send403();
+                    self::send403();
                     die_with_error_log('This tool should be launched from a learning system using LTI');
                 }
             }
@@ -753,19 +753,19 @@ class LTIX {
         if ( !isset($_SESSION['lti']) ) {
             // $debug = safe_var_dump($_SESSION);
             // error_log($debug);
-            send403(); error_log('Session expired - please re-launch '.session_id());
+            self::send403(); error_log('Session expired - please re-launch '.session_id());
             die('Session expired - please re-launch'); // with error_log
         }
 
         // Check the referrer...
-        $trusted = checkReferer() || checkCSRF();
+        $trusted = self::checkReferer() || self::checkCSRF();
 
         // Check to see if we switched browsers or IP addresses
         // TODO: Change these to warnings once we get more data
         if ( (!$trusted) && isset($_SESSION['HTTP_USER_AGENT']) ) {
             if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
                 $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
-                send403();
+                self::send403();
                 die_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
                     $_SESSION['HTTP_USER_AGENT'].' ::: '.
                     isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Empty user agent',
@@ -781,7 +781,7 @@ class LTIX {
             if ( count($sess_pieces) == 4 && count($serv_pieces) == 4 ) {
                 if ( $sess_pieces[0] != $serv_pieces[0] || $sess_pieces[1] != $serv_pieces[1] ||
                     $sess_pieces[2] != $serv_pieces[2] ) {
-                    send403();
+                    self::send403();
                     die_with_error_log('Session address has expired', " ".session_id()." REMOTE_ADDR ".
                         $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR'], 'DIE:');
                 }
@@ -791,7 +791,7 @@ class LTIX {
         // Check to see if the user has navigated to a new place in the hierarchy
         if ( isset($_SESSION['script_path']) && getScriptPath() != 'core/blob' && 
             strpos(getScriptPath(), $_SESSION['script_path']) !== 0 ) {
-            send403();
+            self::send403();
             die_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
                 $_SESSION['script_path'].' /  '.getScriptPath(), 'DIE:');
         }
@@ -805,7 +805,7 @@ class LTIX {
         }
 
         // Check to see if the session needs to be extended due to this request
-        checkHeartBeat();
+        self::checkHeartBeat();
 
         // Restart the number of continuous heartbeats
         $_SESSION['HEARTBEAT_COUNT'] = 0;
@@ -1200,6 +1200,49 @@ class LTIX {
 
         $http_url = $scheme .  '://' . $host .  $port;
         return $http_url;
+    }
+
+    // See if we need to extend our session (heartbeat)
+    // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
+    private static function checkHeartBeat() {
+        if ( session_id() == "" ) return;  // This should not start the session
+
+        if ( isset($CFG->sessionlifetime) ) {
+            if (isset($_SESSION['LAST_ACTIVITY']) ) {
+                $heartbeat = $CFG->sessionlifetime/4;
+                $ellapsed = time() - $_SESSION['LAST_ACTIVITY'];
+                if ( $ellapsed > $heartbeat ) {
+                    $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+                    // TODO: Remove this after verification
+                    $filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
+                    error_log("Heartbeat ".session_id().' '.$ellapsed.' '.$filename);
+                }
+            } else {
+                $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+            }
+        }
+    }
+
+    private static function send403() {
+        header("HTTP/1.1 403 Forbidden");
+    }
+
+    // Returns true for a good referrer and false if we could not verify it
+    private static function checkReferer() {
+        global $CFG;
+        return isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],$CFG->wwwroot) === 0 ;
+    }
+
+    // Returns true for a good CSRF and false if we could not verify it
+    private static function checkCSRF() {
+        global $CFG;
+        if ( ! isset($_SESSION['CSRF_TOKEN']) ) return false;
+        $token = $_SESSION['CSRF_TOKEN'];
+        if ( isset($_POST['CSRF_TOKEN']) && $token == $_POST['CSRF_TOKEN'] ) return true;
+        $headers = array_change_key_case(apache_request_headers());
+        if ( isset($headers['x-csrf-token']) && $token == $headers['x-csrf-token'] ) return true;
+        if ( isset($headers['x-csrftoken']) && $token == $headers['x-csrftoken'] ) return true;
+        return false;
     }
 
 }

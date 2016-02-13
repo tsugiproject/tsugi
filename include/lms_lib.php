@@ -5,49 +5,6 @@ require_once($CFG->dirroot."/vendor/autoload.php");
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
 
-// See if we need to extend our session (heartbeat)
-// http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
-function checkHeartBeat() {
-    if ( session_id() == "" ) return;  // This should not start the session
-
-    if ( isset($CFG->sessionlifetime) ) {
-        if (isset($_SESSION['LAST_ACTIVITY']) ) {
-            $heartbeat = $CFG->sessionlifetime/4;
-            $ellapsed = time() - $_SESSION['LAST_ACTIVITY'];
-            if ( $ellapsed > $heartbeat ) {
-                $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
-                // TODO: Remove this after verification
-                $filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
-                error_log("Heartbeat ".session_id().' '.$ellapsed.' '.$filename);
-            }
-        } else {
-            $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
-        }
-    }
-}
-
-function send403() {
-    header("HTTP/1.1 403 Forbidden");
-}
-
-// Returns true for a good referrer and false if we could not verify it
-function checkReferer() {
-    global $CFG;
-    return isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],$CFG->wwwroot) === 0 ;
-}
-
-// Returns true for a good CSRF and false if we could not verify it
-function checkCSRF() {
-    global $CFG;
-    if ( ! isset($_SESSION['CSRF_TOKEN']) ) return false;
-    $token = $_SESSION['CSRF_TOKEN'];
-    if ( isset($_POST['CSRF_TOKEN']) && $token == $_POST['CSRF_TOKEN'] ) return true;
-    $headers = array_change_key_case(apache_request_headers());
-    if ( isset($headers['x-csrf-token']) && $token == $headers['x-csrf-token'] ) return true;
-    if ( isset($headers['x-csrftoken']) && $token == $headers['x-csrftoken'] ) return true;
-    return false;
-}
-
 // TODO: deal with headers sent...
 function requireLogin() {
     global $CFG, $OUTPUT;
@@ -69,81 +26,6 @@ function requireAdmin() {
         $OUTPUT->doRedirect($CFG->wwwroot.'/login.php') ;
         exit();
     }
-}
-
-// Gets an absolute static path to the specified file
-function getLocalStatic($file) {
-    global $CFG;
-    $path = getPwd($file);
-    return $CFG->staticroot . "/" . $path;
-}
-
-function getCurrentFile($file) {
-    global $CFG;
-    $root = $CFG->dirroot;
-    $path = realpath($file);
-    if ( strlen($path) < strlen($root) ) return false;
-    // The root must be the prefix of path
-    if ( strpos($path, $root) !== 0 ) return false;
-    $retval = substr($path, strlen($root));
-    return $retval;
-}
-
-function getScriptPath() {
-    global $CFG;
-    $path = getScriptPathFull();
-    if ( strpos($path, $CFG->dirroot) === 0 )  { 
-        $x = substr($path, strlen($CFG->dirroot)+1 ) ;
-        return $x;
-    } else {
-        return "";
-    }
-}
-
-function getScriptPathFull() {
-    if ( ! isset( $_SERVER['SCRIPT_FILENAME']) ) return false;
-    $script = $_SERVER['SCRIPT_FILENAME'];
-    $path = dirname($script);
-    return $path;
-}
-
-// Get the foldername of the currently called script
-// ["SCRIPT_FILENAME"]=> string(52) "/Applications/MAMP/htdocs/tsugi/mod/attend/index.php"
-// This function will return "attend"
-function getScriptFolder() {
-    $path = getScriptPathFull();
-    if ( $path === false ) return false;
-    $pieces = explode(DIRECTORY_SEPARATOR, $path);
-    if ( count($pieces) < 1 ) return false;
-    return $pieces[count($pieces)-1];
-}
-
-function getCurrentFileUrl($file) {
-    global $CFG;
-    return $CFG->wwwroot.getCurrentFile($file);
-}
-
-function getLoginUrl() {
-    global $CFG;
-    return $CFG->wwwroot.'/login.php';
-}
-
-function getPwd($file) {
-    global $CFG;
-    $root = $CFG->dirroot;
-    $path = realpath(dirname($file));
-    $root .= '/'; // Add the trailing slash
-    if ( strlen($path) < strlen($root) ) return false;
-    // The root must be the prefix of path
-    if ( strpos($path, $root) !== 0 ) return false;
-    $retval = substr($path, strlen($root));
-    return $retval;
-}
-
-function getUrlFull($file) {
-    global $CFG;
-    $path = getPwd($file);
-    return $CFG->wwwroot . "/" . $path;
 }
 
 function jsonIndent($json) {

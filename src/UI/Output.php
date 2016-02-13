@@ -418,4 +418,28 @@ class Output {
         }
     }
 
+    /**
+     * Gets an absolute static path to the specified file
+     */
+    public static function getLocalStatic($file) {
+        global $CFG;
+        $path = self::getPwd($file);
+        return $CFG->staticroot . "/" . $path;
+    }
+
+    /**
+     * Get the current working directory of a file
+     */
+    public static function getPwd($file) {
+        global $CFG;
+        $root = $CFG->dirroot;
+        $path = realpath(dirname($file));
+        $root .= '/'; // Add the trailing slash
+        if ( strlen($path) < strlen($root) ) return false;
+        // The root must be the prefix of path
+        if ( strpos($path, $root) !== 0 ) return false;
+        $retval = substr($path, strlen($root));
+        return $retval;
+    }
+
 }
