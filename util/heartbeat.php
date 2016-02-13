@@ -10,9 +10,9 @@ if ( isset($_GET[session_name()]) ) {
 require_once "../../../../config.php";
 require_once $CFG->vendorinclude . "/lms_lib.php";
 
-use \Tsugi\Util\LTI;
+use \Tsugi\UI\Output;
 
-LTI::headerJson();
+Output::headerJson();
 
 session_start();
 
