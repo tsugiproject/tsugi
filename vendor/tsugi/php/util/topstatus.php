@@ -5,7 +5,7 @@ require_once $CFG->vendorinclude . "/lms_lib.php";
 
 use \Tsugi\Core\LTIX;
 
-headerJson();
+$OUTPUT->headerJson();
 
 // Nothing for us to do
 if ( ! isset($_GET[session_name()]) ) {
