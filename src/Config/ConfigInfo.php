@@ -382,7 +382,7 @@ class ConfigInfo {
         return $this->wwwroot . "/" . $path;
     }
 
-    public static function getScriptPath() {
+    public function getScriptPath() {
         $path = self::getScriptPathFull();
         if ( strpos($path, $this->dirroot) === 0 )  { 
             $x = substr($path, strlen($this->dirroot)+1 ) ;
