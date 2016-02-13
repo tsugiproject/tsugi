@@ -789,11 +789,11 @@ class LTIX {
         }
 
         // Check to see if the user has navigated to a new place in the hierarchy
-        if ( isset($_SESSION['script_path']) && getScriptPath() != 'core/blob' && 
-            strpos(getScriptPath(), $_SESSION['script_path']) !== 0 ) {
+        if ( isset($_SESSION['script_path']) && $CFG->getScriptPath() != 'core/blob' && 
+            strpos($CFG->getScriptPath(), $_SESSION['script_path']) !== 0 ) {
             self::send403();
             die_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
-                $_SESSION['script_path'].' /  '.getScriptPath(), 'DIE:');
+                $_SESSION['script_path'].' /  '.$CFG->getScriptPath(), 'DIE:');
         }
 
         $LTI = $_SESSION['lti'];
