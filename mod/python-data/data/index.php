@@ -263,10 +263,18 @@ setTimeout('showHide("overlay");', 2500);
 <?php
 
     return;
+} else if ( strpos($local_path, "debug") === 0 ) {
+    echo("<pre>\n");
+    echo("getCurrentFileUrl: ".getCurrentFileUrl(__FILE__)."\n");
+    echo("LTIX::curPageUrlScript: ".LTIX::curPageUrlScript()."\n");    
+
+    var_dump($_SERVER);
+    echo("</pre>\n");
+    return;
 }
 if ( strlen($local_path) > 0 ) {
     echo('<p>File not found '.htmlentities($local_path).'</p>');
-}else {
+} else {
 ?>
 <html>
 <head>
