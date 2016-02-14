@@ -4,6 +4,7 @@ require_once "files_util.php";
 
 use \Tsugi\Core\Debug;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Blob\BlobUtil;
 
 // Sanity checks
 $LTI = LTIX::requireData();
@@ -12,7 +13,7 @@ $LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 1) {
-    $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
+    $_SESSION['error'] = 'Error: Maximum size of '.BlobUtil::maxUpload().'MB exceeded.';
     header( 'Location: '.addSession('index.php') ) ;
     return;
 }
@@ -40,7 +41,7 @@ if( isset($_FILES['uploaded_file']) && $_FILES['uploaded_file']['error'] == 0)
 
 // Sometimes, if the maxUpload_SIZE is exceeded, it deletes all of $_POST
 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-    $_SESSION['error'] = 'Error: Maximum size of '.maxUpload().'MB exceeded.';
+    $_SESSION['error'] = 'Error: Maximum size of '.BlobUtil::maxUpload().'MB exceeded.';
     header( 'Location: '.addSession('index.php') ) ;
     return;
 }
@@ -73,11 +74,11 @@ echo("</ul>\n");
 finfo_close($finfo);
 
 if ( $USER->instructor ) { ?>
-<h4>Upload file (max <?php echo(maxUpload());?>MB)</h4>
+<h4>Upload file (max <?php echo(BlobUtil::maxUpload());?>MB)</h4>
 <form name="myform" enctype="multipart/form-data" method="post" action="<?php addSession('index.php');?>">
 <p>Upload File: <input name="uploaded_file" type="file">
    <input type="submit" name="submit" value="Upload"></p>
-   <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(maxUpload());?>000000" />
+   <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo(BlobUtil::maxUpload());?>000000" />
 </form>
 <?php
 }
