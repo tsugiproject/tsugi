@@ -83,7 +83,7 @@ class BlobUtil {
     {
         global $CFG, $CONTEXT, $PDOX;
 
-        if ( $SAFETY_CHECK && checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
+        if ( $SAFETY_CHECK && self::checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
 
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 
@@ -103,7 +103,7 @@ class BlobUtil {
                 WHERE context_id = :CID AND file_sha256 = :SHA",
                 array(":CID" => $CONTEXT->id, ":SHA" => $sha256)
             );
-            $row = $stmt->fetch(PDO::FETCH_NUM);
+            $row = $stmt->fetch(\PDO::FETCH_NUM);
             if ( $row !== false ) {
                 error_log("Already had instance of $filename");
                 $row[0] = $row[0]+0;  // Make sure the id is an integer
@@ -119,8 +119,8 @@ class BlobUtil {
             $stmt->bindParam(2, $sha256);
             $stmt->bindParam(3, $filename);
             $stmt->bindParam(4, $FILE_DESCRIPTOR['type']);
-            $stmt->bindParam(5, $fp, PDO::PARAM_LOB);
-            // $stmt->bindParam(5, $data, PDO::PARAM_LOB);
+            $stmt->bindParam(5, $fp, \PDO::PARAM_LOB);
+            // $stmt->bindParam(5, $data, \PDO::PARAM_LOB);
             $PDOX->beginTransaction();
             $stmt->execute();
             $id = 0+$PDOX->lastInsertId();
@@ -135,7 +135,7 @@ class BlobUtil {
     {
         global $CFG, $CONTEXT, $PDOX;
 
-        if ( $SAFETY_CHECK && checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
+        if ( $SAFETY_CHECK && self::checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
 
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 

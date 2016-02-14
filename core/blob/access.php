@@ -1,8 +1,8 @@
 <?php
 require_once "../../config.php";
-require_once "blob_util.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Blob\BlobUtil;
 
 // Sanity checks
 $LTI = LTIX::requireData(LTIX::CONTEXT);
@@ -23,7 +23,7 @@ if ( $row === false ) {
     die("File not loaded");
 }
 
-if ( ! safeFileSuffix($row['file_name']) )  {
+if ( ! BlobUtil::safeFileSuffix($row['file_name']) )  {
     error_log('Unsafe file suffix: '.$row['file_name']);
     die('Unsafe file suffix');
 }

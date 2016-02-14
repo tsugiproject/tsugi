@@ -1,6 +1,7 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/core/blob/blob_util.php";
+use \Tsugi\Blob\BlobUtil;
+
 require_once "peer_util.php";
 
 use \Tsugi\Core\Cache;
@@ -80,7 +81,7 @@ if ( $assn_id != false && $assn_json != null &&
             }
 
             // Sanity-check the file
-            $safety = checkFileSafety($fdes);
+            $safety = BlobUtil::checkFileSafety($fdes);
             if ( $safety !== true ) {
                 $_SESSION['error'] = "Error: ".$safety;
                 error_log("Upload Error: ".$safety);
@@ -89,14 +90,14 @@ if ( $assn_id != false && $assn_json != null &&
             }
 
             // Check the kind of file
-            if ( ! isPngOrJpeg($fdes) ) {
+            if ( ! BlobUtil::isPngOrJpeg($fdes) ) {
                 $_SESSION['error'] = 'Files must either contain JPG, or PNG images: '.$filename;
                 error_log("Upload Error - Not an Image: ".$filename);
                 header( 'Location: '.addSession('index.php') ) ;
                 return;
             }
 
-            $blob_id = uploadFileToBlob($fdes);
+            $blob_id = BlobUtil::uploadFileToBlob($fdes);
             if ( $blob_id === false ) {
                 $_SESSION['error'] = 'Problem storing file in server: '.$filename;
                 header( 'Location: '.addSession('index.php') ) ;
@@ -372,7 +373,7 @@ attention of the instructor.</p>
 <div id="gradeinfo">Calculating grade....</div>
 </p>
 <script type="text/javascript">
-function GradeUtil::gradeLoad() {
+function gradeLoad() {
     window.console && console.log('Loading and updating your grade...');
     $.getJSON('<?php echo(addSession('update_grade.php')); ?>', function(data) {
         window.console && console.log(data);
@@ -390,7 +391,7 @@ $OUTPUT->footerStart();
 ?>
 <script type="text/javascript">
 $(document).ready(function() {
-    GradeUtil::gradeLoad();
+    gradeLoad();
 } );
 </script>
 <script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>

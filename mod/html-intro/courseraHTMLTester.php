@@ -8,7 +8,8 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Net;
 
-//require_once $CFG->dirroot."/core/blob/blob_util.php";
+//use \Tsugi\Blob\BlobUtil;
+
 
 
 if ( isset($_FILES['html_01']) ) {
@@ -22,7 +23,7 @@ if ( isset($_FILES['html_01']) ) {
         return;
     }
 
-    $data = uploadFileToString($fdes, false);
+    $data = BlobUtil::uploadFileToString($fdes, false);
     if ( $data === false ) {
         $_SESSION['error'] = 'Could not retrieve file data';
         header( 'Location: '.addSession('index.php') ) ;

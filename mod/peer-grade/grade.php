@@ -1,6 +1,7 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/core/blob/blob_util.php";
+use \Tsugi\Blob\BlobUtil;
+
 require_once "peer_util.php";
 
 use \Tsugi\Core\Cache;

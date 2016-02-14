@@ -4,6 +4,7 @@ use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\User;
 use \Tsugi\Core\Mail;
+use \Tsugi\Blob\BlobUtil;
 
 // Loads the assignment associated with this link
 function loadAssignment($LTI)
@@ -102,7 +103,7 @@ function showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id)
             if ( $blobno >= count($blob_ids) ) continue;
             $blob_id = $blob_ids[$blobno++];
             if ( is_array($blob_id) ) $blob_id = $blob_id[0];
-            $url = getAccessUrlForBlob($blob_id);
+            $url = BlobUtil::getAccessUrlForBlob($blob_id);
             $title = 'Student image';
             if( isset($part->title) && strlen($part->title) > 0 ) $title = $part->title;
             echo (' <a href="#" onclick="$(\'#myModal_'.$blobno.'\').modal();"');
