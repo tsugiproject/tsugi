@@ -4,6 +4,7 @@ require_once "config.php";
 require_once 'lib/lightopenid/openid.php';
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Crypt\SecureCookie;
 
 $PDOX = LTIX::getConnection();
 
@@ -196,7 +197,7 @@ if ( $doLogin ) {
         $_SESSION["profile_id"] = $profile_id;
 
         // Set the secure cookie
-        setSecureCookie($user_id,$userSHA);
+        SecureCookie::set($user_id,$userSHA);
 
         if ( isset($_SESSION['login_return']) ) {
             header('Location: '.$_SESSION['login_return']);
