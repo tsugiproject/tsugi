@@ -6,12 +6,12 @@ namespace Tsugi\Core;
 
 class Mail {
 
-    public static function computeMailCheck($identity) {
+    public static function computeCheck($identity) {
         global $CFG;
         return sha1($CFG->mailsecret . '::' . $identity);
     }
 
-    public static function mailSend($to, $subject, $message, $id, $token) {
+    public static function send($to, $subject, $message, $id, $token) {
         global $CFG;
 
         if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return;
