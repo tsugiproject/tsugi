@@ -2,10 +2,6 @@
 
 require_once($CFG->dirroot."/vendor/autoload.php");
 
-use \Tsugi\Core\Cache;
-use \Tsugi\Core\LTIX;
-use \Tsugi\Crypt\SecureCookie;
-
 function lmsDie($message=false) {
     global $CFG, $DEBUG_STRING;
     if($message !== false) {
