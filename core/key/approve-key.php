@@ -5,6 +5,7 @@ require_once("../../config.php");
 require_once($CFG->dirroot."/pdo.php");
 
 use \Tsugi\UI\CrudForm;
+use \Tsugi\Core\Mail;
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
@@ -42,7 +43,7 @@ if ( $row['lti'] == 1 ) {
 
 // Set up the email variables
 $user_id = $row['user_id'];
-$token = computeMailCheck($user_id);
+$token = Mail::computeCheck($user_id);
 $to = $row['email'];
 // TODO: Fix this
 $to = $row['email'].',csev@umich.edu';
@@ -58,7 +59,7 @@ if ( isset($_POST['doReject']) && isset($_POST['request_id']) ) {
         $subject = "Key Request Denied from ".$row['displayname'].' ('.$row['email'].' )';
         $message = "Key Request Denied from ".$row['displayname'].' ('.$row['email'].' )\n'.
             "System Admin: ".$CFG->ownername." (".$CFG->owneremail.")\n";
-        $retval = mailSend($to, $subject, $message, $user_id, $token);
+        $retval = Mail::send($to, $subject, $message, $user_id, $token);
     }
 
     $_SESSION['success'] = 'Request denied';

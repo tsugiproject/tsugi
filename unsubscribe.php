@@ -1,6 +1,8 @@
 <?php
 require_once("config.php");
 
+use \Tsugi\Core\Mail;
+
 $id = false;
 $token = false;
 if ( isset($_POST['id']) && isset($_POST['token']) ) {
@@ -36,7 +38,7 @@ if ( $row === false ) {
 }
 
 require_once("mail/maillib.php");
-$check = computeMailCheck($row[3]);
+$check = Mail::computeCheck($row[3]);
 if ( $token != $check ) {
     echo("Sorry, token is not valid ");
     error_log("Unsubscribe bad token=$token check=$check");

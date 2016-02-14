@@ -2,6 +2,7 @@
 
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Mail;
 
 // Loads the assignment associated with this link
 function loadAssignment($LTI)
@@ -283,7 +284,7 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
     if ( strlen($to) < 1 || strpos($to,'@') === false ) return false;
 
     $name = $user_row['displayname'];
-    $token = computeMailCheck($user_id);
+    $token = Mail::computeCheck($user_id);
     $subject = 'From '.$CFG->servicename.', Your Peer Graded Entry Has Been Reset';
     $E = "\n";
     if ( isset($CFG->maileol) ) $E = $CFG->maileol;
@@ -310,7 +311,7 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
     );
 
     // echo $to, $subject, $message, $user_id, $token;
-    $retval = mailSend($to, $subject, $message, $user_id, $token);
+    $retval = Mail::send($to, $subject, $message, $user_id, $token);
     return $retval;
 }
 

@@ -5,6 +5,7 @@ require_once("../../config.php");
 require_once($CFG->dirroot."/pdo.php");
 
 use \Tsugi\UI\Table;
+use \Tsugi\Core\Mail;
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
     $_SESSION['error'] = _m("This service does not accept instructor requests for keys");
@@ -46,14 +47,14 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
     );
     if ( !isAdmin() && $CFG->owneremail && $CFG->OFFLINE === false) {
         $user_id = $_SESSION['id'];
-        $token = computeMailCheck($user_id);
+        $token = Mail::computeCheck($user_id);
         $to = $CFG->owneremail;
         $subject = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )';
         $message = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )\n'.
             "\nNotes\n".$_POST['notes']."\n\n".
             "Link: ".getCurrentFileUrl(__FILE__)."\n";
 
-        $retval = mailSend($to, $subject, $message, $user_id, $token);
+        $retval = Mail::send($to, $subject, $message, $user_id, $token);
     }
     $_SESSION['success'] = "Record inserted";
     header("Location: index.php");
