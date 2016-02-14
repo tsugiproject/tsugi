@@ -2,9 +2,11 @@
 // In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
 require_once("../../config.php");
-require_once($CFG->dirroot."/pdo.php");
+require_once("../../admin/admin_util.php");
 
 use \Tsugi\UI\Table;
+
+\Tsugi\Core\LTIX::getConnection();
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
     $_SESSION['error'] = _("This service does not accept instructor requests for keys");

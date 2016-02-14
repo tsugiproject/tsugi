@@ -1,5 +1,7 @@
 <?php
 
+require_once $CFG->dirroot."/admin/admin_util.php";
+
 $REDIRECTED = false;
 
 if ( strpos($CFG->adminpw,"warning:") === 0 ) {

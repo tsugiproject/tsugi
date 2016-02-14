@@ -1,6 +1,6 @@
 <?php
 // A library for webscraping graders
-require_once $CFG->dirroot."/pdo.php";
+\Tsugi\Core\LTIX::getConnection();
 
 require_once "lib/goutte/vendor/autoload.php";
 require_once "lib/goutte/Goutte/Client.php";

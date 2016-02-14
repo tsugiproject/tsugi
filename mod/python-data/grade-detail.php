@@ -1,6 +1,6 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/pdo.php";
+\Tsugi\Core\LTIX::getConnection();
 
 use \Tsugi\Grades\GradeUtil;
 

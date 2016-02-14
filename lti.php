@@ -1,9 +1,9 @@
 <?php
 require_once 'config.php';
-require_once 'pdo.php';
 
 use \Tsugi\Core\LTIX;
 
+LTIX::getConnection();
 $session_id = LTIX::setupSession();
 
 // See if we have a custom assignment setting.

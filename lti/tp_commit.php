@@ -1,10 +1,11 @@
 <?php
 define('COOKIE_SESSION', true);
 require_once "../config.php";
-require_once "../pdo.php";
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\Net;
+
+\Tsugi\Core\LTIX::getConnection();
 
 $oauth_consumer_key = isset($_GET['oauth_consumer_key']) ?
     $_GET['oauth_consumer_key'] : die('Missing oauth_consumer_key');

@@ -1,4 +1,5 @@
 <?php
+require_once $CFG->dirroot."/admin/admin_util.php";
 $OUTPUT->header();
 ?>
 </head>

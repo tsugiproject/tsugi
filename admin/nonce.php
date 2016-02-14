@@ -5,7 +5,8 @@ session_start();
 require_once("gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-require_once("../pdo.php");
+use \Tsugi\Core\LTIX;
+LTIX::getConnection();
 
 ?>
 <html>

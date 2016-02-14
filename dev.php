@@ -2,6 +2,7 @@
 // In the top frame, we use cookies for session.
 define('COOKIE_SESSION', true);
 require_once("config.php");
+require_once("admin/admin_util.php");
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;

@@ -1,11 +1,14 @@
 <?php
 define('COOKIE_SESSION', true);
 require_once "../config.php";
-require_once "../pdo.php";
+require_once $CFG->dirroot."/admin/admin_util.php";
 require_once 'tp_messages.php';
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Core\LTIX;
 use \Tsugi\Util\Net;
+
+LTIX::getConnection();
 
 session_start();
 header('Content-Type: text/html; charset=utf-8');

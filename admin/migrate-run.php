@@ -1,5 +1,9 @@
 <?php
 
+use \Tsugi\Core\LTIX;
+
+LTIX::getConnection();
+
     if ( !isset($maxversion) ) $maxversion = 0;
     if ( !isset($maxpath) ) $maxpath = '';
 
