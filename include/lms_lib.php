@@ -4,6 +4,7 @@ require_once($CFG->dirroot."/vendor/autoload.php");
 
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Crypt\SecureCookie;
 
 // TODO: deal with headers sent...
 function requireLogin() {
@@ -188,66 +189,6 @@ function loadLinkInfo($link_id)
     return $row;
 }
 
-/*
-  // initialise password & plaintesxt if not set in post array (shouldn't need stripslashes if magic_quotes is off)
-  $pw = 'L0ck it up saf3';
-  $pt = 'pssst ... đon’t tell anyøne!';
-  $encr = AesCtr::encrypt($pt, $pw, 256) ;
-  $decr = AesCtr::decrypt($encr, $pw, 256);
-  echo("E: ".$encr."\n");
-  echo("D: ".$decr."\n");
-*/
-
-function createSecureCookie($id,$guid,$debug=false) {
-    global $CFG;
-    $pt = $CFG->cookiepad.'::'.$id.'::'.$guid;
-    if ( $debug ) echo("PT1: $pt\n");
-    $ct = Tsugi\Crypt\AesCtr::encrypt($pt, $CFG->cookiesecret, 256) ;
-    return $ct;
-}
-
-function extractSecureCookie($encr,$debug=false) {
-    global $CFG;
-    $pt = Tsugi\Crypt\AesCtr::decrypt($encr, $CFG->cookiesecret, 256) ;
-    if ( $debug ) echo("PT2: $pt\n");
-    $pieces = explode('::',$pt);
-    if ( count($pieces) != 3 ) return false;
-    if ( $pieces[0] != $CFG->cookiepad ) return false;
-    return Array($pieces[1], $pieces[2]);
-}
-
-// We also session_unset - because something is not right
-// See: http://php.net/manual/en/function.setcookie.php
-function deleteSecureCookie() {
-    global $CFG;
-    setcookie($CFG->cookiename,'',time() - 100); // Expire 100 seconds ago
-    session_unset();
-}
-
-function testSecureCookie() {
-    $id = 1;
-    $guid = 'xyzzy';
-    $ct = createSecureCookie($id,$guid,true);
-    echo($ct."\n");
-    $pieces = extractSecureCookie($ct,true);
-    if ( $pieces === false ) echo("PARSE FAILURE\n");
-    var_dump($pieces);
-    if ( $pieces[0] == $id && $pieces[1] == $guid ) {
-        echo("Success\n");
-    } else {
-        echo("FAILURE\n");
-    }
-}
-
-// testSecureCookie();
-
-// We have a user - set their secure cookie
-function setSecureCookie($user_id, $userSHA) {
-    global $CFG;
-    $ct = createSecureCookie($user_id,$userSHA);
-    setcookie($CFG->cookiename,$ct,time() + (86400 * 45)); // 86400 = 1 day
-}
-
 // Check the secure cookie and set login information appropriately
 function loginSecureCookie() {
     global $CFG, $PDOX;
@@ -262,10 +203,10 @@ function loginSecureCookie() {
 
     $ct = $_COOKIE[$CFG->cookiename];
     // error_log("Cookie: $ct \n");
-    $pieces = extractSecureCookie($ct);
+    $pieces = SecureCookie::extract($ct);
     if ( $pieces === false ) {
         error_log('Decrypt fail:'.$ct);
-        deleteSecureCookie();
+        SecureCookie::delete();
         return;
     }
 
@@ -276,7 +217,7 @@ function loginSecureCookie() {
         $user_id = false;
         $pieces = false;
         error_log('Decrypt bad ID:'.$pieces[0].','.$ct);
-        deleteSecureCookie();
+        SecureCookie::delete();
         return;
     }
 
@@ -297,7 +238,7 @@ function loginSecureCookie() {
     $row = $stmt->fetch(\PDO::FETCH_ASSOC);
     if ( $row === false ) {
         error_log("Unable to load user_id=$user_id SHA=$userSHA");
-        deleteSecureCookie();
+        SecureCookie::delete();
         return;
     }
 
