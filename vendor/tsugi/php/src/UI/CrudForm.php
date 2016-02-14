@@ -142,7 +142,7 @@ class CrudForm {
      *
      *     $from_location = "keys.php";
      *     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
-     *     $current = $CFG->getCurrentFileUrl(__FILE__);
+     *     $current = getCurrentFileUrl(__FILE__);
      *     $retval = CrudForm::updateForm($row, $fields, $current, $from_location, true, true);
      *
      * @param $row The existing data for the fields.
