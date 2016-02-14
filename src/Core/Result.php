@@ -43,7 +43,7 @@ class Result extends Entity {
                 ON U.user_id = R.user_id AND U.user_id = :UID
             JOIN {$CFG->dbprefix}lti_context AS C
                 ON L.context_id = C.context_id AND C.context_id = :CID
-            WHERE R.user_id = :UID AND K.key_id = :KID and U.user_id = :UID AND L.link_id = :LID",
+            WHERE R.user_id = :UID and U.user_id = :UID AND L.link_id = :LID",
             array(":LID" => $LINK->id,
                 ":CID" => $CONTEXT->id, ":UID" => $user_id)
         );
