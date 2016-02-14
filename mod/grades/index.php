@@ -3,6 +3,7 @@ require_once "../../config.php";
 
 use \Tsugi\UI\Table;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\User;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
@@ -68,7 +69,7 @@ if ( $USER->instructor && isset($_GET['viewall'] ) ) {
         JOIN {$p}lti_link as L ON R.link_id = L.link_id
         JOIN {$p}lti_service AS S ON R.service_id = S.service_id
         WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
-    $user_info = loadUserInfoBypass($user_id);
+    $user_info = User::loadUserInfoBypass($user_id);
 }
 
 if ( $USER->instructor ) {

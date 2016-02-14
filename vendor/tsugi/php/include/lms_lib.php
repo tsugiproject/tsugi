@@ -37,28 +37,6 @@ function success_out($output) {
     flush();
 }
 
-function loadUserInfoBypass($user_id)
-{
-    global $CFG, $PDOX;
-    $LTI = LTIX::requireData(LTIX::CONTEXT);
-    $cacheloc = 'lti_user';
-    $row = Cache::check($cacheloc, $user_id);
-    if ( $row != false ) return $row;
-    $stmt = $PDOX->queryDie(
-        "SELECT displayname, email, user_key FROM {$CFG->dbprefix}lti_user AS U
-        JOIN {$CFG->dbprefix}lti_membership AS M
-        ON U.user_id = M.user_id AND M.context_id = :CID
-        WHERE U.user_id = :UID",
-        array(":UID" => $user_id, ":CID" => $LTI['context_id'])
-    );
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ( strlen($row['displayname']) < 1 && strlen($row['user_key']) > 0 ) {
-        $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
-    }
-    Cache::set($cacheloc, $user_id, $row);
-    return $row;
-}
-
 function loadLinkInfo($link_id)
 {
     global $CFG, $PDOX;

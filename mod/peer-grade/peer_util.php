@@ -2,6 +2,7 @@
 
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\User;
 use \Tsugi\Core\Mail;
 
 // Loads the assignment associated with this link
@@ -278,7 +279,7 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
 
     $LTI = LTIX::requireData();
 
-    $user_row = loadUserInfoBypass($user_id);
+    $user_row = User::loadUserInfoBypass($user_id);
     if ( $user_row === false ) return false;
     $to = $user_row['email'];
     if ( strlen($to) < 1 || strpos($to,'@') === false ) return false;

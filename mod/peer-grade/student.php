@@ -6,6 +6,7 @@ require_once "peer_util.php";
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Result;
+use \Tsugi\Core\User;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
@@ -38,7 +39,7 @@ if ( $submit_row !== false ) {
 }
 
 // Load user info
-$user_row = loadUserInfoBypass($user_id);
+$user_row = User::loadUserInfoBypass($user_id);
 if ( $user_row == false ) {
     $_SESSION['error'] = "Could not load student data.";
     header( 'Location: '.addSession('index.php') ) ;
