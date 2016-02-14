@@ -4,7 +4,6 @@ define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once($CFG->dirroot."/pdo.php");
 
-use \Tsugi\Config\ConfigInfo;
 use \Tsugi\UI\Table;
 use \Tsugi\Core\Mail;
 
@@ -53,7 +52,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         $subject = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )';
         $message = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )\n'.
             "\nNotes\n".$_POST['notes']."\n\n".
-            "Link: ".ConfigInfo::getCurrentFileUrl(__FILE__)."\n";
+            "Link: ".$CFG->getCurrentFileUrl(__FILE__)."\n";
 
         $retval = Mail::send($to, $subject, $message, $user_id, $token);
     }
