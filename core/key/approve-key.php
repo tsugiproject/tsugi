@@ -110,7 +110,7 @@ if ( isset($_POST['doApprove']) && isset($_POST['request_id']) ) {
 
     if ( $subject ) {
         error_log("Email sent to $to, Subject: $subject");
-        $retval = mailSend($to, $subject, $message, $user_id, $token);
+        $retval = Mail::send($to, $subject, $message, $user_id, $token);
     }
 
     $_SESSION['success'] = 'Request approved';
