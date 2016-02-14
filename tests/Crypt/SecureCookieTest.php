@@ -13,8 +13,8 @@ class SecureCookieTest extends PHPUnit_Framework_TestCase
     public function testSecureCookie() {
         $id = 1;
         $guid = 'xyzzy';
-        $ct = SecureCookie::createSecureCookie($id,$guid,false);
-        $pieces = SecureCookie::extractSecureCookie($ct,false);
+        $ct = SecureCookie::create($id,$guid,false);
+        $pieces = SecureCookie::extract($ct,false);
         $this->assertEquals(count($pieces), 2);
         $this->assertEquals($pieces[0], $id);
         $this->assertEquals($pieces[1], $guid);
