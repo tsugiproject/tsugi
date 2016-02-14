@@ -14,7 +14,7 @@ if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
 }
 
 $tablename = "{$CFG->dbprefix}lti_key";
-$current = getCurrentFileUrl(__FILE__);
+$current = $CFG->getCurrentFileUrl(__FILE__);
 $from_location = "keys.php";
 $allow_delete = true;
 $allow_edit = true;

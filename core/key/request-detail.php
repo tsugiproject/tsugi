@@ -14,7 +14,7 @@ if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
 }
 
 $tablename = "{$CFG->dbprefix}key_request";
-$current = getCurrentFileUrl(__FILE__);
+$current = $CFG->getCurrentFileUrl(__FILE__);
 $title = "Request Entry";
 $from_location = "index.php";
 $allow_delete = isAdmin();

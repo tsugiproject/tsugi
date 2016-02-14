@@ -236,7 +236,7 @@ Your Python program can look at the page as long as it likes.
 </div>
 <ul>
 <?php
-    // $curr_url = getCurrentFileUrl(__FILE__);
+    // $curr_url = $CFG->getCurrentFileUrl(__FILE__);
     $curr_url = LTIX::curPageUrlScript();
     $curr_url = str_replace("/index.php", "", $curr_url);
     $new = getShuffledNames($code);
@@ -266,7 +266,7 @@ setTimeout('showHide("overlay");', 2500);
     return;
 } else if ( strpos($local_path, "debug") === 0 ) {
     echo("<pre>\n");
-    echo("getCurrentFileUrl: ".getCurrentFileUrl(__FILE__)."\n");
+    echo("getCurrentFileUrl: ".$CFG->getCurrentFileUrl(__FILE__)."\n");
     echo("LTIX::curPageUrlScript: ".LTIX::curPageUrlScript()."\n");    
 
     var_dump($_SERVER);
