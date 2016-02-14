@@ -22,31 +22,6 @@ function lmsDie($message=false) {
     die();  // lmsDie
 }
 
-// Looks up a result for a potentially different user_id so we make
-// sure they are in the smame key/ context / link as the current user
-// hence the complex query to make sure we don't cross silos
-function lookupResult($LTI, $user_id) {
-    global $CFG, $PDOX;
-    $stmt = $PDOX->queryDie(
-        "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id,
-            sourcedid, service_id, grade, note, R.json AS json
-        FROM {$CFG->dbprefix}lti_result AS R
-        JOIN {$CFG->dbprefix}lti_link AS L
-            ON L.link_id = R.link_id AND R.link_id = :LID
-        JOIN {$CFG->dbprefix}lti_user AS U
-            ON U.user_id = R.user_id AND U.user_id = :UID
-        JOIN {$CFG->dbprefix}lti_context AS C
-            ON L.context_id = C.context_id AND C.context_id = :CID
-        JOIN {$CFG->dbprefix}lti_key AS K
-            ON C.key_id = K.key_id AND U.key_id = K.key_id AND K.key_id = :KID
-        WHERE R.user_id = :UID AND K.key_id = :KID and U.user_id = :UID AND L.link_id = :LID",
-        array(":KID" => $LTI['key_id'], ":LID" => $LTI['link_id'],
-            ":CID" => $LTI['context_id'], ":UID" => $user_id)
-    );
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $row;
-}
-
 function line_out($output) {
     echo(htmlent_utf8($output)."<br/>\n");
     flush();

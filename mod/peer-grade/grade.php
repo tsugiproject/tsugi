@@ -5,6 +5,7 @@ require_once "peer_util.php";
 
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Result;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
@@ -122,7 +123,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
     $grade = computeGrade($assn_id, $assn_json, $user_id);
     $_SESSION['success'] = 'Grade submitted';
     if ( $grade > 0 ) {
-        $result = lookupResult($LTI, $user_id);
+        $result = Result::lookupResultBypass($user_id);
         $status = LTIX::gradeSend($grade, $result); // This is the slow bit
 
         if ( $status === true ) {

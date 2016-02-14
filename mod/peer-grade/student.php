@@ -5,6 +5,7 @@ require_once "peer_util.php";
 
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Result;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
@@ -115,7 +116,7 @@ if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
     Cache::clear('peer_submit');
     $msg = "Submission updated";
     $computed_grade = computeGrade($assn_id, $assn_json, $user_id); // Does not cache
-    $result = lookupResult($LTI, $user_id);  // Does not cache
+    $result = Result::lookupResultBypass($user_id);
     $result['grade'] = -1; // Force resend
     $debug_log = array();
     $status = LTIX::gradeSend($computed_grade, $result, $debug_log); // This is the slow bit
@@ -138,7 +139,8 @@ if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
 // Compute grade
 $computed_grade = computeGrade($assn_id, $assn_json, $user_id); // Does not cache
 if ( isset($_POST['resendSubmit']) ) {
-    $result = lookupResult($LTI, $user_id);  // Does not cache
+     $result = Result::lookupResultBypass($user_id); // Does not cache
+
     // Force a resend
     $_SESSION['lti']['grade'] = -1;  // Force a resend
     $result['grade'] = -1;

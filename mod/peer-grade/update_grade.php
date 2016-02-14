@@ -3,6 +3,7 @@ require_once "../../config.php";
 require_once "peer_util.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Result;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
@@ -38,7 +39,7 @@ if ( $grade <= 0 ) {
 // Lookup the result row if we are grading the non-current user
 $result = false;
 if ( $user_id != $USER->id ) {
-    $result = lookupResult($LTI, $user_id);
+    $result = Result::lookupResultBypass($user_id);
 }
 
 // Send the grade
