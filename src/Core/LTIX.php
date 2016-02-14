@@ -1028,12 +1028,12 @@ class LTIX {
             $scorestr = "New score of ".($gradetosend*100.0)."% is < than previous grade of ".($oldgrade*100.0)."%, previous grade kept";
             $gradetosend = $oldgrade;
         }
-    
+
         // Use LTIX to send the grade back to the LMS.
         $debug_log = array();
         $retval = self::gradeSend($gradetosend, false, $debug_log);
         $_SESSION['debug_log'] = $debug_log;
-    
+
         if ( $retval === true ) {
             $_SESSION['success'] = $scorestr;
         } else if ( is_string($retval) ) {
@@ -1250,13 +1250,13 @@ class LTIX {
         global $CFG, $PDOX;
         $pieces = false;
         $id = false;
-    
+
         // Only do this if we are not already logged in...
         if ( isset($_SESSION["id"]) || !isset($_COOKIE[$CFG->cookiename]) ||
                 !isset($CFG->cookiepad) || $CFG->cookiepad === false) {
             return;
         }
-    
+
         $ct = $_COOKIE[$CFG->cookiename];
         // error_log("Cookie: $ct \n");
         $pieces = SecureCookie::extract($ct);
@@ -1265,7 +1265,7 @@ class LTIX {
             SecureCookie::delete();
             return;
         }
-    
+
         // Convert to an integer and check valid
         $user_id = $pieces[0] + 0;
         $userSHA = $pieces[1];
@@ -1276,7 +1276,7 @@ class LTIX {
             SecureCookie::delete();
             return;
         }
-    
+
         // The profile table might not even exist yet.
         $stmt = $PDOX->queryReturnError(
             "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
@@ -1288,24 +1288,24 @@ class LTIX {
                 WHERE profile_sha256 = :SHA AND U.user_id = :UID LIMIT 1",
             array('SHA' => $userSHA, ":UID" => $user_id)
         );
-    
+
         if ( $stmt->success === false ) return;
-    
+
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( $row === false ) {
             error_log("Unable to load user_id=$user_id SHA=$userSHA");
             SecureCookie::delete();
             return;
         }
-    
+
         $_SESSION["id"] = $row['user_id'];
         $_SESSION["email"] = $row['email'];
         $_SESSION["displayname"] = $row['displayname'];
         $_SESSION["profile_id"] = $row['profile_id'];
-    
+
         error_log('Autologin:'.$row['user_id'].','.$row['displayname'].','.
             $row['email'].','.$row['profile_id']);
-    
+
     }
 
 }
