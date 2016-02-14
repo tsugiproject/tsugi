@@ -4,6 +4,7 @@ require_once "../../config.php";
 use \Tsugi\UI\Table;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\User;
+use \Tsugi\Core\Link;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
@@ -23,7 +24,7 @@ if ( isset($_GET['link_id']) ) {
 
 $link_info = false;
 if ( $USER->instructor && $link_id > 0 ) {
-    $link_info = loadLinkInfo($link_id);
+    $link_info = Link::loadLinkInfo($link_id);
 }
 
 if ( $USER->instructor && isset($_GET['viewall'] ) ) {
