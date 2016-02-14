@@ -3,11 +3,12 @@ require_once "../../config.php";
 require_once "parse.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\UI\Output;
 
 $LTI = LTIX::requireData();
 $gift = $LINK->getJson();
 
-$OUTPUT->headerJson();
+Output::headerJson();
 
 // Check if we got any GIFT
 if ( $gift === false || strlen($gift) < 1 ) {

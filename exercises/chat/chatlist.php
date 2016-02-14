@@ -3,13 +3,14 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/pdo.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\UI\Output;
 
 // Retrieve the launch data if present
 $LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 $displayname = $USER->displayname;
 
-headerJson();
+Output::headerJson();
 
 // TODO: Cleanup old chats
 $stmt = $PDOX->prepare("DELETE FROM {$p}sample_chat

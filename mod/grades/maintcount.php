@@ -2,8 +2,9 @@
 require_once "../../config.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\UI\Output;
 
-headerJson();
+Output::headerJson();
 
 // Sanity checks
 $LTI = LTIX::requireData();

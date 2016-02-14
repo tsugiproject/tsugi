@@ -3,8 +3,9 @@ require_once "../../config.php";
 require_once "peer_util.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\UI\Output;
 
-headerJson();
+Output::headerJson();
 
 // Sanity checks
 $LTI = LTIX::requireData();
