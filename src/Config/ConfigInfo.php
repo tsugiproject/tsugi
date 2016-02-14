@@ -199,7 +199,7 @@ class ConfigInfo {
      *
      * These values configure the cookie used to record the overall
      * login in a long-lived encrypted cookie.   Look at the library
-     * code createSecureCookie() for more detail on how these operate.
+     * code SecureCookie::create() for more detail on how these operate.
      */
     public $cookiesecret = 'warning:please-change-cookie-secret-a289b543';
     public $cookiename = 'TSUGIAUTO';
