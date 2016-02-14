@@ -8,6 +8,7 @@ use \Tsugi\OAuth\OAuthRequest;
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\Settings;
+use \Tsugi\Crypt\SecureCookie;
 
 /**
  * This an opinionated LTI class that defines how Tsugi tools interact with LTI
@@ -226,7 +227,7 @@ class LTIX {
         }
 
         // Check if we can auto-login the system user
-        if ( Settings::linkGet('dologin', false) && isset($PDOX) && $PDOX !== false ) loginSecureCookie();
+        if ( Settings::linkGet('dologin', false) && isset($PDOX) && $PDOX !== false ) self::loginSecureCookie();
 
         // Set up basic custom values (legacy)
         if ( isset($_POST['custom_due'] ) ) {
