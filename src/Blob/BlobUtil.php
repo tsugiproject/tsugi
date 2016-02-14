@@ -83,7 +83,7 @@ class BlobUtil {
     {
         global $CFG, $CONTEXT, $PDOX;
 
-        if ( $SAFETY_CHECK && checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
+        if ( $SAFETY_CHECK && self::checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
 
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 
@@ -135,7 +135,7 @@ class BlobUtil {
     {
         global $CFG, $CONTEXT, $PDOX;
 
-        if ( $SAFETY_CHECK && checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
+        if ( $SAFETY_CHECK && self::checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
 
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 
