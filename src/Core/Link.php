@@ -2,6 +2,8 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Core\Cache;
+
 /**
  * This is a class to provide access to the resource link level data.
  *
@@ -44,5 +46,27 @@ class Link extends Entity {
      * user/link combination.
      */
     public $result_id = false;
+
+    /**
+     * Load link information for a different link than current
+     *
+     * Make sure not to cross Context silos.
+     */
+    public static function loadLinkInfo($link_id)
+    {
+        global $CFG, $PDOX, $CONTEXT;
+
+        $cacheloc = 'lti_link';
+        $row = Cache::check($cacheloc, $link_id);
+        if ( $row != false ) return $row;
+        $stmt = $PDOX->queryDie(
+            "SELECT title FROM {$CFG->dbprefix}lti_link
+                WHERE link_id = :LID AND context_id = :CID",
+            array(":LID" => $link_id, ":CID" => $CONTEXT->id)
+        );
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        Cache::set($cacheloc, $link_id, $row);
+        return $row;
+    }
 
 }

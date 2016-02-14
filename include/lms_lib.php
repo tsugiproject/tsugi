@@ -37,24 +37,6 @@ function success_out($output) {
     flush();
 }
 
-function loadLinkInfo($link_id)
-{
-    global $CFG, $PDOX;
-    $LTI = LTIX::requireData(LTIX::CONTEXT);
-
-    $cacheloc = 'lti_link';
-    $row = Cache::check($cacheloc, $link_id);
-    if ( $row != false ) return $row;
-    $stmt = $PDOX->queryDie(
-        "SELECT title FROM {$CFG->dbprefix}lti_link
-            WHERE link_id = :LID AND context_id = :CID",
-        array(":LID" => $link_id, ":CID" => $LTI['context_id'])
-    );
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    Cache::set($cacheloc, $link_id, $row);
-    return $row;
-}
-
 $OUTPUT = new \Tsugi\UI\Output();
 
 // http://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
