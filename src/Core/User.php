@@ -2,6 +2,8 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Core\Cache;
+
 /**
  * This is a class to provide access to the resource context level data.
  *
@@ -68,5 +70,32 @@ class User {
         $pieces = explode(' ',$displayname);
         if ( count($pieces) > 0 ) return $pieces[0];
         return false;
+    }
+
+    /**
+     * Load a user's info from the user_id
+     *
+     * We make sure that the user is a member of the current 
+     * context so as not to slide across silos.
+     */
+    public static function loadUserInfoBypass($user_id)
+    {
+        global $CFG, $PDOX, $CONTEXT;
+        $cacheloc = 'lti_user';
+        $row = Cache::check($cacheloc, $user_id);
+        if ( $row != false ) return $row;
+        $stmt = $PDOX->queryDie(
+            "SELECT displayname, email, user_key FROM {$CFG->dbprefix}lti_user AS U
+            JOIN {$CFG->dbprefix}lti_membership AS M
+            ON U.user_id = M.user_id AND M.context_id = :CID
+            WHERE U.user_id = :UID",
+            array(":UID" => $user_id, ":CID" => $CONTEXT->id)
+        );
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if ( strlen($row['displayname']) < 1 && strlen($row['user_key']) > 0 ) {
+            $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
+        }
+        Cache::set($cacheloc, $user_id, $row);
+        return $row;
     }
 }
