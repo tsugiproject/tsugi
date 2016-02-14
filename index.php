@@ -24,7 +24,7 @@ try {
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( $PDOX !== false ) loginSecureCookie();
+if ( $PDOX !== false ) LTIX::loginSecureCookie();
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
