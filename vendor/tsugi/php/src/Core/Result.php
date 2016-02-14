@@ -47,7 +47,7 @@ class Result extends Entity {
             array(":LID" => $LINK->id,
                 ":CID" => $CONTEXT->id, ":UID" => $user_id)
         );
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         return $row;
     }
 
