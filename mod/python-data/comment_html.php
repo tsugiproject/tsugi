@@ -9,7 +9,13 @@ $sanity = array(
 );
 
 // A random code
-$code = $USER->id+$LINK->id+$CONTEXT->id;
+if ( isset($_SESSION['code_override']) ) { 
+    $code = $_SESSION['code_override'];
+    $override = true;
+} else {
+    $code = $USER->id+$LINK->id+$CONTEXT->id;
+    $override = false;
+}
 
 // Set the data URLs
 $sample_url = dataUrl('comments_42.html');
@@ -24,6 +30,19 @@ $sum = sumCommentJson($json);
 
 $oldgrade = $RESULT->grade;
 if ( isset($_POST['sum']) && isset($_POST['code']) ) {
+
+    if ( $USER->instructor && strpos($_POST['sum'],'code:') === 0 ) {
+        $pieces = explode(':',$_POST['sum']);
+        if ( count($pieces) == 2 && is_numeric($pieces[1]) ) {
+            if ( $pieces[1] == 0 ) {
+                unset($_SESSION['code_override']);
+            } else {
+                $_SESSION['code_override'] = $pieces[1]+0;
+            }
+            header('Location: '.addSession('index.php'));
+        }
+    }
+
     $RESULT->setJsonKey('code', $_POST['code']);
 
     if ( $_POST['sum'] != $sum ) {
@@ -57,6 +76,13 @@ $sample_url = dataUrl('comments_42.html');
 $actual_url = dataUrl('comments_'.$code.'.html');
 ?>
 <p>
+<!--
+
+If you are having problems with this assignment, give this code to the
+instructor:  <?= $code ?>
+
+
+-->
 <b>Scraping Numbers from HTML using BeautifulSoup</b>
 In this assignment you will write a Python program similar to 
 <a href="http://www.pythonlearn.com/code/urllink2.py" target="_blank">http://www.pythonlearn.com/code/urllink2.py</a>.  
@@ -66,6 +92,12 @@ extracting numbers and compute the sum of the numbers in the file.
 <p>
 We provide two files for this assignment.  One is a sample file where we give you the sum for your
 testing and the other is the actual data you need to process for the assignment.  
+<?php
+if ( $override ) {
+    echo('<p style="color:red">You are running emulating a student with a code of '.$code);
+    echo(' and an expected sum of '.$sum.".</p>\n");
+}
+?>
 <ul>
 <li> Sample data: <a href="<?= deHttps($sample_url) ?>" target="_blank"><?= deHttps($sample_url) ?></a> 
 (Sum=<?= $sum_sample ?>) </li>
@@ -123,6 +155,15 @@ Sum 2482
 Enter the sum from the actual data and your Python code below:<br/>
 Sum: <input type="text" size="20" name="sum">
 (ends with <?= $sum%100 ?>)
+<?php if ( $USER->instructor ) { ?>
+<p style="color:green">If you want to emulate a student, ask them to view source on 
+their page and find their "code" value in the comments.  Then enter 'code:' and their code
+in the sum area (above) and you can switch to their code and see what they are seeing.
+</p>
+<p>
+Enter 'code:0' to go back to your own view of the assignment.
+</p>
+<?php } ?>
 <input type="submit" value="Submit Assignment"><br/>
 Python code:<br/>
 <textarea rows="20" style="width: 90%" name="code"></textarea><br/>
