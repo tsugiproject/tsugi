@@ -319,7 +319,6 @@ print lst
 "checks" => Array(
 "split" => "You should use split() to break each line into words.",
 "append" => "You should use append() to add the word to the list if it is not there.",
-"raw_input" => "You should prompt for the file name using the raw_input() function.",
 "open" => "You need to use open() to open the file.",
 "sort" => "You need to use sort() to sort the list before you print it out.",
 "for" => "You need two for loops. One for the lines and one for the words on each line.")
@@ -393,7 +392,6 @@ print "There were", count, "lines in the file with From as the first word"
 "for" => "You need a for loop to read the lines in the file.",
 "split" => "You should use split() to break each line into words.",
 "if" => "You need to use one or more if statements to skip the lines that do not start with 'From '.",
-"raw_input" => "You should prompt for the file name using the raw_input() function.",
 "open" => "You need to use open() to open the file.")
 ),
 
@@ -434,7 +432,6 @@ print bigname, bigcount
 "for" => "You need a for loop to read the lines in the file.",
 "split" => "You should use split() to break each line into words.",
 "if" => "You need to use one or more if statements to skip the lines that do not start with 'From '.",
-"raw_input" => "You should prompt for the file name using the raw_input() function.",
 "open" => "You need to use open() to open the file.")
 ),
 
