@@ -137,7 +137,7 @@ print "Pay",p',
 "if" => "You should use an if statement to decide to to the overtime computation or not.",
 "float" => "You should use the built-in float() function to convert from a string to a float.",
 "def" => "You must use a function called computepay to do the computation.",
-"sum" => "Do not use a variable named sum or a function named sum()",
+"!sum" => "Do not use a variable named sum or a function named sum()",
 "return" => "You must use a return statement to pass the computed pay back to the main code.",
 "computepay" => "You must use a function called computepay to do the computation.",
 "!475" => "You must actually calculate the pay.")
@@ -285,7 +285,7 @@ print "Average spam confidence:", tot/count
 "checks" => Array(
 "raw_input" => "You must prompt for the file name using the raw_input() function.",
 "open" => "You need to use open() to open the file.",
-"sum" => "You should not use the sum() function and avoid using sum as a variable.",
+"!sum" => "You should not use the sum() function and avoid using sum as a variable.",
 "float" => "You should use the float() function to convert from a string to an integer.",
 '!18518' =>  "You must actually pull the data from the strings and convert it.",
 "/" => "Average is usually a total / count.")
