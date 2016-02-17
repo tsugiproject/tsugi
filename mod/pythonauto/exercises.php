@@ -101,7 +101,7 @@ If the user enters a value out of range, print a suitable error message and exit
 For the test, enter a score of 0.85.
 ",
 "desired" => "B",
-"code" => '',
+"code" => 'score = raw_input("Enter Score: ")',
 "checks" => Array(
 "raw_input" => "You must prompt for the score using the raw_input() function.",
 "float" => "You should use the built-in float() function to convert from a string to a float.",
@@ -121,7 +121,8 @@ program (the pay should be 498.75).
 You should use <b>raw_input</b> to
 read a string and <b>float()</b> to convert the string to a number.
 Do not worry about error checking the user input unless you want to -
-you can assume the user types numbers properly.
+you can assume the user types numbers properly.  Do not name your variable
+sum or use the sum() function.
 ",
 "desired" => "498.75",
 "code" => 'def computepay(h,r):
@@ -136,6 +137,7 @@ print "Pay",p',
 "if" => "You should use an if statement to decide to to the overtime computation or not.",
 "float" => "You should use the built-in float() function to convert from a string to a float.",
 "def" => "You must use a function called computepay to do the computation.",
+"sum" => "Do not use a variable named sum or a function named sum()",
 "return" => "You must use a return statement to pass the computed pay back to the main code.",
 "computepay" => "You must use a function called computepay to do the computation.",
 "!475" => "You must actually calculate the pay.")
@@ -253,7 +255,7 @@ X-DSPAM-Confidence:    0.8475
 </pre>
 Count these lines and extract the floating point values from each
 of the lines and compute the average of those values and produce an output
-as shown below.
+as shown below.  Do not use the sum() function or a variable named sum in your solution.
 <p>
 You can download the sample data at
 <a href="http://www.pythonlearn.com/code/mbox-short.txt" target="_blank">
@@ -283,6 +285,7 @@ print "Average spam confidence:", tot/count
 "checks" => Array(
 "raw_input" => "You must prompt for the file name using the raw_input() function.",
 "open" => "You need to use open() to open the file.",
+"sum" => "You should not use the sum() function and avoid using sum as a variable.",
 "float" => "You should use the float() function to convert from a string to an integer.",
 '!18518' =>  "You must actually pull the data from the strings and convert it.",
 "/" => "Average is usually a total / count.")
@@ -291,7 +294,7 @@ print "Average spam confidence:", tot/count
 "8.4" => Array(
 "qtext" => '<b>8.4</b> Open the file <b>romeo.txt</b> and read it line by
 line.  For each line, split the line into a list of words using the <b>split()</b>
-function.   The program should build a list of words.  For each word on each line
+method.   The program should build a list of words.  For each word on each line
 check to see if the word is already in the list and if not append it to the list.
 When the program completes, sort and print the resulting words in alphabetical order.
 <p>
