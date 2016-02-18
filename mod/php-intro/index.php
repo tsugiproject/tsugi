@@ -19,12 +19,13 @@ $assignments = array(
     'a02.php' => 'Howdy application', 
     'guess.php' => 'Guessing Game',
     'rps.php' => 'Rock, Paper, Scissors',
-    'a05.php' => 'Shopping Cart',
-    'a06.php' => 'CRUD - Tracks',
-    'mid-f14-autos.php' => 'CRUD - Autos',
-    'crud-videos.php' => 'CRUD - Videos',
-    'fin-f15-address.php' => 'CRUD 15 - Address',
-    'fin-f15-tracks.php' => 'CRUD 15 - Tracks'
+    'autosdb.php' => 'Autos PDO',
+    'a05.php' => 'Shopping Cart (Old)',
+    'a06.php' => 'CRUD - Tracks (Old)',
+    // 'mid-f14-autos.php' => 'CRUD - Autos',
+    // 'crud-videos.php' => 'CRUD - Videos',
+    // 'fin-f15-address.php' => 'CRUD 15 - Address',
+    // 'fin-f15-tracks.php' => 'CRUD 15 - Tracks'
 );
 
 $oldsettings = Settings::linkGetAll();
@@ -60,7 +61,11 @@ SettingsForm::end();
 
 $OUTPUT->flashMessages();
 
-$OUTPUT->welcomeUserCourse();
+if ( $USER->displayname === false || $USER->displayname == '' ) {
+    echo('<p style="color:blue;">Auto grader launched without a student name so a grade will be computed but not recorded</p>'.PHP_EOL);
+} else {
+    $OUTPUT->welcomeUserCourse();
+}
 
 if ( $assn && isset($assignments[$assn]) ) {
     try {

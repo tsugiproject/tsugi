@@ -135,7 +135,9 @@ function webauto_test_passed($grade, $url) {
 
 function webauto_check_title($crawler) {
     global $USER;
-    if ( $USER->displayname === false ) return true;
+    if ( $USER->displayname === false || $USER->displayname == '' ) {
+        return false;
+    }
 
     try {
         $title = $crawler->filter('title')->text();
@@ -171,5 +173,49 @@ function webauto_check_post_redirect($client) {
         $passed++;
     } else {
         error_out('Expecting POST to Redirect to GET - found '.$method);
+    }
+}
+
+function webauto_get_form_button($crawler,$text) 
+{
+    try {
+        $form = $crawler->selectButton($text)->form();
+        markTestPassed('Found form with "'.$text.'" button');
+        return $form;
+    } catch(Exception $ex) {
+        error_out('Did not find form with a "'.$text.'" button');
+        return false;
+    }
+}
+
+function webauto_search_for_many($html, $needles) 
+{
+    $retval = true;
+    foreach($needles as $needle ) {
+        $check = webauto_search_for($html,$needle.'');
+        $retval = $retval && $check;
+    }
+    return $retval;
+}
+
+function webauto_search_for($html, $needle)
+{
+    if ( stripos($html,$needle) > 0 ) {
+        markTestPassed("Found '$needle'");
+        return true;
+    } else {
+        error_out("Could not find '$needle'");
+        return false;
+    }
+}
+
+function webauto_dont_want($html, $needle)
+{
+    if ( stripos($html,$needle) > 0 ) {
+        error_out("Found something that should not be there: '$needle'");
+        return true;
+    } else {
+        markTestPassed("Did not find '$needle'");
+        return false;
     }
 }
