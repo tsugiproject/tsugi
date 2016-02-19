@@ -82,12 +82,12 @@ class Output {
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?php echo($CFG->servicename); ?></title>
+        <title><?= $CFG->servicename ?></title>
         <!-- Le styles -->
-        <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
-        <link href="<?php echo($CFG->staticroot); ?>/static/bootstrap-3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
-        <link href="<?php echo($CFG->staticroot); ?>/static/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
-        <link href="<?php echo($CFG->staticroot); ?>/static/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/static/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/static/bootstrap-3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/static/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/static/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
 
     <style> <!-- from navbar.css -->
     body {
@@ -103,8 +103,8 @@ class Output {
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
         <!--[if lt IE 9]>
-          <script src="<?php echo($CFG->wwwroot); ?>/static/html5shiv/html5shiv.js"></script>
-          <script src="<?php echo($CFG->wwwroot); ?>/static/respond/respond.min.js"></script>
+          <script src="<?= $CFG->wwwroot ?>/static/html5shiv/html5shiv.js"></script>
+          <script src="<?= $CFG->wwwroot ?>/static/respond/respond.min.js"></script>
         <![endif]-->
 
     <?php
@@ -142,15 +142,72 @@ class Output {
         if ( isset($CFG->sessionlifetime) ) {
             $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
             // $heartbeat = 10000;
+            $heartbeat_url = $CFG->vendorroot.'/heartbeat.php';
+            if ( isset($CFG->utilroot) ) {
+                $heartbeat_url = $CFG->utilroot.'/heartbeat.php';
+            }
+            $heartbeat_url = addSession($heartbeat_url);
     ?>
     <script type="text/javascript">
-    HEARTBEAT_URL = '<?php echo(addSession($CFG->vendorroot.'/heartbeat.php')); ?>';
-    HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?php echo($heartbeat); ?>);
+    HEARTBEAT_URL = '<?= $heartbeat_url ?>';
+    HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?= $heartbeat ?>);
     </script>
     <?php
         }
 
         $this->doAnalytics();
+    }
+
+    /**
+     * Handle the heartbeat calls. This is UI code basically.
+     *
+     * Make sure when you call this, you have handled whether
+     * the session is cookie based or not and included config.php 
+     * appropriately
+     *
+     *    if ( isset($_GET[session_name()]) ) {
+     *        $cookie = false;
+     *    } else {
+     *        define('COOKIE_SESSION', true);
+     *        $cookie = true;
+     *    }
+     *
+     *    require_once "../config.php";
+     *
+     *    \Tsugi\UI\Output::handleHeartBeat($cookie);
+     *
+     */
+    public static function handleHeartBeat($cookie)
+    {
+        global $CFG;
+
+        self::headerJson();
+
+        session_start();
+
+        // See how long since the last update of the activity time
+        $seconds = 0;
+        $now = time();
+        if ( isset($_SESSION['LAST_ACTIVITY']) ) {
+            $seconds = $now - $_SESSION['LAST_ACTIVITY'];
+        }
+        $_SESSION['LAST_ACTIVITY'] = $now; // update last activity time stamp
+
+        // Count the successive heartbeats without a request/response cycle
+        if ( ! isset($_SESSION['HEARTBEAT_COUNT']) ) $_SESSION['HEARTBEAT_COUNT'] = 0;
+        $count = $_SESSION['HEARTBEAT_COUNT']++;
+
+        if ( $count > 10 && ( $count % 100 ) == 0 ) {
+            error_log("Heartbeat.php ".session_id().' '.$count);
+        }
+
+        $retval = array("success" => true, "seconds" => $seconds,
+                "now" => $now, "count" => $count, "cookie" => $cookie,
+                "id" => session_id());
+        $retval['lti'] = isset($_SESSION['lti']);
+        // $retval['lti'] = false;
+        $retval['sessionlifetime'] = $CFG->sessionlifetime;
+        echo(json_encode($retval));
     }
 
     function footerEnd() {
@@ -183,7 +240,7 @@ class Output {
         if ( $CFG->analytics_key ) { ?>
     <script type="text/javascript">
       var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', '<?php echo($CFG->analytics_key); ?>']);
+      _gaq.push(['_setAccount', '<?= $CFG->analytics_key ?>']);
       _gaq.push(['_trackPageview']);
 
       (function() {
@@ -319,15 +376,15 @@ class Output {
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="<?php echo($R); ?>index.php">TSUGI</a>
+              <a class="navbar-brand" href="<?= $R ?>index.php">TSUGI</a>
             </div>
             <div class="navbar-collapse collapse">
               <ul class="nav navbar-nav">
                 <?php if ( $CFG->DEVELOPER ) { ?>
-                <li><a href="<?php echo($R); ?>dev.php">Developer</a></li>
+                <li><a href="<?= $R ?>dev.php">Developer</a></li>
                 <?php } ?>
                 <?php if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) { ?>
-                <li><a href="<?php echo($R); ?>admin/index.php">Admin</a></li>
+                <li><a href="<?= $R ?>admin/index.php">Admin</a></li>
                 <?php } ?>
 
                 <li class="dropdown">
@@ -342,20 +399,20 @@ class Output {
                 </li>
               </ul>
               <ul class="nav navbar-nav navbar-right">
-                <li><a href="<?php echo($R); ?>about.php">About</a></li>
+                <li><a href="<?= $R ?>about.php">About</a></li>
                 <?php if ( isset($_SESSION['id']) ) { ?>
                 <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?php echo($_SESSION['displayname']);?><b class="caret"></b></a>
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?= $_SESSION['displayname'] ?><b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                    <li><a href="<?php echo($R); ?>profile.php">Profile</a></li>
+                    <li><a href="<?= $R ?>profile.php">Profile</a></li>
                     <?php if ( $CFG->providekeys && $CFG->owneremail ) { ?>
-                    <li><a href="<?php echo($R); ?>core/key/index.php">Use this service</a></li>
+                    <li><a href="<?= $R ?>core/key/index.php">Use this service</a></li>
                     <?php } ?>
-                    <li><a href="<?php echo($R); ?>logout.php">Logout</a></li>
+                    <li><a href="<?= $R ?>logout.php">Logout</a></li>
                   </ul>
                 </li>
                 <?php } else { ?>
-                <li><a href="<?php echo($R); ?>login.php">Login</a></li>
+                <li><a href="<?= $R ?>login.php">Login</a></li>
                 <?php } ?>
               </ul>
             </div><!--/.nav-collapse -->
