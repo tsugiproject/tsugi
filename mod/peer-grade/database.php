@@ -52,6 +52,8 @@ array( "{$CFG->dbprefix}peer_submit",
     inst_note  TEXT NULL,
     inst_id    INTEGER NULL,
 
+    rating     INTEGER NULL,  -- Aggregate rating
+
     updated_at DATETIME NOT NULL,
     created_at DATETIME NOT NULL,
 
@@ -99,6 +101,7 @@ array( "{$CFG->dbprefix}peer_grade",
     user_id      INTEGER NOT NULL, -- The user doing the grading
 
     points       DOUBLE NULL,
+    rating       TINYINT NULL,  -- Individual rating on this assignment +1 or -1
     note         TEXT NULL,
 
     json         TEXT NULL,
@@ -169,7 +172,20 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    return 201412222310;
+    // Support for ratings 
+    if ( $oldversion < 201602211200 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}peer_submit ADD rating INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}peer_grade ADD rating TINYINT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    return 201602211200;
 }; // Don't forget the semicolon on anonymous functions :)
 
 // Do the actual migration if we are not in admin/upgrade.php
