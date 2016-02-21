@@ -56,13 +56,6 @@ if ( ! isset($parm['order_by']) ) {
     $parm['desc'] = '1';
 }
 
-Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, "student.php", $parm);
-
-?>
-<form method="post">
-<br/>
-<input type="submit" name="doExit" onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Exit" class="btn btn-success">
-</form>
-<?php
+Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, "student.php", $parm, array('Exit' => 'index.php') );
 
 $OUTPUT->footer();

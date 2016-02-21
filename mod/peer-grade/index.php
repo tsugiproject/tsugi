@@ -236,7 +236,12 @@ if ( $USER->instructor ) {
 if ( $assn_json != null ) {
     echo('<div style="border: 1px solid black">');
     echo("<p><h4>".$assn_json->title."</h4></p>\n");
-    echo('<p>'.htmlent_utf8($assn_json->description)."\n");
+    echo('<p>'.htmlent_utf8($assn_json->description)."</p><p>\n");
+    echo('<p>'.htmlent_utf8($assn_json->grading)."\n");
+    if ( $assn_json->gallery != 'off' ) {
+        echo("<p>This assignment includes a public gallery where you can view all\n");
+        echo("student submissions.</p>\n");
+    }
     if( isset($assn_json->assignment) ) {
         echo('<br/>Assignment specification: <a href="'.$assn_json->assignment.'" target="_blank">');
         echo($assn_json->assignment."</a>\n");
@@ -255,6 +260,9 @@ if ( $assn_json == null ) {
 }
 
 if ( $submit_row == false ) {
+    if ( $assn_json->gallery == 'always' ) {
+        echo('<p><a href="gallery.php" class="btn btn-default">View Student Submissions</a></p> '."\n");
+    }
     echo("<p><b>Please Upload Your Submission:</b></p>\n");
     echo('<form name="myform" enctype="multipart/form-data" method="post" action="'.
          addSession('index.php').'">');
@@ -290,18 +298,32 @@ if ( $submit_row == false ) {
 }
 
 if ( $assn_json->maxassess > 0 ) {
-    if ( count($to_grade) > 0 && ($USER->instructor || $grade_count < $assn_json->maxassess ) ) {
-        echo('<a href="grade.php" class="btn btn-default">Peer grade other students</a> '."\n");
+    if ( count($to_grade) > 0 && 
+        ($assn_json->peerpoints > 0 || $assn_json->rating > 0 ) &&
+        ($USER->instructor || $grade_count < $assn_json->maxassess ) ) {
+        if ( $assn_json->rating > 0 ) {
+            echo('<p><a href="grade.php" class="btn btn-default">Rate other students</a></p>'."\n");
+        } else {
+            echo('<p><a href="grade.php" class="btn btn-default">Review other students</a></p>'."\n");
+        }
+
         // Add a done button if needed
-        echo("<p> You have peer graded ".$grade_count." other student submissions.
-    You must grade at least ".$assn_json->minassess." submissions for full credit on this assignment.
-    You <i>can</i> grade up to ".$assn_json->maxassess." submissions if you like.</p>\n");
-    
+        echo("<p> You have reviewed ".$grade_count." other student submissions.
+            You must review at least ".$assn_json->minassess." submissions for 
+            full credit on this assignment.\n");
+        if ( $assn_json->maxassess < 100 ) {
+            echo("You <i>can</i> review up to ".$assn_json->maxassess." submissions if you like.\n");
+        }
+        echo("</p>\n");
     } else if ( count($to_grade) > 0 ) {
-        echo('<p>You have graded the maximum number of submissions. Congratulations!<p>');
+        echo('<p>You have reviewed the maximum number of submissions. Congratulations!<p>');
     } else {
-        echo('<p>There are no submisions waiting to be graded. Please check back later.</p>');
+        echo('<p>There are no submisions ready to be reviewed. Please check back later.</p>');
     }
+}
+
+if ( $assn_json->gallery != 'off') {
+    echo('<p><a href="gallery.php" class="btn btn-default">View All Submissions</a></p> '."\n");
 }
 
 // We have a submission already

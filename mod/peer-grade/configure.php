@@ -29,6 +29,12 @@ if ( isset($_POST['json']) ) {
         return;
     }
 
+    if ( $json->rating > 0 and $json->peerpoints > 0 ) {
+        $_SESSION['error'] = "You can include peerpoints or rating range but not both.";
+        header( 'Location: '.addSession('configure.php') ) ;
+        return;
+    }
+
     if ( ( $json->instructorpoints + $json->peerpoints + 
         ($json->assesspoints*$json->minassess) ) != $json->totalpoints ) {
         $_SESSION['error'] = "instructorpoints + peerpoints + (assesspoints*minassess) != totalpoints ";
@@ -120,6 +126,10 @@ actually fail (nasty error messages on student screens).  If you need to make su
 change, it is probably better to start over with a 
 new assignment.
 </li>
+<li>gallery - can be "off", "always" or "after".   This enables students to browse a gallery
+of other student submissions.   You can indicate if a student can access the gallery 
+before their subission or after their submission.
+</li>
 <li>totalpoints - this is the number of points for the assignment.   
 The value for totalpoints must be the sum of instructorpoints, 
 peerpoints, and assesspoints*minassess. 
@@ -129,6 +139,10 @@ The value totalpoints is required must be above 0.
 Leave this as zero for a purely peer-graded assignment.
 Set this to be the same as totalpoints (peerpoints and assesspoints set to zero)
 to create a purely instructor graded drop box.
+</li>
+<li>rating - this indicates that the peers are rating the submission rather than 
+grading the submission.  The number is the rating scale (1-10).  Ratings are not
+part of the calculation.
 </li>
 <li>peerpoints - this is the maximum points that come from the other students assessments.
 Each of the peer-graders

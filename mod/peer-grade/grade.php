@@ -188,7 +188,10 @@ echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <?php if ( $assn_json->peerpoints > 0 ) { ?>
 <input type="number" min="0" max="<?php echo($assn_json->peerpoints); ?>" name="points">
-(<?php echo($assn_json->peerpoints); ?> points for full credit)<br/>
+(<?= $assn_json->peerpoints ?> points for full credit)<br/>
+<?php } elseif ( $assn_json->rating > 0 ) { ?>
+<input type="number" min="0" max="<?php echo($assn_json->rating); ?>" name="points">
+On a scale of 1-<?= $assn_json->rating ?><br/>
 <?php } ?>
 Comments:<br/>
 <textarea rows="5" cols="60" name="note"></textarea><br/>
