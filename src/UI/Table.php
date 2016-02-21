@@ -122,7 +122,7 @@ class Table {
         return $newsql . "\n";
     }
 
-    public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false) {
+    public static function pagedHeader($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false) {
         if ( $params === false ) $params = $_GET;
         if ( $orderfields === false ) $orderfields = $searchfields;
 
@@ -177,6 +177,12 @@ class Table {
     ?>
     </form>
     <?php
+    }
+
+    public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false) {
+        self::pagedHeader($rows, $searchfields, $orderfields, $view, $params, $extra_buttons);
+
+        $count = count($rows);
         if ( $count < 1 ) {
             echo("<p>Nothing to display.</p>\n");
             return;
@@ -269,7 +275,7 @@ class Table {
     }
 
     public static function pagedAuto($sql, $query_parms, $searchfields,
-        $orderfields=false, $view=false, $params=false) {
+        $orderfields=false, $view=false, $params=false, $buttons=false) {
         global $PDOX;
 
         $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields, $params);
@@ -278,7 +284,7 @@ class Table {
 
         $rows = $PDOX->allRowsDie($newsql, $query_parms);
 
-        Table::pagedTable($rows, $searchfields, $orderfields, $view, $params);
+        Table::pagedTable($rows, $searchfields, $orderfields, $view, $params, $buttons);
     }
 
 }
