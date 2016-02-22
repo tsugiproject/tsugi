@@ -28,13 +28,15 @@ unset($dirroot);
 $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/php/util";
 $CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/php/include";
 
-// You can use my CDN copy of the static content in testing if you like
+// You can use my CDN copy of the static content in testing or 
+// light production if you like:
 // $CFG->staticroot = 'https://www.dr-chuck.net/tsugi';
 
 // If you check out a copy of the static content locally and do not
 // want to use the CDN copy (perhaps you are on a plane or are otherwise
 // not connected) use this configuration optionistead of the above:
 // $CFG->staticroot = $CFG->wwwroot;
+
 
 // Set to true to redirect to the upgrading.php script
 // Also copy upgrading-dist.php to upgrading.php and add your message
@@ -79,6 +81,10 @@ $CFG->adminpw = 'warning:please-change-adminpw-89b543!';
 // As a best practice, this value should match an Internet domain name 
 // assigned by ICANN, but any globally unique identifier is acceptable.
 $CFG->product_instance_guid = 'lti2.example.com';
+
+// From the CASA spec: originator_id a UUID picked by a publisher 
+// and used for all apps it publishes
+$CFG->casa_originator_id = md5($CFG->product_instance_guid);
 
 // When this is true it enables a Developer test harness that can launch
 // tools using LTI.  It allows quick testing without setting up an LMS
