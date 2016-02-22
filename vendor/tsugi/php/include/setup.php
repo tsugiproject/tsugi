@@ -1,4 +1,5 @@
 <?php
+if ( ! isset($CFG) ) die_with_error_log("Please configure this product using config.php");
 
 // This is where we change the overall database version to trigger
 // upgrade checking - don't change this unless you want to trigger
@@ -39,8 +40,10 @@ function print_stack_trace() {
 
 if ( isset($CFG->upgrading) && $CFG->upgrading === true ) require_once("upgrading.php");
 
-// TODO: Before removing this, make sure to find code below that is dependent on lms_lib
-// is covered properly - or perhaps decide this belongs here forever...
+// The vendor include and root
+if ( ! isset($CFG->vendorroot) ) $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/php/util";
+if ( ! isset($CFG->vendorinclude) ) $CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/php/include";
+
 require_once $CFG->vendorinclude . "/lms_lib.php";
 
 // Check if we have been asked to do cookie or cookieless sessions
@@ -52,7 +55,6 @@ if ( defined('COOKIE_SESSION') ) {
     ini_set('session.use_trans_sid',1);
 }
 
-if ( ! isset($CFG) ) die_with_error_log("Please configure this product using config.php");
 if ( ! isset($CFG->staticroot) ) die_with_error_log('$CFG->staticroot not defined in config.php');
 if ( ! isset($CFG->timezone) ) die_with_error_log('$CFG->timezone not defined in config.php');
 if ( strpos($CFG->dbprefix, ' ') !== false ) die_with_error_log('$CFG->dbprefix cannot have spaces in it');
@@ -60,6 +62,8 @@ if ( strpos($CFG->dbprefix, ' ') !== false ) die_with_error_log('$CFG->dbprefix 
 if ( !isset($CFG->ownername) ) $CFG->ownername = false;
 if ( !isset($CFG->owneremail) ) $CFG->owneremail = false;
 if ( !isset($CFG->providekeys) ) $CFG->providekeys = false;
+
+if ( !isset($CFG->casa_originator_id) ) $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 
 // Set this to the temporary folder if not set - dev only
 if ( ! isset($CFG->dataroot) ) {
