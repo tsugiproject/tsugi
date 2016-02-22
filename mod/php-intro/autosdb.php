@@ -145,9 +145,11 @@ $form->setValues(array("make" => $make, "mileage" => $mileage, "year" => $year))
 $crawler = $client->submit($form);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
-webauto_dont_want($html,$make);
 $goodmake = htmlentities($make);
 webauto_search_for_many($html, array($goodmake, $year, $mileage) );
+webauto_dont_want($html,$make);
+line_out("Making sure you have not called htmlentities() twice");
+webauto_dont_want($html,"&amp;lt");
 
 $form = webauto_get_form_button($crawler,'Add');
 line_out("Attempting SQL injection");
