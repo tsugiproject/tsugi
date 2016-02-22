@@ -61,6 +61,8 @@ if ( !isset($CFG->ownername) ) $CFG->ownername = false;
 if ( !isset($CFG->owneremail) ) $CFG->owneremail = false;
 if ( !isset($CFG->providekeys) ) $CFG->providekeys = false;
 
+if ( !isset($CFG->casa_originator_id) ) $CFG->casa_originator_id = md5($CFG->product_instance_guid);
+
 // Set this to the temporary folder if not set - dev only
 if ( ! isset($CFG->dataroot) ) {
     $tmp = sys_get_temp_dir();
