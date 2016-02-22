@@ -103,6 +103,10 @@ foreach($tools as $tool ) {
     $title = $REGISTER_LTI2['name'];
     $text = $REGISTER_LTI2['description'];
     $fa_icon = isset($REGISTER_LTI2['FontAwesome']) ? $REGISTER_LTI2['FontAwesome'] : false;
+    $icon = false;
+    if ( $fa_icon !== false ) {
+        $icon = $CFG->staticroot.'/static/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+    }
 
     if ( $install ) {
         if ( $fa_icon ) {
@@ -115,7 +119,7 @@ foreach($tools as $tool ) {
         $path = $CFG->wwwroot . '/' . str_replace("register.php", $script, $path);
 
         // Title is for the href and text is for display
-        $json = LTI::getLtiLinkJSON($path, $title, $title, false, $fa_icon);
+        $json = LTI::getLtiLinkJSON($path, $title, $title, $icon, $fa_icon);
         $retval = json_encode($json);
 
         $parms = array();
