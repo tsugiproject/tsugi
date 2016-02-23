@@ -61,6 +61,8 @@ foreach($tools as $tool ) {
     $use = new stdClass();
     $use->{"1f2625c2-615f-11e3-bf13-d231feb1dc81"} = $title;
     $use->{"b7856963-4078-4698-8e95-8feceafe78da"} = $text;
+    // $use->{"d59e3a1f-c034-4309-a282-60228089194e"} = [{"name":"Paul Gray","email":"pfbgray@gmail.com"}],
+
     if ( $icon !== false ) $use->{"d25b3012-1832-4843-9ecf-3002d3434155"} = $icon;
     $launch = new stdClass();
     $script = isset($REGISTER_LTI2['script']) ? $REGISTER_LTI2['script'] : "index.php";
@@ -90,6 +92,10 @@ echo(LTI::jsonIndent(json_encode($output)));
     "use":{
       "1f2625c2-615f-11e3-bf13-d231feb1dc81":"College Algrebra",
       "b7856963-4078-4698-8e95-8feceafe78da": "Learn competencies surrounding algebraic operations, equations and inequalities, functions, and number systems.",
+      "d59e3a1f-c034-4309-a282-60228089194e":[{"name":"Paul Gray","email":"pfbgray@gmail.com"}],
+      "c80df319-d5da-4f59-8ca3-c89b234c5055":["dev","lti"],
+      "c6e33506-b170-475b-83e9-4ecd6b6dd42a":["lti"],
+      "d25b3012-1832-4843-9ecf-3002d3434155":"http://www.iconsdb.com/icons/preview/green/literature-xxl.png"
       "f6820326-5ea3-4a02-840d-7f91e75eb01b":{
           "launch_url":"http://www.google.com"
       }
