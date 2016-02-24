@@ -5,11 +5,12 @@ require_once "../../config.php";
 // https://gist.github.com/pfgray/f2d6b4414bdbb84bd75a
 
 use \Tsugi\Util\LTI;
+use \Tsugi\UI\Output;
 
 $pieces = parse_url($CFG->wwwroot);
 $domain = isset($pieces['host']) ? $pieces['host'] : false;
 
-header("Content-type: application/json");
+Output::headerJson();
 
 // Scan the tools folders for registration settings
 $tools = array();
