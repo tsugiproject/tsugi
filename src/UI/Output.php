@@ -52,7 +52,7 @@ class Output {
      * Set the JSON header
      */
     public static function headerJson() {
-        header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+        header('Content-Type: application/json; charset=UTF-8');
         self::noCacheHeader();
     }
 
