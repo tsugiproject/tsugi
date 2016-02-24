@@ -57,7 +57,7 @@ foreach($tools as $tool ) {
     $orig->timestamp = "2015-01-02T22:17:00.371Z";
     $orig->uri = $CFG->wwwroot;
     $orig->share = true;
-    $orig->propogate = true;
+    $orig->propagate = true;
     $use = new stdClass();
     $use->{"1f2625c2-615f-11e3-bf13-d231feb1dc81"} = $title;
     $use->{"b7856963-4078-4698-8e95-8feceafe78da"} = $text;
