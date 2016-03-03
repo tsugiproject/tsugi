@@ -179,7 +179,9 @@ class Table {
     <?php
     }
 
-    public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false) {
+    public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false) 
+    {
+        if ( $params == false ) $params = $_GET;
         self::pagedHeader($rows, $searchfields, $orderfields, $view, $params, $extra_buttons);
 
         $count = count($rows);
@@ -277,6 +279,8 @@ class Table {
     public static function pagedAuto($sql, $query_parms, $searchfields,
         $orderfields=false, $view=false, $params=false, $buttons=false) {
         global $PDOX;
+
+        if ( $params == false ) $params = $_GET;
 
         $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields, $params);
 
