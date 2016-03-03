@@ -137,7 +137,7 @@ print "Pay",p',
 "if" => "You should use an if statement to decide to to the overtime computation or not.",
 "float" => "You should use the built-in float() function to convert from a string to a float.",
 "def" => "You must use a function called computepay to do the computation.",
-"!sum" => "Do not use a variable named sum or a function named sum()",
+"!sum(" => "Do not use a variable named sum or a function named sum()",
 "return" => "You must use a return statement to pass the computed pay back to the main code.",
 "computepay" => "You must use a function called computepay to do the computation.",
 "!475" => "You must actually calculate the pay.")
