@@ -64,6 +64,8 @@ function upgradeSubmission($json_str)
     if ( ! isset($json->minassess) ) $json->minassess = 0;
     if ( ! isset($json->peerpoints) ) $json->peerpoints = 0;
     if ( ! isset($json->flag) ) $json->flag = true;
+    if ( ! isset($json->rating) ) $json->rating = 0;
+    if ( ! isset($json->gallery) ) $json->gallery = "off";
     return json_encode($json);
 }
 
