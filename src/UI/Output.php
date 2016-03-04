@@ -113,6 +113,13 @@ class Output {
         } else {
             echo('<script type="text/javascript">CSRF_TOKEN = "TODORemoveThis";</script>'."\n");
         }
+
+    	// Set the containing frame id is we have one
+        $element_id = LTIX::postGet('ext_lti_element_id', false);
+        if ( $element_id ) {
+            echo('<script type="text/javascript">LTI_PARENT_IFRAME_ID = "'.$element_id.'";</script>'."\n");
+        }
+
         $HEAD_CONTENT_SENT = true;
     }
 

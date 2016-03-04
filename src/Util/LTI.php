@@ -105,6 +105,9 @@ class LTI {
         if ( $org_id ) $parms["tool_consumer_instance_guid"] = $org_id;
         if ( $org_desc ) $parms["tool_consumer_instance_description"] = $org_desc;
         if ( $submit_text ) $parms["ext_submit"] = $submit_text;
+        if ( ! isset($parms["ext_lti_element_id"]) ) {
+            $parms["ext_lti_element_id"] = "tsugi_element_id_".bin2Hex(openssl_random_pseudo_bytes(4));
+        }
 
         $test_token = '';
 
@@ -137,14 +140,23 @@ class LTI {
 
     public static function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false, $endform=false) {
         global $LastOAuthBodyBaseString;
-        $r = "<div id=\"ltiLaunchFormSubmitArea\">\n";
-        if ( $iframeattr =="_blank" ) {
-            $r = "<form action=\"".$endpoint."\" name=\"ltiLaunchForm\" id=\"ltiLaunchForm\" method=\"post\" target=\"_blank\" encType=\"application/x-www-form-urlencoded\">\n" ;
-        } else if ( $iframeattr ) {
-            $r = "<form action=\"".$endpoint."\" name=\"ltiLaunchForm\" id=\"ltiLaunchForm\" method=\"post\" target=\"basicltiLaunchFrame\" encType=\"application/x-www-form-urlencoded\">\n" ;
+        
+        if ( isset($newparms["ext_lti_element_id"]) ) {
+            $frame_id = $newparms["ext_lti_element_id"];
         } else {
-            $r = "<form action=\"".$endpoint."\" name=\"ltiLaunchForm\" id=\"ltiLaunchForm\" method=\"post\" encType=\"application/x-www-form-urlencoded\">\n" ;
+            $frame_id = "tsugi_random_id_".bin2Hex(openssl_random_pseudo_bytes(4));
         }
+        $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
+        $debug_id = rand(1000,9999);
+        $r = "<div class=\"ltiLaunchFormSubmitArea\">\n";
+        if ( $iframeattr =="_blank" ) {
+            $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" target=\"_blank\" encType=\"application/x-www-form-urlencoded\">\n" ;
+        } else if ( $iframeattr ) {
+            $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" target=\"".$frame_id."\" encType=\"application/x-www-form-urlencoded\">\n" ;
+        } else {
+            $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" encType=\"application/x-www-form-urlencoded\">\n" ;
+        }
+        ksort($newparms);
         $submit_text = $newparms['ext_submit'];
         foreach($newparms as $key => $value ) {
             $key = htmlspec_utf8($key);
@@ -163,8 +175,8 @@ class LTI {
         if ( $debug ) {
             $r .= "<script language=\"javascript\"> \n";
             $r .= "  //<![CDATA[ \n" ;
-            $r .= "function basicltiDebugToggle() {\n";
-            $r .= "    var ele = document.getElementById(\"basicltiDebug\");\n";
+            $r .= "function basicltiDebug_".$debug_id."_Toggle() {\n";
+            $r .= "    var ele = document.getElementById(\"basicltiDebug_".$debug_id."_\");\n";
             $r .= "    if(ele.style.display == \"block\") {\n";
             $r .= "        ele.style.display = \"none\";\n";
             $r .= "    }\n";
@@ -174,9 +186,9 @@ class LTI {
             $r .= "} \n";
             $r .= "  //]]> \n" ;
             $r .= "</script>\n";
-            $r .= "<a id=\"basicltiDebugToggle\" href=\"javascript:basicltiDebugToggle();\">";
+            $r .= "<a id=\"basicltiDebug_".$debug_id."_Toggle\" href=\"javascript:basicltiDebug_".$debug_id."_Toggle();\">";
             $r .= self::get_string("toggle_debug_data","basiclti")."</a>\n";
-            $r .= "<div id=\"basicltiDebug\" style=\"display:none\">\n";
+            $r .= "<div id=\"basicltiDebug_".$debug_id."_\" style=\"display:none\">\n";
             $r .=  "<b>".self::get_string("basiclti_endpoint","basiclti")."</b><br/>\n";
             $r .= $endpoint . "<br/>\n&nbsp;<br/>\n";
             $r .=  "<b>".self::get_string("basiclti_parameters","basiclti")."</b><br/>\n";
@@ -192,13 +204,13 @@ class LTI {
         if ( $endform ) $r .= $endform;
         $r .= "</form>\n";
         if ( $iframeattr && $iframeattr != '_blank' ) {
-            $r .= "<iframe name=\"basicltiLaunchFrame\"  id=\"basicltiLaunchFrame\" src=\"\"\n";
+            $r .= "<iframe class=\"lti_frameResize\" name=\"".$frame_id."\"  id=\"".$frame_id."\" src=\"\"\n";
             $r .= $iframeattr . ">\n<p>".self::get_string("frames_required","basiclti")."</p>\n</iframe>\n";
         }
         // Remove session_name (i.e. PHPSESSID) if it was added.
         $r .= " <script type=\"text/javascript\"> \n" .
             "  //<![CDATA[ \n" .
-            "    var inputs = document.getElementById(\"ltiLaunchForm\").childNodes;\n" .
+            "    var inputs = document.getElementById(\"".$form_id."\").childNodes;\n" .
             "    for (var i = 0; i < inputs.length; i++)\n" .
             "    {\n" .
             "        var thisinput = inputs[i];\n" .
@@ -213,13 +225,13 @@ class LTI {
             $ext_submit_text = $submit_text;
             $r .= " <script type=\"text/javascript\"> \n" .
                 "  //<![CDATA[ \n" .
-                "    document.getElementById(\"ltiLaunchForm\").style.display = \"none\";\n" .
+                "    document.getElementById(\"".$form_id."\").style.display = \"none\";\n" .
                 "    nei = document.createElement('input');\n" .
                 "    nei.setAttribute('type', 'hidden');\n" .
                 "    nei.setAttribute('name', '".$ext_submit."');\n" .
                 "    nei.setAttribute('value', '".$ext_submit_text."');\n" .
-                "    document.getElementById(\"ltiLaunchForm\").appendChild(nei);\n" .
-                "    document.ltiLaunchForm.submit(); \n" .
+                "    document.getElementById(\"".$form_id."\").appendChild(nei);\n" .
+                "    document.".$form_id.".submit(); \n" .
                 "  //]]> \n" .
                 " </script> \n";
         }
