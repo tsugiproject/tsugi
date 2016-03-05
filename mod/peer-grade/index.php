@@ -328,7 +328,7 @@ if ( $submit_row == false ) {
         $secret = $info['secret'];
 
         $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
-                "Begin Selection", $tool_consumer_instance_guid, $tool_consumer_instance_description);
+                "Begin Selection");
 
         $content = LTI::postLaunchHTML($parms, $endpoint, true,
             "width=\"100%\" height=\"500\" scrolling=\"auto\" frameborder=\"1\" transparency");
