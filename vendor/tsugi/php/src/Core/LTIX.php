@@ -8,6 +8,7 @@ use \Tsugi\OAuth\OAuthRequest;
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\LTIConstants;
+use \Tsugi\UI\Output;
 use \Tsugi\Core\Settings;
 use \Tsugi\Crypt\SecureCookie;
 
@@ -792,6 +793,7 @@ class LTIX {
 
         // Check to see if the user has navigated to a new place in the hierarchy
         if ( isset($_SESSION['script_path']) && $CFG->getScriptPath() != 'core/blob' && 
+            (! endsWith(Output::getUtilUrl(''), $CFG->getScriptPath()) ) &&
             strpos($CFG->getScriptPath(), $_SESSION['script_path']) !== 0 ) {
             self::send403();
             die_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
@@ -1400,6 +1402,38 @@ class LTIX {
         $ltiProps['custom_canvas_course_id'] = $CONTEXT->id;
 
         return $ltiProps;
+    }
+
+    /**
+     * getLaunchData - Get the launch data for am LTI ContentItem launch
+     */
+    public static function getLaunchUrl($endpoint, $debug=false)
+    {
+        $launchurl = Output::getUtilUrl('/launch.php?debug=');
+        $launchurl .= ($debug) ? '1':'0';
+        $launchurl .= '&endpoint=';
+        $launchurl .= urlencode($endpoint);
+        return $launchurl;
+    }
+
+    /**
+     * getLaunchContent - Get the launch data for am LTI ContentItem launch
+     */
+    public static function getLaunchContent($endpoint, $debug=false)
+    {
+            $info = LTIX::getKeySecretForLaunch($endpoint);
+            if ( $info === false ) {
+                return '<p style="color:red">Unable to load key/secret for '.htmlentities($endpoint)."</p>\n";
+            }
+            $key = $info['key'];
+            $secret = $info['secret'];
+
+            $parms = LTIX::getLaunchData();
+
+            $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret, "Button");
+
+            $content = LTI::postLaunchHTML($parms, $endpoint, false);
+            return $content;
     }
 
 }

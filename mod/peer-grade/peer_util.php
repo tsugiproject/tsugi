@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\Core\Cache;
+use \Tsugi\UI\Output;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\User;
@@ -91,7 +92,7 @@ function loadUngraded($LTI, $assn_id)
 
 function showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id)
 {
-    global $CFG, $PDOX, $USER, $LINK, $CONTEXT;
+    global $CFG, $PDOX, $USER, $LINK, $CONTEXT, $OUTPUT;
     echo('<div style="padding:5px">');
     $blob_ids = $submit_json->blob_ids;
     $urls = isset($submit_json->urls) ? $submit_json->urls : array();
@@ -140,19 +141,26 @@ function showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id)
             $info = LTIX::getKeySecretForLaunch($endpoint);
             if ( $info === false ) {
                 echo('<p style="color:red">Unable to load key/secret for '.htmlentities($endpoint)."</p>\n");
+                $content_item_no++;
                 continue;
             }
-            $key = $info['key'];
-            $secret = $info['secret'];
 
-            $parms = LTIX::getLaunchData();
+            $lu1 = LTIX::getLaunchUrl($endpoint, true);
+            $lu1 = addSession($lu1);
 
-            $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret, "Button");
-
-            $content = LTI::postLaunchHTML($parms, $endpoint, false,
-                 "width=\"300\" height=\"200\" scrolling=\"auto\" frameborder=\"1\" transparency");
-            echo($content);
-
+             echo('<br/><button type="button" onclick="
+                $(\'#content_item_frame_'.$content_item_no.'\').attr(\'src\', \''.$lu1.'\');
+                showModalIframe(\''.$part->title.'\', 
+                \'content_item_dialog_'.$content_item_no.'\',\'content_item_frame_'.$content_item_no.'\', 
+                \''.$OUTPUT->getSpinnerUrl().'\'); 
+                return false;">View Media</button>'."\n");
+?>
+<div id="content_item_dialog_<?= $content_item_no ?>" title="Basic dialog" style="display:none;">
+<iframe src="" id="content_item_frame_<?= $content_item_no ?>" height="500" 
+    scrolling="auto" frameborder="1" transparency></iframe>
+</div>
+<?php
+            $content_item_no++;
         } else if ( $part->type == "code" ) {
             $code_id = $codes[$codeno++];
             $row = $PDOX->rowDie("

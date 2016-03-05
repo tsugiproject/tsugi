@@ -149,10 +149,7 @@ class Output {
         if ( isset($CFG->sessionlifetime) ) {
             $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
             // $heartbeat = 10000;
-            $heartbeat_url = $CFG->vendorroot.'/heartbeat.php';
-            if ( isset($CFG->utilroot) ) {
-                $heartbeat_url = $CFG->utilroot.'/heartbeat.php';
-            }
+            $heartbeat_url = self::getUtilUrl('/heartbeat.php');
             $heartbeat_url = addSession($heartbeat_url);
     ?>
     <script type="text/javascript">
@@ -163,6 +160,21 @@ class Output {
         }
 
         $this->doAnalytics();
+    }
+
+    /**
+     * getUtilUrl - Get a URL in the utility script space - does not add session
+     *
+     * @param $path - The path of the file - should start with a slash.
+     */
+    public static function getUtilUrl($path) 
+    {
+        global $CFG;
+        $retval = $CFG->vendorroot.$path;
+        if ( isset($CFG->utilroot) ) {
+            $retval = $CFG->utilroot.$path;
+        }
+        return $retval;
     }
 
     /**
