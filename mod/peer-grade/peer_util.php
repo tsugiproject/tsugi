@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\Core\Cache;
+use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\User;
 use \Tsugi\Core\Mail;
@@ -90,14 +91,16 @@ function loadUngraded($LTI, $assn_id)
 
 function showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id)
 {
-    global $CFG, $PDOX;
+    global $CFG, $PDOX, $USER, $LINK, $CONTEXT;
     echo('<div style="padding:5px">');
     $blob_ids = $submit_json->blob_ids;
     $urls = isset($submit_json->urls) ? $submit_json->urls : array();
     $codes = isset($submit_json->codes) ? $submit_json->codes : array();
+    $content_items = isset($submit_json->content_items) ? $submit_json->content_items : array();
     $blobno = 0;
     $urlno = 0;
     $codeno = 0;
+    $content_item_no = 0;
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == "image" ) {
             // This test triggers when an assignment is reconfigured
@@ -130,6 +133,26 @@ function showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id)
             $url = $urls[$urlno++];
             echo ('<p><a href="'.safe_href($url).'" target="_blank">');
             echo (htmlentities(safe_href($url)).'</a> (Will launch in new window)</p>'."\n");
+        } else if ( $part->type == "content_item" ) {
+            $content_item = $content_items[$content_item_no++];
+
+            $endpoint = $content_item->url;
+            $info = LTIX::getKeySecretForLaunch($endpoint);
+            if ( $info === false ) {
+                echo('<p style="color:red">Unable to load key/secret for '.htmlentities($endpoint)."</p>\n");
+                continue;
+            }
+            $key = $info['key'];
+            $secret = $info['secret'];
+
+            $parms = LTIX::getLaunchData();
+
+            $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret, "Button");
+
+            $content = LTI::postLaunchHTML($parms, $endpoint, false,
+                 "width=\"300\" height=\"200\" scrolling=\"auto\" frameborder=\"1\" transparency");
+            echo($content);
+
         } else if ( $part->type == "code" ) {
             $code_id = $codes[$codeno++];
             $row = $PDOX->rowDie("

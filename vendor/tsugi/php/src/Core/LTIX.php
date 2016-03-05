@@ -7,6 +7,7 @@ use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthRequest;
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\LTIConstants;
 use \Tsugi\Core\Settings;
 use \Tsugi\Crypt\SecureCookie;
 
@@ -1118,6 +1119,37 @@ class LTIX {
     }
 
     /**
+     * getKeySecretForLaunch - Retrieve a Key/Secret for a Launch
+     *
+     * @param $url - The url to lookup
+     */
+    public static function getKeySecretForLaunch($url) {
+        global $CFG, $PDOX, $CONTEXT;
+        $host = parse_url($url, PHP_URL_HOST);
+        $port = parse_url($url, PHP_URL_PORT);
+        $key_id = self::sessionGet('key_id', false);
+        if ( $key_id == false ) return false;
+
+        $sql = "SELECT consumer_key, secret FROM {$CFG->dbprefix}lti_domain 
+            WHERE domain = :DOM AND key_id = :KID";
+        $values = array(":DOM" => $host, ":KID" => $key_id);
+        if ( isset($CONTEXT->id) ) {
+            $sql .= " AND (context_id IS NULL OR context_id = :CID) 
+                ORDER BY context_id DESC";
+            $values[':CID'] = $CONTEXT->id;
+        }
+
+        $row = $PDOX->rowDie($sql, $values);
+        if ( $row === false ) {
+            error_log("Unable to key/secret key_id=$key_id url=$url");
+            return false;
+        }
+        $row['key'] = $row['consumer_key'];
+        return $row;
+    }
+
+
+    /**
      * curPageUrl - Returns the URL to the currently executing script with query string
      *
      * This is useful when we want to do OAuth where we need the exact
@@ -1307,6 +1339,67 @@ class LTIX {
         error_log('Autologin:'.$row['user_id'].','.$row['displayname'].','.
             $row['email'].','.$row['profile_id']);
 
+    }
+
+    /**
+     * getCoreLaunchData - Get the launch data common across launch types
+     */
+    public static function getCoreLaunchData()
+    {
+        global $CFG, $CONTEXT, $USER, $CONTEXT, $LINK;
+        $ltiProps = array();
+        $ltiProps[LTIConstants::LTI_VERSION] = LTIConstants::LTI_VERSION_1;
+        $ltiProps[LTIConstants::CONTEXT_ID] = $CONTEXT->id;
+        $ltiProps[LTIConstants::ROLES] = $USER->instructor ? LTIConstants::ROLE_INSTRUCTOR : LTIConstants::ROLE_LEARNER;
+        $ltiProps[LTIConstants::USER_ID] = $USER->id;
+        $ltiProps[LTIConstants::LIS_PERSON_NAME_FULL] = $USER->displayname;
+        $ltiProps[LTIConstants::LIS_PERSON_CONTACT_EMAIL_PRIMARY] = $USER->email;
+
+        $ltiProps['tool_consumer_instance_guid'] = $CFG->product_instance_guid;
+        $ltiProps['tool_consumer_instance_description'] = $CFG->servicename;
+
+        return $ltiProps;
+    }
+
+    /**
+     * getLaunchData - Get the launch data for a normal LTI 1.x launch
+     */
+    public static function getLaunchData()
+    {
+        global $CFG, $CONTEXT, $USER, $CONTEXT, $LINK;
+        $ltiProps = self::getCoreLaunchData();
+        $ltiProps[LTIConstants::LTI_MESSAGE_TYPE] = LTIConstants::LTI_MESSAGE_TYPE_BASICLTILAUNCHREQUEST;
+        $ltiProps[LTIConstants::RESOURCE_LINK_ID] = $LINK->id;
+
+        $ltiProps['tool_consumer_instance_guid'] = $CFG->product_instance_guid;
+        $ltiProps['tool_consumer_instance_description'] = $CFG->servicename;
+
+        return $ltiProps;
+    }
+
+    /**
+     * getLaunchData - Get the launch data for am LTI ContentItem launch
+     */
+    public static function getContentItem($contentReturn, $dataProps)
+    {
+        global $CFG, $CONTEXT, $USER, $CONTEXT, $LINK;
+        $ltiProps = self::getCoreLaunchData();
+        $ltiProps[LTIConstants::LTI_MESSAGE_TYPE] = LTIConstants::CONTENT_ITEM_SELECTION_REQUEST;
+        $ltiProps[LTIConstants::ACCEPT_MEDIA_TYPES] = LTIConstants::MEDIA_LTILINKITEM;
+        $ltiProps[LTIConstants::ACCEPT_PRESENTATION_DOCUMENT_TARGETS] = "iframe,window"; // Nice to add overlay
+        $ltiProps[LTIConstants::ACCEPT_UNSIGNED] = "true";
+        $ltiProps[LTIConstants::ACCEPT_MULTIPLE] = "false";
+        $ltiProps[LTIConstants::ACCEPT_COPY_ADVICE] = "false"; // ???
+        $ltiProps[LTIConstants::AUTO_CREATE] = "true";
+        $ltiProps[LTIConstants::CAN_CONFIRM] = "false";
+        $ltiProps[LTIConstants::CONTENT_ITEM_RETURN_URL] = $contentReturn;
+        $ltiProps[LTIConstants::LAUNCH_PRESENTATION_RETURN_URL] = $contentReturn;
+
+        // This is needed to trigger WarpWire to send us back the link
+        $ltiProps['tool_consumer_info_product_family_code'] = 'canvas';
+        $ltiProps['custom_canvas_course_id'] = $CONTEXT->id;
+
+        return $ltiProps;
     }
 
 }

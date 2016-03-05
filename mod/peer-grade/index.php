@@ -7,6 +7,7 @@ require_once "peer_util.php";
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Util\LTI;
 use \Tsugi\UI\SettingsForm;
 
 // Sanity checks
@@ -60,6 +61,7 @@ if ( $assn_id != false && $assn_json != null &&
     $blob_ids = array();
     $urls = array();
     $code_ids = array();
+    $content_items = array();
     $partno = 0;
     foreach ( $assn_json->parts as $part ) {
         if ( $part->type == 'image' ) {
@@ -112,6 +114,15 @@ if ( $assn_id != false && $assn_json != null &&
                 return;
             }
             $urls[] = $_POST['input_url_'.$partno];
+        } else if ( $part->type == 'content_item' ) {
+            $content_item = $_POST['input_content_item_'.$partno];
+            $content_data = json_decode($content_item);
+            if ( $content_data === null || ! isset($content_data->url)) {
+                $_SESSION['error'] = 'ContentItems must be valid JSON';
+                header( 'Location: '.addSession('index.php') ) ;
+                return;
+            }
+            $content_items[] = $content_data;
         } else if ( $part->type == 'code' ) {
             $code = $_POST['input_code_'.$partno];
             if( strlen($code) < 1 ) {
@@ -138,6 +149,7 @@ if ( $assn_id != false && $assn_json != null &&
     $submission->blob_ids = $blob_ids;
     $submission->urls = $urls;
     $submission->codes = $code_ids;
+    $submission->content_items = $content_items;
     $json = json_encode($submission);
     $stmt = $PDOX->queryReturnError(
         "INSERT INTO {$p}peer_submit
@@ -225,6 +237,7 @@ if ( $USER->instructor ) {
 
 $OUTPUT->welcomeUserCourse();
 
+
 if ( $USER->instructor ) {
     echo('<p><a href="configure.php" class="btn btn-default">Configure this Assignment</a> ');
     SettingsForm::button();
@@ -268,11 +281,24 @@ if ( $submit_row == false ) {
          addSession('index.php').'">');
 
     $partno = 0;
+    $content_items = array();
     foreach ( $assn_json->parts as $part ) {
         echo("\n<p>");
         echo(htmlent_utf8($part->title)."\n");
         if ( $part->type == "image" ) {
             echo('<input name="uploaded_file_'.$partno.'" type="file"> (Please use PNG or JPG files)</p>');
+        } else if ( $part->type == "content_item" ) {
+            $endpoint = $part->launch;
+            $info = LTIX::getKeySecretForLaunch($endpoint);
+            $content_items[] = $partno;
+            if ( $info === false ) {
+                echo('<p style="color:red">Unable to load key/secret for '.htmlentities($endpoint)."</p>\n");
+            } else {
+                echo('<br/><button type="button" onclick="showModalIframe(\''.$part->title.'\', 
+                    \'content_item_dialog_'.$partno.'\',\'content_item_frame_'.$partno.'\', false); return false;">
+                    Select/Create Item</button>'."\n");
+                echo('<br/><textarea name="input_content_item_'.$partno.'" id="input_content_item_'.$partno.'" rows="2" style="width: 90%"></textarea></p>');
+            }
         } else if ( $part->type == "url" ) {
             echo('<input name="input_url_'.$partno.'" type="url" size="80"></p>');
         } else if ( $part->type == "code" ) {
@@ -285,6 +311,36 @@ if ( $submit_row == false ) {
     echo('<input type="submit" name="doSubmit" value="Submit" class="btn btn-default"> ');
     $OUTPUT->exitButton('Cancel');
     echo('</form>');
+
+    // Make all the dialogs here
+    $partno = 0;
+    foreach ( $assn_json->parts as $part ) {
+
+        $return = $CFG->getCurrentFileUrl(__FILE__);
+        $return = str_replace("/index.php", "/contentitem_return.php?partno=".$partno,$return);
+        $return = addSession($return);
+
+        $parms = LTIX::getContentItem($return,array());
+
+        $endpoint = $part->launch;
+        $info = LTIX::getKeySecretForLaunch($endpoint);
+        $key = $info['key'];
+        $secret = $info['secret'];
+
+        $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
+                "Begin Selection", $tool_consumer_instance_guid, $tool_consumer_instance_description);
+
+        $content = LTI::postLaunchHTML($parms, $endpoint, true,
+            "width=\"100%\" height=\"500\" scrolling=\"auto\" frameborder=\"1\" transparency");
+
+?>
+<div id="content_item_dialog_<?= $partno ?>" title="Basic dialog" style="display:none;">
+<?= $content ?>
+</div>
+<?php
+        $partno++;
+    }
+
     $upload_max_size = ini_get('upload_max_filesize');
     echo("\n<p>Make sure each file is smaller than 1M.  Total upload limited to ");
     echo(htmlent_utf8($upload_max_size)."</p>\n");
@@ -293,7 +349,13 @@ if ( $submit_row == false ) {
         echo(pointsDetail($assn_json));
         echo("</p>");
     }
-    $OUTPUT->footer();
+    $OUTPUT->footerStart();
+?>
+<script>
+$('.basicltiDebugToggle').hide();
+</script>
+<?php
+    $OUTPUT->footerEnd();
     return;
 }
 
@@ -416,6 +478,7 @@ $(document).ready(function() {
     gradeLoad();
 } );
 </script>
+ 
 <script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/prism.js" type="text/javascript"></script>
 <?php
 $OUTPUT->footerEnd();
