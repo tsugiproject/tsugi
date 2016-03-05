@@ -186,7 +186,8 @@ class LTI {
             $r .= "} \n";
             $r .= "  //]]> \n" ;
             $r .= "</script>\n";
-            $r .= "<a id=\"basicltiDebug_".$debug_id."_Toggle\" href=\"javascript:basicltiDebug_".$debug_id."_Toggle();\">";
+            $r .= "<a class=\"basicltiDebugToggle\" id=\"basicltiDebug_";
+            $r .= $debug_id."_Toggle\" href=\"javascript:basicltiDebug_".$debug_id."_Toggle();\">";
             $r .= self::get_string("toggle_debug_data","basiclti")."</a>\n";
             $r .= "<div id=\"basicltiDebug_".$debug_id."_\" style=\"display:none\">\n";
             $r .=  "<b>".self::get_string("basiclti_endpoint","basiclti")."</b><br/>\n";
@@ -232,6 +233,7 @@ class LTI {
                 "    nei.setAttribute('value', '".$ext_submit_text."');\n" .
                 "    document.getElementById(\"".$form_id."\").appendChild(nei);\n" .
                 "    document.".$form_id.".submit(); \n" .
+                "    console.log('Autosubmitted ".$form_id."'); \n" .
                 "  //]]> \n" .
                 " </script> \n";
         }
