@@ -160,7 +160,8 @@ if ( $assn_id != false && $assn_json != null &&
             ':AID' => $assn_id,
             ':JSON' => $json,
             ':UID' => $USER->id)
-        );
+    );
+
     Cache::clear('peer_submit');
     if ( $stmt->success ) {
         $_SESSION['success'] = 'Assignment submitted';
@@ -294,10 +295,12 @@ if ( $submit_row == false ) {
             if ( $info === false ) {
                 echo('<p style="color:red">Unable to load key/secret for '.htmlentities($endpoint)."</p>\n");
             } else {
+                $icon = $CFG->staticroot.'/static/font-awesome-4.4.0/png/check-square.png';
                 echo('<br/><button type="button" onclick="showModalIframe(\''.$part->title.'\', 
                     \'content_item_dialog_'.$partno.'\',\'content_item_frame_'.$partno.'\', false); return false;">
                     Select/Create Item</button>'."\n");
-                echo('<br/><textarea name="input_content_item_'.$partno.'" id="input_content_item_'.$partno.'" rows="2" style="width: 90%"></textarea></p>');
+                echo('<img src="'.$icon.'" id="input_content_icon_'.$partno.'" style="display: none">'."\n");
+                echo('<br/><textarea name="input_content_item_'.$partno.'" id="input_content_item_'.$partno.'" rows="2" style="display: none; width: 90%"></textarea></p>');
             }
         } else if ( $part->type == "url" ) {
             echo('<input name="input_url_'.$partno.'" type="url" size="80"></p>');
@@ -334,7 +337,7 @@ if ( $submit_row == false ) {
             "width=\"100%\" height=\"500\" scrolling=\"auto\" frameborder=\"1\" transparency");
 
 ?>
-<div id="content_item_dialog_<?= $partno ?>" title="Basic dialog" style="display:none;">
+<div id="content_item_dialog_<?= $partno ?>" title="Media dialog" style="display:none;">
 <?= $content ?>
 </div>
 <?php

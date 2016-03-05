@@ -11,6 +11,7 @@ echo("-->\n");
 // Compute the input tag in the parent document
 $partno = $_GET['partno'];
 $id = 'input_content_item_'.$partno;
+$icon = 'input_content_icon_'.$partno;
 
 // Check to see if we are doing the standard or faking Canvas
 if ( isset($_POST['content_items'] ) ) { 
@@ -62,6 +63,7 @@ if ( isset($_POST['content_items'] ) ) {
 console.log(window.parent.$("#<?= $id ?>").val());
 item = <?= json_encode($item) ?>;
 window.parent.$("#<?= $id ?>").val(JSON.stringify(item));
+window.parent.$("#<?= $icon ?>").show();
 </script>
 <p>You may now close the window</p>
 
