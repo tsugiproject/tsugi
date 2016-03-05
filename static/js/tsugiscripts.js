@@ -179,3 +179,46 @@ if ( ! (self == top) ) {
     }
 }
     
+// From Sakai
+// Return the breakpoint between small and medium sized displays - for morpheus currently the same
+function portalSmallBreakPoint() { return 800; }
+function portalMediumBreakPoint() { return 800; }
+
+// Return the correct width for a modal dialog.
+function modalDialogWidth() {
+    var wWidth = $(window).width();
+    var pbr = portalSmallBreakPoint();
+    var dWidth = wWidth * 0.8;
+    if ( wWidth <= pbr ) {
+        dWidth = pbr * 0.8;
+        if ( dWidth > (wWidth * 0.95) ) {
+            dWidth = wWidth * 0.95;
+        }
+    }
+    if ( dWidth < 300 ) dWidth = 300; // Should not happen
+    return Math.round(dWidth);
+}
+
+function showModalIframe(title, modalId, iframeId, spinnerUrl) {
+console.log("showModalIframe "+modalId);
+    $("#"+modalId).dialog({
+        title: title,
+        width: modalDialogWidth(),
+        modal: true,
+        draggable: false,
+        open: function() {
+            $('#'+iframeId).width('95%');
+        },
+        close: function() {
+            if ( spinnerUrl ) {
+                $('#'+iframeId).attr('src',spinnerUrl);
+            }
+        }
+    });
+
+    $(window).resize(function() {
+        $("#"+modalId).dialog("option", "width", modalDialogWidth());
+        $('#'+iframeId).width('95%');
+    });
+}
+
