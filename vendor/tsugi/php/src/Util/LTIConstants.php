@@ -416,7 +416,7 @@ class LTIConstants {
     const MEDIA_CC_1_1 = "application/vnd.ims.imsccv1p1";
     const MEDIA_CC_1_2 = "application/vnd.ims.imsccv1p2";
     const MEDIA_CC_1_3 = "application/vnd.ims.imsccv1p3";
-    const MEDIA_CC = self::MEDIA_CC_1_3.",".self::MEDIA_CC_1_2.",".self::MEDIA_CC_1_3;
+    const MEDIA_CC = "application/vnd.ims.imsccv1p1,application/vnd.ims.imsccv1p2,application/vnd.ims.imsccv1p3";
 
 
 	/**
