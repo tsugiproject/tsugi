@@ -319,6 +319,11 @@ if ( $submit_row == false ) {
     $partno = 0;
     foreach ( $assn_json->parts as $part ) {
 
+        if ( $part->type != "content_item" ) {
+            $partno++;
+            continue;
+        }
+
         $return = $CFG->getCurrentFileUrl(__FILE__);
         $return = str_replace("/index.php", "/contentitem_return.php?partno=".$partno,$return);
         $return = addSession($return);
