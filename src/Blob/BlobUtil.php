@@ -2,6 +2,8 @@
 
 namespace Tsugi\Blob;
 
+use \Tsugi\UI\Output;
+
 class BlobUtil {
 
     public static function getFolderName()
@@ -152,13 +154,13 @@ class BlobUtil {
         return false;
     }
 
-    // Does not do access control checks - access.php does the access
+    // Does not do access control checks - blob_serve.php does the access
     // control checks
     public static function getAccessUrlForBlob($blob_id, $serv_file=false)
     {
         global $CFG;
         if ( $serv_file !== false ) return $serv_file . '?id='.$blob_id;
-        $url = $CFG->wwwroot . '/core/blob/access.php?id='.$blob_id;
+        $url = Output::getUtilUrl('/blob_serve.php?id='.$blob_id);
         return $url;
     }
 
