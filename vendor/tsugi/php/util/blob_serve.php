@@ -7,6 +7,4 @@ use \Tsugi\Blob\Access;
 // Sanity checks
 $LTI = LTIX::requireData(array(LTIX::CONTEXT, LTIX::LINK));
 
-if ( ! $USER->instructor ) die("Must be instructor");
-
 Access::serveContent();
