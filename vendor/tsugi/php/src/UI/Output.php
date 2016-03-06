@@ -497,23 +497,8 @@ class Output {
      */
     public static function getLocalStatic($file) {
         global $CFG;
-        $path = self::getPwd($file);
+        $path = $CFG->getPwd($file);
         return $CFG->staticroot . "/" . $path;
-    }
-
-    /**
-     * Get the current working directory of a file
-     */
-    public static function getPwd($file) {
-        global $CFG;
-        $root = $CFG->dirroot;
-        $path = realpath(dirname($file));
-        $root .= '/'; // Add the trailing slash
-        if ( strlen($path) < strlen($root) ) return false;
-        // The root must be the prefix of path
-        if ( strpos($path, $root) !== 0 ) return false;
-        $retval = substr($path, strlen($root));
-        return $retval;
     }
 
     // http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers
