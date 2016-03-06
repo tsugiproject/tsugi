@@ -12,7 +12,7 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! isAdmin() ) {
-    $_SESSION['login_return'] = getUrlFull(__FILE__) . "/index.php";
+    $_SESSION['login_return'] = $CFG->getUrlFull(__FILE__) . "/index.php";
     header('Location: '.$CFG->wwwroot.'/login.php');
     return;
 }
