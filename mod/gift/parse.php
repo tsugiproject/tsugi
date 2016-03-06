@@ -349,7 +349,8 @@ foreach($questions as $question) {
             $answers[] = $ans;
         }
         $mt = new Mersenne_Twister($seed);
-        $answers = $mt->shuffle($answers);
+        // $answers = $mt->shuffle($answers);
+        $nq->answers = $mt->shuffle($answers);
     } 
 
     if ( $t == 'multiple_answers_question'  &&
