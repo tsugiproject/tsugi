@@ -48,6 +48,7 @@ class Table {
 
     // Function to lookup and match things like R.updated_at to updated_at
     public static function matchColumns($colname, $columns) {
+        if ( ! is_array($columns) ) return false;
         foreach ($columns as $v) {
             if ( $colname == $v ) return true;
             if ( strlen($v) < 2 ) continue;
@@ -78,7 +79,7 @@ class Table {
         }
 
         $ordertext = '';
-        if ( isset($params['order_by']) && Table::matchColumns($params['order_by'], $orderfields) ) {
+        if ( $params && isset($params['order_by']) && Table::matchColumns($params['order_by'], $orderfields) ) {
             $ordertext = $params['order_by']." ";
             if ( isset($params['desc']) && $params['desc'] == 1) {
                 $ordertext .= "DESC ";
@@ -215,7 +216,7 @@ class Table {
                         continue;
                     }
 
-                    if ( ! Table::matchColumns($k, $orderfields ) ) {
+                    if ( $orderfields && ! Table::matchColumns($k, $orderfields ) ) {
                         echo("<th>".CrudForm::fieldToTitle($k)."</th>\n");
                         continue;
                     }
