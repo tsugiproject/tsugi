@@ -126,7 +126,7 @@ class Output {
     function bodyStart($checkpost=true) {
         echo("\n</head>\n<body style=\"padding: 15px 15px 15px 15px;\">\n");
         if ( $checkpost && count($_POST) > 0 ) {
-            $dump = safe_var_dump($_POST);
+            $dump = self::safe_var_dump($_POST);
             echo('<p style="color:red">Error - Unhandled POST request</p>');
             echo("\n<pre>\n");
             echo($dump);
