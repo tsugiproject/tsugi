@@ -20,6 +20,7 @@ $assignments = array(
     'guess.php' => 'Guessing Game',
     'rps.php' => 'Rock, Paper, Scissors',
     'autosdb.php' => 'Autos PDO',
+    'autosess.php' => 'Autos Post-Redirect',
     'a05.php' => 'Shopping Cart (Old)',
     'a06.php' => 'CRUD - Tracks (Old)',
     // 'mid-f14-autos.php' => 'CRUD - Autos',
@@ -67,18 +68,33 @@ if ( $USER->displayname === false || $USER->displayname == '' ) {
     $OUTPUT->welcomeUserCourse();
 }
 
+function my_error_handler($errno , $errstr, $errfile, $errline , $trace = false)
+{
+    global $OUTPUT;
+    error_out("The autograder did not find something it was looking for in your HTML - test ended.");
+    $message = $errfile."@".$errline." ".$errstr;
+    error_log($message);
+    if ( $trace ) error_log($trace);
+    $detail = 
+        "Check the most recently retrieved page (above) and see why the autograder is uphappy.\n" .
+        "\nThe detail below may only make sense if you look at the source code for the test.\n".
+        'Caught exception: '.$message."\n".$trace."\n";
+    $OUTPUT->togglePre("Internal error detail.",$detail);
+    $OUTPUT->footer();
+}
+
+set_error_handler("my_error_handler", E_ALL);
+function fatalHandler() {
+    $error = error_get_last();
+    if($error) my_error_handler($error["type"], $error["message"], $error["file"], $error["line"]);
+}
+register_shutdown_function("fatalHandler");
+
 if ( $assn && isset($assignments[$assn]) ) {
     try {
-        require($assn);
+        include($assn);
     } catch (Exception $ex) {
-        error_out("The autograder did not find something it was looking for in your HTML - test ended.");
-        error_log($ex->getMessage());
-        error_log($ex->getTraceAsString());
-        $detail = 
-            "Check the most recently retrieved page (above) and see why the autograder is uphappy.\n" .
-            "\nThe detail below may only make sense if you look at the source code for the test.\n".
-            'Caught exception: '.$ex->getMessage()."\n".$ex->getTraceAsString()."\n";
-        $OUTPUT->togglePre("Internal error detail.",$detail);
+        my_error_handler($ex->getCode() , $ex->getMessage(), $ex->getFile(), $ex->getLine() , $ex->getTraceAsString());
     }
 } else {
     if ( $USER->instructor ) {
