@@ -131,7 +131,7 @@ class LTIX {
         // keys that we use in our database (i.e. like $row)
         $post = self::extractPost($needed);
         if ( $post === false ) {
-            $pdata = safe_var_dump($_POST);
+            $pdata = Output::safe_var_dump($_POST);
             echo("\n<pre>\nMissing Post_data\n$pdata\n</pre>");
             error_log('Missing post data: '.$pdata);
             die();
@@ -754,7 +754,7 @@ class LTIX {
         // Or their computer goes to sleep and wakes back up hours later.
         // So it is just a warning - nothing much we can do except tell them.
         if ( !isset($_SESSION['lti']) ) {
-            // $debug = safe_var_dump($_SESSION);
+            // $debug = Output::safe_var_dump($_SESSION);
             // error_log($debug);
             self::send403(); error_log('Session expired - please re-launch '.session_id());
             die('Session expired - please re-launch'); // with error_log
@@ -1043,7 +1043,7 @@ class LTIX {
         } else if ( is_string($retval) ) {
             $_SESSION['error'] = "Grade not sent: ".$retval;
         } else {
-            $svd = safe_var_dump($retval);
+            $svd = Output::safe_var_dump($retval);
             error_log("Grade sending error:".$svd);
             $_SESSION['error'] = "Grade sending error: ".substr($svd,0,100);
         }
