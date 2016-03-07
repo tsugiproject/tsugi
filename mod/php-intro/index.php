@@ -21,6 +21,7 @@ $assignments = array(
     'rps.php' => 'Rock, Paper, Scissors',
     'autosdb.php' => 'Autos PDO',
     'autosess.php' => 'Autos Post-Redirect',
+    'autoscrud.php' => 'Autos CRUD',
     'a05.php' => 'Shopping Cart (Old)',
     'a06.php' => 'CRUD - Tracks (Old)',
     // 'mid-f14-autos.php' => 'CRUD - Autos',
