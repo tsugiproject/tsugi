@@ -161,7 +161,7 @@ $OUTPUT->footerStart();
 // https://github.com/LinZap/jquery.waterfall
 if ( ! $install ) {
 ?>
-<script type="text/javascript" src="static/waterfall-light.js"></script>
+<script type="text/javascript" src="<?= $CFG->staticroot ?>/static/js/waterfall-light.js"></script>
 <script>
 $(function(){
     $('#box').waterfall({refresh: 0})
