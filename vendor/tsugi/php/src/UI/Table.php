@@ -170,6 +170,65 @@ class Table {
     onclick="document.getElementById('paged_search_box').value = '';"
     >
     <?php
+
+    if ( isset($rows[0]) ) {
+        $row = $rows[0];
+        $thispage = basename($_SERVER['PHP_SELF']);
+        if ( $view === false ) $view = $thispage;
+
+        $desc = isset($params['desc']) ? $params['desc'] + 0 : 0;
+        $order_by = isset($params['order_by']) ? $params['order_by'] : '';
+        $first = true;
+        foreach($row as $k => $v ) {
+            if ( strpos($k, "_") === 0 ) continue;
+            if ( $view !== false && strpos($k, "_id") !== false && is_numeric($v) ) {
+                continue;
+            }
+
+            if ( $orderfields && ! Table::matchColumns($k, $orderfields ) ) {
+                continue;
+            }
+
+            if ( $first ) {
+?>
+<script>
+function sortSelectedCode(item) {
+    newpage = $("#sortSelected").val();
+    if ( newpage == "false" ) return;
+    window.location = $("#sortSelected").val();
+}
+</script>
+<select id="sortSelected" onchange="sortSelectedCode(this);return false;">');
+<option value="false">- Sort By -</option>
+<?php
+                $first = false;
+            }
+
+            $override = Array('order_by' => $k, 'desc' => 0, 'page_start' => false);
+            $d = $desc;
+            $note = " &uarr;";
+            if ( $k == $order_by || $order_by == '' && $k == 'id' ) {
+                $d = ($desc + 1) % 2;
+                $override['desc'] = $d;
+                $note = " &darr;";
+            }
+            $stuff = Table::doUrl($params,$override);
+            echo('<option value="'.$thispage);
+            if ( strlen($stuff) > 0 ) {
+                echo("?");
+                echo($stuff);
+            }
+            echo('">');
+            echo(ucwords(str_replace('_',' ',$k)));
+            if ( $note ) echo ($note);
+            echo("</option>\n");
+        }
+    }
+
+    if ( ! $first ) {
+        echo("</select>\n");
+    }
+
     if ( is_array($extra_buttons) ) {
         foreach($extra_buttons as $button_text => $button_url ) {
             echo('<a href="'.$button_url.'" class="btn btn-default">'._m($button_text).'</a>'."\n");
