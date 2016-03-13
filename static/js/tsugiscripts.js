@@ -204,6 +204,7 @@ console.log("showModalIframe "+modalId);
     $("#"+modalId).dialog({
         title: title,
         width: modalDialogWidth(),
+        position: { my: "center top+30px", at: "center top+30px", of: window },
         modal: true,
         draggable: false,
         open: function() {
