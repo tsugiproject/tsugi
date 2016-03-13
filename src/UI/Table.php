@@ -169,8 +169,9 @@ class Table {
     <input type="submit" value="Clear Search" class="btn btn-default"
     onclick="document.getElementById('paged_search_box').value = '';"
     >
-    <?php
 
+<?php
+    // Add the sort drop-down
     if ( isset($rows[0]) ) {
         $row = $rows[0];
         $thispage = basename($_SERVER['PHP_SELF']);
@@ -191,15 +192,12 @@ class Table {
 
             if ( $first ) {
 ?>
-<script>
-function sortSelectedCode(item) {
-    newpage = $("#sortSelected").val();
-    if ( newpage == "false" ) return;
-    window.location = $("#sortSelected").val();
-}
-</script>
-<select id="sortSelected" onchange="sortSelectedCode(this);return false;">');
-<option value="false">- Sort By -</option>
+<span class="dropdown">
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    Sort Order
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
 <?php
                 $first = false;
             }
@@ -213,7 +211,8 @@ function sortSelectedCode(item) {
                 $note = " &darr;";
             }
             $stuff = Table::doUrl($params,$override);
-            echo('<option value="'.$thispage);
+
+            echo('<li><a href="'.$thispage);
             if ( strlen($stuff) > 0 ) {
                 echo("?");
                 echo($stuff);
@@ -221,12 +220,12 @@ function sortSelectedCode(item) {
             echo('">');
             echo(ucwords(str_replace('_',' ',$k)));
             if ( $note ) echo ($note);
-            echo("</option>\n");
+            echo("</a></li>\n");
         }
-    }
 
-    if ( ! $first ) {
-        echo("</select>\n");
+        if ( ! $first ) {
+            echo("\n</ul></span>\n");
+        }
     }
 
     if ( is_array($extra_buttons) ) {
@@ -283,10 +282,12 @@ function sortSelectedCode(item) {
                     $override = Array('order_by' => $k, 'desc' => 0, 'page_start' => false);
                     $d = $desc;
                     $color = "black";
+                    $arrow = '';
                     if ( $k == $order_by || $order_by == '' && $k == 'id' ) {
                         $d = ($desc + 1) % 2;
                         $override['desc'] = $d;
                         $color = $d == 1 ?  'green' : 'red';
+                        $arrow = $d == 1 ?  ' &uarr;' : ' &darr;';
                     }
                     $stuff = Table::doUrl($params,$override);
                     echo('<th>');
@@ -297,6 +298,7 @@ function sortSelectedCode(item) {
                     }
                     echo('" style="color: '.$color.'">');
                     echo(ucwords(str_replace('_',' ',$k)));
+                    echo($arrow);
                     echo("</a></th>\n");
                 }
                 echo("</tr>\n");
