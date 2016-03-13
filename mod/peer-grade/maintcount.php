@@ -12,7 +12,7 @@ $LTI = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 
-$assn = loadAssignment($LTI);
+$assn = loadAssignment();
 $assn_json = null;
 $assn_id = false;
 if ( $assn === false ) {

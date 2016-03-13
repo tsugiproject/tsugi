@@ -24,7 +24,7 @@ if ( isset($_GET['user_id']) ) {
 }
 
 // Model
-$row = loadAssignment($LTI);
+$row = loadAssignment();
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -92,7 +92,7 @@ if ( isset($_POST['points']) && isset($_POST['submit_id'])
         return;
     }
 
-    $grade_count = loadMyGradeCount($LTI, $assn_id);
+    $grade_count = loadMyGradeCount($assn_id);
     if ( $grade_count > $assn_json->maxassess && ! $USER->instructor ) {
         $_SESSION['error'] = 'You have already graded more than '.$assn_json->maxassess.' submissions';
         header( 'Location: '.addSession($url_goback) ) ;
@@ -142,7 +142,7 @@ $submit_id = false;
 $submit_json = null;
 if ( $user_id === false ) {
     // Load the the 10 oldest ungraded submissions
-    $to_grade = loadUngraded($LTI, $assn_id);
+    $to_grade = loadUngraded($assn_id);
     if ( count($to_grade) < 1 ) {
         $_SESSION['success'] = 'There are no submissions to grade';
         header( 'Location: '.addSession($url_goback) ) ;
@@ -180,7 +180,7 @@ echo('<div style="border: 1px solid black; padding:3px">');
 echo("<p><h4>".$assn_json->title."</h4></p>\n");
 echo('<p>'.htmlent_utf8($assn_json->description)."</p>\n");
 echo('</div>');
-showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id);
+showSubmission($assn_json, $submit_json, $assn_id, $user_id);
 echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 ?>
 <form method="post">

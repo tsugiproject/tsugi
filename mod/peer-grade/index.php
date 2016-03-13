@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
 }
 
 // Model
-$row = loadAssignment($LTI);
+$row = loadAssignment();
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false && strlen($row['json']) > 0 ) {
@@ -178,10 +178,10 @@ $grade_count = 0;
 $to_grade = 0;
 if ( $assn_json && $assn_json->maxassess > 0 ) {
     // See how much grading is left to do
-    $to_grade = loadUngraded($LTI, $assn_id);
+    $to_grade = loadUngraded($assn_id);
 
     // See how many grades I have done
-    $grade_count = loadMyGradeCount($LTI, $assn_id);
+    $grade_count = loadMyGradeCount($assn_id);
 }
 
 // Retrieve our grades...
@@ -401,7 +401,7 @@ if ( $assn_json->gallery != 'off') {
 // We have a submission already
 $submit_json = json_decode($submit_row['json']);
 echo("<p><b>Your Submission:</b></p>\n");
-showSubmission($LTI, $assn_json, $submit_json, $assn_id, $USER->id);
+showSubmission($assn_json, $submit_json, $assn_id, $USER->id);
 
 if ( $submit_row['inst_points'] > 0 ) {
     echo("<p>Instructor grade on assignment: ". $submit_row['inst_points']."</p>\n");

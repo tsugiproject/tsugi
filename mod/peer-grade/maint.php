@@ -15,7 +15,7 @@ $OUTPUT->noBuffer();
 
 // Grab our link_id
 $link_id = $LINK->id;
-$assn = loadAssignment($LTI);
+$assn = loadAssignment();
 $assn_json = null;
 $assn_id = false;
 if ( $assn === false ) {

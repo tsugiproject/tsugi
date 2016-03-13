@@ -11,7 +11,7 @@ use \Tsugi\Core\LTIX;
 $LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 
-$row = loadAssignment($LTI);
+$row = loadAssignment();
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false && strlen($row['json']) > 0 ) {
@@ -145,7 +145,7 @@ foreach($rows as $row ) {
         echo("<br/>\n");
     }
     if ( $inline ) {
-        showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id);
+        showSubmission($assn_json, $submit_json, $assn_id, $user_id);
     }
     if ( $row['rating'] > 1 ) {
         echo("Rating: ".$row['rating']."\n");

@@ -13,7 +13,7 @@ if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 
 // Load the assignment data
-$row = loadAssignment($LTI);
+$row = loadAssignment();
 $assn_json = json_decode($row['json']);
 
 // Gets counts and max of the submissions

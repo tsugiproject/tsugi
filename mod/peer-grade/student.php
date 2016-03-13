@@ -21,7 +21,7 @@ if ( !isset($_REQUEST['user_id']) ) die("user_id parameter required");
 $user_id = $_REQUEST['user_id'];
 
 // Load the assignment
-$row = loadAssignment($LTI);
+$row = loadAssignment();
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -325,7 +325,7 @@ if ( $submit_row === false ) {
     echo("<p>This student has not made a submission.</p>\n");
 } else {
     $submit_json = json_decode($submit_row['json']);
-    showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id);
+    showSubmission($assn_json, $submit_json, $assn_id, $user_id);
 }
 
 echo('<form method="post">

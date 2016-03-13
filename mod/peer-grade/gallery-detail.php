@@ -22,7 +22,7 @@ $url_goback = 'gallery.php';
 $url_stay = 'gallery-detail.php';
 
 // Model
-$row = loadAssignment($LTI);
+$row = loadAssignment();
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
@@ -158,7 +158,7 @@ echo('<div style="border: 1px solid black; padding:3px">');
 echo("<p><h4>".$assn_json->title."</h4></p>\n");
 echo('<p>'.htmlent_utf8($assn_json->description)."</p>\n");
 echo('</div>');
-showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id);
+showSubmission($assn_json, $submit_json, $assn_id, $user_id);
 echo('<p>'.htmlent_utf8($assn_json->grading)."</p>\n");
 ?>
 <form method="post">

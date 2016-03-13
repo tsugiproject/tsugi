@@ -9,19 +9,19 @@ use \Tsugi\Core\Mail;
 use \Tsugi\Blob\BlobUtil;
 
 // Loads the assignment associated with this link
-function loadAssignment($LTI)
+function loadAssignment()
 {
-    global $CFG, $PDOX;
+    global $CFG, $PDOX, $LINK;
     $cacheloc = 'peer_assn';
-    $row = Cache::check($cacheloc, $LTI['link_id']);
+    $row = Cache::check($cacheloc, $LINK->id);
     if ( $row != false ) return $row;
     $stmt = $PDOX->queryDie(
         "SELECT assn_id, json FROM {$CFG->dbprefix}peer_assn WHERE link_id = :ID",
-        array(":ID" => $LTI['link_id'])
+        array(":ID" => $LINK->id)
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $row['json'] = upgradeSubmission($row['json'] );
-    Cache::set($cacheloc, $LTI['link_id'], $row);
+    Cache::set($cacheloc, $LINK->id, $row);
     return $row;
 }
 
@@ -29,7 +29,7 @@ function loadSubmission($assn_id, $user_id)
 {
     global $CFG, $PDOX;
     $cacheloc = 'peer_submit';
-    $cachekey = $assn_id + "::" + $user_id;
+    $cachekey = $assn_id . "::" . $user_id;
     $submit_row = Cache::check($cacheloc, $cachekey);
     if ( $submit_row != false ) return $submit_row;
     $submit_row = false;
@@ -73,9 +73,9 @@ function upgradeSubmission($json_str)
 }
 
 // Check for ungraded submissions
-function loadUngraded($LTI, $assn_id)
+function loadUngraded($assn_id)
 {
-    global $CFG, $PDOX;
+    global $CFG, $PDOX, $USER;
     $stmt = $PDOX->queryDie(
         "SELECT S.submit_id, S.user_id, S.created_at, count(G.user_id) AS submit_count
             FROM {$CFG->dbprefix}peer_submit AS S LEFT JOIN {$CFG->dbprefix}peer_grade AS G
@@ -86,12 +86,12 @@ function loadUngraded($LTI, $assn_id)
             GROUP BY S.submit_id, S.created_at
             ORDER BY submit_count ASC, S.created_at ASC
             LIMIT 10",
-        array(":AID" => $assn_id, ":UID" => $LTI['user_id'])
+        array(":AID" => $assn_id, ":UID" => $USER->id)
     );
     return $stmt->fetchAll();
 }
 
-function showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id)
+function showSubmission($assn_json, $submit_json, $assn_id, $user_id)
 {
     global $CFG, $PDOX, $USER, $LINK, $CONTEXT, $OUTPUT;
     echo('<div style="padding:5px">');
@@ -252,10 +252,10 @@ function computeGrade($assn_id, $assn_json, $user_id)
 }
 
 // Load the count of grades for this user for an assignment
-function loadMyGradeCount($LTI, $assn_id) {
-    global $CFG, $PDOX;
+function loadMyGradeCount($assn_id) {
+    global $CFG, $PDOX, $USER;
     $cacheloc = 'peer_grade';
-    $cachekey = $assn_id + "::" + $LTI['user_id'];
+    $cachekey = $assn_id . "::" . $USER->id;
     $grade_count = Cache::check($cacheloc, $cachekey);
     if ( $grade_count != false ) return $grade_count;
     $stmt = $PDOX->queryDie(
@@ -264,7 +264,7 @@ function loadMyGradeCount($LTI, $assn_id) {
         JOIN {$CFG->dbprefix}peer_grade AS G
         ON S.submit_id = G.submit_id
             WHERE S.assn_id = :AID AND G.user_id = :UID",
-        array( ':AID' => $assn_id, ':UID' => $LTI['user_id'])
+        array( ':AID' => $assn_id, ':UID' => $USER->id)
     );
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ( $row !== false ) {
@@ -311,7 +311,7 @@ function retrieveGradesGiven($assn_id, $user_id)
 
 function mailDeleteSubmit($user_id, $assn_json, $note)
 {
-    global $CFG, $PDOX;
+    global $CFG, $PDOX, $CONTEXT, $LINK, $USER;
     if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return false;
 
     $LTI = LTIX::requireData();
@@ -328,9 +328,9 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
     if ( isset($CFG->maileol) ) $E = $CFG->maileol;
 
     $message = "This is an automated message.  Your peer-graded entry has been reset.$E$E";
-    if ( isset($LTI['context_title']) ) $message .= 'Course Title: '.$LTI['context_title'].$E;
-    if ( isset($LTI['link_title']) ) $message .= 'Assignment: '.$LTI['link_title'].$E;
-    if ( isset($LTI['user_displayname']) ) $message .= 'Staff member doing reset: '.$LTI['user_displayname'].$E;
+    if ( isset($CONTEXT->title) ) $message .= 'Course Title: '.$CONTEXT->title.$E;
+    if ( isset($LINK->title) ) $message .= 'Assignment: '.$LINK->title.$E;
+    if ( isset($USER->displayname) ) $message .= 'Staff member doing reset: '.$USER->displayname.$E;
 
     $fixnote = trim($note);
     if ( strlen($fixnote) > 0 ) {
@@ -343,8 +343,8 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
         "INSERT INTO {$CFG->dbprefix}mail_sent
             (context_id, link_id, user_to, user_from, subject, body, created_at)
             VALUES ( :CID, :LID, :UTO, :UFR, :SUB, :BOD, NOW() )",
-        array( ":CID" => $LTI['context_id'], ":LID" => $LTI['link_id'],
-            ":UTO" => $user_id, ":UFR" => $LTI['user_id'],
+        array( ":CID" => $CONTEXT->id, ":LID" => $LINK->id,
+            ":UTO" => $user_id, ":UFR" => $USER->id,
             ":SUB" => $subject, ":BOD" => $message)
     );
 

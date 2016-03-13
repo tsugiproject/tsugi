@@ -16,7 +16,7 @@ $user_id = $USER->id;
 if ( isset($_REQUEST['user_id']) ) $user_id = $_REQUEST['user_id'];
 
 // Model
-$row = loadAssignment($LTI);
+$row = loadAssignment();
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {

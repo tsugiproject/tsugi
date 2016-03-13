@@ -64,7 +64,7 @@ if ( isset($_POST['json']) ) {
 }
 
 // Load up the assignment
-$row = loadAssignment($LTI);
+$row = loadAssignment();
 $json = "";
 if ( $row !== false ) $json = $row['json'];
 
