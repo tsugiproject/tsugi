@@ -40,7 +40,7 @@ if ( $USER->instructor || $assn_json->gallery == 'always') {
 // Gets counts and max of the submissions
 $query_parms = array(":LID" => $LINK->id);
 if ( $USER->instructor ) {
-    $orderfields =  array("S.user_id", "displayname", "email", "S.created_at", "S.updated_at", "user_key", "max_score", "scores", "flagged", "min_score", "inst_points", "S.note");
+    $orderfields =  array("S.user_id", "rating", "displayname", "email", "S.created_at", "S.updated_at", "user_key", "max_score", "scores", "flagged", "min_score", "inst_points", "S.note");
     $searchfields = array("S.user_id", "displayname", "email", "S.created_at", "S.updated_at", "user_key", "S.note");
 } else {
     $orderfields =  array("S.created_at", "S.updated_at", "rating");
@@ -88,18 +88,10 @@ $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 $OUTPUT->welcomeUserCourse();
 
-// Make us a paged table and by default sort by flagged descending
+// Make us a paged table - leave default sort order "whatever"
 $parm = $_GET;
-if ( ! isset($parm['order_by']) ) {
-    $parm['order_by'] = 'flagged';
-    $parm['desc'] = '1';
-}
-
-// Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, "student.php", $parm, array('Exit' => 'index.php') );
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields, $parm);
-
-//echo("<pre>\n$newsql\n</pre>\n");
 
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
 
@@ -129,7 +121,7 @@ foreach($rows as $row ) {
 
     if ( count($submit_json->blob_ids) > 0 ) $more = true;
     if ( (count($submit_json->content_items) + count($submit_json->urls)) > 1 ) $more = true;
-    $note = $row['note'];
+    $note = $submit_json->notes;
     if ( strlen($note) < 1 ) $note = "Note missing.";
     if ( strlen($note) > 200 ) {
         $note = substr($note, 0, 200);
