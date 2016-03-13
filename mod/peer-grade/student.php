@@ -10,6 +10,8 @@ use \Tsugi\Core\Result;
 use \Tsugi\Core\User;
 use \Tsugi\Grades\GradeUtil;
 
+if ( !isset($STUDENT_RETURN) ) $STUDENT_RETURN = "admin.php";
+
 // Sanity checks
 $LTI = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor role");
@@ -75,7 +77,7 @@ if ( isset($_POST['deleteSubmit']) ) {
     $msg = "Submission deleted";
     if ( $retval ) $msg .= ', e-mail notice sent.';
     $_SESSION['success'] = $msg;
-    header( 'Location: '.addSession('admin.php') ) ;
+    header( 'Location: '.addSession($STUDENT_RETURN) ) ;
     return;
 }
 
@@ -307,7 +309,7 @@ this goes back to the first ungraded student."
         disabled="disabled">Next Ungraded Student</button> ');
 }
 echo('<input type="submit" name="doExit" class="btn btn-success"
-    onclick="location=\''.addSession('admin.php').'\'; return false;" value="Exit">');
+    onclick="location=\''.addSession($STUDENT_RETURN).'\'; return false;" value="Exit">');
 echo("</div>");
 
 if ( $user_row != false ) {
@@ -370,18 +372,22 @@ if ( isset($_GET['delete']) ) {
         submission and grades (allows student to resubmit)</a></p>'."\n");
 }
 
-echo("<p>Computed grade: ".$computed_grade."<br/>\n");
-
-if ( isset($_GET['resend']) ) {
-    echo('<form method="post">
-        <input type="hidden" name="user_id" value="'.$user_id.'">
-        <input type="submit" name="resendSubmit" value="Resend the Grade" class="btn btn-warning">
-        <input type="submit" name="doCancel" value="Cancel Resend" class="btn btn-normal"
-            onclick="location=\''.addSession('student.php?user_id='.$user_id).'\'; return false;">
-        </form>');
+if ( $assn_json->totalpoints == 0 ) {
+    echo("<p>This is an ungraded assignment</p>\n");
 } else {
-    echo('<p><a href="student.php?resend=yes&user_id='.$user_id.'">
-        Resend computed grade to the LMS</a></p>');
+    echo("<p>Computed grade: ".$computed_grade."<br/>\n");
+
+    if ( isset($_GET['resend']) ) {
+        echo('<form method="post">
+            <input type="hidden" name="user_id" value="'.$user_id.'">
+            <input type="submit" name="resendSubmit" value="Resend the Grade" class="btn btn-warning">
+            <input type="submit" name="doCancel" value="Cancel Resend" class="btn btn-normal"
+                onclick="location=\''.addSession('student.php?user_id='.$user_id).'\'; return false;">
+            </form>');
+    } else {
+        echo('<p><a href="student.php?resend=yes&user_id='.$user_id.'">
+            Resend computed grade to the LMS</a></p>');
+    }
 }
 
 if ( $user_display !== false ) $user_display = " by ".$user_display;
@@ -414,6 +420,7 @@ if ( $grades_received === false || count($grades_received) < 1 ) {
     echo('<table border="1" class="table table-hover table-condensed table-responsive">');
     echo("\n<tr><th>User</th><th>Email</th>");
     if ( $assn_json->peerpoints > 0 ) echo("<th>Points</th>");
+    if ( $assn_json->rating > 0 ) echo("<th>Rating</th>");
     echo("<th>Comments</th><th>Action</th></tr>\n");
 
     foreach ( $grades_received as $grade ) {
@@ -421,6 +428,7 @@ if ( $grades_received === false || count($grades_received) < 1 ) {
         <td>".htmlent_utf8($grade['displayname'])."</td>
         <td>".htmlent_utf8($grade['email'])."</td>");
         if ( $assn_json->peerpoints > 0 ) echo("<td>".$grade['points']."</td>");
+        if ( $assn_json->rating > 0 ) echo("<td>".$grade['rating']."</td>");
         echo("<td>".htmlent_utf8($grade['note'])."</td>".
         '<td> <form method="post"><input type="hidden"
             name="grade_id" value="'.$grade['grade_id'].'">
@@ -440,6 +448,7 @@ if ( $grades_given === false || count($grades_given) < 1 ) {
     echo('<table border="1" class="table table-hover table-condensed table-responsive">');
     echo("\n<tr><th>User</th><th>Email</th>");
     if ( $assn_json->peerpoints > 0 ) echo("<th>Points</th>");
+    if ( $assn_json->rating > 0 ) echo("<th>Rating</th>");
     echo("<th>Comments</th><th>Action</th></tr>\n");
 
     foreach ( $grades_given as $grade ) {
@@ -447,6 +456,7 @@ if ( $grades_given === false || count($grades_given) < 1 ) {
         <td>".htmlent_utf8($grade['displayname'])."</td>
         <td>".htmlent_utf8($grade['email'])."</td>");
         if ( $assn_json->peerpoints > 0 ) echo("<td>".$grade['points']."</td>");
+        if ( $assn_json->rating > 0 ) echo("<td>".$grade['rating']."</td>");
         echo("<td>".htmlent_utf8($grade['note'])."</td>".
         '<td> <form method="post"><input type="hidden"
             name="grade_id" value="'.$grade['grade_id'].'">

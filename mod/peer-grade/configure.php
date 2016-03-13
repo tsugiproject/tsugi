@@ -23,8 +23,8 @@ if ( isset($_POST['json']) ) {
     }
 
     // Some sanity checking...
-    if ( $json->totalpoints < 1 ) {
-        $_SESSION['error'] = "totalpoints is required and must be > 1";
+    if ( $json->totalpoints < 0 ) {
+        $_SESSION['error'] = "totalpoints is required and must be >= 0";
         header( 'Location: '.addSession('configure.php') ) ;
         return;
     }

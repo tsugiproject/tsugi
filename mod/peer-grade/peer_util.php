@@ -68,6 +68,7 @@ function upgradeSubmission($json_str)
     if ( ! isset($json->flag) ) $json->flag = true;
     if ( ! isset($json->rating) ) $json->rating = 0;
     if ( ! isset($json->gallery) ) $json->gallery = "off";
+    if ( ! isset($json->notepublic) ) $json->notepublic = "false";
     return json_encode($json);
 }
 
@@ -212,6 +213,8 @@ function showSubmission($LTI, $assn_json, $submit_json, $assn_id, $user_id)
 function computeGrade($assn_id, $assn_json, $user_id)
 {
     global $CFG, $PDOX;
+
+    if ( $assn_json->totalpoints == 0 ) return 0;
     $stmt = $PDOX->queryDie(
         "SELECT S.assn_id, S.user_id AS user_id, inst_points, email, displayname, S.submit_id as submit_id,
             MAX(points) as max_points, COUNT(points) as count_points, C.grade_count as grade_count
@@ -279,7 +282,7 @@ function retrieveSubmissionGrades($submit_id)
     global $CFG, $PDOX;
     if ( $submit_id === false ) return false;
     $grades_received = $PDOX->allRowsDie(
-        "SELECT grade_id, points, note, displayname, email
+        "SELECT grade_id, points, note, displayname, email, rating
         FROM {$CFG->dbprefix}peer_grade AS G
         JOIN {$CFG->dbprefix}lti_user as U
             ON G.user_id = U.user_id
@@ -294,7 +297,7 @@ function retrieveGradesGiven($assn_id, $user_id)
 {
     global $CFG, $PDOX;
     $grades_given = $PDOX->allRowsDie(
-        "SELECT grade_id, points, G.note AS note, displayname, email
+        "SELECT grade_id, points, G.note AS note, displayname, email, G.rating AS rating
         FROM {$CFG->dbprefix}peer_grade AS G
         JOIN {$CFG->dbprefix}peer_submit AS S
             ON G.submit_id = S.submit_id
