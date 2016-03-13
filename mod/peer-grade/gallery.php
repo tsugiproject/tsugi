@@ -82,6 +82,26 @@ $OUTPUT->header();
 <style>
 li {padding-top: 0.5em;}
 pre {padding-left: 2em;}
+
+.card {
+        border: 1px solid black;
+        margin: 5px;
+        padding: 5px;
+    }
+#loader {
+      position: fixed;
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 100%;
+      background-color: white;
+      margin: 0;
+      z-index: 100;
+}
+#XbasicltiDebugToggle {
+    display: none;
+}
+</style>
 </style>
 <?php
 $OUTPUT->bodyStart();
@@ -103,20 +123,17 @@ if ( $USER->instructor ) {
 
 Table::pagedHeader($rows, $searchfields, $orderfields, $view, $parm, array('Exit' => 'index.php'));
 
-echo("<ul>\n");
+echo '<div id="box">'."\n";
 foreach($rows as $row ) {
     $more = false;
     $user_id = $row['user_id']+0;
     $submit_json = json_decode($row['json']);
     $inline = false;
 
-    // We currently only have rating in the detail view
-    if ( $assn_json->rating == 0 ) {
-        if ( count($assn_json->parts) == 1 ) {
-            $part = $assn_json->parts[0];
-            if ( $part->type == 'content_item' || $part->type == 'url' ) $inline = true;
-            // if ( $part->type == 'image' ) $inline = true;
-        }
+    if ( count($assn_json->parts) == 1 ) {
+        $part = $assn_json->parts[0];
+        if ( $part->type == 'content_item' || $part->type == 'url' ) $inline = true;
+        if ( $part->type == 'image' ) $inline = true;
     }
 
     if ( count($submit_json->blob_ids) > 0 ) $more = true;
@@ -133,29 +150,44 @@ foreach($rows as $row ) {
         $more = true;
     } 
 
-    echo("<li>\n");
-    if ( $USER->id == $row['user_id'] ) {
-        echo('<span style="color: green;">'.htmlentities($note)."</span>\n");
-    } else {
-        echo(htmlentities($note)."\n");
-    }
+    echo('<div style="border: 2px, solid, red;" class="card">');
+    echo("<center>\n");
 
-    if ( $more ) {
-        echo('(<a href="gallery-detail.php?user_id='.$row['user_id'].'">More</a>)');
-        echo("<br/>\n");
-    }
     if ( $inline ) {
         showSubmission($assn_json, $submit_json, $assn_id, $user_id);
+    } else {
+        if ( $USER->id == $row['user_id'] ) {
+            echo('<span style="color: green;">'.htmlentities($note)."</span>\n");
+        } else {
+            echo(htmlentities($note)."\n");
+        }
     }
+
     if ( $row['rating'] > 1 ) {
-        echo("Rating: ".$row['rating']."\n");
+        $text = "Rate";
+        if ( $assn_json->rating > 0 ) $text = "More / Rate";
+        echo("<br/>Rating: ".$row['rating']."\n");
+        echo('(<a href="gallery-detail.php?user_id='.$row['user_id'].'">'.$text.'</a>)');
+    } else if ( $more ) {
+        echo('(<a href="gallery-detail.php?user_id='.$row['user_id'].'">More</a>)');
     }
     if ( $USER->instructor ) {
         echo('<br/>Admin Info: '.htmlentities($row['displayname']).' '.htmlentities($row['email'])."\n");
         echo('<a href="gallery-student.php?user_id='.$row['user_id'].'">Detail</a>');
     }
-    echo("</li>\n");
+    echo("</center>\n");
+    echo("</div>\n");
 }
-echo("</ul>\n");
+echo("</div>\n");
 
-$OUTPUT->footer();
+$OUTPUT->footerStart();
+// https://github.com/LinZap/jquery.waterfall
+?>
+<script type="text/javascript" src="<?= $CFG->staticroot ?>/static/js/waterfall-light.js"></script>
+<script>
+$(function(){
+    $('#box').waterfall({refresh: 0})
+});
+</script>
+<?php
+$OUTPUT->footerEnd();

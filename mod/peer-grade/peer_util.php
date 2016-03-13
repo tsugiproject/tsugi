@@ -113,11 +113,11 @@ function showSubmission($assn_json, $submit_json, $assn_id, $user_id)
             $url = BlobUtil::getAccessUrlForBlob($blob_id);
             $title = 'Student image';
             if( isset($part->title) && strlen($part->title) > 0 ) $title = $part->title;
-            echo (' <a href="#" onclick="$(\'#myModal_'.$blobno.'\').modal();"');
+            echo (' <a href="#" onclick="$(\'#myModal_'.$blob_id.'\').modal();"');
             echo ('alt="'.htmlent_utf8($title).'" title="'.htmlent_utf8($title).'">');
-            echo ('<img src="'.addSession($url).'" width="240"></a>'."\n");
+            echo ('<img src="'.addSession($url).'" width="240" style="max-width: 100%"></a>'."\n");
 ?>
-<div class="modal fade" id="myModal_<?php echo($blobno); ?>">
+<div class="modal fade" id="myModal_<?php echo($blob_id); ?>">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -156,7 +156,7 @@ function showSubmission($assn_json, $submit_json, $assn_id, $user_id)
                 \''.$OUTPUT->getSpinnerUrl().'\'); 
                 return false;">View Media</button>'."\n");
 ?>
-<div id="content_item_dialog_<?= $content_item_no ?>" title="Basic dialog" style="display:none;">
+<div id="content_item_dialog_<?= $content_item_no ?>" title="Content Item Dialog" style="display:none;">
 <iframe src="" id="content_item_frame_<?= $content_item_no ?>" height="500" 
     scrolling="auto" frameborder="1" transparency></iframe>
 </div>
