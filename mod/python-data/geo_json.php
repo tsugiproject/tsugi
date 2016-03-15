@@ -115,16 +115,18 @@ properly URL encoded using the <b>urllib.urlencode()</b> fuction as shown in
 <a href="http://www.pythonlearn.com/code/geojson.py" 
 target="_blank">http://www.pythonlearn.com/code/geojson.py</a>
 </p>
+<!--
 <p>
 Just for fun, you can also test your program with the real Google API:
 <pre>
 <a href="<?= $google_api ?>" target="_blank"><?= $google_api ?></a>
 </pre>
-Singe Google's data is always changing, the data returned from the Google API
+Since Google's data is always changing, the data returned from the Google API
 could easily be different than from my local copy API.  And the Google
 API has rate limits.  But your code should work with the Google API 
 with no modifications other than the base URL.
 </p>
+-->
 <?php httpsWarning($api_url); ?>
 <p><b>Test Data / Sample Execution</b></p>
 <p>
@@ -141,11 +143,20 @@ Place id <?= $sample_place ?>
 </p>
 <p><b>Turn In</b></p>
 <p>
-Please run your program to find the <b>place_id</b> for "<?= $actual_location ?>" 
-and enter the <b>place_id</b>
- and your Python code below.
+Please run your program to find the <b>place_id</b> for this location:
+<pre>
+<?= $actual_location ?>
+</pre>
+Make sure to enter the name and case exactly as above
+and enter the <b>place_id</b> and your Python code below.
 Hint: The first seven characters of the <b>place_id</b>
 are "<?= substr($actual_place,0,7) ?> ..."<br/>
+</p>
+<p>
+Make sure to retreive the data from the URL specified above and <b>not</b> the 
+normal Google API.  Your program should work with the Google API - but the
+<b>place_id</b> may not match for this assignment.
+</p>
 <form method="post">
 place_id: <input type="text" size="40" name="place_id">
 <input type="submit" value="Submit Assignment"><br/>
