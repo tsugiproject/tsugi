@@ -15,6 +15,7 @@ $p = $CFG->dbprefix;
 // Load the assignment data
 $row = loadAssignment();
 $assn_json = json_decode($row['json']);
+if ( $assn_json == null ) die('Not yet configured');
 
 // Gets counts and max of the submissions
 $query_parms = array(":LID" => $LINK->id);

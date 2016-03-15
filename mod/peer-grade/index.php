@@ -242,8 +242,10 @@ $OUTPUT->welcomeUserCourse();
 if ( $USER->instructor ) {
     echo('<p><a href="configure.php" class="btn btn-default">Configure this Assignment</a> ');
     SettingsForm::button();
-    echo('<a href="admin.php" class="btn btn-default">Explore Student Data</a> ');
-    if ( $assn_json->totalpoints > 0 ) {
+    if ( $assn_json !== null ) {
+        echo('<a href="admin.php" class="btn btn-default">Explore Student Data</a> ');
+    }
+    if ( $assn_json != null && $assn_json->totalpoints > 0 ) {
         echo('<a href="maint.php" target="_new" class="btn btn-default">Grade Maintenance</a> ');
     }
     echo('<a href="debug.php" class="btn btn-default">Session Dump</a></p>');

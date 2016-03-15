@@ -124,6 +124,10 @@ if ( $USER->instructor ) {
 Table::pagedHeader($rows, $searchfields, $orderfields, $view, $parm, array('Exit' => 'index.php'));
 
 echo '<div id="box">'."\n";
+if (count($rows) == 0 ) {
+    echo("<p>No entries to display</p>");
+}
+
 foreach($rows as $row ) {
     $more = false;
     $user_id = $row['user_id']+0;
