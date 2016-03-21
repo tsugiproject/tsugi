@@ -22,6 +22,7 @@ $assignments = array(
     'autosdb.php' => 'Autos PDO',
     'autosess.php' => 'Autos Post-Redirect',
     'autoscrud.php' => 'Autos CRUD',
+    'res-profile.php' => 'Profiles Databse',
     'a05.php' => 'Shopping Cart (Old)',
     'a06.php' => 'CRUD - Tracks (Old)',
     // 'mid-f14-autos.php' => 'CRUD - Autos',

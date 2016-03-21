@@ -22,16 +22,21 @@ $client->setMaxRedirects(5);
 // Make up some good submit data
 $wcount = 1;
 $submit = array();
+$empty_submit = array();
 $fieldlist = "";
 $firstint = False;
 $firstintfield = False;
 $firststring = False;
 $firststringfield = False;
+$firstemailfield = False;
 foreach($fields as $field ) {
     if ( strlen($fieldlist) > 0 ) $fieldlist .= ', ';
     $fieldlist .= $field[1];
     $v2 = isset($field[3]) ? $field[3] : false;
-    if ( $field[2] == 'i' ) {
+    $empty_submit[$field[1]] = "";
+    if ( $field[2] == 'e' ) {
+        $submit[$field[1]] = "blah@example.com";
+    } else if ( $field[2] == 'i' ) {
         $submit[$field[1]] = rand(5,99);
         if ( $firstintfield === False ) $firstintfield = $field[1];
         if ( $firstint === False ) $firstint = $submit[$field[1]];
@@ -104,8 +109,8 @@ $form = $crawler->selectButton('Add')->form();
 line_out("-- this autograder expects the form field names to be:");
 line_out("-- ".$fieldlist);
 line_out("-- if your fields do not match these, the next tests will fail.");
-line_out("Entering valid data in all the fields so Add is successful.");
-$form->setValues(array());
+line_out("Leaving all the fields empty to cause an error.");
+$form->setValues($empty_submit);
 $crawler = $client->submit($form);
 markTestPassed('Form submitted');
 checkPostRedirect($client);
@@ -133,11 +138,11 @@ checkPostRedirect($client);
 $html = $crawler->html();
 $OUTPUT->togglePre("Show retrieved page",$html);
 
-line_out("Expecting 'Record added'");
-if ( strpos(strtolower($html), 'record added') !== false ) {
+line_out("Expecting 'added'");
+if ( strpos(strtolower($html), 'added') !== false ) {
     markTestPassed('Found success message after add');
 } else {
-    error_out("Could not find 'Record added'");
+    error_out("Could not find 'added'");
 }
 
 
@@ -163,9 +168,9 @@ $OUTPUT->togglePre("Show retrieved page",$html);
 
 line_out('Looking for the form with a value="Save" submit button');
 $form = $crawler->selectButton('Save')->form();
-line_out("Changing $firstintfield to be 42");
+line_out("Changing $firststringfield to be 42");
 $xsubmit = $submit;
-$xsubmit[$firstintfield] = 42;
+$xsubmit[$firststringfield] = 42;
 $form->setValues($xsubmit);
 $crawler = $client->submit($form);
 markTestPassed("edit.php submitted");
