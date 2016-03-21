@@ -140,6 +140,9 @@ foreach($rows as $row ) {
         if ( $part->type == 'image' ) $inline = true;
     }
 
+    // For now
+    $inline = false;
+
     if ( count($submit_json->blob_ids) > 0 ) $more = true;
     if ( (count($submit_json->content_items) + count($submit_json->urls)) > 1 ) $more = true;
     $note = $submit_json->notes;
@@ -167,13 +170,13 @@ foreach($rows as $row ) {
         }
     }
 
+    $text = "Rate";
+    if ( $assn_json->rating > 0 ) $text = "More / Rate";
     if ( $row['rating'] > 1 ) {
-        $text = "Rate";
-        if ( $assn_json->rating > 0 ) $text = "More / Rate";
         echo("<br/>Rating: ".$row['rating']."\n");
         echo('(<a href="gallery-detail.php?user_id='.$row['user_id'].'">'.$text.'</a>)');
     } else if ( $more ) {
-        echo('(<a href="gallery-detail.php?user_id='.$row['user_id'].'">More</a>)');
+        echo('(<a href="gallery-detail.php?user_id='.$row['user_id'].'">'.$text.'</a>)');
     }
     if ( $USER->instructor ) {
         echo('<br/>Admin Info: '.htmlentities($row['displayname']).' '.htmlentities($row['email'])."\n");

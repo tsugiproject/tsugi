@@ -157,7 +157,8 @@ function showSubmission($assn_json, $submit_json, $assn_id, $user_id)
                 return false;">View Media</button>'."\n");
 ?>
 <div id="content_item_dialog_<?= $content_item_no ?>" title="Content Item Dialog" style="display:none;">
-<iframe src="" id="content_item_frame_<?= $content_item_no ?>" height="500" 
+<iframe src="about:blank" id="content_item_frame_<?= $content_item_no ?>" 
+    style="width:95%; height:500px;"
     scrolling="auto" frameborder="1" transparency></iframe>
 </div>
 <?php
