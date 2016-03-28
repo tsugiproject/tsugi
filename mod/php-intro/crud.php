@@ -250,6 +250,7 @@ while ( $i-- > 0 ) {
         "It may not make any sense without looking at the source code for the test.\n".
         'Caught exception: '.$ex->getMessage()."\n".$ex->getTraceAsString()."\n";
     $OUTPUT->togglePre("Internal error detail.",$detail);
+    return;
 }
 
 // There is a maximum 25 passes for this test

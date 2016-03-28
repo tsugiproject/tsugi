@@ -69,9 +69,11 @@ if ( $USER->displayname === false || $USER->displayname == '' ) {
     $OUTPUT->welcomeUserCourse();
 }
 
+$ALL_GOOD = false;
+
 function my_error_handler($errno , $errstr, $errfile, $errline , $trace = false)
 {
-    global $OUTPUT;
+    global $OUTPUT, $ALL_GOOD;
     error_out("The autograder did not find something it was looking for in your HTML - test ended.");
     $message = $errfile."@".$errline." ".$errstr;
     error_log($message);
@@ -82,21 +84,27 @@ function my_error_handler($errno , $errstr, $errfile, $errline , $trace = false)
         'Caught exception: '.$message."\n".$trace."\n";
     $OUTPUT->togglePre("Internal error detail.",$detail);
     $OUTPUT->footer();
+    $ALL_GOOD = true;
 }
 
-set_error_handler("my_error_handler", E_ALL);
 function fatalHandler() {
+    global $ALL_GOOD;
+    if ( $ALL_GOOD ) return;
     $error = error_get_last();
-    if($error) my_error_handler($error["type"], $error["message"], $error["file"], $error["line"]);
+    error_out("Fatal error handler triggered");
+    if($error) {
+        my_error_handler($error["type"], $error["message"], $error["file"], $error["line"]);
+    } else {
+        $OUTPUT->footer();
+    }
+    exit();
 }
 register_shutdown_function("fatalHandler");
 
+// Assume try / catch is in the script
 if ( $assn && isset($assignments[$assn]) ) {
-    try {
-        include($assn);
-    } catch (Exception $ex) {
-        my_error_handler($ex->getCode() , $ex->getMessage(), $ex->getFile(), $ex->getLine() , $ex->getTraceAsString());
-    }
+    include($assn);
+    $ALL_GOOD = true;
 } else {
     if ( $USER->instructor ) {
         echo("<p>Please use settings to select an assignment for this tool.</p>\n");
