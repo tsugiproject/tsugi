@@ -171,9 +171,9 @@ Rate this submission: <span id="jRate"></span>
 id="rating-input"
 value="<?= ($previous_rating > 0 ? $previous_rating : '') ?>" >
 </p>
-<input type="submit" value="Save" class="btn btn-primary">
+<input type="submit" value="Rate" class="btn btn-primary">
 <?php } ?>
-<input type="submit" name="doCancel" onclick="location='<?php echo(addSession($url_goback));?>'; return false;" value="Done" class="btn btn-default">
+<input type="submit" name="doCancel" onclick="location='<?php echo(addSession($url_goback));?>'; return false;" value="Back" class="btn btn-default">
 <?php   if ( $assn_json->flag ) { ?>
 <input type="submit" name="showFlag" onclick="$('#flagform').toggle(); return false;" value="Flag Objectionable Content" class="btn btn-warning" style="float:right;">
 <?php } ?>
