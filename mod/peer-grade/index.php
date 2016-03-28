@@ -277,6 +277,7 @@ if ( $assn_json == null ) {
     return;
 }
 
+$image_count = 0;
 if ( $submit_row == false ) {
     if ( $assn_json->gallery == 'always' ) {
         echo('<p><a href="gallery.php" class="btn btn-default">View Student Submissions</a></p> '."\n");
@@ -291,6 +292,7 @@ if ( $submit_row == false ) {
         echo("\n<p>");
         echo(htmlent_utf8($part->title)."\n");
         if ( $part->type == "image" ) {
+            $image_count++;
             echo('<input name="uploaded_file_'.$partno.'" type="file"> (Please use PNG or JPG files)</p>');
         } else if ( $part->type == "content_item" ) {
             $endpoint = $part->launch;
@@ -353,9 +355,11 @@ if ( $submit_row == false ) {
         $partno++;
     }
 
-    $upload_max_size = ini_get('upload_max_filesize');
-    echo("\n<p>Make sure each file is smaller than 1M.  Total upload limited to ");
-    echo(htmlent_utf8($upload_max_size)."</p>\n");
+    if ( $image_count > 0 ) {
+        $upload_max_size = ini_get('upload_max_filesize');
+        echo("\n<p>Make sure each uploaded image file is smaller than 1M.  Total upload size limited to ");
+        echo(htmlent_utf8($upload_max_size)."</p>\n");
+    }
     if ( isset($assn_json->totalpoints) && $assn_json->totalpoints > 0 ) {
         echo("<p>");
         echo(pointsDetail($assn_json));
