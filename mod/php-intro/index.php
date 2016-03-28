@@ -24,6 +24,7 @@ $assignments = array(
     'autoscrud.php' => 'Autos CRUD',
     'res-profile.php' => 'Profiles Databse',
     'res-position.php' => 'Profiles+Postions Databse',
+    'res-education.php' => 'Prof+Pos+Educ Databse',
     // 'mid-f14-autos.php' => 'CRUD - Autos',
     // 'crud-videos.php' => 'CRUD - Videos',
     // 'fin-f15-address.php' => 'CRUD 15 - Address',
