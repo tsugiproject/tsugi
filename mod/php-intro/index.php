@@ -81,7 +81,7 @@ function my_error_handler($errno , $errstr, $errfile, $errline , $trace = false)
     if ( $trace ) error_log($trace);
     $detail = 
         "Check the most recently retrieved page (above) and see why the autograder is uphappy.\n" .
-        "\nThe detail below may only make sense if you look at the source code for the test.\n".
+        "\nHere is some internal detail where the autograder was unable to continue.\n".
         'Caught exception: '.$message."\n".$trace."\n";
     $OUTPUT->togglePre("Internal error detail.",$detail);
     $OUTPUT->footer();
@@ -89,7 +89,7 @@ function my_error_handler($errno , $errstr, $errfile, $errline , $trace = false)
 }
 
 function fatalHandler() {
-    global $ALL_GOOD;
+    global $ALL_GOOD, $OUTPUT;
     if ( $ALL_GOOD ) return;
     $error = error_get_last();
     error_out("Fatal error handler triggered");
@@ -105,7 +105,6 @@ register_shutdown_function("fatalHandler");
 // Assume try / catch is in the script
 if ( $assn && isset($assignments[$assn]) ) {
     include($assn);
-    $ALL_GOOD = true;
 } else {
     if ( $USER->instructor ) {
         echo("<p>Please use settings to select an assignment for this tool.</p>\n");
@@ -113,7 +112,8 @@ if ( $assn && isset($assignments[$assn]) ) {
         echo("<p>This tool needs to be configured - please see your instructor.</p>\n");
     }
 }
-        
+
+$ALL_GOOD = true;
 
 $OUTPUT->footer();
 
