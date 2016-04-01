@@ -130,7 +130,7 @@ $form = $crawler->selectButton('Add')->form();
 line_out("-- this autograder expects the form field names to be:");
 line_out("-- ".$fieldlist);
 line_out("-- if your fields do not match these, the next tests will fail.");
-line_out("Causing Add error, leaving all fields blank.");
+line_out("Submitting good data.");
 $form->setValues($submit);
 $crawler = $client->submit($form);
 markTestPassed('Form data submitted');
