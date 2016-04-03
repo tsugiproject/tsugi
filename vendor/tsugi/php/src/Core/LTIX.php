@@ -792,7 +792,7 @@ class LTIX {
         }
 
         // Check to see if the user has navigated to a new place in the hierarchy
-        if ( isset($_SESSION['script_path']) && $CFG->getScriptPath() != 'core/blob' && 
+        if ( isset($_SESSION['script_path']) && 
             (! endsWith(Output::getUtilUrl(''), $CFG->getScriptPath()) ) &&
             strpos($CFG->getScriptPath(), $_SESSION['script_path']) !== 0 ) {
             self::send403();
