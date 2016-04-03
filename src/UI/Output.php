@@ -425,7 +425,7 @@ class Output {
                   <ul class="dropdown-menu">
                     <li><a href="<?= $R ?>profile.php">Profile</a></li>
                     <?php if ( $CFG->providekeys && $CFG->owneremail ) { ?>
-                    <li><a href="<?= $R ?>core/key/index.php">Use this service</a></li>
+                    <li><a href="<?= $R ?>admin/key/index.php">Use this service</a></li>
                     <?php } ?>
                     <li><a href="<?= $R ?>logout.php">Logout</a></li>
                   </ul>

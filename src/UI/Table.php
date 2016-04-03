@@ -15,7 +15,7 @@ use \Tsugi\UI\CrudForm;
  *
  * This also interoperates with the CrudForm class in those cases where
  * a table needs links to a detail page for a row as seen in
- * core/key/index.php
+ * admin/key/index.php
  *
  * @todo This is still emergent and as new use cases are encountered it
  * will likely evolve.

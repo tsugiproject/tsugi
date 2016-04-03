@@ -6,7 +6,7 @@ namespace Tsugi\UI;
  *
  * This code generates HTML pages and makes SQL queries to automate
  * the creation of simple CRUD forms by passing in values, table names,
- * and strings.  Here is a code example from core/keys/key-add.php:
+ * and strings.  Here is a code example from admin/keys/key-add.php:
  *
  *     $from_location = "keys.php";
  *     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
@@ -15,8 +15,8 @@ namespace Tsugi\UI;
  * This will output the HTML for a form that the user can fill in and submit.
  * The $from_location is used under the "Cancel" button.
  *
- * The file core/key/key-add.php is a good example of how to do an insert
- * form and the file core/key/key-detail.php is a good example of the
+ * The file admin/key/key-add.php is a good example of how to do an insert
+ * form and the file admin/key/key-detail.php is a good example of the
  * update case - which is significantly more complex.
  *
  * @TODO This code needs to be able to translate and override the labels
