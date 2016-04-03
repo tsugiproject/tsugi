@@ -550,7 +550,11 @@ if ( $dueDate->message ) {
 <form id="forminput">
 <?php
     if ( $EX !== false ) {
-        echo('<button onclick="runit()" class="btn btn-primary" type="button">Check Code</button>'."\n");
+        if ( $python3 ) {
+            echo('<button onclick="runit()" class="btn btn-warning" type="button">Check Code</button>'."\n");
+        } else {
+            echo('<button onclick="runit()" class="btn btn-primary" type="button">Check Code</button>'."\n");
+        }
     } else {
         if ( $python3 ) {
             echo('<button onclick="runit()" class="btn btn-warning" type="button">Run Python3</button>'."\n");
