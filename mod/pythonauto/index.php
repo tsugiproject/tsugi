@@ -23,10 +23,12 @@ $row = GradeUtil::gradeLoad();
 $OLDCODE = false;
 $json = array();
 $editor = 1;
+$python3 = 0;
 if ( $row !== false && isset($row['json'])) {
     $json = json_decode($row['json'], true);
     if ( isset($json["code"]) ) $OLDCODE = $json["code"];
     if ( isset($json["editor"]) ) $editor = $json["editor"];
+    if ( isset($json["python3"]) ) $python3 = $json["python3"];
 }
 
 if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0' ) ) {
@@ -38,6 +40,19 @@ if ( isset($_GET['editor']) && ( $_GET['editor'] == '1' || $_GET['editor'] == '0
     }
 }
 $codemirror = $editor == 1;
+
+if ( isset($_GET['python3']) && ( $_GET['python3'] == '1' || $_GET['python3'] == '0' ) ) {
+    $newpython3 = $_GET['python3']+0;
+    if ( $python3 != $newpython3 ) {
+        GradeUtil::gradeUpdateJson(array("python3" => $newpython3));
+        $json['python3'] = $newpython3;
+        $python3 = $newpython3;
+    }
+}
+
+// Switch to boolean
+$python3 = $python3 == 1;
+
 
 // Get any due date information
 $dueDate = SettingsForm::getDueDate();
@@ -105,8 +120,8 @@ body { font-family: sans-serif; }
 <script type="text/javascript" src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/codemirror/codemirror.js"></script>
 <script type="text/javascript" src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/codemirror/python.js"></script>
 <?php } ?>
-<script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/skulpt-003/skulpt.min.js?v=1" type="text/javascript"></script>
-<script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/skulpt-003/skulpt-stdlib.js?v=1" type="text/javascript"></script>
+<script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/skulpt-004/skulpt.min.js?v=1" type="text/javascript"></script>
+<script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/skulpt-004/skulpt-stdlib.js?v=1" type="text/javascript"></script>
 <script type="text/javascript">
 
 function builtinRead(x)
@@ -347,7 +362,11 @@ function outf(text) {
         output.innerHTML = '';
         if ( window.GLOBAL_TIMER != false ) window.clearInterval(window.GLOBAL_TIMER);
         window.GLOBAL_TIMER = setTimeout("finalcheck();",2500);
-        //Sk.python3 = false;
+        <?php if ( $python3 ) { ?>
+        Sk.python3 = true;
+        <?php } else { ?>
+        Sk.python3 = false;
+        <?php } ?>
         Sk.configure({output:outf, read: builtinRead, python3: false});
         // Sk.execLimit = 10000; // Ten Seconds
 
@@ -533,7 +552,11 @@ if ( $dueDate->message ) {
     if ( $EX !== false ) {
         echo('<button onclick="runit()" class="btn btn-primary" type="button">Check Code</button>'."\n");
     } else {
-        echo('<button onclick="runit()" class="btn btn-primary" type="button">Run Python</button>'."\n");
+        if ( $python3 ) {
+            echo('<button onclick="runit()" class="btn btn-warning" type="button">Run Python3</button>'."\n");
+        } else {
+            echo('<button onclick="runit()" class="btn btn-primary" type="button">Run Python</button>'."\n");
+        }
     }
     if ( strlen($CODE) > 0 ) {
         echo('<button onclick="resetcode()" class="btn btn-default" type="button">Reset Code</button> ');
@@ -590,15 +613,24 @@ if ( $OLDCODE !== false ) {
 Setting:
 <?php
     if ( $codemirror ) {
-        $editurl = reconstruct_query('auto.php',array("editor" => 0));
+        $editurl = reconstruct_query('index.php',array("editor" => 0));
         $textval = "Hide editor";
     } else {
-        $editurl = reconstruct_query('auto.php',array("editor" => 1));
+        $editurl = reconstruct_query('index.php',array("editor" => 1));
         $textval = "Show editor";
     }
-    echo('<a href="'.$editurl.'">'.$textval.'</a>.  ');
+    echo('<a href="'.$editurl.'">'.$textval.'</a>');
+
+    if ( $python3 ) {
+        $editurl = reconstruct_query('index.php',array("python3" => 0));
+        $textval = "Use Python 2";
+    } else {
+        $editurl = reconstruct_query('index.php',array("python3" => 1));
+        $textval = "Use Python 3 (experimental)";
+    }
+    echo(' | <a href="'.$editurl.'">'.$textval.'</a>. ');
 ?>
-This software supports Python 2.7 and is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a>
+This software is based on <a href="http://skulpt.org/" target="_blank">Skulpt</a>
 and <a href="http://codemirror.net/" target="_blank">CodeMirror</a>.
 The source code for this auto-grader is available on
 <a href="https://github.com/csev/tsugi" target="_blank">on GitHub</a>.
