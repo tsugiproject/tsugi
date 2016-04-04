@@ -175,7 +175,7 @@ value="<?= ($previous_rating > 0 ? $previous_rating : '') ?>" >
 <?php } ?>
 <input type="submit" name="doCancel" onclick="location='<?php echo(addSession($url_goback));?>'; return false;" value="Back" class="btn btn-default">
 <?php   if ( $assn_json->flag ) { ?>
-<input type="submit" name="showFlag" onclick="$('#flagform').toggle(); return false;" value="Flag Objectionable Content" class="btn btn-warning" style="float:right;">
+<input type="submit" name="showFlag" onclick="$('#flagform').toggle(); return false;" value="Flag Content Or Technical Issue" class="btn btn-warning" style="float:right;">
 <?php } ?>
 </form>
 <?php   if ( $assn_json->flag ) { ?>
@@ -193,6 +193,10 @@ flagging when instructor attention is needed.</p>
 </form>
 <?php } ?>
 <?php
+if ( $USER->instructor ) {
+    echo('<br/>Admin Info: ');
+    echo('<a href="rate-detail.php?user_id='.$user_id.'">Detail</a>');
+}
 
 $_SESSION['peer_submit_id'] = $submit_id;  // Our CSRF touch
 

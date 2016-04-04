@@ -172,7 +172,7 @@ foreach($rows as $row ) {
 
     $text = "Rate";
     if ( $assn_json->rating > 0 ) $text = "More / Rate";
-    if ( $row['rating'] > 1 ) {
+    if ( isset($row['rating']) && $row['rating'] > 1 ) {
         echo("<br/>Rating: ".$row['rating']."\n");
         echo('(<a href="gallery-detail.php?user_id='.$row['user_id'].'">'.$text.'</a>)');
     } else if ( $more ) {
