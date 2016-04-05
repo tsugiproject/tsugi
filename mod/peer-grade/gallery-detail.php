@@ -13,10 +13,10 @@ use \Tsugi\Grades\GradeUtil;
 $LTI = LTIX::requireData();
 $p = $CFG->dbprefix;
 
-if ( !isset($_GET['user_id']) ) {
+if ( !isset($_REQUEST['user_id']) ) {
     die('user_id required');
 }
-$user_id = $_GET['user_id'];
+$user_id = $_REQUEST['user_id'];
 
 $url_goback = 'gallery.php';
 $url_stay = 'gallery-detail.php';
@@ -70,6 +70,26 @@ if ( $row === FALSE ) {
     if ( $previous_rating < 1 ) $previous_rating = 0;
 }
 
+// Handle the flag data
+if ( isset($_POST['doFlag']) && isset($_POST['submit_id']) ) {
+
+    $submit_id = $_POST['submit_id']+0;
+    $stmt = $PDOX->queryDie(
+        "INSERT INTO {$p}peer_flag
+            (submit_id, user_id, note, created_at, updated_at)
+            VALUES ( :SID, :UID, :NOTE, NOW(), NOW())
+            ON DUPLICATE KEY UPDATE note = :NOTE, updated_at = NOW()",
+        array(
+            ':SID' => $submit_id,
+            ':UID' => $USER->id,
+            ':NOTE' => $_POST['note'])
+    );
+    $_SESSION['success'] = "Flagged for the instructor to examine, please continue grading.";
+    header( 'Location: '.addSession($url_stay.'?user_id='.$user_id) ) ;
+    return;
+}
+
+
 // Handle the rating data
 if ( isset($_POST['rating']) && isset($_POST['submit_id'])
     && isset($_POST['user_id']) ) {
@@ -79,7 +99,7 @@ if ( isset($_POST['rating']) && isset($_POST['submit_id'])
 
     if ( $assn_json->rating < 1 ) {
         $_SESSION['error'] = 'Rating is not enabled on this assignment';
-        header( 'Location: '.addSession($url_stay) ) ;
+        header( 'Location: '.addSession($url_stay.'?user_id='.$user_id) ) ;
         return;
     }
 
@@ -92,14 +112,14 @@ if ( isset($_POST['rating']) && isset($_POST['submit_id'])
 
     if ( strlen($_POST['rating']) < 1 ) {
         $_SESSION['error'] = 'Rating is required';
-        header( 'Location: '.addSession($url_stay) ) ;
+        header( 'Location: '.addSession($url_stay.'?user_id='.$user_id) ) ;
         return;
     }
 
     $rating = $_POST['rating']+0;
     if ( $rating < 0 || $rating > $assn_json->rating ) {
         $_SESSION['error'] = 'Rating must be between 0 and '.$assn_json->rating;
-        header( 'Location: '.addSession($url_stay) ) ;
+        header( 'Location: '.addSession($url_stay.'?user_id='.$user_id) ) ;
         return;
     }
 
