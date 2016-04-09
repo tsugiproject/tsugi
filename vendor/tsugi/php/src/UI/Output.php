@@ -124,7 +124,7 @@ class Output {
     }
 
     function bodyStart($checkpost=true) {
-        echo("\n</head>\n<body style=\"padding: 15px 15px 15px 15px;\">\n");
+        echo("\n</head>\n<body>\n<div class=\"container\">\n");
         if ( $checkpost && count($_POST) > 0 ) {
             $dump = self::safe_var_dump($_POST);
             echo('<p style="color:red">Error - Unhandled POST request</p>');
@@ -230,7 +230,7 @@ class Output {
     }
 
     function footerEnd() {
-        echo("\n</body>\n</html>\n");
+        echo("\n</div></body>\n</html>\n");
     }
 
     function footer($onload=false) {

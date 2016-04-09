@@ -200,7 +200,6 @@ function doSubmitTool(name) {
 $OUTPUT->bodyStart(false);
 ?>
   <form method="post" id="actionform">
-    <div class="container">
       <!-- Static navbar -->
       <div class="navbar navbar-default" role="navigation">
         <div class="navbar-header">
@@ -309,5 +308,4 @@ if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
 }
 ?>
       </div>
-    </div> <!-- /container -->
 <?php $OUTPUT->footer();

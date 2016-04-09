@@ -31,9 +31,6 @@ $OUTPUT->bodyStart();
 
 require_once("sanity-db.php");
 $OUTPUT->topNav();
-?>
-      <div>
-<?php
 $OUTPUT->flashMessages();
 ?>
 <p>
@@ -80,6 +77,4 @@ Learning Tools Interoperability™ (LTI™) is a
 trademark of IMS Global Learning Consortium, Inc.
 in the United States and/or other countries. (www.imsglobal.org)
 </p>
-      </div> <!-- /container -->
-
 <?php $OUTPUT->footer();
