@@ -210,7 +210,7 @@ $OUTPUT->bodyStart(false);
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="index.php">TSUGI</a>
+          <a class="navbar-brand" href="index.php"><img style="width:4em;" src="<?= $CFG->staticroot . '/static/img/logos/tsugi-logo.png' ?>"></a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
