@@ -1,6 +1,5 @@
 <?php
 require_once "../../config.php";
-require_once "exercises.php";
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Settings;
@@ -53,6 +52,11 @@ if ( isset($_GET['python3']) && ( $_GET['python3'] == '1' || $_GET['python3'] ==
 // Switch to boolean
 $python3 = $python3 == 1;
 
+if ( $python3 ) {
+    require_once "exercises3.php";
+} else {
+    require_once "exercises.php";
+}
 
 // Get any due date information
 $dueDate = SettingsForm::getDueDate();
@@ -64,6 +68,16 @@ $QTEXT = 'You can write any code you like in the window below.  There are three 
 loaded and ready for you to open if you want to do file processing:
 "mbox-short.txt", "romeo.txt", and "words.txt".';
 $DESIRED = false;
+if ( $python3 ) {
+$CODE = 'fh = open("romeo.txt", "r")
+
+count = 0
+for line in fh:
+    print(line.strip())
+    count = count + 1
+
+print(count,"Lines")';
+} else {
 $CODE = 'fh = open("romeo.txt", "r")
 
 count = 0
@@ -72,6 +86,7 @@ for line in fh:
     count = count + 1
 
 print count,"Lines"';
+}
 $CHECKS = false;
 $EX = false;
 
