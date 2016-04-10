@@ -21,7 +21,7 @@ $assn_id = false;
 if ( $assn === false ) {
     die("This peer-graded assignment is not yet configured");
 } else {
-    $assn_json = json_decode($assn['json']);
+    $assn_json = json_decode(upgradeSubmission($assn['json']));
     $assn_id = $assn['assn_id'];
 }
 

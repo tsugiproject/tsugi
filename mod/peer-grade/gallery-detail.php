@@ -26,7 +26,7 @@ $row = loadAssignment();
 $assn_json = null;
 $assn_id = false;
 if ( $row !== false ) {
-    $assn_json = json_decode($row['json']);
+    $assn_json = json_decode(upgradeSubmission($row['json']));
     $assn_id = $row['assn_id'];
 }
 
