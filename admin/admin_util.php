@@ -32,6 +32,9 @@ function findTools($dir, &$retval, $filename="index.php") {
         if ($dh = opendir($dir)) {
             while (($sub = readdir($dh)) !== false) {
                 if ( strpos($sub, ".") === 0 ) continue;
+                if ( $sub == $filename ) {
+                    $retval[] = $dir  ."/" . $sub;
+                }
                 $path = $dir . '/' . $sub;
                 if ( ! is_dir($path) ) continue;
                 if ( $sh = opendir($path)) {
@@ -58,6 +61,10 @@ function findFiles($filename="index.php", $reldir=false) {
             if ($dh = opendir($dir)) {
                 while (($sub = readdir($dh)) !== false) {
                     if ( strpos($sub, ".") === 0 ) continue;
+                    if ( $sub == $filename ) {
+                        $files[] = $dir . '/' . $sub;
+                        continue;
+                    }
                     $path = $dir . '/' . $sub;
                     if ( ! is_dir($path) ) continue;
                     if ( $sh = opendir($path)) {

@@ -6,6 +6,7 @@ require_once("admin/admin_util.php");
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
+use \Tsugi\COnfig\ConfigInfo;
 
 $PDOX = LTIX::getConnection();
 
@@ -221,7 +222,9 @@ $OUTPUT->bodyStart(false);
               <ul class="dropdown-menu">
                 <?php
                 foreach ($tools as $tool ) {
-                    echo('<li><a href="#" onclick="doSubmitTool(\''.$tool.'\');return false;">'.$tool.'</a></li>'."\n");
+                    $toolname = $tool;
+                    if ( strpos($tool,"../") === 0 ) $toolname = substr($tool,3);
+                    echo('<li><a href="#" onclick="doSubmitTool(\''.$tool.'\');return false;">'.$toolname.'</a></li>'."\n");
                 }
                 echo('<li><a href="#" onclick="doSubmitTool(\'Java Servlet\');return false;">Java Servlet (if installed)</a></li>'."\n");
                 echo('<li><a href="#" onclick="doSubmitTool(\'Tsugi Node\');return false;">Tsugi Node (if installed)</a></li>'."\n");
@@ -298,6 +301,7 @@ $parms['launch_presentation_css_url'] = $cssurl;
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
     // Switch to direct launches instead of going through lti.php
     $endpoint = str_replace("lti.php",$_POST['custom_assn'],$endpoint);
+    $endpoint = ConfigInfo::removeRelativePath($endpoint);
     $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
         "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
 

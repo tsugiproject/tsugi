@@ -413,5 +413,29 @@ class ConfigInfo {
         return $path;
     }
 
+    /**
+     * Remove any relative elements from a path
+     *
+     * Before   After
+     * a/b/c    a/b/c
+     * a/b/c/   a/b/c/
+     * a/./c/   a/c/
+     * a/../c/  c/
+     */
+    public static function removeRelativePath($path) {
+        $pieces = explode('/', $path);
+        $new_pieces = array();
+        for($i=0; $i < count($pieces); $i++) {
+            if ($pieces[$i] == '.' ) continue;
+            if ( $i < count($pieces)-1 && $pieces[$i+1] == '..' ) {
+                $i++;
+                continue;
+            }
+            $new_pieces[] = $pieces[$i];
+        }
+        $retval = implode("/",$new_pieces);
+        return $retval;
+    }
+
 }
 
