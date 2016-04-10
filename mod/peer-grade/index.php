@@ -177,8 +177,8 @@ if ( $assn_id != false && $assn_json != null &&
 }
 
 // See if we are going to delete the submission
-if ( isset($assn_json) && $assn_json->resubmit == "always" && 
-    $dueDate->dayspastdue <= 0 &&
+if ( isset($assn_json) && isset($assn_json->resubmit) && 
+    $assn_json->resubmit == "always" && $dueDate->dayspastdue <= 0 &&
     $assn_id && $submit_id && isset($_POST['deleteSubmit']) ) {
 
     $stmt = $PDOX->queryDie(
@@ -483,7 +483,7 @@ if ( $assn_json->maxassess < 1 ) {
     }
 }
 
-if ( $assn_json->resubmit == 'always' && $dueDate->dayspastdue <= 0 ) {
+if ( isset($assn_json->resubmit) && $assn_json->resubmit == 'always' && $dueDate->dayspastdue <= 0 ) {
     echo('<p><form method = "post">
         <input type="submit" name="deleteSubmit" value="Delete Your Submission" class="btn btn-danger"
             onclick="return confirm(\'Are you sure you want to delete your submission?\');">
