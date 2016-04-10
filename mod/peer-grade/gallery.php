@@ -179,8 +179,7 @@ foreach($rows as $row ) {
         echo('(<a href="gallery-detail.php?user_id='.$row['user_id'].'">'.$text.'</a>)');
     }
     if ( $USER->instructor ) {
-        echo('<br/>Admin Info: '.htmlentities($row['displayname']).' '.htmlentities($row['email'])."\n");
-        echo('<a href="gallery-student.php?user_id='.$row['user_id'].'">Detail</a>');
+        echo('<br/>Admin: <a href="gallery-student.php?user_id='.$row['user_id'].'">Detail</a>');
     }
     echo("</center>\n");
     echo("</div>\n");
