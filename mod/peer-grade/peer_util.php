@@ -68,6 +68,7 @@ function upgradeSubmission($json_str)
     if ( ! isset($json->flag) ) $json->flag = true;
     if ( ! isset($json->rating) ) $json->rating = 0;
     if ( ! isset($json->gallery) ) $json->gallery = "off";
+    if ( ! isset($json->resubmit) ) $json->resubmit = "off";
     if ( ! isset($json->notepublic) ) $json->notepublic = "false";
     return json_encode($json);
 }

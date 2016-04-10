@@ -158,6 +158,10 @@ to comment on their peer submissions but not submit any points</li>
 If this is zero, students can do peer assessing/commenting but will get no points for their efforts.</li>
 <li>flag - if this is true, students will be given the option to flag submissions and flag
 comments on their submissions.  Setting this to false, turns off the flagging workflow.</li>
+<li>resubmit - can be "off" or "always".   This enables students to delete and resubmit their
+submission as long as the due date has not passed.
+</li>
+
 </ul>
 <p>
 You can change any of these last five point values while an assessment is running, but you should 

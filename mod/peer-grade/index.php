@@ -19,6 +19,9 @@ if ( SettingsForm::handleSettingsPost() ) {
     return;
 }
 
+// Grab the due date information
+$dueDate = SettingsForm::getDueDate();
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) < 1 ) {
     $_SESSION['error'] = 'File upload size exceeded, please re-upload a smaller file';
     error_log("Upload size exceeded");
@@ -170,6 +173,32 @@ if ( $assn_id != false && $assn_json != null &&
         $_SESSION['error'] = $stmt->errorImplode;
         header( 'Location: '.addSession('index.php') ) ;
     }
+    return;
+}
+
+// See if we are going to delete the submission
+if ( isset($assn_json) && $assn_json->resubmit == "always" && 
+    $dueDate->dayspastdue <= 0 &&
+    $assn_id && $submit_id && isset($_POST['deleteSubmit']) ) {
+
+    $stmt = $PDOX->queryDie(
+        "DELETE FROM {$p}peer_submit
+            WHERE submit_id = :SID",
+        array( ':SID' => $submit_id)
+    );
+
+    // Since text items are connected to the assignment not submission
+    $stmt = $PDOX->queryDie(
+        "DELETE FROM {$p}peer_text
+            WHERE assn_id = :AID AND user_id = :UID",
+        array( ':AID' => $assn_id, ':UID' => $USER->id)
+    );
+    Cache::clear('peer_grade');
+    Cache::clear('peer_submit');
+    $msg = "Deleted submission for user ".$USER->id." ".$USER->email;
+    error_log($msg);
+    $_SESSION['success'] = "Submission deleted.";
+    header( 'Location: '.addSession('index.php') ) ;
     return;
 }
 
@@ -453,6 +482,15 @@ if ( $assn_json->maxassess < 1 ) {
         echo("<p>Your overall score from your peers: $max_points </p>\n");
     }
 }
+
+if ( $assn_json->resubmit == 'always' && $dueDate->dayspastdue <= 0 ) {
+    echo('<p><form method = "post">
+        <input type="submit" name="deleteSubmit" value="Delete Your Submission" class="btn btn-danger"
+            onclick="return confirm(\'Are you sure you want to delete your submission?\');">
+        </form></p>
+    ');
+}
+
 $OUTPUT->exitButton();
 ?>
 <form method="post" id="flagform" style="display:none">
