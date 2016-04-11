@@ -63,6 +63,7 @@ header('Content-Type: text/html; charset=utf-8');
 $tools = array();
 foreach( $CFG->tool_folders AS $tool_folder) {
     if ( $tool_folder == 'core' ) continue;
+    if ( $tool_folder == 'admin' ) continue;
     findTools($tool_folder,$tools);
 }
 
