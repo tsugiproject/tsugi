@@ -164,8 +164,8 @@ class SettingsForm {
         }
 
         // Instructor view
-        echo('<label for="'.$name.'">'.htmlent_utf8($title)."\n");
-        echo('<input type="text" size="80" name="'.$name.'"');
+        echo('<label style="width:100%;" for="'.$name.'">'.htmlent_utf8($title)."\n");
+        echo('<input type="text" class="form-control" style="width:100%;" name="'.$name.'"');
         echo('value="'.htmlent_utf8($configured).'"></label>'."\n");
     }
 
@@ -275,21 +275,21 @@ class SettingsForm {
         <label for="due">
             Please enter a due date in ISO 8601 format (2015-01-30T20:30) or leave blank for no due date.
             You can leave off the time to allow the assignment to be turned in any time during the day.<br/>
-        <input type="text" value="<?php echo(htmlspec_utf8($due)); ?>" name="due"></label>
+        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($due)); ?>" name="due"></label>
         <label for="timezone">
             Please enter a valid PHP Time Zone like 'Pacific/Honolulu' (default).  If you are
             teaching in many time zones around the world, 'Pacific/Honolulu' is a good time
             zone to choose - this is why it is the default.<br/>
-        <input type="text" value="<?php echo(htmlspec_utf8($timezone)); ?>" name="timezone"></label>
+        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($timezone)); ?>" name="timezone"></label>
             <p>The next two fields determine the "overall penalty" for being late.  We define a time period
             (in seconds) and a fractional penalty per time period.  The penalty is assessed for each
             full or partial time period past the due date.  For example to deduct 20% per day, you would
             set the period to be 86400 (24*60*60) and the penalty to be 0.2.
             </p>
         <label for="penalty_time">Please enter the penalty time period in seconds.<br/>
-        <input type="text" value="<?php echo(htmlspec_utf8($time)); ?>" name="penalty_time"></label>
+        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($time)); ?>" name="penalty_time"></label>
         <label for="penalty_cost">Please enter the penalty deduction as a decimal between 0.0 and 1.0.<br/>
-        <input type="text" value="<?php echo(htmlspec_utf8($cost)); ?>" name="penalty_cost"></label>
+        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($cost)); ?>" name="penalty_cost"></label>
 <?php
     }
 
@@ -308,7 +308,7 @@ class SettingsForm {
             If you put a URL here, a Done button will be shown and when pressed the tool will navigate to
             the specified URL.  If you expect to launch this tool in a popup, enter "_close" here and
             the tool will close its window when Done is pressed.<br/>
-        <input type="text" value="<?php echo(htmlspec_utf8($done)); ?>" size="80" name="done"></label>
+        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($done)); ?>" name="done"></label>
 <?php
     }
 

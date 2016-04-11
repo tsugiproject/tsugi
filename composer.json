@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/php": "dev-master#14622f13d6e0ad2abf587b34b87f1f5a2c7b0126"
+        "tsugi/php": "dev-master#1e35ad464e90def194335aee3f435bde0f341e2d"
     },
     "config": {
         "preferred-install": "dist"
