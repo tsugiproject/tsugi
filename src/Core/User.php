@@ -28,12 +28,22 @@ class User {
     /**
      * The user's email
      */
-    public $email;
+    public $email = false;
 
     /**
      * The user's display name
      */
-    public $displayname;
+    public $displayname = false;
+
+    /**
+     * The user's first name
+     */
+    public $firstname = false;
+
+    /**
+     * The user's last name
+     */
+    public $lastname = false;
 
     /**
      * Is the user an instructor?
