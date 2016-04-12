@@ -566,7 +566,7 @@ if ( $dueDate->message ) {
 <?php
     if ( $EX !== false ) {
         if ( $python3 ) {
-            echo('<button onclick="runit()" class="btn btn-warning" type="button">Check Code</button>'."\n");
+            echo('<button onclick="runit()" class="btn btn-warning" type="button">Check Code (Python 3)</button>'."\n");
         } else {
             echo('<button onclick="runit()" class="btn btn-primary" type="button">Check Code</button>'."\n");
         }
