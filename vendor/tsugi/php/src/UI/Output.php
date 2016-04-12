@@ -89,14 +89,17 @@ class Output {
         <link href="<?= $CFG->staticroot ?>/static/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/static/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
 
-    <style> <!-- from navbar.css -->
+    <style>
     body {
-      padding-top: 20px;
-      padding-bottom: 20px;
+      padding-top: 10px;
+      padding-bottom: 10px;
     }
-
     .navbar {
       margin-bottom: 20px;
+    }
+    .container_iframe {
+        margin-left: 10px;
+        margin-right: 10px;
     }
     </style>
 
@@ -124,7 +127,18 @@ class Output {
     }
 
     function bodyStart($checkpost=true) {
-        echo("\n</head>\n<body>\n<div class=\"container\">\n");
+    // If we are in an iframe use different margins
+?>
+</head>
+<body>
+<script>
+if (window!=window.top) {
+    document.write('<div class="container_iframe">');
+} else {
+    document.write('<div class="container">');
+}
+</script>
+<?php
         if ( $checkpost && count($_POST) > 0 ) {
             $dump = self::safe_var_dump($_POST);
             echo('<p style="color:red">Error - Unhandled POST request</p>');
