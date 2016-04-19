@@ -57,7 +57,8 @@ class LTIX {
     }
 
     /**
-     * Silently check if this is a launch and if so, handle it
+     * Silently check if this is a launch and if so, handle it and redirect
+     * back to ourselves
      */
     public static function launchCheck($needed=self::ALL) {
         $needed = self::patchNeeded($needed);
@@ -230,42 +231,6 @@ class LTIX {
 
         // Check if we can auto-login the system user
         if ( Settings::linkGet('dologin', false) && isset($PDOX) && $PDOX !== false ) self::loginSecureCookie();
-
-        // Set up basic custom values (legacy)
-        if ( isset($_POST['custom_due'] ) ) {
-            $when = strtotime($_POST['custom_due']);
-            if ( $when === false ) {
-                echo('<p>Error, bad setting for custom_due='.htmlentities($_POST['custom_due']).'</p>');
-                error_log('Bad custom_due='.$_POST['custom_due']);
-                flush();
-            } else {
-                $_SESSION['due'] = $_POST['custom_due'];
-            }
-        }
-
-        if ( isset($_POST['custom_timezone'] ) ) {
-            $_SESSION['timezone'] = $_POST['custom_timezone'];
-        }
-
-        if ( isset($_POST['custom_penalty_time'] ) ) {
-            if ( $_POST['custom_penalty_time'] + 0 == 0 ) {
-                echo('<p>Error, bad setting for custom_penalty_time='.htmlentities($_POST['custom_penalty_time']).'</p>');
-                error_log('Bad custom_penalty_time='.$_POST['custom_penalty_time']);
-                flush();
-            } else {
-                $_SESSION['penalty_time'] = $_POST['custom_penalty_time'];
-            }
-        }
-
-        if ( isset($_POST['custom_penalty_cost'] ) ) {
-            if ( $_POST['custom_penalty_cost'] + 0 == 0 ) {
-                echo('<p>Error, bad setting for custom_penalty_cost='.htmlentities($_POST['custom_penalty_cost']).'</p>');
-                error_log('Bad custom_penalty_cost='.$_POST['custom_penalty_cost']);
-                flush();
-            } else {
-                $_SESSION['penalty_cost'] = $_POST['custom_penalty_cost'];
-            }
-        }
 
         $breadcrumb = 'Launch,';
         $breadcrumb .= isset($row['key_id']) ? $row['key_id'] : '';
@@ -483,7 +448,7 @@ class LTIX {
      * While this looks like a lot of INSERT and UPDATE statements,
      * the INSERT statements only run when we see a new user/course/link
      * for the first time and after that, we only update is something
-     * changes.   S0 in a high percentage of launches we are not seeing
+     * changes.   So in a high percentage of launches we are not seeing
      * any new or updated data and so this code just falls through and
      * does absolutely no SQL.
      */
@@ -932,7 +897,7 @@ class LTIX {
       * Each entry is an array with the [0] element a message and an optional [1]
       * element as some detail (i.e. like a POST body)
       *
-      * @return mixed If this work this returns true.  If not, you get
+      * @return mixed If this works it returns true.  If not, you get
       * a string with an error.
       *
       */
@@ -967,7 +932,8 @@ class LTIX {
             return false;
         }
 
-        $comment = "YO";
+        // TODO: Fix this
+        $comment = "";
         if ( strlen($result_url) > 0 ) {
             $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log);
         } else {
@@ -1126,7 +1092,9 @@ class LTIX {
      * @param $url - The url to lookup
      */
     public static function getKeySecretForLaunch($url) {
-        global $CFG, $PDOX, $CONTEXT;
+        global $CFG, $CONTEXT;
+
+        $PDOX = self::getConnection();
         $host = parse_url($url, PHP_URL_HOST);
         $port = parse_url($url, PHP_URL_PORT);
         $key_id = self::sessionGet('key_id', false);
