@@ -128,6 +128,13 @@ $CFG->analytics_name = false; // "dr-chuck.com";
 // Universal Analytics
 $CFG->universal_analytics = false; // "UA-57880800-1";
 
+// Only define this if you are using Tsugi in single standalone app that 
+// will never be in iframes - because most browsers will *not* set cookies in
+// cross-domain iframes.   If you use this, you cannot be a different
+// user in a different tab or be in a different course in a different
+// tab.  
+// if ( !defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
+
 // Effectively an "airplane mode" for the appliction.
 // Setting this to true makes it so that when you are completely 
 // disconnected, various tools will not access network resources 
