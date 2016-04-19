@@ -144,13 +144,17 @@ class LTIX {
 
         // We make up a Session ID Key because we don't want a new one
         // each time the same user launches the same link.
-        $session_id = self::getCompositeKey($post, $CFG->sessionsalt);
-        session_id($session_id);
+        if ( !defined('COOKIE_SESSION') ) {
+            $session_id = self::getCompositeKey($post, $CFG->sessionsalt);
+            session_id($session_id);
+        }
         session_start();
+        $session_id = session_id();
+
         header('Content-Type: text/html; charset=utf-8');
 
         // Since we might reuse session IDs, clean everything out
-        session_unset();
+        if ( !defined('COOKIE_SESSION') ) session_unset();
         $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
 
         // Read all of the data from the database with a very long
