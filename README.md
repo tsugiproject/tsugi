@@ -2,10 +2,21 @@
 Tsugi PHP Library
 =================
 
-This is under construction.  The goal is to get the Tsugi PHP library moved into 
-packagist.
+**NOTE** As of 2016-Apr-20, the configuration in `config.php` of the staticroot 
+needs to change to:
 
-For now this is *not* the gold standard - it is just evolving.
+    $CFG->staticroot = 'https://www.dr-chuck.net/tsugi-static';
+
+or
+
+    $CFG->staticroot = 'http://localhost/tsugi-static';  /// For normal
+    $CFG->staticroot = 'http://localhost:8888/tsugi-static';   // For MAMP
+
+With tsugi-static checked out seprately.
+
+Most `config.php` files leave this as default and depend on ConfigInfo
+to set the default.  In this case we changed the default so no 
+change is needed.
 
 Testing
 ---------
