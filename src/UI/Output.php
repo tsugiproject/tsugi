@@ -106,8 +106,8 @@ class Output {
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
         <!--[if lt IE 9]>
-          <script src="<?= $CFG->wwwroot ?>/static/html5shiv/html5shiv.js"></script>
-          <script src="<?= $CFG->wwwroot ?>/static/respond/respond.min.js"></script>
+          <script src="<?= $CFG->vendorstatic ?>/js/html5shiv/html5shiv.js"></script>
+          <script src="<?= $CFG->vendorstatic ?>/js/respond/respond.min.js"></script>
         <![endif]-->
 
     <?php
@@ -156,9 +156,7 @@ if (window!=window.top) {
         echo('<script src="'.$CFG->staticroot.'/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/handlebars-v4.0.2.js"></script>'."\n");
-
-        // Serve this locally during early development - Move to CDN when stable
-        echo('<script src="'.$CFG->wwwroot.'/static/js/tsugiscripts.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/js/tsugiscripts.js"></script>'."\n");
 
         if ( isset($CFG->sessionlifetime) ) {
             $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
