@@ -10,7 +10,7 @@ class Access {
     public static function serveContent() {
         global $CFG, $CONTEXT, $PDOX;
         // Sanity checks
-        $LTI = LTIX::requireData(LTIX::CONTEXT);
+        $LAUNCH = LTIX::requireData(LTIX::CONTEXT);
 
         $id = $_REQUEST['id'];
         if ( strlen($id) < 1 ) {

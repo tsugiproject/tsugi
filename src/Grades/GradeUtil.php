@@ -8,7 +8,7 @@ use \Tsugi\Core\LTIX;
 class GradeUtil {
     public static function gradeLoadAll() {
         global $CFG, $USER, $LINK, $PDOX;
-        $LTI = LTIX::requireData(LTIX::LINK);
+        $LAUNCH = LTIX::requireData(LTIX::LINK);
         if ( ! $USER->instructor ) die("Requires instructor role");
         $p = $CFG->dbprefix;
 
@@ -48,7 +48,7 @@ class GradeUtil {
     // Not cached
     public static function gradeLoad($user_id=false) {
         global $CFG, $USER, $LINK, $PDOX;
-        $LTI = LTIX::requireData(array(LTIX::LINK, LTIX::USER));
+        $LAUNCH = LTIX::requireData(array(LTIX::LINK, LTIX::USER));
         if ( ! $USER->instructor && $user_id !== false ) die("Requires instructor role");
         if ( $user_id == false ) $user_id = $USER->id;
         $p = $CFG->dbprefix;
@@ -81,7 +81,7 @@ class GradeUtil {
         global $CFG, $PDOX, $LINK, $RESULT;
         if ( $newdata == false ) return;
         if ( is_string($newdata) ) $newdata = json_decode($newdata, true);
-        $LTI = LTIX::requireData(array(LTIX::LINK));
+        $LAUNCH = LTIX::requireData(array(LTIX::LINK));
         if ( ! isset($RESULT) ) return;
         $row = self::gradeLoad();
         $data = array();

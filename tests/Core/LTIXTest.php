@@ -8,11 +8,11 @@ use \Tsugi\Core\LTIX;
 class LTIXTest extends PHPUnit_Framework_TestCase
 {
     public function testAnon() {
-        // $LTI = LTIX::requireData(LTIX::NONE);
+        // $LAUNCH = LTIX::requireData(LTIX::NONE);
     }
 
     public function testCSRF() {
-        // $LTI = LTIX::requireData(LTIX::NONE);
+        // $LAUNCH = LTIX::requireData(LTIX::NONE);
         $this->assertEquals(LTIX::sessionGet('bob', 'sam'), 'sam');
     }
 
