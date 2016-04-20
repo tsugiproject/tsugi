@@ -18,6 +18,11 @@ class Entity {
     // public $id = ...;
 
     /**
+     * A reference to our containing launch
+     */
+    public $launch;
+
+    /**
      * Load the json field for this entity
      *
      * @return string This returns the json string - it is not parsed - if there is 

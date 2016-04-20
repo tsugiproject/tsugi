@@ -825,6 +825,7 @@ class LTIX {
         // Populate the $USER $CONTEXT and $LINK objects
         if ( isset($LTI['user_id']) && ! is_object($USER) ) {
             $USER = new \Tsugi\Core\User();
+            $USER->launch = $TSUGI_LAUNCH;
             $USER->id = $LTI['user_id'];
             if (isset($LTI['user_email']) ) $USER->email = $LTI['user_email'];
             if (isset($LTI['user_displayname']) ) {
@@ -839,6 +840,7 @@ class LTIX {
 
         if ( isset($LTI['context_id']) && ! is_object($CONTEXT) ) {
             $CONTEXT = new \Tsugi\Core\Context();
+            $CONTEXT->launch = $TSUGI_LAUNCH;
             $CONTEXT->id = $LTI['context_id'];
             if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
             $TSUGI_LAUNCH->context = $CONTEXT;
@@ -846,6 +848,7 @@ class LTIX {
 
         if ( isset($LTI['link_id']) && ! is_object($LINK) ) {
             $LINK = new \Tsugi\Core\Link();
+            $LINK->launch = $TSUGI_LAUNCH;
             $LINK->id = $LTI['link_id'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
             $TSUGI_LAUNCH->link = $LINK;
@@ -853,6 +856,7 @@ class LTIX {
 
         if ( isset($LTI['result_id']) && ! is_object($RESULT) ) {
             $RESULT = new \Tsugi\Core\Result();
+            $RESULT->launch = $TSUGI_LAUNCH;
             $RESULT->id = $LTI['result_id'];
             if (isset($LTI['grade']) ) $RESULT->grade = $LTI['grade'];
             $TSUGI_LAUNCH->result = $RESULT;
@@ -902,7 +906,7 @@ class LTIX {
     }
 
     /**
-     * Load the grade for a particular row and update our local copy
+     * Load the grade for a particular row and update our local copy (Deprecated - moved to Result)
      *
      * Call the right LTI service to retrieve the server's grade and
      * update our local cached copy of the server_grade and the date
@@ -924,47 +928,13 @@ class LTIX {
      *
      */
     public static function gradeGet($row=false, &$debug_log=false) {
-        global $CFG;
-
-        $PDOX = self::getConnection();
-
-        $key_key = self::sessionGet('key_key');
-        $secret = self::sessionGet('secret');
-        if ( $row !== false ) {
-            $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
-            $service = isset($row['service']) ? $row['service'] : false;
-            // Fall back to session if it is missing
-            if ( $service === false ) $service = self::sessionGet('service');
-            $result_id = isset($row['result_id']) ? $row['result_id'] : false;
-        } else {
-            $sourcedid = self::sessionGet('sourcedid');
-            $service = self::sessionGet('service');
-            $result_id = self::sessionGet('result_id');
-        }
-
-        if ( $key_key == false || $secret === false ||
-            $sourcedid === false || $service === false ) {
-            error_log("LTIX::gradeGet is missing required data");
-            return false;
-        }
-
-        $grade = LTI::getPOXGrade($sourcedid, $service, $key_key, $secret, $debug_log);
-
-        if ( is_string($grade) ) return $grade;
-
-        // UPDATE our local copy of the server's view of the grade
-        if ( $result_id !== false ) {
-            $stmt = $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}lti_result SET server_grade = :server_grade,
-                    retrieved_at = NOW() WHERE result_id = :RID",
-                array( ':server_grade' => $grade, ":RID" => $result_id)
-            );
-        }
-        return $grade;
+        global $RESULT;
+        if ( isset($RESULT) ) return $RESULT->gradeGet($row,$debug_log);
+        return 'LTIX::gradeGet $RESULT not set';
     }
 
     /**
-     * Send a grade and update our local copy
+     * Send a grade and update our local copy (Deprecated - moved to Result)
      *
      * Call the right LTI service to send a new grade up to the server.
      * update our local cached copy of the server_grade and the date
@@ -985,82 +955,13 @@ class LTIX {
      *
      */
     public static function gradeSend($grade, $row=false, &$debug_log=false) {
-        global $CFG, $RESULT, $USER;
-        global $LastPOXGradeResponse;
-        $LastPOXGradeResponse = false;
-
-        $PDOX = self::getConnection();
-
-        // Secret and key from session to avoid crossing tenant boundaries
-        $key_key = self::sessionGet('key_key');
-        $secret = self::sessionGet('secret');
-        if ( $row !== false ) {
-            $result_url = isset($row['result_url']) ? $row['result_url'] : false;
-            $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
-            $service = isset($row['service']) ? $row['service'] : false;
-            // Fall back to session if it is missing
-            if ( $service === false ) $service = self::sessionGet('service');
-            $result_id = isset($row['result_id']) ? $row['result_id'] : false;
-        } else {
-            $result_url = self::sessionGet('result_url');
-            $sourcedid = self::sessionGet('sourcedid');
-            $service = self::sessionGet('service');
-            $result_id = self::sessionGet('result_id');
-        }
-
-        if ( $key_key == false || $secret === false ||
-            $sourcedid === false || $service === false ||
-            !isset($USER) || !isset($RESULT) ) {
-            error_log("LTIX::gradeGet is missing required data");
-            return false;
-        }
-
-        // TODO: Fix this
-        $comment = "";
-        if ( strlen($result_url) > 0 ) {
-            $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log);
-        } else {
-            $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
-        }
-
-        if ( $status === true ) {
-            $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$USER->id;
-            if ( is_array($debug_log) )  $debug_log[] = array($msg);
-            error_log($msg);
-        } else {
-            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$USER->id;
-            if ( is_array($debug_log) )  $debug_log[] = array($msg);
-            error_log($msg);
-            return $status;
-        }
-
-        // Update result in the database and in the LTI session area and $RESULT
-        $_SESSION['lti']['grade'] = $grade;
-        if ( isset($RESULT) ) $RESULT->grade = $grade;
-
-        // Update the local copy of the grade in the lti_result table
-        if ( $PDOX !== false ) {
-            $stmt = $PDOX->queryReturnError(
-                "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
-                    updated_at = NOW() WHERE result_id = :RID",
-                array(
-                    ':grade' => $grade,
-                    ':RID' => $result_id)
-            );
-            if ( $stmt->success ) {
-                $msg = "Grade updated result_id=".$result_id." grade=$grade";
-            } else {
-                $msg = "Grade NOT updated result_id=".$result_id." grade=$grade";
-            }
-            error_log($msg);
-            if ( is_array($debug_log) )  $debug_log[] = array($msg);
-        }
-
-        return $status;
+        global $RESULT;
+        if ( isset($RESULT) ) return $RESULT->gradeSend($grade,$row,$debug_log);
+        return 'LTIX::gradeSend $RESULT not set';
     }
 
     /**
-     * Send a grade applying the due date logic and only increasing grades
+     * Send a grade applying the due date logic and only increasing grades (Deprecated - moved to Result)
      *
      * Puts messages in the session for a redirect.
      *
@@ -1069,34 +970,9 @@ class LTIX {
      * @param $dueDate - The due date for this assignment
      */
     public static function gradeSendDueDate($gradetosend, $oldgrade=false, $dueDate=false) {
-        if ( $gradetosend == 1.0 ) {
-            $scorestr = "Your answer is correct, score saved.";
-        } else {
-            $scorestr = "Your score of ".($gradetosend*100.0)."% has been saved.";
-        }
-        if ( $dueDate && $dueDate->penalty > 0 ) {
-            $gradetosend = $gradetosend * (1.0 - $dueDate->penalty);
-            $scorestr = "Effective Score = ".($gradetosend*100.0)."% after ".$dueDate->penalty*100.0." percent late penalty";
-        }
-        if ( $oldgrade && $oldgrade > $gradetosend ) {
-            $scorestr = "New score of ".($gradetosend*100.0)."% is < than previous grade of ".($oldgrade*100.0)."%, previous grade kept";
-            $gradetosend = $oldgrade;
-        }
-
-        // Use LTIX to send the grade back to the LMS.
-        $debug_log = array();
-        $retval = self::gradeSend($gradetosend, false, $debug_log);
-        $_SESSION['debug_log'] = $debug_log;
-
-        if ( $retval === true ) {
-            $_SESSION['success'] = $scorestr;
-        } else if ( is_string($retval) ) {
-            $_SESSION['error'] = "Grade not sent: ".$retval;
-        } else {
-            $svd = Output::safe_var_dump($retval);
-            error_log("Grade sending error:".$svd);
-            $_SESSION['error'] = "Grade sending error: ".substr($svd,0,100);
-        }
+        global $RESULT;
+        if ( isset($RESULT) ) return $RESULT->gradeSendDueDate($gradetosend,$oldgrade,$dueDate);
+        return 'LTIX::gradeSendDueDate $RESULT not set';
     }
 
     /**

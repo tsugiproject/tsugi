@@ -17,7 +17,7 @@ if ( isset($_POST['grade']) )  {
         return;
     }
 
-    // TODO: Look in the $RESULT Variable to find the previous grade
+    // TODO: Look in the $LAUNCH->result Variable to find the previous grade
     // to make it so the grade never goes down unless the gradetosend
     // gradetosend is 0.0 - send the 0.0 to reset the grade.
     $prevgrade = 0.5;
@@ -27,7 +27,7 @@ if ( isset($_POST['grade']) )  {
     } else {
         // Use LTIX to send the grade back to the LMS.
         $debug_log = array();
-        $retval = LTIX::gradeSend($gradetosend, false, $debug_log);
+        $retval = $LAUNCH->result->gradeSend($gradetosend, false, $debug_log);
         $_SESSION['debug_log'] = $debug_log;
 
         if ( $retval === true ) {
