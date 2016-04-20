@@ -123,7 +123,7 @@ class LTIX {
      * Extract all of the post data, set up data in tables, and set up session.
      */
     public static function setupSession($needed=self::ALL) {
-        global $CFG;
+        global $CFG, $TSUGI_LAUNCH;
 
         $needed = self::patchNeeded($needed);
         if ( ! LTI::isRequest() ) return false;
@@ -190,10 +190,14 @@ class LTIX {
             $row['new_secret'] = null;
         }
 
+        if ( isset($TSUGI_LAUNCH) ) $TSUGI_LAUNCH->base_string = LTI::getLastOAuthBodyBaseString();
+
+        // TODO: Might want to add more flows here...
         if ( $valid !== true ) {
             print "<pre>\n";
             print_r($valid);
             print "</pre>\n";
+            if ( isset($TSUGI_LAUNCH) ) $TSUGI_LAUNCH->error_message = $valid;
             die_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0]);
         }
 
@@ -673,9 +677,11 @@ class LTIX {
      * if this is called on a request with no LTI launch and no LTI
      * data in the session.  This functions as and performs a
      * PHP session_start().
+     *
+     * @return Launch A Tsugi Launch object.
      */
     public static function session_start() {
-        self::requireData(self::NONE);
+        return self::requireData(self::NONE);
     }
 
     /**
@@ -694,9 +700,18 @@ class LTIX {
      * an array of the LTIX::CONTEXT, LTIX: LINK, and LTIX::USER
      * can be passed in.
      *
+     * @return Launch A Tsugi Launch object.
      */
     public static function requireData($needed=self::ALL) {
-        global $CFG, $USER, $CONTEXT, $LINK, $RESULT;
+        global $CFG, $TSUGI_LAUNCH;
+        global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT;
+
+        $TSUGI_LAUNCH = new \Tsugi\Core\Launch();
+        if ( isset($OUTPUT) && is_object($OUTPUT) && get_class($OUTPUT) == 'Tsugi\UI\Output' ) {
+            $TSUGI_LAUNCH->output = $OUTPUT;
+        } else {
+            $TSUGI_LAUNCH->output = new \Tsugi\UI\Output();
+        }
 
         $USER = null;
         $CONTEXT = null;
@@ -705,6 +720,7 @@ class LTIX {
 
         // Make sure to initialize the global connection object
         $PDOX = self::getConnection();
+        $TSUGI_LAUNCH->pdox = $PDOX;
 
         $needed = self::patchNeeded($needed);
 
@@ -795,7 +811,7 @@ class LTIX {
 
         // We don't have any launch data and don't need it
         if ( count($needed) == 0 && ! isset($_SESSION['lti']) ) {
-            return null;
+            return $TSUGI_LAUNCH;
         }
 
         $LTI = $_SESSION['lti'];
@@ -818,28 +834,32 @@ class LTIX {
                 if ( count($pieces) > 1 ) $USER->lastname = $pieces[count($pieces)-1];
             }
             $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
+            $TSUGI_LAUNCH->user = $USER;
         }
 
         if ( isset($LTI['context_id']) && ! is_object($CONTEXT) ) {
             $CONTEXT = new \Tsugi\Core\Context();
             $CONTEXT->id = $LTI['context_id'];
             if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
+            $TSUGI_LAUNCH->context = $CONTEXT;
         }
 
         if ( isset($LTI['link_id']) && ! is_object($LINK) ) {
             $LINK = new \Tsugi\Core\Link();
             $LINK->id = $LTI['link_id'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
+            $TSUGI_LAUNCH->link = $LINK;
         }
 
         if ( isset($LTI['result_id']) && ! is_object($RESULT) ) {
             $RESULT = new \Tsugi\Core\Result();
             $RESULT->id = $LTI['result_id'];
             if (isset($LTI['grade']) ) $RESULT->grade = $LTI['grade'];
+            $TSUGI_LAUNCH->result = $RESULT;
         }
 
-        // Return the LTI structure
-        return $LTI;
+        // Return the Launch structure
+        return $TSUGI_LAUNCH;
     }
 
     /**
