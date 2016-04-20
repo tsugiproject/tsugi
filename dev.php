@@ -108,7 +108,7 @@ $secret = isset($_REQUEST["secret"]) ? trim($_REQUEST["secret"]) : "secret";
 $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
 if ( $endpoint == 'false' ) $endpoint = false;
 $b64 = base64_encode($key.":::".$secret.':::');
-if ( ! $endpoint ) $endpoint = str_replace("dev.php","lti.php",$cur_url);
+if ( ! $endpoint ) $endpoint = $cur_url;
 $cssurl = str_replace("dev.php","lms.css",$cur_url);
 
 $outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
@@ -300,8 +300,8 @@ if ( $outcomes ) {
 $parms['launch_presentation_css_url'] = $cssurl;
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
-    // Switch to direct launches instead of going through lti.php
-    $endpoint = str_replace("lti.php",$_POST['custom_assn'],$endpoint);
+    // Use the actual direct URL to the launch
+    $endpoint = str_replace("dev.php",$_POST['custom_assn'],$endpoint);
     $endpoint = ConfigInfo::removeRelativePath($endpoint);
     $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
         "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
