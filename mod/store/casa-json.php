@@ -45,7 +45,7 @@ foreach($tools as $tool ) {
     $fa_icon = isset($REGISTER_LTI2['FontAwesome']) ? $REGISTER_LTI2['FontAwesome'] : false;
     $icon = false;
     if ( $fa_icon !== false ) {
-        $icon = $CFG->staticroot.'/static/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+        $icon = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
     }
 
     $entry = new stdClass();

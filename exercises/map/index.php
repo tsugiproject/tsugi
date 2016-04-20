@@ -96,7 +96,7 @@ function initialize_map() {
     var row = other_points[i];
     // if ( i < 3 ) { alert(row); }
     var newLatlng = new google.maps.LatLng(row[0], row[1]);
-    var iconpath = '<?php echo($CFG->staticroot); ?>/static/img/icons/';
+    var iconpath = '<?php echo($CFG->staticroot); ?>/img/icons/';
     var icon = 'green.png';
     var marker = new google.maps.Marker({
       position: newLatlng,

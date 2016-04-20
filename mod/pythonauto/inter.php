@@ -5,11 +5,11 @@ $OUTPUT->header();
 ?>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Skulpt</title>
-    <link rel="stylesheet" type="text/css" media="all" href="<?php echo($CFG->staticroot); ?>/static/codemirrorepl/codemirror.css">
-    <script type="text/javascript" src="<?php echo($CFG->staticroot); ?>/static/js/jquery-1.10.2.min.js"></script>
-    <script src="<?php echo($CFG->staticroot); ?>/static/codemirrorepl/codemirrorepl.js" type="text/javascript"></script>
-    <script src="<?php echo($CFG->staticroot); ?>/static/codemirrorepl/repl.js" type="text/javascript"></script>
-    <script src="<?php echo($CFG->staticroot); ?>/static/codemirrorepl/python.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" media="all" href="static/codemirrorepl/codemirror.css">
+    <script type="text/javascript" src="static/js/jquery-1.10.2.min.js"></script>
+    <script src="static/codemirrorepl/codemirrorepl.js" type="text/javascript"></script>
+    <script src="static/codemirrorepl/repl.js" type="text/javascript"></script>
+    <script src="static/codemirrorepl/python.js" type="text/javascript"></script>
     <script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt.min.js" type="text/javascript"></script>
     <script src="<?php echo($OUTPUT::getLocalStatic(__FILE__)); ?>/static/skulpt-new/skulpt-stdlib.js" type="text/javascript"></script>
 </head>

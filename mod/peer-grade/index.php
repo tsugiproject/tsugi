@@ -330,7 +330,7 @@ if ( $submit_row == false ) {
             if ( $info === false ) {
                 echo('<p style="color:red">Unable to load key/secret for '.htmlentities($endpoint)."</p>\n");
             } else {
-                $icon = $CFG->staticroot.'/static/font-awesome-4.4.0/png/check-square.png';
+                $icon = $CFG->staticroot.'/font-awesome-4.4.0/png/check-square.png';
                 echo('<br/><button type="button" onclick="showModalIframe(\''.$part->title.'\', 
                     \'content_item_dialog_'.$partno.'\',\'content_item_frame_'.$partno.'\', false); return false;">
                     Select/Create Item</button>'."\n");

@@ -27,10 +27,11 @@ unset($dirroot);
 // The vendor include and root
 $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/php/util";
 $CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/php/include";
+$CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/php/static";
 
 // You can use my CDN copy of the static content in testing or 
 // light production if you like:
-// $CFG->staticroot = 'https://www.dr-chuck.net/tsugi';
+// $CFG->staticroot = 'https://www.dr-chuck.net/tsugi-static';
 
 // If you check out a copy of the static content locally and do not
 // want to use the CDN copy (perhaps you are on a plane or are otherwise

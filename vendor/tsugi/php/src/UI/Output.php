@@ -84,10 +84,10 @@ class Output {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= $CFG->servicename ?></title>
         <!-- Le styles -->
-        <link href="<?= $CFG->staticroot ?>/static/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
-        <link href="<?= $CFG->staticroot ?>/static/bootstrap-3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
-        <link href="<?= $CFG->staticroot ?>/static/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
-        <link href="<?= $CFG->staticroot ?>/static/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
 
     <style>
     body {
@@ -106,8 +106,8 @@ class Output {
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
         <!--[if lt IE 9]>
-          <script src="<?= $CFG->wwwroot ?>/static/html5shiv/html5shiv.js"></script>
-          <script src="<?= $CFG->wwwroot ?>/static/respond/respond.min.js"></script>
+          <script src="<?= $CFG->vendorstatic ?>/js/html5shiv/html5shiv.js"></script>
+          <script src="<?= $CFG->vendorstatic ?>/js/respond/respond.min.js"></script>
         <![endif]-->
 
     <?php
@@ -152,13 +152,11 @@ if (window!=window.top) {
 
     function footerStart() {
         global $CFG;
-        echo('<script src="'.$CFG->staticroot.'/static/js/jquery-1.11.3.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/static/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/static/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/static/js/handlebars-v4.0.2.js"></script>'."\n");
-
-        // Serve this locally during early development - Move to CDN when stable
-        echo('<script src="'.$CFG->wwwroot.'/static/js/tsugiscripts.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/js/jquery-1.11.3.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/js/handlebars-v4.0.2.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/js/tsugiscripts.js"></script>'."\n");
 
         if ( isset($CFG->sessionlifetime) ) {
             $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
@@ -409,7 +407,7 @@ if (window!=window.top) {
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="<?= $R ?>index.php"><img style="width:4em;" src="<?= $CFG->staticroot . '/static/img/logos/tsugi-logo.png' ?>"></a>
+              <a class="navbar-brand" href="<?= $R ?>index.php"><img style="width:4em;" src="<?= $CFG->staticroot . '/img/logos/tsugi-logo.png' ?>"></a>
             </div>
             <div class="navbar-collapse collapse">
               <ul class="nav navbar-nav">
@@ -477,7 +475,7 @@ if (window!=window.top) {
       */
     function getSpinnerUrl() {
         global $CFG;
-        return $CFG->staticroot . '/static/img/spinner.gif';
+        return $CFG->staticroot . '/img/spinner.gif';
     }
 
     /**
@@ -485,7 +483,7 @@ if (window!=window.top) {
       */
     function getDefaultIcon() {
         global $CFG;
-        return $CFG->staticroot . '/static/img/spinner.gif';
+        return $CFG->staticroot . '/img/default-icon.png';
     }
 
     /**
@@ -512,7 +510,9 @@ if (window!=window.top) {
     public static function getLocalStatic($file) {
         global $CFG;
         $path = $CFG->getPwd($file);
-        return $CFG->staticroot . "/" . $path;
+        // For now just use wwwroot to be safe
+        // return $CFG->staticroot . "/" . $path;
+        return $CFG->wwwroot . "/" . $path;
     }
 
     // http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers

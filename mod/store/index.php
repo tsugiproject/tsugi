@@ -109,7 +109,7 @@ foreach($tools as $tool ) {
     $fa_icon = isset($REGISTER_LTI2['FontAwesome']) ? $REGISTER_LTI2['FontAwesome'] : false;
     $icon = false;
     if ( $fa_icon !== false ) {
-        $icon = $CFG->staticroot.'/static/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+        $icon = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
     }
 
     if ( $install ) {
@@ -161,7 +161,7 @@ $OUTPUT->footerStart();
 // https://github.com/LinZap/jquery.waterfall
 if ( ! $install ) {
 ?>
-<script type="text/javascript" src="<?= $CFG->staticroot ?>/static/js/waterfall-light.js"></script>
+<script type="text/javascript" src="<?= $CFG->staticroot ?>/js/waterfall-light.js"></script>
 <script>
 $(function(){
     $('#box').waterfall({refresh: 0})

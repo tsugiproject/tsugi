@@ -340,7 +340,7 @@ class ConfigInfo {
     public function __construct($dirroot, $wwwroot, $dataroot=false) {
         $this->dirroot = $dirroot;
         $this->wwwroot = $wwwroot;
-        $this->staticroot = $wwwroot;
+        $this->staticroot = 'https://www.dr-chuck.net/tsugi-static';
         if ( $dataroot === false ) {
             $this->dataroot = $dirroot . '/_files/a';
         } else {

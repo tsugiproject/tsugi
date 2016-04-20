@@ -9,7 +9,7 @@ $OUTPUT->header();
       <div class="jumbotron">
 <center style="padding-bottom: 20px;">
 <a href="http://www.tsugi.org" target="_new">
-<img style="width: 80%; max-width:360px;" src="<?= $CFG->staticroot . '/static/img/logos/tsugi-logo-incubating.png' ?>">
+<img style="width: 80%; max-width:360px;" src="<?= $CFG->staticroot . '/img/logos/tsugi-logo-incubating.png' ?>">
 </a>
 </center>
 <p>

@@ -224,7 +224,7 @@ $OUTPUT->footerStart();
 ?>
 <script src="<?= $OUTPUT::getLocalStatic(__FILE__) ?>/static/prism.js" type="text/javascript"></script>
 <?php if ( $assn_json->rating > 0 ) { ?>
-<script src="<?= $CFG->staticroot ?>/static/js/jRate.js" type="text/javascript"></script>
+<script src="<?= $CFG->staticroot ?>/js/jRate.js" type="text/javascript"></script>
 <script>
 $("#jRate").jRate(
     {

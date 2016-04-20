@@ -6,7 +6,7 @@ require_once("admin/admin_util.php");
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
-use \Tsugi\COnfig\ConfigInfo;
+use \Tsugi\Config\ConfigInfo;
 
 $PDOX = LTIX::getConnection();
 
@@ -211,7 +211,7 @@ $OUTPUT->bodyStart(false);
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="index.php"><img style="width:4em;" src="<?= $CFG->staticroot . '/static/img/logos/tsugi-logo.png' ?>"></a>
+          <a class="navbar-brand" href="index.php"><img style="width:4em;" src="<?= $CFG->staticroot . '/img/logos/tsugi-logo.png' ?>"></a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">

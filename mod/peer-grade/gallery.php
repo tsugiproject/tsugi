@@ -189,7 +189,7 @@ echo("</div>\n");
 $OUTPUT->footerStart();
 // https://github.com/LinZap/jquery.waterfall
 ?>
-<script type="text/javascript" src="<?= $CFG->staticroot ?>/static/js/waterfall-light.js"></script>
+<script type="text/javascript" src="<?= $CFG->staticroot ?>/js/waterfall-light.js"></script>
 <script>
 $(function(){
     $('#box').waterfall({refresh: 0})
