@@ -5,7 +5,7 @@ require_once "peer_util.php";
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 if ( ! $USER->instructor ) die("Instructor only");
 if ( isset($_POST['doClear']) ) {
     session_unset();

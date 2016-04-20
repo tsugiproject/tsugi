@@ -316,7 +316,7 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
     global $CFG, $PDOX, $CONTEXT, $LINK, $USER;
     if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return false;
 
-    $LTI = LTIX::requireData();
+    $LAUNCH = LTIX::requireData();
 
     $user_row = User::loadUserInfoBypass($user_id);
     if ( $user_row === false ) return false;

@@ -4,7 +4,7 @@ require_once "../../config.php";
 use \Tsugi\Core\LTIX;
 
 // Retrieve required launch data from session
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 // Add all of your POST handling code here.  Use $LINK->id

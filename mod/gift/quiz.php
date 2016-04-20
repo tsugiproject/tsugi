@@ -5,7 +5,7 @@ require_once "parse.php";
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Output;
 
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $gift = $LINK->getJson();
 
 Output::headerJson();

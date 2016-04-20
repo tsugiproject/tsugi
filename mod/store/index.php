@@ -17,7 +17,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
 
 // No parameter means we require CONTEXT, USER, and LINK
-$LTI = LTIX::requireData(LTIX::USER);
+$LAUNCH = LTIX::requireData(LTIX::USER);
 
 // Model
 $p = $CFG->dbprefix;

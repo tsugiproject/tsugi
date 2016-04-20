@@ -6,7 +6,7 @@ use \Tsugi\Core\Link;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 

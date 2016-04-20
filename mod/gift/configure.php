@@ -7,7 +7,7 @@ use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor role");
 
 // Model

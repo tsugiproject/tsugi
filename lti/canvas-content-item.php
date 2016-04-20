@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/admin/admin_util.php";
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 $OUTPUT->header();

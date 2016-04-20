@@ -19,7 +19,7 @@ use Tsugi\Core\LTIX;
  *     use \Tsugi\Core\LTIX;
  *
  *     // Require CONTEXT, USER, and LINK
- *     $LTI = LTIX::requireData();
+ *     $LAUNCH = LTIX::requireData();
  *
  *     // Handle incoming POST data and redirect as necessary...
  *     if ( ... ) {

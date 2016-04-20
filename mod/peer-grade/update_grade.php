@@ -7,7 +7,7 @@ use \Tsugi\Core\Result;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 // Check to see if we are updating the grade for the current

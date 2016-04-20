@@ -7,7 +7,7 @@ use \Tsugi\UI\SettingsForm;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 if ( SettingsForm::handleSettingsPost() ) {

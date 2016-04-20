@@ -4,7 +4,7 @@ require_once "../../config.php";
 use \Tsugi\Core\LTIX
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 
 $p = $CFG->dbprefix;
 $localstatic = $OUTPUT::getLocalStatic(__FILE__) . '/static';

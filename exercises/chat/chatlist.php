@@ -6,7 +6,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Output;
 
 // Retrieve the launch data if present
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 $displayname = $USER->displayname;
 

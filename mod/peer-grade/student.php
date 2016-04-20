@@ -13,7 +13,7 @@ use \Tsugi\Grades\GradeUtil;
 if ( !isset($STUDENT_RETURN) ) $STUDENT_RETURN = "admin.php";
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor role");
 $p = $CFG->dbprefix;
 

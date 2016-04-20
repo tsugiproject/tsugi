@@ -10,7 +10,7 @@ use \Tsugi\Core\Result;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 if ( !isset($_REQUEST['user_id']) ) {

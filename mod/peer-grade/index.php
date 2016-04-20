@@ -11,7 +11,7 @@ use \Tsugi\Util\LTI;
 use \Tsugi\UI\SettingsForm;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 if ( SettingsForm::handleSettingsPost() ) {

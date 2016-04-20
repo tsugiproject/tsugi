@@ -4,7 +4,7 @@ require_once "../../config.php";
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 if ( ! $USER->instructor ) die("Instructor only");
 
 $OUTPUT->header();

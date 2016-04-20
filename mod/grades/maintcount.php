@@ -8,7 +8,7 @@ use \Tsugi\UI\Output;
 Output::headerJson();
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 if ( ! $USER->instructor ) die("Requires instructor");
 $p = $CFG->dbprefix;
 

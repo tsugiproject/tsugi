@@ -4,7 +4,7 @@ require_once "../../config.php";
 use \Tsugi\Core\LTIX;
 
 // Sanity checks - require all three
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 
 $p = $CFG->dbprefix;
 //Retrieve the other rows

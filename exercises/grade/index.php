@@ -5,7 +5,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Grades\GradeUtil;
 
 // Retrieve the launch data if present
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 $displayname = $USER->displayname;
 
@@ -71,7 +71,7 @@ if ( isset($_SESSION['debug_log']) ) {
 
 echo("\n<hr>\n<pre>\n");
 echo("Global Tsugi Objects:\n");
-LTIX::var_dump();
+$LAUNCH->var_dump();
 echo("\n</pre>\n");
 
 $OUTPUT->footer();

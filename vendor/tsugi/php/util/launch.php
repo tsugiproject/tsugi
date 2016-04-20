@@ -15,7 +15,7 @@ $endpoint = $_GET['endpoint'];
 $debug = $_GET['debug'] == 0;
 
 // Grab the session
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 
 $debug = true;
 

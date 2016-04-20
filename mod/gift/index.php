@@ -11,7 +11,7 @@ function percent($x) {
     return sprintf("%.1f%%", $x * 100);
 }
 
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 if ( SettingsForm::handleSettingsPost() ) {

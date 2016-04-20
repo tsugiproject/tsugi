@@ -8,7 +8,7 @@ use \Tsugi\Core\Link;
 use \Tsugi\Grades\GradeUtil;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 $user_info = false;

@@ -8,7 +8,7 @@ use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\SettingsForm;
 
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 if ( SettingsForm::handleSettingsPost() ) {

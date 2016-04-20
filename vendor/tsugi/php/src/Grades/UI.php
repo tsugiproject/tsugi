@@ -11,7 +11,7 @@ class UI {
     public static function gradeTable($GRADE_DETAIL_CLASS) {
         global $CFG, $OUTPUT, $USER, $LINK;
         // Require CONTEXT, USER, and LINK
-        $LTI = LTIX::requireData();
+        $LAUNCH = LTIX::requireData();
         if ( ! $USER->instructor ) die("Requires instructor role");
         $p = $CFG->dbprefix;
 

@@ -25,7 +25,7 @@ if ( !isset($_GET['top']) ) {
 }
 
 // Grab the session
-$LTI = LTIX::requireData(LTIX::USER);
+$LAUNCH = LTIX::requireData(LTIX::USER);
 
 // This has already been set by someone so nothing to do
 if (isset($_COOKIE['TSUGI_TOP_SESSION']) ) {

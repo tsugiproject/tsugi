@@ -5,7 +5,7 @@ use \Tsugi\Grades\GradeUtil;
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 $user_id = $USER->id;
 
 $grade = 1.0;

@@ -7,7 +7,7 @@ use \Tsugi\Util\Mersenne_Twister;
 
 require_once "sql_util.php";
 
-$LTI = LTIX::requireData();
+$LAUNCH = LTIX::requireData();
 
 // Compute the stuff for the output
 $code = $USER->id+$LINK->id+$CONTEXT->id;
