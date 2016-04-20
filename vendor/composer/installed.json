@@ -6,12 +6,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/csev/tsugi-php.git",
-            "reference": "c2f73274b8db00a398a6c72734cbf5d1c5606f8e"
+            "reference": "aa8968226bcb69d7672c96c80e5b8699dbe40b00"
         },
         "dist": {
             "type": "zip",
             "url": "https://api.github.com/repos/csev/tsugi-php/zipball/1c7c76d4e8ff6c7fbfcef92d67fdf5ecf6b48fd4",
-            "reference": "c2f73274b8db00a398a6c72734cbf5d1c5606f8e",
+            "reference": "aa8968226bcb69d7672c96c80e5b8699dbe40b00",
             "shasum": ""
         },
         "require": {
