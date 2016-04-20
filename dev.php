@@ -69,7 +69,7 @@ foreach( $CFG->tool_folders AS $tool_folder) {
 
 $cur_url = LTIX::curPageUrlScript();
 
-require_once("dev-data.php");
+require_once("lti/dev-data.php");
 
 // Merge post data into  data
 foreach ($lmsdata as $k => $val ) {
@@ -113,7 +113,7 @@ $cssurl = str_replace("dev.php","lms.css",$cur_url);
 
 $outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
 if ( ! $outcomes ) {
-    $outcomes = str_replace("dev.php","common/tool_consumer_outcome.php",$cur_url);
+    $outcomes = str_replace("dev.php","lti/tool_consumer_outcome.php",$cur_url);
     $outcomes .= "?b64=" . htmlentities($b64);
     $lmsdata['lis_result_sourcedid'] = MD5($lmsdata['context_id'].$lmsdata['user_id'].$lmsdata['resource_link_id']);
 }

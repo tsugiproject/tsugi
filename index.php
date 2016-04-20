@@ -12,7 +12,7 @@ if ( file_exists("config.php") ) {
     echo("</pre>\n");
     die();
 }
-require_once("sanity.php");
+require_once("admin/sanity.php");
 $PDOX = false;
 try {
     define('PDO_WILL_CATCH', true);
@@ -29,7 +29,7 @@ if ( $PDOX !== false ) LTIX::loginSecureCookie();
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 
-require_once("sanity-db.php");
+require_once("admin/sanity-db.php");
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
