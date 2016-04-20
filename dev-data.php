@@ -41,7 +41,6 @@ $learner3 = array(
 
 $lmsdata = array(
       "custom_assn" => "mod/map/index.php",
-
       "lis_person_name_full" => 'Jane Instructor',
       "lis_person_name_family" => 'Instructor',
       "lis_person_name_given" => 'Jane',
@@ -59,11 +58,6 @@ $lmsdata = array(
       "tool_consumer_info_product_family_code" => "ims",
       "tool_consumer_info_version" => "1.1",
       "tool_consumer_instance_guid" => "lmsng.ischool.edu",
-      "tool_consumer_instance_description" => "University of Information",
-      "custom_due" => "2016-12-12 10:00:00.5",
-      // http://www.php.net/manual/en/timezones.php
-      "custom_timezone" => "Pacific/Honolulu",
-      "custom_penalty_time" => "" . 60*60*24,
-      "custom_penalty_cost" => "0.2"
+      "tool_consumer_instance_description" => "University of Information"
       // 'launch_presentation_return_url' => $cur_url
       );

@@ -17,7 +17,7 @@ if ( isset($_POST['grade']) )  {
         return;
     }
 
-    // TODO: Look in the $LINK Variable to find the previous grade
+    // TODO: Look in the $RESULT Variable to find the previous grade
     // to make it so the grade never goes down unless the gradetosend
     // gradetosend is 0.0 - send the 0.0 to reset the grade.
     $prevgrade = 0.5;
@@ -69,14 +69,10 @@ if ( isset($_SESSION['debug_log']) ) {
     unset($_SESSION['debug_log']);
 }
 
-echo("\n<hr>\n<pre>Global Tsugi Objects:\n\n");
-var_dump($USER);
-var_dump($CONTEXT);
-var_dump($LINK);
-
-echo("\n<hr/>\n");
-echo("Session data (low level):\n");
-echo($OUTPUT->safe_var_dump($_SESSION));
+echo("\n<hr>\n<pre>\n");
+echo("Global Tsugi Objects:\n");
+LTIX::var_dump();
+echo("\n</pre>\n");
 
 $OUTPUT->footer();
 
