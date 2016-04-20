@@ -23,7 +23,7 @@ use \Tsugi\Crypt\SecureCookie;
  */
 class LTIX {
 
-    // Indicates that this code requires certain 
+    // Indicates that this code requires certain
     // launch data to function
     const CONTEXT = "context_id";
     const USER = "user_id";
@@ -267,14 +267,14 @@ class LTIX {
             if (get_magic_quotes_gpc()) $value = stripslashes($value);
             if ( strpos($key, "custom_") === 0 ) {
                 $newkey = substr($key,7);
-		// Need to deal with custom_context_id=$Context.id
-		if ( strpos($value,"$") === 0 ) {
-		    $short_value = strtolower(substr($value,1));
-		    $short_value = str_replace('.','_',$short_value);
-		    if ( $newkey == $short_value ) {
-			continue;
-		    }
-		}
+                // Need to deal with custom_context_id=$Context.id
+                if ( strpos($value,"$") === 0 ) {
+                    $short_value = strtolower(substr($value,1));
+                    $short_value = str_replace('.','_',$short_value);
+                    if ( $newkey == $short_value ) {
+                        continue;
+                    }
+                }
                 if ( !isset($FIXED[$newkey]) ) $FIXED[$newkey] = $value;
             }
             $FIXED[$key] = $value;
@@ -666,16 +666,29 @@ class LTIX {
     }
 
     /**
+     * Optionally handle launch and/or set up the LTI session and global variables
+     *
+     * This will set up as much of the $USER, $CONTEXT, $LINK,
+     * and $RESULT data as it can including leaving them all null
+     * if this is called on a request with no LTI launch and no LTI
+     * data in the session.  This functions as and performs a
+     * PHP session_start().
+     */
+    public static function session_start() {
+        self::requireData(self::NONE);
+    }
+
+    /**
      * Handle launch and/or set up the LTI session and global variables
      *
      * Make sure we have the values we need in the LTI session
      * This routine will not start a session if none exists.  It will
      * die is there if no session_name() (PHPSESSID) cookie or
      * parameter.  No need to create any fresh sessions here.
-     * 
-     * @param $needed (optional, mixed)  Indicates which of 
-     * the data structures are * needed. If this is omitted, 
-     * this assumes that CONTEXT, LINK, and USER data are required.  
+     *
+     * @param $needed (optional, mixed)  Indicates which of
+     * the data structures are * needed. If this is omitted,
+     * this assumes that CONTEXT, LINK, and USER data are required.
      * If LTIX::NONE is present, then none of the three are rquired.
      * If some combination of the three are needed, this accepts
      * an array of the LTIX::CONTEXT, LTIX: LINK, and LTIX::USER
@@ -684,6 +697,11 @@ class LTIX {
      */
     public static function requireData($needed=self::ALL) {
         global $CFG, $USER, $CONTEXT, $LINK, $RESULT;
+
+        $USER = null;
+        $CONTEXT = null;
+        $LINK = null;
+        $RESULT = null;
 
         // Make sure to initialize the global connection object
         $PDOX = self::getConnection();
@@ -707,7 +725,7 @@ class LTIX {
                 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
                     self::send403();
                     die_with_error_log('Missing '.$sess.' from POST data');
-                } else {
+                } else if ( count($needed) > 0 ) {
                     self::send403();
                     die_with_error_log('This tool should be launched from a learning system using LTI');
                 }
@@ -722,7 +740,7 @@ class LTIX {
         // This happens from time to time when someone closes and reopens a laptop
         // Or their computer goes to sleep and wakes back up hours later.
         // So it is just a warning - nothing much we can do except tell them.
-        if ( !isset($_SESSION['lti']) ) {
+        if ( count($needed) > 0 && !isset($_SESSION['lti']) ) {
             // $debug = Output::safe_var_dump($_SESSION);
             // error_log($debug);
             self::send403(); error_log('Session expired - please re-launch '.session_id());
@@ -761,12 +779,23 @@ class LTIX {
         }
 
         // Check to see if the user has navigated to a new place in the hierarchy
-        if ( isset($_SESSION['script_path']) && 
+        if ( isset($_SESSION['script_path']) &&
             (! endsWith(Output::getUtilUrl(''), $CFG->getScriptPath()) ) &&
             strpos($CFG->getScriptPath(), $_SESSION['script_path']) !== 0 ) {
             self::send403();
             die_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
                 $_SESSION['script_path'].' /  '.$CFG->getScriptPath(), 'DIE:');
+        }
+
+        // Check to see if the session needs to be extended due to this request
+        self::checkHeartBeat();
+
+        // Restart the number of continuous heartbeats
+        $_SESSION['HEARTBEAT_COUNT'] = 0;
+
+        // We don't have any launch data and don't need it
+        if ( count($needed) == 0 && ! isset($_SESSION['lti']) ) {
+            return null;
         }
 
         $LTI = $_SESSION['lti'];
@@ -776,12 +805,6 @@ class LTIX {
                 die_with_error_log("This tool requires an LTI launch parameter:".$feature);
             }
         }
-
-        // Check to see if the session needs to be extended due to this request
-        self::checkHeartBeat();
-
-        // Restart the number of continuous heartbeats
-        $_SESSION['HEARTBEAT_COUNT'] = 0;
 
         // Populate the $USER $CONTEXT and $LINK objects
         if ( isset($LTI['user_id']) && ! is_object($USER) ) {
@@ -823,27 +846,67 @@ class LTIX {
     }
 
     /**
-      * Load the grade for a particular row and update our local copy
-      *
-      * Call the right LTI service to retrieve the server's grade and
-      * update our local cached copy of the server_grade and the date
-      * retrieved. This routine pulls the key and secret from the LTIX
-      * session to avoid crossing cross tennant boundaries.
-      *
-      * TODO: Add LTI 2.x support for the JSON style services to this
-      *
-      * @param $row An optional array with the data that has the result_id, sourcedid,
-      * and service (url) if this is not present, the data is pulled from the LTI
-      * session for the current user/link combination.
-      * @param $debug_log An (optional) array (by reference) that returns the
-      * steps that were taken.
-      * Each entry is an array with the [0] element a message and an optional [1]
-      * element as some detail (i.e. like a POST body)
-      *
-      * @return mixed If this work this returns a float.  If not you get
-      * a string with an error.
-      *
-      */
+     * Dump out the internal data structures adssociated with the
+     * current launch.  Best if used within a pre tag.
+     */
+    public static function var_dump() {
+        global $USER, $CONTEXT, $LINK, $RESULT;
+        echo("\nGlobal Tsugi Objects:\n\n");
+        echo('$USER:'."\n");
+        if ( isset($USER) ) {
+            echo("Not set\n");
+        } else {
+            var_dump($USER);
+        }
+        echo('$CONTEXT:'."\n");
+        if ( isset($CONTEXT) ) {
+            echo("Not set\n");
+        } else {
+            var_dump($CONTEXT);
+        }
+        echo('$LINK:'."\n");
+        if ( isset($LINK) ) {
+            echo("Not set\n");
+        } else {
+            var_dump($LINK);
+        }
+        echo('$RESULT:'."\n");
+        if ( isset($RESULT) ) {
+            echo("Not set\n");
+        } else {
+            var_dump($RESULT);
+        }
+        echo("\n<hr/>\n");
+        echo("Session data (low level):\n");
+        if ( isset($_SESSION) ) {
+            echo("Not set\n");
+        } else {
+            echo(Output::safe_var_dump($_SESSION));
+        }
+    }
+
+    /**
+     * Load the grade for a particular row and update our local copy
+     *
+     * Call the right LTI service to retrieve the server's grade and
+     * update our local cached copy of the server_grade and the date
+     * retrieved. This routine pulls the key and secret from the LTIX
+     * session to avoid crossing cross tennant boundaries.
+     *
+     * TODO: Add LTI 2.x support for the JSON style services to this
+     *
+     * @param $row An optional array with the data that has the result_id, sourcedid,
+     * and service (url) if this is not present, the data is pulled from the LTI
+     * session for the current user/link combination.
+     * @param $debug_log An (optional) array (by reference) that returns the
+     * steps that were taken.
+     * Each entry is an array with the [0] element a message and an optional [1]
+     * element as some detail (i.e. like a POST body)
+     *
+     * @return mixed If this work this returns a float.  If not you get
+     * a string with an error.
+     *
+     */
     public static function gradeGet($row=false, &$debug_log=false) {
         global $CFG;
 
@@ -885,28 +948,28 @@ class LTIX {
     }
 
     /**
-      * Send a grade and update our local copy
-      *
-      * Call the right LTI service to send a new grade up to the server.
-      * update our local cached copy of the server_grade and the date
-      * retrieved. This routine pulls the key and secret from the LTIX
-      * session to avoid crossing cross tennant boundaries.
-      *
-      * @param $grade A new grade - floating point number between 0.0 and 1.0
-      * @param $row An optional array with the data that has the result_id, sourcedid,
-      * and service (url) if this is not present, the data is pulled from the LTI
-      * session for the current user/link combination.
-      * @param $debug_log An (optional) array (by reference) that returns the
-      * steps that were taken.
-      * Each entry is an array with the [0] element a message and an optional [1]
-      * element as some detail (i.e. like a POST body)
-      *
-      * @return mixed If this works it returns true.  If not, you get
-      * a string with an error.
-      *
-      */
+     * Send a grade and update our local copy
+     *
+     * Call the right LTI service to send a new grade up to the server.
+     * update our local cached copy of the server_grade and the date
+     * retrieved. This routine pulls the key and secret from the LTIX
+     * session to avoid crossing cross tennant boundaries.
+     *
+     * @param $grade A new grade - floating point number between 0.0 and 1.0
+     * @param $row An optional array with the data that has the result_id, sourcedid,
+     * and service (url) if this is not present, the data is pulled from the LTI
+     * session for the current user/link combination.
+     * @param $debug_log An (optional) array (by reference) that returns the
+     * steps that were taken.
+     * Each entry is an array with the [0] element a message and an optional [1]
+     * element as some detail (i.e. like a POST body)
+     *
+     * @return mixed If this works it returns true.  If not, you get
+     * a string with an error.
+     *
+     */
     public static function gradeSend($grade, $row=false, &$debug_log=false) {
-        global $CFG, $LINK, $USER;
+        global $CFG, $LINK, $RESULT, $USER;
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
 
@@ -931,7 +994,7 @@ class LTIX {
 
         if ( $key_key == false || $secret === false ||
             $sourcedid === false || $service === false ||
-            !isset($USER) || !isset($LINK) ) {
+            !isset($USER) || !isset($LINK) || !isset($RESULT) ) {
             error_log("LTIX::gradeGet is missing required data");
             return false;
         }
@@ -955,9 +1018,10 @@ class LTIX {
             return $status;
         }
 
-        // Update result in the database and in the LTI session area and $LINK
+        // Update result in the database and in the LTI session area and $RESULT
         $_SESSION['lti']['grade'] = $grade;
         if ( isset($LINK) ) $LINK->grade = $grade;
+        if ( isset($RESULT) ) $RESULT->grade = $grade;
 
         // Update the local copy of the grade in the lti_result table
         if ( $PDOX !== false ) {
@@ -980,7 +1044,8 @@ class LTIX {
         return $status;
     }
 
-    /** Send a grade applying the due date logic and only increasing grades
+    /**
+     * Send a grade applying the due date logic and only increasing grades
      *
      * Puts messages in the session for a redirect.
      *
@@ -1022,7 +1087,7 @@ class LTIX {
     /**
      * signParameters - Look up the key and secret and call the underlying code in LTI
      */
-    public static function signParameters($oldparms, $endpoint, $method, 
+    public static function signParameters($oldparms, $endpoint, $method,
         $submit_text = false, $org_id = false, $org_desc = false) {
 
         $oauth_consumer_key = self::sessionGet('key_key');
@@ -1046,11 +1111,11 @@ class LTIX {
     /**
      * Send a Caliper Body to the correct URL using the key and secret
      *
-     * This is not yet a standard or production - it uses the Canvas 
+     * This is not yet a standard or production - it uses the Canvas
      * extension only.
-     * 
+     *
      */
-    public static function caliperSend($caliperBody, $content_type='application/json', &$debug_log=false) 
+    public static function caliperSend($caliperBody, $content_type='application/json', &$debug_log=false)
     {
 
         $caliperURL = LTIX::postGet('custom_sub_canvas_caliper_url');
@@ -1062,7 +1127,7 @@ class LTIX {
         $key_key = self::sessionGet('key_key');
         $secret = self::sessionGet('secret');
 
-        $retval = LTI::sendJSONBody("POST", $caliperBody, $content_type, 
+        $retval = LTI::sendJSONBody("POST", $caliperBody, $content_type,
             $caliperURL, $key_key, $secret, $debug_log);
         return $retval;
     }
@@ -1070,13 +1135,13 @@ class LTIX {
     /**
      * Send a JSON Body to a URL after looking up the key and secret
      */
-    public static function jsonSend($method, $postBody, $content_type, 
+    public static function jsonSend($method, $postBody, $content_type,
         $service_url, &$debug_log=false) {
 
         $key_key = self::sessionGet('key_key');
         $secret = self::sessionGet('secret');
 
-        $retval = LTI::sendJSONBody($method, $postBody, $content_type, 
+        $retval = LTI::sendJSONBody($method, $postBody, $content_type,
             $service_url, $key_key, $secret, $debug_log);
         return $retval;
     }
@@ -1104,11 +1169,11 @@ class LTIX {
         $key_id = self::sessionGet('key_id', false);
         if ( $key_id == false ) return false;
 
-        $sql = "SELECT consumer_key, secret FROM {$CFG->dbprefix}lti_domain 
+        $sql = "SELECT consumer_key, secret FROM {$CFG->dbprefix}lti_domain
             WHERE domain = :DOM AND key_id = :KID";
         $values = array(":DOM" => $host, ":KID" => $key_id);
         if ( isset($CONTEXT->id) ) {
-            $sql .= " AND (context_id IS NULL OR context_id = :CID) 
+            $sql .= " AND (context_id IS NULL OR context_id = :CID)
                 ORDER BY context_id DESC";
             $values[':CID'] = $CONTEXT->id;
         }
@@ -1151,7 +1216,7 @@ class LTIX {
      *     http://x.com/data/index.php?y=1  http://x.com/data/index.php
      *
      *      http://stackoverflow.com/questions/279966/php-self-vs-path-info-vs-script-name-vs-request-uri
-     *     
+     * 
      *      http://example.com/bob
      *      REQUEST_URI = /bob
      *      PHP_SELF = /bob/index.php
@@ -1164,12 +1229,12 @@ class LTIX {
      * curPageUrlBase - Returns the protocol, host, and port for the current URL
      *
      * This is useful when we are running behind a proxy like ngrok
-     * or CloudFlare.  These proxies will accept with the http or 
+     * or CloudFlare.  These proxies will accept with the http or
      * https version of the URL but our web server will likely only
      * se the incoming request as http.  So we need to fall back
      * to $CFG->wwwroot and reconstruct the right URL from there.
      * Since the wwwroot might have some of the request URI, like
-     * 
+     *
      *     http://tsugi.ngrok.com/tsugi
      *
      * We need to parse the wwwroot and put things back together.
