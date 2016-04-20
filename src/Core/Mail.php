@@ -2,6 +2,8 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\UI\Output;
+
 /** Mail utilities */
 
 class Mail {
@@ -27,7 +29,7 @@ class Mail {
         $EOL = $CFG->maileol;
         $maildomain = $CFG->maildomain;
         $manage = $CFG->wwwroot . "/profile.php";
-        $unsubscribe_url = $CFG->wwwroot . "/unsubscribe.php?id=$id&token=$token";
+        $unsubscribe_url = Output::getUtilUrl("/unsubscribe.php?id=$id&token=$token");
         $msg = $message;
         if ( substr($msg,-1) != "\n" ) $msg .= "\n";
         // $msg .= "\nYou can manage your mail preferences at $manage \n";
