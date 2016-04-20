@@ -848,34 +848,33 @@ class LTIX {
      */
     public static function var_dump() {
         global $USER, $CONTEXT, $LINK, $RESULT;
-        echo("\nGlobal Tsugi Objects:\n\n");
         echo('$USER:'."\n");
-        if ( isset($USER) ) {
+        if ( ! isset($USER) ) {
             echo("Not set\n");
         } else {
             var_dump($USER);
         }
         echo('$CONTEXT:'."\n");
-        if ( isset($CONTEXT) ) {
+        if ( ! isset($CONTEXT) ) {
             echo("Not set\n");
         } else {
             var_dump($CONTEXT);
         }
         echo('$LINK:'."\n");
-        if ( isset($LINK) ) {
+        if ( ! isset($LINK) ) {
             echo("Not set\n");
         } else {
             var_dump($LINK);
         }
         echo('$RESULT:'."\n");
-        if ( isset($RESULT) ) {
+        if ( ! isset($RESULT) ) {
             echo("Not set\n");
         } else {
             var_dump($RESULT);
         }
         echo("\n<hr/>\n");
         echo("Session data (low level):\n");
-        if ( isset($_SESSION) ) {
+        if ( ! isset($_SESSION) ) {
             echo("Not set\n");
         } else {
             echo(Output::safe_var_dump($_SESSION));
