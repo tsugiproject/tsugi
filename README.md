@@ -1,12 +1,12 @@
 TSUGI - A Framework for Building PHP-Based Learning Tools
 =========================================================
 
-**Note:** As of February 9, 2016 - I am refactoring much of the library code in this repository into 
-tsugi-php - to get to the point where a tool can be written outside this directory tree using
-composer.  I have made a branch 0.1.0 that is before the non-upwrds compatible changes in case 
-folks want to stop following master as I move it forward. There will be a few non-upwards 
-compatible changes in how you access library code along the way.
-Please contact me if you are using this in production so I can inform you when changes are being done.
+**Note:** As of April 20, 2016 - I am refactoring much of the tool and library code in 
+this repository into distinct repositories.  I made an 0.2.0 branch that captured 
+the state of the repository before non-upwards compatible changes started.
+Please join the 
+[Tsugi Developer List](https://groups.google.com/a/apereo.org/forum/#!forum/tsugi-dev)
+so I can inform you when changes are being done.
 
 Welcome to the www.tsugi.org project. 
 Its goal is to build a scalable multi-tenant "tool" hosting environment based on the 
@@ -34,6 +34,10 @@ You may also be interested in the Java version of this library:
 
 * [Java Tsugi web site](http://csev.github.io/tsugi-java/)
 * [Java Tsugi API Docs](http://csev.github.io/tsugi-java/apidocs/index.html)
+
+There is also a very pre-emergent effort to port Tsugi to Node.js:
+
+* [Tsugi for Node.js](https://github.com/csev/tsugi-node-sample)
 
 /Chuck
 
