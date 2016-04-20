@@ -16,7 +16,7 @@ for now this is the documentation I have:
 
 Here are a set of Tsugi Exercises suitable for use in a class or workshop:
 
-* [Exercises](EXERCISES.md)
+* [Exercises](https://github.com/csev/tsugi-php-exercises)
 
 
 
