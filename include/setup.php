@@ -43,6 +43,7 @@ if ( isset($CFG->upgrading) && $CFG->upgrading === true ) require_once("upgradin
 // The vendor include and root
 if ( ! isset($CFG->vendorroot) ) $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/php/util";
 if ( ! isset($CFG->vendorinclude) ) $CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/php/include";
+if ( ! isset($CFG->vendorstatic) ) $CFG->vendorstatic = $CFG->dirroot."/vendor/tsugi/php/static";
 
 require_once $CFG->vendorinclude . "/lms_lib.php";
 
