@@ -55,30 +55,11 @@ class Launch {
     public $error_message;
 
     /**
-     * Dump out the internal data structures adssociated with the
+     * Dump out the internal data structures associated with the
      * current launch.  Best if used within a pre tag.
      */
     public function var_dump() {
-        if ( ! isset($this->user) ) {
-            echo("User not set\n");
-        } else {
-            var_dump($this->user);
-        }
-        if ( ! isset($this->context) ) {
-            echo("Context not set\n");
-        } else {
-            var_dump($this->context);
-        }
-        if ( ! isset($this->link) ) {
-            echo("Link not set\n");
-        } else {
-            var_dump($this->link);
-        }
-        if ( ! isset($this->result) ) {
-            echo("Result not set\n");
-        } else {
-            var_dump($this->result);
-        }
+        var_dump($this);
         echo("\n<hr/>\n");
         echo("Session data (low level):\n");
         if ( ! isset($_SESSION) ) {
