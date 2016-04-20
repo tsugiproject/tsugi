@@ -47,8 +47,8 @@ if ( isset($_POST['sum']) && isset($_POST['code']) ) {
 }
 
 // echo($goodsha);
-if ( $LINK->grade > 0 ) {
-    echo('<p class="alert alert-info">Your current grade on this assignment is: '.($LINK->grade*100.0).'%</p>'."\n");
+if ( $RESULT->grade > 0 ) {
+    echo('<p class="alert alert-info">Your current grade on this assignment is: '.($RESULT->grade*100.0).'%</p>'."\n");
 }
 
 if ( $dueDate->message ) {

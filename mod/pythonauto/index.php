@@ -357,7 +357,7 @@ function outf(text) {
         }
         $("#spinner").show();
 
-<?php if ( $LINK->result_id !== false ) { ?>
+<?php if ( $RESULT->id !== false ) { ?>
         var toSend = { code : prog };
         $.ajax({
             type: "POST",
@@ -507,7 +507,7 @@ if ( isset($LINK->title) ) {
         This page does not check our output and it does not send a grade back.  It is
         here as a place for you to develop small programs and test things out.
         </p>
-<?php if ( $LINK->result_id !== false ) { ?>
+<?php if ( $RESULT->id !== false ) { ?>
         <p>
         Whatever code you type will be saved and restored when you come back to this
         page.</p>
