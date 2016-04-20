@@ -830,9 +830,6 @@ class LTIX {
             $LINK = new \Tsugi\Core\Link();
             $LINK->id = $LTI['link_id'];
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
-            // TODO: Remove these two after switching to $RESULT throughout
-            if (isset($LTI['grade']) ) $LINK->grade = $LTI['grade'];
-            if (isset($LTI['result_id']) ) $LINK->result_id = $LTI['result_id'];
         }
 
         if ( isset($LTI['result_id']) && ! is_object($RESULT) ) {
@@ -969,7 +966,7 @@ class LTIX {
      *
      */
     public static function gradeSend($grade, $row=false, &$debug_log=false) {
-        global $CFG, $LINK, $RESULT, $USER;
+        global $CFG, $RESULT, $USER;
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
 
@@ -994,7 +991,7 @@ class LTIX {
 
         if ( $key_key == false || $secret === false ||
             $sourcedid === false || $service === false ||
-            !isset($USER) || !isset($LINK) || !isset($RESULT) ) {
+            !isset($USER) || !isset($RESULT) ) {
             error_log("LTIX::gradeGet is missing required data");
             return false;
         }
@@ -1020,7 +1017,6 @@ class LTIX {
 
         // Update result in the database and in the LTI session area and $RESULT
         $_SESSION['lti']['grade'] = $grade;
-        if ( isset($LINK) ) $LINK->grade = $grade;
         if ( isset($RESULT) ) $RESULT->grade = $grade;
 
         // Update the local copy of the grade in the lti_result table

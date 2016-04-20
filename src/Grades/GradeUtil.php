@@ -78,10 +78,11 @@ class GradeUtil {
 
     // newdata can be a string or array (preferred)
     public static function gradeUpdateJson($newdata=false) {
-        global $CFG, $PDOX, $LINK;
+        global $CFG, $PDOX, $LINK, $RESULT;
         if ( $newdata == false ) return;
         if ( is_string($newdata) ) $newdata = json_decode($newdata, true);
         $LTI = LTIX::requireData(array(LTIX::LINK));
+        if ( ! isset($RESULT) ) return;
         $row = self::gradeLoad();
         $data = array();
         if ( $row !== false && isset($row['json'])) {
@@ -105,7 +106,7 @@ class GradeUtil {
                 WHERE result_id = :RID",
             array(
                 ':json' => $jstr,
-                ':RID' => $LINK->result_id)
+                ':RID' => $RESULT->id)
         );
     }
 }
