@@ -6,7 +6,7 @@ There are two ways to use the Tsugi library/framework:
 * You can build a "Tsugi Module" from scratch following all of the
 Tsugi style guidance, using the Tsugi browser environment, and
 making full use of the Tsugi framework.
-We also have starting code for
+We have starter code for
 [Bulding a Tsugi Module](https://github.com/csev/tsugi-php-module)
 
 * You can use Tsugi more like a library and add it to an existing
