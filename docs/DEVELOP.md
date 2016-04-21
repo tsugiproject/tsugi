@@ -1,6 +1,26 @@
 Developing TSUGI Tools
 ======================
 
+There are two ways to use the Tsugi library/framework:
+
+* You can build a "Tsugi Module" from scratch following all of the
+Tsugi style guidance, using the Tsugi browser environment, and
+making full use of the Tsugi framework.
+We also have starting code for
+[Bulding a Tsugi Module](https://github.com/csev/tsugi-php-module)
+
+* You can use Tsugi more like a library and add it to an existing
+application.   We have example code showing how you might
+[Use Tsugi With an Existing Application](https://github.com/csev/tsugi-php-standalone)
+
+Both of these approaches depend on the
+[Tsugi Devloper/Admin Console](https://github.com/csev/tsugi)
+for database configuration, setup, developer test harness,
+CASA support, Content Item Support, etc.
+
+Documentation
+=============
+
 Here is a video tutorial that covers the _mod/attend_ Tsugi tool:
 
 * [Developing the Attendance Tool in Tsugi](https://www.youtube.com/watch?v=xMK8IjUQuz8&index=4&list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw)
