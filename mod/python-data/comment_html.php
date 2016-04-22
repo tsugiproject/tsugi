@@ -146,7 +146,7 @@ add them up to complete the assignment.
 $ python solution.py 
 Enter - http://python-data.dr-chuck.net/comments_42.html
 Count 50
-Sum 2482
+Sum 2...
 </pre>
 </p>
 

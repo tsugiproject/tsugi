@@ -111,7 +111,7 @@ Enter location: http://python-data.dr-chuck.net/comments_42.json
 Retrieving http://python-data.dr-chuck.net/comments_42.json
 Retrieved 2733 characters
 Count: 50
-Sum: 2482
+Sum: 2...
 </pre>
 <?php httpsWarning($sample_url); ?>
 <p><b>Turning in the Assignment</b>
