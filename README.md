@@ -2,16 +2,15 @@
 Tsugi PHP Library
 =================
 
-This repository contains the run-time objects and scripts that support PHP 
+This is part of the Tsugi PHP Project and contains the run-time objects and scripts that support PHP 
 Tsugi applications and modules.  
+
+* [PHP Tsugi](https://github.com/csev/tsugi)
 
 Here is some documentation for the APIs that are provided by this library:
 
 * [API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
 
-This is part of the Tsugi PHP Project:
-
-* [PHP Tsugi](https://github.com/csev/tsugi)
 
 In addtion to being used as part of the base Tsugi installs, Tsugi standalone
 application or modules will generally pull this in as a 
