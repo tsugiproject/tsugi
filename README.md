@@ -1,22 +1,22 @@
-TSUGI - A Framework for Building PHP-Based Learning Tools
-=========================================================
+TSUGI - A Framework for Building Interoperable Learning Tools
+=============================================================
 
 Tsugi is a multi-tennant scalable LTI library and tool hosting environment.
 It is intended to make it more tractable to implement the Application Store
 that we will need for the [
 Next Generation Digital Learning Environment](http://www.ngdle.org).
 
-This repository is the **Tsugi Adminsitration, Management, and Developer
-Console**.  This code also implementst an LTI 2.0 Provider,
+This repository is the **Tsugi Administration, Management, and Developer
+Console**.  This code also implements an LTI 2.0 Provider,
 CASA App Store, and IMS ContentItem App store.  Any Tsugi tool (including
 those written in Java and NodeJS) need to have this software installed
-and configured.  Perhpas someday we will build Java and/or NodeJS versions 
-of the console - but for now we just use the PHP console for applications
-written in any language.
+and configured as pre-requisite.  Perhpas someday we will build Java and/or
+NodeJS versions of the console - but for now we just use the PHP console
+for applications written in any language.
 
 While earlier versions of this repository included a set of modules, examples,
 and even exercises, as we move towards a 1.0 release of Tsugi, these elements
-are now moved to separate repositories.
+are now moved to separate repositories (see below).
 
 Pre-Requisites
 --------------
