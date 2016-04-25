@@ -9,7 +9,9 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_key",
 "drop table if exists {$CFG->dbprefix}lti_nonce",
-"drop table if exists {$CFG->dbprefix}profile");
+"drop table if exists {$CFG->dbprefix}lti_domain",
+"drop table if exists {$CFG->dbprefix}profile"
+);
 
 // Note that the TEXT xxx_key fields are UNIQUE but not
 // marked as UNIQUE because of MySQL key index length limitations.
@@ -239,6 +241,30 @@ array( "{$CFG->dbprefix}lti_nonce",
 
     INDEX `{$CFG->dbprefix}nonce_indx_1` USING HASH (`nonce`),
     UNIQUE(key_id, nonce)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}lti_domain",
+"create table {$CFG->dbprefix}lti_domain (
+    key_id      INTEGER NOT NULL,
+    context_id  INTEGER NULL,
+    domain      VARCHAR(128),
+    port        INTEGER NULL,
+    consumer_key  TEXT,
+    secret      TEXT,
+    created_at  DATETIME NOT NULL,
+    updated_at  DATETIME NOT NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_domain_ibfk_1`
+        FOREIGN KEY (`key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_domain_ibfk_2`
+        FOREIGN KEY (`context_id`)
+        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    UNIQUE(key_id, context_id, domain, port)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // Profile is denormalized and not tightly connected to allow
