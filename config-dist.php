@@ -95,7 +95,15 @@ $CFG->DEVELOPER = true;
 // This allows you to make your own tool folders.  These are scanned
 // for database.php and index.php files to do automatic table creation
 // as well as making lists of tools in various UI places.
-$CFG->tool_folders = array("admin", "mod", "samples", "exercises");
+$CFG->tool_folders = array("admin", "mod");
+
+// If you want to restore the mod folder, use this command:
+// git clone https://github.com/csev/tsugi-php-mod mod
+
+// You can include tool/module folders that are outside of this folder
+// as follows:
+// $CFG->tool_folders = array("admin", "mod", 
+//     ... , "../tsugi-php-exercises");
 
 // These values configure the cookie used to record the overall
 // login in a long-lived encrypted cookie.   Look at the library

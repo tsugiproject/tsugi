@@ -2,28 +2,40 @@
 Tsugi PHP Library
 =================
 
-**NOTE** As of 2016-Apr-20, the configuration in `config.php` of the staticroot 
-needs to change to:
+This is part of the Tsugi PHP Project and contains the run-time objects and scripts that support PHP 
+Tsugi applications and modules.  
 
-    $CFG->staticroot = 'https://www.dr-chuck.net/tsugi-static';
+* [PHP Tsugi](https://github.com/csev/tsugi)
 
-or
+Here is some documentation for the APIs that are provided by this library:
 
-    $CFG->staticroot = 'http://localhost/tsugi-static';  /// For normal
-    $CFG->staticroot = 'http://localhost:8888/tsugi-static';   // For MAMP
+* [API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
 
-With tsugi-static checked out seprately.
 
-Most `config.php` files leave this as default and depend on ConfigInfo
-to set the default.  In this case we changed the default so no 
-change is needed.
+In addtion to being used as part of the base Tsugi installs, Tsugi standalone
+application or modules will generally pull this in as a 
+[Packagist](https://packagist.org/packages/tsugi/lib) dependency
+using [Composer](http://getcomposer.org/).  
 
-Testing
----------
+For samples of how to use this code in a standalone library or an application, 
+please see the following repositories:
+
+* [Sample Tsugi Module](https://github.com/csev/tsugi-php-module) - Copy
+this if you want to start a fresh Tsugi Module from scratch.  If you are building
+a new tool from scratch, you should build it as a "Tsugi Module" following all
+of the Tsugi style guidance, using the Tsugi browser environment, and making
+full use of the Tsugi framework. This repository contains a basic
+"Tsugi Module" you can use as a starting point.
+
+* [Sample Tsugi-Enabled Application](https://github.com/csev/tsugi-php-standalone) - You
+can also use Tsugi as a library and  add it to a few places in an existing application.
+This repository contains sample code showing how to use Tsugi as a library in an existing
+application.
+
+Unit Testing
+------------
 
 To test:
 
         php phpunit-old.phar 
-
-
 
