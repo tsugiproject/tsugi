@@ -61,6 +61,16 @@ Adding Some Tools
 If you are just exploring Tsugi, or doing a developer bootcamp, you can add some tools
 from some of the other repositories:
 
+* [A Few Useful Tsugi Tools](https://github.com/csev/tsugi-php-mod) This is a set of
+simple useful tools like a Map tool, Simple Gradebook, Peer Grader, PHP Autograder,
+and others.  These were the original tools that were part of the Tsugi checkout.  To
+restore these tools do the following
+
+    cd tsugi
+    git clone https://github.com/csev/tsugi-php-mod mod
+
+and make sure to rerun the Admin / Database tabels step.
+
 * [Tsugi Module Sample Code](https://github.com/csev/tsugi-php-samples) - These 
 are relatively short bits of code that you can look at as you write your
 own Tsugi Module.
@@ -69,10 +79,6 @@ own Tsugi Module.
 is a set of exercises of increasing difficulty suitable for a class or 
 workshop.  Working solutions are provided online.  Source code for working solutions
 is only available to inctructors that contact Dr. Chuck.
-
-* [A Few Useful Tsugi Tools](https://github.com/csev/tsugi-php-mod) This is a set of
-simple useful tools like a Map tool, Simple Gradebook, Peer Grader, PHP Autograder,
-and others.  These were the original tools that were part of the Tsugi checkout.
 
 * [Sample Tsugi Module](https://github.com/csev/tsugi-php-module) - Copy 
 this if you want to start a fresh Tsugi Module from scratch.  If you are building
