@@ -24,10 +24,14 @@ $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
 
-// The vendor include and root
-$CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/php/util";
-$CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/php/include";
-$CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/php/static";
+// Database connection information to configure the PDO connection
+// You need to point this at a database with am account and password
+// that can create tables.   To make the initial tables go into Admin
+// to run the upgrade.php script which auto-creates the tables.
+$CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
+// $CFG->pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
+$CFG->dbuser    = 'ltiuser';
+$CFG->dbpass    = 'ltipassword';
 
 // You can use my CDN copy of the static content in testing or 
 // light production if you like:
@@ -37,6 +41,31 @@ $CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/php/static";
 // want to use the CDN copy (perhaps you are on a plane or are otherwise
 // not connected) use this configuration optionistead of the above:
 // $CFG->staticroot = $CFG->wwwroot;
+
+// The dbprefix allows you to give all the tables a prefix
+// in case your hosting only gives you one database.  This
+// can be short like "t_" and can even be an empty string if you
+// can make a separate database for each instance of TSUGI.
+// This allows you to host multiple instances of TSUGI in a
+// single database if your hosting choices are limited.
+$CFG->dbprefix  = '';
+
+// This is the PW that you need to access the Administration
+// features of this application.
+$CFG->adminpw = 'warning:please-change-adminpw-89b543!';
+
+// This allows you to include various tool folders.  These are scanned
+// for register.php, database.php and index.php files to do automatic
+// table creation as well as making lists of tools in various UI places.
+$CFG->tool_folders = array("admin", "mod");
+
+// If you want to restore the mod folder, use this command:
+// git clone https://github.com/csev/tsugi-php-mod mod
+
+// You can include tool/module folders that are outside of this folder
+// as follows:
+// $CFG->tool_folders = array("admin", "mod", 
+//     ... , "../tsugi-php-exercises");
 
 
 // Set to true to redirect to the upgrading.php script
@@ -57,27 +86,6 @@ $CFG->providekeys = false;  // true
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 
-// Database connection information to configure the PDO connection
-// You need to point this at a database with am account and password
-// that can create tables.   To make the initial tables go into Admin
-// to run the upgrade.php script which auto-creates the tables.
-$CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
-// $CFG->pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
-$CFG->dbuser    = 'ltiuser';
-$CFG->dbpass    = 'ltipassword';
-
-// The dbprefix allows you to give all the tables a prefix
-// in case your hosting only gives you one database.  This
-// can be short like "t_" and can even be an empty string if you
-// can make a separate database for each instance of TSUGI.
-// This allows you to host multiple instances of TSUGI in a
-// single database if your hosting choices are limited.
-$CFG->dbprefix  = '';
-
-// This is the PW that you need to access the Administration
-// features of this application.
-$CFG->adminpw = 'warning:please-change-adminpw-89b543!';
-
 // From LTI 2.0 spec: A globally unique identifier for the service provider. 
 // As a best practice, this value should match an Internet domain name 
 // assigned by ICANN, but any globally unique identifier is acceptable.
@@ -87,23 +95,15 @@ $CFG->product_instance_guid = 'lti2.example.com';
 // and used for all apps it publishes
 $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 
+// The vendor include and root
+$CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/php/util";
+$CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/php/include";
+$CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/php/static";
+
 // When this is true it enables a Developer test harness that can launch
 // tools using LTI.  It allows quick testing without setting up an LMS
 // course, etc.
 $CFG->DEVELOPER = true;
-
-// This allows you to make your own tool folders.  These are scanned
-// for database.php and index.php files to do automatic table creation
-// as well as making lists of tools in various UI places.
-$CFG->tool_folders = array("admin", "mod");
-
-// If you want to restore the mod folder, use this command:
-// git clone https://github.com/csev/tsugi-php-mod mod
-
-// You can include tool/module folders that are outside of this folder
-// as follows:
-// $CFG->tool_folders = array("admin", "mod", 
-//     ... , "../tsugi-php-exercises");
 
 // These values configure the cookie used to record the overall
 // login in a long-lived encrypted cookie.   Look at the library
