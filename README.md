@@ -101,6 +101,10 @@ the new tables required by the new applications.
 Someday we will build a UI that can install these modules - but for now you must
 check them out and link them into Tsugi to function.
 
+We have a short document on how to check out 
+[all of the above tools](docs/CHECKOUT_ALL.md)
+and set up the configuration for them.
+
 Developer Documentation
 -----------------------
 

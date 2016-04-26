@@ -39,8 +39,8 @@ $CFG->dbpass    = 'ltipassword';
 
 // If you check out a copy of the static content locally and do not
 // want to use the CDN copy (perhaps you are on a plane or are otherwise
-// not connected) use this configuration optionistead of the above:
-// $CFG->staticroot = $CFG->wwwroot;
+// not connected) use this configuration option instead of the above:
+// $CFG->staticroot = "../tsugi-static";
 
 // The dbprefix allows you to give all the tables a prefix
 // in case your hosting only gives you one database.  This
@@ -59,14 +59,15 @@ $CFG->adminpw = 'warning:please-change-adminpw-89b543!';
 // table creation as well as making lists of tools in various UI places.
 $CFG->tool_folders = array("admin", "mod");
 
-// If you want to restore the mod folder, use this command:
-// git clone https://github.com/csev/tsugi-php-mod mod
+// Mod is empty by default.  This will re-checkout the mod folder: 
+//     cd htdocs/tsugi
+//     git clone https://github.com/csev/tsugi-php-mod mod
 
 // You can include tool/module folders that are outside of this folder
-// as follows:
-// $CFG->tool_folders = array("admin", "mod", 
-//     ... , "../tsugi-php-exercises");
-
+// using the following pattern:
+// $CFG->tool_folders = array("admin", "mod",
+//      "../tsugi-php-standalone", "../tsugi-php-module",
+//      "../tsugi-php-samples", "../tsugi-php-exercises");
 
 // Set to true to redirect to the upgrading.php script
 // Also copy upgrading-dist.php to upgrading.php and add your message
