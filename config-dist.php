@@ -40,7 +40,9 @@ $CFG->dbpass    = 'ltipassword';
 // If you check out a copy of the static content locally and do not
 // want to use the CDN copy (perhaps you are on a plane or are otherwise
 // not connected) use this configuration option instead of the above:
-// $CFG->staticroot = "../tsugi-static";
+// $CFG->staticroot = $CFG->wwwroot . "/../tsugi-static";
+// $CFG->staticroot = 'http://localhost/tsugi-static';  // For normal
+// $CFG->staticroot = 'http://localhost:8888/tsugi-static';   // For MAMP
 
 // The dbprefix allows you to give all the tables a prefix
 // in case your hosting only gives you one database.  This
