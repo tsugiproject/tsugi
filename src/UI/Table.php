@@ -29,6 +29,7 @@ class Table {
             if ( $value === false ) continue;
             if ( is_string($value) && strlen($value) < 1 ) continue;
             if ( is_int($value) && $value === 0 ) continue;
+            if ( $key == session_name() ) continue; // Will be added automatically
             echo('<input type="hidden" name="'.htmlent_utf8($key).
                  '" value="'.htmlent_utf8($value).'">'."\n");
         }
@@ -40,10 +41,23 @@ class Table {
             if ( $value === false ) continue;
             if ( is_string($value) && strlen($value) < 1 ) continue;
             if ( is_int($value) && $value === 0 ) continue;
+            if ( $key == session_name() ) continue; // Will be added automatically
             if ( strlen($retval) > 0 ) $retval .= '&';
             $retval .= urlencode($key) . "=" . urlencode($value);
         }
         return $retval;
+    }
+
+    public static function makeUrl($url, $values, $override=Array()) {
+        $extra = self::doUrl($values, $override);
+        if ( strlen($extra) == 0 ) return $url;
+        if ( strpos($url,'?') > 0 ) {
+            $url .= '&';
+        } else {
+            $url .= '?';
+        }
+        $url .= $extra;
+        return $url;
     }
 
     // Function to lookup and match things like R.updated_at to updated_at
@@ -210,14 +224,9 @@ class Table {
                 $override['desc'] = $d;
                 $note = " &darr;";
             }
-            $stuff = Table::doUrl($params,$override);
+            $detail = Table::makeUrl($thispage,$params,$override);
 
-            echo('<li><a href="'.$thispage);
-            if ( strlen($stuff) > 0 ) {
-                echo("?");
-                echo($stuff);
-            }
-            echo('">');
+            echo('<li><a href="'.$detail.'">');
             echo(ucwords(str_replace('_',' ',$k)));
             if ( $note ) echo ($note);
             echo("</a></li>\n");
@@ -244,6 +253,17 @@ class Table {
         self::pagedHeader($rows, $searchfields, $orderfields, $view, $params, $extra_buttons);
 
         $count = count($rows);
+
+        $page_length = isset($params['page_length']) ? $params['page_length']+0 : self::$DEFAULT_PAGE_LENGTH;
+        if ( $page_length < 0 ) $page_length = 0;
+
+        // When we are doing paging, we select page_length+1 rows to know whether 
+        // we should show a Next button - but we don't want to show that extra
+        // row in the output.
+        if ( $page_length > 0 && $count > $page_length ) {
+            $count = $page_length;
+        }
+
         if ( $count < 1 ) {
             echo("<p>Nothing to display.</p>\n");
             return;
@@ -316,7 +336,8 @@ class Table {
                 }
                 echo("<td>");
                 if ( $link_name !== false ) {
-                    echo('<a href="'.$view.'?'.$link_name."=".$link_val.'">');
+                    $punc = strpos($view,'?') > 0 ? '&' : '?';
+                    echo('<a href="'.$view.$punc.$link_name."=".$link_val.'">');
                     if ( strlen($v) < 1 ) $v = $link_name.':'.$link_val;
                 }
                 echo(htmlent_utf8($v));
