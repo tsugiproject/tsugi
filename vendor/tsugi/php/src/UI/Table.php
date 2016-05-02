@@ -336,8 +336,8 @@ class Table {
                 }
                 echo("<td>");
                 if ( $link_name !== false ) {
-                    $punc = strpos($view,'?') > 0 ? '&' : '?';
-                    echo('<a href="'.$view.$punc.$link_name."=".$link_val.'">');
+                    $detail = Table::makeUrl($view,$params,Array($link_name => $link_val));
+                    echo('<a href="'.$detail.'">');
                     if ( strlen($v) < 1 ) $v = $link_name.':'.$link_val;
                 }
                 echo(htmlent_utf8($v));
