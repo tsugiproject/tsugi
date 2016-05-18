@@ -10,7 +10,7 @@ This repository is the **Tsugi Administration, Management, and Developer
 Console**.  This code also implements an LTI 2.0 Provider,
 CASA App Store, and IMS ContentItem App store.  Any Tsugi tool (including
 those written in Java and NodeJS) need to have this software installed
-and configured as pre-requisite.  Perhpas someday we will build Java and/or
+and configured as pre-requisite.  Perhaps someday we will build Java and/or
 NodeJS versions of the console - but for now we just use the PHP console
 for applications written in any language.
 
