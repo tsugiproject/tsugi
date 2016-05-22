@@ -729,12 +729,7 @@ class LTIX {
 
         // Check to see if the session already exists.
         $sess = session_name();
-        if ( ini_get('session.use_cookies') != '0' ) {
-            if ( ! isset($_COOKIE[$sess]) ) {
-                self::send403();
-                die_with_error_log("Missing session cookie - please re-launch");
-            }
-        } else { // non-cookie session
+        if ( ini_get('session.use_cookies') == '0' ) {
             if ( $newlaunch || isset($_POST[$sess]) || isset($_GET[$sess]) ) {
                 // We tried to set a session..
             } else {

@@ -1,22 +1,22 @@
-TSUGI - A Framework for Building PHP-Based Learning Tools
-=========================================================
+TSUGI - A Framework for Building Interoperable Learning Tools
+=============================================================
 
 Tsugi is a multi-tennant scalable LTI library and tool hosting environment.
 It is intended to make it more tractable to implement the Application Store
 that we will need for the [
 Next Generation Digital Learning Environment](http://www.ngdle.org).
 
-This repository is the **Tsugi Adminsitration, Management, and Developer
-Console**.  This code also implementst an LTI 2.0 Provider,
+This repository is the **Tsugi Administration, Management, and Developer
+Console**.  This code also implements an LTI 2.0 Provider,
 CASA App Store, and IMS ContentItem App store.  Any Tsugi tool (including
 those written in Java and NodeJS) need to have this software installed
-and configured.  Perhpas someday we will build Java and/or NodeJS versions 
-of the console - but for now we just use the PHP console for applications
-written in any language.
+and configured as pre-requisite.  Perhaps someday we will build Java and/or
+NodeJS versions of the console - but for now we just use the PHP console
+for applications written in any language.
 
 While earlier versions of this repository included a set of modules, examples,
 and even exercises, as we move towards a 1.0 release of Tsugi, these elements
-are now moved to separate repositories.
+are now moved to separate repositories (see below).
 
 Pre-Requisites
 --------------
@@ -61,6 +61,17 @@ Adding Some Tools
 If you are just exploring Tsugi, or doing a developer bootcamp, you can add some tools
 from some of the other repositories:
 
+* [A Few Useful Tsugi Tools](https://github.com/csev/tsugi-php-mod) This is a set of
+simple useful tools like a Map tool, Simple Gradebook, Peer Grader, PHP Autograder,
+and others.  These were the original tools that were part of the Tsugi checkout.  To
+restore these tools do the following
+
+        cd tsugi
+        git clone https://github.com/csev/tsugi-php-mod mod
+
+    and make sure to rerun the Admin / Database Upgrade step to create the tables for
+    for the new modules.
+
 * [Tsugi Module Sample Code](https://github.com/csev/tsugi-php-samples) - These 
 are relatively short bits of code that you can look at as you write your
 own Tsugi Module.
@@ -69,10 +80,6 @@ own Tsugi Module.
 is a set of exercises of increasing difficulty suitable for a class or 
 workshop.  Working solutions are provided online.  Source code for working solutions
 is only available to inctructors that contact Dr. Chuck.
-
-* [A Few Useful Tsugi Tools](https://github.com/csev/tsugi-php-mod) This is a set of
-simple useful tools like a Map tool, Simple Gradebook, Peer Grader, PHP Autograder,
-and others.  These were the original tools that were part of the Tsugi checkout.
 
 * [Sample Tsugi Module](https://github.com/csev/tsugi-php-module) - Copy 
 this if you want to start a fresh Tsugi Module from scratch.  If you are building
@@ -88,11 +95,15 @@ application.
 
 Each of these repositories contain instructions on how to install, configure, and hook
 each of these applications into your Tsugi instance.  Once you install a new module or 
-modules, you will need to re-run the Admin / database configuration process to create
+modules, you will need to re-run the Admin / Database Upgrade process to create
 the new tables required by the new applications.
 
 Someday we will build a UI that can install these modules - but for now you must
 check them out and link them into Tsugi to function.
+
+We have a short document on how to check out 
+[all of the above tools](docs/CHECKOUT_ALL.md)
+and set up the configuration for them.
 
 Developer Documentation
 -----------------------
