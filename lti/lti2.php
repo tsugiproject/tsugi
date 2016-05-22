@@ -25,7 +25,7 @@ if ( ! isset($_SESSION['id']) ) {
     }
     error_log('Redirecting user to login.');
     $_SESSION['login_return'] = addSession($CFG->wwwroot."/lti/lti2.php?login_done=true");
-    header("Location: ".getLoginUrl());
+    header("Location: ".$CFG->getLoginUrl());
     return;
 }
 
