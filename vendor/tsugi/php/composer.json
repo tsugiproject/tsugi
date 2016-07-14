@@ -3,7 +3,7 @@
     "description": "The PHP Library to build interoperable learning tools",
     "homepage": "http://www.tsugi.org/",
     "type": "library",
-    "license": "Apache 2.0",
+    "license": "Apache-2.0",
     "authors": [
     {
         "name": "csev",
@@ -16,8 +16,8 @@
         "psr-4": {"Tsugi\\": "src/"},
         "exclude-from-classmap": [
             "/tests/",
-            "phpdoc.dist.xml","
-            phpunit.xml.dist"
+            "phpdoc.dist.xml",
+            "phpunit.xml.dist"
         ]
     },
     "require": {

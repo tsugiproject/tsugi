@@ -139,7 +139,7 @@ class LTIX {
         }
 
         if ( $post['key'] == '12345' && ! $CFG->DEVELOPER) {
-            die_with_error_log('You can only use key 12345 in developer mode');
+            self::abort_with_error_log('You can only use key 12345 in developer mode');
         }
 
         // We make up a Session ID Key because we don't want a new one
@@ -173,7 +173,7 @@ class LTIX {
 
         // Check the nonce to make sure there is no reuse
         if ( $row['nonce'] !== null) {
-            die_with_error_log('OAuth nonce error key='.$post['key'].' nonce='.$row['nonce']);
+            self::abort_with_error_log('OAuth nonce error key='.$post['key'].' nonce='.$row['nonce']);
         }
 
         // Use returned data to check the OAuth signature on the
@@ -194,11 +194,8 @@ class LTIX {
 
         // TODO: Might want to add more flows here...
         if ( $valid !== true ) {
-            print "<pre>\n";
-            print_r($valid);
-            print "</pre>\n";
             if ( isset($TSUGI_LAUNCH) ) $TSUGI_LAUNCH->error_message = $valid;
-            die_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0]);
+            self::abort_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0],$valid[1]);
         }
 
         $actions = self::adjustData($CFG->dbprefix, $row, $post, $needed);
@@ -735,10 +732,10 @@ class LTIX {
             } else {
                 if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
                     self::send403();
-                    die_with_error_log('Missing '.$sess.' from POST data');
+                    self::abort_with_error_log('Missing '.$sess.' from POST data');
                 } else if ( count($needed) > 0 ) {
                     self::send403();
-                    die_with_error_log('This tool should be launched from a learning system using LTI');
+                    self::abort_with_error_log('This tool should be launched from a learning system using LTI');
                 }
             }
         }
@@ -767,11 +764,11 @@ class LTIX {
             if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
                 $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
                 self::send403();
-                die_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
+                self::abort_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
                     isset($_SESSION['HTTP_USER_AGENT']) ? $_SESSION['HTTP_USER_AGENT'] : 'Empty Session user agent' .
                     ' ::: '.
                     isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Empty browser user agent',
-                'DIE:');
+                false,'DIE:');
             }
         }
 
@@ -784,7 +781,7 @@ class LTIX {
                 if ( $sess_pieces[0] != $serv_pieces[0] || $sess_pieces[1] != $serv_pieces[1] ||
                     $sess_pieces[2] != $serv_pieces[2] ) {
                     self::send403();
-                    die_with_error_log('Session address has expired', " ".session_id()." REMOTE_ADDR ".
+                    self::abort_with_error_log('Session address has expired', " ".session_id()." REMOTE_ADDR ".
                         $_SESSION['REMOTE_ADDR'].' '.$_SERVER['REMOTE_ADDR'], 'DIE:');
                 }
             }
@@ -795,7 +792,7 @@ class LTIX {
             (! endsWith(Output::getUtilUrl(''), $CFG->getScriptPath()) ) &&
             strpos($CFG->getScriptPath(), $_SESSION['script_path']) !== 0 ) {
             self::send403();
-            die_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
+            self::abort_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
                 $_SESSION['script_path'].' /  '.$CFG->getScriptPath(), 'DIE:');
         }
 
@@ -814,7 +811,7 @@ class LTIX {
         if ( is_array($needed) ) {
             foreach ( $needed as $feature ) {
                 if ( isset($LTI[$feature]) ) continue;
-                die_with_error_log("This tool requires an LTI launch parameter:".$feature);
+                self::abort_with_error_log("This tool requires an LTI launch parameter:".$feature);
             }
         }
 
@@ -1358,6 +1355,22 @@ class LTIX {
 
             $content = LTI::postLaunchHTML($parms, $endpoint, false);
             return $content;
+    }
+
+    /**
+     * We are aborting this request.  If this is a launch, redirect back
+     */
+    private static function abort_with_error_log($msg, $extra=false, $prefix="DIE:") {
+        $return_url = isset($_POST['launch_presentation_return_url']) ? $_POST['launch_presentation_return_url'] : null;
+        if ($return_url === null) {
+            die_with_error_log($msg,$extra,$prefix);
+        }
+        $return_url .= ( strpos($return_url,'?') > 0 ) ? '&' : '?';
+        $return_url .= 'lti_errormsg=' . urlencode($msg);
+        if ( $extra !== false ) $return_url .= 'detail=' . urlencode($extra);
+        header("Location: ".$return_url); 
+        error_log($prefix.' '.$msg.' '.$extra);
+        exit();
     }
 
 }
