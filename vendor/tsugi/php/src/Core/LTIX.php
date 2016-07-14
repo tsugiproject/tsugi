@@ -765,9 +765,9 @@ class LTIX {
                 $_SESSION['HTTP_USER_AGENT'] != $_SERVER['HTTP_USER_AGENT'] ) {
                 self::send403();
                 self::abort_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
-                    isset($_SESSION['HTTP_USER_AGENT']) ? $_SESSION['HTTP_USER_AGENT'] : 'Empty Session user agent' .
+                    (isset($_SESSION['HTTP_USER_AGENT']) ? $_SESSION['HTTP_USER_AGENT'] : 'Empty Session user agent') .
                     ' ::: '.
-                    isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Empty browser user agent',
+                    (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Empty browser user agent'),
                 false,'DIE:');
             }
         }
