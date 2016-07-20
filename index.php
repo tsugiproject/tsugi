@@ -92,7 +92,7 @@ A Java version of Tsugi is being developed at
 <a href="https://github.com/csev/tsugi-java-servlet" target="_blank">https://github.com/csev/tsugi-java-servlet</a>
 and a Node version of Tsugi is being developed at
 <a href="https://github.com/csev/tsugi-node-sample" target="_blank">https://github.com/csev/tsugi-node-sample</a>.
-Currently a Tsugi languages use this software as their administration and management console.
+Currently all Tsugi languages use this software as their administration and management console.
 </p>
 <p>
 Learning Tools Interoperability™ (LTI™) is a
