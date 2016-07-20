@@ -83,7 +83,10 @@ You can install any of the following PHP Tsugi tools / toolsets:
 </li>
 <li>A set of self-paced Tsugi exercises (for a workshop or a class):
 <a href="https://github.com/csev/tsugi-php-exercises" target="_blank">https://github.com/csev/tsugi-php-exercises</a>
-(<a href="https://lti-tools.dr-chuck.com/exercises/" target="_blank">specifications</a>)
+- You can also access the exercise
+<a href="https://lti-tools.dr-chuck.com/exercises/" target="_blank">specifications</a> 
+and 
+<a href="https://lti-tools.dr-chuck.com/tsugi/dev.php" target="_blank">working solutions</a> (secret)
 </li>
 </ul>
 </p>
