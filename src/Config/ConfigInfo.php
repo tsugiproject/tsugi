@@ -14,7 +14,7 @@ namespace Tsugi\Config;
 class ConfigInfo {
 
     /** 
-     * The URL where the software is hosted
+     * The URL where tsugi is located
      *
      * Do not add a trailing slash to this string
      * If you get this value wrong, the first problem will
@@ -24,9 +24,22 @@ class ConfigInfo {
      * like:
      *
      *     $wwwroot = 'http://localhost:8888/tsugi';
-     *
      */
     public $wwwroot = 'http://localhost/tsugi';
+
+    /** 
+     * The Application URL when Tsugi is *part* of an application
+     *
+     * Do not add a trailing slash to this string
+     *
+     * An example configuration might be:
+     *
+     *     $wwwroot = 'http://localhost:8888/php-intro/tsugi';
+     *     $apphome = 'http://localhost:8888/php-intro';
+     *
+     * This is not required, its default for this is $wwwroot.
+     */
+    public $apphome;
 
     /**
      * This is how the system will refer to itself.

@@ -406,7 +406,7 @@ if (window!=window.top) {
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="<?= $R ?>index.php"><?= $CFG->servicename ?></a>
+              <a class="navbar-brand" href="<?= $CFG->apphome.'/' ?>"><?= $CFG->servicename ?></a>
             </div>
             <div class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-main">
