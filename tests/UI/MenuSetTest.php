@@ -24,4 +24,18 @@ class MenuSetTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expected,json_encode($set));
     }
 
+    public function testChain() {
+        $set = new \Tsugi\UI\MenuSet();
+        $set->addHome('Home','http://www.tsugi.org/')
+            ->addleft('Left 1 IMS', 'http://www.imsglobal.org')
+            ->addleft('Left 2 SAK', 'http://www.sakiaproject.org')
+            ->addRight('Right 1 Settings', 'about.php')
+            ->addRight('Right 2 Settings', 'settings.php');
+        
+        // print_r($set);
+        $expected = '{"home":{"menu":[{"link":"Home","href":"http:\/\/www.tsugi.org\/"}]},"left":{"menu":[{"link":"Left 1 IMS","href":"http:\/\/www.imsglobal.org"},{"link":"Left 2 SAK","href":"http:\/\/www.sakiaproject.org"}]},"right":{"menu":[{"link":"Right 2 Settings","href":"settings.php"},{"link":"Right 1 Settings","href":"about.php"}]}}';
+        // echo(json_encode($set));
+        $this->assertEquals($expected,json_encode($set));
+    }
+
 }

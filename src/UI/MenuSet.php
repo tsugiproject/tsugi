@@ -29,18 +29,53 @@ class MenuSet {
     public $right = false;
 
     /**
-     * Add an entry to the menu
+     * Add an entty to the Home Menu
      *
-     * @param $menuentry - An entry
-     * @return The instance is returned to allow chaining syntax
+     * @param $link The text of the link - can be text, HTML, or even an img tag
+     * @param $href An optional place to go when the link is clicked
+     * @param $push Indicates to push down the other menu entries
+     *
+     * @return The instance to allow for chaining
      */
-    public function add($entry, $top=false)
+    public function addHome($link, $href, $push=false)
     {
-        if ( $top ) {
-            array_unshift($this->menu, $entry);
-        } else {
-            $this->menu[] = $entry;
-        }
+        if ( $this->home == false ) $this->home = new Menu();
+        $x = new \Tsugi\UI\MenuEntry($link, $href, $push);
+        $this->home->add($x, $push);
+        return $this;
+    }
+
+    /**
+     * Add an entty to the Left Menu
+     *
+     * @param $link The text of the link - can be text, HTML, or even an img tag
+     * @param $href An optional place to go when the link is clicked
+     * @param $push Indicates to push down the other menu entries
+     *
+     * @return The instance to allow for chaining
+     */
+    public function addLeft($link, $href, $push=false)
+    {
+        if ( $this->left == false ) $this->left = new Menu();
+        $x = new \Tsugi\UI\MenuEntry($link, $href, $push);
+        $this->left->add($x, $push);
+        return $this;
+    }
+
+    /**
+     * Add an entty to the Right Menu
+     *
+     * @param $link The text of the link - can be text, HTML, or even an img tag
+     * @param $href An optional place to go when the link is clicked
+     * @param $push Indicates to push down the other menu entries
+     *
+     * @return The instance to allow for chaining
+     */
+    public function addRight($link, $href, $push=true)
+    {
+        if ( $this->right == false ) $this->right = new Menu();
+        $x = new \Tsugi\UI\MenuEntry($link, $href, $push);
+        $this->right->add($x, $push);
         return $this;
     }
 
