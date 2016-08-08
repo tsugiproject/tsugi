@@ -1,6 +1,6 @@
 <?php
 
-require "src/UI/Output.php";
+require_once "src/UI/Output.php";
 
 use \Tsugi\UI\Output;
 

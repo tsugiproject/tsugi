@@ -33,7 +33,11 @@ class MenuEntry {
      */
     public function __construct($link, $href=false) { 
         $this->link = $link;
-        $this->href = $href;
+        if ( $href instanceof \Tsugi\UI\Menu ){
+            $this->href = $href->menu;
+        } else {
+            $this->href = $href;
+        }
     }
 
     /**

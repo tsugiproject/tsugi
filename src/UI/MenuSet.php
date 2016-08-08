@@ -29,19 +29,16 @@ class MenuSet {
     public $right = false;
 
     /**
-     * Add an entty to the Home Menu
+     * Set the Home Menu
      *
      * @param $link The text of the link - can be text, HTML, or even an img tag
      * @param $href An optional place to go when the link is clicked
-     * @param $push Indicates to push down the other menu entries
      *
      * @return The instance to allow for chaining
      */
-    public function addHome($link, $href, $push=false)
+    public function setHome($link, $href)
     {
-        if ( $this->home == false ) $this->home = new Menu();
-        $x = new \Tsugi\UI\MenuEntry($link, $href, $push);
-        $this->home->add($x, $push);
+        $this->home = new \Tsugi\UI\MenuEntry($link, $href, $push);
         return $this;
     }
 
@@ -77,6 +74,26 @@ class MenuSet {
         $x = new \Tsugi\UI\MenuEntry($link, $href, $push);
         $this->right->add($x, $push);
         return $this;
+    }
+
+    /**
+     * Export a menu to JSON
+     *
+     * @param $pretty - True if we want pretty output
+     *
+     * @return JSON string for the menu
+     */
+    public function export($pretty=false)
+    {
+        $tmp = new \stdClass();
+        if ( $this->home != false ) $tmp->home = $this->home;
+        if ( $this->left != false ) $tmp->left = $this->left->menu;
+        if ( $this->right != false ) $tmp->right = $this->right->menu;
+        if ( $pretty ) {
+            return json_encode($tmp, JSON_PRETTY_PRINT);
+        } else {
+            return json_encode($tmp);
+        }
     }
 
 }
