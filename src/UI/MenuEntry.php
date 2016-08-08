@@ -28,7 +28,8 @@ class MenuEntry {
      * Construct a menu entry from a link and href
      *
      * @param $link The text of the link - can be text, HTML, or even an img tag
-     * @param $href An optional place to go when the link is clicked
+     * @param $href An optional place to go when the link is clicked.  Also can be
+     * a Menu.
      */
     public function __construct($link, $href=false) { 
         $this->link = $link;

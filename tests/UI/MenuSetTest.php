@@ -7,7 +7,7 @@ require_once "src/UI/MenuSet.php";
 
 class MenuSetTest extends PHPUnit_Framework_TestCase
 {
-    public function testConstruct() {
+    public function testBasics() {
         $right = new \Tsugi\UI\Menu();
         $x = new \Tsugi\UI\MenuEntry('IMS','http://www.imsglobal.org/');
         $right->add($x);
@@ -36,6 +36,20 @@ class MenuSetTest extends PHPUnit_Framework_TestCase
         $expected = '{"home":{"menu":[{"link":"Home","href":"http:\/\/www.tsugi.org\/"}]},"left":{"menu":[{"link":"Left 1 IMS","href":"http:\/\/www.imsglobal.org"},{"link":"Left 2 SAK","href":"http:\/\/www.sakiaproject.org"}]},"right":{"menu":[{"link":"Right 2 Settings","href":"settings.php"},{"link":"Right 1 Settings","href":"about.php"}]}}';
         // echo(json_encode($set));
         $this->assertEquals($expected,json_encode($set));
+    }
+
+    public function testSub() {
+        $submenu = new \Tsugi\UI\Menu();
+        $submenu->addLink('Sakai', 'http://www.sakaiproject.org/')
+            ->addLink('Apereo', 'http://www.apereo.org');
+
+        $menu = new \Tsugi\UI\Menu();
+        $menu->addLink('Home','http://www.tsugi.org/')
+            ->addLink('Settings', 'settings.php')
+            ->addLink('More...', $submenu)
+            ->addLink('GitHub', 'http://www.github.org');
+        print_r($menu);
+        // echo(json_encode($menu->menu, JSON_PRETTY_PRINT));
     }
 
 }
