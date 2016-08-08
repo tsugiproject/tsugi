@@ -85,7 +85,6 @@ class Output {
         <title><?= $CFG->servicename ?></title>
         <!-- Le styles -->
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
-        <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/bootstrap-theme.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
 
@@ -397,9 +396,9 @@ if (window!=window.top) {
         global $CFG;
         $R = $CFG->wwwroot . '/';
     ?>
-        <div class="container">
           <!-- Static navbar -->
-          <div class="navbar navbar-default" role="navigation">
+          <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
             <div class="navbar-header">
               <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                 <span class="sr-only">Toggle navigation</span>
@@ -407,10 +406,10 @@ if (window!=window.top) {
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="<?= $R ?>index.php"><img style="width:4em;" src="<?= $CFG->staticroot . '/img/logos/tsugi-logo.png' ?>"></a>
+              <a class="navbar-brand" href="<?= $R ?>index.php"><?= $CFG->servicename ?></a>
             </div>
             <div class="navbar-collapse collapse">
-              <ul class="nav navbar-nav">
+              <ul class="nav navbar-nav navbar-main">
                 <?php if ( $CFG->DEVELOPER ) { ?>
                 <li><a href="<?= $R ?>dev.php">Developer</a></li>
                 <?php } ?>
@@ -430,7 +429,7 @@ if (window!=window.top) {
                 </li>
               </ul>
               <ul class="nav navbar-nav navbar-right">
-                <li><a href="<?= $R ?>about.php">About</a></li>
+                <li><a href="<?= $R ?>about.php"><img style="width:4em;" src="<?= $CFG->staticroot . '/img/logos/tsugi-logo.png' ?>"></a></li>
                 <?php if ( isset($_SESSION['id']) ) { ?>
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?= $_SESSION['displayname'] ?><b class="caret"></b></a>
@@ -447,7 +446,8 @@ if (window!=window.top) {
                 <?php } ?>
               </ul>
             </div><!--/.nav-collapse -->
-          </div>
+</div> <!-- .container-fluid -->
+          </nav>
     <?php
     }
 
