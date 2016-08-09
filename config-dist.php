@@ -24,6 +24,9 @@ $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
 
+// The application's home - if different from the Tsugi wwwroot
+// $CFG->apphome = 'http://localhost:8888/php-intro';   
+
 // Database connection information to configure the PDO connection
 // You need to point this at a database with am account and password
 // that can create tables.   To make the initial tables go into Admin

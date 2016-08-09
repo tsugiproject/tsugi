@@ -451,6 +451,69 @@ if (window!=window.top) {
     <?php
     }
 
+    function recurseNav($entry, $depth) {
+        $retval = '';
+        $pad = str_repeat('    ',$depth);
+        if ( $depth > 10 ) return $retval;
+        if ( !is_array($entry->href) ) {
+            $retval .= $pad.'<li><a href="'.$entry->href.'">'.$entry->link.'</a></li>'."\n";
+            return $retval;
+        }
+        $retval .= $pad.'<li class="dropdown">'."\n";
+        $retval .= $pad.'  <a href="#" class="dropdown-toggle" data-toggle="dropdown">'.$entry->link.'<b class="caret"></b></a>'."\n";
+        $retval .= $pad.'  <ul class="dropdown-menu">'."\n";
+        foreach($entry->href as $child) { 
+           $retval .= $this->recurseNav($child, $depth+1);
+        }
+        $retval .= $pad."  </ul>\n";
+        $retval .= $pad."</li>\n";
+        return $retval;
+    }
+
+    function menuNav($set) {
+        global $CFG;
+
+$retval = <<< EOF
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+
+EOF;
+
+        if ( $set->home ) { 
+            $retval .= '      <a class="navbar-brand" href="'.$set->home->href.'">'.$set->home->link.'</a>'."\n";
+        } 
+        $retval .= "    </div>\n";
+        $retval .= '    <div class="navbar-collapse collapse">'."\n";
+        
+        if ( $set->left && count($set->left->menu) > 0 ) { 
+            $retval .= '      <ul class="nav navbar-nav navbar-main">'."\n";
+            foreach($set->left->menu as $entry) { 
+                $retval .= $this->recurseNav($entry, 2);
+            }
+            $retval .= "      </ul>\n";
+        }
+
+        if ( $set->right && count($set->right->menu) > 0 ) { 
+            $retval .= '      <ul class="nav navbar-nav navbar-right">'."\n";
+            foreach($set->right->menu as $entry) { 
+                $retval .= $this->recurseNav($entry, 2);
+            }
+            $retval .= "      </ul>\n";
+        }
+
+        $retval .= "    </div> <!--/.nav-collapse -->\n";
+        $retval .= "  </div> <!--container-fluid -->\n";
+        $retval .= "</nav>\n";
+        return $retval;
+    }
+
     /**
      * Dump a debug array with messages and optional detail
      *
