@@ -38,7 +38,7 @@ class MenuSet {
      */
     public function setHome($link, $href)
     {
-        $this->home = new \Tsugi\UI\MenuEntry($link, $href, $push);
+        $this->home = new \Tsugi\UI\MenuEntry($link, $href);
         return $this;
     }
 

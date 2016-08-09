@@ -392,71 +392,63 @@ if (window!=window.top) {
     </script>';
     }
 
-    function topNav() {
+    function defaultMenuSet() {
         global $CFG;
         $R = $CFG->wwwroot . '/';
-    ?>
-          <!-- Static navbar -->
-          <nav class="navbar navbar-default" role="navigation">
-            <div class="container-fluid">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-              <a class="navbar-brand" href="<?= $CFG->apphome . '/' ?>"><?= $CFG->servicename ?></a>
-            </div>
-            <div class="navbar-collapse collapse">
-              <ul class="nav navbar-nav navbar-main">
-                <?php if ( $CFG->DEVELOPER ) { ?>
-                <li><a href="<?= $R ?>dev.php">Developer</a></li>
-                <?php } ?>
-                <?php if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) { ?>
-                <li><a href="<?= $R ?>admin/index.php">Admin</a></li>
-                <?php } ?>
+        $set = new \Tsugi\UI\MenuSet();
+        $set->setHome($CFG->servicename, $CFG->apphome);
 
-                <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
-                  <ul class="dropdown-menu">
-                    <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
-                    <li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
-                    <li><a href="http://www.imsglobal.org/lti/ltiv2p0/ltiIMGv2p0.html" target="_new">IMS LTI 2.0 Spec</a></li>
-                    <li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
-                    <li><a href="http://www.oauth.net/" target="_blank">OAuth Documentation</a></li>
-                  </ul>
-                </li>
-              </ul>
-              <ul class="nav navbar-nav navbar-right">
-                <li><a href="<?= $R ?>about.php"><img style="width:4em;" src="<?= $CFG->staticroot . '/img/logos/tsugi-logo.png' ?>"></a></li>
-                <?php if ( isset($_SESSION['id']) ) { ?>
-                <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?= $_SESSION['displayname'] ?><b class="caret"></b></a>
-                  <ul class="dropdown-menu">
-                    <li><a href="<?= $R ?>profile.php">Profile</a></li>
-                    <?php if ( $CFG->providekeys && $CFG->owneremail ) { ?>
-                    <li><a href="<?= $R ?>admin/key/index.php">Use this service</a></li>
-                    <?php } ?>
-                    <li><a href="<?= $R ?>logout.php">Logout</a></li>
-                  </ul>
-                </li>
-                <?php } else { ?>
-                <li><a href="<?= $R ?>login.php">Login</a></li>
-                <?php } ?>
-              </ul>
-            </div><!--/.nav-collapse -->
-</div> <!-- .container-fluid -->
-          </nav>
-    <?php
+        if ( $CFG->DEVELOPER ) { 
+            $set->addLeft('Developer', $R.'dev.php');
+        }
+        if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) { 
+            $set->addLeft('Admin', $R.'admin/index.php');
+        }
+
+        $submenu = new \Tsugi\UI\Menu();
+        $submenu->addLink('IMS LTI Documentation', 'http://developers.imsglobal.org/')  // target="_blank"
+            ->addLink('IMS LTI 1.1 Spec', 'http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html')
+            ->addLink('IMS LTI 2.0 Spec', 'http://www.imsglobal.org/lti/ltiv2p0/ltiIMGv2p0.html')
+            ->addLink('Tsugi Developer Site', 'https://github.com/csev/tsugi/blob/master/docs/DEVELOP.md')
+            ->addlink('Tsugi YouTube Channel', 'https://www.youtube.com/playlist?list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw');
+
+        $set->addLeft('Links', $submenu);
+
+        if ( isset($_SESSION['id']) ) {
+            $submenu = new \Tsugi\UI\Menu();
+            $submenu->addLink('Profile', $R.'profile.php')
+                ->addLink('Use this Service', $R . 'admin/key/index.php')
+                ->addLink('Logout', $R.'logout.php');
+            $set->addRight(htmlentities($_SESSION['displayname']), $submenu);
+        } else {
+            $set->addRight('Login', $R.'login.php');
+        }
+
+        $set->addRight('<img style="width:4em;" src="'. $CFG->staticroot . '/img/logos/tsugi-logo.png' .'">', $R.'about.php');
+        return $set;
     }
 
-    function recurseNav($entry, $depth) {
+    function topNav($menu_set=false) {
+        if ( $menu_set === false ) {
+            $menu_set = self::defaultMenuSet();
+        }
+        $menu_txt = self::menuNav($menu_set);
+        echo($menu_txt);
+    }
+
+    private function recurseNav($entry, $depth) {
+        global $CFG;
         $retval = '';
         $pad = str_repeat('    ',$depth);
         if ( $depth > 10 ) return $retval;
         if ( !is_array($entry->href) ) {
-            $retval .= $pad.'<li><a href="'.$entry->href.'">'.$entry->link.'</a></li>'."\n";
+            $target = '';
+            $url = $entry->href;
+            if ( (strpos($url,'http:') === 0 || strpos($url,'https:') === 0 ) &&
+                ( strpos($url, $CFG->apphome) === false || strpos($url, $CFG->wwwroot) === false ) ) {
+                $target = ' target="_blank"';
+            }
+            $retval .= $pad.'<li><a href="'.$url.'"'.$target.'>'.$entry->link.'</a></li>'."\n";
             return $retval;
         }
         $retval .= $pad.'<li class="dropdown">'."\n";
