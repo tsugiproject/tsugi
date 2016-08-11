@@ -87,6 +87,7 @@ class Output {
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
+        <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
 
     <style>
     body {
@@ -466,15 +467,6 @@ if (window!=window.top) {
         global $CFG;
 
 $retval = <<< EOF
-<script>
-function inIframe () {
-    try {
-        return window.self !== window.top;
-    } catch (e) {
-        return true;
-    }
-}
-</script>
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="tsugi_main_nav_bar" style="display:none">
   <div class="container-fluid">
     <div class="navbar-header">
