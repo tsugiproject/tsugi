@@ -466,7 +466,16 @@ if (window!=window.top) {
         global $CFG;
 
 $retval = <<< EOF
-<nav class="navbar navbar-default" role="navigation">
+<script>
+function inIframe () {
+    try {
+        return window.self !== window.top;
+    } catch (e) {
+        return true;
+    }
+}
+</script>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="tsugi_main_nav_bar" style="display:none">
   <div class="container-fluid">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -503,6 +512,12 @@ EOF;
         $retval .= "    </div> <!--/.nav-collapse -->\n";
         $retval .= "  </div> <!--container-fluid -->\n";
         $retval .= "</nav>\n";
+        $retval .= "<script>\n";
+        $retval .= "if ( ! inIframe() ) {\n";
+        $retval .= "  document.getElementById('tsugi_main_nav_bar').style.display = 'block';\n";
+        $retval .= "  document.getElementsByTagName('body')[0].style.paddingTop = '70px';\n";
+        $retval .= "}\n";
+        $retval .= "</script>\n";
         return $retval;
     }
 
