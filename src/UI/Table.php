@@ -301,22 +301,22 @@ class Table {
 
                     $override = Array('order_by' => $k, 'desc' => 0, 'page_start' => false);
                     $d = $desc;
-                    $color = "black";
+                    $color = "normal";
                     $arrow = '';
                     if ( $k == $order_by || $order_by == '' && $k == 'id' ) {
                         $d = ($desc + 1) % 2;
                         $override['desc'] = $d;
-                        $color = $d == 1 ?  'green' : 'red';
+                        $color = $d == 1 ?  'success' : 'info';
                         $arrow = $d == 1 ?  ' &uarr;' : ' &darr;';
                     }
                     $stuff = Table::doUrl($params,$override);
-                    echo('<th>');
+                    echo('<th class="'.$color.'">');
                     echo(' <a href="'.$thispage);
                     if ( strlen($stuff) > 0 ) {
                         echo("?");
                         echo($stuff);
                     }
-                    echo('" style="color: '.$color.'">');
+                    echo('">');
                     echo(ucwords(str_replace('_',' ',$k)));
                     echo($arrow);
                     echo("</a></th>\n");
