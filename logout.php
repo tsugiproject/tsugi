@@ -6,4 +6,4 @@ session_start();
 session_unset();
 SecureCookie::delete();
 
-header('Location: index.php');
+header('Location: '.$CFG->apphome.'/index.php');

@@ -70,6 +70,16 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
         $lastName = isset($user->family_name) ? $user->family_name : false;
         $userEmail = isset($user->email) ? $user->email : false;
         $userAvatar = isset($user->picture) ? $user->picture : false;
+        // If we can derive a gravatar URL - lets check now
+        if ( $userAvatar === false && $userEmail !== false ) {
+            $gravatarurl = 'http://www.gravatar.com/avatar/';
+            $gravatarurl .= md5( strtolower( trim( $email ) ) );
+            $url = $gravatarurl . '?d=404';
+            $x =  get_headers($url);
+            if ( is_array($x) && strpos($x[0]," 200 ") > 0 ) {
+                $userAvatar = $gravatarurl;
+            }
+        }
         $userHomePage = isset($user->link) ? $user->link : false;
         // echo("i=$identity f=$firstName l=$lastName e=$userEmail a=$userAvatar h=$userHomePage\n");
         $doLogin = true;
@@ -80,7 +90,7 @@ if ( $doLogin ) {
     if ( $firstName === false || $lastName === false || $userEmail === false ) {
         error_log('Google-Missing:'.$identity.','.$firstName.','.$lastName.','.$userEmail);
         $_SESSION["error"] = "You do not have a first name, last name, and email in Google or you did not share it with us.";
-        header('Location: index.php');
+        header('Location: '.$CFG->apphome.'/index.php');
         return;
     } else {
         $userSHA = lti_sha256($identity);
@@ -134,7 +144,7 @@ if ( $doLogin ) {
          if ( $profile_id < 1 ) {
             error_log('Fail-SQL-Profile:'.$identity.','.$displayName.','.$userEmail.','.$stmt->errorImplode);
             $_SESSION["error"] = "Internal database error, sorry";
-            header('Location: index.php');
+            header('Location: '.$CFG->apphome.'/index.php');
             return;
          }
 
@@ -183,7 +193,7 @@ if ( $doLogin ) {
         if ( $user_id < 1 ) {
              error_log('No User Entry:'.$identity.','.$displayName.','.$userEmail);
              $_SESSION["error"] = "Internal database error, sorry";
-             header('Location: index.php');
+             header('Location: '.$CFG->apphome.'/index.php');
              return;
          }
 
@@ -195,6 +205,7 @@ if ( $doLogin ) {
         $_SESSION["email"] = $userEmail;
         $_SESSION["displayname"] = $displayName;
         $_SESSION["profile_id"] = $profile_id;
+        $_SESSION["avatar"] = $userAvatar;
 
         // Set the secure cookie
         SecureCookie::set($user_id,$userSHA);
@@ -203,9 +214,9 @@ if ( $doLogin ) {
             header('Location: '.$_SESSION['login_return']);
             unset($_SESSION['login_return']);
         } else if ( $didinsert ) {
-            header('Location: profile.php');
+            header('Location: '.$CFG->wwwroot.'/profile.php');
         } else {
-            header('Location: index.php');
+            header('Location: '.$CFG->apphome.'/index.php');
         }
         return;
     }
@@ -229,11 +240,6 @@ if ( $success !== false ) {
     echo('<div style="margin-top: 10px;" class="alert alert-success">');
     echo($success);
     echo("</div>\n");
-}
-if ( $CFG->DEVELOPER ) {
-    echo '<div class="alert alert-danger" style="margin-top: 10px;">'.
-        'Note: Currently this server is running in developer mode.'.
-        "\n</div>\n";
 }
 ?>
 <div style="margin: 30px">

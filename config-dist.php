@@ -87,10 +87,11 @@ $CFG->ownername = false;  // 'Charles Severance'
 $CFG->owneremail = false; // 'csev@example.com'
 $CFG->providekeys = false;  // true
 
-// Set these to your API key for your Google Sign on
+// Set these to your API key for your Google Sign on and Maps
 // https://console.developers.google.com/
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
+$CFG->google_map_api_key = false; // 'Ve8eH49498430843cIA9IGl8';
 
 // From LTI 2.0 spec: A globally unique identifier for the service provider. 
 // As a best practice, this value should match an Internet domain name 

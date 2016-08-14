@@ -11,7 +11,7 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! isset($_SESSION['profile_id']) ) {
-    header('Location: login.php');
+    header('Location: '.$CFG->wwwroot.'/login.php');
     return;
 }
 $stmt = $PDOX->queryDie(
@@ -21,7 +21,7 @@ $stmt = $PDOX->queryDie(
 $profile_row = $stmt->fetch(PDO::FETCH_ASSOC);
 if ( $profile_row === false ) {
     $_SESSION['error'] = 'Unable to load profile';
-    header('Location: index.php');
+    header('Location: '.$CFG->apphome.'/index.php');
     return;
 }
 
@@ -43,7 +43,7 @@ if ( isset($_POST['subscribe']) ) {
         array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
     );
     $_SESSION['success'] = "Profile updated.";
-    header("Location: index.php");
+    header("Location: '.$CFG->apphome.'/index.php");
     return;
 }
 
@@ -59,9 +59,9 @@ $defaultLng = $lng != 0.0 ? $lng : -83.73981015789798;
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
-if ( ! $CFG->OFFLINE ) {
+if ( isset($CFG->google_map_api_key) && ! $CFG->OFFLINE ) {
 ?>
-<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=<?= $CFG->google_map_api_key ?>"></script>
 <script type="text/javascript">
 var map;
 
@@ -124,7 +124,7 @@ echo(' ('.$_SESSION['email'].")</h4>\n");
 <form method="POST">
   <div class="control-group pull-right" style="margin-top: 20px">
     <button type="submit" class="btn btn-primary visible-phone">Save</button>
-    <input class="btn btn-warning" type="button" onclick="location.href='index.php'; return false;" value="Cancel"/>
+    <input class="btn btn-warning" type="button" onclick="location.href='<?= $CFG->apphome ?>/index.php'; return false;" value="Cancel"/>
   </div>
   <div class="control-group">
     <div class="controls">
@@ -148,7 +148,7 @@ echo(' ('.$_SESSION['email'].")</h4>\n");
       </div>
   </div>
 <hr class="hidden-phone"/>
-<?php if ( ! $CFG->OFFLINE ) { ?>
+<?php if ( isset($CFG->google_map_api_key) && ! $CFG->OFFLINE ) { ?>
   <hr class="hidden-phone"/>
 How would you like to be shown in maps.<br/>
 <select name="map">
