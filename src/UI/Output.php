@@ -84,7 +84,9 @@ class Output {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= $CFG->servicename ?></title>
         <!-- Le styles -->
-        <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/<?php
+            if ( isset($CFG->bootswatch) ) echo('bootswatch/'.$CFG->bootswatch.'/'); ?>bootstrap.min.css" rel="stylesheet">
+
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
         <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
