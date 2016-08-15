@@ -427,6 +427,27 @@ class ConfigInfo {
     }
 
     /**
+     * Get the name of the script relative to the server document root
+     */
+    public static function getScriptName() {
+        if ( ! isset( $_SERVER['SCRIPT_NAME']) ) return false;
+        $script = $_SERVER['SCRIPT_NAME'];
+        return $script;
+    }
+
+    /**
+     * Get the current URL we are executing
+     */
+    public function getCurrentUrl() {
+        $script = self::getScriptName();
+        if ( $script === false ) return false; 
+        $pieces = parse_url($this->apphome);
+        $retval = $pieces['scheme'].'://'.$pieces['host'];
+        if ( isset($pieces['port']) ) $retval .= ':'.$pieces['port'];
+        return $retval . $script;
+    }
+
+    /**
      * Remove any relative elements from a path
      *
      * Before   After
