@@ -43,7 +43,7 @@ if ( isset($_POST['subscribe']) ) {
         array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
     );
     $_SESSION['success'] = "Profile updated.";
-    header("Location: '.$CFG->apphome.'/index.php");
+    header('Location: '.$CFG->apphome.'/index.php');
     return;
 }
 
