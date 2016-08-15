@@ -96,4 +96,45 @@ class MenuSet {
         }
     }
 
+    /**
+     * Import a menu from JSON
+     *
+     * @param $json_str The menu as exported
+     *
+     * @return The MenuSet as parsed or false on error
+     */
+    public static function import($json_str)
+    {
+        try {
+            $json = json_decode($json_str); 
+            // print_r($json);
+            $retval = new MenuSet();
+            $retval->home = new \Tsugi\UI\MenuEntry($json->home->link, $json->home->href);
+            $retval->left = self::importRecurse($json->left, 0);
+            $retval->right = self::importRecurse($json->right, 0);
+            return $retval;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    private static function importRecurse($entry, $depth) {
+        if ( isset($entry->menu) ) $entry = $entry->menu; // Skip right past these
+        if ( ! is_array($entry) ) {
+            $link = $entry->link;
+            $href = $entry->href;
+            if ( is_string($href) ) {
+                return new \Tsugi\UI\MenuEntry($link, $href);
+            }
+            $submenu = self::importRecurse($href, $depth+1);
+            return new \Tsugi\UI\MenuEntry($link, $submenu);
+        }
+
+        $submenu = new \Tsugi\UI\Menu();
+        foreach($entry as $child) {
+            $submenu->add(self::importRecurse($child, $depth+1));
+        }
+        return $submenu;
+    }
+
 }

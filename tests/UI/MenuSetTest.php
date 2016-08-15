@@ -36,7 +36,15 @@ class MenuSetTest extends PHPUnit_Framework_TestCase
         $expected = '{"home":{"link":"Home","href":"http:\/\/www.tsugi.org\/"},"left":{"menu":[{"link":"Left 1 IMS","href":"http:\/\/www.imsglobal.org"},{"link":"Left 2 SAK","href":"http:\/\/www.sakiaproject.org"}]},"right":{"menu":[{"link":"Right 2 About","href":"about.php"},{"link":"Right 1 Settings","href":"settings.php"}]}}';
         // echo(json_encode($set));
         $this->assertEquals($expected,json_encode($set));
-        // echo($set->export(true));
+
+        $export_str = $set->export(false);
+        $expected = '{"home":{"link":"Home","href":"http:\/\/www.tsugi.org\/"},"left":[{"link":"Left 1 IMS","href":"http:\/\/www.imsglobal.org"},{"link":"Left 2 SAK","href":"http:\/\/www.sakiaproject.org"}],"right":[{"link":"Right 2 About","href":"about.php"},{"link":"Right 1 Settings","href":"settings.php"}]}';
+        $this->assertEquals($expected,$export_str);
+
+        $newset = \Tsugi\UI\MenuSet::import($export_str);
+        // print_r($newset);
+        $export_str = $newset->export(false);
+        $this->assertEquals($expected,$export_str);
     }
 
     public function testSub() {
@@ -70,10 +78,13 @@ class MenuSetTest extends PHPUnit_Framework_TestCase
         $O = new \Tsugi\UI\Output();
         $menu_txt = $O->menuNav($set);
         // echo($menu_txt);
+        // Add an outer tag because of the <script> at the end
+        $menu_txt = "<outer>".$menu_txt."</outer>";
         $menu_xml = new SimpleXMLElement($menu_txt);
-        $this->assertEquals($menu_xml->div->div[0]->a['href'].'','http://www.tsugi.org/');
-        $this->assertEquals($menu_xml->div->div[1]['class'].'','navbar-collapse collapse');
-        $this->assertEquals($menu_xml->div->div[1]->ul->li[1]->ul->li->a['href'].'','http://www.sakaiproject.org/');
+        $this->assertEquals($menu_xml->nav->div->div[0]->a['href'].'','http://www.tsugi.org/');
+        $this->assertEquals($menu_xml->nav->div->div[1]['class'].'','navbar-collapse collapse');
+        $this->assertEquals($menu_xml->nav->div->div[1]->ul->li[1]->ul->li->a['href'].'','http://www.sakaiproject.org/');
+        // echo(json_encode($set,JSON_PRETTY_PRINT));
     }
 
 }
