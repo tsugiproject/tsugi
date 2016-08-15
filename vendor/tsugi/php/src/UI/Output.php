@@ -431,7 +431,20 @@ if (window!=window.top) {
         return $set;
     }
 
+    /**
+     * Store the top navigation in the session
+     */
+    function topNavSession($menuset) {
+        $export = $menuset->export();
+        if ( !isset($_SESSION['tsugi_top_nav']) || $_SESSION['tsugi_top_nav'] != $export) {
+            $_SESSION['tsugi_top_nav'] = $export;
+        }
+    }
+
     function topNav($menu_set=false) {
+        if ( $menu_set === false && isset($_SESSION['tsugi_top_nav']) ) {
+            $menu_set = \Tsugi\UI\MenuSet::import($_SESSION['tsugi_top_nav']);
+        }
         if ( $menu_set === false ) {
             $menu_set = self::defaultMenuSet();
         }

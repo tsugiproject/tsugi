@@ -227,8 +227,10 @@ $OUTPUT->bodyStart(false);
                     if ( strpos($tool,"../") === 0 ) $toolname = substr($tool,3);
                     echo('<li><a href="#" onclick="doSubmitTool(\''.$tool.'\');return false;">'.$toolname.'</a></li>'."\n");
                 }
-                echo('<li><a href="#" onclick="doSubmitTool(\'Java Servlet\');return false;">Java Servlet (if installed)</a></li>'."\n");
-                echo('<li><a href="#" onclick="doSubmitTool(\'Tsugi Node\');return false;">Tsugi Node (if installed)</a></li>'."\n");
+                if ( $CFG->wwwroot == $CFG->apphome ) {
+                    echo('<li><a href="#" onclick="doSubmitTool(\'Java Servlet\');return false;">Java Servlet (if installed)</a></li>'."\n");
+                    echo('<li><a href="#" onclick="doSubmitTool(\'Tsugi Node\');return false;">Tsugi Node (if installed)</a></li>'."\n");
+                }
                 ?>
                 <li class="divider"></li>
                 <li><a href="https://github.com/csev/tsugi/blob/master/README.md#adding-some-tools" target="_blank">Available Tsugi Tools</a></li>
@@ -239,7 +241,7 @@ $OUTPUT->bodyStart(false);
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="about-dev.php">Help</a></li>
+            <li><a href="about-dev.php"><img style="width:4em;" src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo.png"></a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                     <?php if ( strlen($lmsdata['lis_person_name_full']) > 0 ) echo($lmsdata['lis_person_name_full']);
