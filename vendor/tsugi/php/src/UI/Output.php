@@ -454,6 +454,7 @@ if (window!=window.top) {
 
     private function recurseNav($entry, $depth) {
         global $CFG;
+        $current_url = $CFG->getCurrentUrl();
         $retval = '';
         $pad = str_repeat('    ',$depth);
         if ( $depth > 10 ) return $retval;
@@ -464,7 +465,11 @@ if (window!=window.top) {
                 ( strpos($url, $CFG->apphome) === false || strpos($url, $CFG->wwwroot) === false ) ) {
                 $target = ' target="_blank"';
             }
-            $retval .= $pad.'<li><a href="'.$url.'"'.$target.'>'.$entry->link.'</a></li>'."\n";
+            $active = '';
+            if ( $current_url == $url ) {
+                $active = ' class="active"';
+            }
+            $retval .= $pad.'<li'.$active.'><a href="'.$url.'"'.$target.'>'.$entry->link.'</a></li>'."\n";
             return $retval;
         }
         $retval .= $pad.'<li class="dropdown">'."\n";
