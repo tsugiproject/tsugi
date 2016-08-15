@@ -118,6 +118,9 @@ class MenuSet {
         }
     }
 
+    /**
+     * Walk a JSON tree to import a hierarchy of menus
+     */
     private static function importRecurse($entry, $depth) {
         if ( isset($entry->menu) ) $entry = $entry->menu; // Skip right past these
         if ( ! is_array($entry) ) {
