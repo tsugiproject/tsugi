@@ -120,6 +120,33 @@ class LTIX {
     }
 
     /**
+     * Set up a session from post data with no security
+     */
+    public static function bypassSession($fake_post) {
+        global $CFG;
+        $needed = self::ALL;
+        $post = self::extractPost($needed, $fake_post);
+        if ( $post === false ) {
+            $pdata = Output::safe_var_dump($fake_post);
+            echo("\n<pre>\nMissing Post_data\n$pdata\n</pre>");
+            error_log('Missing post data: '.$pdata);
+            die();
+        }
+
+        // Read all of the data from the database with a very long
+        // LEFT JOIN and get all the data we have back in the $row variable
+        // $row = loadAllData($CFG->dbprefix, false, $post);
+        $row = self::loadAllData($CFG->dbprefix, $CFG->dbprefix.'profile', $post);
+
+        $actions = self::adjustData($CFG->dbprefix, $row, $post, $needed);
+
+        // Put the information into the $_SESSION
+        // TODO: do AES on the secret
+        $_SESSION['lti'] = $row;
+        $_SESSION['lti_post'] = $fake_post;
+    }
+
+    /**
      * Extract all of the post data, set up data in tables, and set up session.
      */
     public static function setupSession($needed=self::ALL) {
@@ -156,6 +183,11 @@ class LTIX {
         // Since we might reuse session IDs, clean everything out
         if ( !defined('COOKIE_SESSION') ) session_unset();
         $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+
+        // Copy the tsugi_nav
+        if ( isset($_POST['ext_tsugi_top_nav']) ) {
+            $_SESSION['tsugi_top_nav'] = $_POST['ext_tsugi_top_nav'];
+        }
 
         // Read all of the data from the database with a very long
         // LEFT JOIN and get all the data we have back in the $row variable
@@ -260,11 +292,12 @@ class LTIX {
      * We follow our naming conventions that match the column names in
      * our lti_ tables.
      */
-    public static function extractPost($needed=self::ALL) {
+    public static function extractPost($needed=self::ALL, $input=false) {
         // Unescape each time we use this stuff - someday we won't need this...
         $needed = self::patchNeeded($needed);
+        if ( $input === false ) $input = $_POST;
         $FIXED = array();
-        foreach($_POST as $key => $value ) {
+        foreach($input as $key => $value ) {
             if (get_magic_quotes_gpc()) $value = stripslashes($value);
             if ( strpos($key, "custom_") === 0 ) {
                 $newkey = substr($key,7);
