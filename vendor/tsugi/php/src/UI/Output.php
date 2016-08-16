@@ -462,7 +462,7 @@ if (window!=window.top) {
             $target = '';
             $url = $entry->href;
             if ( (strpos($url,'http:') === 0 || strpos($url,'https:') === 0 ) &&
-                ( strpos($url, $CFG->apphome) === false || strpos($url, $CFG->wwwroot) === false ) ) {
+                ( strpos($url, $CFG->apphome) === false && strpos($url, $CFG->wwwroot) === false ) ) {
                 $target = ' target="_blank"';
             }
             $active = '';

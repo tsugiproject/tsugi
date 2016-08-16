@@ -146,12 +146,16 @@ class LTI {
         } else {
             $frame_id = "tsugi_random_id_".bin2Hex(openssl_random_pseudo_bytes(4));
         }
-        $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
+        if ( isset($newparms["ext_lti_form_id"]) ) {
+            $form_id = $newparms["ext_lti_form_id"];
+        } else {
+            $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
+        }
         $debug_id = rand(1000,9999);
         $r = "<div class=\"ltiLaunchFormSubmitArea\">\n";
         if ( $iframeattr =="_blank" ) {
             $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" target=\"_blank\" encType=\"application/x-www-form-urlencoded\">\n" ;
-        } else if ( $iframeattr ) {
+        } else if ( $iframeattr && $iframeattr != '_pause') {
             $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" target=\"".$frame_id."\" encType=\"application/x-www-form-urlencoded\">\n" ;
         } else {
             $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" encType=\"application/x-www-form-urlencoded\">\n" ;
@@ -161,7 +165,7 @@ class LTI {
         foreach($newparms as $key => $value ) {
             $key = htmlspec_utf8($key);
             $value = htmlspec_utf8($value);
-            if ( $key == "ext_submit" ) {
+            if ( $key == "ext_submit" && $iframeattr != '_pause') {
                 $r .= "<input type=\"submit\" name=\"";
             } else {
                 $r .= "<input type=\"hidden\" name=\"";
@@ -204,7 +208,7 @@ class LTI {
         }
         if ( $endform ) $r .= $endform;
         $r .= "</form>\n";
-        if ( $iframeattr && $iframeattr != '_blank' ) {
+        if ( $iframeattr && $iframeattr != '_blank' && $iframeattr != '_pause') {
             $r .= "<iframe class=\"lti_frameResize\" name=\"".$frame_id."\"  id=\"".$frame_id."\" src=\"\"\n";
             $r .= $iframeattr . ">\n<p>".self::get_string("frames_required","basiclti")."</p>\n</iframe>\n";
         }
@@ -221,7 +225,7 @@ class LTI {
             "  //]]> \n" .
             " </script> \n";
 
-        if ( ! $debug ) {
+        if ( ( ! $debug ) && $iframeattr != '_pause' ) {
             $ext_submit = "ext_submit";
             $ext_submit_text = $submit_text;
             $r .= " <script type=\"text/javascript\"> \n" .

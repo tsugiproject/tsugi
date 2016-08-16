@@ -1,27 +1,30 @@
 <?php
+use \Tsugi\Core\LTIX;
+use \Tsugi\Crypt\SecureCookie;
+
 define('COOKIE_SESSION', true);
 require_once "config.php";
 require_once 'lib/lightopenid/openid.php';
-
-use \Tsugi\Core\LTIX;
-use \Tsugi\Crypt\SecureCookie;
 
 $PDOX = LTIX::getConnection();
 
 session_start();
 error_log('Session in login.php '.session_id());
 
+$oauth_consumer_key = 'google.com';
+
 // First we make sure that there is a google.com key
 $stmt = $PDOX->queryDie(
-    "SELECT key_id FROM {$CFG->dbprefix}lti_key
+    "SELECT key_id, secret FROM {$CFG->dbprefix}lti_key
         WHERE key_sha256 = :SHA LIMIT 1",
-    array('SHA' => lti_sha256('google.com'))
+    array('SHA' => lti_sha256($oauth_consumer_key))
 );
 $key_row = $stmt->fetch(PDO::FETCH_ASSOC);
 if ( $key_row === false ) {
     die_with_error_log('Error: No key defined for accounts from google.com');
 }
 $google_key_id = $key_row['key_id']+0;
+$google_secret = $key_row['secret'];
 if ( $google_key_id < 1 ) {
     die_with_error_log('Error: No key for accounts from google.com');
 }
@@ -206,6 +209,13 @@ if ( $doLogin ) {
         $_SESSION["displayname"] = $displayName;
         $_SESSION["profile_id"] = $profile_id;
         $_SESSION["avatar"] = $userAvatar;
+        $_SESSION["oauth_consumer_key"] = $oauth_consumer_key;
+        // TODO: Encrypt Secret
+        if ( strlen($google_secret) ) {
+            $_SESSION["secret"] = $google_secret;
+        } else {
+            unset($_SESSION["secret"]);
+        }
 
         // Set the secure cookie
         SecureCookie::set($user_id,$userSHA);
