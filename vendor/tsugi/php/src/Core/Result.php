@@ -3,6 +3,7 @@
 namespace Tsugi\Core;
 
 use \Tsugi\Util\LTI;
+use \Tsugi\UI\Output;
 
 /**
  * This is a class to provide access to the user's result data.
@@ -160,10 +161,34 @@ class Result extends Entity {
             $result_id = LTIX::sessionGet('result_id');
         }
 
+        // Update result in the database and in the LTI session area and 
+        // our local copy 
+        $_SESSION['lti']['grade'] = $grade;
+        $this->grade = $grade;
+
+        // Update the local copy of the grade in the lti_result table
+        if ( $PDOX !== false && $result_id !== false ) {
+            $stmt = $PDOX->queryReturnError(
+                "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
+                    updated_at = NOW() WHERE result_id = :RID",
+                array(
+                    ':grade' => $grade,
+                    ':RID' => $result_id)
+            );
+            if ( $stmt->success ) {
+                $msg = "Grade updated result_id=".$result_id." grade=$grade";
+            } else {
+                $msg = "Grade NOT updated result_id=".$result_id." grade=$grade";
+            }
+            error_log($msg);
+            if ( is_array($debug_log) )  $debug_log[] = array($msg);
+        }
+
+
         if ( $key_key == false || $secret === false ||
             $sourcedid === false || $service === false ||
             !isset($USER) ) {
-            error_log("Result::gradeGet is missing required data");
+            error_log("Result::gradeSend stored data locally");
             return false;
         }
 
@@ -186,28 +211,6 @@ class Result extends Entity {
             return $status;
         }
 
-        // Update result in the database and in the LTI session area and 
-        // our local copy 
-        $_SESSION['lti']['grade'] = $grade;
-        $this->grade = $grade;
-
-        // Update the local copy of the grade in the lti_result table
-        if ( $PDOX !== false ) {
-            $stmt = $PDOX->queryReturnError(
-                "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
-                    updated_at = NOW() WHERE result_id = :RID",
-                array(
-                    ':grade' => $grade,
-                    ':RID' => $result_id)
-            );
-            if ( $stmt->success ) {
-                $msg = "Grade updated result_id=".$result_id." grade=$grade";
-            } else {
-                $msg = "Grade NOT updated result_id=".$result_id." grade=$grade";
-            }
-            error_log($msg);
-            if ( is_array($debug_log) )  $debug_log[] = array($msg);
-        }
 
         return $status;
     }
@@ -236,12 +239,14 @@ class Result extends Entity {
             $gradetosend = $oldgrade;
         }
 
-        // Use LTIX to send the grade back to the LMS.
+        // Use LTIX to store the grade in out database send the grade back to the LMS.
         $debug_log = array();
         $retval = $this->gradeSend($gradetosend, false, $debug_log);
         $_SESSION['debug_log'] = $debug_log;
 
         if ( $retval === true ) {
+            $_SESSION['success'] = $scorestr;
+        } else if ( $retval === false ) { // Stored locally
             $_SESSION['success'] = $scorestr;
         } else if ( is_string($retval) ) {
             $_SESSION['error'] = "Grade not sent: ".$retval;

@@ -152,6 +152,7 @@ class LTI {
             $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
         }
         $debug_id = rand(1000,9999);
+        $r = "<div class=\"ltiLaunchFormSubmitArea\">\n";
         if ( $iframeattr =="_blank" ) {
             $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" target=\"_blank\" encType=\"application/x-www-form-urlencoded\">\n" ;
         } else if ( $iframeattr && $iframeattr != '_pause') {
@@ -191,7 +192,7 @@ class LTI {
             $r .= "</script>\n";
             $r .= "<a class=\"basicltiDebugToggle\" id=\"basicltiDebug_";
             $r .= $debug_id."_Toggle\" href=\"javascript:basicltiDebug_".$debug_id."_Toggle();\">";
-            $r .= self::get_string("toggle_lti_debug_data","basiclti")."</a>\n";
+            $r .= self::get_string("toggle_debug_data","basiclti")."</a>\n";
             $r .= "<div id=\"basicltiDebug_".$debug_id."_\" style=\"display:none\">\n";
             $r .=  "<b>".self::get_string("basiclti_endpoint","basiclti")."</b><br/>\n";
             $r .= $endpoint . "<br/>\n&nbsp;<br/>\n";
@@ -240,6 +241,7 @@ class LTI {
                 "  //]]> \n" .
                 " </script> \n";
         }
+        $r .= "</div>\n";
         return $r;
     }
 
