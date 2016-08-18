@@ -152,7 +152,6 @@ class LTI {
             $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
         }
         $debug_id = rand(1000,9999);
-        $r = "<div class=\"ltiLaunchFormSubmitArea\">\n";
         if ( $iframeattr =="_blank" ) {
             $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" target=\"_blank\" encType=\"application/x-www-form-urlencoded\">\n" ;
         } else if ( $iframeattr && $iframeattr != '_pause') {
@@ -241,7 +240,6 @@ class LTI {
                 "  //]]> \n" .
                 " </script> \n";
         }
-        $r .= "</div>\n";
         return $r;
     }
 
