@@ -62,5 +62,6 @@ foreach($rows as $row ) {
         $center = array($lat,$lng);
     }
 }
+if ( $center === false ) $center = array(42.279070216140425, -83.73981015789798);
 $retval = array('center' => $center, 'points' => $points );
 echo(json_encode($retval));

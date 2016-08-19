@@ -24,7 +24,7 @@ if ( !isset($CFG->google_map_api_key) ) {
     
 ?>
 <div class="container">
-<div id="map_canvas" style="margin: 10px; width:100%; height:400px"></div>
+<div id="map_canvas" style="width:100%; height:400px"></div>
 </div>
 <?php
 $OUTPUT->footerStart();
