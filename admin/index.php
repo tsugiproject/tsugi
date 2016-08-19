@@ -5,6 +5,8 @@ session_start();
 require_once("gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
+setcookie("adminmenu","true", 0, "/");
+
 \Tsugi\Core\LTIX::getConnection();
 
 $OUTPUT->header();
