@@ -61,7 +61,16 @@ class Output {
             echo '<div class="alert alert-danger" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
             $_SESSION['error']."</div>\n";
             unset($_SESSION['error']);
+        } else if ( isset($_GET['lti_errormsg']) ) {
+            echo '<div class="alert alert-danger" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
+            htmlentities($_GET['lti_errormsg'])."</div>";
+            if ( isset($_GET['detail']) ) {
+                echo("\n<!--\n");
+                echo(str_replace("-->","--:>",$_GET['detail']));
+                echo("\n-->\n");
+            }
         }
+
         if ( isset($_SESSION['success']) ) {
             echo '<div class="alert alert-success" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
             $_SESSION['success']."</div>\n";
