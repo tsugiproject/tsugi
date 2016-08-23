@@ -62,7 +62,7 @@ class Lessons {
      **/
     public function __construct($name='lessons.json')
     {
-        $json_str = file_get_contents('lessons.json');
+        $json_str = file_get_contents($name);
         $lessons = json_decode($json_str);
 
         if ( $lessons === null ) {
