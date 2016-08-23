@@ -207,6 +207,7 @@ class Lessons {
                 }
     
                 if ( count($ltis) > 1 ) echo("<li>Tools:<ul> <!-- start of ltis -->\n");
+                $count = 0;
                 foreach($ltis as $lti ) {
                     $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
                     $secret = isset($_SESSION['secret']) ? $_SESSION['secret'] : false;
@@ -214,6 +215,10 @@ class Lessons {
                     $resource_link_id = 'resource:';
                     if ( $this->anchor != null ) $resource_link_id .= $this->anchor . ':';
                     if ( $this->position != null ) $resource_link_id .= $this->position . ':';
+                    if ( $count > 0 ) {
+                        $resource_link_id .= '_' . $count;
+                    }
+                    $count++;
                     $resource_link_id .= md5($CFG->context_title);
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     $parms = array(
