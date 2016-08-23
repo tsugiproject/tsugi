@@ -276,7 +276,8 @@ class Lessons {
             }
         if ( !isset($module->discuss) ) $module->discuss = true;
         if ( !isset($module->anchor) ) $module->anchor = $this->position;
-        if ( isset($CFG->disqushost) && isset($_SESSION['id']) && $module->discuss ) {
+        // For now do not add disqus to each page.
+        if ( false && isset($CFG->disqushost) && isset($_SESSION['id']) && $module->discuss ) {
     ?>
 <hr/>
 <div id="disqus_thread" style="margin-top: 30px;"></div>
