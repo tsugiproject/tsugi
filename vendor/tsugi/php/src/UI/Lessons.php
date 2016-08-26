@@ -66,6 +66,8 @@ class Lessons {
      **/
     public function __construct($name='lessons.json')
     {
+        global $CFG;
+
         $json_str = file_get_contents($name);
         $lessons = json_decode($json_str);
         $this->resource_links = array();
@@ -99,7 +101,6 @@ class Lessons {
             }
         }
 
-
         // Filter modules based on login
         if ( !isset($_SESSION['id']) ) {
             $filtered_modules = array();
@@ -119,6 +120,24 @@ class Lessons {
         for($i=0;$i<count($this->lessons->modules);$i++) {
             if ( isset($this->lessons->modules[$i]->lti) && !is_array($this->lessons->modules[$i]->lti) ) {
                 $this->lessons->modules[$i]->lti = array($this->lessons->modules[$i]->lti);
+            }
+            if ( isset($this->lessons->modules[$i]->assignment) ) {
+                if ( strpos($this->lessons->modules[$i]->assignment,'http://') === 0 ) {
+                    // OK
+                } else if ( strpos($this->lessons->modules[$i]->assignment,'https://') === 0 ) {
+                    // OK
+                } else {
+                    $this->lessons->modules[$i]->assignment = $CFG->apphome . '/' . $this->lessons->modules[$i]->assignment;
+                }
+            }
+            if ( isset($this->lessons->modules[$i]->solution) ) {
+                if ( strpos($this->lessons->modules[$i]->solution,'http://') === 0 ) {
+                    // OK
+                } else if ( strpos($this->lessons->modules[$i]->solution,'https://') === 0 ) {
+                    // OK
+                } else {
+                    $this->lessons->modules[$i]->solution = $CFG->apphome . '/' . $this->lessons->modules[$i]->solution;
+                }
             }
         }
 
