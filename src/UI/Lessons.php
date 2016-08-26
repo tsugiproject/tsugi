@@ -28,6 +28,10 @@ class Lessons {
      */
     public $position;
 
+    /**
+     * Index by resource_link
+     */
+    public $resource_links;
 
     /**
      * emit the header material
@@ -64,6 +68,7 @@ class Lessons {
     {
         $json_str = file_get_contents($name);
         $lessons = json_decode($json_str);
+        $this->resource_links = array();
 
         if ( $lessons === null ) {
             echo("<pre>\n");
@@ -72,6 +77,16 @@ class Lessons {
             echo("\n");
             echo($json_str);
             die();
+        }
+
+        // Demand that every module have required elments
+        foreach($lessons->modules as $module) {
+            if ( !isset($module->title) ) {
+                die_with_error_log('All modules in a lesson must have a title');
+            }
+            if ( !isset($module->anchor) ) {
+                die_with_error_log('All modules must have an anchor: '.$module->title);
+            }
         }
 
         // Filter modules based on login
@@ -88,9 +103,35 @@ class Lessons {
             if ( $filtered ) $lessons->modules = $filtered_modules;
         }
         $this->lessons = $lessons;
+
+        // Pretty up the data structure
+        for($i=0;$i<count($this->lessons->modules);$i++) {
+            if ( isset($this->lessons->modules[$i]->lti) && !is_array($this->lessons->modules[$i]->lti) ) {
+                $this->lessons->modules[$i]->lti = array($this->lessons->modules[$i]->lti);
+            }
+        }
+
+        // Make sure resource links are unique and remember them
+        foreach($this->lessons->modules as $module) {
+            if ( isset($module->lti) ) {
+                $ltis = $module->lti;
+                if ( ! is_array($ltis) ) $ltis = array($ltis);
+                foreach($ltis as $lti) {
+                    if ( ! isset($lti->resource_link_id) ) {
+                        die_with_error_log('Missing resource link in Lessons '. $lti->title);
+                    }
+                    if (isset($this->resource_links[$lti->resource_link_id]) ) {
+                        die_with_error_log('Duplicate resource link in Lessons '. $lti->resource_link_id);
+                    }
+                    $this->resource_links[$lti->resource_link_id] = $module->anchor;
+                }
+            }
+        }
+
         $anchor = isset($_GET['anchor']) ? $_GET['anchor'] : null;
         $index = isset($_GET['index']) ? $_GET['index'] : null;
 
+        // Search for the selected anchor or index position
         $count = 0;
         $module = false;
         if ( $anchor || $index ) {
@@ -113,6 +154,45 @@ class Lessons {
      */
     public function isSingle() {
         return ( $this->anchor !== null || $this->position !== null );
+    }
+
+    /**
+     * Get a module associated with an anchor
+     */
+    public function getModuleByAnchor($anchor)
+    {
+        foreach($lessons->modules as $mod) {
+            if ( $mod->anchor == $anchor) return $mod;
+        }
+        return null;
+    }
+
+    /**
+     * Get an LTI associated with a resource link ID
+     */
+    public function getLtiByRlid($resource_link_id)
+    {
+        foreach($this->lessons->modules as $mod) {
+            if ( ! isset($mod->lti) ) continue;
+            foreach($mod->lti as $lti ) {
+                if ( $lti->resource_link_id == $resource_link_id) return $lti;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get a module associated with a resource link ID
+     */
+    public function getModuleByRlid($resource_link_id)
+    {
+        foreach($this->lessons->modules as $mod) {
+            if ( ! isset($mod->lti) ) continue;
+            foreach($mod->lti as $lti ) {
+                if ( $lti->resource_link_id == $resource_link_id) return $mod;
+            }
+        }
+        return null;
     }
 
     /*
@@ -212,14 +292,18 @@ class Lessons {
                     $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
                     $secret = isset($_SESSION['secret']) ? $_SESSION['secret'] : false;
     
-                    $resource_link_id = 'resource:';
-                    if ( $this->anchor != null ) $resource_link_id .= $this->anchor . ':';
-                    if ( $this->position != null ) $resource_link_id .= $this->position . ':';
-                    if ( $count > 0 ) {
-                        $resource_link_id .= '_' . $count;
+                    if ( isset($lti->resource_link_id) ) {
+                        $resource_link_id = $lti->resource_link_id;
+                    } else {
+                        $resource_link_id = 'resource:';
+                        if ( $this->anchor != null ) $resource_link_id .= $this->anchor . ':';
+                        if ( $this->position != null ) $resource_link_id .= $this->position . ':';
+                        if ( $count > 0 ) {
+                            $resource_link_id .= '_' . $count;
+                        }
+                        $resource_link_id .= md5($CFG->context_title);
                     }
                     $count++;
-                    $resource_link_id .= md5($CFG->context_title);
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     $parms = array(
                         'lti_message_type' => 'basic-lti-launch-request',
@@ -227,15 +311,15 @@ class Lessons {
                         'resource_link_title' => $resource_link_title,
                         'tool_consumer_info_product_family_code' => 'tsugi',
                         'tool_consumer_info_version' => '1.1',
-                        'context_id' => 'course:'.md5($CFG->context_title),
+                        'context_id' => $_SESSION['context_key'],
                         'context_label' => $CFG->context_title,
                         'context_title' => $CFG->context_title,
-                        'user_id' => 'google:'.md5($_SESSION['email']),
-                        'user_image' => $_SESSION['avatar'],
+                        'user_id' => $_SESSION['user_key'],
                         'lis_person_name_full' => $_SESSION['displayname'],
                         'lis_person_contact_email_primary' => $_SESSION['email'],
                         'roles' => 'Learner'
                     );
+                    if ( isset($_SESSION['avatar']) ) $parms['user_image'] = $_SESSION['avatar'];
     
                     if ( isset($lti->custom) ) {
                         foreach($lti->custom as $custom) {
@@ -330,6 +414,105 @@ var disqus_config = function () {
             echo("</a></div>\n");
         }
         echo('</div> <!-- box -->'."\n");
+    }
+
+    public function renderAssignments($allgrades)
+    {
+        echo('<h1>'.$this->lessons->title."</h1>\n");
+        echo('<table class="table table-striped table-hover "><tbody>'."\n");
+        $count = 0;
+        foreach($this->lessons->modules as $module) {
+            $count++;
+            if ( !isset($module->lti) ) continue;
+            echo('<tr><td class="info" colspan="3">'."\n");
+            $href = 'lessons.php?anchor='.htmlentities($module->anchor);
+            echo('<a href="'.$href.'">'."\n");
+            echo($module->title);
+            echo("</td></tr>");
+            if ( isset($module->lti) ) {
+                foreach($module->lti as $lti) {
+                    echo('<tr><td>');
+                    if ( isset($allgrades[$lti->resource_link_id]) ) {
+                        if ( $allgrades[$lti->resource_link_id] > 0.8 ) {
+                            echo('<i class="fa fa-check-square-o text-success" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
+                        } else {
+                            echo('<i class="fa fa-square-o text-warning" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
+                        }
+                    } else {
+                            echo('<i class="fa fa-square-o text-danger" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
+                    }
+                    echo("</td><td>".$lti->title."</td>\n");
+                    if ( isset($allgrades[$lti->resource_link_id]) ) {
+                        echo("<td>Score: ".(100*$allgrades[$lti->resource_link_id])."</td>");
+                    } else {
+                        echo("<td>&nbsp;</td>");
+                    }
+                
+                    echo("</tr>\n");
+                }
+            }
+        }
+        echo('</tbody></table>'."\n");
+    }
+
+    public function renderBadges($allgrades)
+    {
+        echo('<h1>'.$this->lessons->title."</h1>\n");
+        echo('<table class="table table-striped table-hover "><tbody>'."\n");
+        foreach($this->lessons->badges as $badge) {
+            $threshold = $badge->threshold;
+            $count = 0;
+            $total = 0;
+            $scores = array();
+            foreach($badge->assignments as $resource_link_id) {
+                $score = 0;
+                if ( isset($allgrades[$resource_link_id]) ) $score = 100*$allgrades[$resource_link_id];
+                $scores[$resource_link_id] = $score;
+                $total = $total + $score;
+                $count = $count + 1;
+            }
+            $max = $count * 100;
+            $progress = intval(($total / $max)*100);
+            $kind = 'danger';
+            if ( $progress < 5 ) $progress = 5;
+            if ( $progress > 5 ) $kind = 'warning';
+            if ( $progress > 50 ) $kind = 'info';
+            if ( $progress >= $threshold*100 ) $kind = 'success';
+            echo('<tr><td class="info">');
+            echo('Badge: ');
+            echo($badge->title);
+            echo('</td><td class="info" style="width: 30%; min-width: 200px;">');
+            echo('<div class="progress">');
+            echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
+            echo('</div>');
+            echo("</td></tr>\n");
+            foreach($badge->assignments as $resource_link_id) {
+                $score = 0;
+                if ( isset($allgrades[$resource_link_id]) ) $score = 100*$allgrades[$resource_link_id];
+                $progress = intval($score*100);
+                $kind = 'danger';
+                if ( $progress < 5 ) $progress = 5;
+                if ( $progress > 5 ) $kind = 'warning';
+                if ( $progress > 50 ) $kind = 'info';
+                if ( $progress >= $threshold*100 ) $kind = 'success';
+
+                $module = $this->getModuleByRlid($resource_link_id);
+                $lti = $this->getLtiByRlid($resource_link_id);
+
+                echo('<tr><td>');
+                echo('<a href="lessons.php?anchor='.$module->anchor.'">');
+                echo('<i class="fa fa-square-o text-info" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
+                echo($lti->title."</a>\n");
+                echo('</td><td style="width: 30%; min-width: 200px;">');
+                echo('<a href="lessons.php?anchor='.$module->anchor.'">');
+                echo('<div class="progress">');
+                echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
+                echo('</div>');
+                echo('</a>');
+                echo("</td></tr>\n");
+            }
+        }
+        echo('</tbody></table>'."\n");
     }
 
     public function footer()

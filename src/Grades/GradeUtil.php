@@ -109,4 +109,22 @@ class GradeUtil {
                 ':RID' => $RESULT->id)
         );
     }
+
+    /**
+     * Load all the grades for the current user / course including resource_link_id
+     */
+    public static function loadGradesForCourse($user_id, $context_id)
+    {
+        global $CFG, $PDOX;
+        $p = $CFG->dbprefix;
+        $sql =
+        "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id, 
+            R.grade AS grade, R.note AS note
+        FROM {$p}lti_result AS R
+        JOIN {$p}lti_link as L ON R.link_id = L.link_id
+        LEFT JOIN {$p}lti_service AS S ON R.service_id = S.service_id
+        WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
+        $rows = $PDOX->allRowsDie($sql,array(':UID' => $user_id, ':CID' => $context_id));
+        return $rows;
+    }
 }
