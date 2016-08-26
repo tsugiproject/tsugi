@@ -4,7 +4,7 @@ use \Tsugi\Core\LTIX;
 
 require_once "top.php";
 
-$OUTPUT->startBody();
+$OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
