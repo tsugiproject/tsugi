@@ -89,6 +89,17 @@ class Lessons {
             }
         }
 
+        // Demand that every module have required elments
+        foreach($lessons->badges as $badge) {
+            if ( !isset($badge->title) ) {
+                die_with_error_log('All badges in a lesson must have a title');
+            }
+            if ( !isset($badge->assignments) ) {
+                die_with_error_log('All badges must have assignments: '.$badge->title);
+            }
+        }
+
+
         // Filter modules based on login
         if ( !isset($_SESSION['id']) ) {
             $filtered_modules = array();
@@ -111,12 +122,21 @@ class Lessons {
             }
         }
 
+        if ( isset($this->lessons->badges) ) for($i=0;$i<count($this->lessons->badges);$i++) {
+            if ( ! isset($this->lessons->badges[$i]->threshold) ) {
+                $this->lessons->badges[$i]->threshold = 1.0;
+            }
+        }
+
         // Make sure resource links are unique and remember them
         foreach($this->lessons->modules as $module) {
             if ( isset($module->lti) ) {
                 $ltis = $module->lti;
                 if ( ! is_array($ltis) ) $ltis = array($ltis);
                 foreach($ltis as $lti) {
+                    if ( ! isset($lti->title) ) {
+                        die_with_error_log('Missing lti title in module:'. $module->title);
+                    }
                     if ( ! isset($lti->resource_link_id) ) {
                         die_with_error_log('Missing resource link in Lessons '. $lti->title);
                     }
@@ -479,7 +499,7 @@ var disqus_config = function () {
             if ( $progress > 50 ) $kind = 'info';
             if ( $progress >= $threshold*100 ) $kind = 'success';
             echo('<tr><td class="info">');
-            echo('Badge: ');
+            echo('<i class="fa fa-certificate" aria-hidden="true" style="padding-right: 5px;"></i>');
             echo($badge->title);
             echo('</td><td class="info" style="width: 30%; min-width: 200px;">');
             echo('<div class="progress">');
