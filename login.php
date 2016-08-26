@@ -29,6 +29,33 @@ if ( $google_key_id < 1 ) {
     die_with_error_log('Error: No key for accounts from google.com');
 }
 
+$context_key = false;
+$context_id = false;
+// If there is a global course, grab it or make it
+if ( isset($CFG->context_title) ) {
+    $context_key = 'course:'.md5($CFG->context_title);
+    
+    $row = $PDOX->rowDie(
+        "SELECT context_id FROM {$CFG->dbprefix}lti_context
+            WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
+        array(':SHA' => lti_sha256($context_key), ':KID' => $google_key_id)
+    );
+
+    if ( $row != false ) {
+        $context_id = $row['context_id'];
+    } else {
+        $sql = "INSERT INTO {$CFG->dbprefix}lti_context
+                ( context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
+                ( :context_key, :context_sha256, :title, :key_id, NOW(), NOW() )";
+        $PDOX->queryDie($sql, array(
+                ':context_key' => $context_key,
+                ':context_sha256' => lti_sha256($context_key),
+                ':title' => $CFG->context_title,
+                ':key_id' => $google_key_id));
+        $context_id = $PDOX->lastInsertId();
+    }
+}
+
 // Google Login Object
 $glog = new \Tsugi\Google\GoogleLogin($CFG->google_client_id,$CFG->google_client_secret,
       $CFG->wwwroot.'/login.php',$CFG->wwwroot);
@@ -37,13 +64,13 @@ $errormsg = false;
 $success = false;
 
 $doLogin = false;
-$identity = false;
+$user_key = false;
 $firstName = false;
 $lastName = false;
 $userEmail = false;
 
 if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
-    $identity = 'http://notgoogle.com/1234567';
+    $user_key = 'http://notgoogle.com/1234567';
     $firstName = 'Fake';
     $lastName = 'Person';
     $userEmail = 'fake_person@notgoogle.com';
@@ -67,7 +94,7 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
         $authObj = $glog->getAccessToken($google_code);
         $user = $glog->getUserInfo();
         // echo("<pre>\nUser\n");print_r($user);echo("</pre>\n");
-        $identity = isset($user->openid_id) ? $user->openid_id :
+        $user_key = isset($user->openid_id) ? $user->openid_id :
             ( isset($user->id) ? $user->id : false );
         $firstName = isset($user->given_name) ? $user->given_name : false;
         $lastName = isset($user->family_name) ? $user->family_name : false;
@@ -84,19 +111,19 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
             }
         }
         $userHomePage = isset($user->link) ? $user->link : false;
-        // echo("i=$identity f=$firstName l=$lastName e=$userEmail a=$userAvatar h=$userHomePage\n");
+        // echo("i=$user_key f=$firstName l=$lastName e=$userEmail a=$userAvatar h=$userHomePage\n");
         $doLogin = true;
     }
 }
 
 if ( $doLogin ) {
     if ( $firstName === false || $lastName === false || $userEmail === false ) {
-        error_log('Google-Missing:'.$identity.','.$firstName.','.$lastName.','.$userEmail);
+        error_log('Google-Missing:'.$user_key.','.$firstName.','.$lastName.','.$userEmail);
         $_SESSION["error"] = "You do not have a first name, last name, and email in Google or you did not share it with us.";
         header('Location: '.$CFG->apphome.'/index.php');
         return;
     } else {
-        $userSHA = lti_sha256($identity);
+        $userSHA = lti_sha256($user_key);
         $displayName = $firstName . ' ' . $lastName;
 
         // Load the profile checking to see if everything
@@ -121,13 +148,13 @@ if ( $doLogin ) {
                 "INSERT INTO {$CFG->dbprefix}profile
                 (profile_sha256, profile_key, key_id, email, displayname, created_at, updated_at, login_at) ".
                     "VALUES ( :SHA, :UKEY, :KEY, :EMAIL, :DN, NOW(), NOW(), NOW() )",
-                 array('SHA' => $userSHA, ':UKEY' => $identity, ':KEY' => $google_key_id,
+                 array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $google_key_id,
                     ':EMAIL' => $userEmail, ':DN' => $displayName)
             );
 
             if ( $stmt->success) $profile_id = $PDOX->lastInsertId();
 
-            error_log('Profile-Insert:'.$identity.','.$displayName.','.$userEmail.','.$profile_id);
+            error_log('Profile-Insert:'.$user_key.','.$displayName.','.$userEmail.','.$profile_id);
         } else {
             $profile_id = $profile_row['profile_id']+0;
             // Check to see if everything is already fine
@@ -145,7 +172,7 @@ if ( $doLogin ) {
 
         // Must have profile...
          if ( $profile_id < 1 ) {
-            error_log('Fail-SQL-Profile:'.$identity.','.$displayName.','.$userEmail.','.$stmt->errorImplode);
+            error_log('Fail-SQL-Profile:'.$user_key.','.$displayName.','.$userEmail.','.$stmt->errorImplode);
             $_SESSION["error"] = "Internal database error, sorry";
             header('Location: '.$CFG->apphome.'/index.php');
             return;
@@ -172,13 +199,13 @@ if ( $doLogin ) {
                 (user_sha256, user_key, key_id, profile_id,
                     email, displayname, created_at, updated_at, login_at) ".
                 "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, NOW(), NOW(), NOW() )",
-                 array('SHA' => $userSHA, ':UKEY' => $identity, ':KEY' => $google_key_id,
+                 array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $google_key_id,
                     ':PROF' => $profile_id, ':EMAIL' => $userEmail, ':DN' => $displayName)
             );
 
             if ( $stmt->success ) {
                 $user_id = $PDOX->lastInsertId();
-                error_log('User-Insert:'.$identity.','.$displayName.','.$userEmail.','.$user_id);
+                error_log('User-Insert:'.$user_key.','.$displayName.','.$userEmail.','.$user_id);
                 $didinsert = true;
             }
         } else {  // Lets update!
@@ -190,11 +217,11 @@ if ( $doLogin ) {
                 array(':EMAIL' => $userEmail, ':DN' => $displayName,
                     ':ID' => $user_id, ':PRID' => $profile_id)
             );
-            error_log('User-Update:'.$identity.','.$displayName.','.$userEmail);
+            error_log('User-Update:'.$user_key.','.$displayName.','.$userEmail);
         }
 
         if ( $user_id < 1 ) {
-             error_log('No User Entry:'.$identity.','.$displayName.','.$userEmail);
+             error_log('No User Entry:'.$user_key.','.$displayName.','.$userEmail);
              $_SESSION["error"] = "Internal database error, sorry";
              header('Location: '.$CFG->apphome.'/index.php');
              return;
@@ -205,11 +232,15 @@ if ( $doLogin ) {
         if ( ! $didinsert ) $welcome .= "back ";
         $_SESSION["success"] = $welcome.($displayName)." (".$userEmail.")";
         $_SESSION["id"] = $user_id;
+        $_SESSION["user_id"] = $user_id;
+        $_SESSION["user_key"] = $user_key;
         $_SESSION["email"] = $userEmail;
         $_SESSION["displayname"] = $displayName;
         $_SESSION["profile_id"] = $profile_id;
-        $_SESSION["avatar"] = $userAvatar;
+        if ( isset($userAvatar) ) $_SESSION["avatar"] = $userAvatar;
         $_SESSION["oauth_consumer_key"] = $oauth_consumer_key;
+        if ( isset($context_id) ) $_SESSION["context_id"] = $context_id;
+        if ( isset($context_key) ) $_SESSION["context_key"] = $context_key;
         // TODO: Encrypt Secret
         if ( strlen($google_secret) ) {
             $_SESSION["secret"] = $google_secret;
