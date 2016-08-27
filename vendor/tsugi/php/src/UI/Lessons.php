@@ -4,6 +4,7 @@ namespace Tsugi\UI;
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Crypt\AesCtr;
 
 
 class Lessons {
@@ -496,7 +497,17 @@ var disqus_config = function () {
 
     public function renderBadges($allgrades)
     {
+        global $CFG;
         echo('<h1>'.$this->lessons->title."</h1>\n");
+        $awarded = array();
+?>
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Progress</a></li>
+  <li class=""><a href="#profile" data-toggle="tab" aria-expanded="false">Badges Awarded</a></li>
+</ul>
+<div id="myTabContent" class="tab-content">
+  <div class="tab-pane fade active in" id="home">
+<?php
         echo('<table class="table table-striped table-hover "><tbody>'."\n");
         foreach($this->lessons->badges as $badge) {
             $threshold = $badge->threshold;
@@ -516,7 +527,10 @@ var disqus_config = function () {
             if ( $progress < 5 ) $progress = 5;
             if ( $progress > 5 ) $kind = 'warning';
             if ( $progress > 50 ) $kind = 'info';
-            if ( $progress >= $threshold*100 ) $kind = 'success';
+            if ( $progress >= $threshold*100 ) {
+                $kind = 'success';
+                $awarded[] = $badge;
+            }
             echo('<tr><td class="info">');
             echo('<i class="fa fa-certificate" aria-hidden="true" style="padding-right: 5px;"></i>');
             echo($badge->title);
@@ -533,8 +547,6 @@ var disqus_config = function () {
                 if ( $progress < 5 ) $progress = 5;
                 if ( $progress > 5 ) $kind = 'warning';
                 if ( $progress > 50 ) $kind = 'info';
-                if ( $progress >= $threshold*100 ) $kind = 'success';
-
                 $module = $this->getModuleByRlid($resource_link_id);
                 $lti = $this->getLtiByRlid($resource_link_id);
 
@@ -552,6 +564,27 @@ var disqus_config = function () {
             }
         }
         echo('</tbody></table>'."\n");
+?>
+  </div>
+  <div class="tab-pane fade" id="profile">
+<?php
+    if ( count($awarded) < 1 ) {
+        echo("<p>No badges have been awarded yet.</p>");
+    } else {
+        foreach($awarded as $badge) {
+            echo("<li>");
+            $code = basename($badge->image,'.png');
+            $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
+            $encrypted = bin2hex(AesCtr::encrypt($decrypted, $CFG->badge_encrypt_password, 256));
+            echo('<a href="badges/images/'.$encrypted.'.png" target="_blank">');
+            echo('<img src="badges/images/'.$encrypted.'.png" width="90"></a>');
+            echo($badge->title);
+            echo("</li>\n");
+        }
+    }
+?>
+</div>
+<?php
     }
 
     public function footer()
