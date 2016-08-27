@@ -571,6 +571,7 @@ var disqus_config = function () {
     if ( count($awarded) < 1 ) {
         echo("<p>No badges have been awarded yet.</p>");
     } else {
+        echo("</ul>\n");
         foreach($awarded as $badge) {
             echo("<li>");
             $code = basename($badge->image,'.png');
@@ -581,6 +582,13 @@ var disqus_config = function () {
             echo($badge->title);
             echo("</li>\n");
         }
+        echo("</ul>\n");
+?>
+<p>These badges contain the official Open Badge metadata.  You can download the badge and 
+put it on your own server, or add the badge to a "badge packpack".  You could validate the badge 
+using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple badge validator</a>.
+</p>
+<?php
     }
 ?>
 </div>
