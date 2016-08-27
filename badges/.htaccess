@@ -1,0 +1,3 @@
+RewriteEngine on
+RewriteCond %{REQUEST_URI} !.*/images/.*
+RewriteRule ^(.*)\.png$ baker.php [NC]

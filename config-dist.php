@@ -93,6 +93,11 @@ $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 $CFG->google_map_api_key = false; // 'Ve8eH49498430843cIA9IGl8';
 
+// Badge generation settings - once you start issuing badges - don't change these 
+$CFG->badge_encrypt_password = false; // "somethinglongwithhex387438758974987";
+$CFG->badge_assert_salt = false; // "mediumlengthhexstring";
+$CFG->badge_path = $CFG->dirroot . '/../badges'; 
+
 // From LTI 2.0 spec: A globally unique identifier for the service provider. 
 // As a best practice, this value should match an Internet domain name 
 // assigned by ICANN, but any globally unique identifier is acceptable.
