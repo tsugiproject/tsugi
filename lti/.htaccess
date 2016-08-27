@@ -1,15 +1,20 @@
 # http://stackoverflow.com/questions/16388959/url-rewriting-with-php
 # http://httpd.apache.org/docs/2.2/mod/mod_dir.html#fallbackresource
+# https://www.drupal.org/node/2669174
 
-FallbackResource index.php
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteRule ^ - [E=protossl]
+    RewriteCond %{HTTPS} on
+    RewriteRule ^ - [E=protossl:s]
+    RewriteRule "(^|/)\." - [F]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !=/favicon.ico
+    RewriteRule ^ index.php [L]
+</IfModule>
 
-# RewriteEngine on
-# RewriteRule ^ - [E=protossl]
-# RewriteCond %{HTTPS} on
-# RewriteRule ^ - [E=protossl:s]
-# RewriteRule "(^|/)\." - [F]
-# RewriteCond %{REQUEST_FILENAME} !-f
-# RewriteCond %{REQUEST_FILENAME} !-d
-# RewriteCond %{REQUEST_URI} !=/favicon.ico
-# RewriteRule ^ index.php [L]
+<IfModule !mod_rewrite.c>
+    FallbackResource index.php
+</IfModule>
 
