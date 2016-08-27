@@ -10,7 +10,7 @@ if ( !isset($_GET['id']) ) {
 }
 
 require_once "../config.php";
-require_once "badge-lib.php";
+require_once "badge-util.php";
 
 if ( ! isset($CFG->lessons) ) {
     die_with_error_log('Cannot find lessons.json ($CFG->lessons)');

@@ -1,17 +1,23 @@
 <?php
+namespace Tsugi\Image;
 
-// Adapted from
-// http://stackoverflow.com/questions/8842387/php-add-itxt-comment-to-a-png-image
+/**
+ * This is a set of PNG related libraries
+ */
 
-    function addOrReplaceTextInPng($png,$key,$text) {
-        $png = removeTextChunks($key, $png);
-        $chunk = phpTextChunk($key,$text);
-        $png2 = addPngChunk($chunk,$png);
+class Png {
+
+    // Adapted from
+    // http://stackoverflow.com/questions/8842387/php-add-itxt-comment-to-a-png-image
+    public static function addOrReplaceTextInPng($png,$key,$text) {
+        $png = self::removeTextChunks($key, $png);
+        $chunk = self::phpTextChunk($key,$text);
+        $png2 = self::addPngChunk($chunk,$png);
         return $png2;
     }
 
     // Strip out any existing text chunks with a particular key
-    function removeTextChunks($key,$png) {
+    public static function removeTextChunks($key,$png) {
         // Read the magic bytes and verify
         $retval = substr($png,0,8);
         $ipos = 8;
@@ -48,7 +54,7 @@
 
     // creates a tEXt chunk with given key and text (iso8859-1)
     // ToDo: check that key length is less than 79 and that neither includes null bytes
-    function phpTextChunk($key,$text) {
+    public static function phpTextChunk($key,$text) {
         $chunktype = "tEXt";
         $chunkdata = $key . "\0" . $text;
         $crc = pack("N", crc32($chunktype . $chunkdata));
@@ -57,7 +63,9 @@
     }
 
     // inserts chunk before IEND chunk (last 12 bytes)
-    function addPngChunk($chunk,$png) {
+    public static function addPngChunk($chunk,$png) {
         $len = strlen($png);
         return substr($png,0,$len-12) . $chunk . substr($png,$len-12,12);
     }
+
+}

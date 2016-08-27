@@ -2,10 +2,10 @@
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Lessons;
+use \Tsugi\Image\Png;
 
 require_once "../config.php";
-require_once "badge-lib.php";
-require_once "png-lib.php";
+require_once "badge-util.php";
 
 if ( ! isset($CFG->lessons) ) {
     die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
@@ -26,7 +26,7 @@ if ( is_string($x) ) {
 $row = $x[0];
 $png = $x[1];
 
-$png2 = addOrReplaceTextInPng($png,"openbadges",$CFG->wwwroot."/badges/assert.php?id=".$encrypted);
+$png2 = Png::addOrReplaceTextInPng($png,"openbadges",$CFG->wwwroot."/badges/assert.php?id=".$encrypted);
 
 header('Content-Type: image/png');
 header('Content-Length: ' . strlen($png2));
