@@ -36,17 +36,26 @@ $recepient = 'sha256$' . hash('sha256', $row['email'] . $CFG->badge_assert_salt)
 $title = $row['title'];
 $code = $pieces[1];
 error_log('Assertion:'.$pieces[0].':'.$pieces[1].':'.$pieces[2]);
+$image = $CFG->apphome.'/badges/'.$code.'.png';
 
 header('Content-Type: application/json');
 ?>
 {
-  "recipient": "<?= $recepient ?>",
-  "salt": "<?= $CFG->badge_assert_salt ?>",
+  "@context": "https://w3id.org/openbadges/v1",
+  "type": "Assertion",
+  "id": "<?= $image ?>",
+  "recipient": {
+    "type": "email",
+    "hashed": true,
+    "salt": "deadsea",
+    "salt": "<?= $CFG->badge_assert_salt ?>",
+    "identity": "<?= $recepient ?>"
+  },
   "issued_on": "<?= $date ?>",
   "badge": {
     "version": "1.0.0",
     "name": "<?= $badge->title ?>",
-    "image": "<?= $CFG->apphome.'/badges/'.$code.'.png' ?>",
+    "image": "<?= $image ?>",
     "description": "Completed <?= $badge->title.' in course '.$title.' at '.$CFG->servicename ?>",
     "criteria": "<?= $CFG->apphome?>",
     "issuer": {
