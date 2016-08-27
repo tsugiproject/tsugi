@@ -522,7 +522,7 @@ var disqus_config = function () {
                 $count = $count + 1;
             }
             $max = $count * 100;
-            $progress = intval(($total / $max)*100);
+            $progress = $max <= 0 ? 100 : intval(($total / $max)*100);
             $kind = 'danger';
             if ( $progress < 5 ) $progress = 5;
             if ( $progress > 5 ) $kind = 'warning';
