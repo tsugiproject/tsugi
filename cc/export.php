@@ -120,7 +120,7 @@ foreach($l->lessons->modules as $module) {
             }
             $endpoint = absolute_url($lti->launch);
             $extensions = array('apphome' => $CFG->apphome);
-            add_lti_to_module($zip, $cc_dom, $sub_module, $title, $url, $custom_arr, $extensions);
+            add_lti_to_module($zip, $cc_dom, $sub_module, $title, $endpoint, $custom_arr, $extensions);
         }
     }
 }
