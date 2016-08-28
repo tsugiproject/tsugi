@@ -1,0 +1,87 @@
+<?php
+
+namespace Tsugi\Util;
+
+use \Tsugi\Util\CC;
+
+class CC_LTI extends \Tsugi\Util\TsugiDOM {
+
+    function __construct() {
+        parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
+<cartridge_basiclti_link
+  xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0"
+  xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0"
+  xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0"
+  xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0p1.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd">
+  <blti:title>BLTI Test</blti:title>
+  <blti:description>Test a BLTI Link</blti:description>
+  <blti:custom>
+    <lticm:property name="keyname">value</lticm:property>
+  </blti:custom>
+  <blti:extensions platform="www.tsugi.org">
+    <lticm:property name="apphome">value</lticm:property>
+  </blti:extensions>
+  <blti:launch_url>http://www.imsglobal.org/developers/BLTI/tool.php</blti:launch_url>
+  <blti:secure_launch_url>http://www.imsglobal.org/developers/BLTI/tool.php</blti:secure_launch_url>
+  <blti:icon>url to an icon for this tool (optional)</blti:icon>
+  <blti:secure_icon>secure url to an icon for this tool (optional)&gt;</blti:secure_icon>
+  <blti:vendor>
+    <lticp:code>tsugi.org</lticp:code>
+    <lticp:name>Tsugi Learning Platform</lticp:name>
+    <lticp:description>
+        Tsugi is a learning platform and set of APIs that make it easy to build
+        highly interoperable learning tools for use in standards compliant
+        Learning Management Systems like Sakai, Moodle, Blackboard, Brightspace, and Canvas.
+    </lticp:description>
+    <lticp:url>http://www.tsugi.org</lticp:url>
+    <lticp:contact>
+      <lticp:email>tsugi@apereo.org</lticp:email>
+    </lticp:contact>
+  </blti:vendor>
+</cartridge_basiclti_link>');
+
+        $this->set_namespace(CC::BLTI_NS);
+        $this->delete_children('custom');
+        $this->delete_children('extensions');
+        $this->delete_tag('icon');
+        $this->delete_tag('secure_icon');
+        $this->delete_tag('launch_url');
+        $this->delete_tag('secure_launch_url');
+    }
+
+    public function set_title($text) {
+        $this->replace_text_ns(CC::BLTI_NS, 'title', $text);
+    }
+
+    public function set_description($text) {
+        $this->replace_text_ns(CC::BLTI_NS, 'description', $text);
+    }
+
+    public function set_launch_url($text) {
+        $this->add_child_ns(CC::BLTI_NS, $this->firstChild, 'launch_url', $text);
+    }
+
+    public function set_secure_launch_url($text) {
+        $this->add_child_ns(CC::BLTI_NS, $this->firstChild, 'secure_launch_url', $text);
+    }
+
+    public function set_icon($text) {
+        $this->add_child_ns(CC::BLTI_NS, $this->firstChild, 'icon', $text);
+    }
+
+    public function set_secure_icon($text) {
+        $this->add_child_ns(CC::BLTI_NS, $this->firstChild, 'secure_icon', $text);
+    }
+
+    public function set_custom($key,$value) {
+        $tag = $this->get_tag_ns(CC::BLTI_NS, 'custom');
+        $this->add_child_ns(CC::LTICM_NS, $tag, 'property', $value, array("name"=>$key));
+    }
+
+    public function set_extension($key,$value) {
+        $tag = $this->get_tag_ns(CC::BLTI_NS, 'extensions');
+        $this->add_child_ns(CC::LTICM_NS, $tag, 'property', $value, array("name"=>$key));
+    }
+
+}
