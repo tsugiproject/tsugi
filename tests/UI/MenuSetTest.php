@@ -4,6 +4,7 @@ require_once "src/UI/MenuEntry.php";
 require_once "src/UI/Menu.php";
 require_once "src/UI/MenuSet.php";
 require_once "src/UI/Output.php";
+require_once "src/Config/ConfigInfo.php";
 
 
 class MenuSetTest extends PHPUnit_Framework_TestCase
@@ -63,6 +64,8 @@ class MenuSetTest extends PHPUnit_Framework_TestCase
     }
 
     public function testMenuOutput() {
+        global $CFG;
+        $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__),'http://localhost');
         $submenu = new \Tsugi\UI\Menu();
         $submenu->addLink('Sakai', 'http://www.sakaiproject.org/')
             ->addLink('Apereo', 'http://www.apereo.org');
