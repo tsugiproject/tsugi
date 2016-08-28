@@ -59,9 +59,22 @@ class TsugiDOM extends \DOMDocument{
         return $this->delete_children_ns($this->currentNamespace,$tag);
     }
 
+    public function get_element($ns, $tag) {
+        if ( is_string($tag) ) {
+            $list = $this->getElementsByTagNameNS($ns,$tag);
+            $entry = $list->item(0);
+        } else if ( $tag instanceof \DOMNodeList ) {
+            $entry = $tag->item(0);
+        } else if ( $tag instanceof \DOMNode ) {
+            $entry = $tag;
+        } else {
+            die('Expecting string, DOMNodeList, or DOMNode');
+        }
+        return $entry;
+    }
+
     public function delete_children_ns($ns, $tag) {
-        $list = $this->getElementsByTagNameNS($ns,$tag);
-        $entry = $list->item(0);
+        $entry = $this->get_element($ns, $tag); 
         while ($entry->hasChildNodes()) {
             $entry->removeChild($entry->firstChild);
         }
@@ -78,18 +91,65 @@ class TsugiDOM extends \DOMDocument{
         return $entry;
     }
 
-    public function add_child($entry, $tag, $text, $attr=null) {
-        $this->add_child_ns($this->currentNamespace, $entry, $tag, $text, $attr);
+    public function add_child($entry, $tag, $text=null, $attr=null) {
+        return $this->add_child_ns($this->currentNamespace, $entry, $tag, $text, $attr);
     }
 
-    public function add_child_ns($ns, $entry, $tag, $text, $attr=null) {
+    public function add_child_ns($ns, $entry, $tag, $text=null, $attr=null) {
         if ( is_string($entry) ) {
             $entry = $this->get_tag($entry);
         }
-        $element = $this->createElementNS($ns, $tag, $text);
+        if ( $text != null && strlen($text) > 0 ) {
+            $element = $this->createElementNS($ns, $tag, $text);
+        } else {
+            $element = $this->createElementNS($ns, $tag);
+        }
         if ( $attr !== null ) foreach($attr as $key => $value ) {
             $element->setAttribute($key, $value);
         }
         $entry->appendChild($element);
+        return $element;
+    }
+
+    public function dump_dom_list($node_list) {
+        $retval = '';
+        for($i=0; $i<$node_list->length;$i++) {
+            $retval .= 'node('.$i . ")\n";
+            $retval .= $this->saveXML($node_list->item($i));
+        }
+        return $retval;
+    }
+
+    public function dump_dom_node($tag) {
+        return $this->saveXML($tag);
+    }
+
+    // http://stackoverflow.com/questions/6475394/php-xpath-query-on-xml-with-default-namespace-binding
+    function dump_dom_levels($node, $level = 0) 
+    {
+        $class = get_class($node);
+        if ($class == "DOMNodeList") {
+            echo "Level $level ($class): $node->length items\n";
+                foreach ($node as $child_node) {
+                echo $level.':'.$child_node->getNodePath() . "\n";
+                dump_dom_levels($child_node, $level+1);
+            }
+        } else {
+            $nChildren = 0;
+            foreach ($node->childNodes as $child_node) {
+                if ($child_node->hasChildNodes()) {
+                    $nChildren++;
+                }
+            }
+            if ($nChildren) {
+                echo "Level $level ($class): $nChildren children\n";
+            }
+            foreach ($node->childNodes as $child_node) {
+                echo $level.':'.$child_node->getNodePath() . "\n";
+                if ($child_node->hasChildNodes()) {
+                    dump_dom_levels($child_node, $level+1);
+                }
+            }
+        }
     }
 }

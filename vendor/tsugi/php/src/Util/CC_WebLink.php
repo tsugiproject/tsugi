@@ -15,19 +15,19 @@ class CC_WebLink extends \Tsugi\Util\TsugiDOM {
   <url href="http://en.wikipedia.org/wiki/Psychology" target="_iframe"/>
 </webLink>');
 
-        $this->set_namespace(CC::CC_1_2);
+        $this->set_namespace(CC::WL_NS);
         $this->delete_tag('title');
         $this->delete_tag('url');
     }
 
     public function set_title($text) {
-        $this->add_child_ns(CC::CC_1_2, $this->firstChild, 'title', $text);
+        $this->add_child_ns(CC::WL_NS, $this->firstChild, 'title', $text);
     }
 
     public function set_url($href, $attr=false) {
         if ( $attr == null ) $attr = array();
         $attr = array_merge(array('href' => $href), $attr);
-        $this->add_child_ns(CC::CC_1_2, $this->firstChild, 'url', '', $attr);
+        $this->add_child_ns(CC::WL_NS, $this->firstChild, 'url', '', $attr);
     }
 
     public function set_launch_url($text) {
