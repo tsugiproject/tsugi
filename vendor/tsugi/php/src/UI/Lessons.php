@@ -122,6 +122,12 @@ class Lessons {
             if ( isset($this->lessons->modules[$i]->lti) && !is_array($this->lessons->modules[$i]->lti) ) {
                 $this->lessons->modules[$i]->lti = array($this->lessons->modules[$i]->lti);
             }
+            if ( isset($this->lessons->modules[$i]->videos) && !is_array($this->lessons->modules[$i]->videos) ) {
+                $this->lessons->modules[$i]->videos = array($this->lessons->modules[$i]->videos);
+            }
+            if ( isset($this->lessons->modules[$i]->references) && !is_array($this->lessons->modules[$i]->references) ) {
+                $this->lessons->modules[$i]->references = array($this->lessons->modules[$i]->references);
+            }
             if ( isset($this->lessons->modules[$i]->assignment) ) {
                 if ( strpos($this->lessons->modules[$i]->assignment,'http://') === 0 ) {
                     // OK
@@ -278,7 +284,6 @@ class Lessons {
     
             if ( isset($module->videos) ) {
                 $videos = $module->videos;
-                if ( ! is_array($videos) ) $videos = array($videos);
                 echo('<ul class="bxslider">'."\n");
                 foreach($videos as $video ) {
                     echo('<li><iframe src="https://www.youtube.com/embed/'.
@@ -306,7 +311,7 @@ class Lessons {
                 echo('<li><a href="'.$module->solution.'" target="_blank">Assignment Solution</a></li>'."\n");
             }
             if ( isset($module->references) ) {
-                if ( is_array($module->references) ) {
+                if ( count($module->references) > 0 ) {
                     echo("<li>References:<ul>\n");
                     foreach($module->references as $reference ) {
                         echo('<li><a href="'.$reference->href.'" target="_blank">'.
@@ -322,9 +327,6 @@ class Lessons {
     
             if ( isset($module->lti) && isset($_SESSION['secret']) ) {
                 $ltis = $module->lti;
-                if ( ! is_array($ltis) ) {
-                    $ltis = array($ltis);
-                }
     
                 if ( count($ltis) > 1 ) echo("<li>Tools:<ul> <!-- start of ltis -->\n");
                 $count = 0;
