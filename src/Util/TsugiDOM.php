@@ -25,7 +25,9 @@ class TsugiDOM extends \DOMDocument{
 
     public function __construct($text) {
         parent::__construct();
+        $this->preserveWhiteSpace = false;
         $this->LoadXML($text);
+        $this->formatOutput = true;
     } 
 
     public function set_namespace($new) {
@@ -85,7 +87,7 @@ class TsugiDOM extends \DOMDocument{
             $entry = $this->get_tag($entry);
         }
         $element = $this->createElementNS($ns, $tag, $text);
-        if ( $attr !== false ) foreach($attr as $key => $value ) {
+        if ( $attr !== null ) foreach($attr as $key => $value ) {
             $element->setAttribute($key, $value);
         }
         $entry->appendChild($element);
