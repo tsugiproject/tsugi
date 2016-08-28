@@ -72,10 +72,16 @@ class TsugiDomTest extends PHPUnit_Framework_TestCase
         $lti_dom->delete_tag('description');
         $lti_dom->delete_children('custom');
         $tag = $lti_dom->get_tag('custom');
-        // $lti_dom->add_child($tag, 'property', 'SWEET!', array("e"=>"mc-squared"));
-        $lti_dom->add_child('custom', 'property', 'SWEET!', array("e"=>"mc-squared"));
+        $lti_dom->add_child($tag, 'property', 'SWEET!', array("e"=>"mc-squared"));
+        // $lti_dom->add_child('custom', 'property', 'SWEET!', array("e"=>"mc-squared"));
         $save = $lti_dom->saveXML();
         $this->assertEquals($xmlout,$save);
+
+        $lti_dom->delete_children('custom');
+        $tag = $lti_dom->get_tag('custom');
+        $lti_dom->add_child('custom', 'property', 'DUDE!', array("e"=>"mc-squared"));
+        $save = $lti_dom->saveXML();
+        $this->assertEquals(str_replace('SWEET', 'DUDE', $xmlout),$save);
 
     }
 }
