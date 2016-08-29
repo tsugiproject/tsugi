@@ -147,4 +147,27 @@ class CC extends \Tsugi\Util\TsugiDOM {
         return $file;
     }
 
+    function zip_add_url_to_module($zip, $sub_module, $title, $url) {
+        $file = $this->add_web_link($sub_module, $title);
+        $web_dom = new CC_WebLink();
+        $web_dom->set_title($title);
+        $web_dom->set_url($url, array("target" => "_iframe"));
+        $zip->addFromString($file,$web_dom->saveXML());
+    }
+
+    function zip_add_lti_to_module($zip, $sub_module, $title, $url, $custom=null, $extensions=null) {
+        $file = $this->add_lti_link($sub_module, $title);
+        $lti_dom = new CC_LTI();
+        $lti_dom->set_title($title);
+        // $lti_dom->set_description('Create a single SQL table and insert some records.');
+        $lti_dom->set_secure_launch_url($url);
+        if ( $custom != null ) foreach($custom as $key => $value) {
+            $lti_dom->set_custom($key,$value);
+        }
+        if ( $extensions != null ) foreach($extensions as $key => $value) {
+            $lti_dom->set_extension($key,$value);
+        }
+        $zip->addFromString($file,$lti_dom->saveXML());
+    }
+
 }

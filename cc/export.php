@@ -32,29 +32,6 @@ $cc_dom = new CC();
 $cc_dom->set_title($CFG->context_title);
 // $cc_dom->set_description('Awesome MOOC to learn PHP, MySQL, and JavaScript.');
 
-function add_url_to_module($zip, $cc_dom, $sub_module, $title, $url) {
-    $file = $cc_dom->add_web_link($sub_module, $title);
-    $web_dom = new CC_WebLink();
-    $web_dom->set_title($title);
-    $web_dom->set_url($url, array("target" => "_iframe"));
-    $zip->addFromString($file,$web_dom->saveXML());
-}
-
-function add_lti_to_module($zip, $cc_dom, $sub_module, $title, $url, $custom=null, $extensions=null) {
-    $file = $cc_dom->add_lti_link($sub_module, $title);
-    $lti_dom = new CC_LTI();
-    $lti_dom->set_title($title);
-    // $lti_dom->set_description('Create a single SQL table and insert some records.');
-    $lti_dom->set_secure_launch_url($url);
-    if ( $custom != null ) foreach($custom as $key => $value) {
-        $lti_dom->set_custom($key,$value);
-    }
-    if ( $extensions != null ) foreach($extensions as $key => $value) {
-        $lti_dom->set_extension($key,$value);
-    }
-    $zip->addFromString($file,$lti_dom->saveXML());
-}
-
 function absolute_url($url) {
     global $CFG;
     if ( strpos($url,'http://') === 0 ) return $url;
@@ -73,33 +50,33 @@ foreach($l->lessons->modules as $module) {
         foreach($module->videos as $video ) {
             $title = 'Video: '.$video->title;
             $url = 'https://www.youtube.com/embed/' . $video->youtube;
-            add_url_to_module($zip, $cc_dom, $sub_module, $title, $url);
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
         }
     }
 
     if ( isset($module->slides) ) {
         $url = absolute_url($module->slides);
         $title = 'Slides';
-        add_url_to_module($zip, $cc_dom, $sub_module, $title, $url);
+        $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
     }
 
     if ( isset($module->assignment) ) {
         $url = absolute_url($module->assignment);
         $title = 'Assignment';
-        add_url_to_module($zip, $cc_dom, $sub_module, $title, $url);
+        $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
     }
 
     if ( isset($module->solution) ) {
         $url = absolute_url($module->solution);
         $title = 'Solution';
-        add_url_to_module($zip, $cc_dom, $sub_module, $title, $url);
+        $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
     }
 
     if ( isset($module->references) ) {
         foreach($module->references as $reference ) {
             $title = 'Reference: '.$reference->title;
             $url = absolute_url($reference->href);
-            add_url_to_module($zip, $cc_dom, $sub_module, $title, $url);
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
         }
     }
 
@@ -120,7 +97,7 @@ foreach($l->lessons->modules as $module) {
             }
             $endpoint = absolute_url($lti->launch);
             $extensions = array('apphome' => $CFG->apphome);
-            add_lti_to_module($zip, $cc_dom, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+            $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
         }
     }
 }
