@@ -25,7 +25,7 @@ if ($zip->open($filename, ZipArchive::CREATE)!==TRUE) {
 
 if ( ! isCli() ) {
     header( "Content-Type: application/x-zip" );
-    header( "Content-Disposition: attachment; filename=\"".$service."_export.zip\"" );
+    header( "Content-Disposition: attachment; filename=\"".$service."_export.imscc\"" );
 }
 
 $cc_dom = new CC();
