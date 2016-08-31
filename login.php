@@ -225,7 +225,18 @@ if ( $doLogin ) {
              $_SESSION["error"] = "Internal database error, sorry";
              header('Location: '.$CFG->apphome.'/index.php');
              return;
-         }
+        }
+
+        // Add a membership record if needed
+        if ( isset($context_id) ) {
+            $sql = "INSERT IGNORE INTO {$CFG->dbprefix}lti_membership
+                ( context_id, user_id, role, created_at, updated_at ) VALUES
+                ( :context_id, :user_id, :role, NOW(), NOW() )";
+            $PDOX->queryDie($sql, array(
+                ':context_id' => $context_id,
+                ':user_id' => $user_id,
+                ':role' => 0));
+        }
 
         // We made a user and made a displayname
         $welcome = "Welcome ";
@@ -239,6 +250,7 @@ if ( $doLogin ) {
         $_SESSION["profile_id"] = $profile_id;
         if ( isset($userAvatar) ) $_SESSION["avatar"] = $userAvatar;
         $_SESSION["oauth_consumer_key"] = $oauth_consumer_key;
+        if ( isset($CFG->context_title) ) $_SESSION['context_title'] = $CFG->context_title;
         if ( isset($context_id) ) $_SESSION["context_id"] = $context_id;
         if ( isset($context_key) ) $_SESSION["context_key"] = $context_key;
         // TODO: Encrypt Secret
