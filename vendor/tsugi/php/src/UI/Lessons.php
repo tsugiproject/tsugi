@@ -549,6 +549,7 @@ var disqus_config = function () {
                 if ( $progress < 5 ) $progress = 5;
                 if ( $progress > 5 ) $kind = 'warning';
                 if ( $progress > 50 ) $kind = 'info';
+                if ( $progress >= 100 ) $kind = 'success';
                 $module = $this->getModuleByRlid($resource_link_id);
                 $lti = $this->getLtiByRlid($resource_link_id);
 
