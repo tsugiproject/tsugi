@@ -42,7 +42,11 @@ class TsugiDOM extends \DOMDocument{
         $list = $this->getElementsByTagNameNS($ns,$tag);
         $entry = $list->item(0);
         $newText = new \DOMText($text);
-        $entry->replaceChild($newText, $entry->firstChild); 
+        if ( isset($entry->firstChild) ) {
+            $entry->replaceChild($newText, $entry->firstChild); 
+        } else {
+            $entry->appendChild($newText);
+        }
     }
 
     public function delete_tag($tag) {

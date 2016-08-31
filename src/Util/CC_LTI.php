@@ -44,10 +44,10 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
         $this->set_namespace(CC::BLTI_NS);
         $this->delete_children('custom');
         $this->delete_children('extensions');
-        $this->delete_tag('icon');
-        $this->delete_tag('secure_icon');
-        $this->delete_tag('launch_url');
-        $this->delete_tag('secure_launch_url');
+        $this->delete_children('icon');
+        $this->delete_children('secure_icon');
+        $this->delete_children('launch_url');
+        $this->delete_children('secure_launch_url');
     }
 
     public function set_title($text) {
@@ -59,19 +59,19 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
     }
 
     public function set_launch_url($text) {
-        $this->add_child_ns(CC::BLTI_NS, $this->firstChild, 'launch_url', $text);
+        $this->replace_text_ns(CC::BLTI_NS, 'launch_url', $text);
     }
 
     public function set_secure_launch_url($text) {
-        $this->add_child_ns(CC::BLTI_NS, $this->firstChild, 'secure_launch_url', $text);
+        $this->replace_text_ns(CC::BLTI_NS, 'secure_launch_url', $text);
     }
 
     public function set_icon($text) {
-        $this->add_child_ns(CC::BLTI_NS, $this->firstChild, 'icon', $text);
+        $this->replace_text_ns(CC::BLTI_NS, 'icon', $text);
     }
 
     public function set_secure_icon($text) {
-        $this->add_child_ns(CC::BLTI_NS, $this->firstChild, 'secure_icon', $text);
+        $this->replace_text_ns(CC::BLTI_NS, 'secure_icon', $text);
     }
 
     public function set_custom($key,$value) {
