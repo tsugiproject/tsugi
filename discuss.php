@@ -11,6 +11,10 @@ $OUTPUT->flashMessages();
     if ( !isset($CFG->disqushost) ) {
         echo("<p>Disqus not enabled</p>\n");
     } else if ( isset($_SESSION['id']) ) {
+        if ( isset($CFG->disquschannel) ) {
+            echo('<p><a href="'.$CFG->disquschannel.'" target="_blank">');
+            echo('View the Discussion channel for this class.</a></p>');
+        }
 ?>
 <hr/>
 <div id="disqus_thread" style="margin-top: 30px;"></div>
