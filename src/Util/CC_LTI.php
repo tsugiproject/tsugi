@@ -84,4 +84,17 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
         $this->add_child_ns(CC::LTICM_NS, $tag, 'property', $value, array("name"=>$key));
     }
 
+    public function saveXML() {
+
+        // Clear out empty nodes
+        // http://stackoverflow.com/questions/8603237/remove-empty-tags-from-a-xml-with-php
+        $xpath = new \DOMXPath($this);
+
+        foreach( $xpath->query('//*[not(node())]') as $node ) {
+            $node->parentNode->removeChild($node);
+        }
+
+        return parent::saveXML();
+    }
+
 }

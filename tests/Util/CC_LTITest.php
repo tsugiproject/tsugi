@@ -27,10 +27,7 @@ class CC_LTI_TEST extends PHPUnit_Framework_TestCase
   <blti:extensions platform="www.tsugi.org">
     <lticm:property name="apphome">http://www.php-intro.com</lticm:property>
   </blti:extensions>
-  <blti:launch_url/>
   <blti:secure_launch_url>https://www.php-intro.com/tools/sql/index.php</blti:secure_launch_url>
-  <blti:icon/>
-  <blti:secure_icon/>
   <blti:vendor>
     <lticp:code>tsugi.org</lticp:code>
     <lticp:name>Tsugi Learning Platform</lticp:name>
