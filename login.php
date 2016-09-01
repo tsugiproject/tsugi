@@ -280,6 +280,8 @@ $loginUrl = $glog->getLoginUrl($_SESSION['GOOGLE_STATE']);
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
 ?>
 <?php
 $login_return = 'index.php';
