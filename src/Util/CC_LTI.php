@@ -90,8 +90,8 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
         // http://stackoverflow.com/questions/8603237/remove-empty-tags-from-a-xml-with-php
         $xpath = new \DOMXPath($this);
 
-        foreach( $xpath->query('//*[not(node())]') as $node ) {
-            $node->parentNode->removeChild($node);
+        foreach( $xpath->query('//*[not(node())]') as $entry ) {
+            $entry->parentNode->removeChild($entry);
         }
 
         return parent::saveXML($node, $options);
