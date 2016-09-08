@@ -23,6 +23,9 @@ class TsugiDomTest extends PHPUnit_Framework_TestCase
   <blti:extensions platform="www.tsugi.org">
     <lticm:property name="apphome">value</lticm:property>
   </blti:extensions>
+  <blti:extensions platform="canvas.instructure.com">
+    <lticm:property name="outcome">10.0</lticm:property>
+  </blti:extensions>
   <blti:launch_url>http://www.imsglobal.org/developers/BLTI/tool.php</blti:launch_url>
   <blti:secure_launch_url>http://www.imsglobal.org/developers/BLTI/tool.php</blti:secure_launch_url>
   <blti:icon>url to an icon for this tool (optional)</blti:icon>
@@ -47,6 +50,9 @@ class TsugiDomTest extends PHPUnit_Framework_TestCase
   </blti:custom>
   <blti:extensions platform="www.tsugi.org">
     <lticm:property name="apphome">value</lticm:property>
+  </blti:extensions>
+  <blti:extensions platform="canvas.instructure.com">
+    <lticm:property name="outcome">10.0</lticm:property>
   </blti:extensions>
   <blti:launch_url>http://www.imsglobal.org/developers/BLTI/tool.php</blti:launch_url>
   <blti:secure_launch_url>http://www.imsglobal.org/developers/BLTI/tool.php</blti:secure_launch_url>
@@ -82,6 +88,11 @@ class TsugiDomTest extends PHPUnit_Framework_TestCase
         $lti_dom->add_child('custom', 'property', 'DUDE!', array("e"=>"mc-squared"));
         $save = $lti_dom->saveXML();
         $this->assertEquals(str_replace('SWEET', 'DUDE', $xmlout),$save);
+
+        $tag = $lti_dom->get_tag('extensions', 'platform', 'canvas.instructure.com');
+        $this->assertNotNull($tag);
+        $this->assertEquals($tag->firstChild->nodeName, "lticm:property");
+        $this->assertEquals($tag->firstChild->getAttribute('name'), 'outcome');
 
     }
 }
