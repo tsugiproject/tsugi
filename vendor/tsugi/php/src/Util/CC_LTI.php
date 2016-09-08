@@ -22,6 +22,9 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
   <blti:extensions platform="www.tsugi.org">
     <lticm:property name="apphome">value</lticm:property>
   </blti:extensions>
+  <blti:extensions platform="canvas.instructure.com">
+    <lticm:property name="outcome">10.0</lticm:property>
+  </blti:extensions>
   <blti:launch_url>http://www.imsglobal.org/developers/BLTI/tool.php</blti:launch_url>
   <blti:secure_launch_url>http://www.imsglobal.org/developers/BLTI/tool.php</blti:secure_launch_url>
   <blti:icon>url to an icon for this tool (optional)</blti:icon>

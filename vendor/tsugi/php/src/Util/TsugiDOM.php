@@ -85,14 +85,23 @@ class TsugiDOM extends \DOMDocument{
         return $entry;
     }
 
-    public function get_tag($tag) {
-        return $this->get_tag_ns($this->currentNamespace, $tag);
+    public function get_tag($tag, $key=null, $value=null) {
+        return $this->get_tag_ns($this->currentNamespace, $tag, $key, $value);
     }
 
-    public function get_tag_ns($ns, $tag) {
+    public function get_tag_ns($ns, $tag, $key=null, $value=null) {
         $list = $this->getElementsByTagNameNS($ns,$tag);
-        $entry = $list->item(0);
-        return $entry;
+        if ( $key === null ) {
+            $entry = $list->item(0);
+            return $entry;
+        }
+        for($i=0;$i<$list->length;$i++) {
+            $attr = $list->item($i)->getAttribute($key);
+            if ( $attr == $value ) {
+                return $list->item($i);
+            }
+        }
+        return null;
     }
 
     public function add_child($entry, $tag, $text=null, $attr=null) {
