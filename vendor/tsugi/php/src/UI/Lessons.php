@@ -119,35 +119,23 @@ class Lessons {
 
         // Pretty up the data structure
         for($i=0;$i<count($this->lessons->modules);$i++) {
-            if ( isset($this->lessons->modules[$i]->lti) && !is_array($this->lessons->modules[$i]->lti) ) {
-                $this->lessons->modules[$i]->lti = array($this->lessons->modules[$i]->lti);
-            }
-            if ( isset($this->lessons->modules[$i]->videos) && !is_array($this->lessons->modules[$i]->videos) ) {
-                $this->lessons->modules[$i]->videos = array($this->lessons->modules[$i]->videos);
-            }
-            if ( isset($this->lessons->modules[$i]->references) && !is_array($this->lessons->modules[$i]->references) ) {
-                $this->lessons->modules[$i]->references = array($this->lessons->modules[$i]->references);
+            if ( isset($this->lessons->modules[$i]->videos) ) self::adjustArray($this->lessons->modules[$i]->videos);
+            if ( isset($this->lessons->modules[$i]->references) ) self::adjustArray($this->lessons->modules[$i]->references);
+            if ( isset($this->lessons->modules[$i]->lti) ) self::adjustArray($this->lessons->modules[$i]->lti);
+
+            // Non arrays
+            if ( isset($this->lessons->modules[$i]->slides) ) {
+                self::makeAbsolute($this->lessons->modules[$i]->slides);
             }
             if ( isset($this->lessons->modules[$i]->assignment) ) {
-                if ( strpos($this->lessons->modules[$i]->assignment,'http://') === 0 ) {
-                    // OK
-                } else if ( strpos($this->lessons->modules[$i]->assignment,'https://') === 0 ) {
-                    // OK
-                } else {
-                    $this->lessons->modules[$i]->assignment = $CFG->apphome . '/' . $this->lessons->modules[$i]->assignment;
-                }
+                self::makeAbsolute($this->lessons->modules[$i]->assigment);
             }
             if ( isset($this->lessons->modules[$i]->solution) ) {
-                if ( strpos($this->lessons->modules[$i]->solution,'http://') === 0 ) {
-                    // OK
-                } else if ( strpos($this->lessons->modules[$i]->solution,'https://') === 0 ) {
-                    // OK
-                } else {
-                    $this->lessons->modules[$i]->solution = $CFG->apphome . '/' . $this->lessons->modules[$i]->solution;
-                }
+                self::makeAbsolute($this->lessons->modules[$i]->solution);
             }
         }
 
+        // Patch badges
         if ( isset($this->lessons->badges) ) for($i=0;$i<count($this->lessons->badges);$i++) {
             if ( ! isset($this->lessons->badges[$i]->threshold) ) {
                 $this->lessons->badges[$i]->threshold = 1.0;
@@ -195,8 +183,38 @@ class Lessons {
         return true;
     }
 
-    /*
-     ** indicate we are in a single lesson
+    /**
+     * Make a path absolute
+     */
+    public static function makeAbsolute(&$path) {
+        global $CFG;
+        if ( strpos($path,'http://') === 0 ) {
+            return;
+        } else if ( strpos($path,'https://') === 0 ) {
+            return;
+        } else {
+            if ( strpos('/', $path) !== 0 ) $path = '/' . $path;
+            $path =$CFG->apphome . $path;
+        }
+    }
+
+    /**
+     * Make non-array into an arry and adjust paths
+     */
+    public static function adjustArray(&$entry) {
+        global $CFG;
+        if ( isset($entry) && !is_array($entry) ) {
+            $entry = array($entry);
+        }
+        for($i=0; $i < count($entry); $i++ ) {
+            if ( is_string($entry[$i]) ) self::makeAbsolute($entry[$i]);
+            if ( isset($entry[$i]->href) && is_string($entry[$i]->href) ) self::makeAbsolute($entry[$i]->href);
+            if ( isset($entry[$i]->launch) && is_string($entry[$i]->launch) ) self::makeAbsolute($entry[$i]->launch);
+        }
+    }
+
+    /**
+     * Indicate we are in a single lesson
      */
     public function isSingle() {
         return ( $this->anchor !== null || $this->position !== null );
@@ -386,7 +404,7 @@ class Lessons {
                     $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
                     $parms['ext_lti_form_id'] = $form_id;
     
-                    $endpoint = $CFG->apphome . '/' . $lti->launch;
+                    $endpoint = $lti->launch;
                     $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
                         "Finish Launch", $CFG->product_instance_guid, $CFG->servicename);
     
