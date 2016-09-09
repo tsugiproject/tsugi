@@ -22,6 +22,7 @@ class CC_LTI_TEST extends PHPUnit_Framework_TestCase
   <blti:title>Autograder: Single-table SQL</blti:title>
   <blti:description>Create a single SQL table and insert some records.</blti:description>
   <blti:custom>
+    <lticm:property name="canvas_xapi_url">$Canvas.xapi.url</lticm:property>
     <lticm:property name="exercise">single_mysql.php</lticm:property>
   </blti:custom>
   <blti:extensions platform="www.tsugi.org">
