@@ -17,7 +17,7 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
   <blti:title>BLTI Test</blti:title>
   <blti:description>Test a BLTI Link</blti:description>
   <blti:custom>
-    <lticm:property name="keyname">value</lticm:property>
+    <lticm:property name="canvas_xapi_url">$Canvas.xapi.url</lticm:property>
   </blti:custom>
   <blti:extensions platform="www.tsugi.org">
     <lticm:property name="apphome">value</lticm:property>
@@ -45,7 +45,6 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
 </cartridge_basiclti_link>');
 
         $this->set_namespace(CC::BLTI_NS);
-        $this->delete_children('custom');
         $this->delete_children('extensions');
         $this->delete_children('icon');
         $this->delete_children('secure_icon');
