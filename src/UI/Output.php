@@ -114,7 +114,7 @@ class Output {
     }
     </style>
 <?php // https://lefkomedia.com/adding-external-link-indicator-with-css/
-  if ( $CFG->googletranslate ) { ?>
+  if ( $CFG->google_translate ) { ?>
 <style>
 a[target="_blank"]:after {
     font-family: "FontAwesome";
@@ -199,7 +199,7 @@ if (window!=window.top) {
     <?php
         }
 
-        if ( $CFG->googletranslate ) {
+        if ( $CFG->google_translate ) {
     ?>
 <div id="google_translate_element" style="position: fixed; right: 1em; bottom: 0.25em;"></div><script type="text/javascript">
 function googleTranslateElementInit() {
