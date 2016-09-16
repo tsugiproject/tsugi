@@ -113,6 +113,21 @@ class Output {
         margin-right: 10px;
     }
     </style>
+<?php // https://lefkomedia.com/adding-external-link-indicator-with-css/
+  if ( $CFG->googletranslate ) { ?>
+<style>
+a[target="_blank"]:after {
+    font-family: "FontAwesome";
+    content: " \f08e";
+}
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+    } 
+body {
+    top: 0px !important; 
+    }
+</style>
+<?php } ?>
 
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -182,6 +197,24 @@ if (window!=window.top) {
     HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?= $heartbeat ?>);
     </script>
     <?php
+        }
+
+        if ( $CFG->googletranslate ) {
+    ?>
+<div id="google_translate_element" style="position: fixed; right: 1em; bottom: 0.25em;"></div><script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: "en", layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+<?php
+    if ( $CFG->universal_analytics ) {
+        echo(', gaTrack: true, gaId: "'.$CFG->universal_analytics.'"'."\n");
+    }
+?>
+    }, "google_translate_element");
+}
+</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+';
+<?php
+
         }
 
         if ( isset($_SESSION['APP_FOOTER']) ) echo($_SESSION['APP_FOOTER']);

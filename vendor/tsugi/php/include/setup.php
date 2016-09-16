@@ -68,6 +68,8 @@ if ( !isset($CFG->casa_originator_id) ) $CFG->casa_originator_id = md5($CFG->pro
 
 if ( !isset($CFG->apphome) ) $CFG->apphome = $CFG->wwwroot;
 
+if ( !isset($CFG->googletranslate) ) $CFG->googletranslate = false;
+
 // Set this to the temporary folder if not set - dev only
 if ( ! isset($CFG->dataroot) ) {
     $tmp = sys_get_temp_dir();
