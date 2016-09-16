@@ -263,6 +263,15 @@ class ConfigInfo {
      */
     public $universal_analytics = false;  // "UA-423997-16";
 
+    /**
+     * Enable Google Translate on this site
+     *
+     * You must go to Google Translate and set up your web site
+     *
+     * http://translate.google.com/manager/website/
+     */
+    public $googletranslate = false;
+
     /** 
      * Effectively an "airplane mode" for the appliction.
      *
