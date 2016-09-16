@@ -270,7 +270,7 @@ class ConfigInfo {
      *
      * http://translate.google.com/manager/website/
      */
-    public $googletranslate = false;
+    public $google_translate = false;
 
     /** 
      * Effectively an "airplane mode" for the appliction.
