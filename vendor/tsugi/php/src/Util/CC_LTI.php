@@ -54,6 +54,7 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
 
     public function set_title($text) {
         $this->replace_text_ns(CC::BLTI_NS, 'title', $text);
+        $this->replace_text_ns(CC::BLTI_NS, 'description', $text);
     }
 
     public function set_description($text) {
