@@ -134,6 +134,8 @@ class Output {
             echo('<script type="text/javascript">LTI_PARENT_IFRAME_ID = "'.$element_id.'";</script>'."\n");
         }
 
+        if ( isset($_SESSION['APP_HEADER']) ) echo($_SESSION['APP_HEADER']);
+
         $HEAD_CONTENT_SENT = true;
     }
 
@@ -181,6 +183,8 @@ if (window!=window.top) {
     </script>
     <?php
         }
+
+        if ( isset($_SESSION['APP_FOOTER']) ) echo($_SESSION['APP_FOOTER']);
 
         $this->doAnalytics();
     }
@@ -438,6 +442,24 @@ if (window!=window.top) {
 
         $set->addRight('<img style="width:4em;" src="'. $CFG->staticroot . '/img/logos/tsugi-logo.png' .'">', $R.'about.php');
         return $set;
+    }
+
+    /**
+     * Set header Content for any Tsugi-generated pages.
+     */
+    function setAppHeader($head) {
+        if ( !isset($_SESSION['APP_HEADER']) || $_SESSION['APP_HEADER'] != $head) {
+            $_SESSION['APP_HEADER'] = $head;
+        }
+    }
+
+    /**
+     * Set footer Content for any Tsugi-generated pages.
+     */
+    function setAppFooter($foot) {
+        if ( !isset($_SESSION['APP_FOOTER']) || $_SESSION['APP_FOOTER'] != $foot) {
+            $_SESSION['APP_FOOTER'] = $foot;
+        }
     }
 
     /**
