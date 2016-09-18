@@ -3,6 +3,26 @@
 namespace Tsugi\Util;
 
 
+/**
+ * This class allows us to produce an IMS Common Cartridge Version 1.2
+ *
+ * Usage to Create a ZIP file:
+ * 
+ *     $zip = new ZipArchive();
+ *     if ($zip->open('cc.zip', ZipArchive::CREATE)!==TRUE) {
+ *     $cc_dom = new CC();
+ *     $cc_dom->set_title('Web Applications for Everybody');
+ *     $cc_dom->set_description('Awesome MOOC to learn PHP, MySQL, and JavaScript.');
+ *     $module = $cc_dom->add_module('Week 1');
+ *     $sub_module = $cc_dom->add_sub_module($module, 'Part 1');
+ *     $cc_dom->zip_add_url_to_module($zip, $sub_module, 'WA4E', 'https://www.wa4e.com');
+ *     $custom = array('exercise' => 'http_headers.php');
+ *     $cc_dom->zip_add_lti_to_module($zip, $sub_module, 'RRC', 
+ *         'https://www.wa4e.com/tools/autograder/index.php', $custom);
+ *     $zip->addFromString('imsmanifest.xml',$cc_dom->saveXML());
+ *     $zip->close();
+ */
+
 class CC extends \Tsugi\Util\TsugiDOM {
 
     const CC_1_2_CP =   'http://www.imsglobal.org/xsd/imsccv1p2/imscp_v1p1';
@@ -73,6 +93,14 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $this->delete_children_ns(self::LOMIMSCC_NS, $lom);
     }
 
+    /*
+     * Set the title
+     *
+     * This function must be called or the resulting CC will not be compliant.
+     * This function must only be called once.
+     *
+     * @param $title The title
+     */
     public function set_title($title) {
         $xpath = new \DOMXpath($this);
         $general = $xpath->query(CC::lom_general_xpath)->item(0);
@@ -80,13 +108,28 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $new_string = $this->add_child_ns(CC::LOMIMSCC_NS, $new_title, 'string', $title, array("language" => "en-US"));
     }
 
-    public function set_description($title) {
+    /*
+     * Set the description
+     *
+     * @param $desc The new description
+     *
+     * This function must be called or the resulting CC will not be compliant
+     * This function must only be called once.
+     */
+    public function set_description($desc) {
         $xpath = new \DOMXpath($this);
         $general = $xpath->query(CC::lom_general_xpath)->item(0);
         $new_description = $this->add_child_ns(CC::LOMIMSCC_NS, $general, 'description');
-        $new_string = $this->add_child_ns(CC::LOMIMSCC_NS, $new_description, 'string', $title, array("language" => "en-US"));
+        $new_string = $this->add_child_ns(CC::LOMIMSCC_NS, $new_description, 'string', $desc, array("language" => "en-US"));
     }
 
+    /**
+     * Adds a module to the manifest
+     *
+     * @param $title The title of the module
+     *
+     * @return the DOMNode of the newly added module
+     */
     public function add_module($title) {
         $this->resource_count++;
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
@@ -100,6 +143,18 @@ class CC extends \Tsugi\Util\TsugiDOM {
         return $module;
     }
 
+    /**
+     * Adds a sub module to a module
+     *
+     * As a note, while some LMS's are happpy with deeply nested
+     * sub-module trees, other LMS's prefre a strict two-layer
+     * module / submodule structure.
+     *
+     * @param $sub_module DOMNode The module where we are adding the submodule
+     * @param $title The title of the sub module
+     *
+     * @return the DOMNode of the newly added sub module
+     */
     public function add_sub_module($module, $title) {
         $this->resource_count++;
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
@@ -110,6 +165,18 @@ class CC extends \Tsugi\Util\TsugiDOM {
         return $sub_module;
     }
 
+    /*
+     * Add a web link resource item
+     *
+     * This adds the web link to the manifest,  to complete this when making a 
+     * zip file, you must generate and place the web link XML in the returned file
+     * name within the ZIP.  The `zip_add_url_to_module()` combines these two steps.
+     * 
+     * @param $module DOMNode The module or sub module where we are adding the web link
+     * @param $title The title of the link
+     *
+     * @return The name of a file to contain the web link XML in the ZIP.
+     */
     public function add_web_link($module, $title=null) {
         $this->resource_count++;
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
@@ -120,6 +187,18 @@ class CC extends \Tsugi\Util\TsugiDOM {
         return $file;
     }
 
+    /**
+     * Add an LTI link resource item
+     *
+     * This adds an LTI link to the manifest, to complete this when making a 
+     * zip file, you must generate and place the LTI XML in the returned file
+     * name within the ZIP.  The `zip_add_lti_to_module()` combines these two steps.
+     * 
+     * @param $module DOMNode The module or sub module where we are adding the lti link
+     * @param $title The title of the LTI link
+     *
+     * @return The name of a file to contain the lti link XML in the ZIP.
+     */
     public function add_lti_link($module, $title=null) {
         $this->resource_count++;
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
@@ -130,6 +209,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
         return $file;
     }
 
+    /**
+     * Add a resource to the manifest.
+     */
     public function add_resource_item($module, $title=null, $type, $identifier, $file) {
         $identifier_ref = $identifier."_R";
 
@@ -147,16 +229,38 @@ class CC extends \Tsugi\Util\TsugiDOM {
         return $file;
     }
 
-    function zip_add_url_to_module($zip, $sub_module, $title, $url) {
-        $file = $this->add_web_link($sub_module, $title);
+    /*
+     * Add a web link resource item and create the file within the ZIP
+     * 
+     * @param $zip The zip file handle that we are creating
+     * @param $module DOMNode The module or sub module where we are adding the web link
+     * @param $title The title of the link
+     * @param $url The url for the link
+     *
+     * @return The name of a file to contain the web link XML in the ZIP.
+     */
+    function zip_add_url_to_module($zip, $module, $title, $url) {
+        $file = $this->add_web_link($module, $title);
         $web_dom = new CC_WebLink();
         $web_dom->set_title($title);
         $web_dom->set_url($url, array("target" => "_iframe"));
         $zip->addFromString($file,$web_dom->saveXML());
     }
 
-    function zip_add_lti_to_module($zip, $sub_module, $title, $url, $custom=null, $extensions=null) {
-        $file = $this->add_lti_link($sub_module, $title);
+    /*
+     * Add a LTI link resource item and create the file within the ZIP
+     * 
+     * @param $zip The zip file handle that we are creating
+     * @param $module DOMNode The module or sub module where we are adding the LTI link
+     * @param $title The title of the link
+     * @param $url The url/endpoint for the link
+     * @param $custom An optional array of custom parameters for this link
+     * @param $extenions An optional array of tsugi extensions for this link
+     *
+     * @return The name of a file to contain the web link XML in the ZIP.
+     */
+    function zip_add_lti_to_module($zip, $module, $title, $url, $custom=null, $extensions=null) {
+        $file = $this->add_lti_link($module, $title);
         $lti_dom = new CC_LTI();
         $lti_dom->set_title($title);
         // $lti_dom->set_description('Create a single SQL table and insert some records.');
