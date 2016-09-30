@@ -26,7 +26,7 @@ Pre-Requisites
 * Install a PHP/MySQL Environment like XAMPP / MAMP following the
 instructions at:
 
-    http://www.php-intro.com/install.php
+    http://www.wa4e.com/install.php
 
 Installation
 ------------
