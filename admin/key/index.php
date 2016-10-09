@@ -99,6 +99,10 @@ $OUTPUT->flashMessages();
 <h1>LTI Key Requests</h1>
 <p>
   <a href="keys.php" class="btn btn-default">View Keys</a>
+  <a href="#" class="btn btn-default" onclick="
+    showModal('Using this key', 'about-div');
+    return false;
+">Using Your Key</a>
 </p>
 <?php if ( $goodsession ) { ?>
 <div class="modal fade" id="request">
@@ -149,6 +153,39 @@ $OUTPUT->flashMessages();
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<div id="about-div" style="display:none">
+<h1>Using your key</h1>
+<p>
+There are several ways to use your key:
+<ul>
+<?php
+$tools=findAllRegistrations();
+foreach($tools as $tool) {
+    echo("<li>\n");
+    echo("You can install the ".$tool['short_name']." tool at the folowing URL:\n");
+    echo("<pre>\n");
+    echo($tool['url']);
+    echo("</pre>\n");
+    echo("</li>\n");
+}
+?>
+<li>You can install this into Sakai as an "App Store" using IMS Content Item with
+the following URL:
+<pre>
+<?= $CFG->wwwroot ?>/lti/store/
+</pre>
+Make sure to check the "Supports Content Item" option when installing this URL in Sakai.
+</li>
+<li>You can install this into Canvas as an "App Store" using XML configuration
+and the following URL:
+<pre>
+<?= $CFG->wwwroot ?>/lti/store/canvas-config.xml
+</pre>
+</li>
+</ul>
+</div>
+
 <?php } ?>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>

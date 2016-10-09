@@ -52,6 +52,53 @@ function findTools($dir, &$retval, $filename="index.php") {
     }
 }
 
+function findAllTools()
+{
+    global $CFG;
+    // Load tools from various folders
+    $tools = array();
+    foreach( $CFG->tool_folders AS $tool_folder) {
+        if ( $tool_folder == 'core' ) continue;
+        if ( $tool_folder == 'admin' ) continue;
+        findTools($CFG->dirroot.'/'.$tool_folder,$tools);
+    }
+    return $tools;
+}
+
+function findAllRegistrations()
+{
+    global $CFG;
+    // Scan the tools folders for registration settings
+    $tools = array();
+    foreach( $CFG->tool_folders AS $tool_folder) {
+        if ( $tool_folder == 'core' ) continue;
+        if ( $tool_folder == 'admin' ) continue;
+        $some = findFiles('register.php', $CFG->dirroot . '/');
+        foreach($some as $reg_file) {
+            // Take off the $CFG->dirroot
+            $relative = substr($reg_file,strlen($CFG->dirroot)+1);
+            $url = $CFG->wwwroot . '/' . $relative;
+            $url = $CFG->removeRelativePath($url);
+            $pieces = explode('/', $url);
+            if ( $pieces < 2 || $pieces[count($pieces)-1] != 'register.php') {
+                error_log('Unable to load tool registration from '.$tool_folder);
+                continue;
+            }
+            $key = $pieces[count($pieces)-2];
+            unset($REGISTER_LTI2);
+            require($reg_file);
+            if ( ! isset($REGISTER_LTI2) ) continue;
+            if ( ! is_array($REGISTER_LTI2) ) continue;
+
+            $url = str_replace('/register.php','/',$url);
+            $REGISTER_LTI2['url'] = $url;
+            $tools[$key] = $REGISTER_LTI2;
+        }
+    }
+    return $tools;
+
+}
+
 function findFiles($filename="index.php", $reldir=false) {
     global $CFG;
     $files = array();
