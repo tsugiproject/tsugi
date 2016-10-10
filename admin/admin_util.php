@@ -90,6 +90,18 @@ function findAllRegistrations()
             if ( ! isset($REGISTER_LTI2) ) continue;
             if ( ! is_array($REGISTER_LTI2) ) continue;
 
+            if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) &&
+                isset($REGISTER_LTI2['description']) ) {
+                // We are happy
+            } else {
+                error_log("Missing required name, short_name, and description in ".$tool_folder);
+            }
+
+            // Make an icon URL
+            $fa_icon = isset($REGISTER_LTI2['FontAwesome']) ? $REGISTER_LTI2['FontAwesome'] : false;
+            if ( $fa_icon !== false ) {
+                $REGISTER_LTI2['icon'] = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+            }
             $url = str_replace('/register.php','/',$url);
             $REGISTER_LTI2['url'] = $url;
             $tools[$key] = $REGISTER_LTI2;

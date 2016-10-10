@@ -809,7 +809,9 @@ class LTI {
      * @param fa_icon The class name of a FontAwesome icon
      *
      */
-    public static function getLtiLinkJSON($url, $title=false, $text=false, $icon=false, $fa_icon=false ) {
+    public static function getLtiLinkJSON($url, $title=false, $text=false, 
+        $icon=false, $fa_icon=false, $custom=false ) 
+    {
         $return = '{
             "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem", 
                 "@graph" : [ 
@@ -840,6 +842,7 @@ class LTI {
         if ( $text ) $json->{'@graph'}[0]->{'text'} = $text;
         if ( $icon ) $json->{'@graph'}[0]->{'icon'}->{'@id'} = $icon;
         if ( $fa_icon ) $json->{'@graph'}[0]->icon->fa_icon = $fa_icon;
+        if ( $custom ) $json->{'@graph'}[0]->custom = $custom;
         return $json;
     }
 

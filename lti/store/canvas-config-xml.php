@@ -47,19 +47,19 @@ echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
     <lticm:property name="icon_url"><?= $CFG->wwwroot ?>/static/img/default-icon.png</lticm:property>
     <lticm:options name="link_selection">
       <lticm:property name="message_type">ContentItemSelectionRequest</lticm:property>
-      <lticm:property name="url"><?= $CFG->wwwroot ?>/mod/store/index.php?type=link_selection</lticm:property>
+      <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/store/index.php?type=link_selection</lticm:property>
     </lticm:options>
     <lticm:options name="assignment_selection">
       <lticm:property name="message_type">ContentItemSelectionRequest</lticm:property>
-      <lticm:property name="url"><?= $CFG->wwwroot ?>/mod/store/index.php?type=assignment_selection</lticm:property>
+      <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/store/index.php?type=assignment_selection</lticm:property>
     </lticm:options>
     <lticm:options name="homework_submission">
       <lticm:property name="message_type">ContentItemSelectionRequest</lticm:property>
-      <lticm:property name="url"><?= $CFG->wwwroot ?>/mod/store/index.php?type=homework_submission</lticm:property>
+      <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/store/index.php?type=homework_submission</lticm:property>
     </lticm:options>
     <lticm:options name="editor_button">
       <lticm:property name="message_type">ContentItemSelectionRequest</lticm:property>
-      <lticm:property name="url"><?= $CFG->wwwroot ?>/mod/store/index.php?type=editor_button</lticm:property>
+      <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/store/index.php?type=editor_button</lticm:property>
     </lticm:options>
     <lticm:property name="selection_height">500</lticm:property>
     <lticm:property name="selection_width">500</lticm:property>
