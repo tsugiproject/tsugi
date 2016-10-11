@@ -517,10 +517,17 @@ var disqus_config = function () {
 
     public static function makeUrlResource($type,$title,$url) {
         global $CFG;
+       $RESOURCE_ICONS = array(
+                'video' => 'fa-video-camera',
+                'slides' => 'fa-file-powerpoint-o',
+                'assignment' => 'fa-lock',
+                'solution' => 'fa-unlock',
+                'reference' => 'fa-external-link'
+        );
         $retval = new \stdClass();
         $retval->type = $type;
-        if ( isset(self::RESOURCE_ICONS[$type]) ) {
-            $retval->icon = self::RESOURCE_ICONS[$type];
+        if ( isset($RESOURCE_ICONS[$type]) ) {
+            $retval->icon = $RESOURCE_ICONS[$type];
         } else {
             $retval->icon = 'fa-external-link';
         }
