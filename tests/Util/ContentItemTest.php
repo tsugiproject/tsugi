@@ -12,7 +12,13 @@ class ContentItemTest extends PHPUnit_Framework_TestCase
         $ci->addLtiLinkItem('path', 'title', 'title', 'icon', 'fa_icon');
         $ci->addContentItem('r->url', 'r->title', 'r->title', 'r->thumbnail', 'r->icon');
         $good = '{
-    "@context": "http:\/\/purl.imsglobal.org\/ctx\/lti\/v1\/ContentItem",
+    "@context": [
+        "http:\/\/purl.imsglobal.org\/ctx\/lti\/v1\/ContentItem",
+        {
+            "lineItem": "http:\/\/purl.imsglobal.org\/ctx\/lis\/v2\/LineItem",
+            "res": "http:\/\/purl.imsglobal.org\/ctx\/lis\/v2p1\/Result#"
+        }
+    ],
     "@graph": [
         {
             "@type": "LtiLinkItem",
