@@ -14,6 +14,36 @@ if ( ! isset($CFG->lessons) ) {
 // Load the Lesson
 $l = new Lessons($CFG->lessons);
 
+// Check if this is a remote import form Canvas
+if ( isset($_POST['ext_content_return_url']) ) {
+    $return_url = $_POST['ext_content_return_url'];
+    $return_url .= strpos($return_url,'?') === false ? '?' : '&';
+    $return_url .= "return_type=file&text=". urlencode($CFG->servicename) . "&url=";
+    $return_url .= urlencode($CFG->wwwroot . '/cc/export.php');
+    $OUTPUT->header();
+    $OUTPUT->bodystart(false);
+    echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
+    echo("<p>".htmlentities($l->lessons->description)."</p>\n");
+    echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
+    $resource_count = 0;
+    $assignment_count = 0;
+    foreach($l->lessons->modules as $module) {
+        $resources = Lessons::getUrlResources($module);
+        if ( ! $resources ) continue;
+        $resource_count = $resource_count + count($resources);
+        if ( isset($module->lti) ) {
+            $assignment_count = $assignment_count + count($module->lti);
+        }
+    }
+    echo("<p>Resources: $resource_count </p>\n");
+    echo("<p>Assignments: $assignment_count </p>\n");
+    echo("<center>\n");
+    echo('<a href="'.$return_url.'" role="button" class="btn btn-success">Import Course</a>');
+    echo("</center>\n");
+    $OUTPUT->footer();
+    return;
+}
+
 // here we go...
 $service = strtolower($CFG->servicename);
 $filename = tempnam(sys_get_temp_dir(), $CFG->servicename);

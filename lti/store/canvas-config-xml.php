@@ -61,6 +61,12 @@ echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
       <lticm:property name="message_type">ContentItemSelectionRequest</lticm:property>
       <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/store/index.php?type=editor_button</lticm:property>
     </lticm:options>
+<?php if ( isset($CFG->lessons) ) { ?>
+    <lticm:options name="migration_selection">
+        <lticm:property name="enabled">true</lticm:property>
+        <lticm:property name="url"><?= $CFG->wwwroot ?>/cc/export.php</lticm:property>
+    </lticm:options>
+<?php } ?>
     <lticm:property name="selection_height">500</lticm:property>
     <lticm:property name="selection_width">500</lticm:property>
     <lticm:property name="text"><?= htmlent_utf8(strip_tags($CFG->servicename)) ?></lticm:property>
