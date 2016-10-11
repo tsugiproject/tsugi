@@ -542,6 +542,7 @@ var disqus_config = function () {
         return $retval;
     }
 
+/* After PHP 5.6
     const RESOURCE_ICONS = array(
         'video' => 'fa-video-camera',
         'slides' => 'fa-file-powerpoint-o',
@@ -549,6 +550,7 @@ var disqus_config = function () {
         'solution' => 'fa-unlock',
         'reference' => 'fa-external-link'
     );
+*/
 
     public static function getUrlResources($module) {
         $resources = array();
