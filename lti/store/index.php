@@ -14,8 +14,8 @@ if ( $local_path == "casa.json" ) {
 
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ContentItem;
 use \Tsugi\Util\LTI;
-use \Tsugi\Util\ContentItem;
 use \Tsugi\UI\Lessons;
 
 // No parameter means we require CONTEXT, USER, and LINK
@@ -24,11 +24,9 @@ $LAUNCH = LTIX::requireData(LTIX::USER);
 // Model
 $p = $CFG->dbprefix;
 
-$lti_post = LTIX::postArray();
-
-$return_url = ContentItem::returnUrl($lti_post);
-$allow_lti = ContentItem::allowLtiLinkItem($lti_post);
-$allow_web = ContentItem::allowContentItem($lti_post);
+$return_url = ContentItem::returnUrl();
+$allow_lti = ContentItem::allowLtiLinkItem();
+$allow_web = ContentItem::allowContentItem();
 
 $OUTPUT->header();
 ?>
@@ -123,20 +121,11 @@ if ( isset($_GET['install']) ) {
     $script = isset($tool['script']) ? $tool['script'] : "index.php";
     $path = $tool['url'];
 
-    // Title is for the href and text is for display
-    $json = LTI::getLtiLinkJSON($path, $title, $title, $icon, $fa_icon);
-    $retval = json_encode($json);
-
-    $parms = array();
-    $parms["lti_message_type"] = "ContentItemSelection";
-    $parms["lti_version"] = "LTI-1p0";
-    $parms["content_items"] = $retval;
-    $data = LTIX::postGet('data');
-    if ( $data ) $parms['data'] = $data;
-
-    $parms = LTIX::signParameters($parms, $return_url, "POST", "Install Tool");
+    // Set up to send the response
+    $retval = new ContentItem();
+    $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon);
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
-    $content = LTI::postLaunchHTML($parms, $return_url, true, false, $endform);
+    $content = $retval->prepareResponse($endform);
     echo($content);
     $OUTPUT->footer();
     exit();
@@ -174,20 +163,11 @@ if ( $l && isset($_GET['assignment']) ) {
         }
     }
 
-    // Title is for the href and text is for display
-    $json = LTI::getLtiLinkJSON($path, $title, $title, $icon, $fa_icon, $custom);
-    $retval = json_encode($json);
-
-    $parms = array();
-    $parms["lti_message_type"] = "ContentItemSelection";
-    $parms["lti_version"] = "LTI-1p0";
-    $parms["content_items"] = $retval;
-    $data = LTIX::postGet('data');
-    if ( $data ) $parms['data'] = $data;
-
-    $parms = LTIX::signParameters($parms, $return_url, "POST", "Install Tool");
+    // Set up to send the response
+    $retval = new ContentItem();
+    $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon, $custom);
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
-    $content = LTI::postLaunchHTML($parms, $return_url, true, false, $endform);
+    $content = $retval->prepareResponse($endform);
     echo('<center>');
     if ( $fa_icon ) {
         echo('<i class="fa '.$fa_icon.' fa-3x" style="color: #1894C7; float:right; margin: 2px"></i>');
@@ -233,13 +213,10 @@ if ($l && count($content_items) > 0 ) {
         exit();
     }
     echo("</ul>\n");
-        
-    $data = LTIX::postGet('data');
-    $parms = $retval->getContentItemSelection($data);
 
-    $parms = LTIX::signParameters($parms, $return_url, "POST", "Install Content");
+    // Set up to send the response
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
-    $content = LTI::postLaunchHTML($parms, $return_url, true, false, $endform);
+    $content = $retval->prepareResponse($endform);
     echo('<center>');
     echo($content);
     $OUTPUT->footer();
