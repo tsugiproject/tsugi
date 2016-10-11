@@ -123,12 +123,21 @@ if ( isset($_GET['install']) ) {
 
     // Set up to send the response
     $retval = new ContentItem();
-    $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon);
+    $points = false;
+    $activity_id = false;
+    if ( array_search('launch_grade', $tool['messages']) !== false ) {
+        $points = 10;
+        $activity_id = $install;
+    }
+    $custom = false;
+    $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon, $custom, $points, $activity_id);
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
     $content = $retval->prepareResponse($endform);
     echo($content);
+    echo("</center>\n");
+    // echo("<pre>\n");print_r($tool);echo("</pre>\n");
     $OUTPUT->footer();
-    exit();
+    return;
 } 
 
 // Handle the assignment install
@@ -165,7 +174,7 @@ if ( $l && isset($_GET['assignment']) ) {
 
     // Set up to send the response
     $retval = new ContentItem();
-    $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon, $custom);
+    $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon, $custom, 10, $lti->resource_link_id);
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
     $content = $retval->prepareResponse($endform);
     echo('<center>');
@@ -174,8 +183,10 @@ if ( $l && isset($_GET['assignment']) ) {
     }
     echo("<h1>".htmlent_utf8($title)."</h1>\n");
     echo($content);
+    echo("</center>\n");
+    // echo("<pre>\n");print_r($lti);echo("</pre>\n");
     $OUTPUT->footer();
-    exit();
+    return;
 } 
 
 // Handle the content install
@@ -217,8 +228,9 @@ if ($l && count($content_items) > 0 ) {
     // Set up to send the response
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
     $content = $retval->prepareResponse($endform);
-    echo('<center>');
+    echo("<center>\n");
     echo($content);
+    echo("</center>\n");
     $OUTPUT->footer();
     exit();
 }

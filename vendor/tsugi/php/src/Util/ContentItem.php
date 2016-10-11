@@ -12,7 +12,13 @@ class ContentItem {
 
     function __construct() {
         $text = '{
-            "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem", 
+            "@context" : [
+                "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
+                {
+                    "lineItem" : "http://purl.imsglobal.org/ctx/lis/v2/LineItem",
+                    "res" : "http://purl.imsglobal.org/ctx/lis/v2p1/Result#"    
+                }
+            ],
             "@graph" : [ ]
         }';
 
@@ -78,17 +84,21 @@ class ContentItem {
     /**
      * addLtiLinkItem - Add an LTI Link Content Item
      *
-     * @param url The launch URL of the tool that is about to be placed
-     * @param title A plain text title of the content-item.
-     * @param text A plain text description of the content-item.
-     * @param icon An image URL of an icon
-     * @param fa_icon The class name of a FontAwesome icon
-     * @param custom An optional array of custom key / value pairs
+     * @param $url The launch URL of the tool that is about to be placed
+     * @param $title A plain text title of the content-item.
+     * @param $text A plain text description of the content-item.
+     * @param $icon An image URL of an icon
+     * @param $fa_icon The class name of a FontAwesome icon
+     * @param $custom An optional array of custom key / value pairs
+     * @param $points The number of points if this is an assignment
+     * @param $activity_id The activity for the item
      *
      */
     public function addLtiLinkItem($url, $title=false, $text=false, 
-        $icon=false, $fa_icon=false, $custom=false ) 
+        $icon=false, $fa_icon=false, $custom=false, 
+        $points=false, $activity_id=false ) 
     {
+        global $CFG;
         $item = '{ "@type" : "LtiLinkItem",
                     "@id" : ":item2",
                     "title" : "A cool tool hosted in the Tsugi environment.", 
@@ -104,6 +114,19 @@ class ContentItem {
                         "fa_icon" : "fa-magic",
                         "width" : 64,
                         "height" : 64
+                    },
+                    "lineItem" : {
+                        "@type" : "LineItem",
+                        "label" : "Gradable External Tool",
+                        "reportingMethod" : "res:totalScore",
+                        "assignedActivity" : {
+                            "@id" : "http://toolprovider.example.com/assessment/66400",
+                            "activity_id" : "a-9334df-33"
+                        },
+                        "scoreConstraints" : {
+                            "@type" : "NumericLimits",
+                            "normalMaximum" : 10
+                        }
                     }
                 }';
 
@@ -114,6 +137,14 @@ class ContentItem {
         if ( $icon ) $json->{'icon'}->{'@id'} = $icon;
         if ( $fa_icon ) $json->icon->fa_icon = $fa_icon;
         if ( $custom ) $json->custom = $custom;
+        if ( $points && $activity_id ) {
+            $json->lineItem->label = $title;
+            $json->lineItem->assignedActivity->{'@id'} = $CFG->wwwroot . '/lti/activity/' . $activity_id;
+            $json->lineItem->assignedActivity->activity_id = $activity_id;
+            $json->lineItem->scoreConstraints->normalMaximum = $points;
+        } else {
+            unset($json->lineItem);
+        }
 
         $json->{'@id'} = ':item'.(count($this->json->{'@graph'})+1);
 
