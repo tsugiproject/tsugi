@@ -44,7 +44,7 @@ echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 <?php
      if ( $domain ) echo ('<lticm:property name="domain">'.$domain."</lticm:property>\n");
 ?>
-    <lticm:property name="icon_url"><?= $CFG->wwwroot ?>/static/img/default-icon.png</lticm:property>
+    <lticm:property name="icon_url"><?= $CFG->staticroot ?>/img/default-icon-16x16.png</lticm:property>
     <lticm:options name="link_selection">
       <lticm:property name="message_type">ContentItemSelectionRequest</lticm:property>
       <lticm:property name="url"><?= $CFG->wwwroot ?>/lti/store/index.php?type=link_selection</lticm:property>

@@ -15,6 +15,7 @@ if ( $local_path == "casa.json" ) {
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\ContentItem;
 use \Tsugi\UI\Lessons;
 
 // No parameter means we require CONTEXT, USER, and LINK
@@ -23,7 +24,11 @@ $LAUNCH = LTIX::requireData(LTIX::USER);
 // Model
 $p = $CFG->dbprefix;
 
-$result_url = LTIX::ltiLinkUrl();
+$lti_post = LTIX::postArray();
+
+$return_url = ContentItem::returnUrl($lti_post);
+$allow_lti = ContentItem::allowLtiLinkItem($lti_post);
+$allow_web = ContentItem::allowContentItem($lti_post);
 
 $OUTPUT->header();
 ?>
@@ -52,19 +57,23 @@ $OUTPUT->header();
 // Load Lessons Data
 $l = false;
 $assignments = false;
-if ( isset($CFG->lessons) ) {
+if ( ($allow_lti || $allow_web) && isset($CFG->lessons) ) {
     $l = new Lessons($CFG->lessons);
-    $contents = true;
+    if ( $allow_web ) $contents = true;
     foreach($l->lessons->modules as $module) {
         if ( isset($module->lti) ) {
-            $assignments = true;
+            if ( $allow_lti ) $assignments = true;
         }
     }
 }
 
 // Load Tool Registrations
-$registrations = findAllRegistrations();
-if ( count($registrations) < 1 ) $registrations = false;
+if ( $allow_lti ) {
+    $registrations = findAllRegistrations();
+    if ( count($registrations) < 1 ) $registrations = false;
+} else {
+    $registrations = false;
+}
 
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
@@ -75,7 +84,7 @@ if ( ! $USER->instructor ) {
     exit();
 }
 
-if ( ! $result_url ) {
+if ( ! $return_url ) {
     echo("<p>This tool must be with LTI Link Content Item support</p>");
     $OUTPUT->footer();
     exit();
@@ -125,9 +134,9 @@ if ( isset($_GET['install']) ) {
     $data = LTIX::postGet('data');
     if ( $data ) $parms['data'] = $data;
 
-    $parms = LTIX::signParameters($parms, $result_url, "POST", "Install Tool");
+    $parms = LTIX::signParameters($parms, $return_url, "POST", "Install Tool");
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
-    $content = LTI::postLaunchHTML($parms, $result_url, true, false, $endform);
+    $content = LTI::postLaunchHTML($parms, $return_url, true, false, $endform);
     echo($content);
     $OUTPUT->footer();
     exit();
@@ -176,97 +185,188 @@ if ( $l && isset($_GET['assignment']) ) {
     $data = LTIX::postGet('data');
     if ( $data ) $parms['data'] = $data;
 
-    $parms = LTIX::signParameters($parms, $result_url, "POST", "Install Tool");
+    $parms = LTIX::signParameters($parms, $return_url, "POST", "Install Tool");
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
-    $content = LTI::postLaunchHTML($parms, $result_url, true, false, $endform);
+    $content = LTI::postLaunchHTML($parms, $return_url, true, false, $endform);
     echo('<center>');
     if ( $fa_icon ) {
         echo('<i class="fa '.$fa_icon.' fa-3x" style="color: #1894C7; float:right; margin: 2px"></i>');
     }
     echo("<h1>".htmlent_utf8($title)."</h1>\n");
-    $path = $lti->launch;
     echo($content);
     $OUTPUT->footer();
     exit();
 } 
 
-?>
-<ul class="nav nav-tabs">
-  <li class="active"><a href="#box" data-toggle="tab" aria-expanded="true">Tools</a></li>
-  <li class=""><a href="#content" data-toggle="tab" aria-expanded="false">Content</a></li>
-  <li class=""><a href="#assignments" data-toggle="tab" aria-expanded="false">Assignments</a></li>
-</ul>
-<div id="myTabContent" class="tab-content">
-  <div class="tab-pane fade active in" id="box">
-<?php
-$toolcount = 0;
-foreach($registrations as $name => $tool ) {
-
-    $title = $tool['name'];
-    $text = $tool['description'];
-    $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
-    $icon = false;
-    if ( $fa_icon !== false ) {
-        $icon = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+// Handle the content install
+$content_items = array();
+foreach($_GET as $k => $v) {
+    if ($v == 'on') $content_items[] = $k;
+}
+if ($l && count($content_items) > 0 ) {
+    $retval = new ContentItem();
+    $count = 0;
+    foreach($content_items as $ci) {
+        $pieces = explode('::', $ci);
+        if ( count($pieces) != 2 ) continue;
+        if ( ! is_numeric($pieces[1]) ) continue;
+        $anchor = $pieces[0];
+        $index = $pieces[1]+0;
+        $module = $l->getModuleByAnchor($anchor);
+        if ( ! $module ) continue;
+        $resources = Lessons::getUrlResources($module);
+        if ( ! $resources ) continue;
+        if ( ! isset($resources[$index]) ) continue;
+        $r = $resources[$index];
+        $retval->addContentItem($r->url, $r->title, $r->title, $r->thumbnail, $r->icon);
+        if ( $count == 0 ) {
+            echo("<p>Selected items:</p>\n");
+            echo("<ul>\n");
+        }
+        $count++;
+        echo("<li>".htmlentities($r->title)."</li>\n");
     }
 
-    echo('<div style="border: 2px, solid, red;" class="card">');
-    if ( $fa_icon ) {
-        echo('<a href="index.php?install='.urlencode($name).'">');
-        echo('<i class="fa '.$fa_icon.' fa-2x" style="color: #1894C7; float:right; margin: 2px"></i>');
-        echo('</a>');
+    if ( $count < 1 ) {
+        echo("<p>No valid content items to install</p>\n");
+        $OUTPUT->footer();
+        exit();
     }
-    echo('<p><strong>'.htmlent_utf8($title)."</strong></p>");
-    echo('<p>'.htmlent_utf8($text)."</p>\n");
-    echo('<center><a href="index.php?install='.urlencode($name).'" class="btn btn-default" role="button">Details</a></center>');
-    echo("</div>\n");
+    echo("</ul>\n");
+        
+    $data = LTIX::postGet('data');
+    $parms = $retval->getContentItemSelection($data);
 
-    $toolcount++;
+    $parms = LTIX::signParameters($parms, $return_url, "POST", "Install Content");
+    $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
+    $content = LTI::postLaunchHTML($parms, $return_url, true, false, $endform);
+    echo('<center>');
+    echo($content);
+    $OUTPUT->footer();
+    exit();
 }
-echo("</div>\n");
+    
 
-if ( $l ) {
-?>
-  <div class="tab-pane fade in" id="content">
-<?php
-        echo('<h1>'.$l->lessons->title."</h1>\n");
-foreach($l->lessons->modules as $module) {
-echo($module->anchor);
+$active = 'active';
+
+echo('<ul class="nav nav-tabs">'."\n");
+if ( $registrations && $allow_lti ) {
+    echo('<li class="'.$active.'"><a href="#box" data-toggle="tab" aria-expanded="true">Tools</a></li>'."\n");
+    $active = '';
 }
-?>
-  </div>
-  <div class="tab-pane fade in" id="assignments">
-<?php
-echo('<h1>'.$l->lessons->title."</h1>\n");
-echo("<ul>\n");
-foreach($l->lessons->modules as $module) {
-    if ( isset($module->lti) ) {
-        foreach($module->lti as $lti) {
-             echo('<li><a href="index.php?assignment='.$lti->resource_link_id.'">'.htmlentities($lti->title).'</a>');
-             echo("</li>\n");
-        }
-        }
+if ( $l && $allow_web ) {
+    echo('<li class="'.$active.'"><a href="#content" data-toggle="tab" aria-expanded="false">Content</a></li>'."\n");
+    $active = '';
+}
+if ( $l && $allow_lti ) {
+    echo('<li class="'.$active.'"><a href="#assignments" data-toggle="tab" aria-expanded="false">Assignments</a></li>'."\n");
+    $active = '';
 }
 echo("</ul>\n");
-echo("<pre>\n");
-foreach($l->lessons->modules as $module) {
-if ( isset($module->lti) ) {
-echo($module->anchor."\n");
-foreach($module->lti as $lti) {
-print_r($lti);
-}
-}
-}
-echo("</pre>\n");
-?>
-  </div>
-<?php
-}
-echo("</div>\n");
 
-if ( $toolcount < 1 ) {
-    lmsDie("No tools to register..");
+$active = 'active';
+echo('<div id="myTabContent" class="tab-content">'."\n");
+
+// Render the tools in the site
+if ( $registrations && $allow_lti ) {
+    echo('<div class="tab-pane fade '.$active.' in" id="box">'."\n");
+    $active = '';
+
+    $count = 0;
+    foreach($registrations as $name => $tool ) {
+
+        $title = $tool['name'];
+        $text = $tool['description'];
+        $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
+        $icon = false;
+        if ( $fa_icon !== false ) {
+            $icon = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+        }
+
+        echo('<div style="border: 2px, solid, red;" class="card">');
+        if ( $fa_icon ) {
+            echo('<a href="index.php?install='.urlencode($name).'">');
+            echo('<i class="fa '.$fa_icon.' fa-2x" style="color: #1894C7; float:right; margin: 2px"></i>');
+            echo('</a>');
+        }
+        echo('<p><strong>'.htmlent_utf8($title)."</strong></p>");
+        echo('<p>'.htmlent_utf8($text)."</p>\n");
+        echo('<center><a href="index.php?install='.urlencode($name).'" class="btn btn-default" role="button">Details</a></center>');
+        echo("</div>\n");
+
+        $count++;
+    }
+    if ( $count < 1 ) {
+        echo("<p>No available tools</p>\n");
+    }
+    echo("</div>\n");
 }
+
+if ( $l && $allow_web ) {
+    echo('<div class="tab-pane fade '.$active.' in" id="content">'."\n");
+    $active = '';
+
+    echo("&nbsp;<br/>\n");
+    echo("<form>\n");
+    $count = 0;
+    foreach($l->lessons->modules as $module) {
+        $resources = Lessons::getUrlResources($module);
+        if ( count($resources) < 1 ) continue;
+        if ( $count == 0 ) {
+            echo('<p><input type="submit" class="btn btn-default" value="Install"></p>'."\n");
+            echo("<ul>\n");
+        }
+        $count++;
+        echo('<li>'.$module->title."\n");
+        echo('<ul style="list-style-type: none;">'."\n");
+        for($i=0; $i<count($resources); $i++ ) {
+            $resource = $resources[$i];
+            echo('<li>');
+            echo('<input type="checkbox" value="on", name="'.$module->anchor.'::'.$i.'">');
+            echo('<a href="'.$resource->url.'" target="_blank">');
+            echo(htmlentities($resource->title));
+            echo("</a>\n");
+            echo('</li>');
+        }
+        echo("</ul>\n");
+        echo("</li>\n");
+    }
+    if ( $count < 1 ) {
+        echo("<p>No available content.</p>\n");
+    } else {
+        echo("</ul>\n");
+    }
+    echo('<p><input type="submit" class="btn btn-default" value="Install"></p>'."\n");
+    echo("</form>\n");
+    echo("</div>\n");
+}
+
+// Render web assignments
+if ( $l && $allow_lti ) {
+    echo('<div class="tab-pane fade '.$active.' in" id="assignments">'."\n");
+    $active = '';
+    $count = 0;
+    foreach($l->lessons->modules as $module) {
+        if ( isset($module->lti) ) {
+            foreach($module->lti as $lti) {
+                if ( $count == 0 ) {
+                    echo("<ul>\n");
+                }
+                $count++;
+                echo('<li><a href="index.php?assignment='.$lti->resource_link_id.'">'.htmlentities($lti->title).'</a>');
+                echo("</li>\n");
+            }
+        }
+    }
+    if ( $count < 1 ) {
+        echo("<p>No available assignments.</p>\n");
+    } else {
+        echo("</ul>\n");
+    }
+    echo("</div>\n");
+} 
+
+echo("</div>\n"); // myTabContent
 
 $OUTPUT->footerStart();
 // https://github.com/LinZap/jquery.waterfall

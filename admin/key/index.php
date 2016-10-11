@@ -175,7 +175,8 @@ the following URL:
 <pre>
 <?= $CFG->wwwroot ?>/lti/store/
 </pre>
-Make sure to check the "Supports Content Item" option when installing this URL in Sakai.
+Make sure to check the "Supports Content Item" option when installing 
+this URL in Sakai and tick the boxes to allow the title and url to be changed.
 </li>
 <li>You can install this into Canvas as an "App Store" using XML configuration
 and the following URL:
