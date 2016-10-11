@@ -128,7 +128,7 @@ class Lessons {
                 self::makeAbsolute($this->lessons->modules[$i]->slides);
             }
             if ( isset($this->lessons->modules[$i]->assignment) ) {
-                self::makeAbsolute($this->lessons->modules[$i]->assigment);
+                self::makeAbsolute($this->lessons->modules[$i]->assignment);
             }
             if ( isset($this->lessons->modules[$i]->solution) ) {
                 self::makeAbsolute($this->lessons->modules[$i]->solution);
@@ -199,7 +199,7 @@ class Lessons {
     }
 
     /**
-     * Make non-array into an arry and adjust paths
+     * Make non-array into an array and adjust paths
      */
     public static function adjustArray(&$entry) {
         global $CFG;
@@ -225,7 +225,7 @@ class Lessons {
      */
     public function getModuleByAnchor($anchor)
     {
-        foreach($lessons->modules as $mod) {
+        foreach($this->lessons->modules as $mod) {
             if ( $mod->anchor == $anchor) return $mod;
         }
         return null;
@@ -513,6 +513,59 @@ var disqus_config = function () {
             }
         }
         echo('</tbody></table>'."\n");
+    }
+
+    public static function makeUrlResource($type,$title,$url) {
+        global $CFG;
+        $retval = new \stdClass();
+        $retval->type = $type;
+        if ( isset(self::RESOURCE_ICONS[$type]) ) {
+            $retval->icon = self::RESOURCE_ICONS[$type];
+        } else {
+            $retval->icon = 'fa-external-link';
+        }
+        $retval->thumbnail = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$retval->icon).'.png';
+
+        if ( strpos($title,':') !== false ) {
+            $retval->title = $title;
+        } else {
+            $retval->title = ucwords($type) . ': ' . $title;
+        }
+        $retval->url = $url;
+        return $retval;
+    }
+
+    const RESOURCE_ICONS = array(
+        'video' => 'fa-video-camera',
+        'slides' => 'fa-file-powerpoint-o',
+        'assignment' => 'fa-lock',
+        'solution' => 'fa-unlock',
+        'reference' => 'fa-external-link'
+    );
+
+    public static function getUrlResources($module) {
+        $resources = array();
+        if ( isset($module->videos) ) {
+            foreach($module->videos as $video ) {
+                $resources[] = self::makeUrlResource('video',$video->title,
+                    'https://www.youtube.com/watch?v='.urlencode($video->youtube));
+            }
+        }
+        if ( isset($module->slides) ) {
+            $resources[] = self::makeUrlResource('slides','Slides: '.$module->title, $module->slides);
+        }
+        if ( isset($module->assignment) ) {
+            $resources[] = self::makeUrlResource('assignment','Assignment Specification', $module->assignment);
+        }
+        if ( isset($module->solution) ) {
+            $resources[] = self::makeUrlResource('solution','Assignment Solution', $module->solution);
+        }
+        if ( isset($module->references) ) {
+            foreach($module->references as $reference ) {
+                $resources[] = self::makeUrlResource('reference',$reference->title, $reference->href);
+            }
+        }
+        return $resources;
     }
 
     public function renderBadges($allgrades)
