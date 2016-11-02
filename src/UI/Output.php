@@ -98,6 +98,7 @@ class Output {
 
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
         <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
 
     <style>
@@ -629,6 +630,18 @@ EOF;
     function getDefaultIcon() {
         global $CFG;
         return $CFG->staticroot . '/img/default-icon.png';
+    }
+
+    /**
+     * Embed a YouTube video using the standard pattern
+     */
+    function embedYouTube($id, $title) {
+        echo('<div class="youtube-player" data-id="'.$id.'"></div>');
+/*
+        echo('<iframe src="https://www.youtube.com/embed/'.
+            $video->youtube.'" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowfullscreen '.
+            ' alt="'.htmlentities($video->title).'"></iframe>'."\n");
+*/
     }
 
     /**
