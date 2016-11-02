@@ -274,7 +274,7 @@ class Lessons {
      * render a lesson
      */
     public function renderSingle() {
-        global $CFG;
+        global $CFG, $OUTPUT;
         $module = $this->module;
             echo('<div style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
             $disabled = ($this->position == 1) ? ' disabled' : '';
@@ -304,9 +304,15 @@ class Lessons {
                 $videos = $module->videos;
                 echo('<ul class="bxslider">'."\n");
                 foreach($videos as $video ) {
-                    echo('<li><iframe src="https://www.youtube.com/embed/'.
+                    echo('<li>');
+                    $OUTPUT->embedYouTube($video->youtube, $video->title);
+/*
+                    echo('<div class="youtube-player" data-id="'.$video->youtube.'"></div>');
+                    echo('<iframe src="https://www.youtube.com/embed/'.
                         $video->youtube.'" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowfullscreen '.
                         ' alt="'.htmlentities($video->title).'"></iframe>'."\n");
+*/
+                    echo('</li>');
                 }
                 echo("</ul>\n");
             }
