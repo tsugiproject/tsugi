@@ -30,11 +30,19 @@ class ContentItem extends \Tsugi\Util\ContentItem {
     }
 
     /**
-     * allowContentItem - Returns true if we can return LTI Link Items
+     * allowContentItem - Returns true if we can return HTML Items
      */
     public static function allowContentItem($postdata=false) {
         if ( ! $postdata ) $postdata = LTIX::postArray();
         return parent::allowContentItem($postdata);
+    }
+
+    /**
+     * allowImportItem - Returns true if we can return Common Cartridges
+     */
+    public static function allowImportItem($postdata=false) {
+        if ( ! $postdata ) $postdata = LTIX::postArray();
+        return parent::allowImportItem($postdata);
     }
 
     /**
