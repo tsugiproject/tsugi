@@ -458,8 +458,13 @@ if ( $toolcount < 1 ) {
     lmsDie("No tools to register..");
 }
 
-$tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
-$tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
+if ( isset($CFG->apphome) ) {
+    $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->apphome;
+    $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->apphome;
+} else {
+    $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
+    $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
+}
 
 // Construct the half secret or shared secret
 $shared_secret = bin2hex( openssl_random_pseudo_bytes( 512/8 ) ) ;
