@@ -3,6 +3,7 @@ define('COOKIE_SESSION', true);
 require_once "../config.php";
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Core\LTIX;
 use \Tsugi\Util\Net;
 
 \Tsugi\Core\LTIX::getConnection();
@@ -41,10 +42,11 @@ if ( $row == false ) {
     die("Transaction not found");
 }
 
-$retval = LTI::verifyKeyAndSecret($oauth_consumer_key, $row['secret']);
+error_log('LTIX::curPageUrl()='.LTIX::curPageUrl());
+$retval = LTI::verifyKeyAndSecret($oauth_consumer_key, $row['secret'],LTIX::curPageUrl());
 if ( $retval !== true ) {
     error_log("Checking new_secret");
-    $retval = LTI::verifyKeyAndSecret($oauth_consumer_key, $row['new_secret']);
+    $retval = LTI::verifyKeyAndSecret($oauth_consumer_key, $row['new_secret'], LTIX::curPageUrl());
     if ( $retval !== true ) {
         if (function_exists('http_response_code')) {
             http_response_code(404);
