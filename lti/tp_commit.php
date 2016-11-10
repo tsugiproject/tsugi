@@ -27,7 +27,7 @@ if ( $method == "PUT" || $method == "DELETE" ) {
 }
 
 $row = $PDOX->rowDie(
-    "SELECT secret
+    "SELECT secret, new_secret
         FROM {$CFG->dbprefix}lti_key
         WHERE ack = :ACK AND key_sha256 = :SHA LIMIT 1",
     array(":SHA" => $key_sha256, ":ACK" => $commit)
@@ -43,11 +43,15 @@ if ( $row == false ) {
 
 $retval = LTI::verifyKeyAndSecret($oauth_consumer_key, $row['secret']);
 if ( $retval !== true ) {
-    if (function_exists('http_response_code')) {
-        http_response_code(404);
+    error_log("Checking new_secret");
+    $retval = LTI::verifyKeyAndSecret($oauth_consumer_key, $row['new_secret']);
+    if ( $retval !== true ) {
+        if (function_exists('http_response_code')) {
+            http_response_code(404);
+        }
+        error_log("LTI Failure:".$retval[0]."\n".$retval[1]);
+        die("LTI Failure:".$retval[0]."\n".$retval[1]);
     }
-    error_log("LTI Failure:".$retval[0]."\n".$retval[1]);
-    die("LTI Failure:".$retval[0]."\n".$retval[1]);
 }
 
 if ( $method == "PUT" ) {
