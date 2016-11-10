@@ -16,7 +16,7 @@ class ContentItem {
                 "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
                 {
                     "lineItem" : "http://purl.imsglobal.org/ctx/lis/v2/LineItem",
-                    "res" : "http://purl.imsglobal.org/ctx/lis/v2p1/Result#"    
+                    "res" : "http://purl.imsglobal.org/ctx/lis/v2p1/Result#"
                 }
             ],
             "@graph" : [ ]
@@ -51,7 +51,7 @@ class ContentItem {
     }
 
     /**
-     * allowContentItem - Returns true if we can return LTI Link Items
+     * allowContentItem - Returns true if we can return HTML Items
      */
     public static function allowContentItem($postdata) {
         if ( ! isset($postdata['content_item_return_url']) ) return false;
@@ -64,6 +64,26 @@ class ContentItem {
         }
         return false;
     }
+
+    /**
+     * allowImportItem - Returns true if we can return IMS Common Cartridges
+     */
+    public static function allowImportItem($postdata) {
+        $cc_types = array('application/vnd.ims.imsccv1p1',
+            'application/vnd.ims.imsccv1p2', 'application/vnd.ims.imsccv1p3');
+        if ( ! isset($postdata['content_item_return_url']) ) return false;
+        if ( isset($postdata['accept_media_types']) ) {
+            $accept = $postdata['accept_media_types'];
+
+            foreach($cc_types as $cc_mimetype ){
+                $m = new Mimeparse;
+                $cc_allowed = $m->best_match(array($cc_mimetype), $accept);
+                if ( $cc_mimetype == $cc_allowed ) return true;
+            }
+        }
+        return false;
+    }
+
 
     /**
      * Return the parameters to send back to the LMS
@@ -106,7 +126,7 @@ class ContentItem {
                     "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
                     "url" : "http://www.tsugi.org/",
                     "placementAdvice" : {
-	                    "presentationDocumentTarget" : "window",
+                        "presentationDocumentTarget" : "window",
                         "windowTarget" : "_blank"
                     },
                     "icon" : {
@@ -171,7 +191,7 @@ class ContentItem {
                     "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
                     "url" : "http://www.tsugi.org/",
                     "placementAdvice" : {
-	                    "presentationDocumentTarget" : "window",
+                        "presentationDocumentTarget" : "window",
                         "windowTarget" : "_blank"
                     },
                     "icon" : {
@@ -188,6 +208,41 @@ class ContentItem {
         if ( $text ) $json->{'text'} = $text;
         if ( $icon ) $json->{'icon'}->{'@id'} = $icon;
         if ( $fa_icon ) $json->icon->fa_icon = $fa_icon;
+
+        $json->{'@id'} = ':item'.(count($this->json->{'@graph'})+1);
+
+        $this->json->{'@graph'}[] = $json;
+    }
+
+    /**
+     * addFileItem - Add an File Item
+     *
+     * @param url The launch URL of the tool that is about to be placed
+     * @param title A plain text title of the content-item.
+     *
+     */
+    public function addFileItem($url, $title=false)
+    {
+        $item = '
+{
+  "@type" : "FileItem",
+  "url" : "http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_v2p1.xsd",
+  "copyAdvice" : "true",
+  "expiresAt" : "2014-03-05T00:00:00Z",
+  "mediaType" : "application/xml",
+  "title" : "Imported from Tsugi",
+  "placementAdvice" : {
+    "windowTarget" : "_blank"
+  }
+}';
+
+        $json = json_decode($item);
+        $json->url = $url;
+        if ( $title ) $json->{'title'} = $title;
+
+        $datetime = (new \DateTime('+1 day'))->format(\DateTime::ATOM);
+        $datetime = substr($datetime,0,19) . 'Z';
+        $json->expiresAt = $datetime;
 
         $json->{'@id'} = ':item'.(count($this->json->{'@graph'})+1);
 

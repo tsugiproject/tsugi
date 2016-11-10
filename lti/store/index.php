@@ -27,6 +27,7 @@ $p = $CFG->dbprefix;
 $return_url = ContentItem::returnUrl();
 $allow_lti = ContentItem::allowLtiLinkItem();
 $allow_web = ContentItem::allowContentItem();
+$allow_import = ContentItem::allowImportItem();
 
 $OUTPUT->header();
 ?>
@@ -55,9 +56,12 @@ $OUTPUT->header();
 // Load Lessons Data
 $l = false;
 $assignments = false;
-if ( ($allow_lti || $allow_web) && isset($CFG->lessons) ) {
+$contents = false;
+$import = false;
+if ( ($allow_lti || $allow_web || $allow_import) && isset($CFG->lessons) ) {
     $l = new Lessons($CFG->lessons);
     if ( $allow_web ) $contents = true;
+    if ( $allow_import ) $import = true;
     foreach($l->lessons->modules as $module) {
         if ( isset($module->lti) ) {
             if ( $allow_lti ) $assignments = true;
@@ -79,19 +83,19 @@ $OUTPUT->flashMessages();
 if ( ! $USER->instructor ) {
     echo("<p>This tool must be launched by the instructor</p>");
     $OUTPUT->footer();
-    exit();
+    return;
 }
 
 if ( ! $return_url ) {
     echo("<p>This tool must be with LTI Link Content Item support</p>");
     $OUTPUT->footer();
-    exit();
+    return;
 }
 
-if ( ! ( $assignments || $contents || $registrations ) ) {
-    echo("<p>No tools, content, or assignments found.</p>");
+if ( ! ( $assignments || $contents || $import || $registrations ) ) {
+    echo("<p>No tools, content, imports, or assignments found.</p>");
     $OUTPUT->footer();
-    exit();
+    return;
 }
 
 // Handle the tool install
@@ -100,7 +104,7 @@ if ( isset($_GET['install']) ) {
     if ( ! isset($registrations[$install])) {
         echo("<p>Tool registration for ".htmlentities($install)." not found</p>\n");
         $OUTPUT->footer();
-        exit();
+        return;
     }
     $tool = $registrations[$install];
 
@@ -146,7 +150,7 @@ if ( $l && isset($_GET['assignment']) ) {
     if ( ! $lti ) {
         echo("<p>Assignment ".htmlentities($_GET['assignment'])." not found</p>\n");
         $OUTPUT->footer();
-        exit();
+        return;
     }
 
     $title = $lti->title;
@@ -221,7 +225,7 @@ if ($l && count($content_items) > 0 ) {
     if ( $count < 1 ) {
         echo("<p>No valid content items to install</p>\n");
         $OUTPUT->footer();
-        exit();
+        return;
     }
     echo("</ul>\n");
 
@@ -232,9 +236,21 @@ if ($l && count($content_items) > 0 ) {
     echo($content);
     echo("</center>\n");
     $OUTPUT->footer();
-    exit();
+    return;
 }
-    
+
+if ( $l && isset($_GET['import']) ) {
+    $retval = new ContentItem();
+    $url = $CFG->wwwroot . '/cc/export.php';
+    $retval->addFileItem($url, $l->lessons->title);
+    $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
+    $content = $retval->prepareResponse($endform);
+    echo("<center>\n");
+    echo($content);
+    echo("</center>\n");
+    $OUTPUT->footer();
+    return;
+}
 
 $active = 'active';
 
@@ -249,6 +265,10 @@ if ( $l && $allow_web ) {
 }
 if ( $l && $allow_lti ) {
     echo('<li class="'.$active.'"><a href="#assignments" data-toggle="tab" aria-expanded="false">Assignments</a></li>'."\n");
+    $active = '';
+}
+if ( $l && $allow_import ) {
+    echo('<li class="'.$active.'"><a href="#Import" data-toggle="tab" aria-expanded="false">Import</a></li>'."\n");
     $active = '';
 }
 echo("</ul>\n");
@@ -354,6 +374,31 @@ if ( $l && $allow_lti ) {
     }
     echo("</div>\n");
 } 
+
+if ( $l && $allow_import ) {
+    echo('<div class="tab-pane fade '.$active.' in" id="import">'."\n");
+    $active = '';
+    echo("&nbsp;<br/>\n");
+    echo("<form>\n");
+    echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
+    echo("<p>".htmlentities($l->lessons->description)."</p>\n");
+    echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
+    $resource_count = 0;
+    $assignment_count = 0;
+    foreach($l->lessons->modules as $module) {
+        $resources = Lessons::getUrlResources($module);
+        if ( ! $resources ) continue;
+        $resource_count = $resource_count + count($resources);
+        if ( isset($module->lti) ) {
+            $assignment_count = $assignment_count + count($module->lti);
+        }
+    }
+    echo("<p>Resources: $resource_count </p>\n");
+    echo("<p>Assignments: $assignment_count </p>\n");
+    echo('<p><input type="submit" class="btn btn-default" name="import" value="Import"></p>'."\n");
+    echo("</form>\n");
+    echo("</div>\n");
+}
 
 echo("</div>\n"); // myTabContent
 

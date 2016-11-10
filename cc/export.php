@@ -14,7 +14,7 @@ if ( ! isset($CFG->lessons) ) {
 // Load the Lesson
 $l = new Lessons($CFG->lessons);
 
-// Check if this is a remote import form Canvas
+// Check if this is a remote import from Canvas
 if ( isset($_POST['ext_content_return_url']) ) {
     $return_url = $_POST['ext_content_return_url'];
     $return_url .= strpos($return_url,'?') === false ? '?' : '&';
