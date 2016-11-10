@@ -22,6 +22,12 @@ class ContentItem {
             "@graph" : [ ]
         }';
 
+        // Because of D2L
+        $text = '{
+            "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
+            "@graph" : [ ]
+        }';
+
         $this->json = json_decode($text);
     }
 
@@ -111,12 +117,12 @@ class ContentItem {
      * @param $fa_icon The class name of a FontAwesome icon
      * @param $custom An optional array of custom key / value pairs
      * @param $points The number of points if this is an assignment
-     * @param $activity_id The activity for the item
+     * @param $activityId The activity for the item
      *
      */
     public function addLtiLinkItem($url, $title=false, $text=false, 
         $icon=false, $fa_icon=false, $custom=false, 
-        $points=false, $activity_id=false ) 
+        $points=false, $activityId=false ) 
     {
         global $CFG;
         $item = '{ "@type" : "LtiLinkItem",
@@ -141,7 +147,7 @@ class ContentItem {
                         "reportingMethod" : "res:totalScore",
                         "assignedActivity" : {
                             "@id" : "http://toolprovider.example.com/assessment/66400",
-                            "activity_id" : "a-9334df-33"
+                            "activityId" : "a-9334df-33"
                         },
                         "scoreConstraints" : {
                             "@type" : "NumericLimits",
@@ -157,10 +163,10 @@ class ContentItem {
         if ( $icon ) $json->{'icon'}->{'@id'} = $icon;
         if ( $fa_icon ) $json->icon->fa_icon = $fa_icon;
         if ( $custom ) $json->custom = $custom;
-        if ( $points && $activity_id ) {
+        if ( $points && $activityId ) {
             $json->lineItem->label = $title;
-            $json->lineItem->assignedActivity->{'@id'} = $CFG->wwwroot . '/lti/activity/' . $activity_id;
-            $json->lineItem->assignedActivity->activity_id = $activity_id;
+            $json->lineItem->assignedActivity->{'@id'} = $CFG->wwwroot . '/lti/activity/' . $activityId;
+            $json->lineItem->assignedActivity->activityId = $activityId;
             $json->lineItem->scoreConstraints->normalMaximum = $points;
         } else {
             unset($json->lineItem);
