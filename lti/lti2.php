@@ -44,7 +44,7 @@ if ( $row === false ) {
 }
 
 if ( $row['state'] == 0 ) {
-    $_SESSION['error'] = 'Your key has not yet been approved. '.$row['admin'];
+    $_SESSION['error'] = 'You key has not yet been approved. '.$row['admin'];
     header('Location: '.$CFG->wwwroot);
     return;
 }
