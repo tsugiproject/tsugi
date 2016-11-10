@@ -187,7 +187,7 @@ and the following URL:
 <li>If your LMS supports LTI 2.x and you have an LTI 2 key for this service,
 use the following registration URL:
 <pre>
-<?= $CFG->wwwroot ?>/lti/store/register.php
+<?= $CFG->wwwroot ?>/lti/register.php
 </pre>
 </li>
 </ul>
