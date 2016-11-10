@@ -19,7 +19,7 @@ if ( isset($_COOKIE[session_name()]) && $_COOKIE[session_name()] == session_id()
     $register = 'lti2.php?'.session_name().'='.session_id();
 }
 
-error_log('Session in register '.session_id());
+error_log('Session in register.php '.session_id());
 
 // Always do post-redirect of that initial post after stashing data in the session
 if ( isset($_POST["lti_message_type"]) && 

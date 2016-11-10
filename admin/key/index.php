@@ -184,6 +184,12 @@ and the following URL:
 <?= $CFG->wwwroot ?>/lti/store/canvas-config.xml
 </pre>
 </li>
+<li>If your LMS supports LTI 2.x and you have an LTI 2 key for this service,
+use the following registration URL:
+<pre>
+<?= $CFG->wwwroot ?>/lti/store/register.php
+</pre>
+</li>
 </ul>
 </div>
 
