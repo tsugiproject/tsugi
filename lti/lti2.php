@@ -33,7 +33,7 @@ if ( ! isset($_SESSION['id']) ) {
 $row = $PDOX->rowDie(
     "SELECT request_id, user_id, admin, state, lti
         FROM {$CFG->dbprefix}key_request
-        WHERE user_id = :UID LIMIT 1",
+        WHERE user_id = :UID AND lti = 2 LIMIT 1",
     array(":UID" => $_SESSION['id'])
 );
 
