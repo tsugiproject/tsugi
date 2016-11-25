@@ -776,6 +776,8 @@ class LTIX {
                     self::abort_with_error_log('Missing '.$sess.' from POST data');
                 } else if ( count($needed) > 0 ) {
                     self::send403();
+                    error_log("Bad POST Data");
+                    error_log(print_r($_POST, true));
                     self::abort_with_error_log('This tool should be launched from a learning system using LTI');
                 }
             }
