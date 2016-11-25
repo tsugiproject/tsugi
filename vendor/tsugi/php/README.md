@@ -39,3 +39,12 @@ To test:
 
         php phpunit-old.phar 
 
+Releasing
+---------
+
+This is stored in Packagist.
+
+    https://packagist.org/packages/tsugi/lib
+
+
+
