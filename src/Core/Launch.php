@@ -86,6 +86,35 @@ class Launch {
     public $error_message;
 
     /**
+     * Get a key from the session
+     */
+    public function session_get($key, $default=null) {
+        return LTIX::wrapped_session_get($this->session_object,$key,$default);
+    }
+
+    /**
+     * Set a key in the session
+     */
+    public function session_put($key, $value) {
+        return LTIX::wrapped_session_put($this->session_object,$key,$value);
+    }
+
+    /**
+     * Forget a key in the session
+     */
+    public function session_forget($key) {
+        return LTIX::wrapped_session_forget($this->session_object,$key);
+    }
+
+    /**
+     * Flush the session
+     */
+    public function session_flush() {
+        return LTIX::wrapped_session_flush($this->session_object);
+    }
+
+
+    /**
      * Dump out the internal data structures associated with the
      * current launch.  Best if used within a pre tag.
      */

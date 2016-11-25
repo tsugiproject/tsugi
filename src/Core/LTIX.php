@@ -81,6 +81,64 @@ class LTIX {
     }
 
     /**
+     * Wrap getting a key from the session
+     */
+    public static function wrapped_session_get($session_object,$key,$default=null)
+    {
+        if ( is_object($session_object) ) return $session_object->get($key,$default);
+        if ( is_array($session_object) ) {
+            if ( isset($session_object[$key]) ) return $session_object[$key];
+            return $default;
+        }
+        if ( ! isset($_SESSION) ) return $default;
+        if ( ! isset($_SESSION[$key]) ) return $default;
+        return $_SESSION[$key];
+    }
+
+    /**
+     * Wrap setting a key from the session
+     */
+    public static function wrapped_session_put(&$session_object,$key,$value)
+    {
+        if ( is_object($session_object) ) return $session_object->put($key,$value);
+        if ( is_array($session_object) ) {
+            $session_object[$key] = $value;
+            return;
+        }
+        if ( isset($_SESSION) ) $_SESSION[$key] = $value;
+    }
+
+    /**
+     * Wrap forgetting a key from the session
+     */
+    public static function wrapped_session_forget(&$session_object,$key)
+    {
+        if ( is_object($session_object) ) return $session_object->forget($key);
+        if ( is_array($session_object) ) {
+            if ( isset($session_object[$key]) ) unset($session_object[$key]);
+            return;
+        }
+        if ( isset($_SESSION) && isset($_SESSION[$key]) ) unset($_SESSION[$key]);
+    }
+
+    /**
+     * Wrap flushing the session
+     */
+    public static function wrapped_session_flush(&$session_object)
+    {
+        if ( is_object($session_object) ) return $session_object->flush();
+        if ( is_array($session_object) ) {
+            foreach($session_object as $k => $v ) {
+                unset($session_object[$k]);
+            }
+            for ($i = 0; $i < count($session_object); $i++) { 
+                unset($session_object[$i]); 
+            }
+        }
+        session_unset();
+    }
+
+    /**
      * Pull a keyed variable from the LTI data in the current session with default
      *
      * @deprecated Session access should be through the Launch Object
@@ -776,8 +834,6 @@ class LTIX {
                     self::abort_with_error_log('Missing '.$sess.' from POST data');
                 } else if ( count($needed) > 0 ) {
                     self::send403();
-                    error_log("Bad POST Data");
-                    error_log(print_r($_POST, true));
                     self::abort_with_error_log('This tool should be launched from a learning system using LTI');
                 }
             }
