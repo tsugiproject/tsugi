@@ -12,7 +12,7 @@ Here is some documentation for the APIs that are provided by this library:
 * [API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
 
 
-In addtion to being used as part of the base Tsugi installs, Tsugi standalone
+In addition to being used as part of the base Tsugi installs, Tsugi standalone
 application or modules will generally pull this in as a 
 [Packagist](https://packagist.org/packages/tsugi/lib) dependency
 using [Composer](http://getcomposer.org/).  
