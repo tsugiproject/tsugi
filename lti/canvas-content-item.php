@@ -22,8 +22,8 @@ if ( ! $USER->instructor ) {
 // See https://canvas.instructure.com/doc/api/file.link_selection_tools.html
 
 // Needed return values
-$content_return_types = LTIX::postGet("ext_content_return_types",false);
-$content_return_url = LTIX::postGet("ext_content_return_url",false);
+$content_return_types = LTIX::ltiRawParameter("ext_content_return_types",false);
+$content_return_url = LTIX::ltiRawParameter("ext_content_return_url",false);
 if ( strlen($content_return_url) < 1 ) {
     lmsDie("Missing ext_content_return_url");
 }

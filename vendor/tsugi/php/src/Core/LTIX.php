@@ -82,8 +82,10 @@ class LTIX {
 
     /**
      * Pull a keyed variable from the LTI data in the current session with default
+     *
+     * @deprecated Session access should be through the Launch Object
      */
-    public static function sessionGet($varname, $default=false) {
+    public static function ltiParameter($varname, $default=false) {
         if ( ! isset($_SESSION) ) return $default;
         if ( ! isset($_SESSION['lti']) ) return $default;
         $lti = $_SESSION['lti'];
@@ -93,8 +95,10 @@ class LTIX {
 
     /**
      * Return the original $_POST array
+     *
+     * @deprecated Session access should be through the Launch Object
      */
-    public static function postArray() {
+    public static function ltiRawPostArray() {
         if ( ! isset($_SESSION) ) return array();
         if ( ! isset($_SESSION['lti_post']) ) return array();
         return($_SESSION['lti_post']);
@@ -102,8 +106,10 @@ class LTIX {
 
     /**
      * Pull a keyed variable from the original LTI post data in the current session with default
+     *
+     * @deprecated Session access should be through the Launch Object
      */
-    public static function postGet($varname, $default=false) {
+    public static function ltiRawParameter($varname, $default=false) {
         if ( ! isset($_SESSION) ) return $default;
         if ( ! isset($_SESSION['lti_post']) ) return $default;
         $lti_post = $_SESSION['lti_post'];
@@ -114,9 +120,11 @@ class LTIX {
     /**
      * Pull out a custom variable from the LTIX session. Do not
      * include the "custom_" prefix - this is automatic.
+     *
+     * @deprecated Session access should be through the Launch Object
      */
-    public static function customGet($varname, $default=false) {
-        return self::postGet('custom_'.$varname, $default);
+    public static function ltiCustomGet($varname, $default=false) {
+        return self::ltiRawParameter('custom_'.$varname, $default);
     }
 
     /**
@@ -1007,8 +1015,8 @@ class LTIX {
     public static function signParameters($oldparms, $endpoint, $method,
         $submit_text = false, $org_id = false, $org_desc = false) {
 
-        $oauth_consumer_key = self::sessionGet('key_key');
-        $oauth_consumer_secret = self::sessionGet('secret');
+        $oauth_consumer_key = self::ltiParameter('key_key');
+        $oauth_consumer_secret = self::ltiParameter('secret');
 
         return LTI::signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oauth_consumer_secret,
             $submit_text, $org_id, $org_desc);
@@ -1018,8 +1026,8 @@ class LTIX {
       */
     public static function settingsSend($settings, $settings_url, &$debug_log=false) {
 
-        $key_key = self::sessionGet('key_key');
-        $secret = self::sessionGet('secret');
+        $key_key = self::ltiParameter('key_key');
+        $secret = self::ltiParameter('secret');
 
         $retval = LTI::sendJSONSettings($settings, $settings_url, $key_key, $secret, $debug_log);
         return $retval;
@@ -1035,14 +1043,14 @@ class LTIX {
     public static function caliperSend($caliperBody, $content_type='application/json', &$debug_log=false)
     {
 
-        $caliperURL = LTIX::postGet('custom_sub_canvas_caliper_url');
+        $caliperURL = LTIX::ltiRawParameter('custom_sub_canvas_caliper_url');
         if ( strlen($caliperURL) == 0 ) {
             if ( is_array($debug_log) ) $debug_log[] = array('custom_sub_canvas_caliper_url not found in launch data');
             return false;
         }
 
-        $key_key = self::sessionGet('key_key');
-        $secret = self::sessionGet('secret');
+        $key_key = self::ltiParameter('key_key');
+        $secret = self::ltiParameter('secret');
 
         $retval = LTI::sendJSONBody("POST", $caliperBody, $content_type,
             $caliperURL, $key_key, $secret, $debug_log);
@@ -1055,8 +1063,8 @@ class LTIX {
     public static function jsonSend($method, $postBody, $content_type,
         $service_url, &$debug_log=false) {
 
-        $key_key = self::sessionGet('key_key');
-        $secret = self::sessionGet('secret');
+        $key_key = self::ltiParameter('key_key');
+        $secret = self::ltiParameter('secret');
 
         $retval = LTI::sendJSONBody($method, $postBody, $content_type,
             $service_url, $key_key, $secret, $debug_log);
@@ -1069,7 +1077,7 @@ class LTIX {
      * @return string The content_item_return_url or false
      */
     public static function ltiLinkUrl($postdata=false) {
-        return LTI::ltiLinkUrl(self::postArray());
+        return LTI::ltiLinkUrl(self::ltiRawPostArray());
     }
 
     /**
@@ -1083,7 +1091,7 @@ class LTIX {
         $PDOX = self::getConnection();
         $host = parse_url($url, PHP_URL_HOST);
         $port = parse_url($url, PHP_URL_PORT);
-        $key_id = self::sessionGet('key_id', false);
+        $key_id = self::ltiParameter('key_id', false);
         if ( $key_id == false ) return false;
 
         $sql = "SELECT consumer_key, secret FROM {$CFG->dbprefix}lti_domain
