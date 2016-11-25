@@ -37,7 +37,7 @@ for($i=0;$i<10000; $i++) {
 for($i=0;$i<100;$i++) echo($hist[$i].' ');
 echo("\n");
 $ave = $tot / $cnt;
-echo("lambda=$lambda tau=$tau ave=$ave cnt=$cnt\n");
+echo("lambda=$lambda tao=$tao ave=$ave cnt=$cnt\n");
 
 if ( PHP_INT_MAX == 2147483647 ) { 
     echo("\n*****\n");

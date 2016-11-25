@@ -13,7 +13,7 @@ class LTIXTest extends PHPUnit_Framework_TestCase
 
     public function testCSRF() {
         // $LAUNCH = LTIX::requireData(LTIX::NONE);
-        $this->assertEquals(LTIX::sessionGet('bob', 'sam'), 'sam');
+        $this->assertEquals(LTIX::ltiParameter('bob', 'sam'), 'sam');
     }
 
 }
