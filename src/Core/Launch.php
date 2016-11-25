@@ -41,6 +41,37 @@ class Launch {
     public $output;
 
     /**
+     * Must be an array equivalent to $_REQUEST.  If this is present
+     * We do not assume access to $_POST or $_GET and we assume
+     * that we cannot use header() so the caller must
+     */
+    public $request_parms = null;
+
+    /**
+     * Must be a string that is the current called URL.  
+     * Required if request_parms is provided.
+     */
+    public $current_url = null;
+
+    /**
+     * If present, it means all session management is above us.
+     *
+     * Must be an object that supports
+     *     .get(key, default)
+     *     .put(key,value)
+     *     .forget(key)
+     *     flush()
+     *
+     * Required if request_parms is provided.
+     */
+    public $session_object = null;
+
+    /**
+     * If this is true when we return, the caller must redirect to a GET of the same URL.
+     */
+    public $do_redirect = false;
+
+    /**
      * Get the base string from the launch.
      *
      * @return This is null if it is not the original launch.

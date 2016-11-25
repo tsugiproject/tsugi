@@ -17,7 +17,7 @@ class ContentItem extends \Tsugi\Util\ContentItem {
      * @return string The content_item_return_url or false
      */
     public static function returnUrl($postdata=false) {
-        if ( ! $postdata ) $postdata = LTIX::postArray();
+        if ( ! $postdata ) $postdata = LTIX::ltiRawPostArray();
         return parent::returnUrl($postdata);
     }
 
@@ -25,7 +25,7 @@ class ContentItem extends \Tsugi\Util\ContentItem {
      * allowLtiLinkItem - Returns true if we can return LTI Link Items
      */
     public static function allowLtiLinkItem($postdata=false) {
-        if ( ! $postdata ) $postdata = LTIX::postArray();
+        if ( ! $postdata ) $postdata = LTIX::ltiRawPostArray();
         return parent::allowLtiLinkItem($postdata);
     }
 
@@ -33,7 +33,7 @@ class ContentItem extends \Tsugi\Util\ContentItem {
      * allowContentItem - Returns true if we can return HTML Items
      */
     public static function allowContentItem($postdata=false) {
-        if ( ! $postdata ) $postdata = LTIX::postArray();
+        if ( ! $postdata ) $postdata = LTIX::ltiRawPostArray();
         return parent::allowContentItem($postdata);
     }
 
@@ -41,7 +41,7 @@ class ContentItem extends \Tsugi\Util\ContentItem {
      * allowImportItem - Returns true if we can return Common Cartridges
      */
     public static function allowImportItem($postdata=false) {
-        if ( ! $postdata ) $postdata = LTIX::postArray();
+        if ( ! $postdata ) $postdata = LTIX::ltiRawPostArray();
         return parent::allowImportItem($postdata);
     }
 
@@ -50,7 +50,7 @@ class ContentItem extends \Tsugi\Util\ContentItem {
      */
     function getContentItemSelection($data=false)
     {
-        if ( ! $data ) $data = LTIX::postGet('data');
+        if ( ! $data ) $data = LTIX::ltiRawParameter('data');
         return parent::getContentItemSelection($data);
     }
 

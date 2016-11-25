@@ -46,7 +46,7 @@ class Settings {
             $_SESSION['lti']['link_settings'] = $json;
             unset($_SESSION['lti']['link_settings_merge']);
         }
-        $settings_url = LTIX::sessionGet('link_settings_url',false);
+        $settings_url = LTIX::ltiParameter('link_settings_url',false);
         if ( $settings_url === false ) return;
 
         $settingsDebugArray[] = array("Sending settings to ".$settings_url);
@@ -77,7 +77,7 @@ class Settings {
         $legacy_fields = array('dologin', 'close', 'due', 'timezone', 'penalty_time', 'penalty_cost');
         $defaults = array();
         foreach($legacy_fields as $k ) {
-            $value = LTIX::customGet($k);
+            $value = LTIX::ltiCustomGet($k);
             $defaults[$k] = $value;
         }
         if ( isset($_SESSION['lti']['link_settings']) ) {
