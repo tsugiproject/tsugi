@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
  */
 class LTIX extends \Tsugi\Core\LTIX {
 
-    public function laravelSetup(Request $request) {
-         $launch = self::LTIX::requireDataOverride(LTIX::ALL,
+    public static function laravelSetup(Request $request, $needed=LTIX::ALL) {
+         $launch = self::requireDataOverride(LTIX::ALL,
             null, /* pdox - default */
             $request->session(),
             null, /* current_url - default */
