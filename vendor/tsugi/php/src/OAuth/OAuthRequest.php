@@ -28,7 +28,7 @@ class OAuthRequest {
               ? 'http'
               : 'https';
     $port = "";
-    if ( $_SERVER['SERVER_PORT'] != "80" && $_SERVER['SERVER_PORT'] != "443" &&
+    if ( isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != "80" && $_SERVER['SERVER_PORT'] != "443" &&
         strpos(':', $_SERVER['HTTP_HOST']) < 0 ) {
       $port =  ':' . $_SERVER['SERVER_PORT'] ;
     }
@@ -53,7 +53,7 @@ class OAuthRequest {
       // Deal with magic_quotes
       // http://www.php.net/manual/en/security.magicquotes.disabling.php
       if ( get_magic_quotes_gpc() ) {
-         $outpost = array();
+         $ourpost = array();
          foreach ($_POST as $k => $v) {
             $v = stripslashes($v);
             $ourpost[$k] = $v;
