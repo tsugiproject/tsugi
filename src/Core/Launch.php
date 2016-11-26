@@ -67,9 +67,14 @@ class Launch {
     public $session_object = null;
 
     /**
-     * If this is true when we return, the caller must redirect to a GET of the same URL.
+     * If this is non-null when we return, the caller must redirect to a GET of the same URL.
      */
-    public $do_redirect = false;
+    public $redirect_url = null;
+
+    /**
+     * If this is non-false, we send a 403 (see also $error_message)
+     */
+    public $send_403 = false;
 
     /**
      * Get the base string from the launch.
@@ -78,12 +83,12 @@ class Launch {
      * it is not restored when the launch is restored from 
      * the session.
      */
-    public $base_string;
+    public $base_string = null;
 
     /**
      * Get the error message if something went wrong with the setup (TBD)
      */
-    public $error_message;
+    public $error_message = null;
 
     /**
      * Get a key from the session
