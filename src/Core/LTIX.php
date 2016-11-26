@@ -61,15 +61,21 @@ class LTIX {
      * Silently check if this is a launch and if so, handle it and redirect
      * back to ourselves
      */
-    public static function launchCheck($needed=self::ALL, $request_data=false) {
+    public static function launchCheck($needed=self::ALL, $session_object=null,$request_data=false) {
+        global $TSUGI_LAUNCH;
         if ( $request_data === false ) $request_data = self::oauth_parameters();
         $needed = self::patchNeeded($needed);
         if ( ! LTI::isRequest($request_data) ) return false;
-        $session_id = self::setupSession($needed);
+        $session_id = self::setupSession($needed,$session_object,$request_data);
         if ( $session_id === false ) return false;
 
         // Redirect back to ourselves...
         $url = self::curPageUrl();
+
+        if ( $session_object !== null ) {
+            $TSUGI_LAUNCH->redirect_url = self::curPageUrl();
+            return true;
+        }
 
         $location = addSession($url);
         session_write_close();  // To avoid any race conditions...
@@ -89,7 +95,9 @@ class LTIX {
     {
         global $TSUGI_SESSION_OBJECT;
         if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
-        if ( is_object($session_object) ) return $session_object->get($key,$default);
+        if ( is_object($session_object) ) {
+            return $session_object->get($key,$default);
+        }
         if ( is_array($session_object) ) {
             if ( isset($session_object[$key]) ) return $session_object[$key];
             return $default;
@@ -106,7 +114,10 @@ class LTIX {
     {
         global $TSUGI_SESSION_OBJECT;
         if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
-        if ( is_object($session_object) ) return $session_object->put($key,$value);
+        if ( is_object($session_object) ) {
+            $session_object->put($key,$value);
+            return;
+        }
         if ( is_array($session_object) ) {
             $session_object[$key] = $value;
             return;
@@ -121,7 +132,10 @@ class LTIX {
     {
         global $TSUGI_SESSION_OBJECT;
         if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
-        if ( is_object($session_object) ) return $session_object->forget($key);
+        if ( is_object($session_object) ) {
+            $session_object->forget($key);
+            return;
+        }
         if ( is_array($session_object) ) {
             if ( isset($session_object[$key]) ) unset($session_object[$key]);
             return;
@@ -136,7 +150,10 @@ class LTIX {
     {
         global $TSUGI_SESSION_OBJECT;
         if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
-        if ( is_object($session_object) ) return $session_object->flush();
+        if ( is_object($session_object) ) {
+            $session_object->flush();
+            return;
+        }
         if ( is_array($session_object) ) {
             foreach($session_object as $k => $v ) {
                 unset($session_object[$k]);
@@ -205,7 +222,11 @@ class LTIX {
         $request_headers = OAuthUtil::get_headers();
 
         // Parse the query-string to find GET parameters
-        $parameters = OAuthUtil::parse_parameters($_SERVER['QUERY_STRING']);
+        if ( isset($_SERVER['QUERY_STRING']) ) {
+            $parameters = OAuthUtil::parse_parameters($_SERVER['QUERY_STRING']);
+        } else {
+            $parameters = array();
+        }
 
         // Add POST Parameters if they exist
         $parameters = array_merge($parameters, $_POST);
@@ -224,7 +245,7 @@ class LTIX {
     /**
      * Extract all of the post data, set up data in tables, and set up session.
      */
-    public static function setupSession($needed=self::ALL, $request_data=false, $session_object=null) {
+    public static function setupSession($needed=self::ALL, $session_object=null, $request_data=false) {
         global $CFG, $TSUGI_LAUNCH, $TSUGI_SESSION_OBJECT;
         if ( $request_data === false ) $request_data = self::oauth_parameters();
         $TSUGI_SESSION_OBJECT = $session_object;
@@ -260,16 +281,13 @@ class LTIX {
             // header('Content-Type: text/html; charset=utf-8');
 
             // Since we might reuse session IDs, clean everything out
-            // if ( !defined('COOKIE_SESSION') ) session_unset();
             if ( !defined('COOKIE_SESSION') ) self::wrapped_session_flush($session_object);
         }
 
-        // $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
         self::wrapped_session_put($session_object,'LAST_ACTIVITY', time());
 
         // Copy the tsugi_nav into the session
         if ( isset($request_data['ext_tsugi_top_nav']) ) {
-            // $_SESSION['tsugi_top_nav'] = $request_data['ext_tsugi_top_nav'];
             self::wrapped_session_put($session_object,'tsugi_top_nav', $request_data['ext_tsugi_top_nav']);
         } else {
             self::wrapped_session_forget($session_object,'tsugi_top_nav');
@@ -340,12 +358,9 @@ class LTIX {
 
         // Put the information into the row variable
         // TODO: do AES on the secret
-        // $_SESSION['lti'] = $row;
-        // $_SESSION['lti_post'] = $request_data;
-        // if ( isset($_SERVER['HTTP_USER_AGENT']) ) $_SESSION['HTTP_USER_AGENT'] = $_SERVER['HTTP_USER_AGENT'];
-        // if ( isset($_SERVER['REMOTE_ADDR']) ) $_SESSION['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
-        self::wrapped_session_put($session_object, 'lti',$row);
-        self::wrapped_session_put($session_object, 'lti_post',$request_data);
+        self::wrapped_session_put($session_object, 'lti', $row);
+        self::wrapped_session_put($session_object, 'lti_post', $request_data);
+
         if ( isset($_SERVER['HTTP_USER_AGENT']) ) {
             self::wrapped_session_put($session_object, 'HTTP_USER_AGENT', $_SERVER['HTTP_USER_AGENT']);
         }
@@ -370,14 +385,18 @@ class LTIX {
         $breadcrumb .= ',';
         $breadcrumb .= isset($request_data['user_id']) ? str_replace(',',';', $request_data['user_id']) : '';
         $breadcrumb .= ',';
-        $breadcrumb .= $session_id;
+        if ( $session_object === null ) {
+            $breadcrumb .= $session_id;
+        }
         $breadcrumb .= ',';
         $breadcrumb .= self::curPageUrl();
         $breadcrumb .= ',';
         $breadcrumb .= self::wrapped_session_get($session_object, 'email',' ');
         error_log($breadcrumb);
 
-        return $session_id;
+        if ( $session_object === null ) {
+            return $session_id;
+        }
     }
 
     /**
@@ -880,7 +899,14 @@ class LTIX {
         $needed = self::patchNeeded($needed);
 
         // Check if we are processing an LTI launch.  If so, handle it
-        $newlaunch = self::launchCheck($needed, $request_data);
+        $newlaunch = self::launchCheck($needed, $session_object, $request_data);
+
+        // If launchCheck comes back with a true, it means someoine above us
+        // needs to do the redirect
+        if ( $newlaunch ) {
+            return $TSUGI_LAUNCH;
+        }
+        
 
         // Check to see if the session already exists.
         if ( $session_object === null ) {
@@ -909,8 +935,6 @@ class LTIX {
         // Or their computer goes to sleep and wakes back up hours later.
         // So it is just a warning - nothing much we can do except tell them.
         if ( count($needed) > 0 && self::wrapped_session_get($session_object, 'lti',false) === false ) {
-            // $debug = Output::safe_var_dump($_SESSION);
-            // error_log($debug);
             self::send403(); error_log('Session expired - please re-launch '.session_id());
             die('Session expired - please re-launch'); // with error_log
         }
@@ -923,7 +947,7 @@ class LTIX {
         $session_agent = self::wrapped_session_get($session_object, 'HTTP_USER_AGENT', null);
         if ( (!$trusted) && $session_agent != null ) {
             if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
-                $_SESSION['HTTP_USER_AGENT'] != $session_agent ) {
+                $_SERVER['HTTP_USER_AGENT'] != $session_agent ) {
                 self::send403();
                 self::abort_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
                     (($session_agent !== null ) ? $session_agent : 'Empty Session user agent') .
@@ -963,7 +987,6 @@ class LTIX {
         self::checkHeartBeat($session_object);
 
         // Restart the number of continuous heartbeats
-        // $_SESSION['HEARTBEAT_COUNT'] = 0;
         self::wrapped_session_put($session_object, 'HEARTBEAT_COUNT', 0);
 
         // We don't have any launch data and don't need it
