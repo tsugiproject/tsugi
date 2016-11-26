@@ -6,5 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Tsugi\\' => array($vendorDir . '/tsugi/php/src'),
+    'Tsugi\\' => array($vendorDir . '/tsugi/lib/src'),
 );

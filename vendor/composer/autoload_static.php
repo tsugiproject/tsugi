@@ -16,7 +16,7 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
     public static $prefixDirsPsr4 = array (
         'Tsugi\\' => 
         array (
-            0 => __DIR__ . '/..' . '/tsugi/php/src',
+            0 => __DIR__ . '/..' . '/tsugi/lib/src',
         ),
     );
 

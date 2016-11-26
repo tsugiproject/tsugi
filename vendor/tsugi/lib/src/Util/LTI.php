@@ -24,14 +24,13 @@ class LTI {
 
     // Returns true if this is a Basic LTI message
     // with minimum values to meet the protocol
-    public static function isRequest($request_data=false) {
-        if ( $request_data === false ) $rquest_data = $_REQUEST;
-        if ( !isset($request_data["lti_message_type"]) ) return false;
-        if ( !isset($request_data["lti_version"]) ) return false;
-        $good_message_type = $request_data["lti_message_type"] == "basic-lti-launch-request" ||
-            $request_data["lti_message_type"] == "ToolProxyReregistrationRequest" ||
-            $request_data["lti_message_type"] == "ContentItemSelectionRequest";
-        $good_lti_version = $request_data["lti_version"] == "LTI-1p0" || $request_data["lti_version"] == "LTI-2p0";
+    public static function isRequest() {
+        if ( !isset($_REQUEST["lti_message_type"]) ) return false;
+        if ( !isset($_REQUEST["lti_version"]) ) return false;
+        $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request" ||
+            $_REQUEST["lti_message_type"] == "ToolProxyReregistrationRequest" ||
+            $_REQUEST["lti_message_type"] == "ContentItemSelectionRequest";
+        $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0" || $_REQUEST["lti_version"] == "LTI-2p0";
         if ($good_message_type and $good_lti_version ) return(true);
         return false;
     }
@@ -43,7 +42,7 @@ class LTI {
      * this returns an array with the first element as an error string, and the second element
      * as the base string of the request.
      */
-    public static function verifyKeyAndSecret($key, $secret, $http_url=NULL, $parameters=null, $http_method=NULL) {
+    public static function verifyKeyAndSecret($key, $secret, $http_url=NULL) {
         global $LastOAuthBodyBaseString;
         if ( ! ($key && $secret) ) return array("Missing key or secret", "");
         $store = new TrivialOAuthDataStore();
@@ -55,8 +54,36 @@ class LTI {
         $server->add_signature_method($method);
         $method = new OAuthSignatureMethod_HMAC_SHA256();
         $server->add_signature_method($method);
+        $http_method = NULL;  // Leave as default
+/*
+        $http_url = NULL; // Default
+        if ( $base_url !== NULL ) {
+            $pieces = parse_url($base_url);
 
-        $request = OAuthRequest::from_request($http_method, $http_url, $parameters);
+            if ( isset($pieces['scheme']) ) {
+                $scheme = $pieces['scheme'];
+            } else {
+                $scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on")
+                    ? 'http' : 'https';
+            }
+
+            if ( isset($pieces['port']) ) {
+                $port = ':'.$pieces['port'];
+            } else {
+                $port = '';
+                if ( $_SERVER['SERVER_PORT'] != "80" && $_SERVER['SERVER_PORT'] != "443" &&
+                    strpos(':', $_SERVER['HTTP_HOST']) < 0 ) {
+                    $port =  ':' . $_SERVER['SERVER_PORT'] ;
+                }
+            }
+            $host = isset($pieces['host']) ? $pieces['host'] : $_SERVER['HTTP_HOST'];
+
+            $http_url = $scheme .  '://' . $host .  $port .
+                              $_SERVER['REQUEST_URI'];
+        }
+*/
+
+        $request = OAuthRequest::from_request($http_method, $http_url);
 
         $LastOAuthBodyBaseString = $request->get_signature_base_string();
 
@@ -67,7 +94,6 @@ class LTI {
             return array($e->getMessage(), $LastOAuthBodyBaseString);
         }
     }
-
     public static function signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oauth_consumer_secret,
         $submit_text = false, $org_id = false, $org_desc = false)
     {

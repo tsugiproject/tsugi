@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "043763b0c55a7ec3614783e2f93f0342",
-    "content-hash": "888684365ee878f9cd6dc314b06d6a3a",
+    "hash": "c4a7e3393cdc11f18793c541383d35a6",
+    "content-hash": "acd575e18763868a19756fcacfbbfe54",
     "packages": [
         {
-            "name": "tsugi/php",
+            "name": "tsugi/lib",
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/csev/tsugi-php.git",
-                "reference": "a2ac371abed1300fb88a337f0359440a4b9233d1"
+                "url": "https://github.com/tsugiproject/tsugi-php.git",
+                "reference": "d650dc9a7bf0b0aa51c2a88a1eb10d1f4d78e06f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/csev/tsugi-php/zipball/a2ac371abed1300fb88a337f0359440a4b9233d1",
-                "reference": "a2ac371abed1300fb88a337f0359440a4b9233d1",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/d650dc9a7bf0b0aa51c2a88a1eb10d1f4d78e06f",
+                "reference": "d650dc9a7bf0b0aa51c2a88a1eb10d1f4d78e06f",
                 "shasum": ""
             },
             "require": {
@@ -28,11 +28,16 @@
             "autoload": {
                 "psr-4": {
                     "Tsugi\\": "src/"
-                }
+                },
+                "exclude-from-classmap": [
+                    "/tests/",
+                    "phpdoc.dist.xml",
+                    "phpunit.xml.dist"
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "Apache 2.0"
+                "Apache-2.0"
             ],
             "authors": [
                 {
@@ -42,16 +47,16 @@
                     "role": "Developer"
                 }
             ],
-            "description": "The PHP Library to build interoperabile learning tools",
+            "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2016-01-02 18:49:31"
+            "time": "2016-11-26 06:02:22"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "tsugi/php": 20
+        "tsugi/lib": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

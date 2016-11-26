@@ -451,7 +451,6 @@ class ConfigInfo {
         $script = self::getScriptName();
         if ( $script === false ) return false; 
         $pieces = parse_url($this->apphome);
-        if ( ! isset($pieces['scheme']) ) return false;
         $retval = $pieces['scheme'].'://'.$pieces['host'];
         if ( isset($pieces['port']) ) $retval .= ':'.$pieces['port'];
         return $retval . $script;

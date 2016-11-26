@@ -1,33 +1,38 @@
 [
     {
-        "name": "tsugi/php",
+        "name": "tsugi/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
-            "url": "https://github.com/csev/tsugi-php.git",
-            "reference": "a2ac371abed1300fb88a337f0359440a4b9233d1"
+            "url": "https://github.com/tsugiproject/tsugi-php.git",
+            "reference": "d650dc9a7bf0b0aa51c2a88a1eb10d1f4d78e06f"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/csev/tsugi-php/zipball/a2ac371abed1300fb88a337f0359440a4b9233d1",
-            "reference": "a2ac371abed1300fb88a337f0359440a4b9233d1",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/d650dc9a7bf0b0aa51c2a88a1eb10d1f4d78e06f",
+            "reference": "d650dc9a7bf0b0aa51c2a88a1eb10d1f4d78e06f",
             "shasum": ""
         },
         "require": {
             "php": ">=5.5.0"
         },
-        "time": "2016-01-02 18:49:31",
+        "time": "2016-11-26 06:02:22",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
                 "Tsugi\\": "src/"
-            }
+            },
+            "exclude-from-classmap": [
+                "/tests/",
+                "phpdoc.dist.xml",
+                "phpunit.xml.dist"
+            ]
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "Apache 2.0"
+            "Apache-2.0"
         ],
         "authors": [
             {
@@ -37,7 +42,7 @@
                 "role": "Developer"
             }
         ],
-        "description": "The PHP Library to build interoperabile learning tools",
+        "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
     }
 ]

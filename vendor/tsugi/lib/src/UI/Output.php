@@ -145,7 +145,7 @@ body {
         }
 
     	// Set the containing frame id is we have one
-        $element_id = LTIX::ltiRawParameter('ext_lti_element_id', false);
+        $element_id = LTIX::postGet('ext_lti_element_id', false);
         if ( $element_id ) {
             echo('<script type="text/javascript">LTI_PARENT_IFRAME_ID = "'.$element_id.'";</script>'."\n");
         }
@@ -331,13 +331,13 @@ function googleTranslateElementInit() {
       })();
 
     <?php
-            if ( LTIX::ltiParameter('key_key') ) {
+            if ( LTIX::sessionGet('key_key') ) {
                 echo("_gaq.push(['_setCustomVar', 1, 'consumer_key', '".$_SESSION['lti']['key_key']."', 2]);\n");
             }
-            if ( LTIX::ltiParameter('context_id') ) {
+            if ( LTIX::sessionGet('context_id') ) {
                 echo("_gaq.push(['_setCustomVar', 2, 'context_id', '".$_SESSION['lti']['context_id']."', 2]);\n");
             }
-            if ( LTIX::ltiParameter('context_title') ) {
+            if ( LTIX::sessionGet('context_title') ) {
                 echo("_gaq.push(['_setCustomVar', 3, 'context_title', '".$_SESSION['lti']['context_title']."', 2]);\n");
             }
             echo("</script>\n");

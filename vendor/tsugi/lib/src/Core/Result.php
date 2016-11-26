@@ -81,18 +81,18 @@ class Result extends Entity {
 
         $PDOX = LTIX::getConnection();
 
-        $key_key = LTIX::ltiParameter('key_key');
-        $secret = LTIX::ltiParameter('secret');
+        $key_key = LTIX::sessionGet('key_key');
+        $secret = LTIX::sessionGet('secret');
         if ( $row !== false ) {
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
             // Fall back to session if it is missing
-            if ( $service === false ) $service = LTIX::ltiParameter('service');
+            if ( $service === false ) $service = LTIX::sessionGet('service');
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
         } else {
-            $sourcedid = LTIX::ltiParameter('sourcedid');
-            $service = LTIX::ltiParameter('service');
-            $result_id = LTIX::ltiParameter('result_id');
+            $sourcedid = LTIX::sessionGet('sourcedid');
+            $service = LTIX::sessionGet('service');
+            $result_id = LTIX::sessionGet('result_id');
         }
 
         if ( $key_key == false || $secret === false ||
@@ -145,20 +145,20 @@ class Result extends Entity {
         $PDOX = LTIX::getConnection();
 
         // Secret and key from session to avoid crossing tenant boundaries
-        $key_key = LTIX::ltiParameter('key_key');
-        $secret = LTIX::ltiParameter('secret');
+        $key_key = LTIX::sessionGet('key_key');
+        $secret = LTIX::sessionGet('secret');
         if ( $row !== false ) {
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
             // Fall back to session if it is missing
-            if ( $service === false ) $service = LTIX::ltiParameter('service');
+            if ( $service === false ) $service = LTIX::sessionGet('service');
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
         } else {
-            $result_url = LTIX::ltiParameter('result_url');
-            $sourcedid = LTIX::ltiParameter('sourcedid');
-            $service = LTIX::ltiParameter('service');
-            $result_id = LTIX::ltiParameter('result_id');
+            $result_url = LTIX::sessionGet('result_url');
+            $sourcedid = LTIX::sessionGet('sourcedid');
+            $service = LTIX::sessionGet('service');
+            $result_id = LTIX::sessionGet('result_id');
         }
 
         // Update result in the database and in the LTI session area and 
