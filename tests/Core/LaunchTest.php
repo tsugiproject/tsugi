@@ -3,24 +3,9 @@
 require_once "src/Core/LTIX.php";
 require_once "src/Core/Launch.php";
 require_once "src/Util/PDOX.php";
+require_once "tests/Mock/MockSession.php";
 
 use \Tsugi\Core\LTIX;
-
-class hack_session_launch {
-    public $sess = array();
-    public function get($key, $default) {
-        return isset($this->sess[$key]) ? $this->sess[$key] : $default;
-    }
-    public function put($key, $value) {
-        $this->sess[$key] = $value;
-    }
-    public function forget($key) {
-        if ( isset($this->sess[$key]) ) unset($this->sess[$key]);
-    }
-    public function flush() {
-        $this->sess = array();
-    }
-}
 
 class LaunchTest extends PHPUnit_Framework_TestCase
 {
@@ -64,7 +49,7 @@ class LaunchTest extends PHPUnit_Framework_TestCase
     }
 
     public function testWrappedSessionObject() {
-        $sess = new hack_session_launch();
+        $sess = new MockSession();
         $this->exercise($sess);
     }
 
