@@ -108,9 +108,9 @@ $CFG->product_instance_guid = 'lti2.example.com';
 $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 
 // The vendor include and root
-$CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/php/util";
-$CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/php/include";
-$CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/php/static";
+$CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
+$CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/lib/include";
+$CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/lib/static";
 
 // When this is true it enables a Developer test harness that can launch
 // tools using LTI.  It allows quick testing without setting up an LMS
