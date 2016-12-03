@@ -126,6 +126,9 @@ foreach($l->lessons->modules as $module) {
                 }
             }
             $endpoint = absolute_url($lti->launch);
+            $endpoint .= strpos($endpoint,'?') === false ? '?' : '&';
+            // Sigh - some LMSs don't handle custom - sigh
+            $endpoint .= 'inherit=' . urlencode($lti->resource_link_id);
             $extensions = array('apphome' => $CFG->apphome);
             $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
         }
