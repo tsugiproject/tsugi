@@ -228,7 +228,7 @@ if ( $doLogin ) {
         }
 
         // Add a membership record if needed
-        if ( isset($context_id) ) {
+        if ( $context_id !== false ) {
             $sql = "INSERT IGNORE INTO {$CFG->dbprefix}lti_membership
                 ( context_id, user_id, role, created_at, updated_at ) VALUES
                 ( :context_id, :user_id, :role, NOW(), NOW() )";
