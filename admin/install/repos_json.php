@@ -19,7 +19,27 @@ if ( ! isset($CFG->install_folder) ) {
     die_with_error_log('Install folder is not configured');
 }
 
+require_once("../admin_util.php");
+
 echo("\n<pre>\n");
+
+$path = $CFG->removeRelativePath($CFG->install_folder);
+$folders = findAllFolders($path);
+
+$existing = array();
+foreach($folders as $folder){
+    $git = $folder . '/.git';
+    if ( !is_dir($git) ) continue;
+
+    try {
+        $repo = new \Tsugi\Util\GitRepo($folder);
+        $origin = $repo->run('remote get-url origin');
+        $existing[trim($origin)] = $repo;
+    } catch (Exception $e) {
+        echo 'Caught exception: ',  $e->getMessage(), "\n";
+    }
+}
+
 
 // Only retrieve fresh every 600 seconds unless forced
 $repos = Cache::check('repos',1);
@@ -61,7 +81,8 @@ if ( (! isset($_GET['force']) ) && $repos !== false ) {
     Cache::set('repos',1,$repos,$expiresec);
 }
 
-$repo_list = array();
+$available = array();
+$installed = array();
 
 foreach($repos as $repo) {
     $detail = new \stdClass();
@@ -69,11 +90,44 @@ foreach($repos as $repo) {
     $detail->clone_url = $repo->clone_url;
     $detail->name = ucfirst($repo->name);
     $detail->description = $repo->description;
-    $repo_list[] = $detail;
+    $detail->tsugitools = true;
+    if ( isset($existing[$detail->clone_url]) ) {
+        $detail->existing = true;
+        $repo = $existing[$detail->clone_url]; 
+        $update = $repo->run('remote update');
+        $detail->update_note = $update;
+        $status = $repo->run('status -uno');
+        $detail->status_note = $status;
+        $detail->updates = strpos($status, 'Your branch is behind') !== false;
+        unset($existing[$detail->clone_url]);
+        $installed[] = $detail;
+    } else {
+        $available[] = $detail;
+    }
 }
+
+// The ones we have that are not from tsugitools
+foreach($existing as $clone_url => $repo) {
+    $detail = new \stdClass();
+    $detail->clone_url = $clone_url; // Yes, it works..
+    $detail->html_url = $clone_url; // Yes, it works..
+    $detail->name = "TBD";
+    $detail->description = "";
+    $update = $repo->run('remote update');
+    $detail->update_note = $update;
+    $status = $repo->run('status -uno');
+    $detail->status_note = $status;
+    $detail->updates = strpos($status, 'Your branch is behind') !== false;
+    $detail->tsugitools = false;
+    $installed[] = $detail;
+}
+
+
+// git reset --hard 5979437e27bd47637c4b562b33e861ce32b6468b
 
 $retval['status'] = 'OK';
 $retval['detail'] = $note;
-$retval['repos'] = $repo_list;
+$retval['available'] = $available;
+$retval['installed'] = $installed;
 
 echo(json_encode($retval, JSON_PRETTY_PRINT));
