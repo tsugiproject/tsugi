@@ -21,8 +21,6 @@ if ( ! isset($CFG->install_folder) ) {
 
 require_once("../admin_util.php");
 
-echo("\n<pre>\n");
-
 $path = $CFG->removeRelativePath($CFG->install_folder);
 $folders = findAllFolders($path);
 

@@ -1,0 +1,10 @@
+{{#if available.length }}
+ {{#each available}}
+    <li>{{name}}
+(<a href="{{html_url}}" target="_blank">{{html_url}}</a>)
+    </li>
+ {{/each}}
+{{else}}
+ <p>No available modules</p>
+{{/if}}
+

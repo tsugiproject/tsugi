@@ -179,6 +179,18 @@ if (window!=window.top) {
         }
     }
 
+    function templateInclude($name) {
+        if ( is_array($name) ) {
+            foreach($name as $n) {
+                self::templateInclude($n);
+            }
+            return;
+        }
+        echo('<script id="template-'.$name.'" type="text/x-handlebars-template">'."\n");
+        require('templates/'.$name.'.hbs');
+        echo("</script>\n");
+    }
+
     function footerStart() {
         global $CFG;
         echo('<script src="'.$CFG->staticroot.'/js/jquery-1.11.3.js"></script>'."\n");

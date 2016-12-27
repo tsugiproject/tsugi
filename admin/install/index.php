@@ -24,12 +24,12 @@ $OUTPUT->flashMessages();
 <div id="myTabContent" class="tab-content">
   <div class="tab-pane fade active in" id="home">
     <ul id="installed_ul">
-    TBD: <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
     </ul>
   </div>
   <div class="tab-pane fade" id="available">
     <ul id="available_ul">
-    TBD: <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
     </ul>
   </div>
   <div class="tab-pane fade" id="advanced">
@@ -42,4 +42,19 @@ $OUTPUT->flashMessages();
 
 
 $OUTPUT->footerStart();
+$OUTPUT->templateInclude(array('installed', 'available'));
+// $OUTPUT->templateInclude('installed');
+// $OUTPUT->templateInclude('available');
+?>
+<script>
+$(document).ready(function(){
+    $.getJSON('<?= addSession('repos_json.php') ?>', function(repos) {
+        window.console && console.log(repos);
+        tsugiHandlebarsToDiv('installed_ul', 'installed', repos);
+        tsugiHandlebarsToDiv('available_ul', 'available', repos);
+    }).fail( function() { alert('getJSON fail'); } );
+});
+
+</script>
+<?php
 $OUTPUT->footerEnd();

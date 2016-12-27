@@ -1,0 +1,9 @@
+{{#if installed.length }}
+ {{#each installed}}
+    <li>{{name}}
+(<a href="{{html_url}}" target="_blank">{{html_url}}</a>)
+    </li>
+ {{/each}}
+{{else}}
+ <p>No installed modules</p>
+{{/if}}
