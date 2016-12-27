@@ -40,14 +40,15 @@ class Cache {
      *
      * We don't cache null or false if that was our value.
      */
-    public static function set($cacheloc, $cachekey, $cacheval)
+    public static function set($cacheloc, $cachekey, $cacheval, $expiresec=false)
     {
         $cacheloc = "cache_" . $cacheloc;
         if ( $cacheval === null || $cacheval === false ) {
             unset($_SESSION[$cacheloc]);
             return;
         }
-        $_SESSION[$cacheloc] = array($cachekey, $cacheval);
+        if ( $expiresec !== false ) $expiresec = time() + $expiresec;
+        $_SESSION[$cacheloc] = array($cachekey, $cacheval, $expiresec);
     }
 
     /**
@@ -60,11 +61,36 @@ class Cache {
         $cacheloc = "cache_" . $cacheloc;
         if ( isset($_SESSION[$cacheloc]) ) {
             $cache_row = $_SESSION[$cacheloc];
+            if ( time() >= $cache_row[2] ) { 
+                unset($_SESSION[$cacheloc]);
+                return false;
+            }
             if ( $cache_row[0] == $cachekey ) {
                 // error_log("Cache hit $cacheloc");
                 return $cache_row[1];
             }
             unset($_SESSION[$cacheloc]);
+        }
+        return false;
+    }
+
+    /**
+     * Check when value in the cache expires
+     *
+     * Returns false if there is no entry.
+     */
+    public static function expires($cacheloc, $cachekey)
+    {
+        $cacheloc = "cache_" . $cacheloc;
+        if ( isset($_SESSION[$cacheloc]) ) {
+            $cache_row = $_SESSION[$cacheloc];
+            if ( time() >= $cache_row[2] ) { 
+                unset($_SESSION[$cacheloc]);
+                return false;
+            }
+            if ( $cache_row[0] != $cachekey ) return false;
+            if ( $cache_row[0] === false ) return false;
+            return $cache_row[2] - time();
         }
         return false;
     }
