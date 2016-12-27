@@ -1,7 +1,6 @@
 <?php
 
-use \Tsugi\Util\Git;
-use \Tsugi\Util\GitRepo;
+use \Tsugi\Core\LTIX;
 
 define('COOKIE_SESSION', true);
 require_once("../../config.php");
@@ -9,24 +8,38 @@ session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-echo("\n<pre>\n");
-$path = $CFG->removeRelativePath($CFG->install_folder);
-$folders = findAllFolders($path);
+$LAUNCH = LTIX::session_start();
 
-foreach($folders as $folder){
-    $git = $folder . '/.git';
-    if ( !is_dir($git) ) continue;
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
 
-    try {
-        echo("Repo: $folder\n");
-        $repo = new \Tsugi\Util\GitRepo($folder);
-        $origin = $repo->run('remote get-url origin');
-        echo("Origin: $origin\n");
-        $update = $repo->run('remote update');
-        echo("Update: $update\n");
-        $status = $repo->run('status -uno');
-        echo("Status:\n$status\n");
-    } catch (Exception $e) {
-        echo 'Caught exception: ',  $e->getMessage(), "\n";
-    }
-}
+?>
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Installed Modules</a></li>
+  <li class=""><a href="#available" data-toggle="tab" aria-expanded="false">Available Modules</a></li>
+  <li class=""><a href="#advanced" data-toggle="tab" aria-expanded="false">Advanced</a></li>
+</ul>
+<div id="myTabContent" class="tab-content">
+  <div class="tab-pane fade active in" id="home">
+    <ul id="installed_ul">
+    TBD: <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    </ul>
+  </div>
+  <div class="tab-pane fade" id="available">
+    <ul id="available_ul">
+    TBD: <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    </ul>
+  </div>
+  <div class="tab-pane fade" id="advanced">
+    <p>TBD</p>
+  </div>
+</div>
+
+<?php
+
+
+
+$OUTPUT->footerStart();
+$OUTPUT->footerEnd();
