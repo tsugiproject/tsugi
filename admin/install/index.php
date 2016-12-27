@@ -15,6 +15,12 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
+if ( ! isset($CFG->install_folder) ) {
+    echo('<h1>Install folder ($CFG->install_folder) is not configured</h1>'."\n");
+    $OUTPUT->footer();
+    return;
+}
+
 ?>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Installed Modules</a></li>
