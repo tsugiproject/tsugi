@@ -4,9 +4,9 @@ use \Tsugi\Util\Git;
 use \Tsugi\Util\GitRepo;
 
 define('COOKIE_SESSION', true);
-require_once("../config.php");
+require_once("../../config.php");
 session_start();
-require_once("gate.php");
+require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 echo("\n<pre>\n");
