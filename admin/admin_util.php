@@ -52,6 +52,30 @@ function findTools($dir, &$retval, $filename="index.php") {
     }
 }
 
+function findAllFolders($paths)
+{
+    $folders = array();
+    if ( is_string($paths) ) $paths = array($paths);
+    foreach( $paths as $path) {
+       $files = scandir($path);
+        foreach($files as $file) {
+            if ( strpos($file,'.') === 0 ) continue;
+            if ( strpos($file,'_') === 0 ) continue;
+            $abs = addSlash($path).$file;
+            if ( ! is_dir($abs) ) continue;
+            $folders[] = $abs;
+        }
+    }
+    return $folders;
+}
+
+function addSlash($path)
+{
+    if ( strlen($path) < 1 ) return $path;
+    if ( substr($path,strlen($path)-1) == DIRECTORY_SEPARATOR ) return $path;
+    return $path . DIRECTORY_SEPARATOR;
+}
+
 function findAllTools()
 {
     global $CFG;
@@ -65,12 +89,14 @@ function findAllTools()
     return $tools;
 }
 
-function findAllRegistrations()
+function findAllRegistrations($folders=false)
 {
     global $CFG;
     // Scan the tools folders for registration settings
+    if ( $folders == false ) $folders = $CFG->tool_folders;
+    if ( is_string($folders) ) $folders = array($folders);
     $tools = array();
-    foreach( $CFG->tool_folders AS $tool_folder) {
+    foreach( $folders AS $tool_folder) {
         if ( $tool_folder == 'core' ) continue;
         if ( $tool_folder == 'admin' ) continue;
         $some = findFiles('register.php', $CFG->dirroot . '/');
