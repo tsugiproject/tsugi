@@ -57,7 +57,9 @@ some of these git repos.
 <ul class="nav nav-tabs">
   <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Installed Modules</a></li>
   <li class=""><a href="#available" data-toggle="tab" aria-expanded="false">Available Modules</a></li>
+ <!--
   <li class=""><a href="#advanced" data-toggle="tab" aria-expanded="false">Advanced</a></li>
+ -->
 </ul>
 <div id="myTabContent" class="tab-content">
   <div class="tab-pane fade active in" id="home">
@@ -70,9 +72,11 @@ some of these git repos.
     <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
     </ul>
   </div>
+<!--
   <div class="tab-pane fade" id="advanced">
     <p>TBD</p>
   </div>
+-->
 </div>
 
 <?php
