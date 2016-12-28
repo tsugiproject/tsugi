@@ -1,11 +1,25 @@
 {{#if installed.length }}
  {{#each installed}}
-    <li>{{name}}
+    <li>{{name}} 
        (<a href="{{html_url}}" target="_blank">{{html_url}}</a>)
+       {{#if description}}
+         <br/>{{description}}
+       {{/if}} 
        {{#if updates}}
-              <br/>
-              Updates Available
-              <i class="fa fa-cloud-download text-important"></i>
+         <br/>
+         Updates Available
+         <i class="fa fa-cloud-download text-important"></i>
+       {{/if}}
+       {{#if status_note}}
+        <br/>
+        <div id="status_note_{{index}}" title="git status" style="display: none;">
+<pre>
+{{status_note}}
+</pre>
+        </div>
+       <a href="#" onclick="showModal('git status','status_note_{{index}}'); return false;">
+    git status
+       </a>
        {{/if}}
        {{#if writeable}}
               <br/>

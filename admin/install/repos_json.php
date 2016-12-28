@@ -25,6 +25,7 @@ require_once("install_util.php");
 
 $available = array();
 $installed = array();
+$paths = array();
 
 // In case we need a setuid copy of git
 if ( isset($CFG->git_command) ) {
@@ -56,7 +57,11 @@ $status = $repo->run('status -uno');
 $tsugi->status_note = $status;
 $tsugi->updates = strpos($status, 'Your branch is behind') !== false;
 $tsugi->tsugitools = false;
+$tsugi->index = count($installed) + 1;
+$tsugi->path = $CFG->dirroot;
+$tsugi->guid = md5($CFG->dirroot);
 $installed[] = $tsugi;
+$paths[$origin] = $CFG->dirroot;
 
 $path = $CFG->removeRelativePath($CFG->install_folder);
 $folders = findAllFolders($path);
@@ -71,6 +76,7 @@ foreach($folders as $folder){
         // $origin = $repo->run('remote get-url origin'); // In git 2.0
         $origin = getRepoOrigin($repo);
         $existing[$origin] = $repo;
+        $paths[$origin] = $folder;
     } catch (Exception $e) {
         $error = 'Caught exception: '.$e->getMessage(). "\n";
         $retval['error'] = $error;
@@ -128,6 +134,8 @@ foreach($repos as $repo) {
     $detail->tsugitools = true;
     if ( isset($existing[$detail->clone_url]) ) {
         $detail->existing = true;
+        $detail->path = $paths[$detail->clone_url];
+        $detail->guid = md5($paths[$detail->clone_url]);
         $repo = $existing[$detail->clone_url]; 
         try {
             $update = $repo->run('remote update');
@@ -141,9 +149,11 @@ foreach($repos as $repo) {
         $detail->status_note = $status;
         $detail->updates = strpos($status, 'Your branch is behind') !== false;
         unset($existing[$detail->clone_url]);
+        $detail->index = count($installed) + 1;
         $installed[] = $detail;
     } else {
         $detail->writeable = $install_writeable; // Assume if we cannot update tsugi..
+        $detail->index = count($available) + 1;
         $available[] = $detail;
     }
 }
@@ -162,6 +172,7 @@ foreach($existing as $clone_url => $repo) {
     $detail->updates = strpos($status, 'Your branch is behind') !== false;
     $detail->tsugitools = false;
     $detail->writeable = $install_writeable; // Assume if we cannot update tsugi..
+    $detail->index = count($installed) + 1;
     $installed[] = $detail;
 }
 
