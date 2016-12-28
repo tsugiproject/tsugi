@@ -20,6 +20,28 @@ if ( ! isset($CFG->install_folder) ) {
 }
 
 require_once("../admin_util.php");
+require_once("install_util.php");
+
+$available = array();
+$installed = array();
+
+// Figure out the tsugi version
+$repo = new \Tsugi\Util\GitRepo($CFG->dirroot);
+$git_version = $repo->run('--version');
+
+$origin = getRepoOrigin($repo);
+$tsugi = new \stdClass();
+$tsugi->clone_url = $origin; // Yes, it works..
+$tsugi->html_url = $origin; // Yes, it works..
+$tsugi->name = "Tsugi Admin";
+$tsugi->description = "Tsugi Adminstration, Management, and Development Console.";
+$update = $repo->run('remote update');
+$tsugi->update_note = $update;
+$status = $repo->run('status -uno');
+$tsugi->status_note = $status;
+$tsugi->updates = strpos($status, 'Your branch is behind') !== false;
+$tsugi->tsugitools = false;
+$installed[] = $tsugi;
 
 $path = $CFG->removeRelativePath($CFG->install_folder);
 $folders = findAllFolders($path);
@@ -31,13 +53,16 @@ foreach($folders as $folder){
 
     try {
         $repo = new \Tsugi\Util\GitRepo($folder);
-        $origin = $repo->run('remote get-url origin');
-        $existing[trim($origin)] = $repo;
+        // $origin = $repo->run('remote get-url origin'); // In git 2.0
+        $origin = getRepoOrigin($repo);
+        $existing[$origin] = $repo;
     } catch (Exception $e) {
-        echo 'Caught exception: ',  $e->getMessage(), "\n";
+        $error = 'Caught exception: '.$e->getMessage(). "\n";
+        $retval['error'] = $error;
+        echo(json_encode($retval));
+        die_with_error_log($error);
     }
 }
-
 
 // Only retrieve fresh every 600 seconds unless forced
 $repos = Cache::check('repos',1);
@@ -79,9 +104,6 @@ if ( (! isset($_GET['force']) ) && $repos !== false ) {
     Cache::set('repos',1,$repos,$expiresec);
 }
 
-$available = array();
-$installed = array();
-
 foreach($repos as $repo) {
     $detail = new \stdClass();
     $detail->html_url = $repo->html_url;
@@ -121,9 +143,8 @@ foreach($existing as $clone_url => $repo) {
 }
 
 
-// git reset --hard 5979437e27bd47637c4b562b33e861ce32b6468b
-
 $retval['status'] = 'OK';
+$retval['version'] = trim($git_version);
 $retval['detail'] = $note;
 $retval['available'] = $available;
 $retval['installed'] = $installed;

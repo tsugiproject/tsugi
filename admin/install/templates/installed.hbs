@@ -2,6 +2,11 @@
  {{#each installed}}
     <li>{{name}}
 (<a href="{{html_url}}" target="_blank">{{html_url}}</a>)
+{{#if updates}}
+<br/>
+Updates Available
+<i class="fa fa-cloud-download text-important"></i>
+{{/if}}
     </li>
  {{/each}}
 {{else}}

@@ -10,6 +10,9 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 $LAUNCH = LTIX::session_start();
 
+$repo = new \Tsugi\Util\GitRepo($CFG->dirroot);
+$git_version = $repo->run('--version');
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -22,6 +25,13 @@ if ( ! isset($CFG->install_folder) ) {
 }
 
 ?>
+<p>This screen is a wrapper for the <b>git</b> command.  It must be installed in your system
+for this screen to work at all.  This screen runs <b>git</b> commands on your behalf.
+It will only handle the normal operations and assuming that they work.  If you log in
+and edir the files after they are checked out, this tool might not be able to upgrade
+some of these git repos.
+</p>
+<p>Using: <?= htmlentities($git_version) ?></p>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Installed Modules</a></li>
   <li class=""><a href="#available" data-toggle="tab" aria-expanded="false">Available Modules</a></li>
