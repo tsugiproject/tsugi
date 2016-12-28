@@ -173,6 +173,10 @@ foreach($existing as $clone_url => $repo) {
     $detail->tsugitools = false;
     $detail->writeable = $install_writeable; // Assume if we cannot update tsugi..
     $detail->index = count($installed) + 1;
+    if ( isset($paths[$clone_url]) ) {
+        $detail->path = $paths[$clone_url];
+        $detail->guid = md5($paths[$clone_url]);
+    }
     $installed[] = $detail;
 }
 

@@ -31,18 +31,29 @@
               </a>
          </li>
        {{/if}}
-       {{#if updates}}
-         <li>
-         Updates Available
-         <i class="fa fa-cloud-download text-important"></i>
-         </li>
-       {{/if}}
        {{#if guid}}
         <li>
        <a href="git.php?command=log&path={{guid}}" title="git log" target="iframe-frame"
         onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" > 
        Git log
        </a>
+        </li>
+       {{/if}}
+       {{#if updates}}
+         <li>
+         Updates Available
+         <i class="fa fa-cloud-download text-important"></i>
+         </li>
+         {{#if guid}}
+           {{#if writeable}}
+            <li>
+               <a href="git.php?command=pull&path={{guid}}" title="git pull" target="iframe-frame"
+                onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" > 
+               Git pull
+           </a>
+            </li>
+           {{/if}}
+         {{/if}}
        {{/if}}
        </ul>
     </li>

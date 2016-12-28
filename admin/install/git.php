@@ -17,6 +17,15 @@ $retval = array();
 require_once("../admin_util.php");
 require_once("install_util.php");
 
+if ( isset($_SESSION['git_results']) ) {
+    echo("<p>Results of command:</p>\n");
+    echo("<pre>\n");
+    echo(htmlentities($_SESSION['git_results']));
+    echo("\n</pre>\n");
+    unset($_SESSION['git_results']);
+    return;
+}
+
 $available = array();
 $installed = array();
 $paths = array();
@@ -82,12 +91,25 @@ if ( $command == 'log' ) {
 }
 
 // Do sanity checking on all requests
+$repo = false;
+$origin = false;
+$log = false;
 if ( $command == 'pull' ) {
     if ( ! isset($_REQUEST['path'])) {
         die_with_error_log('pull command requires path parameter');
     }
     if ( ! isset($paths[$_REQUEST['path']]) ) {
         die_with_error_log('Unknown path');
+    }
+
+    $path = $paths[$_REQUEST['path']];
+
+    try {
+        $repo = new \Tsugi\Util\GitRepo($path);
+        $origin = getRepoOrigin($repo);
+    } catch (Exception $e) {
+        $error = 'Caught exception: '.$e->getMessage(). "\n";
+        die_with_error_log('Unable to execute git. '.$error);
     }
 } else if ( $command == 'clone' ) {
     if ( ! isset($CFG->install_folder) ) {
@@ -98,156 +120,50 @@ if ( $command == 'pull' ) {
         die_with_error_log('clone command requires repo parameter');
     }
 } else {
-    die_with_error_log('Unknown command');
+    die_with_error_log('Unknown git command');
 }
 
-/*
-// Gather the information for the tsugi folder
-$origin = getRepoOrigin($repo);
-$tsugi = new \stdClass();
-$tsugi->clone_url = $origin; // Yes, it works..
-$tsugi->html_url = $origin; // Yes, it works..
-$tsugi->name = "Tsugi Admin";
-$tsugi->description = "Tsugi Adminstration, Management, and Development Console.";
-try {
-    $update = $repo->run('remote update');
-    $tsugi->writeable = true;
-    $install_writeable = true;
-} catch (Exception $e) {
-    $tsugi->writeable = false;
-    $install_writeable = false;
-    $update = 'Caught exception: '.$e->getMessage(). "\n";
-}
-$tsugi->update_note = $update;
-$status = $repo->run('status -uno');
-$tsugi->status_note = $status;
-$tsugi->updates = strpos($status, 'Your branch is behind') !== false;
-$tsugi->tsugitools = false;
-$tsugi->index = count($installed) + 1;
-$tsugi->path = $CFG->dirroot;
-$tsugi->guid = md5($CFG->dirroot);
-$installed[] = $tsugi;
-$paths[$origin] = $CFG->dirroot;
-
-$path = $CFG->removeRelativePath($CFG->install_folder);
-$folders = findAllFolders($path);
-
-$existing = array();
-foreach($folders as $folder){
-    $git = $folder . '/.git';
-    if ( !is_dir($git) ) continue;
+// Handle the POST - do the actual work
+if ( isset($_POST['command']) && $command == "pull" ) {
+    $path = $paths[$_REQUEST['path']];
 
     try {
-        $repo = new \Tsugi\Util\GitRepo($folder);
-        // $origin = $repo->run('remote get-url origin'); // In git 2.0
+        $repo = new \Tsugi\Util\GitRepo($path);
         $origin = getRepoOrigin($repo);
-        $existing[$origin] = $repo;
-        $paths[$origin] = $folder;
+        $log = $repo->run('pull');
+        $results = "Repository: $origin \n";
+        $results .= "Command: git pull\n\n";
+        $results .= $log;
+        $_SESSION['git_results'] = $results;
+        header('Location: '.addSession('git.php'));
+        return;
     } catch (Exception $e) {
         $error = 'Caught exception: '.$e->getMessage(). "\n";
-        $retval['error'] = $error;
-        echo(json_encode($retval));
-        die_with_error_log($error);
+        die_with_error_log('Unable to execute git. '.$error);
     }
 }
 
-// Only retrieve fresh every 600 seconds unless forced
-$repos = Cache::check('repos',1);
-if ( (! isset($_GET['force']) ) && $repos !== false ) {
-    $expires = Cache::expires('repos',1);
-    $note = 'Retrieved from session. Cached for '.$expires.' more seconds to avoid rate limit. Add ?force=yes to force pull from github before cache expires.';
+// Fall through, set up form and POST
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+$OUTPUT->flashMessages();
+
+if ( $command == 'pull' ) {
+?>
+<form method="POST">
+<p>
+Git Command: <?= htmlentities($command) ?>
+</p><p>
+Git Repository: <?= htmlentities($origin) ?>
+</p><p>
+<input type="hidden" name="command" value="<?= htmlentities($command) ?>">
+<input type="hidden" name="path" value="<?= htmlentities($_REQUEST['path']) ?>">
+<input type="submit" value="execute">
+</form>
+<?php
+} else if ( $command == 'clone' ) {
 } else {
-    $url = 'https://api.github.com/users/tsugitools/repos?language=PHP';
-    $headers = 'User-Agent: TsugiProject';
-    $expiresec = 600;
-    $repos_str = Net::doGet($url, $headers);
-    $note = 'Retrieved from github API. Data is cached for '.$expiresec.' seconds to avoit github limit. Add ?force=yes to force pull from github before cache expires.';
-    if ( strlen($repos_str) < 1 ) {
-        $error = 'No data retrieved from '.$url;
-        $retval['error'] = $error;
-        echo(json_encode($retval));
-        die_with_error_log($error);
-    }
-    // echo(LTI::jsonIndent($repos_str));
-    $repos = json_decode($repos_str);
-    if ( $repos === null ) {
-        $error = 'Unable to decode '.$url;
-        $retval['error'] = $error;
-        $retval['error_detail'] = $repos_str;
-        echo(json_encode($retval));
-        error_log(LTI::jsonIndent($repos_str));
-        die_with_error_log($error);
-    }
-
-    if ( is_object($repos) ) {
-        $error = 'Did not get list of repositories'.$url;
-        $retval['error'] = $error;
-        $retval['error_detail'] = $repos_str;
-        echo(json_encode($retval));
-        error_log(LTI::jsonIndent($repos_str));
-        die_with_error_log($error);
-    }
-    
-    Cache::set('repos',1,$repos,$expiresec);
+    die_with_error_log('Unknown git command');
 }
 
-foreach($repos as $repo) {
-    $detail = new \stdClass();
-    $detail->html_url = $repo->html_url;
-    $detail->clone_url = $repo->clone_url;
-    $detail->name = ucfirst($repo->name);
-    $detail->description = $repo->description;
-    $detail->tsugitools = true;
-    if ( isset($existing[$detail->clone_url]) ) {
-        $detail->existing = true;
-        $detail->path = $paths[$detail->clone_url];
-        $detail->guid = md5($paths[$detail->clone_url]);
-        $repo = $existing[$detail->clone_url]; 
-        try {
-            $update = $repo->run('remote update');
-            $detail->writeable = true;
-        } catch (Exception $e) {
-            $detail->writeable = false;
-            $update = 'Caught exception: '.$e->getMessage(). "\n";
-        }   
-        $detail->update_note = $update;
-        $status = $repo->run('status -uno');
-        $detail->status_note = $status;
-        $detail->updates = strpos($status, 'Your branch is behind') !== false;
-        unset($existing[$detail->clone_url]);
-        $detail->index = count($installed) + 1;
-        $installed[] = $detail;
-    } else {
-        $detail->writeable = $install_writeable; // Assume if we cannot update tsugi..
-        $detail->index = count($available) + 1;
-        $available[] = $detail;
-    }
-}
-
-// The ones we have that are not from tsugitools
-foreach($existing as $clone_url => $repo) {
-    $detail = new \stdClass();
-    $detail->clone_url = $clone_url; // Yes, it works..
-    $detail->html_url = $clone_url; // Yes, it works..
-    $detail->name = "TBD";
-    $detail->description = "";
-    $update = $repo->run('remote update');
-    $detail->update_note = $update;
-    $status = $repo->run('status -uno');
-    $detail->status_note = $status;
-    $detail->updates = strpos($status, 'Your branch is behind') !== false;
-    $detail->tsugitools = false;
-    $detail->writeable = $install_writeable; // Assume if we cannot update tsugi..
-    $detail->index = count($installed) + 1;
-    $installed[] = $detail;
-}
-
-
-$retval['status'] = 'OK';
-$retval['version'] = trim($git_version);
-$retval['detail'] = $note;
-$retval['available'] = $available;
-$retval['installed'] = $installed;
-
-echo(json_encode($retval, JSON_PRETTY_PRINT));
-*/
+$OUTPUT->bodyStart();
