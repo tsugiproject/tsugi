@@ -16,6 +16,9 @@ if ( isset($CFG->git_command) ) {
     Git::set_bin($CFG->git_command);
 }
 
+// Cleanup partial git attempts
+unset($_SESSION['git_results']);
+
 $repo = new \Tsugi\Util\GitRepo($CFG->dirroot);
 $git_version = $repo->run('--version');
 

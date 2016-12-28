@@ -91,6 +91,7 @@ if ( $command == 'log' ) {
 }
 
 // Do sanity checking on all requests
+$remote = false;
 $repo = false;
 $origin = false;
 $log = false;
@@ -116,14 +117,16 @@ if ( $command == 'pull' ) {
         die_with_error_log('Install folder is not configured');
     }
 
-    if ( ! isset($_REQUEST['repo'])) {
-        die_with_error_log('clone command requires repo parameter');
+    if ( ! isset($_REQUEST['remote'])) {
+        die_with_error_log('clone command requires remote parameter');
     }
+    // TODO: Demand no special characters
+    $remote = $_REQUEST['remote'];
 } else {
     die_with_error_log('Unknown git command');
 }
 
-// Handle the POST - do the actual work
+// Handle the pull POST - do the actual work
 if ( isset($_POST['command']) && $command == "pull" ) {
     $path = $paths[$_REQUEST['path']];
 
@@ -133,6 +136,22 @@ if ( isset($_POST['command']) && $command == "pull" ) {
         $log = $repo->run('pull');
         $results = "Repository: $origin \n";
         $results .= "Command: git pull\n\n";
+        $results .= $log;
+        $_SESSION['git_results'] = $results;
+        header('Location: '.addSession('git.php'));
+        return;
+    } catch (Exception $e) {
+        $error = 'Caught exception: '.$e->getMessage(). "\n";
+        die_with_error_log('Unable to execute git. '.$error);
+    }
+}
+
+// Handle the clone POST - do the actual work
+if ( isset($_POST['command']) && $command == "clone" ) {
+
+    try {
+        $repo = \Tsugi\Util\GitRepo::create_new('/tmp/x/bob', $remote, false);
+        $results = "Command: git clone $remote\n\n";
         $results .= $log;
         $_SESSION['git_results'] = $results;
         header('Location: '.addSession('git.php'));
@@ -162,6 +181,18 @@ Git Repository: <?= htmlentities($origin) ?>
 </form>
 <?php
 } else if ( $command == 'clone' ) {
+?>
+<form method="POST">
+<p>
+Git Command: <?= htmlentities($command) ?>
+</p><p>
+Git Repository: <?= htmlentities($_REQUEST['remote']) ?>
+</p><p>
+<input type="hidden" name="command" value="<?= htmlentities($command) ?>">
+<input type="hidden" name="remote" value="<?= htmlentities($_REQUEST['remote']) ?>">
+<input type="submit" value="execute">
+</form>
+<?php
 } else {
     die_with_error_log('Unknown git command');
 }
