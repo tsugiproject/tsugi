@@ -74,6 +74,20 @@ $CFG->tool_folders = array("admin", "mod");
 //      "../tsugi-php-standalone", "../tsugi-php-module",
 //      "../tsugi-php-samples", "../tsugi-php-exercises");
 
+// The folder where admin/install will install modules automatically
+// $CFG->install_folder = $CFG->dirroot.'/mod'; // Tsugi as a store
+// $CFG->install_folder = $CFG->dirroot.'/../mod';  // If we are using embedded Tsugi
+
+// In order to run git from the web server, we may need a setuid version
+// of git - example commands:
+//
+//    cd /home/csev
+//    cp /usr/bin/git .
+//    chmod a+s git
+//
+// This of course is something to consider carefully.
+// $CFG->git_command = '/home/csev/git';
+
 // Set to true to redirect to the upgrading.php script
 // Also copy upgrading-dist.php to upgrading.php and add your message
 $CFG->upgrading = false;

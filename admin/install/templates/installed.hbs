@@ -1,12 +1,23 @@
 {{#if installed.length }}
  {{#each installed}}
     <li>{{name}}
-(<a href="{{html_url}}" target="_blank">{{html_url}}</a>)
-{{#if updates}}
-<br/>
-Updates Available
-<i class="fa fa-cloud-download text-important"></i>
-{{/if}}
+       (<a href="{{html_url}}" target="_blank">{{html_url}}</a>)
+       {{#if updates}}
+              <br/>
+              Updates Available
+              <i class="fa fa-cloud-download text-important"></i>
+       {{/if}}
+       {{#if writeable}}
+              <br/>
+              Writeable
+       {{else}}
+              <br/>
+              Cannot be updated via this page
+              <a href="#" onclick="showModal('Readonly Detail','readonly-dialog'); return false;">
+              <i class="fa fa-lock text-danger"></i>
+              ?
+              </a>
+       {{/if}}
     </li>
  {{/each}}
 {{else}}

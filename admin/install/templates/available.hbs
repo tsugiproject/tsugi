@@ -2,8 +2,17 @@
  {{#each available}}
     <li>{{name}}
 (<a href="{{html_url}}" target="_blank">{{html_url}}</a>)
+{{#if writeable}}
 <br/>
 Install
+{{else}}
+<br/>
+Cannot be installed via this page
+<a href="#" onclick="showModal('Readonly Detail','readonly-dialog'); return false;">
+<i class="fa fa-lock text-danger"></i>
+?
+</a>
+{{/if}}
     </li>
  {{/each}}
 {{else}}
