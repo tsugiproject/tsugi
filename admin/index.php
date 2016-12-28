@@ -21,6 +21,7 @@ $OUTPUT->topNav();
 <?php if ( $CFG->providekeys ) { ?>
 <li><a href="key/index.php">Manage Access Keys</a></li>
 <?php } ?>
+<li><a href="install/index.php">Manage Installed Modules</a></li>
 </ul>
 <?php
 $OUTPUT->footer();
