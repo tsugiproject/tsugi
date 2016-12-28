@@ -150,9 +150,25 @@ if ( isset($_POST['command']) && $command == "pull" ) {
 if ( isset($_POST['command']) && $command == "clone" ) {
 
     try {
-        $repo = \Tsugi\Util\GitRepo::create_new('/tmp/x/bob', $remote, false);
-        $results = "Command: git clone $remote\n\n";
+        $folder = $CFG->install_folder.'/'.basename($remote,'.git');
+        $folder = \Tsugi\Config\ConfigInfo::removeRelativePath($folder);
+        $repo = new \Tsugi\Util\GitRepo($folder, true,  false);
+        $log = $repo->clone_from($remote);
+        $results = "Command: git clone $remote\n";
+        $results .= "Folder: $folder\n\n";
         $results .= $log;
+
+        // Read the files...
+        $files = scandir($folder);
+        if ( count($files) < 2 ) {
+            $results .= "No Files Checked Out\n";
+        } else {
+            $results .= "Checked Out:\n";
+            foreach($files as $file) {
+                if ( $file == '.' || $files == '..' ) continue;
+                $results .= '  '.$file."\n";
+            }
+        }
         $_SESSION['git_results'] = $results;
         header('Location: '.addSession('git.php'));
         return;
