@@ -100,6 +100,11 @@ class Output {
         <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
         <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
+        <script>
+        var _TSUGI = {
+            spinnerUrl: "<?= self::getSpinnerUrl() ?>"
+        }
+        </script>
 
     <style>
     body {

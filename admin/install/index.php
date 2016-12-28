@@ -39,7 +39,11 @@ some other way.  Alternatively, you may be able to configure a copy of <b>git</b
 that can update the file system - see the documentation for <b>$CFG->git_command</b> in 
 the <b>config-dist.php</b> file.
 </p>
-</div
+</div>
+<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
+   <iframe name="iframe-frame" style="height:400px" id="iframe-frame" 
+    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
+</div>
 <p>This screen is a wrapper for the <b>git</b> command if it is installed in your system.
 This screen runs <b>git</b> commands on your behalf.
 It will only handle the normal operations and assuming that they work.  If you log in

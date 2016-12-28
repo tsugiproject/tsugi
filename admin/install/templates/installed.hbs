@@ -5,33 +5,46 @@
        {{#if description}}
          <br/>{{description}}
        {{/if}} 
-       {{#if updates}}
-         <br/>
-         Updates Available
-         <i class="fa fa-cloud-download text-important"></i>
-       {{/if}}
+        <ul>
        {{#if status_note}}
-        <br/>
+        <li>
         <div id="status_note_{{index}}" title="git status" style="display: none;">
 <pre>
 {{status_note}}
 </pre>
         </div>
        <a href="#" onclick="showModal('git status','status_note_{{index}}'); return false;">
-    git status
+    Current git status
        </a>
+         </li>
        {{/if}}
        {{#if writeable}}
-              <br/>
+              <li>
               Writeable
+         </li>
        {{else}}
-              <br/>
+              <li>
               Cannot be updated via this page
               <a href="#" onclick="showModal('Readonly Detail','readonly-dialog'); return false;">
               <i class="fa fa-lock text-danger"></i>
               ?
               </a>
+         </li>
        {{/if}}
+       {{#if updates}}
+         <li>
+         Updates Available
+         <i class="fa fa-cloud-download text-important"></i>
+         </li>
+       {{/if}}
+       {{#if guid}}
+        <li>
+       <a href="git.php?command=log&path={{guid}}" title="git log" target="iframe-frame"
+        onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" > 
+       Git log
+       </a>
+       {{/if}}
+       </ul>
     </li>
  {{/each}}
 {{else}}
