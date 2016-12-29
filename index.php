@@ -67,22 +67,22 @@ this server is not configured to accept applications for keys.
 <?php } ?>
 </p>
 You can install your own copy of the Tsugi Administration, Developer, and Management console from 
-<a href="https://github.com/csev/tsugi" target="_blank">https://github.com/csev/tsugi</a>.
+<a href="https://github.com/tsugiproject/tsugi" target="_blank">https://github.com/tsugiproject/tsugi</a>.
 </p>
 <p>
 You can install any of the following PHP Tsugi tools / toolsets:
 <ul>
 <li>A set of core modules (Map, Peer-Grade, etc):
-<a href="https://github.com/csev/tsugi-php-mod" target="_blank">https://github.com/csev/tsugi-php-mod</a>
+<a href="https://github.com/tsugitools/" target="_blank">https://github.com/tsugitools/</a>
 </li>
 <li>A starting point to build your own module:
-<a href="https://github.com/csev/tsugi-php-module" target="_blank">https://github.com/csev/tsugi-php-module</a>
+<a href="https://github.com/tsugiproject/tsugi-php-module" target="_blank">https://github.com/tsugiproject/tsugi-php-module</a>
 </li>
 <li>A starting point to use Tsugi in a stand-alone application:
-<a href="https://github.com/csev/tsugi-php-standalone" target="_blank">https://github.com/csev/tsugi-php-standalone</a>
+<a href="https://github.com/tsugiproject/tsugi-php-standalone" target="_blank">https://github.com/tsugiproject/tsugi-php-standalone</a>
 </li>
 <li>A set of self-paced Tsugi exercises (for a workshop or a class):
-<a href="https://github.com/csev/tsugi-php-exercises" target="_blank">https://github.com/csev/tsugi-php-exercises</a>
+<a href="https://github.com/tsugiproject/tsugi-php-exercises" target="_blank">https://github.com/tsugiproject/tsugi-php-exercises</a>
 - You can also access the exercise
 <a href="https://lti-tools.dr-chuck.com/exercises/" target="_blank">specifications</a> 
 and 
@@ -92,9 +92,9 @@ and
 </p>
 <p>
 A Java version of Tsugi is being developed at
-<a href="https://github.com/csev/tsugi-java-servlet" target="_blank">https://github.com/csev/tsugi-java-servlet</a>
+<a href="https://github.com/tsugiproject/tsugi-java-servlet" target="_blank">https://github.com/tsugiproject/tsugi-java-servlet</a>
 and a Node version of Tsugi is being developed at
-<a href="https://github.com/csev/tsugi-node-sample" target="_blank">https://github.com/csev/tsugi-node-sample</a>.
+<a href="https://github.com/tsugiproject/tsugi-node-sample" target="_blank">https://github.com/tsugiproject/tsugi-node-sample</a>.
 Currently all Tsugi languages use this software as their administration and management console.
 </p>
 <p>
