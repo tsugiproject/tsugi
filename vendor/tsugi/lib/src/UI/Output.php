@@ -516,15 +516,19 @@ function googleTranslateElementInit() {
      * Store the top navigation in the session
      */
     function topNavSession($menuset) {
+        global $CFG;
         $export = $menuset->export();
-        if ( !isset($_SESSION['tsugi_top_nav']) || $_SESSION['tsugi_top_nav'] != $export) {
-            $_SESSION['tsugi_top_nav'] = $export;
+        $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
+        if ( !isset($_SESSION[$sess_key]) || $_SESSION[$sess_key] != $export) {
+            $_SESSION[$sess_key] = $export;
         }
     }
 
     function topNav($menu_set=false) {
-        if ( $menu_set === false && isset($_SESSION['tsugi_top_nav']) ) {
-            $menu_set = \Tsugi\UI\MenuSet::import($_SESSION['tsugi_top_nav']);
+        global $CFG;
+        $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
+        if ( $menu_set === false && isset($_SESSION[$sess_key]) ) {
+            $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key]);
         }
         if ( $menu_set === false ) {
             $menu_set = self::defaultMenuSet();
