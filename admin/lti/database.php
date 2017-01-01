@@ -143,6 +143,8 @@ array( "{$CFG->dbprefix}lti_membership",
     role                SMALLINT NULL,
     role_override       SMALLINT NULL,
 
+    json                TEXT NULL,
+
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
@@ -251,6 +253,7 @@ array( "{$CFG->dbprefix}lti_domain",
     port        INTEGER NULL,
     consumer_key  TEXT,
     secret      TEXT,
+    json        TEXT NULL,
     created_at  DATETIME NOT NULL,
     updated_at  DATETIME NOT NULL,
 
@@ -478,9 +481,21 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Version 201701011135 improvements
+    if ( $oldversion < 201701011135 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_domain ADD json TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_membership ADD json TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201505222100;
+    return 201701011135;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
