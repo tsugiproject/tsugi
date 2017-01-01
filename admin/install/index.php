@@ -27,6 +27,8 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
+require_once("../sanity-db.php");
+
 if ( ! isset($CFG->install_folder) ) {
     echo('<h1>Install folder ($CFG->install_folder) is not configured</h1>'."\n");
     $OUTPUT->footer();

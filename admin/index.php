@@ -12,6 +12,7 @@ setcookie("adminmenu","true", 0, "/");
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
+require_once("sanity-db.php");
 ?>
 <h1>Welcome Adminstrator</h1>
 <ul>

@@ -1,5 +1,4 @@
 <?php
-require_once("config.php");
 
 use \Tsugi\Core\LTIX;
 
@@ -107,7 +106,7 @@ text is not outlined in red), you many need to edit the
     if ( $actualdbversion < $CFG->dbversion ) {
         echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
         echo("<p>Warning: Database version=$actualdbversion should be
-        software version=$CFG->dbversion - please run admin/upgrade.php</p>\n");
+        software version=$CFG->dbversion - please run 'Upgrade Database' in the Admin console</p>\n");
         echo("\n</div>\n");
         error_log("Warning: DB current version=$actualdbversion expected version=$CFG->dbversion");
     }
