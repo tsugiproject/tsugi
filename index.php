@@ -67,7 +67,9 @@ this server is not configured to accept applications for keys.
 <?php } ?>
 </p>
 You can install your own copy of the Tsugi Administration, Developer, and Management console from 
-<a href="https://github.com/tsugiproject/tsugi" target="_blank">https://github.com/tsugiproject/tsugi</a>.
+<a href="https://github.com/tsugiproject/tsugi" target="_blank">https://github.com/tsugiproject/tsugi</a>.  
+This makes use of the Tsugi PHP runtime library
+<a href="https://github.com/tsugiproject/tsugi-php" target="_blank">https://github.com/tsugiproject/tsugi-php</a>.  
 </p>
 <p>
 You can install any of the following PHP Tsugi tools / toolsets:
