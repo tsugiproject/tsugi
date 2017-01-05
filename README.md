@@ -61,16 +61,8 @@ Adding Some Tools
 If you are just exploring Tsugi, or doing a developer bootcamp, you can add some tools
 from some of the other repositories:
 
-* [A Few Useful Tsugi Tools](https://github.com/csev/tsugi-php-mod) This is a set of
-simple useful tools like a Map tool, Simple Gradebook, Peer Grader, PHP Autograder,
-and others.  These were the original tools that were part of the Tsugi checkout.  To
-restore these tools do the following
-
-        cd tsugi
-        git clone https://github.com/csev/tsugi-php-mod mod
-
-    and make sure to rerun the Admin / Database Upgrade step to create the tables for
-    for the new modules.
+* If you set the `$CFG->install_path` and go into the Admin interface, you can 
+use "Manage Installed Modules" to install tools from [Tsugi Tools](https://github.com/tsugitools)
 
 * [Tsugi Module Sample Code](https://github.com/csev/tsugi-php-samples) - These 
 are relatively short bits of code that you can look at as you write your
@@ -97,9 +89,6 @@ Each of these repositories contain instructions on how to install, configure, an
 each of these applications into your Tsugi instance.  Once you install a new module or 
 modules, you will need to re-run the Admin / Database Upgrade process to create
 the new tables required by the new applications.
-
-Someday we will build a UI that can install these modules - but for now you must
-check them out and link them into Tsugi to function.
 
 We have a short document on how to check out 
 [all of the above tools](docs/CHECKOUT_ALL.md)
