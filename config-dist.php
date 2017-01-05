@@ -75,8 +75,8 @@ $CFG->tool_folders = array("admin", "mod");
 //      "../tsugi-php-samples", "../tsugi-php-exercises");
 
 // The folder where admin/install will install modules automatically
-// $CFG->install_folder = $CFG->dirroot.'/mod'; // Tsugi as a store
-// $CFG->install_folder = $CFG->dirroot.'/../mod';  // If we are using embedded Tsugi
+// $CFG->install_folder = $CFG->dirroot.'/../mod'; // If we are using embedded Tsugi
+$CFG->install_folder = $CFG->dirroot.'/mod'; // Tsugi as a store
 
 // In order to run git from the web server, we may need a setuid version
 // of git - example commands:
