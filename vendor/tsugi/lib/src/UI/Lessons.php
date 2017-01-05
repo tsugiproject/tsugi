@@ -402,9 +402,10 @@ class Lessons {
                     if ( $this->anchor ) $return_url .= '?anchor='.urlencode($this->anchor);
                     elseif ( $this->position ) $return_url .= '?index='.urlencode($this->position);
                     $parms['launch_presentation_return_url'] = $return_url;
-    
-                    if ( isset($_SESSION['tsugi_top_nav']) ) {
-                        $parms['ext_tsugi_top_nav'] = $_SESSION['tsugi_top_nav'];
+
+                    $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
+                    if ( isset($_SESSION[$sess_key]) ) {
+                        $parms['ext_tsugi_top_nav'] = $_SESSION[$sess_key];
                     }
     
                     $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));

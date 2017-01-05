@@ -287,10 +287,11 @@ class LTIX {
         self::wrapped_session_put($session_object,'LAST_ACTIVITY', time());
 
         // Copy the tsugi_nav into the session
+        $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
         if ( isset($request_data['ext_tsugi_top_nav']) ) {
-            self::wrapped_session_put($session_object,'tsugi_top_nav', $request_data['ext_tsugi_top_nav']);
+            self::wrapped_session_put($session_object,$sess_key, $request_data['ext_tsugi_top_nav']);
         } else {
-            self::wrapped_session_forget($session_object,'tsugi_top_nav');
+            self::wrapped_session_forget($session_object,$sess_key);
         }
 
         // Read all of the data from the database with a very long
