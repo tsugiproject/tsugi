@@ -24,7 +24,6 @@ composer.phar
 .out_phpdoc
 _files
 local
-mod
 exercises
 samples
 cc.zip
