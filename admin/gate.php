@@ -4,7 +4,7 @@ require_once $CFG->dirroot."/admin/admin_util.php";
 
 $REDIRECTED = false;
 
-if ( strpos($CFG->adminpw,"warning:") === 0 ) {
+if ( $CFG->adminpw === false || strpos($CFG->adminpw,"warning:") === 0 ) {
     unset($_SESSION["admin"]);
     die('Please set an $CFG->adminpw to a value');
 }

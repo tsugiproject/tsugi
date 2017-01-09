@@ -22,7 +22,7 @@ require_once("sanity-db.php");
 <ul>
 <li>
   <a href="upgrade.php" title="Upgrade Database" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
   Ugrade Database 
   </a>
 <li>

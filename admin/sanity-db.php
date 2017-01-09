@@ -6,10 +6,10 @@ use \Tsugi\Core\LTIX;
 try {
    if ( ! defined('PDO_WILL_CATCH') ) define('PDO_WILL_CATCH', true);
     $PDOX = LTIX::getConnection();
-} catch(PDOException $ex){
+} catch(\PDOException $ex){
     $msg = $ex->getMessage();
     error_log("DB connection: ".$msg);
-    echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
+    echo('<div style="color: red" class="alert alert-danger" style="margin: 10px;">'."\n");
   if ( strpos($msg, 'Unknown database') !== false ||
        strpos($msg, 'Access denied for user') !== false ) {
     echo("<p>An error has occurred.  Either your database has 
@@ -47,7 +47,8 @@ account and password to access the database.</p>
 To make sure they match the account and password assigned to your database.
 </p>
 ');
-    } else if ( strpos($msg, 'Can\'t connect to MySQL server') !== false ) {
+    } else if ( strpos($msg, 'Can\'t connect to MySQL server') !== false ||
+        strpos($msg, 'Connection refused') !== false) {
         echo('<p>It appears that you cannot connect to your MySQL server at
 all.  The most likely problem is the wrong host or port in this option
 in your <code>config.php</code> file:
@@ -88,7 +89,9 @@ if ( $table_fields === false ) {
     echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
     echo("<p>It appears that your database connection is working properly
 but you have no tables in your database.  To create the initial tables
-needed for this application, use the 'Admin' feature.  You will be prompted
+needed for this application, use the 
+<a href=\"".$CFG->wwwroot."/admin\">'Admin'</a>
+/ Upgrade Database feature.  To unlock the Admin screen, you will be prompted
 for the administrator master password as configured in <code>config.php</code>
 in the <code>\$CFG->adminpw</code> setting.
 </p>

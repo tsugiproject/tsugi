@@ -12,6 +12,8 @@ use \Tsugi\Google\JWT;
  * It is based on this blog post:
  *
  * http://www.nmecs.com/articles/google-single-sign-on-without-sdk
+ *
+ * See docs/LOGIN.md in the tsugi repo for details on how to set this up with Tsugi.
  */
 
 class GoogleLogin {

@@ -17,7 +17,7 @@ $PDOX = false;
 try {
     define('PDO_WILL_CATCH', true);
     $PDOX = LTIX::getConnection();
-} catch(PDOException $ex){
+} catch(\PDOException $ex){
     $PDOX = false;  // sanity-db-will re-check this below
 }
 

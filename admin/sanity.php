@@ -1,5 +1,7 @@
 <?php
-require_once("config.php");
+if ( ! isset($CFG) ) {
+    require_once("config.php");
+}
 
 if ( ! isset($CFG) ) {
     die_with_error_log('This software is not correctly configured, please copy config-dist.php to

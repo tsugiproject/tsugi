@@ -307,7 +307,7 @@ $DATABASE_POST_CREATE = function($table) {
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
 
-        // Key is null for the google key - no direct launches or logins allowed
+        // Secret is null for the google key - no direct launches or logins allowed
         $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key) values
             ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', 'google.com')";
         error_log("Post-create: ".$sql);

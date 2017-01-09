@@ -6,26 +6,24 @@
 
 // This is the URL where the software is hosted
 // Do not add a trailing slash to this string
-$wwwroot = 'http://localhost/tsugi';  /// For normal
-// $wwwroot = 'http://localhost:8888/tsugi';   // For MAMP
+// $wwwroot = 'http://localhost/tsugi';  // Normal localhost 
+// $wwwroot = 'http://localhost:8888/tsugi';   // MAMP localhost
+// $wwwroot = 'http://localhost:8888/wa4e/tsugi';   // Embedded Tsugi localhsot
+// $wwwroot = 'https://www.wa4e.com/tsugi';   // Embedded Tsugi in production
+if ( ! isset($wwwroot) ) die('Please set $wwwroot and other configuration variables in config.php');
 
 $dirroot = realpath(dirname(__FILE__));
 
-# Obsolete - Please upgrade to autoloading
-# require_once($dirroot."/lib/vendor/Tsugi/Config/ConfigInfo.php");
 require_once($dirroot."/vendor/autoload.php");
 
 // We store the configuration in a global object
-// Additional documentation on these fields is 
+// Additional documentation on these fields is
 // available in that class or in the PHPDoc for that class
 unset($CFG);
 global $CFG;
 $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
-
-// The application's home - if different from the Tsugi wwwroot
-// $CFG->apphome = 'http://localhost:8888/php-intro';   
 
 // Database connection information to configure the PDO connection
 // You need to point this at a database with am account and password
@@ -36,7 +34,7 @@ $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 
-// You can use my CDN copy of the static content in testing or 
+// You can use my CDN copy of the static content in testing or
 // light production if you like:
 // $CFG->staticroot = 'https://www.dr-chuck.net/tsugi-static';
 
@@ -56,29 +54,45 @@ $CFG->dbpass    = 'ltipassword';
 $CFG->dbprefix  = '';
 
 // This is the PW that you need to access the Administration
-// features of this application.
-$CFG->adminpw = 'warning:please-change-adminpw-89b543!';
+// features of this application. Protect it like the database
+// password in this file.
+// $CFG->adminpw = 'warning:please-change-adminpw-89b543!';
+$CFG->adminpw = false;
+
+// If we are running Embedded Tsugi we need to set the
+// site that is the "application" we are serving and
+// the "course title" for the course that represents
+// the "local" students.
+// $CFG->apphome = 'http://localhost:8888/wa4e';
+// $CFG->apphome = 'https://www.wa4e.com;
+// $CFG->context_title = "Web Applications for Everybody";
+
+// If we are going to use the lessons tool and/or badges, we need to
+// point to the lessons.json file
+// $CFG->lessons = $CFG->dirroot.'/../lessons.json';
 
 // This allows you to include various tool folders.  These are scanned
 // for register.php, database.php and index.php files to do automatic
-// table creation as well as making lists of tools in various UI places.
+// table creation as well as making lists of tools in various UI places
+// such as ContentItem or LTI 2.0
 $CFG->tool_folders = array("admin", "mod");
 
-// Mod is empty by default.  This will re-checkout the mod folder: 
-//     cd htdocs/tsugi
-//     git clone https://github.com/csev/tsugi-php-mod mod
+// For Embedded Tsugi, you probably want to use the mod folder in the
+// parent folder and there might be LTI tools in the app repo in a folder
+// with a name like "tools"
+// $CFG->tool_folders = array("admin", "../tools", "../mod");
 
-// You can include tool/module folders that are outside of this folder
+// You can also include tool/module folders that are outside of this folder
 // using the following pattern:
 // $CFG->tool_folders = array("admin", "mod",
 //      "../tsugi-php-standalone", "../tsugi-php-module",
 //      "../tsugi-php-samples", "../tsugi-php-exercises");
 
 // The folder where admin/install will install modules automatically
-// $CFG->install_folder = $CFG->dirroot.'/../mod'; // If we are using embedded Tsugi
 $CFG->install_folder = $CFG->dirroot.'/mod'; // Tsugi as a store
+// $CFG->install_folder = $CFG->dirroot.'/../mod'; // If we are using Embedded Tsugi
 
-// In order to run git from the web server, we may need a setuid version
+// In order to run git from the a PHP script, we may need a setuid version
 // of git - example commands:
 //
 //    cd /home/csev
@@ -102,22 +116,22 @@ $CFG->owneremail = false; // 'csev@example.com'
 $CFG->providekeys = false;  // true
 
 // Set these to your API key for your Google Sign on and Maps
-// https://console.developers.google.com/
+// https://console.developers.google.com/apis
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 $CFG->google_map_api_key = false; // 'Ve8eH49498430843cIA9IGl8';
 
-// Badge generation settings - once you start issuing badges - don't change these 
+// Badge generation settings - once you start issuing badges - don't change these
 $CFG->badge_encrypt_password = false; // "somethinglongwithhex387438758974987";
 $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
-$CFG->badge_path = $CFG->dirroot . '/../badges'; 
+$CFG->badge_path = $CFG->dirroot . '/../badges';
 
-// From LTI 2.0 spec: A globally unique identifier for the service provider. 
-// As a best practice, this value should match an Internet domain name 
+// From LTI 2.0 spec: A globally unique identifier for the service provider.
+// As a best practice, this value should match an Internet domain name
 // assigned by ICANN, but any globally unique identifier is acceptable.
 $CFG->product_instance_guid = 'lti2.example.com';
 
-// From the CASA spec: originator_id a UUID picked by a publisher 
+// From the CASA spec: originator_id a UUID picked by a publisher
 // and used for all apps it publishes
 $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 
@@ -163,17 +177,17 @@ $CFG->analytics_name = false; // "dr-chuck.com";
 // Universal Analytics
 $CFG->universal_analytics = false; // "UA-57880800-1";
 
-// Only define this if you are using Tsugi in single standalone app that 
+// Only define this if you are using Tsugi in single standalone app that
 // will never be in iframes - because most browsers will *not* set cookies in
 // cross-domain iframes.   If you use this, you cannot be a different
 // user in a different tab or be in a different course in a different
-// tab.  
+// tab.
 // if ( !defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 
 // Effectively an "airplane mode" for the appliction.
-// Setting this to true makes it so that when you are completely 
-// disconnected, various tools will not access network resources 
-// like Google's map library and hang.  Also the Google login will 
+// Setting this to true makes it so that when you are completely
+// disconnected, various tools will not access network resources
+// like Google's map library and hang.  Also the Google login will
 // be faked.  Don't run this in production.
 
 $CFG->OFFLINE = false;
