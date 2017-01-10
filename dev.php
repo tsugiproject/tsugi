@@ -241,7 +241,7 @@ $OUTPUT->bodyStart(false);
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="about-dev.php"><img style="width:4em;" src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo.png"></a></li>
+            <li><a href="about-dev.php"><img style="width:4em; padding: 4px; border-radius: 4px; background-color:white;" src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo.png"></a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                     <?php if ( strlen($lmsdata['lis_person_name_full']) > 0 ) echo($lmsdata['lis_person_name_full']);
