@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "5cecbd240d22ec8697d0621dba2b42ab",
-    "content-hash": "632fbc641da08f5a6ee1834309749a36",
+    "hash": "e5c753e4efe16b4143e8ea8248415e08",
+    "content-hash": "d5af94a5948bf035e02b1df005c8461b",
     "packages": [
         {
             "name": "tsugi/lib",
@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "c7efa70fc23cec66826eeccbc80c7db283dfdc13"
+                "reference": "cab43e0e6f16489bbc696745f1d8650df225b78c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/c7efa70fc23cec66826eeccbc80c7db283dfdc13",
-                "reference": "c7efa70fc23cec66826eeccbc80c7db283dfdc13",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/cab43e0e6f16489bbc696745f1d8650df225b78c",
+                "reference": "cab43e0e6f16489bbc696745f1d8650df225b78c",
                 "shasum": ""
             },
             "require": {
