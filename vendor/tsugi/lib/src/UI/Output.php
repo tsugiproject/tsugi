@@ -149,7 +149,7 @@ body {
             echo('<script type="text/javascript">CSRF_TOKEN = "TODORemoveThis";</script>'."\n");
         }
 
-    	// Set the containing frame id is we have one
+    	// Set the containing frame id if we have one
         $element_id = LTIX::ltiRawParameter('ext_lti_element_id', false);
         if ( $element_id ) {
             echo('<script type="text/javascript">LTI_PARENT_IFRAME_ID = "'.$element_id.'";</script>'."\n");
@@ -458,6 +458,22 @@ function googleTranslateElementInit() {
     </script>';
     }
 
+    function returnMenuSet($return_url) {
+        global $CFG;
+        $R = $CFG->wwwroot . '/';
+        $set = new \Tsugi\UI\MenuSet();
+        $set->setHome('Done', $return_url);
+        return $set;
+    }
+
+    function closeMenuSet() {
+        global $CFG;
+        $R = $CFG->wwwroot . '/';
+        $set = new \Tsugi\UI\MenuSet();
+        $set->setHome('Done', 'javascript:window.close();');
+        return $set;
+    }
+
     function defaultMenuSet() {
         global $CFG;
         $R = $CFG->wwwroot . '/';
@@ -527,12 +543,22 @@ function googleTranslateElementInit() {
     function topNav($menu_set=false) {
         global $CFG;
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
+        $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
+        $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
         if ( $menu_set === false && isset($_SESSION[$sess_key]) ) {
             $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key]);
-        }
-        if ( $menu_set === false ) {
+        } else if ( $menu_set === true ) {
             $menu_set = self::defaultMenuSet();
+	} else if ( $launch_target !== false && strtolower($launch_target) == 'window' ) {
+	    $menu_set = self::closeMenuSet();
+        } else if ( $launch_return_url !== false ) {
+	    // Actually the close is better because in an iframe it will be hidden
+            // and in a new window it will show and as such do the right thing.
+	    $menu_set = self::closeMenuSet();
+	    // $menu_set = self::returnMenuSet($launch_return_url);
+	
         }
+	if ( $menu_set === false ) return;
         $menu_txt = self::menuNav($menu_set);
         echo($menu_txt);
     }
