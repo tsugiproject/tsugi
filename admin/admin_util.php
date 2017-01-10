@@ -57,6 +57,7 @@ function findAllFolders($paths)
     $folders = array();
     if ( is_string($paths) ) $paths = array($paths);
     foreach( $paths as $path) {
+       if ( ! is_dir($path) ) continue;
        $files = scandir($path);
         foreach($files as $file) {
             if ( strpos($file,'.') === 0 ) continue;

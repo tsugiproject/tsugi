@@ -9,7 +9,7 @@ try {
 } catch(\PDOException $ex){
     $msg = $ex->getMessage();
     error_log("DB connection: ".$msg);
-    echo('<div style="color: red" class="alert alert-danger" style="margin: 10px;">'."\n");
+    echo('<div style="background-color: red" class="alert alert-danger" style="margin: 10px;">'."\n");
   if ( strpos($msg, 'Unknown database') !== false ||
        strpos($msg, 'Access denied for user') !== false ) {
     echo("<p>An error has occurred.  Either your database has 
