@@ -161,6 +161,13 @@ class Result extends Entity {
             $result_id = LTIX::ltiParameter('result_id');
         }
 
+        // Get the IP Address
+        $ipaddr = null;
+        if ( isset($this->launch) ) {
+            $ipaddr = $this->launch->get_ip();
+            if ( $ipaddr === false ) $ipaddr = null;
+        }
+
         // Update result in the database and in the LTI session area and 
         // our local copy 
         $_SESSION['lti']['grade'] = $grade;
@@ -170,11 +177,24 @@ class Result extends Entity {
         if ( $PDOX !== false && $result_id !== false ) {
             $stmt = $PDOX->queryReturnError(
                 "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
-                    updated_at = NOW() WHERE result_id = :RID",
+                    ipaddr = :IP, updated_at = NOW() WHERE result_id = :RID",
                 array(
                     ':grade' => $grade,
+                    ':IP' => $ipaddr,
                     ':RID' => $result_id)
             );
+
+            // TODO: Remove this after we are sure the dbs are upgraded
+            if ( ! $stmt->success ) {
+                $stmt = $PDOX->queryReturnError(
+                    "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
+                        updated_at = NOW() WHERE result_id = :RID",
+                    array(
+                        ':grade' => $grade,
+                        ':RID' => $result_id)
+                );
+            }
+
             if ( $stmt->success ) {
                 $msg = "Grade updated result_id=".$result_id." grade=$grade";
             } else {
