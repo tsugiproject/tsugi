@@ -12,8 +12,7 @@
     <target>.out_phpdoc</target>
   </transformer>
   <files>
-    <directory>lib</directory>
-    <directory>core</directory>
+    <directory>src</directory>
     <ignore>mod/php-intro/lib/goutte/*</ignore>
     <ignore>mod/php-intro/webauto*.php</ignore>
   </files>

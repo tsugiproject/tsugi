@@ -46,3 +46,24 @@ This is stored in Packagist.
 
     https://packagist.org/packages/tsugi/lib
 
+Making PHPDoc
+-------------
+
+Install this:
+
+    http://www.graphviz.org/Download_macos.php
+
+Curl this:
+
+    curl -O https://www.phpdoc.org/phpDocumentor.phar
+
+Run this:
+
+    rm -r .tmp_phpdoc .out_phpdoc
+    php phpDocumentor.phar -c phpdoc.dist.xml
+    rm -r .tmp_phpdoc
+
+Open this:
+
+    open .out_phpdoc/index.html
+
