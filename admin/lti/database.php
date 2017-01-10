@@ -201,6 +201,8 @@ array( "{$CFG->dbprefix}lti_result",
     sourcedid          TEXT NULL,
     service_id         INTEGER NULL,
 
+    ipaddr             VARCHAR(64),
+
     grade              FLOAT NULL,
     note               TEXT NULL,
     server_grade       FLOAT NULL,
@@ -493,9 +495,16 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Version 201701092329 improvements
+    if ( $oldversion < 201701092329 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD ipaddr VARCHAR(64)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201701011135;
+    return 201701092329;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
