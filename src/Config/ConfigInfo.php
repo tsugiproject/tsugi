@@ -34,8 +34,8 @@ class ConfigInfo {
      *
      * An example configuration might be:
      *
-     *     $wwwroot = 'http://localhost:8888/php-intro/tsugi';
-     *     $apphome = 'http://localhost:8888/php-intro';
+     *     $wwwroot = 'http://localhost:8888/wa4e/tsugi';
+     *     $apphome = 'http://localhost:8888/wa4e';
      *
      * This is not required, its default for this is $wwwroot.
      */
