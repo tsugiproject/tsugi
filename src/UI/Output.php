@@ -128,9 +128,9 @@ a[target="_blank"]:after {
 }
 .goog-te-banner-frame.skiptranslate {
     display: none !important;
-    } 
+    }
 body {
-    top: 0px !important; 
+    top: 0px !important;
     }
 </style>
 <?php } ?>
@@ -149,7 +149,7 @@ body {
             echo('<script type="text/javascript">CSRF_TOKEN = "TODORemoveThis";</script>'."\n");
         }
 
-    	// Set the containing frame id is we have one
+        // Set the containing frame id if we have one
         $element_id = LTIX::ltiRawParameter('ext_lti_element_id', false);
         if ( $element_id ) {
             echo('<script type="text/javascript">LTI_PARENT_IFRAME_ID = "'.$element_id.'";</script>'."\n");
@@ -244,7 +244,7 @@ function googleTranslateElementInit() {
      *
      * @param $path - The path of the file - should start with a slash.
      */
-    public static function getUtilUrl($path) 
+    public static function getUtilUrl($path)
     {
         global $CFG;
         $retval = $CFG->vendorroot.$path;
@@ -258,7 +258,7 @@ function googleTranslateElementInit() {
      * Handle the heartbeat calls. This is UI code basically.
      *
      * Make sure when you call this, you have handled whether
-     * the session is cookie based or not and included config.php 
+     * the session is cookie based or not and included config.php
      * appropriately
      *
      *    if ( isset($_GET[session_name()]) ) {
@@ -327,12 +327,12 @@ function googleTranslateElementInit() {
               (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
               m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
               })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
- 
+
               ga('create', '<?= $CFG->universal_analytics ?>', 'auto');
               ga('send', 'pageview');
- 
+
             </script>
-	<?php }
+        <?php }
         if ( $CFG->analytics_key ) { ?>
     <script type="text/javascript">
       var _gaq = _gaq || [];
@@ -458,16 +458,32 @@ function googleTranslateElementInit() {
     </script>';
     }
 
+    function returnMenuSet($return_url) {
+        global $CFG;
+        $R = $CFG->wwwroot . '/';
+        $set = new \Tsugi\UI\MenuSet();
+        $set->setHome('Done', $return_url);
+        return $set;
+    }
+
+    function closeMenuSet() {
+        global $CFG;
+        $R = $CFG->wwwroot . '/';
+        $set = new \Tsugi\UI\MenuSet();
+        $set->setHome('Done', 'javascript:window.close();');
+        return $set;
+    }
+
     function defaultMenuSet() {
         global $CFG;
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
         $set->setHome($CFG->servicename, $CFG->apphome);
 
-        if ( $CFG->DEVELOPER ) { 
+        if ( $CFG->DEVELOPER ) {
             $set->addLeft('Developer', $R.'dev.php');
         }
-        if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) { 
+        if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) {
             $set->addLeft('Admin', $R.'admin/index.php');
         }
 
@@ -527,12 +543,21 @@ function googleTranslateElementInit() {
     function topNav($menu_set=false) {
         global $CFG;
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
+        $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
+        $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
         if ( $menu_set === false && isset($_SESSION[$sess_key]) ) {
             $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key]);
-        }
-        if ( $menu_set === false ) {
+        } else if ( $menu_set === true ) {
             $menu_set = self::defaultMenuSet();
+        } else if ( $launch_target !== false && strtolower($launch_target) == 'window' ) {
+            $menu_set = self::closeMenuSet();
+        } else if ( $launch_return_url !== false ) {
+            // Actually the close is better because in an iframe it will be hidden
+            // and in a new window it will show and as such do the right thing.
+            $menu_set = self::closeMenuSet();
+            // $menu_set = self::returnMenuSet($launch_return_url);
         }
+        if ( $menu_set === false ) return;
         $menu_txt = self::menuNav($menu_set);
         echo($menu_txt);
     }
@@ -560,7 +585,7 @@ function googleTranslateElementInit() {
         $retval .= $pad.'<li class="dropdown">'."\n";
         $retval .= $pad.'  <a href="#" class="dropdown-toggle" data-toggle="dropdown">'.$entry->link.'<b class="caret"></b></a>'."\n";
         $retval .= $pad.'  <ul class="dropdown-menu">'."\n";
-        foreach($entry->href as $child) { 
+        foreach($entry->href as $child) {
            $retval .= $this->recurseNav($child, $depth+1);
         }
         $retval .= $pad."  </ul>\n";
@@ -584,23 +609,23 @@ $retval = <<< EOF
 
 EOF;
 
-        if ( $set->home ) { 
+        if ( $set->home ) {
             $retval .= '      <a class="navbar-brand" href="'.$set->home->href.'">'.$set->home->link.'</a>'."\n";
-        } 
+        }
         $retval .= "    </div>\n";
         $retval .= '    <div class="navbar-collapse collapse">'."\n";
-        
-        if ( $set->left && count($set->left->menu) > 0 ) { 
+
+        if ( $set->left && count($set->left->menu) > 0 ) {
             $retval .= '      <ul class="nav navbar-nav navbar-main">'."\n";
-            foreach($set->left->menu as $entry) { 
+            foreach($set->left->menu as $entry) {
                 $retval .= $this->recurseNav($entry, 2);
             }
             $retval .= "      </ul>\n";
         }
 
-        if ( $set->right && count($set->right->menu) > 0 ) { 
+        if ( $set->right && count($set->right->menu) > 0 ) {
             $retval .= '      <ul class="nav navbar-nav navbar-right">'."\n";
-            foreach($set->right->menu as $entry) { 
+            foreach($set->right->menu as $entry) {
                 $retval .= $this->recurseNav($entry, 2);
             }
             $retval .= "      </ul>\n";
