@@ -361,12 +361,12 @@ class LTIX {
         // Update the login_at data
         if ( isset($row['user_id']) ) {
             if ( Net::getIP() !== NULL ) {
-                $sql = "UPDATE {$p}lti_user SET login_at=NOW(), ipaddr=:IP WHERE user_id = :user_id";
+                $sql = "UPDATE {$CFG->dbprefix}lti_user SET login_at=NOW(), ipaddr=:IP WHERE user_id = :user_id";
                 $stmt = $PDOX->queryReturnError($sql, array(
                     ':IP' => Net::getIP(),
                     ':user_id' => $row['user_id']));
             } else {
-                $sql = "UPDATE {$p}lti_user SET login_at=NOW() WHERE user_id = :user_id";
+                $sql = "UPDATE {$CFG->dbprefix}lti_user SET login_at=NOW() WHERE user_id = :user_id";
                 $stmt = $PDOX->queryReturnError($sql, array(
                     ':user_id' => $row['user_id']));
             }
