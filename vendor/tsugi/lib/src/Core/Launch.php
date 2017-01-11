@@ -119,40 +119,6 @@ class Launch {
     }
 
     /**
-     * Get the actual IP address of the incoming request.
-     *
-     * Adapted from: https://www.chriswiegman.com/2014/05/getting-correct-ip-address-php/
-     * With some additional explode goodness via: http://stackoverflow.com/a/25193833/1994792
-     */
-    public function get_ip() {
-
-        //Just get the headers if we can or else use the SERVER global
-        if ( function_exists( 'apache_request_headers' ) ) {
-            $headers = apache_request_headers();
-        } else {
-            $headers = $_SERVER;
-        }
-
-        //Get the forwarded IP if it exists
-        $the_ip = false;
-        if ( array_key_exists( 'X-Forwarded-For', $headers ) ) {
-            $pieces = explode(',',$headers['X-Forwarded-For']);
-            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
-        }
-
-        if ( $the_ip === false && array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers ) ) {
-            $pieces = explode(',',$headers['HTTP_X_FORWARDED_FOR']);
-            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
-        }
-
-        if ( $the_ip === false ) {
-            $the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
-        }
-        return $the_ip;
-    }
-
-
-    /**
      * Dump out the internal data structures associated with the
      * current launch.  Best if used within a pre tag.
      */

@@ -4,6 +4,7 @@ namespace Tsugi\Core;
 
 use \Tsugi\Util\LTI;
 use \Tsugi\UI\Output;
+use \Tsugi\Util\Net;
 
 /**
  * This is a class to provide access to the user's result data.
@@ -162,11 +163,7 @@ class Result extends Entity {
         }
 
         // Get the IP Address
-        $ipaddr = null;
-        if ( isset($this->launch) ) {
-            $ipaddr = $this->launch->get_ip();
-            if ( $ipaddr === false ) $ipaddr = null;
-        }
+        $ipaddr = Net::getIP();
 
         // Update result in the database and in the LTI session area and 
         // our local copy 
