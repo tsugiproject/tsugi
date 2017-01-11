@@ -159,8 +159,8 @@ class LTIX {
             foreach($session_object as $k => $v ) {
                 unset($session_object[$k]);
             }
-            for ($i = 0; $i < count($session_object); $i++) { 
-                unset($session_object[$i]); 
+            for ($i = 0; $i < count($session_object); $i++) {
+                unset($session_object[$i]);
             }
         }
         session_unset();
@@ -215,7 +215,7 @@ class LTIX {
 
     /**
      * The LTI parameter data
-     * 
+     *
      * This code is taken from OAuthRequest
      */
     public static function oauth_parameters() {
@@ -872,13 +872,13 @@ class LTIX {
      * Handle the launch, but with the caller given the chance to override defaults
      *
      * @param $pdox array - aproperly initialized  PDO object.  Can be null.
-     * @param $request_data array - This must merge the $_POST, $_GET, 
+     * @param $request_data array - This must merge the $_POST, $_GET,
      * and OAuth Header data (in that order - header data has highest priority).
      * See self::oauth_parameters() for the way this data is normally pulled
      * from the three sources and merged into a single array.  Can be null.
      */
     public static function requireDataOverride($needed,
-        $pdox, $session_object, $current_url, $request_data) 
+        $pdox, $session_object, $current_url, $request_data)
     {
         return self::requireDataPrivate($needed,
             $pdox, $session_object, $current_url, $request_data);
@@ -887,8 +887,8 @@ class LTIX {
     /**
      * Internal method to handle the data setup
      */
-    public static function requireDataPrivate($needed=self::ALL, 
-        $pdox=null, $session_object=null, $current_url=null, $request_data=null) 
+    public static function requireDataPrivate($needed=self::ALL,
+        $pdox=null, $session_object=null, $current_url=null, $request_data=null)
     {
         global $CFG, $TSUGI_LAUNCH;
         global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT;
@@ -925,7 +925,6 @@ class LTIX {
         if ( $newlaunch ) {
             return $TSUGI_LAUNCH;
         }
-        
 
         // Check to see if the session already exists.
         if ( $session_object === null ) {
@@ -1306,7 +1305,7 @@ class LTIX {
      *     http://x.com/data/index.php?y=1  http://x.com/data/index.php
      *
      *      http://stackoverflow.com/questions/279966/php-self-vs-path-info-vs-script-name-vs-request-uri
-     * 
+     *
      *      http://example.com/bob
      *      REQUEST_URI = /bob
      *      PHP_SELF = /bob/index.php
@@ -1574,7 +1573,7 @@ class LTIX {
         $return_url .= ( strpos($return_url,'?') > 0 ) ? '&' : '?';
         $return_url .= 'lti_errormsg=' . urlencode($msg);
         if ( $extra !== false ) $return_url .= '&detail=' . urlencode($extra);
-        header("Location: ".$return_url); 
+        header("Location: ".$return_url);
         error_log($prefix.' '.$msg.' '.$extra);
         exit();
     }
