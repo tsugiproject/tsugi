@@ -21,4 +21,9 @@ class NetTest extends PHPUnit_Framework_TestCase
         $this->assertContains("The First Page",$stuff);
     }
 
+    public function testGetIP() {
+        $stuff = Net::getIP("http://www.dr-chuck.com/page1.htm");
+        $this->assertNull($stuff);
+    }
+
 }

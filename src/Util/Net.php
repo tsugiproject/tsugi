@@ -378,4 +378,45 @@ class Net {
         header("HTTP/1.1 403 Forbidden");
     }
 
+    /**
+     * Get the actual IP address of the incoming request.
+     *
+     * Handle being behind a load balancer or a proxy like Cloudflare.
+     * This will often return NULL when talking to localhost to make sure
+     * to test code using this ona  real IP address.
+     *
+     * Adapted from: https://www.chriswiegman.com/2014/05/getting-correct-ip-address-php/
+     * With some additional explode goodness via: http://stackoverflow.com/a/25193833/1994792
+     *
+     * @returns the IP address of the incoming request or NULL if it cannot be determined.
+     */
+    public static function getIP() {
+
+        //Just get the headers if we can or else use the SERVER global
+        if ( function_exists( 'apache_request_headers' ) ) {
+            $headers = apache_request_headers();
+        } else {
+            $headers = $_SERVER;
+        }
+
+        //Get the forwarded IP if it exists
+        $the_ip = false;
+        if ( array_key_exists( 'X-Forwarded-For', $headers ) ) {
+            $pieces = explode(',',$headers['X-Forwarded-For']);
+            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+        }
+
+        if ( $the_ip === false && array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers ) ) {
+            $pieces = explode(',',$headers['HTTP_X_FORWARDED_FOR']);
+            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+        }
+
+        if ( $the_ip === false && array_key_exists( 'REMOTE_ADDR', $headers ) ) {
+            $the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+        }
+
+        if ( $the_ip === false ) $the_ip = NULL;
+        return $the_ip;
+    }
+
 }
