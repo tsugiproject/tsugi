@@ -29,7 +29,12 @@ require_once("sanity-db.php");
   <a href="nonce.php" title="Check Nonces" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
   Check Nonces 
-  </a>
+  </a></li>
+<li>
+  <a href="recent.php" title="Recent Logins" target="iframe-frame"
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
+  Recent Logins 
+  </a></li>
 <li><a href="context/index.php">View Contexts</a></li>
 <?php if ( $CFG->providekeys ) { ?>
 <li><a href="key/index.php">Manage Access Keys</a></li>
