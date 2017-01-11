@@ -1,4 +1,5 @@
 <?php
+use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\SecureCookie;
 
@@ -239,15 +240,22 @@ if ( $doLogin ) {
         // Insert / update the user
         $didinsert = false;
         if ( $user_id > 0 ) {
-            // The user data is fine...
+            $stmt = $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}lti_user
+                 SET displayname=:DN, login_at=NOW(), ipaddr=:IP
+                 WHERE user_id=:ID",
+                array(':DN' => $displayName,':IP' => Net::getIP(), 
+                    ':ID' => $user_id)
+            );
         } else if ( $user_row === false ) { // Lets insert!
             $stmt = $PDOX->queryReturnError(
                 "INSERT INTO {$CFG->dbprefix}lti_user
                 (user_sha256, user_key, key_id, profile_id,
-                    email, displayname, created_at, updated_at, login_at) ".
-                "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, NOW(), NOW(), NOW() )",
+                    email, displayname, created_at, updated_at, login_at, ipaddr) ".
+                "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, NOW(), NOW(), NOW(), :IP )",
                  array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $google_key_id,
-                    ':PROF' => $profile_id, ':EMAIL' => $userEmail, ':DN' => $displayName)
+                    ':PROF' => $profile_id, ':EMAIL' => $userEmail, ':DN' => $displayName,
+		    ':IP' => Net::getIP())
             );
 
             if ( $stmt->success ) {
@@ -259,9 +267,9 @@ if ( $doLogin ) {
             $user_id = $user_row['user_id']+0;
             $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}lti_user
-                 SET email=:EMAIL, displayname=:DN, profile_id = :PRID, login_at=NOW()
+                 SET email=:EMAIL, displayname=:DN, profile_id = :PRID, login_at=NOW(), ipaddr=:IP
                  WHERE user_id=:ID",
-                array(':EMAIL' => $userEmail, ':DN' => $displayName,
+                array(':EMAIL' => $userEmail, ':DN' => $displayName,':IP' => Net::getIP(), 
                     ':ID' => $user_id, ':PRID' => $profile_id)
             );
             error_log('User-Update:'.$user_key.','.$displayName.','.$userEmail);

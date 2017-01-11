@@ -412,6 +412,10 @@ class Net {
         }
 
         if ( $the_ip === false && array_key_exists( 'REMOTE_ADDR', $headers ) ) {
+            $the_ip = filter_var( $headers['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+        }
+
+        if ( $the_ip === false && array_key_exists( 'REMOTE_ADDR', $_SERVER ) ) {
             $the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
 
