@@ -7,6 +7,7 @@ use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthRequest;
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\Net;
 use \Tsugi\Util\LTIConstants;
 use \Tsugi\UI\Output;
 use \Tsugi\Core\Settings;
@@ -355,6 +356,23 @@ class LTIX {
         if ( isset($row['role_override']) && isset($row['role']) &&
             $row['role_override'] > $row['role'] ) {
             $row['role'] = $row['role_override'];
+        }
+
+        // Update the login_at data
+        if ( isset($row['user_id']) ) {
+            if ( Net::getIP() !== NULL ) {
+                $sql = "UPDATE {$p}lti_user SET login_at=NOW(), ipaddr=:IP WHERE user_id = :user_id";
+                $stmt = $PDOX->queryReturnError($sql, array(
+                    ':IP' => Net::getIP(),
+                    ':user_id' => $row['user_id']));
+            } else {
+                $sql = "UPDATE {$p}lti_user SET login_at=NOW() WHERE user_id = :user_id";
+                $stmt = $PDOX->queryReturnError($sql, array(
+                    ':user_id' => $row['user_id']));
+            }
+            if ( ! $stmt->success ) {
+                error_log("Upable to update login_at user_id=".$row['user_id']);
+            }
         }
 
         // Put the information into the row variable
