@@ -22,6 +22,7 @@ if ( ! isset($params['order_by']) && !isset($params['desc']) ) {
     $params['order_by'] = 'login_at';
     $params['desc'] = '1';
 }
+$params['page_length'] = 15;
 $user_sql =
 "SELECT email, displayname, login_at, ipaddr FROM {$CFG->dbprefix}lti_user";
 $view = false;

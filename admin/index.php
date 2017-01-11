@@ -15,7 +15,7 @@ $OUTPUT->topNav();
 require_once("sanity-db.php");
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:400px" id="iframe-frame" 
+   <iframe name="iframe-frame" style="height:600px" id="iframe-frame" 
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <h1>Welcome Adminstrator</h1>
@@ -42,5 +42,6 @@ require_once("sanity-db.php");
 <li><a href="install/index.php">Manage Installed Modules</a></li>
 </ul>
 <?php
+
 $OUTPUT->footer();
 
