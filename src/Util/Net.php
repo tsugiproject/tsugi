@@ -399,9 +399,21 @@ class Net {
             $headers = $_SERVER;
         }
 
-        //Get the forwarded IP if it exists
         $the_ip = false;
-        if ( array_key_exists( 'X-Forwarded-For', $headers ) ) {
+
+	// Check Cloudflare headers
+        if ( $the_ip === false && array_key_exists( 'HTTP_CF_CONNECTING_IP', $headers ) ) {
+            $pieces = explode(',',$headers['HTTP_CF_CONNECTING_IP']);
+            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+        }
+
+        if ( $the_ip === false && array_key_exists( 'CF-Connecting-IP', $headers ) ) {
+            $pieces = explode(',',$headers['CF-Connecting-IP']);
+            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+        }
+
+        // Get the forwarded IP from more traditional places
+        if ( $the_ip == false && array_key_exists( 'X-Forwarded-For', $headers ) ) {
             $pieces = explode(',',$headers['X-Forwarded-For']);
             $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
@@ -415,6 +427,7 @@ class Net {
             $the_ip = filter_var( $headers['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
 
+	// Fall through and get *something*
         if ( $the_ip === false && array_key_exists( 'REMOTE_ADDR', $_SERVER ) ) {
             $the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
