@@ -62,7 +62,7 @@ class Net {
 
     /**
      * Extract a set of header lines into an array
-     * 
+     *
      * Takes a newline separated header sting and returns a key/value array
      */
     public static function parseHeaders($headerstr=false) {
@@ -372,7 +372,7 @@ class Net {
     }
 
     /**
-     * Send a 403 header 
+     * Send a 403 header
      */
     public static function send403() {
         header("HTTP/1.1 403 Forbidden");
@@ -412,6 +412,10 @@ class Net {
         }
 
         if ( $the_ip === false && array_key_exists( 'REMOTE_ADDR', $headers ) ) {
+            $the_ip = filter_var( $headers['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+        }
+
+        if ( $the_ip === false && array_key_exists( 'REMOTE_ADDR', $_SERVER ) ) {
             $the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
 
