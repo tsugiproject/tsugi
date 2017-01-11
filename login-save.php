@@ -94,7 +94,8 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
         $authObj = $glog->getAccessToken($google_code);
         $user = $glog->getUserInfo();
         // echo("<pre>\nUser\n");print_r($user);echo("</pre>\n");
-
+        $user_key = isset($user->openid_id) ? $user->openid_id :
+            ( isset($user->id) ? $user->id : false );
         $firstName = isset($user->given_name) ? $user->given_name : false;
         $lastName = isset($user->family_name) ? $user->family_name : false;
         $userEmail = isset($user->email) ? $user->email : false;
@@ -110,18 +111,6 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
             }
         }
         $userHomePage = isset($user->link) ? $user->link : false;
-
-        // flawed $user_key computation prior to 11-Jan-2016
-        // Note that $user->openid_id can be false (oops)
-        // Note that $user->openid_id and $user->id change over time
-        // So we just trust the email from google as our user_key (in this tenant)
-        // $user_key = isset($user->openid_id) ? $user->openid_id :
-            // ( isset($user->id) ? $user->id : false );
-
-        // New user_key is just based on the Google email which
-        // (a) we demand and (b) is consistent over time
-        $user_key = 'googlemail:'.$userEmail;
-
         // echo("i=$user_key f=$firstName l=$lastName e=$userEmail a=$userAvatar h=$userHomePage\n");
         $doLogin = true;
     }
@@ -134,46 +123,10 @@ if ( $doLogin ) {
         header('Location: '.$CFG->apphome.'/index.php');
         return;
     } else {
-
         $userSHA = lti_sha256($user_key);
         $displayName = $firstName . ' ' . $lastName;
-        
-        // Compensating/updating old lti_user records that are broken
-        // First we find the most recently added account with matching email
-        // if it exists
-        $stmt = $PDOX->queryDie(
-                "SELECT user_id, user_key, user_sha256, user_key FROM {$CFG->dbprefix}lti_user
-                    WHERE key_id = :KEY AND email = :EM 
-                    ORDER BY updated_at DESC, created_at DESC
-                    LIMIT 1;",
-                array(':EM' => $userEmail, ':KEY' => $google_key_id)
-        );
-        $user_row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ( $user_row !== false ) {
-            $old_user_key = $user_row['user_key'];
-            $old_user_sha = $user_row['user_sha256'];
-            $selected_user_id = $user_row['user_id'];
-            if ( $old_user_key != $user_key || $old_user_sha != $userSHA ) {
-                $stmt = $PDOX->queryDie(
-                    "UPDATE {$CFG->dbprefix}lti_user
-                        SET user_key=:NEWK, user_sha256=:NEWSHA
-                        WHERE user_key=:OLDK AND user_sha256=:OLDSHA AND key_id = :KEY",
-                    array(':NEWK' => $user_key, ':NEWSHA' => $userSHA,
-                        ':OLDK' => $old_user_key, ':OLDSHA' => $old_user_sha,
-                        ':KEY' => $google_key_id)
-                );
-                $stmt = $PDOX->queryDie(
-                    "UPDATE {$CFG->dbprefix}profile
-                        SET profile_sha256=:NEWSHA, profile_key=:NEWK
-                        WHERE profile_sha256=:OLDSHA AND key_id = :KEY",
-                    array(':NEWK' => $user_key, ':NEWSHA' => $userSHA,
-                        ':KEY' => $google_key_id, ':OLDSHA' => $old_user_sha)
-                );
-                error_log("User record adjusted old_key=$old_user_key, old_sha=$old_user_sha, new_key=$user_key, new_sha=$userSHA");
-            }
-        }
 
-        // Load the profile checking to see if everything matches
+        // Load the profile checking to see if everything
         $stmt = $PDOX->queryDie(
             "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
                 P.email as email, U.user_id as user_id
