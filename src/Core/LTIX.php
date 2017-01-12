@@ -119,11 +119,13 @@ class LTIX {
             return $session_object->all();
         }
         if ( is_array($session_object) ) {
-            $retval = $session_object; // Make a copy
+            $retval = array();
+            $retval = array_merge($retval,$session_object); // Make a copy
             return $retval;
         }
         if ( ! isset($_SESSION) ) return array();
-        $retval = $_SESSION;
+        $retval = array();
+        $retval = array_merge($retval, $_SESSION);
         return $retval;
     }
 
@@ -305,7 +307,7 @@ class LTIX {
                 $save_sess = self::wrapped_session_all($session_object);
                 self::wrapped_session_flush($session_object);
                 foreach($save_sess as $key => $v ) {
-                    if ( strpos($key, "tsugi_permanent_") !== 0 ) continue;
+                    if ( strpos($key, 'tsugi_permanent_') !== 0 ) continue;
                     self::wrapped_session_put($session_object, $key, $v);
                 }
             }
@@ -386,7 +388,6 @@ class LTIX {
 
         // Update the login_at data
         $start_time = self::wrapped_session_get($session_object, 'tsugi_permanent_start_time', false);
-        // if ( $start_time !== false ) die($start_time);
         if ( isset($row['user_id']) && $start_time !== false) {
             if ( Net::getIP() !== NULL ) {
                 $sql = "UPDATE {$CFG->dbprefix}lti_user SET login_at=NOW(), ipaddr=:IP WHERE user_id = :user_id";
