@@ -86,6 +86,8 @@ array( "{$CFG->dbprefix}lti_link",
 
     context_id          INTEGER NOT NULL,
 
+    path                TEXT NULL,
+
     title               TEXT NULL,
 
     json                TEXT NULL,
@@ -511,9 +513,18 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
     }
+
+    // Version 201701121623 improvements
+    if ( $oldversion < 201701121623 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD path TEXT";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201701100823;
+    return 201701121623;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
