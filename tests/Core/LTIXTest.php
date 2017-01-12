@@ -33,6 +33,14 @@ class LTIXTest extends PHPUnit_Framework_TestCase
     public function exercise($sess) {
         LTIX::wrapped_session_put($sess,'x', 'y');
         $this->assertEquals(LTIX::wrapped_session_get($sess,'x', 'sam'), 'y');
+        $s = LTIX::wrapped_session_all($sess);
+        $this->assertArrayHasKey('x',$s);
+        $this->assertArrayNotHasKey('tsugi',$s);
+        $s['x']=42;  // Make sure we have a copy and cannot change x
+        $this->assertEquals(LTIX::wrapped_session_get($sess,'x', 'sam'), 'y');
+        $s = LTIX::wrapped_session_all($sess);
+        $this->assertArrayHasKey('x',$s);
+        $this->assertArrayNotHasKey('tsugi',$s);
         LTIX::wrapped_session_forget($sess,'x');
         $this->assertEquals(LTIX::wrapped_session_get($sess,'x', 'sam'), 'sam');
         LTIX::wrapped_session_put($sess,'a', 'b');

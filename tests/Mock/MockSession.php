@@ -14,4 +14,8 @@ class MockSession {
     public function flush() {
         $this->sess = array();
     }
+    public function all() {
+        $retval = $this->sess;
+        return $retval;
+    }
 }

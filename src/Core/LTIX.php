@@ -109,6 +109,25 @@ class LTIX {
     }
 
     /**
+     * Get all session values
+     */
+    public static function wrapped_session_all($session_object)
+    {
+        global $TSUGI_SESSION_OBJECT;
+        if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
+        if ( is_object($session_object) ) {
+            return $session_object->all();
+        }
+        if ( is_array($session_object) ) {
+            $retval = $session_object; // Make a copy
+            return $retval;
+        }
+        if ( ! isset($_SESSION) ) return array();
+        $retval = $_SESSION;
+        return $retval;
+    }
+
+    /**
      * Wrap setting a key from the session
      */
     public static function wrapped_session_put(&$session_object,$key,$value)
@@ -281,8 +300,15 @@ class LTIX {
             // TODO: Why was this here?
             // header('Content-Type: text/html; charset=utf-8');
 
-            // Since we might reuse session IDs, clean everything out
-            if ( !defined('COOKIE_SESSION') ) self::wrapped_session_flush($session_object);
+            // Since we might reuse session IDs, clean everything out except permanent stuff
+            if ( !defined('COOKIE_SESSION') ) {
+                $save_sess = self::wrapped_session_all($session_object);
+                self::wrapped_session_flush($session_object);
+                foreach($save_sess as $key => $v ) {
+                    if ( strpos($key, "tsugi_permanent_") !== 0 ) continue;
+                    self::wrapped_session_put($session_object, $key, $v);
+                }
+            }
         }
 
         self::wrapped_session_put($session_object,'LAST_ACTIVITY', time());
@@ -359,7 +385,9 @@ class LTIX {
         }
 
         // Update the login_at data
-        if ( isset($row['user_id']) ) {
+        $start_time = self::wrapped_session_get($session_object, 'tsugi_permanent_start_time', false);
+        // if ( $start_time !== false ) die($start_time);
+        if ( isset($row['user_id']) && $start_time !== false) {
             if ( Net::getIP() !== NULL ) {
                 $sql = "UPDATE {$CFG->dbprefix}lti_user SET login_at=NOW(), ipaddr=:IP WHERE user_id = :user_id";
                 $stmt = $PDOX->queryReturnError($sql, array(
@@ -374,6 +402,7 @@ class LTIX {
                 error_log("Upable to update login_at user_id=".$row['user_id']);
             }
         }
+        self::wrapped_session_put($session_object, 'tsugi_permanent_start_time', time());
 
         // Put the information into the row variable
         // TODO: do AES on the secret
