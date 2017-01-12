@@ -540,10 +540,19 @@ function googleTranslateElementInit() {
         }
     }
 
+    /**
+     * Emit the top navigation block
+     *
+     * Priority order:
+     * (1) Navigation in the session
+     * (2) If we are launched via LTI w/o a session
+     */
     function topNav($menu_set=false) {
         global $CFG;
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
         $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
+
+        // Canvas bug: launch_target is iframe even in new window (2017-01-10)
         $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
         if ( $menu_set === false && isset($_SESSION[$sess_key]) ) {
             $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key]);
@@ -557,7 +566,16 @@ function googleTranslateElementInit() {
             $menu_set = self::closeMenuSet();
             // $menu_set = self::returnMenuSet($launch_return_url);
         }
-        if ( $menu_set === false ) return;
+
+        // Always put something out if we are an outer page - in an iframe, it will be hidden
+        if ( $menu_set === false && defined('COOKIE_SESSION') ) {
+            $menu_set = self::defaultMenuSet();
+        }
+
+        if ( $menu_set === false ) {
+            return;
+        }
+
         $menu_txt = self::menuNav($menu_set);
         echo($menu_txt);
     }
