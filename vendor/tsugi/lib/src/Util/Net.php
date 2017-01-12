@@ -412,7 +412,7 @@ class Net {
             $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
 
-        //Get the forwarded IP from more traditional places
+        // Get the forwarded IP from more traditional places
         if ( $the_ip == false && array_key_exists( 'X-Forwarded-For', $headers ) ) {
             $pieces = explode(',',$headers['X-Forwarded-For']);
             $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
