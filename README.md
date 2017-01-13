@@ -34,7 +34,7 @@ Installation
 * Check the code out from GitHub and put it in a directory where
 your web server can read it
 
-        git clone https://github.com/csev/tsugi.git
+        git clone https://github.com/tsugiproject/tsugi.git
 
 * Create a database and get authentication info for the database
 
@@ -64,23 +64,23 @@ from some of the other repositories:
 * If you set the `$CFG->install_path` and go into the Admin interface, you can 
 use "Manage Installed Modules" to install tools from [Tsugi Tools](https://github.com/tsugitools)
 
-* [Tsugi Module Sample Code](https://github.com/csev/tsugi-php-samples) - These 
+* [Tsugi Module Sample Code](https://github.com/tsugiproject/tsugi-php-samples) - These 
 are relatively short bits of code that you can look at as you write your
 own Tsugi Module.
 
-* [Tsugi Developer Exercises](https://github.com/csev/tsugi-php-exercises) - This
+* [Tsugi Developer Exercises](https://github.com/tsugiproject/tsugi-php-exercises) - This
 is a set of exercises of increasing difficulty suitable for a class or 
 workshop.  Working solutions are provided online.  Source code for working solutions
 is only available to inctructors that contact Dr. Chuck.
 
-* [Sample Tsugi Module](https://github.com/csev/tsugi-php-module) - Copy 
+* [Sample Tsugi Module](https://github.com/tsugiproject/tsugi-php-module) - Copy 
 this if you want to start a fresh Tsugi Module from scratch.  If you are building
 a new tool from scratch, you should build it as a "Tusig Module" following all 
 of the Tsugi style guidance, using the Tsugi browser environment, and making 
 full use of the Tsugi framework. This repository contains a basic 
 "Tsugi Module" you can use as a starting point.
 
-* [Sample Tsugi-Enabled Application](https://github.com/csev/tsugi-php-standalone) - You
+* [Sample Tsugi-Enabled Application](https://github.com/tsugiproject/tsugi-php-standalone) - You
 can also use Tsugi as a library and  add it to a few places in an existing application. 
 This repository contains sample code showing how to use Tsugi as a library in an existing 
 application.
@@ -109,11 +109,11 @@ Other Repositories
 The Tsugi Adminstration Console and Tsugi Modules / Applications depend on two other
 repositories:
 
-* [Tsugi PHP Library](https://github.com/csev/tsugi-php) - This is the code for the 
+* [Tsugi PHP Library](https://github.com/tsugiproject/tsugi-php) - This is the code for the 
 Tsugi run-time used by the Tsugi administration console and Tsugi PHP Modules 
 and Applications.
 
-* [Tsugi Static Content](https://github.com/csev/tsugi-static) - This repository contains
+* [Tsugi Static Content](https://github.com/tsugiproject/tsugi-static) - This repository contains
 JavaScript, images, and CSS files shared across the various Tsugi implementations
 (PHP, Java, and NodeJS).  The static content is available at 
 http://www.dr-chuck.net/tsugi-static/ - if you like you can check out your own copy
@@ -126,11 +126,11 @@ Other Languages
 While the PHP Implementation of Tsugi is the most well developed, there are additional 
 Tsugi implementations being developed:
 
-* [Tsugi Java](https://github.com/csev/tsugi-java-servlet) This is a reasonably complete
+* [Tsugi Java](https://github.com/tsugiproject/tsugi-java-servlet) This is a reasonably complete
 implementation of the Tsugi run-time in Java.  It shares low level IMS libraries with 
 Sakai and is ready for production use.
 
-* [Tsugi NodeJS](https://github.com/csev/tsugi-node-sample) - This is early 
+* [Tsugi NodeJS](https://github.com/tsugiproject/tsugi-node-sample) - This is early 
 pre-emergent code.
 
 Tsugi Developer List
