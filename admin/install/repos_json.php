@@ -86,6 +86,7 @@ foreach($folders as $folder){
 }
 
 // Only retrieve fresh every 600 seconds unless forced
+$fail = false;
 $repos = Cache::check('repos',1);
 if ( (! isset($_GET['force']) ) && $repos !== false ) {
     $expires = Cache::expires('repos',1);
@@ -98,34 +99,30 @@ if ( (! isset($_GET['force']) ) && $repos !== false ) {
     $note = 'Retrieved from github API. Data is cached for '.$expiresec.' seconds to avoit github limit. Add ?force=yes to force pull from github before cache expires.';
     if ( strlen($repos_str) < 1 ) {
         $error = 'No data retrieved from '.$url;
-        $retval['error'] = $error;
-        echo(json_encode($retval));
-        die_with_error_log($error);
+        $retval['available_error'] = $error;
+        $retval['available_error_detail'] = '';
+        $fail = true;
     }
     // echo(LTI::jsonIndent($repos_str));
     $repos = json_decode($repos_str);
     if ( $repos === null ) {
         $error = 'Unable to decode '.$url;
-        $retval['error'] = $error;
-        $retval['error_detail'] = $repos_str;
-        echo(json_encode($retval));
-        error_log(LTI::jsonIndent($repos_str));
-        die_with_error_log($error);
+        $retval['available_error'] = $error;
+        $retval['available_error_detail'] = $repos_str;
+        $fail = true;
     }
 
     if ( is_object($repos) ) {
-        $error = 'Did not get list of repositories'.$url;
-        $retval['error'] = $error;
-        $retval['error_detail'] = $repos_str;
-        echo(json_encode($retval));
-        error_log(LTI::jsonIndent($repos_str));
-        die_with_error_log($error);
+        $error = 'Did not get list of repositories: '.$url;
+        $retval['available_error'] = $error;
+        $retval['available_error_detail'] = json_encode($repos,JSON_PRETTY_PRINT);
+        $fail = true;
     }
     
-    Cache::set('repos',1,$repos,$expiresec);
+    if ( ! $fail ) Cache::set('repos',1,$repos,$expiresec);
 }
 
-foreach($repos as $repo) {
+if ( ! $fail ) foreach($repos as $repo) {
     $detail = new \stdClass();
     $detail->html_url = $repo->html_url;
     $detail->clone_url = $repo->clone_url;

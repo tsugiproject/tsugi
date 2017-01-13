@@ -212,5 +212,15 @@ class U {
         return 1 == preg_match('/^[a-zA-Z][a-zA-Z0-9_-]*$/', $folder);
     }
 
+    public static function conservativeUrl($url) {
+        if ( filter_var($url, FILTER_VALIDATE_URL) === false ) return false;
+        if ( strpos($url, '*') !== false ) return false;
+        if ( strpos($url, '\\') !== false ) return false;
+        if ( strpos($url, "'") !== false ) return false;
+        if ( strpos($url, ';') !== false ) return false;
+        if ( strpos($url, '"') !== false ) return false;
+        return true;
+    }
+
 
 }

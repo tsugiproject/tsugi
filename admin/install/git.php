@@ -1,5 +1,6 @@
 <?php
 
+use \Tsugi\Util\U;
 use \Tsugi\Util\Git;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LTI;
@@ -92,6 +93,7 @@ if ( $command == 'log' ) {
 
 // Do sanity checking on all requests
 $remote = false;
+$sub_folder = false;
 $repo = false;
 $origin = false;
 $log = false;
@@ -122,6 +124,15 @@ if ( $command == 'pull' ) {
     }
     // TODO: Demand no special characters
     $remote = $_REQUEST['remote'];
+    if (! U::conservativeUrl($remote) ) {
+        die_with_error_log('Badly formatted git URL: '.$remote);
+    }
+    if ( isset($_REQUEST['folder']) ) {
+        $sub_folder = $_REQUEST['folder'];
+        if ( strlen($sub_folder) < 1 || ! U::goodFolder($sub_folder) ) {
+            die_with_error_log('Badly folder name: '.$sub_folder);
+        }
+    }
 } else {
     die_with_error_log('Unknown git command');
 }

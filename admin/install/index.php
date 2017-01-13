@@ -59,9 +59,7 @@ some of these git repos.
 <ul class="nav nav-tabs">
   <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Installed Modules</a></li>
   <li class=""><a href="#available" data-toggle="tab" aria-expanded="false">Available Modules</a></li>
- <!--
   <li class=""><a href="#advanced" data-toggle="tab" aria-expanded="false">Advanced</a></li>
- -->
 </ul>
 <div id="myTabContent" class="tab-content">
   <div class="tab-pane fade active in" id="home">
@@ -74,11 +72,21 @@ some of these git repos.
     <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
     </ul>
   </div>
-<!--
   <div class="tab-pane fade" id="advanced">
-    <p>TBD</p>
+    <p>This screen allows you to clone a repository into your <b>install_folder</b>.
+    Make sure to know the code you are installing and review it carefully before 
+    installing it. The repository will be checked out into a folder of the
+    same name as the respsitory.</p>
+    <p>
+    <form method="GET" action="git.php" target="iframe-frame">
+    <input type="hidden" name="command" value="clone">
+    Repository: <input size="60" type="text" name="remote"><br/>
+    <!-- Sub-Folder: <input type="text" name="folder"> (optional)<br/> -->
+    <input type="submit" value="Clone Repository"
+        onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
+    </form>
+    </p>
   </div>
--->
 </div>
 
 <?php

@@ -24,6 +24,15 @@
     </li>
  {{/each}}
 {{else}}
- <p>No available modules</p>
+  <p>No available modules</p>
+  {{#if available_error }}
+    <p>{{available_error}}</p>
+  {{/if}}
+  {{#if available_error_detail }}
+<pre>
+{{available_error_detail}}
+</pre>
+  {{/if}}
+ 
 {{/if}}
 
