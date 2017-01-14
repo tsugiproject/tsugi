@@ -488,11 +488,9 @@ function googleTranslateElementInit() {
         }
 
         $submenu = new \Tsugi\UI\Menu();
-        $submenu->addLink('IMS LTI Documentation', 'http://developers.imsglobal.org/')  // target="_blank"
-            ->addLink('IMS LTI 1.1 Spec', 'http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html')
+        $submenu->addLink('IMS LTI 1.1 Spec', 'http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html')
             ->addLink('IMS LTI 2.0 Spec', 'http://www.imsglobal.org/lti/ltiv2p0/ltiIMGv2p0.html')
-            ->addLink('Tsugi Developer Site', 'https://github.com/csev/tsugi/blob/master/docs/DEVELOP.md')
-            ->addlink('Tsugi YouTube Channel', 'https://www.youtube.com/playlist?list=PLlRFEj9H3Oj5WZUjVjTJVBN18ozYSWMhw');
+            ->addLink('Tsugi Project Site', 'https://www.tsugi.org/');
 
         $set->addLeft('Links', $submenu);
 
