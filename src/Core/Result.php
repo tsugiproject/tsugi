@@ -181,17 +181,6 @@ class Result extends Entity {
                     ':RID' => $result_id)
             );
 
-            // TODO: Remove this after we are sure the dbs are upgraded
-            if ( ! $stmt->success ) {
-                $stmt = $PDOX->queryReturnError(
-                    "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
-                        updated_at = NOW() WHERE result_id = :RID",
-                    array(
-                        ':grade' => $grade,
-                        ':RID' => $result_id)
-                );
-            }
-
             if ( $stmt->success ) {
                 $msg = "Grade updated result_id=".$result_id." grade=$grade";
             } else {
