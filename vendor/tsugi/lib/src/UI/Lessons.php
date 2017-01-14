@@ -93,7 +93,7 @@ class Lessons {
         }
 
         // Demand that every module have required elments
-        foreach($lessons->badges as $badge) {
+        if ( isset($lessons->badges) ) foreach($lessons->badges as $badge) {
             if ( !isset($badge->title) ) {
                 die_with_error_log('All badges in a lesson must have a title');
             }

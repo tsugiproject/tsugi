@@ -222,5 +222,26 @@ class U {
         return true;
     }
 
+    /**
+     * Return the URL as seen by PHP (no query string or parameters)
+     *
+     * Borrowed from from_request on OAuthRequest.php
+     */
+    
+    public static function curPHPUrl() {
+        $scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on")
+              ? 'http'
+              : 'https';
+        $port = "";
+        if ( isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != "80" && $_SERVER['SERVER_PORT'] != "443" &&
+            strpos(':', $_SERVER['HTTP_HOST']) < 0 ) {
+            $port =  ':' . $_SERVER['SERVER_PORT'] ;
+        }
+        $http_url = $scheme .
+                              '://' . $_SERVER['HTTP_HOST'] .
+                              $port .
+                              $_SERVER['REQUEST_URI'];
+        return $http_url;
+    }
 
 }

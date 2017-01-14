@@ -364,6 +364,8 @@ class LTIX {
             self::abort_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0],$valid[1]);
         }
 
+        // Store the launch path
+        $post['link_path'] = self::curPageUrl();
         $actions = self::adjustData($CFG->dbprefix, $row, $post, $needed);
 
         $PDOX = self::getConnection();
@@ -581,7 +583,7 @@ class LTIX {
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, c.settings_url AS key_settings_url,
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
-            l.link_id, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
+            l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email, user_key,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
             m.membership_id, m.role, m.role_override,
@@ -678,17 +680,20 @@ class LTIX {
 
         if ( $row['link_id'] === null && isset($post['link_id']) ) {
             $sql = "INSERT INTO {$p}lti_link
-                ( link_key, link_sha256, settings_url, title, context_id, created_at, updated_at ) VALUES
-                    ( :link_key, :link_sha256, :settings_url, :title, :context_id, NOW(), NOW() )";
+                ( link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
+                    ( :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )";
             $PDOX->queryDie($sql, array(
                 ':link_key' => $post['link_id'],
                 ':link_sha256' => lti_sha256($post['link_id']),
                 ':settings_url' => $post['link_settings_url'],
                 ':title' => $post['link_title'],
-                ':context_id' => $row['context_id']));
+                ':context_id' => $row['context_id'],
+                ':path' => $post['link_path']
+            ));
             $row['link_id'] = $PDOX->lastInsertId();
             $row['link_title'] = $post['link_title'];
             $row['link_settings_url'] = $post['link_settings_url'];
+            $row['link_path'] = $post['link_path'];
             $actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title'];
         }
 
@@ -813,6 +818,15 @@ class LTIX {
                 ':link_id' => $row['link_id']));
             $row['link_title'] = $post['link_title'];
             $actions[] = "=== Updated link=".$row['link_id']." title=".$post['link_title'];
+        }
+
+        if ( isset($post['link_path']) && $post['link_path'] != $row['link_path'] ) {
+            $sql = "UPDATE {$p}lti_link SET path = :path WHERE link_id = :link_id";
+            $PDOX->queryDie($sql, array(
+                ':path' => $post['link_path'],
+                ':link_id' => $row['link_id']));
+            $row['link_path'] = $post['link_path'];
+            $actions[] = "=== Updated link=".$row['link_id']." path=".$post['link_path'];
         }
 
         if ( isset($post['user_displayname']) && $post['user_displayname'] != $row['user_displayname'] && strlen($post['user_displayname']) > 0 ) {
