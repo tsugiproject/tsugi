@@ -17,7 +17,7 @@
         "require": {
             "php": ">=5.5.0"
         },
-        "time": "2017-01-14 14:43:53",
+        "time": "2017-01-14 18:11:50",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
