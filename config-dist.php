@@ -4,11 +4,11 @@
 // and then edit.  Since config.php has passwords and other secrets
 // never check config.php into a source repository
 
-// If we just put Tsugi up, not part of another site
+// If we just are using Tsugi but not part of another site
 $apphome = false;
-// $wwwhost = "http://localhost/tsugi";
-$wwwroot = 'http://localhost:8888/tsugi';
-// $wwwhost = "https://fb610139.ngrok.io/tsugi";
+$wwwroot = "http://localhost/tsugi";
+// $wwwroot = 'http://localhost:8888/tsugi';
+// $wwwroot = "https://fb610139.ngrok.io/tsugi";
 
 // If we embed Tsugi in a web site it has a parent folder.
 // $apphome = "http://localhost/tsugi-org";
@@ -16,8 +16,6 @@ $wwwroot = 'http://localhost:8888/tsugi';
 // $apphome = "https://www.tsugi.org";
 // $wwwhost = $apphome . '/tsugi';
 // Make sure to check for all the "Embedded Tsugi" configuration options below
-
-if ( ! isset($wwwroot) ) die('Please set $wwwroot and other variables in config.php');
 
 $dirroot = realpath(dirname(__FILE__));
 
