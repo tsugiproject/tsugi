@@ -26,6 +26,8 @@ if ( !isset($CFG->google_map_api_key) ) {
 <div class="container">
 <div id="map_canvas" style="width:100%; height:400px"></div>
 </div>
+<p id="counter" style="text-align:center; padding-top:10px; display:none">
+</p>
 <?php
 $OUTPUT->footerStart();
 ?>
@@ -60,6 +62,14 @@ function initialize_map(data) {
       icon: iconpath + icon,
       title : row[2]
      });
+  }
+  if ( data.points.length == 1 ) {
+    $("#counter").text('There is one user on the map.');
+    $("#counter").show();
+  }
+  if ( data.points.length > 1 ) {
+    $("#counter").text('There are '+data.points.length+' users who have placed themselves on the map.');
+    $("#counter").show();
   }
 }
 
