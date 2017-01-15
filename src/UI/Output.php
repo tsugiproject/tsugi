@@ -333,34 +333,7 @@ function googleTranslateElementInit() {
 
             </script>
         <?php }
-        if ( $CFG->analytics_key ) { ?>
-    <script type="text/javascript">
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', '<?= $CFG->analytics_key ?>']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        // ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
-
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-
-    <?php
-            if ( LTIX::ltiParameter('key_key') ) {
-                echo("_gaq.push(['_setCustomVar', 1, 'consumer_key', '".$_SESSION['lti']['key_key']."', 2]);\n");
-            }
-            if ( LTIX::ltiParameter('context_id') ) {
-                echo("_gaq.push(['_setCustomVar', 2, 'context_id', '".$_SESSION['lti']['context_id']."', 2]);\n");
-            }
-            if ( LTIX::ltiParameter('context_title') ) {
-                echo("_gaq.push(['_setCustomVar', 3, 'context_title', '".$_SESSION['lti']['context_title']."', 2]);\n");
-            }
-            echo("</script>\n");
-        }  // if analytics is on...
     }
-
 
     /**
       * Welcome the user to the course
