@@ -8,6 +8,7 @@ if ( file_exists("config.php") ) {
     include_once("config.php");
 } else {
     echo("<pre>\nYou have not yet configured your instance of Tsugi.\n");
+    echo("Copy config-dist.php to config.php and edit to setup configuration.\n");
     echo("\nSee http://www.tsugi.org/ for complete installation instructions.\n");
     echo("</pre>\n");
     die();
