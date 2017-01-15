@@ -4,13 +4,20 @@
 // and then edit.  Since config.php has passwords and other secrets
 // never check config.php into a source repository
 
-// This is the URL where the software is hosted
-// Do not add a trailing slash to this string
-// $wwwroot = 'http://localhost/tsugi';  // Normal localhost 
-// $wwwroot = 'http://localhost:8888/tsugi';   // MAMP localhost
-// $wwwroot = 'http://localhost:8888/wa4e/tsugi';   // Embedded Tsugi localhsot
-// $wwwroot = 'https://www.wa4e.com/tsugi';   // Embedded Tsugi in production
-if ( ! isset($wwwroot) ) die('Please set $wwwroot and other configuration variables in config.php');
+// If we just put Tsugi up, not part of another site
+$apphome = false;
+// $wwwhost = "http://localhost/tsugi";
+$wwwroot = 'http://localhost:8888/tsugi';
+// $wwwhost = "https://fb610139.ngrok.io/tsugi";
+
+// If we embed Tsugi in a web site it has a parent folder.
+// $apphome = "http://localhost/tsugi-org";
+// $apphome = "http://localhost:8888/tsugi-org"
+// $apphome = "https://www.tsugi.org";
+// $wwwhost = $apphome . '/tsugi';
+// Make sure to check for all the "Embedded Tsugi" configuration options below
+
+if ( ! isset($wwwroot) ) die('Please set $wwwroot and other variables in config.php');
 
 $dirroot = realpath(dirname(__FILE__));
 
@@ -24,6 +31,8 @@ global $CFG;
 $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
+if ( $apphome ) $CFG->apphome = $apphome; // Leave unset if not embedded
+unset($apphome);
 
 // Database connection information to configure the PDO connection
 // You need to point this at a database with am account and password
@@ -34,14 +43,13 @@ $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 
-// You can use my CDN copy of the static content in testing or
-// light production if you like:
+// You can use the CDN copy of the static content - it is the
+// default unless you override it.
 // $CFG->staticroot = 'https://www.dr-chuck.net/tsugi-static';
 
 // If you check out a copy of the static content locally and do not
 // want to use the CDN copy (perhaps you are on a plane or are otherwise
 // not connected) use this configuration option instead of the above:
-// $CFG->staticroot = $CFG->wwwroot . "/../tsugi-static";
 // $CFG->staticroot = 'http://localhost/tsugi-static';  // For normal
 // $CFG->staticroot = 'http://localhost:8888/tsugi-static';   // For MAMP
 
@@ -60,47 +68,36 @@ $CFG->dbprefix  = '';
 $CFG->adminpw = false;
 
 // If we are running Embedded Tsugi we need to set the
-// site that is the "application" we are serving and
-// the "course title" for the course that represents
-// the "local" students.
-// $CFG->apphome = 'http://localhost:8888/wa4e';
-// $CFG->apphome = 'https://www.wa4e.com;
+// "course title" for the course that represents
+// the "local" students that log in through Google.
 // $CFG->context_title = "Web Applications for Everybody";
 
 // If we are going to use the lessons tool and/or badges, we need to
-// point to the lessons.json file
+// create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';
 
 // This allows you to include various tool folders.  These are scanned
 // for register.php, database.php and index.php files to do automatic
 // table creation as well as making lists of tools in various UI places
 // such as ContentItem or LTI 2.0
-$CFG->tool_folders = array("admin", "mod");
 
-// For Embedded Tsugi, you probably want to use the mod folder in the
-// parent folder and there might be LTI tools in the app repo in a folder
-// with a name like "tools"
-// $CFG->tool_folders = array("admin", "../tools", "../mod");
+// For nomal tsugi, by default we use the built-in admin tools, and 
+// install new tools (see /admin/install/) into mod.
+$CFG->tool_folders = array("admin", "mod");
+$CFG->install_folder = $CFG->dirroot.'/mod'; 
+
+// For Embedded Tsugi, you probably want to ignore the mod folder
+// in /tsugi and instead install new tools into "mod" in the parent folder
+if ( isset($CFG->apphome) ) {
+    $CFG->tool_folders = array("admin", "../tools", "../mod");
+    $CFG->install_folder = $CFG->dirroot.'/../mod'; 
+}
 
 // You can also include tool/module folders that are outside of this folder
 // using the following pattern:
 // $CFG->tool_folders = array("admin", "mod",
 //      "../tsugi-php-standalone", "../tsugi-php-module",
 //      "../tsugi-php-samples", "../tsugi-php-exercises");
-
-// The folder where admin/install will install modules automatically
-$CFG->install_folder = $CFG->dirroot.'/mod'; // Tsugi as a store
-// $CFG->install_folder = $CFG->dirroot.'/../mod'; // If we are using Embedded Tsugi
-
-// In order to run git from the a PHP script, we may need a setuid version
-// of git - example commands:
-//
-//    cd /home/csev
-//    cp /usr/bin/git .
-//    chmod a+s git
-//
-// This of course is something to consider carefully.
-// $CFG->git_command = '/home/csev/git';
 
 // Set to true to redirect to the upgrading.php script
 // Also copy upgrading-dist.php to upgrading.php and add your message
@@ -110,35 +107,43 @@ $CFG->upgrading = false;
 $CFG->servicename = 'TSUGI';
 $CFG->servicedesc = false;
 
-// Information on the owner of this system
+// Information on the owner of this system and whether we 
+// allow folks to request keys for the service
 $CFG->ownername = false;  // 'Charles Severance'
 $CFG->owneremail = false; // 'csev@example.com'
 $CFG->providekeys = false;  // true
 
-// Set these to your API key for your Google Sign on and Maps
-// https://console.developers.google.com/apis
+// Go to https://console.developers.google.com/apis/credentials
+// create a new OAuth 2.0 credential for a web application, 
+// get the key and secret, and put them here:
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
-$CFG->google_map_api_key = false; // 'Ve8eH49498430843cIA9IGl8';
 
-// Badge generation settings - once you start issuing badges - don't change these
+// Go to https://console.developers.google.com/apis/credentials
+// Create and configure an API key and enter it here
+$CFG->google_map_api_key = false; // 'Ve8eH490843cIA9IGl8';
+
+// Badge generation settings - once you set these values to something
+// other than false and start issuing badges - don't change these or 
+// existing badge images that have been downloaded from the system 
+// will be invalidated.
 $CFG->badge_encrypt_password = false; // "somethinglongwithhex387438758974987";
 $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
-$CFG->badge_path = $CFG->dirroot . '/../badges';
+
+// This folder contains the badge images - This example
+// is for Embedded Tsugi and the badge images are in the
+// parent folder.
+// $CFG->badge_path = $CFG->dirroot . '/../badges';
 
 // From LTI 2.0 spec: A globally unique identifier for the service provider.
 // As a best practice, this value should match an Internet domain name
 // assigned by ICANN, but any globally unique identifier is acceptable.
-$CFG->product_instance_guid = 'lti2.example.com';
+$CFG->product_instance_guid = parse_url($CFG->wwwroot)['host'];
+// $CFG->product_instance_guid = 'lti2.example.com';
 
 // From the CASA spec: originator_id a UUID picked by a publisher
 // and used for all apps it publishes
 $CFG->casa_originator_id = md5($CFG->product_instance_guid);
-
-// The vendor include and root
-$CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
-$CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/lib/include";
-$CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/lib/static";
 
 // When this is true it enables a Developer test harness that can launch
 // tools using LTI.  It allows quick testing without setting up an LMS
@@ -170,19 +175,8 @@ $CFG->sessionsalt = "warning:please-change-sessionsalt-89b543";
 // Timezone
 $CFG->timezone = 'Pacific/Honolulu'; // Nice for due dates
 
-// Old analytics
-$CFG->analytics_key = false;  // "UA-423997-16";
-$CFG->analytics_name = false; // "dr-chuck.com";
-
 // Universal Analytics
 $CFG->universal_analytics = false; // "UA-57880800-1";
-
-// Only define this if you are using Tsugi in single standalone app that
-// will never be in iframes - because most browsers will *not* set cookies in
-// cross-domain iframes.   If you use this, you cannot be a different
-// user in a different tab or be in a different course in a different
-// tab.
-// if ( !defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 
 // Effectively an "airplane mode" for the appliction.
 // Setting this to true makes it so that when you are completely
@@ -191,6 +185,22 @@ $CFG->universal_analytics = false; // "UA-57880800-1";
 // be faked.  Don't run this in production.
 
 $CFG->OFFLINE = false;
+
+// In order to run git from the a PHP script, we may need a setuid version
+// of git - example commands:
+//
+//    cd /home/csev
+//    cp /usr/bin/git .
+//    chmod a+s git
+//
+// This of course is something to consider carefully.
+// $CFG->git_command = '/home/csev/git';
+
+// The vendor include and root - generally leave these alone
+// unless you have a very custom checkout
+$CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
+$CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/lib/include";
+$CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/lib/static";
 
 // Leave these here
 require_once $CFG->vendorinclude."/setup.php";
