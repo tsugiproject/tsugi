@@ -4,6 +4,7 @@ use \Tsugi\Util\Git;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\Cache;
+use \Tsugi\UI\Lessons;
 
 define('COOKIE_SESSION', true);
 require_once("../../config.php");
@@ -23,11 +24,18 @@ if ( ! isset($CFG->install_folder) ) {
 require_once("../admin_util.php");
 require_once("install_util.php");
 
+// Load the Lesson
+$l = false;
+if ( isset($CFG->lessons) ) {
+    $l = new Lessons($CFG->lessons);
+}
+
 $available = array();
+$required = array();
 $installed = array();
 $paths = array();
 
-// In case we need a setuid copy of git
+// In case we need a setuid or other copy of git
 if ( isset($CFG->git_command) ) {
     Git::set_bin($CFG->git_command);
 }
@@ -66,6 +74,7 @@ $paths[$origin] = $CFG->dirroot;
 $path = $CFG->removeRelativePath($CFG->install_folder);
 $folders = findAllFolders($path);
 
+// Load the existing modules
 $existing = array();
 foreach($folders as $folder){
     $git = $folder . '/.git';
@@ -85,6 +94,20 @@ foreach($folders as $folder){
     }
 }
 
+// Check to see if there are any required repos we don't already have
+if ( $l && isset($l->lessons->required_modules) ) foreach($l->lessons->required_modules as $needed) {
+    if ( isset($existing[$needed]) || isset($existing[$needed.'.git'])) continue;
+    $detail = new \stdClass();
+    $detail->html_url = $needed;
+    $detail->clone_url = $needed;
+    $detail->name = $needed;
+    $detail->description = '';
+    $detail->index = count($required) + 1;
+    $detail->writeable = $install_writeable; // Assume if we cannot update tsugi..
+    $required[] = $detail;
+}
+
+// Check the tsugitools project in github
 // Only retrieve fresh every 600 seconds unless forced
 $fail = false;
 $repos = Cache::check('repos',1);
@@ -118,10 +141,11 @@ if ( (! isset($_GET['force']) ) && $repos !== false ) {
         $retval['available_error_detail'] = json_encode($repos,JSON_PRETTY_PRINT);
         $fail = true;
     }
-    
+
     if ( ! $fail ) Cache::set('repos',1,$repos,$expiresec);
 }
 
+// Loop through the tsugitools repos and get detail
 if ( ! $fail ) foreach($repos as $repo) {
     $detail = new \stdClass();
     $detail->html_url = $repo->html_url;
@@ -133,14 +157,14 @@ if ( ! $fail ) foreach($repos as $repo) {
         $detail->existing = true;
         $detail->path = $paths[$detail->clone_url];
         $detail->guid = md5($paths[$detail->clone_url]);
-        $repo = $existing[$detail->clone_url]; 
+        $repo = $existing[$detail->clone_url];
         try {
             $update = $repo->run('remote update');
             $detail->writeable = true;
         } catch (Exception $e) {
             $detail->writeable = false;
             $update = 'Caught exception: '.$e->getMessage(). "\n";
-        }   
+        }
         $detail->update_note = $update;
         $status = $repo->run('status -uno');
         $detail->status_note = $status;
@@ -183,5 +207,6 @@ $retval['version'] = trim($git_version);
 $retval['detail'] = $note;
 $retval['available'] = $available;
 $retval['installed'] = $installed;
+$retval['required'] = $required;
 
 echo(json_encode($retval, JSON_PRETTY_PRINT));

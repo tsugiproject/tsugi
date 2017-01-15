@@ -37,16 +37,16 @@ if ( ! isset($CFG->install_folder) ) {
 
 ?>
 <div id="readonly-dialog" title="Read Only Dialog" style="display: none;">
-<p>This server does not appear to allow the <b>git</b> command to 
+<p>This server does not appear to allow the <b>git</b> command to
 make changes to the web files.  So this tool will not be able to install,
 update, or reconfigure any of these tools.  You will have to update these files
 some other way.  Alternatively, you may be able to configure a copy of <b>git</b>
-that can update the file system - see the documentation for <b>$CFG->git_command</b> in 
+that can update the file system - see the documentation for <b>$CFG->git_command</b> in
 the <b>config-dist.php</b> file.
 </p>
 </div>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:400px" id="iframe-frame" 
+   <iframe name="iframe-frame" style="height:400px" id="iframe-frame"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <p>This screen is a wrapper for the <b>git</b> command if it is installed in your system.
@@ -58,15 +58,25 @@ some of these git repos.
 <p>Using: <?= htmlentities($git_version) ?></p>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Installed Modules</a></li>
+<?php if(isset($CFG->lessons)) { ?>
+  <li class=""><a href="#required" data-toggle="tab" aria-expanded="false">Required Modules</a></li>
+<?php } ?>
   <li class=""><a href="#available" data-toggle="tab" aria-expanded="false">Available Modules</a></li>
   <li class=""><a href="#advanced" data-toggle="tab" aria-expanded="false">Advanced</a></li>
 </ul>
-<div id="myTabContent" class="tab-content">
+<div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="home">
     <ul id="installed_ul">
     <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
     </ul>
   </div>
+<?php if(isset($CFG->lessons)) { ?>
+  <div class="tab-pane fade" id="required">
+    <ul id="required_ul">
+    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    </ul>
+  </div>
+<?php } ?>
   <div class="tab-pane fade" id="available">
     <ul id="available_ul">
     <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
@@ -74,7 +84,7 @@ some of these git repos.
   </div>
   <div class="tab-pane fade" id="advanced">
     <p>This screen allows you to clone a repository into your <b>install_folder</b>.
-    Make sure to know the code you are installing and review it carefully before 
+    Make sure to know the code you are installing and review it carefully before
     installing it. The repository will be checked out into a folder of the
     same name as the respsitory.</p>
     <p>
@@ -95,14 +105,18 @@ some of these git repos.
 
 $OUTPUT->footerStart();
 $OUTPUT->templateInclude(array('installed', 'available'));
-// $OUTPUT->templateInclude('installed');
-// $OUTPUT->templateInclude('available');
+if(isset($CFG->lessons)) {
+    $OUTPUT->templateInclude('required');
+}
 ?>
 <script>
 $(document).ready(function(){
     $.getJSON('<?= addSession('repos_json.php') ?>', function(repos) {
         window.console && console.log(repos);
         tsugiHandlebarsToDiv('installed_ul', 'installed', repos);
+<?php if(isset($CFG->lessons)) { ?>
+        tsugiHandlebarsToDiv('required_ul', 'required', repos);
+<?php } ?>
         tsugiHandlebarsToDiv('available_ul', 'available', repos);
     }).fail( function() { alert('getJSON fail'); } );
 });
