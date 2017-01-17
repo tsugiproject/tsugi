@@ -86,19 +86,19 @@ foreach($l->lessons->modules as $module) {
 
     if ( isset($module->slides) ) {
         $url = absolute_url($module->slides);
-        $title = 'Slides';
+        $title = 'Slides: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
     }
 
     if ( isset($module->assignment) ) {
         $url = absolute_url($module->assignment);
-        $title = 'Assignment';
+        $title = 'Assignment: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
     }
 
     if ( isset($module->solution) ) {
         $url = absolute_url($module->solution);
-        $title = 'Solution';
+        $title = 'Solution: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
     }
 
