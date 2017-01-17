@@ -660,6 +660,8 @@ var disqus_config = function () {
 <?php
     if ( count($awarded) < 1 ) {
         echo("<p>No badges have been awarded yet.</p>");
+    } else if ( !isset($_SESSION['id']) || ! isset($_SESSION['context_id']) ) {
+        echo("<p>You must be logged in to see your badges.</p>\n");
     } else {
         echo("</ul>\n");
         foreach($awarded as $badge) {
