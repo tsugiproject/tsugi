@@ -405,7 +405,7 @@ class Lessons {
 
                     $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
                     if ( isset($_SESSION[$sess_key]) ) {
-                        $parms['ext_tsugi_top_nav'] = $_SESSION[$sess_key];
+                        // $parms['ext_tsugi_top_nav'] = $_SESSION[$sess_key];
                     }
     
                     $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
