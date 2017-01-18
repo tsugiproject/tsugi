@@ -522,6 +522,12 @@ function googleTranslateElementInit() {
         global $CFG;
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
         $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
+        // Canvas test
+        $product = LTIX::ltiRawParameter('tool_consumer_info_product_family_code', false);
+
+        $same_host = false;
+        if ( $CFG->apphome && startsWith($launch_return_url, $CFG->apphome) ) $same_host = true;
+        if ( $CFG->wwwroot && startsWith($launch_return_url, $CFG->wwwroot) ) $same_host = true;
 
         // Canvas bug: launch_target is iframe even in new window (2017-01-10)
         $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
@@ -529,13 +535,16 @@ function googleTranslateElementInit() {
             $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key]);
         } else if ( $menu_set === true ) {
             $menu_set = self::defaultMenuSet();
+        } else if ( $same_host && $launch_return_url ) {
+            // If we are in an iframe we will be hidden
+            $menu_set = self::returnMenuSet($launch_return_url);
         } else if ( $launch_target !== false && strtolower($launch_target) == 'window' ) {
             $menu_set = self::closeMenuSet();
-        } else if ( $launch_return_url !== false ) {
-            // Actually the close is better because in an iframe it will be hidden
-            // and in a new window it will show and as such do the right thing.
+        // Since canvas does not set launch_target properly
+        } else if ( $launch_target !== false && $product == 'canvas' ) {
             $menu_set = self::closeMenuSet();
-            // $menu_set = self::returnMenuSet($launch_return_url);
+        } else if ( $launch_return_url !== false ) {
+            $menu_set = self::returnMenuSet($launch_return_url);
         }
 
         // Always put something out if we are an outer page - in an iframe, it will be hidden
