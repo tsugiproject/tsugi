@@ -765,7 +765,7 @@ $(function(){
         global $CFG;
 
         $custom = LTIX::ltiCustomGet($key);
-        if ( $strlen($custom) > 0 ) return $custom;
+        if ( strlen($custom) > 0 ) return $custom;
 
         if ( $rlid === false ) return false;
         $lti = $this->getLtiByRlid($rlid);
