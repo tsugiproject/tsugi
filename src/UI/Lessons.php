@@ -776,6 +776,5 @@ $(function(){
         }
         return false;
     }
-}
 
 }
