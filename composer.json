@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#9fa2c50f75ba5edd471b424ba680610bec35d5c5"
+        "tsugi/lib": "dev-master#3f7fb1cfdbc16bd95c3120d271550a3f63723f49"
     },
     "config": {
         "preferred-install": "dist"

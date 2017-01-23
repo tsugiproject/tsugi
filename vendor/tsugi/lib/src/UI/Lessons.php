@@ -20,12 +20,12 @@ class Lessons {
     public $module;
 
     /*
-     ** The anchor of the module 
+     ** The anchor of the module
      */
     public $anchor;
 
     /*
-     ** The position of the module 
+     ** The position of the module
      */
     public $position;
 
@@ -299,7 +299,7 @@ class Lessons {
             }
             echo("</ul></div>\n");
             echo('<h1>'.$module->title."</h1>\n");
-    
+
             if ( isset($module->videos) ) {
                 $videos = $module->videos;
                 echo('<ul class="bxslider">'."\n");
@@ -316,11 +316,11 @@ class Lessons {
                 }
                 echo("</ul>\n");
             }
-    
+
             if ( isset($module->description) ) {
                 echo('<p>'.$module->description."</p>\n");
             }
-    
+
             echo("<ul>\n");
             if ( isset($module->slides) ) {
                 echo('<li><a href="'.$module->slides.'" target="_blank">Slides</a></li>'."\n");
@@ -348,16 +348,16 @@ class Lessons {
                         $module->references->title."</a></li>\n");
                 }
             }
-    
+
             if ( isset($module->lti) && isset($_SESSION['secret']) ) {
                 $ltis = $module->lti;
-    
+
                 if ( count($ltis) > 1 ) echo("<li>Tools:<ul> <!-- start of ltis -->\n");
                 $count = 0;
                 foreach($ltis as $lti ) {
                     $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
                     $secret = isset($_SESSION['secret']) ? $_SESSION['secret'] : false;
-    
+
                     if ( isset($lti->resource_link_id) ) {
                         $resource_link_id = $lti->resource_link_id;
                     } else {
@@ -386,7 +386,7 @@ class Lessons {
                         'roles' => 'Learner'
                     );
                     if ( isset($_SESSION['avatar']) ) $parms['user_image'] = $_SESSION['avatar'];
-    
+
                     if ( isset($lti->custom) ) {
                         foreach($lti->custom as $custom) {
                             if ( isset($custom->value) ) {
@@ -397,7 +397,7 @@ class Lessons {
                             }
                         }
                     }
-    
+
                     $return_url = $CFG->getCurrentUrl();
                     if ( $this->anchor ) $return_url .= '?anchor='.urlencode($this->anchor);
                     elseif ( $this->position ) $return_url .= '?index='.urlencode($this->position);
@@ -407,14 +407,14 @@ class Lessons {
                     if ( isset($_SESSION[$sess_key]) ) {
                         // $parms['ext_tsugi_top_nav'] = $_SESSION[$sess_key];
                     }
-    
+
                     $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
                     $parms['ext_lti_form_id'] = $form_id;
-    
+
                     $endpoint = $lti->launch;
                     $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
                         "Finish Launch", $CFG->product_instance_guid, $CFG->servicename);
-    
+
                     $content = LTI::postLaunchHTML($parms, $endpoint, false /*debug */, '_pause');
                     $title = isset($lti->title) ? $lti->title : "Autograder";
                     echo('<li><a href="#" onclick="document.'.$form_id.'.submit();return false">'.htmlentities($title).'</a></li>'."\n");
@@ -422,7 +422,7 @@ class Lessons {
                     print($content);
                     echo("<!-- End of content -->\n");
                 }
-    
+
                 if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
             }
         if ( !isset($module->discuss) ) $module->discuss = true;
@@ -514,7 +514,7 @@ var disqus_config = function () {
                     } else {
                         echo("<td>&nbsp;</td>");
                     }
-                
+
                     echo("</tr>\n");
                 }
             }
@@ -676,8 +676,8 @@ var disqus_config = function () {
         }
         echo("</ul>\n");
 ?>
-<p>These badges contain the official Open Badge metadata.  You can download the badge and 
-put it on your own server, or add the badge to a "badge packpack".  You could validate the badge 
+<p>These badges contain the official Open Badge metadata.  You can download the badge and
+put it on your own server, or add the badge to a "badge packpack".  You could validate the badge
 using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple badge validator</a>.
 </p>
 <?php
@@ -723,5 +723,59 @@ $(function(){
         }
 
     } // end footer
+
+    /**
+     * Check if a setting value is in a resource in a Lesson
+     *
+     * This solves the problems that (a) most LMS systems do not handle
+     * custom well for Common Cartridge Imports and (b) some systems
+     * do not handle custom at all when links are installed via
+     * ContentItem.  Canvas has this problem for sure and others might
+     * as well.
+     *
+     * The solution is to add the resource link from the Lesson as a GET
+     * parameter on the launchurl URL to be a fallback:
+     *
+     * https://../mod/zap/index.php?inherit=assn03
+     *
+     * Say the tool has custom key of "exercise" that it wants a default
+     * for when the tool has not yet been configured.  First we check
+     * if the LMS sent us a custom parameter and use it if present.
+     *
+     * If not, load up the LTI launch for the resource link id (assn03)
+     * in the above example and see if there is a custom parameter set
+     * in that launch and assume it was passed to us.
+     *
+     * Sample call:
+     *
+     *     $assn = Settings::linkGet('exercise');
+     *     if ( ! $assn || ! isset($assignments[$assn]) ) {
+     *         $rlid = isset($_GET['inherit']) ? $_GET['inherit'] : false;
+     *         if ( $rlid && isset($CFG->lessons) ) {
+     *             $l = new Lessons($CFG->lessons);
+     *             $assn = $l->getCustomWithInherit($rlid, 'exercise');
+     *         } else {
+     *             $assn = LTIX::ltiCustomGet('exercise');
+     *         }
+     *         Settings::linkSet('exercise', $assn);
+     *     }
+     *
+     */
+    public function getCustomWithInherit($key, $rlid=false) {
+        global $CFG;
+
+        $custom = LTIX::ltiCustomGet($key);
+        if ( $strlen($custom) > 0 ) return $custom;
+
+        if ( $rlid === false ) return false;
+        $lti = $this->getLtiByRlid($rlid);
+        if ( isset($lti->custom) ) foreach($lti->custom as $custom ) {
+            if (isset($custom->key) && isset($custom->value) && $custom->key == $key ) {
+                return $custom->value;
+            }
+        }
+        return false;
+    }
+}
 
 }
