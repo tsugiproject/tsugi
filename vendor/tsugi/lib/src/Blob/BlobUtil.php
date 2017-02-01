@@ -92,7 +92,7 @@ class BlobUtil {
         if( $FILE_DESCRIPTOR['error'] == 0)
         {
             $filename = basename($FILE_DESCRIPTOR['name']);
-            if ( strpos($filename, '.php') !== false ) {
+            if ( endsWith($filename, '.php') ) {
                 return false;
             }
 
