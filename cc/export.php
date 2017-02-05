@@ -20,6 +20,7 @@ if ( isset($_POST['ext_content_return_url']) ) {
     $return_url .= strpos($return_url,'?') === false ? '?' : '&';
     $return_url .= "return_type=file&text=". urlencode($CFG->servicename) . "&url=";
     $return_url .= urlencode($CFG->wwwroot . '/cc/export.php');
+    $return_url .= '&tsugi_lms=canvas';
     $OUTPUT->header();
     $OUTPUT->bodystart(false);
     echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
@@ -58,8 +59,16 @@ if ( ! isCli() ) {
     header( "Content-Disposition: attachment; filename=\"".$service."_export.imscc\"" );
 }
 
+$tsugi_lms = false;
+if ( isset($_GET['tsugi_lms']) ) $tsugi_lms = $_GET['tsugi_lms'];
+
 $cc_dom = new CC();
-$cc_dom->set_title($CFG->context_title);
+$cc_dom->set_title($CFG->context_title.' import');
+$top_module = false;
+if ( $tsugi_lms == 'sakai' ) {
+    $top_module = $cc_dom->add_module('Imported content');
+}
+
 // $cc_dom->set_description('Awesome MOOC to learn PHP, MySQL, and JavaScript.');
 
 function absolute_url($url) {
@@ -74,7 +83,11 @@ function absolute_url($url) {
 
 foreach($l->lessons->modules as $module) {
     if ( isCli() ) echo("title=$module->title\n");
-    $sub_module = $cc_dom->add_module($module->title);
+    if ( $top_module ) {
+        $sub_module = $cc_dom->add_sub_module($top_module,$module->title);
+    } else {
+        $sub_module = $cc_dom->add_module($module->title);
+    }
 
     if ( isset($module->videos) ) {
         foreach($module->videos as $video ) {
