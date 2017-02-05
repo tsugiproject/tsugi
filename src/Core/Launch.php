@@ -119,6 +119,50 @@ class Launch {
     }
 
     /**
+     * Return the original $_POST array
+     */
+    public function ltiRawPostArray() {
+        $lti_post = $this->session_get('lti_post', false);
+        return $lti_post;
+    }
+
+    /**
+     * Pull a keyed variable from the original LTI post data in the current session with default
+     */
+    public function ltiRawParameter($varname, $default=false) {
+        $lti_post = $this->ltiRawPostArray('lti_post', false);
+        if ( $lti_post === false ) return $default;
+        if ( ! isset($lti_post[$varname]) ) return $default;
+        return $lti_post[$varname];
+    }
+
+    /**
+     * Pull out a custom variable from the LTIX session. Do not
+     * include the "custom_" prefix - this is automatic.
+     */
+    public function ltiCustomGet($varname, $default=false) {
+        return $this->ltiRawParameter('custom_'.$varname, $default);
+    }
+
+    /**
+     * Indicate if this launch came from Sakai
+     */
+    public function isSakai() {
+        $ext_lms = $this->ltiRawParameter('ext_lms', false);
+        $ext_lms = strtolower($ext_lms);
+        return strpos($ext_lms, 'sakai') === 0 ;
+    }
+
+    /**
+     * Indicate if this launch came from Canvas
+     */
+    public function isCanvas() {
+        $product = $this->ltiRawParameter('tool_consumer_info_product_family_code', false);
+        return $product == 'canvas';
+    }
+
+
+    /**
      * Dump out the internal data structures associated with the
      * current launch.  Best if used within a pre tag.
      */

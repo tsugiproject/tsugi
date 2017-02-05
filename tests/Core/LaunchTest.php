@@ -53,4 +53,13 @@ class LaunchTest extends PHPUnit_Framework_TestCase
         $this->exercise($sess);
     }
 
+    public function testIsFunctions() {
+        $sess = new MockSession();
+        $launch = new \Tsugi\Core\Launch();
+        $launch->session_object = $sess;
+        $this->assertFalse($launch->isSakai());
+        $this->assertFalse($launch->isCanvas());
+    }
+
+
 }
