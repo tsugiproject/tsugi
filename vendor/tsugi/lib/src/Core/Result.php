@@ -190,10 +190,8 @@ class Result extends Entity {
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
         }
 
-
-        if ( $key_key == false || $secret === false ||
-            $sourcedid === false || $service === false ||
-            !isset($USER) ) {
+        // A broken launch
+        if ( $key_key == false || $secret === false || !isset($USER) ) {
             error_log("Result::gradeSend stored data locally");
             return false;
         }
@@ -202,8 +200,10 @@ class Result extends Entity {
         $comment = "";
         if ( strlen($result_url) > 0 ) {
             $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log);
-        } else {
+        } else if ( $sourcedid !== false && $service !== false ) {
             $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
+        } else {
+            return true;   // Local storage only
         }
 
         if ( $status === true ) {
