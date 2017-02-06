@@ -92,7 +92,7 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->videos) ) {
         foreach($module->videos as $video ) {
             $title = 'Video: '.$video->title;
-            $url = 'https://www.youtube.com/embed/' . $video->youtube;
+            $url = 'https://www.youtube.com/watch?v=' . $video->youtube;
             $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
         }
     }
