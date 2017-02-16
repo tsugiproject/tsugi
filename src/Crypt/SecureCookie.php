@@ -29,7 +29,7 @@ class SecureCookie {
     // See: http://php.net/manual/en/function.setcookie.php
     public static function delete() {
         global $CFG;
-        setcookie($CFG->cookiename,'',time() - 100); // Expire 100 seconds ago
+        setcookie($CFG->cookiename,'',time() - 100, '/'); // Expire 100 seconds ago
         session_unset();
     }
 
@@ -37,6 +37,6 @@ class SecureCookie {
     public static function set($user_id, $userSHA) {
         global $CFG;
         $ct = self::create($user_id,$userSHA);
-        setcookie($CFG->cookiename,$ct,time() + (86400 * 45)); // 86400 = 1 day
+        setcookie($CFG->cookiename,$ct,time() + (86400 * 45), '/'); // 86400 = 1 day
     }
 }
