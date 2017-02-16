@@ -531,6 +531,37 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Checking for incorrect duplicate profile entries created
+    // by pre Jan-2017 login.php mistakenly assuming that the 
+    // ID returned by Google was "permanent" - so now in 
+    // profile, we use email as primary key.
+    $checkSQL = "SELECT profile_id, email, created_at FROM {$CFG->dbprefix}profile WHERE email IN (SELECT T.E FROM (select profile_id AS I, email AS E,COUNT(profile_sha256) as C FROM {$CFG->dbprefix}profile GROUP BY email ORDER BY C DESC) AS T WHERE T.C > 1) ORDER BY email DESC, created_at DESC;";
+    $stmt = $PDOX->queryReturnError($checkSQL);
+    if ( ! $stmt->success ) {
+        echo("Fail checking duplicate profile entries:<br/>\n");
+        echo($checkSQL);
+        echo("Error: ".$stmt->errorImplode."<br/>\n");
+    } else {
+        $count = 0;
+        while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
+            if ( $count == 0 ) {
+                echo("These are profiles with duplicates:<br/>\n");
+            }
+            if ( $count < 10 ) {
+	        echo($row['profile_id'].', '.htmlentities($row['email']).', '.$row['created_at']."<br/>\n");
+            }
+            $count ++;
+        }
+        if ( $count > 0 ) {
+            if ( $count > 10 ) {
+                echo(" .... <br/>\n");
+            }
+            echo("Total records affected: $count <br/>\n");
+            echo('To clear the duplicate records, use <a href="patch_profile.php">patch_profile.php</a><br/>'."\n");
+        }
+    }
+
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
     return 201702161640;
