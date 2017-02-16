@@ -1474,7 +1474,7 @@ class LTIX {
 
         // Convert to an integer and check valid
         $user_id = $pieces[0] + 0;
-        $userSHA = $pieces[1];
+        $userEmail = $pieces[1];
         if ( $user_id < 1 ) {
             $user_id = false;
             $pieces = false;
@@ -1491,15 +1491,16 @@ class LTIX {
                 LEFT JOIN {$CFG->dbprefix}lti_user AS U
                 ON P.profile_id = U.profile_id AND user_sha256 = profile_sha256 AND
                     P.key_id = U.key_id
-                WHERE profile_sha256 = :SHA AND U.user_id = :UID LIMIT 1",
-            array('SHA' => $userSHA, ":UID" => $user_id)
+                WHERE P.email = :EMAIL AND U.email = :EMAIL
+                    AND U.user_id = :UID LIMIT 1",
+            array('EMAIL' => $userEmail, ":UID" => $user_id)
         );
 
         if ( $stmt->success === false ) return;
 
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( $row === false ) {
-            error_log("Unable to load user_id=$user_id SHA=$userSHA");
+            error_log("Unable to load user_id=$user_id EMAIL=$userEmail");
             SecureCookie::delete();
             return;
         }

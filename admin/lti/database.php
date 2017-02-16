@@ -122,6 +122,7 @@ array( "{$CFG->dbprefix}lti_user",
 
     json                TEXT NULL,
     login_at            DATETIME NULL,
+    login_count         INTEGER NULL,
     ipaddr              VARCHAR(64),
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -522,9 +523,17 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Version 201702161640 improvements
+    if ( $oldversion < 201702161640 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD login_count INTEGER";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201701121623;
+    return 201702161640;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
