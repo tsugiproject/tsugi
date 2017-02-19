@@ -17,11 +17,13 @@ class SecureCookieTest extends PHPUnit_Framework_TestCase
         $CFG->cookiepad = 'Helloworld';
         $id = 1;
         $guid = 'xyzzy';
-        $ct = SecureCookie::create($id,$guid,false);
+        $cid = '999';
+        $ct = SecureCookie::create($id,$guid,$cid,false);
         $pieces = SecureCookie::extract($ct,false);
-        $this->assertEquals(count($pieces), 2);
+        $this->assertEquals(count($pieces), 3);
         $this->assertEquals($pieces[0], $id);
         $this->assertEquals($pieces[1], $guid);
+        $this->assertEquals($pieces[2], $cid);
     }
 
 }
