@@ -384,6 +384,18 @@ class Lessons {
                 }
             }
 
+            // LTIs not logged in
+            if ( isset($module->lti) && ! isset($_SESSION['secret']) ) {
+                $ltis = $module->lti;
+                if ( count($ltis) > 1 ) echo("<li>Tools:<ul> <!-- start of ltis -->\n");
+                foreach($ltis as $lti ) {
+                    $title = isset($lti->title) ? $lti->title : $module->title;
+                    echo('<li>'.htmlentities($title).' (Login Required)</li>'."\n");
+                }
+                if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
+            }
+
+            // LTIs not logged in
             if ( isset($module->lti) && isset($_SESSION['secret']) ) {
                 $ltis = $module->lti;
 
