@@ -316,7 +316,7 @@ if ( $doLogin ) {
         }
 
         // Set the secure cookie
-        SecureCookie::set($user_id,$userEmail);
+        SecureCookie::set($user_id,$userEmail,$context_id);
 
         if ( isset($_SESSION['login_return']) ) {
             header('Location: '.$_SESSION['login_return']);

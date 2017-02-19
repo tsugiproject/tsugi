@@ -1463,22 +1463,27 @@ class LTIX {
             return;
         }
 
+
+
         $ct = $_COOKIE[$CFG->cookiename];
         // error_log("Cookie: $ct \n");
         $pieces = SecureCookie::extract($ct);
-        if ( $pieces === false ) {
+        if ( $pieces === false || count($pieces) != 3) {
             error_log('Decrypt fail:'.$ct);
             SecureCookie::delete();
             return;
         }
 
+        // print_r($pieces); die();
+
         // Convert to an integer and check valid
         $user_id = $pieces[0] + 0;
         $userEmail = $pieces[1];
-        if ( $user_id < 1 ) {
+        $context_id = $pieces[2] + 0;
+        if ( $user_id < 1 || $context_id < 1 ) {
             $user_id = false;
             $pieces = false;
-            error_log('Decrypt bad ID:'.$pieces[0].','.$ct);
+            error_log('Decrypt bad ID:'.$ct);
             SecureCookie::delete();
             return;
         }
@@ -1486,19 +1491,30 @@ class LTIX {
         // The profile table might not even exist yet.
         $stmt = $PDOX->queryReturnError(
             "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
-                P.email as email, U.user_id as user_id
+                P.email AS email, U.user_id AS user_id, U.user_key AS user_key, 
+                role, C.context_key, C.context_id AS context_id,
+                K.key_id, K.key_key, K.secret
                 FROM {$CFG->dbprefix}profile AS P
                 LEFT JOIN {$CFG->dbprefix}lti_user AS U
                 ON P.profile_id = U.profile_id AND user_sha256 = profile_sha256 AND
-                    P.key_id = U.key_id
+                    P.key_id = U.key_id 
+                LEFT JOIN {$CFG->dbprefix}lti_key AS K
+                    ON U.key_id = K.key_id
+                LEFT JOIN {$CFG->dbprefix}lti_context AS C
+                    ON U.key_id = C.key_id
+                LEFT JOIN {$CFG->dbprefix}lti_membership AS M
+                    ON U.user_id = M.user_id AND C.context_id = M.context_id
                 WHERE P.email = :EMAIL AND U.email = :EMAIL
-                    AND U.user_id = :UID LIMIT 1",
-            array('EMAIL' => $userEmail, ":UID" => $user_id)
+                    AND U.user_id = :UID AND C.context_id = :CID LIMIT 1",
+            array('EMAIL' => $userEmail, ":UID" => $user_id, ":CID" => $context_id)
         );
 
+        // print_r($stmt); die();
         if ( $stmt->success === false ) return;
 
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        // print_r($row); die();
         if ( $row === false ) {
             error_log("Unable to load user_id=$user_id EMAIL=$userEmail");
             SecureCookie::delete();
@@ -1509,6 +1525,15 @@ class LTIX {
         $_SESSION["email"] = $row['email'];
         $_SESSION["displayname"] = $row['displayname'];
         $_SESSION["profile_id"] = $row['profile_id'];
+        $_SESSION["user_key"] = $row['user_key'];
+        if ( isset($row['key_key']) ) $_SESSION["oauth_consumer_key"] = $row['key_key'];
+        if ( $row['role'] !== null ) {
+            if ( isset($row['context_key']) ) $_SESSION['context_key'] = $row['context_key'];
+            if ( isset($row['context_id']) ) $_SESSION['context_id'] = $row['context_id'];
+        }
+
+        // TODO: Encrypt Secret
+        if ( isset($row['secret']) ) $_SESSION["secret"] = $row['secret'];
 
         error_log('Autologin:'.$row['user_id'].','.$row['displayname'].','.
             $row['email'].','.$row['profile_id']);
