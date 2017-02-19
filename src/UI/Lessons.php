@@ -35,6 +35,39 @@ class Lessons {
     public $resource_links;
 
     /**
+     * User REST-style URLS
+     */
+    public $use_rest_urls = false;
+
+    /**
+     * Handle the legacy and REST-Style URLs.
+     *
+     * This is not elegant but gets some experience.
+     */
+    public function makeLink($anchor=null, $index=null){
+        global $CFG;
+        if ( $this->use_rest_urls ) {
+            // Links are relative to the current document
+            if ( $this->isSingle() ) { 
+                if ( $anchor != null ) return urlencode($anchor);
+                if ( $index != null ) return urlencode($index);
+                return '.';
+            } else {
+                $url = $_SERVER['REQUEST_URI'];
+                if ( ! endsWith($url,'/') ) $url .= '/';
+                if ( $anchor != null ) return $url . urlencode($anchor);
+                if ( $index != null ) return $url . urlencode($index);
+                return $url;
+            }
+        } else {
+            $url = 'lessons.php';
+            if ( $anchor != null ) return $url . '?anchor=' . urlencode($anchor);
+            if ( $index != null ) return $url . '?index=' . urlencode($index);
+            return $url;
+        }
+    }
+
+    /**
      * emit the header material
      */
     public static function header() {
@@ -65,7 +98,7 @@ class Lessons {
     /*
      ** Load up the JSON from the file
      **/
-    public function __construct($name='lessons.json')
+    public function __construct($name='lessons.json', $anchor=null, $index=null)
     {
         global $CFG;
 
@@ -162,8 +195,8 @@ class Lessons {
             }
         }
 
-        $anchor = isset($_GET['anchor']) ? $_GET['anchor'] : null;
-        $index = isset($_GET['index']) ? $_GET['index'] : null;
+        $anchor = isset($_GET['anchor']) ? $_GET['anchor'] : $anchor;
+        $index = isset($_GET['index']) ? $_GET['index'] : $index;
 
         // Search for the selected anchor or index position
         $count = 0;
@@ -273,29 +306,31 @@ class Lessons {
     /*
      * render a lesson
      */
-    public function renderSingle() {
+    public function renderSingle($buffer=false) {
         global $CFG, $OUTPUT;
+        ob_start();
         $module = $this->module;
             echo('<div style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
             $disabled = ($this->position == 1) ? ' disabled' : '';
             if ( $this->position == 1 ) {
                 echo('<li class="previous disabled"><a href="#" onclick="return false;">&larr; Previous</a></li>'."\n");
             } else {
-                $prev = 'index='.($this->position-1);
+                $prev = $this->makeLink(null, $this->position-1);
                 if ( isset($this->lessons->modules[$this->position-2]->anchor) ) {
-                    $prev = 'anchor='.$this->lessons->modules[$this->position-2]->anchor;
+                    $prev = $this->makeLink($this->lessons->modules[$this->position-2]->anchor);
                 }
-                echo('<li class="previous"><a href="lessons.php?'.$prev.'">&larr; Previous</a></li>'."\n");
+                echo('<li class="previous"><a href="'.$prev.'">&larr; Previous</a></li>'."\n");
             }
-            echo('<li><a href="lessons.php">All ('.$this->position.' / '.count($this->lessons->modules).')</a></li>');
+            $all = $this->makeLink();
+            echo('<li><a href="'.$all.'">All ('.$this->position.' / '.count($this->lessons->modules).')</a></li>');
             if ( $this->position >= count($this->lessons->modules) ) {
                 echo('<li class="next disabled"><a href="#" onclick="return false;">&rarr; Next</a></li>'."\n");
             } else {
-                $next = 'index='.($this->position+1);
+                $next = $this->makeLink(null, $this->position+1);
                 if ( isset($this->lessons->modules[$this->position]->anchor) ) {
-                    $next = 'anchor='.$this->lessons->modules[$this->position]->anchor;
+                    $next = $this->makeLink($this->lessons->modules[$this->position]->anchor);
                 }
-                echo('<li class="next"><a href="lessons.php?'.$next.'">&rarr; Next</a></li>'."\n");
+                echo('<li class="next"><a href="'.$next.'">&rarr; Next</a></li>'."\n");
             }
             echo("</ul></div>\n");
             echo('<h1>'.$module->title."</h1>\n");
@@ -451,10 +486,15 @@ var disqus_config = function () {
 <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <?php
         }
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $buffer ) return $output;
+        echo($ob_output);
     } // End of renderSingle
 
-    public function renderAll()
+    public function renderAll($buffer=false)
     {
+        ob_start();
         echo('<h1>'.$this->lessons->title."</h1>\n");
         echo('<p>'.$this->lessons->description."</p>\n");
         echo('<div id="box">'."\n");
@@ -463,11 +503,7 @@ var disqus_config = function () {
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
             $count++;
             echo('<div class="card">'."\n");
-            if ( isset($module->anchor) ) {
-                $href = 'lessons.php?anchor='.htmlentities($module->anchor);
-            } else {
-                $href = 'lessons.php?index='.$count;
-            }
+            $href = $this->makeLink($module->anchor);
             if ( isset($module->icon) ) {
                 echo('<i class="fa '.$module->icon.' fa-2x" aria-hidden="true" style="float: left; padding-right: 5px;"></i>');
             }
@@ -481,10 +517,15 @@ var disqus_config = function () {
             echo("</a></div>\n");
         }
         echo('</div> <!-- box -->'."\n");
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $buffer ) return $output;
+        echo($ob_output);
     }
 
-    public function renderAssignments($allgrades)
+    public function renderAssignments($allgrades, $buffer=false)
     {
+        ob_start();
         echo('<h1>'.$this->lessons->title."</h1>\n");
         echo('<table class="table table-striped table-hover "><tbody>'."\n");
         $count = 0;
@@ -492,7 +533,7 @@ var disqus_config = function () {
             $count++;
             if ( !isset($module->lti) ) continue;
             echo('<tr><td class="info" colspan="3">'."\n");
-            $href = 'lessons.php?anchor='.htmlentities($module->anchor);
+            $href = $this->makeLink($module->anchor);
             echo('<a href="'.$href.'">'."\n");
             echo($module->title);
             echo("</td></tr>");
@@ -520,6 +561,10 @@ var disqus_config = function () {
             }
         }
         echo('</tbody></table>'."\n");
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $buffer ) return $output;
+        echo($ob_output);
     }
 
     public static function makeUrlResource($type,$title,$url) {
@@ -584,8 +629,9 @@ var disqus_config = function () {
         return $resources;
     }
 
-    public function renderBadges($allgrades)
+    public function renderBadges($allgrades, $buffer=false)
     {
+        ob_start();
         global $CFG;
         echo('<h1>'.$this->lessons->title."</h1>\n");
         $awarded = array();
@@ -641,11 +687,13 @@ var disqus_config = function () {
                 $lti = $this->getLtiByRlid($resource_link_id);
 
                 echo('<tr><td>');
-                echo('<a href="lessons.php?anchor='.$module->anchor.'">');
+                $href = $this->makeLink($module->anchor);
+
+                echo('<a href="'.$href.'">');
                 echo('<i class="fa fa-square-o text-info" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
                 echo($lti->title."</a>\n");
                 echo('</td><td style="width: 30%; min-width: 200px;">');
-                echo('<a href="lessons.php?anchor='.$module->anchor.'">');
+                echo('<a href="'.$href.'">');
                 echo('<div class="progress">');
                 echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
                 echo('</div>');
@@ -685,11 +733,16 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
 ?>
 </div>
 <?php
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $buffer ) return $output;
+        echo($ob_output);
     }
 
-    public function footer()
+    public function footer($buffer=false)
     {
         global $CFG;
+        ob_start();
         if ( $this->isSingle() ) {
 // http://bxslider.com/examples/video
 ?>
@@ -720,6 +773,10 @@ $(function(){
 });
 </script>
 <?php
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $buffer ) return $output;
+        echo($ob_output);
         }
 
     } // end footer
