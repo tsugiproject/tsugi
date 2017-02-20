@@ -48,7 +48,7 @@ class Lessons {
         global $CFG;
         if ( $this->use_rest_urls ) {
             // Links are relative to the current document
-            if ( $this->isSingle() ) { 
+            if ( $this->isSingle() ) {
                 if ( $anchor != null ) return urlencode($anchor);
                 if ( $index != null ) return urlencode($index);
                 return '.';
@@ -403,7 +403,10 @@ class Lessons {
                 $count = 0;
                 foreach($ltis as $lti ) {
                     $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
-                    $secret = isset($_SESSION['secret']) ? $_SESSION['secret'] : false;
+                    $secret = false;
+                    if ( isset($_SESSION['secret']) ) {
+                        $secret = LTIX::decrypt_secret($_SESSION['secret']);
+                    }
 
                     if ( isset($lti->resource_link_id) ) {
                         $resource_link_id = $lti->resource_link_id;
@@ -445,9 +448,12 @@ class Lessons {
                         }
                     }
 
+/*
                     $return_url = $CFG->getCurrentUrl();
                     if ( $this->anchor ) $return_url .= '?anchor='.urlencode($this->anchor);
                     elseif ( $this->position ) $return_url .= '?index='.urlencode($this->position);
+*/
+                    $return_url = $_SERVER['REQUEST_URI'];
                     $parms['launch_presentation_return_url'] = $return_url;
 
                     $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;

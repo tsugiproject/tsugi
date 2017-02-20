@@ -83,7 +83,7 @@ class Result extends Entity {
         $PDOX = LTIX::getConnection();
 
         $key_key = LTIX::ltiParameter('key_key');
-        $secret = LTIX::ltiParameter('secret');
+        $secret = LTIX::decrypt_secret(LTIX::ltiParameter('secret'));
         if ( $row !== false ) {
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
@@ -147,7 +147,7 @@ class Result extends Entity {
 
         // Secret and key from session to avoid crossing tenant boundaries
         $key_key = LTIX::ltiParameter('key_key');
-        $secret = LTIX::ltiParameter('secret');
+        $secret = LTIX::decrypt_secret(LTIX::ltiParameter('secret'));
         if ( $row !== false ) {
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
