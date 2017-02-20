@@ -435,7 +435,7 @@ function googleTranslateElementInit() {
         global $CFG;
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
-        $set->setHome('Done', $return_url);
+        $set->setHome('Done', 'javascript:window.location.href=\''.urlencode($return_url).'\';');
         return $set;
     }
 

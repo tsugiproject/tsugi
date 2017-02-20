@@ -13,6 +13,7 @@ use \Tsugi\UI\Output;
 use \Tsugi\Core\Settings;
 use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Crypt\SecureCookie;
+use \Tsugi\Crypt\AesCtr;
 
 /**
  * This an opinionated LTI class that defines how Tsugi tools interact with LTI
@@ -87,6 +88,29 @@ class LTIX {
             header('Location: '.$location);
         }
         exit();
+    }
+
+    /**
+     * Encrypt a secret to put into the session
+     */
+    public static function encrypt_secret($secret)
+    {
+        global $CFG;
+        if ( startsWith($secret,'AES::') ) return $secret;
+        $encr = AesCtr::encrypt($secret, $CFG->cookiesecret, 256) ;
+        return 'AES::'.$encr;
+    }
+
+    /**
+     * Decrypt a secret from the session
+     */
+    public static function decrypt_secret($secret)
+    {
+        global $CFG;
+        if ( ! startsWith($secret,'AES::') ) return $secret;
+        $secret = substr($secret, 5);
+        $decr = AesCtr::decrypt($secret, $CFG->cookiesecret, 256) ;
+        return $decr;
     }
 
     /**
@@ -409,7 +433,7 @@ class LTIX {
         self::wrapped_session_put($session_object, 'tsugi_permanent_start_time', time());
 
         // Put the information into the row variable
-        // TODO: do AES on the secret
+        $row['secret'] = self::encrypt_secret($row['secret']);
         self::wrapped_session_put($session_object, 'lti', $row);
         self::wrapped_session_put($session_object, 'lti_post', $request_data);
 
@@ -1225,7 +1249,7 @@ class LTIX {
         $submit_text = false, $org_id = false, $org_desc = false) {
 
         $oauth_consumer_key = self::ltiParameter('key_key');
-        $oauth_consumer_secret = self::ltiParameter('secret');
+        $oauth_consumer_secret = self::decrypt_secret(self::ltiParameter('secret'));
 
         return LTI::signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oauth_consumer_secret,
             $submit_text, $org_id, $org_desc);
@@ -1236,7 +1260,7 @@ class LTIX {
     public static function settingsSend($settings, $settings_url, &$debug_log=false) {
 
         $key_key = self::ltiParameter('key_key');
-        $secret = self::ltiParameter('secret');
+        $secret = self::decrypt_secret(self::ltiParameter('secret'));
 
         $retval = LTI::sendJSONSettings($settings, $settings_url, $key_key, $secret, $debug_log);
         return $retval;
@@ -1259,7 +1283,7 @@ class LTIX {
         }
 
         $key_key = self::ltiParameter('key_key');
-        $secret = self::ltiParameter('secret');
+        $secret = self::decrypt_secret(self::ltiParameter('secret'));
 
         $retval = LTI::sendJSONBody("POST", $caliperBody, $content_type,
             $caliperURL, $key_key, $secret, $debug_log);
@@ -1273,7 +1297,7 @@ class LTIX {
         $service_url, &$debug_log=false) {
 
         $key_key = self::ltiParameter('key_key');
-        $secret = self::ltiParameter('secret');
+        $secret = self::decrypt_secret(self::ltiParameter('secret'));
 
         $retval = LTI::sendJSONBody($method, $postBody, $content_type,
             $service_url, $key_key, $secret, $debug_log);
@@ -1491,13 +1515,13 @@ class LTIX {
         // The profile table might not even exist yet.
         $stmt = $PDOX->queryReturnError(
             "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
-                P.email AS email, U.user_id AS user_id, U.user_key AS user_key, 
+                P.email AS email, U.user_id AS user_id, U.user_key AS user_key,
                 role, C.context_key, C.context_id AS context_id,
                 K.key_id, K.key_key, K.secret
                 FROM {$CFG->dbprefix}profile AS P
                 LEFT JOIN {$CFG->dbprefix}lti_user AS U
                 ON P.profile_id = U.profile_id AND user_sha256 = profile_sha256 AND
-                    P.key_id = U.key_id 
+                    P.key_id = U.key_id
                 LEFT JOIN {$CFG->dbprefix}lti_key AS K
                     ON U.key_id = K.key_id
                 LEFT JOIN {$CFG->dbprefix}lti_context AS C
@@ -1532,8 +1556,7 @@ class LTIX {
             if ( isset($row['context_id']) ) $_SESSION['context_id'] = $row['context_id'];
         }
 
-        // TODO: Encrypt Secret
-        if ( isset($row['secret']) ) $_SESSION["secret"] = $row['secret'];
+        if ( isset($row['secret']) ) $_SESSION['secret'] = self::encrypt_secret($row['secret']);
 
         error_log('Autologin:'.$row['user_id'].','.$row['displayname'].','.
             $row['email'].','.$row['profile_id']);
@@ -1623,7 +1646,7 @@ class LTIX {
                 return '<p style="color:red">Unable to load key/secret for '.htmlentities($endpoint)."</p>\n";
             }
             $key = $info['key'];
-            $secret = $info['secret'];
+            $secret = self::decrypt_secret($info['secret']);
 
             $parms = LTIX::getLaunchData();
 

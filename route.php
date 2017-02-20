@@ -4,7 +4,7 @@ require_once "top.php";
 
 $router = new Tsugi\Util\UrlRouter();
 
-$router->route('/tsugi\/lessons\/([^\/]*)$/', function($id){
+$router->route('/~\/lessons\/([^\/]*)$/', function($id){
     $view = new \Tsugi\Views\Lessons();
     $view->render($id);
  });

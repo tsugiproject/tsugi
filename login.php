@@ -308,11 +308,11 @@ if ( $doLogin ) {
         if ( isset($CFG->context_title) ) $_SESSION['context_title'] = $CFG->context_title;
         if ( isset($context_id) ) $_SESSION["context_id"] = $context_id;
         if ( isset($context_key) ) $_SESSION["context_key"] = $context_key;
-        // TODO: Encrypt Secret
+
         if ( strlen($google_secret) ) {
-            $_SESSION["secret"] = $google_secret;
+            $_SESSION['secret'] = LTIX::encrypt_secret($google_secret);
         } else {
-            unset($_SESSION["secret"]);
+            unset($_SESSION['secret']);
         }
 
         // Set the secure cookie
