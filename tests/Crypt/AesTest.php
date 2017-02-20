@@ -14,11 +14,11 @@ class AesTest extends PHPUnit_Framework_TestCase
         $pw = 'L0ck it up saf3';
         $pt = 'pssst ... đon’t tell anyøne!';
         $encr = AesCtr::encrypt($pt, $pw, 256) ;
-echo("\n".$encr."\n");
         $this->assertNotEquals($encr,$pw);
         $this->assertNotEquals($encr,$pt);
         $decr = AesCtr::decrypt($encr, $pw, 256);
         $this->assertEquals($decr,$pt);
+        $this->assertNotEquals($encr,$pw);
     }
 
 }
