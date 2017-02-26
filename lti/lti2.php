@@ -3,6 +3,7 @@ define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once $CFG->dirroot."/admin/admin_util.php";
 require_once 'tp_messages.php';
+require_once 'lti2_util.php';
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
@@ -20,44 +21,15 @@ if ( ! isset($_SESSION['lti2post']) ) {
 error_log("Session in lti2 ".session_id());
 
 if ( ! isset($_SESSION['id']) ) {
-    if ( isset($_REQUEST['login_done']) ) {
-        die_with_error_log("LTI 2 login failed.");
-    }
-    error_log('Redirecting user to login.');
-    $_SESSION['login_return'] = addSession($CFG->wwwroot."/lti/lti2.php?login_done=true");
-    header("Location: ".$CFG->getLoginUrl());
-    return;
+    die_with_error_log("LTI 2 login failed.");
 }
 
 // See if this person is allowed to register a tool
-$row = $PDOX->rowDie(
-    "SELECT request_id, user_id, admin, state, lti
-        FROM {$CFG->dbprefix}key_request
-        WHERE user_id = :UID AND lti = 2 LIMIT 1",
-    array(":UID" => $_SESSION['id'])
-);
+$status = check_lti2_key();
 
-if ( $row === false ) {
-    $_SESSION['error'] = 'You have not requested a key for this service.';
-    header('Location: '.$CFG->wwwroot);
-    return;
-}
-
-if ( $row['state'] == 0 ) {
-    $_SESSION['error'] = 'You key has not yet been approved. '.$row['admin'];
-    header('Location: '.$CFG->wwwroot);
-    return;
-}
-
-if ( $row['state'] != 1 ) {
-    $_SESSION['error'] = 'Your key request was not approved. '.$row['admin'];
-    header('Location: '.$CFG->wwwroot);
-    return;
-}
-
-if ( $row['lti'] != 2 ) {
-    $_SESSION['error'] = 'Your did not request an LTI 2.0 key. '.$row['admin'];
-    header('Location: '.$CFG->wwwroot);
+if ( is_string($status) ) {
+    $_SESSION['error'] = $status;
+    go_home();
     return;
 }
 
@@ -198,6 +170,16 @@ if ( strlen($tc_profile_url) > 1 ) {
     }
 } else {
     lmsDie("We must have a tc_profile_url to continue...");
+}
+
+// Figure out the LMS we are dealing with
+$ext_lms = false;
+try {
+    $ext_lms = $tc_profile->product_instance->product_info->product_family->code;
+    $ext_lms = strtolower($ext_lms);
+    echo("LMS Code=$ext_lms\n");
+} catch(Exception $e) {
+    $ext_lms = false;
 }
 
 // Find the registration URL
@@ -364,7 +346,39 @@ $message_desired_capabilities = array(
 );
 
 $toolcount = 0;
-foreach($tools as $tool ) {
+// If the LMS supports the ContentItem Message, we simply send the store back
+// If not, we send back all the tools
+
+// Disable for now
+if ( false && in_array('ContentItemSelectionRequest', $tc_capabilities) ) {
+    echo("This is a ContentItem LMS - Give it back a store URL.\n");
+    // Force this to be in wwwroot
+    $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
+    $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
+    $newhandler = json_decode($blank_handler);
+    $save_message = $newhandler->message[0];
+    unset($newhandler->message[0]);
+
+    $message_count = 0;
+    $newmsg = clone $save_message;
+    $newmsg->path = "/lti/store";
+    $newmsg->message_type = "basic-lti-launch-request";
+    $newmsg->parameter = $requested_parameters;
+    $newmsg->enabled_capability = $tc_capabilities;
+    $newhandler->message[$message_count++] = $newmsg;
+
+    $newmsg = clone $save_message;
+    $newmsg->message_type = "ContentItemSelectionRequest";
+    $newmsg->path = "/lti/store";
+    $newmsg->parameter = $requested_parameters;
+    $newmsg->enabled_capability = $tc_capabilities; // TODO: Be more selective
+    $newhandler->message[$message_count++] = $newmsg;
+
+    $code = str_replace("/","_",$CFG->wwwroot . $newmsg->path);
+    $newhandler->resource_type->code = $code;
+    $tp_profile->tool_profile->resource_handler[] = $newhandler;
+    $toolcount++;
+} else foreach($tools as $tool ) {
     $path = str_replace("../","",$tool);
     echo("Checking $path ...<br/>\n");
     unset($REGISTER_LTI2);
@@ -523,6 +537,12 @@ if ( $re_register ) {
 
 // Lets register!
 $OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
+
+// Time for a pause
+if ( !isset($_GET['continue']) ) {
+    echo('<a href="lti2.php?continue=yes">Press Here To Register</a>');
+    return;
+}
 
 $more_headers = array();
 if ( $ack !== false ) {
