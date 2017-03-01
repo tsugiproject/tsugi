@@ -404,16 +404,44 @@ if ( false && in_array('ContentItemSelectionRequest', $tc_capabilities) ) {
         }
 
         if ( isset($REGISTER_LTI2['FontAwesome']) ) {
-            $default_location = new stdCLass();
-            $default_location->path = $REGISTER_LTI2['FontAwesome'];
-            $icon_style = array();
-            $icon_style[] = 'FontAwesome';
-            $icon_info = new stdClass();
-            $icon_info->icon_style = $icon_style;
-            $icon_info->default_location = $default_location;
+            $fa_icon = $REGISTER_LTI2['FontAwesome'];
             $icons = array();
-            $icons[] = $icon_info;
-            $newhandler->icon_info = $icons;
+
+            // Sakai likes beautifully scalable FontAwesome icons - but no one else
+            if ( $ext_lms == 'sakai' ) {
+                $icon_info = new stdClass();
+                $icon_style = array();
+                $icon_style[] = 'FontAwesome';
+                $default_location = new stdClass();
+                $default_location->path = $fa_icon;
+                $icon_info->icon_style = $icon_style;
+                $icon_info->default_location = $default_location;
+                $icons[] = $icon_info;
+
+            // BUG: Moodle crashes on icons with absolute paths
+            // Moodle crashes with "invalidresponse" message (yes no space) on absolute paths
+            // Interestingly, Moodle also seems to not handle "IconEndpoint" selectors either
+            // So leaving the the icon off completely is the best plan for Moodle currently
+            } else if ( $ext_lms == 'moodle' ) {
+/*
+                $default_location = new stdClass();
+                $icon_endpoint = str_replace('fa-','',$fa_icon).'.png';
+                $default_location->path = $icon_endpoint;
+                $icon_info = new stdClass();
+                $icon_info->default_location = $default_location;
+                $icons[] = $icon_info;
+*/
+            // Everyone else (i.e. Canvas) gets a nice CloudFlareable image with an absolute URL.
+            } else {
+                $default_location = new stdClass();
+                $icon_endpoint = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+                $default_location->path = $icon_endpoint;
+                $icon_info = new stdClass();
+                $icon_info->default_location = $default_location;
+                $icons[] = $icon_info;
+            }
+
+            if ( count($icons) > 0 ) $newhandler->icon_info = $icons;
         }
 
         $local_capabilities = $enabled_capabilities;
@@ -479,6 +507,23 @@ if ( isset($CFG->apphome) ) {
     $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;
     $tp_profile->tool_profile->base_url_choice[0]->default_base_url = $CFG->wwwroot;
 }
+
+// BUG: Moodle ignores the 'MessageHandler'
+/*
+if ( $ext_lms == 'moodle') { 
+    $selector = new stdClass();
+    $selector->applies_to = array('MessageHandler');
+    $tp_profile->tool_profile->base_url_choice[0]->selector = $selector;
+
+    $icon_choice = new stdClass();
+    $icon_choice->secure_base_url = $CFG->staticroot.'/font-awesome-4.4.0/png/';
+    $icon_choice->default_base_url = $CFG->staticroot.'/font-awesome-4.4.0/png/';
+    $selector = new stdClass();
+    $selector->applies_to = array('IconEndpoint');
+    $icon_choice->selector = $selector;
+    $tp_profile->tool_profile->base_url_choice[1] = $icon_choice;
+}
+*/
 
 // Construct the half secret or shared secret
 $shared_secret = bin2hex( openssl_random_pseudo_bytes( 512/8 ) ) ;
