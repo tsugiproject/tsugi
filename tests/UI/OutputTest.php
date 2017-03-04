@@ -1,5 +1,6 @@
 <?php
 
+require_once "src/Core/SessionAccess.php";
 require_once "src/UI/Output.php";
 
 use \Tsugi\UI\Output;

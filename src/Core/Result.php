@@ -167,8 +167,11 @@ class Result extends Entity {
 
         // Update result in the database and in the LTI session area and 
         // our local copy 
-        $_SESSION['lti']['grade'] = $grade;
-        $this->grade = $grade;
+        $ltidata = $this->session_get('lti');
+        if ( $ltidata ) {
+            $ltidata['grade'] = $grade;
+            $this->session_set('lti', $ltidata);
+        }
 
         // Update the local copy of the grade in the lti_result table
         if ( $PDOX !== false && $result_id !== false ) {
@@ -248,18 +251,18 @@ class Result extends Entity {
         // Use LTIX to store the grade in out database send the grade back to the LMS.
         $debug_log = array();
         $retval = $this->gradeSend($gradetosend, false, $debug_log);
-        $_SESSION['debug_log'] = $debug_log;
+        $this->session_put('debug_log', $debug_log);
 
         if ( $retval === true ) {
-            $_SESSION['success'] = $scorestr;
+            $this->session_put('success', $scorestr);
         } else if ( $retval === false ) { // Stored locally
-            $_SESSION['success'] = $scorestr;
+            $this->session_put('success', $scorestr);
         } else if ( is_string($retval) ) {
-            $_SESSION['error'] = "Grade not sent: ".$retval;
+            $this->session_put('error', "Grade not sent: ".$retval);
         } else {
             $svd = Output::safe_var_dump($retval);
             error_log("Grade sending error:".$svd);
-            $_SESSION['error'] = "Grade sending error: ".substr($svd,0,100);
+            $this->session_put('error', "Grade sending error: ".substr($svd,0,100));
         }
     }
 
