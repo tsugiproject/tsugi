@@ -281,13 +281,15 @@ function googleTranslateElementInit() {
 
         session_start();
 
+        // TODO: Make sure to do the right thing with the session eventially
+
         // See how long since the last update of the activity time
         $now = time();
-        $seconds = $now - $this->session_get('LAST_ACTIVITY', $now);
-        $this->session_put('LAST_ACTIVITY', $now); // update last activity time stamp
+        $seconds = $now - LTIX::wrapped_session_get(null, 'LAST_ACTIVITY', $now);
+        LTIX::wrapped_session_put(null, 'LAST_ACTIVITY', $now); // update last activity time stamp
 
         // Count the successive heartbeats without a request/response cycle
-        $count = $this->session_get('HEARTBEAT_COUNT', 0);
+        $count = LTIX::wrapped_session_get(null, 'HEARTBEAT_COUNT', 0);
         $count++;
         $this->session_put('HEARTBEAT_COUNT', $count);
 
@@ -298,7 +300,7 @@ function googleTranslateElementInit() {
         $retval = array("success" => true, "seconds" => $seconds,
                 "now" => $now, "count" => $count, "cookie" => $cookie,
                 "id" => session_id());
-        $retval['lti'] = $this->session_get('lti');
+        $retval['lti'] = LTIX::wrapped_session_get(null, 'lti');
         // $retval['lti'] = false;
         $retval['sessionlifetime'] = $CFG->sessionlifetime;
         echo(json_encode($retval));
