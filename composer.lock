@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "3485bf970e470215bc777c57a7c268a5",
-    "content-hash": "d7a22d3da90eb2af789b9851a282e214",
+    "hash": "9655362ede0380dc2b83b8330b736c42",
+    "content-hash": "59f7c7d5d5e4d0beaee804c0eaaac502",
     "packages": [
         {
             "name": "tsugi/lib",
@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "95b83a2beb5c222e99630bda788325e7df0e92d5"
+                "reference": "3535e268b16931fdea5d1e46fd9d3f583388b429"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/95b83a2beb5c222e99630bda788325e7df0e92d5",
-                "reference": "95b83a2beb5c222e99630bda788325e7df0e92d5",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/3535e268b16931fdea5d1e46fd9d3f583388b429",
+                "reference": "3535e268b16931fdea5d1e46fd9d3f583388b429",
                 "shasum": ""
             },
             "require": {
@@ -49,7 +49,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2017-03-04 12:53:11"
+            "time": "2017-03-04 13:38:30"
         }
     ],
     "packages-dev": [],
