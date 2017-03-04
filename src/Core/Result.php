@@ -170,7 +170,7 @@ class Result extends Entity {
         $ltidata = $this->session_get('lti');
         if ( $ltidata ) {
             $ltidata['grade'] = $grade;
-            $this->session_set('lti', $ltidata);
+            $this->session_put('lti', $ltidata);
         }
 
         // Update the local copy of the grade in the lti_result table
