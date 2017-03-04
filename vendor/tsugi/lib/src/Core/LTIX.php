@@ -970,6 +970,7 @@ class LTIX {
         } else {
             $TSUGI_LAUNCH->output = new \Tsugi\UI\Output();
         }
+        $OUTPUT->launch = $TSUGI_LAUNCH;
 
         $USER = null;
         $CONTEXT = null;
@@ -1164,12 +1165,6 @@ class LTIX {
             var_dump($RESULT);
         }
         echo("\n<hr/>\n");
-        echo("Session data (low level):\n");
-        if ( ! isset($_SESSION) ) {
-            echo("Not set\n");
-        } else {
-            echo(Output::safe_var_dump($_SESSION));
-        }
     }
 
     /**
@@ -1434,21 +1429,21 @@ class LTIX {
 
     // See if we need to extend our session (heartbeat)
     // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
-    private static function checkHeartBeat() {
+    private static function checkHeartBeat($session_object=null) {
         if ( session_id() == "" ) return;  // This should not start the session
 
         if ( isset($CFG->sessionlifetime) ) {
-            if (isset($_SESSION['LAST_ACTIVITY']) ) {
+            if (self::wrapped_session_get($session_object,'LAST_ACTIVITY') ) {
                 $heartbeat = $CFG->sessionlifetime/4;
-                $ellapsed = time() - $_SESSION['LAST_ACTIVITY'];
+                $ellapsed = time() - self::wrapped_session_get($session_object,'LAST_ACTIVITY');
                 if ( $ellapsed > $heartbeat ) {
-                    $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+                    self::wrapped_session_put($session_object,'LAST_ACTIVITY', time());
                     // TODO: Remove this after verification
                     $filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
                     error_log("Heartbeat ".session_id().' '.$ellapsed.' '.$filename);
                 }
             } else {
-                $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time stamp
+                self::wrapped_session_put($session_object,'LAST_ACTIVITY', time());
             }
         }
     }
@@ -1464,10 +1459,10 @@ class LTIX {
     }
 
     // Returns true for a good CSRF and false if we could not verify it
-    private static function checkCSRF() {
+    private static function checkCSRF($session_object=null) {
         global $CFG;
-        if ( ! isset($_SESSION['CSRF_TOKEN']) ) return false;
-        $token = $_SESSION['CSRF_TOKEN'];
+        $token = self::wrapped_session_get($session_object,'CSRF_TOKEN');
+        if ( ! $token ) return false;
         if ( isset($_POST['CSRF_TOKEN']) && $token == $_POST['CSRF_TOKEN'] ) return true;
         $headers = array_change_key_case(apache_request_headers());
         if ( isset($headers['x-csrf-token']) && $token == $headers['x-csrf-token'] ) return true;
@@ -1476,14 +1471,14 @@ class LTIX {
     }
 
     // Check the secure cookie and set login information appropriately
-    public static function loginSecureCookie() {
+    public static function loginSecureCookie($session_object=null) {
         global $CFG, $PDOX;
         $pieces = false;
         $id = false;
 
         // Only do this if we are not already logged in...
-        if ( isset($_SESSION["id"]) || !isset($_COOKIE[$CFG->cookiename]) ||
-                !isset($CFG->cookiepad) || $CFG->cookiepad === false) {
+        if ( self::wrapped_session_get($session_object,'id') || !isset($_COOKIE[$CFG->cookiename]) ||
+             !isset($CFG->cookiepad) || $CFG->cookiepad === false) {
             return;
         }
 
@@ -1545,18 +1540,22 @@ class LTIX {
             return;
         }
 
-        $_SESSION["id"] = $row['user_id'];
-        $_SESSION["email"] = $row['email'];
-        $_SESSION["displayname"] = $row['displayname'];
-        $_SESSION["profile_id"] = $row['profile_id'];
-        $_SESSION["user_key"] = $row['user_key'];
-        if ( isset($row['key_key']) ) $_SESSION["oauth_consumer_key"] = $row['key_key'];
+        self::wrapped_session_put($session_object,'id',$row['user_id']);
+        self::wrapped_session_put($session_object,'email',$row['email']);
+        self::wrapped_session_put($session_object,'displayname',$row['displayname']);
+        self::wrapped_session_put($session_object,'profile_id',$row['profile_id']);
+        self::wrapped_session_put($session_object,'user_key',$row['user_key']);
+        if ( isset($row['key_key']) ) {
+            self::wrapped_session_put($session_object,'oauth_consumer_key',$row['key_key']);
+        }
         if ( $row['role'] !== null ) {
-            if ( isset($row['context_key']) ) $_SESSION['context_key'] = $row['context_key'];
-            if ( isset($row['context_id']) ) $_SESSION['context_id'] = $row['context_id'];
+            self::wrapped_session_put($session_object,'context_key',$row['context_key']);
+            self::wrapped_session_put($session_object,'context_id',$row['context_id']);
         }
 
-        if ( isset($row['secret']) ) $_SESSION['secret'] = self::encrypt_secret($row['secret']);
+        if ( isset($row['secret']) ) {
+            self::wrapped_session_put($session_object,'secret', self::encrypt_secret($row['secret']));
+        }
 
         error_log('Autologin:'.$row['user_id'].','.$row['displayname'].','.
             $row['email'].','.$row['profile_id']);

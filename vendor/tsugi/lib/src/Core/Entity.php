@@ -8,7 +8,7 @@ use \Tsugi\Core\LTIX;
  * This is a class holding commmon functionality to be extended by various other classes.
  */
 
-class Entity {
+class Entity extends \Tsugi\Core\SessionAccess {
     /**
      * All extending classes must define these member variables
      */

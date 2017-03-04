@@ -46,7 +46,7 @@ use Tsugi\Core\LTIX;
 
 use \Tsugi\Core\Settings;
 
-class Output {
+class Output extends \Tsugi\Core\SessionAccess {
 
     /**
      * Set the JSON header
@@ -57,10 +57,10 @@ class Output {
     }
 
     function flashMessages() {
-        if ( isset($_SESSION['error']) ) {
+        if ( $this->session_get('error') ) {
             echo '<div class="alert alert-danger" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
-            $_SESSION['error']."</div>\n";
-            unset($_SESSION['error']);
+            $this->session_get('error')."</div>\n";
+            $this->session_forget('error');
         } else if ( isset($_GET['lti_errormsg']) ) {
             echo '<div class="alert alert-danger" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
             htmlentities($_GET['lti_errormsg'])."</div>";
@@ -71,10 +71,10 @@ class Output {
             }
         }
 
-        if ( isset($_SESSION['success']) ) {
+        if ( $this->session_get('success') ) {
             echo '<div class="alert alert-success" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
-            $_SESSION['success']."</div>\n";
-            unset($_SESSION['success']);
+            $this->session_get('success')."</div>\n";
+            $this->session_forget('success');
         }
     }
 
@@ -143,8 +143,8 @@ body {
         <![endif]-->
 
     <?php
-        if ( isset($_SESSION['CSRF_TOKEN']) ) {
-            echo('<script type="text/javascript">CSRF_TOKEN = "'.$_SESSION['CSRF_TOKEN'].'";</script>'."\n");
+        if ( $this->session_get('CSRF_TOKEN') ) {
+            echo('<script type="text/javascript">CSRF_TOKEN = "'.$this->session_get('CSRF_TOKEN').'";</script>'."\n");
         } else {
             echo('<script type="text/javascript">CSRF_TOKEN = "TODORemoveThis";</script>'."\n");
         }
@@ -155,7 +155,7 @@ body {
             echo('<script type="text/javascript">LTI_PARENT_IFRAME_ID = "'.$element_id.'";</script>'."\n");
         }
 
-        if ( isset($_SESSION['APP_HEADER']) ) echo($_SESSION['APP_HEADER']);
+        if ( $this->session_get('APP_HEADER') ) echo($this->session_get('APP_HEADER'));
 
         $HEAD_CONTENT_SENT = true;
     }
@@ -234,7 +234,7 @@ function googleTranslateElementInit() {
 
         }
 
-        if ( isset($_SESSION['APP_FOOTER']) ) echo($_SESSION['APP_FOOTER']);
+        if ( $this->session_get('APP_FOOTER') ) echo($this->session_get('APP_FOOTER'));
 
         $this->doAnalytics();
     }
@@ -282,16 +282,14 @@ function googleTranslateElementInit() {
         session_start();
 
         // See how long since the last update of the activity time
-        $seconds = 0;
         $now = time();
-        if ( isset($_SESSION['LAST_ACTIVITY']) ) {
-            $seconds = $now - $_SESSION['LAST_ACTIVITY'];
-        }
-        $_SESSION['LAST_ACTIVITY'] = $now; // update last activity time stamp
+        $seconds = $now - $this->session_get('LAST_ACTIVITY', $now);
+        $this->session_put('LAST_ACTIVITY', $now); // update last activity time stamp
 
         // Count the successive heartbeats without a request/response cycle
-        if ( ! isset($_SESSION['HEARTBEAT_COUNT']) ) $_SESSION['HEARTBEAT_COUNT'] = 0;
-        $count = $_SESSION['HEARTBEAT_COUNT']++;
+        $count = $this->session_get('HEARTBEAT_COUNT', 0);
+        $count++;
+        $this->session_put('HEARTBEAT_COUNT', $count);
 
         if ( $count > 10 && ( $count % 100 ) == 0 ) {
             error_log("Heartbeat.php ".session_id().' '.$count);
@@ -300,7 +298,7 @@ function googleTranslateElementInit() {
         $retval = array("success" => true, "seconds" => $seconds,
                 "now" => $now, "count" => $count, "cookie" => $cookie,
                 "id" => session_id());
-        $retval['lti'] = isset($_SESSION['lti']);
+        $retval['lti'] = $this->session_get('lti');
         // $retval['lti'] = false;
         $retval['sessionlifetime'] = $CFG->sessionlifetime;
         echo(json_encode($retval));
@@ -376,8 +374,8 @@ function googleTranslateElementInit() {
         if ( $text === false ) $text = _m("Exit");
         $url = Settings::linkGet('done');
         if ( $url == false ) {
-            if ( isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['custom_done']) ) {
-                $url = $_SESSION['lti_post']['custom_done'];
+            if ( $this->session_get('lti_post') && isset($this->session_get('lti_post')['custom_done']) ) {
+                $url = $this->session_get('lti_post')['custom_done'];
             } else if ( isset($_GET["done"]) ) {
                 $url = $_GET['done'];
             }
@@ -456,7 +454,7 @@ function googleTranslateElementInit() {
         if ( $CFG->DEVELOPER ) {
             $set->addLeft('Developer', $R.'dev.php');
         }
-        if ( isset($_SESSION['id']) || $CFG->DEVELOPER ) {
+        if ( $this->session_get('id') || $CFG->DEVELOPER ) {
             $set->addLeft('Admin', $R.'admin/index.php');
         }
 
@@ -467,12 +465,12 @@ function googleTranslateElementInit() {
 
         $set->addLeft('Links', $submenu);
 
-        if ( isset($_SESSION['id']) ) {
+        if ( $this->session_get('id') ) {
             $submenu = new \Tsugi\UI\Menu();
             $submenu->addLink('Profile', $R.'profile.php')
                 ->addLink('Use this Service', $R . 'admin/key/index.php')
                 ->addLink('Logout', $R.'logout.php');
-            $set->addRight(htmlentities($_SESSION['displayname']), $submenu);
+            $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);
         } else {
             $set->addRight('Login', $R.'login.php');
         }
@@ -485,8 +483,8 @@ function googleTranslateElementInit() {
      * Set header Content for any Tsugi-generated pages.
      */
     function setAppHeader($head) {
-        if ( !isset($_SESSION['APP_HEADER']) || $_SESSION['APP_HEADER'] != $head) {
-            $_SESSION['APP_HEADER'] = $head;
+        if ( $this->session_get('APP_HEADER') !== $head) {
+            $this->session_put('APP_HEADER', $head);
         }
     }
 
@@ -494,8 +492,8 @@ function googleTranslateElementInit() {
      * Set footer Content for any Tsugi-generated pages.
      */
     function setAppFooter($foot) {
-        if ( !isset($_SESSION['APP_FOOTER']) || $_SESSION['APP_FOOTER'] != $foot) {
-            $_SESSION['APP_FOOTER'] = $foot;
+        if ( $this->session_get('APP_FOOTER') !== $foot) {
+            $this->session_put('APP_FOOTER', $foot);
         }
     }
 
@@ -506,8 +504,8 @@ function googleTranslateElementInit() {
         global $CFG;
         $export = $menuset->export();
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
-        if ( !isset($_SESSION[$sess_key]) || $_SESSION[$sess_key] != $export) {
-            $_SESSION[$sess_key] = $export;
+        if ( $this->session_get($sess_key) !== $export) {
+            $this->session_put($sess_key, $export);
         }
     }
 
@@ -531,8 +529,8 @@ function googleTranslateElementInit() {
 
         // Canvas bug: launch_target is iframe even in new window (2017-01-10)
         $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
-        if ( $menu_set === false && isset($_SESSION[$sess_key]) ) {
-            $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key]);
+        if ( $menu_set === false && $this->session_get($sess_key) ) {
+            $menu_set = \Tsugi\UI\MenuSet::import($this->session_get($sess_key));
         } else if ( $menu_set === true ) {
             $menu_set = self::defaultMenuSet();
         } else if ( $same_host && $launch_return_url ) {
