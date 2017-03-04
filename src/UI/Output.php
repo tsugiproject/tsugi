@@ -292,7 +292,7 @@ function googleTranslateElementInit() {
         // Count the successive heartbeats without a request/response cycle
         $count = LTIX::wrapped_session_get($session_object, 'HEARTBEAT_COUNT', 0);
         $count++;
-        $this->session_put('HEARTBEAT_COUNT', $count);
+        LTIX::wrapped_session_put($session_object, 'HEARTBEAT_COUNT', $count);
 
         if ( $count > 10 && ( $count % 100 ) == 0 ) {
             error_log("Heartbeat.php ".session_id().' '.$count);
