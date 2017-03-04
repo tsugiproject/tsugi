@@ -6,18 +6,18 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "3535e268b16931fdea5d1e46fd9d3f583388b429"
+            "reference": "5561f30b493ab8c40765c5d2cea43a7595ef8de3"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/3535e268b16931fdea5d1e46fd9d3f583388b429",
-            "reference": "3535e268b16931fdea5d1e46fd9d3f583388b429",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/5561f30b493ab8c40765c5d2cea43a7595ef8de3",
+            "reference": "5561f30b493ab8c40765c5d2cea43a7595ef8de3",
             "shasum": ""
         },
         "require": {
             "php": ">=5.5.0"
         },
-        "time": "2017-03-04 13:38:30",
+        "time": "2017-03-04 14:00:33",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
