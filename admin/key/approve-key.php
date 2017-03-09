@@ -47,8 +47,6 @@ if ( $row['lti'] == 1 ) {
 $user_id = $row['user_id'];
 $token = Mail::computeCheck($user_id);
 $to = $row['email'];
-// TODO: Fix this
-$to = $row['email'].',csev@umich.edu';
 
 // Handle post
 if ( isset($_POST['doReject']) && isset($_POST['request_id']) ) {
