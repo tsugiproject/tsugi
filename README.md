@@ -1,7 +1,7 @@
 TSUGI - A Framework for Building Interoperable Learning Tools
 =============================================================
 
-Tsugi is a multi-tennant scalable LTI library and tool hosting environment.
+Tsugi is a multi-tenant scalable LTI library and tool hosting environment.
 It is intended to make it more tractable to implement the Application Store
 that we will need for the [
 Next Generation Digital Learning Environment](http://www.ngdle.org).
@@ -9,7 +9,7 @@ Next Generation Digital Learning Environment](http://www.ngdle.org).
 This repository is the **Tsugi Administration, Management, and Developer
 Console**.  This code also implements an LTI 2.0 Provider,
 CASA App Store, and IMS ContentItem App store.  Any Tsugi tool (including
-those written in Java and NodeJS) need to have this software installed
+those written in Java and NodeJS) needs to have this software installed
 and configured as pre-requisite.  Perhaps someday we will build Java and/or
 NodeJS versions of the console - but for now we just use the PHP console
 for applications written in any language.
@@ -75,13 +75,13 @@ is only available to inctructors that contact Dr. Chuck.
 
 * [Sample Tsugi Module](https://github.com/tsugiproject/tsugi-php-module) - Copy 
 this if you want to start a fresh Tsugi Module from scratch.  If you are building
-a new tool from scratch, you should build it as a "Tusig Module" following all 
+a new tool from scratch, you should build it as a "Tsugi Module" following all 
 of the Tsugi style guidance, using the Tsugi browser environment, and making 
 full use of the Tsugi framework. This repository contains a basic 
 "Tsugi Module" you can use as a starting point.
 
 * [Sample Tsugi-Enabled Application](https://github.com/tsugiproject/tsugi-php-standalone) - You
-can also use Tsugi as a library and  add it to a few places in an existing application. 
+can also use Tsugi as a library and add it to a few places in an existing application. 
 This repository contains sample code showing how to use Tsugi as a library in an existing 
 application.
 
@@ -97,7 +97,7 @@ and set up the configuration for them.
 Developer Documentation
 -----------------------
 
-You can view some of the developer documentaiton for the PHP version of Tsugi at:
+You can view some of the developer documentation for the PHP version of Tsugi at:
 
 * [Developer Documentation](docs/README.md)
 
@@ -106,7 +106,7 @@ You can view some of the developer documentaiton for the PHP version of Tsugi at
 Other Repositories
 ------------------
 
-The Tsugi Adminstration Console and Tsugi Modules / Applications depend on two other
+The Tsugi Administration Console and Tsugi Modules / Applications depend on two other
 repositories:
 
 * [Tsugi PHP Library](https://github.com/tsugiproject/tsugi-php) - This is the code for the 
