@@ -129,7 +129,8 @@ if ( isset($_GET['install']) ) {
     $retval = new ContentItem();
     $points = false;
     $activity_id = false;
-    if ( isset($tool['messages']) && array_search('launch_grade', $tool['messages']) !== false ) {
+    if ( isset($tool['messages']) && is_array($tool['messages']) &&
+        array_search('launch_grade', $tool['messages']) !== false ) {
         $points = 10;
         $activity_id = $install;
     }
