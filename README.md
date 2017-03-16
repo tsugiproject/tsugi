@@ -2,9 +2,9 @@
 
 Koseu solves a number of important use cases:
 
-* A Next Generation Open Source Learning Management System
 * A Learning Object Repository with seamless integration into previous-generation LMSs
 * An independent open source, highly scalable, extremely flexible MOOC hosting platform
+* A Next Generation Open Source Learning Management System
 
 Eventually, this will be the best LMS, LOR, and MOOC hosting platform in the world.  But for now this is just a README file
 so I can get started writing the code.
