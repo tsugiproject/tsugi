@@ -9,7 +9,7 @@ Koseu solves a number of important use cases:
 Eventually, this will be the best LMS, LOR, and MOOC hosting platform in the world.  But for now this is just a README file
 so I can get started writing the code.
 
-If you want to see Koseu in action vivist these web sites:
+If you want to see Koseu in action visit these web sites:
 
 * Python for Everybody www.py4e.com
 * Web Applications for Everybody www.wa4e.com
