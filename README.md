@@ -16,7 +16,7 @@ If you want to see Koseu in action visit these web sites:
 * The Tsugi project - www.tsugi.org
 
 Actually most of the koseu code that already exists lives in https://github.com/tsugiproject/tsugi - the Koseu
-code will be refactored out of the Tsugi Management Console and into this repository.
+code will be refactored out of the Tsugi Management Console, rewritten to be more OO, and moved into this repository.
 
 # Technology
 
