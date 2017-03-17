@@ -35,14 +35,14 @@ array( "{$CFG->dbprefix}lti_key",
     -- checked carefully in a transaction during LTI 2 registration
     user_id             INTEGER NULL,
 
-    consumer_profile    TEXT NULL,
-    new_consumer_profile  TEXT NULL,
+    consumer_profile    MEDIUMTEXT NULL,
+    new_consumer_profile  MEDIUMTEXT NULL,
 
-    tool_profile    TEXT NULL,
-    new_tool_profile  TEXT NULL,
+    tool_profile    MEDIUMTEXT NULL,
+    new_tool_profile  MEDIUMTEXT NULL,
 
-    json                TEXT NULL,
-    settings            TEXT NULL,
+    json                MEDIUMTEXT NULL,
+    settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -62,8 +62,8 @@ array( "{$CFG->dbprefix}lti_context",
 
     title               TEXT NULL,
 
-    json                TEXT NULL,
-    settings            TEXT NULL,
+    json                MEDIUMTEXT NULL,
+    settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -90,8 +90,8 @@ array( "{$CFG->dbprefix}lti_link",
 
     title               TEXT NULL,
 
-    json                TEXT NULL,
-    settings            TEXT NULL,
+    json                MEDIUMTEXT NULL,
+    settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -120,7 +120,7 @@ array( "{$CFG->dbprefix}lti_user",
     locale              CHAR(63) NULL,
     subscribe           SMALLINT NULL,
 
-    json                TEXT NULL,
+    json                MEDIUMTEXT NULL,
     login_at            DATETIME NULL,
     login_count         INTEGER NULL,
     ipaddr              VARCHAR(64),
@@ -147,7 +147,7 @@ array( "{$CFG->dbprefix}lti_membership",
     role                SMALLINT NULL,
     role_override       SMALLINT NULL,
 
-    json                TEXT NULL,
+    json                MEDIUMTEXT NULL,
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -177,7 +177,7 @@ array( "{$CFG->dbprefix}lti_service",
 
     format              VARCHAR(1024) NULL,
 
-    json                TEXT NULL,
+    json                MEDIUMTEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT 0,
@@ -208,10 +208,10 @@ array( "{$CFG->dbprefix}lti_result",
     ipaddr             VARCHAR(64),
 
     grade              FLOAT NULL,
-    note               TEXT NULL,
+    note               MEDIUMTEXT NULL,
     server_grade       FLOAT NULL,
 
-    json               TEXT NULL,
+    json               MEDIUMTEXT NULL,
     entity_version     INTEGER NOT NULL DEFAULT 0,
     created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP NOT NULL DEFAULT 0,
@@ -291,7 +291,7 @@ array( "{$CFG->dbprefix}profile",
     locale              CHAR(63) NULL,
     subscribe           SMALLINT NULL,
 
-    json                TEXT NULL,
+    json                MEDIUMTEXT NULL,
     login_at            DATETIME NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -561,10 +561,32 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Lots of MEDIUMTEXT fields
+    if ( $oldversion < 201703171509 ) {
+        $todo = array(
+            "lti_key" => array( "consumer_profile", "new_consumer_profile", "tool_profile",
+            "new_tool_profile", "json", "settings"),
+            "lti_context" => array( "json", "settings"),
+            "lti_link" => array( "json", "settings"),
+            "lti_user" => array( "json"),
+            "lti_membership" => array( "json"),
+            "lti_service" => array( "json"),
+            "lti_result" => array( "note", "json"),
+            "profile" => array( "json")
+        );
+        foreach ( $todo as $table => $fields ) {
+            foreach($fields as $field ) {
+                $sql= "ALTER TABLE {$CFG->dbprefix}{$table} MODIFY $field MEDIUMTEXT NULL";
+                echo("Upgrading: ".$sql."<br/>\n");
+                error_log("Upgrading: ".$sql);
+            }
+        }
+    }
+
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201702161640;
+    return 201703171509;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
