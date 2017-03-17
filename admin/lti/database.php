@@ -255,6 +255,7 @@ array( "{$CFG->dbprefix}lti_nonce",
 
 array( "{$CFG->dbprefix}lti_domain",
 "create table {$CFG->dbprefix}lti_domain (
+    domain_id   INTEGER NOT NULL AUTO_INCREMENT PRIMARY_KEY,
     key_id      INTEGER NOT NULL,
     context_id  INTEGER NULL,
     domain      VARCHAR(128),
@@ -593,11 +594,17 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-
+    // Version 201703171550 improvements - Issue #8
+    if ( $oldversion < 201703171550 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_domain ADD domain_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201703171520;
+    return 201703171550;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
