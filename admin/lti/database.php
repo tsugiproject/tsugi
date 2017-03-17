@@ -60,6 +60,8 @@ array( "{$CFG->dbprefix}lti_context",
 
     key_id              INTEGER NOT NULL,
 
+    path                TEXT NULL,
+
     title               TEXT NULL,
 
     json                MEDIUMTEXT NULL,
@@ -583,10 +585,19 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Version 201703171520 improvements
+    if ( $oldversion < 201703171520 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD path TEXT";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201703171509;
+    return 201703171520;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
