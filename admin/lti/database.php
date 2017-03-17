@@ -565,7 +565,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Lots of MEDIUMTEXT fields
-    if ( $oldversion < 201703171509 ) {
+    if ( $oldversion < 201703171713 ) {
         $todo = array(
             "lti_key" => array( "consumer_profile", "new_consumer_profile", "tool_profile",
             "new_tool_profile", "json", "settings"),
@@ -582,6 +582,7 @@ $DATABASE_UPGRADE = function($oldversion) {
                 $sql= "ALTER TABLE {$CFG->dbprefix}{$table} MODIFY $field MEDIUMTEXT NULL";
                 echo("Upgrading: ".$sql."<br/>\n");
                 error_log("Upgrading: ".$sql);
+        	$q = $PDOX->queryReturnError($sql);
             }
         }
     }
