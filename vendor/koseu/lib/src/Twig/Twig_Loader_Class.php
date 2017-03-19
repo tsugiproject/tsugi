@@ -40,7 +40,7 @@ final class Twig_Loader_Class implements \Twig_LoaderInterface, \Twig_ExistsLoad
     {
         $name = (string) $name;
         $view = $this->getCacheKey($name);
-        return new Twig_Source($view, $name);
+        return new \Twig_Source($view, $name);
     }
 
     public function exists($name)
@@ -64,7 +64,7 @@ final class Twig_Loader_Class implements \Twig_LoaderInterface, \Twig_ExistsLoad
             $class = new $name();
             return $class->view;
         } catch(Exception $e) {
-            throw new Twig_Error_Loader(sprintf('Template "%s" is not defined.', $name));
+            throw new \Twig_Error_Loader(sprintf('Template "%s" is not defined.', $name));
         }
     }
 
