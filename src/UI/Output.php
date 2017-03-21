@@ -48,6 +48,8 @@ use \Tsugi\Core\Settings;
 
 class Output extends \Tsugi\Core\SessionAccess {
 
+    public $buffer = false;
+
     /**
      * Set the JSON header
      */
@@ -57,6 +59,7 @@ class Output extends \Tsugi\Core\SessionAccess {
     }
 
     function flashMessages() {
+        ob_start();
         if ( $this->session_get('error') ) {
             echo '<div class="alert alert-danger" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
             $this->session_get('error')."</div>\n";
@@ -76,16 +79,22 @@ class Output extends \Tsugi\Core\SessionAccess {
             $this->session_get('success')."</div>\n";
             $this->session_forget('success');
         }
+
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $this->buffer ) return $ob_output;
+        echo($ob_output);
     }
 
     /**
      * Emit the HTML for the header.
      */
-    function header($headCSS=false) {
+    function header() {
         global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL;
         global $CFG;
         if ( $HEAD_CONTENT_SENT === true ) return;
         header('Content-Type: text/html; charset=utf-8');
+        ob_start();
     ?><!DOCTYPE html>
     <html>
       <head>
@@ -158,10 +167,16 @@ body {
         if ( $this->session_get('APP_HEADER') ) echo($this->session_get('APP_HEADER'));
 
         $HEAD_CONTENT_SENT = true;
+
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $this->buffer ) return $ob_output;
+        echo($ob_output);
     }
 
     function bodyStart($checkpost=true) {
     // If we are in an iframe use different margins
+        ob_start();
 ?>
 </head>
 <body>
@@ -182,6 +197,13 @@ if (window!=window.top) {
             error_log($dump);
             die_with_error_log("Unhandled POST request");
         }
+
+        $HEAD_CONTENT_SENT = true;
+
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $this->buffer ) return $ob_output;
+        echo($ob_output);
     }
 
     function templateInclude($name) {
@@ -198,6 +220,7 @@ if (window!=window.top) {
 
     function footerStart() {
         global $CFG;
+        ob_start();
         echo('<script src="'.$CFG->staticroot.'/js/jquery-1.11.3.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
@@ -237,6 +260,11 @@ function googleTranslateElementInit() {
         if ( $this->session_get('APP_FOOTER') ) echo($this->session_get('APP_FOOTER'));
 
         $this->doAnalytics();
+
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $this->buffer ) return $ob_output;
+        echo($ob_output);
     }
 
     /**
@@ -308,16 +336,22 @@ function googleTranslateElementInit() {
     }
 
     function footerEnd() {
-        echo("\n</div></body>\n</html>\n");
+        $end = "\n</div></body>\n</html>\n";
+        if ( $this->buffer ) {
+            return $end;
+        } else {
+            echo($end);
+        }
     }
 
-    function footer($onload=false) {
+    function footer() {
         global $CFG;
-        $this->footerStart();
-        if ( $onload !== false ) {
-            echo("\n".$onload."\n");
+        if ( $this->buffer ) {
+            return $this->footerStart() .  $this->footerEnd();
+        } else {
+            $this->footerStart();
+            $this->footerEnd();
         }
-        $this->footerEnd();
     }
 
     function doAnalytics() {
@@ -557,7 +591,8 @@ function googleTranslateElementInit() {
             return;
         }
 
-        $menu_txt = self::menuNav($menu_set);
+        $menu_txt = self::menuNav($menu_set); 
+        if ( $this->buffer ) return $menu_txt;
         echo($menu_txt);
     }
 
