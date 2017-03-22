@@ -653,18 +653,18 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "5fafb4de1524ce6c2920df2cfb5961cbe8c9b755"
+            "reference": "60929c4676ca4840629be3ccff551ebe4b83a0a8"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/5fafb4de1524ce6c2920df2cfb5961cbe8c9b755",
-            "reference": "5fafb4de1524ce6c2920df2cfb5961cbe8c9b755",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/60929c4676ca4840629be3ccff551ebe4b83a0a8",
+            "reference": "60929c4676ca4840629be3ccff551ebe4b83a0a8",
             "shasum": ""
         },
         "require": {
             "php": ">=5.5.0"
         },
-        "time": "2017-03-21 22:28:33",
+        "time": "2017-03-22 04:06:15",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -699,12 +699,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/koseu-php.git",
-            "reference": "7275acb7cf4cfb35c4def0b40038ef6d6ec9c05a"
+            "reference": "aec034718cda065645a230235424eaa5bb75cc10"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/7275acb7cf4cfb35c4def0b40038ef6d6ec9c05a",
-            "reference": "7275acb7cf4cfb35c4def0b40038ef6d6ec9c05a",
+            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/aec034718cda065645a230235424eaa5bb75cc10",
+            "reference": "aec034718cda065645a230235424eaa5bb75cc10",
             "shasum": ""
         },
         "require": {
