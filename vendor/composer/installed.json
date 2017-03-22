@@ -647,55 +647,6 @@
         ]
     },
     {
-        "name": "koseu/lib",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/tsugiproject/koseu-php.git",
-            "reference": "f2cda1b1baf7e98a3ef831a5a6a0e89364c28ffc"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/f2cda1b1baf7e98a3ef831a5a6a0e89364c28ffc",
-            "reference": "f2cda1b1baf7e98a3ef831a5a6a0e89364c28ffc",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=7.0.0",
-            "silex/silex": "~2.0",
-            "tsugi/lib": ">=0.3.1",
-            "twig/twig": "~2.0"
-        },
-        "time": "2017-03-19 14:57:40",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Koseu\\": "src/"
-            },
-            "exclude-from-classmap": [
-                "/tests/",
-                "phpdoc.dist.xml",
-                "phpunit.xml.dist"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "authors": [
-            {
-                "name": "csev",
-                "email": "drchuck@gmail.com",
-                "homepage": "http://www.dr-chuck.com/",
-                "role": "Developer"
-            }
-        ],
-        "description": "A Next Generation Embeddable Learning Management System",
-        "homepage": "http://www.koseu.org/"
-    },
-    {
         "name": "tsugi/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
@@ -740,5 +691,54 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "koseu/lib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/tsugiproject/koseu-php.git",
+            "reference": "7275acb7cf4cfb35c4def0b40038ef6d6ec9c05a"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/7275acb7cf4cfb35c4def0b40038ef6d6ec9c05a",
+            "reference": "7275acb7cf4cfb35c4def0b40038ef6d6ec9c05a",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=7.0.0",
+            "silex/silex": "~2.0",
+            "tsugi/lib": ">=0.3.1",
+            "twig/twig": "~2.0"
+        },
+        "time": "2017-03-19 14:57:40",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Koseu\\": "src/"
+            },
+            "exclude-from-classmap": [
+                "/tests/",
+                "phpdoc.dist.xml",
+                "phpunit.xml.dist"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "csev",
+                "email": "drchuck@gmail.com",
+                "homepage": "http://www.dr-chuck.com/",
+                "role": "Developer"
+            }
+        ],
+        "description": "A Next Generation Embeddable Learning Management System",
+        "homepage": "http://www.koseu.org/"
     }
 ]
