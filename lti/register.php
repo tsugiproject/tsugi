@@ -62,6 +62,13 @@ Status:
 Once those steps are completed, you can re-launch this LTI 2 
 registration process.
 </p>
+<?php
+    if ( isset($_POST['launch_presentation_return_url']) ) {
+?>
+<p>
+<a href="<?= $_POST['launch_presentation_return_url'] ?>">Return</a>
+</p>
+<?php } ?>
 <pre>
 <?php print_r($_POST);
 ?>

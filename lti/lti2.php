@@ -126,7 +126,7 @@ if ( $re_register ) {
         );
         $reg_password = $oldproxy['secret'];
         if ( strlen($reg_password) < 1 ) {
-            lmsDie("Registration key $reg_key cannot be re-registered.");
+            log_return_die("Registration key $reg_key cannot be re-registered.");
         }
 } else if ( $lti_message_type == "ToolProxyRegistrationRequest" ) {
         $reg_key = $_POST['reg_key'];
@@ -141,12 +141,12 @@ if ( $re_register ) {
             array(":SHA" => $key_sha256)
         );
         if ( is_array($oldproxy) && $oldproxy['user_id'] != $_SESSION['id'] ) {
-            lmsDie("Registration key $reg_key cannot be registered.");
+            log_return_die("Registration key $reg_key cannot be registered.");
         }
         $reg_password = $_POST['reg_password'];
 } else {
         echo("</pre>");
-        lmsDie("lti_message_type not supported ".$lti_message_type);
+        log_return_die("lti_message_type not supported ".$lti_message_type);
 }
 
 if ( $tool_proxy_guid_from_consumer ) {
@@ -166,10 +166,10 @@ if ( strlen($tc_profile_url) > 1 ) {
     $OUTPUT->togglePre("Retrieved Consumer Profile",$tc_profile_json);
     $tc_profile = json_decode($tc_profile_json);
     if ( $tc_profile == null ) {
-        lmsDie("Unable to parse tc_profile error=".json_last_error());
+        log_return_die("Unable to parse tc_profile error=".json_last_error());
     }
 } else {
-    lmsDie("We must have a tc_profile_url to continue...");
+    log_return_die("We must have a tc_profile_url to continue...");
 }
 
 // Figure out the LMS we are dealing with
@@ -187,7 +187,7 @@ try {
 echo("<pre>\n");
 $tc_services = $tc_profile->service_offered;
 echo("Found ".count($tc_services)." services profile..\n");
-if ( count($tc_services) < 1 ) lmsDie("At a minimum, we need the service to register ourself - doh!\n");
+if ( count($tc_services) < 1 ) log_return_die("At a minimum, we need the service to register ourself - doh!\n");
 
 // var_dump($tc_services);
 $register_url = false;
@@ -208,7 +208,7 @@ foreach ($tc_services as $tc_service) {
     }
 }
 
-if ( $register_url == false ) lmsDie("Must have an application/vnd.ims.lti.v2.toolproxy+json service available in order to do tool_registration.");
+if ( $register_url == false ) log_return_die("Must have an application/vnd.ims.lti.v2.toolproxy+json service available in order to do tool_registration.");
 
 // unset($_SESSION['result_url']);
 // if ( $result_url !== false ) $_SESSION['result_url'] = $result_url;
@@ -218,7 +218,7 @@ echo("\nFound an application/vnd.ims.lti.v2.toolproxy+json service - nice for us
 // Check for capabilities
 $tc_capabilities = $tc_profile->capability_offered;
 echo("Found ".count($tc_capabilities)." capabilities..\n");
-if ( count($tc_capabilities) < 1 ) lmsDie("No capabilities found!\n");
+if ( count($tc_capabilities) < 1 ) log_return_die("No capabilities found!\n");
 $cur_base = $CFG->wwwroot;
 
 $tp_profile = json_decode($tool_proxy);
@@ -227,7 +227,7 @@ if ( $tp_profile == null ) {
     $body = json_encode($tp_profile);
     $body = LTI::jsonIndent($body);
     $OUTPUT->togglePre("Tool Proxy Parsed",htmlent_utf8($body));
-    lmsDie("Unable to parse our own internal Tool Proxy (DOH!) error=".json_last_error()."\n");
+    log_return_die("Unable to parse our own internal Tool Proxy (DOH!) error=".json_last_error()."\n");
 }
 
 // Tweak the stock profile
@@ -317,7 +317,7 @@ $tp_profile->enabled_capability = $global_enabled_capabilities;
 echo("Searching for available tools...<br/>\n");
 $tools = findFiles("register.php","../");
 if ( count($tools) < 1 ) {
-    lmsDie("No register.php files found...<br/>\n");
+    log_return_die("No register.php files found...<br/>\n");
 }
 
 // If Canvas sees an LTI 2.0 tool with no placement advice, the default is linkSelection and assignmentSelection
@@ -391,7 +391,7 @@ if ( false && in_array('ContentItemSelectionRequest', $tc_capabilities) ) {
             // $newhandler->short_name->default_value = $REGISTER_LTI2['short_name'];
             $newhandler->description->default_value = $REGISTER_LTI2['description'];
         } else {
-            lmsDie("Missing required name, short_name, and description in ".$tool);
+            log_return_die("Missing required name, short_name, and description in ".$tool);
         }
 
         $script = isset($REGISTER_LTI2['script']) ? $REGISTER_LTI2['script'] : "index.php";
@@ -497,7 +497,7 @@ if ( false && in_array('ContentItemSelectionRequest', $tc_capabilities) ) {
 }
 
 if ( $toolcount < 1 ) {
-    lmsDie("No tools to register..");
+    log_return_die("No tools to register..");
 }
 
 if ( isset($CFG->apphome) ) {
@@ -559,7 +559,7 @@ echo("Registration Key=".$reg_key."\n");
 echo("Registration Secret=".$reg_password."\n");
 echo("Consumer Key=".$oauth_consumer_key."\n");
 
-if ( strlen($register_url) < 1 || strlen($reg_key) < 1 || strlen($reg_password) < 1 ) lmsDie("Cannot call register_url - insufficient data...\n");
+if ( strlen($register_url) < 1 || strlen($reg_key) < 1 || strlen($reg_password) < 1 ) log_return_die("Cannot call register_url - insufficient data...\n");
 
 unset($_SESSION['reg_key']);
 unset($_SESSION['reg_password']);
