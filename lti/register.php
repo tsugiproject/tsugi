@@ -18,8 +18,10 @@ $PDOX = \Tsugi\Core\LTIX::getConnection();
 
 error_log('Session in register.php '.session_id());
 
+$status = check_lti2_key();
+
 // Do post-redirect of that initial post after stashing data in the session
-if ( isset($_SESSION['id']) && isset($_POST["lti_message_type"]) && 
+if ( $status === true && isset($_POST["lti_message_type"]) && 
     ( $_POST["lti_message_type"] == "ToolProxyRegistrationRequest" 
      || $_POST["lti_message_type"] == "ToolProxyReregistrationRequest" ) ) {
     $_SESSION['lti2post'] = $_POST;
@@ -29,7 +31,7 @@ if ( isset($_SESSION['id']) && isset($_POST["lti_message_type"]) &&
 
 // Somehow not logged in...
 $OUTPUT->header();
-$OUTPUT->bodyStart();
+$OUTPUT->bodyStart(false);  // Don't die on unhandled POST
 ?>
 <h1>LTI 2 Registration</h1>
 <p>
@@ -48,7 +50,6 @@ The steps to using LTI 2 with this site are to:
 <li>Apply for an LTI 2 key <br>
 Status:
 <?php
-    $status = check_lti2_key();
     if ( $status === true ) {
         echo(" Complete");
     } else {
