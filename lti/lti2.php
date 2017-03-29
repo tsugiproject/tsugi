@@ -156,7 +156,14 @@ if ( $tool_proxy_guid_from_consumer ) {
 $launch_presentation_return_url = $_POST['launch_presentation_return_url'];
 
 $tc_profile_url = $_POST['tc_profile_url'];
+
 if ( strlen($tc_profile_url) > 1 ) {
+    // Append lti_version from section 6.1.2 of the spec
+    if ( strpos($tc_profile_url,'?') > 0 ) {
+        $tc_profile_url .= '&lti_version=LTI-2p0';
+    } else {
+        $tc_profile_url .= '?lti_version=LTI-2p0';
+    }
     echo("Retrieving profile from ".$tc_profile_url."\n");
     $header = "Accept: application/vnd.ims.lti.v2.toolconsumerprofile+json";
 
@@ -286,6 +293,7 @@ $sakai_contentitem_capabilities = array();
 $hmac256 = false;
 foreach($tc_capabilities as $capability) {
         if ( "basic-lti-launch-request" == $capability ) continue;
+        if ( "ContentItemSelectionRequest" == $capability ) continue;
 
         if ( "OAuth.hmac-sha256" == $capability ) {
             // This is not fully supported beyond registration so we never accept this
