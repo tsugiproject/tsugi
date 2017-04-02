@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "ffc49ae39f01c6fbb39a5a359a5dceef",
-    "content-hash": "ad7a1a86fc62422850d1afb1426e8b39",
+    "hash": "9742f2f8c9e1e8900c778e040e830784",
+    "content-hash": "33177b45cb7fd9dd0b7b5658a81bd4a3",
     "packages": [
         {
             "name": "koseu/lib",
@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "aec034718cda065645a230235424eaa5bb75cc10"
+                "reference": "4fbb7b8aff07f624132c38f50f299175e3b34fe2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/aec034718cda065645a230235424eaa5bb75cc10",
-                "reference": "aec034718cda065645a230235424eaa5bb75cc10",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/4fbb7b8aff07f624132c38f50f299175e3b34fe2",
+                "reference": "4fbb7b8aff07f624132c38f50f299175e3b34fe2",
                 "shasum": ""
             },
             "require": {
@@ -624,12 +624,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "60929c4676ca4840629be3ccff551ebe4b83a0a8"
+                "reference": "5c16451bb6b838ea997544d2409b88606420bc56"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/60929c4676ca4840629be3ccff551ebe4b83a0a8",
-                "reference": "60929c4676ca4840629be3ccff551ebe4b83a0a8",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/5c16451bb6b838ea997544d2409b88606420bc56",
+                "reference": "5c16451bb6b838ea997544d2409b88606420bc56",
                 "shasum": ""
             },
             "require": {
@@ -664,16 +664,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v2.2.0",
+            "version": "v2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "29bb02dde09ff56291d30f7687eb8696918023af"
+                "reference": "9718186a5df85a4f7917e78d3ffcabc204c75d25"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/29bb02dde09ff56291d30f7687eb8696918023af",
-                "reference": "29bb02dde09ff56291d30f7687eb8696918023af",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/9718186a5df85a4f7917e78d3ffcabc204c75d25",
+                "reference": "9718186a5df85a4f7917e78d3ffcabc204c75d25",
                 "shasum": ""
             },
             "require": {
@@ -683,12 +683,12 @@
             "require-dev": {
                 "psr/container": "^1.0",
                 "symfony/debug": "~2.7",
-                "symfony/phpunit-bridge": "~3.2"
+                "symfony/phpunit-bridge": "~3.3@dev"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.2-dev"
+                    "dev-master": "2.3-dev"
                 }
             },
             "autoload": {
@@ -723,7 +723,7 @@
             "keywords": [
                 "templating"
             ],
-            "time": "2017-02-27 00:16:20"
+            "time": "2017-03-22 15:41:51"
         }
     ],
     "packages-dev": [],
