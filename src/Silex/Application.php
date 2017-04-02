@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 class Application extends \Silex\Application {
 
     function __construct($launch, array $values = array()) {
+        global $CFG;
         parent::__construct($values);
         $this['tsugi'] = $launch;
         $launch->output->buffer = true;  // Buffer output
@@ -23,7 +24,12 @@ class Application extends \Silex\Application {
         $session->start();
         $this['session'] = $session;
 
-        $loader = new \Koseu\Twig\Twig_Loader_Class();
+        $yourNewPath = $CFG->dirroot . '/vendor/tsugi/lib/src/Templates';
+        // $loader = new \Twig_Loader_Filesystem(array('templates', $yourNewPath) );
+        $loader = new \Twig_Loader_Filesystem('templates');
+        $loader->addPath($yourNewPath, 'Tsugi');
+
+        //$loader = new \Tsugi\Twig\Twig_Loader_Class();
         $this->register(new \Silex\Provider\TwigServiceProvider(), array(
             'twig.loader' => $loader
         ));
