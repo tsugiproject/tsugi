@@ -17,11 +17,11 @@ class UI {
 
         // Get basic grade data
         $query_parms = array(":LID" => $LINK->id);
-        $orderfields =  array("R.updated_at", "displayname", "email", "grade", "ipaddr");
+        $orderfields =  array("R.updated_at", "displayname", "email", "grade", "R.ipaddr");
         $searchfields = $orderfields;
         $sql =
             "SELECT R.user_id AS user_id, displayname, email,
-                grade, note, ipaddr, R.updated_at AS updated_at
+                grade, note, R.ipaddr, R.updated_at AS updated_at
             FROM {$p}lti_result AS R
             JOIN {$p}lti_user AS U ON R.user_id = U.user_id
             WHERE R.link_id = :LID";
