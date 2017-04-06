@@ -1,10 +1,10 @@
-{{ tsugi.output.header | raw }}
+{{ app.tsugi.output.header | raw }}
 {% block head %}
 {% endblock %}
-{{ tsugi.output.bodyStart | raw }} 
-{{ tsugi.output.topNav() | raw }} 
+{{ app.tsugi.output.bodyStart | raw }} 
+{{ app.tsugi.output.topNav() | raw }} 
 {% block content %}{% endblock %}
-{{ tsugi.output.footerStart() | raw }}
+{{ app.tsugi.output.footerStart() | raw }}
 {% block footer %}
 {% endblock %}
-{{ tsugi.output.footerEnd() | raw }}
+{{ app.tsugi.output.footerEnd() | raw }}
