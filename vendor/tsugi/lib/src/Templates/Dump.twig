@@ -1,0 +1,26 @@
+{% extends "@Tsugi/Page.twig" %}
+
+{% block content %}
+<h1>User Information</h1>
+<ul>
+<li> Name: {{ app.tsugi.user.displayname }}
+<li> Email: {{ app.tsugi.user.email }}
+<li> Role: {% if app.tsugi.user.instructor %} instructor {% else %} learner {% endif %}
+<li> user_id: {{ app.tsugi.user.id }}
+</ul>
+<h1>Context</h1>
+<ul>
+<li> Title: {{ app.tsugi.context.title }}
+<li> context_id: {{ app.tsugi.context.id }}
+</ul>
+<h1>Link</h1>
+<ul>
+<li> Title: {{ app.tsugi.link.title }}
+<li> link_id: {{ app.tsugi.link.id }}
+</ul>
+<h1>Result</h1>
+<ul>
+<li> Current Grade: {{ app.tsugi.result.grade }}
+<li> result_id: {{ app.tsugi.result.id }}
+</ul>
+{% endblock %}

@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "b6d8aa1b6868f88a770d97c8f572692e",
-    "content-hash": "47e2a3a8a8ea32c9b05462cecac33fe9",
+    "hash": "f47937fc1dabdb1843ae71c0d5a0d900",
+    "content-hash": "438cd93f22bf40fc02c0a06e90c11c2b",
     "packages": [
         {
             "name": "koseu/lib",
@@ -234,16 +234,16 @@
         },
         {
             "name": "symfony/debug",
-            "version": "v3.2.6",
+            "version": "v3.2.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/debug.git",
-                "reference": "b90c9f91ad8ac37d9f114e369042d3226b34dc1a"
+                "reference": "56f613406446a4a0a031475cfd0a01751de22659"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/debug/zipball/b90c9f91ad8ac37d9f114e369042d3226b34dc1a",
-                "reference": "b90c9f91ad8ac37d9f114e369042d3226b34dc1a",
+                "url": "https://api.github.com/repos/symfony/debug/zipball/56f613406446a4a0a031475cfd0a01751de22659",
+                "reference": "56f613406446a4a0a031475cfd0a01751de22659",
                 "shasum": ""
             },
             "require": {
@@ -287,20 +287,20 @@
             ],
             "description": "Symfony Debug Component",
             "homepage": "https://symfony.com",
-            "time": "2017-02-18 17:28:00"
+            "time": "2017-03-28 21:38:24"
         },
         {
             "name": "symfony/event-dispatcher",
-            "version": "v3.2.6",
+            "version": "v3.2.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/event-dispatcher.git",
-                "reference": "b7a1b9e0a0f623ce43b4c8d775eb138f190c9d8d"
+                "reference": "154bb1ef7b0e42ccc792bd53edbce18ed73440ca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/b7a1b9e0a0f623ce43b4c8d775eb138f190c9d8d",
-                "reference": "b7a1b9e0a0f623ce43b4c8d775eb138f190c9d8d",
+                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/154bb1ef7b0e42ccc792bd53edbce18ed73440ca",
+                "reference": "154bb1ef7b0e42ccc792bd53edbce18ed73440ca",
                 "shasum": ""
             },
             "require": {
@@ -347,20 +347,20 @@
             ],
             "description": "Symfony EventDispatcher Component",
             "homepage": "https://symfony.com",
-            "time": "2017-02-21 09:12:04"
+            "time": "2017-04-04 07:26:27"
         },
         {
             "name": "symfony/http-foundation",
-            "version": "v3.2.6",
+            "version": "v3.2.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-foundation.git",
-                "reference": "c57009887010eb4e58bfca2970314a5b820b24b9"
+                "reference": "cb0b6418f588952c9290b3df4ca650f1b7ab570a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/c57009887010eb4e58bfca2970314a5b820b24b9",
-                "reference": "c57009887010eb4e58bfca2970314a5b820b24b9",
+                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/cb0b6418f588952c9290b3df4ca650f1b7ab570a",
+                "reference": "cb0b6418f588952c9290b3df4ca650f1b7ab570a",
                 "shasum": ""
             },
             "require": {
@@ -400,20 +400,20 @@
             ],
             "description": "Symfony HttpFoundation Component",
             "homepage": "https://symfony.com",
-            "time": "2017-03-04 12:23:14"
+            "time": "2017-04-04 15:30:56"
         },
         {
             "name": "symfony/http-kernel",
-            "version": "v3.2.6",
+            "version": "v3.2.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-kernel.git",
-                "reference": "bc909e85b8585c9edf043d0fca871308c41bb9b4"
+                "reference": "8285ab5faf1306b1a5ebcf287fe91c231a6de88e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-kernel/zipball/bc909e85b8585c9edf043d0fca871308c41bb9b4",
-                "reference": "bc909e85b8585c9edf043d0fca871308c41bb9b4",
+                "url": "https://api.github.com/repos/symfony/http-kernel/zipball/8285ab5faf1306b1a5ebcf287fe91c231a6de88e",
+                "reference": "8285ab5faf1306b1a5ebcf287fe91c231a6de88e",
                 "shasum": ""
             },
             "require": {
@@ -482,7 +482,7 @@
             ],
             "description": "Symfony HttpKernel Component",
             "homepage": "https://symfony.com",
-            "time": "2017-03-10 18:35:31"
+            "time": "2017-04-05 12:52:03"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -545,7 +545,7 @@
         },
         {
             "name": "symfony/routing",
-            "version": "v3.2.6",
+            "version": "v3.2.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/routing.git",
@@ -624,12 +624,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "59b493d61dbe39a27a3d16a365e575c00cae7ee5"
+                "reference": "c3e5b54e80340f2fcc6093a29ddea5eee42bc8f3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/59b493d61dbe39a27a3d16a365e575c00cae7ee5",
-                "reference": "59b493d61dbe39a27a3d16a365e575c00cae7ee5",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/c3e5b54e80340f2fcc6093a29ddea5eee42bc8f3",
+                "reference": "c3e5b54e80340f2fcc6093a29ddea5eee42bc8f3",
                 "shasum": ""
             },
             "require": {
