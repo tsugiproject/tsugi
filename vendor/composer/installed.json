@@ -702,18 +702,18 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "b224d0c795687c65f7d5ff9144079b78ccbc2d19"
+            "reference": "4edd98c44802982b823c8378cb2da72d55a5e6f2"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/b224d0c795687c65f7d5ff9144079b78ccbc2d19",
-            "reference": "b224d0c795687c65f7d5ff9144079b78ccbc2d19",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/4edd98c44802982b823c8378cb2da72d55a5e6f2",
+            "reference": "4edd98c44802982b823c8378cb2da72d55a5e6f2",
             "shasum": ""
         },
         "require": {
             "php": ">=5.5.0"
         },
-        "time": "2017-04-08 16:46:43",
+        "time": "2017-04-08 21:06:19",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

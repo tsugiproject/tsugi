@@ -46,4 +46,22 @@ class Application extends \Silex\Application {
             'twig.loader' => $loader
         ));
     }
+
+    function tsugiRedirect($route) 
+    {
+        return $this->redirect( addSession($this['url_generator']->generate($route)) );
+    }
+
+    function tsugiFlashSuccess($message)
+    {
+        $_SESSION['success'] = $message;
+        $this['session']->getFlashBag()->add('success', $message);
+    }
+
+    function tsugiFlashError($message)
+    {
+        $_SESSION['error'] = $message;
+        $this['session']->getFlashBag()->add('error', $message);
+    }
+
 }
