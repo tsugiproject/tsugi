@@ -45,6 +45,13 @@ class Application extends \Silex\Application {
         $this->register(new \Silex\Provider\TwigServiceProvider(), array(
             'twig.loader' => $loader
         ));
+
+        // Add the __() and __ filter for translations
+        $this->extend('twig', function($twig, $app) {
+            $twig->addExtension(new \Tsugi\Silex\GettextExtension());
+            return $twig;
+        });
+
     }
 
     function tsugiRedirect($route) 
