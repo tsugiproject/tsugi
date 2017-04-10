@@ -2,6 +2,8 @@
 .out_phpdoc/
 .tmp_phpdoc/
 phpDocumentor.phar
+sami.phar
+.DS_Store
 
 *.swp
 

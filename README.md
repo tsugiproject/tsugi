@@ -49,21 +49,20 @@ This is stored in Packagist.
 Making PHPDoc
 -------------
 
-Install this:
+Read this:
 
-    brew install graphviz
+    https://github.com/FriendsOfPHP/Sami
 
 Curl this:
 
-    curl -O https://github.com/phpDocumentor/phpDocumentor2/releases/download/v2.9.0/phpDocumentor.phar
+    curl -O http://get.sensiolabs.org/sami.phar
 
 Run this:
 
-    rm -r .tmp_phpdoc .out_phpdoc
-    php phpDocumentor.phar -c phpdoc.dist.xml
-    rm -r .tmp_phpdoc
-
-Open this:
-
-    open .out_phpdoc/index.html
+    rm -r /tmp/tsugi/
+    php sami.phar update sami-config-dist.php
+    mv /tmp/tsugi/sami.js /tmp/tsugi/s.js
+    sed 's/".html"/"index.html"/' < /tmp/tsugi/s.js > /tmp/tsugi/sami.js
+    rm /tmp/tsugi/s.js
+    open /tmp/tsugi/index.html
 
