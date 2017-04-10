@@ -1,5 +1,10 @@
 <?php
 
+namespace Tsugi\Silex;
+
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
+
 /**
  * The Tsugi variant of a Silex Application
  *
@@ -7,20 +12,13 @@
  *
  *     <?php
  *     require_once "../config.php";
- *     use \Tsugi\Core\LTIX;
- *
- *     $launch = LTIX::requireData();
+ *     $launch = \Tsugi\Core\LTIX::requireData();
  *     $app = new \Tsugi\Silex\Application($launch);
  *     $app->get('/', 'AppBundle\\Attend::get')->bind('main');
  *     $app->post('/', 'AppBundle\\Attend::post');
  *     $app->run();
  * 
  */
-
-namespace Tsugi\Silex;
-
-use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 
 class Application extends \Silex\Application {
 
