@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#4edd98c44802982b823c8378cb2da72d55a5e6f2",
+        "tsugi/lib": "dev-master#52120da19a3b13847a05fdf9c0bbd1cc6a5e6c2d",
         "koseu/lib": "dev-master#e4eaff96c63388d6082cc2b9fcb9cf32bab34e08"
     },
     "config": {

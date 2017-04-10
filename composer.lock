@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "75591dd6062f3f45734fa2be3de73866",
-    "content-hash": "3056662e41f5218e669eef71fa39de2e",
+    "hash": "b0a33a705539a0c9289579d83f64d9f4",
+    "content-hash": "0e7ddba455cf382ea324d76dbdc494c8",
     "packages": [
         {
             "name": "koseu/lib",
@@ -619,21 +619,87 @@
             "time": "2017-03-02 15:58:09"
         },
         {
+            "name": "symfony/translation",
+            "version": "v3.2.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/translation.git",
+                "reference": "c740eee70783d2af4d3d6b70d5146f209e6b4d13"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/translation/zipball/c740eee70783d2af4d3d6b70d5146f209e6b4d13",
+                "reference": "c740eee70783d2af4d3d6b70d5146f209e6b4d13",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9",
+                "symfony/polyfill-mbstring": "~1.0"
+            },
+            "conflict": {
+                "symfony/config": "<2.8"
+            },
+            "require-dev": {
+                "psr/log": "~1.0",
+                "symfony/config": "~2.8|~3.0",
+                "symfony/intl": "^2.8.18|^3.2.5",
+                "symfony/yaml": "~2.8|~3.0"
+            },
+            "suggest": {
+                "psr/log": "To use logging capability in translator",
+                "symfony/config": "",
+                "symfony/yaml": ""
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.2-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Translation\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Translation Component",
+            "homepage": "https://symfony.com",
+            "time": "2017-03-21 21:44:32"
+        },
+        {
             "name": "tsugi/lib",
             "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "4edd98c44802982b823c8378cb2da72d55a5e6f2"
+                "reference": "52120da19a3b13847a05fdf9c0bbd1cc6a5e6c2d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/4edd98c44802982b823c8378cb2da72d55a5e6f2",
-                "reference": "4edd98c44802982b823c8378cb2da72d55a5e6f2",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/52120da19a3b13847a05fdf9c0bbd1cc6a5e6c2d",
+                "reference": "52120da19a3b13847a05fdf9c0bbd1cc6a5e6c2d",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.5.0"
+                "php": ">=5.5.0",
+                "silex/silex": "~2.0",
+                "symfony/translation": "~3.2"
             },
             "type": "library",
             "autoload": {
@@ -660,7 +726,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2017-04-08 21:06:19"
+            "time": "2017-04-10 02:45:08"
         },
         {
             "name": "twig/twig",
