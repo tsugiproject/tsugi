@@ -51,11 +51,11 @@ Making PHPDoc
 
 Install this:
 
-    http://www.graphviz.org/Download_macos.php
+    brew install graphviz
 
 Curl this:
 
-    curl -O https://www.phpdoc.org/phpDocumentor.phar
+    curl -O https://github.com/phpDocumentor/phpDocumentor2/releases/download/v2.9.0/phpDocumentor.phar
 
 Run this:
 

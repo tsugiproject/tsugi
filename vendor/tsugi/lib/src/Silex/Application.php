@@ -1,19 +1,45 @@
 <?php
 
-/**
- * The Tsugi variant of a Silex Application
- *
- * This needs the session started before it is called
- * 
- */
-
 namespace Tsugi\Silex;
 
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 
+/**
+ * The Tsugi variant of a Silex Application
+ *
+ * Returns an augmented Silex Application
+ *
+ *     <?php
+ *     require_once "../config.php";
+ *     $launch = \Tsugi\Core\LTIX::requireData();
+ *     $app = new \Tsugi\Silex\Application($launch);
+ *     $app->get('/', 'AppBundle\\Attend::get')->bind('main');
+ *     $app->post('/', 'AppBundle\\Attend::post');
+ *     $app->run();
+ * 
+ */
+
 class Application extends \Silex\Application {
 
+    /**
+     * Requires a Tsugi Launch object for initializing.
+     *
+     *     $launch = \Tsugi\Core\LTIX::requireData();
+     *     $app = new \Tsugi\Silex\Application($launch);
+     *
+     * The launch object is added to the $app variable and can be accessed
+     * as follows:
+     * 
+     *     $app['tsugi']->user->displayname;
+     *
+     * Or in a Twig template:
+     *
+     *     app.tsugi.user.displayname
+     *
+     * This sets up a PHP bridge session to allow old session and new
+     * session code to coexist.
+     */
     function __construct($launch, array $values = array()) {
         global $CFG;
         parent::__construct($values);
@@ -54,17 +80,36 @@ class Application extends \Silex\Application {
 
     }
 
+    /**
+     * tsugiRedirect - Send the browser to a new loation with session
+     *
+     * Usage:
+     *     $app->get('/', 'AppBundle\\Attend::get')->bind('main');
+     *     $app->post('/', 'AppBundle\\Attend::post');
+     *
+     * Then at the end of the POST code, do this:
+     *
+     *     return $app->tsugiRedirect('main');
+     *
+     */
+
     function tsugiRedirect($route) 
     {
         return $this->redirect( addSession($this['url_generator']->generate($route)) );
     }
 
+    /**
+     * tsugiFlashSuccess - Add a success message to the old and new flash session.
+     */
     function tsugiFlashSuccess($message)
     {
         $_SESSION['success'] = $message;
         $this['session']->getFlashBag()->add('success', $message);
     }
 
+    /**
+     * tsugiFlashError - Add an error message to the old and new flash session.
+     */
     function tsugiFlashError($message)
     {
         $_SESSION['error'] = $message;

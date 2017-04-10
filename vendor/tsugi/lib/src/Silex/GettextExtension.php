@@ -1,6 +1,10 @@
 <?php
 namespace Tsugi\Silex;
 
+/**
+ * Support Tsugi's po-style of translation with the __ function 
+ */
+
 class GettextExtension extends \Twig_Extension
 {
     public function getFilters()
@@ -17,7 +21,15 @@ class GettextExtension extends \Twig_Extension
         );
     }
 
-    // Convience method, pattern borrowed from WordPress
+    /**
+     * Translate a message using the current locale set by Tsugi
+     *
+     * Sample use in a Twig template:
+     *
+     *     {{ __('Enter code:') }}
+     *
+     * Pattern borrowed from WordPress
+     */
     public function __($message, $textdomain=false)
     {
         return __($message, $textdomain);
