@@ -27,20 +27,21 @@ function requireAdmin() {
     }
 }
 
-function findTools($dir, &$retval, $filename="index.php") {
+function findTools($dir, &$retval, $filenames=array("index.php", "tsugi.php")) {
+    if ( ! is_array($filenames) ) $filenames = array($filenams);
     if ( is_dir($dir) ) {
         if ($dh = opendir($dir)) {
             while (($sub = readdir($dh)) !== false) {
                 if ( strpos($sub, ".") === 0 ) continue;
-                if ( $sub == $filename ) {
-                    $retval[] = $dir  ."/" . $sub;
+                if ( in_array($sub, $filenames) ) {
+                    $retval[] = $dir  ."/";
                 }
                 $path = $dir . '/' . $sub;
                 if ( ! is_dir($path) ) continue;
                 if ( $sh = opendir($path)) {
                     while (($file = readdir($sh)) !== false) {
-                        if ( $file == $filename ) {
-                            $retval[] = $path  ."/" . $file;
+                        if ( in_array($file, $filenames) ) {
+                            $retval[] = $path  ."/" ;
                             break;
                         }
                     }
@@ -135,7 +136,6 @@ function findAllRegistrations($folders=false)
         }
     }
     return $tools;
-
 }
 
 function findFiles($filename="index.php", $reldir=false) {

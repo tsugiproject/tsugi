@@ -14,7 +14,7 @@ session_start();
 
 // We must be an administrator or in developer mode
 if ( ! ( isset($_SESSION["admin"]) || $CFG->DEVELOPER )  ) {
-    header('Location: '.$CFG->apphome.'/index.php');
+    header('Location: '.$CFG->apphome);
     return;
 }
 
@@ -26,7 +26,7 @@ $row = $PDOX->rowDie(
 $secret = $row ? $row['secret'] : false;
 if ( $secret === false ) {
     $_SESSION['error'] = 'Developer mode not properly configured';
-    header('Location: '.$CFG->apphome.'/index.php');
+    header('Location: '.$CFG->apphome);
     return;
 }
 
@@ -37,7 +37,7 @@ if ( isset($_POST['loginsecret']) ) {
         return;
     }
     $_SESSION['error'] = 'Incorrect secret';
-    header('Location: '.$CFG->apphome.'/index.php');
+    header('Location: '.$CFG->apphome);
     return;
 }
 
