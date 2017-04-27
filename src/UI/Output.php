@@ -559,6 +559,8 @@ function googleTranslateElementInit() {
         $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
         // Canvas test
         $product = LTIX::ltiRawParameter('tool_consumer_info_product_family_code', false);
+        $tci_description = LTIX::ltiRawParameter('tool_consumer_instance_description', false);
+        if ( $product == 'ims' && $tci_description == 'Coursera') $product = 'coursera';
 
         $same_host = false;
         if ( $CFG->apphome && startsWith($launch_return_url, $CFG->apphome) ) $same_host = true;
@@ -575,8 +577,11 @@ function googleTranslateElementInit() {
             $menu_set = self::returnMenuSet($launch_return_url);
         } else if ( $launch_target !== false && strtolower($launch_target) == 'window' ) {
             $menu_set = self::closeMenuSet();
+        // Since Coursers sets precious little
+        } else if ( $product == 'coursera' ) {
+            $menu_set = self::closeMenuSet();
         // Since canvas does not set launch_target properly
-        } else if ( $launch_target !== false && $product == 'canvas' ) {
+        } else if ( $launch_target !== false && ($product == 'canvas' || $product == 'coursera')) {
             $menu_set = self::closeMenuSet();
         } else if ( $launch_return_url !== false ) {
             $menu_set = self::returnMenuSet($launch_return_url);
