@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "cfc0f6e7298b6d3ff292d035028ad481",
-    "content-hash": "1ef428c540d8755e920c978e32e0908f",
+    "hash": "99330d8870cc0626fb5e5f1d874bd74f",
+    "content-hash": "15b49757d6fe12ee7d29fe4d411071f1",
     "packages": [
         {
             "name": "koseu/lib",
@@ -688,12 +688,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "72fce82677597dfc4f95c6ecfd7ae23f80f0be4e"
+                "reference": "5fc9b8f888bc588b4738c315421ff7e5593a3605"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/72fce82677597dfc4f95c6ecfd7ae23f80f0be4e",
-                "reference": "72fce82677597dfc4f95c6ecfd7ae23f80f0be4e",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/5fc9b8f888bc588b4738c315421ff7e5593a3605",
+                "reference": "5fc9b8f888bc588b4738c315421ff7e5593a3605",
                 "shasum": ""
             },
             "require": {
@@ -726,20 +726,20 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2017-04-10 02:45:08"
+            "time": "2017-04-27 16:36:45"
         },
         {
             "name": "twig/twig",
-            "version": "v2.3.0",
+            "version": "v2.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "9718186a5df85a4f7917e78d3ffcabc204c75d25"
+                "reference": "85e8372c451510165c04bf781295f9d922fa524b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/9718186a5df85a4f7917e78d3ffcabc204c75d25",
-                "reference": "9718186a5df85a4f7917e78d3ffcabc204c75d25",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/85e8372c451510165c04bf781295f9d922fa524b",
+                "reference": "85e8372c451510165c04bf781295f9d922fa524b",
                 "shasum": ""
             },
             "require": {
@@ -789,7 +789,7 @@
             "keywords": [
                 "templating"
             ],
-            "time": "2017-03-22 15:41:51"
+            "time": "2017-04-21 00:13:02"
         }
     ],
     "packages-dev": [],

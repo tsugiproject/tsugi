@@ -1191,7 +1191,11 @@ function twig_lower_filter(Twig_Environment $env, $string)
  */
 function twig_title_string_filter(Twig_Environment $env, $string)
 {
-    return mb_convert_case($string, MB_CASE_TITLE, $env->getCharset());
+    if (null !== $charset = $env->getCharset()) {
+        return mb_convert_case($string, MB_CASE_TITLE, $charset);
+    }
+
+    return ucwords(strtolower($string));
 }
 
 /**
@@ -1241,7 +1245,7 @@ function twig_test_empty($value)
         return 0 == count($value);
     }
 
-    if (method_exists($value, '__toString')) {
+    if (is_object($value) && method_exists($value, '__toString')) {
         return '' === (string) $value;
     }
 
@@ -1543,12 +1547,15 @@ function twig_get_attribute(Twig_Environment $env, Twig_Source $source, $object,
                 continue;
             }
 
-            if (!isset($classCache[$name])) {
-                $classCache[$name] = $method;
-            }
+            // skip get() and is() methods (in which case, $name is empty)
+            if ($name) {
+                if (!isset($classCache[$name])) {
+                    $classCache[$name] = $method;
+                }
 
-            if (!isset($classCache[$lcName])) {
-                $classCache[$lcName] = $method;
+                if (!isset($classCache[$lcName])) {
+                    $classCache[$lcName] = $method;
+                }
             }
         }
         $cache[$class] = $classCache;
