@@ -132,7 +132,7 @@ if ( $doLogin ) {
     if ( $firstName === false || $lastName === false || $userEmail === false ) {
         error_log('Google-Missing:'.$user_key.','.$firstName.','.$lastName.','.$userEmail);
         $_SESSION["error"] = "You do not have a first name, last name, and email in Google or you did not share it with us.";
-        header('Location: '.$CFG->apphome.'/index.php');
+        header('Location: '.$CFG->apphome.'/');
         return;
     } else {
 
@@ -222,7 +222,7 @@ if ( $doLogin ) {
          if ( $profile_id < 1 ) {
             error_log('Fail-SQL-Profile:'.$user_key.','.$displayName.','.$userEmail.','.$stmt->errorImplode);
             $_SESSION["error"] = "Internal database error, sorry";
-            header('Location: '.$CFG->apphome.'/index.php');
+            header('Location: '.$CFG->apphome.'/');
             return;
          }
 
@@ -278,7 +278,7 @@ if ( $doLogin ) {
         if ( $user_id < 1 ) {
              error_log('No User Entry:'.$user_key.','.$displayName.','.$userEmail);
              $_SESSION["error"] = "Internal database error, sorry";
-             header('Location: '.$CFG->apphome.'/index.php');
+             header('Location: '.$CFG->apphome.'/');
              return;
         }
 
@@ -324,7 +324,7 @@ if ( $doLogin ) {
         } else if ( $didinsert ) {
             header('Location: '.$CFG->wwwroot.'/profile.php');
         } else {
-            header('Location: '.$CFG->apphome.'/index.php');
+            header('Location: '.$CFG->apphome.'/');
         }
         return;
     }

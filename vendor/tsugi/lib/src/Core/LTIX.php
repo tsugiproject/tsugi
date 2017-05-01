@@ -967,10 +967,11 @@ class LTIX {
         $TSUGI_LAUNCH = new \Tsugi\Core\Launch();
         if ( isset($OUTPUT) && is_object($OUTPUT) && get_class($OUTPUT) == 'Tsugi\UI\Output' ) {
             $TSUGI_LAUNCH->output = $OUTPUT;
+            $OUTPUT->launch = $TSUGI_LAUNCH;
         } else {
-            $TSUGI_LAUNCH->output = new \Tsugi\UI\Output();
+            $OUTPUT = new \Tsugi\UI\Output();
+            $TSUGI_LAUNCH->output = $OUTPUT;
         }
-        $OUTPUT->launch = $TSUGI_LAUNCH;
 
         $USER = null;
         $CONTEXT = null;

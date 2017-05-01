@@ -22,7 +22,7 @@
     },
     "require": {
         "php": ">=5.5.0",
-        "silex/silex": "~2.0",
-        "symfony/translation": "~3.2"
+        "silex/silex": "v2.0.4",
+        "symfony/translation": "v3.2.7"
     }
 }
