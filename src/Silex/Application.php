@@ -51,6 +51,7 @@ class Application extends \Silex\Application {
             echo("Please see config-dist.php for sample code.\n</pre>\n");
             die('Need to set $CFG->loader');
         }
+        $launch->cfg = $CFG;
         $this['tsugi'] = $launch;
         $launch->output->buffer = true;  // Buffer output
 
