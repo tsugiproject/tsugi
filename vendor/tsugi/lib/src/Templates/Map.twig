@@ -31,7 +31,7 @@ function initialize_map(data) {
     var row = data.points[i];
     if ( i < 3 ) { console.log(row); }
     var newLatlng = new google.maps.LatLng(row[0], row[1]);
-    var iconpath = '<?php echo($CFG->staticroot); ?>/img/icons/';
+    var iconpath = '{{ app.tsugi.cfg.staticroot }}/img/icons/';
     var icon = row[3] ? 'green-dot.png' : 'green.png';
     var marker = new google.maps.Marker({
       position: newLatlng,
@@ -51,7 +51,7 @@ function initialize_map(data) {
 }
 
 $(document).ready(function() {
-    $.getJSON('mapjson.php', function(data) {
+    $.getJSON('map/json', function(data) {
         initialize_map(data);
     } );
 

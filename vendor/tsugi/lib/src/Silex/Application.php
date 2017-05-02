@@ -59,7 +59,12 @@ class Application extends \Silex\Application {
         $session->start();
         $this['session'] = $session;
 
-        $loader = new \Twig_Loader_Filesystem('templates');
+        if ( file_exists('templates') ) {
+            $loader = new \Twig_Loader_Filesystem('templates');
+        } else {
+            $loader = new \Twig_Loader_Filesystem('.');
+        }
+        
         $yourNewPath = $CFG->dirroot . '/vendor/tsugi/lib/src/Templates';
         $loader->addPath($yourNewPath, 'Tsugi');
         $yourNewPath = $CFG->dirroot . '/vendor/koseu/lib/src/Templates';
