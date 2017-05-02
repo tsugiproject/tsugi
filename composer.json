@@ -1,7 +1,7 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#9fb0478cace0599566a4c7473bc11dee204fe1b9",
-        "koseu/lib": "dev-master#e4eaff96c63388d6082cc2b9fcb9cf32bab34e08"
+        "tsugi/lib": "dev-master#f92297247bc057bf582d41408b422f47a1b79343",
+        "koseu/lib": "dev-master#95d88e1be3f1add471d8800165fe957661a5c2f7"
     },
     "config": {
         "preferred-install": "dist"

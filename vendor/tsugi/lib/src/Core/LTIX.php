@@ -991,7 +991,7 @@ class LTIX {
         // Check if we are processing an LTI launch.  If so, handle it
         $newlaunch = self::launchCheck($needed, $session_object, $request_data);
 
-        // If launchCheck comes back with a true, it means someoine above us
+        // If launchCheck comes back with a true, it means someone above us
         // needs to do the redirect
         if ( $newlaunch ) {
             return $TSUGI_LAUNCH;
