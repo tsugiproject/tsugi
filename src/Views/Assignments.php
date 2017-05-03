@@ -15,6 +15,7 @@ class Assignments {
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->get($prefix, 'Koseu\\Views\\Assignments::get');
+        $app->get($prefix.'/', 'Koseu\\Views\\Assignments::get');
     }
 
     public function get(Request $request, Application $app)

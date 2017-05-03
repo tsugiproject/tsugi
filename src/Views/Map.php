@@ -15,6 +15,7 @@ class Map {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->get($prefix.'/json', 'Koseu\\Views\\Map::getjson');
         $app->get($prefix, 'Koseu\\Views\\Map::get');
+        $app->get($prefix.'/', 'Koseu\\Views\\Map::get');
     }
 
     public function get(Request $request, Application $app)
