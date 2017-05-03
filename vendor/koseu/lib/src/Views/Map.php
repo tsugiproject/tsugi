@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\Views;
+namespace Koseu\Views;
 
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -9,6 +9,14 @@ use Symfony\Component\HttpFoundation\Response;
 use \Tsugi\Core\LTIX;
 
 class Map {
+
+    const ROUTE = '/map';
+
+    public static function routes(Application $app, $prefix=self::ROUTE) {
+        $app->get($prefix.'/json', 'Koseu\\Views\\Map::getjson');
+        $app->get($prefix, 'Koseu\\Views\\Map::get');
+    }
+
     public function get(Request $request, Application $app)
     {
         global $CFG;
@@ -25,7 +33,7 @@ class Map {
                 );
         }
 
-        return $app['twig']->render('@Tsugi/Map.twig');
+        return $app['twig']->render('@Koseu/Map.twig');
     }
 
     public function getjson(Request $request, Application $app)

@@ -719,12 +719,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/koseu-php.git",
-            "reference": "95d88e1be3f1add471d8800165fe957661a5c2f7"
+            "reference": "e7c44ba37657e71249f30513abf34e140cdaf768"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/95d88e1be3f1add471d8800165fe957661a5c2f7",
-            "reference": "95d88e1be3f1add471d8800165fe957661a5c2f7",
+            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/e7c44ba37657e71249f30513abf34e140cdaf768",
+            "reference": "e7c44ba37657e71249f30513abf34e140cdaf768",
             "shasum": ""
         },
         "require": {
@@ -768,12 +768,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "a430fdfd5585dc2a0494ffdcc22772503893910f"
+            "reference": "7322eb6e137ae4f0228cfc2cf64c5c46ba5cf0c2"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/a430fdfd5585dc2a0494ffdcc22772503893910f",
-            "reference": "a430fdfd5585dc2a0494ffdcc22772503893910f",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/7322eb6e137ae4f0228cfc2cf64c5c46ba5cf0c2",
+            "reference": "7322eb6e137ae4f0228cfc2cf64c5c46ba5cf0c2",
             "shasum": ""
         },
         "require": {
@@ -781,7 +781,7 @@
             "silex/silex": "v2.0.4",
             "symfony/translation": "v3.2.7"
         },
-        "time": "2017-05-02 21:17:22",
+        "time": "2017-05-03 03:17:02",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
