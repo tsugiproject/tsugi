@@ -70,8 +70,9 @@ class Lessons {
     /**
      * emit the header material
      */
-    public static function header() {
+    public static function header($buffer=false) {
         global $CFG;
+        ob_start();
 ?>
 <style>
     .card {
@@ -93,6 +94,10 @@ class Lessons {
 </style>
 <link rel="stylesheet" href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css" type="text/css"/>
 <?php
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $buffer ) return $ob_output;
+        echo($ob_output);
     }
 
     /*
@@ -295,11 +300,11 @@ class Lessons {
     /*
      ** render
      */
-    public function render() {
+    public function render($buffer=false) {
         if ( $this->isSingle() ) {
-            $this->renderSingle();
+            return $this->renderSingle($buffer);
         } else {
-            $this->renderAll();
+            return $this->renderAll($buffer);
         }
     }
 
@@ -791,11 +796,11 @@ $(function(){
 });
 </script>
 <?php
+        }
         $ob_output = ob_get_contents();
         ob_end_clean();
         if ( $buffer ) return $ob_output;
         echo($ob_output);
-        }
 
     } // end footer
 
