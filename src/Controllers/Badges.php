@@ -1,6 +1,6 @@
 <?php
 
-namespace Koseu\Views;
+namespace Koseu\Controllers;
 
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -9,13 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 use \Tsugi\UI\Lessons;
 use \Tsugi\Grades\GradeUtil;
 
-class Assignments {
+class Badges {
 
-    const ROUTE = '/assignments';
+    const ROUTE = '/badges';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix, 'Koseu\\Views\\Assignments::get');
-        $app->get($prefix.'/', 'Koseu\\Views\\Assignments::get');
+        $app->get($prefix, 'Koseu\\Controllers\\Badges::get');
+        $app->get($prefix.'/', 'Koseu\\Controllers\\Badges::get');
     }
 
     public function get(Request $request, Application $app)
@@ -40,7 +40,7 @@ class Assignments {
         }
 
         return $app['twig']->render('@Koseu/Badges.twig',
-            array('data' => $l->renderAssignments($allgrades, true))
+            array('data' => $l->renderBadges($allgrades, true))
         );
 
     }

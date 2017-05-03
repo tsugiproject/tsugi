@@ -1,6 +1,6 @@
 <?php
 
-namespace Koseu\Views;
+namespace Koseu\Controllers;
 
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,9 +11,9 @@ class Lessons {
     const ROUTE = '/lessons';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix, 'Koseu\\Views\\Lessons::get');
-        $app->get($prefix.'/', 'Koseu\\Views\\Lessons::get');
-        $app->get($prefix.'/{anchor}', 'Koseu\\Views\\Lessons::get');
+        $app->get($prefix, 'Koseu\\Controllers\\Lessons::get');
+        $app->get($prefix.'/', 'Koseu\\Controllers\\Lessons::get');
+        $app->get($prefix.'/{anchor}', 'Koseu\\Controllers\\Lessons::get');
     }
 
     public function get(Request $request, Application $app, $anchor=null)
