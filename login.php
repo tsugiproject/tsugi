@@ -5,7 +5,6 @@ use \Tsugi\Crypt\SecureCookie;
 
 define('COOKIE_SESSION', true);
 require_once "config.php";
-require_once 'lib/lightopenid/openid.php';
 
 $PDOX = LTIX::getConnection();
 
