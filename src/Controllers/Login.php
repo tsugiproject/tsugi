@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\Views;
+namespace Tsugi\Controllers;
 
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,8 +15,8 @@ class Login {
     const ROUTE = '/login';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix, 'Tsugi\\Views\\Login::get');
-        $app->get($prefix.'/', 'Tsugi\\Views\\Login::get');
+        $app->get($prefix, 'Tsugi\\Controllers\\Login::get');
+        $app->get($prefix.'/', 'Tsugi\\Controllers\\Login::get');
     }
 
     public function get(Request $request, Application $app)
