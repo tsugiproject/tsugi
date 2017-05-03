@@ -294,26 +294,64 @@ if ( $doLogin ) {
         }
 
         // We made a user and made a displayname
+        // Set up the session and fake an LTI launch
         $welcome = "Welcome ";
         if ( ! $didinsert ) $welcome .= "back ";
         $_SESSION["success"] = $welcome.($displayName)." (".$userEmail.")";
-        $_SESSION["id"] = $user_id;
-        $_SESSION["user_id"] = $user_id;
-        $_SESSION["user_key"] = $user_key;
-        $_SESSION["email"] = $userEmail;
-        $_SESSION["displayname"] = $displayName;
-        $_SESSION["profile_id"] = $profile_id;
-        if ( isset($userAvatar) ) $_SESSION["avatar"] = $userAvatar;
+
+        // Also set up a fake LTI launch
+        $lti = array();
+        $lti['key_id'] = $google_key_id;
+
         $_SESSION["oauth_consumer_key"] = $oauth_consumer_key;
-        if ( isset($CFG->context_title) ) $_SESSION['context_title'] = $CFG->context_title;
-        if ( isset($context_id) ) $_SESSION["context_id"] = $context_id;
-        if ( isset($context_key) ) $_SESSION["context_key"] = $context_key;
+        $lti['key_key'] = $oauth_consumer_key;
 
         if ( strlen($google_secret) ) {
             $_SESSION['secret'] = LTIX::encrypt_secret($google_secret);
+            $lti['secret'] = LTIX::encrypt_secret($google_secret);
         } else {
             unset($_SESSION['secret']);
         }
+
+        $_SESSION["id"] = $user_id;
+        $lti["user_id"] = $user_id;
+
+        $_SESSION["user_id"] = $user_id;
+        $lti["user_id"] = $user_id;
+
+        $_SESSION["user_key"] = $user_key;
+        $lti["user_key"] = $user_key;
+
+        $_SESSION["email"] = $userEmail;
+        $lti["user_email"] = $userEmail;
+
+        $_SESSION["displayname"] = $displayName;
+        $lti["user_displayname"] = $displayName;
+
+        $_SESSION["profile_id"] = $profile_id;
+        $lti["profile_id"] = $profile_id;
+
+        if ( isset($userAvatar) ) {
+            $_SESSION["avatar"] = $userAvatar;
+            $lti["user_image"] = $userAvatar;
+        }
+
+        if ( isset($CFG->context_title) ) {
+            $_SESSION['context_title'] = $CFG->context_title;
+            $lti['context_title'] = $CFG->context_title;
+            $lti['resource_title'] = $CFG->context_title;
+        }
+        if ( isset($context_id) ) {
+            $_SESSION["context_id"] = $context_id;
+            $lti["context_id"] = $context_id;
+        }
+        if ( isset($context_key) ) {
+            $_SESSION["context_key"] = $context_key;
+            $lti["context_key"] = $context_key;
+        }
+
+        // Set that data in the session.
+        $_SESSION['lti'] = $lti;
 
         // Set the secure cookie
         SecureCookie::set($user_id,$userEmail,$context_id);
