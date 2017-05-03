@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\Views;
+namespace Tsugi\Controllers;
 
 use Silex\Application;
 
