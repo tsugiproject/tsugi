@@ -60,7 +60,7 @@ class Lessons {
                 return $url;
             }
         } else {
-            $url = 'lessons.php';
+            $url = $CFG->wwwroot . '/lessons.php';
             if ( $anchor != null ) return $url . '?anchor=' . urlencode($anchor);
             if ( $index != null ) return $url . '?index=' . urlencode($index);
             return $url;
@@ -506,7 +506,7 @@ var disqus_config = function () {
         }
         $ob_output = ob_get_contents();
         ob_end_clean();
-        if ( $buffer ) return $output;
+        if ( $buffer ) return $ob_output;
         echo($ob_output);
     } // End of renderSingle
 
@@ -537,7 +537,7 @@ var disqus_config = function () {
         echo('</div> <!-- box -->'."\n");
         $ob_output = ob_get_contents();
         ob_end_clean();
-        if ( $buffer ) return $output;
+        if ( $buffer ) return $ob_output;
         echo($ob_output);
     }
 
@@ -581,7 +581,7 @@ var disqus_config = function () {
         echo('</tbody></table>'."\n");
         $ob_output = ob_get_contents();
         ob_end_clean();
-        if ( $buffer ) return $output;
+        if ( $buffer ) return $ob_output;
         echo($ob_output);
     }
 
@@ -735,8 +735,8 @@ var disqus_config = function () {
             $code = basename($badge->image,'.png');
             $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
             $encrypted = bin2hex(AesCtr::encrypt($decrypted, $CFG->badge_encrypt_password, 256));
-            echo('<a href="badges/images/'.$encrypted.'.png" target="_blank">');
-            echo('<img src="badges/images/'.$encrypted.'.png" width="90"></a>');
+            echo('<a href="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" target="_blank">');
+            echo('<img src="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" width="90"></a>');
             echo($badge->title);
             echo("</li>\n");
         }
@@ -753,7 +753,7 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
 <?php
         $ob_output = ob_get_contents();
         ob_end_clean();
-        if ( $buffer ) return $output;
+        if ( $buffer ) return $ob_output;
         echo($ob_output);
     }
 
@@ -793,7 +793,7 @@ $(function(){
 <?php
         $ob_output = ob_get_contents();
         ob_end_clean();
-        if ( $buffer ) return $output;
+        if ( $buffer ) return $ob_output;
         echo($ob_output);
         }
 
