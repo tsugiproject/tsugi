@@ -1,0 +1,23 @@
+{% extends "@Tsugi/Page.twig" %}
+{% block content %}
+<div style="margin: 30px">
+<p>
+We here at {{ app.tsugi.cfg.servicename }} use Google Accounts as our sole login.
+We do not want to spend a lot of time verifying identity, resetting passwords,
+detecting robot-login storms, and other issues so we let Google do that hard work.
+</p>
+<form method="post">
+    <input class="btn btn-warning" type="button" 
+        onclick="location.href='{{ login_return }}'; return false;" value="Cancel"/>
+    <input class="btn btn-primary" type="button" 
+        onclick="location.href='{{ loginUrl }}'; return false;" value="Login with Google" />
+</form>
+<p>
+So you must have a Google account and we will require your
+name and email address to login.  We do not need and do not receive your password - only Google
+will ask you for your password.  When you press login, you will be directed to the Google
+authentication system where you will be given the option to share your
+information with {{ app.tsugi.cfg.servicename }}.
+</p>
+</div>
+{% endblock %}
