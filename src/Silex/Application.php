@@ -87,7 +87,7 @@ class Application extends \Silex\Application {
     }
 
     /**
-     * tsugiRedirect - Send the browser to a new loation with session
+     * tsugiReroute - Send the browser to a new location with session
      *
      * Usage:
      *     $app->get('/', 'AppBundle\\Attend::get')->bind('main');
@@ -95,14 +95,15 @@ class Application extends \Silex\Application {
      *
      * Then at the end of the POST code, do this:
      *
-     *     return $app->tsugiRedirect('main');
+     *     return $app->tsugiReroute('main');
      *
      */
 
-    function tsugiRedirect($route) 
+    function tsugiReroute($route) 
     {
         return $this->redirect( addSession($this['url_generator']->generate($route)) );
     }
+    function tsugiRedirect($route) { return $this->tsugiReroute($route); } // Deprecated
 
     /**
      * tsugiFlashSuccess - Add a success message to the old and new flash session.
