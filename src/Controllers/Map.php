@@ -1,6 +1,6 @@
 <?php
 
-namespace Koseu\Controllers;
+namespace Tsugi\Controllers;
 
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,9 +13,9 @@ class Map {
     const ROUTE = '/map';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix.'/json', 'Koseu\\Controllers\\Map::getjson');
-        $app->get($prefix, 'Koseu\\Controllers\\Map::get');
-        $app->get($prefix.'/', 'Koseu\\Controllers\\Map::get');
+        $app->get($prefix.'/json', 'Tsugi\\Controllers\\Map::getjson');
+        $app->get($prefix, 'Tsugi\\Controllers\\Map::get');
+        $app->get($prefix.'/', 'Tsugi\\Controllers\\Map::get');
     }
 
     public function get(Request $request, Application $app)
@@ -34,7 +34,7 @@ class Map {
                 );
         }
 
-        return $app['twig']->render('@Koseu/Map.twig');
+        return $app['twig']->render('@Tsugi/Map.twig');
     }
 
     public function getjson(Request $request, Application $app)
