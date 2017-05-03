@@ -15,6 +15,7 @@ class Badges {
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->get($prefix, 'Koseu\\Views\\Badges::get');
+        $app->get($prefix.'/', 'Koseu\\Views\\Badges::get');
     }
 
     public function get(Request $request, Application $app)

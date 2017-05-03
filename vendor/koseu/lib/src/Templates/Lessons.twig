@@ -1,5 +1,12 @@
 {% extends "@Tsugi/Page.twig" %}
-
+{% block head %}
+{{ head | raw }}
+{% endblock %}
 {% block content %}
-Content would go here.
+<div class="container">
+{{ container | raw }}
+</div>
+{% endblock %}
+{% block footer %}
+{{ footer | raw }}
 {% endblock %}
