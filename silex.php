@@ -24,7 +24,7 @@ $app->get('/dump', function() use ($app) {
     return $app['twig']->render('@Tsugi/Dump.twig');
 });
 
-$app->get('/map/json', 'Tsugi\\Views\\Map::getjson');
-$app->get('/map', 'Tsugi\\Views\\Map::get');
+$app->get('/map/json', 'Koseu\\Views\\Map::getjson');
+$app->get('/map', 'Koseu\\Views\\Map::get');
 
 $app->run();
