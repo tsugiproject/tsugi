@@ -39,4 +39,11 @@
 {% else %}
 <p>Result is not set.</p>
 {% endif %}
+{% if session is defined %}
+<pre>
+{{ session }}
+</pre>
+{% else %}
+<p>Session is not set</p>
+{% endif %}
 {% endblock %}
