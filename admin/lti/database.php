@@ -318,7 +318,7 @@ $DATABASE_POST_CREATE = function($table) {
         $q = $PDOX->queryDie($sql);
 
         // Secret is big ugly string for the google key - in case we launch internally in Koseu
-        $secret = bin2hex(random_bytes(16));
+        $secret = bin2hex(openssl_random_pseudo_bytes(16));
         $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key) values
             ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', '$secret', 'google.com')";
         error_log("Post-create: ".$sql);
@@ -607,7 +607,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // Version 201705032130 - Add secret for google key if it is not there
     if ( $oldversion < 201705032130 ) {
-        $secret = bin2hex(random_bytes(16));
+        $secret = bin2hex(openssl_random_pseudo_bytes(16));
         $sql= "UPDATE {$CFG->dbprefix}lti_key SET secret='$secret' WHERE key_key = 'google.com' AND secret IS NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
