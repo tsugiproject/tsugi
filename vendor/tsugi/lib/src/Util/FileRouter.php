@@ -4,7 +4,7 @@ namespace Tsugi\Util;
 /**
  * Super Simple File Based Router
  *
- * This router routs paths like .../lessons to .../lessons.php if the
+ * This router routes paths like .../lessons to .../lessons.php if the
  * file exists.
  *
  *     $router = new Tsugi\Util\FileRouter();
