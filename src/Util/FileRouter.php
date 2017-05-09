@@ -4,7 +4,7 @@ namespace Tsugi\Util;
 /**
  * Super Simple File Based Router
  *
- * This router routs paths like .../lessons to .../lessons.php if the
+ * This router routes paths like .../lessons to .../lessons.php if the
  * file exists.
  *
  *     $router = new Tsugi\Util\FileRouter();
@@ -44,8 +44,9 @@ class FileRouter {
         $uri = self::trimQuery($uri);
         // /wa4e/tsugi
         $cwd = self::cwd();
-        if ( strpos($uri,$cwd.'/') === 0 ) {
-            $file = substr($uri, strlen($cwd)+1) . '.php';
+	if ( ! endsWith($cwd, '/') ) $cwd = $cwd .'/';
+        if ( strpos($uri,$cwd) === 0 ) {
+            $file = substr($uri, strlen($cwd)) . '.php';
             if ( file_exists($file) ) return $file;
         }
         return false;
