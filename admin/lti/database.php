@@ -255,7 +255,7 @@ array( "{$CFG->dbprefix}lti_nonce",
 
 array( "{$CFG->dbprefix}lti_domain",
 "create table {$CFG->dbprefix}lti_domain (
-    domain_id   INTEGER NOT NULL AUTO_INCREMENT PRIMARY_KEY,
+    domain_id   INTEGER NOT NULL AUTO_INCREMENT,
     key_id      INTEGER NOT NULL,
     context_id  INTEGER NULL,
     domain      VARCHAR(128),
@@ -276,6 +276,7 @@ array( "{$CFG->dbprefix}lti_domain",
         REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
+    PRIMARY KEY (domain_id),
     UNIQUE(key_id, context_id, domain, port)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -316,9 +317,10 @@ $DATABASE_POST_CREATE = function($table) {
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
 
-        // Secret is null for the google key - no direct launches or logins allowed
-        $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key) values
-            ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', 'google.com')";
+        // Secret is big ugly string for the google key - in case we launch internally in Koseu
+        $secret = bin2hex(openssl_random_pseudo_bytes(16));
+        $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key) values
+            ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', '$secret', 'google.com')";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
@@ -603,9 +605,19 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Version 201705032130 - Add secret for google key if it is not there
+    if ( $oldversion < 201705032130 ) {
+        $secret = bin2hex(openssl_random_pseudo_bytes(16));
+        $sql= "UPDATE {$CFG->dbprefix}lti_key SET secret='$secret' WHERE key_key = 'google.com' AND secret IS NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201703171713;
+    return 201705032130;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
