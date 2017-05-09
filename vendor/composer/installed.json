@@ -61,190 +61,6 @@
         ]
     },
     {
-        "name": "psr/log",
-        "version": "1.0.2",
-        "version_normalized": "1.0.2.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/php-fig/log.git",
-            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/php-fig/log/zipball/4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
-            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "time": "2016-10-10 12:19:37",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "1.0.x-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Psr\\Log\\": "Psr/Log/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "PHP-FIG",
-                "homepage": "http://www.php-fig.org/"
-            }
-        ],
-        "description": "Common interface for logging libraries",
-        "homepage": "https://github.com/php-fig/log",
-        "keywords": [
-            "log",
-            "psr",
-            "psr-3"
-        ]
-    },
-    {
-        "name": "pimple/pimple",
-        "version": "v3.0.2",
-        "version_normalized": "3.0.2.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/silexphp/Pimple.git",
-            "reference": "a30f7d6e57565a2e1a316e1baf2a483f788b258a"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/silexphp/Pimple/zipball/a30f7d6e57565a2e1a316e1baf2a483f788b258a",
-            "reference": "a30f7d6e57565a2e1a316e1baf2a483f788b258a",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "time": "2015-09-11 15:10:35",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "3.0.x-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Pimple": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Fabien Potencier",
-                "email": "fabien@symfony.com"
-            }
-        ],
-        "description": "Pimple, a simple Dependency Injection Container",
-        "homepage": "http://pimple.sensiolabs.org",
-        "keywords": [
-            "container",
-            "dependency injection"
-        ]
-    },
-    {
-        "name": "silex/silex",
-        "version": "v2.0.4",
-        "version_normalized": "2.0.4.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/silexphp/Silex.git",
-            "reference": "49ca08d853731d1635374e5019c8696cfd53c161"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/silexphp/Silex/zipball/49ca08d853731d1635374e5019c8696cfd53c161",
-            "reference": "49ca08d853731d1635374e5019c8696cfd53c161",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.5.9",
-            "pimple/pimple": "~3.0",
-            "symfony/event-dispatcher": "~2.8|^3.0",
-            "symfony/http-foundation": "~2.8|^3.0",
-            "symfony/http-kernel": "~2.8|^3.0",
-            "symfony/routing": "~2.8|^3.0"
-        },
-        "replace": {
-            "silex/api": "self.version",
-            "silex/providers": "self.version"
-        },
-        "require-dev": {
-            "doctrine/dbal": "~2.2",
-            "monolog/monolog": "^1.4.1",
-            "swiftmailer/swiftmailer": "~5",
-            "symfony/asset": "~2.8|^3.0",
-            "symfony/browser-kit": "~2.8|^3.0",
-            "symfony/config": "~2.8|^3.0",
-            "symfony/css-selector": "~2.8|^3.0",
-            "symfony/debug": "~2.8|^3.0",
-            "symfony/doctrine-bridge": "~2.8|^3.0",
-            "symfony/dom-crawler": "~2.8|^3.0",
-            "symfony/expression-language": "~2.8|^3.0",
-            "symfony/finder": "~2.8|^3.0",
-            "symfony/form": "~2.8|^3.0",
-            "symfony/intl": "~2.8|^3.0",
-            "symfony/monolog-bridge": "~2.8|^3.0",
-            "symfony/options-resolver": "~2.8|^3.0",
-            "symfony/phpunit-bridge": "~2.8|^3.0",
-            "symfony/process": "~2.8|^3.0",
-            "symfony/security": "~2.8|^3.0",
-            "symfony/serializer": "~2.8|^3.0",
-            "symfony/translation": "~2.8|^3.0",
-            "symfony/twig-bridge": "~2.8|^3.0",
-            "symfony/validator": "~2.8|^3.0",
-            "symfony/var-dumper": "~2.8|^3.0",
-            "twig/twig": "~1.27|~2.0"
-        },
-        "time": "2016-11-06 18:09:06",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "2.0.x-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Silex\\": "src/Silex"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Fabien Potencier",
-                "email": "fabien@symfony.com"
-            },
-            {
-                "name": "Igor Wiedler",
-                "email": "igor@wiedler.ch"
-            }
-        ],
-        "description": "The PHP micro-framework based on the Symfony Components",
-        "homepage": "http://silex.sensiolabs.org",
-        "keywords": [
-            "microframework"
-        ]
-    },
-    {
         "name": "symfony/translation",
         "version": "v3.2.7",
         "version_normalized": "3.2.7.0",
@@ -309,6 +125,132 @@
         ],
         "description": "Symfony Translation Component",
         "homepage": "https://symfony.com"
+    },
+    {
+        "name": "symfony/routing",
+        "version": "v3.2.8",
+        "version_normalized": "3.2.8.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/symfony/routing.git",
+            "reference": "5029745d6d463585e8b487dbc83d6333f408853a"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/symfony/routing/zipball/5029745d6d463585e8b487dbc83d6333f408853a",
+            "reference": "5029745d6d463585e8b487dbc83d6333f408853a",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.5.9"
+        },
+        "conflict": {
+            "symfony/config": "<2.8"
+        },
+        "require-dev": {
+            "doctrine/annotations": "~1.0",
+            "doctrine/common": "~2.2",
+            "psr/log": "~1.0",
+            "symfony/config": "~2.8|~3.0",
+            "symfony/expression-language": "~2.8|~3.0",
+            "symfony/http-foundation": "~2.8|~3.0",
+            "symfony/yaml": "~2.8|~3.0"
+        },
+        "suggest": {
+            "doctrine/annotations": "For using the annotation loader",
+            "symfony/config": "For using the all-in-one router or any loader",
+            "symfony/dependency-injection": "For loading routes from a service",
+            "symfony/expression-language": "For using expression matching",
+            "symfony/http-foundation": "For using a Symfony Request object",
+            "symfony/yaml": "For using the YAML loader"
+        },
+        "time": "2017-04-12 14:13:17",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "3.2-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Symfony\\Component\\Routing\\": ""
+            },
+            "exclude-from-classmap": [
+                "/Tests/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Potencier",
+                "email": "fabien@symfony.com"
+            },
+            {
+                "name": "Symfony Community",
+                "homepage": "https://symfony.com/contributors"
+            }
+        ],
+        "description": "Symfony Routing Component",
+        "homepage": "https://symfony.com",
+        "keywords": [
+            "router",
+            "routing",
+            "uri",
+            "url"
+        ]
+    },
+    {
+        "name": "psr/log",
+        "version": "1.0.2",
+        "version_normalized": "1.0.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/php-fig/log.git",
+            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/php-fig/log/zipball/4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
+            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "time": "2016-10-10 12:19:37",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.0.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Psr\\Log\\": "Psr/Log/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "PHP-FIG",
+                "homepage": "http://www.php-fig.org/"
+            }
+        ],
+        "description": "Common interface for logging libraries",
+        "homepage": "https://github.com/php-fig/log",
+        "keywords": [
+            "log",
+            "psr",
+            "psr-3"
+        ]
     },
     {
         "name": "symfony/debug",
@@ -571,58 +513,119 @@
         "homepage": "https://symfony.com"
     },
     {
-        "name": "symfony/routing",
-        "version": "v3.2.8",
-        "version_normalized": "3.2.8.0",
+        "name": "pimple/pimple",
+        "version": "v3.0.2",
+        "version_normalized": "3.0.2.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/symfony/routing.git",
-            "reference": "5029745d6d463585e8b487dbc83d6333f408853a"
+            "url": "https://github.com/silexphp/Pimple.git",
+            "reference": "a30f7d6e57565a2e1a316e1baf2a483f788b258a"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/routing/zipball/5029745d6d463585e8b487dbc83d6333f408853a",
-            "reference": "5029745d6d463585e8b487dbc83d6333f408853a",
+            "url": "https://api.github.com/repos/silexphp/Pimple/zipball/a30f7d6e57565a2e1a316e1baf2a483f788b258a",
+            "reference": "a30f7d6e57565a2e1a316e1baf2a483f788b258a",
             "shasum": ""
         },
         "require": {
-            "php": ">=5.5.9"
+            "php": ">=5.3.0"
         },
-        "conflict": {
-            "symfony/config": "<2.8"
-        },
-        "require-dev": {
-            "doctrine/annotations": "~1.0",
-            "doctrine/common": "~2.2",
-            "psr/log": "~1.0",
-            "symfony/config": "~2.8|~3.0",
-            "symfony/expression-language": "~2.8|~3.0",
-            "symfony/http-foundation": "~2.8|~3.0",
-            "symfony/yaml": "~2.8|~3.0"
-        },
-        "suggest": {
-            "doctrine/annotations": "For using the annotation loader",
-            "symfony/config": "For using the all-in-one router or any loader",
-            "symfony/dependency-injection": "For loading routes from a service",
-            "symfony/expression-language": "For using expression matching",
-            "symfony/http-foundation": "For using a Symfony Request object",
-            "symfony/yaml": "For using the YAML loader"
-        },
-        "time": "2017-04-12 14:13:17",
+        "time": "2015-09-11 15:10:35",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "3.2-dev"
+                "dev-master": "3.0.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Pimple": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Fabien Potencier",
+                "email": "fabien@symfony.com"
+            }
+        ],
+        "description": "Pimple, a simple Dependency Injection Container",
+        "homepage": "http://pimple.sensiolabs.org",
+        "keywords": [
+            "container",
+            "dependency injection"
+        ]
+    },
+    {
+        "name": "silex/silex",
+        "version": "v2.0.4",
+        "version_normalized": "2.0.4.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/silexphp/Silex.git",
+            "reference": "49ca08d853731d1635374e5019c8696cfd53c161"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/silexphp/Silex/zipball/49ca08d853731d1635374e5019c8696cfd53c161",
+            "reference": "49ca08d853731d1635374e5019c8696cfd53c161",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.5.9",
+            "pimple/pimple": "~3.0",
+            "symfony/event-dispatcher": "~2.8|^3.0",
+            "symfony/http-foundation": "~2.8|^3.0",
+            "symfony/http-kernel": "~2.8|^3.0",
+            "symfony/routing": "~2.8|^3.0"
+        },
+        "replace": {
+            "silex/api": "self.version",
+            "silex/providers": "self.version"
+        },
+        "require-dev": {
+            "doctrine/dbal": "~2.2",
+            "monolog/monolog": "^1.4.1",
+            "swiftmailer/swiftmailer": "~5",
+            "symfony/asset": "~2.8|^3.0",
+            "symfony/browser-kit": "~2.8|^3.0",
+            "symfony/config": "~2.8|^3.0",
+            "symfony/css-selector": "~2.8|^3.0",
+            "symfony/debug": "~2.8|^3.0",
+            "symfony/doctrine-bridge": "~2.8|^3.0",
+            "symfony/dom-crawler": "~2.8|^3.0",
+            "symfony/expression-language": "~2.8|^3.0",
+            "symfony/finder": "~2.8|^3.0",
+            "symfony/form": "~2.8|^3.0",
+            "symfony/intl": "~2.8|^3.0",
+            "symfony/monolog-bridge": "~2.8|^3.0",
+            "symfony/options-resolver": "~2.8|^3.0",
+            "symfony/phpunit-bridge": "~2.8|^3.0",
+            "symfony/process": "~2.8|^3.0",
+            "symfony/security": "~2.8|^3.0",
+            "symfony/serializer": "~2.8|^3.0",
+            "symfony/translation": "~2.8|^3.0",
+            "symfony/twig-bridge": "~2.8|^3.0",
+            "symfony/validator": "~2.8|^3.0",
+            "symfony/var-dumper": "~2.8|^3.0",
+            "twig/twig": "~1.27|~2.0"
+        },
+        "time": "2016-11-06 18:09:06",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.0.x-dev"
             }
         },
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
-                "Symfony\\Component\\Routing\\": ""
-            },
-            "exclude-from-classmap": [
-                "/Tests/"
-            ]
+                "Silex\\": "src/Silex"
+            }
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
@@ -634,67 +637,15 @@
                 "email": "fabien@symfony.com"
             },
             {
-                "name": "Symfony Community",
-                "homepage": "https://symfony.com/contributors"
+                "name": "Igor Wiedler",
+                "email": "igor@wiedler.ch"
             }
         ],
-        "description": "Symfony Routing Component",
-        "homepage": "https://symfony.com",
+        "description": "The PHP micro-framework based on the Symfony Components",
+        "homepage": "http://silex.sensiolabs.org",
         "keywords": [
-            "router",
-            "routing",
-            "uri",
-            "url"
+            "microframework"
         ]
-    },
-    {
-        "name": "koseu/lib",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/tsugiproject/koseu-php.git",
-            "reference": "76d25e4b03d44339d88fe61d2886375258bc8a87"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/76d25e4b03d44339d88fe61d2886375258bc8a87",
-            "reference": "76d25e4b03d44339d88fe61d2886375258bc8a87",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.5.0",
-            "silex/silex": "v2.0.4",
-            "symfony/translation": "v3.2.7",
-            "tsugi/lib": ">=0.3.1"
-        },
-        "time": "2017-03-19 14:57:40",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Koseu\\": "src/"
-            },
-            "exclude-from-classmap": [
-                "/tests/",
-                "phpdoc.dist.xml",
-                "phpunit.xml.dist"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "authors": [
-            {
-                "name": "csev",
-                "email": "drchuck@gmail.com",
-                "homepage": "http://www.dr-chuck.com/",
-                "role": "Developer"
-            }
-        ],
-        "description": "A Next Generation Embeddable Learning Management System",
-        "homepage": "http://www.koseu.org/"
     },
     {
         "name": "tsugi/lib",
@@ -703,21 +654,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-<<<<<<< HEAD
             "reference": "2787ca11816dedd72385500d85c9abd7eb07bf23"
         },
         "dist": {
             "type": "zip",
             "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/2787ca11816dedd72385500d85c9abd7eb07bf23",
             "reference": "2787ca11816dedd72385500d85c9abd7eb07bf23",
-=======
-            "reference": "e9591e0db21b00b62c26b916ad17770e00a6153a"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e9591e0db21b00b62c26b916ad17770e00a6153a",
-            "reference": "e9591e0db21b00b62c26b916ad17770e00a6153a",
->>>>>>> fef4e68fae92536fa7f7310c2fe78edc0cda4da4
             "shasum": ""
         },
         "require": {
@@ -725,7 +667,7 @@
             "silex/silex": "v2.0.4",
             "symfony/translation": "v3.2.7"
         },
-        "time": "2017-05-04 01:38:43",
+        "time": "2017-05-09 06:42:17",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -752,5 +694,54 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "koseu/lib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/tsugiproject/koseu-php.git",
+            "reference": "76d25e4b03d44339d88fe61d2886375258bc8a87"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/76d25e4b03d44339d88fe61d2886375258bc8a87",
+            "reference": "76d25e4b03d44339d88fe61d2886375258bc8a87",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.5.0",
+            "silex/silex": "v2.0.4",
+            "symfony/translation": "v3.2.7",
+            "tsugi/lib": ">=0.3.1"
+        },
+        "time": "2017-05-03 16:53:09",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Koseu\\": "src/"
+            },
+            "exclude-from-classmap": [
+                "/tests/",
+                "phpdoc.dist.xml",
+                "phpunit.xml.dist"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "csev",
+                "email": "drchuck@gmail.com",
+                "homepage": "http://www.dr-chuck.com/",
+                "role": "Developer"
+            }
+        ],
+        "description": "A Next Generation Embeddable Learning Management System",
+        "homepage": "http://www.koseu.org/"
     }
 ]

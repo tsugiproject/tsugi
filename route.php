@@ -3,13 +3,7 @@
 define('COOKIE_SESSION', true);
 require_once('config.php');
 
-$router = new Tsugi\Util\FIleRouter();
-
-$file = $router->fileCheck();
-if ( $file ) {
-    require_once($file);
-    return;
-}
+$router = new Tsugi\Util\UrlRouter();
 
 require_once "top.php";
 

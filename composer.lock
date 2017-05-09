@@ -4,13 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-<<<<<<< HEAD
     "hash": "e242bd75d1e62f90ba082166df383d07",
     "content-hash": "7148fe582cfb589b27f97dfced792482",
-=======
-    "hash": "373f85ee8f3a2a115aa020de59b9026b",
-    "content-hash": "642bae14b6031cd9ee6a859e90fe612c",
->>>>>>> fef4e68fae92536fa7f7310c2fe78edc0cda4da4
     "packages": [
         {
             "name": "koseu/lib",
@@ -57,7 +52,7 @@
             ],
             "description": "A Next Generation Embeddable Learning Management System",
             "homepage": "http://www.koseu.org/",
-            "time": "2017-03-19 14:57:40"
+            "time": "2017-05-03 16:53:09"
         },
         {
             "name": "pimple/pimple",
@@ -693,21 +688,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-<<<<<<< HEAD
                 "reference": "2787ca11816dedd72385500d85c9abd7eb07bf23"
             },
             "dist": {
                 "type": "zip",
                 "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/2787ca11816dedd72385500d85c9abd7eb07bf23",
                 "reference": "2787ca11816dedd72385500d85c9abd7eb07bf23",
-=======
-                "reference": "e9591e0db21b00b62c26b916ad17770e00a6153a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e9591e0db21b00b62c26b916ad17770e00a6153a",
-                "reference": "e9591e0db21b00b62c26b916ad17770e00a6153a",
->>>>>>> fef4e68fae92536fa7f7310c2fe78edc0cda4da4
                 "shasum": ""
             },
             "require": {
@@ -740,7 +726,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2017-05-04 01:38:43"
+            "time": "2017-05-09 06:42:17"
         }
     ],
     "packages-dev": [],
