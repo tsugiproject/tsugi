@@ -44,8 +44,9 @@ class FileRouter {
         $uri = self::trimQuery($uri);
         // /wa4e/tsugi
         $cwd = self::cwd();
-        if ( strpos($uri,$cwd.'/') === 0 ) {
-            $file = substr($uri, strlen($cwd)+1) . '.php';
+	if ( ! endsWith($cwd, '/') ) $cwd = $cwd .'/';
+        if ( strpos($uri,$cwd) === 0 ) {
+            $file = substr($uri, strlen($cwd)) . '.php';
             if ( file_exists($file) ) return $file;
         }
         return false;
