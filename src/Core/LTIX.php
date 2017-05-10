@@ -1431,6 +1431,8 @@ class LTIX {
     // See if we need to extend our session (heartbeat)
     // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
     private static function checkHeartBeat($session_object=null) {
+        global $CFG;
+        
         if ( session_id() == "" ) return;  // This should not start the session
 
         if ( isset($CFG->sessionlifetime) ) {
