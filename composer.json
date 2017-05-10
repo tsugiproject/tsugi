@@ -2,7 +2,7 @@
     "require": {
         "tsugi/lib": "dev-master#06dfc523cbab5577dcf70660e139715b371328be",
         "twig/twig": "~2.0",
-        "koseu/lib": "dev-master#76d25e4b03d44339d88fe61d2886375258bc8a87"
+        "koseu/lib": "dev-master#4cb7224adc69adfb00a528df0fe51c136deac920"
     },
     "config": {
         "preferred-install": "dist"
