@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#7006d74b91576da12633063b67bca7d3bf29ae40",
+        "tsugi/lib": "dev-master#06dfc523cbab5577dcf70660e139715b371328be",
         "twig/twig": "~2.0",
         "koseu/lib": "dev-master#76d25e4b03d44339d88fe61d2886375258bc8a87"
     },

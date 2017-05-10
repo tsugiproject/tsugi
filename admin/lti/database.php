@@ -64,6 +64,8 @@ array( "{$CFG->dbprefix}lti_context",
 
     title               TEXT NULL,
 
+    lessons             MEDIUMTEXT NULL,
+
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
@@ -120,6 +122,7 @@ array( "{$CFG->dbprefix}lti_user",
     displayname         TEXT NULL,
     email               TEXT NULL,
     locale              CHAR(63) NULL,
+    image               TEXT NULL,
     subscribe           SMALLINT NULL,
 
     json                MEDIUMTEXT NULL,
@@ -292,6 +295,7 @@ array( "{$CFG->dbprefix}profile",
 
     displayname         TEXT NULL,
     email               TEXT NULL,
+    image               TEXT NULL,
     locale              CHAR(63) NULL,
     subscribe           SMALLINT NULL,
 
@@ -614,10 +618,26 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Version 201705101135 - Add image and lessons fields
+    if ( $oldversion < 201705101135 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD image TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}profile ADD image TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD lessons MEDIUMTEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201705032130;
+    return 201705101135;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
