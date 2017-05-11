@@ -266,4 +266,37 @@ class Result extends Entity {
         }
     }
 
+    /**
+     * Get the JSON for this result
+     */
+    public function getJSON()
+    {
+        global $CFG;
+        $PDOX = $this->launch->pdox;
+
+        $stmt = $PDOX->queryDie(
+            "SELECT json FROM {$CFG->dbprefix}lti_result
+                WHERE result_id = :RID",
+            array(':RID' => $this->id)
+        );
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row['json'];
+    }
+
+    /**
+     * Set the JSON for this result
+     */
+    public function setJSON($json)
+    {
+        global $CFG;
+        $PDOX = $this->launch->pdox;
+
+        $stmt = $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_result SET json = :json, updated_at = NOW()
+                WHERE result_id = :RID",
+            array(
+                ':json' => $json,
+                ':RID' => $this->id)
+        );
+    }
 }
