@@ -3,6 +3,7 @@
 namespace Tsugi\UI;
 
 use Tsugi\Core\LTIX;
+use \Tsugi\Crypt\SecureCookie;
 
 /**
  * This is a class that captures the output conventions of Tusgi.
@@ -679,8 +680,75 @@ EOF;
         $retval .= "  document.getElementsByTagName('body')[0].style.paddingTop = '70px';\n";
         $retval .= "}\n";
         $retval .= "</script>\n";
+
+        // See if the LTI login can be linked to the site login...
+    	if ( isset($_SESSION['lti']) && !defined('COOKIE_SESSION') &&  isset($_COOKIE[$CFG->cookiename])) {
+            $ct = $_COOKIE[$CFG->cookiename];
+            // error_log("Cookie: $ct \n");
+            $pieces = SecureCookie::extract($ct);
+            $lti = $_SESSION['lti'];
+            // Contemplate: Do we care if the lti email matches the cookie email?
+            if ( count($pieces) == 3 && isset($lti['user_id']) && !isset($lti['profile_id']) && isset($lti['user_email']) ) {
+            	$linkprofile_url = self::getUtilUrl('/linkprofile.php');
+            	$linkprofile_url = addSession($linkprofile_url);
+                $retval .= self::slideOutLink($linkprofile_url);
+            }
+	}
         return $retval;
     }
+
+    /**
+     * Add a slideout to allow profile linking
+     */
+    public static function slideOutLink($url) {
+        global $CFG;
+        if ( isset($_COOKIE['TSUGILINKDISMISS']) ) return "";
+return <<< EOF
+<script>
+if (typeof window.tsugiSetCookie === 'undefined') {
+function tsugiSetCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    var expires = 'expires='+ d.toUTCString();
+    document.cookie = cname + '=' + cvalue + ';' + expires + ';path=/';
+}
+}
+</script>
+<div id="tsugi-link-dialog" title="Read Only Dialog" style="display: none;">
+<p>{$CFG->servicename} Message: You already have an account on this web site.  Your current
+login is from another system.  Would you like to link these two accounts?
+<button type="button" class="btn btn-primary"
+onclick="
+$.getJSON('$url', function(retval) {
+    tsugiSetCookie('TSUGILINKDISMISS', 'true', 30);
+    $('#tsugi-link-dialog').dialog( 'close' );
+    $('#tsugi-link-div').hide();
+}).error(function() {
+    alert('Error in JSON call');
+});
+return false;
+">Link Accounts</button>
+<button type="button" class="btn btn-secondary"
+onclick="
+tsugiSetCookie('TSUGILINKDISMISS', 'true', 30);
+$('#tsugi-link-dialog').dialog( 'close' );
+$('#tsugi-link-div').hide();
+return false
+;">Dismiss this message</button>
+</p>
+</div>
+<div id="tsugi-link-div" style="position: fixed; top: 100px; right: 5px; width: 50px; ">
+<a href="#"  style="float: right" 
+onclick="showModal('Link Accounts','tsugi-link-dialog'); return false;"
+> 
+<span class="fa-stack fa-2x has-badge" data-count="1">
+  <i class="fa fa-square fa-stack-2x"></i>
+  <i class="fa fa-paper-plane fa-stack-1x fa-inverse"></i>
+</span>
+</a></div>
+EOF;
+    }
+
 
     /**
      * Dump a debug array with messages and optional detail
