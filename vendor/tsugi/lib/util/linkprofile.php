@@ -8,6 +8,8 @@ use \Tsugi\Crypt\SecureCookie;
 
 Output::headerJson();
 
+// TODO: Make these 500's
+
 // Nothing for us to do
 if ( ! isset($_GET[session_name()]) ) {
     echo(json_encode(array("error" => "No session")));

@@ -687,7 +687,6 @@ EOF;
             // error_log("Cookie: $ct \n");
             $pieces = SecureCookie::extract($ct);
             $lti = $_SESSION['lti'];
-            if ( $pieces[1] == 'csev@umich.edu' ) 
             // Contemplate: Do we care if the lti email matches the cookie email?
             if ( count($pieces) == 3 && isset($lti['user_id']) && !isset($lti['profile_id']) && isset($lti['user_email']) ) {
             	$linkprofile_url = self::getUtilUrl('/linkprofile.php');
