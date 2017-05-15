@@ -127,8 +127,8 @@ class Output extends \Tsugi\Core\SessionAccess {
     .container_iframe {
         margin-left: 10px;
         margin-right: 10px;
-    }
-    </style>
+}
+</style>
 <?php // https://lefkomedia.com/adding-external-link-indicator-with-css/
   if ( $CFG->google_translate ) { ?>
 <style>
@@ -237,6 +237,7 @@ if (window!=window.top) {
     <script type="text/javascript">
     HEARTBEAT_URL = '<?= $heartbeat_url ?>';
     HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?= $heartbeat ?>);
+    tsugiEmbedMenu();
     </script>
     <?php
         }
@@ -594,7 +595,7 @@ function googleTranslateElementInit() {
         }
 
         if ( $menu_set === false ) {
-            return;
+            $menu_set = self::closeMenuSet();
         }
 
         $menu_txt = self::menuNav($menu_set); 
@@ -691,29 +692,19 @@ EOF;
             if ( count($pieces) == 3 && isset($lti['user_id']) && !isset($lti['profile_id']) && isset($lti['user_email']) ) {
             	$linkprofile_url = self::getUtilUrl('/linkprofile.php');
             	$linkprofile_url = addSession($linkprofile_url);
-                $retval .= self::slideOutLink($linkprofile_url);
+                $retval .= self::embeddedMenu($linkprofile_url);
             }
 	}
         return $retval;
     }
 
     /**
-     * Add a slideout to allow profile linking
+     * The embedded menu - for now just one button...
      */
-    public static function slideOutLink($url) {
+    public static function embeddedMenu($url) {
         global $CFG;
         if ( isset($_COOKIE['TSUGILINKDISMISS']) ) return "";
 return <<< EOF
-<script>
-if (typeof window.tsugiSetCookie === 'undefined') {
-function tsugiSetCookie(cname, cvalue, exdays) {
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    var expires = 'expires='+ d.toUTCString();
-    document.cookie = cname + '=' + cvalue + ';' + expires + ';path=/';
-}
-}
-</script>
 <div id="tsugi-link-dialog" title="Read Only Dialog" style="display: none;">
 <p>{$CFG->servicename} Message: You already have an account on this web site.  Your current
 login is from another system.  Would you like to link these two accounts?
@@ -722,7 +713,7 @@ onclick="
 $.getJSON('$url', function(retval) {
     tsugiSetCookie('TSUGILINKDISMISS', 'true', 30);
     $('#tsugi-link-dialog').dialog( 'close' );
-    $('#tsugi-link-div').hide();
+    $('#tsugi-embed-menu').hide();
 }).error(function() {
     alert('Error in JSON call');
 });
@@ -732,20 +723,21 @@ return false;
 onclick="
 tsugiSetCookie('TSUGILINKDISMISS', 'true', 30);
 $('#tsugi-link-dialog').dialog( 'close' );
-$('#tsugi-link-div').hide();
+$('#tsugi-embed-menu').hide();
 return false
-;">Dismiss this message</button>
+;">Dismiss this notification</button>
 </p>
 </div>
-<div id="tsugi-link-div" style="position: fixed; top: 100px; right: 5px; width: 50px; ">
-<a href="#"  style="float: right" 
-onclick="showModal('Link Accounts','tsugi-link-dialog'); return false;"
+<div id="tsugi-embed-menu" style="display:none; position: fixed; top: 100px; right: 5px; width: 150px; ">
+<button
+style="float: right"  class="btn btn-default"
+onclick="tsugiEmbedKeep();showModal('Link Accounts','tsugi-link-dialog'); return false;"
 > 
 <span class="fa-stack fa-2x has-badge" data-count="1">
   <i class="fa fa-square fa-stack-2x"></i>
   <i class="fa fa-paper-plane fa-stack-1x fa-inverse"></i>
 </span>
-</a></div>
+</button></div>
 EOF;
     }
 
