@@ -49,8 +49,9 @@ class SettingsForm {
       */
     public static function button($right = false)
     {
+        global $LINK;
         if ( $right ) echo('<span style="position: fixed; right: 10px; top: 5px;">');
-        echo('<button onclick="$(\'#settings\').modal();return false;" type="button" class="btn btn-default">');
+        echo('<button onclick="showModal(\''.__('Configure').' '.htmlentities($LINK->title).'\',\'settings\'); return false;" type="button" class="btn btn-default">');
         echo('<span class="glyphicon glyphicon-pencil"></span></button>'."\n");
         if ( $right ) echo('</span>');
     }
@@ -58,21 +59,13 @@ class SettingsForm {
     public static function start() {
         global $USER, $LINK, $OUTPUT;
 ?>
-<div class="modal fade" id="settings">
-  <div class="modal-dialog">
-    <div class="modal-content">
+<div id="settings" title="Settings" style="display: none;"> <!-- model -->
       <?php if ( $USER->instructor ) { ?>
       <form id="settings_form" method="POST">
       <?php } ?>
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title"><?php _me('Configure'); ?>
-        <?php echo(htmlent_utf8($LINK->title)); ?>
-        </h4>
-      </div><!-- / .modal-header -->
-      <div class="modal-body">
+      <div> <!-- modal-body -->
         <img id="settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
-        <span id="save_fail" style="display:none; color:red"><?php _me('Unable to save settings'); ?></span>
+        <span id="save_fail" style="display:none; color:blue"><?php _me('Unable to save settings'); ?></span>
         </p>
             <?php if ( $USER->instructor ) { ?>
             <input type="hidden" name="settings_internal_post" value="1"/>
@@ -85,8 +78,8 @@ class SettingsForm {
     public static function end() {
         global $USER;
 ?>
-      </div><!-- / .modal-body -->
-      <div class="modal-footer">
+      </div><!-- / modal-body -->
+      <div> <!-- modal-footer -->
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         <?php if ( $USER->instructor ) { ?>
         <button type="button" id="settings_save" onclick="submit();" class="btn btn-primary">Save changes</button>
@@ -95,8 +88,6 @@ class SettingsForm {
     <?php if ( $USER->instructor ) { ?>
     </form>
     <?php } ?>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <?php
     }
@@ -299,6 +290,8 @@ class SettingsForm {
     public static function done()
     {
         global $USER;
+/*
+        return; // Deprecated
         if ( ! $USER->instructor ) return;
         $done = Settings::linkGet('done', '');
 ?>
@@ -310,6 +303,7 @@ class SettingsForm {
             the tool will close its window when Done is pressed.<br/>
         <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($done)); ?>" name="done"></label>
 <?php
+*/
     }
 
 }
