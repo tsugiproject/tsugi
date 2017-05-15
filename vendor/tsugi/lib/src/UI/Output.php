@@ -692,7 +692,7 @@ EOF;
             if ( count($pieces) == 3 && isset($lti['user_id']) && !isset($lti['profile_id']) && isset($lti['user_email']) ) {
             	$linkprofile_url = self::getUtilUrl('/linkprofile.php');
             	$linkprofile_url = addSession($linkprofile_url);
-                $retval .= self::embeddedMenu($linkprofile_url);
+                $retval .= self::embeddedMenu($linkprofile_url, $pieces[1], $lti['user_email']);
             }
 	}
         return $retval;
@@ -701,13 +701,18 @@ EOF;
     /**
      * The embedded menu - for now just one button...
      */
-    public static function embeddedMenu($url) {
+    public static function embeddedMenu($url, $profile_email, $user_email) {
         global $CFG;
         if ( isset($_COOKIE['TSUGILINKDISMISS']) ) return "";
+        $message = htmlentities($profile_email);
 return <<< EOF
 <div id="tsugi-link-dialog" title="Read Only Dialog" style="display: none;">
 <p>{$CFG->servicename} Message: You already have an account on this web site.  Your current
-login is from another system.  Would you like to link these two accounts?
+system-wide login is:
+<pre>
+$message
+</pre>
+Would you like to link these two accounts? </p><p>
 <button type="button" class="btn btn-primary"
 onclick="
 $.getJSON('$url', function(retval) {
