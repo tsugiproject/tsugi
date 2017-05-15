@@ -598,7 +598,7 @@ function googleTranslateElementInit() {
             $menu_set = self::closeMenuSet();
         }
 
-        $menu_txt = self::menuNav($menu_set); 
+        $menu_txt = self::menuNav($menu_set);
         if ( $this->buffer ) return $menu_txt;
         echo($menu_txt);
     }
@@ -737,7 +737,7 @@ return false
 <button
 style="float: right"  class="btn btn-default"
 onclick="tsugiEmbedKeep();showModal('Link Accounts','tsugi-link-dialog'); return false;"
-> 
+>
 <span class="fa-stack fa-2x has-badge" data-count="1">
   <i class="fa fa-square fa-stack-2x"></i>
   <i class="fa fa-paper-plane fa-stack-1x fa-inverse"></i>
