@@ -118,6 +118,10 @@ $CFG->providekeys = false;  // true
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 
+// Whether or not to unify accounts between global site-wide login
+// and LTI launches
+$CFG->unify = true;
+
 // Go to https://console.developers.google.com/apis/credentials
 // Create and configure an API key and enter it here
 $CFG->google_map_api_key = false; // 'Ve8eH490843cIA9IGl8';
