@@ -10,6 +10,12 @@ Output::headerJson();
 
 // TODO: Make these 500's
 
+// Not turned on
+if ( !isset($CFG->unify) || ! $CFG->unify ) {
+    echo(json_encode(array("error" => "Not enabled")));
+    return;
+}
+
 // Nothing for us to do
 if ( ! isset($_GET[session_name()]) ) {
     echo(json_encode(array("error" => "No session")));

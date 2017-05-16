@@ -703,7 +703,8 @@ EOF;
      */
     public static function embeddedMenu($url, $profile_email, $user_email) {
         global $CFG;
-        if ( isset($_COOKIE['TSUGILINKDISMISS']) ) return "";
+        if ( ! $CFG->unify ) return '';
+        if ( isset($_COOKIE['TSUGILINKDISMISS']) ) return '';
         $message = htmlentities($profile_email);
 return <<< EOF
 <div id="tsugi-link-dialog" title="Read Only Dialog" style="display: none;">

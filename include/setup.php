@@ -63,6 +63,7 @@ if ( strpos($CFG->dbprefix, ' ') !== false ) die_with_error_log('$CFG->dbprefix 
 if ( !isset($CFG->ownername) ) $CFG->ownername = false;
 if ( !isset($CFG->owneremail) ) $CFG->owneremail = false;
 if ( !isset($CFG->providekeys) ) $CFG->providekeys = false;
+if ( !isset($CFG->unify) ) $CFG->unify = true;
 
 if ( !isset($CFG->casa_originator_id) ) $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 
