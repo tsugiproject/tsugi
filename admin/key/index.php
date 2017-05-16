@@ -157,7 +157,15 @@ $OUTPUT->flashMessages();
 <div id="about-div" style="display:none">
 <h1>Using your key</h1>
 <p>
-There are several ways to use your key:
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#lti" data-toggle="tab" aria-expanded="true">LTI 1.x</a></li>
+  <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai</a></li>
+  <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
+  <li><a href="#moodle" data-toggle="tab" aria-expanded="false">Moodle</a></li>
+  <li><a href="#lti2" data-toggle="tab" aria-expanded="false">LTI 2.x</a></li>
+</ul>
+<div id="myTabContent" class="tab-content" style="margin-top:10px;">
+  <div class="tab-pane fade active in" id="lti">
 <ul>
 <?php
 $tools=findAllRegistrations();
@@ -170,27 +178,53 @@ foreach($tools as $tool) {
     echo("</li>\n");
 }
 ?>
-<li>You can install this into Sakai as an "App Store" using IMS Content Item with
-the following URL:
+</div>
+<div class="tab-pane fade" id="sakai">
+Sakai 10 and later supports the IMS Content Item standard so you can install
+this site as an "App Store" / "Learning Object Repository" using this url:
 <pre>
 <?= $CFG->wwwroot ?>/lti/store/
 </pre>
-Make sure to check the "Supports Content Item" option when installing 
-this URL in Sakai and tick the boxes to allow the title and url to be changed.
-</li>
-<li>You can install this into Canvas as an "App Store" using XML configuration
+In Sakai, use the Lessons tool, select "External Tools" and install this as 
+an LTI 1.x tool.  Make sure to check the 
+"Supports Content Item" option when installing this URL in Sakai and tick 
+the boxes to allow both the title and url to be changed.
+</p>
+<p>
+Then this "<?= $CFG->servicename ?> store" will appear in Lessons as a new external tool, when you 
+select the store you will be launched into the picker to choose tools and/or
+resources to be pulled into Lessons.   The key and secret will be inherited
+from the store to each of the installed tools.
+</div>
+<div class="tab-pane fade" id="canvas">
+You can install this into Canvas as an "App Store" / "Learning Object Repository"
+using XML configuration with your key and secret
 and the following URL:
 <pre>
 <?= $CFG->wwwroot ?>/lti/store/canvas-config.xml
 </pre>
-</li>
-<li>If your LMS supports LTI 2.x and you have an LTI 2 key for this service,
+Your tool should see the little search icon (<i style="color: blue;" class="fa fa-search"></i>) once
+it is installed in Canvas to indicate that it is a searchable source of tools and content.
+This content will be available in the Modules, Pages, Assignments, and Import
+within Canvas under "external tools".
+</div>
+<div class="tab-pane fade" id="moodle">
+Moodle 3.4 and later supports the IMS Content Item standard so you can install
+this site as an "App Store" / "Learning Object Repository" using this url:
+<pre>
+<?= $CFG->wwwroot ?>/lti/store/
+</pre>
+Make sure to find and check the "Supports Content Item" option when installing 
+this URL.
+</div>
+<div class="tab-pane fade" id="lti2">
+If your LMS supports LTI 2.x and you have received an LTI 2 key for this service,
 use the following registration URL:
 <pre>
 <?= $CFG->wwwroot ?>/lti/register.php
 </pre>
-</li>
-</ul>
+</div>
+</div>
 </div>
 
 <?php } ?>
