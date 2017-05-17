@@ -3,6 +3,7 @@
 namespace Tsugi\UI;
 
 use \Tsugi\UI\CrudForm;
+use \Tsugi\Core\LTIX;
 
 /**
  * Our class to generate pageable tables.
@@ -188,7 +189,7 @@ class Table {
     // Add the sort drop-down
     if ( isset($rows[0]) ) {
         $row = $rows[0];
-        $thispage = basename($_SERVER['PHP_SELF']);
+        $thispage = LTIX::curPageUrlNoQuery();
         if ( $view === false ) $view = $thispage;
 
         $desc = isset($params['desc']) ? $params['desc'] + 0 : 0;
@@ -279,7 +280,7 @@ class Table {
     <?php
 
         $first = true;
-        $thispage = basename($_SERVER['PHP_SELF']);
+        $thispage = LTIX::curPageUrlNoQuery();
         if ( $view === false ) $view = $thispage;
         foreach ( $rows as $row ) {
             $count--;

@@ -396,7 +396,7 @@ class ConfigInfo {
     }
 
     function getLoginUrl() {
-        return $this->wwwroot.'/login.php';
+        return $this->wwwroot.'/login';
     }
 
     /**

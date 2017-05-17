@@ -1341,7 +1341,6 @@ class LTIX {
         return $row;
     }
 
-
     /**
      * curPageUrl - Returns the URL to the currently executing script with query string
      *
@@ -1356,6 +1355,45 @@ class LTIX {
      */
     public static function curPageUrl() {
         return self::curPageUrlBase() .  $_SERVER['REQUEST_URI'];
+    }
+
+    /**
+     * curPageUrlNoQuery - Returns the URL to the currently executing query without query string
+     *
+     * URL                              Result
+     * http://x.com/data                http://x.com/data
+     * http://x.com/data/keys           http://x.com/data/keys
+     * http://x.com/data/keys?x=1       http://x.com/data/keys
+     */
+    public static function curPageUrlNoQuery() {
+        return self::removeQueryString(self::curPageUrlBase() .  $_SERVER['REQUEST_URI']);
+    }
+
+    /**
+     * removeQueryString - Drop a query string from a url
+     */
+    public static function removeQueryString($url) {
+        $pos = strpos($url, '?');
+        if ( $pos === false ) return $url;
+        $url = substr($url,0,$pos);
+        return $url;
+    }
+
+    /**
+     * curPageUrlFolder - Returns the URL to the folder currently executing 
+     *
+     * This is useful when rest-style files want to link back to "index.php"
+     * Note - this will not go up to a parent.
+     *
+     * URL                              Result
+     * http://x.com/data/               http://x.com/data/
+     * http://x.com/data/keys           http://x.com/data/
+     */
+    public static function curPageUrlFolder() {
+        $folder = self::curPageUrlBase() .  $_SERVER['REQUEST_URI'];
+        $folder = self::removeQueryString($folder);
+        if ( preg_match('/\/$/', $folder) ) return $folder;
+        return dirname($folder);
     }
 
     /**

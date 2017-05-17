@@ -491,7 +491,7 @@ function googleTranslateElementInit() {
         $set->setHome($CFG->servicename, $CFG->apphome);
 
         if ( $CFG->DEVELOPER ) {
-            $set->addLeft('Developer', $R.'dev.php');
+            $set->addLeft('Developer', $R.'dev');
         }
         if ( $this->session_get('id') || $CFG->DEVELOPER ) {
             $set->addLeft('Admin', $R.'admin/index.php');
@@ -506,15 +506,15 @@ function googleTranslateElementInit() {
 
         if ( $this->session_get('id') ) {
             $submenu = new \Tsugi\UI\Menu();
-            $submenu->addLink('Profile', $R.'profile.php')
+            $submenu->addLink('Profile', $R.'profile')
                 ->addLink('Use this Service', $R . 'admin/key/index.php')
-                ->addLink('Logout', $R.'logout.php');
+                ->addLink('Logout', $R.'logout');
             $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);
         } else {
-            $set->addRight('Login', $R.'login.php');
+            $set->addRight('Login', $R.'login');
         }
 
-        $set->addRight('<img style="width:4em;" src="'. $CFG->staticroot . '/img/logos/tsugi-logo.png' .'">', $R.'about.php');
+        $set->addRight('<img style="width:4em;" src="'. $CFG->staticroot . '/img/logos/tsugi-logo.png' .'">', $R.'about');
         return $set;
     }
 
