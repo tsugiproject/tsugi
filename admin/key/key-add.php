@@ -1,6 +1,6 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
@@ -15,7 +15,7 @@ if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
     die('Must be logged in or admin');
 }
 
-$from_location = "keys.php";
+$from_location = "keys";
 $tablename = "{$CFG->dbprefix}lti_key";
 if ( isAdmin() ) {
     $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at", "user_id");

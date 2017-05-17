@@ -1,6 +1,6 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
@@ -17,7 +17,7 @@ if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
 
 $tablename = "{$CFG->dbprefix}lti_key";
 $current = $CFG->getCurrentFileUrl(__FILE__);
-$from_location = "keys.php";
+$from_location = "keys";
 $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';

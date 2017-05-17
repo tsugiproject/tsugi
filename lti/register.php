@@ -1,5 +1,5 @@
 <?php
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../config.php");
 require_once("lti2_util.php");
 
@@ -16,7 +16,7 @@ $PDOX = \Tsugi\Core\LTIX::getConnection();
 
 \Tsugi\Core\LTIX::loginSecureCookie();
 
-error_log('Session in register.php '.session_id());
+error_log('Session in register '.session_id());
 
 $status = check_lti2_key();
 
@@ -25,7 +25,7 @@ if ( $status === true && isset($_POST["lti_message_type"]) &&
     ( $_POST["lti_message_type"] == "ToolProxyRegistrationRequest" 
      || $_POST["lti_message_type"] == "ToolProxyReregistrationRequest" ) ) {
     $_SESSION['lti2post'] = $_POST;
-    header('Location: lti2.php');
+    header('Location: lti2');
     return;
 }
 

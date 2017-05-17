@@ -1,6 +1,6 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
@@ -20,7 +20,7 @@ if ( ! isset($_REQUEST['request_id']) ) {
     die("request_id required");
 }
 
-$from_location = "request-detail.php?request_id=".$_REQUEST['request_id'];
+$from_location = "request-detail?request_id=".$_REQUEST['request_id'];
 
 $row = $PDOX->rowDie(
     "SELECT request_id, title, notes, admin, state, lti, R.created_at, R.updated_at, R.user_id, displayname, email
@@ -98,7 +98,7 @@ if ( isset($_POST['doApprove']) && isset($_POST['request_id']) ) {
         error_log("New LTI 1.x Key Inserted: $oauth_consumer_key User: ".$row['email']);
     } else {
         $message .= "\nThe URL for LTI 2.x Registration is at\n\n";
-        $message .= $CFG->wwwroot . "/lti/register.php\n\n";
+        $message .= $CFG->wwwroot . "/lti/register\n\n";
         error_log("LTI 2.x Key Approved request_id=".$_REQUEST['request_id']." User: ".$row['email']);
     }
 

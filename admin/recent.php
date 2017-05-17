@@ -1,5 +1,5 @@
 <?php
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 use \Tsugi\UI\Table;
 use \Tsugi\UI\OUTPUT;
 use \Tsugi\Core\LTIX;

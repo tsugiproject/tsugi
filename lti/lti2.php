@@ -1,5 +1,5 @@
 <?php
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once $CFG->dirroot."/admin/admin_util.php";
 require_once 'tp_messages.php';
@@ -253,7 +253,7 @@ for($i=0; $i < count($tp_profile->{'@context'}); $i++ ) {
     }
 }
 
-$tp_profile->tool_profile->message[0]->path = $CFG->wwwroot . '/lti/register.php';
+$tp_profile->tool_profile->message[0]->path = $CFG->wwwroot . '/lti/register';
 
 // A globally unique identifier for the service provider. As a best practice, this value should match an Internet domain name assigned by ICANN, but any globally unique identifier is acceptable.
 $instance_guid = isset($CFG->product_instance_guid) ? $CFG->product_instance_guid : "lti2.example.com";
@@ -593,14 +593,14 @@ $OUTPUT->togglePre("Registration Request",htmlent_utf8($body));
 
 // Time for a pause
 if ( !isset($_GET['continue']) ) {
-    echo('<a href="lti2.php?continue=yes">Press Here To Register</a>');
+    echo('<a href="lti2?continue=yes">Press Here To Register</a>');
     return;
 }
 
 $more_headers = array();
 if ( $ack !== false ) {
     $more_headers[] = 'VND-IMS-CONFIRM-URL: '.$CFG->wwwroot.
-        '/lti/tp_commit.php?commit='.urlencode($ack);
+        '/lti/tp_commit?commit='.urlencode($ack);
 }
 
 $response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body, $more_headers, $hmac256);

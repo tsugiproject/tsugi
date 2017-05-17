@@ -3,7 +3,7 @@
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\Git;
 
-define('COOKIE_SESSION', true);
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 session_start();
 require_once("../gate.php");

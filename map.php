@@ -1,6 +1,6 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("config.php");
 
 header('Content-Type: text/html; charset=utf-8');

@@ -19,7 +19,7 @@ if ( isset($_POST['ext_content_return_url']) ) {
     $return_url = $_POST['ext_content_return_url'];
     $return_url .= strpos($return_url,'?') === false ? '?' : '&';
     $return_url .= "return_type=file&text=". urlencode($CFG->servicename) . "&url=";
-    $return_url .= urlencode($CFG->wwwroot . '/cc/export.php');
+    $return_url .= urlencode($CFG->wwwroot . '/cc/export');
     $return_url .= '&tsugi_lms=canvas';
     $OUTPUT->header();
     $OUTPUT->bodystart(false);

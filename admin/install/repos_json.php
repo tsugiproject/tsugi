@@ -6,7 +6,7 @@ use \Tsugi\Util\LTI;
 use \Tsugi\Core\Cache;
 use \Tsugi\UI\Lessons;
 
-define('COOKIE_SESSION', true);
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 session_start();
 if ( ! isset($_SESSION["admin"]) ) {

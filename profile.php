@@ -1,6 +1,6 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("config.php");
 
 use \Tsugi\Core\LTIX;
@@ -11,7 +11,7 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! isset($_SESSION['profile_id']) ) {
-    header('Location: '.$CFG->wwwroot.'/login.php');
+    header('Location: '.$CFG->wwwroot.'/login');
     return;
 }
 $stmt = $PDOX->queryDie(
@@ -21,7 +21,7 @@ $stmt = $PDOX->queryDie(
 $profile_row = $stmt->fetch(PDO::FETCH_ASSOC);
 if ( $profile_row === false ) {
     $_SESSION['error'] = 'Unable to load profile';
-    header('Location: '.$CFG->apphome.'/index.php');
+    header('Location: '.$CFG->apphome);
     return;
 }
 
@@ -43,7 +43,7 @@ if ( isset($_POST['subscribe']) ) {
         array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
     );
     $_SESSION['success'] = "Profile updated.";
-    header('Location: '.$CFG->apphome.'/index.php');
+    header('Location: '.$CFG->apphome);
     return;
 }
 
@@ -124,7 +124,7 @@ echo(' ('.$_SESSION['email'].")</h4>\n");
 <form method="POST">
   <div class="control-group pull-right" style="margin-top: 20px">
     <button type="submit" class="btn btn-primary visible-phone">Save</button>
-    <input class="btn btn-warning" type="button" onclick="location.href='<?= $CFG->apphome ?>/index.php'; return false;" value="Cancel"/>
+    <input class="btn btn-warning" type="button" onclick="location.href='<?= $CFG->apphome ?>'; return false;" value="Cancel"/>
   </div>
   <div class="control-group">
     <div class="controls">

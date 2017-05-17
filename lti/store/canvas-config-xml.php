@@ -64,7 +64,7 @@ echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 <?php if ( isset($CFG->lessons) ) { ?>
     <lticm:options name="migration_selection">
         <lticm:property name="enabled">true</lticm:property>
-        <lticm:property name="url"><?= $CFG->wwwroot ?>/cc/export.php</lticm:property>
+        <lticm:property name="url"><?= $CFG->wwwroot ?>/cc/export</lticm:property>
     </lticm:options>
 <?php } ?>
     <lticm:property name="selection_height">500</lticm:property>

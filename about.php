@@ -1,5 +1,5 @@
 <?php
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("config.php");
 $OUTPUT->header();
 ?>
@@ -31,7 +31,7 @@ Learning Tools Interoperability™ (LTI™) is a
 trademark of <a href="http://www.imsglobal.org/" target="_blank">IMS Global Learning Consortium, Inc.</a>
 in the United States and/or other countries.
 </p>
-<a class="btn btn-primary" href="index.php" role="button">Back</a>
+<a class="btn btn-primary" href="<?= $CFG->wwwroot ?>" role="button">Back</a>
 </div>
 </div>
 </body>

@@ -1,6 +1,6 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("config.php");
 require_once("admin/admin_util.php");
 
@@ -33,7 +33,7 @@ if ( $secret === false ) {
 if ( isset($_POST['loginsecret']) ) {
     if ( $_POST['loginsecret'] == $secret ) {
         $_SESSION['developer'] = 'yes';
-        header('Location: '.$CFG->wwwroot.'/dev.php');
+        header('Location: '.$CFG->wwwroot.'/dev');
         return;
     }
     $_SESSION['error'] = 'Incorrect secret';
@@ -67,7 +67,7 @@ foreach( $CFG->tool_folders AS $tool_folder) {
     findTools($tool_folder,$tools);
 }
 
-$cur_url = LTIX::curPageUrlScript();
+$cur_url = LTIX::curPageUrl();
 
 require_once("lti/dev-data.php");
 
@@ -110,11 +110,11 @@ $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
 if ( $endpoint == 'false' ) $endpoint = false;
 $b64 = base64_encode($key.":::".$secret.':::');
 if ( ! $endpoint ) $endpoint = $cur_url;
-$cssurl = str_replace("dev.php","lms.css",$cur_url);
+$cssurl = str_replace("/dev","/lms.css",$cur_url);
 
 $outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
 if ( ! $outcomes ) {
-    $outcomes = str_replace("dev.php","lti/tool_consumer_outcome.php",$cur_url);
+    $outcomes = str_replace("dev","lti/tool_consumer_outcome.php",$cur_url);
     $outcomes .= "?b64=" . htmlentities($b64);
     $lmsdata['lis_result_sourcedid'] = MD5($lmsdata['context_id'].$lmsdata['user_id'].$lmsdata['resource_link_id']);
 }
@@ -242,7 +242,7 @@ $OUTPUT->bodyStart(false);
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="about-dev.php"><img style="width:4em; padding: 4px; border-radius: 4px; background-color:white;" src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo.png"></a></li>
+            <li><a href="about-dev"><img style="width:4em; padding: 4px; border-radius: 4px; background-color:white;" src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo.png"></a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                     <?php if ( strlen($lmsdata['lis_person_name_full']) > 0 ) echo($lmsdata['lis_person_name_full']);
@@ -304,7 +304,7 @@ $parms['launch_presentation_css_url'] = $cssurl;
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
     // Use the actual direct URL to the launch
-    $endpoint = str_replace("dev.php",$_POST['custom_assn'],$endpoint);
+    $endpoint = str_replace("/dev",'/'.$_POST['custom_assn'],$endpoint);
     $endpoint = ConfigInfo::removeRelativePath($endpoint);
     $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
         "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);

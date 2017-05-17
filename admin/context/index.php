@@ -1,10 +1,11 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
 use \Tsugi\UI\Table;
+use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -12,7 +13,7 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! isAdmin() ) {
-    $_SESSION['login_return'] = $CFG->getUrlFull(__FILE__) . "/index.php";
+    $_SESSION['login_return'] = LTIX::curPageUrlFolder();
     header('Location: '.$CFG->wwwroot.'/login.php');
     return;
 }
@@ -39,7 +40,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-Table::pagedTable($newrows, $searchfields, $orderfields, "membership.php");
+Table::pagedTable($newrows, $searchfields, $orderfields, "membership");
 
 $OUTPUT->footer();
 

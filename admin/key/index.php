@@ -1,17 +1,18 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
 use \Tsugi\UI\Table;
 use \Tsugi\Core\Mail;
+use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
     $_SESSION['error'] = _m("This service does not accept instructor requests for keys");
-    header('Location: '.$CFG->wwwroot.'/index.php');
+    header('Location: '.$CFG->wwwroot);
     return;
 }
 
@@ -19,8 +20,8 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
-    $_SESSION['login_return'] = $CFG->getUrlFull(__FILE__) . "/index.php";
-    header('Location: '.$CFG->wwwroot.'/login.php');
+    $_SESSION['login_return'] = LTIX::curPageUrlFolder();
+    header('Location: '.$CFG->wwwroot.'/login');
     return;
 }
 
@@ -31,13 +32,13 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         isset($_POST['title']) && isset($_POST['notes']) ) {
     if ( strlen($_POST['title']) < 1 ) {
         $_SESSION['error'] = _m("Requests must have titles");
-        header("Location: index.php");
+        header("Location: ".LTIX::curPageUrl());
         return;
     }
     $version = $_POST['lti']+0;
     if ( $version != 1 && $version != 2 ) {
         $_SESSION['error'] = _m("LTI Version muse be 1 or 2");
-        header("Location: index.php");
+        header("Location: ".LTIX::curPageUrlFolder());
         return;
     }
     $stmt = $PDOX->queryDie(
@@ -59,7 +60,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         $retval = Mail::send($to, $subject, $message, $user_id, $token);
     }
     $_SESSION['success'] = "Record inserted";
-    header("Location: index.php");
+    header("Location: ".LTIX::curPageUrlFolder());
     return;
 }
 
@@ -98,7 +99,7 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI Key Requests</h1>
 <p>
-  <a href="keys.php" class="btn btn-default">View Keys</a>
+  <a href="keys" class="btn btn-default">View Keys</a>
   <a href="#" class="btn btn-default" onclick="
     showModal('Using this key', 'about-div');
     return false;
@@ -235,7 +236,7 @@ using the IMS Learning Tools Interoperability standard.  You can use this page
 to request access to this service.
 </p>
 <?php } else {
-    Table::pagedTable($newrows, $searchfields, false, "request-detail.php");
+    Table::pagedTable($newrows, $searchfields, false, "request-detail");
 }
 if ( $goodsession ) { ?>
 <p>

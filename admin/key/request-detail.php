@@ -1,10 +1,11 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
 use \Tsugi\UI\CrudForm;
+use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -18,7 +19,7 @@ if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
 $tablename = "{$CFG->dbprefix}key_request";
 $current = $CFG->getCurrentFileUrl(__FILE__);
 $title = "Request Entry";
-$from_location = "index.php";
+$from_location = LTIX::curPageUrlFolder();
 $allow_delete = isAdmin();
 $allow_edit = isAdmin();
 $where_clause = '';

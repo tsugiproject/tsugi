@@ -1,10 +1,11 @@
 <?php
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
 use \Tsugi\UI\Table;
+use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -18,8 +19,8 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
-    $_SESSION['login_return'] = $CFG->getUrlFull(__FILE__) . "/index.php";
-    header('Location: '.$CFG->wwwroot.'/login.php');
+    $_SESSION['login_return'] = LTIX::curPageUrlFolder();
+    header('Location: '.$CFG->wwwroot.'/login');
     return;
 }
 
@@ -50,7 +51,7 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI Keys</h1>
 <p>
-  <a href="index.php" class="btn btn-default">View Key Requests</a>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Key Requests</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>
@@ -58,9 +59,9 @@ You have no IMS LTI 1.1 Keys for this system.
 </p>
 <?php } else {
     $extra_buttons = array(
-        "Insert New Key" => "key-add.php"
+        "Insert New Key" => "key-add"
     );
-    Table::pagedTable($newrows, $searchfields, false, "key-detail.php", false, $extra_buttons);
+    Table::pagedTable($newrows, $searchfields, false, "key-detail", false, $extra_buttons);
 }
 if ( isAdmin() ) { ?>
 <?php } ?>

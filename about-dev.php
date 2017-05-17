@@ -1,5 +1,5 @@
 <?php
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("config.php");
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -16,9 +16,9 @@ This developer screen allows you to quickly test TSUGI applications.
 It allows you to change any LTI lauch parameter and switch
 between a sets of fake user account data.  
 </p>
-<?php if ( $CFG->DEVELOPER ) { ?>
-<a class="btn btn-primary" href="dev.php" role="button">Back</a>
+<?php if ( false && $CFG->DEVELOPER ) { ?>
+<a class="btn btn-primary" href="dev" role="button">Back</a>
 <?php } else { ?>
-<a class="btn btn-primary" href="<?= $CFG->apphome ?>/index.php" role="button">Back</a>
+<a class="btn btn-primary" href="<?= $CFG->apphome ?>" role="button">Back</a>
 <?php } 
 $OUTPUT->footer();

@@ -1,5 +1,5 @@
 <?php
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../config.php");
 session_start();
 require_once("gate.php");
@@ -21,25 +21,25 @@ require_once("sanity-db.php");
 <h1>Welcome Adminstrator</h1>
 <ul>
 <li>
-  <a href="upgrade.php" title="Upgrade Database" target="iframe-frame"
+  <a href="upgrade" title="Upgrade Database" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
   Ugrade Database 
   </a>
 <li>
-  <a href="nonce.php" title="Check Nonces" target="iframe-frame"
+  <a href="nonce" title="Check Nonces" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
   Check Nonces 
   </a></li>
 <li>
-  <a href="recent.php" title="Recent Logins" target="iframe-frame"
+  <a href="recent" title="Recent Logins" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
   Recent Logins 
   </a></li>
-<li><a href="context/index.php">View Contexts</a></li>
+<li><a href="context/">View Contexts</a></li>
 <?php if ( $CFG->providekeys ) { ?>
-<li><a href="key/index.php">Manage Access Keys</a></li>
+<li><a href="key">Manage Access Keys</a></li>
 <?php } ?>
-<li><a href="install/index.php">Manage Installed Modules</a></li>
+<li><a href="install">Manage Installed Modules</a></li>
 </ul>
 <?php
 

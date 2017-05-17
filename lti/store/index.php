@@ -242,7 +242,7 @@ if ($l && count($content_items) > 0 ) {
 
 if ( $l && isset($_GET['import']) ) {
     $retval = new ContentItem();
-    $url = $CFG->wwwroot . '/cc/export.php';
+    $url = $CFG->wwwroot . '/cc/export';
     if ( $LAUNCH->isSakai() ) $url .= '?tsugi_lms=sakai';
     else if ( $LAUNCH->isCanvas() ) $url .= '?tsugi_lms=canvas';
     $retval->addFileItem($url, $l->lessons->title);

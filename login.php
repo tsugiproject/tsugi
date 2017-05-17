@@ -3,13 +3,13 @@ use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\SecureCookie;
 
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "config.php";
 
 $PDOX = LTIX::getConnection();
 
 session_start();
-error_log('Session in login.php '.session_id());
+error_log('Session in login '.session_id());
 
 $oauth_consumer_key = 'google.com';
 
@@ -58,7 +58,7 @@ if ( isset($CFG->context_title) ) {
 
 // Google Login Object
 $glog = new \Tsugi\Google\GoogleLogin($CFG->google_client_id,$CFG->google_client_secret,
-      $CFG->wwwroot.'/login.php',$CFG->wwwroot);
+      $CFG->wwwroot.'/login',$CFG->wwwroot);
 
 $errormsg = false;
 $success = false;
@@ -359,7 +359,7 @@ if ( $doLogin ) {
             header('Location: '.$_SESSION['login_return']);
             unset($_SESSION['login_return']);
         } else if ( $didinsert ) {
-            header('Location: '.$CFG->wwwroot.'/profile.php');
+            header('Location: '.$CFG->wwwroot.'/profile');
         } else {
             header('Location: '.$CFG->apphome.'/');
         }
@@ -376,7 +376,7 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
 <?php
-$login_return = 'index.php';
+$login_return = 'index';
 if ( isset($_SESSION['login_return']) ) $login_return = $_SESSION['login_return'];
 if ( $errormsg !== false ) {
     echo('<div style="margin-top: 10px;" class="alert alert-error">');

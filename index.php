@@ -3,7 +3,7 @@
 use \Tsugi\Core\LTIX;
 
 // In the top frame, we use cookies for session.
-define('COOKIE_SESSION', true);
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 if ( file_exists("config.php") ) {
     include_once("config.php");
 } else {
@@ -89,7 +89,7 @@ You can install any of the following PHP Tsugi tools / toolsets:
 - You can also access the exercise
 <a href="https://lti-tools.dr-chuck.com/exercises/" target="_blank">specifications</a> 
 and 
-<a href="https://lti-tools.dr-chuck.com/tsugi/dev.php" target="_blank">working solutions</a> (secret)
+<a href="https://lti-tools.dr-chuck.com/tsugi/dev" target="_blank">working solutions</a> (secret)
 </li>
 </ul>
 </p>
