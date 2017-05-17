@@ -17,7 +17,14 @@ class Application extends \Tsugi\Silex\Application {
         $this['tsugi']->output->buffer = false;
 
         $P7 = strpos(phpversion(), '7') === 0;
-        if ( !$P7 ) return false;
+
+        // Some controllers work in PHP 5
+        if ( !$P7 ) {
+            \Tsugi\Controllers\Login::routes($this);
+            \Tsugi\Controllers\Logout::routes($this);
+            \Koseu\Controllers\Courses::routes($this);
+            return false;
+        }
 
         $this->error(function (NotFoundHttpException $e, Request $request, $code) {
             global $CFG, $LAUNCH, $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT;
