@@ -58,7 +58,7 @@ if ( isset($CFG->context_title) ) {
 
 // Google Login Object
 $glog = new \Tsugi\Google\GoogleLogin($CFG->google_client_id,$CFG->google_client_secret,
-      $CFG->wwwroot.'/login',$CFG->wwwroot);
+      $CFG->wwwroot.'/login.php',$CFG->wwwroot);
 
 $errormsg = false;
 $success = false;
