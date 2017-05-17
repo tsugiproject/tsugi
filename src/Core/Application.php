@@ -35,6 +35,7 @@ class Application extends \Tsugi\Silex\Application {
         \Koseu\Controllers\Badges::routes($this);
         \Koseu\Controllers\Assignments::routes($this);
         \Koseu\Controllers\Lessons::routes($this);
+        \Koseu\Controllers\Courses::routes($this);
     }
 }
 
