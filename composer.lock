@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "0ad833e1e715a57c2203f00b91524d44",
-    "content-hash": "28225ec2c2c99dae1df822f4f3427f5b",
+    "hash": "439cbb28fda9a62b7e3fea82806debae",
+    "content-hash": "df5b4276046abf847c58fa0a9cc725f8",
     "packages": [
         {
             "name": "koseu/lib",
@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "e6232c3e11a4c1eb1304374401634f9dd8ce23e8"
+                "reference": "1e03c2d8c1134026bf762e9c5f704f5c8539db99"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/e6232c3e11a4c1eb1304374401634f9dd8ce23e8",
-                "reference": "e6232c3e11a4c1eb1304374401634f9dd8ce23e8",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/1e03c2d8c1134026bf762e9c5f704f5c8539db99",
+                "reference": "1e03c2d8c1134026bf762e9c5f704f5c8539db99",
                 "shasum": ""
             },
             "require": {
@@ -52,7 +52,7 @@
             ],
             "description": "A Next Generation Embeddable Learning Management System",
             "homepage": "http://www.koseu.org/",
-            "time": "2017-05-03 16:53:09"
+            "time": "2017-05-10 20:20:38"
         },
         {
             "name": "pimple/pimple",
