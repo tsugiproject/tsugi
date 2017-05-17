@@ -103,6 +103,14 @@ class Application extends \Silex\Application {
     {
         return $this->redirect( addSession($this['url_generator']->generate($route)) );
     }
+
+    function tsugiRedirectHome()
+    {
+        global $CFG;
+        $home = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
+        return $this->redirect($home);
+    }
+
     function tsugiRedirect($route) { return $this->tsugiReroute($route); } // Deprecated
 
     /**
