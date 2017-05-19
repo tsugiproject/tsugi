@@ -269,6 +269,8 @@ $tp_profile->tool_profile->product_instance->service_provider->description->defa
 $handler = $tp_profile->tool_profile->resource_handler[0];
 $tp_profile->tool_profile->resource_handler = array();
 $blank_handler = json_encode($handler);
+
+
 echo("=================\n");
 // echo(LTI::jsonIndent($blank_handler));
 
@@ -504,6 +506,18 @@ if ( false && in_array('ContentItemSelectionRequest', $tc_capabilities) ) {
     }
 }
 
+/*
+// Add the re-registration message
+$newmsg = $tp_profile->tool_profile->message[0];
+$newhandler = json_decode($blank_handler);
+$newmsg->path = '/tsugi/lti/register.php';
+$newmsg->parameter = $requested_parameters;
+$newmsg->enabled_capability = $local_capabilities;
+unset($newhandler->message[0]);
+$newhandler->message[$message_count++] = $newmsg;
+$tp_profile->tool_profile->resource_handler[] = $newhandler;
+*/
+
 if ( $toolcount < 1 ) {
     log_return_die("No tools to register..");
 }
@@ -600,7 +614,7 @@ if ( !isset($_GET['continue']) ) {
 $more_headers = array();
 if ( $ack !== false ) {
     $more_headers[] = 'VND-IMS-CONFIRM-URL: '.$CFG->wwwroot.
-        '/lti/tp_commit?commit='.urlencode($ack);
+        '/lti/tp_commit?commit='.urlencode($ack)."&oauth_consumer_key=".$reg_key;
 }
 
 $response = LTI::sendOAuthBody("POST", $register_url, $reg_key, $reg_password, "application/vnd.ims.lti.v2.toolproxy+json", $body, $more_headers, $hmac256);
