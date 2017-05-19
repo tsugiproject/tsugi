@@ -960,7 +960,7 @@ class LTIX {
         $pdox=null, $session_object=null, $current_url=null, $request_data=null)
     {
         global $CFG, $TSUGI_LAUNCH;
-        global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT;
+        global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
 
         if ( $request_data == null ) $request_data = self::oauth_parameters();
 
@@ -977,6 +977,7 @@ class LTIX {
         $CONTEXT = null;
         $LINK = null;
         $RESULT = null;
+        $ROSTER = null;
 
         // Make sure to initialize the global connection object
         if ( $pdox === null ) {
@@ -1129,6 +1130,12 @@ class LTIX {
             $RESULT->id = $LTI['result_id'];
             if (isset($LTI['grade']) ) $RESULT->grade = $LTI['grade'];
             $TSUGI_LAUNCH->result = $RESULT;
+        }
+
+        if ( $TSUGI_LAUNCH->ltiRawParameter(LTIConstants::EXT_CONTEXT_MEMBERSHIP_ID) && ! is_object($ROSTER)) {
+            $ROSTER = new \Tsugi\Core\Roster();
+            $ROSTER->id = $TSUGI_LAUNCH->ltiRawParameter(LTIConstants::EXT_CONTEXT_MEMBERSHIP_ID);
+            $ROSTER->url = $TSUGI_LAUNCH->ltiRawParameter(LTIConstants::EXT_CONTEXT_MEMBERSHIP_URL);
         }
 
         // Return the Launch structure
@@ -1288,6 +1295,13 @@ class LTIX {
 
     /**
      * Send a JSON Body to a URL after looking up the key and secret
+     *
+     * @param $method The HTTP Method to use
+     * @param $postBody
+     * @param $content_type
+     * @param $service_url
+     * @param bool $debug_log
+     * @return mixed
      */
     public static function jsonSend($method, $postBody, $content_type,
         $service_url, &$debug_log=false) {
@@ -1710,4 +1724,30 @@ class LTIX {
         exit();
     }
 
+    /**
+     * populateRoster
+     *
+     * If the LTI Extension: Context Memberships Service is supported in the launch, get the memberships
+     * information
+     *
+     * @param bool $groups, whether or not to get groups in the Memberships
+     * @return bool true if successful, false if not possible
+     */
+    public static function populateRoster($groups=false) {
+        global $ROSTER;
+        if(!is_object($ROSTER)) {
+            return false;
+        }
+
+        $encryptedSecret = self::ltiParameter('secret');
+        $key = self::ltiParameter('key_key');
+
+        $response = LTI::getContextMemberships($ROSTER->id, $ROSTER->url, $key, self::decrypt_secret($encryptedSecret), $groups);
+
+        if($response != false) {
+            $ROSTER->data = $response;
+        }
+
+        return true;
+    }
 }
