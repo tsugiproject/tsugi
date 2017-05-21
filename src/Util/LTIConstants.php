@@ -569,4 +569,12 @@ class LTIConstants {
     const TYPE_FILEITEM = "FileItem";
     const TYPE_IMPORTITEM = "ImportItem";
 
+    // LTI Extension: Context Membership Service
+    // TODO full DOC
+    const LTI_MESSAGE_TYPE_CONTEXTMEMBERSHIPS = "basic-lis-readmembershipsforcontext";
+    const LTI_MESSAGE_TYPE_CONTEXTMEMBERSHIPSWITHGROUPS = self::LTI_MESSAGE_TYPE_CONTEXTMEMBERSHIPS . "withgroups";
+    const EXT_CONTEXT_MEMBERSHIP_URL = "ext_ims_lis_memberships_url";
+    const EXT_CONTEXT_MEMBERSHIP_ID = "ext_ims_lis_memberships_id";
+    const EXT_CONTEXT_REQUEST_ID = "id";
+
 }
