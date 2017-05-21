@@ -22,6 +22,7 @@ array( "{$CFG->dbprefix}lti_key",
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
     key_sha256          CHAR(64) NOT NULL UNIQUE,
     key_key             TEXT NOT NULL,
+    active              TINYINT,
 
     secret              TEXT NULL,
     new_secret          TEXT NULL,
@@ -57,6 +58,7 @@ array( "{$CFG->dbprefix}lti_context",
     context_id          INTEGER NOT NULL AUTO_INCREMENT,
     context_sha256      CHAR(64) NOT NULL,
     context_key         TEXT NOT NULL,
+    active              TINYINT,
 
     key_id              INTEGER NOT NULL,
 
@@ -69,6 +71,8 @@ array( "{$CFG->dbprefix}lti_context",
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
+    ext_memberships_id  TEXT NULL,
+    ext_memberships_url TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
@@ -87,6 +91,7 @@ array( "{$CFG->dbprefix}lti_link",
     link_id             INTEGER NOT NULL AUTO_INCREMENT,
     link_sha256         CHAR(64) NOT NULL,
     link_key            TEXT NOT NULL,
+    active              TINYINT,
 
     context_id          INTEGER NOT NULL,
 
@@ -115,6 +120,7 @@ array( "{$CFG->dbprefix}lti_user",
     user_id             INTEGER NOT NULL AUTO_INCREMENT,
     user_sha256         CHAR(64) NOT NULL,
     user_key            TEXT NOT NULL,
+    active              TINYINT,
 
     key_id              INTEGER NOT NULL,
     profile_id          INTEGER NULL,
@@ -149,6 +155,8 @@ array( "{$CFG->dbprefix}lti_membership",
     context_id          INTEGER NOT NULL,
     user_id             INTEGER NOT NULL,
 
+    active              TINYINT,
+
     role                SMALLINT NULL,
     role_override       SMALLINT NULL,
 
@@ -177,6 +185,7 @@ array( "{$CFG->dbprefix}lti_service",
     service_id          INTEGER NOT NULL AUTO_INCREMENT,
     service_sha256      CHAR(64) NOT NULL,
     service_key         TEXT NOT NULL,
+    active              TINYINT,
 
     key_id              INTEGER NOT NULL,
 
@@ -204,6 +213,7 @@ array( "{$CFG->dbprefix}lti_result",
     result_id          INTEGER NOT NULL AUTO_INCREMENT,
     link_id            INTEGER NOT NULL,
     user_id            INTEGER NOT NULL,
+    active              TINYINT,
 
     result_url         TEXT NULL,
 
@@ -261,6 +271,7 @@ array( "{$CFG->dbprefix}lti_domain",
     domain_id   INTEGER NOT NULL AUTO_INCREMENT,
     key_id      INTEGER NOT NULL,
     context_id  INTEGER NULL,
+    active              TINYINT,
     domain      VARCHAR(128),
     port        INTEGER NULL,
     consumer_key  TEXT,
@@ -290,6 +301,7 @@ array( "{$CFG->dbprefix}profile",
     profile_id          INTEGER NOT NULL AUTO_INCREMENT,
     profile_sha256      CHAR(64) NOT NULL UNIQUE,
     profile_key         TEXT NOT NULL,
+    active              TINYINT,
 
     key_id              INTEGER NOT NULL,
 
@@ -634,10 +646,33 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Add active columns
+    if ( $oldversion < 201705211831 ) {
+        $tables = array( 'lti_key', 'lti_context', 'lti_link', 'lti_user',
+            'lti_membership', 'lti_service', 'lti_result', 'lti_domain',
+             'profile');
+        foreach($tables as $table) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} ADD active TINYINT";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+        }
+    }
+
+    if ( $oldversion < 201705211839 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD ext_memberships_id TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD ext_memberships_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201705101135;
+    return 201705211839;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
