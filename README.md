@@ -43,6 +43,7 @@ Then you need to add the `koseu.php` to your web site:
      require_once "tsugi/config.php";
 
      // Pull in the Koseu LMS (/lessons, /map, /badges ...)
+     $launch = \Tsugi\Core\LTIX::session_start();
      $app = new \Koseu\Core\Application($launch);
      $app->run();
 
