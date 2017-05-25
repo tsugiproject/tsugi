@@ -26,3 +26,4 @@ has pretty URLs, routing, nice OO patterns and all that hipster stuff.
 # What is in a name?
 
 코스 is the Korean word for "Course" and www.koseu.com and www.koseu.org were still available :)
+
