@@ -17,6 +17,7 @@ class Application extends \Tsugi\Silex\Application {
         $this['tsugi']->output->buffer = false;
 
         $P7 = strpos(phpversion(), '7') === 0;
+        $P7 = true;  // After backleveled to Twig 1.27
 
         // Some controllers work in PHP 5
         if ( !$P7 ) {
