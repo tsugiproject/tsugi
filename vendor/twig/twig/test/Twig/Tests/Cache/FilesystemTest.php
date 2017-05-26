@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-require_once dirname(__DIR__).'/FilesystemHelper.php';
+require_once dirname(dirname(__FILE__)).'/FilesystemHelper.php';
 
 class Twig_Tests_Cache_FilesystemTest extends PHPUnit_Framework_TestCase
 {

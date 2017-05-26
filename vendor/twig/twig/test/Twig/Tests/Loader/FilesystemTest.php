@@ -24,7 +24,7 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
      */
     public function testSecurity($template)
     {
-        $loader = new Twig_Loader_Filesystem(array(__DIR__.'/../Fixtures'));
+        $loader = new Twig_Loader_Filesystem(array(dirname(__FILE__).'/../Fixtures'));
 
         try {
             $loader->getCacheKey($template);
@@ -97,12 +97,12 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                __DIR__.'/Fixtures',
+                dirname(__FILE__).'/Fixtures',
                 'test/Twig/Tests/Loader/Fixtures/named_quater/named_absolute.html',
                 null,
             ),
             array(
-                __DIR__.'/Fixtures/../Fixtures',
+                dirname(__FILE__).'/Fixtures/../Fixtures',
                 'test/Twig/Tests/Loader/Fixtures/named_quater/named_absolute.html',
                 null,
             ),
@@ -141,7 +141,7 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
 
     public function testFindTemplateExceptionNamespace()
     {
-        $basePath = __DIR__.'/Fixtures';
+        $basePath = dirname(__FILE__).'/Fixtures';
 
         $loader = new Twig_Loader_Filesystem(array($basePath.'/normal'));
         $loader->addPath($basePath.'/named', 'named');
@@ -156,7 +156,7 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
 
     public function testFindTemplateWithCache()
     {
-        $basePath = __DIR__.'/Fixtures';
+        $basePath = dirname(__FILE__).'/Fixtures';
 
         $loader = new Twig_Loader_Filesystem(array($basePath.'/normal'));
         $loader->addPath($basePath.'/named', 'named');
@@ -172,9 +172,9 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
     public function testLoadTemplateAndRenderBlockWithCache()
     {
         $loader = new Twig_Loader_Filesystem(array());
-        $loader->addPath(__DIR__.'/Fixtures/themes/theme2');
-        $loader->addPath(__DIR__.'/Fixtures/themes/theme1');
-        $loader->addPath(__DIR__.'/Fixtures/themes/theme1', 'default_theme');
+        $loader->addPath(dirname(__FILE__).'/Fixtures/themes/theme2');
+        $loader->addPath(dirname(__FILE__).'/Fixtures/themes/theme1');
+        $loader->addPath(dirname(__FILE__).'/Fixtures/themes/theme1', 'default_theme');
 
         $twig = new Twig_Environment($loader);
 
@@ -203,7 +203,7 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
     public function testArrayInheritance($templateName)
     {
         $loader = new Twig_Loader_Filesystem(array());
-        $loader->addPath(__DIR__.'/Fixtures/inheritance');
+        $loader->addPath(dirname(__FILE__).'/Fixtures/inheritance');
 
         $twig = new Twig_Environment($loader);
 
@@ -211,6 +211,9 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
         $this->assertSame('VALID Child', $template->renderBlock('body', array()));
     }
 
+    /**
+     * @requires PHP 5.3
+     */
     public function testLoadTemplateFromPhar()
     {
         $loader = new Twig_Loader_Filesystem(array());

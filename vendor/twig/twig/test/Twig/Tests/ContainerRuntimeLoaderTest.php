@@ -9,27 +9,32 @@
  * file that was distributed with this source code.
  */
 
-use Psr\Container\ContainerInterface;
-
 class Twig_Tests_ContainerRuntimeLoaderTest extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @requires PHP 5.3
+     */
     public function testLoad()
     {
-        $container = $this->getMockBuilder(ContainerInterface::class)->getMock();
+        $container = $this->getMockBuilder('Psr\Container\ContainerInterface')->getMock();
         $container->expects($this->once())->method('has')->with('stdClass')->willReturn(true);
-        $container->expects($this->once())->method('get')->with('stdClass')->willReturn(new \stdClass());
+        $container->expects($this->once())->method('get')->with('stdClass')->willReturn(new stdClass());
 
         $loader = new Twig_ContainerRuntimeLoader($container);
 
         $this->assertInstanceOf('stdClass', $loader->load('stdClass'));
     }
 
+    /**
+     * @requires PHP 5.3
+     */
     public function testLoadUnknownRuntimeReturnsNull()
     {
-        $container = $this->getMockBuilder(ContainerInterface::class)->getMock();
+        $container = $this->getMockBuilder('Psr\Container\ContainerInterface')->getMock();
         $container->expects($this->once())->method('has')->with('Foo');
         $container->expects($this->never())->method('get');
 
-        $this->assertNull((new Twig_ContainerRuntimeLoader($container))->load('Foo'));
+        $loader = new Twig_ContainerRuntimeLoader($container);
+        $this->assertNull($loader->load('Foo'));
     }
 }

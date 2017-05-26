@@ -12,9 +12,11 @@
 /**
  * Holds information about a non-compiled Twig template.
  *
+ * @final
+ *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class Twig_Source
+class Twig_Source
 {
     private $code;
     private $name;

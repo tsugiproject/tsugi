@@ -10,6 +10,9 @@
 {% autoescape false %}
 {{ var }}<br />
 {% endautoescape %}
+{% autoescape true %}
+{{ var }}<br />
+{% endautoescape %}
 {% autoescape false %}
 {{ var }}<br />
 {% endautoescape %}
@@ -19,4 +22,5 @@ return array('var' => '<br />')
 &lt;br /&gt;<br />
 &lt;br /&gt;<br />
 <br /><br />
+&lt;br /&gt;<br />
 <br /><br />

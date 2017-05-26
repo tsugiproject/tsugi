@@ -16,29 +16,45 @@
  */
 class Twig_Environment
 {
-    const VERSION = '2.3.2';
-    const VERSION_ID = 20302;
-    const MAJOR_VERSION = 2;
-    const MINOR_VERSION = 3;
-    const RELEASE_VERSION = 2;
+    const VERSION = '1.33.2';
+    const VERSION_ID = 13302;
+    const MAJOR_VERSION = 1;
+    const MINOR_VERSION = 33;
+    const RELEASE_VERSION = 1;
     const EXTRA_VERSION = '';
 
-    private $charset;
-    private $loader;
-    private $debug;
-    private $autoReload;
-    private $cache;
-    private $lexer;
-    private $parser;
-    private $compiler;
-    private $baseTemplateClass;
-    private $globals = array();
-    private $resolvedGlobals;
-    private $loadedTemplates;
-    private $strictVariables;
-    private $templateClassPrefix = '__TwigTemplate_';
+    protected $charset;
+    protected $loader;
+    protected $debug;
+    protected $autoReload;
+    protected $cache;
+    protected $lexer;
+    protected $parser;
+    protected $compiler;
+    protected $baseTemplateClass;
+    protected $extensions;
+    protected $parsers;
+    protected $visitors;
+    protected $filters;
+    protected $tests;
+    protected $functions;
+    protected $globals;
+    protected $runtimeInitialized = false;
+    protected $extensionInitialized = false;
+    protected $loadedTemplates;
+    protected $strictVariables;
+    protected $unaryOperators;
+    protected $binaryOperators;
+    protected $templateClassPrefix = '__TwigTemplate_';
+    protected $functionCallbacks = array();
+    protected $filterCallbacks = array();
+    protected $staging;
+
     private $originalCache;
-    private $extensionSet;
+    private $bcWriteCacheFile = false;
+    private $bcGetCacheFilename = false;
+    private $lastModifiedExtension = 0;
+    private $extensionsByClass = array();
     private $runtimeLoaders = array();
     private $runtimes = array();
     private $optionsHash;
@@ -69,6 +85,7 @@ class Twig_Environment
      *
      *  * autoescape: Whether to enable auto-escaping (default to html):
      *                  * false: disable auto-escaping
+     *                  * true: equivalent to html
      *                  * html, js: set the autoescaping to one of the supported strategies
      *                  * name: set the autoescaping strategy based on the template name extension
      *                  * PHP callback: a PHP callback that returns an escaping strategy based on the template "name"
@@ -80,9 +97,13 @@ class Twig_Environment
      * @param Twig_LoaderInterface $loader
      * @param array                $options An array of options
      */
-    public function __construct(Twig_LoaderInterface $loader, $options = array())
+    public function __construct(Twig_LoaderInterface $loader = null, $options = array())
     {
-        $this->setLoader($loader);
+        if (null !== $loader) {
+            $this->setLoader($loader);
+        } else {
+            @trigger_error('Not passing a Twig_LoaderInterface as the first constructor argument of Twig_Environment is deprecated since version 1.21.', E_USER_DEPRECATED);
+        }
 
         $options = array_merge(array(
             'debug' => false,
@@ -96,16 +117,33 @@ class Twig_Environment
         ), $options);
 
         $this->debug = (bool) $options['debug'];
-        $this->setCharset($options['charset']);
+        $this->charset = strtoupper($options['charset']);
         $this->baseTemplateClass = $options['base_template_class'];
         $this->autoReload = null === $options['auto_reload'] ? $this->debug : (bool) $options['auto_reload'];
         $this->strictVariables = (bool) $options['strict_variables'];
         $this->setCache($options['cache']);
-        $this->extensionSet = new Twig_ExtensionSet();
 
         $this->addExtension(new Twig_Extension_Core());
         $this->addExtension(new Twig_Extension_Escaper($options['autoescape']));
         $this->addExtension(new Twig_Extension_Optimizer($options['optimizations']));
+        $this->staging = new Twig_Extension_Staging();
+
+        // For BC
+        if (is_string($this->originalCache)) {
+            $r = new ReflectionMethod($this, 'writeCacheFile');
+            if ($r->getDeclaringClass()->getName() !== __CLASS__) {
+                @trigger_error('The Twig_Environment::writeCacheFile method is deprecated since version 1.22 and will be removed in Twig 2.0.', E_USER_DEPRECATED);
+
+                $this->bcWriteCacheFile = true;
+            }
+
+            $r = new ReflectionMethod($this, 'getCacheFilename');
+            if ($r->getDeclaringClass()->getName() !== __CLASS__) {
+                @trigger_error('The Twig_Environment::getCacheFilename method is deprecated since version 1.22 and will be removed in Twig 2.0.', E_USER_DEPRECATED);
+
+                $this->bcGetCacheFilename = true;
+            }
+        }
     }
 
     /**
@@ -240,11 +278,33 @@ class Twig_Environment
         } elseif (false === $cache) {
             $this->originalCache = $cache;
             $this->cache = new Twig_Cache_Null();
+        } elseif (null === $cache) {
+            @trigger_error('Using "null" as the cache strategy is deprecated since version 1.23 and will be removed in Twig 2.0.', E_USER_DEPRECATED);
+            $this->originalCache = false;
+            $this->cache = new Twig_Cache_Null();
         } elseif ($cache instanceof Twig_CacheInterface) {
             $this->originalCache = $this->cache = $cache;
         } else {
             throw new LogicException(sprintf('Cache can only be a string, false, or a Twig_CacheInterface implementation.'));
         }
+    }
+
+    /**
+     * Gets the cache filename for a given template.
+     *
+     * @param string $name The template name
+     *
+     * @return string|false The cache file name or false when caching is disabled
+     *
+     * @deprecated since 1.22 (to be removed in 2.0)
+     */
+    public function getCacheFilename($name)
+    {
+        @trigger_error(sprintf('The %s method is deprecated since version 1.22 and will be removed in Twig 2.0.', __METHOD__), E_USER_DEPRECATED);
+
+        $key = $this->cache->generateKey($name, $this->getTemplateClass($name));
+
+        return !$key ? false : $key;
     }
 
     /**
@@ -269,6 +329,20 @@ class Twig_Environment
         $key = $this->getLoader()->getCacheKey($name).$this->optionsHash;
 
         return $this->templateClassPrefix.hash('sha256', $key).(null === $index ? '' : '_'.$index);
+    }
+
+    /**
+     * Gets the template class prefix.
+     *
+     * @return string The template class prefix
+     *
+     * @deprecated since 1.22 (to be removed in 2.0)
+     */
+    public function getTemplateClassPrefix()
+    {
+        @trigger_error(sprintf('The %s method is deprecated since version 1.22 and will be removed in Twig 2.0.', __METHOD__), E_USER_DEPRECATED);
+
+        return $this->templateClassPrefix;
     }
 
     /**
@@ -332,7 +406,7 @@ class Twig_Environment
      * @param string $name  The template name
      * @param int    $index The index if it is an embedded template
      *
-     * @return Twig_Template A template instance representing the given template name
+     * @return Twig_TemplateInterface A template instance representing the given template name
      *
      * @throws Twig_Error_Loader  When the template cannot be found
      * @throws Twig_Error_Runtime When a previously generated cache is corrupted
@@ -352,17 +426,32 @@ class Twig_Environment
         }
 
         if (!class_exists($cls, false)) {
-            $key = $this->cache->generateKey($name, $mainCls);
+            if ($this->bcGetCacheFilename) {
+                $key = $this->getCacheFilename($name);
+            } else {
+                $key = $this->cache->generateKey($name, $mainCls);
+            }
 
             if (!$this->isAutoReload() || $this->isTemplateFresh($name, $this->cache->getTimestamp($key))) {
                 $this->cache->load($key);
             }
 
             if (!class_exists($cls, false)) {
-                $source = $this->getLoader()->getSourceContext($name);
+                $loader = $this->getLoader();
+                if (!$loader instanceof Twig_SourceContextLoaderInterface) {
+                    $source = new Twig_Source($loader->getSource($name), $name);
+                } else {
+                    $source = $loader->getSourceContext($name);
+                }
+
                 $content = $this->compileSource($source);
-                $this->cache->write($key, $content);
-                $this->cache->load($key);
+
+                if ($this->bcWriteCacheFile) {
+                    $this->writeCacheFile($key, $content);
+                } else {
+                    $this->cache->write($key, $content);
+                    $this->cache->load($key);
+                }
 
                 if (!class_exists($mainCls, false)) {
                     /* Last line of defense if either $this->bcWriteCacheFile was used,
@@ -372,15 +461,16 @@ class Twig_Environment
                      */
                     eval('?>'.$content);
                 }
+            }
 
-                if (!class_exists($cls, false)) {
-                    throw new Twig_Error_Runtime(sprintf('Failed to load Twig template "%s", index "%s": cache is corrupted.', $name, $index), -1, $source);
-                }
+            if (!class_exists($cls, false)) {
+                throw new Twig_Error_Runtime(sprintf('Failed to load Twig template "%s", index "%s": cache is corrupted.', $name, $index), -1, $source);
             }
         }
 
-        // to be removed in 3.0
-        $this->extensionSet->initRuntime($this);
+        if (!$this->runtimeInitialized) {
+            $this->initRuntime();
+        }
 
         return $this->loadedTemplates[$cls] = new $cls($this);
     }
@@ -409,9 +499,16 @@ class Twig_Environment
         $this->setLoader($loader);
         try {
             $template = $this->loadTemplate($name);
-        } finally {
+        } catch (Exception $e) {
             $this->setLoader($current);
+
+            throw $e;
+        } catch (Throwable $e) {
+            $this->setLoader($current);
+
+            throw $e;
         }
+        $this->setLoader($current);
 
         return $template;
     }
@@ -430,13 +527,22 @@ class Twig_Environment
      */
     public function isTemplateFresh($name, $time)
     {
-        return $this->extensionSet->getLastModified() <= $time && $this->getLoader()->isFresh($name, $time);
+        if (0 === $this->lastModifiedExtension) {
+            foreach ($this->extensions as $extension) {
+                $r = new ReflectionObject($extension);
+                if (file_exists($r->getFileName()) && ($extensionTime = filemtime($r->getFileName())) > $this->lastModifiedExtension) {
+                    $this->lastModifiedExtension = $extensionTime;
+                }
+            }
+        }
+
+        return $this->lastModifiedExtension <= $time && $this->getLoader()->isFresh($name, $time);
     }
 
     /**
      * Tries to load a template consecutively from an array.
      *
-     * Similar to loadTemplate() but it also accepts Twig_Template instances and an array
+     * Similar to loadTemplate() but it also accepts Twig_TemplateInterface instances and an array
      * of templates where each is tried to be loaded.
      *
      * @param string|Twig_Template|array $names A template or an array of templates to try consecutively
@@ -470,7 +576,55 @@ class Twig_Environment
         throw new Twig_Error_Loader(sprintf('Unable to find one of the following templates: "%s".', implode('", "', $names)));
     }
 
-    public function setLexer(Twig_Lexer $lexer)
+    /**
+     * Clears the internal template cache.
+     *
+     * @deprecated since 1.18.3 (to be removed in 2.0)
+     */
+    public function clearTemplateCache()
+    {
+        @trigger_error(sprintf('The %s method is deprecated since version 1.18.3 and will be removed in Twig 2.0.', __METHOD__), E_USER_DEPRECATED);
+
+        $this->loadedTemplates = array();
+    }
+
+    /**
+     * Clears the template cache files on the filesystem.
+     *
+     * @deprecated since 1.22 (to be removed in 2.0)
+     */
+    public function clearCacheFiles()
+    {
+        @trigger_error(sprintf('The %s method is deprecated since version 1.22 and will be removed in Twig 2.0.', __METHOD__), E_USER_DEPRECATED);
+
+        if (is_string($this->originalCache)) {
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->originalCache), RecursiveIteratorIterator::LEAVES_ONLY) as $file) {
+                if ($file->isFile()) {
+                    @unlink($file->getPathname());
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the Lexer instance.
+     *
+     * @return Twig_LexerInterface
+     *
+     * @deprecated since 1.25 (to be removed in 2.0)
+     */
+    public function getLexer()
+    {
+        @trigger_error(sprintf('The %s() method is deprecated since version 1.25 and will be removed in 2.0.', __FUNCTION__), E_USER_DEPRECATED);
+
+        if (null === $this->lexer) {
+            $this->lexer = new Twig_Lexer($this);
+        }
+
+        return $this->lexer;
+    }
+
+    public function setLexer(Twig_LexerInterface $lexer)
     {
         $this->lexer = $lexer;
     }
@@ -478,12 +632,20 @@ class Twig_Environment
     /**
      * Tokenizes a source code.
      *
+     * @param string|Twig_Source $source The template source code
+     * @param string             $name   The template name (deprecated)
+     *
      * @return Twig_TokenStream
      *
      * @throws Twig_Error_Syntax When the code is syntactically wrong
      */
-    public function tokenize(Twig_Source $source)
+    public function tokenize($source, $name = null)
     {
+        if (!$source instanceof Twig_Source) {
+            @trigger_error(sprintf('Passing a string as the $source argument of %s() is deprecated since version 1.27. Pass a Twig_Source instance instead.', __METHOD__), E_USER_DEPRECATED);
+            $source = new Twig_Source($source, $name);
+        }
+
         if (null === $this->lexer) {
             $this->lexer = new Twig_Lexer($this);
         }
@@ -491,7 +653,25 @@ class Twig_Environment
         return $this->lexer->tokenize($source);
     }
 
-    public function setParser(Twig_Parser $parser)
+    /**
+     * Gets the Parser instance.
+     *
+     * @return Twig_ParserInterface
+     *
+     * @deprecated since 1.25 (to be removed in 2.0)
+     */
+    public function getParser()
+    {
+        @trigger_error(sprintf('The %s() method is deprecated since version 1.25 and will be removed in 2.0.', __FUNCTION__), E_USER_DEPRECATED);
+
+        if (null === $this->parser) {
+            $this->parser = new Twig_Parser($this);
+        }
+
+        return $this->parser;
+    }
+
+    public function setParser(Twig_ParserInterface $parser)
     {
         $this->parser = $parser;
     }
@@ -512,7 +692,25 @@ class Twig_Environment
         return $this->parser->parse($stream);
     }
 
-    public function setCompiler(Twig_Compiler $compiler)
+    /**
+     * Gets the Compiler instance.
+     *
+     * @return Twig_CompilerInterface
+     *
+     * @deprecated since 1.25 (to be removed in 2.0)
+     */
+    public function getCompiler()
+    {
+        @trigger_error(sprintf('The %s() method is deprecated since version 1.25 and will be removed in 2.0.', __FUNCTION__), E_USER_DEPRECATED);
+
+        if (null === $this->compiler) {
+            $this->compiler = new Twig_Compiler($this);
+        }
+
+        return $this->compiler;
+    }
+
+    public function setCompiler(Twig_CompilerInterface $compiler)
     {
         $this->compiler = $compiler;
     }
@@ -522,7 +720,7 @@ class Twig_Environment
      *
      * @return string The compiled PHP source code
      */
-    public function compile(Twig_Node $node)
+    public function compile(Twig_NodeInterface $node)
     {
         if (null === $this->compiler) {
             $this->compiler = new Twig_Compiler($this);
@@ -534,12 +732,20 @@ class Twig_Environment
     /**
      * Compiles a template source code.
      *
+     * @param string|Twig_Source $source The template source code
+     * @param string             $name   The template name (deprecated)
+     *
      * @return string The compiled PHP source code
      *
      * @throws Twig_Error_Syntax When there was an error during tokenizing, parsing or compiling
      */
-    public function compileSource(Twig_Source $source)
+    public function compileSource($source, $name = null)
     {
+        if (!$source instanceof Twig_Source) {
+            @trigger_error(sprintf('Passing a string as the $source argument of %s() is deprecated since version 1.27. Pass a Twig_Source instance instead.', __METHOD__), E_USER_DEPRECATED);
+            $source = new Twig_Source($source, $name);
+        }
+
         try {
             return $this->compile($this->parse($this->tokenize($source)));
         } catch (Twig_Error $e) {
@@ -552,6 +758,10 @@ class Twig_Environment
 
     public function setLoader(Twig_LoaderInterface $loader)
     {
+        if (!$loader instanceof Twig_SourceContextLoaderInterface && 0 !== strpos(get_class($loader), 'Mock_Twig_LoaderInterface')) {
+            @trigger_error(sprintf('Twig loader "%s" should implement Twig_SourceContextLoaderInterface since version 1.27.', get_class($loader)), E_USER_DEPRECATED);
+        }
+
         $this->loader = $loader;
     }
 
@@ -562,6 +772,10 @@ class Twig_Environment
      */
     public function getLoader()
     {
+        if (null === $this->loader) {
+            throw new LogicException('You must set a loader first.');
+        }
+
         return $this->loader;
     }
 
@@ -572,12 +786,7 @@ class Twig_Environment
      */
     public function setCharset($charset)
     {
-        if ('UTF8' === $charset = strtoupper($charset)) {
-            // iconv on Windows requires "UTF-8" instead of "UTF8"
-            $charset = 'UTF-8';
-        }
-
-        $this->charset = $charset;
+        $this->charset = strtoupper($charset);
     }
 
     /**
@@ -591,6 +800,28 @@ class Twig_Environment
     }
 
     /**
+     * Initializes the runtime environment.
+     *
+     * @deprecated since 1.23 (to be removed in 2.0)
+     */
+    public function initRuntime()
+    {
+        $this->runtimeInitialized = true;
+
+        foreach ($this->getExtensions() as $name => $extension) {
+            if (!$extension instanceof Twig_Extension_InitRuntimeInterface) {
+                $m = new ReflectionMethod($extension, 'initRuntime');
+
+                if ('Twig_Extension' !== $m->getDeclaringClass()->getName()) {
+                    @trigger_error(sprintf('Defining the initRuntime() method in the "%s" extension is deprecated since version 1.23. Use the `needs_environment` option to get the Twig_Environment instance in filters, functions, or tests; or explicitly implement Twig_Extension_InitRuntimeInterface if needed (not recommended).', $name), E_USER_DEPRECATED);
+                }
+            }
+
+            $extension->initRuntime($this);
+        }
+    }
+
+    /**
      * Returns true if the given extension is registered.
      *
      * @param string $class The extension class name
@@ -599,7 +830,16 @@ class Twig_Environment
      */
     public function hasExtension($class)
     {
-        return $this->extensionSet->hasExtension($class);
+        $class = ltrim($class, '\\');
+        if (isset($this->extensions[$class])) {
+            if ($class !== get_class($this->extensions[$class])) {
+                @trigger_error(sprintf('Referencing the "%s" extension by its name (defined by getName()) is deprecated since 1.26 and will be removed in Twig 2.0. Use the Fully Qualified Extension Class Name instead.', $class), E_USER_DEPRECATED);
+            }
+
+            return true;
+        }
+
+        return isset($this->extensionsByClass[$class]);
     }
 
     /**
@@ -619,7 +859,21 @@ class Twig_Environment
      */
     public function getExtension($class)
     {
-        return $this->extensionSet->getExtension($class);
+        $class = ltrim($class, '\\');
+
+        if (isset($this->extensions[$class])) {
+            if ($class !== get_class($this->extensions[$class])) {
+                @trigger_error(sprintf('Referencing the "%s" extension by its name (defined by getName()) is deprecated since 1.26 and will be removed in Twig 2.0. Use the Fully Qualified Extension Class Name instead.', $class), E_USER_DEPRECATED);
+            }
+
+            return $this->extensions[$class];
+        }
+
+        if (!isset($this->extensionsByClass[$class])) {
+            throw new Twig_Error_Runtime(sprintf('The "%s" extension is not enabled.', $class));
+        }
+
+        return $this->extensionsByClass[$class];
     }
 
     /**
@@ -648,7 +902,51 @@ class Twig_Environment
 
     public function addExtension(Twig_ExtensionInterface $extension)
     {
-        $this->extensionSet->addExtension($extension);
+        if ($this->extensionInitialized) {
+            throw new LogicException(sprintf('Unable to register extension "%s" as extensions have already been initialized.', $extension->getName()));
+        }
+
+        $class = get_class($extension);
+        if ($class !== $extension->getName()) {
+            if (isset($this->extensions[$extension->getName()])) {
+                unset($this->extensions[$extension->getName()], $this->extensionsByClass[$class]);
+                @trigger_error(sprintf('The possibility to register the same extension twice ("%s") is deprecated since version 1.23 and will be removed in Twig 2.0. Use proper PHP inheritance instead.', $extension->getName()), E_USER_DEPRECATED);
+            }
+        }
+
+        $this->lastModifiedExtension = 0;
+        $this->extensionsByClass[$class] = $extension;
+        $this->extensions[$extension->getName()] = $extension;
+        $this->updateOptionsHash();
+    }
+
+    /**
+     * Removes an extension by name.
+     *
+     * This method is deprecated and you should not use it.
+     *
+     * @param string $name The extension name
+     *
+     * @deprecated since 1.12 (to be removed in 2.0)
+     */
+    public function removeExtension($name)
+    {
+        @trigger_error(sprintf('The %s method is deprecated since version 1.12 and will be removed in Twig 2.0.', __METHOD__), E_USER_DEPRECATED);
+
+        if ($this->extensionInitialized) {
+            throw new LogicException(sprintf('Unable to remove extension "%s" as extensions have already been initialized.', $name));
+        }
+
+        $class = ltrim($name, '\\');
+        if (isset($this->extensions[$class])) {
+            if ($class !== get_class($this->extensions[$class])) {
+                @trigger_error(sprintf('Referencing the "%s" extension by its name (defined by getName()) is deprecated since 1.26 and will be removed in Twig 2.0. Use the Fully Qualified Extension Class Name instead.', $class), E_USER_DEPRECATED);
+            }
+
+            unset($this->extensions[$class]);
+        }
+
+        unset($this->extensions[$class]);
         $this->updateOptionsHash();
     }
 
@@ -659,7 +957,9 @@ class Twig_Environment
      */
     public function setExtensions(array $extensions)
     {
-        $this->extensionSet->setExtensions($extensions);
+        foreach ($extensions as $extension) {
+            $this->addExtension($extension);
+        }
     }
 
     /**
@@ -669,28 +969,38 @@ class Twig_Environment
      */
     public function getExtensions()
     {
-        return $this->extensionSet->getExtensions();
+        return $this->extensions;
     }
 
     public function addTokenParser(Twig_TokenParserInterface $parser)
     {
-        $this->extensionSet->addTokenParser($parser);
+        if ($this->extensionInitialized) {
+            throw new LogicException('Unable to add a token parser as extensions have already been initialized.');
+        }
+
+        $this->staging->addTokenParser($parser);
     }
 
     /**
      * Gets the registered Token Parsers.
      *
-     * @return Twig_TokenParserInterface[]
+     * @return Twig_TokenParserBrokerInterface
      *
      * @internal
      */
     public function getTokenParsers()
     {
-        return $this->extensionSet->getTokenParsers();
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        return $this->parsers;
     }
 
     /**
      * Gets registered tags.
+     *
+     * Be warned that this method cannot return tags defined by Twig_TokenParserBrokerInterface classes.
      *
      * @return Twig_TokenParserInterface[]
      *
@@ -699,8 +1009,10 @@ class Twig_Environment
     public function getTags()
     {
         $tags = array();
-        foreach ($this->getTokenParsers() as $parser) {
-            $tags[$parser->getTag()] = $parser;
+        foreach ($this->getTokenParsers()->getParsers() as $parser) {
+            if ($parser instanceof Twig_TokenParserInterface) {
+                $tags[$parser->getTag()] = $parser;
+            }
         }
 
         return $tags;
@@ -708,7 +1020,11 @@ class Twig_Environment
 
     public function addNodeVisitor(Twig_NodeVisitorInterface $visitor)
     {
-        $this->extensionSet->addNodeVisitor($visitor);
+        if ($this->extensionInitialized) {
+            throw new LogicException('Unable to add a node visitor as extensions have already been initialized.');
+        }
+
+        $this->staging->addNodeVisitor($visitor);
     }
 
     /**
@@ -720,12 +1036,37 @@ class Twig_Environment
      */
     public function getNodeVisitors()
     {
-        return $this->extensionSet->getNodeVisitors();
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        return $this->visitors;
     }
 
-    public function addFilter(Twig_Filter $filter)
+    /**
+     * Registers a Filter.
+     *
+     * @param string|Twig_SimpleFilter               $name   The filter name or a Twig_SimpleFilter instance
+     * @param Twig_FilterInterface|Twig_SimpleFilter $filter
+     */
+    public function addFilter($name, $filter = null)
     {
-        $this->extensionSet->addFilter($filter);
+        if (!$name instanceof Twig_SimpleFilter && !($filter instanceof Twig_SimpleFilter || $filter instanceof Twig_FilterInterface)) {
+            throw new LogicException('A filter must be an instance of Twig_FilterInterface or Twig_SimpleFilter.');
+        }
+
+        if ($name instanceof Twig_SimpleFilter) {
+            $filter = $name;
+            $name = $filter->getName();
+        } else {
+            @trigger_error(sprintf('Passing a name as a first argument to the %s method is deprecated since version 1.21. Pass an instance of "Twig_SimpleFilter" instead when defining filter "%s".', __METHOD__, $name), E_USER_DEPRECATED);
+        }
+
+        if ($this->extensionInitialized) {
+            throw new LogicException(sprintf('Unable to add filter "%s" as extensions have already been initialized.', $name));
+        }
+
+        $this->staging->addFilter($name, $filter);
     }
 
     /**
@@ -742,12 +1083,39 @@ class Twig_Environment
      */
     public function getFilter($name)
     {
-        return $this->extensionSet->getFilter($name);
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        if (isset($this->filters[$name])) {
+            return $this->filters[$name];
+        }
+
+        foreach ($this->filters as $pattern => $filter) {
+            $pattern = str_replace('\\*', '(.*?)', preg_quote($pattern, '#'), $count);
+
+            if ($count) {
+                if (preg_match('#^'.$pattern.'$#', $name, $matches)) {
+                    array_shift($matches);
+                    $filter->setArguments($matches);
+
+                    return $filter;
+                }
+            }
+        }
+
+        foreach ($this->filterCallbacks as $callback) {
+            if (false !== $filter = call_user_func($callback, $name)) {
+                return $filter;
+            }
+        }
+
+        return false;
     }
 
-    public function registerUndefinedFilterCallback(callable $callable)
+    public function registerUndefinedFilterCallback($callable)
     {
-        $this->extensionSet->registerUndefinedFilterCallback($callable);
+        $this->filterCallbacks[] = $callable;
     }
 
     /**
@@ -755,7 +1123,7 @@ class Twig_Environment
      *
      * Be warned that this method cannot return filters defined with registerUndefinedFilterCallback.
      *
-     * @return Twig_Filter[]
+     * @return Twig_FilterInterface[]
      *
      * @see registerUndefinedFilterCallback
      *
@@ -763,29 +1131,53 @@ class Twig_Environment
      */
     public function getFilters()
     {
-        return $this->extensionSet->getFilters();
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        return $this->filters;
     }
 
     /**
      * Registers a Test.
      *
-     * @param Twig_Test $test A Twig_Test instance
+     * @param string|Twig_SimpleTest             $name The test name or a Twig_SimpleTest instance
+     * @param Twig_TestInterface|Twig_SimpleTest $test A Twig_TestInterface instance or a Twig_SimpleTest instance
      */
-    public function addTest(Twig_Test $test)
+    public function addTest($name, $test = null)
     {
-        $this->extensionSet->addTest($test);
+        if (!$name instanceof Twig_SimpleTest && !($test instanceof Twig_SimpleTest || $test instanceof Twig_TestInterface)) {
+            throw new LogicException('A test must be an instance of Twig_TestInterface or Twig_SimpleTest.');
+        }
+
+        if ($name instanceof Twig_SimpleTest) {
+            $test = $name;
+            $name = $test->getName();
+        } else {
+            @trigger_error(sprintf('Passing a name as a first argument to the %s method is deprecated since version 1.21. Pass an instance of "Twig_SimpleTest" instead when defining test "%s".', __METHOD__, $name), E_USER_DEPRECATED);
+        }
+
+        if ($this->extensionInitialized) {
+            throw new LogicException(sprintf('Unable to add test "%s" as extensions have already been initialized.', $name));
+        }
+
+        $this->staging->addTest($name, $test);
     }
 
     /**
      * Gets the registered Tests.
      *
-     * @return Twig_Test[]
+     * @return Twig_TestInterface[]
      *
      * @internal
      */
     public function getTests()
     {
-        return $this->extensionSet->getTests();
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        return $this->tests;
     }
 
     /**
@@ -799,12 +1191,41 @@ class Twig_Environment
      */
     public function getTest($name)
     {
-        return $this->extensionSet->getTest($name);
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        if (isset($this->tests[$name])) {
+            return $this->tests[$name];
+        }
+
+        return false;
     }
 
-    public function addFunction(Twig_Function $function)
+    /**
+     * Registers a Function.
+     *
+     * @param string|Twig_SimpleFunction                 $name     The function name or a Twig_SimpleFunction instance
+     * @param Twig_FunctionInterface|Twig_SimpleFunction $function
+     */
+    public function addFunction($name, $function = null)
     {
-        $this->extensionSet->addFunction($function);
+        if (!$name instanceof Twig_SimpleFunction && !($function instanceof Twig_SimpleFunction || $function instanceof Twig_FunctionInterface)) {
+            throw new LogicException('A function must be an instance of Twig_FunctionInterface or Twig_SimpleFunction.');
+        }
+
+        if ($name instanceof Twig_SimpleFunction) {
+            $function = $name;
+            $name = $function->getName();
+        } else {
+            @trigger_error(sprintf('Passing a name as a first argument to the %s method is deprecated since version 1.21. Pass an instance of "Twig_SimpleFunction" instead when defining function "%s".', __METHOD__, $name), E_USER_DEPRECATED);
+        }
+
+        if ($this->extensionInitialized) {
+            throw new LogicException(sprintf('Unable to add function "%s" as extensions have already been initialized.', $name));
+        }
+
+        $this->staging->addFunction($name, $function);
     }
 
     /**
@@ -821,12 +1242,39 @@ class Twig_Environment
      */
     public function getFunction($name)
     {
-        return $this->extensionSet->getFunction($name);
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        if (isset($this->functions[$name])) {
+            return $this->functions[$name];
+        }
+
+        foreach ($this->functions as $pattern => $function) {
+            $pattern = str_replace('\\*', '(.*?)', preg_quote($pattern, '#'), $count);
+
+            if ($count) {
+                if (preg_match('#^'.$pattern.'$#', $name, $matches)) {
+                    array_shift($matches);
+                    $function->setArguments($matches);
+
+                    return $function;
+                }
+            }
+        }
+
+        foreach ($this->functionCallbacks as $callback) {
+            if (false !== $function = call_user_func($callback, $name)) {
+                return $function;
+            }
+        }
+
+        return false;
     }
 
-    public function registerUndefinedFunctionCallback(callable $callable)
+    public function registerUndefinedFunctionCallback($callable)
     {
-        $this->extensionSet->registerUndefinedFunctionCallback($callable);
+        $this->functionCallbacks[] = $callable;
     }
 
     /**
@@ -834,7 +1282,7 @@ class Twig_Environment
      *
      * Be warned that this method cannot return functions defined with registerUndefinedFunctionCallback.
      *
-     * @return Twig_Function[]
+     * @return Twig_FunctionInterface[]
      *
      * @see registerUndefinedFunctionCallback
      *
@@ -842,7 +1290,11 @@ class Twig_Environment
      */
     public function getFunctions()
     {
-        return $this->extensionSet->getFunctions();
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        return $this->functions;
     }
 
     /**
@@ -856,14 +1308,23 @@ class Twig_Environment
      */
     public function addGlobal($name, $value)
     {
-        if ($this->extensionSet->isInitialized() && !array_key_exists($name, $this->getGlobals())) {
-            throw new LogicException(sprintf('Unable to add global "%s" as the runtime or the extensions have already been initialized.', $name));
+        if ($this->extensionInitialized || $this->runtimeInitialized) {
+            if (null === $this->globals) {
+                $this->globals = $this->initGlobals();
+            }
+
+            if (!array_key_exists($name, $this->globals)) {
+                // The deprecation notice must be turned into the following exception in Twig 2.0
+                @trigger_error(sprintf('Registering global variable "%s" at runtime or when the extensions have already been initialized is deprecated since version 1.21.', $name), E_USER_DEPRECATED);
+                //throw new LogicException(sprintf('Unable to add global "%s" as the runtime or the extensions have already been initialized.', $name));
+            }
         }
 
-        if (null !== $this->resolvedGlobals) {
-            $this->resolvedGlobals[$name] = $value;
-        } else {
+        if ($this->extensionInitialized || $this->runtimeInitialized) {
+            // update the value
             $this->globals[$name] = $value;
+        } else {
+            $this->staging->addGlobal($name, $value);
         }
     }
 
@@ -876,15 +1337,15 @@ class Twig_Environment
      */
     public function getGlobals()
     {
-        if ($this->extensionSet->isInitialized()) {
-            if (null === $this->resolvedGlobals) {
-                $this->resolvedGlobals = array_merge($this->extensionSet->getGlobals(), $this->globals);
-            }
-
-            return $this->resolvedGlobals;
+        if (!$this->runtimeInitialized && !$this->extensionInitialized) {
+            return $this->initGlobals();
         }
 
-        return array_merge($this->extensionSet->getGlobals(), $this->globals);
+        if (null === $this->globals) {
+            $this->globals = $this->initGlobals();
+        }
+
+        return $this->globals;
     }
 
     /**
@@ -916,7 +1377,11 @@ class Twig_Environment
      */
     public function getUnaryOperators()
     {
-        return $this->extensionSet->getUnaryOperators();
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        return $this->unaryOperators;
     }
 
     /**
@@ -928,19 +1393,169 @@ class Twig_Environment
      */
     public function getBinaryOperators()
     {
-        return $this->extensionSet->getBinaryOperators();
+        if (!$this->extensionInitialized) {
+            $this->initExtensions();
+        }
+
+        return $this->binaryOperators;
+    }
+
+    /**
+     * @deprecated since 1.23 (to be removed in 2.0)
+     */
+    public function computeAlternatives($name, $items)
+    {
+        @trigger_error(sprintf('The %s method is deprecated since version 1.23 and will be removed in Twig 2.0.', __METHOD__), E_USER_DEPRECATED);
+
+        return Twig_Error_Syntax::computeAlternatives($name, $items);
+    }
+
+    /**
+     * @internal
+     */
+    protected function initGlobals()
+    {
+        $globals = array();
+        foreach ($this->extensions as $name => $extension) {
+            if (!$extension instanceof Twig_Extension_GlobalsInterface) {
+                $m = new ReflectionMethod($extension, 'getGlobals');
+
+                if ('Twig_Extension' !== $m->getDeclaringClass()->getName()) {
+                    @trigger_error(sprintf('Defining the getGlobals() method in the "%s" extension without explicitly implementing Twig_Extension_GlobalsInterface is deprecated since version 1.23.', $name), E_USER_DEPRECATED);
+                }
+            }
+
+            $extGlob = $extension->getGlobals();
+            if (!is_array($extGlob)) {
+                throw new UnexpectedValueException(sprintf('"%s::getGlobals()" must return an array of globals.', get_class($extension)));
+            }
+
+            $globals[] = $extGlob;
+        }
+
+        $globals[] = $this->staging->getGlobals();
+
+        return call_user_func_array('array_merge', $globals);
+    }
+
+    /**
+     * @internal
+     */
+    protected function initExtensions()
+    {
+        if ($this->extensionInitialized) {
+            return;
+        }
+
+        $this->parsers = new Twig_TokenParserBroker(array(), array(), false);
+        $this->filters = array();
+        $this->functions = array();
+        $this->tests = array();
+        $this->visitors = array();
+        $this->unaryOperators = array();
+        $this->binaryOperators = array();
+
+        foreach ($this->extensions as $extension) {
+            $this->initExtension($extension);
+        }
+        $this->initExtension($this->staging);
+        // Done at the end only, so that an exception during initialization does not mark the environment as initialized when catching the exception
+        $this->extensionInitialized = true;
+    }
+
+    /**
+     * @internal
+     */
+    protected function initExtension(Twig_ExtensionInterface $extension)
+    {
+        // filters
+        foreach ($extension->getFilters() as $name => $filter) {
+            if ($filter instanceof Twig_SimpleFilter) {
+                $name = $filter->getName();
+            } else {
+                @trigger_error(sprintf('Using an instance of "%s" for filter "%s" is deprecated since version 1.21. Use Twig_SimpleFilter instead.', get_class($filter), $name), E_USER_DEPRECATED);
+            }
+
+            $this->filters[$name] = $filter;
+        }
+
+        // functions
+        foreach ($extension->getFunctions() as $name => $function) {
+            if ($function instanceof Twig_SimpleFunction) {
+                $name = $function->getName();
+            } else {
+                @trigger_error(sprintf('Using an instance of "%s" for function "%s" is deprecated since version 1.21. Use Twig_SimpleFunction instead.', get_class($function), $name), E_USER_DEPRECATED);
+            }
+
+            $this->functions[$name] = $function;
+        }
+
+        // tests
+        foreach ($extension->getTests() as $name => $test) {
+            if ($test instanceof Twig_SimpleTest) {
+                $name = $test->getName();
+            } else {
+                @trigger_error(sprintf('Using an instance of "%s" for test "%s" is deprecated since version 1.21. Use Twig_SimpleTest instead.', get_class($test), $name), E_USER_DEPRECATED);
+            }
+
+            $this->tests[$name] = $test;
+        }
+
+        // token parsers
+        foreach ($extension->getTokenParsers() as $parser) {
+            if ($parser instanceof Twig_TokenParserInterface) {
+                $this->parsers->addTokenParser($parser);
+            } elseif ($parser instanceof Twig_TokenParserBrokerInterface) {
+                @trigger_error('Registering a Twig_TokenParserBrokerInterface instance is deprecated since version 1.21.', E_USER_DEPRECATED);
+
+                $this->parsers->addTokenParserBroker($parser);
+            } else {
+                throw new LogicException('getTokenParsers() must return an array of Twig_TokenParserInterface or Twig_TokenParserBrokerInterface instances.');
+            }
+        }
+
+        // node visitors
+        foreach ($extension->getNodeVisitors() as $visitor) {
+            $this->visitors[] = $visitor;
+        }
+
+        // operators
+        if ($operators = $extension->getOperators()) {
+            if (!is_array($operators)) {
+                throw new InvalidArgumentException(sprintf('"%s::getOperators()" must return an array with operators, got "%s".', get_class($extension), is_object($operators) ? get_class($operators) : gettype($operators).(is_resource($operators) ? '' : '#'.$operators)));
+            }
+
+            if (2 !== count($operators)) {
+                throw new InvalidArgumentException(sprintf('"%s::getOperators()" must return an array of 2 elements, got %d.', get_class($extension), count($operators)));
+            }
+
+            $this->unaryOperators = array_merge($this->unaryOperators, $operators[0]);
+            $this->binaryOperators = array_merge($this->binaryOperators, $operators[1]);
+        }
+    }
+
+    /**
+     * @deprecated since 1.22 (to be removed in 2.0)
+     */
+    protected function writeCacheFile($file, $content)
+    {
+        $this->cache->write($file, $content);
     }
 
     private function updateOptionsHash()
     {
-        $this->optionsHash = implode(':', array(
-            $this->extensionSet->getSignature(),
-            PHP_MAJOR_VERSION,
-            PHP_MINOR_VERSION,
-            self::VERSION,
-            (int) $this->debug,
-            $this->baseTemplateClass,
-            (int) $this->strictVariables,
-        ));
+        $hashParts = array_merge(
+            array_keys($this->extensions),
+            array(
+                (int) function_exists('twig_template_get_attributes'),
+                PHP_MAJOR_VERSION,
+                PHP_MINOR_VERSION,
+                self::VERSION,
+                (int) $this->debug,
+                $this->baseTemplateClass,
+                (int) $this->strictVariables,
+            )
+        );
+        $this->optionsHash = implode(':', $hashParts);
     }
 }

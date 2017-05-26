@@ -12,12 +12,14 @@
 /**
  * Loads templates from other loaders.
  *
+ * @final
+ *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoaderInterface, Twig_SourceContextLoaderInterface
+class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoaderInterface, Twig_SourceContextLoaderInterface
 {
     private $hasSourceCache = array();
-    private $loaders = array();
+    protected $loaders = array();
 
     /**
      * @param Twig_LoaderInterface[] $loaders
@@ -35,16 +37,40 @@ final class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoader
         $this->hasSourceCache = array();
     }
 
-    public function getSourceContext($name)
+    public function getSource($name)
     {
+        @trigger_error(sprintf('Calling "getSource" on "%s" is deprecated since 1.27. Use getSourceContext() instead.', get_class($this)), E_USER_DEPRECATED);
+
         $exceptions = array();
         foreach ($this->loaders as $loader) {
-            if (!$loader->exists($name)) {
+            if ($loader instanceof Twig_ExistsLoaderInterface && !$loader->exists($name)) {
                 continue;
             }
 
             try {
-                return $loader->getSourceContext($name);
+                return $loader->getSource($name);
+            } catch (Twig_Error_Loader $e) {
+                $exceptions[] = $e->getMessage();
+            }
+        }
+
+        throw new Twig_Error_Loader(sprintf('Template "%s" is not defined%s.', $name, $exceptions ? ' ('.implode(', ', $exceptions).')' : ''));
+    }
+
+    public function getSourceContext($name)
+    {
+        $exceptions = array();
+        foreach ($this->loaders as $loader) {
+            if ($loader instanceof Twig_ExistsLoaderInterface && !$loader->exists($name)) {
+                continue;
+            }
+
+            try {
+                if ($loader instanceof Twig_SourceContextLoaderInterface) {
+                    return $loader->getSourceContext($name);
+                }
+
+                return new Twig_Source($loader->getSource($name), $name);
             } catch (Twig_Error_Loader $e) {
                 $exceptions[] = $e->getMessage();
             }
@@ -55,13 +81,30 @@ final class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoader
 
     public function exists($name)
     {
+        $name = (string) $name;
+
         if (isset($this->hasSourceCache[$name])) {
             return $this->hasSourceCache[$name];
         }
 
         foreach ($this->loaders as $loader) {
-            if ($loader->exists($name)) {
+            if ($loader instanceof Twig_ExistsLoaderInterface) {
+                if ($loader->exists($name)) {
+                    return $this->hasSourceCache[$name] = true;
+                }
+
+                continue;
+            }
+
+            try {
+                if ($loader instanceof Twig_SourceContextLoaderInterface) {
+                    $loader->getSourceContext($name);
+                } else {
+                    $loader->getSource($name);
+                }
+
                 return $this->hasSourceCache[$name] = true;
+            } catch (Twig_Error_Loader $e) {
             }
         }
 
@@ -72,7 +115,7 @@ final class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoader
     {
         $exceptions = array();
         foreach ($this->loaders as $loader) {
-            if (!$loader->exists($name)) {
+            if ($loader instanceof Twig_ExistsLoaderInterface && !$loader->exists($name)) {
                 continue;
             }
 
@@ -90,7 +133,7 @@ final class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoader
     {
         $exceptions = array();
         foreach ($this->loaders as $loader) {
-            if (!$loader->exists($name)) {
+            if ($loader instanceof Twig_ExistsLoaderInterface && !$loader->exists($name)) {
                 continue;
             }
 

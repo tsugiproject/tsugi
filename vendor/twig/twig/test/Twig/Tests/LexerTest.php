@@ -10,6 +10,17 @@
  */
 class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @group legacy
+     */
+    public function testLegacyConstructorSignature()
+    {
+        $lexer = new Twig_Lexer(new Twig_Environment($this->getMockBuilder('Twig_LoaderInterface')->getMock()));
+        $stream = $lexer->tokenize('{{ foo }}', 'foo');
+        $this->assertEquals('foo', $stream->getFilename());
+        $this->assertEquals('{{ foo }}', $stream->getSource());
+    }
+
     public function testNameLabelForTag()
     {
         $template = '{% § %}';
@@ -163,7 +174,6 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
             "{{ 'foo \' bar' }}" => 'foo \' bar',
             '{{ "foo \" bar" }}' => 'foo " bar',
         );
-
         $lexer = new Twig_Lexer(new Twig_Environment($this->getMockBuilder('Twig_LoaderInterface')->getMock()));
         foreach ($tests as $template => $expected) {
             $stream = $lexer->tokenize(new Twig_Source($template, 'index'));

@@ -41,7 +41,6 @@ class Twig_Tests_ErrorTest extends PHPUnit_Framework_TestCase
 {% endblock %}
 EOHTML
         ));
-
         $twig = new Twig_Environment($loader, array('strict_variables' => true, 'debug' => true, 'cache' => false));
 
         $template = $twig->loadTemplate('index.html');

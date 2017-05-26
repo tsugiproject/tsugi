@@ -17,8 +17,10 @@
  *    <input type="{{ type|default('text') }}" name="{{ name }}" value="{{ value|e }}" size="{{ size|default(20) }}" />
  * {% endmacro %}
  * </pre>
+ *
+ * @final
  */
-final class Twig_TokenParser_Macro extends Twig_TokenParser
+class Twig_TokenParser_Macro extends Twig_TokenParser
 {
     public function parse(Twig_Token $token)
     {

@@ -31,15 +31,23 @@ class Twig_Tests_Node_MacroTest extends Twig_Test_NodeTestCase
         ), array(), 1);
         $node = new Twig_Node_Macro('foo', $body, $arguments, 1);
 
+        if (PHP_VERSION_ID >= 50600) {
+            $declaration = ', ...$__varargs__';
+            $varargs = '$__varargs__';
+        } else {
+            $declaration = '';
+            $varargs = 'func_num_args() > 2 ? array_slice(func_get_args(), 2) : array()';
+        }
+
         return array(
             array($node, <<<EOF
 // line 1
-public function macro_foo(\$__foo__ = null, \$__bar__ = "Foo", ...\$__varargs__)
+public function getfoo(\$__foo__ = null, \$__bar__ = "Foo"$declaration)
 {
     \$context = \$this->env->mergeGlobals(array(
         "foo" => \$__foo__,
         "bar" => \$__bar__,
-        "varargs" => \$__varargs__,
+        "varargs" => $varargs,
     ));
 
     \$blocks = array();
@@ -47,11 +55,17 @@ public function macro_foo(\$__foo__ = null, \$__bar__ = "Foo", ...\$__varargs__)
     ob_start();
     try {
         echo "foo";
-
-        return ('' === \$tmp = ob_get_contents()) ? '' : new Twig_Markup(\$tmp, \$this->env->getCharset());
-    } finally {
+    } catch (Exception \$e) {
         ob_end_clean();
+
+        throw \$e;
+    } catch (Throwable \$e) {
+        ob_end_clean();
+
+        throw \$e;
     }
+
+    return ('' === \$tmp = ob_get_clean()) ? '' : new Twig_Markup(\$tmp, \$this->env->getCharset());
 }
 EOF
             ),

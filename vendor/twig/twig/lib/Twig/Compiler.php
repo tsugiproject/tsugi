@@ -15,19 +15,30 @@
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class Twig_Compiler
+class Twig_Compiler implements Twig_CompilerInterface
 {
-    private $lastLine;
-    private $source;
-    private $indentation;
-    private $env;
-    private $debugInfo = array();
-    private $sourceOffset;
-    private $sourceLine;
+    protected $lastLine;
+    protected $source;
+    protected $indentation;
+    protected $env;
+    protected $debugInfo = array();
+    protected $sourceOffset;
+    protected $sourceLine;
+    protected $filename;
 
     public function __construct(Twig_Environment $env)
     {
         $this->env = $env;
+    }
+
+    /**
+     * @deprecated since 1.25 (to be removed in 2.0)
+     */
+    public function getFilename()
+    {
+        @trigger_error(sprintf('The %s() method is deprecated since version 1.25 and will be removed in 2.0.', __FUNCTION__), E_USER_DEPRECATED);
+
+        return $this->filename;
     }
 
     /**
@@ -53,12 +64,12 @@ class Twig_Compiler
     /**
      * Compiles a node.
      *
-     * @param Twig_Node $node        The node to compile
-     * @param int       $indentation The current indentation
+     * @param Twig_NodeInterface $node        The node to compile
+     * @param int                $indentation The current indentation
      *
      * @return $this
      */
-    public function compile(Twig_Node $node, $indentation = 0)
+    public function compile(Twig_NodeInterface $node, $indentation = 0)
     {
         $this->lastLine = null;
         $this->source = '';
@@ -68,12 +79,17 @@ class Twig_Compiler
         $this->sourceLine = 1;
         $this->indentation = $indentation;
 
+        if ($node instanceof Twig_Node_Module) {
+            // to be removed in 2.0
+            $this->filename = $node->getTemplateName();
+        }
+
         $node->compile($this);
 
         return $this;
     }
 
-    public function subcompile(Twig_Node $node, $raw = true)
+    public function subcompile(Twig_NodeInterface $node, $raw = true)
     {
         if (false === $raw) {
             $this->source .= str_repeat(' ', $this->indentation * 4);
@@ -103,11 +119,28 @@ class Twig_Compiler
      *
      * @return $this
      */
-    public function write(...$strings)
+    public function write()
     {
+        $strings = func_get_args();
         foreach ($strings as $string) {
             $this->source .= str_repeat(' ', $this->indentation * 4).$string;
         }
+
+        return $this;
+    }
+
+    /**
+     * Appends an indentation to the current PHP code after compilation.
+     *
+     * @return $this
+     *
+     * @deprecated since 1.27 (to be removed in 2.0).
+     */
+    public function addIndentation()
+    {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 1.27 and will be removed in 2.0. Use write(\'\') instead.', E_USER_DEPRECATED);
+
+        $this->source .= str_repeat(' ', $this->indentation * 4);
 
         return $this;
     }
@@ -174,12 +207,22 @@ class Twig_Compiler
      *
      * @return $this
      */
-    public function addDebugInfo(Twig_Node $node)
+    public function addDebugInfo(Twig_NodeInterface $node)
     {
         if ($node->getTemplateLine() != $this->lastLine) {
             $this->write(sprintf("// line %d\n", $node->getTemplateLine()));
 
-            $this->sourceLine += substr_count($this->source, "\n", $this->sourceOffset);
+            // when mbstring.func_overload is set to 2
+            // mb_substr_count() replaces substr_count()
+            // but they have different signatures!
+            if (((int) ini_get('mbstring.func_overload')) & 2) {
+                @trigger_error('Support for having "mbstring.func_overload" different from 0 is deprecated version 1.29 and will be removed in 2.0.', E_USER_DEPRECATED);
+
+                // this is much slower than the "right" version
+                $this->sourceLine += mb_substr_count(mb_substr($this->source, $this->sourceOffset), "\n");
+            } else {
+                $this->sourceLine += substr_count($this->source, "\n", $this->sourceOffset);
+            }
             $this->sourceOffset = strlen($this->source);
             $this->debugInfo[$this->sourceLine] = $node->getTemplateLine();
 

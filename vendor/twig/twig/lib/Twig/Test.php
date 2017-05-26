@@ -9,77 +9,29 @@
  * file that was distributed with this source code.
  */
 
+@trigger_error('The Twig_Test class is deprecated since version 1.12 and will be removed in 2.0. Use Twig_SimpleTest instead.', E_USER_DEPRECATED);
+
 /**
  * Represents a template test.
  *
- * @final
- *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @see http://twig.sensiolabs.org/doc/templates.html#test-operator
+ * @deprecated since 1.12 (to be removed in 2.0)
  */
-class Twig_Test
+abstract class Twig_Test implements Twig_TestInterface, Twig_TestCallableInterface
 {
-    private $name;
-    private $callable;
-    private $options;
+    protected $options;
+    protected $arguments = array();
 
-    /**
-     * Creates a template test.
-     *
-     * @param string        $name     Name of this test
-     * @param callable|null $callable A callable implementing the test. If null, you need to overwrite the "node_class" option to customize compilation.
-     * @param array         $options  Options array
-     */
-    public function __construct(string $name, $callable = null, array $options = array())
+    public function __construct(array $options = array())
     {
-        $this->name = $name;
-        $this->callable = $callable;
         $this->options = array_merge(array(
-            'is_variadic' => false,
-            'node_class' => 'Twig_Node_Expression_Test',
-            'deprecated' => false,
-            'alternative' => null,
+            'callable' => null,
         ), $options);
     }
 
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Returns the callable to execute for this test.
-     *
-     * @return callable|null
-     */
     public function getCallable()
     {
-        return $this->callable;
-    }
-
-    public function getNodeClass()
-    {
-        return $this->options['node_class'];
-    }
-
-    public function isVariadic()
-    {
-        return $this->options['is_variadic'];
-    }
-
-    public function isDeprecated()
-    {
-        return (bool) $this->options['deprecated'];
-    }
-
-    public function getDeprecatedVersion()
-    {
-        return $this->options['deprecated'];
-    }
-
-    public function getAlternative()
-    {
-        return $this->options['alternative'];
+        return $this->options['callable'];
     }
 }

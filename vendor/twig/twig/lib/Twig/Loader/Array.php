@@ -19,11 +19,13 @@
  *
  * This loader should only be used for unit testing.
  *
+ * @final
+ *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class Twig_Loader_Array implements Twig_LoaderInterface, Twig_ExistsLoaderInterface, Twig_SourceContextLoaderInterface
+class Twig_Loader_Array implements Twig_LoaderInterface, Twig_ExistsLoaderInterface, Twig_SourceContextLoaderInterface
 {
-    private $templates = array();
+    protected $templates = array();
 
     /**
      * @param array $templates An array of templates (keys are the names, and values are the source code)
@@ -41,7 +43,19 @@ final class Twig_Loader_Array implements Twig_LoaderInterface, Twig_ExistsLoader
      */
     public function setTemplate($name, $template)
     {
-        $this->templates[$name] = $template;
+        $this->templates[(string) $name] = $template;
+    }
+
+    public function getSource($name)
+    {
+        @trigger_error(sprintf('Calling "getSource" on "%s" is deprecated since 1.27. Use getSourceContext() instead.', get_class($this)), E_USER_DEPRECATED);
+
+        $name = (string) $name;
+        if (!isset($this->templates[$name])) {
+            throw new Twig_Error_Loader(sprintf('Template "%s" is not defined.', $name));
+        }
+
+        return $this->templates[$name];
     }
 
     public function getSourceContext($name)
@@ -56,11 +70,12 @@ final class Twig_Loader_Array implements Twig_LoaderInterface, Twig_ExistsLoader
 
     public function exists($name)
     {
-        return isset($this->templates[$name]);
+        return isset($this->templates[(string) $name]);
     }
 
     public function getCacheKey($name)
     {
+        $name = (string) $name;
         if (!isset($this->templates[$name])) {
             throw new Twig_Error_Loader(sprintf('Template "%s" is not defined.', $name));
         }
@@ -70,6 +85,7 @@ final class Twig_Loader_Array implements Twig_LoaderInterface, Twig_ExistsLoader
 
     public function isFresh($name, $time)
     {
+        $name = (string) $name;
         if (!isset($this->templates[$name])) {
             throw new Twig_Error_Loader(sprintf('Template "%s" is not defined.', $name));
         }

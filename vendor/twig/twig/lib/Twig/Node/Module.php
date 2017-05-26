@@ -23,9 +23,14 @@ class Twig_Node_Module extends Twig_Node
 {
     private $source;
 
-    public function __construct(Twig_Node $body, Twig_Node_Expression $parent = null, Twig_Node $blocks, Twig_Node $macros, Twig_Node $traits, $embeddedTemplates, Twig_Source $source)
+    public function __construct(Twig_NodeInterface $body, Twig_Node_Expression $parent = null, Twig_NodeInterface $blocks, Twig_NodeInterface $macros, Twig_NodeInterface $traits, $embeddedTemplates, $name, $source = '')
     {
-        $this->source = $source;
+        if (!$name instanceof Twig_Source) {
+            @trigger_error(sprintf('Passing a string as the $name argument of %s() is deprecated since version 1.27. Pass a Twig_Source instance instead.', __METHOD__), E_USER_DEPRECATED);
+            $this->source = new Twig_Source($source, $name);
+        } else {
+            $this->source = $name;
+        }
 
         $nodes = array(
             'body' => $body,
@@ -44,6 +49,10 @@ class Twig_Node_Module extends Twig_Node
 
         // embedded templates are set as attributes so that they are only visited once by the visitors
         parent::__construct($nodes, array(
+            // source to be remove in 2.0
+            'source' => $this->source->getCode(),
+            // filename to be remove in 2.0 (use getTemplateName() instead)
+            'filename' => $this->source->getName(),
             'index' => null,
             'embedded_templates' => $embeddedTemplates,
         ), 1);
@@ -98,6 +107,8 @@ class Twig_Node_Module extends Twig_Node
         $this->compileIsTraitable($compiler);
 
         $this->compileDebugInfo($compiler);
+
+        $this->compileGetSource($compiler);
 
         $this->compileGetSourceContext($compiler);
 
@@ -181,17 +192,7 @@ class Twig_Node_Module extends Twig_Node
         if ($countTraits) {
             // traits
             foreach ($this->getNode('traits') as $i => $trait) {
-                $node = $trait->getNode('template');
-
-                $compiler
-                    ->write(sprintf('$_trait_%s = $this->loadTemplate(', $i))
-                    ->subcompile($node)
-                    ->raw(', ')
-                    ->repr($node->getTemplateName())
-                    ->raw(', ')
-                    ->repr($node->getTemplateLine())
-                    ->raw(");\n")
-                ;
+                $this->compileLoadTemplate($compiler, $trait->getNode('template'), sprintf('$_trait_%s', $i));
 
                 $compiler
                     ->addDebugInfo($trait->getNode('template'))
@@ -403,6 +404,20 @@ class Twig_Node_Module extends Twig_Node
             ->write("public function getDebugInfo()\n", "{\n")
             ->indent()
             ->write(sprintf("return %s;\n", str_replace("\n", '', var_export(array_reverse($compiler->getDebugInfo(), true), true))))
+            ->outdent()
+            ->write("}\n\n")
+        ;
+    }
+
+    protected function compileGetSource(Twig_Compiler $compiler)
+    {
+        $compiler
+            ->write("/** @deprecated since 1.27 (to be removed in 2.0). Use getSourceContext() instead */\n")
+            ->write("public function getSource()\n", "{\n")
+            ->indent()
+            ->write("@trigger_error('The '.__METHOD__.' method is deprecated since version 1.27 and will be removed in 2.0. Use getSourceContext() instead.', E_USER_DEPRECATED);\n\n")
+            ->write('return $this->getSourceContext()->getCode();')
+            ->raw("\n")
             ->outdent()
             ->write("}\n\n")
         ;

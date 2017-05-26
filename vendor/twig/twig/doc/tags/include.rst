@@ -55,9 +55,16 @@ And if the expression evaluates to a ``Twig_Template`` or a
 
     // {% include template %}
 
+    // deprecated as of Twig 1.28
+    $template = $twig->loadTemplate('some_template.twig');
+
+    // as of Twig 1.28
     $template = $twig->load('some_template.twig');
 
     $twig->display('template.twig', array('template' => $template));
+
+.. versionadded:: 1.2
+    The ``ignore missing`` feature has been added in Twig 1.2.
 
 You can mark an include with ``ignore missing`` in which case Twig will ignore
 the statement if the template to be included does not exist. It has to be
@@ -68,6 +75,9 @@ placed just after the template name. Here some valid examples:
     {% include 'sidebar.html' ignore missing %}
     {% include 'sidebar.html' ignore missing with {'foo': 'bar'} %}
     {% include 'sidebar.html' ignore missing only %}
+
+.. versionadded:: 1.2
+    The possibility to pass an array of templates has been added in Twig 1.2.
 
 You can also provide a list of templates that are checked for existence before
 inclusion. The first template that exists will be included:

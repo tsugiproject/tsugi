@@ -12,16 +12,18 @@
 /**
  * Twig_NodeVisitor_Escaper implements output escaping.
  *
+ * @final
+ *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
+class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
 {
-    private $statusStack = array();
-    private $blocks = array();
-    private $safeAnalysis;
-    private $traverser;
-    private $defaultStrategy = false;
-    private $safeVars = array();
+    protected $statusStack = array();
+    protected $blocks = array();
+    protected $safeAnalysis;
+    protected $traverser;
+    protected $defaultStrategy = false;
+    protected $safeVars = array();
 
     public function __construct()
     {
@@ -68,7 +70,7 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
         return $node;
     }
 
-    private function escapePrintNode(Twig_Node_Print $node, Twig_Environment $env, $type)
+    protected function escapePrintNode(Twig_Node_Print $node, Twig_Environment $env, $type)
     {
         if (false === $type) {
             return $node;
@@ -88,7 +90,7 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
         );
     }
 
-    private function preEscapeFilterNode(Twig_Node_Expression_Filter $filter, Twig_Environment $env)
+    protected function preEscapeFilterNode(Twig_Node_Expression_Filter $filter, Twig_Environment $env)
     {
         $name = $filter->getNode('filter')->getAttribute('value');
 
@@ -107,7 +109,7 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
         return $filter;
     }
 
-    private function isSafeFor($type, Twig_Node $expression, $env)
+    protected function isSafeFor($type, Twig_NodeInterface $expression, $env)
     {
         $safe = $this->safeAnalysis->getSafe($expression);
 
@@ -125,7 +127,7 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
         return in_array($type, $safe) || in_array('all', $safe);
     }
 
-    private function needEscaping(Twig_Environment $env)
+    protected function needEscaping(Twig_Environment $env)
     {
         if (count($this->statusStack)) {
             return $this->statusStack[count($this->statusStack) - 1];
@@ -134,7 +136,7 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
         return $this->defaultStrategy ? $this->defaultStrategy : false;
     }
 
-    private function getEscaperFilter($type, Twig_Node $node)
+    protected function getEscaperFilter($type, Twig_NodeInterface $node)
     {
         $line = $node->getTemplateLine();
         $name = new Twig_Node_Expression_Constant('escape', $line);

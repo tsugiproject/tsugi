@@ -27,17 +27,27 @@ class Twig_ExpressionParser
     const OPERATOR_LEFT = 1;
     const OPERATOR_RIGHT = 2;
 
-    private $parser;
-    private $env;
-    private $unaryOperators;
-    private $binaryOperators;
+    protected $parser;
+    protected $unaryOperators;
+    protected $binaryOperators;
 
-    public function __construct(Twig_Parser $parser, Twig_Environment $env)
+    private $env;
+
+    public function __construct(Twig_Parser $parser, $env = null)
     {
         $this->parser = $parser;
-        $this->env = $env;
-        $this->unaryOperators = $env->getUnaryOperators();
-        $this->binaryOperators = $env->getBinaryOperators();
+
+        if ($env instanceof Twig_Environment) {
+            $this->env = $env;
+            $this->unaryOperators = $env->getUnaryOperators();
+            $this->binaryOperators = $env->getBinaryOperators();
+        } else {
+            @trigger_error('Passing the operators as constructor arguments to '.__METHOD__.' is deprecated since version 1.27. Pass the environment instead.', E_USER_DEPRECATED);
+
+            $this->env = $parser->getEnvironment();
+            $this->unaryOperators = func_get_arg(1);
+            $this->binaryOperators = func_get_arg(2);
+        }
     }
 
     public function parseExpression($precedence = 0)
@@ -53,7 +63,7 @@ class Twig_ExpressionParser
             } elseif ('is' === $token->getValue()) {
                 $expr = $this->parseTestExpression($expr);
             } elseif (isset($op['callable'])) {
-                $expr = $op['callable']($this->parser, $expr);
+                $expr = call_user_func($op['callable'], $this->parser, $expr);
             } else {
                 $expr1 = $this->parseExpression(self::OPERATOR_LEFT === $op['associativity'] ? $op['precedence'] + 1 : $op['precedence']);
                 $class = $op['class'];
@@ -70,7 +80,7 @@ class Twig_ExpressionParser
         return $expr;
     }
 
-    private function getPrimary()
+    protected function getPrimary()
     {
         $token = $this->parser->getCurrentToken();
 
@@ -92,7 +102,7 @@ class Twig_ExpressionParser
         return $this->parsePrimaryExpression();
     }
 
-    private function parseConditionalExpression($expr)
+    protected function parseConditionalExpression($expr)
     {
         while ($this->parser->getStream()->nextIf(Twig_Token::PUNCTUATION_TYPE, '?')) {
             if (!$this->parser->getStream()->nextIf(Twig_Token::PUNCTUATION_TYPE, ':')) {
@@ -113,12 +123,12 @@ class Twig_ExpressionParser
         return $expr;
     }
 
-    private function isUnary(Twig_Token $token)
+    protected function isUnary(Twig_Token $token)
     {
         return $token->test(Twig_Token::OPERATOR_TYPE) && isset($this->unaryOperators[$token->getValue()]);
     }
 
-    private function isBinary(Twig_Token $token)
+    protected function isBinary(Twig_Token $token)
     {
         return $token->test(Twig_Token::OPERATOR_TYPE) && isset($this->binaryOperators[$token->getValue()]);
     }
@@ -402,7 +412,11 @@ class Twig_ExpressionParser
 
                 $name = $arg->getAttribute('value');
 
-                $node = new Twig_Node_Expression_MethodCall($node, 'macro_'.$name, $arguments, $lineno);
+                if ($this->parser->isReservedMacroName($name)) {
+                    throw new Twig_Error_Syntax(sprintf('"%s" cannot be called as macro as it is a reserved keyword.', $name), $token->getLine(), $stream->getSourceContext());
+                }
+
+                $node = new Twig_Node_Expression_MethodCall($node, 'get'.$name, $arguments, $lineno);
                 $node->setAttribute('safe', true);
 
                 return $node;
@@ -576,12 +590,12 @@ class Twig_ExpressionParser
         return new Twig_Node($targets);
     }
 
-    private function parseNotTestExpression(Twig_Node $node)
+    private function parseNotTestExpression(Twig_NodeInterface $node)
     {
         return new Twig_Node_Expression_Unary_Not($this->parseTestExpression($node), $this->parser->getCurrentToken()->getLine());
     }
 
-    private function parseTestExpression(Twig_Node $node)
+    private function parseTestExpression(Twig_NodeInterface $node)
     {
         $stream = $this->parser->getStream();
         list($name, $test) = $this->getTest($node->getTemplateLine());
@@ -623,10 +637,9 @@ class Twig_ExpressionParser
 
     private function getTestNodeClass($test)
     {
-        if ($test->isDeprecated()) {
+        if ($test instanceof Twig_SimpleTest && $test->isDeprecated()) {
             $stream = $this->parser->getStream();
             $message = sprintf('Twig Test "%s" is deprecated', $test->getName());
-
             if (!is_bool($test->getDeprecatedVersion())) {
                 $message .= sprintf(' since version %s', $test->getDeprecatedVersion());
             }
@@ -634,15 +647,19 @@ class Twig_ExpressionParser
                 $message .= sprintf('. Use "%s" instead', $test->getAlternative());
             }
             $src = $stream->getSourceContext();
-            $message .= sprintf(' in %s at line %d.', $src->getPath() ?: $src->getName(), $stream->getCurrent()->getLine());
+            $message .= sprintf(' in %s at line %d.', $src->getPath() ? $src->getPath() : $src->getName(), $stream->getCurrent()->getLine());
 
             @trigger_error($message, E_USER_DEPRECATED);
         }
 
-        return $test->getNodeClass();
+        if ($test instanceof Twig_SimpleTest) {
+            return $test->getNodeClass();
+        }
+
+        return $test instanceof Twig_Test_Node ? $test->getClass() : 'Twig_Node_Expression_Test';
     }
 
-    private function getFunctionNodeClass($name, $line)
+    protected function getFunctionNodeClass($name, $line)
     {
         if (false === $function = $this->env->getFunction($name)) {
             $e = new Twig_Error_Syntax(sprintf('Unknown "%s" function.', $name), $line, $this->parser->getStream()->getSourceContext());
@@ -651,7 +668,7 @@ class Twig_ExpressionParser
             throw $e;
         }
 
-        if ($function->isDeprecated()) {
+        if ($function instanceof Twig_SimpleFunction && $function->isDeprecated()) {
             $message = sprintf('Twig Function "%s" is deprecated', $function->getName());
             if (!is_bool($function->getDeprecatedVersion())) {
                 $message .= sprintf(' since version %s', $function->getDeprecatedVersion());
@@ -660,15 +677,19 @@ class Twig_ExpressionParser
                 $message .= sprintf('. Use "%s" instead', $function->getAlternative());
             }
             $src = $this->parser->getStream()->getSourceContext();
-            $message .= sprintf(' in %s at line %d.', $src->getPath() ?: $src->getName(), $line);
+            $message .= sprintf(' in %s at line %d.', $src->getPath() ? $src->getPath() : $src->getName(), $line);
 
             @trigger_error($message, E_USER_DEPRECATED);
         }
 
-        return $function->getNodeClass();
+        if ($function instanceof Twig_SimpleFunction) {
+            return $function->getNodeClass();
+        }
+
+        return $function instanceof Twig_Function_Node ? $function->getClass() : 'Twig_Node_Expression_Function';
     }
 
-    private function getFilterNodeClass($name, $line)
+    protected function getFilterNodeClass($name, $line)
     {
         if (false === $filter = $this->env->getFilter($name)) {
             $e = new Twig_Error_Syntax(sprintf('Unknown "%s" filter.', $name), $line, $this->parser->getStream()->getSourceContext());
@@ -677,7 +698,7 @@ class Twig_ExpressionParser
             throw $e;
         }
 
-        if ($filter->isDeprecated()) {
+        if ($filter instanceof Twig_SimpleFilter && $filter->isDeprecated()) {
             $message = sprintf('Twig Filter "%s" is deprecated', $filter->getName());
             if (!is_bool($filter->getDeprecatedVersion())) {
                 $message .= sprintf(' since version %s', $filter->getDeprecatedVersion());
@@ -686,16 +707,20 @@ class Twig_ExpressionParser
                 $message .= sprintf('. Use "%s" instead', $filter->getAlternative());
             }
             $src = $this->parser->getStream()->getSourceContext();
-            $message .= sprintf(' in %s at line %d.', $src->getPath() ?: $src->getName(), $line);
+            $message .= sprintf(' in %s at line %d.', $src->getPath() ? $src->getPath() : $src->getName(), $line);
 
             @trigger_error($message, E_USER_DEPRECATED);
         }
 
-        return $filter->getNodeClass();
+        if ($filter instanceof Twig_SimpleFilter) {
+            return $filter->getNodeClass();
+        }
+
+        return $filter instanceof Twig_Filter_Node ? $filter->getClass() : 'Twig_Node_Expression_Filter';
     }
 
     // checks that the node only contains "constant" elements
-    private function checkConstantExpression(Twig_Node $node)
+    protected function checkConstantExpression(Twig_NodeInterface $node)
     {
         if (!($node instanceof Twig_Node_Expression_Constant || $node instanceof Twig_Node_Expression_Array
             || $node instanceof Twig_Node_Expression_Unary_Neg || $node instanceof Twig_Node_Expression_Unary_Pos

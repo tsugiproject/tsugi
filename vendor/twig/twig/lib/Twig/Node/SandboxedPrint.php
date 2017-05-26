@@ -38,7 +38,7 @@ class Twig_Node_SandboxedPrint extends Twig_Node_Print
      *
      * @return Twig_Node
      */
-    private function removeNodeFilter(Twig_Node $node)
+    protected function removeNodeFilter(Twig_Node $node)
     {
         if ($node instanceof Twig_Node_Expression_Filter) {
             return $this->removeNodeFilter($node->getNode('node'));

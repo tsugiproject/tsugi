@@ -24,6 +24,7 @@
         "php": ">=7.0.0",
         "tsugi/lib": ">=0.3.1",
         "php": ">=5.5.0",
+        "twig/twig": ~1.27,
         "silex/silex": "v2.0.4",
         "symfony/translation": "v3.2.7"
     }

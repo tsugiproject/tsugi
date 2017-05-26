@@ -19,8 +19,10 @@
  * </pre>
  *
  * @see http://www.twig-project.org/doc/api.html#sandbox-extension for details
+ *
+ * @final
  */
-final class Twig_TokenParser_Sandbox extends Twig_TokenParser
+class Twig_TokenParser_Sandbox extends Twig_TokenParser
 {
     public function parse(Twig_Token $token)
     {

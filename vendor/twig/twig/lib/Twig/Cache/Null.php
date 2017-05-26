@@ -12,9 +12,11 @@
 /**
  * Implements a no-cache strategy.
  *
+ * @final
+ *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class Twig_Cache_Null implements Twig_CacheInterface
+class Twig_Cache_Null implements Twig_CacheInterface
 {
     public function generateKey($name, $className)
     {

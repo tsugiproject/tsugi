@@ -10,7 +10,7 @@
  */
 class Twig_Node_Expression_Test extends Twig_Node_Expression_Call
 {
-    public function __construct(Twig_Node $node, $name, Twig_Node $arguments = null, $lineno)
+    public function __construct(Twig_NodeInterface $node, $name, Twig_NodeInterface $arguments = null, $lineno)
     {
         $nodes = array('node' => $node);
         if (null !== $arguments) {
@@ -27,8 +27,13 @@ class Twig_Node_Expression_Test extends Twig_Node_Expression_Call
 
         $this->setAttribute('name', $name);
         $this->setAttribute('type', 'test');
-        $this->setAttribute('callable', $test->getCallable());
-        $this->setAttribute('is_variadic', $test->isVariadic());
+        $this->setAttribute('thing', $test);
+        if ($test instanceof Twig_TestCallableInterface || $test instanceof Twig_SimpleTest) {
+            $this->setAttribute('callable', $test->getCallable());
+        }
+        if ($test instanceof Twig_SimpleTest) {
+            $this->setAttribute('is_variadic', $test->isVariadic());
+        }
 
         $this->compileCallable($compiler);
     }

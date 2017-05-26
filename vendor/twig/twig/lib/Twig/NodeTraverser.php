@@ -14,12 +14,14 @@
  *
  * It visits all nodes and their children and calls the given visitor for each.
  *
+ * @final
+ *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class Twig_NodeTraverser
+class Twig_NodeTraverser
 {
-    private $env;
-    private $visitors = array();
+    protected $env;
+    protected $visitors = array();
 
     /**
      * @param Twig_Environment            $env
@@ -45,9 +47,9 @@ final class Twig_NodeTraverser
     /**
      * Traverses a node and calls the registered visitors.
      *
-     * @return Twig_Node
+     * @return Twig_NodeInterface
      */
-    public function traverse(Twig_Node $node)
+    public function traverse(Twig_NodeInterface $node)
     {
         ksort($this->visitors);
         foreach ($this->visitors as $visitors) {
@@ -59,8 +61,12 @@ final class Twig_NodeTraverser
         return $node;
     }
 
-    private function traverseForVisitor(Twig_NodeVisitorInterface $visitor, Twig_Node $node)
+    protected function traverseForVisitor(Twig_NodeVisitorInterface $visitor, Twig_NodeInterface $node = null)
     {
+        if (null === $node) {
+            return;
+        }
+
         $node = $visitor->enterNode($node, $this->env);
 
         foreach ($node as $k => $n) {

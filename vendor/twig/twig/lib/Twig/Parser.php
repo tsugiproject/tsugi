@@ -15,25 +15,36 @@
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class Twig_Parser
+class Twig_Parser implements Twig_ParserInterface
 {
-    private $stack = array();
-    private $stream;
-    private $parent;
-    private $handlers;
-    private $visitors;
-    private $expressionParser;
-    private $blocks;
-    private $blockStack;
-    private $macros;
-    private $env;
-    private $importedSymbols;
-    private $traits;
-    private $embeddedTemplates = array();
+    protected $stack = array();
+    protected $stream;
+    protected $parent;
+    protected $handlers;
+    protected $visitors;
+    protected $expressionParser;
+    protected $blocks;
+    protected $blockStack;
+    protected $macros;
+    protected $env;
+    protected $reservedMacroNames;
+    protected $importedSymbols;
+    protected $traits;
+    protected $embeddedTemplates = array();
 
     public function __construct(Twig_Environment $env)
     {
         $this->env = $env;
+    }
+
+    /**
+     * @deprecated since 1.27 (to be removed in 2.0)
+     */
+    public function getEnvironment()
+    {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 1.27 and will be removed in 2.0.', E_USER_DEPRECATED);
+
+        return $this->env;
     }
 
     public function getVarName()
@@ -41,20 +52,33 @@ class Twig_Parser
         return sprintf('__internal_%s', hash('sha256', uniqid(mt_rand(), true), false));
     }
 
+    /**
+     * @deprecated since 1.27 (to be removed in 2.0). Use $parser->getStream()->getSourceContext()->getPath() instead.
+     */
+    public function getFilename()
+    {
+        @trigger_error(sprintf('The "%s" method is deprecated since version 1.27 and will be removed in 2.0. Use $parser->getStream()->getSourceContext()->getPath() instead.', __METHOD__), E_USER_DEPRECATED);
+
+        return $this->stream->getSourceContext()->getName();
+    }
+
     public function parse(Twig_TokenStream $stream, $test = null, $dropNeedle = false)
     {
-        $vars = get_object_vars($this);
+        // push all variables into the stack to keep the current state of the parser
+        // using get_object_vars() instead of foreach would lead to https://bugs.php.net/71336
+        // This hack can be removed when min version if PHP 7.0
+        $vars = array();
+        foreach ($this as $k => $v) {
+            $vars[$k] = $v;
+        }
+
         unset($vars['stack'], $vars['env'], $vars['handlers'], $vars['visitors'], $vars['expressionParser'], $vars['reservedMacroNames']);
         $this->stack[] = $vars;
 
         // tag handlers
         if (null === $this->handlers) {
-            $this->handlers = array();
-            foreach ($this->env->getTokenParsers() as $handler) {
-                $handler->setParser($this);
-
-                $this->handlers[$handler->getTag()] = $handler;
-            }
+            $this->handlers = $this->env->getTokenParsers();
+            $this->handlers->setParser($this);
         }
 
         // node visitors
@@ -133,7 +157,7 @@ class Twig_Parser
                         throw new Twig_Error_Syntax('A block must start with a tag name.', $token->getLine(), $this->stream->getSourceContext());
                     }
 
-                    if (null !== $test && $test($token)) {
+                    if (null !== $test && call_user_func($test, $token)) {
                         if ($dropNeedle) {
                             $this->stream->next();
                         }
@@ -145,7 +169,8 @@ class Twig_Parser
                         return new Twig_Node($rv, array(), $lineno);
                     }
 
-                    if (!isset($this->handlers[$token->getValue()])) {
+                    $subparser = $this->handlers->getTokenParser($token->getValue());
+                    if (null === $subparser) {
                         if (null !== $test) {
                             $e = new Twig_Error_Syntax(sprintf('Unexpected "%s" tag', $token->getValue()), $token->getLine(), $this->stream->getSourceContext());
 
@@ -162,7 +187,6 @@ class Twig_Parser
 
                     $this->stream->next();
 
-                    $subparser = $this->handlers[$token->getValue()];
                     $node = $subparser->parse($token);
                     if (null !== $node) {
                         $rv[] = $node;
@@ -179,6 +203,26 @@ class Twig_Parser
         }
 
         return new Twig_Node($rv, array(), $lineno);
+    }
+
+    /**
+     * @deprecated since 1.27 (to be removed in 2.0)
+     */
+    public function addHandler($name, $class)
+    {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 1.27 and will be removed in 2.0.', E_USER_DEPRECATED);
+
+        $this->handlers[$name] = $class;
+    }
+
+    /**
+     * @deprecated since 1.27 (to be removed in 2.0)
+     */
+    public function addNodeVisitor(Twig_NodeVisitorInterface $visitor)
+    {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 1.27 and will be removed in 2.0.', E_USER_DEPRECATED);
+
+        $this->visitors[] = $visitor;
     }
 
     public function getBlockStack()
@@ -223,12 +267,28 @@ class Twig_Parser
 
     public function setMacro($name, Twig_Node_Macro $node)
     {
+        if ($this->isReservedMacroName($name)) {
+            throw new Twig_Error_Syntax(sprintf('"%s" cannot be used as a macro name as it is a reserved keyword.', $name), $node->getTemplateLine(), $this->stream->getSourceContext());
+        }
+
         $this->macros[$name] = $node;
     }
 
     public function isReservedMacroName($name)
     {
-        return false;
+        if (null === $this->reservedMacroNames) {
+            $this->reservedMacroNames = array();
+            $r = new ReflectionClass($this->env->getBaseTemplateClass());
+            foreach ($r->getMethods() as $method) {
+                $methodName = strtolower($method->getName());
+
+                if ('get' === substr($methodName, 0, 3) && isset($methodName[3])) {
+                    $this->reservedMacroNames[] = substr($methodName, 3);
+                }
+            }
+        }
+
+        return in_array(strtolower($name), $this->reservedMacroNames);
     }
 
     public function addTrait($trait)
@@ -311,7 +371,7 @@ class Twig_Parser
         return $this->stream->getCurrent();
     }
 
-    private function filterBodyNodes(Twig_Node $node)
+    protected function filterBodyNodes(Twig_NodeInterface $node)
     {
         // check that the body does not contain non-empty output nodes
         if (

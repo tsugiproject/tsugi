@@ -12,6 +12,27 @@
 class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
 {
     /**
+     * @group legacy
+     */
+    public function testGetSource()
+    {
+        $loader = new Twig_Loader_Array(array('foo' => 'bar'));
+
+        $this->assertEquals('bar', $loader->getSource('foo'));
+    }
+
+    /**
+     * @group legacy
+     * @expectedException Twig_Error_Loader
+     */
+    public function testGetSourceWhenTemplateDoesNotExist()
+    {
+        $loader = new Twig_Loader_Array(array());
+
+        $loader->getSource('foo');
+    }
+
+    /**
      * @expectedException Twig_Error_Loader
      */
     public function testGetSourceContextWhenTemplateDoesNotExist()
@@ -82,5 +103,35 @@ class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
         $loader = new Twig_Loader_Array(array());
 
         $loader->isFresh('foo', time());
+    }
+
+    public function testTemplateReference()
+    {
+        $name = new Twig_Test_Loader_TemplateReference('foo');
+        $loader = new Twig_Loader_Array(array('foo' => 'bar'));
+
+        $loader->getCacheKey($name);
+        $loader->getSourceContext($name);
+        $loader->isFresh($name, time());
+        $loader->setTemplate($name, 'foo:bar');
+
+        // add a dummy assertion here to satisfy PHPUnit, the only thing we want to test is that the code above
+        // can be executed without crashing PHP
+        $this->addToAssertionCount(1);
+    }
+}
+
+class Twig_Test_Loader_TemplateReference
+{
+    private $name;
+
+    public function __construct($name)
+    {
+        $this->name = $name;
+    }
+
+    public function __toString()
+    {
+        return $this->name;
     }
 }
