@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "9e4e7a11689557b811f6e920cc27b8e3",
-    "content-hash": "5fd05577bebcc2b2819660a2d1122be4",
+    "hash": "d1460cebc456b5a065c1360a32a76024",
+    "content-hash": "5c270646714a88a29faba01c96cdd027",
     "packages": [
         {
             "name": "koseu/lib",
@@ -25,7 +25,8 @@
                 "php": ">=5.5.0",
                 "silex/silex": "v2.0.4",
                 "symfony/translation": "v3.2.7",
-                "tsugi/lib": ">=0.3.1"
+                "tsugi/lib": ">=0.3.1",
+                "twig/twig": "~1.27"
             },
             "type": "library",
             "autoload": {
@@ -688,12 +689,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "0e35261c90f7571bd86d96146839637546f35a1f"
+                "reference": "f1b6869765d22effe06c946e1aca3ab558f9e9a2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/0e35261c90f7571bd86d96146839637546f35a1f",
-                "reference": "0e35261c90f7571bd86d96146839637546f35a1f",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f1b6869765d22effe06c946e1aca3ab558f9e9a2",
+                "reference": "f1b6869765d22effe06c946e1aca3ab558f9e9a2",
                 "shasum": ""
             },
             "require": {

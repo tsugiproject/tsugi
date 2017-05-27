@@ -7,7 +7,14 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 setcookie("adminmenu","true", time()+365*24*60*60, "/");
 
-\Tsugi\Core\LTIX::getConnection();
+require_once("sanity.php");
+$PDOX = false;
+try {
+    define('PDO_WILL_CATCH', true);
+    $PDOX = \Tsugi\Core\LTIX::getConnection();
+} catch(\PDOException $ex){
+    $PDOX = false;  // sanity-db-will re-check this below
+}
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

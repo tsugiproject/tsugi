@@ -73,6 +73,8 @@ array( "{$CFG->dbprefix}lti_context",
     settings_url        TEXT NULL,
     ext_memberships_id  TEXT NULL,
     ext_memberships_url TEXT NULL,
+    memberships_url     TEXT NULL,  
+    lineitems_url       TEXT NULL,  
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
@@ -670,9 +672,21 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    if ( $oldversion < 201705270934 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD lineitems_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD memberships_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201705211839;
+    return 201705270934;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
