@@ -207,6 +207,19 @@ if (window!=window.top) {
         echo($ob_output);
     }
 
+    /**
+     * templateInclude - Include a handlebars template, dealing with i18n
+     *
+     * This is a normal handlebars template except we can ask for a translation
+     * of text as follows:
+     *
+     *    ...
+     *    {{__ 'Hello world' }}
+     *    ...
+     *
+     * The i18n replacement will be handled in the server in the template.  Single
+     * or Double quotes can be used.
+     */
     function templateInclude($name) {
         if ( is_array($name) ) {
             foreach($name as $n) {
@@ -215,7 +228,15 @@ if (window!=window.top) {
             return;
         }
         echo('<script id="template-'.$name.'" type="text/x-handlebars-template">'."\n");
-        require('templates/'.$name.'.hbs');
+        $template = file_get_contents('templates/'.$name.'.hbs');
+        $new = preg_replace_callback(
+            '|{{__ *[\'"]([^\'"]*)[\'"].*?}}|',
+            function ($matches) {
+                return __(htmlent_utf8(trim($matches[1])));
+            },
+            $template
+        );
+        echo($new);
         echo("</script>\n");
     }
 
