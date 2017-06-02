@@ -229,9 +229,14 @@ if (function_exists('bindtextdomain')) {
 
 // Set up the user's locale
 if ( function_exists('bindtextdomain') && function_exists('textdomain') && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
+	$locale = null;
     if ( class_exists('Locale') ) {
-        $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
-    } else { // Crude fallback if it is missing
+    	try {
+    		// Symfony may implement a stub for this function that throws an exception
+	        $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+	    } catch (exception $e) { }
+    } 
+    if ($locale === null) { // Crude fallback if we can't use Locale::acceptFromHttp
         $pieces = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
         $locale = $pieces[0];
     }

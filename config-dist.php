@@ -189,6 +189,18 @@ $CFG->universal_analytics = false; // "UA-57880800-1";
 
 $CFG->OFFLINE = false;
 
+// IMS says that resource_link_id, lti_message_type, and lti_version are required fields, 
+// and IMS certification fails if we allow a valid launch when either 
+// of these are not sent (even though in many instances, an application 
+// can happily do what it needs to do without them). 
+// Set these to true to make launches fail when either/both are not sent.
+$CFG->require_conformance_parameters = true;
+
+// A consumer may pass both the LTI 1 lis_outcome_service_url 
+// and the LTI 2 custom_result_url; in this case we have to decide which
+// to use for the gradeSend service.  The LTI 1 method is more established...
+$CFG->prefer_lti1_for_grade_send = true;
+
 // In order to run git from the a PHP script, we may need a setuid version
 // of git - example commands:
 //
