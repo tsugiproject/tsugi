@@ -28,12 +28,22 @@ class LTI {
         if ( $request_data === false ) $rquest_data = $_REQUEST;
         if ( !isset($request_data["lti_message_type"]) ) return false;
         if ( !isset($request_data["lti_version"]) ) return false;
-        $good_message_type = $request_data["lti_message_type"] == "basic-lti-launch-request" ||
-            $request_data["lti_message_type"] == "ToolProxyReregistrationRequest" ||
-            $request_data["lti_message_type"] == "ContentItemSelectionRequest";
-        $good_lti_version = $request_data["lti_version"] == "LTI-1p0" || $request_data["lti_version"] == "LTI-2p0";
+        $good_message_type = self::isValidMessageType($request_data["lti_message_type"]);
+        $good_lti_version = self::isValidVersion($request_data["lti_version"]);
         if ($good_message_type and $good_lti_version ) return(true);
         return false;
+    }
+    
+    // Returns true if the lti_message_type is valid
+    public static function isValidMessageType($lti_message_type=false) {
+        return ($lti_message_type == "basic-lti-launch-request" ||
+            $lti_message_type == "ToolProxyReregistrationRequest" ||
+            $lti_message_type == "ContentItemSelectionRequest");
+    }
+    
+    // Returns true if the lti_version is valid
+    public static function isValidVersion($lti_version=false) {
+        return ($lti_version == "LTI-1p0" || $lti_version == "LTI-2p0");
     }
 
     /**
@@ -698,7 +708,7 @@ class LTI {
             throw new \Exception('Error: Unable to parse XML response' . $e->getMessage());
         }
 
-        if ( $operation == 'readResultResponse' ) {
+        if ( $operation == 'readResultResponse' && isset($parms->result) && isset($parms->result->resultScore) ) {
            try {
                $retval['language'] =(string) $parms->result->resultScore->language;
                $retval['textString'] = (string) $parms->result->resultScore->textString;
