@@ -64,9 +64,37 @@ class LTIX {
      * back to ourselves
      */
     public static function launchCheck($needed=self::ALL, $session_object=null,$request_data=false) {
-        global $TSUGI_LAUNCH;
+        global $TSUGI_LAUNCH, $CFG;
         if ( $request_data === false ) $request_data = self::oauth_parameters();
         $needed = self::patchNeeded($needed);
+
+        // Check for require_conformance_parameters for IMS certification if specified
+        if ($CFG->require_conformance_parameters === true) {
+            // assume that we're *trying* to launch lti if a oauth_nonce has been passed in
+            // (this seems somewhat questionable, but it's what the IMS cert suite seems to imply)
+            if (isset($request_data["oauth_nonce"])) {
+                
+                // check to make sure required params lti_message_type, lti_version, and resource_link_id are present
+                if (!isset($request_data["lti_version"])) {
+                    self::abort_with_error_log('Missing lti_version from POST data');
+                }
+                if (!isset($request_data["lti_message_type"])) {
+                    self::abort_with_error_log('Missing lti_message_type from POST data');
+                }
+                if (!isset($request_data["resource_link_id"])) {
+                    self::abort_with_error_log('Missing resource_link_id from POST data');
+                }
+                
+                // make sure lti_version and lti_message_type are valid
+                if (! LTI::isValidVersion($request_data["lti_version"]) ) {
+                    self::abort_with_error_log('Invalid lti_version: ' . $request_data["lti_version"]);
+                }
+                if (! LTI::isValidMessageType($request_data["lti_message_type"]) ) {
+                    self::abort_with_error_log('Invalid lti_message_type: ' . $request_data["lti_message_type"]);
+                }
+            }
+        }
+
         if ( ! LTI::isRequest($request_data) ) return false;
         $session_id = self::setupSession($needed,$session_object,$request_data);
         if ( $session_id === false ) return false;
@@ -320,8 +348,12 @@ class LTIX {
             if ( !defined('COOKIE_SESSION') ) {
                 $session_id = self::getCompositeKey($post, $CFG->sessionsalt);
                 session_id($session_id);
+                session_start();
+            // if we're using a cookie session, the session may already have been started; if not, start it now
+            // (if we call session_start() and the session has already been started, php will generate a notice, which we don't want)
+            } else if (empty($_SESSION)) {
+                session_start();
             }
-            session_start();
             $session_id = session_id();
 
             // TODO: Why was this here?
@@ -687,7 +719,8 @@ class LTIX {
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $actions = array();
-        if ( $row['context_id'] === null) {
+        // if we didn't get context_id from post, we can't update lti_context!
+        if ( $row['context_id'] === null && isset($post['context_id']) ) {
             $sql = "INSERT INTO {$p}lti_context
                 ( context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
                 ( :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )";
@@ -703,7 +736,8 @@ class LTIX {
             $actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title'];
         }
 
-        if ( $row['link_id'] === null && isset($post['link_id']) ) {
+        // if we didn't get context_id from post, we can't update lti_link either
+        if ( $row['link_id'] === null && $row['context_id'] !== null && isset($post['link_id']) ) {
             $sql = "INSERT INTO {$p}lti_link
                 ( link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
                     ( :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )";
@@ -1716,6 +1750,8 @@ class LTIX {
     private static function abort_with_error_log($msg, $extra=false, $prefix="DIE:") {
         $return_url = isset($_POST['launch_presentation_return_url']) ? $_POST['launch_presentation_return_url'] : null;
         if ($return_url === null) {
+            // make the msg a bit friendlier
+            $msg = "The LTI launch failed. Please reference the following error message when reporting this failure:<br><br>$msg";
             die_with_error_log($msg,$extra,$prefix);
         }
         $return_url .= ( strpos($return_url,'?') > 0 ) ? '&' : '?';

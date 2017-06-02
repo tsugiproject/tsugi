@@ -201,8 +201,11 @@ class Result extends Entity {
 
         // TODO: Fix this
         $comment = "";
-        if ( strlen($result_url) > 0 ) {
+        // If we have a result_url and either ($CFG->prefer_lti1_for_grade_send is false or we don't have a $service),
+        // use result_url to send the grade
+        if ( strlen($result_url) > 0 && ($CFG->prefer_lti1_for_grade_send === false || $service === false) ) {
             $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log);
+        // Otherwise use the more established service call
         } else if ( $sourcedid !== false && $service !== false ) {
             $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
         } else {
