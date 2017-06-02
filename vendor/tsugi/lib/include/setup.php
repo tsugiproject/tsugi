@@ -71,6 +71,10 @@ if ( !isset($CFG->apphome) ) $CFG->apphome = $CFG->wwwroot;
 
 if ( !isset($CFG->google_translate) ) $CFG->google_translate = false;
 
+// Certification hacks
+if ( !isset($CFG->require_conformance_parameters) ) $CFG->require_conformance_parameters = true;
+if ( !isset($CFG->prefer_lti1_for_grade_send) ) $CFG->prefer_lti1_for_grade_send = true;
+
 // Set this to the temporary folder if not set - dev only
 if ( ! isset($CFG->dataroot) ) {
     $tmp = sys_get_temp_dir();
@@ -229,12 +233,12 @@ if (function_exists('bindtextdomain')) {
 
 // Set up the user's locale
 if ( function_exists('bindtextdomain') && function_exists('textdomain') && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
-	$locale = null;
+    $locale = null;
     if ( class_exists('Locale') ) {
-    	try {
-    		// Symfony may implement a stub for this function that throws an exception
-	        $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
-	    } catch (exception $e) { }
+        try {
+            // Symfony may implement a stub for this function that throws an exception
+            $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+        } catch (exception $e) { }
     } 
     if ($locale === null) { // Crude fallback if we can't use Locale::acceptFromHttp
         $pieces = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);

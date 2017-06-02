@@ -1,5 +1,6 @@
 <?php
 
+
 // Configuration file - copy from config-dist.php to config.php
 // and then edit.  Since config.php has passwords and other secrets
 // never check config.php into a source repository

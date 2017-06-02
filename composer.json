@@ -1,7 +1,12 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#bdd2504aeea1df7f2f6eb319b3f5b42b04ab8632",
+        "tsugi/lib": "dev-master#755b8d70a1388c3b3b65af4e873e346e2dce87b9",
         "twig/twig": "~1.27",
+        "symfony/debug": "v3.2.8",
+        "symfony/http-foundation": "v3.2.8",
+        "symfony/event-dispatcher": "v3.2.8",
+        "symfony/http-kernel": "v3.2.8",
+        "symfony/routing": "v3.2.8",
         "koseu/lib": "dev-master#02a23a578467ddc79d9bb0bcda329105a0b20fb8"
     },
     "config": {
