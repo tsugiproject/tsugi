@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#755b8d70a1388c3b3b65af4e873e346e2dce87b9",
+        "tsugi/lib": "dev-master#d2c81d591783bc3163a3176c7f6f66ea1576c3bc",
         "twig/twig": "~1.27",
         "symfony/debug": "v3.2.8",
         "symfony/http-foundation": "v3.2.8",

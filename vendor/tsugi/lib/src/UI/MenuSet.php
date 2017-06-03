@@ -110,8 +110,8 @@ class MenuSet {
             // print_r($json);
             $retval = new MenuSet();
             $retval->home = new \Tsugi\UI\MenuEntry($json->home->link, $json->home->href);
-            $retval->left = self::importRecurse($json->left, 0);
-            $retval->right = self::importRecurse($json->right, 0);
+            if ( isset($json->left) ) $retval->left = self::importRecurse($json->left, 0);
+            if ( isset($json->right) ) $retval->right = self::importRecurse($json->right, 0);
             return $retval;
         } catch (Exception $e) {
             return false;
