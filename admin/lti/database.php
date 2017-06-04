@@ -22,7 +22,7 @@ array( "{$CFG->dbprefix}lti_key",
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
     key_sha256          CHAR(64) NOT NULL UNIQUE,
     key_key             TEXT NOT NULL,
-    active              TINYINT,
+    deleted             BIT,
 
     secret              TEXT NULL,
     new_secret          TEXT NULL,
@@ -58,7 +58,7 @@ array( "{$CFG->dbprefix}lti_context",
     context_id          INTEGER NOT NULL AUTO_INCREMENT,
     context_sha256      CHAR(64) NOT NULL,
     context_key         TEXT NOT NULL,
-    active              TINYINT,
+    deleted             BIT,
 
     key_id              INTEGER NOT NULL,
 
@@ -93,7 +93,7 @@ array( "{$CFG->dbprefix}lti_link",
     link_id             INTEGER NOT NULL AUTO_INCREMENT,
     link_sha256         CHAR(64) NOT NULL,
     link_key            TEXT NOT NULL,
-    active              TINYINT,
+    deleted             BIT,
 
     context_id          INTEGER NOT NULL,
 
@@ -122,7 +122,7 @@ array( "{$CFG->dbprefix}lti_user",
     user_id             INTEGER NOT NULL AUTO_INCREMENT,
     user_sha256         CHAR(64) NOT NULL,
     user_key            TEXT NOT NULL,
-    active              TINYINT,
+    deleted             BIT,
 
     key_id              INTEGER NOT NULL,
     profile_id          INTEGER NULL,
@@ -157,7 +157,7 @@ array( "{$CFG->dbprefix}lti_membership",
     context_id          INTEGER NOT NULL,
     user_id             INTEGER NOT NULL,
 
-    active              TINYINT,
+    deleted             BIT,
 
     role                SMALLINT NULL,
     role_override       SMALLINT NULL,
@@ -187,7 +187,7 @@ array( "{$CFG->dbprefix}lti_service",
     service_id          INTEGER NOT NULL AUTO_INCREMENT,
     service_sha256      CHAR(64) NOT NULL,
     service_key         TEXT NOT NULL,
-    active              TINYINT,
+    deleted             BIT,
 
     key_id              INTEGER NOT NULL,
 
@@ -215,7 +215,7 @@ array( "{$CFG->dbprefix}lti_result",
     result_id          INTEGER NOT NULL AUTO_INCREMENT,
     link_id            INTEGER NOT NULL,
     user_id            INTEGER NOT NULL,
-    active             TINYINT,
+    deleted            BIT,
 
     result_url         TEXT NULL,
 
@@ -273,7 +273,7 @@ array( "{$CFG->dbprefix}lti_domain",
     domain_id   INTEGER NOT NULL AUTO_INCREMENT,
     key_id      INTEGER NOT NULL,
     context_id  INTEGER NULL,
-    active      TINYINT,
+    deleted     BIT,
     domain      VARCHAR(128),
     port        INTEGER NULL,
     consumer_key  TEXT,
@@ -303,7 +303,7 @@ array( "{$CFG->dbprefix}profile",
     profile_id          INTEGER NOT NULL AUTO_INCREMENT,
     profile_sha256      CHAR(64) NOT NULL UNIQUE,
     profile_key         TEXT NOT NULL,
-    active              TINYINT,
+    deleted             BIT,
 
     key_id              INTEGER NOT NULL,
 
@@ -683,11 +683,27 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    // TODO: Rename active to deleleted
+    // Change active columns to "deleted"
+    if ( $oldversion < 201706030959 ) {
+        $tables = array( 'lti_key', 'lti_context', 'lti_link', 'lti_user',
+            'lti_membership', 'lti_service', 'lti_result', 'lti_domain',
+             'profile');
+        foreach($tables as $table) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} ADD deleted BIT";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} DROP active";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+        }
+    }
+
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201705270934;
+    return 201706030959;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
