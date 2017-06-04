@@ -139,7 +139,7 @@ array( "{$CFG->dbprefix}lti_user",
     ipaddr              VARCHAR(64),
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -166,7 +166,7 @@ array( "{$CFG->dbprefix}lti_membership",
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
     CONSTRAINT `{$CFG->dbprefix}lti_membership_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -196,7 +196,7 @@ array( "{$CFG->dbprefix}lti_service",
     json                MEDIUMTEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
     CONSTRAINT `{$CFG->dbprefix}lti_service_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -215,7 +215,7 @@ array( "{$CFG->dbprefix}lti_result",
     result_id          INTEGER NOT NULL AUTO_INCREMENT,
     link_id            INTEGER NOT NULL,
     user_id            INTEGER NOT NULL,
-    active              TINYINT,
+    active             TINYINT,
 
     result_url         TEXT NULL,
 
@@ -231,7 +231,7 @@ array( "{$CFG->dbprefix}lti_result",
     json               MEDIUMTEXT NULL,
     entity_version     INTEGER NOT NULL DEFAULT 0,
     created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
     retrieved_at       DATETIME NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_result_ibfk_1`
@@ -273,7 +273,7 @@ array( "{$CFG->dbprefix}lti_domain",
     domain_id   INTEGER NOT NULL AUTO_INCREMENT,
     key_id      INTEGER NOT NULL,
     context_id  INTEGER NULL,
-    active              TINYINT,
+    active      TINYINT,
     domain      VARCHAR(128),
     port        INTEGER NULL,
     consumer_key  TEXT,
@@ -317,7 +317,7 @@ array( "{$CFG->dbprefix}profile",
     login_at            DATETIME NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
     UNIQUE(profile_id, profile_sha256),
     PRIMARY KEY (profile_id)
@@ -683,6 +683,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // TODO: Rename active to deleleted
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
