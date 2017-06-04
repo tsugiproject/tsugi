@@ -19,7 +19,6 @@ class Profile {
         $app->post($prefix, 'Tsugi\\Controllers\\Profile::post');
         $app->post($prefix.'/', 'Tsugi\\Controllers\\Profile::post');
     }
-
     public function get(Request $request, Application $app)
     {
         global $CFG, $PDOX, $OUTPUT;
@@ -57,8 +56,8 @@ class Profile {
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
-        if ( isset($CFG->google_map_api_key) && ! $CFG->OFFLINE ) {
-            ?>
+
+        if ( isset($CFG->google_map_api_key) && ! $CFG->OFFLINE ) { ?>
                 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=<?= $CFG->google_map_api_key ?>"></script>
                 <script type="text/javascript">
                 var map;
@@ -86,7 +85,7 @@ google.maps.event.addListener(marker, 'dragend', function (event) {
         });
 
 }
-<?php } else { // OFFLINE ?>
+<?php } else { ?>
     <script type="text/javascript">
         var map;
 
@@ -97,22 +96,6 @@ google.maps.event.addListener(marker, 'dragend', function (event) {
     </script>
     <div class="container">
     <?php
-
-    function radio($var, $num, $val) {
-        $ret =  '<input type="radio" name="'.$var.'" id="'.$var.$num.'" value="'.$num.'" ';
-        if ( $num == $val ) $ret .= ' checked ';
-        echo($ret);
-    }
-
-function option($num, $val) {
-    echo(' value="'.$num.'" ');
-    if ( $num == $val ) echo(' selected ');
-}
-
-function checkbox($val) {
-    echo(' value="1" ');
-    if ( $val == 1 ) echo(' checked ');
-}
 
 echo('<h4>');echo($_SESSION['displayname']);
 echo(' ('.$_SESSION['email'].")</h4>\n");
@@ -128,19 +111,19 @@ echo(' ('.$_SESSION['email'].")</h4>\n");
         <div class="controls">
         How much mail would you like us to send?
         <label class="radio">
-        <?php radio('subscribe',-1,$subscribe) ?> >
+        <?php self::radio('subscribe',-1,$subscribe); ?> >
         No mail will be sent.
         </label>
         <label class="radio">
-        <?php radio('subscribe',0,$subscribe) ?> >
+        <?php self::radio('subscribe',0,$subscribe); ?> >
         Keep the mail level as low as possible.
         </label>
         <label class="radio">
-<?php radio('subscribe',1,$subscribe) ?> >
+<?php self::radio('subscribe',1,$subscribe); ?> >
 Send only announcements.
 </label>
 <label class="radio">
-<?php radio('subscribe',2,$subscribe) ?> >
+<?php self::radio('subscribe',2,$subscribe); ?> >
 Send me notification mail for important things like my assignment was graded.
 </label>
 </div>
@@ -151,9 +134,9 @@ Send me notification mail for important things like my assignment was graded.
         How would you like to be shown in maps.<br/>
         <select name="map">
         <option value="0">--- Please Select ---</option>
-        <option <?php option(1,$map); ?>>Don't show me at all</option>
-        <option <?php option(2,$map); ?>>Show only my location with no identifying information</option>
-        <option <?php option(3,$map); ?>>Show my name (<?php echo($_SESSION['displayname']); ?>)</option>
+        <option <?php self::option(1,$map); ?>>Don't show me at all</option>
+        <option <?php self::option(2,$map); ?>>Show only my location with no identifying information</option>
+        <option <?php self::option(3,$map); ?>>Show my name (<?php echo($_SESSION['displayname']); ?>)</option>
         </select>
         <p>
         Move the pointer on the map below until it is at the correct location.
@@ -191,12 +174,25 @@ Send me notification mail for important things like my assignment was graded.
         <script type="text/javascript">
         $(document).ready(function() { initialize(); } );
         </script>
-        <?
+        <?php
         $OUTPUT->footerEnd();
-
-
         return "";
-        // return $app['twig']->render('@Tsugi/Profile.twig', $context);
+    }
+
+    public static function radio($var, $num, $val) {
+        $ret =  '<input type="radio" name="'.$var.'" id="'.$var.$num.'" value="'.$num.'" ';
+        if ( $num == $val ) $ret .= ' checked ';
+        echo($ret);
+    }
+
+    public static function option($num, $val) {
+        echo(' value="'.$num.'" ');
+        if ( $num == $val ) echo(' selected ');
+    }
+
+    public static function checkbox($val) {
+        echo(' value="1" ');
+        if ( $val == 1 ) echo(' checked ');
     }
 
     public function post(Request $request, Application $app)
@@ -239,3 +235,4 @@ Send me notification mail for important things like my assignment was graded.
         return $app->redirect($home);
     }
 }
+
