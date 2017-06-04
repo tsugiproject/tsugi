@@ -1,7 +1,3 @@
-<IfModule mod_negotiation.c>
-    Options -MultiViews
-</IfModule>
-
 <IfModule mod_rewrite.c>
     RewriteEngine on
     RewriteRule ^ - [E=protossl]
