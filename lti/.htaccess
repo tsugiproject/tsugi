@@ -2,6 +2,11 @@
 # http://httpd.apache.org/docs/2.2/mod/mod_dir.html#fallbackresource
 # https://www.drupal.org/node/2669174
 
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+
 <IfModule mod_rewrite.c>
     RewriteEngine on
     RewriteRule ^ - [E=protossl]

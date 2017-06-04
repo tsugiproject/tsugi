@@ -1,15 +1,19 @@
-    <IfModule mod_rewrite.c>
-        RewriteEngine on
-        RewriteRule ^ - [E=protossl]
-        RewriteCond %{HTTPS} on
-        RewriteRule ^ - [E=protossl:s]
-        RewriteRule "(^|/)\." - [F]
-        RewriteCond %{REQUEST_FILENAME} !-f
-        RewriteCond %{REQUEST_FILENAME} !-d
-        RewriteCond %{REQUEST_URI} !=/favicon.ico
-        RewriteRule ^ route.php [L]
-    </IfModule>
-    
-    <IfModule !mod_rewrite.c>
-        FallbackResource route.php
-    </IfModule>
+<IfModule mod_negotiation.c>
+   Options -MultiViews
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteRule ^ - [E=protossl]
+    RewriteCond %{HTTPS} on
+    RewriteRule ^ - [E=protossl:s]
+    RewriteRule "(^|/)\." - [F]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !=/favicon.ico
+    RewriteRule ^ route.php [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    FallbackResource route.php
+</IfModule>
