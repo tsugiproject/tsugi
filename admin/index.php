@@ -30,7 +30,7 @@ require_once("sanity-db.php");
 <li>
   <a href="upgrade" title="Upgrade Database" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
-  Ugrade Database 
+  Upgrade Database 
   </a>
 <li>
   <a href="nonce" title="Check Nonces" target="iframe-frame"
