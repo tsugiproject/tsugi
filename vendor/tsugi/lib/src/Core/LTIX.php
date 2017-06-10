@@ -679,6 +679,8 @@ class LTIX {
         }
 
         // Add the WHERE clause
+        // TODO: Fix this per SO - but wait until the migrations have run in production
+        // https://stackoverflow.com/questions/44474250/which-is-better-in-mysql-an-ifnull-or-or-logic/44474286
         $sql .= "\nWHERE k.key_sha256 = :key
             AND (k.deleted IS NULL OR k.deleted = 0)
             AND (c.deleted IS NULL OR c.deleted = 0)
