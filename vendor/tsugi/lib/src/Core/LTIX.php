@@ -73,7 +73,7 @@ class LTIX {
             // assume that we're *trying* to launch lti if a oauth_nonce has been passed in
             // (this seems somewhat questionable, but it's what the IMS cert suite seems to imply)
             if (isset($request_data["oauth_nonce"])) {
-                
+
                 // check to make sure required params lti_message_type, lti_version, and resource_link_id are present
                 if (!isset($request_data["lti_version"])) {
                     self::abort_with_error_log('Missing lti_version from POST data');
@@ -84,7 +84,7 @@ class LTIX {
                 if (!isset($request_data["resource_link_id"])) {
                     self::abort_with_error_log('Missing resource_link_id from POST data');
                 }
-                
+
                 // make sure lti_version and lti_message_type are valid
                 if (! LTI::isValidVersion($request_data["lti_version"]) ) {
                     self::abort_with_error_log('Invalid lti_version: ' . $request_data["lti_version"]);
@@ -637,6 +637,8 @@ class LTIX {
         $PDOX = self::getConnection();
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
+        // Add the fields
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, c.settings_url AS key_settings_url,
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
@@ -657,6 +659,7 @@ class LTIX {
             s.service_id, s.service_key AS service";
         }
 
+        // Add the JOINs
         $sql .="\nFROM {$p}lti_key AS k
             LEFT JOIN {$p}lti_nonce AS n ON k.key_id = n.key_id AND n.nonce = :nonce
             LEFT JOIN {$p}lti_context AS c ON k.key_id = c.key_id AND c.context_sha256 = :context
@@ -675,9 +678,30 @@ class LTIX {
             LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service";
         }
 
-        $sql .= "\nWHERE k.key_sha256 = :key LIMIT 1\n";
+        // Add the WHERE clause
+        $sql .= "\nWHERE k.key_sha256 = :key
+            AND (k.deleted IS NULL OR k.deleted = 0)
+            AND (c.deleted IS NULL OR c.deleted = 0)
+            AND (l.deleted IS NULL OR l.deleted = 0)
+            AND (u.deleted IS NULL OR u.deleted = 0)
+            AND (m.deleted IS NULL OR m.deleted = 0)
+            AND (r.deleted IS NULL OR r.deleted = 0)";
 
-        // echo($sql);
+        if ( $profile_table ) {
+            $sql .= "
+            AND (p.deleted IS NULL OR p.deleted = 0)";
+        }
+
+        if ( $post['service'] ) {
+            $sql .= "
+            AND (s.deleted IS NULL OR s.deleted = 0)";
+        }
+
+        // There should only be one :)
+
+        $sql .= "
+            LIMIT 1\n";
+
         $parms = array(
             ':key' => lti_sha256($post['key']),
             ':nonce' => substr($post['nonce'],0,128),
@@ -689,6 +713,7 @@ class LTIX {
             $parms[':service'] = lti_sha256($post['service']);
         }
 
+        // die($sql);
         $row = $PDOX->rowDie($sql, $parms);
 
         // Restore ERRMODE
@@ -1428,7 +1453,7 @@ class LTIX {
     }
 
     /**
-     * curPageUrlFolder - Returns the URL to the folder currently executing 
+     * curPageUrlFolder - Returns the URL to the folder currently executing
      *
      * This is useful when rest-style files want to link back to "index.php"
      * Note - this will not go up to a parent.
@@ -1518,7 +1543,7 @@ class LTIX {
     // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
     private static function checkHeartBeat($session_object=null) {
         global $CFG;
-        
+
         if ( session_id() == "" ) return;  // This should not start the session
 
         if ( isset($CFG->sessionlifetime) ) {
