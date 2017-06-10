@@ -429,6 +429,7 @@ if ( false && in_array('ContentItemSelectionRequest', $tc_capabilities) ) {
                 $icons[] = $icon_info;
 
             // BUG: Moodle crashes on icons with absolute paths
+            // https://tracker.moodle.org/browse/MDL-58216
             // Moodle crashes with "invalidresponse" message (yes no space) on absolute paths
             // Interestingly, Moodle also seems to not handle "IconEndpoint" selectors either
             // So leaving the the icon off completely is the best plan for Moodle currently
