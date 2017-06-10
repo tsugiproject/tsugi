@@ -67,8 +67,6 @@ echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
         <lticm:property name="url"><?= $CFG->wwwroot ?>/cc/export</lticm:property>
     </lticm:options>
 <?php } ?>
-    <lticm:property name="selection_height">500</lticm:property>
-    <lticm:property name="selection_width">500</lticm:property>
     <lticm:property name="text"><?= htmlent_utf8(strip_tags($CFG->servicename)) ?></lticm:property>
   </blti:extensions>
 </cartridge_basiclti_link><?php
