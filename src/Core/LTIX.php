@@ -567,12 +567,21 @@ class LTIX {
         $retval['link_settings_url'] = isset($FIXED['custom_link_settings_url']) ? $FIXED['custom_link_settings_url'] : null;
         $retval['context_settings_url'] = isset($FIXED['custom_context_settings_url']) ? $FIXED['custom_context_settings_url'] : null;
 
+        // LTI 1.x / 2.x Service endpoints
+        $retval['ext_memberships_id'] = isset($FIXED['ext_memberships_id']) ? $FIXED['ext_memberships_id'] : null;
+        $retval['ext_memberships_url'] = isset($FIXED['ext_memberships_url']) ? $FIXED['ext_memberships_url'] : null;
+        $retval['lineitems_url'] = isset($FIXED['lineitems_url']) ? $FIXED['lineitems_url'] : null;
+        $retval['memberships_url'] = isset($FIXED['memberships_url']) ? $FIXED['memberships_url'] : null;
+
+        // Context
         $retval['context_title'] = isset($FIXED['context_title']) ? $FIXED['context_title'] : null;
         $retval['link_title'] = isset($FIXED['resource_link_title']) ? $FIXED['resource_link_title'] : null;
 
         // Getting email from LTI 1.x and LTI 2.x
         $retval['user_email'] = isset($FIXED['lis_person_contact_email_primary']) ? $FIXED['lis_person_contact_email_primary'] : null;
         $retval['user_email'] = isset($FIXED['custom_person_email_primary']) ? $FIXED['custom_person_email_primary'] : $retval['user_email'];
+
+        $retval['user_image'] = isset($FIXED['user_image']) ? $FIXED['user_image'] : null;
 
         // Displayname from LTI 2.x
         if ( isset($FIXED['person_name_full']) ) {
@@ -642,8 +651,10 @@ class LTIX {
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, c.settings_url AS key_settings_url,
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
+            c.ext_memberships_id AS ext_memberships_id, c.ext_memberships_url AS ext_memberships_url,
+            c.lineitems_url AS lineitems_url, c.memberships_url AS memberships_url,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
-            u.user_id, u.displayname AS user_displayname, u.email AS user_email, user_key,
+            u.user_id, u.displayname AS user_displayname, u.email AS user_email, user_key, u.image AS user_image,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
             m.membership_id, m.role, m.role_override,
             r.result_id, r.grade, r.result_url, r.sourcedid";
@@ -888,7 +899,7 @@ class LTIX {
         }
 
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
-        if ( isset($post['context_title']) && $post['context_title'] != $row['context_title'] ) {
+        if ( isset($row['context_id']) && isset($post['context_title']) && $post['context_title'] != $row['context_title'] ) {
             $sql = "UPDATE {$p}lti_context SET title = :title WHERE context_id = :context_id";
             $PDOX->queryDie($sql, array(
                 ':title' => $post['context_title'],
@@ -897,7 +908,22 @@ class LTIX {
             $actions[] = "=== Updated context=".$row['context_id']." title=".$post['context_title'];
         }
 
-        if ( isset($post['link_title']) && $post['link_title'] != $row['link_title'] ) {
+        // Grab the context scoped service URLs...
+        $context_services = array('ext_memberships_id', 'ext_memberships_url', 'lineitems_url', 'memberships_url');
+        if ( isset($row['context_id']) ) {
+            foreach($context_services as $context_service ) {
+                if ( isset($post[$context_service]) && $post[$context_service] != $row[$context_service] ) {
+                    $sql = "UPDATE {$p}lti_context SET {$context_service} = :value WHERE context_id = :context_id";
+                    $PDOX->queryDie($sql, array(
+                        ':value' => $post[$context_service],
+                        ':context_id' => $row['context_id']));
+                    $row[$context_service] = $post[$context_service];
+                    $actions[] = "=== Updated context=".$row['context_id']." {$context_service}=".$post[$context_service];
+                }
+            }
+        }
+
+        if ( isset($row['link_id']) && isset($post['link_title']) && $post['link_title'] != $row['link_title'] ) {
             $sql = "UPDATE {$p}lti_link SET title = :title WHERE link_id = :link_id";
             $PDOX->queryDie($sql, array(
                 ':title' => $post['link_title'],
@@ -906,7 +932,7 @@ class LTIX {
             $actions[] = "=== Updated link=".$row['link_id']." title=".$post['link_title'];
         }
 
-        if ( isset($post['link_path']) && $post['link_path'] != $row['link_path'] ) {
+        if ( isset($row['link_id']) && isset($post['link_path']) && $post['link_path'] != $row['link_path'] ) {
             $sql = "UPDATE {$p}lti_link SET path = :path WHERE link_id = :link_id";
             $PDOX->queryDie($sql, array(
                 ':path' => $post['link_path'],
@@ -915,25 +941,23 @@ class LTIX {
             $actions[] = "=== Updated link=".$row['link_id']." path=".$post['link_path'];
         }
 
-        if ( isset($post['user_displayname']) && $post['user_displayname'] != $row['user_displayname'] && strlen($post['user_displayname']) > 0 ) {
-            $sql = "UPDATE {$p}lti_user SET displayname = :displayname WHERE user_id = :user_id";
-            $PDOX->queryDie($sql, array(
-                ':displayname' => $post['user_displayname'],
-                ':user_id' => $row['user_id']));
-            $row['user_displayname'] = $post['user_displayname'];
-            $actions[] = "=== Updated user=".$row['user_id']." displayname=".$post['user_displayname'];
+        // Grab the user scoped fields...
+        $user_fields = array('displayname', 'email', 'image');
+        if ( isset($row['user_id']) ) {
+            foreach($user_fields as $u_field ) {
+                $user_field = 'user_'.$u_field;
+                if ( isset($post[$user_field]) && $post[$user_field] != $row[$user_field] && strlen($post[$user_field]) > 0 ) {
+                    $sql = "UPDATE {$p}lti_user SET {$u_field} = :value WHERE user_id = :user_id";
+                    $PDOX->queryDie($sql, array(
+                        ':value' => $post[$user_field],
+                        ':user_id' => $row['user_id']));
+                    $row[$user_field] = $post[$user_field];
+                    $actions[] = "=== Updated user=".$row['user_id']." {$user_field}=".$post[$user_field];
+                }
+            }
         }
 
-        if ( isset($post['user_email']) && $post['user_email'] != $row['user_email'] && strlen($post['user_email']) > 0 ) {
-            $sql = "UPDATE {$p}lti_user SET email = :email WHERE user_id = :user_id";
-            $PDOX->queryDie($sql, array(
-                ':email' => $post['user_email'],
-                ':user_id' => $row['user_id']));
-            $row['user_email'] = $post['user_email'];
-            $actions[] = "=== Updated user=".$row['user_id']." email=".$post['user_email'];
-        }
-
-        if ( isset($post['role']) && $post['role'] != $row['role'] ) {
+        if ( isset($row['membership_id']) && isset($post['role']) && $post['role'] != $row['role'] ) {
             $sql = "UPDATE {$p}lti_membership SET role = :role WHERE membership_id = :membership_id";
             $PDOX->queryDie($sql, array(
                 ':role' => $post['role'],

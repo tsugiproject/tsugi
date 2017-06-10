@@ -207,10 +207,13 @@ if (!function_exists('http_response_code'))
 
 // Convience method, pattern borrowed from WordPress
 function __($message, $textdomain=false) {
-    if ( ! function_exists('gettext')) return $message;
+    global $TSUGI_LOCALE;
+    if ( $TSUGI_LOCALE === null ) return $message;
     if ( $textdomain === false ) {
+        if ( ! function_exists('gettext')) return $message;
         return gettext($message);
     } else {
+        if ( ! function_exists('dgettext')) return $message;
         return dgettext($textdomain, $message);
     }
 }
@@ -232,6 +235,7 @@ if (function_exists('bindtextdomain')) {
 }
 
 // Set up the user's locale
+$TSUGI_LOCALE = null;
 if ( function_exists('bindtextdomain') && function_exists('textdomain') && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
     $locale = null;
     if ( class_exists('Locale') ) {
@@ -249,6 +253,7 @@ if ( function_exists('bindtextdomain') && function_exists('textdomain') && isset
     $domain = $CFG->getScriptFolder();
     bindtextdomain($domain, $CFG->getScriptPathFull()."/locale");
     textdomain($domain);
+    $TSUGI_LOCALE = $locale;
 }
 
 function isCli() {
