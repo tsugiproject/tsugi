@@ -7,9 +7,9 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !=/favicon.ico
-    RewriteRule ^ route.php [L]
+    RewriteRule ^ tsugi.php [L]
 </IfModule>
 
 <IfModule !mod_rewrite.c>
-    FallbackResource route.php
+    FallbackResource tsugi.php
 </IfModule>

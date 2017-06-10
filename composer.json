@@ -1,7 +1,9 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#c4f5d58811362016ce14b917a2e7abc6e42d9363",
-        "twig/twig": "~1.27",
+        "tsugi/lib": "dev-master#50865038a996965156b68c16698cde84365d4566",
+        "twig/twig": "v1.33.2",
+        "silex/silex": "v2.0.4",
+        "symfony/translation": "v3.2.7",
         "symfony/debug": "v3.2.8",
         "symfony/http-foundation": "v3.2.8",
         "symfony/event-dispatcher": "v3.2.8",
