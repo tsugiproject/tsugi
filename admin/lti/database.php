@@ -730,9 +730,22 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Make bit values not-null DEFAULT 0
+    if ( $oldversion < 201706111750 ) {
+        $tables = array( 'lti_key', 'lti_context', 'lti_link', 'lti_user',
+            'lti_membership', 'lti_service', 'lti_result', 'lti_domain',
+             'profile');
+        foreach($tables as $table) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} MODIFY deleted TINYINT(1) NOT NULL DEFAULT 0";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+        }
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201706101015;
+    return 201706111750;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
