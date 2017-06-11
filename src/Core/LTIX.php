@@ -620,8 +620,9 @@ class LTIX {
 
         if ( strlen($roles) > 0 ) {
             $roles = strtolower($roles);
-            if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = 1;
-            if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = 1;
+            if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = 1000;
+            if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = 5000;
+            // Local superuser would be 10000
         }
         return $retval;
     }
