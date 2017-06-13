@@ -315,7 +315,7 @@ class Lessons {
         global $CFG, $OUTPUT;
         ob_start();
         $module = $this->module;
-            echo('<div style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
+            echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
             $disabled = ($this->position == 1) ? ' disabled' : '';
             if ( $this->position == 1 ) {
                 echo('<li class="previous disabled"><a href="#" onclick="return false;">&larr; Previous</a></li>'."\n");
@@ -338,13 +338,13 @@ class Lessons {
                 echo('<li class="next"><a href="'.$next.'">&rarr; Next</a></li>'."\n");
             }
             echo("</ul></div>\n");
-            echo('<h1>'.$module->title."</h1>\n");
+            echo('<h1 typeof="oer:name">'.$module->title."</h1>\n");
 
             if ( isset($module->videos) ) {
                 $videos = $module->videos;
                 echo('<ul class="bxslider">'."\n");
                 foreach($videos as $video ) {
-                    echo('<li>');
+                    echo('<li typeof="oer:SupportingMaterial">');
                     $OUTPUT->embedYouTube($video->youtube, $video->title);
 /*
                     echo('<div class="youtube-player" data-id="'.$video->youtube.'"></div>');
@@ -358,27 +358,27 @@ class Lessons {
             }
 
             if ( isset($module->description) ) {
-                echo('<p>'.$module->description."</p>\n");
+                echo('<p property="oer:description">'.$module->description."</p>\n");
             }
 
             echo("<ul>\n");
             if ( isset($module->slides) ) {
-                echo('<li><a href="'.$module->slides.'" target="_blank">Slides</a></li>'."\n");
+                echo('<li><a href="'.$module->slides.'" typeof="oer:SupportingMaterial" target="_blank">Slides</a></li>'."\n");
             }
             if ( isset($module->chapters) ) {
-                echo('<li>Chapters: '.$module->chapters.'</a></li>'."\n");
+                echo('<li typeof="SupportingMaterial">Chapters: '.$module->chapters.'</a></li>'."\n");
             }
             if ( isset($module->assignment) ) {
-                echo('<li><a href="'.$module->assignment.'" target="_blank">Assignment Specification</a></li>'."\n");
+                echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank">Assignment Specification</a></li>'."\n");
             }
             if ( isset($module->solution) ) {
-                echo('<li><a href="'.$module->solution.'" target="_blank">Assignment Solution</a></li>'."\n");
+                echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank">Assignment Solution</a></li>'."\n");
             }
             if ( isset($module->references) ) {
                 if ( count($module->references) > 0 ) {
-                    echo("<li>References:<ul>\n");
+                    echo('<li typeof="oer:SupportingMaterial">References:<ul>'."\n");
                     foreach($module->references as $reference ) {
-                        echo('<li><a href="'.$reference->href.'" target="_blank">'.
+                        echo('<li typeof="oer:SupportingMaterial"><a href="'.$reference->href.'" target="_blank">'.
                             $reference->title."</a></li>\n");
                     }
                     echo("</ul></li>\n");
@@ -392,10 +392,10 @@ class Lessons {
             // LTIs not logged in
             if ( isset($module->lti) && ! isset($_SESSION['secret']) ) {
                 $ltis = $module->lti;
-                if ( count($ltis) > 1 ) echo("<li>Tools:<ul> <!-- start of ltis -->\n");
+                if ( count($ltis) > 1 ) echo('<li typeof="oer:assessment">Tools:<ul> <!-- start of ltis -->'."\n");
                 foreach($ltis as $lti ) {
                     $title = isset($lti->title) ? $lti->title : $module->title;
-                    echo('<li>'.htmlentities($title).' (Login Required)</li>'."\n");
+                    echo('<li typeof="oer:assessment">'.htmlentities($title).' (Login Required)</li>'."\n");
                 }
                 if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
             }
@@ -518,8 +518,9 @@ var disqus_config = function () {
     public function renderAll($buffer=false)
     {
         ob_start();
+        echo('<div typeof="Course">'."\n");
         echo('<h1>'.$this->lessons->title."</h1>\n");
-        echo('<p>'.$this->lessons->description."</p>\n");
+        echo('<p property="description">'.$this->lessons->description."</p>\n");
         echo('<div id="box">'."\n");
         $count = 0;
         foreach($this->lessons->modules as $module) {
@@ -540,6 +541,7 @@ var disqus_config = function () {
             echo("</a></div>\n");
         }
         echo('</div> <!-- box -->'."\n");
+        echo('</div> <!-- typeof="Course" -->'."\n");
         $ob_output = ob_get_contents();
         ob_end_clean();
         if ( $buffer ) return $ob_output;

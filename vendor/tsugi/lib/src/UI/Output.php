@@ -180,7 +180,7 @@ body {
         ob_start();
 ?>
 </head>
-<body>
+<body prefix="oer: http://oerschema.org">
 <script>
 if (window!=window.top) {
     document.write('<div class="container_iframe">');
