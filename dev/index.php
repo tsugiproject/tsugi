@@ -64,10 +64,11 @@ $tools = array();
 foreach( $CFG->tool_folders AS $tool_folder) {
     if ( $tool_folder == 'core' ) continue;
     if ( $tool_folder == 'admin' ) continue;
-    findTools($tool_folder,$tools);
+    findTools('../'.$tool_folder,$tools);
 }
 
 $cur_url = LTIX::curPageUrl();
+$cur_url = str_replace('/dev/index.php','/dev/',$cur_url);
 
 require_once("dev-data.php");
 
@@ -109,7 +110,7 @@ $secret = isset($_REQUEST["secret"]) ? trim($_REQUEST["secret"]) : "secret";
 $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
 if ( $endpoint == 'false' ) $endpoint = false;
 $b64 = base64_encode($key.":::".$secret.':::');
-if ( ! $endpoint ) $endpoint = $cur_url;
+// if ( ! $endpoint ) $endpoint = $cur_url;
 $cssurl = str_replace("/dev/","/dev/lms.css",$cur_url);
 $returnurl = str_replace("/dev/","/dev/return",$cur_url);
 $gradeurl = str_replace("/dev/","/dev/grade",$cur_url);
@@ -143,11 +144,19 @@ function lmsdataToggle() {
 
 function getComboA(sel) {
     var value = sel.options[sel.selectedIndex].value;
-    var ele = document.getElementById("custom_assn");
+    alert('FIX THIS');
+    var ele = document.getElementById("endpoint");
     ele.value = value;
 }
 
 function doSubmit(name) {
+    if ( name == 'launch' || name == 'debug' ) {
+        var x = $("input[name='endpoint']").val();
+        if ( x.length < 1 ) {
+            alert('Please enter a Launch URL, or select a tool');
+            return;
+        }
+    }
     nei = document.createElement('input');
     nei.setAttribute('type', 'hidden');
     nei.setAttribute('name', name);
@@ -179,24 +188,9 @@ function doSubmitTool(name) {
     nei.setAttribute('name', 'launch');
     nei.setAttribute('value', '');
     document.getElementById("actionform").appendChild(nei);
-
-    if ( name.indexOf("Java Servlet") == 0 ) {
-        $("input[name='endpoint']").val('http://localhost:8080/tsugi-servlet/hello');
-    } else if ( $("input[name='endpoint']").val() == 'http://localhost:8080/tsugi-servlet/hello') {
-        $("input[name='endpoint']").val('false');
-    }
-
-    if ( name.indexOf("Tsugi Node") == 0 ) {
-        $("input[name='endpoint']").val('http://localhost:3000/lti');
-    } else if ( $("input[name='endpoint']").val() == 'http://localhost:3000/lti') {
-        $("input[name='endpoint']").val('false');
-    }
-
-    $("input[name='custom_assn']").val(name);
-    $("input[name='custom_assn']").val(name);
+    $("input[name='endpoint']").val(name);
     $("input[name='resource_link_id']").val(name.hashCode());
-    pieces = name.split('/');
-    $("input[name='resource_link_title']").val('Activity: '+pieces[1]);
+    $("input[name='resource_link_title']").val('Activity: '+name.hashCode());
     $("input[name='lis_result_sourcedid']").val('sdid:'+name.hashCode());
     document.getElementById("actionform").submit();
 }
@@ -228,15 +222,21 @@ $OUTPUT->bodyStart(false);
                 foreach ($tools as $tool ) {
                     $toolname = $tool;
                     if ( strpos($tool,"../") === 0 ) $toolname = substr($tool,3);
+                    if ( strpos($tool,"http") !== 0 ) {
+                        $tool = $CFG->wwwroot . '/' . $toolname;
+                        $tool = ConfigInfo::removeRelativePath($tool);
+                    }
                     echo('<li><a href="#" onclick="doSubmitTool(\''.$tool.'\');return false;">'.$toolname.'</a></li>'."\n");
                 }
                 if ( $CFG->wwwroot == $CFG->apphome ) {
-                    echo('<li><a href="#" onclick="doSubmitTool(\'Java Servlet\');return false;">Java Servlet (if installed)</a></li>'."\n");
-                    echo('<li><a href="#" onclick="doSubmitTool(\'Tsugi Node\');return false;">Tsugi Node (if installed)</a></li>'."\n");
+                    echo('<li><a href="#" onclick="doSubmitTool(\'http://localhost:8080/tsugi-servlet/hello\');return false;">Java Servlet (if installed)</a></li>'."\n");
+                    echo('<li><a href="#" onclick="doSubmitTool(\'http://localhost:3000/lti\');return false;">Tsugi Node (if installed)</a></li>'."\n");
+                    echo('<li><a href="#" onclick="doSubmitTool(\'http://localhost:8000/lti/default/launch\');return false;">Tsugi Web2Py (if installed)</a></li>'."\n");
                 }
                 ?>
                 <li class="divider"></li>
                 <li><a href="https://github.com/tsugitools" target="_blank">Available Tsugi Tools</a></li>
+                <li><a href="https://github.com/tsugicontrib" target="_blank">Contributed Tsugi Tools</a></li>
                 <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
                 <li><a href="http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html" target="_new">IMS LTI 1.1 Spec</a></li>
                 <li><a href="https://vimeo.com/34168694" target="_new">IMS LTI Lecture</a></li>
@@ -306,9 +306,9 @@ $parms['launch_presentation_css_url'] = $cssurl;
 $parms['launch_presentation_return_url'] = $returnurl;
 $parms['lis_outcome_service_url'] = $gradeurl;
 
-if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
+if ( isset($_POST['endpoint']) && (isset($_POST['launch']) || isset($_POST['debug']) ) ) {
     // Use the actual direct URL to the launch
-    $endpoint = str_replace("/dev",'/'.$_POST['custom_assn'],$endpoint);
+    $endpoint = $_POST['endpoint'];
     $endpoint = ConfigInfo::removeRelativePath($endpoint);
     $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
         "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
