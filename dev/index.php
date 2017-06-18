@@ -1,8 +1,8 @@
 <?php
 // In the top frame, we use cookies for session.
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
-require_once("config.php");
-require_once("admin/admin_util.php");
+require_once("../config.php");
+require_once("../admin/admin_util.php");
 
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
@@ -69,7 +69,7 @@ foreach( $CFG->tool_folders AS $tool_folder) {
 
 $cur_url = LTIX::curPageUrl();
 
-require_once("lti/dev-data.php");
+require_once("dev-data.php");
 
 // Merge post data into  data
 foreach ($lmsdata as $k => $val ) {
@@ -110,7 +110,8 @@ $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
 if ( $endpoint == 'false' ) $endpoint = false;
 $b64 = base64_encode($key.":::".$secret.':::');
 if ( ! $endpoint ) $endpoint = $cur_url;
-$cssurl = str_replace("/dev","/lms.css",$cur_url);
+$cssurl = str_replace("/dev/","/dev/lms.css",$cur_url);
+$returnurl = str_replace("/dev/","/dev/return",$cur_url);
 
 $outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
 if ( ! $outcomes ) {
@@ -301,6 +302,9 @@ if ( $outcomes ) {
 }
 
 $parms['launch_presentation_css_url'] = $cssurl;
+$parms['launch_presentation_return_url'] = $returnurl;
+
+
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
     // Use the actual direct URL to the launch
