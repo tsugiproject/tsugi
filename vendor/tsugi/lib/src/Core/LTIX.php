@@ -1808,7 +1808,10 @@ class LTIX {
         }
         $return_url .= ( strpos($return_url,'?') > 0 ) ? '&' : '?';
         $return_url .= 'lti_errormsg=' . urlencode($msg);
-        if ( $extra !== false ) $return_url .= '&detail=' . urlencode($extra);
+        if ( $extra !== false ) {
+            $return_url .= '&detail=' . urlencode($extra);
+            header('X-Tsugi-Error-Detail: '.$extra);
+        }
         header("Location: ".$return_url);
         error_log($prefix.' '.$msg.' '.$extra);
         exit();
