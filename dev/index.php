@@ -112,6 +112,7 @@ $b64 = base64_encode($key.":::".$secret.':::');
 if ( ! $endpoint ) $endpoint = $cur_url;
 $cssurl = str_replace("/dev/","/dev/lms.css",$cur_url);
 $returnurl = str_replace("/dev/","/dev/return",$cur_url);
+$gradeurl = str_replace("/dev/","/dev/grade",$cur_url);
 
 $outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
 if ( ! $outcomes ) {
@@ -303,8 +304,7 @@ if ( $outcomes ) {
 
 $parms['launch_presentation_css_url'] = $cssurl;
 $parms['launch_presentation_return_url'] = $returnurl;
-
-
+$parms['lis_outcome_service_url'] = $gradeurl;
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
     // Use the actual direct URL to the launch
