@@ -231,7 +231,7 @@ $OUTPUT->bodyStart(false);
                 if ( $CFG->wwwroot == $CFG->apphome ) {
                     echo('<li><a href="#" onclick="doSubmitTool(\'http://localhost:8080/tsugi-servlet/hello\');return false;">Java Servlet (if installed)</a></li>'."\n");
                     echo('<li><a href="#" onclick="doSubmitTool(\'http://localhost:3000/lti\');return false;">Tsugi Node (if installed)</a></li>'."\n");
-                    echo('<li><a href="#" onclick="doSubmitTool(\'http://localhost:8000/tsugi/default/launch\');return false;">Tsugi Web2Py (if installed)</a></li>'."\n");
+                    echo('<li><a href="#" onclick="doSubmitTool(\'http://127.0.0.1:8000/tsugi/default/launch\');return false;">Tsugi Web2Py (if installed)</a></li>'."\n");
                 }
                 ?>
                 <li class="divider"></li>
