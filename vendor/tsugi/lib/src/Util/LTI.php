@@ -266,55 +266,63 @@ class LTI {
         return $LastOAuthBodyHashInfo;
     }
 
+    public static function getAuthorizationHeader()
+    {
+        $request_headers = OAuthUtil::get_headers();
+        $auth = isset($request_headers['Authorization']) ? $request_headers['Authorization'] : null;
+        if ( ! $auth ) $auth = isset($request_headers['authorization']) ? $request_headers['authorization'] : null;
+        return $auth;
+    }
+
+    public static function getContentTypeHeader()
+    {
+        $request_headers = OAuthUtil::get_headers();
+        $ctype = isset($request_headers['Content-Type']) ? $request_headers['Content-Type'] : null;
+        if ( ! $ctype ) $ctype = isset($request_headers['Content-type']) ? $request_headers['Content-type'] : null;
+        if ( ! $ctype ) $ctype = isset($request_headers['content-type']) ? $request_headers['content-type'] : null;
+        return $ctype;
+    }
 
     public static function getOAuthKeyFromHeaders()
     {
-        $request_headers = OAuthUtil::get_headers();
-        // print_r($request_headers);
+        $auth = self::getAuthorizationHeader();
 
-        if (@substr($request_headers['Authorization'], 0, 6) == "OAuth ") {
-            $header_parameters = OAuthUtil::split_header($request_headers['Authorization']);
+        if ($auth && @substr($auth, 0, 6) == "OAuth ") {
+            $auth_parameters = OAuthUtil::split_header($auth);
 
             // echo("HEADER PARMS=\n");
-            // print_r($header_parameters);
-            return $header_parameters['oauth_consumer_key'];
+            // print_r($auth_parameters);
+            return $auth_parameters['oauth_consumer_key'];
         }
         return false;
     }
 
     public static function handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret)
     {
-        $request_headers = OAuthUtil::get_headers();
-        // print_r($request_headers);
-
         // Must reject application/x-www-form-urlencoded
-        if ($request_headers['Content-Type'] == 'application/x-www-form-urlencoded' ) {
+        $ctype = self::getContentTypeHeader();
+        if ($ctype == 'application/x-www-form-urlencoded' ) {
             throw new \Exception("OAuth request body signing must not use application/x-www-form-urlencoded");
         }
 
         $oauth_signature_method = false;
-        if (@substr($request_headers['Authorization'], 0, 6) == "OAuth ") {
-            $header_parameters = OAuthUtil::split_header($request_headers['Authorization']);
+        $auth = self::getAuthorizationHeader();
+        if (@substr($auth, 0, 6) == "OAuth ") {
+            $auth_parameters = OAuthUtil::split_header($auth);
 
             // echo("HEADER PARMS=\n");
-            // print_r($header_parameters);
-            $oauth_body_hash = $header_parameters['oauth_body_hash'];
-            if ( isset($header_parameters['oauth_signature_method']) ) $oauth_signature_method = $header_parameters['oauth_signature_method'];
-            // echo("OBH=".$oauth_body_hash."\n");
+            // print_r($auth_parameters);
+            $oauth_body_hash = $auth_parameters['oauth_body_hash'];
+            if ( isset($auth_parameters['oauth_signature_method']) ) $oauth_signature_method = $auth_parameters['oauth_signature_method'];
+            // error_log("OBH=".$oauth_body_hash."\n");
         }
 
         if ( ! isset($oauth_body_hash)  ) {
             throw new \Exception("OAuth request body signing requires oauth_body_hash body");
         }
 
-        // Check the key and secret.
-        $retval = self::verifyKeyAndSecret($oauth_consumer_key, $oauth_consumer_secret);
-        if ( $retval !== true ) {
-            throw new \Exception("OAuth signature failed: " . $retval[0]);
-        }
-
         $postdata = file_get_contents('php://input');
-        // echo($postdata);
+        // error_log($postdata);
 
         if ( $oauth_signature_method == 'HMAC-SHA256' ) {
             $hash = base64_encode(hash('sha256', $postdata, TRUE));
@@ -324,6 +332,12 @@ class LTI {
 
         global $LastOAuthBodyHashInfo;
         $LastOAuthBodyHashInfo = "hdr_hash=$oauth_body_hash body_len=".strlen($postdata)." body_hash=$hash oauth_signature_method=$oauth_signature_method";
+
+        // Check the key and secret.
+        $retval = self::verifyKeyAndSecret($oauth_consumer_key, $oauth_consumer_secret);
+        if ( $retval !== true ) {
+            throw new \Exception("OAuth signature failed: " . $retval[0]);
+        }
 
         if ( $hash != $oauth_body_hash ) {
             throw new \Exception("OAuth oauth_body_hash mismatch");

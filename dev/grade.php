@@ -1,5 +1,6 @@
 <?php
-require_once('../config.php');
+error_log(__DIR__);
+require_once(__DIR__.'/../config.php');
 
 use Tsugi\OAuth\OAuthUtil;
 use Tsugi\Util\LTI;
@@ -11,6 +12,11 @@ function myErrorHandler($errno, $errstr, $errfile, $errline)
     // echo("YO ". $errorno . $errstr . "\n");
     if ( strpos($errstr, 'deprecated') !== false ) return true;
     return false;
+}
+
+function response($output) {
+    error_log($output);
+    echo($output);
 }
 
 ini_set("display_errors", 1);
@@ -28,8 +34,10 @@ session_start();
 
 // For my application, We only allow application/xml
 $request_headers = OAuthUtil::get_headers();
-$hct = isset($request_headers['Content-Type']) ? $request_headers['Content-Type'] : false;
-if ( ! $hct ) $hct = isset($request_headers['Content-type']) ? $request_headers['Content-type'] : false;
+error_log(\Tsugi\UI\Output::safe_var_dump($request_headers));
+
+$hct = \Tsugi\Util\LTI::getContentTypeHeader();
+
 if (strpos($hct,'application/xml') === false ) {
    header('Content-Type: text/plain');
    // print_r($request_headers);
@@ -49,18 +57,19 @@ $b64 = explode(":::", $b64dec);
 $oauth_consumer_key = $b64[0];
 $oauth_consumer_secret = $b64[1];
 $operation = "unknown";
+$message_ref = 42;
 
 if ( strlen($oauth_consumer_key) < 1 || strlen($oauth_consumer_secret) < 1 ) {
-   echo(sprintf($response,uniqid(),'failure', "Missing key/secret B64=$b64dec B64key=$oauth_consumer_key secret=$oauth_consumer_secret",$message_ref,$operation,""));
+   response(sprintf($response,uniqid(),'failure', "Missing key/secret B64=$b64dec B64key=$oauth_consumer_key secret=$oauth_consumer_secret",$message_ref,$operation,""));
    exit();
 }
 
 $header_key = LTI::getOAuthKeyFromHeaders();
 if ( strlen($header_key) < 1 ) {
-   echo(sprintf($response,uniqid(),'failure', "Empty header key. Note that some proxy configurations do not pass the Authorization header.",$message_ref,$operation,""));
+   response(sprintf($response,uniqid(),'failure', "Empty header key. Note that some proxy configurations do not pass the Authorization header.",$message_ref,$operation,""));
    exit();
 } else if ( $header_key != $oauth_consumer_key ) {
-   echo(sprintf($response,uniqid(),'failure', "B64key=$oauth_consumer_key HDR=$header_key",$message_ref,$operation,""));
+   response(sprintf($response,uniqid(),'failure', "B64key=$oauth_consumer_key HDR=$header_key",$message_ref,$operation,""));
    exit();
 }
 
@@ -82,13 +91,13 @@ try {
         "<!--\n".
         "Base String:\n".$LastOAuthBodyBaseString."\n".
 		"Hash Info:\n".$LastOAuthBodyHashInfo."\n-->\n";
-    echo($retval);
+    response($retval);
     exit();
 }
 
 $sourcedid = (string) $parms->resultRecord->sourcedGUID->sourcedId;
 if ( !isset($sourcedid) && strlen($sourcedid) > 0 ) {
-   echo(sprintf($response,uniqid(),'failure', "Missing required lis_result_sourcedid",$message_ref,$operation,""));
+   response(sprintf($response,uniqid(),'failure', "Missing required lis_result_sourcedid",$message_ref,$operation,""));
    exit();
 }
 
@@ -100,15 +109,15 @@ if ( $operation == "replaceResultRequest" ) {
     $score =  (string) $parms->resultRecord->result->resultScore->textString;
     $fscore = (float) $score;
     if ( ! is_numeric($score) ) {
-        echo(sprintf($response,uniqid(),'failure', "Score must be numeric",$message_ref,$operation,$body_tag));
+        response(sprintf($response,uniqid(),'failure', "Score must be numeric",$message_ref,$operation,$body_tag));
         exit();
     }
     $fscore = (float) $score;
     if ( $fscore < 0.0 || $fscore > 1.0 ) {
-        echo(sprintf($response,uniqid(),'failure', "Score not between 0.0 and 1.0",$message_ref,$operation,$body_tag));
+        response(sprintf($response,uniqid(),'failure', "Score not between 0.0 and 1.0",$message_ref,$operation,$body_tag));
         exit();
     }
-    echo(sprintf($response,uniqid(),'success', "Score for $sourcedid is now $score",$message_ref,$operation,$body_tag));
+    response(sprintf($response,uniqid(),'success', "Score for $sourcedid is now $score",$message_ref,$operation,$body_tag));
     $gradebook[$sourcedid] = $score;
 } else if ( $operation == "readResultRequest" ) {
     $score =  $gradebook[$sourcedid];
@@ -122,12 +131,12 @@ if ( $operation == "replaceResultRequest" ) {
       </result>
     </readResultResponse>';
     $body = sprintf($body,$score);
-    echo(sprintf($response,uniqid(),'success', "Score read successfully",$message_ref,$operation,$body));
+    response(sprintf($response,uniqid(),'success', "Score read successfully",$message_ref,$operation,$body));
 } else if ( $operation == "deleteResultRequest" ) {
     unset( $gradebook[$sourcedid]);
-    echo(sprintf($response,uniqid(),'success', "Score deleted",$message_ref,$operation,$body_tag));
+    response(sprintf($response,uniqid(),'success', "Score deleted",$message_ref,$operation,$body_tag));
 } else {
-    echo(sprintf($response,uniqid(),'unsupported', "Operation not supported - $operation",$message_ref,$operation,""));
+    response(sprintf($response,uniqid(),'unsupported', "Operation not supported - $operation",$message_ref,$operation,""));
 }
 $_SESSION['cert_gradebook'] = $gradebook;
 // print_r($gradebook);
