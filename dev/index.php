@@ -118,7 +118,7 @@ $outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
 if ( ! $outcomes ) {
     $outcomes = str_replace("/dev/","/dev/grade",$cur_url);
     $outcomes .= "?b64=" . htmlentities($b64);
-    $lmsdata['lis_result_sourcedid'] = MD5($lmsdata['context_id'].$lmsdata['user_id'].$lmsdata['resource_link_id']);
+    $lmsdata['lis_result_sourcedid'] = $lmsdata['context_id'].':'.$lmsdata['user_id'].':'.$lmsdata['resource_link_id'];
 }
 
 $tool_consumer_instance_guid = $lmsdata['tool_consumer_instance_guid'];
