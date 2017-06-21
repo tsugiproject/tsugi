@@ -113,11 +113,10 @@ $b64 = base64_encode($key.":::".$secret.':::');
 // if ( ! $endpoint ) $endpoint = $cur_url;
 $cssurl = str_replace("/dev/","/dev/lms.css",$cur_url);
 $returnurl = str_replace("/dev/","/dev/return",$cur_url);
-$gradeurl = str_replace("/dev/","/dev/grade",$cur_url);
 
 $outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
 if ( ! $outcomes ) {
-    $outcomes = str_replace("dev","lti/tool_consumer_outcome.php",$cur_url);
+    $outcomes = str_replace("/dev/","/dev/grade",$cur_url);
     $outcomes .= "?b64=" . htmlentities($b64);
     $lmsdata['lis_result_sourcedid'] = MD5($lmsdata['context_id'].$lmsdata['user_id'].$lmsdata['resource_link_id']);
 }
@@ -304,7 +303,7 @@ if ( $outcomes ) {
 
 $parms['launch_presentation_css_url'] = $cssurl;
 $parms['launch_presentation_return_url'] = $returnurl;
-$parms['lis_outcome_service_url'] = $gradeurl;
+$parms['lis_outcome_service_url'] = $outcomes;
 
 if ( isset($_POST['endpoint']) && (isset($_POST['launch']) || isset($_POST['debug']) ) ) {
     // Use the actual direct URL to the launch
