@@ -15,7 +15,7 @@ $wwwroot = "http://localhost/tsugi";
 // $apphome = "http://localhost/tsugi-org";
 // $apphome = "http://localhost:8888/tsugi-org"
 // $apphome = "https://www.tsugi.org";
-// $wwwhome = $apphome . '/tsugi';
+// $wwwroot = $apphome . '/tsugi';
 // Make sure to check for all the "Embedded Tsugi" configuration options below
 
 $dirroot = realpath(dirname(__FILE__));
