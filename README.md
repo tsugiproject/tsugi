@@ -27,7 +27,7 @@ has pretty URLs, routing, nice OO patterns and all that hipster stuff.
 
 The basic idea of Koseu is that it is "embedded" into a static web site.  So the web site has things like images, 
 PHP files, HTML, PowerPoint, tools etc that are just served like normal Web 1.0 files.  When you add Koseu to a
-web site, it makes URLs like https://www.py4e.com/tsugi/lessons start to appear.  First you install Koseu using the
+web site, it makes URLs like https://www.py4e.com/lessons start to appear.  First you install Koseu using the
 following `composer` command:
 
     composer require --dev koseu/lib
