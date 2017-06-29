@@ -120,6 +120,15 @@ class Table {
             $limittext = "".$page_start.", ".($page_length+1);
         }
 
+        // Remove any GROUP BY
+        $gpos = strpos($sql,"GROUP BY");
+        $groupby = false;
+        if ( $gpos !== false ) {
+            $groupby = substr($sql, $gpos);
+            $sql = substr($sql, 0, $gpos);
+            // echo("<pre>\n".$sql."\n---\n".$groupby."\n</pre>\n");
+        }
+
         // Fix up the SQL Query
         $newsql = $sql;
         if ( strlen($searchtext) > 0 ) {
@@ -129,6 +138,12 @@ class Table {
                 $newsql .= "\nWHERE ( ".$searchtext." ) ";
             }
         }
+
+        // Re-add any GROUP BY after WHERE
+        if ( $groupby !== false ) {
+            $newsql .= "\n" . $groupby;
+        }
+
         if ( strlen($ordertext) > 0 ) {
             $newsql .= "\nORDER BY ".$ordertext." ";
         }

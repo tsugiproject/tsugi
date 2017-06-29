@@ -20,8 +20,8 @@ if ( ! isAdmin() ) {
 
 $query_parms = false;
 
-$searchfields = array("membership_id", "context_id", "user_id", "role", "role_override", 
-	"created_at", "updated_at", "email", "displayname", "user_key");
+$searchfields = array("M.membership_id", "context_id", "M.user_id", "role", "role_override", 
+	"M.created_at", "M.updated_at", "email", "displayname", "user_key");
 
 $sql = "SELECT membership_id, 'detail' AS 'Membership', context_id AS Context, M.user_id as User, 
             role, role_override, M.created_at, M.updated_at, email, displayname, user_key
