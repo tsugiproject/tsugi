@@ -72,7 +72,7 @@ if ( !isset($CFG->apphome) ) $CFG->apphome = $CFG->wwwroot;
 if ( !isset($CFG->google_translate) ) $CFG->google_translate = false;
 
 // Certification hacks
-if ( !isset($CFG->require_conformance_parameters) ) $CFG->require_conformance_parameters = true;
+if ( !isset($CFG->require_conformance_parameters) ) $CFG->require_conformance_parameters = false;
 if ( !isset($CFG->prefer_lti1_for_grade_send) ) $CFG->prefer_lti1_for_grade_send = true;
 
 // Set this to the temporary folder if not set - dev only

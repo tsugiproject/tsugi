@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "3f0ca22a0e527836f4bd2c44466cc942",
-    "content-hash": "1c0c5d03ff9ea0be6d7af7eb2c690aa4",
+    "hash": "e04f1e7de6a8bcceb9f5d5762436df3f",
+    "content-hash": "1ad325ec0d68124f3ae2d3face0ec82f",
     "packages": [
         {
             "name": "koseu/lib",
@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "02a23a578467ddc79d9bb0bcda329105a0b20fb8"
+                "reference": "d4069b82db1e81333139fcc42561f58da20c6b7f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/02a23a578467ddc79d9bb0bcda329105a0b20fb8",
-                "reference": "02a23a578467ddc79d9bb0bcda329105a0b20fb8",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/d4069b82db1e81333139fcc42561f58da20c6b7f",
+                "reference": "d4069b82db1e81333139fcc42561f58da20c6b7f",
                 "shasum": ""
             },
             "require": {
@@ -53,7 +53,7 @@
             ],
             "description": "A Next Generation Embeddable Learning Management System",
             "homepage": "http://www.koseu.org/",
-            "time": "2017-05-25 16:41:23"
+            "time": "2017-06-23 23:04:53"
         },
         {
             "name": "pimple/pimple",
@@ -689,12 +689,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "dd58dcc37cbab53ce776b3efc90441abe3b6d3aa"
+                "reference": "1a42c6f87ea5ac444d325f866be37a3a541705e4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/dd58dcc37cbab53ce776b3efc90441abe3b6d3aa",
-                "reference": "dd58dcc37cbab53ce776b3efc90441abe3b6d3aa",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/1a42c6f87ea5ac444d325f866be37a3a541705e4",
+                "reference": "1a42c6f87ea5ac444d325f866be37a3a541705e4",
                 "shasum": ""
             },
             "require": {
@@ -727,7 +727,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2017-06-18 16:24:25"
+            "time": "2017-07-06 20:22:48"
         },
         {
             "name": "twig/twig",

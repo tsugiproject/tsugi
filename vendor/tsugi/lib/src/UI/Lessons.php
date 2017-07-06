@@ -60,7 +60,7 @@ class Lessons {
                 return $url;
             }
         } else {
-            $url = $CFG->wwwroot . '/lessons';
+            $url = $CFG->apphome . '/lessons';
             if ( $anchor != null ) return $url . '?anchor=' . urlencode($anchor);
             if ( $index != null ) return $url . '?index=' . urlencode($index);
             return $url;
