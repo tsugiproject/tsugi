@@ -338,13 +338,13 @@ class Lessons {
                 echo('<li class="next"><a href="'.$next.'">&rarr; Next</a></li>'."\n");
             }
             echo("</ul></div>\n");
-            echo('<h1 typeof="oer:name">'.$module->title."</h1>\n");
+            echo('<h1 property="oer:name">'.$module->title."</h1>\n");
 
             if ( isset($module->videos) ) {
                 $videos = $module->videos;
                 echo('<ul class="bxslider">'."\n");
                 foreach($videos as $video ) {
-                    echo('<li typeof="oer:SupportingMaterial">');
+                    echo('<li>');
                     $OUTPUT->embedYouTube($video->youtube, $video->title);
 /*
                     echo('<div class="youtube-player" data-id="'.$video->youtube.'"></div>');
