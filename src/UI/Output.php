@@ -285,6 +285,25 @@ function googleTranslateElementInit() {
 
         $this->doAnalytics();
 
+        // TODO: Remove this when PHP 7 is fixed..  Sigh.
+        if ( PHP_VERSION_ID > 70000 ) {
+?>
+<script>
+// PHP VERSION 7 HACK
+// https://stackoverflow.com/questions/44980654/how-can-i-make-trans-sid-cookie-less-sessions-work-in-php-7-1
+$('a').each(function (x) {
+    var href = $(this).attr('href');
+    if ( ! href.startsWith('#') ) return;
+    var pos = href.indexOf('/?');
+    if ( pos < 1 ) return;
+    console.dir('Patching broken # href='+href);
+    href = href.substring(0,pos);
+    $(this).attr('href', href);
+});
+</script>
+<?php
+        }
+
         $ob_output = ob_get_contents();
         ob_end_clean();
         if ( $this->buffer ) return $ob_output;
