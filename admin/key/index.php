@@ -99,11 +99,15 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI Key Requests</h1>
 <p>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">View Key Requests</a>
   <a href="keys" class="btn btn-default">View Keys</a>
-  <a href="#" class="btn btn-default" onclick="
-    showModal('Using this key', 'about-div');
-    return false;
-">Using Your Key</a>
+  <a href="using" class="btn btn-default">Using Your Key</a>
+</p>
+<p>
+If you are a teacher and want to use the interactive elements on this web
+site using IMS Learning Tools Interoperability, you can request a key
+form this page.  Please include a description of how you are 
+planning on using your key.
 </p>
 <?php if ( $goodsession ) { ?>
 <div class="modal fade" id="request">

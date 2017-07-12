@@ -52,6 +52,8 @@ $OUTPUT->flashMessages();
 <h1>LTI Keys</h1>
 <p>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Key Requests</a>
+  <a href="keys" class="btn btn-default active">View Keys</a>
+  <a href="using" class="btn btn-default">Using Your Key</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>
