@@ -185,6 +185,11 @@ foreach($existing as $clone_url => $repo) {
     $detail->clone_url = $clone_url; // Yes, it works..
     $detail->html_url = $clone_url; // Yes, it works..
     $detail->name = "";
+    preg_match( '/([^\/]+)\.git/', $clone_url, $match );
+
+    if(count($match) == 2) {
+        $detail->name = ucwords(preg_replace("/[^0-9a-zA-Z]/", " ", $match[1]));
+    }
     $detail->description = "";
     $update = $repo->run('remote update');
     $detail->update_note = $update;
