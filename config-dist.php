@@ -1,6 +1,5 @@
 <?php
 
-
 // Configuration file - copy from config-dist.php to config.php
 // and then edit.  Since config.php has passwords and other secrets
 // never check config.php into a source repository
@@ -203,11 +202,23 @@ $CFG->require_conformance_parameters = true;
 $CFG->prefer_lti1_for_grade_send = true;
 
 // In order to run git from the a PHP script, we may need a setuid version
-// of git - example commands:
+// of git - example commands if you are not root:
 //
 //    cd /home/csev
 //    cp /usr/bin/git .
 //    chmod a+s git
+//
+// If you are root, your web area and git must belong to the user that owns
+// the web process.  You can check this using:
+// 
+// apache2ctl -S
+//  ..
+//  User: name="www-data" id=33
+//  Group: name="www-data" id=33
+//
+// cd /var/www/html
+// chown -R 33:33 site-folder
+// chown 33:33 /home/csev/git
 //
 // This of course is something to consider carefully.
 // $CFG->git_command = '/home/csev/git';
