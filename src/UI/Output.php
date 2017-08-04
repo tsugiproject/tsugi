@@ -293,6 +293,7 @@ function googleTranslateElementInit() {
 // https://stackoverflow.com/questions/44980654/how-can-i-make-trans-sid-cookie-less-sessions-work-in-php-7-1
 $('a').each(function (x) {
     var href = $(this).attr('href');
+    if ( ! href ) return;
     if ( ! href.startsWith('#') ) return;
     var pos = href.indexOf('/?');
     if ( pos < 1 ) return;
