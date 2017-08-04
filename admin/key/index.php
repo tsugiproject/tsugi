@@ -65,7 +65,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
 }
 
 $query_parms = false;
-$searchfields = array("request_id", "title", "notes", "state", "admin", "R.created_at", "R.updated_at");
+$searchfields = array("request_id", "title", "notes", "state", "admin", "email", "displayname", "R.created_at", "R.updated_at");
 $sql = "SELECT request_id, title, notes, state, admin, R.created_at, R.updated_at, email, displayname
         FROM {$CFG->dbprefix}key_request  as R
         JOIN {$CFG->dbprefix}lti_user AS U ON R.user_id = U.user_id ";
