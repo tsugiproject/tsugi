@@ -161,6 +161,45 @@ class Launch {
         return $product == 'canvas';
     }
 
+    /**
+     * set up parameters for an outbound launch from this launch
+     */
+    public function newLaunch($send_name=true, $send_email=true) {
+        $parms = array(
+            'lti_message_type' => 'basic-lti-launch-request',
+            'tool_consumer_info_product_family_code' => 'tsugi',
+            'tool_consumer_info_version' => '1.1',
+        );
+
+        // Some Tsugi Goodness
+        $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
+        $parms['ext_lti_form_id'] = $form_id;
+
+        if ( $this->user ) {
+            $parms['user_id'] = $this->user->id;
+            $parms['roles'] = $this->user->instructor ? 'Instructor' : 'Learner';
+            if ( $send_name ) $parms['lis_person_name_full'] = $this->user->displayname;
+            if ( $send_email ) $parms['lis_person_contact_email_primary'] = $this->user->email;
+            if ( $send_email || $send_email ) $parms['image'] = $this->user->image;
+        }
+        if ( $this->context ) {
+           $parms['context_id'] = $this->context->id;
+           $parms['context_title'] = $this->context->title;
+           $parms['context_label'] = $this->context->title;
+        }
+        if ( $this->link ) {
+           $parms['resource_link_id'] = $this->link->id;
+           $parms['resource_link_title'] = $this->link->title;
+        }
+        if ( $this->result ) {
+           $parms['resource_link_id'] = $this->link->id;
+           $parms['resource_link_title'] = $this->link->title;
+        }
+        foreach ( $parms as $k => $v ) {
+            if ( $v === false || $v === null ) unset($parms[$k]);
+        }
+        return $parms;
+    }
 
     /**
      * Dump out the internal data structures associated with the

@@ -31,6 +31,7 @@ class SettingsForm {
             foreach ( $_POST as $k => $v ) {
                 if ( $k == session_name() ) continue;
                 if ( $k == 'settings_internal_post' ) continue;
+                if ( strpos('_ignore',$k) > 0 ) continue;
                 $newsettings[$k] = $v;
             }
 
@@ -160,6 +161,73 @@ class SettingsForm {
         echo('value="'.htmlent_utf8($configured).'"></label>'."\n");
     }
 
+    /**
+     * Handle a settings textarea box
+     */
+    public static function textarea($name, $title=false)
+    {
+        global $USER;
+        $oldsettings = Settings::linkGetAll();
+        $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
+        if ( $title === false ) $title = $name;
+        if ( ! $USER->instructor ) {
+            if ( $configured === false ) {
+                echo('<p>Setting '.htmlent_utf8($name).' is not set</p>');
+            } else {
+                echo('<p>'.htmlent_utf8(ucwords($name)).' is set to '.htmlent_utf8($configured).'</p>');
+            }
+            return;
+        }
+
+        // Instructor view
+        echo('<label style="width:100%;" for="'.$name.'">'.htmlent_utf8($title)."\n");
+        echo('<textarea class="form-control" style="width:100%;" name="'.$name.'">'."\n");
+        echo(htmlent_utf8($configured)."\n");
+        echo("</textarea>\n");
+    }
+
+    /**
+     * Handle a settings checkbox
+     */
+    public static function checkbox($name, $title=false)
+    {
+        global $USER;
+        $oldsettings = Settings::linkGetAll();
+        $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
+        if ( $title === false ) $title = $name;
+        if ( ! $USER->instructor ) {
+            if ( $configured === false ) {
+                echo('<p>Setting '.htmlent_utf8($name).' is not set</p>');
+            } else {
+                echo('<p>'.htmlent_utf8(ucwords($name)).' is set to '.htmlent_utf8($configured).'</p>');
+            }
+            return;
+        }
+
+        // Instructor view
+        echo('<input type="checkbox" class="ZZ-form-control" value="1" name="'.$name.'"');
+        if ( $configured == 1 ) {
+            echo(' checked ');
+            echo("onclick=\"if(this.checked) document.getElementById('");
+            echo($name);
+            echo(".mirror').name = '");
+            echo($name);
+            echo(".ignore'; else document.getElementById('");
+            echo($name);
+            echo(".mirror').name = '");
+            echo($name);
+            echo("';\"");
+        }
+        echo("/>\n");
+        echo('<label for="'.$name.'">'.htmlent_utf8($title)."</label><br/>\n");
+        if ( $configured == 1 ) {
+            echo("<input type=\"hidden\" name=\"");
+            echo($name);
+            echo(".ignore\" id=\"");
+            echo($name);
+            echo(".mirror\" value=\"0\" />");
+        }
+    }
     /**
       * Get the due data data in an object
       */

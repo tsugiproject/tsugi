@@ -18,8 +18,6 @@ use \Tsugi\Core\Cache;
 
 class User {
 
-    // TODO: - $User->lang - The user's language choice.
-
     /**
      * The integer primary key for this user in the 'lti_user' table.
      */
@@ -44,6 +42,16 @@ class User {
      * The user's last name
      */
     public $lastname = false;
+
+    /**
+     * The User's Language
+     */
+    public $lang = false;
+
+    /**
+     * The User's Image / Avatar
+     */
+    public $image = false;
 
     /**
      * Is the user an instructor?
