@@ -1804,6 +1804,9 @@ class LTIX {
         if ($return_url === null) {
             // make the msg a bit friendlier
             $msg = "The LTI launch failed. Please reference the following error message when reporting this failure:<br><br>$msg";
+            if ( $extra && ! headers_sent() ) {
+                header('X-Tsugi-Error-Detail: '.$extra);
+            }
             die_with_error_log($msg,$extra,$prefix);
         }
         $return_url .= ( strpos($return_url,'?') > 0 ) ? '&' : '?';

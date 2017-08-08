@@ -112,7 +112,7 @@ class LTI {
         $newparms = $acc_req->get_parameters();
 
       // Don't want to pull GET parameters into POST data so
-        // manually pull back the oauth_ parameters
+      // manually pull back the oauth_ parameters
       foreach($newparms as $k => $v ) {
             if ( strpos($k, "oauth_") === 0 ) {
                 $parms[$k] = $v;
@@ -243,6 +243,18 @@ class LTI {
     }
 
     public static function addCustom(&$parms, $custom) {
+        if ( ! is_array($custom)) {
+            $lines = explode("\n", $custom);
+            $custom = array();
+            foreach($lines as $line) {
+                $pos = strpos($line,'=');
+                if ( $pos < 1 ) continue;
+                $key = substr($line,0,$pos);
+                $val = substr($line,$pos+1);
+                if ( strlen($val) < 1 ) continue;
+                $custom[$key] = trim($val);
+            }
+        }
         foreach ( $custom as $key => $val) {
           $key = strtolower($key);
           $nk = "";
