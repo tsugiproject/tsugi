@@ -341,29 +341,44 @@ class Lessons {
 
             echo("<ul>\n");
             if ( isset($module->slides) ) {
-                echo('<li><a href="'.$module->slides.'" typeof="oer:SupportingMaterial" target="_blank">Slides</a></li>'."\n");
+                if ( $nostyle ) {
+                    echo('<li>Slides: <a href="'.$module->slides.'" typeof="oer:SupportingMaterial" target="_blank">'.$module->slides.'</a></li>'."\n");
+                } else {
+                    echo('<li><a href="'.$module->slides.'" typeof="oer:SupportingMaterial" target="_blank">Slides</a></li>'."\n");
+                }
             }
             if ( isset($module->chapters) ) {
                 echo('<li typeof="SupportingMaterial">Chapters: '.$module->chapters.'</a></li>'."\n");
             }
             if ( isset($module->assignment) ) {
-                echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank">Assignment Specification</a></li>'."\n");
+                if ( $nostyle ) {
+                    echo('<li typeof="oer:assessment">Assignment Specification: <a href="'.$module->assignment.'" target="_blank">'.$module->assignment.'</a></li>'."\n");
+                } else {
+                    echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank">Assignment Specification</a></li>'."\n");
+                }
             }
             if ( isset($module->solution) ) {
-                echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank">Assignment Solution</a></li>'."\n");
+                if ( $nostyle ) {
+                    echo('<li typeof="oer:assessment">Assignment Solution: <a href="'.$module->solution.'" target="_blank">'.$module->solution.'</a></li>'."\n");
+                } else {
+                    echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank">Assignment Solution</a></li>'."\n");
+                }
             }
             if ( isset($module->references) ) {
                 if ( count($module->references) > 0 ) {
                     echo('<li typeof="oer:SupportingMaterial">References:<ul>'."\n");
-                    foreach($module->references as $reference ) {
+                }
+                foreach($module->references as $reference ) {
+                    if ( $nostyle ) {
+                        echo('<li typeof="oer:SupportingMaterial">'.htmlentities($reference->title).' <a href="'.$reference->href.'" target="_blank">'.
+                            $reference->href."</a></li>\n");
+                    } else {
                         echo('<li typeof="oer:SupportingMaterial"><a href="'.$reference->href.'" target="_blank">'.
                             $reference->title."</a></li>\n");
                     }
+                }
+                if ( count($module->references) > 0 ) {
                     echo("</ul></li>\n");
-                } else {
-                    echo('<li>Reference: <a href="'.
-                        $module->references->href.'" target="_blank">'.
-                        $module->references->title."</a></li>\n");
                 }
             }
 
