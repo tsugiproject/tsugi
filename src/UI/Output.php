@@ -826,6 +826,24 @@ EOF;
     }
 
     /**
+     * Return the text for a full-screen loader
+     *
+     *     echo($OUTPUT->getScreenOverlay());
+     *         ...
+     *     <script>
+     *     showOverlay();
+     *     setTimeout(function() { hideOverlay();} , 5000);
+     *     </script>
+     */
+    function getScreenOverlay() {
+        global $CFG;
+        return
+            '<div class="tsugi_overlay" id="tsugi_overlay" style="display:none">' . "\n" .
+            '<img src="'.$CFG->staticroot.'/img/logos/apereo-logo-blue-spin.svg" id="tsugi_overlay_spinner" width="100px" height="100px">' . "\n" .
+            '</div>' . "\n" ;
+    }
+
+    /**
      * Embed a YouTube video using the standard pattern
      */
     function embedYouTube($id, $title) {
