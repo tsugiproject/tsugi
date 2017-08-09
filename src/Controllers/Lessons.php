@@ -2,6 +2,7 @@
 
 namespace Koseu\Controllers;
 
+use Tsugi\Util\U;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,9 +26,17 @@ class Lessons {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
         }
 
+        // Turning on and off styling
+        if ( isset($_GET['nostyle']) ) {
+            if ( $_GET['nostyle'] == 'yes' ) {
+                $_SESSION['nostyle'] = 'yes';
+            } else {
+                unset($_SESSION['nostyle']);
+            }
+        }
+
         // Load the Lesson
         $l = new \Tsugi\UI\Lessons($CFG->lessons,$anchor);
-        $l->use_rest_urls = true;
 
         $context = array();
         $context['head'] = $l->header(true);
