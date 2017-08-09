@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "44720ff08cc9b2fedf98b127ed225027",
-    "content-hash": "4d2db79fd183ff4f3a0a141cbbfbcb5f",
+    "hash": "ea931b033d13e84320a15443ad58689c",
+    "content-hash": "7c67e2ecaa3e60b0ff2bd53b749287e4",
     "packages": [
         {
             "name": "koseu/lib",
@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "d4069b82db1e81333139fcc42561f58da20c6b7f"
+                "reference": "f3143503b8b705e53f6c4accb719ca0c47dabc03"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/d4069b82db1e81333139fcc42561f58da20c6b7f",
-                "reference": "d4069b82db1e81333139fcc42561f58da20c6b7f",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/f3143503b8b705e53f6c4accb719ca0c47dabc03",
+                "reference": "f3143503b8b705e53f6c4accb719ca0c47dabc03",
                 "shasum": ""
             },
             "require": {
@@ -53,7 +53,7 @@
             ],
             "description": "A Next Generation Embeddable Learning Management System",
             "homepage": "http://www.koseu.org/",
-            "time": "2017-06-23 23:04:53"
+            "time": "2017-08-09 22:06:26"
         },
         {
             "name": "pimple/pimple",
@@ -689,12 +689,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "948fd820576750bd7bc0e209911bcc474d2b1873"
+                "reference": "49561b471cb838b1a18c8da575958c9eecad3af3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/948fd820576750bd7bc0e209911bcc474d2b1873",
-                "reference": "948fd820576750bd7bc0e209911bcc474d2b1873",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/49561b471cb838b1a18c8da575958c9eecad3af3",
+                "reference": "49561b471cb838b1a18c8da575958c9eecad3af3",
                 "shasum": ""
             },
             "require": {
