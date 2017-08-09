@@ -390,7 +390,7 @@ class Lessons {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     if ( $nostyle ) {
                         echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
-                        echo(htmlentities($lti->launch));
+                        echo('<span style="color:green">'.htmlentities($lti->launch)."</span>\n");
                         echo("\n</li>\n");
                         continue;
                     }
@@ -409,7 +409,7 @@ class Lessons {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     if ( $nostyle ) {
                         echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
-                        echo(htmlentities($lti->launch));
+                        echo('<span style="color:green">'.htmlentities($lti->launch)."</span>\n");
                         echo("\n</li>\n");
                         continue;
                     }
