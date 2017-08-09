@@ -2,6 +2,7 @@
 
 namespace Tsugi\UI;
 
+use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\AesCtr;
@@ -33,39 +34,6 @@ class Lessons {
      * Index by resource_link
      */
     public $resource_links;
-
-    /**
-     * User REST-style URLS
-     */
-    public $use_rest_urls = false;
-
-    /**
-     * Handle the legacy and REST-Style URLs.
-     *
-     * This is not elegant but gets some experience.
-     */
-    public function makeLink($anchor=null, $index=null){
-        global $CFG;
-        if ( $this->use_rest_urls ) {
-            // Links are relative to the current document
-            if ( $this->isSingle() ) {
-                if ( $anchor != null ) return urlencode($anchor);
-                if ( $index != null ) return urlencode($index);
-                return '.';
-            } else {
-                $url = $_SERVER['REQUEST_URI'];
-                if ( ! endsWith($url,'/') ) $url .= '/';
-                if ( $anchor != null ) return $url . urlencode($anchor);
-                if ( $index != null ) return $url . urlencode($index);
-                return $url;
-            }
-        } else {
-            $url = $CFG->apphome . '/lessons';
-            if ( $anchor != null ) return $url . '?anchor=' . urlencode($anchor);
-            if ( $index != null ) return $url . '?index=' . urlencode($index);
-            return $url;
-        }
-    }
 
     /**
      * emit the header material
@@ -314,27 +282,31 @@ class Lessons {
     public function renderSingle($buffer=false) {
         global $CFG, $OUTPUT;
         ob_start();
+        if ( isset($_GET['nostyle']) ) {
+            if ( $_GET['nostyle'] == 'yes' ) {
+                $_SESSION['nostyle'] = 'yes';
+            } else {
+                unset($_SESSION['nostyle']);
+            }
+        }
+        $nostyle = isset($_SESSION['nostyle']);
+
         $module = $this->module;
+
             echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
             $disabled = ($this->position == 1) ? ' disabled' : '';
+            $all = U::get_rest_parent();
             if ( $this->position == 1 ) {
                 echo('<li class="previous disabled"><a href="#" onclick="return false;">&larr; Previous</a></li>'."\n");
             } else {
-                $prev = $this->makeLink(null, $this->position-1);
-                if ( isset($this->lessons->modules[$this->position-2]->anchor) ) {
-                    $prev = $this->makeLink($this->lessons->modules[$this->position-2]->anchor);
-                }
+                $prev = $all . '/' . urlencode($this->lessons->modules[$this->position-2]->anchor);
                 echo('<li class="previous"><a href="'.$prev.'">&larr; Previous</a></li>'."\n");
             }
-            $all = $this->makeLink();
             echo('<li><a href="'.$all.'">All ('.$this->position.' / '.count($this->lessons->modules).')</a></li>');
             if ( $this->position >= count($this->lessons->modules) ) {
                 echo('<li class="next disabled"><a href="#" onclick="return false;">&rarr; Next</a></li>'."\n");
             } else {
-                $next = $this->makeLink(null, $this->position+1);
-                if ( isset($this->lessons->modules[$this->position]->anchor) ) {
-                    $next = $this->makeLink($this->lessons->modules[$this->position]->anchor);
-                }
+                $next = $all . '/' . urlencode($this->lessons->modules[$this->position]->anchor);
                 echo('<li class="next"><a href="'.$next.'">&rarr; Next</a></li>'."\n");
             }
             echo("</ul></div>\n");
@@ -342,10 +314,16 @@ class Lessons {
 
             if ( isset($module->videos) ) {
                 $videos = $module->videos;
-                echo('<ul class="bxslider">'."\n");
+                echo($nostyle ? 'Videos: <ul>' : '<ul class="bxslider">'."\n");
                 foreach($videos as $video ) {
                     echo('<li>');
-                    $OUTPUT->embedYouTube($video->youtube, $video->title);
+                    if ( $nostyle ) {
+                        echo(htmlentities($video->title)."<br/>");
+                        $yurl = 'https://www.youtube.com/?v='.$video->youtube;
+                        echo('<a href="$yurl" target="_blank">'.htmlentities($yurl)."</a>\n");
+                    } else {
+                        $OUTPUT->embedYouTube($video->youtube, $video->title);
+                    }
 /*
                     echo('<div class="youtube-player" data-id="'.$video->youtube.'"></div>');
                     echo('<iframe src="https://www.youtube.com/embed/'.
@@ -394,7 +372,13 @@ class Lessons {
                 $ltis = $module->lti;
                 if ( count($ltis) > 1 ) echo('<li typeof="oer:assessment">Tools:<ul> <!-- start of ltis -->'."\n");
                 foreach($ltis as $lti ) {
-                    $title = isset($lti->title) ? $lti->title : $module->title;
+                    $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
+                    if ( $nostyle ) {
+                        echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
+                        echo(htmlentities($lti->launch));
+                        echo("\n</li>\n");
+                        continue;
+                    }
                     echo('<li typeof="oer:assessment">'.htmlentities($title).' (Login Required)</li>'."\n");
                 }
                 if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
@@ -407,6 +391,13 @@ class Lessons {
                 if ( count($ltis) > 1 ) echo("<li>Tools:<ul> <!-- start of ltis -->\n");
                 $count = 0;
                 foreach($ltis as $lti ) {
+                    $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
+                    if ( $nostyle ) {
+                        echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
+                        echo(htmlentities($lti->launch));
+                        echo("\n</li>\n");
+                        continue;
+                    }
                     $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
                     $secret = false;
                     if ( isset($_SESSION['secret']) ) {
@@ -425,7 +416,6 @@ class Lessons {
                         $resource_link_id .= md5($CFG->context_title);
                     }
                     $count++;
-                    $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     $parms = array(
                         'lti_message_type' => 'basic-lti-launch-request',
                         'resource_link_id' => $resource_link_id,
@@ -483,6 +473,16 @@ class Lessons {
 
                 if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
             }
+
+        echo("</ul>\n");
+
+        if ( $nostyle ) {
+            $styleoff = U::get_rest_path() . '?nostyle=no';
+            echo('<p><a href="'.$styleoff.'">');
+            echo(__('Turn styling back on'));
+            echo("</a>\n");
+        }
+
         if ( !isset($module->discuss) ) $module->discuss = true;
         if ( !isset($module->anchor) ) $module->anchor = $this->position;
         // For now do not add disqus to each page.
@@ -527,7 +527,7 @@ var disqus_config = function () {
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
             $count++;
             echo('<div class="card">'."\n");
-            $href = $this->makeLink($module->anchor);
+            $href = U::get_rest_path() . '/' . urlencode($module->anchor);
             if ( isset($module->icon) ) {
                 echo('<i class="fa '.$module->icon.' fa-2x" aria-hidden="true" style="float: left; padding-right: 5px;"></i>');
             }
@@ -559,6 +559,7 @@ var disqus_config = function () {
             if ( !isset($module->lti) ) continue;
             echo('<tr><td class="info" colspan="3">'."\n");
             $href = $this->makeLink($module->anchor);
+            $href = U::get_rest_path() . '/' . urlencode($module->anchor);
             echo('<a href="'.$href.'">'."\n");
             echo($module->title);
             echo("</td></tr>");
@@ -712,7 +713,7 @@ var disqus_config = function () {
                 $lti = $this->getLtiByRlid($resource_link_id);
 
                 echo('<tr><td>');
-                $href = $this->makeLink($module->anchor);
+                $href = U::get_rest_path() . '/' . urlencode($module->anchor);
 
                 echo('<a href="'.$href.'">');
                 echo('<i class="fa fa-square-o text-info" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
@@ -818,7 +819,7 @@ $(function(){
      * The solution is to add the resource link from the Lesson as a GET
      * parameter on the launchurl URL to be a fallback:
      *
-     * https://../mod/zap/index.php?inherit=assn03
+     * https://../mod/zap/?inherit=assn03
      *
      * Say the tool has custom key of "exercise" that it wants a default
      * for when the tool has not yet been configured.  First we check

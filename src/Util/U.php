@@ -65,6 +65,12 @@ class U {
         return $local;
     }
 
+    /**
+     * Get the last bit of the path
+     *
+     * input: /py4e/lessons/intro?x=2
+     * output: intro
+     */
     public static function get_request_document() {
         $uri = $_SERVER['REQUEST_URI'];     // /tsugi/lti/some/cool/stuff
         $pieces = explode('/',$uri);
@@ -75,6 +81,44 @@ class U {
             return $local_path;
         }
         return false;
+    }
+
+    /**
+     * Get the path to the current request, w/o trailing slash
+     *
+     * input: /py4e/lessons/intro?x=2
+     * output: /py4e/lessons/intro
+     *
+     * input: /py4e/lessons/intro/?x=2
+     * output: /py4e/lessons/intro
+     */
+    public static function get_rest_path($uri=false) {
+        if ( ! $uri ) $uri = $_SERVER['REQUEST_URI'];     // /tsugi/lti/some/cool/stuff
+        $pos = strpos($uri,'?');
+        if ( $pos > 0 ) $uri = substr($uri,0,$pos);
+        if ( self::endsWith($uri, '/') ) {
+            $uri = substr($uri, 0, strlen($uri)-1);
+        }
+        return $uri;
+    }
+
+    /**
+     * Get the path to one above the current request, w/o trailing slash
+     *
+     * input: /py4e/lessons/intro?x=2
+     * output: /py4e/lessons
+     *
+     * input: /py4e/lessons/intro/?x=2
+     * output: /py4e/lessons
+     */
+    public static function get_rest_parent($uri=false) {
+        $uri = self::get_rest_path($uri);
+        $pieces = explode('/', $uri);
+        if ( count($pieces) > 1 ) {
+            array_pop($pieces);
+            $uri = implode('/', $pieces);
+        }
+        return $uri;
     }
 
     public static function addSession($url) {

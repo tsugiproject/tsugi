@@ -2,6 +2,7 @@
 
 namespace Tsugi\Silex;
 
+use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 
@@ -64,6 +65,9 @@ class Application extends \Silex\Application {
         } else {
             $loader = new \Twig_Loader_Filesystem('.');
         }
+
+        $this->tsugi_path = U::get_rest_path();
+        $this->tsugi_parent = U::get_rest_parent();
         
         $yourNewPath = $CFG->dirroot . '/vendor/tsugi/lib/src/Templates';
         $loader->addPath($yourNewPath, 'Tsugi');

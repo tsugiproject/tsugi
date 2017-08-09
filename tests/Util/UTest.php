@@ -20,4 +20,17 @@ class UTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(U::goodFolder('_ASJ_JGAai'));
     }
 
+    public function testRest() {
+        // Note this is normally $_SERVER['REQUEST_URI'] so there is not http:// ...
+        $this->assertEquals(U::get_rest_path('/py4e/lessons/intro'), '/py4e/lessons/intro');
+        $this->assertEquals(U::get_rest_path('/py4e/lessons/intro/'), '/py4e/lessons/intro');
+        $this->assertEquals(U::get_rest_path('/py4e/lessons/intro?x=2'), '/py4e/lessons/intro');
+        $this->assertEquals(U::get_rest_path('/py4e/lessons/intro/?x=2'), '/py4e/lessons/intro');
+
+        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro'), '/py4e/lessons');
+        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro/'), '/py4e/lessons');
+        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro?x=2'), '/py4e/lessons');
+        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro/?x=2'), '/py4e/lessons');
+    }
+
 }
