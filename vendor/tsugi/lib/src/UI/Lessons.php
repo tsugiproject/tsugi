@@ -320,16 +320,10 @@ class Lessons {
                     if ( $nostyle ) {
                         echo(htmlentities($video->title)."<br/>");
                         $yurl = 'https://www.youtube.com/?v='.$video->youtube;
-                        echo('<a href="$yurl" target="_blank">'.htmlentities($yurl)."</a>\n");
+                        echo('<a href="'.$yurl.'" target="_blank">'.htmlentities($yurl)."</a>\n");
                     } else {
                         $OUTPUT->embedYouTube($video->youtube, $video->title);
                     }
-/*
-                    echo('<div class="youtube-player" data-id="'.$video->youtube.'"></div>');
-                    echo('<iframe src="https://www.youtube.com/embed/'.
-                        $video->youtube.'" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowfullscreen '.
-                        ' alt="'.htmlentities($video->title).'"></iframe>'."\n");
-*/
                     echo('</li>');
                 }
                 echo("</ul>\n");
