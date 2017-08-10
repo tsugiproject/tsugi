@@ -573,7 +573,6 @@ var disqus_config = function () {
             $count++;
             if ( !isset($module->lti) ) continue;
             echo('<tr><td class="info" colspan="3">'."\n");
-            $href = $this->makeLink($module->anchor);
             $href = U::get_rest_path() . '/' . urlencode($module->anchor);
             echo('<a href="'.$href.'">'."\n");
             echo($module->title);
