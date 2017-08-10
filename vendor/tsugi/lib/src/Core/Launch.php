@@ -162,6 +162,24 @@ class Launch {
     }
 
     /**
+     * Indicate if this launch came from Moodle
+     */
+    public function isMoodle() {
+        $ext_lms = $this->ltiRawParameter('ext_lms', false);
+        $ext_lms = strtolower($ext_lms);
+        return strpos($ext_lms, 'moodle') === 0 ;
+    }
+
+    /**
+     * Indicate if this launch came from Coursera
+     */
+    public function isCoursera() {
+        $product = $this->ltiRawParameter('tool_consumer_info_product_family_code', false);
+        $tci_description = $this->ltiRawParameter('tool_consumer_instance_description', false);
+        return ( $product == 'ims' && $tci_description == 'Coursera');
+    }
+
+    /**
      * set up parameters for an outbound launch from this launch
      */
     public function newLaunch($send_name=true, $send_email=true) {
