@@ -105,7 +105,7 @@ if ( isset($_POST['instructor']) ) {
 }
 
 // Set up default LTI data
-$key = isset($_REQUEST['key']) ? trim($_REQUEST["key"]) : $key; // UPDATE FORM JOSH HARINGTON TO PERSIST USER DEFINED KEY
+$key = isset($_REQUEST['key']) ? trim($_REQUEST["key"]) : $key; // UPDATE FROM JOSH HARINGTON TO PERSIST USER DEFINED KEY
 $secret = isset($_REQUEST["secret"]) ? trim($_REQUEST["secret"]) : "secret";
 $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
 if ( $endpoint == 'false' ) $endpoint = false;
@@ -277,6 +277,7 @@ echo("<br/>Key: <input type\"text\" name=\"key\" $disabled size=\"60\" value=\"$
 echo("<br/>Secret: <input type\"text\" name=\"secret\" $disabled size=\"60\" value=\"$secret\">\n");
 echo("</fieldset><p>");
 echo("<fieldset><legend>Launch Data</legend>\n");
+ksort($lmsdata);
 foreach ($lmsdata as $k => $val ) {
     echo($k.": <input id=\"".$k."\" type=\"text\" size=\"30\" name=\"".$k."\" value=\"");
     echo(htmlspecialchars($val));

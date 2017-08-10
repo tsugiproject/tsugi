@@ -5,6 +5,7 @@ $instdata = array(
       "lis_person_name_given" => 'Jane',
       "lis_person_contact_email_primary" => "inst@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:inst",
+      "user_image" => "https://www.dr-chuck.net/tsugi-static/font-awesome-4.4.0/png/birthday-cake.png",
       "user_id" => "292832126",
       "roles" => "Instructor"
 );
@@ -16,6 +17,7 @@ $learner1 = array(
       "lis_person_contact_email_primary" => "student@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:student",
       "user_id" => "998928898",
+      "user_image" => "https://www.dr-chuck.net/tsugi-static/font-awesome-4.4.0/png/briefcase.png",
       "roles" => "Learner"
 );
 
@@ -26,6 +28,7 @@ $learner2 = array(
       "lis_person_contact_email_primary" => "ed@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:ed",
       "user_id" => "121212331",
+      "user_image" => "https://www.dr-chuck.net/tsugi-static/font-awesome-4.4.0/png/eye.png",
       "roles" => "Learner"
 );
 
@@ -36,6 +39,7 @@ $learner3 = array(
       "lis_person_contact_email_primary" => '',
       "lis_person_sourcedid" => "ischool.edu:ed",
       "user_id" => "777777777",
+      "user_image" => "https://www.dr-chuck.net/tsugi-static/font-awesome-4.4.0/png/eye-slash.png",
       "roles" => "Learner"
 );
 
@@ -46,6 +50,7 @@ $lmsdata = array(
       "lis_person_contact_email_primary" => "inst@ischool.edu",
       "lis_person_sourcedid" => "ischool.edu:inst",
       "user_id" => "292832126",
+      "user_image" => "https://www.dr-chuck.net/tsugi-static/font-awesome-4.4.0/png/birthday-cake.png",
       "roles" => "Instructor",
 
       "resource_link_id" => "292832126",
