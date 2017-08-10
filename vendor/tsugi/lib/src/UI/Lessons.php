@@ -394,7 +394,7 @@ class Lessons {
                         echo("\n</li>\n");
                         continue;
                     }
-                    echo('<li typeof="oer:assessment">'.htmlentities($title).' (Login Required)</li>'."\n");
+                    echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (Login Required)</li>'."\n");
                 }
                 if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
             }
