@@ -288,4 +288,35 @@ class U {
         return $http_url;
     }
 
+    public static function setLocale($locale=null)
+    {
+        global $TSUGI_LOCALE, $CFG;
+
+        // No internationalization support
+        if ( ! function_exists('bindtextdomain') ) return;
+        if ( ! function_exists('textdomain') ) return;
+
+        if ( $locale === null && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
+
+            if ( class_exists('\Locale') ) {
+                try {
+                    // Symfony may implement a stub for this function that throws an exception
+                    $locale = \Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+                } catch (exception $e) { }
+            }
+            if ($locale === null) { // Crude fallback if we can't use Locale::acceptFromHttp
+                $pieces = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+                $locale = $pieces[0];
+            }
+        }
+
+        if ( $locale === null ) return;
+
+        $locale = str_replace('-','_',$locale);
+        putenv('LC_ALL='.$locale);
+        setlocale(LC_ALL, $locale);
+        // error_log("locale=$locale");
+        $TSUGI_LOCALE = $locale;
+    }
+
 }

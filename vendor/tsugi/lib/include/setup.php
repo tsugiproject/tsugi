@@ -1,4 +1,6 @@
 <?php
+use \Tsugi\Util\U;
+
 if ( ! isset($CFG) ) die_with_error_log("Please configure this product using config.php");
 
 // This is where we change the overall database version to trigger
@@ -230,31 +232,19 @@ function _me($message, $textdomain=false) {
     echo(_m($message, $textdomain));
 }
 
+$domain = $CFG->getScriptFolder();
+$folder = $CFG->getScriptPathFull()."/locale";
 if (function_exists('bindtextdomain')) {
     bindtextdomain("master", $CFG->dirroot."/locale");
+    bindtextdomain($domain, $folder);
+}
+if (function_exists('textdomain')) {
+    textdomain($domain);
 }
 
-// Set up the user's locale
+// Set up the user's locale - May be overridden later
 $TSUGI_LOCALE = null;
-if ( function_exists('bindtextdomain') && function_exists('textdomain') && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
-    $locale = null;
-    if ( class_exists('Locale') ) {
-        try {
-            // Symfony may implement a stub for this function that throws an exception
-            $locale = Locale::acceptFromHttp($_SERVER['HTTP_ACCEPT_LANGUAGE']);
-        } catch (exception $e) { }
-    } 
-    if ($locale === null) { // Crude fallback if we can't use Locale::acceptFromHttp
-        $pieces = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-        $locale = $pieces[0];
-    }
-    putenv('LC_ALL='.$locale);
-    setlocale(LC_ALL, $locale);
-    $domain = $CFG->getScriptFolder();
-    bindtextdomain($domain, $CFG->getScriptPathFull()."/locale");
-    textdomain($domain);
-    $TSUGI_LOCALE = $locale;
-}
+U::setLocale();  
 
 function isCli() {
      if(php_sapi_name() == 'cli' && empty($_SERVER['REMOTE_ADDR'])) {
