@@ -15,7 +15,7 @@ class CC_WebLinkTest extends PHPUnit_Framework_TestCase
         $web_dom->set_url('http://www.php-intro.com/lessons.php?anchor=install', array("target" => "_iframe"));
         $save = $web_dom->saveXML();
         $xmlout = '<?xml version="1.0" encoding="UTF-8"?>
-<webLink xmlns="http://www.imsglobal.org/xsd/imsccv1p2/imswl_v1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsccv1p2/imswl_v1p2    http://www.imsglobal.org/profile/cc/ccv1p2/ccv1p2_imswl_v1p2.xsd">
+<webLink xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1 http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_imswl_v1p1.xsd">
   <title>Autograder: Single-table SQL</title>
   <url href="http://www.php-intro.com/lessons.php?anchor=install" target="_iframe"/>
 </webLink>
