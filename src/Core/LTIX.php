@@ -7,6 +7,7 @@ use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthRequest;
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LTIConstants;
 use \Tsugi\UI\Output;
@@ -577,6 +578,8 @@ class LTIX {
         $retval['context_title'] = isset($FIXED['context_title']) ? $FIXED['context_title'] : null;
         $retval['link_title'] = isset($FIXED['resource_link_title']) ? $FIXED['resource_link_title'] : null;
 
+        $retval['user_locale'] = isset($FIXED['launch_presentation_locale']) ? $FIXED['launch_presentation_locale'] : null;
+
         // Getting email from LTI 1.x and LTI 2.x
         $retval['user_email'] = isset($FIXED['lis_person_contact_email_primary']) ? $FIXED['lis_person_contact_email_primary'] : null;
         $retval['user_email'] = isset($FIXED['custom_person_email_primary']) ? $FIXED['custom_person_email_primary'] : $retval['user_email'];
@@ -649,6 +652,7 @@ class LTIX {
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         // Add the fields
+        // TODO: Add user_locale
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
@@ -656,6 +660,7 @@ class LTIX {
             c.lineitems_url AS lineitems_url, c.memberships_url AS memberships_url,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email, user_key, u.image AS user_image,
+            u.locale AS user_locale,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
             m.membership_id, m.role, m.role_override,
             r.result_id, r.grade, r.result_url, r.sourcedid";
@@ -738,7 +743,7 @@ class LTIX {
     /**
      * Make sure that the data in our lti_ tables matches the POST data
      *
-     * This routine compares the POST dat to the data pulled from the
+     * This routine compares the POST data to the data pulled from the
      * lti_ tables and goes through carefully INSERTing or UPDATING
      * all the nexessary data in the lti_ tables to make sure that
      * the lti_ table correctly match all the data from the incoming post.
@@ -797,19 +802,25 @@ class LTIX {
 
         $user_displayname = isset($post['user_displayname']) ? $post['user_displayname'] : null;
         $user_email = isset($post['user_email']) ? $post['user_email'] : null;
+        $user_image = isset($post['user_image']) ? $post['user_image'] : null;
+        $user_locale = isset($post['user_locale']) ? $post['user_locale'] : null;
         if ( $row['user_id'] === null && isset($post['user_id']) ) {
             $sql = "INSERT INTO {$p}lti_user
-                ( user_key, user_sha256, displayname, email, key_id, created_at, updated_at ) VALUES
-                ( :user_key, :user_sha256, :displayname, :email, :key_id, NOW(), NOW() )";
+                ( user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
+                ( :user_key, :user_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )";
             $PDOX->queryDie($sql, array(
                 ':user_key' => $post['user_id'],
                 ':user_sha256' => lti_sha256($post['user_id']),
                 ':displayname' => $user_displayname,
                 ':email' => $user_email,
+                ':image' => $user_image,
+                ':locale' => $user_locale,
                 ':key_id' => $row['key_id']));
             $row['user_id'] = $PDOX->lastInsertId();
             $row['user_email'] = $user_email;
             $row['user_displayname'] = $user_displayname;
+            $row['user_image'] = $user_image;
+            $row['user_locale'] = $user_locale;
             $row['user_key'] = $post['user_id'];
             $actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email'];
         }
@@ -943,7 +954,7 @@ class LTIX {
         }
 
         // Grab the user scoped fields...
-        $user_fields = array('displayname', 'email', 'image');
+        $user_fields = array('displayname', 'email', 'image', 'locale');
         if ( isset($row['user_id']) ) {
             foreach($user_fields as $u_field ) {
                 $user_field = 'user_'.$u_field;
@@ -1191,6 +1202,10 @@ class LTIX {
                 if ( count($pieces) > 1 ) $USER->lastname = $pieces[count($pieces)-1];
             }
             if (isset($LTI['user_image']) ) $USER->image = $LTI['user_image'];
+            if (isset($LTI['user_locale']) ) $USER->locale = $LTI['user_locale'];
+            if ( $USER->locale ) {
+                U::setLocale($USER->locale);
+            }
             $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
             $TSUGI_LAUNCH->user = $USER;
         }

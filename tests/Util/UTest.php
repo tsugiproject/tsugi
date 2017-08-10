@@ -1,7 +1,5 @@
 <?php
 
-require "src/Util/U.php";
-
 use \Tsugi\Util\U;
 
 class UTest extends PHPUnit_Framework_TestCase

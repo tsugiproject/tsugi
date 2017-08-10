@@ -44,14 +44,14 @@ class User {
     public $lastname = false;
 
     /**
-     * The User's Language
+     * The User's Locale
      */
-    public $lang = false;
+    public $locale = null;
 
     /**
      * The User's Image / Avatar
      */
-    public $image = false;
+    public $image = null;
 
     /**
      * Is the user an instructor?
