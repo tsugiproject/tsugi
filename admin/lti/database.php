@@ -60,6 +60,8 @@ array( "{$CFG->dbprefix}lti_context",
     context_key         TEXT NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
+    secret              CHAR(64) NULL,
+
     key_id              INTEGER NOT NULL,
 
     path                TEXT NULL,
@@ -743,9 +745,21 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Add the secret column
+    if ( $oldversion < 201708101745 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD secret CHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "UPDATE {$CFG->dbprefix}lti_context SET secret=SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201706111750;
+    return 201708101745;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
