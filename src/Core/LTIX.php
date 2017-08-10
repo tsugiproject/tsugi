@@ -1190,6 +1190,7 @@ class LTIX {
                 if ( count($pieces) > 0 ) $USER->firstname = $pieces[0];
                 if ( count($pieces) > 1 ) $USER->lastname = $pieces[count($pieces)-1];
             }
+            if (isset($LTI['user_image']) ) $USER->image = $LTI['user_image'];
             $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
             $TSUGI_LAUNCH->user = $USER;
         }
