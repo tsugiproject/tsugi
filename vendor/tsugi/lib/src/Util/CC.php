@@ -7,7 +7,7 @@ namespace Tsugi\Util;
  * This class allows us to produce an IMS Common Cartridge Version 1.2
  *
  * Usage to Create a ZIP file:
- * 
+ *
  *     $zip = new ZipArchive();
  *     if ($zip->open('cc.zip', ZipArchive::CREATE)!==TRUE) {
  *     $cc_dom = new CC();
@@ -17,7 +17,7 @@ namespace Tsugi\Util;
  *     $sub_module = $cc_dom->add_sub_module($module, 'Part 1');
  *     $cc_dom->zip_add_url_to_module($zip, $sub_module, 'WA4E', 'https://www.wa4e.com');
  *     $custom = array('exercise' => 'http_headers.php');
- *     $cc_dom->zip_add_lti_to_module($zip, $sub_module, 'RRC', 
+ *     $cc_dom->zip_add_lti_to_module($zip, $sub_module, 'RRC',
  *         'https://www.wa4e.com/tools/autograder/index.php', $custom);
  *     $zip->addFromString('imsmanifest.xml',$cc_dom->saveXML());
  *     $zip->close();
@@ -25,14 +25,14 @@ namespace Tsugi\Util;
 
 class CC extends \Tsugi\Util\TsugiDOM {
 
-    const CC_1_2_CP =   'http://www.imsglobal.org/xsd/imsccv1p2/imscp_v1p1';
-    const WL_NS =       'http://www.imsglobal.org/xsd/imsccv1p2/imswl_v1p2';
+    const CC_1_1_CP =   'http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1';
+    const WL_NS =       'http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1';
     const BLTI_NS =     'http://www.imsglobal.org/xsd/imsbasiclti_v1p0';
     const LTICM_NS =    'http://www.imsglobal.org/xsd/imslticm_v1p0';
     const LTICP_NS =    'http://www.imsglobal.org/xsd/imslticp_v1p0';
-    const LOM_NS =      'http://ltsc.ieee.org/xsd/imsccv1p2/LOM/resource';
-    const LOMIMSCC_NS = 'http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest';
-    
+    const LOM_NS =      'http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource';
+    const LOMIMSCC_NS = 'http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest';
+
     const metadata_xpath = '/*/*[1]';
     const item_xpath = '/*/*[2]/*/*';
     const resource_xpath = '/*/*[3]';
@@ -42,14 +42,10 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
     function __construct() {
         parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
-<manifest identifier="cctd0015"
-  xmlns="http://www.imsglobal.org/xsd/imsccv1p2/imscp_v1p1"
-  xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p2/LOM/resource"
-  xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsccv1p2/imscp_v1p1 http://www.imsglobal.org/profile/cc/ccv1p2/ccv1p2_imscp_v1p2_v1p0.xsd http://ltsc.ieee.org/xsd/imsccv1p2/LOM/resource http://www.imsglobal.org/profile/cc/ccv1p2/LOM/ccv1p2_lomresource_v1p0.xsd http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest http://www.imsglobal.org/profile/cc/ccv1p2/LOM/ccv1p2_lommanifest_v1p0.xsd">
+<manifest identifier="cctd0015" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1" xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource" xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd">
   <metadata>
     <schema>IMS Common Cartridge</schema>
-    <schemaversion>1.2.0</schemaversion>
+    <schemaversion>1.1.0</schemaversion>
     <lomimscc:lom>
       <lomimscc:general>
         <lomimscc:title>
@@ -78,7 +74,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
       <file href="LTI.xml"/>
       <dependency identifierref="BLTI001_Icon"/>
     </resource>
-    <resource identifier="T_00005_R" type="imswl_xmlv1p2">
+    <resource identifier="T_00005_R" type="imswl_xmlv1p1">
       <file href="WebLink.xml"/>
     </resource>
   </resources>
@@ -86,9 +82,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
         $xpath = new \DOMXpath($this);
         $res = $xpath->query(self::resource_xpath)->item(0);
-        $this->delete_children_ns(self::CC_1_2_CP, $res);
+        $this->delete_children_ns(self::CC_1_1_CP, $res);
         $items = $xpath->query(self::item_xpath)->item(0);
-        $this->delete_children_ns(self::CC_1_2_CP, $items);
+        $this->delete_children_ns(self::CC_1_1_CP, $items);
         $lom = $xpath->query(self::lom_general_xpath)->item(0);
         $this->delete_children_ns(self::LOMIMSCC_NS, $lom);
     }
@@ -138,8 +134,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $xpath = new \DOMXpath($this);
 
         $items = $xpath->query(CC::item_xpath)->item(0);
-        $module = $this->add_child_ns(CC::CC_1_2_CP, $items, 'item', null, array('identifier' => $identifier));
-        $new_title = $this->add_child_ns(CC::CC_1_2_CP, $module, 'title', $title);
+        $module = $this->add_child_ns(CC::CC_1_1_CP, $items, 'item', null, array('identifier' => $identifier));
+        $new_title = $this->add_child_ns(CC::CC_1_1_CP, $module, 'title', $title);
         return $module;
     }
 
@@ -160,18 +156,18 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
         $identifier = 'T_'.$resource_str;
 
-        $sub_module = $this->add_child_ns(CC::CC_1_2_CP, $module, 'item', null, array('identifier' => $identifier));
-        $new_title = $this->add_child_ns(CC::CC_1_2_CP, $sub_module, 'title',$title);
+        $sub_module = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $identifier));
+        $new_title = $this->add_child_ns(CC::CC_1_1_CP, $sub_module, 'title',$title);
         return $sub_module;
     }
 
     /*
      * Add a web link resource item
      *
-     * This adds the web link to the manifest,  to complete this when making a 
+     * This adds the web link to the manifest,  to complete this when making a
      * zip file, you must generate and place the web link XML in the returned file
      * name within the ZIP.  The `zip_add_url_to_module()` combines these two steps.
-     * 
+     *
      * @param $module DOMNode The module or sub module where we are adding the web link
      * @param $title The title of the link
      *
@@ -182,7 +178,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
         $file = 'xml/WL_'.$resource_str.'.xml';
         $identifier = 'T_'.$resource_str;
-        $type = 'imswl_xmlv1p2';
+        $type = 'imswl_xmlv1p1';
         $this-> add_resource_item($module, $title, $type, $identifier, $file);
         return $file;
     }
@@ -190,10 +186,10 @@ class CC extends \Tsugi\Util\TsugiDOM {
     /**
      * Add an LTI link resource item
      *
-     * This adds an LTI link to the manifest, to complete this when making a 
+     * This adds an LTI link to the manifest, to complete this when making a
      * zip file, you must generate and place the LTI XML in the returned file
      * name within the ZIP.  The `zip_add_lti_to_module()` combines these two steps.
-     * 
+     *
      * @param $module DOMNode The module or sub module where we are adding the lti link
      * @param $title The title of the LTI link
      *
@@ -217,21 +213,21 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
         $xpath = new \DOMXpath($this);
 
-        $new_item = $this->add_child_ns(CC::CC_1_2_CP, $module, 'item', null, array('identifier' => $identifier, "identifierref" => $identifier_ref));
+        $new_item = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $identifier, "identifierref" => $identifier_ref));
         if ( $title != null ) {
-            $new_title = $this->add_child_ns(CC::CC_1_2_CP, $new_item, 'title', $title);
+            $new_title = $this->add_child_ns(CC::CC_1_1_CP, $new_item, 'title', $title);
         }
 
         $resources = $xpath->query(CC::resource_xpath)->item(0);
         $identifier_ref = $identifier."_R";
-        $new_resource = $this->add_child_ns(CC::CC_1_2_CP, $resources, 'resource', null, array('identifier' => $identifier_ref, "type" => $type));
-        $new_file = $this->add_child_ns(CC::CC_1_2_CP, $new_resource, 'file', null, array("href" => $file));
+        $new_resource = $this->add_child_ns(CC::CC_1_1_CP, $resources, 'resource', null, array('identifier' => $identifier_ref, "type" => $type));
+        $new_file = $this->add_child_ns(CC::CC_1_1_CP, $new_resource, 'file', null, array("href" => $file));
         return $file;
     }
 
     /*
      * Add a web link resource item and create the file within the ZIP
-     * 
+     *
      * @param $zip The zip file handle that we are creating
      * @param $module DOMNode The module or sub module where we are adding the web link
      * @param $title The title of the link
@@ -249,7 +245,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
     /*
      * Add a LTI link resource item and create the file within the ZIP
-     * 
+     *
      * @param $zip The zip file handle that we are creating
      * @param $module DOMNode The module or sub module where we are adding the LTI link
      * @param $title The title of the link
