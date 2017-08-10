@@ -131,13 +131,13 @@ class Lessons {
 
             // Non arrays
             if ( isset($this->lessons->modules[$i]->slides) ) {
-                self::makeAbsolute($this->lessons->modules[$i]->slides);
+                U::absolute_url_ref($this->lessons->modules[$i]->slides);
             }
             if ( isset($this->lessons->modules[$i]->assignment) ) {
-                self::makeAbsolute($this->lessons->modules[$i]->assignment);
+                U::absolute_url_ref($this->lessons->modules[$i]->assignment);
             }
             if ( isset($this->lessons->modules[$i]->solution) ) {
-                self::makeAbsolute($this->lessons->modules[$i]->solution);
+                U::absolute_url_ref($this->lessons->modules[$i]->solution);
             }
         }
 
@@ -190,21 +190,6 @@ class Lessons {
     }
 
     /**
-     * Make a path absolute
-     */
-    public static function makeAbsolute(&$path) {
-        global $CFG;
-        if ( strpos($path,'http://') === 0 ) {
-            return;
-        } else if ( strpos($path,'https://') === 0 ) {
-            return;
-        } else {
-            if ( strpos('/', $path) !== 0 ) $path = '/' . $path;
-            $path =$CFG->apphome . $path;
-        }
-    }
-
-    /**
      * Make non-array into an array and adjust paths
      */
     public static function adjustArray(&$entry) {
@@ -213,9 +198,9 @@ class Lessons {
             $entry = array($entry);
         }
         for($i=0; $i < count($entry); $i++ ) {
-            if ( is_string($entry[$i]) ) self::makeAbsolute($entry[$i]);
-            if ( isset($entry[$i]->href) && is_string($entry[$i]->href) ) self::makeAbsolute($entry[$i]->href);
-            if ( isset($entry[$i]->launch) && is_string($entry[$i]->launch) ) self::makeAbsolute($entry[$i]->launch);
+            if ( is_string($entry[$i]) ) U::absolute_url_ref($entry[$i]);
+            if ( isset($entry[$i]->href) && is_string($entry[$i]->href) ) U::absolute_url_ref($entry[$i]->href);
+            if ( isset($entry[$i]->launch) && is_string($entry[$i]->launch) ) U::absolute_url_ref($entry[$i]->launch);
         }
     }
 
@@ -384,7 +369,8 @@ class Lessons {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     if ( $nostyle ) {
                         echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
-                        echo('<span style="color:green">'.htmlentities($lti->launch)."</span>\n");
+                        $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
+                        echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
                         echo("\n</li>\n");
                         continue;
                     }
@@ -403,7 +389,8 @@ class Lessons {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     if ( $nostyle ) {
                         echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
-                        echo('<span style="color:green">'.htmlentities($lti->launch)."</span>\n");
+                        $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
+                        echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
                         echo("\n</li>\n");
                         continue;
                     }

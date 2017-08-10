@@ -136,10 +136,10 @@ class U {
         foreach ( $_GET as $k => $v ) {
             if ( $k == session_name() ) continue;
             if ( is_array($newparms) && array_key_exists($k, $newparms) ) continue;
-            $baseurl = add_url_parm($baseurl, $k, $v);
+            $baseurl = self::add_url_parm($baseurl, $k, $v);
         }
         if ( is_array($newparms) ) foreach ( $newparms as $k => $v ) {
-            $baseurl = add_url_parm($baseurl, $k, $v);
+            $baseurl = self::add_url_parm($baseurl, $k, $v);
         }
 
         return $baseurl;
@@ -149,6 +149,20 @@ class U {
         $url .= strpos($url,'?') === false ? '?' : '&';
         $url .= urlencode($key) . '=' . urlencode($val);
         return $url;
+    }
+
+    public static function absolute_url_ref(&$url) {
+        $url = self::absolute_url($url);
+    }
+
+    public static function absolute_url($url) {
+        global $CFG;
+        if ( strpos($url,'http://') === 0 ) return $url;
+        if ( strpos($url,'https://') === 0 ) return $url;
+        $retval = $CFG->apphome;
+        if ( strpos($url,'/') !== 0 ) $retval .= '/';
+        $retval .= $url;
+        return $retval;
     }
 
     // Request headers for earlier version of PHP and nginx

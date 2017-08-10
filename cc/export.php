@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\UI\Lessons;
+use \Tsugi\Util\U;
 use \Tsugi\Util\CC;
 use \Tsugi\Util\CC_LTI;
 use \Tsugi\Util\CC_WebLink;
@@ -71,16 +72,6 @@ if ( $tsugi_lms == 'sakai' ) {
 
 // $cc_dom->set_description('Awesome MOOC to learn PHP, MySQL, and JavaScript.');
 
-function absolute_url($url) {
-    global $CFG;
-    if ( strpos($url,'http://') === 0 ) return $url;
-    if ( strpos($url,'https://') === 0 ) return $url;
-    $retval = $CFG->apphome;
-    if ( strpos($url,'/') !== 0 ) $retval .= '/';
-    $retval .= $url;
-    return $retval;
-}
-
 foreach($l->lessons->modules as $module) {
     if ( isCli() ) echo("title=$module->title\n");
     if ( $top_module ) {
@@ -98,19 +89,19 @@ foreach($l->lessons->modules as $module) {
     }
 
     if ( isset($module->slides) ) {
-        $url = absolute_url($module->slides);
+        $url = U::absolute_url($module->slides);
         $title = 'Slides: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
     }
 
     if ( isset($module->assignment) ) {
-        $url = absolute_url($module->assignment);
+        $url = U::absolute_url($module->assignment);
         $title = 'Assignment: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
     }
 
     if ( isset($module->solution) ) {
-        $url = absolute_url($module->solution);
+        $url = U::absolute_url($module->solution);
         $title = 'Solution: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
     }
@@ -118,7 +109,7 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->references) ) {
         foreach($module->references as $reference ) {
             $title = 'Reference: '.$reference->title;
-            $url = absolute_url($reference->href);
+            $url = U::absolute_url($reference->href);
             $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
         }
     }
@@ -138,10 +129,9 @@ foreach($l->lessons->modules as $module) {
                     }
                 }
             }
-            $endpoint = absolute_url($lti->launch);
-            $endpoint .= strpos($endpoint,'?') === false ? '?' : '&';
+            $endpoint = U::absolute_url($lti->launch);
             // Sigh - some LMSs don't handle custom - sigh
-            $endpoint .= 'inherit=' . urlencode($lti->resource_link_id);
+            $endpoint = U::add_url_parm($endpoint, 'inherit', $lti->resource_link_id);
             $extensions = array('apphome' => $CFG->apphome);
             $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
         }
