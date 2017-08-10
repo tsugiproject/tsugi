@@ -747,6 +747,10 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // Add the secret column
     if ( $oldversion < 201708101745 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context MODIFY updated_at TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00'";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD secret CHAR(64) NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
