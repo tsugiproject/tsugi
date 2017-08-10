@@ -598,13 +598,9 @@ $('a').each(function (x) {
      * (2) If we are launched via LTI w/o a session
      */
     function topNav($menu_set=false) {
-        global $CFG;
+        global $CFG, $LAUNCH;
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
-        $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
-        // Canvas test
-        $product = LTIX::ltiRawParameter('tool_consumer_info_product_family_code', false);
-        $tci_description = LTIX::ltiRawParameter('tool_consumer_instance_description', false);
-        if ( $product == 'ims' && $tci_description == 'Coursera') $product = 'coursera';
+        $launch_return_url = $LAUNCH->ltiRawParameter('launch_presentation_return_url', false);
 
         $same_host = false;
         if ( $CFG->apphome && startsWith($launch_return_url, $CFG->apphome) ) $same_host = true;
@@ -622,10 +618,10 @@ $('a').each(function (x) {
         } else if ( $launch_target !== false && strtolower($launch_target) == 'window' ) {
             $menu_set = self::closeMenuSet();
         // Since Coursers sets precious little
-        } else if ( $product == 'coursera' ) {
+        } else if ( $LAUNCH->isCoursera() ) {
             $menu_set = self::closeMenuSet();
         // Since canvas does not set launch_target properly
-        } else if ( $launch_target !== false && ($product == 'canvas' || $product == 'coursera')) {
+        } else if ( $launch_target !== false && ( $LAUNCH->isCanvas() || $LAUNCH->isCoursera() ) ) {
             $menu_set = self::closeMenuSet();
         } else if ( $launch_return_url !== false ) {
             $menu_set = self::returnMenuSet($launch_return_url);
@@ -677,7 +673,7 @@ $('a').each(function (x) {
     }
 
     function menuNav($set) {
-        global $CFG;
+        global $CFG, $LAUNCH;
 
 $retval = <<< EOF
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="tsugi_main_nav_bar" style="display:none">
@@ -717,8 +713,9 @@ EOF;
         $retval .= "    </div> <!--/.nav-collapse -->\n";
         $retval .= "  </div> <!--container-fluid -->\n";
         $retval .= "</nav>\n";
+        $inmoodle = $LAUNCH->isMoodle() ? "true" : "false";
         $retval .= "<script>\n";
-        $retval .= "if ( ! inIframe() ) {\n";
+        $retval .= "if ( ".$inmoodle." || ! inIframe() ) {\n";
         $retval .= "  document.getElementById('tsugi_main_nav_bar').style.display = 'block';\n";
         $retval .= "  document.getElementsByTagName('body')[0].style.paddingTop = '70px';\n";
         $retval .= "}\n";
