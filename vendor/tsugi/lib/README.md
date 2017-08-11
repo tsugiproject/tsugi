@@ -39,7 +39,11 @@ Unit Testing
 
 To test:
 
-        php phpunit-old.phar 
+    php phpunit-old.phar 
+
+To run one test:
+
+    php phpunit-old.phar --filter {EntryTest}
 
 Releasing
 ---------

@@ -26,22 +26,22 @@ class User {
     /**
      * The user's email
      */
-    public $email = null;
+    public $email = false;
 
     /**
      * The user's display name
      */
-    public $displayname = null;
+    public $displayname = false;
 
     /**
      * The user's first name
      */
-    public $firstname = null;
+    public $firstname = false;
 
     /**
      * The user's last name
      */
-    public $lastname = null;
+    public $lastname = false;
 
     /**
      * The User's Locale
@@ -56,7 +56,7 @@ class User {
     /**
      * Is the user an instructor?
      */
-    public $instructor = null;
+    public $instructor = false;
 
     /**
      * Construct the user's name / email combination 
@@ -74,7 +74,7 @@ class User {
             }
         }
         $display = trim($display);
-        if ( strlen($display) < 1 ) return null;
+        if ( strlen($display) < 1 ) return false;
         return $display;
     }
 
@@ -82,12 +82,12 @@ class User {
     /**
      * Get the user's first name, falling back to email
      */
-    function getFirstName($displayname=null) {
-        if ( $displayname === null ) $displayname = $this->getNameAndEmail();
-        if ( $displayname === null ) return null;
+    function getFirstName($displayname=false) {
+        if ( $displayname === false ) $displayname = $this->getNameAndEmail();
+        if ( $displayname === false ) return false;
         $pieces = explode(' ',$displayname);
         if ( count($pieces) > 0 ) return $pieces[0];
-        return null;
+        return false;
     }
 
     /**

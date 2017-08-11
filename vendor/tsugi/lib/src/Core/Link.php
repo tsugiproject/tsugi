@@ -33,19 +33,19 @@ class Link extends Entity {
      *
      * If there is a current grade (float between 0.0 and 1.0)
      * it is in this variable.  If there is not yet a grade for
-     * this user/link combination, this will be null.
+     * this user/link combination, this will be false.
      */
-    public $grade = null;
+    public $grade = false;
 
     /**
      * The result_id for the link (if set)
      *
      * This is the primary key for the lti_result row for this
-     * user/link combination.  It may be null.  Is this is not
-     * null, we can send a grade back to the LMS for this
+     * user/link combination.  It may be false.  Is this is not
+     * false, we can send a grade back to the LMS for this
      * user/link combination.
      */
-    public $result_id = null;
+    public $result_id = false;
 
     /**
      * Load link information for a different link than current

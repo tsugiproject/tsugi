@@ -28,9 +28,9 @@ class Result extends Entity {
      *
      * If there is a current grade (float between 0.0 and 1.0)
      * it is in this variable.  If there is not yet a grade for
-     * this user/link combination, this will be null.
+     * this user/link combination, this will be false.
      */
-    public $grade = null;
+    public $grade = false;
 
     // Looks up a result for a potentially different user_id so we make
     // sure they are in the same key/ context / link as the current user
