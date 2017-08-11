@@ -39,7 +39,7 @@ class ConfigInfo {
      *
      * This is not required, its default for this is $wwwroot.
      */
-    public $apphome;
+    public $apphome = null;
 
     /**
      * This is how the system will refer to itself.
@@ -391,6 +391,7 @@ class ConfigInfo {
         return $pieces[count($pieces)-1];
     }
 
+    // This should be deprecated since it only works under tsugi
     function getCurrentFileUrl($file) {
         return $this->wwwroot.$this->getCurrentFile($file);
     }
@@ -437,6 +438,8 @@ class ConfigInfo {
 
     /**
      * Get the name of the script relative to the server document root
+     *
+     * /py4e/mod/peer-grade/maint.php
      */
     public static function getScriptName() {
         if ( ! isset( $_SERVER['SCRIPT_NAME']) ) return false;
@@ -445,16 +448,37 @@ class ConfigInfo {
     }
 
     /**
-     * Get the current URL we are executing
+     * Get the current URL we are executing - no query parameters
+     *
+     * http://localhost:8888/py4e/mod/peer-grade/maint.php
      */
     public function getCurrentUrl() {
         $script = self::getScriptName();
         if ( $script === false ) return false; 
-        $pieces = parse_url($this->apphome);
+        $pieces = $this->apphome;
+        if ( $this->apphome ) {
+            $pieces = parse_url($this->apphome);
+        }
+        // We only take scheme, host, and port from wwwroot / apphome
         if ( ! isset($pieces['scheme']) ) return false;
         $retval = $pieces['scheme'].'://'.$pieces['host'];
         if ( isset($pieces['port']) ) $retval .= ':'.$pieces['port'];
         return $retval . $script;
+    }
+
+    /**
+     * Get the current folder of the URL we are executing - no trailing slash
+     *
+     * input: http://localhost:8888/py4e/mod/peer-grade/maint.php
+     * output: http://localhost:8888/py4e/mod/peer-grade
+     *
+     */
+    public function getCurrentUrlFolder() {
+        $url = self::getCurrentUrl();
+        $pieces = explode('/', $url);
+        array_pop($pieces);
+        $retval = implode('/', $pieces);
+        return $retval;
     }
 
     /**
