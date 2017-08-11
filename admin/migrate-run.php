@@ -33,6 +33,18 @@ LTIX::getConnection();
                 }
             }
         }
+    } else {
+        echo("-- Set version for ".$path."<br/>");
+        error_log("-- Set version for ".$path);
+        $sql = "INSERT INTO {$plugins}
+            ( plugin_path, version, created_at, updated_at ) VALUES
+            ( :plugin_path, :version, NOW(), NOW() )
+            ON DUPLICATE KEY
+            UPDATE version = :version, updated_at = NOW()";
+        $values = array( ":plugin_path" => $path,
+                ":version" => $CFG->dbversion);
+        $q = $PDOX->queryReturnError($sql, $values);
+        if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
     }
 
     // Check to see if there is any upgrading needed
