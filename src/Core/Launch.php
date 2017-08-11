@@ -72,11 +72,6 @@ class Launch {
     public $redirect_url = null;
 
     /**
-     * If this is non-false, we send a 403 (see also $error_message)
-    WARDED_FOR
-    public $send_403 = false;
-
-    /**
      * Get the base string from the launch.
      *
      * @return This is null if it is not the original launch.
