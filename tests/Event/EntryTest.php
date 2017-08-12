@@ -45,6 +45,9 @@ class EntryTest extends PHPUnit_Framework_TestCase
         $ser3 = $ent->serialize($smaller, $compress);
         $this->assertTrue(strlen($ser3)<=$smaller);
         $this->assertEquals($ser3,"3600:417376:0=2001,24=2000,48=2000,720=2000,744=2000,768=2000,1440=2000,1464=2000,1488=2000");
+        $this->assertEquals($ser3,Entry::uncompressEntry($ser3));
+        // Once uncompressed :)
+        $this->assertEquals($ser3,Entry::uncompressEntry(Entry::uncompressEntry($ser3)));
 
         // Give this a try with compression
         $compress = true;
@@ -52,11 +55,13 @@ class EntryTest extends PHPUnit_Framework_TestCase
         $ser4 = $ent->serialize($smaller, $compress);
         $this->assertTrue(strlen($ser4)<=$smaller);
         $this->assertEquals(bin2hex($ser4),"313830303a3833343735323a303d313730322c313d3239392c34383d313730312c34393d3239392c39363d313730312c39373d3239392c313434303d313730312c313434313d3239392c313438383d313730312c313438393d3239392c313533363d313730312c313533373d3239392c323838303d313730312c323838313d3239392c323932383d313730312c323932393d3239392c323937363d313730312c323937373d323939");
+        $this->assertEquals(Entry::uncompressEntry($ser4),$ser2);
 
         $smaller = (int) (strlen($ser1) * 0.50);
         $ser5 = $ent->serialize($smaller, $compress);
         $this->assertTrue(strlen($ser5)<=$smaller);
         $this->assertEquals(bin2hex($ser5),"333630303a3431373337363a303d323030312c32343d323030302c34383d323030302c3732303d323030302c3734343d323030302c3736383d323030302c313434303d323030302c313436343d323030302c313438383d32303030");
+        $this->assertEquals(Entry::uncompressEntry($ser5),$ser3);
 
         // Make it pitch data
         $compress = false;
@@ -67,12 +72,19 @@ class EntryTest extends PHPUnit_Framework_TestCase
 
         // Make it pitch data with compression as option
         $compress = true;
-        $smaller = (int) (strlen($ser1) * 0.25);
+        $smaller = (int) (strlen($ser1) * 0.20);
         $ser6 = $ent->serialize($smaller, $compress);
-        echo(bin2hex($ser6)); echo("\n");
+        // echo(bin2hex($ser6)); echo("\n");
         $this->assertTrue(strlen($ser6)<=$smaller);
-        $this->assertEquals(bin2hex($ser6),"3930303a313637353336303a303d3830312c313d3930302c323d3239392c39363d3830312c39373d3930302c39383d323939");
+        $this->assertEquals(bin2hex($ser6),"3930303a313637353336313a303d3930302c313d3239392c39353d3830312c39363d3930302c39373d323939");
+        $this->assertEquals(Entry::uncompressEntry($ser6),"900:1675361:0=900,1=299,95=801,96=900,97=299");
 
+        // Check if I never get less than 4 buckets :)
+        $compress = false;
+        $smaller = 10;
+        $ser8 = $ent->serialize($smaller, $compress);
+        $this->assertFalse(strlen($ser8)<=$smaller);
+        $this->assertEquals($ser8,"900:1675362:0=299,94=801,95=900,96=299");
     }
 
 }

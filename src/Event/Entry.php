@@ -94,6 +94,22 @@ class Entry {
     }
 
     /**
+     * Optionally uncompress a serialized entry if it is compressed
+     */
+    public static function uncompressEntry($text) {
+        $needed = false;
+        for ($i = 0; $i < strlen($text); $i++){
+            $ch = $text[$i];
+            if ( $ch >= '0' && $ch <= '9' ) continue;
+            if ( $ch == ':' || $ch == ',' || $ch == '=' ) continue;
+            $needed = true;
+            break;
+        }
+        if ( ! $needed ) return $text;
+        return gzuncompress($text);
+    }
+
+    /**
      *  Serialize to a key=value pair
      */
     public function serialize($maxlength=null, $compress=false) {
@@ -157,8 +173,6 @@ class Entry {
         }
 
         // Strategy 4: Violate the max request :)
-        error_log("Unable to serialize Event Entry at max=$maxlength limit");
-die('strategy 4');
         return $retval;
     }
 
