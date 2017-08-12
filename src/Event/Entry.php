@@ -22,7 +22,7 @@ class Entry {
     /**
      * The length of the arrays
      */
-    public $max = 0;
+    public $size = 0;
 
     /**
      * The offsets (0-65K)
@@ -33,5 +33,10 @@ class Entry {
      * The offsets (0-65K)
      */
     public $buckets = null;
+
+    public function __construct($start=null, $size=256, $scale=15*60)
+    {
+        $this->size = $size;
+    }
 
 }

@@ -31,4 +31,14 @@ class UTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro/?x=2'), '/py4e/lessons');
     }
 
+    // https://stackoverflow.com/questions/30231476/i-want-to-array-key-and-array-value-comma-separated-string
+    // https://stackoverflow.com/questions/4923951/php-split-string-in-key-value-pairs
+    public function testSerialization() {
+        $arar = Array ( 1 => 42 ,2 => 43, 3 => 44 );
+        $str = U::array_Integer_Serialize($arar);
+        $this->assertEquals($str, '1=42,2=43,3=44');
+        $newa = U::array_Integer_Deserialize($str);
+        $this->assertEquals($arar, $newa);
+    }
+
 }

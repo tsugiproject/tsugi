@@ -2,12 +2,13 @@
 
 require_once "src/Event/Entry.php";
 
-use \Tsugi\Util\U;
+use \Tsugi\Event\Entry;
 
 class EntryTest extends PHPUnit_Framework_TestCase
 {
     public function testY() {
-echo("\nYADA\n");
+        echo("\ntestY\n");
+        $ent = new Entry();
     }
 
 }
