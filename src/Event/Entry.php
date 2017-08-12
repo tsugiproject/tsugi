@@ -100,19 +100,66 @@ class Entry {
         if ( ! $maxlength ) $maxlength = $this->maxlen;
         $retval = $this->scale . ':' .$this->timestart . ':' . U::array_Integer_Serialize($this->buckets);
         if ( strlen($retval) <= $maxlength ) return $retval;
-        // TODO: Compress later
-        // Make copies so we can try various strategies
-        $scale = $this->scale;
-        $buckets = $this->buckets;
-        // Strategy 1 - Double Scale
-        foreach(array(2,4) as $factor ) {
-            $newbuckets = $this->reScale($factor);
-            $newscale = $this->scale * $factor;
-            $newstart = (int) ($this->timestart / $factor);
-            $retval = $newscale . ':' .$newstart . ':' . U::array_Integer_Serialize($newbuckets);
+
+        $allowCompress = $compress && function_exists('gzcompress') && function_exists('gzuncompress');
+
+        // Stratey 1 - Compress if we are allowed - since it is lossless
+        if ( $allowCompress ) {
+            $compressed = gzcompress($retval);
             if ( strlen($retval) <= $maxlength ) return $retval;
         }
-die('BAD');
+        
+        // Strategy 2 - Double or Quadruple Scale as long as buckets < 24 hours
+        if ( $this->scale < 24*60*60 ) { 
+            foreach(array(2,4) as $factor ) {
+                $newbuckets = $this->reScale($factor);
+                $newscale = $this->scale * $factor;
+                $newstart = (int) ($this->timestart / $factor);
+                $retval = $newscale . ':' .$newstart . ':' . U::array_Integer_Serialize($newbuckets);
+
+                if ( strlen($retval) <= $maxlength ) return $retval;
+
+                if ( $allowCompress ) {
+                    $compressed = gzcompress($retval);
+                    if ( strlen($retval) <= $maxlength ) return $retval;
+                }
+            }
+        }
+
+        // Strategy 3, pitch data
+        $oldbuckets = $this->buckets;
+        $newstart = $this->timestart;
+        $firstoffset = null;
+        while( count($oldbuckets) > 4 ) {
+            $fewerbuckets = array();
+            $pos = 0;
+            $fistoffset = null;
+            foreach($oldbuckets as $oldoffset => $v ) {
+                $pos++;
+                if ( $pos == 1 ) continue; // first entry
+                if ( $pos == 2 ) $firstoffset = $oldoffset;
+                $newoffset = $oldoffset - $firstoffset;
+                $fewerbuckets[$newoffset] = $oldbuckets[$oldoffset];
+            }
+            if ( count($oldbuckets)-1 != count($fewerbuckets) ) {
+                throw new Exception('Internal failure during serialization');
+            }
+            $newstart = $newstart + $firstoffset;
+
+            $retval = $this->scale . ':' .$newstart . ':' . U::array_Integer_Serialize($fewerbuckets);
+            if ( strlen($retval) <= $maxlength ) return $retval;
+
+            if ( $allowCompress ) {
+                 $compressed = gzcompress($retval);
+                 if ( strlen($retval) <= $maxlength ) return $retval;
+            }
+            $oldbuckets = $fewerbuckets;
+        }
+
+        // Strategy 4: Violate the max request :)
+        error_log("Unable to serialize Event Entry at max=$maxlength limit");
+die('strategy 4');
+        return $retval;
     }
 
 }

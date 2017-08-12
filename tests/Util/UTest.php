@@ -41,4 +41,13 @@ class UTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($arar, $newa);
     }
 
+    // http://php.net/manual/en/function.array-shift.php#84179
+    public function testKShift() {
+        $arr = array('x'=>'ball','y'=>'hat','z'=>'apple');
+        $thing = U::array_kshift($arr);
+        $this->assertEquals($thing,array('x'=>'ball'));
+        $this->assertEquals($arr,array('y'=>'hat','z'=>'apple'));
+    }
+
+
 }

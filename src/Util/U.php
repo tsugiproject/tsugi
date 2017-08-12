@@ -322,7 +322,8 @@ class U {
         return $a.'='.$b;
     }
 
-    /** Deserialize an tightly serialized integer-only PHP array
+    /** 
+     * Deserialize an tightly serialized integer-only PHP array
      *
      *     $str = '1=42,2=43,3=44';
      *     $arar = U::array_Integer_Deserialize($str);
@@ -335,6 +336,23 @@ class U {
         preg_match_all("/([^,= ]+)=([^,= ]+)/", $input, $r);
         $result = array_combine($r[1], $r[2]);
         return $result;
+    }
+
+    /**
+     * Pull off the first element of a key/value array
+     *
+     *     $arr = array('x'=>'ball','y'=>'hat','z'=>'apple');
+     *     print_r($arr);
+     *     print_r(array_kshift($arr)); // [x] => ball
+     *     print_r($arr);
+     *
+     * http://php.net/manual/en/function.array-shift.php#84179
+     */
+    public static function array_kshift(&$arr) {
+        list($k) = array_keys($arr);
+        $r  = array($k=>$arr[$k]);
+        unset($arr[$k]);
+        return $r;
     }
 
     public static function setLocale($locale=null)
