@@ -1,5 +1,6 @@
 <?php
 
+use \Tsugi\Util\U;
 use \Tsugi\Util\Git;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LTI;
@@ -71,7 +72,7 @@ $tsugi->guid = md5($CFG->dirroot);
 $installed[] = $tsugi;
 $paths[$origin] = $CFG->dirroot;
 
-$path = $CFG->removeRelativePath($CFG->install_folder);
+$path = U:remove_relative_path($CFG->install_folder);
 $folders = findAllFolders($path);
 
 // Load the existing modules

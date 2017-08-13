@@ -4,6 +4,7 @@ if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../config.php");
 require_once("../admin/admin_util.php");
 
+use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Config\ConfigInfo;
@@ -223,7 +224,7 @@ $OUTPUT->bodyStart(false);
                     if ( strpos($tool,"../") === 0 ) $toolname = substr($tool,3);
                     if ( strpos($tool,"http") !== 0 ) {
                         $tool = $CFG->wwwroot . '/' . $toolname;
-                        $tool = ConfigInfo::removeRelativePath($tool);
+                        $tool = U:remove_relative_path($tool);
                     }
                     echo('<li><a href="#" onclick="doSubmitTool(\''.$tool.'\');return false;">'.$toolname.'</a></li>'."\n");
                 }
@@ -309,7 +310,7 @@ $parms['lis_outcome_service_url'] = $outcomes;
 if ( isset($_POST['endpoint']) && (isset($_POST['launch']) || isset($_POST['debug']) ) ) {
     // Use the actual direct URL to the launch
     $endpoint = $_POST['endpoint'];
-    $endpoint = ConfigInfo::removeRelativePath($endpoint);
+    $endpoint = U:remove_relative_path($endpoint);
     $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
         "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
 
