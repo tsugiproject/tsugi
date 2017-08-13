@@ -54,7 +54,7 @@ $tsugihash = md5($CFG->dirroot);
 $paths = array();
 $paths[$tsugihash] = $CFG->dirroot;
 if ( isset($CFG->install_folder) ) {
-    $path = U:remove_relative_path($CFG->install_folder);
+    $path = U::remove_relative_path($CFG->install_folder);
     $folders = findAllFolders($path);
     foreach($folders as $folder){
         $git = $folder . '/.git';
@@ -162,7 +162,7 @@ if ( isset($_POST['command']) && $command == "clone" ) {
 
     try {
         $folder = $CFG->install_folder.'/'.basename($remote,'.git');
-        $folder = \Tsugi\Util\U:remove_relative_path($folder);
+        $folder = \Tsugi\Util\U::remove_relative_path($folder);
         $repo = new \Tsugi\Util\GitRepo($folder, true,  false);
         $log = $repo->clone_from($remote);
         $results = "Command: git clone $remote\n";

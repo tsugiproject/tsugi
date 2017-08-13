@@ -72,7 +72,7 @@ $tsugi->guid = md5($CFG->dirroot);
 $installed[] = $tsugi;
 $paths[$origin] = $CFG->dirroot;
 
-$path = U:remove_relative_path($CFG->install_folder);
+$path = U::remove_relative_path($CFG->install_folder);
 $folders = findAllFolders($path);
 
 // Load the existing modules

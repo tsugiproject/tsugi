@@ -107,7 +107,7 @@ function findAllRegistrations($folders=false)
             // Take off the $CFG->dirroot
             $relative = substr($reg_file,strlen($CFG->dirroot)+1);
             $url = $CFG->wwwroot . '/' . $relative;
-            $url = U:remove_relative_path($url);
+            $url = U::remove_relative_path($url);
             $pieces = explode('/', $url);
             if ( $pieces < 2 || $pieces[count($pieces)-1] != 'register.php') {
                 error_log('Unable to load tool registration from '.$tool_folder);
