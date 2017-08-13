@@ -109,12 +109,13 @@ class Output extends \Tsugi\Core\SessionAccess {
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
-        <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
         <script>
         var _TSUGI = {
-            spinnerUrl: "<?= self::getSpinnerUrl() ?>"
+            spinnerUrl: "<?= self::getSpinnerUrl() ?>",
+            staticroot: "<?= $CFG->staticroot ?>"
         }
         </script>
+        <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
 
     <style>
     body {

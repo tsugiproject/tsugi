@@ -165,6 +165,30 @@ class U {
         return $retval;
     }
 
+    /**
+     * Remove any relative elements from a path
+     *
+     * Before   After
+     * a/b/c    a/b/c
+     * a/b/c/   a/b/c/
+     * a/./c/   a/c/
+     * a/../c/  c/
+     */
+    public static function remove_relative_path($path) {
+        $pieces = explode('/', $path);
+        $new_pieces = array();
+        for($i=0; $i < count($pieces); $i++) {
+            if ($pieces[$i] == '.' ) continue;
+            if ($pieces[$i] == '..' ) {
+                array_pop($new_pieces);
+                continue;
+            }
+            $new_pieces[] = $pieces[$i];
+        }
+        $retval = implode("/",$new_pieces);
+        return $retval;
+    }
+
     // Request headers for earlier version of PHP and nginx
     // http://www.php.net/manual/en/public static function.getallheaders.php
     public static function apache_request_headers() {
