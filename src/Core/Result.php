@@ -30,7 +30,7 @@ class Result extends Entity {
      * it is in this variable.  If there is not yet a grade for
      * this user/link combination, this will be false.
      */
-    public $grade = false;
+    public $grade = null;
 
     // Looks up a result for a potentially different user_id so we make
     // sure they are in the same key/ context / link as the current user

@@ -46,8 +46,8 @@ class Settings {
             $_SESSION['lti']['link_settings'] = $json;
             unset($_SESSION['lti']['link_settings_merge']);
         }
-        $settings_url = LTIX::ltiParameter('link_settings_url',false);
-        if ( $settings_url === false ) return;
+        $settings_url = LTIX::ltiParameter('link_settings_url',null);
+        if ( $settings_url === null ) return;
 
         $settingsDebugArray[] = array("Sending settings to ".$settings_url);
         $retval = LTIX::settingsSend($keyvals, $settings_url, $settingsDebugArray);
