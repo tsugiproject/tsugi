@@ -136,6 +136,7 @@ class LTIX {
     public static function decrypt_secret($secret)
     {
         global $CFG;
+        if ( $secret === null || $secret === false ) return $secret;
         if ( ! startsWith($secret,'AES::') ) return $secret;
         $secret = substr($secret, 5);
         $decr = AesCtr::decrypt($secret, $CFG->cookiesecret, 256) ;
@@ -1121,7 +1122,7 @@ class LTIX {
         // This happens from time to time when someone closes and reopens a laptop
         // Or their computer goes to sleep and wakes back up hours later.
         // So it is just a warning - nothing much we can do except tell them.
-        if ( count($needed) > 0 && self::wrapped_session_get($session_object, 'lti',false) === false ) {
+        if ( count($needed) > 0 && self::wrapped_session_get($session_object, 'lti',null) === null ) {
             self::send403(); error_log('Session expired - please re-launch '.session_id());
             die('Session expired - please re-launch'); // with error_log
         }
@@ -1436,8 +1437,8 @@ class LTIX {
         $PDOX = self::getConnection();
         $host = parse_url($url, PHP_URL_HOST);
         $port = parse_url($url, PHP_URL_PORT);
-        $key_id = self::ltiParameter('key_id', false);
-        if ( $key_id == false ) return false;
+        $key_id = self::ltiParameter('key_id', null);
+        if ( $key_id == null ) return false;
 
         $sql = "SELECT consumer_key, secret FROM {$CFG->dbprefix}lti_domain
             WHERE domain = :DOM AND key_id = :KID";

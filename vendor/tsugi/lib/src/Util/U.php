@@ -190,7 +190,7 @@ class U {
             header('X-PHP-Response-Code: '.$newcode, true, $newcode);
             if(!headers_sent())
                 $code = $newcode;
-        }       
+        }
         return $code;
     }
 
@@ -285,7 +285,6 @@ class U {
      *
      * Borrowed from from_request on OAuthRequest.php
      */
-    
     public static function curPHPUrl() {
         $scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on")
               ? 'http'
@@ -300,6 +299,60 @@ class U {
                               $port .
                               $_SERVER['REQUEST_URI'];
         return $http_url;
+    }
+
+    /** Tightly serialize an integer-only PHP array
+     *
+     *     $arar = Array ( 1 => 42 ,2 => 43, 3 => 44 );
+     *     $str = U::array_Integer_Serialize($arar);
+     *     echo($str); // 1=42,2=43,3=44
+     *
+     * https://stackoverflow.com/questions/30231476/i-want-to-array-key-and-array-value-comma-separated-string
+     */
+    public static function array_Integer_Serialize($arar) {
+        $result = implode(',',array_map('\Tsugi\Util\U::array_Integer_Serialize_Map',array_keys($arar),$arar));
+        return $result;
+    }
+
+    public static function array_Integer_Serialize_Map($a,$b){
+        // We are not messing around :)
+        if ( ! is_int($a) || ! is_int($b) ) {
+            throw new Exception('array_Integer_Serialize requires integers');
+        }
+        return $a.'='.$b;
+    }
+
+    /** 
+     * Deserialize an tightly serialized integer-only PHP array
+     *
+     *     $str = '1=42,2=43,3=44';
+     *     $arar = U::array_Integer_Deserialize($str);
+     *     print_r($arar); // Array ( '1' => 42 ,'2' => 43, '3' => 44 );
+     *
+     * https://stackoverflow.com/questions/4923951/php-split-string-in-key-value-pairs
+     */
+    public static function array_Integer_Deserialize($input) {
+        $r = array();
+        preg_match_all("/([^,= ]+)=([^,= ]+)/", $input, $r);
+        $result = array_combine($r[1], $r[2]);
+        return $result;
+    }
+
+    /**
+     * Pull off the first element of a key/value array
+     *
+     *     $arr = array('x'=>'ball','y'=>'hat','z'=>'apple');
+     *     print_r($arr);
+     *     print_r(array_kshift($arr)); // [x] => ball
+     *     print_r($arr);
+     *
+     * http://php.net/manual/en/function.array-shift.php#84179
+     */
+    public static function array_kshift(&$arr) {
+        list($k) = array_keys($arr);
+        $r  = array($k=>$arr[$k]);
+        unset($arr[$k]);
+        return $r;
     }
 
     public static function setLocale($locale=null)
