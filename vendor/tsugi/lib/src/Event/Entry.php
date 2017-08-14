@@ -11,6 +11,8 @@ use \Tsugi\Util\U;
 
 class Entry {
 
+    const DEFAULT_SCALE = 16*30;
+
     /**
      * The earliest time for the first bucket - default first entry
      */
@@ -19,12 +21,7 @@ class Entry {
     /**
      * The scale in seconds
      */
-    public $scale = 15*60;
-
-    /**
-     * The max length (bytes) of the field post serialization
-     */
-    public $maxlen = 0;
+    public $scale = self::DEFAULT_SCALE;
 
     /**
      * The total number of clicks
@@ -97,6 +94,7 @@ class Entry {
      * Optionally uncompress a serialized entry if it is compressed
      */
     public static function uncompressEntry($text) {
+        if ( $text === null | $text === false ) return $text;
         $needed = false;
         for ($i = 0; $i < strlen($text); $i++){
             $ch = $text[$i];
@@ -107,6 +105,26 @@ class Entry {
         }
         if ( ! $needed ) return $text;
         return gzuncompress($text);
+    }
+
+    /**
+     * De-Serialize scale, timestart and buckets (can be compressed)
+     *
+     * Does not set total
+     */
+    public function deSerialize($data) {
+        $data = self::uncompressEntry($data);
+        $chunks = explode(':',$data);
+        // Nothing to see here - Might be null ... is OK
+        if ( count($chunks) != 3 || !is_numeric($chunks[0]) || !is_numeric($chunks[1]) ) {
+            $this->scale = self::DEFAULT_SCALE;
+            $this->timestart = 0;
+            $this->buckets = array();
+            return;
+        }
+        $this->scale = (int) $chunks[0];
+        $this->timestart = (int) $chunks[1];
+        $this->buckets = U::array_Integer_Deserialize($chunks[2]);
     }
 
     /**
