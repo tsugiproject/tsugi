@@ -9,6 +9,12 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 use \Tsugi\Core\LTIX;
 LTIX::getConnection();
 
+// https://stackoverflow.com/questions/3133209/how-to-flush-output-after-each-echo-call
+@ini_set('zlib.output_compression',0);
+@ini_set('implicit_flush',1);
+@ob_end_clean();
+set_time_limit(0);
+
 ?>
 <html>
 <head>
@@ -75,6 +81,7 @@ foreach($tools as $tool ) {
     unset($DATABASE_UPGRADE);
     require($tool);
     require('migrate-run.php');
+    flush();
 }
 
 echo("\n<br/>Highest database version=$maxversion in $maxpath<br/>\n");
