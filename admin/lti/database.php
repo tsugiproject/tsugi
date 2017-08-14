@@ -809,6 +809,51 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Clean up the mess - not very likely - because it was only for an hour
+    if ( $oldversion == 201708132146 ) {
+
+        $sql = 'ALTER TABLE lti_link_activity MODIFY link_activity_id INTEGER NULL';
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Error: ".$q->errorImplode;
+            error_log($message);
+            echo($message);
+        }
+
+        $sql = 'ALTER TABLE lti_link_activity DROP PRIMARY KEY,ADD PRIMARY KEY (link_id,event);';
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Error: ".$q->errorImplode;
+            error_log($message);
+            echo($message);
+        }
+
+        $sql = 'ALTER TABLE lti_link_activity DROP link_activity_id';
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Error: ".$q->errorImplode;
+            error_log($message);
+            echo($message);
+        }
+
+        $sql = 'ALTER TABLE lti_link_user_activity DROP PRIMARY KEY,ADD PRIMARY KEY (link_id,user_id,event);';
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Error: ".$q->errorImplode;
+            error_log($message);
+            echo($message);
+        }
+
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
     return 201708132246;
