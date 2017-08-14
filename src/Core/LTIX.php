@@ -648,6 +648,7 @@ class LTIX {
      * LEFT JOIN.
      */
     public static function loadAllData($p, $profile_table, $post) {
+        global $CFG;
         $PDOX = self::getConnection();
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -677,6 +678,11 @@ class LTIX {
             s.service_id, s.service_key AS service";
         }
 
+        if ( $CFG->launchactivity ) {
+            $sql .= ",
+                a.link_count, au.link_user_count";
+        }
+
         // Add the JOINs
         $sql .="\nFROM {$p}lti_key AS k
             LEFT JOIN {$p}lti_nonce AS n ON k.key_id = n.key_id AND n.nonce = :nonce
@@ -694,6 +700,12 @@ class LTIX {
         if ( $post['service'] ) {
             $sql .= "
             LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service";
+        }
+
+        if ( $CFG->launchactivity ) {
+            $sql .= "
+            LEFT JOIN {$p}lti_link_activity AS a ON a.link_id = l.link_id AND a.event = 0
+            LEFT JOIN {$p}lti_link_user_activity AS au ON au.link_id = l.link_id AND au.user_id = u.user_id AND au.event = 0";
         }
 
         // Add the WHERE clause
@@ -1223,9 +1235,14 @@ class LTIX {
             $LINK = new \Tsugi\Core\Link();
             $LINK->launch = $TSUGI_LAUNCH;
             $LINK->id = $LTI['link_id'];
-            if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
+            if (isset($LTI['link_count']) ) $LINK->activity = $LTI['link_count']+0;
+            if (isset($LTI['link_user_count']) ) $LINK->user_activity = $LTI['link_user_count']+0;
+
+            // The activity (Don't make global to avoid bad habits)
             $TSUGI_LAUNCH->link = $LINK;
         }
+
+            $ACTIVITY = new \Tsugi\Core\Activity();
 
         if ( isset($LTI['result_id']) && ! is_object($RESULT) ) {
             $RESULT = new \Tsugi\Core\Result();

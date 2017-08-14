@@ -48,6 +48,16 @@ class Link extends Entity {
     public $result_id = null;
 
     /**
+     * The count of the overall activity on this link at the moment of launch
+     */
+    public $activity = 0;
+
+    /**
+     * The count of the user's activity on this link at the moment of launch
+     */
+    public $user_activity = 0;
+
+    /**
      * Load link information for a different link than current
      *
      * Make sure not to cross Context silos.
