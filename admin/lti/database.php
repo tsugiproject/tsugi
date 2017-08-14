@@ -123,10 +123,8 @@ array( "{$CFG->dbprefix}lti_link",
 
 array( "{$CFG->dbprefix}lti_link_activity",
 "create table {$CFG->dbprefix}lti_link_activity (
-    link_activity_id    INTEGER NOT NULL AUTO_INCREMENT,
     link_id             INTEGER NOT NULL,
-
-    event               INTEGER NULL,
+    event               INTEGER NOT NULL,
 
     activity            VARBINARY(1024) NULL,
 
@@ -139,7 +137,7 @@ array( "{$CFG->dbprefix}lti_link_activity",
         REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    PRIMARY KEY (link_activity_id)
+    PRIMARY KEY (link_id,event)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 
@@ -231,7 +229,7 @@ array( "{$CFG->dbprefix}lti_link_user_activity",
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    PRIMARY KEY (link_id, user_id)
+    PRIMARY KEY (link_id, user_id, event)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_service",
@@ -813,7 +811,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201708132146;
+    return 201708132246;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
