@@ -122,6 +122,9 @@ $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 // and LTI launches
 $CFG->unify = true;
 
+// Whether to record launches as activities - make sure tables exist
+$CFG->launchactivity = false;
+
 // Go to https://console.developers.google.com/apis/credentials
 // Create and configure an API key and enter it here
 $CFG->google_map_api_key = false; // 'Ve8eH490843cIA9IGl8';

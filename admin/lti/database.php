@@ -5,6 +5,8 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_service",
 "drop table if exists {$CFG->dbprefix}lti_membership",
 "drop table if exists {$CFG->dbprefix}lti_link",
+"drop table if exists {$CFG->dbprefix}lti_link_activity",
+"drop table if exists {$CFG->dbprefix}lti_link_user_activity",
 "drop table if exists {$CFG->dbprefix}lti_context",
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_key",
@@ -119,6 +121,28 @@ array( "{$CFG->dbprefix}lti_link",
     PRIMARY KEY (link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+array( "{$CFG->dbprefix}lti_link_activity",
+"create table {$CFG->dbprefix}lti_link_activity (
+    link_activity_id    INTEGER NOT NULL AUTO_INCREMENT,
+    link_id             INTEGER NOT NULL,
+
+    event               INTEGER NULL,
+
+    activity            VARBINARY(1024) NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+
+    CONSTRAINT `{$CFG->dbprefix}lti_link_activity_ibfk_1`
+        FOREIGN KEY (`link_id`)
+        REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    PRIMARY KEY (link_activity_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+
 array( "{$CFG->dbprefix}lti_user",
 "create table {$CFG->dbprefix}lti_user (
     user_id             INTEGER NOT NULL AUTO_INCREMENT,
@@ -182,6 +206,32 @@ array( "{$CFG->dbprefix}lti_membership",
 
     UNIQUE(context_id, user_id),
     PRIMARY KEY (membership_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}lti_link_user_activity",
+"create table {$CFG->dbprefix}lti_link_user_activity (
+    link_id             INTEGER NOT NULL,
+    user_id             INTEGER NOT NULL,
+
+    event               INTEGER NULL,
+
+    activity            VARBINARY(1024) NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+
+    CONSTRAINT `{$CFG->dbprefix}lti_link_user_activity_ibfk_1`
+        FOREIGN KEY (`link_id`)
+        REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_link_user_activity_ibfk_2`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    PRIMARY KEY (link_id, user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_service",
