@@ -126,6 +126,7 @@ array( "{$CFG->dbprefix}lti_link_activity",
     link_id             INTEGER NOT NULL,
     event               INTEGER NOT NULL,
 
+    link_count          INTEGER UNSIGNED NOT NULL DEFAULT 0,
     activity            VARBINARY(1024) NULL,
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
@@ -212,6 +213,7 @@ array( "{$CFG->dbprefix}lti_link_user_activity",
     user_id             INTEGER NOT NULL,
     event               INTEGER NOT NULL,
 
+    link_user_count     INTEGER UNSIGNED NOT NULL DEFAULT 0,
     activity            VARBINARY(1024) NULL,
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
@@ -808,9 +810,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    // Clean up the mess - not very likely - because it was only for an hour
+    // Clean up the mess - not very likely - because it was only for two hours
     // TODO: Delete this in a few weeks
-    if ( $oldversion == 201708132146 ) {
+    if ( $oldversion == 201708132146 || $oldversion == 201708132246) {
 
         $sql = 'DROP TABLE lti_link_activity';
         echo("Dropping to re-create: ".$sql."<br/>\n");
@@ -838,7 +840,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201708132246;
+    return 201708132345;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
