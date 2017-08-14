@@ -69,6 +69,35 @@ class Entry {
     }
 
     /**
+     * Produce an view model of the entire object
+     *
+     * This is a "view model" in that it is intended to be easily used
+     * in rendering situations.
+     */
+    public function viewModel() {
+        $retval = new \stdClass();
+        $buckets = $this->reconstruct();
+        $retval->timestart = $this->timestart * $this->scale;
+        $retval->width = $this->scale;
+        $max = false;
+        $maxt = false;
+        $min = false;
+        $rows = array();
+        foreach($buckets as $k => $v ) {
+            if ( $maxt === false || $k > $maxt ) $maxt = $k;
+            if ( $max === false || $v > $max ) $max = $v;
+            if ( $min === false || $v < $min ) $min = $v;
+            $rows[] = array($k,$v);
+        }
+        $retval->rows = $rows;
+        $retval->n = count($rows);
+        $retval->max = $max;
+        $retval->min = $min;
+        $retval->timeend = $maxt;
+        return $retval;
+    }
+
+    /**
      * Double the Scale - Return *copy of* new buckets
      */
     public function reScale($factor=2) {

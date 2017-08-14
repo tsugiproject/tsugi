@@ -15,6 +15,10 @@ class EntryTest extends PHPUnit_Framework_TestCase
         $ser0 = $ent->serialize();
         $this->assertEquals($ser0,'900:1669504:0=1');
         $this->assertEquals($ent->reconstruct(),array(1502553600 => 1));
+        $mod0 = $ent->viewModel();
+        // echo(json_encode($mod0,JSON_PRETTY_PRINT));
+        $j0 = json_encode($mod0);
+        $this->assertEquals($j0,'{"timestart":1502553600,"width":900,"rows":[[1502553600,1]],"n":1,"max":1,"min":1,"timeend":1502553600}');
 
         $ent2 = new Entry($x);
         $ent2->deserialize($ser0);
