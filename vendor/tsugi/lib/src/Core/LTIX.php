@@ -1242,8 +1242,6 @@ class LTIX {
             $TSUGI_LAUNCH->link = $LINK;
         }
 
-            $ACTIVITY = new \Tsugi\Core\Activity();
-
         if ( isset($LTI['result_id']) && ! is_object($RESULT) ) {
             $RESULT = new \Tsugi\Core\Result();
             $RESULT->launch = $TSUGI_LAUNCH;
