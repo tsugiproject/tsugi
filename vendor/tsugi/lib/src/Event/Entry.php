@@ -11,8 +11,6 @@ use \Tsugi\Util\U;
 
 class Entry {
 
-    const DEFAULT_SCALE = 16*30;
-
     /**
      * The earliest time for the first bucket - default first entry
      */
@@ -21,7 +19,7 @@ class Entry {
     /**
      * The scale in seconds
      */
-    public $scale = self::DEFAULT_SCALE;
+    public $scale = 450;
 
     /**
      * The total number of clicks
@@ -33,7 +31,7 @@ class Entry {
      */
     public $buckets = array();
 
-    public function __construct($timestart=null, $scale=15*60, $maxlen=1024) {
+    public function __construct($timestart=null, $scale=450, $maxlen=1024) {
         $this->timestart = (int) ($timestart / $scale);
         $this->scale = $scale;
         $this->maxlen = $maxlen;
@@ -117,7 +115,7 @@ class Entry {
         $chunks = explode(':',$data);
         // Nothing to see here - Might be null ... is OK
         if ( count($chunks) != 3 || !is_numeric($chunks[0]) || !is_numeric($chunks[1]) ) {
-            $this->scale = self::DEFAULT_SCALE;
+            $this->scale = 15*30;
             $this->timestart = 0;
             $this->buckets = array();
             return;
