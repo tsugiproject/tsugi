@@ -360,7 +360,7 @@ $toolcount = 0;
 // If not, we send back all the tools
 
 // Disable for now
-if ( false && in_array('ContentItemSelectionRequest', $tc_capabilities) ) {
+if ( ! $CFG->certification && in_array('ContentItemSelectionRequest', $tc_capabilities) ) {
     echo("This is a ContentItem LMS - Give it back a store URL.\n");
     // Force this to be in wwwroot
     $tp_profile->tool_profile->base_url_choice[0]->secure_base_url = $CFG->wwwroot;

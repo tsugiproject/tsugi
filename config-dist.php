@@ -199,6 +199,10 @@ $CFG->OFFLINE = false;
 // Set these to true to make launches fail when either/both are not sent.
 $CFG->require_conformance_parameters = true;
 
+// Since IMS certification is capricious at times and has bugs or bad assumptions,
+// set this when running certification
+$CFG->certification = false;
+
 // A consumer may pass both the LTI 1 lis_outcome_service_url 
 // and the LTI 2 custom_result_url; in this case we have to decide which
 // to use for the gradeSend service.  The LTI 1 method is more established...
