@@ -810,68 +810,30 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Clean up the mess - not very likely - because it was only for an hour
+    // TODO: Delete this in a few weeks
     if ( $oldversion == 201708132146 ) {
 
-        $sql = 'ALTER TABLE lti_link_activity MODIFY event INTEGER NOT NULL';
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
+        $sql = 'DROP TABLE lti_link_activity';
+        echo("Dropping to re-create: ".$sql."<br/>\n");
+        error_log("Dropping to re-create: ".$sql);
         $q = $PDOX->queryReturnError($sql);
         if ( ! $q->success ) {
             $message = "Error: ".$q->errorImplode;
             error_log($message);
-            echo($message);
+            echo($message."\n");
         }
 
-        $sql = 'ALTER TABLE lti_link_activity MODIFY link_activity_id INTEGER NULL';
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
+        $sql = 'DROP TABLE lti_link_user_activity';
+        echo("Dropping to re-create: ".$sql."<br/>\n");
+        error_log("Dropping to re-create: ".$sql);
         $q = $PDOX->queryReturnError($sql);
         if ( ! $q->success ) {
             $message = "Error: ".$q->errorImplode;
             error_log($message);
-            echo($message);
+            echo($message."\n");
         }
 
-        $sql = 'ALTER TABLE lti_link_activity DROP PRIMARY KEY,ADD PRIMARY KEY (link_id,event);';
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-        if ( ! $q->success ) {
-            $message = "Error: ".$q->errorImplode;
-            error_log($message);
-            echo($message);
-        }
-
-        $sql = 'ALTER TABLE lti_link_activity DROP link_activity_id';
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-        if ( ! $q->success ) {
-            $message = "Error: ".$q->errorImplode;
-            error_log($message);
-            echo($message);
-        }
-
-        $sql = 'ALTER TABLE lti_link_user_activity MODIFY event INTEGER NOT NULL';
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-        if ( ! $q->success ) {
-            $message = "Error: ".$q->errorImplode;
-            error_log($message);
-            echo($message);
-        }
-
-
-        $sql = 'ALTER TABLE lti_link_user_activity DROP PRIMARY KEY,ADD PRIMARY KEY (link_id,user_id,event);';
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-        if ( ! $q->success ) {
-            $message = "Error: ".$q->errorImplode;
-            error_log($message);
-            echo($message);
-        }
+        echo("Please Re-Run Database Upgrade to recreate these tables\n");
 
     }
 
