@@ -607,7 +607,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     // by pre Jan-2017 login.php mistakenly assuming that the 
     // ID returned by Google was "permanent" - so now in 
     // profile, we use email as primary key.
-    $checkSQL = "SELECT profile_id, email, created_at FROM {$CFG->dbprefix}profile WHERE email IN (SELECT T.E FROM (select profile_id AS I, email AS E,COUNT(profile_sha256) as C FROM {$CFG->dbprefix}profile GROUP BY email ORDER BY C DESC) AS T WHERE T.C > 1) ORDER BY email DESC, created_at DESC;";
+    $checkSQL = "SELECT profile_id, email, created_at FROM {$CFG->dbprefix}profile WHERE email IN (SELECT T.E FROM (select profile_id AS I, email AS E,COUNT(profile_sha256) as C FROM {$CFG->dbprefix}profile GROUP BY profile_id, email ORDER BY C DESC) AS T WHERE T.C > 1) ORDER BY email DESC, created_at DESC;";
     $stmt = $PDOX->queryReturnError($checkSQL);
     if ( ! $stmt->success ) {
         echo("Fail checking duplicate profile entries:<br/>\n");
