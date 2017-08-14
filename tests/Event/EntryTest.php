@@ -7,15 +7,29 @@ use \Tsugi\Event\Entry;
 
 class EntryTest extends PHPUnit_Framework_TestCase
 {
-    public function testClinking() {
+    public function testClicking() {
         $x = 1502553699;
         $ent = new Entry($x);
         $ent->click($x);
 
-        $this->assertEquals($ent->serialize(),'900:1669504:0=1');
+        $ser0 = $ent->serialize();
+        $this->assertEquals($ser0,'900:1669504:0=1');
         $this->assertEquals($ent->reconstruct(),array(1502553600 => 1));
 
-        // Fil up some more
+        $ent2 = new Entry($x);
+        $ent2->deserialize($ser0);
+        $ser0a = $ent2->serialize();
+        $this->assertEquals($ent->reconstruct(),$ent2->reconstruct());
+        $this->assertEquals($ser0,$ser0a);
+
+        // Make sure de-serialization handles compression
+        $ent2 = new Entry($x);
+        $ent2->deserialize(gzcompress($ser0));
+        $ser0a = $ent2->serialize();
+        $this->assertEquals($ent->reconstruct(),$ent2->reconstruct());
+        $this->assertEquals($ser0,$ser0a);
+
+        // Fill up some more
         for($month=0; $month<=2; $month++) {
         for($day=0;$day<=2;$day++) {
         for($sec=0; $sec<2000;$sec++) { 
@@ -29,6 +43,20 @@ class EntryTest extends PHPUnit_Framework_TestCase
         // Call the serializer w/o the need to compress
         $ser1 =$ent->serialize(1000);
         $this->assertEquals($ser1,"900:1669504:0=802,1=900,2=299,96=801,97=900,98=299,192=801,193=900,194=299,2880=801,2881=900,2882=299,2976=801,2977=900,2978=299,3072=801,3073=900,3074=299,5760=801,5761=900,5762=299,5856=801,5857=900,5858=299,5952=801,5953=900,5954=299");
+
+        // Test de-serialization
+        $ent2 = new Entry($x);
+        $ent2->deserialize($ser1);
+        $ser1a = $ent2->serialize();
+        $this->assertEquals($ent->reconstruct(),$ent2->reconstruct());
+        $this->assertEquals($ser1,$ser1a);
+
+        // Test de-serialization with compression
+        $ent2 = new Entry($x);
+        $ent2->deserialize(gzcompress($ser1));
+        $ser1a = $ent2->serialize();
+        $this->assertEquals($ent->reconstruct(),$ent2->reconstruct());
+        $this->assertEquals($ser1,$ser1a);
 
         // Test rescaling...
         $newbuck = $ent->reScale();

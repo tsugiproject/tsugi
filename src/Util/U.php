@@ -341,7 +341,7 @@ class U {
     public static function array_Integer_Serialize_Map($a,$b){
         // We are not messing around :)
         if ( ! is_int($a) || ! is_int($b) ) {
-            throw new Exception('array_Integer_Serialize requires integers');
+            throw new \Exception('array_Integer_Serialize requires integers '.$a.':'.$b);
         }
         return $a.'='.$b;
     }
@@ -358,7 +358,21 @@ class U {
     public static function array_Integer_Deserialize($input) {
         $r = array();
         preg_match_all("/([^,= ]+)=([^,= ]+)/", $input, $r);
-        $result = array_combine($r[1], $r[2]);
+        $result = array();
+        for($i=0; $i<count($r[1]);$i++) {
+            $k = $r[1][$i];
+            $v = $r[2][$i];
+            if ( !is_numeric($k) || !is_numeric($v) ) {
+                throw new \Exception('array_Integer_Deserialize requires integers '.$k.'='.$v.' ('.$i.')');
+            }
+            $k = $k + 0;
+            $v = $v + 0;
+            if ( ! is_int($k) || ! is_int($v) ) {
+                throw new \Exception('array_Integer_Deserialize requires integers '.$k.'='.$v.' ('.$i.')');
+            }
+            $result[$k] = $v;
+        }
+
         return $result;
     }
 
