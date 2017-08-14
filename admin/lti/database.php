@@ -210,8 +210,7 @@ array( "{$CFG->dbprefix}lti_link_user_activity",
 "create table {$CFG->dbprefix}lti_link_user_activity (
     link_id             INTEGER NOT NULL,
     user_id             INTEGER NOT NULL,
-
-    event               INTEGER NULL,
+    event               INTEGER NOT NULL,
 
     activity            VARBINARY(1024) NULL,
 
