@@ -35,6 +35,9 @@ class LTIX {
     const ALL = "all";
     const NONE = "none";
 
+    // The maximum length of the VARCHAR field
+    const MAX_ACTIVITY = 1023;
+
     /**
      * Get a singleton global connection or set it up if not already set up.
      */
@@ -424,11 +427,12 @@ class LTIX {
         }
 
         // Store the launch path
+        // TODO: Make sure we like this
         $post['link_path'] = self::curPageUrl();
         $actions = self::adjustData($CFG->dbprefix, $row, $post, $needed);
 
         $PDOX = self::getConnection();
-        // Record the nonce but first probabilistically check
+        // Record the nonce but first probabilistically check if we will clean out
         if ( $CFG->noncecheck > 0 ) {
             if ( (time() % $CFG->noncecheck) == 0 ) {
                 $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}lti_nonce WHERE
@@ -447,9 +451,9 @@ class LTIX {
             $row['role'] = $row['role_override'];
         }
 
-        // Update the login_at data
+        // Update the login_at data and do analytics if requested
         $start_time = self::wrapped_session_get($session_object, 'tsugi_permanent_start_time', false);
-        if ( isset($row['user_id']) && $start_time !== false) {
+        if ( isset($row['user_id']) && $start_time === false ) {
             if ( Net::getIP() !== NULL ) {
                 $sql = "UPDATE {$CFG->dbprefix}lti_user SET login_at=NOW(), ipaddr=:IP WHERE user_id = :user_id";
                 $stmt = $PDOX->queryReturnError($sql, array(
@@ -461,12 +465,107 @@ class LTIX {
                     ':user_id' => $row['user_id']));
             }
             if ( ! $stmt->success ) {
-                error_log("Upable to update login_at user_id=".$row['user_id']);
+                error_log("Unable to update login_at user_id=".$row['user_id']);
+            }
+
+            if ( $CFG->launchactivity && isset($row['link_id']) && $row['link_id'] ) {
+                $link_activity = isset($row['link_activity']) ? $row['link_activity'] : null;
+                $link_count = isset($row['link_count']) ? $row['link_count'] : 0;
+
+                if ( $link_activity == null || $link_count == 0 ) {
+/*
+                    $sql = "INSERT INTO {$CFG->dbprefix}lti_link_activity
+                                (link_id, event, count, updated_at) VALUES
+                                (:link_id, 0, 0, NOW())
+                            ON DUPLICATE KEY
+                            UPDATE {$CFG->dbprefix}lti_link_activity
+                            SET updated_at=NOW()";
+*/
+                    $sql = "INSERT INTO {$CFG->dbprefix}lti_link_activity
+                                (link_id, event, link_count, updated_at) VALUES
+                                (:link_id, 0, 0, NOW())";
+
+                    $stmt = $PDOX->queryReturnError($sql, array(
+                        ':link_id' => $row['link_id']
+                    ));
+
+                    if ( ! $stmt->success ) {
+                        error_log("Unable to create activity record link=".$row['link_id']);
+                    }
+                }
+
+                $ent = new \Tsugi\Event\Entry();
+                if ( $link_activity ) $ent->deSerialize($link_activity);
+                $ent->total = $link_count;
+                $ent->click();
+                $activity = $ent->serialize(self::MAX_ACTIVITY);
+                $sql = "UPDATE {$CFG->dbprefix}lti_link_activity
+                        SET activity=:activity, updated_at=NOW(), link_count=link_count+1
+                        WHERE link_id = :link_id AND event = 0";
+                $stmt = $PDOX->queryReturnError($sql, array(
+                  ':link_id' => $row['link_id'],
+                  ':activity' => $activity
+                ));
+
+                if ( ! $stmt->success ) {
+                    error_log("Unable to update activity record link=".$row['link_id']);
+                }
+
+                // Now user activity
+                $link_activity = isset($row['link_user_activity']) ? $row['link_user_activity'] : null;
+                $link_count = isset($row['link_user_count']) ? $row['link_user_count'] : 0;
+
+                if ( isset($row['user_id']) && $row['user_id'] ) {
+                    if ( $link_activity == null || $link_count == 0 ) {
+/*
+                        $sql = "INSERT INTO {$CFG->dbprefix}lti_link_user_activity
+                                (link_id, user_id, event, link_user_count, updated_at) VALUES
+                                (:link_id, :user_id, 0, 0, NOW())
+                            ON DUPLICATE KEY
+                            UPDATE {$CFG->dbprefix}lti_link_activity
+                            SET updated_at=NOW()
+                            WHERE link_id=:link_id AND user_id=:user_id";
+*/
+                        $sql = "INSERT INTO {$CFG->dbprefix}lti_link_user_activity
+                                (link_id, user_id, event, link_user_count, updated_at) VALUES
+                                (:link_id, :user_id, 0, 0, NOW())";
+                        $stmt = $PDOX->queryReturnError($sql, array(
+                            ':link_id' => $row['link_id'],
+                            ':user_id' => $row['user_id']
+                        ));
+
+                        if ( ! $stmt->success ) {
+                            error_log("Unable to create user activity record link=".$row['user_id']);
+                        }
+                    }
+
+                    $ent = new \Tsugi\Event\Entry();
+                    if ( $link_activity ) $ent->deSerialize($link_activity);
+                    $ent->total = $link_count;
+                    $ent->click();
+                    $activity = $ent->serialize(self::MAX_ACTIVITY);
+                    $sql = "UPDATE {$CFG->dbprefix}lti_link_user_activity
+                        SET activity=:activity, updated_at=NOW(), link_user_count=link_user_count+1
+                        WHERE link_id = :link_id AND user_id = :user_id AND event = 0";
+                    $stmt = $PDOX->queryReturnError($sql, array(
+                        ':link_id' => $row['link_id'],
+                        ':user_id' => $row['user_id'],
+                        ':activity' => $activity
+                    ));
+
+                    if ( ! $stmt->success ) {
+                        error_log("Unable to update user activity record link=".$row['user_id']);
+                    }
+
+                }
             }
         }
-        self::wrapped_session_put($session_object, 'tsugi_permanent_start_time', time());
 
-        // Put the information into the row variable
+        self::wrapped_session_put($session_object, 'tsugi_permanent_start_time', time());
+        unset($row['link_activity']);
+        unset($row['link_user_activity']);
+
+        // Put the information into the row variable and put row into session
         $row['secret'] = self::encrypt_secret($row['secret']);
         self::wrapped_session_put($session_object, 'lti', $row);
         self::wrapped_session_put($session_object, 'lti_post', $request_data);
@@ -680,7 +779,8 @@ class LTIX {
 
         if ( $CFG->launchactivity ) {
             $sql .= ",
-                a.link_count, au.link_user_count";
+                a.link_count, a.activity AS link_activity,
+                au.link_user_count, au.activity AS link_user_activity";
         }
 
         // Add the JOINs
