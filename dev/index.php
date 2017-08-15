@@ -235,6 +235,7 @@ $OUTPUT->bodyStart(false);
                 }
                 ?>
                 <li class="divider"></li>
+                <li><a href="basecheck.php" target="_blank">Base String Checker</a></li>
                 <li><a href="https://github.com/tsugitools" target="_blank">Available Tsugi Tools</a></li>
                 <li><a href="https://github.com/tsugicontrib" target="_blank">Contributed Tsugi Tools</a></li>
                 <li><a href="http://developers.imsglobal.org/" target="_blank">IMS LTI Documentation</a></li>
