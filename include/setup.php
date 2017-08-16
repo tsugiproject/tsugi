@@ -7,7 +7,7 @@ if ( ! isset($CFG) ) die_with_error_log("Please configure this product using con
 // upgrade checking - don't change this unless you want to trigger
 // database upgrade messages it should be the max of all versions in
 // all database.php files.
-$CFG->dbversion = 201708132345;
+$CFG->dbversion = 201708161430;
 
 // Just turn this off to avoid security holes due to XML parsing
 if ( function_exists ( 'libxml_disable_entity_loader' ) ) libxml_disable_entity_loader();
@@ -76,6 +76,12 @@ if ( !isset($CFG->casa_originator_id) ) $CFG->casa_originator_id = md5($CFG->pro
 if ( !isset($CFG->apphome) ) $CFG->apphome = $CFG->wwwroot;
 
 if ( !isset($CFG->google_translate) ) $CFG->google_translate = false;
+
+if ( !isset($CFG->noncecheck) ) $CFG->noncecheck = 100;
+if ( !isset($CFG->noncetime) ) $CFG->noncetime = 1800;
+
+if ( !isset($CFG->eventcheck) ) $CFG->eventcheck = false;
+if ( !isset($CFG->eventtime) ) $CFG->eventtime = 7*24*60*60;
 
 // Certification hacks
 if ( !isset($CFG->require_conformance_parameters) ) $CFG->require_conformance_parameters = false;

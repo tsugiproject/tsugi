@@ -30,6 +30,16 @@ class U {
         error_log($data);
     }
 
+    /**
+     * Produce a Python-style get() to avoid use of ternary operator
+     */
+    public static function get($arr, $key, $default=null) {
+        if ( !is_array($arr) ) return $default;
+        if ( !isset($key) ) return $default;
+        if ( !isset($arr[$key]) ) return $default;
+        return $arr[$key];
+    }
+
     public static function htmlpre_utf8($string) {
         return str_replace("<","&lt;",$string);
     }
