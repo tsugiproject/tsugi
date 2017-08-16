@@ -465,8 +465,7 @@ class LTIX {
 
         // Update the login_at data and do analytics if requested
         $start_time = self::wrapped_session_get($session_object, 'tsugi_permanent_start_time', false);
-        // if ( isset($row['user_id']) && $start_time === false ) {
-        if ( true ) {
+        if ( isset($row['user_id']) && $start_time === false ) {
             if ( Net::getIP() !== NULL ) {
                 $sql = "UPDATE {$CFG->dbprefix}lti_user SET login_at=NOW(), ipaddr=:IP WHERE user_id = :user_id";
                 $stmt = $PDOX->queryReturnError($sql, array(
