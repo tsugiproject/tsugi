@@ -80,16 +80,16 @@ $CFG->adminpw = false;
 // table creation as well as making lists of tools in various UI places
 // such as ContentItem or LTI 2.0
 
-// For nomal tsugi, by default we use the built-in admin tools, and 
+// For nomal tsugi, by default we use the built-in admin tools, and
 // install new tools (see /admin/install/) into mod.
 $CFG->tool_folders = array("admin", "mod");
-$CFG->install_folder = $CFG->dirroot.'/mod'; 
+$CFG->install_folder = $CFG->dirroot.'/mod';
 
 // For Embedded Tsugi, you probably want to ignore the mod folder
 // in /tsugi and instead install new tools into "mod" in the parent folder
 if ( isset($CFG->apphome) ) {
     $CFG->tool_folders = array("admin", "../tools", "../mod");
-    $CFG->install_folder = $CFG->dirroot.'/../mod'; 
+    $CFG->install_folder = $CFG->dirroot.'/../mod';
 }
 
 // You can also include tool/module folders that are outside of this folder
@@ -106,14 +106,14 @@ $CFG->upgrading = false;
 $CFG->servicename = 'TSUGI';
 $CFG->servicedesc = false;
 
-// Information on the owner of this system and whether we 
+// Information on the owner of this system and whether we
 // allow folks to request keys for the service
 $CFG->ownername = false;  // 'Charles Severance'
 $CFG->owneremail = false; // 'csev@example.com'
 $CFG->providekeys = false;  // true
 
 // Go to https://console.developers.google.com/apis/credentials
-// create a new OAuth 2.0 credential for a web application, 
+// create a new OAuth 2.0 credential for a web application,
 // get the key and secret, and put them here:
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
@@ -125,13 +125,18 @@ $CFG->unify = true;
 // Whether to record launches as activities - make sure tables exist
 $CFG->launchactivity = false;
 
+// Controlling the event circular buffer.
+// If eventcheck is false, no events will be logged and no cleanup will be done.
+$CFG->eventcheck = 1000;         // how many launches between event cleanups (probabilistic)
+$CFG->eventtime = 7*24*60*60;    // Length in seconds of the event buffer
+
 // Go to https://console.developers.google.com/apis/credentials
 // Create and configure an API key and enter it here
 $CFG->google_map_api_key = false; // 'Ve8eH490843cIA9IGl8';
 
 // Badge generation settings - once you set these values to something
-// other than false and start issuing badges - don't change these or 
-// existing badge images that have been downloaded from the system 
+// other than false and start issuing badges - don't change these or
+// existing badge images that have been downloaded from the system
 // will be invalidated.
 $CFG->badge_encrypt_password = false; // "somethinglongwithhex387438758974987";
 $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
@@ -192,10 +197,10 @@ $CFG->universal_analytics = false; // "UA-57880800-1";
 
 $CFG->OFFLINE = false;
 
-// IMS says that resource_link_id, lti_message_type, and lti_version are required fields, 
-// and IMS certification fails if we allow a valid launch when either 
-// of these are not sent (even though in many instances, an application 
-// can happily do what it needs to do without them). 
+// IMS says that resource_link_id, lti_message_type, and lti_version are required fields,
+// and IMS certification fails if we allow a valid launch when either
+// of these are not sent (even though in many instances, an application
+// can happily do what it needs to do without them).
 // Set these to true to make launches fail when either/both are not sent.
 $CFG->require_conformance_parameters = true;
 
@@ -203,7 +208,7 @@ $CFG->require_conformance_parameters = true;
 // set this when running certification
 $CFG->certification = false;
 
-// A consumer may pass both the LTI 1 lis_outcome_service_url 
+// A consumer may pass both the LTI 1 lis_outcome_service_url
 // and the LTI 2 custom_result_url; in this case we have to decide which
 // to use for the gradeSend service.  The LTI 1 method is more established...
 $CFG->prefer_lti1_for_grade_send = true;
@@ -217,7 +222,7 @@ $CFG->prefer_lti1_for_grade_send = true;
 //
 // If you are root, your web area and git must belong to the user that owns
 // the web process.  You can check this using:
-// 
+//
 // apache2ctl -S
 //  ..
 //  User: name="www-data" id=33

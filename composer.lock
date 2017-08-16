@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "13bb92697f4eae0ff603a6c6b902f648",
-    "content-hash": "3a7f3c95e5d31ffa50f2acab8c7beea9",
+    "hash": "853c36e5268d4c53c26b156b50213890",
+    "content-hash": "baaafdf093fc301558daa2e238a22e53",
     "packages": [
         {
             "name": "koseu/lib",
@@ -487,16 +487,16 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.4.0",
+            "version": "v1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "f29dca382a6485c3cbe6379f0c61230167681937"
+                "reference": "7c8fae0ac1d216eb54349e6a8baa57d515fe8803"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/f29dca382a6485c3cbe6379f0c61230167681937",
-                "reference": "f29dca382a6485c3cbe6379f0c61230167681937",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/7c8fae0ac1d216eb54349e6a8baa57d515fe8803",
+                "reference": "7c8fae0ac1d216eb54349e6a8baa57d515fe8803",
                 "shasum": ""
             },
             "require": {
@@ -508,7 +508,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.4-dev"
+                    "dev-master": "1.5-dev"
                 }
             },
             "autoload": {
@@ -542,7 +542,7 @@
                 "portable",
                 "shim"
             ],
-            "time": "2017-06-09 14:24:12"
+            "time": "2017-06-14 15:44:48"
         },
         {
             "name": "symfony/routing",
@@ -689,12 +689,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "39220e1c314f7a7a883248420d513d7551139f08"
+                "reference": "9d5060fe35a405a9f4f3efce4274803b6d68d73e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/39220e1c314f7a7a883248420d513d7551139f08",
-                "reference": "39220e1c314f7a7a883248420d513d7551139f08",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/9d5060fe35a405a9f4f3efce4274803b6d68d73e",
+                "reference": "9d5060fe35a405a9f4f3efce4274803b6d68d73e",
                 "shasum": ""
             },
             "require": {

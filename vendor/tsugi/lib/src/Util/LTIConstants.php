@@ -324,9 +324,9 @@ class LTIConstants {
 	 * vocabularies is discouraged as it may limit interoperability. This
 	 * parameter is recommended.
 	 */
-	const ROLES = "roles";
-    const ROLE_LEARNER = "Learner";
-    const ROLE_INSTRUCTOR = "Instructor";
+        const ROLES = "roles";
+        const ROLE_LEARNER = "Learner";
+        const ROLE_INSTRUCTOR = "Instructor";
 
 	/**
 	 * tc_profile_url=http://...
