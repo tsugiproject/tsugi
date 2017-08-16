@@ -45,6 +45,9 @@ array( "{$CFG->dbprefix}lti_key",
     tool_profile    MEDIUMTEXT NULL,
     new_tool_profile  MEDIUMTEXT NULL,
 
+    caliper_url         TEXT NULL,
+    caliper_key         TEXT NULL,
+
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
@@ -819,7 +822,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    // Add the secret column
+    // Add the context secret column (for incoming grades)
     if ( $oldversion < 201708101745 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_context MODIFY updated_at TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00'";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -863,9 +866,21 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     }
 
+    // Add the caliper columns
+    if ( $oldversion < 201708161530 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD caliper_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD caliper_key TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201708161430;
+    return 201708161530;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
