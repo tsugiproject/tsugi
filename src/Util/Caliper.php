@@ -17,6 +17,54 @@ use \Tsugi\Util\LTI;
 class Caliper {
 
     /**
+$json->data[0]->actor->{'@id'} = $user;
+$json->eventTime = $iso8601;
+$json->data[0]->object->{'@id'} = $path;
+
+*/
+    public static function smallCaliper() {
+        $json = json_decode('{
+ "sensor": "https://example.edu/sensor/001",
+ "sendTime": "2015-09-15T11:05:01.000Z",
+ "data": [
+   {
+     "@context": "http://purl.imsglobal.org/ctx/caliper/v1/Context",
+     "@type": "http://purl.imsglobal.org/caliper/v1/Event",
+     "actor": {
+       "@id": "https://example.edu/user/554433",
+       "@type": "http://purl.imsglobal.org/caliper/v1/lis/Person" },
+     "action": "http://purl.imsglobal.org/vocab/caliper/v1/action#Viewed",
+     "eventTime": "2015-09-15T10:15:00.000Z",
+     "object": {
+       "@id": "https://example.com/viewer/book/34843#epubcfi(/4/3)",
+       "@type": "http://www.idpf.org/epub/vocab/structure/#volume" }
+   }
+ ]
+}');
+        return $json;
+    }
+
+    /**
+     * Minimal Caliper Event
+     *
+     * $json = Caliper::miniCaliper();
+     * $json->actor = $key_key . '::' . $user_id;
+     * $json->object = $path;
+     * $json->eventTime = $iso8601;
+     */
+    public static function miniCaliper () {
+        $json = json_decode('{
+ "@context": "http://purl.imsglobal.org/ctx/caliper/v1p1",
+ "id": "urn:uuid:3a648e68-f00d-4c08-aa59-8738e1884f2c",
+ "type": "Event",
+ "actor": "https://example.edu/users/554433",
+ "action": "Viewed",
+ "object": "https://example.edu/terms/201601/courses/7/sections/1/resources/123",
+ "eventTime": "2016-11-15T10:15:00.000Z"
+}');
+        return $json;
+    }
+    /**
      * This is just a test method to return properly formatted JSON for the Canvas prototype Caliper
      *
      * This is just a starting point to lay some initial groundwork.  
@@ -26,7 +74,6 @@ class Caliper {
      * @param $page This is the url of page of that was viewed.
      * @param $duration This is the duration of the activity on the page.
      */
-
     public static function sensorCanvasPageView ($user, $application, $page, 
             $timestamp=false, $name, $duration='PT5M30S') {
 
