@@ -27,7 +27,8 @@ class Caliper {
      * @param $duration This is the duration of the activity on the page.
      */
 
-    public static function sensorCanvasPageView ($user, $application, $page, $duration='PT5M30S') {
+    public static function sensorCanvasPageView ($user, $application, $page, 
+            $timestamp=false, $name, $duration='PT5M30S') {
 
         $caliper = json_decode('{
             "@context" : "http://purl.imsglobal.org/ctx/caliper/v1/ViewEvent",
@@ -53,12 +54,14 @@ class Caliper {
             }
          }');
 
-        $caliper->startedAtTime = time();
+        if ( ! $timestamp ) $timestamp = time();
+        $caliper->startedAtTime = $timestamp;
         $caliper->actor->{'@id'} = $user;
         $caliper->object->{'@id'} = $page;
         $caliper->edApp->{'@id'} = $application;
+        $caliper->edApp->name = $name;
         $caliper->duration = $duration;
-        $caliper = json_encode($caliper);
+        $caliper = json_encode($caliper, JSON_PRETTY_PRINT);
         return $caliper;
     }
 
