@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "b4627c23b8fa7e50144e97637e35acf4",
-    "content-hash": "f5e1f99b173242129f71463d81b258d2",
+    "hash": "344585297e0c01ac185941c94463f5fb",
+    "content-hash": "c3c52c9d92cd94eab8123f3a1fbe5d06",
     "packages": [
         {
             "name": "koseu/lib",
@@ -689,12 +689,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "f59bc5cb0b3abd0c5ed8cf5880dd027372143e8f"
+                "reference": "64b850cd3615de971601dd5bb362c554f9aab32e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f59bc5cb0b3abd0c5ed8cf5880dd027372143e8f",
-                "reference": "f59bc5cb0b3abd0c5ed8cf5880dd027372143e8f",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/64b850cd3615de971601dd5bb362c554f9aab32e",
+                "reference": "64b850cd3615de971601dd5bb362c554f9aab32e",
                 "shasum": ""
             },
             "require": {
