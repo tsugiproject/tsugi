@@ -15,6 +15,7 @@ if ( ! U::isCli() ) {
 
 $PDOX = LTIX::getConnection();
 
+for($i=0; $i<100; $i++) {
 $sql = "SELECT event_id, e.launch AS launch, e.created_at AS created_at, k.caliper_url, k.caliper_key,
                u.email AS email, user_key AS user_key,
                l.title AS link_title, l.path AS path, key_key, k.secret AS secret
@@ -100,3 +101,4 @@ $sql = "DELETE FROM {$CFG->dbprefix}lti_event WHERE event_id = :event_id";
 $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
 
 error_log("Sent event_id=".$row['event_id']." response=".$response_code);
+}

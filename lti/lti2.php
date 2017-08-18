@@ -370,12 +370,14 @@ if ( ! $CFG->certification && in_array('ContentItemSelectionRequest', $tc_capabi
     unset($newhandler->message[0]);
 
     $message_count = 0;
+/*
     $newmsg = clone $save_message;
     $newmsg->path = "/lti/store";
     $newmsg->message_type = "basic-lti-launch-request";
     $newmsg->parameter = $requested_parameters;
     $newmsg->enabled_capability = $tc_capabilities;
     $newhandler->message[$message_count++] = $newmsg;
+*/
 
     $newmsg = clone $save_message;
     $newmsg->message_type = "ContentItemSelectionRequest";
@@ -383,6 +385,47 @@ if ( ! $CFG->certification && in_array('ContentItemSelectionRequest', $tc_capabi
     $newmsg->parameter = $requested_parameters;
     $newmsg->enabled_capability = $tc_capabilities; // TODO: Be more selective
     $newhandler->message[$message_count++] = $newmsg;
+
+    $icon_endpoint = $CFG->staticroot.'/font-awesome-4.4.0/png/shopping-cart.png';
+
+            $icons = array();
+
+            // Sakai likes beautifully scalable FontAwesome icons - but no one else
+            if ( $ext_lms == 'sakai' ) {
+                $icon_info = new stdClass();
+                $icon_style = array();
+                $icon_style[] = 'FontAwesome';
+                $default_location = new stdClass();
+                $default_location->path = 'fa-shopping-cart';
+                $icon_info->icon_style = $icon_style;
+                $icon_info->default_location = $default_location;
+                $icons[] = $icon_info;
+
+            // BUG: Moodle crashes on icons with absolute paths
+            // https://tracker.moodle.org/browse/MDL-58216
+            // Moodle crashes with "invalidresponse" message (yes no space) on absolute paths
+            // Interestingly, Moodle also seems to not handle "IconEndpoint" selectors either
+            // So leaving the the icon off completely is the best plan for Moodle currently
+            } else if ( $ext_lms == 'moodle' ) {
+/*
+                $default_location = new stdClass();
+                $icon_endpoint = str_replace('fa-','',$fa_icon).'.png';
+                $default_location->path = $icon_endpoint;
+                $icon_info = new stdClass();
+                $icon_info->default_location = $default_location;
+                $icons[] = $icon_info;
+*/
+            // Everyone else (i.e. Canvas) gets a nice CloudFlareable image with an absolute URL.
+            } else {
+                $default_location = new stdClass();
+                $icon_endpoint = $CFG->staticroot.'/font-awesome-4.4.0/png/shopping-cart.png';
+                $default_location->path = $icon_endpoint;
+                $icon_info = new stdClass();
+                $icon_info->default_location = $default_location;
+                $icons[] = $icon_info;
+            }
+
+            if ( count($icons) > 0 ) $newhandler->icon_info = $icons;
 
     $code = str_replace("/","_",$CFG->wwwroot . $newmsg->path);
     $newhandler->resource_type->code = $code;

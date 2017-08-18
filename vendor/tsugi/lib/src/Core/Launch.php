@@ -116,7 +116,7 @@ class Launch {
     /**
      * Pull a keyed variable from the LTI data in the current session with default
      */
-    public static function ltiParameter($varname, $default=false) {
+    public function ltiParameter($varname, $default=false) {
         $row = $this->session_get('lti', false);
         if ( ! $row ) return $default;
         if ( ! isset($row[$varname]) ) return $default;
