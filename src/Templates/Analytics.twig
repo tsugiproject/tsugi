@@ -1,0 +1,14 @@
+{% extends "@Tsugi/Page.twig" %}
+{% block head %}
+<link rel=import href="{{ app.tsugi.cfg.staticroot }}/webcomponents/tsugi/tsugi-analytics-chart.html">
+<link rel=import href="{{ app.tsugi.cfg.staticroot }}/webcomponents/tsugi/tsugi-analytics-script.html">
+{% endblock %}
+{% block content %}
+<div class="container">
+<a href="index.php" class="btn btn-default">Back</a>
+<tsugi-analytics-chart chartid="chart_div"></tsugi-analytics-chart>
+</div>
+{% endblock %}
+{% block footer %}
+<tsugi-analytics-script chartid="chart_div" chartdata="{{ analytics_url }}"></tsugi-analytics-script>
+{% endblock %}
