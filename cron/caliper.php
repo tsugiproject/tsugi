@@ -10,7 +10,6 @@ if ( ! U::isCli() ) {
     return;
 }
 
-//for($i=0; $i<100; $i++) {
-    $retval = Activity::sendCaliperEvent(false);
-    if ( ! $retval ) return;
-//}
+$stuff = Activity::pushCaliperEvents(2, 100, true);
+print_r($stuff);
+

@@ -60,6 +60,25 @@ class Net {
         return $LastBODYContent;
     }
 
+    public static function getLastBODYDebug() {
+        global $LastBODYContent;
+        global $LastBODYImpl;
+        global $LastBODYMethod;
+        global $LastBODYURL;
+        global $LastHeadersReceived;
+        global $LastHeadersSent;
+        global $last_http_response;
+
+        // Caller knows the body_sent
+        $retval = array();
+        $retval['code'] = $last_http_response;
+        $retval['body_impl'] = $LastBODYImpl;
+        $retval['headers_sent'] = $LastHeadersSent;
+        $retval['headers_received'] = $LastHeadersReceived;
+        return $retval;
+    }
+
+
     /**
      * Extract a set of header lines into an array
      *
@@ -326,6 +345,9 @@ class Net {
       global $last_http_response;
       global $LastHeadersSent;
       global $LastHeadersReceived;
+      global $LastBODYImpl;
+      global $LastBODYMethod;
+      global $LastBODYContent;
 
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, $url);
@@ -368,6 +390,9 @@ class Net {
       $body = substr($result, $header_size);
       if ( $body === false ) $body = ''; // Handle empty body
       curl_close($ch);
+      $LastBODYContent = $body;
+      $LastBODYImpl = "CURL";
+      $LastBODYMethod = $method;
       return $body;
     }
 

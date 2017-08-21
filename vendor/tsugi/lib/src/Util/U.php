@@ -434,4 +434,16 @@ class U {
         $TSUGI_LOCALE = $locale;
     }
 
+    // Clean out the array of 'secret' keys
+    public static function safe_var_dump($x) {
+            ob_start();
+            if ( isset($x['secret']) ) $x['secret'] = MD5($x['secret']);
+            if ( is_array($x) ) foreach ( $x as &$v ) {
+                if ( is_array($v) && isset($v['secret']) ) $v['secret'] = MD5($v['secret']);
+            }
+            var_dump($x);
+            $result = ob_get_clean();
+            return $result;
+    }
+
 }
