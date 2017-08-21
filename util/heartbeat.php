@@ -13,7 +13,9 @@ $retval = \Tsugi\UI\Output::handleHeartBeat($cookie);
 
 if ( isset($CFG->eventpushtime) && isset($CFG->eventpushcount) ) {
     $events = \Tsugi\Core\Activity::pushCaliperEvents($CFG->eventpushtime, $CFG->eventpushcount, false);
-    error_log("Heartbeat events count=".$events['count']." time=".$events['seconds']);
+    if ( isset($events['count']) && $events['count'] > 0 ) {
+        error_log("Heartbeat events count=".$events['count']." time=".$events['seconds']);
+    }
     $retval['events'] = $events;
 }
 echo(\Tsugi\Util\LTI::jsonIndent(json_encode($retval)));

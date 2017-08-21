@@ -72,8 +72,8 @@ class Activity {
         }
         $row = $q->fetch(\PDO::FETCH_ASSOC);
 
+	// There was nothing to retrieve - we are good
         if ( $row === false ) {
-            error_log("Rollback 2: ".$q->errorImplode);
             $PDOX->rollBack();
             return false;
         }
