@@ -53,6 +53,42 @@ class Activity {
 
         $PDOX = LTIX::getConnection();
 
+        // Get an ID from a possibly hot row.
+        // In a future version of MySQL, we can add "FOR UPDATE ON e NOWAIT"
+        $sql = "SELECT event_id
+            FROM {$CFG->dbprefix}lti_event AS e
+            LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
+            WHERE k.caliper_url IS NOT NULL and k.caliper_key IS NOT NULL AND e.state IS NULL
+            ORDER BY e.created_at ASC LIMIT 1 FOR UPDATE";
+
+        // This is a transaction. Tread carefully...
+        $PDOX->beginTransaction();
+
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $PDOX->rollBack();
+            error_log("Rollback 1: ".$q->errorImplode);
+            return false;
+        }
+        $row = $q->fetch(\PDO::FETCH_ASSOC);
+
+        if ( $row === false ) {
+            error_log("Rollback 2: ".$q->errorImplode);
+            $PDOX->rollBack();
+            return false;
+        }
+
+        // State 0 = "in progress"
+        $sql = "UPDATE {$CFG->dbprefix}lti_event
+            SET state=0
+            WHERE event_id = :event_id";
+        $q = $PDOX->queryReturnError($sql, array(':event_id' => $row['event_id']));
+
+        // We made it through the rain...
+        $PDOX->commit();
+
+        // Now grab our single event and all its data for processing...
+        $event_id = $row['event_id'];
         $sql = "SELECT event_id, e.launch AS launch, e.created_at AS created_at, k.caliper_url, k.caliper_key,
                u.displayname AS displayname, u.email AS email, user_key AS user_key,
                l.title AS link_title, l.path AS path, key_key, k.secret AS secret
@@ -62,15 +98,12 @@ class Activity {
             LEFT JOIN {$CFG->dbprefix}lti_context AS c ON c.context_id = e.context_id
             LEFT JOIN {$CFG->dbprefix}lti_link AS l ON l.link_id = e.link_id
             LEFT JOIN {$CFG->dbprefix}lti_membership AS m ON m.user_id = e.user_id AND m.context_id = e.context_id
-            WHERE k.caliper_url IS NOT NULL and k.caliper_key IS NOT NULL AND e.state IS NULL
+            WHERE e.event_id = :event_id AND k.caliper_url IS NOT NULL and k.caliper_key IS NOT NULL AND e.state = 0
             ORDER BY e.created_at ASC LIMIT 1";
-        $row = $PDOX->rowDie($sql);
+        $row = $PDOX->rowDie($sql,array(':event_id' => $event_id) );
 
-        if ( $row === false ) {
-            return false;
-        }
+        print_r($row);
 
-        // print_r($row);
         $launch = $row['launch'];
         $email = $row['email'];
         $user_key = $row['user_key'];
