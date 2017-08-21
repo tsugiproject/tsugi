@@ -16,25 +16,6 @@ class Application extends \Tsugi\Silex\Application {
         parent::__construct($launch);
         $this['tsugi']->output->buffer = false;
 
-        $P7 = strpos(phpversion(), '7') === 0;
-        $P7 = true;  // After backleveled to Twig 1.27
-
-        // Some controllers work in PHP 5
-        if ( !$P7 ) {
-            \Tsugi\Controllers\Login::routes($this);
-            \Tsugi\Controllers\Logout::routes($this);
-            \Koseu\Controllers\Courses::routes($this);
-            return false;
-        }
-
-        $this->error(function (NotFoundHttpException $e, Request $request, $code) {
-            global $CFG, $LAUNCH, $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT;
-
-            return $this['twig']->render('@Tsugi/Error.twig',
-                array('error' => '<p>Page not found.</p>')
-            );
-        });
-
         // Hook up the Koseu and Tsugi tools
         \Tsugi\Controllers\Login::routes($this);
         \Tsugi\Controllers\Logout::routes($this);
