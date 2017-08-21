@@ -296,7 +296,12 @@ class Table {
 
         $first = true;
         $thispage = LTIX::curPageUrlNoQuery();
+
+	// Grab the last bit to make sure that session ID is added
+        $pieces = explode('/', $thispage);
+        if ( count($pieces) > 0 ) $thispage = $pieces[count($pieces)-1];
         if ( $view === false ) $view = $thispage;
+
         foreach ( $rows as $row ) {
             $count--;
             if ( $count < 0 ) break;
