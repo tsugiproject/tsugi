@@ -562,7 +562,7 @@ class LTIX {
                 // https://stackoverflow.com/questions/3554296/how-to-store-hashes-in-mysql-databases-without-using-text-fields
                 $event_nonce = $row['nonce'].':'.$row['key_key'];
                 $event_launch = null;
-                $canvasUrl = U::get($request_data,'custom_sub_canvas_xapi_url');
+                $canvasUrl = U::get($request_data,'custom_sub_canvas_caliper_url');
                 if ( $canvasUrl ) {
                     $event_launch = 'canvas::'.$canvasUrl;
                 }
@@ -765,8 +765,10 @@ class LTIX {
         }
 
         // Copy in some extensions.
-        $sub_canvas_xapi_url = U::get($FIXED,'sub_canvas_xapi_url');
-        if ($sub_canvas_xapi_url ) $retval['sub_canvas_xapi_url'] = $sub_canvas_xapi_url;
+        $sub_canvas_caliper_url = U::get($FIXED,'sub_canvas_caliper_url');
+        if ($sub_canvas_caliper_url ) $retval['sub_canvas_caliper_url'] = $sub_canvas_caliper_url;
+        $sub_caliper_url = U::get($FIXED,'sub_caliper_url');
+        if ($sub_caliper_url ) $retval['sub_caliper_url'] = $sub_caliper_url;
         return $retval;
     }
 

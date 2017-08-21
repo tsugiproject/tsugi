@@ -31,7 +31,7 @@ echo('<?xml version="1.0" encoding="UTF-8"?>'."\n");
     <lticm:property name="sub_canvas_user_id">$Canvas.user.id</lticm:property>
     <lticm:property name="sub_canvas_user_login_id">$Canvas.user.loginId</lticm:property>
     <lticm:property name="sub_canvas_user_sis_source_id">$Canvas.user.sisSourceId</lticm:property>
-    <lticm:property name="sub_canvas_xapi_url">$Canvas.xapi.url</lticm:property>
+    <lticm:property name="sub_canvas_caliper_url">$Caliper.url</lticm:property>
     <lticm:property name="person_address_timezone">$Person.address.timezone</lticm:property>
     <lticm:property name="person_email_primary">$Person.email.primary</lticm:property>
     <lticm:property name="person_name_family">$Person.name.family</lticm:property>

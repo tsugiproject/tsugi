@@ -164,7 +164,7 @@ if ( $l && isset($_GET['assignment']) ) {
 
     // Compute the custom values
     $custom = array();
-    $custom['canvas_xapi_url'] = '$Canvas.xapi.url';
+    $custom['canvas_caliper_url'] = '$Caliper.url';
     if ( isset($lti->custom) ) {
         foreach($lti->custom as $entry) {
             if ( !isset($entry->key) ) continue;
