@@ -12,8 +12,45 @@ use Tsugi\Util\Caliper;
 
 class Activity {
 
+    /**
+     * Send the backlog of caliper events
+     */
+    public static function pushCaliperEvents($seconds=3, $max=100, $debug=false) {
+        $start = time();
+        $now = $start;
+        $end = $start + $seconds;
+        $count = 0;
+        $failure = 0;
+        $failure_code = false;
+        $retval = array();
+        while ($count < $max && $now < $end ) {
+            $result = self::sendCaliperEvent(!$debug);
+            if ( $debug ) {
+                echo(U::safe_var_dump($result));
+            }
+            if ( $result === false ) break;
+
+            if ( $result['code'] != 200 ) {
+                $failure++;
+                if ( $failure_code === false ) $failure_code = $result['code'];
+            }
+            $count++;
+            $now = time();
+            $delta = $now - $start;
+        }
+
+        $now = time();
+        $delta = $now - $start;
+        $retval['count'] = $count;
+        $retval['fail'] = $failure;
+        if ( $failure_code !== false ) $retval['failcode'] = $failure_code;
+        $retval['seconds'] = $delta;
+        return $retval;
+    }
+
     public static function sendCaliperEvent($delete=true) {
         global $CFG;
+
         $PDOX = LTIX::getConnection();
 
         $sql = "SELECT event_id, e.launch AS launch, e.created_at AS created_at, k.caliper_url, k.caliper_key,
@@ -25,15 +62,15 @@ class Activity {
             LEFT JOIN {$CFG->dbprefix}lti_context AS c ON c.context_id = e.context_id
             LEFT JOIN {$CFG->dbprefix}lti_link AS l ON l.link_id = e.link_id
             LEFT JOIN {$CFG->dbprefix}lti_membership AS m ON m.user_id = e.user_id AND m.context_id = e.context_id
-            WHERE k.caliper_url IS NOT NULL and k.caliper_key IS NOT NULL
+            WHERE k.caliper_url IS NOT NULL and k.caliper_key IS NOT NULL AND e.state IS NULL
             ORDER BY e.created_at ASC LIMIT 1";
         $row = $PDOX->rowDie($sql);
 
         if ( $row === false ) {
-            echo("Nothing to process\n");
             return false;
         }
-        print_r($row);
+
+        // print_r($row);
         $launch = $row['launch'];
         $email = $row['email'];
         $user_key = $row['user_key'];
@@ -77,34 +114,40 @@ class Activity {
 
         $method = "POST";
         $body = json_encode($json, JSON_PRETTY_PRINT);
-        echo($body);
-        echo("\n");
 
-        $header = "Content-type: application/json;
-        Authorization: ".$caliper_key;
+        $header = "Content-type: application/json;\n" .
+            "Authorization: ".$caliper_key;
         $url = $caliper_url;
 
         $response = Net::bodyCurl($url, $method, $body, $header);
 
-        $response_code = Net::getLastHttpResponse();
+        $retval = Net::getLastBODYDebug();
+        $retval['deleted'] = 'no';
+        $retval['body_url'] = $url;
+        $retval['body_sent'] = $body;
+        $retval['body_received'] = $response;
 
-        echo("<pre>\n");
-        global $LastOAuthBodyBaseString;
-        echo("Registration Request Headers\n");
-        echo(htmlentities(Net::getBodySentDebug()));
-        echo("\nHttp Response code = $response_code\n");
-        echo("Registration Response Headers\n");
-        echo(htmlentities(Net::getBodyReceivedDebug()));
-        echo("\nRegistration Response\n");
-        echo(htmlent_utf8(LTI::jsonIndent($response)));
-        echo("\n");
+        $response_code = Net::getLastHttpResponse();
+        if ( $response_code != 200 ) {
+            error_log("Caliper error code=".$response_code." url=".$url);
+            $sql = "UPDATE {$CFG->dbprefix}lti_event
+                SET state=1, json=:json
+                WHERE event_id = :event_id";
+            $PDOX->queryDie($sql, array(
+                ':json' => LTI::jsonIndent(json_encode($retval)),
+                ':event_id' => $row['event_id'])
+            );
+
+        }
 
         if ( $delete ) {
             $sql = "DELETE FROM {$CFG->dbprefix}lti_event WHERE event_id = :event_id";
             $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
+            $retval['deleted'] = 'yes';
         }
 
-        error_log("Sent event_id=".$row['event_id']." response=".$response_code);
-        return true;
+        // error_log("Sent event_id=".$row['event_id']." response=".$response_code);
+        unset($retval['headers_sent']); // Contains API key
+        return $retval;
     }
 }

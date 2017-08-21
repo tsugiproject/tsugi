@@ -377,7 +377,7 @@ $('a').each(function (x) {
         $retval['lti'] = LTIX::wrapped_session_get($session_object, 'lti');
         // $retval['lti'] = false;
         $retval['sessionlifetime'] = $CFG->sessionlifetime;
-        echo(json_encode($retval));
+        return $retval;
     }
 
     function footerEnd() {
