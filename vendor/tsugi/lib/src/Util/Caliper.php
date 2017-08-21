@@ -36,9 +36,15 @@ class Caliper {
     }
 
     /**
+     * Required:
      * $json->data[0]->actor->{'@id'} = $user;
      * $json->data[0]->object->{'@id'} = $path;
      * $json->eventTime = Caliper::getISO8601($timestamp);
+     *
+     * Optional:
+     * $json->data[0]->name = $name;
+     * $json->data[0]->extensions = new \stdClass();
+     * $json->data[0]->extensions->email = $email;
      */
     public static function smallCaliper() {
         $json = json_decode('{
@@ -50,12 +56,14 @@ class Caliper {
      "@type": "http://purl.imsglobal.org/caliper/v1/Event",
      "actor": {
        "@id": "https://example.edu/user/554433",
-       "@type": "http://purl.imsglobal.org/caliper/v1/lis/Person" },
+       "@type": "http://purl.imsglobal.org/caliper/v1/lis/Person" 
+     },
      "action": "http://purl.imsglobal.org/vocab/caliper/v1/action#Viewed",
      "eventTime": "2004-01-01T06:00:00.000Z",
      "object": {
        "@id": "https://example.com/viewer/book/34843#epubcfi(/4/3)",
-       "@type": "http://www.idpf.org/epub/vocab/structure/#volume" }
+       "@type": "http://www.idpf.org/epub/vocab/structure/#volume" 
+    }
    }
  ]
 }');

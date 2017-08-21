@@ -17,7 +17,7 @@ class Activity {
         $PDOX = LTIX::getConnection();
 
         $sql = "SELECT event_id, e.launch AS launch, e.created_at AS created_at, k.caliper_url, k.caliper_key,
-               u.email AS email, user_key AS user_key,
+               u.displayname AS displayname, u.email AS email, user_key AS user_key,
                l.title AS link_title, l.path AS path, key_key, k.secret AS secret
             FROM {$CFG->dbprefix}lti_event AS e
             LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
@@ -38,6 +38,7 @@ class Activity {
         $email = $row['email'];
         $user_key = $row['user_key'];
         $name = $row['link_title'];
+        $displayname = $row['displayname'];
         $application = $CFG->apphome;
         $path = $row['path'];
         $page = $row['path'];
@@ -66,6 +67,13 @@ class Activity {
         $json->data[0]->actor->{'@id'} = $user;
         $json->data[0]->eventTime = $iso8601;
         $json->data[0]->object->{'@id'} = $path;
+        if ( $displayname ) {
+            $json->data[0]->name = $displayname;
+        }
+        if ( $email ) {
+            $json->data[0]->extensions = new \stdClass();
+            $json->data[0]->extensions->email = $email;
+        }
 
         $method = "POST";
         $body = json_encode($json, JSON_PRETTY_PRINT);
