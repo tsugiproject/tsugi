@@ -80,7 +80,7 @@ class Activity {
 
         // State 0 = "in progress"
         $sql = "UPDATE {$CFG->dbprefix}lti_event
-            SET state=0
+            SET state=0,updated_at=NOW()
             WHERE event_id = :event_id";
         $q = $PDOX->queryReturnError($sql, array(':event_id' => $row['event_id']));
 
@@ -123,14 +123,6 @@ class Activity {
         $iso8601 = Caliper::getISO8601($row['created_at']);
         $user = $row['key_key'].'::'.$row['user_key'];
 
-/*
-        echo("application=$application page=$page\n");
-        echo("iso8601=".$iso8601."\n");
-        echo("caliper_key=".$caliper_key."\n");
-        echo("caliper_url=".$caliper_url."\n");
-        echo("key_key=".$key_key."\n");
-        echo("user=".$user."\n");
-*/
         $json = Caliper::smallCaliper();
 
         $json->sendTime = $iso8601;
@@ -164,7 +156,7 @@ class Activity {
         if ( $response_code != 200 ) {
             error_log("Caliper error code=".$response_code." url=".$url);
             $sql = "UPDATE {$CFG->dbprefix}lti_event
-                SET state=1, json=:json
+                SET state=1, json=:json, updated_at=NOW()
                 WHERE event_id = :event_id";
             $PDOX->queryDie($sql, array(
                 ':json' => LTI::jsonIndent(json_encode($retval)),
