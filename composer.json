@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#796b86b30754d1697f77c69de7305bddeefd0296",
+        "tsugi/lib": "dev-master#b01d7c341326d6efe6cdbe55be5fd649e20cf935",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "symfony/translation": "v3.2.7",
@@ -10,7 +10,7 @@
         "symfony/http-kernel": "v3.2.8",
         "symfony/routing": "v3.2.8",
         "pimple/pimple": "v3.0.2",
-        "koseu/lib": "dev-master#f3143503b8b705e53f6c4accb719ca0c47dabc03"
+        "koseu/lib": "dev-master#ed36e4c27481b6113793d9222ad6dddee2af37e3"
     },
     "config": {
         "preferred-install": "dist"
