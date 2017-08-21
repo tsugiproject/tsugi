@@ -764,9 +764,14 @@ class LTIX {
             // Local superuser would be 10000
         }
 
-        // Copy in some extensions.
-        $sub_canvas_caliper_url = U::get($FIXED,'sub_canvas_caliper_url');
+        // Copy in some extensions.  Backwards compatibility for canvas xapi urls in legacy cartridges
+        $sub_canvas_caliper_url = U::get($FIXED,'sub_canvas_xapi_url');
+        if ( $sub_canvas_caliper_url ) {
+            $sub_canvas_caliper_url = str_replace('xapi','caliper',$sub_canvas_caliper_url);
+        }
+        $sub_canvas_caliper_url = U::get($FIXED,'sub_canvas_caliper_url', $sub_canvas_caliper_url);
         if ($sub_canvas_caliper_url ) $retval['sub_canvas_caliper_url'] = $sub_canvas_caliper_url;
+
         $sub_caliper_url = U::get($FIXED,'sub_caliper_url');
         if ($sub_caliper_url ) $retval['sub_caliper_url'] = $sub_caliper_url;
         return $retval;

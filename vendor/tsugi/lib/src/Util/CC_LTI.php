@@ -20,6 +20,7 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
     <lticm:property name="caliper_url">$Caliper.url</lticm:property>
   </blti:custom>
   <blti:extensions platform="www.tsugi.org">
+    <lticm:property name="caliper_url">$Caliper.url</lticm:property>
     <lticm:property name="apphome">value</lticm:property>
   </blti:extensions>
   <blti:extensions platform="canvas.instructure.com">
