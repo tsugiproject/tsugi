@@ -109,10 +109,7 @@ $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
 if ( $endpoint == 'false' ) $endpoint = false;
 $b64 = base64_encode($key.":::".$secret.':::');
 
-$folder = U::get_rest_path();
-if ( U::endsWith($folder, 'index') ) {
-    $folder = U::get_rest_parent();
-}
+$folder = U::get_rest_parent();
 $cssurl = $folder . '/lms.css';
 $returnurl = $folder . '/return';
 
