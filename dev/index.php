@@ -68,9 +68,6 @@ foreach( $CFG->tool_folders AS $tool_folder) {
     findTools('../'.$tool_folder,$tools);
 }
 
-$cur_url = LTIX::curPageUrl();
-$cur_url = str_replace('/dev/index.php','/dev/',$cur_url);
-
 require_once("dev-data.php");
 
 // Merge post data into  data
@@ -111,13 +108,17 @@ $secret = isset($_REQUEST["secret"]) ? trim($_REQUEST["secret"]) : "secret";
 $endpoint = isset($_REQUEST["endpoint"]) ? trim($_REQUEST["endpoint"]) : false;
 if ( $endpoint == 'false' ) $endpoint = false;
 $b64 = base64_encode($key.":::".$secret.':::');
-// if ( ! $endpoint ) $endpoint = $cur_url;
-$cssurl = str_replace("/dev/","/dev/lms.css",$cur_url);
-$returnurl = str_replace("/dev/","/dev/return",$cur_url);
+
+$folder = U::get_rest_path();
+if ( U::endsWith($folder, 'index') ) {
+    $folder = U::get_rest_parent();
+}
+$cssurl = $folder . '/lms.css';
+$returnurl = $folder . '/return';
 
 $outcomes = isset($_REQUEST["outcomes"]) ? trim($_REQUEST["outcomes"]) : false;
 if ( ! $outcomes ) {
-    $outcomes = str_replace("/dev/","/dev/grade",$cur_url);
+    $outcomes = $folder . "/grade";
     $outcomes .= "?b64=" . htmlentities($b64);
     $lmsdata['lis_result_sourcedid'] = $lmsdata['context_id'].':'.$lmsdata['user_id'].':'.$lmsdata['resource_link_id'];
 }
@@ -265,6 +266,7 @@ $OUTPUT->bodyStart(false);
 
       <div>
 <?php
+$OUTPUT->flashMessages();
 
 if ( isset($_POST['launch']) || isset($_POST['debug']) ) {
         // isset($_POST['instructor']) || isset($_POST['learner1']) || isset($_POST['learner2']) ) {
