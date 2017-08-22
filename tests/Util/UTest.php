@@ -26,9 +26,9 @@ class UTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(U::get_rest_path('/py4e/lessons/intro/?x=2'), '/py4e/lessons/intro');
 
         $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro'), '/py4e/lessons');
-        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro/'), '/py4e/lessons');
         $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro?x=2'), '/py4e/lessons');
-        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro/?x=2'), '/py4e/lessons');
+        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro/'), '/py4e/lessons/intro');
+        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro/?x=2'), '/py4e/lessons/intro');
     }
 
     public function testRelative() {

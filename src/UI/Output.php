@@ -2,6 +2,7 @@
 
 namespace Tsugi\UI;
 
+use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use \Tsugi\Crypt\SecureCookie;
 
@@ -874,12 +875,8 @@ EOF;
     /**
      * Gets an absolute static path to the specified file
      */
-    public static function getLocalStatic($file) {
-        global $CFG;
-        $path = $CFG->getPwd($file);
-        // For now just use wwwroot to be safe
-        // return $CFG->staticroot . "/" . $path;
-        return $CFG->wwwroot . "/" . $path;
+    public static function getLocalStatic() {
+        return U::get_rest_parent();
     }
 
     // http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers
