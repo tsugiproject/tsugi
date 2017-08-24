@@ -554,7 +554,7 @@ var disqus_config = function () {
             $count++;
             if ( !isset($module->lti) ) continue;
             echo('<tr><td class="info" colspan="3">'."\n");
-            $href = U::get_rest_path() . '/' . urlencode($module->anchor);
+            $href = U::get_rest_parent() . '/lessons/' . urlencode($module->anchor);
             echo('<a href="'.$href.'">'."\n");
             echo($module->title);
             echo("</td></tr>");
