@@ -839,7 +839,8 @@ EOF;
         return
             '<div class="tsugi_overlay" id="tsugi_overlay" style="position: fixed, display:'.
             ($show ? 'block' : 'none'). '">' . "\n" .
-            '<img src="'.$CFG->staticroot.'/img/logos/apereo-logo-blue-spin.svg" id="tsugi_overlay_spinner" width="100px" height="100px">' . "\n" .
+            '<i style="color: blue;" class="fa fa-spinner fa-spin fa-5x fa-fw"></i>' . "\n" .
+            // '<img src="'.$CFG->staticroot.'/img/logos/apereo-logo-blue-spin.svg" id="tsugi_overlay_spinner" width="100px" height="100px">' . "\n" .
             '</div>' . "\n" ;
     }
 
