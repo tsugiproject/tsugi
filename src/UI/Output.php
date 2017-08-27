@@ -827,17 +827,18 @@ EOF;
     /**
      * Return the text for a full-screen loader
      *
-     *     echo($OUTPUT->getScreenOverlay());
+     *     echo($OUTPUT->getScreenOverlay(false));
      *         ...
      *     <script>
      *     showOverlay();
      *     setTimeout(function() { hideOverlay();} , 5000);
      *     </script>
      */
-    function getScreenOverlay() {
+    function getScreenOverlay($show=true) {
         global $CFG;
         return
-            '<div class="tsugi_overlay" id="tsugi_overlay" style="display:none">' . "\n" .
+            '<div class="tsugi_overlay" id="tsugi_overlay" style="position: fixed, display:'.
+            ($show ? 'block' : 'none'). '">' . "\n" .
             '<img src="'.$CFG->staticroot.'/img/logos/apereo-logo-blue-spin.svg" id="tsugi_overlay_spinner" width="100px" height="100px">' . "\n" .
             '</div>' . "\n" ;
     }
