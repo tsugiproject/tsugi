@@ -1324,6 +1324,7 @@ class LTIX {
         $session_script = self::wrapped_session_get($session_object, 'script_path', null);
         if ( $session_script !== null &&
             (! endsWith(Output::getUtilUrl(''), $CFG->getScriptPath()) ) &&
+            (! startsWith('api', $CFG->getScriptPath()) ) &&
             strpos($CFG->getScriptPath(), $session_script ) !== 0 ) {
             self::send403();
             self::abort_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
