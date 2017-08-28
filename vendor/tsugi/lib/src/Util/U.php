@@ -441,6 +441,25 @@ class U {
         $TSUGI_LOCALE = $locale;
     }
 
+    /**
+     * Indicate if the user has not requested "Do not Track"
+     *
+     * This is just the  inverted value for the "Do not Track".
+     * Using "allow" sematics makes writing code easier!
+     *
+     *  http://donottrack.us/
+     */
+    // From: http://donottrack.us/application
+    public static function allow_track() {
+        $DoNotTrackHeader = "DNT";
+        $DoNotTrackValue = "1";
+
+        $phpHeader = "HTTP_" . strtoupper(str_replace("-", "_", $DoNotTrackHeader));
+
+        $retval = ! ((array_key_exists($phpHeader, $_SERVER)) and ($_SERVER[$phpHeader] == $DoNotTrackValue));
+        return $retval;
+    }
+
     // Clean out the array of 'secret' keys
     public static function safe_var_dump($x) {
             ob_start();
