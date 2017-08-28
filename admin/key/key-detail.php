@@ -23,7 +23,7 @@ $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
 if ( isAdmin() ) {
-    $fields = array("key_id", "key_key", "secret", "created_at", "updated_at", "user_id");
+    $fields = array("key_id", "key_key", "secret", "caliper_url", "caliper_key", "created_at", "updated_at", "user_id");
 } else {
     $fields = array("key_id", "key_key", "secret", "created_at", "updated_at");
     $where_clause .= "user_id = :UID";
