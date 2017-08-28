@@ -11,7 +11,7 @@ require_once "../../../../config.php";
 
 $retval = \Tsugi\UI\Output::handleHeartBeat($cookie);
 
-if ( isset($CFG->eventpushtime) && isset($CFG->eventpushcount) ) {
+if ( isset($CFG->eventpushtime) && isset($CFG->eventpushcount) && $CFG->eventpushcount > 0 ) {
     $events = \Tsugi\Core\Activity::pushCaliperEvents($CFG->eventpushtime, $CFG->eventpushcount, false);
     if ( isset($events['count']) && $events['count'] > 0 ) {
         error_log("Heartbeat events count=".$events['count']." time=".$events['seconds']);

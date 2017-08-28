@@ -557,8 +557,8 @@ class LTIX {
                 }
             }
 
-            // Now the base event into the circular buffer
-            if ( $CFG->launchactivity && $CFG->eventcheck > 0 ) {
+            // Now the place the event into the circular buffer
+            if ( $CFG->eventcheck !== false ) {
                 // https://stackoverflow.com/questions/3554296/how-to-store-hashes-in-mysql-databases-without-using-text-fields
                 $event_nonce = $row['nonce'].':'.$row['key_key'];
                 $event_launch = null;

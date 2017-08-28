@@ -235,6 +235,17 @@ $CFG->prefer_lti1_for_grade_send = true;
 // This of course is something to consider carefully.
 // $CFG->git_command = '/home/csev/git';
 
+// Should we record launch activity - multi-bucket lossy historgram
+$CFG->launchactivity = true;
+
+// how many launches between event cleanups (probabilistic)
+$CFG->eventcheck = 200;        // Set to false to suspend event recording
+$CFG->eventtime = 7*24*60*60;  // Length in seconds of the event buffer
+
+// Maximum events to push in a batch
+$CFG->eventpushcount = 50;     // Set to zero to suspend event push
+$CFG->eventpushtime = 2;       // Maximum length in seconds to push events
+
 // The vendor include and root - generally leave these alone
 // unless you have a very custom checkout
 $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";

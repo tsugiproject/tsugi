@@ -32,6 +32,7 @@ require_once("sanity-db.php");
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
   Upgrade Database 
   </a>
+</li>
 <li>
   <a href="nonce" title="Check Nonces" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
@@ -42,6 +43,12 @@ require_once("sanity-db.php");
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
   Recent Logins 
   </a></li>
+<li>
+  <a href="events" title="Event Status" target="iframe-frame"
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
+  Event Status
+  </a>
+</li>
 <li><a href="context/">View Contexts</a></li>
 <?php if ( $CFG->providekeys ) { ?>
 <li><a href="key">Manage Access Keys</a></li>

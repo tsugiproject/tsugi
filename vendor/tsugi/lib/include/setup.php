@@ -80,8 +80,13 @@ if ( !isset($CFG->google_translate) ) $CFG->google_translate = false;
 if ( !isset($CFG->noncecheck) ) $CFG->noncecheck = 100;
 if ( !isset($CFG->noncetime) ) $CFG->noncetime = 1800;
 
+// By default we don't record events
 if ( !isset($CFG->eventcheck) ) $CFG->eventcheck = false;
 if ( !isset($CFG->eventtime) ) $CFG->eventtime = 7*24*60*60;
+
+// By default we don't push events
+if ( ! isset($CFG->eventpushcount) ) $CFG->eventpushcount = 0;
+if ( ! isset($CFG->eventpushtime) ) $CFG->eventpushtime = 2;
 
 // Certification hacks
 if ( !isset($CFG->require_conformance_parameters) ) $CFG->require_conformance_parameters = false;

@@ -140,6 +140,7 @@ class Net {
         return $response;
     }
 
+    // Note - handles port numbers in URL automatically
     public static function getCurl($url, $header=false) {
       if ( ! function_exists('curl_init') ) return false;
       global $last_http_response;
@@ -340,6 +341,7 @@ class Net {
         return $response;
     }
 
+    // Note - handles port numbers in URL automatically
     public static function bodyCurl($url, $method, $body, $header) {
       if ( ! function_exists('curl_init') ) return false;
       global $last_http_response;
