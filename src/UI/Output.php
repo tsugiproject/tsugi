@@ -266,13 +266,13 @@ if (window!=window.top) {
     <?php
         }
 
-        if ( $CFG->google_translate ) {
+        if ( U::allow_track() && $CFG->google_translate ) {
     ?>
 <div id="google_translate_element" style="position: fixed; right: 1em; bottom: 0.25em;"></div><script type="text/javascript">
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({pageLanguage: "en", layout: google.translate.TranslateElement.InlineLayout.SIMPLE
 <?php
-    if ( $CFG->universal_analytics ) {
+    if ( U::allow_track() && $CFG->universal_analytics ) {
         echo(', gaTrack: true, gaId: "'.$CFG->universal_analytics.'"'."\n");
     }
 ?>
@@ -285,7 +285,7 @@ function googleTranslateElementInit() {
 
         if ( $this->session_get('APP_FOOTER') ) echo($this->session_get('APP_FOOTER'));
 
-        $this->doAnalytics();
+        if ( U::allow_track() ) $this->doAnalytics();
 
         // TODO: Remove this when PHP 7 is fixed..  Sigh.
         if ( PHP_VERSION_ID > 70000 ) {
