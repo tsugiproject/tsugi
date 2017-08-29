@@ -81,8 +81,8 @@ array( "{$CFG->dbprefix}lti_context",
     settings_url        TEXT NULL,
     ext_memberships_id  TEXT NULL,
     ext_memberships_url TEXT NULL,
-    memberships_url     TEXT NULL,  
-    lineitems_url       TEXT NULL,  
+    memberships_url     TEXT NULL,
+    lineitems_url       TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
@@ -211,7 +211,8 @@ array( "{$CFG->dbprefix}lti_membership",
     PRIMARY KEY (membership_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
-// "Circular" buffer of events - no foreign key relationships
+// "FIFO" buffer of events no explicit foreign key
+// relationships as these are short-lived records
 array( "{$CFG->dbprefix}lti_event",
 "create table {$CFG->dbprefix}lti_event (
     event_id        INTEGER NOT NULL AUTO_INCREMENT,
@@ -579,7 +580,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     // Version 201505222100 improvements
     if ( $oldversion < 201505222100 ) {
         $tables = array('lti_key', 'lti_context', 'lti_link', 'lti_user',
-            'lti_nonce', 'lti_membership', 'lti_service', 
+            'lti_nonce', 'lti_membership', 'lti_service',
             'lti_result', 'profile');
         foreach ( $tables as $table ) {
             $sql= "ALTER TABLE {$CFG->dbprefix}{$table} ADD entity_version INTEGER NOT NULL DEFAULT 0";
@@ -634,8 +635,8 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Checking for incorrect duplicate profile entries created
-    // by pre Jan-2017 login.php mistakenly assuming that the 
-    // ID returned by Google was "permanent" - so now in 
+    // by pre Jan-2017 login.php mistakenly assuming that the
+    // ID returned by Google was "permanent" - so now in
     // profile, we use email as primary key.
     $checkSQL = "SELECT profile_id, email, created_at FROM {$CFG->dbprefix}profile WHERE email IN (SELECT T.E FROM (select profile_id AS I, email AS E,COUNT(profile_sha256) as C FROM {$CFG->dbprefix}profile GROUP BY profile_id, email ORDER BY C DESC) AS T WHERE T.C > 1) ORDER BY email DESC, created_at DESC;";
     $stmt = $PDOX->queryReturnError($checkSQL);

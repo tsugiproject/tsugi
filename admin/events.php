@@ -40,10 +40,10 @@ echo( $row ? $row['count'] : '0'  );
 </li>
 </ul>
 </li>
-<li>Event Recording into circular buffer:
+<li>Event Recording into FIFO queue:
 <?= $CFG->eventcheck !== false ? "ON" : "OFF" ?>
 </li>
-<li>Events in the curcular buffer:
+<li>Events in the FIFO queue:
 <ul>
 <li>Events waiting to be sent: 
 <?php
