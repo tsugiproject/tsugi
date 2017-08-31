@@ -103,6 +103,8 @@ class Output extends \Tsugi\Core\SessionAccess {
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= $CFG->servicename ?><?php if ( isset($CFG->context_title) ) echo(' - '.$CFG->context_title); ?></title>
+        <!-- Polyfills early and often -->
+        <script src="<?= $CFG->staticroot ?>/polyfill/webcomponentsjs-1.0.5/webcomponents-lite.js"></script> <!-- no shadow DOM -->
         <!-- Le styles -->
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/<?php
             if ( isset($CFG->bootswatch) ) echo('bootswatch/'.$CFG->bootswatch.'/'); ?>bootstrap.min.css" rel="stylesheet">
