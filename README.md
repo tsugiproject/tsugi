@@ -22,7 +22,7 @@ are now moved to separate repositories (see below).
 Pre-Requisites
 --------------
 
-* [Install GIT] (docs/GITHUB.md) so that it works at the command prompt.
+* [Install GIT](https://www.tsugi.org/md/GITHUB.md) so that it works at the command prompt.
 
 * Install a PHP/MySQL Environment like XAMPP / MAMP following the
 instructions at:
