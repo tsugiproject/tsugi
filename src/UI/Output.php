@@ -106,6 +106,12 @@ class Output extends \Tsugi\Core\SessionAccess {
         <!-- Le styles -->
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/<?php
             if ( isset($CFG->bootswatch) ) echo('bootswatch/'.$CFG->bootswatch.'/'); ?>bootstrap.min.css" rel="stylesheet">
+        <?php
+        if ( !isset($CFG->bootswatch) ) {
+            echo('<link href="'.$CFG->staticroot.'/bootstrap-3.1.1/css/ctheme/ctheme.css" rel="stylesheet">'."\n");
+            echo('<link href="https://fonts.googleapis.com/css?family=Martel:300,700|Open+Sans:300,400,600,700" rel="stylesheet">'."\n");
+        }
+        ?>
 
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
