@@ -109,7 +109,7 @@ class Output extends \Tsugi\Core\SessionAccess {
             staticroot: "<?= $CFG->staticroot ?>"
         }
         </script>
-        <!-- very early for polyfills -->
+        <!-- Tiny bit of JS -->
         <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
         <!-- Le styles -->
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/<?php
