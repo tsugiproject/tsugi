@@ -103,6 +103,14 @@ class Output extends \Tsugi\Core\SessionAccess {
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= $CFG->servicename ?><?php if ( isset($CFG->context_title) ) echo(' - '.$CFG->context_title); ?></title>
+        <script>
+        var _TSUGI = {
+            spinnerUrl: "<?= self::getSpinnerUrl() ?>",
+            staticroot: "<?= $CFG->staticroot ?>"
+        }
+        </script>
+        <!-- Tiny bit of JS -->
+        <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
         <!-- Le styles -->
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/<?php
             if ( isset($CFG->bootswatch) ) echo('bootswatch/'.$CFG->bootswatch.'/'); ?>bootstrap.min.css" rel="stylesheet">
@@ -116,13 +124,6 @@ class Output extends \Tsugi\Core\SessionAccess {
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
-        <script>
-        var _TSUGI = {
-            spinnerUrl: "<?= self::getSpinnerUrl() ?>",
-            staticroot: "<?= $CFG->staticroot ?>"
-        }
-        </script>
-        <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
 
     <style>
     body {
