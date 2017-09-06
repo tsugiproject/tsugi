@@ -75,7 +75,20 @@ the boxes to allow both the title and url to be changed.
 Then this "<?= $CFG->servicename ?> store" will appear in Lessons as a new external tool, when you 
 select the store you will be launched into the picker to choose tools and/or
 resources to be pulled into Lessons.   The key and secret will be inherited
-from the store to each of the installed tools.
+from the store to each of the installed tools.  In Sakai-12, once the app store
+is installed, the rerources fomr this site will be avilable from within the 
+rich text editor.
+<p>
+You can import all the content (including autograders) from this site into your Sakai
+course by downloading it as an 
+<a href="<?= $CFG->wwwroot ?>/cc/export">Common Cartridge</a> and then using
+the Import feature in Lessons.   In order to activate all the LTI links automatically, install an External tool with the URL:
+<pre>
+<?= isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot ?>
+</pre>
+with your key and secret.  Then as LTI items are imported they will automatically
+be associated with your key and secret.
+</p>
 </div>
 <div class="tab-pane fade" id="canvas">
 You can install this into Canvas as an "App Store" / "Learning Object Repository"
