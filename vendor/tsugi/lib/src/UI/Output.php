@@ -106,7 +106,9 @@ class Output extends \Tsugi\Core\SessionAccess {
         <script>
         var _TSUGI = {
             spinnerUrl: "<?= self::getSpinnerUrl() ?>",
-            staticroot: "<?= $CFG->staticroot ?>"
+            staticroot: "<?= $CFG->staticroot ?>",
+            window_close_message: "<?= _m('Application complete') ?>",
+            session_expire_message: "<?= _m('Your session has expired') ?>"
         }
         </script>
         <!-- Tiny bit of JS -->
@@ -477,7 +479,7 @@ $('a').each(function (x) {
         if ( $text == "Cancel" || $text == _m("Cancel") ) $button = "btn-warning";
 
         if ( $url == "_close" ) {
-            echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn ".$button."\">".$text."</a>\n");
+            echo("<a href=\"#\" onclick=\"window_close();\" class=\"btn ".$button."\">".$text."</a>\n");
         } else {
             echo("<a href==\"$url\"  class=\"btn ".$button."\">".$text."</button>\n");
         }
@@ -490,7 +492,7 @@ $('a').each(function (x) {
         if ( $text === false ) $text = _m("Exit");
         $button = "btn-success";
         if ( $text == "Cancel" || $text == _m("Cancel") ) $button = "btn-warning";
-        echo("<a href=\"#\" onclick=\"window.close();\" class=\"btn ".$button."\">".$text."</a>\n");
+        echo("<a href=\"#\" onclick=\"window_close();\" class=\"btn ".$button."\">".$text."</a>\n");
     }
 
     function togglePre($title, $html) {
@@ -531,7 +533,7 @@ $('a').each(function (x) {
         global $CFG;
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
-        $set->setHome('Done', 'javascript:window.close();');
+        $set->setHome('Done', 'javascript:window_close();');
         return $set;
     }
 
