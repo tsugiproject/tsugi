@@ -18,10 +18,15 @@ $l = new Lessons($CFG->lessons);
 // Check if this is a remote import from Canvas
 if ( isset($_POST['ext_content_return_url']) ) {
     $return_url = $_POST['ext_content_return_url'];
-    $return_url .= strpos($return_url,'?') === false ? '?' : '&';
-    $return_url .= "return_type=file&text=". urlencode($CFG->servicename) . "&url=";
-    $return_url .= urlencode($CFG->wwwroot . '/cc/export');
-    $return_url .= '&tsugi_lms=canvas';
+    $return_url = U::add_url_parm($return_url, 'return_type', 'file');
+    $return_url = U::add_url_parm($return_url, 'text', $CFG->servicename);
+
+    $export_url = $CFG->wwwroot . '/cc/export?tsugi_lms=canvas';
+    $export_url_youtube = U::add_url_parm($export_url, 'youtube', 'yes');
+
+    $return_url_normal = U::add_url_parm($return_url, 'url', $export_url);
+    $return_url_youtube = U::add_url_parm($return_url, 'url', $export_url_youtube);
+
     $OUTPUT->header();
     $OUTPUT->bodystart(false);
     echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
@@ -40,9 +45,9 @@ if ( isset($_POST['ext_content_return_url']) ) {
     echo("<p>Resources: $resource_count </p>\n");
     echo("<p>Assignments: $assignment_count </p>\n");
     echo("<center>\n");
-    echo('<a href="'.$return_url.'" role="button" class="btn btn-success">Import Course</a>');
+    echo('<a href="'.$return_url_normal.'" role="button" class="btn btn-success">Import Course</a>');
     if ( isset($CFG->youtube_url) ) {
-            echo('<br/><a href="'.$return_url.'&youtube=yes" role="button" class="btn btn-success">Import Course With Tracked YouTube URLs</a>');
+            echo('<br/><a href="'.$return_url_youtube.'" role="button" class="btn btn-success">Import Course With Tracked YouTube URLs</a>');
     }
     echo("</center>\n");
     $OUTPUT->footer();
@@ -90,6 +95,7 @@ foreach($l->lessons->modules as $module) {
                 $custom_arr = array();
                 $endpoint = U::absolute_url($CFG->youtube_url);
                 $endpoint = U::add_url_parm($endpoint, 'v', $video->youtube);
+                $extensions = array('apphome' => $CFG->apphome);
                 $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
             } else {
                 $url = 'https://www.youtube.com/watch?v=' . $video->youtube;
