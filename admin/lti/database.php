@@ -54,6 +54,7 @@ array( "{$CFG->dbprefix}lti_key",
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    login_at            DATETIME NULL,
 
     UNIQUE(key_sha256),
     PRIMARY KEY (key_id)
@@ -84,6 +85,7 @@ array( "{$CFG->dbprefix}lti_context",
     memberships_url     TEXT NULL,
     lineitems_url       TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
+    login_at            DATETIME NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
@@ -879,9 +881,21 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Add the login_at columns
+    if ( $oldversion < 201709201530 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD login_at DATETIME NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD login_at DATETIME NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201708161530;
+    return 201709201530;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
