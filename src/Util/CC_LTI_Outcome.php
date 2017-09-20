@@ -5,7 +5,7 @@ namespace Tsugi\Util;
 
 use \Tsugi\Util\CC;
 
-class CC_LTI extends \Tsugi\Util\TsugiDOM {
+class CC_LTI_Outcome extends \Tsugi\Util\TsugiDOM {
 
     function __construct() {
         parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
@@ -25,6 +25,7 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
     <lticm:property name="apphome">value</lticm:property>
   </blti:extensions>
   <blti:extensions platform="canvas.instructure.com">
+    <lticm:property name="outcome">10.0</lticm:property>
     <lticm:property name="canvas_caliper_url">$Caliper.url</lticm:property>
   </blti:extensions>
   <blti:launch_url>http://www.imsglobal.org/developers/BLTI/tool.php</blti:launch_url>

@@ -2,7 +2,6 @@
 
 namespace Tsugi\Util;
 
-
 /**
  * This class allows us to produce an IMS Common Cartridge Version 1.2
  *
@@ -258,6 +257,33 @@ class CC extends \Tsugi\Util\TsugiDOM {
     function zip_add_lti_to_module($zip, $module, $title, $url, $custom=null, $extensions=null) {
         $file = $this->add_lti_link($module, $title);
         $lti_dom = new CC_LTI();
+        $lti_dom->set_title($title);
+        // $lti_dom->set_description('Create a single SQL table and insert some records.');
+        $lti_dom->set_secure_launch_url($url);
+        if ( $custom != null ) foreach($custom as $key => $value) {
+            $lti_dom->set_custom($key,$value);
+        }
+        if ( $extensions != null ) foreach($extensions as $key => $value) {
+            $lti_dom->set_extension($key,$value);
+        }
+        $zip->addFromString($file,$lti_dom->saveXML());
+    }
+
+    /*
+     * Add a LTI link Outcome and create the file within the ZIP
+     *
+     * @param $zip The zip file handle that we are creating
+     * @param $module DOMNode The module or sub module where we are adding the LTI link
+     * @param $title The title of the link
+     * @param $url The url/endpoint for the link
+     * @param $custom An optional array of custom parameters for this link
+     * @param $extenions An optional array of tsugi extensions for this link
+     *
+     * @return The name of a file to contain the web link XML in the ZIP.
+     */
+    function zip_add_lti_outcome_to_module($zip, $module, $title, $url, $custom=null, $extensions=null) {
+        $file = $this->add_lti_link($module, $title);
+        $lti_dom = new CC_LTI_Outcome();
         $lti_dom->set_title($title);
         // $lti_dom->set_description('Create a single SQL table and insert some records.');
         $lti_dom->set_secure_launch_url($url);

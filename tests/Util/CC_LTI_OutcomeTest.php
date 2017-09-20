@@ -2,15 +2,15 @@
 
 require_once "src/Util/TsugiDOM.php";
 require_once "src/Util/CC.php";
-require_once "src/Util/CC_LTI.php";
+require_once "src/Util/CC_LTI_Outcome.php";
 
-use \Tsugi\Util\CC_LTI;
+use \Tsugi\Util\CC_LTI_Outcome;
 
-class CC_LTI_TEST extends PHPUnit_Framework_TestCase
+class CC_LTI_Outcome_TEST extends PHPUnit_Framework_TestCase
 {
     public function testGeneral() {
 
-        $lti_dom = new CC_LTI();
+        $lti_dom = new CC_LTI_Outcome();
         $lti_dom->set_title('Autograder: Single-table SQL');
         $lti_dom->set_description('Create a single SQL table and insert some records.');
         $lti_dom->set_secure_launch_url('https://www.php-intro.com/tools/sql/index.php');
@@ -29,6 +29,7 @@ class CC_LTI_TEST extends PHPUnit_Framework_TestCase
     <lticm:property name="apphome">http://www.php-intro.com</lticm:property>
   </blti:extensions>
   <blti:extensions platform="canvas.instructure.com">
+    <lticm:property name="outcome">10.0</lticm:property>
     <lticm:property name="canvas_caliper_url">$Caliper.url</lticm:property>
   </blti:extensions>
   <blti:launch_url>https://www.php-intro.com/tools/sql/index.php</blti:launch_url>
