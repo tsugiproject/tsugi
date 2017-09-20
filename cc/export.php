@@ -41,6 +41,9 @@ if ( isset($_POST['ext_content_return_url']) ) {
     echo("<p>Assignments: $assignment_count </p>\n");
     echo("<center>\n");
     echo('<a href="'.$return_url.'" role="button" class="btn btn-success">Import Course</a>');
+    if ( isset($CFG->youtube_url) ) {
+            echo('<br/><a href="'.$return_url.'&youtube=yes" role="button" class="btn btn-success">Import Course With Tracked YouTube URLs</a>');
+    }
     echo("</center>\n");
     $OUTPUT->footer();
     return;
@@ -60,8 +63,8 @@ if ( ! isCli() ) {
     header( "Content-Disposition: attachment; filename=\"".$service."_export.imscc\"" );
 }
 
-$tsugi_lms = false;
-if ( isset($_GET['tsugi_lms']) ) $tsugi_lms = $_GET['tsugi_lms'];
+$tsugi_lms = U::get($_GET,'tsugi_lms', false);
+$youtube = U::get($_GET,'youtube', false);
 
 $cc_dom = new CC();
 $cc_dom->set_title($CFG->context_title.' import');
@@ -83,8 +86,15 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->videos) ) {
         foreach($module->videos as $video ) {
             $title = 'Video: '.$video->title;
-            $url = 'https://www.youtube.com/watch?v=' . $video->youtube;
-            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
+            if ( $youtube && isset($CFG->youtube_url) ) {
+                $custom_arr = array();
+                $endpoint = U::absolute_url($CFG->youtube_url);
+                $endpoint = U::add_url_parm($endpoint, 'v', $video->youtube);
+                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+            } else {
+                $url = 'https://www.youtube.com/watch?v=' . $video->youtube;
+                $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
+            }
         }
     }
 
