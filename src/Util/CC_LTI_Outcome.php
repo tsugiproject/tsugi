@@ -1,11 +1,11 @@
 <?php
 
-
 namespace Tsugi\Util;
 
 use \Tsugi\Util\CC;
+use \Tsugi\Util\CC_LTI;
 
-class CC_LTI_Outcome extends \Tsugi\Util\TsugiDOM {
+class CC_LTI_Outcome extends \Tsugi\Util\CC_LTI {
 
     function __construct() {
         parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
@@ -53,55 +53,6 @@ class CC_LTI_Outcome extends \Tsugi\Util\TsugiDOM {
         $this->delete_children('secure_icon');
         $this->delete_children('launch_url');
         $this->delete_children('secure_launch_url');
-    }
-
-    public function set_title($text) {
-        $this->replace_text_ns(CC::BLTI_NS, 'title', $text);
-        $this->replace_text_ns(CC::BLTI_NS, 'description', $text);
-    }
-
-    public function set_description($text) {
-        $this->replace_text_ns(CC::BLTI_NS, 'description', $text);
-    }
-
-    public function set_launch_url($text) {
-        $this->replace_text_ns(CC::BLTI_NS, 'launch_url', $text);
-    }
-
-    public function set_secure_launch_url($text) {
-        $this->replace_text_ns(CC::BLTI_NS, 'launch_url', $text);
-        $this->replace_text_ns(CC::BLTI_NS, 'secure_launch_url', $text);
-    }
-
-    public function set_icon($text) {
-        $this->replace_text_ns(CC::BLTI_NS, 'icon', $text);
-    }
-
-    public function set_secure_icon($text) {
-        $this->replace_text_ns(CC::BLTI_NS, 'secure_icon', $text);
-    }
-
-    public function set_custom($key,$value) {
-        $tag = $this->get_tag_ns(CC::BLTI_NS, 'custom');
-        $this->add_child_ns(CC::LTICM_NS, $tag, 'property', $value, array("name"=>$key));
-    }
-
-    public function set_extension($key,$value) {
-        $tag = $this->get_tag_ns(CC::BLTI_NS, 'extensions');
-        $this->add_child_ns(CC::LTICM_NS, $tag, 'property', $value, array("name"=>$key));
-    }
-
-    public function saveXML(\DOMNode $node = NULL, $options = NULL) {
-
-        // Clear out empty nodes
-        // http://stackoverflow.com/questions/8603237/remove-empty-tags-from-a-xml-with-php
-        $xpath = new \DOMXPath($this);
-
-        foreach( $xpath->query('//*[not(node())]') as $entry ) {
-            $entry->parentNode->removeChild($entry);
-        }
-
-        return parent::saveXML($node, $options);
     }
 
 }

@@ -1,14 +1,13 @@
 <?php
 
-
 namespace Tsugi\Util;
 
 use \Tsugi\Util\CC;
 
 class CC_LTI extends \Tsugi\Util\TsugiDOM {
 
-    function __construct() {
-        parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
+    function __construct($xml=false) {
+        if ( ! $xml ) $xml = '<?xml version="1.0" encoding="UTF-8"?>
 <cartridge_basiclti_link
   xmlns="http://www.imsglobal.org/xsd/imslticc_v1p0"
   xmlns:blti="http://www.imsglobal.org/xsd/imsbasiclti_v1p0"
@@ -44,7 +43,9 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
       <lticp:email>tsugi@apereo.org</lticp:email>
     </lticp:contact>
   </blti:vendor>
-</cartridge_basiclti_link>');
+</cartridge_basiclti_link>';
+
+        parent::__construct($xml);
 
         $this->set_namespace(CC::BLTI_NS);
         $this->delete_children('extensions');
