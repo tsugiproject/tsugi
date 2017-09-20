@@ -768,12 +768,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "f2dcd0b78b6553de2a5dc6e7502b046dbbd7cfcd"
+            "reference": "b7b2c1d8e2a6dfd90526a89603cf34597915a843"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f2dcd0b78b6553de2a5dc6e7502b046dbbd7cfcd",
-            "reference": "f2dcd0b78b6553de2a5dc6e7502b046dbbd7cfcd",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/b7b2c1d8e2a6dfd90526a89603cf34597915a843",
+            "reference": "b7b2c1d8e2a6dfd90526a89603cf34597915a843",
             "shasum": ""
         },
         "require": {
@@ -781,7 +781,7 @@
             "silex/silex": "v2.0.4",
             "symfony/translation": "v3.2.7"
         },
-        "time": "2017-08-28 00:21:31",
+        "time": "2017-09-20 23:14:08",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

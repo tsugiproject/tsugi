@@ -2,7 +2,6 @@
 
 namespace Tsugi\Util;
 
-
 /**
  * This class allows us to produce an IMS Common Cartridge Version 1.2
  *
