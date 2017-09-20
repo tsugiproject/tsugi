@@ -149,7 +149,7 @@ foreach($l->lessons->modules as $module) {
             // Sigh - some LMSs don't handle custom - sigh
             $endpoint = U::add_url_parm($endpoint, 'inherit', $lti->resource_link_id);
             $extensions = array('apphome' => $CFG->apphome);
-            $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
         }
     }
 }
