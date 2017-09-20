@@ -406,6 +406,13 @@ class Net {
     }
 
     /**
+     * Send a 400 (Malformed request) header
+     */
+    public static function send400($msg='Malformed request') {
+        header("HTTP/1.1 400 ".$msg);
+    }
+
+    /**
      * Get the actual IP address of the incoming request.
      *
      * Handle being behind a load balancer or a proxy like Cloudflare.
