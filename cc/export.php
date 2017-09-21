@@ -54,6 +54,21 @@ if ( isset($_POST['ext_content_return_url']) ) {
     return;
 }
 
+// Check to see if we are building a cartridge for a subset
+$anchor_str = U::get($_GET, 'anchors', false);
+$anchors = false;
+if ( $anchor_str ) $anchors = explode(',', $anchor_str);
+if ( count($anchors) < 1 ) $anchors = false;
+$anchor_count = 0;
+if ( $anchors ) {
+    foreach($l->lessons->modules as $module) {
+        if ( in_array($module->anchor, $anchors) ) {
+            $anchor_count++;
+        }
+    }
+    if ( $anchor_count < 1 ) $anchors = false;
+}
+
 // here we go...
 $service = strtolower($CFG->servicename);
 $filename = tempnam(sys_get_temp_dir(), $CFG->servicename);
@@ -82,6 +97,7 @@ if ( $tsugi_lms == 'sakai' ) {
 
 foreach($l->lessons->modules as $module) {
     if ( isCli() ) echo("title=$module->title\n");
+    if ( $anchors && ! in_array($module->anchor, $anchors) ) continue;
     if ( $top_module ) {
         $sub_module = $cc_dom->add_sub_module($top_module,$module->title);
     } else {
