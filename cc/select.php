@@ -23,7 +23,13 @@ echo("<p>This course has: ".count($l->lessons->modules)." modules</p>\n");
 ?>
 <p>You can download all the modules in a single cartridge, or you can download any 
 combination of the modules below.</p>
-<p><a href="export" class="btn btn-primary">Download all the modules</a></p>
+<p>
+<a href="export" class="btn btn-primary">Download all the modules</a>
+<?php     if ( isset($CFG->youtube_url) ) { ?>
+<a href="export?youtube=yes" class="btn btn-primary">Download all modules with YouTube tracking</a>
+<?php } ?>
+</li>
+</p>
 <hr/>
 <p>Select from these modules:</p>
 <?php
@@ -45,9 +51,13 @@ foreach($l->lessons->modules as $module) {
     echo("</ul>\n");
 }
 ?>
-<input type="submit" value="Download selected modules" class="btn btn-primary" onclick="myfunc(); return false;"/>
+<input type="submit" value="Download selected modules" class="btn btn-primary" onclick="myfunc(''); return false;"/>
+<?php     if ( isset($CFG->youtube_url) ) { ?>
+<input type="submit" class="btn btn-primary" value="Download selected modules with YouTube tracking" onclick="myfunc('yes'); return false;"/>
+<?php } ?>
 </form>
 <form id="real" action="export">
+<input id="youtube" type="hidden" name="youtube"/>
 <input id="res" type="hidden" name="anchors" value=""/>
 </form>
 <?php
@@ -56,7 +66,7 @@ $OUTPUT->footerStart();
 ?>
 <script>
 // https://stackoverflow.com/questions/13830276/how-to-append-multiple-values-to-a-single-parameter-in-html-form
-function myfunc(){
+function myfunc(youtube){
     $('#void input[type="checkbox"]').each(function(id,elem){
          console.log(this);
          if ( ! $(this).is(':checked') ) return;
@@ -72,6 +82,11 @@ function myfunc(){
     if ( stuff.length < 1 ) {
         alert('<?= __("Please select at least one module") ?>');
     } else {
+        if ( youtube == 'yes' ) {
+            $("#youtube").val('yes');
+        } else {
+            $("#youtube").val('');
+        }
         $("#real").submit();
     }
 }

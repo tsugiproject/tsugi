@@ -85,6 +85,7 @@ if ( ! isCli() ) {
 
 $tsugi_lms = U::get($_GET,'tsugi_lms', false);
 $youtube = U::get($_GET,'youtube', false);
+if ( $youtube != 'yes' ) $youtube = false;
 
 $cc_dom = new CC();
 $cc_dom->set_title($CFG->context_title.' import');
