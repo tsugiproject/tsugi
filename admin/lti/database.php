@@ -54,7 +54,7 @@ array( "{$CFG->dbprefix}lti_key",
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
-    login_at            DATETIME NULL,
+    login_at            TIMESTAMP NULL,
 
     UNIQUE(key_sha256),
     PRIMARY KEY (key_id)
@@ -85,7 +85,7 @@ array( "{$CFG->dbprefix}lti_context",
     memberships_url     TEXT NULL,
     lineitems_url       TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
-    login_at            DATETIME NULL,
+    login_at            TIMESTAMP NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
@@ -165,7 +165,7 @@ array( "{$CFG->dbprefix}lti_user",
     subscribe           SMALLINT NULL,
 
     json                MEDIUMTEXT NULL,
-    login_at            DATETIME NULL,
+    login_at            TIMESTAMP NULL,
     login_count         INTEGER NULL,
     ipaddr              VARCHAR(64),
     entity_version      INTEGER NOT NULL DEFAULT 0,
@@ -314,7 +314,7 @@ array( "{$CFG->dbprefix}lti_result",
     entity_version     INTEGER NOT NULL DEFAULT 0,
     created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
-    retrieved_at       DATETIME NULL,
+    retrieved_at       TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_result_ibfk_1`
         FOREIGN KEY (`link_id`)
@@ -361,8 +361,8 @@ array( "{$CFG->dbprefix}lti_domain",
     consumer_key  TEXT,
     secret      TEXT,
     json        TEXT NULL,
-    created_at  DATETIME NOT NULL,
-    updated_at  DATETIME NOT NULL,
+    created_at  TIMESTAMP NOT NULL,
+    updated_at  TIMESTAMP NOT NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_domain_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -396,7 +396,7 @@ array( "{$CFG->dbprefix}profile",
     subscribe           SMALLINT NULL,
 
     json                MEDIUMTEXT NULL,
-    login_at            DATETIME NULL,
+    login_at            TIMESTAMP NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
@@ -883,6 +883,15 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // Add the login_at columns
     if ( $oldversion < 201709201530 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY updated_at TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00'";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context MODIFY updated_at TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00'";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD login_at DATETIME NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -893,9 +902,40 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Make sure there are no DATETIME's left
+    if ( $oldversion < 201709221243 ) {
+        $tables = array(
+            'lti_key', 'lti_context', 'lti_user', 'profile', 'lti_link',
+            'lti_membership', 'lti_event', 'lti_link_user_activity',
+            'lti_service', 'lti_result', 'lti_domain');
+        foreach($tables as $table) {
+            $sql= "UPDATE {$CFG->dbprefix}{$table} SET updated_at='1970-01-02 00:00:00' WHERE updated_at < '1970-01-02 00:00:00'";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} MODIFY updated_at TIMESTAMP NULL DEFAULT '1970-01-02 00:00:00'";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} MODIFY created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+        }
+	$tables = array( 'lti_key', 'lti_context', 'lti_user', 'profile');
+        foreach($tables as $table) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} MODIFY login_at TIMESTAMP NULL";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+        }
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201709201530;
+    return 201709221243;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
