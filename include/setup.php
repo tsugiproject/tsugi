@@ -7,7 +7,7 @@ if ( ! isset($CFG) ) die_with_error_log("Please configure this product using con
 // upgrade checking - don't change this unless you want to trigger
 // database upgrade messages it should be the max of all versions in
 // all database.php files.
-$CFG->dbversion = 201709201530;
+$CFG->dbversion = 201709221243;
 
 // Just turn this off to avoid security holes due to XML parsing
 if ( function_exists ( 'libxml_disable_entity_loader' ) ) libxml_disable_entity_loader();
