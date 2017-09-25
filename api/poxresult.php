@@ -56,7 +56,7 @@ if ( is_numeric($pieces[0]) && is_numeric($pieces[1]) &&
     Net::send400('sourcedid requires 4 numeric parameters');
     return;
 }
-$sql = "SELECT K.secret, K.key_key, C.context_key, L.settings, R.placementsecret, 
+$sql = "SELECT K.secret, K.key_key, C.context_key, L.settings, L.placementsecret, 
         R.result_id, R.grade, R.sourcedid, R.result_url, S.service_key AS service
     FROM {$CFG->dbprefix}lti_key AS K
     JOIN {$CFG->dbprefix}lti_context AS C ON K.key_id = C.key_id

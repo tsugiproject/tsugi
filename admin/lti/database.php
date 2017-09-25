@@ -674,7 +674,7 @@ $DATABASE_UPGRADE = function($oldversion) {
                 echo('To clear the duplicate records, use <a href="patch_profile.php">patch_profile.php</a><br/>'."\n");
             }
         }
-        echo("Google login duplicate complete seconds=".($start-time())."<br/>\n");
+        echo("Google login duplicate complete seconds=".(time()-$start)."<br/>\n");
     }
 
     // Version 201703171520 improvements
