@@ -81,4 +81,35 @@ class Link extends Entity {
         return $row;
     }
 
+    /**
+     * Get the placement secret for this Link
+     */
+    public function getPlacementSecret()
+    {
+        global $CFG;
+        $PDOX = $this->launch->pdox;
+
+        $stmt = $PDOX->queryDie(
+            "SELECT placementsecret FROM {$CFG->dbprefix}lti_link
+                WHERE link_id = :LID",
+            array(':LID' => $this->id)
+        );
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $placementsecret = $row['placementsecret'];
+        if ( $placementsecret) return $placementsecret;
+
+        // Set the placement secret
+        $placementsecret = bin2Hex(openssl_random_pseudo_bytes(32));
+
+        $stmt = $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_link SET placementsecret=:PC
+                WHERE link_id = :LID",
+            array(':LID' => $this->id,
+                ':PC' => $placementsecret
+            )
+        );
+        return $placementsecret;
+    }
+
+
 }
