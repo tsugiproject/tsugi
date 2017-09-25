@@ -127,8 +127,8 @@ class Result extends Entity {
      *
      * @param $grade A new grade - floating point number between 0.0 and 1.0
      * @param $row An optional array with the data that has the result_id, sourcedid,
-     * and service (url) if this is not present, the data is pulled from the LTI
-     * session for the current user/link combination.
+     * service (url), key_key, and secret.  If these are not present, the data 
+     * is pulled from the LTI session for the current user/link combination.
      * @param $debug_log An (optional) array (by reference) that returns the
      * steps that were taken.
      * Each entry is an array with the [0] element a message and an optional [1]
@@ -138,20 +138,22 @@ class Result extends Entity {
      * a string with an error.
      *
      */
-    public function gradeSend($grade, $row=false, &$debug_log=false) {
-        global $CFG, $USER;
+    public static function gradeSendStatic($grade, $row=false, &$debug_log=false) {
+        global $CFG;
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
 
         $PDOX = LTIX::getConnection();
 
         // Secret and key from session to avoid crossing tenant boundaries
-        $key_key = LTIX::ltiParameter('key_key');
-        $secret = LTIX::decrypt_secret(LTIX::ltiParameter('secret'));
+        $key_key = false;
+        $secret = false;
         if ( $row !== false ) {
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
+            $key_key = isset($row['key_key']) ? $row['key_key'] : false;
+            $secret = isset($row['secret']) ? LTIX::decrypt_secret($row['secret']) : false;
             // Fall back to session if it is missing
             if ( $service === false ) $service = LTIX::ltiParameter('service');
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
@@ -162,16 +164,12 @@ class Result extends Entity {
             $result_id = LTIX::ltiParameter('result_id');
         }
 
+        // Secret and key from session to avoid crossing tenant boundaries
+        if ( ! $key_key ) $key_key = LTIX::ltiParameter('key_key');
+        if ( ! $secret ) $secret = LTIX::decrypt_secret(LTIX::ltiParameter('secret'));
+
         // Get the IP Address
         $ipaddr = Net::getIP();
-
-        // Update result in the database and in the LTI session area and 
-        // our local copy 
-        $ltidata = $this->session_get('lti');
-        if ( $ltidata ) {
-            $ltidata['grade'] = $grade;
-            $this->session_put('lti', $ltidata);
-        }
 
         // Update the local copy of the grade in the lti_result table
         if ( $PDOX !== false && $result_id !== false ) {
@@ -194,7 +192,7 @@ class Result extends Entity {
         }
 
         // A broken launch
-        if ( $key_key == false || $secret === false || !isset($USER) ) {
+        if ( $key_key == false || $secret === false ) {
             error_log("Result::gradeSend stored data locally");
             return false;
         }
@@ -212,7 +210,42 @@ class Result extends Entity {
             return true;   // Local storage only
         }
 
+        return $status;
+    }
+
+    /**
+     * Send a grade and update our local copy
+     *
+     * Call the right LTI service to send a new grade up to the server.
+     * update our local cached copy of the server_grade and the date
+     * retrieved. This routine pulls the key and secret from the LTIX
+     * session to avoid crossing cross tennant boundaries.
+     *
+     * @param $grade A new grade - floating point number between 0.0 and 1.0
+     * @param $row An optional array with the data that has the result_id, sourcedid,
+     * service (url), key_key, and secret.  If these are not present, the data 
+     * is pulled from the LTI session for the current user/link combination.
+     * @param $debug_log An (optional) array (by reference) that returns the
+     * steps that were taken.
+     * Each entry is an array with the [0] element a message and an optional [1]
+     * element as some detail (i.e. like a POST body)
+     *
+     * @return mixed If this works it returns true.  If not, you get
+     * a string with an error.
+     *
+     */
+    public function gradeSend($grade, $row=false, &$debug_log=false) {
+        global $CFG, $USER;
+
+        $status = self::gradeSendStatic($grade, $row, $debug_log);
+
+        // Update the session view of the grade
         if ( $status === true ) {
+            $ltidata = $this->session_get('lti');
+            if ( $ltidata && $row !== false ) {
+                $ltidata['grade'] = $grade;
+                $this->session_put('lti', $ltidata);
+            }
             $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$USER->id;
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
@@ -222,7 +255,6 @@ class Result extends Entity {
             error_log($msg);
             return $status;
         }
-
 
         return $status;
     }
