@@ -94,6 +94,20 @@ class U {
     }
 
     /**
+     * Get the protocol, host, and port from an absolute URL
+     *
+     * input: http://localhost:8888/tsugi
+     * output: http://localhost:8888
+     */
+    public static function get_base_url($url) {
+        $pieces = parse_url($url);
+        $retval = $pieces['scheme'].'://'.$pieces['host'];
+        $port = $pieces['port'];
+        if ( $port != 80 && $port != 443 ) $retval .= ':' . $port;
+        return $retval;
+    }
+
+    /**
      * Get the path to the current request, w/o trailing slash
      *
      * input: /py4e/lessons/intro?x=2

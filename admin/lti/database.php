@@ -310,6 +310,9 @@ array( "{$CFG->dbprefix}lti_result",
     note               MEDIUMTEXT NULL,
     server_grade       FLOAT NULL,
 
+    placementsecret     VARCHAR(64) NULL,
+    oldplacementsecret  VARCHAR(64) NULL,
+
     json               MEDIUMTEXT NULL,
     entity_version     INTEGER NOT NULL DEFAULT 0,
     created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -933,9 +936,21 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    if ( $oldversion < 201709241318 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD placementsecret VARCHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD oldplacementsecret VARCHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201709221243;
+    return 201709241318;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

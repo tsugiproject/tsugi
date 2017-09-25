@@ -270,6 +270,36 @@ class Result extends Entity {
     }
 
     /**
+     * Get the placement secret for this Result
+     */
+    public function getPlacementSecret()
+    {
+        global $CFG;
+        $PDOX = $this->launch->pdox;
+
+        $stmt = $PDOX->queryDie(
+            "SELECT placementsecret FROM {$CFG->dbprefix}lti_result
+                WHERE result_id = :RID",
+            array(':RID' => $this->id)
+        );
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $placementsecret = $row['placementsecret'];
+        if ( $placementsecret) return $placementsecret;
+
+        // Set the placement secret
+        $placementsecret = bin2Hex(openssl_random_pseudo_bytes(32));
+
+        $stmt = $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_result SET placementsecret=:PC
+                WHERE result_id = :RID",
+            array(':RID' => $this->id,
+                ':PC' => $placementsecret
+            )
+        );
+        return $placementsecret;
+    }
+
+    /**
      * Get the JSON for this result
      */
     public function getJSON()

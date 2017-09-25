@@ -309,7 +309,7 @@ class LTI {
         return false;
     }
 
-    public static function handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret)
+    public static function handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret, $postdata=false)
     {
         // Must reject application/x-www-form-urlencoded
         $ctype = self::getContentTypeHeader();
@@ -333,7 +333,7 @@ class LTI {
             throw new \Exception("OAuth request body signing requires oauth_body_hash body");
         }
 
-        $postdata = file_get_contents('php://input');
+        if ( ! $postdata ) $postdata = file_get_contents('php://input');
         // error_log($postdata);
 
         if ( $oauth_signature_method == 'HMAC-SHA256' ) {
