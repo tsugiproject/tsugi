@@ -78,7 +78,7 @@ if ( ! $row ) {
 }
 
 $oauth_consumer_key_up = $row['key_key'];
-$oauth_consumer_secret_up = $row['secret'];
+$oauth_consumer_secret_up = LTIX::decrypt_secret($row['secret']);
 $placementsecret = $row['placementsecret'];
 $grade = $row['grade'];
 $settingsstr = $row['settings'];
