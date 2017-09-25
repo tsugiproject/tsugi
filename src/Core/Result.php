@@ -239,6 +239,12 @@ class Result extends Entity {
 
         $status = self::gradeSendStatic($grade, $row, $debug_log);
 
+        if ( $row !== false ) {
+            $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
+        } else {
+            $sourcedid = LTIX::ltiParameter('sourcedid');
+        }
+
         // Update the session view of the grade
         if ( $status === true ) {
             $ltidata = $this->session_get('lti');
