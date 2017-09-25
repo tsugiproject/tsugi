@@ -4,7 +4,9 @@ require_once "../config.php";
 use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Result;
 
 // For my application, We only allow application/xml
 $request_headers = OAuthUtil::get_headers();
@@ -54,11 +56,13 @@ if ( is_numeric($pieces[0]) && is_numeric($pieces[1]) &&
     Net::send400('sourcedid requires 4 numeric parameters');
     return;
 }
-$sql = "SELECT K.secret, K.key_key, C.context_key, L.settings, R.placementsecret, R.grade
+$sql = "SELECT K.secret, K.key_key, C.context_key, L.settings, R.placementsecret, 
+        R.result_id, R.grade, R.sourcedid, R.result_url, S.service_key AS service
     FROM {$CFG->dbprefix}lti_key AS K
     JOIN {$CFG->dbprefix}lti_context AS C ON K.key_id = C.key_id
     JOIN {$CFG->dbprefix}lti_link AS L ON C.context_id = L.context_id
-    JOIN {$CFG->dbprefix}lti_RESULT AS R ON L.link_id = R.link_id
+    JOIN {$CFG->dbprefix}lti_result AS R ON L.link_id = R.link_id
+    LEFT JOIN {$CFG->dbprefix}lti_service AS S ON S.service_id = R.service_id
     WHERE K.key_id = :KID AND C.context_id = :CID AND
         L.link_id = :LID AND R.result_id = :RID
     LIMIT 1";
@@ -138,6 +142,8 @@ try {
     return;
 }
 
+// Get the IP Address
+$ipaddr = Net::getIP();
 
 $top_tag = str_replace("Request","Response",$operation);
 $body_tag = "\n<".$top_tag."/>";
@@ -154,15 +160,10 @@ if ( $operation == "replaceResultRequest" ) {
         exit();
     }
 
-    $sql = "UPDATE {$CFG->dbprefix}lti_result
-        SET grade=:GRADE, updated_at=NOW()
-        WHERE link_id = :LID";
+    $debug_log = array();
+    $status = Result::gradeSendStatic($score, $row, $debug_log);
 
-    $retval = $PDOX->queryDie($sql, array(
-        ":GRADE" => $score,
-        ":LID" => $link_id)
-    );
-    if( $retval->success) {
+    if( $status ) {
         echo(sprintf($response,uniqid(),'success', "Score for ".htmlspec_utf8($sourcedid)." is now $score",$message_ref,$operation,$body_tag));
     } else {
         echo(sprintf($response,uniqid(),'failure', "Unable to update ".htmlspec_utf8($sourcedid),$message_ref,$operation,$body_tag));
@@ -182,10 +183,12 @@ if ( $operation == "replaceResultRequest" ) {
     echo(sprintf($response,uniqid(),'success', "Score read successfully",$message_ref,$operation,$body));
 } else if ( $operation == "deleteResultRequest" ) {
     $sql = "UPDATE {$CFG->dbprefix}lti_result SET
-        grade=NULL, updated_at=NOW()
+        grade=NULL, ipaddr = :IP, updated_at=NOW()
         WHERE link_id = :LID";
 
-    $retval = $PDOX->queryDie($sql, array(":LID" => $link_id));
+    $retval = $PDOX->queryDie($sql, array(
+        ":LID" => $link_id, ":IP" => $ipaddr)
+    );
     if( $retval->success) {
         echo(sprintf($response,uniqid(),'success', "Score deleted",$message_ref,$operation,$body_tag));
     } else {
