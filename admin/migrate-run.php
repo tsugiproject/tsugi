@@ -7,6 +7,7 @@ LTIX::getConnection();
     if ( !isset($maxversion) ) $maxversion = 0;
     if ( !isset($maxpath) ) $maxpath = '';
 
+    $ticks = time();
     // Check to see if the tables need to be created
     if ( isset($DATABASE_INSTALL) && $DATABASE_INSTALL !== false ) {
         foreach ( $DATABASE_INSTALL as $entry ) {
@@ -32,6 +33,9 @@ LTIX::getConnection();
                     $DATABASE_POST_CREATE($entry[0]);
                 }
             }
+            $delta = time() - $ticks;
+            if ( $delta > 1 ) echo("--- Ellapsed time=".$delta." seconds<br/>\n");
+            $ticks = time();
         }
     } else {
         echo("-- Set version for ".$path."<br/>");
@@ -45,6 +49,9 @@ LTIX::getConnection();
                 ":version" => $CFG->dbversion);
         $q = $PDOX->queryReturnError($sql, $values);
         if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
+        $delta = time() - $ticks;
+        if ( $delta > 1 ) echo("--- Ellapsed time=".$delta." seconds<br/>\n");
+        $ticks = time();
     }
 
     // Check to see if there is any upgrading needed
@@ -59,6 +66,9 @@ LTIX::getConnection();
         }
         echo("-- Current data model version $version <br/>\n");
         $newversion = $DATABASE_UPGRADE($version);
+        $delta = time() - $ticks;
+        if ( $delta > 1 ) echo("--- Ellapsed time=".$delta." seconds<br/>\n");
+        $ticks = time();
         if ( $newversion > $maxversion ) {
             $maxversion = $newversion;
             $maxpath = $path;

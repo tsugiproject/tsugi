@@ -114,6 +114,10 @@ array( "{$CFG->dbprefix}lti_link",
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
+
+    placementsecret     VARCHAR(64) NULL,
+    oldplacementsecret  VARCHAR(64) NULL,
+
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
@@ -309,9 +313,6 @@ array( "{$CFG->dbprefix}lti_result",
     grade              FLOAT NULL,
     note               MEDIUMTEXT NULL,
     server_grade       FLOAT NULL,
-
-    placementsecret     VARCHAR(64) NULL,
-    oldplacementsecret  VARCHAR(64) NULL,
 
     json               MEDIUMTEXT NULL,
     entity_version     INTEGER NOT NULL DEFAULT 0,
@@ -643,30 +644,37 @@ $DATABASE_UPGRADE = function($oldversion) {
     // by pre Jan-2017 login.php mistakenly assuming that the
     // ID returned by Google was "permanent" - so now in
     // profile, we use email as primary key.
-    $checkSQL = "SELECT profile_id, email, created_at FROM {$CFG->dbprefix}profile WHERE email IN (SELECT T.E FROM (select profile_id AS I, email AS E,COUNT(profile_sha256) as C FROM {$CFG->dbprefix}profile GROUP BY profile_id, email ORDER BY C DESC) AS T WHERE T.C > 1) ORDER BY email DESC, created_at DESC;";
-    $stmt = $PDOX->queryReturnError($checkSQL);
-    if ( ! $stmt->success ) {
-        echo("Fail checking duplicate profile entries:<br/>\n");
-        echo($checkSQL);
-        echo("Error: ".$stmt->errorImplode."<br/>\n");
-    } else {
-        $count = 0;
-        while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
-            if ( $count == 0 ) {
-                echo("These are profiles with duplicates:<br/>\n");
+
+    // Stop running after October 2017
+    if ( $oldversion < 201710010000) {
+        $start = time();
+        echo("Running google login duplicate check...<br/>\n");
+        $checkSQL = "SELECT profile_id, email, created_at FROM {$CFG->dbprefix}profile WHERE email IN (SELECT T.E FROM (select profile_id AS I, email AS E,COUNT(profile_sha256) as C FROM {$CFG->dbprefix}profile GROUP BY profile_id, email ORDER BY C DESC) AS T WHERE T.C > 1) ORDER BY email DESC, created_at DESC;";
+        $stmt = $PDOX->queryReturnError($checkSQL);
+        if ( ! $stmt->success ) {
+            echo("Fail checking duplicate profile entries:<br/>\n");
+            echo($checkSQL);
+            echo("Error: ".$stmt->errorImplode."<br/>\n");
+        } else {
+            $count = 0;
+            while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
+                if ( $count == 0 ) {
+                    echo("These are profiles with duplicates:<br/>\n");
+                }
+                if ( $count < 10 ) {
+	            echo($row['profile_id'].', '.htmlentities($row['email']).', '.$row['created_at']."<br/>\n");
+                }
+                $count ++;
             }
-            if ( $count < 10 ) {
-	        echo($row['profile_id'].', '.htmlentities($row['email']).', '.$row['created_at']."<br/>\n");
+            if ( $count > 0 ) {
+                if ( $count > 10 ) {
+                    echo(" .... <br/>\n");
+                }
+                echo("Total records affected: $count <br/>\n");
+                echo('To clear the duplicate records, use <a href="patch_profile.php">patch_profile.php</a><br/>'."\n");
             }
-            $count ++;
         }
-        if ( $count > 0 ) {
-            if ( $count > 10 ) {
-                echo(" .... <br/>\n");
-            }
-            echo("Total records affected: $count <br/>\n");
-            echo('To clear the duplicate records, use <a href="patch_profile.php">patch_profile.php</a><br/>'."\n");
-        }
+        echo("Google login duplicate complete seconds=".($start-time())."<br/>\n");
     }
 
     // Version 201703171520 improvements
@@ -947,10 +955,29 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Oops - put them in the wrong place.
+    if ( $oldversion < 201709251127 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD placementsecret VARCHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD oldplacementsecret VARCHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result DROP COLUMN placementsecret";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result DROP COLUMN oldplacementsecret";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201709241318;
+    return 201709251127;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
