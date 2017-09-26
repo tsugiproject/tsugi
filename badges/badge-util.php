@@ -53,7 +53,7 @@ function parse_badge_id($encrypted, $lesson) {
     if ( $png === false ) return 'File contents fail';
 
     $row = $PDOX->rowDie(
-            "SELECT displayname, email, user_key, login_at, title FROM {$CFG->dbprefix}lti_user AS U
+            "SELECT displayname, email, user_key, U.login_at, title FROM {$CFG->dbprefix}lti_user AS U
             JOIN {$CFG->dbprefix}lti_membership AS M
             ON U.user_id = M.user_id 
             JOIN {$CFG->dbprefix}lti_context AS C
