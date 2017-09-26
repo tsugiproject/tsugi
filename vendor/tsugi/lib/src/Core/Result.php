@@ -39,7 +39,7 @@ class Result extends Entity {
         global $CFG, $PDOX, $CONTEXT, $LINK;
         $stmt = $PDOX->queryDie(
             "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id,
-                sourcedid, service_id, grade, note, R.json AS json
+                sourcedid, service_id, grade, note, R.json AS json, R.note AS note
             FROM {$CFG->dbprefix}lti_result AS R
             JOIN {$CFG->dbprefix}lti_link AS L
                 ON L.link_id = R.link_id AND R.link_id = :LID
@@ -337,6 +337,40 @@ class Result extends Entity {
                 WHERE result_id = :RID",
             array(
                 ':json' => $json,
+                ':RID' => $this->id)
+        );
+    }
+
+    /**
+     * Get the Note for this result
+     */
+    public function getNote()
+    {
+        global $CFG;
+        $PDOX = $this->launch->pdox;
+
+        $stmt = $PDOX->queryDie(
+            "SELECT note FROM {$CFG->dbprefix}lti_result
+                WHERE result_id = :RID",
+            array(':RID' => $this->id)
+        );
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row['note'];
+    }
+
+    /**
+     * Set the Note for this result
+     */
+    public function setNote($note)
+    {
+        global $CFG;
+        $PDOX = $this->launch->pdox;
+
+        $stmt = $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_result SET note = :note, updated_at = NOW()
+                WHERE result_id = :RID",
+            array(
+                ':note' => $note,
                 ':RID' => $this->id)
         );
     }

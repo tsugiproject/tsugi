@@ -15,7 +15,7 @@ class GradeUtil {
         // Get basic grade data
         $stmt = $PDOX->queryDie(
             "SELECT R.result_id AS result_id, R.user_id AS user_id,
-                grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
+                grade, note, R.json AS json, R.note as note, R.updated_at AS updated_at, displayname, email
             FROM {$p}lti_result AS R
             JOIN {$p}lti_user AS U ON R.user_id = U.user_id
             WHERE R.link_id = :LID
@@ -56,7 +56,7 @@ class GradeUtil {
         // Get basic grade data
         $stmt = $PDOX->queryDie(
             "SELECT R.result_id AS result_id, R.user_id AS user_id,
-                grade, note, R.json AS json, R.updated_at AS updated_at, displayname, email
+                grade, note, R.json AS json, R.note as note, R.updated_at AS updated_at, displayname, email
             FROM {$p}lti_result AS R
             JOIN {$p}lti_user AS U ON R.user_id = U.user_id
             WHERE R.link_id = :LID AND R.user_id = :UID
