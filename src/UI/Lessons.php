@@ -44,11 +44,14 @@ class Lessons {
 ?>
 <style>
     .card {
-        border: 1px solid black;
-        margin: 5px;
-        padding: 5px;
-        min-height: 8em;
-    }
+    display: inline-block; 
+/*     float: left;  also works */
+/*     width: 160px; Not necessary */
+    height: 125px;
+    padding: 5px;
+    margin: 12px;
+    border: 1px solid black;  
+}
 #loader {
       position: fixed;
       left: 0px;
