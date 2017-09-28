@@ -45,13 +45,18 @@ class Lessons {
 <style>
     .card {
     display: inline-block; 
-/*     float: left;  also works */
-/*     width: 160px; Not necessary */
-    height: 125px;
-    padding: 5px;
+    padding: 0.5em;
     margin: 12px;
     border: 1px solid black;  
+    height: 9em;
+    overflow-y: hidden;
 }
+ .card div {
+    height: 8em;
+    overflow-y: hidden;
+    text-overflow: ellipsis;
+}
+    
 #loader {
       position: fixed;
       left: 0px;
@@ -525,19 +530,19 @@ var disqus_config = function () {
         foreach($this->lessons->modules as $module) {
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
             $count++;
-            echo('<div class="card">'."\n");
+            echo('<div class="card"><div>'."\n");
             $href = U::get_rest_path() . '/' . urlencode($module->anchor);
             if ( isset($module->icon) ) {
                 echo('<i class="fa '.$module->icon.' fa-2x" aria-hidden="true" style="float: left; padding-right: 5px;"></i>');
             }
             echo('<a href="'.$href.'">'."\n");
-            echo('<p>'.$count.': '.$module->title."</p>\n");
+            echo($count.': '.$module->title."<br clear=\"all\"/>\n");
             if ( isset($module->description) ) {
                 $desc = $module->description;
-                if ( strlen($desc) > 100 ) $desc = substr($desc, 0, 100) . " ...";
-                echo('<p>'.$desc."</p>\n");
+                if ( strlen($desc) > 1000 ) $desc = substr($desc, 0, 1000);
+                echo('<br/>'.$desc."\n");
             }
-            echo("</a></div>\n");
+            echo("</a></div></div>\n");
         }
         echo('</div> <!-- box -->'."\n");
         echo('</div> <!-- typeof="Course" -->'."\n");
