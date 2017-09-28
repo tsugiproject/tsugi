@@ -4,13 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-<<<<<<< HEAD
-    "hash": "6324769459a8a502c1a214c20a2bf780",
-    "content-hash": "063747a29fb3c349b8e8472b60abddb7",
-=======
-    "hash": "5043f67ce582a55ea184381d127a712f",
-    "content-hash": "3a26341f7db62ad777e7ec363ded938c",
->>>>>>> be2bd4d66361b60ebaa97ded863db8710da540ee
+    "hash": "b96c4764d66c5fc7664616d651189fd1",
+    "content-hash": "a7783b2003c8561f5727c37d99b81e40",
     "packages": [
         {
             "name": "koseu/lib",
@@ -694,21 +689,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-<<<<<<< HEAD
-                "reference": "8e4b155f4fa819e819bd91745a303b8ee7580f09"
+                "reference": "e86b9034a42971a7039723c86981fdd6d432fdd8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/8e4b155f4fa819e819bd91745a303b8ee7580f09",
-                "reference": "8e4b155f4fa819e819bd91745a303b8ee7580f09",
-=======
-                "reference": "6b00fb3c68ed9fc64dde8cb459cc73276b322a3f"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/6b00fb3c68ed9fc64dde8cb459cc73276b322a3f",
-                "reference": "6b00fb3c68ed9fc64dde8cb459cc73276b322a3f",
->>>>>>> be2bd4d66361b60ebaa97ded863db8710da540ee
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e86b9034a42971a7039723c86981fdd6d432fdd8",
+                "reference": "e86b9034a42971a7039723c86981fdd6d432fdd8",
                 "shasum": ""
             },
             "require": {
@@ -741,7 +727,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2017-09-25 17:04:35"
+            "time": "2017-09-28 11:59:44"
         },
         {
             "name": "twig/twig",
