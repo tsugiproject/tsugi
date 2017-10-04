@@ -55,6 +55,7 @@ array( "{$CFG->dbprefix}lti_key",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
     login_at            TIMESTAMP NULL,
+    login_count         BIGINT DEFAULT 0,
 
     UNIQUE(key_sha256),
     PRIMARY KEY (key_id)
@@ -86,6 +87,8 @@ array( "{$CFG->dbprefix}lti_context",
     lineitems_url       TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     login_at            TIMESTAMP NULL,
+    login_count         BIGINT DEFAULT 0,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
@@ -170,7 +173,8 @@ array( "{$CFG->dbprefix}lti_user",
 
     json                MEDIUMTEXT NULL,
     login_at            TIMESTAMP NULL,
-    login_count         INTEGER NULL,
+    login_count         BIGINT DEFAULT 0,
+
     ipaddr              VARCHAR(64),
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -975,9 +979,25 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Version 201710041600 improvements
+    if ( $oldversion < 201710041600 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user MODIFY login_count BIGINT DEFAULT 0";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD login_count BIGINT DEFAULT 0";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD login_count BIGINT DEFAULT 0";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201709251127;
+    return 201710041600;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
