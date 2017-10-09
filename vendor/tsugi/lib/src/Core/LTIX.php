@@ -476,28 +476,26 @@ class LTIX {
                 $stmt = $PDOX->queryReturnError($sql, array(
                     ':IP' => Net::getIP(),
                     ':user_id' => $row['user_id']));
-                if ( isset($row['context_id']) ) {
-                    $sql = "UPDATE {$CFG->dbprefix}lti_context
-                        SET login_at=NOW(), login_count=login_count+1, ipaddr=:IP WHERE context_id = :context_id";
-                    $stmt = $PDOX->queryReturnError($sql, array(
-                        ':IP' => Net::getIP(),
-                        ':context_id' => $row['context_id']));
-                }
             } else {
                 $sql = "UPDATE {$CFG->dbprefix}lti_user
                     SET login_at=NOW(), login_count=login_count+1 WHERE user_id = :user_id";
                 $stmt = $PDOX->queryReturnError($sql, array(
                     ':user_id' => $row['user_id']));
-                if ( isset($row['context_id']) ) {
-                    $sql = "UPDATE {$CFG->dbprefix}lti_context
-                        SET login_at=NOW(), login_count=login_count+1 WHERE context_id = :context_id";
-                    $stmt = $PDOX->queryReturnError($sql, array(
-                        ':context_id' => $row['context_id']));
-                }
             }
 
             if ( ! $stmt->success ) {
                 error_log("Unable to update login_at user_id=".$row['user_id']);
+            }
+
+            if ( isset($row['context_id']) && $start_time === false ) {
+                $sql = "UPDATE {$CFG->dbprefix}lti_context
+                    SET login_at=NOW(), login_count=login_count+1 WHERE context_id = :context_id";
+                $stmt = $PDOX->queryReturnError($sql, array(
+                    ':context_id' => $row['context_id']));
+
+                if ( ! $stmt->success ) {
+                    error_log("Unable to update login_at context_id=".$row['context_id']);
+                }
             }
 
             // Only learner launches are logged

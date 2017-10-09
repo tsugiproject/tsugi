@@ -25,7 +25,7 @@ $sql = "SELECT C.context_id AS context_id, title, count(M.user_id) AS members, C
         FROM {$CFG->dbprefix}lti_context AS C
         LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
         GROUP BY C.context_id";
-$orderfields = array("C.context_id", "key_value", "title", "C.created_at", "C.updated_at");
+$orderfields = array("C.context_id", "key_value", "title", "C.created_at", "C.updated_at", "C.login_at", "C.login_count");
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);
 // echo("<pre>\n$newsql\n</pre>\n");
