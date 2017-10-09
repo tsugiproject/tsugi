@@ -19,8 +19,9 @@ if ( ! isAdmin() ) {
 }
 
 $query_parms = false;
-$searchfields = array("C.context_id", "title", "C.created_at", "C.updated_at");
-$sql = "SELECT C.context_id AS context_id, title, count(M.user_id) AS members, C.key_id AS key_value, C.created_at, C.updated_at
+$searchfields = array("C.context_id", "title", "C.created_at", "C.updated_at", "C.login_at", "C.login_count");
+$sql = "SELECT C.context_id AS context_id, title, count(M.user_id) AS members, C.key_id AS key_value,
+            C.login_at, C.login_count, C.created_at, C.updated_at
         FROM {$CFG->dbprefix}lti_context AS C
         LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
         GROUP BY C.context_id";
