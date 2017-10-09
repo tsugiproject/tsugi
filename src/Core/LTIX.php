@@ -487,7 +487,7 @@ class LTIX {
                 error_log("Unable to update login_at user_id=".$row['user_id']);
             }
 
-            if ( isset($row['context_id']) && $start_time === false ) {
+            if ( isset($row['context_id']) ) {
                 $sql = "UPDATE {$CFG->dbprefix}lti_context
                     SET login_at=NOW(), login_count=login_count+1 WHERE context_id = :context_id";
                 $stmt = $PDOX->queryReturnError($sql, array(
@@ -495,6 +495,18 @@ class LTIX {
 
                 if ( ! $stmt->success ) {
                     error_log("Unable to update login_at context_id=".$row['context_id']);
+                }
+            }
+
+            // We do an update of login_at for the key
+            if ( array_key_exists('key_id', $row) ) {
+                $sql = "UPDATE {$CFG->dbprefix}lti_key
+                    SET login_at=NOW(),login_count=login_count+1 WHERE key_id = :key_id";
+                $stmt = $PDOX->queryReturnError($sql, array(
+                    ':key_id' => $row['key_id']));
+
+                if ( ! $stmt->success ) {
+                    error_log("Unable to update login_at key_id=".$row['context_id']);
                 }
             }
 
@@ -820,6 +832,7 @@ class LTIX {
         // Add the fields
         // TODO: Add user_locale
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
+            k.login_at AS key_login_at,
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
             c.ext_memberships_id AS ext_memberships_id, c.ext_memberships_url AS ext_memberships_url,
