@@ -463,19 +463,39 @@ class LTIX {
             $row['role'] = $row['role_override'];
         }
 
+        // TODO: Pull this out because it can be used > 1 place (i.e. Google login)
+
         // Update the login_at data and do analytics if requested
+        // There are a lot of queryReturnError() calls because we don't want to
+        // fail on "nice to have" analytics data.
         $start_time = self::wrapped_session_get($session_object, 'tsugi_permanent_start_time', false);
         if ( isset($row['user_id']) && $start_time === false ) {
             if ( Net::getIP() !== NULL ) {
-                $sql = "UPDATE {$CFG->dbprefix}lti_user SET login_at=NOW(), ipaddr=:IP WHERE user_id = :user_id";
+                $sql = "UPDATE {$CFG->dbprefix}lti_user
+                    SET login_at=NOW(), login_count=login_count+1, ipaddr=:IP WHERE user_id = :user_id";
                 $stmt = $PDOX->queryReturnError($sql, array(
                     ':IP' => Net::getIP(),
                     ':user_id' => $row['user_id']));
+                if ( isset($row['context_id']) ) {
+                    $sql = "UPDATE {$CFG->dbprefix}lti_context
+                        SET login_at=NOW(), login_count=login_count+1, ipaddr=:IP WHERE context_id = :context_id";
+                    $stmt = $PDOX->queryReturnError($sql, array(
+                        ':IP' => Net::getIP(),
+                        ':context_id' => $row['context_id']));
+                }
             } else {
-                $sql = "UPDATE {$CFG->dbprefix}lti_user SET login_at=NOW() WHERE user_id = :user_id";
+                $sql = "UPDATE {$CFG->dbprefix}lti_user
+                    SET login_at=NOW(), login_count=login_count+1 WHERE user_id = :user_id";
                 $stmt = $PDOX->queryReturnError($sql, array(
                     ':user_id' => $row['user_id']));
+                if ( isset($row['context_id']) ) {
+                    $sql = "UPDATE {$CFG->dbprefix}lti_context
+                        SET login_at=NOW(), login_count=login_count+1 WHERE context_id = :context_id";
+                    $stmt = $PDOX->queryReturnError($sql, array(
+                        ':context_id' => $row['context_id']));
+                }
             }
+
             if ( ! $stmt->success ) {
                 error_log("Unable to update login_at user_id=".$row['user_id']);
             }
