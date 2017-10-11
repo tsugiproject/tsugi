@@ -13,6 +13,9 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_nonce",
 "drop table if exists {$CFG->dbprefix}lti_domain",
 "drop table if exists {$CFG->dbprefix}lti_event",
+"drop table if exists {$CFG->dbprefix}cal_event",
+"drop table if exists {$CFG->dbprefix}cal_key",
+"drop table if exists {$CFG->dbprefix}cal_context",
 "drop table if exists {$CFG->dbprefix}profile"
 );
 
@@ -224,6 +227,7 @@ array( "{$CFG->dbprefix}lti_membership",
     PRIMARY KEY (membership_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+// TODO: Remove this once everyone converts to cal_event
 // "FIFO" buffer of events no explicit foreign key
 // relationships as these are short-lived records
 array( "{$CFG->dbprefix}lti_event",
@@ -414,6 +418,69 @@ array( "{$CFG->dbprefix}profile",
 
     UNIQUE(profile_id, profile_sha256),
     PRIMARY KEY (profile_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// Caliper tables - event oriented - no foreign keys to the lti_tables
+
+// "FIFO" buffer of events no explicit foreign key
+// relationships as these are short-lived records
+array( "{$CFG->dbprefix}cal_event",
+"create table {$CFG->dbprefix}cal_event (
+    event_id        INTEGER NOT NULL AUTO_INCREMENT,
+    event           INTEGER NOT NULL,
+
+    state           SMALLINT NULL,
+
+    link_id         INTEGER NULL,
+    key_id          INTEGER NULL,
+    context_id      INTEGER NULL,
+    user_id         INTEGER NULL,
+
+    nonce           BINARY(16) NULL,
+    launch          MEDIUMTEXT NULL,
+    json            MEDIUMTEXT NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+
+    PRIMARY KEY (event_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}cal_key",
+"create table {$CFG->dbprefix}cal_key (
+    key_id              INTEGER NOT NULL AUTO_INCREMENT,
+    key_sha256          CHAR(64) NOT NULL UNIQUE,
+    key_key             TEXT NOT NULL,
+
+    activity            VARBINARY(8192) NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    login_at            TIMESTAMP NULL,
+    login_count         BIGINT DEFAULT 0,
+    login_time          BIGINT DEFAULT 0,
+
+    UNIQUE(key_sha256),
+    PRIMARY KEY (key_id)
+ ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}cal_context",
+"create table {$CFG->dbprefix}cal_context (
+    context_id          INTEGER NOT NULL AUTO_INCREMENT,
+    context_sha256      CHAR(64) NOT NULL,
+    context_key         TEXT NOT NULL,
+
+    key_id              INTEGER NOT NULL,
+
+    activity            VARBINARY(8192) NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    login_at            TIMESTAMP NULL,
+    login_count         BIGINT DEFAULT 0,
+    login_time          BIGINT DEFAULT 0,
+
+    UNIQUE(key_id, context_sha256),
+    PRIMARY KEY (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
 
@@ -1027,9 +1094,11 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // TODO: transfer lti_event contents to cal_event and drop the table
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201710072300;
+    return 201710110922;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
