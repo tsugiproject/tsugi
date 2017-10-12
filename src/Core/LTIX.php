@@ -57,7 +57,7 @@ class LTIX {
                 $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             } catch(\PDOException $ex){
                 error_log("DB connection: "+$ex->getMessage());
-                die($ex->getMessage()); // with error_log
+                die('Failure connecting to the database, see error log'); // with error_log
             }
         }
         return $PDOX;
