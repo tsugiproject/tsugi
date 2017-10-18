@@ -300,7 +300,7 @@ function googleTranslateElementInit() {
         if ( PHP_VERSION_ID > 70000 ) {
 ?>
 <script>
-// PHP VERSION 7 HACK
+// PHP VERSION 7.0 and 7.1 HACK
 // https://stackoverflow.com/questions/44980654/how-can-i-make-trans-sid-cookie-less-sessions-work-in-php-7-1
 $('a').each(function (x) {
     var href = $(this).attr('href');
@@ -312,6 +312,33 @@ $('a').each(function (x) {
     href = href.substring(0,pos);
     $(this).attr('href', href);
 });
+<?php
+// Hack to compensate for PHP 7.0 cookiless session failure
+    if ( ini_get('session.use_cookies') == '0' ) {
+?>
+console.log('Checking malformed href for php 7.0');
+$('a').each(function (x) {
+    var href = $(this).attr('href');
+    var sess_name = '<?= session_name() ?>';
+    var sess_id = '<?= session_id() ?>';
+    if ( ! href ) return;
+    if ( href.startsWith('#') ) return;
+    if ( href.startsWith('http://') ) return;
+    if ( href.startsWith('javascript:') ) return;
+    if ( href.startsWith('https://') ) return;
+    if ( href.startsWith('//') ) return;
+    if ( href.indexOf(sess_name) > 0 ) return;
+    if ( href.indexOf('?') > 0 ) {
+        href = href + '&';
+    } else {
+        href = href + '?';
+    }
+    href = href + sess_name + '=' + sess_id;
+    console.dir('Patching missing session href='+href);
+    $(this).attr('href', href);
+});
+<?php } ?>
+
 </script>
 <?php
         }
