@@ -1848,9 +1848,9 @@ class LTIX {
         // print_r($pieces); die();
 
         // Convert to an integer and check valid
-        $user_id = $pieces[0] + 0;
+        $user_id = is_numeric($pieces[0])? $pieces[0] + 0 : 0;
         $userEmail = $pieces[1];
-        $context_id = $pieces[2] + 0;
+        $context_id = is_numeric($pieces[2]) ? $pieces[2] + 0 : 0;
         if ( $user_id < 1 || $context_id < 1 ) {
             $user_id = false;
             $pieces = false;
