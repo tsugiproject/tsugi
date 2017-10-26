@@ -349,6 +349,7 @@ class NativeSessionStorage implements SessionStorageInterface
      */
     public function setSaveHandler($saveHandler = null)
     {
+
         if (!$saveHandler instanceof AbstractProxy &&
             !$saveHandler instanceof NativeSessionHandler &&
             !$saveHandler instanceof \SessionHandlerInterface &&
@@ -364,7 +365,7 @@ class NativeSessionStorage implements SessionStorageInterface
         }
         $this->saveHandler = $saveHandler;
 
-        if ($this->saveHandler instanceof \SessionHandlerInterface) {
+        if (strlen(session_id()) < 1 && $this->saveHandler instanceof \SessionHandlerInterface) {
             session_set_save_handler($this->saveHandler, false);
         }
     }
