@@ -35,6 +35,11 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         header("Location: ".LTIX::curPageUrl());
         return;
     }
+    if ( strlen($_POST['notes']) < 1 ) {
+        $_SESSION['error'] = _m("You must include a reason (i.e. what course you are teaching) in this request.");
+        header("Location: ".LTIX::curPageUrl());
+        return;
+    }
     $version = $_POST['lti']+0;
     if ( $version != 1 && $version != 2 ) {
         $_SESSION['error'] = _m("LTI Version muse be 1 or 2");
@@ -106,7 +111,7 @@ $OUTPUT->flashMessages();
 <p>
 If you are a teacher and want to use the interactive elements on this web
 site using IMS Learning Tools Interoperability, you can request a key
-form this page.  Please include a description of how you are 
+form this page.  Please include a description of how you are
 planning on using your key.
 </p>
 <?php if ( $goodsession ) { ?>
@@ -119,25 +124,29 @@ planning on using your key.
         <h4 class="modal-title">Request an API Key</h4>
       </div>
       <div class="modal-body">
+            <p>Please how you will be using the key below (i.e. the course you are
+            teaching and the school where you are teaching).
+            Students do not need a key to use this site.</p>
+            </p>
             <div class="form-group">
                 <label for="request_name">Name:</label>
                 <input type="name" class="form-control" id="request_name" disabled
                 value="<?php echo(htmlent_utf8($_SESSION['displayname'])); ?>">
             </div>
             <div class="form-group">
-                <label for="request_email">Name:</label>
+                <label for="request_email">Email:</label>
                 <input type="name" class="form-control" id="request_email" disabled
                 value="<?php echo(htmlent_utf8($_SESSION['email'])); ?>">
             </div>
             <div class="form-group">
-                <label for="request_title">Title:</label>
+                <label for="request_title">Course Title:</label>
                 <input type="name" class="form-control" id="request_title" name="title" required="required">
             </div>
 
             <div class="radio">
                 <label>
                     <input type="radio" name="lti" id="request_lti_1" value="1" checked>
-                    IMS LTI 1.x (You will get a key/secret)
+                    IMS LTI 1.x (You will get a key/secret - this is the most common option)
                 </label>
             </div>
             <div class="radio">
@@ -147,7 +156,7 @@ planning on using your key.
                 </label>
             </div>
 
-            <label for="request_reason">Reason / Comments:</label>
+            <label for="request_reason">Reason / Comments: (required)</label>
             <textarea class="form-control" id="request_reason" name="notes" rows="6"></textarea>
       </div>
       <div class="modal-footer">
@@ -190,13 +199,13 @@ this site as an "App Store" / "Learning Object Repository" using this url:
 <pre>
 <?= $CFG->wwwroot ?>/lti/store/
 </pre>
-In Sakai, use the Lessons tool, select "External Tools" and install this as 
-an LTI 1.x tool.  Make sure to check the 
-"Supports Content Item" option when installing this URL in Sakai and tick 
+In Sakai, use the Lessons tool, select "External Tools" and install this as
+an LTI 1.x tool.  Make sure to check the
+"Supports Content Item" option when installing this URL in Sakai and tick
 the boxes to allow both the title and url to be changed.
 </p>
 <p>
-Then this "<?= $CFG->servicename ?> store" will appear in Lessons as a new external tool, when you 
+Then this "<?= $CFG->servicename ?> store" will appear in Lessons as a new external tool, when you
 select the store you will be launched into the picker to choose tools and/or
 resources to be pulled into Lessons.   The key and secret will be inherited
 from the store to each of the installed tools.
@@ -219,7 +228,7 @@ this site as an "App Store" / "Learning Object Repository" using this url:
 <pre>
 <?= $CFG->wwwroot ?>/lti/store/
 </pre>
-Make sure to find and check the "Supports Content Item" option when installing 
+Make sure to find and check the "Supports Content Item" option when installing
 this URL.
 </div>
 <div class="tab-pane fade" id="lti2">
@@ -233,7 +242,7 @@ use the following registration URL:
 </div>
 
 <?php } ?>
-<?php 
+<?php
     Table::pagedTable($newrows, $searchfields, false, "request-detail");
 if ( $goodsession ) { ?>
 <p>
