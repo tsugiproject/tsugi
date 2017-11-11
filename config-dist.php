@@ -250,6 +250,19 @@ $CFG->eventtime = 7*24*60*60;  // Length in seconds of the event buffer
 $CFG->eventpushcount = 50;     // Set to zero to suspend event push
 $CFG->eventpushtime = 2;       // Maximum length in seconds to push events
 
+// Storing sessions in a database - can be the same DB or another db
+// Make sure table exists if it is a different DB
+// Keep this false until the database tables are created or admin will break
+$CFG->sessions_in_db = false;
+if ( $CFG->sessions_in_db ) {
+    session_set_save_handler(
+        new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
+            \Tsugi\Core\LTIX::getConnection(),
+            array('db_table' => $CFG->dbprefix . "sessions")
+        )
+    );
+}
+
 // The vendor include and root - generally leave these alone
 // unless you have a very custom checkout
 $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";

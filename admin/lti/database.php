@@ -16,7 +16,8 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}cal_event",
 "drop table if exists {$CFG->dbprefix}cal_key",
 "drop table if exists {$CFG->dbprefix}cal_context",
-"drop table if exists {$CFG->dbprefix}profile"
+"drop table if exists {$CFG->dbprefix}profile",
+"drop table if exists {$CFG->dbprefix}sessions"
 );
 
 // Note that the TEXT xxx_key fields are UNIQUE but not
@@ -419,6 +420,16 @@ array( "{$CFG->dbprefix}profile",
     UNIQUE(profile_id, profile_sha256),
     PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}sessions",
+"CREATE TABLE {$CFG->dbprefix}sessions (
+    sess_id VARCHAR(128) NOT NULL PRIMARY KEY,
+    sess_data BLOB NOT NULL,
+    sess_time INTEGER UNSIGNED NOT NULL,
+    sess_lifetime MEDIUMINT NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL
+) COLLATE utf8_bin, ENGINE = InnoDB"),
 
 // Caliper tables - event oriented - no foreign keys to the lti_tables
 
