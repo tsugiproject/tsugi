@@ -263,6 +263,34 @@ if ( $CFG->sessions_in_db ) {
     );
 }
 
+// Storing Sessions in DynamoDB - Beta
+// http://docs.aws.amazon.com/aws-sdk-php/v2/guide/feature-dynamodb-session-handler.html
+$CFG->aws_key = false;  // 'FLDKJKJHFDKLJFKLJHFD';
+$CFG->aws_secret = false;  // 'zjJ84djDSKJdsjk/88KHashsKASHKAShdHDKDHhd';
+$CFG->sessions_in_dynamodb = true;
+
+if ( $CFG->sessions_in_dynamodb ) {
+    $dynamoDb = \Aws\DynamoDb\DynamoDbClient::factory(
+        array('region' => 'us-east-2',
+        'credentials' => array(
+            'key'    => $CFG->aws_key,
+            'secret' => $CFG->aws_secret
+        ),
+        'version' => 'latest'));
+    $sessionHandler = $dynamoDb->registerSessionHandler(array(
+        'table_name'               => 'sessions',
+        'hash_key'                 => 'id',
+        'session_lifetime'         => 3600,
+        'consistent_read'          => true,
+        'locking_strategy'         => null,
+        'automatic_gc'             => 0,
+        'gc_batch_size'            => 50,
+        'max_lock_wait_time'       => 15,
+        'min_lock_retry_microtime' => 5000,
+        'max_lock_retry_microtime' => 50000,
+    ));
+}
+
 // The vendor include and root - generally leave these alone
 // unless you have a very custom checkout
 $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
