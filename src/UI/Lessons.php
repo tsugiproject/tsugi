@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\UI;
 
 use \Tsugi\Util\U;
@@ -739,22 +740,23 @@ var disqus_config = function () {
 ?>
   </div>
   <div class="tab-pane fade" id="profile">
+<p></p>
 <?php
     if ( count($awarded) < 1 ) {
         echo("<p>No badges have been awarded yet.</p>");
     } else if ( !isset($_SESSION['id']) || ! isset($_SESSION['context_id']) ) {
         echo("<p>You must be logged in to see your badges.</p>\n");
     } else {
-        echo("</ul>\n");
+        echo("<ul style=\"list-style: none;\">\n");
         foreach($awarded as $badge) {
-            echo("<li>");
+            echo("<li><p>");
             $code = basename($badge->image,'.png');
             $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
             $encrypted = bin2hex(AesCtr::encrypt($decrypted, $CFG->badge_encrypt_password, 256));
             echo('<a href="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" target="_blank">');
             echo('<img src="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" width="90"></a>');
             echo($badge->title);
-            echo("</li>\n");
+            echo("</p></li>\n");
         }
         echo("</ul>\n");
 ?>
