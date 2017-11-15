@@ -696,7 +696,12 @@ var disqus_config = function () {
                 $awarded[] = $badge;
             }
             echo('<tr><td class="info">');
-            echo('<i class="fa fa-certificate" aria-hidden="true" style="padding-right: 5px;"></i>');
+            if ( ! isset($CFG->badge_url) ) {
+                echo('<i class="fa fa-certificate" aria-hidden="true" style="padding-right: 5px;"></i>');
+            } else {
+                $image = $CFG->badge_url . '/' . $badge->image;
+                echo('<img src="'.$image.'" style="width: 4rem;"/> ');
+            }
             echo($badge->title);
             echo('</td><td class="info" style="width: 30%; min-width: 200px;">');
             echo('<div class="progress">');

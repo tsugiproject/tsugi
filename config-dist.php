@@ -148,7 +148,8 @@ $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
 // This folder contains the badge images - This example
 // is for Embedded Tsugi and the badge images are in the
 // parent folder.
-// $CFG->badge_path = $CFG->dirroot . '/../badges';
+// $CFG->badge_path = $CFG->dirroot . '/../bimages';
+// $CFG->badge_url = $CFG->apphome . '/bimages';
 
 // From LTI 2.0 spec: A globally unique identifier for the service provider.
 // As a best practice, this value should match an Internet domain name

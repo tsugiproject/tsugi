@@ -762,54 +762,6 @@
         ]
     },
     {
-        "name": "tsugi/lib",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "8ec00136530b66c10e74194d4e65bbe152fa2c7c"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/8ec00136530b66c10e74194d4e65bbe152fa2c7c",
-            "reference": "8ec00136530b66c10e74194d4e65bbe152fa2c7c",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.5.0",
-            "silex/silex": "v2.0.4",
-            "symfony/translation": "v3.2.7"
-        },
-        "time": "2017-09-28 11:59:44",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Tsugi\\": "src/"
-            },
-            "exclude-from-classmap": [
-                "/tests/",
-                "phpdoc.dist.xml",
-                "phpunit.xml.dist"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "authors": [
-            {
-                "name": "csev",
-                "email": "drchuck@gmail.com",
-                "homepage": "http://www.dr-chuck.com/",
-                "role": "Developer"
-            }
-        ],
-        "description": "The PHP Library to build interoperable learning tools",
-        "homepage": "http://www.tsugi.org/"
-    },
-    {
         "name": "mtdowling/jmespath.php",
         "version": "2.4.0",
         "version_normalized": "2.4.0.0",
@@ -1186,5 +1138,53 @@
             "s3",
             "sdk"
         ]
+    },
+    {
+        "name": "tsugi/lib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/tsugiproject/tsugi-php.git",
+            "reference": "01f2349b285dd5c794448e9005f79528ad84d5e0"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/01f2349b285dd5c794448e9005f79528ad84d5e0",
+            "reference": "01f2349b285dd5c794448e9005f79528ad84d5e0",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.5.0",
+            "silex/silex": "v2.0.4",
+            "symfony/translation": "v3.2.7"
+        },
+        "time": "2017-11-15 21:42:56",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Tsugi\\": "src/"
+            },
+            "exclude-from-classmap": [
+                "/tests/",
+                "phpdoc.dist.xml",
+                "phpunit.xml.dist"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "csev",
+                "email": "drchuck@gmail.com",
+                "homepage": "http://www.dr-chuck.com/",
+                "role": "Developer"
+            }
+        ],
+        "description": "The PHP Library to build interoperable learning tools",
+        "homepage": "http://www.tsugi.org/"
     }
 ]
