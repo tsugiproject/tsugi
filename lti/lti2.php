@@ -386,7 +386,7 @@ if ( ! $CFG->certification && in_array('ContentItemSelectionRequest', $tc_capabi
     $newmsg->enabled_capability = $tc_capabilities; // TODO: Be more selective
     $newhandler->message[$message_count++] = $newmsg;
 
-    $icon_endpoint = $CFG->staticroot.'/font-awesome-4.4.0/png/shopping-cart.png';
+    $icon_endpoint = $CFG->fontawesome.'/png/shopping-cart.png';
 
             $icons = array();
 
@@ -418,7 +418,7 @@ if ( ! $CFG->certification && in_array('ContentItemSelectionRequest', $tc_capabi
             // Everyone else (i.e. Canvas) gets a nice CloudFlareable image with an absolute URL.
             } else {
                 $default_location = new stdClass();
-                $icon_endpoint = $CFG->staticroot.'/font-awesome-4.4.0/png/shopping-cart.png';
+                $icon_endpoint = $CFG->fontawesome.'/png/shopping-cart.png';
                 $default_location->path = $icon_endpoint;
                 $icon_info = new stdClass();
                 $icon_info->default_location = $default_location;
@@ -488,7 +488,7 @@ if ( ! $CFG->certification && in_array('ContentItemSelectionRequest', $tc_capabi
             // Everyone else (i.e. Canvas) gets a nice CloudFlareable image with an absolute URL.
             } else {
                 $default_location = new stdClass();
-                $icon_endpoint = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+                $icon_endpoint = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
                 $default_location->path = $icon_endpoint;
                 $icon_info = new stdClass();
                 $icon_info->default_location = $default_location;
@@ -582,8 +582,8 @@ if ( $ext_lms == 'moodle') {
     $tp_profile->tool_profile->base_url_choice[0]->selector = $selector;
 
     $icon_choice = new stdClass();
-    $icon_choice->secure_base_url = $CFG->staticroot.'/font-awesome-4.4.0/png/';
-    $icon_choice->default_base_url = $CFG->staticroot.'/font-awesome-4.4.0/png/';
+    $icon_choice->secure_base_url = $CFG->fontawesome.'/png/';
+    $icon_choice->default_base_url = $CFG->fontawesome.'/png/';
     $selector = new stdClass();
     $selector->applies_to = array('IconEndpoint');
     $icon_choice->selector = $selector;
