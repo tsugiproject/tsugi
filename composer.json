@@ -11,6 +11,7 @@
         "symfony/routing": "v3.2.8",
         "pimple/pimple": "v3.0.2",
         "aws/aws-sdk-php": "v3.38.1",
+	"google/apiclient" : "^2.0",
         "koseu/lib": "dev-master#ed36e4c27481b6113793d9222ad6dddee2af37e3"
     },
     "config": {
