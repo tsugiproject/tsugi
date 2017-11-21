@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 
 define('APPLICATION_NAME', 'Classroom API PHP Quickstart');
@@ -11,10 +11,7 @@ define('SCOPES', implode(' ', array(
   Google_Service_Classroom::CLASSROOM_COURSES_READONLY,
   Google_Service_Classroom::CLASSROOM_ROSTERS_READONLY,
   Google_Service_Classroom::CLASSROOM_PROFILE_EMAILS,
-  Google_Service_Classroom::CLASSROOM_PROFILE_PHOTOS,
-  // 'https://classroom.googleapis.com/v1/userProfiles',
-  'https://www.googleapis.com/auth/userinfo.email',
-  'https://www.googleapis.com/auth/userinfo.profile')
+  Google_Service_Classroom::CLASSROOM_PROFILE_PHOTOS)
 ));
 
 if (php_sapi_name() != 'cli') {
@@ -104,18 +101,6 @@ $x = $client->getAccessToken();
 var_dump($x);
 $access_token = $x['access_token'];
 echo("AT=$access_token \n");
-/*
-$user_info_url = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" .
-           $access_token;
-
-echo("UIU=".$user_info_url."\n");
-$response = \Tsugi\Util\Net::doGet($user_info_url);
-echo($response."\n");
-$user = json_decode($response);
-var_dump($user);
-
-echo("===============\n");
-*/
 
 
 // v1/userProfiles/{userId}
