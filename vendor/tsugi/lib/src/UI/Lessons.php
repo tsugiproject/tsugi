@@ -315,6 +315,11 @@ class Lessons {
             }
             echo("</ul></div>\n");
             echo('<h1 property="oer:name">'.$module->title."</h1>\n");
+            $lessonurl = $CFG->apphome . U::get_rest_path();
+            if ( $nostyle ) {
+                self::nostyleUrl($module->title, $lessonurl);
+                echo("<hr/>\n");
+            }
 
             if ( isset($module->videos) ) {
                 $videos = $module->videos;
