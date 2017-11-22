@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Tsugi\UI;
 
 use \Tsugi\Util\U;
@@ -632,7 +631,7 @@ var disqus_config = function () {
         } else {
             $retval->icon = 'fa-external-link';
         }
-        $retval->thumbnail = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$retval->icon).'.png';
+        $retval->thumbnail = $CFG->fontawesome.'/png/'.str_replace('fa-','',$retval->icon).'.png';
 
         if ( strpos($title,':') !== false ) {
             $retval->title = $title;

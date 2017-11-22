@@ -129,7 +129,7 @@ function findAllRegistrations($folders=false)
             // Make an icon URL
             $fa_icon = isset($REGISTER_LTI2['FontAwesome']) ? $REGISTER_LTI2['FontAwesome'] : false;
             if ( $fa_icon !== false ) {
-                $REGISTER_LTI2['icon'] = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+                $REGISTER_LTI2['icon'] = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
             }
             $url = str_replace('/register.php','/',$url);
             $REGISTER_LTI2['url'] = $url;

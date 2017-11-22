@@ -113,7 +113,7 @@ if ( isset($_GET['install']) ) {
     $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
     $icon = false;
     if ( $fa_icon !== false ) {
-        $icon = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+        $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
     }
 
     if ( $fa_icon ) {
@@ -160,7 +160,7 @@ if ( $l && isset($_GET['assignment']) ) {
     // Sigh - some LMSs don't handle custom - sigh
     $path .= 'inherit=' . urlencode($_GET['assignment']);
     $fa_icon = 'fa-check-square-o';
-    $icon = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+    $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
 
     // Compute the custom values
     $custom = array();
@@ -292,7 +292,7 @@ if ( $registrations && $allow_lti ) {
         $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
         $icon = false;
         if ( $fa_icon !== false ) {
-            $icon = $CFG->staticroot.'/font-awesome-4.4.0/png/'.str_replace('fa-','',$fa_icon).'.png';
+            $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
         }
 
         echo('<div style="border: 2px, solid, red;" class="card">');

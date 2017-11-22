@@ -88,6 +88,9 @@ if ( !isset($CFG->eventtime) ) $CFG->eventtime = 7*24*60*60;
 if ( ! isset($CFG->eventpushcount) ) $CFG->eventpushcount = 0;
 if ( ! isset($CFG->eventpushtime) ) $CFG->eventpushtime = 2;
 
+// New fontawesome configuration
+if ( ! isset($CFG->fontawesome) ) $CFG->fontawesome = $CFG->staticroot . '/font-awesome-4.7.0';
+
 // Certification hacks
 if ( !isset($CFG->require_conformance_parameters) ) $CFG->require_conformance_parameters = false;
 if ( !isset($CFG->prefer_lti1_for_grade_send) ) $CFG->prefer_lti1_for_grade_send = true;

@@ -124,7 +124,7 @@ class Output extends \Tsugi\Core\SessionAccess {
         ?>
 
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
-        <link href="<?= $CFG->staticroot ?>/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">
+        <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
 
     <style>
