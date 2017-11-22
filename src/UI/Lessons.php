@@ -270,6 +270,16 @@ class Lessons {
     }
 
     /*
+     * A Nostyle URL Link with title
+     */
+    public static function nostyleUrl($title, $url) {
+        echo('<a href="'.$url.'" target="_blank" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
+        echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
+	echo(' data-title="'.htmlentities($title).'" ');
+	echo('></div>');
+    }
+    
+    /*
      * render a lesson
      */
     public function renderSingle($buffer=false) {
@@ -286,6 +296,7 @@ class Lessons {
 
         $module = $this->module;
 
+	if ( $nostyle ) echo('<script src="https://apis.google.com/js/platform.js" async defer></script>'."\n");
             echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
             $disabled = ($this->position == 1) ? ' disabled' : '';
             $all = U::get_rest_parent();
@@ -312,8 +323,8 @@ class Lessons {
                     echo('<li>');
                     if ( $nostyle ) {
                         echo(htmlentities($video->title)."<br/>");
-                        $yurl = 'https://www.youtube.com/?v='.$video->youtube;
-                        echo('<a href="'.$yurl.'" target="_blank">'.htmlentities($yurl)."</a>\n");
+                        $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
+                        self::nostyleUrl($video->title, $yurl);
                     } else {
                         $OUTPUT->embedYouTube($video->youtube, $video->title);
                     }
@@ -329,7 +340,9 @@ class Lessons {
             echo("<ul>\n");
             if ( isset($module->slides) ) {
                 if ( $nostyle ) {
-                    echo('<li>Slides: <a href="'.$module->slides.'" typeof="oer:SupportingMaterial" target="_blank">'.$module->slides.'</a></li>'."\n");
+                    echo('<li>Slides: ');
+                    self::nostyleUrl(__('Slides'), $module->slides);
+                    echo('</li>'."\n");
                 } else {
                     echo('<li><a href="'.$module->slides.'" typeof="oer:SupportingMaterial" target="_blank">Slides</a></li>'."\n");
                 }
@@ -339,14 +352,18 @@ class Lessons {
             }
             if ( isset($module->assignment) ) {
                 if ( $nostyle ) {
-                    echo('<li typeof="oer:assessment">Assignment Specification: <a href="'.$module->assignment.'" target="_blank">'.$module->assignment.'</a></li>'."\n");
+                    echo('<li typeof="oer:assessment">Assignment Specification:');
+                    self::nostyleUrl(__('Assignment Specification'), $module->assignment);
+                    echo('</li>'."\n");
                 } else {
                     echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank">Assignment Specification</a></li>'."\n");
                 }
             }
             if ( isset($module->solution) ) {
                 if ( $nostyle ) {
-                    echo('<li typeof="oer:assessment">Assignment Solution: <a href="'.$module->solution.'" target="_blank">'.$module->solution.'</a></li>'."\n");
+                    echo('<li typeof="oer:assessment">Assignment Solution:');
+                    self::nostyleUrl(__('Assignment Solution'), $module->solution);
+                    echo('</li>'."\n");
                 } else {
                     echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank">Assignment Solution</a></li>'."\n");
                 }
@@ -357,8 +374,10 @@ class Lessons {
                 }
                 foreach($module->references as $reference ) {
                     if ( $nostyle ) {
-                        echo('<li typeof="oer:SupportingMaterial">'.htmlentities($reference->title).' <a href="'.$reference->href.'" target="_blank">'.
-                            $reference->href."</a></li>\n");
+                        echo('<li typeof="oer:SupportingMaterial">');
+                        echo(htmlentities($reference->title).' ');
+                        self::nostyleUrl($reference->title, $reference->href);
+                        echo('</li>'."\n");
                     } else {
                         echo('<li typeof="oer:SupportingMaterial"><a href="'.$reference->href.'" target="_blank">'.
                             $reference->title."</a></li>\n");
