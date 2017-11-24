@@ -274,9 +274,11 @@ class Lessons {
      */
     public static function nostyleUrl($title, $url) {
         echo('<a href="'.$url.'" target="_blank" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
-        echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
-	echo(' data-title="'.htmlentities($title).'" ');
-	echo('></div>');
+        if ( isset($_SESSION['id']) ) {
+            echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
+	    echo(' data-title="'.htmlentities($title).'" ');
+	    echo('></div>');
+        }
     }
     
     /*
