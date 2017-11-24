@@ -26,7 +26,7 @@ if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
 
 $query_parms = false;
 $searchfields = array("key_id", "key_key", "created_at", "updated_at", "user_id");
-$sql = "SELECT key_id, key_key, secret, created_at, updated_at, user_id
+$sql = "SELECT key_id, key_key, secret, login_at, created_at, updated_at, user_id
         FROM {$CFG->dbprefix}lti_key";
 
 if ( !isAdmin() ) {
