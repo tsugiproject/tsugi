@@ -81,9 +81,6 @@ if ( ! $accessTokenStr ) {
     }
 }
 
-echo("<pre>\n");
-echo("AT=".$accessTokenStr."\n");
-
 // Get the API client and construct the service object.
 $client = getClient($accessTokenStr);
 
@@ -111,13 +108,21 @@ $optParams = array(
 $results = $service->courses->listCourses($optParams);
 
 if (count($results->getCourses()) == 0) {
-  print "No courses found.\n";
+    $_SESSION['error'] = 'No Google Classroom Courses found';
+    //print "No courses found.\n";
 } else {
-  print "Courses:\n";
-  foreach ($results->getCourses() as $course) {
-    printf("%s (%s)\n", $course->getName(), $course->getId());
-  }
+    $_SESSION['success'] = 'Found '.count($results->getCourses()).' Google Classroom courses';
+    $_SESSION['gc_courses'] = $results->getCourses();
+/*
+    print "Courses:\n";
+    foreach ($results->getCourses() as $course) {
+        printf("%s (%s)\n", $course->getName(), $course->getId());
+    }
+*/
 }
+
+header('Location: '.$CFG->apphome);
+return;
 
 /*
 $prof = $service->userProfiles->get('me');
