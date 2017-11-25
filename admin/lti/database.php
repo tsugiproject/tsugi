@@ -66,6 +66,44 @@ array( "{$CFG->dbprefix}lti_key",
     PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+array( "{$CFG->dbprefix}lti_user",
+"create table {$CFG->dbprefix}lti_user (
+    user_id             INTEGER NOT NULL AUTO_INCREMENT,
+    user_sha256         CHAR(64) NOT NULL,
+    user_key            TEXT NOT NULL,
+    deleted             TINYINT(1) NOT NULL DEFAULT 0,
+
+    key_id              INTEGER NOT NULL,
+    profile_id          INTEGER NULL,
+
+    displayname         TEXT NULL,
+    email               TEXT NULL,
+    locale              CHAR(63) NULL,
+    image               TEXT NULL,
+    subscribe           SMALLINT NULL,
+
+    json                MEDIUMTEXT NULL,
+    login_at            TIMESTAMP NULL,
+    login_count         BIGINT DEFAULT 0,
+    login_time          BIGINT DEFAULT 0,
+
+    -- Google classroom token for this user
+    gc_token            TEXT NULL,
+
+    ipaddr              VARCHAR(64),
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+
+    CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
+        FOREIGN KEY (`key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    UNIQUE(key_id, user_sha256),
+    PRIMARY KEY (user_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
 array( "{$CFG->dbprefix}lti_context",
 "create table {$CFG->dbprefix}lti_context (
     context_id          INTEGER NOT NULL AUTO_INCREMENT,
@@ -76,6 +114,10 @@ array( "{$CFG->dbprefix}lti_context",
     secret              CHAR(64) NULL,
 
     key_id              INTEGER NOT NULL,
+
+    -- If this course was created by a user within a key
+    -- For example Google Glassroom - or an ad-hoc group
+    user_id             INTEGER NULL,
 
     path                TEXT NULL,
 
@@ -101,6 +143,11 @@ array( "{$CFG->dbprefix}lti_context",
     CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_1`
         FOREIGN KEY (`key_id`)
         REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_2`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
     UNIQUE(key_id, context_sha256),
@@ -160,41 +207,6 @@ array( "{$CFG->dbprefix}lti_link_activity",
     PRIMARY KEY (link_id,event)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
-
-array( "{$CFG->dbprefix}lti_user",
-"create table {$CFG->dbprefix}lti_user (
-    user_id             INTEGER NOT NULL AUTO_INCREMENT,
-    user_sha256         CHAR(64) NOT NULL,
-    user_key            TEXT NOT NULL,
-    deleted             TINYINT(1) NOT NULL DEFAULT 0,
-
-    key_id              INTEGER NOT NULL,
-    profile_id          INTEGER NULL,
-
-    displayname         TEXT NULL,
-    email               TEXT NULL,
-    locale              CHAR(63) NULL,
-    image               TEXT NULL,
-    subscribe           SMALLINT NULL,
-
-    json                MEDIUMTEXT NULL,
-    login_at            TIMESTAMP NULL,
-    login_count         BIGINT DEFAULT 0,
-    login_time          BIGINT DEFAULT 0,
-
-    ipaddr              VARCHAR(64),
-    entity_version      INTEGER NOT NULL DEFAULT 0,
-    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
-
-    CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
-        FOREIGN KEY (`key_id`)
-        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-
-    UNIQUE(key_id, user_sha256),
-    PRIMARY KEY (user_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_membership",
 "create table {$CFG->dbprefix}lti_membership (
@@ -1100,6 +1112,27 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD login_time BIGINT DEFAULT 0";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( $oldversion < 201711251300 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD gc_token TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD user_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+        $sql = "ALTER TABLE {$CFG->dbprefix}lti_context ADD
+            CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_2`
+                FOREIGN KEY (`user_id`)
+                REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+                ON DELETE CASCADE ON UPDATE CASCADE";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
