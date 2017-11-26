@@ -27,7 +27,7 @@ function getClient() {
   $options = array(
     'client_id' => $CFG->google_client_id,
     'client_secret' => $CFG->google_client_secret, 
-    'redirect_uri' => $CFG->wwwroot . '/gclass/callback'
+    'redirect_uri' => $CFG->wwwroot . '/gclass/login'
   );
   $client = new Google_Client($options);
   $client->setApplicationName(APPLICATION_NAME);
@@ -47,6 +47,8 @@ function getClient() {
 
     // Exchange authorization code for an access token.
     $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
+
+    echo("AT=".json_encode($accessToken,JSON_PRETTY_PRINT));
 
     // Store the credentials to disk.
     // if(!file_exists(dirname($credentialsPath))) {

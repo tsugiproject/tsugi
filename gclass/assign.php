@@ -1,13 +1,13 @@
 <?php
-
+use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
-use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Lessons;
+use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\SecureCookie;
+use \Tsugi\Crypt\AesCtr;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once __DIR__ . '/../config.php';
-
 
 $PDOX = LTIX::getConnection();
 
@@ -40,7 +40,7 @@ function getClient($accessTokenStr) {
 
     $accessToken = false;
     // Are we coming back from an authorization?
-    if ( isset($_GET['code']) ) {
+    if ( U::get($_GET,'code') ) {
         $authCode = $_GET['code'];
         // Exchange authorization code for an access token.
         $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
@@ -53,24 +53,30 @@ function getClient($accessTokenStr) {
     } else {
         // Request authorization from the user.
         $authUrl = $client->createAuthUrl();
-        header('Location: '.$authUrl);
+        header('Location: '.filter_var($authUrl, FILTER_SANITIZE_URL));
         return;
     }
 
     // Refresh the token if it's expired.
-    // https://stackoverflow.com/questions/10827920/not-receiving-google-oauth-refresh-token
-    // The refresh_token is only provided on the first authorization from the user.
-    // To fix - revoke app access - https://myaccount.google.com/u/0/security?pli=1
     if ($client->isAccessTokenExpired()) {
-        error_log("Expired=".json_encode($client->getAccessToken()));
         $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
     }
 
     return $client;
 }
 
-if ( !isset($_SESSION['id']) ) {
+if ( ! U::get($_SESSION,'id') ) {
     die_with_error_log('Error: Must be logged in to use Google Classroom');
+}
+
+if ( ! U::get($_SESSION,'gc_courses') ) {
+    die_with_error_log('Error: Must be logged in to use Google Classroom');
+}
+
+$courses = $_SESSION['gc_courses'];
+
+if ( ! U::get($_GET,'rlid') ) {
+    die_with_error_log('Error: rlid parameter is required');
 }
 
 if ( ! isset($CFG->lessons) ) {
@@ -80,18 +86,23 @@ if ( ! isset($CFG->lessons) ) {
 // Load the Lesson
 $l = new Lessons($CFG->lessons);
 
+/* object(stdClass)#25 (3) {
+  ["title"]=>
+  string(28) "Quiz: Request-Response Cycle"
+  ["launch"]=>
+  string(65) "http://localhost:8888/wa4e/mod/gift/?quiz=01-Request-Response.txt"
+  ["resource_link_id"]=>
+  string(15) "php_01_rrc_quiz"
+} */
+$lti = $l->getLtiByRlid($_GET['rlid']);
+if ( ! $lti ) {
+    die_with_error_log('Invalid resource link id');
+}
+
 // Try access token from session when LTIX adds it.
 $accessTokenStr = LTIX::decrypt_secret(LTIX::ltiParameter('gc_token', false));
 if ( ! $accessTokenStr ) {
-    $row = $PDOX->rowDie(
-        "SELECT gc_token FROM {$CFG->dbprefix}lti_user
-            WHERE user_id = :UID LIMIT 1",
-        array(':UID' => $_SESSION['id'])
-    );
-
-    if ( $row != false ) {
-        $accessTokenStr = $row['gc_token'];
-    }
+    die_with_error_log('Error: Access Token not in session');
 }
 
 // Get the API client and construct the service object.
@@ -105,26 +116,60 @@ if ( $newAccessTokenStr != $accessTokenStr ) {
     $PDOX->queryDie($sql,
         array(':UID' => $_SESSION['id'], ':TOK' => $newAccessTokenStr)
     );
-    if ( isset($_SESSION['lti']) ) {
+    if ( U::get($_SESSION,'lti') ) {
         $_SESSION['lti']['gc_token'] = LTIX::encrypt_secret($newAccessTokenStr);
     }
     error_log('Token updated user_id='.$_SESSION[ 'id'].' token='.$newAccessTokenStr);
 }
 
-// Lets talk to Google...
-$service = new Google_Service_Classroom($client);
-
-// Print the first 100 courses the user has access to.
-$optParams = array(
-  'pageSize' => 100
-);
-$results = $service->courses->listCourses($optParams);
-
-if (count($results->getCourses()) == 0) {
-    $_SESSION['error'] = 'No Google Classroom Courses found';
-} else {
-    $_SESSION['success'] = 'Found '.count($results->getCourses()).' Google Classroom courses';
-    $_SESSION['gc_courses'] = $results->getCourses();
+$gc_course = false;
+if ( U::get($_GET,'gc_course') ) {
+    foreach( $courses as $course ) {
+        if ( $course->getId() == $_GET['gc_course'] ) {
+            $gc_course = $_GET['gc_course'];
+            break;
+        }
+    }
 }
 
-header('Location: '.$CFG->apphome.'/lessons?nostyle=yes');
+// Handle the actual install..
+if ( $gc_course ) {
+    // Lets talk to Google...
+    echo("<pre>\n");
+    $plain = $gc_course.'::'.$lti->resource_link_id.'::'.$_SESSION['id'];
+    echo("plain1=".$plain."\n");
+    $encr = AesCtr::encrypt($plain, $CFG->google_classroom_secret, 256);
+    echo("aes=".$encr."\n");
+    $launch = U::add_url_parm($CFG->wwwroot.'/tsugi/gclass/launch/','resource',$encr);
+    echo("launch=".$launch);
+    
+    
+    die('YADA');
+    $service = new Google_Service_Classroom($client);
+
+    header('Location: '.filter_var($CFG->apphome.'/lessons?nostyle=yes',FILTER_SANITIZE_URL));
+    return;
+}
+
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+?>
+<center>
+Please select a course
+<form>
+<input type="hidden" name="rlid" value="<?= htmlentities($_GET['rlid']) ?>"/>
+<select name="gc_course">
+<option value="">Please Select a Course</option>
+<?php
+foreach( $courses as $course ) {
+    echo('<option value="'.htmlentities($course->getId()).'">'.htmlentities($course->getName())."</option>\n");
+}
+?>
+</select>
+<br/>
+<input type="submit" value="Submit">
+</form>
+</center>
+<?php
+$OUTPUT->footer();
+

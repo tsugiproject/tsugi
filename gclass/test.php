@@ -42,6 +42,7 @@ function getClient() {
 
     // Exchange authorization code for an access token.
     $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
+    echo("AT=".json_encode($accessToken,JSON_PRETTY_PRINT));
 
     // Store the credentials to disk.
     // if(!file_exists(dirname($credentialsPath))) {
