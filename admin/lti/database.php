@@ -111,7 +111,8 @@ array( "{$CFG->dbprefix}lti_context",
     context_key         TEXT NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
-    secret              CHAR(64) NULL,
+    secret              VARCHAR(128) NULL,
+    gc_secret           VARCHAR(128) NULL,
 
     key_id              INTEGER NOT NULL,
 
@@ -1138,11 +1139,24 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Google classroom incoming secret
+    if ( $oldversion < 201711261315 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD gc_secret VARCHAR(128) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context MODIFY secret VARCHAR(128) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+
     // TODO: transfer lti_event contents to cal_event and drop the table
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201711252200;
+    return 201711261315;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
