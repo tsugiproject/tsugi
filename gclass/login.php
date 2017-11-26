@@ -79,6 +79,10 @@ if ( ! isset($CFG->lessons) ) {
 
 // Load the Lesson
 $l = new Lessons($CFG->lessons);
+$firstmodule = false;
+if (isset($l->lessons->modules[0]->anchor) ) {
+    $firstmodule = $l->lessons->modules[0]->anchor;
+}
 
 // Try access token from session when LTIX adds it.
 $accessTokenStr = LTIX::decrypt_secret(LTIX::ltiParameter('gc_token', false));
@@ -127,4 +131,4 @@ if (count($results->getCourses()) == 0) {
     $_SESSION['gc_courses'] = $results->getCourses();
 }
 
-header('Location: '.$CFG->apphome.'/lessons?nostyle=yes');
+header('Location: '.$CFG->apphome.'/lessons/'.$firstmodule.'?nostyle=yes');
