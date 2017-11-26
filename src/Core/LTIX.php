@@ -38,6 +38,9 @@ class LTIX {
     // The maximum length of the VARCHAR field
     const MAX_ACTIVITY = 1023;
 
+    const ROLE_INSTRUCTOR = 1000;
+    const ROLE_ADMINISTRATOR = 5000;
+
     /**
      * Get a singleton global connection or set it up if not already set up.
      */
