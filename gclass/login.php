@@ -107,18 +107,16 @@ if ( ! $accessTokenStr ) {
 }
 
 // Get the API client and construct the service object.
-$client = getClient($accessTokenStr);
-
-// Lets talk to Google...
-$service = new Google_Service_Classroom($client);
-
-// Print the first 100 courses the user has access to.
-$optParams = array(
-  'pageSize' => 100
-);
-
 // This will fail if our token is revoked or otherwise bad
 try {
+    $client = getClient($accessTokenStr);
+    $service = new Google_Service_Classroom($client);
+
+    // Print the first 100 courses the user has access to.
+    $optParams = array(
+        'pageSize' => 100
+    );
+
     $results = $service->courses->listCourses($optParams);
 } catch(Exception $e) {
     // Revoked token..
