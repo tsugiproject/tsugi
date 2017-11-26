@@ -1117,7 +1117,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    if ( $oldversion < 201711251300 ) {
+    if ( $oldversion < 201711252200 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD gc_token TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -1142,7 +1142,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201710110922;
+    return 201711252200;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
