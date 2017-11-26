@@ -126,9 +126,10 @@ $results = $service->courses->listCourses($optParams);
 
 if (count($results->getCourses()) == 0) {
     $_SESSION['error'] = 'No Google Classroom Courses found';
+    header('Location: '.$CFG->apphome);
 } else {
     $_SESSION['success'] = 'Found '.count($results->getCourses()).' Google Classroom courses';
     $_SESSION['gc_courses'] = $results->getCourses();
+    header('Location: '.$CFG->apphome.'/lessons/'.$firstmodule.'?nostyle=yes');
 }
 
-header('Location: '.$CFG->apphome.'/lessons/'.$firstmodule.'?nostyle=yes');
