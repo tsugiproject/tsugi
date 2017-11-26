@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "0534ceda8568160be188a3bee46c59f6",
-    "content-hash": "c3f7bd09d04a966c92405189104fb55d",
+    "hash": "9d9765eaeb125a24cbf190c3b5d72d68",
+    "content-hash": "cbbba84e5bec1eec35579577b522a495",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -1458,12 +1458,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "ae5ae1c5ddcf10a824015fb2b83d958d698cf6f2"
+                "reference": "001190205641c666f2553d335a76127249e600e8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/ae5ae1c5ddcf10a824015fb2b83d958d698cf6f2",
-                "reference": "ae5ae1c5ddcf10a824015fb2b83d958d698cf6f2",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/001190205641c666f2553d335a76127249e600e8",
+                "reference": "001190205641c666f2553d335a76127249e600e8",
                 "shasum": ""
             },
             "require": {
@@ -1496,7 +1496,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2017-11-15 21:42:56"
+            "time": "2017-11-26 03:14:39"
         },
         {
             "name": "twig/twig",
