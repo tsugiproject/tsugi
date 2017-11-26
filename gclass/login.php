@@ -54,7 +54,7 @@ function getClient($accessTokenStr) {
         // Request authorization from the user.
         $authUrl = $client->createAuthUrl();
         header('Location: '.$authUrl);
-        return;
+        return false;
     }
 
     // Refresh the token if it's expired.
@@ -71,6 +71,14 @@ function getClient($accessTokenStr) {
 
 if ( !isset($_SESSION['id']) ) {
     die_with_error_log('Error: Must be logged in to use Google Classroom');
+}
+
+if ( !isset($_SESSION['lti']) ) {
+    die_with_error_log('Error: Please log out and back in');
+}
+
+if ( !isset($_SESSION['lti']['key_id']) ) {
+    die_with_error_log('Error: Session is missing key_id');
 }
 
 if ( ! isset($CFG->lessons) ) {
@@ -101,6 +109,31 @@ if ( ! $accessTokenStr ) {
 // Get the API client and construct the service object.
 $client = getClient($accessTokenStr);
 
+// Lets talk to Google...
+$service = new Google_Service_Classroom($client);
+
+// Print the first 100 courses the user has access to.
+$optParams = array(
+  'pageSize' => 100
+);
+
+// This will fail if our token is revoked or otherwise bad
+try {
+    $results = $service->courses->listCourses($optParams);
+} catch(Exception $e) {
+    // Revoked token.. 
+    $accessTokenStr = false;
+    unset($_SESSION['gc_token']);
+    $sql = "UPDATE {$CFG->dbprefix}lti_user
+        SET gc_token = NULL WHERE user_id = :UID";
+    $PDOX->queryDie($sql,
+        array(':UID' => $_SESSION['id'])
+    );
+    // Should redirect...
+    $client = getClient($accessTokenStr);
+    return;
+}
+
 // Check if we need to update/store the access token
 $newAccessTokenStr = json_encode($client->getAccessToken());
 if ( $newAccessTokenStr != $accessTokenStr ) {
@@ -109,20 +142,12 @@ if ( $newAccessTokenStr != $accessTokenStr ) {
     $PDOX->queryDie($sql,
         array(':UID' => $_SESSION['id'], ':TOK' => $newAccessTokenStr)
     );
-    if ( isset($_SESSION['lti']) ) {
-        $_SESSION['lti']['gc_token'] = LTIX::encrypt_secret($newAccessTokenStr);
-    }
     error_log('Token updated user_id='.$_SESSION[ 'id'].' token='.$newAccessTokenStr);
 }
 
-// Lets talk to Google...
-$service = new Google_Service_Classroom($client);
 
-// Print the first 100 courses the user has access to.
-$optParams = array(
-  'pageSize' => 100
-);
-$results = $service->courses->listCourses($optParams);
+// Put this in session for later
+$_SESSION['gc_token'] = LTIX::encrypt_secret($newAccessTokenStr);
 
 if (count($results->getCourses()) == 0) {
     $_SESSION['error'] = 'No Google Classroom Courses found';

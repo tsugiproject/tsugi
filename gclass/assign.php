@@ -68,9 +68,20 @@ function getClient($accessTokenStr) {
 if ( ! U::get($_SESSION,'id') ) {
     die_with_error_log('Error: Must be logged in to use Google Classroom');
 }
+$user_id = $_SESSION['id'];
+
+if ( !isset($_SESSION['lti']) ) {
+    die_with_error_log('Error: Please log out and back in');
+}
+
+if ( !isset($_SESSION['lti']['key_id']) ) {
+    die_with_error_log('Error: Session is missing key_id');
+}
+$key_id = $_SESSION['lti']['key_id'];
+
 
 if ( ! U::get($_SESSION,'gc_courses') ) {
-    die_with_error_log('Error: Must be logged in to use Google Classroom');
+    die_with_error_log('Error: Must be logged into Google Classroom to make assignments');
 }
 
 $courses = $_SESSION['gc_courses'];
@@ -100,7 +111,7 @@ if ( ! $lti ) {
 }
 
 // Try access token from session when LTIX adds it.
-$accessTokenStr = LTIX::decrypt_secret(LTIX::ltiParameter('gc_token', false));
+$accessTokenStr = LTIX::decrypt_secret(U::get($_SESSION,'gc_token'));
 if ( ! $accessTokenStr ) {
     die_with_error_log('Error: Access Token not in session');
 }
@@ -122,11 +133,22 @@ if ( $newAccessTokenStr != $accessTokenStr ) {
     error_log('Token updated user_id='.$_SESSION[ 'id'].' token='.$newAccessTokenStr);
 }
 
+// Lets talk to Google, get a new copy of courses
+$service = new Google_Service_Classroom($client);
+
+// Print the first 100 courses the user has access to.
+$optParams = array(
+  'pageSize' => 100
+);
+$courses = $service->courses->listCourses($optParams);
+
 $gc_course = false;
+$gc_title = false;
 if ( U::get($_GET,'gc_course') ) {
     foreach( $courses as $course ) {
         if ( $course->getId() == $_GET['gc_course'] ) {
             $gc_course = $_GET['gc_course'];
+            $gc_title = $course->getName();
             break;
         }
     }
@@ -136,17 +158,109 @@ if ( U::get($_GET,'gc_course') ) {
 if ( $gc_course ) {
     // Lets talk to Google...
     echo("<pre>\n");
-    $plain = $gc_course.'::'.$lti->resource_link_id.'::'.$_SESSION['id'];
-    echo("plain1=".$plain."\n");
-    $encr = AesCtr::encrypt($plain, $CFG->google_classroom_secret, 256);
-    echo("aes=".$encr."\n");
-    $launch = U::add_url_parm($CFG->wwwroot.'/tsugi/gclass/launch/','resource',$encr);
-    echo("launch=".$launch);
-    
-    
-    die('YADA');
-    $service = new Google_Service_Classroom($client);
+    $plain = $_SESSION['id'].$CFG->google_classroom_secret;
+    echo("plain=".$plain."\n");
+    $mini_sig = lti_sha256($plain);
+    echo("mini_sig=".$mini_sig."\n");
+    $mini_sig = substr($mini_sig,0,6);
+    echo("mini_sig=".$mini_sig."\n");
+    $context_url = $gc_course . ':' . $mini_sig;
+    echo("context_url=".$context_url."\n");
+    $context_key = 'gclass:' . $context_url;
+    echo("context_key=".$context_key."\n");
+    $context_sha256 = lti_sha256($context_key);
+    echo("context_sha256=".$context_sha256."\n");
 
+    $row = $PDOX->rowDie(
+        "SELECT * FROM {$CFG->dbprefix}lti_context
+            WHERE context_sha256 = :context LIMIT 1",
+        array(':context' => $context_sha256)
+    );
+
+    $context_id = false;
+    if ( $row != false ) {
+        if ( $row['user_id'] != $_SESSION['id'] ) {
+            die_with_error_log('Error: Incorrect course ownership');
+        }
+        $context_id = $row['context_id'];
+        if ( $row['title'] != $gc_title ) {
+            $sql = "UPDATE {$CFG->dbprefix}lti_context
+                SET title = :title WHERE context_id = :CID";
+            $PDOX->queryDie($sql,
+                array(':title' => $gc_title, ':CID' => $context_id)
+            );
+        }
+    }
+
+    if ( ! $context_id ) {
+        $sql = "INSERT INTO {$CFG->dbprefix}lti_context
+            ( context_key, context_sha256, title, key_id, user_id, created_at, updated_at ) VALUES
+            ( :context_key, :context_sha256, :title, :key_id, :user_id, NOW(), NOW() )";
+        $PDOX->queryDie($sql, array(
+            ':context_key' => $context_key,
+            ':context_sha256' => $context_sha256,
+            ':title' => $gc_title,
+            ':user_id' => $user_id,
+            ':key_id' => $key_id));
+        $context_id = $PDOX->lastInsertId();
+    }
+    
+    echo("context_id=$context_id");
+
+    // Set up membership
+    $sql = "INSERT INTO {$CFG->dbprefix}lti_membership
+        ( context_id, user_id, role, created_at, updated_at ) VALUES
+        ( :context_id, :user_id, :role, NOW(), NOW() )
+        ON DUPLICATE KEY UPDATE role=:role, updated_at=NOW()";
+    $PDOX->queryDie($sql, array(
+        ':context_id' => $context_id,
+        ':user_id' => $user_id,
+        ':role' => LTIX::ROLE_INSTRUCTOR));
+
+    // Make a new courseWork Item in Classroom
+/*
+    // https://developers.google.com/classroom/guides/manage-coursework
+    $courseWork = json_decode('{  
+        "title": "Ant colonies",  
+        "description": "Read the article about ant colonies and complete the quiz.",  
+        "materials": [  
+            {"link": { "url": "http://example.com/ant-colonies" }},  
+            {"link": { "url": "http://example.com/ant-quiz" }}  
+        ],  
+        "workType": "ASSIGNMENT",  
+        "state": "PUBLISHED"
+        }
+    ');
+    $courseWorkStr = json_encode($courseWork, JSON_PRETTY_PRINT);
+echo($courseWorkStr);
+*/
+    // courseWork = service.courses().courseWork().create(  
+        // courseId='<course ID or alias>', body=courseWork).execute()  
+    // print('Assignment created with ID {0}'.format(courseWork.get('id')))
+
+    // https://developers.google.com/resources/api-libraries/documentation/classroom/v1/php/latest/class-Google_Service_Classroom_CourseWork.html
+    $materials = array(
+        array('link' => 
+            array("url" => "http://example.com/ant-colonies")
+        ),
+        array('link' => 
+            array("url" => "http://example.com/ant-quiz")
+        )
+    );
+    $cw = new Google_Service_Classroom_CourseWork();
+    $cw->setTitle($lti->title);
+    $cw->setMaterials($materials);
+    $cw->setWorkType("ASSIGNMENT");
+    $cw->setState("PUBLISHED");
+    var_dump($cw);
+
+    $courseWorkService = $service->courses_courseWork;
+    $courseWorkObject = $courseWorkService->create($gc_course, $cw);
+var_dump($courseWorkObject);
+    $courseWorkId = $courseWorkObject->id;
+    echo("ID=$courseWorkId\n");
+
+die('Yada');
     header('Location: '.filter_var($CFG->apphome.'/lessons?nostyle=yes',FILTER_SANITIZE_URL));
     return;
 }
