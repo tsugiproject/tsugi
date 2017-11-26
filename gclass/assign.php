@@ -30,7 +30,7 @@ function getClient($accessTokenStr) {
     global $CFG;
     $options = array(
         'client_id' => $CFG->google_client_id,
-        'client_secret' => $CFG->google_client_secret, 
+        'client_secret' => $CFG->google_client_secret,
         'redirect_uri' => $CFG->wwwroot . '/gclass/login'
     );
     $client = new Google_Client($options);
@@ -204,7 +204,7 @@ if ( $gc_course ) {
             ':key_id' => $key_id));
         $context_id = $PDOX->lastInsertId();
     }
-    
+
     echo("context_id=$context_id");
 
     // Set up membership
@@ -217,34 +217,35 @@ if ( $gc_course ) {
         ':user_id' => $user_id,
         ':role' => LTIX::ROLE_INSTRUCTOR));
 
-    // Make a new courseWork Item in Classroom
-/*
-    // https://developers.google.com/classroom/guides/manage-coursework
-    $courseWork = json_decode('{  
-        "title": "Ant colonies",  
-        "description": "Read the article about ant colonies and complete the quiz.",  
-        "materials": [  
-            {"link": { "url": "http://example.com/ant-colonies" }},  
-            {"link": { "url": "http://example.com/ant-quiz" }}  
-        ],  
-        "workType": "ASSIGNMENT",  
-        "state": "PUBLISHED"
-        }
-    ');
-    $courseWorkStr = json_encode($courseWork, JSON_PRETTY_PRINT);
-echo($courseWorkStr);
-*/
-    // courseWork = service.courses().courseWork().create(  
-        // courseId='<course ID or alias>', body=courseWork).execute()  
-    // print('Assignment created with ID {0}'.format(courseWork.get('id')))
+    // Insert a dumy resource link so we know the primary key of the link
+    $resource_link_id_tmp = uniqid();
+    $sql = "INSERT INTO {$CFG->dbprefix}lti_link
+        ( link_key, link_sha256, title, context_id, path, created_at, updated_at ) VALUES
+            ( :link_key, :link_sha256, :title, :context_id, :path, NOW(), NOW() )";
+    $PDOX->queryDie($sql, array(
+        ':link_key' => $resource_link_id_tmp,
+        ':link_sha256' => lti_sha256($resource_link_id_tmp),
+        ':title' => $lti->title,
+        ':context_id' => $context_id,
+        ':path' => $lti->launch
+    ));
+    $link_id = $PDOX->lastInsertId();
+    $plain = $link_id.$CFG->google_classroom_secret;
+    echo("plain=".$plain."\n");
+    $mini_sig = lti_sha256($plain);
+    echo("mini_sig=".$mini_sig."\n");
+    $mini_sig = substr($mini_sig,0,6);
 
+    $launch_url = $CFG->wwwroot . '/gclass/launch/' .
+        $context_url . ':' . $link_id . ':' . $mini_sig;
+
+    echo("Launch=$launch_url\n");
+
+    // https://developers.google.com/classroom/guides/manage-coursework
     // https://developers.google.com/resources/api-libraries/documentation/classroom/v1/php/latest/class-Google_Service_Classroom_CourseWork.html
     $materials = array(
-        array('link' => 
-            array("url" => "http://example.com/ant-colonies")
-        ),
-        array('link' => 
-            array("url" => "http://example.com/ant-quiz")
+        array('link' =>
+            array("url" => $launch_url)
         )
     );
     $cw = new Google_Service_Classroom_CourseWork();
@@ -252,16 +253,23 @@ echo($courseWorkStr);
     $cw->setMaterials($materials);
     $cw->setWorkType("ASSIGNMENT");
     $cw->setState("PUBLISHED");
-    var_dump($cw);
+    // var_dump($cw);
 
     $courseWorkService = $service->courses_courseWork;
     $courseWorkObject = $courseWorkService->create($gc_course, $cw);
-var_dump($courseWorkObject);
-    $courseWorkId = $courseWorkObject->id;
-    echo("ID=$courseWorkId\n");
+    $resource_link_id = $courseWorkObject->id;
+    echo("ID=$resource_link_id\n");
 
-die('Yada');
-    header('Location: '.filter_var($CFG->apphome.'/lessons?nostyle=yes',FILTER_SANITIZE_URL));
+    // Now really fix the link with the real resource_link_id
+    $sql = "UPDATE {$CFG->dbprefix}lti_link
+        SET link_key = :link_key, link_sha256=:link_sha256 WHERE link_id = :LID";
+    $PDOX->queryDie($sql, array(
+        ':link_key' => $resource_link_id,
+        ':link_sha256' => lti_sha256($resource_link_id),
+        ':LID' => $link_id
+    ));
+
+    echo("Success\n");
     return;
 }
 

@@ -30,7 +30,7 @@ function getClient($accessTokenStr) {
     global $CFG;
     $options = array(
         'client_id' => $CFG->google_client_id,
-        'client_secret' => $CFG->google_client_secret, 
+        'client_secret' => $CFG->google_client_secret,
         'redirect_uri' => $CFG->wwwroot . '/gclass/login'
     );
     $client = new Google_Client($options);
@@ -121,7 +121,7 @@ $optParams = array(
 try {
     $results = $service->courses->listCourses($optParams);
 } catch(Exception $e) {
-    // Revoked token.. 
+    // Revoked token..
     $accessTokenStr = false;
     unset($_SESSION['gc_token']);
     $sql = "UPDATE {$CFG->dbprefix}lti_user
@@ -144,7 +144,6 @@ if ( $newAccessTokenStr != $accessTokenStr ) {
     );
     error_log('Token updated user_id='.$_SESSION[ 'id'].' token='.$newAccessTokenStr);
 }
-
 
 // Put this in session for later
 $_SESSION['gc_token'] = LTIX::encrypt_secret($newAccessTokenStr);
