@@ -158,13 +158,16 @@ if ( U::get($_GET,'gc_course') ) {
 if ( $gc_course ) {
     // Lets talk to Google...
     echo("<pre>\n");
-    $plain = $_SESSION['id'].$CFG->google_classroom_secret;
+    // We use the global Google Classsoom secret because we need to 
+    // be able to re-lookup an existing course
+    // secret:$gc_course:$user_id:secret
+    $plain = $CFG->google_classroom_secret.$gc_course.$_SESSION['id'].$CFG->google_classroom_secret;
     echo("plain=".$plain."\n");
-    $mini_sig = lti_sha256($plain);
-    echo("mini_sig=".$mini_sig."\n");
-    $mini_sig = substr($mini_sig,0,6);
-    echo("mini_sig=".$mini_sig."\n");
-    $context_url = $gc_course . ':' . $mini_sig;
+    $user_mini_sig = lti_sha256($plain);
+    echo("user_mini_sig=".$user_mini_sig."\n");
+    $user_mini_sig = substr($user_mini_sig,0,6);
+    echo("user_mini_sig=".$user_mini_sig."\n");
+    $context_url = $gc_course . ':' . $user_mini_sig;
     echo("context_url=".$context_url."\n");
     $context_key = 'gclass:' . $context_url;
     echo("context_key=".$context_key."\n");
@@ -178,14 +181,16 @@ if ( $gc_course ) {
     );
 
     $context_id = false;
+    $gc_secret = false;
     if ( $row != false ) {
         if ( $row['user_id'] != $_SESSION['id'] ) {
             die_with_error_log('Error: Incorrect course ownership');
         }
         $context_id = $row['context_id'];
+        $gc_secret = $row['gc_secret'];
         if ( $row['title'] != $gc_title ) {
             $sql = "UPDATE {$CFG->dbprefix}lti_context
-                SET title = :title WHERE context_id = :CID";
+                SET title = :title updated_at=NOW() WHERE context_id = :CID";
             $PDOX->queryDie($sql,
                 array(':title' => $gc_title, ':CID' => $context_id)
             );
@@ -193,19 +198,22 @@ if ( $gc_course ) {
     }
 
     if ( ! $context_id ) {
+        $gc_secret = bin2hex( openssl_random_pseudo_bytes( 128/2 ) ) ;
         $sql = "INSERT INTO {$CFG->dbprefix}lti_context
-            ( context_key, context_sha256, title, key_id, user_id, created_at, updated_at ) VALUES
-            ( :context_key, :context_sha256, :title, :key_id, :user_id, NOW(), NOW() )";
+            ( context_key, context_sha256, title, key_id, gc_secret, user_id, created_at, updated_at )
+            VALUES
+            ( :context_key, :context_sha256, :title, :key_id, :GCS, :user_id, NOW(), NOW() )";
         $PDOX->queryDie($sql, array(
             ':context_key' => $context_key,
             ':context_sha256' => $context_sha256,
             ':title' => $gc_title,
+            ':GCS' => $gc_secret,
             ':user_id' => $user_id,
             ':key_id' => $key_id));
         $context_id = $PDOX->lastInsertId();
     }
 
-    echo("context_id=$context_id");
+    echo("context_id=$context_id\n");
 
     // Set up membership
     $sql = "INSERT INTO {$CFG->dbprefix}lti_membership
@@ -230,14 +238,17 @@ if ( $gc_course ) {
         ':path' => $lti->launch
     ));
     $link_id = $PDOX->lastInsertId();
-    $plain = $link_id.$CFG->google_classroom_secret;
+
+    // We use the per-course secret to sign the whole thing
+    // secret:gc_course:mini-sig-user:link_id:secret
+    $plain = $gc_secret.$context_url.$link_id.$gc_secret;
     echo("plain=".$plain."\n");
-    $mini_sig = lti_sha256($plain);
-    echo("mini_sig=".$mini_sig."\n");
-    $mini_sig = substr($mini_sig,0,6);
+    $link_mini_sig = lti_sha256($plain);
+    echo("link_mini_sig=".$link_mini_sig."\n");
+    $link_mini_sig = substr($link_mini_sig,0,6);
 
     $launch_url = $CFG->wwwroot . '/gclass/launch/' .
-        $context_url . ':' . $link_id . ':' . $mini_sig;
+        $context_url . ':' . $link_id . ':' . $link_mini_sig;
 
     echo("Launch=$launch_url\n");
 
@@ -248,6 +259,16 @@ if ( $gc_course ) {
             array("url" => $launch_url)
         )
     );
+
+    // A better way?
+    $link = new Google_Service_Classroom_Link();
+    $link->setTitle($lti->title);
+    $link->setUrl($launch_url);
+    $link->setThumbnailUrl($CFG->apphome.'/logo.png');
+    $materials = new Google_Service_Classroom_Material();
+    $materials->setLink($link);
+    var_dump($materials);
+
     $cw = new Google_Service_Classroom_CourseWork();
     $cw->setTitle($lti->title);
     $cw->setMaterials($materials);
