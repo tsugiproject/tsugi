@@ -49,12 +49,20 @@ function getClient($accessTokenStr) {
         $accessToken = json_decode($accessTokenStr, true);
     }
 
-    if ( $accessToken && U::get($accessToken,'refresh_token') ) {
-        $client->setAccessToken($accessToken);
-    } else if ( $accessToken ) {
-        $_SESSION['error'] = 'Could not access Google Classroom Courses';
+    // Check if we have a bad access token
+    if ( $accessToken && ! U::get($accessToken, 'refresh_token') ) {
+        error_log("Bad accessToken, id=".$_SESSION['id']);
+        error_log(json_encode($accessToken));
+        $_SESSION['error'] = 'Did not get a proper Google Classroom token, either you have no access to Classroom, '.
+            'or you may need to revoke the permission for this app at '.
+            'https://myaccount.google.com/u/0/security?pli=1 ' .
+            'and re-establish your connection to Classroom.'.
         header('Location: '.$CFG->apphome);
 	return false;
+    }
+
+    if ( $accessToken ) {
+        $client->setAccessToken($accessToken);
     } else {
         // Request authorization from the user.
         $authUrl = $client->createAuthUrl();
@@ -79,7 +87,9 @@ if ( !isset($_SESSION['id']) ) {
 }
 
 if ( !isset($_SESSION['lti']) ) {
-    die_with_error_log('Error: Please log out and back in');
+    $_SESSION['error'] = 'Please log out and back in.';
+    header('Location: '.$CFG->apphome);
+    return false;
 }
 
 if ( !isset($_SESSION['lti']['key_id']) ) {
@@ -111,10 +121,27 @@ if ( ! $accessTokenStr ) {
     }
 }
 
+// Discard bad access tokens that inadvertently got stored
+if ( $accessTokenStr ) {
+    $accessToken = json_decode($accessTokenStr, true);
+    if ( $accessToken && ! U::get($accessToken, 'refresh_token') ) {
+        unset($_SESSION['gc_token']);
+        $sql = "UPDATE {$CFG->dbprefix}lti_user
+            SET gc_token = NULL WHERE user_id = :UID";
+        $PDOX->queryDie($sql,
+            array(':UID' => $_SESSION['id'])
+        );
+        error_log('Clearing bad access token id='.$_SESSION['id']);
+        error_log($accessTokenStr);
+        $accessTokenStr = false;
+    }
+}
+
 // Get the API client and construct the service object.
 // This will fail if our token is revoked or otherwise bad
 try {
     $client = getClient($accessTokenStr);
+    if ( ! $client ) return;
     $service = new Google_Service_Classroom($client);
 
     // Print the first 100 courses the user has access to.
