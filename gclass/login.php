@@ -1,5 +1,6 @@
 <?php
 
+use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Lessons;
@@ -48,8 +49,12 @@ function getClient($accessTokenStr) {
         $accessToken = json_decode($accessTokenStr, true);
     }
 
-    if ( $accessToken ) {
+    if ( $accessToken && U::get($accessToken,'refresh_token') ) {
         $client->setAccessToken($accessToken);
+    } else if ( $accessToken ) {
+        $_SESSION['error'] = 'Could not access Google Classroom Courses';
+        header('Location: '.$CFG->apphome);
+	return false;
     } else {
         // Request authorization from the user.
         $authUrl = $client->createAuthUrl();
