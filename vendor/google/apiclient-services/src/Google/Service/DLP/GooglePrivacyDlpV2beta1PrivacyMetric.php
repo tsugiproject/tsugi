@@ -21,6 +21,8 @@ class Google_Service_DLP_GooglePrivacyDlpV2beta1PrivacyMetric extends Google_Mod
   protected $categoricalStatsConfigDataType = '';
   protected $kAnonymityConfigType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1KAnonymityConfig';
   protected $kAnonymityConfigDataType = '';
+  protected $kMapEstimationConfigType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1KMapEstimationConfig';
+  protected $kMapEstimationConfigDataType = '';
   protected $lDiversityConfigType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1LDiversityConfig';
   protected $lDiversityConfigDataType = '';
   protected $numericalStatsConfigType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1NumericalStatsConfig';
@@ -53,6 +55,20 @@ class Google_Service_DLP_GooglePrivacyDlpV2beta1PrivacyMetric extends Google_Mod
   public function getKAnonymityConfig()
   {
     return $this->kAnonymityConfig;
+  }
+  /**
+   * @param Google_Service_DLP_GooglePrivacyDlpV2beta1KMapEstimationConfig
+   */
+  public function setKMapEstimationConfig(Google_Service_DLP_GooglePrivacyDlpV2beta1KMapEstimationConfig $kMapEstimationConfig)
+  {
+    $this->kMapEstimationConfig = $kMapEstimationConfig;
+  }
+  /**
+   * @return Google_Service_DLP_GooglePrivacyDlpV2beta1KMapEstimationConfig
+   */
+  public function getKMapEstimationConfig()
+  {
+    return $this->kMapEstimationConfig;
   }
   /**
    * @param Google_Service_DLP_GooglePrivacyDlpV2beta1LDiversityConfig

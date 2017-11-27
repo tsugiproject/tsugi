@@ -1362,45 +1362,6 @@
         "homepage": "https://github.com/firebase/php-jwt"
     },
     {
-        "name": "google/apiclient-services",
-        "version": "v0.35",
-        "version_normalized": "0.35.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/google/google-api-php-client-services.git",
-            "reference": "8c3926a9dafcd1bc86e5af06a1bb7e4aa931c73c"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/8c3926a9dafcd1bc86e5af06a1bb7e4aa931c73c",
-            "reference": "8c3926a9dafcd1bc86e5af06a1bb7e4aa931c73c",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.4"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "~4.8"
-        },
-        "time": "2017-11-18 00:23:16",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Google_Service_": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "description": "Client library for Google APIs",
-        "homepage": "http://developers.google.com/api-client-library/php",
-        "keywords": [
-            "google"
-        ]
-    },
-    {
         "name": "psr/cache",
         "version": "1.0.1",
         "version_normalized": "1.0.1.0",
@@ -1557,18 +1518,57 @@
         ]
     },
     {
+        "name": "google/apiclient-services",
+        "version": "v0.36",
+        "version_normalized": "0.36.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/google/google-api-php-client-services.git",
+            "reference": "2fd7d2876fbc0174faddba3241956a1393536159"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/2fd7d2876fbc0174faddba3241956a1393536159",
+            "reference": "2fd7d2876fbc0174faddba3241956a1393536159",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.8"
+        },
+        "time": "2017-11-25 00:23:12",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Google_Service_": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "description": "Client library for Google APIs",
+        "homepage": "http://developers.google.com/api-client-library/php",
+        "keywords": [
+            "google"
+        ]
+    },
+    {
         "name": "tsugi/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "f19cbae6ea8698947122c9d7f11c56f95d79f6a3"
+            "reference": "12467204a59f819b9af17fc23790e1444f8e61cb"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f19cbae6ea8698947122c9d7f11c56f95d79f6a3",
-            "reference": "f19cbae6ea8698947122c9d7f11c56f95d79f6a3",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/12467204a59f819b9af17fc23790e1444f8e61cb",
+            "reference": "12467204a59f819b9af17fc23790e1444f8e61cb",
             "shasum": ""
         },
         "require": {
@@ -1576,7 +1576,7 @@
             "silex/silex": "v2.0.4",
             "symfony/translation": "v3.2.7"
         },
-        "time": "2017-11-26 03:14:39",
+        "time": "2017-11-26 17:18:29",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

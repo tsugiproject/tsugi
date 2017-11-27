@@ -21,6 +21,8 @@ class Google_Service_DLP_GooglePrivacyDlpV2beta1RiskAnalysisOperationResult exte
   protected $categoricalStatsResultDataType = '';
   protected $kAnonymityResultType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1KAnonymityResult';
   protected $kAnonymityResultDataType = '';
+  protected $kMapEstimationResultType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1KMapEstimationResult';
+  protected $kMapEstimationResultDataType = '';
   protected $lDiversityResultType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1LDiversityResult';
   protected $lDiversityResultDataType = '';
   protected $numericalStatsResultType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1NumericalStatsResult';
@@ -53,6 +55,20 @@ class Google_Service_DLP_GooglePrivacyDlpV2beta1RiskAnalysisOperationResult exte
   public function getKAnonymityResult()
   {
     return $this->kAnonymityResult;
+  }
+  /**
+   * @param Google_Service_DLP_GooglePrivacyDlpV2beta1KMapEstimationResult
+   */
+  public function setKMapEstimationResult(Google_Service_DLP_GooglePrivacyDlpV2beta1KMapEstimationResult $kMapEstimationResult)
+  {
+    $this->kMapEstimationResult = $kMapEstimationResult;
+  }
+  /**
+   * @return Google_Service_DLP_GooglePrivacyDlpV2beta1KMapEstimationResult
+   */
+  public function getKMapEstimationResult()
+  {
+    return $this->kMapEstimationResult;
   }
   /**
    * @param Google_Service_DLP_GooglePrivacyDlpV2beta1LDiversityResult

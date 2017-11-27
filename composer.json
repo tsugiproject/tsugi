@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#b4a532b3b0af78f2fb0d8eb0d58379d75e62951b",
+        "tsugi/lib": "dev-master#12467204a59f819b9af17fc23790e1444f8e61cb",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "symfony/translation": "v3.2.7",
@@ -11,7 +11,7 @@
         "symfony/routing": "v3.2.8",
         "pimple/pimple": "v3.0.2",
         "aws/aws-sdk-php": "v3.38.1",
-	"google/apiclient" : "^2.0",
+	"google/apiclient" : "v2.2.1",
         "koseu/lib": "dev-master#ed36e4c27481b6113793d9222ad6dddee2af37e3"
     },
     "config": {

@@ -19,18 +19,23 @@
  * Service definition for Vault (v1).
  *
  * <p>
-</p>
+ * Archiving and eDiscovery for G Suite.</p>
  *
  * <p>
  * For more information about this service, see the API
- * <a href="https://apps.google.com/products/vault/" target="_blank">Documentation</a>
+ * <a href="https://developers.google.com/vault" target="_blank">Documentation</a>
  * </p>
  *
  * @author Google, Inc.
  */
 class Google_Service_Vault extends Google_Service
 {
-
+  /** Manage your eDiscovery data. */
+  const EDISCOVERY =
+      "https://www.googleapis.com/auth/ediscovery";
+  /** View your eDiscovery data. */
+  const EDISCOVERY_READONLY =
+      "https://www.googleapis.com/auth/ediscovery.readonly";
 
   public $matters;
   public $matters_holds;
@@ -107,15 +112,19 @@ class Google_Service_Vault extends Google_Service
               'path' => 'v1/matters',
               'httpMethod' => 'GET',
               'parameters' => array(
+                'state' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'pageToken' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
                 'pageSize' => array(
                   'location' => 'query',
                   'type' => 'integer',
                 ),
                 'view' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'pageToken' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),

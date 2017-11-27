@@ -31,7 +31,7 @@ class Google_Service_AndroidProvisioningPartner_Resource_PartnersCustomers exten
    * calling API methods or using their zero-touch enrollment portal. The API
    * doesn't notify the customer that they have access. (customers.create)
    *
-   * @param string $parent Required. The parent resource ID in format
+   * @param string $parent Required. The parent resource ID in the format
    * `partners/[PARTNER_ID]` that identifies the reseller.
    * @param Google_Service_AndroidProvisioningPartner_CreateCustomerRequest $postBody
    * @param array $optParams Optional parameters.

@@ -34,6 +34,8 @@ class Google_Service_DLP_Resource_InspectResultsFindings extends Google_Service_
    * the format of `inspect/results/{id}`.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param int pageSize Maximum number of results to return. If 0, the
+   * implementation selects a reasonable value.
    * @opt_param string filter Restricts findings to items that match. Supports
    * info_type and likelihood.
    *
@@ -46,8 +48,6 @@ class Google_Service_DLP_Resource_InspectResultsFindings extends Google_Service_
    * `ListInspectFindingsResponse`; indicates that this is a continuation of a
    * prior `ListInspectFindings` call, and that the system should return the next
    * page of data.
-   * @opt_param int pageSize Maximum number of results to return. If 0, the
-   * implementation selects a reasonable value.
    * @return Google_Service_DLP_GooglePrivacyDlpV2beta1ListInspectFindingsResponse
    */
   public function listInspectResultsFindings($name, $optParams = array())

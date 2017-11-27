@@ -88,14 +88,13 @@ class Google_Service_TPU_Resource_ProjectsLocationsNodes extends Google_Service_
    * Reimage a node's OS. (nodes.reimage)
    *
    * @param string $name The resource name.
+   * @param Google_Service_TPU_ReimageNodeRequest $postBody
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param string tensorflowVersion The version for reimage to create.
    * @return Google_Service_TPU_Operation
    */
-  public function reimage($name, $optParams = array())
+  public function reimage($name, Google_Service_TPU_ReimageNodeRequest $postBody, $optParams = array())
   {
-    $params = array('name' => $name);
+    $params = array('name' => $name, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
     return $this->call('reimage', array($params), "Google_Service_TPU_Operation");
   }
@@ -103,12 +102,13 @@ class Google_Service_TPU_Resource_ProjectsLocationsNodes extends Google_Service_
    * Resets a node, which stops and starts the VM. (nodes.reset)
    *
    * @param string $name The resource name.
+   * @param Google_Service_TPU_ResetNodeRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_TPU_Operation
    */
-  public function reset($name, $optParams = array())
+  public function reset($name, Google_Service_TPU_ResetNodeRequest $postBody, $optParams = array())
   {
-    $params = array('name' => $name);
+    $params = array('name' => $name, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
     return $this->call('reset', array($params), "Google_Service_TPU_Operation");
   }

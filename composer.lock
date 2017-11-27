@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "b70a73fba405fe8ff87c3406aff4e715",
-    "content-hash": "a8f9d4b66774ab9af79672119b60d305",
+    "hash": "e9169df4bc7634630cbfb878e6534b90",
+    "content-hash": "45a67750244774334cc862c9c0ab326c",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -194,16 +194,16 @@
         },
         {
             "name": "google/apiclient-services",
-            "version": "v0.35",
+            "version": "v0.36",
             "source": {
                 "type": "git",
                 "url": "https://github.com/google/google-api-php-client-services.git",
-                "reference": "8c3926a9dafcd1bc86e5af06a1bb7e4aa931c73c"
+                "reference": "2fd7d2876fbc0174faddba3241956a1393536159"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/8c3926a9dafcd1bc86e5af06a1bb7e4aa931c73c",
-                "reference": "8c3926a9dafcd1bc86e5af06a1bb7e4aa931c73c",
+                "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/2fd7d2876fbc0174faddba3241956a1393536159",
+                "reference": "2fd7d2876fbc0174faddba3241956a1393536159",
                 "shasum": ""
             },
             "require": {
@@ -227,7 +227,7 @@
             "keywords": [
                 "google"
             ],
-            "time": "2017-11-18 00:23:16"
+            "time": "2017-11-25 00:23:12"
         },
         {
             "name": "google/auth",
@@ -1458,12 +1458,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "f19cbae6ea8698947122c9d7f11c56f95d79f6a3"
+                "reference": "12467204a59f819b9af17fc23790e1444f8e61cb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f19cbae6ea8698947122c9d7f11c56f95d79f6a3",
-                "reference": "f19cbae6ea8698947122c9d7f11c56f95d79f6a3",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/12467204a59f819b9af17fc23790e1444f8e61cb",
+                "reference": "12467204a59f819b9af17fc23790e1444f8e61cb",
                 "shasum": ""
             },
             "require": {
@@ -1496,7 +1496,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2017-11-26 03:14:39"
+            "time": "2017-11-26 17:18:29"
         },
         {
             "name": "twig/twig",
