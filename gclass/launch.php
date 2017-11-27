@@ -43,3 +43,15 @@ Apache Request Headers:
 <?php
 print_r($request_headers);
 error_log(\Tsugi\UI\Output::safe_var_dump($request_headers));
+
+
+// https://developers.google.com/classroom/guides/manage-coursework
+// service.courses().courseWork().studentSubmissions().list(
+//    courseId=<course ID or alias>,
+//    courseWorkId='-',
+//    userId="me").execute()
+
+// Returns a student of a course.
+// https://developers.google.com/classroom/reference/rest/v1/courses.students/get
+// https://classroom.googleapis.com/v1/courses/{courseId}/students/{userId}
+
