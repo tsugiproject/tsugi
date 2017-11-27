@@ -152,6 +152,38 @@ class U {
         return $uri;
     }
 
+    /**
+     * Get the controller for the current request
+     *
+     * executing script:  /py4e/koseu.php
+     * input: /py4e/lessons/intro?x=2
+     * output: (/py4e, lessons, intro)
+     *
+     * input: /py4e/lessons/intro/?x=2
+     * output: /py4e/lessons/intro
+     */
+    public static function parse_rest_path($uri=false, $SERVER_SCRIPT_NAME=false /* unit test only */) {
+        if ( ! $SERVER_SCRIPT_NAME ) $SERVER_SCRIPT_NAME = $_SERVER["SCRIPT_NAME"];  // /py4e/koseu.php
+        if ( ! $uri ) $uri = $_SERVER['REQUEST_URI'];     // /py4e/lessons/intro/happy
+        // Remove Query string...
+        $pos = strpos($uri, '?');
+        if ( $pos !== false ) $uri = substr($uri,0,$pos);
+        $cwd = dirname($SERVER_SCRIPT_NAME);
+        if ( strpos($uri,$cwd) !== 0 ) return false;
+
+        $controller = '';
+        $extra = '';
+        $remainder = substr($uri, strlen($cwd));
+        if ( strpos($remainder,'/') === 0 ) $remainder = substr($remainder,1);
+        if ( strlen($remainder) < 1 ) return false;
+        $pieces = explode('/',$remainder,2);
+        if ( count($pieces) > 0 ) $controller = $pieces[0];
+        if ( count($pieces) > 1 ) $extra = $pieces[1];
+
+        $retval = array($cwd, $controller, $extra);
+        return $retval;
+    }
+
     public static function addSession($url) {
         if ( ini_get('session.use_cookies') != '0' ) return $url;
         if ( stripos($url, '&'.session_name().'=') > 0 ||

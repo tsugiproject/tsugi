@@ -227,6 +227,7 @@ if ( $gc_course ) {
 
     // Insert a dumy resource link so we know the primary key of the link
     $resource_link_id_tmp = uniqid();
+    $endpoint = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
     $sql = "INSERT INTO {$CFG->dbprefix}lti_link
         ( link_key, link_sha256, title, context_id, path, created_at, updated_at ) VALUES
             ( :link_key, :link_sha256, :title, :context_id, :path, NOW(), NOW() )";
@@ -235,7 +236,7 @@ if ( $gc_course ) {
         ':link_sha256' => lti_sha256($resource_link_id_tmp),
         ':title' => $lti->title,
         ':context_id' => $context_id,
-        ':path' => $lti->launch
+        ':path' => $endpoint
     ));
     $link_id = $PDOX->lastInsertId();
 
@@ -254,20 +255,13 @@ if ( $gc_course ) {
 
     // https://developers.google.com/classroom/guides/manage-coursework
     // https://developers.google.com/resources/api-libraries/documentation/classroom/v1/php/latest/class-Google_Service_Classroom_CourseWork.html
-    $materials = array(
-        array('link' =>
-            array("url" => $launch_url)
-        )
-    );
-
-    // A better way?
     $link = new Google_Service_Classroom_Link();
     $link->setTitle($lti->title);
     $link->setUrl($launch_url);
     $link->setThumbnailUrl($CFG->apphome.'/logo.png');
     $materials = new Google_Service_Classroom_Material();
     $materials->setLink($link);
-    var_dump($materials);
+    // var_dump($materials);
 
     $cw = new Google_Service_Classroom_CourseWork();
     $cw->setTitle($lti->title);
