@@ -39,6 +39,16 @@ class UTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(U::remove_relative_path('/a/b/../../c/'), '/c/');
     }
 
+    public function testParseController() {
+        $this->assertEquals(U::parse_rest_path('/a/b/c','/a/koseu.php'), array('/a','b','c'));
+        $this->assertEquals(U::parse_rest_path('/py4e/lessons/intro?x=2','/py4e/koseu.php'), array('/py4e','lessons','intro'));
+        $this->assertEquals(U::parse_rest_path('/py4e/lessons/intro/fred/sarah?x=2','/py4e/koseu.php'), array('/py4e','lessons','intro/fred/sarah'));
+
+        $this->assertEquals(U::parse_rest_path('/a','/a/koseu.php'), false);
+        $this->assertEquals(U::parse_rest_path('/a/','/a/koseu.php'), false);
+        $this->assertEquals(U::parse_rest_path('/a/b/c','/x/koseu.php'), false);
+    }
+
     // https://stackoverflow.com/questions/30231476/i-want-to-array-key-and-array-value-comma-separated-string
     // https://stackoverflow.com/questions/4923951/php-split-string-in-key-value-pairs
     public function testSerialization() {
