@@ -40,14 +40,25 @@ class FileRouter {
 
     // /wa4e/install returns install.php if the file exists
     public function fileCheck($uri=null) {
+        global $TSUGI_REST_PATH_VALUES;
+        global $TSUGI_REST_PATH;
+        $TSUGI_REST_PATH = false;
+        $TSUGI_REST_PATH_VALUES = false;
         if ( $uri === null ) $uri = $_SERVER['REQUEST_URI'];
         $uri = self::trimQuery($uri);
         // /wa4e/tsugi
         $cwd = self::cwd();
 	if ( ! endsWith($cwd, '/') ) $cwd = $cwd .'/';
         if ( strpos($uri,$cwd) === 0 ) {
-            $file = substr($uri, strlen($cwd)) . '.php';
-            if ( file_exists($file) ) return $file;
+            $remainder = substr($uri, strlen($cwd));
+            if ( strlen($remainder) < 1 ) return false;
+            $pieces = explode('/',$remainder,2);
+            $file = $pieces[0] . '.php';
+            if ( file_exists($file) ) {
+                $TSUGI_REST_PATH = $cwd . '/' . $pieces[0];
+                if ( count($pieces) > 1 ) $TSUGI_REST_PATH_VALUES = $pieces[1];
+                return $file;
+            }
         }
         return false;
     }
