@@ -359,7 +359,7 @@ if ( $doLogin ) {
             header('Location: '.$_SESSION['login_return']);
             unset($_SESSION['login_return']);
         } else if ( $didinsert ) {
-            header('Location: '.$CFG->wwwroot.'/profile');
+            header('Location: '.$CFG->apphome.'/profile');
         } else {
             header('Location: '.$CFG->apphome.'/');
         }
