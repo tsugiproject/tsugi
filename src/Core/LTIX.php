@@ -38,6 +38,7 @@ class LTIX {
     // The maximum length of the VARCHAR field
     const MAX_ACTIVITY = 1023;
 
+    const ROLE_LEARNER = 0;
     const ROLE_INSTRUCTOR = 1000;
     const ROLE_ADMINISTRATOR = 5000;
 
@@ -782,7 +783,7 @@ class LTIX {
         }
 
         // Get the role
-        $retval['role'] = 0;
+        $retval['role'] = self::ROLE_LEARNER;
         $roles = '';
         if ( isset($FIXED['custom_membership_role']) ) { // From LTI 2.x
             $roles = $FIXED['custom_membership_role'];
@@ -792,8 +793,8 @@ class LTIX {
 
         if ( strlen($roles) > 0 ) {
             $roles = strtolower($roles);
-            if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = 1000;
-            if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = 5000;
+            if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = self::ROLE_INSTRUCTOR;
+            if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = self::ROLE_ADMINISTRATOR;
             // Local superuser would be 10000
         }
 
