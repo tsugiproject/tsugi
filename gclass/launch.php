@@ -129,8 +129,6 @@ $service = new Google_Service_Classroom($client);
 
 $x = $client->getAccessToken();
 $access_token = $x['access_token'];
-echo("<pre>\n");
-echo("AT=$access_token \n");
 
 $role = false;
 if ( $user_email == $owner_email ) $role = LTIX::ROLE_INSTRUCTOR;
@@ -182,7 +180,6 @@ if ( ! $role ) {
 
 }
 
-echo("role=$role\n");
 
 // https://developers.google.com/classroom/guides/manage-coursework
 // service.courses().courseWork().studentSubmissions().list(
@@ -194,8 +191,12 @@ echo("role=$role\n");
 // https://developers.google.com/classroom/reference/rest/v1/courses.students/get
 // https://classroom.googleapis.com/v1/courses/{courseId}/students/{userId}
 
+if ($role >= LTIX::ROLE_INSTRUCTOR) {
+    echo("<h1>I am an instructor launch</h1>\n");
+} else {
+    echo("<h1>I am a student launch</h1>\n");
+}
 ?>
-<h1>I am a launch</h1>
 <pre>
 Row:
 <?php
@@ -205,6 +206,7 @@ Path:
 <?php
 print_r($path);
 ?>
+
 Post:
 <?php
 print_r($_POST);
