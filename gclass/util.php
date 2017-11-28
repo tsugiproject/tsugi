@@ -16,8 +16,11 @@ define('SCOPES', implode(' ', array(
  * Returns an authorized API client.
  * @return Google_Client the authorized client object
  */
-function getClient($accessTokenStr) {
+function getClient($accessTokenStr, $user_id=false) {
     global $CFG, $PDOX;
+
+    if ( ! $user_id ) $user_id = $_SESSION['id'];
+
     $options = array(
         'client_id' => $CFG->google_client_id,
         'client_secret' => $CFG->google_client_secret,
@@ -40,7 +43,7 @@ function getClient($accessTokenStr) {
 
     // Check if we have a bad access token
     if ( $accessToken && ! U::get($accessToken, 'refresh_token') ) {
-        error_log("Bad accessToken, id=".$_SESSION['id']);
+        error_log("Bad accessToken");
         error_log(json_encode($accessToken));
         $_SESSION['error'] = 'Did not get a proper Google Classroom token, either you have no access to Classroom, '.
             'or you may need to revoke the permission for this app at '.
@@ -88,9 +91,9 @@ function getClient($accessTokenStr) {
         $sql = "UPDATE {$CFG->dbprefix}lti_user
             SET gc_token = :TOK WHERE user_id = :UID";
         $PDOX->queryDie($sql,
-            array(':UID' => $_SESSION['id'], ':TOK' => $newAccessTokenStr)
+            array(':UID' => $user_id, ':TOK' => $newAccessTokenStr)
         );
-        error_log('Token updated user_id='.$_SESSION[ 'id'].' token='.$newAccessTokenStr);
+        error_log('Token updated user_id='.$user_id.' token='.$newAccessTokenStr);
     }
 
     return $client;
