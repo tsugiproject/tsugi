@@ -120,16 +120,17 @@ function sanity_check() {
     return true;
 }
 
-function retrieve_existing_token() {
+function retrieve_existing_token($user_id=false) {
     global $PDOX, $CFG;
 
+    if ( ! $user_id ) $user_id = $_SESSION['id'];
     // Try access token from session when LTIX adds it.
     $accessTokenStr = LTIX::decrypt_secret(LTIX::ltiParameter('gc_token', false));
     if ( ! $accessTokenStr ) {
         $row = $PDOX->rowDie(
             "SELECT gc_token FROM {$CFG->dbprefix}lti_user
                 WHERE user_id = :UID LIMIT 1",
-            array(':UID' => $_SESSION['id'])
+            array(':UID' => $user_id)
         );
     
         if ( $row != false ) {
