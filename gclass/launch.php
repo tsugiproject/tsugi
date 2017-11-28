@@ -49,6 +49,7 @@ if ( ! isset($_SESSION['id']) ) {
 
 $user_id = $_SESSION['id'];
 $user_email = $_SESSION['email'];
+$user_displayname = $_SESSION['displayname'];
 
 $PDOX = LTIX::getConnection();
 
@@ -196,6 +197,7 @@ if ($role >= LTIX::ROLE_INSTRUCTOR) {
 } else {
     echo("<h1>I am a student launch</h1>\n");
 }
+echo("<p>Email:".htmlentities($user_email)."</p>\n");
 ?>
 <pre>
 Row:
