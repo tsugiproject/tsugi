@@ -168,6 +168,8 @@ if ( ! $role ) {
     }
     */
 
+    $student_id = false;
+
     // If the current user is a student we are golden
     if ( isset($membership->courseId) ) {
         $role = 0;
@@ -179,8 +181,17 @@ if ( ! $role ) {
         return;
     }
 
-}
+    if ( isset($membership->userId) ) {
+        $student_id = $membership->userId;
+    } else {
+        $_SESSION['error'] = 'You are do not have a studentIdin this class';
+        error_log('Classroom connection failed id='.$owner_id);
+        error_log($accessTokenStr);
+        header('Location: '.$CFG->apphome);
+        return;
+    }
 
+}
 
 // https://developers.google.com/classroom/guides/manage-coursework
 // service.courses().courseWork().studentSubmissions().list(
@@ -192,10 +203,75 @@ if ( ! $role ) {
 // https://developers.google.com/classroom/reference/rest/v1/courses.students/get
 // https://classroom.googleapis.com/v1/courses/{courseId}/students/{userId}
 
+/*
+service.courses().courseWork().studentSubmissions().list(  
+    courseId=<course ID or alias>,  
+    courseWorkId=<assignment ID>,  
+    userId=<user ID>).execute()
+*/
+
+/*
+studentSubmission = {  
+  'assignedGrade': 99,  
+  'draftGrade': 80  
+}  
+service.courses().courseWork().studentSubmissions().patch(  
+    courseId=<course ID or alias>,  
+    courseWorkId=<courseWork ID>,  
+    id=<studentSubmission ID>,  
+    updateMask='assignedGrade,draftGrade',  
+    body=studentSubmission).execute()
+*/
+
 if ($role >= LTIX::ROLE_INSTRUCTOR) {
     echo("<h1>I am an instructor launch</h1>\n");
 } else {
     echo("<h1>I am a student launch</h1>\n");
+echo("<pre>\n");
+// var_dump($service);
+// $studentSubmissions = $service->studentSubmissions;
+$studentSubmissions = $service->courses_courseWork_studentSubmissions;
+echo("\n<hr>\n");
+// var_dump($studentSubmissions);
+
+$listx = $studentSubmissions->listCoursesCourseWorkStudentSubmissions($gc_course, $gc_coursework,
+    array('userId' => $student_id));
+// var_dump($listx);
+
+$listy = $listx->studentSubmissions;
+$first = $listy[0];
+$submit_id = $first->id;
+// var_dump($first);
+echo("submit_id=$submit_id\n");
+
+$sub = new Google_Service_Classroom_StudentSubmission();
+// $sub->setId($submit_id);
+// $sub->setCourseId($gc_course);
+// $sub->setCourseWorkId($gc_coursework);
+$sub->setAssignedGrade(78);
+
+// https://developers.google.com/classroom/reference/rest/v1/courses.courseWork.studentSubmissions#SubmissionState
+$sub->setState('TURNED_IN');  // WOrked by no apparent effect
+
+// $sub->setState('GRADED');
+//     "message": "Invalid value at 'student_submission.state' (TYPE_ENUM), \"GRADED\"",
+
+//   public function patch($courseId, $courseWorkId, $id, 
+//         Google_Service_Classroom_StudentSubmission $postBody, $optParams = array())
+
+// $opt = array('updateMask' => 'assignedGrade');
+// $body = array('assignedGrade' => 78);
+$opt = array('updateMask' => 'assignedGrade,draftGrade');
+$body = array('assignedGrade' => 38, 'draftGrade' => 48);
+$retval = $studentSubmissions->patch($gc_course, $gc_coursework, $submit_id, $sub, $opt);
+echo("=====post-patch\n");
+var_dump($retval);
+/*
+$turnin = new Google_Service_Classroom_TurnInStudentSubmissionRequest();
+$retval = $studentSubmissions->turnIn($gc_course, $gc_coursework, $submit_id, $turnin);
+echo("=====post-turnIn\n");
+var_dump($retval);
+*/
 }
 echo("<p>Email:".htmlentities($user_email)."</p>\n");
 ?>

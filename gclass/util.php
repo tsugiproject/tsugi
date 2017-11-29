@@ -9,7 +9,9 @@ define('SCOPES', implode(' ', array(
   Google_Service_Classroom::CLASSROOM_ROSTERS_READONLY,
   Google_Service_Classroom::CLASSROOM_PROFILE_EMAILS,
   Google_Service_Classroom::CLASSROOM_PROFILE_PHOTOS,
-  Google_Service_Classroom::CLASSROOM_COURSEWORK_STUDENTS)
+  Google_Service_Classroom::CLASSROOM_COURSEWORK_STUDENTS,
+  'https://www.googleapis.com/auth/classroom.student-submissions.students'
+  )
 ));
 
 /**
