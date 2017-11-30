@@ -391,7 +391,7 @@ array( "{$CFG->dbprefix}lti_domain",
     secret      TEXT,
     json        TEXT NULL,
     created_at  TIMESTAMP NOT NULL,
-    updated_at  TIMESTAMP NOT NULL,
+    updated_at  TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
     CONSTRAINT `{$CFG->dbprefix}lti_domain_ibfk_1`
         FOREIGN KEY (`key_id`)
