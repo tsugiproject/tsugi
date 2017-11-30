@@ -9,8 +9,8 @@ define('SCOPES', implode(' ', array(
   Google_Service_Classroom::CLASSROOM_ROSTERS_READONLY,
   Google_Service_Classroom::CLASSROOM_PROFILE_EMAILS,
   Google_Service_Classroom::CLASSROOM_PROFILE_PHOTOS,
-  Google_Service_Classroom::CLASSROOM_COURSEWORK_STUDENTS,
-  'https://www.googleapis.com/auth/classroom.student-submissions.students'
+  Google_Service_Classroom::CLASSROOM_COURSEWORK_STUDENTS
+  // Google_Service_Classroom::CLASSROOM_COURSEWORK_ME
   )
 ));
 
@@ -157,7 +157,7 @@ function retrieve_existing_token($user_id=false) {
 }
 
 function destroy_access_token() {
-    global $PDOX;
+    global $PDOX, $CFG;
     unset($_SESSION['gc_token']);
     $sql = "UPDATE {$CFG->dbprefix}lti_user
         SET gc_token = NULL WHERE user_id = :UID";

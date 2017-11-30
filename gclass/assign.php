@@ -183,6 +183,7 @@ if ( $gc_course ) {
     $cw = new Google_Service_Classroom_CourseWork();
     $cw->setTitle($lti->title);
     $cw->setMaterials($materials);
+    $cw->setMaxpoints(100);
     $cw->setWorkType("ASSIGNMENT");
     $cw->setState("PUBLISHED");
     // var_dump($cw);

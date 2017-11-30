@@ -184,7 +184,7 @@ if ( ! $role ) {
     if ( isset($membership->userId) ) {
         $student_id = $membership->userId;
     } else {
-        $_SESSION['error'] = 'You are do not have a studentIdin this class';
+        $_SESSION['error'] = 'You are do not have a studentId in this class';
         error_log('Classroom connection failed id='.$owner_id);
         error_log($accessTokenStr);
         header('Location: '.$CFG->apphome);
@@ -244,34 +244,21 @@ $submit_id = $first->id;
 // var_dump($first);
 echo("submit_id=$submit_id\n");
 
-$sub = new Google_Service_Classroom_StudentSubmission();
-// $sub->setId($submit_id);
-// $sub->setCourseId($gc_course);
-// $sub->setCourseWorkId($gc_coursework);
-$sub->setAssignedGrade(78);
-
 // https://developers.google.com/classroom/reference/rest/v1/courses.courseWork.studentSubmissions#SubmissionState
-$sub->setState('TURNED_IN');  // WOrked by no apparent effect
+// $sub = new Google_Service_Classroom_StudentSubmission();
 
-// $sub->setState('GRADED');
-//     "message": "Invalid value at 'student_submission.state' (TYPE_ENUM), \"GRADED\"",
-
-//   public function patch($courseId, $courseWorkId, $id, 
-//         Google_Service_Classroom_StudentSubmission $postBody, $optParams = array())
-
-// $opt = array('updateMask' => 'assignedGrade');
-// $body = array('assignedGrade' => 78);
+// https://stackoverflow.com/questions/43488498/google-classroom-api-patch
+// According to the above - do a get() first - Did not change 
+$sub = $studentSubmissions->get($gc_course, $gc_coursework, $submit_id);
+echo("=====pre-patch\n");
+var_dump($sub);
+$sub->setAssignedGrade(70);
+$sub->setDraftGrade(70);
+$sub->setState('TURNED_IN');
 $opt = array('updateMask' => 'assignedGrade,draftGrade');
-$body = array('assignedGrade' => 38, 'draftGrade' => 48);
 $retval = $studentSubmissions->patch($gc_course, $gc_coursework, $submit_id, $sub, $opt);
 echo("=====post-patch\n");
 var_dump($retval);
-/*
-$turnin = new Google_Service_Classroom_TurnInStudentSubmissionRequest();
-$retval = $studentSubmissions->turnIn($gc_course, $gc_coursework, $submit_id, $turnin);
-echo("=====post-turnIn\n");
-var_dump($retval);
-*/
 }
 echo("<p>Email:".htmlentities($user_email)."</p>\n");
 ?>
