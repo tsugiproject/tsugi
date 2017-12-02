@@ -1,10 +1,8 @@
 <?php
 use \Tsugi\Util\U;
-use \Tsugi\Util\Net;
 use \Tsugi\UI\Lessons;
 use \Tsugi\Core\LTIX;
-use \Tsugi\Crypt\SecureCookie;
-use \Tsugi\Crypt\AesCtr;
+use \Tsugi\Google\GoogleClassroom;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once __DIR__ . '/../config.php';
@@ -42,13 +40,13 @@ if ( ! $lti ) {
 }
 
 // Try access token from session when LTIX adds it.
-$accessTokenStr = retrieve_existing_token();
+$accessTokenStr = GoogleClassroom::retrieve_instructor_token();
 if ( ! $accessTokenStr ) {
     die_with_error_log('Error: Access Token not in session');
 }
 
 // Get the API client and construct the service object.
-$client = getClient($accessTokenStr);
+$client = GoogleClassroom::getClient($accessTokenStr);
 
 // Lets talk to Google, get a new copy of courses
 $service = new Google_Service_Classroom($client);

@@ -4,6 +4,7 @@ if ( ! isset($CFG) ) return; // Only from within tsugi.php
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Google\GoogleClassroom;
 
 require_once("util.php");
 
@@ -106,7 +107,7 @@ if ( $link_mini_check != $link_mini_sig || $user_mini_check != $user_mini_sig ) 
 // Time to talk to Google.
 
 // Try access token from session when LTIX adds it.
-$accessTokenStr = retrieve_existing_token($owner_id);
+$accessTokenStr = GoogleClassroom::retrieve_instructor_token($owner_id);
 if ( ! $accessTokenStr ) {
     $_SESSION['error'] = 'Classroom connection not set up, see your instructor';
     header('Location: '.$CFG->apphome);
@@ -114,7 +115,7 @@ if ( ! $accessTokenStr ) {
 }
 
 // Get the API client and construct the service object.
-$client = getClient($accessTokenStr, $owner_id);
+$client = GoogleClassroom::getClient($accessTokenStr, $owner_id);
 if ( ! $client ) {
     $_SESSION['error'] = 'Classroom connection failed';
     error_log('Classroom connection failed id='.$owner_id);
