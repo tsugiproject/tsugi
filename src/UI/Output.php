@@ -138,7 +138,28 @@ class Output extends \Tsugi\Core\SessionAccess {
     .container_iframe {
         margin-left: 10px;
         margin-right: 10px;
+    }
+<?php
+if ( isset($CFG->extra_css) ) {
+    echo($CFG->extra_css."\n");
 }
+?>
+<?php
+if ( isset($CFG->bootswatch_color) ) {
+    $grad = self::get_gradient($CFG->bootswatch_color);
+?>
+.navbar{
+    background-image:linear-gradient(<?= $grad[0]?>,<?= $grad[1] ?> 60%,<?= $grad[2] ?>);
+    background-image:-webkit-linear-gradient(<?= $grad[0]?>,<?= $grad[1] ?> 60%,<?= $grad[2] ?>);
+    border-bottom:1px solid <?= $grad[3]?>;
+    background-color: <?= $grad[3]?>;
+}
+.navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus {
+    background-color: <?= $grad[3]?>;
+}
+
+h1, h2, h3, h4 { color: <?= $grad[0]?>; }
+<?php } ?>
 </style>
 <?php // https://lefkomedia.com/adding-external-link-indicator-with-css/
   if ( $CFG->google_translate ) { ?>
@@ -923,6 +944,68 @@ EOF;
         header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
         header('Pragma: no-cache'); // HTTP 1.0.
         header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past - proxies
+    }
+
+    public static function get_gradient($pos) {
+        $grads = array(
+            array("#4c2119","#48241d","#46261f","#98331f"),
+            array("#511e14","#4d2118","#4b221a","#a12d16"),
+            array("#4c2a19","#482b1d","#462c1f","#98471f"),
+            array("#512814","#4d2a18","#4b2a1a","#a14416"),
+            array("#4c3319","#48331d","#46331f","#985b1f"),
+            array("#513314","#4d3318","#4b331a","#a15b16"),
+            array("#4c3b19","#483a1d","#46391f","#986f1f"),
+            array("#513d14","#4d3b18","#4b3b1a","#a17316"),
+            array("#334c19","#33481d","#33461f","#5b981f"),
+            array("#2a4c19","#2b481d","#2c461f","#47981f"),
+            array("#224c19","#24481d","#26461f","#33981f"),
+            array("#1e5114","#214d18","#224b1a","#2da116"),
+            array("#194c22","#1d4824","#1f4626","#1f9833"),
+            array("#14511e","#184d21","#1a4b22","#16a12d"),
+            array("#194c2a","#1d482b","#1f462c","#1f9847"),
+            array("#145128","#184d2a","#1a4b2a","#16a144"),
+            array("#194c33","#1d4833","#1f4633","#1f985b"),
+            array("#194c3b","#1d483a","#1f4639","#1f986f"),
+            array("#194c44","#1d4841","#1f463f","#1f9884"),
+            array("#19434c","#1d4148","#1f3f46","#1f8498"),
+            array("#144751","#18444d","#1a434b","#168aa1"),
+            array("#193b4c","#1d3a48","#1f3946","#1f6f98"),
+            array("#143d51","#183b4d","#1a3b4b","#1673a1"),
+            array("#19324c","#1d3248","#1f3246","#1f5b98"),
+            array("#143251","#18324d","#1a324b","#165ba1"),
+            array("#264c72","#2c4c6c","#2f4c69","#2775c2"),
+            array("#1e4c7a","#244c74","#274c71","#1c75ce"),
+            array("#192a4c","#1d2b48","#1f2c46","#1f4798"),
+            array("#142851","#182a4d","#1a2a4b","#1644a1"),
+            array("#263f72","#2c416c","#2f4269","#275bc2"),
+            array("#1e3d7a","#243f74","#274071","#1c57ce"),
+            array("#32194c","#321d48","#321f46","#5b1f98"),
+            array("#321451","#32184d","#321a4b","#5b16a1"),
+            array("#4c2672","#4c2c6c","#4c2f69","#7527c2"),
+            array("#4c1e7a","#4c2474","#4c2771","#751cce"),
+            array("#3b194c","#3a1d48","#391f46","#6f1f98"),
+            array("#3d1451","#3b184d","#3b1a4b","#7316a1"),
+            array("#592672","#572c6c","#562f69","#8f27c2"),
+            array("#5b1e7a","#592474","#582771","#931cce"),
+            array("#43194c","#411d48","#3f1f46","#841f98"),
+            array("#471451","#44184d","#431a4b","#8a16a1"),
+            array("#4c194c","#481d48","#461f46","#981f98"),
+            array("#511451","#4d184d","#4b1a4b","#a116a1"),
+            array("#4c1944","#481d41","#461f3f","#981f84"),
+            array("#511447","#4d1844","#4b1a43","#a1168a"),
+            array("#4c193b","#481d3a","#461f39","#981f6f"),
+            array("#51143d","#4d183b","#4b1a3b","#a11673"),
+            array("#4c1933","#481d33","#461f33","#981f5b"),
+            array("#511433","#4d1833","#4b1a33","#a1165b"),
+            array("#4c192a","#481d2b","#461f2c","#981f47"),
+            array("#511428","#4d182a","#4b1a2a","#a11644"),
+            array("#4c1922","#481d24","#461f26","#981f33"),
+            array("#51141e","#4d1821","#4b1a22","#a1162d")
+        );
+
+        $pos = $pos % count($grads);
+
+        return $grads[$pos];
     }
 
     public static function displaySize($size) {
