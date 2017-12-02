@@ -5,6 +5,7 @@ use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Lessons;
 use \Tsugi\Crypt\SecureCookie;
+use \Tsugi\Google\GoogleClassroom;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once __DIR__ . '/../config.php';
@@ -25,12 +26,12 @@ if (isset($l->lessons->modules[0]->anchor) ) {
 }
 
 // Try access token from session when LTIX adds it.
-$accessTokenStr = retrieve_existing_token();
+$accessTokenStr = GoogleClassroom::retrieve_instructor_token();
 
 // Get the API client and construct the service object.
 // This will fail if our token is revoked or otherwise bad
 try {
-    $client = getClient($accessTokenStr);
+    $client = GoogleClassroom::getClient($accessTokenStr);
     if ( ! $client ) return;
     $service = new Google_Service_Classroom($client);
 
@@ -46,10 +47,10 @@ try {
     $_SESSION['gc_token'] = LTIX::encrypt_secret($newAccessTokenStr);
 } catch(Exception $e) {
     // Revoked token..
-    destroy_access_token();
+    GoogleClassroom::destroy_instructor_token();
     $accessTokenStr = false;
     // Should redirect...
-    $client = getClient($accessTokenStr);
+    $client = GoogleClassroom::getClient($accessTokenStr);
     return;
 }
 

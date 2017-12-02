@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "3f3ad0b57bcd16618f48217cd747cbf0",
-    "content-hash": "3e994f917e39945827c8ea1ba49d83b1",
+    "hash": "45bf81299c56b1113fb745f18b7ff192",
+    "content-hash": "81d5954c4d76104741151ce52fdf1d35",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -638,16 +638,16 @@
         },
         {
             "name": "phpseclib/phpseclib",
-            "version": "2.0.7",
+            "version": "2.0.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "f4b6a522dfa1fd1e477c9cfe5909d5b31f098c0b"
+                "reference": "c9a3fe35e20eb6eeaca716d6a23cde03f52d1558"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/f4b6a522dfa1fd1e477c9cfe5909d5b31f098c0b",
-                "reference": "f4b6a522dfa1fd1e477c9cfe5909d5b31f098c0b",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/c9a3fe35e20eb6eeaca716d6a23cde03f52d1558",
+                "reference": "c9a3fe35e20eb6eeaca716d6a23cde03f52d1558",
                 "shasum": ""
             },
             "require": {
@@ -726,7 +726,7 @@
                 "x.509",
                 "x509"
             ],
-            "time": "2017-10-23 05:04:54"
+            "time": "2017-11-29 06:38:08"
         },
         {
             "name": "pimple/pimple",
@@ -1458,12 +1458,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "d1d81300c518fa9ac686da1be8db2e1a9493471a"
+                "reference": "09908d674b9eb4410baed7c69766b1ad6e73b738"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/d1d81300c518fa9ac686da1be8db2e1a9493471a",
-                "reference": "d1d81300c518fa9ac686da1be8db2e1a9493471a",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/09908d674b9eb4410baed7c69766b1ad6e73b738",
+                "reference": "09908d674b9eb4410baed7c69766b1ad6e73b738",
                 "shasum": ""
             },
             "require": {
@@ -1496,7 +1496,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2017-11-27 20:03:25"
+            "time": "2017-12-02 04:04:42"
         },
         {
             "name": "twig/twig",
