@@ -66,6 +66,10 @@ $CFG->dbprefix  = '';
 // $CFG->adminpw = 'warning:please-change-adminpw-89b543!';
 $CFG->adminpw = false;
 
+// Some styles from Bootswatch
+// $CFG->bootswatch = 'cerulean';
+// $CFG->bootswatch_color = rand(0,52);  // Fun color changing navigation for cerulian :)
+
 // If we are running Embedded Tsugi we need to set the
 // "course title" for the course that represents
 // the "local" students that log in through Google.
