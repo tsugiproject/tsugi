@@ -21,7 +21,6 @@ if ( ! sanity_check() ) return;
 
 $user_id = $_SESSION['id'];
 $key_id = $_SESSION['lti']['key_id'];
-$courses = $_SESSION['gc_courses'];
 
 // Load the Lesson
 $l = new Lessons($CFG->lessons);
@@ -173,7 +172,9 @@ if ( $gc_course ) {
     $link = new Google_Service_Classroom_Link();
     $link->setTitle($lti->title);
     $link->setUrl($launch_url);
-    $link->setThumbnailUrl($CFG->apphome.'/logo.png');
+    if ( isset($CFG->logo_url) ) {
+        $link->setThumbnailUrl($CFG->logo_url);
+    }
     $materials = new Google_Service_Classroom_Material();
     $materials->setLink($link);
     // var_dump($materials);

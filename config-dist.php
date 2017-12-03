@@ -110,6 +110,9 @@ $CFG->upgrading = false;
 $CFG->servicename = 'TSUGI';
 $CFG->servicedesc = false;
 
+// A logo for the site, this works best if it is a real URL 
+// $CFG->logo_url = 'https://www.wa4e.com/logo.png';
+
 // Information on the owner of this system and whether we
 // allow folks to request keys for the service
 $CFG->ownername = false;  // 'Charles Severance'
