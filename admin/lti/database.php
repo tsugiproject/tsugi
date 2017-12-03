@@ -332,6 +332,7 @@ array( "{$CFG->dbprefix}lti_result",
 
     sourcedid          TEXT NULL,
     service_id         INTEGER NULL,
+    gc_submit_id       TEXT NULL,
 
     ipaddr             VARCHAR(64),
 
@@ -1151,12 +1152,19 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Google classroom submit_id
+    if ( $oldversion < 201712022342 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD gc_submit_id TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
 
     // TODO: transfer lti_event contents to cal_event and drop the table
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201711261315;
+    return 201712022342;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
