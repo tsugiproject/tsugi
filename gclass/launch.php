@@ -58,8 +58,9 @@ $PDOX = LTIX::getConnection();
 // Load up the stuff course / link stuff / big inner join
 
 $sql = "SELECT gc_secret, O.user_id AS owner_id, O.email AS owner_email,
-        role, L.path AS path, C.context_id AS context_id, C.title AS context_title,
-        link_key, L.link_id as link_id, L.title AS link_title,
+        role, role_override,
+        C.context_id AS context_id, C.title AS context_title,
+        L.path AS path, link_key, L.link_id as link_id, L.title AS link_title,
         result_id, gc_submit_id,
         K.key_id AS key_id, K.secret AS key_secret, K.key_key AS key_key
     FROM {$CFG->dbprefix}lti_context AS C
@@ -104,6 +105,10 @@ $key_secret = $row['key_key'];
 $gc_submit_id = $row['gc_submit_id'];
 $result_id = $row['result_id'];
 $resource_title = $row['link_title'];
+$role = $row['role'];
+if ( $row['role_override'] > $row['role'] ) {
+    $role = $row['role_override'];
+}
 
 // Do some validation...
 $plain = $CFG->google_classroom_secret.$gc_course.$owner_id.$CFG->google_classroom_secret;
@@ -119,8 +124,6 @@ if ( $link_mini_check != $link_mini_sig || $user_mini_check != $user_mini_sig ) 
     header('Location: '.$CFG->apphome);
     return;
 }
-
-// Time to talk to Google.
 
 // Try access token from session when LTIX adds it.
 $accessTokenStr = GoogleClassroom::retrieve_instructor_token($owner_id);
@@ -143,71 +146,72 @@ if ( ! $client ) {
 // Lets talk to Google
 $service = new Google_Service_Classroom($client);
 
-// Get the user's profile information
+// Make sure we have a membership record and a result record for the current user
+// If we don't have a membership record...
+if ( $role == null ) {
+    if ( $user_email == $owner_email ) $role = LTIX::ROLE_INSTRUCTOR;
 
-$x = $client->getAccessToken();
-$access_token = $x['access_token'];
+    // Check if the current user is a student...
+    if ( ! $role ) {
+        // v1/userProfiles/{userId}
+        // https://classroom.googleapis.com/v1/courses/{courseId}/students/{userId}
+        // Get the user's profile information
+        $x = $client->getAccessToken();
+        $access_token = $x['access_token'];
 
-$role = false;
-if ( $user_email == $owner_email ) $role = LTIX::ROLE_INSTRUCTOR;
+        $membership_info_url = "https://classroom.googleapis.com/v1/courses/".$gc_course.
+            "/students/".$_SESSION['email']."?alt=json&access_token=" .  $access_token;
 
-// Check if the current user is a student...
-if ( ! $role ) {
-    // v1/userProfiles/{userId}
-    // https://classroom.googleapis.com/v1/courses/{courseId}/students/{userId}
-    $membership_info_url = "https://classroom.googleapis.com/v1/courses/".$gc_course.
-        "/students/".$_SESSION['email']."?alt=json&access_token=" .  $access_token;
+        $response = \Tsugi\Util\Net::doGet($membership_info_url);
+        $membership = json_decode($response);
 
-    $response = \Tsugi\Util\Net::doGet($membership_info_url);
-    $membership = json_decode($response);
+        /* Not a student:
+        object(stdClass)#27 (1) {
+        ["error"]=>
+            object(stdClass)#26 (3) {
+            ["code"]=>
+            int(404)
+            ["message"]=>
+            string(31) "Requested entity was not found."
+            ["status"]=>
+            string(9) "NOT_FOUND"
+            }
+        }
+    
+        Student:
+        object(stdClass)#24 (3) {
+        ["courseId"]=>
+        string(10) "9523923149"
+        ["userId"]=>
+        string(21) "100516595241762316861"
+        ["profile"]=>
+        ...
+        }
+        */
 
-    /* Not a student:
-    object(stdClass)#27 (1) {
-    ["error"]=>
-        object(stdClass)#26 (3) {
-        ["code"]=>
-        int(404)
-        ["message"]=>
-        string(31) "Requested entity was not found."
-        ["status"]=>
-        string(9) "NOT_FOUND"
+        $student_id = false;
+
+        // If the current user is a student we are golden
+        if ( isset($membership->courseId) ) {
+            $role = 0;
+        } else {
+            $_SESSION['error'] = 'You are not enrolled in this class';
+            error_log('Classroom connection failed id='.$owner_id);
+            error_log($accessTokenStr);
+            header('Location: '.$CFG->apphome);
+            return;
+        }
+
+        if ( isset($membership->userId) ) {
+            $student_id = $membership->userId;
+        } else {
+            $_SESSION['error'] = 'You are do not have a studentId in this class';
+            error_log('Classroom connection failed id='.$owner_id);
+            error_log($accessTokenStr);
+            header('Location: '.$CFG->apphome);
+            return;
         }
     }
-    
-    Student:
-    object(stdClass)#24 (3) {
-    ["courseId"]=>
-    string(10) "9523923149"
-    ["userId"]=>
-    string(21) "100516595241762316861"
-    ["profile"]=>
-    ...
-    }
-    */
-
-    $student_id = false;
-
-    // If the current user is a student we are golden
-    if ( isset($membership->courseId) ) {
-        $role = 0;
-    } else {
-        $_SESSION['error'] = 'You are not enrolled in this class';
-        error_log('Classroom connection failed id='.$owner_id);
-        error_log($accessTokenStr);
-        header('Location: '.$CFG->apphome);
-        return;
-    }
-
-    if ( isset($membership->userId) ) {
-        $student_id = $membership->userId;
-    } else {
-        $_SESSION['error'] = 'You are do not have a studentId in this class';
-        error_log('Classroom connection failed id='.$owner_id);
-        error_log($accessTokenStr);
-        header('Location: '.$CFG->apphome);
-        return;
-    }
-
 }
 
 // https://developers.google.com/classroom/guides/manage-coursework
