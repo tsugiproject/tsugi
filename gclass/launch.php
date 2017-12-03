@@ -50,22 +50,31 @@ if ( ! isset($_SESSION['id']) ) {
 $user_id = $_SESSION['id'];
 $user_email = $_SESSION['email'];
 $user_displayname = $_SESSION['displayname'];
+$user_key = $_SESSION['user_key'];
+$user_avatar = U::get($_SESSION,'avatar', null);
 
 $PDOX = LTIX::getConnection();
 
 // Load up the stuff course / link stuff / big inner join
 
-$sql = "SELECT gc_secret, link_key, O.user_id AS owner_id, O.email AS owner_email,
-        role, L.path AS path
+$sql = "SELECT gc_secret, O.user_id AS owner_id, O.email AS owner_email,
+        role, L.path AS path, C.context_id AS context_id, C.title AS context_title,
+        link_key, L.link_id as link_id, L.title AS link_title,
+        result_id, gc_submit_id,
+        K.key_id AS key_id, K.secret AS key_secret, K.key_key AS key_key
     FROM {$CFG->dbprefix}lti_context AS C
     JOIN {$CFG->dbprefix}lti_user AS O
         ON C.user_id = O.user_id
     JOIN {$CFG->dbprefix}lti_link AS L
         ON C.context_id = L.context_id
+    JOIN {$CFG->dbprefix}lti_key AS K
+        ON C.key_id = K.key_id
+    LEFT JOIN {$CFG->dbprefix}lti_result AS R
+        ON L.link_id = R.link_id AND R.user_id = :UID
     LEFT JOIN {$CFG->dbprefix}lti_membership AS M
         ON C.context_id = M.context_id AND M.user_id = :UID
     WHERE context_sha256 = :context_sha256 AND context_key = :context_key
-    AND link_id = :LID
+    AND L.link_id = :LID
     LIMIT 1";
 
 $row = $PDOX->rowDie($sql,
@@ -87,6 +96,14 @@ $path = $row['path'];
 $owner_id = $row['owner_id'];
 $gc_coursework = $row['link_key'];
 $owner_email = $row['owner_email'];
+$context_id = $row['context_id'];
+$context_title = $row['context_title'];
+$key_id = $row['key_id'];
+$key_key = $row['key_key'];
+$key_secret = $row['key_key'];
+$gc_submit_id = $row['gc_submit_id'];
+$result_id = $row['result_id'];
+$resource_title = $row['link_title'];
 
 // Do some validation...
 $plain = $CFG->google_classroom_secret.$gc_course.$owner_id.$CFG->google_classroom_secret;
@@ -261,8 +278,40 @@ echo("=====post-patch\n");
 var_dump($retval);
 }
 echo("<p>Email:".htmlentities($user_email)."</p>\n");
+
+// Set up the LTI launch information
+
+$lti = array();
+$lti['key_id'] = $key_id;
+$lti['key_key'] = $key_key;
+
+if ( strlen($key_secret) ) {
+    $lti['secret'] = LTIX::encrypt_secret($key_secret);
+}
+
+$lti['user_id'] = $user_id;
+$lti['user_key'] = $user_key;
+$lti['user_email'] = $user_email;
+$lti['user_displayname'] = $user_displayname;
+if ( strlen($user_avatar) ) {
+    $lti['user_image'] = $user_avatar;
+}
+
+$lti['context_title'] = $context_title;
+$lti['resource_title'] = $resource_title;
+
+$lti['context_id'] = $context_id;
+$lti['context_key'] = $context_key;
+
+// Set that data in the session.
+$_SESSION['lti'] = $lti;
+
 ?>
 <pre>
+LTI:
+<?php
+print_r($lti);
+?>
 Row:
 <?php
 print_r($row);
