@@ -146,18 +146,15 @@ if ( ! $client ) {
 // Lets talk to Google
 $service = new Google_Service_Classroom($client);
 
-// Make sure we have a membership record and a result record for the current user
 // If we don't have a membership record...
 if ( $role == null ) {
     if ( $user_email == $owner_email ) $role = LTIX::ROLE_INSTRUCTOR;
 
     // Check if the current user is a student...
     if ( ! $role ) {
-        // v1/userProfiles/{userId}
-        // https://classroom.googleapis.com/v1/courses/{courseId}/students/{userId}
-        // Get the user's profile information
-        $x = $client->getAccessToken();
-        $access_token = $x['access_token'];
+        // TODO: Look into using the APIs to do this.
+        $access_token_data = $client->getAccessToken();
+        $access_token = $access_token_data['access_token'];
 
         $membership_info_url = "https://classroom.googleapis.com/v1/courses/".$gc_course.
             "/students/".$_SESSION['email']."?alt=json&access_token=" .  $access_token;
@@ -193,7 +190,7 @@ if ( $role == null ) {
 
         // If the current user is a student we are golden
         if ( isset($membership->courseId) ) {
-            $role = 0;
+            $role = LTIX::ROLE_LEARNER;
         } else {
             $_SESSION['error'] = 'You are not enrolled in this class';
             error_log('Classroom connection failed id='.$owner_id);
@@ -211,25 +208,59 @@ if ( $role == null ) {
             header('Location: '.$CFG->apphome);
             return;
         }
+
+        if ( $gc_submit_id === null ) {
+            try {
+                // Get the student's submission...
+                $studentSubmissions = $service->courses_courseWork_studentSubmissions;
+
+                // Submissions associated with this courseWork for this student
+                $retval = $studentSubmissions->listCoursesCourseWorkStudentSubmissions(
+                    $gc_course, $gc_coursework, array('userId' => $student_id));
+                // var_dump($retval);
+
+                // Grab the first submission
+                $submissions = $retval->studentSubmissions;
+                $first = $submissions[0];
+                // var_dump($first);
+                $gc_submit_id = $first->id;
+                echo("gc_submit_id=$gc_submit_id\n");
+            } catch (Exception $e) {
+                $_SESSION['error'] = 'Could not retrieve submission for this assignment.';
+                error_log('Could not retrieve submission for this assignment id='.$owner_id);
+                error_log($accessTokenStr);
+                header('Location: '.$CFG->apphome);
+                return;
+            }
+        }
+
+        // Insert the membership record
+        $json = new \stdClass();
+        $json->student_id = $student_id;
+        $json = json_encode($json);
+
+        $sql = "INSERT INTO {$CFG->dbprefix}lti_membership
+            ( context_id, user_id, role, json, created_at, updated_at ) VALUES
+            ( :context_id, :user_id, :role, :json, NOW(), NOW() )
+            ON DUPLICATE KEY UPDATE role=:role, updated_at=NOW()";
+        $PDOX->queryDie($sql, array(
+            ':context_id' => $context_id,
+            ':user_id' => $user_id,
+            ':json' => $json,
+            ':role' => $role));
+
+        // Insert the new result record
+        $sql = "INSERT INTO {$CFG->dbprefix}lti_result
+            ( link_id, user_id, gc_submit_id, created_at, updated_at ) VALUES
+            ( :link_id, :user_id, :GCS, NOW(), NOW() )
+            ON DUPLICATE KEY UPDATE gc_submit_id=:GCS, updated_at=NOW()";
+        $PDOX->queryDie($sql, array(
+            ':link_id' => $link_id,
+            ':user_id' => $user_id,
+            ':GCS' => $gc_submit_id));
+        error_log('New student='.$user_id.' context='.$context_id.' owner='.$user_email);
     }
 }
-
-// https://developers.google.com/classroom/guides/manage-coursework
-// service.courses().courseWork().studentSubmissions().list(
-//    courseId=<course ID or alias>,
-//    courseWorkId='-',
-//    userId="me").execute()
-
-// Returns a student of a course.
-// https://developers.google.com/classroom/reference/rest/v1/courses.students/get
-// https://classroom.googleapis.com/v1/courses/{courseId}/students/{userId}
-
-/*
-service.courses().courseWork().studentSubmissions().list(  
-    courseId=<course ID or alias>,  
-    courseWorkId=<assignment ID>,  
-    userId=<user ID>).execute()
-*/
 
 /*
 studentSubmission = {  
@@ -251,33 +282,20 @@ if ($role >= LTIX::ROLE_INSTRUCTOR) {
 echo("<pre>\n");
 // var_dump($service);
 // $studentSubmissions = $service->studentSubmissions;
-$studentSubmissions = $service->courses_courseWork_studentSubmissions;
-echo("\n<hr>\n");
-// var_dump($studentSubmissions);
-
-$listx = $studentSubmissions->listCoursesCourseWorkStudentSubmissions($gc_course, $gc_coursework,
-    array('userId' => $student_id));
-// var_dump($listx);
-
-$listy = $listx->studentSubmissions;
-$first = $listy[0];
-$submit_id = $first->id;
-// var_dump($first);
-echo("submit_id=$submit_id\n");
-
 // https://developers.google.com/classroom/reference/rest/v1/courses.courseWork.studentSubmissions#SubmissionState
 // $sub = new Google_Service_Classroom_StudentSubmission();
 
 // https://stackoverflow.com/questions/43488498/google-classroom-api-patch
 // According to the above - do a get() first - Did not change 
-$sub = $studentSubmissions->get($gc_course, $gc_coursework, $submit_id);
+$studentSubmissions = $service->courses_courseWork_studentSubmissions;
+$sub = $studentSubmissions->get($gc_course, $gc_coursework, $gc_submit_id);
 echo("=====pre-patch\n");
 var_dump($sub);
 $sub->setAssignedGrade(70);
 $sub->setDraftGrade(70);
 $sub->setState('TURNED_IN');
 $opt = array('updateMask' => 'assignedGrade,draftGrade');
-$retval = $studentSubmissions->patch($gc_course, $gc_coursework, $submit_id, $sub, $opt);
+$retval = $studentSubmissions->patch($gc_course, $gc_coursework, $gc_submit_id, $sub, $opt);
 echo("=====post-patch\n");
 var_dump($retval);
 }
@@ -333,9 +351,3 @@ print_r($_POST);
 Get:
 <?php
 print_r($_GET);
-?>
-<hr/>
-Apache Request Headers:
-<?php
-print_r($request_headers);
-error_log(\Tsugi\UI\Output::safe_var_dump($request_headers));
