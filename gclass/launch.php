@@ -104,7 +104,7 @@ $key_key = $row['key_key'];
 $key_secret = $row['key_key'];
 $gc_submit_id = $row['gc_submit_id'];
 $result_id = $row['result_id'];
-$resource_title = $row['link_title'];
+$link_title = $row['link_title'];
 $role = $row['role'];
 if ( $row['role_override'] > $row['role'] ) {
     $role = $row['role_override'];
@@ -248,18 +248,21 @@ if ( $role == null ) {
             ':user_id' => $user_id,
             ':json' => $json,
             ':role' => $role));
-
-        // Insert the new result record
-        $sql = "INSERT INTO {$CFG->dbprefix}lti_result
-            ( link_id, user_id, gc_submit_id, created_at, updated_at ) VALUES
-            ( :link_id, :user_id, :GCS, NOW(), NOW() )
-            ON DUPLICATE KEY UPDATE gc_submit_id=:GCS, updated_at=NOW()";
-        $PDOX->queryDie($sql, array(
-            ':link_id' => $link_id,
-            ':user_id' => $user_id,
-            ':GCS' => $gc_submit_id));
-        error_log('New student='.$user_id.' context='.$context_id.' owner='.$user_email);
     }
+}
+
+// Insert the result record if necessary
+if ( $result_id == null ) {
+    $sql = "INSERT INTO {$CFG->dbprefix}lti_result
+        ( link_id, user_id, gc_submit_id, created_at, updated_at ) VALUES
+        ( :link_id, :user_id, :GCS, NOW(), NOW() )
+        ON DUPLICATE KEY UPDATE gc_submit_id=:GCS, updated_at=NOW()";
+    $PDOX->queryDie($sql, array(
+        ':link_id' => $link_id,
+        ':user_id' => $user_id,
+        ':GCS' => $gc_submit_id));
+    $result_id = $PDOX->lastInsertId();
+    error_log('New student='.$user_id.' context='.$context_id.' owner='.$user_email);
 }
 
 /*
@@ -285,6 +288,7 @@ echo("<pre>\n");
 // https://developers.google.com/classroom/reference/rest/v1/courses.courseWork.studentSubmissions#SubmissionState
 // $sub = new Google_Service_Classroom_StudentSubmission();
 
+/*
 // https://stackoverflow.com/questions/43488498/google-classroom-api-patch
 // According to the above - do a get() first - Did not change 
 $studentSubmissions = $service->courses_courseWork_studentSubmissions;
@@ -298,6 +302,7 @@ $opt = array('updateMask' => 'assignedGrade,draftGrade');
 $retval = $studentSubmissions->patch($gc_course, $gc_coursework, $gc_submit_id, $sub, $opt);
 echo("=====post-patch\n");
 var_dump($retval);
+*/
 }
 echo("<p>Email:".htmlentities($user_email)."</p>\n");
 
@@ -318,17 +323,29 @@ $lti['user_displayname'] = $user_displayname;
 if ( strlen($user_avatar) ) {
     $lti['user_image'] = $user_avatar;
 }
-
-$lti['context_title'] = $context_title;
-$lti['resource_title'] = $resource_title;
+$lti['role'] = $role;
 
 $lti['context_id'] = $context_id;
 $lti['context_key'] = $context_key;
+$lti['context_title'] = $context_title;
+
+$lti['link_id'] = $link_id;
+$lti['link_title'] = $link_title;
+
+$lti['result_id'] = $result_id;
+
+// Grades will do this:
+// $retval = $studentSubmissions->patch($gc_course, $gc_coursework, $gc_submit_id, $sub, $opt);
+$lti['gc_course'] = $gc_course;
+$lti['gc_coursework'] = $gc_coursework;
+$lti['gc_submit_id'] = $gc_submit_id;
 
 // Set that data in the session.
 $_SESSION['lti'] = $lti;
 
+$launch = U::add_url_parm($path, 'PHPSESSID', session_id());
 ?>
+<a href="<?= $launch ?>" target="_blank"><?= $launch ?></a>
 <pre>
 LTI:
 <?php
