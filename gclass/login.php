@@ -59,7 +59,8 @@ if (count($results->getCourses()) == 0) {
     $_SESSION['error'] = 'No Google Classroom Courses found';
     header('Location: '.$CFG->apphome);
 } else {
-    $_SESSION['success'] = 'Found '.count($results->getCourses()).' Google Classroom courses';
+    $_SESSION['success'] = 'Found '.count($results->getCourses()).' Google Classroom courses. '.
+        'Use the icon by each link to install links / assignments into your Google Classroom.';
     $_SESSION['gc_courses'] = $results->getCourses();
     header('Location: '.$CFG->apphome.'/lessons/'.$firstmodule.'?nostyle=yes');
 }
