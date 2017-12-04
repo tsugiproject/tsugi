@@ -298,7 +298,15 @@ class Lessons {
 
         $module = $this->module;
 
-	if ( $nostyle ) echo('<script src="https://apis.google.com/js/platform.js" async defer></script>'."\n");
+	if ( $nostyle && isset($_SESSION['gc_courses']) ) {
+?>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
+   <iframe name="iframe-frame" style="height:200px" id="iframe-frame" 
+    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
+</div>
+<?php
+        }
             echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
             $disabled = ($this->position == 1) ? ' disabled' : '';
             $all = U::get_rest_parent();
@@ -413,7 +421,7 @@ class Lessons {
                 if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
             }
 
-            // LTIs not logged in
+            // LTIs logged in
             if ( isset($module->lti) && isset($_SESSION['secret']) ) {
                 $ltis = $module->lti;
 
@@ -425,6 +433,12 @@ class Lessons {
                         echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
                         $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
                         echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
+                        if ( isset($_SESSION['gc_courses']) ) {
+                            echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$lti->resource_link_id);
+                            echo('" title="Install Assignment in Classroom" target="iframe-frame"'."\n");
+                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
+                            echo('<img height=16 width=16 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+                        }
                         echo("\n</li>\n");
                         continue;
                     }

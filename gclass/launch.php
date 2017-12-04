@@ -224,7 +224,6 @@ if ( $role == null ) {
                 $first = $submissions[0];
                 // var_dump($first);
                 $gc_submit_id = $first->id;
-                echo("gc_submit_id=$gc_submit_id\n");
             } catch (Exception $e) {
                 $_SESSION['error'] = 'Could not retrieve submission for this assignment.';
                 error_log('Could not retrieve submission for this assignment id='.$owner_id);
@@ -278,6 +277,7 @@ service.courses().courseWork().studentSubmissions().patch(
     body=studentSubmission).execute()
 */
 
+/*
 if ($role >= LTIX::ROLE_INSTRUCTOR) {
     echo("<h1>I am an instructor launch</h1>\n");
 } else {
@@ -302,9 +302,8 @@ $opt = array('updateMask' => 'assignedGrade,draftGrade');
 $retval = $studentSubmissions->patch($gc_course, $gc_coursework, $gc_submit_id, $sub, $opt);
 echo("=====post-patch\n");
 var_dump($retval);
-*/
 }
-echo("<p>Email:".htmlentities($user_email)."</p>\n");
+*/
 
 // Set up the LTI launch information
 
@@ -344,6 +343,11 @@ $lti['gc_submit_id'] = $gc_submit_id;
 $_SESSION['lti'] = $lti;
 
 $launch = U::add_url_parm($path, 'PHPSESSID', session_id());
+
+if ( ! U::get($_GET,'debug') ) {
+    header('Location: '.$launch);
+    return;
+}
 ?>
 <a href="<?= $launch ?>" target="_blank"><?= $launch ?></a>
 <pre>

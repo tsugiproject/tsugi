@@ -216,9 +216,12 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 ?>
 <center>
-Please select a course
+<p>
+Installing assignment in Google Classroom.
+</p>
 <form>
 <input type="hidden" name="rlid" value="<?= htmlentities($_GET['rlid']) ?>"/>
+<p>
 <select name="gc_course">
 <option value="">Please Select a Course</option>
 <?php
@@ -227,8 +230,8 @@ foreach( $courses as $course ) {
 }
 ?>
 </select>
-<br/>
-<input type="submit" value="Submit">
+</p>
+<input type="submit" value="Install in Classroom">
 </form>
 </center>
 <?php
