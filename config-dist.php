@@ -126,10 +126,14 @@ $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 
 // Alpha: Google Classroom support
-// Set the secret to a long random string - this is used for internel
-// Tsugi signing - not for Google interactions.
+// First, Go to https://console.developers.google.com/apis/credentials
+// And add access to "Google Classroom API" to your google_client_id (above)
 
+// Set the secret to a long random string - this is used for internal
+// url Tsugi signing - not for Google interactions.  Don't change it
+// once you set it.
 // $CFG->google_classroom_secret = 'oLKJHi....jkhgJGHJGH';
+
 // This should be an absolute URL that will be used to generate previews
 // in Google Classroom
 // $CFG->logo_url = 'https://www.wa4e.com/logo.png';
