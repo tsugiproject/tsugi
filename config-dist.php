@@ -125,6 +125,15 @@ $CFG->providekeys = false;  // true
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 
+// Alpha: Google Classroom support
+// Set the secret to a long random string - this is used for internel
+// Tsugi signing - not for Google interactions.
+
+// $CFG->google_classroom_secret = 'oLKJHi....jkhgJGHJGH';
+// This should be an absolute URL that will be used to generate previews
+// in Google Classroom
+// $CFG->logo_url = 'https://www.wa4e.com/logo.png';
+
 // Whether or not to unify accounts between global site-wide login
 // and LTI launches
 $CFG->unify = true;
