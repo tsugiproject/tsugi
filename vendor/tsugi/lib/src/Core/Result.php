@@ -5,6 +5,7 @@ namespace Tsugi\Core;
 use \Tsugi\Util\LTI;
 use \Tsugi\UI\Output;
 use \Tsugi\Util\Net;
+use \Tsugi\Google\GoogleClassroom;
 
 /**
  * This is a class to provide access to the user's result data.
@@ -127,7 +128,7 @@ class Result extends Entity {
      *
      * @param $grade A new grade - floating point number between 0.0 and 1.0
      * @param $row An optional array with the data that has the result_id, sourcedid,
-     * service (url), key_key, and secret.  If these are not present, the data 
+     * service (url), key_key, and secret.  If these are not present, the data
      * is pulled from the LTI session for the current user/link combination.
      * @param $debug_log An (optional) array (by reference) that returns the
      * steps that were taken.
@@ -164,6 +165,7 @@ class Result extends Entity {
             $result_id = LTIX::ltiParameter('result_id');
         }
 
+
         // Secret and key from session to avoid crossing tenant boundaries
         if ( ! $key_key ) $key_key = LTIX::ltiParameter('key_key');
         if ( ! $secret ) $secret = LTIX::decrypt_secret(LTIX::ltiParameter('secret'));
@@ -199,10 +201,15 @@ class Result extends Entity {
 
         // TODO: Fix this
         $comment = "";
+        // Check is this is a Google Classroom Launch
+        if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['gc_submit_id']) ) {
+            $status = GoogleClassroom::gradeSend(intval($grade*100));
+
         // If we have a result_url and either ($CFG->prefer_lti1_for_grade_send is false or we don't have a $service),
         // use result_url to send the grade
-        if ( strlen($result_url) > 0 && ($CFG->prefer_lti1_for_grade_send === false || $service === false) ) {
+        } else if ( strlen($result_url) > 0 && ($CFG->prefer_lti1_for_grade_send === false || $service === false) ) {
             $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log);
+
         // Otherwise use the more established service call
         } else if ( $sourcedid !== false && $service !== false ) {
             $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
@@ -223,7 +230,7 @@ class Result extends Entity {
      *
      * @param $grade A new grade - floating point number between 0.0 and 1.0
      * @param $row An optional array with the data that has the result_id, sourcedid,
-     * service (url), key_key, and secret.  If these are not present, the data 
+     * service (url), key_key, and secret.  If these are not present, the data
      * is pulled from the LTI session for the current user/link combination.
      * @param $debug_log An (optional) array (by reference) that returns the
      * steps that were taken.

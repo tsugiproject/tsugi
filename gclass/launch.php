@@ -209,30 +209,6 @@ if ( $role == null ) {
             return;
         }
 
-        if ( $gc_submit_id === null ) {
-            try {
-                // Get the student's submission...
-                $studentSubmissions = $service->courses_courseWork_studentSubmissions;
-
-                // Submissions associated with this courseWork for this student
-                $retval = $studentSubmissions->listCoursesCourseWorkStudentSubmissions(
-                    $gc_course, $gc_coursework, array('userId' => $student_id));
-                // var_dump($retval);
-
-                // Grab the first submission
-                $submissions = $retval->studentSubmissions;
-                $first = $submissions[0];
-                // var_dump($first);
-                $gc_submit_id = $first->id;
-            } catch (Exception $e) {
-                $_SESSION['error'] = 'Could not retrieve submission for this assignment.';
-                error_log('Could not retrieve submission for this assignment id='.$owner_id);
-                error_log($accessTokenStr);
-                header('Location: '.$CFG->apphome);
-                return;
-            }
-        }
-
         // Insert the membership record
         $json = new \stdClass();
         $json->student_id = $student_id;
@@ -250,8 +226,33 @@ if ( $role == null ) {
     }
 }
 
+// Make sure we have a submit_id in the database
+if ( $gc_submit_id === null ) {
+    try {
+        // Get the student's submission...
+        $studentSubmissions = $service->courses_courseWork_studentSubmissions;
+
+        // Submissions associated with this courseWork for this student
+        $retval = $studentSubmissions->listCoursesCourseWorkStudentSubmissions(
+            $gc_course, $gc_coursework, array('userId' => $student_id));
+        // var_dump($retval);
+
+        // Grab the first submission
+        $submissions = $retval->studentSubmissions;
+        $first = $submissions[0];
+        // var_dump($first);
+        $gc_submit_id = $first->id;
+    } catch (Exception $e) {
+        $_SESSION['error'] = 'Could not retrieve submission for this assignment.';
+        error_log('Could not retrieve submission for this assignment id='.$owner_id);
+        error_log($accessTokenStr);
+        header('Location: '.$CFG->apphome);
+        return;
+    }
+}
+
 // Insert the result record if necessary
-if ( $result_id == null ) {
+if ( $result_id == null || $row['gc_submit_id'] === null ) {
     $sql = "INSERT INTO {$CFG->dbprefix}lti_result
         ( link_id, user_id, gc_submit_id, created_at, updated_at ) VALUES
         ( :link_id, :user_id, :GCS, NOW(), NOW() )
@@ -263,47 +264,6 @@ if ( $result_id == null ) {
     $result_id = $PDOX->lastInsertId();
     error_log('New student='.$user_id.' context='.$context_id.' owner='.$user_email);
 }
-
-/*
-studentSubmission = {  
-  'assignedGrade': 99,  
-  'draftGrade': 80  
-}  
-service.courses().courseWork().studentSubmissions().patch(  
-    courseId=<course ID or alias>,  
-    courseWorkId=<courseWork ID>,  
-    id=<studentSubmission ID>,  
-    updateMask='assignedGrade,draftGrade',  
-    body=studentSubmission).execute()
-*/
-
-/*
-if ($role >= LTIX::ROLE_INSTRUCTOR) {
-    echo("<h1>I am an instructor launch</h1>\n");
-} else {
-    echo("<h1>I am a student launch</h1>\n");
-echo("<pre>\n");
-// var_dump($service);
-// $studentSubmissions = $service->studentSubmissions;
-// https://developers.google.com/classroom/reference/rest/v1/courses.courseWork.studentSubmissions#SubmissionState
-// $sub = new Google_Service_Classroom_StudentSubmission();
-
-/*
-// https://stackoverflow.com/questions/43488498/google-classroom-api-patch
-// According to the above - do a get() first - Did not change 
-$studentSubmissions = $service->courses_courseWork_studentSubmissions;
-$sub = $studentSubmissions->get($gc_course, $gc_coursework, $gc_submit_id);
-echo("=====pre-patch\n");
-var_dump($sub);
-$sub->setAssignedGrade(70);
-$sub->setDraftGrade(70);
-$sub->setState('TURNED_IN');
-$opt = array('updateMask' => 'assignedGrade,draftGrade');
-$retval = $studentSubmissions->patch($gc_course, $gc_coursework, $gc_submit_id, $sub, $opt);
-echo("=====post-patch\n");
-var_dump($retval);
-}
-*/
 
 // Set up the LTI launch information
 
@@ -335,6 +295,7 @@ $lti['result_id'] = $result_id;
 
 // Grades will do this:
 // $retval = $studentSubmissions->patch($gc_course, $gc_coursework, $gc_submit_id, $sub, $opt);
+$lti['gc_owner_id'] = $owner_id;
 $lti['gc_course'] = $gc_course;
 $lti['gc_coursework'] = $gc_coursework;
 $lti['gc_submit_id'] = $gc_submit_id;
