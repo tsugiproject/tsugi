@@ -55,14 +55,17 @@ $optParams = array(
   'pageSize' => 100
 );
 $courses = $service->courses->listCourses($optParams);
+// echo("<pre>\n");var_dump($courses);echo("</pre>\n");
 
 $gc_course = false;
 $gc_title = false;
+$gc_url = false;
 if ( U::get($_GET,'gc_course') ) {
     foreach( $courses as $course ) {
         if ( $course->getId() == $_GET['gc_course'] ) {
             $gc_course = $_GET['gc_course'];
             $gc_title = $course->getName();
+            $gc_url = $course->getAlternateLink();
             break;
         }
     }
@@ -71,22 +74,15 @@ if ( U::get($_GET,'gc_course') ) {
 // Handle the actual install..
 if ( $gc_course ) {
     // Lets talk to Google...
-    echo("<pre>\n");
     // We use the global Google Classsoom secret because we need to 
     // be able to re-lookup an existing course
     // secret:$gc_course:$user_id:secret
     $plain = $CFG->google_classroom_secret.$gc_course.$_SESSION['id'].$CFG->google_classroom_secret;
-    echo("plain=".$plain."\n");
     $user_mini_sig = lti_sha256($plain);
-    echo("user_mini_sig=".$user_mini_sig."\n");
     $user_mini_sig = substr($user_mini_sig,0,6);
-    echo("user_mini_sig=".$user_mini_sig."\n");
     $context_url = $gc_course . ':' . $user_mini_sig;
-    echo("context_url=".$context_url."\n");
     $context_key = 'gclass:' . $context_url;
-    echo("context_key=".$context_key."\n");
     $context_sha256 = lti_sha256($context_key);
-    echo("context_sha256=".$context_sha256."\n");
 
     $row = $PDOX->rowDie(
         "SELECT * FROM {$CFG->dbprefix}lti_context
@@ -127,8 +123,6 @@ if ( $gc_course ) {
         $context_id = $PDOX->lastInsertId();
     }
 
-    echo("context_id=$context_id\n");
-
     // Set up membership
     $sql = "INSERT INTO {$CFG->dbprefix}lti_membership
         ( context_id, user_id, role, created_at, updated_at ) VALUES
@@ -157,15 +151,11 @@ if ( $gc_course ) {
     // We use the per-course secret to sign the whole thing
     // secret:gc_course:mini-sig-user:link_id:secret
     $plain = $gc_secret.$context_url.$link_id.$gc_secret;
-    echo("plain=".$plain."\n");
     $link_mini_sig = lti_sha256($plain);
-    echo("link_mini_sig=".$link_mini_sig."\n");
     $link_mini_sig = substr($link_mini_sig,0,6);
 
     $launch_url = $CFG->wwwroot . '/gclass/launch/' .
         $context_url . ':' . $link_id . ':' . $link_mini_sig;
-
-    echo("Launch=$launch_url\n");
 
     // https://developers.google.com/classroom/guides/manage-coursework
     // https://developers.google.com/resources/api-libraries/documentation/classroom/v1/php/latest/class-Google_Service_Classroom_CourseWork.html
@@ -190,7 +180,6 @@ if ( $gc_course ) {
     $courseWorkService = $service->courses_courseWork;
     $courseWorkObject = $courseWorkService->create($gc_course, $cw);
     $resource_link_id = $courseWorkObject->id;
-    echo("ID=$resource_link_id\n");
 
     // Now really fix the link with the real resource_link_id
     $sql = "UPDATE {$CFG->dbprefix}lti_link
@@ -201,7 +190,25 @@ if ( $gc_course ) {
         ':LID' => $link_id
     ));
 
-    echo("Success\n");
+    $OUTPUT->header();
+    $OUTPUT->bodyStart();
+    echo("<center><p>\n");
+    echo(__('Success installing').'<br/>');
+    echo('<strong>');
+    echo(htmlentities($lti->title));
+    echo('</strong>');
+    if ( $gc_title ) {
+        echo('<br/>'.__('in').' ');
+        echo(htmlentities($gc_title));
+    }
+    echo("</p>\n");
+    if ( $gc_url ) {
+        $launch = filter_var($gc_url, FILTER_SANITIZE_URL); 
+        echo("<p><a href=".$launch.' target=_blank">');
+        echo(__('Go to Classroom site'));
+        echo("</p>\n");
+    } 
+    $OUTPUT->footer();
     return;
 }
 
