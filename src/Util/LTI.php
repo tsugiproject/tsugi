@@ -458,7 +458,7 @@ class LTI {
         if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response",$response);
 
         $status = "Failure to retrieve grade";
-        if ( strpos($response, '<?xml') !== 0 ) {
+        if ( strpos($response, '<?xml') !== 0 && strpos($response, '<imsx_POXEnvelopeResponse' !== 0)) {
             error_log("Fatal XML Grade Read: ".session_id()." sourcedid=".$sourcedid);
             error_log("Detail: service=".$service." key_key=".$key_key);
             error_log("Response: ".$response);
