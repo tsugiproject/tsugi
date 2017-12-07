@@ -2,6 +2,7 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 
 /**
@@ -25,20 +26,38 @@ class Entity extends \Tsugi\Core\SessionAccess {
     /**
      * Load the json field for this entity
      *
-     * @return string This returns the json string - it is not parsed - if there is 
+     * @return string This returns the json string - it is not parsed - if there is
      * nothing to return - this returns "false"
      */
     public function getJson()
     {
         global $CFG, $PDOX;
 
-        $row = $PDOX->rowDie("SELECT json FROM {$CFG->dbprefix}{$this->TABLE_NAME} 
+        $row = $PDOX->rowDie("SELECT json FROM {$CFG->dbprefix}{$this->TABLE_NAME}
                 WHERE $this->PRIMARY_KEY = :PK",
             array(":PK" => $this->id));
         if ( $row === false ) return false;
         $json = $row['json'];
         if ( $json === null ) return false;
         return $json;
+    }
+
+    /**
+     * Get a JSON key for this entity
+     *
+     * @params $key The key to be retrieved from the JSON
+     * @params $default The default value (optional)
+     *
+     */
+    public function getJsonKey($key,$default=false)
+    {
+        global $CFG, $PDOX;
+
+        $jsonStr = $this->getJson();
+        if ( ! $jsonStr ) return $default;
+        $json = json_decode($jsonStr, true);
+        if ( ! $json ) return $default;
+        return U::get($json, $key, $default);
     }
 
     /**
