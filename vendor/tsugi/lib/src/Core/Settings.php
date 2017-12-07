@@ -10,6 +10,9 @@ use \Tsugi\Core\LTIX;
  * There are three scopes of settings: link, context, and key
  * The link level settings are by far the most widely used.
  *
+ *
+ * In effect, this should be deprecated and folks should use the
+ * methods in each entity.
  */
 class Settings {
 
