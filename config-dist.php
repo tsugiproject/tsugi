@@ -276,9 +276,13 @@ $CFG->eventpushtime = 2;       // Maximum length in seconds to push events
 // Keep this false until the database tables are created or admin will break
 $CFG->sessions_in_db = false;
 if ( $CFG->sessions_in_db ) {
+    // Need a separate connection because of how PdoSessionHandler tweaks
+    // the connection and uses transactions as locks.
+    $session_save_pdo = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
+    $session_save_pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     session_set_save_handler(
         new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
-            \Tsugi\Core\LTIX::getConnection(),
+            $session_save_pdo,
             array('db_table' => $CFG->dbprefix . "sessions")
         )
     );
