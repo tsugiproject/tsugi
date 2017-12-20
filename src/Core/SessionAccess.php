@@ -57,6 +57,13 @@ class SessionAccess {
     /**
      * Pull a keyed variable from the original LTI post data in the current session with default
      */
+    public function ltiParameter($varname, $default=false) {
+        return $this->launch->ltiParameter($varname, $default);
+    }
+
+    /**
+     * Pull a keyed variable from the original LTI post data in the current session with default
+     */
     public function ltiRawParameter($varname, $default=false) {
         return $this->launch->ltiRawParameter($varname, $default);
     }
