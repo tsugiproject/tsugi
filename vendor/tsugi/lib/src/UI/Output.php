@@ -208,8 +208,9 @@ body {
     }
 
     function bodyStart($checkpost=true) {
-    // If we are in an iframe use different margins
+        global $CFG;
         ob_start();
+        // If we are in an iframe use different margins
 ?>
 </head>
 <body prefix="oer: http://oerschema.org">
@@ -229,6 +230,15 @@ if (window!=window.top) {
             echo("\n</pre>\n");
             error_log($dump);
             die_with_error_log("Unhandled POST request");
+        }
+
+        // Complain if this is a test key
+        $key_key = $this->ltiParameter('key_key');
+        if ( $key_key == '12345' &&
+            strpos($CFG->wwwroot, '://localhost') === false ) {
+            echo('<div style="background-color: orange; position: absolute; bottom: 5px; left: 5px;">');
+            echo(__('Test Key - Do not use for production'));
+            echo('</div>');
         }
 
         $HEAD_CONTENT_SENT = true;
