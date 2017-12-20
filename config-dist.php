@@ -271,14 +271,23 @@ $CFG->eventtime = 7*24*60*60;  // Length in seconds of the event buffer
 $CFG->eventpushcount = 50;     // Set to zero to suspend event push
 $CFG->eventpushtime = 2;       // Maximum length in seconds to push events
 
-// Storing sessions in a database - can be the same DB or another db
-// Make sure table exists if it is a different DB
-// Keep this false until the database tables are created or admin will break
+// Storing sessions in a database - Should be a different database or at least
+// a different connection since the PdoSessionHandler messes with how the connection
+// handles transactions for its own purposes.
+
+/*  CREATE TABLE sessions (
+        sess_id VARCHAR(128) NOT NULL PRIMARY KEY,
+        sess_data BLOB NOT NULL,
+        sess_time INTEGER UNSIGNED NOT NULL,
+        sess_lifetime MEDIUMINT NOT NULL,
+        created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at          TIMESTAMP NULL
+    ) COLLATE utf8_bin, ENGINE = InnoDB;
+*/
+// Keep this false until the main Tsugi tables are created or admin will break
 $CFG->sessions_in_db = false;
 if ( $CFG->sessions_in_db ) {
-    // Need a separate connection because of how PdoSessionHandler tweaks
-    // the connection and uses transactions as locks.
-    $session_save_pdo = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
+    // $session_save_pdo = new PDO($db_pdo, $db_dbuser, $db_dbpass);
     $session_save_pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     session_set_save_handler(
         new \Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler(
