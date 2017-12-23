@@ -422,7 +422,9 @@ class Lessons {
             }
 
             // LTIs logged in
-            if ( isset($module->lti) && isset($_SESSION['secret']) ) {
+            if ( isset($module->lti) && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
+            {
                 $ltis = $module->lti;
 
                 if ( count($ltis) > 1 ) echo("<li>Tools:<ul> <!-- start of ltis -->\n");
