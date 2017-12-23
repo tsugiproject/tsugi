@@ -43,6 +43,26 @@ class UTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(U::parse_rest_path('/a/b/c','/a/koseu.php'), array('/a','b','c'));
         $this->assertEquals(U::parse_rest_path('/py4e/lessons/intro?x=2','/py4e/koseu.php'), array('/py4e','lessons','intro'));
         $this->assertEquals(U::parse_rest_path('/py4e/lessons/intro/fred/sarah?x=2','/py4e/koseu.php'), array('/py4e','lessons','intro/fred/sarah'));
+        $this->assertEquals(U::parse_rest_path('/lessons/intro?x=2','/koseu.php'), array('','lessons','intro'));
+        $this->assertEquals(U::parse_rest_path('/lessons/intro/fred/sarah?x=2','/koseu.php'), array('','lessons','intro/fred/sarah'));
+
+        // Object version...
+        $path = U::rest_path('/py4e/lessons/intro?x=2','/py4e/koseu.php');
+        $this->assertEquals($path->parent,'/py4e');
+        $this->assertEquals($path->controller,'lessons');
+        $this->assertEquals($path->extra,'intro');
+        $path = U::rest_path('/py4e/lessons/intro/fred/sarah?x=2','/py4e/koseu.php');
+        $this->assertEquals($path->parent,'/py4e');
+        $this->assertEquals($path->controller,'lessons');
+        $this->assertEquals($path->extra,'intro/fred/sarah');
+        $path = U::rest_path('/lessons/intro?x=2','/koseu.php');
+        $this->assertEquals($path->parent,'');
+        $this->assertEquals($path->controller,'lessons');
+        $this->assertEquals($path->extra,'intro');
+        $path = U::rest_path('/lessons/intro/fred/sarah?x=2','/koseu.php');
+        $this->assertEquals($path->parent,'');
+        $this->assertEquals($path->controller,'lessons');
+        $this->assertEquals($path->extra,'intro/fred/sarah');
 
         $this->assertEquals(U::parse_rest_path('/a','/a/koseu.php'), false);
         $this->assertEquals(U::parse_rest_path('/a/','/a/koseu.php'), false);
