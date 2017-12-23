@@ -180,6 +180,7 @@ class U {
         if ( count($pieces) > 0 ) $controller = $pieces[0];
         if ( count($pieces) > 1 ) $extra = $pieces[1];
 
+        if ( $cwd == '/' ) $cwd = '';
         $retval = array($cwd, $controller, $extra);
         return $retval;
     }
@@ -188,7 +189,11 @@ class U {
         $retval = self::parse_rest_path($uri, $SERVER_SCRIPT_NAME);
         if ( ! is_array($retval) ) return false;
         $retobj = new \stdClass();
-        $retobj->parent = $retval[0];
+        if ( $retval[0] == '/' ) {
+            $retobj->parent = '';
+        } else {
+            $retobj->parent = $retval[0];
+        }
         $retobj->controller = $retval[1];
         $retobj->extra = $retval[2];
         return $retobj;
