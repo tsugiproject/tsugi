@@ -44,10 +44,10 @@ class Lessons {
 ?>
 <style>
     .card {
-    display: inline-block; 
+    display: inline-block;
     padding: 0.5em;
     margin: 12px;
-    border: 1px solid black;  
+    border: 1px solid black;
     height: 9em;
     overflow-y: hidden;
 }
@@ -56,7 +56,7 @@ class Lessons {
     overflow-y: hidden;
     text-overflow: ellipsis;
 }
-    
+
 #loader {
       position: fixed;
       left: 0px;
@@ -280,7 +280,7 @@ class Lessons {
 	    echo('></div>');
         }
     }
-    
+
     /*
      * render a lesson
      */
@@ -302,7 +302,7 @@ class Lessons {
 ?>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:200px" id="iframe-frame" 
+   <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <?php
@@ -442,77 +442,11 @@ class Lessons {
                         echo("\n</li>\n");
                         continue;
                     }
-                    $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
-                    $secret = false;
-                    if ( isset($_SESSION['secret']) ) {
-                        $secret = LTIX::decrypt_secret($_SESSION['secret']);
-                    }
 
-                    if ( isset($lti->resource_link_id) ) {
-                        $resource_link_id = $lti->resource_link_id;
-                    } else {
-                        $resource_link_id = 'resource:';
-                        if ( $this->anchor != null ) $resource_link_id .= $this->anchor . ':';
-                        if ( $this->position != null ) $resource_link_id .= $this->position . ':';
-                        if ( $count > 0 ) {
-                            $resource_link_id .= '_' . $count;
-                        }
-                        $resource_link_id .= md5($CFG->context_title);
-                    }
-                    $count++;
-                    $parms = array(
-                        'lti_message_type' => 'basic-lti-launch-request',
-                        'resource_link_id' => $resource_link_id,
-                        'resource_link_title' => $resource_link_title,
-                        'tool_consumer_info_product_family_code' => 'tsugi',
-                        'tool_consumer_info_version' => '1.1',
-                        'context_id' => $_SESSION['context_key'],
-                        'context_label' => $CFG->context_title,
-                        'context_title' => $CFG->context_title,
-                        'user_id' => $_SESSION['user_key'],
-                        'lis_person_name_full' => $_SESSION['displayname'],
-                        'lis_person_contact_email_primary' => $_SESSION['email'],
-                        'roles' => 'Learner'
-                    );
-                    if ( isset($_SESSION['avatar']) ) $parms['user_image'] = $_SESSION['avatar'];
-
-                    if ( isset($lti->custom) ) {
-                        foreach($lti->custom as $custom) {
-                            if ( isset($custom->value) ) {
-                                $parms['custom_'.$custom->key] = $custom->value;
-                            }
-                            if ( isset($custom->json) ) {
-                                $parms['custom_'.$custom->key] = json_encode($custom->json);
-                            }
-                        }
-                    }
-
-/*
-                    $return_url = $CFG->getCurrentUrl();
-                    if ( $this->anchor ) $return_url .= '?anchor='.urlencode($this->anchor);
-                    elseif ( $this->position ) $return_url .= '?index='.urlencode($this->position);
-*/
-                    $return_url = $_SERVER['REQUEST_URI'];
-                    $parms['launch_presentation_return_url'] = $return_url;
-
-                    $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
-                    if ( isset($_SESSION[$sess_key]) ) {
-                        // $parms['ext_tsugi_top_nav'] = $_SESSION[$sess_key];
-                    }
-
-                    $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
-                    $parms['ext_lti_form_id'] = $form_id;
-
-                    $endpoint = $lti->launch;
-                    $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
-                        "Finish Launch", $CFG->product_instance_guid, $CFG->servicename);
-
-                    $content = LTI::postLaunchHTML($parms, $endpoint, false /*debug */, '_pause');
+                    $rest_path = U::rest_path();
+                    $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $lti->resource_link_id;
                     $title = isset($lti->title) ? $lti->title : "Autograder";
-                    echo('<li><a href="#" onclick="document.'.$form_id.'.submit();return false">'.htmlentities($title).'</a></li>'."\n");
-                    echo("<!-- Start of content -->\n");
-                    print($content);
-                    echo("<!-- End of content -->\n");
+                    echo('<li><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
                 }
 
                 if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
