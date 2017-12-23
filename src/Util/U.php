@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\Util;
 
 /**
@@ -538,7 +539,7 @@ class U {
      *
      * 201711261315
      */
-    public static function conversion_time(string $time = "now")
+    public static function conversion_time($time="now")
     {
         $dt = new \DateTime($time);
         return $dt->format('Ymdhi');
