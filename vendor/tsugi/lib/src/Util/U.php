@@ -528,4 +528,15 @@ class U {
             return $result;
     }
 
+    /**
+     * Give the current time in the "conversion format"
+     *
+     * 201711261315
+     */
+    public static function conversion_time(string $time = "now")
+    {
+        $dt = new \DateTime($time);
+        return $dt->format('Ymdhi');
+    }
+
 }
