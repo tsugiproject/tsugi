@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#3c7cdda3953221720f2ed94d3952a35d9268d613",
+        "tsugi/lib": "dev-master#ff67b8cb02252feeaec73550606d16aa665649ee",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "symfony/translation": "v3.2.7",
@@ -14,7 +14,7 @@
 	"google/apiclient" : "v2.2.1",
         "google/apiclient-services" : "v0.36",
         "google/auth" : "v1.1.0",
-        "koseu/lib": "dev-master#ed36e4c27481b6113793d9222ad6dddee2af37e3"
+        "koseu/lib": "dev-master#8d81e8b4be467cf056a18c131728b75accc4cbc0"
     },
     "config": {
         "preferred-install": "dist"

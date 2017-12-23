@@ -184,6 +184,16 @@ class U {
         return $retval;
     }
 
+    public static function rest_path($uri=false, $SERVER_SCRIPT_NAME=false /* unit test only */) {
+        $retval = self::parse_rest_path($uri, $SERVER_SCRIPT_NAME);
+        if ( ! is_array($retval) ) return false;
+        $retobj = new \stdClass();
+        $retobj->parent = $retval[0];
+        $retobj->controller = $retval[1];
+        $retobj->extra = $retval[2];
+        return $retobj;
+    }
+
     public static function addSession($url) {
         if ( ini_get('session.use_cookies') != '0' ) return $url;
         if ( stripos($url, '&'.session_name().'=') > 0 ||
