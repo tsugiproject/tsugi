@@ -21,8 +21,18 @@ class PSTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($st->find('e'), 1);
         $this->assertEquals($st->find('z'), -1);
         $this->assertEquals($st->rfind('l'), 3);
-
         $this->assertEquals(PS::s('hello')->upper(), 'HELLO');
+
+        // Can compare in if test
+        if ( ! PS::s('hello') == 'hello' ) {
+            $this->assertEquals("PS::s('hello')", 'hello');
+        }
+        if ( ! (string) PS::s('hello') == 'hello' ) {
+            $this->assertEquals("(string) PS::s('hello')", 'hello');
+        }
+        if ( ! PS::s('hello')->get() == 'hello' ) {
+            $this->assertEquals("PS::s('hello')->get()", 'hello');
+        }
     }
 
 
