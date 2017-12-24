@@ -13,9 +13,11 @@ class Lessons {
 
     const ROUTE = '/lessons';
 
+    const REDIRECT = 'koseu_controllers_lessons';
+
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->get($prefix, 'Koseu\\Controllers\\Lessons::get');
-        $app->get($prefix.'/', 'Koseu\\Controllers\\Lessons::get');
+        $app->get($prefix.'/', 'Koseu\\Controllers\\Lessons::get')->bind(self::REDIRECT);
         $app->get($prefix.'/{anchor}', 'Koseu\\Controllers\\Lessons::get');
         $app->get($prefix.'_launch/{anchor}', 'Koseu\\Controllers\\Lessons::launch');
     }
@@ -55,27 +57,42 @@ class Lessons {
         global $CFG;
         $tsugi = $app['tsugi'];
 
+        $path = U::rest_path();
+        $redirect_path = U::addSession($path->parent);
+
         if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+            $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons)'));
+            return $app->redirect($redirect_path);
         }
 
         /// Load the Lesson
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         if ( ! $l ) {
-            die_with_error_log('Canot load lessons.');
+            $app->tsugiFlashError(__('Canot load lessons.'));
+            return $app->redirect($redirect_path);
         }
 
         $module = $l->getModuleByRlid($anchor);
         if ( ! $module ) {
-            die_with_error_log('Cannot find module resource link id');
+            $app->tsugiFlashError(__('Cannot find module resource link id'));
+            return $app->redirect($redirect_path);
         }
 
         $lti = $l->getLtiByRlid($anchor);
         if ( ! $lti ) {
-            die_with_error_log('Cannot find lti resource link id');
+            $app->tsugiFlashError(__('Cannot find lti resource link id'));
+            return $app->redirect($redirect_path);
         }
 
-        $path = U::rest_path();
+        // Check that the session has the minimums...
+        if ( isset($module->lti) && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
+        {
+            // All good
+        } else {
+            $app->tsugiFlashError(__('Missing session data required for launch'));
+            return $app->redirect($redirect_path);
+        }
 
         $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
         $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
