@@ -31,6 +31,10 @@ class PS {
         return $this->internal;
     }
 
+    public function get() {
+        return $this->internal;
+    }
+
     // http://stackoverflow.com/questions/834303/startswith-and-endswith-public static functions-in-php
     public function startsWith($needle) {
         // search backwards starting from haystack length characters from the end
