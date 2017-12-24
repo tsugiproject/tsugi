@@ -14,7 +14,7 @@
 	"google/apiclient" : "v2.2.1",
         "google/apiclient-services" : "v0.36",
         "google/auth" : "v1.1.0",
-        "koseu/lib": "dev-master#8d81e8b4be467cf056a18c131728b75accc4cbc0"
+        "koseu/lib": "dev-master#3d34b511a57b5d3ce85f021a78c5aceb61995f00"
     },
     "config": {
         "preferred-install": "dist"
