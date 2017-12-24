@@ -618,7 +618,7 @@ $('a').each(function (x) {
         if ( $this->session_get('id') ) {
             $submenu = new \Tsugi\UI\Menu();
             $submenu->addLink('Profile', $R.'profile')
-                ->addLink('Use this Service', $R . 'admin/key/index.php')
+                ->addLink('Settings/Access', $R . 'settings')
                 ->addLink('Logout', $R.'logout');
             $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);
         } else {
