@@ -21,6 +21,8 @@ class PSTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($st->find('e'), 1);
         $this->assertEquals($st->find('z'), -1);
         $this->assertEquals($st->rfind('l'), 3);
+
+        $this->assertEquals(PS::s('hello')->upper(), 'HELLO');
     }
 
 
