@@ -13,30 +13,37 @@ $PDOX = LTIX::getConnection();
 
 session_start();
 
-if ( ! U::get($_GET,'rlid') ) {
-    die_with_error_log('Error: rlid parameter is required');
-}
-
 if ( ! sanity_check() ) return;
+
+// If this is a direct-to tool launch.
+$endpoint = U::get($_GET,'lti');
+$endpoint_title = U::get($_GET, 'title', 'External Tool');
+if ( ! $endpoint ) {
+    if ( ! U::get($_GET,'rlid') ) {
+        die_with_error_log('Error: rlid parameter is required');
+    }
+
+    // Load the Lesson
+    $l = new Lessons($CFG->lessons);
+
+    /* object(stdClass)#25 (3) {
+        ["title"]=>
+        string(28) "Quiz: Request-Response Cycle"
+        ["launch"]=>
+        string(65) "http://localhost:8888/wa4e/mod/gift/?quiz=01-Request-Response.txt"
+        ["resource_link_id"]=>
+        string(15) "php_01_rrc_quiz"
+    } */
+    $lti = $l->getLtiByRlid($_GET['rlid']);
+    if ( ! $lti ) {
+        die_with_error_log('Invalid resource link id');
+    }
+    $endpoint = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
+    $endpoint_title = $lti->title;
+}
 
 $user_id = $_SESSION['id'];
 $key_id = $_SESSION['lti']['key_id'];
-
-// Load the Lesson
-$l = new Lessons($CFG->lessons);
-
-/* object(stdClass)#25 (3) {
-  ["title"]=>
-  string(28) "Quiz: Request-Response Cycle"
-  ["launch"]=>
-  string(65) "http://localhost:8888/wa4e/mod/gift/?quiz=01-Request-Response.txt"
-  ["resource_link_id"]=>
-  string(15) "php_01_rrc_quiz"
-} */
-$lti = $l->getLtiByRlid($_GET['rlid']);
-if ( ! $lti ) {
-    die_with_error_log('Invalid resource link id');
-}
 
 // Try access token from session when LTIX adds it.
 $accessTokenStr = GoogleClassroom::retrieve_instructor_token();
@@ -135,14 +142,13 @@ if ( $gc_course ) {
 
     // Insert a dumy resource link so we know the primary key of the link
     $resource_link_id_tmp = uniqid();
-    $endpoint = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
     $sql = "INSERT INTO {$CFG->dbprefix}lti_link
         ( link_key, link_sha256, title, context_id, path, created_at, updated_at ) VALUES
             ( :link_key, :link_sha256, :title, :context_id, :path, NOW(), NOW() )";
     $PDOX->queryDie($sql, array(
         ':link_key' => $resource_link_id_tmp,
         ':link_sha256' => lti_sha256($resource_link_id_tmp),
-        ':title' => $lti->title,
+        ':title' => $endpoint_title,
         ':context_id' => $context_id,
         ':path' => $endpoint
     ));
@@ -160,7 +166,7 @@ if ( $gc_course ) {
     // https://developers.google.com/classroom/guides/manage-coursework
     // https://developers.google.com/resources/api-libraries/documentation/classroom/v1/php/latest/class-Google_Service_Classroom_CourseWork.html
     $link = new Google_Service_Classroom_Link();
-    $link->setTitle($lti->title);
+    $link->setTitle($endpoint_title);
     $link->setUrl($launch_url);
     if ( isset($CFG->logo_url) ) {
         $link->setThumbnailUrl($CFG->logo_url);
@@ -170,7 +176,7 @@ if ( $gc_course ) {
     // var_dump($materials);
 
     $cw = new Google_Service_Classroom_CourseWork();
-    $cw->setTitle($lti->title);
+    $cw->setTitle($endpoint_title);
     $cw->setMaterials($materials);
     $cw->setMaxpoints(100);
     $cw->setWorkType("ASSIGNMENT");
@@ -195,7 +201,7 @@ if ( $gc_course ) {
     echo("<center><p>\n");
     echo(__('Success installing').'<br/>');
     echo('<strong>');
-    echo(htmlentities($lti->title));
+    echo(htmlentities($endpoint_title));
     echo('</strong>');
     if ( $gc_title ) {
         echo('<br/>'.__('in').' ');
@@ -220,7 +226,9 @@ $OUTPUT->bodyStart();
 Installing assignment in Google Classroom.
 </p>
 <form>
-<input type="hidden" name="rlid" value="<?= htmlentities($_GET['rlid']) ?>"/>
+<input type="hidden" name="rlid" value="<?= htmlentities(U::get($_GET,'rlid') ) ?>"/>
+<input type="hidden" name="lti" value="<?= htmlentities(U::get($_GET,'lti') ) ?>"/>
+<input type="hidden" name="title" value="<?= htmlentities(U::get($_GET,'title') ) ?>"/>
 <p>
 <select name="gc_course">
 <option value="">Please Select a Course</option>

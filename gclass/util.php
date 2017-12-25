@@ -20,10 +20,6 @@ function sanity_check() {
         die_with_error_log('Error: Session is missing key_id');
     }
 
-    if ( ! isset($CFG->lessons) ) {
-        die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
-    }
-
     return true;
 }
 

@@ -1,5 +1,7 @@
 <?php
 
+use \Tsugi\Util\U;
+
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once "../admin/admin_util.php";
@@ -30,6 +32,11 @@ $OUTPUT->header();
     display: none;
 }
 </style>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
+   <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
+    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
+</div>
 <?php
 
 $registrations = findAllRegistrations();
@@ -113,7 +120,16 @@ if ( isset($_GET['install']) ) {
         }
         echo('<p><strong>'.htmlent_utf8($title)."</strong></p>");
         echo('<p>'.htmlent_utf8($text)."</p>\n");
-        echo('<center><a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a></center>');
+        echo('<center><a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a> ');
+
+        $ltiurl = $tool['url'];
+        if ( isset($_SESSION['gc_courses']) ) {
+            echo('<a href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
+            echo('" title="Install in Classroom" target="iframe-frame"'."\n");
+            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
+            echo('<img height=16 width=16 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+        }
+        echo('</center>');
         echo("</div>\n");
 
         $count++;
@@ -123,6 +139,7 @@ if ( isset($_GET['install']) ) {
     }
 
 echo("</div>\n");
+// echo("<pre>\n");print_r($tool);echo("</pre>\n");
 
 $OUTPUT->footerStart();
 // https://github.com/LinZap/jquery.waterfall
