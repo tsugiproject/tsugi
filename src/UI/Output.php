@@ -605,7 +605,7 @@ $('a').each(function (x) {
             $set->addLeft('Developer', $R.'dev');
         }
         if ( $this->session_get('id') || $CFG->DEVELOPER ) {
-            $set->addLeft('Admin', $R.'admin/index.php');
+            $set->addLeft('Admin', $R.'admin');
         }
 
         $submenu = new \Tsugi\UI\Menu();
@@ -618,8 +618,11 @@ $('a').each(function (x) {
         if ( $this->session_get('id') ) {
             $submenu = new \Tsugi\UI\Menu();
             $submenu->addLink('Profile', $R.'profile')
-                ->addLink('Settings/Access', $R . 'settings')
-                ->addLink('Logout', $R.'logout');
+                ->addLink('Settings/Access', $R . 'settings');
+            if ( isset($CFG->google_classroom_secret) ) {
+                $submenu->addLink('Google Classroom', $R.'gclass/login');
+            }
+            $submenu->addLink('Logout', $R.'logout');
             $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);
         } else {
             $set->addRight('Login', $R.'login');
