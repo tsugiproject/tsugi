@@ -196,6 +196,8 @@ class U {
         }
         $retobj->controller = $retval[1];
         $retobj->extra = $retval[2];
+        $retobj->current = $retobj->parent . '/' . $retobj->controller;
+        $retobj->full = $retobj->parent . '/' . $retobj->controller . '/' . $retobj->extra;
         return $retobj;
     }
 
