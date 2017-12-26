@@ -32,5 +32,6 @@ function settings_status($key_count) {
             $retval .= 'log in to <a href="'.$CFG->wwwroot.'/gclass/login">Google Classroom</a>';
         }
         $retval .= " to use these tools.\n";
+        return $retval;
     }
 }
