@@ -59,6 +59,7 @@ $install = $rest_path->extra;
 
     $title = $tool['name'];
     $text = $tool['description'];
+    $ltiurl = $tool['url'];
     $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
     $icon = false;
     if ( $fa_icon !== false ) {
@@ -75,6 +76,13 @@ $install = $rest_path->extra;
     $path = $tool['url'];
 
     echo('<a href="'.$rest_path->parent.'" class="btn btn-default" role="button">Back to Store</a>');
+    echo(' ');
+    if ( isset($_SESSION['gc_courses']) ) {
+            echo('<a href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
+            echo('" title="Install in Classroom" target="iframe-frame"'."\n");
+            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
+            echo('<img height=32 width=32 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+    }
     echo(' ');
     echo('<a href="'.$rest_path->parent.'/test/'.urlencode($install).'" class="btn btn-default" role="button">Test</a> ');
 
