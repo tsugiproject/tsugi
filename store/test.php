@@ -1,6 +1,8 @@
 <?php
 
 use \Tsugi\Util\U;
+use \Tsugi\Util\LTI;
+use \Tsugi\Core\LTIX;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
@@ -10,6 +12,7 @@ require_once("../dev/dev-data.php");
 session_start();
 
 $p = $CFG->dbprefix;
+LTIX::getConnection();
 
 $OUTPUT->header();
 ?>
@@ -47,6 +50,21 @@ if ( $identity ) foreach( $lms_identities as $lms_identity => $lms_data ) {
     }
 }
 
+// Load up the key and secret.
+$key = '12345';
+$secret = false;
+if ( is_string($CFG->DEVELOPER) ) $key = $CFG->DEVELOPER;
+$row = $PDOX->rowDie(
+    "SELECT secret FROM {$CFG->dbprefix}lti_key WHERE key_key = :DKEY",
+    array(':DKEY' => $key));
+$secret = $row ? $row['secret'] : false;
+if ( $secret === false ) {
+    $_SESSION['error'] = 'Developer mode not properly configured';
+    header('Location: '.$CFG->wwwroot);
+    return;
+}
+
+
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
@@ -83,8 +101,7 @@ $install = $rest_path->extra;
     echo("</center>\n");
 ?>
 <ul class="nav nav-tabs">
-  <li class="active"><a href="#test" onclick="alert('yada');" data-toggle="tab" aria-expanded="true">Test</a></li>
-  <li><a href="#debug" data-toggle="tab" aria-expanded="false">Debug Data</a></li>
+  <li class="active"><a href="#test" onclick="console.log('yada');" data-toggle="tab" aria-expanded="true">Test</a></li>
   <li><a href="#identity" data-toggle="tab" aria-expanded="false">
                     <?php if ( strlen($lmsdata['lis_person_name_full']) > 0 ) echo($lmsdata['lis_person_name_full']);
                         else echo('Anonymous');
@@ -93,6 +110,7 @@ $install = $rest_path->extra;
         </a>
       </li>
   <!-- <li><a href="#grades" data-toggle="tab" aria-expanded="false">Grades</a></li> -->
+  <li><a href="#debug" data-toggle="tab" aria-expanded="false">Debug Data</a></li>
   <li><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>" role="button">Back to Details</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
@@ -104,15 +122,55 @@ $install = $rest_path->extra;
               <ul>
                 <li><a href="<?= $rest_path->full ?>?identity=instructor">Jane Instructor</a></li>
                 <li><a href="<?= $rest_path->full ?>?identity=learner1">Sue Student</a></li>
-                <li><a href="<?= $rest_path->full ?>?identity=learner2">Ed Student</a></li>
+                <li><a href="<?= $rest_path->full ?>?identity=learner2">Ed Student</a> (Prefers ES-es)</li>
                 <li><a href="<?= $rest_path->full ?>?identity=learner3">Anonymous</a></li>
               </ul>
   </div>
   <div class="tab-pane fade active in" id="test">
-    TEST
+<?php
+$parms = $lmsdata;
+// Cleanup parms before we sign
+foreach( $parms as $k => $val ) {
+    if (strlen(trim($parms[$k]) ) < 1 ) {
+       unset($parms[$k]);
+    }
+}
+
+// Add oauth_callback to be compliant with the 1.0A spec
+$parms["oauth_callback"] = "about:blank";
+$outcomes = false;
+if ( $outcomes ) {
+    $parms['lis_outcome_service_url'] = $outcomes;
+}
+
+$parms['launch_presentation_return_url'] = $rest_path->current . '/return';
+
+// Use the actual direct URL to the launch
+$endpoint = $tool['url'];
+$endpoint = U::remove_relative_path($endpoint);
+$tool_consumer_instance_guid = $lmsdata['tool_consumer_instance_guid'];
+$tool_consumer_instance_description = $lmsdata['tool_consumer_instance_description'];
+
+$parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
+        "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
+
+ksort($parms);
+$content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']),
+       "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency");
+print($content);
+?>
   </div>
   <div class="tab-pane fade" id="debug">
-    DEBUG
+    <pre>
+    Launch Parameters:
+    <?php print_r($parms) ?>
+    <hr/>
+    Base String:
+    <?= htmlentities(LTI::getLastOAuthBodyBaseString()) ?>
+    <hr/>
+    Tool Data Within Tsugi: 
+    <?php print_r($tool); ?>
+    </pre>
   </div>
 </div>
 <?php

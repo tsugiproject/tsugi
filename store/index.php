@@ -153,7 +153,6 @@ if ( ! U::get($_SESSION,'id') ) {
         echo('<p><strong>'.htmlent_utf8($title)."</strong></p>");
         echo('<p>'.htmlent_utf8($text)."</p>\n");
         echo('<center><a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a> ');
-        echo('<a href="test/'.urlencode($name).'" class="btn btn-default" role="button">Test</a> ');
 
         $ltiurl = $tool['url'];
         if ( isset($_SESSION['gc_courses']) ) {
