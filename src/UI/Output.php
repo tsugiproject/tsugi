@@ -629,7 +629,7 @@ $('a').each(function (x) {
             $set->addRight('Login', $R.'login');
         }
 
-        $set->addRight('<img style="width:4em;" src="'. $CFG->staticroot . '/img/logos/tsugi-logo.png' .'">', $R.'about');
+        $set->addRight('<img style="width:4em; background-color: white; border-radius: 10px; padding: 5px;" src="'. $CFG->staticroot . '/img/logos/tsugi-logo.png' .'">', $R.'about');
         return $set;
     }
 
