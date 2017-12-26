@@ -131,8 +131,18 @@ function findAllRegistrations($folders=false)
             if ( $fa_icon !== false ) {
                 $REGISTER_LTI2['icon'] = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
             }
-            $url = str_replace('/register.php','/',$url);
-            $REGISTER_LTI2['url'] = $url;
+            $launch_url = str_replace('/register.php','/',$url);
+            $REGISTER_LTI2['url'] = $launch_url;
+
+            $screen_shots = U::get($REGISTER_LTI2, 'screen_shots');
+            if ( is_array($screen_shots) && count($screen_shots) > 0 ) {
+                $new = array();
+                foreach($screen_shots as $screen_shot ) {
+                    $new[] = str_replace('/register.php','/'.$screen_shot, $url);
+                }
+                $REGISTER_LTI2['screen_shots'] = $new;
+            }
+
             $tools[$key] = $REGISTER_LTI2;
         }
     }

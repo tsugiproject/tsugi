@@ -12,26 +12,8 @@ $p = $CFG->dbprefix;
 
 $OUTPUT->header();
 ?>
-<style>
-    .card {
-        border: 1px solid black;
-        margin: 5px;
-        padding: 5px;
-    }
-#loader {
-      position: fixed;
-      left: 0px;
-      top: 0px;
-      width: 100%;
-      height: 100%;
-      background-color: white;
-      margin: 0;
-      z-index: 100;
-}
-#XbasicltiDebugToggle {
-    display: none;
-}
-</style>
+<link rel="stylesheet" type="text/css"
+    href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css"/>
 <?php
 
 $registrations = findAllRegistrations();
@@ -46,6 +28,17 @@ if ( ! ( $registrations ) ) {
     $OUTPUT->footer();
     return;
 }
+
+?>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
+   <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
+    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
+</div>
+<div id="image-dialog" title="Image Dialog" style="display: none;">
+    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" style="width:100%" id="popup-image">
+</div>
+<?php
 
 $rest_path = U::rest_path();
 $install = $rest_path->extra;
@@ -86,6 +79,31 @@ $install = $rest_path->extra;
     echo(' ');
     echo('<a href="'.$rest_path->parent.'/test/'.urlencode($install).'" class="btn btn-default" role="button">Test</a> ');
 
+    $screen_shots = U::get($tool, 'screen_shots');
+    if ( is_array($screen_shots) && count($screen_shots) > 0 ) {
+        echo("<hr/>\n");
+        echo('<div class="bxslider">');
+        foreach($screen_shots as $screen_shot ) {
+            echo('<div><img onclick="$(\'#popup-image\').attr(\'src\',this.src);showModal(this.title,\'image-dialog\');" src="'.$screen_shot.'"></div>'."\n");
+        }
+    }
+
     echo("</center>\n");
     echo("<!-- \n");print_r($tool);echo("\n-->\n");
-    $OUTPUT->footer();
+    $OUTPUT->footerStart();
+?>
+<script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js">
+</script>
+<script>
+$(document).ready(function() {
+    $('.bxslider').bxSlider({
+        useCSS: false,
+        adaptiveHeight: false,
+        slideWidth: "240px",
+        infiniteLoop: false,
+        maxSlides: 3
+    });
+});
+</script>
+<?php
+    $OUTPUT->footerEnd();
