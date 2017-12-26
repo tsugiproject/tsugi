@@ -120,11 +120,11 @@ if ( ! U::get($_SESSION,'id') ) {
     echo("<p>You need to ");
     if ( $CFG->providekeys ) {
         echo('have an approved <a href="'.$CFG->wwwroot.'/settings">LTI key</a>');
-        if ( $CFG->google_classroom_secret ) {
+        if ( isset($CFG->google_classroom_secret) ) {
             echo(" or\n");
         }
     }
-    if ( $CFG->google_classroom_secret ) {
+    if ( isset($CFG->google_classroom_secret) ) {
         echo('log in to <a href="'.$CFG->wwwroot.'/gclass/login">Google Classroom</a>');
     }
     echo(" to use these tools.\n");
