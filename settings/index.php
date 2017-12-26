@@ -16,6 +16,18 @@ LTIX::getConnection();
 
 $key_count = settings_key_count();
 
+$sql = "SELECT count(C.context_id)
+        FROM {$CFG->dbprefix}lti_context AS C
+        LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
+        WHERE C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID ) 
+         OR C.user_id = :UID";
+
+$course_count = 0;
+if ( U::get($_SESSION, 'id') ) {
+    $row = $PDOX->rowDie($sql, array(':UID' => $_SESSION['id']));
+    $course_count = U::get($row, 'count', 0);
+}
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -28,21 +40,37 @@ $OUTPUT->topNav();
 <p>This page is for instructors to manage their courses and the use of these
 applications in their courses.
 </p>
-<p>
-<?php echo(settings_status($key_count)) ?>
-</p>
 <ul>
 <?php if ( $CFG->providekeys ) { ?>
-<li><a href="key">Manage LMS Access Keys</a>
-( <?= $key_count ?> approved key(s) )
+<li><p><a href="key">Manage LMS Access Keys</a>
+(<?= $key_count ?>)<br/>
+These tools can be integrated into Learning Management Systems
+that support the IMS Learning Tools Interoperability specification.
+</p>
 </li>
 <?php } ?>
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
-<li><a href="../gclass/login">Connect to Google Classroom</a>
-( <?= count(U::get($_SESSION,'gc_courses')) ?> connected course(s) )
+<li><p><a href="../gclass/login">Connect to Google Classroom</a>
+<?php
+if ( isset($_SESSION['gc_courses']) ) {
+    echo('(Connected to '.count(U::get($_SESSION,'gc_courses')).' classroom(s))');
+} else {
+    echo('(Not connected)');
+}
+?>
+<p>
+These 
+<?php
+if ( isset($_SESSION['gc_courses']) ) {
+    echo('<a href="../store">tools</a>');
+} else {
+    echo('tools');
+}
+?>
+ can be used in Google Classroom courses.
+</p>
 </li>
 <?php } ?>
-<li><a href="context/">View My Contexts (Courses)</a></li>
 <!--
 <li>
   <a href="recent" title="Recent Logins" target="iframe-frame"
@@ -50,6 +78,10 @@ applications in their courses.
   Recent Logins 
   </a></li>
 -->
+<li><p><a href="context/">View My Contexts (Courses)</a>
+(<?= $course_count ?>)
+</p>
+</li>
 </ul>
 <p>If you are an administrator for the overall site, you
 can visit the administrator dashboard.
