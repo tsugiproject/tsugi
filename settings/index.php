@@ -37,7 +37,7 @@ applications in their courses.
 ( <?= $key_count ?> approved key(s) )
 </li>
 <?php } ?>
-<?php if ( $CFG->google_classroom_secret ) { ?>
+<?php if ( isset($CFG->google_classroom_secret) ) { ?>
 <li><a href="../gclass/login">Connect to Google Classroom</a>
 ( <?= count(U::get($_SESSION,'gc_courses')) ?> connected courses )
 </li>
