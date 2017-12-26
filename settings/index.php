@@ -39,7 +39,7 @@ applications in their courses.
 <?php } ?>
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
 <li><a href="../gclass/login">Connect to Google Classroom</a>
-( <?= count(U::get($_SESSION,'gc_courses')) ?> connected courses )
+( <?= count(U::get($_SESSION,'gc_courses')) ?> connected course(s) )
 </li>
 <?php } ?>
 <li><a href="context/">View My Contexts (Courses)</a></li>
