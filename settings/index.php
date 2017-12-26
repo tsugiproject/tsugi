@@ -19,7 +19,8 @@ $OUTPUT->topNav();
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <h1>My Settings</h1>
-<p>This page is for teachers using this site in their courses.
+<p>This page is for teachers using this site in their courses.  If you
+are the administrator of this site, you can visit the administrator page.
 </p>
 <ul>
 <?php if ( $CFG->providekeys ) { ?>

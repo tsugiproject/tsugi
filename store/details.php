@@ -38,6 +38,7 @@ $registrations = findAllRegistrations();
 if ( count($registrations) < 1 ) $registrations = false;
 
 $OUTPUT->bodyStart();
+$OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 if ( ! ( $registrations ) ) {
@@ -76,5 +77,5 @@ $install = $rest_path->extra;
     echo('<a href="'.$rest_path->parent.'" class="btn btn-default" role="button">Back to Store</a>');
 
     echo("</center>\n");
-    echo("<pre>\n");print_r($tool);echo("</pre>\n");
+    echo("<!-- \n");print_r($tool);echo("\n-->\n");
     $OUTPUT->footer();

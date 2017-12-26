@@ -600,13 +600,8 @@ $('a').each(function (x) {
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
         $set->setHome($CFG->servicename, $CFG->apphome);
+        $set->addLeft('Tools', $R.'store');
 
-        if ( $CFG->DEVELOPER ) {
-            $set->addLeft('Developer', $R.'dev');
-        }
-        if ( $this->session_get('id') || $CFG->DEVELOPER ) {
-            $set->addLeft('Admin', $R.'admin');
-        }
 
         $submenu = new \Tsugi\UI\Menu();
         $submenu->addLink('IMS LTI 1.1 Spec', 'http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html')
@@ -621,6 +616,12 @@ $('a').each(function (x) {
                 ->addLink('Settings/Access', $R . 'settings');
             if ( isset($CFG->google_classroom_secret) ) {
                 $submenu->addLink('Google Classroom', $R.'gclass/login');
+            }
+            if ( U::get($_COOKIE, 'adminmenu') ) {
+                $submenu->addLink('Admin', $R.'admin');
+            }
+            if ( $CFG->DEVELOPER ) {
+                $submenu->addLink('Developer', $R.'dev');
             }
             $submenu->addLink('Logout', $R.'logout');
             $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);

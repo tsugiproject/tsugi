@@ -1,12 +1,15 @@
 <?php
 
 use \Tsugi\Util\U;
+use \Tsugi\Core\LTIX;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once "../admin/admin_util.php";
 
 session_start();
+
+LTIX::getConnection();
 
 $p = $CFG->dbprefix;
 
@@ -32,18 +35,27 @@ $OUTPUT->header();
     display: none;
 }
 </style>
+<?php
+
+$registrations = findAllRegistrations();
+if ( count($registrations) < 1 ) $registrations = false;
+
+$sql = "SELECT count(key_id) AS count
+        FROM {$CFG->dbprefix}lti_key
+        WHERE user_id = :UID";
+$row = $PDOX->rowDie($sql, array(':UID' => $_SESSION['id']));
+$key_count = U::get($row, 'count', 0);
+
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
+?>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
    <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <?php
-
-$registrations = findAllRegistrations();
-if ( count($registrations) < 1 ) $registrations = false;
-
-$OUTPUT->bodyStart();
-$OUTPUT->flashMessages();
 
 if ( ! ( $registrations ) ) {
     echo("<p>No tools found.</p>");
@@ -97,6 +109,21 @@ if ( isset($_GET['install']) ) {
     $OUTPUT->footer();
     return;
 } 
+
+if ( ! U::get($_SESSION,'gc_courses') && $key_count < 1 && 
+    ( isset($CFG->providekeys) || isset($CFG->google_classroom_secret) ) ) {
+    echo("<p>You need to ");
+    if ( $CFG->providekeys ) {
+        echo('have an approved <a href="'.$CFG->wwwroot.'/settings">LTI key</a>');
+        if ( $CFG->google_classroom_secret ) {
+            echo(" or\n");
+        }
+    }
+    if ( $CFG->google_classroom_secret ) {
+        echo('log in to <a href="'.$CFG->wwwroot.'/gclass/login">Google Classroom</a>');
+    }
+    echo(" to use these tools.\n");
+}
 
 // Render the tools in the site
     echo('<div id="box">'."\n");
