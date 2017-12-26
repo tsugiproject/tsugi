@@ -75,6 +75,8 @@ $install = $rest_path->extra;
     $path = $tool['url'];
 
     echo('<a href="'.$rest_path->parent.'" class="btn btn-default" role="button">Back to Store</a>');
+    echo(' ');
+    echo('<a href="'.$rest_path->parent.'/test/'.urlencode($install).'" class="btn btn-default" role="button">Test</a> ');
 
     echo("</center>\n");
     echo("<!-- \n");print_r($tool);echo("\n-->\n");

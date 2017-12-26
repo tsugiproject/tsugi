@@ -43,8 +43,11 @@ if ( count($registrations) < 1 ) $registrations = false;
 $sql = "SELECT count(key_id) AS count
         FROM {$CFG->dbprefix}lti_key
         WHERE user_id = :UID";
-$row = $PDOX->rowDie($sql, array(':UID' => $_SESSION['id']));
-$key_count = U::get($row, 'count', 0);
+$key_count = 0;
+if ( U::get($_SESSION, 'id') ) {
+    $row = $PDOX->rowDie($sql, array(':UID' => $_SESSION['id']));
+    $key_count = U::get($row, 'count', 0);
+}
 
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -110,7 +113,9 @@ if ( isset($_GET['install']) ) {
     return;
 } 
 
-if ( ! U::get($_SESSION,'gc_courses') && $key_count < 1 && 
+if ( ! U::get($_SESSION,'id') ) {
+    echo("<p>You must log in to use these tools in your learning management system or Google Classroom.</p>\n");
+} else if ( ! U::get($_SESSION,'gc_courses') && $key_count < 1 && 
     ( isset($CFG->providekeys) || isset($CFG->google_classroom_secret) ) ) {
     echo("<p>You need to ");
     if ( $CFG->providekeys ) {
@@ -148,6 +153,7 @@ if ( ! U::get($_SESSION,'gc_courses') && $key_count < 1 &&
         echo('<p><strong>'.htmlent_utf8($title)."</strong></p>");
         echo('<p>'.htmlent_utf8($text)."</p>\n");
         echo('<center><a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a> ');
+        echo('<a href="test/'.urlencode($name).'" class="btn btn-default" role="button">Test</a> ');
 
         $ltiurl = $tool['url'];
         if ( isset($_SESSION['gc_courses']) ) {

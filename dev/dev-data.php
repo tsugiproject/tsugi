@@ -70,3 +70,10 @@ $lmsdata = array(
       "tool_consumer_instance_description" => "University of Information"
       // 'launch_presentation_return_url' => $cur_url
       );
+
+$lms_identities = array(
+    'learner1' => $learner1,
+    'learner2' => $learner2,
+    'learner3' => $learner3,
+    'instructor' => $instdata
+);
