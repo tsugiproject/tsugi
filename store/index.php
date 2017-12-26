@@ -6,6 +6,7 @@ use \Tsugi\Core\LTIX;
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once "../admin/admin_util.php";
+require_once "../settings/settings_util.php";
 
 session_start();
 
@@ -40,14 +41,7 @@ $OUTPUT->header();
 $registrations = findAllRegistrations();
 if ( count($registrations) < 1 ) $registrations = false;
 
-$sql = "SELECT count(key_id) AS count
-        FROM {$CFG->dbprefix}lti_key
-        WHERE user_id = :UID";
-$key_count = 0;
-if ( U::get($_SESSION, 'id') ) {
-    $row = $PDOX->rowDie($sql, array(':UID' => $_SESSION['id']));
-    $key_count = U::get($row, 'count', 0);
-}
+$key_count = settings_key_count();
 
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -113,22 +107,8 @@ if ( isset($_GET['install']) ) {
     return;
 } 
 
-if ( ! U::get($_SESSION,'id') ) {
-    echo("<p>You must log in to use these tools in your learning management system or Google Classroom.</p>\n");
-} else if ( ! U::get($_SESSION,'gc_courses') && $key_count < 1 && 
-    ( isset($CFG->providekeys) || isset($CFG->google_classroom_secret) ) ) {
-    echo("<p>You need to ");
-    if ( $CFG->providekeys ) {
-        echo('have an approved <a href="'.$CFG->wwwroot.'/settings">LTI key</a>');
-        if ( isset($CFG->google_classroom_secret) ) {
-            echo(" or\n");
-        }
-    }
-    if ( isset($CFG->google_classroom_secret) ) {
-        echo('log in to <a href="'.$CFG->wwwroot.'/gclass/login">Google Classroom</a>');
-    }
-    echo(" to use these tools.\n");
-}
+// Tell them what is going on...
+echo(settings_status($key_count));
 
 // Render the tools in the site
     echo('<div id="box">'."\n");

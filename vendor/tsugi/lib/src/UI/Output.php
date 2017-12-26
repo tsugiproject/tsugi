@@ -601,9 +601,11 @@ $('a').each(function (x) {
         $set = new \Tsugi\UI\MenuSet();
         $set->setHome($CFG->servicename, $CFG->apphome);
         $set->addLeft('Tools', $R.'store');
-
-
+        if ( $this->session_get('id') ) {
+                $set->addLeft('Settings', $R . 'settings');
+        }
         $submenu = new \Tsugi\UI\Menu();
+
         $submenu->addLink('IMS LTI 1.1 Spec', 'http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html')
             ->addLink('IMS LTI 2.0 Spec', 'http://www.imsglobal.org/lti/ltiv2p0/ltiIMGv2p0.html')
             ->addLink('Tsugi Project Site', 'https://www.tsugi.org/');
@@ -612,8 +614,7 @@ $('a').each(function (x) {
 
         if ( $this->session_get('id') ) {
             $submenu = new \Tsugi\UI\Menu();
-            $submenu->addLink('Profile', $R.'profile')
-                ->addLink('Settings/Access', $R . 'settings');
+            $submenu->addLink('Profile', $R.'profile');
             if ( isset($CFG->google_classroom_secret) ) {
                 $submenu->addLink('Google Classroom', $R.'gclass/login');
             }
