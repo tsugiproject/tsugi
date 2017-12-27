@@ -10,6 +10,8 @@ require_once "../settings/settings_util.php";
 
 session_start();
 
+$_SESSION['login_return'] = $CFG->wwwroot . '/store';
+
 LTIX::getConnection();
 
 $p = $CFG->dbprefix;
