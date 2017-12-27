@@ -94,7 +94,7 @@ $install = $rest_path->extra;
     }
 
     if ( $fa_icon ) {
-        echo('<i class="fa '.$fa_icon.' fa-3x" style="color: #1894C7; float:right; margin: 2px"></i>');
+        echo('<i class="hidden-xs fa '.$fa_icon.' fa-3x" style="color: #1894C7; float:right; margin: 2px"></i>');
     }
     echo('<center>');
     echo("<b>".htmlent_utf8($title)."</b>\n");
@@ -110,12 +110,13 @@ $install = $rest_path->extra;
         </a>
       </li>
   <!-- <li><a href="#grades" data-toggle="tab" aria-expanded="false">Grades</a></li> -->
-  <li><a href="#debug" data-toggle="tab" aria-expanded="false">Debug Data</a></li>
-  <li><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>" role="button">Back to Details</a></li>
+  <li><a href="#debug" data-toggle="tab" aria-expanded="false">Debug</a></li>
+  <li class="hidden-xs"><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>" role="button">Back to Details</a></li>
+  <li class="visible-xs"><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>" role="button">Details</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade" id="identity">
-    <p>You have three four identities that you can use to thest the tool.
+    <p>You have three four identities that you can use to test the tool.
     There is an instructor, two students, and an anonymous student.   You can quickly use this screen 
     to switch back and forth between these identities to test tool functionality under the differet roles.
     </p>
