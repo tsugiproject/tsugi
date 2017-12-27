@@ -83,22 +83,6 @@ echo('<a href="'.$rest_path->parent.'/test/'.urlencode($install).'" class="btn b
 echo("</p>\n");
 
 echo("<ul>\n");
-if ( $CFG->providekeys || isset($CFG->google_classroom_secret) ) {
-    echo('<li><p>');
-    echo(__('Integration:'));
-    echo(' ');
-    if ( $CFG->providekeys ) {
-        echo("IMS Learning Tools Interoperability&reg (LTI)");
-        if ( isset($CFG->google_classroom_secret) ) {
-            echo(" and");
-        }
-    }
-    if ( isset($CFG->google_classroom_secret) ) {
-        echo(" Google Classroom");
-    }
-    echo("</p></li>\n");
-}
-
 if ( isset($CFG->privacy_url) ) {
     echo('<li><p><a href="'.$CFG->privacy_url.'"
        target="_blank">'.__('Privacy Policy').'</a></p></li>'."\n");
@@ -127,20 +111,17 @@ if ( is_array($placements) && in_array('homework_submission', $placements) ) {
     echo(__('Sends grades back to learning system'));
     echo("</p></li>\n");
 }
-if ( is_array($placements) &&
-    (in_array('editor_button', $placements) || in_array('resource_selection',$placements)) ) {
-    echo('<li><p>');
-    echo(__('Supports'));
-    echo(' IMS Content Item &reg;');
-    echo("</p></li>\n");
-}
 $analytics = U::get($tool, 'analytics');
 if ( is_array($analytics) && in_array('internal', $analytics) ) {
     echo('<li><p>');
     echo(__('Has internal analytics visualization'));
     echo("</p></li>\n");
 }
-
+if ( $CFG->launchactivity ) { 
+    echo('<li><p>');
+    echo(__('Can send analytics to learning record store.'));
+    echo("</p></li>\n");
+}
 if ( is_array(U::get($tool, 'languages')) ) {
     echo('<li><p>');
     echo(__('Languages:'));
@@ -157,17 +138,43 @@ if ( isset($CFG->sla_url) ) {
     echo('<li><p><a href="'.$CFG->sla_url.'"
        target="_blank">'.__('Service Level Agreement').'</a></p></li>'."\n");
 }
-$source_url = U::get($tool, 'source_url');
-if ( is_string($source_url) ) {
-    echo('<li><p><a href="'.$source_url.'"
-       target="_blank">'.__('Source code').'</a></p></li>'."\n");
-}
 if ( is_string(U::get($tool, 'license')) ) {
     echo('<li><p>');
     echo(__('License:'));
     echo(' ');
     echo(htmlentities(U::get($tool, 'license')));
 }
+$source_url = U::get($tool, 'source_url');
+if ( is_string($source_url) ) {
+    echo('<li><p><a href="'.$source_url.'"
+       target="_blank">'.__('Source code').'</a></p></li>'."\n");
+}
+
+if ( isset($CFG->google_classroom_secret) ) {
+    echo('<li><p>');
+    echo(__('Supports'));
+    echo(" Google Classroom");
+    echo("</p></li>\n");
+}
+
+$launch_url = U::get($tool, 'url');
+if ( $CFG->providekeys ) {
+    echo('<li><p>');
+    echo(__('Supports'));
+    echo(" IMS Learning Tools Interoperability&reg (LTI)");
+    echo(' <input type="text" value="'.$launch_url.'"/>');
+    echo("</p></li>\n");
+}
+
+if ( is_array($placements) &&
+    (in_array('editor_button', $placements) || in_array('resource_selection',$placements)) ) {
+    echo('<li><p>');
+    echo(__('Supports'));
+    echo(' IMS Content Item&reg;');
+    echo(' <input type="text" value="'.$CFG->wwwroot.'/lti/store"/>');
+    echo("</p></li>\n");
+}
+
 echo("</ul>\n");
 
 echo("<!-- .col-sm-4--></div>\n");
