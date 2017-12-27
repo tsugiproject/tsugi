@@ -84,7 +84,7 @@ $install = $rest_path->extra;
         echo("<hr/>\n");
         echo('<div class="bxslider">');
         foreach($screen_shots as $screen_shot ) {
-            echo('<div><img onclick="$(\'#popup-image\').attr(\'src\',this.src);showModal(this.title,\'image-dialog\');" src="'.$screen_shot.'"></div>'."\n");
+            echo('<div><img title="'.htmlentities($title).'" onclick="$(\'#popup-image\').attr(\'src\',this.src);showModal(this.title,\'image-dialog\');" src="'.$screen_shot.'"></div>'."\n");
         }
     }
 
