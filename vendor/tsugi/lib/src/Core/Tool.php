@@ -19,7 +19,7 @@ class Tool {
 
     public function run()
     {
-        global $CFG, $TSUGI_LAUNCH;
+        global $CFG, $TSUGI_LAUNCH, $PDOX;
         global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
 
         // Check for a few special cases
