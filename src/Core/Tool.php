@@ -17,7 +17,11 @@ class Tool {
         // TODO
     }
 
-    public function run() {
+    public function run()
+    {
+        global $CFG, $TSUGI_LAUNCH;
+        global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
+
         // Check for a few special cases
         $rest_path = U::rest_path();
         if ( file_exists('register.php') && $rest_path->controller == 'register.json') {
