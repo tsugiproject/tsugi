@@ -3,6 +3,7 @@
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 
 \Tsugi\Core\LTIX::getConnection();
@@ -10,7 +11,7 @@ use \Tsugi\UI\CrudForm;
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! ( isset($_SESSION['id']) ) {
+if ( ! U::get($_SESSION,'id') ) {
     die('Must be logged in');
 }
 
