@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\Util\U;
+use \Tsugi\Util\Net;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
@@ -51,6 +52,12 @@ if ( $fa_icon !== false ) {
     $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
 }
 
+// Check if the tsugi.php is upgraded for this tool
+$register_json = $tool['url'].'register.json';
+$json_str = Net::doGet($register_json);
+$json_obj = json_decode($json_str);
+$register_good = $json_obj && isset($json_obj->name);
+
 // Start the output
 ?>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
@@ -64,10 +71,12 @@ if ( $fa_icon !== false ) {
 <div id="url-dialog" title="URL Dialog" style="display: none;">
     <h1>Single Tool URLs</h1>
     <p>LTI 1.x Launch URL (Expects an LTI launch)<br/><?= $tool['url'] ?></p>
+<?php if ( $register_good ) { ?>
     <p>Canvas Tool Configuration URL (XML)<br/>
     <a href="<?= $tool['url'] ?>canvas-config.xml" target="_blank"><?= $tool['url'] ?>canvas-config.xml</a></p>
     <p>Tsugi Registration URL (JSON)<br/>
     <a href="<?= $tool['url'] ?>register.json" target="_blank"><?= $tool['url'] ?>register.json</a></p>
+<?php } ?>
     <h1>Server-wide URLs</h1>
     <p>App Store (Supports IMS Deep Linking/Content Item)<br/>
     <?= $CFG->wwwroot ?>/lti/store</p>
