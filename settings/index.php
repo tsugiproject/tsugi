@@ -2,6 +2,7 @@
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\UI\Output;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../config.php");
@@ -9,7 +10,9 @@ require_once("settings_util.php");
 session_start();
 
 if ( ! U::get($_SESSION,'id') ) {
-    die('Must be logged in.');
+    $_SESSION['login_return'] = $CFG->wwwroot . '/settings';
+    OUTPUT::doRedirect($CFG->wwwroot.'/login.php');
+    return;
 }
 
 LTIX::getConnection();
@@ -36,6 +39,9 @@ $OUTPUT->topNav();
    <iframe name="iframe-frame" style="height:600px" id="iframe-frame" 
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
+<?php
+$OUTPUT->flashMessages();
+?>
 <h1>My Settings</h1>
 <p>This page is for instructors to manage their courses and the use of these
 applications in their courses.

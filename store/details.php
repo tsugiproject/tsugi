@@ -29,17 +29,6 @@ if ( ! ( $registrations ) ) {
     return;
 }
 
-?>
-<script src="https://apis.google.com/js/platform.js" async defer></script>
-<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
-    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
-</div>
-<div id="image-dialog" title="Image Dialog" style="display: none;">
-    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" style="width:100%" id="popup-image">
-</div>
-<?php
-
 $rest_path = U::rest_path();
 $install = $rest_path->extra;
 
@@ -62,6 +51,31 @@ if ( $fa_icon !== false ) {
     $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
 }
 
+// Start the output
+?>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
+   <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
+    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
+</div>
+<div id="image-dialog" title="Image Dialog" style="display: none;">
+    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" style="width:100%" id="popup-image">
+</div>
+<div id="url-dialog" title="URL Dialog" style="display: none;">
+    <h1>Single Tool URLs</h1>
+    <p>LTI 1.x Launch URL (Expects an LTI launch)<br/><?= $tool['url'] ?></p>
+    <p>Canvas Tool Configuration URL (XML)<br/>
+    <a href="<?= $tool['url'] ?>canvas-config.xml" target="_blank"><?= $tool['url'] ?>canvas-config.xml</a></p>
+    <p>Tsugi Registration URL (JSON)<br/>
+    <a href="<?= $tool['url'] ?>register.json" target="_blank"><?= $tool['url'] ?>register.json</a></p>
+    <h1>Server-wide URLs</h1>
+    <p>App Store (Supports IMS Deep Linking/Content Item)<br/>
+    <?= $CFG->wwwroot ?>/lti/store</p>
+    <p>App Store Canvas Configuration URL<br/>
+    <a href="<?= $CFG->wwwroot ?>/lti/store/canvas-config.xml" target="_blank"><?= $CFG->wwwroot ?>/lti/store/canvas-config.xml</a></p>
+</div>
+<?php
+
 if ( $fa_icon ) {
     echo('<i class="hidden-xs fa '.$fa_icon.' fa-2x" style="color: #1894C7; float:right; margin: 2px"></i>');
 }
@@ -74,6 +88,7 @@ if ( $screen_shots ) {
 $script = isset($tool['script']) ? $tool['script'] : "index";
 $path = $tool['url'];
 
+
 echo("<p>\n");
 echo('<a href="'.$rest_path->parent.'" class="btn btn-default" role="button">Back to Store</a>');
 echo(' ');
@@ -83,6 +98,8 @@ if ( isset($_SESSION['gc_courses']) ) {
     echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
     echo('<img height=32 width=32 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
 }
+echo(' ');
+echo('<a href="#" class="btn btn-default" role="button" onclick="showModal(\'Tool URLs\',\'url-dialog\');">Tool URLs</a>');
 echo(' ');
 echo('<a href="'.$rest_path->parent.'/test/'.urlencode($install).'" class="btn btn-default" role="button">Test</a> ');
 echo("</p>\n");
@@ -167,18 +184,19 @@ if ( $CFG->providekeys ) {
     echo('<li><p>');
     echo(__('Supports'));
     echo(" IMS Learning Tools Interoperability&reg (LTI)");
-    echo(' <input type="text" value="'.$launch_url.'"/>');
     echo("</p></li>\n");
 }
 
-if ( is_array($placements) &&
-    (in_array('editor_button', $placements) || in_array('resource_selection',$placements)) ) {
-    echo('<li><p>');
-    echo(__('Supports'));
-    echo(' IMS Content Item&reg;');
-    echo(' <input type="text" value="'.$CFG->wwwroot.'/lti/store"/>');
-    echo("</p></li>\n");
-}
+echo('<li><p>');
+echo(__('Supports'));
+echo(' IMS Content Item&reg; / IMS Deep Linking');
+echo("</p></li>\n");
+
+echo('<li><p>');
+echo(__('Supports'));
+echo(' Canvas Configuration URL');
+echo("</p></li>\n");
+
 
 echo("</ul>\n");
 

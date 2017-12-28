@@ -930,7 +930,7 @@ EOF;
      * as &lt;form> and &lt;a href tags are properly handled already
      * by the PHP built-in "don't use cookies for session" support.
      */
-    function doRedirect($location) {
+    public static function doRedirect($location) {
         if ( headers_sent() ) {
             echo('<a href="'.htmlentities($location).'">Continue</a>'."\n");
         } else {
@@ -1058,6 +1058,30 @@ EOF;
     public static function jsonOutput($json_data) {
         header('Content-Type: application/json; charset=utf-8');
         echo(json_encode($json_data));
+    }
+
+    public static function xmlError($message,$detail="",$code=400) {
+        header('HTTP/1.1 '.$code.' '.$message);
+        header('Content-Type: text/xml; charset=utf-8');
+        echo('<?xml version="1.0" encoding="UTF-8" standalone="yes"?'.">\n");
+        echo("<failure>\n  <message>\n    ");
+        echo(htmlentities($error));
+        echo("  </message>\n");
+        if ( strlen($detail) > 0 ) {
+            echo("  <detail>\n    ");
+            echo(htmlentities($detail));
+            echo("  </detail>\n");
+        }
+        echo("</failure>\n");
+    }
+
+    public static function xmlAuthError($message,$detail="") {
+        self::xmlError($message,$detail,403);
+    }
+
+    public static function xmlOutput($xml_data) {
+        header('Content-Type: text/xml; charset=utf-8');
+        echo($xml_data);
     }
 
     // No Buffering
