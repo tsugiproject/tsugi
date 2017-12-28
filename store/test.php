@@ -137,8 +137,14 @@ foreach( $parms as $k => $val ) {
     }
 }
 
+// Use the actual direct URL to the launch
+$endpoint = $tool['url'];
+$endpoint = U::remove_relative_path($endpoint);
+
 // Add oauth_callback to be compliant with the 1.0A spec
 $parms["oauth_callback"] = "about:blank";
+$parms['resource_link_id'] = md5($endpoint);
+$parms['resource_link_title'] = $install;
 $outcomes = false;
 if ( $outcomes ) {
     $parms['lis_outcome_service_url'] = $outcomes;
@@ -146,9 +152,6 @@ if ( $outcomes ) {
 
 $parms['launch_presentation_return_url'] = $rest_path->current . '/return';
 
-// Use the actual direct URL to the launch
-$endpoint = $tool['url'];
-$endpoint = U::remove_relative_path($endpoint);
 $tool_consumer_instance_guid = $lmsdata['tool_consumer_instance_guid'];
 $tool_consumer_instance_description = $lmsdata['tool_consumer_instance_description'];
 

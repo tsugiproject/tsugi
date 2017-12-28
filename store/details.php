@@ -50,6 +50,9 @@ if ( ! isset($registrations[$install])) {
 }
 $tool = $registrations[$install];
 
+$screen_shots = U::get($tool, 'screen_shots');
+if ( !is_array($screen_shots) || count($screen_shots) < 1 ) $screen_shots = false;
+
 $title = $tool['name'];
 $text = $tool['description'];
 $ltiurl = $tool['url'];
@@ -64,8 +67,10 @@ if ( $fa_icon ) {
 }
 echo("<b>".htmlent_utf8($title)."</b>\n");
 echo('<p class="hidden-xs">'.htmlent_utf8($text)."</p>\n");
-echo('<div class="row">'."\n");
-echo('<div class="col-sm-4">'."\n");
+if ( $screen_shots ) {
+    echo('<div class="row">'."\n");
+    echo('<div class="col-sm-4">'."\n");
+}
 $script = isset($tool['script']) ? $tool['script'] : "index";
 $path = $tool['url'];
 
@@ -177,19 +182,18 @@ if ( is_array($placements) &&
 
 echo("</ul>\n");
 
-echo("<!-- .col-sm-4--></div>\n");
-echo('<div class="col-sm-8">'."\n");
-$screen_shots = U::get($tool, 'screen_shots');
-if ( is_array($screen_shots) && count($screen_shots) > 0 ) {
+if ( $screen_shots ) {
+    echo("<!-- .col-sm-4--></div>\n");
+    echo('<div class="col-sm-8">'."\n");
     echo("<center>\n");
     echo('<div class="bxslider">');
     foreach($screen_shots as $screen_shot ) {
         echo('<div><img title="'.htmlentities($title).'" onclick="$(\'#popup-image\').attr(\'src\',this.src);showModal(this.title,\'image-dialog\');" src="'.$screen_shot.'"></div>'."\n");
     }
     echo("</center>\n");
+    echo("<!-- .col-sm-8--></div>\n");
+    echo("</div>\n");
 }
-echo("<!-- .col-sm-8--></div>\n");
-echo("</div>\n");
 
 echo("<!-- \n");print_r($tool);echo("\n-->\n");
 $OUTPUT->footerStart();
