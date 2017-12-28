@@ -1414,6 +1414,7 @@ class LTIX {
             $LINK = new \Tsugi\Core\Link();
             $LINK->launch = $TSUGI_LAUNCH;
             $LINK->id = $LTI['link_id'];
+            if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
             if (isset($LTI['link_count']) ) $LINK->activity = $LTI['link_count']+0;
             if (isset($LTI['link_user_count']) ) $LINK->user_activity = $LTI['link_user_count']+0;
 
