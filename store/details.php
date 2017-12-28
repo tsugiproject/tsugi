@@ -70,7 +70,9 @@ $register_good = $json_obj && isset($json_obj->name);
 </div>
 <div id="url-dialog" title="URL Dialog" style="display: none;">
     <h1>Single Tool URLs</h1>
-    <p>LTI 1.x Launch URL (Expects an LTI launch)<br/><?= $tool['url'] ?></p>
+    <p>LTI 1.x Launch URL (Expects an LTI launch)<br/><?= $tool['url'] ?>
+    (requires key and secret)
+    </p>
 <?php if ( $register_good ) { ?>
     <p>Canvas Tool Configuration URL (XML)<br/>
     <a href="<?= $tool['url'] ?>canvas-config.xml" target="_blank"><?= $tool['url'] ?>canvas-config.xml</a></p>
@@ -79,7 +81,9 @@ $register_good = $json_obj && isset($json_obj->name);
 <?php } ?>
     <h1>Server-wide URLs</h1>
     <p>App Store (Supports IMS Deep Linking/Content Item)<br/>
-    <?= $CFG->wwwroot ?>/lti/store</p>
+    <?= $CFG->wwwroot ?>/lti/store
+    (Requires key and secret)
+    </p>
     <p>App Store Canvas Configuration URL<br/>
     <a href="<?= $CFG->wwwroot ?>/lti/store/canvas-config.xml" target="_blank"><?= $CFG->wwwroot ?>/lti/store/canvas-config.xml</a></p>
 </div>
