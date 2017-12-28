@@ -82,7 +82,9 @@ class Tool {
         }
 
         $rest_path = U::rest_path();
-        $url = $CFG->wwwroot . $rest_path->parent;
+        $url = U::get_base_url($CFG->wwwroot) . $rest_path->parent;
+        if ( ! PS::s($url)->endsWith('/') ) $url .= '/';
+
         $REGISTER_LTI2['url'] = $url;
 
         self::patchRegistration($REGISTER_LTI2);
