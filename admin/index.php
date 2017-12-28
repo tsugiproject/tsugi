@@ -44,6 +44,11 @@ require_once("sanity-db.php");
   Recent Logins 
   </a></li>
 <li>
+  <a href="clear12345" title="Remove 12345 Data" target="iframe-frame"
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
+  Remove 12345 Data 
+  </a></li>
+<li>
   <a href="events" title="Event Status" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
   Event Status
