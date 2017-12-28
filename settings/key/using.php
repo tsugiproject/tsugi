@@ -32,9 +32,9 @@ $OUTPUT->flashMessages();
 ?>
 <h1>Using Your Key</h1>
 <p>
-  <a href="index" class="btn btn-default">View Keys</a>
+  <a href="index" class="btn btn-default">LTI 1.x Keys</a>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Using Your Key</a>
-  <a href="requests" class="btn btn-default">View Key Requests</a>
+  <a href="requests" class="btn btn-default">Key Requests</a>
 </p>
 <p>
 <ul class="nav nav-tabs">

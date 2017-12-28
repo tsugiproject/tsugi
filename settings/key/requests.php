@@ -102,7 +102,7 @@ $OUTPUT->flashMessages();
 <p>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">LTI 1.x Keys</a>
   <a href="using" class="btn btn-default">Using Your Key</a>
-  <a href="requests" class="btn btn-default active">View Key Requests</a>
+  <a href="requests" class="btn btn-default active">Key Requests</a>
 </p>
 <p>
 If you are a teacher and want to use the interactive elements on this web
