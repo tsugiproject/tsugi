@@ -102,8 +102,8 @@ class U {
     public static function get_base_url($url) {
         $pieces = parse_url($url);
         $retval = $pieces['scheme'].'://'.$pieces['host'];
-        $port = $pieces['port'];
-        if ( $port != 80 && $port != 443 ) $retval .= ':' . $port;
+        $port = self::get($pieces,'port');
+        if ( $port && $port != 80 && $port != 443 ) $retval .= ':' . $port;
         return $retval;
     }
 
