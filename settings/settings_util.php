@@ -18,10 +18,10 @@ function settings_key_count() {
 function settings_status($key_count) {
     global $CFG;
     if ( ! U::get($_SESSION,'id') ) {
-        return "<p>You must log in to use these tools in your learning management system or Google Classroom.</p>";
-    } else if ( ! U::get($_SESSION,'gc_courses') && $key_count < 1 && 
+        return "<p><b>You must log in to use these tools in your learning management system or Google Classroom.</b></p>";
+    } else if ( ! U::get($_SESSION,'gc_count') && $key_count < 1 && 
         ( isset($CFG->providekeys) || isset($CFG->google_classroom_secret) ) ) {
-        $retval = "<p>You need to ";
+        $retval = "<p><b>You need to ";
         if ( $CFG->providekeys ) {
             $retval .= 'have an approved <a href="'.$CFG->wwwroot.'/settings">LTI key</a>';
             if ( isset($CFG->google_classroom_secret) ) {
@@ -31,7 +31,7 @@ function settings_status($key_count) {
         if ( isset($CFG->google_classroom_secret) ) {
             $retval .= 'log in to <a href="'.$CFG->wwwroot.'/gclass/login">Google Classroom</a>';
         }
-        $retval .= " to use these tools.\n";
+        $retval .= " to use these tools.</b></p>\n";
         return $retval;
     }
 }

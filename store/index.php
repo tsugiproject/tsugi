@@ -137,7 +137,7 @@ echo(settings_status($key_count));
         echo('<center><a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a> ');
 
         $ltiurl = $tool['url'];
-        if ( isset($_SESSION['gc_courses']) ) {
+        if ( isset($_SESSION['gc_count']) ) {
             echo('<a href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
             echo('" title="Install in Classroom" target="iframe-frame"'."\n");
             echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");

@@ -58,8 +58,9 @@ that support the IMS Learning Tools Interoperability specification.
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
 <li><p><a href="../gclass/login">Connect to Google Classroom</a>
 <?php
-if ( isset($_SESSION['gc_courses']) ) {
-    echo('(Connected to '.count(U::get($_SESSION,'gc_courses')).' classroom(s))');
+$count = U::get($_SESSION,'gc_count');
+if ( $results ) {
+    echo('(Connected to '.$count.' classroom(s))');
 } else {
     echo('(Not connected)');
 }
@@ -67,7 +68,7 @@ if ( isset($_SESSION['gc_courses']) ) {
 <p>
 These 
 <?php
-if ( isset($_SESSION['gc_courses']) ) {
+if ( isset($_SESSION['gc_count']) ) {
     echo('<a href="../store">tools</a>');
 } else {
     echo('tools');

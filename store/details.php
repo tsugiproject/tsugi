@@ -105,7 +105,7 @@ $path = $tool['url'];
 echo("<p>\n");
 echo('<a href="'.$rest_path->parent.'" class="btn btn-default" role="button">Back to Store</a>');
 echo(' ');
-if ( isset($_SESSION['gc_courses']) ) {
+if ( isset($_SESSION['gc_count']) ) {
     echo('<a href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
     echo('" title="Install in Classroom" target="iframe-frame"'."\n");
     echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");

@@ -18,7 +18,6 @@ session_start();
 
 if ( ! sanity_check() ) return;
 
-
 // Try access token from session when LTIX adds it.
 $accessTokenStr = GoogleClassroom::retrieve_instructor_token();
 
@@ -48,16 +47,18 @@ try {
     return;
 }
 
-if ( !isset ($CFG->lessons) ) {
-    if (count($results->getCourses()) == 0) {
+if ( ! isset($CFG->lessons) ) {
+    $courses = $results->getCourses();
+    if (count($courses) == 0) {
         $_SESSION['error'] = 'No Google Classroom Courses found';
-        header('Location: '.$CFG->wwwroot);
+        header('Location: '.$CFG->wwwroot.'/store');
     } else {
         $_SESSION['success'] = 'Found '.count($results->getCourses()).' Google Classroom courses. '.
             'Use the icon by each link to install links / assignments into your Google Classroom.';
-        $_SESSION['gc_courses'] = $results->getCourses();
+        $_SESSION['gc_count'] = count($results);
         header('Location: '.$CFG->wwwroot.'/store');
     }
+    return;
 }
 
 // Load the Lesson
@@ -73,7 +74,7 @@ if (count($results->getCourses()) == 0) {
 } else {
     $_SESSION['success'] = 'Found '.count($results->getCourses()).' Google Classroom courses. '.
         'Use the icon by each link to install links / assignments into your Google Classroom.';
-    $_SESSION['gc_courses'] = $results->getCourses();
+    $_SESSION['gc_count'] = count($results);
     header('Location: '.$CFG->apphome.'/lessons/'.$firstmodule.'?nostyle=yes');
 }
 
