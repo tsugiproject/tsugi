@@ -42,6 +42,14 @@ $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 
+// These URLs are used in your app store, they are optional but
+// strongly recommended - you can borrow from the samples below
+// for some wording - but be honest in your pages.  These will
+// be necessary when/if you integrate with Google Classroom
+// so you might as well make them now :)
+// $CFG->privacy_url = 'https://www.tsugicloud.org/services/policies/privacy';
+// $CFG->sla_url = 'https://www.tsugicloud.org/services/policies/service-level-agreement';
+
 // You can use the CDN copy of the static content - it is the
 // default unless you override it.
 // $CFG->staticroot = 'https://www.dr-chuck.net/tsugi-static';
