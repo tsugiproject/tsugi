@@ -31,7 +31,7 @@ function settings_status($key_count) {
             }
         }
         if ( isset($CFG->google_classroom_secret) ) {
-            $retval .= 'log in to <a href="'.$CFG->wwwroot.'/gclass/login">Google Classroom</a>';
+            $retval .= 'log in to <a href="gclass_login">Google Classroom</a>';
         }
         $retval .= " to use these tools.</b></p>\n";
         return $retval;

@@ -56,10 +56,10 @@ that support the IMS Learning Tools Interoperability specification.
 </li>
 <?php } ?>
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
-<li><p><a href="../gclass/login">Connect to Google Classroom</a>
+<li><p><a href="gclass_login">Connect to Google Classroom</a>
 <?php
 $count = U::get($_SESSION,'gc_count');
-if ( $results ) {
+if ( $count ) {
     echo('(Connected to '.$count.' classroom(s))');
 } else {
     echo('(Not connected)');

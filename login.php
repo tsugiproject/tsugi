@@ -1,10 +1,26 @@
 <?php
+use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\SecureCookie;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "config.php";
+
+function login_redirect($path=false) {
+    global $CFG;
+    $login_return = U::get($_SESSION, 'login_return');
+    if ( $login_return ) {
+        unset($_SESSION['login_return']);
+        header('Location: '.$login_return);
+        return;
+    }
+    if ( isset($CFG->apphome) && $CFG->apphome ) {
+        header('Location: '.$CFG->apphome.'/'.$path);
+        return;
+    }
+    header('Location: '.$CFG->wwwroot.'/'.$path);
+}
 
 $PDOX = LTIX::getConnection();
 
@@ -131,7 +147,7 @@ if ( $doLogin ) {
     if ( $firstName === false || $lastName === false || $userEmail === false ) {
         error_log('Google-Missing:'.$user_key.','.$firstName.','.$lastName.','.$userEmail);
         $_SESSION["error"] = "You do not have a first name, last name, and email in Google or you did not share it with us.";
-        header('Location: '.$CFG->apphome.'/');
+        login_redirect();
         return;
     } else {
 
@@ -221,7 +237,7 @@ if ( $doLogin ) {
          if ( $profile_id < 1 ) {
             error_log('Fail-SQL-Profile:'.$user_key.','.$displayName.','.$userEmail.','.$stmt->errorImplode);
             $_SESSION["error"] = "Internal database error, sorry";
-            header('Location: '.$CFG->apphome.'/');
+            login_redirect();
             return;
          }
 
@@ -275,10 +291,10 @@ if ( $doLogin ) {
         }
 
         if ( $user_id < 1 ) {
-             error_log('No User Entry:'.$user_key.','.$displayName.','.$userEmail);
-             $_SESSION["error"] = "Internal database error, sorry";
-             header('Location: '.$CFG->apphome.'/');
-             return;
+            error_log('No User Entry:'.$user_key.','.$displayName.','.$userEmail);
+            $_SESSION["error"] = "Internal database error, sorry";
+            login_redirect();
+            return;
         }
 
         // Add a membership record if needed
@@ -355,13 +371,10 @@ if ( $doLogin ) {
         // Set the secure cookie
         SecureCookie::set($user_id,$userEmail,$context_id);
 
-        if ( isset($_SESSION['login_return']) ) {
-            header('Location: '.$_SESSION['login_return']);
-            unset($_SESSION['login_return']);
-        } else if ( $didinsert ) {
-            header('Location: '.$CFG->apphome.'/profile');
+        if ( $didinsert ) {
+            login_redirect('profile');
         } else {
-            header('Location: '.$CFG->apphome.'/');
+            login_redirect();
         }
         return;
     }
