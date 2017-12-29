@@ -19,6 +19,8 @@ function settings_status($key_count) {
     global $CFG;
     if ( ! U::get($_SESSION,'id') ) {
         return "<p><b>You must log in to use these tools in your learning management system or Google Classroom.</b></p>";
+    } else if ( U::get($_SESSION,'gc_count') ) {
+        return "<p><b>You have access to ".U::get($_SESSION,'gc_count')." google classroom courses.  Use the icons below to install the tools in your classes.</b></p>";
     } else if ( ! U::get($_SESSION,'gc_count') && $key_count < 1 && 
         ( isset($CFG->providekeys) || isset($CFG->google_classroom_secret) ) ) {
         $retval = "<p><b>You need to ";
