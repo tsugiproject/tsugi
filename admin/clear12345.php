@@ -100,7 +100,7 @@ and reduce the probability of long-lasting transactions.
 So you might need to press the button below more than once.
 </p>
 <?php }
-if ( $context_count > 1 || $user_count > 1 || $blob_count > 1 ) {
+if ( $context_count > 0 || $user_count > 0 || $blob_count > 0 ) {
 ?>
 <p>
 <form method="get">
@@ -109,7 +109,7 @@ if ( $context_count > 1 || $user_count > 1 || $blob_count > 1 ) {
 </p>
 <?php
 } else {
-    echo("<p>No Records to delete</p>\n");
+    echo("<p>No records to delete</p>\n");
 }
 ?>
 </body>
