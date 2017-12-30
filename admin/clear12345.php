@@ -47,13 +47,9 @@ if ( U::get($_GET,'delete') ) {
 
 }
 
-?>
-<html>
-<head>
-<?php echo($OUTPUT->togglePreScript()); ?>
-</head>
-<body>
-<?php
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+// No Nav - this is in a frame
 
 echo("Scanning for files, contexts, and users associated with key 12345...<br/>\n");
 
@@ -97,21 +93,20 @@ if ( $context_count > 100 || $user_count > 100 || $blob_count > 100 ) {
 <p>This screen limits the records of each type deleted to be 100
 to prevent runaway processes and limit the scope of the deletes
 and reduce the probability of long-lasting transactions.
-So you might need to press the button below more than once.
+So you might need to run this process more than once.
 </p>
 <?php }
 if ( $context_count > 0 || $user_count > 0 || $blob_count > 0 ) {
 ?>
 <p>
 <form method="get">
-<input type="submit" name="delete" value="Delete Records"/>
+<input type="submit" onclick="$('#myspinner').show();return true;" name="delete" value="Delete Records"/>
+<img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" style="display:none">
 </form>
 </p>
 <?php
 } else {
     echo("<p>No records to delete</p>\n");
 }
-?>
-</body>
-</html>
+$OUTPUT->footer();
 
