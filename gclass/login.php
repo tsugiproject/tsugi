@@ -31,6 +31,8 @@ $PDOX = LTIX::getConnection();
 
 session_start();
 
+unset($_SESSION['gc_count']);
+
 if ( ! sanity_check() ) return;
 
 // Try access token from session when LTIX adds it.
