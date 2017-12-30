@@ -470,4 +470,16 @@ class Net {
         return $the_ip;
     }
 
+    /**
+     * Return true if we have a routable address
+     */
+    // https://stackoverflow.com/questions/13818064/check-if-an-ip-address-is-private
+    public static function isRoutable($ipaddr) {
+        return $ipaddr == filter_var(
+            $ipaddr,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE |  FILTER_FLAG_NO_RES_RANGE
+        );
+    }
+
 }

@@ -639,8 +639,9 @@ class LTIX {
         if ( isset($_SERVER['HTTP_USER_AGENT']) ) {
             self::wrapped_session_put($session_object, 'HTTP_USER_AGENT', $_SERVER['HTTP_USER_AGENT']);
         }
-        if ( isset($_SERVER['REMOTE_ADDR']) ) {
-            self::wrapped_session_put($session_object, 'REMOTE_ADDR', $_SERVER['REMOTE_ADDR']);
+        $ipaddr = Net::getIP();
+        if ( $ipaddr ) {
+            self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
         }
         self::wrapped_session_put($session_object, 'CSRF_TOKEN', uniqid());
 
@@ -1335,18 +1336,20 @@ class LTIX {
             }
         }
 
-        // We only check the first three octets as some systems wander throught the addresses on
+        // We only check the first three octets as some systems wander through the addresses on
         // class C - Perhaps it is even NAT - who knows - but we forgive those on the same Class C
         $session_addr = self::wrapped_session_get($session_object, 'REMOTE_ADDR', null);
-        if ( (!$trusted) &&  $session_addr != null && isset($_SERVER['REMOTE_ADDR']) ) {
+        $ipaddr = Net::getIP();
+        if ( (!$trusted) &&  $session_addr && $ipaddr &&
+            Net::isRoutable($session_addr) && Net::isRoutable($ipaddr) ) {
             $sess_pieces = explode('.',$session_addr);
-            $serv_pieces = explode('.',$_SERVER['REMOTE_ADDR']);
+            $serv_pieces = explode('.',$ipaddr);
             if ( count($sess_pieces) == 4 && count($serv_pieces) == 4 ) {
                 if ( $sess_pieces[0] != $serv_pieces[0] || $sess_pieces[1] != $serv_pieces[1] ||
                     $sess_pieces[2] != $serv_pieces[2] ) {
                     self::send403();
-                    self::abort_with_error_log('Session address has expired', " ".session_id()." REMOTE_ADDR ".
-                        $session_addr.' '.$_SERVER['REMOTE_ADDR'], 'DIE:');
+                    self::abort_with_error_log('Session address has expired', " ".session_id()." session_addr=".
+                        $session_addr.' current='.$ipaddr, 'DIE:');
                 }
             }
         }
