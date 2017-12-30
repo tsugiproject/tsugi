@@ -542,6 +542,17 @@ class U {
             return $result;
     }
 
+    public static function safe_array($inp) {
+        if ( ! is_array($inp) ) return $inp;
+        $new = $inp;
+        foreach ( $inp as $k => $v ) {
+            if (strpos($k, 'secret') !== false ) {
+                $new[$k] = '*****';
+            }
+        }
+        return $new;
+    }
+
     /**
      * Give the current time in the "conversion format"
      *
