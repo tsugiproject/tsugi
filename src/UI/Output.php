@@ -449,8 +449,7 @@ $('a').each(function (x) {
                 "now" => $now, "count" => $count, "cookie" => $cookie,
                 "id" => session_id());
         $lti = LTIX::wrapped_session_get($session_object, 'lti');
-        if ( is_array($lti) ) $lti['secret'] = '*****';
-        $retval['lti'] = $lti;
+        $retval['lti'] = is_array($lti) && U::get($lti, 'key_id');
         $retval['sessionlifetime'] = $CFG->sessionlifetime;
         return $retval;
     }
