@@ -196,6 +196,13 @@ class U {
         }
         $retobj->controller = $retval[1];
         $retobj->extra = $retval[2];
+        $pieces = explode('/', $retval[2]);
+        $retobj->action = false;
+        $retobj->parameters = false;
+        if ( count($pieces) > 0 && strlen($pieces[0]) ) {
+            $retobj->action = array_shift($pieces);
+            $retobj->parameters = $pieces;
+        }
         $retobj->current = $retobj->parent . '/' . $retobj->controller;
         $retobj->full = $retobj->parent . '/' . $retobj->controller . '/' . $retobj->extra;
         return $retobj;

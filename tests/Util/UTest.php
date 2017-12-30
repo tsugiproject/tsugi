@@ -63,6 +63,8 @@ class UTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($path->parent,'');
         $this->assertEquals($path->controller,'lessons');
         $this->assertEquals($path->extra,'intro/fred/sarah');
+        $this->assertEquals($path->action,'intro');
+        $this->assertEquals($path->parameters,array('fred', 'sarah'));
 
         $this->assertEquals(U::parse_rest_path('/a','/a/koseu.php'), false);
         $this->assertEquals(U::parse_rest_path('/a/','/a/koseu.php'), false);
