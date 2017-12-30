@@ -448,8 +448,6 @@ $('a').each(function (x) {
         $retval = array("success" => true, "seconds" => $seconds,
                 "now" => $now, "count" => $count, "cookie" => $cookie,
                 "id" => session_id());
-        $retval['lti'] = LTIX::wrapped_session_get($session_object, 'lti');
-        // $retval['lti'] = false;
         $retval['sessionlifetime'] = $CFG->sessionlifetime;
         return $retval;
     }
