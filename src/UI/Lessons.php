@@ -274,7 +274,7 @@ class Lessons {
      */
     public static function nostyleUrl($title, $url) {
         echo('<a href="'.$url.'" target="_blank" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
-        if ( isset($_SESSION['gc_courses']) ) {
+        if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
 	    echo(' data-title="'.htmlentities($title).'" ');
 	    echo('></div>');
@@ -298,7 +298,7 @@ class Lessons {
 
         $module = $this->module;
 
-	if ( $nostyle && isset($_SESSION['gc_courses']) ) {
+	if ( $nostyle && isset($_SESSION['gc_count']) ) {
 ?>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
@@ -435,7 +435,7 @@ class Lessons {
                         echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
                         $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
                         echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
-                        if ( isset($_SESSION['gc_courses']) ) {
+                        if ( isset($_SESSION['gc_count']) ) {
                             echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$lti->resource_link_id);
                             echo('" title="Install Assignment in Classroom" target="iframe-frame"'."\n");
                             echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
