@@ -26,4 +26,14 @@ class NetTest extends PHPUnit_Framework_TestCase
         $this->assertNull($stuff);
     }
 
+    public function testRoutable() {
+        $this->assertFalse(Net::isRoutable('bob'));
+        $this->assertFalse(Net::isRoutable('172.20.5.5'));
+        $this->assertFalse(Net::isRoutable('10.20.5.5'));
+        $this->assertFalse(Net::isRoutable('192.168.5.5'));
+        $this->assertTrue(Net::isRoutable('120.138.20.36'));
+        $this->assertTrue(Net::isRoutable('35.8.1.10'));
+        $this->assertTrue(Net::isRoutable('141.8.1.10'));
+    }
+
 }
