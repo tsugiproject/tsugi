@@ -17,34 +17,46 @@ class Tool {
         // TODO
     }
 
-    public function run()
+    public static function handleConfig()
     {
         global $CFG, $TSUGI_LAUNCH, $PDOX;
         global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
 
         // Check for a few special cases
         $rest_path = U::rest_path();
+        if ( ! $rest_path ) return false;
+
         if ( file_exists('register.php') && $rest_path->controller == 'register.json') {
-            $reg = $this->loadRegistration();
+            $reg = self::loadRegistration();
             if ( is_string($reg) ) {
                 OUTPUT::jsonError($reg);
-                return;
+                return true;
             }
             OUTPUT::headerJson();
             echo(json_encode($reg,JSON_PRETTY_PRINT));
-            return;
+            return true;
         }
 
         if ( file_exists('register.php') && $rest_path->controller == 'canvas-config.xml') {
-            $reg = $this->loadRegistration();
+            $reg = self::loadRegistration();
             if ( is_string($reg) ) {
                 OUTPUT::xmlError($reg);
                 return;
             }
-            $xml = $this->canvasToolRegistration($reg);
+            $xml = self::canvasToolRegistration($reg);
             OUTPUT::xmlOutput($xml);
-            return;
+            return true;
         }
+        return false;
+    }
+
+    public function run()
+    {
+        global $CFG, $TSUGI_LAUNCH, $PDOX;
+        global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
+
+        // Check if this is a config request
+        if ( self::handleConfig() ) return;
 
         // Make PHP paths pretty .../install => install.php
         $router = new \Tsugi\Util\FileRouter();
