@@ -309,7 +309,7 @@ if ( $CFG->sessions_in_db ) {
 // http://docs.aws.amazon.com/aws-sdk-php/v2/guide/feature-dynamodb-session-handler.html
 $CFG->aws_key = false;  // 'FLDKJKJHFDKLJFKLJHFD';
 $CFG->aws_secret = false;  // 'zjJ84djDSKJdsjk/88KHashsKASHKAShdHDKDHhd';
-$CFG->sessions_in_dynamodb = true;
+$CFG->sessions_in_dynamodb = false;
 
 if ( $CFG->sessions_in_dynamodb ) {
     $dynamoDb = \Aws\DynamoDb\DynamoDbClient::factory(
