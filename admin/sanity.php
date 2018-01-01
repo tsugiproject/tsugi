@@ -4,8 +4,8 @@ if ( ! isset($CFG) ) {
 }
 
 if ( ! isset($CFG) ) {
-    die_with_error_log('This software is not correctly configured, please copy config-dist.php to
-    config.php and edit config.php according to the installation instructions.');
+    die_with_error_log('This software is not correctly configured, please copy tsugi/config-dist.php to
+    tsugi/config.php and edit config.php according to the installation instructions.');
 }
 
 if (!defined('PHP_VERSION_ID')) {

@@ -31,7 +31,7 @@ In some systems, a database adminstrator will create the database,
 user, and password and simply give them to you.
 <p>
 Once you have the database, account and password you must update your
-<code>config.php</code> with this information.</p>");
+<code>tsugi/config.php</code> with this information.</p>");
 echo('
 <p><b>Database Users</b></p>
 <p>
@@ -39,7 +39,7 @@ The user and password for the database connection are setup using either a
 SQL <code>GRANT</code> command or created in an adminstration tool like CPanel.
 Or perhaps a system administrator created the database and gave you the
 account and password to access the database.</p>
-<p>Make sure to check the values in your <code>config.php</code> for
+<p>Make sure to check the values in your <code>tsugi/config.php</code> for
 <pre>
     $CFG->dbuser    = \'ltiuser\';
     $CFG->dbpass    = \'ltipassword\';
@@ -51,7 +51,7 @@ To make sure they match the account and password assigned to your database.
         strpos($msg, 'Connection refused') !== false) {
         echo('<p>It appears that you cannot connect to your MySQL server at
 all.  The most likely problem is the wrong host or port in this option
-in your <code>config.php</code> file:
+in your <code>tsugi/config.php</code> file:
 <pre>
 $CFG->pdo       = \'mysql:host=127.0.0.1;dbname=tsugi\';
 # $CFG->pdo       = \'mysql:host=127.0.0.1;port=8889;dbname=tsugi\'; // MAMP
@@ -92,13 +92,13 @@ but you have no tables in your database.  To create the initial tables
 needed for this application, use the 
 <a href=\"".$CFG->wwwroot."/admin\">'Admin'</a> / Upgrade Database feature.
 To unlock the <a href=\"".$CFG->wwwroot."/admin\">Admin</a> screen, you will be prompted
-for the administrator master password as configured in <code>config.php</code>
+for the administrator master password as configured in <code>tsugi/config.php</code>
 in the <code>\$CFG->adminpw</code> setting.
 </p>
 <p>
 If the UI does not look correct(i.e. the CSS files are not loading and this
 text is not outlined in red), you many need to edit the 
-<code>\$CFG->wwwroot</code> setting in the <code>config.php</code> folder.
+<code>\$CFG->wwwroot</code> setting in the <code>tsugi/config.php</code> folder.
 </p>
 ");
     echo("\n</div>\n");
