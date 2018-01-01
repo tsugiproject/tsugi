@@ -84,6 +84,8 @@ if ( !isset($CFG->noncetime) ) $CFG->noncetime = 1800;
 if ( !isset($CFG->eventcheck) ) $CFG->eventcheck = false;
 if ( !isset($CFG->eventtime) ) $CFG->eventtime = 7*24*60*60;
 
+if ( !isset($CFG->git_command) && strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ) $CFG->git_command = 'git';
+
 // By default we don't push events
 if ( ! isset($CFG->eventpushcount) ) $CFG->eventpushcount = 0;
 if ( ! isset($CFG->eventpushtime) ) $CFG->eventpushtime = 2;
