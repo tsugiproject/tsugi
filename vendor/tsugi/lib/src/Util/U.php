@@ -488,6 +488,7 @@ class U {
         if ( ! function_exists('bindtextdomain') ) return;
         if ( ! function_exists('textdomain') ) return;
 
+        if ( $locale && strpos($locale, 'UTF-8') === false ) $locale = $locale . '.UTF-8';
         if ( $locale === null && isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ) {
 
             if ( class_exists('\Locale') ) {
