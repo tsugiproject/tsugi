@@ -9,7 +9,7 @@ try {
 } catch(\PDOException $ex){
     $msg = $ex->getMessage();
     error_log("DB connection: ".$msg);
-    echo('<div style="background-color: red" class="alert alert-danger" style="margin: 10px;">'."\n");
+    echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
   if ( strpos($msg, 'Unknown database') !== false ||
        strpos($msg, 'Access denied for user') !== false ) {
     echo("<p>An error has occurred.  Either your database has 
@@ -90,8 +90,8 @@ if ( $table_fields === false ) {
     echo("<p>It appears that your database connection is working properly
 but you have no tables in your database.  To create the initial tables
 needed for this application, use the 
-<a href=\"".$CFG->wwwroot."/admin\">'Admin'</a>
-/ Upgrade Database feature.  To unlock the Admin screen, you will be prompted
+<a href=\"".$CFG->wwwroot."/admin\">'Admin'</a> / Upgrade Database feature.
+To unlock the <a href=\"".$CFG->wwwroot."/admin\">Admin</a> screen, you will be prompted
 for the administrator master password as configured in <code>config.php</code>
 in the <code>\$CFG->adminpw</code> setting.
 </p>

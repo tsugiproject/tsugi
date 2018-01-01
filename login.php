@@ -93,6 +93,11 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
     $doLogin = true;
 } else {
 
+    if ( ! isset($CFG->google_client_id) || ! $CFG->google_client_id ) {
+        echo("<p>".__('You need to set $CFG->google_client_id in order to use Google\'s Login')."</p>\n");
+        die();
+    }
+
     if ( isset($_GET['code']) ) {
         if ( isset($_SESSION['GOOGLE_STATE']) && isset($_GET['state']) ) {
             if ( $_SESSION['GOOGLE_STATE'] != $_GET['state'] ) {
