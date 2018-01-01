@@ -22,7 +22,7 @@ $OUTPUT->topNav();
 require_once("sanity-db.php");
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:600px" id="iframe-frame" 
+   <iframe name="iframe-frame" style="height:600px" id="iframe-frame"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <h1>Welcome Adminstrator</h1>
@@ -30,23 +30,23 @@ require_once("sanity-db.php");
 <li>
   <a href="upgrade" title="Upgrade Database" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
-  Upgrade Database 
+  Upgrade Database
   </a>
 </li>
 <li>
   <a href="nonce" title="Check Nonces" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
-  Check Nonces 
+  Check Nonces
   </a></li>
 <li>
   <a href="recent" title="Recent Logins" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
-  Recent Logins 
+  Recent Logins
   </a></li>
 <li>
   <a href="clear12345" title="Remove 12345 Data" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
-  Remove 12345 Data 
+  Remove 12345 Data
   </a></li>
 <li>
   <a href="events" title="Event Status" target="iframe-frame"
@@ -60,6 +60,12 @@ require_once("sanity-db.php");
 <?php } ?>
 <li><a href="install">Manage Installed Modules</a></li>
 </ul>
+<?php if ( $CFG->DEVELOPER ) { ?>
+<p>Note: You have $CFG-&gt;DEVELOPER enabled. When this is enabled, there are developer-oriented
+"testing" menus shown and the Admin links are more obvious.
+You should set DEVELOPER to <b>false</b> for production systems exposed to end users.
+</p>
+<?php } ?>
 <?php
 
 $OUTPUT->footer();

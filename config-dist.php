@@ -74,6 +74,7 @@ $CFG->dbprefix  = '';
 // $CFG->adminpw = 'warning:please-change-adminpw-89b543!';
 $CFG->adminpw = false;
 
+
 // Some styles from Bootswatch
 // $CFG->bootswatch = 'cerulean';
 // $CFG->bootswatch_color = rand(0,52);  // Fun color changing navigation for cerulian :)
@@ -118,7 +119,7 @@ $CFG->upgrading = false;
 $CFG->servicename = 'TSUGI';
 $CFG->servicedesc = false;
 
-// A logo for the site, this works best if it is a real URL 
+// A logo for the site, this works best if it is a real URL
 // $CFG->logo_url = 'https://www.wa4e.com/logo.png';
 
 // Information on the owner of this system and whether we
@@ -191,7 +192,10 @@ $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 
 // When this is true it enables a Developer test harness that can launch
 // tools using LTI.  It allows quick testing without setting up an LMS
-// course, etc.
+// course, etc.  If this is on, developer-oriented menus and adminstrator
+// menus will feature prominently in the UI.  In production, this should be
+// set to false so these non-end-user features are less prominent in the
+// navigation.
 $CFG->DEVELOPER = true;
 
 // These values configure the cookie used to record the overall

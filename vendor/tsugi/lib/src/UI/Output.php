@@ -604,6 +604,7 @@ $('a').each(function (x) {
     function defaultMenuSet() {
         global $CFG;
         $R = $CFG->wwwroot . '/';
+        $showadvanced = $CFG->DEVELOPER || ! $CFG->google_client_id;
         $set = new \Tsugi\UI\MenuSet();
         $set->setHome($CFG->servicename, $CFG->apphome);
         $set->addLeft('Tools', $R.'store');
@@ -614,15 +615,19 @@ $('a').each(function (x) {
         if ( $this->session_get('id') ) {
             $submenu = new \Tsugi\UI\Menu();
             $submenu->addLink('Profile', $R.'profile');
-            if ( U::get($_COOKIE, 'adminmenu') ) {
+            if ( $showadvanced || U::get($_COOKIE, 'adminmenu') ) {
                 $submenu->addLink('Admin', $R.'admin');
             }
-            if ( $CFG->DEVELOPER ) {
+            if ( $showadvanced ) {
                 $submenu->addLink('Developer', $R.'dev');
             }
             $submenu->addLink('Logout', $R.'logout');
             $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);
         } else {
+            if ( $showadvanced ) {
+                $set->addLeft('Admin', $R.'admin');
+                $set->addLeft('Developer', $R.'dev');
+            }
             $set->addRight('Login', $R.'login');
         }
 
