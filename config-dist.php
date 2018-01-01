@@ -250,6 +250,19 @@ $CFG->certification = false;
 // to use for the gradeSend service.  The LTI 1 method is more established...
 $CFG->prefer_lti1_for_grade_send = true;
 
+// On a Mac localhost, if you have git installed, you should be able to
+// use the auto-install with no further configuration.
+
+// On Windows, to run the automatic install of modules:
+// (1) Make sure Git is installed (https://git-scm.com/download/win
+// Maybe also install a GIT GUI https://git-scm.com/downloads/guis
+// (2) Open "cmd" and type "git --version"
+// this should give you the current version of git. If this fails
+// then git is not setup in your path
+// (Control Panel > System and Security > System > Advanced System Settings > Environment Variables)
+// (3) Then here in "config.php":
+// $CFG->git_command = 'git'
+
 // In order to run git from the a PHP script, we may need a setuid version
 // of git - example commands if you are not root:
 //
