@@ -1,5 +1,12 @@
 <?php
-
+// uncomment for 500 error debugging during early install steps
+/*
+function __the_end(){
+    if(($err=error_get_last()))
+        die('<pre>'.print_r($err,true).'</pre>');
+}
+register_shutdown_function('__the_end');
+*/
 // Configuration file - copy from config-dist.php to config.php
 // and then edit.  Since config.php has passwords and other secrets
 // never check config.php into a source repository
