@@ -23,7 +23,8 @@ $wwwroot = "http://localhost/tsugi";
 // $apphome = "https://www.tsugi.org";
 // $wwwroot = $apphome . '/tsugi';
 // Make sure to check for all the "Embedded Tsugi" configuration options below
-
+// If this file is symbolically linked you'll need to manually define the absolute path,
+// otherwise this will resolve correctly.
 $dirroot = realpath(dirname(__FILE__));
 
 $loader = require_once($dirroot."/vendor/autoload.php");
