@@ -100,6 +100,38 @@ class Tool {
         $REGISTER_LTI2['url'] = $url;
 
         self::patchRegistration($REGISTER_LTI2);
+
+        $capability_offered = U::get($REGISTER_LTI2, 'capability_offered');
+        if ( ! $capability_offered ) $capability_offered = array();
+        $capability_offered[] = 'OAuth.hmac-sha256';
+        $capability_offered[] = 'OAuth.splitSecret';
+        $capability_offered[] = 'basic-lti-launch-request';
+        $REGISTER_LTI2['capability_offered'] = $capability_offered;
+
+        // If the tool renders no opinion, choose reasonable default
+        $capability_required = U::get($REGISTER_LTI2, 'capability_required');
+        if ( ! $capability_required ) {
+            $capability_required = array();
+            $capability_required[] = 'User.id';
+            $capability_required[] = 'Context.id';
+            $capability_required[] = 'ResourceLink.id';
+        }
+        $REGISTER_LTI2['capability_required'] = $capability_required;
+
+        $messages = U::get($REGISTER_LTI2, 'messages');
+        $capability_desired = U::get($REGISTER_LTI2, 'capability_desired');
+        if ( ! $capability_desired ) $capability_desired = array();
+        $capability_desired[] = 'Person.name.given';
+        $capability_desires[] = 'Person.name.family';
+        $capability_desired[] = 'Person.email.primary';
+        $capability_desired[] = 'User.image';
+        if ( ! $messages || ($messages && in_array('launch_grade', $messages)) ) {
+            $capability_desired[] = 'Result.sourcedId';
+            $capability_desired[] = 'Result.autocreate';
+            $capability_desired[] = 'Result.url';
+        }
+        $REGISTER_LTI2['capability_desired'] = $capability_desired;
+
         return $REGISTER_LTI2;
     }
 
@@ -122,6 +154,18 @@ class Tool {
 
         if ( ! U::get($tool, 'key_url') ) {
             $tool['key_url'] = $CFG->wwwroot . '/settings';
+        }
+
+        if ( ! U::get($tool, 'app_store_url') ) {
+            $tool['app_store_url'] = $CFG->wwwroot . '/lti/store';
+        }
+
+        if ( ! U::get($tool, 'lti_2_url') ) {
+            $tool['lti_2_url'] = $CFG->wwwroot . '/lti/register';
+        }
+
+        if ( ! U::get($tool, 'app_store_canvas_url') ) {
+            $tool['app_store_canvas_url'] = $CFG->wwwroot . '/lti/store/canvas-config.xml';
         }
 
         // Make an icon URL
@@ -238,6 +282,8 @@ $retval .= '    <lticm:property name="sub_canvas_assignment_id">$Canvas.assignme
     $retval .= '    <lticm:property name="text">'.htmlent_utf8(strip_tags($tool['name'])).'</lticm:property>
   </blti:extensions>
   <blti:extensions platform="tsugi.org">
+    <lticm:property name="OAuth.hmac-sha256">true</lticm:property>
+    <lticm:property name="OAuth.splitSecret">true</lticm:property>
 ';
 
     if ( $messages && in_array('launch_grade', $messages) ) {
@@ -250,7 +296,8 @@ $retval .= '    <lticm:property name="sub_canvas_assignment_id">$Canvas.assignme
     $key_url = U::get($tool, 'key_url');
     if ( $key_url ) $retval .= '    <lticm:property name="key_url">'.$key_url."</lticm:property>\n";
     $retval .= '    <lticm:property name="app_store_url">'.$CFG->wwwroot."/lti/store</lticm:property>\n";
-    $retval .= '    <lticm:property name="app_store_config_url">'.$CFG->wwwroot."/lti/store/canvas-config.xml</lticm:property>\n";
+    $retval .= '    <lticm:property name="lti_2_url">'.$CFG->wwwroot."/lti/register</lticm:property>\n";
+    $retval .= '    <lticm:property name="app_store_canvas_url">'.$CFG->wwwroot."/lti/store/canvas-config.xml</lticm:property>\n";
   $retval .='  </blti:extensions>
 </cartridge_basiclti_link>';
 
