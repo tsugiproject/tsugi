@@ -19,7 +19,7 @@ class Tool {
 
     public static function handleConfig()
     {
-        global $CFG, $TSUGI_LAUNCH, $PDOX;
+        global $CFG, $TSUGI_LAUNCH, $PDOX, $TSUGI_LOCALE;
         global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
 
         // Check for a few special cases
@@ -52,7 +52,7 @@ class Tool {
 
     public function run()
     {
-        global $CFG, $TSUGI_LAUNCH, $PDOX;
+        global $CFG, $TSUGI_LAUNCH, $PDOX, $TSUGI_LOCALE;
         global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
 
         // Check if this is a config request
