@@ -120,17 +120,17 @@ echo("</p>\n");
 echo("<ul>\n");
 if ( isset($CFG->privacy_url) ) {
     echo('<li><p><a href="'.$CFG->privacy_url.'"
-       target="_blank">'.__('Privacy Policy').'</a></p></li>'."\n");
+       target="_blank">'._m('Privacy Policy').'</a></p></li>'."\n");
 }
 $privacy_description = array(
- 'anonymous' => __('Does not require student email or name.'),
- 'public' => __('Requires student email and name.'),
- 'name_only' => __('Requires student name but not email.')
+ 'anonymous' => _m('Does not require student email or name.'),
+ 'public' => _m('Requires student email and name.'),
+ 'name_only' => _m('Requires student name but not email.')
 );
 $privacy_level = U::get($tool, 'privacy_level');
 if ( is_string($privacy_level) ) {
     echo('<li><p>');
-    echo(__('Privacy Level:'));
+    echo(_m('Privacy Level:'));
     echo(' ');
     $pdesc = U::get($privacy_description, $privacy_level);
     if ( $pdesc ) {
@@ -143,23 +143,23 @@ if ( is_string($privacy_level) ) {
 $placements = U::get($tool, 'placements');
 if ( is_array($placements) && in_array('homework_submission', $placements) ) {
     echo('<li><p>');
-    echo(__('Sends grades back to learning system'));
+    echo(_m('Sends grades back to learning system'));
     echo("</p></li>\n");
 }
 $analytics = U::get($tool, 'analytics');
 if ( is_array($analytics) && in_array('internal', $analytics) ) {
     echo('<li><p>');
-    echo(__('Has internal analytics visualization'));
+    echo(_m('Has internal analytics visualization'));
     echo("</p></li>\n");
 }
 if ( $CFG->launchactivity ) { 
     echo('<li><p>');
-    echo(__('Can send analytics to learning record store.'));
+    echo(_m('Can send analytics to learning record store.'));
     echo("</p></li>\n");
 }
 if ( is_array(U::get($tool, 'languages')) ) {
     echo('<li><p>');
-    echo(__('Languages:'));
+    echo(_m('Languages:'));
     echo(' ');
     $first = true;
     foreach(U::get($tool, 'languages') as $language) {
@@ -171,23 +171,23 @@ if ( is_array(U::get($tool, 'languages')) ) {
 }
 if ( isset($CFG->sla_url) ) {
     echo('<li><p><a href="'.$CFG->sla_url.'"
-       target="_blank">'.__('Service Level Agreement').'</a></p></li>'."\n");
+       target="_blank">'._m('Service Level Agreement').'</a></p></li>'."\n");
 }
 if ( is_string(U::get($tool, 'license')) ) {
     echo('<li><p>');
-    echo(__('License:'));
+    echo(_m('License:'));
     echo(' ');
     echo(htmlentities(U::get($tool, 'license')));
 }
 $source_url = U::get($tool, 'source_url');
 if ( is_string($source_url) ) {
     echo('<li><p><a href="'.$source_url.'"
-       target="_blank">'.__('Source code').'</a></p></li>'."\n");
+       target="_blank">'._m('Source code').'</a></p></li>'."\n");
 }
 
 if ( isset($CFG->google_classroom_secret) ) {
     echo('<li><p>');
-    echo(__('Supports'));
+    echo(_m('Supports'));
     echo(" Google Classroom");
     echo("</p></li>\n");
 }
@@ -195,18 +195,18 @@ if ( isset($CFG->google_classroom_secret) ) {
 $launch_url = U::get($tool, 'url');
 if ( $CFG->providekeys ) {
     echo('<li><p>');
-    echo(__('Supports'));
+    echo(_m('Supports'));
     echo(" IMS Learning Tools Interoperability&reg (LTI)");
     echo("</p></li>\n");
 }
 
 echo('<li><p>');
-echo(__('Supports'));
+echo(_m('Supports'));
 echo(' IMS Content Item&reg; / IMS Deep Linking');
 echo("</p></li>\n");
 
 echo('<li><p>');
-echo(__('Supports'));
+echo(_m('Supports'));
 echo(' Canvas Configuration URL');
 echo("</p></li>\n");
 

@@ -199,19 +199,19 @@ if ( $gc_course ) {
     $OUTPUT->header();
     $OUTPUT->bodyStart();
     echo("<center><p>\n");
-    echo(__('Success installing').'<br/>');
+    echo(_m('Success installing').'<br/>');
     echo('<strong>');
     echo(htmlentities($endpoint_title));
     echo('</strong>');
     if ( $gc_title ) {
-        echo('<br/>'.__('in').' ');
+        echo('<br/>'._m('in').' ');
         echo(htmlentities($gc_title));
     }
     echo("</p>\n");
     if ( $gc_url ) {
         $launch = filter_var($gc_url, FILTER_SANITIZE_URL); 
         echo("<p><a href=".$launch.' target=_blank">');
-        echo(__('Go to Classroom site'));
+        echo(_m('Go to Classroom site'));
         echo("</p>\n");
     } 
     $OUTPUT->footer();

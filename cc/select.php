@@ -80,7 +80,7 @@ function myfunc(youtube){
     });
     var stuff = $("#res").val();
     if ( stuff.length < 1 ) {
-        alert('<?= __("Please select at least one module") ?>');
+        alert('<?= _m("Please select at least one module") ?>');
     } else {
         if ( youtube == 'yes' ) {
             $("#youtube").val('yes');

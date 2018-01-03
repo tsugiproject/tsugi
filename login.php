@@ -94,7 +94,10 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
 } else {
 
     if ( ! isset($CFG->google_client_id) || ! $CFG->google_client_id ) {
-        echo("<p>".__('You need to set $CFG->google_client_id in order to use Google\'s Login')."</p>\n");
+        echo("<p>"._m('You need to set $CFG->google_client_id in order to use Google\'s Login')."</p>\n");
+        if ( strpos($CFG->wwwroot, '//localhost') !== false ) {
+            echo("<p>"._m('There is no need to log in to do local adminstration or local development')."</p>\n");
+        }
         die();
     }
 
