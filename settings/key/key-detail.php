@@ -17,7 +17,7 @@ if ( ! U::get($_SESSION,'id') ) {
 
 $tablename = "{$CFG->dbprefix}lti_key";
 $current = $CFG->getCurrentFileUrl(__FILE__);
-$from_location = "keys";
+$from_location = "index";
 $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
