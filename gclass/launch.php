@@ -43,7 +43,7 @@ $context_sha256 = lti_sha256($context_key);
 
 if ( ! isset($_SESSION['id']) ) {
     $_SESSION['login_return'] = $path[0].'/'.$path[1].'/'.$path[2];
-    header('Location: '.$CFG->apphome.'/login');
+    header('Location: '.$CFG->wwwroot.'/login');
     return;
 }
 
