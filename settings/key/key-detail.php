@@ -4,6 +4,7 @@ if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 
 use \Tsugi\Util\U;
+use \Tsugi\Core\LTIX;
 use \Tsugi\UI\CrudForm;
 
 \Tsugi\Core\LTIX::getConnection();
