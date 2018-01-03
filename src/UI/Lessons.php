@@ -697,7 +697,8 @@ var disqus_config = function () {
                 $lti = $this->getLtiByRlid($resource_link_id);
 
                 echo('<tr><td>');
-                $href = U::get_rest_path() . '/' . urlencode($module->anchor);
+                $rest_path = U::rest_path();
+                $href = $rest_path->parent . '/lessons/' . urlencode($module->anchor);
 
                 echo('<a href="'.$href.'">');
                 echo('<i class="fa fa-square-o text-info" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
