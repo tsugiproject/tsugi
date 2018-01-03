@@ -17,7 +17,7 @@ if ( ! U::get($_SESSION,'id') ) {
 
 $tablename = "{$CFG->dbprefix}lti_key";
 $current = $CFG->getCurrentFileUrl(__FILE__);
-$from_location = "index";
+$from_location = LTIX::curPageUrlFolder();
 $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';

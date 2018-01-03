@@ -19,7 +19,7 @@ if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
 $tablename = "{$CFG->dbprefix}key_request";
 $current = $CFG->getCurrentFileUrl(__FILE__);
 $title = "Request Entry";
-$from_location = LTIX::curPageUrlFolder();
+$from_location = "requests";
 $allow_delete = isAdmin();
 $allow_edit = isAdmin();
 $where_clause = '';
