@@ -122,7 +122,7 @@ $install = $rest_path->extra;
     </p>
               <ul>
                 <li><a href="<?= $rest_path->full ?>?identity=instructor">Jane Instructor</a></li>
-                <li><a href="<?= $rest_path->full ?>?identity=learner1">Sue Student</a></li>
+                <li><a href="<?= $rest_path->full ?>?identity=learner1">Sue Student</a> (Prefers EN-us)</li>
                 <li><a href="<?= $rest_path->full ?>?identity=learner2">Ed Student</a> (Prefers ES-es)</li>
                 <li><a href="<?= $rest_path->full ?>?identity=learner3">Anonymous</a></li>
               </ul>

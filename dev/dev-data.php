@@ -7,7 +7,6 @@ $instdata = array(
       "lis_person_sourcedid" => "ischool.edu:inst",
       "user_image" => "https://www.dr-chuck.net/tsugi-static/font-awesome-4.7.0/png/birthday-cake.png",
       "user_id" => "292832126",
-      "launch_presentation_locale" => "en-US",
       "roles" => "Instructor"
 );
 
@@ -55,9 +54,7 @@ $lmsdata = array(
       "lis_person_sourcedid" => "ischool.edu:inst",
       "user_id" => "292832126",
       "user_image" => "https://www.dr-chuck.net/tsugi-static/font-awesome-4.7.0/png/birthday-cake.png",
-      "launch_presentation_locale" => "en-US",
       "roles" => "Instructor",
-
       "resource_link_id" => "292832126",
       "resource_link_title" => "Weekly Blog",
       "resource_link_description" => "A weekly blog.",

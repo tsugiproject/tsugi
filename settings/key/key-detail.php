@@ -4,6 +4,7 @@ if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 
 use \Tsugi\Util\U;
+use \Tsugi\Core\LTIX;
 use \Tsugi\UI\CrudForm;
 
 \Tsugi\Core\LTIX::getConnection();
@@ -17,7 +18,7 @@ if ( ! U::get($_SESSION,'id') ) {
 
 $tablename = "{$CFG->dbprefix}lti_key";
 $current = $CFG->getCurrentFileUrl(__FILE__);
-$from_location = "keys";
+$from_location = LTIX::curPageUrlFolder();
 $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
