@@ -230,7 +230,7 @@ if (window!=window.top) {
         if ( $key_key == '12345' &&
             strpos($CFG->wwwroot, '://localhost') === false ) {
             echo('<div style="background-color: orange; position: absolute; bottom: 5px; left: 5px;">');
-            echo(__('Test Key - Do not use for production'));
+            echo(_m('Test Key - Do not use for production'));
             echo('</div>');
         }
 
