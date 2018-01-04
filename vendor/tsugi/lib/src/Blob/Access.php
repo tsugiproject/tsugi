@@ -33,6 +33,12 @@ class Access {
             die('Unsafe file suffix');
         }
 
+        // Update the access time
+        $stmt = $PDOX->queryDie("UPDATE {$p}blob_file SET accessed_at=NOW()
+                    WHERE file_id = :ID AND context_id = :CID",
+            array(":ID" => $id, ":CID" => $CONTEXT->id)
+        );
+
         $mimetype = $row['contenttype'];
         // die($mimetype);
 

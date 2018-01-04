@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "9e2ecebcfd2bf6052e1005bcdf4cb1d8",
-    "content-hash": "80b7e1374a515aafa7ce53354557ef8a",
+    "hash": "73c0fa2640496c7749152fea0fc68bb3",
+    "content-hash": "0da0c9d2ec48f588dd8a97d4756d6b8b",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -1458,12 +1458,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "5dc107715ff432b625d97edc721b21e919d00e76"
+                "reference": "1a7f4d096eb24fcee4b02db4f0f409459f65b509"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/5dc107715ff432b625d97edc721b21e919d00e76",
-                "reference": "5dc107715ff432b625d97edc721b21e919d00e76",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/1a7f4d096eb24fcee4b02db4f0f409459f65b509",
+                "reference": "1a7f4d096eb24fcee4b02db4f0f409459f65b509",
                 "shasum": ""
             },
             "require": {
