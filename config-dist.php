@@ -207,6 +207,15 @@ $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 // navigation.
 $CFG->DEVELOPER = true;
 
+// Set this to the temporary folder but dangerous for production
+/*
+if ( $CFG->DEVELOPER && ! isset($CFG->dataroot) ) {
+    $tmp = sys_get_temp_dir();
+    if (strlen($tmp) > 1 && substr($tmp, -1) == '/') $tmp = substr($tmp,0,-1);
+    $CFG->dataroot = $tmp;
+}
+*/
+
 // These values configure the cookie used to record the overall
 // login in a long-lived encrypted cookie.   Look at the library
 // code createSecureCookie() for more detail on how these operate.
