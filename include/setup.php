@@ -97,13 +97,6 @@ if ( ! isset($CFG->fontawesome) ) $CFG->fontawesome = $CFG->staticroot . '/font-
 if ( !isset($CFG->require_conformance_parameters) ) $CFG->require_conformance_parameters = false;
 if ( !isset($CFG->prefer_lti1_for_grade_send) ) $CFG->prefer_lti1_for_grade_send = true;
 
-// Set this to the temporary folder if not set - dev only
-if ( ! isset($CFG->dataroot) ) {
-    $tmp = sys_get_temp_dir();
-    if (strlen($tmp) > 1 && substr($tmp, -1) == '/') $tmp = substr($tmp,0,-1);
-    $CFG->dataroot = $tmp;
-}
-
 error_reporting(E_ALL & ~E_NOTICE);
 error_reporting(E_ALL );
 ini_set('display_errors', 1);
