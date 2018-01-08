@@ -218,6 +218,14 @@ $CFG->DEVELOPER = true;
 // backed up and not in the document root hierarchy.
 //    mkdir /backedup/tsugi_blobs
 // $CFG->dataroot = '/backedup/tsugi_blobs';
+// You can turn this on and off (false or unset means store in the database)
+
+// It is important to note that changing dataroot does not migrate the data.
+// Tsugi stores the blob path in the blob_file table.  Data uploaded to a blob
+// will stay there and data uploaded to a path will stay there regardless of 
+// this setting.  There will be separate migration processes to develop that
+// move back and forth from the database to disk or from one disk location to 
+// another.
 
 // You can set dataroot to a temporary folder for dev but never for production
 /*
