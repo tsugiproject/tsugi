@@ -96,9 +96,6 @@ class BlobUtil {
                 return false;
             }
 
-            // $data = file_get_contents($FILE_DESCRIPTOR['tmp_name']);
-            // $sha256 = lti_sha256($data);
-
             $sha256 = hash_file('sha256', $FILE_DESCRIPTOR['tmp_name']);
             $stmt = $PDOX->queryDie(
                 "SELECT file_id, file_sha256 from {$CFG->dbprefix}blob_file
