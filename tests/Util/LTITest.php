@@ -16,6 +16,7 @@ require_once "src/OAuth/OAuthSignatureMethod_HMAC_SHA1.php";
 require_once "src/OAuth/OAuthSignatureMethod_HMAC_SHA256.php";
 require_once "src/OAuth/OAuthException.php";
 require_once "src/Config/ConfigInfo.php";
+require_once "src/Blob/BlobUtil.php";
 
 $dirroot = dirname(__FILE__).'/../';
 $wwwroot = 'http://localhost:8888';
