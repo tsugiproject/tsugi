@@ -81,6 +81,36 @@ class BlobUtil {
         return $image_type == IMAGETYPE_JPEG || $image_type == IMAGETYPE_PNG;
     }
 
+    public static function getBlobFolder($context_id, $blob_root=false /* Unit Test*/)
+    {
+        global $CFG;
+        if ( ! $blob_root ) {
+            if ( ! isset($CFG->dataroot) ) return false;
+            $blob_root = $CFG->dataroot;
+        }
+
+        if ( ! is_writeable($blob_root) ) {
+            error_log('Dataroot is not writeable '.$blob_root);
+            return false;
+        }
+        $top_dir = ($context_id / 1000) % 1000;
+        $sub_dir = $context_id % 1000;
+        $top_dir = str_pad($top_dir.'',3,'0',STR_PAD_LEFT);
+        $sub_dir = str_pad($sub_dir.'',3,'0',STR_PAD_LEFT);
+        $context_id = str_pad($context_id.'',8,'0',STR_PAD_LEFT);
+
+        $blob_folder = $blob_root . '/' . $top_dir . '/' . $sub_dir . '/' . $context_id;
+        // error_log("BF=$blob_folder\n");
+        if ( file_exists($blob_folder) && is_writeable($blob_folder) ) {
+            return $blob_folder;
+        }
+        if ( mkdir($blob_folder,0770,true) ) {
+            return $blob_folder;
+        }
+        error_log('blob folder failure '.$blob_folder);
+        return false;
+    }
+
     public static function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
     {
         global $CFG, $CONTEXT, $PDOX;
