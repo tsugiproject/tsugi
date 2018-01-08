@@ -157,7 +157,7 @@ class BlobUtil {
                 $blob_folder = BlobUtil::mkdirContext($CONTEXT->id);
                 if ( $blob_folder ) {
                     $blob_name =  $blob_folder . '/' . $sha256;
-                    if ((move_uploaded_file($_FILES['uploaded_file']['tmp_name'],$blob_name))) {
+                    if ((move_uploaded_file($FILE_DESCRIPTOR['tmp_name'],$blob_name))) {
                         $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
                             (context_id, file_sha256, file_name, contenttype, path, created_at)
                             VALUES (?, ?, ?, ?, ?, NOW())");
