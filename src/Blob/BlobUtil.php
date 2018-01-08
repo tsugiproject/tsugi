@@ -89,10 +89,6 @@ class BlobUtil {
             $blob_root = $CFG->dataroot;
         }
 
-        if ( ! is_writeable($blob_root) ) {
-            error_log('Dataroot is not writeable '.$blob_root);
-            return false;
-        }
         $top_dir = ($context_id / 1000) % 1000;
         $sub_dir = $context_id % 1000;
         $top_dir = str_pad($top_dir.'',3,'0',STR_PAD_LEFT);
@@ -100,6 +96,24 @@ class BlobUtil {
         $context_id = str_pad($context_id.'',8,'0',STR_PAD_LEFT);
 
         $blob_folder = $blob_root . '/' . $top_dir . '/' . $sub_dir . '/' . $context_id;
+        return $blob_folder;
+    }
+
+    public static function mkdirContext($context_id, $blob_root=false /* Unit Test*/)
+    {
+        global $CFG;
+        if ( ! $blob_root ) {
+            if ( ! isset($CFG->dataroot) ) return false;
+            $blob_root = $CFG->dataroot;
+        }
+
+        if ( ! is_writeable($blob_root) ) {
+            error_log('Dataroot is not writeable '.$blob_root);
+            return false;
+        }
+
+        $blob_folder = self::getBlobFolder($context_id, $blob_root);
+
         // error_log("BF=$blob_folder\n");
         if ( file_exists($blob_folder) && is_writeable($blob_folder) ) {
             return $blob_folder;
@@ -139,6 +153,27 @@ class BlobUtil {
                 return $row;
             }
 
+            if ( isset($CFG->dataroot) && $CFG->dataroot ) {
+                $blob_folder = BlobUtil::mkdirContext($CONTEXT->id);
+                if ( $blob_folder ) {
+                    $blob_name =  $blob_folder . '/' . $sha256;
+                    if ((move_uploaded_file($_FILES['uploaded_file']['tmp_name'],$blob_name))) {
+                        $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
+                            (context_id, file_sha256, file_name, contenttype, path, created_at)
+                            VALUES (?, ?, ?, ?, ?, NOW())");
+                        $stmt->bindParam(1, $CONTEXT->id);
+                        $stmt->bindParam(2, $sha256);
+                        $stmt->bindParam(3, $filename);
+                        $stmt->bindParam(4, $FILE_DESCRIPTOR['type']);
+                        $stmt->bindParam(5, $blob_name);
+                        $stmt->execute();
+                        $id = 0+$PDOX->lastInsertId();
+                        return array($id, $sha256);
+                    }
+                }
+            }
+
+            // Fall back to storing in a blob...
             $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
             $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
                 (context_id, file_sha256, file_name, contenttype, content, created_at)

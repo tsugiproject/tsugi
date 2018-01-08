@@ -41,9 +41,14 @@ class BlobTest extends PHPUnit_Framework_TestCase
         }
         self::recursiveRemoveDirectory($tmp);
         mkdir($tmp);
-        $blob = BlobUtil::getBlobFolder(42, $tmp);
-        $this->assertTrue(strpos($blob, 'tsugi_unit/000/042/00000042') > 0);
+        $blob_dir = BlobUtil::getBlobFolder(42, $tmp);
+        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/000/042/00000042') > 0);
+        $this->assertFalse(file_exists($blob_dir));
+        $blob_dir = BlobUtil::mkdirContext(42, $tmp);
+        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/000/042/00000042') > 0);
+        $this->assertTrue(file_exists($blob_dir));
         self::recursiveRemoveDirectory($tmp);
+        $this->assertFalse(file_exists($blob_dir));
     }
 
 }

@@ -31,6 +31,7 @@ class Access {
             error_log('File not loaded: '.$id);
             die("File not loaded");
         }
+        $type = $row['contenttype'];
         $file_name = $row['file_name'];
         $file_path = $row['path'];
 
