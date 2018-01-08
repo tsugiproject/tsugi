@@ -25,7 +25,7 @@ class LTI {
     // Returns true if this is a Basic LTI message
     // with minimum values to meet the protocol
     public static function isRequest($request_data=false) {
-        if ( $request_data === false ) $rquest_data = $_REQUEST;
+        if ( $request_data === false ) $request_data = $_REQUEST;
         if ( !isset($request_data["lti_message_type"]) ) return false;
         if ( !isset($request_data["lti_version"]) ) return false;
         $good_message_type = self::isValidMessageType($request_data["lti_message_type"]);

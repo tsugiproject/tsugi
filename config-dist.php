@@ -207,7 +207,7 @@ $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 // navigation.
 $CFG->DEVELOPER = true;
 
-// Set this to the temporary folder but dangerous for production
+// You can set dataroot to a temporary folder for dev but never for production
 /*
 if ( $CFG->DEVELOPER && ! isset($CFG->dataroot) ) {
     $tmp = sys_get_temp_dir();
@@ -215,6 +215,10 @@ if ( $CFG->DEVELOPER && ! isset($CFG->dataroot) ) {
     $CFG->dataroot = $tmp;
 }
 */
+// A normal setup - make sure the folder is writable by the web server,
+// backed up and not in the document root hierarchy.
+//    mkdir /backedup/tsugi_blobs
+// $CFG->dataroot = '/backedup/tsugi_blobs';
 
 // These values configure the cookie used to record the overall
 // login in a long-lived encrypted cookie.   Look at the library
