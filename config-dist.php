@@ -207,18 +207,26 @@ $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 // navigation.
 $CFG->DEVELOPER = true;
 
+// If you set $CFG->dataroot to a writeable folder, Tsugi will store blobs on disk
+// instead of the database using the following folder / file pattern
+//     tsugi_blobs/001/754/00001754/1151...56a
+//     tsugi_blobs/001/754/00001754/68...123b
+// The folders are based on the context_id that owns the blobs and the name of
+// the file is the sha256 of its contents
+
+// A normal setup - make sure the folder is writable by the web server,
+// backed up and not in the document root hierarchy.
+//    mkdir /backedup/tsugi_blobs
+// $CFG->dataroot = '/backedup/tsugi_blobs';
+
 // You can set dataroot to a temporary folder for dev but never for production
 /*
 if ( $CFG->DEVELOPER && ! isset($CFG->dataroot) ) {
     $tmp = sys_get_temp_dir();
     if (strlen($tmp) > 1 && substr($tmp, -1) == '/') $tmp = substr($tmp,0,-1);
-    $CFG->dataroot = $tmp;
+    $CFG->dataroot = $tmp . '/tsugi_blobs';
 }
 */
-// A normal setup - make sure the folder is writable by the web server,
-// backed up and not in the document root hierarchy.
-//    mkdir /backedup/tsugi_blobs
-// $CFG->dataroot = '/backedup/tsugi_blobs';
 
 // These values configure the cookie used to record the overall
 // login in a long-lived encrypted cookie.   Look at the library
