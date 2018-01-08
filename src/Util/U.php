@@ -212,10 +212,22 @@ class U {
         if ( ini_get('session.use_cookies') != '0' ) return $url;
         if ( stripos($url, '&'.session_name().'=') > 0 ||
              stripos($url, '?'.session_name().'=') > 0 ) return $url;
-        $parameter = session_name().'='.session_id();
+        $session_id = session_id();
+
+        // If doing this before the session is running, check for the
+        // id as GET or POST parameter
+        if ( strlen($session_id) < 1 ) {
+            $session_id = self::get($_POST, session_name());
+        }
+        if ( strlen($session_id) < 1 ) {
+            $session_id = self::get($_GET, session_name());
+        }
+
+        // Don't add more than once...
+        $parameter = session_name().'=';
         if ( strpos($url, $parameter) !== false ) return $url;
-        $url = $url . (strpos($url,'?') > 0 ? "&" : "?");
-        $url = $url . $parameter;
+
+        $url = add_url_parm($url, session_name(), $session_id);
         return $url;
     }
 
@@ -433,7 +445,7 @@ class U {
         return $a.'='.$b;
     }
 
-    /** 
+    /**
      * Deserialize an tightly serialized integer-only PHP array
      *
      *     $str = '1=42,2=43,3=44';

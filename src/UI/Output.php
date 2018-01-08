@@ -936,7 +936,12 @@ EOF;
      */
     public static function doRedirect($location) {
         if ( headers_sent() ) {
-            echo('<a href="'.htmlentities($location).'">Continue</a>'."\n");
+            // TODO: Check if this is fixed in PHP 70200
+            // https://bugs.php.net/bug.php?id=74892
+            if ( PHP_VERSION_ID >= 70000 ) {
+                $location = U::addSession($location);
+            }
+            echo('<a href="'.$location.'">Continue</a>'."\n");
         } else {
             if ( ini_get('session.use_cookies') == 0 ) {
                 $location = addSession($location);

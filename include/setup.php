@@ -145,45 +145,19 @@ function route_get_local_path($dir) {
 }
 
 function get_request_document() {
-    $uri = $_SERVER['REQUEST_URI'];     // /tsugi/lti/some/cool/stuff
-    $pieces = explode('/',$uri);
-    if ( count($pieces) > 1 ) {
-        $local_path = $pieces[count($pieces)-1];
-        $pos = strpos($local_path,'?');
-        if ( $pos > 0 ) $local_path = substr($local_path,0,$pos);
-        return $local_path;
-    }
-    return false;
+    return U::get_request_document();
 }
 
 function addSession($url) {
-    if ( ini_get('session.use_cookies') != '0' ) return $url;
-    if ( stripos($url, '&'.session_name().'=') > 0 ||
-         stripos($url, '?'.session_name().'=') > 0 ) return $url;
-    $parameter = session_name().'='.session_id();
-    if ( strpos($url, $parameter) !== false ) return $url;
-    $url = $url . (strpos($url,'?') > 0 ? "&" : "?");
-    $url = $url . $parameter;
-    return $url;
+    return U::addSession($url);
 }
 
 function reconstruct_query($baseurl, $newparms=false) {
-    foreach ( $_GET as $k => $v ) {
-        if ( $k == session_name() ) continue;
-        if ( is_array($newparms) && array_key_exists($k, $newparms) ) continue;
-        $baseurl = add_url_parm($baseurl, $k, $v);
-    }
-    if ( is_array($newparms) ) foreach ( $newparms as $k => $v ) {
-        $baseurl = add_url_parm($baseurl, $k, $v);
-    }
-
-    return $baseurl;
+    return U::reconstruct_query();
 }
 
 function add_url_parm($url, $key, $val) {
-    $url .= strpos($url,'?') === false ? '?' : '&';
-    $url .= urlencode($key) . '=' . urlencode($val);
-    return $url;
+    return U::add_url_parm($url, $key, $val);
 }
 
 // Request headers for earlier version of PHP and nginx
