@@ -153,7 +153,7 @@ function addSession($url) {
 }
 
 function reconstruct_query($baseurl, $newparms=false) {
-    return U::reconstruct_query();
+    return U::reconstruct_query($baseurl, $newparms);
 }
 
 function add_url_parm($url, $key, $val) {
