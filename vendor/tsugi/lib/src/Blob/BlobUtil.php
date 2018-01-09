@@ -6,6 +6,33 @@ use \Tsugi\UI\Output;
 
 class BlobUtil {
 
+    /**
+     * Check to see if the $_POST is completely broken in file upload
+     * Sometimes, if the maxUpload_SIZE is exceeded, it deletes all of $_POST
+     * and we lose our session.
+     */
+    public static function emptyPostSessionLost()
+    {
+        return ( self::emptyPost() && !isset($_GET[session_name()]) ) ;
+    }
+
+    /**
+     * Check to see if the $_POST is completely broken in file upload
+     * Sometimes, if the maxUpload_SIZE is exceeded, it deletes all of $_POST
+     */
+    public static function emptyPost()
+    {
+        return ( $_SERVER['REQUEST_METHOD'] == 'POST' && count($_POST) == 0 );
+    }
+
+    /**
+     *
+     */
+    public static function uploadTooLarge($filename)
+    {
+        return isset($_FILES[$filename]) && $_FILES[$filename]['error'] == 1 ;
+    }
+
     public static function getFolderName()
     {
         global $CFG, $CONTEXT;
@@ -40,30 +67,41 @@ class BlobUtil {
         return  true;
     }
 
-    public static function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "image/jpeg") )
+    /**
+     * Returns true if this is a good upload, an error string if not
+     */
+    public static function validateUpload($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
     {
         $retval = true;
         $filename = isset($FILE_DESCRIPTOR['name']) ? basename($FILE_DESCRIPTOR['name']) : false;
 
         if ( $FILE_DESCRIPTOR['error'] == 1) {
-            $retval = "General upload failure";
+            $retval = _m("General upload failure");
         } else if ( $FILE_DESCRIPTOR['error'] == 4) {
-            $retval = 'Missing file, make sure to select file(s) before pressing submit';
+            $retval = _m('Missing file, make sure to select file(s) before pressing submit');
         } else if ( $filename === false ) {
-            $retval = "Uploaded file has no name";
+            $retval = _m("Uploaded file has no name");
         } else if ( $FILE_DESCRIPTOR['size'] < 1 ) {
-            $retval = "File is empty: ".$filename;
+            $retval = _m("File is empty: ").$filename;
         } else if ( $FILE_DESCRIPTOR['error'] == 0 ) {
-            if ( preg_match(self::BAD_FILE_SUFFIXES, $filename) ) $retval = "File suffix not allowed";
-
-            $contenttype = $FILE_DESCRIPTOR['type'];
-            if ( ! in_array($contenttype, $CONTENT_TYPES) ) $retval = "Content type ".$contenttype." not allowed";
+            if ( $SAFETY_CHECK && preg_match(self::BAD_FILE_SUFFIXES, $filename) ) $retval = _m("File suffix not allowed");
         } else {
-            $retval = "Upload failure=".$FILE_DESCRIPTOR['error'];
+            $retval = _m("Upload failure=").$FILE_DESCRIPTOR['error'];
         }
-        if ( $retval !== true ) {
-            error_log($retval." file=".$filename);
-        }
+        return $retval;
+    }
+
+    public static function checkFileSafety($FILE_DESCRIPTOR, $CONTENT_TYPES=array("image/png", "image/jpeg") )
+    {
+        $retval = true;
+        $filename = isset($FILE_DESCRIPTOR['name']) ? basename($FILE_DESCRIPTOR['name']) : false;
+
+        $retval = self::validateUpload($FILE_DESCRIPTOR, true);
+        if ( is_string($retval) ) return $retval;
+
+        $contenttype = $FILE_DESCRIPTOR['type'];
+        if ( ! in_array($contenttype, $CONTENT_TYPES) ) $retval = "Content type ".$contenttype." not allowed";
+
         return $retval;
     }
 
@@ -129,14 +167,12 @@ class BlobUtil {
     {
         global $CFG, $CONTEXT, $PDOX;
 
-        if ( $SAFETY_CHECK && self::checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
-
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 
         if( $FILE_DESCRIPTOR['error'] == 0)
         {
             $filename = basename($FILE_DESCRIPTOR['name']);
-            if ( endsWith($filename, '.php') ) {
+            if ( $SAFETY_CHECK && ! self::safeFileSuffix($filename) ) {
                 return false;
             }
 
@@ -195,20 +231,15 @@ class BlobUtil {
         return false;
     }
 
-    public static function uploadFileToString($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
+    public static function uploadFileToString($FILE_DESCRIPTOR)
     {
         global $CFG, $CONTEXT, $PDOX;
-
-        if ( $SAFETY_CHECK && self::checkFileSafety($FILE_DESCRIPTOR) !== true ) return false;
 
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 
         if( $FILE_DESCRIPTOR['error'] == 0)
         {
             $filename = basename($FILE_DESCRIPTOR['name']);
-            if ( strpos($filename, '.php') !== false ) {
-                return false;
-            }
 
             $data = file_get_contents($FILE_DESCRIPTOR['tmp_name']);
             return $data;
