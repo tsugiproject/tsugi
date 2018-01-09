@@ -163,6 +163,25 @@ class BlobUtil {
         return false;
     }
 
+    /**
+     * uploadToBlob - returns blob_id or false
+     *
+     * Returns false for any number of failures, for better detail, use
+     * validateUpload() before calling this to do the actual upload.
+     */
+    public static function uploadToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
+    {
+        $retval = self::uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK);
+        if ( is_array($retval) ) $retval = $retval[0];
+        return $retval;
+    }
+
+    /**
+     * Legacy code - returns array [id, sha256]
+     *
+     * Returns false for any number of failures, for better detail, use
+     * validateUpload() before calling this to do the actual upload.
+     */
     public static function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
     {
         global $CFG, $CONTEXT, $PDOX;
