@@ -220,6 +220,10 @@ if (window!=window.top) {
             echo('<p style="color:red">Error - Unhandled POST request</p>');
             echo("\n<pre>\n");
             echo($dump);
+            if ( count($_FILES) > 0 ) {
+                $files = self::safe_var_dump($_FILES);
+                echo($files);
+            }
             echo("\n</pre>\n");
             error_log($dump);
             die_with_error_log("Unhandled POST request");

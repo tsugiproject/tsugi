@@ -110,38 +110,30 @@ if ( isset($CFG->sessionlifetime) ) {
 date_default_timezone_set($CFG->timezone);
 
 function htmlpre_utf8($string) {
-    return str_replace("<","&lt;",$string);
+    return U::htmlpre_utf8($string);
 }
 
 function htmlspec_utf8($string) {
-    return htmlspecialchars($string,ENT_QUOTES,$encoding = 'UTF-8');
+    return U::htmlspec_utf8($string);
 }
 
 function htmlent_utf8($string) {
-    return htmlentities($string,ENT_QUOTES,$encoding = 'UTF-8');
+    return U::htmlent_utf8($string);
 }
 
 // Makes sure a string is safe as an href
 function safe_href($string) {
-    return str_replace(array('"', '<'),
-        array('&quot;',''), $string);
+    return U::safe_href($string);
 }
 
 // Convienence method to wrap sha256
 function lti_sha256($val) {
-    return hash('sha256', $val);
+    return U::lti_sha256($val);
 }
 
 // Convienence method to get the local path if we are doing
 function route_get_local_path($dir) {
-    $uri = $_SERVER['REQUEST_URI'];     // /tsugi/lti/some/cool/stuff
-    $root = $_SERVER['DOCUMENT_ROOT'];  // /Applications/MAMP/htdocs
-    $cwd = $dir;                        // /Applications/MAMP/htdocs/tsugi/lti
-    if ( strlen($cwd) < strlen($root) + 1 ) return false;
-    $lwd = substr($cwd,strlen($root));  // /tsugi/lti
-    if ( strlen($uri) < strlen($lwd) + 2 ) return false;
-    $local = substr($uri,strlen($lwd)+1); // some/cool/stuff
-    return $local;
+    return U::route_get_local_path($dir);
 }
 
 function get_request_document() {
@@ -164,15 +156,7 @@ function add_url_parm($url, $key, $val) {
 // http://www.php.net/manual/en/function.getallheaders.php
 if (!function_exists('apache_request_headers')) {
     function apache_request_headers() {
-        foreach($_SERVER as $key=>$value) {
-            if (substr($key,0,5)=="HTTP_") {
-                $key=str_replace(" ","-",ucwords(strtolower(str_replace("_"," ",substr($key,5)))));
-                $out[$key]=$value;
-            } else {
-                $out[$key]=$value;
-            }
-        }
-        return $out;
+        return U::apache_request_headers();
     }
 }
 
@@ -183,40 +167,25 @@ if (!function_exists('http_response_code'))
 {
     function http_response_code($newcode = NULL)
     {
-        static $code = 200;
-        if($newcode !== NULL)
-        {
-            header('X-PHP-Response-Code: '.$newcode, true, $newcode);
-            if(!headers_sent())
-                $code = $newcode;
-        }       
-        return $code;
+        return U::http_response_code($newcode);
     }
 }
 
 // Convience method, pattern borrowed from WordPress
 function __($message, $textdomain=false) {
-    global $TSUGI_LOCALE;
-    if ( $TSUGI_LOCALE === null ) return $message;
-    if ( $textdomain === false ) {
-        if ( ! function_exists('gettext')) return $message;
-        return gettext($message);
-    } else {
-        if ( ! function_exists('dgettext')) return $message;
-        return dgettext($textdomain, $message);
-    }
+    return U::__($message, $textdomain);
 }
 
 function _e($message, $textdomain=false) {
-    echo(__($message, $textdomain));
+    U::_e($message, $textdomain);
 }
 
 function _m($message, $textdomain=false) {
-    return __($message, "master");
+    return U::_m($message, $textdomain);
 }
 
 function _me($message, $textdomain=false) {
-    echo(_m($message, $textdomain));
+    U::_me($message, $textdomain);
 }
 
 $domain = $CFG->getScriptFolder();
@@ -234,11 +203,7 @@ $TSUGI_LOCALE = null;
 U::setLocale();  
 
 function isCli() {
-     if(php_sapi_name() == 'cli' && empty($_SERVER['REMOTE_ADDR'])) {
-          return true;
-     } else {
-          return false;
-     }
+    return U::isCli();
 }
 
 // TODO: Create this as well related to OUTPUT.  See Moodle.
