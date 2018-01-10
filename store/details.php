@@ -17,7 +17,7 @@ $OUTPUT->header();
     href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css"/>
 <?php
 
-$registrations = findAllRegistrations();
+$registrations = findAllRegistrations(false, true);
 if ( count($registrations) < 1 ) $registrations = false;
 
 $OUTPUT->bodyStart();

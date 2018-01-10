@@ -40,7 +40,7 @@ $OUTPUT->header();
 </style>
 <?php
 
-$registrations = findAllRegistrations();
+$registrations = findAllRegistrations(false, true);
 if ( count($registrations) < 1 ) $registrations = false;
 
 $key_count = settings_key_count();

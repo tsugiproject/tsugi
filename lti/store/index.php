@@ -71,7 +71,7 @@ if ( ($allow_lti || $allow_web || $allow_import) && isset($CFG->lessons) ) {
 
 // Load Tool Registrations
 if ( $allow_lti ) {
-    $registrations = findAllRegistrations();
+    $registrations = findAllRegistrations(false, true);
     if ( count($registrations) < 1 ) $registrations = false;
 } else {
     $registrations = false;
