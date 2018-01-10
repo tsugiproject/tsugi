@@ -277,7 +277,7 @@ if (window!=window.top) {
      * The i18n replacement will be handled in the server in the template.  Single
      * or Double quotes can be used.
      */
-    function templateInclude($name) {
+    public static function templateInclude($name) {
         if ( is_array($name) ) {
             foreach($name as $n) {
                 self::templateInclude($n);
@@ -286,6 +286,24 @@ if (window!=window.top) {
         }
         echo('<script id="template-'.$name.'" type="text/x-handlebars-template">'."\n");
         $template = file_get_contents('templates/'.$name.'.hbs');
+        echo(self::templateProcess($template));
+        echo("</script>\n");
+    }
+
+    /**
+     * templateProcess - Process a handlebars template, dealing with i18n
+     *
+     * This is a normal handlebars template except we can ask for a translation
+     * of text as follows:
+     *
+     *    ...
+     *    {{__ 'Hello world' }}
+     *    ...
+     *
+     * The i18n replacement will be handled in the server in the template.  Single
+     * or double quotes can be used.
+     */
+    public static function templateProcess($template) {
         $new = preg_replace_callback(
             '|{{__ *\'([^\']*)\' *}}|',
             function ($matches) {
@@ -300,8 +318,7 @@ if (window!=window.top) {
             },
             $new
         );
-        echo($new);
-        echo("</script>\n");
+        return $new;
     }
 
     function footerStart() {
@@ -992,6 +1009,10 @@ EOF;
         header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
         header('Pragma: no-cache'); // HTTP 1.0.
         header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past - proxies
+    }
+
+    public static function maxCacheHeader($max_age=604800) {
+        header('Cache-Control: max-age='.$max_age);  // A Week...
     }
 
     public static function get_gradient($pos) {

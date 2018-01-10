@@ -483,5 +483,13 @@ class ConfigInfo {
         return $retval;
     }
 
+    /**
+     * Are we on localhost?
+     */
+    public function localhost() {
+        if ( strpos($this->wwwroot,'://localhost') !== false ) return true;
+        if ( strpos($this->wwwroot,'://127.0.0.1') !== false ) return true;
+        return false;
+    }
 }
 
