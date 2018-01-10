@@ -324,7 +324,8 @@ if ( $registrations && $allow_lti ) {
         echo('<h3 style="margin-top:.5em;">'.htmlent_utf8($title)."</h3>");
         echo('<p>'.htmlent_utf8($text)."</p>\n
             </div><div class=\"panel-footer\">");
-        echo('<a href="index.php?install='.urlencode($name).'" class="btn btn-default" role="button">Details</a>');
+        echo('<a href="index.php?install='.urlencode($name).'" class="btn btn-success pull-right" role="button"><span class="fa fa-plus" aria-hidden="true"></span> Install</a>');
+        echo('<a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a>');
         echo("</div></div></div>\n");
 
         $count++;
