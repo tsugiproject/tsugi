@@ -208,7 +208,7 @@ class Tool {
     {
         global $CFG;
 
-        if ( $CFG->localhost() ) {
+        if ( ! $CFG->localhost() ) {
             Output::maxCacheHeader(3600*24); // 1 day
         }
 
