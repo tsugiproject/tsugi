@@ -40,35 +40,63 @@ class UTest extends PHPUnit_Framework_TestCase
     }
 
     public function testParseController() {
+        global $CFG;
+        if ( ! isset($CFG) ) $CFG = new \stdclass();
         $this->assertEquals(U::parse_rest_path('/a/b/c','/a/koseu.php'), array('/a','b','c'));
         $this->assertEquals(U::parse_rest_path('/py4e/lessons/intro?x=2','/py4e/koseu.php'), array('/py4e','lessons','intro'));
         $this->assertEquals(U::parse_rest_path('/py4e/lessons/intro/fred/sarah?x=2','/py4e/koseu.php'), array('/py4e','lessons','intro/fred/sarah'));
         $this->assertEquals(U::parse_rest_path('/lessons/intro?x=2','/koseu.php'), array('','lessons','intro'));
         $this->assertEquals(U::parse_rest_path('/lessons/intro/fred/sarah?x=2','/koseu.php'), array('','lessons','intro/fred/sarah'));
 
+        // Running from the wrong directory
+        $this->assertEquals(U::parse_rest_path('/a/b/c','/x/koseu.php'), false);
+
         // Object version...
+        $CFG->wwwroot = "http://www.example.com:8888/tsugi";
         $path = U::rest_path('/py4e/lessons/intro?x=2','/py4e/koseu.php');
+        $this->assertEquals($path->base_url,'http://www.example.com:8888');
         $this->assertEquals($path->parent,'/py4e');
         $this->assertEquals($path->controller,'lessons');
         $this->assertEquals($path->extra,'intro');
         $path = U::rest_path('/py4e/lessons/intro/fred/sarah?x=2','/py4e/koseu.php');
+        $this->assertEquals($path->base_url,'http://www.example.com:8888');
         $this->assertEquals($path->parent,'/py4e');
         $this->assertEquals($path->controller,'lessons');
         $this->assertEquals($path->extra,'intro/fred/sarah');
         $path = U::rest_path('/lessons/intro?x=2','/koseu.php');
+        $this->assertEquals($path->base_url,'http://www.example.com:8888');
         $this->assertEquals($path->parent,'');
         $this->assertEquals($path->controller,'lessons');
         $this->assertEquals($path->extra,'intro');
         $path = U::rest_path('/lessons/intro/fred/sarah?x=2','/koseu.php');
+        $this->assertEquals($path->base_url,'http://www.example.com:8888');
         $this->assertEquals($path->parent,'');
         $this->assertEquals($path->controller,'lessons');
         $this->assertEquals($path->extra,'intro/fred/sarah');
         $this->assertEquals($path->action,'intro');
         $this->assertEquals($path->parameters,array('fred', 'sarah'));
 
-        $this->assertEquals(U::parse_rest_path('/a','/a/koseu.php'), false);
-        $this->assertEquals(U::parse_rest_path('/a/','/a/koseu.php'), false);
-        $this->assertEquals(U::parse_rest_path('/a/b/c','/x/koseu.php'), false);
+        // When there is no controller and we fall into index.php directly
+        $path = U::rest_path('/a','/a/index.php');
+        $this->assertEquals($path->base_url,'http://www.example.com:8888');
+        $this->assertEquals($path->parent,'/a');
+        $this->assertEquals($path->controller,'');
+        $this->assertEquals($path->extra,'');
+        $this->assertEquals($path->full,'/a');
+        $this->assertEquals($path->current,'/a');
+        $this->assertEquals($path->action,'');
+        $this->assertEquals($path->parameters,array());
+
+        // When there is no controller and we go to index.php
+        $path = U::rest_path('/a/','/a/index.php');
+        $this->assertEquals($path->base_url,'http://www.example.com:8888');
+        $this->assertEquals($path->parent,'/a');
+        $this->assertEquals($path->controller,'');
+        $this->assertEquals($path->extra,'');
+        $this->assertEquals($path->full,'/a');
+        $this->assertEquals($path->current,'/a');
+        $this->assertEquals($path->action,'');
+        $this->assertEquals($path->parameters,array());
     }
 
     // https://stackoverflow.com/questions/30231476/i-want-to-array-key-and-array-value-comma-separated-string
