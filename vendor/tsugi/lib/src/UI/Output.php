@@ -119,7 +119,7 @@ class Output extends \Tsugi\Core\SessionAccess {
             if ( isset($USER->email) ) {
                 echo('            user_email: '.json_encode($USER->email).",\n");
             }
-            if ( isset($USER->instructor) ) {
+            if ( isset($USER->instructor) && $USER->instructor ) {
                 echo('            instructor: true,  // Use only for UI display'."\n");
             }
 ?>
