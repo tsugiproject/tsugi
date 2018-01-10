@@ -225,10 +225,10 @@ class Tool {
         $count = 0;
         foreach(glob('templates/*.hbs') as $name) {   
             $count++;
-            echo "<template id=\"" . basename($name, '.hbs') . "\">\n";  
+            echo "<template id=\"" . basename($name, '.hbs') . "\"><div>\n";  
             $template = file_get_contents($name);
             echo(\Tsugi\UI\Output::templateProcess($template));
-            echo("</template>\n");
+            echo("</div></template>\n");
         }
 
         if ( $count == 0 ) {
