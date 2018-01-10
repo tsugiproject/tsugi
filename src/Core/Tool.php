@@ -26,6 +26,11 @@ class Tool {
         $rest_path = U::rest_path();
         if ( ! $rest_path ) return false;
 
+        if ( file_exists('templates') && $rest_path->controller == 'load_templates') {
+            self::sendTemplates();
+            return true;
+        }
+
         if ( file_exists('register.php') && $rest_path->controller == 'register.json') {
             $reg = self::loadRegistration();
             if ( is_string($reg) ) {
@@ -197,6 +202,38 @@ class Tool {
             $tool['screen_shots'] = $new;
         }
 
+    }
+
+    public static function sendTemplates()
+    {
+        global $CFG;
+
+        if ( $CFG->localhost() ) {
+            Output::maxCacheHeader(3600*24); // 1 day
+        }
+
+        $rest_path = U::rest_path();
+
+        if ( $rest_path->action && strlen($rest_path->action) > 0 ) {
+            echo("<!-- Locale ".htmlentities($rest_path->action)." -->\n");
+            U::setLocale($rest_path->action);
+        } else {
+            U::setLocale();
+        }
+        echo("<!-- td=".htmlentities(textdomain(null))." -->\n");
+
+        $count = 0;
+        foreach(glob('templates/*.hbs') as $name) {   
+            $count++;
+            echo "<template id=\"" . basename($name, '.hbs') . "\">\n";  
+            $template = file_get_contents($name);
+            echo(\Tsugi\UI\Output::templateProcess($template));
+            echo("</template>\n");
+        }
+
+        if ( $count == 0 ) {
+            echo("<!-- no templates found -->\n");
+        }
     }
 
 /*
