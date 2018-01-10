@@ -119,20 +119,13 @@ if ( isset($_GET['install']) ) {
     $tool = $registrations[$install];
 
     $title = $tool['name'];
-    $text = $tool['description'];
     $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
     $icon = false;
     if ( $fa_icon !== false ) {
         $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
     }
 
-    if ( $fa_icon ) {
-        echo('<i class="fa '.$fa_icon.' fa-3x" style="color: #1894C7; float:right; margin: 2px"></i>');
-    }
-    echo('<center>');
-    echo("<h1>".htmlent_utf8($title)."</h1>\n");
-    echo("<p>".htmlent_utf8($text)."</p>\n");
-    $script = isset($tool['script']) ? $tool['script'] : "index.php";
+    $script = isset($tool['script']) ? $tool['script'] : "index";
     $path = $tool['url'];
 
     // Set up to send the response
@@ -146,12 +139,11 @@ if ( isset($_GET['install']) ) {
     }
     $custom = false;
     $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon, $custom, $points, $activity_id);
-    $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
-    $content = $retval->prepareResponse($endform);
+    $return_url = $retval->returnUrl();
+    $params = $retval->getContentItemSelection();
+    $params = LTIX::signParameters($params, $return_url, "POST", "Install Content");
+    $content = LTI::postLaunchHTML($params, $return_url, false, false, false);
     echo($content);
-    echo("</center>\n");
-    // echo("<pre>\n");print_r($tool);echo("</pre>\n");
-    $OUTPUT->footer();
     return;
 } 
 

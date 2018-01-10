@@ -115,8 +115,6 @@ if ( $screen_shots ) {
     echo('<div class="row">'."\n");
     echo('<div class="col-sm-4">'."\n");
 }
-$script = isset($tool['script']) ? $tool['script'] : "index";
-$path = $tool['url'];
 
 echo("<ul>\n");
 if ( isset($CFG->privacy_url) ) {
