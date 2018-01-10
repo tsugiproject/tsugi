@@ -287,11 +287,18 @@ if (window!=window.top) {
         echo('<script id="template-'.$name.'" type="text/x-handlebars-template">'."\n");
         $template = file_get_contents('templates/'.$name.'.hbs');
         $new = preg_replace_callback(
-            '|{{__ *[\'"]([^\'"]*)[\'"].*?}}|',
+            '|{{__ *\'([^\']*)\' *}}|',
             function ($matches) {
                 return __(htmlent_utf8(trim($matches[1])));
             },
             $template
+        );
+        $new = preg_replace_callback(
+            '|{{__ *"([^"]*)" *}}|',
+            function ($matches) {
+                return __(htmlent_utf8(trim($matches[1])));
+            },
+            $new
         );
         echo($new);
         echo("</script>\n");
