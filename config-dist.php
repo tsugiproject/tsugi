@@ -207,6 +207,13 @@ $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 // navigation.
 $CFG->DEVELOPER = true;
 
+// Is this is true, Tsugi will do a translation log into the table 
+// tsugi_string while the application is being executed.  This allows
+// you to see all of messages that go through the translation methods
+// __() and _m() - It can help make translations more complete.
+// $CFG->checktranslation = true;
+
+
 // If you set $CFG->dataroot to a writeable folder, Tsugi will store blobs on disk
 // instead of the database using the following folder / file pattern
 //     tsugi_blobs/001/754/00001754/1151...56a

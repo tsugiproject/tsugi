@@ -16,6 +16,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}cal_event",
 "drop table if exists {$CFG->dbprefix}cal_key",
 "drop table if exists {$CFG->dbprefix}cal_context",
+"drop table if exists {$CFG->dbprefix}tsugi_string",
 "drop table if exists {$CFG->dbprefix}profile"
 );
 
@@ -405,6 +406,21 @@ array( "{$CFG->dbprefix}lti_domain",
 
     PRIMARY KEY (domain_id),
     UNIQUE(key_id, context_id, domain, port)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// String table - Not normalized at all - very costly
+// Enable with $CFG->checktranslation = true
+array( "{$CFG->dbprefix}tsugi_string",
+"create table {$CFG->dbprefix}tsugi_string (
+    string_id       INTEGER NOT NULL AUTO_INCREMENT,
+    domain          VARCHAR(128) NOT NULL,
+    string_text     TEXT,
+    updated_at      TIMESTAMP NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    string_sha256   CHAR(64) NOT NULL,
+
+    PRIMARY KEY (string_id),
+    UNIQUE(domain, string_sha256)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // Profile is denormalized and not tightly connected to allow

@@ -367,6 +367,28 @@ class U {
 
     // Convience method, pattern borrowed from WordPress
     public static function __($message, $textdomain=false) {
+        global $CFG, $PDOX;
+    
+        // If we have been asked to do some translation
+        if ( isset($CFG->checktranslation) && $CFG->checktranslation && 
+            isset($PDOX) && function_exists('textdomain') ) 
+        {
+            $string_sha = self::lti_sha256($message);
+            $domain = $textdomain;
+            if ( ! $domain ) $domain = textdomain(NULL);
+            if ( $domain ) {
+                $stmt = $PDOX->queryReturnError("INSERT INTO {$CFG->dbprefix}tsugi_string
+                        (domain, string_text, string_sha256) VALUES ( :DOM, :TEXT, :SHA)
+                        ON DUPLICATE KEY UPDATE updated_at = NOW()",
+                    array(
+                        ':DOM' => $domain,
+                        ':TEXT' => $message,
+                        ':SHA' => $string_sha
+                    )
+                );
+            }
+        }
+
         if ( ! function_exists('gettext')) return $message;
         if ( $textdomain === false ) {
             return gettext($message);
