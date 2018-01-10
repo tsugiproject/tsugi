@@ -92,7 +92,7 @@ class Output extends \Tsugi\Core\SessionAccess {
      * Emit the HTML for the header.
      */
     function header() {
-        global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL;
+        global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL, $CONTEXT, $USER, $LINK;
         global $CFG;
         if ( $HEAD_CONTENT_SENT === true ) return;
         header('Content-Type: text/html; charset=utf-8');
@@ -104,7 +104,25 @@ class Output extends \Tsugi\Core\SessionAccess {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= $CFG->servicename ?><?php if ( isset($CFG->context_title) ) echo(' - '.$CFG->context_title); ?></title>
         <script>
-        var _TSUGI = {
+        var _TSUGI = { 
+<?php
+            // https://stackoverflow.com/questions/23740548/how-to-pass-variables-and-data-from-php-to-javascript
+            if ( isset($CONTEXT->title) ) {
+                echo('            context_title: '.json_encode($CONTEXT->title).",\n");
+            }
+            if ( isset($LINK->title) ) {
+                echo('            link_title: '.json_encode($LINK->title).",\n");
+            }
+            if ( isset($USER->displayname) ) {
+                echo('            user_displayname: '.json_encode($USER->displayname).",\n");
+            }
+            if ( isset($USER->email) ) {
+                echo('            user_email: '.json_encode($USER->email).",\n");
+            }
+            if ( isset($USER->instructor) ) {
+                echo('            instructor: true,  // Use only for UI display'."\n");
+            }
+?>
             spinnerUrl: "<?= self::getSpinnerUrl() ?>",
             staticroot: "<?= $CFG->staticroot ?>",
             window_close_message: "<?= _m('Application complete') ?>",
