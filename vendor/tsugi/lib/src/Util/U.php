@@ -175,17 +175,56 @@ class U {
         $extra = '';
         $remainder = substr($uri, strlen($cwd));
         if ( strpos($remainder,'/') === 0 ) $remainder = substr($remainder,1);
-        if ( strlen($remainder) < 1 ) return false;
-        $pieces = explode('/',$remainder,2);
-        if ( count($pieces) > 0 ) $controller = $pieces[0];
-        if ( count($pieces) > 1 ) $extra = $pieces[1];
+        if ( strlen($remainder) > 1 ) {
+            $pieces = explode('/',$remainder,2);
+            if ( count($pieces) > 0 ) $controller = $pieces[0];
+            if ( count($pieces) > 1 ) $extra = $pieces[1];
+        }
 
         if ( $cwd == '/' ) $cwd = '';
         $retval = array($cwd, $controller, $extra);
         return $retval;
     }
 
+    /**
+     * Return a rest-path
+     *
+     * This knows the current working folder we are in.  The model
+     * is that a folder is an "application" with many possible controllers
+     * and within each controller there are actions followed by parameters.
+     *
+     * for example, assume these files exist in a folder:
+     *
+     *     ../tsugi/mod/zap/index.php
+     *     ../tsugi/mod/zap/rows.php
+     *     ../tsugi/mod/zap/store.php
+     *
+     * If this URL were called with .htaccess and tsugi.php set up, rows.php
+     * would be run and this would be the output:
+     *
+     *     http://localhost:8888/tsugi/mod/zap/rows/add/1/2
+     *     base_url: http://localhost:8888
+     *     parent:  /tsugi/mod/zap
+     *     current:  /tsugi/mod/zap/rows
+     *     controller: rows
+     *     action: add
+     *     parameters: (1, 2)
+     *     full: /tsugi/mod/zap/rows/add/1/2
+     *
+     * As a special case, when the index.php runs (not through tsugi.php)
+     * The results are as follows:
+     *
+     *     http://localhost:8888/tsugi/mod/zap/
+     *     base_url: http://localhost:8888
+     *     parent:  /tsugi/mod/zap
+     *     current:  /tsugi/mod/zap
+     *     controller: empty string
+     *     action: empty string
+     *     parameters: empty array
+     *     full: /tsugi/mod/zap
+     */
     public static function rest_path($uri=false, $SERVER_SCRIPT_NAME=false /* unit test only */) {
+        global $CFG;
         $retval = self::parse_rest_path($uri, $SERVER_SCRIPT_NAME);
         if ( ! is_array($retval) ) return false;
         $retobj = new \stdClass();
@@ -194,17 +233,26 @@ class U {
         } else {
             $retobj->parent = $retval[0];
         }
+        $retobj->base_url = self::get_base_url($CFG->wwwroot);
         $retobj->controller = $retval[1];
         $retobj->extra = $retval[2];
         $pieces = explode('/', $retval[2]);
         $retobj->action = false;
-        $retobj->parameters = false;
+        $retobj->parameters = array();
         if ( count($pieces) > 0 && strlen($pieces[0]) ) {
             $retobj->action = array_shift($pieces);
             $retobj->parameters = $pieces;
         }
-        $retobj->current = $retobj->parent . '/' . $retobj->controller;
-        $retobj->full = $retobj->parent . '/' . $retobj->controller . '/' . $retobj->extra;
+        $retobj->current = $retobj->parent;
+        $retobj->full = $retobj->parent;
+        if ( strlen($retobj->controller) > 0 ) {
+             $retobj->current .= '/' . $retobj->controller;
+             $retobj->full .= '/' . $retobj->controller;
+        }
+        if ( strlen($retobj->extra) > 0 ) {
+             $retobj->full .= '/' . $retobj->extra;
+        }
+
         return $retobj;
     }
 

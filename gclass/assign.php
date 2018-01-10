@@ -161,7 +161,7 @@ if ( $gc_course ) {
     $link_mini_sig = substr($link_mini_sig,0,6);
 
     $launch_url = $CFG->wwwroot . '/gclass/launch/' .
-        $context_url . ':' . $link_id . ':' . $link_mini_sig;
+    $context_url . ':' . $link_id . ':' . $link_mini_sig;
 
     // https://developers.google.com/classroom/guides/manage-coursework
     // https://developers.google.com/resources/api-libraries/documentation/classroom/v1/php/latest/class-Google_Service_Classroom_CourseWork.html

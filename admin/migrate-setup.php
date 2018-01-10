@@ -20,6 +20,9 @@ if ( !isset($path) ) {
 if ( !isset($p) ) $p = $CFG->dbprefix;
 if ( !isset($plugins) ) $plugins = "{$p}lms_plugins";
 
-$OUTPUT->header();
-$OUTPUT->bodyStart();
+// If we are running a single file - No fancy output
+if ( ! isset($CURRENT_FILE) ) {
+    $OUTPUT->header();
+    $OUTPUT->bodyStart();
+}
 
