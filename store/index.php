@@ -38,6 +38,16 @@ $OUTPUT->header();
     h3.phase-title {
         padding-left: 10px;
     }
+    .keywords {
+        font-size: .85em;
+        font-style: italic;
+        color: #666;
+        margin: 0;
+        padding: 0;
+    }
+    .keyword-span {
+        text-transform: lowercase;
+    }
     /* Created with cssportal.com CSS Ribbon Generator */
     .ribbon {
         position: absolute;
@@ -172,6 +182,11 @@ echo(settings_status($key_count));
 // Render the tools in the site
     echo('<div id="box">'."\n");
 
+    echo('<p class="text-right">
+        <label class="sr-only" for="keywordFilter">Filter by keyword</label>
+        <input type="text" placeholder="Filter by keyword" id="keywordFilter">
+        </p>');
+
     $count = 0;
     foreach($registrations as $name => $tool ) {
 
@@ -191,8 +206,15 @@ echo(settings_status($key_count));
             $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
         }
 
-        echo('<div class="col-sm-4 appcolumn">
-        <div class="panel panel-default">');
+        $keywords = '';
+        if (isset($tool['keywords'])) {
+            sort($tool['keywords']);
+            $keywords = implode(", ", $tool['keywords']);
+        }
+
+        echo('<div class="col-sm-4 appcolumn">');
+
+        echo('<div class="panel panel-default" data-keywords="'.$keywords.'">');
 
         $phase = isset($tool['tool_phase']) ? $tool['tool_phase'] : false;
         if ($phase !== false) {
@@ -211,8 +233,11 @@ echo(settings_status($key_count));
             echo('<h3>');
         }
         echo(htmlent_utf8($title)."</h3>");
-        echo('<p>'.htmlent_utf8($text)."</p>\n
-            </div><div class=\"panel-footer\">");
+        echo('<p>'.htmlent_utf8($text)."</p>");
+        if ($keywords !== '') {
+            echo('<p class="keywords">Tags: <span class="keyword-span">'.$keywords.'</span></p>');
+        }
+        echo("</div><div class=\"panel-footer\">");
         echo('<a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a> ');
 
         $ltiurl = $tool['url'];
@@ -236,4 +261,36 @@ echo("</div>\n");
 // echo("<pre>\n");print_r($tool);echo("</pre>\n");
 
 $OUTPUT->footerStart();
+?>
+<script type="text/javascript">
+    var filter = filter || {};
+
+    filter.setUpListener = function() {
+        $("#keywordFilter").on("keyup", function(){
+            var search = $(this).val().toLowerCase();
+            $(".appcolumn").each(function(){
+                var panel = $(this).find("div.panel");
+                var words = panel.data("keywords");
+                if (typeof words !== "undefined" && words.toLowerCase().indexOf(search) >= 0) {
+                    $(this).fadeIn("slow");
+                    var keywordSpan = panel.find("div.panel-body").find("p.keywords").find("span.keyword-span");
+                    var keywordText = keywordSpan.text().toLowerCase();
+                    keywordSpan.html(filter.boldSubstr(keywordText, search));
+                } else {
+                    $(this).fadeOut("fast");
+                }
+            });
+        });
+    };
+
+    filter.boldSubstr = function(string, needle) {
+        var regex = new RegExp(needle, 'g');
+        return string.replace(regex, "<strong>" + needle + "</strong>");
+    };
+
+    $(document).ready(function() {
+        filter.setUpListener();
+    });
+</script>
+<?php
 $OUTPUT->footerend();

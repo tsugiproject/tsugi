@@ -15,6 +15,16 @@ $OUTPUT->header();
 ?>
 <link rel="stylesheet" type="text/css"
     href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css"/>
+<style type="text/css">
+    .keywords {
+        font-size: .85em;
+        font-style: italic;
+        color: #666;
+    }
+    .keyword-span {
+        text-transform: lowercase;
+    }
+</style>
 <?php
 
 $registrations = findAllRegistrations(false, true);
@@ -45,6 +55,7 @@ if ( !is_array($screen_shots) || count($screen_shots) < 1 ) $screen_shots = fals
 
 $title = $tool['name'];
 $text = $tool['description'];
+$keywords = $tool['keywords'];
 $ltiurl = $tool['url'];
 $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
 $icon = false;
@@ -94,6 +105,10 @@ if ( $fa_icon ) {
 }
 echo("<b>".htmlent_utf8($title)."</b>\n");
 echo('<p class="hidden-xs">'.htmlent_utf8($text)."</p>\n");
+if (isset($keywords)) {
+    sort($keywords);
+    echo('<p class="keywords">Tags: <span class="keyword-span">'.implode(", ", $keywords).'</span></p>');
+}
 if ( $screen_shots ) {
     echo('<div class="row">'."\n");
     echo('<div class="col-sm-4">'."\n");
