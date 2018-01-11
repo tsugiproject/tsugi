@@ -117,7 +117,7 @@ class Output extends \Tsugi\Core\SessionAccess {
                 echo('            user_displayname: '.json_encode($USER->displayname).",\n");
             }
             if ( isset($USER->locale) ) {
-                echo('            user_locale: '.json_encode($USER->email).",\n");
+                echo('            user_locale: '.json_encode($USER->locale).",\n");
             }
             if ( strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
                 echo('            ajax_session: "'.urlencode(session_name()).'='.urlencode(session_id()).'"'.",\n");
