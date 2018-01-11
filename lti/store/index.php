@@ -34,15 +34,65 @@ $OUTPUT->header();
 <style>
     .panel-default {
         box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        position: relative;
     }
     .panel-default:hover{
         border: 1px solid #aaa;
+    }
+    .panel-body h3 {
+        margin-top: 0.5em;
     }
     .approw {
         margin: 0;
     }
     .appcolumn {
         padding: 0 4px;
+    }
+    h3.phase-title {
+        padding-left: 10px;
+    }
+    /* Created with cssportal.com CSS Ribbon Generator */
+    .ribbon {
+        position: absolute;
+        left: -5px; top: -5px;
+        z-index: 1;
+        overflow: hidden;
+        width: 75px; height: 75px;
+        text-align: right;
+    }
+    .ribbon span {
+        font-size: 14px;
+        font-weight: bold;
+        color: #FFF;
+        text-transform: uppercase;
+        text-align: center;
+        line-height: 20px;
+        transform: rotate(-45deg);
+        -webkit-transform: rotate(-45deg);
+        width: 100px;
+        display: block;
+        background: #dc3545;
+        box-shadow: 0 3px 10px -5px rgba(0, 0, 0, 1);
+        position: absolute;
+        top: 19px; left: -21px;
+    }
+    .ribbon span::before {
+        content: "";
+        position: absolute; left: 0; top: 100%;
+        z-index: -1;
+        border-left: 3px solid #dc3545;
+        border-right: 3px solid transparent;
+        border-bottom: 3px solid transparent;
+        border-top: 3px solid #dc3545;
+    }
+    .ribbon span::after {
+        content: "";
+        position: absolute; right: 0; top: 100%;
+        z-index: -1;
+        border-left: 3px solid transparent;
+        border-right: 3px solid #dc3545;
+        border-bottom: 3px solid transparent;
+        border-top: 3px solid #dc3545;
     }
     #box {
         margin-top: 1em;
@@ -306,14 +356,25 @@ if ( $registrations && $allow_lti ) {
         }
 
         echo('<div class="col-sm-4 appcolumn">
-        <div class="panel panel-default">
-        <div class="panel-body">');
+        <div class="panel panel-default">');
+
+        $phase = isset($tool['tool_phase']) ? $tool['tool_phase'] : false;
+        if ($phase !== false) {
+            echo('<div class="ribbon ribbon-top-left"><span>'.$phase.'</span></div>');
+        }
+
+        echo('<div class="panel-body">');
         if ( $fa_icon ) {
             echo('<a href="index.php?install='.urlencode($name).'">');
             echo('<i class="fa '.$fa_icon.' fa-2x" style="color: #1894C7; float:right; margin: 2px"></i>');
             echo('</a>');
         }
-        echo('<h3 style="margin-top:.5em;">'.htmlent_utf8($title)."</h3>");
+        if ($phase !== false) {
+            echo('<h3 class="phase-title">');
+        } else {
+            echo('<h3>');
+        }
+        echo(htmlent_utf8($title)."</h3>");
         echo('<p>'.htmlent_utf8($text)."</p>\n
             </div><div class=\"panel-footer\">");
         echo('<a href="index.php?install='.urlencode($name).'" class="btn btn-success pull-right" role="button"><span class="fa fa-plus" aria-hidden="true"></span> Install</a>');
