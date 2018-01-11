@@ -1,20 +1,26 @@
 <?php
 
+use \Tsugi\Core\LTIX;
 use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 
-if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
-require_once "../config.php";
-require_once "../admin/admin_util.php";
+require_once "../../config.php";
+require_once "../../admin/admin_util.php";
 
-session_start();
+// No parameter means we require CONTEXT, USER, and LINK
+$LAUNCH = LTIX::requireData(LTIX::USER);
 
 $p = $CFG->dbprefix;
 
 $OUTPUT->header();
 ?>
-<link rel="stylesheet" type="text/css"
-    href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css"/>
+    <style type="text/css">
+        .row {
+            margin: 0;
+        }
+    </style>
 <?php
 
 $registrations = findAllRegistrations(false, true);
@@ -60,33 +66,33 @@ $register_good = $json_obj && isset($json_obj->name);
 
 // Start the output
 ?>
-<script src="https://apis.google.com/js/platform.js" async defer></script>
-<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
-    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
-</div>
-<div id="image-dialog" title="Image Dialog" style="display: none;">
-    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" style="width:100%" id="popup-image">
-</div>
-<div id="url-dialog" title="URL Dialog" style="display: none;">
-    <h1>Single Tool URLs</h1>
-    <p>LTI 1.x Launch URL (Expects an LTI launch)<br/><?= $tool['url'] ?>
-    (requires key and secret)
-    </p>
-<?php if ( $register_good ) { ?>
-    <p>Canvas Tool Configuration URL (XML)<br/>
-    <a href="<?= $tool['url'] ?>canvas-config.xml" target="_blank"><?= $tool['url'] ?>canvas-config.xml</a></p>
-    <p>Tsugi Registration URL (JSON)<br/>
-    <a href="<?= $tool['url'] ?>register.json" target="_blank"><?= $tool['url'] ?>register.json</a></p>
-<?php } ?>
-    <h1>Server-wide URLs</h1>
-    <p>App Store (Supports IMS Deep Linking/Content Item)<br/>
-    <?= $CFG->wwwroot ?>/lti/store
-    (Requires key and secret)
-    </p>
-    <p>App Store Canvas Configuration URL<br/>
-    <a href="<?= $CFG->wwwroot ?>/lti/store/canvas-config.xml" target="_blank"><?= $CFG->wwwroot ?>/lti/store/canvas-config.xml</a></p>
-</div>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
+        <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
+                src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
+    </div>
+    <div id="image-dialog" title="Image Dialog" style="display: none;">
+        <img src="<?= $OUTPUT->getSpinnerUrl() ?>" style="width:100%" id="popup-image">
+    </div>
+    <div id="url-dialog" title="URL Dialog" style="display: none;">
+        <h1>Single Tool URLs</h1>
+        <p>LTI 1.x Launch URL (Expects an LTI launch)<br/><?= $tool['url'] ?>
+            (requires key and secret)
+        </p>
+        <?php if ( $register_good ) { ?>
+            <p>Canvas Tool Configuration URL (XML)<br/>
+                <a href="<?= $tool['url'] ?>canvas-config.xml" target="_blank"><?= $tool['url'] ?>canvas-config.xml</a></p>
+            <p>Tsugi Registration URL (JSON)<br/>
+                <a href="<?= $tool['url'] ?>register.json" target="_blank"><?= $tool['url'] ?>register.json</a></p>
+        <?php } ?>
+        <h1>Server-wide URLs</h1>
+        <p>App Store (Supports IMS Deep Linking/Content Item)<br/>
+            <?= $CFG->wwwroot ?>/lti/store
+            (Requires key and secret)
+        </p>
+        <p>App Store Canvas Configuration URL<br/>
+            <a href="<?= $CFG->wwwroot ?>/lti/store/canvas-config.xml" target="_blank"><?= $CFG->wwwroot ?>/lti/store/canvas-config.xml</a></p>
+    </div>
 <?php
 
 if ( $fa_icon ) {
@@ -94,28 +100,21 @@ if ( $fa_icon ) {
 }
 echo("<b>".htmlent_utf8($title)."</b>\n");
 echo('<p class="hidden-xs">'.htmlent_utf8($text)."</p>\n");
-if ( $screen_shots ) {
-    echo('<div class="row">'."\n");
-    echo('<div class="col-sm-4">'."\n");
-}
-$script = isset($tool['script']) ? $tool['script'] : "index";
-$path = $tool['url'];
 
-
-echo("<p>\n");
-echo('<a href="'.$rest_path->parent.'" class="btn btn-default" role="button">Back to Store</a>');
-echo(' ');
-if ( isset($_SESSION['gc_count']) ) {
-    echo('<a href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
-    echo('" title="Install in Classroom" target="iframe-frame"'."\n");
-    echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
-    echo('<img height=32 width=32 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
-}
+echo("<p class=\"tool-options\">\n");
+echo('<a href="../index.php" class="btn btn-warning" role="button">Back to Store</a>');
 echo(' ');
 echo('<a href="#" class="btn btn-default" role="button" onclick="showModal(\'Tool URLs\',\'url-dialog\');">Tool URLs</a>');
 echo(' ');
 echo('<a href="'.$rest_path->parent.'/test/'.urlencode($install).'" class="btn btn-default" role="button">Test</a> ');
+echo(' ');
+echo('<a href="../index.php?install='.urlencode($install).'" class="btn btn-success" role="button"><span class="fa fa-plus" aria-hidden="true"></span> Install</a>');
 echo("</p>\n");
+
+if ( $screen_shots ) {
+    echo('<div class="row">'."\n");
+    echo('<div class="col-sm-4">'."\n");
+}
 
 echo("<ul>\n");
 if ( isset($CFG->privacy_url) ) {
@@ -123,9 +122,9 @@ if ( isset($CFG->privacy_url) ) {
        target="_blank">'._m('Privacy Policy').'</a></p></li>'."\n");
 }
 $privacy_description = array(
- 'anonymous' => _m('Does not require student email or name.'),
- 'public' => _m('Requires student email and name.'),
- 'name_only' => _m('Requires student name but not email.')
+    'anonymous' => _m('Does not require student email or name.'),
+    'public' => _m('Requires student email and name.'),
+    'name_only' => _m('Requires student name but not email.')
 );
 $privacy_level = U::get($tool, 'privacy_level');
 if ( is_string($privacy_level) ) {
@@ -152,7 +151,7 @@ if ( is_array($analytics) && in_array('internal', $analytics) ) {
     echo(_m('Has internal analytics visualization'));
     echo("</p></li>\n");
 }
-if ( $CFG->launchactivity ) { 
+if ( $CFG->launchactivity ) {
     echo('<li><p>');
     echo(_m('Can send analytics to learning record store.'));
     echo("</p></li>\n");
@@ -229,18 +228,18 @@ if ( $screen_shots ) {
 echo("<!-- \n");print_r($tool);echo("\n-->\n");
 $OUTPUT->footerStart();
 ?>
-<script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js">
-</script>
-<script>
-$(document).ready(function() {
-    $('.bxslider').bxSlider({
-        useCSS: false,
-        adaptiveHeight: false,
-        slideWidth: "240px",
-        infiniteLoop: false,
-        maxSlides: 3
-    });
-});
-</script>
+    <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js">
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('.bxslider').bxSlider({
+                useCSS: false,
+                adaptiveHeight: false,
+                slideWidth: "240px",
+                infiniteLoop: false,
+                maxSlides: 3
+            });
+        });
+    </script>
 <?php
-    $OUTPUT->footerEnd();
+$OUTPUT->footerEnd();

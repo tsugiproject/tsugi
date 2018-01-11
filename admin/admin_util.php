@@ -92,7 +92,7 @@ function findAllTools()
     return $tools;
 }
 
-function findAllRegistrations($folders=false)
+function findAllRegistrations($folders=false, $appStore=false)
 {
     global $CFG;
     // Scan the tools folders for registration settings
@@ -121,7 +121,12 @@ function findAllRegistrations($folders=false)
 
             if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) &&
                 isset($REGISTER_LTI2['description']) ) {
-                // We are happy
+                // Valid LTI Registration
+                // If Appstore - Check if the registration is marked as hidden
+                if ($appStore && isset($REGISTER_LTI2['hide_from_store']) && $REGISTER_LTI2['hide_from_store']) {
+                    // Skip hidden app
+                    continue;
+                }
             } else {
                 error_log("Missing required name, short_name, and description in ".$tool_folder);
             }
