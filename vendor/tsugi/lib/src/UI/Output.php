@@ -116,9 +116,15 @@ class Output extends \Tsugi\Core\SessionAccess {
             if ( isset($USER->displayname) ) {
                 echo('            user_displayname: '.json_encode($USER->displayname).",\n");
             }
-            if ( isset($USER->email) ) {
-                echo('            user_email: '.json_encode($USER->email).",\n");
+            if ( isset($USER->locale) ) {
+                echo('            user_locale: '.json_encode($USER->email).",\n");
             }
+            if ( strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
+                echo('            ajax_session: "'.urlencode(session_name()).'='.urlencode(session_id()).'"'.",\n");
+            } else {
+                echo('            ajax_session: false,'."\n");
+            }
+
             if ( isset($USER->instructor) && $USER->instructor ) {
                 echo('            instructor: true,  // Use only for UI display'."\n");
             }
