@@ -271,7 +271,7 @@ $CFG->timezone = 'Pacific/Honolulu'; // Nice for due dates
 // Universal Analytics
 $CFG->universal_analytics = false; // "UA-57880800-1";
 
-// Effectively an "airplane mode" for the appliction.
+// Effectively an "airplane mode" for the application.
 // Setting this to true makes it so that when you are completely
 // disconnected, various tools will not access network resources
 // like Google's map library and hang.  Also the Google login will
