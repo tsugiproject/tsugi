@@ -422,7 +422,7 @@ class Net {
      * Adapted from: https://www.chriswiegman.com/2014/05/getting-correct-ip-address-php/
      * With some additional explode goodness via: http://stackoverflow.com/a/25193833/1994792
      *
-     * @returns the IP address of the incoming request or NULL if it cannot be determined.
+     * @return string The IP address of the incoming request or NULL if it cannot be determined.
      */
     public static function getIP() {
 
