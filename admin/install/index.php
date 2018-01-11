@@ -51,7 +51,7 @@ the <b>config-dist.php</b> file.
 </div>
 <p>This screen is a wrapper for the <b>git</b> command if it is installed in your system.
 This screen runs <b>git</b> commands on your behalf.
-It will only handle the normal operations and assuming that they work.  If you log in
+It will only handle the normal operations and assume that they work.  If you log in
 and edit the files after they are checked out, this tool might not be able to upgrade
 some of these git repos.
 </p>
