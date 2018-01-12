@@ -55,7 +55,7 @@ if ( !is_array($screen_shots) || count($screen_shots) < 1 ) $screen_shots = fals
 
 $title = $tool['name'];
 $text = $tool['description'];
-$keywords = $tool['keywords'];
+$keywords = U::get($tool,'keywords');
 $ltiurl = $tool['url'];
 $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
 $icon = false;
@@ -105,7 +105,7 @@ if ( $fa_icon ) {
 }
 echo("<b>".htmlent_utf8($title)."</b>\n");
 echo('<p class="hidden-xs">'.htmlent_utf8($text)."</p>\n");
-if (isset($keywords)) {
+if (is_array($keywords)) {
     sort($keywords);
     echo('<p class="keywords">Tags: <span class="keyword-span">'.implode(", ", $keywords).'</span></p>');
 }
