@@ -11,3 +11,7 @@ phpunit.phar
 phpunit-old.phar
 
 composer.phar
+
+# Since this is bound for packagist, do not commit vendor or lockfile
+vendor/
+composer.lock
