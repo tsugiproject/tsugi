@@ -19,7 +19,7 @@ class AesCtr extends Aes {
    * @param plaintext source text to be encrypted
    * @param password  the password to use to generate a key
    * @param nBits     number of bits to be used in the key (128, 192, or 256)
-   * @return          encrypted text
+   * @return string   encrypted text
    */
   public static function encrypt($plaintext, $password, $nBits) {
     $blockSize = 16;  // block size fixed at 16 bytes / 128 bits (Nb=4) for AES
@@ -89,7 +89,7 @@ class AesCtr extends Aes {
    * @param ciphertext source text to be decrypted
    * @param password   the password to use to generate a key
    * @param nBits      number of bits to be used in the key (128, 192, or 256)
-   * @return           decrypted text
+   * @return string    decrypted text
    */
   public static function decrypt($ciphertext, $password, $nBits) {
     $blockSize = 16;  // block size fixed at 16 bytes / 128 bits (Nb=4) for AES
@@ -149,7 +149,7 @@ class AesCtr extends Aes {
    *
    * @param a  number to be shifted (32-bit integer)
    * @param b  number of bits to shift a to the right (0..31)
-   * @return   a right-shifted and zero-filled by b bits
+   * @return integer  a right-shifted and zero-filled by b bits
    */
   private static function urs($a, $b) {
     $a &= 0xffffffff; $b &= 0x1f;  // (bounds check)

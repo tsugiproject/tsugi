@@ -16,7 +16,7 @@ class Aes {
    * @param input message as byte-array (16 bytes)
    * @param w     key schedule as 2D byte-array (Nr+1 x Nb bytes) -
    *              generated from the cipher key by keyExpansion()
-   * @return      ciphertext as byte-array (16 bytes)
+   * @return array     ciphertext as byte-array (16 bytes)
    */
   public static function cipher($input, $w) {    // main cipher function [§5.1]
     $Nb = 4;                 // block size (in words): no of columns in state (fixed at 4 for AES)
@@ -89,7 +89,7 @@ class Aes {
    * to generate a key schedule
    *
    * @param key cipher key byte-array (16 bytes)
-   * @return    key schedule as 2D byte-array (Nr+1 x Nb bytes)
+   * @return array   key schedule as 2D byte-array (Nr+1 x Nb bytes)
    */
   public static function keyExpansion($key) {  // generate Key Schedule from Cipher Key [§5.2]
     $Nb = 4;              // block size (in words): no of columns in state (fixed at 4 for AES)

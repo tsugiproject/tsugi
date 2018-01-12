@@ -43,7 +43,7 @@ class MenuEntry {
     /**
      * Construct a menu entry separator
      *
-     * @return A MenuEntry separator
+     * @return MenuEntry A MenuEntry separator
      */
     public static function separator()
     {

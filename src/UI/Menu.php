@@ -21,7 +21,7 @@ class Menu {
      * @param $entry a MenuEntry
      * @param $push true if this is to be put before the rest of the items in the menue
      *
-     * @return The instance is returned to allow chaining syntax
+     * @return Menu The instance is returned to allow chaining syntax
      */
     public function add($entry, $push=false)
     {
@@ -41,7 +41,7 @@ class Menu {
      * a Menu.
      * @param $push true if this is to be put before the rest of the items in the menue
      *
-     * @return The instance is returned to allow chaining syntax
+     * @return Menu The instance is returned to allow chaining syntax
      */
     public function addLink($link, $href, $push=false)
     {
@@ -54,7 +54,7 @@ class Menu {
      *
      * @param $push true if this is to be put before the rest of the items in the menue
      *
-     * @return The instance is returned to allow chaining syntax
+     * @return Menu The instance is returned to allow chaining syntax
      */
     public function addSeparator($push=false)
     {
