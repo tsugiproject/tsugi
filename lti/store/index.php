@@ -34,15 +34,75 @@ $OUTPUT->header();
 <style>
     .panel-default {
         box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        position: relative;
     }
     .panel-default:hover{
         border: 1px solid #aaa;
+    }
+    .panel-body h3 {
+        margin-top: 0.5em;
     }
     .approw {
         margin: 0;
     }
     .appcolumn {
         padding: 0 4px;
+    }
+    h3.phase-title {
+        padding-left: 10px;
+    }
+    .keywords {
+        font-size: .85em;
+        font-style: italic;
+        color: #666;
+        margin: 0;
+        padding: 0;
+    }
+    .keyword-span {
+        text-transform: lowercase;
+    }
+    /* Created with cssportal.com CSS Ribbon Generator */
+    .ribbon {
+        position: absolute;
+        left: -5px; top: -5px;
+        z-index: 1;
+        overflow: hidden;
+        width: 75px; height: 75px;
+        text-align: right;
+    }
+    .ribbon span {
+        font-size: 14px;
+        font-weight: bold;
+        color: #FFF;
+        text-transform: uppercase;
+        text-align: center;
+        line-height: 20px;
+        transform: rotate(-45deg);
+        -webkit-transform: rotate(-45deg);
+        width: 100px;
+        display: block;
+        background: #dc3545;
+        box-shadow: 0 3px 10px -5px rgba(0, 0, 0, 1);
+        position: absolute;
+        top: 19px; left: -21px;
+    }
+    .ribbon span::before {
+        content: "";
+        position: absolute; left: 0; top: 100%;
+        z-index: -1;
+        border-left: 3px solid #dc3545;
+        border-right: 3px solid transparent;
+        border-bottom: 3px solid transparent;
+        border-top: 3px solid #dc3545;
+    }
+    .ribbon span::after {
+        content: "";
+        position: absolute; right: 0; top: 100%;
+        z-index: -1;
+        border-left: 3px solid transparent;
+        border-right: 3px solid #dc3545;
+        border-bottom: 3px solid transparent;
+        border-top: 3px solid #dc3545;
     }
     #box {
         margin-top: 1em;
@@ -286,6 +346,11 @@ if ( $registrations && $allow_lti ) {
     echo('<div class="tab-pane fade '.$active.' in" id="box">'."\n");
     $active = '';
 
+    echo('<p class="text-right">
+        <label class="sr-only" for="keywordFilter">Filter by keyword</label>
+        <input type="text" placeholder="Filter by keyword" id="keywordFilter">
+        </p>');
+
     $count = 0;
     foreach($registrations as $name => $tool ) {
 
@@ -305,17 +370,38 @@ if ( $registrations && $allow_lti ) {
             $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
         }
 
-        echo('<div class="col-sm-4 appcolumn">
-        <div class="panel panel-default">
-        <div class="panel-body">');
+        $keywords = '';
+        if (isset($tool['keywords'])) {
+            sort($tool['keywords']);
+            $keywords = implode(", ", $tool['keywords']);
+        }
+
+        echo('<div class="col-sm-4 appcolumn">');
+
+        echo('<div class="panel panel-default" data-keywords="'.$keywords.'">');
+
+        $phase = isset($tool['tool_phase']) ? $tool['tool_phase'] : false;
+        if ($phase !== false) {
+            echo('<div class="ribbon ribbon-top-left"><span>'.$phase.'</span></div>');
+        }
+
+        echo('<div class="panel-body">');
         if ( $fa_icon ) {
             echo('<a href="index.php?install='.urlencode($name).'">');
             echo('<i class="fa '.$fa_icon.' fa-2x" style="color: #1894C7; float:right; margin: 2px"></i>');
             echo('</a>');
         }
-        echo('<h3 style="margin-top:.5em;">'.htmlent_utf8($title)."</h3>");
-        echo('<p>'.htmlent_utf8($text)."</p>\n
-            </div><div class=\"panel-footer\">");
+        if ($phase !== false) {
+            echo('<h3 class="phase-title">');
+        } else {
+            echo('<h3>');
+        }
+        echo(htmlent_utf8($title)."</h3>");
+        echo('<p>'.htmlent_utf8($text)."</p>");
+        if ($keywords !== '') {
+            echo('<p class="keywords">Tags: <span class="keyword-span">'.$keywords.'</span></p>');
+        }
+        echo("</div><div class=\"panel-footer\">");
         echo('<a href="index.php?install='.urlencode($name).'" class="btn btn-success pull-right" role="button"><span class="fa fa-plus" aria-hidden="true"></span> Install</a>');
         echo('<a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a>');
         echo("</div></div></div>\n");
@@ -422,4 +508,36 @@ if ( $l && $allow_import ) {
 echo("</div>\n"); // myTabContent
 
 $OUTPUT->footerStart();
+?>
+    <script type="text/javascript">
+        var filter = filter || {};
+
+        filter.setUpListener = function() {
+            $("#keywordFilter").on("keyup", function(){
+                var search = $(this).val().toLowerCase();
+                $(".appcolumn").each(function(){
+                    var panel = $(this).find("div.panel");
+                    var words = panel.data("keywords");
+                    if (typeof words !== "undefined" && words.toLowerCase().indexOf(search) >= 0) {
+                        $(this).fadeIn("slow");
+                        var keywordSpan = panel.find("div.panel-body").find("p.keywords").find("span.keyword-span");
+                        var keywordText = keywordSpan.text().toLowerCase();
+                        keywordSpan.html(filter.boldSubstr(keywordText, search));
+                    } else {
+                        $(this).fadeOut("fast");
+                    }
+                });
+            });
+        };
+
+        filter.boldSubstr = function(string, needle) {
+            var regex = new RegExp(needle, 'g');
+            return string.replace(regex, "<strong>" + needle + "</strong>");
+        };
+
+        $(document).ready(function() {
+            filter.setUpListener();
+        });
+    </script>
+<?php
 $OUTPUT->footerend();
