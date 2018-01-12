@@ -74,7 +74,7 @@ class Launch {
     /**
      * Get the base string from the launch.
      *
-     * @return This is null if it is not the original launch.
+     * This is null if it is not the original launch.
      * it is not restored when the launch is restored from
      * the session.
      */

@@ -34,7 +34,7 @@ class MenuSet {
      * @param $link The text of the link - can be text, HTML, or even an img tag
      * @param $href An optional place to go when the link is clicked
      *
-     * @return The instance to allow for chaining
+     * @return MenuSet The instance to allow for chaining
      */
     public function setHome($link, $href)
     {
@@ -49,7 +49,7 @@ class MenuSet {
      * @param $href An optional place to go when the link is clicked
      * @param $push Indicates to push down the other menu entries
      *
-     * @return The instance to allow for chaining
+     * @return MenuSet The instance to allow for chaining
      */
     public function addLeft($link, $href, $push=false)
     {
@@ -66,7 +66,7 @@ class MenuSet {
      * @param $href An optional place to go when the link is clicked
      * @param $push Indicates to push down the other menu entries
      *
-     * @return The instance to allow for chaining
+     * @return MenuSet The instance to allow for chaining
      */
     public function addRight($link, $href, $push=true)
     {
@@ -81,7 +81,7 @@ class MenuSet {
      *
      * @param $pretty - True if we want pretty output
      *
-     * @return JSON string for the menu
+     * @return string JSON string for the menu
      */
     public function export($pretty=false)
     {
