@@ -37,13 +37,17 @@ application.
 Unit Testing
 ------------
 
+To download PHPUnit (and any other development dependencies):
+
+    composer install
+
 To test:
 
-    php phpunit-old.phar 
+    vendor/bin/phpunit
 
 To run one test:
 
-    php phpunit-old.phar --filter {EntryTest}
+    vendor/bin/phpunit --filter {EntryTest}
 
 Releasing
 ---------
