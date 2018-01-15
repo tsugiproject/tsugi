@@ -231,11 +231,12 @@ body {
 ?>
 </head>
 <body prefix="oer: http://oerschema.org">
+<div id="body_container">
 <script>
 if (window!=window.top) {
-    document.write('<div class="container_iframe">');
+    document.getElementById("body_container").className = "container_iframe";
 } else {
-    document.write('<div class="container">');
+    document.getElementById("body_container").className = "container";
 }
 </script>
 <?php
