@@ -233,6 +233,36 @@ class Tool {
 
         if ( $count == 0 ) {
             echo("<!-- no templates found -->\n");
+        } else {
+// Make it so that polyfilled browsers can find templates
+// But since the poly fill folds the templates into the base document,
+// this will likely never be called since we find them through 
+// querySelector - see the logic in tsugiscripts.js tsugiHandlebarsRender()
+// TODO: Probably remove this unless we find different polyfill behavior
+?>
+<script>
+(function(window, document, undefined) {
+    // Refers to the "importer", which is "out parent"
+    var thatDoc = document;
+
+    // Refers to the "importee", which is this document.
+    var thisDoc =  (thatDoc._currentScript || thatDoc.currentScript).ownerDocument;
+
+    // Make sure we chain if there was more than one import
+    var recurse = window.HandleBarsTemplateFromImport;
+    window.HandleBarsTemplateFromImport = function (temp) {
+        var template = thisDoc.querySelector(temp);
+        if ( template ) return template.content.firstElementChild.innerHTML;
+        if ( recurse ) {
+            console.log('Tool calling HandleBarsTemplateFromImport recursively...');
+            console.log(recurse);
+            return recurse(temp);
+        }
+        return;
+    };
+})(window, document);
+</script>
+<?php
         }
     }
 
