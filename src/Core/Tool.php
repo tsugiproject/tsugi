@@ -223,9 +223,9 @@ class Tool {
         echo("<!-- td=".htmlentities(textdomain(null))." -->\n");
 
         $count = 0;
-        foreach(glob('templates/*.hbs') as $name) {   
+        foreach(glob('templates/*.hbs') as $name) {
             $count++;
-            echo "<template id=\"" . basename($name, '.hbs') . "\"><div>\n";  
+            echo "<template id=\"" . basename($name, '.hbs') . "\"><div>\n";
             $template = file_get_contents($name);
             echo(\Tsugi\UI\Output::templateProcess($template));
             echo("</div></template>\n");
@@ -236,7 +236,7 @@ class Tool {
         } else {
 // Make it so that polyfilled browsers can find templates
 // But since the poly fill folds the templates into the base document,
-// this will likely never be called since we find them through 
+// this will likely never be called since we find them through
 // querySelector - see the logic in tsugiscripts.js tsugiHandlebarsRender()
 // TODO: Probably remove this unless we find different polyfill behavior
 ?>
