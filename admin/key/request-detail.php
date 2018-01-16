@@ -11,6 +11,8 @@ use \Tsugi\Core\LTIX;
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
+require_once("../gate.php");
+if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
     die('Must be logged in or admin');

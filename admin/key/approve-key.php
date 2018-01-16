@@ -11,6 +11,8 @@ use \Tsugi\Core\Mail;
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
+require_once("../gate.php");
+if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 if ( ! isAdmin() ) {
     die('Must be admin');

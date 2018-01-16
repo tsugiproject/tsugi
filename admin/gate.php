@@ -25,7 +25,8 @@ if ( isset($_POST['passphrase']) ) {
         error_log("Admin bad pw IP=".$_SERVER["REMOTE_ADDR"].
             (isset($_SESSION['id']) ? " id=". $_SESSION['id'].' email='.$_SESSION['email'] : " developer mode"));
     }
-    header("Location: ".$_SERVER['PHP_SELF']);
+    $rest_path = \Tsugi\Util\U::rest_path();
+    header("Location: ".$rest_path->current);
     $REDIRECTED = true;
     return;
 }

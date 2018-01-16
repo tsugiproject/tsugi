@@ -17,6 +17,8 @@ if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
+require_once("../gate.php");
+if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
     $_SESSION['login_return'] = LTIX::curPageUrlFolder();
@@ -53,7 +55,6 @@ $OUTPUT->flashMessages();
 <p>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Key Requests</a>
   <a href="keys" class="btn btn-default active">View Keys</a>
-  <a href="using" class="btn btn-default">Using Your Key</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>
