@@ -151,7 +151,7 @@ class I18N {
         $lang = substr($TSUGI_LOCALE, 0, 2);
         // error_log("lang=$lang");
         $master_file = $CFG->dirroot."/locale/$lang/LC_MESSAGES/master.mo";
-        $domain_file = "./locale/$lang/LC_MESSAGES/$domain.mo";
+        $domain_file = $CFG->getScriptPathFull()."/locale/$lang/LC_MESSAGES/$domain.mo";
         $TSUGI_TRANSLATE = new Translator($lang, new MessageSelector());
         if ( file_exists($master_file) ) {
             $TSUGI_TRANSLATE->addLoader('master', new MoFileLoader());
