@@ -136,6 +136,7 @@ $CFG->servicedesc = false;
 $CFG->ownername = false;  // 'Charles Severance'
 $CFG->owneremail = false; // 'csev@example.com'
 $CFG->providekeys = false;  // true
+$CFG->autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 
 // Go to https://console.developers.google.com/apis/credentials
 // create a new OAuth 2.0 credential for a web application,

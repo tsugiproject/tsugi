@@ -94,7 +94,7 @@ if ( isset($_POST['doApprove']) && isset($_POST['request_id']) ) {
         $message .= "\n\nKey: $oauth_consumer_key\n";
         $message .= "\nSecret: $oauth_secret\n";
         $message .= "\nInstructions for using your LTI 1.x key are at\n\n";
-        $message .= $CFG->wwwroot . "/admin/key/using\n\n";
+        $message .= $CFG->wwwroot . "/settings/key/using\n\n";
         error_log("New LTI 1.x Key Inserted: $oauth_consumer_key User: ".$row['email']);
     } else {
         $message .= "\nThe URL for LTI 2.x Registration is at\n\n";

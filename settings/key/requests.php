@@ -52,6 +52,65 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         array(":UID" => $_SESSION['id'], ":TITLE" => $_POST['title'],
             ":NOTES" => $_POST['notes'], ":LTI" => $version)
     );
+
+    $request_id = $PDOX->lastInsertId();
+    if ( isset($CFG->autoapprovekeys) && strlen($CFG->autoapprovekeys) > 0 &&
+        preg_match($CFG->autoapprovekeys, $_SESSION['email']) == 1) {
+        // Set up the email variables
+        $user_id = $_SESSION['id'];
+        $token = Mail::computeCheck($user_id);
+        $to = $_SESSION['email'];
+
+        $subject = false;
+        $message = '';
+        if ( $CFG->owneremail ) {
+            $subject = "Key Created on ".$CFG->servicename." for ".$_SESSION['email'];
+            $message = "Key Created on ".$CFG->servicename." for ".$_SESSION['email'].
+                "\nSystem Admin: ".$CFG->ownername." (".$CFG->owneremail.")\n";
+        }
+
+        if ( $version == 1 ) {
+            $oauth_consumer_key = 'lti1i_'.bin2hex(openssl_random_pseudo_bytes(256/8));
+            $oauth_secret = bin2hex(openssl_random_pseudo_bytes(256/8));
+            $key_sha256 = lti_sha256($oauth_consumer_key);
+            $PDOX->queryDie(
+                "INSERT INTO {$CFG->dbprefix}lti_key 
+                    (key_sha256, key_key, secret, user_id, created_at, updated_at)
+                    VALUES ( :k256, :key, :secret, :uid, NOW(), NOW() )",
+                array(
+                    'k256' => $key_sha256,
+                    'key' => $oauth_consumer_key,
+                    'secret' => $oauth_secret,
+                    'uid' => $user_id
+                )
+            );
+            $message .= "\n\nKey: $oauth_consumer_key\n";
+            $message .= "\nSecret: $oauth_secret\n";
+            $message .= "\nInstructions for using your LTI 1.x key are at\n\n";
+            $message .= $CFG->wwwroot . "/settings/key/using\n\n";
+            error_log("New LTI 1.x Key Inserted: $oauth_consumer_key User: ".$_SESSION['email']);
+        } else {
+            $message .= "\nThe URL for LTI 2.x Registration is at\n\n";
+            $message .= $CFG->wwwroot . "/lti/register\n\n";
+            error_log("LTI 2.x Key Approved request_id=".$request_id." User: ".$_SESSION['email']);
+        }
+
+        // Update the request row
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}key_request SET state=1 WHERE request_id = :rid",
+            array('rid' => $request_id)
+        );
+
+        $_SESSION['success'] = "Key Approved";
+        if ( $subject ) {
+            $_SESSION['success'] = "Key Approved - Check your email ".$to;
+            error_log("Email sent to $to, Subject: $subject");
+            $retval = Mail::send($to, $subject, $message, $user_id, $token);
+        }
+        header("Location: ".LTIX::curPageUrlFolder());
+        return;
+    }
+
     if ( $CFG->owneremail && $CFG->OFFLINE === false) {
         $user_id = $_SESSION['id'];
         $token = Mail::computeCheck($user_id);
@@ -59,7 +118,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         $subject = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )';
         $message = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )\n'.
             "\nNotes\n".$_POST['notes']."\n\n".
-            "Link: ".$CFG->getCurrentFileUrl(__FILE__)."\n";
+            "Link: ".$CFG->wwwroot."/admin/key\n";
 
         $retval = Mail::send($to, $subject, $message, $user_id, $token);
     }
