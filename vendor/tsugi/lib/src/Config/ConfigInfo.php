@@ -388,7 +388,8 @@ class ConfigInfo {
     function getScriptFolder() {
         $path = self::getScriptPathFull();
         if ( $path === false ) return false;
-        $pieces = explode(DIRECTORY_SEPARATOR, $path);
+        // Don't use DIRECTORY_SEPARATOR, PHP makes these forward slashes on Windows
+        $pieces = explode('/', $path);
         if ( count($pieces) < 1 ) return false;
         return $pieces[count($pieces)-1];
     }
