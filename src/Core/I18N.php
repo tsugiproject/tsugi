@@ -69,7 +69,7 @@ class I18N {
 
         if ( isset($TSUGI_TRANSLATE) && $TSUGI_TRANSLATE ) {
             $retval = $TSUGI_TRANSLATE->trans($message);
-            error_log("DOM=$TSUGI_LOCALE msg=$message trans=$retval");
+            // error_log("DOM=$TSUGI_LOCALE msg=$message trans=$retval");
             return $retval;
         }
 
@@ -118,7 +118,7 @@ class I18N {
             putenv('LC_ALL='.$locale);
             setlocale(LC_ALL, $locale);
         }
-        error_log("setLocale=$locale");
+        // error_log("setLocale=$locale");
         if ( $TSUGI_LOCALE != $locale ) $TSUGI_LOCALE_RELOAD = true;
         $TSUGI_LOCALE = $locale;
     }
@@ -132,7 +132,7 @@ class I18N {
         $domain = $CFG->getScriptFolder();
         $folder = $CFG->getScriptPathFull()."/locale";
 
-        error_log("setupTextDomain($domain, $folder, $TSUGI_LOCALE, $TSUGI_LOCALE_RELOAD)");
+        // error_log("setupTextDomain($domain, $folder, $TSUGI_LOCALE, $TSUGI_LOCALE_RELOAD)");
 
         $TSUGI_LOCALE_RELOAD = false;
         $TSUGI_TRANSLATE = false;
@@ -149,7 +149,7 @@ class I18N {
         }
 
         $lang = substr($TSUGI_LOCALE, 0, 2);
-        error_log("lang=$lang");
+        // error_log("lang=$lang");
         $master_file = $CFG->dirroot."/locale/$lang/LC_MESSAGES/master.mo";
         $domain_file = "./locale/$lang/LC_MESSAGES/$domain.mo";
         $TSUGI_TRANSLATE = new Translator($lang, new MessageSelector());
