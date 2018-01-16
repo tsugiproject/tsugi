@@ -11,6 +11,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LTIConstants;
 use \Tsugi\UI\Output;
+use \Tsugi\Core\I18N;
 use \Tsugi\Core\Settings;
 use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Crypt\SecureCookie;
@@ -1399,7 +1400,7 @@ class LTIX {
             if (isset($LTI['user_image']) ) $USER->image = $LTI['user_image'];
             if (isset($LTI['user_locale']) ) $USER->locale = $LTI['user_locale'];
             if ( $USER->locale ) {
-                U::setLocale($USER->locale);
+                I18N::setLocale($USER->locale);
             }
             $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
             $TSUGI_LAUNCH->user = $USER;

@@ -5,6 +5,7 @@ namespace Tsugi\Core;
 use \Tsugi\Util\U;
 use \Tsugi\Util\PS;
 use \Tsugi\UI\Output;
+use \Tsugi\Core\I18N;
 
 /**
  * Provide support for a Tsugi Tool
@@ -216,9 +217,9 @@ class Tool {
 
         if ( $rest_path->action && strlen($rest_path->action) > 0 ) {
             echo("<!-- Locale ".htmlentities($rest_path->action)." -->\n");
-            U::setLocale($rest_path->action);
+            I18N::setLocale($rest_path->action);
         } else {
-            U::setLocale();
+            I18N::setLocale();
         }
         echo("<!-- td=".htmlentities(textdomain(null))." -->\n");
 
