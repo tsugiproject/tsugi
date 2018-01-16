@@ -17,7 +17,7 @@ if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
+if ( ! isset($_SESSION['id']) ) {
     $_SESSION['login_return'] = LTIX::curPageUrlFolder();
     header('Location: '.$CFG->wwwroot.'/login');
     return;

@@ -10,17 +10,13 @@ use \Tsugi\UI\CrudForm;
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
+if ( ! isset($_SESSION['id']) ) {
     die('Must be logged in or admin');
 }
 
 $from_location = "keys";
 $tablename = "{$CFG->dbprefix}lti_key";
-if ( isAdmin() ) {
-    $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at", "user_id");
-} else {
-    $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
-}
+$fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
 
 $retval = CrudForm::handleInsert($tablename, $fields);
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
