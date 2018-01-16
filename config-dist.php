@@ -199,6 +199,12 @@ $CFG->product_instance_guid = parse_url($CFG->wwwroot)['host'];
 // and used for all apps it publishes
 $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 
+// Sets the default locale for users without a locale
+// If you want to change this and test using the test harness, make sure
+// to clear out the '12345' data in Admin in order to make sure the lti_user
+// table does not override the new value for this.
+// $CFG->fallbacklocale = 'de_DE';
+
 // When this is true it enables a Developer test harness that can launch
 // tools using LTI.  It allows quick testing without setting up an LMS
 // course, etc.  If this is on, developer-oriented menus and adminstrator

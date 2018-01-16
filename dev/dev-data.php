@@ -9,6 +9,9 @@ $instdata = array(
       "user_id" => "292832126",
       "roles" => "Instructor"
 );
+if ( isset($CFG->fallbacklocale) && $CFG->fallbacklocale ) {
+    $instdata["launch_presentation_locale"] = $CFG->fallbacklocale;
+}
 
 $learner1 = array(
       "lis_person_name_full" => 'Sue Student',
@@ -42,7 +45,6 @@ $learner3 = array(
       "lis_person_sourcedid" => "ischool.edu:ed",
       "user_id" => "777777777",
       "user_image" => "https://www.dr-chuck.net/tsugi-static/font-awesome-4.7.0/png/eye-slash.png",
-      "launch_presentation_locale" => "en-US",
       "roles" => "Learner"
 );
 

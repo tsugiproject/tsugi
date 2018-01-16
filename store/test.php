@@ -120,12 +120,16 @@ $install = $rest_path->extra;
     There is an instructor, two students, and an anonymous student.   You can quickly use this screen 
     to switch back and forth between these identities to test tool functionality under the differet roles.
     </p>
-              <ul>
-                <li><a href="<?= $rest_path->full ?>?identity=instructor">Jane Instructor</a></li>
-                <li><a href="<?= $rest_path->full ?>?identity=learner1">Sue Student</a> (Prefers EN-us)</li>
-                <li><a href="<?= $rest_path->full ?>?identity=learner2">Ed Student</a> (Prefers ES-es)</li>
-                <li><a href="<?= $rest_path->full ?>?identity=learner3">Anonymous</a></li>
-              </ul>
+    <ul>
+      <li><a href="<?= $rest_path->full ?>?identity=instructor">Jane Instructor</a>
+      <?php if ( isset($CFG->fallbacklocale) && $CFG->fallbacklocale ) {
+          echo(' (Prefers '.$CFG->fallbacklocale.')');
+      } ?>
+      </li>
+      <li><a href="<?= $rest_path->full ?>?identity=learner1">Sue Student</a> (Prefers EN-us)</li>
+      <li><a href="<?= $rest_path->full ?>?identity=learner2">Ed Student</a> (Prefers ES-es)</li>
+      <li><a href="<?= $rest_path->full ?>?identity=learner3">Anonymous</a> (Takes language from browser header)</li>
+    </ul>
   </div>
   <div class="tab-pane fade active in" id="test">
 <?php

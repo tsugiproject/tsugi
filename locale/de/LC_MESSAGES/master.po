@@ -1,0 +1,88 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Master TSUGI\n"
+"POT-Creation-Date: 2014-06-10 08:11-0500\n"
+"PO-Revision-Date: 2018-01-16 09:36+0100\n"
+"Language-Team: TSUGI <drchuck@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.5\n"
+"X-Poedit-Basepath: ../../..\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: _;__;_e;_m\n"
+"Last-Translator: \n"
+"Language: de_DE@formal\n"
+"X-Poedit-SearchPath-0: lib\n"
+"X-Poedit-SearchPath-1: admin\n"
+"X-Poedit-SearchPath-2: common\n"
+"X-Poedit-SearchPath-3: core\n"
+"X-Poedit-SearchPath-4: lti\n"
+
+#: core/key/index.php:9 core/key/keys.php:9
+msgid "This service does not accept instructor requests for keys"
+msgstr "Dieser Dienst akzeptiert keine Dozentenanfragen für Schlüssel"
+
+#: core/key/index.php:29
+msgid "Requests must have titles"
+msgstr "Anfragen müssen Titel haben"
+
+#: core/key/index.php:35
+msgid "LTI Version muse be 1 or 2"
+msgstr "LTI Version muß 1 oder 2 sein"
+
+#: lib/lms_lib.php:82
+#, php-format
+msgid "<p>Welcome %s from %s"
+msgstr "<p> Willkommen, %s aus %s"
+
+#: lib/lms_lib.php:84
+#, php-format
+msgid "<p>Welcome %s"
+msgstr "Willkommen, %s"
+
+#: lib/lms_lib.php:88
+#, php-format
+msgid "<p>Welcome from %s"
+msgstr "<p> Willkommen aus %s"
+
+#: lib/lms_lib.php:90
+msgid "<p>Welcome "
+msgstr "<p>Willkommen "
+
+#: lib/lms_lib.php:95
+msgid "(Instructor)"
+msgstr "(Dozent)"
+
+#: lib/lms_lib.php:1251
+msgid "Record deleted"
+msgstr "Datensatz gelöscht"
+
+#: lib/lms_lib.php:1270
+msgid "Missing POST field: "
+msgstr "Fehlendes POST-Feld "
+
+#: lib/lms_lib.php:1297
+msgid "Cancel Edit"
+msgstr "Bearbeitung abbrechen"
+
+#: lib/lms_lib.php:1299
+msgid "Edit"
+msgstr "Bearbeiten"
+
+#: lib/lms_lib.php:1304
+msgid "Delete"
+msgstr "Löschen"
+
+#: lib/lms_lib.php:1354
+msgid "Update"
+msgstr "Aktualisieren"
+
+#: lib/lms_lib.php:1402
+msgid "Record Inserted"
+msgstr "Datensatz eingefügt"
+
+#: lib/lms_lib.php:1430
+msgid "Save"
+msgstr "Speichern"

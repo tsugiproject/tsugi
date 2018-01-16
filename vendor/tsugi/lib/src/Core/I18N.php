@@ -111,6 +111,10 @@ class I18N {
             }
         }
 
+        if ( $locale === null && isset($CFG->fallbacklocale) && $CFG->fallbacklocale ) {
+            $locale = $CFG->fallbacklocale;
+        }
+
         if ( $locale === null ) return;
 
         $locale = str_replace('-','_',$locale);
