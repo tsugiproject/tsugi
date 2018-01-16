@@ -200,6 +200,7 @@ $CFG->product_instance_guid = parse_url($CFG->wwwroot)['host'];
 $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 
 // Sets the default locale for users without a locale
+// in the launch or in the browser
 // If you want to change this and test using the test harness, make sure
 // to clear out the '12345' data in Admin in order to make sure the lti_user
 // table does not override the new value for this.
