@@ -84,6 +84,8 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
                     'uid' => $user_id
                 )
             );
+            // Don't send the key and secret to the admin
+            $admin_message = $message;
             $message .= "\n\nKey: $oauth_consumer_key\n";
             $message .= "\nSecret: $oauth_secret\n";
             $message .= "\nInstructions for using your LTI 1.x key are at\n\n";
@@ -92,6 +94,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         } else {
             $message .= "\nThe URL for LTI 2.x Registration is at\n\n";
             $message .= $CFG->wwwroot . "/lti/register\n\n";
+            $admin_message = $message;
             error_log("LTI 2.x Key Approved request_id=".$request_id." User: ".$_SESSION['email']);
         }
 
@@ -109,7 +112,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
             if ( $CFG->owneremail ) {
                 $subject = '[admin] ' . $subject;
                 error_log("Email sent to $CFG->owneremail, Subject: $subject");
-                $retval = Mail::send($CFG->owneremail, $subject, $message);
+                $retval = Mail::send($CFG->owneremail, $subject, $admin_message);
             }
         }
         header("Location: ".LTIX::curPageUrlFolder());
