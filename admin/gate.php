@@ -31,16 +31,11 @@ if ( isset($_POST['passphrase']) ) {
     return;
 }
 
-if ( count($_POST) > 0 ) {
-    unset($_SESSION["admin"]);
-    header('HTTP/1.x 404 Not Found');
-    die();
-}
+if ( isset($_SESSION['admin']) ) return;
 
-if ( ! isset($_SESSION['admin']) ) {
-  $OUTPUT->header();
-  $OUTPUT->bodyStart();
-  $OUTPUT->topNav();
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
 ?>
 <form method="post">
 <label for="passphrase">Admin Unlock:<br/>
@@ -50,6 +45,5 @@ if ( ! isset($_SESSION['admin']) ) {
 </form>
 
 <?php
-    $OUTPUT->footer();
-}
+$OUTPUT->footer();
 

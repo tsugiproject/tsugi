@@ -14,10 +14,6 @@ session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
-    die('Must be logged in or admin');
-}
-
 $tablename = "{$CFG->dbprefix}key_request";
 $current = $CFG->getCurrentFileUrl(__FILE__);
 $title = "Request Entry";

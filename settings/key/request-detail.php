@@ -20,12 +20,10 @@ $tablename = "{$CFG->dbprefix}key_request";
 $current = $CFG->getCurrentFileUrl(__FILE__);
 $title = "Request Entry";
 $from_location = "requests";
-$allow_delete = false; // isAdmin();
-$allow_edit = false; // isAdmin();
-$where_clause = '';
-$query_fields = array();
+$allow_delete = true;
+$allow_edit = true;
 $fields = array("request_id", "title", "notes", "admin", "state", "lti", "created_at", "updated_at");
-$where_clause .= "user_id = :UID";
+$where_clause = "user_id = :UID";
 $query_fields[":UID"] = $_SESSION['id'];
 
 // Handle the post data
