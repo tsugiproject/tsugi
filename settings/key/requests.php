@@ -10,7 +10,7 @@ use \Tsugi\Core\LTIX;
 \Tsugi\Core\LTIX::getConnection();
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
-    $_SESSION['error'] = _m("This service does not accept instructor requests for keys");
+    $_SESSION['error'] = _m("This service does not accept requests for keys");
     header('Location: '.$CFG->wwwroot);
     return;
 }
@@ -106,6 +106,11 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
             $_SESSION['success'] = "Key Approved - Check your email ".$to;
             error_log("Email sent to $to, Subject: $subject");
             $retval = Mail::send($to, $subject, $message, $user_id, $token);
+            if ( $CFG->owneremail ) {
+                $subject = '[admin] ' . $subject;
+                error_log("Email sent to $CFG->owneremail, Subject: $subject");
+                $retval = Mail::send($CFG->owneremail, $subject, $message);
+            }
         }
         header("Location: ".LTIX::curPageUrlFolder());
         return;

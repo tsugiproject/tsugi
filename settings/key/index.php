@@ -9,7 +9,7 @@ use \Tsugi\Core\LTIX;
 \Tsugi\Core\LTIX::getConnection();
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
-    $_SESSION['error'] = _("This service does not accept instructor requests for keys");
+    $_SESSION['error'] = _("This service does not accept requests for keys");
     header('Location: '.$CFG->wwwroot);
     return;
 }

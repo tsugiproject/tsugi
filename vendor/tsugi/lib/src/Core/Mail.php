@@ -13,7 +13,7 @@ class Mail {
         return sha1($CFG->mailsecret . '::' . $identity);
     }
 
-    public static function send($to, $subject, $message, $id, $token) {
+    public static function send($to, $subject, $message, $id=false, $token=false) {
         global $CFG;
 
         if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return;
@@ -24,12 +24,15 @@ class Mail {
             die_with_error_log("Incomplete mail configuration in mailSend");
         }
 
-        if ( strlen($to) < 1 || strlen($subject) < 1 || strlen($id) < 1 || strlen($token) < 1 ) return false;
+        if ( strlen($to) < 1 || strlen($subject) < 1 ) return false;
 
         $EOL = $CFG->maileol;
         $maildomain = $CFG->maildomain;
-        $manage = $CFG->wwwroot . "/profile.php";
-        $unsubscribe_url = Output::getUtilUrl("/unsubscribe.php?id=$id&token=$token");
+        $manage = $CFG->wwwroot . "/profile";
+        $unsubscribe_url = $manage;
+        if ( strlen($id) > 0 && strlen($token) > 0 ) {
+            $unsubscribe_url = Output::getUtilUrl("/unsubscribe?id=$id&token=$token");
+        }
         $msg = $message;
         if ( substr($msg,-1) != "\n" ) $msg .= "\n";
         // $msg .= "\nYou can manage your mail preferences at $manage \n";
