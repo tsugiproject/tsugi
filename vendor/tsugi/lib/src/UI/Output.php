@@ -325,6 +325,17 @@ if (window!=window.top) {
             },
             $new
         );
+        $new = preg_replace_callback(
+            '|{{>> *([^ ]*) *}}|',
+            function ($matches) {
+                $name = 'templates/'.trim($matches[1]);
+                if ( file_exists($name) ) {
+                    return file_get_contents($name);
+                }
+                return "Unable to open $name";
+            },
+            $new
+        );
         return $new;
     }
 
