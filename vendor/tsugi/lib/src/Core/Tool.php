@@ -5,6 +5,7 @@ namespace Tsugi\Core;
 use \Tsugi\Util\U;
 use \Tsugi\Util\PS;
 use \Tsugi\UI\Output;
+use \Tsugi\UI\HandleBars;
 use \Tsugi\Core\I18N;
 
 /**
@@ -228,7 +229,7 @@ class Tool {
             $count++;
             echo "<template id=\"" . basename($name, '.hbs') . "\"><div>\n";
             $template = file_get_contents($name);
-            echo(\Tsugi\UI\Output::templateProcess($template));
+            echo(\Tsugi\UI\HandleBars::templateProcess($template));
             echo("</div></template>\n");
         }
 

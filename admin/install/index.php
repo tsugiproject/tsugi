@@ -2,6 +2,7 @@
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\Git;
+use \Tsugi\UI\HandleBars;
 
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
@@ -104,9 +105,9 @@ some of these git repos.
 
 
 $OUTPUT->footerStart();
-$OUTPUT->templateInclude(array('installed', 'available'));
+HandleBars::templateInclude(array('installed', 'available'));
 if(isset($CFG->lessons)) {
-    $OUTPUT->templateInclude('required');
+    HandleBars::templateInclude('required');
 }
 ?>
 <script>
