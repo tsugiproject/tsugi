@@ -60,10 +60,10 @@ some of these git repos.
 <ul class="nav nav-tabs">
   <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Installed Modules</a></li>
 <?php if(isset($CFG->lessons)) { ?>
-  <li class=""><a href="#required" data-toggle="tab" aria-expanded="false">Required Modules</a></li>
+  <li class=""><a href="#required-div" data-toggle="tab" aria-expanded="false">Required Modules</a></li>
 <?php } ?>
-  <li class=""><a href="#available" data-toggle="tab" aria-expanded="false">Available Modules</a></li>
-  <li class=""><a href="#advanced" data-toggle="tab" aria-expanded="false">Advanced</a></li>
+  <li class=""><a href="#available-div" data-toggle="tab" aria-expanded="false">Available Modules</a></li>
+  <li class=""><a href="#advanced-div" data-toggle="tab" aria-expanded="false">Advanced</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="home">
@@ -72,18 +72,18 @@ some of these git repos.
     </ul>
   </div>
 <?php if(isset($CFG->lessons)) { ?>
-  <div class="tab-pane fade" id="required">
+  <div class="tab-pane fade" id="required-div">
     <ul id="required_ul">
     <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
     </ul>
   </div>
 <?php } ?>
-  <div class="tab-pane fade" id="available">
+  <div class="tab-pane fade" id="available-div">
     <ul id="available_ul">
     <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
     </ul>
   </div>
-  <div class="tab-pane fade" id="advanced">
+  <div class="tab-pane fade" id="advanced-div">
     <p>This screen allows you to clone a repository into your <b>install_folder</b>.
     Make sure to know the code you are installing and review it carefully before
     installing it. The repository will be checked out into a folder of the
