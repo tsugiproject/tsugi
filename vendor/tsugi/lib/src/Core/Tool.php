@@ -227,7 +227,7 @@ class Tool {
         $count = 0;
         foreach(glob('templates/*.hbs') as $name) {
             $count++;
-            echo "<template id=\"" . basename($name, '.hbs') . "\"><div>\n";
+            echo "<template id=\"webcomponents-template-" . basename($name, '.hbs') . "\"><div>\n";
             $template = file_get_contents($name);
             echo(\Tsugi\UI\HandleBars::templateProcess($template));
             echo("</div></template>\n");

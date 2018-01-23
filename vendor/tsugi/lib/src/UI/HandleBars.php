@@ -30,7 +30,7 @@ class HandleBars {
             }
             return;
         }
-        echo('<script id="template-'.$name.'" type="text/x-handlebars-template">'."\n");
+        echo('<script id="script-template-'.$name.'" type="text/x-handlebars-template">'."\n");
         $template = file_get_contents('templates/'.$name.'.hbs');
         echo(self::templateProcess($template));
         echo("</script>\n");

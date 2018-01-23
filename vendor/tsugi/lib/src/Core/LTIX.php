@@ -90,7 +90,7 @@ class LTIX {
                 if (!isset($request_data["lti_message_type"])) {
                     self::abort_with_error_log('Missing lti_message_type from POST data');
                 }
-                if (!isset($request_data["resource_link_id"])) {
+                if (!isset($request_data["resource_link_id"]) && in_array(self::LINK, $needed) ) {
                     self::abort_with_error_log('Missing resource_link_id from POST data');
                 }
 
