@@ -26,7 +26,17 @@ $OUTPUT->header();
     .panel-default:hover{
         border: 1px solid #aaa;
     }
+    .panel-description {
+        display:block;
+        overflow:hidden;
+        height: 6em; 
+        max-height: 6em; 
+        /* border: 2px solid red; */
+    }
+
     .panel-body h3 {
+overflow: hidden;
+white-space: nowrap;
         margin-top: 0.5em;
     }
     .approw {
@@ -233,11 +243,14 @@ echo(settings_status($key_count));
             echo('<h3>');
         }
         echo(htmlent_utf8($title)."</h3>");
+        echo('<div class="panel-description js-ellipsis">');
         echo('<p>'.htmlent_utf8($text)."</p>");
         if ($keywords !== '') {
-            echo('<p class="keywords">Tags: <span class="keyword-span">'.$keywords.'</span></p>');
+            echo('<p class="keywords">');
+            echo(__('Tags:'));
+            echo('<span class="keyword-span">'.$keywords.'</span></p>');
         }
-        echo("</div><div class=\"panel-footer\">");
+        echo("</div></div><div class=\"panel-footer\">");
         echo('<a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a> ');
 
         $ltiurl = $tool['url'];
@@ -262,6 +275,7 @@ echo("</div>\n");
 
 $OUTPUT->footerStart();
 ?>
+<script type="text/javascript" src="static/ftellipsis.js"/>
 <script type="text/javascript">
     var filter = filter || {};
 
@@ -291,6 +305,18 @@ $OUTPUT->footerStart();
     $(document).ready(function() {
         filter.setUpListener();
     });
+</script>
+<script>
+// https://github.com/ftlabs/ftellipsis
+var forEach = Array.prototype.forEach;
+var els = document.getElementsByClassName('js-ellipsis');
+
+forEach.call(els, function(el) {
+    var ellipsis = new Ellipsis(el);
+    ellipsis.calc();
+    ellipsis.set();
+});
+
 </script>
 <?php
 $OUTPUT->footerend();
