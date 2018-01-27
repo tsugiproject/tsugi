@@ -20,36 +20,57 @@ if ( ! $row ) {
 }
 $key_id = $row['key_id'];
 
+$error = false;
+$sql = false;
 if ( U::get($_GET,'delete') ) {
-    $PDOX->queryDie("DELETE FROM
+    $sql = "DELETE FROM
         {$CFG->dbprefix}blob_file
         WHERE context_id IN (
             SELECT context_id FROM
             {$CFG->dbprefix}lti_context
             WHERE key_id = :KID)
-        ORDER BY created_at LIMIT 100",
+        ORDER BY created_at LIMIT 100";
+
+    $stmt = $PDOX->queryReturnError($sql,
         array(':KID' => $key_id)
     );
 
-    $PDOX->queryDie("DELETE FROM
-        {$CFG->dbprefix}lti_context
-        WHERE key_id = :KID
-        ORDER BY created_at LIMIT 100",
-        array(':KID' => $key_id)
-    );
+    if ( $stmt->success ) {
+        $sql = "DELETE FROM
+            {$CFG->dbprefix}lti_context
+            WHERE key_id = :KID
+            ORDER BY created_at LIMIT 100",
+        $stmt = $PDOX->queryReturnError($sql,
+            array(':KID' => $key_id)
+        );
+    }
 
-    $PDOX->queryDie("DELETE FROM
-        {$CFG->dbprefix}lti_user
-        WHERE key_id = :KID
-        ORDER BY created_at LIMIT 100",
-        array(':KID' => $key_id)
-    );
-
+    if ( $stmt->success ) {
+        $sql = "DELETE FROM
+            {$CFG->dbprefix}lti_user
+            WHERE key_id = :KID
+            ORDER BY created_at LIMIT 100",
+        $stmt = $PDOX->queryReturnError($sql,
+            array(':KID' => $key_id)
+        );
+    } else { 
+        $error = $stmt->errorImplode;
+    }
 }
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 // No Nav - this is in a frame
+
+if ( $error ) {
+    echo("Not all records were deleted:<br/>\n");
+    echo("<p>\n");
+    echo(htmlentities($sql));
+    echo("</p>\n");
+    echo("<p>\n");
+    echo(htmlentities($error));
+    echo("</p>\n");
+}
 
 echo("Scanning for files, contexts, and users associated with key 12345...<br/>\n");
 
