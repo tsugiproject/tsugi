@@ -1411,6 +1411,8 @@ class LTIX {
             $CONTEXT->launch = $TSUGI_LAUNCH;
             $CONTEXT->id = $LTI['context_id'];
             if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
+            if (isset($LTI['key_key']) ) $CONTEXT->key = $LTI['key_key'];
+            if (isset($LTI['secret']) ) $CONTEXT->secret = $LTI['secret'];
             $TSUGI_LAUNCH->context = $CONTEXT;
         }
 

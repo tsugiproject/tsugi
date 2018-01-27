@@ -208,7 +208,8 @@ class BlobUtil {
                 return $row;
             }
 
-            if ( isset($CFG->dataroot) && $CFG->dataroot ) {
+            // Don't store 12345 blobs on disk to allow for easy discard
+            if ( isset($CFG->dataroot) && $CFG->dataroot && $CONTEXT->key != '12345') {
                 $blob_folder = BlobUtil::mkdirContext($CONTEXT->id);
                 if ( $blob_folder ) {
                     $blob_name =  $blob_folder . '/' . $sha256;
