@@ -27,7 +27,7 @@ array( "{$CFG->dbprefix}mail_bulk",
     CONSTRAINT `{$CFG->dbprefix}mail_bulk_ibfk_2`
         FOREIGN KEY (`user_id`)
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
-        ON DELETE NO ACTION ON UPDATE NO ACTION,
+        ON DELETE CASCADE ON UPDATE CASCADE,
 
     PRIMARY KEY (bulk_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
@@ -56,17 +56,17 @@ array( "{$CFG->dbprefix}mail_sent",
     CONSTRAINT `{$CFG->dbprefix}mail_sent_ibfk_2`
         FOREIGN KEY (`link_id`)
         REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
-        ON DELETE NO ACTION ON UPDATE NO ACTION,
+        ON DELETE CASCADE ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}mail_sent_ibfk_3`
         FOREIGN KEY (`user_to`)
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
-        ON DELETE NO ACTION ON UPDATE NO ACTION,
+        ON DELETE CASCADE ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}mail_sent_ibfk_4`
         FOREIGN KEY (`user_from`)
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
-        ON DELETE NO ACTION ON UPDATE NO ACTION,
+        ON DELETE CASCADE ON UPDATE CASCADE,
 
     PRIMARY KEY (sent_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
