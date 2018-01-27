@@ -39,7 +39,7 @@ if ( U::get($_GET,'delete') ) {
         $sql = "DELETE FROM
             {$CFG->dbprefix}lti_context
             WHERE key_id = :KID
-            ORDER BY created_at LIMIT 100",
+            ORDER BY created_at LIMIT 100";
         $stmt = $PDOX->queryReturnError($sql,
             array(':KID' => $key_id)
         );
@@ -49,7 +49,7 @@ if ( U::get($_GET,'delete') ) {
         $sql = "DELETE FROM
             {$CFG->dbprefix}lti_user
             WHERE key_id = :KID
-            ORDER BY created_at LIMIT 100",
+            ORDER BY created_at LIMIT 100";
         $stmt = $PDOX->queryReturnError($sql,
             array(':KID' => $key_id)
         );
