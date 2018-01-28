@@ -1,4 +1,8 @@
 <?php
+// Configuration file - copy from config-dist.php to config.php
+// and then edit.  Since config.php has passwords and other secrets
+// never check config.php into a source repository
+
 // uncomment for 500 error debugging during early install steps
 /*
 function __the_end(){
@@ -7,22 +11,28 @@ function __the_end(){
 }
 register_shutdown_function('__the_end');
 */
-// Configuration file - copy from config-dist.php to config.php
-// and then edit.  Since config.php has passwords and other secrets
-// never check config.php into a source repository
 
 // If we just are using Tsugi but not part of another site
 $apphome = false;
-$wwwroot = "http://localhost/tsugi";
-// $wwwroot = 'http://localhost:8888/tsugi';
-// $wwwroot = "https://fb610139.ngrok.io/tsugi";
 
-// If we embed Tsugi in a web site it has a parent folder.
+// Set the path to the Tsugi folder without a trailing slash
+if ( $_SERVER['SERVER_PORT'] == 80 ) {
+    $wwwroot = "http://localhost/tsugi";
+} else {
+    $wwwroot = 'http://localhost:8888/tsugi'; // Mac XAMP
+}
+// Once you are on a real server delete the above if statement
+// and set the wwwroot directly.  This must be the actual URL used
+// on the Internet for LTI signatures to compute correctly
+// $wwwroot = "https://www.tsugicloud.org/tsugi";
+// $wwwroot = "https://fb610139.ngrok.io/tsugi";  // To test with ngrok
+
+// If we embed Tsugi in a web site, define the url of the overall application
 // $apphome = "http://localhost/tsugi-org";
 // $apphome = "http://localhost:8888/tsugi-org";
-// $apphome = "https://www.tsugi.org";
-// $wwwroot = $apphome . '/tsugi';
-// Make sure to check for all the "Embedded Tsugi" configuration options below
+// $apphome = "https://www.tsugicloud.org";
+// $wwwroot = $apphome . '/tsugi';   // Common shortcut
+// Make sure to set all the "Embedded Tsugi" configuration options below
 
 // If this file is symbolically linked you'll need to manually define the absolute path,
 // otherwise this will resolve incorrectly.
@@ -46,8 +56,14 @@ unset($apphome);
 // You need to point this at a database with am account and password
 // that can create tables.   To make the initial tables go into Admin
 // to run the upgrade.php script which auto-creates the tables.
-$CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
-// $CFG->pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
+if ( $_SERVER['SERVER_PORT'] == 8888 ) {
+    $CFG->pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
+} else {
+    $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
+} 
+// Once in =real production, delete the above if statement and simply set
+// the pdo value
+// $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 
@@ -78,11 +94,12 @@ $CFG->dbpass    = 'ltipassword';
 $CFG->dbprefix  = '';
 
 // This is the PW that you need to access the Administration
-// features of this application. Protect it like the database
-// password in this file.
-// $CFG->adminpw = 'warning:please-change-adminpw-89b543!';
+// features of this application. It can be the plaintext password
+// or a sha256 hash of the admin password.  Please don't use either
+// the 'tsugi' or the sha256 of 'tsugi' example values below.
+// $CFG->adminpw = 'tsugi';
+// $CFG->adminpw = 'sha256:9c0ccb0d53dd71b896cde69c78cf977acbcb36546c96bedec1619406145b5e9e';
 $CFG->adminpw = false;
-
 
 // Some styles from Bootswatch
 // $CFG->bootswatch = 'cerulean';

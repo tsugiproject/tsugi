@@ -4,9 +4,9 @@ require_once $CFG->dirroot."/admin/admin_util.php";
 
 $REDIRECTED = false;
 
-if ( $CFG->adminpw === false || strpos($CFG->adminpw,"warning:") === 0 ) {
+if ( $CFG->adminpw === false ) {
     unset($_SESSION["admin"]);
-    die('Please set an $CFG->adminpw to a value');
+    die('Please set $CFG->adminpw to a plaintext or hashed string');
 }
 
 if ( ! ( isset($_SESSION['id']) || $CFG->DEVELOPER) ) {
@@ -17,7 +17,12 @@ if ( ! ( isset($_SESSION['id']) || $CFG->DEVELOPER) ) {
 
 if ( isset($_POST['passphrase']) ) {
     unset($_SESSION["admin"]);
-    if ( $_POST['passphrase'] == $CFG->adminpw ) {
+    $apw = $CFG->adminpw;
+    $phrase = $_POST['passphrase'];
+    $hash = 'sha256:'.lti_sha256($phrase);
+    if ( (strpos($apw, 'sha256:') === false && $phrase == $apw ) ||
+       (strpos($apw, 'sha256:') === 0 && $hash == $apw ) ) {
+
         $_SESSION["admin"] = "yes";
         error_log("Admin login IP=".$_SERVER["REMOTE_ADDR"].
             (isset($_SESSION['id']) ? " id=". $_SESSION['id'].' email='.$_SESSION['email'] : " developer mode"));
