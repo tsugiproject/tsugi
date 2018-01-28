@@ -3,6 +3,8 @@
 // and then edit.  Since config.php has passwords and other secrets
 // never check config.php into a source repository
 
+use \Tsugi\Util\U;
+
 // uncomment for 500 error debugging during early install steps
 /*
 function __the_end(){
@@ -12,11 +14,17 @@ function __the_end(){
 register_shutdown_function('__the_end');
 */
 
+// If this file is symbolically linked you'll need to manually define the absolute path,
+// otherwise this will resolve incorrectly.
+$dirroot = realpath(dirname(__FILE__));
+
+$loader = require_once($dirroot."/vendor/autoload.php");
+//
 // If we just are using Tsugi but not part of another site
 $apphome = false;
 
 // Set the path to the Tsugi folder without a trailing slash
-if ( $_SERVER['SERVER_PORT'] == 80 ) {
+if ( U::get($_SERVER,'SERVER_PORT') == 80 ) {
     $wwwroot = "http://localhost/tsugi";
 } else {
     $wwwroot = 'http://localhost:8888/tsugi'; // Mac XAMP
@@ -34,12 +42,6 @@ if ( $_SERVER['SERVER_PORT'] == 80 ) {
 // $wwwroot = $apphome . '/tsugi';   // Common shortcut
 // Make sure to set all the "Embedded Tsugi" configuration options below
 
-// If this file is symbolically linked you'll need to manually define the absolute path,
-// otherwise this will resolve incorrectly.
-$dirroot = realpath(dirname(__FILE__));
-
-$loader = require_once($dirroot."/vendor/autoload.php");
-
 // We store the configuration in a global object
 // Additional documentation on these fields is
 // available in that class or in the PHPDoc for that class
@@ -56,14 +58,8 @@ unset($apphome);
 // You need to point this at a database with am account and password
 // that can create tables.   To make the initial tables go into Admin
 // to run the upgrade.php script which auto-creates the tables.
-if ( $_SERVER['SERVER_PORT'] == 8888 ) {
-    $CFG->pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
-} else {
-    $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
-} 
-// Once in =real production, delete the above if statement and simply set
-// the pdo value
-// $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
+$CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
+// $CFG->pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 
@@ -97,9 +93,9 @@ $CFG->dbprefix  = '';
 // features of this application. It can be the plaintext password
 // or a sha256 hash of the admin password.  Please don't use either
 // the 'tsugi' or the sha256 of 'tsugi' example values below.
+$CFG->adminpw = false;
 // $CFG->adminpw = 'tsugi';
 // $CFG->adminpw = 'sha256:9c0ccb0d53dd71b896cde69c78cf977acbcb36546c96bedec1619406145b5e9e';
-$CFG->adminpw = false;
 
 // Some styles from Bootswatch
 // $CFG->bootswatch = 'cerulean';

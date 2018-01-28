@@ -88,17 +88,22 @@ $table_fields = $PDOX->metadata($plugins);
 if ( $table_fields === false ) {
     echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
     echo("<p>It appears that your database connection is working properly
-but you have no tables in your database.  To create the initial tables
-needed for this application, use the 
-<a href=\"".$CFG->wwwroot."/admin\">'Admin'</a> / Upgrade Database feature.
-To unlock the <a href=\"".$CFG->wwwroot."/admin\">Admin</a> screen, you will be prompted
-for the administrator master password as configured in <code>tsugi/config.php</code>
-in the <code>\$CFG->adminpw</code> setting.
-</p>
-<p>
-If the UI does not look correct(i.e. the CSS files are not loading and this
-text is not outlined in red), you many need to edit the 
-<code>\$CFG->wwwroot</code> setting in the <code>tsugi/config.php</code> folder.
+but you have no tables in your database.  There are two ways to create these tables:
+<ul>
+<li><p>The simplest way is to navigate the
+<a href=\"".$CFG->wwwroot."/admin\">'Admin'</a> console, 
+enter the administrator master password as specified in <code>\$CFG->adminpw</code>
+and select
+'Upgrade Database'.
+</p></li>
+</ul>
+<p>Another way to create the tables (or upgrade them) from the command line:
+<pre>
+cd ... /tsugi/admin
+php upgrade.php
+</pre>
+Make sure to be in the <code>admin</code> folder before running 
+the <code>upgrade.php</code> script.
 </p>
 ");
     echo("\n</div>\n");
