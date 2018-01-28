@@ -24,10 +24,10 @@ $loader = require_once($dirroot."/vendor/autoload.php");
 $apphome = false;
 
 // Set the path to the Tsugi folder without a trailing slash
-if ( U::get($_SERVER,'SERVER_PORT') == 80 ) {
-    $wwwroot = "http://localhost/tsugi";
-} else {
+if ( U::get($_SERVER,'SERVER_PORT') == 8888 ) {
     $wwwroot = 'http://localhost:8888/tsugi'; // Mac XAMP
+} else {
+    $wwwroot = "http://localhost/tsugi";
 }
 // Once you are on a real server delete the above if statement
 // and set the wwwroot directly.  This must be the actual URL used
