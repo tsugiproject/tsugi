@@ -117,7 +117,7 @@ $script = isset($tool['script']) ? $tool['script'] : "index";
 $path = $tool['url'];
 
 
-echo("<p>\n");
+echo('<form method="POST" style="display:inline" action="'.$rest_path->parent.'/test/'.urlencode($install).'">');
 echo('<a href="'.$rest_path->parent.'" class="btn btn-default" role="button">Back to Store</a>');
 echo(' ');
 if ( isset($_SESSION['gc_count']) ) {
@@ -129,8 +129,8 @@ if ( isset($_SESSION['gc_count']) ) {
 echo(' ');
 echo('<a href="#" class="btn btn-default" role="button" onclick="showModal(\'Tool URLs\',\'url-dialog\');">Tool URLs</a>');
 echo(' ');
-echo('<a href="'.$rest_path->parent.'/test/'.urlencode($install).'" class="btn btn-default" role="button">Test</a> ');
-echo("</p>\n");
+echo('<input type="submit" class="btn btn-default" value="Test"></form> ');
+echo("\n");
 
 echo("<ul>\n");
 if ( isset($CFG->privacy_url) ) {
