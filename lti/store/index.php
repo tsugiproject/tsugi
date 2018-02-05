@@ -2,16 +2,6 @@
 require_once "../../config.php";
 require_once $CFG->dirroot."/admin/admin_util.php";
 
-$local_path = route_get_local_path(__DIR__);
-if ( $local_path == "canvas-config.xml" ) {
-    require_once("canvas-config-xml.php");
-    return;
-}
-if ( $local_path == "casa.json" ) {
-    require_once("casa-json.php");
-    return;
-}
-
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\ContentItem;
