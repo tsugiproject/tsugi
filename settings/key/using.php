@@ -37,7 +37,9 @@ $OUTPUT->flashMessages();
   <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai</a></li>
   <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
   <li><a href="#moodle" data-toggle="tab" aria-expanded="false">Moodle</a></li>
+<?php if ( isset($CFG->lessons) ) { ?>
   <li><a href="#bb" data-toggle="tab" aria-expanded="false">Blackboard</a></li>
+<?php } ?>
   <li><a href="#lti2" data-toggle="tab" aria-expanded="false">LTI 2.x</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
@@ -73,6 +75,7 @@ resources to be pulled into Lessons.   The key and secret will be inherited
 from the store to each of the installed tools.  In Sakai-12, once the app store
 is installed, the rerources fomr this site will be avilable from within the 
 rich text editor.
+<?php if ( isset($CFG->lessons) ) { ?>
 <p>
 You can import all the content (including autograders) from this site into your Sakai
 course by downloading it as an 
@@ -84,6 +87,7 @@ the Import feature in Lessons.   In order to activate all the LTI links automati
 with your key and secret.  Then as LTI items are imported they will automatically
 be associated with your key and secret.
 </p>
+<?php } ?>
 </div>
 <div class="tab-pane fade" id="canvas">
 You can install this into Canvas as an "App Store" / "Learning Object Repository"
@@ -98,6 +102,7 @@ This content will be available in the Modules, Pages, Assignments, and Import
 within Canvas under "external tools".
 </div>
 <div class="tab-pane fade" id="moodle">
+<?php if ( isset($CFG->lessons) ) { ?>
 <p>
 You can import all the content (including autograders) from this site into your Moodle
 course by downloading it as an 
@@ -106,6 +111,7 @@ the Restore feature to upload the content into your Moodle course.   Once you
 install your LTI key and secret in the course, the LTI links to the autograder
 should start to function.
 </p>
+<?php } ?>
 <p>
 Moodle 3.4 and later also supports the IMS Content Item standard so you can install
 this site as an "App Store" / "Learning Object Repository" using this url:
@@ -116,6 +122,7 @@ Make sure to find and check the "Supports Content Item" option when installing
 this URL.
 </p>
 </div>
+<?php if ( isset($CFG->lessons) ) { ?>
 <div class="tab-pane fade" id="bb">
 <p>
 You can import all the content from (including autograders) this site into your Blackboard
@@ -126,6 +133,7 @@ install your LTI key and secret in the course, the LTI links to the autograder
 should start to function.
 </p>
 </div>
+<?php } ?>
 <div class="tab-pane fade" id="lti2">
 If your LMS supports LTI 2.x and you have received an LTI 2 key for this service,
 use the following registration URL:
