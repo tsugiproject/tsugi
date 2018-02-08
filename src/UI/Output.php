@@ -130,6 +130,7 @@ class Output extends \Tsugi\Core\SessionAccess {
                 echo('            instructor: true,  // Use only for UI display'."\n");
             }
 ?>
+            rest_path: <?= json_encode(U::rest_path()) ?>,
             spinnerUrl: "<?= self::getSpinnerUrl() ?>",
             staticroot: "<?= $CFG->staticroot ?>",
             window_close_message: "<?= _m('Application complete') ?>",
