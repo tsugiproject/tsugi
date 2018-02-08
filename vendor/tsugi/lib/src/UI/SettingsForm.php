@@ -12,13 +12,32 @@ use \Tsugi\Core\LTIX;
 class SettingsForm {
 
     /**
+     * Check for incoming settings post data
+     *
+     * @return boolean Returns true if there were settings to handle and false
+     * if there was nothing done.  Generally the calling tool will redirect
+     * when true is returned.
+     *
+     *     if ( SettingsForm::isSettingsPost() ) {
+     *         // Do form validation if you like
+     *         SettingsForm::handleSettingsPost();
+     *         header( 'Location: '.addSession('index.php?howdysuppress=1') ) ;
+     *         return;
+     *     }
+     */
+    public static function isSettingsPost() {
+        global $USER;
+        return ( isset($_POST['settings_internal_post']) && $USER->instructor );
+    }
+
+    /**
      * Handle incoming settings post data
      *
      * @return boolean Returns true if there were settings to handle and false
      * if there was nothing done.  Generally the calling tool will redirect
      * when true is returned.
      *
-     *     if ( $OUTPUT->handleSettingsPost() ) {
+     *     if ( SettingsForm::handleSettingsPost() ) {
      *         header( 'Location: '.addSession('index.php?howdysuppress=1') ) ;
      *         return;
      *     }
@@ -144,7 +163,7 @@ class SettingsForm {
         $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
         if ( $title === false ) $title = $name;
         if ( ! $USER->instructor ) {
-            if ( $configured === false ) {
+            if ( $configured === false || strlen($configured) < 1 ) {
                 echo('<p>'._m('Setting').' '.htmlent_utf8($name).' '._m('is not set').'</p>');
             } else {
                 echo('<p>'.htmlent_utf8(ucwords($name)).' '._m('is set to').' '.htmlent_utf8($configured).'</p>');
