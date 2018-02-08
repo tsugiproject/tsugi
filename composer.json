@@ -26,6 +26,7 @@
         "symfony/translation": "v3.2.7"
     },
     "require-dev": {
-        "phpunit/phpunit": "4.8.21"
+        "phpunit/phpunit": "5.*",
+        "phpunit/php-timer": ">=1.0.6"
     }
 }
