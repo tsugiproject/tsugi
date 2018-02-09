@@ -147,6 +147,7 @@ if ( ! $client ) {
 $service = new Google_Service_Classroom($client);
 
 // If we don't have a membership record...
+$student_id = false;
 if ( $role == null ) {
     if ( $user_email == $owner_email ) $role = LTIX::ROLE_INSTRUCTOR;
 
@@ -185,8 +186,6 @@ if ( $role == null ) {
         ...
         }
         */
-
-        $student_id = false;
 
         // If the current user is a student we are golden
         if ( isset($membership->courseId) ) {
@@ -227,7 +226,7 @@ if ( $role == null ) {
 }
 
 // Make sure we have a submit_id in the database
-if ( $gc_submit_id === null ) {
+if ( $student_id && $gc_submit_id === null ) {
     try {
         // Get the student's submission...
         $studentSubmissions = $service->courses_courseWork_studentSubmissions;
@@ -251,7 +250,7 @@ if ( $gc_submit_id === null ) {
     }
 }
 
-// Insert the result record if necessary
+// Insert the result record if necessary (learner and instructor)
 if ( $result_id == null || $row['gc_submit_id'] === null ) {
     $sql = "INSERT INTO {$CFG->dbprefix}lti_result
         ( link_id, user_id, gc_submit_id, created_at, updated_at ) VALUES
