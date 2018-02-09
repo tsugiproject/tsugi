@@ -34,12 +34,6 @@ if ( U::get($_SESSION, 'id') ) {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
-?>
-<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:600px" id="iframe-frame" 
-    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
-</div>
-<?php
 $OUTPUT->flashMessages();
 ?>
 <h1>My Settings</h1>
@@ -47,6 +41,10 @@ $OUTPUT->flashMessages();
 applications in their courses.
 </p>
 <ul>
+<li><p><a href="context/">View My Contexts (Courses)</a>
+(<?= $course_count ?>)
+</p>
+</li>
 <?php if ( $CFG->providekeys ) { ?>
 <li><p><a href="key">Manage LMS Access Keys</a>
 (<?= $key_count ?>)<br/>
@@ -65,7 +63,7 @@ if ( $count ) {
     echo('(Not connected)');
 }
 ?>
-<p>
+<br/>
 These 
 <?php
 if ( isset($_SESSION['gc_count']) ) {
@@ -77,18 +75,14 @@ if ( isset($_SESSION['gc_count']) ) {
  can be used in Google Classroom courses.
 </p>
 </li>
-<?php } ?>
-<!--
 <li>
-  <a href="recent" title="Recent Logins" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
-  Recent Logins 
-  </a></li>
--->
-<li><p><a href="context/">View My Contexts (Courses)</a>
-(<?= $course_count ?>)
+<p>
+<a href="https://myaccount.google.com/security" target="_blank">Manage my Google Account</a> (new window)<br/>
+Use this page to view and manage which applications (including this one) that have access to your
+Google information.
 </p>
 </li>
+<?php } ?>
 </ul>
 <p>If you are an administrator for the overall site, you
 can visit the administrator dashboard.
