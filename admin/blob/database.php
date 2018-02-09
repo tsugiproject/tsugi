@@ -9,12 +9,14 @@ array( "{$CFG->dbprefix}blob_file",
     file_sha256  CHAR(64) NOT NULL,
 
     context_id   INTEGER NULL,
+    link_id      INTEGER NULL,
     file_name    VARCHAR(2048),
     deleted      TINYINT(1),
     contenttype  VARCHAR(256) NULL,
     path         VARCHAR(2048) NULL,
 
     content      LONGBLOB NULL,
+    blob_id      INTEGER,
 
     json         TEXT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -27,10 +29,29 @@ array( "{$CFG->dbprefix}blob_file",
         REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
         ON DELETE SET NULL ON UPDATE CASCADE
 
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+array( "{$CFG->dbprefix}blob_blob",
+"create table {$CFG->dbprefix}blob_blob (
+    blob_id      INTEGER NOT NULL AUTO_INCREMENT,
+    blob_sha256  CHAR(64) NOT NULL,
+
+    deleted      TINYINT(1),
+
+    content      LONGBLOB NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    accessed_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+
+    PRIMARY KEY(blob_id),
+    UNIQUE(blob_sha256)
+
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
 
-$DATABASE_UNINSTALL = "drop table if exists {$CFG->dbprefix}blob_file";
+$DATABASE_UNINSTALL = array(
+"drop table if exists {$CFG->dbprefix}blob_file",
+"drop table if exists {$CFG->dbprefix}blob_blob"
+);
 
 // No upgrades yet
 $DATABASE_UPGRADE = function($oldversion) { 
@@ -58,7 +79,18 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    return 201710151700;
+    if ( $oldversion < 201802091240 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD link_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD blob_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    return 201802091240;
 
 };
 
