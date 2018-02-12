@@ -62,6 +62,7 @@ $sql = "SELECT gc_secret, O.user_id AS owner_id, O.email AS owner_email,
         C.context_id AS context_id, C.title AS context_title,
         L.path AS path, link_key, L.link_id as link_id, L.title AS link_title,
         result_id, gc_submit_id,
+        M.json AS membership_json,
         K.key_id AS key_id, K.secret AS key_secret, K.key_key AS key_key
     FROM {$CFG->dbprefix}lti_context AS C
     JOIN {$CFG->dbprefix}lti_user AS O
@@ -106,6 +107,7 @@ $gc_submit_id = $row['gc_submit_id'];
 $result_id = $row['result_id'];
 $link_title = $row['link_title'];
 $role = $row['role'];
+$membership_json = $row['membership_json'];
 if ( $row['role_override'] > $row['role'] ) {
     $role = $row['role_override'];
 }
@@ -146,9 +148,16 @@ if ( ! $client ) {
 // Lets talk to Google
 $service = new Google_Service_Classroom($client);
 
-// If we don't have a membership record...
 $student_id = false;
-if ( $role == null ) {
+// If we have a membership record...
+if ( $role != null ) {
+    if ( $role <= LTIX::ROLE_LEARNER && strlen($membership_json) > 0 ) {
+        $mj = json_decode($membership_json, true);
+        $student_id = U::get($mj, 'student_id');
+	if ( ! $student_id ) error_log('Could not restore student_id');
+    }
+// Make a membership record
+} else {
     if ( $user_email == $owner_email ) $role = LTIX::ROLE_INSTRUCTOR;
 
     // Check if the current user is a student...
