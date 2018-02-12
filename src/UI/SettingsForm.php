@@ -27,6 +27,7 @@ class SettingsForm {
      */
     public static function isSettingsPost() {
         global $USER;
+        if ( ! $USER ) return false;
         return ( isset($_POST['settings_internal_post']) && $USER->instructor );
     }
 
@@ -44,6 +45,7 @@ class SettingsForm {
      */
     public static function handleSettingsPost() {
         global $USER;
+        if ( ! $USER ) return false;
 
         if ( isset($_POST['settings_internal_post']) && $USER->instructor ) {
             $newsettings = array();
@@ -70,6 +72,7 @@ class SettingsForm {
     public static function button($right = false)
     {
         global $LINK;
+        if ( ! $LINK ) return;
         if ( $right ) echo('<span style="position: fixed; right: 10px; top: 5px;">');
         echo('<button onclick="showModal(\''.__('Configure').' '.htmlentities($LINK->title).'\',\'settings\'); return false;" type="button" class="btn btn-default">');
         echo('<span class="glyphicon glyphicon-pencil"></span></button>'."\n");
@@ -77,7 +80,8 @@ class SettingsForm {
     }
 
     public static function start() {
-        global $USER, $LINK, $OUTPUT;
+        global $USER, $OUTPUT;
+        if ( ! $USER ) return;
 ?>
 <div id="settings" title="Settings" style="display: none;"> <!-- model -->
       <?php if ( $USER->instructor ) { ?>
@@ -97,6 +101,7 @@ class SettingsForm {
      */
     public static function end() {
         global $USER;
+        if ( ! $USER ) return;
 ?>
       </div><!-- / modal-body -->
     <?php if ( $USER->instructor ) { ?>
@@ -115,6 +120,7 @@ class SettingsForm {
     public static function select($name, $default=false, $fields)
     {
         global $USER;
+        if ( ! $USER ) return;
         $oldsettings = Settings::linkGetAll();
         if ( ! $USER->instructor ) {
             $configured = false;
@@ -159,6 +165,8 @@ class SettingsForm {
     public static function text($name, $title=false)
     {
         global $USER;
+        if ( ! $USER ) return false;
+
         $oldsettings = Settings::linkGetAll();
         $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
         if ( $title === false ) $title = $name;
@@ -183,6 +191,7 @@ class SettingsForm {
     public static function textarea($name, $title=false)
     {
         global $USER;
+        if ( ! $USER ) return false;
         $oldsettings = Settings::linkGetAll();
         $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
         if ( $title === false ) $title = $name;
@@ -208,6 +217,7 @@ class SettingsForm {
     public static function checkbox($name, $title=false)
     {
         global $USER;
+        if ( ! $USER ) return false;
         $oldsettings = Settings::linkGetAll();
         $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
         if ( $title === false ) $title = $name;
@@ -327,6 +337,7 @@ class SettingsForm {
     public static function dueDate()
     {
         global $USER;
+        if ( ! $USER ) return false;
         $due = Settings::linkGet('due', '');
         $timezone = Settings::linkGet('timezone', 'Pacific/Honolulu');
         $time = Settings::linkGet('penalty_time', 86400);
@@ -373,6 +384,7 @@ class SettingsForm {
     public static function done()
     {
         global $USER;
+        if ( ! $USER ) return false;
 /*
         return; // Deprecated
         if ( ! $USER->instructor ) return;
