@@ -92,7 +92,7 @@ $register_good = $json_obj && isset($json_obj->name);
 <?php } ?>
     <h1>Server-wide URLs</h1>
     <p>App Store (Supports IMS Deep Linking/Content Item)<br/>
-    <?= $CFG->wwwroot ?>/lti/store
+    <?= $CFG->wwwroot ?>/lti/store/
     (Requires key and secret)
     </p>
     <p>App Store Canvas Configuration URL<br/>
