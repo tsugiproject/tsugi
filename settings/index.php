@@ -11,7 +11,7 @@ session_start();
 
 if ( ! U::get($_SESSION,'id') ) {
     $_SESSION['login_return'] = $CFG->wwwroot . '/settings';
-    OUTPUT::doRedirect($CFG->wwwroot.'/login.php');
+    Output::doRedirect($CFG->wwwroot.'/login.php');
     return;
 }
 

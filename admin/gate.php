@@ -1,18 +1,24 @@
 <?php
 
+use \Tsugi\Util\U;
+use \Tsugi\UI\Output;
+
 require_once $CFG->dirroot."/admin/admin_util.php";
 
 $REDIRECTED = false;
+$rest_path = U::rest_path();
 
 if ( $CFG->adminpw === false ) {
     unset($_SESSION["admin"]);
     die('Please set $CFG->adminpw to a plaintext or hashed string');
 }
 
-if ( ! ( isset($_SESSION['id']) || $CFG->DEVELOPER) ) {
-    unset($_SESSION["admin"]);
-    header('HTTP/1.x 404 Not Found');
-    die();
+if ( ! $CFG->DEVELOPER ) {
+    if ( ! U::get($_SESSION,'id') ) {
+        $_SESSION['login_return'] = $rest_path->full;
+        Output::doRedirect($CFG->wwwroot.'/login.php');
+        return;
+    }
 }
 
 if ( isset($_POST['passphrase']) ) {
