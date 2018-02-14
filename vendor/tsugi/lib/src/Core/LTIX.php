@@ -1424,6 +1424,22 @@ class LTIX {
             if (isset($LTI['link_count']) ) $LINK->activity = $LTI['link_count']+0;
             if (isset($LTI['link_user_count']) ) $LINK->user_activity = $LTI['link_user_count']+0;
 
+            // Check to see if we are supposed to use SHA256 for this link
+            $settings_method = $LINK->settingsGet('oauth_signature_method');
+            $post_data = self::wrapped_session_get($session_object, 'lti_post');
+            $launch_method = null;
+            if ( is_array($post_data) ) $launch_method = U::get($post_data, 'oauth_signature_method');
+
+            // error_log("sm=$settings_method lm=$launch_method");
+            if ( $settings_method == $launch_method ) {
+                // All good
+            } else if ( ! $settings_method && $launch_method == 'HMAC-SHA1' ) {
+                // All good
+            } else {
+                // error_log("Setting oauth_signature_method=$launch_method");
+                $LINK->settingsSet('oauth_signature_method', $launch_method);
+            }
+
             // The activity (Don't make global to avoid bad habits)
             $TSUGI_LAUNCH->link = $LINK;
         }

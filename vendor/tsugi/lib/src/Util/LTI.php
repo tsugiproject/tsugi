@@ -33,14 +33,14 @@ class LTI {
         if ($good_message_type and $good_lti_version ) return(true);
         return false;
     }
-    
+
     // Returns true if the lti_message_type is valid
     public static function isValidMessageType($lti_message_type=false) {
         return ($lti_message_type == "basic-lti-launch-request" ||
             $lti_message_type == "ToolProxyReregistrationRequest" ||
             $lti_message_type == "ContentItemSelectionRequest");
     }
-    
+
     // Returns true if the lti_version is valid
     public static function isValidVersion($lti_version=false) {
         return ($lti_version == "LTI-1p0" || $lti_version == "LTI-2p0");
@@ -48,8 +48,8 @@ class LTI {
 
     /**
      * Verify the message signature for this request
-     * 
-     * @return mixed This returns true if the request verified.  If the request did not verify, 
+     *
+     * @return mixed This returns true if the request verified.  If the request did not verify,
      * this returns an array with the first element as an error string, and the second element
      * as the base string of the request.
      */
@@ -124,7 +124,7 @@ class LTI {
 
     public static function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false, $endform=false) {
         global $LastOAuthBodyBaseString;
-        
+
         if ( isset($newparms["ext_lti_element_id"]) ) {
             $frame_id = $newparms["ext_lti_element_id"];
         } else {
@@ -384,7 +384,7 @@ class LTI {
         return Net::doGet($endpoint,$header);
     }
 
-    public static function sendOAuthBody($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, 
+    public static function sendOAuthBody($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret,
 	$content_type, $body, $more_headers=false, $signature=false)
     {
 
@@ -394,7 +394,11 @@ class LTI {
             $hmac_method = new OAuthSignatureMethod_HMAC_SHA256();
             $hash = base64_encode(hash('sha256', $body, TRUE));
         }
+
         $parms = array('oauth_body_hash' => $hash);
+        if ( $signature == "HMAC-SHA256" ) {
+            $parms['oauth_signature_method'] = $signature;
+        }
 
         $test_token = '';
 
@@ -422,7 +426,7 @@ class LTI {
      *
      * This retrieves a grade using the Plain-Old-XML protocol from
      * IMS LTI 1.1
-     * 
+     *
      * @param debug_log This can either be false or an empty array.  If
      * this is an array, it is filled with data as the steps progress.
      * Each step is an array with a string message as the first element
@@ -432,7 +436,7 @@ class LTI {
      * @return mixed If things go well this returns a float of the existing grade.
      * If this goes badly, this returns a string with an error message.
      */
-    public static function getPOXGrade($sourcedid, $service, $key_key, $secret, &$debug_log=false) {
+    public static function getPOXGrade($sourcedid, $service, $key_key, $secret, &$debug_log=false, $signature=false) {
         global $LastPOXGradeResponse;
         global $LastPOXGradeParse;
         global $LastPOXGradeError;
@@ -452,8 +456,9 @@ class LTI {
         if ( is_array($debug_log) ) $debug_log[] = array('Loading grade from '.$service.' sourcedid='.$sourcedid);
         if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request',$postBody);
 
+        $more_headers = false;
         $response = self::sendOAuthBody("POST", $service, $key_key, $secret,
-            $content_type, $postBody);
+            $content_type, $postBody, $more_headers, $signature);
         $LastPOXGradeResponse = $response;
         if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response",$response);
 
@@ -503,7 +508,7 @@ class LTI {
      * @return mixed If things go well this returns true.
      * If this goes badly, this returns a string with an error message.
      */
-    public static function sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, &$debug_log=false) {
+    public static function sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, &$debug_log=false, $signature=false) {
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
 
@@ -520,8 +525,9 @@ class LTI {
 
         if ( is_array($debug_log) )  $debug_log[] = array('Grade API Request',$postBody);
 
+        $more_headers = false;
         $response = self::sendOAuthBody("POST", $service, $key_key, $secret,
-            $content_type, $postBody);
+            $content_type, $postBody, $more_headers, $signature);
         global $LastOAuthBodyBaseString;
         $lbs = $LastOAuthBodyBaseString;
         if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response",$response);
@@ -702,7 +708,7 @@ class LTI {
     }
 
 
-    public static function replaceResultRequest($grade, $sourcedid, $endpoint, $oauth_consumer_key, $oauth_consumer_secret) {
+    public static function replaceResultRequest($grade, $sourcedid, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $signature=false) {
         $method="POST";
         $content_type = "application/xml";
         $operation = 'replaceResultRequest';
@@ -711,7 +717,10 @@ class LTI {
             array($sourcedid, $grade, $operation, uniqid()),
             self::getPOXGradeRequest());
 
-        $response = sendOAuthBody("POST", $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $postBody);
+        $more_headers=false;
+        $response = sendOAuthBody("POST", $endpoint, $oauth_consumer_key, $oauth_consumer_secret,
+            $content_type, $postBody, $more_headers, $signature);
+
         return parseResponse($response);
     }
 
@@ -757,7 +766,7 @@ class LTI {
      * @return mixed If things go well this returns true.
      * If this goes badly, this returns a string with an error message.
      */
-    public static function sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, &$debug_log=false) {
+    public static function sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, &$debug_log=false, $signature=false) {
         global $LastJSONGradeResponse;
         $LastJSONGradeResponse = false;
 
@@ -770,8 +779,9 @@ class LTI {
         $postBody = self::jsonIndent(json_encode($addStructureRequest));
         if ( is_array($debug_log) )  $debug_log[] = array('Grade JSON Request',$postBody);
 
+        $more_headers = false;
         $response = self::sendOAuthBody("PUT", $result_url, $key_key,
-            $secret, $content_type, $postBody);
+            $secret, $content_type, $postBody, $more_headers, $signature);
 
         if ( is_array($debug_log) )  $debug_log[] = array('Grade JSON Response',$response);
 
@@ -811,7 +821,7 @@ class LTI {
      * @return mixed If things go well this returns true.
      * If this goes badly, this returns a string with an error message.
      */
-    public static function sendJSONSettings($settings, $settings_url, $key_key, $secret, &$debug_log=false) {
+    public static function sendJSONSettings($settings, $settings_url, $key_key, $secret, &$debug_log=false, $signature=false) {
         $content_type = "application/vnd.ims.lti.v2.toolsettings.simple+json";
 
         if ( is_array($debug_log) ) $debug_log[] = array('Sending '.count($settings).' settings to settings_url='.$settings_url);
@@ -824,8 +834,9 @@ class LTI {
         $postBody = self::jsonIndent(json_encode($sendsettings));
         if ( is_array($debug_log) )  $debug_log[] = array('Settings JSON Request',$postBody);
 
+        $more_headers = false;
         $response = self::sendOAuthBody("PUT", $settings_url, $key_key,
-            $secret, $content_type, $postBody);
+            $secret, $content_type, $postBody, $more_headers, $signature);
 
         if ( is_array($debug_log) )  $debug_log[] = array('Settings JSON Response',$response);
 
@@ -850,10 +861,11 @@ class LTI {
      * If this goes badly, this returns a string with an error message.
      */
     public static function sendJSONBody($method, $postBody, $content_type,
-            $rest_url, $key_key, $secret, &$debug_log=false) 
+            $rest_url, $key_key, $secret, &$debug_log=false, $signature=false)
     {
         if ( is_array($debug_log) ) $debug_log[] = array('Sending '.strlen($postBody).' bytes to rest_url='.$rest_url);
 
+        $more_headers = false;
         $response = self::sendOAuthBody($method, $rest_url, $key_key,
             $secret, $content_type, $postBody);
 
@@ -896,16 +908,16 @@ class LTI {
      * @param fa_icon The class name of a FontAwesome icon
      *
      */
-    public static function getLtiLinkJSON($url, $title=false, $text=false, 
-        $icon=false, $fa_icon=false, $custom=false ) 
+    public static function getLtiLinkJSON($url, $title=false, $text=false,
+        $icon=false, $fa_icon=false, $custom=false )
     {
         $return = '{
-            "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem", 
-                "@graph" : [ 
+            "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
+                "@graph" : [
                 { "@type" : "LtiLinkItem",
                     "@id" : ":item2",
-                    "title" : "A cool tool hosted in the Tsugi environment.", 
-                    "mediaType" : "application/vnd.ims.lti.v1.ltilink", 
+                    "title" : "A cool tool hosted in the Tsugi environment.",
+                    "mediaType" : "application/vnd.ims.lti.v1.ltilink",
                     "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
                     "url" : "http://www.tsugi.org/",
                     "placementAdvice" : {

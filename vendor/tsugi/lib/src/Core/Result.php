@@ -140,7 +140,7 @@ class Result extends Entity {
      *
      */
     public static function gradeSendStatic($grade, $row=false, &$debug_log=false) {
-        global $CFG;
+        global $CFG, $LINK;
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
 
@@ -165,6 +165,12 @@ class Result extends Entity {
             $result_id = LTIX::ltiParameter('result_id');
         }
 
+        // Check if we are to use SHA256 as the signature
+        $signature = false;
+        if ( isset($LINK) ) {
+            $signature = $LINK->settingsGet('oauth_signature_method');
+            // error_log("Sending... sig=$signature");
+        }
 
         // Secret and key from session to avoid crossing tenant boundaries
         if ( ! $key_key ) $key_key = LTIX::ltiParameter('key_key');
@@ -208,11 +214,11 @@ class Result extends Entity {
         // If we have a result_url and either ($CFG->prefer_lti1_for_grade_send is false or we don't have a $service),
         // use result_url to send the grade
         } else if ( strlen($result_url) > 0 && ($CFG->prefer_lti1_for_grade_send === false || $service === false) ) {
-            $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log);
+            $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log, $signature);
 
         // Otherwise use the more established service call
         } else if ( $sourcedid !== false && $service !== false ) {
-            $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log);
+            $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log, $signature);
         } else {
             return true;   // Local storage only
         }
