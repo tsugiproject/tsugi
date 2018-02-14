@@ -8,6 +8,8 @@ use \Tsugi\Core\LTIX;
  * This is a class holding convienence methods to access the session from the launch object
  */
 
+// TODO: Make this a trait
+
 class SessionAccess {
     /**
      * All extending classes must define these member variables
@@ -60,6 +62,14 @@ class SessionAccess {
     public function ltiParameter($varname, $default=false) {
         return $this->launch->ltiParameter($varname, $default);
     }
+
+    /**
+     * Update a keyed variable from the original LTI post data in the current session with default
+     */
+    public function ltiParameterUpdate($varname, $value) {
+        return $this->launch->ltiParameterUpdate($varname, $value);
+    }
+
 
     /**
      * Pull a keyed variable from the original LTI post data in the current session with default

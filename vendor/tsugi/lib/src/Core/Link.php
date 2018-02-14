@@ -14,9 +14,14 @@ use \Tsugi\Core\Cache;
  */
 
 class Link extends Entity {
+
     // Needed to implement the Entity methods
     protected $TABLE_NAME = "lti_link";
     protected $PRIMARY_KEY = "link_id";
+
+    // Links have settings...
+    protected $ENTITY_NAME = "link";
+    use SettingsTrait;  // Pull in the trait
 
     /**
      * The integer primary key for this link in the 'lti_link' table.

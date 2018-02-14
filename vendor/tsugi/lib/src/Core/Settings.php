@@ -14,6 +14,7 @@ use \Tsugi\Core\LTIX;
  * In effect, this should be deprecated and folks should use the
  * methods in each entity.
  */
+// TODO: Deprecate / wrap $LINK calls these..
 class Settings {
 
     /**
