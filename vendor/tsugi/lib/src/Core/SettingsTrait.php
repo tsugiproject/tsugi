@@ -87,7 +87,33 @@ trait SettingsTrait {
     }
 
     /**
-     * Update all the settings
+     * Set or update a number of keys to new values in link settings.
+     *
+     * @params $keyvals An array of key value pairs that are to be placed in the
+     * settings.
+     */
+    public function settingsUpdate($keyvals)
+    {
+        $allSettings = $this->settingsGetAll();
+        $different = false;
+        foreach ( $keyvals as $k => $v ) {
+            if ( array_key_exists ($k, $allSettings ) ) {
+                if ( $v != $allSettings[$k] ) {
+                    $different = true;
+                    break;
+                }
+            } else {
+                $different = true;
+                break;
+            }
+        }
+        if ( ! $different ) return;
+        $newSettings = array_merge($allSettings, $keyvals);
+        return $this->settingsSetAll($newSettings);
+    }
+
+    /**
+     * Replace all the settings (Dangerous)
      */
     protected function settingsSetAll($new_settings)
     {

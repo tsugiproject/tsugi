@@ -10,11 +10,19 @@ use \Tsugi\Core\LTIX;
  * There are three scopes of settings: link, context, and key
  * The link level settings are by far the most widely used.
  *
- *
  * In effect, this should be deprecated and folks should use the
- * methods in each entity.
+ * methods in each entity.  
+ *
+ * A better pattern:
+ *
+ * $LAUNCH = LTIX::requireData();
+ * $LAUNCH->link->settingsSet('key', 'value');
+ *
+ * But this is widely used in tool code so it will be hard to remove.
+ * At least now it wraps the Link settings.
+ *
+ * @deprecated 
  */
-// TODO: Deprecate / wrap $LINK calls these..
 class Settings {
 
     /**
@@ -22,9 +30,10 @@ class Settings {
       */
     public static function getDebugArray()
     {
-        global $settingsDebugArray;
-        if ( !isset($settingsDebugArray) ) $settingsDebugArray = array();
-        return $settingsDebugArray;
+        global $LINK;
+        $retval = array();
+        if ( ! $LINK ) return $retval;
+        return $LINK->settingsDebug();
     }
 
     /**
@@ -36,25 +45,9 @@ class Settings {
      */
     public static function linkSetAll($keyvals)
     {
-        global $CFG, $PDOX, $LINK;
-        global $settingsDebugArray;
-
-        $settingsDebugArray = array();
-        $json = json_encode($keyvals);
-        $q = $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_link 
-                SET settings = :SET WHERE link_id = :LID",
-            array(":SET" => $json, ":LID" => $LINK->id)
-        );
-        $settingsDebugArray[] = array(count($keyvals)." settings updated link_id=".$LINK->id);
-        if ( isset($_SESSION['lti']) ) {
-            $_SESSION['lti']['link_settings'] = $json;
-            unset($_SESSION['lti']['link_settings_merge']);
-        }
-        $settings_url = LTIX::ltiParameter('link_settings_url',null);
-        if ( $settings_url === null ) return;
-
-        $settingsDebugArray[] = array("Sending settings to ".$settings_url);
-        $retval = LTIX::settingsSend($keyvals, $settings_url, $settingsDebugArray);
+        global $LINK;
+        if ( ! $LINK ) return false;
+        return $LINK->settingsSetAll($keyvals);
     }
 
     /**
@@ -70,46 +63,10 @@ class Settings {
      */
     public static function linkGetAll()
     {
-        global $CFG, $PDOX, $LINK;
+        global $LINK;
 
-        if ( ! isset($_SESSION['lti']) ) return array();
-
-        if ( isset($_SESSION['lti']['link_settings_merge']) ) {
-            return $_SESSION['lti']['link_settings_merge'];
-        }
-
-        $legacy_fields = array('dologin', 'close', 'due', 'timezone', 'penalty_time', 'penalty_cost');
-        $defaults = array();
-        foreach($legacy_fields as $k ) {
-            $value = LTIX::ltiCustomGet($k);
-            $defaults[$k] = $value;
-        }
-        if ( isset($_SESSION['lti']['link_settings']) ) {
-            $json = $_SESSION['lti']['link_settings'];
-            if ( strlen($json) < 0 ) return $defaults;
-            $retval = json_decode($json, true); // No objects
-            $retval = array_merge($defaults, $retval);
-            $_SESSION['lti']['link_settings_array'] = $retval;
-            return $retval;
-        }
-
-        // Not in session - retrieve from the database
-
-        // We cannot assume the $LINK is fully set up yet...
-        if ( !isset($_SESSION['lti']['link_id']) ) return $defaults;
-
-        $row = $PDOX->rowDie("SELECT settings FROM {$CFG->dbprefix}lti_link WHERE link_id = :LID",
-            array(":LID" => $_SESSION['lti']['link_id']));
-        if ( $row === false ) return $defaults;
-        $json = $row['settings'];
-        if ( $json === null ) return $defaults;
-        $retval = json_decode($json, true); // No objects
-        $retval = array_merge($defaults, $retval);
-
-        // Store in session for later
-        $_SESSION['lti']['link_settings'] = $json;
-        $_SESSION['lti']['link_settings_array'] = $retval;
-        return $retval;
+        if ( ! $LINK ) return false;
+        return $LINK->settingsGetAll();
     }
 
     /**
@@ -122,12 +79,9 @@ class Settings {
      */
     public static function linkGet($key, $default=false)
     {
-        $allSettings = self::linkGetAll();
-        if ( array_key_exists ($key, $allSettings ) ) {
-            return $allSettings[$key];
-        } else {
-            return $default;
-        }
+        global $LINK;
+        if ( ! $LINK ) return $default;
+        return $LINK->settingsGet($key, $default);
     }
 
     /**
@@ -138,8 +92,9 @@ class Settings {
      */
     public static function linkSet($key, $value)
     {
-        $newset = array($key => $value);
-        self::linkUpdate($newset);
+        global $LINK;
+        if ( ! $LINK ) return $default;
+        return $LINK->settingsSet($key, $value);
     }
 
     /**
@@ -150,23 +105,9 @@ class Settings {
      */
     public static function linkUpdate($keyvals)
     {
-        global $PDOX;
-        $allSettings = self::linkGetAll();
-        $different = false;
-        foreach ( $keyvals as $k => $v ) {
-            if ( array_key_exists ($k, $allSettings ) ) {
-                if ( $v != $allSettings[$k] ) {
-                    $different = true;
-                    break;
-                }
-            } else {
-                $different = true;
-                break;
-            }
-        }
-        if ( ! $different ) return;
-        $newSettings = array_merge($allSettings, $keyvals);
-        self::linkSetAll($newSettings);
+        global $LINK;
+        if ( ! $LINK ) return;
+        return $LINK->settingsUpdate($keyvals);
     }
 
 }
