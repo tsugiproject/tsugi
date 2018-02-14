@@ -14,9 +14,17 @@ namespace Tsugi\Core;
  *
  */
 
-class Context {
+class Context extends Entity {
 
     // TODO: - $Context->lang - The context language choice.
+
+    // Needed to implement the Entity methods
+    protected $TABLE_NAME = "lti_context";
+    protected $PRIMARY_KEY = "context_id";
+
+    // Contexts have settings...
+    protected $ENTITY_NAME = "context";
+    use SettingsTrait;  // Pull in the trait
 
     /**
      * The integer primary key for this context in the 'lti_context' table.

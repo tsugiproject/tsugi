@@ -889,8 +889,10 @@ EOF;
         foreach ( $debug_log as $k => $v ) {
             if ( count($v) > 1 ) {
                 $this->togglePre($v[0], $v[1]);
-            } else {
+            } else if ( is_array($v) ) {
                 line_out($v[0]);
+            } else if ( is_string($v) ) {
+                line_out($v);
             }
         }
     }
