@@ -1261,6 +1261,7 @@ class LTIX {
         } else {
             $OUTPUT = new \Tsugi\UI\Output();
             $TSUGI_LAUNCH->output = $OUTPUT;
+            $OUTPUT->launch = $TSUGI_LAUNCH;
         }
 
         $USER = null;
