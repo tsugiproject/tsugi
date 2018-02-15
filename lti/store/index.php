@@ -190,9 +190,16 @@ if ( isset($_GET['install']) ) {
     $custom = false;
     $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon, $custom, $points, $activity_id);
     $return_url = $retval->returnUrl();
+
     $params = $retval->getContentItemSelection();
+
+    $signature = $LAUNCH->ltiRawParameter('oauth_signature_method');
+    if ( $signature ) $params['oauth_signature_method'] = $signature;
+
     $params = LTIX::signParameters($params, $return_url, "POST", "Install Content");
-    $content = LTI::postLaunchHTML($params, $return_url, false, false, false);
+
+    $debug=false; $iframeattr=false; $endform=false;
+    $content = LTI::postLaunchHTML($params, $return_url, $debug, $iframeattr, $endform);
     echo($content);
     return;
 } 
