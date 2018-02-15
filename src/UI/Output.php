@@ -49,7 +49,15 @@ use Tsugi\UI\HandleBars;
 
 use \Tsugi\Core\Settings;
 
-class Output extends \Tsugi\Core\SessionAccess {
+class Output {
+
+    /**
+     * A reference to our containing launch
+     */
+    public $launch;
+
+    // Pull in all the session access functions
+    use \Tsugi\Core\SessionTrait;
 
     public $buffer = false;
 

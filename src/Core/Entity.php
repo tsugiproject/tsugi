@@ -9,7 +9,8 @@ use \Tsugi\Core\LTIX;
  * This is a class holding commmon functionality to be extended by various other classes.
  */
 
-class Entity extends \Tsugi\Core\SessionAccess {
+class Entity {
+
     /**
      * All extending classes must define these member variables
      */
@@ -22,6 +23,9 @@ class Entity extends \Tsugi\Core\SessionAccess {
      * A reference to our containing launch
      */
     public $launch;
+
+    // Pull in all the session access functions
+    use SessionTrait;
 
     /**
      * Load the json field for this entity

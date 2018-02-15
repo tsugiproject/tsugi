@@ -1,6 +1,6 @@
 <?php
 
-require_once "src/Core/SessionAccess.php";
+require_once "src/Core/SessionTrait.php";
 require_once "src/UI/MenuEntry.php";
 require_once "src/UI/Menu.php";
 require_once "src/UI/MenuSet.php";
