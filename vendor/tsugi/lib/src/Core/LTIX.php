@@ -1301,7 +1301,9 @@ class LTIX {
                         self::abort_with_error_log('Missing '.$sess.' from POST data');
                     } else if ( count($needed) > 0 ) {
                         self::send403();
-                        self::abort_with_error_log('This tool should be launched from a learning system using LTI');
+                        self::abort_with_error_log('This tool should be launched from a learning system using LTI',
+                            U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
+                        );
                     }
                 }
             }

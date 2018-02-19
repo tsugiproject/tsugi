@@ -2,7 +2,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Core\I18N;
 
-if ( ! isset($CFG) ) die_with_error_log("Please configure this product using config.php");
+if ( ! isset($CFG) ) die("Please configure this product using config.php");
 
 // This is where we change the overall database version to trigger
 // upgrade checking - don't change this unless you want to trigger
