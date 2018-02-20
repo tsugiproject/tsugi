@@ -199,7 +199,7 @@ class PDOX extends \PDO {
     /**
      * Retrieve the metadata for a table.
      */
-    public static function describe($tablename) {
+    function describe($tablename) {
         $sql = "DESCRIBE ".$tablename;
         $q = self::queryReturnError($sql);
         if ( $q->success ) {
@@ -220,7 +220,7 @@ class PDOX extends \PDO {
      *
      * @return mixed An array of the column metadata or null
      */
-    public static function describeColumn($fieldname, $source) {
+    function describeColumn($fieldname, $source) {
         if ( ! is_array($source) ) {
             if ( ! is_string($source) ) {
                 throw new \Exception('Source must be an array of metadata or a table name');
@@ -243,7 +243,7 @@ class PDOX extends \PDO {
      *
      * @return mixed Returns true / false if the columns exists and null if the column does not exist.
      */
-    public static function columnIsNull($fieldname, $source)
+    function columnIsNull($fieldname, $source)
     {
         $column = self::describeColumn($fieldname, $source);
         if ( ! $column ) throw new \Exception("Could not find $fieldname");
@@ -258,7 +258,7 @@ class PDOX extends \PDO {
      *
      * @return boolean Returns true/false
      */
-    public static function columnExists($fieldname, $source)
+    function columnExists($fieldname, $source)
     {
         if ( is_string($source) ) {  // Demand table exists
             $source = self::describe($source);
@@ -276,7 +276,7 @@ class PDOX extends \PDO {
      *
      * @return mixed Returns a string if the columns exists and null if the column does not exist.
      */
-    public static function columnType($fieldname, $source)
+    function columnType($fieldname, $source)
     {
         $column = self::describeColumn($fieldname, $source);
         if ( ! $column ) throw new \Exception("Could not find $fieldname");
@@ -297,7 +297,7 @@ class PDOX extends \PDO {
      *
      * @return mixed Returns an integer has an explicit length, 0 if the column has no length and null if the column does not exist.
      */
-    public static function columnLength($fieldname, $source)
+    function columnLength($fieldname, $source)
     {
         $column = self::describeColumn($fieldname, $source);
         if ( ! $column ) throw new \Exception("Could not find $fieldname");

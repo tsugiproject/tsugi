@@ -2,48 +2,54 @@
 
 require_once "src/Util/PDOX.php";
 
-use \Tsugi\Util\PDOX;
+class mockPDOX extends \Tsugi\Util\PDOX
+{
+    public function __construct ()
+    {}
 
-class PDOXTest extends \PHPUnit_Framework_TestCase
+}
+
+class PDOXTest extends PHPUnit_Framework_TestCase
 {
     public function testDescribe() {
         $describe = self::mockDescribe();
         $this->assertTrue(is_array($describe));
-        $column = PDOX::describeColumn("key_id", $describe);
+        $PDOX = new mockPDOX();
+        $column = $PDOX->describeColumn("key_id", $describe);
         $this->assertArrayHasKey("Field", $column);
         $this->assertArrayHasKey("Type", $column);
         $this->assertArrayHasKey("Null", $column);
         try {
-            PDOX::columnIsNull("zap", $describe);
+            $PDOX->columnIsNull("zap", $describe);
             $this->assertTrue(false);
         } catch(Exception $e) {
         }
         try {
-            PDOX::columnType("zap", $describe);
+            $PDOX->columnType("zap", $describe);
             $this->assertTrue(false);
         } catch(Exception $e) {
         }
         try {
-            PDOX::columnLength("zap", $describe);
+            $PDOX->columnLength("zap", $describe);
             $this->assertTrue(false);
         } catch(Exception $e) {
         }
 
-        $this->assertFalse(PDOX::columnIsNull("key_id", $describe));
-        $this->assertEquals("int", PDOX::columnType("key_id", $describe));
-        $this->assertEquals(11, PDOX::columnLength("key_id", $describe));
+        $this->assertFalse($PDOX->columnIsNull("key_id", $describe));
+        $this->assertEquals("int", $PDOX->columnType("key_id", $describe));
+        $this->assertEquals(11, $PDOX->columnLength("key_id", $describe));
 
-        $this->assertTrue(PDOX::columnIsNull("secret", $describe));
-        $this->assertEquals("text", PDOX::columnType("secret", $describe));
-        $this->assertEquals(0, PDOX::columnLength("secret", $describe));
+        $this->assertTrue($PDOX->columnIsNull("secret", $describe));
+        $this->assertEquals("text", $PDOX->columnType("secret", $describe));
+        $this->assertEquals(0, $PDOX->columnLength("secret", $describe));
 
-        $this->assertFalse(PDOX::columnIsNull("key_sha256", $describe));
-        $this->assertEquals("char", PDOX::columnType("key_sha256", $describe));
-        $this->assertEquals(64, PDOX::columnLength("key_sha256", $describe));
+        $this->assertFalse($PDOX->columnIsNull("key_sha256", $describe));
+        $this->assertEquals("char", $PDOX->columnType("key_sha256", $describe));
+        $this->assertEquals(64, $PDOX->columnLength("key_sha256", $describe));
 
-        $this->assertFalse(PDOX::columnIsNull("deleted", $describe));
-        $this->assertEquals("tinyint", PDOX::columnType("deleted", $describe));
-        $this->assertEquals(1, PDOX::columnLength("deleted", $describe));
+        $this->assertFalse($PDOX->columnIsNull("deleted", $describe));
+        $this->assertEquals("tinyint", $PDOX->columnType("deleted", $describe));
+        $this->assertEquals(1, $PDOX->columnLength("deleted", $describe));
     }
 
     public function mockDescribe() {
