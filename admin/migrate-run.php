@@ -56,6 +56,7 @@ LTIX::getConnection();
 
     // Check to see if there is any upgrading needed
     if ( isset($DATABASE_UPGRADE) && $DATABASE_UPGRADE !== false ) {
+        echo("-- Checking upgrade $path <br/>\n");
         $sql = "SELECT version FROM {$plugins} WHERE plugin_path = :plugin_path";
         $values = array( ":plugin_path" => $path);
         $q = $PDOX->queryReturnError($sql, $values);
@@ -76,6 +77,9 @@ LTIX::getConnection();
         if ( $newversion > $CFG->dbversion ) {
             echo("-- WARNING: Database version=$newversion for $path higher than
                 \$CFG->dbversion=$CFG->dbversion in setup.php<br/>\n");
+        }
+        if ( $newversion < $version ) {
+            echo("-- Warning: new version $newversion for $path is less than existing version $version <br/>\n");
         }
         if ( $newversion > $version ) {
             echo("-- Upgraded to data model version $newversion <br/>\n");
