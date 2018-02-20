@@ -554,7 +554,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
 
     // Version 2014041200 improvements
-    if ( $oldversion < 2014041200 ) {
+    if ( ! $PDOX->columnExists('role_override', "{$CFG->dbprefix}lti_membership") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_membership ADD role_override SMALLINT";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -562,11 +562,13 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Version 2014041300 improvements
-    if ( $oldversion < 2014041300 ) {
+    if ( ! $PDOX->columnExists('subscribe', "{$CFG->dbprefix}lti_user") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD subscribe SMALLINT";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('subscribe', "{$CFG->dbprefix}profile") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}profile ADD subscribe SMALLINT";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -574,11 +576,13 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Version 2014042100 improvements
-    if ( $oldversion < 2014042100 ) {
+    if ( ! $PDOX->columnExists('server_grade', "{$CFG->dbprefix}lti_result") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD server_grade FLOAT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('retrieved_at', "{$CFG->dbprefix}lti_result") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD retrieved_at DATETIME NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -586,7 +590,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Version 2014050500 improvements
-    if ( $oldversion < 2014050500 ) {
+    if ( ! $PDOX->columnExists('user_id', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD user_id INTEGER NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -594,15 +598,19 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Version 2014072600 improvements
-    if ( $oldversion < 2014072600 ) {
+    if ( ! $PDOX->columnExists('settings', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD settings TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('settings', "{$CFG->dbprefix}lti_context") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD settings TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('settings', "{$CFG->dbprefix}lti_link") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD settings TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -940,13 +948,15 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    // Add the context secret column (for incoming grades)
-    if ( $oldversion < 201708101745 ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context MODIFY updated_at TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00'";
+    // Add the context secret column (for incoming grades) 201708101745
+    if ( ! $PDOX->columnExists('secret', "{$CFG->dbprefix}lti_context") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD secret CHAR(64) NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD secret CHAR(64) NULL";
+    }
+    if ( $oldversion < 201708101745 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context MODIFY updated_at TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00'";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
@@ -984,12 +994,14 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     }
 
-    // Add the caliper columns
-    if ( $oldversion < 201708161530 ) {
+    // Add the caliper columns 201708161530
+    if ( ! $PDOX->columnExists('caliper_url', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD caliper_url TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('caliper_key', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD caliper_key TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -1007,10 +1019,14 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('login_at', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD login_at DATETIME NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('login_at', "{$CFG->dbprefix}lti_context") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD login_at DATETIME NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -1048,31 +1064,26 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    if ( $oldversion < 201709241318 ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD placementsecret VARCHAR(64) NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD oldplacementsecret VARCHAR(64) NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
-
     // Oops - put them in the wrong place.
-    if ( $oldversion < 201709251127 ) {
+    if ( ! $PDOX->columnExists('placementsecret', "{$CFG->dbprefix}lti_link") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD placementsecret VARCHAR(64) NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('oldplacementsecret', "{$CFG->dbprefix}lti_link") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD oldplacementsecret VARCHAR(64) NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( $PDOX->columnExists('placementsecret', "{$CFG->dbprefix}lti_result") ) { // Opposite
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_result DROP COLUMN placementsecret";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( $PDOX->columnExists('oldplacementsecret', "{$CFG->dbprefix}lti_result") ) { // Opposite
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_result DROP COLUMN oldplacementsecret";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -1085,10 +1096,14 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
+    }
+    if ( ! $PDOX->columnExists('login_count', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD login_count BIGINT DEFAULT 0";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
+    }
+    if ( ! $PDOX->columnExists('login_count', "{$CFG->dbprefix}lti_context") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD login_count BIGINT DEFAULT 0";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -1109,22 +1124,29 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
-
+    }
+    if ( ! $PDOX->columnExists('login_time', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD login_time BIGINT DEFAULT 0";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
+    }
+    if ( ! $PDOX->columnExists('login_time', "{$CFG->dbprefix}lti_context") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD login_time BIGINT DEFAULT 0";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
+    }
+    if ( ! $PDOX->columnExists('login_time', "{$CFG->dbprefix}lti_user") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD login_time BIGINT DEFAULT 0";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
     }
 
-    if ( $oldversion < 201711252200 ) {
+    if ( ! $PDOX->columnExists('gc_token', "{$CFG->dbprefix}lti_user") ||
+         ! $PDOX->columnExists('user_id', "{$CFG->dbprefix}lti_context")
+    ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD gc_token TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -1146,11 +1168,13 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Google classroom incoming secret
-    if ( $oldversion < 201711261315 ) {
+    if ( ! $PDOX->columnExists('gc_secret', "{$CFG->dbprefix}lti_context") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD gc_secret VARCHAR(128) NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
+    }
+    if ( $oldversion < 201711261315 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_context MODIFY secret VARCHAR(128) NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
@@ -1158,7 +1182,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Google classroom submit_id
-    if ( $oldversion < 201712022350 ) {
+    if ( ! $PDOX->columnExists('gc_submit_id', "{$CFG->dbprefix}lti_result") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD gc_submit_id TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);

@@ -79,11 +79,14 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    if ( $oldversion < 201802091240 ) {
+    // 201802091240 ) {
+    if ( ! $PDOX->columnExists('link_id', "{$CFG->dbprefix}blob_file") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD link_id INTEGER NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('blob_id', "{$CFG->dbprefix}blob_file") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD blob_id INTEGER NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
