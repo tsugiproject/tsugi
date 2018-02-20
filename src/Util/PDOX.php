@@ -196,4 +196,118 @@ class PDOX extends \PDO {
         }
     }
 
+    /**
+     * Retrieve the metadata for a table.
+     */
+    public static function describe($tablename) {
+        $sql = "DESCRIBE ".$tablename;
+        $q = self::queryReturnError($sql);
+        if ( $q->success ) {
+            return $q->fetchAll();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Retrieve the metadata for a column in a table.
+     *
+     * For the output format for MySQL, see:
+     * https://dev.mysql.com/doc/refman/5.7/en/explain.html
+     *
+     * @param $fieldname The name of the column
+     * @param $source Either an array of the column metadata or the name of the table
+     *
+     * @return mixed An array of the column metadata or null
+     */
+    public static function describeColumn($fieldname, $source) {
+        if ( ! is_array($source) ) {
+            if ( ! is_string($source) ) {
+                throw new \Exception('Source must be an array of metadata or a table name');
+            }
+            $source = self::describe($source);
+            if ( ! is_array($source) ) return null;
+        }
+        foreach( $source as $column ) {
+            $name = U::get($column, "Field");
+            if ( $fieldname == $name ) return $column;
+        }
+        return null;
+    }
+
+    /**
+     * Check if a column is null
+     *
+     * @param $fieldname The name of the column
+     * @param $source Either an array of the column metadata or the name of the table
+     *
+     * @return mixed Returns true / false if the columns exists and null if the column does not exist.
+     */
+    public static function columnIsNull($fieldname, $source)
+    {
+        $column = self::describeColumn($fieldname, $source);
+        if ( ! $column ) throw new \Exception("Could not find $fieldname");
+        return U::get($column, "Null") == "YES";
+    }
+
+    /**
+     * Check if a column exists
+     *
+     * @param $fieldname The name of the column
+     * @param $source Either an array of the column metadata or the name of the table
+     *
+     * @return boolean Returns true/false
+     */
+    public static function columnExists($fieldname, $source)
+    {
+        if ( is_string($source) ) {  // Demand table exists
+            $source = self::describe($source);
+            if ( ! $source ) throw new \Exception("Could not find $source");
+        }
+        $column = self::describeColumn($fieldname, $source);
+        return is_array($column);
+    }
+
+    /**
+     * Get the column type
+     *
+     * @param $fieldname The name of the column
+     * @param $source Either an array of the column metadata or the name of the table
+     *
+     * @return mixed Returns a string if the columns exists and null if the column does not exist.
+     */
+    public static function columnType($fieldname, $source)
+    {
+        $column = self::describeColumn($fieldname, $source);
+        if ( ! $column ) throw new \Exception("Could not find $fieldname");
+        $type = U::get($column, "Type");
+        if ( ! $type ) return null;
+        if ( strpos($type, '(') === false ) return $type;
+        $matches = array();
+        preg_match('/([a-z]+)\([0-9]+\)/', $type, $matches);
+        if ( count($matches) == 2 ) return $matches[1];
+        return null;
+    }
+
+    /**
+     * Get the column length
+     *
+     * @param $fieldname The name of the column
+     * @param $source Either an array of the column metadata or the name of the table
+     *
+     * @return mixed Returns an integer has an explicit length, 0 if the column has no length and null if the column does not exist.
+     */
+    public static function columnLength($fieldname, $source)
+    {
+        $column = self::describeColumn($fieldname, $source);
+        if ( ! $column ) throw new \Exception("Could not find $fieldname");
+        $type = U::get($column, "Type");
+        if ( ! $type ) return null;
+        if ( strpos($type, '(') === false ) return 0;
+        $matches = array();
+        preg_match('/[a-z]+\(([0-9]+)\)/', $type, $matches);
+        if ( count($matches) == 2 ) return 0+$matches[1];
+        return 0;
+    }
+
 }
