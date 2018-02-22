@@ -13,7 +13,7 @@ class BlobTest extends PHPUnit_Framework_TestCase
         foreach(glob("{$directory}/*") as $file)
         {
             if(is_dir($file)) {
-                if ( ! preg_match('/^[0-9][0-9][0-9]/', basename($file)) ){
+                if ( ! preg_match('/^[0-9a-f][0-9a-f]/', basename($file)) ){
                     echo("Skipping folder $file\n");
                     continue;
                 }
@@ -41,11 +41,11 @@ class BlobTest extends PHPUnit_Framework_TestCase
         }
         self::recursiveRemoveDirectory($tmp);
         mkdir($tmp);
-        $blob_dir = BlobUtil::getBlobFolder(42, $tmp);
-        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/000/042/00000042') > 0);
+        $blob_dir = BlobUtil::getBlobFolder('abcdef0123456789', $tmp);
+        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/ab/cd') > 0);
         $this->assertFalse(file_exists($blob_dir));
-        $blob_dir = BlobUtil::mkdirContext(42, $tmp);
-        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/000/042/00000042') > 0);
+        $blob_dir = BlobUtil::mkdirSha256('abcdef0123456789', $tmp);
+        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/ab/cd') > 0);
         $this->assertTrue(file_exists($blob_dir));
         self::recursiveRemoveDirectory($tmp);
         $this->assertFalse(file_exists($blob_dir));
