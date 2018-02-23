@@ -119,7 +119,7 @@ class BlobUtil {
         return $image_type == IMAGETYPE_JPEG || $image_type == IMAGETYPE_PNG;
     }
 
-    public static function getBlobFolder($context_id, $blob_root=false /* Unit Test*/)
+    public static function getBlobFolder($sha_256, $blob_root=false /* Unit Test*/)
     {
         global $CFG;
         if ( ! $blob_root ) {
@@ -127,17 +127,16 @@ class BlobUtil {
             $blob_root = $CFG->dataroot;
         }
 
-        $top_dir = ($context_id / 1000) % 1000;
-        $sub_dir = $context_id % 1000;
-        $top_dir = str_pad($top_dir.'',3,'0',STR_PAD_LEFT);
-        $sub_dir = str_pad($sub_dir.'',3,'0',STR_PAD_LEFT);
-        $context_id = str_pad($context_id.'',8,'0',STR_PAD_LEFT);
+        $top_dir = substr($sha_256,0,2);
+        $sub_dir = substr($sha_256,2,2);
+        $top_dir = str_pad($top_dir.'',2,'0',STR_PAD_LEFT);
+        $sub_dir = str_pad($sub_dir.'',2,'0',STR_PAD_LEFT);
 
-        $blob_folder = $blob_root . '/' . $top_dir . '/' . $sub_dir . '/' . $context_id;
+        $blob_folder = $blob_root . '/' . $top_dir . '/' . $sub_dir ;
         return $blob_folder;
     }
 
-    public static function mkdirContext($context_id, $blob_root=false /* Unit Test*/)
+    public static function mkdirSha256($sha_256, $blob_root=false /* Unit Test*/)
     {
         global $CFG;
         if ( ! $blob_root ) {
@@ -150,7 +149,7 @@ class BlobUtil {
             return false;
         }
 
-        $blob_folder = self::getBlobFolder($context_id, $blob_root);
+        $blob_folder = self::getBlobFolder($sha_256, $blob_root);
 
         // error_log("BF=$blob_folder\n");
         if ( file_exists($blob_folder) && is_writeable($blob_folder) ) {
@@ -184,7 +183,19 @@ class BlobUtil {
      */
     public static function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
     {
-        global $CFG, $CONTEXT, $PDOX;
+        global $CFG, $CONTEXT, $LINK, $PDOX;
+
+        $testlist = array();
+        if ( isset($CFG->testblobs) ) {
+            if ( is_string($CFG->testblobs) ) {
+                $testlist = array($CFG->testblobs);
+            } else if ( is_array($CFG->testblobs) ) {
+                $testlist = $CFG->testblobs;
+            } else {
+                $testlist = array('12345');
+            }
+        }
+        $test_key = array_key_exists($CONTEXT->key, $testlist);
 
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 
@@ -195,52 +206,87 @@ class BlobUtil {
                 return false;
             }
 
+            $blob_id = null;
+            $blob_name = null;
             $sha256 = hash_file('sha256', $FILE_DESCRIPTOR['tmp_name']);
-            $stmt = $PDOX->queryDie(
-                "SELECT file_id, file_sha256 from {$CFG->dbprefix}blob_file
-                WHERE context_id = :CID AND file_sha256 = :SHA",
-                array(":CID" => $CONTEXT->id, ":SHA" => $sha256)
-            );
-            $row = $stmt->fetch(\PDO::FETCH_NUM);
-            if ( $row !== false ) {
-                error_log("Already had instance of $filename");
-                $row[0] = $row[0]+0;  // Make sure the id is an integer
-                return $row;
+
+            // Don't store 12345 blobs in the single instance store
+            if ( ! $test_key ) {
+                $stmt = $PDOX->queryDie(
+                    "SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA",
+                    array(":SHA" => $sha256)
+                );
+                $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                if ( $row !== false ) {
+                    error_log("Already had instance of $filename");
+                    $blob_id = $row['blob_id']+0;  // Make sure the id is an integer
+                }
             }
 
-            // Don't store 12345 blobs on disk to allow for easy discard
-            if ( isset($CFG->dataroot) && $CFG->dataroot && $CONTEXT->key != '12345') {
-                $blob_folder = BlobUtil::mkdirContext($CONTEXT->id);
+            // Don't store 12345 blobs on disk
+            if (! $blob_id && isset($CFG->dataroot) && $CFG->dataroot && ! $test_key ) {
+                $blob_folder = BlobUtil::mkdirSha256($sha256);
                 if ( $blob_folder ) {
                     $blob_name =  $blob_folder . '/' . $sha256;
-                    if ((move_uploaded_file($FILE_DESCRIPTOR['tmp_name'],$blob_name))) {
-                        $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
-                            (context_id, file_sha256, file_name, contenttype, path, created_at)
-                            VALUES (?, ?, ?, ?, ?, NOW())");
-                        $stmt->bindParam(1, $CONTEXT->id);
-                        $stmt->bindParam(2, $sha256);
-                        $stmt->bindParam(3, $filename);
-                        $stmt->bindParam(4, $FILE_DESCRIPTOR['type']);
-                        $stmt->bindParam(5, $blob_name);
-                        $stmt->execute();
-                        $id = 0+$PDOX->lastInsertId();
-                        return array($id, $sha256);
+                    if ( file_exists( $blob_name ) ) {
+                        error_log("Already had file on disk $filename => $blob_name");
+                    } else {
+                        if ( ! (move_uploaded_file($FILE_DESCRIPTOR['tmp_name'],$blob_name))) {
+                            error_log("Move fail $filename to $blob_name ");
+                            $blob_name = null;
+                        }
                     }
                 }
             }
 
-            // Fall back to storing in a blob...
+            // Need to store the blob in the single instance table
+            if (! $blob_id && ! $blob_name && ! $test_key ) {
+                $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
+                $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_blob
+                    (blob_sha256, content, created_at)
+                    VALUES (?, ?, NOW())");
+
+                $stmt->bindParam(1, $sha256);
+                $stmt->bindParam(2, $fp, \PDO::PARAM_LOB);
+                // $stmt->bindParam(5, $data, \PDO::PARAM_LOB);
+                $PDOX->beginTransaction();
+                $stmt->execute();
+                $blob_id = 0+$PDOX->lastInsertId();
+                $PDOX->commit();
+                fclose($fp);
+            }
+
+            // Blob is safe somewhere, insert the file record with pointers
+            if ( $blob_id || $blob_name ) {
+                $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
+                    (context_id, link_id, file_sha256, file_name, contenttype, path, blob_id, created_at)
+                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BID, NOW())");
+                $stmt->execute(array(
+                    ":CID" => $CONTEXT->id,
+                    ":LID" => $LINK->id,
+                    ":SHA" => $sha256,
+                    ":NAME" => $filename,
+                    ":TYPE" => $FILE_DESCRIPTOR['type'],
+                    ":PATH" => $blob_name,
+                    ":BID" => $blob_id
+                ));
+                $id = 0+$PDOX->lastInsertId();
+                return array($id, $sha256);
+            }
+
+            // Store the blob in the row - probably only for 12345 - for eaasy deleting
             $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
             $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
-                (context_id, file_sha256, file_name, contenttype, content, created_at)
-                VALUES (?, ?, ?, ?, ?, NOW())");
+                (context_id, link_id, file_sha256, file_name, contenttype, content, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, NOW())");
 
             $stmt->bindParam(1, $CONTEXT->id);
-            $stmt->bindParam(2, $sha256);
-            $stmt->bindParam(3, $filename);
-            $stmt->bindParam(4, $FILE_DESCRIPTOR['type']);
-            $stmt->bindParam(5, $fp, \PDO::PARAM_LOB);
-            // $stmt->bindParam(5, $data, \PDO::PARAM_LOB);
+            $stmt->bindParam(2, $LINK->id);
+            $stmt->bindParam(3, $sha256);
+            $stmt->bindParam(4, $filename);
+            $stmt->bindParam(5, $FILE_DESCRIPTOR['type']);
+            $stmt->bindParam(6, $fp, \PDO::PARAM_LOB);
+            // $stmt->bindParam(6, $data, \PDO::PARAM_LOB);
             $PDOX->beginTransaction();
             $stmt->execute();
             $id = 0+$PDOX->lastInsertId();

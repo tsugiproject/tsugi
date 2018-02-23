@@ -10,7 +10,7 @@ class Access {
     public static function serveContent() {
         global $CFG, $CONTEXT, $PDOX;
         // Sanity checks
-        $LAUNCH = LTIX::requireData(LTIX::CONTEXT);
+        $LAUNCH = LTIX::requireData();
 
         $id = $_REQUEST['id'];
         if ( strlen($id) < 1 ) {
@@ -23,9 +23,12 @@ class Access {
         // Note - the "stream to blob" is still broken in PHP 7 so we do two separate selects
         $lob = false;
         $file_path = false;
-        $stmt = $PDOX->prepare("SELECT contenttype, path, file_name FROM {$p}blob_file
-                     WHERE file_id = :ID AND context_id = :CID");
-        $stmt->execute(array(":ID" => $id, ":CID" => $CONTEXT->id));
+        $stmt = $PDOX->prepare("SELECT BF.contenttype, BF.path, BF.file_name, BB.blob_id
+            FROM {$p}blob_file AS BF
+            LEFT JOIN {$p}blob_blob AS BB ON BF.file_sha256 = BB.blob_sha256
+                AND BF.blob_id = BB.blob_id AND BB.content IS NOT NULL
+            WHERE file_id = :ID AND context_id = :CID AND (link_id = :LID OR link_id IS NULL)");
+        $stmt->execute(array(":ID" => $id, ":CID" => $LAUNCH->context->id, ":LID" => $LAUNCH->link->id));
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( $row === false ) {
             error_log('File not loaded: '.$id);
@@ -34,8 +37,15 @@ class Access {
         $type = $row['contenttype'];
         $file_name = $row['file_name'];
         $file_path = $row['path'];
+        $blob_id = $row['blob_id'];
+        $lob = null;
 
-        // Check to see if the path is real
+        if ( ! BlobUtil::safeFileSuffix($file_name) )  {
+            error_log('Unsafe file suffix: '.$file_name);
+            die('Unsafe file suffix');
+        }
+
+        // Check to see if the path is there
         if ( $file_path ) {
             if ( ! file_exists($file_path) ) {
                 error_log("Missing file path if=$id file_path=$file_path");
@@ -43,35 +53,40 @@ class Access {
             }
         }
 
-        // Fall back to blob
-        if ( ! $file_path ) {
+        // Is the blob is in the single instance table?
+        if ( ! $file_path && $blob_id ) {
             // http://php.net/manual/en/pdo.lobs.php
-            $stmt = $PDOX->prepare("SELECT contenttype, content, path, file_name, file_id FROM {$p}blob_file
-                    WHERE file_id = :ID AND context_id = :CID");
-            $stmt->execute(array(":ID" => $id, ":CID" => $CONTEXT->id));
-            $stmt->bindColumn(1, $type, \PDO::PARAM_STR, 256);
-            $stmt->bindColumn(2, $lob, \PDO::PARAM_LOB);
-            $stmt->bindColumn(3, $file_path, \PDO::PARAM_STR, 2048);
-            $stmt->bindColumn(4, $file_name, \PDO::PARAM_STR, 2048);
-            $stmt->bindColumn(5, $file_id, \PDO::PARAM_INT);
+            $stmt = $PDOX->prepare("SELECT content FROM {$p}blob_blob WHERE blob_id = :ID");
+            $stmt->execute(array(":ID" => $blob_id));
+            $stmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
             $stmt->fetch(\PDO::FETCH_BOUND);
-
-            if ( $file_id != $id ) {
-                error_log('File not loaded: '.$id);
-                die("File not loaded");
-            }
         }
 
-        if ( ! BlobUtil::safeFileSuffix($file_name) )  {
-            error_log('Unsafe file suffix: '.$file_name);
-            die('Unsafe file suffix');
+        // Fall back to the "in-row" blob
+        if ( !$file_path && ! $lob ) {
+            $stmt = $PDOX->prepare("SELECT content FROM {$p}blob_file WHERE file_id = :ID");
+            $stmt->execute(array(":ID" => $id));
+            $stmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
+            $stmt->fetch(\PDO::FETCH_BOUND);
         }
 
-        // Update the access time
+        if ( !$file_path && ! $lob ) {
+            error_log("No file contents file_id=$id file_path=$file_path blob_id=$blob_id");
+            die('Unable to find file contents');
+        }
+
+        // Update the access time in the file table
         $stmt = $PDOX->queryDie("UPDATE {$p}blob_file SET accessed_at=NOW()
-                    WHERE file_id = :ID AND context_id = :CID",
-            array(":ID" => $id, ":CID" => $CONTEXT->id)
+            WHERE file_id = :ID", array(":ID" => $id)
         );
+
+        // Update the access time in the single instance blob table
+        if ( $blob_id ) {
+            $stmt = $PDOX->queryDie("UPDATE {$p}blob_file SET accessed_at=NOW()
+                    WHERE blob_id = :BID",
+                array(":BID" => $blob_id)
+            );
+        }
 
         if ( strlen($type) > 0 ) header('Content-Type: '.$type );
         // header('Content-Disposition: attachment; filename="'.$file_name.'"');
