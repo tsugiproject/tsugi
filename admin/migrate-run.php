@@ -83,15 +83,16 @@ LTIX::getConnection();
         }
         if ( $newversion > $version ) {
             echo("-- Upgraded to data model version $newversion <br/>\n");
-            $sql = "INSERT INTO {$plugins}
-                ( plugin_path, version, created_at, updated_at ) VALUES
-                ( :plugin_path, :version, NOW(), NOW() )
-                ON DUPLICATE KEY
-                UPDATE version = :version, updated_at = NOW()";
-            $values = array( ":version" => $newversion, ":plugin_path" => $path);
-            $q = $PDOX->queryReturnError($sql, $values);
-            if ( ! $q->success ) die("Unable to update version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
         }
+
+        $sql = "INSERT INTO {$plugins}
+            ( plugin_path, version, created_at, updated_at ) VALUES
+            ( :plugin_path, :version, NOW(), NOW() )
+            ON DUPLICATE KEY
+            UPDATE version = :version, updated_at = NOW()";
+        $values = array( ":version" => $newversion, ":plugin_path" => $path);
+        $q = $PDOX->queryReturnError($sql, $values);
+        if ( ! $q->success ) die("Unable to update version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
     }
 
     // Make sure these do not run twice

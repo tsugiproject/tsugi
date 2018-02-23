@@ -25,7 +25,7 @@ require_once("sanity-db.php");
    <iframe name="iframe-frame" style="height:600px" id="iframe-frame"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
-<h1>Welcome Adminstrator</h1>
+<h1>Adminstration Console</h1>
 <ul>
 <li>
   <a href="upgrade" title="Upgrade Database" target="iframe-frame"

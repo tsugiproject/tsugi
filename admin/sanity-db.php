@@ -91,7 +91,7 @@ if ( $table_fields === false ) {
 but you have no tables in your database.  There are two ways to create these tables:
 <ul>
 <li><p>The simplest way is to navigate the
-<a href=\"".$CFG->wwwroot."/admin\">'Admin'</a> console, 
+<a href=\"".$CFG->wwwroot."/admin\">'Administration'</a> console, 
 enter the administrator master password as specified in <code>\$CFG->adminpw</code>
 and select
 'Upgrade Database'.
@@ -115,7 +115,7 @@ the <code>upgrade.php</code> script.
         echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
         echo("<p>Warning: Database version=$actualdbversion should be
         software version=$CFG->dbversion - please run\n");
-        echo('<a href="'.$CFG->wwwroot.'/admin/">'."'Upgrade Database'</a> in the Admin console</p>\n");
+        echo("'Upgrade Database in the <a href=\"".$CFG->wwwroot.'/admin/">'."Administration console</a></p>\n");
         echo("\n</div>\n");
         error_log("Warning: DB current version=$actualdbversion expected version=$CFG->dbversion");
     }
