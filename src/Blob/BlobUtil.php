@@ -185,7 +185,17 @@ class BlobUtil {
     {
         global $CFG, $CONTEXT, $LINK, $PDOX;
 
-        $test_key = '12345';
+        $testlist = array();
+        if ( isset($CFG->testblobs) ) {
+            if ( is_string($CFG->testblobs) ) {
+                $testlist = array($CFG->testblobs);
+            } else if ( is_array($CFG->testblobs) ) {
+                $testlist = $CFG->testblobs;
+            } else {
+                $testlist = array('12345');
+            }
+        }
+        $test_key = array_key_exists($CONTEXT->key, $testlist);
 
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 
@@ -201,7 +211,7 @@ class BlobUtil {
             $sha256 = hash_file('sha256', $FILE_DESCRIPTOR['tmp_name']);
 
             // Don't store 12345 blobs in the single instance store
-            if ( $CONTEXT->key != $test_key ) {
+            if ( ! $test_key ) {
                 $stmt = $PDOX->queryDie(
                     "SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA",
                     array(":SHA" => $sha256)
@@ -214,7 +224,7 @@ class BlobUtil {
             }
 
             // Don't store 12345 blobs on disk
-            if (! $blob_id && isset($CFG->dataroot) && $CFG->dataroot && $CONTEXT->key != $test_key ) {
+            if (! $blob_id && isset($CFG->dataroot) && $CFG->dataroot && ! $test_key ) {
                 $blob_folder = BlobUtil::mkdirSha256($sha256);
                 if ( $blob_folder ) {
                     $blob_name =  $blob_folder . '/' . $sha256;
@@ -230,7 +240,7 @@ class BlobUtil {
             }
 
             // Need to store the blob in the single instance table
-            if (! $blob_id && ! $blob_name && $CONTEXT->key != $test_key ) {
+            if (! $blob_id && ! $blob_name && ! $test_key ) {
                 $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
                 $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_blob
                     (blob_sha256, content, created_at)
