@@ -19,12 +19,16 @@ register_shutdown_function('__the_end');
 $dirroot = realpath(dirname(__FILE__));
 
 $loader = require_once($dirroot."/vendor/autoload.php");
-//
+
 // If we just are using Tsugi but not part of another site
 $apphome = false;
+// $apphome = "https://www.tsugicloud.org";
+// $apphome = "http://localhost:8888/tsugi-org";
 
 // Set the path to the Tsugi folder without a trailing slash
-if ( U::get($_SERVER,'SERVER_PORT') == 8888 ) {
+if ( $apphome ) {
+    $wwwroot = $apphome . '/tsugi';
+} else if ( U::get($_SERVER,'SERVER_PORT') == 8888 ) {
     $wwwroot = 'http://localhost:8888/tsugi'; // Mac XAMP
 } else {
     $wwwroot = "http://localhost/tsugi";
@@ -34,13 +38,6 @@ if ( U::get($_SERVER,'SERVER_PORT') == 8888 ) {
 // on the Internet for LTI signatures to compute correctly
 // $wwwroot = "https://www.tsugicloud.org/tsugi";
 // $wwwroot = "https://fb610139.ngrok.io/tsugi";  // To test with ngrok
-
-// If we embed Tsugi in a web site, define the url of the overall application
-// $apphome = "http://localhost/tsugi-org";
-// $apphome = "http://localhost:8888/tsugi-org";
-// $apphome = "https://www.tsugicloud.org";
-// $wwwroot = $apphome . '/tsugi';   // Common shortcut
-// Make sure to set all the "Embedded Tsugi" configuration options below
 
 // We store the configuration in a global object
 // Additional documentation on these fields is
