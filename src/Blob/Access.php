@@ -82,7 +82,7 @@ class Access {
 
         // Update the access time in the single instance blob table
         if ( $blob_id ) {
-            $stmt = $PDOX->queryDie("UPDATE {$p}blob_file SET accessed_at=NOW()
+            $stmt = $PDOX->queryDie("UPDATE {$p}blob_blob SET accessed_at=NOW()
                     WHERE blob_id = :BID",
                 array(":BID" => $blob_id)
             );
