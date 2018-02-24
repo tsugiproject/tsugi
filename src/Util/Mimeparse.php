@@ -55,6 +55,10 @@ class Mimeparse {
       if ($full_type == '*') {
           $full_type = '*/*';
       }
+      if ( trim($full_type) == '' ) {
+          error_log("mime type is blank");
+          $full_type = '*/*';
+      }
       $pieces = explode('/', $full_type);
       if ( count($pieces) < 2 ) {
         error_log("malformed mime type ".$full_type);
