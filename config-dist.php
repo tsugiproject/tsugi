@@ -243,6 +243,7 @@ $CFG->DEVELOPER = true;
 // backed up and not in the document root hierarchy.
 //    mkdir /backedup/tsugi_blobs
 // $CFG->dataroot = '/backedup/tsugi_blobs';
+
 // You can turn this on and off (false or unset means store in the database)
 
 // It is important to note that changing dataroot does not migrate the data.
@@ -251,6 +252,12 @@ $CFG->DEVELOPER = true;
 // this setting.  There will be separate migration processes to develop that
 // move back and forth from the database to disk or from one disk location to 
 // another.
+
+// To migrate the data out of blobs, set this to true - as files are accessed
+// they will be migrated.  The blobs won't actually be deleted until you run
+// tsugi/admin/blob/blobcheck.php which looks for unreferenced blobs and deletes
+// them.
+// $CFG->blob2file = true;
 
 // You can set dataroot to a temporary folder for dev but never for production
 /*
