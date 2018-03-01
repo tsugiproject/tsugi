@@ -46,6 +46,9 @@ $blob_single = $row ? $row['count'] : 0;
 echo( $blob_single );
 ?>
 </li>
+<?php
+if ( $file_count < 1000 ) {
+?>
 <li>Blobs in multi instance database table (blob_file)
 <?php
 $row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file WHERE content IS NOT NULL");
@@ -68,6 +71,11 @@ if ( $blob_disk > 1000 ) {
 ?>
 </li>
 <li>Reused blobs <?= $file_count - ($blob_disk + $blob_single + $blob_multi) ?>
+<?php
+} else {
+   echo("<li>Too many blobs to provide distinct counts.<li>\n");
+}
+?>
 </ul>
 </body>
 </html>
