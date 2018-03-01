@@ -47,7 +47,7 @@ echo( $blob_single );
 ?>
 </li>
 <?php
-if ( $file_count < 1 ) {
+if ( $file_count < 1500 ) {
 ?>
 <li>Blobs in multi instance database table (blob_file)
 <?php
