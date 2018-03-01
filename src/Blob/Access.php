@@ -39,6 +39,7 @@ class Access {
         $file_path = $row['path'];
         $blob_id = $row['blob_id'];
         $lob = null;
+        $source = 'file';
 
         if ( ! BlobUtil::safeFileSuffix($file_name) )  {
             error_log('Unsafe file suffix: '.$file_name);
@@ -60,6 +61,7 @@ class Access {
             $stmt->execute(array(":ID" => $blob_id));
             $stmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
             $stmt->fetch(\PDO::FETCH_BOUND);
+            $source = 'blob_blob';
         }
 
         // Fall back to the "in-row" blob
@@ -68,6 +70,7 @@ class Access {
             $stmt->execute(array(":ID" => $id));
             $stmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
             $stmt->fetch(\PDO::FETCH_BOUND);
+            $source = 'blob_file';
         }
 
         if ( !$file_path && ! $lob ) {
@@ -88,6 +91,7 @@ class Access {
             );
         }
 
+        header('X-Tsugi-Data-Source: '.$source);
         if ( strlen($type) > 0 ) header('Content-Type: '.$type );
         // header('Content-Disposition: attachment; filename="'.$file_name.'"');
         // header('Content-Type: text/data');
