@@ -225,7 +225,7 @@ $CFG->casa_originator_id = md5($CFG->product_instance_guid);
 // navigation.
 $CFG->DEVELOPER = true;
 
-// Is this is true, Tsugi will do a translation log into the table 
+// Is this is true, Tsugi will do a translation log into the table
 // tsugi_string while the application is being executed.  This allows
 // you to see all of messages that go through the translation methods
 // __() and _m() - It can help make translations more complete.
@@ -248,15 +248,16 @@ $CFG->DEVELOPER = true;
 
 // It is important to note that changing dataroot does not migrate the data.
 // Tsugi stores the blob path in the blob_file table.  Data uploaded to a blob
-// will stay there and data uploaded to a path will stay there regardless of 
+// will stay there and data uploaded to a path will stay there regardless of
 // this setting.  There will be separate migration processes to develop that
-// move back and forth from the database to disk or from one disk location to 
+// move back and forth from the database to disk or from one disk location to
 // another.
 
 // To migrate the data out of blobs, set this to true - as files are accessed
-// they will be migrated.  The blobs won't actually be deleted until you run
-// tsugi/admin/blob/blobcheck.php which looks for unreferenced blobs and deletes
-// them.
+// they will be migrated.
+// Blobs in blob_file will be immediately deleted after migration.
+// Blobs in blob_blob (single instance) won't actually be deleted until you run
+// tsugi/admin/blob/blobcheck.php which removes unreferenced blobs
 // $CFG->blob2file = true;
 
 // You can set dataroot to a temporary folder for dev but never for production
