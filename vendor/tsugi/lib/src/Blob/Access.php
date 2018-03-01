@@ -39,7 +39,7 @@ class Access {
         $file_path = $row['path'];
         $blob_id = $row['blob_id'];
         $lob = null;
-	$source = 'file';
+        $source = 'file';
 
         if ( ! BlobUtil::safeFileSuffix($file_name) )  {
             error_log('Unsafe file suffix: '.$file_name);
@@ -91,7 +91,7 @@ class Access {
             );
         }
 
-	header('X-Tsugi-Data-Source: '.$source);
+        header('X-Tsugi-Data-Source: '.$source);
         if ( strlen($type) > 0 ) header('Content-Type: '.$type );
         // header('Content-Disposition: attachment; filename="'.$file_name.'"');
         // header('Content-Type: text/data');
