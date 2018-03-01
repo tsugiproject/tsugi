@@ -3,6 +3,18 @@
 Sample Executions
 -----------------
 
+    $ php blob2file.php 
+    Would write 12289 to /Users/csev/tsugi_blobs/01/30/0130729226b5aa9b9e0e8429349509793e44751c3b8d8da1319122a267eb0994
+    Would write 23540 to /Users/csev/tsugi_blobs/e7/5a/e75ab060770f57b9d684683f500f54439f705ca9ecddf041a09aa5600ac66677
+    # blobs=2 file_moved=0 blob_moved=2 bytes=35829
+
+    $ php blob2file.php move
+    This IS NOT A DRILL!
+    ...
+    retval=12289 wrote 12289 to /Users/csev/tsugi_blobs/01/30/0130729226b5aa9b9e0e8429349509793e44751c3b8d8da1319122a267eb0994
+    retval=23540 wrote 23540 to /Users/csev/tsugi_blobs/e7/5a/e75ab060770f57b9d684683f500f54439f705ca9ecddf041a09aa5600ac66677
+    # blobs=2 file_moved=0 blob_moved=2 bytes=35829
+
     $ php blobcheck.php
     This is a dry run, use 'php blobcheck.php remove' to actually remove the blobs.
     DELETE 4 69893b55bd8c9c5c53df72e3ea7e325cd2df8729d87b4dedce43630d668e6e1b
