@@ -61,7 +61,7 @@ if ( $blob_disk > 1000 ) {
     echo( $blob_disk );
     echo(' (duplicates not removed because the query would take too long)' );
 } else {
-    $row = $PDOX->rowDie("SELECT COUNT(DISTINCT(path)) AS count FROM {$CFG->dbprefix}blob_file WHERE path IS NOT NULL");
+    $row = $PDOX->rowDie("SELECT COUNT(DISTINCT(file_sha256)) AS count FROM {$CFG->dbprefix}blob_file WHERE path IS NOT NULL");
     $blob_disk = $row ? $row['count'] : 0;
     echo( $blob_disk );
 }
