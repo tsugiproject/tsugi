@@ -47,7 +47,7 @@ echo( $blob_single );
 ?>
 </li>
 <?php
-if ( $file_count < 1000 ) {
+if ( $file_count < 1 ) {
 ?>
 <li>Blobs in multi instance database table (blob_file)
 <?php
@@ -71,9 +71,10 @@ if ( $blob_disk > 1000 ) {
 ?>
 </li>
 <li>Reused blobs <?= $file_count - ($blob_disk + $blob_single + $blob_multi) ?>
+</li>
 <?php
 } else {
-   echo("<li>Too many blobs to provide distinct counts.<li>\n");
+   echo("<li>Too many blobs to provide distinct counts.</li>\n");
 }
 ?>
 </ul>
