@@ -48,22 +48,18 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         continue;
     } 
 
-    echo("fi=$file_id bi=$blob_id file=$blob_name\n");
-
     $lob = false;
     if ( ! $blob_id ) {
         $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_file WHERE file_id = :ID");
         $lstmt->execute(array(":ID" => $file_id));
         $lstmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
         $lstmt->fetch(\PDO::FETCH_BOUND);
-        echo("file_blob=".strlen($lob)."\n");
         $file_moved++;
     } else {
         $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_blob WHERE blob_id = :ID");
         $lstmt->execute(array(":ID" => $blob_id));
         $lstmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
         $lstmt->fetch(\PDO::FETCH_BOUND);
-        echo("blob_blob=".strlen($lob)."\n");
         $blob_moved++;
     }
 
