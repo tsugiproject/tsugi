@@ -8,13 +8,22 @@ use \Tsugi\Blob\BlobUtil;
 class Access {
 
     public static function serveContent() {
-        global $CFG, $CONTEXT, $PDOX;
+        global $CFG, $PDOX;
         // Sanity checks
         $LAUNCH = LTIX::requireData();
 
         $id = $_REQUEST['id'];
         if ( strlen($id) < 1 ) {
             die("File not found");
+        }
+
+        // Check to see if we are moving from Blob store to disk store
+        $test_key = BlobUtil::isTestKey($LAUNCH->context->key);
+        if ( !$test_key && isset($CFG->blob2file) && $CFG->blob2file &&
+            isset($CFG->dataroot) && $CFG->dataroot ) {
+
+            $retval = self::blob2file($id);
+            if ( is_string($retval) ) error_log($retval);
         }
 
         $p = $CFG->dbprefix;
@@ -107,4 +116,64 @@ class Access {
             fpassthru($lob);
         }
     }
+
+    /** Check and migrate a blob to its corresponsing file
+     *
+     * @return mixed true if the file was migrated, false if the file
+     *      was not migrated, and a string if an error was enountered
+     */
+    public static function blob2file($file_id)
+    {
+        global $CFG, $PDOX;
+
+        if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) return;
+
+        $stmt = $PDOX->prepare("SELECT file_sha256, blob_id
+            FROM {$CFG->dbprefix}blob_file
+            WHERE path IS NULL AND file_id = :ID");
+        $stmt->execute(array(':ID' => $file_id));
+
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if ( ! $row ) return false;
+
+        $blob_id = $row['blob_id'];
+        $file_sha256 = $row['file_sha256'];
+        $blob_folder = BlobUtil::mkdirSha256($file_sha256);
+        if ( ! $blob_folder ) {
+            return "Error: migrate=$file_id folder failed sha=$file_sha256";
+        }
+        $blob_name =  $blob_folder . '/' . $file_sha256;
+
+        $lob = false;
+        if ( ! $blob_id ) {
+            $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_file WHERE file_id = :ID");
+            $lstmt->execute(array(":ID" => $file_id));
+            $lstmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
+            $lstmt->fetch(\PDO::FETCH_BOUND);
+        } else {
+            $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_blob WHERE blob_id = :ID");
+            $lstmt->execute(array(":ID" => $blob_id));
+            $lstmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
+            $lstmt->fetch(\PDO::FETCH_BOUND);
+        }
+
+        if ( ! is_string($lob) ) {
+            return "Error: LOB is not a string. fi=$file_id bi=$blob_id";
+        }
+
+        $retval = file_put_contents($blob_name, $lob);
+        if ( $retval != strlen($lob) ) {
+            return "Error: Failed to write fi=$file_id (".strlen($lob).") to $blob_name";
+        }
+        error_log("Migrated fi=$file_id (".strlen($lob).") to $blob_name");
+        $lstmt = $PDOX->prepare("UPDATE {$CFG->dbprefix}blob_file
+            SET path=:PATH, blob_id=NULL, content=NULL WHERE file_id = :ID");
+        $lstmt->execute(array(
+            ":ID" => $file_id,
+            ":PATH" => $blob_name
+        ));
+        return true;
+    }
+
 }
+

@@ -176,15 +176,11 @@ class BlobUtil {
     }
 
     /**
-     * Legacy code - returns array [id, sha256]
-     *
-     * Returns false for any number of failures, for better detail, use
-     * validateUpload() before calling this to do the actual upload.
+     * isTestKey - Indicate if this is a key that is supposed to stay in blob_file
      */
-    public static function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
+    public static function isTestKey($key)
     {
-        global $CFG, $CONTEXT, $LINK, $PDOX;
-
+        global $CFG;
         $testlist = array('12345');
         if ( isset($CFG->testblobs) ) {
             if ( is_string($CFG->testblobs) ) {
@@ -195,7 +191,20 @@ class BlobUtil {
                 $testlist = array('12345');
             }
         }
-        $test_key = in_array($CONTEXT->key, $testlist);
+        return in_array($key, $testlist);
+    }
+
+    /**
+     * Legacy code - returns array [id, sha256]
+     *
+     * Returns false for any number of failures, for better detail, use
+     * validateUpload() before calling this to do the actual upload.
+     */
+    public static function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
+    {
+        global $CFG, $CONTEXT, $LINK, $PDOX;
+
+        $test_key = self::isTestKey($CONTEXT->key);
 
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 
