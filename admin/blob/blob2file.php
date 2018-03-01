@@ -8,6 +8,12 @@ require_once("../../config.php");
 
 if ( ! U::isCli() ) die('Must be command line');
 
+if ( trim(shell_exec('whoami')) == 'root' ) {
+    echo("Should not be run as root\n\n");
+    echo("sudo -H -u www-data _command_   (or similar)\n");
+    die();
+}
+
 if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) die('Must set $CFG->dataroot');
 
 LTIX::getConnection();
@@ -29,6 +35,7 @@ $stmt = $PDOX->query("SELECT BF.file_id, BF.file_sha256, BF.blob_id
 
 $stmt->execute();
 
+$stop = 5;
 $checked = 0;
 $file_moved = 0;
 $blob_moved = 0;
@@ -36,6 +43,10 @@ $bytes = 0;
 
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     $checked++;
+    if ( $stop > 0 && $checked > $stop ) {
+        echo("\nPartial Run: Stopped after $stop blobs\n");
+        break;
+    }
     $file_id = $row['file_id'];
     $blob_id = $row['blob_id'];
     $file_sha256 = $row['file_sha256'];
@@ -80,7 +91,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         echo("Failed retval=$retval len=".strlen($lob)." to $blob_name\n");
         continue;
     }
-    echo("retval=$retval wrote ".strlen($lob)." to $blob_name\n");
+    echo("file_id=$file_id wrote ".strlen($lob)." to $blob_name\n");
     $lstmt = $PDOX->prepare("UPDATE {$CFG->dbprefix}blob_file 
         SET path=:PATH, blob_id=NULL, content=NULL WHERE file_id = :ID");
     $lstmt->execute(array(
