@@ -185,7 +185,7 @@ class BlobUtil {
     {
         global $CFG, $CONTEXT, $LINK, $PDOX;
 
-        $testlist = array();
+        $testlist = array('12345');
         if ( isset($CFG->testblobs) ) {
             if ( is_string($CFG->testblobs) ) {
                 $testlist = array($CFG->testblobs);
@@ -195,7 +195,7 @@ class BlobUtil {
                 $testlist = array('12345');
             }
         }
-        $test_key = array_key_exists($CONTEXT->key, $testlist);
+        $test_key = in_array($CONTEXT->key, $testlist);
 
         if( $FILE_DESCRIPTOR['error'] == 1) return false;
 
