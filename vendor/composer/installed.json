@@ -1563,12 +1563,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "9b406006ee9ccf5888c26da99e44e7e07da6ace0"
+            "reference": "d16352a605024f350fb2866dddf244017d866a6c"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/9b406006ee9ccf5888c26da99e44e7e07da6ace0",
-            "reference": "9b406006ee9ccf5888c26da99e44e7e07da6ace0",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/d16352a605024f350fb2866dddf244017d866a6c",
+            "reference": "d16352a605024f350fb2866dddf244017d866a6c",
             "shasum": ""
         },
         "require": {
@@ -1577,9 +1577,10 @@
             "symfony/translation": "v3.2.7"
         },
         "require-dev": {
-            "phpunit/phpunit": "4.8.21"
+            "phpunit/php-timer": ">=1.0.6",
+            "phpunit/phpunit": "5.*"
         },
-        "time": "2018-01-17 14:20:07",
+        "time": "2018-03-02 01:26:58",
         "type": "library",
         "installation-source": "dist",
         "autoload": {

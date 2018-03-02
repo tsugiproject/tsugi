@@ -23,6 +23,7 @@ array( "{$CFG->dbprefix}blob_file",
     accessed_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
     INDEX `{$CFG->dbprefix}blob_indx_1` USING HASH (`file_sha256`),
+    INDEX `{$CFG->dbprefix}blob_indx_2` (`path`),
 
     CONSTRAINT `{$CFG->dbprefix}blob_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -41,6 +42,8 @@ array( "{$CFG->dbprefix}blob_blob",
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     accessed_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+
+    INDEX `{$CFG->dbprefix}blob_indx_3` (`blob_sha256`),
 
     PRIMARY KEY(blob_id),
     UNIQUE(blob_sha256)
@@ -79,7 +82,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    // 201802091240 ) {
+    // 201802091240
     if ( ! $PDOX->columnExists('link_id', "{$CFG->dbprefix}blob_file") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD link_id INTEGER NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -93,7 +96,19 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    return 201802091240;
+    if ( $oldversion < 201803021021 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_blob ADD INDEX `{$CFG->dbprefix}blob_indx_3` (`blob_sha256`)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD INDEX `{$CFG->dbprefix}blob_indx_2` (`path`)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    return 201803021021;
 
 };
 
