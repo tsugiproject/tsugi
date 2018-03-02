@@ -49,6 +49,14 @@ require_once("sanity-db.php");
   BLOB/File Status
   </a>
 </li>
+<?php if ( isset($CFG->dataroot) && $CFG->dataroot ) { ?>
+<li>
+  <a href="blob_move" title="Blob Migration" target="iframe-frame"
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
+  BLOB to File Migration
+  </a>
+</li>
+<?php } ?>
 <li>
   <a href="clear12345" title="Remove 12345 Data" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
