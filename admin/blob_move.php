@@ -63,6 +63,7 @@ $file_count = $row ? $row['count'] : 0;
 <p>
 <form method="get">
 <input type="submit" onclick="$('#myspinner').show();return true;" name="migrate" value="Migrate Blobs"/>
+<input type="submit" onclick="$('#myspinner').show();return true;" name="reset" value="Clear Results"/>
 <img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" style="display:none">
 </form>
 </p>
