@@ -57,7 +57,7 @@ $DATABASE_UNINSTALL = array(
 $DATABASE_UPGRADE = function($oldversion) { 
     global $CFG, $PDOX;
 
-    if ( $oldversion < 201810151700 ) {
+    if ( $oldversion < 201801011200 ) {
         $sql= "UPDATE {$CFG->dbprefix}blob_file SET created_at='1970-01-02 00:00:00' WHERE created_at < '1970-01-02 00:00:00'";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
