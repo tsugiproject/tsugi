@@ -61,7 +61,7 @@ $blob_disk = $row ? $row['count'] : 0;
 echo( $blob_disk );
 ?>
 </li>
-<li>The number or reused blobs <?= $file_count - ($blob_disk + $blob_single + $blob_multi) ?>
+<li>The number of reused blobs <?= $file_count - ($blob_disk + $blob_single + $blob_multi) ?>
 </li>
 </ul>
 </body>
