@@ -22,8 +22,7 @@ set_time_limit(0);
 </head>
 <body>
 <h1>Blob Status</h1>
-<ul>
-<li>Blobs are being stored
+<p>Blobs are being stored
 <?php
 if ( ! isset($CFG->dataroot) || ! $CFG->dataroot ) {
     echo('in the database (should only be used for small sites)');
@@ -32,7 +31,9 @@ if ( ! isset($CFG->dataroot) || ! $CFG->dataroot ) {
     echo(htmlentities($CFG->dataroot));
 }
 ?>
-<li>Files in system
+</p>
+<ul>
+<li>Total blobs in the system
 <?php
 $row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file");
 $file_count = $row ? $row['count'] : 0;
@@ -46,37 +47,22 @@ $blob_single = $row ? $row['count'] : 0;
 echo( $blob_single );
 ?>
 </li>
-<?php
-if ( $file_count < 1500 ) {
-?>
 <li>Blobs in multi instance database table (blob_file)
 <?php
-$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file WHERE content IS NOT NULL");
+$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file WHERE path IS NULL AND blob_id IS NULL");
 $blob_multi = $row ? $row['count'] : 0;
 echo( $blob_multi );
 ?>
 </li>
 <li>Blobs on disk
 <?php
-$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file WHERE path IS NOT NULL");
+$row = $PDOX->rowDie("SELECT COUNT(DISTINCT(file_sha256)) AS count FROM {$CFG->dbprefix}blob_file WHERE path IS NOT NULL");
 $blob_disk = $row ? $row['count'] : 0;
-if ( $blob_disk > 1000 ) {
-    echo( $blob_disk );
-    echo(' (duplicates not removed because the query would take too long)' );
-} else {
-    $row = $PDOX->rowDie("SELECT COUNT(DISTINCT(file_sha256)) AS count FROM {$CFG->dbprefix}blob_file WHERE path IS NOT NULL");
-    $blob_disk = $row ? $row['count'] : 0;
-    echo( $blob_disk );
-}
+echo( $blob_disk );
 ?>
 </li>
-<li>Reused blobs <?= $file_count - ($blob_disk + $blob_single + $blob_multi) ?>
+<li>The number or reused blobs <?= $file_count - ($blob_disk + $blob_single + $blob_multi) ?>
 </li>
-<?php
-} else {
-   echo("<li>Too many blobs to provide distinct counts.</li>\n");
-}
-?>
 </ul>
 </body>
 </html>
