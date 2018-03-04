@@ -61,11 +61,17 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
 
     $lob = false;
     if ( ! $blob_id ) {
-        $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_file WHERE file_id = :ID");
-        $lstmt->execute(array(":ID" => $file_id));
-        $lstmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
-        $lstmt->fetch(\PDO::FETCH_BOUND);
-        $file_moved++;
+        try {
+            $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_file WHERE file_id = :ID");
+            $lstmt->execute(array(":ID" => $file_id));
+            $lstmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
+            $lstmt->fetch(\PDO::FETCH_BOUND);
+            $file_moved++;
+        } catch (\Exception $e) {
+            // This is not a bad thing post 2018-02, the column is no longer there
+            echo("Error: No column for legacy blob file_id=$id\n");
+            exit();
+        }
     } else {
         $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_blob WHERE blob_id = :ID");
         $lstmt->execute(array(":ID" => $blob_id));

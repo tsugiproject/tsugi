@@ -1,4 +1,33 @@
 
+All About Blobs
+---------------
+
+In Tsugi, there are three places where blobs are described / stored.
+
+* The `blob_file` table which has information about the context, link, file name,
+media type, etc for a file.  Everything but the blob itself.
+
+* The `blob_blob` table which is basically for blob content indexed by the `blob_id`
+and `blob_sha256`.   There is only one blob for each sha256 value - so there might be
+more than one `blob_file` entry pointing to a `blob_id` in the `blob_blob` table.
+This is how Tsugi implements single instance store.
+
+* The `$CFG->dataroot` area on disk.  This stores blobs in a folder structure based
+on the sha256 of the blob.  There is a two-level folder hierarchy based on the sha256.
+The top folder is the first two characters in the sha256 and the second folder is characters
+2-3 and the file name is the entire sha256.  This also is a single instance store
+so more than one `blob_file`entry can point to one file on disk through the `path` column.
+
+In the versions of Tsugi before 2018-02, the blobs were stored in the `content` column
+in the `blob_file` table, indexed by `context_id` but not `link_id`.  It was a weird
+single instance within course structure.  The approach after 2018-02 is single-instance
+across the system and `blob_file` indexed by both `context_id` and `link_id`.
+
+In the post 2018-02 Tsugi we only store blobs in `blob_blob` or `$CFG->dataroot` but
+the Access code serves from any of the three locations.   Eventually in time, we will
+migrate all blobs stored in `blob_file` into `blob_blob` and make the `blob_file.content`
+column obsolete.
+
 
 Sample Executions
 -----------------

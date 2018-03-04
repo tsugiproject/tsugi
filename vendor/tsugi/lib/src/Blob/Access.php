@@ -73,13 +73,28 @@ class Access {
             $source = 'blob_blob';
         }
 
-        // Fall back to the "in-row" blob
+        // New installs post 2018-02, will not create a content column in blob_file,
+        // Pre 2018-02 systems will have a content column and likely will have most
+        // of their blobs in this table (until they migrate the blobs and drop the column)
+        // So in this code, we need to expect and handle the case where the content
+        // column may or may not be there.
+
+        // Check the "in-row" blob if we have no other source for the blob, handle
+        // as non-fatal, not having a content column.   Now it is not a dood situation
+        // to fall into this code with no content column because it means we are missing
+        // a blob.   But adding the content column is not the solution.
         if ( !$file_path && ! $lob ) {
-            $stmt = $PDOX->prepare("SELECT content FROM {$p}blob_file WHERE file_id = :ID");
-            $stmt->execute(array(":ID" => $id));
-            $stmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
-            $stmt->fetch(\PDO::FETCH_BOUND);
-            $source = 'blob_file';
+            try {
+                $stmt = $PDOX->prepare("SELECT content FROM {$p}blob_file WHERE file_id = :ID");
+                $stmt->execute(array(":ID" => $id));
+                $stmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
+                $stmt->fetch(\PDO::FETCH_BOUND);
+                $source = 'blob_file';
+            } catch (\Exception $e) {
+                // This is not a bad thing post 2018-02, the column is no longer there
+                error_log("Error: No column for legacy blob file_id=$id");
+                $lob = false;
+            }
         }
 
         if ( !$file_path && ! $lob ) {
@@ -117,7 +132,7 @@ class Access {
         }
     }
 
-    /** Check and migrate a blob to its corresponsing file
+    /** Check and migrate a blob to its corresponding file
      *
      * @return mixed true if the file was migrated, false if the file
      *      was not migrated, and a string if an error was enountered
@@ -146,10 +161,15 @@ class Access {
 
         $lob = false;
         if ( ! $blob_id ) {
-            $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_file WHERE file_id = :ID");
-            $lstmt->execute(array(":ID" => $file_id));
-            $lstmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
-            $lstmt->fetch(\PDO::FETCH_BOUND);
+            // Cope gracefully when there is no content column in blob_file
+            try {
+                $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_file WHERE file_id = :ID");
+                $lstmt->execute(array(":ID" => $file_id));
+                $lstmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
+                $lstmt->fetch(\PDO::FETCH_BOUND);
+            } catch (\Exception $e) {
+                return "Error: No content to migrate for legacy blob file_id=$file_id";
+            }
         } else {
             $lstmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_blob WHERE blob_id = :ID");
             $lstmt->execute(array(":ID" => $blob_id));

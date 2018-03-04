@@ -2,6 +2,9 @@
 
 // If the table does not exist, these create statements will be used
 // And the version will be set to 1
+
+// Note that as of 2018-02, new installs dont have a content
+// column in blob_file.
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}blob_file",
 "create table {$CFG->dbprefix}blob_file (
@@ -15,7 +18,6 @@ array( "{$CFG->dbprefix}blob_file",
     contenttype  VARCHAR(256) NULL,
     path         VARCHAR(2048) NULL,
 
-    content      LONGBLOB NULL,
     blob_id      INTEGER,
 
     json         TEXT NULL,
