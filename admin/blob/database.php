@@ -84,6 +84,14 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Check the path in case an upgrade was missed
+    if ( ! $PDOX->columnExists('path', "{$CFG->dbprefix}blob_file") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD path VARCHAR(2048) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
     // 201802091240
     if ( ! $PDOX->columnExists('link_id', "{$CFG->dbprefix}blob_file") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD link_id INTEGER NULL";
