@@ -231,34 +231,32 @@ $CFG->DEVELOPER = true;
 // __() and _m() - It can help make translations more complete.
 // $CFG->checktranslation = true;
 
-
 // If you set $CFG->dataroot to a writeable folder, Tsugi will store blobs on disk
 // instead of the database using the following folder / file pattern
-//     tsugi_blobs/001/754/00001754/1151...56a
-//     tsugi_blobs/001/754/00001754/68...123b
-// The folders are based on the context_id that owns the blobs and the name of
-// the file is the sha256 of its contents
+//     tsugi_blobs/1f/84/00001754/1f84ab151...56a
+//     tsugi_blobs/67/fb/00001754/67fba23c8...123b
+// The folders are based on the sha256 of file contents
 
 // A normal setup - make sure the folder is writable by the web server,
 // backed up and not in the document root hierarchy.
 //    mkdir /backedup/tsugi_blobs
+// You can turn this on and off (false or unset means store in the database)
 // $CFG->dataroot = '/backedup/tsugi_blobs';
 
-// You can turn this on and off (false or unset means store in the database)
+// An array of keys that go into blob_blob regardless of the setting of
+// dataroot for easy removal, you can override this.  Default if not
+// set is that the 12345 key goes into blob_blob regardless. Change this
+// to an empty array to store 12345 blobs in the dataroot.
+// $CFG->testblobs = array('12345');
 
 // It is important to note that changing dataroot does not migrate the data.
 // Tsugi stores the blob path in the blob_file table.  Data uploaded to a blob
 // will stay there and data uploaded to a path will stay there regardless of
-// this setting.  There will be separate migration processes to develop that
-// move back and forth from the database to disk or from one disk location to
-// another.
+// this setting.  There will are separate migration processes to move data
+// between stores - see tsugi/admin/blob for more detail.
 
-// To migrate the data out of blobs, set this to true - as files are accessed
-// they will be migrated.
-// Blobs in blob_file will be immediately deleted after migration.
-// Blobs in blob_blob (single instance) won't actually be deleted until you run
-// tsugi/admin/blob/blobcheck.php which removes unreferenced blobs
-// $CFG->blob2file = true;
+// This turns on auto-migration as blobs are accessed
+// $CFG->migrateblobs = true;
 
 // You can set dataroot to a temporary folder for dev but never for production
 /*

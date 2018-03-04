@@ -9,7 +9,7 @@ require_once("gate.php");
 require_once("admin_util.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) die('Must set $CFG->dataroot');
+$todisk = isset($CFG->dataroot) && strlen($CFG->dataroot) > 0;
 
 use \Tsugi\Core\LTIX;
 LTIX::getConnection();
@@ -25,20 +25,29 @@ $OUTPUT->header();
 </head>
 <body>
 <h1>Blob Migration</h1>
-<p>This tool migrates blobs from the blob_file (multi-instance) and
-blob_blob (single-instance) tables to disk.
-</p>
+<?php if ( $todisk ) { ?>
 <p>Blobs are being stored at <?= htmlentities($CFG->dataroot) ?>.
 </p>
+<p>This tool migrates blobs from the blob_file (multi-instance) and/or
+blob_blob (single-instance) tables to disk.
+</p>
+<?php } else { ?>
+<p>This tool migrates blobs from the blob_file table (multi-instance) to the
+blob_blob table (single-instance).
+</p>
+<?php } ?>
 <?php
-if ( U::get($_GET,'migrate') ) {
+$where = "path IS NULL AND blob_id IS NULL"; // Leave disk blobs alone
+if ( $todisk ) $where = "path IS NULL";
+
+if ( U::get($_POST,'migrate') ) {
     $start = time();
-    $files = $PDOX->allRowsDie("SELECT file_id FROM {$CFG->dbprefix}blob_file WHERE path IS NULL LIMIT 100");
+    $files = $PDOX->allRowsDie("SELECT file_id FROM {$CFG->dbprefix}blob_file WHERE $where LIMIT 100");
     echo("<pre>\n");
     foreach ( $files as $row ) {
         $id = $row['file_id'];
         if ( ! $id ) continue;
-        $retval = Access::blob2file($id);
+        $retval = Access::migrate($id);
         if ( is_string($retval) ) {
             echo("Could not Migrate file_id=$id ".htmlentities($retval)."\n");
             break;
@@ -53,15 +62,15 @@ if ( U::get($_GET,'migrate') ) {
     echo("</pre>\n");
 }
 
-$row = $PDOX->rowDie("SELECT count(file_id) AS count FROM {$CFG->dbprefix}blob_file WHERE path IS NULL");
+$row = $PDOX->rowDie("SELECT count(file_id) AS count FROM {$CFG->dbprefix}blob_file WHERE $where");
 $file_count = $row ? $row['count'] : 0;
 
 ?>
-<p>Blobs in the database: <?= $file_count ?></p>
+<p>Blobs to migrate: <?= $file_count ?></p>
 </p>
 <?php if ( $file_count > 0 ) { ?>
 <p>
-<form method="get">
+<form method="post">
 <input type="submit" onclick="$('#myspinner').show();return true;" name="migrate" value="Migrate Blobs"/>
 <input type="submit" onclick="$('#myspinner').show();return true;" name="reset" value="Clear Results"/>
 <img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" style="display:none">
@@ -70,7 +79,7 @@ $file_count = $row ? $row['count'] : 0;
 <?php
 }
 
-if ( ! U::get($_GET,'migrate') && $file_count > 100 ) {
+if ( ! U::get($_POST,'migrate') && $file_count > 100 ) {
 ?>
 <p>
 Migrating a large number of blobs is a resource intensive task

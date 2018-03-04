@@ -47,6 +47,17 @@ $blob_single = $row ? $row['count'] : 0;
 echo( $blob_single );
 ?>
 </li>
+<li>Unused blobs in the single instance database table (blob_blob)
+<?php
+$row = $PDOX->rowDie("SELECT count(BB.blob_id) AS count
+    FROM {$CFG->dbprefix}blob_blob AS BB
+    LEFT JOIN {$CFG->dbprefix}blob_file AS BF
+        ON BB.blob_sha256 = BF.file_sha256 AND BB.blob_id = BF.blob_id
+    WHERE BF.blob_id IS NULL");
+$blob_wasted = $row ? $row['count'] : 0;
+echo($blob_wasted);
+?>
+</li>
 <li>Blobs in multi instance database table (blob_file)
 <?php
 $row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file WHERE path IS NULL AND blob_id IS NULL");
@@ -61,7 +72,7 @@ $blob_disk = $row ? $row['count'] : 0;
 echo( $blob_disk );
 ?>
 </li>
-<li>The number of reused blobs <?= $file_count - ($blob_disk + $blob_single + $blob_multi) ?>
+<li>The number of reused blobs <?= $file_count - ($blob_disk + $blob_single + $blob_multi) + $blob_wasted ?>
 </li>
 </ul>
 </body>

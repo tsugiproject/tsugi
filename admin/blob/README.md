@@ -28,9 +28,30 @@ the Access code serves from any of the three locations.   Eventually in time, we
 migrate all blobs stored in `blob_file` into `blob_blob` and make the `blob_file.content`
 column obsolete.
 
+Test Harness
+------------
 
-Sample Executions
+The easiest way to test the blob store is to use the blob sample code from:
+
+    https://github.com/tsugiproject/tsugi-php-samples
+
+Sweet test script
 -----------------
+
+Upload some files into `blob_blob` (i.e. `$CFG->dataroot` is not set) and then 
+run this to get some "legacy" files with content in `blob_file`.
+
+Don't run this on a production database:
+
+    UPDATE blob_file, blob_blob SET blob_file.content=blob_blob.content
+      WHERE blob_file.blob_id = blob_blob.blob_id ;
+    UPDATE blob_file SET blob_id=null; 
+    DELETE from blob_blob;
+
+Then you can test migration from legacy `blob_file` to `blob_blob`.
+
+Sample Executions of Admin Scripts in admin/blob
+------------------------------------------------
 
     $ php blob2file.php 
     Would write 12289 to /Users/csev/tsugi_blobs/01/30/0130729226b5aa9b9e0e8429349509793e44751c3b8d8da1319122a267eb0994

@@ -18,11 +18,9 @@ class Access {
         }
 
         // Check to see if we are moving from Blob store to disk store
-        $test_key = BlobUtil::isTestKey($LAUNCH->context->key);
-        if ( !$test_key && isset($CFG->blob2file) && $CFG->blob2file &&
-            isset($CFG->dataroot) && $CFG->dataroot ) {
-
-            $retval = self::blob2file($id);
+        if ( isset($CFG->migrateblobs) && $CFG->migrateblobs ) {
+            $test_key = BlobUtil::isTestKey($LAUNCH->context->key);
+            $retval = self::migrate($id, $test_key);
             if ( is_string($retval) ) error_log($retval);
         }
 
@@ -130,6 +128,114 @@ class Access {
             error_log("resource blob id=$id name=$file_name mime=$type");
             fpassthru($lob);
         }
+    }
+
+    /** Check and migrate a blob from an old place to the right new place
+     *
+     * @return mixed true if the file was migrated, false if the file
+     *      was not migrated, and a string if an error was enountered
+     */
+    public static function migrate($file_id, $test_key=false)
+    {
+        global $CFG, $PDOX;
+
+        $retval = false;
+
+        // Check to see where we are moving to...
+        if ( isset($CFG->migrateblobs) && $CFG->migrateblobs ) {
+            if ( isset($CFG->dataroot) && $CFG->dataroot ) {
+                if ( ! $test_key ) {
+                    $retval = self::blob2file($file_id);
+                }
+            } else {
+                $retval = self::blob2blob($file_id);
+            }
+        }
+        return $retval;
+    }
+
+    /** Check and migrate a blob from blob_file to blob_blob
+     *
+     * @return mixed true if the file was migrated, false if the file
+     *      was not migrated, and a string if an error was enountered
+     */
+    public static function blob2blob($file_id)
+    {
+        global $CFG, $PDOX;
+
+        if ( isset($CFG->dataroot) && strlen($CFG->dataroot) > 0 ) return;
+
+        // Need to deal with the post 2018-02 situation where we don't even
+        // have a content column in blob_file
+        try {
+            $stmt = $PDOX->prepare("SELECT file_sha256
+                FROM {$CFG->dbprefix}blob_file
+                WHERE blob_id IS NULL AND path IS NULL AND content IS NOT NULL AND file_id = :ID");
+            $stmt->execute(array(':ID' => $file_id));
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ( ! $row ) return false;
+        } catch(\Exception $e) { // No column for old blobs
+            // error_log("Content column is not present in blob_file");
+            return false;
+        }
+
+        $file_sha256 = $row['file_sha256'];
+
+        // Do we already have it in blob_blob?
+        $stmt = $PDOX->prepare("SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA");
+        $stmt->execute(array(":SHA" => $file_sha256));
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if ( $row ) {
+            $blob_id = $row['blob_id'];
+            $stmt = $PDOX->prepare("UPDATE {$CFG->dbprefix}blob_file
+                SET content=NULL, blob_id=:BID WHERE file_id = :ID");
+            $stmt->execute(array(':BID' => $blob_id, ':ID' => $file_id));
+            error_log("Migration fid=$file_id to existing blob_file row $blob_id sha=$file_sha256");
+            return true;
+        }
+        // error_log("No row for $file_sha256");
+
+        $lob = false;
+        $stmt = $PDOX->prepare("SELECT content FROM {$CFG->dbprefix}blob_file WHERE file_id = :ID");
+        $stmt->execute(array(":ID" => $file_id));
+        $stmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
+        $stmt->fetch(\PDO::FETCH_BOUND);
+
+        if ( ! is_string($lob) ) {
+            $retval = "Error: LOB is not string fid=$file_id sha=$file_sha256";
+            error_log($retval);
+            return $retval;
+        }
+        // error_log("Lob size=".strlen($lob));
+
+        $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_blob
+            (blob_sha256, content, created_at)
+            VALUES (?, ?, NOW())");
+        $stmt->bindParam(1, $file_sha256);
+        $stmt->bindParam(2, $lob, \PDO::PARAM_STR);
+        // $stmt->bindParam(2, $fp, \PDO::PARAM_LOB);
+        $PDOX->beginTransaction();
+        $stmt->execute();
+        $blob_id = 0+$PDOX->lastInsertId();
+        $PDOX->commit();
+
+        // Check if it made it...
+        $stmt = $PDOX->prepare("SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA");
+        $stmt->execute(array(":SHA" => $file_sha256));
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if ( $row ) {
+            $blob_id = $row['blob_id'];
+            $stmt = $PDOX->prepare("UPDATE {$CFG->dbprefix}blob_file
+                SET content=NULL, blob_id=:BID WHERE file_id = :ID");
+            $stmt->execute(array(':BID' => $blob_id, ':ID' => $file_id));
+            error_log("Migration fid=$file_id to new blob_file row $blob_id sha=$file_sha256");
+            return true;
+        }
+
+        // Bummer if this happens - doubtful but worth double checking.
+        $retval = "Error: Could not find new blob_id=$blob_id for file_id=$file_id sha=$file_sha256";
+        error_log($retval);
+        return $retval;
     }
 
     /** Check and migrate a blob to its corresponding file
