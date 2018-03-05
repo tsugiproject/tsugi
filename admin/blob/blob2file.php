@@ -51,13 +51,12 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     $blob_id = $row['blob_id'];
     $file_sha256 = $row['file_sha256'];
     $blob_folder = BlobUtil::mkdirSha256($file_sha256);
-    if ( $blob_folder ) {
-        $blob_name =  $blob_folder . '/' . $file_sha256;
+    if ( ! $blob_folder ) {
+        echo("Could not make blob folder, perhaps running as wrong user?\n");
+    	echo("sudo -H -u www-data _command_   (or similar)\n");
+        exit();
     }
-    if ( ! $blob_name ) {
-        echo("Error: Could not make file name fi=$file_id bi=$blob_id\n");
-        continue;
-    } 
+    $blob_name =  $blob_folder . '/' . $file_sha256;
 
     $lob = false;
     if ( ! $blob_id ) {
@@ -97,7 +96,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         echo("Failed retval=$retval len=".strlen($lob)." to $blob_name\n");
         continue;
     }
-    echo("file_id=$file_id wrote ".strlen($lob)." to $blob_name\n");
+    echo("blob2file.php migrated file_id=$file_id wrote ".strlen($lob)." to $blob_name\n");
     $lstmt = $PDOX->prepare("UPDATE {$CFG->dbprefix}blob_file 
         SET path=:PATH, blob_id=NULL, content=NULL WHERE file_id = :ID");
     $lstmt->execute(array(
