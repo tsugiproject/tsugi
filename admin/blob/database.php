@@ -26,6 +26,7 @@ array( "{$CFG->dbprefix}blob_file",
 
     INDEX `{$CFG->dbprefix}blob_indx_1` USING HASH ( file_sha256 ),
     INDEX `{$CFG->dbprefix}blob_indx_2` ( path (128) ),
+    INDEX `{$CFG->dbprefix}blob_indx_4` ( context_id ),
 
     CONSTRAINT `{$CFG->dbprefix}blob_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -118,7 +119,14 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    return 201803021044;
+    if ( $oldversion < 201803050123 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_blob ADD INDEX `{$CFG->dbprefix}blob_indx_4` (`context_id`)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    return 201803050123;
 
 };
 
