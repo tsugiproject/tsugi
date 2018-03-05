@@ -93,6 +93,22 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
+    // Check the context_id in case an upgrade was missed
+    if ( ! $PDOX->columnExists('context_id', "{$CFG->dbprefix}blob_file") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD context_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    // Check the link_id in case an upgrade was missed
+    if ( ! $PDOX->columnExists('link_id', "{$CFG->dbprefix}blob_file") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD link_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
     // 201802091240
     if ( ! $PDOX->columnExists('link_id', "{$CFG->dbprefix}blob_file") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD link_id INTEGER NULL";
