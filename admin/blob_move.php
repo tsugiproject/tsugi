@@ -1,6 +1,6 @@
 <?php
 use \Tsugi\Util\U;
-use \Tsugi\Blob\Access;
+use \Tsugi\Blob\BlobUtil;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../config.php");
@@ -42,17 +42,25 @@ if ( $todisk ) $where = "path IS NULL";
 
 if ( U::get($_POST,'migrate') ) {
     $start = time();
-    $files = $PDOX->allRowsDie("SELECT file_id FROM {$CFG->dbprefix}blob_file WHERE $where LIMIT 100");
+    $files = $PDOX->allRowsDie("SELECT file_id, context_id FROM {$CFG->dbprefix}blob_file WHERE $where LIMIT 100");
     echo("<pre>\n");
     foreach ( $files as $row ) {
         $id = $row['file_id'];
+        $context_id = $row['context_id'];
         if ( ! $id ) continue;
-        $retval = Access::migrate($id);
+        $test_key = BlobUtil::isTestKey($context_id);
+        $retval = BlobUtil::migrate($id, $test_key);
         if ( is_string($retval) ) {
             echo("Could not Migrate file_id=$id ".htmlentities($retval)."\n");
             break;
         }
-        echo("File migrated file_id=$id\n");
+        if ( $retval == true ) {
+            echo("File migrated file_id=$id\n");
+            error_log("File migrated file_id=$id");
+        } else {
+            echo("File did not migrate file_id=$id\n");
+            error_log("File did not migrate file_id=$id");
+        }
         $delta = time() - $start;
         if ( $delta > 10 ) {
             echo("Migration stopped at 10 seconds ellapsed time\n");
