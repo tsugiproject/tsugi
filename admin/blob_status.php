@@ -75,5 +75,10 @@ echo( $blob_multi );
 <li>The number of reused blobs <?= $file_count - ($blob_disk + $blob_single + $blob_multi) + $blob_wasted ?>
 </li>
 </ul>
+<?php
+if ( isset($CFG->migrateblobs) && $CFG->migrateblobs ) {
+    echo("<p>Blobs are being automatically migrated as they are used</p>\n");
+}
+?>
 </body>
 </html>
