@@ -136,7 +136,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     if ( $oldversion < 201803050123 ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_blob ADD INDEX `{$CFG->dbprefix}blob_indx_4` (`context_id`)";
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD INDEX `{$CFG->dbprefix}blob_indx_4` (`context_id`)";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
