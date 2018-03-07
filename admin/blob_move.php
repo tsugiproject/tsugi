@@ -97,9 +97,9 @@ all at once, you can log into the server
 and do the following:
 <pre>
 cd tsugi/admin/blob
-php blob2file.php
+php migrate.php
 </pre>
-This <b>blob2file.php</b> tool has a dry run mode and must be
+This <b>migrate.php</b> tool has a dry run mode and must be
 run under the same account (UID) as the web server process so
 that the web server can read and write the
 resulting files.
