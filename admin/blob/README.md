@@ -35,8 +35,8 @@ The easiest way to test the blob store is to use the blob sample code from:
 
     https://github.com/tsugiproject/tsugi-php-samples
 
-Sweet test script
------------------
+Sweet test script to fake legagy blobs
+--------------------------------------
 
 Upload some files into `blob_blob` (i.e. `$CFG->dataroot` is not set) and then 
 run this to get some "legacy" files with content in `blob_file`.
