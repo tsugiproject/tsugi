@@ -13,8 +13,11 @@ if ( trim(shell_exec('whoami')) == 'root' ) {
     echo("sudo -H -u www-data _command_   (or similar)\n");
     die();
 }
-
-if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) die('Must set $CFG->dataroot');
+if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) {
+    echo("Migrating from blob_file to blob_blob\n");
+} else {
+    echo("Migrating from blob_file to $CFG->dataroot\n");
+}
 
 LTIX::getConnection();
 
@@ -49,7 +52,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     }
     $file_id = $row['file_id'];
     $context_id = $row['context_id'];
-    if ( $dry_run ) {
+    if ( $dryrun ) {
         echo("File would migrate file_id=$file_id\n");
         continue;
     }
@@ -60,9 +63,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         echo("Could not Migrate file_id=$file_id ".htmlentities($retval)."\n");
         break;
     }
-    if ( $retval == true ) {
-        echo("File migrated file_id=$file_id\n");
-    } else {
+    if ( $retval != true ) {
         echo("File did not migrate file_id=$file_id\n");
     }
 }
