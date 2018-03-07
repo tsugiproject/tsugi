@@ -13,18 +13,13 @@ if ( trim(shell_exec('whoami')) == 'root' ) {
     echo("sudo -H -u www-data _command_   (or similar)\n");
     die();
 }
-if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) {
-    echo("Migrating from blob_file to blob_blob\n");
-} else {
-    echo("Migrating from blob_file to $CFG->dataroot\n");
-}
 
 LTIX::getConnection();
 
 $dryrun = ! ( isset($argv[1]) && $argv[1] == 'move');
 
 if ( $dryrun ) {
-    echo("This is a dry run, use 'php blob_migrate.php move' to actually move the blobs.\n");
+    echo("This is a dry run, use 'php migrate.php move' to actually move the blobs.\n");
 } else {
     echo("This IS NOT A DRILL!\n");
     sleep(5);
@@ -32,9 +27,17 @@ if ( $dryrun ) {
     sleep(5);
 }
 
-$stmt = $PDOX->query("SELECT BF.file_id, BF.file_sha256, BF.context_id
-    FROM {$CFG->dbprefix}blob_file AS BF
-    WHERE BF.path IS NULL AND blob_id IS NULL");
+// Check if the destination is blob_blob or dataroot
+if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) {
+    echo("Migrating from blob_file to blob_blob\n");
+    $where = "path IS NULL AND blob_id IS NULL"; // Leave disk blobs alone
+} else {
+    echo("Migrating from blob_file/blob_blob to $CFG->dataroot\n");
+    $where = "path IS NULL";
+}
+
+$stmt = $PDOX->query("SELECT file_id, file_sha256, context_id
+    FROM {$CFG->dbprefix}blob_file WHERE $where");
 $stmt->execute();
 
 $stop = 5;
