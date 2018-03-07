@@ -389,7 +389,7 @@ class BlobUtil {
             $stmt = $PDOX->prepare("UPDATE {$CFG->dbprefix}blob_file
                 SET content=NULL, blob_id=:BID WHERE file_id = :ID");
             $stmt->execute(array(':BID' => $blob_id, ':ID' => $file_id));
-            error_log("Migration fid=$file_id to existing blob_file row $blob_id sha=$file_sha256");
+            error_log("Migration fid=$file_id to existing blob_blob row $blob_id sha=$file_sha256");
             return true;
         }
         // error_log("No row for $file_sha256");
@@ -427,7 +427,7 @@ class BlobUtil {
             $stmt = $PDOX->prepare("UPDATE {$CFG->dbprefix}blob_file
                 SET content=NULL, blob_id=:BID WHERE file_id = :ID");
             $stmt->execute(array(':BID' => $blob_id, ':ID' => $file_id));
-            error_log("Migration fid=$file_id to new blob_file row $blob_id sha=$file_sha256");
+            error_log("Migration fid=$file_id to new blob_blob row $blob_id sha=$file_sha256");
             return true;
         }
 
