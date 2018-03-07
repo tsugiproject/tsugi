@@ -8,12 +8,6 @@ require_once("../../config.php");
 
 if ( ! U::isCli() ) die('Must be command line');
 
-if ( trim(shell_exec('whoami')) == 'root' ) {
-    echo("Should not be run as root\n\n");
-    echo("sudo -H -u www-data _command_   (or similar)\n");
-    die();
-}
-
 LTIX::getConnection();
 
 $dryrun = ! ( isset($argv[1]) && $argv[1] == 'move');
@@ -32,7 +26,17 @@ if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) {
     echo("Migrating from blob_file to blob_blob\n");
     $where = "path IS NULL AND blob_id IS NULL"; // Leave disk blobs alone
 } else {
+    if ( trim(shell_exec('whoami')) == 'root' ) {
+        echo("Should not be run as root\n\n");
+        echo("sudo -H -u www-data _command_   (or similar)\n");
+        die();
+    }
+
     echo("Migrating from blob_file/blob_blob to $CFG->dataroot\n");
+    echo("Make sure to run this as the user that is the apache web server\n");
+    echo("so files and folders are readable and writable by the web server.\n");
+    echo("\n");
+    echo("sudo -H -u www-data _command_   (or similar)\n");
     $where = "path IS NULL";
 }
 
