@@ -44,19 +44,17 @@ $stmt = $PDOX->query("SELECT file_id, file_sha256, context_id
     FROM {$CFG->dbprefix}blob_file WHERE $where");
 $stmt->execute();
 
-$stop = 5;
+$stop = 500;
 $checked = 0;
-$file_moved = 0;
 $blob_moved = 0;
-$bytes = 0;
 
 $start = time();
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
-    $checked++;
-    if ( $stop > 0 && $checked > $stop ) {
+    if ( $stop > 0 && $checked >= $stop ) {
         echo("\nPartial Run: Stopped after $stop blobs\n");
         break;
     }
+    $checked++;
     $file_id = $row['file_id'];
     $context_id = $row['context_id'];
     if ( $dryrun ) {
@@ -70,11 +68,13 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         echo("Could not Migrate file_id=$file_id ".htmlentities($retval)."\n");
         break;
     }
-    if ( $retval != true ) {
+    if ( $retval === true ) {
+        $blob_moved++;
+    } else {
         echo("File did not migrate file_id=$file_id\n");
     }
 }
 $delta = time() - $start;
 
-echo("# blobs=$checked file_moved=$file_moved blob_moved=$blob_moved seconds=$delta\n");
+echo("# blobs checked=$checked moved=$blob_moved seconds=$delta\n");
 
