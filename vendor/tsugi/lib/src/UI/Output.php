@@ -98,7 +98,14 @@ class Output {
     }
 
     /**
-     * Emit the HTML for the header.
+     * Start the header material of a normal Tsugi Page
+     *
+     * This outputs everything but does not close the <head>
+     * tag so the tool can add its own head material before
+     * calling bodyStart().
+     *
+     * If this class is set to buffer, the output is returned
+     * in a string instead of being printed to the response.
      */
     function header() {
         global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL, $CONTEXT, $USER, $LINK;
@@ -113,7 +120,7 @@ class Output {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= $CFG->servicename ?><?php if ( isset($CFG->context_title) ) echo(' - '.$CFG->context_title); ?></title>
         <script>
-        var _TSUGI = { 
+        var _TSUGI = {
 <?php
             // https://stackoverflow.com/questions/23740548/how-to-pass-variables-and-data-from-php-to-javascript
             if ( isset($CONTEXT->title) ) {
@@ -234,6 +241,16 @@ body {
         echo($ob_output);
     }
 
+    /**
+     * Finish the head and start the body of a Tsugi HTML page.
+     *
+     * By default this demands that we are in a GET request.  It
+     * is a fatal error to call this code if we are responding
+     * to a POST request unless this behavior is overidden.
+     *
+     * @param $checkpost (optional, boolean)  This can be set to
+     * false to emit the body start even for a POST request.
+     */
     function bodyStart($checkpost=true) {
         global $CFG;
         ob_start();
