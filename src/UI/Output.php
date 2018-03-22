@@ -542,7 +542,9 @@ $('a').each(function (x) {
             }
         }
 
-        if ( $USER->instructor ) {
+        if ( $USER->admin ) {
+            echo(" "._m("(Instructor+Administrator)"));
+        } else if ( $USER->instructor ) {
             echo(" "._m("(Instructor)"));
         }
         echo("</p>\n");

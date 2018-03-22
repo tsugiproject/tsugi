@@ -1406,6 +1406,7 @@ class LTIX {
                 I18N::setLocale($USER->locale);
             }
             $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
+            $USER->admin = isset($LTI['role']) && $LTI['role'] >= self::ROLE_ADMINISTRATOR;
             $TSUGI_LAUNCH->user = $USER;
         }
 
