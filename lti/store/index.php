@@ -132,6 +132,17 @@ if ( ($allow_lti || $allow_web || $allow_import) && isset($CFG->lessons) ) {
 // Load Tool Registrations
 if ( $allow_lti ) {
     $registrations = findAllRegistrations(false, true);
+
+    // Filter the registrations
+    if ( isset($CFG->storehide) && ! $USER->admin ) {
+        $filtered = array();
+        foreach($registrations as $name => $tool ) {
+            if ( isset($tool['tool_phase']) &&
+            preg_match($CFG->storehide, $tool['tool_phase']) == 1 ) continue;
+            $filtered[$name] = $tool;
+        }
+        $registrations = $filtered;
+    }
     if ( count($registrations) < 1 ) $registrations = false;
 } else {
     $registrations = false;

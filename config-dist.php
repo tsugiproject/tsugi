@@ -68,6 +68,12 @@ $CFG->dbpass    = 'ltipassword';
 // $CFG->privacy_url = 'https://www.tsugicloud.org/services/policies/privacy';
 // $CFG->sla_url = 'https://www.tsugicloud.org/services/policies/service-level-agreement';
 
+// Tools to hide in the store for non-admin users.  Each tool sets their status
+// in their register.php with a line like:
+//     "tool_phase" => "sample",
+// If this is false, then all tools are shown.
+$CFG->storehide = false; // A regex like - '/dev/sample|test|beta/';
+
 // You can use the CDN copy of the static content - it is the
 // default unless you override it.
 // $CFG->staticroot = 'https://www.dr-chuck.net/tsugi-static';

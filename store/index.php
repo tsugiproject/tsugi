@@ -118,6 +118,17 @@ white-space: nowrap;
 <?php
 
 $registrations = findAllRegistrations(false, true);
+
+// Filter the registrations
+if ( isset($CFG->storehide) ) {
+    $filtered = array();
+    foreach($registrations as $name => $tool ) {
+        if ( isset($tool['tool_phase']) &&
+           preg_match($CFG->storehide, $tool['tool_phase']) == 1 ) continue;
+        $filtered[$name] = $tool;
+    }
+    $registrations = $filtered;
+}
 if ( count($registrations) < 1 ) $registrations = false;
 
 $key_count = settings_key_count();

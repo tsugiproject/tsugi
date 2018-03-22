@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#60987c56d752714cc99f2fddb0bc594956272a7f",
+        "tsugi/lib": "dev-master#d8ec2e0b14c284d02e6235e3bae01f1a01cff895",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "symfony/translation": "v3.2.7",
