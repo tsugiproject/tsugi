@@ -15,3 +15,11 @@ composer.phar
 # Since this is bound for packagist, do not commit vendor or lockfile
 vendor/
 composer.lock
+
+# Intellij
+.idea/
+*.iml
+*.ipr
+*.iws
+*.uml
+out/
