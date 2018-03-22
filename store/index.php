@@ -120,7 +120,7 @@ white-space: nowrap;
 $registrations = findAllRegistrations(false, true);
 
 // Filter the registrations
-if ( isset($CFG->storehide) ) {
+if ( isset($CFG->storehide) && ! isAdmin() ) {
     $filtered = array();
     foreach($registrations as $name => $tool ) {
         if ( isset($tool['tool_phase']) &&
