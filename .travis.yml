@@ -1,0 +1,24 @@
+# See https://docs.travis-ci.com/user/languages/php/
+language: php
+
+# Versions to test against.
+php:
+ - 7.2
+
+# Optionally specify a list of environments
+# env:
+# - DB=mysql
+
+before_script:
+ - composer install
+
+script: phpunit --configuration phpunit.xml.dist --coverage-text
+
+# See https://docs.travis-ci.com/user/notifications/
+notifications:
+  email:
+    recipients:
+     - anthwhyte@gmail.com
+     - drchuck@learnxp.com
+    on_success: never # default: change
+    on_failure: always # default: always
