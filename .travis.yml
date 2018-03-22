@@ -4,19 +4,13 @@ language: php
 # Versions to test against.
 php:
  - 5.6
-# - 7.1
+ - 7.1
  - 7.2
-
-# Optionally specify a list of environments
-# env:
-# - DB=mysql
 
 before_script:
  - composer install
-# - curl -sSfL -o ~/.phpenv/versions/hhvm/bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar
 
 # See https://docs.travis-ci.com/user/languages/php/#Default-Build-Script
-# script: phpunit --configuration phpunit.xml.dist --coverage-text
 script: vendor/bin/phpunit --configuration phpunit.xml.dist --coverage-text
 
 # See https://docs.travis-ci.com/user/notifications/
@@ -25,5 +19,5 @@ notifications:
     recipients:
      - anthwhyte@gmail.com
      - drchuck@learnxp.com
-    on_success: never # default: change
-    on_failure: always # default: always
+    on_success: never
+    on_failure: always
