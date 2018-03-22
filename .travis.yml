@@ -5,7 +5,7 @@ language: php
 php:
  - 5.6
 # - 7.1
-# - 7.2
+ - 7.2
 
 # Optionally specify a list of environments
 # env:
