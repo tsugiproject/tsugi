@@ -11,9 +11,6 @@ php:
 # env:
 # - DB=mysql
 
-before_install:
-  - ./build/tools/composer clear-cache
-
 before_script:
  - composer install
 # - curl -sSfL -o ~/.phpenv/versions/hhvm/bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar
