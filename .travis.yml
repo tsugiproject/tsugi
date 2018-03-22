@@ -15,7 +15,9 @@ before_script:
  - composer install
 # - curl -sSfL -o ~/.phpenv/versions/hhvm/bin/phpunit https://phar.phpunit.de/phpunit-5.7.phar
 
-script: phpunit --configuration phpunit.xml.dist --coverage-text
+# See https://docs.travis-ci.com/user/languages/php/#Default-Build-Script
+# script: phpunit --configuration phpunit.xml.dist --coverage-text
+script: vendor/bin/phpunit --configuration phpunit.xml.dist --coverage-text
 
 # See https://docs.travis-ci.com/user/notifications/
 notifications:
