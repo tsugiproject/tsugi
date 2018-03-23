@@ -4,7 +4,7 @@
 require_once "src/Util/U.php";
 require_once "src/Util/PS.php";
 require_once "src/Util/LTI.php";
-require_once "src/Core/I18n.php";
+require_once "src/Core/I18N.php";
 require_once "src/OAuth/OAuthDataStore.php";
 require_once "src/OAuth/TrivialOAuthDataStore.php";
 require_once "src/OAuth/OAuthUtil.php";
