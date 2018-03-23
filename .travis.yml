@@ -19,5 +19,5 @@ notifications:
     recipients:
      - anthwhyte@gmail.com
      - drchuck@learnxp.com
-    on_success: never
+    on_success: change
     on_failure: always
