@@ -39,6 +39,7 @@ array( "{$CFG->dbprefix}blob_blob",
     blob_id      INTEGER NOT NULL AUTO_INCREMENT,
     blob_sha256  CHAR(64) NOT NULL,
 
+    bytelen      BIGINT NULL,
     deleted      TINYINT(1),
 
     content      LONGBLOB NULL,
@@ -142,7 +143,14 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    return 201803050123;
+    if ( ! $PDOX->columnExists('bytelen', "{$CFG->dbprefix}blob_blob") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}blob_blob ADD bytelen BIGINT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    return 201803272008;
 
 };
 
