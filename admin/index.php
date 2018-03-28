@@ -44,6 +44,11 @@ require_once("sanity-db.php");
   Recent Logins
   </a></li>
 <li>
+  <a href="dbsize.php" title="Check database size" target="iframe-frame"
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
+  Check database size
+  </a></li>
+<li>
   <a href="clear12345" title="Remove 12345 Data" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
   Remove 12345 Data
