@@ -17,6 +17,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}cal_key",
 "drop table if exists {$CFG->dbprefix}cal_context",
 "drop table if exists {$CFG->dbprefix}tsugi_string",
+"drop table if exists {$CFG->dbprefix}sessions",
 "drop table if exists {$CFG->dbprefix}profile"
 );
 
@@ -429,6 +430,19 @@ array( "{$CFG->dbprefix}tsugi_string",
     PRIMARY KEY (string_id),
     UNIQUE(domain, string_sha256)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// Sessions is used if we are storing session data
+// in the database if we are storing sessions elsewhere
+// this will remain empty
+array( "{$CFG->dbprefix}sessions",
+"CREATE TABLE {$CFG->dbprefix}sessions (
+        sess_id VARCHAR(128) NOT NULL PRIMARY KEY,
+        sess_data BLOB NOT NULL,
+        sess_time INTEGER UNSIGNED NOT NULL,
+        sess_lifetime MEDIUMINT NOT NULL,
+        created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at          TIMESTAMP NULL
+) COLLATE utf8_bin, ENGINE = InnoDB;"),
 
 // Profile is denormalized and not tightly connected to allow
 // for disconnecting and reconnecting various user_id values
@@ -1316,7 +1330,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201803281439;
+    return 201803281630;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
