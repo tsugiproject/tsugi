@@ -57,7 +57,8 @@ array( "{$CFG->dbprefix}lti_key",
     settings_url        TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
+    deleted_at          TIMESTAMP NULL,
     login_at            TIMESTAMP NULL,
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
@@ -93,7 +94,8 @@ array( "{$CFG->dbprefix}lti_user",
     ipaddr              VARCHAR(64),
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
+    deleted_at          TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -138,8 +140,8 @@ array( "{$CFG->dbprefix}lti_context",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
-    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
+    deleted_at          TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -177,7 +179,8 @@ array( "{$CFG->dbprefix}lti_link",
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
+    deleted_at          TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -225,7 +228,8 @@ array( "{$CFG->dbprefix}lti_membership",
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
+    deleted_at          TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_membership_ibfk_1`
         FOREIGN KEY (`context_id`)
@@ -307,7 +311,8 @@ array( "{$CFG->dbprefix}lti_service",
     json                MEDIUMTEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
+    deleted_at          TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_service_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -343,7 +348,8 @@ array( "{$CFG->dbprefix}lti_result",
     json               MEDIUMTEXT NULL,
     entity_version     INTEGER NOT NULL DEFAULT 0,
     created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at         TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at         TIMESTAMP NULL,
+    deleted_at         TIMESTAMP NULL,
     retrieved_at       TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_result_ibfk_1`
@@ -392,7 +398,8 @@ array( "{$CFG->dbprefix}lti_domain",
     secret      TEXT,
     json        TEXT NULL,
     created_at  TIMESTAMP NOT NULL,
-    updated_at  TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at         TIMESTAMP NULL,
+    deleted_at         TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_domain_ibfk_1`
         FOREIGN KEY (`key_id`)
@@ -444,7 +451,8 @@ array( "{$CFG->dbprefix}profile",
     login_at            TIMESTAMP NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP,
+    deleted_at          TIMESTAMP,
 
     UNIQUE(profile_id, profile_sha256),
     PRIMARY KEY (profile_id)
@@ -1291,12 +1299,24 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Add the deleted_at column to columns if they are not there.
+    $tables = array( 'lti_key', 'lti_context', 'lti_link', 'lti_user',
+        'lti_membership', 'lti_service', 'lti_result', 'lti_domain',
+         'profile');
+    foreach($tables as $table) {
+        if ( ! $PDOX->columnExists('deleted_at', "{$CFG->dbprefix}".$table) ) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} ADD deleted_at TIMESTAMP NULL";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+        }
+    }
 
     // TODO: transfer lti_event contents to cal_event and drop the table
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201801271430;
+    return 201803281439;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
