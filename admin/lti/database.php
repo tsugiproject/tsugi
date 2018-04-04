@@ -203,7 +203,7 @@ array( "{$CFG->dbprefix}lti_link_activity",
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_activity_ibfk_1`
         FOREIGN KEY (`link_id`)
@@ -268,7 +268,7 @@ array( "{$CFG->dbprefix}lti_event",
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
 
     PRIMARY KEY (event_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
@@ -284,7 +284,7 @@ array( "{$CFG->dbprefix}lti_link_user_activity",
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_user_activity_ibfk_1`
         FOREIGN KEY (`link_id`)
@@ -466,8 +466,8 @@ array( "{$CFG->dbprefix}profile",
     login_at            TIMESTAMP NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP,
-    deleted_at          TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+    deleted_at          TIMESTAMP NULL,
 
     UNIQUE(profile_id, profile_sha256),
     PRIMARY KEY (profile_id)
@@ -495,7 +495,7 @@ array( "{$CFG->dbprefix}cal_event",
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
+    updated_at          TIMESTAMP NULL,
 
     PRIMARY KEY (event_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
