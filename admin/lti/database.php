@@ -1315,12 +1315,25 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Add the deleted_at column to columns if they are not there.
+    // Double check created_at and updated_at
     $tables = array( 'lti_key', 'lti_context', 'lti_link', 'lti_user',
         'lti_membership', 'lti_service', 'lti_result', 'lti_domain',
          'profile');
     foreach($tables as $table) {
         if ( ! $PDOX->columnExists('deleted_at', "{$CFG->dbprefix}".$table) ) {
             $sql= "ALTER TABLE {$CFG->dbprefix}{$table} ADD deleted_at TIMESTAMP NULL";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+        }
+        if ( ! $PDOX->columnExists('updated_at', "{$CFG->dbprefix}".$table) ) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} ADD updated_at TIMESTAMP NULL";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryDie($sql);
+        }
+        if ( ! $PDOX->columnExists('created_at', "{$CFG->dbprefix}".$table) ) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}{$table} ADD created_at NOT NULL DEFAULT CURRENT_TIMESTAMP";
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryDie($sql);
