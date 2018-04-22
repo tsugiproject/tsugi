@@ -1319,6 +1319,7 @@ class LTIX {
         // So it is just a warning - nothing much we can do except tell them.
         if ( count($needed) > 0 && self::wrapped_session_get($session_object, 'lti',null) === null ) {
             self::send403(); error_log('Session expired - please re-launch '.session_id());
+            self::wrapped_session_flush($session_object);
             die('Session expired - please re-launch'); // with error_log
         }
 
@@ -1332,6 +1333,7 @@ class LTIX {
             if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
                 $_SERVER['HTTP_USER_AGENT'] != $session_agent ) {
                 self::send403();
+                self::wrapped_session_flush($session_object);
                 self::abort_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
                     (($session_agent !== null ) ? $session_agent : 'Empty Session user agent') .
                     ' ::: '.
