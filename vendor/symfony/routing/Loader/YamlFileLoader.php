@@ -27,7 +27,7 @@ use Symfony\Component\Config\Loader\FileLoader;
 class YamlFileLoader extends FileLoader
 {
     private static $availableKeys = array(
-        'resource', 'type', 'prefix', 'path', 'host', 'schemes', 'methods', 'defaults', 'requirements', 'options', 'condition',
+        'resource', 'type', 'prefix', 'path', 'host', 'schemes', 'methods', 'defaults', 'requirements', 'options', 'condition', 'controller',
     );
     private $yamlParser;
 
@@ -57,10 +57,18 @@ class YamlFileLoader extends FileLoader
             $this->yamlParser = new YamlParser();
         }
 
+        $prevErrorHandler = set_error_handler(function ($level, $message, $script, $line) use ($file, &$prevErrorHandler) {
+            $message = E_USER_DEPRECATED === $level ? preg_replace('/ on line \d+/', ' in "'.$file.'"$0', $message) : $message;
+
+            return $prevErrorHandler ? $prevErrorHandler($level, $message, $script, $line) : false;
+        });
+
         try {
-            $parsedConfig = $this->yamlParser->parse(file_get_contents($path));
+            $parsedConfig = $this->yamlParser->parseFile($path);
         } catch (ParseException $e) {
             throw new \InvalidArgumentException(sprintf('The file "%s" does not contain valid YAML.', $path), 0, $e);
+        } finally {
+            restore_error_handler();
         }
 
         $collection = new RouteCollection();
@@ -115,6 +123,10 @@ class YamlFileLoader extends FileLoader
         $methods = isset($config['methods']) ? $config['methods'] : array();
         $condition = isset($config['condition']) ? $config['condition'] : null;
 
+        if (isset($config['controller'])) {
+            $defaults['_controller'] = $config['controller'];
+        }
+
         $route = new Route($config['path'], $defaults, $requirements, $options, $host, $schemes, $methods, $condition);
 
         $collection->add($name, $route);
@@ -140,28 +152,39 @@ class YamlFileLoader extends FileLoader
         $schemes = isset($config['schemes']) ? $config['schemes'] : null;
         $methods = isset($config['methods']) ? $config['methods'] : null;
 
+        if (isset($config['controller'])) {
+            $defaults['_controller'] = $config['controller'];
+        }
+
         $this->setCurrentDir(dirname($path));
 
-        $subCollection = $this->import($config['resource'], $type, false, $file);
-        /* @var $subCollection RouteCollection */
-        $subCollection->addPrefix($prefix);
-        if (null !== $host) {
-            $subCollection->setHost($host);
-        }
-        if (null !== $condition) {
-            $subCollection->setCondition($condition);
-        }
-        if (null !== $schemes) {
-            $subCollection->setSchemes($schemes);
-        }
-        if (null !== $methods) {
-            $subCollection->setMethods($methods);
-        }
-        $subCollection->addDefaults($defaults);
-        $subCollection->addRequirements($requirements);
-        $subCollection->addOptions($options);
+        $imported = $this->import($config['resource'], $type, false, $file);
 
-        $collection->addCollection($subCollection);
+        if (!is_array($imported)) {
+            $imported = array($imported);
+        }
+
+        foreach ($imported as $subCollection) {
+            /* @var $subCollection RouteCollection */
+            $subCollection->addPrefix($prefix);
+            if (null !== $host) {
+                $subCollection->setHost($host);
+            }
+            if (null !== $condition) {
+                $subCollection->setCondition($condition);
+            }
+            if (null !== $schemes) {
+                $subCollection->setSchemes($schemes);
+            }
+            if (null !== $methods) {
+                $subCollection->setMethods($methods);
+            }
+            $subCollection->addDefaults($defaults);
+            $subCollection->addRequirements($requirements);
+            $subCollection->addOptions($options);
+
+            $collection->addCollection($subCollection);
+        }
     }
 
     /**
@@ -202,6 +225,9 @@ class YamlFileLoader extends FileLoader
                 'You must define a "path" for the route "%s" in file "%s".',
                 $name, $path
             ));
+        }
+        if (isset($config['controller']) && isset($config['defaults']['_controller'])) {
+            throw new \InvalidArgumentException(sprintf('The routing file "%s" must not specify both the "controller" key and the defaults key "_controller" for "%s".', $path, $name));
         }
     }
 }

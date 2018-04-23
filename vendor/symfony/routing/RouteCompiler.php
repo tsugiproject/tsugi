@@ -39,10 +39,10 @@ class RouteCompiler implements RouteCompilerInterface
     /**
      * {@inheritdoc}
      *
-     * @throws \InvalidArgumentException If a path variable is named _fragment
-     * @throws \LogicException           If a variable is referenced more than once
-     * @throws \DomainException          If a variable name starts with a digit or if it is too long to be successfully used as
-     *                                   a PCRE subpattern.
+     * @throws \InvalidArgumentException if a path variable is named _fragment
+     * @throws \LogicException           if a variable is referenced more than once
+     * @throws \DomainException          if a variable name starts with a digit or if it is too long to be successfully used as
+     *                                   a PCRE subpattern
      */
     public static function compile(Route $route)
     {
@@ -210,7 +210,7 @@ class RouteCompiler implements RouteCompilerInterface
         for ($i = 0, $nbToken = count($tokens); $i < $nbToken; ++$i) {
             $regexp .= self::computeRegexp($tokens, $i, $firstOptional);
         }
-        $regexp = self::REGEX_DELIMITER.'^'.$regexp.'$'.self::REGEX_DELIMITER.'s'.($isHost ? 'i' : '');
+        $regexp = self::REGEX_DELIMITER.'^'.$regexp.'$'.self::REGEX_DELIMITER.'sD'.($isHost ? 'i' : '');
 
         // enable Utf8 matching if really required
         if ($needsUtf8) {
@@ -223,11 +223,31 @@ class RouteCompiler implements RouteCompilerInterface
         }
 
         return array(
-            'staticPrefix' => 'text' === $tokens[0][0] ? $tokens[0][1] : '',
+            'staticPrefix' => self::determineStaticPrefix($route, $tokens),
             'regex' => $regexp,
             'tokens' => array_reverse($tokens),
             'variables' => $variables,
         );
+    }
+
+    /**
+     * Determines the longest static prefix possible for a route.
+     *
+     * @return string The leading static part of a route's path
+     */
+    private static function determineStaticPrefix(Route $route, array $tokens)
+    {
+        if ('text' !== $tokens[0][0]) {
+            return ($route->hasDefault($tokens[0][3]) || '/' === $tokens[0][1]) ? '' : $tokens[0][1];
+        }
+
+        $prefix = $tokens[0][1];
+
+        if (isset($tokens[1][1]) && '/' !== $tokens[1][1] && false === $route->hasDefault($tokens[1][3])) {
+            $prefix .= $tokens[1][1];
+        }
+
+        return $prefix;
     }
 
     /**

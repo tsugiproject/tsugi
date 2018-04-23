@@ -13,7 +13,6 @@ namespace Symfony\Component\EventDispatcher\Tests\Debug;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\Debug\TraceableEventDispatcher;
-use Symfony\Component\EventDispatcher\Debug\WrappedListener;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -105,41 +104,39 @@ class TraceableEventDispatcherTest extends TestCase
         $this->assertCount(0, $dispatcher->getListeners('foo'));
     }
 
-    /**
-     * @dataProvider isWrappedDataProvider
-     *
-     * @param bool $isWrapped
-     */
-    public function testGetCalledListeners($isWrapped)
+    public function testGetCalledListeners()
     {
-        $dispatcher = new EventDispatcher();
-        $stopWatch = new Stopwatch();
-        $tdispatcher = new TraceableEventDispatcher($dispatcher, $stopWatch);
-
-        $listener = function () {};
-
-        $tdispatcher->addListener('foo', $listener, 5);
+        $tdispatcher = new TraceableEventDispatcher(new EventDispatcher(), new Stopwatch());
+        $tdispatcher->addListener('foo', function () {}, 5);
 
         $listeners = $tdispatcher->getNotCalledListeners();
-        $this->assertArrayHasKey('data', $listeners['foo.closure']);
-        unset($listeners['foo.closure']['data']);
+        $this->assertArrayHasKey('stub', $listeners['foo.closure']);
+        unset($listeners['foo.closure']['stub']);
         $this->assertEquals(array(), $tdispatcher->getCalledListeners());
         $this->assertEquals(array('foo.closure' => array('event' => 'foo', 'pretty' => 'closure', 'priority' => 5)), $listeners);
 
         $tdispatcher->dispatch('foo');
 
         $listeners = $tdispatcher->getCalledListeners();
-        unset($listeners['foo.closure']['data']);
+        $this->assertArrayHasKey('stub', $listeners['foo.closure']);
+        unset($listeners['foo.closure']['stub']);
         $this->assertEquals(array('foo.closure' => array('event' => 'foo', 'pretty' => 'closure', 'priority' => 5)), $listeners);
         $this->assertEquals(array(), $tdispatcher->getNotCalledListeners());
     }
 
-    public function isWrappedDataProvider()
+    public function testClearCalledListeners()
     {
-        return array(
-            array(false),
-            array(true),
-        );
+        $tdispatcher = new TraceableEventDispatcher(new EventDispatcher(), new Stopwatch());
+        $tdispatcher->addListener('foo', function () {}, 5);
+
+        $tdispatcher->dispatch('foo');
+        $tdispatcher->reset();
+
+        $listeners = $tdispatcher->getNotCalledListeners();
+        $this->assertArrayHasKey('stub', $listeners['foo.closure']);
+        unset($listeners['foo.closure']['stub']);
+        $this->assertEquals(array(), $tdispatcher->getCalledListeners());
+        $this->assertEquals(array('foo.closure' => array('event' => 'foo', 'pretty' => 'closure', 'priority' => 5)), $listeners);
     }
 
     public function testGetCalledListenersNested()

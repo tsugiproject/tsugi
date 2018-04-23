@@ -38,9 +38,6 @@ class RouteCollectionBuilder
     private $methods;
     private $resources = array();
 
-    /**
-     * @param LoaderInterface $loader
-     */
     public function __construct(LoaderInterface $loader = null)
     {
         $this->loader = $loader;
@@ -61,17 +58,24 @@ class RouteCollectionBuilder
      */
     public function import($resource, $prefix = '/', $type = null)
     {
-        /** @var RouteCollection $collection */
-        $collection = $this->load($resource, $type);
+        /** @var RouteCollection[] $collection */
+        $collections = $this->load($resource, $type);
 
         // create a builder from the RouteCollection
         $builder = $this->createBuilder();
-        foreach ($collection->all() as $name => $route) {
-            $builder->addRoute($route, $name);
-        }
 
-        foreach ($collection->getResources() as $resource) {
-            $builder->addResource($resource);
+        foreach ($collections as $collection) {
+            if (null === $collection) {
+                continue;
+            }
+
+            foreach ($collection->all() as $name => $route) {
+                $builder->addRoute($route, $name);
+            }
+
+            foreach ($collection->getResources() as $resource) {
+                $builder->addResource($resource);
+            }
         }
 
         // mount into this builder
@@ -201,7 +205,7 @@ class RouteCollectionBuilder
     }
 
     /**
-     * Sets an opiton that will be added to all embedded routes (unless that
+     * Sets an option that will be added to all embedded routes (unless that
      * option is already set).
      *
      * @param string $key
@@ -311,10 +315,10 @@ class RouteCollectionBuilder
 
                 $routeCollection->addCollection($subCollection);
             }
+        }
 
-            foreach ($this->resources as $resource) {
-                $routeCollection->addResource($resource);
-            }
+        foreach ($this->resources as $resource) {
+            $routeCollection->addResource($resource);
         }
 
         return $routeCollection;
@@ -345,7 +349,7 @@ class RouteCollectionBuilder
      * @param mixed       $resource A resource
      * @param string|null $type     The resource type or null if unknown
      *
-     * @return RouteCollection
+     * @return RouteCollection[]
      *
      * @throws FileLoaderLoadException If no loader is found
      */
@@ -356,17 +360,21 @@ class RouteCollectionBuilder
         }
 
         if ($this->loader->supports($resource, $type)) {
-            return $this->loader->load($resource, $type);
+            $collections = $this->loader->load($resource, $type);
+
+            return is_array($collections) ? $collections : array($collections);
         }
 
         if (null === $resolver = $this->loader->getResolver()) {
-            throw new FileLoaderLoadException($resource);
+            throw new FileLoaderLoadException($resource, null, null, null, $type);
         }
 
         if (false === $loader = $resolver->resolve($resource, $type)) {
-            throw new FileLoaderLoadException($resource);
+            throw new FileLoaderLoadException($resource, null, null, null, $type);
         }
 
-        return $loader->load($resource, $type);
+        $collections = $loader->load($resource, $type);
+
+        return is_array($collections) ? $collections : array($collections);
     }
 }
