@@ -69,8 +69,6 @@ class Google_Service_ServiceConsumerManagement_Service extends Google_Collection
   protected $typesDataType = 'array';
   protected $usageType = 'Google_Service_ServiceConsumerManagement_Usage';
   protected $usageDataType = '';
-  protected $visibilityType = 'Google_Service_ServiceConsumerManagement_Visibility';
-  protected $visibilityDataType = '';
 
   /**
    * @param Google_Service_ServiceConsumerManagement_Api
@@ -433,19 +431,5 @@ class Google_Service_ServiceConsumerManagement_Service extends Google_Collection
   public function getUsage()
   {
     return $this->usage;
-  }
-  /**
-   * @param Google_Service_ServiceConsumerManagement_Visibility
-   */
-  public function setVisibility(Google_Service_ServiceConsumerManagement_Visibility $visibility)
-  {
-    $this->visibility = $visibility;
-  }
-  /**
-   * @return Google_Service_ServiceConsumerManagement_Visibility
-   */
-  public function getVisibility()
-  {
-    return $this->visibility;
   }
 }

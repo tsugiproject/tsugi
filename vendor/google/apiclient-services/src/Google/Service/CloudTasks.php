@@ -77,10 +77,6 @@ class Google_Service_CloudTasks extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
-                'pageSize' => array(
-                  'location' => 'query',
-                  'type' => 'integer',
-                ),
                 'filter' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -88,6 +84,10 @@ class Google_Service_CloudTasks extends Google_Service
                 'pageToken' => array(
                   'location' => 'query',
                   'type' => 'string',
+                ),
+                'pageSize' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
                 ),
               ),
             ),
@@ -290,6 +290,16 @@ class Google_Service_CloudTasks extends Google_Service
                   'type' => 'string',
                 ),
               ),
+            ),'lease' => array(
+              'path' => 'v2beta2/{+parent}/tasks:lease',
+              'httpMethod' => 'POST',
+              'parameters' => array(
+                'parent' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+              ),
             ),'list' => array(
               'path' => 'v2beta2/{+parent}/tasks',
               'httpMethod' => 'GET',
@@ -314,16 +324,6 @@ class Google_Service_CloudTasks extends Google_Service
                 'pageSize' => array(
                   'location' => 'query',
                   'type' => 'integer',
-                ),
-              ),
-            ),'pull' => array(
-              'path' => 'v2beta2/{+name}/tasks:pull',
-              'httpMethod' => 'POST',
-              'parameters' => array(
-                'name' => array(
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
                 ),
               ),
             ),'renewLease' => array(

@@ -51,13 +51,14 @@ class Google_Service_Cloudbilling_Resource_Projects extends Google_Service_Resou
    * usage charges.
    *
    * *Note:* Incurred charges that have not yet been reported in the transaction
-   * history of the Google Cloud Console may be billed to the new billing account,
-   * even if the charge occurred before the new billing account was assigned to
-   * the project.
+   * history of the GCP Console might be billed to the new billing account, even
+   * if the charge occurred before the new billing account was assigned to the
+   * project.
    *
    * The current authenticated user must have ownership privileges for both the
    * [project](https://cloud.google.com/docs/permissions-overview#h.bgs0oxofvnoo )
-   * and the [billing account](https://support.google.com/cloud/answer/4430947).
+   * and the [billing account](https://cloud.google.com/billing/docs/how-to
+   * /billing-access).
    *
    * You can disable billing on the project by setting the `billing_account_name`
    * field to empty. This action disassociates the current billing account from

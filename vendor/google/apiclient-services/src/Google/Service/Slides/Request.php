@@ -63,6 +63,8 @@ class Google_Service_Slides_Request extends Google_Model
   protected $replaceAllShapesWithSheetsChartDataType = '';
   protected $replaceAllTextType = 'Google_Service_Slides_ReplaceAllTextRequest';
   protected $replaceAllTextDataType = '';
+  protected $replaceImageType = 'Google_Service_Slides_ReplaceImageRequest';
+  protected $replaceImageDataType = '';
   protected $ungroupObjectsType = 'Google_Service_Slides_UngroupObjectsRequest';
   protected $ungroupObjectsDataType = '';
   protected $unmergeTableCellsType = 'Google_Service_Slides_UnmergeTableCellsRequest';
@@ -71,6 +73,8 @@ class Google_Service_Slides_Request extends Google_Model
   protected $updateImagePropertiesDataType = '';
   protected $updateLinePropertiesType = 'Google_Service_Slides_UpdateLinePropertiesRequest';
   protected $updateLinePropertiesDataType = '';
+  protected $updatePageElementAltTextType = 'Google_Service_Slides_UpdatePageElementAltTextRequest';
+  protected $updatePageElementAltTextDataType = '';
   protected $updatePageElementTransformType = 'Google_Service_Slides_UpdatePageElementTransformRequest';
   protected $updatePageElementTransformDataType = '';
   protected $updatePagePropertiesType = 'Google_Service_Slides_UpdatePagePropertiesRequest';
@@ -417,6 +421,20 @@ class Google_Service_Slides_Request extends Google_Model
     return $this->replaceAllText;
   }
   /**
+   * @param Google_Service_Slides_ReplaceImageRequest
+   */
+  public function setReplaceImage(Google_Service_Slides_ReplaceImageRequest $replaceImage)
+  {
+    $this->replaceImage = $replaceImage;
+  }
+  /**
+   * @return Google_Service_Slides_ReplaceImageRequest
+   */
+  public function getReplaceImage()
+  {
+    return $this->replaceImage;
+  }
+  /**
    * @param Google_Service_Slides_UngroupObjectsRequest
    */
   public function setUngroupObjects(Google_Service_Slides_UngroupObjectsRequest $ungroupObjects)
@@ -471,6 +489,20 @@ class Google_Service_Slides_Request extends Google_Model
   public function getUpdateLineProperties()
   {
     return $this->updateLineProperties;
+  }
+  /**
+   * @param Google_Service_Slides_UpdatePageElementAltTextRequest
+   */
+  public function setUpdatePageElementAltText(Google_Service_Slides_UpdatePageElementAltTextRequest $updatePageElementAltText)
+  {
+    $this->updatePageElementAltText = $updatePageElementAltText;
+  }
+  /**
+   * @return Google_Service_Slides_UpdatePageElementAltTextRequest
+   */
+  public function getUpdatePageElementAltText()
+  {
+    return $this->updatePageElementAltText;
   }
   /**
    * @param Google_Service_Slides_UpdatePageElementTransformRequest

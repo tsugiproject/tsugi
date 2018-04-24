@@ -32,12 +32,12 @@ class Google_Service_Dialogflow_Resource_ProjectsOperations extends Google_Servi
    *
    * @param string $name The name of the operation resource.
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_Operation
+   * @return Google_Service_Dialogflow_GoogleLongrunningOperation
    */
   public function get($name, $optParams = array())
   {
     $params = array('name' => $name);
     $params = array_merge($params, $optParams);
-    return $this->call('get', array($params), "Google_Service_Dialogflow_Operation");
+    return $this->call('get', array($params), "Google_Service_Dialogflow_GoogleLongrunningOperation");
   }
 }

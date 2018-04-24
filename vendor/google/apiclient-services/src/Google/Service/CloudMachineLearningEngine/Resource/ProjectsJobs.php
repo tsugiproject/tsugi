@@ -83,7 +83,10 @@ class Google_Service_CloudMachineLearningEngine_Resource_ProjectsJobs extends Go
     return $this->call('getIamPolicy', array($params), "Google_Service_CloudMachineLearningEngine_GoogleIamV1Policy");
   }
   /**
-   * Lists the jobs in the project. (jobs.listProjectsJobs)
+   * Lists the jobs in the project.
+   *
+   * If there are no jobs that match the request parameters, the list request
+   * returns an empty response body: {}. (jobs.listProjectsJobs)
    *
    * @param string $parent Required. The name of the project for which to list
    * jobs.
@@ -100,6 +103,11 @@ class Google_Service_CloudMachineLearningEngine_Resource_ProjectsJobs extends Go
    *
    * The default value is 20, and the maximum page size is 100.
    * @opt_param string filter Optional. Specifies the subset of jobs to retrieve.
+   * You can filter on the value of one or more attributes of the job object. For
+   * example, retrieve jobs with a job identifier that starts with 'census':
+   * gcloud ml-engine jobs list --filter='jobId:census*' List all failed jobs with
+   * names that start with 'rnn': gcloud ml-engine jobs list --filter='jobId:rnn*
+   * AND state:FAILED' For more examples, see the guide to monitoring jobs.
    * @return Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1ListJobsResponse
    */
   public function listProjectsJobs($parent, $optParams = array())
@@ -107,36 +115,6 @@ class Google_Service_CloudMachineLearningEngine_Resource_ProjectsJobs extends Go
     $params = array('parent' => $parent);
     $params = array_merge($params, $optParams);
     return $this->call('list', array($params), "Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1ListJobsResponse");
-  }
-  /**
-   * Updates a specific job resource.
-   *
-   * Currently the only supported fields to update are `labels`. (jobs.patch)
-   *
-   * @param string $name Required. The job name.
-   * @param Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Job $postBody
-   * @param array $optParams Optional parameters.
-   *
-   * @opt_param string updateMask Required. Specifies the path, relative to `Job`,
-   * of the field to update. To adopt etag mechanism, include `etag` field in the
-   * mask, and include the `etag` value in your job resource.
-   *
-   * For example, to change the labels of a job, the `update_mask` parameter would
-   * be specified as `labels`, `etag`, and the `PATCH` request body would specify
-   * the new value, as follows:     {       "labels": {          "owner":
-   * "Google",          "color": "Blue"       }       "etag":
-   * "33a64df551425fcc55e4d42a148795d9f25f89d4"     } If `etag` matches the one on
-   * the server, the labels of the job will be replaced with the given ones, and
-   * the server end `etag` will be recalculated.
-   *
-   * Currently the only supported update masks are `labels` and `etag`.
-   * @return Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Job
-   */
-  public function patch($name, Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Job $postBody, $optParams = array())
-  {
-    $params = array('name' => $name, 'postBody' => $postBody);
-    $params = array_merge($params, $optParams);
-    return $this->call('patch', array($params), "Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Job");
   }
   /**
    * Sets the access control policy on the specified resource. Replaces any

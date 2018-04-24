@@ -15,11 +15,53 @@
  * the License.
  */
 
-class Google_Service_Vision_WebPage extends Google_Model
+class Google_Service_Vision_WebPage extends Google_Collection
 {
+  protected $collection_key = 'partialMatchingImages';
+  protected $fullMatchingImagesType = 'Google_Service_Vision_WebImage';
+  protected $fullMatchingImagesDataType = 'array';
+  public $pageTitle;
+  protected $partialMatchingImagesType = 'Google_Service_Vision_WebImage';
+  protected $partialMatchingImagesDataType = 'array';
   public $score;
   public $url;
 
+  /**
+   * @param Google_Service_Vision_WebImage
+   */
+  public function setFullMatchingImages($fullMatchingImages)
+  {
+    $this->fullMatchingImages = $fullMatchingImages;
+  }
+  /**
+   * @return Google_Service_Vision_WebImage
+   */
+  public function getFullMatchingImages()
+  {
+    return $this->fullMatchingImages;
+  }
+  public function setPageTitle($pageTitle)
+  {
+    $this->pageTitle = $pageTitle;
+  }
+  public function getPageTitle()
+  {
+    return $this->pageTitle;
+  }
+  /**
+   * @param Google_Service_Vision_WebImage
+   */
+  public function setPartialMatchingImages($partialMatchingImages)
+  {
+    $this->partialMatchingImages = $partialMatchingImages;
+  }
+  /**
+   * @return Google_Service_Vision_WebImage
+   */
+  public function getPartialMatchingImages()
+  {
+    return $this->partialMatchingImages;
+  }
   public function setScore($score)
   {
     $this->score = $score;

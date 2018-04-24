@@ -138,7 +138,7 @@ class Google_Service_CloudIot_Resource_ProjectsLocationsRegistriesDevices extend
    * @opt_param string updateMask Only updates the `device` fields indicated by
    * this mask. The field mask must not be empty, and it must not contain fields
    * that are immutable or only set by the server. Mutable top-level fields:
-   * `credentials`, `enabled_state`, and `metadata`
+   * `credentials`, `blocked`, and `metadata`
    * @return Google_Service_CloudIot_Device
    */
   public function patch($name, Google_Service_CloudIot_Device $postBody, $optParams = array())

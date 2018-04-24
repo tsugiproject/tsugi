@@ -32,7 +32,6 @@ class Google_Service_ServiceManagement_HttpRule extends Google_Collection
   public $patch;
   public $post;
   public $put;
-  public $responseBody;
   public $selector;
 
   /**
@@ -138,14 +137,6 @@ class Google_Service_ServiceManagement_HttpRule extends Google_Collection
   public function getPut()
   {
     return $this->put;
-  }
-  public function setResponseBody($responseBody)
-  {
-    $this->responseBody = $responseBody;
-  }
-  public function getResponseBody()
-  {
-    return $this->responseBody;
   }
   public function setSelector($selector)
   {

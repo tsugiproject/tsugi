@@ -34,8 +34,6 @@ class Google_Service_Games_Resource_Revisions extends Google_Service_Resource
    * "IOS" - Client is running the iOS SDK.  - "WEB_APP" - Client is running as a
    * Web App.
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @return Google_Service_Games_RevisionCheckResponse
    */
   public function check($clientRevision, $optParams = array())

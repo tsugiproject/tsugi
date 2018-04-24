@@ -57,9 +57,10 @@ class Google_Service_Slides_Resource_Presentations extends Google_Service_Resour
     return $this->call('batchUpdate', array($params), "Google_Service_Slides_BatchUpdatePresentationResponse");
   }
   /**
-   * Creates a new presentation using the title given in the request. Other fields
-   * in the request are ignored. Returns the created presentation.
-   * (presentations.create)
+   * Creates a new presentation using the title given in the request. If a
+   * presentationId is provided, uses it as the ID of the new presentation.
+   * Otherwise, a new presentationId is generated. Returns the created
+   * presentation. (presentations.create)
    *
    * @param Google_Service_Slides_Presentation $postBody
    * @param array $optParams Optional parameters.

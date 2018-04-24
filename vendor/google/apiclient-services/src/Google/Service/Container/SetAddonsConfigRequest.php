@@ -19,6 +19,10 @@ class Google_Service_Container_SetAddonsConfigRequest extends Google_Model
 {
   protected $addonsConfigType = 'Google_Service_Container_AddonsConfig';
   protected $addonsConfigDataType = '';
+  public $clusterId;
+  public $name;
+  public $projectId;
+  public $zone;
 
   /**
    * @param Google_Service_Container_AddonsConfig
@@ -33,5 +37,37 @@ class Google_Service_Container_SetAddonsConfigRequest extends Google_Model
   public function getAddonsConfig()
   {
     return $this->addonsConfig;
+  }
+  public function setClusterId($clusterId)
+  {
+    $this->clusterId = $clusterId;
+  }
+  public function getClusterId()
+  {
+    return $this->clusterId;
+  }
+  public function setName($name)
+  {
+    $this->name = $name;
+  }
+  public function getName()
+  {
+    return $this->name;
+  }
+  public function setProjectId($projectId)
+  {
+    $this->projectId = $projectId;
+  }
+  public function getProjectId()
+  {
+    return $this->projectId;
+  }
+  public function setZone($zone)
+  {
+    $this->zone = $zone;
+  }
+  public function getZone()
+  {
+    return $this->zone;
   }
 }

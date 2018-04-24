@@ -18,6 +18,7 @@
 class Google_Service_Logging_WriteLogEntriesRequest extends Google_Collection
 {
   protected $collection_key = 'entries';
+  public $dryRun;
   protected $entriesType = 'Google_Service_Logging_LogEntry';
   protected $entriesDataType = 'array';
   public $labels;
@@ -26,6 +27,14 @@ class Google_Service_Logging_WriteLogEntriesRequest extends Google_Collection
   protected $resourceType = 'Google_Service_Logging_MonitoredResource';
   protected $resourceDataType = '';
 
+  public function setDryRun($dryRun)
+  {
+    $this->dryRun = $dryRun;
+  }
+  public function getDryRun()
+  {
+    return $this->dryRun;
+  }
   /**
    * @param Google_Service_Logging_LogEntry
    */

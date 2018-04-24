@@ -105,8 +105,8 @@ class Google_Service_Storage_Resource_DefaultObjectAccessControls extends Google
     return $this->call('list', array($params), "Google_Service_Storage_ObjectAccessControls");
   }
   /**
-   * Updates a default object ACL entry on the specified bucket. This method
-   * supports patch semantics. (defaultObjectAccessControls.patch)
+   * Patches a default object ACL entry on the specified bucket.
+   * (defaultObjectAccessControls.patch)
    *
    * @param string $bucket Name of a bucket.
    * @param string $entity The entity holding the permission. Can be user-userId,

@@ -17,15 +17,38 @@
 
 class Google_Service_Directory_CalendarResource extends Google_Model
 {
+  public $buildingId;
+  public $capacity;
   public $etags;
+  public $featureInstances;
+  public $floorName;
+  public $floorSection;
   public $generatedResourceName;
   public $kind;
+  public $resourceCategory;
   public $resourceDescription;
   public $resourceEmail;
   public $resourceId;
   public $resourceName;
   public $resourceType;
+  public $userVisibleDescription;
 
+  public function setBuildingId($buildingId)
+  {
+    $this->buildingId = $buildingId;
+  }
+  public function getBuildingId()
+  {
+    return $this->buildingId;
+  }
+  public function setCapacity($capacity)
+  {
+    $this->capacity = $capacity;
+  }
+  public function getCapacity()
+  {
+    return $this->capacity;
+  }
   public function setEtags($etags)
   {
     $this->etags = $etags;
@@ -33,6 +56,30 @@ class Google_Service_Directory_CalendarResource extends Google_Model
   public function getEtags()
   {
     return $this->etags;
+  }
+  public function setFeatureInstances($featureInstances)
+  {
+    $this->featureInstances = $featureInstances;
+  }
+  public function getFeatureInstances()
+  {
+    return $this->featureInstances;
+  }
+  public function setFloorName($floorName)
+  {
+    $this->floorName = $floorName;
+  }
+  public function getFloorName()
+  {
+    return $this->floorName;
+  }
+  public function setFloorSection($floorSection)
+  {
+    $this->floorSection = $floorSection;
+  }
+  public function getFloorSection()
+  {
+    return $this->floorSection;
   }
   public function setGeneratedResourceName($generatedResourceName)
   {
@@ -49,6 +96,14 @@ class Google_Service_Directory_CalendarResource extends Google_Model
   public function getKind()
   {
     return $this->kind;
+  }
+  public function setResourceCategory($resourceCategory)
+  {
+    $this->resourceCategory = $resourceCategory;
+  }
+  public function getResourceCategory()
+  {
+    return $this->resourceCategory;
   }
   public function setResourceDescription($resourceDescription)
   {
@@ -89,5 +144,13 @@ class Google_Service_Directory_CalendarResource extends Google_Model
   public function getResourceType()
   {
     return $this->resourceType;
+  }
+  public function setUserVisibleDescription($userVisibleDescription)
+  {
+    $this->userVisibleDescription = $userVisibleDescription;
+  }
+  public function getUserVisibleDescription()
+  {
+    return $this->userVisibleDescription;
   }
 }

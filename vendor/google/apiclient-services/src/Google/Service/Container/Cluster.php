@@ -37,6 +37,7 @@ class Google_Service_Container_Cluster extends Google_Collection
   public $labelFingerprint;
   protected $legacyAbacType = 'Google_Service_Container_LegacyAbac';
   protected $legacyAbacDataType = '';
+  public $location;
   public $locations;
   public $loggingService;
   protected $maintenancePolicyType = 'Google_Service_Container_MaintenancePolicy';
@@ -208,6 +209,14 @@ class Google_Service_Container_Cluster extends Google_Collection
   public function getLegacyAbac()
   {
     return $this->legacyAbac;
+  }
+  public function setLocation($location)
+  {
+    $this->location = $location;
+  }
+  public function getLocation()
+  {
+    return $this->location;
   }
   public function setLocations($locations)
   {

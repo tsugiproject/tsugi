@@ -23,6 +23,7 @@ class Google_Service_AndroidPublisher_ProductPurchase extends Google_Model
   public $orderId;
   public $purchaseState;
   public $purchaseTimeMillis;
+  public $purchaseType;
 
   public function setConsumptionState($consumptionState)
   {
@@ -71,5 +72,13 @@ class Google_Service_AndroidPublisher_ProductPurchase extends Google_Model
   public function getPurchaseTimeMillis()
   {
     return $this->purchaseTimeMillis;
+  }
+  public function setPurchaseType($purchaseType)
+  {
+    $this->purchaseType = $purchaseType;
+  }
+  public function getPurchaseType()
+  {
+    return $this->purchaseType;
   }
 }

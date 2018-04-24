@@ -18,10 +18,28 @@
 class Google_Service_ServiceManagement_ContextRule extends Google_Collection
 {
   protected $collection_key = 'requested';
+  public $allowedRequestExtensions;
+  public $allowedResponseExtensions;
   public $provided;
   public $requested;
   public $selector;
 
+  public function setAllowedRequestExtensions($allowedRequestExtensions)
+  {
+    $this->allowedRequestExtensions = $allowedRequestExtensions;
+  }
+  public function getAllowedRequestExtensions()
+  {
+    return $this->allowedRequestExtensions;
+  }
+  public function setAllowedResponseExtensions($allowedResponseExtensions)
+  {
+    $this->allowedResponseExtensions = $allowedResponseExtensions;
+  }
+  public function getAllowedResponseExtensions()
+  {
+    return $this->allowedResponseExtensions;
+  }
   public function setProvided($provided)
   {
     $this->provided = $provided;

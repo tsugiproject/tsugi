@@ -18,6 +18,7 @@
 class Google_Service_YouTube_SponsorSnippet extends Google_Model
 {
   public $channelId;
+  public $cumulativeDurationMonths;
   protected $sponsorDetailsType = 'Google_Service_YouTube_ChannelProfileDetails';
   protected $sponsorDetailsDataType = '';
   public $sponsorSince;
@@ -29,6 +30,14 @@ class Google_Service_YouTube_SponsorSnippet extends Google_Model
   public function getChannelId()
   {
     return $this->channelId;
+  }
+  public function setCumulativeDurationMonths($cumulativeDurationMonths)
+  {
+    $this->cumulativeDurationMonths = $cumulativeDurationMonths;
+  }
+  public function getCumulativeDurationMonths()
+  {
+    return $this->cumulativeDurationMonths;
   }
   /**
    * @param Google_Service_YouTube_ChannelProfileDetails

@@ -17,6 +17,8 @@
 
 class Google_Service_Gmail_Label extends Google_Model
 {
+  protected $colorType = 'Google_Service_Gmail_LabelColor';
+  protected $colorDataType = '';
   public $id;
   public $labelListVisibility;
   public $messageListVisibility;
@@ -27,6 +29,20 @@ class Google_Service_Gmail_Label extends Google_Model
   public $threadsUnread;
   public $type;
 
+  /**
+   * @param Google_Service_Gmail_LabelColor
+   */
+  public function setColor(Google_Service_Gmail_LabelColor $color)
+  {
+    $this->color = $color;
+  }
+  /**
+   * @return Google_Service_Gmail_LabelColor
+   */
+  public function getColor()
+  {
+    return $this->color;
+  }
   public function setId($id)
   {
     $this->id = $id;

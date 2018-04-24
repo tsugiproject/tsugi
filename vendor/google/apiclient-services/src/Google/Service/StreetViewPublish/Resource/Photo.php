@@ -78,7 +78,8 @@ class Google_Service_StreetViewPublish_Resource_Photo extends Google_Service_Res
    *
    * * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the
    * requested Photo. * google.rpc.Code.NOT_FOUND if the requested Photo does not
-   * exist. (photo.get)
+   * exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being
+   * indexed. (photo.get)
    *
    * @param string $photoId Required. ID of the Photo.
    * @param array $optParams Optional parameters.
@@ -135,6 +136,7 @@ class Google_Service_StreetViewPublish_Resource_Photo extends Google_Service_Res
    * * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the
    * requested photo. * google.rpc.Code.INVALID_ARGUMENT if the request is
    * malformed. * google.rpc.Code.NOT_FOUND if the requested photo does not exist.
+   * * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
    * (photo.update)
    *
    * @param string $id Required. A unique identifier for a photo.

@@ -19,6 +19,7 @@ class Google_Service_DoubleClickBidManager_DownloadResponse extends Google_Model
 {
   public $adGroups;
   public $ads;
+  public $campaigns;
   public $insertionOrders;
   public $lineItems;
 
@@ -37,6 +38,14 @@ class Google_Service_DoubleClickBidManager_DownloadResponse extends Google_Model
   public function getAds()
   {
     return $this->ads;
+  }
+  public function setCampaigns($campaigns)
+  {
+    $this->campaigns = $campaigns;
+  }
+  public function getCampaigns()
+  {
+    return $this->campaigns;
   }
   public function setInsertionOrders($insertionOrders)
   {

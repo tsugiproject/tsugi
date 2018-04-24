@@ -18,6 +18,7 @@
 class Google_Service_AdExchangeBuyer_Account extends Google_Collection
 {
   protected $collection_key = 'bidderLocation';
+  public $applyPretargetingToNonGuaranteedDeals;
   protected $bidderLocationType = 'Google_Service_AdExchangeBuyer_AccountBidderLocation';
   protected $bidderLocationDataType = 'array';
   public $cookieMatchingNid;
@@ -28,6 +29,14 @@ class Google_Service_AdExchangeBuyer_Account extends Google_Collection
   public $maximumTotalQps;
   public $numberActiveCreatives;
 
+  public function setApplyPretargetingToNonGuaranteedDeals($applyPretargetingToNonGuaranteedDeals)
+  {
+    $this->applyPretargetingToNonGuaranteedDeals = $applyPretargetingToNonGuaranteedDeals;
+  }
+  public function getApplyPretargetingToNonGuaranteedDeals()
+  {
+    return $this->applyPretargetingToNonGuaranteedDeals;
+  }
   /**
    * @param Google_Service_AdExchangeBuyer_AccountBidderLocation
    */

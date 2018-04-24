@@ -2115,6 +2115,10 @@ class Google_Service_Analytics extends Google_Service
               'path' => 'provisioning/createAccountTicket',
               'httpMethod' => 'POST',
               'parameters' => array(),
+            ),'createAccountTree' => array(
+              'path' => 'provisioning/createAccountTree',
+              'httpMethod' => 'POST',
+              'parameters' => array(),
             ),
           )
         )

@@ -38,4 +38,17 @@ class Google_Service_Analytics_Resource_Provisioning extends Google_Service_Reso
     $params = array_merge($params, $optParams);
     return $this->call('createAccountTicket', array($params), "Google_Service_Analytics_AccountTicket");
   }
+  /**
+   * Provision account. (provisioning.createAccountTree)
+   *
+   * @param Google_Service_Analytics_AccountTreeRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Google_Service_Analytics_AccountTreeResponse
+   */
+  public function createAccountTree(Google_Service_Analytics_AccountTreeRequest $postBody, $optParams = array())
+  {
+    $params = array('postBody' => $postBody);
+    $params = array_merge($params, $optParams);
+    return $this->call('createAccountTree', array($params), "Google_Service_Analytics_AccountTreeResponse");
+  }
 }

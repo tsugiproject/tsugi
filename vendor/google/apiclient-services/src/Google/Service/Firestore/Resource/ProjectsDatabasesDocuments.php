@@ -107,10 +107,10 @@ class Google_Service_Firestore_Resource_ProjectsDatabasesDocuments extends Googl
    * `projects/{project_id}/databases/{database_id}/documents/{document_path}`.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool currentDocument.exists When set to `true`, the target
-   * document must exist. When set to `false`, the target document must not exist.
    * @opt_param string currentDocument.updateTime When set, the target document
    * must exist and have been last updated at that time.
+   * @opt_param bool currentDocument.exists When set to `true`, the target
+   * document must exist. When set to `false`, the target document must not exist.
    * @return Google_Service_Firestore_FirestoreEmpty
    */
   public function delete($name, $optParams = array())
@@ -126,11 +126,11 @@ class Google_Service_Firestore_Resource_ProjectsDatabasesDocuments extends Googl
    * `projects/{project_id}/databases/{database_id}/documents/{document_path}`.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string transaction Reads the document in a transaction.
    * @opt_param string mask.fieldPaths The list of field paths in the mask. See
    * Document.fields for a field path syntax reference.
    * @opt_param string readTime Reads the version of the document at the given
    * time. This may not be older than 60 seconds.
-   * @opt_param string transaction Reads the document in a transaction.
    * @return Google_Service_Firestore_Document
    */
   public function get($name, $optParams = array())
@@ -151,22 +151,22 @@ class Google_Service_Firestore_Resource_ProjectsDatabasesDocuments extends Googl
    * For example: `chatrooms` or `messages`.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The maximum number of documents to return.
-   * @opt_param string transaction Reads documents in a transaction.
-   * @opt_param string readTime Reads documents as they were at the given time.
-   * This may not be older than 60 seconds.
    * @opt_param string orderBy The order to sort results by. For example:
    * `priority desc, name`.
+   * @opt_param string readTime Reads documents as they were at the given time.
+   * This may not be older than 60 seconds.
    * @opt_param bool showMissing If the list should show missing documents. A
    * missing document is a document that does not exist but has sub-documents.
    * These documents will be returned with a key but will not have fields,
    * Document.create_time, or Document.update_time set.
    *
    * Requests with `show_missing` may not specify `where` or `order_by`.
-   * @opt_param string mask.fieldPaths The list of field paths in the mask. See
-   * Document.fields for a field path syntax reference.
    * @opt_param string pageToken The `next_page_token` value returned from a
    * previous List request, if any.
+   * @opt_param string mask.fieldPaths The list of field paths in the mask. See
+   * Document.fields for a field path syntax reference.
+   * @opt_param int pageSize The maximum number of documents to return.
+   * @opt_param string transaction Reads documents in a transaction.
    * @return Google_Service_Firestore_ListDocumentsResponse
    */
   public function listProjectsDatabasesDocuments($parent, $collectionId, $optParams = array())

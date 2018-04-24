@@ -23,6 +23,7 @@ class Google_Service_Dataflow_AutoscalingEvent extends Google_Model
   public $eventType;
   public $targetNumWorkers;
   public $time;
+  public $workerPool;
 
   public function setCurrentNumWorkers($currentNumWorkers)
   {
@@ -69,5 +70,13 @@ class Google_Service_Dataflow_AutoscalingEvent extends Google_Model
   public function getTime()
   {
     return $this->time;
+  }
+  public function setWorkerPool($workerPool)
+  {
+    $this->workerPool = $workerPool;
+  }
+  public function getWorkerPool()
+  {
+    return $this->workerPool;
   }
 }

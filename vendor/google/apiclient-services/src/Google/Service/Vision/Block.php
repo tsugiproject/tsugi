@@ -21,6 +21,7 @@ class Google_Service_Vision_Block extends Google_Collection
   public $blockType;
   protected $boundingBoxType = 'Google_Service_Vision_BoundingPoly';
   protected $boundingBoxDataType = '';
+  public $confidence;
   protected $paragraphsType = 'Google_Service_Vision_Paragraph';
   protected $paragraphsDataType = 'array';
   protected $propertyType = 'Google_Service_Vision_TextProperty';
@@ -47,6 +48,14 @@ class Google_Service_Vision_Block extends Google_Collection
   public function getBoundingBox()
   {
     return $this->boundingBox;
+  }
+  public function setConfidence($confidence)
+  {
+    $this->confidence = $confidence;
+  }
+  public function getConfidence()
+  {
+    return $this->confidence;
   }
   /**
    * @param Google_Service_Vision_Paragraph

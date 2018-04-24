@@ -19,9 +19,11 @@ class Google_Service_AndroidManagement_ApplicationPolicy extends Google_Collecti
 {
   protected $collection_key = 'permissionGrants';
   public $defaultPermissionPolicy;
+  public $delegatedScopes;
   public $installType;
   public $lockTaskAllowed;
   public $managedConfiguration;
+  public $minimumVersionCode;
   public $packageName;
   protected $permissionGrantsType = 'Google_Service_AndroidManagement_PermissionGrant';
   protected $permissionGrantsDataType = 'array';
@@ -33,6 +35,14 @@ class Google_Service_AndroidManagement_ApplicationPolicy extends Google_Collecti
   public function getDefaultPermissionPolicy()
   {
     return $this->defaultPermissionPolicy;
+  }
+  public function setDelegatedScopes($delegatedScopes)
+  {
+    $this->delegatedScopes = $delegatedScopes;
+  }
+  public function getDelegatedScopes()
+  {
+    return $this->delegatedScopes;
   }
   public function setInstallType($installType)
   {
@@ -57,6 +67,14 @@ class Google_Service_AndroidManagement_ApplicationPolicy extends Google_Collecti
   public function getManagedConfiguration()
   {
     return $this->managedConfiguration;
+  }
+  public function setMinimumVersionCode($minimumVersionCode)
+  {
+    $this->minimumVersionCode = $minimumVersionCode;
+  }
+  public function getMinimumVersionCode()
+  {
+    return $this->minimumVersionCode;
   }
   public function setPackageName($packageName)
   {

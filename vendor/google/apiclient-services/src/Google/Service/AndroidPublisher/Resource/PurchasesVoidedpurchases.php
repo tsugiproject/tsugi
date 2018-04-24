@@ -26,7 +26,7 @@
 class Google_Service_AndroidPublisher_Resource_PurchasesVoidedpurchases extends Google_Service_Resource
 {
   /**
-   * Lists the purchases that were cancelled, refunded or charged-back.
+   * Lists the purchases that were canceled, refunded or charged-back.
    * (voidedpurchases.listPurchasesVoidedpurchases)
    *
    * @param string $packageName The package name of the application for which

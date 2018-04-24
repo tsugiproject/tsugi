@@ -18,11 +18,27 @@
 class Google_Service_Dns_ResourceRecordSetsListResponse extends Google_Collection
 {
   protected $collection_key = 'rrsets';
+  protected $headerType = 'Google_Service_Dns_ResponseHeader';
+  protected $headerDataType = '';
   public $kind;
   public $nextPageToken;
   protected $rrsetsType = 'Google_Service_Dns_ResourceRecordSet';
   protected $rrsetsDataType = 'array';
 
+  /**
+   * @param Google_Service_Dns_ResponseHeader
+   */
+  public function setHeader(Google_Service_Dns_ResponseHeader $header)
+  {
+    $this->header = $header;
+  }
+  /**
+   * @return Google_Service_Dns_ResponseHeader
+   */
+  public function getHeader()
+  {
+    return $this->header;
+  }
   public function setKind($kind)
   {
     $this->kind = $kind;

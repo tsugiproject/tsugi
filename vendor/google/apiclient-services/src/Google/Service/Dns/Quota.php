@@ -15,8 +15,10 @@
  * the License.
  */
 
-class Google_Service_Dns_Quota extends Google_Model
+class Google_Service_Dns_Quota extends Google_Collection
 {
+  protected $collection_key = 'whitelistedKeySpecs';
+  public $dnsKeysPerManagedZone;
   public $kind;
   public $managedZones;
   public $resourceRecordsPerRrset;
@@ -24,7 +26,17 @@ class Google_Service_Dns_Quota extends Google_Model
   public $rrsetDeletionsPerChange;
   public $rrsetsPerManagedZone;
   public $totalRrdataSizePerChange;
+  protected $whitelistedKeySpecsType = 'Google_Service_Dns_DnsKeySpec';
+  protected $whitelistedKeySpecsDataType = 'array';
 
+  public function setDnsKeysPerManagedZone($dnsKeysPerManagedZone)
+  {
+    $this->dnsKeysPerManagedZone = $dnsKeysPerManagedZone;
+  }
+  public function getDnsKeysPerManagedZone()
+  {
+    return $this->dnsKeysPerManagedZone;
+  }
   public function setKind($kind)
   {
     $this->kind = $kind;
@@ -80,5 +92,19 @@ class Google_Service_Dns_Quota extends Google_Model
   public function getTotalRrdataSizePerChange()
   {
     return $this->totalRrdataSizePerChange;
+  }
+  /**
+   * @param Google_Service_Dns_DnsKeySpec
+   */
+  public function setWhitelistedKeySpecs($whitelistedKeySpecs)
+  {
+    $this->whitelistedKeySpecs = $whitelistedKeySpecs;
+  }
+  /**
+   * @return Google_Service_Dns_DnsKeySpec
+   */
+  public function getWhitelistedKeySpecs()
+  {
+    return $this->whitelistedKeySpecs;
   }
 }

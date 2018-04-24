@@ -23,7 +23,6 @@ class Google_Service_CloudOSLogin_LoginProfile extends Google_Collection
   protected $posixAccountsDataType = 'array';
   protected $sshPublicKeysType = 'Google_Service_CloudOSLogin_SshPublicKey';
   protected $sshPublicKeysDataType = 'map';
-  public $suspended;
 
   public function setName($name)
   {
@@ -60,13 +59,5 @@ class Google_Service_CloudOSLogin_LoginProfile extends Google_Collection
   public function getSshPublicKeys()
   {
     return $this->sshPublicKeys;
-  }
-  public function setSuspended($suspended)
-  {
-    $this->suspended = $suspended;
-  }
-  public function getSuspended()
-  {
-    return $this->suspended;
   }
 }

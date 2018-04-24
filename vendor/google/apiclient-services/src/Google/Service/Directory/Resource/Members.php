@@ -53,10 +53,13 @@ class Google_Service_Directory_Resource_Members extends Google_Service_Resource
     return $this->call('get', array($params), "Google_Service_Directory_Member");
   }
   /**
-   * Checks Membership of an user within a Group (members.hasMember)
+   * Checks whether the given user is a member of the group. Membership can be
+   * direct or nested. (members.hasMember)
    *
-   * @param string $groupKey Email or immutable Id of the group
-   * @param string $memberKey Email or immutable Id of the member
+   * @param string $groupKey Identifies the group in the API request. The value
+   * can be the group's email address, group alias, or the unique group ID.
+   * @param string $memberKey Identifies the user member in the API request. The
+   * value can be the user's primary email address, alias, or unique ID.
    * @param array $optParams Optional parameters.
    * @return Google_Service_Directory_MembersHasMember
    */

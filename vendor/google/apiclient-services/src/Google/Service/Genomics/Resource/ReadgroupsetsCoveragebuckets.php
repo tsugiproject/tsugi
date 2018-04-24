@@ -30,10 +30,6 @@ class Google_Service_Genomics_Resource_ReadgroupsetsCoveragebuckets extends Goog
    * correspond to a range of a reference sequence. Each bucket summarizes
    * coverage information across its corresponding genomic range.
    *
-   * For the definitions of read group sets and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
-   *
    * Coverage is defined as the number of reads which are aligned to a given base
    * in the reference sequence. Coverage buckets are available at several
    * precomputed bucket widths, enabling retrieval of various coverage 'zoom
@@ -44,11 +40,6 @@ class Google_Service_Genomics_Resource_ReadgroupsetsCoveragebuckets extends Goog
    * which coverage is requested.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string referenceName The name of the reference to query, within
-   * the reference set associated with this query. Optional.
-   * @opt_param string end The end position of the range on the reference, 0-based
-   * exclusive. If specified, `referenceName` must also be specified. If unset or
-   * 0, defaults to the length of the reference.
    * @opt_param string pageToken The continuation token, which is used to page
    * through large result sets. To get the next page of results, set this
    * parameter to the value of `nextPageToken` from the previous response.
@@ -64,6 +55,11 @@ class Google_Service_Genomics_Resource_ReadgroupsetsCoveragebuckets extends Goog
    * sequence) or the length of the target range, if specified. The smallest
    * precomputed `bucketWidth` is currently 2048 base pairs; this is subject to
    * change.
+   * @opt_param string referenceName The name of the reference to query, within
+   * the reference set associated with this query. Optional.
+   * @opt_param string end The end position of the range on the reference, 0-based
+   * exclusive. If specified, `referenceName` must also be specified. If unset or
+   * 0, defaults to the length of the reference.
    * @return Google_Service_Genomics_ListCoverageBucketsResponse
    */
   public function listReadgroupsetsCoveragebuckets($readGroupSetId, $optParams = array())

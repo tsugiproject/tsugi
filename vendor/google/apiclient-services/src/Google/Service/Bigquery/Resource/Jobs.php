@@ -33,6 +33,9 @@ class Google_Service_Bigquery_Resource_Jobs extends Google_Service_Resource
    * @param string $projectId [Required] Project ID of the job to cancel
    * @param string $jobId [Required] Job ID of the job to cancel
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string location [Experimental] The geographic location of the job.
+   * Required except for US and EU.
    * @return Google_Service_Bigquery_JobCancelResponse
    */
   public function cancel($projectId, $jobId, $optParams = array())
@@ -49,6 +52,9 @@ class Google_Service_Bigquery_Resource_Jobs extends Google_Service_Resource
    * @param string $projectId [Required] Project ID of the requested job
    * @param string $jobId [Required] Job ID of the requested job
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string location [Experimental] The geographic location of the job.
+   * Required except for US and EU.
    * @return Google_Service_Bigquery_Job
    */
   public function get($projectId, $jobId, $optParams = array())
@@ -64,6 +70,8 @@ class Google_Service_Bigquery_Resource_Jobs extends Google_Service_Resource
    * @param string $jobId [Required] Job ID of the query job
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string location [Experimental] The geographic location where the
+   * job should run. Required except for US and EU.
    * @opt_param string maxResults Maximum number of results to read
    * @opt_param string pageToken Page token, returned by a previous call, to
    * request the next page of results
@@ -108,7 +116,13 @@ class Google_Service_Bigquery_Resource_Jobs extends Google_Service_Resource
    *
    * @opt_param bool allUsers Whether to display jobs owned by all users in the
    * project. Default false
+   * @opt_param string maxCreationTime Max value for job creation time, in
+   * milliseconds since the POSIX epoch. If set, only jobs created before or at
+   * this timestamp are returned
    * @opt_param string maxResults Maximum number of results to return
+   * @opt_param string minCreationTime Min value for job creation time, in
+   * milliseconds since the POSIX epoch. If set, only jobs created after or at
+   * this timestamp are returned
    * @opt_param string pageToken Page token, returned by a previous call, to
    * request the next page of results
    * @opt_param string projection Restrict information returned to a set of

@@ -31,7 +31,8 @@ class Google_Service_Appengine_Resource_Apps extends Google_Service_Resource
    * The region (https://cloud.google.com/appengine/docs/locations) where you want
    * the App Engine application located.For more information about App Engine
    * applications, see Managing Projects, Applications, and Billing
-   * (https://cloud.google.com/appengine/docs/python/console/). (apps.create)
+   * (https://cloud.google.com/appengine/docs/standard/python/console/).
+   * (apps.create)
    *
    * @param Google_Service_Appengine_Application $postBody
    * @param array $optParams Optional parameters.

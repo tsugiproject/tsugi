@@ -45,6 +45,10 @@ class Google_Service_Sheets_ChartSpec extends Google_Model
   protected $titleTextFormatDataType = '';
   protected $titleTextPositionType = 'Google_Service_Sheets_TextPosition';
   protected $titleTextPositionDataType = '';
+  protected $treemapChartType = 'Google_Service_Sheets_TreemapChartSpec';
+  protected $treemapChartDataType = '';
+  protected $waterfallChartType = 'Google_Service_Sheets_WaterfallChartSpec';
+  protected $waterfallChartDataType = '';
 
   public function setAltText($altText)
   {
@@ -247,5 +251,33 @@ class Google_Service_Sheets_ChartSpec extends Google_Model
   public function getTitleTextPosition()
   {
     return $this->titleTextPosition;
+  }
+  /**
+   * @param Google_Service_Sheets_TreemapChartSpec
+   */
+  public function setTreemapChart(Google_Service_Sheets_TreemapChartSpec $treemapChart)
+  {
+    $this->treemapChart = $treemapChart;
+  }
+  /**
+   * @return Google_Service_Sheets_TreemapChartSpec
+   */
+  public function getTreemapChart()
+  {
+    return $this->treemapChart;
+  }
+  /**
+   * @param Google_Service_Sheets_WaterfallChartSpec
+   */
+  public function setWaterfallChart(Google_Service_Sheets_WaterfallChartSpec $waterfallChart)
+  {
+    $this->waterfallChart = $waterfallChart;
+  }
+  /**
+   * @return Google_Service_Sheets_WaterfallChartSpec
+   */
+  public function getWaterfallChart()
+  {
+    return $this->waterfallChart;
   }
 }

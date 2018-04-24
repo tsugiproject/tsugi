@@ -19,6 +19,7 @@ class Google_Service_Container_Operation extends Google_Model
 {
   public $detail;
   public $endTime;
+  public $location;
   public $name;
   public $operationType;
   public $selfLink;
@@ -43,6 +44,14 @@ class Google_Service_Container_Operation extends Google_Model
   public function getEndTime()
   {
     return $this->endTime;
+  }
+  public function setLocation($location)
+  {
+    $this->location = $location;
+  }
+  public function getLocation()
+  {
+    return $this->location;
   }
   public function setName($name)
   {

@@ -44,7 +44,6 @@ class Google_Service_AndroidPublisher extends Google_Service
   public $edits_listings;
   public $edits_testers;
   public $edits_tracks;
-  public $entitlements;
   public $inappproducts;
   public $purchases_products;
   public $purchases_subscriptions;
@@ -933,42 +932,6 @@ class Google_Service_AndroidPublisher extends Google_Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
-                ),
-              ),
-            ),
-          )
-        )
-    );
-    $this->entitlements = new Google_Service_AndroidPublisher_Resource_Entitlements(
-        $this,
-        $this->serviceName,
-        'entitlements',
-        array(
-          'methods' => array(
-            'list' => array(
-              'path' => '{packageName}/entitlements',
-              'httpMethod' => 'GET',
-              'parameters' => array(
-                'packageName' => array(
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ),
-                'maxResults' => array(
-                  'location' => 'query',
-                  'type' => 'integer',
-                ),
-                'productId' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'startIndex' => array(
-                  'location' => 'query',
-                  'type' => 'integer',
-                ),
-                'token' => array(
-                  'location' => 'query',
-                  'type' => 'string',
                 ),
               ),
             ),

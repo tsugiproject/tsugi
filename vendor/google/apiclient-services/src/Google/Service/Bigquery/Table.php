@@ -17,6 +17,8 @@
 
 class Google_Service_Bigquery_Table extends Google_Model
 {
+  protected $clusteringType = 'Google_Service_Bigquery_Clustering';
+  protected $clusteringDataType = '';
   public $creationTime;
   public $description;
   protected $encryptionConfigurationType = 'Google_Service_Bigquery_EncryptionConfiguration';
@@ -47,6 +49,20 @@ class Google_Service_Bigquery_Table extends Google_Model
   protected $viewType = 'Google_Service_Bigquery_ViewDefinition';
   protected $viewDataType = '';
 
+  /**
+   * @param Google_Service_Bigquery_Clustering
+   */
+  public function setClustering(Google_Service_Bigquery_Clustering $clustering)
+  {
+    $this->clustering = $clustering;
+  }
+  /**
+   * @return Google_Service_Bigquery_Clustering
+   */
+  public function getClustering()
+  {
+    return $this->clustering;
+  }
   public function setCreationTime($creationTime)
   {
     $this->creationTime = $creationTime;

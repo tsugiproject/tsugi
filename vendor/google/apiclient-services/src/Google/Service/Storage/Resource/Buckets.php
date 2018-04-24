@@ -130,6 +130,24 @@ class Google_Service_Storage_Resource_Buckets extends Google_Service_Resource
     return $this->call('list', array($params), "Google_Service_Storage_Buckets");
   }
   /**
+   * Locks retention policy on a bucket. (buckets.lockRetentionPolicy)
+   *
+   * @param string $bucket Name of a bucket.
+   * @param string $ifMetagenerationMatch Makes the operation conditional on
+   * whether bucket's current metageneration matches the given value.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string userProject The project to be billed for this request.
+   * Required for Requester Pays buckets.
+   * @return Google_Service_Storage_Bucket
+   */
+  public function lockRetentionPolicy($bucket, $ifMetagenerationMatch, $optParams = array())
+  {
+    $params = array('bucket' => $bucket, 'ifMetagenerationMatch' => $ifMetagenerationMatch);
+    $params = array_merge($params, $optParams);
+    return $this->call('lockRetentionPolicy', array($params), "Google_Service_Storage_Bucket");
+  }
+  /**
    * Updates a bucket. Changes to the bucket will be readable immediately after
    * writing, but configuration changes may take time to propagate. This method
    * supports patch semantics. (buckets.patch)

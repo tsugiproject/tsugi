@@ -17,8 +17,17 @@
 
 class Google_Service_Bigquery_GoogleSheetsOptions extends Google_Model
 {
+  public $range;
   public $skipLeadingRows;
 
+  public function setRange($range)
+  {
+    $this->range = $range;
+  }
+  public function getRange()
+  {
+    return $this->range;
+  }
   public function setSkipLeadingRows($skipLeadingRows)
   {
     $this->skipLeadingRows = $skipLeadingRows;

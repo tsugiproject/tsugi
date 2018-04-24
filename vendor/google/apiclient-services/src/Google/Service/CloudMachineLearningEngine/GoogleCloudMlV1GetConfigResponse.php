@@ -17,9 +17,25 @@
 
 class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1GetConfigResponse extends Google_Model
 {
+  protected $configType = 'Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Config';
+  protected $configDataType = '';
   public $serviceAccount;
   public $serviceAccountProject;
 
+  /**
+   * @param Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Config
+   */
+  public function setConfig(Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Config $config)
+  {
+    $this->config = $config;
+  }
+  /**
+   * @return Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Config
+   */
+  public function getConfig()
+  {
+    return $this->config;
+  }
   public function setServiceAccount($serviceAccount)
   {
     $this->serviceAccount = $serviceAccount;

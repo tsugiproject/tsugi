@@ -15,9 +15,11 @@
  * the License.
  */
 
-class Google_Service_ShoppingContent_ProductstatusesCustomBatchRequestEntry extends Google_Model
+class Google_Service_ShoppingContent_ProductstatusesCustomBatchRequestEntry extends Google_Collection
 {
+  protected $collection_key = 'destinations';
   public $batchId;
+  public $destinations;
   public $includeAttributes;
   public $merchantId;
   public $method;
@@ -30,6 +32,14 @@ class Google_Service_ShoppingContent_ProductstatusesCustomBatchRequestEntry exte
   public function getBatchId()
   {
     return $this->batchId;
+  }
+  public function setDestinations($destinations)
+  {
+    $this->destinations = $destinations;
+  }
+  public function getDestinations()
+  {
+    return $this->destinations;
   }
   public function setIncludeAttributes($includeAttributes)
   {

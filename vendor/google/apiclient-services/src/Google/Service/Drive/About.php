@@ -19,6 +19,7 @@ class Google_Service_Drive_About extends Google_Collection
 {
   protected $collection_key = 'teamDriveThemes';
   public $appInstalled;
+  public $canCreateTeamDrives;
   public $exportFormats;
   public $folderColorPalette;
   public $importFormats;
@@ -39,6 +40,14 @@ class Google_Service_Drive_About extends Google_Collection
   public function getAppInstalled()
   {
     return $this->appInstalled;
+  }
+  public function setCanCreateTeamDrives($canCreateTeamDrives)
+  {
+    $this->canCreateTeamDrives = $canCreateTeamDrives;
+  }
+  public function getCanCreateTeamDrives()
+  {
+    return $this->canCreateTeamDrives;
   }
   public function setExportFormats($exportFormats)
   {

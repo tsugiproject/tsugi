@@ -162,6 +162,22 @@ class Google_Service_Fusiontables_Resource_Table extends Google_Service_Resource
     return $this->call('patch', array($params), "Google_Service_Fusiontables_Table");
   }
   /**
+   * Replaces rows of the table with the rows of the spreadsheet that is first
+   * imported from. Current rows remain visible until all replacement rows are
+   * ready. (table.refetchSheet)
+   *
+   * @param string $tableId Table whose rows will be replaced from the
+   * spreadsheet.
+   * @param array $optParams Optional parameters.
+   * @return Google_Service_Fusiontables_Task
+   */
+  public function refetchSheet($tableId, $optParams = array())
+  {
+    $params = array('tableId' => $tableId);
+    $params = array_merge($params, $optParams);
+    return $this->call('refetchSheet', array($params), "Google_Service_Fusiontables_Task");
+  }
+  /**
    * Replaces rows of an existing table. Current rows remain visible until all
    * replacement rows are ready. (table.replaceRows)
    *

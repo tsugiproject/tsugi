@@ -21,6 +21,8 @@ class Google_Service_ShoppingContent_Account extends Google_Collection
   public $adultContent;
   protected $adwordsLinksType = 'Google_Service_ShoppingContent_AccountAdwordsLink';
   protected $adwordsLinksDataType = 'array';
+  protected $googleMyBusinessLinkType = 'Google_Service_ShoppingContent_AccountGoogleMyBusinessLink';
+  protected $googleMyBusinessLinkDataType = '';
   public $id;
   public $kind;
   public $name;
@@ -53,6 +55,20 @@ class Google_Service_ShoppingContent_Account extends Google_Collection
   public function getAdwordsLinks()
   {
     return $this->adwordsLinks;
+  }
+  /**
+   * @param Google_Service_ShoppingContent_AccountGoogleMyBusinessLink
+   */
+  public function setGoogleMyBusinessLink(Google_Service_ShoppingContent_AccountGoogleMyBusinessLink $googleMyBusinessLink)
+  {
+    $this->googleMyBusinessLink = $googleMyBusinessLink;
+  }
+  /**
+   * @return Google_Service_ShoppingContent_AccountGoogleMyBusinessLink
+   */
+  public function getGoogleMyBusinessLink()
+  {
+    return $this->googleMyBusinessLink;
   }
   public function setId($id)
   {

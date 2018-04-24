@@ -23,6 +23,7 @@ class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1HyperparameterOut
   protected $finalMetricType = 'Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1HyperparameterOutputHyperparameterMetric';
   protected $finalMetricDataType = '';
   public $hyperparameters;
+  public $isTrialStoppedEarly;
   public $trialId;
 
   /**
@@ -60,6 +61,14 @@ class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1HyperparameterOut
   public function getHyperparameters()
   {
     return $this->hyperparameters;
+  }
+  public function setIsTrialStoppedEarly($isTrialStoppedEarly)
+  {
+    $this->isTrialStoppedEarly = $isTrialStoppedEarly;
+  }
+  public function getIsTrialStoppedEarly()
+  {
+    return $this->isTrialStoppedEarly;
   }
   public function setTrialId($trialId)
   {

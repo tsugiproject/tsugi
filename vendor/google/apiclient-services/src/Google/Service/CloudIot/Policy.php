@@ -18,28 +18,11 @@
 class Google_Service_CloudIot_Policy extends Google_Collection
 {
   protected $collection_key = 'bindings';
-  protected $auditConfigsType = 'Google_Service_CloudIot_AuditConfig';
-  protected $auditConfigsDataType = 'array';
   protected $bindingsType = 'Google_Service_CloudIot_Binding';
   protected $bindingsDataType = 'array';
   public $etag;
-  public $iamOwned;
   public $version;
 
-  /**
-   * @param Google_Service_CloudIot_AuditConfig
-   */
-  public function setAuditConfigs($auditConfigs)
-  {
-    $this->auditConfigs = $auditConfigs;
-  }
-  /**
-   * @return Google_Service_CloudIot_AuditConfig
-   */
-  public function getAuditConfigs()
-  {
-    return $this->auditConfigs;
-  }
   /**
    * @param Google_Service_CloudIot_Binding
    */
@@ -61,14 +44,6 @@ class Google_Service_CloudIot_Policy extends Google_Collection
   public function getEtag()
   {
     return $this->etag;
-  }
-  public function setIamOwned($iamOwned)
-  {
-    $this->iamOwned = $iamOwned;
-  }
-  public function getIamOwned()
-  {
-    return $this->iamOwned;
   }
   public function setVersion($version)
   {

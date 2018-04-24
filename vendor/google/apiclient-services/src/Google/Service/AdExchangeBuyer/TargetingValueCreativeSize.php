@@ -18,6 +18,7 @@
 class Google_Service_AdExchangeBuyer_TargetingValueCreativeSize extends Google_Collection
 {
   protected $collection_key = 'companionSizes';
+  public $allowedFormats;
   protected $companionSizesType = 'Google_Service_AdExchangeBuyer_TargetingValueSize';
   protected $companionSizesDataType = 'array';
   public $creativeSizeType;
@@ -26,6 +27,14 @@ class Google_Service_AdExchangeBuyer_TargetingValueCreativeSize extends Google_C
   protected $sizeDataType = '';
   public $skippableAdType;
 
+  public function setAllowedFormats($allowedFormats)
+  {
+    $this->allowedFormats = $allowedFormats;
+  }
+  public function getAllowedFormats()
+  {
+    return $this->allowedFormats;
+  }
   /**
    * @param Google_Service_AdExchangeBuyer_TargetingValueSize
    */

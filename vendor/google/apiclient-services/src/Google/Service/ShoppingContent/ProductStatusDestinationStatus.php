@@ -17,10 +17,19 @@
 
 class Google_Service_ShoppingContent_ProductStatusDestinationStatus extends Google_Model
 {
+  public $approvalPending;
   public $approvalStatus;
   public $destination;
   public $intention;
 
+  public function setApprovalPending($approvalPending)
+  {
+    $this->approvalPending = $approvalPending;
+  }
+  public function getApprovalPending()
+  {
+    return $this->approvalPending;
+  }
   public function setApprovalStatus($approvalStatus)
   {
     $this->approvalStatus = $approvalStatus;

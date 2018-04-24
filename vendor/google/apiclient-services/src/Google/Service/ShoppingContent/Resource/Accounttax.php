@@ -44,9 +44,9 @@ class Google_Service_ShoppingContent_Resource_Accounttax extends Google_Service_
   /**
    * Retrieves the tax settings of the account. (accounttax.get)
    *
-   * @param string $merchantId The ID of the managing account. If this account is
-   * not a multi-client account, then this parameter must be the same as
-   * accountId.
+   * @param string $merchantId The ID of the managing account. If this parameter
+   * is not the same as accountId, then this account must be a multi-client
+   * account and accountId must be the ID of a sub-account of this account.
    * @param string $accountId The ID of the account for which to get/update
    * account tax settings.
    * @param array $optParams Optional parameters.
@@ -81,9 +81,9 @@ class Google_Service_ShoppingContent_Resource_Accounttax extends Google_Service_
    * Updates the tax settings of the account. This method supports patch
    * semantics. (accounttax.patch)
    *
-   * @param string $merchantId The ID of the managing account. If this account is
-   * not a multi-client account, then this parameter must be the same as
-   * accountId.
+   * @param string $merchantId The ID of the managing account. If this parameter
+   * is not the same as accountId, then this account must be a multi-client
+   * account and accountId must be the ID of a sub-account of this account.
    * @param string $accountId The ID of the account for which to get/update
    * account tax settings.
    * @param Google_Service_ShoppingContent_AccountTax $postBody
@@ -101,9 +101,9 @@ class Google_Service_ShoppingContent_Resource_Accounttax extends Google_Service_
   /**
    * Updates the tax settings of the account. (accounttax.update)
    *
-   * @param string $merchantId The ID of the managing account. If this account is
-   * not a multi-client account, then this parameter must be the same as
-   * accountId.
+   * @param string $merchantId The ID of the managing account. If this parameter
+   * is not the same as accountId, then this account must be a multi-client
+   * account and accountId must be the ID of a sub-account of this account.
    * @param string $accountId The ID of the account for which to get/update
    * account tax settings.
    * @param Google_Service_ShoppingContent_AccountTax $postBody

@@ -26,7 +26,7 @@
 class Google_Service_CloudBuild_Resource_ProjectsBuilds extends Google_Service_Resource
 {
   /**
-   * Cancels a requested build in progress. (builds.cancel)
+   * Cancels a build in progress. (builds.cancel)
    *
    * @param string $projectId ID of the project.
    * @param string $id ID of the build.
@@ -43,9 +43,9 @@ class Google_Service_CloudBuild_Resource_ProjectsBuilds extends Google_Service_R
   /**
    * Starts a build with the specified configuration.
    *
-   * The long-running Operation returned by this method will include the ID of the
-   * build, which can be passed to GetBuild to determine its status (e.g., success
-   * or failure). (builds.create)
+   * This method returns a long-running `Operation`, which includes the build ID.
+   * Pass the build ID to `GetBuild` to determine the build status (such as
+   * `SUCCESS` or `FAILURE`). (builds.create)
    *
    * @param string $projectId ID of the project.
    * @param Google_Service_CloudBuild_Build $postBody
@@ -61,8 +61,8 @@ class Google_Service_CloudBuild_Resource_ProjectsBuilds extends Google_Service_R
   /**
    * Returns information about a previously requested build.
    *
-   * The Build that is returned includes its status (e.g., success or failure, or
-   * in-progress), and timing information. (builds.get)
+   * The `Build` that is returned includes its status (such as `SUCCESS`,
+   * `FAILURE`, or `WORKING`), and timing information. (builds.get)
    *
    * @param string $projectId ID of the project.
    * @param string $id ID of the build.
@@ -97,32 +97,32 @@ class Google_Service_CloudBuild_Resource_ProjectsBuilds extends Google_Service_R
     return $this->call('list', array($params), "Google_Service_CloudBuild_ListBuildsResponse");
   }
   /**
-   * Creates a new build based on the given build.
+   * Creates a new build based on the specified build.
    *
-   * This API creates a new build using the original build request,  which may or
-   * may not result in an identical build.
+   * This method creates a new build using the original build request, which may
+   * or may not result in an identical build.
    *
    * For triggered builds:
    *
-   * * Triggered builds resolve to a precise revision, so a retry of a triggered
-   * build will result in a build that uses the same revision.
+   * * Triggered builds resolve to a precise revision; therefore a retry of a
+   * triggered build will result in a build that uses the same revision.
    *
-   * For non-triggered builds that specify RepoSource:
+   * For non-triggered builds that specify `RepoSource`:
    *
    * * If the original build built from the tip of a branch, the retried build
    * will build from the tip of that branch, which may not be the same revision as
    * the original build. * If the original build specified a commit sha or
    * revision ID, the retried build will use the identical source.
    *
-   * For builds that specify StorageSource:
+   * For builds that specify `StorageSource`:
    *
-   * * If the original build pulled source from Cloud Storage without specifying
-   * the generation of the object, the new build will use the current object,
-   * which may be different from the original build source. * If the original
-   * build pulled source from Cloud Storage and specified the generation of the
-   * object, the new build will attempt to use the same object, which may or may
-   * not be available depending on the bucket's lifecycle management settings.
-   * (builds.retry)
+   * * If the original build pulled source from Google Cloud Storage without
+   * specifying the generation of the object, the new build will use the current
+   * object, which may be different from the original build source. * If the
+   * original build pulled source from Cloud Storage and specified the generation
+   * of the object, the new build will attempt to use the same object, which may
+   * or may not be available depending on the bucket's lifecycle management
+   * settings. (builds.retry)
    *
    * @param string $projectId ID of the project.
    * @param string $id Build ID of the original build.

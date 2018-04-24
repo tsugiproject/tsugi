@@ -32,7 +32,6 @@ class Google_Service_Games_Resource_Rooms extends Google_Service_Resource
    * @param Google_Service_Games_RoomCreateRequest $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @return Google_Service_Games_Room
@@ -50,7 +49,6 @@ class Google_Service_Games_Resource_Rooms extends Google_Service_Resource
    * @param string $roomId The ID of the room.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @return Google_Service_Games_Room
@@ -67,8 +65,6 @@ class Google_Service_Games_Resource_Rooms extends Google_Service_Resource
    *
    * @param string $roomId The ID of the room.
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    */
   public function dismiss($roomId, $optParams = array())
   {
@@ -82,7 +78,6 @@ class Google_Service_Games_Resource_Rooms extends Google_Service_Resource
    * @param string $roomId The ID of the room.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @return Google_Service_Games_Room
@@ -101,7 +96,6 @@ class Google_Service_Games_Resource_Rooms extends Google_Service_Resource
    * @param Google_Service_Games_RoomJoinRequest $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @return Google_Service_Games_Room
@@ -120,7 +114,6 @@ class Google_Service_Games_Resource_Rooms extends Google_Service_Resource
    * @param Google_Service_Games_RoomLeaveRequest $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @return Google_Service_Games_Room
@@ -136,7 +129,6 @@ class Google_Service_Games_Resource_Rooms extends Google_Service_Resource
    *
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @opt_param int maxResults The maximum number of rooms to return in the
@@ -160,7 +152,6 @@ class Google_Service_Games_Resource_Rooms extends Google_Service_Resource
    * @param Google_Service_Games_RoomP2PStatuses $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @return Google_Service_Games_RoomStatus

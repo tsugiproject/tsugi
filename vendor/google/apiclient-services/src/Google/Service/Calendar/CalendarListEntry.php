@@ -21,6 +21,8 @@ class Google_Service_Calendar_CalendarListEntry extends Google_Collection
   public $accessRole;
   public $backgroundColor;
   public $colorId;
+  protected $conferencePropertiesType = 'Google_Service_Calendar_ConferenceProperties';
+  protected $conferencePropertiesDataType = '';
   protected $defaultRemindersType = 'Google_Service_Calendar_EventReminder';
   protected $defaultRemindersDataType = 'array';
   public $deleted;
@@ -62,6 +64,20 @@ class Google_Service_Calendar_CalendarListEntry extends Google_Collection
   public function getColorId()
   {
     return $this->colorId;
+  }
+  /**
+   * @param Google_Service_Calendar_ConferenceProperties
+   */
+  public function setConferenceProperties(Google_Service_Calendar_ConferenceProperties $conferenceProperties)
+  {
+    $this->conferenceProperties = $conferenceProperties;
+  }
+  /**
+   * @return Google_Service_Calendar_ConferenceProperties
+   */
+  public function getConferenceProperties()
+  {
+    return $this->conferenceProperties;
   }
   /**
    * @param Google_Service_Calendar_EventReminder

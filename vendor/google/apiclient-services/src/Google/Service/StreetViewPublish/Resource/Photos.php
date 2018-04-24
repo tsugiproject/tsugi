@@ -56,10 +56,10 @@ class Google_Service_StreetViewPublish_Resource_Photos extends Google_Service_Re
    *
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string photoIds Required. IDs of the Photos. For HTTP GET
-   * requests, the URL query parameter should be `photoIds==&...`.
    * @opt_param string view Specifies if a download URL for the photo bytes should
    * be returned in the Photo response.
+   * @opt_param string photoIds Required. IDs of the Photos. For HTTP GET
+   * requests, the URL query parameter should be `photoIds==&...`.
    * @return Google_Service_StreetViewPublish_BatchGetPhotosResponse
    */
   public function batchGet($optParams = array())
@@ -95,10 +95,17 @@ class Google_Service_StreetViewPublish_Resource_Photos extends Google_Service_Re
     return $this->call('batchUpdate', array($params), "Google_Service_StreetViewPublish_BatchUpdatePhotosResponse");
   }
   /**
-   * Lists all the Photos that belong to the user. (photos.listPhotos)
+   * Lists all the Photos that belong to the user.
+   *
+   * Note: Recently created photos that are still being indexed are not returned
+   * in the response. (photos.listPhotos)
    *
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string filter The filter expression. For example:
+   * `placeId=ChIJj61dQgK6j4AR4GeTYWZsKWw`.
+   *
+   * The only filter supported at the moment is `placeId`.
    * @opt_param string pageToken The nextPageToken value returned from a previous
    * ListPhotos request, if any.
    * @opt_param int pageSize The maximum number of photos to return. `pageSize`
@@ -108,10 +115,6 @@ class Google_Service_StreetViewPublish_Resource_Photos extends Google_Service_Re
    * is less than `pageSize`.
    * @opt_param string view Specifies if a download URL for the photos bytes
    * should be returned in the Photos response.
-   * @opt_param string filter The filter expression. For example:
-   * `placeId=ChIJj61dQgK6j4AR4GeTYWZsKWw`.
-   *
-   * The only filter supported at the moment is `placeId`.
    * @return Google_Service_StreetViewPublish_ListPhotosResponse
    */
   public function listPhotos($optParams = array())

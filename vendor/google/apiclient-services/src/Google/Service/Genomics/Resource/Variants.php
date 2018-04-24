@@ -26,11 +26,7 @@
 class Google_Service_Genomics_Resource_Variants extends Google_Service_Resource
 {
   /**
-   * Creates a new variant.
-   *
-   * For the definitions of variants and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics) (variants.create)
+   * Creates a new variant. (variants.create)
    *
    * @param Google_Service_Genomics_Variant $postBody
    * @param array $optParams Optional parameters.
@@ -43,11 +39,7 @@ class Google_Service_Genomics_Resource_Variants extends Google_Service_Resource
     return $this->call('create', array($params), "Google_Service_Genomics_Variant");
   }
   /**
-   * Deletes a variant.
-   *
-   * For the definitions of variants and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics) (variants.delete)
+   * Deletes a variant. (variants.delete)
    *
    * @param string $variantId The ID of the variant to be deleted.
    * @param array $optParams Optional parameters.
@@ -60,11 +52,7 @@ class Google_Service_Genomics_Resource_Variants extends Google_Service_Resource
     return $this->call('delete', array($params), "Google_Service_Genomics_GenomicsEmpty");
   }
   /**
-   * Gets a variant by ID.
-   *
-   * For the definitions of variants and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics) (variants.get)
+   * Gets a variant by ID. (variants.get)
    *
    * @param string $variantId The ID of the variant.
    * @param array $optParams Optional parameters.
@@ -78,10 +66,6 @@ class Google_Service_Genomics_Resource_Variants extends Google_Service_Resource
   }
   /**
    * Creates variant data by asynchronously importing the provided information.
-   *
-   * For the definitions of variant sets and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
    *
    * The variants for import will be merged with any existing variant that matches
    * its reference sequence, start, end, reference bases, and alternative bases.
@@ -106,10 +90,6 @@ class Google_Service_Genomics_Resource_Variants extends Google_Service_Resource
   }
   /**
    * Merges the given variants with existing variants.
-   *
-   * For the definitions of variants and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
    *
    * Each variant will be merged with an existing variant that matches its
    * reference sequence, start, end, reference bases, and alternative bases. If no
@@ -167,10 +147,6 @@ class Google_Service_Genomics_Resource_Variants extends Google_Service_Resource
   /**
    * Updates a variant.
    *
-   * For the definitions of variants and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
-   *
    * This method supports patch semantics. Returns the modified variant without
    * its calls. (variants.patch)
    *
@@ -191,10 +167,6 @@ class Google_Service_Genomics_Resource_Variants extends Google_Service_Resource
   }
   /**
    * Gets a list of variants matching the criteria.
-   *
-   * For the definitions of variants and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
    *
    * Implements [GlobalAllianceApi.searchVariants](https://github.com/ga4gh/schema
    * s/blob/v0.5.1/src/main/resources/avro/variantmethods.avdl#L126).

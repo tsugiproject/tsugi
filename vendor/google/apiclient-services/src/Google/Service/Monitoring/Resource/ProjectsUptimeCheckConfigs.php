@@ -29,7 +29,7 @@ class Google_Service_Monitoring_Resource_ProjectsUptimeCheckConfigs extends Goog
    * Creates a new uptime check configuration. (uptimeCheckConfigs.create)
    *
    * @param string $parent The project in which to create the uptime check. The
-   * format is:projects/[PROJECT_ID].
+   * format  is projects/[PROJECT_ID].
    * @param Google_Service_Monitoring_UptimeCheckConfig $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Monitoring_UptimeCheckConfig
@@ -46,8 +46,8 @@ class Google_Service_Monitoring_Resource_ProjectsUptimeCheckConfigs extends Goog
    * dependent configs that would be rendered invalid by the deletion.
    * (uptimeCheckConfigs.delete)
    *
-   * @param string $name The uptime check configuration to delete. The format
-   * isprojects/[PROJECT_ID]/uptimeCheckConfigs/[UPTIME_CHECK_ID].
+   * @param string $name The uptime check configuration to delete. The format  is
+   * projects/[PROJECT_ID]/uptimeCheckConfigs/[UPTIME_CHECK_ID].
    * @param array $optParams Optional parameters.
    * @return Google_Service_Monitoring_MonitoringEmpty
    */
@@ -61,7 +61,7 @@ class Google_Service_Monitoring_Resource_ProjectsUptimeCheckConfigs extends Goog
    * Gets a single uptime check configuration. (uptimeCheckConfigs.get)
    *
    * @param string $name The uptime check configuration to retrieve. The format
-   * isprojects/[PROJECT_ID]/uptimeCheckConfigs/[UPTIME_CHECK_ID].
+   * is projects/[PROJECT_ID]/uptimeCheckConfigs/[UPTIME_CHECK_ID].
    * @param array $optParams Optional parameters.
    * @return Google_Service_Monitoring_UptimeCheckConfig
    */
@@ -77,17 +77,17 @@ class Google_Service_Monitoring_Resource_ProjectsUptimeCheckConfigs extends Goog
    * (uptimeCheckConfigs.listProjectsUptimeCheckConfigs)
    *
    * @param string $parent The project whose uptime check configurations are
-   * listed. The format isprojects/[PROJECT_ID].
+   * listed. The format  is projects/[PROJECT_ID].
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string pageToken If this field is not empty then it must contain
-   * the nextPageToken value returned by a previous call to this method. Using
-   * this field causes the method to return more results from the previous method
-   * call.
    * @opt_param int pageSize The maximum number of results to return in a single
    * response. The server may further constrain the maximum number of results
    * returned in a single page. If the page_size is <=0, the server will decide
    * the number of results to be returned.
+   * @opt_param string pageToken If this field is not empty then it must contain
+   * the nextPageToken value returned by a previous call to this method. Using
+   * this field causes the method to return more results from the previous method
+   * call.
    * @return Google_Service_Monitoring_ListUptimeCheckConfigsResponse
    */
   public function listProjectsUptimeCheckConfigs($parent, $optParams = array())

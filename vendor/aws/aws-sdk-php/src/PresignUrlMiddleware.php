@@ -1,10 +1,8 @@
 <?php
 namespace Aws;
 
-use Aws\AwsClientInterface;
 use Aws\Signature\SignatureV4;
 use Aws\Endpoint\EndpointProvider;
-use Aws\CommandInterface;
 use GuzzleHttp\Psr7\Uri;
 use Psr\Http\Message\RequestInterface;
 
@@ -46,7 +44,7 @@ class PresignUrlMiddleware
         array $options = []
     ) {
         return function (callable $handler) use ($endpointProvider, $client, $options) {
-            $f = new PreSignUrlMiddleware($options, $endpointProvider, $client, $handler);
+            $f = new PresignUrlMiddleware($options, $endpointProvider, $client, $handler);
             return $f;
         };
     }

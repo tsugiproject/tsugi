@@ -33,6 +33,10 @@ class Google_Service_Dns_Resource_Changes extends Google_Service_Resource
    * request. Can be the managed zone name or id.
    * @param Google_Service_Dns_Change $postBody
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string clientOperationId For mutating operation requests only. An
+   * optional identifier specified by the client. Must be unique for operation
+   * resources in the Operations collection.
    * @return Google_Service_Dns_Change
    */
   public function create($project, $managedZone, Google_Service_Dns_Change $postBody, $optParams = array())
@@ -50,6 +54,10 @@ class Google_Service_Dns_Resource_Changes extends Google_Service_Resource
    * @param string $changeId The identifier of the requested change, from a
    * previous ResourceRecordSetsChangeResponse.
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string clientOperationId For mutating operation requests only. An
+   * optional identifier specified by the client. Must be unique for operation
+   * resources in the Operations collection.
    * @return Google_Service_Dns_Change
    */
   public function get($project, $managedZone, $changeId, $optParams = array())

@@ -23,7 +23,6 @@ class Google_Service_CloudMachineLearningEngine_GoogleIamV1Policy extends Google
   protected $bindingsType = 'Google_Service_CloudMachineLearningEngine_GoogleIamV1Binding';
   protected $bindingsDataType = 'array';
   public $etag;
-  public $iamOwned;
   public $version;
 
   /**
@@ -61,14 +60,6 @@ class Google_Service_CloudMachineLearningEngine_GoogleIamV1Policy extends Google
   public function getEtag()
   {
     return $this->etag;
-  }
-  public function setIamOwned($iamOwned)
-  {
-    $this->iamOwned = $iamOwned;
-  }
-  public function getIamOwned()
-  {
-    return $this->iamOwned;
   }
   public function setVersion($version)
   {

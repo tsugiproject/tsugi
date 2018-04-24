@@ -16,7 +16,7 @@
  */
 
 /**
- * Service definition for Pagespeedonline (v2).
+ * Service definition for Pagespeedonline (v4).
  *
  * <p>
  * Analyzes the performance of a web page and provides tailored suggestions to
@@ -24,7 +24,7 @@
  *
  * <p>
  * For more information about this service, see the API
- * <a href="https://developers.google.com/speed/docs/insights/v2/getting-started" target="_blank">Documentation</a>
+ * <a href="https://developers.google.com/speed/docs/insights/v4/getting-started" target="_blank">Documentation</a>
  * </p>
  *
  * @author Google, Inc.
@@ -44,8 +44,8 @@ class Google_Service_Pagespeedonline extends Google_Service
   {
     parent::__construct($client);
     $this->rootUrl = 'https://www.googleapis.com/';
-    $this->servicePath = 'pagespeedonline/v2/';
-    $this->version = 'v2';
+    $this->servicePath = 'pagespeedonline/v4/';
+    $this->version = 'v4';
     $this->serviceName = 'pagespeedonline';
 
     $this->pagespeedapi = new Google_Service_Pagespeedonline_Resource_Pagespeedapi(
@@ -80,7 +80,19 @@ class Google_Service_Pagespeedonline extends Google_Service
                   'location' => 'query',
                   'type' => 'boolean',
                 ),
+                'snapshots' => array(
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ),
                 'strategy' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'utm_campaign' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'utm_source' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),

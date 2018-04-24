@@ -23,6 +23,7 @@ class Google_Service_FirebaseDynamicLinks_DynamicLinkInfo extends Google_Model
   protected $androidInfoDataType = '';
   protected $desktopInfoType = 'Google_Service_FirebaseDynamicLinks_DesktopInfo';
   protected $desktopInfoDataType = '';
+  public $domainUriPrefix;
   public $dynamicLinkDomain;
   protected $iosInfoType = 'Google_Service_FirebaseDynamicLinks_IosInfo';
   protected $iosInfoDataType = '';
@@ -73,6 +74,14 @@ class Google_Service_FirebaseDynamicLinks_DynamicLinkInfo extends Google_Model
   public function getDesktopInfo()
   {
     return $this->desktopInfo;
+  }
+  public function setDomainUriPrefix($domainUriPrefix)
+  {
+    $this->domainUriPrefix = $domainUriPrefix;
+  }
+  public function getDomainUriPrefix()
+  {
+    return $this->domainUriPrefix;
   }
   public function setDynamicLinkDomain($dynamicLinkDomain)
   {

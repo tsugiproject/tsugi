@@ -52,6 +52,7 @@ class Google_Service_AdExchangeBuyer_Creative extends Google_Collection
   public $vendorType;
   public $version;
   public $videoURL;
+  public $videoVastXML;
   public $width;
 
   public function setHTMLSnippet($hTMLSnippet)
@@ -293,6 +294,14 @@ class Google_Service_AdExchangeBuyer_Creative extends Google_Collection
   public function getVideoURL()
   {
     return $this->videoURL;
+  }
+  public function setVideoVastXML($videoVastXML)
+  {
+    $this->videoVastXML = $videoVastXML;
+  }
+  public function getVideoVastXML()
+  {
+    return $this->videoVastXML;
   }
   public function setWidth($width)
   {

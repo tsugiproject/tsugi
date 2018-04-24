@@ -81,7 +81,7 @@ class Google_Service_AdExchangeBuyerII_Resource_AccountsCreatives extends Google
    * not_checked} openAuctionStatus: {approved, conditionally_approved,
    * disapproved,                           not_checked} attribute: {a numeric
    * attribute from the list of attributes} disapprovalReason: {a reason from
-   * DisapprovalReason
+   * DisapprovalReason}
    *
    * Example: 'accountId=12345 AND (dealsStatus:disapproved AND
    * disapprovalReason:unacceptable_content) OR attribute:47'

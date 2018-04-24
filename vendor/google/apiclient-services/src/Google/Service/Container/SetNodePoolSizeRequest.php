@@ -17,8 +17,29 @@
 
 class Google_Service_Container_SetNodePoolSizeRequest extends Google_Model
 {
+  public $clusterId;
+  public $name;
   public $nodeCount;
+  public $nodePoolId;
+  public $projectId;
+  public $zone;
 
+  public function setClusterId($clusterId)
+  {
+    $this->clusterId = $clusterId;
+  }
+  public function getClusterId()
+  {
+    return $this->clusterId;
+  }
+  public function setName($name)
+  {
+    $this->name = $name;
+  }
+  public function getName()
+  {
+    return $this->name;
+  }
   public function setNodeCount($nodeCount)
   {
     $this->nodeCount = $nodeCount;
@@ -26,5 +47,29 @@ class Google_Service_Container_SetNodePoolSizeRequest extends Google_Model
   public function getNodeCount()
   {
     return $this->nodeCount;
+  }
+  public function setNodePoolId($nodePoolId)
+  {
+    $this->nodePoolId = $nodePoolId;
+  }
+  public function getNodePoolId()
+  {
+    return $this->nodePoolId;
+  }
+  public function setProjectId($projectId)
+  {
+    $this->projectId = $projectId;
+  }
+  public function getProjectId()
+  {
+    return $this->projectId;
+  }
+  public function setZone($zone)
+  {
+    $this->zone = $zone;
+  }
+  public function getZone()
+  {
+    return $this->zone;
   }
 }

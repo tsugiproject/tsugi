@@ -28,19 +28,19 @@ class Google_Service_Dialogflow_Resource_ProjectsAgent extends Google_Service_Re
   /**
    * Exports the specified agent to a ZIP file.
    *
-   * Operation (agent.export)
+   * Operation  (agent.export)
    *
    * @param string $parent Required. The project that the agent to export is
    * associated with. Format: `projects/`.
-   * @param Google_Service_Dialogflow_ExportAgentRequest $postBody
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2ExportAgentRequest $postBody
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_Operation
+   * @return Google_Service_Dialogflow_GoogleLongrunningOperation
    */
-  public function export($parent, Google_Service_Dialogflow_ExportAgentRequest $postBody, $optParams = array())
+  public function export($parent, Google_Service_Dialogflow_GoogleCloudDialogflowV2ExportAgentRequest $postBody, $optParams = array())
   {
     $params = array('parent' => $parent, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
-    return $this->call('export', array($params), "Google_Service_Dialogflow_Operation");
+    return $this->call('export', array($params), "Google_Service_Dialogflow_GoogleLongrunningOperation");
   }
   /**
    * Imports the specified agent from a ZIP file.
@@ -49,19 +49,19 @@ class Google_Service_Dialogflow_Resource_ProjectsAgent extends Google_Service_Re
    * Intents and entity types with the same name are replaced with the new
    * versions from ImportAgentRequest.
    *
-   * Operation (agent.import)
+   * Operation  (agent.import)
    *
    * @param string $parent Required. The project that the agent to import is
    * associated with. Format: `projects/`.
-   * @param Google_Service_Dialogflow_ImportAgentRequest $postBody
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2ImportAgentRequest $postBody
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_Operation
+   * @return Google_Service_Dialogflow_GoogleLongrunningOperation
    */
-  public function import($parent, Google_Service_Dialogflow_ImportAgentRequest $postBody, $optParams = array())
+  public function import($parent, Google_Service_Dialogflow_GoogleCloudDialogflowV2ImportAgentRequest $postBody, $optParams = array())
   {
     $params = array('parent' => $parent, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
-    return $this->call('import', array($params), "Google_Service_Dialogflow_Operation");
+    return $this->call('import', array($params), "Google_Service_Dialogflow_GoogleLongrunningOperation");
   }
   /**
    * Restores the specified agent from a ZIP file.
@@ -69,19 +69,19 @@ class Google_Service_Dialogflow_Resource_ProjectsAgent extends Google_Service_Re
    * Replaces the current agent version with a new one. All the intents and entity
    * types in the older version are deleted.
    *
-   * Operation (agent.restore)
+   * Operation  (agent.restore)
    *
    * @param string $parent Required. The project that the agent to restore is
    * associated with. Format: `projects/`.
-   * @param Google_Service_Dialogflow_RestoreAgentRequest $postBody
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2RestoreAgentRequest $postBody
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_Operation
+   * @return Google_Service_Dialogflow_GoogleLongrunningOperation
    */
-  public function restore($parent, Google_Service_Dialogflow_RestoreAgentRequest $postBody, $optParams = array())
+  public function restore($parent, Google_Service_Dialogflow_GoogleCloudDialogflowV2RestoreAgentRequest $postBody, $optParams = array())
   {
     $params = array('parent' => $parent, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
-    return $this->call('restore', array($params), "Google_Service_Dialogflow_Operation");
+    return $this->call('restore', array($params), "Google_Service_Dialogflow_GoogleLongrunningOperation");
   }
   /**
    * Returns the list of agents.
@@ -100,29 +100,29 @@ class Google_Service_Dialogflow_Resource_ProjectsAgent extends Google_Service_Re
    * a previous list request.
    * @opt_param int pageSize Optional. The maximum number of items to return in a
    * single page. By default 100 and at most 1000.
-   * @return Google_Service_Dialogflow_SearchAgentsResponse
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2SearchAgentsResponse
    */
   public function search($parent, $optParams = array())
   {
     $params = array('parent' => $parent);
     $params = array_merge($params, $optParams);
-    return $this->call('search', array($params), "Google_Service_Dialogflow_SearchAgentsResponse");
+    return $this->call('search', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2SearchAgentsResponse");
   }
   /**
    * Trains the specified agent.
    *
-   * Operation (agent.train)
+   * Operation  (agent.train)
    *
    * @param string $parent Required. The project that the agent to train is
    * associated with. Format: `projects/`.
-   * @param Google_Service_Dialogflow_TrainAgentRequest $postBody
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2TrainAgentRequest $postBody
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_Operation
+   * @return Google_Service_Dialogflow_GoogleLongrunningOperation
    */
-  public function train($parent, Google_Service_Dialogflow_TrainAgentRequest $postBody, $optParams = array())
+  public function train($parent, Google_Service_Dialogflow_GoogleCloudDialogflowV2TrainAgentRequest $postBody, $optParams = array())
   {
     $params = array('parent' => $parent, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
-    return $this->call('train', array($params), "Google_Service_Dialogflow_Operation");
+    return $this->call('train', array($params), "Google_Service_Dialogflow_GoogleLongrunningOperation");
   }
 }

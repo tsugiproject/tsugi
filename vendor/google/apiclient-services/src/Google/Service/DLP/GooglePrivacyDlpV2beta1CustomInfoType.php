@@ -21,6 +21,8 @@ class Google_Service_DLP_GooglePrivacyDlpV2beta1CustomInfoType extends Google_Mo
   protected $dictionaryDataType = '';
   protected $infoTypeType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1InfoType';
   protected $infoTypeDataType = '';
+  protected $surrogateTypeType = 'Google_Service_DLP_GooglePrivacyDlpV2beta1SurrogateType';
+  protected $surrogateTypeDataType = '';
 
   /**
    * @param Google_Service_DLP_GooglePrivacyDlpV2beta1Dictionary
@@ -49,5 +51,19 @@ class Google_Service_DLP_GooglePrivacyDlpV2beta1CustomInfoType extends Google_Mo
   public function getInfoType()
   {
     return $this->infoType;
+  }
+  /**
+   * @param Google_Service_DLP_GooglePrivacyDlpV2beta1SurrogateType
+   */
+  public function setSurrogateType(Google_Service_DLP_GooglePrivacyDlpV2beta1SurrogateType $surrogateType)
+  {
+    $this->surrogateType = $surrogateType;
+  }
+  /**
+   * @return Google_Service_DLP_GooglePrivacyDlpV2beta1SurrogateType
+   */
+  public function getSurrogateType()
+  {
+    return $this->surrogateType;
   }
 }

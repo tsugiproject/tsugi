@@ -25,6 +25,7 @@ class Google_Service_Compute_Snapshot extends Google_Collection
   public $kind;
   public $labelFingerprint;
   public $labels;
+  public $licenseCodes;
   public $licenses;
   public $name;
   public $selfLink;
@@ -93,6 +94,14 @@ class Google_Service_Compute_Snapshot extends Google_Collection
   public function getLabels()
   {
     return $this->labels;
+  }
+  public function setLicenseCodes($licenseCodes)
+  {
+    $this->licenseCodes = $licenseCodes;
+  }
+  public function getLicenseCodes()
+  {
+    return $this->licenseCodes;
   }
   public function setLicenses($licenses)
   {

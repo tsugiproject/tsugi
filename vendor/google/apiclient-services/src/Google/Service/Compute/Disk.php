@@ -22,12 +22,15 @@ class Google_Service_Compute_Disk extends Google_Collection
   public $description;
   protected $diskEncryptionKeyType = 'Google_Service_Compute_CustomerEncryptionKey';
   protected $diskEncryptionKeyDataType = '';
+  protected $guestOsFeaturesType = 'Google_Service_Compute_GuestOsFeature';
+  protected $guestOsFeaturesDataType = 'array';
   public $id;
   public $kind;
   public $labelFingerprint;
   public $labels;
   public $lastAttachTimestamp;
   public $lastDetachTimestamp;
+  public $licenseCodes;
   public $licenses;
   public $name;
   public $options;
@@ -76,6 +79,20 @@ class Google_Service_Compute_Disk extends Google_Collection
   {
     return $this->diskEncryptionKey;
   }
+  /**
+   * @param Google_Service_Compute_GuestOsFeature
+   */
+  public function setGuestOsFeatures($guestOsFeatures)
+  {
+    $this->guestOsFeatures = $guestOsFeatures;
+  }
+  /**
+   * @return Google_Service_Compute_GuestOsFeature
+   */
+  public function getGuestOsFeatures()
+  {
+    return $this->guestOsFeatures;
+  }
   public function setId($id)
   {
     $this->id = $id;
@@ -123,6 +140,14 @@ class Google_Service_Compute_Disk extends Google_Collection
   public function getLastDetachTimestamp()
   {
     return $this->lastDetachTimestamp;
+  }
+  public function setLicenseCodes($licenseCodes)
+  {
+    $this->licenseCodes = $licenseCodes;
+  }
+  public function getLicenseCodes()
+  {
+    return $this->licenseCodes;
   }
   public function setLicenses($licenses)
   {

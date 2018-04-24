@@ -17,6 +17,8 @@
 
 class Google_Service_Appengine_Deployment extends Google_Model
 {
+  protected $cloudBuildOptionsType = 'Google_Service_Appengine_CloudBuildOptions';
+  protected $cloudBuildOptionsDataType = '';
   protected $containerType = 'Google_Service_Appengine_ContainerInfo';
   protected $containerDataType = '';
   protected $filesType = 'Google_Service_Appengine_FileInfo';
@@ -24,6 +26,20 @@ class Google_Service_Appengine_Deployment extends Google_Model
   protected $zipType = 'Google_Service_Appengine_ZipInfo';
   protected $zipDataType = '';
 
+  /**
+   * @param Google_Service_Appengine_CloudBuildOptions
+   */
+  public function setCloudBuildOptions(Google_Service_Appengine_CloudBuildOptions $cloudBuildOptions)
+  {
+    $this->cloudBuildOptions = $cloudBuildOptions;
+  }
+  /**
+   * @return Google_Service_Appengine_CloudBuildOptions
+   */
+  public function getCloudBuildOptions()
+  {
+    return $this->cloudBuildOptions;
+  }
   /**
    * @param Google_Service_Appengine_ContainerInfo
    */

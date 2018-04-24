@@ -23,6 +23,7 @@ class Google_Service_ShoppingContent_TestOrder extends Google_Collection
   public $kind;
   protected $lineItemsType = 'Google_Service_ShoppingContent_TestOrderLineItem';
   protected $lineItemsDataType = 'array';
+  public $notificationMode;
   protected $paymentMethodType = 'Google_Service_ShoppingContent_TestOrderPaymentMethod';
   protected $paymentMethodDataType = '';
   public $predefinedDeliveryAddress;
@@ -69,6 +70,14 @@ class Google_Service_ShoppingContent_TestOrder extends Google_Collection
   public function getLineItems()
   {
     return $this->lineItems;
+  }
+  public function setNotificationMode($notificationMode)
+  {
+    $this->notificationMode = $notificationMode;
+  }
+  public function getNotificationMode()
+  {
+    return $this->notificationMode;
   }
   /**
    * @param Google_Service_ShoppingContent_TestOrderPaymentMethod

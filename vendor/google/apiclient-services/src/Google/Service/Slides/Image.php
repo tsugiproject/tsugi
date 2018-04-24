@@ -20,6 +20,7 @@ class Google_Service_Slides_Image extends Google_Model
   public $contentUrl;
   protected $imagePropertiesType = 'Google_Service_Slides_ImageProperties';
   protected $imagePropertiesDataType = '';
+  public $sourceUrl;
 
   public function setContentUrl($contentUrl)
   {
@@ -42,5 +43,13 @@ class Google_Service_Slides_Image extends Google_Model
   public function getImageProperties()
   {
     return $this->imageProperties;
+  }
+  public function setSourceUrl($sourceUrl)
+  {
+    $this->sourceUrl = $sourceUrl;
+  }
+  public function getSourceUrl()
+  {
+    return $this->sourceUrl;
   }
 }

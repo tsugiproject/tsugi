@@ -20,6 +20,7 @@ class Google_Service_Vision_Page extends Google_Collection
   protected $collection_key = 'blocks';
   protected $blocksType = 'Google_Service_Vision_Block';
   protected $blocksDataType = 'array';
+  public $confidence;
   public $height;
   protected $propertyType = 'Google_Service_Vision_TextProperty';
   protected $propertyDataType = '';
@@ -38,6 +39,14 @@ class Google_Service_Vision_Page extends Google_Collection
   public function getBlocks()
   {
     return $this->blocks;
+  }
+  public function setConfidence($confidence)
+  {
+    $this->confidence = $confidence;
+  }
+  public function getConfidence()
+  {
+    return $this->confidence;
   }
   public function setHeight($height)
   {

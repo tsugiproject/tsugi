@@ -18,6 +18,7 @@
 class Google_Service_CloudIot_EventNotificationConfig extends Google_Model
 {
   public $pubsubTopicName;
+  public $subfolderMatches;
 
   public function setPubsubTopicName($pubsubTopicName)
   {
@@ -26,5 +27,13 @@ class Google_Service_CloudIot_EventNotificationConfig extends Google_Model
   public function getPubsubTopicName()
   {
     return $this->pubsubTopicName;
+  }
+  public function setSubfolderMatches($subfolderMatches)
+  {
+    $this->subfolderMatches = $subfolderMatches;
+  }
+  public function getSubfolderMatches()
+  {
+    return $this->subfolderMatches;
   }
 }

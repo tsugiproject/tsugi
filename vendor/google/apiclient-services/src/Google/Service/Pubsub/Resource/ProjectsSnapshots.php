@@ -26,6 +26,69 @@
 class Google_Service_Pubsub_Resource_ProjectsSnapshots extends Google_Service_Resource
 {
   /**
+   * [ALPHA] This method is a part of a closed Alpha API. Creates a snapshot from
+   * the requested subscription. If the snapshot already exists, returns
+   * `ALREADY_EXISTS`. If the requested subscription doesn't exist, returns
+   * `NOT_FOUND`. If the backlog in the subscription is too old -- and the
+   * resulting snapshot would expire in less than 1 hour -- then
+   * `FAILED_PRECONDITION` is returned. See also the `Snapshot.expire_time` field.
+   *
+   * If the name is not provided in the request, the server will assign a random
+   * name for this snapshot on the same project as the subscription, conforming to
+   * the [resource name
+   * format](https://cloud.google.com/pubsub/docs/overview#names). The generated
+   * name is populated in the returned Snapshot object. Note that for REST API
+   * requests, you must specify a name in the request. (snapshots.create)
+   *
+   * @param string $name Optional user-provided name for this snapshot. If the
+   * name is not provided in the request, the server will assign a random name for
+   * this snapshot on the same project as the subscription. Note that for REST API
+   * requests, you must specify a name. Format is
+   * `projects/{project}/snapshots/{snap}`.
+   * @param Google_Service_Pubsub_CreateSnapshotRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Google_Service_Pubsub_Snapshot
+   */
+  public function create($name, Google_Service_Pubsub_CreateSnapshotRequest $postBody, $optParams = array())
+  {
+    $params = array('name' => $name, 'postBody' => $postBody);
+    $params = array_merge($params, $optParams);
+    return $this->call('create', array($params), "Google_Service_Pubsub_Snapshot");
+  }
+  /**
+   * Removes an existing snapshot. All messages retained in the snapshot are
+   * immediately dropped. After a snapshot is deleted, a new one may be created
+   * with the same name, but the new one has no association with the old snapshot
+   * or its subscription, unless the same subscription is specified. [ALPHA] This
+   * method is a part of a closed Alpha API. (snapshots.delete)
+   *
+   * @param string $snapshot The name of the snapshot to delete. Format is
+   * `projects/{project}/snapshots/{snap}`.
+   * @param array $optParams Optional parameters.
+   * @return Google_Service_Pubsub_PubsubEmpty
+   */
+  public function delete($snapshot, $optParams = array())
+  {
+    $params = array('snapshot' => $snapshot);
+    $params = array_merge($params, $optParams);
+    return $this->call('delete', array($params), "Google_Service_Pubsub_PubsubEmpty");
+  }
+  /**
+   * Gets the configuration details of a snapshot. [ALPHA] This method is a part
+   * of a closed Alpha API. (snapshots.get)
+   *
+   * @param string $snapshot The name of the snapshot to get. Format is
+   * `projects/{project}/snapshots/{snap}`.
+   * @param array $optParams Optional parameters.
+   * @return Google_Service_Pubsub_Snapshot
+   */
+  public function get($snapshot, $optParams = array())
+  {
+    $params = array('snapshot' => $snapshot);
+    $params = array_merge($params, $optParams);
+    return $this->call('get', array($params), "Google_Service_Pubsub_Snapshot");
+  }
+  /**
    * Gets the access control policy for a resource. Returns an empty policy if the
    * resource exists and does not have a policy set. (snapshots.getIamPolicy)
    *
@@ -40,6 +103,43 @@ class Google_Service_Pubsub_Resource_ProjectsSnapshots extends Google_Service_Re
     $params = array('resource' => $resource);
     $params = array_merge($params, $optParams);
     return $this->call('getIamPolicy', array($params), "Google_Service_Pubsub_Policy");
+  }
+  /**
+   * Lists the existing snapshots. [ALPHA] This method is a part of a closed Alpha
+   * API. (snapshots.listProjectsSnapshots)
+   *
+   * @param string $project The name of the cloud project that snapshots belong
+   * to. Format is `projects/{project}`.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param int pageSize Maximum number of snapshots to return.
+   * @opt_param string pageToken The value returned by the last
+   * `ListSnapshotsResponse`; indicates that this is a continuation of a prior
+   * `ListSnapshots` call, and that the system should return the next page of
+   * data.
+   * @return Google_Service_Pubsub_ListSnapshotsResponse
+   */
+  public function listProjectsSnapshots($project, $optParams = array())
+  {
+    $params = array('project' => $project);
+    $params = array_merge($params, $optParams);
+    return $this->call('list', array($params), "Google_Service_Pubsub_ListSnapshotsResponse");
+  }
+  /**
+   * Updates an existing snapshot. Note that certain properties of a snapshot are
+   * not modifiable. [ALPHA] This method is a part of a closed Alpha API.
+   * (snapshots.patch)
+   *
+   * @param string $name The name of the snapshot.
+   * @param Google_Service_Pubsub_UpdateSnapshotRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Google_Service_Pubsub_Snapshot
+   */
+  public function patch($name, Google_Service_Pubsub_UpdateSnapshotRequest $postBody, $optParams = array())
+  {
+    $params = array('name' => $name, 'postBody' => $postBody);
+    $params = array_merge($params, $optParams);
+    return $this->call('patch', array($params), "Google_Service_Pubsub_Snapshot");
   }
   /**
    * Sets the access control policy on the specified resource. Replaces any

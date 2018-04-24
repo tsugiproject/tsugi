@@ -25,6 +25,8 @@ class Google_Service_Calendar_Event extends Google_Collection
   protected $attendeesDataType = 'array';
   public $attendeesOmitted;
   public $colorId;
+  protected $conferenceDataType = 'Google_Service_Calendar_ConferenceData';
+  protected $conferenceDataDataType = '';
   public $created;
   protected $creatorType = 'Google_Service_Calendar_EventCreator';
   protected $creatorDataType = '';
@@ -118,6 +120,20 @@ class Google_Service_Calendar_Event extends Google_Collection
   public function getColorId()
   {
     return $this->colorId;
+  }
+  /**
+   * @param Google_Service_Calendar_ConferenceData
+   */
+  public function setConferenceData(Google_Service_Calendar_ConferenceData $conferenceData)
+  {
+    $this->conferenceData = $conferenceData;
+  }
+  /**
+   * @return Google_Service_Calendar_ConferenceData
+   */
+  public function getConferenceData()
+  {
+    return $this->conferenceData;
   }
   public function setCreated($created)
   {

@@ -36,6 +36,7 @@ class Google_Service_Safebrowsing extends Google_Service
   public $encodedFullHashes;
   public $encodedUpdates;
   public $fullHashes;
+  public $threatHits;
   public $threatListUpdates;
   public $threatLists;
   public $threatMatches;
@@ -96,11 +97,11 @@ class Google_Service_Safebrowsing extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
-                'clientVersion' => array(
+                'clientId' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'clientId' => array(
+                'clientVersion' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -117,6 +118,20 @@ class Google_Service_Safebrowsing extends Google_Service
           'methods' => array(
             'find' => array(
               'path' => 'v4/fullHashes:find',
+              'httpMethod' => 'POST',
+              'parameters' => array(),
+            ),
+          )
+        )
+    );
+    $this->threatHits = new Google_Service_Safebrowsing_Resource_ThreatHits(
+        $this,
+        $this->serviceName,
+        'threatHits',
+        array(
+          'methods' => array(
+            'create' => array(
+              'path' => 'v4/threatHits',
               'httpMethod' => 'POST',
               'parameters' => array(),
             ),

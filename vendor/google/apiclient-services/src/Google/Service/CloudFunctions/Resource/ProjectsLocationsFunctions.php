@@ -94,14 +94,25 @@ class Google_Service_CloudFunctions_Resource_ProjectsLocationsFunctions extends 
   /**
    * Returns a signed URL for uploading a function source code. For more
    * information about the signed URL usage see:
-   * https://cloud.google.com/storage/docs/access-control/signed-urls Once the
+   * https://cloud.google.com/storage/docs/access-control/signed-urls. Once the
    * function source code upload is complete, the used signed URL should be
    * provided in CreateFunction or UpdateFunction request as a reference to the
-   * function source code. (functions.generateUploadUrl)
+   * function source code.
+   *
+   * When uploading source code to the generated signed URL, please follow these
+   * restrictions:
+   *
+   * * Source file type should be a zip file. * Source file size should not exceed
+   * 100MB limit.
+   *
+   * When making a HTTP PUT request, these two headers need to be specified:
+   *
+   * * `content-type: application/zip` * `x-goog-content-length-range:
+   * 0,104857600` (functions.generateUploadUrl)
    *
    * @param string $parent The project and location in which the Google Cloud
    * Storage signed URL should be generated, specified in the format
-   * `projects/locations
+   * `projects/locations`.
    * @param Google_Service_CloudFunctions_GenerateUploadUrlRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_CloudFunctions_GenerateUploadUrlResponse

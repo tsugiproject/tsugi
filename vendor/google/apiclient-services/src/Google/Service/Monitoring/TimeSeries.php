@@ -18,6 +18,8 @@
 class Google_Service_Monitoring_TimeSeries extends Google_Collection
 {
   protected $collection_key = 'points';
+  protected $metadataType = 'Google_Service_Monitoring_MonitoredResourceMetadata';
+  protected $metadataDataType = '';
   protected $metricType = 'Google_Service_Monitoring_Metric';
   protected $metricDataType = '';
   public $metricKind;
@@ -27,6 +29,20 @@ class Google_Service_Monitoring_TimeSeries extends Google_Collection
   protected $resourceDataType = '';
   public $valueType;
 
+  /**
+   * @param Google_Service_Monitoring_MonitoredResourceMetadata
+   */
+  public function setMetadata(Google_Service_Monitoring_MonitoredResourceMetadata $metadata)
+  {
+    $this->metadata = $metadata;
+  }
+  /**
+   * @return Google_Service_Monitoring_MonitoredResourceMetadata
+   */
+  public function getMetadata()
+  {
+    return $this->metadata;
+  }
   /**
    * @param Google_Service_Monitoring_Metric
    */

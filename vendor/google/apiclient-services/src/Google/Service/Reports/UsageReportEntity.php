@@ -18,6 +18,7 @@
 class Google_Service_Reports_UsageReportEntity extends Google_Model
 {
   public $customerId;
+  public $entityId;
   public $profileId;
   public $type;
   public $userEmail;
@@ -29,6 +30,14 @@ class Google_Service_Reports_UsageReportEntity extends Google_Model
   public function getCustomerId()
   {
     return $this->customerId;
+  }
+  public function setEntityId($entityId)
+  {
+    $this->entityId = $entityId;
+  }
+  public function getEntityId()
+  {
+    return $this->entityId;
   }
   public function setProfileId($profileId)
   {

@@ -21,6 +21,8 @@ class Google_Service_Dataflow_WorkerMessage extends Google_Model
   public $time;
   protected $workerHealthReportType = 'Google_Service_Dataflow_WorkerHealthReport';
   protected $workerHealthReportDataType = '';
+  protected $workerLifecycleEventType = 'Google_Service_Dataflow_WorkerLifecycleEvent';
+  protected $workerLifecycleEventDataType = '';
   protected $workerMessageCodeType = 'Google_Service_Dataflow_WorkerMessageCode';
   protected $workerMessageCodeDataType = '';
   protected $workerMetricsType = 'Google_Service_Dataflow_ResourceUtilizationReport';
@@ -57,6 +59,20 @@ class Google_Service_Dataflow_WorkerMessage extends Google_Model
   public function getWorkerHealthReport()
   {
     return $this->workerHealthReport;
+  }
+  /**
+   * @param Google_Service_Dataflow_WorkerLifecycleEvent
+   */
+  public function setWorkerLifecycleEvent(Google_Service_Dataflow_WorkerLifecycleEvent $workerLifecycleEvent)
+  {
+    $this->workerLifecycleEvent = $workerLifecycleEvent;
+  }
+  /**
+   * @return Google_Service_Dataflow_WorkerLifecycleEvent
+   */
+  public function getWorkerLifecycleEvent()
+  {
+    return $this->workerLifecycleEvent;
   }
   /**
    * @param Google_Service_Dataflow_WorkerMessageCode

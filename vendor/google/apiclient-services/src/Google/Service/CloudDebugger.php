@@ -34,7 +34,7 @@ class Google_Service_CloudDebugger extends Google_Service
   /** View and manage your data across Google Cloud Platform services. */
   const CLOUD_PLATFORM =
       "https://www.googleapis.com/auth/cloud-platform";
-  /** Manage cloud debugger. */
+  /** Use Stackdriver Debugger. */
   const CLOUD_DEBUGGER =
       "https://www.googleapis.com/auth/cloud_debugger";
 
@@ -123,15 +123,15 @@ class Google_Service_CloudDebugger extends Google_Service
               'path' => 'v2/debugger/debuggees',
               'httpMethod' => 'GET',
               'parameters' => array(
+                'clientVersion' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
                 'includeInactive' => array(
                   'location' => 'query',
                   'type' => 'boolean',
                 ),
                 'project' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-                'clientVersion' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -193,10 +193,6 @@ class Google_Service_CloudDebugger extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
-                'waitToken' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
                 'clientVersion' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -216,6 +212,10 @@ class Google_Service_CloudDebugger extends Google_Service
                 'stripResults' => array(
                   'location' => 'query',
                   'type' => 'boolean',
+                ),
+                'waitToken' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
               ),
             ),'set' => array(

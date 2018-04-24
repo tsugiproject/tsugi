@@ -28,10 +28,14 @@ class Google_Service_CloudTasks_Resource_ProjectsLocationsQueues extends Google_
   /**
    * Creates a queue.
    *
+   * Queues created with this method allow tasks to live for a maximum of 31 days.
+   * After a task is 31 days old, the task will be deleted regardless of whether
+   * it was dispatched or not.
+   *
    * WARNING: Using this method may have unintended side effects if you are using
    * an App Engine `queue.yaml` or `queue.xml` file to manage your queues. Read
    * [Overview of Queue Management and queue.yaml](/cloud-tasks/docs/queue-yaml)
-   * carefully before using this method. (queues.create)
+   * before using this method. (queues.create)
    *
    * @param string $parent Required.
    *
@@ -39,7 +43,7 @@ class Google_Service_CloudTasks_Resource_ProjectsLocationsQueues extends Google_
    * `projects/PROJECT_ID/locations/LOCATION_ID`
    *
    * The list of allowed locations can be obtained by calling Cloud Tasks'
-   * implementation of google.cloud.location.Locations.ListLocations.
+   * implementation of ListLocations.
    * @param Google_Service_CloudTasks_Queue $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_CloudTasks_Queue
@@ -61,7 +65,7 @@ class Google_Service_CloudTasks_Resource_ProjectsLocationsQueues extends Google_
    * WARNING: Using this method may have unintended side effects if you are using
    * an App Engine `queue.yaml` or `queue.xml` file to manage your queues. Read
    * [Overview of Queue Management and queue.yaml](/cloud-tasks/docs/queue-yaml)
-   * carefully before using this method. (queues.delete)
+   * before using this method. (queues.delete)
    *
    * @param string $name Required.
    *
@@ -139,15 +143,14 @@ class Google_Service_CloudTasks_Resource_ProjectsLocationsQueues extends Google_
    * return.
    *
    * To request the first page results, page_token must be empty. To request the
-   * next page of results, page_token must be the value of
-   * ListQueuesResponse.next_page_token returned from the previous call to
-   * CloudTasks.ListQueues method. It is an error to switch the value of
-   * ListQueuesRequest.filter while iterating through pages.
+   * next page of results, page_token must be the value of next_page_token
+   * returned from the previous call to ListQueues method. It is an error to
+   * switch the value of the filter while iterating through pages.
    * @opt_param int pageSize Requested page size.
    *
    * The maximum page size is 9800. If unspecified, the page size will be the
    * maximum. Fewer queues than requested might be returned, even if more queues
-   * exist; use ListQueuesResponse.next_page_token to determine if more queues
+   * exist; use the next_page_token in the response to determine if more queues
    * exist.
    * @return Google_Service_CloudTasks_ListQueuesResponse
    */
@@ -163,10 +166,14 @@ class Google_Service_CloudTasks_Resource_ProjectsLocationsQueues extends Google_
    * This method creates the queue if it does not exist and updates the queue if
    * it does exist.
    *
+   * Queues created with this method allow tasks to live for a maximum of 31 days.
+   * After a task is 31 days old, the task will be deleted regardless of whether
+   * it was dispatched or not.
+   *
    * WARNING: Using this method may have unintended side effects if you are using
    * an App Engine `queue.yaml` or `queue.xml` file to manage your queues. Read
    * [Overview of Queue Management and queue.yaml](/cloud-tasks/docs/queue-yaml)
-   * carefully before using this method. (queues.patch)
+   * before using this method. (queues.patch)
    *
    * @param string $name The queue name.
    *
@@ -174,11 +181,17 @@ class Google_Service_CloudTasks_Resource_ProjectsLocationsQueues extends Google_
    * `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID`
    *
    * * `PROJECT_ID` can contain letters ([A-Za-z]), numbers ([0-9]),    hyphens
-   * (-), colons (:), or periods (.). * `QUEUE_ID` can contain letters ([A-Za-z]),
-   * numbers ([0-9]), or   hyphens (-). The maximum length is 100 characters.
+   * (-), colons (:), or periods (.).    For more information, see    [Identifying
+   * projects](/resource-manager/docs/creating-managing-
+   * projects#identifying_projects) * `LOCATION_ID` is the canonical ID for the
+   * queue's location.    The list of available locations can be obtained by
+   * calling    ListLocations.    For more information, see
+   * https://cloud.google.com/about/locations/. * `QUEUE_ID` can contain letters
+   * ([A-Za-z]), numbers ([0-9]), or   hyphens (-). The maximum length is 100
+   * characters.
    *
-   * Caller-specified and required in CreateQueueRequest, after which it becomes
-   * output only.
+   * Caller-specified and required in CreateQueue, after which it becomes output
+   * only.
    * @param Google_Service_CloudTasks_Queue $postBody
    * @param array $optParams Optional parameters.
    *
@@ -197,11 +210,9 @@ class Google_Service_CloudTasks_Resource_ProjectsLocationsQueues extends Google_
   /**
    * Pauses the queue.
    *
-   * If a queue is paused then the system will stop executing the tasks in the
-   * queue until it is resumed via CloudTasks.ResumeQueue. Tasks can still be
-   * added when the queue is paused. The state of the queue is stored in
-   * Queue.queue_state; if paused it will be set to Queue.QueueState.PAUSED.
-   * (queues.pause)
+   * If a queue is paused then the system will stop dispatching tasks until the
+   * queue is resumed via ResumeQueue. Tasks can still be added when the queue is
+   * paused. A queue is paused if its state is PAUSED. (queues.pause)
    *
    * @param string $name Required.
    *
@@ -243,10 +254,9 @@ class Google_Service_CloudTasks_Resource_ProjectsLocationsQueues extends Google_
   /**
    * Resume a queue.
    *
-   * This method resumes a queue after it has been Queue.QueueState.PAUSED or
-   * Queue.QueueState.DISABLED. The state of a queue is stored in
-   * Queue.queue_state; after calling this method it will be set to
-   * Queue.QueueState.RUNNING.
+   * This method resumes a queue after it has been PAUSED or DISABLED. The state
+   * of a queue is stored in the queue's state; after calling this method it will
+   * be set to RUNNING.
    *
    * WARNING: Resuming many high-QPS queues at the same time can lead to target
    * overloading. If you are resuming high-QPS queues, follow the 500/50/5 pattern
@@ -293,8 +303,7 @@ class Google_Service_CloudTasks_Resource_ProjectsLocationsQueues extends Google_
   }
   /**
    * Returns permissions that a caller has on a Queue. If the resource does not
-   * exist, this will return an empty set of permissions, not a
-   * google.rpc.Code.NOT_FOUND error.
+   * exist, this will return an empty set of permissions, not a NOT_FOUND error.
    *
    * Note: This operation is designed to be used for building permission-aware UIs
    * and command-line tools, not for authorization checking. This operation may

@@ -26,7 +26,7 @@
 class Google_Service_Appengine_Resource_AppsLocations extends Google_Service_Resource
 {
   /**
-   * Get information about a location. (locations.get)
+   * Gets information about a location. (locations.get)
    *
    * @param string $appsId Part of `name`. Resource name for the location.
    * @param string $locationsId Part of `name`. See documentation of `appsId`.

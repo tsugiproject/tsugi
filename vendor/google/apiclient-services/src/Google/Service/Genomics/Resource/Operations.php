@@ -65,8 +65,17 @@ class Google_Service_Genomics_Resource_Operations extends Google_Service_Resourc
    * @param string $name The name of the operation's parent resource.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string filter A string for filtering Operations. The following
-   * filter fields are supported
+   * @opt_param string filter A string for filtering Operations. In v2alpha1, the
+   * following filter fields are supported
+   *
+   * * createTime The time this job was created * events The set of event (names)
+   * that have occurred while running   the pipeline.  The  operator can be used
+   * to determine if a   particular event has occurred. * error If the pipeline is
+   * running, this value is NULL.  Once the   pipeline finishes, the value is the
+   * standard Google error code. * labels.key or labels."key with space" where key
+   * is a label key.
+   *
+   * In v1 and v1alpha2, the following filter fields are supported
    *
    * * projectId Required. Corresponds to   OperationMetadata.projectId. *
    * createTime The time this job was created, in seconds from the

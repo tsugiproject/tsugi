@@ -19,19 +19,15 @@ class Google_Service_CloudTasks_Queue extends Google_Model
 {
   protected $appEngineHttpTargetType = 'Google_Service_CloudTasks_AppEngineHttpTarget';
   protected $appEngineHttpTargetDataType = '';
-  protected $appEngineQueueConfigType = 'Google_Service_CloudTasks_AppEngineQueueConfig';
-  protected $appEngineQueueConfigDataType = '';
   public $name;
-  protected $pullQueueConfigType = 'Google_Service_CloudTasks_PullQueueConfig';
-  protected $pullQueueConfigDataType = '';
   protected $pullTargetType = 'Google_Service_CloudTasks_PullTarget';
   protected $pullTargetDataType = '';
   public $purgeTime;
-  public $queueState;
   protected $rateLimitsType = 'Google_Service_CloudTasks_RateLimits';
   protected $rateLimitsDataType = '';
   protected $retryConfigType = 'Google_Service_CloudTasks_RetryConfig';
   protected $retryConfigDataType = '';
+  public $state;
 
   /**
    * @param Google_Service_CloudTasks_AppEngineHttpTarget
@@ -47,20 +43,6 @@ class Google_Service_CloudTasks_Queue extends Google_Model
   {
     return $this->appEngineHttpTarget;
   }
-  /**
-   * @param Google_Service_CloudTasks_AppEngineQueueConfig
-   */
-  public function setAppEngineQueueConfig(Google_Service_CloudTasks_AppEngineQueueConfig $appEngineQueueConfig)
-  {
-    $this->appEngineQueueConfig = $appEngineQueueConfig;
-  }
-  /**
-   * @return Google_Service_CloudTasks_AppEngineQueueConfig
-   */
-  public function getAppEngineQueueConfig()
-  {
-    return $this->appEngineQueueConfig;
-  }
   public function setName($name)
   {
     $this->name = $name;
@@ -68,20 +50,6 @@ class Google_Service_CloudTasks_Queue extends Google_Model
   public function getName()
   {
     return $this->name;
-  }
-  /**
-   * @param Google_Service_CloudTasks_PullQueueConfig
-   */
-  public function setPullQueueConfig(Google_Service_CloudTasks_PullQueueConfig $pullQueueConfig)
-  {
-    $this->pullQueueConfig = $pullQueueConfig;
-  }
-  /**
-   * @return Google_Service_CloudTasks_PullQueueConfig
-   */
-  public function getPullQueueConfig()
-  {
-    return $this->pullQueueConfig;
   }
   /**
    * @param Google_Service_CloudTasks_PullTarget
@@ -104,14 +72,6 @@ class Google_Service_CloudTasks_Queue extends Google_Model
   public function getPurgeTime()
   {
     return $this->purgeTime;
-  }
-  public function setQueueState($queueState)
-  {
-    $this->queueState = $queueState;
-  }
-  public function getQueueState()
-  {
-    return $this->queueState;
   }
   /**
    * @param Google_Service_CloudTasks_RateLimits
@@ -140,5 +100,13 @@ class Google_Service_CloudTasks_Queue extends Google_Model
   public function getRetryConfig()
   {
     return $this->retryConfig;
+  }
+  public function setState($state)
+  {
+    $this->state = $state;
+  }
+  public function getState()
+  {
+    return $this->state;
   }
 }

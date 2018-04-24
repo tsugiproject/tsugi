@@ -18,6 +18,7 @@
 class Google_Service_Cloudbilling_BillingAccount extends Google_Model
 {
   public $displayName;
+  public $masterBillingAccount;
   public $name;
   public $open;
 
@@ -28,6 +29,14 @@ class Google_Service_Cloudbilling_BillingAccount extends Google_Model
   public function getDisplayName()
   {
     return $this->displayName;
+  }
+  public function setMasterBillingAccount($masterBillingAccount)
+  {
+    $this->masterBillingAccount = $masterBillingAccount;
+  }
+  public function getMasterBillingAccount()
+  {
+    return $this->masterBillingAccount;
   }
   public function setName($name)
   {

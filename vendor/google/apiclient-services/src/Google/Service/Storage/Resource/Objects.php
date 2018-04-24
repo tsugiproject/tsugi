@@ -229,7 +229,8 @@ class Google_Service_Storage_Resource_Objects extends Google_Service_Resource
    * @opt_param string kmsKeyName Resource name of the Cloud KMS key, of the form
    * projects/my-project/locations/global/keyRings/my-kr/cryptoKeys/my-key, that
    * will be used to encrypt the object. Overrides the object metadata's
-   * kms_key_name value, if any.
+   * kms_key_name value, if any. Limited availability; usable only by enabled
+   * projects.
    * @opt_param string name Name of the object. Required when the object metadata
    * is not otherwise provided. Overrides the object metadata's name value, if
    * any. For information about how to URL encode object names to be path safe,

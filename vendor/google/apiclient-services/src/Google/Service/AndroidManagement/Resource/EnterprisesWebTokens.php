@@ -30,7 +30,7 @@ class Google_Service_AndroidManagement_Resource_EnterprisesWebTokens extends Goo
    * given enterprise. (webTokens.create)
    *
    * @param string $parent The name of the enterprise in the form
-   * enterprises/{enterpriseId}
+   * enterprises/{enterpriseId}.
    * @param Google_Service_AndroidManagement_WebToken $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidManagement_WebToken

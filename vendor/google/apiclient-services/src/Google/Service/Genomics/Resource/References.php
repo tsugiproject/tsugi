@@ -28,10 +28,6 @@ class Google_Service_Genomics_Resource_References extends Google_Service_Resourc
   /**
    * Gets a reference.
    *
-   * For the definitions of references and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
-   *
    * Implements [GlobalAllianceApi.getReference](https://github.com/ga4gh/schemas/
    * blob/v0.5.1/src/main/resources/avro/referencemethods.avdl#L158).
    * (references.get)
@@ -48,10 +44,6 @@ class Google_Service_Genomics_Resource_References extends Google_Service_Resourc
   }
   /**
    * Searches for references which match the given criteria.
-   *
-   * For the definitions of references and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
    *
    * Implements [GlobalAllianceApi.searchReferences](https://github.com/ga4gh/sche
    * mas/blob/v0.5.1/src/main/resources/avro/referencemethods.avdl#L146).

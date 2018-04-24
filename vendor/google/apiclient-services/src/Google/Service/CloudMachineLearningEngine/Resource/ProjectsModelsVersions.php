@@ -91,14 +91,19 @@ class Google_Service_CloudMachineLearningEngine_Resource_ProjectsModelsVersions 
   /**
    * Gets basic information about all the versions of a model.
    *
-   * If you expect that a model has a lot of versions, or if you need to handle
-   * only a limited number of results at a time, you can request that the list be
-   * retrieved in batches (called pages): (versions.listProjectsModelsVersions)
+   * If you expect that a model has many versions, or if you need to handle only a
+   * limited number of results at a time, you can request that the list be
+   * retrieved in batches (called pages).
+   *
+   * If there are no versions that match the request parameters, the list request
+   * returns an empty response body: {}. (versions.listProjectsModelsVersions)
    *
    * @param string $parent Required. The name of the model for which to list the
    * version.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string filter Optional. Specifies the subset of versions to
+   * retrieve.
    * @opt_param string pageToken Optional. A page token to request the next page
    * of results.
    *
@@ -109,8 +114,6 @@ class Google_Service_CloudMachineLearningEngine_Resource_ProjectsModelsVersions 
    * response message will contain a valid value in the `next_page_token` field.
    *
    * The default value is 20, and the maximum page size is 100.
-   * @opt_param string filter Optional. Specifies the subset of versions to
-   * retrieve.
    * @return Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1ListVersionsResponse
    */
   public function listProjectsModelsVersions($parent, $optParams = array())
@@ -135,14 +138,9 @@ class Google_Service_CloudMachineLearningEngine_Resource_ProjectsModelsVersions 
    * For example, to change the description of a version to "foo", the
    * `update_mask` parameter would be specified as `description`, and the `PATCH`
    * request body would specify the new value, as follows:     {
-   * "description": "foo"     } In this example, the version is blindly
-   * overwritten since no etag is given.
+   * "description": "foo"     }
    *
-   * To adopt etag mechanism, include `etag` field in the mask, and include the
-   * `etag` value in your version resource.
-   *
-   * Currently the only supported update masks are `description`, `labels`, and
-   * `etag`.
+   * Currently the only supported update mask is`description`.
    * @return Google_Service_CloudMachineLearningEngine_GoogleLongrunningOperation
    */
   public function patch($name, Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Version $postBody, $optParams = array())

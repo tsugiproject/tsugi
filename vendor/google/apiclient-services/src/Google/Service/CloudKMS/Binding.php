@@ -18,25 +18,9 @@
 class Google_Service_CloudKMS_Binding extends Google_Collection
 {
   protected $collection_key = 'members';
-  protected $conditionType = 'Google_Service_CloudKMS_Expr';
-  protected $conditionDataType = '';
   public $members;
   public $role;
 
-  /**
-   * @param Google_Service_CloudKMS_Expr
-   */
-  public function setCondition(Google_Service_CloudKMS_Expr $condition)
-  {
-    $this->condition = $condition;
-  }
-  /**
-   * @return Google_Service_CloudKMS_Expr
-   */
-  public function getCondition()
-  {
-    return $this->condition;
-  }
   public function setMembers($members)
   {
     $this->members = $members;

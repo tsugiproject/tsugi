@@ -23,6 +23,7 @@ class Google_Service_Bigquery_JobStatistics2 extends Google_Collection
   public $ddlOperationPerformed;
   protected $ddlTargetTableType = 'Google_Service_Bigquery_TableReference';
   protected $ddlTargetTableDataType = '';
+  public $estimatedBytesProcessed;
   public $numDmlAffectedRows;
   protected $queryPlanType = 'Google_Service_Bigquery_ExplainQueryStage';
   protected $queryPlanDataType = 'array';
@@ -31,8 +32,11 @@ class Google_Service_Bigquery_JobStatistics2 extends Google_Collection
   protected $schemaType = 'Google_Service_Bigquery_TableSchema';
   protected $schemaDataType = '';
   public $statementType;
+  protected $timelineType = 'Google_Service_Bigquery_QueryTimelineSample';
+  protected $timelineDataType = 'array';
   public $totalBytesBilled;
   public $totalBytesProcessed;
+  public $totalPartitionsProcessed;
   public $totalSlotMs;
   protected $undeclaredQueryParametersType = 'Google_Service_Bigquery_QueryParameter';
   protected $undeclaredQueryParametersDataType = 'array';
@@ -74,6 +78,14 @@ class Google_Service_Bigquery_JobStatistics2 extends Google_Collection
   public function getDdlTargetTable()
   {
     return $this->ddlTargetTable;
+  }
+  public function setEstimatedBytesProcessed($estimatedBytesProcessed)
+  {
+    $this->estimatedBytesProcessed = $estimatedBytesProcessed;
+  }
+  public function getEstimatedBytesProcessed()
+  {
+    return $this->estimatedBytesProcessed;
   }
   public function setNumDmlAffectedRows($numDmlAffectedRows)
   {
@@ -133,6 +145,20 @@ class Google_Service_Bigquery_JobStatistics2 extends Google_Collection
   {
     return $this->statementType;
   }
+  /**
+   * @param Google_Service_Bigquery_QueryTimelineSample
+   */
+  public function setTimeline($timeline)
+  {
+    $this->timeline = $timeline;
+  }
+  /**
+   * @return Google_Service_Bigquery_QueryTimelineSample
+   */
+  public function getTimeline()
+  {
+    return $this->timeline;
+  }
   public function setTotalBytesBilled($totalBytesBilled)
   {
     $this->totalBytesBilled = $totalBytesBilled;
@@ -148,6 +174,14 @@ class Google_Service_Bigquery_JobStatistics2 extends Google_Collection
   public function getTotalBytesProcessed()
   {
     return $this->totalBytesProcessed;
+  }
+  public function setTotalPartitionsProcessed($totalPartitionsProcessed)
+  {
+    $this->totalPartitionsProcessed = $totalPartitionsProcessed;
+  }
+  public function getTotalPartitionsProcessed()
+  {
+    return $this->totalPartitionsProcessed;
   }
   public function setTotalSlotMs($totalSlotMs)
   {

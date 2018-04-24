@@ -19,6 +19,7 @@ class Google_Service_AndroidManagement_NetworkInfo extends Google_Model
 {
   public $imei;
   public $meid;
+  public $networkOperatorName;
   public $wifiMacAddress;
 
   public function setImei($imei)
@@ -36,6 +37,14 @@ class Google_Service_AndroidManagement_NetworkInfo extends Google_Model
   public function getMeid()
   {
     return $this->meid;
+  }
+  public function setNetworkOperatorName($networkOperatorName)
+  {
+    $this->networkOperatorName = $networkOperatorName;
+  }
+  public function getNetworkOperatorName()
+  {
+    return $this->networkOperatorName;
   }
   public function setWifiMacAddress($wifiMacAddress)
   {

@@ -266,23 +266,27 @@ class BigInteger
 
         if (extension_loaded('openssl') && !defined('MATH_BIGINTEGER_OPENSSL_DISABLE') && !defined('MATH_BIGINTEGER_OPENSSL_ENABLED')) {
             // some versions of XAMPP have mismatched versions of OpenSSL which causes it not to work
-            ob_start();
-            @phpinfo();
-            $content = ob_get_contents();
-            ob_end_clean();
-
-            preg_match_all('#OpenSSL (Header|Library) Version(.*)#im', $content, $matches);
-
             $versions = array();
-            if (!empty($matches[1])) {
-                for ($i = 0; $i < count($matches[1]); $i++) {
-                    $fullVersion = trim(str_replace('=>', '', strip_tags($matches[2][$i])));
 
-                    // Remove letter part in OpenSSL version
-                    if (!preg_match('/(\d+\.\d+\.\d+)/i', $fullVersion, $m)) {
-                        $versions[$matches[1][$i]] = $fullVersion;
-                    } else {
-                        $versions[$matches[1][$i]] = $m[0];
+            // avoid generating errors (even with suppression) when phpinfo() is disabled (common in production systems)
+            if (strpos(ini_get('disable_functions'), 'phpinfo') === false) {
+                ob_start();
+                @phpinfo();
+                $content = ob_get_contents();
+                ob_end_clean();
+
+                preg_match_all('#OpenSSL (Header|Library) Version(.*)#im', $content, $matches);
+
+                if (!empty($matches[1])) {
+                    for ($i = 0; $i < count($matches[1]); $i++) {
+                        $fullVersion = trim(str_replace('=>', '', strip_tags($matches[2][$i])));
+
+                        // Remove letter part in OpenSSL version
+                        if (!preg_match('/(\d+\.\d+\.\d+)/i', $fullVersion, $m)) {
+                            $versions[$matches[1][$i]] = $fullVersion;
+                        } else {
+                            $versions[$matches[1][$i]] = $m[0];
+                        }
                     }
                 }
             }
@@ -535,7 +539,7 @@ class BigInteger
             $temp = $comparison < 0 ? $this->add(new static(1)) : $this->copy();
             $bytes = $temp->toBytes();
 
-            if (empty($bytes)) { // eg. if the number we're trying to convert is -1
+            if (!strlen($bytes)) { // eg. if the number we're trying to convert is -1
                 $bytes = chr(0);
             }
 
@@ -2868,8 +2872,7 @@ class BigInteger
         switch (MATH_BIGINTEGER_MODE) {
             case self::MODE_GMP:
                 $temp = new static();
-                $temp->value = gmp_xor($this->value, $x->value);
-
+                $temp->value = gmp_xor(gmp_abs($this->value), gmp_abs($x->value));
                 return $this->_normalize($temp);
             case self::MODE_BCMATH:
                 $left = $this->toBytes();
@@ -2885,6 +2888,7 @@ class BigInteger
 
         $length = max(count($this->value), count($x->value));
         $result = $this->copy();
+        $result->is_negative = false;
         $result->value = array_pad($result->value, $length, 0);
         $x->value = array_pad($x->value, $length, 0);
 

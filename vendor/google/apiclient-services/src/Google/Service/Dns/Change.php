@@ -23,6 +23,7 @@ class Google_Service_Dns_Change extends Google_Collection
   protected $deletionsType = 'Google_Service_Dns_ResourceRecordSet';
   protected $deletionsDataType = 'array';
   public $id;
+  public $isServing;
   public $kind;
   public $startTime;
   public $status;
@@ -62,6 +63,14 @@ class Google_Service_Dns_Change extends Google_Collection
   public function getId()
   {
     return $this->id;
+  }
+  public function setIsServing($isServing)
+  {
+    $this->isServing = $isServing;
+  }
+  public function getIsServing()
+  {
+    return $this->isServing;
   }
   public function setKind($kind)
   {

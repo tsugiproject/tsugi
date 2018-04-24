@@ -103,10 +103,6 @@ class Google_Service_Classroom_Resource_Courses extends Google_Service_Resource
    *
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize Maximum number of items to return. Zero or
-   * unspecified indicates that the server may assign a maximum.
-   *
-   * The server may return fewer than the specified number of results.
    * @opt_param string teacherId Restricts returned courses to those having a
    * teacher with the specified identifier. The identifier can be one of the
    * following:
@@ -127,6 +123,10 @@ class Google_Service_Classroom_Resource_Courses extends Google_Service_Resource
    *
    * The list request must be otherwise identical to the one that resulted in this
    * token.
+   * @opt_param int pageSize Maximum number of items to return. Zero or
+   * unspecified indicates that the server may assign a maximum.
+   *
+   * The server may return fewer than the specified number of results.
    * @return Google_Service_Classroom_ListCoursesResponse
    */
   public function listCourses($optParams = array())

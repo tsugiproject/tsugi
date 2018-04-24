@@ -17,6 +17,8 @@
 
 class Google_Service_Bigquery_TableListTables extends Google_Model
 {
+  protected $clusteringType = 'Google_Service_Bigquery_Clustering';
+  protected $clusteringDataType = '';
   public $creationTime;
   public $expirationTime;
   public $friendlyName;
@@ -31,6 +33,20 @@ class Google_Service_Bigquery_TableListTables extends Google_Model
   protected $viewType = 'Google_Service_Bigquery_TableListTablesView';
   protected $viewDataType = '';
 
+  /**
+   * @param Google_Service_Bigquery_Clustering
+   */
+  public function setClustering(Google_Service_Bigquery_Clustering $clustering)
+  {
+    $this->clustering = $clustering;
+  }
+  /**
+   * @return Google_Service_Bigquery_Clustering
+   */
+  public function getClustering()
+  {
+    return $this->clustering;
+  }
   public function setCreationTime($creationTime)
   {
     $this->creationTime = $creationTime;

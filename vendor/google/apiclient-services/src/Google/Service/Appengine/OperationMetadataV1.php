@@ -18,6 +18,8 @@
 class Google_Service_Appengine_OperationMetadataV1 extends Google_Collection
 {
   protected $collection_key = 'warning';
+  protected $createVersionMetadataType = 'Google_Service_Appengine_CreateVersionMetadataV1';
+  protected $createVersionMetadataDataType = '';
   public $endTime;
   public $ephemeralMessage;
   public $insertTime;
@@ -26,6 +28,20 @@ class Google_Service_Appengine_OperationMetadataV1 extends Google_Collection
   public $user;
   public $warning;
 
+  /**
+   * @param Google_Service_Appengine_CreateVersionMetadataV1
+   */
+  public function setCreateVersionMetadata(Google_Service_Appengine_CreateVersionMetadataV1 $createVersionMetadata)
+  {
+    $this->createVersionMetadata = $createVersionMetadata;
+  }
+  /**
+   * @return Google_Service_Appengine_CreateVersionMetadataV1
+   */
+  public function getCreateVersionMetadata()
+  {
+    return $this->createVersionMetadata;
+  }
   public function setEndTime($endTime)
   {
     $this->endTime = $endTime;

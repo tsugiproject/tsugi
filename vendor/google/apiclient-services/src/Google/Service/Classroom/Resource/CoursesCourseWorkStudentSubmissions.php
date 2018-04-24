@@ -70,6 +70,11 @@ class Google_Service_Classroom_Resource_CoursesCourseWorkStudentSubmissions exte
    * work in the specified course.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string pageToken nextPageToken value returned from a previous list
+   * call, indicating that the subsequent page of results should be returned.
+   *
+   * The list request must be otherwise identical to the one that resulted in this
+   * token.
    * @opt_param string states Requested submission states. If specified, returned
    * student submissions match one of the specified submission states.
    * @opt_param int pageSize Maximum number of items to return. Zero or
@@ -85,11 +90,6 @@ class Google_Service_Classroom_Resource_CoursesCourseWorkStudentSubmissions exte
    * @opt_param string late Requested lateness value. If specified, returned
    * student submissions are restricted by the requested value. If unspecified,
    * submissions are returned regardless of `late` value.
-   * @opt_param string pageToken nextPageToken value returned from a previous list
-   * call, indicating that the subsequent page of results should be returned.
-   *
-   * The list request must be otherwise identical to the one that resulted in this
-   * token.
    * @return Google_Service_Classroom_ListStudentSubmissionsResponse
    */
   public function listCoursesCourseWorkStudentSubmissions($courseId, $courseWorkId, $optParams = array())

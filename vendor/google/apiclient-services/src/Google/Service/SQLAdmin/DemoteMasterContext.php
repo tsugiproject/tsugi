@@ -21,6 +21,7 @@ class Google_Service_SQLAdmin_DemoteMasterContext extends Google_Model
   public $masterInstanceName;
   protected $replicaConfigurationType = 'Google_Service_SQLAdmin_DemoteMasterConfiguration';
   protected $replicaConfigurationDataType = '';
+  public $verifyGtidConsistency;
 
   public function setKind($kind)
   {
@@ -51,5 +52,13 @@ class Google_Service_SQLAdmin_DemoteMasterContext extends Google_Model
   public function getReplicaConfiguration()
   {
     return $this->replicaConfiguration;
+  }
+  public function setVerifyGtidConsistency($verifyGtidConsistency)
+  {
+    $this->verifyGtidConsistency = $verifyGtidConsistency;
+  }
+  public function getVerifyGtidConsistency()
+  {
+    return $this->verifyGtidConsistency;
   }
 }

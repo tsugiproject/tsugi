@@ -31,6 +31,10 @@ class Google_Service_Dns_Resource_ManagedZones extends Google_Service_Resource
    * @param string $project Identifies the project addressed by this request.
    * @param Google_Service_Dns_ManagedZone $postBody
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string clientOperationId For mutating operation requests only. An
+   * optional identifier specified by the client. Must be unique for operation
+   * resources in the Operations collection.
    * @return Google_Service_Dns_ManagedZone
    */
   public function create($project, Google_Service_Dns_ManagedZone $postBody, $optParams = array())
@@ -46,6 +50,10 @@ class Google_Service_Dns_Resource_ManagedZones extends Google_Service_Resource
    * @param string $managedZone Identifies the managed zone addressed by this
    * request. Can be the managed zone name or id.
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string clientOperationId For mutating operation requests only. An
+   * optional identifier specified by the client. Must be unique for operation
+   * resources in the Operations collection.
    */
   public function delete($project, $managedZone, $optParams = array())
   {
@@ -60,6 +68,10 @@ class Google_Service_Dns_Resource_ManagedZones extends Google_Service_Resource
    * @param string $managedZone Identifies the managed zone addressed by this
    * request. Can be the managed zone name or id.
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string clientOperationId For mutating operation requests only. An
+   * optional identifier specified by the client. Must be unique for operation
+   * resources in the Operations collection.
    * @return Google_Service_Dns_ManagedZone
    */
   public function get($project, $managedZone, $optParams = array())
@@ -89,5 +101,46 @@ class Google_Service_Dns_Resource_ManagedZones extends Google_Service_Resource
     $params = array('project' => $project);
     $params = array_merge($params, $optParams);
     return $this->call('list', array($params), "Google_Service_Dns_ManagedZonesListResponse");
+  }
+  /**
+   * Update an existing ManagedZone. This method supports patch semantics.
+   * (managedZones.patch)
+   *
+   * @param string $project Identifies the project addressed by this request.
+   * @param string $managedZone Identifies the managed zone addressed by this
+   * request. Can be the managed zone name or id.
+   * @param Google_Service_Dns_ManagedZone $postBody
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string clientOperationId For mutating operation requests only. An
+   * optional identifier specified by the client. Must be unique for operation
+   * resources in the Operations collection.
+   * @return Google_Service_Dns_Operation
+   */
+  public function patch($project, $managedZone, Google_Service_Dns_ManagedZone $postBody, $optParams = array())
+  {
+    $params = array('project' => $project, 'managedZone' => $managedZone, 'postBody' => $postBody);
+    $params = array_merge($params, $optParams);
+    return $this->call('patch', array($params), "Google_Service_Dns_Operation");
+  }
+  /**
+   * Update an existing ManagedZone. (managedZones.update)
+   *
+   * @param string $project Identifies the project addressed by this request.
+   * @param string $managedZone Identifies the managed zone addressed by this
+   * request. Can be the managed zone name or id.
+   * @param Google_Service_Dns_ManagedZone $postBody
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string clientOperationId For mutating operation requests only. An
+   * optional identifier specified by the client. Must be unique for operation
+   * resources in the Operations collection.
+   * @return Google_Service_Dns_Operation
+   */
+  public function update($project, $managedZone, Google_Service_Dns_ManagedZone $postBody, $optParams = array())
+  {
+    $params = array('project' => $project, 'managedZone' => $managedZone, 'postBody' => $postBody);
+    $params = array_merge($params, $optParams);
+    return $this->call('update', array($params), "Google_Service_Dns_Operation");
   }
 }

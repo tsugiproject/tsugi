@@ -20,6 +20,7 @@ class Google_Service_Slides_ReplaceAllShapesWithImageRequest extends Google_Coll
   protected $collection_key = 'pageObjectIds';
   protected $containsTextType = 'Google_Service_Slides_SubstringMatchCriteria';
   protected $containsTextDataType = '';
+  public $imageReplaceMethod;
   public $imageUrl;
   public $pageObjectIds;
   public $replaceMethod;
@@ -37,6 +38,14 @@ class Google_Service_Slides_ReplaceAllShapesWithImageRequest extends Google_Coll
   public function getContainsText()
   {
     return $this->containsText;
+  }
+  public function setImageReplaceMethod($imageReplaceMethod)
+  {
+    $this->imageReplaceMethod = $imageReplaceMethod;
+  }
+  public function getImageReplaceMethod()
+  {
+    return $this->imageReplaceMethod;
   }
   public function setImageUrl($imageUrl)
   {

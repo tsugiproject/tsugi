@@ -24,6 +24,8 @@ class Google_Service_Directory_ChromeOsDevice extends Google_Collection
   public $annotatedLocation;
   public $annotatedUser;
   public $bootMode;
+  protected $deviceFilesType = 'Google_Service_Directory_ChromeOsDeviceDeviceFiles';
+  protected $deviceFilesDataType = 'array';
   public $deviceId;
   public $etag;
   public $ethernetMacAddress;
@@ -44,6 +46,8 @@ class Google_Service_Directory_ChromeOsDevice extends Google_Collection
   public $serialNumber;
   public $status;
   public $supportEndDate;
+  protected $tpmVersionInfoType = 'Google_Service_Directory_ChromeOsDeviceTpmVersionInfo';
+  protected $tpmVersionInfoDataType = '';
   public $willAutoRenew;
 
   /**
@@ -91,6 +95,20 @@ class Google_Service_Directory_ChromeOsDevice extends Google_Collection
   public function getBootMode()
   {
     return $this->bootMode;
+  }
+  /**
+   * @param Google_Service_Directory_ChromeOsDeviceDeviceFiles
+   */
+  public function setDeviceFiles($deviceFiles)
+  {
+    $this->deviceFiles = $deviceFiles;
+  }
+  /**
+   * @return Google_Service_Directory_ChromeOsDeviceDeviceFiles
+   */
+  public function getDeviceFiles()
+  {
+    return $this->deviceFiles;
   }
   public function setDeviceId($deviceId)
   {
@@ -249,6 +267,20 @@ class Google_Service_Directory_ChromeOsDevice extends Google_Collection
   public function getSupportEndDate()
   {
     return $this->supportEndDate;
+  }
+  /**
+   * @param Google_Service_Directory_ChromeOsDeviceTpmVersionInfo
+   */
+  public function setTpmVersionInfo(Google_Service_Directory_ChromeOsDeviceTpmVersionInfo $tpmVersionInfo)
+  {
+    $this->tpmVersionInfo = $tpmVersionInfo;
+  }
+  /**
+   * @return Google_Service_Directory_ChromeOsDeviceTpmVersionInfo
+   */
+  public function getTpmVersionInfo()
+  {
+    return $this->tpmVersionInfo;
   }
   public function setWillAutoRenew($willAutoRenew)
   {

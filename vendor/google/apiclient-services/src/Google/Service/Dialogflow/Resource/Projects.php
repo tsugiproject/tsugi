@@ -31,12 +31,12 @@ class Google_Service_Dialogflow_Resource_Projects extends Google_Service_Resourc
    * @param string $parent Required. The project that the agent to fetch is
    * associated with. Format: `projects/`.
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_Agent
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2Agent
    */
   public function getAgent($parent, $optParams = array())
   {
     $params = array('parent' => $parent);
     $params = array_merge($params, $optParams);
-    return $this->call('getAgent', array($params), "Google_Service_Dialogflow_Agent");
+    return $this->call('getAgent', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2Agent");
   }
 }

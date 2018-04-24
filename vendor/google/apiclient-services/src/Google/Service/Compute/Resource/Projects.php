@@ -148,7 +148,7 @@ class Google_Service_Compute_Resource_Projects extends Google_Service_Resource
     return $this->call('get', array($params), "Google_Service_Compute_Project");
   }
   /**
-   * Get the shared VPC host project that this project links to. May be empty if
+   * Gets the shared VPC host project that this project links to. May be empty if
    * no link exists. (projects.getXpnHost)
    *
    * @param string $project Project ID for this request.
@@ -162,7 +162,7 @@ class Google_Service_Compute_Resource_Projects extends Google_Service_Resource
     return $this->call('getXpnHost', array($params), "Google_Service_Compute_Project");
   }
   /**
-   * Get service resources (a.k.a service project) associated with this host
+   * Gets service resources (a.k.a service project) associated with this host
    * project. (projects.getXpnResources)
    *
    * @param string $project Project ID for this request.
@@ -181,7 +181,7 @@ class Google_Service_Compute_Resource_Projects extends Google_Service_Resource
     return $this->call('getXpnResources', array($params), "Google_Service_Compute_ProjectsGetXpnResources");
   }
   /**
-   * List all shared VPC host projects visible to the user in an organization.
+   * Lists all shared VPC host projects visible to the user in an organization.
    * (projects.listXpnHosts)
    *
    * @param string $project Project ID for this request.

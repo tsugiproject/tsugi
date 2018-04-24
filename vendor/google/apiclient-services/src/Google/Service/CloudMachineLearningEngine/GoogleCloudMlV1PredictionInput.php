@@ -26,6 +26,7 @@ class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1PredictionInput e
   public $outputPath;
   public $region;
   public $runtimeVersion;
+  public $signatureName;
   public $uri;
   public $versionName;
 
@@ -92,6 +93,14 @@ class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1PredictionInput e
   public function getRuntimeVersion()
   {
     return $this->runtimeVersion;
+  }
+  public function setSignatureName($signatureName)
+  {
+    $this->signatureName = $signatureName;
+  }
+  public function getSignatureName()
+  {
+    return $this->signatureName;
   }
   public function setUri($uri)
   {

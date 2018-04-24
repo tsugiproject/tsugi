@@ -19,17 +19,13 @@ class Google_Service_CloudTasks_Task extends Google_Model
 {
   protected $appEngineHttpRequestType = 'Google_Service_CloudTasks_AppEngineHttpRequest';
   protected $appEngineHttpRequestDataType = '';
-  protected $appEngineTaskTargetType = 'Google_Service_CloudTasks_AppEngineTaskTarget';
-  protected $appEngineTaskTargetDataType = '';
   public $createTime;
   public $name;
   protected $pullMessageType = 'Google_Service_CloudTasks_PullMessage';
   protected $pullMessageDataType = '';
-  protected $pullTaskTargetType = 'Google_Service_CloudTasks_PullTaskTarget';
-  protected $pullTaskTargetDataType = '';
   public $scheduleTime;
-  protected $taskStatusType = 'Google_Service_CloudTasks_TaskStatus';
-  protected $taskStatusDataType = '';
+  protected $statusType = 'Google_Service_CloudTasks_TaskStatus';
+  protected $statusDataType = '';
   public $view;
 
   /**
@@ -45,20 +41,6 @@ class Google_Service_CloudTasks_Task extends Google_Model
   public function getAppEngineHttpRequest()
   {
     return $this->appEngineHttpRequest;
-  }
-  /**
-   * @param Google_Service_CloudTasks_AppEngineTaskTarget
-   */
-  public function setAppEngineTaskTarget(Google_Service_CloudTasks_AppEngineTaskTarget $appEngineTaskTarget)
-  {
-    $this->appEngineTaskTarget = $appEngineTaskTarget;
-  }
-  /**
-   * @return Google_Service_CloudTasks_AppEngineTaskTarget
-   */
-  public function getAppEngineTaskTarget()
-  {
-    return $this->appEngineTaskTarget;
   }
   public function setCreateTime($createTime)
   {
@@ -90,20 +72,6 @@ class Google_Service_CloudTasks_Task extends Google_Model
   {
     return $this->pullMessage;
   }
-  /**
-   * @param Google_Service_CloudTasks_PullTaskTarget
-   */
-  public function setPullTaskTarget(Google_Service_CloudTasks_PullTaskTarget $pullTaskTarget)
-  {
-    $this->pullTaskTarget = $pullTaskTarget;
-  }
-  /**
-   * @return Google_Service_CloudTasks_PullTaskTarget
-   */
-  public function getPullTaskTarget()
-  {
-    return $this->pullTaskTarget;
-  }
   public function setScheduleTime($scheduleTime)
   {
     $this->scheduleTime = $scheduleTime;
@@ -115,16 +83,16 @@ class Google_Service_CloudTasks_Task extends Google_Model
   /**
    * @param Google_Service_CloudTasks_TaskStatus
    */
-  public function setTaskStatus(Google_Service_CloudTasks_TaskStatus $taskStatus)
+  public function setStatus(Google_Service_CloudTasks_TaskStatus $status)
   {
-    $this->taskStatus = $taskStatus;
+    $this->status = $status;
   }
   /**
    * @return Google_Service_CloudTasks_TaskStatus
    */
-  public function getTaskStatus()
+  public function getStatus()
   {
-    return $this->taskStatus;
+    return $this->status;
   }
   public function setView($view)
   {

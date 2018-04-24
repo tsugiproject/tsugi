@@ -18,9 +18,11 @@
 class Google_Service_Pubsub_Subscription extends Google_Model
 {
   public $ackDeadlineSeconds;
+  public $messageRetentionDuration;
   public $name;
   protected $pushConfigType = 'Google_Service_Pubsub_PushConfig';
   protected $pushConfigDataType = '';
+  public $retainAckedMessages;
   public $topic;
 
   public function setAckDeadlineSeconds($ackDeadlineSeconds)
@@ -30,6 +32,14 @@ class Google_Service_Pubsub_Subscription extends Google_Model
   public function getAckDeadlineSeconds()
   {
     return $this->ackDeadlineSeconds;
+  }
+  public function setMessageRetentionDuration($messageRetentionDuration)
+  {
+    $this->messageRetentionDuration = $messageRetentionDuration;
+  }
+  public function getMessageRetentionDuration()
+  {
+    return $this->messageRetentionDuration;
   }
   public function setName($name)
   {
@@ -52,6 +62,14 @@ class Google_Service_Pubsub_Subscription extends Google_Model
   public function getPushConfig()
   {
     return $this->pushConfig;
+  }
+  public function setRetainAckedMessages($retainAckedMessages)
+  {
+    $this->retainAckedMessages = $retainAckedMessages;
+  }
+  public function getRetainAckedMessages()
+  {
+    return $this->retainAckedMessages;
   }
   public function setTopic($topic)
   {

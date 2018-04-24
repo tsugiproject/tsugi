@@ -418,6 +418,16 @@ class Google_Service_Fusiontables extends Google_Service
                   'type' => 'boolean',
                 ),
               ),
+            ),'refetchSheet' => array(
+              'path' => 'tables/{tableId}/refetch',
+              'httpMethod' => 'POST',
+              'parameters' => array(
+                'tableId' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+              ),
             ),'replaceRows' => array(
               'path' => 'tables/{tableId}/replace',
               'httpMethod' => 'POST',

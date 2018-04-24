@@ -20,6 +20,7 @@ class Google_Service_Spanner_ExecuteSqlRequest extends Google_Model
   protected $paramTypesType = 'Google_Service_Spanner_Type';
   protected $paramTypesDataType = 'map';
   public $params;
+  public $partitionToken;
   public $queryMode;
   public $resumeToken;
   public $sql;
@@ -47,6 +48,14 @@ class Google_Service_Spanner_ExecuteSqlRequest extends Google_Model
   public function getParams()
   {
     return $this->params;
+  }
+  public function setPartitionToken($partitionToken)
+  {
+    $this->partitionToken = $partitionToken;
+  }
+  public function getPartitionToken()
+  {
+    return $this->partitionToken;
   }
   public function setQueryMode($queryMode)
   {

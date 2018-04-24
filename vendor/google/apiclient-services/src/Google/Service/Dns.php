@@ -44,6 +44,8 @@ class Google_Service_Dns extends Google_Service
       "https://www.googleapis.com/auth/ndev.clouddns.readwrite";
 
   public $changes;
+  public $dnsKeys;
+  public $managedZoneOperations;
   public $managedZones;
   public $projects;
   public $resourceRecordSets;
@@ -81,6 +83,10 @@ class Google_Service_Dns extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
               ),
             ),'get' => array(
               'path' => '{project}/managedZones/{managedZone}/changes/{changeId}',
@@ -100,6 +106,10 @@ class Google_Service_Dns extends Google_Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
               ),
             ),'list' => array(
@@ -137,6 +147,132 @@ class Google_Service_Dns extends Google_Service
           )
         )
     );
+    $this->dnsKeys = new Google_Service_Dns_Resource_DnsKeys(
+        $this,
+        $this->serviceName,
+        'dnsKeys',
+        array(
+          'methods' => array(
+            'get' => array(
+              'path' => '{project}/managedZones/{managedZone}/dnsKeys/{dnsKeyId}',
+              'httpMethod' => 'GET',
+              'parameters' => array(
+                'project' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'managedZone' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'dnsKeyId' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'digestType' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+              ),
+            ),'list' => array(
+              'path' => '{project}/managedZones/{managedZone}/dnsKeys',
+              'httpMethod' => 'GET',
+              'parameters' => array(
+                'project' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'managedZone' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'digestType' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'maxResults' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
+                ),
+                'pageToken' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+              ),
+            ),
+          )
+        )
+    );
+    $this->managedZoneOperations = new Google_Service_Dns_Resource_ManagedZoneOperations(
+        $this,
+        $this->serviceName,
+        'managedZoneOperations',
+        array(
+          'methods' => array(
+            'get' => array(
+              'path' => '{project}/managedZones/{managedZone}/operations/{operation}',
+              'httpMethod' => 'GET',
+              'parameters' => array(
+                'project' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'managedZone' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'operation' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+              ),
+            ),'list' => array(
+              'path' => '{project}/managedZones/{managedZone}/operations',
+              'httpMethod' => 'GET',
+              'parameters' => array(
+                'project' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'managedZone' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'maxResults' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
+                ),
+                'pageToken' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'sortBy' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+              ),
+            ),
+          )
+        )
+    );
     $this->managedZones = new Google_Service_Dns_Resource_ManagedZones(
         $this,
         $this->serviceName,
@@ -151,6 +287,10 @@ class Google_Service_Dns extends Google_Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
               ),
             ),'delete' => array(
@@ -167,6 +307,10 @@ class Google_Service_Dns extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
               ),
             ),'get' => array(
               'path' => '{project}/managedZones/{managedZone}',
@@ -181,6 +325,10 @@ class Google_Service_Dns extends Google_Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
               ),
             ),'list' => array(
@@ -205,6 +353,44 @@ class Google_Service_Dns extends Google_Service
                   'type' => 'string',
                 ),
               ),
+            ),'patch' => array(
+              'path' => '{project}/managedZones/{managedZone}',
+              'httpMethod' => 'PATCH',
+              'parameters' => array(
+                'project' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'managedZone' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+              ),
+            ),'update' => array(
+              'path' => '{project}/managedZones/{managedZone}',
+              'httpMethod' => 'PUT',
+              'parameters' => array(
+                'project' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'managedZone' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+              ),
             ),
           )
         )
@@ -223,6 +409,10 @@ class Google_Service_Dns extends Google_Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ),
+                'clientOperationId' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
               ),
             ),

@@ -17,6 +17,8 @@
 
 class Google_Service_Calendar_Calendar extends Google_Model
 {
+  protected $conferencePropertiesType = 'Google_Service_Calendar_ConferenceProperties';
+  protected $conferencePropertiesDataType = '';
   public $description;
   public $etag;
   public $id;
@@ -25,6 +27,20 @@ class Google_Service_Calendar_Calendar extends Google_Model
   public $summary;
   public $timeZone;
 
+  /**
+   * @param Google_Service_Calendar_ConferenceProperties
+   */
+  public function setConferenceProperties(Google_Service_Calendar_ConferenceProperties $conferenceProperties)
+  {
+    $this->conferenceProperties = $conferenceProperties;
+  }
+  /**
+   * @return Google_Service_Calendar_ConferenceProperties
+   */
+  public function getConferenceProperties()
+  {
+    return $this->conferenceProperties;
+  }
   public function setDescription($description)
   {
     $this->description = $description;

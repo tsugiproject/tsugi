@@ -30,15 +30,15 @@ class Google_Service_Dialogflow_Resource_ProjectsAgentSessionsEntityTypes extend
    *
    * @param string $parent Required. The session to create a session entity type
    * for. Format: `projects//agent/sessions/`.
-   * @param Google_Service_Dialogflow_SessionEntityType $postBody
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType $postBody
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_SessionEntityType
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType
    */
-  public function create($parent, Google_Service_Dialogflow_SessionEntityType $postBody, $optParams = array())
+  public function create($parent, Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType $postBody, $optParams = array())
   {
     $params = array('parent' => $parent, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
-    return $this->call('create', array($params), "Google_Service_Dialogflow_SessionEntityType");
+    return $this->call('create', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType");
   }
   /**
    * Deletes the specified session entity type. (entityTypes.delete)
@@ -46,13 +46,13 @@ class Google_Service_Dialogflow_Resource_ProjectsAgentSessionsEntityTypes extend
    * @param string $name Required. The name of the entity type to delete. Format:
    * `projects//agent/sessions//entityTypes/`.
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_DialogflowEmpty
+   * @return Google_Service_Dialogflow_GoogleProtobufEmpty
    */
   public function delete($name, $optParams = array())
   {
     $params = array('name' => $name);
     $params = array_merge($params, $optParams);
-    return $this->call('delete', array($params), "Google_Service_Dialogflow_DialogflowEmpty");
+    return $this->call('delete', array($params), "Google_Service_Dialogflow_GoogleProtobufEmpty");
   }
   /**
    * Retrieves the specified session entity type. (entityTypes.get)
@@ -60,13 +60,13 @@ class Google_Service_Dialogflow_Resource_ProjectsAgentSessionsEntityTypes extend
    * @param string $name Required. The name of the session entity type. Format:
    * `projects//agent/sessions//entityTypes/`.
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_SessionEntityType
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType
    */
   public function get($name, $optParams = array())
   {
     $params = array('name' => $name);
     $params = array_merge($params, $optParams);
-    return $this->call('get', array($params), "Google_Service_Dialogflow_SessionEntityType");
+    return $this->call('get', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType");
   }
   /**
    * Returns the list of all session entity types in the specified session.
@@ -76,34 +76,34 @@ class Google_Service_Dialogflow_Resource_ProjectsAgentSessionsEntityTypes extend
    * from. Format: `projects//agent/sessions/`.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize Optional. The maximum number of items to return in a
-   * single page. By default 100 and at most 1000.
    * @opt_param string pageToken Optional. The next_page_token value returned from
    * a previous list request.
-   * @return Google_Service_Dialogflow_ListSessionEntityTypesResponse
+   * @opt_param int pageSize Optional. The maximum number of items to return in a
+   * single page. By default 100 and at most 1000.
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2ListSessionEntityTypesResponse
    */
   public function listProjectsAgentSessionsEntityTypes($parent, $optParams = array())
   {
     $params = array('parent' => $parent);
     $params = array_merge($params, $optParams);
-    return $this->call('list', array($params), "Google_Service_Dialogflow_ListSessionEntityTypesResponse");
+    return $this->call('list', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2ListSessionEntityTypesResponse");
   }
   /**
    * Updates the specified session entity type. (entityTypes.patch)
    *
    * @param string $name Required. The unique identifier of this session entity
    * type. Format: `projects//agent/sessions//entityTypes/`.
-   * @param Google_Service_Dialogflow_SessionEntityType $postBody
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType $postBody
    * @param array $optParams Optional parameters.
    *
    * @opt_param string updateMask Optional. The mask to control which fields get
    * updated.
-   * @return Google_Service_Dialogflow_SessionEntityType
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType
    */
-  public function patch($name, Google_Service_Dialogflow_SessionEntityType $postBody, $optParams = array())
+  public function patch($name, Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType $postBody, $optParams = array())
   {
     $params = array('name' => $name, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
-    return $this->call('patch', array($params), "Google_Service_Dialogflow_SessionEntityType");
+    return $this->call('patch', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType");
   }
 }

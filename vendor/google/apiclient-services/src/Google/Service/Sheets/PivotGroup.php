@@ -18,6 +18,10 @@
 class Google_Service_Sheets_PivotGroup extends Google_Collection
 {
   protected $collection_key = 'valueMetadata';
+  protected $groupRuleType = 'Google_Service_Sheets_PivotGroupRule';
+  protected $groupRuleDataType = '';
+  public $label;
+  public $repeatHeadings;
   public $showTotals;
   public $sortOrder;
   public $sourceColumnOffset;
@@ -26,6 +30,36 @@ class Google_Service_Sheets_PivotGroup extends Google_Collection
   protected $valueMetadataType = 'Google_Service_Sheets_PivotGroupValueMetadata';
   protected $valueMetadataDataType = 'array';
 
+  /**
+   * @param Google_Service_Sheets_PivotGroupRule
+   */
+  public function setGroupRule(Google_Service_Sheets_PivotGroupRule $groupRule)
+  {
+    $this->groupRule = $groupRule;
+  }
+  /**
+   * @return Google_Service_Sheets_PivotGroupRule
+   */
+  public function getGroupRule()
+  {
+    return $this->groupRule;
+  }
+  public function setLabel($label)
+  {
+    $this->label = $label;
+  }
+  public function getLabel()
+  {
+    return $this->label;
+  }
+  public function setRepeatHeadings($repeatHeadings)
+  {
+    $this->repeatHeadings = $repeatHeadings;
+  }
+  public function getRepeatHeadings()
+  {
+    return $this->repeatHeadings;
+  }
   public function setShowTotals($showTotals)
   {
     $this->showTotals = $showTotals;

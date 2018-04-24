@@ -18,8 +18,20 @@
 class Google_Service_Container_SetLocationsRequest extends Google_Collection
 {
   protected $collection_key = 'locations';
+  public $clusterId;
   public $locations;
+  public $name;
+  public $projectId;
+  public $zone;
 
+  public function setClusterId($clusterId)
+  {
+    $this->clusterId = $clusterId;
+  }
+  public function getClusterId()
+  {
+    return $this->clusterId;
+  }
   public function setLocations($locations)
   {
     $this->locations = $locations;
@@ -27,5 +39,29 @@ class Google_Service_Container_SetLocationsRequest extends Google_Collection
   public function getLocations()
   {
     return $this->locations;
+  }
+  public function setName($name)
+  {
+    $this->name = $name;
+  }
+  public function getName()
+  {
+    return $this->name;
+  }
+  public function setProjectId($projectId)
+  {
+    $this->projectId = $projectId;
+  }
+  public function getProjectId()
+  {
+    return $this->projectId;
+  }
+  public function setZone($zone)
+  {
+    $this->zone = $zone;
+  }
+  public function getZone()
+  {
+    return $this->zone;
   }
 }

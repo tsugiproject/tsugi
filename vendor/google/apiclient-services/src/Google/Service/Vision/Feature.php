@@ -18,6 +18,7 @@
 class Google_Service_Vision_Feature extends Google_Model
 {
   public $maxResults;
+  public $model;
   public $type;
 
   public function setMaxResults($maxResults)
@@ -27,6 +28,14 @@ class Google_Service_Vision_Feature extends Google_Model
   public function getMaxResults()
   {
     return $this->maxResults;
+  }
+  public function setModel($model)
+  {
+    $this->model = $model;
+  }
+  public function getModel()
+  {
+    return $this->model;
   }
   public function setType($type)
   {

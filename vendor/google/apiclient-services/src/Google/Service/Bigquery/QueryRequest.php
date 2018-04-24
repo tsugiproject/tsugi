@@ -22,6 +22,7 @@ class Google_Service_Bigquery_QueryRequest extends Google_Collection
   protected $defaultDatasetDataType = '';
   public $dryRun;
   public $kind;
+  public $location;
   public $maxResults;
   public $parameterMode;
   public $preserveNulls;
@@ -61,6 +62,14 @@ class Google_Service_Bigquery_QueryRequest extends Google_Collection
   public function getKind()
   {
     return $this->kind;
+  }
+  public function setLocation($location)
+  {
+    $this->location = $location;
+  }
+  public function getLocation()
+  {
+    return $this->location;
   }
   public function setMaxResults($maxResults)
   {

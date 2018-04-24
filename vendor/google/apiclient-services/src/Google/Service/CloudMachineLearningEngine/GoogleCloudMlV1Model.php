@@ -21,8 +21,6 @@ class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Model extends Goo
   protected $defaultVersionType = 'Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Version';
   protected $defaultVersionDataType = '';
   public $description;
-  public $etag;
-  public $labels;
   public $name;
   public $onlinePredictionLogging;
   public $regions;
@@ -48,22 +46,6 @@ class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1Model extends Goo
   public function getDescription()
   {
     return $this->description;
-  }
-  public function setEtag($etag)
-  {
-    $this->etag = $etag;
-  }
-  public function getEtag()
-  {
-    return $this->etag;
-  }
-  public function setLabels($labels)
-  {
-    $this->labels = $labels;
-  }
-  public function getLabels()
-  {
-    return $this->labels;
   }
   public function setName($name)
   {

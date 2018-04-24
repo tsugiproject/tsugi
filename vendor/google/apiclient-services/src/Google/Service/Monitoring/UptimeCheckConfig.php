@@ -25,6 +25,7 @@ class Google_Service_Monitoring_UptimeCheckConfig extends Google_Collection
   protected $httpCheckDataType = '';
   protected $internalCheckersType = 'Google_Service_Monitoring_InternalChecker';
   protected $internalCheckersDataType = 'array';
+  public $isInternal;
   protected $monitoredResourceType = 'Google_Service_Monitoring_MonitoredResource';
   protected $monitoredResourceDataType = '';
   public $name;
@@ -85,6 +86,14 @@ class Google_Service_Monitoring_UptimeCheckConfig extends Google_Collection
   public function getInternalCheckers()
   {
     return $this->internalCheckers;
+  }
+  public function setIsInternal($isInternal)
+  {
+    $this->isInternal = $isInternal;
+  }
+  public function getIsInternal()
+  {
+    return $this->isInternal;
   }
   /**
    * @param Google_Service_Monitoring_MonitoredResource

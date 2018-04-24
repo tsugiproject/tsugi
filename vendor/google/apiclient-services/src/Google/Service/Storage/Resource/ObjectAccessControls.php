@@ -116,8 +116,7 @@ class Google_Service_Storage_Resource_ObjectAccessControls extends Google_Servic
     return $this->call('list', array($params), "Google_Service_Storage_ObjectAccessControls");
   }
   /**
-   * Updates an ACL entry on the specified object. This method supports patch
-   * semantics. (objectAccessControls.patch)
+   * Patches an ACL entry on the specified object. (objectAccessControls.patch)
    *
    * @param string $bucket Name of a bucket.
    * @param string $object Name of the object. For information about how to URL

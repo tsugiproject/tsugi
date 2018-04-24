@@ -42,7 +42,9 @@ class Google_Service_Webmasters_Resource_Sites extends Google_Service_Resource
    * (sites.delete)
    *
    * @param string $siteUrl The URI of the property as defined in Search Console.
-   * Examples: http://www.example.com/ or android-app://com.example/
+   * Examples: http://www.example.com/ or android-app://com.example/ Note: for
+   * property-sets, use the URI that starts with sc-set: which is used in Search
+   * Console URLs.
    * @param array $optParams Optional parameters.
    */
   public function delete($siteUrl, $optParams = array())
@@ -55,7 +57,9 @@ class Google_Service_Webmasters_Resource_Sites extends Google_Service_Resource
    * Retrieves information about specific site. (sites.get)
    *
    * @param string $siteUrl The URI of the property as defined in Search Console.
-   * Examples: http://www.example.com/ or android-app://com.example/
+   * Examples: http://www.example.com/ or android-app://com.example/ Note: for
+   * property-sets, use the URI that starts with sc-set: which is used in Search
+   * Console URLs.
    * @param array $optParams Optional parameters.
    * @return Google_Service_Webmasters_WmxSite
    */

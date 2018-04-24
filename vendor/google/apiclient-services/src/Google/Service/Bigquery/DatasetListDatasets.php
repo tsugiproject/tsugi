@@ -23,6 +23,7 @@ class Google_Service_Bigquery_DatasetListDatasets extends Google_Model
   public $id;
   public $kind;
   public $labels;
+  public $location;
 
   /**
    * @param Google_Service_Bigquery_DatasetReference
@@ -69,5 +70,13 @@ class Google_Service_Bigquery_DatasetListDatasets extends Google_Model
   public function getLabels()
   {
     return $this->labels;
+  }
+  public function setLocation($location)
+  {
+    $this->location = $location;
+  }
+  public function getLocation()
+  {
+    return $this->location;
   }
 }

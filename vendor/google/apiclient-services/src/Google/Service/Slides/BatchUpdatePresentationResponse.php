@@ -21,6 +21,8 @@ class Google_Service_Slides_BatchUpdatePresentationResponse extends Google_Colle
   public $presentationId;
   protected $repliesType = 'Google_Service_Slides_Response';
   protected $repliesDataType = 'array';
+  protected $writeControlType = 'Google_Service_Slides_WriteControl';
+  protected $writeControlDataType = '';
 
   public function setPresentationId($presentationId)
   {
@@ -43,5 +45,19 @@ class Google_Service_Slides_BatchUpdatePresentationResponse extends Google_Colle
   public function getReplies()
   {
     return $this->replies;
+  }
+  /**
+   * @param Google_Service_Slides_WriteControl
+   */
+  public function setWriteControl(Google_Service_Slides_WriteControl $writeControl)
+  {
+    $this->writeControl = $writeControl;
+  }
+  /**
+   * @return Google_Service_Slides_WriteControl
+   */
+  public function getWriteControl()
+  {
+    return $this->writeControl;
   }
 }

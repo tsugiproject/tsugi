@@ -21,6 +21,8 @@ class Google_Service_Vault_CorpusQuery extends Google_Model
   protected $driveQueryDataType = '';
   protected $groupsQueryType = 'Google_Service_Vault_HeldGroupsQuery';
   protected $groupsQueryDataType = '';
+  protected $hangoutsChatQueryType = 'Google_Service_Vault_HeldHangoutsChatQuery';
+  protected $hangoutsChatQueryDataType = '';
   protected $mailQueryType = 'Google_Service_Vault_HeldMailQuery';
   protected $mailQueryDataType = '';
 
@@ -51,6 +53,20 @@ class Google_Service_Vault_CorpusQuery extends Google_Model
   public function getGroupsQuery()
   {
     return $this->groupsQuery;
+  }
+  /**
+   * @param Google_Service_Vault_HeldHangoutsChatQuery
+   */
+  public function setHangoutsChatQuery(Google_Service_Vault_HeldHangoutsChatQuery $hangoutsChatQuery)
+  {
+    $this->hangoutsChatQuery = $hangoutsChatQuery;
+  }
+  /**
+   * @return Google_Service_Vault_HeldHangoutsChatQuery
+   */
+  public function getHangoutsChatQuery()
+  {
+    return $this->hangoutsChatQuery;
   }
   /**
    * @param Google_Service_Vault_HeldMailQuery

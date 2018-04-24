@@ -481,6 +481,10 @@ class Google_Service_Calendar extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
+                'conferenceDataVersion' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
+                ),
                 'supportsAttachments' => array(
                   'location' => 'query',
                   'type' => 'boolean',
@@ -494,6 +498,10 @@ class Google_Service_Calendar extends Google_Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ),
+                'conferenceDataVersion' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
                 ),
                 'maxAttendees' => array(
                   'location' => 'query',
@@ -681,6 +689,10 @@ class Google_Service_Calendar extends Google_Service
                   'location' => 'query',
                   'type' => 'boolean',
                 ),
+                'conferenceDataVersion' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
+                ),
                 'maxAttendees' => array(
                   'location' => 'query',
                   'type' => 'integer',
@@ -730,6 +742,10 @@ class Google_Service_Calendar extends Google_Service
                 'alwaysIncludeEmail' => array(
                   'location' => 'query',
                   'type' => 'boolean',
+                ),
+                'conferenceDataVersion' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
                 ),
                 'maxAttendees' => array(
                   'location' => 'query',

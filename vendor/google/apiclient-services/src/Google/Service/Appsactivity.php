@@ -33,18 +33,6 @@ class Google_Service_Appsactivity extends Google_Service
   /** View the activity history of your Google apps. */
   const ACTIVITY =
       "https://www.googleapis.com/auth/activity";
-  /** View and manage the files in your Google Drive. */
-  const DRIVE =
-      "https://www.googleapis.com/auth/drive";
-  /** View and manage metadata of files in your Google Drive. */
-  const DRIVE_METADATA =
-      "https://www.googleapis.com/auth/drive.metadata";
-  /** View metadata for files in your Google Drive. */
-  const DRIVE_METADATA_READONLY =
-      "https://www.googleapis.com/auth/drive.metadata.readonly";
-  /** View the files in your Google Drive. */
-  const DRIVE_READONLY =
-      "https://www.googleapis.com/auth/drive.readonly";
 
   public $activities;
   

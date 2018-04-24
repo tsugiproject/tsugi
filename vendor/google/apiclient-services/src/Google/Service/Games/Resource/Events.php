@@ -31,7 +31,6 @@ class Google_Service_Games_Resource_Events extends Google_Service_Resource
    *
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @opt_param int maxResults The maximum number of events to return in the
@@ -52,7 +51,6 @@ class Google_Service_Games_Resource_Events extends Google_Service_Resource
    *
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @opt_param int maxResults The maximum number of event definitions to return
@@ -74,7 +72,6 @@ class Google_Service_Games_Resource_Events extends Google_Service_Resource
    * @param Google_Service_Games_EventRecordRequest $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @return Google_Service_Games_EventUpdateResponse

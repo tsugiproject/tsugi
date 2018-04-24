@@ -36,8 +36,6 @@ class Google_Service_Games_Resource_QuestMilestones extends Google_Service_Resou
    * correctly across retries. Your client application must generate this ID
    * randomly.
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    */
   public function claim($questId, $milestoneId, $requestId, $optParams = array())
   {

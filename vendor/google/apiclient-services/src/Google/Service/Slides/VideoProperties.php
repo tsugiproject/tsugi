@@ -17,9 +17,37 @@
 
 class Google_Service_Slides_VideoProperties extends Google_Model
 {
+  public $autoPlay;
+  public $end;
+  public $mute;
   protected $outlineType = 'Google_Service_Slides_Outline';
   protected $outlineDataType = '';
+  public $start;
 
+  public function setAutoPlay($autoPlay)
+  {
+    $this->autoPlay = $autoPlay;
+  }
+  public function getAutoPlay()
+  {
+    return $this->autoPlay;
+  }
+  public function setEnd($end)
+  {
+    $this->end = $end;
+  }
+  public function getEnd()
+  {
+    return $this->end;
+  }
+  public function setMute($mute)
+  {
+    $this->mute = $mute;
+  }
+  public function getMute()
+  {
+    return $this->mute;
+  }
   /**
    * @param Google_Service_Slides_Outline
    */
@@ -33,5 +61,13 @@ class Google_Service_Slides_VideoProperties extends Google_Model
   public function getOutline()
   {
     return $this->outline;
+  }
+  public function setStart($start)
+  {
+    $this->start = $start;
+  }
+  public function getStart()
+  {
+    return $this->start;
   }
 }

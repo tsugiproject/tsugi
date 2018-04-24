@@ -141,6 +141,10 @@ class Google_Service_DeploymentManager extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
+                'createPolicy' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
                 'preview' => array(
                   'location' => 'query',
                   'type' => 'boolean',

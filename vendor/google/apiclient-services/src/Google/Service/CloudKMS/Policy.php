@@ -23,7 +23,6 @@ class Google_Service_CloudKMS_Policy extends Google_Collection
   protected $bindingsType = 'Google_Service_CloudKMS_Binding';
   protected $bindingsDataType = 'array';
   public $etag;
-  public $iamOwned;
   public $version;
 
   /**
@@ -61,14 +60,6 @@ class Google_Service_CloudKMS_Policy extends Google_Collection
   public function getEtag()
   {
     return $this->etag;
-  }
-  public function setIamOwned($iamOwned)
-  {
-    $this->iamOwned = $iamOwned;
-  }
-  public function getIamOwned()
-  {
-    return $this->iamOwned;
   }
   public function setVersion($version)
   {

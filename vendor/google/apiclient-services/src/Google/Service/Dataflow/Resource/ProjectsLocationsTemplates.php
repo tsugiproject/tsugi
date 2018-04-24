@@ -49,10 +49,10 @@ class Google_Service_Dataflow_Resource_ProjectsLocationsTemplates extends Google
    * @param string $location The location to which to direct the request.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string view The view to retrieve. Defaults to METADATA_ONLY.
    * @opt_param string gcsPath Required. A Cloud Storage path to the template from
    * which to create the job. Must be a valid Cloud Storage URL, beginning with
    * `gs://`.
-   * @opt_param string view The view to retrieve. Defaults to METADATA_ONLY.
    * @return Google_Service_Dataflow_GetTemplateResponse
    */
   public function get($projectId, $location, $optParams = array())
@@ -70,11 +70,11 @@ class Google_Service_Dataflow_Resource_ProjectsLocationsTemplates extends Google
    * @param Google_Service_Dataflow_LaunchTemplateParameters $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool validateOnly If true, the request is validated but not
-   * actually executed. Defaults to false.
    * @opt_param string gcsPath Required. A Cloud Storage path to the template from
    * which to create the job. Must be valid Cloud Storage URL, beginning with
    * 'gs://'.
+   * @opt_param bool validateOnly If true, the request is validated but not
+   * actually executed. Defaults to false.
    * @return Google_Service_Dataflow_LaunchTemplateResponse
    */
   public function launch($projectId, $location, Google_Service_Dataflow_LaunchTemplateParameters $postBody, $optParams = array())

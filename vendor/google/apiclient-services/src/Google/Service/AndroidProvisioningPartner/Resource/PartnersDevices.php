@@ -26,9 +26,11 @@
 class Google_Service_AndroidProvisioningPartner_Resource_PartnersDevices extends Google_Service_Resource
 {
   /**
-   * Claim the device identified by device identifier. (devices.claim)
+   * Claims a device for a customer and adds it to zero-touch enrollment. If the
+   * device is already claimed by another customer, the call returns an error.
+   * (devices.claim)
    *
-   * @param string $partnerId ID of the partner.
+   * @param string $partnerId Required. The ID of the reseller partner.
    * @param Google_Service_AndroidProvisioningPartner_ClaimDeviceRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidProvisioningPartner_ClaimDeviceResponse
@@ -40,9 +42,11 @@ class Google_Service_AndroidProvisioningPartner_Resource_PartnersDevices extends
     return $this->call('claim', array($params), "Google_Service_AndroidProvisioningPartner_ClaimDeviceResponse");
   }
   /**
-   * Claim devices asynchronously. (devices.claimAsync)
+   * Claims a batch of devices for a customer asynchronously. Adds the devices to
+   * zero-touch enrollment. To learn more, read [Long‑running batch operations
+   * ](/zero-touch/guides/how-it-works#operations). (devices.claimAsync)
    *
-   * @param string $partnerId Partner ID.
+   * @param string $partnerId Required. The ID of the reseller partner.
    * @param Google_Service_AndroidProvisioningPartner_ClaimDevicesRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidProvisioningPartner_Operation
@@ -54,9 +58,10 @@ class Google_Service_AndroidProvisioningPartner_Resource_PartnersDevices extends
     return $this->call('claimAsync', array($params), "Google_Service_AndroidProvisioningPartner_Operation");
   }
   /**
-   * Find devices by device identifier. (devices.findByIdentifier)
+   * Finds devices by hardware identifiers, such as IMEI.
+   * (devices.findByIdentifier)
    *
-   * @param string $partnerId ID of the partner.
+   * @param string $partnerId Required. The ID of the reseller partner.
    * @param Google_Service_AndroidProvisioningPartner_FindDevicesByDeviceIdentifierRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidProvisioningPartner_FindDevicesByDeviceIdentifierResponse
@@ -68,9 +73,12 @@ class Google_Service_AndroidProvisioningPartner_Resource_PartnersDevices extends
     return $this->call('findByIdentifier', array($params), "Google_Service_AndroidProvisioningPartner_FindDevicesByDeviceIdentifierResponse");
   }
   /**
-   * Find devices by ownership. (devices.findByOwner)
+   * Finds devices claimed for customers. The results only contain devices
+   * registered to the reseller that's identified by the `partnerId` argument. The
+   * customer's devices purchased from other resellers don't appear in the
+   * results. (devices.findByOwner)
    *
-   * @param string $partnerId ID of the partner.
+   * @param string $partnerId Required. The ID of the reseller partner.
    * @param Google_Service_AndroidProvisioningPartner_FindDevicesByOwnerRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidProvisioningPartner_FindDevicesByOwnerResponse
@@ -82,9 +90,9 @@ class Google_Service_AndroidProvisioningPartner_Resource_PartnersDevices extends
     return $this->call('findByOwner', array($params), "Google_Service_AndroidProvisioningPartner_FindDevicesByOwnerResponse");
   }
   /**
-   * Get a device. (devices.get)
+   * Gets a device. (devices.get)
    *
-   * @param string $name Resource name in
+   * @param string $name Required. The device API resource name in the format
    * `partners/[PARTNER_ID]/devices/[DEVICE_ID]`.
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidProvisioningPartner_Device
@@ -96,11 +104,11 @@ class Google_Service_AndroidProvisioningPartner_Resource_PartnersDevices extends
     return $this->call('get', array($params), "Google_Service_AndroidProvisioningPartner_Device");
   }
   /**
-   * Update the metadata. (devices.metadata)
+   * Updates reseller metadata associated with the device. (devices.metadata)
    *
-   * @param string $metadataOwnerId The owner of the newly set metadata. Set this
-   * to the partner ID.
-   * @param string $deviceId ID of the partner.
+   * @param string $metadataOwnerId Required. The owner of the newly set metadata.
+   * Set this to the partner ID.
+   * @param string $deviceId Required. The ID of the reseller partner.
    * @param Google_Service_AndroidProvisioningPartner_UpdateDeviceMetadataRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidProvisioningPartner_DeviceMetadata
@@ -112,10 +120,10 @@ class Google_Service_AndroidProvisioningPartner_Resource_PartnersDevices extends
     return $this->call('metadata', array($params), "Google_Service_AndroidProvisioningPartner_DeviceMetadata");
   }
   /**
-   * Unclaim the device identified by the `device_id` or the `deviceIdentifier`.
+   * Unclaims a device from a customer and removes it from zero-touch enrollment.
    * (devices.unclaim)
    *
-   * @param string $partnerId ID of the partner.
+   * @param string $partnerId Required. The ID of the reseller partner.
    * @param Google_Service_AndroidProvisioningPartner_UnclaimDeviceRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidProvisioningPartner_AndroiddeviceprovisioningEmpty
@@ -127,9 +135,12 @@ class Google_Service_AndroidProvisioningPartner_Resource_PartnersDevices extends
     return $this->call('unclaim', array($params), "Google_Service_AndroidProvisioningPartner_AndroiddeviceprovisioningEmpty");
   }
   /**
-   * Unclaim devices asynchronously. (devices.unclaimAsync)
+   * Unclaims a batch of devices for a customer asynchronously. Removes the
+   * devices from zero-touch enrollment. To learn more, read [Long‑running batch
+   * operations](/zero-touch/guides/how-it-works#operations).
+   * (devices.unclaimAsync)
    *
-   * @param string $partnerId Partner ID.
+   * @param string $partnerId Required. The reseller partner ID.
    * @param Google_Service_AndroidProvisioningPartner_UnclaimDevicesRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidProvisioningPartner_Operation
@@ -141,9 +152,12 @@ class Google_Service_AndroidProvisioningPartner_Resource_PartnersDevices extends
     return $this->call('unclaimAsync', array($params), "Google_Service_AndroidProvisioningPartner_Operation");
   }
   /**
-   * Set metadata in batch asynchronously. (devices.updateMetadataAsync)
+   * Updates the reseller metadata attached to a batch of devices. This method
+   * updates devices asynchronously and returns an `Operation` that can be used to
+   * track progress. Read [Long‑running batch operations](/zero-touch/guides/how-
+   * it-works#operations). (devices.updateMetadataAsync)
    *
-   * @param string $partnerId Partner ID.
+   * @param string $partnerId Required. The reseller partner ID.
    * @param Google_Service_AndroidProvisioningPartner_UpdateDeviceMetadataInBatchRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidProvisioningPartner_Operation

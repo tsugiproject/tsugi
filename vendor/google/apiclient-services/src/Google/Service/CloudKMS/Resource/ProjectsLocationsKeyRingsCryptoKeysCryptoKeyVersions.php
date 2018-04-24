@@ -86,13 +86,13 @@ class Google_Service_CloudKMS_Resource_ProjectsLocationsKeyRingsCryptoKeysCrypto
    * in the format `projects/locations/keyRings/cryptoKeys`.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string pageToken Optional pagination token, returned earlier via
+   * ListCryptoKeyVersionsResponse.next_page_token.
    * @opt_param int pageSize Optional limit on the number of CryptoKeyVersions to
    * include in the response. Further CryptoKeyVersions can subsequently be
    * obtained by including the ListCryptoKeyVersionsResponse.next_page_token in a
    * subsequent request. If unspecified, the server will pick an appropriate
    * default.
-   * @opt_param string pageToken Optional pagination token, returned earlier via
-   * ListCryptoKeyVersionsResponse.next_page_token.
    * @return Google_Service_CloudKMS_ListCryptoKeyVersionsResponse
    */
   public function listProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersions($parent, $optParams = array())

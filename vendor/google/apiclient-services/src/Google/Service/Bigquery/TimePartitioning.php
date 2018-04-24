@@ -19,6 +19,7 @@ class Google_Service_Bigquery_TimePartitioning extends Google_Model
 {
   public $expirationMs;
   public $field;
+  public $requirePartitionFilter;
   public $type;
 
   public function setExpirationMs($expirationMs)
@@ -36,6 +37,14 @@ class Google_Service_Bigquery_TimePartitioning extends Google_Model
   public function getField()
   {
     return $this->field;
+  }
+  public function setRequirePartitionFilter($requirePartitionFilter)
+  {
+    $this->requirePartitionFilter = $requirePartitionFilter;
+  }
+  public function getRequirePartitionFilter()
+  {
+    return $this->requirePartitionFilter;
   }
   public function setType($type)
   {

@@ -30,15 +30,15 @@ class Google_Service_Dialogflow_Resource_ProjectsAgentSessionsContexts extends G
    *
    * @param string $parent Required. The session to create a context for. Format:
    * `projects//agent/sessions/`.
-   * @param Google_Service_Dialogflow_Context $postBody
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2Context $postBody
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_Context
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2Context
    */
-  public function create($parent, Google_Service_Dialogflow_Context $postBody, $optParams = array())
+  public function create($parent, Google_Service_Dialogflow_GoogleCloudDialogflowV2Context $postBody, $optParams = array())
   {
     $params = array('parent' => $parent, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
-    return $this->call('create', array($params), "Google_Service_Dialogflow_Context");
+    return $this->call('create', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2Context");
   }
   /**
    * Deletes the specified context. (contexts.delete)
@@ -46,13 +46,13 @@ class Google_Service_Dialogflow_Resource_ProjectsAgentSessionsContexts extends G
    * @param string $name Required. The name of the context to delete. Format:
    * `projects//agent/sessions//contexts/`.
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_DialogflowEmpty
+   * @return Google_Service_Dialogflow_GoogleProtobufEmpty
    */
   public function delete($name, $optParams = array())
   {
     $params = array('name' => $name);
     $params = array_merge($params, $optParams);
-    return $this->call('delete', array($params), "Google_Service_Dialogflow_DialogflowEmpty");
+    return $this->call('delete', array($params), "Google_Service_Dialogflow_GoogleProtobufEmpty");
   }
   /**
    * Retrieves the specified context. (contexts.get)
@@ -60,13 +60,13 @@ class Google_Service_Dialogflow_Resource_ProjectsAgentSessionsContexts extends G
    * @param string $name Required. The name of the context. Format:
    * `projects//agent/sessions//contexts/`.
    * @param array $optParams Optional parameters.
-   * @return Google_Service_Dialogflow_Context
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2Context
    */
   public function get($name, $optParams = array())
   {
     $params = array('name' => $name);
     $params = array_merge($params, $optParams);
-    return $this->call('get', array($params), "Google_Service_Dialogflow_Context");
+    return $this->call('get', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2Context");
   }
   /**
    * Returns the list of all contexts in the specified session.
@@ -80,31 +80,30 @@ class Google_Service_Dialogflow_Resource_ProjectsAgentSessionsContexts extends G
    * a previous list request.
    * @opt_param int pageSize Optional. The maximum number of items to return in a
    * single page. By default 100 and at most 1000.
-   * @return Google_Service_Dialogflow_ListContextsResponse
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2ListContextsResponse
    */
   public function listProjectsAgentSessionsContexts($parent, $optParams = array())
   {
     $params = array('parent' => $parent);
     $params = array_merge($params, $optParams);
-    return $this->call('list', array($params), "Google_Service_Dialogflow_ListContextsResponse");
+    return $this->call('list', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2ListContextsResponse");
   }
   /**
    * Updates the specified context. (contexts.patch)
    *
    * @param string $name Required. The unique identifier of the context. Format:
-   * `projects//agent/sessions//contexts/`. Note: The Context ID is always
-   * converted to lowercase.
-   * @param Google_Service_Dialogflow_Context $postBody
+   * `projects//agent/sessions//contexts/`.
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2Context $postBody
    * @param array $optParams Optional parameters.
    *
    * @opt_param string updateMask Optional. The mask to control which fields get
    * updated.
-   * @return Google_Service_Dialogflow_Context
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2Context
    */
-  public function patch($name, Google_Service_Dialogflow_Context $postBody, $optParams = array())
+  public function patch($name, Google_Service_Dialogflow_GoogleCloudDialogflowV2Context $postBody, $optParams = array())
   {
     $params = array('name' => $name, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
-    return $this->call('patch', array($params), "Google_Service_Dialogflow_Context");
+    return $this->call('patch', array($params), "Google_Service_Dialogflow_GoogleCloudDialogflowV2Context");
   }
 }

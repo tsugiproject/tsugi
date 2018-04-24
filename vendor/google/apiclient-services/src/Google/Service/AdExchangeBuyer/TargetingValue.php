@@ -21,6 +21,10 @@ class Google_Service_AdExchangeBuyer_TargetingValue extends Google_Model
   protected $creativeSizeValueDataType = '';
   protected $dayPartTargetingValueType = 'Google_Service_AdExchangeBuyer_TargetingValueDayPartTargeting';
   protected $dayPartTargetingValueDataType = '';
+  protected $demogAgeCriteriaValueType = 'Google_Service_AdExchangeBuyer_TargetingValueDemogAgeCriteria';
+  protected $demogAgeCriteriaValueDataType = '';
+  protected $demogGenderCriteriaValueType = 'Google_Service_AdExchangeBuyer_TargetingValueDemogGenderCriteria';
+  protected $demogGenderCriteriaValueDataType = '';
   public $longValue;
   public $stringValue;
 
@@ -51,6 +55,34 @@ class Google_Service_AdExchangeBuyer_TargetingValue extends Google_Model
   public function getDayPartTargetingValue()
   {
     return $this->dayPartTargetingValue;
+  }
+  /**
+   * @param Google_Service_AdExchangeBuyer_TargetingValueDemogAgeCriteria
+   */
+  public function setDemogAgeCriteriaValue(Google_Service_AdExchangeBuyer_TargetingValueDemogAgeCriteria $demogAgeCriteriaValue)
+  {
+    $this->demogAgeCriteriaValue = $demogAgeCriteriaValue;
+  }
+  /**
+   * @return Google_Service_AdExchangeBuyer_TargetingValueDemogAgeCriteria
+   */
+  public function getDemogAgeCriteriaValue()
+  {
+    return $this->demogAgeCriteriaValue;
+  }
+  /**
+   * @param Google_Service_AdExchangeBuyer_TargetingValueDemogGenderCriteria
+   */
+  public function setDemogGenderCriteriaValue(Google_Service_AdExchangeBuyer_TargetingValueDemogGenderCriteria $demogGenderCriteriaValue)
+  {
+    $this->demogGenderCriteriaValue = $demogGenderCriteriaValue;
+  }
+  /**
+   * @return Google_Service_AdExchangeBuyer_TargetingValueDemogGenderCriteria
+   */
+  public function getDemogGenderCriteriaValue()
+  {
+    return $this->demogGenderCriteriaValue;
   }
   public function setLongValue($longValue)
   {

@@ -51,6 +51,9 @@ class Google_Service_ShoppingContent_Resource_Productstatuses extends Google_Ser
    * @param string $productId The REST id of the product.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string destinations If set, only issues for the specified
+   * destinations are returned, otherwise only issues for the Shopping
+   * destination.
    * @opt_param bool includeAttributes Flag to include full product data in the
    * result of this get request. The default value is false.
    * @return Google_Service_ShoppingContent_ProductStatus
@@ -69,6 +72,9 @@ class Google_Service_ShoppingContent_Resource_Productstatuses extends Google_Ser
    * This account cannot be a multi-client account.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string destinations If set, only issues for the specified
+   * destinations are returned, otherwise only issues for the Shopping
+   * destination.
    * @opt_param bool includeAttributes Flag to include full product data in the
    * results of the list request. The default value is false.
    * @opt_param bool includeInvalidInsertedItems Flag to include the invalid

@@ -33,7 +33,6 @@ class Google_Service_Games_Resource_Achievements extends Google_Service_Resource
    * @param int $stepsToIncrement The number of steps to increment.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string requestId A randomly generated numeric ID for each request
    * specified by the caller. This number is used at the server to ensure that the
    * request is handled correctly across retries.
@@ -53,7 +52,6 @@ class Google_Service_Games_Resource_Achievements extends Google_Service_Resource
    * the authenticated player's ID.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @opt_param int maxResults The maximum number of achievement resources to
@@ -77,8 +75,6 @@ class Google_Service_Games_Resource_Achievements extends Google_Service_Resource
    *
    * @param string $achievementId The ID of the achievement used by this method.
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @return Google_Service_Games_AchievementRevealResponse
    */
   public function reveal($achievementId, $optParams = array())
@@ -96,8 +92,6 @@ class Google_Service_Games_Resource_Achievements extends Google_Service_Resource
    * @param string $achievementId The ID of the achievement used by this method.
    * @param int $steps The minimum value to set the steps to.
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @return Google_Service_Games_AchievementSetStepsAtLeastResponse
    */
   public function setStepsAtLeast($achievementId, $steps, $optParams = array())
@@ -112,8 +106,6 @@ class Google_Service_Games_Resource_Achievements extends Google_Service_Resource
    *
    * @param string $achievementId The ID of the achievement used by this method.
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @return Google_Service_Games_AchievementUnlockResponse
    */
   public function unlock($achievementId, $optParams = array())
@@ -128,8 +120,6 @@ class Google_Service_Games_Resource_Achievements extends Google_Service_Resource
    *
    * @param Google_Service_Games_AchievementUpdateMultipleRequest $postBody
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @return Google_Service_Games_AchievementUpdateMultipleResponse
    */
   public function updateMultiple(Google_Service_Games_AchievementUpdateMultipleRequest $postBody, $optParams = array())

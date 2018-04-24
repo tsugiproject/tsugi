@@ -27,8 +27,9 @@ class Google_Service_Cloudbilling_Resource_BillingAccountsProjects extends Googl
 {
   /**
    * Lists the projects associated with a billing account. The current
-   * authenticated user must be an [owner of the billing
-   * account](https://support.google.com/cloud/answer/4430947).
+   * authenticated user must have the `billing.resourceAssociations.list` IAM
+   * permission, which is often given to billing account
+   * [viewers](https://cloud.google.com/billing/docs/how-to/billing-access).
    * (projects.listBillingAccountsProjects)
    *
    * @param string $name The resource name of the billing account associated with
@@ -36,12 +37,12 @@ class Google_Service_Cloudbilling_Resource_BillingAccountsProjects extends Googl
    * `billingAccounts/012345-567890-ABCDEF`.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize Requested page size. The maximum page size is 100;
-   * this is also the default.
    * @opt_param string pageToken A token identifying a page of results to be
    * returned. This should be a `next_page_token` value returned from a previous
    * `ListProjectBillingInfo` call. If unspecified, the first page of results is
    * returned.
+   * @opt_param int pageSize Requested page size. The maximum page size is 100;
+   * this is also the default.
    * @return Google_Service_Cloudbilling_ListProjectBillingInfoResponse
    */
   public function listBillingAccountsProjects($name, $optParams = array())

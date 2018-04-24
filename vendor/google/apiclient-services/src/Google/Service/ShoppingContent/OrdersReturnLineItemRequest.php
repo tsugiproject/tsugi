@@ -19,6 +19,7 @@ class Google_Service_ShoppingContent_OrdersReturnLineItemRequest extends Google_
 {
   public $lineItemId;
   public $operationId;
+  public $productId;
   public $quantity;
   public $reason;
   public $reasonText;
@@ -38,6 +39,14 @@ class Google_Service_ShoppingContent_OrdersReturnLineItemRequest extends Google_
   public function getOperationId()
   {
     return $this->operationId;
+  }
+  public function setProductId($productId)
+  {
+    $this->productId = $productId;
+  }
+  public function getProductId()
+  {
+    return $this->productId;
   }
   public function setQuantity($quantity)
   {

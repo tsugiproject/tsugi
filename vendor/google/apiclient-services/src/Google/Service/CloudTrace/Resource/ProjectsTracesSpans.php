@@ -26,7 +26,7 @@
 class Google_Service_CloudTrace_Resource_ProjectsTracesSpans extends Google_Service_Resource
 {
   /**
-   * Creates a new span. (spans.create)
+   * Creates a new span. (spans.createSpan)
    *
    * @param string $name The resource name of the span in the following format:
    *
@@ -40,10 +40,10 @@ class Google_Service_CloudTrace_Resource_ProjectsTracesSpans extends Google_Serv
    * @param array $optParams Optional parameters.
    * @return Google_Service_CloudTrace_Span
    */
-  public function create($name, Google_Service_CloudTrace_Span $postBody, $optParams = array())
+  public function createSpan($name, Google_Service_CloudTrace_Span $postBody, $optParams = array())
   {
     $params = array('name' => $name, 'postBody' => $postBody);
     $params = array_merge($params, $optParams);
-    return $this->call('create', array($params), "Google_Service_CloudTrace_Span");
+    return $this->call('createSpan', array($params), "Google_Service_CloudTrace_Span");
   }
 }

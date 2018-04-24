@@ -23,6 +23,7 @@ class Google_Service_ShoppingContent_Service extends Google_Collection
   public $deliveryCountry;
   protected $deliveryTimeType = 'Google_Service_ShoppingContent_DeliveryTime';
   protected $deliveryTimeDataType = '';
+  public $eligibility;
   protected $minimumOrderValueType = 'Google_Service_ShoppingContent_Price';
   protected $minimumOrderValueDataType = '';
   public $name;
@@ -66,6 +67,14 @@ class Google_Service_ShoppingContent_Service extends Google_Collection
   public function getDeliveryTime()
   {
     return $this->deliveryTime;
+  }
+  public function setEligibility($eligibility)
+  {
+    $this->eligibility = $eligibility;
+  }
+  public function getEligibility()
+  {
+    return $this->eligibility;
   }
   /**
    * @param Google_Service_ShoppingContent_Price

@@ -103,10 +103,6 @@ class Google_Service_YouTubeReporting extends Google_Service
               'path' => 'v1/jobs',
               'httpMethod' => 'GET',
               'parameters' => array(
-                'onBehalfOfContentOwner' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
                 'pageToken' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -118,6 +114,10 @@ class Google_Service_YouTubeReporting extends Google_Service
                 'pageSize' => array(
                   'location' => 'query',
                   'type' => 'integer',
+                ),
+                'onBehalfOfContentOwner' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
               ),
             ),
@@ -158,19 +158,15 @@ class Google_Service_YouTubeReporting extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
-                'startTimeBefore' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
                 'createdAfter' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'startTimeAtOrAfter' => array(
+                'pageToken' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
-                'pageToken' => array(
+                'startTimeAtOrAfter' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -179,6 +175,10 @@ class Google_Service_YouTubeReporting extends Google_Service
                   'type' => 'integer',
                 ),
                 'onBehalfOfContentOwner' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'startTimeBefore' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),

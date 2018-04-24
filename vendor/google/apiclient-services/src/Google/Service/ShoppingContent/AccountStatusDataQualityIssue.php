@@ -19,6 +19,7 @@ class Google_Service_ShoppingContent_AccountStatusDataQualityIssue extends Googl
 {
   protected $collection_key = 'exampleItems';
   public $country;
+  public $destination;
   public $detail;
   public $displayedValue;
   protected $exampleItemsType = 'Google_Service_ShoppingContent_AccountStatusExampleItem';
@@ -37,6 +38,14 @@ class Google_Service_ShoppingContent_AccountStatusDataQualityIssue extends Googl
   public function getCountry()
   {
     return $this->country;
+  }
+  public function setDestination($destination)
+  {
+    $this->destination = $destination;
+  }
+  public function getDestination()
+  {
+    return $this->destination;
   }
   public function setDetail($detail)
   {

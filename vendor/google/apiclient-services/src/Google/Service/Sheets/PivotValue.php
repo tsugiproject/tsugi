@@ -17,11 +17,20 @@
 
 class Google_Service_Sheets_PivotValue extends Google_Model
 {
+  public $calculatedDisplayType;
   public $formula;
   public $name;
   public $sourceColumnOffset;
   public $summarizeFunction;
 
+  public function setCalculatedDisplayType($calculatedDisplayType)
+  {
+    $this->calculatedDisplayType = $calculatedDisplayType;
+  }
+  public function getCalculatedDisplayType()
+  {
+    return $this->calculatedDisplayType;
+  }
   public function setFormula($formula)
   {
     $this->formula = $formula;

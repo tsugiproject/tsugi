@@ -16,7 +16,7 @@
  */
 
 /**
- * Service definition for CloudVideoIntelligence (v1beta1).
+ * Service definition for CloudVideoIntelligence (v1).
  *
  * <p>
  * Cloud Video Intelligence API.</p>
@@ -34,6 +34,7 @@ class Google_Service_CloudVideoIntelligence extends Google_Service
   const CLOUD_PLATFORM =
       "https://www.googleapis.com/auth/cloud-platform";
 
+  public $operations;
   public $videos;
   
   /**
@@ -47,9 +48,70 @@ class Google_Service_CloudVideoIntelligence extends Google_Service
     parent::__construct($client);
     $this->rootUrl = 'https://videointelligence.googleapis.com/';
     $this->servicePath = '';
-    $this->version = 'v1beta1';
+    $this->version = 'v1';
     $this->serviceName = 'videointelligence';
 
+    $this->operations = new Google_Service_CloudVideoIntelligence_Resource_Operations(
+        $this,
+        $this->serviceName,
+        'operations',
+        array(
+          'methods' => array(
+            'cancel' => array(
+              'path' => 'v1/operations/{+name}:cancel',
+              'httpMethod' => 'POST',
+              'parameters' => array(
+                'name' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+              ),
+            ),'delete' => array(
+              'path' => 'v1/operations/{+name}',
+              'httpMethod' => 'DELETE',
+              'parameters' => array(
+                'name' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+              ),
+            ),'get' => array(
+              'path' => 'v1/operations/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => array(
+                'name' => array(
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ),
+              ),
+            ),'list' => array(
+              'path' => 'v1/operations',
+              'httpMethod' => 'GET',
+              'parameters' => array(
+                'name' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'pageToken' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+                'pageSize' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
+                ),
+                'filter' => array(
+                  'location' => 'query',
+                  'type' => 'string',
+                ),
+              ),
+            ),
+          )
+        )
+    );
     $this->videos = new Google_Service_CloudVideoIntelligence_Resource_Videos(
         $this,
         $this->serviceName,
@@ -57,7 +119,7 @@ class Google_Service_CloudVideoIntelligence extends Google_Service
         array(
           'methods' => array(
             'annotate' => array(
-              'path' => 'v1beta1/videos:annotate',
+              'path' => 'v1/videos:annotate',
               'httpMethod' => 'POST',
               'parameters' => array(),
             ),

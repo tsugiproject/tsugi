@@ -18,6 +18,8 @@
 class Google_Service_Vision_WebDetection extends Google_Collection
 {
   protected $collection_key = 'webEntities';
+  protected $bestGuessLabelsType = 'Google_Service_Vision_WebLabel';
+  protected $bestGuessLabelsDataType = 'array';
   protected $fullMatchingImagesType = 'Google_Service_Vision_WebImage';
   protected $fullMatchingImagesDataType = 'array';
   protected $pagesWithMatchingImagesType = 'Google_Service_Vision_WebPage';
@@ -29,6 +31,20 @@ class Google_Service_Vision_WebDetection extends Google_Collection
   protected $webEntitiesType = 'Google_Service_Vision_WebEntity';
   protected $webEntitiesDataType = 'array';
 
+  /**
+   * @param Google_Service_Vision_WebLabel
+   */
+  public function setBestGuessLabels($bestGuessLabels)
+  {
+    $this->bestGuessLabels = $bestGuessLabels;
+  }
+  /**
+   * @return Google_Service_Vision_WebLabel
+   */
+  public function getBestGuessLabels()
+  {
+    return $this->bestGuessLabels;
+  }
   /**
    * @param Google_Service_Vision_WebImage
    */

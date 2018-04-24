@@ -33,6 +33,9 @@ class Google_Service_Slides extends Google_Service
   /** View and manage the files in your Google Drive. */
   const DRIVE =
       "https://www.googleapis.com/auth/drive";
+  /** View and manage Google Drive files and folders that you have opened or created with this app. */
+  const DRIVE_FILE =
+      "https://www.googleapis.com/auth/drive.file";
   /** View the files in your Google Drive. */
   const DRIVE_READONLY =
       "https://www.googleapis.com/auth/drive.readonly";

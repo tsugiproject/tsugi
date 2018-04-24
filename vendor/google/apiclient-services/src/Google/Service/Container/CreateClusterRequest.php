@@ -19,6 +19,9 @@ class Google_Service_Container_CreateClusterRequest extends Google_Model
 {
   protected $clusterType = 'Google_Service_Container_Cluster';
   protected $clusterDataType = '';
+  public $parent;
+  public $projectId;
+  public $zone;
 
   /**
    * @param Google_Service_Container_Cluster
@@ -33,5 +36,29 @@ class Google_Service_Container_CreateClusterRequest extends Google_Model
   public function getCluster()
   {
     return $this->cluster;
+  }
+  public function setParent($parent)
+  {
+    $this->parent = $parent;
+  }
+  public function getParent()
+  {
+    return $this->parent;
+  }
+  public function setProjectId($projectId)
+  {
+    $this->projectId = $projectId;
+  }
+  public function getProjectId()
+  {
+    return $this->projectId;
+  }
+  public function setZone($zone)
+  {
+    $this->zone = $zone;
+  }
+  public function getZone()
+  {
+    return $this->zone;
   }
 }

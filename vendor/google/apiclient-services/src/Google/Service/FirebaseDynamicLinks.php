@@ -34,6 +34,7 @@ class Google_Service_FirebaseDynamicLinks extends Google_Service
   const FIREBASE =
       "https://www.googleapis.com/auth/firebase";
 
+  public $managedShortLinks;
   public $shortLinks;
   public $v1;
   
@@ -50,6 +51,20 @@ class Google_Service_FirebaseDynamicLinks extends Google_Service
     $this->version = 'v1';
     $this->serviceName = 'firebasedynamiclinks';
 
+    $this->managedShortLinks = new Google_Service_FirebaseDynamicLinks_Resource_ManagedShortLinks(
+        $this,
+        $this->serviceName,
+        'managedShortLinks',
+        array(
+          'methods' => array(
+            'create' => array(
+              'path' => 'v1/managedShortLinks:create',
+              'httpMethod' => 'POST',
+              'parameters' => array(),
+            ),
+          )
+        )
+    );
     $this->shortLinks = new Google_Service_FirebaseDynamicLinks_Resource_ShortLinks(
         $this,
         $this->serviceName,

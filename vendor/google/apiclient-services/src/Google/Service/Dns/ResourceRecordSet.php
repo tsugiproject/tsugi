@@ -17,10 +17,11 @@
 
 class Google_Service_Dns_ResourceRecordSet extends Google_Collection
 {
-  protected $collection_key = 'rrdatas';
+  protected $collection_key = 'signatureRrdatas';
   public $kind;
   public $name;
   public $rrdatas;
+  public $signatureRrdatas;
   public $ttl;
   public $type;
 
@@ -47,6 +48,14 @@ class Google_Service_Dns_ResourceRecordSet extends Google_Collection
   public function getRrdatas()
   {
     return $this->rrdatas;
+  }
+  public function setSignatureRrdatas($signatureRrdatas)
+  {
+    $this->signatureRrdatas = $signatureRrdatas;
+  }
+  public function getSignatureRrdatas()
+  {
+    return $this->signatureRrdatas;
   }
   public function setTtl($ttl)
   {

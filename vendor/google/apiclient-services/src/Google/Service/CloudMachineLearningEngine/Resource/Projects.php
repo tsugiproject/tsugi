@@ -27,7 +27,7 @@ class Google_Service_CloudMachineLearningEngine_Resource_Projects extends Google
 {
   /**
    * Get the service account information associated with your project. You need
-   * this information in order to grant the service account persmissions for the
+   * this information in order to grant the service account permissions for the
    * Google Cloud Storage location where you put your model training code for
    * training the model with Google Cloud Machine Learning. (projects.getConfig)
    *
@@ -42,9 +42,10 @@ class Google_Service_CloudMachineLearningEngine_Resource_Projects extends Google
     return $this->call('getConfig', array($params), "Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1GetConfigResponse");
   }
   /**
-   * Performs prediction on the data in the request.
-   *
-   * **** REMOVE FROM GENERATED DOCUMENTATION (projects.predict)
+   * Performs prediction on the data in the request. Cloud ML Engine implements a
+   * custom `predict` verb on top of an HTTP POST method. For details of the
+   * request and response format, see the **guide to the [predict request format
+   * ](/ml-engine/docs/v1/predict-request)**. (projects.predict)
    *
    * @param string $name Required. The resource name of a model or a version.
    *

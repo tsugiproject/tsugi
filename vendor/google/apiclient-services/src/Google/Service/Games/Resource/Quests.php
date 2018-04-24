@@ -32,7 +32,6 @@ class Google_Service_Games_Resource_Quests extends Google_Service_Resource
    * @param string $questId The ID of the quest.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @return Google_Service_Games_Quest
@@ -51,7 +50,6 @@ class Google_Service_Games_Resource_Quests extends Google_Service_Resource
    * the authenticated player's ID.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string consistencyToken The last-seen mutation timestamp.
    * @opt_param string language The preferred language to use for strings returned
    * by this method.
    * @opt_param int maxResults The maximum number of quest resources to return in

@@ -28,6 +28,8 @@ class Google_Service_Dataflow_CounterUpdate extends Google_Model
   protected $floatingPointMeanDataType = '';
   protected $integerType = 'Google_Service_Dataflow_SplitInt64';
   protected $integerDataType = '';
+  protected $integerGaugeType = 'Google_Service_Dataflow_IntegerGauge';
+  protected $integerGaugeDataType = '';
   protected $integerListType = 'Google_Service_Dataflow_IntegerList';
   protected $integerListDataType = '';
   protected $integerMeanType = 'Google_Service_Dataflow_IntegerMean';
@@ -120,6 +122,20 @@ class Google_Service_Dataflow_CounterUpdate extends Google_Model
   public function getInteger()
   {
     return $this->integer;
+  }
+  /**
+   * @param Google_Service_Dataflow_IntegerGauge
+   */
+  public function setIntegerGauge(Google_Service_Dataflow_IntegerGauge $integerGauge)
+  {
+    $this->integerGauge = $integerGauge;
+  }
+  /**
+   * @return Google_Service_Dataflow_IntegerGauge
+   */
+  public function getIntegerGauge()
+  {
+    return $this->integerGauge;
   }
   /**
    * @param Google_Service_Dataflow_IntegerList

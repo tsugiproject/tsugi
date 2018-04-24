@@ -23,6 +23,7 @@ class Google_Service_Spanner_ReadRequest extends Google_Collection
   protected $keySetType = 'Google_Service_Spanner_KeySet';
   protected $keySetDataType = '';
   public $limit;
+  public $partitionToken;
   public $resumeToken;
   public $table;
   protected $transactionType = 'Google_Service_Spanner_TransactionSelector';
@@ -65,6 +66,14 @@ class Google_Service_Spanner_ReadRequest extends Google_Collection
   public function getLimit()
   {
     return $this->limit;
+  }
+  public function setPartitionToken($partitionToken)
+  {
+    $this->partitionToken = $partitionToken;
+  }
+  public function getPartitionToken()
+  {
+    return $this->partitionToken;
   }
   public function setResumeToken($resumeToken)
   {

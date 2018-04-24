@@ -86,9 +86,9 @@ class Google_Service_Firestore_Resource_ProjectsDatabasesIndexes extends Google_
    * `projects/{project_id}/databases/{database_id}`
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The standard List page size.
    * @opt_param string filter
    * @opt_param string pageToken The standard List page token.
+   * @opt_param int pageSize The standard List page size.
    * @return Google_Service_Firestore_ListIndexesResponse
    */
   public function listProjectsDatabasesIndexes($parent, $optParams = array())

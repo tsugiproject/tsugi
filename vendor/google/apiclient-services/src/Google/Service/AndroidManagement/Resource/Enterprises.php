@@ -26,7 +26,7 @@
 class Google_Service_AndroidManagement_Resource_Enterprises extends Google_Service_Resource
 {
   /**
-   * Creates an enterprise by completing the enterprise signup flow.
+   * Creates an enterprise. This is the last step in the enterprise signup flow.
    * (enterprises.create)
    *
    * @param Google_Service_AndroidManagement_Enterprise $postBody
@@ -36,7 +36,7 @@ class Google_Service_AndroidManagement_Resource_Enterprises extends Google_Servi
    * the enterprise.
    * @opt_param string enterpriseToken The enterprise token appended to the
    * callback URL.
-   * @opt_param string projectId The id of the Google Cloud Platform project which
+   * @opt_param string projectId The ID of the Google Cloud Platform project which
    * will own the enterprise.
    * @return Google_Service_AndroidManagement_Enterprise
    */
@@ -50,7 +50,7 @@ class Google_Service_AndroidManagement_Resource_Enterprises extends Google_Servi
    * Gets an enterprise. (enterprises.get)
    *
    * @param string $name The name of the enterprise in the form
-   * enterprises/{enterpriseId}
+   * enterprises/{enterpriseId}.
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidManagement_Enterprise
    */
@@ -64,7 +64,7 @@ class Google_Service_AndroidManagement_Resource_Enterprises extends Google_Servi
    * Updates an enterprise. (enterprises.patch)
    *
    * @param string $name The name of the enterprise in the form
-   * enterprises/{enterpriseId}
+   * enterprises/{enterpriseId}.
    * @param Google_Service_AndroidManagement_Enterprise $postBody
    * @param array $optParams Optional parameters.
    *

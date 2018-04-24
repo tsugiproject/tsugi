@@ -26,11 +26,7 @@
 class Google_Service_Genomics_Resource_Readgroupsets extends Google_Service_Resource
 {
   /**
-   * Deletes a read group set.
-   *
-   * For the definitions of read group sets and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics) (readgroupsets.delete)
+   * Deletes a read group set. (readgroupsets.delete)
    *
    * @param string $readGroupSetId The ID of the read group set to be deleted. The
    * caller must have WRITE permissions to the dataset associated with this read
@@ -46,10 +42,6 @@ class Google_Service_Genomics_Resource_Readgroupsets extends Google_Service_Reso
   }
   /**
    * Exports a read group set to a BAM file in Google Cloud Storage.
-   *
-   * For the definitions of read group sets and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
    *
    * Note that currently there may be some differences between exported BAM files
    * and the original BAM file at the time of import. See ImportReadGroupSets for
@@ -68,11 +60,7 @@ class Google_Service_Genomics_Resource_Readgroupsets extends Google_Service_Reso
     return $this->call('export', array($params), "Google_Service_Genomics_Operation");
   }
   /**
-   * Gets a read group set by ID.
-   *
-   * For the definitions of read group sets and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics) (readgroupsets.get)
+   * Gets a read group set by ID. (readgroupsets.get)
    *
    * @param string $readGroupSetId The ID of the read group set.
    * @param array $optParams Optional parameters.
@@ -86,10 +74,6 @@ class Google_Service_Genomics_Resource_Readgroupsets extends Google_Service_Reso
   }
   /**
    * Creates read group sets by asynchronously importing the provided information.
-   *
-   * For the definitions of read group sets and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
    *
    * The caller must have WRITE permissions to the dataset.
    *
@@ -116,10 +100,6 @@ class Google_Service_Genomics_Resource_Readgroupsets extends Google_Service_Reso
   /**
    * Updates a read group set.
    *
-   * For the definitions of read group sets and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
-   *
    * This method supports patch semantics. (readgroupsets.patch)
    *
    * @param string $readGroupSetId The ID of the read group set to be updated. The
@@ -144,10 +124,6 @@ class Google_Service_Genomics_Resource_Readgroupsets extends Google_Service_Reso
   }
   /**
    * Searches for read group sets matching the criteria.
-   *
-   * For the definitions of read group sets and other genomics resources, see
-   * [Fundamentals of Google Genomics](https://cloud.google.com/genomics
-   * /fundamentals-of-google-genomics)
    *
    * Implements [GlobalAllianceApi.searchReadGroupSets](https://github.com/ga4gh/s
    * chemas/blob/v0.5.1/src/main/resources/avro/readmethods.avdl#L135).

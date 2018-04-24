@@ -29,7 +29,7 @@ class Google_Service_AndroidManagement_Resource_EnterprisesApplications extends 
    * Gets info about an application. (applications.get)
    *
    * @param string $name The name of the application in the form
-   * enterprises/{enterpriseId}/applications/{package_name}
+   * enterprises/{enterpriseId}/applications/{package_name}.
    * @param array $optParams Optional parameters.
    *
    * @opt_param string languageCode The preferred language for localized

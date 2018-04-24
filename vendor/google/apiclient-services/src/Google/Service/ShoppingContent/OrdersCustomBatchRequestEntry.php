@@ -22,6 +22,8 @@ class Google_Service_ShoppingContent_OrdersCustomBatchRequestEntry extends Googl
   protected $cancelDataType = '';
   protected $cancelLineItemType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryCancelLineItem';
   protected $cancelLineItemDataType = '';
+  protected $inStoreRefundLineItemType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryInStoreRefundLineItem';
+  protected $inStoreRefundLineItemDataType = '';
   public $merchantId;
   public $merchantOrderId;
   public $method;
@@ -29,10 +31,18 @@ class Google_Service_ShoppingContent_OrdersCustomBatchRequestEntry extends Googl
   public $orderId;
   protected $refundType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryRefund';
   protected $refundDataType = '';
+  protected $rejectReturnLineItemType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryRejectReturnLineItem';
+  protected $rejectReturnLineItemDataType = '';
   protected $returnLineItemType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryReturnLineItem';
   protected $returnLineItemDataType = '';
+  protected $returnRefundLineItemType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryReturnRefundLineItem';
+  protected $returnRefundLineItemDataType = '';
+  protected $setLineItemMetadataType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntrySetLineItemMetadata';
+  protected $setLineItemMetadataDataType = '';
   protected $shipLineItemsType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryShipLineItems';
   protected $shipLineItemsDataType = '';
+  protected $updateLineItemShippingDetailsType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryUpdateLineItemShippingDetails';
+  protected $updateLineItemShippingDetailsDataType = '';
   protected $updateShipmentType = 'Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryUpdateShipment';
   protected $updateShipmentDataType = '';
 
@@ -71,6 +81,20 @@ class Google_Service_ShoppingContent_OrdersCustomBatchRequestEntry extends Googl
   public function getCancelLineItem()
   {
     return $this->cancelLineItem;
+  }
+  /**
+   * @param Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryInStoreRefundLineItem
+   */
+  public function setInStoreRefundLineItem(Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryInStoreRefundLineItem $inStoreRefundLineItem)
+  {
+    $this->inStoreRefundLineItem = $inStoreRefundLineItem;
+  }
+  /**
+   * @return Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryInStoreRefundLineItem
+   */
+  public function getInStoreRefundLineItem()
+  {
+    return $this->inStoreRefundLineItem;
   }
   public function setMerchantId($merchantId)
   {
@@ -127,6 +151,20 @@ class Google_Service_ShoppingContent_OrdersCustomBatchRequestEntry extends Googl
     return $this->refund;
   }
   /**
+   * @param Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryRejectReturnLineItem
+   */
+  public function setRejectReturnLineItem(Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryRejectReturnLineItem $rejectReturnLineItem)
+  {
+    $this->rejectReturnLineItem = $rejectReturnLineItem;
+  }
+  /**
+   * @return Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryRejectReturnLineItem
+   */
+  public function getRejectReturnLineItem()
+  {
+    return $this->rejectReturnLineItem;
+  }
+  /**
    * @param Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryReturnLineItem
    */
   public function setReturnLineItem(Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryReturnLineItem $returnLineItem)
@@ -141,6 +179,34 @@ class Google_Service_ShoppingContent_OrdersCustomBatchRequestEntry extends Googl
     return $this->returnLineItem;
   }
   /**
+   * @param Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryReturnRefundLineItem
+   */
+  public function setReturnRefundLineItem(Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryReturnRefundLineItem $returnRefundLineItem)
+  {
+    $this->returnRefundLineItem = $returnRefundLineItem;
+  }
+  /**
+   * @return Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryReturnRefundLineItem
+   */
+  public function getReturnRefundLineItem()
+  {
+    return $this->returnRefundLineItem;
+  }
+  /**
+   * @param Google_Service_ShoppingContent_OrdersCustomBatchRequestEntrySetLineItemMetadata
+   */
+  public function setSetLineItemMetadata(Google_Service_ShoppingContent_OrdersCustomBatchRequestEntrySetLineItemMetadata $setLineItemMetadata)
+  {
+    $this->setLineItemMetadata = $setLineItemMetadata;
+  }
+  /**
+   * @return Google_Service_ShoppingContent_OrdersCustomBatchRequestEntrySetLineItemMetadata
+   */
+  public function getSetLineItemMetadata()
+  {
+    return $this->setLineItemMetadata;
+  }
+  /**
    * @param Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryShipLineItems
    */
   public function setShipLineItems(Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryShipLineItems $shipLineItems)
@@ -153,6 +219,20 @@ class Google_Service_ShoppingContent_OrdersCustomBatchRequestEntry extends Googl
   public function getShipLineItems()
   {
     return $this->shipLineItems;
+  }
+  /**
+   * @param Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryUpdateLineItemShippingDetails
+   */
+  public function setUpdateLineItemShippingDetails(Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryUpdateLineItemShippingDetails $updateLineItemShippingDetails)
+  {
+    $this->updateLineItemShippingDetails = $updateLineItemShippingDetails;
+  }
+  /**
+   * @return Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryUpdateLineItemShippingDetails
+   */
+  public function getUpdateLineItemShippingDetails()
+  {
+    return $this->updateLineItemShippingDetails;
   }
   /**
    * @param Google_Service_ShoppingContent_OrdersCustomBatchRequestEntryUpdateShipment

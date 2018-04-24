@@ -26,10 +26,10 @@
 class Google_Service_AndroidManagement_Resource_EnterprisesDevices extends Google_Service_Resource
 {
   /**
-   * Deletes a device, which causes the device to be wiped. (devices.delete)
+   * Deletes a device. This operation wipes the device. (devices.delete)
    *
    * @param string $name The name of the device in the form
-   * enterprises/{enterpriseId}/devices/{deviceId}
+   * enterprises/{enterpriseId}/devices/{deviceId}.
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidManagement_AndroidmanagementEmpty
    */
@@ -43,7 +43,7 @@ class Google_Service_AndroidManagement_Resource_EnterprisesDevices extends Googl
    * Gets a device. (devices.get)
    *
    * @param string $name The name of the device in the form
-   * enterprises/{enterpriseId}/devices/{deviceId}
+   * enterprises/{enterpriseId}/devices/{deviceId}.
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidManagement_Device
    */
@@ -59,7 +59,7 @@ class Google_Service_AndroidManagement_Resource_EnterprisesDevices extends Googl
    * of the command. (devices.issueCommand)
    *
    * @param string $name The name of the device in the form
-   * enterprises/{enterpriseId}/devices/{deviceId}
+   * enterprises/{enterpriseId}/devices/{deviceId}.
    * @param Google_Service_AndroidManagement_Command $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_AndroidManagement_Operation
@@ -74,13 +74,13 @@ class Google_Service_AndroidManagement_Resource_EnterprisesDevices extends Googl
    * Lists devices for a given enterprise. (devices.listEnterprisesDevices)
    *
    * @param string $parent The name of the enterprise in the form
-   * enterprises/{enterpriseId}
+   * enterprises/{enterpriseId}.
    * @param array $optParams Optional parameters.
    *
    * @opt_param int pageSize The requested page size. The actual page size may be
    * fixed to a min or max value.
-   * @opt_param string pageToken A token identifying a page of results the server
-   * should return.
+   * @opt_param string pageToken A token identifying a page of results returned by
+   * the server.
    * @return Google_Service_AndroidManagement_ListDevicesResponse
    */
   public function listEnterprisesDevices($parent, $optParams = array())
@@ -93,7 +93,7 @@ class Google_Service_AndroidManagement_Resource_EnterprisesDevices extends Googl
    * Updates a device. (devices.patch)
    *
    * @param string $name The name of the device in the form
-   * enterprises/{enterpriseId}/devices/{deviceId}
+   * enterprises/{enterpriseId}/devices/{deviceId}.
    * @param Google_Service_AndroidManagement_Device $postBody
    * @param array $optParams Optional parameters.
    *

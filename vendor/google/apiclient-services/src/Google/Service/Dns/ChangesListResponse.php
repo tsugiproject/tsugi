@@ -20,6 +20,8 @@ class Google_Service_Dns_ChangesListResponse extends Google_Collection
   protected $collection_key = 'changes';
   protected $changesType = 'Google_Service_Dns_Change';
   protected $changesDataType = 'array';
+  protected $headerType = 'Google_Service_Dns_ResponseHeader';
+  protected $headerDataType = '';
   public $kind;
   public $nextPageToken;
 
@@ -36,6 +38,20 @@ class Google_Service_Dns_ChangesListResponse extends Google_Collection
   public function getChanges()
   {
     return $this->changes;
+  }
+  /**
+   * @param Google_Service_Dns_ResponseHeader
+   */
+  public function setHeader(Google_Service_Dns_ResponseHeader $header)
+  {
+    $this->header = $header;
+  }
+  /**
+   * @return Google_Service_Dns_ResponseHeader
+   */
+  public function getHeader()
+  {
+    return $this->header;
   }
   public function setKind($kind)
   {

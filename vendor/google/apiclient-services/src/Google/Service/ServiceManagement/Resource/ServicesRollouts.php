@@ -35,6 +35,10 @@ class Google_Service_ServiceManagement_Resource_ServicesRollouts extends Google_
    * Operations will be automatically cancelled so that the latest Rollout will
    * not be blocked by previous Rollouts.
    *
+   * Only the 100 most recent (in any state) and the last 10 successful (if not
+   * already part of the set of 100 most recent) rollouts are kept for each
+   * service. The rest will be deleted eventually.
+   *
    * Operation (rollouts.create)
    *
    * @param string $serviceName The name of the service.  See the [overview

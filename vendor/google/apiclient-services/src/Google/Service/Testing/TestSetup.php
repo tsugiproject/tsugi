@@ -20,6 +20,8 @@ class Google_Service_Testing_TestSetup extends Google_Collection
   protected $collection_key = 'filesToPush';
   protected $accountType = 'Google_Service_Testing_Account';
   protected $accountDataType = '';
+  protected $additionalApksType = 'Google_Service_Testing_Apk';
+  protected $additionalApksDataType = 'array';
   public $directoriesToPull;
   protected $environmentVariablesType = 'Google_Service_Testing_EnvironmentVariable';
   protected $environmentVariablesDataType = 'array';
@@ -40,6 +42,20 @@ class Google_Service_Testing_TestSetup extends Google_Collection
   public function getAccount()
   {
     return $this->account;
+  }
+  /**
+   * @param Google_Service_Testing_Apk
+   */
+  public function setAdditionalApks($additionalApks)
+  {
+    $this->additionalApks = $additionalApks;
+  }
+  /**
+   * @return Google_Service_Testing_Apk
+   */
+  public function getAdditionalApks()
+  {
+    return $this->additionalApks;
   }
   public function setDirectoriesToPull($directoriesToPull)
   {

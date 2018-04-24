@@ -18,6 +18,8 @@
 class Google_Service_ShoppingContent_OrderLineItem extends Google_Collection
 {
   protected $collection_key = 'returns';
+  protected $annotationsType = 'Google_Service_ShoppingContent_OrderMerchantProvidedAnnotation';
+  protected $annotationsDataType = 'array';
   protected $cancellationsType = 'Google_Service_ShoppingContent_OrderCancellation';
   protected $cancellationsDataType = 'array';
   public $id;
@@ -40,6 +42,20 @@ class Google_Service_ShoppingContent_OrderLineItem extends Google_Collection
   protected $taxType = 'Google_Service_ShoppingContent_Price';
   protected $taxDataType = '';
 
+  /**
+   * @param Google_Service_ShoppingContent_OrderMerchantProvidedAnnotation
+   */
+  public function setAnnotations($annotations)
+  {
+    $this->annotations = $annotations;
+  }
+  /**
+   * @return Google_Service_ShoppingContent_OrderMerchantProvidedAnnotation
+   */
+  public function getAnnotations()
+  {
+    return $this->annotations;
+  }
   /**
    * @param Google_Service_ShoppingContent_OrderCancellation
    */

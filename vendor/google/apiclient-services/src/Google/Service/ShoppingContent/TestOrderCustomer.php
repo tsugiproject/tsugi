@@ -20,6 +20,8 @@ class Google_Service_ShoppingContent_TestOrderCustomer extends Google_Model
   public $email;
   public $explicitMarketingPreference;
   public $fullName;
+  protected $marketingRightsInfoType = 'Google_Service_ShoppingContent_TestOrderCustomerMarketingRightsInfo';
+  protected $marketingRightsInfoDataType = '';
 
   public function setEmail($email)
   {
@@ -44,5 +46,19 @@ class Google_Service_ShoppingContent_TestOrderCustomer extends Google_Model
   public function getFullName()
   {
     return $this->fullName;
+  }
+  /**
+   * @param Google_Service_ShoppingContent_TestOrderCustomerMarketingRightsInfo
+   */
+  public function setMarketingRightsInfo(Google_Service_ShoppingContent_TestOrderCustomerMarketingRightsInfo $marketingRightsInfo)
+  {
+    $this->marketingRightsInfo = $marketingRightsInfo;
+  }
+  /**
+   * @return Google_Service_ShoppingContent_TestOrderCustomerMarketingRightsInfo
+   */
+  public function getMarketingRightsInfo()
+  {
+    return $this->marketingRightsInfo;
   }
 }

@@ -40,9 +40,9 @@ class Google_Service_ShoppingContent_Resource_Accounts extends Google_Service_Re
   /**
    * Claims the website of a Merchant Center sub-account. (accounts.claimwebsite)
    *
-   * @param string $merchantId The ID of the managing account. If this account is
-   * not a multi-client account, then this parameter must be the same as
-   * accountId.
+   * @param string $merchantId The ID of the managing account. If this parameter
+   * is not the same as accountId, then this account must be a multi-client
+   * account and accountId must be the ID of a sub-account of this account.
    * @param string $accountId The ID of the account whose website is claimed.
    * @param array $optParams Optional parameters.
    *
@@ -77,7 +77,8 @@ class Google_Service_ShoppingContent_Resource_Accounts extends Google_Service_Re
    * Deletes a Merchant Center sub-account. (accounts.delete)
    *
    * @param string $merchantId The ID of the managing account. This must be a
-   * multi-client account.
+   * multi-client account, and accountId must be the ID of a sub-account of this
+   * account.
    * @param string $accountId The ID of the account.
    * @param array $optParams Optional parameters.
    *
@@ -94,9 +95,9 @@ class Google_Service_ShoppingContent_Resource_Accounts extends Google_Service_Re
   /**
    * Retrieves a Merchant Center account. (accounts.get)
    *
-   * @param string $merchantId The ID of the managing account. If this account is
-   * not a multi-client account, then this parameter must be the same as
-   * accountId.
+   * @param string $merchantId The ID of the managing account. If this parameter
+   * is not the same as accountId, then this account must be a multi-client
+   * account and accountId must be the ID of a sub-account of this account.
    * @param string $accountId The ID of the account.
    * @param array $optParams Optional parameters.
    * @return Google_Service_ShoppingContent_Account
@@ -147,9 +148,9 @@ class Google_Service_ShoppingContent_Resource_Accounts extends Google_Service_Re
    * Updates a Merchant Center account. This method supports patch semantics.
    * (accounts.patch)
    *
-   * @param string $merchantId The ID of the managing account. If this account is
-   * not a multi-client account, then this parameter must be the same as
-   * accountId.
+   * @param string $merchantId The ID of the managing account. If this parameter
+   * is not the same as accountId, then this account must be a multi-client
+   * account and accountId must be the ID of a sub-account of this account.
    * @param string $accountId The ID of the account.
    * @param Google_Service_ShoppingContent_Account $postBody
    * @param array $optParams Optional parameters.
@@ -166,9 +167,9 @@ class Google_Service_ShoppingContent_Resource_Accounts extends Google_Service_Re
   /**
    * Updates a Merchant Center account. (accounts.update)
    *
-   * @param string $merchantId The ID of the managing account. If this account is
-   * not a multi-client account, then this parameter must be the same as
-   * accountId.
+   * @param string $merchantId The ID of the managing account. If this parameter
+   * is not the same as accountId, then this account must be a multi-client
+   * account and accountId must be the ID of a sub-account of this account.
    * @param string $accountId The ID of the account.
    * @param Google_Service_ShoppingContent_Account $postBody
    * @param array $optParams Optional parameters.

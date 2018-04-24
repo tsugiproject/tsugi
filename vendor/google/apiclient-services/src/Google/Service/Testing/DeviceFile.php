@@ -19,6 +19,8 @@ class Google_Service_Testing_DeviceFile extends Google_Model
 {
   protected $obbFileType = 'Google_Service_Testing_ObbFile';
   protected $obbFileDataType = '';
+  protected $regularFileType = 'Google_Service_Testing_RegularFile';
+  protected $regularFileDataType = '';
 
   /**
    * @param Google_Service_Testing_ObbFile
@@ -33,5 +35,19 @@ class Google_Service_Testing_DeviceFile extends Google_Model
   public function getObbFile()
   {
     return $this->obbFile;
+  }
+  /**
+   * @param Google_Service_Testing_RegularFile
+   */
+  public function setRegularFile(Google_Service_Testing_RegularFile $regularFile)
+  {
+    $this->regularFile = $regularFile;
+  }
+  /**
+   * @return Google_Service_Testing_RegularFile
+   */
+  public function getRegularFile()
+  {
+    return $this->regularFile;
   }
 }

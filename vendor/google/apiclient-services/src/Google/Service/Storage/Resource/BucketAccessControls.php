@@ -100,8 +100,7 @@ class Google_Service_Storage_Resource_BucketAccessControls extends Google_Servic
     return $this->call('list', array($params), "Google_Service_Storage_BucketAccessControls");
   }
   /**
-   * Updates an ACL entry on the specified bucket. This method supports patch
-   * semantics. (bucketAccessControls.patch)
+   * Patches an ACL entry on the specified bucket. (bucketAccessControls.patch)
    *
    * @param string $bucket Name of a bucket.
    * @param string $entity The entity holding the permission. Can be user-userId,
