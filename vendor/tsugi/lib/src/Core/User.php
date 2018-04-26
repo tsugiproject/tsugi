@@ -18,6 +18,14 @@ use \Tsugi\Core\Cache;
 
 class User {
 
+    // Needed to implement the Entity methods
+    protected $TABLE_NAME = "lti_user";
+    protected $PRIMARY_KEY = "user_id";
+
+    // Links have settings...
+    protected $ENTITY_NAME = "user";
+    use JsonTrait;  // Pull in the trait
+ 
     /**
      * The integer primary key for this user in the 'lti_user' table.
      */
