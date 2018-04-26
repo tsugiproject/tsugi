@@ -1,10 +1,10 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#65f27b3d30ad6a7ec43a3e5d044099c385931d54",
+        "tsugi/lib": "dev-master#7f09a10087e225c38db8e916fcaf8655702cf0b8",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
-        "aws/aws-sdk-php": ">=3.38.1",
+        "aws/aws-sdk-php": "v3.55.0",
         "google/apiclient" : ">=2.2.1",
         "google/apiclient-services" : ">=0.36",
         "google/auth" : ">=1.1.0",
