@@ -631,82 +631,93 @@ class LTI {
     </imsx_POXEnvelopeResponse>';
     }
 
+    /**
+     * Get a list of membership/roster for a Context
+     *
+     *
+     * @param debug_log This can either be false or an empty array.  If
+     * this is an array, it is filled with data as the steps progress.
+     * Each step is an array with a string message as the first element
+     * and optional debug detail (i.e. like a post body) as the second
+     * element.
+     *
+     * @return mixed If things go well this returns an array of member details
+     * If this goes badly, this returns a string with an error message.
+     */
     public static function getContextMemberships($membershipsid, $membershipsurl, $key_key, $secret, $groups=false, $signature=false, &$debug_log=false) {
-        $content_type = "application/x-www-form-urlencoded";
-        $membershipsid = htmlspecialchars($membershipsid);
 
-        $messagetype = LTIConstants::LTI_MESSAGE_TYPE_CONTEXTMEMBERSHIPS;
+      $content_type = "application/x-www-form-urlencoded";
+      $membershipsid = htmlspecialchars($membershipsid);
 
-        if($groups) {
-            $messagetype = LTIConstants::LTI_MESSAGE_TYPE_CONTEXTMEMBERSHIPSWITHGROUPS;
-        }
+      $messagetype = LTIConstants::LTI_MESSAGE_TYPE_CONTEXTMEMBERSHIPS;
 
-        $parameters = array(
-            LTIConstants::EXT_CONTEXT_REQUEST_ID => $membershipsid,
-            LTIConstants::LTI_MESSAGE_TYPE => $messagetype,
-            LTIConstants::LTI_VERSION => LTIConstants::LTI_VERSION_1
-        );
+      if ($groups === true) {
+          $messagetype = LTIConstants::LTI_MESSAGE_TYPE_CONTEXTMEMBERSHIPSWITHGROUPS;
+      }
 
-        $body = http_build_query($parameters, null,"&", PHP_QUERY_RFC3986);
-        $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
-        $hash = base64_encode(sha1($body, TRUE));
-        if ( $signature == "HMAC-SHA256" ) {
-            $hmac_method = new OAuthSignatureMethod_HMAC_SHA256();
-            $hash = base64_encode(hash('sha256', $body, TRUE));
-        }
-        $parameters['oauth_body_hash'] = $hash;
+      $parameters = array(
+          LTIConstants::EXT_CONTEXT_REQUEST_ID => $membershipsid,
+          LTIConstants::LTI_MESSAGE_TYPE => $messagetype,
+      );
 
-        $test_token = '';
+      $body = self::signParameters($parameters, $membershipsurl, 'POST', $key_key, $secret);
+      $header = "Content-Type: " . $content_type . PHP_EOL;
 
-        $test_consumer = new OAuthConsumer($key_key, $secret, NULL);
-
-        $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, "POST", $membershipsurl, $parameters);
-        $acc_req->sign_request($hmac_method, $test_consumer, $test_token);
-
-        $header = $acc_req->to_header();
-        $header .= PHP_EOL . "Content-Type: " . $content_type . PHP_EOL;
-
-        return self::parseContextMembershipsResponse(Net::doBody($membershipsurl, "POST", $body,$header));
+      return self::parseContextMembershipsResponse(Net::doBody($membershipsurl, "POST", OAuthUtil::build_http_query($body), $header));
     }
 
+    /**
+     * Parse a XML reponse for self::getContextMemberships
+     *
+     * @return mixed If things go well this returns an array of member details
+     * If this goes badly, this returns a string with an error message.
+     */
     public static function parseContextMembershipsResponse($response) {
-        $result = false;
-        try{
-            $xml = new \SimpleXMLElement($response);
-            $success = $xml->xpath("/message_response/statusinfo");
 
-            if($success[0]->codemajor != "Success") {
-                return $result;
-            }
-            $result = array();
-            $members = $xml->xpath('/message_response/members/member');
+      $response = utf8_encode($response);
+      $result = U::isXML($response);
 
-            while(list( , $node) = each($members)) {
-                $groups = array();
-                foreach($node->groups as $k) {
-                    foreach($k->group as $v) {
-                        $groups[] = array(
-                            "id" => $v->id->__toString(),
-                            "title" => $v->title->__toString()
-                        );
-                    }
-                }
+      if ($result === true) {
+        try {
 
-                $result[] = array(
-                    "user_id" => $node->user_id->__toString(),
-                    "role" => $node->role->__toString(),
-                    "roles" => $node->roles->__toString(),
-                    "lis_result_sourcedid" => $node->lis_result_sourcedid->__toString(),
-                    "groups" => $groups
+          $xml = new \SimpleXMLElement($response);
+          $success = $xml->xpath("/message_response/statusinfo");
+
+          if($success[0]->codemajor != "Success") {
+             return false;
+          }
+
+          $result = array();
+          $members = $xml->xpath('/message_response/members/member');
+
+          while(list( , $node) = each($members)) {
+            $groups = array();
+            foreach($node->groups as $k) {
+              foreach($k->group as $v) {
+                $groups[] = array(
+                    "id" => $v->id->__toString(),
+                    "title" => $v->title->__toString()
                 );
+              }
             }
+
+            $result[] = array(
+              "user_id" => $node->user_id->__toString(),
+              "displayname" => $node->person_name_full->__toString(),
+              "email" => $node->person_contact_email_primary->__toString(),
+              "role" => $node->role->__toString(),
+              "roles" => $node->roles->__toString(),
+              "lis_result_sourcedid" => $node->lis_result_sourcedid->__toString() ? : $node->person_sourcedid->__toString(),
+              "groups" => $groups
+            );
+          }
         } catch (\Exception $e) {
-            throw new \Exception('Error: Unable to parse XML response' . $e->getMessage());
+          $result = $e->getMessage();
         }
+      }
 
-        return $result;
+      return $result;
     }
-
 
     public static function replaceResultRequest($grade, $sourcedid, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $signature=false) {
         $method="POST";

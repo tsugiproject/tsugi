@@ -571,4 +571,36 @@ class U {
         return $dt->format('Ymdhi');
     }
 
+    /**
+     * Given a string, is this a valid XML and if not why
+     *
+     * @return mixed If things go well this returns true.
+     * If this goes badly, this returns a string with error description to
+     * fix the XML
+     *
+     * https://stackoverflow.com/questions/15830575/php-string-could-not-be-parsed-as-xml-when-using-simplexmlelement
+     */
+    public static function isXML($xml){
+       libxml_use_internal_errors(true);
+
+       $doc = new \DOMDocument('1.0', 'utf-8');
+       $doc->loadXML($xml);
+
+       $errors = libxml_get_errors();
+
+       if(empty($errors)){
+           return true;
+       }
+
+       $error = $errors[0];
+       if($error->level < 3){
+           return true;
+       }
+
+       $explodedxml = explode("r", $xml);
+       $badxml = $explodedxml[($error->line)-1];
+
+       $message = $error->message . ' at line ' . $error->line . '. Bad XML: ' . htmlentities($badxml);
+       return $message;
+    }
 }
