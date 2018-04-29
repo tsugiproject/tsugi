@@ -56,7 +56,7 @@ array( "{$CFG->dbprefix}lms_tools_status",
         REFERENCES `{$CFG->dbprefix}lms_tools` (`tool_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    UNIQUE(tool_id, ipaddr)
+    PRIMARY KEY(tool_id, ipaddr)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
 
