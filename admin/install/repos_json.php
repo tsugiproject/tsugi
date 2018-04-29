@@ -4,6 +4,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\Git;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LTI;
+use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
 use \Tsugi\UI\Lessons;
 
@@ -24,6 +25,8 @@ if ( ! isset($CFG->install_folder) ) {
 
 require_once("../admin_util.php");
 require_once("install_util.php");
+
+$PDOX = LTIX::getConnection();
 
 // Load the Lesson
 $l = false;
@@ -207,6 +210,45 @@ foreach($existing as $clone_url => $repo) {
     $installed[] = $detail;
 }
 
+/*
+{
+            "clone_url": "https:\/\/github.com\/tsugiproject\/tsugi.git",
+            "html_url": "https:\/\/github.com\/tsugiproject\/tsugi.git",
+            "name": "Tsugi Admin",
+            "description": "Tsugi Adminstration, Management, and Development Console.",
+            "writeable": true,
+            "update_note": "Fetching origin\n",
+            "status_note": "On branch master\nYour branch is up-to-date with 'origin\/master'.\nnothing to commit (use -u to show untracked files)\n",
+            "updates": false,
+            "tsugitools": false,
+            "index": 1,
+            "path": "\/Applications\/MAMP\/htdocs\/tsugi",
+            "guid": "817a628fa3231ccba37d5a061620708a"
+*/
+// Update the database view of these tools
+$serverIP = Net::serverIP();
+foreach($installed as $tool ) {
+
+    // This is a gentle insert - to make sure there is at least one entry in lms_tools
+    // If we are in a scalable cluster, we might be behind so we should not assume
+    // our view is the right view
+    $sql = "INSERT INTO {$CFG->dbprefix}lms_tools
+        ( toolpath, name, description, clone_url, gitversion, created_at, updated_at ) VALUES
+        ( :toolpath, :name, :description, :clone_url, :gitversion, NOW(), NOW() )
+        ON DUPLICATE KEY
+        UPDATE name=:name, description=:description ";
+    $values = array(
+        ":toolpath" => $tool->path,
+        ":name" => $tool->name,
+        ":description" => $tool->description,
+        ":clone_url" => $tool->clone_url,
+        ":gitversion" => 'master'
+    );
+    $q = $PDOX->queryReturnError($sql, $values);
+
+    // Update the status for this cluster
+    updateToolStatus($tool->path, $tool->status_note);
+}
 
 $retval['status'] = 'OK';
 $retval['version'] = trim($git_version);

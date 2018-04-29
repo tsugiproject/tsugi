@@ -4,6 +4,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\Git;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LTI;
+use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
 
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
@@ -48,6 +49,9 @@ try {
 if ( !isset($_REQUEST['command']) ) {
     die_with_error_log('command option required');
 }
+
+// Get database connection
+$PDOX = LTIX::getConnection();
 
 // Get all the paths including tsugi
 $tsugihash = md5($CFG->dirroot);
@@ -179,7 +183,27 @@ if ( isset($_POST['command']) && $command == "clone" ) {
                 if ( $file == '.' || $files == '..' ) continue;
                 $results .= '  '.$file."\n";
             }
+            $status = $repo->run('status -uno');
+            $results .= "\nStatus:\n";
+            $results .= $status;
+
+            $sql = "INSERT INTO {$CFG->dbprefix}lms_tools
+                ( toolpath, name, description, clone_url, gitversion, created_at, updated_at ) VALUES
+                ( :toolpath, :name, :description, :clone_url, :gitversion, NOW(), NOW() )";
+            $values = array(
+                ":toolpath" => $folder,
+                ":name" => 'name',
+                ":description" => 'description',
+                ":clone_url" => $remote,
+                ":gitversion" => 'master'
+            );
+            $q = $PDOX->queryReturnError($sql, $values);
+
+            // Update the status for this cluster
+            updateToolStatus($folder, $status);
         }
+
+
         $_SESSION['git_results'] = $results;
         header('Location: '.addSession('git.php'));
         return;

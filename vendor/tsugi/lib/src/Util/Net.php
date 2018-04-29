@@ -435,7 +435,7 @@ class Net {
 
         $the_ip = false;
 
-	// Check Cloudflare headers
+        // Check Cloudflare headers
         if ( $the_ip === false && array_key_exists( 'HTTP_CF_CONNECTING_IP', $headers ) ) {
             $pieces = explode(',',$headers['HTTP_CF_CONNECTING_IP']);
             $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
@@ -468,6 +468,14 @@ class Net {
 
         if ( $the_ip === false ) $the_ip = NULL;
         return $the_ip;
+    }
+
+    /**
+     * Return the IP Address of the current server
+     */
+    // https://stackoverflow.com/questions/3219178/php-how-to-get-local-ip-of-system
+    public static function serverIP() {
+        return getHostByName(getHostName());
     }
 
     /**
