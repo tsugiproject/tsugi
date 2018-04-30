@@ -7,7 +7,8 @@ function getRepoOrigin($repo) {
     $output = $repo->run('remote -v');
     $lines = explode("\n",$output);
     foreach($lines as $line) {
-        $matches = array();            preg_match( '/^origin\s+([^ ]*)\s+\(fetch\)$/', $line, $matches);
+        $matches = array();
+        preg_match( '/^origin\s+([^ ]*)\s+\(fetch\)$/', $line, $matches);
         if ( count($matches) < 2 ) continue;
         $origin = trim($matches[1]);
         if ( strrpos($origin, '.git') == strlen($origin)-4) return $origin;
@@ -50,7 +51,7 @@ function getClusterIPs($rows) {
     return $retval;
 }
 
-function updateToolStatus($tool_path, $tool_status) {
+function updateToolStatus($tool_path, $detail) {
     global $PDOX, $CFG;
 
     $row = $PDOX->rowDie(
@@ -67,14 +68,20 @@ function updateToolStatus($tool_path, $tool_status) {
 
     $serverIP = Net::serverIP();
     $sql = "INSERT INTO {$CFG->dbprefix}lms_tools_status
-        ( tool_id, ipaddr, status_note, created_at, updated_at ) VALUES
-        ( :tool_id, :ipaddr, :status_note, NOW(), NOW() )
-        ON DUPLICATE KEY
-            UPDATE status_note = :status_note, updated_at = NOW()";
+            ( tool_id, ipaddr, status_note, commit_log, 
+                commit, created_at, updated_at ) 
+        VALUES
+            ( :tool_id, :ipaddr, :status_note, :commit_log, 
+                :commit, NOW(), NOW() )
+        ON DUPLICATE KEY UPDATE
+             status_note = :status_note, commit_log=:commit_log, 
+            commit=:commit, updated_at = NOW()";
     $values = array(
         ":tool_id" => $tool_id,
         ":ipaddr" => $serverIP,
-        ":status_note" => $tool_status,
+        ":status_note" => $detail->status_note,
+        ":commit_log" => $detail->commit_log,
+        ":commit" => $detail->commit,
     );
     $q = $PDOX->queryDie($sql, $values);
     return true;
@@ -83,3 +90,35 @@ function updateToolStatus($tool_path, $tool_status) {
 // Notes
 // git reset --hard 5979437e27bd47637c4b562b33e861ce32b6468b
 
+/**
+  * Load Information for a github repo
+  *
+  * Does not set name or description
+  */
+function addRepoInfo($detail, $repo) {
+    // Gather the information for the repo folder
+    try {
+        $update = $repo->run('remote update');
+        $detail->writeable = true;
+    } catch (Exception $e) {
+        $detail->writeable = false;
+        $update = 'Caught exception: '.$e->getMessage(). "\n";
+    }
+    $detail->update_note = $update;
+    $status = $repo->run('status -uno');
+    $detail->status_note = $status;
+    $detail->updates = strpos($status, 'Your branch is behind') !== false;
+    // https://stackoverflow.com/questions/2231546/git-see-my-last-commit
+    $commit_log = $repo->run('log --name-status HEAD^..HEAD');
+    $detail->commit_log = $commit_log;
+    $lines = explode("\n",$commit_log);
+    $detail->commit = '';
+    if ( count($lines) > 0 ) {
+        $line = $lines[0];
+        $matches = array();            
+        preg_match( '/^commit\s+([0-9a-f]*)$/', $line, $matches);
+        if ( count($matches) >= 2 ) {
+            $detail->commit = trim($matches[1]);
+        }
+    }
+}

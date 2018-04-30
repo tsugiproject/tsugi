@@ -55,19 +55,8 @@ $tsugi->clone_url = $origin; // Yes, it works..
 $tsugi->html_url = $origin; // Yes, it works..
 $tsugi->name = "Tsugi Admin";
 $tsugi->description = "Tsugi Adminstration, Management, and Development Console.";
-try {
-    $update = $repo->run('remote update');
-    $tsugi->writeable = true;
-    $install_writeable = true;
-} catch (Exception $e) {
-    $tsugi->writeable = false;
-    $install_writeable = false;
-    $update = 'Caught exception: '.$e->getMessage(). "\n";
-}
-$tsugi->update_note = $update;
-$status = $repo->run('status -uno');
-$tsugi->status_note = $status;
-$tsugi->updates = strpos($status, 'Your branch is behind') !== false;
+addRepoInfo($tsugi, $repo);
+$install_writeable = $tsugi->writeable;
 $tsugi->tsugitools = false;
 $tsugi->index = count($installed) + 1;
 $tsugi->path = $CFG->dirroot;
@@ -162,17 +151,7 @@ if ( ! $fail ) foreach($repos as $repo) {
         $detail->path = $paths[$detail->clone_url];
         $detail->guid = md5($paths[$detail->clone_url]);
         $repo = $existing[$detail->clone_url];
-        try {
-            $update = $repo->run('remote update');
-            $detail->writeable = true;
-        } catch (Exception $e) {
-            $detail->writeable = false;
-            $update = 'Caught exception: '.$e->getMessage(). "\n";
-        }
-        $detail->update_note = $update;
-        $status = $repo->run('status -uno');
-        $detail->status_note = $status;
-        $detail->updates = strpos($status, 'Your branch is behind') !== false;
+        addRepoInfo($detail, $repo);
         unset($existing[$detail->clone_url]);
         $detail->index = count($installed) + 1;
         $installed[] = $detail;
@@ -195,11 +174,7 @@ foreach($existing as $clone_url => $repo) {
         $detail->name = ucwords(preg_replace("/[^0-9a-zA-Z]/", " ", $match[1]));
     }
     $detail->description = "";
-    $update = $repo->run('remote update');
-    $detail->update_note = $update;
-    $status = $repo->run('status -uno');
-    $detail->status_note = $status;
-    $detail->updates = strpos($status, 'Your branch is behind') !== false;
+    addRepoInfo($detail, $repo);
     $detail->tsugitools = false;
     $detail->writeable = $install_writeable; // Assume if we cannot update tsugi..
     $detail->index = count($installed) + 1;
@@ -247,7 +222,7 @@ foreach($installed as $tool ) {
     $q = $PDOX->queryReturnError($sql, $values);
 
     // Update the status for this cluster
-    updateToolStatus($tool->path, $tool->status_note);
+    updateToolStatus($tool->path, $tool);
 }
 
 $retval['status'] = 'OK';

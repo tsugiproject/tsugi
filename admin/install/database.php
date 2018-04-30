@@ -46,6 +46,8 @@ array( "{$CFG->dbprefix}lms_tools_status",
     tool_id             INTEGER NOT NULL,
     ipaddr              VARCHAR(64),
     status_note         TEXT NULL,
+    commit              TEXT NULL,
+    commit_log          TEXT NULL,
 
     json                MEDIUMTEXT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -63,7 +65,21 @@ array( "{$CFG->dbprefix}lms_tools_status",
 $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
 
-    return 201804291011;
+    if ( ! $PDOX->columnExists('commit', "{$CFG->dbprefix}lms_tools_status") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status ADD commit TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    if ( ! $PDOX->columnExists('commit_log', "{$CFG->dbprefix}lms_tools_status") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status ADD commit_log TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    return 201804300844;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

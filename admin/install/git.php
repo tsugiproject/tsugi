@@ -183,9 +183,10 @@ if ( isset($_POST['command']) && $command == "clone" ) {
                 if ( $file == '.' || $files == '..' ) continue;
                 $results .= '  '.$file."\n";
             }
-            $status = $repo->run('status -uno');
+            $detail = new \stdClass();
+            addRepoInfo($detail, $repo);
             $results .= "\nStatus:\n";
-            $results .= $status;
+            $results .= $detail->status;
 
             $sql = "INSERT INTO {$CFG->dbprefix}lms_tools
                 ( toolpath, name, description, clone_url, gitversion, created_at, updated_at ) VALUES
@@ -200,7 +201,7 @@ if ( isset($_POST['command']) && $command == "clone" ) {
             $q = $PDOX->queryReturnError($sql, $values);
 
             // Update the status for this cluster
-            updateToolStatus($folder, $status);
+            updateToolStatus($folder, $detail);
         }
 
 
