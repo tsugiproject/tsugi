@@ -1640,18 +1640,57 @@
         ]
     },
     {
+        "name": "google/apiclient-services",
+        "version": "v0.56",
+        "version_normalized": "0.56.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/google/google-api-php-client-services.git",
+            "reference": "94ae125bd4ac33eec676142f7776c0b137cf7bc7"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/94ae125bd4ac33eec676142f7776c0b137cf7bc7",
+            "reference": "94ae125bd4ac33eec676142f7776c0b137cf7bc7",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.8"
+        },
+        "time": "2018-04-21 00:23:45",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Google_Service_": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "description": "Client library for Google APIs",
+        "homepage": "http://developers.google.com/api-client-library/php",
+        "keywords": [
+            "google"
+        ]
+    },
+    {
         "name": "tsugi/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "10bf6801d0fd8d1d81cf28c4367445af55d76aba"
+            "reference": "88d1abc264d5b3833e2a1387a2bb8895aef35b1f"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/10bf6801d0fd8d1d81cf28c4367445af55d76aba",
-            "reference": "10bf6801d0fd8d1d81cf28c4367445af55d76aba",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/88d1abc264d5b3833e2a1387a2bb8895aef35b1f",
+            "reference": "88d1abc264d5b3833e2a1387a2bb8895aef35b1f",
             "shasum": ""
         },
         "require": {
@@ -1690,44 +1729,5 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
-    },
-    {
-        "name": "google/apiclient-services",
-        "version": "v0.56",
-        "version_normalized": "0.56.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/google/google-api-php-client-services.git",
-            "reference": "94ae125bd4ac33eec676142f7776c0b137cf7bc7"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/94ae125bd4ac33eec676142f7776c0b137cf7bc7",
-            "reference": "94ae125bd4ac33eec676142f7776c0b137cf7bc7",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.4"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "~4.8"
-        },
-        "time": "2018-04-21 00:23:45",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Google_Service_": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "description": "Client library for Google APIs",
-        "homepage": "http://developers.google.com/api-client-library/php",
-        "keywords": [
-            "google"
-        ]
     }
 ]

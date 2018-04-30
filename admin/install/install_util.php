@@ -51,6 +51,50 @@ function getClusterIPs($rows) {
     return $retval;
 }
 
+function doClone($remote, $folder) {
+    global $PDOX, $CFG;
+
+    $repo = new \Tsugi\Util\GitRepo($folder, true,  false);
+    $log = $repo->clone_from($remote);
+    $results = "Command: git clone $remote\n";
+    $results .= "Folder: $folder\n\n";
+    $results .= $log;
+
+    // Read the files...
+    $files = scandir($folder);
+    if ( count($files) < 2 ) {
+        $results .= "No Files Checked Out\n";
+    } else {
+        $results .= "Checked Out:\n";
+        foreach($files as $file) {
+            if ( $file == '.' || $files == '..' ) continue;
+            $results .= '  '.$file."\n";
+        }
+        $detail = new \stdClass();
+        addRepoInfo($detail, $repo);
+
+        $sql = "INSERT INTO {$CFG->dbprefix}lms_tools
+            ( toolpath, name, description, clone_url, gitversion, created_at, updated_at ) VALUES
+            ( :toolpath, :name, :description, :clone_url, :gitversion, NOW(), NOW() )
+            ON DUPLICATE KEY UPDATE
+                name=:name, description=:description, clone_url=:clone_url,
+                gitversion=:gitversion, updated_at=NOW()
+        ";
+        $values = array(
+            ":toolpath" => $folder,
+            ":name" => 'name',
+            ":description" => 'description',
+            ":clone_url" => $remote,
+            ":gitversion" => 'master'
+        );
+        $q = $PDOX->queryReturnError($sql, $values);
+
+        // Update the status for this cluster
+        updateToolStatus($folder, $detail);
+    }
+    return $results;
+}
+
 function updateToolStatus($tool_path, $detail) {
     global $PDOX, $CFG;
 

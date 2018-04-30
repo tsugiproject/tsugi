@@ -134,7 +134,7 @@ if ( $command == 'pull' ) {
     if ( isset($_REQUEST['folder']) ) {
         $sub_folder = $_REQUEST['folder'];
         if ( strlen($sub_folder) < 1 || ! U::goodFolder($sub_folder) ) {
-            die_with_error_log('Badly folder name: '.$sub_folder);
+            die_with_error_log('Bad folder name: '.$sub_folder);
         }
     }
 } else {

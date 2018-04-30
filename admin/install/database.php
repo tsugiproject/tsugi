@@ -5,21 +5,6 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lms_tools_status"
 );
 
-/*
-            "clone_url": "https:\/\/github.com\/tsugiproject\/tsugi.git",
-            "html_url": "https:\/\/github.com\/tsugiproject\/tsugi.git",
-            "name": "Tsugi Admin",
-            "description": "Tsugi Adminstration, Management, and Development Console.",
-            "writeable": true,
-            "update_note": "Fetching origin\n",
-            "status_note": "On branch master\nYour branch is up-to-date with 'origin\/master'.\nnothing to commit (use -u to show untracked files)\n",
-            "updates": false,
-            "tsugitools": false,
-            "index": 1,
-            "path": "\/Applications\/MAMP\/htdocs\/tsugi",
-            "guid": "817a628fa3231ccba37d5a061620708a"
-*/
-
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}lms_tools",
 "create table {$CFG->dbprefix}lms_tools (
@@ -29,6 +14,8 @@ array( "{$CFG->dbprefix}lms_tools",
     description         TEXT NOT NULL,
     clone_url           TEXT NOT NULL,
     gitversion          VARCHAR(1024) NULL,
+    git_user            VARCHAR(1024) NULL,
+    git_password        VARCHAR(1024) NULL,
 
     rank                INTEGER NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
@@ -79,7 +66,21 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    return 201804300844;
+    if ( ! $PDOX->columnExists('git_user', "{$CFG->dbprefix}lms_tools_status") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status ADD git_user VARCHAR(1024) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    if ( ! $PDOX->columnExists('git_password', "{$CFG->dbprefix}lms_tools_status") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status ADD git_password VARCHAR(1024) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    return 201804301336;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
