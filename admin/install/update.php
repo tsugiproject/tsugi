@@ -33,6 +33,10 @@ if ( ! U::isCli() ) {
 <?php
 }
 $tools = $PDOX->allRowsDie("SELECT * FROM {$CFG->dbprefix}lms_tools ORDER BY created_at");
+if ( count($tools) < 1 ) {
+    echo("<p>No installed tools found in lms_tools.</p>\n");
+    return;
+}
 foreach($tools as $tool) {
     echo("\n======\n");
     echo("Name: ".htmlentities($tool['name'])."\n");
