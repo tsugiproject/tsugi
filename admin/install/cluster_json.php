@@ -38,6 +38,13 @@ foreach($entries as $entry) {
         $server->ipaddrid = str_replace('.','_',$ipaddr);
         $server->local = $ipaddr == $serverIP;
         $server->tools = $tools;
+        $install = $PDOX->allRowsDie("SELECT clone_url, T.created_at AS created_at
+            FROM lms_tools AS T LEFT JOIN lms_tools_status AS S
+                ON S.tool_id = T.tool_id AND S.ipaddr = :ipaddr
+            WHERE ISNULL(S.ipaddr)",
+            array(':ipaddr' => $ipaddr)
+        );
+        $server->install = $install;
         $servers[] = $server;
         $tools = array();
     }
@@ -50,9 +57,16 @@ if ( $ipaddr && count($tools) > 0 ) {
     $server->ipaddr = $ipaddr;
     $server->local = $ipaddr == $serverIP;
     $server->tools = $tools;
+    $install = $PDOX->allRowsDie("SELECT clone_url, T.created_at AS created_at
+        FROM lms_tools AS T LEFT JOIN lms_tools_status AS S
+            ON S.tool_id = T.tool_id AND S.ipaddr = :ipaddr
+        WHERE ISNULL(S.ipaddr)",
+        array(':ipaddr' => $ipaddr)
+    );
+    $server->install = $install;
     $servers[] = $server;
 }
-    
+
 $retval['servers'] = $servers;
 
 echo(json_encode($retval, JSON_PRETTY_PRINT));

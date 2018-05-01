@@ -5,8 +5,16 @@
         (this server)
     {{/if}}
     <a href="#" onclick="$('#tools_{{ipaddrid}}').toggle(); return false;">(toggle)</a>
+    <div id="tools_{{ipaddrid}}" style="display:none;">
+    {{#if install.length }}
+        <ul>
+        {{#each install}}
+            <li><p>Scheduled for install: {{ clone_url }} ({{ created_at }})</p></li>
+        {{/each}}
+        </ul>
+    {{/if}}
     {{#if tools.length}}
-        <ul id="tools_{{ipaddrid}}" style="display:none;">
+        <ul>
         {{#each tools}}
             <li><p>{{name}}
             <br/>Updated at: {{ updated_at }}
@@ -21,6 +29,7 @@
             </p></li>
         {{/each}}
         </ul>
+    </div>
     {{else}}
         <p>No tools found</p>
     {{/if}}

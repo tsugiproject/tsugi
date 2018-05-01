@@ -53,6 +53,9 @@ if ( !isset($_REQUEST['command']) ) {
 // Get database connection
 $PDOX = LTIX::getConnection();
 
+// Check to see if we are in a cluster
+$other_nodes = count(getClusterIPs());
+
 // Get all the paths including tsugi
 $tsugihash = md5($CFG->dirroot);
 $paths = array();
@@ -160,9 +163,28 @@ if ( isset($_POST['command']) && $command == "pull" ) {
         die_with_error_log('Unable to execute git. '.$error);
     }
 }
+// Handle the clone request in a cluster
+if ( $other_nodes >= 1 && isset($_POST['command']) && $command == "clone" ) {
+    $folder = $CFG->install_folder.'/'.basename($remote,'.git');
+    $folder = \Tsugi\Util\U::remove_relative_path($folder);
+    $sql = "INSERT INTO {$CFG->dbprefix}lms_tools
+        ( toolpath, name, description, clone_url, gitversion, created_at, updated_at ) VALUES
+        ( :toolpath, :name, :description, :clone_url, :gitversion, NOW(), NULL )";
+    $values = array(
+        ":toolpath" => $folder,
+        ":name" => 'name',
+        ":description" => 'description',
+        ":clone_url" => $remote,
+        ":gitversion" => 'master'
+    );
+    $q = $PDOX->queryReturnError($sql, $values);
+    $_SESSION['git_results'] = "Tool scheduled for cluster-wide installation";
+    header('Location: '.addSession('git.php'));
+    return;
+}
 
 // Handle the clone POST - do the actual work
-if ( isset($_POST['command']) && $command == "clone" ) {
+if ( $other_nodes < 1 && isset($_POST['command']) && $command == "clone" ) {
 
     try {
         $folder = $CFG->install_folder.'/'.basename($remote,'.git');
