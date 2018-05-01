@@ -20,20 +20,18 @@ function getRepoOrigin($repo) {
 // https://stackoverflow.com/questions/3433465/mysql-delete-all-rows-older-than-10-minutes
 function ghostBust() {
     global $PDOX, $CFG;
-    // TODO: Remove after testing
-    return;
     $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}lms_tools_status 
-            WHERE updated_at < (NOW() - INTERVAL 60 MINUTE)");
+            WHERE updated_at < (NOW() - INTERVAL 55 MINUTE)");
 }
 
 function getClusterInfo() {
     global $PDOX, $CFG;
     ghostBust();
     $rows = $PDOX->allRowsDie(
-        "SELECT ipaddr, name, description, status_note, S.updated_at
+        "SELECT ipaddr, name, description, commit, commit_log, clone_url, gitversion, status_note, S.updated_at
          FROM {$CFG->dbprefix}lms_tools_status AS S
          JOIN {$CFG->dbprefix}lms_tools as T ON S.tool_id = T.tool_id
-         ORDER BY tool_id"
+         ORDER BY ipaddr"
     );
     return ( $rows ) ;
 }
@@ -41,12 +39,14 @@ function getClusterInfo() {
 /**
  * Get a list of IPs of the other servers in the cluster
  */
-function getClusterIPs($rows) {
+function getClusterIPs($rows=false) {
+    if ( ! $rows ) $rows = getClusterInfo();
     $retval = array();
     $serverIP = Net::serverIP();
     foreach ( $rows as $row ) {
         if ( in_array($row['ipaddr'], $retval) ) continue;
         if ( $row['ipaddr'] == $serverIP ) continue;
+        $retval[] = $row['ipaddr'];
     }
     return $retval;
 }

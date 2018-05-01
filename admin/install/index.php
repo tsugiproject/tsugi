@@ -29,12 +29,16 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 require_once("../sanity-db.php");
+require_once("install_util.php");
 
 if ( ! isset($CFG->install_folder) ) {
     echo('<h1>Install folder ($CFG->install_folder) is not configured</h1>'."\n");
     $OUTPUT->footer();
     return;
 }
+
+// Check to see if we are in a cluster
+$other_nodes = count(getClusterIPs());
 
 ?>
 <div id="readonly-dialog" title="Read Only Dialog" style="display: none;">
@@ -56,9 +60,17 @@ It will only handle the normal operations and assume that they work.  If you log
 and edit the files after they are checked out, this tool might not be able to upgrade
 some of these git repos.
 </p>
+<?php if($other_nodes > 0 ) { ?>
+<p><b>Note:</b> This is a clustered environment with <?= $other_nodes+1 ?> nodes,
+it may take some time before installations / updates propagate to all
+the nodes in the cluster.</p>
+<?php } ?>
 <p>Using: <?= htmlentities($git_version) ?></p>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Installed Modules</a></li>
+<?php if($other_nodes > 0 ) { ?>
+  <li class=""><a href="#cluster-div" data-toggle="tab" aria-expanded="false">Cluster Status</a></li>
+<?php } ?>
 <?php if(isset($CFG->lessons)) { ?>
   <li class=""><a href="#required-div" data-toggle="tab" aria-expanded="false">Required Modules</a></li>
 <?php } ?>
@@ -71,6 +83,13 @@ some of these git repos.
     <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
     </ul>
   </div>
+<?php if($other_nodes > 0 ) { ?>
+  <div class="tab-pane fade" id="cluster-div">
+    <ul id="cluster_ul">
+    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    </ul>
+  </div>
+<?php } ?>
 <?php if(isset($CFG->lessons)) { ?>
   <div class="tab-pane fade" id="required-div">
     <ul id="required_ul">
@@ -106,6 +125,9 @@ some of these git repos.
 
 $OUTPUT->footerStart();
 HandleBars::templateInclude(array('installed', 'available'));
+if( $other_nodes > 0 ) {
+    HandleBars::templateInclude('cluster');
+}
 if(isset($CFG->lessons)) {
     HandleBars::templateInclude('required');
 }
@@ -120,6 +142,12 @@ $(document).ready(function(){
 <?php } ?>
         tsugiHandlebarsToDiv('available_ul', 'available', repos);
     }).fail( function() { alert('getJSON fail'); } );
+
+<?php if( $other_nodes > 0 ) { ?>
+    $.getJSON('<?= addSession('cluster_json.php') ?>', function(data) {
+        tsugiHandlebarsToDiv('cluster_ul', 'cluster', data);
+    }).fail( function() { alert('getJSON fail'); } );
+<?php } ?>
 });
 
 </script>

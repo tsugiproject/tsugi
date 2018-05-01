@@ -1,0 +1,32 @@
+{{#if servers.length }}
+ {{#each servers}}
+    <li>{{ipaddr}}
+    {{#if local }}
+        (this server)
+    {{/if}}
+    <a href="#" onclick="$('#tools_{{ipaddrid}}').toggle(); return false;">(toggle)</a>
+    {{#if tools.length}}
+        <ul id="tools_{{ipaddrid}}" style="display:none;">
+        {{#each tools}}
+            <li><p>{{name}}
+            <br/>Updated at: {{ updated_at }}
+            <br/>Branch: {{ gitversion }}
+            <br/>Commit: 
+            <a href="#" onclick="showModal('Commit Detail','{{commit}}'); return false;">
+            {{ commit }}</a>
+            <pre id="{{commit}}" style="display:none;">
+            {{ status_note }}
+            {{ commit_log }}
+            </pre>
+            </p></li>
+        {{/each}}
+        </ul>
+    {{else}}
+        <p>No tools found</p>
+    {{/if}}
+    </li>
+ {{/each}}
+{{else}}
+  <p>No cluster information found</p>
+{{/if}}
+
