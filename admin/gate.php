@@ -13,12 +13,10 @@ if ( $CFG->adminpw === false ) {
     die('Please set $CFG->adminpw to a plaintext or hashed string');
 }
 
-if ( ! $CFG->DEVELOPER ) {
-    if ( ! U::get($_SESSION,'id') ) {
-        $_SESSION['login_return'] = $rest_path->full;
-        Output::doRedirect($CFG->wwwroot.'/login.php');
-        return;
-    }
+if ( $CFG->google_client_id && ! U::get($_SESSION,'id') ) {
+    $_SESSION['login_return'] = $rest_path->full;
+    Output::doRedirect($CFG->wwwroot.'/login.php');
+    return;
 }
 
 if ( isset($_POST['passphrase']) ) {

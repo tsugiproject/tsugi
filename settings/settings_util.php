@@ -18,7 +18,10 @@ function settings_key_count() {
 function settings_status($key_count) {
     global $CFG;
     if ( ! U::get($_SESSION,'id') ) {
-        return "<p><b>You must log in to use these tools in your learning management system or Google Classroom.  You can explore these tools and test them from this page without logging in.</b></p>";
+        if ( $CFG->google_client_id ) {
+            return "<p><b>You must log in to use these tools in your learning management system or Google Classroom.  You can explore these tools and test them from this page without logging in.</b></p>";
+        }
+        return "<p><b>To get access to these tools in your learning management system or Google Classroom you will need to contact the owner of this system.</b></p>";
     } else if ( U::get($_SESSION,'gc_count') ) {
         return "<p><b>You have access to ".U::get($_SESSION,'gc_count')." Google Classroom courses.  Use the icons below to install the tools in your classes.</b></p>";
     } else if ( ! U::get($_SESSION,'gc_count') && $key_count < 1 && 

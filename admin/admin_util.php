@@ -8,7 +8,7 @@ use \Tsugi\Crypt\SecureCookie;
 // TODO: deal with headers sent...
 function requireLogin() {
     global $CFG, $OUTPUT;
-    if ( ! isset($_SESSION['user_id']) ) {
+    if ( $CFG->google_glient_id && ! isset($_SESSION['user_id']) ) {
         $_SESSION['error'] = 'Login required';
         $OUTPUT->doRedirect($CFG->wwwroot.'/login.php') ;
         exit();
@@ -21,7 +21,7 @@ function isAdmin() {
 
 function requireAdmin() {
     global $CFG, $OUTPUT;
-    if ( $_SESSION['admin'] != 'yes' ) {
+    if ( $CFG->google_glient_id && $_SESSION['admin'] != 'yes' ) {
         $_SESSION['error'] = 'Login required';
         $OUTPUT->doRedirect($CFG->wwwroot.'/login.php') ;
         exit();

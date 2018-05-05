@@ -640,7 +640,6 @@ $('a').each(function (x) {
     function defaultMenuSet() {
         global $CFG;
         $R = $CFG->wwwroot . '/';
-        $showadvanced = $CFG->DEVELOPER || ! $CFG->google_client_id;
         $set = new \Tsugi\UI\MenuSet();
         $set->setHome($CFG->servicename, $CFG->apphome);
         $set->addLeft('Tools', $R.'store');
@@ -651,20 +650,21 @@ $('a').each(function (x) {
         if ( $this->session_get('id') ) {
             $submenu = new \Tsugi\UI\Menu();
             $submenu->addLink('Profile', $R.'profile');
-            if ( $showadvanced || U::get($_COOKIE, 'adminmenu') ) {
+            if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
                 $submenu->addLink('Admin', $R.'admin');
             }
-            if ( $showadvanced ) {
-                $submenu->addLink('Developer', $R.'dev');
-            }
+            if ( $CFG->DEVELOPER ) $submenu->addLink('Developer', $R.'dev');
+
             $submenu->addLink('Logout', $R.'logout');
             $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);
         } else {
-            if ( $showadvanced ) {
+            if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
                 $set->addLeft('Admin', $R.'admin');
-                $set->addLeft('Developer', $R.'dev');
             }
-            $set->addRight('Login', $R.'login');
+            if ( $CFG->DEVELOPER ) $set->addLeft('Developer', $R.'dev');
+            if ( $CFG->google_client_id ) {
+                $set->addRight('Login', $R.'login');
+            }
         }
 
         $submenu = new \Tsugi\UI\Menu();
@@ -673,7 +673,7 @@ $('a').each(function (x) {
             ->addLink('IMS LTI 2.0 Spec', 'http://www.imsglobal.org/lti/ltiv2p0/ltiIMGv2p0.html')
             ->addLink('Google Classroom', 'https://classroom.google.com/')
             ->addLink('Tsugi Project Site', 'https://www.tsugi.org/');
-        $set->addRight('Links', $submenu);
+        if ( $CFG->DEVELOPER) $set->addRight('Links', $submenu);
 
         return $set;
     }
