@@ -120,15 +120,70 @@ class ContentItem {
      * @param $activityId The activity for the item
      *
      */
-    public function addLtiLinkItem($url, $title=false, $text=false, 
-        $icon=false, $fa_icon=false, $custom=false, 
-        $points=false, $activityId=false ) 
+    public function addLtiLinkItem($url, $title=false, $text=false,
+        $icon=false, $fa_icon=false, $custom=false,
+        $points=false, $activityId=false, $additionalParams = array())
+    {
+            global $CFG;
+        $params = array(
+            'url' => $url,
+            'title' => $title,
+            'text' => $text,
+            'icon' => $icon,
+            'fa_icon' => $fa_icon,
+            'custom' => $custom,
+            'points' => $points,
+            'activityId' => $activityId,
+        );
+        // package the parameter list into an array for the helper function
+        if (! empty($additionalParams['placementTarget']))
+            $params['placementTarget'] = $additionalParams['placementTarget'];
+        if (! empty($additionalParams['placementWidth']))
+            $params['placementWidth'] = $additionalParams['placementWidth'];
+        if (! empty($additionalParams['placementHeight']))
+            $params['placementHeight'] = $additionalParams['placementHeight'];
+
+        $this->addLtiLinkItemExtended($params);
+    }
+
+    /**
+     * addLtiLinkItemExtended - Add an LTI Link Content Item
+     *
+     * @param $params Key/Value pair of configurable options for content item (see addLtiLinkItem)
+     *
+     */
+    public function addLtiLinkItemExtended($params = array())
     {
         global $CFG;
+
+        // populate the default parameters
+        if (empty($params['title']))
+            $params['title'] = false;
+        if (empty($params['text']))
+            $params['text'] = false;
+        if (empty($params['icon']))
+            $params['icon'] = false;
+        if (empty($params['fa_icon']))
+            $params['fa_icon'] = false;
+        if (empty($params['custom']))
+            $params['custom'] = false;
+        if (empty($params['points']))
+            $params['points'] = false;
+        if (empty($params['activityId']))
+            $params['activityId'] = false;
+        if (empty($params['placementTarget']))
+            $params['placementTarget'] = 'window';
+        if (empty($params['placementWindowTarget']))
+            $params['placementWindowTarget'] = '';
+        if (empty($params['placementWidth']))
+            $params['placementWidth'] = '';
+        if (empty($params['placementHeight']))
+            $params['placementHeight'] = '';
+
         $item = '{ "@type" : "LtiLinkItem",
                     "@id" : ":item2",
-                    "title" : "A cool tool hosted in the Tsugi environment.", 
-                    "mediaType" : "application/vnd.ims.lti.v1.ltilink", 
+                    "title" : "A cool tool hosted in the Tsugi environment.",
+                    "mediaType" : "application/vnd.ims.lti.v1.ltilink",
                     "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
                     "url" : "http://www.tsugi.org/",
                     "placementAdvice" : {
@@ -157,20 +212,29 @@ class ContentItem {
                 }';
 
         $json = json_decode($item);
-        $json->url = $url;
-        if ( $title ) $json->{'title'} = $title;
-        if ( $text ) $json->{'text'} = $text;
-        if ( $icon ) $json->{'icon'}->{'@id'} = $icon;
-        if ( $fa_icon ) $json->icon->fa_icon = $fa_icon;
-        if ( $custom ) $json->custom = $custom;
-        if ( $points && $activityId ) {
-            $json->lineItem->label = $title;
-            $json->lineItem->assignedActivity->{'@id'} = $CFG->wwwroot . '/lti/activity/' . $activityId;
-            $json->lineItem->assignedActivity->activityId = $activityId;
-            $json->lineItem->scoreConstraints->normalMaximum = $points;
+        $json->url = $params['url'];
+        if ( $params['title'] ) $json->{'title'} = $params['title'];
+        if ( $params['text'] ) $json->{'text'} = $params['text'];
+        if ( $params['icon'] ) $json->{'icon'}->{'@id'} = $params['icon'];
+        if ( $params['fa_icon'] ) $json->icon->fa_icon = $params['fa_icon'];
+        if ( $params['custom'] ) $json->custom = $params['custom'];
+        if ( $params['points'] && $params['activityId'] ) {
+            $json->lineItem->label = $params['title'];
+            $json->lineItem->assignedActivity->{'@id'} = $CFG->wwwroot . '/lti/activity/' . $params['activityId'];
+            $json->lineItem->assignedActivity->activityId = $params['activityId'];
+            $json->lineItem->scoreConstraints->normalMaximum = $params['points'];
         } else {
             unset($json->lineItem);
         }
+
+        if ($params['placementTarget'])
+            $json->placementAdvice->presentationDocumentTarget = $params['placementTarget'];
+        if ($params['placementWindowTarget'])
+            $json->placementAdvice->windowTarget = $params['placementWindowTarget'];
+        if (! empty($params['placementWidth']))
+            $json->placementAdvice->displayWidth = $params['placementWidth'];
+        if (! empty($params['placementHeight']))
+            $json->placementAdvice->displayHeight = $params['placementHeight'];
 
         $json->{'@id'} = ':item'.(count($this->json->{'@graph'})+1);
 
@@ -187,33 +251,86 @@ class ContentItem {
      * @param fa_icon The class name of a FontAwesome icon
      *
      */
-    public function addContentItem($url, $title=false, $text=false, 
-        $icon=false, $fa_icon=false ) 
+   public function addContentItem($url, $title=false, $text=false,
+        $icon=false, $fa_icon=false, $additionalParams = array())
     {
+        $params = array(
+            'url' => $url,
+            'title' => $title,
+            'text' => $text,
+            'icon' => $icon,
+            'fa_icon' => $fa_icon,
+        );
+        // package the parameter list into an array for the helper function
+        if (! empty($additionalParams['placementTarget']))
+            $params['placementTarget'] = $additionalParams['placementTarget'];
+        if (! empty($additionalParams['placementWidth']))
+            $params['placementWidth'] = $additionalParams['placementWidth'];
+        if (! empty($additionalParams['placementHeight']))
+            $params['placementHeight'] = $additionalParams['placementHeight'];
+
+        $this->addContentItemExtended($params);
+    }
+
+
+    /**
+     * addContentItemExtended - Add an Content Item
+     *
+         * @param $params Key/Value pair of configurable options for content item (see addContentItem)
+     *
+     */
+    public function addContentItemExtended($params = array())
+    {
+        if (empty($params['title']))
+            $params['title'] = false;
+        if (empty($params['text']))
+            $params['text'] = false;
+        if (empty($params['icon']))
+            $params['icon'] = false;
+        if (empty($params['fa_icon']))
+            $params['fa_icon'] = false;
+        if (empty($params['placementTarget']))
+            $params['placementTarget'] = 'window';
+        if (empty($params['placementWindowTarget']))
+            $params['placementWindowTarget'] = '_blank';
+        if (empty($params['placementWidth']))
+            $params['placementWidth'] = '';
+        if (empty($params['placementHeight']))
+            $params['placementHeight'] = '';
+
         $item = '{ "@type" : "ContentItem",
-                    "@id" : ":item2",
-                    "title" : "A cool tool hosted in the Tsugi environment.", 
-                    "mediaType" : "text/html", 
-                    "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
-                    "url" : "http://www.tsugi.org/",
-                    "placementAdvice" : {
+                "@id" : ":item2",
+                "title" : "A cool tool hosted in the Tsugi environment.",
+                "mediaType" : "text/html",
+                "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
+                "url" : "http://www.tsugi.org/",
+                "placementAdvice" : {
                         "presentationDocumentTarget" : "window",
                         "windowTarget" : "_blank"
-                    },
-                    "icon" : {
+                },
+                "icon" : {
                         "@id" : "https://www.dr-chuck.net/tsugi-static/img/default-icon.png",
                         "fa_icon" : "fa-magic",
                         "width" : 64,
                         "height" : 64
-                    }
-                }';
+                }
+        }';
 
         $json = json_decode($item);
-        $json->url = $url;
-        if ( $title ) $json->{'title'} = $title;
-        if ( $text ) $json->{'text'} = $text;
-        if ( $icon ) $json->{'icon'}->{'@id'} = $icon;
-        if ( $fa_icon ) $json->icon->fa_icon = $fa_icon;
+        $json->url = $params['url'];
+        if ( $params['title'] ) $json->{'title'} = $params['title'];
+        if ( $params['text'] ) $json->{'text'} = $params['text'];
+        if ( $params['icon'] ) $json->{'icon'}->{'@id'} = $params['icon'];
+        if ( $params['fa_icon'] ) $json->icon->fa_icon = $params['fa_icon'];
+
+        if ($params['placementTarget'])
+            $json->placementAdvice->presentationDocumentTarget = $params['placementTarget'];
+        if ($params['placementWindowTarget'])
+            $json->placementAdvice->windowTarget = $params['placementWindowTarget'];
+        if (! empty($params['placementWidth']))
+            $json->placementAdvice->displayWidth = $params['placementWidth'];
+        if (! empty($params['placementHeight']))
+            $json->placementAdvice->displayHeight = $params['placementHeight'];
 
         $json->{'@id'} = ':item'.(count($this->json->{'@graph'})+1);
 
@@ -225,12 +342,12 @@ class ContentItem {
      *
      * @param url The launch URL of the tool that is about to be placed
      * @param title A plain text title of the content-item.
+     * @params additionalParams Array of configurable parameters for LTI placement (options: placementTarget, placementWidth, placementHeight)
      *
      */
-    public function addFileItem($url, $title=false)
+    public function addFileItem($url, $title=false, $additionalParams = array())
     {
-        $item = '
-{
+        $item = '{
   "@type" : "FileItem",
   "url" : "http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_v2p1.xsd",
   "copyAdvice" : "true",
@@ -242,13 +359,31 @@ class ContentItem {
   }
 }';
 
+        if (empty($additionalParams['placementTarget']))
+            $additionalParams['placementTarget'] = 'window';
+        if (empty($additionalParams['placementWindowTarget']))
+            $additionalParams['placementWindowTarget'] = '_blank';
+        if (empty($additionalParams['placementWidth']))
+            $additionalParams['placementWidth'] = '';
+        if (empty($additionalParams['placementHeight']))
+            $additionalParams['placementHeight'] = '';
+
         $json = json_decode($item);
         $json->url = $url;
-        if ( $title ) $json->{'title'} = $title;
+        if ( $params['title'] ) $json->{'title'} = $params['title'];
 
         $datetime = (new \DateTime('+1 day'))->format(\DateTime::ATOM);
         $datetime = substr($datetime,0,19) . 'Z';
         $json->expiresAt = $datetime;
+
+        if ($additionalParams['placementTarget'])
+            $json->placementAdvice->presentationDocumentTarget = $additionalParams['placementTarget'];
+        if ($additionalParams['placementWindowTarget'])
+            $json->placementAdvice->windowTarget = $additionalParams['placementWindowTarget'];
+        if (! empty($additionalParams['placementWidth']))
+            $json->placementAdvice->displayWidth = $additionalParams['placementWidth'];
+        if (! empty($additionalParams['placementHeight']))
+            $json->placementAdvice->displayHeight = $additionalParams['placementHeight'];
 
         $json->{'@id'} = ':item'.(count($this->json->{'@graph'})+1);
 
