@@ -65,9 +65,7 @@ require_once("sanity-db.php");
   </a>
 </li>
 <li><a href="context/">View Contexts</a></li>
-<?php if ( $CFG->providekeys ) { ?>
 <li><a href="key">Manage Access Keys</a></li>
-<?php } ?>
 <li><a href="install">Manage Installed Modules</a></li>
 <li>
   <a href="blob_status" title="Blob Status" target="iframe-frame"

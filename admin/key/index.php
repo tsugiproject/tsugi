@@ -11,11 +11,6 @@ use \Tsugi\Core\LTIX;
 \Tsugi\Core\LTIX::getConnection();
 
 session_start();
-if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
-    $_SESSION['error'] = _m("This service does not accept instructor requests for keys");
-    header('Location: '.$CFG->wwwroot);
-    return;
-}
 
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;

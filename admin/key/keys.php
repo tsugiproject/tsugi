@@ -9,32 +9,17 @@ use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
-if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
-    $_SESSION['error'] = _("This service does not accept instructor requests for keys");
-    header('Location: '.$CFG->wwwroot);
-    return;
-}
-
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
-    $_SESSION['login_return'] = LTIX::curPageUrlFolder();
-    header('Location: '.$CFG->wwwroot.'/login');
-    return;
-}
+if ( ! isAdmin() ) die('Must be admin');
 
 $query_parms = false;
 $searchfields = array("key_id", "key_key", "created_at", "updated_at", "user_id");
 $sql = "SELECT key_id, key_key, secret, login_at, created_at, updated_at, user_id
         FROM {$CFG->dbprefix}lti_key";
-
-if ( !isAdmin() ) {
-    $sql .= "\nWHERE user_id = :UID";
-    $query_parms = array(":UID" => $_SESSION['id']);
-}
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
