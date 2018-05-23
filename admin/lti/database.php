@@ -32,6 +32,8 @@ array( "{$CFG->dbprefix}lti_key",
     key_key             TEXT NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
+    lti13_pubkey        TEXT NULL,
+    lti13_privkey       TEXT NULL,
     secret              TEXT NULL,
     new_secret          TEXT NULL,
     ack                 TEXT NULL,
@@ -1340,11 +1342,25 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    if ( ! $PDOX->columnExists('lti13_pubkey', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_pubkey TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( ! $PDOX->columnExists('lti13_privkey', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_privkey TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // TODO: transfer lti_event contents to cal_event and drop the table
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201804040858;
+    return 201805231006;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
