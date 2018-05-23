@@ -13,17 +13,13 @@ session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
-    die('Must be logged in or admin');
+if ( ! isAdmin() ) {
+    die('Must be admin');
 }
 
 $from_location = "keys";
 $tablename = "{$CFG->dbprefix}lti_key";
-if ( isAdmin() ) {
-    $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at", "user_id");
-} else {
-    $fields = array("key_key", "key_sha256", "secret", "created_at", "updated_at");
-}
+$fields = array("key_key", "key_sha256", "secret", "lti13_pubkey", "created_at", "updated_at", "user_id");
 
 $retval = CrudForm::handleInsert($tablename, $fields);
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {

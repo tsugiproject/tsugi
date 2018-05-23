@@ -13,8 +13,8 @@ session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
-    die('Must be logged in or admin');
+if ( ! isAdmin() ) {
+    die('Must be admin');
 }
 
 $tablename = "{$CFG->dbprefix}lti_key";
@@ -24,13 +24,7 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-if ( isAdmin() ) {
-    $fields = array("key_id", "key_key", "secret", "caliper_url", "caliper_key", "created_at", "updated_at", "user_id");
-} else {
-    $fields = array("key_id", "key_key", "secret", "created_at", "updated_at");
-    $where_clause .= "user_id = :UID";
-    $query_fields[":UID"] = $_SESSION['id'];
-}
+$fields = array("key_id", "key_key", "secret", "caliper_url", "caliper_key", "lti13_pubkey", "created_at", "updated_at", "user_id");
 
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
