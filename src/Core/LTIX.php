@@ -7,6 +7,7 @@ use \Tsugi\OAuth\OAuthServer;
 use \Tsugi\OAuth\OAuthRequest;
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\LTI13;
 use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LTIConstants;
@@ -16,6 +17,8 @@ use \Tsugi\Core\Settings;
 use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Crypt\AesCtr;
+
+use \Firebase\JWT\JWT;
 
 /**
  * This an opinionated LTI class that defines how Tsugi tools interact with LTI
@@ -74,37 +77,20 @@ class LTIX {
      */
     public static function launchCheck($needed=self::ALL, $session_object=null,$request_data=false) {
         global $TSUGI_LAUNCH, $CFG;
-        if ( $request_data === false ) $request_data = self::oauth_parameters();
         $needed = self::patchNeeded($needed);
 
-        // Check for require_conformance_parameters for IMS certification if specified
-        if ($CFG->require_conformance_parameters === true) {
-            // assume that we're *trying* to launch lti if a oauth_nonce has been passed in
-            // (this seems somewhat questionable, but it's what the IMS cert suite seems to imply)
-            if (isset($request_data["oauth_nonce"])) {
-
-                // check to make sure required params lti_message_type, lti_version, and resource_link_id are present
-                if (!isset($request_data["lti_version"])) {
-                    self::abort_with_error_log('Missing lti_version from POST data');
-                }
-                if (!isset($request_data["lti_message_type"])) {
-                    self::abort_with_error_log('Missing lti_message_type from POST data');
-                }
-                if (!isset($request_data["resource_link_id"]) && in_array(self::LINK, $needed) ) {
-                    self::abort_with_error_log('Missing resource_link_id from POST data');
-                }
-
-                // make sure lti_version and lti_message_type are valid
-                if (! LTI::isValidVersion($request_data["lti_version"]) ) {
-                    self::abort_with_error_log('Invalid lti_version: ' . $request_data["lti_version"]);
-                }
-                if (! LTI::isValidMessageType($request_data["lti_message_type"]) ) {
-                    self::abort_with_error_log('Invalid lti_message_type: ' . $request_data["lti_message_type"]);
-                }
-            }
+        // Check if we are an LTI 1.1 or LTI 1.3 launch
+        $LTI11 = false;
+        $LTI13 = false;
+        if ( LTI13::isRequest($request_data) ) {
+            $LTI13 = true;
+        } else {
+            $lti11_request_data = $request_data;
+            if ( $lti11_request_data === false ) $lti11_request_data = self::oauth_parameters();
+            $LTI11 = LTI::isRequest($lti11_request_data);
         }
+        if ( $LTI11 === false && $LTI13 === false ) return false;
 
-        if ( ! LTI::isRequest($request_data) ) return false;
         $session_id = self::setupSession($needed,$session_object,$request_data);
         if ( $session_id === false ) return false;
 
@@ -344,15 +330,36 @@ class LTIX {
      */
     public static function setupSession($needed=self::ALL, $session_object=null, $request_data=false) {
         global $CFG, $TSUGI_LAUNCH, $TSUGI_SESSION_OBJECT;
-        if ( $request_data === false ) $request_data = self::oauth_parameters();
+        global $PDOX;
         $TSUGI_SESSION_OBJECT = $session_object;
 
         $needed = self::patchNeeded($needed);
-        if ( ! LTI::isRequest($request_data) ) return false;
+
+        // Check if we are an LTI 1.1 or LTI 1.3 launch
+        $LTI11 = false;
+        $LTI13 = false;
+        $lti13_request_data = $request_data;
+        if ( $lti13_request_data === false ) $lti11_request_data = $_POST;
+        if ( LTI13::isRequest($request_data) ) {
+            $LTI13 = true;
+            $request_data = $lti13_request_data;
+        } else {
+            $lti11_request_data = $request_data;
+            if ( $lti11_request_data === false ) $lti11_request_data = self::oauth_parameters();
+            $LTI11 = LTI::isRequest($lti11_request_data);
+            $request_data = $lti11_request_data;
+        }
+        if ( $LTI11 === false && $LTI13 === false ) return false;
 
         // Pull LTI data out of the incoming $request_data and map into the same
         // keys that we use in our database (i.e. like $row)
-        $post = self::extractPost($needed, $request_data);
+        $post = false;
+        if ( $LTI11 ) {
+            $post = self::extractPost($needed, $request_data);
+        } else if ( $LTI13 ) {
+            $post = self::extractJWT($needed, $request_data);
+        }
+
         if ( $post === false ) {
             $pdata = Output::safe_var_dump($request_data);
             echo("\n<pre>\nMissing Post_data\n$pdata\n</pre>");
@@ -403,6 +410,7 @@ class LTIX {
         // $row = loadAllData($CFG->dbprefix, false, $post);
         $row = self::loadAllData($CFG->dbprefix, $CFG->dbprefix.'profile', $post);
 
+        // TODO: LTI13 Timestamp
         $delta = 0;
         if ( isset($request_data['oauth_timestamp']) ) {
             $server_time = $request_data['oauth_timestamp']+0;
@@ -417,26 +425,43 @@ class LTIX {
             self::abort_with_error_log('OAuth nonce error key='.$post['key'].' nonce='.$row['nonce']);
         }
 
-        // Use returned data to check the OAuth signature on the
-        // incoming data - returns true or an array
-        $valid = LTI::verifyKeyAndSecret($post['key'],$row['secret'],self::curPageUrl(), $request_data);
+        // Use returned data to check the validity of the incoming request
 
-        // If there is a new_secret it means an LTI2 re-registration is in progress and we
-        // need to check both the current and new secret until the re-registration is committed
-        if ( $valid !== true && strlen($row['new_secret']) > 0 && $row['new_secret'] != $row['secret']) {
-            $valid = LTI::verifyKeyAndSecret($post['key'],$row['new_secret'],self::curPageUrl(), $request_data);
-            if ( $valid ) {
-                $row['secret'] = $row['new_secret'];
+        if ( $LTI11 ) {
+            $valid = LTI::verifyKeyAndSecret($post['key'],$row['secret'],self::curPageUrl(), $request_data);
+
+            // If there is a new_secret it means an LTI2 re-registration is in progress and we
+            // need to check both the current and new secret until the re-registration is committed
+            if ( $valid !== true && strlen($row['new_secret']) > 0 && $row['new_secret'] != $row['secret']) {
+                $valid = LTI::verifyKeyAndSecret($post['key'],$row['new_secret'],self::curPageUrl(), $request_data);
+                if ( $valid ) {
+                    $row['secret'] = $row['new_secret'];
+                }
+                $row['new_secret'] = null;
             }
-            $row['new_secret'] = null;
-        }
 
-        if ( isset($TSUGI_LAUNCH) ) $TSUGI_LAUNCH->base_string = LTI::getLastOAuthBodyBaseString();
+            if ( isset($TSUGI_LAUNCH) ) $TSUGI_LAUNCH->base_string = LTI::getLastOAuthBodyBaseString();
 
-        // TODO: Might want to add more flows here...
-        if ( $valid !== true ) {
-            if ( isset($TSUGI_LAUNCH) ) $TSUGI_LAUNCH->error_message = $valid;
-            self::abort_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0],$valid[1]);
+            // TODO: Might want to add more flows here...
+            if ( $valid !== true ) {
+                if ( isset($TSUGI_LAUNCH) ) $TSUGI_LAUNCH->error_message = $valid;
+                self::abort_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0],$valid[1]);
+            }
+        } else { // LTI 1.3
+            $raw_jwt = LTI13::raw_jwt($request_data);
+            $jwt = LTI13::parse_jwt($raw_jwt);
+            $consumer_pk = $post['key'];
+            $consumer_sha256 = U::lti_sha256($consumer_pk);
+            error_log("consumer_pk=$consumer_pk\n");
+            error_log("consumer_sha256=$consumer_sha256\n<hr/>\n");
+            $pub_row = $PDOX->rowDie("SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
+                    array(':SHA' => $consumer_sha256) );
+            if ( ! $pub_row ) return false;
+            $public_key = $pub_row['lti13_pubkey'];
+            $e = LTI13::verifyPublicKey($raw_jwt, $public_key, array($jwt->header->alg));
+            if ( $e !== true ) {
+                self::abort_with_error_log('JWT validation fail key='.$post['key'].' error='.$e->getMessage());
+            }
         }
 
         // Store the launch path
@@ -809,6 +834,70 @@ class LTIX {
         return $retval;
     }
 
+    /**
+     * Pull the LTI JWT data into our own data structure
+     *
+     * We follow our naming conventions that match the column names in
+     * our lti_ tables.
+     */
+    public static function extractJWT($needed=self::ALL, $input=false) {
+        global $CFG, $PDOX; // TODO: Remove
+        // Unescape each time we use this stuff - someday we won't need this...
+        $needed = self::patchNeeded($needed);
+        if ( $input === false ) $input = $_POST;
+
+        $raw_jwt = LTI13::raw_jwt($input);
+        $jwt = LTI13::parse_jwt($raw_jwt);
+
+        if ( ! $jwt ) return false;
+
+        $body = $jwt->body;
+
+        $consumer_pk = LTI13::extract_consumer_key($jwt);
+        $consumer_sha256 = U::lti_sha256($consumer_pk);
+
+        $retval = array();
+        $retval['key'] = $consumer_pk;
+        $retval['nonce'] = $body->nonce;
+        $retval['link_id'] = $body->{'http://imsglobal.org/lti/resource_link'}->id;
+        $retval['user_id'] = $body->sub;
+        $retval['context_id'] = $body->{'http://imsglobal.org/lti/context'}->id;
+
+        // Sanity checks
+        if ( ! $retval['key'] ) return false;
+        if ( ! $retval['nonce'] ) return false;
+        if ( in_array(self::USER, $needed) && ! $retval['user_id'] ) return false;
+        if ( in_array(self::CONTEXT, $needed) && ! $retval['context_id'] ) return false;
+        if ( in_array(self::LINK, $needed) && ! $retval['link_id'] ) return false;
+
+        // Context
+        $retval['context_title'] = $body->{'http://imsglobal.org/lti/context'}->title;
+        $retval['link_title'] = $body->{'http://imsglobal.org/lti/resource_link'}->title;
+
+        $retval['user_locale'] = $body->locale;
+        $retval['user_email'] = $body->email;
+        $retval['user_image'] = $body->picture;
+        $retval['user_displayname'] = $body->name;
+
+        // Trim out repeated spaces and/or weird whitespace from the user_displayname
+        if ( isset($retval['user_displayname']) ) {
+            $retval['user_displayname'] = trim(preg_replace('/\s+/', ' ',$retval['user_displayname']));
+        }
+
+        // Get the role
+        $retval['role'] = self::ROLE_LEARNER;
+        $roles = implode(':',$body->{'http://imsglobal.org/lti/roles'});
+
+        if ( strlen($roles) > 0 ) {
+            $roles = strtolower($roles);
+            if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = self::ROLE_INSTRUCTOR;
+            if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = self::ROLE_ADMINISTRATOR;
+            // Local superuser would be 10000
+        }
+
+        return $retval;
+    }
+
     // Make sure to include the file in case multiple instances are running
     // on the same Operating System instance and they have not changed the
     // session secret.  Also make these change every 30 minutes
@@ -852,7 +941,7 @@ class LTIX {
             p.subscribe AS profile_subscribe";
         }
 
-        if ( $post['service'] ) {
+        if ( isset($post['service']) ) {
             $sql .= ",
             s.service_id, s.service_key AS service";
         }
@@ -877,7 +966,7 @@ class LTIX {
             LEFT JOIN {$profile_table} AS p ON u.profile_id = p.profile_id";
         }
 
-        if ( $post['service'] ) {
+        if ( isset($post['service']) ) {
             $sql .= "
             LEFT JOIN {$p}lti_service AS s ON k.key_id = s.key_id AND s.service_sha256 = :service";
         }
@@ -904,7 +993,7 @@ class LTIX {
             AND (p.deleted IS NULL OR p.deleted = 0)";
         }
 
-        if ( $post['service'] ) {
+        if ( isset($post['service']) ) {
             $sql .= "
             AND (s.deleted IS NULL OR s.deleted = 0)";
         }
@@ -921,7 +1010,7 @@ class LTIX {
             ':link' => lti_sha256($post['link_id']),
             ':user' => lti_sha256($post['user_id']));
 
-        if ( $post['service'] ) {
+        if ( isset($post['service']) ) {
             $parms[':service'] = lti_sha256($post['service']);
         }
 
@@ -957,6 +1046,7 @@ class LTIX {
 
         $actions = array();
         // if we didn't get context_id from post, we can't update lti_context!
+        echo("<pre>\n");print_r($row);
         if ( $row['context_id'] === null && isset($post['context_id']) ) {
             $sql = "INSERT INTO {$p}lti_context
                 ( context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
