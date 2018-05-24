@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\Core;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
@@ -360,9 +361,11 @@ class LTIX {
             $post = self::extractJWT($needed, $request_data);
         }
 
-        if ( $post === false ) {
+        if ( ! is_array($post) ) {
+            $msg = '';
+	    if ( is_string($post) ) $msg = $post . ' ';
             $pdata = Output::safe_var_dump($request_data);
-            echo("\n<pre>\nMissing Post_data\n$pdata\n</pre>");
+            echo("\n<pre>\n$msg\nMissing Post_data\n$pdata\n</pre>");
             error_log('Missing post data: '.$pdata);
             die();
         }
@@ -746,11 +749,11 @@ class LTIX {
         $retval['context_id'] = $context_id;
 
         // Sanity checks
-        if ( ! $retval['key'] ) return false;
-        if ( ! $retval['nonce'] ) return false;
-        if ( in_array(self::USER, $needed) && ! $retval['user_id'] ) return false;
-        if ( in_array(self::CONTEXT, $needed) && ! $retval['context_id'] ) return false;
-        if ( in_array(self::LINK, $needed) && ! $retval['link_id'] ) return false;
+        if ( ! $retval['key'] ) return "Missing oauth_consumer_key";
+        if ( ! $retval['nonce'] ) return "Missing nonce";
+        if ( in_array(self::USER, $needed) && ! $retval['user_id'] ) return "Missing required user_id";
+        if ( in_array(self::CONTEXT, $needed) && ! $retval['context_id'] ) return "Missing required context_id";
+        if ( in_array(self::LINK, $needed) && ! $retval['link_id'] ) return "Missing required resource_link_id";
 
         // LTI 1.x settings and Outcomes
         $retval['service'] = isset($FIXED['lis_outcome_service_url']) ? $FIXED['lis_outcome_service_url'] : null;
@@ -841,7 +844,6 @@ class LTIX {
      * our lti_ tables.
      */
     public static function extractJWT($needed=self::ALL, $input=false) {
-        global $CFG, $PDOX; // TODO: Remove
         // Unescape each time we use this stuff - someday we won't need this...
         $needed = self::patchNeeded($needed);
         if ( $input === false ) $input = $_POST;
@@ -849,7 +851,7 @@ class LTIX {
         $raw_jwt = LTI13::raw_jwt($input);
         $jwt = LTI13::parse_jwt($raw_jwt);
 
-        if ( ! $jwt ) return false;
+        if ( ! $jwt ) return "Could not extract jwt";
 
         $body = $jwt->body;
 
@@ -864,20 +866,20 @@ class LTIX {
         $retval['context_id'] = $body->{'http://imsglobal.org/lti/context'}->id;
 
         // Sanity checks
-        if ( ! $retval['key'] ) return false;
-        if ( ! $retval['nonce'] ) return false;
-        if ( in_array(self::USER, $needed) && ! $retval['user_id'] ) return false;
-        if ( in_array(self::CONTEXT, $needed) && ! $retval['context_id'] ) return false;
-        if ( in_array(self::LINK, $needed) && ! $retval['link_id'] ) return false;
+        if ( ! $retval['key'] ) return "Could not deteriming key from iss/aud";
+        if ( ! $retval['nonce'] ) return "Missing nonce";
+        if ( in_array(self::USER, $needed) && ! $retval['user_id'] ) return "Missing subject/user_id (sub)";
+        if ( in_array(self::CONTEXT, $needed) && ! $retval['context_id'] ) return "Missing context_id";
+        if ( in_array(self::LINK, $needed) && ! $retval['link_id'] ) return "Missing resource_link->id";
 
         // Context
         $retval['context_title'] = $body->{'http://imsglobal.org/lti/context'}->title;
         $retval['link_title'] = $body->{'http://imsglobal.org/lti/resource_link'}->title;
 
-        $retval['user_locale'] = $body->locale;
-        $retval['user_email'] = $body->email;
-        $retval['user_image'] = $body->picture;
-        $retval['user_displayname'] = $body->name;
+        $retval['user_locale'] = isset($body->locale) ? $body->locale : null;
+        $retval['user_email'] = isset($body->email) ? $body->email : null;
+        $retval['user_image'] = isset($body->picture) ? $body->picture : null;
+        $retval['user_displayname'] = isset($body->name) ? $body->name : null;
 
         // Trim out repeated spaces and/or weird whitespace from the user_displayname
         if ( isset($retval['user_displayname']) ) {
@@ -886,13 +888,17 @@ class LTIX {
 
         // Get the role
         $retval['role'] = self::ROLE_LEARNER;
-        $roles = implode(':',$body->{'http://imsglobal.org/lti/roles'});
+	if ( isset($body->{'http://imsglobal.org/lti/roles'}) &&
+           is_array($body->{'http://imsglobal.org/lti/roles'}) ) {
 
-        if ( strlen($roles) > 0 ) {
-            $roles = strtolower($roles);
-            if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = self::ROLE_INSTRUCTOR;
-            if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = self::ROLE_ADMINISTRATOR;
-            // Local superuser would be 10000
+            $roles = implode(':',$body->{'http://imsglobal.org/lti/roles'});
+
+            if ( strlen($roles) > 0 ) {
+                $roles = strtolower($roles);
+                if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = self::ROLE_INSTRUCTOR;
+                if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = self::ROLE_ADMINISTRATOR;
+                // Local superuser would be 10000
+            }
         }
 
         return $retval;
