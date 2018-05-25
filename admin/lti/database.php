@@ -32,6 +32,9 @@ array( "{$CFG->dbprefix}lti_key",
     key_key             TEXT NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
+    lti13_keyset_url    TEXT NULL,
+    lti13_keyset        TEXT NULL,
+    lti13_kid           TEXT NULL,
     lti13_pubkey        TEXT NULL,
     lti13_privkey       TEXT NULL,
     secret              TEXT NULL,
@@ -1355,6 +1358,28 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
     }
+
+    if ( ! $PDOX->columnExists('lti13_kid', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_kid TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( ! $PDOX->columnExists('lti13_keyset', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_keyset TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( ! $PDOX->columnExists('lti13_keyset_url', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_keyset_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
 
     // TODO: transfer lti_event contents to cal_event and drop the table
 
