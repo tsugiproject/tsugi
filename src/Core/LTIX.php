@@ -20,6 +20,7 @@ use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Crypt\AesCtr;
 
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\JWK;
 
 /**
  * This an opinionated LTI class that defines how Tsugi tools interact with LTI
@@ -457,10 +458,74 @@ class LTIX {
             $consumer_sha256 = U::lti_sha256($consumer_pk);
             error_log("consumer_pk=$consumer_pk\n");
             error_log("consumer_sha256=$consumer_sha256\n<hr/>\n");
-            $pub_row = $PDOX->rowDie("SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
+            $pub_row = $PDOX->rowDie("SELECT lti13_kid, lti13_keyset_url, lti13_keyset, lti13_pubkey FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
                     array(':SHA' => $consumer_sha256) );
             if ( ! $pub_row ) return false;
+
+            $request_kid = $jwt->header->kid;
+            $our_kid = $pub_row['lti13_kid'];
+            $our_keyset = $pub_row['lti13_keyset'];
+            $our_keyset_url = $pub_row['lti13_keyset_url'];
             $public_key = $pub_row['lti13_pubkey'];
+
+            // Sanity check
+            if ( strlen($public_key) < 1 && strlen($our_keyset_url) < 1 ) {
+                 self::abort_with_error_log("For LTI 1.3, $consumer_pk either must have a public_key or keyset_url\n$consumer_sha256");
+            }
+
+            // Make sure we have or update to the latest keyset if we have a keyset_url
+            if ( strlen($our_keyset_url) > 0 &&
+                    (strlen($our_keyset) < 1 || $our_kid != $request_kid ) ) {
+                $our_keyset = file_get_contents($our_keyset_url);
+                $decoded = json_decode($our_keyset);
+                if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
+                        SET lti13_keyset=:KS, updated_at=NOW() WHERE key_sha256 = :SHA",
+                    array(':SHA' => $consumer_sha256, ':KS' => $our_keyset) );
+                    error_log("Updated keyset $consumer_sha256 from $our_keyset_url\n");
+                } else {
+                    self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url,
+                                substr($our_keyset,0,1000));
+                }
+            }
+
+            // If we have a keyset and a kid mismatch, lets grab that new key
+            if ( strlen($our_keyset) > 0 &&
+                ($our_kid != $request_kid || strlen($public_key) < 1) ) {
+                $key_set = json_decode($our_keyset, true);
+                $new_public_key = false;
+
+                foreach ($key_set['keys'] as $key) {
+                    if ($key['kid'] == $jwt->header->kid) {
+                        $details = openssl_pkey_get_details(JWK::parseKey($key));
+                        if ( $details && is_array($details) && isset($details['key']) ) {
+                            $new_public_key = $details['key'];
+                        }
+                        break;
+                    }
+                }
+
+                if ( $new_public_key ) {
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
+                        SET lti13_pubkey=:PK, updated_at=NOW() WHERE key_sha256 = :SHA",
+                    array(':SHA' => $consumer_sha256, ':PK' => $new_public_key) );
+                    error_log("New public key $consumer_sha256\n$new_public_key");
+                    $public_key = $new_public_key;
+                } else {
+                    // TODO: Understand if we should kill the old key here
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
+                        SET lti13_pubkey=NULL, updated_at=NOW() WHERE key_sha256 = :SHA",
+                    array(':SHA' => $consumer_sha256) );
+                    if ( strlen($public_key) > 0 ) {
+                        error_log("Cleared public key $consumer_sha256 invalid kid");
+                        self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
+                    } else {
+                        error_log("Could not find public key $consumer_sha256 invalid kid");
+                        self::abort_with_error_log("Invalid Key Id (header.kid), could not find public key");
+                    }
+                }
+            }
+
             $e = LTI13::verifyPublicKey($raw_jwt, $public_key, array($jwt->header->alg));
             if ( $e !== true ) {
                 self::abort_with_error_log('JWT validation fail key='.$post['key'].' error='.$e->getMessage());
