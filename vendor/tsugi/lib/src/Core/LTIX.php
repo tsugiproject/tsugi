@@ -1282,7 +1282,9 @@ class LTIX {
 
         // Here we handle lti13_lineitem
         // TODO: Add this to the big join to improve efficiency after data models are all updated
-        if ( $post['lti13_lineitem'] != $row['lti13_lineitem'] ) {
+        if ( isset($post['lti13_lineitem']) && isset($row['lti13_lineitem']) &&
+                      $post['lti13_lineitem'] != $row['lti13_lineitem'] ) {
+
             $sql = "UPDATE {$p}lti_result
                 SET lti13_lineitem = :lti13_lineitem
                 WHERE result_id = :result_id";
