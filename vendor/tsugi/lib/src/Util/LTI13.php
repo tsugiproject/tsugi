@@ -2,6 +2,7 @@
 
 namespace Tsugi\Util;
 
+use \Tsugi\Util\U;
 use \Firebase\JWT\JWT;
 
 /**
@@ -85,6 +86,88 @@ class LTI13 extends LTI {
     // Returns true if the lti_version is valid
     public static function isValidVersion($lti_version=false) {
         return ($lti_version == "LTI-1p0" || $lti_version == "LTI-2p0");
+    }
+
+    public static function getGradeToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+        global $CFG;
+
+        $jwt_claim = [
+            "iss" => $issuer,
+            "sub" => $subject,
+            "aud" => $lti13_token_url,
+            "iat" => time(),
+            "exp" => time()+60,
+            "jti" => uniqid($issuer)
+        ];
+
+        $jwt = JWT::encode($jwt_claim, $lti13_privkey, 'RS256');
+
+        $auth_request = [
+            'grant_type' => 'client_credentials',
+            'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            'client_assertion' => $jwt,
+            'scope' => "http://imsglobal.org/ags/lineitem http://imsglobal.org/ags/result/read"
+        ];
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL,$lti13_token_url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($auth_request));
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $token_data = json_decode(curl_exec($ch), true);
+
+        curl_close ($ch);
+
+
+// echo $token_data['access_token'];
+        return $token_data;
+        // return $token_data['access_token'];
+    }
+
+    // Call grade book
+    public static function sendGrade($user_id, $grade, $comment, $lineitem_url,
+        $access_token, &$debug_log=false) {
+        global $CFG;
+
+        $ch = curl_init();
+
+        $grade = $grade * 100.0;
+        $grade = (int) $grade;
+
+        // TODO: WTF - User?  Is that not in the lineitem_url?
+        $grade_call = [
+            // "timestamp" => "2017-04-16T18:54:36.736+00:00",
+            "timestamp" => U::iso8601(),
+            "scoreGiven" => $grade,
+            "scoreMaximum" => 100,
+            "comment" => $comment,
+            "activityProgress" => "Completed",
+            "gradingProgress" => "Completed",
+            "userId" => $user_id,
+        ];
+
+        // curl_setopt($ch, CURLOPT_URL, "http://lti-ri.imsglobal.org/platforms/7/line_items/9/scores");
+        // echo("\n---\n$lineitem_url\n-----\n");
+        curl_setopt($ch, CURLOPT_URL, $lineitem_url."/scores");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($grade_call));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer '. $access_token,
+            'Content-Type: application/vnd.ims.lis.v1.score+json'
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $line_item = curl_exec($ch);
+
+        curl_close ($ch);
+
+        // echo $line_item;
+        error_log("Sent line item, received\n".$line_item);
+
+        return true;
     }
 
 }

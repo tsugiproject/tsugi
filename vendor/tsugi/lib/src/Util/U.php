@@ -571,4 +571,10 @@ class U {
         return $dt->format('Ymdhi');
     }
 
+    public static function iso8601($time="now")
+    {
+        $dt = new \DateTime($time, new \DateTimeZone('utc'));
+        return $dt->format(\DateTime::ATOM);
+    }
+
 }

@@ -36,6 +36,7 @@ array( "{$CFG->dbprefix}lti_key",
     lti13_keyset        TEXT NULL,
     lti13_kid           TEXT NULL,
     lti13_pubkey        TEXT NULL,
+    lti13_token_url     TEXT NULL,
     lti13_privkey       TEXT NULL,
     secret              TEXT NULL,
     new_secret          TEXT NULL,
@@ -341,6 +342,7 @@ array( "{$CFG->dbprefix}lti_result",
     deleted            TINYINT(1) NOT NULL DEFAULT 0,
 
     result_url         TEXT NULL,
+    lti13_lineitem     TEXT NULL,
 
     sourcedid          TEXT NULL,
     service_id         INTEGER NULL,
@@ -1375,6 +1377,20 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     if ( ! $PDOX->columnExists('lti13_keyset_url', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_keyset_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( ! $PDOX->columnExists('lti13_token_url', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_token_url TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( ! $PDOX->columnExists('lti13_lineitem', "{$CFG->dbprefix}lti_result") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD lti13_lineitem TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);

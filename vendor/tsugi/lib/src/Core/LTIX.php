@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Tsugi\Core;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
@@ -458,7 +457,9 @@ class LTIX {
             $consumer_sha256 = U::lti_sha256($consumer_pk);
             error_log("consumer_pk=$consumer_pk\n");
             error_log("consumer_sha256=$consumer_sha256\n<hr/>\n");
-            $pub_row = $PDOX->rowDie("SELECT lti13_kid, lti13_keyset_url, lti13_keyset, lti13_pubkey FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
+            $pub_row = $PDOX->rowDie("SELECT lti13_kid, lti13_keyset_url, lti13_keyset,
+                lti13_pubkey, lti13_token_url, lti13_privkey
+                FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
                     array(':SHA' => $consumer_sha256) );
             if ( ! $pub_row ) return false;
 
@@ -467,6 +468,9 @@ class LTIX {
             $our_keyset = $pub_row['lti13_keyset'];
             $our_keyset_url = $pub_row['lti13_keyset_url'];
             $public_key = $pub_row['lti13_pubkey'];
+
+            $private_key = $pub_row['lti13_privkey'];
+            $token_url = $pub_row['lti13_token_url'];
 
             // Sanity check
             if ( strlen($public_key) < 1 && strlen($our_keyset_url) < 1 ) {
@@ -530,6 +534,10 @@ class LTIX {
             if ( $e !== true ) {
                 self::abort_with_error_log('JWT validation fail key='.$post['key'].' error='.$e->getMessage());
             }
+
+            // TODO: Encrypt private key
+            $row['lti13_privkey'] = $private_key;
+            $row['lti13_token_url'] = $token_url;
         }
 
         // Store the launch path
@@ -951,9 +959,16 @@ class LTIX {
             $retval['user_displayname'] = trim(preg_replace('/\s+/', ' ',$retval['user_displayname']));
         }
 
+        // Get the line item
+        if ( isset($body->{'https://www.imsglobal.org/lti/ags'}) &&
+            isset($body->{'https://www.imsglobal.org/lti/ags'}->lineitem) &&
+            is_string($body->{'https://www.imsglobal.org/lti/ags'}->lineitem) ) {
+            $retval['lti13_lineitem'] = $body->{'https://www.imsglobal.org/lti/ags'}->lineitem;
+        }
+
         // Get the role
         $retval['role'] = self::ROLE_LEARNER;
-	if ( isset($body->{'http://imsglobal.org/lti/roles'}) &&
+        if ( isset($body->{'http://imsglobal.org/lti/roles'}) &&
            is_array($body->{'http://imsglobal.org/lti/roles'}) ) {
 
             $roles = implode(':',$body->{'http://imsglobal.org/lti/roles'});
@@ -1103,7 +1118,7 @@ class LTIX {
      *
      * While this looks like a lot of INSERT and UPDATE statements,
      * the INSERT statements only run when we see a new user/course/link
-     * for the first time and after that, we only update is something
+     * for the first time and after that, we only update if something
      * changes.   So in a high percentage of launches we are not seeing
      * any new or updated data and so this code just falls through and
      * does absolutely no SQL.
@@ -1238,6 +1253,7 @@ class LTIX {
         if ( ! isset($post['sourcedid']) ) $post['sourcedid'] = null;
         if ( ! isset($post['service']) ) $post['service'] = null;
         if ( ! isset($post['result_url']) ) $post['result_url'] = null;
+        if ( ! isset($post['lti13_lineitem']) ) $post['lti13_lineitem'] = null;
         if ( ! isset($row['service']) ) {
             $row['service'] = null;
             $row['service_id'] = null;
@@ -1262,6 +1278,19 @@ class LTIX {
             $row['result_url'] = $post['result_url'];
             $actions[] = "=== Updated result id=".$row['result_id']." result_url=".$row['result_url'].
                 " sourcedid=".$row['sourcedid']." service_id=".$row['service_id'];
+        }
+
+        // Here we handle lti13_lineitem
+        // TODO: Add this to the big join to improve efficiency after data models are all updated
+        if ( $post['lti13_lineitem'] != $row['lti13_lineitem'] ) {
+            $sql = "UPDATE {$p}lti_result
+                SET lti13_lineitem = :lti13_lineitem
+                WHERE result_id = :result_id";
+            $PDOX->queryDie($sql, array(
+                ':lti13_lineitem' => $post['lti13_lineitem'],
+                ':result_id' => $row['result_id']));
+            $row['lti13_lineitem'] = $post['lti13_lineitem'];
+            $actions[] = "=== Updated result id=".$row['result_id']." lti13_lineitem=".$row['lti13_lineitem'];
         }
 
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
