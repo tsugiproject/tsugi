@@ -3,6 +3,7 @@
 namespace Tsugi\Core;
 
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\LTI13;
 use \Tsugi\UI\Output;
 use \Tsugi\Util\Net;
 use \Tsugi\Google\GoogleClassroom;
@@ -148,21 +149,29 @@ class Result extends Entity {
 
         // Secret and key from session to avoid crossing tenant boundaries
         $key_key = false;
+        $user_key = false;
         $secret = false;
+        $lti13_privkey = false;
         if ( $row !== false ) {
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
             $key_key = isset($row['key_key']) ? $row['key_key'] : false;
+            $user_key = isset($row['user_key']) ? $row['user_key'] : false;
             $secret = isset($row['secret']) ? LTIX::decrypt_secret($row['secret']) : false;
             // Fall back to session if it is missing
             if ( $service === false ) $service = LTIX::ltiParameter('service');
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
+            $lti13_privkey = isset($row['lti13_privkey']) ? LTIX::decrypt_secret($row['lti13_privkey']) : false;
+            $lti13_lineitem = isset($row['lti13_lineitem']) ? $row['lti13_lineitem'] : false;
+            $lti13_token_url = $row['lti13_token_url'];
         } else {
             $result_url = LTIX::ltiParameter('result_url');
             $sourcedid = LTIX::ltiParameter('sourcedid');
             $service = LTIX::ltiParameter('service');
             $result_id = LTIX::ltiParameter('result_id');
+            $lti13_lineitem = LTIX::ltiParameter('lti13_lineitem');
+            $lti13_token_url = LTIX::ltiParameter('lti13_token_url');
         }
 
         // Check if we are to use SHA256 as the signature
@@ -174,7 +183,9 @@ class Result extends Entity {
 
         // Secret and key from session to avoid crossing tenant boundaries
         if ( ! $key_key ) $key_key = LTIX::ltiParameter('key_key');
+        if ( ! $user_key ) $user_key = LTIX::ltiParameter('user_key');
         if ( ! $secret ) $secret = LTIX::decrypt_secret(LTIX::ltiParameter('secret'));
+        if ( ! $lti13_privkey ) $lti13_privkey = LTIX::decrypt_secret(LTIX::ltiParameter('lti13_privkey'));
 
         // Get the IP Address
         $ipaddr = Net::getIP();
@@ -205,6 +216,8 @@ class Result extends Entity {
             return false;
         }
 
+        // var_dump($key_key); var_dump($lti13_token_url); var_dump($lti13_privkey); var_dump($lti13_lineitem); die('Die');
+
         // TODO: Fix this
         $comment = "";
         // Check is this is a Google Classroom Launch
@@ -219,6 +232,18 @@ class Result extends Entity {
         // Otherwise use the more established service call
         } else if ( $sourcedid !== false && $service !== false ) {
             $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log, $signature);
+ 
+        // Check if this is an LTI 1.3 grade passback
+        } else if ( $lti13_privkey !== false && $lti13_privkey !== false && $lti13_token_url !== false) {
+            error_log("Getting token key_key=$key_key lti13_token_url=$lti13_token_url");
+            $token_data = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey);
+            $access_token = $token_data['access_token'];
+            // TODO: WTF user_key?
+            $tmp = "Sending grade $grade user_key=$user_key lti13_lineitem=$lti13_lineitem access_token=$access_token";
+            error_log($tmp);
+            $tmp = "Sending grade $grade user_key=$user_key";
+            $status = LTI13::sendGrade($user_key, $grade, /*$comment*/ $tmp, $lti13_lineitem,
+                        $access_token, $debug_log);
         } else {
             return true;   // Local storage only
         }
