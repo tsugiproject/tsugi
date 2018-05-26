@@ -164,7 +164,7 @@ class Result extends Entity {
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
             $lti13_privkey = isset($row['lti13_privkey']) ? LTIX::decrypt_secret($row['lti13_privkey']) : false;
             $lti13_lineitem = isset($row['lti13_lineitem']) ? $row['lti13_lineitem'] : false;
-            $lti13_token_url = $row['lti13_token_url'];
+            $lti13_token_url = isset($row['lti13_token_url']) ? $row['lti13_token_url'] : false;
         } else {
             $result_url = LTIX::ltiParameter('result_url');
             $sourcedid = LTIX::ltiParameter('sourcedid');
