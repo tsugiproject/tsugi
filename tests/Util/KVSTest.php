@@ -21,8 +21,25 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
     }
 
+    public function testValidate() {
+        $long = 'ldfjlgfjglkjgfljlgfjgfjgfljkglfjkgfljkglfjklgjkflgflfgjkgfljklgk';
+        $long .= $long . $long . $long;
+        $long = substr($long, 0, 150);
+        $x = array( 'uk1' => $long, 'sk1' => $long, 'tk1' => $long,
+            'co1' => $long, 'co2' => $long);
+        $pdox = new PDOX('sqlite::memory:');
+        $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
+        $val = $kvs->validate($kvs);
+        $this->assertEquals('$data must be an array', $val);
+        $val = $kvs->validate($x);
+        $this->assertEquals('sk1 must be no more than 75 characters', $val);
+        $x['sk1'] = 'shorter';
+        $val = $kvs->validate($x);
+        $this->assertTrue($val);
+    }
+
     public function testPrivate() {
-        $pdox = new PDOX('sqlite::memory');
+        $pdox = new PDOX('sqlite::memory:');
         $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
         // Calling private methods :)
         // https://stackoverflow.com/questions/249664/best-practices-to-test-protected-methods-with-phpunit
@@ -83,6 +100,10 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $data = array('bob' => 42, 'uk1' => 'ABC');
         $retval = $kvs->insert($data);
         $this->assertEquals($retval, 1);
+
+        // Sadly this does not work on SQLite
+        // $retval = $kvs->insertOrUpdate($data);
+        // $this->assertEquals($retval, 1);
     }
 
     private static function createTestTable($PDOX, $KVS_TABLE, $KVS_FK_NAME) {
