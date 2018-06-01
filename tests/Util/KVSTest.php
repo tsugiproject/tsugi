@@ -36,6 +36,12 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $x['sk1'] = 'shorter';
         $val = $kvs->validate($x);
         $this->assertTrue($val);
+        $x['id'] = 42;
+        $val = $kvs->validate($x);
+        $this->assertTrue($val);
+        $x['id'] = 'towel';
+        $val = $kvs->validate($x);
+        $this->assertEquals('id must be an an integer', $val);
     }
 
     public function testPrivate() {
@@ -97,13 +103,35 @@ class KVSTest extends PHPUnit_Framework_TestCase
         } catch(Exception $e) {
             // Expected :)
         }
-        $data = array('bob' => 42, 'uk1' => 'ABC');
-        $retval = $kvs->insert($data);
-        $this->assertEquals($retval, 1);
+        $data = array('bob' => 42, 'uk1' => 'ABC', 'co1' => 'Yada');
+        $id = $kvs->insert($data);
+        $this->assertEquals($id, 1);
 
         // Sadly this does not work on SQLite
         // $retval = $kvs->insertOrUpdate($data);
         // $this->assertEquals($retval, 1);
+
+        // TODO: Retrieve and check
+
+        $data['bob'] = 443;
+        $data['co1'] = 'Yada 123';
+        $retval = $kvs->update($data);
+        $this->assertEquals($retval, 1);
+
+        // Attempt update with neither id nor uk1
+        unset($data['uk1']);
+        try {
+            $retval = $kvs->update($data);
+            $this->fail('Expecting an exception');
+        } catch(Exception $e) {
+            // Expected :)
+        }
+
+        // Use primary key to update
+        $data['id'] = $id;
+        $retval = $kvs->update($data);
+        $this->assertEquals($retval, 1);
+
     }
 
     private static function createTestTable($PDOX, $KVS_TABLE, $KVS_FK_NAME) {

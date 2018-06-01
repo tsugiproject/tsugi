@@ -52,7 +52,6 @@ class KVS {
     private $PDOX = null;
     private $KVS_FK = null;
     private $NOW = 'NOW()'; // MySQL
-    private $DUP_KEY = 'ON DUPLICATE KEY UPDATE'; // MySql
 
     protected $KVS_TABLE = null;
     protected $KVS_FK_NAME = null;
@@ -87,7 +86,7 @@ class KVS {
         $map[':json_body'] = json_encode($data);
         $stmt = $this->PDOX->queryDie($sql, $map);
 
-        if ( $stmt->success) return($this->PDOX->lastInsertId());
+        if ( $stmt->success) return(intval($this->PDOX->lastInsertId()));
         return false;
     }
 
@@ -102,7 +101,7 @@ class KVS {
         $map = $this->extractMap($data);
         $sql = "INSERT INTO $this->KVS_TABLE ($this->KVS_FK_NAME, uk1, sk1, tk1, co1, co2, json_body, created_at)
             VALUES (:foreign_key, :uk1, :sk1, :tk1, :co1, :co2, :json_body, $this->NOW)
-            $this->DUP_KEY $this->KVS_FK_NAME=:foreign_key, sk1=:sk1, tk1=:tk1,
+            ON DUPLICATE KEY UPDATE $this->KVS_FK_NAME=:foreign_key, sk1=:sk1, tk1=:tk1,
             co1=:co1, co2=:co2, json_body=:json_body, updated_at=$this->NOW ";
         $map[':foreign_key'] = $this->KVS_FK;
         $map[':json_body'] = json_encode($data);
@@ -110,6 +109,47 @@ class KVS {
 
         if ( $stmt->success) return($this->PDOX->lastInsertId());
         return false;
+    }
+
+    /*
+     * Update a row
+     *
+     * $data array A structured array to be inserted into the KVS.
+     * The array must be completely key-value at its top level.  Below
+     * that, anything that can be serialized into JSON is allowed.
+     */
+    public function update($data, $changepk=false) {
+        $map = $this->extractMap($data);
+        $keys = $this->extractKeys($data);
+        $where = false;
+        $more = '';
+        if ( $keys->id ) {
+            $where = 'id=:id';
+            $map[':id'] = $keys->id;
+            // TODO: Can we set this to null?
+            if ( $changepk || $keys->uk1 ) {
+                $more = ', uk1=:uk1';
+            } else {
+                unset($map[':uk1']); // Leave uk1 alone
+            }
+        } else if ( $keys->uk1 ) { // Update using uk1 as where clause
+            $where = 'uk1=:uk1';
+            $map[':uk1'] = $keys->uk1;
+        }
+        if ( ! $where ) throw new \Exception('update requires id or pk1 field');
+
+        $sql = "UPDATE $this->KVS_TABLE SET sk1=:sk1, tk1=:tk1, co1=:co1,
+            co2=:co2, json_body=:json_body, updated_at=$this->NOW $more
+            WHERE $where";
+
+        $copy = $data;
+        if ( U::get($data,'id') ) unset($copy['id']);
+        $map[':json_body'] = json_encode($copy);
+
+        $stmt = $this->PDOX->queryDie($sql, $map);
+
+        if ( ! $stmt->success ) return false;
+        return $stmt->rowCount();
     }
 
 
@@ -124,6 +164,7 @@ class KVS {
         if ( is_string($val) ) throw new \Exception($val);
 
         $retval = new \stdClass();
+        $retval->id = U::get($data, 'id');
         $retval->uk1 = U::get($data, 'uk1');
         $retval->sk1 = U::get($data, 'sk1');
         $retval->tk1 = U::get($data, 'tk1');
@@ -148,6 +189,10 @@ class KVS {
      */
     public function validate($data) {
         if ( ! is_array($data) ) return '$data must be an array';
+        $id = U::get($data, 'id');
+        if ( $id ) {
+            if ( ! is_int($id) ) return "id must be an an integer";
+        }
         $uk1 = U::get($data, 'uk1');
         if ( $uk1 ) {
             if ( ! is_string($uk1) ) return "uk1 must be a string";
