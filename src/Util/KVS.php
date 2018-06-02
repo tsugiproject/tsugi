@@ -94,7 +94,9 @@ class KVS {
         $sql = "INSERT INTO $this->KVS_TABLE ($this->KVS_FK_NAME, uk1, sk1, tk1, co1, co2, json_body, created_at)
             VALUES (:foreign_key, :uk1, :sk1, :tk1, :co1, :co2, :json_body, $this->NOW)";
         $map[':foreign_key'] = $this->KVS_FK;
-        $map[':json_body'] = json_encode($data);
+
+        $copy = self::preStoreCleanup($data);
+        $map[':json_body'] = json_encode($copy);
         $stmt = $this->PDOX->queryDie($sql, $map);
 
         if ( $stmt->success) return(intval($this->PDOX->lastInsertId()));
@@ -153,14 +155,74 @@ class KVS {
             co2=:co2, json_body=:json_body, updated_at=$this->NOW $more
             WHERE $where";
 
-        $copy = $data;
-        if ( U::get($data,'id') ) unset($copy['id']);
+        // Cleanup data preStore
+        $copy = self::preStoreCleanup($data);
+
         $map[':json_body'] = json_encode($copy);
 
         $stmt = $this->PDOX->queryDie($sql, $map);
 
         if ( ! $stmt->success ) return false;
         return $stmt->rowCount();
+    }
+
+    /*
+     * Note that the JSON is returned as an associative array
+     */
+    public function getRow($where) {
+        $clause = false;
+        $values = false;
+        $retval = self::extractWhere($where, $clause, $values);
+        if ( is_string($retval) ) throw new \Exception($val);
+        // TODO: What about created_at and updated_at
+        $sql = "SELECT KVS.id AS id, json_body, KVS.created_at, KVS.updated_at
+            FROM $this->KVS_TABLE AS KVS
+            WHERE $this->KVS_FK_NAME = :foreign_key AND ".$clause;
+        $values[':foreign_key'] = $this->KVS_FK;
+        $row = $this->PDOX->rowDie($sql, $values);
+        if ( $row === false ) return false;
+        $retval = json_decode($row['json_body'], true);
+        if ( is_array($retval) ) {
+            $retval['id'] = intval($row['id']);
+            $retval['created_at'] = $row['created_at'];
+            $retval['updated_at'] = $row['updated_at'];
+        }
+        return $retval;
+    }
+
+
+    // public function insertOrUpdate($data);
+    // public function delete($where);
+    // public function getAllRows($where, $order, $limit);
+
+    private static function preStoreCleanup($data) {
+        $copy = $data;
+        if ( U::get($data,'id') ) unset($copy['id']);
+        if ( U::get($data,'created_at') ) unset($copy['created_at']);
+        if ( U::get($data,'updated_at') ) unset($copy['updated_at']);
+        return $copy;
+    }
+
+    private static function extractKeys($data) {
+        $val = self::validate($data);
+        if ( is_string($val) ) throw new \Exception($val);
+
+        $retval = new \stdClass();
+        foreach (self::$allKeys as $key ) {
+            $retval->{$key} = U::get($data, $key);
+        }
+        return $retval;
+    }
+
+    private static function extractMap($data) {
+        $retval = self::extractKeys($data);
+        $arr = array();
+        $arr[':uk1'] = $retval->uk1;
+        $arr[':sk1'] = $retval->sk1;
+        $arr[':tk1'] = $retval->tk1;
+        $arr[':co1'] = $retval->co1;
+        $arr[':co2'] = $retval->co2;
+        return $arr;
     }
 
     public static function extractWhere($data, &$where, &$values) {
@@ -184,33 +246,6 @@ class KVS {
         return true;
     }
 
-
-    // public function update($data);
-    // public function insertOrUpdate($data);
-    // public function delete($where);
-    // public function getAllRows($where, $order, $limit);
-
-    private static function extractKeys($data) {
-        $val = self::validate($data);
-        if ( is_string($val) ) throw new \Exception($val);
-
-        $retval = new \stdClass();
-        foreach (self::$allKeys as $key ) {
-            $retval->{$key} = U::get($data, $key);
-        }
-        return $retval;
-    }
-
-    private static function extractMap($data) {
-        $retval = self::extractKeys($data);
-        $arr = array();
-        $arr[':uk1'] = $retval->uk1;
-        $arr[':sk1'] = $retval->sk1;
-        $arr[':tk1'] = $retval->tk1;
-        $arr[':co1'] = $retval->co1;
-        $arr[':co2'] = $retval->co2;
-        return $arr;
-    }
 
     /**
      * Validate a kvs record

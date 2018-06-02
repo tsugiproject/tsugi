@@ -149,8 +149,18 @@ class KVSTest extends PHPUnit_Framework_TestCase
         // $retval = $kvs->insertOrUpdate($data);
         // $this->assertEquals($retval, 1);
 
-        // TODO: Retrieve and check
+        // Load some data
+        $where = array('id' => $id);
+        $row = $kvs->getRow($where);
+        $this->assertEquals($row['uk1'], 'ABC');
+        $this->assertEquals($row['co1'], 'Yada');
 
+        $where = array('uk1' => 'ABC');
+        $row = $kvs->getRow($where);
+        $this->assertEquals($row['uk1'], 'ABC');
+        $this->assertEquals($row['co1'], 'Yada');
+
+        // Update some data
         $data['bob'] = 443;
         $data['co1'] = 'Yada 123';
         $retval = $kvs->update($data);
@@ -198,6 +208,5 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $PDOX->queryDie($sql);
 
     }
-
 
 }
