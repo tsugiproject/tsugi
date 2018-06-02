@@ -49,6 +49,17 @@ namespace Tsugi\Util;
 
 class KVS {
 
+    const ID = 'id';
+    const UK1 = 'uk1';
+    const SK1 = 'sk1';
+    const TK1 = 'tk1';
+    const CO1 = 'co1';
+    const CO2 = 'co2';
+
+    private static $allKeys = array(
+        self::ID, self::UK1, self::SK1, self::TK1,
+        self::CO1, self::CO2 );
+
     private $PDOX = null;
     private $KVS_FK = null;
     private $NOW = 'NOW()'; // MySQL
@@ -152,28 +163,45 @@ class KVS {
         return $stmt->rowCount();
     }
 
+    public static function extractWhere($data, &$where, &$values) {
+        $keys = self::extractKeys($data);
+        $values = array();
+        $where = '';
+
+        foreach (self::$allKeys as $key ) {
+            if ( ! $keys->{$key} ) continue;
+            if ( strlen($where) > 0 ) $where .= ' AND ';
+            $value = $keys->{$key};
+            if ( strpos($value, "LIKE ") === 0 ) {
+                $where .=  $key . ' LIKE :' . $key;
+                $values[':'.$key] = substr($value,5);
+            } else {
+                $where .=  $key . ' = :' . $key;
+                $values[':'.$key] = $value;
+            }
+        }
+        if ( count($values) < 1 ) return "No key found for WHERE clause";
+        return true;
+    }
+
 
     // public function update($data);
     // public function insertOrUpdate($data);
     // public function delete($where);
-    // public function getOneRow($where);
     // public function getAllRows($where, $order, $limit);
 
-    private function extractKeys($data) {
+    private static function extractKeys($data) {
         $val = self::validate($data);
         if ( is_string($val) ) throw new \Exception($val);
 
         $retval = new \stdClass();
-        $retval->id = U::get($data, 'id');
-        $retval->uk1 = U::get($data, 'uk1');
-        $retval->sk1 = U::get($data, 'sk1');
-        $retval->tk1 = U::get($data, 'tk1');
-        $retval->co1 = U::get($data, 'co1');
-        $retval->co2 = U::get($data, 'co2');
+        foreach (self::$allKeys as $key ) {
+            $retval->{$key} = U::get($data, $key);
+        }
         return $retval;
     }
 
-    private function extractMap($data) {
+    private static function extractMap($data) {
         $retval = self::extractKeys($data);
         $arr = array();
         $arr[':uk1'] = $retval->uk1;
@@ -187,7 +215,7 @@ class KVS {
     /**
      * Validate a kvs record
      */
-    public function validate($data) {
+    public static function validate($data) {
         if ( ! is_array($data) ) return '$data must be an array';
         $id = U::get($data, 'id');
         if ( $id ) {

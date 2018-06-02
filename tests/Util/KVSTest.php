@@ -56,41 +56,79 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $x = array( 'uk1' => 'bob');
         $result = $extractKeys->invokeArgs( $kvs, array($x) );
 
-        $this->assertEquals("bob", $result->uk1 ); 
-        $this->assertNull( $result->sk1 ); 
-        $this->assertNull( $result->tk1 ); 
-        $this->assertNull( $result->co1 ); 
-        $this->assertNull( $result->co2 ); 
+        $this->assertEquals("bob", $result->uk1 );
+        $this->assertNull( $result->sk1 );
+        $this->assertNull( $result->tk1 );
+        $this->assertNull( $result->co1 );
+        $this->assertNull( $result->co2 );
 
         $x = array( 'uk1' => 'a', 'sk1' => 'b', 'tk1' => 'c',
             'co1' => 'd', 'co2' => 'e');
         $result = $extractKeys->invokeArgs( $kvs, array($x) );
 
-        $this->assertEquals('a', $result->uk1 ); 
-        $this->assertEquals('b', $result->sk1 ); 
-        $this->assertEquals('c', $result->tk1 ); 
-        $this->assertEquals('d', $result->co1 ); 
-        $this->assertEquals('e', $result->co2 ); 
+        $this->assertEquals('a', $result->uk1 );
+        $this->assertEquals('b', $result->sk1 );
+        $this->assertEquals('c', $result->tk1 );
+        $this->assertEquals('d', $result->co1 );
+        $this->assertEquals('e', $result->co2 );
 
         $extractMap = $reflector->getMethod( 'extractMap' );
         $extractMap->setAccessible( true );
         $x = array( 'uk1' => 'bob');
         $result = $extractMap->invokeArgs( $kvs, array($x) );
 
-        $this->assertEquals('bob', $result[':uk1'] ); 
-        $this->assertEquals(null, $result[':sk1'] ); 
-        $this->assertEquals(null, $result[':tk1'] ); 
-        $this->assertEquals(null, $result[':co1'] ); 
-        $this->assertEquals(null, $result[':co2'] ); 
+        $this->assertEquals('bob', $result[':uk1'] );
+        $this->assertEquals(null, $result[':sk1'] );
+        $this->assertEquals(null, $result[':tk1'] );
+        $this->assertEquals(null, $result[':co1'] );
+        $this->assertEquals(null, $result[':co2'] );
 
         $x = array( 'uk1' => 'a', 'sk1' => 'b', 'tk1' => 'c',
             'co1' => 'd', 'co2' => 'e');
         $result = $extractMap->invokeArgs( $kvs, array($x) );
-        $this->assertEquals('a', $result[':uk1'] ); 
-        $this->assertEquals('b', $result[':sk1'] ); 
-        $this->assertEquals('c', $result[':tk1'] ); 
-        $this->assertEquals('d', $result[':co1'] ); 
-        $this->assertEquals('e', $result[':co2'] ); 
+        $this->assertEquals('a', $result[':uk1'] );
+        $this->assertEquals('b', $result[':sk1'] );
+        $this->assertEquals('c', $result[':tk1'] );
+        $this->assertEquals('d', $result[':co1'] );
+        $this->assertEquals('e', $result[':co2'] );
+
+        $extractWhere = $reflector->getMethod( 'extractWhere' );
+        $extractWhere->setAccessible( true );
+
+        $x = array( 'zzz' => 'bob');
+        $values = false;
+        $where = false;
+        $result = $extractWhere->invokeArgs( $kvs, array($x, &$where, &$values) );
+        $this->assertEquals('No key found for WHERE clause', $result );
+
+        $x = array( 'uk1' => 'bob');
+        $values = false;
+        $where = false;
+        $result = $extractWhere->invokeArgs( $kvs, array($x, &$where, &$values) );
+
+        $this->assertTrue($result);
+        $this->assertEquals("uk1 = :uk1", $where);
+        $this->assertEquals('bob', $values[':uk1'] );
+
+        $x = array( 'id' => 42, 'uk1' => 'bob');
+        $values = false;
+        $where = false;
+        $result = $extractWhere->invokeArgs( $kvs, array($x, &$where, &$values) );
+
+        $this->assertTrue($result);
+        $this->assertEquals("id = :id AND uk1 = :uk1", $where);
+        $this->assertEquals('bob', $values[':uk1'] );
+        $this->assertEquals(42, $values[':id'] );
+
+        $x = array( 'id' => 42, 'uk1' => 'LIKE bob');
+        $values = false;
+        $where = false;
+        $result = $extractWhere->invokeArgs( $kvs, array($x, &$where, &$values) );
+
+        $this->assertTrue($result);
+        $this->assertEquals("id = :id AND uk1 LIKE :uk1", $where);
+        $this->assertEquals('bob', $values[':uk1'] );
+        $this->assertEquals(42, $values[':id'] );
     }
 
     public function testInsert() {
