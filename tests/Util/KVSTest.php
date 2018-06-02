@@ -129,9 +129,22 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $this->assertEquals("id = :id AND uk1 LIKE :uk1", $where);
         $this->assertEquals('bob', $values[':uk1'] );
         $this->assertEquals(42, $values[':id'] );
+
+        // Handle the ORDER BY
+        $retval = $kvs->extractOrder(array('sk1'));
+        $this->assertEquals('sk1', $retval );
+
+        $retval = $kvs->extractOrder(array('sk1 DESC'));
+        $this->assertEquals('sk1 DESC', $retval );
+        $retval = $kvs->extractOrder(array('sk1 DESC', 'co1', 'co2'));
+        $this->assertEquals('sk1 DESC, co1, co2', $retval );
+
+        // Bad juju
+        $retval = $kvs->extractOrder(array('zk1 DESC', 'co1', 'co2'));
+        $this->assertFalse($retval );
     }
 
-    public function testInsert() {
+    public function testCRUD() {
         $pdox = new PDOX("sqlite:/tmp/db.sqlite");
 
         $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
@@ -151,12 +164,12 @@ class KVSTest extends PHPUnit_Framework_TestCase
 
         // Load some data
         $where = array('id' => $id);
-        $row = $kvs->getRow($where);
+        $row = $kvs->selectOne($where);
         $this->assertEquals($row['uk1'], 'ABC');
         $this->assertEquals($row['co1'], 'Yada');
 
         $where = array('uk1' => 'ABC');
-        $row = $kvs->getRow($where);
+        $row = $kvs->selectOne($where);
         $this->assertEquals($row['uk1'], 'ABC');
         $this->assertEquals($row['co1'], 'Yada');
 
@@ -165,6 +178,11 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $data['co1'] = 'Yada 123';
         $retval = $kvs->update($data);
         $this->assertEquals($retval, 1);
+
+        // Grab a row
+        $rows = $kvs->selectAll();
+        $this->assertEquals(count($rows), 1);
+        $this->assertEquals($rows[0]['json_body'],'{"bob":443,"uk1":"ABC","co1":"Yada 123"}');
 
         // Attempt update with neither id nor uk1
         unset($data['uk1']);
@@ -175,19 +193,56 @@ class KVSTest extends PHPUnit_Framework_TestCase
             // Expected :)
         }
 
+        // Grab a row
+        $rows = $kvs->selectAll();
+        $this->assertEquals(count($rows), 1);
+        $this->assertEquals($rows[0]['json_body'],'{"bob":443,"uk1":"ABC","co1":"Yada 123"}');
+
+
         // Use primary key to update
         $data['id'] = $id;
         $retval = $kvs->update($data);
         $this->assertEquals($retval, 1);
+
+        // Grab a row
+        $rows = $kvs->selectAll();
+        $this->assertEquals(count($rows), 1);
+        $this->assertEquals($rows[0]['json_body'],'{"bob":443,"uk1":"ABC","co1":"Yada 123"}');
+
+
+        // Insert a second record
+        $data = array('bob' => 43, 'uk1' => 'DEF', 'co1' => 'Ah Yada');
+        $id2 = $kvs->insert($data);
+        $this->assertEquals($id2, 2);
+
+        // Grab some rows
+        $rows = $kvs->selectAll();
+        $this->assertEquals(count($rows), 2);
+
+        $where = array('uk1' => 'DEF');
+        $rows = $kvs->selectAll($where);
+        $this->assertEquals(count($rows), 1);
+
+        $where = false;
+        $order = array('co1 DESC');
+        $rows = $kvs->selectAll($where, $order);
+// var_dump($rows);
+        $this->assertEquals(count($rows), 2);
+
+        $where = false;
+        $order = array('uk1 DESC');
+        $rows = $kvs->selectAll($where, $order);
+// var_dump($rows);
+        $this->assertEquals(count($rows), 2);
 
         // Delete some data
         $where = array('id' => $id);
         $retval = $kvs->delete($where);
         $this->assertTrue($retval);
 
-        // Load some data
+        // Load some data that no longer exists
         $where = array('id' => $id);
-        $row = $kvs->getRow($where);
+        $row = $kvs->selectOne($where);
         $this->assertFalse($row);
 
     }

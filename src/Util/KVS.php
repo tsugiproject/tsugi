@@ -135,10 +135,11 @@ class KVS {
         $map = $this->extractMap($data);
         $keys = $this->extractKeys($data);
         $where = false;
+        $wheremap = array();
         $more = '';
         if ( $keys->id ) {
             $where = 'id=:id';
-            $map[':id'] = $keys->id;
+            $wheremap[':id'] = $keys->id;
             // TODO: Can we set this to null?
             if ( $changepk || $keys->uk1 ) {
                 $more = ', uk1=:uk1';
@@ -147,18 +148,32 @@ class KVS {
             }
         } else if ( $keys->uk1 ) { // Update using uk1 as where clause
             $where = 'uk1=:uk1';
-            $map[':uk1'] = $keys->uk1;
+            $wheremap[':uk1'] = $keys->uk1;
         }
         if ( ! $where ) throw new \Exception('update requires id or pk1 field');
 
+        $wheremap[':foreign_key'] = $this->KVS_FK;
+        $sql = "SELECT json_body FROM $this->KVS_TABLE
+            WHERE $this->KVS_FK_NAME = :foreign_key AND $where";
+        $rows = $this->PDOX->allRowsDie($sql, $wheremap);
+        if ( count($rows) == 0 ) return 0;
+        if ( count($rows) > 1 ) {
+            throw new \Exception('Where clause selected more than one row');
+        }
+
+        $updatemap = array_merge($map, $wheremap);
+        $row = $rows[0];
+        $old_json = json_decode($row['json_body'], true);
+        $copy = array_merge($old_json, $data);
+        $copy = self::preStoreCleanup($copy);
+        $updatemap[':json_body'] = json_encode($copy);
+
+
         $sql = "UPDATE $this->KVS_TABLE SET sk1=:sk1, tk1=:tk1, co1=:co1,
             co2=:co2, json_body=:json_body, updated_at=$this->NOW $more
-            WHERE $where";
+            WHERE $this->KVS_FK_NAME = :foreign_key AND $where";
 
-        $copy = self::preStoreCleanup($data);
-        $map[':json_body'] = json_encode($copy);
-
-        $stmt = $this->PDOX->queryDie($sql, $map);
+        $stmt = $this->PDOX->queryDie($sql, $updatemap);
 
         if ( ! $stmt->success ) return false;
         return $stmt->rowCount();
@@ -167,7 +182,7 @@ class KVS {
     /*
      * Note that the JSON is returned as an associative array
      */
-    public function getRow($where) {
+    public function selectOne($where) {
         $clause = false;
         $values = false;
         $retval = self::extractWhere($where, $clause, $values);
@@ -202,7 +217,31 @@ class KVS {
         return $retval->success;
     }
 
-    // public function getAllRows($where, $order, $limit);
+    /*
+     * $order array of the fields and the order
+     */
+    public function selectAll($where=false, $order=false, $limit=false) {
+        $clause = false;
+        $values = array();
+        if ( is_array($where) ) {
+            $retval = self::extractWhere($where, $clause, $values);
+            if ( is_string($retval) ) throw new \Exception($val);
+        }
+        $orderby = '';
+        if ( is_string($order) ) {
+            $orderby = self::extractOrder($order);
+            if ( $orderby === false ) throw new \Exception('Invalid Order value');
+        }
+
+        $sql = "SELECT KVS.id AS id, json_body, KVS.created_at, KVS.updated_at
+            FROM $this->KVS_TABLE AS KVS
+            WHERE $this->KVS_FK_NAME = :foreign_key";
+        if ( $clause ) $sql .= ' AND '.$clause;
+        if ( $orderby ) $sql .= ' '.$orderby;
+        $values[':foreign_key'] = $this->KVS_FK;
+        $rows = $this->PDOX->allRowsDie($sql, $values);
+        return $rows;
+    }
 
     private static function preStoreCleanup($data) {
         $copy = $data;
@@ -253,6 +292,26 @@ class KVS {
         }
         if ( count($values) < 1 ) return "No key found for WHERE clause";
         return true;
+    }
+
+    public static function extractOrder($orders) {
+        $retval = '';
+        foreach ($orders as $order ) {
+            if ( strlen($retval) > 0 ) $retval .= ', ';
+            if ( in_array($order, self::$allKeys) ) {
+                $retval .= $order;
+                continue;
+            }
+            $pieces = explode(' ', $order);
+            if ( count($pieces) == 2 && $pieces[1] == 'DESC' &&
+                in_array($pieces[0], self::$allKeys) ) {
+
+                $retval .= $order;
+                continue;
+            }
+            return false;
+        }
+        return $retval;
     }
 
 
