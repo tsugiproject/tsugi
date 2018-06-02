@@ -155,9 +155,7 @@ class KVS {
             co2=:co2, json_body=:json_body, updated_at=$this->NOW $more
             WHERE $where";
 
-        // Cleanup data preStore
         $copy = self::preStoreCleanup($data);
-
         $map[':json_body'] = json_encode($copy);
 
         $stmt = $this->PDOX->queryDie($sql, $map);
@@ -174,13 +172,14 @@ class KVS {
         $values = false;
         $retval = self::extractWhere($where, $clause, $values);
         if ( is_string($retval) ) throw new \Exception($val);
-        // TODO: What about created_at and updated_at
+
         $sql = "SELECT KVS.id AS id, json_body, KVS.created_at, KVS.updated_at
             FROM $this->KVS_TABLE AS KVS
-            WHERE $this->KVS_FK_NAME = :foreign_key AND ".$clause;
+            WHERE $this->KVS_FK_NAME = :foreign_key AND ".$clause." LIMIT 1";
         $values[':foreign_key'] = $this->KVS_FK;
         $row = $this->PDOX->rowDie($sql, $values);
         if ( $row === false ) return false;
+
         $retval = json_decode($row['json_body'], true);
         if ( is_array($retval) ) {
             $retval['id'] = intval($row['id']);
@@ -190,9 +189,19 @@ class KVS {
         return $retval;
     }
 
+    public function delete($where) {
+        $clause = false;
+        $values = false;
+        $retval = self::extractWhere($where, $clause, $values);
+        if ( is_string($retval) ) throw new \Exception($val);
 
-    // public function insertOrUpdate($data);
-    // public function delete($where);
+        $sql = "DELETE FROM $this->KVS_TABLE
+            WHERE $this->KVS_FK_NAME = :foreign_key AND ".$clause;
+        $values[':foreign_key'] = $this->KVS_FK;
+        $retval = $this->PDOX->queryDie($sql, $values);
+        return $retval->success;
+    }
+
     // public function getAllRows($where, $order, $limit);
 
     private static function preStoreCleanup($data) {

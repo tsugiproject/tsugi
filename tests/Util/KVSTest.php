@@ -180,6 +180,16 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $retval = $kvs->update($data);
         $this->assertEquals($retval, 1);
 
+        // Delete some data
+        $where = array('id' => $id);
+        $retval = $kvs->delete($where);
+        $this->assertTrue($retval);
+
+        // Load some data
+        $where = array('id' => $id);
+        $row = $kvs->getRow($where);
+        $this->assertFalse($row);
+
     }
 
     private static function createTestTable($PDOX, $KVS_TABLE, $KVS_FK_NAME) {
