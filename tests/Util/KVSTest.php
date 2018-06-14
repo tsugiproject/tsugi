@@ -19,15 +19,19 @@ class KVSTest extends PHPUnit_Framework_TestCase
         } else {
             self::$PDOX = new PDOX('sqlite::memory:');
         }
-        self::createTestTable(self::$PDOX, "lti_result_kvs", "result_id");
+        self::createTestTable(self::$PDOX, "lti_result_kvs", "result_id", "user_id");
         return self::$PDOX;
+    }
+
+    public static function getKVS($pdox=false) {
+        if ( ! $pdox ) $pdox = self::getPDOX();
+        $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1, "user_id", 1);
+        return $kvs;
     }
 
     // Leave the file at the end
     public function testFileDB() {
-        // $pdox = new PDOX("sqlite:/tmp/db.sqlite");
-        $pdox = self::getPDOX();
-        $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
+        $kvs = self::getKVS();
     }
 
     public function testValidate() {
@@ -36,8 +40,7 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $long = substr($long, 0, 150);
         $x = array( 'uk1' => $long, 'sk1' => $long, 'tk1' => $long,
             'co1' => $long, 'co2' => $long);
-        $pdox = self::getPDOX();
-        $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
+        $kvs = self::getKVS();
         $val = $kvs->validate($kvs);
         $this->assertEquals('$data must be an array', $val);
         $val = $kvs->validate($x);
@@ -55,7 +58,7 @@ class KVSTest extends PHPUnit_Framework_TestCase
 
     public function testPrivate() {
         $pdox = self::getPDOX();
-        $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
+        $kvs = self::getKVS($pdox);
         // Calling private methods :)
         // https://stackoverflow.com/questions/249664/best-practices-to-test-protected-methods-with-phpunit
         $reflector = new ReflectionClass( '\Tsugi\Util\KVS' );
@@ -155,7 +158,7 @@ class KVSTest extends PHPUnit_Framework_TestCase
 
     public function testCRUD() {
         $pdox = self::getPDOX();
-        $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
+        $kvs = self::getKVS($pdox);
         try {
             $kvs->insert('not an array');
             $this->fail('Expecting an exception');
@@ -217,48 +220,67 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(count($rows), 1);
         $this->assertEquals($rows[0]['json_body'],'{"bob":443,"uk1":"ABC","co1":"Yada 123"}');
 
+        // Insert a record for a different user
+        $kvs2 = new KVS($pdox, "lti_result_kvs", "result_id", 1, "user_id", 2);
 
         // Insert a second record
         $data = array('bob' => 43, 'uk1' => 'DEF', 'co1' => 'Ah Yada');
-        $id2 = $kvs->insert($data);
+        $id2 = $kvs2->insert($data);
         $this->assertEquals($id2, 2);
 
         // Grab some rows
         $rows = $kvs->selectAll();
         $this->assertEquals(count($rows), 2);
+        $rows2 = $kvs2->selectAll();
+        $this->assertEquals($rows, $rows2);
 
         $where = array('uk1' => 'DEF');
         $rows = $kvs->selectAll($where);
         $this->assertEquals(count($rows), 1);
+        $rows2 = $kvs2->selectAll($where);
+        $this->assertEquals($rows, $rows2);
 
         $where = false;
         $order = array('co1 DESC');
         $rows = $kvs->selectAll($where, $order);
-// var_dump($rows);
         $this->assertEquals(count($rows), 2);
+        $rows2 = $kvs2->selectAll($where);
+        $this->assertEquals($rows, $rows2);
 
         $where = false;
         $order = array('uk1 DESC');
         $rows = $kvs->selectAll($where, $order);
-// var_dump($rows);
         $this->assertEquals(count($rows), 2);
+        $rows2 = $kvs2->selectAll($where);
+        $this->assertEquals($rows, $rows2);
 
         // Delete some data
         $where = array('id' => $id);
         $retval = $kvs->delete($where);
         $this->assertTrue($retval);
 
-        // Load some data that no longer exists
+        // Verify data no longer exists
         $where = array('id' => $id);
         $row = $kvs->selectOne($where);
         $this->assertFalse($row);
 
+        // Delete some data belonging to the second user
+        $where = array('id' => $id2);
+        $retval = $kvs2->delete($where);
+        $this->assertTrue($retval);
+
+        // Verify data no longer exists
+        $where = array('id' => $id2);
+        $row = $kvs2->selectOne($where);
+        $this->assertFalse($row);
+
     }
 
-    private static function createTestTable($PDOX, $KVS_TABLE, $KVS_FK_NAME) {
+    private static function createTestTable($PDOX, $KVS_TABLE, $KVS_FK_NAME, $KVS_SK_NAME) {
         $sql = "CREATE TABLE $KVS_TABLE (
             id INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
             $KVS_FK_NAME INTEGER NOT NULL,
+            $KVS_SK_NAME INTEGER NOT NULL,
             uk1 VARCHAR(150),
             sk1 VARCHAR(75),
             tk1 TEXT,
@@ -270,14 +292,14 @@ class KVSTest extends PHPUnit_Framework_TestCase
 
         $PDOX->queryDie($sql);
 
-        $sql = "CREATE UNIQUE INDEX uk1 ON $KVS_TABLE ($KVS_FK_NAME, uk1)";
+        $sql = "CREATE UNIQUE INDEX uk1 ON $KVS_TABLE ($KVS_FK_NAME, $KVS_SK_NAME, uk1)";
         $PDOX->queryDie($sql);
 
-        $sql = "CREATE INDEX sk1 ON $KVS_TABLE ($KVS_FK_NAME, sk1)";
+        $sql = "CREATE INDEX sk1 ON $KVS_TABLE ($KVS_FK_NAME, $KVS_SK_NAME, sk1)";
         $PDOX->queryDie($sql);
 
         // In MySQL only do the first 75 characters of tk1
-        $sql = "CREATE INDEX tk1 ON $KVS_TABLE ($KVS_FK_NAME, tk1)";
+        $sql = "CREATE INDEX tk1 ON $KVS_TABLE ($KVS_FK_NAME, $KVS_SK_NAME, tk1)";
         $PDOX->queryDie($sql);
 
     }

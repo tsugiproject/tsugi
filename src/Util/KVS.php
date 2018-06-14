@@ -61,23 +61,27 @@ class KVS {
         self::CO1, self::CO2 );
 
     private $PDOX = null;
-    private $KVS_FK = null;
     private $NOW = 'NOW()'; // MySQL
 
     protected $KVS_TABLE = null;
+    private $KVS_FK = null;
     protected $KVS_FK_NAME = null;
+    private $KVS_SK = null;
+    protected $KVS_SK_NAME = null;
 
     /*
      * Constructor
      *
      *     $PDOX = new \Tsugi\Util\PDOX('sqlite::memory');
-     *     $kvs = new KVS($PDOX, 'lti_result_kvs', 'result_id', 1);
+     *     $kvs = new KVS($PDOX, 'lti_result_kvs', 'result_id', 1, 'user_id', 1);
      */
-    public function __construct($PDOX, $KVS_TABLE, $KVS_FK_NAME, $KVS_FK) {
+    public function __construct($PDOX, $KVS_TABLE, $KVS_FK_NAME, $KVS_FK, $KVS_SK_NAME, $KVS_SK) {
         $this->PDOX = $PDOX;
         $this->KVS_TABLE = $KVS_TABLE;
         $this->KVS_FK_NAME = $KVS_FK_NAME;
         $this->KVS_FK = $KVS_FK;
+        $this->KVS_SK_NAME = $KVS_SK_NAME;
+        $this->KVS_SK = $KVS_SK;
         // During unit tests...
         $driver = $PDOX->getAttribute(\PDO::ATTR_DRIVER_NAME);
         if ( strpos($driver, 'sqlite') !== false ) $this->NOW = "datetime('now')";
@@ -92,9 +96,11 @@ class KVS {
      */
     public function insert($data) {
         $map = $this->extractMap($data);
-        $sql = "INSERT INTO $this->KVS_TABLE ($this->KVS_FK_NAME, uk1, sk1, tk1, co1, co2, json_body, created_at)
-            VALUES (:foreign_key, :uk1, :sk1, :tk1, :co1, :co2, :json_body, $this->NOW)";
+        $sql = "INSERT INTO $this->KVS_TABLE ($this->KVS_FK_NAME, $this->KVS_SK_NAME,
+            uk1, sk1, tk1, co1, co2, json_body, created_at)
+            VALUES (:foreign_key, :secondary_key, :uk1, :sk1, :tk1, :co1, :co2, :json_body, $this->NOW)";
         $map[':foreign_key'] = $this->KVS_FK;
+        $map[':secondary_key'] = $this->KVS_SK;
 
         $copy = self::preStoreCleanup($data);
         $map[':json_body'] = json_encode($copy);
@@ -113,11 +119,15 @@ class KVS {
      */
     public function insertOrUpdate($data) {
         $map = $this->extractMap($data);
-        $sql = "INSERT INTO $this->KVS_TABLE ($this->KVS_FK_NAME, uk1, sk1, tk1, co1, co2, json_body, created_at)
+        $sql = "INSERT INTO $this->KVS_TABLE ($this->KVS_FK_NAME, $this->KVS_SK_NAME,
+            uk1, sk1, tk1, co1, co2, json_body, created_at)
             VALUES (:foreign_key, :uk1, :sk1, :tk1, :co1, :co2, :json_body, $this->NOW)
-            ON DUPLICATE KEY UPDATE $this->KVS_FK_NAME=:foreign_key, sk1=:sk1, tk1=:tk1,
+            ON DUPLICATE KEY UPDATE
+            $this->KVS_FK_NAME=:foreign_key, $this->KVS_SK_NAME=:secondary_key,
+            sk1=:sk1, tk1=:tk1,
             co1=:co1, co2=:co2, json_body=:json_body, updated_at=$this->NOW ";
         $map[':foreign_key'] = $this->KVS_FK;
+        $map[':secondary_key'] = $this->KVS_SK;
         $map[':json_body'] = json_encode($data);
         $stmt = $this->PDOX->queryDie($sql, $map);
 
@@ -154,8 +164,9 @@ class KVS {
         if ( ! $where ) throw new \Exception('update requires id or pk1 field');
 
         $wheremap[':foreign_key'] = $this->KVS_FK;
+        $wheremap[':secondary_key'] = $this->KVS_SK;
         $sql = "SELECT json_body FROM $this->KVS_TABLE
-            WHERE $this->KVS_FK_NAME = :foreign_key AND $where";
+            WHERE $this->KVS_FK_NAME = :foreign_key AND $this->KVS_SK_NAME = :secondary_key AND $where";
         $rows = $this->PDOX->allRowsDie($sql, $wheremap);
         if ( count($rows) == 0 ) return 0;
         if ( count($rows) > 1 ) {
@@ -172,7 +183,7 @@ class KVS {
 
         $sql = "UPDATE $this->KVS_TABLE SET sk1=:sk1, tk1=:tk1, co1=:co1,
             co2=:co2, json_body=:json_body, updated_at=$this->NOW $more
-            WHERE $this->KVS_FK_NAME = :foreign_key AND $where";
+            WHERE $this->KVS_FK_NAME = :foreign_key AND $this->KVS_SK_NAME = :secondary_key AND $where";
 
         $stmt = $this->PDOX->queryDie($sql, $updatemap);
 
@@ -191,8 +202,9 @@ class KVS {
 
         $sql = "SELECT KVS.id AS id, json_body, KVS.created_at, KVS.updated_at
             FROM $this->KVS_TABLE AS KVS
-            WHERE $this->KVS_FK_NAME = :foreign_key AND ".$clause." LIMIT 1";
+            WHERE $this->KVS_FK_NAME = :foreign_key AND $this->KVS_SK_NAME = :secondary_key AND ".$clause." LIMIT 1";
         $values[':foreign_key'] = $this->KVS_FK;
+        $values[':secondary_key'] = $this->KVS_SK;
         $row = $this->PDOX->rowDie($sql, $values);
         if ( $row === false ) return false;
 
@@ -212,8 +224,9 @@ class KVS {
         if ( is_string($retval) ) throw new \Exception($val);
 
         $sql = "DELETE FROM $this->KVS_TABLE
-            WHERE $this->KVS_FK_NAME = :foreign_key AND ".$clause;
+            WHERE $this->KVS_FK_NAME = :foreign_key AND $this->KVS_SK_NAME = :secondary_key AND ".$clause;
         $values[':foreign_key'] = $this->KVS_FK;
+        $values[':secondary_key'] = $this->KVS_SK;
         $retval = $this->PDOX->queryDie($sql, $values);
         return $retval->success;
     }
