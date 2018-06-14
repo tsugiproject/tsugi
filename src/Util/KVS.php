@@ -78,6 +78,7 @@ class KVS {
         $this->KVS_TABLE = $KVS_TABLE;
         $this->KVS_FK_NAME = $KVS_FK_NAME;
         $this->KVS_FK = $KVS_FK;
+        // During unit tests...
         $driver = $PDOX->getAttribute(\PDO::ATTR_DRIVER_NAME);
         if ( strpos($driver, 'sqlite') !== false ) $this->NOW = "datetime('now')";
     }

@@ -7,17 +7,26 @@ use \Tsugi\Util\KVS;
 class KVSTest extends PHPUnit_Framework_TestCase
 {
 
-    public static function setUpBeforeClass()
+    public static $USE_DISK = true;
+    public static $PDOX = null;
+
+    public static function getPDOX()
     {
-        parent::setUpBeforeClass();
-        unlink('/tmp/db.sqlite');
-        $pdox = new PDOX("sqlite:/tmp/db.sqlite");
-        self::createTestTable($pdox, "lti_result_kvs", "result_id");
+        if ( self::$PDOX ) return self::$PDOX;
+        if ( self::$USE_DISK ) {
+            try { unlink('/tmp/db.sqlite'); } catch(\Exception $e) {  }
+            self::$PDOX = new PDOX("sqlite:/tmp/db.sqlite");
+        } else {
+            self::$PDOX = new PDOX('sqlite::memory:');
+        }
+        self::createTestTable(self::$PDOX, "lti_result_kvs", "result_id");
+        return self::$PDOX;
     }
 
     // Leave the file at the end
     public function testFileDB() {
-        $pdox = new PDOX("sqlite:/tmp/db.sqlite");
+        // $pdox = new PDOX("sqlite:/tmp/db.sqlite");
+        $pdox = self::getPDOX();
         $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
     }
 
@@ -27,7 +36,7 @@ class KVSTest extends PHPUnit_Framework_TestCase
         $long = substr($long, 0, 150);
         $x = array( 'uk1' => $long, 'sk1' => $long, 'tk1' => $long,
             'co1' => $long, 'co2' => $long);
-        $pdox = new PDOX('sqlite::memory:');
+        $pdox = self::getPDOX();
         $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
         $val = $kvs->validate($kvs);
         $this->assertEquals('$data must be an array', $val);
@@ -45,7 +54,7 @@ class KVSTest extends PHPUnit_Framework_TestCase
     }
 
     public function testPrivate() {
-        $pdox = new PDOX('sqlite::memory:');
+        $pdox = self::getPDOX();
         $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
         // Calling private methods :)
         // https://stackoverflow.com/questions/249664/best-practices-to-test-protected-methods-with-phpunit
@@ -145,8 +154,7 @@ class KVSTest extends PHPUnit_Framework_TestCase
     }
 
     public function testCRUD() {
-        $pdox = new PDOX("sqlite:/tmp/db.sqlite");
-
+        $pdox = self::getPDOX();
         $kvs = new KVS($pdox, "lti_result_kvs", "result_id", 1);
         try {
             $kvs->insert('not an array');
