@@ -173,8 +173,10 @@ if (!function_exists('http_response_code'))
 }
 
 // Convience method, pattern borrowed from WordPress
+if (! function_exists('__')) {
 function __($message, $textdomain=false) {
     return I18N::__($message, $textdomain);
+}
 }
 
 function _e($message, $textdomain=false) {
