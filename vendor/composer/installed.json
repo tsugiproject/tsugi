@@ -593,56 +593,6 @@
         "homepage": "http://www.koseu.org/"
     },
     {
-        "name": "paragonie/random_compat",
-        "version": "v2.0.12",
-        "version_normalized": "2.0.12.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/paragonie/random_compat.git",
-            "reference": "258c89a6b97de7dfaf5b8c7607d0478e236b04fb"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/paragonie/random_compat/zipball/258c89a6b97de7dfaf5b8c7607d0478e236b04fb",
-            "reference": "258c89a6b97de7dfaf5b8c7607d0478e236b04fb",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.2.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "4.*|5.*"
-        },
-        "suggest": {
-            "ext-libsodium": "Provides a modern crypto API that can be used to generate random bytes."
-        },
-        "time": "2018-04-04 21:24:14",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "files": [
-                "lib/random.php"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Paragon Initiative Enterprises",
-                "email": "security@paragonie.com",
-                "homepage": "https://paragonie.com"
-            }
-        ],
-        "description": "PHP 5.x polyfill for random_bytes() and random_int() from PHP 7",
-        "keywords": [
-            "csprng",
-            "pseudorandom",
-            "random"
-        ]
-    },
-    {
         "name": "symfony/polyfill-php70",
         "version": "v1.7.0",
         "version_normalized": "1.7.0.0",
@@ -1157,67 +1107,6 @@
             "cache",
             "psr",
             "psr-6"
-        ]
-    },
-    {
-        "name": "google/apiclient",
-        "version": "v2.2.1",
-        "version_normalized": "2.2.1.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/google/google-api-php-client.git",
-            "reference": "b69b8ac4bf6501793c389d4e013a79d09c85c5f2"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/google/google-api-php-client/zipball/b69b8ac4bf6501793c389d4e013a79d09c85c5f2",
-            "reference": "b69b8ac4bf6501793c389d4e013a79d09c85c5f2",
-            "shasum": ""
-        },
-        "require": {
-            "firebase/php-jwt": "~2.0|~3.0|~4.0|~5.0",
-            "google/apiclient-services": "~0.13",
-            "google/auth": "^1.0",
-            "guzzlehttp/guzzle": "~5.3.1|~6.0",
-            "guzzlehttp/psr7": "^1.2",
-            "monolog/monolog": "^1.17",
-            "php": ">=5.4",
-            "phpseclib/phpseclib": "~0.3.10|~2.0"
-        },
-        "require-dev": {
-            "cache/filesystem-adapter": "^0.3.2",
-            "phpunit/phpunit": "~4",
-            "squizlabs/php_codesniffer": "~2.3",
-            "symfony/css-selector": "~2.1",
-            "symfony/dom-crawler": "~2.1"
-        },
-        "suggest": {
-            "cache/filesystem-adapter": "For caching certs and tokens (using Google_Client::setCache)"
-        },
-        "time": "2017-11-03 01:19:53",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "2.x-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Google_": "src/"
-            },
-            "classmap": [
-                "src/Google/Service/"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "description": "Client library for Google APIs",
-        "homepage": "http://developers.google.com/api-client-library/php",
-        "keywords": [
-            "google"
         ]
     },
     {
@@ -1738,12 +1627,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "dfa4bf4894850c3887477ab3c53457537a6c9de4"
+            "reference": "f6c888b0182adbd989fb838baeb6fb0ebb7caceb"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/dfa4bf4894850c3887477ab3c53457537a6c9de4",
-            "reference": "dfa4bf4894850c3887477ab3c53457537a6c9de4",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f6c888b0182adbd989fb838baeb6fb0ebb7caceb",
+            "reference": "f6c888b0182adbd989fb838baeb6fb0ebb7caceb",
             "shasum": ""
         },
         "require": {
@@ -1755,7 +1644,7 @@
             "phpunit/php-timer": ">=1.0.6",
             "phpunit/phpunit": "5.*"
         },
-        "time": "2018-05-22 14:30:32",
+        "time": "2018-06-14 15:59:48",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -1782,5 +1671,116 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "google/apiclient",
+        "version": "v2.2.1",
+        "version_normalized": "2.2.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/google/google-api-php-client.git",
+            "reference": "b69b8ac4bf6501793c389d4e013a79d09c85c5f2"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/google/google-api-php-client/zipball/b69b8ac4bf6501793c389d4e013a79d09c85c5f2",
+            "reference": "b69b8ac4bf6501793c389d4e013a79d09c85c5f2",
+            "shasum": ""
+        },
+        "require": {
+            "firebase/php-jwt": "~2.0|~3.0|~4.0|~5.0",
+            "google/apiclient-services": "~0.13",
+            "google/auth": "^1.0",
+            "guzzlehttp/guzzle": "~5.3.1|~6.0",
+            "guzzlehttp/psr7": "^1.2",
+            "monolog/monolog": "^1.17",
+            "php": ">=5.4",
+            "phpseclib/phpseclib": "~0.3.10|~2.0"
+        },
+        "require-dev": {
+            "cache/filesystem-adapter": "^0.3.2",
+            "phpunit/phpunit": "~4",
+            "squizlabs/php_codesniffer": "~2.3",
+            "symfony/css-selector": "~2.1",
+            "symfony/dom-crawler": "~2.1"
+        },
+        "suggest": {
+            "cache/filesystem-adapter": "For caching certs and tokens (using Google_Client::setCache)"
+        },
+        "time": "2017-11-03 01:19:53",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Google_": "src/"
+            },
+            "classmap": [
+                "src/Google/Service/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "description": "Client library for Google APIs",
+        "homepage": "http://developers.google.com/api-client-library/php",
+        "keywords": [
+            "google"
+        ]
+    },
+    {
+        "name": "paragonie/random_compat",
+        "version": "v2.0.12",
+        "version_normalized": "2.0.12.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/paragonie/random_compat.git",
+            "reference": "258c89a6b97de7dfaf5b8c7607d0478e236b04fb"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/paragonie/random_compat/zipball/258c89a6b97de7dfaf5b8c7607d0478e236b04fb",
+            "reference": "258c89a6b97de7dfaf5b8c7607d0478e236b04fb",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.2.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.*|5.*"
+        },
+        "suggest": {
+            "ext-libsodium": "Provides a modern crypto API that can be used to generate random bytes."
+        },
+        "time": "2018-04-04 21:24:14",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "files": [
+                "lib/random.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Paragon Initiative Enterprises",
+                "email": "security@paragonie.com",
+                "homepage": "https://paragonie.com"
+            }
+        ],
+        "description": "PHP 5.x polyfill for random_bytes() and random_int() from PHP 7",
+        "keywords": [
+            "csprng",
+            "pseudorandom",
+            "random"
+        ]
     }
 ]
