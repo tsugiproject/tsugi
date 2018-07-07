@@ -107,7 +107,7 @@ if ( $gc_course ) {
         $gc_secret = $row['gc_secret'];
         if ( $row['title'] != $gc_title ) {
             $sql = "UPDATE {$CFG->dbprefix}lti_context
-                SET title = :title updated_at=NOW() WHERE context_id = :CID";
+                SET title = :title, updated_at=NOW() WHERE context_id = :CID";
             $PDOX->queryDie($sql,
                 array(':title' => $gc_title, ':CID' => $context_id)
             );
