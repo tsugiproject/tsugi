@@ -2236,6 +2236,8 @@ class LTIX {
         if ($return_url === null) {
             // make the msg a bit friendlier
             $msg = "The LTI launch failed. Please reference the following error message when reporting this failure:<br><br>$msg";
+            header('X-Tsugi-Test-Harness: https://www.tsugi.org/lti-test/');
+            header('X-Tsugi-Base-String-Checker: https://www.tsugi.org/lti-test/basecheck.php');
             if ( $extra && ! headers_sent() ) {
                 header('X-Tsugi-Error-Detail: '.$extra);
             }
