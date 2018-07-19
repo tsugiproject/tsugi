@@ -23,6 +23,10 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         array (
             'phpseclib\\' => 10,
         ),
+        'W' => 
+        array (
+            'Workerman\\' => 10,
+        ),
         'T' => 
         array (
             'Tsugi\\' => 6,
@@ -44,6 +48,7 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Cache\\' => 10,
+            'PHPSocketIO\\' => 12,
         ),
         'M' => 
         array (
@@ -68,6 +73,10 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         array (
             'Firebase\\JWT\\' => 13,
         ),
+        'C' => 
+        array (
+            'Channel\\' => 8,
+        ),
         'A' => 
         array (
             'Aws\\' => 4,
@@ -78,6 +87,10 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         'phpseclib\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
+        ),
+        'Workerman\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/workerman/workerman',
         ),
         'Tsugi\\' => 
         array (
@@ -131,6 +144,10 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
+        'PHPSocketIO\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/workerman/phpsocket.io/src',
+        ),
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
@@ -163,6 +180,10 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
             1 => __DIR__ . '/..' . '/fproject/php-jwt/src',
+        ),
+        'Channel\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/workerman/channel/src',
         ),
         'Aws\\' => 
         array (
