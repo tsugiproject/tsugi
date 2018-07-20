@@ -11,6 +11,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_key",
 "drop table if exists {$CFG->dbprefix}lti_nonce",
+"drop table if exists {$CFG->dbprefix}lti_message",
 "drop table if exists {$CFG->dbprefix}lti_domain",
 "drop table if exists {$CFG->dbprefix}lti_event",
 "drop table if exists {$CFG->dbprefix}cal_event",
@@ -393,6 +394,24 @@ array( "{$CFG->dbprefix}lti_nonce",
 
     INDEX `{$CFG->dbprefix}nonce_indx_1` USING HASH (`nonce`),
     UNIQUE(key_id, nonce)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// This is for messaging if web sockets is not present
+// These records should never last more than 5 minutes
+// No foreign key on link_id - orphan records will expire
+array( "{$CFG->dbprefix}lti_message",
+"create table {$CFG->dbprefix}lti_message (
+    link_id             INTEGER NOT NULL,
+    room_id             INTEGER NOT NULL DEFAULT 0,
+
+    message             TEXT NULL,
+
+    micro_time          DOUBLE NOT NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (link_id,room_id, micro_time)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_domain",
