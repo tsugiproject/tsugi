@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#76060a5702ae08415d18528173b9bee50e16a329",
+        "tsugi/lib": "dev-master#a8326f82abc13b8a52bd25a6216dae803d4f7064",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
@@ -12,7 +12,7 @@
         "fproject/php-jwt" : ">=4.0.5",
         "koseu/lib": "dev-master#3d34b511a57b5d3ce85f021a78c5aceb61995f00",
 
-        "workerman/workerman": ">=v3.5.1",
+        "workerman/workerman": "v3.5.12",
         "workerman/channel": ">=v1.0.5",
         "workerman/phpsocket.io": ">=v1.1.9",
 

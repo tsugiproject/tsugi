@@ -1,3 +1,16 @@
+## 1.3.2 (07/23/2018)
+
+### Changes
+
+ * Only emits a warning for gcloud credentials (#202)
+
+## 1.3.1 (07/19/2018)
+
+### Changes
+
+ * Added a warning for 3 legged OAuth credentials (#199)
+ * [Code cleanup] Removed useless else after return (#193)
+
 ## 1.3.0 (06/04/2018)
 
 ### Changes

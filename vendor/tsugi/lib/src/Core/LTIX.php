@@ -958,6 +958,7 @@ class LTIX {
                 $failmsg .= $failure;
             }
             error_log("Could not find all required items in body (link_id, user_id, context_id)");
+            error_log($failmsg);
             error_log(json_encode($body));
             return $failmsg;
         }
