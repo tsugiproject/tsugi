@@ -53,6 +53,7 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         'M' => 
         array (
             'Monolog\\' => 8,
+            'Moment\\' => 7,
         ),
         'K' => 
         array (
@@ -151,6 +152,10 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
+        ),
+        'Moment\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/fightbulc/moment/src',
         ),
         'Koseu\\' => 
         array (

@@ -10,6 +10,7 @@
         "google/auth" : ">=1.1.0",
         "phpseclib/phpseclib" : ">=2.0.9",
         "fproject/php-jwt" : ">=4.0.5",
+        "fightbulc/moment": "*",
         "koseu/lib": "dev-master#3d34b511a57b5d3ce85f021a78c5aceb61995f00",
 
         "workerman/workerman": "v3.5.12",

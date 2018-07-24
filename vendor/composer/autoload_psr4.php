@@ -23,6 +23,7 @@ return array(
     'Psr\\Cache\\' => array($vendorDir . '/psr/cache/src'),
     'PHPSocketIO\\' => array($vendorDir . '/workerman/phpsocket.io/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
+    'Moment\\' => array($vendorDir . '/fightbulc/moment/src'),
     'Koseu\\' => array($vendorDir . '/koseu/lib/src'),
     'JmesPath\\' => array($vendorDir . '/mtdowling/jmespath.php/src'),
     'GuzzleHttp\\Psr7\\' => array($vendorDir . '/guzzlehttp/psr7/src'),
