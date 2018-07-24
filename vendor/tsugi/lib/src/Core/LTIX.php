@@ -363,7 +363,7 @@ class LTIX {
 
         if ( ! is_array($post) ) {
             $msg = '';
-	    if ( is_string($post) ) $msg = $post . ' ';
+            if ( is_string($post) ) $msg = $post . ' ';
             $pdata = Output::safe_var_dump($request_data);
             echo("\n<pre>\n$msg\nMissing Post_data\n$pdata\n</pre>");
             error_log('Missing post data: '.$pdata);
@@ -930,24 +930,41 @@ class LTIX {
 
         $consumer_pk = LTI13::extract_consumer_key($jwt);
         $consumer_sha256 = U::lti_sha256($consumer_pk);
+        error_log("consumer_pk=$consumer_pk\n");
+        error_log("consumer_sha256=$consumer_sha256\n<hr/>\n");
 
         $retval = array();
         $retval['key'] = $consumer_pk;
-        $retval['nonce'] = $body->nonce;
-        $retval['link_id'] = $body->{'http://imsglobal.org/lti/resource_link'}->id;
-        $retval['user_id'] = $body->sub;
-        $retval['context_id'] = $body->{'http://imsglobal.org/lti/context'}->id;
+        if ( isset($body->nonce) ) $retval['nonce'] = $body->nonce;
+        if ( isset($body->sub) ) $retval['user_id'] = $body->sub;
+
+        $resource_link_purl = 'https://purl.imsglobal.org/spec/lti/claim/resource_link';
+        $context_id_purl = 'https://purl.imsglobal.org/spec/lti/claim/context';
+        if ( isset($body->{$resource_link_purl}->id) ) $retval['link_id'] = $body->{$resource_link_purl}->id;
+        if ( isset($body->{$context_id_purl}->id) ) $retval['context_id'] = $body->{$context_id_purl}->id;
 
         // Sanity checks
-        if ( ! $retval['key'] ) return "Could not deteriming key from iss/aud";
-        if ( ! $retval['nonce'] ) return "Missing nonce";
-        if ( in_array(self::USER, $needed) && ! $retval['user_id'] ) return "Missing subject/user_id (sub)";
-        if ( in_array(self::CONTEXT, $needed) && ! $retval['context_id'] ) return "Missing context_id";
-        if ( in_array(self::LINK, $needed) && ! $retval['link_id'] ) return "Missing resource_link->id";
+        $failures = array();
+        if ( ! U::get($retval,'key') ) $failures[] = "Could not deteriming key from iss/aud";
+        if ( ! U::get($retval,'nonce') ) $failures[] = "Missing nonce";
+        if ( in_array(self::USER, $needed) && ! U::get($retval,'user_id') ) $failures[] = "Missing subject/user_id (sub)";
+        if ( in_array(self::CONTEXT, $needed) && ! U::get($retval,'context_id') ) $failures[] = "Missing context_id";
+        if ( in_array(self::LINK, $needed) && ! U::get($retval,'link_id') ) $failures[] = "Missing resource_link->id";
+
+        $failmsg = '';
+        if ( count($failures) > 0 ) {
+            foreach($failures as $failure) {
+                if ( strlen($failmsg) > 0 ) $failmsg .= ", \n";
+                $failmsg .= $failure;
+            }
+            error_log("Could not find all required items in body (link_id, user_id, context_id)");
+            error_log(json_encode($body));
+            return $failmsg;
+        }
 
         // Context
-        $retval['context_title'] = $body->{'http://imsglobal.org/lti/context'}->title;
-        $retval['link_title'] = $body->{'http://imsglobal.org/lti/resource_link'}->title;
+        $retval['context_title'] = isset($body->{$context_id_purl}->title) ? $body->{$context_id_purl}->title : null;
+        $retval['link_title'] = isset($body->{$resource_link_purl}->title) ? $body->{$resource_link_purl}->title : null;
 
         $retval['user_locale'] = isset($body->locale) ? $body->locale : null;
         $retval['user_email'] = isset($body->email) ? $body->email : null;
