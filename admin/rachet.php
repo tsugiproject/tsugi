@@ -11,18 +11,23 @@
    conn.onmessage = function(e) { console.log(e.data); };
    conn.onopen = function(e) { conn.send('Hello Me!'); };
 
+   https://github.com/ratchetphp/Ratchet
+   https://github.com/cboden/Ratchet-examples
+   http://socketo.me/docs/install
+
 */
 
 require_once "../config.php";
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
+use Tsugi\Util\U;
 
 /**
  * chat.php
  * Send any incoming messages to all connected clients (except sender)
  */
-class MyChat implements MessageComponentInterface {
+class MyNotify implements MessageComponentInterface {
     protected $clients;
 
     public function __construct() {
@@ -30,6 +35,14 @@ class MyChat implements MessageComponentInterface {
     }
 
     public function onOpen(ConnectionInterface $conn) {
+        // https://github.com/ratchetphp/Ratchet/issues/604
+        // https://stackoverflow.com/questions/22761900/access-extra-parameters-in-ratchet-web-socket-requests
+        $querystring = $querystring = $conn->httpRequest->getUri()->getQuery();
+        parse_str($querystring,$queryarray);
+        if ( U::get($queryarray,'xyzzy') != 42 ) {
+            error_log('Not authorized\r\n');
+            return;
+        }
         $this->clients->attach($conn);
     }
 
@@ -52,6 +65,6 @@ class MyChat implements MessageComponentInterface {
 
     // Run the server application through the WebSocket protocol on port 2021
     $app = new Ratchet\App('localhost', 2021);
-    $app->route('/chat', new MyChat);
-    $app->route('/echo', new Ratchet\Server\EchoServer, array('*'));
+    $app->route('/notify', new MyNotify);
+    // $app->route('/echo', new Ratchet\Server\EchoServer, array('*'));
     $app->run();
