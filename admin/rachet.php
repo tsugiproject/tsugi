@@ -43,11 +43,15 @@ class MyNotify implements MessageComponentInterface {
             error_log('Not authorized\r\n');
             return;
         }
+        $room = U::get($queryarray,'room');
+        if (! is_numeric($room) ) $room = null;
+        $conn->room = $room;
         $this->clients->attach($conn);
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
         foreach ($this->clients as $client) {
+echo("FR=".$from->room." CL=".$client->room."\r\n");
             if ($from != $client) {
                 $client->send($msg);
             }
@@ -66,5 +70,4 @@ class MyNotify implements MessageComponentInterface {
     // Run the server application through the WebSocket protocol on port 2021
     $app = new Ratchet\App('localhost', 2021);
     $app->route('/notify', new MyNotify);
-    // $app->route('/echo', new Ratchet\Server\EchoServer, array('*'));
     $app->run();
