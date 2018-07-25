@@ -12,9 +12,11 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         '023d27dca8066ef29e6739335ea73bad' => __DIR__ . '/..' . '/symfony/polyfill-php70/bootstrap.php',
         'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
+        'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         'b067bc7112e384b61c701452d53a14a8' => __DIR__ . '/..' . '/mtdowling/jmespath.php/src/JmesPath.php',
         '8a9dc1de0ca7e01f3e08231539562f61' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/functions.php',
+        '6b06ce8ccf69c43a60a1e48495a034c9' => __DIR__ . '/..' . '/react/promise-timer/src/functions.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
     );
 
@@ -22,10 +24,6 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         'p' => 
         array (
             'phpseclib\\' => 10,
-        ),
-        'W' => 
-        array (
-            'Workerman\\' => 10,
         ),
         'T' => 
         array (
@@ -43,12 +41,23 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
             'Symfony\\Component\\Debug\\' => 24,
             'Silex\\' => 6,
         ),
+        'R' => 
+        array (
+            'React\\Stream\\' => 13,
+            'React\\Socket\\' => 13,
+            'React\\Promise\\Timer\\' => 20,
+            'React\\Promise\\' => 14,
+            'React\\EventLoop\\' => 16,
+            'React\\Dns\\' => 10,
+            'React\\Cache\\' => 12,
+            'Ratchet\\RFC6455\\' => 16,
+            'Ratchet\\' => 8,
+        ),
         'P' => 
         array (
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Cache\\' => 10,
-            'PHPSocketIO\\' => 12,
         ),
         'M' => 
         array (
@@ -74,10 +83,6 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         array (
             'Firebase\\JWT\\' => 13,
         ),
-        'C' => 
-        array (
-            'Channel\\' => 8,
-        ),
         'A' => 
         array (
             'Aws\\' => 4,
@@ -88,10 +93,6 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         'phpseclib\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
-        ),
-        'Workerman\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/workerman/workerman',
         ),
         'Tsugi\\' => 
         array (
@@ -133,6 +134,42 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         array (
             0 => __DIR__ . '/..' . '/silex/silex/src/Silex',
         ),
+        'React\\Stream\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/stream/src',
+        ),
+        'React\\Socket\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/socket/src',
+        ),
+        'React\\Promise\\Timer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/promise-timer/src',
+        ),
+        'React\\Promise\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/promise/src',
+        ),
+        'React\\EventLoop\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/event-loop/src',
+        ),
+        'React\\Dns\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/dns/src',
+        ),
+        'React\\Cache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/react/cache/src',
+        ),
+        'Ratchet\\RFC6455\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/ratchet/rfc6455/src',
+        ),
+        'Ratchet\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cboden/ratchet/src/Ratchet',
+        ),
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
@@ -144,10 +181,6 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
         'Psr\\Cache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
-        ),
-        'PHPSocketIO\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/workerman/phpsocket.io/src',
         ),
         'Monolog\\' => 
         array (
@@ -186,10 +219,6 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
             1 => __DIR__ . '/..' . '/fproject/php-jwt/src',
         ),
-        'Channel\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/workerman/channel/src',
-        ),
         'Aws\\' => 
         array (
             0 => __DIR__ . '/..' . '/aws/aws-sdk-php/src',
@@ -220,6 +249,13 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
             'Google_' => 
             array (
                 0 => __DIR__ . '/..' . '/google/apiclient/src',
+            ),
+        ),
+        'E' => 
+        array (
+            'Evenement' => 
+            array (
+                0 => __DIR__ . '/..' . '/evenement/evenement/src',
             ),
         ),
     );

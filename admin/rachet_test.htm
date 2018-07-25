@@ -1,0 +1,7 @@
+<script>
+   var conn = new WebSocket('ws://localhost:2021/echo');
+   conn.onmessage = function(e) { console.log(e.data); };
+   conn.onopen = function(e) { conn.send('Hello Me!'); };
+</script>
+<h1>Yada</h1>
+

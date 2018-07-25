@@ -10,4 +10,5 @@ return array(
     'Pimple' => array($vendorDir . '/pimple/pimple/src'),
     'Google_Service_' => array($vendorDir . '/google/apiclient-services/src'),
     'Google_' => array($vendorDir . '/google/apiclient/src'),
+    'Evenement' => array($vendorDir . '/evenement/evenement/src'),
 );

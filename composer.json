@@ -13,9 +13,7 @@
         "fightbulc/moment": "*",
         "koseu/lib": "dev-master#3d34b511a57b5d3ce85f021a78c5aceb61995f00",
 
-        "workerman/workerman": "v3.5.12",
-        "workerman/channel": ">=v1.0.5",
-        "workerman/phpsocket.io": ">=v1.1.9",
+        "cboden/ratchet" : "*",
 
         "symfony/event-dispatcher": "v3.4.8",
         "symfony/polyfill-php70": "v1.7.0",
