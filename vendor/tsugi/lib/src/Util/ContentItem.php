@@ -172,7 +172,7 @@ class ContentItem {
         if (empty($params['activityId']))
             $params['activityId'] = false;
         if (empty($params['placementTarget']))
-            $params['placementTarget'] = 'window';
+            $params['placementTarget'] = 'iframe';
         if (empty($params['placementWindowTarget']))
             $params['placementWindowTarget'] = '';
         if (empty($params['placementWidth']))
@@ -187,8 +187,7 @@ class ContentItem {
                     "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
                     "url" : "http://www.tsugi.org/",
                     "placementAdvice" : {
-                        "presentationDocumentTarget" : "window",
-                        "windowTarget" : "_blank"
+                        "presentationDocumentTarget" : "iframe"
                     },
                     "icon" : {
                         "@id" : "https://www.dr-chuck.net/tsugi-static/img/default-icon.png",
@@ -290,9 +289,9 @@ class ContentItem {
         if (empty($params['fa_icon']))
             $params['fa_icon'] = false;
         if (empty($params['placementTarget']))
-            $params['placementTarget'] = 'window';
+            $params['placementTarget'] = 'iframe';
         if (empty($params['placementWindowTarget']))
-            $params['placementWindowTarget'] = '_blank';
+            $params['placementWindowTarget'] = '';
         if (empty($params['placementWidth']))
             $params['placementWidth'] = '';
         if (empty($params['placementHeight']))
@@ -305,8 +304,7 @@ class ContentItem {
                 "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
                 "url" : "http://www.tsugi.org/",
                 "placementAdvice" : {
-                        "presentationDocumentTarget" : "window",
-                        "windowTarget" : "_blank"
+                        "presentationDocumentTarget" : "iframe"
                 },
                 "icon" : {
                         "@id" : "https://www.dr-chuck.net/tsugi-static/img/default-icon.png",

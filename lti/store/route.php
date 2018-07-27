@@ -6,7 +6,7 @@ require_once "../../config.php";
 require_once $CFG->dirroot."/admin/admin_util.php";
 
 $local_path = route_get_local_path(__DIR__);
-if ( $local_path == "canvas-config.xml" ) {
+if ( strpos($local_path, "canvas-config.xml") === 0 ) {
     require_once("canvas-config-xml.php");
     return;
 }
