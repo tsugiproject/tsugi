@@ -51,6 +51,12 @@ $CFG->loader = $loader;
 if ( $apphome ) $CFG->apphome = $apphome; // Leave unset if not embedded
 unset($apphome);
 
+// If we have a web socket server, put its URL here
+// Do not add a path here - just the host and port
+// Make sure the port is open on your server
+// $CFG->websocket_port = 2021;
+// $CFG->websocket_url = 'ws://localhost:2021';
+
 // Database connection information to configure the PDO connection
 // You need to point this at a database with am account and password
 // that can create tables.   To make the initial tables go into Admin

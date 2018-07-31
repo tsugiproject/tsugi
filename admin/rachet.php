@@ -39,7 +39,7 @@ class MyNotify implements MessageComponentInterface {
         // https://stackoverflow.com/questions/22761900/access-extra-parameters-in-ratchet-web-socket-requests
         $querystring = $querystring = $conn->httpRequest->getUri()->getQuery();
         parse_str($querystring,$queryarray);
-        if ( U::get($queryarray,'xyzzy') != 42 ) {
+        if ( U::get($queryarray,'token') != 'xyzzy' ) {
             error_log('Not authorized\r\n');
             return;
         }
@@ -67,7 +67,12 @@ echo("FR=".$from->room." CL=".$client->room."\r\n");
     }
 }
 
+if ( isset($CFG->websocket_port) ) {
     // Run the server application through the WebSocket protocol on port 2021
-    $app = new Ratchet\App('localhost', 2021);
+    $app = new Ratchet\App('localhost', $CFG->websocket_port);
     $app->route('/notify', new MyNotify);
+    echo("Websocket server started on port $CFG->websocket_port\r\n");
     $app->run();
+} else {
+    echo("Error: CFG->websocket_port is not set, websocket server not started \r\n");
+}
