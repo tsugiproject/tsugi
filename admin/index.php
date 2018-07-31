@@ -29,38 +29,38 @@ require_once("sanity-db.php");
 <ul>
 <li>
   <a href="upgrade" title="Upgrade Database" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
   Upgrade Database
   </a>
 </li>
 <li>
   <a href="nonce" title="Check Nonces" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
   Check Nonces
   </a></li>
 <li>
   <a href="recent" title="Recent Logins" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
   Recent Logins
   </a></li>
 <li>
   <a href="dbsize.php" title="Check database size" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
   Check database size
   </a></li>
 <li>
   <a href="clear12345" title="Remove 12345 Data" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
   Remove 12345 Data
   </a></li>
 <li>
   <a href="testmail" title="Test E-Mail" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
   Test E-Mail
   </a></li>
 <li>
   <a href="events" title="Event Status" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
   Event Status
   </a>
 </li>
@@ -69,19 +69,19 @@ require_once("sanity-db.php");
 <li><a href="install">Manage Installed Modules</a></li>
 <li>
   <a href="blob_status" title="Blob Status" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
   BLOB/File Status
   </a>
 </li>
 <li>
   <a href="blob_move" title="Blob Migration" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
   BLOB/File Migration
   </a>
 </li>
 <li>
   <a href="blob_clean" title="Blob Cleanup" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);" >
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
   Unreferenced BLOB Cleanup
   </a>
 </li>
