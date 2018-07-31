@@ -148,6 +148,8 @@ class Output {
             rest_path: <?= json_encode(U::rest_path()) ?>,
             spinnerUrl: "<?= self::getSpinnerUrl() ?>",
             staticroot: "<?= $CFG->staticroot ?>",
+            websocket_url: <?= isset($CFG->websocket_url) ? '"'.$CFG->websocket_url.'"' : false ?>,
+            websocket_token: "xyzzy",
             window_close_message: "<?= _m('Application complete') ?>",
             session_expire_message: "<?= _m('Your session has expired') ?>"
         }

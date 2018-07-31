@@ -24,7 +24,7 @@ class ContentItemTestCore extends PHPUnit_Framework_TestCase
             "text": "title",
             "url": "path",
             "placementAdvice": {
-                "presentationDocumentTarget": "window",
+                "presentationDocumentTarget": "iframe",
                 "windowTarget": "_blank"
             },
             "icon": {
@@ -42,7 +42,7 @@ class ContentItemTestCore extends PHPUnit_Framework_TestCase
             "text": "r->title",
             "url": "r->url",
             "placementAdvice": {
-                "presentationDocumentTarget": "window",
+                "presentationDocumentTarget": "iframe",
                 "windowTarget": "_blank"
             },
             "icon": {
