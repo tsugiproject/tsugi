@@ -22,8 +22,10 @@ $OUTPUT->topNav();
 require_once("sanity-db.php");
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
+   <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="iframe-spinner"><br/>
    <iframe name="iframe-frame" style="height:600px" id="iframe-frame"
-    src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
+    onload="document.getElementById('iframe-spinner').style.display='none';">
+   </iframe>
 </div>
 <h1>Adminstration Console</h1>
 <ul>
