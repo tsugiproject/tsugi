@@ -7,6 +7,7 @@ require_once("gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 use \Tsugi\Util\U;
+use \Tsugi\Core\WebSocket;
 
 // https://stackoverflow.com/questions/7160899/websocket-client-in-php/16608429#16608429
 // https://www.cubewebsites.com/blog/development/php/how-to-catch-php-errors-and-warnings/
@@ -18,34 +19,26 @@ function errorHandler($errno,$errmsg,$errfile) {
 
 echo("<pre>\n");
 
-if ( ! isset($CFG->websocket_url) ) {
-    echo('$CFG->websocket_url is not set'."\r\n");
+if ( ! WebSocket::enabled() ) {
+    echo('WebSockets are not enabled'."\r\n");
     return;
 }
 
 echo("Checking $CFG->websocket_url  \r\n");
-$pieces = parse_url($CFG->websocket_url);
-// print_r($pieces);
-$host = U::get($pieces,'host');
-$port = U::get($pieces,'port');
-if ( !$host || !$port ) {
-    echo("Missing port and/or host from URL\r\n");
-    return;
-}
-echo("Connecting to $host on $port\r\n");
-$local = "http://localhost:8888";  //url where this script run
-$data = 'Yada';
-$token = 'xyzzy';
+$host = WebSocket::getHost();
+$port = WebSocket::getPort();
 
-$head = "GET /notify?token=$token HTTP/1.1"."\r\n".
+echo("Connecting to $host on $port\r\n");
+
+$head = "GET /notify?token=403_is_ok HTTP/1.1"."\r\n".
         "Upgrade: WebSocket"."\r\n".
         "Connection: Upgrade"."\r\n".
-        "Origin: $local"."\r\n".
+        "Origin: $CFG->wwwroot"."\r\n".
         "Host: $host:$port"."\r\n".
         "Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits"."\r\n".
         "Sec-WebSocket-Key: PPFJBM3NioHgtAfKzvN/dA=="."\r\n".
         "Sec-WebSocket-Version: 13"."\r\n".
-        "Content-Length: ".strlen($data)."\r\n"."\r\n";
+        "Content-Length: 42"."\r\n"."\r\n";
 echo("\r\nSending:\r\n");
 echo($head);
 
