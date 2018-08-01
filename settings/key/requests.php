@@ -224,6 +224,9 @@ connect to Google Classroom and install tools.
                     IMS LTI 2.x (You will get a registration URL)
                 </label>
             </div>
+            <p>At this point, LTI 2.x is not well supported and may well be removed from LMS
+            systems, so in nearly all cases except for testing LTI 2.x,
+            you should request an LTI 1.x key.</p>
 
             <label for="request_reason">Reason / Comments: (required)</label>
             <textarea class="form-control" id="request_reason" name="notes" rows="6"></textarea>

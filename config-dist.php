@@ -55,6 +55,7 @@ unset($apphome);
 // Do not add a path here - just the host and port
 // Make sure the port is open on your server
 // $CFG->websocket_port = 2021;
+// $CFG->websocket_secret = 'changeme';
 // $CFG->websocket_url = 'ws://localhost:2021';
 
 // Database connection information to configure the PDO connection
