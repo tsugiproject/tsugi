@@ -13,7 +13,7 @@ if ( $file ) {
     return;
 }
 
-$launch = LTIX::require_data();
+$launch = LTIX::session_start();
 
 $app = new \Tsugi\Silex\Application($launch);
 $app['tsugi']->output->buffer = false;
@@ -21,7 +21,9 @@ $app['tsugi']->output->buffer = false;
 // Hook up the Koseu and Tsugi tools
 \Tsugi\Controllers\Login::routes($app);
 \Tsugi\Controllers\Logout::routes($app);
-\Tsugi\Controllers\Profile::routes($app);
-\Tsugi\Controllers\Map::routes($app);
+if ( isset($launch->user->id) ) {
+    \Tsugi\Controllers\Profile::routes($app);
+    \Tsugi\Controllers\Map::routes($app);
+}
 
 $app->run();
