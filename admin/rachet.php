@@ -22,6 +22,7 @@ require_once "../config.php";
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use Tsugi\Util\U;
+use Tsugi\Core\WebSocket;
 
 /**
  * chat.php
@@ -41,7 +42,7 @@ class MyNotify implements MessageComponentInterface {
         // echo("QS $querystring \r\n");
         parse_str($querystring,$queryarray);
         $token = U::get($queryarray,'token');
-        if ( $token != 'xyzzy' ) {
+        if ( ! WebSocket::verifyToken($token) ) {
             error_log('Not authorized\r\n');
             return;
         }
@@ -76,12 +77,12 @@ echo("FR=".$from_room." / ".$from->token." CL=".$client_room." / ".$client->toke
     }
 }
 
-if ( isset($CFG->websocket_port) ) {
-    // Run the server application through the WebSocket protocol on port 2021
-    $app = new Ratchet\App('localhost', $CFG->websocket_port);
+if ( WebSocket::enabled() ) {
+    $port = WebSocket::getPort();
+    $app = new Ratchet\App('localhost', $port);
     $app->route('/notify', new MyNotify);
-    echo("Websocket server started on port $CFG->websocket_port\r\n");
+    echo("Websocket server started on port $CFG->port\r\n");
     $app->run();
 } else {
-    echo("Error: CFG->websocket_port is not set, websocket server not started \r\n");
+    echo("Error: no websocket configuration, websocket server not started \r\n");
 }
