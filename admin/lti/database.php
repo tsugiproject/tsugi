@@ -29,7 +29,7 @@ $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}lti_key",
 "create table {$CFG->dbprefix}lti_key (
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
-    key_sha256          CHAR(64) NOT NULL UNIQUE,
+    key_sha256          CHAR(64) NOT NULL,
     key_key             TEXT NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
@@ -495,7 +495,6 @@ array( "{$CFG->dbprefix}profile",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    UNIQUE(profile_id, profile_sha256),
     PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -529,7 +528,7 @@ array( "{$CFG->dbprefix}cal_event",
 array( "{$CFG->dbprefix}cal_key",
 "create table {$CFG->dbprefix}cal_key (
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
-    key_sha256          CHAR(64) NOT NULL UNIQUE,
+    key_sha256          CHAR(64) NOT NULL,
     key_key             TEXT NOT NULL,
 
     activity            VARBINARY(8192) NULL,
