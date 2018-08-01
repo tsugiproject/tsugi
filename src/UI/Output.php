@@ -110,7 +110,7 @@ class Output {
      */
     function header() {
         global $HEAD_CONTENT_SENT, $CFG, $RUNNING_IN_TOOL, $CONTEXT, $USER, $LINK;
-        global $CFG;
+
         if ( $HEAD_CONTENT_SENT === true ) return;
         header('Content-Type: text/html; charset=utf-8');
         ob_start();
@@ -149,8 +149,8 @@ class Output {
             rest_path: <?= json_encode(U::rest_path()) ?>,
             spinnerUrl: "<?= self::getSpinnerUrl() ?>",
             staticroot: "<?= $CFG->staticroot ?>",
-            websocket_url: <?= WebSocket::enabled() ? '"'.$CFG->websocket_url.'"' : 'false' ?>,
-            websocket_token: <?= WebSocket::enabled() ? '"'.WebSocket::getToken().'"' : 'false' ?>,
+            websocket_url: <?= WebSocket::enabled() && $LINK ? '"'.$CFG->websocket_url.'"' : 'false' ?>,
+            websocket_token: <?= WebSocket::enabled() && $LINK ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false' ?>,
             window_close_message: "<?= _m('Application complete') ?>",
             session_expire_message: "<?= _m('Your session has expired') ?>"
         }
