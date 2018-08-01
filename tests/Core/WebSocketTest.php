@@ -1,6 +1,8 @@
 <?php
 
-require_once "src/Core/WebSocket.php";
+require_once("src/Core/WebSocket.php");
+require_once('src/Crypt/Aes.php');
+require_once('src/Crypt/AesCtr.php');
 
 use \Tsugi\Core\WebSocket;
 
@@ -8,6 +10,7 @@ class WebSocketTest extends PHPUnit_Framework_TestCase
 {
     public function testEnabled() {
         global $CFG;
+        $CFG->wwwroot = 'http://localhost:8888';
         unset($CFG->websocket_url);
         unset($CFG->websocket_secret);
         $this->assertFalse(WebSocket::enabled());
@@ -22,9 +25,19 @@ class WebSocketTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(WebSocket::getPort(),'2021');
 
         // For now...
-        $this->assertEquals(WebSocket::getToken(),'xyzzy');
-        $this->assertFalse(WebSocket::verifyToken('broke'));
-        $this->assertTrue(WebSocket::verifyToken('xyzzy'));
+        $launch = new \stdClass();
+        $this->assertFalse(WebSocket::getToken($launch));
+        $launch->link = new \stdClass();
+        $this->assertFalse(WebSocket::getToken($launch));
+        $launch->link->id = 42;
+        $token = WebSocket::getToken($launch);
+        $this->assertNotEquals($token, 'http://localhost:8888::42::no_context::no_user');
+        $decode = WebSocket::decodeToken('X'.$token);
+        $this->assertFalse($decode);
+        $decode = WebSocket::decodeToken($token);
+        $this->assertEquals($decode, 'http://localhost:8888::42::no_context::no_user');
+        $space = WebSocket::getSpaceFromToken($decode);
+        $this->assertEquals($space, 'http://localhost:8888::42');
     }
 
 }

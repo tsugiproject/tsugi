@@ -3,6 +3,8 @@
 namespace Tsugi\Core;
 
 use \Tsugi\Util\U;
+use \Tsugi\Crypt\Aes;
+use \Tsugi\Crypt\AesCtr;
 
 /**
  * This class contains the server side of Tsugi web sockets
@@ -38,13 +40,37 @@ class WebSocket {
         return U::get($pieces,'host');
     }
 
-    public static function getToken() {
-        return "xyzzy";
+    public static function makeToken($launch) {
+        global $CFG;
+        if ( ! isset($launch->link->id) ) return false;
+        $token = $CFG->wwwroot . '::' . $launch->link->id . '::';
+        $token .= isset($launch->context->id) ? $launch->context->id : 'no_context';
+        $token .= '::';
+        $token .= isset($launch->user->id) ? $launch->context->id : 'no_user';
+        return $token;
     }
 
-    public static function verifyToken($token) {
-        return $token == 'xyzzy';
+    public static function getToken($launch) {
+        global $CFG;
+        $plain = self::makeToken($launch);
+        if ( ! $plain ) return $plain;
+        $encrypted = AesCtr::encrypt($plain, $CFG->websocket_secret, 256) ;
+        return $encrypted;
     }
 
+    public static function decodeToken($token) {
+        global $CFG;
+        $plain = AesCtr::decrypt($token, $CFG->websocket_secret, 256) ;
+        $pieces = explode('::', $plain);
+        if ( count($pieces) != 4 ) return false;
+        return $plain;
+    }
+
+    public static function getSpaceFromToken($token) {
+        $pieces = explode('::', $token);
+        if ( count($pieces) != 4 ) return false;
+        $space = implode('::', array_slice($pieces,0,2));
+        return $space;
+    }
 
 }
