@@ -20,9 +20,9 @@ function getRepoOrigin($repo) {
 // https://stackoverflow.com/questions/3433465/mysql-delete-all-rows-older-than-10-minutes
 function ghostBust() {
     global $PDOX, $CFG;
-    return;
     $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}lms_tools_status 
             WHERE updated_at < (NOW() - INTERVAL 55 MINUTE)");
+    return;
 }
 
 function getClusterInfo() {
