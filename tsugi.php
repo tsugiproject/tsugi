@@ -13,7 +13,7 @@ if ( $file ) {
     return;
 }
 
-$launch = LTIX::session_start();
+$launch = LTIX::require_data();
 
 $app = new \Tsugi\Silex\Application($launch);
 $app['tsugi']->output->buffer = false;
