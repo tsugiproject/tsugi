@@ -63,7 +63,8 @@ some of these git repos.
 <?php if($other_nodes > 0 ) { ?>
 <p><b>Note:</b> This is a clustered environment with <?= $other_nodes+1 ?> nodes,
 it may take some time before installations / updates propagate to all
-the nodes in the cluster.</p>
+the nodes in the cluster.  It can take up to an hour to clear out cluster nodes
+that have left the cluster.  Please be  patient.</p>
 <?php } ?>
 <p>Using: <?= htmlentities($git_version) ?></p>
 <ul class="nav nav-tabs">
