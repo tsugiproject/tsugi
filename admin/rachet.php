@@ -42,26 +42,30 @@ class MyNotify implements MessageComponentInterface {
         // echo("QS $querystring \r\n");
         parse_str($querystring,$queryarray);
         $token = U::get($queryarray,'token');
-        if ( ! WebSocket::verifyToken($token) ) {
-            error_log('Not authorized\r\n');
+        $decode = WebSocket::decodeToken($token);
+        if ( ! $decode ) {
+            error_log("Not authorized $token");
             return;
         }
+        error_log("New WebSocket $decode");
         $room = U::get($queryarray,'room');
         if (! is_numeric($room) ) $room = null;
         $conn->room = $room;
         $conn->token = $token;
+        $conn->decode = $decode;
+        $conn->space = WebSocket::getSpaceFromToken($decode);
         $this->clients->attach($conn);
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
-        if ( ! isset($from->token) ) return;
+        if ( ! isset($from->space) ) return;
         foreach ($this->clients as $client) {
-            if ( ! isset($client->token) ) return;
+            if ( ! isset($client->space) ) return;
             $from_room = isset($from->room) ? $from->room : false;
             $client_room = isset($client->room) ? $client->room : false;
-echo("FR=".$from_room." / ".$from->token." CL=".$client_room." / ".$client->token."\r\n");
+            echo("From=".$from->space." r=".$from_room." Client=".$client->space." r=".$client_room."\r\n");
             if ( $from_room != $client_room ) continue;
-            if ( $from->token != $client->token ) continue;
+            if ( $from->space != $client->space ) continue;
             if ($from != $client) {
                 $client->send($msg);
             }
@@ -81,7 +85,7 @@ if ( WebSocket::enabled() ) {
     $port = WebSocket::getPort();
     $app = new Ratchet\App('localhost', $port);
     $app->route('/notify', new MyNotify);
-    echo("Websocket server started on port $CFG->port\r\n");
+    echo("Websocket server started on port $port\r\n");
     $app->run();
 } else {
     echo("Error: no websocket configuration, websocket server not started \r\n");
