@@ -55,6 +55,14 @@ require_once("sanity-db.php");
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
   Remove 12345 Data
   </a></li>
+<?php if ( isset($CFG->websocket_url) ) {?>
+<li>
+  <a href="sock-test" title="Check Socket Server" target="iframe-frame"
+  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
+  Check socket server at <?= htmlentities($CFG->websocket_url) ?>
+  </a>
+</li>
+<?php } ?>
 <li>
   <a href="testmail" title="Test E-Mail" target="iframe-frame"
   onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
