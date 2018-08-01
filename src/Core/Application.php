@@ -19,12 +19,16 @@ class Application extends \Tsugi\Silex\Application {
         // Hook up the Koseu and Tsugi tools
         \Tsugi\Controllers\Login::routes($this);
         \Tsugi\Controllers\Logout::routes($this);
-        \Tsugi\Controllers\Profile::routes($this);
-        \Tsugi\Controllers\Map::routes($this);
-        \Koseu\Controllers\Badges::routes($this);
-        \Koseu\Controllers\Assignments::routes($this);
         \Koseu\Controllers\Lessons::routes($this);
-        \Koseu\Controllers\Courses::routes($this);
+
+        // Tools that require logged in user
+        if ( isset($launch->user->id) ) {
+            \Tsugi\Controllers\Profile::routes($this);
+            \Tsugi\Controllers\Map::routes($this);
+            \Koseu\Controllers\Badges::routes($this);
+            \Koseu\Controllers\Assignments::routes($this);
+            \Koseu\Controllers\Courses::routes($this);
+        }
     }
 }
 
