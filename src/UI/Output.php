@@ -4,6 +4,7 @@ namespace Tsugi\UI;
 
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\WebSocket;
 use \Tsugi\Crypt\SecureCookie;
 use Tsugi\UI\HandleBars;
 
@@ -148,8 +149,8 @@ class Output {
             rest_path: <?= json_encode(U::rest_path()) ?>,
             spinnerUrl: "<?= self::getSpinnerUrl() ?>",
             staticroot: "<?= $CFG->staticroot ?>",
-            websocket_url: <?= isset($CFG->websocket_url) ? '"'.$CFG->websocket_url.'"' : 'false' ?>,
-            websocket_token: "xyzzy",
+            websocket_url: <?= WebSocket::enabled() ? '"'.$CFG->websocket_url.'"' : 'false' ?>,
+            websocket_token: <?= WebSocket::enabled() ? '"'.WebSocket::getToken().'"' : 'false' ?>,
             window_close_message: "<?= _m('Application complete') ?>",
             session_expire_message: "<?= _m('Your session has expired') ?>"
         }
