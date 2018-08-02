@@ -83,9 +83,10 @@ class MyNotify implements MessageComponentInterface {
 
 if ( WebSocket::enabled() ) {
     $port = WebSocket::getPort();
-    $app = new Ratchet\App('localhost', $port);
-    $app->route('/notify', new MyNotify);
-    echo("Websocket server started on port $port\r\n");
+    $host = WebSocket::getHost();
+    $app = new Ratchet\App($host, $port, '0.0.0.0');
+    $app->route('/notify', new MyNotify, array('*'));
+    echo("Websocket server started on $host port $port\r\n");
     $app->run();
 } else {
     echo("Error: no websocket configuration, websocket server not started \r\n");
