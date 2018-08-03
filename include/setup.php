@@ -200,6 +200,8 @@ function isCli() {
     return U::isCli();
 }
 
+if ( isset($CFG->verifypeer) && $CFG->verifypeer ) \Tsugi\Util\Net::$VERIFY_PEER = true;
+
 // TODO: Create this as well related to OUTPUT.  See Moodle.
 // global $PAGE;
 

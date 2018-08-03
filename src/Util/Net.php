@@ -23,6 +23,8 @@ namespace Tsugi\Util;
  */
 class Net {
 
+    public static $VERIFY_PEER = false;
+
     public static function getLastGETURL() {
         global $LastGETURL;
         return $LastGETURL;
@@ -164,8 +166,13 @@ class Net {
 
       // Thanks to more and more PHP's not shipping with CA's installed
       // This becomes necessary
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      if ( self::$VERIFY_PEER ) {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+      } else {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      }
 
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
@@ -376,8 +383,13 @@ class Net {
 
       // Thanks to more and more PHP's not shipping with CA's installed
       // This becomes necessary
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      if ( static::$VERIFY_PEER ) {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+      } else {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+      }
 
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
