@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\Util\U;
+use \Tsugi\Util\Net;
 use \Tsugi\Core\Activity;
 
 require_once "../config.php";
@@ -10,6 +11,11 @@ if ( ! U::isCli() ) {
     return;
 }
 
-$stuff = Activity::pushCaliperEvents(2, 100, true);
+$seconds = 2;
+$maxevents = 1;
+$debug = true;  // true implies no delete
+
+$stuff = Activity::pushCaliperEvents($seconds, $maxevents, $debug);
+if ( $debug ) echo ("\nCaliper results:\n");
 print_r($stuff);
 

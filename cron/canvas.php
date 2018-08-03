@@ -17,7 +17,7 @@ $PDOX = LTIX::getConnection();
 
 $sql = "SELECT event_id, e.launch AS launch, e.created_at AS created_at, u.email AS email, user_key AS user_id,
                l.title AS link_title, l.path AS path, key_key, k.secret AS secret
-    FROM {$CFG->dbprefix}lti_event AS e
+    FROM {$CFG->dbprefix}cal_event AS e
     LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
     LEFT JOIN {$CFG->dbprefix}lti_user AS u ON u.user_id = e.user_id
     LEFT JOIN {$CFG->dbprefix}lti_context AS c ON c.context_id = e.context_id
@@ -81,7 +81,7 @@ $OUTPUT->togglePre("Registration Response",htmlent_utf8(LTI::jsonIndent($respons
 
 print_r($debug_log);
 
-$sql = "DELETE FROM {$CFG->dbprefix}lti_event WHERE event_id = :event_id";
+$sql = "DELETE FROM {$CFG->dbprefix}cal_event WHERE event_id = :event_id";
 $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
 
 error_log("Send event_id=".$row['event_id']." response="+$response_code);

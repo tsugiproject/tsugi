@@ -47,13 +47,13 @@ echo( $row ? $row['count'] : '0'  );
 <ul>
 <li>Events waiting to be sent: 
 <?php
-$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_event WHERE state IS NULL");
+$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}cal_event WHERE state IS NULL");
 echo( $row ? $row['count'] : '0'  );
 ?>
 </li>
 <li>Events sent with error:
 <?php
-$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_event WHERE state IS NOT NULL");
+$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}cal_event WHERE state IS NOT NULL");
 echo( $row ? $row['count'] : '0'  );
 ?>
 </li>

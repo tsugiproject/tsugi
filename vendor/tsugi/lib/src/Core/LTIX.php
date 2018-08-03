@@ -699,7 +699,7 @@ class LTIX {
                     $event_launch = 'canvas::'.$canvasUrl;
                 }
 
-                $sql = "INSERT INTO {$CFG->dbprefix}lti_event
+                $sql = "INSERT INTO {$CFG->dbprefix}cal_event
                         (event, key_id, context_id, link_id, user_id, nonce, launch, updated_at) VALUES
                         (0, :key_id, :context_id, :link_id, :user_id, UNHEX(MD5(:nonce)), :launch, NOW())";
                 $stmt = $PDOX->queryReturnError($sql, array(
@@ -721,7 +721,7 @@ class LTIX {
             // Probabilistically cleanup event table
             if ( $CFG->eventcheck > 0 ) {
                 if ( (time() % $CFG->eventcheck) == 0 ) {
-                    $stmt = $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}lti_event WHERE
+                    $stmt = $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}cal_event WHERE
                         created_at < DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -{$CFG->eventtime} SECOND)");
                     error_log("Event table cleanup rows=".$stmt->rowCount());
                 }

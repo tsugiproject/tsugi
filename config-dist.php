@@ -181,6 +181,11 @@ $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 // in Google Classroom
 // $CFG->logo_url = 'https://www.wa4e.com/logo.png';
 
+// Indicate whether the PHP on this server wants to verify SSL or not
+// It seems that PHP > 7 and curl > 7.53 or above want this to be true
+// The legacy value for this was false
+$CFG->verifypeer = false;
+
 // Whether or not to unify accounts between global site-wide login
 // and LTI launches
 $CFG->unify = true;

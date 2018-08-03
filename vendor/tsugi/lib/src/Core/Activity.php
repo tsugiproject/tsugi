@@ -26,6 +26,7 @@ class Activity {
         while ($count < $max && $now < $end ) {
             $result = self::sendCaliperEvent(!$debug);
             if ( $debug ) {
+                echo("\nResults of sendCaliperEvent:\n");
                 echo(U::safe_var_dump($result));
             }
             if ( $result === false ) break;
@@ -56,9 +57,9 @@ class Activity {
         // Get an ID from a possibly hot row.
         // In a future version of MySQL, we can add "FOR UPDATE ON e NOWAIT"
         $sql = "SELECT event_id
-            FROM {$CFG->dbprefix}lti_event AS e
+            FROM {$CFG->dbprefix}cal_event AS e
             LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
-            WHERE k.caliper_url IS NOT NULL and k.caliper_key IS NOT NULL AND e.state IS NULL
+            WHERE k.caliper_url IS NOT NULL AND k.caliper_key IS NOT NULL AND e.state IS NULL
             ORDER BY e.created_at ASC LIMIT 1 FOR UPDATE";
 
         // This is a transaction. Tread carefully...
@@ -72,14 +73,14 @@ class Activity {
         }
         $row = $q->fetch(\PDO::FETCH_ASSOC);
 
-	// There was nothing to retrieve - we are good
+	    // There was nothing to retrieve - we are good
         if ( $row === false ) {
             $PDOX->rollBack();
             return false;
         }
 
         // State 0 = "in progress"
-        $sql = "UPDATE {$CFG->dbprefix}lti_event
+        $sql = "UPDATE {$CFG->dbprefix}cal_event
             SET state=0,updated_at=NOW()
             WHERE event_id = :event_id";
         $q = $PDOX->queryReturnError($sql, array(':event_id' => $row['event_id']));
@@ -92,7 +93,7 @@ class Activity {
         $sql = "SELECT event_id, e.launch AS launch, e.created_at AS created_at, k.caliper_url, k.caliper_key,
                u.displayname AS displayname, u.email AS email, user_key AS user_key,
                l.title AS link_title, l.path AS path, key_key, k.secret AS secret
-            FROM {$CFG->dbprefix}lti_event AS e
+            FROM {$CFG->dbprefix}cal_event AS e
             LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
             LEFT JOIN {$CFG->dbprefix}lti_user AS u ON u.user_id = e.user_id
             LEFT JOIN {$CFG->dbprefix}lti_context AS c ON c.context_id = e.context_id
@@ -101,8 +102,6 @@ class Activity {
             WHERE e.event_id = :event_id AND k.caliper_url IS NOT NULL and k.caliper_key IS NOT NULL AND e.state = 0
             ORDER BY e.created_at ASC LIMIT 1";
         $row = $PDOX->rowDie($sql,array(':event_id' => $event_id) );
-
-        print_r($row);
 
         $launch = $row['launch'];
         $email = $row['email'];
@@ -126,9 +125,10 @@ class Activity {
         $json = Caliper::smallCaliper();
 
         $json->sendTime = $iso8601;
-        $json->data[0]->actor->{'@id'} = $user;
+        $json->data[0]->actor->id = $user;
         $json->data[0]->eventTime = $iso8601;
-        $json->data[0]->object->{'@id'} = $path;
+        $json->data[0]->object = $path;
+        $json->data[0]->edApp = $path;
         if ( $displayname ) {
             $json->data[0]->name = $displayname;
         }
@@ -141,7 +141,7 @@ class Activity {
         $body = json_encode($json, JSON_PRETTY_PRINT);
 
         $header = "Content-type: application/json;\n" .
-            "Authorization: ".$caliper_key;
+            "Authorization: Bearer ".$caliper_key;
         $url = $caliper_url;
 
         $response = Net::bodyCurl($url, $method, $body, $header);
@@ -155,7 +155,7 @@ class Activity {
         $response_code = Net::getLastHttpResponse();
         if ( $response_code != 200 ) {
             error_log("Caliper error code=".$response_code." url=".$url);
-            $sql = "UPDATE {$CFG->dbprefix}lti_event
+            $sql = "UPDATE {$CFG->dbprefix}cal_event
                 SET state=1, json=:json, updated_at=NOW()
                 WHERE event_id = :event_id";
             $PDOX->queryDie($sql, array(
@@ -166,7 +166,7 @@ class Activity {
         }
 
         if ( $delete ) {
-            $sql = "DELETE FROM {$CFG->dbprefix}lti_event WHERE event_id = :event_id";
+            $sql = "DELETE FROM {$CFG->dbprefix}cal_event WHERE event_id = :event_id";
             $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
             $retval['deleted'] = 'yes';
         }

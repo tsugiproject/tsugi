@@ -13,7 +13,6 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_nonce",
 "drop table if exists {$CFG->dbprefix}lti_message",
 "drop table if exists {$CFG->dbprefix}lti_domain",
-"drop table if exists {$CFG->dbprefix}lti_event",
 "drop table if exists {$CFG->dbprefix}cal_event",
 "drop table if exists {$CFG->dbprefix}cal_key",
 "drop table if exists {$CFG->dbprefix}cal_context",
@@ -252,32 +251,6 @@ array( "{$CFG->dbprefix}lti_membership",
 
     UNIQUE(context_id, user_id),
     PRIMARY KEY (membership_id)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
-
-// TODO: Remove this once everyone converts to cal_event
-// "FIFO" buffer of events no explicit foreign key
-// relationships as these are short-lived records
-array( "{$CFG->dbprefix}lti_event",
-"create table {$CFG->dbprefix}lti_event (
-    event_id        INTEGER NOT NULL AUTO_INCREMENT,
-    event           INTEGER NOT NULL,
-
-    state           SMALLINT NULL,
-
-    link_id         INTEGER NULL,
-    key_id          INTEGER NULL,
-    context_id      INTEGER NULL,
-    user_id         INTEGER NULL,
-
-    nonce           BINARY(16) NULL,
-    launch          MEDIUMTEXT NULL,
-    json            MEDIUMTEXT NULL,
-
-    entity_version      INTEGER NOT NULL DEFAULT 0,
-    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP NULL,
-
-    PRIMARY KEY (event_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_link_user_activity",
@@ -1085,7 +1058,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     if ( $oldversion < 201709221243 ) {
         $tables = array(
             'lti_key', 'lti_context', 'lti_user', 'profile', 'lti_link',
-            'lti_membership', 'lti_event', 'lti_link_user_activity',
+            'lti_membership', 'lti_link_user_activity',
             'lti_service', 'lti_result', 'lti_domain');
         foreach($tables as $table) {
             $sql= "UPDATE {$CFG->dbprefix}{$table} SET updated_at='1970-01-02 00:00:00' WHERE updated_at < '1970-01-02 00:00:00'";
