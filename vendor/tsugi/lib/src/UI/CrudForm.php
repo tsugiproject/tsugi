@@ -64,7 +64,7 @@ class CrudForm {
             echo('<label for="'.$field.'">'.self::fieldToTitle($field)."<br/>\n");
 
             if ( strpos($field, "secret") !== false ) {
-                echo('<input id="'.$field.'" type="password" size="80" name="'.$field.'"');
+                echo('<input id="'.$field.'" type="password" autocomplete="off" size="80" name="'.$field.'"');
                 echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
             } else {
                 echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'">'."\n");
@@ -217,7 +217,7 @@ class CrudForm {
             }
 
             if ( strpos($field, "secret") !== false ) {
-                echo('<input id="'.$field.'" type="password" size="80" name="'.$field.'" value="'.
+                echo('<input id="'.$field.'" type="password" autocomplete="off" size="80" name="'.$field.'" value="'.
                         htmlent_utf8($value).'"');
                 echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
             } else if ( strlen($value) > 60 ) {

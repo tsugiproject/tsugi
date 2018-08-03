@@ -48,7 +48,7 @@ $OUTPUT->topNav();
 ?>
 <form method="post">
 <label for="passphrase">Admin Unlock:<br/>
-<input type="password" name="passphrase" size="80">
+<input type="password" autocomplete="off" name="passphrase" size="80">
 </label>
 <input type="submit">
 </form>
