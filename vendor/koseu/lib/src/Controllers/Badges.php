@@ -6,7 +6,6 @@ use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-use \Tsugi\UI\Lessons;
 use \Tsugi\Grades\GradeUtil;
 
 class Badges {
