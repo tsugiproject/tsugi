@@ -118,6 +118,10 @@ $CFG->adminpw = false;
 // $CFG->context_title = "Web Applications for Everybody";
 $CFG->context_title = false;
 
+// Path to the images for badges...
+// $CFG->badge_path = $CFG->dirroot . '/../bimages';
+$CFG->badge_path = false;
+
 // If we are going to use the lessons tool and/or badges, we need to
 // create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';
