@@ -407,7 +407,7 @@ $CFG->dynamodb_key = false; // 'AKIISDIUSDOUISDHFBUQ';
 $CFG->dynamodb_secret = false; // 'zFKsdkjhkjskhjSAKJHsakjhSAKJHakjhdsasYaZ';
 $CFG->dynamodb_region = false; // 'us-east-2'
 
-if ( strlen($CFG->dynamo_key) > 0 && strlen($CFG->dynamo_secret) > 0 && strlen($CFG->dynamo_region) > 0 ) {
+if ( strlen($CFG->dynamodb_key) > 0 && strlen($CFG->dynamodb_secret) > 0 && strlen($CFG->dynamodb_region) > 0 ) {
     $CFG->sessions_in_dynamodb = true;
     if ( $CFG->sessions_in_dynamodb ) {
         $dynamoDb = \Aws\DynamoDb\DynamoDbClient::factory(
