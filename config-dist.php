@@ -411,10 +411,10 @@ if ( strlen($CFG->dynamodb_key) > 0 && strlen($CFG->dynamodb_secret) > 0 && strl
     $CFG->sessions_in_dynamodb = true;
     if ( $CFG->sessions_in_dynamodb ) {
         $dynamoDb = \Aws\DynamoDb\DynamoDbClient::factory(
-            array('region' => 'us-east-2',
+            array('region' => $CFG->dynamodb_region,
             'credentials' => array(
-                'key'    => $CFG->aws_key,
-                'secret' => $CFG->aws_secret
+                'key'    => $CFG->dynamodb_key,
+                'secret' => $CFG->dynamodb_secret
             ),
             'version' => 'latest'));
         $sessionHandler = $dynamoDb->registerSessionHandler(array(
