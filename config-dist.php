@@ -403,30 +403,33 @@ if ( $CFG->sessions_in_db ) {
 
 // Storing Sessions in DynamoDB - Beta
 // http://docs.aws.amazon.com/aws-sdk-php/v2/guide/feature-dynamodb-session-handler.html
-$CFG->aws_key = false;  // 'FLDKJKJHFDKLJFKLJHFD';
-$CFG->aws_secret = false;  // 'zjJ84djDSKJdsjk/88KHashsKASHKAShdHDKDHhd';
-$CFG->sessions_in_dynamodb = false;
+$CFG->dynamodb_key = false; // 'AKIISDIUSDOUISDHFBUQ';
+$CFG->dynamodb_secret = false; // 'zFKsdkjhkjskhjSAKJHsakjhSAKJHakjhdsasYaZ';
+$CFG->dynamodb_region = false; // 'us-east-2'
 
-if ( $CFG->sessions_in_dynamodb ) {
-    $dynamoDb = \Aws\DynamoDb\DynamoDbClient::factory(
-        array('region' => 'us-east-2',
-        'credentials' => array(
-            'key'    => $CFG->aws_key,
-            'secret' => $CFG->aws_secret
-        ),
-        'version' => 'latest'));
-    $sessionHandler = $dynamoDb->registerSessionHandler(array(
-        'table_name'               => 'sessions',
-        'hash_key'                 => 'id',
-        'session_lifetime'         => 3600,
-        'consistent_read'          => true,
-        'locking_strategy'         => null,
-        'automatic_gc'             => 0,
-        'gc_batch_size'            => 50,
-        'max_lock_wait_time'       => 15,
-        'min_lock_retry_microtime' => 5000,
-        'max_lock_retry_microtime' => 50000,
-    ));
+if ( strlen($CFG->dynamo_key) > 0 && strlen($CFG->dynamo_secret) > 0 && strlen($CFG->dynamo_region) > 0 ) {
+    $CFG->sessions_in_dynamodb = true;
+    if ( $CFG->sessions_in_dynamodb ) {
+        $dynamoDb = \Aws\DynamoDb\DynamoDbClient::factory(
+            array('region' => 'us-east-2',
+            'credentials' => array(
+                'key'    => $CFG->aws_key,
+                'secret' => $CFG->aws_secret
+            ),
+            'version' => 'latest'));
+        $sessionHandler = $dynamoDb->registerSessionHandler(array(
+            'table_name'               => 'sessions',
+            'hash_key'                 => 'id',
+            'session_lifetime'         => 3600,
+            'consistent_read'          => true,
+            'locking_strategy'         => null,
+            'automatic_gc'             => 0,
+            'gc_batch_size'            => 50,
+            'max_lock_wait_time'       => 15,
+            'min_lock_retry_microtime' => 5000,
+            'max_lock_retry_microtime' => 50000,
+        ));
+    }
 }
 
 // The vendor include and root - generally leave these alone
