@@ -116,6 +116,7 @@ $CFG->adminpw = false;
 // "course title" for the course that represents
 // the "local" students that log in through Google.
 // $CFG->context_title = "Web Applications for Everybody";
+$CFG->context_title = false;
 
 // If we are going to use the lessons tool and/or badges, we need to
 // create and point to a lessons.json file
