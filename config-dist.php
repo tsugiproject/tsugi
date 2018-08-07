@@ -116,20 +116,16 @@ $CFG->adminpw = false;
 // "course title" for the course that represents
 // the "local" students that log in through Google.
 // $CFG->context_title = "Web Applications for Everybody";
-$CFG->context_title = false;
 
 // Path to the images for badges...
 // $CFG->badge_path = $CFG->dirroot . '/../bimages';
-$CFG->badge_path = false;
 
 // If we are going to use the lessons tool and/or badges, we need to
 // create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';
-$CFG->lessons = false;
 
 // This is used as a URL to a "preview logo in Google Classroom"
 // $CFG->logo_url = 'https://www.wa4e.com/logo.png';
-$CFG->logo_url = false;
 
 // This allows you to include various tool folders.  These are scanned
 // for register.php, database.php and index.php files to do automatic
