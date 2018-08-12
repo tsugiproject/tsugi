@@ -83,4 +83,25 @@ trait JsonTrait {
         $new = json_encode($old_json);
         $this->setJson($new);
     }
+
+    /**
+     * Set/update an array of JSON keys for this entity
+     *
+     * @params $values An array of key/value pairs to be inserted/updated in the JSON
+     *
+     */
+    public function setJsonKeys($values)
+    {
+        global $CFG, $PDOX;
+
+        if ( ! is_array($values) ) throw new \Exception('setJsonKeys requires an array as parameter.');
+        $old = $this->getJson();
+        $old_json = json_decode($old);
+        if ( $old_json == null ) $old_json = new \stdClass();
+        foreach($values as $key => $value) {
+            $old_json->{$key} = $value;
+        }
+        $new = json_encode($old_json);
+        $this->setJson($new);
+    }
 }
