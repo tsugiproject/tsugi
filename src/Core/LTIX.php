@@ -88,7 +88,10 @@ class LTIX {
         } else {
             $lti11_request_data = $request_data;
             if ( $lti11_request_data === false ) $lti11_request_data = self::oauth_parameters();
-            $LTI11 = LTI::isRequest($lti11_request_data);
+            $LTI11 = LTI::isRequestCheck($lti11_request_data);
+            if ( is_string($LTI11) ) {
+                self::abort_with_error_log($LTI11, $request_data);
+            }
         }
         if ( $LTI11 === false && $LTI13 === false ) return false;
 
@@ -347,7 +350,10 @@ class LTIX {
         } else {
             $lti11_request_data = $request_data;
             if ( $lti11_request_data === false ) $lti11_request_data = self::oauth_parameters();
-            $LTI11 = LTI::isRequest($lti11_request_data);
+            $LTI11 = LTI::isRequestCheck($lti11_request_data);
+            if ( is_string($LTI11) ) {
+                self::abort_with_error_log($LTI11, $request_data);
+            }
             $request_data = $lti11_request_data;
         }
         if ( $LTI11 === false && $LTI13 === false ) return false;
@@ -364,10 +370,7 @@ class LTIX {
         if ( ! is_array($post) ) {
             $msg = '';
             if ( is_string($post) ) $msg = $post . ' ';
-            $pdata = Output::safe_var_dump($request_data);
-            echo("\n<pre>\n$msg\nMissing Post_data\n$pdata\n</pre>");
-            error_log('Missing post data: '.$pdata);
-            die();
+            self::abort_with_error_log($msg, $request_data);
         }
 
         // We make up a Session ID Key because we don't want a new one
@@ -1506,15 +1509,10 @@ class LTIX {
                 if ( $newlaunch || isset($_POST[$sess]) || isset($_GET[$sess]) ) {
                     // We tried to set a session..
                 } else {
-                    if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-                        self::send403();
-                        self::abort_with_error_log('Missing '.$sess.' from POST data');
-                    } else if ( count($needed) > 0 ) {
-                        self::send403();
-                        self::abort_with_error_log('This tool should be launched from a learning system using LTI',
-                            U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
-                        );
-                    }
+                    self::send403();
+                    self::abort_with_error_log('This tool should be launched from a learning system using LTI',
+                        U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
+                    );
                 }
             }
 
@@ -2256,8 +2254,9 @@ class LTIX {
             $msg = "The LTI launch failed. Please reference the following error message when reporting this failure:<br><br>$msg";
             header('X-Tsugi-Test-Harness: https://www.tsugi.org/lti-test/');
             header('X-Tsugi-Base-String-Checker: https://www.tsugi.org/lti-test/basecheck.php');
+            if ( is_array($extra) ) $extra = Output::safe_var_dump($extra);
             if ( $extra && ! headers_sent() ) {
-                header('X-Tsugi-Error-Detail: '.$extra);
+                header('X-Tsugi-Error-Detail: '.str_replace("\n"," -- ",$extra));
             }
             die_with_error_log($msg,$extra,$prefix);
         }
