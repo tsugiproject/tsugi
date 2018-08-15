@@ -89,7 +89,7 @@ class LTIX {
             $lti11_request_data = $request_data;
             if ( $lti11_request_data === false ) $lti11_request_data = self::oauth_parameters();
             $LTI11 = LTI::isRequestCheck($lti11_request_data);
-	    if ( is_string($LTI11) ) {
+            if ( is_string($LTI11) ) {
                 self::abort_with_error_log($LTI11, $request_data);
             }
         }
@@ -351,7 +351,7 @@ class LTIX {
             $lti11_request_data = $request_data;
             if ( $lti11_request_data === false ) $lti11_request_data = self::oauth_parameters();
             $LTI11 = LTI::isRequestCheck($lti11_request_data);
-	    if ( is_string($LTI11) ) {
+            if ( is_string($LTI11) ) {
                 self::abort_with_error_log($LTI11, $request_data);
             }
             $request_data = $lti11_request_data;
@@ -2254,8 +2254,8 @@ class LTIX {
             $msg = "The LTI launch failed. Please reference the following error message when reporting this failure:<br><br>$msg";
             header('X-Tsugi-Test-Harness: https://www.tsugi.org/lti-test/');
             header('X-Tsugi-Base-String-Checker: https://www.tsugi.org/lti-test/basecheck.php');
+            if ( is_array($extra) ) $extra = Output::safe_var_dump($extra);
             if ( $extra && ! headers_sent() ) {
-		if ( is_array($extra) ) $extra = Output::safe_var_dump($extra);
                 header('X-Tsugi-Error-Detail: '.str_replace("\n"," -- ",$extra));
             }
             die_with_error_log($msg,$extra,$prefix);

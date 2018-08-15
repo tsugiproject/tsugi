@@ -95,7 +95,6 @@ if ( ! isset($CFG->eventpushtime) ) $CFG->eventpushtime = 2;
 if ( ! isset($CFG->fontawesome) ) $CFG->fontawesome = $CFG->staticroot . '/font-awesome-4.7.0';
 
 // Certification hacks
-if ( !isset($CFG->require_conformance_parameters) ) $CFG->require_conformance_parameters = false;
 if ( !isset($CFG->prefer_lti1_for_grade_send) ) $CFG->prefer_lti1_for_grade_send = true;
 
 error_reporting(E_ALL & ~E_NOTICE);

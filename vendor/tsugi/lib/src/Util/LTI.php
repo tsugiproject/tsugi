@@ -22,10 +22,10 @@ use \Tsugi\Util\Mimeparse;
  */
 class LTI {
 
-    /** 
+    /**
      * Determines if this is a valid Basic LTI message
      *
-     * @retval mixed Returns true if this is a Basic LTI message 
+     * @retval mixed Returns true if this is a Basic LTI message
      * with minimum values to meet the protocol.  Returns false
      * if this is not even close to an LTI launch.  If this is a
      * broken launch, it returns an error as to why.
@@ -35,12 +35,13 @@ class LTI {
         if ( !isset($request_data["lti_message_type"]) ) return false;
         if ( !isset($request_data["lti_version"]) ) return false;
         $good_lti_version = self::isValidVersion($request_data["lti_version"]);
-	if ( ! $good_lti_version ) return "Invalid LTI version ".$request_data["lti_version"];
+        if ( ! $good_lti_version ) return "Invalid LTI version ".$request_data["lti_version"];
         $good_message_type = self::isValidMessageType($request_data["lti_message_type"]);
-	if ( ! $good_message_type ) return "Invalid message type ".$request_data["lti_message_type"];
+        if ( ! $good_message_type ) return "Invalid message type ".$request_data["lti_message_type"];
         return true;
     }
-    /** 
+
+    /**
      * Determines if this is a valid Basic LTI message
      *
      * Returns true if this is a Basic LTI message
