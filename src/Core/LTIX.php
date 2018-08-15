@@ -2249,12 +2249,12 @@ class LTIX {
      */
     private static function abort_with_error_log($msg, $extra=false, $prefix="DIE:") {
         $return_url = isset($_POST['launch_presentation_return_url']) ? $_POST['launch_presentation_return_url'] : null;
+        if ( is_array($extra) ) $extra = Output::safe_var_dump($extra);
         if ($return_url === null) {
             // make the msg a bit friendlier
             $msg = "The LTI launch failed. Please reference the following error message when reporting this failure:<br><br>$msg";
             header('X-Tsugi-Test-Harness: https://www.tsugi.org/lti-test/');
             header('X-Tsugi-Base-String-Checker: https://www.tsugi.org/lti-test/basecheck.php');
-            if ( is_array($extra) ) $extra = Output::safe_var_dump($extra);
             if ( $extra && ! headers_sent() ) {
                 header('X-Tsugi-Error-Detail: '.str_replace("\n"," -- ",$extra));
             }
@@ -2263,8 +2263,8 @@ class LTIX {
         $return_url .= ( strpos($return_url,'?') > 0 ) ? '&' : '?';
         $return_url .= 'lti_errormsg=' . urlencode($msg);
         if ( $extra !== false ) {
-            $return_url .= '&detail=' . urlencode($extra);
-            header('X-Tsugi-Error-Detail: '.$extra);
+            if ( strlen($extra) < 200 ) $return_url .= '&detail=' . urlencode($extra);
+            header('X-Tsugi-Error-Detail: '.str_replace("\n"," -- ",$extra));
         }
         header("Location: ".$return_url);
         error_log($prefix.' '.$msg.' '.$extra);
