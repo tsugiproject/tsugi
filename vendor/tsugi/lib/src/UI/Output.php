@@ -325,6 +325,7 @@ if (window!=window.top) {
         echo('<script src="'.$CFG->staticroot.'/js/jquery-1.11.3.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/js/jquery.timeago-1.6.3.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/handlebars-v4.0.2.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/tmpljs-3.8.0/tmpl.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/tsugiscripts.js"></script>'."\n");
