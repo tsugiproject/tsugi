@@ -106,7 +106,7 @@ class LTIX {
             return true;
         }
 
-        $location = addSession($url);
+        $location = U::addSession($url);
         session_write_close();  // To avoid any race conditions...
 
         if ( headers_sent() ) {

@@ -275,7 +275,7 @@ class U {
         $parameter = session_name().'=';
         if ( strpos($url, $parameter) !== false ) return $url;
 
-        $url = add_url_parm($url, session_name(), $session_id);
+        $url = self::add_url_parm($url, session_name(), $session_id);
         return $url;
     }
 

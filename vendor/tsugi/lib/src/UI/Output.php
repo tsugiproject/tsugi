@@ -21,13 +21,14 @@ use Tsugi\UI\HandleBars;
  * A typical Tsugi Tool can get a lot done with the rough outline:
  *
  *     use \Tsugi\Core\LTIX;
+ *     use \Tsugi\Util\U;
  *
  *     // Require CONTEXT, USER, and LINK
  *     $LAUNCH = LTIX::requireData();
  *
  *     // Handle incoming POST data and redirect as necessary...
  *     if ( ... ) {
- *         header( 'Location: '.addSession('index.php') ) ;
+ *         header( 'Location: '.U::addSession('index.php') ) ;
  *     }
  *
  *     // Done with POST
@@ -152,7 +153,8 @@ class Output {
             if ( $heartbeat < 10*60*1000 ) $heartbeat = 10*60*1000;   // Minumum 10 minutes
             // $heartbeat = 10000; // Debug 10 seconds
             $heartbeat_url = self::getUtilUrl('/heartbeat.php');
-            $heartbeat_url = addSession($heartbeat_url);
+            $heartbeat_url = U::add_url_parm($heartbeat_url,'msec',$heartbeat);
+            $heartbeat_url = U::addSession($heartbeat_url);
 ?>
             heartbeat: <?= $heartbeat ?>,
             heartbeat_url: "<?= $heartbeat_url ?>",
@@ -340,23 +342,15 @@ if (window!=window.top) {
         echo('<script src="'.$CFG->staticroot.'/tmpljs-3.8.0/tmpl.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/tsugiscripts.js"></script>'."\n");
 
-        if ( isset($CFG->sessionlifetime) ) {
-            $heartbeat = ( $CFG->sessionlifetime * 1000) / 2; // Legacy
-            // $heartbeat = 10000; // Legacy
-            $heartbeat_url = self::getUtilUrl('/heartbeat.php'); // Legacy
-            $heartbeat_url = addSession($heartbeat_url); // Legacy
-    ?>
-    <script type="text/javascript">
-       // HEARTBEAT_URL = '<?= $heartbeat_url ?>';
-       // HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?= $heartbeat ?>);
-       HEARTBEAT_TIMEOUT = setTimeout(doHeartBeat, _TSUGI.heartbeat);
-       tsugiEmbedMenu();
-    </script>
-    <?php
-        }
+?>
+<script type="text/javascript">
+    HEARTBEAT_TIMEOUT = setTimeout(doHeartBeat, _TSUGI.heartbeat);
+    tsugiEmbedMenu();
+</script>
+<?php
 
         if ( U::allow_track() && $CFG->google_translate ) {
-    ?>
+?>
 <div id="google_translate_element" style="position: fixed; right: 1em; bottom: 0.25em;"></div><script type="text/javascript">
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({pageLanguage: "en", layout: google.translate.TranslateElement.InlineLayout.SIMPLE
@@ -855,18 +849,18 @@ EOF;
         $retval .= "</script>\n";
 
         // See if the LTI login can be linked to the site login...
-    	if ( isset($_SESSION['lti']) && !defined('COOKIE_SESSION') &&  isset($_COOKIE[$CFG->cookiename])) {
+        if ( isset($_SESSION['lti']) && !defined('COOKIE_SESSION') &&  isset($_COOKIE[$CFG->cookiename])) {
             $ct = $_COOKIE[$CFG->cookiename];
             // error_log("Cookie: $ct \n");
             $pieces = SecureCookie::extract($ct);
             $lti = $_SESSION['lti'];
             // Contemplate: Do we care if the lti email matches the cookie email?
             if ( count($pieces) == 3 && isset($lti['user_id']) && !isset($lti['profile_id']) && isset($lti['user_email']) ) {
-            	$linkprofile_url = self::getUtilUrl('/linkprofile.php');
-            	$linkprofile_url = addSession($linkprofile_url);
+                $linkprofile_url = self::getUtilUrl('/linkprofile.php');
+                $linkprofile_url = U::addSession($linkprofile_url);
                 $retval .= self::embeddedMenu($linkprofile_url, $pieces[1], $lti['user_email']);
             }
-	}
+        }
         return $retval;
     }
 
@@ -1006,7 +1000,7 @@ EOF;
             echo('<a href="'.$location.'">Continue</a>'."\n");
         } else {
             if ( ini_get('session.use_cookies') == 0 ) {
-                $location = addSession($location);
+                $location = U::addSession($location);
             }
             header("Location: $location");
         }
