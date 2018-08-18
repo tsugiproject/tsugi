@@ -60,6 +60,7 @@ class Activity {
             FROM {$CFG->dbprefix}cal_event AS e
             LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
             WHERE k.caliper_url IS NOT NULL AND k.caliper_key IS NOT NULL AND e.state IS NULL
+                AND k.caliper_url != '' AND k.caliper_key != ''
             ORDER BY e.created_at ASC LIMIT 1 FOR UPDATE";
 
         // This is a transaction. Tread carefully...

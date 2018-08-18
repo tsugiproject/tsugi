@@ -62,6 +62,9 @@ echo( $row ? $row['count'] : '0'  );
 <li>Event push to Learning Record Store:
 <?= $CFG->eventpushcount > 0 ? "ON" : "OFF" ?>
 </li>
+<li>APC Cache Availability:
+<?= extension_loaded('apc') && ini_get('apc.enabled') ? 'Yes' : 'No' ?>
+</li>
 <?php
 $p = $CFG->dbprefix;
 ?>
