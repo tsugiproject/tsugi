@@ -6,6 +6,7 @@ require_once("gate.php");
 require_once("admin_util.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
+use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 LTIX::getConnection();
 
@@ -62,12 +63,25 @@ echo( $row ? $row['count'] : '0'  );
 <li>Event push to Learning Record Store:
 <?= $CFG->eventpushcount > 0 ? "ON" : "OFF" ?>
 </li>
-<li>APC Cache Availability:
-<?= extension_loaded('apc') && ini_get('apc.enabled') ? 'Yes' : 'No' ?>
-</li>
+<li>
 <?php
-$p = $CFG->dbprefix;
+if ( U::apcAvailable() ) {
+    echo('Last event push time: ');
+    $success = false;
+    $timestamp = apc_fetch('last_event_push_time',$success);
+    if ( ! $success ) {
+        echo(" Not set");
+    } else {
+        $diff = time() - $timestamp;
+        $date = gmdate('Y-m-d H:i:s\Z', $timestamp);
+        echo($diff.' seconds ago '.$date.' ('.$timestamp.')');
+    }
+} else {
+   echo("APC Cache is not available");
+}
+
 ?>
+</li>
 </ul>
 </body>
 </html>
