@@ -577,4 +577,11 @@ class U {
         return $dt->format(\DateTime::ATOM);
     }
 
+    // https://stackoverflow.com/questions/4393626/how-do-i-know-if-any-php-caching-is-enabled
+    /**
+     * Return if APC cache is available
+     */
+    public static function apcAvailable() {
+        return (extension_loaded('apc') && ini_get('apc.enabled'));
+    }
 }

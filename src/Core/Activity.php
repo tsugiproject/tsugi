@@ -13,16 +13,35 @@ use Tsugi\Util\Caliper;
 class Activity {
 
     /**
-     * Send the backlog of caliper events
+     * Send the backlog of caliper events, but don't overrun
      */
     public static function pushCaliperEvents($seconds=3, $max=100, $debug=false) {
+        // Remove broken events
+        $purged = self::purgeCaliperEvents();
+
         $start = time();
+        $count = 0;
         $now = $start;
         $end = $start + $seconds;
-        $count = 0;
         $failure = 0;
         $failure_code = false;
         $retval = array();
+        if ( U::apcAvailable() ) {
+            $success = false;
+            $last_push = apc_fetch('last_event_push_time',$success);
+            $diff = $start - $last_push;
+            if ( $success && $diff < 30 ) {
+                error_log("Last push was $diff seconds ago");
+                $retval['count'] = $count;
+                $retval['fail'] = $failure;
+                $retval['failcode'] = 999;
+                $retval['seconds'] = 0;
+                $retval['purged'] = $purged;
+                return $retval;
+            }
+            apc_store('last_event_push_time',$start);
+        }
+
         while ($count < $max && $now < $end ) {
             $result = self::sendCaliperEvent(!$debug);
             if ( $debug ) {
@@ -46,8 +65,68 @@ class Activity {
         $retval['fail'] = $failure;
         if ( $failure_code !== false ) $retval['failcode'] = $failure_code;
         $retval['seconds'] = $delta;
+         $retval['purged'] = $purged;
         return $retval;
     }
+
+    /**
+     * Periodic cleanup of broken Caliper events
+     *
+     * This is needed when an lti_key has Caliper turned on for a while
+     * and then later turns it off - the non-pushed events are stranded
+     * since they no longer have a good caliper_url / caliper_key.  So
+     * once in a great while, we clean these up.
+     */
+    public static function purgeCaliperEvents() {
+        global $CFG;
+
+        // We really want some quiet time...
+        if ( U::apcAvailable() ) {
+            $push_success = false;
+            $last_push = apc_fetch('last_event_push_time',$push_success);
+            $push_diff = time() - $last_push;
+
+            $purge_success = false;
+            $last_purge = apc_fetch('last_event_purge_time',$purge_success);
+            $purge_diff = time() - $last_purge;
+
+            if ( ($push_success && $push_diff < 30) || ($purge_success && $purge_diff < 300) ) {
+                error_log("Last purge was $purge_diff seconds ago last push was $push_diff seconds ago");
+                return 0;
+            }
+            apc_store('last_event_purge_time', time());
+        }
+
+        $PDOX = LTIX::getConnection();
+
+        // This WHERE clause in the sub-select needs to be the *opposite*
+        // of sendCaliperEvent to avoid transaction thrashing also note
+        // descending instead of ascending
+        $sql = "SELECT event_id
+            FROM {$CFG->dbprefix}cal_event AS e
+            LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
+            WHERE k.caliper_url IS NULL OR k.caliper_key IS NULL
+                OR k.caliper_url = '' OR k.caliper_key = ''
+            ORDER BY e.created_at DESC LIMIT 50";
+
+        $rows = $PDOX->allRowsDie($sql);
+
+        if ( count($rows) < 1 ) return 0;
+
+        error_log('Caliper cleanup rows: '.count($rows));
+
+        $in = '';
+        foreach($rows as $row) {
+            if ( strlen($in) > 0 ) $in .= ', ';
+            $in .= $row['event_id'];
+        }
+
+        $sql = "DELETE FROM {$CFG->dbprefix}cal_event where event_id IN [ $in ]";
+        $PDOX->queryDie($sql);
+
+        return count($rows);
+    }
+
 
     public static function sendCaliperEvent($delete=true) {
         global $CFG;
@@ -60,6 +139,7 @@ class Activity {
             FROM {$CFG->dbprefix}cal_event AS e
             LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
             WHERE k.caliper_url IS NOT NULL AND k.caliper_key IS NOT NULL AND e.state IS NULL
+                AND k.caliper_url != '' AND k.caliper_key != ''
             ORDER BY e.created_at ASC LIMIT 1 FOR UPDATE";
 
         // This is a transaction. Tread carefully...
