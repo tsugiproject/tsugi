@@ -82,6 +82,25 @@ if ( U::apcAvailable() ) {
 
 ?>
 </li>
+<li>
+<?php
+if ( U::apcAvailable() ) {
+    echo('Last event purge time: ');
+    $success = false;
+    $timestamp = apc_fetch('last_event_purge_time',$success);
+    if ( ! $success ) {
+        echo(" Not set");
+    } else {
+        $diff = time() - $timestamp;
+        $date = gmdate('Y-m-d H:i:s\Z', $timestamp);
+        echo($diff.' seconds ago '.$date.' ('.$timestamp.')');
+    }
+} else {
+   echo("APC Cache is not available");
+}
+
+?>
+</li>
 </ul>
 </body>
 </html>
