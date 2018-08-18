@@ -6,6 +6,7 @@ namespace Tsugi\UI;
  * A series of routines used to generate and process the settings forms.
  */
 
+use \Tsugi\Util\U;
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 
@@ -21,7 +22,7 @@ class SettingsForm {
      *     if ( SettingsForm::isSettingsPost() ) {
      *         // Do form validation if you like
      *         SettingsForm::handleSettingsPost();
-     *         header( 'Location: '.addSession('index.php?howdysuppress=1') ) ;
+     *         header( 'Location: '.U::addSession('index.php?howdysuppress=1') ) ;
      *         return;
      *     }
      */
@@ -39,7 +40,7 @@ class SettingsForm {
      * when true is returned.
      *
      *     if ( SettingsForm::handleSettingsPost() ) {
-     *         header( 'Location: '.addSession('index.php?howdysuppress=1') ) ;
+     *         header( 'Location: '.U::addSession('index.php?howdysuppress=1') ) ;
      *         return;
      *     }
      */

@@ -6,6 +6,7 @@ use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 
 class Analytics {
@@ -28,7 +29,7 @@ class Analytics {
                 );
         }
 
-        $analytics_url = addSession($CFG->wwwroot."/api/analytics");
+        $analytics_url = U::addSession($CFG->wwwroot."/api/analytics");
 
         return $app['twig']->render('@Tsugi/Analytics.twig', 
             array('analytics_url' => $analytics_url) );
