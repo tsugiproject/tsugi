@@ -121,7 +121,7 @@ class Activity {
             $in .= $row['event_id'];
         }
 
-        $sql = "DELETE FROM {$CFG->dbprefix}cal_event where event_id IN [ $in ]";
+        $sql = "DELETE FROM {$CFG->dbprefix}cal_event where event_id IN ( $in )";
         $PDOX->queryDie($sql);
 
         return count($rows);
