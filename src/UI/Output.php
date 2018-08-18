@@ -145,7 +145,17 @@ class Output {
             if ( isset($USER->instructor) && $USER->instructor ) {
                 echo('            instructor: true,  // Use only for UI display'."\n");
             }
+            $heartbeat = 10*60*1000; // 10 minutes
+            if ( isset($CFG->sessionlifetime) ) {
+                $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
+            }
+            if ( $heartbeat < 10*60*1000 ) $heartbeat = 10*60*1000;   // Minumum 10 minutes
+            // $heartbeat = 10000; // Debug 10 seconds
+            $heartbeat_url = self::getUtilUrl('/heartbeat.php');
+            $heartbeat_url = addSession($heartbeat_url);
 ?>
+            heartbeat: <?= $heartbeat ?>,
+            heartbeat_url: "<?= $heartbeat_url ?>",
             rest_path: <?= json_encode(U::rest_path()) ?>,
             spinnerUrl: "<?= self::getSpinnerUrl() ?>",
             staticroot: "<?= $CFG->staticroot ?>",
@@ -331,15 +341,16 @@ if (window!=window.top) {
         echo('<script src="'.$CFG->staticroot.'/js/tsugiscripts.js"></script>'."\n");
 
         if ( isset($CFG->sessionlifetime) ) {
-            $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
-            // $heartbeat = 10000;
-            $heartbeat_url = self::getUtilUrl('/heartbeat.php');
-            $heartbeat_url = addSession($heartbeat_url);
+            $heartbeat = ( $CFG->sessionlifetime * 1000) / 2; // Legacy
+            // $heartbeat = 10000; // Legacy
+            $heartbeat_url = self::getUtilUrl('/heartbeat.php'); // Legacy
+            $heartbeat_url = addSession($heartbeat_url); // Legacy
     ?>
     <script type="text/javascript">
-    HEARTBEAT_URL = '<?= $heartbeat_url ?>';
-    HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?= $heartbeat ?>);
-    tsugiEmbedMenu();
+       // HEARTBEAT_URL = '<?= $heartbeat_url ?>';
+       // HEARTBEAT_INTERVAL = setInterval(doHeartBeat, <?= $heartbeat ?>);
+       HEARTBEAT_TIMEOUT = setTimeout(doHeartBeat, _TSUGI.heartbeat);
+       tsugiEmbedMenu();
     </script>
     <?php
         }
