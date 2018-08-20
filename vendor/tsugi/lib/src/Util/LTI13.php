@@ -31,11 +31,11 @@ class LTI13 extends LTI {
         if ( ! is_string($raw_jwt)) return "parse_jwt first parameter must be a string";
         $jwt_parts = explode('.', $raw_jwt);
         if ( count($jwt_parts) < 2 ) return "jwt must have at least two parts";
-        $jwt_header = json_decode(base64_decode($jwt_parts[0]));
+        $jwt_header = json_decode(JWT::urlsafeB64Decode($jwt_parts[0]));
         if ( ! $jwt_header ) return "Could not decode jwt header";
         if ( ! isset($jwt_header->alg) ) return "Missing alg from jwt header";
         if ( ! isset($jwt_header->kid) ) return "Missing kid from jwt header";
-        $jwt_body = json_decode(base64_decode($jwt_parts[1]));
+        $jwt_body = json_decode(JWT::urlsafeB64Decode($jwt_parts[1]));
         if ( ! $jwt_body ) return "Could not decode jwt body";
         if ( ! isset($jwt_body->iss) ) return "Missing iss from jwt body";
         if ( ! isset($jwt_body->aud) ) return "Missing aud from jwt body";
@@ -43,7 +43,7 @@ class LTI13 extends LTI {
         $jwt->header = $jwt_header;
         $jwt->body = $jwt_body;
         if ( count($jwt_parts) > 2 ) {
-            $jwt_extra = json_decode(base64_decode($jwt_parts[1]), true);
+            $jwt_extra = json_decode(JWT::urlsafeB64Decode($jwt_parts[1]), true);
             if ( $jwt_body ) $jwt->extra = $jwt_extra;
         }
         return $jwt;
@@ -137,7 +137,7 @@ class LTI13 extends LTI {
         $grade = $grade * 100.0;
         $grade = (int) $grade;
 
-        // TODO: WTF - User?  Is that not in the lineitem_url?
+        // user_id comes from the "sub" in the JWT launch
         $grade_call = [
             // "timestamp" => "2017-04-16T18:54:36.736+00:00",
             "timestamp" => U::iso8601(),
