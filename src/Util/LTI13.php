@@ -15,7 +15,6 @@ use \Firebase\JWT\JWT;
 class LTI13 extends LTI {
 
     public static function extract_consumer_key($jwt) {
-        // return isset($jwt->header->kid) ? $jwt->header->kid : false;
         return 'lti13_' . $jwt->body->iss . '_' . $jwt->body->aud;
     }
 
@@ -34,7 +33,6 @@ class LTI13 extends LTI {
         $jwt_header = json_decode(JWT::urlsafeB64Decode($jwt_parts[0]));
         if ( ! $jwt_header ) return "Could not decode jwt header";
         if ( ! isset($jwt_header->alg) ) return "Missing alg from jwt header";
-        if ( ! isset($jwt_header->kid) ) return "Missing kid from jwt header";
         $jwt_body = json_decode(JWT::urlsafeB64Decode($jwt_parts[1]));
         if ( ! $jwt_body ) return "Could not decode jwt body";
         if ( ! isset($jwt_body->iss) ) return "Missing iss from jwt body";
