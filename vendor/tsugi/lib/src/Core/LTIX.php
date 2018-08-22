@@ -466,7 +466,7 @@ class LTIX {
                     array(':SHA' => $consumer_sha256) );
             if ( ! $pub_row ) return false;
 
-            $request_kid = $jwt->header->kid;
+            $request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
             $our_kid = $pub_row['lti13_kid'];
             $our_keyset = $pub_row['lti13_keyset'];
             $our_keyset_url = $pub_row['lti13_keyset_url'];
@@ -535,6 +535,8 @@ class LTIX {
 
             $e = LTI13::verifyPublicKey($raw_jwt, $public_key, array($jwt->header->alg));
             if ( $e !== true ) {
+                log_error('public_key');
+                log_error($public_key);
                 self::abort_with_error_log('JWT validation fail key='.$post['key'].' error='.$e->getMessage());
             }
 
