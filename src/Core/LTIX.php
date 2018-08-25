@@ -2093,17 +2093,20 @@ class LTIX {
         $context_id = is_numeric($pieces[2]) ? $pieces[2] + 0 : 0;
         if ( $user_id < 1 || $context_id < 1 ) {
             $user_id = false;
-            $pieces = false;
             error_log('Decrypt bad ID:'.$ct);
+            error_log(\Tsugi\UI\Output::safe_var_dump($pieces));
             SecureCookie::delete();
             return;
         }
 
         // The profile table might not even exist yet.
+        // See also login.php line 339 (ish)
         $stmt = $PDOX->queryReturnError(
             "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
                 P.email AS email, U.user_id AS user_id, U.user_key AS user_key,
+                P.image AS user_image,
                 role, C.context_key, C.context_id AS context_id,
+                C.title AS context_title, C.title AS resource_title,
                 K.key_id, K.key_key, K.secret
                 FROM {$CFG->dbprefix}profile AS P
                 LEFT JOIN {$CFG->dbprefix}lti_user AS U
@@ -2137,6 +2140,7 @@ class LTIX {
         self::wrapped_session_put($session_object,'displayname',$row['displayname']);
         self::wrapped_session_put($session_object,'profile_id',$row['profile_id']);
         self::wrapped_session_put($session_object,'user_key',$row['user_key']);
+        self::wrapped_session_put($session_object,'avatar',$row['user_image']);
         if ( isset($row['key_key']) ) {
             self::wrapped_session_put($session_object,'oauth_consumer_key',$row['key_key']);
         }
@@ -2146,8 +2150,12 @@ class LTIX {
         }
 
         if ( isset($row['secret']) ) {
-            self::wrapped_session_put($session_object,'secret', self::encrypt_secret($row['secret']));
+            $row['secret'] = self::encrypt_secret($row['secret']);
+            self::wrapped_session_put($session_object,'secret', $row['secret']);
         }
+
+        // Emulate a session launch
+        self::wrapped_session_put($session_object,'lti',$row);
 
         error_log('Autologin:'.$row['user_id'].','.$row['displayname'].','.
             $row['email'].','.$row['profile_id']);
