@@ -115,7 +115,8 @@ class PDOX extends \PDO {
             $dbt = U::getCallerDBT();
             $caller_file = $dbt && isset($dbt['file']) ? $dbt['file'] : null;
             $caller_line = $dbt && isset($dbt['line']) ? $dbt['line'] : null;
-            error_log("PDOX Slow Query:".$q->ellapsed_time.' '.$caller_file.' ['.$caller_line."]\n".$sql);
+            $caller_uri = U::get($_SERVER,'REQUEST_URI');
+            error_log("PDOX Slow Query:".$q->ellapsed_time.' '.$caller_uri.' '.$caller_file.' ['.$caller_line."]\n".$sql);
         }
 
         // In case we build this...
