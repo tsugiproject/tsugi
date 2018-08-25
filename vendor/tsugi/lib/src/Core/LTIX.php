@@ -69,6 +69,7 @@ class LTIX {
                 die('Failure connecting to the database, see error log'); // with error_log
             }
         }
+        if ( isset($CFG->slow_query) ) $PDOX->slow_query = $CFG->slow_query;
         return $PDOX;
     }
 

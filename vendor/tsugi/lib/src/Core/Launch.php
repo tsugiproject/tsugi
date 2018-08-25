@@ -119,7 +119,7 @@ class Launch {
     public function ltiParameter($varname, $default=false) {
         $row = $this->session_get('lti', false);
         if ( ! $row ) return $default;
-        if ( ! isset($row[$varname]) ) return $default;
+        if ( ! array_key_exists($varname, $row) ) return $default;
         return $row[$varname];
     }
 

@@ -92,6 +92,10 @@ $CFG->storehide = false; // A regex like - '/dev/sample|test|beta/';
 // $CFG->staticroot = 'http://localhost/tsugi-static';  // For normal
 // $CFG->staticroot = 'http://localhost:8888/tsugi-static';   // For MAMP
 
+// The slow_query setting indicated when we want PDOX to log a query for
+// being too slow.  Set to -1 to log all queries.
+$CFG->slow_query = 10.0;   //  Set to zero for no logging at all
+
 // The dbprefix allows you to give all the tables a prefix
 // in case your hosting only gives you one database.  This
 // can be short like "t_" and can even be an empty string if you
