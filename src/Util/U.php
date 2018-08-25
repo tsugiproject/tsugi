@@ -584,4 +584,25 @@ class U {
     public static function apcAvailable() {
         return (extension_loaded('apc') && ini_get('apc.enabled'));
     }
+
+    // https://stackoverflow.com/questions/2110732/how-to-get-name-of-calling-function-method-in-php
+    /**
+     * Get caller outside this file
+     */
+    public static function getCallerDBT()
+    {
+        $dbts=debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,6);
+        if ( ! is_array($dbts) || count($dbts) < 2 ) return null;
+        if ( ! isset($dbts[0]['file']) ) return null;
+        $myfile = $dbts[0]['file'];
+        foreach($dbts as $dbt) {
+            if ( ! isset($dbt['file']) ) continue;
+            if ( ! isset($dbt['line']) ) continue;
+            if ( $myfile != $dbt['file'] ) {
+                return $dbt;
+            }
+        }
+        return null;
+
+    }
 }

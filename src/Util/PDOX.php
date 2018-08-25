@@ -42,6 +42,11 @@ namespace Tsugi\Util;
 class PDOX extends \PDO {
 
     /**
+     * Threshold for logging slow queries - 0 means don't log
+     */
+    public $slow_query = 0;
+
+    /**
      * Prepare and execute an SQL query with lots of error checking.
      *
      * This routine will call prepare() and then execute() with the
@@ -106,6 +111,13 @@ class PDOX extends \PDO {
             die("\PDO::Statement should not have ellapsed_time member"); // with error_log
         }
         $q->ellapsed_time = microtime(true)-$start;
+        if ( $this->slow_query < 0 || ($this->slow_query > 0 && $q->ellapsed_time > $this->slow_query ) ) {
+            $dbt = U::getCallerDBT();
+            $caller_file = $dbt && isset($dbt['file']) ? $dbt['file'] : null;
+            $caller_line = $dbt && isset($dbt['line']) ? $dbt['line'] : null;
+            error_log("PDOX Slow Query:".$q->ellapsed_time.' '.$caller_file.' ['.$caller_line."]\n".$sql);
+        }
+
         // In case we build this...
         if ( !isset($q->errorCode) ) $q->errorCode = '42000';
         if ( !isset($q->errorInfo) ) $q->errorInfo = Array('42000', '42000', $message);
