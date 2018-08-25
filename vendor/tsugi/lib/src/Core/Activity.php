@@ -12,6 +12,9 @@ use Tsugi\Util\Caliper;
 
 class Activity {
 
+    const PUSH_REPEAT_SECONDS  = 120;
+    const PURGE_REPEAT_SECONDS  = 600;
+
     /**
      * Send the backlog of caliper events, but don't overrun
      */
@@ -27,10 +30,10 @@ class Activity {
         $failure_code = false;
         $retval = array();
         if ( U::apcAvailable() ) {
-            $success = false;
-            $last_push = apc_fetch('last_event_push_time',$success);
+            $found = false;
+            $last_push = apc_fetch('last_event_push_time',$found);
             $diff = $start - $last_push;
-            if ( $success && $diff < 30 ) {
+            if ( $found && $diff < self::PUSH_REPEAT_SECONDS ) {
                 error_log("Last push was $diff seconds ago");
                 $retval['count'] = $count;
                 $retval['fail'] = $failure;
@@ -82,15 +85,16 @@ class Activity {
 
         // We really want some quiet time...
         if ( U::apcAvailable() ) {
-            $push_success = false;
-            $last_push = apc_fetch('last_event_push_time',$push_success);
+            $push_found = false;
+            $last_push = apc_fetch('last_event_push_time',$push_found);
             $push_diff = time() - $last_push;
 
-            $purge_success = false;
-            $last_purge = apc_fetch('last_event_purge_time',$purge_success);
+            $purge_found = false;
+            $last_purge = apc_fetch('last_event_purge_time',$purge_found);
             $purge_diff = time() - $last_purge;
 
-            if ( ($push_success && $push_diff < 30) || ($purge_success && $purge_diff < 300) ) {
+            if ( ($push_found && $push_diff < self::PUSH_REPEAT_SECONDS) ||
+                 ($purge_found && $purge_diff < self::PURGE_REPEAT_SECONDS) ) {
                 error_log("Last purge was $purge_diff seconds ago last push was $push_diff seconds ago");
                 return 0;
             }
@@ -137,9 +141,7 @@ class Activity {
         // In a future version of MySQL, we can add "FOR UPDATE ON e NOWAIT"
         $sql = "SELECT event_id
             FROM {$CFG->dbprefix}cal_event AS e
-            LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
-            WHERE k.caliper_url IS NOT NULL AND k.caliper_key IS NOT NULL AND e.state IS NULL
-                AND k.caliper_url != '' AND k.caliper_key != ''
+            WHERE e.state IS NULL
             ORDER BY e.created_at ASC LIMIT 1 FOR UPDATE";
 
         // This is a transaction. Tread carefully...
@@ -183,6 +185,17 @@ class Activity {
             ORDER BY e.created_at ASC LIMIT 1";
         $row = $PDOX->rowDie($sql,array(':event_id' => $event_id) );
 
+        // Detect and delete malformed events
+        if ( ! $row ) {
+            $sql = "DELETE FROM {$CFG->dbprefix}cal_event WHERE event_id = :event_id";
+            $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
+            error_log("Deleted malformed event_id:".$event_id);
+            return false;
+        }
+
+        // Pull out the row
+        $caliper_url = $row['caliper_url'];
+        $caliper_key = $row['caliper_key'];
         $launch = $row['launch'];
         $email = $row['email'];
         $user_key = $row['user_key'];
@@ -191,9 +204,17 @@ class Activity {
         $application = $CFG->apphome;
         $path = $row['path'];
         $page = $row['path'];
-        $caliper_url = $row['caliper_url'];
-        $caliper_key = $row['caliper_key'];
+
         $key_key = $row['key_key'];
+
+        // Detect and delete malformed events
+        if ( strlen($key_key) < 1 || strlen($user_key) < 1 ||
+             strlen($caliper_url) < 1 || strlen($caliper_key) < 1 ) {
+            $sql = "DELETE FROM {$CFG->dbprefix}cal_event WHERE event_id = :event_id";
+            $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
+            error_log("Deleted malformed event:".$key_key.':'.$caliper_url.":".$caliper_key);
+            return false;
+        }
 
         if ( strpos($page, $CFG->apphome) === 0 ) {
             $page = substr($page, strlen($CFG->apphome) );

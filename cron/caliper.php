@@ -13,7 +13,7 @@ if ( ! U::isCli() ) {
 
 $seconds = 2;
 $maxevents = 1;
-$debug = true;  // true implies no delete
+$debug = false;  // true implies no delete
 
 $stuff = Activity::pushCaliperEvents($seconds, $maxevents, $debug);
 if ( $debug ) echo ("\nCaliper results:\n");
