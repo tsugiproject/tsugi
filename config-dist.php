@@ -394,13 +394,30 @@ $CFG->eventtime = 7*24*60*60;  // Length in seconds of the event buffer
 $CFG->eventpushcount = 50;     // Set to zero to suspend event push
 $CFG->eventpushtime = 2;       // Maximum length in seconds to push events
 
+// Store sessions in memcache - this seems like the fastest, best, and simplest
+// way when running on AWS.
+// http://php.net/manual/en/memcached.sessions.php
+
+// $CFG->memcache = 'tcp://memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
+if ( isset($CFG->memcache) && strlen($CFG->memcache) > 0 ) {
+    ini_set('session.save_handler', 'memcache');
+    ini_set('session.save_path', $CFG->memcache);
+}
+
+// Note no "tcp://" for the memcached version of the url
+// $CFG->memcached = 'memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
+if ( isset($CFG->memcached) && strlen($CFG->memcached) > 0 ) {
+    ini_set('session.save_handler', 'memcached');
+    ini_set('session.save_path', $CFG->memcached);
+}
+
 // Store sessions in a database -  Keep this false until the DB upgrade
 // has run once or you won't be able to get into the admin. The
 // connection used should should be a different database or at
 // least a different connection since the Symfony PdoSessionHandler
 // messes with how the connection handles transactions for its own purposes.
-$CFG->sessions_in_db = false;
-if ( $CFG->sessions_in_db ) {
+// $CFG->sessions_in_db = false;
+if ( isset($CFG->sessions_in_db) && $CFG->sessions_in_db ) {
     $session_save_pdo = new PDO($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
     $session_save_pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     session_set_save_handler(
@@ -413,11 +430,13 @@ if ( $CFG->sessions_in_db ) {
 
 // Storing Sessions in DynamoDB - Beta
 // http://docs.aws.amazon.com/aws-sdk-php/v2/guide/feature-dynamodb-session-handler.html
-$CFG->dynamodb_key = false; // 'AKIISDIUSDOUISDHFBUQ';
-$CFG->dynamodb_secret = false; // 'zFKsdkjhkjskhjSAKJHsakjhSAKJHakjhdsasYaZ';
-$CFG->dynamodb_region = false; // 'us-east-2'
+// $CFG->dynamodb_key = 'AKIISDIUSDOUISDHFBUQ';
+// $CFG->dynamodb_secret = 'zFKsdkjhkjskhjSAKJHsakjhSAKJHakjhdsasYaZ';
+// $CFG->dynamodb_region = 'us-east-2';
 
-if ( strlen($CFG->dynamodb_key) > 0 && strlen($CFG->dynamodb_secret) > 0 && strlen($CFG->dynamodb_region) > 0 ) {
+if ( isset($CFG->dynamodb_key) && isset($CFG->dynamodb_secret) && isset($CFG->dynamodb_region) &&
+     strlen($CFG->dynamodb_key) > 0 && strlen($CFG->dynamodb_secret) > 0 &&
+     strlen($CFG->dynamodb_region) > 0 ) {
     $CFG->sessions_in_dynamodb = true;
     if ( $CFG->sessions_in_dynamodb ) {
         $dynamoDb = \Aws\DynamoDb\DynamoDbClient::factory(
