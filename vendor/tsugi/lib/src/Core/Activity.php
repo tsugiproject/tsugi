@@ -101,6 +101,7 @@ class Activity {
             apc_store('last_event_purge_time', time());
         } else { // purge probabilistically
             $check = isset($CFG->eventcheck) ? $CFG->eventcheck : 1000;
+            if ( $check < 1 ) $check = 1000;
             if ( time() % $check !== 0 ) return 0;
         }
 
