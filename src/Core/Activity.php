@@ -84,7 +84,7 @@ class Activity {
         global $CFG;
 
         // We really want some quiet time...
-        if ( false && U::apcAvailable() ) {
+        if ( U::apcAvailable() ) {
             $push_found = false;
             $last_push = apc_fetch('last_event_push_time',$push_found);
             $push_diff = time() - $last_push;
@@ -101,11 +101,7 @@ class Activity {
             apc_store('last_event_purge_time', time());
         } else { // purge probabilistically
             $check = isset($CFG->eventcheck) ? $CFG->eventcheck : 1000;
-            if ( time() % $check !== 0 ) {
-                error_log("Purge skip");
-                return 0;
-            }
-            error_log("Purge do");
+            if ( time() % $check !== 0 ) return 0;
         }
 
         $eventtime = isset($CFG->eventtime) ? $CFG->eventtime : 24*60*60; // one day
