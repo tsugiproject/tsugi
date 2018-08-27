@@ -68,7 +68,7 @@ class Lessons {
         /// Load the Lesson
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         if ( ! $l ) {
-            $app->tsugiFlashError(__('Canot load lessons.'));
+            $app->tsugiFlashError(__('Cannot load lessons.'));
             return $app->redirect($redirect_path);
         }
 
