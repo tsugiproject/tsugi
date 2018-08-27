@@ -571,52 +571,13 @@ class LTIX {
             $row['role'] = $row['role_override'];
         }
 
-        // TODO: Pull this out because it can be used > 1 place (i.e. Google login)
-
         // Update the login_at data and do analytics if requested
         // There are a lot of queryReturnError() calls because we don't want to
         // fail on "nice to have" analytics data.
         $start_time = self::wrapped_session_get($session_object, 'tsugi_permanent_start_time', false);
+
         if ( isset($row['user_id']) && $start_time === false ) {
-            if ( Net::getIP() !== NULL ) {
-                $sql = "UPDATE {$CFG->dbprefix}lti_user
-                    SET login_at=NOW(), login_count=login_count+1, ipaddr=:IP WHERE user_id = :user_id";
-                $stmt = $PDOX->queryReturnError($sql, array(
-                    ':IP' => Net::getIP(),
-                    ':user_id' => $row['user_id']));
-            } else {
-                $sql = "UPDATE {$CFG->dbprefix}lti_user
-                    SET login_at=NOW(), login_count=login_count+1 WHERE user_id = :user_id";
-                $stmt = $PDOX->queryReturnError($sql, array(
-                    ':user_id' => $row['user_id']));
-            }
-
-            if ( ! $stmt->success ) {
-                error_log("Unable to update login_at user_id=".$row['user_id']);
-            }
-
-            if ( isset($row['context_id']) ) {
-                $sql = "UPDATE {$CFG->dbprefix}lti_context
-                    SET login_at=NOW(), login_count=login_count+1 WHERE context_id = :context_id";
-                $stmt = $PDOX->queryReturnError($sql, array(
-                    ':context_id' => $row['context_id']));
-
-                if ( ! $stmt->success ) {
-                    error_log("Unable to update login_at context_id=".$row['context_id']);
-                }
-            }
-
-            // We do an update of login_at for the key
-            if ( array_key_exists('key_id', $row) ) {
-                $sql = "UPDATE {$CFG->dbprefix}lti_key
-                    SET login_at=NOW(),login_count=login_count+1 WHERE key_id = :key_id";
-                $stmt = $PDOX->queryReturnError($sql, array(
-                    ':key_id' => $row['key_id']));
-
-                if ( ! $stmt->success ) {
-                    error_log("Unable to update login_at key_id=".$row['context_id']);
-                }
-            }
+            self::noteLoggedIn($row);
 
             // Only learner launches are logged
             if ( $CFG->launchactivity && isset($row['link_id']) && $row['link_id'] && $row['role'] == 0 ) {
@@ -2065,8 +2026,6 @@ class LTIX {
             return;
         }
 
-
-
         $ct = $_COOKIE[$CFG->cookiename];
         // error_log("Cookie: $ct \n");
         $pieces = SecureCookie::extract($ct);
@@ -2093,9 +2052,10 @@ class LTIX {
         // The profile table might not even exist yet.
         // See also login.php line 339 (ish)
         $stmt = $PDOX->queryReturnError(
-            "SELECT P.profile_id AS profile_id, P.displayname AS displayname,
-                P.email AS email, U.user_id AS user_id, U.user_key AS user_key,
-                P.image AS user_image,
+            "SELECT P.profile_id AS profile_id,
+                U.user_id AS user_id, U.user_key AS user_key,
+                U.displayname AS displayname, U.email AS email, U.image AS user_image,
+                P.displayname AS p_displayname, P.email AS p_email, P.image AS p_user_image,
                 role, C.context_key, C.context_id AS context_id,
                 C.title AS context_title, C.title AS resource_title,
                 K.key_id, K.key_key, K.secret
@@ -2125,6 +2085,14 @@ class LTIX {
             SecureCookie::delete();
             return;
         }
+
+        // Coalesce from profile to user where there is missing data
+        if ( strlen($row['user_image']) < 1 ) $row['user_image'] = $row['p_user_image'];
+        if ( strlen($row['email']) < 1 ) $row['email'] = $row['p_email'];
+        if ( strlen($row['displayname']) < 1 ) $row['displayname'] = $row['p_displayname'];
+        unset($row['p_user_image']);
+        unset($row['p_email']);
+        unset($row['p_displayname']);
 
         self::wrapped_session_put($session_object,'id',$row['user_id']);
         self::wrapped_session_put($session_object,'email',$row['email']);
@@ -2271,6 +2239,57 @@ class LTIX {
         header("Location: ".$return_url);
         error_log($prefix.' '.$msg.' '.$extra);
         exit();
+    }
+
+    /**
+     * Update the login_at fields as appropriate
+     */
+    public static function noteLoggedIn($row)
+    {
+        global $CFG, $PDOX;
+
+        if ( ! isset($row['user_id']) ) return;
+        if ( ! isset($PDOX) || ! $PDOX ) return;
+
+        if ( Net::getIP() !== NULL ) {
+            $sql = "UPDATE {$CFG->dbprefix}lti_user
+                SET login_at=NOW(), login_count=login_count+1, ipaddr=:IP WHERE user_id = :user_id";
+            $stmt = $PDOX->queryReturnError($sql, array(
+                ':IP' => Net::getIP(),
+                ':user_id' => $row['user_id']));
+        } else {
+            $sql = "UPDATE {$CFG->dbprefix}lti_user
+                SET login_at=NOW(), login_count=login_count+1 WHERE user_id = :user_id";
+            $stmt = $PDOX->queryReturnError($sql, array(
+                ':user_id' => $row['user_id']));
+        }
+
+        if ( ! $stmt->success ) {
+            error_log("Unable to update login_at user_id=".$row['user_id']);
+        }
+
+        if ( isset($row['context_id']) ) {
+            $sql = "UPDATE {$CFG->dbprefix}lti_context
+                SET login_at=NOW(), login_count=login_count+1 WHERE context_id = :context_id";
+            $stmt = $PDOX->queryReturnError($sql, array(
+                ':context_id' => $row['context_id']));
+
+            if ( ! $stmt->success ) {
+                error_log("Unable to update login_at context_id=".$row['context_id']);
+            }
+        }
+
+        // We do an update of login_at for the key
+        if ( array_key_exists('key_id', $row) ) {
+            $sql = "UPDATE {$CFG->dbprefix}lti_key
+                SET login_at=NOW(),login_count=login_count+1 WHERE key_id = :key_id";
+            $stmt = $PDOX->queryReturnError($sql, array(
+                ':key_id' => $row['key_id']));
+
+            if ( ! $stmt->success ) {
+                error_log("Unable to update login_at key_id=".$row['context_id']);
+            }
+        }
     }
 
     /**

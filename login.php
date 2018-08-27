@@ -217,10 +217,10 @@ if ( $doLogin ) {
         if ( $profile_row === false ) {
             $stmt = $PDOX->queryDie(
                 "INSERT INTO {$CFG->dbprefix}profile
-                (profile_sha256, profile_key, key_id, email, displayname, created_at, updated_at, login_at) ".
-                    "VALUES ( :SHA, :UKEY, :KEY, :EMAIL, :DN, NOW(), NOW(), NOW() )",
+                (profile_sha256, profile_key, key_id, email, displayname, image, created_at, updated_at, login_at) ".
+                    "VALUES ( :SHA, :UKEY, :KEY, :EMAIL, :DN, :IM, NOW(), NOW(), NOW() )",
                  array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $google_key_id,
-                    ':EMAIL' => $userEmail, ':DN' => $displayName)
+                    ':EMAIL' => $userEmail, ':DN' => $displayName, ':IM' => $userAvatar)
             );
 
             if ( $stmt->success) $profile_id = $PDOX->lastInsertId();
@@ -234,10 +234,10 @@ if ( $doLogin ) {
             }
             $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}profile
-                SET email = :EMAIL, displayname = :DN, login_at = NOW()
+                SET email = :EMAIL, displayname = :DN, image = :IM, login_at = NOW()
                 WHERE profile_id = :PRID",
                  array('PRID' => $profile_id,
-                    ':EMAIL' => $userEmail, ':DN' => $displayName)
+                    ':EMAIL' => $userEmail, ':DN' => $displayName, ':IM' => $userAvatar)
             );
         }
 
@@ -265,20 +265,21 @@ if ( $doLogin ) {
         if ( $user_id > 0 ) {
             $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}lti_user
-                 SET displayname=:DN, login_at=NOW(), ipaddr=:IP
+                 SET displayname=:DN, email=:EMAIL, image=:IM, login_at=NOW(), ipaddr=:IP
                  WHERE user_id=:ID",
                 array(':DN' => $displayName,':IP' => Net::getIP(), 
-                    ':ID' => $user_id)
+                    ':ID' => $user_id, ':IM' => $userAvatar, ':EMAIL' => $userEmail)
             );
+            error_log('User-Update:'.$user_key.','.$displayName.','.$userEmail);
         } else if ( $user_row === false ) { // Lets insert!
             $stmt = $PDOX->queryReturnError(
                 "INSERT INTO {$CFG->dbprefix}lti_user
                 (user_sha256, user_key, key_id, profile_id,
-                    email, displayname, created_at, updated_at, login_at, ipaddr) ".
-                "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, NOW(), NOW(), NOW(), :IP )",
+                    email, displayname, image, created_at, updated_at, login_at, ipaddr) ".
+                "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, :IM, NOW(), NOW(), NOW(), :IP )",
                  array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $google_key_id,
                     ':PROF' => $profile_id, ':EMAIL' => $userEmail, ':DN' => $displayName,
-		    ':IP' => Net::getIP())
+                    ':IM' => $userAvatar, ':IP' => Net::getIP())
             );
 
             if ( $stmt->success ) {
@@ -290,10 +291,10 @@ if ( $doLogin ) {
             $user_id = $user_row['user_id']+0;
             $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}lti_user
-                 SET email=:EMAIL, displayname=:DN, profile_id = :PRID, login_at=NOW(), ipaddr=:IP
+                 SET email=:EMAIL, displayname=:DN, image=:IM, profile_id = :PRID, login_at=NOW(), ipaddr=:IP
                  WHERE user_id=:ID",
                 array(':EMAIL' => $userEmail, ':DN' => $displayName,':IP' => Net::getIP(), 
-                    ':ID' => $user_id, ':PRID' => $profile_id)
+                    ':ID' => $user_id, ':PRID' => $profile_id, ':IM' => $userAvatar)
             );
             error_log('User-Update:'.$user_key.','.$displayName.','.$userEmail);
         }
@@ -346,17 +347,18 @@ if ( $doLogin ) {
         $lti["user_key"] = $user_key;
 
         $_SESSION["email"] = $userEmail;
-        $lti["user_email"] = $userEmail;
+        $lti["email"] = $userEmail;
 
         $_SESSION["displayname"] = $displayName;
-        $lti["user_displayname"] = $displayName;
+        $lti["displayname"] = $displayName;
 
         $_SESSION["profile_id"] = $profile_id;
         $lti["profile_id"] = $profile_id;
 
         if ( isset($userAvatar) ) {
-            $_SESSION["avatar"] = $userAvatar;
-            $lti["user_image"] = $userAvatar;
+            $_SESSION["avatar"] = $userAvatar; // TODO: Remove
+            $_SESSION["image"] = $userAvatar;
+            $lti["image"] = $userAvatar;
         }
 
         if ( isset($CFG->context_title) ) {
@@ -375,6 +377,8 @@ if ( $doLogin ) {
 
         // Set that data in the session.
         $_SESSION['lti'] = $lti;
+
+        LTIX::noteLoggedIn($lti);
 
         // Set the secure cookie
         SecureCookie::set($user_id,$userEmail,$context_id);
