@@ -2116,6 +2116,8 @@ class LTIX {
         // Emulate a session launch
         self::wrapped_session_put($session_object,'lti',$row);
 
+        self::noteLoggedIn($row);
+
         error_log('Autologin:'.$row['user_id'].','.$row['displayname'].','.
             $row['email'].','.$row['profile_id']);
 
