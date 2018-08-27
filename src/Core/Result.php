@@ -2,6 +2,7 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\LTI13;
 use \Tsugi\UI\Output;
@@ -191,7 +192,7 @@ class Result extends Entity {
         $ipaddr = Net::getIP();
 
         // Update the local copy of the grade in the lti_result table
-        if ( $PDOX !== false && $result_id !== false ) {
+        if ( $PDOX !== false && ! empty($result_id) ) {
             $stmt = $PDOX->queryReturnError(
                 "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
                     ipaddr = :IP, updated_at = NOW() WHERE result_id = :RID",
@@ -216,29 +217,26 @@ class Result extends Entity {
             return false;
         }
 
-        // var_dump($key_key); var_dump($lti13_token_url); var_dump($lti13_privkey); var_dump($lti13_lineitem); die('Die');
-
         // TODO: Fix this
         $comment = "";
         // Check is this is a Google Classroom Launch
         if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['gc_submit_id']) ) {
             $status = GoogleClassroom::gradeSend(intval($grade*100));
 
-        // If we have a result_url and either ($CFG->prefer_lti1_for_grade_send is false or we don't have a $service),
-        // use result_url to send the grade
-        } else if ( strlen($result_url) > 0 && ($CFG->prefer_lti1_for_grade_send === false || $service === false) ) {
-            $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log, $signature);
-
-        // Otherwise use the more established service call
-        } else if ( $sourcedid !== false && $service !== false ) {
+        // Classic POX call
+        } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {
             $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log, $signature);
  
-        // Check if this is an LTI 1.3 grade passback
-        } else if ( $lti13_privkey !== false && $lti13_privkey !== false && $lti13_token_url !== false) {
+        // LTI 2.x call
+        } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($result_url) > 0 ) {
+            $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log, $signature);
+
+        // LTI 1.3 grade passback
+        // TODO: Cache the token and renew
+        } else if ( strlen($lti13_privkey) > 0 && strlen($lti13_privkey) > 0 && strlen($lti13_token_url) > 0 ) {
             error_log("Getting token key_key=$key_key lti13_token_url=$lti13_token_url");
             $token_data = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey);
             $access_token = $token_data['access_token'];
-            // TODO: WTF user_key?
             $tmp = "Sending grade $grade user_key=$user_key lti13_lineitem=$lti13_lineitem access_token=$access_token";
             error_log($tmp);
             $tmp = "Sending grade $grade user_key=$user_key";
@@ -290,13 +288,17 @@ class Result extends Entity {
                 $ltidata['grade'] = $grade;
                 $this->session_put('lti', $ltidata);
             }
-            $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$USER->id;
-            if ( is_array($debug_log) )  $debug_log[] = array($msg);
-            error_log($msg);
+            if ( strlen($sourcedid) > 0 ) {
+                $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$USER->id;
+                if ( is_array($debug_log) )  $debug_log[] = array($msg);
+                error_log($msg);
+            }
         } else {
             $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$USER->id;
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
+            $svd = Output::safe_var_dump($debug_log);
+            error_log("Grade falure detail:\n".$svd);
             return $status;
         }
 
