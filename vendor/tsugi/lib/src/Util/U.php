@@ -587,22 +587,32 @@ class U {
 
     // https://stackoverflow.com/questions/2110732/how-to-get-name-of-calling-function-method-in-php
     /**
-     * Get caller outside this file
+     * Get caller outside this file as string
+     *
+     *      error_log("Called by: ".U::getCaller());
+     *      error_log("Called by: ".U::getCaller(2));
+     *
+     *      Called by: /Applications/MAMP/htdocs/py4e/tsugi/vendor/tsugi/lib/src/Core/LTIX.php:1766 /Applications/MAMP/htdocs/py4e/tools/pythonauto/sendgrade.php:18
      */
-    public static function getCallerDBT()
+    // Need to replicate the code or U.php will be in the traceback
+    public static function getCaller($count=1)
     {
-        $dbts=debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,6);
+        $dbts=debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,6+$count);
         if ( ! is_array($dbts) || count($dbts) < 2 ) return null;
         if ( ! isset($dbts[0]['file']) ) return null;
         $myfile = $dbts[0]['file'];
+        $retval = '';
         foreach($dbts as $dbt) {
             if ( ! isset($dbt['file']) ) continue;
             if ( ! isset($dbt['line']) ) continue;
             if ( $myfile != $dbt['file'] ) {
-                return $dbt;
+                if ( strlen($retval) > 0 ) $retval .= " ";
+                $retval.= $dbt['file'].':'.$dbt['line'];
+                $count--;
+                if ( $count < 1 ) return $retval;
             }
         }
-        return null;
-
+        return $retval;
     }
+
 }

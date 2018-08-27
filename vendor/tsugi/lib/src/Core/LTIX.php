@@ -723,15 +723,6 @@ class LTIX {
                 $row['event_nonce'] = $event_nonce;
                 $row['event_launch'] = $event_launch;
             }
-
-            // Probabilistically cleanup event table
-            if ( $CFG->eventcheck > 0 ) {
-                if ( (time() % $CFG->eventcheck) == 0 ) {
-                    $stmt = $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}cal_event WHERE
-                        created_at < DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -{$CFG->eventtime} SECOND)");
-                    error_log("Event table cleanup rows=".$stmt->rowCount());
-                }
-            }
         }
 
         // Make sure we debounce really fast relaunches

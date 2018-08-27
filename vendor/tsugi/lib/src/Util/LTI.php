@@ -467,6 +467,15 @@ class LTI {
         $LastPOXGradeParse = false;
         $LastPOXGradeError = false;
 
+        if ( strlen($sourcedid) < 1 ) {
+            if ( is_array($debug_log) ) $debug_log[] = array('Missing sourcedid');
+            return "Missing sourcedid";
+        }
+        if ( strlen($service) < 1 ) {
+            if ( is_array($debug_log) ) $debug_log[] = array('Missing service');
+            return "Missing service";
+        }
+
         $content_type = "application/xml";
         $sourcedid = htmlspecialchars($sourcedid);
 
@@ -534,6 +543,15 @@ class LTI {
     public static function sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, &$debug_log=false, $signature=false) {
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
+
+        if ( strlen($sourcedid) < 1 ) {
+            if ( is_array($debug_log) ) $debug_log[] = array('Missing service');
+            return "Missing sourcedid";
+        }
+        if ( strlen($service) < 1 ) {
+            if ( is_array($debug_log) ) $debug_log[] = array('Missing service');
+            return "Missing service";
+        }
 
         $content_type = "application/xml";
         $sourcedid = htmlspecialchars($sourcedid);

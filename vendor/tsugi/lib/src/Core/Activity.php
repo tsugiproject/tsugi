@@ -68,7 +68,7 @@ class Activity {
         $retval['fail'] = $failure;
         if ( $failure_code !== false ) $retval['failcode'] = $failure_code;
         $retval['seconds'] = $delta;
-         $retval['purged'] = $purged;
+        $retval['purged'] = $purged;
         return $retval;
     }
 
@@ -99,36 +99,23 @@ class Activity {
                 return 0;
             }
             apc_store('last_event_purge_time', time());
+        } else { // purge probabilistically
+            $check = isset($CFG->eventcheck) ? $CFG->eventcheck : 1000;
+            if ( time() % $check !== 0 ) return 0;
         }
+
+        $eventtime = isset($CFG->eventtime) ? $CFG->eventtime : 24*60*60; // one day
 
         $PDOX = LTIX::getConnection();
 
-        // This WHERE clause in the sub-select needs to be the *opposite*
-        // of sendCaliperEvent to avoid transaction thrashing also note
-        // descending instead of ascending
-        $sql = "SELECT event_id
-            FROM {$CFG->dbprefix}cal_event AS e
-            LEFT JOIN {$CFG->dbprefix}lti_key AS k ON k.key_id = e.key_id
-            WHERE k.caliper_url IS NULL OR k.caliper_key IS NULL
-                OR k.caliper_url = '' OR k.caliper_key = ''
-            ORDER BY e.created_at DESC LIMIT 50";
+        $stmt = $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}cal_event WHERE
+            created_at < DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -{$eventtime} SECOND)");
 
-        $rows = $PDOX->allRowsDie($sql);
-
-        if ( count($rows) < 1 ) return 0;
-
-        error_log('Caliper cleanup rows: '.count($rows));
-
-        $in = '';
-        foreach($rows as $row) {
-            if ( strlen($in) > 0 ) $in .= ', ';
-            $in .= $row['event_id'];
+        if ( $stmt->rowCount() > 0 ) {
+            error_log("Event table cleanup rows=".$stmt->rowCount());
         }
 
-        $sql = "DELETE FROM {$CFG->dbprefix}cal_event where event_id IN ( $in )";
-        $PDOX->queryDie($sql);
-
-        return count($rows);
+        return $stmt->rowCount();
     }
 
 
@@ -188,7 +175,7 @@ class Activity {
         // Detect and delete malformed events
         if ( ! $row ) {
             $sql = "DELETE FROM {$CFG->dbprefix}cal_event WHERE event_id = :event_id";
-            $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
+            $PDOX->queryDie($sql, array(':event_id' => $event_id));
             error_log("Deleted malformed event_id:".$event_id);
             return false;
         }
@@ -211,7 +198,7 @@ class Activity {
         if ( strlen($key_key) < 1 || strlen($user_key) < 1 ||
              strlen($caliper_url) < 1 || strlen($caliper_key) < 1 ) {
             $sql = "DELETE FROM {$CFG->dbprefix}cal_event WHERE event_id = :event_id";
-            $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
+            $PDOX->queryDie($sql, array(':event_id' => $event_id));
             error_log("Deleted malformed event:".$key_key.':'.$caliper_url.":".$caliper_key);
             return false;
         }
@@ -255,21 +242,22 @@ class Activity {
 
         $response_code = Net::getLastHttpResponse();
         if ( $response_code != 200 ) {
+            // TODO: add caliper_failure table
             error_log("Caliper error code=".$response_code." url=".$url);
-            $sql = "UPDATE {$CFG->dbprefix}cal_event
-                SET state=1, json=:json, updated_at=NOW()
-                WHERE event_id = :event_id";
-            $PDOX->queryDie($sql, array(
-                ':json' => LTI::jsonIndent(json_encode($retval)),
-                ':event_id' => $row['event_id'])
-            );
-
         }
 
         if ( $delete ) {
             $sql = "DELETE FROM {$CFG->dbprefix}cal_event WHERE event_id = :event_id";
-            $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
+            $PDOX->queryDie($sql, array(':event_id' => $event_id));
             $retval['deleted'] = 'yes';
+        } else { // For debugging set back to sendable
+            $sql = "UPDATE {$CFG->dbprefix}cal_event
+                SET state=0, json=:json, updated_at=NOW()
+                WHERE event_id = :event_id";
+            $PDOX->queryDie($sql, array(
+                ':json' => LTI::jsonIndent(json_encode($retval)),
+                ':event_id' => $event_id)
+            );
         }
 
         // error_log("Sent event_id=".$row['event_id']." response=".$response_code);
