@@ -48,8 +48,7 @@ class MyNotify implements MessageComponentInterface {
             return;
         }
         error_log("New WebSocket $decode");
-        $room = U::get($queryarray,'room');
-        if (! is_numeric($room) ) $room = null;
+        $room = U::get($queryarray,'room', null);
         $conn->room = $room;
         $conn->token = $token;
         $conn->decode = $decode;
