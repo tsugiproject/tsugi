@@ -34,7 +34,7 @@ class Activity {
             $last_push = apc_fetch('last_event_push_time',$found);
             $diff = $start - $last_push;
             if ( $found && $diff < self::PUSH_REPEAT_SECONDS ) {
-                error_log("Last push was $diff seconds ago");
+                // error_log("Last push was $diff seconds ago");
                 $retval['count'] = $count;
                 $retval['fail'] = $failure;
                 $retval['failcode'] = 999;
@@ -95,7 +95,7 @@ class Activity {
 
             if ( ($push_found && $push_diff < self::PUSH_REPEAT_SECONDS) ||
                  ($purge_found && $purge_diff < self::PURGE_REPEAT_SECONDS) ) {
-                error_log("Last purge was $purge_diff seconds ago last push was $push_diff seconds ago");
+                // error_log("Last purge was $purge_diff seconds ago last push was $push_diff seconds ago");
                 return 0;
             }
             apc_store('last_event_purge_time', time());
