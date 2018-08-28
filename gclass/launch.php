@@ -15,6 +15,7 @@ if ( isset($CFG->logo_url) && $agent && stripos($agent,'Google Web Preview') !==
     return;
 }
 
+// TODO: Make the session be based on resource_link_id
 session_start();
 
 // Lets be really picky about the path...
@@ -311,8 +312,12 @@ $lti['gc_submit_id'] = $gc_submit_id;
 // Set that data in the session.
 $_SESSION['lti'] = $lti;
 
-// Record their log in
-LTIX::noteLoggedIn($lti);
+// Record their log in if this is the first for a session
+$start_time = U::get($_SESSION, 'tsugi_permanent_start_time', false);
+if ( $start_time === false ) {
+    LTIX::noteLoggedIn($lti);
+    $_SESSION['tsugi_permanent_start_time'] = time();
+}
 
 $launch = U::add_url_parm($path, 'PHPSESSID', session_id());
 
