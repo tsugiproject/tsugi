@@ -311,6 +311,9 @@ $lti['gc_submit_id'] = $gc_submit_id;
 // Set that data in the session.
 $_SESSION['lti'] = $lti;
 
+// Record their log in
+LTIX::noteLoggedIn($lti);
+
 $launch = U::add_url_parm($path, 'PHPSESSID', session_id());
 
 if ( ! U::get($_GET,'debug') ) {
