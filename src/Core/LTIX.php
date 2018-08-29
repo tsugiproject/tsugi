@@ -515,8 +515,10 @@ class LTIX {
 
                 if ( $new_public_key ) {
                     $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
-                        SET lti13_pubkey=:PK, updated_at=NOW() WHERE key_sha256 = :SHA",
-                    array(':SHA' => $consumer_sha256, ':PK' => $new_public_key) );
+                        SET lti13_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE key_sha256 = :SHA",
+                        array(':SHA' => $consumer_sha256, ':PK' => $new_public_key,
+                            ':KID' => $request_kid )
+                    );
                     error_log("New public key $consumer_sha256\n$new_public_key");
                     $public_key = $new_public_key;
                 } else {
