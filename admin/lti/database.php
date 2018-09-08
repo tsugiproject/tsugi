@@ -175,6 +175,7 @@ array( "{$CFG->dbprefix}lti_link",
     context_id          INTEGER NOT NULL,
 
     path                TEXT NULL,
+    lti13_lineitem      TEXT NULL,
 
     title               TEXT NULL,
 
@@ -316,7 +317,6 @@ array( "{$CFG->dbprefix}lti_result",
     deleted            TINYINT(1) NOT NULL DEFAULT 0,
 
     result_url         TEXT NULL,
-    lti13_lineitem     TEXT NULL,
 
     sourcedid          TEXT NULL,
     service_id         INTEGER NULL,
@@ -1380,15 +1380,16 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    if ( ! $PDOX->columnExists('lti13_lineitem', "{$CFG->dbprefix}lti_result") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result ADD lti13_lineitem TEXT NULL";
+    if ( ! $PDOX->columnExists('lti13_lineitem', "{$CFG->dbprefix}lti_link") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD lti13_lineitem TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
     }
 
-
     // TODO: transfer lti_event contents to cal_event and drop the table
+
+    // TODO: Remove lti13_lineitem from lti_result
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
