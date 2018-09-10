@@ -142,6 +142,7 @@ array( "{$CFG->dbprefix}lti_context",
     ext_memberships_url TEXT NULL,
     memberships_url     TEXT NULL,
     lineitems_url       TEXT NULL,
+    lti13_lineitems     TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
     login_at            TIMESTAMP NULL,
     login_count         BIGINT DEFAULT 0,
@@ -1387,13 +1388,20 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    if ( ! $PDOX->columnExists('lti13_lineitems', "{$CFG->dbprefix}lti_context") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD lti13_lineitems TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // TODO: transfer lti_event contents to cal_event and drop the table
 
     // TODO: Remove lti13_lineitem from lti_result
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201805261228;
+    return 201809100913;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
