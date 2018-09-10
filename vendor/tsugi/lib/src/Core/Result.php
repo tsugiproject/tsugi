@@ -223,17 +223,9 @@ class Result extends Entity {
         if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['gc_submit_id']) ) {
             $status = GoogleClassroom::gradeSend(intval($grade*100));
 
-        // Classic POX call
-        } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {
-            $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log, $signature);
- 
-        // LTI 2.x call
-        } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($result_url) > 0 ) {
-            $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log, $signature);
-
-        // LTI 1.3 grade passback
         // TODO: Cache the token and renew
-        } else if ( strlen($lti13_privkey) > 0 && strlen($lti13_privkey) > 0 && strlen($lti13_token_url) > 0 ) {
+        // LTI 1.3 grade passback - Prefer if available
+        } else if ( strlen($lti13_privkey) > 0 && strlen($lti13_lineitem) > 0 && strlen($lti13_token_url) > 0 ) {
             error_log("Getting token key_key=$key_key lti13_token_url=$lti13_token_url");
             $token_data = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey);
             $access_token = $token_data['access_token'];
@@ -242,6 +234,15 @@ class Result extends Entity {
             $tmp = "Sending grade $grade user_key=$user_key";
             $status = LTI13::sendGrade($user_key, $grade, /*$comment*/ $tmp, $lti13_lineitem,
                         $access_token, $debug_log);
+
+        // Classic POX call
+        } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {
+            $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log, $signature);
+
+        // LTI 2.x call - Least likely
+        } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($result_url) > 0 ) {
+            $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log, $signature);
+
         } else {
             return true;   // Local storage only
         }

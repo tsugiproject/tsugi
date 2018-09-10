@@ -7,12 +7,11 @@ use \Firebase\JWT\JWT;
 
 /**
  * This is a general purpose LTI class with no Tsugi-specific dependencies.
- *
- * This class handles the protocol and OAuth validation and does not
- * deal with how to use LTI data during the runtime of the tool.
- *
  */
 class LTI13 extends LTI {
+
+    const ROLES_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/roles";
+    const ENDPOINT_CLAIM = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
 
     public static function extract_consumer_key($jwt) {
         return 'lti13_' . $jwt->body->iss . '_' . $jwt->body->aud;
@@ -104,7 +103,7 @@ class LTI13 extends LTI {
             'grant_type' => 'client_credentials',
             'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
             'client_assertion' => $jwt,
-            'scope' => "http://imsglobal.org/ags/lineitem http://imsglobal.org/ags/result/read"
+            'scope' => "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem https://purl.imsglobal.org/spec/lti-ags/scope/score"
         ];
 
         $ch = curl_init();
@@ -115,14 +114,13 @@ class LTI13 extends LTI {
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        $token_data = json_decode(curl_exec($ch), true);
+        $token_str = curl_exec($ch);
+        error_log("Returned token data");error_log($token_str);
+        $token_data = json_decode($token_str, true);
 
         curl_close ($ch);
 
-
-// echo $token_data['access_token'];
         return $token_data;
-        // return $token_data['access_token'];
     }
 
     // Call grade book
