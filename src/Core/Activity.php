@@ -200,7 +200,7 @@ class Activity {
              strlen($caliper_url) < 1 || strlen($caliper_key) < 1 ) {
             $sql = "DELETE FROM {$CFG->dbprefix}cal_event WHERE event_id = :event_id";
             $PDOX->queryDie($sql, array(':event_id' => $event_id));
-            error_log("Deleted malformed event:".$key_key.':'.$caliper_url.":".$caliper_key);
+            error_log("Deleted malformed event:".$event_id." key=".$key_key.':'.$caliper_url);
             return false;
         }
 

@@ -938,18 +938,19 @@ class LTIX {
         }
 
         // Get the line item
-        if ( isset($body->{'https://www.imsglobal.org/lti/ags'}) &&
-            isset($body->{'https://www.imsglobal.org/lti/ags'}->lineitem) &&
-            is_string($body->{'https://www.imsglobal.org/lti/ags'}->lineitem) ) {
-            $retval['lti13_lineitem'] = $body->{'https://www.imsglobal.org/lti/ags'}->lineitem;
+        $retval['lti13_lineitem'] = null;
+        if ( isset($body->{LTI13::ENDPOINT_CLAIM}) &&
+            isset($body->{LTI13::ENDPOINT_CLAIM}->lineitem) &&
+            is_string($body->{LTI13::ENDPOINT_CLAIM}->lineitem) ) {
+            $retval['lti13_lineitem'] = $body->{LTI13::ENDPOINT_CLAIM}->lineitem;
         }
 
         // Get the role
         $retval['role'] = self::ROLE_LEARNER;
-        if ( isset($body->{'http://imsglobal.org/lti/roles'}) &&
-           is_array($body->{'http://imsglobal.org/lti/roles'}) ) {
+        if ( isset($body->{LTI13::ROLES_CLAIM}) &&
+           is_array($body->{LTI13::ROLES_CLAIM}) ) {
 
-            $roles = implode(':',$body->{'http://imsglobal.org/lti/roles'});
+            $roles = implode(':',$body->{LTI13::ROLES_CLAIM});
 
             if ( strlen($roles) > 0 ) {
                 $roles = strtolower($roles);
@@ -999,6 +1000,7 @@ class LTIX {
             m.membership_id, m.role, m.role_override,
             r.result_id, r.grade, r.result_url, r.sourcedid";
 
+        // TODO: After a while do this l.lti13_lineitem AS lti13_lineitem,
         if ( $profile_table ) {
             $sql .= ",
             p.profile_id, p.displayname AS profile_displayname, p.email AS profile_email,
@@ -1083,6 +1085,10 @@ class LTIX {
 
         // Restore ERRMODE
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
+
+        // TODO: Remove this after we add lti13_lineitem to the big join above
+        if ( ! isset($row['lti13_lineitem']) ) $row['lti13_lineitem'] = null;
+
         return $row;
     }
 
@@ -1260,15 +1266,15 @@ class LTIX {
 
         // Here we handle lti13_lineitem
         // TODO: Add this to the big join to improve efficiency after data models are all updated
-        if ( isset($post['lti13_lineitem']) && isset($row['lti13_lineitem']) &&
-                      $post['lti13_lineitem'] != $row['lti13_lineitem'] ) {
-
-            $sql = "UPDATE {$p}lti_result
+        if ( isset($row['link_id']) && isset($post['lti13_lineitem']) &&
+            array_key_exists('lti13_lineitem',$row) && $post['lti13_lineitem'] != $row['lti13_lineitem'] ) {
+            $sql = "UPDATE {$p}lti_link
                 SET lti13_lineitem = :lti13_lineitem
-                WHERE result_id = :result_id";
-            $PDOX->queryDie($sql, array(
+                WHERE link_id = :link_id";
+            // TODO: Make this QueryDie after the data model is surely updated
+            $PDOX->queryReturnError($sql, array(
                 ':lti13_lineitem' => $post['lti13_lineitem'],
-                ':result_id' => $row['result_id']));
+                ':link_id' => $row['link_id']));
             $row['lti13_lineitem'] = $post['lti13_lineitem'];
             $actions[] = "=== Updated result id=".$row['result_id']." lti13_lineitem=".$row['lti13_lineitem'];
         }
@@ -2053,14 +2059,14 @@ class LTIX {
 
         // The profile table might not even exist yet.
         // See also login.php line 339 (ish)
-        $stmt = $PDOX->queryReturnError(
-            "SELECT P.profile_id AS profile_id,
+        $sql = "SELECT P.profile_id AS profile_id,
                 U.user_id AS user_id, U.user_key AS user_key,
                 U.displayname AS displayname, U.email AS email, U.image AS user_image,
                 P.displayname AS p_displayname, P.email AS p_email, P.image AS p_user_image,
                 role, C.context_key, C.context_id AS context_id,
                 C.title AS context_title, C.title AS resource_title,
-                K.key_id, K.key_key, K.secret
+                K.key_id, K.key_key, K.secret, K.new_secret,
+                NULL AS nonce
                 FROM {$CFG->dbprefix}profile AS P
                 LEFT JOIN {$CFG->dbprefix}lti_user AS U
                 ON P.profile_id = U.profile_id AND user_sha256 = profile_sha256 AND
@@ -2072,7 +2078,9 @@ class LTIX {
                 LEFT JOIN {$CFG->dbprefix}lti_membership AS M
                     ON U.user_id = M.user_id AND C.context_id = M.context_id
                 WHERE P.email = :EMAIL AND U.email = :EMAIL
-                    AND U.user_id = :UID AND C.context_id = :CID LIMIT 1",
+                    AND U.user_id = :UID AND C.context_id = :CID LIMIT 1";
+
+        $stmt = $PDOX->queryReturnError($sql,
             array('EMAIL' => $userEmail, ":UID" => $user_id, ":CID" => $context_id)
         );
 
