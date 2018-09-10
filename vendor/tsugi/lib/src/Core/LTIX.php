@@ -2059,14 +2059,14 @@ class LTIX {
 
         // The profile table might not even exist yet.
         // See also login.php line 339 (ish)
-        $stmt = $PDOX->queryReturnError(
-            "SELECT P.profile_id AS profile_id,
+        $sql = "SELECT P.profile_id AS profile_id,
                 U.user_id AS user_id, U.user_key AS user_key,
                 U.displayname AS displayname, U.email AS email, U.image AS user_image,
                 P.displayname AS p_displayname, P.email AS p_email, P.image AS p_user_image,
                 role, C.context_key, C.context_id AS context_id,
                 C.title AS context_title, C.title AS resource_title,
-                K.key_id, K.key_key, K.secret
+                K.key_id, K.key_key, K.secret, K.new_secret,
+                NULL AS nonce
                 FROM {$CFG->dbprefix}profile AS P
                 LEFT JOIN {$CFG->dbprefix}lti_user AS U
                 ON P.profile_id = U.profile_id AND user_sha256 = profile_sha256 AND
@@ -2078,7 +2078,9 @@ class LTIX {
                 LEFT JOIN {$CFG->dbprefix}lti_membership AS M
                     ON U.user_id = M.user_id AND C.context_id = M.context_id
                 WHERE P.email = :EMAIL AND U.email = :EMAIL
-                    AND U.user_id = :UID AND C.context_id = :CID LIMIT 1",
+                    AND U.user_id = :UID AND C.context_id = :CID LIMIT 1";
+
+        $stmt = $PDOX->queryReturnError($sql,
             array('EMAIL' => $userEmail, ":UID" => $user_id, ":CID" => $context_id)
         );
 
@@ -2119,6 +2121,9 @@ class LTIX {
         if ( isset($row['secret']) ) {
             $row['secret'] = self::encrypt_secret($row['secret']);
             self::wrapped_session_put($session_object,'secret', $row['secret']);
+        }
+        if ( isset($row['new_secret']) ) {
+            $row['new_secret'] = self::encrypt_secret($row['new_secret']);
         }
 
         // Emulate a session launch

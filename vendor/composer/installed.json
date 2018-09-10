@@ -311,7 +311,8 @@
         "homepage": "http://silex.sensiolabs.org",
         "keywords": [
             "microframework"
-        ]
+        ],
+        "abandoned": "symfony/flex"
     },
     {
         "name": "mtdowling/jmespath.php",
@@ -2286,12 +2287,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "2190d7e413ae0e20b4fd22e83ccaff882f193d54"
+            "reference": "12670443cdab4e19d3dbd8fed82893efb1966d8f"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/2190d7e413ae0e20b4fd22e83ccaff882f193d54",
-            "reference": "2190d7e413ae0e20b4fd22e83ccaff882f193d54",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/12670443cdab4e19d3dbd8fed82893efb1966d8f",
+            "reference": "12670443cdab4e19d3dbd8fed82893efb1966d8f",
             "shasum": ""
         },
         "require": {

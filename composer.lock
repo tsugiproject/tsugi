@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "9229011b2a231c5bdd72a3271939c47e",
-    "content-hash": "c1ff23efc48e5e1d4e2eadaa5cbedf0c",
+    "hash": "48249020f51d114b1c896ea44783ba6c",
+    "content-hash": "3ae0128168f8d3d9a17c603da2f45da1",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -1627,6 +1627,7 @@
             "keywords": [
                 "microframework"
             ],
+            "abandoned": "symfony/flex",
             "time": "2016-11-06 18:09:06"
         },
         {
@@ -2153,12 +2154,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "2190d7e413ae0e20b4fd22e83ccaff882f193d54"
+                "reference": "12670443cdab4e19d3dbd8fed82893efb1966d8f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/2190d7e413ae0e20b4fd22e83ccaff882f193d54",
-                "reference": "2190d7e413ae0e20b4fd22e83ccaff882f193d54",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/12670443cdab4e19d3dbd8fed82893efb1966d8f",
+                "reference": "12670443cdab4e19d3dbd8fed82893efb1966d8f",
                 "shasum": ""
             },
             "require": {
