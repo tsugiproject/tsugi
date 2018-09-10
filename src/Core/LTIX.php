@@ -2122,6 +2122,9 @@ class LTIX {
             $row['secret'] = self::encrypt_secret($row['secret']);
             self::wrapped_session_put($session_object,'secret', $row['secret']);
         }
+        if ( isset($row['new_secret']) ) {
+            $row['new_secret'] = self::encrypt_secret($row['new_secret']);
+        }
 
         // Emulate a session launch
         self::wrapped_session_put($session_object,'lti',$row);
