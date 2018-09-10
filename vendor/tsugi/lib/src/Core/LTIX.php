@@ -1087,7 +1087,7 @@ class LTIX {
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
 
         // TODO: Remove this after we add lti13_lineitem to the big join above
-        if ( ! isset($row['lti13_lineitem']) ) $row['lti13_lineitem'] = null;
+        if ( $row && is_array($row) && ! isset($row['lti13_lineitem']) ) $row['lti13_lineitem'] = null;
 
         return $row;
     }
