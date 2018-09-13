@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "b7beaafe85e60d0f5f01b1b161050245",
-    "content-hash": "c811076bbc75ae2962cdcf349e4d2655",
+    "hash": "8da2c5da2296da221cfa365065d548ff",
+    "content-hash": "f4c63fc7a89d81ebf547c729f2f9fb3b",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -348,12 +348,12 @@
             "version": "v2.2.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/google/google-api-php-client.git",
+                "url": "https://github.com/googleapis/google-api-php-client.git",
                 "reference": "b69b8ac4bf6501793c389d4e013a79d09c85c5f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-api-php-client/zipball/b69b8ac4bf6501793c389d4e013a79d09c85c5f2",
+                "url": "https://api.github.com/repos/googleapis/google-api-php-client/zipball/b69b8ac4bf6501793c389d4e013a79d09c85c5f2",
                 "reference": "b69b8ac4bf6501793c389d4e013a79d09c85c5f2",
                 "shasum": ""
             },
@@ -407,12 +407,12 @@
             "version": "v0.56",
             "source": {
                 "type": "git",
-                "url": "https://github.com/google/google-api-php-client-services.git",
+                "url": "https://github.com/googleapis/google-api-php-client-services.git",
                 "reference": "94ae125bd4ac33eec676142f7776c0b137cf7bc7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-api-php-client-services/zipball/94ae125bd4ac33eec676142f7776c0b137cf7bc7",
+                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/94ae125bd4ac33eec676142f7776c0b137cf7bc7",
                 "reference": "94ae125bd4ac33eec676142f7776c0b137cf7bc7",
                 "shasum": ""
             },
@@ -444,12 +444,12 @@
             "version": "v1.3.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/google/google-auth-library-php.git",
+                "url": "https://github.com/googleapis/google-auth-library-php.git",
                 "reference": "436007a77fd2037f933d3a5c8e4c7e0c9b88a7b0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/google/google-auth-library-php/zipball/436007a77fd2037f933d3a5c8e4c7e0c9b88a7b0",
+                "url": "https://api.github.com/repos/googleapis/google-auth-library-php/zipball/436007a77fd2037f933d3a5c8e4c7e0c9b88a7b0",
                 "reference": "436007a77fd2037f933d3a5c8e4c7e0c9b88a7b0",
                 "shasum": ""
             },
@@ -2154,12 +2154,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "e9af8552086d3b12ba206727e0915202fd6b1a3a"
+                "reference": "7cd22b826aee4a48d0c138cf64d29cdcff62f649"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e9af8552086d3b12ba206727e0915202fd6b1a3a",
-                "reference": "e9af8552086d3b12ba206727e0915202fd6b1a3a",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/7cd22b826aee4a48d0c138cf64d29cdcff62f649",
+                "reference": "7cd22b826aee4a48d0c138cf64d29cdcff62f649",
                 "shasum": ""
             },
             "require": {

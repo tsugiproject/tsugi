@@ -227,8 +227,15 @@ class Result extends Entity {
         // LTI 1.3 grade passback - Prefer if available
         } else if ( strlen($lti13_privkey) > 0 && strlen($lti13_lineitem) > 0 && strlen($lti13_token_url) > 0 ) {
             error_log("Getting token key_key=$key_key lti13_token_url=$lti13_token_url");
+
             $token_data = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey);
+            if ( ! isset($token_data['access_token']) ) {
+                $status = U::get($token_data, 'error', 'Did not receive access token');
+                error_log($status);
+                return $status;
+            }
             $access_token = $token_data['access_token'];
+
             $tmp = "Sending grade $grade user_key=$user_key lti13_lineitem=$lti13_lineitem access_token=$access_token";
             error_log($tmp);
             $tmp = "Sending grade $grade user_key=$user_key";
