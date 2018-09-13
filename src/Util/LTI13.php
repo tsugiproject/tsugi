@@ -115,7 +115,8 @@ class LTI13 extends LTI {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $token_str = curl_exec($ch);
-        error_log("Returned token data");error_log($token_str);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        error_log("Returned token data $httpcode");error_log($token_str);
         $token_data = json_decode($token_str, true);
 
         curl_close ($ch);
@@ -158,10 +159,18 @@ class LTI13 extends LTI {
 
         $line_item = curl_exec($ch);
 
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
         curl_close ($ch);
 
         // echo $line_item;
-        error_log("Sent line item, received\n".$line_item);
+        error_log("Sent line item, received $httpcode\n".$line_item);
+
+        if ( $httpcode != 200 ) {
+            $json = json_decode($line_item, true);
+            $status = U::get($json, "error", "Unable to send lineitem");
+            return $status;
+        }
 
         return true;
     }
