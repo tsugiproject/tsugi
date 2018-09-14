@@ -10,7 +10,7 @@
         "phpseclib/phpseclib" : ">=2.0.9",
         "fproject/php-jwt" : ">=4.0.5",
         "fightbulc/moment": "*",
-        "koseu/lib": "dev-master#1ca9ebef4cdc7ed7fdc9372d7a0e71f2950dc004",
+        "koseu/lib": "dev-master#3d8995257810291d2ff4c8ce4d0843e9f2320458",
 
         "cboden/ratchet" : "*",
 
