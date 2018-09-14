@@ -59,6 +59,7 @@ class Lessons {
 
         $path = U::rest_path();
         $redirect_path = U::addSession($path->parent);
+        if ( $redirect_path == '') $redirect_path = '/';
 
         if ( ! isset($CFG->lessons) ) {
             $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons)'));
