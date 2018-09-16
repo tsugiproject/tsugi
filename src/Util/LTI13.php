@@ -88,40 +88,19 @@ class LTI13 extends LTI {
     public static function getGradeToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
         global $CFG;
 
-        $jwt_claim = [
-            "iss" => $issuer,
-            "sub" => $subject,
-            "aud" => $lti13_token_url,
-            "iat" => time(),
-            "exp" => time()+60,
-            "jti" => uniqid($issuer)
-        ];
+        return self::get_access_token([
+            "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
+            "https://purl.imsglobal.org/spec/lti-ags/scope/score",
+            "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly"
+        ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+    }
 
-        $jwt = JWT::encode($jwt_claim, $lti13_privkey, 'RS256');
+    public static function getRosterToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+        global $CFG;
 
-        $auth_request = [
-            'grant_type' => 'client_credentials',
-            'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-            'client_assertion' => $jwt,
-            'scope' => "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem https://purl.imsglobal.org/spec/lti-ags/scope/score"
-        ];
-
-        $ch = curl_init();
-
-        curl_setopt($ch, CURLOPT_URL,$lti13_token_url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($auth_request));
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $token_str = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        error_log("Returned token data $httpcode");error_log($token_str);
-        $token_data = json_decode($token_str, true);
-
-        curl_close ($ch);
-
-        return $token_data;
+        return self::get_access_token([
+            "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
+        ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
     }
 
     // Call grade book
@@ -173,6 +152,49 @@ class LTI13 extends LTI {
         }
 
         return true;
+    }
+
+    public static function get_access_token($scope, $issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+        global $CFG;
+
+        if ( ! is_string($scope) ) {
+            $scope = implode(' ',$scope);
+        }
+
+        $jwt_claim = [
+            "iss" => $issuer,
+            "sub" => $subject,
+            "aud" => $lti13_token_url,
+            "iat" => time(),
+            "exp" => time()+60,
+            "jti" => uniqid($issuer)
+        ];
+
+        $jwt = JWT::encode($jwt_claim, $lti13_privkey, 'RS256');
+
+        $auth_request = [
+            'grant_type' => 'client_credentials',
+            'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            'client_assertion' => $jwt,
+            'scope' => $scope
+        ];
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL,$lti13_token_url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($auth_request));
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $token_str = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        error_log("Returned token data $httpcode");error_log($token_str);
+        $token_data = json_decode($token_str, true);
+
+        curl_close ($ch);
+
+        return $token_data;
     }
 
 }

@@ -855,7 +855,7 @@ EOF;
             $pieces = SecureCookie::extract($ct);
             $lti = $_SESSION['lti'];
             // Contemplate: Do we care if the lti email matches the cookie email?
-            if ( count($pieces) == 3 && isset($lti['user_id']) && !isset($lti['profile_id']) && isset($lti['user_email']) ) {
+            if ( is_array($pieces) && count($pieces) == 3 && isset($lti['user_id']) && !isset($lti['profile_id']) && isset($lti['user_email']) ) {
                 $linkprofile_url = self::getUtilUrl('/linkprofile.php');
                 $linkprofile_url = U::addSession($linkprofile_url);
                 $retval .= self::embeddedMenu($linkprofile_url, $pieces[1], $lti['user_email']);
