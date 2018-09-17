@@ -11,6 +11,7 @@ use \Firebase\JWT\JWT;
 class LTI13 extends LTI {
 
     const ROLES_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/roles";
+    const NAMESANDROLES_CLAIM = "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice";
     const ENDPOINT_CLAIM = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
 
     public static function extract_consumer_key($jwt) {
@@ -103,8 +104,8 @@ class LTI13 extends LTI {
         ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
     }
 
-    // Call grade book
-    public static function sendGrade($user_id, $grade, $comment, $lineitem_url,
+    // Call lineitem
+    public static function sendLineItem($user_id, $grade, $comment, $lineitem_url,
         $access_token, &$debug_log=false) {
         global $CFG;
 
@@ -143,15 +144,53 @@ class LTI13 extends LTI {
         curl_close ($ch);
 
         // echo $line_item;
-        error_log("Sent line item, received $httpcode\n".$line_item);
+        if ( is_array($debug_log) ) $debug_log[] = "Sent line item, received $httpcode\n".$line_item;
 
         if ( $httpcode != 200 ) {
             $json = json_decode($line_item, true);
             $status = U::get($json, "error", "Unable to send lineitem");
+            if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
             return $status;
         }
 
         return true;
+    }
+
+    // Call lineitem
+    public static function loadRoster($membership_url, $access_token, &$debug_log=false) {
+        global $CFG;
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $membership_url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer '. $access_token
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $membership = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close ($ch);
+        if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received $httpcode (".strlen($membership)." characters)";
+
+        $json = json_decode($membership, false);   // Top level object
+        if ( $json === null ) {
+            $retval = "Unable to parse roster:". json_last_error_msg();
+            if ( is_array($debug_log) ) {
+                $debug_log[] = $retval;
+                $debug_log[] = substr($membership, 0, 1000);
+            }
+            return $retval;
+        }
+
+        if ( $httpcode == 200 && isset($json->members) ) {
+            if ( is_array($debug_log) ) $debug_log[] = "Loaded ".count($json->members)." roster entries";
+            return $json->members;
+        }
+
+        $status = U::get($json, "error", "Unable to load roster members");
+        if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
+        return $status;
     }
 
     public static function get_access_token($scope, $issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
@@ -189,7 +228,7 @@ class LTI13 extends LTI {
 
         $token_str = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        error_log("Returned token data $httpcode");error_log($token_str);
+        if ( is_array($debug_log) ) $debug_log[] = "Returned token data $httpcode\n".$token_str;
         $token_data = json_decode($token_str, true);
 
         curl_close ($ch);

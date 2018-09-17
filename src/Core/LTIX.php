@@ -538,8 +538,8 @@ class LTIX {
 
             $e = LTI13::verifyPublicKey($raw_jwt, $public_key, array($jwt->header->alg));
             if ( $e !== true ) {
-                log_error('public_key');
-                log_error($public_key);
+                error_log('public_key');
+                error_log($public_key);
                 self::abort_with_error_log('JWT validation fail key='.$post['key'].' error='.$e->getMessage());
             }
 
@@ -945,6 +945,18 @@ class LTIX {
             $retval['lti13_lineitem'] = $body->{LTI13::ENDPOINT_CLAIM}->lineitem;
         }
 
+        // Get the line item
+        $retval['lti13_membership_url'] = null;
+        if ( isset($body->{LTI13::NAMESANDROLES_CLAIM}) &&
+            isset($body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url) &&
+            is_string($body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url) &&
+            isset($body->{LTI13::NAMESANDROLES_CLAIM}->service_version) &&
+            is_string($body->{LTI13::NAMESANDROLES_CLAIM}->service_version) &&
+            $body->{LTI13::NAMESANDROLES_CLAIM}->service_version == "2.0"
+        ) {
+            $retval['lti13_membership_url'] = $body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url;
+        }
+
         // Get the role
         $retval['role'] = self::ROLE_LEARNER;
         if ( isset($body->{LTI13::ROLES_CLAIM}) &&
@@ -1001,6 +1013,7 @@ class LTIX {
             r.result_id, r.grade, r.result_url, r.sourcedid";
 
         // TODO: After a while do this l.lti13_lineitem AS lti13_lineitem,
+        // TODO: After a while do this l.lti13_membership_url AS lti13_membership_url,
         if ( $profile_table ) {
             $sql .= ",
             p.profile_id, p.displayname AS profile_displayname, p.email AS profile_email,
@@ -1087,7 +1100,9 @@ class LTIX {
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
 
         // TODO: Remove this after we add lti13_lineitem to the big join above
+        // TODO: Remove this after we add lti13_membership_url to the big join above
         if ( $row && is_array($row) && ! isset($row['lti13_lineitem']) ) $row['lti13_lineitem'] = null;
+        if ( $row && is_array($row) && ! isset($row['lti13_membership_url']) ) $row['lti13_membership_url'] = null;
 
         return $row;
     }
@@ -1238,6 +1253,7 @@ class LTIX {
         if ( ! isset($post['service']) ) $post['service'] = null;
         if ( ! isset($post['result_url']) ) $post['result_url'] = null;
         if ( ! isset($post['lti13_lineitem']) ) $post['lti13_lineitem'] = null;
+        if ( ! isset($post['lti13_membership_url']) ) $post['lti13_membership_url'] = null;
         if ( ! isset($row['service']) ) {
             $row['service'] = null;
             $row['service_id'] = null;
@@ -1277,6 +1293,21 @@ class LTIX {
                 ':link_id' => $row['link_id']));
             $row['lti13_lineitem'] = $post['lti13_lineitem'];
             $actions[] = "=== Updated result id=".$row['result_id']." lti13_lineitem=".$row['lti13_lineitem'];
+        }
+
+        // Here we handle lti13_membership_url
+        // TODO: Add this to the big join to improve efficiency after data models are all updated
+        if ( isset($row['context_id']) && isset($post['lti13_membership_url']) &&
+            array_key_exists('lti13_membership_url',$row) && $post['lti13_membership_url'] != $row['lti13_membership_url'] ) {
+            $sql = "UPDATE {$p}lti_context
+                SET lti13_membership_url = :lti13_membership_url
+                WHERE context_id = :context_id";
+            // TODO: Make this QueryDie after the data model is surely updated
+            $PDOX->queryReturnError($sql, array(
+                ':lti13_membership_url' => $post['lti13_membership_url'],
+                ':context_id' => $row['context_id']));
+            $row['lti13_membership_url'] = $post['lti13_membership_url'];
+            $actions[] = "=== Updated result id=".$row['result_id']." lti13_membership_url=".$row['lti13_membership_url'];
         }
 
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
