@@ -1101,13 +1101,23 @@ EOF;
     }
 
     // Clean out the array of 'secret' keys
+    public static function safe_var_cleanup(&$x, $depth) {
+        if ( $depth >= 5 ) return;
+        if ( is_array($x) || is_object($x) ) {
+            foreach($x as $k => $v ) {
+                if (  is_string($v) && strlen($v) > 0 && strpos($k, 'secret') !== false || strpos($k, 'priv') !== false ) {
+                    $x[$k] = 'Hidden as MD5: '.MD5($v);
+                }
+                if ( is_array($v) || is_object($v) ) self::safe_var_cleanup($v,$depth+1);
+            }
+        }
+    }
+
     public static function safe_var_dump($x) {
             ob_start();
-            if ( isset($x['secret']) ) $x['secret'] = MD5($x['secret']);
-            if ( is_array($x) ) foreach ( $x as &$v ) {
-                if ( is_array($v) && isset($v['secret']) ) $v['secret'] = MD5($v['secret']);
-            }
-            var_dump($x);
+            $copy = $x;
+            self::safe_var_cleanup($copy, 0);
+            var_dump($copy);
             $result = ob_get_clean();
             return $result;
     }
