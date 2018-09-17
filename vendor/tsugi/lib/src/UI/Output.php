@@ -1114,12 +1114,19 @@ EOF;
     }
 
     public static function safe_var_dump($x) {
-            ob_start();
-            $copy = $x;
-            self::safe_var_cleanup($copy, 0);
-            var_dump($copy);
-            $result = ob_get_clean();
-            return $result;
+        ob_start();
+        self::safe_var_cleanup($x, 0);
+        var_dump($x);
+        $result = ob_get_clean();
+        return $result;
+    }
+
+    public static function safe_print_r($x) {
+        ob_start();
+        self::safe_var_cleanup($x, 0);
+        print_r($x);
+        $result = ob_get_clean();
+        return $result;
     }
 
     public static function jsonError($message,$detail="") {

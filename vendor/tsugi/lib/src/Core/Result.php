@@ -203,9 +203,9 @@ class Result extends Entity {
             );
 
             if ( $stmt->success ) {
-                $msg = "Grade updated result_id=".$result_id." grade=$grade";
+                $msg = "Grade stored locally result_id=".$result_id." grade=$grade";
             } else {
-                $msg = "Grade NOT updated result_id=".$result_id." grade=$grade";
+                $msg = "Grade NOT stored locally result_id=".$result_id." grade=$grade";
             }
             error_log($msg);
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
@@ -228,7 +228,7 @@ class Result extends Entity {
         } else if ( strlen($lti13_privkey) > 0 && strlen($lti13_lineitem) > 0 && strlen($lti13_token_url) > 0 ) {
             error_log("Getting token key_key=$key_key lti13_token_url=$lti13_token_url");
 
-            $token_data = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey);
+            $token_data = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey, $debug_log);
             if ( ! isset($token_data['access_token']) ) {
                 $status = U::get($token_data, 'error', 'Did not receive access token');
                 error_log($status);
@@ -239,7 +239,7 @@ class Result extends Entity {
             $tmp = "Sending grade $grade user_key=$user_key lti13_lineitem=$lti13_lineitem access_token=$access_token";
             error_log($tmp);
             $tmp = "Sending grade $grade user_key=$user_key";
-            $status = LTI13::sendGrade($user_key, $grade, /*$comment*/ $tmp, $lti13_lineitem,
+            $status = LTI13::sendLineItem($user_key, $grade, /*$comment*/ $tmp, $lti13_lineitem,
                         $access_token, $debug_log);
 
         // Classic POX call
