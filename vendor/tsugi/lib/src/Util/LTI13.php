@@ -25,7 +25,7 @@ class LTI13 extends LTI {
         return $raw_jwt;
     }
 
-    public static function parse_jwt($raw_jwt) {
+    public static function parse_jwt($raw_jwt, $required_fields=true) {
         if ( $raw_jwt === false ) return false;
         if ( ! is_string($raw_jwt)) return "parse_jwt first parameter must be a string";
         $jwt_parts = explode('.', $raw_jwt);
@@ -35,8 +35,8 @@ class LTI13 extends LTI {
         if ( ! isset($jwt_header->alg) ) return "Missing alg from jwt header";
         $jwt_body = json_decode(JWT::urlsafeB64Decode($jwt_parts[1]));
         if ( ! $jwt_body ) return "Could not decode jwt body";
-        if ( ! isset($jwt_body->iss) ) return "Missing iss from jwt body";
-        if ( ! isset($jwt_body->aud) ) return "Missing aud from jwt body";
+        if ( $required_fields && ! isset($jwt_body->iss) ) return "Missing iss from jwt body";
+        if ( $required_fields && ! isset($jwt_body->aud) ) return "Missing aud from jwt body";
         $jwt = new \stdClass();
         $jwt->header = $jwt_header;
         $jwt->body = $jwt_body;
@@ -100,6 +100,16 @@ class LTI13 extends LTI {
         global $CFG;
 
         return self::get_access_token([
+            "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
+        ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+    }
+
+    public static function getRosterWithSourceDidsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+        global $CFG;
+
+        return self::get_access_token([
+            "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
+            "https://purl.imsglobal.org/spec/lti-ags/scope/basicoutcome",
             "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
         ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
     }
