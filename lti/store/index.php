@@ -5,7 +5,10 @@ require_once $CFG->dirroot."/admin/admin_util.php";
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\ContentItem;
+use \Tsugi\Util\DeepLinkResponse;
+use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
+use \Tsugi\Util\LTI13;
 use \Tsugi\UI\Lessons;
 
 // No parameter means we require CONTEXT, USER, and LINK
@@ -14,10 +17,22 @@ $LAUNCH = LTIX::requireData(LTIX::USER);
 // Model
 $p = $CFG->dbprefix;
 
-$return_url = ContentItem::returnUrl();
-$allow_lti = ContentItem::allowLtiLinkItem();
-$allow_web = ContentItem::allowContentItem();
-$allow_import = ContentItem::allowImportItem();
+$deeplink = false;
+$lti13_privkey = false;
+if ( isset($LAUNCH->deeplink) ) $deeplink = $LAUNCH->deeplink;
+if ( $deeplink ) {
+    $return_url = $deeplink->returnUrl();
+    $allow_lti = $deeplink->allowLtiLinkItem();
+    $allow_web = $deeplink->allowContentItem();
+    $allow_import = $deeplink->allowImportItem();
+    $lti13_privkey = $LAUNCH->ltiParameter('lti13_privkey');
+    $lti13_privkey = $lti13_privkey ? LTIX::decrypt_secret($lti13_privkey) : false;
+} else {
+    $return_url = ContentItem::returnUrl();
+    $allow_lti = ContentItem::allowLtiLinkItem();
+    $allow_web = ContentItem::allowContentItem();
+    $allow_import = ContentItem::allowImportItem();
+}
 
 $OUTPUT->header();
 ?>
@@ -158,7 +173,7 @@ if ( ! $USER->instructor ) {
 }
 
 if ( ! $return_url ) {
-    echo("<p>This tool must be with LTI Link Content Item support</p>");
+    echo("<p>This tool must be launched with a Deep Linking request</p>");
     $OUTPUT->footer();
     return;
 }
@@ -190,7 +205,11 @@ if ( isset($_GET['install']) ) {
     $path = $tool['url'];
 
     // Set up to send the response
-    $retval = new ContentItem();
+    if ( $deeplink ) {
+        $retval = new DeepLinkResponse($deeplink);
+    } else {
+        $retval = new ContentItem();
+    }
     $points = false;
     $activity_id = false;
     if ( isset($tool['messages']) && is_array($tool['messages']) &&
@@ -203,6 +222,40 @@ if ( isset($_GET['install']) ) {
     $return_url = $retval->returnUrl();
 
     $params = $retval->getContentItemSelection();
+
+    if ( $deeplink ) {
+/*
+        $parts = preg_split('/\s+/', $lti13_privkey);
+        $better = "";
+        $indashes = false;
+        foreach($parts as $part) {
+            if ( strpos($part,'-----') === 0 ) {
+                if ( strlen($better) > 0 ) $better .= "\n";
+                $better .= $part;
+                $indashes = true;
+                continue;
+            }
+            if ( U::endsWith($part,'-----') > 0 ) {
+                $better .= ' ' . $part;
+                $indashes = false;
+                continue;
+            }
+            $better .= $indashes ? ' ' : "\n";
+            $better .= $part;
+        }
+        $lti13_privkey = $better;
+*/
+
+        $debug_log = array();
+        $jwt = LTI13::base_jwt('issuer', 'subject', $debug_log);
+        foreach($jwt as $k => $v) {
+            $params->{$k} = $v;
+        }
+        $jws = LTI13::encode_jwt($params, $lti13_privkey);
+        $html = LTI13::build_jwt_html($return_url, $jws);
+        echo($html);
+        return;
+    }
 
     $signature = $LAUNCH->ltiRawParameter('oauth_signature_method');
     if ( $signature ) $params['oauth_signature_method'] = $signature;
