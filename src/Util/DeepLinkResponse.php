@@ -2,107 +2,41 @@
 
 namespace Tsugi\Util;
 
+use \Tsugi\Util\U;
+
 /**
- * This is a general purpose ContentItem class with no Tsugi-specific dependencies.
+ * This is a general purpose DeepLink class with no Tsugi-specific dependencies.
  *
  */
-class ContentItem {
+class DeepLinkResponse extends DeepLinkRequest {
 
     public $json;
+    public $items = array();
 
-    function __construct() {
-        $text = '{
-            "@context" : [
-                "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
-                {
-                    "lineItem" : "http://purl.imsglobal.org/ctx/lis/v2/LineItem",
-                    "res" : "http://purl.imsglobal.org/ctx/lis/v2p1/Result#"
-                }
-            ],
-            "@graph" : [ ]
-        }';
-
-        // Because of D2L
-        $text = '{
-            "@context" : "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
-            "@graph" : [ ]
-        }';
-
+    function __construct($request) {
+        $this->claim = $request->claim;
+        // TODO: deployment_id
+$text='{
+  "https://purl.imsglobal.org/spec/lti/claim/deployment_id":
+    "07940580-b309-415e-a37c-914d387c1150",
+  "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
+  "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+  "https://purl.imsglobal.org/spec/lti-dl/data": "csrftoken:c7fbba78-7b75-46e3-9201-11e6d5f36f53"
+}';
         $this->json = json_decode($text);
     }
 
     /**
-     * returnUrl - Returns the content_item_return_url
-     *
-     * @return string The content_item_return_url or false
+     * Return the claims array to send back to the LMS
      */
-    public static function returnUrl($postdata) {
-        if ( ! isset($postdata['content_item_return_url']) ) return false;
-        return $postdata['content_item_return_url'];
-    }
-
-    /**
-     * allowLtiLinkItem - Returns true if we can return LTI Link Items
-     */
-    public static function allowLtiLinkItem($postdata) {
-        if ( ! isset($postdata['content_item_return_url']) ) return false;
-        if ( isset($postdata['accept_media_types']) ) {
-            $ltilink_mimetype = 'application/vnd.ims.lti.v1.ltilink';
-            $m = new Mimeparse;
-            $ltilink_allowed = $m->best_match(array($ltilink_mimetype), $postdata['accept_media_types']);
-            if ( $ltilink_mimetype != $ltilink_allowed ) return false;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * allowContentItem - Returns true if we can return HTML Items
-     */
-    public static function allowContentItem($postdata) {
-        if ( ! isset($postdata['content_item_return_url']) ) return false;
-        if ( isset($postdata['accept_media_types']) ) {
-            $web_mimetype = 'text/html';
-            $m = new Mimeparse;
-            $web_allowed = $m->best_match(array($web_mimetype), $postdata['accept_media_types']);
-            if ( $web_mimetype != $web_allowed ) return false;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * allowImportItem - Returns true if we can return IMS Common Cartridges
-     */
-    public static function allowImportItem($postdata) {
-        $cc_types = array('application/vnd.ims.imsccv1p1',
-            'application/vnd.ims.imsccv1p2', 'application/vnd.ims.imsccv1p3');
-        if ( ! isset($postdata['content_item_return_url']) ) return false;
-        if ( isset($postdata['accept_media_types']) ) {
-            $accept = $postdata['accept_media_types'];
-
-            foreach($cc_types as $cc_mimetype ){
-                $m = new Mimeparse;
-                $cc_allowed = $m->best_match(array($cc_mimetype), $accept);
-                if ( $cc_mimetype == $cc_allowed ) return true;
-            }
-        }
-        return false;
-    }
-
-
-    /**
-     * Return the parameters to send back to the LMS
-     */
-    function getContentItemSelection($data=false)
+    function getContentItemSelection()
     {
-        $selection = json_encode($this->json);
-        $parms = array();
-        $parms["lti_message_type"] = "ContentItemSelection";
-        $parms["lti_version"] = "LTI-1p0";
-        $parms["content_items"] = $selection;
-        if ( $data ) $parms['data'] = $data;
-        return $parms;
+        $this->json->{'https://purl.imsglobal.org/spec/lti-dl/claim/content_items'} = $this->items;
+        unset($this->json->{'https://purl.imsglobal.org/spec/lti-dl/data'});
+        if ( isset($this->claim->data) ) {
+            $this->json->{'https://purl.imsglobal.org/spec/lti-dl/data'} = $this->claim->data;
+        }
+        return $this->json;
     }
 
     /**
@@ -124,6 +58,7 @@ class ContentItem {
     {
             global $CFG;
         $params = array(
+            'type' => 'link',
             'url' => $url,
             'title' => $title,
             'text' => $text,
@@ -208,34 +143,73 @@ class ContentItem {
                     }
                 }';
 
+        $item = '{
+            "type": "ltiLink",
+            "title": "A title",
+            "url": "https://lti.example.com/launchMe",
+            "presentation": {
+                "documentTarget": "iframe",
+                "width": 500,
+                "height": 600
+            },
+            "icon": {
+                "url": "https://lti.example.com/image.jpg",
+                "fa_icon" : "fa-magic",
+                "width": 100,
+                "height": 100
+            },
+            "thumbnail": {
+                "url": "https://lti.example.com/thumb.jpg",
+                "width": 90,
+                "height": 90
+            },
+            "lineItem": {
+                "scoreMaximum": 87,
+                "label": "Chapter 12 quiz",
+                "resourceId": "xyzpdq1234",
+                "tag": "originality"
+            },
+            "custom": {
+                "quiz_id": "az-123",
+                "duedate": "$Resource.submission.endDateTime"
+            },
+            "window": {
+                "targetName": "examplePublisherContent"
+            },
+            "iframe": {
+                "height": 890
+            }
+       }';
+
         $json = json_decode($item);
         $json->url = $params['url'];
         if ( $params['title'] ) $json->{'title'} = $params['title'];
-        if ( $params['text'] ) $json->{'text'} = $params['text'];
-        if ( $params['icon'] ) $json->{'icon'}->{'@id'} = $params['icon'];
+        // TODO: WTF? Text is gone?
+        // if ( $params['text'] ) $json->text = $params['text'];
+        if ( $params['icon'] ) $json->icon->url = $params['icon'];
         if ( $params['fa_icon'] ) $json->icon->fa_icon = $params['fa_icon'];
+        unset($json->custom);
         if ( $params['custom'] ) $json->custom = $params['custom'];
         if ( $params['points'] && $params['activityId'] ) {
             $json->lineItem->label = $params['title'];
-            $json->lineItem->assignedActivity->{'@id'} = $CFG->wwwroot . '/lti/activity/' . $params['activityId'];
-            $json->lineItem->assignedActivity->activityId = $params['activityId'];
-            $json->lineItem->scoreConstraints->normalMaximum = $params['points'];
+            // Leave guid in as an extension until we are forced to get rid of it :)
+            $json->lineItem->guid = $CFG->wwwroot . '/lti/activity/' . $params['activityId'];
+            $json->lineItem->resourceId = $params['activityId'];
+            $json->lineItem->scoreMaximum = $params['points'];
         } else {
             unset($json->lineItem);
         }
 
         if ($params['placementTarget'])
-            $json->placementAdvice->presentationDocumentTarget = $params['placementTarget'];
+            $json->presentation->documentTarget = $params['placementTarget'];
         if ($params['placementWindowTarget'])
-            $json->placementAdvice->windowTarget = $params['placementWindowTarget'];
+            $json->presentation->windowTarget = $params['placementWindowTarget'];
         if (! empty($params['placementWidth']))
-            $json->placementAdvice->displayWidth = $params['placementWidth'];
+            $json->presentation->width = $params['placementWidth'];
         if (! empty($params['placementHeight']))
-            $json->placementAdvice->displayHeight = $params['placementHeight'];
+            $json->presentation->height = $params['placementHeight'];
 
-        $json->{'@id'} = ':item'.(count($this->json->{'@graph'})+1);
-
-        $this->json->{'@graph'}[] = $json;
+        $this->items[] = $json;
     }
 
     /**
@@ -387,3 +361,111 @@ class ContentItem {
     }
 
 }
+
+/*
+{
+  "iss": "962fa4d8-bcbf-49a0-94b2-2de05ad274af",
+  "aud": "https://platform.example.org",
+  "exp": 1510185728,
+  "iat": 1510185228,
+  "nonce": "fc5fdc6d-5dd6-47f4-b2c9-5d1216e9b771",
+  "azp": "962fa4d8-bcbf-49a0-94b2-2de05ad274af",
+  "https://purl.imsglobal.org/spec/lti/claim/deployment_id":
+    "07940580-b309-415e-a37c-914d387c1150",
+  "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
+  "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+  "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
+    {
+      "type": "link",
+      "title": "My Home Page",
+      "url": "https://something.example.com/page.html",
+      "icon": {
+        "url": "https://lti.example.com/image.jpg",
+        "width": 100,
+        "height": 100
+      },
+      "thumbnail": {
+        "url": "https://lti.example.com/thumb.jpg",
+        "width": 90,
+        "height": 90
+      }
+    },
+    {
+      "type": "html",
+      "html": " A Custom Title "
+    },
+    {
+      "type": "link",
+      "url": "https://www.youtube.com/watch?v=corV3-WsIro",
+      "embed": {
+        "html":
+          "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/corV3-WsIro\" frameborder=\"0\" allow=\"autoplay; encrypted-media\" allowfullscreen></iframe>"
+      },
+      "window": {
+        "targetName": "youtube-corV3-WsIro",
+        "windowFeatures": "height=560,width=315,menubar=no"
+      },
+      "iframe": {
+        "width": 560,
+        "height": 315,
+        "src": "https://www.youtube.com/embed/corV3-WsIro"
+      }
+    },
+    {
+      "type": "image",
+      "url": "https://www.example.com/image.png",
+      "https://www.example.com/resourceMetadata": {
+        "license": "CCBY4.0"
+      }
+    },
+    {
+      "type": "ltiLink",
+      "title": "A title",
+      "url": "https://lti.example.com/launchMe",
+      "presentation": {
+        "documentTarget": "iframe",
+        "width": 500,
+        "height": 600
+      },
+      "icon": {
+        "url": "https://lti.example.com/image.jpg",
+        "width": 100,
+        "height": 100
+      },
+      "thumbnail": {
+        "url": "https://lti.example.com/thumb.jpg",
+        "width": 90,
+        "height": 90
+      },
+      "lineItem": {
+        "scoreMaximum": 87,
+        "label": "Chapter 12 quiz",
+        "resourceId": "xyzpdq1234",
+        "tag": "originality"
+      },
+      "custom": {
+        "quiz_id": "az-123",
+        "duedate": "$Resource.submission.endDateTime"
+      },
+      "window": {
+        "targetName": "examplePublisherContent"
+      },
+      "iframe": {
+        "height": 890
+      }
+    },
+    {
+      "type": "file",
+      "title": "A file like a PDF that is my assignment submissions",
+      "url": "https://my.example.com/assignment1.pdf",
+      "mediaType": "application/pdf",
+      "expiresAt": "2018-03-06T20:05:02Z"
+    },
+    {
+      "type": "https://www.example.com/custom_type",
+      "data": "somedata"
+    }
+  ],
+  "https://purl.imsglobal.org/spec/lti-dl/data": "csrftoken:c7fbba78-7b75-46e3-9201-11e6d5f36f53"
+}
+*/

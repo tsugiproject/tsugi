@@ -10,6 +10,7 @@ use \Tsugi\Util\LTI;
 use \Tsugi\Util\LTI13;
 use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
+use \Tsugi\Util\DeepLinkRequest;
 use \Tsugi\Util\LTIConstants;
 use \Tsugi\UI\Output;
 use \Tsugi\Core\I18N;
@@ -546,6 +547,9 @@ class LTIX {
             // TODO: Encrypt private key
             $row['lti13_privkey'] = $private_key;
             $row['lti13_token_url'] = $token_url;
+
+            // Just copy across
+            if ( U::get($post,'lti13_deeplink') ) $row['lti13_deeplink'] = $post['lti13_deeplink'];
         }
 
         // Store the launch path
@@ -970,6 +974,12 @@ class LTIX {
                 if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = self::ROLE_ADMINISTRATOR;
                 // Local superuser would be 10000
             }
+        }
+
+        // Handle the DeepLink Claim
+        $retval['lti13_deeplink'] = null;
+        if ( isset($body->{LTI13::DEEPLINK_CLAIM}) ) {
+            $retval['lti13_deeplink'] = $body->{LTI13::DEEPLINK_CLAIM};
         }
 
         return $retval;
@@ -1664,6 +1674,10 @@ class LTIX {
             $ROSTER = new \Tsugi\Core\Roster();
             $ROSTER->id = $TSUGI_LAUNCH->ltiRawParameter(LTIConstants::EXT_CONTEXT_MEMBERSHIP_ID);
             $ROSTER->url = $TSUGI_LAUNCH->ltiRawParameter(LTIConstants::EXT_CONTEXT_MEMBERSHIP_URL);
+        }
+
+        if ( isset($LTI['lti13_deeplink']) && is_object($LTI['lti13_deeplink']) ) {
+            $TSUGI_LAUNCH->deeplink = new DeepLinkRequest($LTI['lti13_deeplink']);
         }
 
         // Return the Launch structure

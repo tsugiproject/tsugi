@@ -13,6 +13,7 @@ class LTI13 extends LTI {
     const ROLES_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/roles";
     const NAMESANDROLES_CLAIM = "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice";
     const ENDPOINT_CLAIM = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
+    const DEEPLINK_CLAIM = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
 
     public static function extract_consumer_key($jwt) {
         return 'lti13_' . $jwt->body->iss . '_' . $jwt->body->aud;
@@ -210,16 +211,10 @@ class LTI13 extends LTI {
             $scope = implode(' ',$scope);
         }
 
-        $jwt_claim = [
-            "iss" => $issuer,
-            "sub" => $subject,
-            "aud" => $lti13_token_url,
-            "iat" => time(),
-            "exp" => time()+60,
-            "jti" => uniqid($issuer)
-        ];
+        $jwt_claim = self::base_jwt($issuer, $subject, $debug_log);
+        $jwt_claim["aud"] = $lti13_token_url;
 
-        $jwt = JWT::encode($jwt_claim, $lti13_privkey, 'RS256');
+        $jwt = self::encode_jwt($jwt_claim, $lti13_privkey);
 
         $auth_request = [
             'grant_type' => 'client_credentials',
@@ -244,6 +239,65 @@ class LTI13 extends LTI {
         curl_close ($ch);
 
         return $token_data;
+    }
+
+    public static function base_jwt($issuer, $subject, &$debug_log=false) {
+        global $CFG;
+
+        $jwt_claim = [
+            "iss" => $issuer,
+            "sub" => $subject,
+            "iat" => time(),
+            "exp" => time()+60,
+            "jti" => uniqid($issuer)
+        ];
+        return $jwt_claim;
+    }
+
+    public static function encode_jwt($jwt_claim, $lti13_privkey) {
+        $jws = JWT::encode($jwt_claim, self::cleanup_PKCS8($lti13_privkey), 'RS256');
+        return $jws;
+    }
+
+    public static function build_jwt_html($launch_url, $jws, $dodebug=true) {
+        $html = "<form action=\"" . $launch_url . "\" method=\"POST\">\n"
+                . "    <input type=\"hidden\" name=\"id_token\" value=\"" . htmlspecialchars($jws) . "\" />\n"
+                . "    <input type=\"submit\" value=\"Go!\" />\n"
+                . "</form>\n";
+
+        if ($dodebug) {
+            $jwt = self::parse_jwt($jws, false);
+            $html .=   "<p>\n--- Encoded JWT:<br/>"
+                    . htmlspecialchars($jws)
+                    . "</p>\n"
+                    . "<p>\n--- JWT:<br/><pre>"
+                    . htmlspecialchars(json_encode($jwt->body, JSON_PRETTY_PRINT))
+                    . "</pre></p>\n";
+        }
+        return $html;
+    }
+
+    public static function cleanup_PKCS8($private_key)
+    {
+        $parts = preg_split('/\s+/', $private_key);
+        $better = "";
+        $indashes = false;
+        foreach($parts as $part) {
+            if ( strpos($part,'-----') === 0 ) {
+                if ( strlen($better) > 0 ) $better .= "\n";
+                $better .= $part;
+                $indashes = true;
+                continue;
+            }
+            if ( U::endsWith($part,'-----') > 0 ) {
+                $better .= ' ' . $part;
+                $indashes = false;
+                continue;
+            }
+            $better .= $indashes ? ' ' : "\n";
+            $better .= $part;
+        }
+        return $better;
     }
 
 }
