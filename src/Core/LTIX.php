@@ -950,6 +950,15 @@ class LTIX {
         }
 
         // Get the line item
+        $retval['lti13_lineitems'] = null;
+        if ( isset($body->{LTI13::ENDPOINT_CLAIM}) &&
+            isset($body->{LTI13::ENDPOINT_CLAIM}->lineitems) &&
+            is_string($body->{LTI13::ENDPOINT_CLAIM}->lineitem) ) {
+            $retval['lti13_lineitems'] = $body->{LTI13::ENDPOINT_CLAIM}->lineitems;
+        }
+
+
+        // Get the names and roles claim
         $retval['lti13_membership_url'] = null;
         if ( isset($body->{LTI13::NAMESANDROLES_CLAIM}) &&
             isset($body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url) &&
@@ -1024,6 +1033,7 @@ class LTIX {
 
         // TODO: After a while do this l.lti13_lineitem AS lti13_lineitem,
         // TODO: After a while do this l.lti13_membership_url AS lti13_membership_url,
+        // TODO: After a while do this l.lti13_lineitems AS lti13_lineitems,
         if ( $profile_table ) {
             $sql .= ",
             p.profile_id, p.displayname AS profile_displayname, p.email AS profile_email,
@@ -1110,9 +1120,11 @@ class LTIX {
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
 
         // TODO: Remove this after we add lti13_lineitem to the big join above
-        // TODO: Remove this after we add lti13_membership_url to the big join above
         if ( $row && is_array($row) && ! isset($row['lti13_lineitem']) ) $row['lti13_lineitem'] = null;
+        // TODO: Remove this after we add lti13_membership_url to the big join above
         if ( $row && is_array($row) && ! isset($row['lti13_membership_url']) ) $row['lti13_membership_url'] = null;
+        // TODO: Remove this after we add lti13_lineitems to the big join above
+        if ( $row && is_array($row) && ! isset($row['lti13_lineitems']) ) $row['lti13_lineitems'] = null;
 
         return $row;
     }
@@ -1264,6 +1276,7 @@ class LTIX {
         if ( ! isset($post['result_url']) ) $post['result_url'] = null;
         if ( ! isset($post['lti13_lineitem']) ) $post['lti13_lineitem'] = null;
         if ( ! isset($post['lti13_membership_url']) ) $post['lti13_membership_url'] = null;
+        if ( ! isset($post['lti13_lineitems']) ) $post['lti13_lineitems'] = null;
         if ( ! isset($row['service']) ) {
             $row['service'] = null;
             $row['service_id'] = null;
@@ -1319,6 +1332,22 @@ class LTIX {
             $row['lti13_membership_url'] = $post['lti13_membership_url'];
             $actions[] = "=== Updated result id=".$row['result_id']." lti13_membership_url=".$row['lti13_membership_url'];
         }
+
+        // Here we handle lti13_lineitems
+        // TODO: Add this to the big join to improve efficiency after data models are all updated
+        if ( isset($row['context_id']) && isset($post['lti13_lineitems']) &&
+            array_key_exists('lti13_lineitems',$row) && $post['lti13_lineitems'] != $row['lti13_lineitems'] ) {
+            $sql = "UPDATE {$p}lti_context
+                SET lti13_lineitems = :lti13_lineitems
+                WHERE context_id = :context_id";
+            // TODO: Make this QueryDie after the data model is surely updated
+            $PDOX->queryReturnError($sql, array(
+                ':lti13_lineitems' => $post['lti13_lineitems'],
+                ':context_id' => $row['context_id']));
+            $row['lti13_lineitems'] = $post['lti13_lineitems'];
+            $actions[] = "=== Updated result id=".$row['result_id']." lti13_lineitems=".$row['lti13_lineitems'];
+        }
+
 
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
         if ( isset($row['context_id']) && isset($post['context_title']) && $post['context_title'] != $row['context_title'] ) {

@@ -88,7 +88,6 @@ class LTI13 extends LTI {
     }
 
     public static function getGradeToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
-        global $CFG;
 
         return self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
@@ -98,7 +97,6 @@ class LTI13 extends LTI {
     }
 
     public static function getRosterToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
-        global $CFG;
 
         return self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
@@ -106,19 +104,23 @@ class LTI13 extends LTI {
     }
 
     public static function getRosterWithSourceDidsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
-        global $CFG;
+
+        return self::get_access_token([
+            "https://purl.imsglobal.org/spec/lti-ags/scope/basicoutcome",
+            "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
+        ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+    }
+
+    public static function getLineItemsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
         return self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
-            "https://purl.imsglobal.org/spec/lti-ags/scope/basicoutcome",
-            "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
         ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
     }
 
     // Call lineitem
     public static function sendLineItem($user_id, $grade, $comment, $lineitem_url,
         $access_token, &$debug_log=false) {
-        global $CFG;
 
         $ch = curl_init();
 
@@ -155,7 +157,7 @@ class LTI13 extends LTI {
         curl_close ($ch);
 
         // echo $line_item;
-        if ( is_array($debug_log) ) $debug_log[] = "Sent line item, received $httpcode\n".$line_item;
+        if ( is_array($debug_log) ) $debug_log[] = "Sent line item, received status=$httpcode\n".$line_item;
 
         if ( $httpcode != 200 ) {
             $json = json_decode($line_item, true);
@@ -167,9 +169,8 @@ class LTI13 extends LTI {
         return true;
     }
 
-    // Call lineitem
+    // Call memberships and roles
     public static function loadRoster($membership_url, $access_token, &$debug_log=false) {
-        global $CFG;
 
         $ch = curl_init();
 
@@ -182,11 +183,11 @@ class LTI13 extends LTI {
         $membership = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
-        if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received $httpcode (".strlen($membership)." characters)";
+        if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".strlen($membership)." characters)";
 
         $json = json_decode($membership, false);   // Top level object
         if ( $json === null ) {
-            $retval = "Unable to parse roster:". json_last_error_msg();
+            $retval = "Unable to parse returned roster JSON:". json_last_error_msg();
             if ( is_array($debug_log) ) {
                 $debug_log[] = $retval;
                 $debug_log[] = substr($membership, 0, 1000);
@@ -199,13 +200,115 @@ class LTI13 extends LTI {
             return $json->members;
         }
 
-        $status = U::get($json, "error", "Unable to load roster members");
+        $status = U::get($json, "error", "Unable to load roster");
         if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
         return $status;
     }
 
+    // Load LineItems
+    public static function loadLineItems($lineitems_url, $access_token, &$debug_log=false) {
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $lineitems_url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer '. $access_token
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $lineitems = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close ($ch);
+        if ( is_array($debug_log) ) $debug_log[] = "Sent lineitems request, received status=$httpcode (".strlen($lineitems)." characters)";
+
+        $json = json_decode($lineitems, false);
+        if ( $json === null ) {
+            $retval = "Unable to parse returned lineitems JSON:". json_last_error_msg();
+            if ( is_array($debug_log) ) {
+                $debug_log[] = $retval;
+                $debug_log[] = substr($lineitems, 0, 1000);
+            }
+            return $retval;
+        }
+        if ( $httpcode == 200 && is_array($json) ) {
+            if ( is_array($debug_log) ) $debug_log[] = "Loaded ".count($json)." lineitems entries";
+            return $json;
+        }
+
+        $status = U::get($json, "error", "Unable to load lineitems");
+        if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
+        return $status;
+    }
+
+    // Load A LineItem
+    public static function loadLineItem($lineitem_url, $access_token, &$debug_log=false) {
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $lineitem_url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer '. $access_token
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $lineitem = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close ($ch);
+        if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem request, received status=$httpcode (".strlen($lineitem)." characters)";
+
+        $json = json_decode($lineitem, false);
+        if ( $json === null ) {
+            $retval = "Unable to parse returned lineitem JSON:". json_last_error_msg();
+            if ( is_array($debug_log) ) {
+                $debug_log[] = $retval;
+                $debug_log[] = substr($lineitem, 0, 1000);
+            }
+            return $retval;
+        }
+
+        if ( $httpcode == 200 && is_object($json) ) {
+            if ( is_array($debug_log) ) $debug_log[] = "Loaded lineitem";
+            return $json;
+        }
+
+        $status = U::get($json, "error", "Unable to load lineitem");
+        if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
+        return $status;
+    }
+
+    public static function createLineItem($lineitem_url, $access_token, $lineitem, &$debug_log = false) {
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $lineitem_url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($lineitem));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer '. $access_token,
+            'Content-Type: application/vnd.ims.lis.v2.lineitem+json'
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $line_item = curl_exec($ch);
+
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        curl_close ($ch);
+
+        if ( is_array($debug_log) ) $debug_log[] = "Created line item, received status=$httpcode\n".$line_item;
+
+        if ( $httpcode != 200 ) {
+            $json = json_decode($line_item, true);
+            $status = U::get($json, "error", "Unable to create lineitem");
+            if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
+            return $status;
+        }
+
+        return true;
+// XXX
+    }
+
     public static function get_access_token($scope, $issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
-        global $CFG;
 
         if ( ! is_string($scope) ) {
             $scope = implode(' ',$scope);
@@ -242,7 +345,6 @@ class LTI13 extends LTI {
     }
 
     public static function base_jwt($issuer, $subject, &$debug_log=false) {
-        global $CFG;
 
         $jwt_claim = [
             "iss" => $issuer,
