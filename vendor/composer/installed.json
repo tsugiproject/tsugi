@@ -2027,55 +2027,6 @@
         ]
     },
     {
-        "name": "react/socket",
-        "version": "v1.0.0",
-        "version_normalized": "1.0.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/socket.git",
-            "reference": "476e2644a634c6301b8111e6d22a61679e6e6bd0"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/socket/zipball/476e2644a634c6301b8111e6d22a61679e6e6bd0",
-            "reference": "476e2644a634c6301b8111e6d22a61679e6e6bd0",
-            "shasum": ""
-        },
-        "require": {
-            "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
-            "php": ">=5.3.0",
-            "react/dns": "^0.4.13",
-            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5",
-            "react/promise": "^2.6.0 || ^1.2.1",
-            "react/promise-timer": "^1.4.0",
-            "react/stream": "^1.0 || ^0.7.1"
-        },
-        "require-dev": {
-            "clue/block-react": "^1.2",
-            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
-        },
-        "time": "2018-07-11 14:38:22",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\Socket\\": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Async, streaming plaintext TCP/IP and secure TLS socket server and client connections for ReactPHP",
-        "keywords": [
-            "Connection",
-            "Socket",
-            "async",
-            "reactphp",
-            "stream"
-        ]
-    },
-    {
         "name": "ratchet/rfc6455",
         "version": "0.2.4",
         "version_normalized": "0.2.4.0",
@@ -2281,18 +2232,67 @@
         "homepage": "http://www.koseu.org/"
     },
     {
+        "name": "react/socket",
+        "version": "v1.1.0",
+        "version_normalized": "1.1.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/socket.git",
+            "reference": "34381d9282d12670eb56b45981aad82e033ed58f"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/socket/zipball/34381d9282d12670eb56b45981aad82e033ed58f",
+            "reference": "34381d9282d12670eb56b45981aad82e033ed58f",
+            "shasum": ""
+        },
+        "require": {
+            "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
+            "php": ">=5.3.0",
+            "react/dns": "^0.4.13",
+            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5",
+            "react/promise": "^2.6.0 || ^1.2.1",
+            "react/promise-timer": "^1.4.0",
+            "react/stream": "^1.0 || ^0.7.1"
+        },
+        "require-dev": {
+            "clue/block-react": "^1.2",
+            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+        },
+        "time": "2018-10-01 12:20:53",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Socket\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Async, streaming plaintext TCP/IP and secure TLS socket server and client connections for ReactPHP",
+        "keywords": [
+            "Connection",
+            "Socket",
+            "async",
+            "reactphp",
+            "stream"
+        ]
+    },
+    {
         "name": "tsugi/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "0451b0f7e3831998936b628c4ced5da41b5dbbcd"
+            "reference": "f34abc67b25b039ca7493499b67002e3a2f95d01"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/0451b0f7e3831998936b628c4ced5da41b5dbbcd",
-            "reference": "0451b0f7e3831998936b628c4ced5da41b5dbbcd",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f34abc67b25b039ca7493499b67002e3a2f95d01",
+            "reference": "f34abc67b25b039ca7493499b67002e3a2f95d01",
             "shasum": ""
         },
         "require": {

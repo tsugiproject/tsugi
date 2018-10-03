@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "962335be1a9ec91009f8f285bea8e693",
-    "content-hash": "4077389db515a0f78ca7c8ae49a94eca",
+    "hash": "95ee9a562372f892db3aab8e5ec8d229",
+    "content-hash": "21e0d900004d898d3ad35bbc5157f0d8",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -1453,16 +1453,16 @@
         },
         {
             "name": "react/socket",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/socket.git",
-                "reference": "476e2644a634c6301b8111e6d22a61679e6e6bd0"
+                "reference": "34381d9282d12670eb56b45981aad82e033ed58f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/socket/zipball/476e2644a634c6301b8111e6d22a61679e6e6bd0",
-                "reference": "476e2644a634c6301b8111e6d22a61679e6e6bd0",
+                "url": "https://api.github.com/repos/reactphp/socket/zipball/34381d9282d12670eb56b45981aad82e033ed58f",
+                "reference": "34381d9282d12670eb56b45981aad82e033ed58f",
                 "shasum": ""
             },
             "require": {
@@ -1496,7 +1496,7 @@
                 "reactphp",
                 "stream"
             ],
-            "time": "2018-07-11 14:38:22"
+            "time": "2018-10-01 12:20:53"
         },
         {
             "name": "react/stream",
@@ -2154,12 +2154,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "0451b0f7e3831998936b628c4ced5da41b5dbbcd"
+                "reference": "f34abc67b25b039ca7493499b67002e3a2f95d01"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/0451b0f7e3831998936b628c4ced5da41b5dbbcd",
-                "reference": "0451b0f7e3831998936b628c4ced5da41b5dbbcd",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f34abc67b25b039ca7493499b67002e3a2f95d01",
+                "reference": "f34abc67b25b039ca7493499b67002e3a2f95d01",
                 "shasum": ""
             },
             "require": {
