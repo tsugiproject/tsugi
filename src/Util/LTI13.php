@@ -276,6 +276,47 @@ class LTI13 extends LTI {
         return $status;
     }
 
+    // Delete A LineItem
+    public static function deleteLineItem($lineitem_url, $access_token, &$debug_log=false) {
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $lineitem_url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer '. $access_token
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close ($ch);
+        if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem delete, received status=$httpcode (".strlen($response)." characters)";
+
+        if ( $httpcode == 200 ) {
+            if ( is_array($debug_log) ) $debug_log[] = "Deleted lineitem";
+            return true;
+        }
+
+        if ( strlen($response) < 1 ) {
+            return "Failed with no response body and code=".$httpcode;
+        }
+
+        $json = json_decode($response, false);
+        if ( $json === null ) {
+            $retval = "Unable to parse returned lineitem JSON:". json_last_error_msg();
+            if ( is_array($debug_log) ) {
+                $debug_log[] = $retval;
+                $debug_log[] = substr($lineitem, 0, 1000);
+            }
+            return $retval;
+        }
+
+        $status = U::get($json, "error", "Unable to delete lineitem");
+        if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
+        return $status;
+    }
+
     public static function createLineItem($lineitem_url, $access_token, $lineitem, &$debug_log = false) {
 
         $ch = curl_init();
