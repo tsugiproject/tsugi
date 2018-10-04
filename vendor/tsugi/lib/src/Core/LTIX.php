@@ -1153,7 +1153,7 @@ class LTIX {
 
         $actions = array();
         // if we didn't get context_id from post, we can't update lti_context!
-        echo("<pre>\n");print_r($row);
+
         if ( $row['context_id'] === null && isset($post['context_id']) ) {
             $sql = "INSERT INTO {$p}lti_context
                 ( context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
