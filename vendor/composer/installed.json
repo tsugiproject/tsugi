@@ -2287,12 +2287,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "3d3b2ea524720def5938371cb9d3fc68f825885b"
+            "reference": "349471897a4e6f3b4d00c4596b74086613f15970"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/3d3b2ea524720def5938371cb9d3fc68f825885b",
-            "reference": "3d3b2ea524720def5938371cb9d3fc68f825885b",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/349471897a4e6f3b4d00c4596b74086613f15970",
+            "reference": "349471897a4e6f3b4d00c4596b74086613f15970",
             "shasum": ""
         },
         "require": {
