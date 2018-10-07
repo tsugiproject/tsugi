@@ -346,7 +346,37 @@ class LTI13 extends LTI {
         }
 
         return true;
-// XXX
+    }
+
+    public static function updateLineItem($lineitem_url, $access_token, $lineitem, &$debug_log = false) {
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $lineitem_url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($lineitem));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer '. $access_token,
+            'Content-Type: application/vnd.ims.lis.v2.lineitem+json'
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $line_item = curl_exec($ch);
+
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        curl_close ($ch);
+
+        if ( is_array($debug_log) ) $debug_log[] = "Updated line item, received status=$httpcode\n".$line_item;
+
+        if ( $httpcode != 200 ) {
+            $json = json_decode($line_item, true);
+            $status = U::get($json, "error", "Unable to update lineitem");
+            if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
+            return $status;
+        }
+
+        return true;
     }
 
     public static function get_access_token($scope, $issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
