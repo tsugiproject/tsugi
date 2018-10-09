@@ -200,7 +200,7 @@ class LTI13 extends LTI {
             return $json->members;
         }
 
-        $status = U::get($json, "error", "Unable to load roster");
+        $status = isset($json->error) ? $json->error : "Unable to load results";
         if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
         return $status;
     }
@@ -235,7 +235,7 @@ class LTI13 extends LTI {
             return $json;
         }
 
-        $status = U::get($json, "error", "Unable to load lineitems");
+        $status = isset($json->error) ? $json->error : "Unable to load results";
         if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
         return $status;
     }
@@ -271,7 +271,43 @@ class LTI13 extends LTI {
             return $json;
         }
 
-        $status = U::get($json, "error", "Unable to load lineitem");
+        $status = isset($json->error) ? $json->error : "Unable to load results";
+        if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
+        return $status;
+    }
+
+    // Load results for a LineItem
+    public static function loadResults($lineitem_url, $access_token, &$debug_log=false) {
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $lineitem_url."/results");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer '. $access_token
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $results = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close ($ch);
+        if ( is_array($debug_log) ) $debug_log[] = "Sent results request, received status=$httpcode (".strlen($results)." characters)";
+
+        $json = json_decode($results, false);
+        if ( $json === null ) {
+            $retval = "Unable to parse returned results JSON:". json_last_error_msg();
+            if ( is_array($debug_log) ) {
+                $debug_log[] = $retval;
+                $debug_log[] = substr($results, 0, 1000);
+            }
+            return $retval;
+        }
+
+        if ( $httpcode == 200 && is_object($json) ) {
+            if ( is_array($debug_log) ) $debug_log[] = "Loaded results";
+            return $json;
+        }
+
+        $status = isset($json->error) ? $json->error : "Unable to load results";
         if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
         return $status;
     }
