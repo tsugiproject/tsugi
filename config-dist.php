@@ -58,6 +58,11 @@ unset($apphome);
 // $CFG->websocket_url = 'ws://localhost:2021'; // Local dev test
 // $CFG->websocket_url = 'wss://socket.tsugicloud.org:443'; // Production
 
+// If you are running a reverse proxy (proxy_wstunnel) set this to the port
+// you will forward to in your apache config  
+// $CFG->websocket_proxyport = 8080;
+
+
 
 // Database connection information to configure the PDO connection
 // You need to point this at a database with am account and password

@@ -81,7 +81,15 @@ class MyNotify implements MessageComponentInterface {
 }
 
 if ( WebSocket::enabled() ) {
-    $port = WebSocket::getPort();
+    
+    $proxyport = WebSocket::getProxyPort();
+
+    if ( $proxyport ) {
+        $port = $proxyport;
+    } else {
+        $port = WebSocket::getPort();
+    }
+    
     $host = WebSocket::getHost();
     $app = new Ratchet\App($host, $port, '0.0.0.0');
     $app->route('/notify', new MyNotify, array('*'));
