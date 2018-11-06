@@ -101,6 +101,15 @@ class WebSocket {
         $pieces = parse_url($CFG->websocket_url);
         return U::get($pieces,'port');
     }
+    
+    /**
+     * Returns the proxyport if set in config
+     */
+    public static function getProxyPort() {
+        global $CFG;
+        if ( ! isset($CFG->websocket_proxyport) ) return null;
+        return $CFG->websocket_proxyport;
+    }
 
     /**
      * Returns the host that the configured web socket server
