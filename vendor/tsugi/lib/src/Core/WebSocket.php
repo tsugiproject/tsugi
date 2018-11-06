@@ -107,7 +107,7 @@ class WebSocket {
      */
     public static function getProxyPort() {
         global $CFG;
-        if ( ! self::enabled() ) return null;
+        if ( ! isset($CFG->websocket_proxyport) ) return null;
         return $CFG->websocket_proxyport;
     }
 
