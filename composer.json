@@ -1,13 +1,12 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#491e91d21ca48802944acae09916ad1b946c5d58",
+        "tsugi/lib": "dev-master#e5ad2195efba6d300c13a42cc5bce17de72af370",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
         "aws/aws-sdk-php": "v3.55.0",
         "google/apiclient-services" : "v0.56",
         "google/auth" : "1.3.2",
-        "phpseclib/phpseclib" : ">=2.0.9",
         "fproject/php-jwt" : ">=4.0.5",
         "fightbulc/moment": "*",
         "koseu/lib": "dev-master#3d8995257810291d2ff4c8ce4d0843e9f2320458",
