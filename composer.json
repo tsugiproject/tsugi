@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#8fa33132d70104a3343b52430e75d126256fd623",
+        "tsugi/lib": "dev-master#491e91d21ca48802944acae09916ad1b946c5d58",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
@@ -21,7 +21,9 @@
         "symfony/routing": "v3.4.8",
         "symfony/debug": "v3.4.8",
         "google/apiclient": "v2.2.1",
-        "paragonie/random_compat": "v2.0.12"
+        "paragonie/random_compat": "v2.0.12",
+        "phpseclib/phpseclib" : "v2.0.11",
+        "monolog/monolog" : "v1.23.0"
     },
     "config": {
         "preferred-install": "dist"
