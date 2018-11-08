@@ -24,7 +24,8 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array("key_id", "key_key", "secret", "caliper_url", "caliper_key", "lti13_keyset_url", "lti13_pubkey", "lti13_token_url", "lti13_privkey", "created_at", "updated_at", "user_id");
+$fields = array("key_id", "key_key", "secret", "caliper_url", "caliper_key", "lti13_keyset_url", "lti13_pubkey",
+    "lti13_token_url", "lti13_privkey", "lti13_client_id", "lti13_oidc_auth", "created_at", "updated_at", "user_id");
 
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,

@@ -16,7 +16,7 @@ class LTI13 extends LTI {
     const DEEPLINK_CLAIM = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
 
     public static function extract_consumer_key($jwt) {
-        return 'lti13_' . $jwt->body->iss . '_' . $jwt->body->aud;
+        return 'lti13_' . $jwt->body->iss;
     }
 
     public static function raw_jwt($request_data=false) {

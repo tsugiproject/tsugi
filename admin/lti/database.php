@@ -33,6 +33,7 @@ array( "{$CFG->dbprefix}lti_key",
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     lti13_client_id     TEXT NULL,
+    lti13_oidc_auth     TEXT NULL,
     lti13_keyset_url    TEXT NULL,
     lti13_keyset        TEXT NULL,
     lti13_kid           TEXT NULL,
@@ -1411,13 +1412,20 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    if ( ! $PDOX->columnExists('lti13_oidc_auth', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_oidc_auth TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // TODO: transfer lti_event contents to cal_event and drop the table
 
     // TODO: Remove lti13_lineitem from lti_result
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201811081203;
+    return 201811081254;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
