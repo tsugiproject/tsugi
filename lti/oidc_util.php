@@ -6,7 +6,7 @@ function getBrowserSignature() {
     $look_at = array( 'x-forwarded-proto', 'x-forwarded-port', 'host',
     'accept-encoding', 'cf-ipcountry', 'user-agent', 'accept', 'accept-language');
 
-    $headers = getallheaders();
+    $headers = \Tsugi\Util\U::apache_request_headers();
 
     $concat = \Tsugi\Util\Net::getIP();
     if ( isset($CFG->cookiepad) ) $concat .= ':::' . $CFG->cookiepad;
