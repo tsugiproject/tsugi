@@ -19,7 +19,7 @@ if ( ! isAdmin() ) {
 
 $from_location = "keys";
 $tablename = "{$CFG->dbprefix}lti_key";
-$fields = array("key_key", "key_sha256", "secret", "lti13_keyset_url", "lti13_pubkey", "lti13_token_url", "lti13_privkey", "created_at", "updated_at", "user_id");
+$fields = array("key_key", "key_sha256", "secret", "lti13_keyset_url", "lti13_pubkey", "lti13_token_url", "lti13_privkey", "lti13_client_id", "lti13_oidc_auth", "created_at", "updated_at", "user_id");
 
 $retval = CrudForm::handleInsert($tablename, $fields);
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
