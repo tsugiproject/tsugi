@@ -1,16 +1,40 @@
 <?php
 
+// https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
+//
 use \Tsugi\Util\U;
 use \Firebase\JWT\JWT;
 
 require_once "../config.php";
 require_once "oidc_util.php";
 
-$redirect = "http://localhost:8080/imsblis/lti13/oidc_auth";
+// target_link_uri and lti_message_hint are not required by Tsugi
+$login_hint = U::get($_GET, 'login_hint');
+$iss = U::get($_GET, 'iss');
 
-if ( ! isset($_GET['login_hint']) ) {
+if ( ! $login_hint ) {
     die('Missing login_hint');
 }
+
+if ( ! $iss ) {
+    die('Missing iss');
+}
+
+$PDOX = \Tsugi\Core\LTIX::getConnection();
+
+$key_sha256 = lti_sha256('lti13_'.$iss);
+
+$row = $PDOX->rowDie(
+    "SELECT lti13_client_id, lti13_oidc_auth
+    FROM {$CFG->dbprefix}lti_key
+    WHERE key_sha256 = :SHA AND lti13_client_id IS NOT NULL AND lti13_oidc_auth IS NOT NULL",
+    array(":SHA" => $key_sha256)
+);
+if ( ! is_array($row) || count($row) < 1 ) {
+    die('Unknown or improper iss');
+}
+$client_id = $row['lti13_client_id'];
+$redirect = $row['lti13_oidc_auth'];
 
 $signature = getBrowserSignature();
 
@@ -20,7 +44,19 @@ $payload['time'] = time();
 
 $state = JWT::encode($payload, $CFG->cookiesecret, 'HS256');
 
-$redirect = U::add_url_parm($redirect, "login_hint", $_GET['login_hint']);
+$redirect = U::add_url_parm($redirect, "scope", "openid");
+$redirect = U::add_url_parm($redirect, "response_type", "id_token");
+$redirect = U::add_url_parm($redirect, "response_mode", "post");
+$redirect = U::add_url_parm($redirect, "prompt", "none");
+$redirect = U::add_url_parm($redirect, "nonce", uniqid());
+
+// client_id - Required, per OIDC spec, the tool’s client id for this issuer.
+$redirect = U::add_url_parm($redirect, "client_id", $client_id);
+$redirect = U::add_url_parm($redirect, "login_hint", $login_hint);
+if ( U::get($_GET,'lti_message_hint') ) {
+    $redirect = U::add_url_parm($redirect, "lti_message_hint", $_GET['lti_message_hint']);
+}
+$redirect = U::add_url_parm($redirect, "redirect_uri", $CFG->wwwroot . '/lti/oauth_launch');
 $redirect = U::add_url_parm($redirect, "state", $state);
 
 header("Location: ".$redirect);
