@@ -2,14 +2,44 @@
 
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
+use \Firebase\JWT\JWT;
 
 require_once "../config.php";
+require_once "oidc_util.php";
 
 $id_token = U::get($_POST, 'id_token');
 $state = U::get($_POST, 'state');
 
 if ( ! $state || ! $id_token ) {
     die('Missing id_token and/or state');
+}
+
+try {
+    $decoded = JWT::decode($state, $CFG->cookiesecret, array('HS256'));
+} catch(Exception $e) {
+    die('Unable to decode state value');
+}
+
+if ( ! is_object($decoded) ) {
+    die('Incorrect state value');
+}
+
+if ( ! isset($decoded->time) ) {
+    die('No time in state');
+}
+
+$delta = abs($decoded->time - time());
+if ( $delta > 60 ) {
+    die('Bad time value');
+}
+
+if ( ! isset($decoded->signature) ) {
+    die('No signature in state');
+}
+$signature = getBrowserSignature();
+
+if ( $signature != $decoded->signature ) {
+    die("Invalid signature value");
 }
 
 $url_claim = "https://purl.imsglobal.org/spec/lti/claim/launch_url";

@@ -450,23 +450,23 @@ class Net {
         // Check Cloudflare headers
         if ( $the_ip === false && array_key_exists( 'HTTP_CF_CONNECTING_IP', $headers ) ) {
             $pieces = explode(',',$headers['HTTP_CF_CONNECTING_IP']);
-            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
 
         if ( $the_ip === false && array_key_exists( 'CF-Connecting-IP', $headers ) ) {
             $pieces = explode(',',$headers['CF-Connecting-IP']);
-            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
 
         // Get the forwarded IP from more traditional places
         if ( $the_ip == false && array_key_exists( 'X-Forwarded-For', $headers ) ) {
             $pieces = explode(',',$headers['X-Forwarded-For']);
-            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
 
         if ( $the_ip === false && array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers ) ) {
             $pieces = explode(',',$headers['HTTP_X_FORWARDED_FOR']);
-            $the_ip = filter_var(end($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
         }
 
         if ( $the_ip === false && array_key_exists( 'REMOTE_ADDR', $headers ) ) {
