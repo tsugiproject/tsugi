@@ -42,7 +42,7 @@ if ( $signature != $decoded->signature ) {
     die("Invalid signature value");
 }
 
-$url_claim = "https://purl.imsglobal.org/spec/lti/claim/launch_url";
+$url_claim = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
 
 $jwt = LTI13::parse_jwt($id_token);
 
