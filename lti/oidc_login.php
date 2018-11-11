@@ -41,6 +41,9 @@ $signature = getBrowserSignature();
 $payload = array();
 $payload['signature'] = $signature;
 $payload['time'] = time();
+if ( U::get($_GET,'target_link_uri') ) {
+    $payload['target_link_uri'] = $_GET['target_link_uri'];
+}
 
 $state = JWT::encode($payload, $CFG->cookiesecret, 'HS256');
 

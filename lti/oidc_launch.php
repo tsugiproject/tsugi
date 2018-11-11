@@ -54,11 +54,35 @@ if ( ! isset($jwt->body) ) {
     die("Missing body in JWT");
 }
 
-if ( ! isset($jwt->body->{$url_claim}) || ! is_string($jwt->body->{$url_claim})) {
+$launch_url = false;
+if ( isset($jwt->body->{$url_claim}) && is_string($jwt->body->{$url_claim}) ) {
+    $launch_url = $jwt->body->{$url_claim};
+    error_log("target_link_uri from id_token ".$launch_url);
+}
+
+// TODO: Remove these alternate claim forumulations
+$url_claim2 = "https://purl.imsglobal.org/spec/lti/claim/launch_url";
+if ( ! $launch_url && isset($jwt->body->{$url_claim2}) && is_string($jwt->body->{$url_claim2}) ) {
+    $launch_url = $jwt->body->{$url_claim2};
+    error_log("launch_url from id_token ".$launch_url);
+}
+
+// TODO: Remove these alternate claim forumulations
+$url_claim3 = "https://purl.imsglobal.org/spec/lti/claim/resource_url";
+if ( ! $launch_url && isset($jwt->body->{$url_claim3}) && is_string($jwt->body->{$url_claim3}) ) {
+    $launch_url = $jwt->body->{$url_claim3};
+    error_log("resource_url from id_token ".$launch_url);
+}
+
+if ( ! $launch_url && isset($decoded->target_link_uri) && is_string($decoded->target_link_uri) ) {
+    $launch_url = $decoded->target_link_uri;
+    error_log("*WARNING* Launch url from unsigned target_link_uri ".$launch_url);
+}
+
+if ( ! $launch_url ) {
     die("Missing or incorrect launch_url claim in body");
 }
 
-$launch_url = $jwt->body->{$url_claim};
 
 if ( ! U::startsWith($launch_url, $CFG->wwwroot) ) {
     die("Launch_url must start with ".$CFG->wwwroot);
