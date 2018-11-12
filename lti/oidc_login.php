@@ -24,12 +24,15 @@ $PDOX = \Tsugi\Core\LTIX::getConnection();
 
 $key_sha256 = lti_sha256('lti13_'.$iss);
 
+error_log("iss=".$iss." sha256=".$key_sha256);
+
 $row = $PDOX->rowDie(
     "SELECT lti13_client_id, lti13_oidc_auth
     FROM {$CFG->dbprefix}lti_key
     WHERE key_sha256 = :SHA AND lti13_client_id IS NOT NULL AND lti13_oidc_auth IS NOT NULL",
     array(":SHA" => $key_sha256)
 );
+
 if ( ! is_array($row) || count($row) < 1 ) {
     die('Unknown or improper iss');
 }
