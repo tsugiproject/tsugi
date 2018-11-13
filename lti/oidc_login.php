@@ -62,7 +62,7 @@ $redirect = U::add_url_parm($redirect, "login_hint", $login_hint);
 if ( U::get($_GET,'lti_message_hint') ) {
     $redirect = U::add_url_parm($redirect, "lti_message_hint", $_GET['lti_message_hint']);
 }
-$redirect = U::add_url_parm($redirect, "redirect_uri", $CFG->wwwroot . '/lti/oauth_launch');
+$redirect = U::add_url_parm($redirect, "redirect_uri", $CFG->wwwroot . '/lti/oidc_launch');
 $redirect = U::add_url_parm($redirect, "state", $state);
 
 header("Location: ".$redirect);
