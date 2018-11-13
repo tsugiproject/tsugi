@@ -14,7 +14,7 @@ class DeepLinkRequest {
 /*
   "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings": {
     "deep_link_return_url": "https://platform.example/deep_links",
-    "accept_types": ["link", "file", "html", "ltiLink", "image"],
+    "accept_types": ["link", "file", "html", "ltiResourceLink", "image"],
     "accept_media_types": "image/:::asterisk:::,text/html",
     "accept_presentation_document_targets": ["iframe", "window", "embed"],
     "accept_multiple": true,
@@ -61,7 +61,7 @@ class DeepLinkRequest {
      */
     public function allowLtiLinkItem() {
         if ( ! $this->returnUrl() ) return false;
-        return $this->allowMimetype('application/vnd.ims.lti.v1.ltilink');
+        return $this->allowMimetype('application/vnd.ims.lti.v1.ltiResourceLink');
     }
 
     /**
