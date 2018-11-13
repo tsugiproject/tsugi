@@ -1806,53 +1806,6 @@
         ]
     },
     {
-        "name": "react/dns",
-        "version": "v0.4.15",
-        "version_normalized": "0.4.15.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/dns.git",
-            "reference": "319e110a436d26a2fa137cfa3ef2063951715794"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/dns/zipball/319e110a436d26a2fa137cfa3ef2063951715794",
-            "reference": "319e110a436d26a2fa137cfa3ef2063951715794",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0",
-            "react/cache": "^0.5 || ^0.4 || ^0.3",
-            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5",
-            "react/promise": "^2.1 || ^1.2.1",
-            "react/promise-timer": "^1.2",
-            "react/stream": "^1.0 || ^0.7 || ^0.6 || ^0.5 || ^0.4.5"
-        },
-        "require-dev": {
-            "clue/block-react": "^1.2",
-            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
-        },
-        "time": "2018-07-02 12:17:56",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\Dns\\": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Async DNS resolver for ReactPHP",
-        "keywords": [
-            "async",
-            "dns",
-            "dns-resolver",
-            "reactphp"
-        ]
-    },
-    {
         "name": "ratchet/rfc6455",
         "version": "0.2.4",
         "version_normalized": "0.2.4.0",
@@ -2287,12 +2240,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "306910c4d50b66fd47481fc1308b9da0b2b73680"
+            "reference": "0dbe8cc8a281fa35c5fa009a49daea702eed14bb"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/306910c4d50b66fd47481fc1308b9da0b2b73680",
-            "reference": "306910c4d50b66fd47481fc1308b9da0b2b73680",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/0dbe8cc8a281fa35c5fa009a49daea702eed14bb",
+            "reference": "0dbe8cc8a281fa35c5fa009a49daea702eed14bb",
             "shasum": ""
         },
         "require": {
@@ -2331,5 +2284,52 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "react/dns",
+        "version": "v0.4.15",
+        "version_normalized": "0.4.15.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/dns.git",
+            "reference": "319e110a436d26a2fa137cfa3ef2063951715794"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/dns/zipball/319e110a436d26a2fa137cfa3ef2063951715794",
+            "reference": "319e110a436d26a2fa137cfa3ef2063951715794",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0",
+            "react/cache": "^0.5 || ^0.4 || ^0.3",
+            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5",
+            "react/promise": "^2.1 || ^1.2.1",
+            "react/promise-timer": "^1.2",
+            "react/stream": "^1.0 || ^0.7 || ^0.6 || ^0.5 || ^0.4.5"
+        },
+        "require-dev": {
+            "clue/block-react": "^1.2",
+            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+        },
+        "time": "2018-07-02 12:17:56",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Dns\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Async DNS resolver for ReactPHP",
+        "keywords": [
+            "async",
+            "dns",
+            "dns-resolver",
+            "reactphp"
+        ]
     }
 ]

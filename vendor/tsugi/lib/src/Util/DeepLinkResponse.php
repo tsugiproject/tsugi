@@ -144,7 +144,7 @@ $text='{
                 }';
 
         $item = '{
-            "type": "ltiLink",
+            "type": "ltiResourceLink",
             "title": "A title",
             "url": "https://lti.example.com/launchMe",
             "presentation": {
@@ -419,7 +419,7 @@ $text='{
       }
     },
     {
-      "type": "ltiLink",
+      "type": "ltiResourceLink",
       "title": "A title",
       "url": "https://lti.example.com/launchMe",
       "presentation": {

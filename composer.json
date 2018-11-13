@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#306910c4d50b66fd47481fc1308b9da0b2b73680",
+        "tsugi/lib": "dev-master#0dbe8cc8a281fa35c5fa009a49daea702eed14bb",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
@@ -22,7 +22,8 @@
         "google/apiclient": "v2.2.1",
         "paragonie/random_compat": "v2.0.12",
         "phpseclib/phpseclib" : "v2.0.11",
-        "monolog/monolog" : "v1.23.0"
+        "monolog/monolog" : "v1.23.0",
+        "react/dns": "v0.4.15"
     },
     "config": {
         "preferred-install": "dist"
