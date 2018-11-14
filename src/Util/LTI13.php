@@ -10,6 +10,7 @@ use \Firebase\JWT\JWT;
  */
 class LTI13 extends LTI {
 
+    const DEPLOYMENT_ID = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
     const ROLES_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/roles";
     const NAMESANDROLES_CLAIM = "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice";
     const ENDPOINT_CLAIM = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
