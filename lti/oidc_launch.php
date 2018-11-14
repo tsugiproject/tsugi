@@ -84,8 +84,8 @@ if ( ! $launch_url ) {
 }
 
 
-if ( ! U::startsWith($launch_url, $CFG->wwwroot) ) {
-    die("Launch_url must start with ".$CFG->wwwroot);
+if ( ! U::startsWith($launch_url, $CFG->apphome) ) {
+    die("Launch_url must start with ".$CFG->apphome);
 }
 
 // Looks good - time to forward
