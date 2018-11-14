@@ -434,7 +434,8 @@ class LTIX {
         }
 
         // Use returned data to check the validity of the incoming request
-
+        $raw_jwt = false;
+        $jwt = false;
         if ( $LTI11 ) {
             $valid = LTI::verifyKeyAndSecret($post['key'],$row['secret'],self::curPageUrl(), $request_data);
 
@@ -550,6 +551,9 @@ class LTIX {
 
             // Just copy across
             if ( U::get($post,'lti13_deeplink') ) $row['lti13_deeplink'] = $post['lti13_deeplink'];
+
+            self::wrapped_session_put($session_object, 'tsugi_jwt', $jwt);
+            // self::wrapped_session_put($session_object, 'tsugi_raw_jwt', $raw_jwt);
         }
 
         // Store the launch path

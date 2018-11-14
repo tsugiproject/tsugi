@@ -248,13 +248,22 @@ if ( isset($_GET['install']) ) {
 
         $debug_log = array();
         $jwt = LTI13::base_jwt('issuer', 'subject', $debug_log);
-        $jwt['aud'] = LTIX::ltiParameter('key_key');
+        $debug_log = array();
+        $launch_jwt = U::GET($_SESSION, 'tsugi_jwt');
+        if ( is_object($launch_jwt) && isset($launch_jwt->body) ) {
+            $body = $launch_jwt->body;
+            if ( isset($body->iss) ) $jwt['aud'] = $body->iss;
+            if ( isset($body->aud) ) $jwt['iss'] = $body->aud;
+            if ( isset($body->{LTI13::DEPLOYMENT_ID}) ) $jwt[LTI13::DEPLOYMENT_ID] = $body->{LTI13::DEPLOYMENT_ID};
+        }
+
         foreach($jwt as $k => $v) {
             $params->{$k} = $v;
         }
         $jws = LTI13::encode_jwt($params, $lti13_privkey);
         $html = LTI13::build_jwt_html($return_url, $jws);
         echo($html);
+        echo("<pre>\n");var_dump($_SESSION);echo("\n</pre>\n");
         return;
     }
 
@@ -267,7 +276,7 @@ if ( isset($_GET['install']) ) {
     $content = LTI::postLaunchHTML($params, $return_url, $debug, $iframeattr, $endform);
     echo($content);
     return;
-} 
+}
 
 // Handle the assignment install
 if ( $l && isset($_GET['assignment']) ) {
