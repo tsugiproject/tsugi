@@ -248,6 +248,7 @@ if ( isset($_GET['install']) ) {
 
         $debug_log = array();
         $jwt = LTI13::base_jwt('issuer', 'subject', $debug_log);
+        $jwt['aud'] = LTIX::ltiParameter('key_key');
         foreach($jwt as $k => $v) {
             $params->{$k} = $v;
         }

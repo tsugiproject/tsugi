@@ -57,11 +57,23 @@ class DeepLinkRequest {
     }
 
     /**
+     * acceptType - Returns true if the string is in the accept_types
+     *
+     * "accept_types": ["link", "file", "html", "ltiResourceLink", "image"],
+     */
+    public function acceptType($type) {
+        if ( ! isset($this->claim->accept_types) ) return false;
+        if ( ! is_array($this->claim->accept_types) ) return false;
+        return in_array($type, $this->claim->accept_types);
+    }
+
+    /**
      * allowLtiLinkItem - Returns true if we can return LTI Link Items
+            "accept_types": ["link", "file", "html", "ltiResourceLink", "image"],
      */
     public function allowLtiLinkItem() {
         if ( ! $this->returnUrl() ) return false;
-        return $this->allowMimetype('application/vnd.ims.lti.v1.ltiResourceLink');
+        return ( $this->acceptType("ltiResourceLink") || $this->acceptType("ltiLink") ) ;
     }
 
     /**

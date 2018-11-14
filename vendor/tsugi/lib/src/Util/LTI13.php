@@ -470,7 +470,7 @@ class LTI13 extends LTI {
 
     public static function build_jwt_html($launch_url, $jws, $dodebug=true) {
         $html = "<form action=\"" . $launch_url . "\" method=\"POST\">\n"
-                . "    <input type=\"hidden\" name=\"id_token\" value=\"" . htmlspecialchars($jws) . "\" />\n"
+                . "    <input type=\"hidden\" name=\"JWT\" value=\"" . htmlspecialchars($jws) . "\" />\n"
                 . "    <input type=\"submit\" value=\"Go!\" />\n"
                 . "</form>\n";
 
