@@ -10,6 +10,9 @@ use \Tsugi\Util\U;
  */
 class DeepLinkResponse extends DeepLinkRequest {
 
+    const DATA_CLAIM = "https://purl.imsglobal.org/spec/lti-dl/claim/data";
+    const CONTENT_ITEMS = "https://purl.imsglobal.org/spec/lti-dl/claim/content_items";
+
     public $json;
     public $items = array();
 
@@ -21,7 +24,7 @@ $text='{
     "07940580-b309-415e-a37c-914d387c1150",
   "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
   "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
-  "https://purl.imsglobal.org/spec/lti-dl/data": "csrftoken:c7fbba78-7b75-46e3-9201-11e6d5f36f53"
+  "https://purl.imsglobal.org/spec/lti-dl/claim/data": "csrftoken:c7fbba78-7b75-46e3-9201-11e6d5f36f53"
 }';
         $this->json = json_decode($text);
     }
@@ -31,10 +34,10 @@ $text='{
      */
     function getContentItemSelection()
     {
-        $this->json->{'https://purl.imsglobal.org/spec/lti-dl/claim/content_items'} = $this->items;
-        unset($this->json->{'https://purl.imsglobal.org/spec/lti-dl/data'});
+        $this->json->{self::CONTENT_ITEMS} = $this->items;
+        unset($this->json->{self::DATA_CLAIM});
         if ( isset($this->claim->data) ) {
-            $this->json->{'https://purl.imsglobal.org/spec/lti-dl/data'} = $this->claim->data;
+            $this->json->{self::DATA_CLAIM} = $this->claim->data;
         }
         return $this->json;
     }
