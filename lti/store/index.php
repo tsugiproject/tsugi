@@ -247,13 +247,13 @@ if ( isset($_GET['install']) ) {
 */
 
         $debug_log = array();
-        $jwt = LTI13::base_jwt('issuer', 'subject', $debug_log);
+        $issuer = $LAUNCH->ltiParameter('lti13_client_id');
+        $jwt = LTI13::base_jwt($issuer, 'subject', $debug_log);
         $debug_log = array();
         $launch_jwt = U::GET($_SESSION, 'tsugi_jwt');
         if ( is_object($launch_jwt) && isset($launch_jwt->body) ) {
             $body = $launch_jwt->body;
             if ( isset($body->iss) ) $jwt['aud'] = $body->iss;
-            if ( isset($body->aud) ) $jwt['iss'] = $body->aud;
             if ( isset($body->{LTI13::DEPLOYMENT_ID}) ) $jwt[LTI13::DEPLOYMENT_ID] = $body->{LTI13::DEPLOYMENT_ID};
         }
 
