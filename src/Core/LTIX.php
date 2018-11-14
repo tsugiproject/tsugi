@@ -1023,21 +1023,20 @@ class LTIX {
         // Add the fields
         // TODO: Add user_locale
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
-            k.login_at AS key_login_at,
+            k.login_at AS key_login_at, k.lti13_client_id,
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
             c.ext_memberships_id AS ext_memberships_id, c.ext_memberships_url AS ext_memberships_url,
             c.lineitems_url AS lineitems_url, c.memberships_url AS memberships_url,
+            c.lti13_lineitems AS lti13_lineitems, c.lti13_membership_url AS lti13_membership_url,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
+            l.lti13_lineitem AS lti13_lineitem,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email, user_key, u.image AS user_image,
             u.locale AS user_locale,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
             m.membership_id, m.role, m.role_override,
             r.result_id, r.grade, r.result_url, r.sourcedid";
 
-        // TODO: After a while do this l.lti13_lineitem AS lti13_lineitem,
-        // TODO: After a while do this l.lti13_membership_url AS lti13_membership_url,
-        // TODO: After a while do this l.lti13_lineitems AS lti13_lineitems,
         if ( $profile_table ) {
             $sql .= ",
             p.profile_id, p.displayname AS profile_displayname, p.email AS profile_email,
@@ -1106,6 +1105,8 @@ class LTIX {
         $sql .= "
             LIMIT 1\n";
 
+        // ContentItem does not neet link_id
+        if ( !isset($post['link_id']) ) $post['link_id'] = null;
         $parms = array(
             ':key' => lti_sha256($post['key']),
             ':nonce' => substr($post['nonce'],0,128),
@@ -1122,13 +1123,6 @@ class LTIX {
 
         // Restore ERRMODE
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
-
-        // TODO: Remove this after we add lti13_lineitem to the big join above
-        if ( $row && is_array($row) && ! isset($row['lti13_lineitem']) ) $row['lti13_lineitem'] = null;
-        // TODO: Remove this after we add lti13_membership_url to the big join above
-        if ( $row && is_array($row) && ! isset($row['lti13_membership_url']) ) $row['lti13_membership_url'] = null;
-        // TODO: Remove this after we add lti13_lineitems to the big join above
-        if ( $row && is_array($row) && ! isset($row['lti13_lineitems']) ) $row['lti13_lineitems'] = null;
 
         return $row;
     }
