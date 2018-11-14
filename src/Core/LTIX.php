@@ -999,7 +999,7 @@ class LTIX {
     // session secret.  Also make these change every 30 minutes
     public static function getCompositeKey($post, $session_secret) {
         $comp = $session_secret .'::'. $post['key'] .'::'. $post['context_id'] .'::'.
-            $post['link_id']  .'::'. $post['user_id'] .'::'. intval(time() / 1800) .
+            U::get($post,'link_id')  .'::'. $post['user_id'] .'::'. intval(time() / 1800) .
             $_SERVER['HTTP_USER_AGENT'] . '::' . __FILE__;
         return md5($comp);
     }
