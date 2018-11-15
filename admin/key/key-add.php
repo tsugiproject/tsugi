@@ -51,8 +51,8 @@ lti13_https://dev1.tsugicloud.com
 <p>
 For LTI 1.3, you need to enter these URLs in your LMS configuration:
 <pre>
-LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/tsugi/lti/oidc_login
-LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/tsugi/lti/oidc_launch
+LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login
+LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
 </pre>
 </p>
 <p>
