@@ -42,10 +42,17 @@ as the LTI 1.3 values.   If you don't want to use LTI 1.1 for this key
 just leave the secret blank or set it to a large randomly generated value.
 </p>
 <p>
-The convention for lti13 keys is:
+The convention for lti13 tenant key (key_key) in this screen is:
 <pre>
-lti13_issuer_audience
-lti13_http://lti-ri.imsglobal.org_12345
+lti13_issuer
+lti13_https://dev1.tsugicloud.com
+</pre>
+</p>
+<p>
+For LTI 1.3, you need to enter these URLs in your LMS configuration:
+<pre>
+LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/tsugi/lti/oidc_login
+LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/tsugi/lti/oidc_launch
 </pre>
 </p>
 <p>
