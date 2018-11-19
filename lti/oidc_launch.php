@@ -39,7 +39,8 @@ if ( ! isset($decoded->signature) ) {
 $signature = getBrowserSignature();
 
 if ( $signature != $decoded->signature ) {
-    die("Invalid signature value");
+    error_log("Bad state signature raw\n".getBrowserSignatureRaw());
+    die("Invalid state signature value");
 }
 
 $url_claim = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";

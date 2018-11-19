@@ -1,6 +1,13 @@
 <?php
 
 function getBrowserSignature() {
+    $concat = getBrowserSignatureRaw();
+
+    $h = hash('sha256', $concat);
+    return $h;
+}
+
+function getBrowserSignatureRaw() {
     global $CFG;
 
     $look_at = array( 'x-forwarded-proto', 'x-forwarded-port', 'host',
@@ -26,9 +33,7 @@ function getBrowserSignature() {
         $concat .= '===' . $k . '=' . $v;
     }
 
-
-    $h = hash('sha256', $concat);
-    return $h;
+    return $concat;
 }
 
 function getTsugiStateCookieName() {
