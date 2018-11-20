@@ -445,37 +445,41 @@ class Net {
             $headers = $_SERVER;
         }
 
+        // $filter_option = FILTER_FLAG_IPV4;
+        // $filter_option = FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
+        $filter_option = 0;
+
         $the_ip = false;
 
         // Check Cloudflare headers
         if ( $the_ip === false && array_key_exists( 'HTTP_CF_CONNECTING_IP', $headers ) ) {
             $pieces = explode(',',$headers['HTTP_CF_CONNECTING_IP']);
-            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, $filter_option );
         }
 
         if ( $the_ip === false && array_key_exists( 'CF-Connecting-IP', $headers ) ) {
             $pieces = explode(',',$headers['CF-Connecting-IP']);
-            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, $filter_option );
         }
 
         // Get the forwarded IP from more traditional places
         if ( $the_ip == false && array_key_exists( 'X-Forwarded-For', $headers ) ) {
             $pieces = explode(',',$headers['X-Forwarded-For']);
-            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, $filter_option );
         }
 
         if ( $the_ip === false && array_key_exists( 'HTTP_X_FORWARDED_FOR', $headers ) ) {
             $pieces = explode(',',$headers['HTTP_X_FORWARDED_FOR']);
-            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var(current($pieces),FILTER_VALIDATE_IP, $filter_option );
         }
 
         if ( $the_ip === false && array_key_exists( 'REMOTE_ADDR', $headers ) ) {
-            $the_ip = filter_var( $headers['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var( $headers['REMOTE_ADDR'], FILTER_VALIDATE_IP, $filter_option );
         }
 
 	// Fall through and get *something*
         if ( $the_ip === false && array_key_exists( 'REMOTE_ADDR', $_SERVER ) ) {
-            $the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 );
+            $the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, $filter_option );
         }
 
         if ( $the_ip === false ) $the_ip = NULL;
