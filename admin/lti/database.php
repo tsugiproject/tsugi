@@ -81,6 +81,7 @@ array( "{$CFG->dbprefix}lti_user",
     user_id             INTEGER NOT NULL AUTO_INCREMENT,
     user_sha256         CHAR(64) NOT NULL,
     user_key            TEXT NOT NULL,
+    user_subject        TEXT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -1419,13 +1420,21 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    if ( ! $PDOX->columnExists('user_subject', "{$CFG->dbprefix}lti_user") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD user_subject TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+
     // TODO: transfer lti_event contents to cal_event and drop the table
 
     // TODO: Remove lti13_lineitem from lti_result
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201811081254;
+    return 201811201534;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
