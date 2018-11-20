@@ -19,6 +19,7 @@ function getBrowserSignatureRaw() {
     if ( isset($CFG->cookiepad) ) $concat .= ':::' . $CFG->cookiepad;
     if ( isset($CFG->cookiesecret) ) $concat .= ':::' . $CFG->cookiesecret;
     $used = array();
+    ksort($headers);
     foreach($headers as $k => $v ) {
         if ( ! in_array(strtolower($k), $look_at) ) continue;
         if ( is_string($v) ) { 

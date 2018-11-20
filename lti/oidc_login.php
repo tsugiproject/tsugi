@@ -40,6 +40,7 @@ $client_id = $row['lti13_client_id'];
 $redirect = $row['lti13_oidc_auth'];
 
 $signature = getBrowserSignature();
+// error_log("Signature raw\n".getBrowserSignatureRaw());
 
 $payload = array();
 $payload['signature'] = $signature;

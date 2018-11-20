@@ -39,7 +39,7 @@ if ( ! isset($decoded->signature) ) {
 $signature = getBrowserSignature();
 
 if ( $signature != $decoded->signature ) {
-    error_log("Bad state signature raw\n".getBrowserSignatureRaw());
+    // error_log("Bad state signature raw\n".getBrowserSignatureRaw());
     die("Invalid state signature value");
 }
 
