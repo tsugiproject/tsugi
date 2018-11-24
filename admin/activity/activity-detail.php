@@ -1,4 +1,7 @@
 <?php
+
+use \Tsugi\Util\U;
+
 // In the top frame, we use cookies for session.
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
@@ -19,6 +22,7 @@ if ( ! isset($_REQUEST['link_id']) ) {
 
 $link_id = $_REQUEST['link_id'] / 10000;
 $event = $_REQUEST['link_id'] % 10000;
+$order_by = U::get($_REQUEST,'order_by');
 
 $sql = "SELECT A.link_id AS link_id, L.title AS link_title, link_count, C.title AS context_title, A.created_at, A.updated_at, event, L.path
         FROM {$CFG->dbprefix}lti_link_activity AS A
@@ -34,6 +38,11 @@ if ( $row === false ) {
     die('Bad link_id');
 }
 
+$return_url = 'index';
+if ( $order_by ) $return_url = U::add_url_parm($return_url, 'order_by', $order_by);
+$desc = U::get($_REQUEST,'desc');
+if ( $desc ) $return_url = U::add_url_parm($return_url, 'desc', $desc);
+
 
 $OUTPUT->header();
 ?>
@@ -46,7 +55,7 @@ $OUTPUT->flashMessages();
 ?>
 <div class="container">
 <p>
-<a href="index.php" class="btn btn-default">Back</a>
+<a href="<?= $return_url ?>" class="btn btn-default">Back</a>
 </p>
 Context: <?= htmlentities($row['context_title']); ?><br/>
 Link: <?= htmlentities($row['link_title']); ?><br/>
