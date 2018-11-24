@@ -75,6 +75,7 @@ require_once("sanity-db.php");
   </a>
 </li>
 <li><a href="context/">View Contexts</a></li>
+<li><a href="activity/">View Activity</a></li>
 <li><a href="key">Manage Access Keys</a></li>
 <li><a href="install">Manage Installed Modules</a></li>
 <li>
