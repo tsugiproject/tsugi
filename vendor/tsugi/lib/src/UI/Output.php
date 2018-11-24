@@ -1106,7 +1106,11 @@ EOF;
         if ( is_array($x) || is_object($x) ) {
             foreach($x as $k => $v ) {
                 if (  is_string($v) && strlen($v) > 0 && strpos($k, 'secret') !== false || strpos($k, 'priv') !== false ) {
-                    $x[$k] = 'Hidden as MD5: '.MD5($v);
+                    if ( is_array($x) ) {
+                        $x[$k] = 'Hidden as MD5: '.MD5($v);
+                    } else {
+                        $x->{$k} = 'Hidden as MD5: '.MD5($v);
+                    }
                 }
                 if ( is_array($v) || is_object($v) ) self::safe_var_cleanup($v,$depth+1);
             }

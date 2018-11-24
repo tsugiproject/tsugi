@@ -1,54 +1,5 @@
 [
     {
-        "name": "psr/log",
-        "version": "1.0.2",
-        "version_normalized": "1.0.2.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/php-fig/log.git",
-            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/php-fig/log/zipball/4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
-            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "time": "2016-10-10 12:19:37",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "1.0.x-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Psr\\Log\\": "Psr/Log/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "PHP-FIG",
-                "homepage": "http://www.php-fig.org/"
-            }
-        ],
-        "description": "Common interface for logging libraries",
-        "homepage": "https://github.com/php-fig/log",
-        "keywords": [
-            "log",
-            "psr",
-            "psr-3"
-        ]
-    },
-    {
         "name": "pimple/pimple",
         "version": "v3.0.2",
         "version_normalized": "3.0.2.0",
@@ -1460,71 +1411,6 @@
         ]
     },
     {
-        "name": "fightbulc/moment",
-        "version": "1.26.10",
-        "version_normalized": "1.26.10.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/fightbulc/moment.php.git",
-            "reference": "2fe6607fdbbd45b48708f539c70fde89ca9d10e6"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/fightbulc/moment.php/zipball/2fe6607fdbbd45b48708f539c70fde89ca9d10e6",
-            "reference": "2fe6607fdbbd45b48708f539c70fde89ca9d10e6",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "4.2.*"
-        },
-        "time": "2017-08-14 05:06:04",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Moment\\": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Ashish Tilara",
-                "email": "ashish@itcutives.com",
-                "role": "developer"
-            },
-            {
-                "name": "Jaroslaw Kozak",
-                "email": "jaroslaw.kozak68@gmail.com",
-                "role": "developer"
-            },
-            {
-                "name": "Tino Ehrich",
-                "email": "tino@bigpun.me",
-                "role": "developer"
-            }
-        ],
-        "description": "Parse, validate, manipulate, and display dates in PHP w/ i18n support. Inspired by moment.js",
-        "keywords": [
-            "date",
-            "display",
-            "format",
-            "i18n",
-            "locale",
-            "manipulate",
-            "moment",
-            "parse",
-            "time",
-            "translation",
-            "validate"
-        ]
-    },
-    {
         "name": "evenement/evenement",
         "version": "v3.0.1",
         "version_normalized": "3.0.1.0",
@@ -2287,12 +2173,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "a70fcf34450dfc7e3db53d9950117960ba9b714d"
+            "reference": "af3376ee35a07ed0efee25cdf65d70299a7792c7"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/a70fcf34450dfc7e3db53d9950117960ba9b714d",
-            "reference": "a70fcf34450dfc7e3db53d9950117960ba9b714d",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/af3376ee35a07ed0efee25cdf65d70299a7792c7",
+            "reference": "af3376ee35a07ed0efee25cdf65d70299a7792c7",
             "shasum": ""
         },
         "require": {
@@ -2331,5 +2217,119 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "fightbulc/moment",
+        "version": "1.26.10",
+        "version_normalized": "1.26.10.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/fightbulc/moment.php.git",
+            "reference": "2fe6607fdbbd45b48708f539c70fde89ca9d10e6"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/fightbulc/moment.php/zipball/2fe6607fdbbd45b48708f539c70fde89ca9d10e6",
+            "reference": "2fe6607fdbbd45b48708f539c70fde89ca9d10e6",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.2.*"
+        },
+        "time": "2017-08-14 05:06:04",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Moment\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Ashish Tilara",
+                "email": "ashish@itcutives.com",
+                "role": "developer"
+            },
+            {
+                "name": "Jaroslaw Kozak",
+                "email": "jaroslaw.kozak68@gmail.com",
+                "role": "developer"
+            },
+            {
+                "name": "Tino Ehrich",
+                "email": "tino@bigpun.me",
+                "role": "developer"
+            }
+        ],
+        "description": "Parse, validate, manipulate, and display dates in PHP w/ i18n support. Inspired by moment.js",
+        "keywords": [
+            "date",
+            "display",
+            "format",
+            "i18n",
+            "locale",
+            "manipulate",
+            "moment",
+            "parse",
+            "time",
+            "translation",
+            "validate"
+        ]
+    },
+    {
+        "name": "psr/log",
+        "version": "1.0.2",
+        "version_normalized": "1.0.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/php-fig/log.git",
+            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/php-fig/log/zipball/4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
+            "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "time": "2016-10-10 12:19:37",
+        "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "1.0.x-dev"
+            }
+        },
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Psr\\Log\\": "Psr/Log/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "PHP-FIG",
+                "homepage": "http://www.php-fig.org/"
+            }
+        ],
+        "description": "Common interface for logging libraries",
+        "homepage": "https://github.com/php-fig/log",
+        "keywords": [
+            "log",
+            "psr",
+            "psr-3"
+        ]
     }
 ]

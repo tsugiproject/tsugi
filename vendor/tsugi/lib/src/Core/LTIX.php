@@ -1106,7 +1106,7 @@ class LTIX {
             LIMIT 1\n";
 
         // ContentItem does not neet link_id
-        if ( !isset($post['link_id']) ) $post['link_id'] = null;
+        if ( ! isset($post['link_id']) ) $post['link_id'] = null;
         $parms = array(
             ':key' => lti_sha256($post['key']),
             ':nonce' => substr($post['nonce'],0,128),

@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#a70fcf34450dfc7e3db53d9950117960ba9b714d",
+        "tsugi/lib": "dev-master#af3376ee35a07ed0efee25cdf65d70299a7792c7",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
@@ -23,7 +23,9 @@
         "paragonie/random_compat": "v2.0.12",
         "phpseclib/phpseclib" : "v2.0.11",
         "monolog/monolog" : "v1.23.0",
-        "react/dns": "v0.4.15"
+        "react/dns": "v0.4.15",
+        "fightbulc/moment": "v1.26.10",
+        "psr/log": "v1.0.2"
     },
     "config": {
         "preferred-install": "dist"
