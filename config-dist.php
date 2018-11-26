@@ -89,7 +89,7 @@ $CFG->storehide = false; // A regex like - '/dev/sample|test|beta/';
 
 // You can use the CDN copy of the static content - it is the
 // default unless you override it.
-// $CFG->staticroot = 'https://www.dr-chuck.net/tsugi-static';
+// $CFG->staticroot = 'https://static.tsugi.org';
 
 // If you check out a copy of the static content locally and do not
 // want to use the CDN copy (perhaps you are on a plane or are otherwise

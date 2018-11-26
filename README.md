@@ -117,7 +117,7 @@ and Applications.
 * [Tsugi Static Content](https://github.com/tsugiproject/tsugi-static) - This repository contains
 JavaScript, images, and CSS files shared across the various Tsugi implementations
 (PHP, Java, and NodeJS).  The static content is available at 
-http://www.dr-chuck.net/tsugi-static/ - if you like you can check out your own copy
+https://static.tsugi.org/ - if you like you can check out your own copy
 of this repo locally or for your production environment and point your Tsugi `config.php`
 at your own copy of the library.
 

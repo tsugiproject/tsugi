@@ -362,14 +362,7 @@ class ConfigInfo {
     public function __construct($dirroot, $wwwroot, $dataroot=false) {
         $this->dirroot = $dirroot;
         $this->wwwroot = $wwwroot;
-        $this->staticroot = 'https://www.dr-chuck.net/tsugi-static';
-/* TODO: Delete this in the future - it is a bad default
-        if ( $dataroot === false ) {
-            $this->dataroot = $dirroot . '/_files/a';
-        } else {
-            $this->dataroot = $dataroot;
-        }
-*/
+        $this->staticroot = 'https://static.tsugi.org';
     }
 
     function getCurrentFile($file) {
