@@ -188,7 +188,7 @@ class ContentItem {
                         "presentationDocumentTarget" : "iframe"
                     },
                     "icon" : {
-                        "@id" : "https://www.dr-chuck.net/tsugi-static/img/default-icon.png",
+                        "@id" : "https://static.tsugi.org/img/default-icon.png",
                         "fa_icon" : "fa-magic",
                         "width" : 64,
                         "height" : 64
@@ -305,7 +305,7 @@ class ContentItem {
                         "presentationDocumentTarget" : "iframe"
                 },
                 "icon" : {
-                        "@id" : "https://www.dr-chuck.net/tsugi-static/img/default-icon.png",
+                        "@id" : "https://static.tsugi.org/img/default-icon.png",
                         "fa_icon" : "fa-magic",
                         "width" : 64,
                         "height" : 64
