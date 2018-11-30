@@ -1339,6 +1339,19 @@ $DATABASE_UPGRADE = function($oldversion) {
             $q = $PDOX->queryDie($sql);
         }
     }
+	
+    if ( ! $PDOX->columnExists('lti13_client_id', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_client_id TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+    if ( ! $PDOX->columnExists('lti13_oidc_auth', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti13_oidc_auth ADD lti13_privkey TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
 
     if ( ! $PDOX->columnExists('lti13_pubkey', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_pubkey TEXT NULL";
