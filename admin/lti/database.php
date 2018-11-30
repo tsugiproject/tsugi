@@ -1347,7 +1347,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
     if ( ! $PDOX->columnExists('lti13_oidc_auth', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti13_oidc_auth ADD lti13_privkey TEXT NULL";
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_oidc_auth TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
