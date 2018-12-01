@@ -421,8 +421,8 @@ We do not want to spend a lot of time verifying identity, resetting passwords,
 detecting robot-login storms, and other issues so we let Google do that hard work.
 </p>
 <form method="post">
-    <input class="btn btn-warning" type="button" onclick="location.href='<?php echo($login_return); ?>'; return false;" value="Cancel"/>
-    <input class="btn btn-primary" type="button" onclick="location.href='<?= $loginUrl ?>'; return false;" value="Login with Google" />
+    <a href="<?= $loginUrl ?>"><img src="<?= $CFG->staticroot ?>/img/google_signin_buttons/2x/btn_google_signin_dark_normal_web@2x.png" style="height: 3em;"></a>
+    <input class="btn btn-warning" type="button" onclick="location.href='<?php echo($login_return); ?>'; return false;" value="Cancel" style="height: 2.5em;"/>
 </form>
 <p>
 So you must have a Google account and we will require your
