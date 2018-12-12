@@ -192,9 +192,10 @@ class CrudForm {
             if ( ! $do_edit ) {
                 echo('<p><strong>'.self::fieldToTitle($field)."</strong></p>\n");
                 if ( strpos($field, "secret") !== false ) {
-                    echo("<p onclick=\"$('#stars_{$i}').toggle();$('#text_{$i}').toggle();\">\n");
-                    echo("<span id=\"stars_{$i}\">***********</span>\n");
+                    echo("<p>\n");
                     echo("<span style=\"display: none;\" id=\"text_{$i}\">".htmlent_utf8($value).'</span>');
+                    echo("<span id=\"show_{$i}\" onclick=\"$('#text_{$i}').show();$('#show_{$i}').hide();$('#hide_{$i}').show();\";>(Click to show)</span>\n");
+                    echo("<span id=\"hide_{$i}\" onclick=\"$('#text_{$i}').hide();$('#hide_{$i}').hide();$('#show_{$i}').show();\" style=\"display:none\";>(Click to hide)</span>\n");
                     echo("\n</p>\n");
                 } else {
                     echo("<p>".htmlent_utf8($value)."</p>\n");
