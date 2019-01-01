@@ -58,7 +58,7 @@ if ( isset($_POST['ext_content_return_url']) ) {
 $anchor_str = U::get($_GET, 'anchors', false);
 $anchors = false;
 if ( $anchor_str ) $anchors = explode(',', $anchor_str);
-if ( count($anchors) < 1 ) $anchors = false;
+if ( ! is_array($anchors) || count($anchors) < 1 ) $anchors = false;
 $anchor_count = 0;
 if ( $anchors ) {
     foreach($l->lessons->modules as $module) {
