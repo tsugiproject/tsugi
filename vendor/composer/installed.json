@@ -1432,102 +1432,6 @@
         ]
     },
     {
-        "name": "react/stream",
-        "version": "v1.0.0",
-        "version_normalized": "1.0.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/stream.git",
-            "reference": "fdd0140f42805d65bf9687636503db0b326d2244"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/stream/zipball/fdd0140f42805d65bf9687636503db0b326d2244",
-            "reference": "fdd0140f42805d65bf9687636503db0b326d2244",
-            "shasum": ""
-        },
-        "require": {
-            "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
-            "php": ">=5.3.8",
-            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5"
-        },
-        "require-dev": {
-            "clue/stream-filter": "~1.2",
-            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
-        },
-        "time": "2018-07-11 14:38:16",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\Stream\\": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Event-driven readable and writable streams for non-blocking I/O in ReactPHP",
-        "keywords": [
-            "event-driven",
-            "io",
-            "non-blocking",
-            "pipe",
-            "reactphp",
-            "readable",
-            "stream",
-            "writable"
-        ]
-    },
-    {
-        "name": "react/promise",
-        "version": "v2.7.0",
-        "version_normalized": "2.7.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/promise.git",
-            "reference": "f4edc2581617431aea50430749db55cc3fc031b3"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/promise/zipball/f4edc2581617431aea50430749db55cc3fc031b3",
-            "reference": "f4edc2581617431aea50430749db55cc3fc031b3",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.4.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "~4.8"
-        },
-        "time": "2018-06-13 15:59:06",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\Promise\\": "src/"
-            },
-            "files": [
-                "src/functions_include.php"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Jan Sorgalla",
-                "email": "jsorgalla@gmail.com"
-            }
-        ],
-        "description": "A lightweight implementation of CommonJS Promises/A for PHP",
-        "keywords": [
-            "promise",
-            "promises"
-        ]
-    },
-    {
         "name": "react/promise-timer",
         "version": "v1.5.0",
         "version_normalized": "1.5.0.0",
@@ -1828,55 +1732,6 @@
         ],
         "description": "A Next Generation Embeddable Learning Management System",
         "homepage": "http://www.koseu.org/"
-    },
-    {
-        "name": "react/socket",
-        "version": "v1.1.0",
-        "version_normalized": "1.1.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/socket.git",
-            "reference": "34381d9282d12670eb56b45981aad82e033ed58f"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/socket/zipball/34381d9282d12670eb56b45981aad82e033ed58f",
-            "reference": "34381d9282d12670eb56b45981aad82e033ed58f",
-            "shasum": ""
-        },
-        "require": {
-            "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
-            "php": ">=5.3.0",
-            "react/dns": "^0.4.13",
-            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5",
-            "react/promise": "^2.6.0 || ^1.2.1",
-            "react/promise-timer": "^1.4.0",
-            "react/stream": "^1.0 || ^0.7.1"
-        },
-        "require-dev": {
-            "clue/block-react": "^1.2",
-            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
-        },
-        "time": "2018-10-01 12:20:53",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\Socket\\": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Async, streaming plaintext TCP/IP and secure TLS socket server and client connections for ReactPHP",
-        "keywords": [
-            "Connection",
-            "Socket",
-            "async",
-            "reactphp",
-            "stream"
-        ]
     },
     {
         "name": "phpseclib/phpseclib",
@@ -2287,12 +2142,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "1726702764f403dd7257ed6772e3dc3ca766b134"
+            "reference": "d7d673a4dd6de02abf02d093d7c03c2f5ae73841"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/1726702764f403dd7257ed6772e3dc3ca766b134",
-            "reference": "1726702764f403dd7257ed6772e3dc3ca766b134",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/d7d673a4dd6de02abf02d093d7c03c2f5ae73841",
+            "reference": "d7d673a4dd6de02abf02d093d7c03c2f5ae73841",
             "shasum": ""
         },
         "require": {
@@ -2331,5 +2186,150 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "react/stream",
+        "version": "v1.0.0",
+        "version_normalized": "1.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/stream.git",
+            "reference": "fdd0140f42805d65bf9687636503db0b326d2244"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/stream/zipball/fdd0140f42805d65bf9687636503db0b326d2244",
+            "reference": "fdd0140f42805d65bf9687636503db0b326d2244",
+            "shasum": ""
+        },
+        "require": {
+            "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
+            "php": ">=5.3.8",
+            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5"
+        },
+        "require-dev": {
+            "clue/stream-filter": "~1.2",
+            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+        },
+        "time": "2018-07-11 14:38:16",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Stream\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Event-driven readable and writable streams for non-blocking I/O in ReactPHP",
+        "keywords": [
+            "event-driven",
+            "io",
+            "non-blocking",
+            "pipe",
+            "reactphp",
+            "readable",
+            "stream",
+            "writable"
+        ]
+    },
+    {
+        "name": "react/promise",
+        "version": "v2.7.0",
+        "version_normalized": "2.7.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/promise.git",
+            "reference": "f4edc2581617431aea50430749db55cc3fc031b3"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/promise/zipball/f4edc2581617431aea50430749db55cc3fc031b3",
+            "reference": "f4edc2581617431aea50430749db55cc3fc031b3",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.8"
+        },
+        "time": "2018-06-13 15:59:06",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Promise\\": "src/"
+            },
+            "files": [
+                "src/functions_include.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Jan Sorgalla",
+                "email": "jsorgalla@gmail.com"
+            }
+        ],
+        "description": "A lightweight implementation of CommonJS Promises/A for PHP",
+        "keywords": [
+            "promise",
+            "promises"
+        ]
+    },
+    {
+        "name": "react/socket",
+        "version": "v1.1.0",
+        "version_normalized": "1.1.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/socket.git",
+            "reference": "34381d9282d12670eb56b45981aad82e033ed58f"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/socket/zipball/34381d9282d12670eb56b45981aad82e033ed58f",
+            "reference": "34381d9282d12670eb56b45981aad82e033ed58f",
+            "shasum": ""
+        },
+        "require": {
+            "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
+            "php": ">=5.3.0",
+            "react/dns": "^0.4.13",
+            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5",
+            "react/promise": "^2.6.0 || ^1.2.1",
+            "react/promise-timer": "^1.4.0",
+            "react/stream": "^1.0 || ^0.7.1"
+        },
+        "require-dev": {
+            "clue/block-react": "^1.2",
+            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+        },
+        "time": "2018-10-01 12:20:53",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Socket\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Async, streaming plaintext TCP/IP and secure TLS socket server and client connections for ReactPHP",
+        "keywords": [
+            "Connection",
+            "Socket",
+            "async",
+            "reactphp",
+            "stream"
+        ]
     }
 ]

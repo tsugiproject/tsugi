@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#1726702764f403dd7257ed6772e3dc3ca766b134",
+        "tsugi/lib": "dev-master#d7d673a4dd6de02abf02d093d7c03c2f5ae73841",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
@@ -25,7 +25,10 @@
         "react/dns": "v0.4.15",
         "fightbulc/moment": "v1.26.10",
         "psr/log": "v1.0.2",
-        "guzzlehttp/psr7": "v1.4.2"
+        "guzzlehttp/psr7": "v1.4.2",
+        "react/stream": "v1.0.0",
+        "react/promise": "v2.7.0",
+        "react/socket": "v1.1.0"
     },
     "config": {
         "preferred-install": "dist"
