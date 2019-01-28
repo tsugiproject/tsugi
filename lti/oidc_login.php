@@ -9,8 +9,8 @@ require_once "../config.php";
 require_once "oidc_util.php";
 
 // target_link_uri and lti_message_hint are not required by Tsugi
-$login_hint = U::get($_GET, 'login_hint');
-$iss = U::get($_GET, 'iss');
+$login_hint = U::get($_REQUEST, 'login_hint');
+$iss = U::get($_REQUEST, 'iss');
 
 if ( ! $login_hint ) {
     die('Missing login_hint');
