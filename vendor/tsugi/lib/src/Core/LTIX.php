@@ -971,9 +971,9 @@ class LTIX {
         if ( isset($body->{LTI13::NAMESANDROLES_CLAIM}) &&
             isset($body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url) &&
             is_string($body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url) &&
-            isset($body->{LTI13::NAMESANDROLES_CLAIM}->service_version) &&
-            is_string($body->{LTI13::NAMESANDROLES_CLAIM}->service_version) &&
-            $body->{LTI13::NAMESANDROLES_CLAIM}->service_version == "2.0"
+            isset($body->{LTI13::NAMESANDROLES_CLAIM}->service_versions) &&
+            is_array($body->{LTI13::NAMESANDROLES_CLAIM}->service_versions) &&
+            in_array("2.0", $body->{LTI13::NAMESANDROLES_CLAIM}->service_versions)
         ) {
             $retval['lti13_membership_url'] = $body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url;
         }
