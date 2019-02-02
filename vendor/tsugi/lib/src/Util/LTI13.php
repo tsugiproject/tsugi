@@ -198,7 +198,7 @@ class LTI13 extends LTI {
 
         if ( $httpcode == 200 && isset($json->members) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Loaded ".count($json->members)." roster entries";
-            return $json->members;
+            return $json;
         }
 
         $status = isset($json->error) ? $json->error : "Unable to load results";
