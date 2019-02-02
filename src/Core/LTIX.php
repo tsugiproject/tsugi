@@ -367,6 +367,7 @@ class LTIX {
             $post = self::extractPost($needed, $request_data);
         } else if ( $LTI13 ) {
             $post = self::extractJWT($needed, $request_data);
+            // echo("<pre>\n");var_dump($post);echo("\n</pre>\n");
         }
 
         if ( ! is_array($post) ) {
@@ -461,13 +462,16 @@ class LTIX {
             $jwt = LTI13::parse_jwt($raw_jwt);
             $consumer_pk = $post['key'];
             $consumer_sha256 = U::lti_sha256($consumer_pk);
-            error_log("consumer_pk=$consumer_pk\n");
-            error_log("consumer_sha256=$consumer_sha256\n<hr/>\n");
+            error_log("consumer_pk=$consumer_pk consumer_sha256=$consumer_sha256");
             $pub_row = $PDOX->rowDie("SELECT lti13_kid, lti13_keyset_url, lti13_keyset,
                 lti13_pubkey, lti13_token_url, lti13_privkey
                 FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
                     array(':SHA' => $consumer_sha256) );
-            if ( ! $pub_row ) return false;
+
+            if ( ! $pub_row ) {
+                error_log("Did not find key for consumer_sha256");
+                return false;
+            }
 
             $request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
             $our_kid = $pub_row['lti13_kid'];
@@ -967,9 +971,9 @@ class LTIX {
         if ( isset($body->{LTI13::NAMESANDROLES_CLAIM}) &&
             isset($body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url) &&
             is_string($body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url) &&
-            isset($body->{LTI13::NAMESANDROLES_CLAIM}->service_version) &&
-            is_string($body->{LTI13::NAMESANDROLES_CLAIM}->service_version) &&
-            $body->{LTI13::NAMESANDROLES_CLAIM}->service_version == "2.0"
+            isset($body->{LTI13::NAMESANDROLES_CLAIM}->service_versions) &&
+            is_array($body->{LTI13::NAMESANDROLES_CLAIM}->service_versions) &&
+            in_array("2.0", $body->{LTI13::NAMESANDROLES_CLAIM}->service_versions)
         ) {
             $retval['lti13_membership_url'] = $body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url;
         }
