@@ -20,6 +20,8 @@ class LTI13 extends LTI {
     const ACCEPT_MEMBERSHIPS = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
     const ACCEPT_LINEITEM = 'application/vnd.ims.lis.v2.lineitem+json';
     const ACCEPT_LINEITEMS = 'application/vnd.ims.lis.v2.lineitemcontainer+json';
+    const SCORE_TYPE = 'application/vnd.ims.lis.v1.score+json';
+    const RESULTS_TYPE = 'application/vnd.ims.lis.v2.resultcontainer+json';
 
     public static function extract_consumer_key($jwt) {
         return 'lti13_' . $jwt->body->iss;
@@ -152,7 +154,8 @@ class LTI13 extends LTI {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($grade_call));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer '. $access_token,
-            'Content-Type: application/vnd.ims.lis.v1.score+json'
+            'Content-Type: '.self::SCORE_TYPE,
+            'Accept: '.self::SCORE_TYPE
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -292,9 +295,13 @@ class LTI13 extends LTI {
 
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, $lineitem_url."/results");
+        $actual_url = $lineitem_url."/results";
+        if ( is_array($debug_log) ) $debug_log[] = $actual_url;
+        curl_setopt($ch, CURLOPT_URL, $actual_url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer '. $access_token
+            'Authorization: Bearer '. $access_token,
+            'Content-Type: '.self::RESULTS_TYPE,   //  TODO: Convince Claude this is wrong
+            'Accept: '.self::RESULTS_TYPE
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -302,14 +309,12 @@ class LTI13 extends LTI {
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent results request, received status=$httpcode (".strlen($results)." characters)";
+        if ( is_array($debug_log)) $debug_log[] = substr($results, 0, 1000);
 
         $json = json_decode($results, false);
         if ( $json === null ) {
             $retval = "Unable to parse returned results JSON:". json_last_error_msg();
-            if ( is_array($debug_log) ) {
-                $debug_log[] = $retval;
-                $debug_log[] = substr($results, 0, 1000);
-            }
+            if ( is_array($debug_log) ) $debug_log[] = $retval;
             return $retval;
         }
 
