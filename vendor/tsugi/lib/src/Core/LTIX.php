@@ -510,7 +510,7 @@ class LTIX {
                 $new_public_key = false;
 
                 foreach ($key_set['keys'] as $key) {
-                    if ($key['kid'] == $jwt->header->kid) {
+                    if ($key['kid'] == $request_kid) {
                         $details = openssl_pkey_get_details(JWK::parseKey($key));
                         if ( $details && is_array($details) && isset($details['key']) ) {
                             $new_public_key = $details['key'];
@@ -966,7 +966,7 @@ class LTIX {
         $retval['lti13_lineitems'] = null;
         if ( isset($body->{LTI13::ENDPOINT_CLAIM}) &&
             isset($body->{LTI13::ENDPOINT_CLAIM}->lineitems) &&
-            is_string($body->{LTI13::ENDPOINT_CLAIM}->lineitem) ) {
+            is_string($body->{LTI13::ENDPOINT_CLAIM}->lineitems) ) {
             $retval['lti13_lineitems'] = $body->{LTI13::ENDPOINT_CLAIM}->lineitems;
         }
 
@@ -983,6 +983,14 @@ class LTIX {
             $retval['lti13_membership_url'] = $body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url;
         }
 
+        // Get the error url...
+        $retval['launch_presentation_return_url'] = null;
+        if ( isset($body->{LTI13::PRESENTATION_CLAIM}) &&
+            isset($body->{LTI13::PRESENTATION_CLAIM}->return_url)
+        ) {
+            $retval['launch_presentation_return_url'] = $body->{LTI13::PRESENTATION_CLAIM}->return_url;
+        }
+ 
         // Get the role
         $retval['role'] = self::ROLE_LEARNER;
         if ( isset($body->{LTI13::ROLES_CLAIM}) &&
