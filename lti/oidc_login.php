@@ -36,8 +36,8 @@ $row = $PDOX->rowDie(
 if ( ! is_array($row) || count($row) < 1 ) {
     die('Unknown or improper iss');
 }
-$client_id = $row['lti13_client_id'];
-$redirect = $row['lti13_oidc_auth'];
+$client_id = trim($row['lti13_client_id']);
+$redirect = trim($row['lti13_oidc_auth']);
 
 $signature = getBrowserSignature();
 // error_log("Signature raw\n".getBrowserSignatureRaw());
@@ -45,26 +45,27 @@ $signature = getBrowserSignature();
 $payload = array();
 $payload['signature'] = $signature;
 $payload['time'] = time();
-if ( U::get($_GET,'target_link_uri') ) {
-    $payload['target_link_uri'] = $_GET['target_link_uri'];
+if ( U::get($_REQUEST,'target_link_uri') ) {
+    $payload['target_link_uri'] = $_REQUEST['target_link_uri'];
 }
 
 $state = JWT::encode($payload, $CFG->cookiesecret, 'HS256');
 
 $redirect = U::add_url_parm($redirect, "scope", "openid");
 $redirect = U::add_url_parm($redirect, "response_type", "id_token");
-$redirect = U::add_url_parm($redirect, "response_mode", "post");
+$redirect = U::add_url_parm($redirect, "response_mode", "form_post");
 $redirect = U::add_url_parm($redirect, "prompt", "none");
 $redirect = U::add_url_parm($redirect, "nonce", uniqid());
 
 // client_id - Required, per OIDC spec, the tool’s client id for this issuer.
 $redirect = U::add_url_parm($redirect, "client_id", $client_id);
 $redirect = U::add_url_parm($redirect, "login_hint", $login_hint);
-if ( U::get($_GET,'lti_message_hint') ) {
-    $redirect = U::add_url_parm($redirect, "lti_message_hint", $_GET['lti_message_hint']);
+if ( U::get($_REQUEST,'lti_message_hint') ) {
+    $redirect = U::add_url_parm($redirect, "lti_message_hint", $_REQUEST['lti_message_hint']);
 }
 $redirect = U::add_url_parm($redirect, "redirect_uri", $CFG->wwwroot . '/lti/oidc_launch');
 $redirect = U::add_url_parm($redirect, "state", $state);
 
+error_log("oidc_login redirect: ".$redirect);
 header("Location: ".$redirect);
 
