@@ -12,6 +12,7 @@ class LTI13 extends LTI {
 
     const DEPLOYMENT_ID = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
     const ROLES_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/roles";
+    const PRESENTATION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/launch_presentation";
     const NAMESANDROLES_CLAIM = "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice";
     const ENDPOINT_CLAIM = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
     const DEEPLINK_CLAIM = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
