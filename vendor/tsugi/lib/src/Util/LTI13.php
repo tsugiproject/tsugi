@@ -16,6 +16,10 @@ class LTI13 extends LTI {
     const ENDPOINT_CLAIM = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
     const DEEPLINK_CLAIM = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
 
+    const ACCEPT_MEMBERSHIPS = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
+    const ACCEPT_LINEITEM = 'application/vnd.ims.lis.v2.lineitem+json';
+    const ACCEPT_LINEITEMS = 'application/vnd.ims.lis.v2.lineitemcontainer+json';
+
     public static function extract_consumer_key($jwt) {
         return 'lti13_' . $jwt->body->iss;
     }
@@ -107,7 +111,7 @@ class LTI13 extends LTI {
     public static function getRosterWithSourceDidsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
         return self::get_access_token([
-            "https://purl.imsglobal.org/spec/lti-ags/scope/basicoutcome",
+            // "https://purl.imsglobal.org/spec/lti-ags/scope/basicoutcome",
             "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
         ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
     }
@@ -176,8 +180,11 @@ class LTI13 extends LTI {
         $ch = curl_init();
 
         curl_setopt($ch, CURLOPT_URL, $membership_url);
+        $accept_memb = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer '. $access_token
+            'Authorization: Bearer '. $access_token,
+            'Accept: '.self::ACCEPT_MEMBERSHIPS,
+            'Content-Type: '.self::ACCEPT_MEMBERSHIPS // TODO: Remove when certification is fixed
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -191,7 +198,7 @@ class LTI13 extends LTI {
             $retval = "Unable to parse returned roster JSON:". json_last_error_msg();
             if ( is_array($debug_log) ) {
                 $debug_log[] = $retval;
-                $debug_log[] = substr($membership, 0, 1000);
+                $debug_log[] = substr($membership, 0, 3000);
             }
             return $retval;
         }
@@ -213,7 +220,9 @@ class LTI13 extends LTI {
 
         curl_setopt($ch, CURLOPT_URL, $lineitems_url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer '. $access_token
+            'Authorization: Bearer '. $access_token,
+            'Accept: '.self::ACCEPT_LINEITEMS,
+            'Content-Type: '.self::ACCEPT_LINEITEMS // TODO: Remove when certification is fixed
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
