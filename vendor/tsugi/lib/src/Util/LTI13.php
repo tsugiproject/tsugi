@@ -130,6 +130,8 @@ class LTI13 extends LTI {
     public static function sendLineItem($user_id, $grade, $comment, $lineitem_url,
         $access_token, &$debug_log=false) {
 
+        $lineitem_url = trim($lineitem_url);
+
         $ch = curl_init();
 
         $grade = $grade * 100.0;
@@ -183,6 +185,8 @@ class LTI13 extends LTI {
 
         $ch = curl_init();
 
+        $membership_url = trim($membership_url);
+
         curl_setopt($ch, CURLOPT_URL, $membership_url);
         $accept_memb = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -219,6 +223,8 @@ class LTI13 extends LTI {
 
     // Load LineItems
     public static function loadLineItems($lineitems_url, $access_token, &$debug_log=false) {
+
+        $lineitems_url = trim($lineitems_url);
 
         $ch = curl_init();
 
@@ -257,6 +263,8 @@ class LTI13 extends LTI {
     // Load A LineItem
     public static function loadLineItem($lineitem_url, $access_token, &$debug_log=false) {
 
+        $lineitem_url = trim($lineitem_url);
+
         $ch = curl_init();
 
         curl_setopt($ch, CURLOPT_URL, $lineitem_url);
@@ -292,6 +300,8 @@ class LTI13 extends LTI {
 
     // Load results for a LineItem
     public static function loadResults($lineitem_url, $access_token, &$debug_log=false) {
+
+        $lineitem_url = trim($lineitem_url);
 
         $ch = curl_init();
 
@@ -330,6 +340,8 @@ class LTI13 extends LTI {
 
     // Delete A LineItem
     public static function deleteLineItem($lineitem_url, $access_token, &$debug_log=false) {
+
+        $lineitem_url = trim($lineitem_url);
 
         $ch = curl_init();
 
@@ -371,6 +383,8 @@ class LTI13 extends LTI {
 
     public static function createLineItem($lineitem_url, $access_token, $lineitem, &$debug_log = false) {
 
+        $lineitem_url = trim($lineitem_url);
+
         $ch = curl_init();
 
         curl_setopt($ch, CURLOPT_URL, $lineitem_url);
@@ -402,6 +416,8 @@ class LTI13 extends LTI {
 
     public static function updateLineItem($lineitem_url, $access_token, $lineitem, &$debug_log = false) {
 
+        $lineitem_url = trim($lineitem_url);
+
         $ch = curl_init();
 
         curl_setopt($ch, CURLOPT_URL, $lineitem_url);
@@ -432,6 +448,10 @@ class LTI13 extends LTI {
     }
 
     public static function get_access_token($scope, $issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+
+        $lti13_token_url = trim($lti13_token_url);
+        $issuer = trim($issuer);
+        $subject = trim($subject);
 
         if ( ! is_string($scope) ) {
             $scope = implode(' ',$scope);
