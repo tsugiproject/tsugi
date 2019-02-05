@@ -880,12 +880,6 @@ class LTIX {
         $sub_caliper_url = U::get($FIXED,'sub_caliper_url');
         if ($sub_caliper_url ) $retval['sub_caliper_url'] = $sub_caliper_url;
 
-        // Clean up values with extra spaces / newlines at the beginning / end
-/*
-        foreach($retval as $key => $value ) {
-            if ( is_string($value) ) $retval['key'] = trim($value);
-        }
-*/
         return $retval;
     }
 
