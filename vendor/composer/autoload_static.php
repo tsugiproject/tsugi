@@ -240,6 +240,13 @@ class ComposerStaticInit409712234098604217e3efc215a6634b
                 0 => __DIR__ . '/..' . '/pimple/pimple/src',
             ),
         ),
+        'J' => 
+        array (
+            'JOSE' => 
+            array (
+                0 => __DIR__ . '/..' . '/gree/jose/src',
+            ),
+        ),
         'G' => 
         array (
             'Google_Service_' => 
