@@ -10,6 +10,10 @@ if ( strpos($local_path, "canvas-config.xml") === 0 ) {
     require_once("canvas-config-xml.php");
     return;
 }
+if ( strpos($local_path, "canvas-config.json") === 0 ) {
+    require_once("canvas-config-json.php");
+    return;
+}
 
 // No parameter means we require CONTEXT, USER, and LINK
 $LAUNCH = LTIX::requireData(LTIX::USER);
