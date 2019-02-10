@@ -1,0 +1,19 @@
+#behat.yml
+default:
+  autoload:
+    '': "%paths.base%/features/bootstrap"
+  suites:
+    default:
+      contexts:
+        - FeatureContext
+      paths:
+        - "%paths.base%/features"
+  extensions:
+    Behat\MinkExtension:
+        browser_name: 'chrome'
+        goutte: ~
+        javascript_session: selenium2
+        selenium2:
+          wd_host: http://127.0.0.1:4444/wd/hub
+          capabilities: { "version": "*", 'chrome': {'switches':['--start-maximized']}}
+        base_url: 'http://localhost:8888/tsugi/'
