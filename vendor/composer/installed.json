@@ -1703,6 +1703,9 @@
         "name": "psr/cache",
         "version": "1.0.1",
         "version_normalized": "1.0.1.0",
+        "name": "react/promise-timer",
+        "version": "v1.5.0",
+        "version_normalized": "1.5.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/php-fig/cache.git",
@@ -2043,6 +2046,9 @@
         "name": "react/event-loop",
         "version": "v1.0.0",
         "version_normalized": "1.0.0.0",
+        "name": "phpseclib/phpseclib",
+        "version": "2.0.11",
+        "version_normalized": "2.0.11.0",
         "source": {
             "type": "git",
             "url": "https://github.com/reactphp/event-loop.git",
@@ -3590,18 +3596,221 @@
         "homepage": "https://symfony.com"
     },
     {
+        "name": "react/stream",
+        "version": "v1.0.0",
+        "version_normalized": "1.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/stream.git",
+            "reference": "fdd0140f42805d65bf9687636503db0b326d2244"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/stream/zipball/fdd0140f42805d65bf9687636503db0b326d2244",
+            "reference": "fdd0140f42805d65bf9687636503db0b326d2244",
+            "shasum": ""
+        },
+        "require": {
+            "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
+            "php": ">=5.3.8",
+            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5"
+        },
+        "require-dev": {
+            "clue/stream-filter": "~1.2",
+            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+        },
+        "time": "2018-07-11 14:38:16",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Stream\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Event-driven readable and writable streams for non-blocking I/O in ReactPHP",
+        "keywords": [
+            "event-driven",
+            "io",
+            "non-blocking",
+            "pipe",
+            "reactphp",
+            "readable",
+            "stream",
+            "writable"
+        ]
+    },
+    {
+        "name": "react/promise",
+        "version": "v2.7.0",
+        "version_normalized": "2.7.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/promise.git",
+            "reference": "f4edc2581617431aea50430749db55cc3fc031b3"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/promise/zipball/f4edc2581617431aea50430749db55cc3fc031b3",
+            "reference": "f4edc2581617431aea50430749db55cc3fc031b3",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.8"
+        },
+        "time": "2018-06-13 15:59:06",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Promise\\": "src/"
+            },
+            "files": [
+                "src/functions_include.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Jan Sorgalla",
+                "email": "jsorgalla@gmail.com"
+            }
+        ],
+        "description": "A lightweight implementation of CommonJS Promises/A for PHP",
+        "keywords": [
+            "promise",
+            "promises"
+        ]
+    },
+    {
+        "name": "react/socket",
+        "version": "v1.1.0",
+        "version_normalized": "1.1.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/socket.git",
+            "reference": "34381d9282d12670eb56b45981aad82e033ed58f"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/socket/zipball/34381d9282d12670eb56b45981aad82e033ed58f",
+            "reference": "34381d9282d12670eb56b45981aad82e033ed58f",
+            "shasum": ""
+        },
+        "require": {
+            "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
+            "php": ">=5.3.0",
+            "react/dns": "^0.4.13",
+            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5",
+            "react/promise": "^2.6.0 || ^1.2.1",
+            "react/promise-timer": "^1.4.0",
+            "react/stream": "^1.0 || ^0.7.1"
+        },
+        "require-dev": {
+            "clue/block-react": "^1.2",
+            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+        },
+        "time": "2018-10-01 12:20:53",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Socket\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Async, streaming plaintext TCP/IP and secure TLS socket server and client connections for ReactPHP",
+        "keywords": [
+            "Connection",
+            "Socket",
+            "async",
+            "reactphp",
+            "stream"
+        ]
+    },
+    {
+        "name": "gree/jose",
+        "version": "2.2.1",
+        "version_normalized": "2.2.1.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/nov/jose-php.git",
+            "reference": "445d702ffc8b17abd22d664b334a4046a0ed0b8e"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/nov/jose-php/zipball/445d702ffc8b17abd22d664b334a4046a0ed0b8e",
+            "reference": "445d702ffc8b17abd22d664b334a4046a0ed0b8e",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.6",
+            "phpseclib/phpseclib": ">=2.0.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.8.*"
+        },
+        "time": "2016-09-14 07:47:41",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "JOSE": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "include-path": [
+            "src/"
+        ],
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Nov Matake",
+                "email": "nov@matake.jp",
+                "homepage": "http://matake.jp"
+            }
+        ],
+        "description": "JWT, JWS and JWS implementation in PHP",
+        "homepage": "https://github.com/nov/jose",
+        "keywords": [
+            "ID Token",
+            "JOSE",
+            "JSON Web Encryption",
+            "JSON Web Signature",
+            "JSON Web Token",
+            "JWE",
+            "JWS",
+            "OpenID Connect",
+            "jwt"
+        ]
+    },
+    {
         "name": "tsugi/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "1a11d05f1a6a5de442a884bdddd76b4bec6278d5"
+            "reference": "c81a869729ea4db44668967f42c90ac5edf992d6"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/1a11d05f1a6a5de442a884bdddd76b4bec6278d5",
-            "reference": "1a11d05f1a6a5de442a884bdddd76b4bec6278d5",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/c81a869729ea4db44668967f42c90ac5edf992d6",
+            "reference": "c81a869729ea4db44668967f42c90ac5edf992d6",
             "shasum": ""
         },
         "require": {

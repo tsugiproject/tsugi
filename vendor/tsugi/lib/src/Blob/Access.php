@@ -54,7 +54,29 @@ class Access {
         }
 
         // Check to see if the path is there
+        // We may need to patch file names if the data root has changed and the files are absolute
+        // /data/pylearn/private/blobs/de/66/de66e9455cf182cdc46...
+        // $CFG->dataroot = '/data/py4e/private/blobs';
         if ( $file_path ) {
+            if ( strpos($file_path, '/') !== 0 ) {
+                $file_path = $CFG->dataroot . '/' . $file_path;
+            }
+
+            // See if dataroot changed sunce file was stored
+            if ( strpos($file_path, $CFG->dataroot) !== 0 && ! file_exists($file_path) ) {
+                error_log('Former data root');
+                $pieces = explode('/', $file_path);
+                if ( count($pieces) > 3 ) {
+                    $last3 = array_slice($pieces, -3);
+                    $np = $CFG->dataroot . '/' . implode('/', $last3);
+                    if ( file_exists($np) ) $file_path = $np;
+// error_log("NP1 $np");
+// $np = str_replace('/data/pylearn/private/blobs', $CFG->dataroot, $file_path);
+// $np = str_replace('/data/pylearn/private/blobs', '/data/py4e/private/blobs', $file_path);
+// $file_path = $np;
+// die($np);
+                }
+            }
             if ( ! file_exists($file_path) ) {
                 error_log("Missing file path if=$id file_path=$file_path");
                 $file_path = false;

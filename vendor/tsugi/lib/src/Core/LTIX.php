@@ -367,6 +367,7 @@ class LTIX {
             $post = self::extractPost($needed, $request_data);
         } else if ( $LTI13 ) {
             $post = self::extractJWT($needed, $request_data);
+            // echo("<pre>\n");var_dump($post);echo("\n</pre>\n");
         }
 
         if ( ! is_array($post) ) {
@@ -461,13 +462,16 @@ class LTIX {
             $jwt = LTI13::parse_jwt($raw_jwt);
             $consumer_pk = $post['key'];
             $consumer_sha256 = U::lti_sha256($consumer_pk);
-            error_log("consumer_pk=$consumer_pk\n");
-            error_log("consumer_sha256=$consumer_sha256\n<hr/>\n");
+            error_log("consumer_pk=$consumer_pk consumer_sha256=$consumer_sha256");
             $pub_row = $PDOX->rowDie("SELECT lti13_kid, lti13_keyset_url, lti13_keyset,
                 lti13_pubkey, lti13_token_url, lti13_privkey
                 FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
                     array(':SHA' => $consumer_sha256) );
-            if ( ! $pub_row ) return false;
+
+            if ( ! $pub_row ) {
+                error_log("Did not find key for consumer_sha256");
+                return false;
+            }
 
             $request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
             $our_kid = $pub_row['lti13_kid'];
@@ -506,7 +510,7 @@ class LTIX {
                 $new_public_key = false;
 
                 foreach ($key_set['keys'] as $key) {
-                    if ($key['kid'] == $jwt->header->kid) {
+                    if ($key['kid'] == $request_kid) {
                         $details = openssl_pkey_get_details(JWK::parseKey($key));
                         if ( $details && is_array($details) && isset($details['key']) ) {
                             $new_public_key = $details['key'];
@@ -875,6 +879,7 @@ class LTIX {
 
         $sub_caliper_url = U::get($FIXED,'sub_caliper_url');
         if ($sub_caliper_url ) $retval['sub_caliper_url'] = $sub_caliper_url;
+
         return $retval;
     }
 
@@ -957,7 +962,7 @@ class LTIX {
         $retval['lti13_lineitems'] = null;
         if ( isset($body->{LTI13::ENDPOINT_CLAIM}) &&
             isset($body->{LTI13::ENDPOINT_CLAIM}->lineitems) &&
-            is_string($body->{LTI13::ENDPOINT_CLAIM}->lineitem) ) {
+            is_string($body->{LTI13::ENDPOINT_CLAIM}->lineitems) ) {
             $retval['lti13_lineitems'] = $body->{LTI13::ENDPOINT_CLAIM}->lineitems;
         }
 
@@ -967,13 +972,21 @@ class LTIX {
         if ( isset($body->{LTI13::NAMESANDROLES_CLAIM}) &&
             isset($body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url) &&
             is_string($body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url) &&
-            isset($body->{LTI13::NAMESANDROLES_CLAIM}->service_version) &&
-            is_string($body->{LTI13::NAMESANDROLES_CLAIM}->service_version) &&
-            $body->{LTI13::NAMESANDROLES_CLAIM}->service_version == "2.0"
+            isset($body->{LTI13::NAMESANDROLES_CLAIM}->service_versions) &&
+            is_array($body->{LTI13::NAMESANDROLES_CLAIM}->service_versions) &&
+            in_array("2.0", $body->{LTI13::NAMESANDROLES_CLAIM}->service_versions)
         ) {
             $retval['lti13_membership_url'] = $body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url;
         }
 
+        // Get the error url...
+        $retval['launch_presentation_return_url'] = null;
+        if ( isset($body->{LTI13::PRESENTATION_CLAIM}) &&
+            isset($body->{LTI13::PRESENTATION_CLAIM}->return_url)
+        ) {
+            $retval['launch_presentation_return_url'] = $body->{LTI13::PRESENTATION_CLAIM}->return_url;
+        }
+ 
         // Get the role
         $retval['role'] = self::ROLE_LEARNER;
         if ( isset($body->{LTI13::ROLES_CLAIM}) &&

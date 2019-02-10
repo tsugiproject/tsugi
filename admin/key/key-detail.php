@@ -25,11 +25,20 @@ $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
 $fields = array("key_id", "key_key", "secret", "caliper_url", "caliper_key", "lti13_keyset_url", "lti13_pubkey",
-    "lti13_token_url", "lti13_privkey", "lti13_client_id", "lti13_oidc_auth", "created_at", "updated_at", "user_id");
+     "lti13_token_url", "lti13_privkey", "lti13_client_id", "lti13_oidc_auth", "created_at", "updated_at", "user_id");
+
+$titles = array(
+    "lti13_pubkey" => "LTI 1.3 Tool Public Key (Provide to the platform)",
+    "lti13_privkey" => "LTI 1.3 Private Key (kept internally only)",
+    "lti13_keyset_url" => "LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)",
+    "lti13_token_url" => "LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)",
+    "lti13_client_id" => "LTI 1.3 Client ID (from the Platform)",
+    "lti13_oidc_auth" => "LTI 1.3 Platform OIDC Authentication URL (from the Platform)"
+);
 
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
-    $query_fields, $allow_edit, $allow_delete);
+    $query_fields, $allow_edit, $allow_delete, $titles);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     header("Location: ".$from_location);
@@ -43,7 +52,8 @@ $OUTPUT->flashMessages();
 
 $title = "Key Entry";
 echo("<h1>$title</h1>\n<p>\n");
-$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
+$extra_buttons=false;
+$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 

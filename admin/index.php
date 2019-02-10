@@ -30,47 +30,47 @@ require_once("sanity-db.php");
 <h1>Adminstration Console</h1>
 <ul>
 <li>
-  <a href="upgrade" title="Upgrade Database" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
+  <a href="#" title="Upgrade Database" 
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'upgrade', _TSUGI.spinnerUrl, true); return false;" >
   Upgrade Database
   </a>
 </li>
 <li>
-  <a href="nonce" title="Check Nonces" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
+  <a href="#" title="Check Nonces"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'nonce', _TSUGI.spinnerUrl); return false;" >
   Check Nonces
   </a></li>
 <li>
-  <a href="recent" title="Recent Logins" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
+  <a href="#" title="Recent Logins"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'recent', _TSUGI.spinnerUrl); return false;" >
   Recent Logins
   </a></li>
 <li>
-  <a href="dbsize.php" title="Check database size" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
+  <a href="#" title="Check database size"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'dbsize.php', _TSUGI.spinnerUrl); return false;" >
   Check database size
   </a></li>
 <li>
-  <a href="clear12345" title="Remove 12345 Data" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
+  <a href="#" title="Remove 12345 Data"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'clear12345', _TSUGI.spinnerUrl); return false;" >
   Remove 12345 Data
   </a></li>
 <?php if ( isset($CFG->websocket_url) ) {?>
 <li>
-  <a href="sock-test" title="Check Socket Server" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
+  <a href="#" title="Check Socket Server"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'sock-test', _TSUGI.spinnerUrl, true); return false;" >
   Check socket server at <?= htmlentities($CFG->websocket_url) ?>
   </a>
 </li>
 <?php } ?>
 <li>
-  <a href="testmail" title="Test E-Mail" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl); return true;" >
+  <a href="#" title="Test E-Mail"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'testmail', _TSUGI.spinnerUrl); return false;" >
   Test E-Mail
   </a></li>
 <li>
-  <a href="events" title="Event Status" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
+  <a href="#" title="Event Status"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'events', _TSUGI.spinnerUrl, true); return false;" >
   Event Status
   </a>
 </li>
@@ -79,20 +79,20 @@ require_once("sanity-db.php");
 <li><a href="key">Manage Access Keys</a></li>
 <li><a href="install">Manage Installed Modules</a></li>
 <li>
-  <a href="blob_status" title="Blob Status" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
+  <a href="#" title="Blob Status"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'blob_status', _TSUGI.spinnerUrl, true); return false;" >
   BLOB/File Status
   </a>
 </li>
 <li>
-  <a href="blob_move" title="Blob Migration" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
+  <a href="#" title="Blob Migration"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'blob_move', _TSUGI.spinnerUrl, true); return false;" >
   BLOB/File Migration
   </a>
 </li>
 <li>
-  <a href="blob_clean" title="Blob Cleanup" target="iframe-frame"
-  onclick="showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true); return true;" >
+  <a href="#" title="Blob Cleanup"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'blob_clean', _TSUGI.spinnerUrl, true); return false;" >
   Unreferenced BLOB Cleanup
   </a>
 </li>

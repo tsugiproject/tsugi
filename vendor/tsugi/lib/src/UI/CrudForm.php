@@ -1,6 +1,9 @@
 <?php
 
 namespace Tsugi\UI;
+
+use \Tsugi\Util\U;
+
 /**
  * This is a class that supports the creation of simple CRUD forms.
  *
@@ -49,8 +52,9 @@ class CrudForm {
      *
      * @param $fields An array of fields to prompt for.
      * @param $from_location A URL to jump to when the user presses 'Cancel'.
+     * @param $titles An array of fields->titles
      */
-    public static function insertForm($fields, $from_location) {
+    public static function insertForm($fields, $from_location, $titles=false) {
         echo('<form method="post">'."\n");
 
         for($i=0; $i < count($fields); $i++ ) {
@@ -61,7 +65,7 @@ class CrudForm {
             if ( strpos($field, "_sha256") > 0 ) continue;
 
             echo('<div class="form-group">'."\n");
-            echo('<label for="'.$field.'">'.self::fieldToTitle($field)."<br/>\n");
+            echo('<label for="'.$field.'">'.self::fieldToTitle($field, $titles)."<br/>\n");
 
             if ( strpos($field, "secret") !== false ) {
                 echo('<input id="'.$field.'" type="password" autocomplete="off" size="80" name="'.$field.'"');
@@ -152,9 +156,10 @@ class CrudForm {
      * @param $allow_edit True/false as to whether to show an Edit button
      * @param $allow_delete True/false as to whether to show a Delete button
      * @param $extra_buttons An array of additional buttons to show
+     * @param $titles An array of fields->titles
      */
     public static function updateForm($row, $fields, $current, $from_location,
-        $allow_edit=false, $allow_delete=false, $extra_buttons=false)
+        $allow_edit=false, $allow_delete=false, $extra_buttons=false, $titles=false)
     {
         $key = $fields['0'];
         if ( !isset($_REQUEST[$key]) ) {
@@ -190,7 +195,7 @@ class CrudForm {
             $field = $fields[$i];
             $value = $row[$field];
             if ( ! $do_edit ) {
-                echo('<p><strong>'.self::fieldToTitle($field)."</strong></p>\n");
+                echo('<p><strong>'.self::fieldToTitle($field, $titles)."</strong></p>\n");
                 if ( strpos($field, "secret") !== false ) {
                     echo("<p>\n");
                     echo("<span style=\"display: none;\" id=\"text_{$i}\">".htmlent_utf8($value).'</span>');
@@ -347,7 +352,8 @@ class CrudForm {
      *
      * @todo Make this translatable and pretty
      */
-    public static function fieldToTitle($name) {
+    public static function fieldToTitle($name, $titles=false) {
+        if ( is_array($titles) && U::get($titles, $name) ) return U::get($titles, $name);
         return ucwords(str_replace('_',' ',$name));
     }
 
