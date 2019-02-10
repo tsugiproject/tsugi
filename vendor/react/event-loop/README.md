@@ -21,6 +21,7 @@ single [`run()`](#run) call that is controlled by the user.
     * [ExtLibeventLoop](#extlibeventloop)
     * [ExtLibevLoop](#extlibevloop)
     * [ExtEvLoop](#extevloop)
+    * [ExtUvLoop](#extuvloop)
   * [LoopInterface](#loopinterface)
     * [run()](#run)
     * [stop()](#stop)
@@ -181,13 +182,14 @@ It is commonly installed as part of many PHP distributions.
 If this extension is missing (or you're running on Windows), signal handling is
 not supported and throws a `BadMethodCallException` instead.
 
-This event loop is known to rely on wall-clock time to schedule future
-timers, because a monotonic time source is not available in PHP by default.
+This event loop is known to rely on wall-clock time to schedule future timers
+when using any version before PHP 7.3, because a monotonic time source is
+only available as of PHP 7.3 (`hrtime()`).
 While this does not affect many common use cases, this is an important
 distinction for programs that rely on a high time precision or on systems
 that are subject to discontinuous time adjustments (time jumps).
-This means that if you schedule a timer to trigger in 30s and then adjust
-your system time forward by 20s, the timer may trigger in 10s.
+This means that if you schedule a timer to trigger in 30s on PHP < 7.3 and
+then adjust your system time forward by 20s, the timer may trigger in 10s.
 See also [`addTimer()`](#addtimer) for more details.
 
 #### ExtEventLoop
@@ -208,6 +210,14 @@ provides an interface to `libev` library.
 
 This loop is known to work with PHP 5.4 through PHP 7+.
 
+#### ExtUvLoop
+
+An `ext-uv` based event loop.
+
+This loop uses the [`uv` PECL extension](https://pecl.php.net/package/uv), that
+provides an interface to `libuv` library.
+
+This loop is known to work with PHP 7+.
 
 #### ExtLibeventLoop
 
@@ -351,8 +361,8 @@ same time (within its possible accuracy) is not guaranteed.
 
 This interface suggests that event loop implementations SHOULD use a
 monotonic time source if available. Given that a monotonic time source is
-not available on PHP by default, event loop implementations MAY fall back
-to using wall-clock time.
+only available as of PHP 7.3 by default, event loop implementations MAY
+fall back to using wall-clock time.
 While this does not affect many common use cases, this is an important
 distinction for programs that rely on a high time precision or on systems
 that are subject to discontinuous time adjustments (time jumps).
@@ -424,8 +434,8 @@ same time (within its possible accuracy) is not guaranteed.
 
 This interface suggests that event loop implementations SHOULD use a
 monotonic time source if available. Given that a monotonic time source is
-not available on PHP by default, event loop implementations MAY fall back
-to using wall-clock time.
+only available as of PHP 7.3 by default, event loop implementations MAY
+fall back to using wall-clock time.
 While this does not affect many common use cases, this is an important
 distinction for programs that rely on a high time precision or on systems
 that are subject to discontinuous time adjustments (time jumps).
@@ -662,7 +672,7 @@ This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-$ composer require react/event-loop:^1.0
+$ composer require react/event-loop:^1.1
 ```
 
 See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.

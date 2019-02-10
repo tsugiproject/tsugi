@@ -2,7 +2,6 @@
 
 namespace React\EventLoop;
 
-use React\EventLoop\Signal\Pcntl;
 use React\EventLoop\Tick\FutureTickQueue;
 use React\EventLoop\Timer\Timer;
 use React\EventLoop\Timer\Timers;
@@ -38,13 +37,14 @@ use React\EventLoop\Timer\Timers;
  * If this extension is missing (or you're running on Windows), signal handling is
  * not supported and throws a `BadMethodCallException` instead.
  *
- * This event loop is known to rely on wall-clock time to schedule future
- * timers, because a monotonic time source is not available in PHP by default.
+ * This event loop is known to rely on wall-clock time to schedule future timers
+ * when using any version before PHP 7.3, because a monotonic time source is
+ * only available as of PHP 7.3 (`hrtime()`).
  * While this does not affect many common use cases, this is an important
  * distinction for programs that rely on a high time precision or on systems
  * that are subject to discontinuous time adjustments (time jumps).
- * This means that if you schedule a timer to trigger in 30s and then adjust
- * your system time forward by 20s, the timer may trigger in 10s.
+ * This means that if you schedule a timer to trigger in 30s on PHP < 7.3 and
+ * then adjust your system time forward by 20s, the timer may trigger in 10s.
  * See also [`addTimer()`](#addtimer) for more details.
  *
  * @link http://php.net/manual/en/function.stream-select.php
@@ -62,6 +62,7 @@ final class StreamSelectLoop implements LoopInterface
     private $writeListeners = array();
     private $running;
     private $pcntl = false;
+    private $pcntlActive = false;
     private $signals;
 
     public function __construct()
@@ -69,7 +70,12 @@ final class StreamSelectLoop implements LoopInterface
         $this->futureTickQueue = new FutureTickQueue();
         $this->timers = new Timers();
         $this->pcntl = \extension_loaded('pcntl');
+        $this->pcntlActive  = $this->pcntl && !\function_exists('pcntl_async_signals');
         $this->signals = new SignalsHandler();
+
+        if ($this->pcntl && !$this->pcntlActive) {
+            \pcntl_async_signals(true);
+        }
     }
 
     public function addReadStream($stream, $listener)
@@ -222,7 +228,7 @@ final class StreamSelectLoop implements LoopInterface
         $write = $this->writeStreams;
 
         $available = $this->streamSelect($read, $write, $timeout);
-        if ($this->pcntl) {
+        if ($this->pcntlActive) {
             \pcntl_signal_dispatch();
         }
         if (false === $available) {
@@ -252,12 +258,12 @@ final class StreamSelectLoop implements LoopInterface
      * Emulate a stream_select() implementation that does not break when passed
      * empty stream arrays.
      *
-     * @param array        &$read   An array of read streams to select upon.
-     * @param array        &$write  An array of write streams to select upon.
-     * @param integer|null $timeout Activity timeout in microseconds, or null to wait forever.
+     * @param array    $read    An array of read streams to select upon.
+     * @param array    $write   An array of write streams to select upon.
+     * @param int|null $timeout Activity timeout in microseconds, or null to wait forever.
      *
-     * @return integer|false The total number of streams that are ready for read/write.
-     * Can return false if stream_select() is interrupted by a signal.
+     * @return int|false The total number of streams that are ready for read/write.
+     *     Can return false if stream_select() is interrupted by a signal.
      */
     private function streamSelect(array &$read, array &$write, $timeout)
     {
@@ -268,7 +274,13 @@ final class StreamSelectLoop implements LoopInterface
             return @\stream_select($read, $write, $except, $timeout === null ? null : 0, $timeout);
         }
 
-        $timeout && \usleep($timeout);
+        if ($timeout > 0) {
+            \usleep($timeout);
+        } elseif ($timeout === null) {
+            // wait forever (we only reach this if we're only awaiting signals)
+            // this may be interrupted and return earlier when a signal is received
+            \sleep(PHP_INT_MAX);
+        }
 
         return 0;
     }

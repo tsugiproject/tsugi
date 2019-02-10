@@ -1,6 +1,0 @@
-services:
-    foo:
-        class: stdClass
-    bar:
-        class: stdClass
-        parent: "@foo"
