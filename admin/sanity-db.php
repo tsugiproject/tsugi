@@ -22,6 +22,7 @@ MAMP or XAMPP, you may need to run commands like this:</p>
     GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
 </pre>
+<p>Note: MySQL 8.0 may require different commands.</p>
 <p>Make sure to choose appropriate passwords when setting this up.</p>
 <p>If you are running in a hosted environment and are using an admin tool like
 CPanel (or equivalent).  You must user this interface to create a database,
@@ -66,9 +67,13 @@ omit "port=" in the PDO string it assumes 3306.  If you are using MAMP
 this is usually moved to port 8889.  If neither 3306 nor 8889 works you
 probably have a bad host name.  Or talk to your system administrator.
 </p>
+<p>Note: Tsugi works best with MySQL 5.x.   Some of the setup and commands may need
+to be different for MySQL 8.0.
+</p>
 ');
 } else {
 echo("<p>There is a problem with your database connection.</p>\n");
+echo("<p>Tsugi works best with MySQL 5.x.</p>\n");
 }
 
     echo("<p>Database error detail: ".$msg."</p>\n");

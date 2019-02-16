@@ -37,7 +37,8 @@ your web server can read it
 
         git clone https://github.com/tsugiproject/tsugi.git
 
-* Create a database and get authentication info for the database
+* Create a database and get authentication info for the database (MySQL 8.0
+will need different commands):
 
         CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
         GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
