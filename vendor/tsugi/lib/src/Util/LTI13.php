@@ -189,11 +189,15 @@ class LTI13 extends LTI {
 
         curl_setopt($ch, CURLOPT_URL, $membership_url);
         $accept_memb = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $headers = [
             'Authorization: Bearer '. $access_token,
             'Accept: '.self::ACCEPT_MEMBERSHIPS,
             'Content-Type: '.self::ACCEPT_MEMBERSHIPS // TODO: Remove when certification is fixed
-        ]);
+        ];
+        if ( is_array($debug_log) ) $debug_log[] = $membership_url;
+        if ( is_array($debug_log) ) $debug_log[] = $access_token;
+        if ( is_array($debug_log) ) $debug_log[] = $headers;
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $membership = curl_exec($ch);

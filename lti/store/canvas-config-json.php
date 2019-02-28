@@ -75,23 +75,23 @@ $json = json_decode(<<<JSON
         "settings":{
            "text":"Tsugi",
            "use_1_3":true,
-           "icon_url":"<?= $CFG->staticroot ?>/img/default-icon-16x16.png",
+           "icon_url":"icon_url",
            "selection_width":500,
            "selection_height":500,
            "editor_button":{
-              "url":"<?= $CFG->wwwroot ?>lti/store/",
+              "url":"store",
               "text":"TsugiTools",
               "enabled":true,
-              "icon_url":"<?= $CFG->staticroot ?>/img/default-icon-16x16.png",
+              "icon_url":"",
               "message_type":"LtiDeepLinkingRequest",
               "canvas_icon_class":"icon-lti"
            }
         },
-        "privacy_level":"private"
+        "privacy_level":"public"
      }
   ],
-  "launch_url":"<?= $CFG->wwwroot ?>/tsugi/lti/oidc_launch",
-  "oidc_login_uri": "<?= $CFG->wwwroot ?>/tsugi/lti/oidc_login",
+  "launch_url":"replace",
+  "oidc_login_uri": "replace",
   "public_jwk":{
      "e":"AQAB",
      "n":"3yRcWT20SD9jrdPVwDj0pu3P4mh_VXldVQBHF9ggs3j2PM_j5NSRQP5jUovTbFP_-dpx_M_6llKCud8lFq6IOLuVq9Q5qar64cbc4ryQ1HGdLzBqJ39xZ5Pr5lvsQ6ppTrapkwNfN_iWNWxS1mYkdclu6AReVDAJB95uveMEqXB9fZQlBHU4vxwCvA9liTw6Msd0VGxr3KE5oxlKI1bxphieGG4t4Aqlda8oRamJPoRfzOQuedtY-5RmCrQ4eOB6ju2IzuQAjLGn_kTwyMQmin2moMnzZCwk2oLjImFopTnhmNvAUqzyRmgjSCLtXKR_vd3oaxKiTHZrvfh6kPqfuw",
@@ -104,12 +104,15 @@ $json = json_decode(<<<JSON
 JSON
 );
 
+if ( ! $json ) {
+    die('Unable to parse JSON '.json_last_error_msg());
+}
 
 $json->title = $CFG->servicename;
 $json->description = $CFG->servicedesc;
 $json->public_jwk = $jwk;
-$json->launch_url = $CFG->wwwroot . "/tsugi/lti/oidc_launch";
-$json->oidc_login_uri = $CFG->wwwroot . "/tsugi/lti/oidc_login";
+$json->launch_url = $CFG->wwwroot . "/lti/oidc_launch";
+$json->oidc_login_uri = $CFG->wwwroot . "/lti/oidc_login";
 $json->extensions[0]->domain = $domain;
 $json->extensions[0]->settings->icon_url = "/img/default-icon-16x16.png";
 $json->extensions[0]->settings->editor_button->url = $CFG->wwwroot . "/lti/store/";
