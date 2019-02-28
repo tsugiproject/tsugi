@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\Core;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
@@ -1177,7 +1178,7 @@ class LTIX {
                 ':key_id' => $row['key_id']));
             $row['context_id'] = $PDOX->lastInsertId();
             $row['context_title'] = $post['context_title'];
-            $row['context_settings_url'] = $post['context_settings_url'];
+            $row['context_settings_url'] = U::get($post, 'context_settings_url', null);
             $actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title'];
         }
 
