@@ -2323,13 +2323,17 @@ class LTIX {
         if ( is_array($extra) ) $extra = Output::safe_var_dump($extra);
         if ($return_url === null) {
             // make the msg a bit friendlier
-            $msg = "The LTI launch failed. Please reference the following error message when reporting this failure:<br><br>$msg";
             header('X-Tsugi-Test-Harness: https://www.tsugi.org/lti-test/');
             header('X-Tsugi-Base-String-Checker: https://www.tsugi.org/lti-test/basecheck.php');
             if ( $extra && ! headers_sent() ) {
                 header('X-Tsugi-Error-Detail: '.str_replace("\n"," -- ",$extra));
             }
-            die_with_error_log($msg,$extra,$prefix);
+            error_log($prefix.' '.$msg.' '.$extra);
+            print_stack_trace();
+            $url = "https://www.tsugi.org/launcherror";
+            $url = U::add_url_parm($url, "detail", $msg);
+            Output::htmlError("The LTI Lauch Failed", "Detail: $msg", $url);
+            exit();
         }
         $return_url .= ( strpos($return_url,'?') > 0 ) ? '&' : '?';
         $return_url .= 'lti_errormsg=' . urlencode($msg);

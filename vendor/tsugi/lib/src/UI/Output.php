@@ -1154,7 +1154,7 @@ EOF;
     <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
    </head>
 <body>
-<div id="dialog-confirm" title="<?= htmlentities($message) ?>">
+<div id="dialog-confirm" style="display:none;" title="<?= htmlentities($message) ?>">
 <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span><?= $detail ?></p>
 </div>
 <?php
