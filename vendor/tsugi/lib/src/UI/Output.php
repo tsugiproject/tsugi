@@ -1133,6 +1133,58 @@ EOF;
         return $result;
     }
 
+    public static function htmlError($message,$detail,$next=false) {
+        global $CFG;
+        if ( headers_sent() ) header('HTTP/1.1 400 '.$message);
+
+    ?><!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $CFG->servicename ?><?php if ( isset($CFG->context_title) ) echo(' - '.$CFG->context_title); ?></title>
+    <script>
+    <!-- Tiny bit of JS -->
+    <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
+    <!-- Le styles -->
+    <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/<?php
+        if ( isset($CFG->bootswatch) ) echo('bootswatch/'.$CFG->bootswatch.'/'); ?>bootstrap.min.css" rel="stylesheet">
+    <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
+    <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
+    <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
+   </head>
+<body>
+<div id="dialog-confirm" title="<?= htmlentities($message) ?>">
+<p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span><?= $detail ?></p>
+</div>
+<?php
+        echo('<script src="'.$CFG->staticroot.'/js/jquery-1.11.3.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/js/tsugiscripts.js"></script>'."\n");
+?>
+<script>
+  $( function() {
+    $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+      buttons: {
+<?php if ( $next ) { ?>
+        "Continue": function() {
+            window.location.href = "<?= $next ?>";
+        },
+<?php } ?>
+      }
+    });
+  } );
+  </script>
+</body>
+<?php
+}
+
+
     public static function jsonError($message,$detail="") {
         header('HTTP/1.1 400 '.$message);
         header('Content-Type: application/json; charset=utf-8');
