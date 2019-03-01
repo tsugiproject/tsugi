@@ -58,7 +58,7 @@ $OUTPUT->flashMessages();
 $title = 'Key Entry';
 echo("<h1>$title</h1>\n<p>\n");
 $extra_buttons=false;
-$row['lti13_tool_keyset_url'] = 'Yada 456';
+$row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?key_id=' . $row['key_id'];
 // $fields[] = 'lti13_tool_keyset_url';
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
