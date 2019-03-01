@@ -464,7 +464,7 @@ class LTIX {
             $consumer_sha256 = U::lti_sha256($consumer_pk);
             error_log("consumer_pk=$consumer_pk consumer_sha256=$consumer_sha256");
             $pub_row = $PDOX->rowDie("SELECT lti13_kid, lti13_keyset_url, lti13_keyset,
-                lti13_pubkey, lti13_token_url, lti13_privkey
+                lti13_platform_pubkey, lti13_token_url, lti13_privkey
                 FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
                     array(':SHA' => $consumer_sha256) );
 
@@ -477,7 +477,7 @@ class LTIX {
             $our_kid = $pub_row['lti13_kid'];
             $our_keyset = $pub_row['lti13_keyset'];
             $our_keyset_url = $pub_row['lti13_keyset_url'];
-            $public_key = $pub_row['lti13_pubkey'];
+            $public_key = $pub_row['lti13_platform_pubkey'];
 
             $private_key = $pub_row['lti13_privkey'];
             $token_url = $pub_row['lti13_token_url'];
@@ -521,7 +521,7 @@ class LTIX {
 
                 if ( $new_public_key ) {
                     $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
-                        SET lti13_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE key_sha256 = :SHA",
+                        SET lti13_platform_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE key_sha256 = :SHA",
                         array(':SHA' => $consumer_sha256, ':PK' => $new_public_key,
                             ':KID' => $request_kid )
                     );
@@ -530,7 +530,7 @@ class LTIX {
                 } else {
                     // TODO: Understand if we should kill the old key here
                     $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
-                        SET lti13_pubkey=NULL, updated_at=NOW() WHERE key_sha256 = :SHA",
+                        SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE key_sha256 = :SHA",
                     array(':SHA' => $consumer_sha256) );
                     if ( strlen($public_key) > 0 ) {
                         error_log("Cleared public key $consumer_sha256 invalid kid");
