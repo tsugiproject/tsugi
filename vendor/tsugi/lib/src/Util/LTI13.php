@@ -10,12 +10,18 @@ use \Firebase\JWT\JWT;
  */
 class LTI13 extends LTI {
 
-    const DEPLOYMENT_ID = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
-    const ROLES_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/roles";
-    const PRESENTATION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/launch_presentation";
-    const NAMESANDROLES_CLAIM = "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice";
-    const ENDPOINT_CLAIM = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
-    const DEEPLINK_CLAIM = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
+    const VERSION_CLAIM =       'https://purl.imsglobal.org/spec/lti/claim/version';
+    const MESSAGE_TYPE_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/message_type';
+    const MESSAGE_TYPE_RESOURCE = 'LtiResourceLinkRequest';
+    const MESSAGE_TYPE_DEEPLINK = 'LtiDeepLinkingRequest';
+    const RESOURCE_LINK_CLAIM = 'https://purl.imsglobal.org/spec/lti/claim/resource_link';
+    const DEPLOYMENT_ID =       'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
+    const ROLES_CLAIM =         'https://purl.imsglobal.org/spec/lti/claim/roles';
+    const PRESENTATION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
+
+    const NAMESANDROLES_CLAIM = 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
+    const ENDPOINT_CLAIM =      'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
+    const DEEPLINK_CLAIM =      'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';
 
     const ACCEPT_MEMBERSHIPS = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
     const ACCEPT_LINEITEM = 'application/vnd.ims.lis.v2.lineitem+json';
@@ -36,7 +42,7 @@ class LTI13 extends LTI {
 
     public static function parse_jwt($raw_jwt, $required_fields=true) {
         if ( $raw_jwt === false ) return false;
-        if ( ! is_string($raw_jwt)) return "parse_jwt first parameter must be a string";
+        if ( ! is_string($raw_jwt)) return 'parse_jwt first parameter must be a string';
         $jwt_parts = explode('.', $raw_jwt);
         if ( count($jwt_parts) < 2 ) return "jwt must have at least two parts";
         $jwt_header = json_decode(JWT::urlsafeB64Decode($jwt_parts[0]));
@@ -46,6 +52,7 @@ class LTI13 extends LTI {
         if ( ! $jwt_body ) return "Could not decode jwt body";
         if ( $required_fields && ! isset($jwt_body->iss) ) return "Missing iss from jwt body";
         if ( $required_fields && ! isset($jwt_body->aud) ) return "Missing aud from jwt body";
+        if ( $required_fields && ! isset($jwt_body->exp) ) return "Missing exp from jwt body";
         $jwt = new \stdClass();
         $jwt->header = $jwt_header;
         $jwt->body = $jwt_body;
@@ -58,12 +65,27 @@ class LTI13 extends LTI {
 
     // Returns true if this is a Basic LTI message
     // with minimum values to meet the protocol
-    public static function isRequest($request_data=false) {
+    // Returns true, false , or a string
+    public static function isRequestDetail($request_data=false) {
         $raw_jwt = self::raw_jwt($request_data);
         if ( ! $raw_jwt ) return false;
         $jwt = self::parse_jwt($raw_jwt);
-        if ( is_string($jwt) ) die($jwt);
+        if ( is_string($jwt) ) {
+            return $jwt;
+        }
         return is_object($jwt);
+    }
+
+    // Returns true if this is a Basic LTI message
+    // with minimum values to meet the protocol
+    // Returns true or  false
+    public static function isRequest($request_data=false) {
+        $retval = self::isRequestDetail($request_data);
+        if ( is_string($retval) ) {
+            error_log("Bad launch ".$retval);
+            return false;
+        }
+        return is_object($retval);
     }
 
     /**
@@ -86,6 +108,7 @@ class LTI13 extends LTI {
     // Returns true if the lti_message_type is valid
     public static function isValidMessageType($lti_message_type=false) {
         return ($lti_message_type == "basic-lti-launch-request" ||
+            $lti_message_type == 'LtiResourceLinkRequest' ||
             $lti_message_type == "ToolProxyReregistrationRequest" ||
             $lti_message_type == "ContentItemSelectionRequest");
     }
@@ -93,6 +116,48 @@ class LTI13 extends LTI {
     // Returns true if the lti_version is valid
     public static function isValidVersion($lti_version=false) {
         return ($lti_version == "LTI-1p0" || $lti_version == "LTI-2p0");
+    }
+
+    /**
+     * Apply Jon Postel's Law as appropriate
+     *
+     * Postel's Law - https://en.wikipedia.org/wiki/Robustness_principle
+     *
+     * "TCP implementations should follow a general principle of robustness:
+     * be conservative in what you do, be liberal in what you accept from others."
+     *
+     * By default, Jon Postel mode is off and we are stricter than we need to be.
+     * This works well because it reduces the arguments with the certification
+     * folks.   But if you add:
+     *
+     *      $CFG->jon_postel = true;
+     *
+     * Tsugi will follow Jon Postel's law.
+     */
+    public static function jonPostel($body, &$failures) {
+        if ( isset($CFG->jon_postel) ) return; // We are on Jon Postel mode
+
+        // Sanity checks
+        $version = false;
+        if ( isset($body->{self::VERSION_CLAIM}) ) $version = $body->{self::VERSION_CLAIM};
+        if ( strpos($version, '1.3') !== 0 ) $failures[] = "Bad LTI version: ".$version;
+
+        $message_type = false;
+        if ( isset($body->{self::MESSAGE_TYPE_CLAIM}) ) $message_type = $body->{self::MESSAGE_TYPE_CLAIM};
+        if ( ! $message_type ) {
+            $failures[] = "Missing message type";
+        } else if ( $message_type == self::MESSAGE_TYPE_RESOURCE ) {
+            // Required
+            if ( ! isset($body->{self::RESOURCE_LINK_CLAIM}) ) $failures[] = "Missing required resource_link claim";
+            if ( ! isset($body->{self::RESOURCE_LINK_CLAIM}->id) ) $failures[] = "Missing required resource_link id";
+        } else if ( $message_type == self::MESSAGE_TYPE_DEEPLINK ) {
+            // OK
+        } else {
+            $failures[] = "Bad message type: ".$message_type;
+        }
+
+        if ( ! isset($body->{self::ROLES_CLAIM}) ) $failures[] = "Missing required role claim";
+        if ( ! isset($body->{self::DEPLOYMENT_ID}) ) $failures[] = "Missing required deployment_id claim";
     }
 
     public static function getGradeToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
