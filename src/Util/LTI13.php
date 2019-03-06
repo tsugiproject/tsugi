@@ -23,9 +23,9 @@ class LTI13 extends LTI {
     const ENDPOINT_CLAIM =      'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
     const DEEPLINK_CLAIM =      'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';
 
-    const ACCEPT_MEMBERSHIPS = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
-    const ACCEPT_LINEITEM = 'application/vnd.ims.lis.v2.lineitem+json';
-    const ACCEPT_LINEITEMS = 'application/vnd.ims.lis.v2.lineitemcontainer+json';
+    const MEDIA_TYPE_MEMBERSHIPS = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
+    const MEDIA_TYPE_LINEITEM = 'application/vnd.ims.lis.v2.lineitem+json';
+    const MEDIA_TYPE_LINEITEMS = 'application/vnd.ims.lis.v2.lineitemcontainer+json';
     const SCORE_TYPE = 'application/vnd.ims.lis.v1.score+json';
     const RESULTS_TYPE = 'application/vnd.ims.lis.v2.resultcontainer+json';
 
@@ -214,17 +214,22 @@ class LTI13 extends LTI {
             "userId" => $user_id,
         ];
 
-        // curl_setopt($ch, CURLOPT_URL, "http://lti-ri.imsglobal.org/platforms/7/line_items/9/scores");
-        // echo("\n---\n$lineitem_url\n-----\n");
-        curl_setopt($ch, CURLOPT_URL, $lineitem_url."/scores");
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($grade_call));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $headers = [
             'Authorization: Bearer '. $access_token,
             'Content-Type: '.self::SCORE_TYPE,
             'Accept: '.self::SCORE_TYPE
-        ]);
+        ];
+
+        // echo("\n---\n$lineitem_url\n-----\n");
+        $actual_url = $lineitem_url."/scores";
+        curl_setopt($ch, CURLOPT_URL, $actual_url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($grade_call));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if ( is_array($debug_log) ) $debug_log[] = "Scores Url: ".$actual_url;
+        if ( is_array($debug_log) ) $debug_log[] = $headers;
 
         $line_item = curl_exec($ch);
 
@@ -252,18 +257,18 @@ class LTI13 extends LTI {
 
         $membership_url = trim($membership_url);
 
-        curl_setopt($ch, CURLOPT_URL, $membership_url);
-        $accept_memb = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
         $headers = [
             'Authorization: Bearer '. $access_token,
-            'Accept: '.self::ACCEPT_MEMBERSHIPS,
-            'Content-Type: '.self::ACCEPT_MEMBERSHIPS // TODO: Remove when certification is fixed
+            'Accept: '.self::MEDIA_TYPE_MEMBERSHIPS,
+            // 'Content-Type: '.self::MEDIA_TYPE_MEMBERSHIPS // TODO: Remove when certification is fixed
         ];
-        if ( is_array($debug_log) ) $debug_log[] = $membership_url;
-        if ( is_array($debug_log) ) $debug_log[] = $access_token;
-        if ( is_array($debug_log) ) $debug_log[] = $headers;
+
+        curl_setopt($ch, CURLOPT_URL, $membership_url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if ( is_array($debug_log) ) $debug_log[] = $membership_url;
+        if ( is_array($debug_log) ) $debug_log[] = $headers;
 
         $membership = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -274,8 +279,8 @@ class LTI13 extends LTI {
         if ( $json === null ) {
             $retval = "Unable to parse returned roster JSON:". json_last_error_msg();
             if ( is_array($debug_log) ) {
-                $debug_log[] = $retval;
-                $debug_log[] = substr($membership, 0, 3000);
+                if (is_array($debug_log) ) $debug_log[] = $retval;
+                if (is_array($debug_log) ) $debug_log[] = substr($membership, 0, 3000);
             }
             return $retval;
         }
@@ -297,13 +302,17 @@ class LTI13 extends LTI {
 
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, $lineitems_url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $headers = [
             'Authorization: Bearer '. $access_token,
-            'Accept: '.self::ACCEPT_LINEITEMS,
-            'Content-Type: '.self::ACCEPT_LINEITEMS // TODO: Remove when certification is fixed
-        ]);
+            'Accept: '.self::MEDIA_TYPE_LINEITEMS,
+            // 'Content-Type: '.self::MEDIA_TYPE_LINEITEMS // TODO: Remove when certification is fixed
+        ];
+        curl_setopt($ch, CURLOPT_URL, $lineitems_url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if (is_array($debug_log) ) $debug_log[] = 'Line Items URL: '.$lineitems_url;
+        if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $lineitems = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -314,8 +323,8 @@ class LTI13 extends LTI {
         if ( $json === null ) {
             $retval = "Unable to parse returned lineitems JSON:". json_last_error_msg();
             if ( is_array($debug_log) ) {
-                $debug_log[] = $retval;
-                $debug_log[] = substr($lineitems, 0, 1000);
+                if (is_array($debug_log) ) $debug_log[] = $retval;
+                if (is_array($debug_log) ) $debug_log[] = substr($lineitems, 0, 1000);
             }
             return $retval;
         }
@@ -335,12 +344,17 @@ class LTI13 extends LTI {
         $lineitem_url = trim($lineitem_url);
 
         $ch = curl_init();
+        $headers = [
+            'Authorization: Bearer '. $access_token,
+            'Accept: '.self::MEDIA_TYPE_LINEITEM,
+        ];
 
         curl_setopt($ch, CURLOPT_URL, $lineitem_url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer '. $access_token
-        ]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if (is_array($debug_log) ) $debug_log[] = 'Line Items URL: '.$lineitem_url;
+        if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $lineitem = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -351,8 +365,8 @@ class LTI13 extends LTI {
         if ( $json === null ) {
             $retval = "Unable to parse returned lineitem JSON:". json_last_error_msg();
             if ( is_array($debug_log) ) {
-                $debug_log[] = $retval;
-                $debug_log[] = substr($lineitem, 0, 1000);
+                if (is_array($debug_log) ) $debug_log[] = $retval;
+                if (is_array($debug_log) ) $debug_log[] = substr($lineitem, 0, 1000);
             }
             return $retval;
         }
@@ -374,21 +388,25 @@ class LTI13 extends LTI {
 
         $ch = curl_init();
 
-        $actual_url = $lineitem_url."/results";
-        if ( is_array($debug_log) ) $debug_log[] = $actual_url;
-        curl_setopt($ch, CURLOPT_URL, $actual_url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $headers = [
             'Authorization: Bearer '. $access_token,
             'Content-Type: '.self::RESULTS_TYPE,   //  TODO: Convince Claude this is wrong
             'Accept: '.self::RESULTS_TYPE
-        ]);
+        ];
+
+        $actual_url = $lineitem_url."/results";
+        curl_setopt($ch, CURLOPT_URL, $actual_url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if (is_array($debug_log) ) $debug_log[] = 'Line Items URL: '.$actual_url;
+        if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $results = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent results request, received status=$httpcode (".strlen($results)." characters)";
-        if ( is_array($debug_log)) $debug_log[] = substr($results, 0, 1000);
+        if ( is_array($debug_log)) $debug_log[] = substr($results, 0, 3000);
 
         $json = json_decode($results, false);
         if ( $json === null ) {
@@ -397,7 +415,7 @@ class LTI13 extends LTI {
             return $retval;
         }
 
-        if ( $httpcode == 200 && is_object($json) ) {
+        if ( $httpcode == 200 && is_array($json) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Loaded results";
             return $json;
         }
@@ -414,12 +432,17 @@ class LTI13 extends LTI {
 
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, $lineitem_url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $headers = [
             'Authorization: Bearer '. $access_token
-        ]);
+        ];
+
+        curl_setopt($ch, CURLOPT_URL, $lineitem_url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+
+        if (is_array($debug_log) ) $debug_log[] = 'Line Item URL: '.$lineitem_url;
+        if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $response = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -439,8 +462,8 @@ class LTI13 extends LTI {
         if ( $json === null ) {
             $retval = "Unable to parse returned lineitem JSON:". json_last_error_msg();
             if ( is_array($debug_log) ) {
-                $debug_log[] = $retval;
-                $debug_log[] = substr($lineitem, 0, 1000);
+                if (is_array($debug_log) ) $debug_log[] = $retval;
+                if (is_array($debug_log) ) $debug_log[] = substr($lineitem, 0, 1000);
             }
             return $retval;
         }
@@ -456,14 +479,19 @@ class LTI13 extends LTI {
 
         $ch = curl_init();
 
+        $headers = [
+            'Authorization: Bearer '. $access_token,
+            'Content-Type: ' . self::MEDIA_TYPE_LINEITEM
+        ];
+
         curl_setopt($ch, CURLOPT_URL, $lineitem_url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($lineitem));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer '. $access_token,
-            'Content-Type: application/vnd.ims.lis.v2.lineitem+json'
-        ]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if (is_array($debug_log) ) $debug_log[] = 'Line Item URL: '.$lineitem_url;
+        if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $line_item = curl_exec($ch);
 
@@ -489,14 +517,19 @@ class LTI13 extends LTI {
 
         $ch = curl_init();
 
+        $headers = [
+            'Authorization: Bearer '. $access_token,
+            'Content-Type: ' . self::MEDIA_TYPE_LINEITEM
+        ];
+
         curl_setopt($ch, CURLOPT_URL, $lineitem_url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($lineitem));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer '. $access_token,
-            'Content-Type: application/vnd.ims.lis.v2.lineitem+json'
-        ]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if (is_array($debug_log) ) $debug_log[] = 'Line Item URL: '.$lineitem_url;
+        if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $line_item = curl_exec($ch);
 
@@ -545,6 +578,9 @@ class LTI13 extends LTI {
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($auth_request));
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        if ( is_array($debug_log) ) $debug_log[] = "Token Url: ".$lti13_token_url;
+        if ( is_array($debug_log) ) $debug_log[] = $auth_request;
 
         $token_str = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
