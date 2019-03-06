@@ -85,7 +85,8 @@ class LTIX {
         // Check if we are an LTI 1.1 or LTI 1.3 launch
         $LTI11 = false;
         $LTI13 = false;
-        if ( LTI13::isRequest($request_data) ) {
+        $detail = LTI13::isRequestDetail($request_data);
+        if ( $detail === true ) {
             $LTI13 = true;
         } else {
             $lti11_request_data = $request_data;
@@ -95,7 +96,7 @@ class LTIX {
                 self::abort_with_error_log($LTI11, $request_data);
             }
         }
-        if ( $LTI11 === false && $LTI13 === false ) return false;
+        if ( $LTI11 === false && $LTI13 === false ) return $detail;
 
         $session_id = self::setupSession($needed,$session_object,$request_data);
         if ( $session_id === false ) return false;
@@ -346,7 +347,8 @@ class LTIX {
         $LTI13 = false;
         $lti13_request_data = $request_data;
         if ( $lti13_request_data === false ) $lti11_request_data = $_POST;
-        if ( LTI13::isRequest($request_data) ) {
+        $detail = LTI13::isRequestDetail($request_data);
+        if ( $detail === true ) {
             $LTI13 = true;
             $request_data = $lti13_request_data;
         } else {
@@ -358,7 +360,7 @@ class LTIX {
             }
             $request_data = $lti11_request_data;
         }
-        if ( $LTI11 === false && $LTI13 === false ) return false;
+        if ( $LTI11 === false && $LTI13 === false ) return $detail;
 
         // Pull LTI data out of the incoming $request_data and map into the same
         // keys that we use in our database (i.e. like $row)
@@ -897,6 +899,7 @@ class LTIX {
         $raw_jwt = LTI13::raw_jwt($input);
         $jwt = LTI13::parse_jwt($raw_jwt);
 
+        if ( is_string($jwt) ) return "Could not extract jwt: ".$jwt;
         if ( ! $jwt ) return "Could not extract jwt";
 
         $body = $jwt->body;
@@ -918,7 +921,11 @@ class LTIX {
 
         // Sanity checks
         $failures = array();
-        if ( ! U::get($retval,'key') ) $failures[] = "Could not deteriming key from iss/aud";
+
+        // Do the Jon Postel check
+        LTI13::jonPostel($body, $failures);
+
+        if ( ! U::get($retval,'key') ) $failures[] = "Could not deterimine key from iss/aud";
         if ( ! U::get($retval,'nonce') ) $failures[] = "Missing nonce";
         if ( in_array(self::USER, $needed) && ! U::get($retval,'user_id') ) $failures[] = "Missing subject/user_id (sub)";
         if ( in_array(self::CONTEXT, $needed) && ! U::get($retval,'context_id') ) $failures[] = "Missing context_id";
@@ -1539,6 +1546,8 @@ class LTIX {
 
         // Check if we are processing an LTI launch.  If so, handle it
         $newlaunch = self::launchCheck($needed, $session_object, $request_data);
+        $detail = $newlaunch;  // If we got a string back, save it
+        $newlaunch = $newlaunch === true;   // A string is "false"
 
         // If launchCheck comes back with a true, it means someone above us
         // needs to do the redirect
@@ -1554,7 +1563,9 @@ class LTIX {
                     // We tried to set a session..
                 } else {
                     self::send403();
-                    self::abort_with_error_log('This tool should be launched from a learning system using LTI',
+                    $msg = 'This tool should be launched from a learning system using LTI';
+                    if ( is_string($detail) ) $msg .= ". Detail: ".$detail;
+                    self::abort_with_error_log($msg,
                         U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
                     );
                 }
