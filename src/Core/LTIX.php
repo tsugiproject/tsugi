@@ -98,44 +98,6 @@ class LTIX {
         }
         if ( $LTI11 === false && $LTI13 === false ) return $detail;
 
-        // Handle second half of the pre LTI 1.3 Launch Authorization Flow
-        $tool_state = U::get($request_data, 'tool_state');
-        if ( $tool_state && $tool_state != self::getBrowserSignature() ) {
-            self::abort_with_error_log('Incorrect tool_state');
-        }
-
-        // Handle first half of the pre LTI 1.3 Launch Authorization Flow
-        $relaunch_url = U::get($request_data, 'relaunch_url');
-        if ( $LTI11 && $relaunch_url ) {
-            $key = U::get($request_data,'oauth_consumer_key');
-            if ( ! $key ) {
-                self::abort_with_error_log('Missing oauth_consumer_key');
-            }
-            $key_sha256 = U::lti_sha256($key);
-            $row = $PDOX->rowDie("SELECT key_id, key_key, secret
-                FROM {$p}lti_key WHERE key_sha256 = :SHA",
-                array(':SHA' => $key_sha256) );
-            if ( ! $row ) {
-                self::abort_with_error_log('Could not load oauth_consumer_key');
-            }
-
-            $valid = LTI::verifyKeyAndSecret($key,$row['secret'],self::curPageUrl(), $request_data);
-            if ( $valid !== true ) {
-                self::abort_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0],$valid[1]);
-            }
-
-            $platform_state = U::get($request_data, 'platform_state');
-            if ( $platform_state) $relaunch_url = U::add_url_parm($relaunch_url, "platform_state", $platform_state);
-            $tool_state = self::getBrowserSignature();
-            $relaunch_url = U::add_url_parm($relaunch_url, "tool_state", $tool_state);
-            error_log("Relaunching ".$relaunch_url);
-            if ( headers_sent() ) {
-                echo('<p><a href="'.$relaunch_url.'">Click to continue</a></p>');
-            } else {
-                header('Location: '.$relaunch_url);
-            }
-            return false;
-        }
 
         $session_id = self::setupSession($needed,$session_object,$request_data);
         if ( $session_id === false ) return false;
@@ -1584,6 +1546,9 @@ class LTIX {
 
         $needed = self::patchNeeded($needed);
 
+        // Check to see if this is LTI Launch Authorization Flow
+        if ( self::launchAuthorizationFlow($request_data) ) return;
+
         // Check if we are processing an LTI launch.  If so, handle it
         $newlaunch = self::launchCheck($needed, $session_object, $request_data);
         $detail = $newlaunch;  // If we got a string back, save it
@@ -1773,6 +1738,60 @@ class LTIX {
 
         // Return the Launch structure
         return $TSUGI_LAUNCH;
+    }
+
+    /**
+     * Handle the optional LTI pre 1.3 Launch Authorization flow
+     */
+    public static function launchAuthorizationFlow($request_data)
+    {
+        global $CFG, $PDOX;
+
+        $key = U::get($request_data, 'oauth_consumer_key');
+        if ( ! $key ) return false;
+        if ( U::get($request_data, 'oauth_signature_method') && U::get($request_data, 'oauth_timestamp') &&
+            U::get($request_data, 'oauth_nonce') && U::get($request_data, 'oauth_version') &&
+            U::get($request_data, 'oauth_signature') ) {
+            // pass
+        } else {
+            return false;
+        }
+
+        // Handle second half of the pre LTI 1.3 Launch Authorization Flow
+        $tool_state = U::get($request_data, 'tool_state');
+        if ( $tool_state && $tool_state != self::getBrowserSignature() ) {
+            self::abort_with_error_log('Incorrect tool_state');
+        }
+
+        // Handle first half of the pre LTI 1.3 Launch Authorization Flow
+        $relaunch_url = U::get($request_data, 'relaunch_url');
+        if ( ! $relaunch_url ) return false;
+
+        $key_sha256 = U::lti_sha256($key);
+        $row = $PDOX->rowDie("SELECT key_id, key_key, secret
+            FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
+            array(':SHA' => $key_sha256) );
+        if ( ! $row ) {
+            self::abort_with_error_log('Could not load oauth_consumer_key');
+        }
+
+        $valid = LTI::verifyKeyAndSecret($key,$row['secret'],self::curPageUrl(), $request_data);
+        if ( $valid !== true ) {
+            self::abort_with_error_log('OAuth validation fail key='.$key.' error='.$valid[0],$valid[1]);
+        }
+
+        $platform_state = U::get($request_data, 'platform_state');
+        if ( $platform_state) $relaunch_url = U::add_url_parm($relaunch_url, "platform_state", $platform_state);
+        $tool_state = self::getBrowserSignature();
+        $relaunch_url = U::add_url_parm($relaunch_url, "tool_state", $tool_state);
+        echo("Relaunching ".$relaunch_url);
+
+        if ( headers_sent() ) {
+            echo('<p><a href="'.$relaunch_url.'">Click to continue</a></p>');
+        } else {
+            header('Location: '.$relaunch_url);
+        }
+        return true;
     }
 
     /**
