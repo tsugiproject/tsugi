@@ -5,7 +5,6 @@ use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
 
 require_once "../config.php";
-require_once "oidc_util.php";
 
 $id_token = U::get($_POST, 'id_token');
 $state = U::get($_POST, 'state');
@@ -36,10 +35,9 @@ if ( $delta > 60 ) {
 if ( ! isset($decoded->signature) ) {
     die('No signature in state');
 }
-$signature = getBrowserSignature();
+$signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
 if ( $signature != $decoded->signature ) {
-    // error_log("Bad state signature raw\n".getBrowserSignatureRaw());
     die("Invalid state signature value");
 }
 

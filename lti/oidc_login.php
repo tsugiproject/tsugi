@@ -6,7 +6,6 @@ use \Tsugi\Util\U;
 use \Firebase\JWT\JWT;
 
 require_once "../config.php";
-require_once "oidc_util.php";
 
 // target_link_uri and lti_message_hint are not required by Tsugi
 $login_hint = U::get($_REQUEST, 'login_hint');
@@ -39,8 +38,7 @@ if ( ! is_array($row) || count($row) < 1 ) {
 $client_id = trim($row['lti13_client_id']);
 $redirect = trim($row['lti13_oidc_auth']);
 
-$signature = getBrowserSignature();
-// error_log("Signature raw\n".getBrowserSignatureRaw());
+$signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
 $payload = array();
 $payload['signature'] = $signature;
