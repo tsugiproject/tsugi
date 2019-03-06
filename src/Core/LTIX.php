@@ -98,6 +98,45 @@ class LTIX {
         }
         if ( $LTI11 === false && $LTI13 === false ) return $detail;
 
+        // Handle second half of the pre LTI 1.3 Launch Authorization Flow
+        $tool_state = U::get($request_data, 'tool_state');
+        if ( $tool_state && $tool_state != self::getBrowserSignature() ) {
+            self::abort_with_error_log('Incorrect tool_state');
+        }
+
+        // Handle first half of the pre LTI 1.3 Launch Authorization Flow
+        $relaunch_url = U::get($request_data, 'relaunch_url');
+        if ( $LTI11 && $relaunch_url ) {
+            $key = U::get($request_data,'oauth_consumer_key');
+            if ( ! $key ) {
+                self::abort_with_error_log('Missing oauth_consumer_key');
+            }
+            $key_sha256 = U::lti_sha256($key);
+            $row = $PDOX->rowDie("SELECT key_id, key_key, secret
+                FROM {$p}lti_key WHERE key_sha256 = :SHA",
+                array(':SHA' => $key_sha256) );
+            if ( ! $row ) {
+                self::abort_with_error_log('Could not load oauth_consumer_key');
+            }
+
+            $valid = LTI::verifyKeyAndSecret($key,$row['secret'],self::curPageUrl(), $request_data);
+            if ( $valid !== true ) {
+                self::abort_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0],$valid[1]);
+            }
+
+            $platform_state = U::get($request_data, 'platform_state');
+            if ( $platform_state) $relaunch_url = U::add_url_parm($relaunch_url, "platform_state", $platform_state);
+            $tool_state = self::getBrowserSignature();
+            $relaunch_url = U::add_url_parm($relaunch_url, "tool_state", $tool_state);
+            error_log("Relaunching ".$relaunch_url);
+            if ( headers_sent() ) {
+                echo('<p><a href="'.$relaunch_url.'">Click to continue</a></p>');
+            } else {
+                header('Location: '.$relaunch_url);
+            }
+            return false;
+        }
+
         $session_id = self::setupSession($needed,$session_object,$request_data);
         if ( $session_id === false ) return false;
 
@@ -459,6 +498,7 @@ class LTIX {
                 if ( isset($TSUGI_LAUNCH) ) $TSUGI_LAUNCH->error_message = $valid;
                 self::abort_with_error_log('OAuth validation fail key='.$post['key'].' delta='.$delta.' error='.$valid[0],$valid[1]);
             }
+
         } else { // LTI 1.3
             $raw_jwt = LTI13::raw_jwt($request_data);
             $jwt = LTI13::parse_jwt($raw_jwt);
@@ -993,7 +1033,7 @@ class LTIX {
         ) {
             $retval['launch_presentation_return_url'] = $body->{LTI13::PRESENTATION_CLAIM}->return_url;
         }
- 
+
         // Get the role
         $retval['role'] = self::ROLE_LEARNER;
         if ( isset($body->{LTI13::ROLES_CLAIM}) &&
@@ -2432,5 +2472,47 @@ class LTIX {
         }
 
         return true;
+    }
+
+
+
+    public static function getBrowserSignature() {
+        $concat = self::getBrowserSignatureRaw();
+        $h = hash('sha256', $concat);
+        return $h;
+    }
+
+    public static function getBrowserSignatureRaw() {
+        global $CFG;
+
+        $look_at = array( 'x-forwarded-proto', 'x-forwarded-port', 'host',
+        'accept-encoding', 'cf-ipcountry', 'user-agent', 'accept', 'accept-language');
+
+        $headers = \Tsugi\Util\U::apache_request_headers();
+
+        $concat = \Tsugi\Util\Net::getIP();
+        if ( isset($CFG->cookiepad) ) $concat .= ':::' . $CFG->cookiepad;
+        if ( isset($CFG->cookiesecret) ) $concat .= ':::' . $CFG->cookiesecret;
+        $used = array();
+        ksort($headers);
+        foreach($headers as $k => $v ) {
+            if ( ! in_array(strtolower($k), $look_at) ) continue;
+            if ( is_string($v) ) {
+                $used[$k] = $v;
+                $concat .= ':::' . $k . '=' . $v;
+                continue;
+            }
+        }
+
+        foreach($_COOKIE as $k => $v ) {
+            if ( $k == self::getTsugiStateCookieName() ) continue;
+            $concat .= '===' . $k . '=' . $v;
+        }
+
+        return $concat;
+    }
+
+    public static function getTsugiStateCookieName() {
+        return "tsugi-state-lti-advantage";
     }
 }
