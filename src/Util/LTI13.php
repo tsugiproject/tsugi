@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\Util;
 
 use \Tsugi\Util\U;
@@ -23,7 +24,7 @@ class LTI13 extends LTI {
     const ENDPOINT_CLAIM =      'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
     const DEEPLINK_CLAIM =      'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';
 
-    const MEDIA_TYPE_MEMBERSHIPS = 'application/vnd.ims.lti-nprs.v2.membershipcontainer+json';
+    const MEDIA_TYPE_MEMBERSHIPS = 'application/vnd.ims.lti-nrps.v2.membershipcontainer+json';
     const MEDIA_TYPE_LINEITEM = 'application/vnd.ims.lis.v2.lineitem+json';
     const MEDIA_TYPE_LINEITEMS = 'application/vnd.ims.lis.v2.lineitemcontainer+json';
     const SCORE_TYPE = 'application/vnd.ims.lis.v1.score+json';
@@ -260,7 +261,7 @@ class LTI13 extends LTI {
         $headers = [
             'Authorization: Bearer '. $access_token,
             'Accept: '.self::MEDIA_TYPE_MEMBERSHIPS,
-            // 'Content-Type: '.self::MEDIA_TYPE_MEMBERSHIPS // TODO: Remove when certification is fixed
+            'Content-Type: '.self::MEDIA_TYPE_MEMBERSHIPS // TODO: Remove when certification is fixed
         ];
 
         curl_setopt($ch, CURLOPT_URL, $membership_url);
@@ -274,6 +275,10 @@ class LTI13 extends LTI {
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".strlen($membership)." characters)";
+
+        if ( strlen($membership) < 1 ) {
+            return "No data retrieved status=" . $httpcode;
+        }
 
         $json = json_decode($membership, false);   // Top level object
         if ( $json === null ) {
