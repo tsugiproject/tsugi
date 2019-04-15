@@ -19,6 +19,8 @@ class AesTest extends PHPUnit_Framework_TestCase
         $decr = AesCtr::decrypt($encr, $pw, 256);
         $this->assertEquals($decr,$pt);
         $this->assertNotEquals($encr,$pw);
+        $decr = AesCtr::decrypt($encr, $pw."x", 256);
+        $this->assertNotEquals($decr,$pt);
     }
 
 }

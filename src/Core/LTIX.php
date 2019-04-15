@@ -1658,6 +1658,17 @@ class LTIX {
             }
         }
 
+        return self::buildLaunch($LTI, $session_object);
+    }
+
+    public static function buildLaunch($LTI, $session_object=null) {
+        global $CFG, $TSUGI_LAUNCH;
+        global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
+
+        if ( ! isset($TSUGI_LAUNCH) ) {
+            $TSUGI_LAUNCH = new \Tsugi\Core\Launch();
+        }
+
         // Populate the $USER $CONTEXT and $LINK objects
         if ( isset($LTI['user_id']) && ! is_object($USER) ) {
             $USER = new \Tsugi\Core\User();
