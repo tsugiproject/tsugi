@@ -1918,61 +1918,6 @@
         ]
     },
     {
-        "name": "react/promise-timer",
-        "version": "v1.5.0",
-        "version_normalized": "1.5.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/promise-timer.git",
-            "reference": "a11206938ca2394dc7bb368f5da25cd4533fa603"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/promise-timer/zipball/a11206938ca2394dc7bb368f5da25cd4533fa603",
-            "reference": "a11206938ca2394dc7bb368f5da25cd4533fa603",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3",
-            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5",
-            "react/promise": "^2.7.0 || ^1.2.1"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
-        },
-        "time": "2018-06-13 16:45:37",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\Promise\\Timer\\": "src/"
-            },
-            "files": [
-                "src/functions.php"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Christian Lück",
-                "email": "christian@lueck.tv"
-            }
-        ],
-        "description": "A trivial implementation of timeouts for Promises, built on top of ReactPHP.",
-        "homepage": "https://github.com/reactphp/promise-timer",
-        "keywords": [
-            "async",
-            "event-loop",
-            "promise",
-            "reactphp",
-            "timeout",
-            "timer"
-        ]
-    },
-    {
         "name": "react/cache",
         "version": "v0.5.0",
         "version_normalized": "0.5.0.0",
@@ -2234,57 +2179,6 @@
         ]
     },
     {
-        "name": "ratchet/rfc6455",
-        "version": "0.2.4",
-        "version_normalized": "0.2.4.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/ratchetphp/RFC6455.git",
-            "reference": "1612f528c3496ad06e910d0f8b6f16ab97696706"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/ratchetphp/RFC6455/zipball/1612f528c3496ad06e910d0f8b6f16ab97696706",
-            "reference": "1612f528c3496ad06e910d0f8b6f16ab97696706",
-            "shasum": ""
-        },
-        "require": {
-            "guzzlehttp/psr7": "^1.0",
-            "php": ">=5.4.2"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "4.8.*",
-            "react/http": "^0.4.1",
-            "react/socket-client": "^0.4.3"
-        },
-        "time": "2018-05-02 14:52:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Ratchet\\RFC6455\\": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Chris Boden",
-                "email": "cboden@gmail.com",
-                "role": "Developer"
-            }
-        ],
-        "description": "RFC6455 WebSocket protocol handler",
-        "homepage": "http://socketo.me",
-        "keywords": [
-            "WebSockets",
-            "rfc6455",
-            "websocket"
-        ]
-    },
-    {
         "name": "cboden/ratchet",
         "version": "v0.4.1",
         "version_normalized": "0.4.1.0",
@@ -2346,12 +2240,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "fa46b6c1463cc7e628ebb378e5bcd87197b366c6"
+            "reference": "027b1971444c21d33421d1ea6502a9f713543aa3"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/fa46b6c1463cc7e628ebb378e5bcd87197b366c6",
-            "reference": "fa46b6c1463cc7e628ebb378e5bcd87197b366c6",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/027b1971444c21d33421d1ea6502a9f713543aa3",
+            "reference": "027b1971444c21d33421d1ea6502a9f713543aa3",
             "shasum": ""
         },
         "require": {
@@ -2390,5 +2284,111 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "react/promise-timer",
+        "version": "v1.5.0",
+        "version_normalized": "1.5.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/promise-timer.git",
+            "reference": "a11206938ca2394dc7bb368f5da25cd4533fa603"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/promise-timer/zipball/a11206938ca2394dc7bb368f5da25cd4533fa603",
+            "reference": "a11206938ca2394dc7bb368f5da25cd4533fa603",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3",
+            "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3.5",
+            "react/promise": "^2.7.0 || ^1.2.1"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+        },
+        "time": "2018-06-13 16:45:37",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Promise\\Timer\\": "src/"
+            },
+            "files": [
+                "src/functions.php"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Christian Lück",
+                "email": "christian@lueck.tv"
+            }
+        ],
+        "description": "A trivial implementation of timeouts for Promises, built on top of ReactPHP.",
+        "homepage": "https://github.com/reactphp/promise-timer",
+        "keywords": [
+            "async",
+            "event-loop",
+            "promise",
+            "reactphp",
+            "timeout",
+            "timer"
+        ]
+    },
+    {
+        "name": "ratchet/rfc6455",
+        "version": "0.2.4",
+        "version_normalized": "0.2.4.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/ratchetphp/RFC6455.git",
+            "reference": "1612f528c3496ad06e910d0f8b6f16ab97696706"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/ratchetphp/RFC6455/zipball/1612f528c3496ad06e910d0f8b6f16ab97696706",
+            "reference": "1612f528c3496ad06e910d0f8b6f16ab97696706",
+            "shasum": ""
+        },
+        "require": {
+            "guzzlehttp/psr7": "^1.0",
+            "php": ">=5.4.2"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "4.8.*",
+            "react/http": "^0.4.1",
+            "react/socket-client": "^0.4.3"
+        },
+        "time": "2018-05-02 14:52:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Ratchet\\RFC6455\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Chris Boden",
+                "email": "cboden@gmail.com",
+                "role": "Developer"
+            }
+        ],
+        "description": "RFC6455 WebSocket protocol handler",
+        "homepage": "http://socketo.me",
+        "keywords": [
+            "WebSockets",
+            "rfc6455",
+            "websocket"
+        ]
     }
 ]
