@@ -13,6 +13,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_nonce",
 "drop table if exists {$CFG->dbprefix}lti_message",
 "drop table if exists {$CFG->dbprefix}lti_domain",
+"drop table if exists {$CFG->dbprefix}lti_external",
 "drop table if exists {$CFG->dbprefix}cal_event",
 "drop table if exists {$CFG->dbprefix}cal_key",
 "drop table if exists {$CFG->dbprefix}cal_context",
@@ -420,6 +421,26 @@ array( "{$CFG->dbprefix}lti_domain",
 
     PRIMARY KEY (domain_id),
     UNIQUE(key_id, context_id, domain, port)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}lti_external",
+"create table {$CFG->dbprefix}lti_external (
+    external_id  INTEGER NOT NULL AUTO_INCREMENT,
+    endpoint        VARCHAR(128),
+    name        TEXT,
+    url         VARCHAR(128),
+    description TEXT,
+    fa_icon     VARCHAR(128),
+    pubkey      TEXT,
+    privkey     TEXT,   
+    deleted     TINYINT(1) NOT NULL DEFAULT 0,
+    json        TEXT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP NULL,
+    deleted_at  TIMESTAMP NULL,
+
+    PRIMARY KEY (external_id),
+    UNIQUE(endpoint)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // String table - Not normalized at all - very costly

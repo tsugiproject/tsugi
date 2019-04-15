@@ -2,6 +2,7 @@
 
 use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
+use \Tsugi\Core\LTIX;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
@@ -27,7 +28,9 @@ $OUTPUT->header();
 </style>
 <?php
 
+LTIX::getConnection();
 $registrations = findAllRegistrations(false, true);
+// echo("<pre>\n");var_dump($registrations);echo("</pre>");die();
 if ( count($registrations) < 1 ) $registrations = false;
 
 $OUTPUT->bodyStart();

@@ -94,7 +94,7 @@ function findAllTools()
 
 function findAllRegistrations($folders=false, $appStore=false)
 {
-    global $CFG;
+    global $CFG, $PDOX;
     // Scan the tools folders for registration settings
     if ( $folders == false ) $folders = $CFG->tool_folders;
     if ( is_string($folders) ) $folders = array($folders);
@@ -151,6 +151,37 @@ function findAllRegistrations($folders=false, $appStore=false)
             $tools[$key] = $REGISTER_LTI2;
         }
     }
+
+    // Find external applications
+    $stmt = $PDOX->queryReturnError("SELECT * FROM {$CFG->dbprefix}lti_external");
+    $rows = array();
+    if ( $stmt->success ) while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
+        array_push($rows, $row);
+    }
+
+    foreach($rows as $row) {
+        // echo("<pre>\n");var_dump($row['json']);echo("</pre>\n");
+        $REGISTER_LTI2 = json_decode($row['json'], true);
+        if ( ! is_array($REGISTER_LTI2) ) $REGISTER_LTI2 = array();
+
+        $REGISTER_LTI2['url'] = $CFG->wwwroot . '/ext/' . $row['endpoint'];
+
+        // Make an icon URL
+        $fa_icon = isset($row['fa_icon']) ? $row['fa_icon'] : false;
+        if ( $fa_icon !== false ) {
+            $REGISTER_LTI2['FontAwesome'] = $fa_icon;
+            $REGISTER_LTI2['icon'] = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+        }
+        $REGISTER_LTI2['name'] = $row['name'];
+        $REGISTER_LTI2['short_name'] = $row['name'];
+        $REGISTER_LTI2['description'] = $row['description'];
+
+
+        $key = 'ext-' . $row['endpoint'];
+        $tools[$key] = $REGISTER_LTI2;
+    }
+
+
     return $tools;
 }
 

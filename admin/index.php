@@ -78,6 +78,7 @@ require_once("sanity-db.php");
 <li><a href="activity/">View Activity</a></li>
 <li><a href="key">Manage Access Keys</a></li>
 <li><a href="install">Manage Installed Modules</a></li>
+<li><a href="external">Manage External Tools</a></li>
 <li>
   <a href="#" title="Blob Status"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'blob_status', _TSUGI.spinnerUrl, true); return false;" >
