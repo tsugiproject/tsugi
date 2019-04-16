@@ -613,10 +613,15 @@ class LTI13 extends LTI {
         return $jws;
     }
 
-    public static function build_jwt_html($launch_url, $jws, $dodebug=true) {
-        $html = "<form action=\"" . $launch_url . "\" method=\"POST\">\n"
+    public static function build_jwt_html($launch_url, $jws, $dodebug=true, $extra=false) {
+        $html = "<form action=\"" . $launch_url . "\" method=\"POST\"";
+        if ($extra && isset($extra['formattr']) ) {
+            $html .= ' '.$extra['formattr'];
+        }
+        $button = ($extra && isset($extra['button'])) ? $extra['button'] : 'Go!';
+        $html .= ">\n"
                 . "    <input type=\"hidden\" name=\"JWT\" value=\"" . htmlspecialchars($jws) . "\" />\n"
-                . "    <input type=\"submit\" value=\"Go!\" />\n"
+                . "    <input type=\"submit\" value=\"".$button."\" />\n"
                 . "</form>\n";
 
         if ($dodebug) {

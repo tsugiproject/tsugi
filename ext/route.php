@@ -52,5 +52,6 @@ $jwt = LTI13::encode_jwt($jwt_claim, $CFG->external_private_key);
 // http://localhost:8000/grade/launch
 $launch_url = $row['url'];
 
-echo(LTI13::build_jwt_html($launch_url, $jwt, true));
+$extra = array('formattr' => 'target="_blank"', 'button' => "Open in a New Window");
+echo(LTI13::build_jwt_html($launch_url, $jwt, true, $extra));
 
