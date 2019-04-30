@@ -32,9 +32,6 @@ if ( $row === false ) {
 // Handle all forms of launch
 $LTI = LTIX::requireData();
 
-// Handle all forms of launch
-$LTI = LTIX::requireData();
-
 $json = $_SESSION['lti'];
 $jwt_claim = LTI13::base_jwt("iss","subj");
 $jwt_claim["lti"] = $json;

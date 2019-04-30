@@ -55,11 +55,11 @@ CrudForm::insertForm($fields, $from_location, $titles);
 ?>
 </p>
 <p>
-Here is some sample JSON for the additional settings (remove comments after pasting):
+Here is some sample JSON for the additional settings:
 <pre>
 {
     "messages": ["launch", "launch_grade"],
-    "privacy_level": "name_only",   // anonymous, name_only, public
+    "privacy_level": "name_only",
     "languages": [ "English" ],
     "license": "Apache",
     "source_url": "https://github.com/tsugiproject/djtest",
@@ -67,6 +67,7 @@ Here is some sample JSON for the additional settings (remove comments after past
     "tool_phase": "emerging"
 }
 </pre>
+The <b>privacy_level</b> can be "anonymous", "name_only", or "public".
 <p>
 Use this Public Key for your tool:
 <pre>
