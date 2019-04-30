@@ -23,7 +23,7 @@ $fields = array("endpoint", "name", "url", "description", "fa_icon", "json");
 
 $titles = array(
     'endpoint' => 'Launch endpoint on this system under /ext - must be letters, numbers and underscores and must be unique',
-    'name' => 'Name of tool shown to user in the store',
+    'name' => 'Short title of tool shown to user in the store',
     'fa_icon' => "An optional FontAwesome icon like 'fa-fast-forward'",
     'url' => 'URL Where the external tool receives launches',
     'json' => 'Additional settings for your tool registration (see below)'
