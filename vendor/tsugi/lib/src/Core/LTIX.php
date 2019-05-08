@@ -393,9 +393,6 @@ class LTIX {
             }
             $session_id = session_id();
 
-            // TODO: Why was this here?
-            // header('Content-Type: text/html; charset=utf-8');
-
             // Since we might reuse session IDs, clean everything out except permanent stuff
             if ( !defined('COOKIE_SESSION') ) {
                 $save_sess = self::wrapped_session_all($session_object);
@@ -1043,7 +1040,6 @@ class LTIX {
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         // Add the fields
-        // TODO: Add user_locale
         $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
             k.login_at AS key_login_at, k.lti13_client_id,
             n.nonce,
@@ -1324,14 +1320,12 @@ class LTIX {
         }
 
         // Here we handle lti13_lineitem
-        // TODO: Add this to the big join to improve efficiency after data models are all updated
         if ( isset($row['link_id']) && isset($post['lti13_lineitem']) &&
             array_key_exists('lti13_lineitem',$row) && $post['lti13_lineitem'] != $row['lti13_lineitem'] ) {
             $sql = "UPDATE {$p}lti_link
                 SET lti13_lineitem = :lti13_lineitem
                 WHERE link_id = :link_id";
-            // TODO: Make this QueryDie after the data model is surely updated
-            $PDOX->queryReturnError($sql, array(
+            $PDOX->queryDie($sql, array(
                 ':lti13_lineitem' => $post['lti13_lineitem'],
                 ':link_id' => $row['link_id']));
             $row['lti13_lineitem'] = $post['lti13_lineitem'];
@@ -1339,14 +1333,12 @@ class LTIX {
         }
 
         // Here we handle lti13_membership_url
-        // TODO: Add this to the big join to improve efficiency after data models are all updated
         if ( isset($row['context_id']) && isset($post['lti13_membership_url']) &&
             array_key_exists('lti13_membership_url',$row) && $post['lti13_membership_url'] != $row['lti13_membership_url'] ) {
             $sql = "UPDATE {$p}lti_context
                 SET lti13_membership_url = :lti13_membership_url
                 WHERE context_id = :context_id";
-            // TODO: Make this QueryDie after the data model is surely updated
-            $PDOX->queryReturnError($sql, array(
+            $PDOX->queryDie($sql, array(
                 ':lti13_membership_url' => $post['lti13_membership_url'],
                 ':context_id' => $row['context_id']));
             $row['lti13_membership_url'] = $post['lti13_membership_url'];
@@ -1354,20 +1346,17 @@ class LTIX {
         }
 
         // Here we handle lti13_lineitems
-        // TODO: Add this to the big join to improve efficiency after data models are all updated
         if ( isset($row['context_id']) && isset($post['lti13_lineitems']) &&
             array_key_exists('lti13_lineitems',$row) && $post['lti13_lineitems'] != $row['lti13_lineitems'] ) {
             $sql = "UPDATE {$p}lti_context
                 SET lti13_lineitems = :lti13_lineitems
                 WHERE context_id = :context_id";
-            // TODO: Make this QueryDie after the data model is surely updated
-            $PDOX->queryReturnError($sql, array(
+            $PDOX->queryDie($sql, array(
                 ':lti13_lineitems' => $post['lti13_lineitems'],
                 ':context_id' => $row['context_id']));
             $row['lti13_lineitems'] = $post['lti13_lineitems'];
             $actions[] = "=== Updated result id=".$row['result_id']." lti13_lineitems=".$row['lti13_lineitems'];
         }
-
 
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
         if ( isset($row['context_id']) && isset($post['context_title']) && $post['context_title'] != $row['context_title'] ) {
@@ -2156,7 +2145,6 @@ class LTIX {
                 $ellapsed = time() - self::wrapped_session_get($session_object,'LAST_ACTIVITY');
                 if ( $ellapsed > $heartbeat ) {
                     self::wrapped_session_put($session_object,'LAST_ACTIVITY', time());
-                    // TODO: Remove this after verification
                     $filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
                     error_log("Heartbeat ".session_id().' '.$ellapsed.' '.$filename);
                 }
