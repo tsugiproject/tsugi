@@ -63,6 +63,20 @@ class LTI13 extends LTI {
         return $jwt;
     }
 
+    public static function dump_jwt($jwt) {
+        if ( ! $jwt ) "JWT is false";
+        if ( is_string($jwt) ) {
+            return "Error parsing JWT: $jwt";
+        } else {
+            $retval = "Parsed JWT:\n";
+            $retval .= json_encode($jwt->header, JSON_PRETTY_PRINT);
+            $retval .= "\n";
+            $retval .= json_encode($jwt->body, JSON_PRETTY_PRINT);
+            $retval .= "\n";
+            return $retval;
+        }
+    }
+
     // Returns true if this is a Basic LTI message
     // with minimum values to meet the protocol
     // Returns true, false , or a string
@@ -169,19 +183,24 @@ class LTI13 extends LTI {
         ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
     }
 
-    public static function getRosterToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+    public static function getNRPSToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
-        return self::get_access_token([
+         $roster_token_data = self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
         ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+
+        return self::extract_access_token($roster_token_data, $debug_log);
     }
 
-    public static function getRosterWithSourceDidsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+    public static function getNRPSWithSourceDidsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
-        return self::get_access_token([
+        $roster_token_data =  self::get_access_token([
+            // TODO: Uncomment this after (I think) the certification suite tolerates extra stuff
             // "https://purl.imsglobal.org/spec/lti-ags/scope/basicoutcome",
             "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
         ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+
+        return self::extract_access_token($roster_token_data, $debug_log);
     }
 
     public static function getLineItemsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
@@ -251,7 +270,7 @@ class LTI13 extends LTI {
     }
 
     // Call memberships and roles
-    public static function loadRoster($membership_url, $access_token, &$debug_log=false) {
+    public static function loadNRPS($membership_url, $access_token, &$debug_log=false) {
 
         $ch = curl_init();
 
@@ -594,6 +613,21 @@ class LTI13 extends LTI {
         curl_close ($ch);
 
         return $token_data;
+    }
+
+    public static function extract_access_token($token_data, &$debug_log=false) {
+        if ( ! $token_data ) return false;
+
+        if ( ! isset($token_data['access_token']) ) return false;
+
+        $access_token = $token_data['access_token'];
+        if ( is_array($debug_log) ) {
+            // Parse the JWT if it is a JWT
+            $required_fields = false;
+            $jwt = LTI13::parse_jwt($access_token, $required_fields);
+            if ( $jwt && ! is_string($jwt) ) $debug_log[] = self::dump_jwt($jwt);
+        }
+        return $access_token;
     }
 
     public static function base_jwt($issuer, $subject, &$debug_log=false) {
