@@ -199,7 +199,7 @@ class Context extends Entity {
 
         $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $lti13_client_id);
 
-        // TODO: Make sure this makes sense - Subject is Tsugi's invention - is it ignored in the LMS??
+        // TODO: Make sure this makes sense - key_key in 1.3 is Tsugi's invention - is it ignored in the LMS??
         // Maybe this needs to be client_id???
 
         $subject = $this->launch->ltiParameter('key_key');
@@ -237,6 +237,27 @@ class Context extends Entity {
                         $grade_token, $debug_log);
 
         return $status;
+    }
+
+    /**
+     * load results for a line item
+     *
+     * @param $id The REST endpoint (id) for this line item
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns the Results array.  If it fails,
+     * it returns a string.
+     *
+     */
+    public function loadResults($id, &$debug_log=false) {
+
+        // TODO: Further evidence that $subject might want to be client_id
+        $grade_token = self::getGradeToken($missing, $subject, $debug_log);
+        if ( strlen($missing) > 0 ) return $missing;
+        if ( ! $grade_token ) return "Unable to get grade_token";
+
+        $results = LTI13::loadResults($id, $grade_token, $debug_log);
+        return $results;
     }
 
 }
