@@ -128,9 +128,6 @@ $CFG->adminpw = false;
 // create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';
 
-// This is used as a URL to a "preview logo in Google Classroom"
-// $CFG->logo_url = 'https://www.wa4e.com/logo.png';
-
 // This allows you to include various tool folders.  These are scanned
 // for register.php, database.php and index.php files to do automatic
 // table creation as well as making lists of tools in various UI places
@@ -161,9 +158,6 @@ $CFG->upgrading = false;
 // This is how the system will refer to itself.
 $CFG->servicename = 'TSUGI';
 $CFG->servicedesc = false;
-
-// A logo for the site, this works best if it is a real URL
-// $CFG->logo_url = 'https://www.wa4e.com/logo.png';
 
 // Information on the owner of this system and whether we
 // allow folks to request keys for the service
