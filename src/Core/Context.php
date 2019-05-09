@@ -182,6 +182,32 @@ class Context extends Entity {
     }
 
     /**
+     * Create a lineitem in the LMS
+     *
+     * @param object $newitem The fields to update
+     *
+     *     $newitem = new \stdClass();
+     *     $newitem->scoreMaximum = 100;
+     *     $newitem->label = 'Week 3 Feedback';
+     *     $newitem->resourceId = '2987487943';
+     *     $newitem->tag = 'optional';
+     *
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
+     *
+     */
+    public function createLineItem($newitem, &$debug_log=false) {
+        $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
+        if ( strlen($missing) > 0 ) return $missing;
+        if ( ! $lineitems_access_token ) return "Unable to get lineitems_access_token";
+
+        $retval = LTI13::createLineItem($lti13_lineitems, $lineitems_access_token, $newitem, $debug_log);
+
+        return $retval;
+    }
+
+    /**
      * delete a lineitem from the LMS
      *
      * @param $id mixed - search values to apply to the load
