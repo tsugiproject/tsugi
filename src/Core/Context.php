@@ -181,6 +181,26 @@ class Context extends Entity {
         return $lineitem;
     }
 
+    /**
+     * Update a lineitem in the LMS
+     *
+     * @param $id mixed - search values to apply to the load
+     *     $lineitem_id = $lineitems[0]->id;
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
+     *
+     */
+    public function updateLineItem($id, $newitem, &$debug_log=false) {
+        $grade_token = self::getGradeToken($missing, $subject, $debug_log);
+        if ( strlen($missing) > 0 ) return $missing;
+        if ( ! $grade_token ) return "Unable to get grade_token";
+
+        $retval = LTI13::updateLineItem($id, $grade_token, $newitem, $debug_log);
+
+        return $retval;
+    }
+
     /** Wrapper to get grade token
      *
      * @param string $missing This is a non-empty string with error detail if there
