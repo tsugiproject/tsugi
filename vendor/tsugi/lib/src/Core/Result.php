@@ -228,13 +228,13 @@ class Result extends Entity {
         } else if ( strlen($lti13_privkey) > 0 && strlen($lti13_lineitem) > 0 && strlen($lti13_token_url) > 0 ) {
             error_log("Getting token key_key=$key_key lti13_token_url=$lti13_token_url");
 
-            $access_token = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey, $debug_log);
+            $grade_token = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey, $debug_log);
 
-            $tmp = "Sending grade $grade user_key=$user_key lti13_lineitem=$lti13_lineitem access_token=$access_token";
-            error_log($tmp);
-            $tmp = "Sending grade $grade user_key=$user_key";
-            $status = LTI13::sendLineItem($user_key, $grade, /*$comment*/ $tmp, $lti13_lineitem,
-                        $access_token, $debug_log);
+            $comment = "Sending grade $grade user_key=$user_key lti13_lineitem=$lti13_lineitem grade_token=$grade_token";
+            error_log($comment);
+            $comment = "Sending grade $grade user_key=$user_key";
+            $status = LTI13::sendLineItem($user_key, $grade, $comment, $lti13_lineitem,
+                        $grade_token, $debug_log);
 
         // Classic POX call
         } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {

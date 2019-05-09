@@ -9,7 +9,7 @@ use \Tsugi\Util\LTI13;
 /**
  * This is a class to provide access to the resource context level data.
  *
- * This data comes from the LTI launch from the LMS. 
+ * This data comes from the LTI launch from the LMS.
  * A context is the equivalent of a "class" or course.   A context
  * has a roster of users and each user has a role within the context.
  * A launch may or may not contain a context.  If there
@@ -90,7 +90,7 @@ class Context extends Entity {
         }
 
         // TODO: In the future we might cache this access token perhaps in session for a while
-        
+
         // TODO: Also note that in LTI13 the basicoutcome claim is suppressed to make the cert suite happy
         // so these two things to the same thing for now.
         if ( $with_sourcedids ) {
@@ -142,7 +142,7 @@ class Context extends Entity {
      * @param $search mixed - search values to apply to the load
      * @param $debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns the LinewItems array.  If it fails,
+     * @return mixed If this works it returns the LineItems array.  If it fails,
      * it returns a string.
      *
      */
@@ -169,8 +169,7 @@ class Context extends Entity {
      *     $lineitem_id = $lineitems[0]->id;
      * @param $debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns the LinewItems array.  If it fails,
-     * it returns a string.
+     * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
      *
      */
     public function loadLineItem($id, &$debug_log=false) {
@@ -180,6 +179,64 @@ class Context extends Entity {
 
         $lineitem = LTI13::loadLineItem($id, $lineitems_access_token, $debug_log);
         return $lineitem;
+    }
+
+    /** Wrapper to get grade token
+     *
+     * @param string $missing This is a non-empty string with error detail if there
+     * was an error
+     * @param string $subject The subject if there is no error
+     * @param array $debug_log If this is an array, debug information is returned as the
+     * process progresses.
+     *
+     * @return mixed If there is an error, this returns false and $missing has the detail
+     * if this is a success, the token is returned (a string)
+     */
+
+    public function getGradeToken(&$missing, &$subject, &$debug_log=false)
+    {
+        global $CFG;
+
+        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $lti13_client_id);
+
+        // TODO: Make sure this makes sense - Subject is Tsugi's invention - is it ignored in the LMS??
+        // Maybe this needs to be client_id???
+
+        $subject = $this->launch->ltiParameter('key_key');
+        if ( strlen($subject) < 1 ) $missing .= ' key_key (i.e. subject)';
+
+        $missing = trim($missing);
+        if ( strlen($missing) > 0 ) {
+            if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
+            return false;
+        }
+
+        // TODO: In the future we might cache this access token perhaps in session for a while
+        $grade_token = LTI13::getGradeToken($CFG->wwwroot, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+        return $grade_token;
+    }
+
+    /**
+     * send a lineitem to the LMS
+     *
+     * @param $id The REST endpoint (id) for this line item
+     * @param $user_key The user for this grade
+     * @param $grade Value to send
+     * @param $comment An optional comment
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this is a success a true is returned, if not a string with an error
+     * is returned.
+     */
+    public function sendLineItem($id, $user_key, $grade, $comment, &$debug_log=false) {
+        $grade_token = self::getGradeToken($missing, $subject, $debug_log);
+        if ( strlen($missing) > 0 ) return $missing;
+        if ( ! $grade_token ) return "Unable to get grade_token";
+
+        $status = LTI13::sendLineItem($user_key, $grade, $comment, $id,
+                        $grade_token, $debug_log);
+
+        return $status;
     }
 
 }
