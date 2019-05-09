@@ -62,8 +62,6 @@ unset($apphome);
 // you will forward to in your apache config  
 // $CFG->websocket_proxyport = 8080;
 
-
-
 // Database connection information to configure the PDO connection
 // You need to point this at a database with am account and password
 // that can create tables.   To make the initial tables go into Admin
@@ -179,6 +177,7 @@ $CFG->autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 // get the key and secret, and put them here:
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
+$CFG->google_translate = false; 
 
 // Alpha: Google Classroom support
 // First, Go to https://console.developers.google.com/apis/credentials
