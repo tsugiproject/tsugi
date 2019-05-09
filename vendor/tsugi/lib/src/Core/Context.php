@@ -91,6 +91,29 @@ class Context extends Entity {
         return $nrps;
     }
 
+    /** Wrapper to get line items token so we can add caching
+     */
+
+    public function getLineItemsToken(&$missing, &$lti13_lineitems, &$debug_log=false)
+    {
+        global $CFG;
+
+        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $lti13_client_id);
+
+        $lti13_lineitems = $this->launch->ltiParameter('lti13_lineitems');
+        if ( strlen($lti13_lineitems) < 1 ) $missing .= ' ' . 'lineitems';
+
+        $missing = trim($missing);
+        if ( strlen($missing) > 0 ) {
+            if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
+            return false;
+        }
+
+        // TODO: In the future we might cache this access token perhaps in session for a while
+        $lineitems_access_token = LTI13::getLineItemsToken($CFG->wwwroot, $lti13_client_id, $lti13_token_url, $lti13_privkey, $debug_log);
+        return $lineitems_access_token;
+    }
+
     /**
      * load our lineitems from the LMS
      *
@@ -102,20 +125,10 @@ class Context extends Entity {
      *
      */
     public function loadLineItems($with_sourcedids=false, &$debug_log=false) {
-        global $CFG;
+        $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
+        if ( strlen($missing) > 0 ) return $missing;
+        if ( ! $lineitems_access_token ) return "Unable to get LineItems access_token";
 
-        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $lti13_client_id);
-        $lti13_lineitems = $this->launch->ltiParameter('lti13_lineitems');
-        if ( strlen($lti13_lineitems) < 1 ) $missing .= ' ' . 'lineitems';
-        $missing = trim($missing);
-
-        if ( strlen($missing) > 0 ) {
-            if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
-            return $missing;
-        }
-
-        // TODO: In the future we might cache this access token perhaps in session for a while
-        $lineitems_access_token = LTI13::getLineItemsToken($CFG->wwwroot, $lti13_client_id, $lti13_token_url, $lti13_privkey, $debug_log);
         $lineitems = LTI13::loadLineItems($lti13_lineitems, $lineitems_access_token, $debug_log);
         return $lineitems;
     }
@@ -132,17 +145,10 @@ class Context extends Entity {
      *
      */
     public function loadLineItem($id, &$debug_log=false) {
-        global $CFG;
+        $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
+        if ( strlen($missing) > 0 ) return $missing;
+        if ( ! $lineitems_access_token ) return "Unable to get LineItems access_token";
 
-        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $lti13_client_id);
-
-        if ( strlen($missing) > 0 ) {
-            if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
-            return $missing;
-        }
-
-        // TODO: In the future we might cache this access token perhaps in session for a while
-        $lineitems_access_token = LTI13::getLineItemsToken($CFG->wwwroot, $lti13_client_id, $lti13_token_url, $lti13_privkey, $debug_log);
         $lineitem = LTI13::loadLineItem($id, $lineitems_access_token, $debug_log);
         return $lineitem;
     }
