@@ -41,13 +41,14 @@ class Context extends Entity {
     public $title;
 
     /**
-     * load the roster if we can get it from the LMS
+     * Load the LTI 1.3 data from the session, checking for sanity
      *
-     * @param $with_sourcedids If true, include the sourcedids
-     * @param $debug_log Returns a log of actions taken
+     * @param $lti_13_token_url The token URL (output)
+     * @param $lti_13_privkey The current private key (output)
+     * @param $lti_13_privkey The current client_id (output)
      *
-     * @return mixed If this works it returns the NRPS object.  If it fails,
-     * it returns a string.
+     * @return string When the string is non-empty, it means an error has occurred and
+     * the string contains the error detail.
      *
      */
     private function loadLTI13Data(&$lti13_token_url, &$lti13_privkey, &$lti13_client_id)
@@ -64,6 +65,17 @@ class Context extends Entity {
         return($missing);
     }
 
+    /**
+     * load the roster if we can get it from the LMS
+     *
+     * @param $with_sourcedids If true, ask for the sourcedids
+     * @param array $debug_log If this is an array, debug information is returned as the
+     * process progresses.
+     *
+     * @return mixed If this works it returns the NRPS object.  If it fails,
+     * it returns a string.
+     *
+     */
     public function loadNamesAndRoles($with_sourcedids=false, &$debug_log=false) {
         global $CFG;
 
@@ -92,6 +104,16 @@ class Context extends Entity {
     }
 
     /** Wrapper to get line items token so we can add caching
+     *
+     * @param string $missing This is a non-empty string with error detail if there
+     * was an error
+     * @param string $lti13_lineitems The url for the LineItems Service if there
+     * was no error
+     * @param array $debug_log If this is an array, debug information is returned as the
+     * process progresses.
+     *
+     * @return mixed If there is an error, this returns false and $missing has the detail
+     * if this is a success, the token is returned (a string)
      */
 
     public function getLineItemsToken(&$missing, &$lti13_lineitems, &$debug_log=false)
@@ -124,12 +146,19 @@ class Context extends Entity {
      * it returns a string.
      *
      */
-    public function loadLineItems($with_sourcedids=false, &$debug_log=false) {
+    public function loadLineItems($search=false, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
         if ( strlen($missing) > 0 ) return $missing;
         if ( ! $lineitems_access_token ) return "Unable to get LineItems access_token";
 
-        $lineitems = LTI13::loadLineItems($lti13_lineitems, $lineitems_access_token, $debug_log);
+        $url = $lti13_lineitems;
+        if ( is_array($search) && count($search) > 0 ) {
+            if ( U::get($search, 'tag') ) $url = U::add_url_parm($url, 'tag', U::get($search, 'tag'));
+            if ( U::get($search, 'lti_link_id') ) $url = U::add_url_parm($url, 'lti_link_id', U::get($search, 'lti_link_id'));
+            if ( U::get($search, 'resource_id') ) $url = U::add_url_parm($url, 'resource_id', U::get($search, 'resource_id'));
+        }
+
+        $lineitems = LTI13::loadLineItems($url, $lineitems_access_token, $debug_log);
         return $lineitems;
     }
 
