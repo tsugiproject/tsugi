@@ -205,18 +205,6 @@ $CFG->verifypeer = false;
 // and LTI launches
 $CFG->unify = true;
 
-// Whether to record launches as activities - make sure tables exist
-$CFG->launchactivity = false;
-
-// Controlling the event FIFO
-// If eventcheck is false, no events will be logged and no cleanup will be done.
-$CFG->eventcheck = 1000;       // How many launches between FIFO truncation (probabilistic)
-$CFG->eventtime = 7*24*60*60;  // Length in seconds of the FIFO
-
-// Set eventpushtime to zero to suppress auto-push from the FIFO
-$CFG->eventpushtime = 2;      // Maximum number of seconds to push during heartbeat
-$CFG->eventpushcount = 50;    // Maximum number of events to push during heartbeat
-
 // Go to https://console.developers.google.com/apis/credentials
 // Create and configure an API key and enter it here
 $CFG->google_map_api_key = false; // 'Ve8eH490843cIA9IGl8';
