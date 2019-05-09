@@ -50,18 +50,25 @@ class Context extends Entity {
      * it returns a string.
      *
      */
-    public function loadNamesAndRoles($with_sourcedids=false, &$debug_log=false) {
-        global $CFG;
-
+    private function loadLTI13Data(&$lti13_token_url, &$lti13_privkey, &$lti13_client_id)
+    {
         $lti13_token_url = $this->launch->ltiParameter('lti13_token_url');
         $lti13_privkey = LTIX::decrypt_secret($this->launch->ltiParameter('lti13_privkey'));
-        $lti13_membership_url = $this->launch->ltiParameter('lti13_membership_url');
         $lti13_client_id = $this->launch->ltiParameter('lti13_client_id');
 
         $missing = '';
         if ( strlen($lti13_client_id) < 1 ) $missing .= ' ' . 'lti13_client_id';
         if ( strlen($lti13_privkey) < 1 ) $missing .= ' ' . 'private_key';
         if ( strlen($lti13_token_url) < 1 ) $missing .= ' ' . 'token_url';
+        $missing = trim($missing);
+        return($missing);
+    }
+
+    public function loadNamesAndRoles($with_sourcedids=false, &$debug_log=false) {
+        global $CFG;
+
+        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $lti13_client_id);
+        $lti13_membership_url = $this->launch->ltiParameter('lti13_membership_url');
         if ( strlen($lti13_membership_url) < 1 ) $missing .= ' ' . 'membership_url';
         $missing = trim($missing);
 
@@ -82,6 +89,62 @@ class Context extends Entity {
 
         $nrps = LTI13::loadNRPS($lti13_membership_url, $nrps_access_token, $debug_log);
         return $nrps;
+    }
+
+    /**
+     * load our lineitems from the LMS
+     *
+     * @param $search mixed - search values to apply to the load
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns the LinewItems array.  If it fails,
+     * it returns a string.
+     *
+     */
+    public function loadLineItems($with_sourcedids=false, &$debug_log=false) {
+        global $CFG;
+
+        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $lti13_client_id);
+        $lti13_lineitems = $this->launch->ltiParameter('lti13_lineitems');
+        if ( strlen($lti13_lineitems) < 1 ) $missing .= ' ' . 'lineitems';
+        $missing = trim($missing);
+
+        if ( strlen($missing) > 0 ) {
+            if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
+            return $missing;
+        }
+
+        // TODO: In the future we might cache this access token perhaps in session for a while
+        $lineitems_access_token = LTI13::getLineItemsToken($CFG->wwwroot, $lti13_client_id, $lti13_token_url, $lti13_privkey, $debug_log);
+        $lineitems = LTI13::loadLineItems($lti13_lineitems, $lineitems_access_token, $debug_log);
+        return $lineitems;
+    }
+
+    /**
+     * load one lineitem from the LMS
+     *
+     * @param $id mixed - search values to apply to the load
+     *     $lineitem_id = $lineitems[0]->id;
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns the LinewItems array.  If it fails,
+     * it returns a string.
+     *
+     */
+    public function loadLineItem($id, &$debug_log=false) {
+        global $CFG;
+
+        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $lti13_client_id);
+
+        if ( strlen($missing) > 0 ) {
+            if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
+            return $missing;
+        }
+
+        // TODO: In the future we might cache this access token perhaps in session for a while
+        $lineitems_access_token = LTI13::getLineItemsToken($CFG->wwwroot, $lti13_client_id, $lti13_token_url, $lti13_privkey, $debug_log);
+        $lineitem = LTI13::loadLineItem($id, $lineitems_access_token, $debug_log);
+        return $lineitem;
     }
 
 }
