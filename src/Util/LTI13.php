@@ -207,9 +207,11 @@ class LTI13 extends LTI {
 
     public static function getLineItemsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
-        return self::get_access_token([
+        $token_data = self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
         ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+
+        return self::extract_access_token($token_data, $debug_log);
     }
 
     // Call lineitem
