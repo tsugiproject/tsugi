@@ -8,7 +8,7 @@ use \Firebase\JWT\JWT;
 /**
  * This is a general purpose LTI 1.3 class with no Tsugi-specific dependencies.
  */
-class LTI13 extends LTI {
+class LTI13 {
 
     const VERSION_CLAIM =       'https://purl.imsglobal.org/spec/lti/claim/version';
     const MESSAGE_TYPE_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/message_type';
@@ -39,7 +39,7 @@ class LTI13 extends LTI {
     }
 
     /**
-     * Find the JWT in the Rquest data
+     * Find the JWT in the request data
      *
      * @param array $request_data An optional prarameter if you want to pull the
      * data from somewhere other than $_REQUEST.
@@ -56,7 +56,7 @@ class LTI13 extends LTI {
     /**
      * Parse and validate a raw JWT
      *
-     * @param string $jwt The encoded JWT
+     * @param string $raw_jwt The encoded JWT (a string)
      * @param boolean $required_fields Whether to throw an error if the required fields are missing.
      * You can set this to false if you just want to parse and dump a JWT for debugging.
      *
