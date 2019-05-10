@@ -173,7 +173,12 @@ class Output {
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/<?php
             if ( isset($CFG->bootswatch) ) echo('bootswatch/'.$CFG->bootswatch.'/'); ?>bootstrap.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
+        <?php if ( strpos($CFG->fontawesome, 'free-5.') > 0 ) { ?>
+        <link href="<?= $CFG->fontawesome ?>/css/all.css" rel="stylesheet">
+        <link href="<?= $CFG->fontawesome ?>/css/v4-shims.css" rel="stylesheet">
+        <?php } else { ?>
         <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
+        <?php } ?>
         <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
 
     <style>
