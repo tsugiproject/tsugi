@@ -6,7 +6,7 @@ use \Tsugi\Util\U;
 use \Firebase\JWT\JWT;
 
 /**
- * This is a general purpose LTI class with no Tsugi-specific dependencies.
+ * This is a general purpose LTI 1.3 class with no Tsugi-specific dependencies.
  */
 class LTI13 extends LTI {
 
@@ -29,10 +29,23 @@ class LTI13 extends LTI {
     const SCORE_TYPE = 'application/vnd.ims.lis.v1.score+json';
     const RESULTS_TYPE = 'application/vnd.ims.lis.v2.resultcontainer+json';
 
+    /**
+     * Pull out the effective oauth_consumer key from a JWT
+     *
+     * @param string $jwt The parsed JWT
+     */
     public static function extract_consumer_key($jwt) {
         return 'lti13_' . $jwt->body->iss;
     }
 
+    /**
+     * Find the JWT in the Rquest data
+     *
+     * @param array $request_data An optional prarameter if you want to pull the
+     * data from somewhere other than $_REQUEST.
+     *
+     * @return string The JWT from the request or false if there is no JWT.
+     */
     public static function raw_jwt($request_data=false) {
         if ( $request_data === false ) $request_data = $_REQUEST;
         $raw_jwt = U::get($request_data, 'id_token');
@@ -40,6 +53,16 @@ class LTI13 extends LTI {
         return $raw_jwt;
     }
 
+    /**
+     * Parse and validate a raw JWT
+     *
+     * @param string $jwt The encoded JWT
+     * @param boolean $required_fields Whether to throw an error if the required fields are missing.
+     * You can set this to false if you just want to parse and dump a JWT for debugging.
+     *
+     * @return mixed The parsed fields in an object as long as there are no errors.
+     * If there are errors, a string with the error message is returned.
+     */
     public static function parse_jwt($raw_jwt, $required_fields=true) {
         if ( $raw_jwt === false ) return false;
         if ( ! is_string($raw_jwt)) return 'parse_jwt first parameter must be a string';
@@ -63,6 +86,13 @@ class LTI13 extends LTI {
         return $jwt;
     }
 
+    /**
+     * Print out the contents of the JWT
+     *
+     * @param object The parsed JWT object.
+     *
+     * @return string The output of the JWT suitable for printing (escaping needed)
+     */
     public static function dump_jwt($jwt) {
         if ( ! $jwt ) "JWT is false";
         if ( is_string($jwt) ) {
@@ -77,9 +107,15 @@ class LTI13 extends LTI {
         }
     }
 
-    // Returns true if this is a Basic LTI message
-    // with minimum values to meet the protocol
-    // Returns true, false , or a string
+    /**
+     * Returns true if this is an LTI 1.3 message with minimum values to meet the protocol
+     *
+     * @param array $request_data An optional prarameter if you want to pull the
+     * data from somewhere other than $_REQUEST.
+     *
+     * @return Returns true if this has a valid JWT, false if this is not a JWT at all,
+     * or a string with an error message if this parses as a JWT but is missing required data.
+     */
     public static function isRequestDetail($request_data=false) {
         $raw_jwt = self::raw_jwt($request_data);
         if ( ! $raw_jwt ) return false;
@@ -90,9 +126,14 @@ class LTI13 extends LTI {
         return is_object($jwt);
     }
 
-    // Returns true if this is a Basic LTI message
-    // with minimum values to meet the protocol
-    // Returns true or  false
+    /**
+     * Returns true if this is an LTI 1.3 message with minimum values to meet the protocol
+     *
+     * @param array $request_data An optional prarameter if you want to pull the
+     * data from somewhere other than $_REQUEST.
+     *
+     * @return Returns true if this has a valid JWT, false if this is not a JWT at all.
+     */
     public static function isRequest($request_data=false) {
         $retval = self::isRequestDetail($request_data);
         if ( is_string($retval) ) {
@@ -105,30 +146,43 @@ class LTI13 extends LTI {
     /**
      * Verify the Public Key for this request
      *
+     * @param string $raw_jwt The raw JWT from the request
+     * @param string $public_key The public key
+     * @param array $algs The algorithms to use for validating the key.
+     *
      * @return mixed This returns true if the request verified.  If the request did not verify,
      * this returns the exception that was generated.
      */
-    public static function verifyPublicKey($raw_jwt, $public_key, $algs) {
+    public static function verifyPublicKey($raw_jwt, $public_key, $algs=false) {
+        if ( ! $alg ) $alg = array('RS256');
         try {
-            // $decoded = JWT::decode($raw_jwt, $public_key, array('RS256'));
             $decoded = JWT::decode($raw_jwt, $public_key, $algs);
-            // $decoded_array = json_decode(json_encode($decoded), true);
             return true;
         } catch(\Exception $e) {
             return $e;
         }
     }
 
-    // Returns true if the lti_message_type is valid
-    public static function isValidMessageType($lti_message_type=false) {
+    /** Check the incoming message type
+     *
+     * @param string $lti_message_type The incoming message type from the request.
+     *
+     * @return boolean True if this is an LTI 1.1 or LTI 1.3 message type.
+     */
+    public static function isValidMessageType($lti_message_type) {
         return ($lti_message_type == "basic-lti-launch-request" ||
             $lti_message_type == 'LtiResourceLinkRequest' ||
             $lti_message_type == "ToolProxyReregistrationRequest" ||
             $lti_message_type == "ContentItemSelectionRequest");
     }
 
-    // Returns true if the lti_version is valid
-    public static function isValidVersion($lti_version=false) {
+    /** Check the incoming message version
+     *
+     * @param string $lti_version The incoming message type from the request.
+     *
+     * @return boolean True if this is an LTI 1.1 or LTI 2.0 message version.
+     */
+    public static function isValidVersion($lti_version) {
         return ($lti_version == "LTI-1p0" || $lti_version == "LTI-2p0");
     }
 
@@ -147,6 +201,9 @@ class LTI13 extends LTI {
      *      $CFG->jon_postel = true;
      *
      * Tsugi will follow Jon Postel's law.
+     *
+     * @param object $body The body of the JWT
+     * @param array $failures A string array of failures (pass by reference)
      */
     public static function jonPostel($body, &$failures) {
         if ( isset($CFG->jon_postel) ) return; // We are on Jon Postel mode
@@ -174,6 +231,13 @@ class LTI13 extends LTI {
         if ( ! isset($body->{self::DEPLOYMENT_ID}) ) $failures[] = "Missing required deployment_id claim";
     }
 
+    /** Retrieve a grade token
+     *
+     * @param array $debug_log An optional array passed by reference.   Actions taken will be
+     * logged into this array.
+     *
+     * @return mixed Returns the token (string) or false on error.
+     */
     public static function getGradeToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
         $token_data = self::get_access_token([
@@ -185,6 +249,13 @@ class LTI13 extends LTI {
         return self::extract_access_token($token_data, $debug_log);
     }
 
+    /** Retrieve a Names and Roles Provisioning Service (NRPS) token
+     *
+     * @param array $debug_log An optional array passed by reference.   Actions taken will be
+     * logged into this array.
+     *
+     * @return mixed Returns the token (string) or false on error.
+     */
     public static function getNRPSToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
          $roster_token_data = self::get_access_token([
@@ -194,6 +265,16 @@ class LTI13 extends LTI {
         return self::extract_access_token($roster_token_data, $debug_log);
     }
 
+    /** Retrieve a Names and Roles Provisioning Service (NRPS) token with source_dids
+     *
+     * This should require both the lineitems and grade permission I think.   But some clarification
+     * is needed to make sure this is done correctly.
+     *
+     * @param array $debug_log An optional array passed by reference.   Actions taken will be
+     * logged into this array.
+     *
+     * @return mixed Returns the token (string) or false on error.
+     */
     public static function getNRPSWithSourceDidsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
         $roster_token_data =  self::get_access_token([
@@ -205,6 +286,13 @@ class LTI13 extends LTI {
         return self::extract_access_token($roster_token_data, $debug_log);
     }
 
+    /** Retrieve a LineItems token
+     *
+     * @param array $debug_log An optional array passed by reference.   Actions taken will be
+     * logged into this array.
+     *
+     * @return mixed Returns the token (string) or false on error.
+     */
     public static function getLineItemsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
         $token_data = self::get_access_token([
@@ -214,8 +302,19 @@ class LTI13 extends LTI {
         return self::extract_access_token($token_data, $debug_log);
     }
 
-    // Call lineitem
-    public static function sendLineItem($user_id, $grade, $comment, $lineitem_url,
+    /** Send a line item result
+     *
+     * @param $user_id The user for this grade
+     * @param $grade Value to send
+     * @param $comment An optional comment
+     * @param $lineitem_url The REST endpoint (id) for this line item
+     * @param $access_token The access token for this request
+     * @param array $debug_log An optional array passed by reference.   Actions taken will be
+     * logged into this array.
+     *
+     * @return mixed Returns the token (string) or false on error.
+     */
+    public static function sendLineItemResult($user_id, $grade, $comment, $lineitem_url,
         $access_token, &$debug_log=false) {
 
         $lineitem_url = trim($lineitem_url);
@@ -273,7 +372,17 @@ class LTI13 extends LTI {
         return true;
     }
 
-    // Call memberships and roles
+    /**
+     * Load the memberships and roles if we can get it from the LMS
+     *
+     * @param string $membership_url The REST endpoint for memberships
+     * @param $access_token The access token for this request
+     * @param array $debug_log If this is an array, debug information is returned as the
+     * process progresses.
+     *
+     * @return mixed If this works it returns the NRPS object.  If it fails,
+     * it returns a string.
+     */
     public static function loadNRPS($membership_url, $access_token, &$debug_log=false) {
 
         $ch = curl_init();
@@ -322,7 +431,16 @@ class LTI13 extends LTI {
         return $status;
     }
 
-    // Load LineItems
+    /**
+     * Load our lineitems from the LMS
+     *
+     * @param $lineitems_url The REST endpoint (id) for the line items
+     * @param $access_token The access token for this request
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns the LineItems array.  If it fails,
+     * it returns a string.
+     */
     public static function loadLineItems($lineitems_url, $access_token, &$debug_log=false) {
 
         $lineitems_url = trim($lineitems_url);
@@ -365,7 +483,15 @@ class LTI13 extends LTI {
         return $status;
     }
 
-    // Load A LineItem
+    /**
+     * Load the detiail for a lineitem from the LMS
+     *
+     * @param $lineitem_url The REST endpoint (id) for this line item
+     * @param $access_token The access token for this request
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns the LineItem object.  If it fails, it returns a string.
+     */
     public static function loadLineItem($lineitem_url, $access_token, &$debug_log=false) {
 
         $lineitem_url = trim($lineitem_url);
@@ -408,7 +534,16 @@ class LTI13 extends LTI {
         return $status;
     }
 
-    // Load results for a LineItem
+    /**
+     * Load the results for a line item
+     *
+     * @param $lineitem_url The REST endpoint (id) for this line item
+     * @param $access_token The access token for this request
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns the Results array.  If it fails,
+     * it returns a string.
+     */
     public static function loadResults($lineitem_url, $access_token, &$debug_log=false) {
 
         $lineitem_url = trim($lineitem_url);
@@ -451,8 +586,15 @@ class LTI13 extends LTI {
         if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
         return $status;
     }
-
-    // Delete A LineItem
+    /**
+     * Delete a lineitem from the LMS
+     *
+     * @param $lineitem_url The REST endpoint (id) for this line item
+     * @param $access_token The access token for this request
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns true.  If it fails, it returns a string.
+     */
     public static function deleteLineItem($lineitem_url, $access_token, &$debug_log=false) {
 
         $lineitem_url = trim($lineitem_url);
@@ -500,9 +642,26 @@ class LTI13 extends LTI {
         return $status;
     }
 
-    public static function createLineItem($lineitem_url, $access_token, $lineitem, &$debug_log = false) {
+    /**
+     * Create a lineitem in the LMS
+     *
+     * @param $lineitems_url The REST endpoint (id) for this line item
+     * @param $access_token The access token for this request
+     * @param object $lineitem The fields for the new line item
+     *
+     *     $newitem = new \stdClass();
+     *     $newitem->scoreMaximum = 100;
+     *     $newitem->label = 'Week 3 Feedback';
+     *     $newitem->resourceId = '2987487943';
+     *     $newitem->tag = 'optional';
+     *
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns true.  If it fails, it returns a string.
+     */
+    public static function createLineItem($lineitems_url, $access_token, $lineitem, &$debug_log = false) {
 
-        $lineitem_url = trim($lineitem_url);
+        $lineitems_url = trim($lineitems_url);
 
         $ch = curl_init();
 
@@ -511,13 +670,13 @@ class LTI13 extends LTI {
             'Content-Type: ' . self::MEDIA_TYPE_LINEITEM
         ];
 
-        curl_setopt($ch, CURLOPT_URL, $lineitem_url);
+        curl_setopt($ch, CURLOPT_URL, $lineitems_url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($lineitem));
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        if (is_array($debug_log) ) $debug_log[] = 'Line Item URL: '.$lineitem_url;
+        if (is_array($debug_log) ) $debug_log[] = 'Line Items URL: '.$lineitems_url;
         if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $line_item = curl_exec($ch);
@@ -538,6 +697,23 @@ class LTI13 extends LTI {
         return true;
     }
 
+    /**
+     * Update a lineitem in the LMS
+     *
+     * @param $lineitem_url The REST endpoint (id) for this line item
+     * @param $access_token The access token for this request
+     * @param object $newitem The fields to update
+     *
+     *     $newitem = new \stdClass();
+     *     $newitem->scoreMaximum = 100;
+     *     $newitem->label = 'Week 3 Feedback';
+     *     $newitem->resourceId = '2987487943';
+     *     $newitem->tag = 'optional';
+     *
+     * @param $debug_log Returns a log of actions taken
+     *
+     * @return mixed If this works it returns true.  If it fails, it returns a string.
+     */
     public static function updateLineItem($lineitem_url, $access_token, $lineitem, &$debug_log = false) {
 
         $lineitem_url = trim($lineitem_url);
@@ -576,6 +752,19 @@ class LTI13 extends LTI {
         return true;
     }
 
+    /** Retrieve an access token
+     *
+     * @param array $scope A list of requested scopes
+     * @param string $issuer Who we are
+     * @param string $subject Who we are
+     * @param string $lti13_token_url
+     * @param string $lti13_privkey
+     * @param array $debug_log An optional array passed by reference.   Actions taken will be
+     * logged into this array.
+     *
+     * @return array The retrieved and parsed JSON data.  There is no validation performed,
+     * and we might have got a 403 and received no data at all.
+     */
     public static function get_access_token($scope, $issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
 
         $lti13_token_url = trim($lti13_token_url);
@@ -619,6 +808,15 @@ class LTI13 extends LTI {
         return $token_data;
     }
 
+    /** Extract an access token from returned data
+     *
+     * @param array $token_data The JSON response to a token request, parsed in an array
+     * of key / value pairs.
+     * @param array $debug_log An optional array passed by reference.   Actions taken will be
+     * logged into this array.
+     *
+     * @return mixed This returns the token as a string if it is successful, or false
+     */
     public static function extract_access_token($token_data, &$debug_log=false) {
         if ( ! $token_data ) return false;
 
@@ -634,6 +832,15 @@ class LTI13 extends LTI {
         return $access_token;
     }
 
+    /** Build up a basic JWT
+     *
+     * @param string $issuer Who we are
+     * @param string $subject Who we are
+     * @param array $debug_log An optional array passed by reference.   Actions taken will be
+     * logged into this array.
+     *
+     * @return array The basic fields of the JWT are populated
+     */
     public static function base_jwt($issuer, $subject, &$debug_log=false) {
 
         $jwt_claim = [
@@ -646,11 +853,31 @@ class LTI13 extends LTI {
         return $jwt_claim;
     }
 
+    /** Sign and encode a JWT
+     *
+     * @param array $jwt_claim An array of key/value pairs for the claims
+     * @param string $lti13_privkey The private key to use to sign the JWT
+     *
+     * @return string The signed JWT
+     */
     public static function encode_jwt($jwt_claim, $lti13_privkey) {
         $jws = JWT::encode($jwt_claim, self::cleanup_PKCS8($lti13_privkey), 'RS256');
         return $jws;
     }
 
+    /** Build an HTML form to submit a JWT
+     *
+     * @param string $launch_url The URL to send the JWT
+     * @param string $jws The signed JWT
+     * @param boolean dodebug Whether to auto submit the JWT or pause with some
+     * debugging output.
+     * @param array $extra some extra/optional parameters
+     *
+     *     formattr - Additional text to include within the <form tag
+     *     button - The text of the botton (ie. to allow I18N)
+     *
+     *  @return string The HTML to send to the browser
+     */
     public static function build_jwt_html($launch_url, $jws, $dodebug=true, $extra=false) {
         $html = "<form action=\"" . $launch_url . "\" method=\"POST\"";
         if ($extra && isset($extra['formattr']) ) {
@@ -674,6 +901,18 @@ class LTI13 extends LTI {
         return $html;
     }
 
+    /** Cleanup common mess-ups in PKCS8 strings
+     *
+     * Often when public/private keys are pasted, stuff is added or
+     * lines run together or stuff is missing from the string.
+     * The PHP library is a little picky on these things so this
+     * routine just checks for common boo-boos and fixes them.
+     * As they say in Office Space, "We fixed the glitch."
+     *
+     * @param string $private_key The possible ill-formatted private key
+     *
+     * @return string The hopefully better formatted private key
+     */
     public static function cleanup_PKCS8($private_key)
     {
         $parts = preg_split('/\s+/', $private_key);

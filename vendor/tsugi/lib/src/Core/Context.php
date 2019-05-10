@@ -66,7 +66,7 @@ class Context extends Entity {
     }
 
     /**
-     * load the roster if we can get it from the LMS
+     * Load the roster if we can get it from the LMS
      *
      * @param $with_sourcedids If true, ask for the sourcedids
      * @param array $debug_log If this is an array, debug information is returned as the
@@ -137,14 +137,13 @@ class Context extends Entity {
     }
 
     /**
-     * load our lineitems from the LMS
+     * Load our lineitems from the LMS
      *
      * @param $search mixed - search values to apply to the load
      * @param $debug_log Returns a log of actions taken
      *
      * @return mixed If this works it returns the LineItems array.  If it fails,
      * it returns a string.
-     *
      */
     public function loadLineItems($search=false, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
@@ -163,14 +162,13 @@ class Context extends Entity {
     }
 
     /**
-     * load one lineitem from the LMS
+     * Load the detiail for a lineitem from the LMS
      *
      * @param $id mixed - search values to apply to the load
      *     $lineitem_id = $lineitems[0]->id;
      * @param $debug_log Returns a log of actions taken
      *
      * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
-     *
      */
     public function loadLineItem($id, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
@@ -195,7 +193,6 @@ class Context extends Entity {
      * @param $debug_log Returns a log of actions taken
      *
      * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
-     *
      */
     public function createLineItem($newitem, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
@@ -208,14 +205,13 @@ class Context extends Entity {
     }
 
     /**
-     * delete a lineitem from the LMS
+     * Delete a lineitem from the LMS
      *
      * @param $id mixed - search values to apply to the load
      *     $lineitem_id = $lineitems[0]->id;
      * @param $debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
-     *
+     * @return mixed If this works it returns true.  If it fails, it returns a string.
      */
     public function deleteLineItem($id, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
@@ -242,7 +238,6 @@ class Context extends Entity {
      * @param $debug_log Returns a log of actions taken
      *
      * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
-     *
      */
     public function updateLineItem($id, $newitem, &$debug_log=false) {
         $grade_token = self::getGradeToken($missing, $subject, $debug_log);
@@ -290,7 +285,7 @@ class Context extends Entity {
     }
 
     /**
-     * send a lineitem to the LMS
+     * Send a lineitem result to the LMS
      *
      * @param $id The REST endpoint (id) for this line item
      * @param $user_key The user for this grade
@@ -301,26 +296,25 @@ class Context extends Entity {
      * @return mixed If this is a success a true is returned, if not a string with an error
      * is returned.
      */
-    public function sendLineItem($id, $user_key, $grade, $comment, &$debug_log=false) {
+    public function sendLineItemResult($id, $user_key, $grade, $comment, &$debug_log=false) {
         $grade_token = self::getGradeToken($missing, $subject, $debug_log);
         if ( strlen($missing) > 0 ) return $missing;
         if ( ! $grade_token ) return "Unable to get grade_token";
 
-        $status = LTI13::sendLineItem($user_key, $grade, $comment, $id,
+        $status = LTI13::sendLineItemResult($user_key, $grade, $comment, $id,
                         $grade_token, $debug_log);
 
         return $status;
     }
 
     /**
-     * load results for a line item
+     * Load the results for a line item
      *
      * @param $id The REST endpoint (id) for this line item
      * @param $debug_log Returns a log of actions taken
      *
      * @return mixed If this works it returns the Results array.  If it fails,
      * it returns a string.
-     *
      */
     public function loadResults($id, &$debug_log=false) {
 

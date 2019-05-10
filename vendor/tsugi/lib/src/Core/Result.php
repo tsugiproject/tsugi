@@ -233,7 +233,7 @@ class Result extends Entity {
             $comment = "Sending grade $grade user_key=$user_key lti13_lineitem=$lti13_lineitem grade_token=$grade_token";
             error_log($comment);
             $comment = "Sending grade $grade user_key=$user_key";
-            $status = LTI13::sendLineItem($user_key, $grade, $comment, $lti13_lineitem,
+            $status = LTI13::sendLineItemResult($user_key, $grade, $comment, $lti13_lineitem,
                         $grade_token, $debug_log);
 
         // Classic POX call
