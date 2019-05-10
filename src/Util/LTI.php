@@ -58,14 +58,14 @@ class LTI {
     }
 
     // Returns true if the lti_message_type is valid
-    public static function isValidMessageType($lti_message_type=false) {
+    public static function isValidMessageType($lti_message_type) {
         return ($lti_message_type == "basic-lti-launch-request" ||
             $lti_message_type == "ToolProxyReregistrationRequest" ||
             $lti_message_type == "ContentItemSelectionRequest");
     }
 
     // Returns true if the lti_version is valid
-    public static function isValidVersion($lti_version=false) {
+    public static function isValidVersion($lti_version) {
         return ($lti_version == "LTI-1p0" || $lti_version == "LTI-2p0");
     }
 
