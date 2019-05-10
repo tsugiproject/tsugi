@@ -92,7 +92,9 @@ if ( ! isset($CFG->eventpushcount) ) $CFG->eventpushcount = 0;
 if ( ! isset($CFG->eventpushtime) ) $CFG->eventpushtime = 2;
 
 // New fontawesome configuration
-if ( ! isset($CFG->fontawesome) ) $CFG->fontawesome = $CFG->staticroot . '/font-awesome-4.7.0';
+// If you want to stick with 4.7.0 add this to your config.php
+// $CFG->fontawesome = $CFG->staticroot . '/font-awesome-4.7.0'
+if ( ! isset($CFG->fontawesome) ) $CFG->fontawesome = $CFG->staticroot . '/fontawesome-free-5.8.2-web';
 
 // Certification hacks
 if ( !isset($CFG->prefer_lti1_for_grade_send) ) $CFG->prefer_lti1_for_grade_send = true;
