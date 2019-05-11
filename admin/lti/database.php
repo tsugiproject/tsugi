@@ -9,6 +9,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_link_user_activity",
 "drop table if exists {$CFG->dbprefix}lti_context",
 "drop table if exists {$CFG->dbprefix}lti_user",
+"drop table if exists {$CFG->dbprefix}lti_issuer",
 "drop table if exists {$CFG->dbprefix}lti_key",
 "drop table if exists {$CFG->dbprefix}lti_nonce",
 "drop table if exists {$CFG->dbprefix}lti_message",
@@ -26,13 +27,59 @@ $DATABASE_UNINSTALL = array(
 // marked as UNIQUE because of MySQL key index length limitations.
 
 $DATABASE_INSTALL = array(
+array( "{$CFG->dbprefix}lti_issuer",
+"create table {$CFG->dbprefix}lti_issuer (
+    issuer_id           INTEGER NOT NULL AUTO_INCREMENT,
+    -- The logical key (i.e. how to construct the sha256) is issuer + client_id
+    issuer_sha256       CHAR(64) NOT NULL,
+    -- Don't name either of these issuer_key because of CrudForm automatic behavior
+    issuer_issuer       TEXT NOT NULL,  -- iss from the JWT
+    issuer_client_id    TEXT NOT NULL,  -- aud from the JWT
+    deleted             TINYINT(1) NOT NULL DEFAULT 0,
+
+    -- This is the owner of this issuer - it is not a foreign key
+    -- We might use this if we end up with self-service issuers
+    user_id             INTEGER NULL,
+
+    lti13_oidc_auth     TEXT NULL,
+    lti13_keyset_url    TEXT NULL,
+    lti13_keyset        TEXT NULL,
+    lti13_platform_pubkey TEXT NULL,
+    lti13_kid           TEXT NULL,
+    lti13_pubkey        TEXT NULL,
+    lti13_privkey       TEXT NULL,
+    lti13_token_url     TEXT NULL,
+
+    json                MEDIUMTEXT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+    deleted_at          TIMESTAMP NULL,
+    login_at            TIMESTAMP NULL,
+    login_count         BIGINT DEFAULT 0,
+    login_time          BIGINT DEFAULT 0,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_1` UNIQUE(issuer_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_pk` PRIMARY KEY (issuer_id)
+ ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// https://stackoverflow.com/questions/28418360/jwt-json-web-token-audience-aud-versus-client-id-whats-the-difference
+
+// Key is in effect "tenant" (like a billing endpoint)
+// We need to be able to look this up by either oauth_consumer_key or
+// (issuer, client_id, deployment_id)
 array( "{$CFG->dbprefix}lti_key",
 "create table {$CFG->dbprefix}lti_key (
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
-    key_sha256          CHAR(64) NOT NULL,
-    key_key             TEXT NOT NULL,
+    key_sha256          CHAR(64) NULL,
+    key_key             TEXT NOT NULL,   -- oauth_consumer_key
+    deploy_sha256       CHAR(64) NULL,
+    deploy_key          TEXT NULL,
+    issuer_id           INTEGER NULL,
+
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
+    -- TODO: Delete these after the issuer refactor is complete
     lti13_client_id     TEXT NULL,
     lti13_oidc_auth     TEXT NULL,
     lti13_keyset_url    TEXT NULL,
@@ -42,6 +89,8 @@ array( "{$CFG->dbprefix}lti_key",
     lti13_pubkey        TEXT NULL,
     lti13_privkey       TEXT NULL,
     lti13_token_url     TEXT NULL,
+
+
     secret              TEXT NULL,
     new_secret          TEXT NULL,
     ack                 TEXT NULL,
@@ -57,8 +106,8 @@ array( "{$CFG->dbprefix}lti_key",
     consumer_profile    MEDIUMTEXT NULL,
     new_consumer_profile  MEDIUMTEXT NULL,
 
-    tool_profile    MEDIUMTEXT NULL,
-    new_tool_profile  MEDIUMTEXT NULL,
+    tool_profile        MEDIUMTEXT NULL,
+    new_tool_profile    MEDIUMTEXT NULL,
 
     caliper_url         TEXT NULL,
     caliper_key         TEXT NULL,
@@ -74,9 +123,30 @@ array( "{$CFG->dbprefix}lti_key",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
-    UNIQUE(key_sha256),
-    PRIMARY KEY (key_id)
+    CONSTRAINT `{$CFG->dbprefix}lti_key_ibfk_1`
+        FOREIGN KEY (`issuer_id`)
+        REFERENCES `{$CFG->dbprefix}lti_issuer` (`issuer_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_key_const_2` UNIQUE(issuer_id, deploy_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_key_const_pk` PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+/* If MySQL had constraints - these would be nice in lti_key - for now
+   we will just need to be careful in code.
+
+    CONSTRAINT `{$CFG->dbprefix}lti_key_both_not_null`
+    CHECK (
+        (key_sha256 IS NOT NULL OR deployment_sha256 IS NOT NULL)
+    )
+
+    CONSTRAINT `{$CFG->dbprefix}lti_key_deploy_linked`
+    CHECK (
+        (deploy_key IS NOT NULL AND issuer_id IS NOT NULL)
+     OR (deploy_key NOT NULL AND issuer_id NOT NULL)
+    )
+ */
 
 array( "{$CFG->dbprefix}lti_user",
 "create table {$CFG->dbprefix}lti_user (
@@ -114,8 +184,8 @@ array( "{$CFG->dbprefix}lti_user",
         REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    UNIQUE(key_id, user_sha256),
-    PRIMARY KEY (user_id)
+    CONSTRAINT `{$CFG->dbprefix}lti_user_const_1` UNIQUE(key_id, user_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_user_const_pk` PRIMARY KEY (user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_context",
@@ -168,8 +238,8 @@ array( "{$CFG->dbprefix}lti_context",
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    UNIQUE(key_id, context_sha256),
-    PRIMARY KEY (context_id)
+    CONSTRAINT `{$CFG->dbprefix}lti_context_const_1` UNIQUE(key_id, context_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_context_const_pk` PRIMARY KEY (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_link",
@@ -203,8 +273,8 @@ array( "{$CFG->dbprefix}lti_link",
         REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    UNIQUE(link_sha256, context_id),
-    PRIMARY KEY (link_id)
+    CONSTRAINT `{$CFG->dbprefix}lti_link_const_1` UNIQUE(link_sha256, context_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_link_const_pk` PRIMARY KEY (link_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_link_activity",
@@ -257,8 +327,8 @@ array( "{$CFG->dbprefix}lti_membership",
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    UNIQUE(context_id, user_id),
-    PRIMARY KEY (membership_id)
+    CONSTRAINT `{$CFG->dbprefix}lti_membership_const_1` UNIQUE(context_id, user_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_membership_const_pk` PRIMARY KEY (membership_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_link_user_activity",
@@ -284,7 +354,7 @@ array( "{$CFG->dbprefix}lti_link_user_activity",
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    PRIMARY KEY (link_id, user_id, event)
+    CONSTRAINT `{$CFG->dbprefix}lti_link_user_activity_const_pk` PRIMARY KEY (link_id, user_id, event)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_service",
@@ -309,8 +379,8 @@ array( "{$CFG->dbprefix}lti_service",
         REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    UNIQUE(key_id, service_sha256),
-    PRIMARY KEY (service_id)
+    CONSTRAINT `{$CFG->dbprefix}lti_service_const_1` UNIQUE(key_id, service_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_service_const_pk` PRIMARY KEY (service_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // service_id/sourcedid are for LTI 1.x
@@ -359,8 +429,8 @@ array( "{$CFG->dbprefix}lti_result",
 
     -- Note service_id is not part of the key on purpose
     -- It is data that can change and can be null in LTI 2.0
-    UNIQUE(link_id, user_id),
-    PRIMARY KEY (result_id)
+    CONSTRAINT `{$CFG->dbprefix}lti_result_const_1` UNIQUE(link_id, user_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_result_const_pk`  PRIMARY KEY (result_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // Nonce is not connected using foreign key for performance
@@ -373,7 +443,7 @@ array( "{$CFG->dbprefix}lti_nonce",
     created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     INDEX `{$CFG->dbprefix}nonce_indx_1` USING HASH (`nonce`),
-    UNIQUE(key_id, nonce)
+    CONSTRAINT `{$CFG->dbprefix}lti_nonce_const_1` UNIQUE(key_id, nonce)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // This is for messaging if web sockets is not present
@@ -391,7 +461,7 @@ array( "{$CFG->dbprefix}lti_message",
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (link_id,room_id, micro_time)
+    CONSTRAINT `{$CFG->dbprefix}lti_message_const_pk` PRIMARY KEY (link_id,room_id, micro_time)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_domain",
@@ -419,8 +489,8 @@ array( "{$CFG->dbprefix}lti_domain",
         REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    PRIMARY KEY (domain_id),
-    UNIQUE(key_id, context_id, domain, port)
+    CONSTRAINT `{$CFG->dbprefix}lti_domain_const_pk` PRIMARY KEY (domain_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_domain_const_1` UNIQUE(key_id, context_id, domain, port)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_external",
@@ -432,15 +502,15 @@ array( "{$CFG->dbprefix}lti_external",
     description TEXT,
     fa_icon     VARCHAR(128),
     pubkey      TEXT,
-    privkey     TEXT,   
+    privkey     TEXT,
     deleted     TINYINT(1) NOT NULL DEFAULT 0,
     json        TEXT NULL,
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP NULL,
     deleted_at  TIMESTAMP NULL,
 
-    PRIMARY KEY (external_id),
-    UNIQUE(endpoint)
+    CONSTRAINT `{$CFG->dbprefix}lti_external_const_pk` PRIMARY KEY (external_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_external_const_1` UNIQUE(endpoint)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // String table - Not normalized at all - very costly
@@ -454,8 +524,8 @@ array( "{$CFG->dbprefix}tsugi_string",
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     string_sha256   CHAR(64) NOT NULL,
 
-    PRIMARY KEY (string_id),
-    UNIQUE(domain, string_sha256)
+    CONSTRAINT `{$CFG->dbprefix}lti_string_const_pk` PRIMARY KEY (string_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_string_const_1` UNIQUE(domain, string_sha256)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // Sessions is used if we are storing session data
@@ -495,7 +565,7 @@ array( "{$CFG->dbprefix}profile",
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
-    PRIMARY KEY (profile_id)
+    CONSTRAINT `{$CFG->dbprefix}profile_const_pk` PRIMARY KEY (profile_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // Caliper tables - event oriented - no foreign keys to the lti_tables
@@ -522,7 +592,7 @@ array( "{$CFG->dbprefix}cal_event",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
 
-    PRIMARY KEY (event_id)
+    CONSTRAINT `{$CFG->dbprefix}cal_event_const_pk` PRIMARY KEY (event_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}cal_key",
@@ -538,8 +608,8 @@ array( "{$CFG->dbprefix}cal_key",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
-    UNIQUE(key_sha256),
-    PRIMARY KEY (key_id)
+    CONSTRAINT `{$CFG->dbprefix}cal_key_const_1` UNIQUE(key_sha256),
+    CONSTRAINT `{$CFG->dbprefix}cal_key_const_pk` PRIMARY KEY (key_id)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}cal_context",
@@ -557,8 +627,8 @@ array( "{$CFG->dbprefix}cal_context",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
-    UNIQUE(key_id, context_sha256),
-    PRIMARY KEY (context_id)
+    CONSTRAINT `{$CFG->dbprefix}cal_context_const_1` UNIQUE(key_id, context_sha256),
+    CONSTRAINT `{$CFG->dbprefix}cal_context_const_pk` PRIMARY KEY (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
 
@@ -1365,6 +1435,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // TODO: Remove this when issuer refactor is done
     if ( ! $PDOX->columnExists('lti13_pubkey', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_pubkey TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1372,6 +1443,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // TODO: Remove this when issuer refactor is done
     if ( ! $PDOX->columnExists('lti13_privkey', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_privkey TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1379,6 +1451,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // TODO: Remove this when issuer refactor is done
     if ( ! $PDOX->columnExists('lti13_kid', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_kid TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1386,6 +1459,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // TODO: Remove this when issuer refactor is done
     if ( ! $PDOX->columnExists('lti13_platform_pubkey', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_platform_pubkey TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1393,7 +1467,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-
+    // TODO: Remove this when issuer refactor is done
     if ( ! $PDOX->columnExists('lti13_keyset', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_keyset TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1401,6 +1475,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // TODO: Remove this when issuer refactor is done
     if ( ! $PDOX->columnExists('lti13_keyset_url', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_keyset_url TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1408,6 +1483,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // TODO: Remove this when issuer refactor is done
     if ( ! $PDOX->columnExists('lti13_token_url', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_token_url TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1436,6 +1512,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // TODO: Remove this when issuer refactor is done
     if ( ! $PDOX->columnExists('lti13_client_id', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_client_id TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1443,6 +1520,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // TODO: Remove this when issuer refactor is done
     if ( ! $PDOX->columnExists('lti13_oidc_auth', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_oidc_auth TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1457,14 +1535,90 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // New for the LTI Advantage issuer refactor
+    if ( ! $PDOX->columnExists('deploy_sha256', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD deploy_sha256 CHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
 
-    // TODO: transfer lti_event contents to cal_event and drop the table
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key DROP CONSTRAINT `{$CFG->dbprefix}lti_key_ibfk_1`";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
 
-    // TODO: Remove lti13_lineitem from lti_result
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD
+                CONSTRAINT `{$CFG->dbprefix}lti_key_ibfk_1`
+                FOREIGN KEY (`issuer_id`)
+                REFERENCES `{$CFG->dbprefix}lti_issuer` (`issuer_id`)
+                ON DELETE SET NULL ON UPDATE CASCADE";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( ! $PDOX->columnExists('deploy_key', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD deploy_key TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( ! $PDOX->columnExists('issuer_id', "{$CFG->dbprefix}lti_key") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD issuer_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    // Remove lti13_lineitem from lti_result - no longer used
+    if ( $PDOX->columnExists('lti13_lineitem', "{$CFG->dbprefix}lti_result") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result DROP lti13_lineitem";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    // Drop lti_event table - it has been renamed to cal_event
+    if ( $PDOX->metadata("{$CFG->dbprefix}lti_event") ) {;
+        $sql= "DROP TABLE {$CFG->dbprefix}lti_event";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+    }
+
+    // Version 201905111039 improvements - Prepare for issuer refactor
+    if ( $oldversion < 201905111039 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY key_sha256 CHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY key_key CHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    // TODO: Remove all of the lti13_ fields from lti_key once the issuer refactor is done
+    // TODO: Also when you activate this, remove all the new field additions above so the migrations don't undo each other
+
+    /*
+    $remove_from_lti_key = array(
+        'lti13_oidc_auth', 'lti13_keyset_url', 'lti13_keyset', 'lti13_platform_pubkey',
+        'lti13_kid', 'lti13_pubkey', 'lti13_privkey', 'lti13_token_url'
+    );
+    foreach($remove_from_lti_key as $key) {
+        if ( $PDOX->columnExists($key, "{$CFG->dbprefix}lti_result") ) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}lti_result DROP $key";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+        }
+    }
+    */
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201903010839;
+    return 201905111039;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
