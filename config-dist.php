@@ -218,10 +218,6 @@ $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
 $CFG->product_instance_guid = parse_url($CFG->wwwroot)['host'];
 // $CFG->product_instance_guid = 'lti2.example.com';
 
-// From the CASA spec: originator_id a UUID picked by a publisher
-// and used for all apps it publishes
-$CFG->casa_originator_id = md5($CFG->product_instance_guid);
-
 // Sets the default locale for users without a locale
 // in the launch or in the browser
 // If you want to change this and test using the test harness, make sure
