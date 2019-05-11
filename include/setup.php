@@ -72,8 +72,6 @@ if ( !isset($CFG->owneremail) ) $CFG->owneremail = false;
 if ( !isset($CFG->providekeys) ) $CFG->providekeys = false;
 if ( !isset($CFG->unify) ) $CFG->unify = true;
 
-if ( !isset($CFG->casa_originator_id) ) $CFG->casa_originator_id = md5($CFG->product_instance_guid);
-
 if ( !isset($CFG->apphome) ) $CFG->apphome = $CFG->wwwroot;
 
 if ( !isset($CFG->google_translate) ) $CFG->google_translate = false;
