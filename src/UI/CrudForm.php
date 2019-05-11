@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\UI;
 
 use \Tsugi\Util\U;
@@ -113,7 +114,9 @@ class CrudForm {
                 }
 
                 $key = $field;
-                if ( strpos($field, "_sha256") !== false ) {
+
+                // Set the sha256 value if it is not there
+                if ( strpos($field, "_sha256") !== false && ! isset($_POST[$field])) {
                     $key = str_replace("_sha256", "_key", $field);
                     if ( ! isset($_POST[$key]) ) {
                         $_SESSION['success'] = "Missing POST field: ".$key;
@@ -332,6 +335,17 @@ class CrudForm {
                     $set .= $field."= NOW()";
                     continue;
                 }
+
+                // Update the sha256 value if we have a corresponding _key value
+                if ( strpos($field, "_sha256") !== false && ! isset($_POST[$field])) {
+                    $key = str_replace("_sha256", "_key", $field);
+                    if ( ! isset($_POST[$key]) ) continue;
+                    $value = lti_sha256($_POST[$key]);
+                    $set .= $field."= :".$i;
+                    $parms[':'.$i] = $value;
+                    continue;
+                }
+
                 if ( !isset($_POST[$field]) ) {
                     $_SESSION['error'] = _m("Missing POST field: ").$field;
                     return self::CRUD_FAIL;
