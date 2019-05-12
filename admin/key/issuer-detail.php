@@ -26,15 +26,15 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('issuer_id', 'issuer_key', 'issuer_client_id', 
+$fields = array('issuer_id', 'issuer_key', 'issuer_client',
      'lti13_keyset_url', 'lti13_token_url', 'lti13_oidc_auth', 'lti13_platform_pubkey',
      'lti13_pubkey', 'lti13_privkey', 'lti13_tool_keyset_url', 'created_at', 'updated_at');
-$realfields = array('issuer_id', 'issuer_key', 'issuer_client_id', 'issuer_sha256',
+$realfields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_sha256',
      'lti13_keyset_url', 'lti13_token_url', 'lti13_oidc_auth', 'lti13_platform_pubkey',
      'lti13_pubkey', 'lti13_privkey', 'created_at', 'updated_at');
 
 $titles = array(
-    'issuer_client_id' => 'LTI 1.3 Client ID (from the Platform)',
+    'issuer_client' => 'LTI 1.3 Client ID (from the Platform)',
     'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
     'lti13_oidc_auth' => 'LTI 1.3 Platform OIDC Authentication URL (from the Platform)',

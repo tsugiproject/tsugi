@@ -902,7 +902,7 @@ class LTIX {
         $retval = array();
         $retval['issuer_key'] = $issuer_key;
         $retval['issuer_sha256'] = $issuer_sha256;
-        $retval['issuer_client_id'] = $jwt->body->aud;
+        $retval['issuer_client'] = $jwt->body->aud;
         if ( isset($body->nonce) ) $retval['nonce'] = $body->nonce;
         if ( isset($body->sub) ) {
             $retval['user_id'] = $body->sub;
@@ -1044,7 +1044,7 @@ class LTIX {
         $LTI13 = U::get($post, "issuer_key", false) !== false;
 
         if ( $LTI13 ) {
-            $sql = "SELECT i.issuer_client_id, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
+            $sql = "SELECT i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
                 i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_privkey,
                 k.deploy_key,
             ";
@@ -1119,7 +1119,7 @@ class LTIX {
                 // FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
         // Add the WHERE clause
         if ( $LTI13 ) {
-            $sql .= "\nWHERE i.issuer_sha256 = :issuer_sha256 AND i.issuer_client_id = :issuer_client_id
+            $sql .= "\nWHERE i.issuer_sha256 = :issuer_sha256 AND i.issuer_client = :issuer_client
                 AND k.deploy_key = :deployment_id
                 AND (i.deleted IS NULL OR i.deleted = 0)";
         } else {
@@ -1159,7 +1159,7 @@ class LTIX {
 
         if ( $LTI13 ) {
             $parms[':issuer_sha256'] = $post["issuer_sha256"];
-            $parms[':issuer_client_id'] = $post["issuer_client_id"];
+            $parms[':issuer_client'] = $post["issuer_client"];
             $parms[':deployment_id'] = $post["deployment_id"];
         } else {
             $parms[':key'] = lti_sha256($post['key']);

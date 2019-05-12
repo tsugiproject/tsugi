@@ -32,7 +32,7 @@ array( "{$CFG->dbprefix}lti_issuer",
     issuer_id           INTEGER NOT NULL AUTO_INCREMENT,
     issuer_sha256       CHAR(64) NOT NULL,
     issuer_key          TEXT NOT NULL,  -- iss from the JWT
-    issuer_client_id    TEXT NOT NULL,  -- aud from the JWT
+    issuer_client    TEXT NOT NULL,  -- aud from the JWT
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     -- This is the owner of this issuer - it is not a foreign key
@@ -1600,6 +1600,14 @@ $DATABASE_UPGRADE = function($oldversion) {
     if ( $PDOX->columnExists('issuer_issuer', "{$CFG->dbprefix}lti_issuer") &&
          ! $PDOX->columnExists('issuer_key', "{$CFG->dbprefix}lti_issuer") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_issuer CHANGE issuer_issuer issuer_key TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( $PDOX->columnExists('issuer_client_id', "{$CFG->dbprefix}lti_issuer") &&
+         ! $PDOX->columnExists('issuer_client', "{$CFG->dbprefix}lti_issuer") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_issuer CHANGE issuer_client_id issuer_client TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);

@@ -29,16 +29,16 @@ $key_sha256 = LTI13::extract_issuer_key_string($iss);
 error_log("iss=".$iss." sha256=".$key_sha256);
 
 $row = $PDOX->rowDie(
-    "SELECT issuer_client_id, lti13_oidc_auth
+    "SELECT issuer_client, lti13_oidc_auth
     FROM {$CFG->dbprefix}lti_issuer
-    WHERE issuer_sha256 = :SHA AND issuer_client_id IS NOT NULL AND lti13_oidc_auth IS NOT NULL",
+    WHERE issuer_sha256 = :SHA AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL",
     array(":SHA" => $key_sha256)
 );
 
 if ( ! is_array($row) || count($row) < 1 ) {
     die('Unknown or improper iss');
 }
-$client_id = trim($row['issuer_client_id']);
+$client_id = trim($row['issuer_client']);
 $redirect = trim($row['lti13_oidc_auth']);
 
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
