@@ -29,7 +29,6 @@ $fields = array("issuer_issuer", "issuer_client_id", "issuer_sha256",
 $titles = array(
     'issuer_issuer' => 'LTI 1.3 Issuer (from the Platform)',
     'issuer_client_id' => 'LTI 1.3 Client ID (from the Platform)',
-    'lti13_client_id' => 'LTI 1.3 Client ID (from the Platform)',
     'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
     'lti13_oidc_auth' => 'LTI 1.3 Platform OIDC Authentication URL (from the Platform)',

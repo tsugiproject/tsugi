@@ -67,9 +67,9 @@ this entry properly.  See below for details.
 </p>
 <p>
 For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
-For LTI 1.3, you first need to create or lookup an issuer and note its
+For LTI 1.3, you first need to create or lookup an issuer/client_id and note its
 integer primary key and enter it here (we will make a drop-down UI later).  You also need the
-<b>client_id</b> for this integration from the LMS.
+<b>deployment_id</b> for this integration from the LMS.
 </p>
 <p>
 To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
