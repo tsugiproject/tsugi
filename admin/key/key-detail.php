@@ -24,23 +24,16 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('key_id', 'key_key', 'secret', 'caliper_url', 'caliper_key',
-    'lti13_client_id', 'lti13_keyset_url', 'lti13_token_url', 'lti13_oidc_auth', 'lti13_platform_pubkey',
-     'lti13_pubkey', 'lti13_privkey', 'lti13_tool_keyset_url', 'created_at', 'updated_at', 'user_id');
-$realfields = array('key_id', 'key_key', 'key_sha256', 'secret', 'caliper_url', 'caliper_key',
-    'lti13_client_id', 'lti13_keyset_url', 'lti13_token_url', 'lti13_oidc_auth', 'lti13_platform_pubkey',
-     'lti13_pubkey', 'lti13_privkey', 'created_at', 'updated_at', 'user_id');
+$fields = array('key_id', 'key_key', 'secret', 'deploy_key', 'issuer_id',
+     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
+$realfields = array('key_id', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
+     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 
 $titles = array(
-    'lti13_client_id' => 'LTI 1.3 Client ID (from the Platform)',
-    'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
-    'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
-    'lti13_oidc_auth' => 'LTI 1.3 Platform OIDC Authentication URL (from the Platform)',
-    'lti13_platform_pubkey' => 'LTI 1.3 Platform Public Key (Usually retrieved via keyset url)',
-
-    'lti13_pubkey' => 'LTI 1.3 Tool Public Key (Provide to the platform)',
-    'lti13_privkey' => 'LTI 1.3 Private Key (kept internally only)',
-    'lti13_tool_keyset_url' => 'LTI 1.3 Tool Keyset Url (Extension - may not be needed/used by LMS)',
+    'key_key' => 'LTI 1.1: OAuth Consumer Key',
+    'secret' => 'LTI 1.1: OAuth Consumer Secret',
+    'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
+    'issuer_id' => 'LTI 1.3: Issuer Primary Key (from this system)',
 );
 
 // Handle the post data
@@ -57,7 +50,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-$title = 'Key Entry';
+$title = 'Tenant Entry';
 echo("<h1>$title</h1>\n<p>\n");
 $extra_buttons=false;
 $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?key_id=' . $row['key_id'];
@@ -65,6 +58,29 @@ $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?key_id=' . $row['ke
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
+?>
+<p>
+A single entry in this table defines a "distinct tenant" in Tsugi.
+Data in Tsugi is isolated to a tenant.  You can route both
+LTI 1.1 and LTI 1.3 launches to one tenant by setting fields on
+this entry properly.  See below for details.
+</p>
+<p>
+For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
+For LTI 1.3, you first need to create or lookup an issuer and note its
+integer primary key and enter it here (we will make a drop-down UI later).  You also need the
+<b>client_id</b> for this integration from the LMS.
+</p>
+<p>
+To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
+</p>
+<p>
+If this is a pre-existing LTI 1.1 tenant, the LMS must have the <b>oauth_consumer_key</b>
+and <b>secret</b> connected to its LTI 1.3 launches, and then Tsugi can link the accounts
+and courses regardless of the type of launch.  For this to work, the LMS must support
+LTI Advantage legacy LTI 1.1 support.
+<p>
+<?php
 
 $OUTPUT->footer();
 

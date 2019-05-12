@@ -19,21 +19,14 @@ if ( ! isAdmin() ) {
 
 $from_location = "keys";
 $tablename = "{$CFG->dbprefix}lti_key";
-$fields = array("key_key", "key_sha256", "secret",
-    "lti13_client_id", "lti13_keyset_url", "lti13_token_url", "lti13_oidc_auth",
-    "lti13_pubkey", "lti13_privkey",
-    "created_at", "updated_at", "user_id");
+$fields = array('key_key', 'secret', 'deploy_key', 'issuer_id',
+     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 
 $titles = array(
-    'lti13_client_id' => 'LTI 1.3 Client ID (from the Platform)',
-    'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
-    'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
-    'lti13_oidc_auth' => 'LTI 1.3 Platform OIDC Authentication URL (from the Platform)',
-    'lti13_platform_pubkey' => 'LTI 1.3 Platform Public Key (Usually retrieved via keyset url)',
-
-    'lti13_pubkey' => 'LTI 1.3 Tool Public Key (Leave blank to auto-generate)',
-    'lti13_privkey' => 'LTI 1.3 Private Key (Leave blank to auto-generate)',
-    'lti13_tool_keyset_url' => 'LTI 1.3 Tool Keyset Url (Extension - may not be needed/used by LMS)',
+    'key_key' => 'LTI 1.1: OAuth Consumer Key',
+    'secret' => 'LTI 1.1: OAuth Consumer Secret',
+    'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
+    'issuer_id' => 'LTI 1.3: Issuer Primary Key (from this system)',
 );
 
 $retval = CrudForm::handleInsert($tablename, $fields);
@@ -48,40 +41,34 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 ?>
-<h1>Adding Key Entry</h1>
+<h1>Adding Tsugi Tenant</h1>
 <p>
-A single key can be used for LTI 1.1
-and LTI 1.3 simultaneously by setting an LTI 1.1 key as well
-as the LTI 1.3 values.   If you don't want to use LTI 1.1 for this key
-just leave the secret blank or set it to a large randomly generated value.
+A single entry in this table defines a "distinct tenant" in Tsugi.
+Data in Tsugi is isolated to a tenant.  You can route both
+LTI 1.1 and LTI 1.3 launches to one tenant by setting fields on
+this entry properly.
 </p>
 <p>
-The convention for lti13 tenant key (key_key) in this screen is:
-<pre>
-lti13_issuer
-lti13_https://dev1.tsugicloud.com
-</pre>
+For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
+For LTI 1.3, you first need to create or lookup an issuer and note its 
+integer primary key and enter it here (we will make a drop-down UI later).  You also need the
+<b>client_id</b> for this integration from the LMS.
 </p>
 <p>
-For LTI 1.3, you need to enter these URLs in your LMS configuration:
-<pre>
-LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login
-LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
-</pre>
+To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
 </p>
 <p>
-If your platform needs a tool keyset url (an extension to LTI 1.3), it will be available
-after you create the key.
-</p>
+If this is a pre-existing LTI 1.1 tenant, the LMS must have the <b>oauth_consumer_key</b> 
+and <b>secret</b> connected to its LTI 1.3 launches, and then Tsugi can link the accounts
+and courses regardless of the type of launch.  For this to work, the LMS must support
+LTI Advantage legacy LTI 1.1 support.
 <p>
 <?php
-
 
 CrudForm::insertForm($fields, $from_location, $titles);
 
 ?>
 </p>
 <?php
-
 $OUTPUT->footer();
 

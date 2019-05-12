@@ -198,7 +198,7 @@ class CrudForm {
             $value = $row[$field];
             if ( ! $do_edit ) {
                 echo('<p><strong>'.self::fieldToTitle($field, $titles)."</strong></p>\n");
-                if ( strpos($field, "secret") !== false ) {
+                if ( strpos($field, "secret") !== false || strpos($field, "privkey") !== false ) {
                     echo("<p>\n");
                     echo("<span style=\"display: none;\" id=\"text_{$i}\">".htmlent_utf8($value).'</span>');
                     echo("<span id=\"show_{$i}\" onclick=\"$('#text_{$i}').show();$('#show_{$i}').hide();$('#hide_{$i}').show();\";>(Click to show)</span>\n");
@@ -219,7 +219,7 @@ class CrudForm {
             if ( strpos($field, "_at") > 0 ) continue;
 
             echo('<div class="form-group">'."\n");
-            echo('<label for="'.$field.'">'.self::fieldToTitle($field)."<br/>\n");
+            echo('<label for="'.$field.'">'.self::fieldToTitle($field, $titles)."<br/>\n");
             if ( isset($_POST[$field]) ) {
                 $value = $_POST[$field];
             }

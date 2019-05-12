@@ -17,9 +17,9 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 if ( ! isAdmin() ) die('Must be admin');
 
 $query_parms = false;
-$searchfields = array("key_id", "key_key", "created_at", "updated_at", "user_id");
-$sql = "SELECT key_id, key_key, secret, login_at, created_at, updated_at, user_id
-        FROM {$CFG->dbprefix}lti_key";
+$searchfields = array("issuer_id", "issuer_issuer", "created_at", "updated_at");
+$sql = "SELECT issuer_id, issuer_issuer, created_at, updated_at
+        FROM {$CFG->dbprefix}lti_issuer";
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
@@ -27,7 +27,7 @@ $rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
     $newrow = $row;
-    $newrow['secret'] = '****';
+    // $newrow['secret'] = '****';
     $newrows[] = $newrow;
 }
 
@@ -36,21 +36,21 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
-<h1>LTI Keys</h1>
+<h1>LTI 1.3 Issuers</h1>
 <p>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Key Requests</a>
-  <a href="issuers" class="btn btn-default">LTI 1.3 Issuers</a>
-  <a href="keys" class="btn btn-default active">Tenant Keys</a>
+  <a href="issuers" class="btn btn-default active">LTI 1.3 Issuers</a>
+  <a href="keys" class="btn btn-default">Tenant Keys</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>
-You have no Tenant keys for this system.
+<a href="issuer-add" class="btn btn-default">Add Issuer</a>
 </p>
 <?php } else {
     $extra_buttons = array(
-        "Insert New Key" => "key-add"
+        "New Issuer" => "issuer-add"
     );
-    Table::pagedTable($newrows, $searchfields, false, "key-detail", false, $extra_buttons);
+    Table::pagedTable($newrows, $searchfields, false, "issuer-detail", false, $extra_buttons);
 }
 if ( isAdmin() ) { ?>
 <?php } ?>

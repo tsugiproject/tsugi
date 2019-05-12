@@ -56,8 +56,9 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI Key Requests</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">View Key Requests</a>
-  <a href="keys" class="btn btn-default">View Keys</a>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Key Requests</a>
+  <a href="issuers" class="btn btn-default">LTI 1.3 Issuers</a>
+  <a href="keys" class="btn btn-default">Tenant Keys</a>
 </p>
 <?php
 Table::pagedTable($newrows, $searchfields, false, "request-detail");

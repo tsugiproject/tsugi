@@ -10,12 +10,12 @@ LTIX::getConnection();
 
 // See the end of the file for some documentation references 
 
-$kid = U::get($_GET,"key_id",false);
-if ( ! $kid ) die("missing key_id parameter");
+$kid = U::get($_GET,"issuer_id",false);
+if ( ! $kid ) die("missing issuer_id parameter");
 
 $row = $PDOX->rowDie(
-    "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_key 
-        WHERE key_id = :KID AND lti13_pubkey IS NOT NULL",
+    "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer 
+        WHERE issuer_id = :KID AND lti13_pubkey IS NOT NULL",
     array(":KID" => $kid)
 );
 if ( ! $row ) die("Could not load key");
@@ -32,6 +32,7 @@ $pubkey = $row['lti13_pubkey'];
 
 $key = new RSA();
 $key->setPublicKey($pubkey);
+if ( ! $key->publicExponent ) die('Invalid public key');
 
 $kid = hash('sha256', trim($pubkey));
 
