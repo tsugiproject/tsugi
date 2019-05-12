@@ -21,13 +21,13 @@ if ( ! isAdmin() ) {
 
 $from_location = "issuers";
 $tablename = "{$CFG->dbprefix}lti_issuer";
-$fields = array("issuer_issuer", "issuer_client_id", "issuer_sha256",
+$fields = array("isuer_key", "issuer_client_id", "issuer_sha256",
     "lti13_keyset_url", "lti13_token_url", "lti13_oidc_auth",
     "lti13_pubkey", "lti13_privkey",
     "created_at", "updated_at");
 
 $titles = array(
-    'issuer_issuer' => 'LTI 1.3 Issuer (from the Platform)',
+    'isuer_key' => 'LTI 1.3 Issuer (from the Platform)',
     'issuer_client_id' => 'LTI 1.3 Client ID (from the Platform)',
     'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
@@ -39,8 +39,8 @@ $titles = array(
     'lti13_tool_keyset_url' => 'LTI 1.3 Tool Keyset Url (Extension - may not be needed/used by LMS)',
 );
 
-if ( U::get($_POST,'issuer_issuer') ) {
-    $_POST['issuer_sha256'] = LTI13::extract_issuer_key_string(U::get($_POST,'issuer_issuer'), U::get($_POST,'issuer_client_id'));
+if ( U::get($_POST,'isuer_key') ) {
+    // $_POST['issuer_sha256'] = LTI13::extract_issuer_key_string(U::get($_POST,'isuer_key'));
     $retval = CrudForm::handleInsert($tablename, $fields);
     if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
         header("Location: $from_location");

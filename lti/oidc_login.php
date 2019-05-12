@@ -3,6 +3,7 @@
 // https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
 //
 use \Tsugi\Util\U;
+use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
 
 require_once "../config.php";
@@ -10,6 +11,8 @@ require_once "../config.php";
 // target_link_uri and lti_message_hint are not required by Tsugi
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
+
+// echo("<pre>\n");var_dump($_REQUEST); die();
 
 if ( ! $login_hint ) {
     die('Missing login_hint');
@@ -21,21 +24,21 @@ if ( ! $iss ) {
 
 $PDOX = \Tsugi\Core\LTIX::getConnection();
 
-$key_sha256 = lti_sha256('lti13_'.$iss);
+$key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 error_log("iss=".$iss." sha256=".$key_sha256);
 
 $row = $PDOX->rowDie(
-    "SELECT lti13_client_id, lti13_oidc_auth
-    FROM {$CFG->dbprefix}lti_key
-    WHERE key_sha256 = :SHA AND lti13_client_id IS NOT NULL AND lti13_oidc_auth IS NOT NULL",
+    "SELECT issuer_client_id, lti13_oidc_auth
+    FROM {$CFG->dbprefix}lti_issuer
+    WHERE issuer_sha256 = :SHA AND issuer_client_id IS NOT NULL AND lti13_oidc_auth IS NOT NULL",
     array(":SHA" => $key_sha256)
 );
 
 if ( ! is_array($row) || count($row) < 1 ) {
     die('Unknown or improper iss');
 }
-$client_id = trim($row['lti13_client_id']);
+$client_id = trim($row['issuer_client_id']);
 $redirect = trim($row['lti13_oidc_auth']);
 
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();

@@ -26,10 +26,10 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('issuer_id', 'issuer_issuer', 'issuer_client_id', 'issuer_sha256',
+$fields = array('issuer_id', 'issuer_key', 'issuer_client_id', 
      'lti13_keyset_url', 'lti13_token_url', 'lti13_oidc_auth', 'lti13_platform_pubkey',
      'lti13_pubkey', 'lti13_privkey', 'lti13_tool_keyset_url', 'created_at', 'updated_at');
-$realfields = array('issuer_id', 'issuer_issuer', 'issuer_client_id', 'issuer_sha256',
+$realfields = array('issuer_id', 'issuer_key', 'issuer_client_id', 'issuer_sha256',
      'lti13_keyset_url', 'lti13_token_url', 'lti13_oidc_auth', 'lti13_platform_pubkey',
      'lti13_pubkey', 'lti13_privkey', 'created_at', 'updated_at');
 
@@ -46,8 +46,8 @@ $titles = array(
 );
 
 // Handle the post data
-if ( U::get($_POST,'issuer_issuer') ) {
-    $_POST['issuer_sha256'] = LTI13::extract_issuer_key_string(U::get($_POST,'issuer_issuer'), U::get($_POST,'issuer_client_id'));
+if ( U::get($_POST,'issuer_key') ) {
+    // $_POST['issuer_sha256'] = LTI13::extract_issuer_key_string(U::get($_POST,'issuer_issuer'));
     $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
         $query_fields, $allow_edit, $allow_delete, $titles);
 

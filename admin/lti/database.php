@@ -30,10 +30,8 @@ $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}lti_issuer",
 "create table {$CFG->dbprefix}lti_issuer (
     issuer_id           INTEGER NOT NULL AUTO_INCREMENT,
-    -- The logical key (i.e. how to construct the sha256) is issuer + client_id
     issuer_sha256       CHAR(64) NOT NULL,
-    -- Don't name either of these issuer_key because of CrudForm automatic behavior
-    issuer_issuer       TEXT NOT NULL,  -- iss from the JWT
+    issuer_key          TEXT NOT NULL,  -- iss from the JWT
     issuer_client_id    TEXT NOT NULL,  -- aud from the JWT
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
@@ -1593,6 +1591,15 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY key_key CHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    // Note still have to edit the entry to get the sha256 properly set
+    if ( $PDOX->columnExists('issuer_issuer', "{$CFG->dbprefix}lti_issuer") &&
+         ! $PDOX->columnExists('issuer_key', "{$CFG->dbprefix}lti_issuer") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_issuer CHANGE issuer_issuer issuer_key TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);

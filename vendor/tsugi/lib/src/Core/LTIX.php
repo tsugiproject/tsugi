@@ -459,29 +459,20 @@ class LTIX {
             }
 
         } else { // LTI 1.3
+            // echo("<pre>\n"); var_dump($row); die('This is still broken');
             $raw_jwt = LTI13::raw_jwt($request_data);
             $jwt = LTI13::parse_jwt($raw_jwt);
-            $consumer_pk = $post['key'];
-            $consumer_sha256 = U::lti_sha256($consumer_pk);
-            error_log("consumer_pk=$consumer_pk consumer_sha256=$consumer_sha256");
-            $pub_row = $PDOX->rowDie("SELECT lti13_kid, lti13_keyset_url, lti13_keyset,
-                lti13_platform_pubkey, lti13_token_url, lti13_privkey
-                FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
-                    array(':SHA' => $consumer_sha256) );
-
-            if ( ! $pub_row ) {
-                error_log("Did not find key for consumer_sha256");
-                return false;
-            }
 
             $request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
-            $our_kid = $pub_row['lti13_kid'];
-            $our_keyset = $pub_row['lti13_keyset'];
-            $our_keyset_url = $pub_row['lti13_keyset_url'];
-            $public_key = $pub_row['lti13_platform_pubkey'];
+            $our_kid = $row['lti13_kid'];
+            $our_keyset = $row['lti13_keyset'];
+            $our_keyset_url = $row['lti13_keyset_url'];
+            $public_key = $row['lti13_platform_pubkey'];
 
-            $private_key = $pub_row['lti13_privkey'];
-            $token_url = $pub_row['lti13_token_url'];
+            $private_key = $row['lti13_privkey'];
+            $token_url = $row['lti13_token_url'];
+
+            $consumer_sha256 = $post['issuer_sha256'];
 
             // Sanity check
             if ( strlen($public_key) < 1 && strlen($our_keyset_url) < 1 ) {
@@ -494,8 +485,8 @@ class LTIX {
                 $our_keyset = file_get_contents($our_keyset_url);
                 $decoded = json_decode($our_keyset);
                 if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
-                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
-                        SET lti13_keyset=:KS, updated_at=NOW() WHERE key_sha256 = :SHA",
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
+                        SET lti13_keyset=:KS, updated_at=NOW() WHERE issuer_sha256 = :SHA",
                     array(':SHA' => $consumer_sha256, ':KS' => $our_keyset) );
                     error_log("Updated keyset $consumer_sha256 from $our_keyset_url\n");
                 } else {
@@ -521,8 +512,8 @@ class LTIX {
                 }
 
                 if ( $new_public_key ) {
-                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
-                        SET lti13_platform_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE key_sha256 = :SHA",
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
+                        SET lti13_platform_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE issuer_sha256 = :SHA",
                         array(':SHA' => $consumer_sha256, ':PK' => $new_public_key,
                             ':KID' => $request_kid )
                     );
@@ -530,8 +521,8 @@ class LTIX {
                     $public_key = $new_public_key;
                 } else {
                     // TODO: Understand if we should kill the old key here
-                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
-                        SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE key_sha256 = :SHA",
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
+                        SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE issuer_sha256 = :SHA",
                     array(':SHA' => $consumer_sha256) );
                     if ( strlen($public_key) > 0 ) {
                         error_log("Cleared public key $consumer_sha256 invalid kid");
@@ -903,20 +894,30 @@ class LTIX {
 
         $body = $jwt->body;
 
-        $consumer_pk = LTI13::extract_consumer_key($jwt);
-        $consumer_sha256 = U::lti_sha256($consumer_pk);
-        error_log("consumer_pk=$consumer_pk\n");
-        error_log("consumer_sha256=$consumer_sha256\n<hr/>\n");
+        $issuer_sha256 = LTI13::extract_issuer_key($jwt);
+        $issuer_key = $jwt->body->iss;
+        error_log("issuer_key=$issuer_key\n");
+        error_log("issuer_sha256=$issuer_sha256\n<hr/>\n");
 
         $retval = array();
-        $retval['key'] = $consumer_pk;
+        $retval['issuer_key'] = $issuer_key;
+        $retval['issuer_sha256'] = $issuer_sha256;
+        $retval['issuer_client_id'] = $jwt->body->aud;
         if ( isset($body->nonce) ) $retval['nonce'] = $body->nonce;
-        if ( isset($body->sub) ) $retval['user_id'] = $body->sub;
+        if ( isset($body->sub) ) {
+            $retval['user_id'] = $body->sub;
+            $retval['user_subject'] = $body->sub;
+        }
+
+        // TODO: Pull in the legacy information
+        // Make sure to set 'key'
 
         $resource_link_purl = 'https://purl.imsglobal.org/spec/lti/claim/resource_link';
         $context_id_purl = 'https://purl.imsglobal.org/spec/lti/claim/context';
+        $deployment_id_purl = 'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
         if ( isset($body->{$resource_link_purl}->id) ) $retval['link_id'] = $body->{$resource_link_purl}->id;
         if ( isset($body->{$context_id_purl}->id) ) $retval['context_id'] = $body->{$context_id_purl}->id;
+        if ( isset($body->{$deployment_id_purl}) ) $retval['deployment_id'] = $body->{$deployment_id_purl};
 
         // Sanity checks
         $failures = array();
@@ -924,7 +925,7 @@ class LTIX {
         // Do the Jon Postel check
         LTI13::jonPostel($body, $failures);
 
-        if ( ! U::get($retval,'key') ) $failures[] = "Could not deterimine key from iss/aud";
+        if ( ! U::get($retval,'issuer_key') ) $failures[] = "Could not deterimine key issuer_from iss/aud";
         if ( ! U::get($retval,'nonce') ) $failures[] = "Missing nonce";
         if ( in_array(self::USER, $needed) && ! U::get($retval,'user_id') ) $failures[] = "Missing subject/user_id (sub)";
         if ( in_array(self::CONTEXT, $needed) && ! U::get($retval,'context_id') ) $failures[] = "Missing context_id";
@@ -1021,7 +1022,8 @@ class LTIX {
     // on the same Operating System instance and they have not changed the
     // session secret.  Also make these change every 30 minutes
     public static function getCompositeKey($post, $session_secret) {
-        $comp = $session_secret .'::'. $post['key'] .'::'. $post['context_id'] .'::'.
+        $key = U::get($post, 'issuer_key', U::get($post, 'key'));
+        $comp = $session_secret .'::'. $key .'::'. $post['context_id'] .'::'.
             U::get($post,'link_id')  .'::'. $post['user_id'] .'::'. intval(time() / 1800) .
             $_SERVER['HTTP_USER_AGENT'] . '::' . __FILE__;
         return md5($comp);
@@ -1039,9 +1041,20 @@ class LTIX {
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        // Add the fields
-        $sql = "SELECT k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
-            k.login_at AS key_login_at, k.lti13_client_id,
+        $LTI13 = U::get($post, "issuer_key", false) !== false;
+
+        if ( $LTI13 ) {
+            $sql = "SELECT i.issuer_client_id, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
+                i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_privkey,
+                k.deploy_key,
+            ";
+        } else {
+            $sql = "SELECT ";
+        }
+
+
+        $sql .= "k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
+            k.login_at AS key_login_at,
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
             c.ext_memberships_id AS ext_memberships_id, c.ext_memberships_url AS ext_memberships_url,
@@ -1072,9 +1085,15 @@ class LTIX {
                 au.link_user_count, au.activity AS link_user_activity";
         }
 
+        if ( $LTI13 ) {
+            $sql .="\nFROM {$p}lti_issuer AS i
+                JOIN {$p}lti_key AS k ON i.issuer_id = k.issuer_id";
+        } else {
+            $sql .="\nFROM {$p}lti_key AS k";
+        }
+
         // Add the JOINs
-        $sql .="\nFROM {$p}lti_key AS k
-            LEFT JOIN {$p}lti_nonce AS n ON k.key_id = n.key_id AND n.nonce = :nonce
+        $sql .= "\n    LEFT JOIN {$p}lti_nonce AS n ON k.key_id = n.key_id AND n.nonce = :nonce
             LEFT JOIN {$p}lti_context AS c ON k.key_id = c.key_id AND c.context_sha256 = :context
             LEFT JOIN {$p}lti_link AS l ON c.context_id = l.context_id AND l.link_sha256 = :link
             LEFT JOIN {$p}lti_user AS u ON k.key_id = u.key_id AND u.user_sha256 = :user
@@ -1097,12 +1116,19 @@ class LTIX {
             LEFT JOIN {$p}lti_link_user_activity AS au ON au.link_id = l.link_id AND au.user_id = u.user_id AND au.event = 0";
         }
 
+                // FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
         // Add the WHERE clause
+        if ( $LTI13 ) {
+            $sql .= "\nWHERE i.issuer_sha256 = :issuer_sha256 AND i.issuer_client_id = :issuer_client_id
+                AND k.deploy_key = :deployment_id
+                AND (i.deleted IS NULL OR i.deleted = 0)";
+        } else {
+           $sql .= "\nWHERE k.key_sha256 = :key AND (k.deleted IS NULL OR k.deleted = 0)";
+        }
+
         // TODO: Fix this per SO - but wait until the migrations have run in production
         // https://stackoverflow.com/questions/44474250/which-is-better-in-mysql-an-ifnull-or-or-logic/44474286
-        $sql .= "\nWHERE k.key_sha256 = :key
-            AND (k.deleted IS NULL OR k.deleted = 0)
-            AND (c.deleted IS NULL OR c.deleted = 0)
+        $sql .= "\nAND (c.deleted IS NULL OR c.deleted = 0)
             AND (l.deleted IS NULL OR l.deleted = 0)
             AND (u.deleted IS NULL OR u.deleted = 0)
             AND (m.deleted IS NULL OR m.deleted = 0)
@@ -1126,11 +1152,18 @@ class LTIX {
         // ContentItem does not neet link_id
         if ( ! isset($post['link_id']) ) $post['link_id'] = null;
         $parms = array(
-            ':key' => lti_sha256($post['key']),
             ':nonce' => substr($post['nonce'],0,128),
             ':context' => lti_sha256($post['context_id']),
             ':link' => lti_sha256($post['link_id']),
             ':user' => lti_sha256($post['user_id']));
+
+        if ( $LTI13 ) {
+            $parms[':issuer_sha256'] = $post["issuer_sha256"];
+            $parms[':issuer_client_id'] = $post["issuer_client_id"];
+            $parms[':deployment_id'] = $post["deployment_id"];
+        } else {
+            $parms[':key'] = lti_sha256($post['key']);
+        }
 
         if ( isset($post['service']) ) {
             $parms[':service'] = lti_sha256($post['service']);

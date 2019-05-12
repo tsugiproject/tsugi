@@ -247,7 +247,7 @@ if ( isset($_GET['install']) ) {
 */
 
         $debug_log = array();
-        $issuer = $LAUNCH->ltiParameter('lti13_client_id');
+        $issuer = $LAUNCH->ltiParameter('issuer_client_id');
         $jwt = LTI13::base_jwt($issuer, 'subject', $debug_log);
         $debug_log = array();
         $launch_jwt = U::GET($_SESSION, 'tsugi_jwt');
