@@ -51,14 +51,14 @@ class Context extends Entity {
      * the string contains the error detail.
      *
      */
-    private function loadLTI13Data(&$lti13_token_url, &$lti13_privkey, &$issuer_client_id)
+    private function loadLTI13Data(&$lti13_token_url, &$lti13_privkey, &$issuer_client)
     {
         $lti13_token_url = $this->launch->ltiParameter('lti13_token_url');
         $lti13_privkey = LTIX::decrypt_secret($this->launch->ltiParameter('lti13_privkey'));
-        $issuer_client_id = $this->launch->ltiParameter('issuer_client_id');
+        $issuer_client = $this->launch->ltiParameter('issuer_client');
 
         $missing = '';
-        if ( strlen($issuer_client_id) < 1 ) $missing .= ' ' . 'issuer_client_id';
+        if ( strlen($issuer_client) < 1 ) $missing .= ' ' . 'issuer_client';
         if ( strlen($lti13_privkey) < 1 ) $missing .= ' ' . 'private_key';
         if ( strlen($lti13_token_url) < 1 ) $missing .= ' ' . 'token_url';
         $missing = trim($missing);
@@ -79,7 +79,7 @@ class Context extends Entity {
     public function loadNamesAndRoles($with_sourcedids=false, &$debug_log=false) {
         global $CFG;
 
-        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $issuer_client_id);
+        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $issuer_client);
         $lti13_membership_url = $this->launch->ltiParameter('lti13_membership_url');
         if ( strlen($lti13_membership_url) < 1 ) $missing .= ' ' . 'membership_url';
         $missing = trim($missing);
@@ -94,9 +94,9 @@ class Context extends Entity {
         // TODO: Also note that in LTI13 the basicoutcome claim is suppressed to make the cert suite happy
         // so these two things to the same thing for now.
         if ( $with_sourcedids ) {
-            $nrps_access_token = LTI13::getNRPSWithSourceDidsToken($CFG->wwwroot, $issuer_client_id, $lti13_token_url, $lti13_privkey, $debug_log);
+            $nrps_access_token = LTI13::getNRPSWithSourceDidsToken($CFG->wwwroot, $issuer_client, $lti13_token_url, $lti13_privkey, $debug_log);
         } else {
-            $nrps_access_token = LTI13::getNRPSToken($CFG->wwwroot, $issuer_client_id, $lti13_token_url, $lti13_privkey, $debug_log);
+            $nrps_access_token = LTI13::getNRPSToken($CFG->wwwroot, $issuer_client, $lti13_token_url, $lti13_privkey, $debug_log);
         }
 
         $nrps = LTI13::loadNRPS($lti13_membership_url, $nrps_access_token, $debug_log);
@@ -120,7 +120,7 @@ class Context extends Entity {
     {
         global $CFG;
 
-        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $issuer_client_id);
+        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $issuer_client);
 
         $lti13_lineitems = $this->launch->ltiParameter('lti13_lineitems');
         if ( strlen($lti13_lineitems) < 1 ) $missing .= ' ' . 'lineitems';
@@ -132,7 +132,7 @@ class Context extends Entity {
         }
 
         // TODO: In the future we might cache this access token perhaps in session for a while
-        $lineitems_access_token = LTI13::getLineItemsToken($CFG->wwwroot, $issuer_client_id, $lti13_token_url, $lti13_privkey, $debug_log);
+        $lineitems_access_token = LTI13::getLineItemsToken($CFG->wwwroot, $issuer_client, $lti13_token_url, $lti13_privkey, $debug_log);
         return $lineitems_access_token;
     }
 
@@ -265,9 +265,9 @@ class Context extends Entity {
     {
         global $CFG;
 
-        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $issuer_client_id);
+        $missing = $this->loadLTI13Data($lti13_token_url, $lti13_privkey, $issuer_client);
 
-        // TODO: This used to be key_key and now we changed it to $issuer_client_id
+        // TODO: This used to be key_key and now we changed it to $issuer_client
         // $subject = $this->launch->ltiParameter('key_key');
         // if ( strlen($subject) < 1 ) $missing .= ' key_key (i.e. subject)';
 
@@ -277,11 +277,11 @@ class Context extends Entity {
             return false;
         }
 
-        // TODO: Make sure issuer_client_id works
+        // TODO: Make sure issuer_client works
         // $grade_token = LTI13::getGradeToken($CFG->wwwroot, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
 
         // TODO: In the future we might cache this access token perhaps in session for a while
-        $grade_token = LTI13::getGradeToken($CFG->wwwroot, $issuer_client_id, $lti13_token_url, $lti13_privkey, $debug_log);
+        $grade_token = LTI13::getGradeToken($CFG->wwwroot, $issuer_client, $lti13_token_url, $lti13_privkey, $debug_log);
         return $grade_token;
     }
 
