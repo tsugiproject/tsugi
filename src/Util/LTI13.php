@@ -36,16 +36,17 @@ class LTI13 {
      */
     // TODO: Remove this after the issuer refactor
     public static function extract_consumer_key($jwt) {
+        die('DONT CALL LTI13::extract_consumer_key()');
         return 'lti13_' . $jwt->body->iss;
     }
 
     /**
-     * Pull out the composite issuer_key from a JWT
+     * Pull out the issuer_key from a JWT
      *
      * @param string $jwt The parsed JWT
      */
     public static function extract_issuer_key($jwt) {
-        $retval = extract_consumer_key_string($jwt->body->iss, $jwt->body->aud);
+        $retval = self::extract_issuer_key_string($jwt->body->iss);
         return $retval;
     }
 
@@ -54,8 +55,8 @@ class LTI13 {
      *
      * @param string $jwt The parsed JWT
      */
-    public static function extract_issuer_key_string($issuer, $audience) {
-        $retval = U::lti_sha256(str_replace(' ','_', $issuer) . ' -- ' . str_replace(' ','_', $issuer));
+    public static function extract_issuer_key_string($issuer) {
+        $retval = U::lti_sha256($issuer);
         return $retval;
     }
     /**
