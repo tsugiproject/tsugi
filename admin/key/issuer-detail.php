@@ -72,6 +72,17 @@ $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer_id=' . $row[
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
+?>
+<hr/>
+<p>
+These URLs need to be in your LMS configuration associated with this Issuer/Client ID.
+<pre>
+LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login
+LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
+</pre>
+</p>
+<?php
+
 
 $OUTPUT->footer();
 
