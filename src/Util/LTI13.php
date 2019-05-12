@@ -175,7 +175,7 @@ class LTI13 {
      * this returns the exception that was generated.
      */
     public static function verifyPublicKey($raw_jwt, $public_key, $algs=false) {
-        if ( ! $alg ) $alg = array('RS256');
+        if ( ! $algs ) $algs = array('RS256');
         try {
             $decoded = JWT::decode($raw_jwt, $public_key, $algs);
             return true;
