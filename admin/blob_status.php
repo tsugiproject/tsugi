@@ -80,5 +80,8 @@ if ( isset($CFG->migrateblobs) && $CFG->migrateblobs ) {
     echo("<p>Blobs are being automatically migrated as they are used</p>\n");
 }
 ?>
+<p>Note that even when blobs are going to disk, the 12345 blobs will be
+stored in <b>blob_blob</b> unless you override the <b>$CFG->testblobs</b> value.
+</p>
 </body>
 </html>
