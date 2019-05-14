@@ -784,7 +784,7 @@ class LTI13 {
      * logged into this array.
      *
      * Note that for LTI Advantage, we send the client_id as both the $issuer and
-     * $subject since LMS's don't have our url (i.w. wwwroot) available to them 
+     * $subject since LMS's don't have our url (i.w. wwwroot) available to them
      * as part of the LTI 1.3 configuration.
      *
      * @return array The retrieved and parsed JSON data.  There is no validation performed,
