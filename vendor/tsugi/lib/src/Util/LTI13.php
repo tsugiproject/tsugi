@@ -777,11 +777,15 @@ class LTI13 {
      *
      * @param array $scope A list of requested scopes
      * @param string $issuer Who we are
-     * @param string $subject Who we are
+     * @param string $subject Who we are (within $issuer)
      * @param string $lti13_token_url
      * @param string $lti13_privkey
      * @param array $debug_log An optional array passed by reference.   Actions taken will be
      * logged into this array.
+     *
+     * Note that for LTI Advantage, we send the client_id as both the $issuer and
+     * $subject since LMS's don't have our url (i.w. wwwroot) available to them 
+     * as part of the LTI 1.3 configuration.
      *
      * @return array The retrieved and parsed JSON data.  There is no validation performed,
      * and we might have got a 403 and received no data at all.
