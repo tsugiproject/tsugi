@@ -30,7 +30,7 @@ $PDOX = LTIX::getConnection();
 
 // Load the Lesson
 $l = false;
-if ( isset($CFG->lessons) ) {
+if ( isset($CFG->lessons) && $CFG->lessons && file_exists($CFG->lessons) ) {
     $l = new Lessons($CFG->lessons);
 }
 
