@@ -231,14 +231,12 @@ class BlobUtil {
             }
 
             // Don't store test_key (i.e. 12345) as new blobs on disk
-            if (! $blob_id && isset($CFG->dataroot) && $CFG->dataroot ) {
+            if (! $testkey && ! $blob_id && isset($CFG->dataroot) && $CFG->dataroot ) {
                 $blob_folder = BlobUtil::mkdirSha256($sha256);
                 if ( $blob_folder ) {
                     $blob_name =  $blob_folder . '/' . $sha256;
                     if ( file_exists( $blob_name ) ) {
                         error_log("Already had file on disk $filename => $blob_name");
-                    } else if ( $test_key ) { // Don't add to the disk
-                        $blob_name = null;
                     } else { // Put the file into the blob space if we can
                         if ( ! (move_uploaded_file($FILE_DESCRIPTOR['tmp_name'],$blob_name))) {
                             error_log("Move fail $filename to $blob_name ");
