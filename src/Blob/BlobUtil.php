@@ -231,7 +231,7 @@ class BlobUtil {
             }
 
             // Don't store test_key (i.e. 12345) as new blobs on disk
-            if (! $testkey && ! $blob_id && isset($CFG->dataroot) && $CFG->dataroot ) {
+            if (! $test_key && ! $blob_id && isset($CFG->dataroot) && $CFG->dataroot ) {
                 $blob_folder = BlobUtil::mkdirSha256($sha256);
                 if ( $blob_folder ) {
                     $blob_name =  $blob_folder . '/' . $sha256;
