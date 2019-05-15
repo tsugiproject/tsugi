@@ -4,6 +4,7 @@ if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 
 \Tsugi\Core\LTIX::getConnection();
@@ -16,6 +17,8 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 if ( ! isAdmin() ) {
     die('Must be admin');
 }
+
+$inedit = U::get($_REQUEST,'edit');
 
 $tablename = "{$CFG->dbprefix}lti_key";
 $current = $CFG->getCurrentFileUrl(__FILE__);
@@ -33,7 +36,7 @@ $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
     'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
-    'issuer_id' => 'LTI 1.3: Issuer Primary Key (from this system)',
+    'issuer_id' => 'LTI 1.3: Issuer',
 );
 
 // Handle the post data
@@ -45,6 +48,15 @@ if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     return;
 }
 
+if ( ! $inedit && U::get($row, 'issuer_id') > 0 ) {
+    $issuer_row = $PDOX->rowDie("SELECT issuer_key FROM {$CFG->dbprefix}lti_issuer WHERE issuer_id = :issuer_id",
+        array(':issuer_id' => U::get($row, 'issuer_id'))
+    );
+    if ( $issuer_row ) {
+        $row['issuer_id'] = $issuer_row['issuer_key'];
+    }
+}
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -54,7 +66,6 @@ $title = 'Tenant Entry';
 echo("<h1>$title</h1>\n<p>\n");
 $extra_buttons=false;
 $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?key_id=' . $row['key_id'];
-// $fields[] = 'lti13_tool_keyset_url';
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
@@ -81,6 +92,31 @@ and courses regardless of the type of launch.  For this to work, the LMS must su
 LTI Advantage legacy LTI 1.1 support.
 <p>
 <?php
+$OUTPUT->footerStart();
 
-$OUTPUT->footer();
+if ( $inedit ) {
+    $sql = "SELECT issuer_id, issuer_key
+        FROM {$CFG->dbprefix}lti_issuer";
+    $issuer_rows = $PDOX->allRowsDie($sql);
 
+    var_dump($row);
+    $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Issuer Selected</option>";
+    foreach($issuer_rows as $issuer_row) {
+        $selected = $row['issuer_id'] == $issuer_row['issuer_id'] ? ' selected ' : '';
+        $select_text .= '<option value="'.$issuer_row['issuer_id'].'"'.$selected.'>'.htmlentities($issuer_row['issuer_key'])."</option>";
+    }
+    $select_text .= "</select>";
+    echo(htmlentities($select_text));
+
+?>
+<script>
+    $('<?= $select_text ?>').insertBefore('#issuer_id');
+    $('#issuer_id').hide();
+    $('#issuer_id_select').on('change', function() {
+    $('input[name="issuer_id"]').val(this.value);
+    });
+</script>
+<?php
+}
+
+$OUTPUT->footerEnd();

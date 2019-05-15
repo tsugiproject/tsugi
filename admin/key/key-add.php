@@ -26,7 +26,7 @@ $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
     'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
-    'issuer_id' => 'LTI 1.3: Issuer Primary Key (from this system)',
+    'issuer_id' => 'LTI 1.3: Issuer (from this system)',
 );
 
 $retval = CrudForm::handleInsert($tablename, $fields);
@@ -41,7 +41,7 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 ?>
-<h1>Adding Tsugi Tenant</h1>
+<h1>Adding Tsugi Tenant/Key</h1>
 <p>
 A single entry in this table defines a "distinct tenant" in Tsugi.
 Data in Tsugi is isolated to a tenant.  You can route both
@@ -70,5 +70,26 @@ CrudForm::insertForm($fields, $from_location, $titles);
 ?>
 </p>
 <?php
-$OUTPUT->footer();
+$OUTPUT->footerStart();
+
+$sql = "SELECT issuer_id, issuer_key
+        FROM {$CFG->dbprefix}lti_issuer";
+$rows = $PDOX->allRowsDie($sql);
+
+$select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Issuer Selected</option>";
+foreach($rows as $row) {
+    $select_text .= '<option value="'.$row['issuer_id'].'">'.htmlentities($row['issuer_key'])."</option>";
+}
+$select_text .= "</select>";
+?>
+<script>
+$('<?= $select_text ?>').insertBefore('#issuer_id');
+$('#issuer_id').hide();
+$('#issuer_id_select').on('change', function() {
+  $('input[name="issuer_id"]').val(this.value);
+});
+</script>
+
+<?php
+$OUTPUT->footerEnd();
 
