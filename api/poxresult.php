@@ -10,22 +10,25 @@ use \Tsugi\Core\Result;
 
 // For my application, We only allow application/xml
 $request_headers = OAuthUtil::get_headers();
-$hct = $request_headers['Content-Type'];
-if ( ! isset($hct) ) $hct = $request_headers['Content-type'];
-if ( ! isset($hct) ) $hct = $_SERVER['CONTENT_TYPE'];
-if (strpos($hct,'application/xml') === false ) {
-   header('Content-Type: text/plain');
+$hct = U::get($request_headers,'Content-Type', U::get($_SERVER, 'CONTENT_TYPE'));
 
-   echo("Data dump:");
-   print_r($request_headers);
-   print_r($_SERVER);
-   die("Must be content type xml, found ".$hct);
+if (strpos($hct,'application/xml') === false ) {
+    header('Content-Type: text/plain');
+
+    echo("Data dump:");
+    print_r($request_headers);
+    Net::send400("Must be content type xml, found ".$hct);
+    return;
 }
 
 header('Content-Type: application/xml; charset=utf-8'); 
 
 // Grab POX Body
-$postdata = file_get_contents('php://input');
+$postdata = trim(file_get_contents('php://input'));
+if ( substr($postdata,0,1) != '<' ) {
+    Net::send400("Expecting XML, found ".$hct);
+    return;
+}
 
 try {
     $xml = new SimpleXMLElement($postdata);
