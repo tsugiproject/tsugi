@@ -1207,15 +1207,16 @@ class LTIX {
             $sql = "INSERT INTO {$p}lti_context
                 ( context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
                 ( :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )";
+            $context_settings_url = U::get($post, 'context_settings_url', null);
             $PDOX->queryDie($sql, array(
                 ':context_key' => $post['context_id'],
                 ':context_sha256' => lti_sha256($post['context_id']),
-                ':settings_url' => $post['context_settings_url'],
+                ':settings_url' => $context_settings_url,
                 ':title' => $post['context_title'],
                 ':key_id' => $row['key_id']));
             $row['context_id'] = $PDOX->lastInsertId();
             $row['context_title'] = $post['context_title'];
-            $row['context_settings_url'] = U::get($post, 'context_settings_url', null);
+            $row['context_settings_url'] = $context_settings_url;
             $actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title'];
         }
 
@@ -1224,17 +1225,18 @@ class LTIX {
             $sql = "INSERT INTO {$p}lti_link
                 ( link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
                     ( :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )";
+            $link_settings_url = U::get($post, 'link_settings_url', null);
             $PDOX->queryDie($sql, array(
                 ':link_key' => $post['link_id'],
                 ':link_sha256' => lti_sha256($post['link_id']),
-                ':settings_url' => $post['link_settings_url'],
+                ':settings_url' => $link_settings_url,
                 ':title' => $post['link_title'],
                 ':context_id' => $row['context_id'],
                 ':path' => $post['link_path']
             ));
             $row['link_id'] = $PDOX->lastInsertId();
             $row['link_title'] = $post['link_title'];
-            $row['link_settings_url'] = $post['link_settings_url'];
+            $row['link_settings_url'] = $link_settings_url;
             $row['link_path'] = $post['link_path'];
             $actions[] = "=== Inserted link id=".$row['link_id']." ".$row['link_title'];
         }
