@@ -30,17 +30,6 @@ class LTI13 {
     const RESULTS_TYPE = 'application/vnd.ims.lis.v2.resultcontainer+json';
 
     /**
-     * Pull out the effective oauth_consumer key from a JWT
-     *
-     * @param string $jwt The parsed JWT
-     */
-    // TODO: Remove this after the issuer refactor
-    public static function extract_consumer_key($jwt) {
-        die('DONT CALL LTI13::extract_consumer_key()');
-        return 'lti13_' . $jwt->body->iss;
-    }
-
-    /**
      * Pull out the issuer_key from a JWT
      *
      * @param string $jwt The parsed JWT
@@ -924,6 +913,28 @@ class LTI13 {
                     . "</pre></p>\n";
         }
         return $html;
+    }
+
+    /**
+     * Generate a PKCS8 Ppublic / private key pair
+     *
+     * @param string $publicKey Returned public key
+     * @param string $privateKey Returned private key
+     */
+    // https://stackoverflow.com/questions/6648337/generate-ssh-keypair-form-php
+    public static function generatePKCS8Pair(&$publicKey, &$privateKey) {
+        $privKey = openssl_pkey_new(
+            array('digest_alg' => 'sha256',
+                'private_key_bits' => 2048,
+                'private_key_type' => OPENSSL_KEYTYPE_RSA));
+
+        // Private Key
+        $privKey = openssl_pkey_get_private($privKey);
+        openssl_pkey_export($privKey, $privateKey);
+
+        // Public Key
+        $pubKey = openssl_pkey_get_details($privKey);
+        $publicKey = $pubKey['key'];
     }
 
     /** Cleanup common mess-ups in PKCS8 strings

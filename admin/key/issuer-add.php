@@ -41,6 +41,11 @@ $titles = array(
 
 if ( U::get($_POST,'issuer_key') ) {
     // $_POST['issuer_sha256'] = LTI13::extract_issuer_key_string(U::get($_POST,'issuer_key'));
+    if ( strlen(U::get($_POST,'lti13_pubkey')) < 1 && strlen(U::get($_POST,'lti13_privkey')) < 1 ) {
+        LTI13::generatePKCS8Pair($publicKey, $privateKey);
+        $_POST['lti13_pubkey'] = $publicKey;
+        $_POST['lti13_privkey'] = $privateKey;
+    }
     $retval = CrudForm::handleInsert($tablename, $fields);
     if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
         header("Location: $from_location");

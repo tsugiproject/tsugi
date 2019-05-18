@@ -84,5 +84,13 @@ LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
 <?php
 
 
-$OUTPUT->footer();
+$OUTPUT->footerStart();
+?>
+<script>
+$('#lti13_platform_pubkey').css('white-space', 'pre');
+$('#lti13_privkey').css('white-space', 'pre');
+$('#lti13_pubkey').css('white-space', 'pre');
+</script>
+<?php
+$OUTPUT->footerEnd();
 
