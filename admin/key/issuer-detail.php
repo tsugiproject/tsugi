@@ -46,18 +46,12 @@ $titles = array(
 );
 
 // Handle the post data
-if ( U::get($_POST,'issuer_key') ) {
-    // $_POST['issuer_sha256'] = LTI13::extract_issuer_key_string(U::get($_POST,'issuer_issuer'));
-    $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
-        $query_fields, $allow_edit, $allow_delete, $titles);
+$row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
+    $query_fields, $allow_edit, $allow_delete, $titles);
 
-    if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
-        header('Location: '.$from_location);
-        return;
-    }
-} else { // Just load the row
-    $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
-        $query_fields, $allow_edit, $allow_delete, $titles);
+if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
+    header('Location: '.$from_location);
+    return;
 }
 
 $OUTPUT->header();

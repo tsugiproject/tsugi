@@ -118,7 +118,7 @@ class CrudForm {
                 if ( strpos($field, "_sha256") !== false && ! isset($_POST[$field])) {
                     $key = str_replace("_sha256", "_key", $field);
                     if ( ! isset($_POST[$key]) ) {
-                        $_SESSION['success'] = "Missing POST field: ".$key;
+                        $_SESSION['error'] = "Missing POST field: ".$key;
                         return self::CRUD_FAIL;
                     }
                     $value = lti_sha256($_POST[$key]);
@@ -126,15 +126,20 @@ class CrudForm {
                     if ( isset($_POST[$field]) ) {
                         $value = $_POST[$field];
                     } else {
-                        $_SESSION['success'] = "Missing POST field: ".$field;
+                        $_SESSION['error'] = "Missing POST field: ".$field;
                         return self::CRUD_FAIL;
                     }
                 }
                 $parms[':'.$i] = $value;
                 $values .= ":".$i;
             }
-            $sql = "INSERT INTO $tablename \n( $names ) VALUES ( $values )";
+            $sql = "INSERT IGNORE INTO $tablename \n( $names ) VALUES ( $values )";
             $stmt = $PDOX->queryDie($sql, $parms);
+            if ( $stmt->rowCount() < 1 ) {
+                $_SESSION['error'] = "Could not insert record: duplicate key";
+                return self::CRUD_FAIL;
+            }
+            error_log('Row count '.$stmt->rowCount());
             $_SESSION['success'] = _m("Record Inserted");
             return self::CRUD_SUCCESS;
         }
