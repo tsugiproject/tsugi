@@ -459,7 +459,15 @@ class LTIX {
             }
 
         } else { // LTI 1.3
-            // echo("<pre>\n"); var_dump($row); die('This is still broken');
+            $key_id = $row['key_id'];
+            $issuer_key = $post['issuer_key'];
+            $issuer_client = $post['issuer_client'];
+            $deployment_id = $post['deployment_id'];
+
+            if ( $key_id < 1 ) {
+                 self::abort_with_error_log("Could not find tenant/key for $issuer_key / clientid=$issuer_client deployment_id=$deployment_id");
+            }
+
             $raw_jwt = LTI13::raw_jwt($request_data);
             $jwt = LTI13::parse_jwt($raw_jwt);
 
@@ -472,11 +480,11 @@ class LTIX {
             $private_key = $row['lti13_privkey'];
             $token_url = $row['lti13_token_url'];
 
-            $consumer_sha256 = $post['issuer_sha256'];
+            $issuer_sha256 = $post['issuer_sha256'];
 
             // Sanity check
-            if ( strlen($public_key) < 1 && strlen($our_keyset_url) < 1 ) {
-                 self::abort_with_error_log("For LTI 1.3, $consumer_pk either must have a public_key or keyset_url\n$consumer_sha256");
+            if ( strlen($our_keyset_url) < 1 ) {
+                 self::abort_with_error_log("Could not find keyset and $issuer_key");
             }
 
             // Make sure we have or update to the latest keyset if we have a keyset_url
