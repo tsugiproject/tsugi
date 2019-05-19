@@ -14,8 +14,9 @@ $kid = U::get($_GET,"key_id",false);
 if ( ! $kid ) die("missing key_id parameter");
 
 $row = $PDOX->rowDie(
-    "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_key 
-        WHERE key_id = :KID AND lti13_pubkey IS NOT NULL",
+    "SELECT I.lti13_pubkey FROM {$CFG->dbprefix}lti_key AS K
+        JOIN {$CFG->dbprefix}lti_issuer AS I ON K.issuer_id = I.issuer_id
+        WHERE K.key_id = :KID AND I.lti13_pubkey IS NOT NULL",
     array(":KID" => $kid)
 );
 if ( ! $row ) die("Could not load key");
