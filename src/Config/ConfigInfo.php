@@ -97,8 +97,25 @@ class ConfigInfo {
      * Of course clever people would choose wiser passwords.
      */
     public $pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
+
+    /** 
+     * Database user for the PDO connection
+     */
     public $dbuser    = 'ltiuser';
+
+    /** 
+     * Database password for the PDO connection
+     */
     public $dbpass    = 'ltipassword';
+
+    /** 
+     * Additional parameter for the PDO constructor with an array of key-value options
+     *
+     * $CFG->pdo_options = array(PDO::MYSQL_ATTR_SSL_CA => './BaltimoreCyberTrustRoot.crt.pem'))
+     *
+     * See also: https://www.php.net/manual/en/pdo.construct.php
+     */
+    public $pdo_options  = false;
 
     /** 
      * A prefix to prepend to all table names.

@@ -59,7 +59,11 @@ class LTIX {
         }
 
         if ( defined('PDO_WILL_CATCH') ) {
-            $PDOX = new \Tsugi\Util\PDOX($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
+            if ( isset($CFG->pdo_options) && is_array($CFG->pdo_options)) {
+                $PDOX = new \Tsugi\Util\PDOX($CFG->pdo, $CFG->dbuser, $CFG->dbpass, $CFG->pdo_options);
+            } else {
+                $PDOX = new \Tsugi\Util\PDOX($CFG->pdo, $CFG->dbuser, $CFG->dbpass);
+            }
             $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         } else {
             try {
