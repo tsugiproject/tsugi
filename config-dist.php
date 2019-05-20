@@ -71,6 +71,10 @@ $CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
 $CFG->dbuser    = 'ltiuser';
 $CFG->dbpass    = 'ltipassword';
 
+// Sometimes the PDO constructor call needs additional parameters
+// $CFG->pdo_options = array(PDO::MYSQL_ATTR_SSL_CA => './BaltimoreCyberTrustRoot.crt.pem'))
+$CFG->pdo_options  = false;
+
 // These URLs are used in your app store, they are optional but
 // strongly recommended - you can borrow from the samples below
 // for some wording - but be honest in your pages.  These will
