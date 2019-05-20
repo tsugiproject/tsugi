@@ -74,12 +74,15 @@ class Output {
     function flashMessages() {
         ob_start();
         if ( $this->session_get('error') ) {
-            echo '<div class="alert alert-danger" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
-            $this->session_get('error')."</div>\n";
+            echo '<div class="alert alert-danger alert-banner" style="clear:both">
+                    <div class="container"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
+                $this->session_get('error')."</div></div>\n";
             $this->session_forget('error');
         } else if ( isset($_GET['lti_errormsg']) ) {
-            echo '<div class="alert alert-danger" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
-            htmlentities($_GET['lti_errormsg'])."</div>";
+            echo '<div class="alert alert-danger alert-banner" style="clear:both">
+                    <div class="container"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
+                htmlentities($_GET['lti_errormsg'])."</div></div>";
+
             if ( isset($_GET['detail']) ) {
                 echo("\n<!--\n");
                 echo(str_replace("-->","--:>",$_GET['detail']));
@@ -88,8 +91,10 @@ class Output {
         }
 
         if ( $this->session_get('success') ) {
-            echo '<div class="alert alert-success" style="clear:both"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
-            $this->session_get('success')."</div>\n";
+            echo '<div class="alert alert-success alert-banner" style="clear:both">
+                    <div class="container"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
+                $this->session_get('success')."</div></div>\n";
+
             $this->session_forget('success');
         }
 
