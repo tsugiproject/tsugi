@@ -86,7 +86,7 @@ $json_str = <<<JSON
                 "placement": "link_selection",
                 "placement_comment": "Modules",
                 "message_type": "LtiDeepLinkingRequest",
-                "target_link_uri": "http://web.lti-13-test-tool.docker/launch?placement=assignment_selection",
+                "target_link_uri": "?placement=assignment_selection",
                 "canvas_icon_class": "icon-lti"
             },
             {
@@ -96,7 +96,7 @@ $json_str = <<<JSON
                 "placement": "assignment_selection",
                 "placement_comment": "External tool submission type",
                 "message_type": "LtiDeepLinkingRequest",
-                "target_link_uri": "http://web.lti-13-test-tool.docker/launch?placement=assignment_selection",
+                "target_link_uri": "?placement=assignment_selection",
                 "canvas_icon_class": "icon-lti"
             },
             {
@@ -105,7 +105,7 @@ $json_str = <<<JSON
                 "icon_url": "https://static.thenounproject.com/png/131630-200.png",
                 "placement": "editor_button",
                 "message_type": "LtiDeepLinkingRequest",
-                "target_link_uri": "http://web.lti-13-test-tool.docker/launch?placement=editor_button",
+                "target_link_uri": "?placement=editor_button",
                 "canvas_icon_class": "icon-lti"
             }
             ]
@@ -147,7 +147,8 @@ $json->extensions[0]->tool_id = $kid;
 $json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/default-icon-16x16.png";
 for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
     $json->extensions[0]->settings->placements[$i]->text = $CFG->servicename;
-    $json->extensions[0]->settings->placements[$i]->target_link_uri = $CFG->wwwroot . "/lti/store/";
+    $json->extensions[0]->settings->placements[$i]->target_link_uri = $CFG->wwwroot . "/lti/store/" . 
+        $json->extensions[0]->settings->placements[$i]->target_link_uri;
     $json->extensions[0]->settings->placements[$i]->icon_url = $CFG->staticroot . "/img/default-icon-16x16.png";
 }
 
