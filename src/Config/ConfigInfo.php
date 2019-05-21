@@ -111,7 +111,7 @@ class ConfigInfo {
     /** 
      * Additional parameter for the PDO constructor with an array of key-value options
      *
-     * $CFG->pdo_options = array(PDO::MYSQL_ATTR_SSL_CA => './BaltimoreCyberTrustRoot.crt.pem'))
+     * $CFG->pdo_options = array(\PDO::MYSQL_ATTR_SSL_CA => './BaltimoreCyberTrustRoot.crt.pem'))
      *
      * See also: https://www.php.net/manual/en/pdo.construct.php
      */
