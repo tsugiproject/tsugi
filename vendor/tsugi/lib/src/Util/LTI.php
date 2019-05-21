@@ -722,7 +722,7 @@ class LTI {
             $result = array();
             $members = $xml->xpath('/message_response/members/member');
 
-            while(list( , $node) = each($members)) {
+            foreach($members as $node) {
                 $groups = array();
                 foreach($node->groups as $k) {
                     foreach($k->group as $v) {
