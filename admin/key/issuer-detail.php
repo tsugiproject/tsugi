@@ -62,7 +62,7 @@ $OUTPUT->flashMessages();
 $title = 'Issuer Entry';
 echo("<h1>$title</h1>\n<p>\n");
 $extra_buttons=false;
-$row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer_id=' . $row['issuer_id'];
+$row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer=' . urlencode($row['issuer_key']);
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");

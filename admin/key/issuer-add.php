@@ -67,12 +67,15 @@ associated with this Issuer/Client ID.
 LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login
 LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
 LTI 1.3 Tool Keyset URL (optional):
-<?= $CFG->wwwroot ?>/lti/keyset?issuer_id=<b><span id="issuer_id_ui">&lt;issuer_id&gt;</span></b>
+<?= $CFG->wwwroot ?>/lti/keyset     (contains all keys)
+<?= $CFG->wwwroot ?>/lti/keyset?issuer=<b><span id="issuer_id_ui">&lt;issuer&gt;</span></b>
 </pre>
 </p>
 <p>
-If your platform needs a tool keyset url (an extension to LTI 1.3), the actual value
-of <b>issuer_id</b> will be shown after you create and view the issuer.
+If your platform needs a tool keyset url (an extension to LTI 1.3),
+you can either use the keyset url to retrieve public keys for all integrations,
+or just request the public key for this itegration.  The exact URL
+for this ussuer will will be shown after you create and view the issuer.
 </p>
 <p>
 <?php
