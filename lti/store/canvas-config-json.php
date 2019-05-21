@@ -56,67 +56,99 @@ $jwk = array(
 // echo(json_encode($jwk));
 // echo("\n");
 
-header("Content-type: application/json");
-// header("Content-type: text/plain");
-$json = json_decode(<<<JSON
+$json_str = <<<JSON
 {
-  "title":"LTI 1.3 twoa",
-  "description":"1.3 Test Tool",
-  "scopes":[
-     "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
-     "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
-     "https://purl.imsglobal.org/spec/lti-ags/scope/score",
-     "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
-  ],
-  "extensions":[
-     {
-        "domain":"domain",
-        "tool_id":"toolid",
-        "platform":"www.tsugi.org",
-        "settings":{
+    "title":"LTI 1.3 twoa",
+    "description":"1.3 Test Tool",
+    "scopes":[
+        "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
+        "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
+        "https://purl.imsglobal.org/spec/lti-ags/scope/score",
+        "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
+    ],
+    "extensions":[
+    {
+      "domain":"domain",
+      "tool_id":"toolid",
+      "platform":"www.tsugi.org",
+      "privacy_level":"public",
+      "settings":{
            "text":"Tsugi",
            "use_1_3":true,
            "icon_url":"icon_url",
            "selection_width":500,
            "selection_height":500,
-           "editor_button":{
-              "url":"store",
-              "text":"TsugiTools",
-              "enabled":true,
-              "icon_url":"",
-              "message_type":"LtiDeepLinkingRequest",
-              "canvas_icon_class":"icon-lti"
-           }
-        },
-        "privacy_level":"public"
-     }
-  ],
-  "launch_url":"replace",
-  "oidc_login_uri": "replace",
-  "public_jwk":{
-     "e":"AQAB",
-     "n":"3yRcWT20SD9jrdPVwDj0pu3P4mh_VXldVQBHF9ggs3j2PM_j5NSRQP5jUovTbFP_-dpx_M_6llKCud8lFq6IOLuVq9Q5qar64cbc4ryQ1HGdLzBqJ39xZ5Pr5lvsQ6ppTrapkwNfN_iWNWxS1mYkdclu6AReVDAJB95uveMEqXB9fZQlBHU4vxwCvA9liTw6Msd0VGxr3KE5oxlKI1bxphieGG4t4Aqlda8oRamJPoRfzOQuedtY-5RmCrQ4eOB6ju2IzuQAjLGn_kTwyMQmin2moMnzZCwk2oLjImFopTnhmNvAUqzyRmgjSCLtXKR_vd3oaxKiTHZrvfh6kPqfuw",
-     "alg":"RS256",
-     "kid":"nHdYfFK3k2BzKRCzMyZGnr9JFtWKeKXS6R_FHiFgUnE",
-     "kty":"RSA",
-     "use":"sig"
-  }
+           "placements": [
+            {
+                "text": "LTI 1.3 0d516e5f",
+                "enabled": true,
+                "icon_url": "https://static.thenounproject.com/png/131630-200.png",
+                "placement": "link_selection",
+                "placement_comment": "Modules",
+                "message_type": "LtiDeepLinkingRequest",
+                "target_link_uri": "http://web.lti-13-test-tool.docker/launch?placement=assignment_selection",
+                "canvas_icon_class": "icon-lti"
+            },
+            {
+                "text": "LTI 1.3 0d516e5f",
+                "enabled": true,
+                "icon_url": "https://static.thenounproject.com/png/131630-200.png",
+                "placement": "assignment_selection",
+                "placement_comment": "External tool submission type",
+                "message_type": "LtiDeepLinkingRequest",
+                "target_link_uri": "http://web.lti-13-test-tool.docker/launch?placement=assignment_selection",
+                "canvas_icon_class": "icon-lti"
+            },
+            {
+                "text": "LTI 1.3 0d516e5f",
+                "enabled": true,
+                "icon_url": "https://static.thenounproject.com/png/131630-200.png",
+                "placement": "editor_button",
+                "message_type": "LtiDeepLinkingRequest",
+                "target_link_uri": "http://web.lti-13-test-tool.docker/launch?placement=editor_button",
+                "canvas_icon_class": "icon-lti"
+            }
+            ]
+        }
+      }
+    ],
+    "public_jwk":{
+        "e":"AQAB",
+        "n":"3yRcWT20SD9jrdPVwDj0pu3P4mh_VXldVQBHF9ggs3j2PM_j5NSRQP5jUovTbFP_-dpx_M_6llKCud8lFq6IOLuVq9Q5qar64cbc4ryQ1HGdLzBqJ39xZ5Pr5lvsQ6ppTrapkwNfN_iWNWxS1mYkdclu6AReVDAJB95uveMEqXB9fZQlBHU4vxwCvA9liTw6Msd0VGxr3KE5oxlKI1bxphieGG4t4Aqlda8oRamJPoRfzOQuedtY-5RmCrQ4eOB6ju2IzuQAjLGn_kTwyMQmin2moMnzZCwk2oLjImFopTnhmNvAUqzyRmgjSCLtXKR_vd3oaxKiTHZrvfh6kPqfuw",
+        "alg":"RS256",
+        "kid":"nHdYfFK3k2BzKRCzMyZGnr9JFtWKeKXS6R_FHiFgUnE",
+        "kty":"RSA",
+        "use":"sig"
+    },
+    "target_link_uri":"replace",
+    "oidc_login_uri": "replace"
 }
 JSON
-);
+;
+
+$json = json_decode(trim($json_str));
 
 if ( ! $json ) {
+    echo("<pre>\n");
+    echo($json_str);
+    echo("</pre>\n");
     die('Unable to parse JSON '.json_last_error_msg());
 }
+
+header("Content-type: application/json");
 
 $json->title = $CFG->servicename;
 $json->description = $CFG->servicedesc;
 $json->public_jwk = $jwk;
-$json->launch_url = $CFG->wwwroot . "/lti/oidc_launch";
+$json->target_link_uri = $CFG->wwwroot . "/lti/oidc_launch";
 $json->oidc_login_uri = $CFG->wwwroot . "/lti/oidc_login";
 $json->extensions[0]->domain = $domain;
-$json->extensions[0]->settings->icon_url = "/img/default-icon-16x16.png";
-$json->extensions[0]->settings->editor_button->url = $CFG->wwwroot . "/lti/store/";
-$json->extensions[0]->settings->editor_button->icon_url = $CFG->staticroot . "/img/default-icon-16x16.png";
+$json->extensions[0]->tool_id = $kid;
+$json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/default-icon-16x16.png";
+for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
+    $json->extensions[0]->settings->placements[$i]->text = $CFG->servicename;
+    $json->extensions[0]->settings->placements[$i]->target_link_uri = $CFG->wwwroot . "/lti/store/";
+    $json->extensions[0]->settings->placements[$i]->icon_url = $CFG->staticroot . "/img/default-icon-16x16.png";
+}
 
 echo(json_encode($json, JSON_PRETTY_PRINT));
