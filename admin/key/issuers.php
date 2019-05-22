@@ -17,8 +17,8 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 if ( ! isAdmin() ) die('Must be admin');
 
 $query_parms = false;
-$searchfields = array("issuer_id", "issuer_key", "created_at", "updated_at");
-$sql = "SELECT issuer_id, issuer_key, created_at, updated_at
+$searchfields = array("issuer_id", "issuer_key", "issuer_client", "created_at", "updated_at");
+$sql = "SELECT issuer_id, issuer_key, issuer_client, created_at, updated_at
         FROM {$CFG->dbprefix}lti_issuer";
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
