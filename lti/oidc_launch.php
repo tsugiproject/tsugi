@@ -3,6 +3,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
+use \Tsugi\Core\LTIX;
 
 require_once "../config.php";
 
@@ -10,35 +11,35 @@ $id_token = U::get($_POST, 'id_token');
 $state = U::get($_POST, 'state');
 
 if ( ! $state || ! $id_token ) {
-    die('Missing id_token and/or state');
+    LTIX::abort_with_error_log('Missing id_token and/or state');
 }
 
 try {
     $decoded = JWT::decode($state, $CFG->cookiesecret, array('HS256'));
 } catch(Exception $e) {
-    die('Unable to decode state value');
+    LTIX::abort_with_error_log('Unable to decode state value');
 }
 
 if ( ! is_object($decoded) ) {
-    die('Incorrect state value');
+    LTIX::abort_with_error_log('Incorrect state value');
 }
 
 if ( ! isset($decoded->time) ) {
-    die('No time in state');
+    LTIX::abort_with_error_log('No time in state');
 }
 
 $delta = abs($decoded->time - time());
 if ( $delta > 60 ) {
-    die('Bad time value');
+    LTIX::abort_with_error_log('Bad time value');
 }
 
 if ( ! isset($decoded->signature) ) {
-    die('No signature in state');
+    LTIX::abort_with_error_log('No signature in state');
 }
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
 if ( $signature != $decoded->signature ) {
-    die("Invalid state signature value");
+    LTIX::abort_with_error_log("Invalid state signature value");
 }
 
 $url_claim = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
@@ -46,11 +47,11 @@ $url_claim = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
 $jwt = LTI13::parse_jwt($id_token);
 
 if ( ! $jwt ) {
-    die("Unable to parse JWT");
+    LTIX::abort_with_error_log("Unable to parse JWT");
 }
 
 if ( ! isset($jwt->body) ) {
-    die("Missing body in JWT");
+    LTIX::abort_with_error_log("Missing body in JWT");
 }
 
 $launch_url = false;
@@ -79,12 +80,21 @@ if ( ! $launch_url && isset($decoded->target_link_uri) && is_string($decoded->ta
 }
 
 if ( ! $launch_url ) {
-    die("Missing or incorrect launch_url claim in body");
+    LTIX::abort_with_error_log("Missing or incorrect launch_url claim in body");
 }
 
+// Check for bad places to go
+$oidc_login = $CFG->wwwroot . '/lti/oidc_login';
+$oidc_launch = $CFG->wwwroot . '/lti/oidc_launch';
+if ( strpos($launch_url, $oidc_login) === 0 ) {
+    LTIX::abort_with_error_log("target_link_uri cannot be the same as oidc_login - ".$launch_url);
+}
+if ( strpos($launch_url, $oidc_launch) === 0 ) {
+    LTIX::abort_with_error_log("target_link_uri cannot be the same as oidc_launch - ".$launch_url);
+}
 
 if ( ! U::startsWith($launch_url, $CFG->apphome) ) {
-    die("Launch_url must start with ".$CFG->apphome);
+    LTIX::abort_with_error_log("Launch_url must start with ".$CFG->apphome);
 }
 
 // Looks good - time to forward

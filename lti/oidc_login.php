@@ -5,6 +5,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
+use \Tsugi\Core\LTIX;
 
 require_once "../config.php";
 
@@ -12,14 +13,14 @@ require_once "../config.php";
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
 
-// echo("<pre>\n");var_dump($_REQUEST); die();
+// echo("<pre>\n");var_dump($_REQUEST); LTIX::abort_with_error_log();
 
 if ( ! $login_hint ) {
-    die('Missing login_hint');
+    LTIX::abort_with_error_log('Missing login_hint');
 }
 
 if ( ! $iss ) {
-    die('Missing iss');
+    LTIX::abort_with_error_log('Missing iss');
 }
 
 $PDOX = \Tsugi\Core\LTIX::getConnection();
@@ -36,7 +37,7 @@ $row = $PDOX->rowDie(
 );
 
 if ( ! is_array($row) || count($row) < 1 ) {
-    die('Unknown or improper iss');
+    LTIX::abort_with_error_log('Unknown or improper iss');
 }
 $client_id = trim($row['issuer_client']);
 $redirect = trim($row['lti13_oidc_auth']);
