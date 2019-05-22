@@ -60,7 +60,11 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 $title = 'Issuer Entry';
-echo("<h1>$title</h1>\n<p>\n");
+?>
+<h1>
+<img src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo-square.png" style="float:right; width:48px;">
+<?= $title ?></h1>
+<?php
 $extra_buttons=false;
 $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer=' . urlencode($row['issuer_key']);
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);

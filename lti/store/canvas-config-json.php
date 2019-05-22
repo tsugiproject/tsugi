@@ -70,7 +70,7 @@ $json_str = <<<JSON
     {
       "domain":"domain",
       "tool_id":"toolid",
-      "platform":"www.tsugi.org",
+      "platform": "canvas.instructure.com",
       "privacy_level":"public",
       "settings":{
            "text":"Tsugi",
@@ -144,12 +144,12 @@ $json->target_link_uri = $CFG->wwwroot . "/lti/oidc_launch";
 $json->oidc_login_uri = $CFG->wwwroot . "/lti/oidc_login";
 $json->extensions[0]->domain = $domain;
 $json->extensions[0]->tool_id = $kid;
-$json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/default-icon-16x16.png";
+$json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
     $json->extensions[0]->settings->placements[$i]->text = $CFG->servicename;
     $json->extensions[0]->settings->placements[$i]->target_link_uri = $CFG->wwwroot . "/lti/store/" . 
         $json->extensions[0]->settings->placements[$i]->target_link_uri;
-    $json->extensions[0]->settings->placements[$i]->icon_url = $CFG->staticroot . "/img/default-icon-16x16.png";
+    $json->extensions[0]->settings->placements[$i]->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 }
 
 echo(json_encode($json, JSON_PRETTY_PRINT));

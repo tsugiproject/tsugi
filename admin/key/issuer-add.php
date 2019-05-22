@@ -59,7 +59,9 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 ?>
-<h1>Adding Issuer Entry</h1>
+<h1>
+<img src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo-square.png" style="float:right; width:48px;">
+Adding Issuer Entry</h1>
 <p>
 For LTI 1.3, you need to enter these URLs in your LMS configuration
 associated with this Issuer/Client ID.
