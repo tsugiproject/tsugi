@@ -133,7 +133,7 @@ $l = false;
 $assignments = false;
 $contents = false;
 $import = false;
-if ( ($allow_lti || $allow_web || $allow_import) && isset($CFG->lessons) ) {
+if ( ($allow_lti || $allow_web || $allow_import) && isset($CFG->lessons) && file_exists($CFG->lessons) ) {
     $l = new Lessons($CFG->lessons);
     if ( $allow_web ) $contents = true;
     if ( $allow_import ) $import = true;
