@@ -506,4 +506,11 @@ class Net {
         );
     }
 
+    /**
+     * Return true if the http code is 2xx (success)
+     */
+    public static function httpSuccess($httpcode) {
+        return ($httpcode >= 200) && ($httpcode < 300);
+    }
+
 }
