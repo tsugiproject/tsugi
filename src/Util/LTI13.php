@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Tsugi\Util;
 
 use \Tsugi\Util\U;
