@@ -431,13 +431,16 @@ class LTI13 {
             return $retval;
         }
 
-        if ( ! Net::httpSuccess($httpcode) && isset($json->members) ) {
+        if ( Net::httpSuccess($httpcode) && isset($json->members) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Loaded ".count($json->members)." roster entries";
             return $json;
         }
 
         $status = isset($json->error) ? $json->error : "Unable to load results";
-        if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
+        if ( is_array($debug_log) ) {
+            $debug_log[] = "Error status: $status";
+            if (is_array($debug_log) ) $debug_log[] = substr($membership, 0, 3000);
+        }
         return $status;
     }
 
