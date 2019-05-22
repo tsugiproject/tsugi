@@ -499,8 +499,8 @@ class LTIX {
                 if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
                     $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
                         SET lti13_keyset=:KS, updated_at=NOW() WHERE issuer_sha256 = :SHA",
-                    array(':SHA' => $consumer_sha256, ':KS' => $our_keyset) );
-                    error_log("Updated keyset $consumer_sha256 from $our_keyset_url\n");
+                    array(':SHA' => $issuer_sha256, ':KS' => $our_keyset) );
+                    error_log("Updated keyset $issuer_sha256 from $our_keyset_url\n");
                 } else {
                     self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url,
                                 substr($our_keyset,0,1000));
@@ -526,21 +526,21 @@ class LTIX {
                 if ( $new_public_key ) {
                     $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
                         SET lti13_platform_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE issuer_sha256 = :SHA",
-                        array(':SHA' => $consumer_sha256, ':PK' => $new_public_key,
+                        array(':SHA' => $issuer_sha256, ':PK' => $new_public_key,
                             ':KID' => $request_kid )
                     );
-                    error_log("New public key $consumer_sha256\n$new_public_key");
+                    error_log("New public key $issuer_sha256\n$new_public_key");
                     $public_key = $new_public_key;
                 } else {
                     // TODO: Understand if we should kill the old key here
                     $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
                         SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE issuer_sha256 = :SHA",
-                    array(':SHA' => $consumer_sha256) );
+                    array(':SHA' => $issuer_sha256) );
                     if ( strlen($public_key) > 0 ) {
-                        error_log("Cleared public key $consumer_sha256 invalid kid");
+                        error_log("Cleared public key $issuer_sha256 invalid kid");
                         self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
                     } else {
-                        error_log("Could not find public key $consumer_sha256 invalid kid");
+                        error_log("Could not find public key $issuer_sha256 invalid kid");
                         self::abort_with_error_log("Invalid Key Id (header.kid), could not find public key");
                     }
                 }
@@ -550,7 +550,7 @@ class LTIX {
             if ( $e !== true ) {
                 error_log('public_key');
                 error_log($public_key);
-                self::abort_with_error_log('JWT validation fail key='.$post['key'].' error='.$e->getMessage());
+                self::abort_with_error_log('JWT validation fail key='.$issuer_key.' error='.$e->getMessage());
             }
 
             // TODO: Encrypt private key
