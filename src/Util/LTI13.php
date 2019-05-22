@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\Util;
 
 use \Tsugi\Util\U;
@@ -372,7 +373,7 @@ class LTI13 {
         // echo $line_item;
         if ( is_array($debug_log) ) $debug_log[] = "Sent line item, received status=$httpcode\n".$line_item;
 
-        if ( $httpcode != 200 ) {
+        if ( ! Net::httpSuccess($httpcode) ) {
             $json = json_decode($line_item, true);
             $status = U::get($json, "error", "Unable to send lineitem");
             if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
@@ -431,7 +432,7 @@ class LTI13 {
             return $retval;
         }
 
-        if ( $httpcode == 200 && isset($json->members) ) {
+        if ( ! Net::httpSuccess($httpcode) && isset($json->members) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Loaded ".count($json->members)." roster entries";
             return $json;
         }
@@ -483,7 +484,7 @@ class LTI13 {
             }
             return $retval;
         }
-        if ( $httpcode == 200 && is_array($json) ) {
+        if ( Net::httpSuccess($httpcode) && is_array($json) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Loaded ".count($json)." lineitems entries";
             return $json;
         }
@@ -534,7 +535,7 @@ class LTI13 {
             return $retval;
         }
 
-        if ( $httpcode == 200 && is_object($json) ) {
+        if ( Net::httpSuccess($httpcode) && is_object($json) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Loaded lineitem";
             return $json;
         }
@@ -587,7 +588,7 @@ class LTI13 {
             return $retval;
         }
 
-        if ( $httpcode == 200 && is_array($json) ) {
+        if ( Net::httpSuccess($httpcode) && is_array($json) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Loaded results";
             return $json;
         }
@@ -628,7 +629,7 @@ class LTI13 {
         curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem delete, received status=$httpcode (".strlen($response)." characters)";
 
-        if ( $httpcode == 200 ) {
+        if ( Net::httpSuccess($httpcode) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Deleted lineitem";
             return true;
         }
@@ -697,7 +698,7 @@ class LTI13 {
 
         if ( is_array($debug_log) ) $debug_log[] = "Created line item, received status=$httpcode\n".$line_item;
 
-        if ( $httpcode != 200 ) {
+        if ( ! Net::httpSuccess($httpcode) ) {
             $json = json_decode($line_item, true);
             $status = U::get($json, "error", "Unable to create lineitem");
             if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
@@ -752,7 +753,7 @@ class LTI13 {
 
         if ( is_array($debug_log) ) $debug_log[] = "Updated line item, received status=$httpcode\n".$line_item;
 
-        if ( $httpcode != 200 ) {
+        if ( ! Net::httpSuccess($httpcode) ) {
             $json = json_decode($line_item, true);
             $status = U::get($json, "error", "Unable to update lineitem");
             if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";

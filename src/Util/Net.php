@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\Util;
 
 /**
@@ -504,6 +505,13 @@ class Net {
             FILTER_VALIDATE_IP,
             FILTER_FLAG_NO_PRIV_RANGE |  FILTER_FLAG_NO_RES_RANGE
         );
+    }
+
+    /**
+     * Return true if the http code is 2xx (success)
+     */
+    public static function httpSuccess($httpcode) {
+        return ($httpcode >= 200) && ($httpcode < 300);
     }
 
 }
