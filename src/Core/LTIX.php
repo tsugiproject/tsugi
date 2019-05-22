@@ -1806,8 +1806,10 @@ class LTIX {
 
         // Handle second half of the pre LTI 1.3 Launch Authorization Flow
         $tool_state = U::get($request_data, 'tool_state');
-        if ( $tool_state && $tool_state != self::getBrowserSignature() ) {
-            self::abort_with_error_log('Incorrect tool_state');
+        $my_tool_state = self::getBrowserSignature();
+        if ( $tool_state && $tool_state != $my_tool_state ) {
+            error_log("Mismatch tool_state, Incoming state $tool_state computed $my_tool_state");
+            self::abort_with_error_log('Mismatched tool_state');
         }
 
         // Handle first half of the pre LTI 1.3 Launch Authorization Flow
