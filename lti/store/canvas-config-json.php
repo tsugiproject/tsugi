@@ -86,8 +86,8 @@ $json_str = <<<JSON
       "domain":"domain",
       "tool_id":"toolid",
       "platform": "canvas.instructure.com",
-      "privacy_level":"public",
       "settings":{
+           "privacy_level":"public",
            "text":"Tsugi",
            "use_1_3":true,
            "icon_url":"icon_url",
@@ -137,6 +137,7 @@ $json_str = <<<JSON
     },
     "target_link_uri":"replace",
     "oidc_login_uri": "replace"
+    "oidc_redirect_uri": "replace"
 }
 JSON
 ;
@@ -155,7 +156,11 @@ header("Content-type: application/json");
 $json->title = $CFG->servicename;
 $json->description = $CFG->servicedesc;
 $json->public_jwk = $jwk;
-$json->target_link_uri = $CFG->wwwroot . "/lti/oidc_launch";
+
+// TODO: Fix this
+$json->target_link_uri = $CFG->wwwroot . "/lti/42_wtf";
+
+$json->oidc_redirect_uri = $CFG->wwwroot . "/lti/oidc_launch";
 $json->oidc_login_uri = $CFG->wwwroot . "/lti/oidc_login";
 $json->extensions[0]->domain = $domain;
 $json->extensions[0]->tool_id = md5($CFG->wwwroot);
