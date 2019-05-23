@@ -135,7 +135,7 @@ $json_str = <<<JSON
         "use":"sig"
     },
     "target_link_uri":"replace",
-    "oidc_login_uri": "replace"
+    "oidc_login_uri": "replace",
     "oidc_redirect_uri": "replace"
 }
 JSON
