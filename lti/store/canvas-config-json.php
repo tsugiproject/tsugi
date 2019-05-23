@@ -8,7 +8,7 @@ use Tsugi\Core\LTIX;
 
 LTIX::getConnection();
 
-// See the end of the file for some documentation references 
+// See the end of the file for some documentation references
 
 $issuer = U::get($_GET,"issuer",false);
 $issuer_id = U::get($_GET,"issuer_id",false);
@@ -40,7 +40,7 @@ $pubkey = $row['lti13_pubkey'];
 $pieces = parse_url($CFG->wwwroot);
 $domain = isset($pieces['host']) ? $pieces['host'] : false;
 
-// $pubkey = "-----BEGIN PUBLIC KEY----- 
+// $pubkey = "-----BEGIN PUBLIC KEY-----
 // MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvESXFmlzHz+nhZXTkjo2 9SBpamCzkd7SnpMXgdFEWjLfDeOu0D3JivEEUQ4U67xUBMY9voiJsG2oydMXjgkm GliUIVg+rhyKdBUJu5v6F659FwCj60A8J8qcstIkZfBn3yyOPVwp1FHEUSNvtbDL SRIHFPv+kh8gYyvqz130hE37qAVcaNME7lkbDmH1vbxi3D3A8AxKtiHs8oS41ui2 MuSAN9MDb7NjAlFkf2iXlSVxAW5xSek4nHGr4BJKe/13vhLOvRUCTN8h8z+SLORW abxoNIkzuAab0NtfO/Qh0rgoWFC9T69jJPAPsXMDCn5oQ3xh/vhG0vltSSIzHsZ8 pwIDAQAB
 // -----END PUBLIC KEY-----";
 
@@ -73,70 +73,62 @@ $jwk = array(
 
 $json_str = <<<JSON
 {
-    "title":"LTI 1.3 twoa",
-    "description":"1.3 Test Tool",
-    "scopes":[
+    "title": "Tsugi Cloud for Canvas",
+    "scopes": [
         "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
+        "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly",
         "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
         "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
     ],
-    "extensions":[
-    {
-      "domain":"domain",
-      "tool_id":"toolid",
-      "platform": "canvas.instructure.com",
-      "settings":{
-           "privacy_level":"public",
-           "text":"Tsugi",
-           "icon_url":"icon_url",
-           "selection_width":500,
-           "selection_height":500,
-           "placements": [
-            {
-                "text": "LTI 1.3 0d516e5f",
-                "enabled": true,
-                "icon_url": "https://static.thenounproject.com/png/131630-200.png",
-                "placement": "link_selection",
-                "placement_comment": "Modules",
-                "message_type": "LtiDeepLinkingRequest",
-                "target_link_uri": "?placement=assignment_selection",
-                "canvas_icon_class": "icon-lti"
-            },
-            {
-                "text": "LTI 1.3 0d516e5f",
-                "enabled": true,
-                "icon_url": "https://static.thenounproject.com/png/131630-200.png",
-                "placement": "assignment_selection",
-                "placement_comment": "External tool submission type",
-                "message_type": "LtiDeepLinkingRequest",
-                "target_link_uri": "?placement=assignment_selection",
-                "canvas_icon_class": "icon-lti"
-            },
-            {
-                "text": "LTI 1.3 0d516e5f",
-                "enabled": true,
-                "icon_url": "https://static.thenounproject.com/png/131630-200.png",
-                "placement": "editor_button",
-                "message_type": "LtiDeepLinkingRequest",
-                "target_link_uri": "?placement=editor_button",
-                "canvas_icon_class": "icon-lti"
+    "extensions": [
+        {
+            "platform": "canvas.instructure.com",
+            "settings": {
+                "placements": [
+                    {
+                        "text": "Canvas Tsugi",
+                        "placement": "course_navigation",
+                        "message_type": "LtiResourceLinkRequest",
+                        "target_link_uri": "https://canvas.tsugicloud.org/mod/cats/"
+                    },
+                    {
+                        "text": "Canvas Tsugi",
+                        "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
+                        "placement": "assignment_selection",
+                        "message_type": "LtiDeepLinkingRequest",
+                        "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=assignment_selection"
+                    },
+                    {
+                        "text": "Canvas Tsugi",
+                        "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
+                        "placement": "link_selection",
+                        "message_type": "LtiDeepLinkingRequest",
+                        "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=assignment_selection"
+                    },
+                    {
+                        "text": "Canvas Tsugi",
+                        "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
+                        "placement": "editor_button",
+                        "message_type": "LtiDeepLinkingRequest",
+                        "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=editor_button"
+                    }
+                ]
             }
-            ]
         }
-      }
     ],
-    "public_jwk":{
-        "e":"AQAB",
-        "n":"3yRcWT20SD9jrdPVwDj0pu3P4mh_VXldVQBHF9ggs3j2PM_j5NSRQP5jUovTbFP_-dpx_M_6llKCud8lFq6IOLuVq9Q5qar64cbc4ryQ1HGdLzBqJ39xZ5Pr5lvsQ6ppTrapkwNfN_iWNWxS1mYkdclu6AReVDAJB95uveMEqXB9fZQlBHU4vxwCvA9liTw6Msd0VGxr3KE5oxlKI1bxphieGG4t4Aqlda8oRamJPoRfzOQuedtY-5RmCrQ4eOB6ju2IzuQAjLGn_kTwyMQmin2moMnzZCwk2oLjImFopTnhmNvAUqzyRmgjSCLtXKR_vd3oaxKiTHZrvfh6kPqfuw",
-        "alg":"RS256",
-        "kid":"nHdYfFK3k2BzKRCzMyZGnr9JFtWKeKXS6R_FHiFgUnE",
-        "kty":"RSA",
-        "use":"sig"
+    "public_jwk": {
+        "e": "AQAB",
+        "n": "qO4FGwu73DwNXVFG6EJKNCnE5ceBAnxi5kOk3exYqx-mSCJNU7J3E88qbZa_jyhSOtSs1ZwtcBoBhROIcbfGznCLGoi3OjZzt223I7cT8WaR1gZlB0XJ6f1XPPo6-IleRZZ7BF1O6SlsIorN00i-K7hF-S9euzdvOHkGLWS6UU537wT19famfvjO-UDzXWTxCVOcdmCnW0oSBVXJeFia-yk9gYMyRuoozKyb6T-s9--OgSVhpvtxNF4fDFc_h26Syve1d7BJwa8Nd0LwKxIniXAtVJi-1Itm3pqwspCE0VJPdPpTx6HRW9wexDn6EtYdUcKjy93l7xLvgnObd3mxfQ",
+        "alg": "RS256",
+        "kid": "6rW2pCGQblYiEvW_OIDTRBOr6_Pt1NVQaGZ-Z_FF9Ys",
+        "kty": "RSA",
+        "use": "sig"
     },
-    "target_link_uri":"replace",
-    "oidc_login_uri": "replace",
-    "oidc_redirect_uri": "replace"
+    "description": "Tsugi Cloud for Canvas",
+    "custom_fields": {},
+    "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/42_wtf_this_is_silly_when_there_are_placements",
+    "oidc_initiation_url": "https://canvas.tsugicloud.org/tsugi/lti/oidc_login"
 }
 JSON
 ;
@@ -157,17 +149,17 @@ $json->description = $CFG->servicedesc;
 $json->public_jwk = $jwk;
 
 // TODO: Fix this
-$json->target_link_uri = $CFG->wwwroot . "/lti/42_wtf";
+$json->target_link_uri = $CFG->wwwroot . "/lti/42_wtf_this_is_silly_when_there_are_placements";
 
-$json->oidc_redirect_uri = $CFG->wwwroot . "/lti/oidc_launch";
-$json->oidc_login_uri = $CFG->wwwroot . "/lti/oidc_login";
+$json->oidc_redirect_url = $CFG->wwwroot . "/lti/oidc_launch";
+$json->oidc_initiation_url = $CFG->wwwroot . "/lti/oidc_login";
 $json->extensions[0]->domain = $domain;
 $json->extensions[0]->tool_id = md5($CFG->wwwroot);
 $json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
     $json->extensions[0]->settings->placements[$i]->text = $CFG->servicename;
-    $json->extensions[0]->settings->placements[$i]->target_link_uri = $CFG->wwwroot . "/lti/store/" . 
-        $json->extensions[0]->settings->placements[$i]->target_link_uri;
+    $json->extensions[0]->settings->placements[$i]->target_link_uri = $CFG->wwwroot . "/lti/store/?placement=" .
+        urlencode($json->extensions[0]->settings->placements[$i]->placement);
     $json->extensions[0]->settings->placements[$i]->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 }
 
