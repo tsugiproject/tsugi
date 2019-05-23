@@ -10,15 +10,29 @@ LTIX::getConnection();
 
 // See the end of the file for some documentation references 
 
-$kid = U::get($_GET,"key_id",false);
-if ( ! $kid ) die("missing key_id parameter");
+$issuer = U::get($_GET,"issuer",false);
+$issuer_id = U::get($_GET,"issuer_id",false);
+if ( strlen($issuer) < 1 && $issuer_id < 1 ) {
+    die('Missing issuer or issuer_id');
+}
 
-$row = $PDOX->rowDie(
-    "SELECT I.lti13_pubkey FROM {$CFG->dbprefix}lti_key AS K
-        JOIN {$CFG->dbprefix}lti_issuer AS I ON K.issuer_id = I.issuer_id
-        WHERE K.key_id = :KID AND I.lti13_pubkey IS NOT NULL",
-    array(":KID" => $kid)
-);
+if ( $issuer ) {
+    $issuer_sha256 = hash('sha256', trim($issuer));
+    $row = $PDOX->rowDie(
+        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
+            WHERE issuer_sha256 = :ISH AND lti13_pubkey IS NOT NULL",
+        array(":ISH" => $issuer_sha256)
+    );
+} else if ( $issuer_id > 0 ) {
+    $rows = $PDOX->rowDie(
+        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
+            WHERE issuer_id = :IID AND lti13_pubkey IS NOT NULL",
+        array(":IID" => $issuer_id)
+    );
+} else {
+    die('Missing issuer or issuer_id');
+}
+
 if ( ! $row ) die("Could not load key");
 
 $pubkey = $row['lti13_pubkey'];
@@ -45,7 +59,8 @@ $key->setPublicKey($pubkey);
 $jwk = array(
                     'kty' => 'RSA',
                     'e' => JOSE_URLSafeBase64::encode($key->publicExponent->toBytes()),
-                    'n' => JOSE_URLSafeBase64::encode($key->modulus->toBytes())
+                    'n' => JOSE_URLSafeBase64::encode($key->modulus->toBytes()),
+                    'kid' => hash('sha256', trim($pubkey)),
                 );
                 if ($key->exponent != $key->publicExponent) {
                     $components = array_merge($components, array(
@@ -143,7 +158,7 @@ $json->public_jwk = $jwk;
 $json->target_link_uri = $CFG->wwwroot . "/lti/oidc_launch";
 $json->oidc_login_uri = $CFG->wwwroot . "/lti/oidc_login";
 $json->extensions[0]->domain = $domain;
-$json->extensions[0]->tool_id = $kid;
+$json->extensions[0]->tool_id = md5($CFG->wwwroot);
 $json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
     $json->extensions[0]->settings->placements[$i]->text = $CFG->servicename;

@@ -28,7 +28,8 @@ $where_clause = '';
 $query_fields = array();
 $fields = array('issuer_id', 'issuer_key', 'issuer_client',
      'lti13_keyset_url', 'lti13_token_url', 'lti13_oidc_auth', 'lti13_platform_pubkey',
-     'lti13_pubkey', 'lti13_privkey', 'lti13_tool_keyset_url', 'created_at', 'updated_at');
+     'lti13_pubkey', 'lti13_privkey', 'lti13_tool_keyset_url', 'lti13_canvas_json_url',
+     'created_at', 'updated_at');
 $realfields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_sha256',
      'lti13_keyset_url', 'lti13_token_url', 'lti13_oidc_auth', 'lti13_platform_pubkey',
      'lti13_pubkey', 'lti13_privkey', 'created_at', 'updated_at');
@@ -43,6 +44,7 @@ $titles = array(
     'lti13_pubkey' => 'LTI 1.3 Tool Public Key (Provide to the platform)',
     'lti13_privkey' => 'LTI 1.3 Private Key (kept internally only)',
     'lti13_tool_keyset_url' => 'LTI 1.3 Tool Keyset Url (Extension - may not be needed/used by LMS)',
+    'lti13_canvas_json_url' => 'Canvas Configuration URL (json)',
 );
 
 // Handle the post data
@@ -67,6 +69,7 @@ $title = 'Issuer Entry';
 <?php
 $extra_buttons=false;
 $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer=' . urlencode($row['issuer_key']);
+$row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer=' . urlencode($row['issuer_key']);
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
