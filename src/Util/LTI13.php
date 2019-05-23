@@ -165,6 +165,14 @@ class LTI13 {
      */
     public static function verifyPublicKey($raw_jwt, $public_key, $algs=false) {
         if ( ! $algs ) $algs = array('RS256');
+
+        // From Google/AccessToken/Verify.php
+        if (property_exists('\Firebase\JWT\JWT', 'leeway')) {
+            // adds 60 seconds to JWT leeway - mostly to allow a server with a slightly ahead time to work
+            // @see https://github.com/google/google-api-php-client/issues/827
+            JWT::$leeway = 60;
+        }
+
         try {
             $decoded = JWT::decode($raw_jwt, $public_key, $algs);
             return true;
