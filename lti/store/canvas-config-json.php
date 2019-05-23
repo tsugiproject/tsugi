@@ -71,6 +71,7 @@ $jwk = array(
 // echo(json_encode($jwk));
 // echo("\n");
 
+// TODO: Remove course_navigation
 $json_str = <<<JSON
 {
     "title": "Tsugi Cloud for Canvas",
