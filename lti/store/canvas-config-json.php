@@ -89,7 +89,6 @@ $json_str = <<<JSON
       "settings":{
            "privacy_level":"public",
            "text":"Tsugi",
-           "use_1_3":true,
            "icon_url":"icon_url",
            "selection_width":500,
            "selection_height":500,
