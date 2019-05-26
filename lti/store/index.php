@@ -254,7 +254,7 @@ if ( isset($_GET['install']) ) {
         if ( is_object($launch_jwt) && isset($launch_jwt->body) ) {
             $body = $launch_jwt->body;
             if ( isset($body->iss) ) $jwt['aud'] = $body->iss;
-            if ( isset($body->{LTI13::DEPLOYMENT_ID}) ) $jwt[LTI13::DEPLOYMENT_ID] = $body->{LTI13::DEPLOYMENT_ID};
+            if ( isset($body->{LTI13::DEPLOYMENT_ID_CLAIM}) ) $jwt[LTI13::DEPLOYMENT_ID_CLAIM] = $body->{LTI13::DEPLOYMENT_ID_CLAIM};
         }
 
         foreach($jwt as $k => $v) {
