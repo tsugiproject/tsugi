@@ -916,8 +916,6 @@ class LTIX {
         $retval['issuer_sha256'] = $issuer_sha256;
         $retval['issuer_client'] = $jwt->body->aud;
         if ( isset($body->nonce) ) $retval['nonce'] = $body->nonce;
-
-        // TODO: This is too simple :)
         if ( isset($body->sub) ) {
             $retval['user_id'] = $body->sub;
             $retval['user_subject'] = $body->sub;

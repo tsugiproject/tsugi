@@ -151,7 +151,8 @@ array( "{$CFG->dbprefix}lti_user",
     user_id             INTEGER NOT NULL AUTO_INCREMENT,
     user_sha256         CHAR(64) NOT NULL,
     user_key            TEXT NOT NULL,
-    user_subject        TEXT NULL,
+    subject_sha256      CHAR(64) NOT NULL,
+    subject_key         TEXT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     key_id              INTEGER NOT NULL,
@@ -183,6 +184,7 @@ array( "{$CFG->dbprefix}lti_user",
         ON DELETE CASCADE ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_1` UNIQUE(key_id, user_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_user_const_2` UNIQUE(key_id, subject_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_pk` PRIMARY KEY (user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -1526,13 +1528,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    if ( ! $PDOX->columnExists('user_subject', "{$CFG->dbprefix}lti_user") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD user_subject TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
     // New for the LTI Advantage issuer refactor
     if ( ! $PDOX->columnExists('deploy_sha256', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD deploy_sha256 CHAR(64) NULL";
@@ -1613,6 +1608,28 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    if ( $PDOX->columnExists('user_subject', "{$CFG->dbprefix}lti_user") &&
+         ! $PDOX->columnExists('subject_key', "{$CFG->dbprefix}lti_user") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user CHANGE user_subject subject_key TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    if ( ! $PDOX->columnExists('subject_sha256', "{$CFG->dbprefix}lti_user") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD subject_sha256 CHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user ADD
+            CONSTRAINT `{$CFG->dbprefix}lti_user_const_2` UNIQUE(key_id, subject_sha256)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+    }
+
     // TODO: Remove all of the lti13_ fields from lti_key once the issuer refactor is done
     // TODO: Also when you activate this, remove all the new field additions above so the migrations don't undo each other
 
@@ -1633,7 +1650,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201905111039;
+    return 201905261634;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
