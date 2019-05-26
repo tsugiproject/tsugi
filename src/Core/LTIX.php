@@ -924,12 +924,12 @@ class LTIX {
         // TODO: Pull in the legacy information
         // Make sure to set 'key'
 
-        $resource_link_purl = 'https://purl.imsglobal.org/spec/lti/claim/resource_link';
-        $context_id_purl = 'https://purl.imsglobal.org/spec/lti/claim/context';
-        $deployment_id_purl = 'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
-        if ( isset($body->{$resource_link_purl}->id) ) $retval['link_id'] = $body->{$resource_link_purl}->id;
-        if ( isset($body->{$context_id_purl}->id) ) $retval['context_id'] = $body->{$context_id_purl}->id;
-        if ( isset($body->{$deployment_id_purl}) ) $retval['deployment_id'] = $body->{$deployment_id_purl};
+        $resource_link_claim = LTI13::RESOURCE_LINK_CLAIM;
+        $context_id_claim = LTI13::CONTEXT_ID_CLAIM;
+        $deployment_id_claim = LTI13::DEPLOYMENT_ID_CLAIM;
+        if ( isset($body->{$resource_link_claim}->id) ) $retval['link_id'] = $body->{$resource_link_claim}->id;
+        if ( isset($body->{$context_id_claim}->id) ) $retval['context_id'] = $body->{$context_id_claim}->id;
+        if ( isset($body->{$deployment_id_claim}) ) $retval['deployment_id'] = $body->{$deployment_id_claim};
 
         // Sanity checks
         $failures = array();
@@ -956,8 +956,8 @@ class LTIX {
         }
 
         // Context
-        $retval['context_title'] = isset($body->{$context_id_purl}->title) ? $body->{$context_id_purl}->title : null;
-        $retval['link_title'] = isset($body->{$resource_link_purl}->title) ? $body->{$resource_link_purl}->title : null;
+        $retval['context_title'] = isset($body->{$context_id_claim}->title) ? $body->{$context_id_claim}->title : null;
+        $retval['link_title'] = isset($body->{$resource_link_claim}->title) ? $body->{$resource_link_claim}->title : null;
 
         $retval['user_locale'] = isset($body->locale) ? $body->locale : null;
         $retval['user_email'] = isset($body->email) ? $body->email : null;

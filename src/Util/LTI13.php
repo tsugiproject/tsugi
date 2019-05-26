@@ -15,7 +15,8 @@ class LTI13 {
     const MESSAGE_TYPE_RESOURCE = 'LtiResourceLinkRequest';
     const MESSAGE_TYPE_DEEPLINK = 'LtiDeepLinkingRequest';
     const RESOURCE_LINK_CLAIM = 'https://purl.imsglobal.org/spec/lti/claim/resource_link';
-    const DEPLOYMENT_ID =       'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
+    const CONTEXT_ID_CLAIM =    'https://purl.imsglobal.org/spec/lti/claim/context';
+    const DEPLOYMENT_ID_CLAIM = 'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
     const ROLES_CLAIM =         'https://purl.imsglobal.org/spec/lti/claim/roles';
     const PRESENTATION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
     const LTI11_TRANSITION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/lti1p1';
@@ -247,7 +248,7 @@ class LTI13 {
         }
 
         if ( ! isset($body->{self::ROLES_CLAIM}) ) $failures[] = "Missing required role claim";
-        if ( ! isset($body->{self::DEPLOYMENT_ID}) ) $failures[] = "Missing required deployment_id claim";
+        if ( ! isset($body->{self::DEPLOYMENT_ID_CLAIM}) ) $failures[] = "Missing required deployment_id claim";
     }
 
     /** Retrieve a grade token
@@ -1020,7 +1021,7 @@ class LTI13 {
         $issuer = $lj->iss;
         $client_id = $lj->aud;
         $subject = $lj->sub;
-        $deployment_id = $lj->{self::DEPLOYMENT_ID};
+        $deployment_id = $lj->{self::DEPLOYMENT_ID_CLAIM};
         if ( $nonce == null || $issuer == null || $expires == null ||
                 $client_id == null || $subject == null || $deployment_id == null) return null;
 
