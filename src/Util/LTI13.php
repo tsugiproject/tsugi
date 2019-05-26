@@ -18,6 +18,7 @@ class LTI13 {
     const DEPLOYMENT_ID =       'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
     const ROLES_CLAIM =         'https://purl.imsglobal.org/spec/lti/claim/roles';
     const PRESENTATION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
+    const LTI11_TRANSITION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/lti1p1';
 
     const NAMESANDROLES_CLAIM = 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
     const ENDPOINT_CLAIM =      'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
@@ -981,6 +982,122 @@ class LTI13 {
             $better .= $part;
         }
         return $better;
+    }
+
+    // https://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
+    /*
+        sign=base64(hmac_sha256(utf8bytes('179248902&689302&https://lmsvendor.com&PM48OJSfGDTAzAo&1551290856&172we8671fd8z'), utf8bytes('my-lti11-secret')))
+
+        {
+            "nonce": "172we8671fd8z",
+            "iat": 1551290796,
+            "exp": 1551290856,
+            "iss": "https://lmsvendor.com",
+            "aud": "PM48OJSfGDTAzAo",
+            "sub": "3",
+            "https://purl.imsglobal.org/spec/lti/claim/deployment_id": "689302",
+            "https://purl.imsglobal.org/spec/lti/claim/lti1p1": {
+                "user_id": "34212",
+                "oauth_consumer_key": "179248902",
+                "oauth_consumer_key_sign": "lWd54kFo5qU7xshAna6v8BwoBm6tmUjc6GTax6+12ps="
+            }
+        }
+
+     */
+
+    /**
+     * Compute the base string for a Launch JWT
+     *
+     * See: https://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
+     *
+     * @param object $lj The Launch JSON Web Token with the LTI 1.1 transition data
+     *
+     * @return string This is null if the base string cannot be computed
+     */
+    public static function getLTI11TransitionBase($lj) {
+        $nonce =  $lj->nonce;
+        $expires = $lj->exp;
+        $issuer = $lj->iss;
+        $client_id = $lj->aud;
+        $subject = $lj->sub;
+        $deployment_id = $lj->{self::DEPLOYMENT_ID};
+        if ( $nonce == null || $issuer == null || $expires == null ||
+                $client_id == null || $subject == null || $deployment_id == null) return null;
+
+        if ( ! isset($lj->{self::LTI11_TRANSITION_CLAIM}) ) return null;
+        $lti11_transition = $lj->{self::LTI11_TRANSITION_CLAIM};
+        $user_id = $lti11_transition->user_id;
+        $oauth_consumer_key = $lti11_transition->oauth_consumer_key;
+        if ( $user_id == null || $oauth_consumer_key == null ) return null;
+
+        $base = $oauth_consumer_key . "&" . $deployment_id . "&" . $issuer . "&" .
+            $client_id . "&" . $expires . "&" . $nonce;
+
+        return $base;
+    }
+
+    /**
+     * Compute the OAuth signature for an LTI 1.3 Launch JWT
+     *
+     * See: https://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
+     *
+     * @param object $lj The Launch JSON Web Token with the LTI 11 transition data
+     * @param string $secret The OAuth secret
+     *
+     * @return string This is null if the signature cannot be computed
+     *
+     */
+    public static function signLTI11Transition($lj, $secret) {
+
+        if ( $secret == null ) return null;
+
+        $base = self::getLTI11TransitionBase($lj);
+        if ( $base == null ) return null;
+
+        $signature = self::compute_HMAC_SHA256($base, $secret);
+        return $signature;
+    }
+
+    /**
+     * Check the OAuth signature for an LTI 1.3 Launch JWT
+     *
+     * See: https://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
+     *
+     * @param object $lj The Launch JSON Web Token with the LTI 11 transition data
+     * @param string $secret The OAuth secret
+     *
+     * @return boolean True if the signature matches, false if the JWT is malformed or
+     * the signature does not match
+     */
+    public static function checkLTI11Transition($lj, $secret) {
+
+        if ( $secret == null ) return false;
+
+        if ( ! isset($lj->{self::LTI11_TRANSITION_CLAIM}) ) return false;
+        if ( ! isset($lj->{self::LTI11_TRANSITION_CLAIM}->oauth_consumer_key_sign) ) return false;
+
+        $oauth_consumer_key_sign = $lj->{self::LTI11_TRANSITION_CLAIM}->oauth_consumer_key_sign;
+
+        $base = self::getLTI11TransitionBase($lj);
+        if ( $base == null ) return false;
+
+        $signature = self::compute_HMAC_SHA256($base, $secret);
+        return $oauth_consumer_key_sign == $signature;
+    }
+
+    /**
+     * Computer the HMAC256 of a string (part of LTI 1.1 Transition)
+     *
+     * See: https://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
+     *
+     * Based on:
+     * https://www.jokecamp.com/blog/examples-of-creating-base64-hashes-using-hmac-sha256-in-different-languages/#php
+     */
+    public static function compute_HMAC_SHA256($message, $secret)
+    {
+        $s = hash_hmac('sha256', $message, $secret, true);
+        $hash = base64_encode($s);
+        return $hash;
     }
 
 }
