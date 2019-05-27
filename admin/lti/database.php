@@ -77,18 +77,6 @@ array( "{$CFG->dbprefix}lti_key",
 
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
-    -- TODO: Delete these after the issuer refactor is complete
-    lti13_client_id     TEXT NULL,
-    lti13_oidc_auth     TEXT NULL,
-    lti13_keyset_url    TEXT NULL,
-    lti13_keyset        TEXT NULL,
-    lti13_platform_pubkey TEXT NULL,
-    lti13_kid           TEXT NULL,
-    lti13_pubkey        TEXT NULL,
-    lti13_privkey       TEXT NULL,
-    lti13_token_url     TEXT NULL,
-
-
     secret              TEXT NULL,
     new_secret          TEXT NULL,
     ack                 TEXT NULL,
@@ -1084,34 +1072,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    // Clean up the mess - not very likely - because it was only for two hours
-    // TODO: Delete this in a few weeks
-    if ( $oldversion == 201708132146 || $oldversion == 201708132246) {
-
-        $sql = 'DROP TABLE lti_link_activity';
-        echo("Dropping to re-create: ".$sql."<br/>\n");
-        error_log("Dropping to re-create: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-        if ( ! $q->success ) {
-            $message = "Error: ".$q->errorImplode;
-            error_log($message);
-            echo($message."\n");
-        }
-
-        $sql = 'DROP TABLE lti_link_user_activity';
-        echo("Dropping to re-create: ".$sql."<br/>\n");
-        error_log("Dropping to re-create: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-        if ( ! $q->success ) {
-            $message = "Error: ".$q->errorImplode;
-            error_log($message);
-            echo($message."\n");
-        }
-
-        echo("Please Re-Run Database Upgrade to recreate these tables\n");
-
-    }
-
     // Add the caliper columns 201708161530
     if ( ! $PDOX->columnExists('caliper_url', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD caliper_url TEXT NULL";
@@ -1435,62 +1395,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    // TODO: Remove this when issuer refactor is done
-    if ( ! $PDOX->columnExists('lti13_pubkey', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_pubkey TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    // TODO: Remove this when issuer refactor is done
-    if ( ! $PDOX->columnExists('lti13_privkey', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_privkey TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    // TODO: Remove this when issuer refactor is done
-    if ( ! $PDOX->columnExists('lti13_kid', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_kid TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    // TODO: Remove this when issuer refactor is done
-    if ( ! $PDOX->columnExists('lti13_platform_pubkey', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_platform_pubkey TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    // TODO: Remove this when issuer refactor is done
-    if ( ! $PDOX->columnExists('lti13_keyset', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_keyset TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    // TODO: Remove this when issuer refactor is done
-    if ( ! $PDOX->columnExists('lti13_keyset_url', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_keyset_url TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    // TODO: Remove this when issuer refactor is done
-    if ( ! $PDOX->columnExists('lti13_token_url', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_token_url TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
     if ( ! $PDOX->columnExists('lti13_lineitem', "{$CFG->dbprefix}lti_link") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD lti13_lineitem TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
@@ -1507,22 +1411,6 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     if ( ! $PDOX->columnExists('lti13_membership_url', "{$CFG->dbprefix}lti_context") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD lti13_membership_url TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    // TODO: Remove this when issuer refactor is done
-    if ( ! $PDOX->columnExists('lti13_client_id', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_client_id TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    // TODO: Remove this when issuer refactor is done
-    if ( ! $PDOX->columnExists('lti13_oidc_auth', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD lti13_oidc_auth TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
@@ -1631,7 +1519,6 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // TODO: Remove all of the lti13_ fields from lti_key once the issuer refactor is done
-    // TODO: Also when you activate this, remove all the new field additions above so the migrations don't undo each other
 
     /*
     $remove_from_lti_key = array(
@@ -1650,7 +1537,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201905261634;
+    return 201905270800;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
