@@ -137,9 +137,9 @@ array( "{$CFG->dbprefix}lti_key",
 array( "{$CFG->dbprefix}lti_user",
 "create table {$CFG->dbprefix}lti_user (
     user_id             INTEGER NOT NULL AUTO_INCREMENT,
-    user_sha256         CHAR(64) NOT NULL,
+    user_sha256         CHAR(64) NULL,
     user_key            TEXT NULL,
-    subject_sha256      CHAR(64) NOT NULL,
+    subject_sha256      CHAR(64) NULL,
     subject_key         TEXT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
@@ -1469,13 +1469,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    // Drop lti_event table - it has been renamed to cal_event
-    if ( $PDOX->metadata("{$CFG->dbprefix}lti_event") ) {;
-        $sql= "DROP TABLE {$CFG->dbprefix}lti_event";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-    }
-
     // Version 201905111039 improvements - Prepare for issuer refactor
     if ( $oldversion < 201905111039 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY key_sha256 CHAR(64) NULL";
@@ -1527,11 +1520,22 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     }
 
-    // Version 201905270900 improvements
-    if ( $oldversion < 201905270900 ) {
+    // Version 201905270930 improvements
+    if ( $oldversion < 201905270930 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_user MODIFY user_key TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user MODIFY user_sha256 CHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user MODIFY subject_sha256 CHAR(64) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
     }
 
     // TODO: Remove all of the lti13_ fields from lti_key once the issuer refactor is done
@@ -1553,7 +1557,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201905270900;
+    return 201905270930;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
