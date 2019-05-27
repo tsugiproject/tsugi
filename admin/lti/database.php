@@ -1526,8 +1526,8 @@ $DATABASE_UPGRADE = function($oldversion) {
         'lti13_kid', 'lti13_pubkey', 'lti13_privkey', 'lti13_token_url'
     );
     foreach($remove_from_lti_key as $key) {
-        if ( $PDOX->columnExists($key, "{$CFG->dbprefix}lti_result") ) {
-            $sql= "ALTER TABLE {$CFG->dbprefix}lti_result DROP $key";
+        if ( $PDOX->columnExists($key, "{$CFG->dbprefix}lti_key") ) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}lti_key DROP $key";
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
