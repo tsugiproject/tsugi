@@ -124,7 +124,7 @@ array( "{$CFG->dbprefix}lti_key",
 
     CONSTRAINT `{$CFG->dbprefix}lti_key_both_not_null`
     CHECK (
-        (key_sha256 IS NOT NULL OR deployment_sha256 IS NOT NULL)
+        (key_sha256 IS NOT NULL OR deploy_sha256 IS NOT NULL)
     )
 
     CONSTRAINT `{$CFG->dbprefix}lti_key_deploy_linked`
@@ -138,7 +138,7 @@ array( "{$CFG->dbprefix}lti_user",
 "create table {$CFG->dbprefix}lti_user (
     user_id             INTEGER NOT NULL AUTO_INCREMENT,
     user_sha256         CHAR(64) NOT NULL,
-    user_key            TEXT NOT NULL,
+    user_key            TEXT NULL,
     subject_sha256      CHAR(64) NOT NULL,
     subject_key         TEXT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
@@ -175,6 +175,15 @@ array( "{$CFG->dbprefix}lti_user",
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_2` UNIQUE(key_id, subject_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_user_const_pk` PRIMARY KEY (user_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+/* If MySQL had CHECK constraints - these would be nice in lti_user - for now
+   we will just need to be careful in code.
+
+    CONSTRAINT `{$CFG->dbprefix}lti_user_both_not_null`
+    CHECK (
+        (user_sha256 IS NOT NULL OR subject_sha256 IS NOT NULL)
+    )
+ */
 
 array( "{$CFG->dbprefix}lti_context",
 "create table {$CFG->dbprefix}lti_context (
@@ -1518,6 +1527,13 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     }
 
+    // Version 201905270900 improvements
+    if ( $oldversion < 201905270900 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_user MODIFY user_key TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+    }
+
     // TODO: Remove all of the lti13_ fields from lti_key once the issuer refactor is done
 
     /*
@@ -1537,7 +1553,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201905270800;
+    return 201905270900;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
