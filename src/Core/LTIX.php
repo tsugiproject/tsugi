@@ -423,7 +423,7 @@ class LTIX {
         // $row = loadAllData($CFG->dbprefix, false, $post);
         $row = self::loadAllData($CFG->dbprefix, $CFG->dbprefix.'profile', $post);
 
-        // TODO: LTI13 Timestamp
+        // TODO: Might want to add general warning for close LTI13 Timestamps
         $delta = 0;
         if ( isset($request_data['oauth_timestamp']) ) {
             $server_time = $request_data['oauth_timestamp']+0;
@@ -548,9 +548,17 @@ class LTIX {
 
             $e = LTI13::verifyPublicKey($raw_jwt, $public_key, array($jwt->header->alg));
             if ( $e !== true ) {
-                error_log('public_key');
-                error_log($public_key);
                 self::abort_with_error_log('JWT validation fail key='.$issuer_key.' error='.$e->getMessage());
+            }
+
+            // Check validity of LTI 1.1 transition data if it exists
+            $lti11_transition_user_id = U::get($post, 'lti11_transition_user_id');
+            if ( strlen($lti11_transition_user_id) > 0 ) {
+                $lti11_oauth_consumer_key = $row['key_key'];  // From the join
+                $lti11_oauth_consumer_secret = self::decrypt_secret($row['secret']);
+                $check = LTI13::checkLTI11Transition($jwt->body, $lti11_oauth_consumer_key, $lti11_oauth_consumer_secret);
+                if ( is_string($check) ) self::abort_with_error_log('LTI 1.1 Transition error: '.$check);
+                if ( ! $check ) self::abort_with_error_log('LTI 1.1 Transition signature mis-match key='.$lti11_oauth_consumer_key);
             }
 
             // TODO: Encrypt private key
@@ -916,14 +924,24 @@ class LTIX {
         $retval['issuer_sha256'] = $issuer_sha256;
         $retval['issuer_client'] = $jwt->body->aud;
         if ( isset($body->nonce) ) $retval['nonce'] = $body->nonce;
+
+        // Don't set user_id for LTI 1.3
         if ( isset($body->sub) ) {
-            $retval['user_id'] = $body->sub;
             $retval['user_subject'] = $body->sub;
         }
 
-        // TODO: Pull in the legacy information
-        // Make sure to set 'key'
+        // Pull in the legacy information - signatures will be checked later
+        if ( isset($body->{LTI13::LTI11_TRANSITION_CLAIM}) ) {
+            $lti11_transition = $body->{LTI13::LTI11_TRANSITION_CLAIM};
+            if ( isset($lti11_transition->user_id) && isset($lti11_transition->oauth_consumer_key) &&
+                    isset($lti11_transition->oauth_consumer_key_sign) ) {
+                $retval['lti11_transition_user_id'] = $lti11_transition->user_id;
+                $retval['lti11_transition_oauth_consumer_key'] = $lti11_transition->oauth_consumer_key;
+                $retval['lti11_transition_oauth_consumer_key_sign'] = $lti11_transition->oauth_consumer_key_sign;
+            }
+        }
 
+        // The rest of the claims
         $resource_link_claim = LTI13::RESOURCE_LINK_CLAIM;
         $context_id_claim = LTI13::CONTEXT_ID_CLAIM;
         $deployment_id_claim = LTI13::DEPLOYMENT_ID_CLAIM;
@@ -939,7 +957,8 @@ class LTIX {
 
         if ( ! U::get($retval,'issuer_key') ) $failures[] = "Could not deterimine key issuer_from iss/aud";
         if ( ! U::get($retval,'nonce') ) $failures[] = "Missing nonce";
-        if ( in_array(self::USER, $needed) && ! U::get($retval,'user_id') ) $failures[] = "Missing subject/user_id (sub)";
+        if ( in_array(self::USER, $needed) &&
+            ! ( U::get($retval,'user_id') || U::get($retval,'user_subject')) ) $failures[] = "Missing subject/user_id (sub)";
         if ( in_array(self::CONTEXT, $needed) && ! U::get($retval,'context_id') ) $failures[] = "Missing context_id";
         if ( in_array(self::LINK, $needed) && ! U::get($retval,'link_id') ) $failures[] = "Missing resource_link->id";
 
@@ -1035,8 +1054,9 @@ class LTIX {
     // session secret.  Also make these change every 30 minutes
     public static function getCompositeKey($post, $session_secret) {
         $key = U::get($post, 'issuer_key', U::get($post, 'key'));
+        $user_info = U::get($post,'user_id') . U::get($post,'user_subject');
         $comp = $session_secret .'::'. $key .'::'. $post['context_id'] .'::'.
-            U::get($post,'link_id')  .'::'. $post['user_id'] .'::'. intval(time() / 1800) .
+            U::get($post,'link_id')  .'::'. $user_info .'::'. intval(time() / 1800) .
             $_SERVER['HTTP_USER_AGENT'] . '::' . __FILE__;
         return md5($comp);
     }
@@ -1058,12 +1078,11 @@ class LTIX {
         if ( $LTI13 ) {
             $sql = "SELECT i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
                 i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_privkey,
-                k.deploy_key,
+                k.deploy_key, u.subject_key,
             ";
         } else {
             $sql = "SELECT ";
         }
-
 
         $sql .= "k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
             k.login_at AS key_login_at,
@@ -1104,11 +1123,18 @@ class LTIX {
             $sql .="\nFROM {$p}lti_key AS k";
         }
 
+        // TODO: Collapse a few weeks after 05-27-2019
+        if ( $LTI13 ) {
+            $user_and = "(u.user_sha256 = :user OR u.subject_sha256 = :subject)";
+        } else {
+            $user_and = "u.user_sha256 = :user";
+        }
+
         // Add the JOINs
         $sql .= "\n    LEFT JOIN {$p}lti_nonce AS n ON k.key_id = n.key_id AND n.nonce = :nonce
             LEFT JOIN {$p}lti_context AS c ON k.key_id = c.key_id AND c.context_sha256 = :context
             LEFT JOIN {$p}lti_link AS l ON c.context_id = l.context_id AND l.link_sha256 = :link
-            LEFT JOIN {$p}lti_user AS u ON k.key_id = u.key_id AND u.user_sha256 = :user
+            LEFT JOIN {$p}lti_user AS u ON k.key_id = u.key_id AND $user_and
             LEFT JOIN {$p}lti_membership AS m ON u.user_id = m.user_id AND c.context_id = m.context_id
             LEFT JOIN {$p}lti_result AS r ON u.user_id = r.user_id AND l.link_id = r.link_id";
 
@@ -1128,7 +1154,6 @@ class LTIX {
             LEFT JOIN {$p}lti_link_user_activity AS au ON au.link_id = l.link_id AND au.user_id = u.user_id AND au.event = 0";
         }
 
-                // FROM {$CFG->dbprefix}lti_key WHERE key_sha256 = :SHA",
         // Add the WHERE clause
         if ( $LTI13 ) {
             $sql .= "\nWHERE i.issuer_sha256 = :issuer_sha256 AND i.issuer_client = :issuer_client
@@ -1161,15 +1186,29 @@ class LTIX {
         $sql .= "
             LIMIT 1\n";
 
-        // ContentItem does not neet link_id
+        // ContentItem does not need link_id
         if ( ! isset($post['link_id']) ) $post['link_id'] = null;
+
+        // Compute user identity bits based on user_subject, user_id and LTI 1.1 transition id if present
+        $user_subject = U::get($post, 'user_subject');
+        $subject_sha256 = strlen($user_subject) > 0 ? lti_sha256($user_subject) : null;
+
+        // Allow for for the legacy user id
+        $user_check = U::get($post, "user_id");
+        if ( strlen($user_check) < 1 ) {
+            $user_check = U::get($post, 'lti11_transition_user_id', null);
+        }
+        $user_sha256 = strlen($user_check) > 0 ? lti_sha256($user_check) : null;
+
         $parms = array(
             ':nonce' => substr($post['nonce'],0,128),
             ':context' => lti_sha256($post['context_id']),
             ':link' => lti_sha256($post['link_id']),
-            ':user' => lti_sha256($post['user_id']));
+            ':user' => $user_sha256,
+        );
 
         if ( $LTI13 ) {
+            $parms[':subject'] = $subject_sha256;
             $parms[':issuer_sha256'] = $post["issuer_sha256"];
             $parms[':issuer_client'] = $post["issuer_client"];
             $parms[':deployment_id'] = $post["deployment_id"];
@@ -1181,8 +1220,15 @@ class LTIX {
             $parms[':service'] = lti_sha256($post['service']);
         }
 
-        // die($sql);
+        /*
+        echo("<pre>\n$sql\n"); var_dump($parms);
+        $zapsql = $sql;
+        foreach($parms as $k => $v ) { $zapsql = str_replace($k, "'".$v."'", $zapsql); }
+        echo("\n$zapsql\n");
+        */
+        // die();
         $row = $PDOX->rowDie($sql, $parms);
+        // var_dump($row);die();
 
         // Restore ERRMODE
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
@@ -1257,7 +1303,12 @@ class LTIX {
         $user_email = isset($post['user_email']) ? $post['user_email'] : null;
         $user_image = isset($post['user_image']) ? $post['user_image'] : null;
         $user_locale = isset($post['user_locale']) ? $post['user_locale'] : null;
-        if ( $row['user_id'] === null && isset($post['user_id']) ) {
+        $user_subject = isset($post['user_subject']) ? $post['user_subject'] : null;
+
+        // $row['user_id'] is the primary key of the row
+        // $post['user_id'] is the user_id from the launch
+        // $post['user_subject'] is the user_subject from the launch
+        if ( $row['user_id'] === null && isset($post['user_id']) && strlen($post['user_id']) > 0) {
             $sql = "INSERT INTO {$p}lti_user
                 ( user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
                 ( :user_key, :user_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )";
@@ -1275,7 +1326,104 @@ class LTIX {
             $row['user_image'] = $user_image;
             $row['user_locale'] = $user_locale;
             $row['user_key'] = $post['user_id'];
+
             $actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email'];
+
+            // TODO: Combine this into the previous query after user_subject migrations run - 28-May-2019
+            if ( strlen($user_subject) > 0 ) {
+                $sql = "UPDATE {$p}lti_user SET
+                    subject_key = :subject_key,
+                    subject_sha256 = :subject_sha256
+                    WHERE user_id = :UID";
+
+                $stmt = $PDOX->queryReturnError($sql, array(
+                    ':UID' => $row['user_id'],
+                    ':subject_key' => $user_subject,
+                    ':subject_sha256' => lti_sha256($user_subject),
+                    )
+                );
+
+                if ( $stmt->success ) {
+                    $row['subject_key'] = $user_subject;
+                    $actions[] = "=== Added subject to new user id=".$row['user_id']." ".$row['user_email'];
+                } else {
+                    error_log("Unable to update user_subject - please upgrade database email=".$row['user_email']);
+                }
+            }
+        }
+
+        // An LTI 1.3 launch with a subject and no legacy user_id
+        $lti11_transition_user_id = isset($post['lti11_transition_user_id']) ? $post['lti11_transition_user_id'] : null;
+        $lti11_transition_user_id_sha256 = $lti11_transition_user_id === null ? null : lti_sha256($lti11_transition_user_id);
+        if ( $row['user_id'] === null && strlen($user_subject) > 0) {
+            $sql = "INSERT INTO {$p}lti_user
+                ( user_key, user_sha256, subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
+                ( :user_key, :user_sha256, :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )";
+            $PDOX->queryDie($sql, array(
+                ':user_key' => $lti11_transition_user_id,
+                ':user_sha256' => $lti11_transition_user_id_sha256,
+                ':subject_key' => $user_subject,
+                ':subject_sha256' => lti_sha256($user_subject),
+                ':displayname' => $user_displayname,
+                ':email' => $user_email,
+                ':image' => $user_image,
+                ':locale' => $user_locale,
+                ':key_id' => $row['key_id']));
+            $row['user_id'] = $PDOX->lastInsertId();
+            $row['user_email'] = $user_email;
+            $row['user_displayname'] = $user_displayname;
+            $row['user_image'] = $user_image;
+            $row['user_locale'] = $user_locale;
+            $row['user_subject'] = $user_subject;
+
+            $actions[] = "=== Inserted LTI1.3 user id=".$row['user_id']." ".$row['user_subject'];
+
+            // TODO: Remove this after testing.
+            error_log("=== Inserted LTI1.3 user id=".$row['user_id']." ".$row['user_subject']);
+        }
+
+        // If we have a user subject and all of a we get a new transition id, keep it
+        // Note that we will forever check for errors because of duplicate key possibilities
+        if ( $row['user_id'] > 0 && strlen($user_subject) > 0 && strlen($lti11_transition_user_id) > 0 &&
+            $row['user_key'] !=  $lti11_transition_user_id) {
+            $sql = "UPDATE {$p}lti_user
+                SET user_key = :user_key, user_sha256 = :user_sha256
+                WHERE user_id = :uid";
+            $stmt = $PDOX->queryReturnError($sql, array(
+                ':uid' => $row['user_id'],
+                ':user_key' => $lti11_transition_user_id,
+                ':user_sha256' => $lti11_transition_user_id_sha256,
+                )
+            );
+
+            if ( $stmt->success ) {
+                $row['user_key'] = $lti11_transition_user_id;
+                $actions[] = "=== Updated user_key for id=".$row['user_id']." subject=".$user_subject.
+                " transition_user_uid=".$lti11_transition_user_id;
+            } else {
+                error_log("Unable to update user_key - transition problem subject=$user_subject user_id=".$row['user_id']);
+            }
+        }
+
+        // If we already have a user_key and we just got a new user_subject
+        // Always check and log errors in case the transition went badly and then was reconfigured
+        $row_subject = U::get($row, 'subject_key');
+        if ( $row['user_id'] > 0 && strlen($user_subject) > 0 && $user_subject != $row_subject ) {
+            $sql = "UPDATE {$p}lti_user
+                SET subject_key = :subject_key, subject_sha256 = :subject_sha256
+                WHERE user_id = :uid";
+            $stmt = $PDOX->queryReturnError($sql, array(
+                ':uid' => $row['user_id'],
+                ':subject_key' => $user_subject,
+                ':subject_sha256' => lti_sha256($user_subject),
+                )
+            );
+            if ( $stmt->success ) {
+                $row['subject_key'] = $user_subject;
+                $actions[] = "=== Updated subject for id=".$row['user_id']." user_subject=".$user_subject;
+            } else {
+                error_log("Unable to update user_subject - transition problems new subject=".$user_subject." user_id=".$row['user_id']);
+            }
         }
 
         if ( $row['membership_id'] === null && $row['context_id'] !== null && $row['user_id'] !== null ) {

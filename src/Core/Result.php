@@ -150,7 +150,7 @@ class Result extends Entity {
 
         // Secret and key from session to avoid crossing tenant boundaries
         $key_key = false;
-        $user_key = false;
+        $user_subject = false;
         $secret = false;
         $lti13_privkey = false;
         if ( $row !== false ) {
@@ -158,7 +158,7 @@ class Result extends Entity {
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
             $key_key = isset($row['key_key']) ? $row['key_key'] : false;
-            $user_key = isset($row['user_key']) ? $row['user_key'] : false;
+            $user_subject = isset($row['user_subject']) ? $row['user_subject'] : false;
             $secret = isset($row['secret']) ? LTIX::decrypt_secret($row['secret']) : false;
             // Fall back to session if it is missing
             if ( $service === false ) $service = LTIX::ltiParameter('service');
@@ -184,7 +184,7 @@ class Result extends Entity {
 
         // Secret and key from session to avoid crossing tenant boundaries
         if ( ! $key_key ) $key_key = LTIX::ltiParameter('key_key');
-        if ( ! $user_key ) $user_key = LTIX::ltiParameter('user_key');
+        if ( ! $user_subject ) $user_subject = LTIX::ltiParameter('user_subject');
         if ( ! $secret ) $secret = LTIX::decrypt_secret(LTIX::ltiParameter('secret'));
         if ( ! $lti13_privkey ) $lti13_privkey = LTIX::decrypt_secret(LTIX::ltiParameter('lti13_privkey'));
 
@@ -230,10 +230,10 @@ class Result extends Entity {
 
             $grade_token = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey, $debug_log);
 
-            $comment = "Sending grade $grade user_key=$user_key lti13_lineitem=$lti13_lineitem grade_token=$grade_token";
+            $comment = "Sending grade $grade user_subject=$user_subject lti13_lineitem=$lti13_lineitem grade_token=$grade_token";
             error_log($comment);
-            $comment = "Sending grade $grade user_key=$user_key";
-            $status = LTI13::sendLineItemResult($user_key, $grade, $comment, $lti13_lineitem,
+            $comment = "Sending grade $grade user_subject=$user_subject";
+            $status = LTI13::sendLineItemResult($user_subject, $grade, $comment, $lti13_lineitem,
                         $grade_token, $debug_log);
 
         // Classic POX call

@@ -57,16 +57,20 @@ EOF
         $this->assertEquals($base, $expected_base);
 
         $secret = "my-lti11-secret";
+        $key = "179248902";
         $signature = \Tsugi\Util\LTI13::signLTI11Transition($lj, $secret);
         $this->assertEquals($signature, "lWd54kFo5qU7xshAna6v8BwoBm6tmUjc6GTax6+12ps=");
 
         $lj->{\Tsugi\Util\LTI13::LTI11_TRANSITION_CLAIM}->oauth_consumer_key_sign = $signature;
 
-        $check = \Tsugi\Util\LTI13::checkLTI11Transition($lj, $secret);
+        $check = \Tsugi\Util\LTI13::checkLTI11Transition($lj, $key, $secret);
         $this->assertTrue($check);
 
-        $check = \Tsugi\Util\LTI13::checkLTI11Transition($lj, "badsecret");
+        $check = \Tsugi\Util\LTI13::checkLTI11Transition($lj, $key, "badsecret");
         $this->assertFalse($check);
+
+        $check = \Tsugi\Util\LTI13::checkLTI11Transition($lj, "badkey", $secret);
+        $this->assertEquals($check, 'LTI1.1 Transition key mis-match tsugi key=badkey');
 
 
     }
