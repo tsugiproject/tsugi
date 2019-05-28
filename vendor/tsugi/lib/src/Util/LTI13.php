@@ -1065,29 +1065,34 @@ class LTI13 {
      * See: https://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
      *
      * @param object $lj The Launch JSON Web Token with the LTI 11 transition data
+     * @param string $key The OAuth key
      * @param string $secret The OAuth secret
      *
-     * @return boolean True if the signature matches, false if the JWT is malformed or
-     * the signature does not match
+     * @return mixed true if the signature matches, false if the JWT
+     * the signature does not match, and a string with an error if the JWT
+     * data is malformed.
      */
-    public static function checkLTI11Transition($lj, $secret) {
+    public static function checkLTI11Transition($lj, $key, $secret) {
 
-        if ( $secret == null ) return false;
+        if ( $key == null ) return "Missing oauth_consumer_key";
+        if ( $secret == null ) return "Missing OAuth secret";
 
-        if ( ! isset($lj->{self::LTI11_TRANSITION_CLAIM}) ) return false;
-        if ( ! isset($lj->{self::LTI11_TRANSITION_CLAIM}->oauth_consumer_key_sign) ) return false;
+        if ( ! isset($lj->{self::LTI11_TRANSITION_CLAIM}) ) return "LTI1.1 Transition claim not found";
+        if ( ! isset($lj->{self::LTI11_TRANSITION_CLAIM}->oauth_consumer_key) ) return "LTI1.1 Transition claim missing key";
+        if ( ! isset($lj->{self::LTI11_TRANSITION_CLAIM}->oauth_consumer_key_sign) ) return "LTI1.1 Transition signature not found";
 
+        if ( $key != $lj->{self::LTI11_TRANSITION_CLAIM}->oauth_consumer_key ) return "LTI1.1 Transition key mis-match tsugi key=$key";
         $oauth_consumer_key_sign = $lj->{self::LTI11_TRANSITION_CLAIM}->oauth_consumer_key_sign;
 
         $base = self::getLTI11TransitionBase($lj);
-        if ( $base == null ) return false;
+        if ( $base == null ) return "LTI 1.1 transition - could not create base string";
 
         $signature = self::compute_HMAC_SHA256($base, $secret);
         return $oauth_consumer_key_sign == $signature;
     }
 
     /**
-     * Computer the HMAC256 of a string (part of LTI 1.1 Transition)
+     * Compute the HMAC256 of a string (part of LTI 1.1 Transition)
      *
      * See: https://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
      *
