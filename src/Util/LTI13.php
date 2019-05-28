@@ -1098,6 +1098,11 @@ class LTI13 {
      *
      * Based on:
      * https://www.jokecamp.com/blog/examples-of-creating-base64-hashes-using-hmac-sha256-in-different-languages/#php
+     *
+     * @param object $message The message to sign
+     * @param string $secret The secret used to sign the message
+     *
+     * @return string The signed message
      */
     public static function compute_HMAC_SHA256($message, $secret)
     {
