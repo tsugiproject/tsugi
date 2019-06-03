@@ -207,8 +207,10 @@ if ( $other_nodes < 1 && isset($_POST['command']) && $command == "clone" ) {
             }
             $detail = new \stdClass();
             addRepoInfo($detail, $repo);
-            $results .= "\nStatus:\n";
-            $results .= $detail->status;
+            if ( isset($detail->status) ) {
+                $results .= "\nStatus:\n";
+                $results .= $detail->status;
+            }
 
             $sql = "INSERT INTO {$CFG->dbprefix}lms_tools
                 ( toolpath, name, description, clone_url, gitversion, created_at, updated_at ) VALUES
