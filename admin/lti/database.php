@@ -1538,9 +1538,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    // TODO: Remove all of the lti13_ fields from lti_key once the issuer refactor is done
-
-    /*
+    // 20190610 - Remove lti13 fields from lti_key
     $remove_from_lti_key = array(
         'lti13_oidc_auth', 'lti13_keyset_url', 'lti13_keyset', 'lti13_platform_pubkey',
         'lti13_kid', 'lti13_pubkey', 'lti13_privkey', 'lti13_token_url'
@@ -1553,11 +1551,10 @@ $DATABASE_UPGRADE = function($oldversion) {
             $q = $PDOX->queryReturnError($sql);
         }
     }
-    */
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201905270930;
+    return 201906101708;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
