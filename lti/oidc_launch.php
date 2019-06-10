@@ -60,27 +60,16 @@ if ( isset($jwt->body->{$url_claim}) && is_string($jwt->body->{$url_claim}) ) {
     error_log("target_link_uri from id_token ".$launch_url);
 }
 
-// TODO: Remove these alternate claim forumulations
-$url_claim2 = "https://purl.imsglobal.org/spec/lti/claim/launch_url";
-if ( ! $launch_url && isset($jwt->body->{$url_claim2}) && is_string($jwt->body->{$url_claim2}) ) {
-    $launch_url = $jwt->body->{$url_claim2};
-    error_log("launch_url from id_token ".$launch_url);
-}
-
-// TODO: Remove these alternate claim forumulations
-$url_claim3 = "https://purl.imsglobal.org/spec/lti/claim/resource_url";
-if ( ! $launch_url && isset($jwt->body->{$url_claim3}) && is_string($jwt->body->{$url_claim3}) ) {
-    $launch_url = $jwt->body->{$url_claim3};
-    error_log("resource_url from id_token ".$launch_url);
-}
-
-if ( ! $launch_url && isset($decoded->target_link_uri) && is_string($decoded->target_link_uri) ) {
-    $launch_url = $decoded->target_link_uri;
-    error_log("*WARNING* Launch url from unsigned target_link_uri ".$launch_url);
-}
-
 if ( ! $launch_url ) {
     LTIX::abort_with_error_log("Missing or incorrect launch_url claim in body");
+}
+
+// Double check that target_link_uri did not change from oidc_login to now
+if ( isset($decoded->target_link_uri) && is_string($decoded->target_link_uri) ) {
+    $state_target_link_uri = $decoded->target_link_uri;
+    if ( $launch_url != $state_target_link_uri ) {
+        LTIX::abort_with_error_log("Mis-match between claim target ($launch_url) and state target($state_target_link_uri)");
+    }
 }
 
 // Check for bad places to go

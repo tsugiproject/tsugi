@@ -47,6 +47,7 @@ $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 $payload = array();
 $payload['signature'] = $signature;
 $payload['time'] = time();
+// Someday we might do something clever with this...
 if ( U::get($_REQUEST,'target_link_uri') ) {
     $payload['target_link_uri'] = $_REQUEST['target_link_uri'];
 }
