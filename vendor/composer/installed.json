@@ -1312,56 +1312,6 @@
         "abandoned": "symfony/flex"
     },
     {
-        "name": "koseu/lib",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/tsugiproject/koseu-php.git",
-            "reference": "3d8995257810291d2ff4c8ce4d0843e9f2320458"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/3d8995257810291d2ff4c8ce4d0843e9f2320458",
-            "reference": "3d8995257810291d2ff4c8ce4d0843e9f2320458",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.5.0",
-            "silex/silex": "v2.0.4",
-            "symfony/translation": "v3.2.7",
-            "tsugi/lib": ">=0.3.1",
-            "twig/twig": "~1.27"
-        },
-        "time": "2018-09-14 23:14:26",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Koseu\\": "src/"
-            },
-            "exclude-from-classmap": [
-                "/tests/",
-                "phpdoc.dist.xml",
-                "phpunit.xml.dist"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "authors": [
-            {
-                "name": "csev",
-                "email": "drchuck@gmail.com",
-                "homepage": "http://www.dr-chuck.com/",
-                "role": "Developer"
-            }
-        ],
-        "description": "A Next Generation Embeddable Learning Management System",
-        "homepage": "http://www.koseu.org/"
-    },
-    {
         "name": "phpseclib/phpseclib",
         "version": "2.0.11",
         "version_normalized": "2.0.11.0",
@@ -2340,18 +2290,68 @@
         ]
     },
     {
+        "name": "koseu/lib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/tsugiproject/koseu-php.git",
+            "reference": "5ffba8a948e6fceaa20d73d9dce83151ca4deaf6"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/5ffba8a948e6fceaa20d73d9dce83151ca4deaf6",
+            "reference": "5ffba8a948e6fceaa20d73d9dce83151ca4deaf6",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.5.0",
+            "silex/silex": "v2.0.4",
+            "symfony/translation": "v3.2.7",
+            "tsugi/lib": ">=0.3.1",
+            "twig/twig": "~1.27"
+        },
+        "time": "2018-09-14 23:14:26",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Koseu\\": "src/"
+            },
+            "exclude-from-classmap": [
+                "/tests/",
+                "phpdoc.dist.xml",
+                "phpunit.xml.dist"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "csev",
+                "email": "drchuck@gmail.com",
+                "homepage": "http://www.dr-chuck.com/",
+                "role": "Developer"
+            }
+        ],
+        "description": "A Next Generation Embeddable Learning Management System",
+        "homepage": "http://www.koseu.org/"
+    },
+    {
         "name": "tsugi/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "e199afc07c9e0425fff336bf8544a81ce6165bb6"
+            "reference": "380c0b5938887eadf40d33b2154a3ecabc70fbe2"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e199afc07c9e0425fff336bf8544a81ce6165bb6",
-            "reference": "e199afc07c9e0425fff336bf8544a81ce6165bb6",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/380c0b5938887eadf40d33b2154a3ecabc70fbe2",
+            "reference": "380c0b5938887eadf40d33b2154a3ecabc70fbe2",
             "shasum": ""
         },
         "require": {

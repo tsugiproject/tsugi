@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "5645329e4d70ee2c94d44c7003905da1",
-    "content-hash": "a5b9a5337a421642a8a0e5a2499550c5",
+    "hash": "02f03d8dc059624bdb377c42bb27f275",
+    "content-hash": "82ee7bd0affe5633168cd346ea55d54f",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -729,12 +729,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "3d8995257810291d2ff4c8ce4d0843e9f2320458"
+                "reference": "5ffba8a948e6fceaa20d73d9dce83151ca4deaf6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/3d8995257810291d2ff4c8ce4d0843e9f2320458",
-                "reference": "3d8995257810291d2ff4c8ce4d0843e9f2320458",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/5ffba8a948e6fceaa20d73d9dce83151ca4deaf6",
+                "reference": "5ffba8a948e6fceaa20d73d9dce83151ca4deaf6",
                 "shasum": ""
             },
             "require": {
@@ -2211,12 +2211,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "e199afc07c9e0425fff336bf8544a81ce6165bb6"
+                "reference": "380c0b5938887eadf40d33b2154a3ecabc70fbe2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e199afc07c9e0425fff336bf8544a81ce6165bb6",
-                "reference": "e199afc07c9e0425fff336bf8544a81ce6165bb6",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/380c0b5938887eadf40d33b2154a3ecabc70fbe2",
+                "reference": "380c0b5938887eadf40d33b2154a3ecabc70fbe2",
                 "shasum": ""
             },
             "require": {
