@@ -2501,7 +2501,7 @@ class LTIX {
         $ltiProps[LTIConstants::LIS_PERSON_NAME_FULL] = $USER->displayname;
         $ltiProps[LTIConstants::LIS_PERSON_CONTACT_EMAIL_PRIMARY] = $USER->email;
 
-        $ltiProps['tool_consumer_instance_guid'] = $CFG->product_instance_guid;
+        $ltiProps['tool_consumer_instance_guid'] = $CFG->wwwroot;
         $ltiProps['tool_consumer_instance_description'] = $CFG->servicename;
 
         return $ltiProps;
