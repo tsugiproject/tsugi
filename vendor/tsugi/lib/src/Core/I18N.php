@@ -153,6 +153,7 @@ class I18N {
         }
 
         $lang = substr($TSUGI_LOCALE, 0, 2);
+        if ( $lang == '*' ) $lang = 'en';  // Symfony can't handle '*'
         // error_log("lang=$lang");
         $master_file = $CFG->dirroot."/locale/$lang/LC_MESSAGES/master.mo";
         $domain_file = $CFG->getScriptPathFull()."/locale/$lang/LC_MESSAGES/$domain.mo";
