@@ -216,12 +216,6 @@ $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
 // $CFG->badge_path = $CFG->dirroot . '/../bimages';
 // $CFG->badge_url = $CFG->apphome . '/bimages';
 
-// From LTI 2.0 spec: A globally unique identifier for the service provider.
-// As a best practice, this value should match an Internet domain name
-// assigned by ICANN, but any globally unique identifier is acceptable.
-$CFG->product_instance_guid = parse_url($CFG->wwwroot)['host'];
-// $CFG->product_instance_guid = 'lti2.example.com';
-
 // Sets the default locale for users without a locale
 // in the launch or in the browser
 // If you want to change this and test using the test harness, make sure
