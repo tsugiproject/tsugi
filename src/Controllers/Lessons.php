@@ -143,7 +143,7 @@ class Lessons {
 
         $endpoint = $lti->launch;
         $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
-            "Finish Launch", $CFG->product_instance_guid, $CFG->servicename);
+            "Finish Launch", $CFG->wwwroot, $CFG->servicename);
 
         $content = LTI::postLaunchHTML($parms, $endpoint, false /*debug */);
         print($content);
