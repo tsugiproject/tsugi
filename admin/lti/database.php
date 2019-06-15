@@ -79,21 +79,10 @@ array( "{$CFG->dbprefix}lti_key",
 
     secret              TEXT NULL,
     new_secret          TEXT NULL,
-    ack                 TEXT NULL,
 
     -- This is the owner of this key - it is not a foreign key
     -- on purpose to avoid potential circular foreign keys
-    -- This is null for LTI1 and the user_id for LTI2 keys
-    -- In LTI2, key_key is chosen by the TC so we must not allow
-    -- One TC to take over another's key_key - this must be
-    -- checked carefully in a transaction during LTI 2 registration
     user_id             INTEGER NULL,
-
-    consumer_profile    MEDIUMTEXT NULL,
-    new_consumer_profile  MEDIUMTEXT NULL,
-
-    tool_profile        MEDIUMTEXT NULL,
-    new_tool_profile    MEDIUMTEXT NULL,
 
     caliper_url         TEXT NULL,
     caliper_key         TEXT NULL,
@@ -738,28 +727,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryDie($sql);
 
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD consumer_profile TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD new_consumer_profile TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
-
-    // Add fields to line up with SPV's tables as much as possible
-    if ( $oldversion < 201408230900 ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD new_tool_profile TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD tool_profile TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
     }
 
     // Version 201408240800 improvements
@@ -923,8 +890,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     // Lots of MEDIUMTEXT fields
     if ( $oldversion < 201703171713 ) {
         $todo = array(
-            "lti_key" => array( "consumer_profile", "new_consumer_profile", "tool_profile",
-            "new_tool_profile", "json", "settings"),
+            "lti_key" => array( "json", "settings"),
             "lti_context" => array( "json", "settings"),
             "lti_link" => array( "json", "settings"),
             "lti_user" => array( "json"),
@@ -1546,6 +1512,20 @@ $DATABASE_UPGRADE = function($oldversion) {
     foreach($remove_from_lti_key as $key) {
         if ( $PDOX->columnExists($key, "{$CFG->dbprefix}lti_key") ) {
             $sql= "ALTER TABLE {$CFG->dbprefix}lti_key DROP $key";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+        }
+    }
+
+    // Remove from lti2
+    $remove_from_lti_key = array(
+        'consumer_profile', 'new_consumer_profile',
+        'tool_profile', 'new_tool_profile', 'ack',
+    );
+    foreach($remove_from_lti_key as $column) {
+        if ( $PDOX->columnExists($column, "{$CFG->dbprefix}lti_key") ) {
+            $sql= "ALTER TABLE {$CFG->dbprefix}lti_key DROP $column";
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
