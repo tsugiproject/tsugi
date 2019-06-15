@@ -1770,9 +1770,10 @@ class LTIX {
         // Or their computer goes to sleep and wakes back up hours later.
         // So it is just a warning - nothing much we can do except tell them.
         if ( count($needed) > 0 && self::wrapped_session_get($session_object, 'lti',null) === null ) {
-            self::send403(); error_log('Session expired - please re-launch '.session_id());
             self::wrapped_session_flush($session_object);
-            die('Session expired - please re-launch'); // with error_log
+            self::abort_with_error_log('Session expired - please re-launch '.session_id(),
+                U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
+            );
         }
 
         // Check the referrer...
