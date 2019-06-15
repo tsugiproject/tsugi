@@ -140,20 +140,6 @@ class ConfigInfo {
     public $adminpw = 'warning:please-change-adminpw-89b543!';
 
     /** 
-     * The product instance guid - generally the domain of the server.
-     *
-     * For testing you can leave this default, but for production this
-     * needs to generally be the real domain name of the Tsugi server 
-     * to make sure tools are uniquely identified.
-     *
-     * From LTI 2.0 spec: A globally unique identifier for the service provider. 
-     * As a best practice, this value should match an Internet domain name 
-     * assigned by ICANN, but any globally unique identifier is acceptable.
-     */
-
-    public $product_instance_guid = 'lti2.example.com';
-
-    /** 
      * Prefix for tool registration codes.
      *
      * For LTI 2.0 registrations: This is a prefix applied to the tool registration 
