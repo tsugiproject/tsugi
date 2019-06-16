@@ -92,10 +92,7 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
             $message .= $CFG->wwwroot . "/settings/key/using\n\n";
             error_log("New LTI 1.x Key Inserted: $oauth_consumer_key User: ".$_SESSION['email']);
         } else {
-            $message .= "\nThe URL for LTI 2.x Registration is at\n\n";
-            $message .= $CFG->wwwroot . "/lti/register\n\n";
-            $admin_message = $message;
-            error_log("LTI 2.x Key Approved request_id=".$request_id." User: ".$_SESSION['email']);
+            die('LTI 2.x no longer supported');
         }
 
         // Update the request row
@@ -218,15 +215,8 @@ connect to Google Classroom and install tools.
                     IMS LTI 1.x (You will get a key/secret - this is the most common option)
                 </label>
             </div>
-            <div class="radio">
-                <label>
-                    <input type="radio" name="lti" id="request_lti_2" value="2">
-                    IMS LTI 2.x (You will get a registration URL)
-                </label>
-            </div>
-            <p>At this point, LTI 2.x is not well supported and may well be removed from LMS
-            systems, so in nearly all cases except for testing LTI 2.x,
-            you should request an LTI 1.x key.</p>
+            <p>To get an LTI Advantage Key, apply for an LTI 1.x key add a note in the comments
+            below.</p>
 
             <label for="request_reason">Reason / Comments: (required)</label>
             <textarea class="form-control" id="request_reason" name="notes" rows="6"></textarea>

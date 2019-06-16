@@ -135,9 +135,9 @@ $CFG->adminpw = false;
 // This allows you to include various tool folders.  These are scanned
 // for register.php, database.php and index.php files to do automatic
 // table creation as well as making lists of tools in various UI places
-// such as ContentItem or LTI 2.0
+// such as ContentItem 
 
-// For nomal tsugi, by default we use the built-in admin tools, and
+// For normal tsugi, by default we use the built-in admin tools, and
 // install new tools (see /admin/install/) into mod.
 $CFG->tool_folders = array("admin", "mod");
 $CFG->install_folder = $CFG->dirroot.'/mod';
