@@ -337,6 +337,11 @@ class LTI13 {
     public static function sendLineItemResult($user_id, $grade, $comment, $lineitem_url,
         $access_token, &$debug_log=false) {
 
+        if ( strlen($user_id) < 1 ) {
+            if ( is_array($debug_log) ) $debug_log[] = 'Missing user_id';
+            return false;
+        }
+
         $lineitem_url = trim($lineitem_url);
 
         $ch = curl_init();
@@ -372,6 +377,7 @@ class LTI13 {
 
         if ( is_array($debug_log) ) $debug_log[] = "Scores Url: ".$actual_url;
         if ( is_array($debug_log) ) $debug_log[] = $headers;
+        if ( is_array($debug_log) ) $debug_log[] = $grade_call;
 
         $line_item = curl_exec($ch);
 

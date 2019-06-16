@@ -561,8 +561,7 @@ class LTIX {
                 if ( ! $check ) self::abort_with_error_log('LTI 1.1 Transition signature mis-match key='.$lti11_oauth_consumer_key);
             }
 
-            // TODO: Encrypt private key
-            $row['lti13_privkey'] = $private_key;
+            $row['lti13_privkey'] = self::encrypt_secret($private_key);
             $row['lti13_token_url'] = $token_url;
 
             // Just copy across
@@ -1190,8 +1189,8 @@ class LTIX {
         if ( ! isset($post['link_id']) ) $post['link_id'] = null;
 
         // Compute user identity bits based on user_subject, user_id and LTI 1.1 transition id if present
-        $user_subject = U::get($post, 'user_subject');
-        $subject_sha256 = strlen($user_subject) > 0 ? lti_sha256($user_subject) : null;
+        $post_user_subject = U::get($post, 'user_subject');
+        $subject_sha256 = strlen($post_user_subject) > 0 ? lti_sha256($post_user_subject) : null;
 
         // Allow for for the legacy user id
         $user_check = U::get($post, "user_id");
@@ -1303,11 +1302,12 @@ class LTIX {
         $user_email = isset($post['user_email']) ? $post['user_email'] : null;
         $user_image = isset($post['user_image']) ? $post['user_image'] : null;
         $user_locale = isset($post['user_locale']) ? $post['user_locale'] : null;
-        $user_subject = isset($post['user_subject']) ? $post['user_subject'] : null;
+        $post_user_subject = isset($post['user_subject']) ? $post['user_subject'] : null;
 
         // $row['user_id'] is the primary key of the row
         // $post['user_id'] is the user_id from the launch
         // $post['user_subject'] is the user_subject from the launch
+        // $row['subject_key'] is the subject from the row
         if ( $row['user_id'] === null && isset($post['user_id']) && strlen($post['user_id']) > 0) {
             $sql = "INSERT INTO {$p}lti_user
                 ( user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
@@ -1330,7 +1330,7 @@ class LTIX {
             $actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email'];
 
             // TODO: Combine this into the previous query after user_subject migrations run - 28-May-2019
-            if ( strlen($user_subject) > 0 ) {
+            if ( strlen($post_user_subject) > 0 ) {
                 $sql = "UPDATE {$p}lti_user SET
                     subject_key = :subject_key,
                     subject_sha256 = :subject_sha256
@@ -1338,13 +1338,13 @@ class LTIX {
 
                 $stmt = $PDOX->queryReturnError($sql, array(
                     ':UID' => $row['user_id'],
-                    ':subject_key' => $user_subject,
-                    ':subject_sha256' => lti_sha256($user_subject),
+                    ':subject_key' => $post_user_subject,
+                    ':subject_sha256' => lti_sha256($post_user_subject),
                     )
                 );
 
                 if ( $stmt->success ) {
-                    $row['subject_key'] = $user_subject;
+                    $row['subject_key'] = $post_user_subject;
                     $actions[] = "=== Added subject to new user id=".$row['user_id']." ".$row['user_email'];
                 } else {
                     error_log("Unable to update user_subject - please upgrade database email=".$row['user_email']);
@@ -1355,15 +1355,15 @@ class LTIX {
         // An LTI 1.3 launch with a subject and no legacy user_id
         $lti11_transition_user_id = isset($post['lti11_transition_user_id']) ? $post['lti11_transition_user_id'] : null;
         $lti11_transition_user_id_sha256 = $lti11_transition_user_id === null ? null : lti_sha256($lti11_transition_user_id);
-        if ( $row['user_id'] === null && strlen($user_subject) > 0) {
+        if ( $row['user_id'] === null && strlen($post_user_subject) > 0) {
             $sql = "INSERT INTO {$p}lti_user
                 ( user_key, user_sha256, subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
                 ( :user_key, :user_sha256, :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )";
             $PDOX->queryDie($sql, array(
                 ':user_key' => $lti11_transition_user_id,
                 ':user_sha256' => $lti11_transition_user_id_sha256,
-                ':subject_key' => $user_subject,
-                ':subject_sha256' => lti_sha256($user_subject),
+                ':subject_key' => $post_user_subject,
+                ':subject_sha256' => lti_sha256($post_user_subject),
                 ':displayname' => $user_displayname,
                 ':email' => $user_email,
                 ':image' => $user_image,
@@ -1374,17 +1374,14 @@ class LTIX {
             $row['user_displayname'] = $user_displayname;
             $row['user_image'] = $user_image;
             $row['user_locale'] = $user_locale;
-            $row['user_subject'] = $user_subject;
+            $row['subject_key'] = $post_user_subject;
 
-            $actions[] = "=== Inserted LTI1.3 user id=".$row['user_id']." ".$row['user_subject'];
-
-            // TODO: Remove this after testing.
-            error_log("=== Inserted LTI1.3 user id=".$row['user_id']." ".$row['user_subject']);
+            $actions[] = "=== Inserted LTI1.3 user id=".$row['user_id']." ".$row['subject_key'];
         }
 
         // If we have a user subject and all of a we get a new transition id, keep it
         // Note that we will forever check for errors because of duplicate key possibilities
-        if ( $row['user_id'] > 0 && strlen($user_subject) > 0 && strlen($lti11_transition_user_id) > 0 &&
+        if ( $row['user_id'] > 0 && strlen($post_user_subject) > 0 && strlen($lti11_transition_user_id) > 0 &&
             $row['user_key'] !=  $lti11_transition_user_id) {
             $sql = "UPDATE {$p}lti_user
                 SET user_key = :user_key, user_sha256 = :user_sha256
@@ -1398,31 +1395,31 @@ class LTIX {
 
             if ( $stmt->success ) {
                 $row['user_key'] = $lti11_transition_user_id;
-                $actions[] = "=== Updated user_key for id=".$row['user_id']." subject=".$user_subject.
+                $actions[] = "=== Updated user_key for id=".$row['user_id']." subject=".$post_user_subject.
                 " transition_user_uid=".$lti11_transition_user_id;
             } else {
-                error_log("Unable to update user_key - transition problem subject=$user_subject user_id=".$row['user_id']);
+                error_log("Unable to update user_key - transition problem subject=$post_user_subject user_id=".$row['user_id']);
             }
         }
 
-        // If we already have a user_key and we just got a new user_subject
+        // If we already have a user_key and we just got a new post_user_subject
         // Always check and log errors in case the transition went badly and then was reconfigured
-        $row_subject = U::get($row, 'subject_key');
-        if ( $row['user_id'] > 0 && strlen($user_subject) > 0 && $user_subject != $row_subject ) {
+        $row_subject_key = U::get($row, 'subject_key');
+        if ( $row['user_id'] > 0 && strlen($post_user_subject) > 0 && $post_user_subject != $row_subject_key ) {
             $sql = "UPDATE {$p}lti_user
                 SET subject_key = :subject_key, subject_sha256 = :subject_sha256
                 WHERE user_id = :uid";
             $stmt = $PDOX->queryReturnError($sql, array(
                 ':uid' => $row['user_id'],
-                ':subject_key' => $user_subject,
-                ':subject_sha256' => lti_sha256($user_subject),
+                ':subject_key' => $post_user_subject,
+                ':subject_sha256' => lti_sha256($post_user_subject),
                 )
             );
             if ( $stmt->success ) {
-                $row['subject_key'] = $user_subject;
-                $actions[] = "=== Updated subject for id=".$row['user_id']." user_subject=".$user_subject;
+                $row['subject_key'] = $post_user_subject;
+                $actions[] = "=== Updated subject_key for id=".$row['user_id']." post_user_subject=".$post_user_subject;
             } else {
-                error_log("Unable to update user_subject - transition problems new subject=".$user_subject." user_id=".$row['user_id']);
+                error_log("Unable to update subject_key - transition problems post_user_subject=".$post_user_subject." user_id=".$row['user_id']);
             }
         }
 
@@ -2032,8 +2029,6 @@ class LTIX {
      * update our local cached copy of the server_grade and the date
      * retrieved. This routine pulls the key and secret from the LTIX
      * session to avoid crossing cross tennant boundaries.
-     *
-     * TODO: Add LTI 2.x support for the JSON style services to this
      *
      * @param $row An optional array with the data that has the result_id, sourcedid,
      * and service (url) if this is not present, the data is pulled from the LTI
