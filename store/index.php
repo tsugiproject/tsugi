@@ -187,7 +187,7 @@ if ( isset($_GET['install']) ) {
         $activity_id = $install;
     }
     $custom = false;
-    $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon, $custom, $points, $activity_id);
+    $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $points, $activity_id);
     $endform = '<a href="." class="btn btn-warning">Back to Store</a>';
     $content = $retval->prepareResponse($endform);
     echo($content);

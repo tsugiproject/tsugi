@@ -121,8 +121,36 @@ echo('<a href="#" class="btn btn-default" role="button" onclick="showModal(\'Too
 echo(' ');
 echo('<a href="'.$rest_path->parent.'/test/'.urlencode($install).'" class="btn btn-default" role="button">Test</a> ');
 echo(' ');
-echo('<a href="../index.php?install='.urlencode($install).'" class="btn btn-success" role="button"><span class="fa fa-plus" aria-hidden="true"></span> Install</a>');
+echo('<button type="button" class="btn btn-success" role="button" data-toggle="modal" data-target="#'.urlencode($install).'_modal"><span class="fa fa-plus" aria-hidden="true"></span> Install</button>');
 echo("</p>\n");
+
+?>
+    <div id="<?=urlencode($install)?>_modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span class="fa fa-times" aria-hidden="true"></span><span class="sr-only">Cancel</span></button>
+                    <h4 class="modal-title">Install Learning App</h4>
+                </div>
+                <div class="modal-body">
+                    <form method="get" action="../index.php">
+                        <input type="hidden" name="install" value="<?=urlencode($install)?>">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="form-control" name="title" value="<?=htmlent_utf8($title)?>">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea class="form-control" rows="5" name="description"><?=htmlent_utf8($text)?></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php
 
 if ( $screen_shots ) {
     echo('<div class="row">'."\n");
