@@ -120,6 +120,21 @@ at your own copy of the library.
 Other Languages
 ---------------
 
+There were some emergent efforts to port the core Tsugi code to Java and Node.  Partial implementations
+were built with the hopes that those interested in these languages would pick the code up, use it,
+and invest in those implementations.  This has not happenned so those projects are deprecated
+until some resources show up.
+
+Going forward, there is an effort to increasingly move away from PHP and towards Python in a series of careful
+steps that won't break existing tools or servers.
+
+The first step is to build a way to develop and host Python-based tools and then being to build a 
+parallel version of the Tsugi core code and administration in Python.
+
+You can play with an early version of a [Tsugi Python Tool](https://www.tsugi.org/django_sakai.txt).
+
+
+
 While the PHP Implementation of Tsugi is the most well developed, there are additional
 Tsugi implementations being developed:
 
