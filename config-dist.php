@@ -119,9 +119,16 @@ $CFG->adminpw = false;
 // $CFG->adminpw = 'tsugi';
 // $CFG->adminpw = 'sha256:9c0ccb0d53dd71b896cde69c78cf977acbcb36546c96bedec1619406145b5e9e';
 
-// Some styles from Bootswatch
-// $CFG->bootswatch = 'cerulean';
-// $CFG->bootswatch_color = rand(0,52);  // Fun color changing navigation for cerulian :)
+// Theme Tsugi to your institutions colors. If not set, default colors will be used.
+/*$CFG->theme = array(
+    "primary" => "#1066EB", //default color for nav background, splash background, buttons, etc.
+    "nav-text" => "#FFFFFF", // Nav text and nav item border color (typically white if using a dark enough primary)
+    "text" => "#111111", // Standard copy color
+    "text-light" => "#5E5E5E", // A lighter version of the standard text color for elements like "small"
+    "font-url" => "https://fonts.googleapis.com/css?family=Muli:400,900", // Optional custom font url for using Google fonts
+    "font-family" => "'Muli', sans-serif", // Font family
+    "font-size" => "14px", // This is the base font size used for body copy. Headers,etc. are scaled off this value
+);*/
 
 // If we are running Embedded Tsugi we need to set the
 // "course title" for the course that represents

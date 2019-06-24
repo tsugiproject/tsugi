@@ -75,23 +75,50 @@ class SettingsForm {
         global $LINK;
         if ( ! $LINK ) return;
         if ( $right ) echo('<span style="position: fixed; right: 10px; top: 5px;">');
-        echo('<button onclick="showModal(\''.__('Configure').' '.htmlentities($LINK->title).'\',\'settings\'); return false;" type="button" class="btn btn-default">');
+        echo('<button type="button" data-toggle="modal" data-target="#settings" class="btn btn-default">');
         echo('<span class="glyphicon glyphicon-pencil"></span></button>'."\n");
         if ( $right ) echo('</span>');
     }
 
+    /**
+     * Emit a properly styled "settings" link
+     *
+     * This is just the link, using the pencil icon and label.
+     */
+    public static function link($right = false)
+    {
+        global $LINK;
+        if ( ! $LINK ) return;
+        if ($right) {
+            $pos = "pull-right";
+        } else {
+            $pos = "";
+        }
+        echo '<button type="button" data-toggle="modal" data-target="#settings" class="btn btn-link '.$pos.'");>';
+        echo '<span class="fas fa-cog" aria-hidden="true"></span> '.__("Settings").'</button>'."\n";
+    }
+
+
     public static function start() {
-        global $USER, $OUTPUT;
+        global $USER, $OUTPUT, $LINK;
         if ( ! $USER ) return;
 ?>
-<div id="settings" title="Settings" style="display: none;"> <!-- model -->
+<!-- Modal -->
+<div id="settings" class="modal fade" role="dialog" style="display: none;">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span class="fa fa-close" aria-hidden="true"></span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title"><?=htmlentities($LINK->title)?> <?=__("Settings")?></h4>
+      </div>
+      <div class="modal-body">
       <?php if ( $USER->instructor ) { ?>
-      <form id="settings_form" method="POST">
+        <form method="post">
       <?php } ?>
-      <div> <!-- modal-body -->
-        <img id="settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
-        <span id="save_fail" style="display:none; color:blue"><?php _me('Unable to save settings'); ?></span>
-        </p>
+            <img id="settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
+            <span id="save_fail" class="text-danger" style="display:none;"><?php _me('Unable to save settings'); ?></span>
             <?php if ( $USER->instructor ) { ?>
             <input type="hidden" name="settings_internal_post" value="1"/>
             <?php }
@@ -104,14 +131,15 @@ class SettingsForm {
         global $USER;
         if ( ! $USER ) return;
 ?>
-      </div><!-- / modal-body -->
-    <?php if ( $USER->instructor ) { ?>
-      <div> <!-- modal-footer -->
+        <?php if ( $USER->instructor ) { ?>
         <button type="button" id="settings_save" onclick="submit();" class="btn btn-primary"><?= _m("Save changes") ?></button>
-      </div><!-- / .modal-footer -->
-    </form>
-    <?php } ?>
-</div><!-- /.modal -->
+        </form>
+        <?php } ?>
+      </div>
+    </div>
+
+  </div>
+</div>
 <?php
     }
 
@@ -144,7 +172,7 @@ class SettingsForm {
 
         // Instructor view
         if ( $default === false ) $default = _m('Please Select');
-        echo('<select name="'.$name.'">');
+        echo('<div class="form-group"><select class="form-control" name="'.$name.'">');
         echo('<option value="0">'.$default.'</option>');
         foreach ( $fields as $k => $v ) {
             $index = $k;
@@ -157,7 +185,7 @@ class SettingsForm {
             }
             echo('>'.$display.'</option>'."\n");
         }
-        echo('</select>');
+        echo('</select></div>');
     }
 
     /**
@@ -181,9 +209,12 @@ class SettingsForm {
         }
 
         // Instructor view
-        echo('<label style="width:100%;" for="'.$name.'">'.htmlent_utf8($title)."\n");
-        echo('<input type="text" class="form-control" style="width:100%;" name="'.$name.'"');
-        echo('value="'.htmlent_utf8($configured).'"></label>'."\n");
+        ?>
+        <div class="form-group">
+            <label for="<?=$name?>"><?=htmlent_utf8($title)?></label>
+            <input type="text" class="form-control" id="<?=$name?>" name="<?=$name?>" value="<?=htmlent_utf8($configured)?>">
+        </div>
+        <?php
     }
 
     /**
@@ -206,10 +237,12 @@ class SettingsForm {
         }
 
         // Instructor view
-        echo('<label style="width:100%;" for="'.$name.'">'.htmlent_utf8($title)."\n");
-        echo('<textarea class="form-control" style="width:100%;" name="'.$name.'">'."\n");
-        echo(htmlent_utf8($configured)."\n");
-        echo("</textarea>\n");
+        ?>
+        <div class="form-group">
+            <label for="<?=$name?>"><?=htmlent_utf8($title)?></label>
+            <textarea class="form-control" rows="5" id="<?=$name?>" name="<?=$name?>"><?=htmlent_utf8($configured)?></textarea>
+        </div>
+        <?php
     }
 
     /**
@@ -232,7 +265,10 @@ class SettingsForm {
         }
 
         // Instructor view
-        echo('<input type="checkbox" class="ZZ-form-control" value="1" name="'.$name.'"');
+        ?>
+        <div class="checkbox">
+            <label><input type="checkbox" value="1" name="<?=$name?>"
+            <?php
         if ( $configured == 1 ) {
             echo(' checked ');
             echo("onclick=\"if(this.checked) document.getElementById('");
@@ -245,8 +281,10 @@ class SettingsForm {
             echo($name);
             echo("';\"");
         }
-        echo("/>\n");
-        echo('<label for="'.$name.'">'.htmlent_utf8($title)."</label><br/>\n");
+            ?>
+                ><?=htmlent_utf8($title)?></label>
+        </div>
+        <?php
         if ( $configured == 1 ) {
             echo("<input type=\"hidden\" name=\"");
             echo($name);
