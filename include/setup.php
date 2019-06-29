@@ -49,7 +49,8 @@ if ( ! isset($CFG->vendorinclude) ) $CFG->vendorinclude = $CFG->dirroot."/vendor
 if ( ! isset($CFG->vendorstatic) ) $CFG->vendorstatic = $CFG->dirroot."/vendor/tsugi/lib/static";
 if ( ! isset($CFG->launchactivity) ) $CFG->launchactivity = false;
 if ( ! isset($CFG->certification) ) $CFG->certification = false;
-
+// Legacy tools
+if ( ! isset($CFG->product_instance_guid) ) $CFG->product_instance_guid = $CFG->wwwroot;
 if ( isset($CFG->staticroot) ) $CFG->staticroot = \Tsugi\Util\U::remove_relative_path($CFG->staticroot);
 
 require_once $CFG->vendorinclude . "/lms_lib.php";
