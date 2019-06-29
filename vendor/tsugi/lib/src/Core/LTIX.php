@@ -2513,7 +2513,7 @@ class LTIX {
         $ltiProps[LTIConstants::LTI_MESSAGE_TYPE] = LTIConstants::LTI_MESSAGE_TYPE_BASICLTILAUNCHREQUEST;
         $ltiProps[LTIConstants::RESOURCE_LINK_ID] = $LINK->id;
 
-        $ltiProps['tool_consumer_instance_guid'] = $CFG->product_instance_guid;
+        $ltiProps['tool_consumer_instance_guid'] = $CFG->wwwroot;
         $ltiProps['tool_consumer_instance_description'] = $CFG->servicename;
 
         return $ltiProps;
