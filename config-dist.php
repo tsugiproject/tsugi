@@ -252,8 +252,9 @@ $CFG->DEVELOPER = true;
 // An array of keys that go into blob_blob regardless of the setting of
 // dataroot for easy removal, you can override this.  Default if not
 // set is that the 12345 key goes into blob_blob regardless. Change this
-// to an empty array to store 12345 blobs in the dataroot.
+// to false to store 12345 blobs in the dataroot.
 // $CFG->testblobs = array('12345');
+// $CFG->testblobs = false;
 
 // It is important to note that changing dataroot does not migrate the data.
 // Tsugi stores the blob path in the blob_file table.  Data uploaded to a blob
