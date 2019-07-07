@@ -117,13 +117,19 @@ class CrudForm {
                 // Set the sha256 value if it is not there
                 if ( strpos($field, "_sha256") !== false && ! isset($_POST[$field])) {
                     $key = str_replace("_sha256", "_key", $field);
-                    if ( ! isset($_POST[$key]) ) {
+                    // Nulls allowed
+                    if ( !array_key_exists($key, $_POST) ) {
                         $_SESSION['error'] = "Missing POST field: ".$key;
                         return self::CRUD_FAIL;
                     }
-                    $value = lti_sha256($_POST[$key]);
+                    if ( $_POST[$key] === null ) {
+                        $value = null;
+                    } else {
+                        $value = lti_sha256($_POST[$key]);
+                    }
                 } else {
-                    if ( isset($_POST[$field]) ) {
+                    // Nulls allowed
+                    if ( array_key_exists($key, $_POST) ) {
                         $value = $_POST[$field];
                     } else {
                         $_SESSION['error'] = "Missing POST field: ".$field;
@@ -343,14 +349,20 @@ class CrudForm {
                 // Update the sha256 value if we have a corresponding _key value
                 if ( strpos($field, "_sha256") !== false && ! isset($_POST[$field])) {
                     $key = str_replace("_sha256", "_key", $field);
-                    if ( ! isset($_POST[$key]) ) continue;
-                    $value = lti_sha256($_POST[$key]);
+                    // Allow nulls
+                    if ( ! array_key_exists($key, $_POST) ) continue;
+                    if ( $_POST[$key] === null ) {
+                        $value = null;
+                    } else {
+                        $value = lti_sha256($_POST[$key]);
+                    }
                     $set .= $field."= :".$i;
                     $parms[':'.$i] = $value;
                     continue;
                 }
 
-                if ( !isset($_POST[$field]) ) {
+                // Nulls allowed
+                if ( !array_key_exists($field, $_POST) ) {
                     $_SESSION['error'] = _m("Missing POST field: ").$field;
                     return self::CRUD_FAIL;
                 }
