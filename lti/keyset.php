@@ -60,6 +60,7 @@ foreach ( $rows as $row ) {
                     'e' => JOSE_URLSafeBase64::encode($key->publicExponent->toBytes()),
                     'n' => JOSE_URLSafeBase64::encode($key->modulus->toBytes()),
                     'kid' => $kid,
+                    'use' => 'sig',
     );
     if ($key->exponent != $key->publicExponent) {
         $components = array_merge($components, array(
