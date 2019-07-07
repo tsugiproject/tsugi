@@ -3,6 +3,7 @@
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
+require_once("key-util.php");
 
 use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
@@ -38,6 +39,42 @@ $titles = array(
     'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
     'issuer_id' => 'LTI 1.3: Issuer',
 );
+
+if ( isset($_POST['issuer_id']) && $_POST['issuer_id'] == 0 ) $_POST['issuer_id'] = null;
+if ( isset($_POST['key_key']) && $_POST['key_key'] == 0 ) $_POST['key_key'] = null;
+
+// Check the complex interaction of constraints
+$key_id = U::get($_POST,'key_id');
+$key_key = U::get($_POST,'key_key');
+$deploy_key = U::get($_POST,'deploy_key');
+$issuer_id = U::get($_POST,'issuer_id');
+
+// Check the complex validation
+if ( count($_POST) > 0 && strlen($key_id) > 0 ) {
+    $row = $PDOX->rowDie( "SELECT * FROM {$CFG->dbprefix}lti_key
+            WHERE key_id = :key_id",
+        array(':key_id' => $key_id)
+    );
+
+    $redir = U::add_url_parm('key-detail', 'key_id', $key_id);
+    $redir = U::add_url_parm($redir, 'edit', 'yes');
+    if ( ! $row ) {
+        $_SESSION['error'] = "Could not load the old row";
+        header("Location: ".$redir);
+        return;
+    }
+
+    $old_key_key = $row['key_key'];
+    $old_deploy_key = $row['deploy_key'];
+    $old_issuer_id = $row['issuer_id'];
+
+    $retval = validate_key_details($key_key, $deploy_key, $issuer_id, $old_key_key, $old_deploy_key, $old_issuer_id);
+
+    if ( ! $retval ) {
+        header("Location: ".$redir);
+        return;
+    }
+}
 
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
@@ -78,9 +115,8 @@ this entry properly.  See below for details.
 </p>
 <p>
 For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
-For LTI 1.3, you first need to create or lookup an issuer/client_id and note its
-integer primary key and enter it here (we will make a drop-down UI later).  You also need the
-<b>deployment_id</b> for this integration from the LMS.
+For LTI 1.3, you first need to create an issuer/client_id, select it and then enter
+the <b>deployment_id</b> for this integration from the LMS to define the tenant.
 </p>
 <p>
 To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
@@ -99,7 +135,6 @@ if ( $inedit ) {
         FROM {$CFG->dbprefix}lti_issuer";
     $issuer_rows = $PDOX->allRowsDie($sql);
 
-    var_dump($row);
     $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Issuer Selected</option>";
     foreach($issuer_rows as $issuer_row) {
         $selected = $row['issuer_id'] == $issuer_row['issuer_id'] ? ' selected ' : '';

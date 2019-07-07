@@ -66,11 +66,13 @@ array( "{$CFG->dbprefix}lti_issuer",
 // Key is in effect "tenant" (like a billing endpoint)
 // We need to be able to look this up by either oauth_consumer_key or
 // (issuer, client_id, deployment_id)
+
+// TODO: Decide if the key_key must always be unique.
 array( "{$CFG->dbprefix}lti_key",
 "create table {$CFG->dbprefix}lti_key (
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
     key_sha256          CHAR(64) NULL,
-    key_key             TEXT NOT NULL,   -- oauth_consumer_key
+    key_key             TEXT NULL,   -- oauth_consumer_key
     deploy_sha256       CHAR(64) NULL,
     deploy_key          TEXT NULL,
     issuer_id           INTEGER NULL,
@@ -858,7 +860,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY key_key CHAR(64) NULL";
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY key_key TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
@@ -949,9 +951,17 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Version 201907070902 improvements - Bad CREATE statement
+    if ( $oldversion < 201907070902 ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY key_key TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201906101708;
+    return 201907070902;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
