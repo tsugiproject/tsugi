@@ -153,6 +153,9 @@ class Result extends Entity {
         $subject_key = false;
         $secret = false;
         $lti13_privkey = false;
+        $lti13_pubkey = false;
+        $lti13_token_audience = false;
+        $lti13_issuer_client = false;
         if ( $row !== false ) {
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
@@ -166,6 +169,9 @@ class Result extends Entity {
             $lti13_privkey = isset($row['lti13_privkey']) ? LTIX::decrypt_secret($row['lti13_privkey']) : false;
             $lti13_lineitem = isset($row['lti13_lineitem']) ? $row['lti13_lineitem'] : false;
             $lti13_token_url = isset($row['lti13_token_url']) ? $row['lti13_token_url'] : false;
+            $lti13_token_audience = isset($row['lti13_token_audience']) ? $row['lti13_token_audience'] : false;
+            $lti13_pubkey = isset($row['lti13_pubkey']) ? $row['lti13_pubkey'] : false;
+            $lti13_issuer_client = isset($row['issuer_client']) ? $row['issuer_client'] : false;
         } else {
             $result_url = LTIX::ltiParameter('result_url');
             $sourcedid = LTIX::ltiParameter('sourcedid');
@@ -173,6 +179,7 @@ class Result extends Entity {
             $result_id = LTIX::ltiParameter('result_id');
             $lti13_lineitem = LTIX::ltiParameter('lti13_lineitem');
             $lti13_token_url = LTIX::ltiParameter('lti13_token_url');
+            $lti13_token_audience = LTIX::ltiParameter('lti13_token_audience');
         }
 
         // Check if we are to use SHA256 as the signature
@@ -187,6 +194,7 @@ class Result extends Entity {
         if ( ! $subject_key ) $subject_key = LTIX::ltiParameter('subject_key');
         if ( ! $secret ) $secret = LTIX::decrypt_secret(LTIX::ltiParameter('secret'));
         if ( ! $lti13_privkey ) $lti13_privkey = LTIX::decrypt_secret(LTIX::ltiParameter('lti13_privkey'));
+        if ( ! $lti13_pubkey ) $lti13_pubkey = LTIX::ltiParameter('lti13_pubkey');
 
         // Get the IP Address
         $ipaddr = Net::getIP();
@@ -225,10 +233,10 @@ class Result extends Entity {
 
         // TODO: Cache the token and renew
         // LTI 1.3 grade passback - Prefer if available
-        } else if ( strlen($lti13_privkey) > 0 && strlen($lti13_lineitem) > 0 && strlen($lti13_token_url) > 0 ) {
-            error_log("Getting token key_key=$key_key lti13_token_url=$lti13_token_url");
+        } else if ( strlen($lti13_issuer_client) > 0 && strlen($lti13_privkey) > 0 && strlen($lti13_lineitem) > 0 && strlen($lti13_token_url) > 0 ) {
+            error_log("Getting token lti13_issuer_client=$lti13_issuer_client lti13_token_url=$lti13_token_url");
 
-            $grade_token = LTI13::getGradeToken($CFG->wwwroot, $key_key, $lti13_token_url, $lti13_privkey, $debug_log);
+            $grade_token = LTI13::getGradeToken($lti13_issuer_client, $lti13_token_url, $lti13_privkey, $lti13_pubkey, $lti13_token_audience, $debug_log);
 
             $comment = "Sending grade $grade subject_key=$subject_key lti13_lineitem=$lti13_lineitem grade_token=$grade_token";
             error_log($comment);

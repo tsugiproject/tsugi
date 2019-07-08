@@ -32,7 +32,7 @@ array( "{$CFG->dbprefix}lti_issuer",
     issuer_id           INTEGER NOT NULL AUTO_INCREMENT,
     issuer_sha256       CHAR(64) NOT NULL,
     issuer_key          TEXT NOT NULL,  -- iss from the JWT
-    issuer_client    TEXT NOT NULL,  -- aud from the JWT
+    issuer_client       TEXT NOT NULL,  -- aud from the JWT
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     -- This is the owner of this issuer - it is not a foreign key

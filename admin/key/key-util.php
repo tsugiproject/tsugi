@@ -3,7 +3,7 @@
 use \Tsugi\Util\U;
 
 function validate_key_details($key_key, $deploy_key, $issuer_id, $old_key_key=null, $old_deploy_key=null, $old_issuer_id=null) {
-    global $PDOX;
+    global $PDOX, $CFG;
 
     // Enforce in software because MySQL can't do it
     // CONSTRAINT `{$CFG->dbprefix}lti_key_both_not_null`
