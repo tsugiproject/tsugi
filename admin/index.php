@@ -98,6 +98,10 @@ require_once("sanity-db.php");
   </a>
 </li>
 </ul>
+<p>
+Best viewed with <a href="https://www.mozilla.org/en-US/firefox/" target="_new">FireFox</a> since 
+Chrome tends to hang iframes in Modals.
+</p>
 <?php if ( $CFG->DEVELOPER ) { ?>
 <p>Note: You have $CFG-&gt;DEVELOPER enabled. When this is enabled, there are developer-oriented
 "testing" menus shown and the Admin links are more obvious.
