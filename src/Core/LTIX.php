@@ -1075,7 +1075,7 @@ class LTIX {
         $LTI13 = U::get($post, "issuer_key", false) !== false;
 
         if ( $LTI13 ) {
-            $sql = "SELECT i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
+            $sql = "SELECT i.issuer_id, i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
                 i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_privkey, i.lti13_pubkey,
                 k.deploy_key, u.subject_key,
             ";
@@ -1228,6 +1228,24 @@ class LTIX {
         // die();
         $row = $PDOX->rowDie($sql, $parms);
         // var_dump($row);die();
+
+        // TODO: Fold this in when the data model is safely changed
+        $row['lti13_token_audience'] = null;
+        $issuer_id = U::get($row, 'issuer_id');
+        if ( $LTI13 && $row && $issuer_id) {
+            $stmt = $PDOX->queryReturnError(
+                "SELECT lti13_token_audience FROM {$p}lti_issuer WHERE issuer_id = :issuer_id",
+                array(":issuer_id" => $issuer_id)
+            );
+
+            // print_r($stmt); die();
+            if ( $stmt->success ) {
+                $extra_row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                if ( $extra_row ) {
+                    $row['lti13_token_audience'] = $extra_row['lti13_token_audience'];
+                }
+            }
+        }
 
         // Restore ERRMODE
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
