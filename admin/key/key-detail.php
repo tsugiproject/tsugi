@@ -40,8 +40,8 @@ $titles = array(
     'issuer_id' => 'LTI 1.3: Issuer',
 );
 
-if ( isset($_POST['issuer_id']) && $_POST['issuer_id'] == 0 ) $_POST['issuer_id'] = null;
-if ( isset($_POST['key_key']) && $_POST['key_key'] == 0 ) $_POST['key_key'] = null;
+if ( isset($_POST['issuer_id']) && strlen($_POST['issuer_id']) == 0 ) $_POST['issuer_id'] = null;
+if ( isset($_POST['key_key']) && strlen($_POST['key_key']) == 0 ) $_POST['key_key'] = null;
 
 // Check the complex interaction of constraints
 $key_id = U::get($_POST,'key_id');
@@ -50,7 +50,7 @@ $deploy_key = U::get($_POST,'deploy_key');
 $issuer_id = U::get($_POST,'issuer_id');
 
 // Check the complex validation
-if ( count($_POST) > 0 && strlen($key_id) > 0 ) {
+if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && strlen($key_id) > 0 ) {
     $row = $PDOX->rowDie( "SELECT * FROM {$CFG->dbprefix}lti_key
             WHERE key_id = :key_id",
         array(':key_id' => $key_id)

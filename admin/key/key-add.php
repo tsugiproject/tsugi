@@ -31,8 +31,8 @@ $titles = array(
     'issuer_id' => 'LTI 1.3: Issuer (from this system)',
 );
 
-if ( isset($_POST['issuer_id']) && $_POST['issuer_id'] == 0 ) $_POST['issuer_id'] = null;
-if ( isset($_POST['key_key']) && $_POST['key_key'] == 0 ) $_POST['key_key'] = null;
+if ( isset($_POST['issuer_id']) && strlen($_POST['issuer_id']) == 0 ) $_POST['issuer_id'] = null;
+if ( isset($_POST['key_key']) && strlen($_POST['key_key']) == 0 ) $_POST['key_key'] = null;
 
 // Check the complex interaction of constraints
 $key_key = U::get($_POST,'key_key');
