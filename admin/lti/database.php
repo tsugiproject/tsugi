@@ -47,6 +47,7 @@ array( "{$CFG->dbprefix}lti_issuer",
     lti13_pubkey        TEXT NULL,
     lti13_privkey       TEXT NULL,
     lti13_token_url     TEXT NULL,
+    lti13_token_audience  TEXT NULL,
 
     json                MEDIUMTEXT NULL,
 
@@ -954,6 +955,14 @@ $DATABASE_UPGRADE = function($oldversion) {
     // Version 201907070902 improvements - Bad CREATE statement
     if ( $oldversion < 201907070902 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY key_key TEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    // Add the lti13_token_audience field
+    if ( ! $PDOX->columnExists('lti13_token_audience', "{$CFG->dbprefix}lti_issuer") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_issuer ADD lti13_token_audience TEXT NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);

@@ -22,7 +22,7 @@ if ( ! isAdmin() ) {
 $from_location = "issuers";
 $tablename = "{$CFG->dbprefix}lti_issuer";
 $fields = array("issuer_key", "issuer_client", "issuer_sha256",
-    "lti13_keyset_url", "lti13_token_url", "lti13_oidc_auth",
+    "lti13_keyset_url", "lti13_token_url", "lti13_token_audience", "lti13_oidc_auth",
     "lti13_pubkey", "lti13_privkey",
     "created_at", "updated_at");
 
@@ -31,6 +31,7 @@ $titles = array(
     'issuer_client' => 'LTI 1.3 Client ID (from the Platform)',
     'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
+    'lti13_token_audience' => 'LTI 1.3 Platform OAuth2 Bearer Token Audience Value (optional - from the platform)',
     'lti13_oidc_auth' => 'LTI 1.3 Platform OIDC Authentication URL (from the Platform)',
     'lti13_platform_pubkey' => 'LTI 1.3 Platform Public Key (Usually retrieved via keyset url)',
 
