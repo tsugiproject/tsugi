@@ -1076,7 +1076,7 @@ class LTIX {
 
         if ( $LTI13 ) {
             $sql = "SELECT i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
-                i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_privkey,
+                i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_privkey, i.lti13_pubkey,
                 k.deploy_key, u.subject_key,
             ";
         } else {

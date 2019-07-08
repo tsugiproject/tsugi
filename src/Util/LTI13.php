@@ -258,13 +258,14 @@ class LTI13 {
      *
      * @return mixed Returns the token (string) or false on error.
      */
-    public static function getGradeToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+    public static function getGradeToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, &$debug_log=false) {
 
         $token_data = self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
             "https://purl.imsglobal.org/spec/lti-ags/scope/score",
             "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly"
-        ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+        // ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
 
         return self::extract_access_token($token_data, $debug_log);
     }
@@ -276,11 +277,11 @@ class LTI13 {
      *
      * @return mixed Returns the token (string) or false on error.
      */
-    public static function getNRPSToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+    public static function getNRPSToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, &$debug_log=false) {
 
          $roster_token_data = self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
-        ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
 
         return self::extract_access_token($roster_token_data, $debug_log);
     }
@@ -295,13 +296,13 @@ class LTI13 {
      *
      * @return mixed Returns the token (string) or false on error.
      */
-    public static function getNRPSWithSourceDidsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+    public static function getNRPSWithSourceDidsToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, &$debug_log=false) {
 
         $roster_token_data =  self::get_access_token([
             // TODO: Uncomment this after (I think) the certification suite tolerates extra stuff
             // "https://purl.imsglobal.org/spec/lti-ags/scope/basicoutcome",
             "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
-        ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
 
         return self::extract_access_token($roster_token_data, $debug_log);
     }
@@ -313,11 +314,10 @@ class LTI13 {
      *
      * @return mixed Returns the token (string) or false on error.
      */
-    public static function getLineItemsToken($issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
-
+    public static function getLineItemsToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, &$debug_log=false) {
         $token_data = self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
-        ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
+        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
 
         return self::extract_access_token($token_data, $debug_log);
     }
@@ -357,7 +357,7 @@ class LTI13 {
             "scoreMaximum" => 100,
             "comment" => $comment,
             "activityProgress" => "Completed",
-            "gradingProgress" => "Completed",
+            "gradingProgress" => "FullyGraded",
             "userId" => $user_id,
         ];
 
@@ -606,15 +606,25 @@ class LTI13 {
             return $retval;
         }
 
-        if ( Net::httpSuccess($httpcode) && is_array($json) ) {
+        // NOTE:
+        // Even though the LTIAdvantage spec says array, best practice is to enclose
+        // in an object and the array as an attirbute - so we accept both in case this
+        // gets cleaned up in a future release of LTI Advantage
+        $results = $json;
+        if ( isset($json->results) && is_array($json->results) ) {
+            $results = $json->results;
+        }
+
+        if ( Net::httpSuccess($httpcode) && is_array($results) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Loaded results";
-            return $json;
+            return $results;
         }
 
         $status = isset($json->error) ? $json->error : "Unable to load results";
         if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
         return $status;
     }
+
     /**
      * Delete a lineitem from the LMS
      *
@@ -784,34 +794,38 @@ class LTI13 {
     /** Retrieve an access token
      *
      * @param array $scope A list of requested scopes
-     * @param string $issuer Who we are
-     * @param string $subject Who we are (within $issuer)
+     * @param string $subject Who we are (client id in OAuth)
      * @param string $lti13_token_url
      * @param string $lti13_privkey
+     * @param string $lti13_kid The optional kid to include in the JWT
+     * @param string $lti13_token_audience The optional value for token audience.  If not
+     * provided, use the $lti13_token_url.
      * @param array $debug_log An optional array passed by reference.   Actions taken will be
      * logged into this array.
      *
-     * Note that for LTI Advantage, we send the client_id as both the $issuer and
-     * $subject since LMS's don't have our url (i.w. wwwroot) available to them
-     * as part of the LTI 1.3 configuration.
+     * Note - the idea of lti13_token_audience came in the following PR
+     * https://github.com/IMSGlobal/lti-spec-guides/pull/11/files
      *
      * @return array The retrieved and parsed JSON data.  There is no validation performed,
      * and we might have got a 403 and received no data at all.
      */
-    public static function get_access_token($scope, $issuer, $subject, $lti13_token_url, $lti13_privkey, &$debug_log=false) {
+    public static function get_access_token($scope, $subject, $lti13_token_url, $lti13_privkey, $lti13_kid=false, $lti13_token_audience=false, &$debug_log=false) {
 
         $lti13_token_url = trim($lti13_token_url);
-        $issuer = trim($issuer);
         $subject = trim($subject);
+        $audience = $lti13_token_url;
+        if ( $lti13_token_audience ) {
+            $audience = trim($lti13_token_audience);
+        }
 
         if ( ! is_string($scope) ) {
             $scope = implode(' ',$scope);
         }
 
-        $jwt_claim = self::base_jwt($issuer, $subject, $debug_log);
-        $jwt_claim["aud"] = $lti13_token_url;
+        $jwt_claim = self::base_jwt($subject, $subject, $debug_log);
+        $jwt_claim["aud"] = $audience;
 
-        $jwt = self::encode_jwt($jwt_claim, $lti13_privkey);
+        $jwt = self::encode_jwt($jwt_claim, $lti13_privkey, $lti13_kid);
 
         $auth_request = [
             'grant_type' => 'client_credentials',
@@ -833,7 +847,7 @@ class LTI13 {
 
         $token_str = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ( is_array($debug_log) ) $debug_log[] = "Returned token data $httpcode\n".$token_str;
+        if ( is_array($debug_log) ) $debug_log[] = "Returned token code $httpcode\n".$token_str;
         $token_data = json_decode($token_str, true);
 
         curl_close ($ch);
@@ -890,11 +904,16 @@ class LTI13 {
      *
      * @param array $jwt_claim An array of key/value pairs for the claims
      * @param string $lti13_privkey The private key to use to sign the JWT
+     * @param string $lti13_kid The key id to include in the JWT (optional)
      *
      * @return string The signed JWT
      */
-    public static function encode_jwt($jwt_claim, $lti13_privkey) {
-        $jws = JWT::encode($jwt_claim, self::cleanup_PKCS8($lti13_privkey), 'RS256');
+    public static function encode_jwt($jwt_claim, $lti13_privkey, $lti13_kid=false) {
+        if ( $lti13_kid ) {
+            $jws = JWT::encode($jwt_claim, self::cleanup_PKCS8($lti13_privkey), 'RS256', $lti13_kid);
+        } else {
+            $jws = JWT::encode($jwt_claim, self::cleanup_PKCS8($lti13_privkey), 'RS256');
+        }
         return $jws;
     }
 
