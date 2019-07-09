@@ -27,8 +27,9 @@ if ( $row === false ) {
     return;
 }
 
+$privkey = U::get($row,'privkey');
 $pubkey = U::get($row,'pubkey');
-if ( strlen($pubkey) < 1 ) {
+if ( strlen($privkey) < 1 || strlen($pubkey) < 1 ) {
     http_response_code(404);
     $OUTPUT->header();
     $OUTPUT->bodyStart();
@@ -57,7 +58,7 @@ $jwt_claim["callback"] = array('endpoint' => U::addSession($endpoint),
 
 $kid = LTIX::getKidForKey($pubkey);
 
-$jwt = LTI13::encode_jwt($jwt_claim, $pubkey, $kid);
+$jwt = LTI13::encode_jwt($jwt_claim, $privkey, $kid);
 
 // http://localhost:8000/grade/launch
 $launch_url = $row['url'];
