@@ -7,7 +7,7 @@ use \Tsugi\Core\LTIX;
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once "../admin/admin_util.php";
-require_once("../dev/dev-data.php");
+require_once("dev-data.php");
 
 session_start();
 
