@@ -4,6 +4,8 @@ if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
+use \Tsugi\Util\U;
+use \Tsugi\Util\LTI13;
 use \Tsugi\UI\CrudForm;
 
 \Tsugi\Core\LTIX::getConnection();
@@ -19,15 +21,25 @@ if ( ! isAdmin() ) {
 
 $from_location = ".";
 $tablename = "{$CFG->dbprefix}lti_external";
-$fields = array("endpoint", "name", "url", "description", "fa_icon", "json");
+$fields = array("endpoint", "name", "url", "description", "fa_icon", "pubkey", "privkey", "json");
 
 $titles = array(
     'endpoint' => 'Launch endpoint on this system under /ext - must be letters, numbers and underscores and must be unique',
     'name' => 'Short title of tool shown to user in the store',
     'fa_icon' => "An optional FontAwesome icon like 'fa-fast-forward'",
     'url' => 'URL Where the external tool receives launches',
+    'pubkey' => 'External Tool Public Key (Leave blank to auto-generate)',
+    'privkey' => 'External Tool Private Key (Leave blank to auto-generate)',
     'json' => 'Additional settings for your tool registration (see below)'
 );
+
+if ( U::get($_POST,'endpoint') ) {
+    if ( strlen(U::get($_POST,'pubkey')) < 1 && strlen(U::get($_POST,'privkey')) < 1 ) {
+        LTI13::generatePKCS8Pair($publicKey, $privateKey);
+        $_POST['pubkey'] = $publicKey;
+        $_POST['privkey'] = $privateKey;
+    }
+}
 
 $retval = CrudForm::handleInsert($tablename, $fields);
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
@@ -67,12 +79,9 @@ Here is some sample JSON for the additional settings:
     "tool_phase": "emerging"
 }
 </pre>
-The <b>privacy_level</b> can be "anonymous", "name_only", or "public".
 <p>
-Use this Public Key for your tool:
-<pre>
-<?= $CFG->external_public_key ?>
-</pre>
+The <b>privacy_level</b> can be "anonymous", "name_only", or "public".
+</p>
 <?php
 
 $OUTPUT->footer();

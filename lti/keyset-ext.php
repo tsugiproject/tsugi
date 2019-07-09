@@ -11,30 +11,11 @@ LTIX::getConnection();
 
 // See the end of the file for some documentation references 
 
-$issuer = U::get($_GET,"issuer",false);
-$issuer_id = U::get($_GET,"issuer_id",false);
+$rows = $PDOX->allRowsDie(
+    "SELECT DISTINCT pubkey FROM {$CFG->dbprefix}lti_external WHERE pubkey IS NOT NULL"
+);
 
-if ( $issuer ) {
-    $issuer_sha256 = hash('sha256', trim($issuer));
-    $rows = $PDOX->allRowsDie(
-        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer 
-            WHERE issuer_sha256 = :ISH AND lti13_pubkey IS NOT NULL",
-        array(":ISH" => $issuer_sha256)
-    );
-} else if ( $issuer_id ) {
-    $rows = $PDOX->allRowsDie(
-        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer 
-            WHERE issuer_id = :IID AND lti13_pubkey IS NOT NULL",
-        array(":IID" => $issuer_id)
-    );
-} else {
-    $rows = $PDOX->allRowsDie(
-        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer 
-            WHERE lti13_pubkey IS NOT NULL"
-    );
-}
-
-if ( count($rows) < 1 ) die("Could not load key");
+if ( count($rows) < 1 ) die("Could not load keys");
 
 // $pubkey = "-----BEGIN PUBLIC KEY----- 
 // MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvESXFmlzHz+nhZXTkjo2 9SBpamCzkd7SnpMXgdFEWjLfDeOu0D3JivEEUQ4U67xUBMY9voiJsG2oydMXjgkm GliUIVg+rhyKdBUJu5v6F659FwCj60A8J8qcstIkZfBn3yyOPVwp1FHEUSNvtbDL SRIHFPv+kh8gYyvqz130hE37qAVcaNME7lkbDmH1vbxi3D3A8AxKtiHs8oS41ui2 MuSAN9MDb7NjAlFkf2iXlSVxAW5xSek4nHGr4BJKe/13vhLOvRUCTN8h8z+SLORW abxoNIkzuAab0NtfO/Qh0rgoWFC9T69jJPAPsXMDCn5oQ3xh/vhG0vltSSIzHsZ8 pwIDAQAB
@@ -46,7 +27,7 @@ if ( count($rows) < 1 ) die("Could not load key");
 
 $jwks = array();
 foreach ( $rows as $row ) {
-    $pubkey = $row['lti13_pubkey'];
+    $pubkey = $row['pubkey'];
 
     $key = new RSA();
     $key->setPublicKey($pubkey);

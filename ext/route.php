@@ -27,6 +27,17 @@ if ( $row === false ) {
     return;
 }
 
+$pubkey = U::get($row,'pubkey');
+if ( strlen($pubkey) < 1 ) {
+    http_response_code(404);
+    $OUTPUT->header();
+    $OUTPUT->bodyStart();
+    $OUTPUT->topNav();
+    echo("<h2>Public Key not found.</h2>\n");
+    $OUTPUT->footer();
+    return;
+}
+
 // echo("<pre>\n");var_dump($row);echo("</pre>"); return;
 
 // Handle all forms of launch
@@ -44,7 +55,9 @@ $token = AesCtr::encrypt($token, $CFG->cookiesecret, 256) ;
 $jwt_claim["callback"] = array('endpoint' => U::addSession($endpoint),
     'token' => $token );
 
-$jwt = LTI13::encode_jwt($jwt_claim, $CFG->external_private_key);
+$kid = LTIX::getKidForKey($pubkey);
+
+$jwt = LTI13::encode_jwt($jwt_claim, $pubkey, $kid);
 
 // http://localhost:8000/grade/launch
 $launch_url = $row['url'];

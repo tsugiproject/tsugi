@@ -2744,4 +2744,12 @@ class LTIX {
     public static function getTsugiStateCookieName() {
         return "tsugi-state-lti-advantage";
     }
+
+    /** Compute the kid has value from a public key
+     *
+     * @param pubkey The public key
+     */
+    public static function getKidForKey($pubkey) {
+        return hash('sha256', trim($pubkey));
+    }
 }

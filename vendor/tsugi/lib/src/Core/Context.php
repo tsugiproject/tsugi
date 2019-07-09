@@ -60,7 +60,7 @@ class Context extends Entity {
         $issuer_client = $this->launch->ltiParameter('issuer_client');
 
         $lti13_pubkey = $this->launch->ltiParameter('lti13_pubkey');
-        $lti13_kid = hash('sha256', trim($lti13_pubkey));
+        $lti13_kid = LTIX::getKidForKey($lti13_pubkey);
 
         $lti13_token_audience = $this->launch->ltiParameter('lti13_token_audience'); // Optional
 

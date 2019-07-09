@@ -60,7 +60,7 @@ $jwk = array(
                     'kty' => 'RSA',
                     'e' => JOSE_URLSafeBase64::encode($key->publicExponent->toBytes()),
                     'n' => JOSE_URLSafeBase64::encode($key->modulus->toBytes()),
-                    'kid' => hash('sha256', trim($pubkey)),
+                    'kid' => LTIX::getKidForKey($pubkey),
                 );
                 if ($key->exponent != $key->publicExponent) {
                     $components = array_merge($components, array(
