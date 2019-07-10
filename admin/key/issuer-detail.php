@@ -89,9 +89,31 @@ LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
 $OUTPUT->footerStart();
 ?>
 <script>
-$('#lti13_platform_pubkey').css('white-space', 'pre');
-$('#lti13_privkey').css('white-space', 'pre');
-$('#lti13_pubkey').css('white-space', 'pre');
+// Adapted from
+// https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard-using-jquery
+function copyToClipboard(elementId) {
+
+  // Create a "hidden" input
+  var aux = document.createElement("textarea");
+  aux.textContent = document.getElementById(elementId).textContent;
+  document.body.appendChild(aux);
+
+  // Highlight its content
+  aux.select();
+
+  // Copy the highlighted text
+  document.execCommand("copy");
+
+  // Remove it from the body
+  document.body.removeChild(aux);
+
+}
+
+$('#lti13_platform_pubkey').css('white-space', 'pre').css('font-family', 'monospace');
+$('#lti13_platform_pubkey_label').append('<button onclick="copyToClipboard(\'lti13_platform_pubkey\');return false;">Copy</button>');
+$('#lti13_pubkey').css('white-space', 'pre').css('font-family', 'monospace');
+$('#lti13_pubkey_label').append('<button onclick="copyToClipboard(\'lti13_pubkey\');return false;">Copy</button>');
+$('#lti13_privkey').css('white-space', 'pre').css('font-family', 'monospace');
 </script>
 <?php
 $OUTPUT->footerEnd();
