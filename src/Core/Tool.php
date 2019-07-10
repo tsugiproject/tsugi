@@ -89,11 +89,12 @@ class Tool {
         global $CFG;
         require_once('register.php');
 
-        if ( ! isset($REGISTER_LTI2) ) return "Error in register.php";
-        if ( ! is_array($REGISTER_LTI2) ) return "Error in register.php";
+        if ( ! isset($REGISTER_LTI) && isset($REGISTER_LTI2) ) $REGISTER_LTI = $REGISTER_LTI2;
+        if ( ! isset($REGISTER_LTI) ) return "Error in register.php";
+        if ( ! is_array($REGISTER_LTI) ) return "Error in register.php";
 
-        if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) &&
-            isset($REGISTER_LTI2['description']) ) {
+        if ( isset($REGISTER_LTI['name']) && isset($REGISTER_LTI['short_name']) &&
+            isset($REGISTER_LTI['description']) ) {
             // We are happy
         } else {
             error_log("Missing required name, short_name, and description in ".$tool_folder);
@@ -104,29 +105,29 @@ class Tool {
         $url = U::get_base_url($CFG->wwwroot) . $rest_path->parent;
         if ( ! PS::s($url)->endsWith('/') ) $url .= '/';
 
-        $REGISTER_LTI2['url'] = $url;
+        $REGISTER_LTI['url'] = $url;
 
-        self::patchRegistration($REGISTER_LTI2);
+        self::patchRegistration($REGISTER_LTI);
 
-        $capability_offered = U::get($REGISTER_LTI2, 'capability_offered');
+        $capability_offered = U::get($REGISTER_LTI, 'capability_offered');
         if ( ! $capability_offered ) $capability_offered = array();
         $capability_offered[] = 'OAuth.hmac-sha256';
         $capability_offered[] = 'OAuth.splitSecret';
         $capability_offered[] = 'basic-lti-launch-request';
-        $REGISTER_LTI2['capability_offered'] = $capability_offered;
+        $REGISTER_LTI['capability_offered'] = $capability_offered;
 
         // If the tool renders no opinion, choose reasonable default
-        $capability_required = U::get($REGISTER_LTI2, 'capability_required');
+        $capability_required = U::get($REGISTER_LTI, 'capability_required');
         if ( ! $capability_required ) {
             $capability_required = array();
             $capability_required[] = 'User.id';
             $capability_required[] = 'Context.id';
             $capability_required[] = 'ResourceLink.id';
         }
-        $REGISTER_LTI2['capability_required'] = $capability_required;
+        $REGISTER_LTI['capability_required'] = $capability_required;
 
-        $messages = U::get($REGISTER_LTI2, 'messages');
-        $capability_desired = U::get($REGISTER_LTI2, 'capability_desired');
+        $messages = U::get($REGISTER_LTI, 'messages');
+        $capability_desired = U::get($REGISTER_LTI, 'capability_desired');
         if ( ! $capability_desired ) $capability_desired = array();
         $capability_desired[] = 'Person.name.given';
         $capability_desires[] = 'Person.name.family';
@@ -137,9 +138,9 @@ class Tool {
             $capability_desired[] = 'Result.autocreate';
             $capability_desired[] = 'Result.url';
         }
-        $REGISTER_LTI2['capability_desired'] = $capability_desired;
+        $REGISTER_LTI['capability_desired'] = $capability_desired;
 
-        return $REGISTER_LTI2;
+        return $REGISTER_LTI;
     }
 
     public static function patchRegistration(&$tool) {
