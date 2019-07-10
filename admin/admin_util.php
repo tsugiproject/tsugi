@@ -114,16 +114,18 @@ function findAllRegistrations($folders=false, $appStore=false)
                 continue;
             }
             $key = $pieces[count($pieces)-2];
+            unset($REGISTER_LTI);
             unset($REGISTER_LTI2);
             require($reg_file);
-            if ( ! isset($REGISTER_LTI2) ) continue;
-            if ( ! is_array($REGISTER_LTI2) ) continue;
+            if ( ! isset($REGISTER_LTI) && isset($REGISTER_LTI2) ) $REGISTER_LTI = $REGISTER_LTI2;
+            if ( ! isset($REGISTER_LTI) ) continue;
+            if ( ! is_array($REGISTER_LTI) ) continue;
 
-            if ( isset($REGISTER_LTI2['name']) && isset($REGISTER_LTI2['short_name']) &&
-                isset($REGISTER_LTI2['description']) ) {
+            if ( isset($REGISTER_LTI['name']) && isset($REGISTER_LTI['short_name']) &&
+                isset($REGISTER_LTI['description']) ) {
                 // Valid LTI Registration
                 // If Appstore - Check if the registration is marked as hidden
-                if ($appStore && isset($REGISTER_LTI2['hide_from_store']) && $REGISTER_LTI2['hide_from_store']) {
+                if ($appStore && isset($REGISTER_LTI['hide_from_store']) && $REGISTER_LTI['hide_from_store']) {
                     // Skip hidden app
                     continue;
                 }
@@ -132,23 +134,23 @@ function findAllRegistrations($folders=false, $appStore=false)
             }
 
             // Make an icon URL
-            $fa_icon = isset($REGISTER_LTI2['FontAwesome']) ? $REGISTER_LTI2['FontAwesome'] : false;
+            $fa_icon = isset($REGISTER_LTI['FontAwesome']) ? $REGISTER_LTI['FontAwesome'] : false;
             if ( $fa_icon !== false ) {
-                $REGISTER_LTI2['icon'] = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+                $REGISTER_LTI['icon'] = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
             }
             $launch_url = str_replace('/register.php','/',$url);
-            $REGISTER_LTI2['url'] = $launch_url;
+            $REGISTER_LTI['url'] = $launch_url;
 
-            $screen_shots = U::get($REGISTER_LTI2, 'screen_shots');
+            $screen_shots = U::get($REGISTER_LTI, 'screen_shots');
             if ( is_array($screen_shots) && count($screen_shots) > 0 ) {
                 $new = array();
                 foreach($screen_shots as $screen_shot ) {
                     $new[] = str_replace('/register.php','/'.$screen_shot, $url);
                 }
-                $REGISTER_LTI2['screen_shots'] = $new;
+                $REGISTER_LTI['screen_shots'] = $new;
             }
 
-            $tools[$key] = $REGISTER_LTI2;
+            $tools[$key] = $REGISTER_LTI;
         }
     }
 
@@ -161,24 +163,24 @@ function findAllRegistrations($folders=false, $appStore=false)
 
     foreach($rows as $row) {
         // echo("<pre>\n");var_dump($row['json']);echo("</pre>\n");
-        $REGISTER_LTI2 = json_decode($row['json'], true);
-        if ( ! is_array($REGISTER_LTI2) ) $REGISTER_LTI2 = array();
+        $REGISTER_LTI = json_decode($row['json'], true);
+        if ( ! is_array($REGISTER_LTI) ) $REGISTER_LTI = array();
 
-        $REGISTER_LTI2['url'] = $CFG->wwwroot . '/ext/' . $row['endpoint'];
+        $REGISTER_LTI['url'] = $CFG->wwwroot . '/ext/' . $row['endpoint'];
 
         // Make an icon URL
         $fa_icon = isset($row['fa_icon']) ? $row['fa_icon'] : false;
         if ( $fa_icon !== false ) {
-            $REGISTER_LTI2['FontAwesome'] = $fa_icon;
-            $REGISTER_LTI2['icon'] = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+            $REGISTER_LTI['FontAwesome'] = $fa_icon;
+            $REGISTER_LTI['icon'] = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
         }
-        $REGISTER_LTI2['name'] = $row['name'];
-        $REGISTER_LTI2['short_name'] = $row['name'];
-        $REGISTER_LTI2['description'] = $row['description'];
+        $REGISTER_LTI['name'] = $row['name'];
+        $REGISTER_LTI['short_name'] = $row['name'];
+        $REGISTER_LTI['description'] = $row['description'];
 
 
         $key = 'ext-' . $row['endpoint'];
-        $tools[$key] = $REGISTER_LTI2;
+        $tools[$key] = $REGISTER_LTI;
     }
 
 
