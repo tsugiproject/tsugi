@@ -64,6 +64,6 @@ $jwt = LTI13::encode_jwt($jwt_claim, $privkey, $kid);
 $launch_url = $row['url'];
 
 $extra = array('formattr' => 'target="_blank"', 'button' => "Open in a New Window");
-// echo(LTI13::build_jwt_html($launch_url, $jwt, true, $extra));
-echo(LTI13::build_jwt_html($launch_url, $jwt, true));
+echo(LTI13::build_jwt_html($launch_url, $jwt, true, $extra));
+// echo(LTI13::build_jwt_html($launch_url, $jwt, true));
 
