@@ -65,7 +65,7 @@ class CrudForm {
             if ( strpos($field, "_sha256") > 0 ) continue;
 
             echo('<div class="form-group">'."\n");
-            echo('<label for="'.$field.'">'.self::fieldToTitle($field, $titles)."<br/>\n");
+            echo('<label for="'.$field.'"><span id="'.$field.'_label">'.self::fieldToTitle($field, $titles)."<span><br/>\n");
 
             if ( strpos($field, "secret") !== false ) {
                 echo('<input id="'.$field.'" type="password" autocomplete="off" size="80" name="'.$field.'"');
@@ -208,7 +208,7 @@ class CrudForm {
             $field = $fields[$i];
             $value = $row[$field];
             if ( ! $do_edit ) {
-                echo('<p><strong>'.self::fieldToTitle($field, $titles)."</strong></p>\n");
+                echo('<p><strong><span id="'.$field.'_label">'.self::fieldToTitle($field, $titles)."</span></strong></p>\n");
                 if ( strpos($field, "secret") !== false || strpos($field, "privkey") !== false ) {
                     echo('<p id="'.$field.'">'."\n");
                     echo("<span style=\"display: none;\" id=\"text_{$i}\">".htmlent_utf8($value).'</span>');
