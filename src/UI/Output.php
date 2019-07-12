@@ -75,13 +75,13 @@ class Output {
         ob_start();
         if ( $this->session_get('error') ) {
             echo '<div class="alert alert-danger alert-banner" style="clear:both">
-                    <div class="container"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
-                $this->session_get('error')."</div></div>\n";
+                    <a href="#" class="close" data-dismiss="alert">&times;</a>'.
+                $this->session_get('error')."</div>\n";
             $this->session_forget('error');
         } else if ( isset($_GET['lti_errormsg']) ) {
             echo '<div class="alert alert-danger alert-banner" style="clear:both">
-                    <div class="container"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
-                htmlentities($_GET['lti_errormsg'])."</div></div>";
+                    <a href="#" class="close" data-dismiss="alert">&times;</a>'.
+                htmlentities($_GET['lti_errormsg'])."</div>";
 
             if ( isset($_GET['detail']) ) {
                 echo("\n<!--\n");
@@ -92,8 +92,8 @@ class Output {
 
         if ( $this->session_get('success') ) {
             echo '<div class="alert alert-success alert-banner" style="clear:both">
-                    <div class="container"><a href="#" class="close" data-dismiss="alert">&times;</a>'.
-                $this->session_get('success')."</div></div>\n";
+                    <a href="#" class="close" data-dismiss="alert">&times;</a>'.
+                $this->session_get('success')."</div>\n";
 
             $this->session_forget('success');
         }
@@ -175,51 +175,30 @@ class Output {
         <!-- Tiny bit of JS -->
         <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
         <!-- Le styles -->
-        <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/<?php
-            if ( isset($CFG->bootswatch) ) echo('bootswatch/'.$CFG->bootswatch.'/'); ?>bootstrap.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <?php if ( strpos($CFG->fontawesome, 'free-5.') > 0 ) { ?>
         <link href="<?= $CFG->fontawesome ?>/css/all.css" rel="stylesheet">
         <link href="<?= $CFG->fontawesome ?>/css/v4-shims.css" rel="stylesheet">
         <?php } else { ?>
         <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
-        <?php } ?>
-        <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
+        <?php }
+        
+        if (is_array($CFG->theme) && isset($CFG->theme["font-url"])) {
+            echo '<link href="'.$CFG->theme["font-url"].'" rel="stylesheet">';
+        }
+        
+        self::theme($CFG->theme) ?>
 
-    <style>
-    body {
-      padding-top: 10px;
-      padding-bottom: 10px;
-    }
-    .navbar {
-      margin-bottom: 20px;
-    }
-    .container_iframe {
-        margin-left: 10px;
-        margin-right: 10px;
-    }
-<?php
-if ( isset($CFG->extra_css) ) {
-    echo($CFG->extra_css."\n");
-}
-?>
-<?php
-if ( isset($CFG->bootswatch_color) ) {
-    $grad = self::get_gradient($CFG->bootswatch_color);
-?>
-.navbar{
-    background-image:linear-gradient(<?= $grad[0]?>,<?= $grad[1] ?> 60%,<?= $grad[2] ?>);
-    background-image:-webkit-linear-gradient(<?= $grad[0]?>,<?= $grad[1] ?> 60%,<?= $grad[2] ?>);
-    border-bottom:1px solid <?= $grad[3]?>;
-    background-color: <?= $grad[3]?>;
-}
-.navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus {
-    background-color: <?= $grad[3]?>;
-}
+          <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
 
-h1, h2, h3, h4 { color: <?= $grad[0]?>; }
-<?php } ?>
-</style>
+          <style>
+              <?php
+              if ( isset($CFG->extra_css) ) {
+                  echo($CFG->extra_css."\n");
+              }
+              ?>
+          </style>
 <?php // https://lefkomedia.com/adding-external-link-indicator-with-css/
   if ( $CFG->google_translate ) { ?>
 <style>
@@ -325,6 +304,82 @@ if (window!=window.top) {
     }
 
     /**
+    * Outputs a splash page used if the tool is not configured or instructor has never been there before.
+    *
+    * @param $title Title of the tool
+    * @param $msg Content of splash page messag
+    * @param bool $link Set to href if want user to be able to click button to go to home
+    * @return false|string
+    */
+    function splashPage($title, $msg, $link = false) {
+        ob_start();
+        self::header();
+        echo '<style>body{background: var(--primary)}</style>';
+        self::bodyStart();
+        echo '<section class="splash-container">
+                <article class="splash-content">
+                <header><h1 class="splash-header">'.$title.'</h1></header>
+                <p class="lead">'.$msg.'</p>';
+        if ($link) {
+            echo '<a href="'.$link.'" class="btn btn-success">Get Started</a>';
+        }
+
+        echo '</article></section>';
+        
+        self::footer();
+        
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $this->buffer ) return $ob_output;
+        echo($ob_output);
+    }
+
+    function pageTitle($title, $show_help = false, $show_settings = false) {
+        ob_start();
+        echo '<div id="toolTitle" class="h1">';
+        if ($show_help) {
+            self::helpButton();
+        }
+        if ($show_settings) {
+            SettingsForm::link(true);
+        }
+        echo '<span class="title-text-span">'.$title.'</span>';
+        echo '</div>';
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $this->buffer ) return $ob_output;
+        echo($ob_output);
+    }
+
+    function helpModal($help_title = "Help", $help_msg = '<em>No help for this page.</em>') {
+        $modal = <<< EOF
+<div id="helpModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span class="fa fa-times" aria-hidden="true"></span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">$help_title</h4>
+            </div>
+            <div class="modal-body">$help_msg</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+EOF;
+        if ( $this->buffer ) return $modal;
+        echo($modal);
+    }
+    
+    function helpButton() {
+        $button = '<button id="helpButton" type="button" class="btn btn-link pull-right" data-toggle="modal" data-target="#helpModal"><span class="fas fa-question-circle" aria-hidden="true"></span> Help</button>';
+        if ( $this->buffer ) return $button;
+        echo($button);
+    }
+
+    /**
      * templateInclude - Include a handlebars template, dealing with i18n
      *
      * Deprecated - Moved to HandleBars
@@ -346,7 +401,7 @@ if (window!=window.top) {
         global $CFG;
         ob_start();
         echo('<script src="'.$CFG->staticroot.'/js/jquery-1.11.3.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/bootstrap-3.4.1/js/bootstrap.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/jquery.timeago-1.6.3.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/handlebars-v4.0.2.js"></script>'."\n");
@@ -779,9 +834,9 @@ $('a').each(function (x) {
         echo($menu_txt);
     }
 
-    private function recurseNav($entry, $depth) {
+    private function recurseNav($entry, $depth, $is_tool_nav = false) {
         global $CFG;
-        $current_url = $CFG->getCurrentUrl();
+        $current_url = $is_tool_nav ? basename($_SERVER['PHP_SELF']) : $CFG->getCurrentUrl();
         $retval = '';
         $pad = str_repeat('    ',$depth);
         if ( $depth > 10 ) return $retval;
@@ -810,12 +865,14 @@ $('a').each(function (x) {
         return $retval;
     }
 
-    function menuNav($set) {
+    function menuNav($set, $is_tool_menu = false, $include_flash_messages = false, $use_fluid = true) {
         global $CFG, $LAUNCH;
+
+        $container_class = $use_fluid ? "container-fluid" : "container";
 
 $retval = <<< EOF
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="tsugi_main_nav_bar" style="display:none">
-  <div class="container-fluid">
+  <div class="$container_class">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
         <span class="sr-only">Toggle navigation</span>
@@ -835,7 +892,7 @@ EOF;
         if ( $set->left && count($set->left->menu) > 0 ) {
             $retval .= '      <ul class="nav navbar-nav navbar-main">'."\n";
             foreach($set->left->menu as $entry) {
-                $retval .= $this->recurseNav($entry, 2);
+                $retval .= $this->recurseNav($entry, 2, $is_tool_menu);
             }
             $retval .= "      </ul>\n";
         }
@@ -843,19 +900,27 @@ EOF;
         if ( $set->right && count($set->right->menu) > 0 ) {
             $retval .= '      <ul class="nav navbar-nav navbar-right">'."\n";
             foreach($set->right->menu as $entry) {
-                $retval .= $this->recurseNav($entry, 2);
+                $retval .= $this->recurseNav($entry, 2, $is_tool_menu);
             }
             $retval .= "      </ul>\n";
         }
 
         $retval .= "    </div> <!--/.nav-collapse -->\n";
-        $retval .= "  </div> <!--container-fluid -->\n";
+        $retval .= "  </div> <!--container -->\n";
+        if ($include_flash_messages){
+            // Adding here because it makes the flash messages appear to be hanging down from the nav
+            $oldBuffer = $this->buffer;
+            $this->buffer = true;
+            $retval .= '<div id="flashmessages" class="'.$container_class.'">'. self::flashMessages() .'</div>';
+            $this->buffer = $oldBuffer;
+        }
         $retval .= "</nav>\n";
         $inmoodle = $LAUNCH->isMoodle() ? "true" : "false";
+        $is_tool_menu = $is_tool_menu ? "true" : "false";
         $retval .= "<script>\n";
-        $retval .= "if ( ".$inmoodle." || ! inIframe() ) {\n";
+        $retval .= "if ( ".$is_tool_menu." || ".$inmoodle." || ! inIframe() ) {\n";
         $retval .= "  document.getElementById('tsugi_main_nav_bar').style.display = 'block';\n";
-        $retval .= "  document.getElementsByTagName('body')[0].style.paddingTop = '70px';\n";
+        $retval .= "  document.getElementsByTagName('body')[0].style.paddingTop = '5.93rem';\n";
         $retval .= "}\n";
         $retval .= "</script>\n";
 
@@ -873,6 +938,21 @@ EOF;
             }
         }
         return $retval;
+    }
+
+    /**
+    * Adds the tool menu nav using the provided menu set or the top nav if none.
+    * This includes the flash messages so that they appear to be coming from the
+    * bottom of the nav.
+    */
+    function toolNav($menu_set = false) {
+        if ($menu_set === false) {
+            return self::topNav();
+        } else {
+            $menu_txt = self::menuNav($menu_set, true, true, false);
+            if ( $this->buffer ) return $menu_txt;
+            echo($menu_txt);
+        }
     }
 
     /**
@@ -1036,68 +1116,6 @@ EOF;
         header('Cache-Control: max-age='.$max_age);  // A Week...
     }
 
-    public static function get_gradient($pos) {
-        $grads = array(
-            array("#4c2119","#48241d","#46261f","#98331f"),
-            array("#511e14","#4d2118","#4b221a","#a12d16"),
-            array("#4c2a19","#482b1d","#462c1f","#98471f"),
-            array("#512814","#4d2a18","#4b2a1a","#a14416"),
-            array("#4c3319","#48331d","#46331f","#985b1f"),
-            array("#513314","#4d3318","#4b331a","#a15b16"),
-            array("#4c3b19","#483a1d","#46391f","#986f1f"),
-            array("#513d14","#4d3b18","#4b3b1a","#a17316"),
-            array("#334c19","#33481d","#33461f","#5b981f"),
-            array("#2a4c19","#2b481d","#2c461f","#47981f"),
-            array("#224c19","#24481d","#26461f","#33981f"),
-            array("#1e5114","#214d18","#224b1a","#2da116"),
-            array("#194c22","#1d4824","#1f4626","#1f9833"),
-            array("#14511e","#184d21","#1a4b22","#16a12d"),
-            array("#194c2a","#1d482b","#1f462c","#1f9847"),
-            array("#145128","#184d2a","#1a4b2a","#16a144"),
-            array("#194c33","#1d4833","#1f4633","#1f985b"),
-            array("#194c3b","#1d483a","#1f4639","#1f986f"),
-            array("#194c44","#1d4841","#1f463f","#1f9884"),
-            array("#19434c","#1d4148","#1f3f46","#1f8498"),
-            array("#144751","#18444d","#1a434b","#168aa1"),
-            array("#193b4c","#1d3a48","#1f3946","#1f6f98"),
-            array("#143d51","#183b4d","#1a3b4b","#1673a1"),
-            array("#19324c","#1d3248","#1f3246","#1f5b98"),
-            array("#143251","#18324d","#1a324b","#165ba1"),
-            array("#264c72","#2c4c6c","#2f4c69","#2775c2"),
-            array("#1e4c7a","#244c74","#274c71","#1c75ce"),
-            array("#192a4c","#1d2b48","#1f2c46","#1f4798"),
-            array("#142851","#182a4d","#1a2a4b","#1644a1"),
-            array("#263f72","#2c416c","#2f4269","#275bc2"),
-            array("#1e3d7a","#243f74","#274071","#1c57ce"),
-            array("#32194c","#321d48","#321f46","#5b1f98"),
-            array("#321451","#32184d","#321a4b","#5b16a1"),
-            array("#4c2672","#4c2c6c","#4c2f69","#7527c2"),
-            array("#4c1e7a","#4c2474","#4c2771","#751cce"),
-            array("#3b194c","#3a1d48","#391f46","#6f1f98"),
-            array("#3d1451","#3b184d","#3b1a4b","#7316a1"),
-            array("#592672","#572c6c","#562f69","#8f27c2"),
-            array("#5b1e7a","#592474","#582771","#931cce"),
-            array("#43194c","#411d48","#3f1f46","#841f98"),
-            array("#471451","#44184d","#431a4b","#8a16a1"),
-            array("#4c194c","#481d48","#461f46","#981f98"),
-            array("#511451","#4d184d","#4b1a4b","#a116a1"),
-            array("#4c1944","#481d41","#461f3f","#981f84"),
-            array("#511447","#4d1844","#4b1a43","#a1168a"),
-            array("#4c193b","#481d3a","#461f39","#981f6f"),
-            array("#51143d","#4d183b","#4b1a3b","#a11673"),
-            array("#4c1933","#481d33","#461f33","#981f5b"),
-            array("#511433","#4d1833","#4b1a33","#a1165b"),
-            array("#4c192a","#481d2b","#461f2c","#981f47"),
-            array("#511428","#4d182a","#4b1a2a","#a11644"),
-            array("#4c1922","#481d24","#461f26","#981f33"),
-            array("#51141e","#4d1821","#4b1a22","#a1162d")
-        );
-
-        $pos = $pos % count($grads);
-
-        return $grads[$pos];
-    }
-
     public static function displaySize($size) {
         if ( $size > 1024*1024*1024*2 ) {
             return (int) ($size/(1024*1024*1024))."GB";
@@ -1158,11 +1176,19 @@ EOF;
     <!-- Tiny bit of JS -->
     <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
     <!-- Le styles -->
-    <link href="<?= $CFG->staticroot ?>/bootstrap-3.1.1/css/<?php
-        if ( isset($CFG->bootswatch) ) echo('bootswatch/'.$CFG->bootswatch.'/'); ?>bootstrap.min.css" rel="stylesheet">
+    <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
     <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
-    <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
+
+      <?php
+      if (is_array($CFG->theme) && isset($CFG->theme["font-url"])) {
+          echo '<link href="'.$CFG->theme["font-url"].'" rel="stylesheet">';
+      }
+      ?>
+
+      <?= self::theme($CFG->theme) ?>
+
+      <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
    </head>
 <body>
 <div id="dialog-confirm" style="display:none;" title="<?= htmlentities($message) ?>">
@@ -1170,7 +1196,7 @@ EOF;
 </div>
 <?php
         echo('<script src="'.$CFG->staticroot.'/js/jquery-1.11.3.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/bootstrap-3.1.1/js/bootstrap.min.js"></script>'."\n");
+        echo('<script src="'.$CFG->staticroot.'/bootstrap-3.4.1/js/bootstrap.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
         echo('<script src="'.$CFG->staticroot.'/js/tsugiscripts.js"></script>'."\n");
 ?>
@@ -1241,6 +1267,63 @@ EOF;
     public static function noBuffer() {
         ini_set('output_buffering', 'off');
         ini_set('zlib.output_compression', false);
+    }
+
+    public static function theme($theme) {
+        $style = '<style>:root {';
+        if (is_array($theme)) {
+            $style .= isset($theme["primary"]) ? '--primary:'.$theme["primary"].';' : '#1066EB;';
+            $style .= isset($theme["primary"]) ? '--primary-border:'.self::adjustBrightness($theme["primary"],-0.075).';' : '#0f5fda;';
+            $style .= isset($theme["primary"]) ? '--primary-darker:'.self::adjustBrightness($theme["primary"],-0.1).';' : '#0f5cd4;';
+            $style .= isset($theme["primary"]) ? '--primary-darkest:'.self::adjustBrightness($theme["primary"],-0.175).';' : '#0e55c2;';
+            $style .= isset($theme["nav-text"]) ? '--nav-text:'.$theme["nav-text"].';' : '#FFFFFF;';
+            $style .= isset($theme["text"]) ? '--text:'.$theme["text"].';' : '#111111;';
+            $style .= isset($theme["text-light"]) ? '--text-light:'.$theme["text-light"].';' : '#5E5E5E;';
+            $style .= isset($theme["font-family"]) ? '--font-family:'.$theme["font-family"].';' : 'sans-serif;';
+            $style .= isset($theme["font-size"]) ? '--font-size:'.$theme["font-size"].';' : '14px;';
+        } else {
+            // No theme set use all defaults
+            $style .= '--primary:#1066EB;';
+            $style .= '--primary-border:#0f5fda;';
+            $style .= '--primary-darker:#0f5cd4;';
+            $style .= '--primary-darkest:#0e55c2;';
+            $style .= '--nav-text:#FFFFFF;';
+            $style .= '--text:#111111;';
+            $style .= '--text-light:#5E5E5E;';
+            $style .= '--font-family:sans-serif;';
+            $style .= '--font-size:14px;';
+        }
+        $style .= '}</style>';
+        echo($style);
+    }
+
+    /**
+    * From https://stackoverflow.com/questions/3512311/how-to-generate-lighter-darker-color-with-php
+    *
+    * Increases or decreases the brightness of a color by a percentage of the current brightness.
+    *
+    * @param   string  $hexCode        Supported formats: `#FFF`, `#FFFFFF`, `FFF`, `FFFFFF`
+    * @param   float   $adjustPercent  A number between -1 and 1. E.g. 0.3 = 30% lighter; -0.4 = 40% darker.
+    *
+    * @return  string
+    */
+    private static function adjustBrightness($hexCode, $adjustPercent) {
+        $hexCode = ltrim($hexCode, '#');
+
+        if (strlen($hexCode) == 3) {
+            $hexCode = $hexCode[0] . $hexCode[0] . $hexCode[1] . $hexCode[1] . $hexCode[2] . $hexCode[2];
+        }
+
+        $hexCode = array_map('hexdec', str_split($hexCode, 2));
+
+        foreach ($hexCode as & $color) {
+            $adjustableLimit = $adjustPercent < 0 ? $color : 255 - $color;
+            $adjustAmount = ceil($adjustableLimit * $adjustPercent);
+
+            $color = str_pad(dechex($color + $adjustAmount), 2, '0', STR_PAD_LEFT);
+        }
+
+        return '#' . implode($hexCode);
     }
 
 }

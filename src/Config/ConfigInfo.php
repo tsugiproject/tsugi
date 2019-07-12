@@ -325,6 +325,12 @@ class ConfigInfo {
     public $noncetime = 1800;
 
     /**
+     * An array of css styles to apply to css variables used to skin Tsugi.
+     * Documentation about the available settings can be seen in config-dist.php.
+     */
+    public $theme;
+
+    /**
      * Create the configuration object.
      *
      * Generally this is done once to create the global variable $CFG 
