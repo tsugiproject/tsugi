@@ -104,7 +104,7 @@ $register_good = $json_obj && isset($json_obj->name);
 <?php
 
 if ( $fa_icon ) {
-    echo('<i class="hidden-xs fa '.$fa_icon.' fa-2x" style="color: #1894C7; float:right; margin: 2px"></i>');
+    echo('<span class="hidden-xs fa '.$fa_icon.' fa-2x" style="color: var(--primary); float:right; margin: 2px"></span>');
 }
 echo("<b>".htmlent_utf8($title)."</b>\n");
 echo('<p class="hidden-xs">'.htmlent_utf8($text)."</p>\n");

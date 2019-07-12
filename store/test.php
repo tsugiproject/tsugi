@@ -94,7 +94,7 @@ $install = $rest_path->extra;
     }
 
     if ( $fa_icon ) {
-        echo('<i class="hidden-xs fa '.$fa_icon.' fa-3x" style="color: #1894C7; float:right; margin: 2px"></i>');
+        echo('<span class="hidden-xs fa '.$fa_icon.' fa-3x" style="color: var(--primary); float:right; margin: 2px"></span>');
     }
     echo('<center>');
     echo("<b>".htmlent_utf8($title)."</b>\n");

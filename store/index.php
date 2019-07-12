@@ -169,7 +169,7 @@ if ( isset($_GET['install']) ) {
     }
 
     if ( $fa_icon ) {
-        echo('<i class="fa '.$fa_icon.' fa-3x" style="color: #1894C7; float:right; margin: 2px"></i>');
+        echo('<span class="fa '.$fa_icon.' fa-3x" style="color: var(--primary); float:right; margin: 2px"></span>');
     }
     echo('<center>');
     echo("<h1>".htmlent_utf8($title)."</h1>\n");
@@ -245,7 +245,7 @@ echo(settings_status($key_count));
         echo('<div class="panel-body">');
         if ( $fa_icon ) {
             echo('<a href="details/'.urlencode($name).'">');
-            echo('<i class="fa '.$fa_icon.' fa-2x" style="color: #1894C7; float:right; margin: 2px"></i>');
+            echo('<span class="fa '.$fa_icon.' fa-2x" style="float:right; margin: 2px"></span>');
             echo('</a>');
         }
         if ($phase !== false) {
