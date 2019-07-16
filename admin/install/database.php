@@ -17,7 +17,7 @@ array( "{$CFG->dbprefix}lms_tools",
     git_user            VARCHAR(1024) NULL,
     git_password        VARCHAR(1024) NULL,
 
-    rank                INTEGER NULL,
+    `rank`              INTEGER NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     json                MEDIUMTEXT NULL,
