@@ -784,13 +784,13 @@ $('a').each(function (x) {
     }
 
     /**
-     * Emit the top navigation block
+     * Emit the top navigation block and optionally the tool navigation
      *
      * Priority order:
      * (1) Navigation in the session
      * (2) If we are launched via LTI w/o a session
      */
-    function topNav($menu_set=false) {
+    function topNav($tool_menu=false) {
         global $CFG, $LAUNCH;
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
         $launch_return_url = $LAUNCH->ltiRawParameter('launch_presentation_return_url', false);
@@ -801,6 +801,7 @@ $('a').each(function (x) {
 
         // Canvas bug: launch_target is iframe even in new window (2017-01-10)
         $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
+        $menu_set = false;
         if ( $menu_set === false && $this->session_get($sess_key) ) {
             $menu_set = \Tsugi\UI\MenuSet::import($this->session_get($sess_key));
         } else if ( $menu_set === true ) {
@@ -830,6 +831,22 @@ $('a').each(function (x) {
         }
 
         $menu_txt = self::menuNav($menu_set);
+        if ( $tool_menu ) $menu_txt .= self::menuNav($tool_menu, true, true, false);
+
+        // Show / hide / adjust the navigation
+        $menu_txt .= "<script>\n";
+        $menu_txt .= "if ( ! inIframe() ) {\n";
+        $menu_txt .= "  document.getElementById('tsugi_main_nav_bar').style.display = 'block';\n";
+        $menu_txt .= "  document.getElementsByTagName('body')[0].style.paddingTop = '5.93rem';\n";
+        if ( $tool_menu ) {
+            $menu_txt .= "} else {\n";
+            $menu_txt .= "  document.getElementById('tsugi_tool_nav_bar').classList.add(\"navbar-fixed-top\");\n";
+            $menu_txt .= "  document.getElementsByTagName('body')[0].style.paddingTop = '5.93rem';\n";
+        }
+        $menu_txt .= "}\n";
+        $menu_txt .= "</script>\n";
+
+        // Send it back
         if ( $this->buffer ) return $menu_txt;
         echo($menu_txt);
     }
@@ -870,8 +887,13 @@ $('a').each(function (x) {
 
         $container_class = $use_fluid ? "container-fluid" : "container";
 
-$retval = <<< EOF
-<nav class="navbar navbar-default navbar-fixed-top" role="navigation" id="tsugi_main_nav_bar" style="display:none">
+        if ( $is_tool_menu ) {
+            $retval = '<nav class="navbar navbar-default" role="navigation" id="tsugi_tool_nav_bar">';
+        } else {
+           $retval = '<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation" id="tsugi_main_nav_bar" style="display:none">';
+        }
+
+$retval .= <<< EOF
   <div class="$container_class">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -907,6 +929,7 @@ EOF;
 
         $retval .= "    </div> <!--/.nav-collapse -->\n";
         $retval .= "  </div> <!--container -->\n";
+        $retval .= "</nav>\n";
         if ($include_flash_messages){
             // Adding here because it makes the flash messages appear to be hanging down from the nav
             $oldBuffer = $this->buffer;
@@ -914,15 +937,6 @@ EOF;
             $retval .= '<div id="flashmessages" class="'.$container_class.'">'. self::flashMessages() .'</div>';
             $this->buffer = $oldBuffer;
         }
-        $retval .= "</nav>\n";
-        $inmoodle = $LAUNCH->isMoodle() ? "true" : "false";
-        $is_tool_menu = $is_tool_menu ? "true" : "false";
-        $retval .= "<script>\n";
-        $retval .= "if ( ".$is_tool_menu." || ".$inmoodle." || ! inIframe() ) {\n";
-        $retval .= "  document.getElementById('tsugi_main_nav_bar').style.display = 'block';\n";
-        $retval .= "  document.getElementsByTagName('body')[0].style.paddingTop = '5.93rem';\n";
-        $retval .= "}\n";
-        $retval .= "</script>\n";
 
         // See if the LTI login can be linked to the site login...
         if ( isset($_SESSION['lti']) && !defined('COOKIE_SESSION') &&  isset($_COOKIE[$CFG->cookiename])) {
