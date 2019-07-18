@@ -954,16 +954,14 @@ EOF;
     }
 
     /**
-    * Adds the tool menu nav using the provided menu set or the top nav if none.
-    * This includes the flash messages so that they appear to be coming from the
-    * bottom of the nav.
+    * Adds the tool menu nav using the provided menu set or nothing if none provided.
     */
     function toolNav($menu_set = false) {
-        if ($menu_set === false) {
-            return self::topNav();
-        } else {
+        if ($menu_set) {
             $menu_txt = self::menuNav($menu_set, true);
-            if ( $this->buffer ) return $menu_txt;
+            if ( $this->buffer ) {
+                return $menu_txt;
+            }
             echo($menu_txt);
         }
     }
