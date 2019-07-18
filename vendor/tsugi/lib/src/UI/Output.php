@@ -73,6 +73,7 @@ class Output {
 
     function flashMessages() {
         ob_start();
+        echo '<div id="flashmessages">';
         if ( $this->session_get('error') ) {
             echo '<div class="alert alert-danger alert-banner" style="clear:both">
                     <a href="#" class="close" data-dismiss="alert">&times;</a>'.
@@ -97,6 +98,8 @@ class Output {
 
             $this->session_forget('success');
         }
+
+        echo '</div>'; // End flash messages container
 
         $ob_output = ob_get_contents();
         ob_end_clean();
@@ -266,7 +269,7 @@ body {
 <div id="body_container">
 <script>
 if (window!=window.top) {
-    document.getElementById("body_container").className = "container_iframe";
+    document.getElementById("body_container").className = "container-fluid";
 } else {
     document.getElementById("body_container").className = "container";
 }
@@ -831,7 +834,7 @@ $('a').each(function (x) {
         }
 
         $menu_txt = self::menuNav($menu_set);
-        if ( $tool_menu ) $menu_txt .= self::menuNav($tool_menu, true, true, false);
+        if ( $tool_menu ) $menu_txt .= self::menuNav($tool_menu, true);
 
         // Show / hide / adjust the navigation
         $menu_txt .= "<script>\n";
@@ -872,7 +875,12 @@ $('a').each(function (x) {
             return $retval;
         }
         $retval .= $pad.'<li class="dropdown">'."\n";
-        $retval .= $pad.'  <a href="#" class="dropdown-toggle" data-toggle="dropdown">'.$entry->link.'<b class="caret"></b></a>'."\n";
+        $dropdown_link_class = 'dropdown-toggle';
+        if (strpos($entry->link, '<img') !== false) {
+            // Drop down link contains an image so add class to style
+            $dropdown_link_class .= ' dropdown-img';
+        }
+        $retval .= $pad.'  <a href="#" class="'.$dropdown_link_class.'" data-toggle="dropdown">'.$entry->link.' <span class="fa fa-caret-down" aria-hidden="true"></span></a>'."\n";
         $retval .= $pad.'  <ul class="dropdown-menu">'."\n";
         foreach($entry->href as $child) {
            $retval .= $this->recurseNav($child, $depth+1);
@@ -882,10 +890,8 @@ $('a').each(function (x) {
         return $retval;
     }
 
-    function menuNav($set, $is_tool_menu = false, $include_flash_messages = false, $use_fluid = true) {
+    function menuNav($set, $is_tool_menu = false) {
         global $CFG, $LAUNCH;
-
-        $container_class = $use_fluid ? "container-fluid" : "container";
 
         if ( $is_tool_menu ) {
             $retval = '<nav class="navbar navbar-default" role="navigation" id="tsugi_tool_nav_bar">';
@@ -894,7 +900,7 @@ $('a').each(function (x) {
         }
 
 $retval .= <<< EOF
-  <div class="$container_class">
+  <div class="container-fluid">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
         <span class="sr-only">Toggle navigation</span>
@@ -930,13 +936,6 @@ EOF;
         $retval .= "    </div> <!--/.nav-collapse -->\n";
         $retval .= "  </div> <!--container -->\n";
         $retval .= "</nav>\n";
-        if ($include_flash_messages){
-            // Adding here because it makes the flash messages appear to be hanging down from the nav
-            $oldBuffer = $this->buffer;
-            $this->buffer = true;
-            $retval .= '<div id="flashmessages" class="'.$container_class.'">'. self::flashMessages() .'</div>';
-            $this->buffer = $oldBuffer;
-        }
 
         // See if the LTI login can be linked to the site login...
         if ( isset($_SESSION['lti']) && !defined('COOKIE_SESSION') &&  isset($_COOKIE[$CFG->cookiename])) {
@@ -955,16 +954,14 @@ EOF;
     }
 
     /**
-    * Adds the tool menu nav using the provided menu set or the top nav if none.
-    * This includes the flash messages so that they appear to be coming from the
-    * bottom of the nav.
+    * Adds the tool menu nav using the provided menu set or nothing if none provided.
     */
     function toolNav($menu_set = false) {
-        if ($menu_set === false) {
-            return self::topNav();
-        } else {
-            $menu_txt = self::menuNav($menu_set, true, true, false);
-            if ( $this->buffer ) return $menu_txt;
+        if ($menu_set) {
+            $menu_txt = self::menuNav($menu_set, true);
+            if ( $this->buffer ) {
+                return $menu_txt;
+            }
             echo($menu_txt);
         }
     }
