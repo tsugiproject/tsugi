@@ -121,8 +121,8 @@ $CFG->adminpw = false;
 
 // Theme Tsugi to your institutions colors. If not set, default colors will be used.
 /*$CFG->theme = array(
-    "primary" => "#1066EB", //default color for nav background, splash background, buttons, etc.
-    "nav-text" => "#FFFFFF", // Nav text and nav item border color (typically white if using a dark enough primary)
+    "primary" => "#0D47A1", //default color for nav background, splash background, buttons, text of tool menu
+    "secondary" => "#EEEEEE", // Nav text and nav item border color, background of tool menu
     "text" => "#111111", // Standard copy color
     "text-light" => "#5E5E5E", // A lighter version of the standard text color for elements like "small"
     "font-url" => "https://fonts.googleapis.com/css?family=Muli:400,900", // Optional custom font url for using Google fonts

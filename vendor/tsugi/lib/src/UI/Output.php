@@ -954,19 +954,6 @@ EOF;
     }
 
     /**
-    * Adds the tool menu nav using the provided menu set or nothing if none provided.
-    */
-    function toolNav($menu_set = false) {
-        if ($menu_set) {
-            $menu_txt = self::menuNav($menu_set, true);
-            if ( $this->buffer ) {
-                return $menu_txt;
-            }
-            echo($menu_txt);
-        }
-    }
-
-    /**
      * The embedded menu - for now just one button...
      */
     public static function embeddedMenu($url, $profile_email, $user_email) {
@@ -1283,22 +1270,22 @@ EOF;
     public static function theme($theme) {
         $style = '<style>:root {';
         if (is_array($theme)) {
-            $style .= isset($theme["primary"]) ? '--primary:'.$theme["primary"].';' : '#1066EB;';
-            $style .= isset($theme["primary"]) ? '--primary-border:'.self::adjustBrightness($theme["primary"],-0.075).';' : '#0f5fda;';
-            $style .= isset($theme["primary"]) ? '--primary-darker:'.self::adjustBrightness($theme["primary"],-0.1).';' : '#0f5cd4;';
-            $style .= isset($theme["primary"]) ? '--primary-darkest:'.self::adjustBrightness($theme["primary"],-0.175).';' : '#0e55c2;';
-            $style .= isset($theme["nav-text"]) ? '--nav-text:'.$theme["nav-text"].';' : '#FFFFFF;';
+            $style .= isset($theme["primary"]) ? '--primary:'.$theme["primary"].';' : '#0D47A1;';
+            $style .= isset($theme["primary"]) ? '--primary-border:'.self::adjustBrightness($theme["primary"],-0.075).';' : '#0d4295;';
+            $style .= isset($theme["primary"]) ? '--primary-darker:'.self::adjustBrightness($theme["primary"],-0.1).';' : '#0c4091;';
+            $style .= isset($theme["primary"]) ? '--primary-darkest:'.self::adjustBrightness($theme["primary"],-0.175).';' : '#0b3b85;';
+            $style .= isset($theme["secondary"]) ? '--secondary:'.$theme["secondary"].';' : '#EEEEEE;';
             $style .= isset($theme["text"]) ? '--text:'.$theme["text"].';' : '#111111;';
             $style .= isset($theme["text-light"]) ? '--text-light:'.$theme["text-light"].';' : '#5E5E5E;';
             $style .= isset($theme["font-family"]) ? '--font-family:'.$theme["font-family"].';' : 'sans-serif;';
             $style .= isset($theme["font-size"]) ? '--font-size:'.$theme["font-size"].';' : '14px;';
         } else {
             // No theme set use all defaults
-            $style .= '--primary:#1066EB;';
-            $style .= '--primary-border:#0f5fda;';
-            $style .= '--primary-darker:#0f5cd4;';
-            $style .= '--primary-darkest:#0e55c2;';
-            $style .= '--nav-text:#FFFFFF;';
+            $style .= '--primary:#0D47A1;';
+            $style .= '--primary-border:#0d4295;';
+            $style .= '--primary-darker:#0c4091;';
+            $style .= '--primary-darkest:#0b3b85;';
+            $style .= '--secondary:#EEEEEE;';
             $style .= '--text:#111111;';
             $style .= '--text-light:#5E5E5E;';
             $style .= '--font-family:sans-serif;';
