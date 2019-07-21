@@ -423,6 +423,11 @@ class LTIX {
         // $row = loadAllData($CFG->dbprefix, false, $post);
         $row = self::loadAllData($CFG->dbprefix, $CFG->dbprefix.'profile', $post);
 
+        // Make sure that we received reasonable data
+        if ( ! $row || ! U::get($row, 'key_id') ) {
+            self::abort_with_error_log('Unable to load key / deployment for launch');
+        }
+
         // TODO: Might want to add general warning for close LTI13 Timestamps
         $delta = 0;
         if ( isset($request_data['oauth_timestamp']) ) {
