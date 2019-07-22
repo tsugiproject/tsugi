@@ -2346,12 +2346,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "9c15784a1041fc25628e03800a63495a0ee10388"
+            "reference": "f8519de6e0e691d0768f068fa23a242ff61aefec"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/9c15784a1041fc25628e03800a63495a0ee10388",
-            "reference": "9c15784a1041fc25628e03800a63495a0ee10388",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f8519de6e0e691d0768f068fa23a242ff61aefec",
+            "reference": "f8519de6e0e691d0768f068fa23a242ff61aefec",
             "shasum": ""
         },
         "require": {
@@ -2363,7 +2363,7 @@
             "phpunit/php-timer": ">=1.0.6",
             "phpunit/phpunit": "5.*"
         },
-        "time": "2019-06-16 12:46:42",
+        "time": "2019-07-19 13:28:29",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
@@ -2383,9 +2383,9 @@
         "authors": [
             {
                 "name": "csev",
+                "role": "Developer",
                 "email": "drchuck@gmail.com",
-                "homepage": "http://www.dr-chuck.com/",
-                "role": "Developer"
+                "homepage": "http://www.dr-chuck.com/"
             }
         ],
         "description": "The PHP Library to build interoperable learning tools",
