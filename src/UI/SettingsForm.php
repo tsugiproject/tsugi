@@ -70,15 +70,29 @@ class SettingsForm {
       * This is just the button, using the pencil icon.  Wrap in a
       * span or div tag if you want to move it around
       */
-    public static function button($right = false)
+    public static function buttonText($right = false)
     {
         global $LINK;
         if ( ! $LINK ) return;
-        if ( $right ) echo('<span style="position: fixed; right: 10px; top: 5px;">');
-        echo('<button type="button" data-toggle="modal" data-target="#settings" class="btn btn-default">');
-        echo('<span class="glyphicon glyphicon-pencil"></span></button>'."\n");
-        if ( $right ) echo('</span>');
+        $retval = "";
+        if ( $right ) $retval .= '<span style="position: fixed; right: 10px; top: 5px;">';
+        $retval .= '<button type="button" '.self::attr().' class="btn btn-default">';
+        $retval .= '<span class="glyphicon glyphicon-pencil"></span></button>'."\n";
+        if ( $right ) $retval .= '</span>';
+        return $retval;
     }
+
+    /**
+      * Emit a properly styled "settings" button
+      *
+      * This is just the button, using the pencil icon.  Wrap in a
+      * span or div tag if you want to move it around
+      */
+    public static function button($right = false)
+    {
+        echo(self::buttonText($right));
+    }
+
 
     /**
      * Emit a properly styled "settings" link
@@ -94,8 +108,17 @@ class SettingsForm {
         } else {
             $pos = "";
         }
-        echo '<button type="button" data-toggle="modal" data-target="#settings" class="btn btn-link '.$pos.'");>';
+
+        echo '<button type="button" '.self::attr().' class="btn btn-link '.$pos.'");>';
         echo '<span class="fas fa-cog" aria-hidden="true"></span> '.__("Settings").'</button>'."\n";
+    }
+
+    /**
+     * Return the attributes to add to a tag to connect to activate the settings modal
+     */
+    public static function attr()
+    {
+        return 'data-toggle="modal" data-target="#settings"';
     }
 
 
@@ -324,8 +347,8 @@ class SettingsForm {
         $penalty_time = Settings::linkGet('penalty_time') ? Settings::linkGet('penalty_time') + 0 : 24*60*60;
         $penalty_cost = Settings::linkGet('penalty_cost') ? Settings::linkGet('penalty_cost') + 0.0 : 0.2;
 
-        $retval->penaltyinfo = sprintf(_m("Once the due date has passed your 
-            score will be reduced by %f percent and each %s after the due date, 
+        $retval->penaltyinfo = sprintf(_m("Once the due date has passed your
+            score will be reduced by %f percent and each %s after the due date,
             your score will be further reduced by %s percent."),
                 htmlent_utf8($penalty_cost*100), htmlent_utf8(self::getDueDateDelta($penalty_time)),
                 htmlent_utf8($penalty_cost*100) );

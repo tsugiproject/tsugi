@@ -54,7 +54,7 @@ class MenuSet {
     public function addLeft($link, $href, $push=false)
     {
         if ( $this->left == false ) $this->left = new Menu();
-        $x = new \Tsugi\UI\MenuEntry($link, $href, $push);
+        $x = new \Tsugi\UI\MenuEntry($link, $href);
         $this->left->add($x, $push);
         return $this;
     }
@@ -71,7 +71,7 @@ class MenuSet {
     public function addRight($link, $href, $push=true)
     {
         if ( $this->right == false ) $this->right = new Menu();
-        $x = new \Tsugi\UI\MenuEntry($link, $href, $push);
+        $x = new \Tsugi\UI\MenuEntry($link, $href);
         $this->right->add($x, $push);
         return $this;
     }

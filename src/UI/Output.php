@@ -863,6 +863,7 @@ $('a').each(function (x) {
         if ( !is_array($entry->href) ) {
             $target = '';
             $url = $entry->href;
+            $attr = $entry->attr;
             if ( (strpos($url,'http:') === 0 || strpos($url,'https:') === 0 ) &&
                 ( strpos($url, $CFG->apphome) === false && strpos($url, $CFG->wwwroot) === false ) ) {
                 $target = ' target="_blank"';
@@ -871,7 +872,7 @@ $('a').each(function (x) {
             if ( $current_url == $url ) {
                 $active = ' class="active"';
             }
-            $retval .= $pad.'<li'.$active.'><a href="'.$url.'"'.$target.'>'.$entry->link.'</a></li>'."\n";
+            $retval .= $pad.'<li'.$active.'><a href="'.$url.'"'.$target.' '.$attr.'>'.$entry->link.'</a></li>'."\n";
             return $retval;
         }
         $retval .= $pad.'<li class="dropdown">'."\n";

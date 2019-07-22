@@ -22,7 +22,7 @@ class MenuSetTest extends PHPUnit_Framework_TestCase
         $home->add($x);
         $set->home = $home->menu;
         // print_r($set);
-        $expected = '{"home":[{"link":"Home","href":"http:\/\/www.tsugi.org\/"}],"left":false,"right":[{"link":"IMS","href":"http:\/\/www.imsglobal.org\/"}]}';
+        $expected = '{"home":[{"link":"Home","href":"http:\/\/www.tsugi.org\/","attr":false}],"left":false,"right":[{"link":"IMS","href":"http:\/\/www.imsglobal.org\/","attr":false}]}';
         $this->assertEquals($expected,json_encode($set));
     }
 
@@ -35,12 +35,12 @@ class MenuSetTest extends PHPUnit_Framework_TestCase
             ->addRight('Right 2 About', 'about.php');
         
         // print_r($set);
-        $expected = '{"home":{"link":"Home","href":"http:\/\/www.tsugi.org\/"},"left":{"menu":[{"link":"Left 1 IMS","href":"http:\/\/www.imsglobal.org"},{"link":"Left 2 SAK","href":"http:\/\/www.sakiaproject.org"}]},"right":{"menu":[{"link":"Right 2 About","href":"about.php"},{"link":"Right 1 Settings","href":"settings.php"}]}}';
+        $expected = '{"home":{"link":"Home","href":"http:\/\/www.tsugi.org\/","attr":false},"left":{"menu":[{"link":"Left 1 IMS","href":"http:\/\/www.imsglobal.org","attr":false},{"link":"Left 2 SAK","href":"http:\/\/www.sakiaproject.org","attr":false}]},"right":{"menu":[{"link":"Right 2 About","href":"about.php","attr":false},{"link":"Right 1 Settings","href":"settings.php","attr":false}]}}';
         // echo(json_encode($set));
         $this->assertEquals($expected,json_encode($set));
 
         $export_str = $set->export(false);
-        $expected = '{"home":{"link":"Home","href":"http:\/\/www.tsugi.org\/"},"left":[{"link":"Left 1 IMS","href":"http:\/\/www.imsglobal.org"},{"link":"Left 2 SAK","href":"http:\/\/www.sakiaproject.org"}],"right":[{"link":"Right 2 About","href":"about.php"},{"link":"Right 1 Settings","href":"settings.php"}]}';
+        $expected = '{"home":{"link":"Home","href":"http:\/\/www.tsugi.org\/","attr":false},"left":[{"link":"Left 1 IMS","href":"http:\/\/www.imsglobal.org","attr":false},{"link":"Left 2 SAK","href":"http:\/\/www.sakiaproject.org","attr":false}],"right":[{"link":"Right 2 About","href":"about.php","attr":false},{"link":"Right 1 Settings","href":"settings.php","attr":false}]}';
         $this->assertEquals($expected,$export_str);
 
         $newset = \Tsugi\UI\MenuSet::import($export_str);
