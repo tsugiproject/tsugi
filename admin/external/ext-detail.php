@@ -33,7 +33,7 @@ $titles = array(
     'name' => 'Name of tool shown to user in the store',
     'fa_icon' => "An optional FontAwesome icon like 'fa-fast-forward'",
     'url' => 'URL Where the external tool receives launches',
-    'pubkey' => 'External Tool Public Key (Do not this value, set to blank to re-generate)',
+    'pubkey' => 'External Tool Public Key (Do not edit this value, set to blank to re-generate)',
     'json' => 'Additional settings for your tool registration (see below)'
 );
 

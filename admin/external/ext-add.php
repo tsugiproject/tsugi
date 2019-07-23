@@ -68,7 +68,7 @@ CrudForm::insertForm($fields, $from_location, $titles);
 </p>
 <p>
 Here is some sample JSON for the additional settings:
-<pre>
+<pre id="sample_json">
 {
     "messages": ["launch", "launch_grade"],
     "privacy_level": "name_only",
@@ -84,5 +84,13 @@ The <b>privacy_level</b> can be "anonymous", "name_only", or "public".
 </p>
 <?php
 
-$OUTPUT->footer();
+$OUTPUT->footerStart();
+?>
+<script>
+textbox = $(document.createElement('textarea')).attr('id', 'json').attr('name', 'json').attr('cols', 80).attr('rows', 10);
+$('#json').replaceWith(textbox);
+$('#json').val($('#sample_json').text());
+</script>
+<?php
+$OUTPUT->footerEnd();
 
