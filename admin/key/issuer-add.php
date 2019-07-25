@@ -67,6 +67,7 @@ Adding Issuer Entry</h1>
 For LTI 1.3, you need to enter these URLs in your LMS configuration
 associated with this Issuer/Client ID.
 <pre>
+LTI Content Item / Deep Link Endpoint: <?= $CFG->wwwroot ?>/lti/store/
 LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login
 LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
 LTI 1.3 Tool Keyset URL (optional):
