@@ -197,6 +197,18 @@ if ( isset($_GET['install']) ) {
     $title = isset($_GET["title"]) ? $_GET["title"] : $tool['name'];
     $text = isset($_GET["description"]) ? $_GET["description"] : $tool['description'];
     $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
+    $presentationDocumentTarget = U::get($_GET, "presentationDocumentTarget");
+    $displayWidth = U::get($_GET, "displayWidth");
+    $displayHeight = U::get($_GET, "displayHeight");
+    $additionalParams = array();
+    if ( $presentationDocumentTarget ) {
+        $additionalParams['presentationDocumentTarget'] = $presentationDocumentTarget;
+        if ( ($presentationDocumentTarget == 'embed' || $presentationDocumentTarget == 'iframe') &&
+        $displayWidth && $displayHeight && is_numeric($displayWidth) && is_numeric($displayHeight) ) {
+            $additionalParams['placementWidth'] = $displayWidth;
+            $additionalParams['placementHeight'] = $displayHeight;
+        }
+    }
     $icon = false;
     if ( $fa_icon !== false ) {
         $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
@@ -219,34 +231,12 @@ if ( isset($_GET['install']) ) {
         $activity_id = $install;
     }
     $custom = false;
-    $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $points, $activity_id);
+    $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $points, $activity_id, $additionalParams);
     $return_url = $retval->returnUrl();
 
     $params = $retval->getContentItemSelection();
 
     if ( $deeplink ) {
-/*
-        $parts = preg_split('/\s+/', $lti13_privkey);
-        $better = "";
-        $indashes = false;
-        foreach($parts as $part) {
-            if ( strpos($part,'-----') === 0 ) {
-                if ( strlen($better) > 0 ) $better .= "\n";
-                $better .= $part;
-                $indashes = true;
-                continue;
-            }
-            if ( U::endsWith($part,'-----') > 0 ) {
-                $better .= ' ' . $part;
-                $indashes = false;
-                continue;
-            }
-            $better .= $indashes ? ' ' : "\n";
-            $better .= $part;
-        }
-        $lti13_privkey = $better;
-*/
-
         $debug_log = array();
         $issuer = $LAUNCH->ltiParameter('issuer_client');
         $jwt = LTI13::base_jwt($issuer, 'subject', $debug_log);
@@ -326,7 +316,7 @@ if ( $l && isset($_GET['assignment']) ) {
     // echo("<pre>\n");print_r($lti);echo("</pre>\n");
     $OUTPUT->footer();
     return;
-} 
+}
 
 // Handle the content install
 $content_items = array();
@@ -478,6 +468,11 @@ if ( $registrations && $allow_lti ) {
         echo('<a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a>');
         echo("</div></div></div>\n");
 
+        // Deep Linking 1.0 / Content Item
+        // https://www.imsglobal.org/specs/lticiv1p0/specification
+        // Deep Linking 2.0
+        // https://www.imsglobal.org/spec/lti-dl/v2p0
+
         // Add install details modal
         ?>
         <div id="<?=urlencode($name)?>_modal" class="modal fade" role="dialog">
@@ -497,6 +492,22 @@ if ( $registrations && $allow_lti ) {
                             <div class="form-group">
                                 <label>Description</label>
                                 <textarea class="form-control" rows="5" name="description"><?=htmlent_utf8($text)?></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Link Type</label> (Not all LMS's support all options)
+                                <select name="presentationDocumentTarget" id="presentationDocumentTarget">
+                                    <option value="none">Any</option>
+                                    <option value="iframe">iFrame</option>
+                                    <option value="window">New Window</option>
+                                </select>
+                            </div>
+                            <div class="form-group tsugi-form-embedded-size" style="display:none;">
+                                <label>Width (pixels)</label>
+                                <input type="text" class="form-control" name="displayWidth">
+                            </div>
+                            <div class="form-group tsugi-form-embedded-size" style="display:none;">
+                                <label>Height (pixels)</label>
+                                <input type="text" class="form-control" name="displayHeight">
                             </div>
                             <button type="submit" class="btn btn-primary">Submit</button>
                             <button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>
@@ -579,7 +590,7 @@ if ( $l && $allow_lti ) {
         echo("</ul>\n");
     }
     echo("</div>\n");
-} 
+}
 
 if ( $l && $allow_import ) {
     echo('<div class="tab-pane fade '.$active.' in" id="import">'."\n");
@@ -635,6 +646,17 @@ $OUTPUT->footerStart();
             var regex = new RegExp(needle, 'g');
             return string.replace(regex, "<strong>" + needle + "</strong>");
         };
+
+        $(document).on('change', '#presentationDocumentTarget',  function() {
+            var value = $(this).find("option:selected").attr('value');
+            console.log(value);
+            if ( value == 'embed' || value == 'iframe' ) {
+                console.log('Show');
+                $('.tsugi-form-embedded-size').show();
+            } else {
+                $('.tsugi-form-embedded-size').hide();
+            }
+        });
 
         $(document).ready(function() {
             filter.setUpListener();

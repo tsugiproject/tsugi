@@ -7,6 +7,8 @@ use \Tsugi\Util\U;
 /**
  * This is a general purpose DeepLink class with no Tsugi-specific dependencies.
  *
+ * Deep Linking 2.0 spec:
+ * https://www.imsglobal.org/spec/lti-dl/v2p0
  */
 class DeepLinkResponse extends DeepLinkRequest {
 
@@ -59,7 +61,7 @@ $text='{
         $icon=false, $fa_icon=false, $custom=false,
         $points=false, $activityId=false, $additionalParams = array())
     {
-            global $CFG;
+        global $CFG;
         $params = array(
             'type' => 'link',
             'url' => $url,
@@ -71,6 +73,7 @@ $text='{
             'points' => $points,
             'activityId' => $activityId,
         );
+
         // package the parameter list into an array for the helper function
         if (! empty($additionalParams['placementTarget']))
             $params['placementTarget'] = $additionalParams['placementTarget'];
@@ -116,45 +119,11 @@ $text='{
         if (empty($params['placementHeight']))
             $params['placementHeight'] = '';
 
-        $item = '{ "@type" : "LtiLinkItem",
-                    "@id" : ":item2",
-                    "title" : "A cool tool hosted in the Tsugi environment.",
-                    "mediaType" : "application/vnd.ims.lti.v1.ltilink",
-                    "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
-                    "url" : "http://www.tsugi.org/",
-                    "placementAdvice" : {
-                        "presentationDocumentTarget" : "iframe"
-                    },
-                    "icon" : {
-                        "@id" : "https://static.tsugi.org/img/default-icon.png",
-                        "fa_icon" : "fa-magic",
-                        "width" : 64,
-                        "height" : 64
-                    },
-                    "lineItem" : {
-                        "@type" : "LineItem",
-                        "label" : "Gradable External Tool",
-                        "reportingMethod" : "res:totalScore",
-                        "assignedActivity" : {
-                            "@id" : "http://toolprovider.example.com/assessment/66400",
-                            "activityId" : "a-9334df-33"
-                        },
-                        "scoreConstraints" : {
-                            "@type" : "NumericLimits",
-                            "normalMaximum" : 10
-                        }
-                    }
-                }';
-
+        // https://www.imsglobal.org/spec/lti-dl/v2p0
         $item = '{
             "type": "ltiResourceLink",
             "title": "A title",
             "url": "https://lti.example.com/launchMe",
-            "presentation": {
-                "documentTarget": "iframe",
-                "width": 500,
-                "height": 600
-            },
             "icon": {
                 "url": "https://lti.example.com/image.jpg",
                 "fa_icon" : "fa-magic",
@@ -180,7 +149,8 @@ $text='{
                 "targetName": "examplePublisherContent"
             },
             "iframe": {
-                "height": 890
+                "height": 800,
+                "height": 600
             }
        }';
 
@@ -203,14 +173,17 @@ $text='{
             unset($json->lineItem);
         }
 
-        if ($params['placementTarget'])
-            $json->presentation->documentTarget = $params['placementTarget'];
-        if ($params['placementWindowTarget'])
-            $json->presentation->windowTarget = $params['placementWindowTarget'];
-        if (! empty($params['placementWidth']))
-            $json->presentation->width = $params['placementWidth'];
-        if (! empty($params['placementHeight']))
-            $json->presentation->height = $params['placementHeight'];
+        unset($json->window);
+        unset($json->iframe);
+
+        if ($params['placementTarget'] == 'iframe' &&
+            is_numeric($params['placementHeight']) && is_numeric($params['placementWidth']) ) {
+
+            $iframe = new \stdClass();
+            $iframe->height = $params['placementHeight'];
+            $iframe->width = $params['placementWidth'];
+            $json->iframe = $iframe;
+        }
 
         $this->items[] = $json;
     }
