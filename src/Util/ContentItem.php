@@ -5,6 +5,9 @@ namespace Tsugi\Util;
 /**
  * This is a general purpose ContentItem class with no Tsugi-specific dependencies.
  *
+ * Deep Linking 1.0 / Content Item Spec
+ * https://www.imsglobal.org/specs/lticiv1p0/specification
+ *
  */
 class ContentItem {
 
@@ -122,7 +125,7 @@ class ContentItem {
         $icon=false, $fa_icon=false, $custom=false,
         $points=false, $activityId=false, $additionalParams = array())
     {
-            global $CFG;
+        global $CFG;
         $params = array(
             'url' => $url,
             'title' => $title,
@@ -295,6 +298,7 @@ class ContentItem {
         if (empty($params['placementHeight']))
             $params['placementHeight'] = '';
 
+        // https://www.imsglobal.org/specs/lticiv1p0/specification-3
         $item = '{ "@type" : "ContentItem",
                 "@id" : ":item2",
                 "title" : "A cool tool hosted in the Tsugi environment.",
@@ -302,7 +306,9 @@ class ContentItem {
                 "text" : "For more information on how to build and host powerful LTI-based Tools quickly, see www.tsugi.org",
                 "url" : "http://www.tsugi.org/",
                 "placementAdvice" : {
-                        "presentationDocumentTarget" : "iframe"
+                        "presentationDocumentTarget" : "iframe",
+                        "displayWidth" : "640",
+                        "displayHeight" : "480"
                 },
                 "icon" : {
                         "@id" : "https://static.tsugi.org/img/default-icon.png",

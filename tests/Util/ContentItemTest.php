@@ -48,7 +48,9 @@ class ContentItemTest extends PHPUnit_Framework_TestCase
             "text": "r->title",
             "url": "r->url",
             "placementAdvice": {
-                "presentationDocumentTarget": "iframe"
+                "presentationDocumentTarget": "iframe",
+                "displayWidth": "640",
+                "displayHeight": "480"
             },
             "icon": {
                 "@id": "r->thumbnail",
