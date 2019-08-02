@@ -2616,7 +2616,7 @@ class LTIX {
             print_stack_trace();
             $url = "https://www.tsugi.org/launcherror";
             $url = U::add_url_parm($url, "detail", $msg);
-            Output::htmlError("The LTI Lauch Failed", "Detail: $msg", $url);
+            Output::htmlError("The LTI Launch Failed", "Detail: $msg", $url);
             exit();
         }
         $return_url .= ( strpos($return_url,'?') > 0 ) ? '&' : '?';
