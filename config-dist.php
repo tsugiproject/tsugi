@@ -394,6 +394,9 @@ if ( isset($CFG->memcache) && strlen($CFG->memcache) > 0 ) {
 if ( isset($CFG->memcached) && strlen($CFG->memcached) > 0 ) {
     ini_set('session.save_handler', 'memcached');
     ini_set('session.save_path', $CFG->memcached);
+    // https://github.com/php-memcached-dev/php-memcached/issues/269
+    ini_set('memcached.sess_lock_wait_min', 150);
+    ini_set('memcached.sess_lock_wait_max', 150);
 }
 
 // Store sessions in a database -  Keep this false until the DB upgrade
