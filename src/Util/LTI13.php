@@ -895,6 +895,7 @@ class LTI13 {
             "sub" => $subject,
             "iat" => time(),
             "exp" => time()+60,
+            "nonce" => md5(time()-60),
             "jti" => uniqid($issuer)
         ];
         return $jwt_claim;
