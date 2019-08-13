@@ -252,6 +252,21 @@ if ( isset($_GET['install']) ) {
         foreach($jwt as $k => $v) {
             $params->{$k} = $v;
         }
+
+	// Easter egg to test error returns (D2L)
+	if ( $displayHeight == 4242 && $displayWidth == 4242 ) {
+            $params->{DeepLinkResponse::MESSAGE_ERRORMSG} = "Always being a towel (errormsg)";
+	}
+	if ( $displayHeight == 4243 && $displayWidth == 4243 ) {
+            $params->{DeepLinkResponse::MESSAGE_ERRORLOG} = "Always being a towel (errorlog)";
+	}
+	if ( $displayHeight == 4244 && $displayWidth == 4244 ) {
+            $params->{DeepLinkResponse::MESSAGE_LOG} = "Always being a towel (log)";
+	}
+	if ( $displayHeight == 4245 && $displayWidth == 4245 ) {
+            $params->{DeepLinkResponse::MESSAGE_MSG} = "Always being a towel (msg)";
+	}
+
         $lti13_kid = LTIX::getKidForKey($lti13_pubkey);
         $jws = LTI13::encode_jwt($params, $lti13_privkey, $lti13_kid);
         $html = LTI13::build_jwt_html($return_url, $jws);
