@@ -27,6 +27,7 @@ if ( $deeplink ) {
     $allow_import = $deeplink->allowImportItem();
     $lti13_privkey = $LAUNCH->ltiParameter('lti13_privkey');
     $lti13_privkey = $lti13_privkey ? LTIX::decrypt_secret($lti13_privkey) : false;
+    $lti13_pubkey = $LAUNCH->ltiParameter('lti13_pubkey');
 } else {
     $return_url = ContentItem::returnUrl();
     $allow_lti = ContentItem::allowLtiLinkItem();
@@ -251,7 +252,8 @@ if ( isset($_GET['install']) ) {
         foreach($jwt as $k => $v) {
             $params->{$k} = $v;
         }
-        $jws = LTI13::encode_jwt($params, $lti13_privkey);
+        $lti13_kid = LTIX::getKidForKey($lti13_pubkey);
+        $jws = LTI13::encode_jwt($params, $lti13_privkey, $lti13_kid);
         $html = LTI13::build_jwt_html($return_url, $jws);
         echo($html);
         echo("<pre>\n");var_dump($_SESSION);echo("\n</pre>\n");
