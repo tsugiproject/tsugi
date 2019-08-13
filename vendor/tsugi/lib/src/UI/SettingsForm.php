@@ -338,8 +338,9 @@ class SettingsForm {
         $penalty = false;
 
         date_default_timezone_set('Pacific/Honolulu'); // Lets be generous
-        if ( Settings::linkGet('timezone') ) {
-            date_default_timezone_set(Settings::linkGet('timezone'));
+        $new_time_zone = Settings::linkGet('timezone');
+        if ( $new_time_zone && in_array($new_time_zone, timezone_identifiers_list())) {
+            date_default_timezone_set($new_time_zone);
         }
 
         if ( $duedate === false ) return $retval;
@@ -402,6 +403,7 @@ class SettingsForm {
         if ( ! $USER ) return false;
         $due = Settings::linkGet('due', '');
         $timezone = Settings::linkGet('timezone', 'Pacific/Honolulu');
+        if ( ! in_array($timezone, timezone_identifiers_list()) ) $timezone = 'Pacific/Honolulu';
         $time = Settings::linkGet('penalty_time', 86400);
         $cost = Settings::linkGet('penalty_cost', 0.2);
 
@@ -426,8 +428,17 @@ class SettingsForm {
         <label for="timezone">
             <?= _m("Please enter a valid PHP Time Zone like 'Pacific/Honolulu' (default).  If you are
             teaching in many time zones around the world, 'Pacific/Honolulu' is a good time
-            zone to choose - this is why it is the default.") ?><br/>
-        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($timezone)); ?>" name="timezone"></label>
+            zone to choose - this is why it is the default if it is available.") ?><br/>
+        <select name="timezone" class="form-control">
+<?php
+            foreach(timezone_identifiers_list() as $tz ) {
+                echo('<option value="'.htmlspec_utf8($tz).'" ');
+                if ( $tz == $timezone ) echo(' selected="yes" ');
+                echo('>'.htmlentities($tz)."</option>\n");
+            }
+?>
+        </select>
+        </label>
             <p><?= _m("The next two fields determine the 'overall penalty' for being late.  We define a time period
             (in seconds) and a fractional penalty per time period.  The penalty is assessed for each
             full or partial time period past the due date.  For example to deduct 20% per day, you would
