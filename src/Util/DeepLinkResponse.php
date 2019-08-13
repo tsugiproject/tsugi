@@ -15,6 +15,12 @@ class DeepLinkResponse extends DeepLinkRequest {
     const DATA_CLAIM = "https://purl.imsglobal.org/spec/lti-dl/claim/data";
     const CONTENT_ITEMS = "https://purl.imsglobal.org/spec/lti-dl/claim/content_items";
 
+    // From: https://www.imsglobal.org/spec/lti-dl/v2p0#errorlog
+    const MESSAGE_MSG = "https://purl.imsglobal.org/spec/lti-dl/claim/msg";
+    const MESSAGE_LOG = "https://purl.imsglobal.org/spec/lti-dl/claim/log";
+    const MESSAGE_ERRORMSG = "https://purl.imsglobal.org/spec/lti-dl/claim/errormsg";
+    const MESSAGE_ERRORLOG = "https://purl.imsglobal.org/spec/lti-dl/claim/errorlog";
+
     public $json;
     public $items = array();
 
