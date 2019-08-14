@@ -253,19 +253,19 @@ if ( isset($_GET['install']) ) {
             $params->{$k} = $v;
         }
 
-	// Easter egg to test error returns (D2L)
-	if ( $displayHeight == 4242 && $displayWidth == 4242 ) {
-            $params->{DeepLinkResponse::MESSAGE_ERRORMSG} = "Always being a towel (errormsg)";
-	}
-	if ( $displayHeight == 4243 && $displayWidth == 4243 ) {
-            $params->{DeepLinkResponse::MESSAGE_ERRORLOG} = "Always being a towel (errorlog)";
-	}
-	if ( $displayHeight == 4244 && $displayWidth == 4244 ) {
-            $params->{DeepLinkResponse::MESSAGE_LOG} = "Always being a towel (log)";
-	}
-	if ( $displayHeight == 4245 && $displayWidth == 4245 ) {
-            $params->{DeepLinkResponse::MESSAGE_MSG} = "Always being a towel (msg)";
-	}
+        // Easter egg to set message returns (D2L)
+        if ( strlen(U::get($_GET, "message_log")) > 0 ) {
+            $params->{DeepLinkResponse::MESSAGE_LOG} = U::get($_GET, "message_log");
+        }
+        if ( strlen(U::get($_GET, "message_msg")) > 0 ) {
+            $params->{DeepLinkResponse::MESSAGE_MSG} = U::get($_GET, "message_msg");
+        }
+        if ( strlen(U::get($_GET, "message_errorlog")) > 0 ) {
+            $params->{DeepLinkResponse::MESSAGE_ERRORLOG} = U::get($_GET, "message_errorlog");
+        }
+        if ( strlen(U::get($_GET, "message_errormsg")) > 0 ) {
+            $params->{DeepLinkResponse::MESSAGE_ERRORMSG} = U::get($_GET, "message_errormsg");
+        }
 
         $lti13_kid = LTIX::getKidForKey($lti13_pubkey);
         $jws = LTI13::encode_jwt($params, $lti13_privkey, $lti13_kid);
@@ -520,11 +520,29 @@ if ( $registrations && $allow_lti ) {
                             </div>
                             <div class="form-group tsugi-form-embedded-size" style="display:none;">
                                 <label>Width (pixels)</label>
-                                <input type="text" class="form-control" name="displayWidth">
+                                <input type="text" class="form-control displayWidth" name="displayWidth">
                             </div>
                             <div class="form-group tsugi-form-embedded-size" style="display:none;">
                                 <label>Height (pixels)</label>
                                 <input type="text" class="form-control" name="displayHeight">
+                            </div>
+                            <div class="debug-claims" style="display:none;">
+                            <div class="form-group">
+                                <label>Msg claim</label>
+                                <input type="text" class="form-control" name="message_msg">
+                            </div>
+                            <div class="form-group">
+                                <label>Log claim</label>
+                                <input type="text" class="form-control" name="message_log">
+                            </div>
+                            <div class="form-group">
+                                <label>Errormsg claim</label>
+                                <input type="text" class="form-control" name="message_errormsg">
+                            </div>
+                            <div class="form-group">
+                                <label>Errorlog claim</label>
+                                <input type="text" class="form-control" name="message_errorlog">
+                            </div>
                             </div>
                             <button type="submit" class="btn btn-primary">Submit</button>
                             <button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>
@@ -672,6 +690,16 @@ $OUTPUT->footerStart();
                 $('.tsugi-form-embedded-size').show();
             } else {
                 $('.tsugi-form-embedded-size').hide();
+            }
+        });
+
+        $(document).on('keyup', '.displayWidth',  function() {
+            var value = $(this).val();
+            console.log(this);
+            console.log(value);
+            if ( value == 4242 ) {
+                alert("Achievement unlocked");
+                $('.debug-claims').show();
             }
         });
 
