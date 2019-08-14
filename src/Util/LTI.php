@@ -60,7 +60,7 @@ class LTI {
     // Returns true if the lti_message_type is valid
     public static function isValidMessageType($lti_message_type) {
         return ($lti_message_type == "basic-lti-launch-request" ||
-            $lti_message_type == "ToolProxyReregistrationRequest" ||
+            $lti_message_type == "ContentItemSelection" ||
             $lti_message_type == "ContentItemSelectionRequest");
     }
 
