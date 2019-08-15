@@ -60,14 +60,15 @@ class ContentItem extends \Tsugi\Util\ContentItem {
      * @param $endform Some HTML to be included before the form closing tag
      *
      *     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
+     * @param $debug boolean true to pause process to debug.
+     * @param $iframeattr A string of attributes to put on the iframe tag
      *
      */
-    function prepareResponse($endform=false) {
+    function prepareResponse($endform=false, $debug=false, $iframeattr=false) {
         $return_url = $this->returnUrl();
         $parms = $this->getContentItemSelection();
         $parms = LTIX::signParameters($parms, $return_url, "POST", "Install Content");
-        $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
-        $content = LTI::postLaunchHTML($parms, $return_url, true, false, $endform);
+        $content = LTI::postLaunchHTML($parms, $return_url, $debug, $iframeattr, $endform);
         return $content;
     }
 

@@ -35,6 +35,10 @@ $text='{
   "https://purl.imsglobal.org/spec/lti-dl/claim/data": "csrftoken:c7fbba78-7b75-46e3-9201-11e6d5f36f53"
 }';
         $this->json = json_decode($text);
+        if ( is_object($this->json) ) return;
+        error_log("Unable to parse JSON");
+        error_log($text);
+        die();
     }
 
     /**
@@ -284,9 +288,8 @@ $text='{
         if (! empty($params['placementHeight']))
             $json->placementAdvice->displayHeight = $params['placementHeight'];
 
-        $json->{'@id'} = ':item'.(count($this->json->{'@graph'})+1);
-
-        $this->json->{'@graph'}[] = $json;
+        $json->{'@id'} = ':item'.(count($this->items)+1);
+        $this->items[] = $json;
     }
 
     /**
@@ -337,9 +340,9 @@ $text='{
         if (! empty($additionalParams['placementHeight']))
             $json->placementAdvice->displayHeight = $additionalParams['placementHeight'];
 
-        $json->{'@id'} = ':item'.(count($this->json->{'@graph'})+1);
+        $json->{'@id'} = ':item'.(count($this->items)+1);
 
-        $this->json->{'@graph'}[] = $json;
+        $this->items[] = $json;
     }
 
 }

@@ -5,7 +5,7 @@ require_once $CFG->dirroot."/admin/admin_util.php";
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\ContentItem;
-use \Tsugi\Util\DeepLinkResponse;
+use \Tsugi\Core\DeepLinkResponse;
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\LTI13;
@@ -18,22 +18,19 @@ $LAUNCH = LTIX::requireData(LTIX::USER);
 $p = $CFG->dbprefix;
 
 $deeplink = false;
-$lti13_privkey = false;
 if ( isset($LAUNCH->deeplink) ) $deeplink = $LAUNCH->deeplink;
 if ( $deeplink ) {
     $return_url = $deeplink->returnUrl();
     $allow_lti = $deeplink->allowLtiLinkItem();
     $allow_web = $deeplink->allowContentItem();
     $allow_import = $deeplink->allowImportItem();
-    $lti13_privkey = $LAUNCH->ltiParameter('lti13_privkey');
-    $lti13_privkey = $lti13_privkey ? LTIX::decrypt_secret($lti13_privkey) : false;
-    $lti13_pubkey = $LAUNCH->ltiParameter('lti13_pubkey');
 } else {
     $return_url = ContentItem::returnUrl();
     $allow_lti = ContentItem::allowLtiLinkItem();
     $allow_web = ContentItem::allowContentItem();
     $allow_import = ContentItem::allowImportItem();
 }
+$debug = true;  /* Pause when sending back */
 
 $OUTPUT->header();
 ?>
@@ -233,55 +230,9 @@ if ( isset($_GET['install']) ) {
     }
     $custom = false;
     $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $points, $activity_id, $additionalParams);
-    $return_url = $retval->returnUrl();
 
-    $params = $retval->getContentItemSelection();
-
-    if ( $deeplink ) {
-        $debug_log = array();
-        $issuer = $LAUNCH->ltiParameter('issuer_client');
-        $jwt = LTI13::base_jwt($issuer, 'subject', $debug_log);
-        $debug_log = array();
-        $launch_jwt = U::GET($_SESSION, 'tsugi_jwt');
-        if ( is_object($launch_jwt) && isset($launch_jwt->body) ) {
-            $body = $launch_jwt->body;
-            if ( isset($body->iss) ) $jwt['aud'] = $body->iss;
-            if ( isset($body->{LTI13::DEPLOYMENT_ID_CLAIM}) ) $jwt[LTI13::DEPLOYMENT_ID_CLAIM] = $body->{LTI13::DEPLOYMENT_ID_CLAIM};
-        }
-
-        foreach($jwt as $k => $v) {
-            $params->{$k} = $v;
-        }
-
-        // Easter egg to set message returns (D2L)
-        if ( strlen(U::get($_GET, "message_log")) > 0 ) {
-            $params->{DeepLinkResponse::MESSAGE_LOG} = U::get($_GET, "message_log");
-        }
-        if ( strlen(U::get($_GET, "message_msg")) > 0 ) {
-            $params->{DeepLinkResponse::MESSAGE_MSG} = U::get($_GET, "message_msg");
-        }
-        if ( strlen(U::get($_GET, "message_errorlog")) > 0 ) {
-            $params->{DeepLinkResponse::MESSAGE_ERRORLOG} = U::get($_GET, "message_errorlog");
-        }
-        if ( strlen(U::get($_GET, "message_errormsg")) > 0 ) {
-            $params->{DeepLinkResponse::MESSAGE_ERRORMSG} = U::get($_GET, "message_errormsg");
-        }
-
-        $lti13_kid = LTIX::getKidForKey($lti13_pubkey);
-        $jws = LTI13::encode_jwt($params, $lti13_privkey, $lti13_kid);
-        $html = LTI13::build_jwt_html($return_url, $jws);
-        echo($html);
-        echo("<pre>\n");var_dump($_SESSION);echo("\n</pre>\n");
-        return;
-    }
-
-    $signature = $LAUNCH->ltiRawParameter('oauth_signature_method');
-    if ( $signature ) $params['oauth_signature_method'] = $signature;
-
-    $params = LTIX::signParameters($params, $return_url, "POST", "Install Content");
-
-    $debug=false; $iframeattr=false; $endform=false;
-    $content = LTI::postLaunchHTML($params, $return_url, $debug, $iframeattr, $endform);
+    $iframeattr=false; $endform=false;
+    $content = $retval->prepareResponse($endform, $debug, $iframeattr);
     echo($content);
     return;
 }
@@ -319,7 +270,12 @@ if ( $l && isset($_GET['assignment']) ) {
     }
 
     // Set up to send the response
-    $retval = new ContentItem();
+    if ( $deeplink ) {
+        $retval = new DeepLinkResponse($deeplink);
+    } else {
+        $retval = new ContentItem();
+    }
+
     $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon, $custom, 10, $lti->resource_link_id);
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
     $content = $retval->prepareResponse($endform);
@@ -341,7 +297,13 @@ foreach($_GET as $k => $v) {
     if ($v == 'on') $content_items[] = $k;
 }
 if ($l && count($content_items) > 0 ) {
-    $retval = new ContentItem();
+    // Set up to send the response
+    if ( $deeplink ) {
+        $retval = new DeepLinkResponse($deeplink);
+    } else {
+        $retval = new ContentItem();
+    }
+
     $count = 0;
     foreach($content_items as $ci) {
         $pieces = explode('::', $ci);
