@@ -150,53 +150,6 @@ if ( ! ( $registrations ) ) {
     return;
 }
 
-// Handle the tool install
-if ( isset($_GET['install']) ) {
-    $install = $_GET['install'];
-    if ( ! isset($registrations[$install])) {
-        echo("<p>Tool registration for ".htmlentities($install)." not found</p>\n");
-        $OUTPUT->footer();
-        return;
-    }
-    $tool = $registrations[$install];
-
-    $title = $tool['name'];
-    $text = $tool['description'];
-    $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
-    $icon = false;
-    if ( $fa_icon !== false ) {
-        $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
-    }
-
-    if ( $fa_icon ) {
-        echo('<span class="fa '.$fa_icon.' fa-3x" style="color: var(--primary); float:right; margin: 2px"></span>');
-    }
-    echo('<center>');
-    echo("<h1>".htmlent_utf8($title)."</h1>\n");
-    echo("<p>".htmlent_utf8($text)."</p>\n");
-    $script = isset($tool['script']) ? $tool['script'] : "index";
-    $path = $tool['url'];
-
-    // Set up to send the response
-    $retval = new ContentItem();
-    $points = false;
-    $activity_id = false;
-    if ( isset($tool['messages']) && is_array($tool['messages']) &&
-        array_search('launch_grade', $tool['messages']) !== false ) {
-        $points = 10;
-        $activity_id = $install;
-    }
-    $custom = false;
-    $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $points, $activity_id);
-    $endform = '<a href="." class="btn btn-warning">Back to Store</a>';
-    $content = $retval->prepareResponse($endform);
-    echo($content);
-    echo("</center>\n");
-    // echo("<pre>\n");print_r($tool);echo("</pre>\n");
-    $OUTPUT->footer();
-    return;
-} 
-
 // Tell them what is going on...
 echo(settings_status($key_count));
 
