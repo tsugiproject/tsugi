@@ -1053,6 +1053,20 @@ class LTIX {
         return $retval;
     }
 
+    /**
+     * encode and sign a JWT with a bunch of parameters
+     */
+    public static function encode_jwt($params) {
+        $lti13_privkey = self::ltiParameter('lti13_privkey');
+        $lti13_privkey = $lti13_privkey ? self::decrypt_secret($lti13_privkey) : false;
+        $lti13_pubkey = self::ltiParameter('lti13_pubkey');
+
+        $lti13_kid = self::getKidForKey($lti13_pubkey);
+        // error_log('kid='. $lti13_kid. ' pub='.$lti13_pubkey.' priv='.$lti13_privkey);
+        $jws = LTI13::encode_jwt($params, $lti13_privkey, $lti13_kid);
+        return $jws;
+    }
+
     // Make sure to include the file in case multiple instances are running
     // on the same Operating System instance and they have not changed the
     // session secret.  Also make these change every 30 minutes
