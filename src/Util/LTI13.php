@@ -894,7 +894,9 @@ class LTI13 {
             "sub" => $subject,
             "iat" => time(),
             "exp" => time()+60,
-            "nonce" => md5(time()-60),
+            // Yup this is weird - nonce is not a jwt concept in general
+            // but ContentItemResponse strangely requires it...  - Learned at D2L
+            // "nonce" => md5(time()-60),
             "jti" => uniqid($issuer)
         ];
         return $jwt_claim;

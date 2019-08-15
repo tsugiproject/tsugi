@@ -36,6 +36,11 @@ class DeepLinkResponse extends \Tsugi\Util\DeepLinkResponse {
         $debug_log = array();
         $issuer = $LAUNCH->ltiParameter('issuer_client');
         $jwt = LTI13::base_jwt($issuer, 'subject', $debug_log);
+
+        // Yup this is weird - nonce is not a jwt concept in general
+        // but ContentItemResponse strangely requires it...  - Learned at D2L
+        $jwt["nonce"] = md5(time()-60);
+
         $launch_jwt = U::GET($_SESSION, 'tsugi_jwt');
         if ( is_object($launch_jwt) && isset($launch_jwt->body) ) {
             $body = $launch_jwt->body;
