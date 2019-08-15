@@ -192,7 +192,6 @@ class LTI13 {
     public static function isValidMessageType($lti_message_type) {
         return ($lti_message_type == "basic-lti-launch-request" ||
             $lti_message_type == 'LtiResourceLinkRequest' ||
-            $lti_message_type == "ToolProxyReregistrationRequest" ||
             $lti_message_type == "ContentItemSelectionRequest");
     }
 

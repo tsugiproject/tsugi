@@ -235,8 +235,6 @@ class LTIConstants {
 	 * parameter is required.
 	 */
 	const LTI_MESSAGE_TYPE = "lti_message_type";
-	const LTI_MESSAGE_TYPE_TOOLPROXYREGISTRATIONREQUEST = "ToolProxyRegistrationRequest";
-	const LTI_MESSAGE_TYPE_TOOLPROXY_RE_REGISTRATIONREQUEST = "ToolProxyReregistrationRequest";
 	const LTI_MESSAGE_TYPE_BASICLTILAUNCHREQUEST = "basic-lti-launch-request";
 	const LTI_MESSAGE_TYPE_CONTENTITEMSELECTIONREQUEST = "ContentItemSelectionRequest";
 	const LTI_MESSAGE_TYPE_CONTENTITEMSELECTION = "ContentItemSelection";
@@ -327,20 +325,6 @@ class LTIConstants {
         const ROLES = "roles";
         const ROLE_LEARNER = "Learner";
         const ROLE_INSTRUCTOR = "Instructor";
-
-	/**
-	 * tc_profile_url=http://...
-	 * <p>
-	 * This URL specifies the address where the Tool Provider can retrieve
-	 * the Tool Consumer Profile.   This URL must be retrievable by a GET
-	 * request by the Tool Provider.  If the URL is protected from retrieval
-	 * in general, the Tool Consumer must append the necessary parameters to
-	 * allow the Tool Provider to retrieve the URL with nothing more than
-	 * a GET request.  It is legal for this URL to contain a security token
-	 * that is changed for each ToolProxyRegistrationRequest so the Tool
-	 * Provider must retrieve the tc_profile_url on each request.
-	 */
-	const TC_PROFILE_URL = "tc_profile_url";
 
 	/**
 	 * tool_consumer_instance_contact_email=System.Admin@school.edu
@@ -559,7 +543,6 @@ class LTIConstants {
 
     const BASIC_LTI_LAUNCH_REQUEST = "basic-lti-launch-request";
 
-    const TOOLPROXY_RE_REGISTRATION_REQUEST = "ToolProxyReregistrationRequest";
 
     const CONTENT_ITEM_SELECTION_REQUEST = "ContentItemSelectionRequest";
 
