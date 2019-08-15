@@ -58,6 +58,18 @@ class DeepLinkRequest {
     }
 
     /**
+     * allowMultiple - Returns true if we can return multiple items
+     */
+    public function allowMultiple() {
+        if ( ! $this->returnUrl() ) return false;
+        if ( isset($this->claim->accept_multiple) && $this->claim->accept_multiple
+            && $this->claim->accept_multiple !== "false") {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * acceptType - Returns true if the string is in the accept_types
      *
      * "accept_types": ["link", "file", "html", "ltiResourceLink", "image"],
@@ -84,6 +96,14 @@ class DeepLinkRequest {
         if ( ! $this->returnUrl() ) return false;
         if ( $this->acceptType("link") ) return true;
         return $this->allowMimetype('text/html');
+    }
+
+    /**
+     * allowLink - Returns true if we can return HTML Items
+     */
+    public function allowLink() {
+        if ( ! $this->returnUrl() ) return false;
+        return $this->acceptType("link");
     }
 
     /**
