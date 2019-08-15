@@ -7,6 +7,7 @@ use \Tsugi\Util\U;
 /**
  * This is a general purpose DeepLinkRequest class
  *
+ * https://www.imsglobal.org/spec/lti-dl/v2p0
  */
 class DeepLinkRequest {
 
@@ -81,6 +82,7 @@ class DeepLinkRequest {
      */
     public function allowContentItem() {
         if ( ! $this->returnUrl() ) return false;
+        if ( $this->acceptType("link") ) return true;
         return $this->allowMimetype('text/html');
     }
 
