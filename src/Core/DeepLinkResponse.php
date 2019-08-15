@@ -15,14 +15,12 @@ class DeepLinkResponse extends \Tsugi\Util\DeepLinkResponse {
 
     function __construct($request) {
         parent::__construct($request);
-        error_log("In SubClass constructor");
     }
 
     /**
      * Make up a response
      *
      * @param $endform Some HTML to be included before the form closing tag
-     *
      *     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
      * @param $debug boolean true to pause process to debug.
      * @param $iframeattr A string of attributes to put on the iframe tag
