@@ -6,7 +6,9 @@ namespace Tsugi\Util;
  * This is a general purpose ContentItem class with no Tsugi-specific dependencies.
  *
  * Deep Linking 1.0 / Content Item Spec
+ *
  * https://www.imsglobal.org/specs/lticiv1p0/specification
+ * https://www.imsglobal.org/specs/lticiv1p0/specification-3
  *
  */
 class ContentItem {
@@ -45,6 +47,17 @@ class ContentItem {
     }
 
     /**
+     * allowMultiple - Returns true if we can return LTI Link Items
+     */
+    public static function allowMultiple($postdata) {
+        if ( ! isset($postdata['content_item_return_url']) ) return false;
+        if ( isset($postdata['accept_multiple']) ) {
+            if ( $postdata['accept_multiple'] && $postdata['accept_multiple'] != "false" ) return true;
+        }
+        return false;
+    }
+
+    /**
      * allowLtiLinkItem - Returns true if we can return LTI Link Items
      */
     public static function allowLtiLinkItem($postdata) {
@@ -57,6 +70,15 @@ class ContentItem {
             return true;
         }
         return false;
+    }
+
+    /**
+     * allowLink - Returns true if we can return HTML Items
+     *
+     * Upwards compatibility with DeepLink 2.0
+     */
+    public static function allowLink($postdata) {
+        return self::allowContentItem($postdata);
     }
 
     /**

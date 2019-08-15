@@ -22,13 +22,15 @@ if ( isset($LAUNCH->deeplink) ) $deeplink = $LAUNCH->deeplink;
 if ( $deeplink ) {
     $return_url = $deeplink->returnUrl();
     $allow_lti = $deeplink->allowLtiLinkItem();
-    $allow_web = $deeplink->allowContentItem();
+    $allow_link = $deeplink->allowLink();
+    $allow_multiple = $deeplink->allowMultiple();
     $allow_import = $deeplink->allowImportItem();
 } else {
     $return_url = ContentItem::returnUrl();
     $allow_lti = ContentItem::allowLtiLinkItem();
-    $allow_web = ContentItem::allowContentItem();
+    $allow_link = ContentItem::allowLink();
     $allow_import = ContentItem::allowImportItem();
+    $allow_multiple = ContentItem::allowMultiple();
 }
 $debug = true;  /* Pause when sending back */
 
@@ -129,11 +131,11 @@ $OUTPUT->header();
 // Load Lessons Data
 $l = false;
 $assignments = false;
-$contents = false;
+$links = false;
 $import = false;
-if ( ($allow_lti || $allow_web || $allow_import) && isset($CFG->lessons) && file_exists($CFG->lessons) ) {
+if ( ($allow_lti || $allow_link || $allow_import) && isset($CFG->lessons) && file_exists($CFG->lessons) ) {
     $l = new Lessons($CFG->lessons);
-    if ( $allow_web ) $contents = true;
+    if ( $allow_link ) $links = true;
     if ( $allow_import ) $import = true;
     foreach($l->lessons->modules as $module) {
         if ( isset($module->lti) ) {
@@ -176,7 +178,7 @@ if ( ! $return_url ) {
     return;
 }
 
-if ( ! ( $assignments || $contents || $import || $registrations ) ) {
+if ( ! ( $assignments || $links || $import || $registrations ) ) {
     echo("<p>No tools, content, imports, or assignments found.</p>");
     $OUTPUT->footer();
     return;
@@ -365,7 +367,7 @@ if ( $registrations && $allow_lti ) {
     echo('<li class="'.$active.'"><a href="#box" data-toggle="tab" aria-expanded="true">Tools</a></li>'."\n");
     $active = '';
 }
-if ( $l && $allow_web ) {
+if ( $l && $allow_link ) {
     echo('<li class="'.$active.'"><a href="#content" data-toggle="tab" aria-expanded="false">Content</a></li>'."\n");
     $active = '';
 }
@@ -525,7 +527,7 @@ if ( $registrations && $allow_lti ) {
     echo("</div>\n");
 }
 
-if ( $l && $allow_web ) {
+if ( $l && $allow_link ) {
     echo('<div class="tab-pane fade '.$active.' in" id="content">'."\n");
     $active = '';
 

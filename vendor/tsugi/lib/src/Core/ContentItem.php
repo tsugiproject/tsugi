@@ -22,12 +22,29 @@ class ContentItem extends \Tsugi\Util\ContentItem {
     }
 
     /**
+     * allowMultiple - Returns true if we can return multiple items
+     */
+    public function allowMultiple() {
+        if ( ! $postdata ) $postdata = LTIX::ltiRawPostArray();
+        return parent::allowMultiple($postdata);
+    }
+
+    /**
      * allowLtiLinkItem - Returns true if we can return LTI Link Items
      */
     public static function allowLtiLinkItem($postdata=false) {
         if ( ! $postdata ) $postdata = LTIX::ltiRawPostArray();
         return parent::allowLtiLinkItem($postdata);
     }
+
+    /**
+     * allowLink - Returns true if we can return URLs
+     */
+    public static function allowLink($postdata=false) {
+        if ( ! $postdata ) $postdata = LTIX::ltiRawPostArray();
+        return parent::allowContentItem($postdata);
+    }
+
 
     /**
      * allowContentItem - Returns true if we can return HTML Items
