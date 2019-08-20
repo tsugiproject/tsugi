@@ -309,23 +309,69 @@ if ($l && count($content_items) > 0 ) {
     $count = 0;
     foreach($content_items as $ci) {
         $pieces = explode('::', $ci);
-        if ( count($pieces) != 2 ) continue;
-        if ( ! is_numeric($pieces[1]) ) continue;
-        $anchor = $pieces[0];
-        $index = $pieces[1]+0;
-        $module = $l->getModuleByAnchor($anchor);
-        if ( ! $module ) continue;
-        $resources = Lessons::getUrlResources($module);
-        if ( ! $resources ) continue;
-        if ( ! isset($resources[$index]) ) continue;
-        $r = $resources[$index];
-        $retval->addContentItem($r->url, $r->title, $r->title, $r->thumbnail, $r->icon);
-        if ( $count == 0 ) {
-            echo("<p>Selected items:</p>\n");
-            echo("<ul>\n");
+        var_dump($pieces);
+        if ( count($pieces) == 2 && is_numeric($pieces[1]) ) {
+            $anchor = $pieces[0];
+            $index = $pieces[1]+0;
+            $module = $l->getModuleByAnchor($anchor);
+            if ( ! $module ) continue;
+            $resources = Lessons::getUrlResources($module);
+            if ( ! $resources ) continue;
+            if ( ! isset($resources[$index]) ) continue;
+            $r = $resources[$index];
+            $retval->addContentItem($r->url, $r->title, $r->title, $r->thumbnail, $r->icon);
+            if ( $count == 0 ) {
+                echo("<p>Selected items:</p>\n");
+                echo("<ul>\n");
+            }
+            $count++;
+            echo("<li>".htmlentities($r->title)."</li>\n");
         }
-        $count++;
-        echo("<li>".htmlentities($r->title)."</li>\n");
+        if ( count($pieces) == 3 && $pieces[1] == 'lti' && is_numeric($pieces[2]) ) {
+            $anchor = $pieces[0];
+            $index = $pieces[2]+0;
+            $module = $l->getModuleByAnchor($anchor);
+            if ( ! $module ) continue;
+            if ( ! isset($module->lti) ) continue;
+            if ( ! is_array($module->lti) ) continue;
+            $resources = $module->lti;
+            if ( ! $resources ) continue;
+            if ( ! isset($resources[$index]) ) continue;
+            $lti = $resources[$index];
+
+            $title = $lti->title;
+            $path = $lti->launch;
+            $path .= strpos($path,'?') === false ? '?' : '&';
+            // Sigh - some LMSs don't handle custom - sigh
+            $path .= 'inherit=' . urlencode($lti->resource_link_id);
+            $fa_icon = 'fa-check-square-o';
+            $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+
+            // Compute the custom values
+            $custom = array();
+            $custom['canvas_caliper_url'] = '$Caliper.url';
+            if ( isset($lti->custom) ) {
+                foreach($lti->custom as $entry) {
+                    if ( !isset($entry->key) ) continue;
+                    if ( isset($entry->json) ) {
+                        $value = json_encode($entry->json);
+                    } else if ( isset($entry->value) ) {
+                        $value = $entry->value;
+                    }
+                    $custom[$entry->key] = $value;
+                }
+            }
+
+            $retval->addLtiLinkItem($path, $title, $title, $icon, $fa_icon, $custom, 10, $lti->resource_link_id);
+
+            if ( $count == 0 ) {
+                echo("<p>Selected items:</p>\n");
+                echo("<ul>\n");
+            }
+            $count++;
+            echo("<li>".htmlentities($lti->title)."</li>\n");
+        }
+
     }
 
     if ( $count < 1 ) {
@@ -367,14 +413,16 @@ if ( $registrations && $allow_lti ) {
     echo('<li class="'.$active.'"><a href="#box" data-toggle="tab" aria-expanded="true">Tools</a></li>'."\n");
     $active = '';
 }
-if ( $l && $allow_link ) {
-    echo('<li class="'.$active.'"><a href="#content" data-toggle="tab" aria-expanded="false">Content</a></li>'."\n");
+if ( $l && ($allow_link || $allow_lti) ) {
+    echo('<li class="'.$active.'"><a href="#content" data-toggle="tab" aria-expanded="false">Learning Objects</a></li>'."\n");
     $active = '';
 }
+
 if ( $l && $allow_lti ) {
     echo('<li class="'.$active.'"><a href="#assignments" data-toggle="tab" aria-expanded="false">Assignments</a></li>'."\n");
     $active = '';
 }
+
 if ( $l && $allow_import ) {
     echo('<li class="'.$active.'"><a href="#Import" data-toggle="tab" aria-expanded="false">Import</a></li>'."\n");
     $active = '';
@@ -527,7 +575,7 @@ if ( $registrations && $allow_lti ) {
     echo("</div>\n");
 }
 
-if ( $l && $allow_link ) {
+if ( $l && ($allow_link || $allow_lti) ) {
     echo('<div class="tab-pane fade '.$active.' in" id="content">'."\n");
     $active = '';
 
@@ -552,6 +600,16 @@ if ( $l && $allow_link ) {
             echo(htmlentities($resource->title));
             echo("</a>\n");
             echo('</li>');
+        }
+        if ( isset($module->lti) && is_array($module->lti) ) {
+            for($i=0; $i < count($module->lti); $i++) {
+                $lti = $module->lti[$i];
+                echo('<li>');
+                echo('<input type="checkbox" value="on", name="'.$module->anchor.'::lti::'.$i.'">');
+                echo('LTI Tool: ');
+                echo(htmlentities($lti->title));
+                echo('</li>');
+            }
         }
         echo("</ul>\n");
         echo("</li>\n");
