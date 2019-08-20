@@ -24,7 +24,7 @@ class ContentItem extends \Tsugi\Util\ContentItem {
     /**
      * allowMultiple - Returns true if we can return multiple items
      */
-    public function allowMultiple() {
+    public static function allowMultiple($postdata=false) {
         if ( ! $postdata ) $postdata = LTIX::ltiRawPostArray();
         return parent::allowMultiple($postdata);
     }
