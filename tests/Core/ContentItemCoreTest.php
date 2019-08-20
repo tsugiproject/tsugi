@@ -3,14 +3,12 @@
 require_once "src/Util/ContentItem.php";
 require_once "src/Core/ContentItem.php";
 
-use \Tsugi\Core\ContentItem;
-
 // Need a different name from the Util test
 class ContentItemTestCore extends PHPUnit_Framework_TestCase
 {
     public function testGeneral() {
 
-        $ci = new ContentItem();
+        $ci = new \Tsugi\Core\ContentItem();
         $ci->addLtiLinkItem('path', 'title', 'title', 'icon', 'fa_icon');
         $ci->addContentItem('r->url', 'r->title', 'r->title', 'r->thumbnail', 'r->icon');
         $good = '{
@@ -24,8 +22,7 @@ class ContentItemTestCore extends PHPUnit_Framework_TestCase
             "text": "title",
             "url": "path",
             "placementAdvice": {
-                "presentationDocumentTarget": "iframe",
-                "windowTarget": "_blank"
+                "presentationDocumentTarget": "iframe"
             },
             "icon": {
                 "@id": "icon",
@@ -43,7 +40,8 @@ class ContentItemTestCore extends PHPUnit_Framework_TestCase
             "url": "r->url",
             "placementAdvice": {
                 "presentationDocumentTarget": "iframe",
-                "windowTarget": "_blank"
+                "displayWidth": "640",
+                "displayHeight": "480"
             },
             "icon": {
                 "@id": "r->thumbnail",
@@ -57,6 +55,14 @@ class ContentItemTestCore extends PHPUnit_Framework_TestCase
         $out = json_encode($ci->json,JSON_PRETTY_PRINT);
         
         $this->assertEquals($good, $out);
+
+    }
+
+    public function testStatic() {
+
+        // Make sure these compile
+        $retval = \Tsugi\Core\ContentItem::allowMultiple(array());
+        $retval = \Tsugi\Util\ContentItem::allowMultiple(array());
 
     }
 }
