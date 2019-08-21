@@ -149,7 +149,7 @@ if ( $allow_lti ) {
     $registrations = findAllRegistrations(false, true);
 
     // Filter the registrations
-    if ( isset($CFG->storehide) && $CFG->storehide && ! $USER->admin ) {
+    if ( isset($CFG->storehide) && is_string($CFG->storehide) && ! $USER->admin ) {
         $filtered = array();
         foreach($registrations as $name => $tool ) {
             if ( isset($tool['tool_phase']) && is_string($tool['tool_phase']) && strlen($tool['tool_phase']) > 0 &&
