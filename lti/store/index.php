@@ -295,6 +295,9 @@ if ( $l && isset($_GET['assignment']) ) {
 
 // Handle the content install
 $content_items = array();
+if ( strlen(U::get($_GET,'radio_value')) > 0 ) {
+    $content_items[] = U::get($_GET,'radio_value');
+}
 foreach($_GET as $k => $v) {
     if ($v == 'on') $content_items[] = $k;
 }
@@ -577,25 +580,38 @@ if ( $registrations && $allow_lti ) {
 
 if ( $l && ($allow_link || $allow_lti) ) {
     echo('<div class="tab-pane fade '.$active.' in" id="content">'."\n");
-    $active = '';
-
     echo("&nbsp;<br/>\n");
+    $active = '';
+    if ( ! $allow_multiple ) {
+        echo("<p>The LMS has requested that we provide a single learning resource on this request.</p>\n");
+    }
     echo("<form>\n");
     $count = 0;
     foreach($l->lessons->modules as $module) {
         $resources = Lessons::getUrlResources($module);
         if ( count($resources) < 1 ) continue;
         if ( $count == 0 ) {
-            echo('<p><input type="submit" class="btn btn-default" value="Install"></p>'."\n");
+            echo('<p>');
+            echo('<input type="submit" class="btn btn-default" value="Install">'."\n");
+            echo('<button class="btn btn-default" onclick="selectAll(this); return false;">Select All</button>'."\n");
+            echo("</p>\n");
             echo("<ul>\n");
         }
         $count++;
-        echo('<li>'.$module->title."\n");
+        echo("<li>");
+        if ( $allow_multiple ) {
+            echo('<input type="checkbox" value="ignore" class="module_all" onclick="handleClick(this);" name="'.$module->anchor.'">');
+        }
+        echo(htmlentities($module->title)."\n");
         echo('<ul style="list-style-type: none;">'."\n");
         for($i=0; $i<count($resources); $i++ ) {
             $resource = $resources[$i];
             echo('<li>');
-            echo('<input type="checkbox" value="on", name="'.$module->anchor.'::'.$i.'">');
+            if ( $allow_multiple ) {
+                echo('<input type="checkbox" class="module_all '.$module->anchor.'_module" value="on", name="'.$module->anchor.'::'.$i.'">');
+            } else {
+                echo('<input type="radio" name="radio_value", value="'.$module->anchor.'::'.$i.'">');
+            }
             echo('<a href="'.$resource->url.'" target="_blank">');
             echo(htmlentities($resource->title));
             echo("</a>\n");
@@ -605,7 +621,11 @@ if ( $l && ($allow_link || $allow_lti) ) {
             for($i=0; $i < count($module->lti); $i++) {
                 $lti = $module->lti[$i];
                 echo('<li>');
-                echo('<input type="checkbox" value="on", name="'.$module->anchor.'::lti::'.$i.'">');
+                if ( $allow_multiple ) {
+                    echo('<input type="checkbox" value="on", class="module_all '.$module->anchor.'_module" name="'.$module->anchor.'::lti::'.$i.'">');
+                } else {
+                    echo('<input type="radio" name="radio_value", value="'.$module->anchor.'::lti::'.$i.'">');
+                }
                 echo('LTI Tool: ');
                 echo(htmlentities($lti->title));
                 echo('</li>');
@@ -728,6 +748,19 @@ $OUTPUT->footerStart();
         $(document).ready(function() {
             filter.setUpListener();
         });
+
+        // https://stackoverflow.com/questions/4471401/getting-value-of-html-checkbox-from-onclick-onchange-events
+        function handleClick(cb) {
+            console.log("Clicked, name = " + cb.name);
+            var name = '.' + cb.name + '_module';
+            console.log(name);
+            $(name).each(function () { $(this).prop("checked", cb.checked); } ) ;
+        }
+
+        function selectAll(button) {
+            $('.module_all').each(function () { $(this).prop("checked", ! $(this).prop("checked")); } );
+            return false;
+        }
     </script>
 <?php
 $OUTPUT->footerend();
