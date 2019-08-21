@@ -152,7 +152,7 @@ if ( $allow_lti ) {
     if ( isset($CFG->storehide) && ! $USER->admin ) {
         $filtered = array();
         foreach($registrations as $name => $tool ) {
-            if ( isset($tool['tool_phase']) &&
+            if ( isset($tool['tool_phase']) && is_string($tool['tool_phase']) && strlen($tool['tool_phase']) > 0 &&
             preg_match($CFG->storehide, $tool['tool_phase']) == 1 ) continue;
             $filtered[$name] = $tool;
         }
