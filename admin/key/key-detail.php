@@ -42,6 +42,7 @@ $titles = array(
 
 if ( isset($_POST['issuer_id']) && strlen($_POST['issuer_id']) == 0 ) $_POST['issuer_id'] = null;
 if ( isset($_POST['key_key']) && strlen($_POST['key_key']) == 0 ) $_POST['key_key'] = null;
+if ( isset($_POST['user_id']) && strlen($_POST['user_id']) == 0 ) $_POST['user_id'] = null;
 
 // Check the complex interaction of constraints
 $key_id = U::get($_POST,'key_id');
