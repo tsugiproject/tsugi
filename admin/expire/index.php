@@ -3,6 +3,7 @@
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
+require_once("expire_util.php");
 
 use \Tsugi\UI\Table;
 use \Tsugi\Util\U;
@@ -21,41 +22,17 @@ if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
     return;
 }
 
-$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_key");
-$tenant_count = $row ? $row['count'] : 0;
-$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_context");
-$context_count = $row ? $row['count'] : 0;
-$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_user");
-$user_count = $row ? $row['count'] : 0;
+$tenant_count = get_count_table('lti_key');
+$context_count = get_count_table('lti_context');
+$user_count = get_count_table('lti_user');
 
 $tenant_days = U::get($_GET,'tenant_days',1000);
 $context_days = U::get($_GET,'context_days',500);
 $user_days = U::get($_GET,'user_days',500);
 
-$row = $PDOX->rowDie("
-    SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_user
-    WHERE created_at <= CURRENT_DATE() - INTERVAL :DAY DAY
-    AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL :DAY DAY)",
-    array(":DAY" => $user_days )
-);
-$user_expire = $row ? $row['count'] : 0;
-
-$row = $PDOX->rowDie("
-    SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_context
-    WHERE created_at <= CURRENT_DATE() - INTERVAL :DAY DAY
-    AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL :DAY DAY)",
-    array(":DAY" => $context_days )
-);
-$context_expire = $row ? $row['count'] : 0;
-
-$row = $PDOX->rowDie("
-    SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_key
-    WHERE created_at <= CURRENT_DATE() - INTERVAL :DAY DAY
-    AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL :DAY DAY)",
-    array(":DAY" => $tenant_days )
-);
-$tenant_expire = $row ? $row['count'] : 0;
-
+$user_expire =  get_expirable_records('lti_user', $user_days);
+$context_expire =  get_expirable_records('lti_context', $context_days);
+$tennant_expire =  get_expirable_records('lti_key', $tenant_days);
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
