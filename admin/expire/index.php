@@ -49,7 +49,7 @@ $OUTPUT->flashMessages();
 <li>
 Users with PII and no activity in
 <input type="text" name="pii_days" size=5 value="<?= $pii_days ?>"> days:
-<?= $user_expire ?>
+<?= $pii_expire ?>
 </li>
 <li>
 Users with no activity in
