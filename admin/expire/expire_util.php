@@ -19,3 +19,16 @@ function get_expirable_records($table, $days) {
     return $count;
 }
 
+function get_pii_count($days) {
+    global $PDOX, $CFG;
+    $row = $PDOX->rowDie("
+        SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_user
+        WHERE created_at <= CURRENT_DATE() - INTERVAL :DAY DAY
+        AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL :DAY DAY)
+        AND (displayname IS NOT NULL OR email IS NOT NULL)",
+        array(":DAY" => $days )
+    );
+    $count = $row ? $row['count'] : 0;
+    return $count;
+}
+
