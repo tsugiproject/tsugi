@@ -32,7 +32,7 @@ $user_days = U::get($_GET,'user_days',500);
 
 $user_expire =  get_expirable_records('lti_user', $user_days);
 $context_expire =  get_expirable_records('lti_context', $context_days);
-$tennant_expire =  get_expirable_records('lti_key', $tenant_days);
+$tenant_expire =  get_expirable_records('lti_key', $tenant_days);
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
