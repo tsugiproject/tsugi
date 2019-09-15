@@ -41,7 +41,17 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
+<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
+   <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="iframe-spinner"><br/>
+   <iframe name="iframe-frame" style="height:600px" id="iframe-frame"
+    onload="document.getElementById('iframe-spinner').style.display='none';">
+   </iframe>
+</div>
 <h1>Manage Data Expiry</h1>
+<p>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Summary</a>
+  <a href="pii-detail" class="btn btn-default">PII Detail</a>
+</p>
 <form>
 <ul>
 <li>User count: <?= $user_count ?>  <br/>
@@ -50,6 +60,11 @@ $OUTPUT->flashMessages();
 Users with PII and no activity in
 <input type="text" name="pii_days" size=5 value="<?= $pii_days ?>"> days:
 <?= $pii_expire ?>
+
+  <a href="#" title="PII View"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'pii_view', _TSUGI.spinnerUrl, true); return false;" >
+  PII View
+  </a>
 </li>
 <li>
 Users with no activity in
