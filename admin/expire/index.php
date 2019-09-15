@@ -63,7 +63,7 @@ Users with PII and no activity in
 <?= $pii_expire ?>
 <?php if ( $pii_expire > 0 ) { ?>
   <br/><a href="#" title="Expire PII" class="auto_expire btn btn-xs btn-warning"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'expire-pii?pii_days=<?= $pii_days ?>', _TSUGI.spinnerUrl, true); return false;" >
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'pii-expire?pii_days=<?= $pii_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire PII &gt; <?= $pii_days ?> Days
   </a>
 <?php } ?>
@@ -74,7 +74,7 @@ Users with no activity in
 <?= $user_expire ?>
 <?php if ( $user_expire > 0 ) { ?>
   <br/><a href="#" title="Expire Users" class="auto_expire btn btn-xs btn-warning"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'expire-user?user_days=<?= $user_days ?>', _TSUGI.spinnerUrl, true); return false;" >
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'user-expire?user_days=<?= $user_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire Users &gt; <?= $user_days ?> Days
   </a>
 <?php } ?>
