@@ -41,7 +41,8 @@ $OUTPUT->flashMessages();
 echo("<h1>Manage External Tools</h1>\n");
 
 $extra_buttons = array(
-    "Add Tool" => "ext-add"
+    "Add Tool" => "ext-add",
+    "Admin" =>   $CFG->wwwroot."/admin"
 );
 Table::pagedTable($newrows, $searchfields, false, "ext-detail", false, $extra_buttons);
 

@@ -45,7 +45,10 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-Table::pagedTable($newrows, $searchfields, $orderfields, "activity-detail");
+$view_url = "activity-detail";
+$params=false; // Defaults to _GET
+$extra_buttons = array("Admin" =>   $CFG->wwwroot."/admin");
+Table::pagedTable($newrows, $searchfields, $orderfields, $view_url, $params, $extra_buttons);
 
 $OUTPUT->footer();
 

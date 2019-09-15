@@ -59,6 +59,7 @@ $OUTPUT->flashMessages();
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Key Requests</a>
   <a href="issuers" class="btn btn-default">LTI 1.3 Issuers</a>
   <a href="keys" class="btn btn-default">Tenant Keys</a>
+  <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <?php
 Table::pagedTable($newrows, $searchfields, false, "request-detail");

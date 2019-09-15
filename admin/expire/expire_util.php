@@ -21,14 +21,18 @@ function get_expirable_records($table, $days) {
 
 function get_pii_count($days) {
     global $PDOX, $CFG;
-    $row = $PDOX->rowDie("
-        SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_user
-        WHERE created_at <= CURRENT_DATE() - INTERVAL :DAY DAY
-        AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL :DAY DAY)
-        AND (displayname IS NOT NULL OR email IS NOT NULL)",
-        array(":DAY" => $days )
-    );
+    $sql = "SELECT COUNT(*) AS count ".get_pii_query($days);
+    $row = $PDOX->rowDie($sql);
     $count = $row ? $row['count'] : 0;
     return $count;
+}
+
+function get_pii_query($days) {
+    global $PDOX, $CFG;
+    return "
+        FROM {$CFG->dbprefix}lti_user
+        WHERE created_at <= CURRENT_DATE() - INTERVAL $days DAY
+        AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL $days DAY)
+        AND (displayname IS NOT NULL OR email IS NOT NULL)";
 }
 

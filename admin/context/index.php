@@ -28,6 +28,10 @@ $sql = "SELECT C.context_id AS context_id, title, count(M.user_id) AS members, C
         GROUP BY C.context_id";
 $orderfields = array("C.context_id", "key_value", "title", "C.created_at", "C.updated_at", "C.login_at", "C.login_count");
 
+$extra_buttons = array(
+    "Admin" =>   $CFG->wwwroot."/admin"
+);
+
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);
 // echo("<pre>\n$newsql\n</pre>\n");
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
@@ -42,7 +46,9 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-Table::pagedTable($newrows, $searchfields, $orderfields, "membership");
+$view_url = "membership";
+$params=false; // Defaults to _GET
+Table::pagedTable($newrows, $searchfields, $orderfields, $view_url, $params, $extra_buttons);
 
 $OUTPUT->footer();
 

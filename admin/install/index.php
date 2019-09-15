@@ -41,6 +41,8 @@ if ( ! isset($CFG->install_folder) ) {
 $other_nodes = count(getClusterIPs());
 
 ?>
+<a href="<?= $CFG->wwwroot ?>/admin" style="float: right;" class="btn btn-default">Admin</a>
+
 <div id="readonly-dialog" title="Read Only Dialog" style="display: none;">
 <p>This server does not appear to allow the <b>git</b> command to
 make changes to the web files.  So this tool will not be able to install,

@@ -31,6 +31,10 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
+$extra_buttons = array(
+    "Summary" => "index"
+);
+
 
 $query_parms = false;
 $searchfields = $fields;
@@ -44,7 +48,10 @@ foreach ( $rows as $row ) {
     $newrows[] = $newrow;
 }
 
-Table::pagedTable($newrows, $searchfields, $orderfields);
+$view_url = false;
+$params=false; // Defaults to _GET
+Table::pagedTable($newrows, $searchfields, $orderfields, $view_url, $params, $extra_buttons);
+
 
 $OUTPUT->footerStart();
 
