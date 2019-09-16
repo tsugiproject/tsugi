@@ -26,9 +26,13 @@ $tenant_count = get_count_table('lti_key');
 $context_count = get_count_table('lti_context');
 $user_count = get_count_table('lti_user');
 
-$tenant_days = U::get($_GET,'tenant_days',1000);
-$context_days = U::get($_GET,'context_days',500);
-$user_days = U::get($_GET,'user_days',500);
+$tenant_days = isset($CFG->expire_tenant_days) ? $CFG->expire_tenant_days : 1000;
+$tenant_days = U::get($_GET,'tenant_days',$tenant_days);
+$context_days = isset($CFG->expire_context_days) ? $CFG->expire_context_days : 600;
+$context_days = U::get($_GET,'context_days',$context_days);
+$user_days = isset($CFG->expire_user_days) ? $CFG->expire_user_days : 600;
+$user_days = U::get($_GET,'user_days',$user_days);
+$pii_days = isset($CFG->expire_pii_days) ? $CFG->expire_pii_days : 600;
 $pii_days = U::get($_GET,'pii_days',120);
 
 $user_expire =  get_expirable_records('lti_user', $user_days);
