@@ -48,7 +48,7 @@ $sql = "DELETE FROM {$CFG->dbprefix}{$table}\n".
 echo($sql."\n");
 
 if ( $dryrun ) {
-    echo("This is a dry run, use 'php ".$argv[0]." remove' to actually remove the data.\n");
+    echo("This is a dry run, use 'php ".$argv[0]." $base remove' to actually remove the data.\n");
     echo(htmlentities(ucfirst($base))." records have not logged in in $days days: $count \n");
     return;
 } else {
