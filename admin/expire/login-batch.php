@@ -33,7 +33,7 @@ $cfg = 'expire_'.$base.'_days';
 if ( ! isset($CFG->{$cfg}) ) {
     die('Please set $CFG->'.$cfg.' before running'."\n");
 }
-$days = $CFG->{$cfg};
+$days = $CFG->{$cfg} + 0;
 
 if ( $days < 20 ) die('Minimum number of days is 20 found: '.$days."\n");
 
@@ -49,7 +49,6 @@ echo($sql."\n");
 
 if ( $dryrun ) {
     echo("This is a dry run, use 'php ".$argv[0]." remove' to actually remove the data.\n");
-    $count = get_pii_count($days);
     echo(htmlentities(ucfirst($base))." records have not logged in in $days days: $count \n");
     return;
 } else {
