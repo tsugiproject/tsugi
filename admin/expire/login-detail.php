@@ -26,14 +26,17 @@ if ( $base == 'user' ) {
     $table = 'lti_user';
     $fields = array('login_at', 'user_id', 'email', 'displayname', 'created_at');
     $select = 'user_id, email, displayname';
+    $where = '';
 } else if ( $base == 'context' ) {
     $table = 'lti_context';
     $fields = array('login_at', 'context_id', 'title', 'created_at');
     $select = 'context_id, title';
+    $where = '';
 } else if ( $base == 'tenant' ) {
     $table = 'lti_key';
     $fields = array('login_at', 'key_id', 'key_key', 'created_at');
     $select = 'key_id, key_key';
+    $where = " AND ".get_safe_key_where();
 } else {
     die('Invalid base value');
 }
@@ -44,7 +47,7 @@ $days = $_GET[$base.'_days'] + 0;
 if ($days < 1 ) die('Bad value for '.$base.'_days');
 
 $sql = "SELECT login_at, {$select}, created_at 
-        FROM {$CFG->dbprefix}{$table} " . get_expirable_where($days);
+        FROM {$CFG->dbprefix}{$table} " . get_expirable_where($days) . $where;
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

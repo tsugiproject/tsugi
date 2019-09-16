@@ -14,6 +14,10 @@ function get_expirable_records($table, $days) {
     return $count;
 }
 
+function get_safe_key_where() {
+    return "(key_key <> 'google.com' AND key_key <> '12345')";
+}
+
 function get_expirable_where($days) {
     $sql = "WHERE created_at <= CURRENT_DATE() - INTERVAL $days DAY
         AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL $days DAY)";
