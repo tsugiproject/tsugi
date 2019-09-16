@@ -61,7 +61,7 @@ Users with PII and no activity in
 <?= $pii_expire ?>
 <?php if ( $pii_expire > 0 ) { ?>
   <br/>
-  <a href="pii-detail?pii_days=<?= $pii_days ?>" class="auto_expire btn btn-default">View</a>
+  <a href="pii-detail?pii_days=<?= $pii_days ?>" class="auto_expire btn btn-xs btn-default">View</a>
   <a href="#" title="Expire PII" class="auto_expire btn btn-xs btn-danger"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'pii-expire?pii_days=<?= $pii_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire PII &gt; <?= $pii_days ?> Days
