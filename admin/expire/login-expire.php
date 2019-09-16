@@ -19,7 +19,7 @@ LTIX::getConnection();
 $base = $_GET['base'];
 if ( $base == 'user' ) {
     $table = 'lti_user';
-    $limit = 200;
+    $limit = 100; // Takes about 10 seconds
     $where = '';
     $where = " AND user_id <> ".$_SESSION['id'].' ';
 } else if ( $base == 'context' ) {
