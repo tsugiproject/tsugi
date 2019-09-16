@@ -50,7 +50,7 @@ echo($sql."\n");
 if ( $dryrun ) {
     echo("This is a dry run, use 'php ".$argv[0]." remove' to actually remove the data.\n");
     $count = get_pii_count($days);
-    echo("User records with PII and have not logged in in $days days: $count \n");
+    echo(htmlentities(ucfirst($base))." records have not logged in in $days days: $count \n");
     return;
 } else {
     echo("This IS NOT A DRILL!\n");
