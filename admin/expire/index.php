@@ -77,7 +77,7 @@ Users with no activity in
 <?= $user_expire ?>
 <?php if ( $user_expire > 0 ) { ?>
   <br/><a href="#" title="Expire Users" class="auto_expire btn btn-xs btn-warning"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'user-expire?user_days=<?= $user_days ?>', _TSUGI.spinnerUrl, true); return false;" >
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'loginr-expire?base=user&days=<?= $user_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire Users &gt; <?= $user_days ?> Days
   </a>
 <?php } ?>
@@ -89,7 +89,7 @@ Contexts with no activity in
 <?= $context_expire ?>
 <?php if ( $context_expire > 0 ) { ?>
   <br/><a href="#" title="Expire Contexts" class="auto_expire btn btn-xs btn-warning"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'expire-context?context_days=<?= $context_days ?>', _TSUGI.spinnerUrl, true); return false;" >
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'login-expire?base=context&days=<?= $context_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire Contexts &gt; <?= $context_days ?> Days
   </a>
 <?php } ?>
@@ -100,7 +100,7 @@ Tenants with no activity in
 <?= $tenant_expire ?>
 <?php if ( $tenant_expire > 0 ) { ?>
   <br/><a href="#" title="Expire Tenants" class="auto_expire btn btn-xs btn-warning"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'expire-tenant?tenant_days=<?= $tenant_days ?>', _TSUGI.spinnerUrl, true); return false;" >
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'login-expire?base=tenant&days=<?= $tenant_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire Tenants &gt; <?= $tenant_days ?> Days
   </a>
 <?php } ?>
