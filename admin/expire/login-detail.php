@@ -19,15 +19,32 @@ if ( ! isAdmin() ) {
     die('Must be admin');
 }
 
-if ( ! isset($_GET['pii_days']) ) die('Required parameter pii_days');
-if ( ! is_numeric($_GET['pii_days']) ) die('pii_days must be a number');
-$days = $_GET['pii_days'] + 0;
-if ($days < 1 ) die('bad value for pii_days');
+if ( ! isset($_GET['base']) ) die('Base required');
 
-$fields = array('login_at', 'user_id', 'email', 'displayname', 'created_at');
+$base = $_GET['base'];
+if ( $base == 'user' ) {
+    $table = 'lti_user';
+    $fields = array('login_at', 'user_id', 'email', 'displayname', 'created_at');
+    $select = 'user_id, email, displayname';
+} else if ( $base == 'context' ) {
+    $table = 'lti_context';
+    $fields = array('login_at', 'context_id', 'title', 'created_at');
+    $select = 'context_id, title';
+} else if ( $base == 'tenant' ) {
+    $table = 'lti_key';
+    $fields = array('login_at', 'key_id', 'key_key', 'created_at');
+    $select = 'key_id, key_key';
+} else {
+    die('Invalid base value');
+}
 
-$sql = "SELECT login_at, user_id, email, displayname, email, created_at 
-        FROM {$CFG->dbprefix}lti_user " . get_pii_where($days);
+if ( ! isset($_GET[$base.'_days']) ) die('Required parameter '.$base.'_days');
+if ( ! is_numeric($_GET[$base.'_days']) ) die($base.'_days must be a number');
+$days = $_GET[$base.'_days'] + 0;
+if ($days < 1 ) die('Bad value for '.$base.'_days');
+
+$sql = "SELECT login_at, {$select}, created_at 
+        FROM {$CFG->dbprefix}{$table} " . get_expirable_where($days);
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

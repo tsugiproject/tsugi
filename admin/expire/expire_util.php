@@ -9,14 +9,15 @@ function get_count_table($table) {
 
 function get_expirable_records($table, $days) {
     global $PDOX, $CFG;
-    $row = $PDOX->rowDie("
-        SELECT COUNT(*) AS count FROM {$CFG->dbprefix}{$table}
-        WHERE created_at <= CURRENT_DATE() - INTERVAL :DAY DAY
-        AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL :DAY DAY)",
-        array(":DAY" => $days )
-    );
+    $row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}{$table} ".get_expirable_where($days));
     $count = $row ? $row['count'] : 0;
     return $count;
+}
+
+function get_expirable_where($days) {
+    $sql = "WHERE created_at <= CURRENT_DATE() - INTERVAL $days DAY
+        AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL $days DAY)";
+    return $sql;
 }
 
 function get_pii_count($days) {

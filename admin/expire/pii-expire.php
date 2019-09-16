@@ -21,6 +21,7 @@ $days = $_REQUEST['pii_days'];
 
 $pii_count = get_pii_count($days);
 
+// Note pii_where includes only non-null PII users
 $sql = "UPDATE {$CFG->dbprefix}lti_user 
     SET displayname=NULL, email=NULL " .get_pii_where($days)."
     ORDER BY login_at LIMIT $limit";

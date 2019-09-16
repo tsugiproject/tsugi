@@ -50,7 +50,10 @@ $OUTPUT->flashMessages();
 <h1>Manage Data Expiry</h1>
 <p>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Summary</a>
-  <a href="pii-detail" class="btn btn-default">PII Detail</a>
+  <a href="pii-detail?pii_days=<?= $pii_days ?>" class="btn btn-default">PII Detail</a>
+  <a href="login-detail?base=user&user_days=<?= $user_days ?>" class="btn btn-default">User Detail</a>
+  <a href="login-detail?base=context&context_days=<?= $context_days ?>" class="btn btn-default">Context Detail</a>
+  <a href="login-detail?base=tenant&tenant_days=<?= $tenant_days ?>" class="btn btn-default">Tenant Detail</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <form>
