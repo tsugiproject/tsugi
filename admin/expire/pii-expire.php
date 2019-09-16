@@ -37,6 +37,7 @@ if ( isset($_POST['doDelete']) && isset($_POST['pii_days']) ) {
     $delta = time() - $start;
     echo("\nEllapsed time: $delta seconds\n");
     echo("</pre>\n");
+    echo("<p>Process complete - you can close this window.</p>\n");
     return;
 }
 
