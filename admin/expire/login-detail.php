@@ -41,10 +41,10 @@ if ( $base == 'user' ) {
     die('Invalid base value');
 }
 
-if ( ! isset($_GET[$base.'_days']) ) die('Required parameter '.$base.'_days');
-if ( ! is_numeric($_GET[$base.'_days']) ) die($base.'_days must be a number');
-$days = $_GET[$base.'_days'] + 0;
-if ($days < 1 ) die('Bad value for '.$base.'_days');
+if ( ! isset($_GET['days']) ) die('Required parameter days');
+if ( ! is_numeric($_GET['days']) ) die('days must be a number');
+$days = $_GET['days'] + 0;
+if ($days < 1 ) die('Bad value for days');
 
 $sql = "SELECT login_at, {$select}, created_at 
         FROM {$CFG->dbprefix}{$table} " . get_expirable_where($days) . $where;
@@ -53,6 +53,8 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
+
+echo('<h1>'.ucfirst($base).' Expiry Detail</h1>');
 
 $extra_buttons = array(
     "Summary" => "index"
