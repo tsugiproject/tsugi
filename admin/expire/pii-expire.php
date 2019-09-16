@@ -15,13 +15,15 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 use \Tsugi\Core\LTIX;
 LTIX::getConnection();
 
+$limit = 1000;
+
 $days = $_REQUEST['pii_days'];
 
 $pii_count = get_pii_count($days);
 
 $sql = "UPDATE {$CFG->dbprefix}lti_user 
     SET displayname=NULL, email=NULL " .get_pii_where($days)."
-    ORDER BY login_at LIMIT 200";
+    ORDER BY login_at LIMIT $limit";
 
 if ( isset($_POST['doDelete']) && isset($_POST['pii_days']) ) {
     echo("<pre>\n");
@@ -55,7 +57,7 @@ Note that online we limit the number of records that an be deleted per request t
 keep requests from timing out.   If you want to automate the process of PII expiration,
 set the value
 <pre>
-$CFG-$gt;expire_pii = 120;
+$CFG-&gt;expire_pii_days = 120;
 </pre>
 in your <b>config.php</b> and then run the commands:
 <pre>
