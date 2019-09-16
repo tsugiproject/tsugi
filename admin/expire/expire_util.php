@@ -19,8 +19,8 @@ function get_safe_key_where() {
 }
 
 function get_expirable_where($days) {
-    $sql = "WHERE created_at <= CURRENT_DATE() - INTERVAL $days DAY
-        AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL $days DAY)";
+    $sql = "WHERE created_at <= (CURRENT_DATE() - INTERVAL $days DAY)
+        AND (login_at IS NULL OR login_at <= (CURRENT_DATE() - INTERVAL $days DAY))";
     return $sql;
 }
 
@@ -35,8 +35,8 @@ function get_pii_count($days) {
 function get_pii_where($days) {
     global $PDOX, $CFG;
     return "
-        WHERE created_at <= CURRENT_DATE() - INTERVAL $days DAY
-        AND (login_at IS NULL OR login_at <= CURRENT_DATE() - INTERVAL $days DAY)
+        WHERE created_at <= (CURRENT_DATE() - INTERVAL $days DAY)
+        AND (login_at IS NULL OR login_at <= (CURRENT_DATE() - INTERVAL $days DAY))
         AND (displayname IS NOT NULL OR email IS NOT NULL)";
 }
 
