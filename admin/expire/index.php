@@ -49,11 +49,6 @@ $OUTPUT->flashMessages();
 </div>
 <h1>Manage Data Expiry</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Summary</a>
-  <a href="pii-detail?pii_days=<?= $pii_days ?>" class="btn btn-default">PII Detail</a>
-  <a href="login-detail?base=user&days=<?= $user_days ?>" class="btn btn-default">User Detail</a>
-  <a href="login-detail?base=context&days=<?= $context_days ?>" class="btn btn-default">Context Detail</a>
-  <a href="login-detail?base=tenant&days=<?= $tenant_days ?>" class="btn btn-default">Tenant Detail</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <form>
@@ -65,7 +60,9 @@ Users with PII and no activity in
 <input type="text" name="pii_days" size=5 class="auto_days" value="<?= $pii_days ?>"> days:
 <?= $pii_expire ?>
 <?php if ( $pii_expire > 0 ) { ?>
-  <br/><a href="#" title="Expire PII" class="auto_expire btn btn-xs btn-warning"
+  <br/>
+  <a href="pii-detail?pii_days=<?= $pii_days ?>" class="auto_expire btn btn-default">View</a>
+  <a href="#" title="Expire PII" class="auto_expire btn btn-xs btn-danger"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'pii-expire?pii_days=<?= $pii_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire PII &gt; <?= $pii_days ?> Days
   </a>
@@ -76,7 +73,9 @@ Users with no activity in
 <input type="text" name="user_days" size=5 class="auto_days" value="<?= $user_days ?>"> days:
 <?= $user_expire ?>
 <?php if ( $user_expire > 0 ) { ?>
-  <br/><a href="#" title="Expire Users" class="auto_expire btn btn-xs btn-warning"
+  <br/>
+  <a href="login-detail?base=user&days=<?= $user_days ?>" class="auto_expire btn btn-xs btn-default">View</a>
+<a href="#" title="Expire Users" class="auto_expire btn btn-xs btn-danger"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'login-expire?base=user&days=<?= $user_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire Users &gt; <?= $user_days ?> Days
   </a>
@@ -88,7 +87,9 @@ Contexts with no activity in
 <input type="text" name="context_days" size=5 class="auto_days" value="<?= $context_days ?>"> days:
 <?= $context_expire ?>
 <?php if ( $context_expire > 0 ) { ?>
-  <br/><a href="#" title="Expire Contexts" class="auto_expire btn btn-xs btn-warning"
+  <br/>
+  <a href="login-detail?base=context&days=<?= $context_days ?>" class="auto_expire btn btn-xs btn-default">View</a>
+<a href="#" title="Expire Contexts" class="auto_expire btn btn-xs btn-danger"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'login-expire?base=context&days=<?= $context_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire Contexts &gt; <?= $context_days ?> Days
   </a>
@@ -99,7 +100,9 @@ Tenants with no activity in
 <input type="text" name="tenant_days" size=5 class="auto_days" value="<?= $tenant_days ?>"> days:
 <?= $tenant_expire ?>
 <?php if ( $tenant_expire > 0 ) { ?>
-  <br/><a href="#" title="Expire Tenants" class="auto_expire btn btn-xs btn-warning"
+  <br/>
+  <a href="login-detail?base=tenant&days=<?= $tenant_days ?>" class="auto_expire btn btn-xs btn-default">View</a>
+<a href="#" title="Expire Tenants" class="auto_expire btn btn-xs btn-danger"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'login-expire?base=tenant&days=<?= $tenant_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire Tenants &gt; <?= $tenant_days ?> Days
   </a>
