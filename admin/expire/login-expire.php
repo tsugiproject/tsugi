@@ -21,6 +21,7 @@ if ( $base == 'user' ) {
     $table = 'lti_user';
     $limit = 200;
     $where = '';
+    $where = " AND user_id <> ".$_SESSION['id'].' ';
 } else if ( $base == 'context' ) {
     $table = 'lti_context';
     $limit = 10;
@@ -28,7 +29,7 @@ if ( $base == 'user' ) {
 } else if ( $base == 'tenant' ) {
     $table = 'lti_key';
     $limit = 1;
-    $where = " AND ".get_safe_key_where();
+    $where = " AND ".get_safe_key_where().' ';
 } else {
     die('Invalid base value');
 }
@@ -76,7 +77,7 @@ since last login:
 <p>
 Note that online we limit the number of records that an be deleted per request to 
 be <?= $limit ?> to keep
-requests from timing out.   If you want to automate the process of <?= htmlentities(ucfirst($base)) ?> expiration,
+requests from timing out.   If you want to automate the process of <?= htmlentities($base) ?> expiration,
 set the value
 <pre>
 $CFG-&gt;expire_<?= htmlentities($base) ?>_days = 120;   // Choose your value

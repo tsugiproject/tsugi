@@ -77,7 +77,7 @@ Users with no activity in
 <?= $user_expire ?>
 <?php if ( $user_expire > 0 ) { ?>
   <br/><a href="#" title="Expire Users" class="auto_expire btn btn-xs btn-warning"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'loginr-expire?base=user&days=<?= $user_days ?>', _TSUGI.spinnerUrl, true); return false;" >
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'login-expire?base=user&days=<?= $user_days ?>', _TSUGI.spinnerUrl, true); return false;" >
   Expire Users &gt; <?= $user_days ?> Days
   </a>
 <?php } ?>
