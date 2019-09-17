@@ -39,6 +39,9 @@ if ( ! is_numeric($_GET['days']) ) die('days must be a number');
 $days = $_GET['days'] + 0;
 if ($days < 1 ) die('Bad value for days');
 
+$check = sanity_check_days($base, $days);
+if ( is_string($check) ) die($check);
+
 $count = get_expirable_records($table, $days);
 
 $sql = "DELETE FROM {$CFG->dbprefix}{$table}\n".

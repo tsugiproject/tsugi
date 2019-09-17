@@ -40,6 +40,9 @@ $context_expire =  get_expirable_records('lti_context', $context_days);
 $tenant_expire =  get_expirable_records('lti_key', $tenant_days);
 $pii_expire =  get_pii_count($pii_days);
 
+$check = sanity_check_days();
+if ( is_string($check) ) $_SESSION["error"] = $check;
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();

@@ -35,11 +35,16 @@ if ( ! isset($CFG->{$cfg}) ) {
 }
 $days = $CFG->{$cfg} + 0;
 
-if ( $days < 20 ) die('Minimum number of days is 20 found: '.$days."\n");
+$check = sanity_check_days('PII', $days);
+if ( is_string($check) ) die($check."\n");
 
 LTIX::getConnection();
 
 $count = get_expirable_records($table, $days);
+if ( $count < 1 ) {
+    echo("No records to expire\n");
+    return;
+}
 
 $sql = "DELETE FROM {$CFG->dbprefix}{$table}\n".
     get_expirable_where($days)."\n".$where.

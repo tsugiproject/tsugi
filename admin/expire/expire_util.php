@@ -1,5 +1,47 @@
 <?php
 
+// To avoid wiping out all the data
+function sanity_check_days($base=false, $days=false) {
+    global $tenant_days, $context_days, $user_days, $pii_days;
+
+    $min_pii_days = 20;
+    $min_user_days = 40;
+    $min_context_days = 60;
+    $min_tenant_days = 80;
+    $retval = '';
+
+    if ( $base == 'PII' ) $pii_days = $days;
+    if ( $base == 'user' ) $user_days = $days;
+    if ( $base == 'context' ) $context_days = $days;
+    if ( $base == 'tenant' ) $tenant_days = $days;
+
+    if ( isset($tenant_days) && $tenant_days < $min_tenant_days ) {
+        $retval .= "Tenant days cannot be less than $min_tenant_days";
+        $tenant_days = $min_tenant_days;
+    }
+
+    if ( isset($context_days) && $context_days < $min_context_days ) {
+        if ( strlen($retval) > 0 ) $retval .=', ';
+        $retval .=  "Context days cannot be less than $min_context_days";
+        $context_days = $min_context_days;
+    }
+
+    if ( isset($user_days) && $user_days < $min_user_days ) {
+        if ( strlen($retval) > 0 ) $retval .=', ';
+        $retval .=  "User days cannot be less than $min_user_days";
+        $user_days = $min_user_days;
+    }
+
+    if ( isset($pii_days) && $pii_days < $min_pii_days ) {
+        if ( strlen($retval) > 0 ) $retval .=', ';
+        $retval .=  "PII days cannot be less than $min_pii_days";
+        $pii_days = $min_pii_days;
+    }
+
+    if ( strlen($retval) > 0 ) return $retval;
+    return true;
+}
+
 function get_count_table($table) {
     global $PDOX, $CFG;
     $row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}{$table}");

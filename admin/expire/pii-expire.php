@@ -19,6 +19,10 @@ $limit = 1000;
 
 $days = $_REQUEST['pii_days'];
 
+$check = sanity_check_days('PII', $days);
+
+if ( is_string($check) ) die($check);
+
 $pii_count = get_pii_count($days);
 
 // Note pii_where includes only non-null PII users

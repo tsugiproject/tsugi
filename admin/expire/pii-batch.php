@@ -13,9 +13,16 @@ if ( ! isset($CFG->expire_pii_days) ) {
 }
 
 $days = $CFG->expire_pii_days;
-if ( $days < 20 ) die('Minimum number of days is 20 found: '.$days."\n");
+$check = sanity_check_days('PII', $days);
+if ( is_string($check) ) die($check."\n");
 
 LTIX::getConnection();
+
+$count = get_pii_count($days);
+if ( $count < 1 ) {
+    echo("No records to expire\n");
+    return;
+}
 
 $dryrun = ! ( isset($argv[1]) && $argv[1] == 'remove');
 
@@ -26,7 +33,6 @@ echo($sql."\n");
 
 if ( $dryrun ) {
     echo("This is a dry run, use 'php ".$argv[0]." remove' to actually remove the data.\n");
-    $count = get_pii_count($days);
     echo("User records with PII and have not logged in in $days days: $count \n");
     return;
 } else {
