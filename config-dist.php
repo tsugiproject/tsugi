@@ -184,6 +184,16 @@ $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 $CFG->google_translate = false; 
 
+// If these are not set, the auto expiration scripts in admin/expire 
+// do nothing.  You can still manually expire data in the admin UI without
+// these values. There are software enforced mimimums for these values so you don't
+// inadvertently wipe out your whole database using either the auto expire
+// scripts or the admin expiry UI.
+// $CFG->expire_pii_days = 150;  // Three months  (minimum 20)
+// $CFG->expire_user_days = 400;  // One year (minimum 40)
+// $CFG->expire_context_days = 600; // 1.5 Years (minimum 60)
+// $CFG->expire_tenant_days = 800; // Two years (minimum 80)
+
 // Alpha: Google Classroom support
 // First, Go to https://console.developers.google.com/apis/credentials
 // And add access to "Google Classroom API" to your google_client_id (above)
