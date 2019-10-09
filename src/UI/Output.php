@@ -676,10 +676,11 @@ $('a').each(function (x) {
     function togglePre($title, $html) {
         global $div_id;
         $div_id = $div_id + 1;
-        $text = _m('Toggle');
+        $text = _m('Show/Hide');
+        $detail = _m('characters of HTML retrieved');
         echo('<strong>'.htmlpre_utf8($title));
-        echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">'.$text.'</a>)</strong>'."\n");
-        echo(' ('.strlen($html).' characters)'."\n");
+        echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">'.$text.'</a></strong>'."\n");
+        echo(' '.strlen($html).' '.$detail.')'."\n");
         echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
         echo(htmlpre_utf8($html));
         echo("</pre><br/>\n");
