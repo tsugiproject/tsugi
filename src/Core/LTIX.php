@@ -1893,6 +1893,7 @@ class LTIX {
             $USER = new \Tsugi\Core\User();
             $USER->launch = $TSUGI_LAUNCH;
             $USER->id = $LTI['user_id'];
+            $USER->key = $LTI['user_key'];
             if (isset($LTI['user_email']) ) $USER->email = $LTI['user_email'];
             if (isset($LTI['user_displayname']) ) {
                 $USER->displayname = $LTI['user_displayname'];
