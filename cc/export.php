@@ -113,7 +113,7 @@ foreach($l->lessons->modules as $module) {
                 $endpoint = U::absolute_url($CFG->youtube_url);
                 $endpoint = U::add_url_parm($endpoint, 'v', $video->youtube);
                 $extensions = array('apphome' => $CFG->apphome);
-                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
             } else {
                 $url = 'https://www.youtube.com/watch?v=' . $video->youtube;
                 $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
