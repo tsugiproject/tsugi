@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\Core;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
@@ -1785,6 +1786,7 @@ class LTIX {
                 if ( $newlaunch || isset($_POST[$sess]) || isset($_GET[$sess]) ) {
                     // We tried to set a session..
                 } else {
+                    self::wrapped_session_flush($session_object);
                     self::send403();
                     $msg = 'This tool should be launched from a learning system using LTI';
                     if ( is_string($detail) ) $msg .= ". Detail: ".$detail;
@@ -1819,8 +1821,8 @@ class LTIX {
         if ( (!$trusted) && $session_agent != null ) {
             if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
                 $_SERVER['HTTP_USER_AGENT'] != $session_agent ) {
-                self::send403();
                 self::wrapped_session_flush($session_object);
+                self::send403();
                 self::abort_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
                     (($session_agent !== null ) ? $session_agent : 'Empty Session user agent') .
                     ' ::: '.
@@ -1840,6 +1842,8 @@ class LTIX {
             if ( count($sess_pieces) == 4 && count($serv_pieces) == 4 ) {
                 if ( $sess_pieces[0] != $serv_pieces[0] || $sess_pieces[1] != $serv_pieces[1] ||
                     $sess_pieces[2] != $serv_pieces[2] ) {
+                    // Need to clear out session data
+                    self::wrapped_session_flush($session_object);
                     self::send403();
                     self::abort_with_error_log('Session address has expired', " ".session_id()." session_addr=".
                         $session_addr.' current='.$ipaddr, 'DIE:');
@@ -1853,6 +1857,7 @@ class LTIX {
             (! endsWith(Output::getUtilUrl(''), $CFG->getScriptPath()) ) &&
             (! startsWith('api', $CFG->getScriptPath()) ) &&
             strpos($CFG->getScriptPath(), $session_script ) !== 0 ) {
+            self::wrapped_session_flush($session_object);
             self::send403();
             self::abort_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
                 $session_script.' /  '.$CFG->getScriptPath(), 'DIE:');
