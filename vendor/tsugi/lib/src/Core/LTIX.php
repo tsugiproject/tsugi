@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\Core;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
