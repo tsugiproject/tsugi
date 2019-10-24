@@ -732,7 +732,6 @@ $('a').each(function (x) {
             if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
                 $submenu->addLink('Admin', $R.'admin');
             }
-            if ( $CFG->DEVELOPER ) $submenu->addLink('Developer', $R.'dev');
 
             $submenu->addLink('Logout', $R.'logout');
             $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);
@@ -740,7 +739,6 @@ $('a').each(function (x) {
             if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
                 $set->addLeft('Admin', $R.'admin');
             }
-            if ( $CFG->DEVELOPER ) $set->addLeft('Developer', $R.'dev');
             if ( $CFG->google_client_id ) {
                 $set->addRight('Login', $R.'login');
             }
