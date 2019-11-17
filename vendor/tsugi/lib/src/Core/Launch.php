@@ -116,8 +116,16 @@ class Launch {
     /**
      * Pull a keyed variable from the LTI data in the current session with default
      */
-    public function ltiParameter($varname, $default=false) {
+    public function ltiParameterArray() {
         $row = $this->session_get('lti', false);
+        return $row;
+    }
+
+    /**
+     * Pull a keyed variable from the LTI data in the current session with default
+     */
+    public function ltiParameter($varname, $default=false) {
+        $row = $this->ltiParameterArray();
         if ( ! $row ) return $default;
         if ( ! array_key_exists($varname, $row) ) return $default;
         return $row[$varname];
@@ -127,7 +135,7 @@ class Launch {
      * Update a keyed variable from the LTI data in the current session with default
      */
     public function ltiParameterUpdate($varname, $value) {
-        $lti = $this->session_get('lti', false);
+        $lti = $this->ltiParameterArray();
         if ( ! $lti ) $lti = array(); // Should never happen
         if ( is_array($lti) ) $lti[$varname] = $value;
         $lti = $this->session_put('lti', $lti);
