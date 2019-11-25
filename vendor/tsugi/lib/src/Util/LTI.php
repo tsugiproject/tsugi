@@ -713,7 +713,7 @@ class LTI {
     public static function parseContextMembershipsResponse($response) {
         $result = false;
         try{
-            $xml = new \SimpleXMLElement($response);
+            $xml = new \SimpleXMLElement(utf8_encode($response));
             $success = $xml->xpath("/message_response/statusinfo");
 
             if($success[0]->codemajor != "Success") {
@@ -722,7 +722,7 @@ class LTI {
             $result = array();
             $members = $xml->xpath('/message_response/members/member');
 
-            foreach($members as $node) {
+            foreach($members as $index => $node) {
                 $groups = array();
                 foreach($node->groups as $k) {
                     foreach($k->group as $v) {
@@ -737,7 +737,9 @@ class LTI {
                     "user_id" => $node->user_id->__toString(),
                     "role" => $node->role->__toString(),
                     "roles" => $node->roles->__toString(),
-                    "lis_result_sourcedid" => $node->lis_result_sourcedid->__toString(),
+                    "user_email" => $node->person_contact_email_primary->__toString(),
+                    "user_name" => $node->person_name_full->__toString(),
+                    "lis_result_sourcedid" => empty($node->lis_result_sourcedid->__toString()) ? $node->person_sourcedid->__toString() : $node->lis_result_sourcedid->__toString(),
                     "groups" => $groups
                 );
             }
