@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Tsugi\Core;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
@@ -2705,14 +2704,19 @@ class LTIX {
      * populateRoster
      *
      * If the LTI Extension: Context Memberships Service is supported in the launch, get the memberships
-     * information
+     * information and insert the information into lti_user and lti_membership
      *
      * @param bool $groups, whether or not to get groups in the Memberships
+     * @param bool $insert, whether or not to insert the members found into lti_user, lti_membership
      * @return bool true if successful, false if not possible
      */
-    public static function populateRoster($groups=false) {
-        global $ROSTER;
+    public static function populateRoster($groups=false, $insert=false) {
+        global $ROSTER, $CFG, $TSUGI_LAUNCH;
         if(!is_object($ROSTER)) {
+            return false;
+        }
+
+        if (filter_var($ROSTER->url, FILTER_VALIDATE_URL) === FALSE) {
             return false;
         }
 
@@ -2723,12 +2727,57 @@ class LTIX {
 
         if($response != false) {
             $ROSTER->data = $response;
-        }
+
+            if ($insert) {
+                $PDOX = self::getConnection();
+                $p = $CFG->dbprefix;
+
+                $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
+                $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
+                // Set up user
+                $insertUser = "INSERT INTO {$p}lti_user
+                        ( user_key, user_sha256, displayname, email, locale, json, key_id, created_at, updated_at ) VALUES ";
+
+                // Set up membership
+                $insertMembership = "INSERT INTO {$p}lti_membership
+                        ( context_id, user_id, role, created_at, updated_at ) VALUES ";
+
+                $key = $PDOX->rowDie("SELECT key_id
+                      FROM {$CFG->dbprefix}lti_key WHERE key_key = :key",
+                      array(':key' => $TSUGI_LAUNCH->context->key));
+                if (! $key ) return false;
+
+                $insertUserArray = [];
+                $insertUserMembershipArray = [];
+                foreach($ROSTER->data as $user) {
+                    array_push($insertUserArray,
+                            "('". $user['user_id'] ."', '".
+                                    lti_sha256($user['user_id']) ."', '".
+                                    $user['user_name'] ."', '".
+                                    $user['user_email'] ."', '".
+                                    ($TSUGI_LAUNCH->context->launch->user->locale ? $TSUGI_LAUNCH->context->launch->user->locale : ''). "', ".
+                                    "'{\"sourcedId\": \"". $user['lis_result_sourcedid'] ."\"}', ".
+                                    $key['key_id'] .", NOW(), NOW() )");
+
+                    array_push($insertUserMembershipArray,
+                            "(". $TSUGI_LAUNCH->context->id .", ".
+                                "(select user_id from {$p}lti_user where user_key = '". $user['user_id'] ."' limit 1), ".
+                                    ($user['role'] == "Instructor" ? LTIX::ROLE_INSTRUCTOR : LTIX::ROLE_LEARNER) .", NOW(), NOW() )");
+                }
+                $PDOX->queryDie($insertUser . implode(',', $insertUserArray)
+                            ." ON DUPLICATE KEY UPDATE "
+                                ." displayname = VALUES(displayname)"
+                                ." ,email = VALUES(email)"
+                                ." ,updated_at = NOW()"
+                                ." ,json = IF(JSON_VALID(json), JSON_SET(json, '$.sourcedId', JSON_EXTRACT(VALUES(json),'$.sourcedId')), VALUES(json))");
+                             //   ." ,json = REPLACE(CONCAT(IFNULL(json,'{}'), VALUES(json)), '}{', ',')");
+                $PDOX->queryDie($insertMembership . implode(',', $insertUserMembershipArray). " ON DUPLICATE KEY UPDATE role = VALUES(role), updated_at=NOW()");
+            } // if insert
+        } // if response valid
 
         return true;
     }
-
-
 
     public static function getBrowserSignature() {
         $concat = self::getBrowserSignatureRaw();
