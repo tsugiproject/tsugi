@@ -63,7 +63,9 @@ $jwt = LTI13::encode_jwt($jwt_claim, $privkey, $kid);
 // http://localhost:8000/grade/launch
 $launch_url = $row['url'];
 
-$extra = array('formattr' => 'target="_blank"', 'button' => "Open in a New Window");
-// echo(LTI13::build_jwt_html($launch_url, $jwt, true, $extra));
-echo(LTI13::build_jwt_html($launch_url, $jwt, true));
+// $extra = array('formattr' => 'target="_blank"', 'button' => "Open in a New Window");
+$debug = strpos($launch_url,"debug=true") > 0;
+$extra = array('button' => "Go");
+
+echo(LTI13::build_jwt_html($launch_url, $jwt, $debug, $extra));
 
