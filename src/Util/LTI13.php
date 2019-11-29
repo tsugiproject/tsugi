@@ -933,7 +933,12 @@ class LTI13 {
      *  @return string The HTML to send to the browser
      */
     public static function build_jwt_html($launch_url, $jws, $dodebug=true, $extra=false) {
-        $html = "<form action=\"" . $launch_url . "\" method=\"POST\"";
+        $form_id = uniqid();
+        $html = "<form action=\"" . $launch_url . "\" method=\"POST\" id=\"".$form_id."\"";
+        if ($extra && isset($extra['id']) ) {
+            $html .= ' id="'.$extra['id'].'"';
+        }
+
         if ($extra && isset($extra['formattr']) ) {
             $html .= ' '.$extra['formattr'];
         }
@@ -951,6 +956,14 @@ class LTI13 {
                     . "<p>\n--- JWT:<br/><pre>"
                     . htmlspecialchars(json_encode($jwt->body, JSON_PRETTY_PRINT))
                     . "</pre></p>\n";
+        } else {
+             $html .= " <script type=\"text/javascript\"> \n" .
+                "  //<![CDATA[ \n" .
+                "    document.getElementById(\"".$form_id."\").style.display = \"none\";\n" .
+                "    document.getElementById(\"".$form_id."\").submit(); \n" .
+                "    console.log('Autosubmitted ".$form_id."'); \n" .
+                "  //]]> \n" .
+                " </script> \n";
         }
         return $html;
     }

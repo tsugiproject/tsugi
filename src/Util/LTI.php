@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Tsugi\Util;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
@@ -243,7 +242,7 @@ class LTI {
                 "    nei.setAttribute('name', '".$ext_submit."');\n" .
                 "    nei.setAttribute('value', '".$ext_submit_text."');\n" .
                 "    document.getElementById(\"".$form_id."\").appendChild(nei);\n" .
-                "    document.".$form_id.".submit(); \n" .
+                "    document.getElementById(\"".$form_id."\").submit(); \n" .
                 "    console.log('Autosubmitted ".$form_id."'); \n" .
                 "  //]]> \n" .
                 " </script> \n";
