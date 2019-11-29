@@ -177,7 +177,9 @@ class LTI {
                 $r .= "<input type=\"hidden\" name=\"";
             }
             $r .= $key;
-            $r .= "\" class=\"btn btn-primary";
+            if ( $key == "ext_submit" && $iframeattr != '_pause') {
+                $r .= "\" class=\"btn btn-primary";
+            }
             $r .= "\" value=\"";
             $r .= $value;
             $r .= "\"/>\n";
