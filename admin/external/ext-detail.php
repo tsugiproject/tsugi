@@ -20,7 +20,7 @@ if ( ! isAdmin() ) {
 }
 
 $tablename = "{$CFG->dbprefix}lti_external";
-$fields = array("external_id", "endpoint", "name", "url", "description", "pubkey", "fa_icon", "json");
+$fields = array("external_id", "endpoint", "name", "url", "description", "pubkey", "privkey", "fa_icon", "json");
 $realfields = array("external_id", "endpoint", "name", "url", "description", "pubkey", "privkey", "fa_icon", "json");
 $current = $CFG->getCurrentFileUrl(__FILE__);
 $from_location = ".";
