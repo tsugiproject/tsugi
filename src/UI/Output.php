@@ -132,18 +132,18 @@ class Output {
         <script>
         var _TSUGI = {
 <?php
-            // https://stackoverflow.com/questions/23740548/how-to-pass-variables-and-data-from-php-to-javascript
+            // https://security.stackexchange.com/questions/110101/proper-way-to-protect-against-xss-when-output-is-directly-into-js-not-html
             if ( isset($CONTEXT->title) ) {
-                echo('            context_title: '.json_encode($CONTEXT->title).",\n");
+                echo('            context_title: '.self::json_encode_string_value($CONTEXT->title).",\n");
             }
             if ( isset($LINK->title) ) {
-                echo('            link_title: '.json_encode($LINK->title).",\n");
+                echo('            link_title: '.self::json_encode_string_value($LINK->title).",\n");
             }
             if ( isset($USER->displayname) ) {
-                echo('            user_displayname: '.json_encode($USER->displayname).",\n");
+                echo('            user_displayname: '.self::json_encode_string_value($USER->displayname).",\n");
             }
             if ( isset($USER->locale) ) {
-                echo('            user_locale: '.json_encode($USER->locale).",\n");
+                echo('            user_locale: '.self::json_encode_string_value($USER->locale).",\n");
             }
             if ( strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
                 echo('            ajax_session: "'.urlencode(session_name()).'='.urlencode(session_id()).'"'.",\n");
@@ -1235,6 +1235,11 @@ EOF;
     public static function jsonOutput($json_data) {
         header('Content-Type: application/json; charset=utf-8');
         echo(json_encode($json_data));
+    }
+
+    // https://security.stackexchange.com/questions/110101/proper-way-to-protect-against-xss-when-output-is-directly-into-js-not-html
+    public static function json_encode_string_value($json_string) {
+        return json_encode($json_string, JSON_HEX_QUOT|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS);
     }
 
     public static function xmlError($message,$detail="",$code=400) {
