@@ -17,7 +17,7 @@
         "symfony/event-dispatcher": "v3.4.8",
         "symfony/polyfill-php70": "v1.7.0",
         "symfony/polyfill-mbstring": "v1.7.0",
-        "symfony/http-foundation": "v3.4.35",
+        "symfony/http-foundation": "v3.4.36",
         "symfony/routing": "v3.4.8",
         "symfony/debug": "v3.4.8",
         "google/apiclient": "v2.2.1",
