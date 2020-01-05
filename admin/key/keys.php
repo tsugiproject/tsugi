@@ -46,12 +46,11 @@ $OUTPUT->flashMessages();
 <p>
 You have no Tenant keys for this system.
 </p>
-<?php } else {
-    $extra_buttons = array(
-        "Insert New Key" => "key-add"
-    );
-    Table::pagedTable($newrows, $searchfields, false, "key-detail", false, $extra_buttons);
-}
+<?php } 
+$extra_buttons = array(
+  "Insert New Key" => "key-add"
+);
+Table::pagedTable($newrows, $searchfields, false, "key-detail", false, $extra_buttons);
 if ( isAdmin() ) { ?>
 <?php } ?>
 
