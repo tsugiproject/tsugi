@@ -18,7 +18,6 @@ class ComposerStaticInitf77159208d2240dbce6695ebe5235953
         '8a9dc1de0ca7e01f3e08231539562f61' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/functions.php',
         '6b06ce8ccf69c43a60a1e48495a034c9' => __DIR__ . '/..' . '/react/promise-timer/src/functions.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
-        '8592c7b0947d8a0965a9e8c3d16f9c24' => __DIR__ . '/..' . '/elasticsearch/elasticsearch/src/autoload.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -75,8 +74,6 @@ class ComposerStaticInitf77159208d2240dbce6695ebe5235953
         ),
         'G' => 
         array (
-            'GuzzleHttp\\Stream\\' => 18,
-            'GuzzleHttp\\Ring\\' => 16,
             'GuzzleHttp\\Psr7\\' => 16,
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
@@ -85,10 +82,6 @@ class ComposerStaticInitf77159208d2240dbce6695ebe5235953
         'F' => 
         array (
             'Firebase\\JWT\\' => 13,
-        ),
-        'E' => 
-        array (
-            'Elasticsearch\\' => 14,
         ),
         'A' => 
         array (
@@ -205,14 +198,6 @@ class ComposerStaticInitf77159208d2240dbce6695ebe5235953
         array (
             0 => __DIR__ . '/..' . '/mtdowling/jmespath.php/src',
         ),
-        'GuzzleHttp\\Stream\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/guzzlehttp/streams/src',
-        ),
-        'GuzzleHttp\\Ring\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/guzzlehttp/ringphp/src',
-        ),
         'GuzzleHttp\\Psr7\\' => 
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/psr7/src',
@@ -233,10 +218,6 @@ class ComposerStaticInitf77159208d2240dbce6695ebe5235953
         array (
             0 => __DIR__ . '/..' . '/fproject/php-jwt/src',
             1 => __DIR__ . '/..' . '/firebase/php-jwt/src',
-        ),
-        'Elasticsearch\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/elasticsearch/elasticsearch/src/Elasticsearch',
         ),
         'Aws\\' => 
         array (

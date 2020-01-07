@@ -127,7 +127,7 @@ final class ExtUvLoop implements LoopInterface
         $this->timers->attach($timer, $event);
         \uv_timer_start(
             $event,
-            (int) ($interval * 1000) + 1,
+            $this->convertFloatSecondsToMilliseconds($interval),
             0,
             $callback
         );
@@ -146,12 +146,13 @@ final class ExtUvLoop implements LoopInterface
             \call_user_func($timer->getCallback(), $timer);
         };
 
+        $interval = $this->convertFloatSecondsToMilliseconds($interval);
         $event = \uv_timer_init($this->uv);
         $this->timers->attach($timer, $event);
         \uv_timer_start(
             $event,
-            (int) ($interval * 1000) + 1,
-            (int) ($interval * 1000) + 1,
+            $interval,
+            (int) $interval === 0 ? 1 : $interval,
             $callback
         );
 
@@ -293,13 +294,15 @@ final class ExtUvLoop implements LoopInterface
     private function createStreamListener()
     {
         $callback = function ($event, $status, $events, $stream) {
-            if (!isset($this->streamEvents[(int) $stream])) {
-                return;
-            }
+            // libuv automatically stops polling on error, re-enable polling to match other loop implementations
+            if ($status !== 0) {
+                $this->pollStream($stream);
 
-            if (($events | 4) === 4) {
-                // Disconnected
-                return;
+                // libuv may report no events on error, but this should still invoke stream listeners to report closed connections
+                // re-enable both readable and writable, correct listeners will be checked below anyway
+                if ($events === 0) {
+                    $events = \UV::READABLE | \UV::WRITABLE;
+                }
             }
 
             if (isset($this->readStreams[(int) $stream]) && ($events & \UV::READABLE)) {
@@ -312,5 +315,27 @@ final class ExtUvLoop implements LoopInterface
         };
 
         return $callback;
+    }
+
+    /**
+     * @param float $interval
+     * @return int
+     */
+    private function convertFloatSecondsToMilliseconds($interval)
+    {
+        if ($interval < 0) {
+            return 0;
+        }
+
+        $maxValue = (int) (\PHP_INT_MAX / 1000);
+        $intInterval = (int) $interval;
+
+        if (($intInterval <= 0 && $interval > 1) || $intInterval >= $maxValue) {
+            throw new \InvalidArgumentException(
+                "Interval overflow, value must be lower than '{$maxValue}', but '{$interval}' passed."
+            );
+        }
+
+        return (int) \floor($interval * 1000);
     }
 }

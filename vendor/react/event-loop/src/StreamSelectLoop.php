@@ -9,7 +9,7 @@ use React\EventLoop\Timer\Timers;
 /**
  * A `stream_select()` based event loop.
  *
- * This uses the [`stream_select()`](http://php.net/manual/en/function.stream-select.php)
+ * This uses the [`stream_select()`](https://www.php.net/manual/en/function.stream-select.php)
  * function and is the only implementation which works out of the box with PHP.
  *
  * This event loop works out of the box on PHP 5.4 through PHP 7+ and HHVM.
@@ -47,7 +47,7 @@ use React\EventLoop\Timer\Timers;
  * then adjust your system time forward by 20s, the timer may trigger in 10s.
  * See also [`addTimer()`](#addtimer) for more details.
  *
- * @link http://php.net/manual/en/function.stream-select.php
+ * @link https://www.php.net/manual/en/function.stream-select.php
  */
 final class StreamSelectLoop implements LoopInterface
 {
@@ -62,18 +62,19 @@ final class StreamSelectLoop implements LoopInterface
     private $writeListeners = array();
     private $running;
     private $pcntl = false;
-    private $pcntlActive = false;
+    private $pcntlPoll = false;
     private $signals;
 
     public function __construct()
     {
         $this->futureTickQueue = new FutureTickQueue();
         $this->timers = new Timers();
-        $this->pcntl = \extension_loaded('pcntl');
-        $this->pcntlActive  = $this->pcntl && !\function_exists('pcntl_async_signals');
+        $this->pcntl = \function_exists('pcntl_signal') && \function_exists('pcntl_signal_dispatch');
+        $this->pcntlPoll = $this->pcntl && !\function_exists('pcntl_async_signals');
         $this->signals = new SignalsHandler();
 
-        if ($this->pcntl && !$this->pcntlActive) {
+        // prefer async signals if available (PHP 7.1+) or fall back to dispatching on each tick
+        if ($this->pcntl && !$this->pcntlPoll) {
             \pcntl_async_signals(true);
         }
     }
@@ -228,7 +229,7 @@ final class StreamSelectLoop implements LoopInterface
         $write = $this->writeStreams;
 
         $available = $this->streamSelect($read, $write, $timeout);
-        if ($this->pcntlActive) {
+        if ($this->pcntlPoll) {
             \pcntl_signal_dispatch();
         }
         if (false === $available) {
@@ -268,10 +269,30 @@ final class StreamSelectLoop implements LoopInterface
     private function streamSelect(array &$read, array &$write, $timeout)
     {
         if ($read || $write) {
+            // We do not usually use or expose the `exceptfds` parameter passed to the underlying `select`.
+            // However, Windows does not report failed connection attempts in `writefds` passed to `select` like most other platforms.
+            // Instead, it uses `writefds` only for successful connection attempts and `exceptfds` for failed connection attempts.
+            // We work around this by adding all sockets that look like a pending connection attempt to `exceptfds` automatically on Windows and merge it back later.
+            // This ensures the public API matches other loop implementations across all platforms (see also test suite or rather test matrix).
+            // Lacking better APIs, every write-only socket that has not yet read any data is assumed to be in a pending connection attempt state.
+            // @link https://docs.microsoft.com/de-de/windows/win32/api/winsock2/nf-winsock2-select
             $except = null;
+            if (\DIRECTORY_SEPARATOR === '\\') {
+                $except = array();
+                foreach ($write as $key => $socket) {
+                    if (!isset($read[$key]) && @\ftell($socket) === 0) {
+                        $except[$key] = $socket;
+                    }
+                }
+            }
 
             // suppress warnings that occur, when stream_select is interrupted by a signal
-            return @\stream_select($read, $write, $except, $timeout === null ? null : 0, $timeout);
+            $ret = @\stream_select($read, $write, $except, $timeout === null ? null : 0, $timeout);
+
+            if ($except) {
+                $write = \array_merge($write, $except);
+            }
+            return $ret;
         }
 
         if ($timeout > 0) {
