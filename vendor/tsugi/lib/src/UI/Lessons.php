@@ -135,12 +135,10 @@ class Lessons {
         for($i=0;$i<count($this->lessons->modules);$i++) {
             if ( isset($this->lessons->modules[$i]->videos) ) self::adjustArray($this->lessons->modules[$i]->videos);
             if ( isset($this->lessons->modules[$i]->references) ) self::adjustArray($this->lessons->modules[$i]->references);
+            if ( isset($this->lessons->modules[$i]->slides) ) self::adjustArray($this->lessons->modules[$i]->slides);
             if ( isset($this->lessons->modules[$i]->lti) ) self::adjustArray($this->lessons->modules[$i]->lti);
 
             // Non arrays
-            if ( isset($this->lessons->modules[$i]->slides) ) {
-                U::absolute_url_ref($this->lessons->modules[$i]->slides);
-            }
             if ( isset($this->lessons->modules[$i]->assignment) ) {
                 U::absolute_url_ref($this->lessons->modules[$i]->assignment);
             }
@@ -354,12 +352,30 @@ class Lessons {
 
             echo("<ul>\n");
             if ( isset($module->slides) ) {
-                if ( $nostyle ) {
-                    echo('<li>Slides: ');
-                    self::nostyleUrl(__('Slides'), $module->slides);
-                    echo('</li>'."\n");
-                } else {
-                    echo('<li><a href="'.$module->slides.'" typeof="oer:SupportingMaterial" target="_blank">Slides</a></li>'."\n");
+                if ( count($module->slides) > 0 ) {
+                    echo('<li typeof="oer:SupportingMaterial">Slides:<ul>'."\n");
+                }
+                foreach($module->slides as $slide ) {
+                    if ( is_string($slide) ) {
+                        $slide_title = basename($slide);
+                        $slide_href = $slide;
+                    } else {
+                        $slide_title = $slide->title ;
+                        $slide_href = $slide->href ;
+                    }
+                    if ( $nostyle ) {
+                        echo('<li typeof="oer:SupportingMaterial">');
+                        echo(htmlentities($slide_title).' ');
+                        // TODO:
+                        self::nostyleUrl($slide->title, $slide->slides);
+                        echo('</li>'."\n");
+                    } else {
+                        echo('<li typeof="oer:SupportingMaterial"><a href="'.$slide_href.'" target="_blank">'.
+                            $slide_title."</a></li>\n");
+                    }
+                }
+                if ( count($module->slides) > 0 ) {
+                    echo("</ul></li>\n");
                 }
             }
             if ( isset($module->chapters) ) {

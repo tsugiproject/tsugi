@@ -121,10 +121,27 @@ foreach($l->lessons->modules as $module) {
         }
     }
 
-    if ( isset($module->slides) ) {
+    // Old way
+    if ( isset($module->slides) && is_string($module->slides) ) {
         $url = U::absolute_url($module->slides);
         $title = 'Slides: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
+    }
+
+    // Array way
+    if ( isset($module->slides) && is_array($module->slides) ) {
+        foreach($module->slides as $slide) {
+            if ( is_string($slide) ) {
+                $slide_title = basename($slide);
+                $slide_href = $slide;
+            } else {
+                $slide_title = $slide->title ;
+                $slide_href = $slide->href ;
+            }
+            $url = U::absolute_url($slide_href);
+            $title = 'Slides: '.$slide_title;
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
+        }
     }
 
     if ( isset($module->assignment) ) {
