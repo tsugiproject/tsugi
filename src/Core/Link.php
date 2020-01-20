@@ -116,5 +116,28 @@ class Link extends Entity {
         return $placementsecret;
     }
 
+    /**
+     * Load defaults from custom parameters once
+     *
+     * Example:
+     *
+     *     $LAUNCH->link->settingsDefaultsFromCustom(array('tries', 'delay'));
+     */
+    public function settingsDefaultsFromCustom($keys)
+    {
+        $oldsettings = $this->settingsGetAll();
+        $changed = false;
+        if ( ! is_array($keys) ) return;
+        foreach($keys as $key) {
+            if ( array_key_exists($key, $oldsettings) ) continue;
+            $default = $this->launch->ltiCustomGet($key);
+            if ( $default && is_string($default) && strlen($default) > 0 ) {
+                $oldsettings[$key] = $default;
+                $changed = true;
+            }
+        }
+        if ( ! $changed ) return;
+        $this->settingsSetAll($oldsettings);
+    }
 
 }
