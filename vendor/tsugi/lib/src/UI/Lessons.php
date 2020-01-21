@@ -366,8 +366,7 @@ class Lessons {
                     if ( $nostyle ) {
                         echo('<li typeof="oer:SupportingMaterial">');
                         echo(htmlentities($slide_title).' ');
-                        // TODO:
-                        self::nostyleUrl($slide->title, $slide->slides);
+                        self::nostyleUrl($slide_title, $slide_href);
                         echo('</li>'."\n");
                     } else {
                         echo('<li typeof="oer:SupportingMaterial"><a href="'.$slide_href.'" target="_blank">'.
