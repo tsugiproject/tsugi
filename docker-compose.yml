@@ -1,0 +1,30 @@
+# ./docker-compose.yml
+
+version: '3'
+
+services:
+  db:
+    container_name: tsugi_db
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: tsugi_root_pw
+      MYSQL_DATABASE: tsugi
+      MYSQL_USER: ltiuser
+      MYSQL_PASSWORD: ltipassword
+    ports:
+      - "33306:3306"
+    volumes:
+      - ./.docker_data/mysql:/var/lib/mysql:delegated
+  web:
+    container_name: tsugi_web
+    build:
+        context: .
+    depends_on:
+      - db
+    volumes:
+      - .:/var/www/html/tsugi:delegated
+    ports:
+      - "8888:80"
+    command: bash -c "./tsugi/docker-compose-init.sh"
+    stdin_open: true
+    tty: true

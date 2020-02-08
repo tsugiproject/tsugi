@@ -1,5 +1,5 @@
-TSUGI - A Framework for Building Interoperable Learning Tools
-=============================================================
+# TSUGI - A Framework for Building Interoperable Learning Tools
+
 [![Apereo Incubating badge](https://img.shields.io/badge/apereo-incubating-blue.svg?logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABmJLR0QA%2FwD%2FAP%2BgvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4QUTEi0ybN9p9wAAAiVJREFUKM9lkstLlGEUxn%2Fv%2B31joou0GTFKyswkKrrYdaEQ4cZAy4VQUS2iqH%2BrdUSNYmK0EM3IkjaChnmZKR0dHS0vpN%2FMe97TIqfMDpzN4XkeDg8%2Fw45R1XNAu%2Fe%2BGTgAqLX2KzAQRVGytLR0jN2jqo9FZFRVvfded66KehH5oKr3dpueiMiK915FRBeXcjo9k9K5zLz%2B3Nz8EyAqX51zdwGMqp738NSonlxf36Cn7zX9b4eYX8gSBAE1Bw9wpLaW%2BL5KWluukYjH31tr71vv%2FU0LJ5xzdL3q5dmLJK7gON5wjEQizsTkFMmeXkbHxtHfD14WkbYQaFZVMzk1zfDHERrPnqGz4wZ1tYfJ5%2FPMLOYYW16ltrqKRDyOMcYATXa7PRayixSc4%2FKFRhrqjxKGIWVlZVQkqpg1pYyvR%2BTFF2s5FFprVVXBAAqq%2F7a9uPKd1NomeTX4HXfrvZ8D2F9dTSwWMjwywueJLxQKBdLfZunue0Mqt8qPyMHf0HRorR0ArtbX1Zkrly7yPNnN1EyafZUVZLJZxjNLlHc%2BIlOxly0RyktC770fDIGX3vuOMAxOt19vJQxD%2BgeHmE6liMVKuNPawlZ9DWu2hG8bW1Tuib0LgqCrCMBDEckWAVjKLetMOq2ZhQV1zulGVFAnohv5wrSq3tpNzwMR%2BSQi%2FyEnIl5Ehpxzt4t6s9McRdGpIChpM8Y3ATXbkKdEZDAIgqQxZrKo%2FQUk5F9Xr20TrQAAAABJRU5ErkJggg%3D%3D)](https://www.apereo.org/content/projects-currently-incubation)
 
 Tsugi is a multi-tenant scalable LTI library and tool hosting environment.
@@ -14,8 +14,7 @@ While earlier versions of this repository included a set of modules, examples,
 and even exercises, as we move towards a 1.0 release of Tsugi, these elements
 are now moved to separate repositories (see below).
 
-Pre-Requisites
---------------
+## Pre-Requisites
 
 * [Install GIT](https://www.tsugi.org/md/GITHUB.md) so that it works at the command prompt.
 
@@ -24,14 +23,20 @@ instructions at:
 
     http://www.wa4e.com/install.php
 
-Installation
-------------
+## Installation
 
 * Check the code out from GitHub and put it in a directory where
 your web server can read it
 
         git clone https://github.com/tsugiproject/tsugi.git
 
+### Method 1: Docker install
+
+* If you have Docker installed (OSX/Linux currently) you should just be able to run `docker-compose build` and `docker-compose up` and Tsugi will start up and initialize.
+* config-dist.php will be copied, you need to edit a few things in this like `CFG->adminpw`just edit these in place and they'll be updated.
+* Go to http://localhost:8888/tsugi and you should be all set.
+
+### Method 2: Manual install 
 * Create a database and get authentication info for the database (MySQL 8.0
 will need different commands):
 
@@ -52,8 +57,7 @@ tables - you will need the Admin password you just put into config.php
 If all goes well, lots of tables should be created.  You can run upgrade.php
 more than once - it will automatically detect that it has been run.
 
-Adding Some Tools
------------------
+## Adding Some Tools
 
 If you are just exploring Tsugi, or doing a developer bootcamp, you can add some tools
 from some of the other repositories:
@@ -91,8 +95,7 @@ We have a short document on how to check out
 [all of the above tools](docs/CHECKOUT_ALL.md)
 and set up the configuration for them.
 
-Developer Documentation
------------------------
+## Developer Documentation
 
 You can view some of the developer documentation for the PHP version of Tsugi at:
 
@@ -100,8 +103,7 @@ You can view some of the developer documentation for the PHP version of Tsugi at
 
 * [PHP API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
 
-Other Repositories
-------------------
+## Other Repositories
 
 The Tsugi Administration Console and Tsugi Modules / Applications depend on two other
 repositories:
@@ -117,8 +119,7 @@ https://static.tsugi.org/ - if you like you can check out your own copy
 of this repo locally or for your production environment and point your Tsugi `config.php`
 at your own copy of the library.
 
-Other Languages
----------------
+## Other Languages
 
 There were some emergent efforts to port the core Tsugi code to Java and Node.  Partial implementations
 were built with the hopes that those interested in these languages would pick the code up, use it,
@@ -145,8 +146,7 @@ Sakai and is ready for production use.
 * [Tsugi NodeJS](https://github.com/tsugiproject/tsugi-node-sample) - This is early
 pre-emergent code.
 
-Tsugi Developer List
---------------------
+## Tsugi Developer List
 
 Please join the
 [Tsugi Developer List](https://groups.google.com/a/apereo.org/forum/#!forum/tsugi-dev)
