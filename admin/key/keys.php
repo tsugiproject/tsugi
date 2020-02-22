@@ -17,7 +17,7 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 if ( ! isAdmin() ) die('Must be admin');
 
 $query_parms = false;
-$searchfields = array("key_id", "key_key", "created_at", "updated_at", "user_id");
+$searchfields = array("key_id", "key_key", "login_at", "created_at", "updated_at", "user_id");
 $sql = "SELECT key_id, key_key, secret, login_at, created_at, updated_at, user_id
         FROM {$CFG->dbprefix}lti_key";
 
