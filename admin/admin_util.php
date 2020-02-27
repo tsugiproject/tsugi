@@ -218,3 +218,61 @@ function findFiles($filename="index.php", $reldir=false) {
     }
     return $files;
 }
+
+function findToolFiles($filename="index.php", $reldir=false) {
+    global $CFG;
+    $retval = array();
+    foreach ( $CFG->tool_folders as $dir ) {
+        if ( $reldir !== false ) $dir = $reldir . '/' . $dir;
+        $files = searchTwoLevels($filename, $dir);
+        $retval = array_merge($retval, $files);
+    }
+    return $retval;
+}
+
+function searchTwoLevels($filename="index.php", $dir) {
+    $files = array();
+    if ( is_dir($dir) ) {
+        if ($dh = opendir($dir)) {
+            while (($sub = readdir($dh)) !== false) {
+                if ( strpos($sub, ".") === 0 ) continue;
+                if ( $sub == $filename ) {
+                    $files[] = $dir . '/' . $sub;
+                    continue;
+                }
+                $path = $dir . '/' . $sub;
+                if ( ! is_dir($path) ) continue;
+                if ( $sh = opendir($path)) {
+                    while (($file = readdir($sh)) !== false) {
+                        if ( $file == $filename ) {
+                            $files[] = $path  ."/" . $file;
+                            break;
+                        }
+                    }
+                    closedir($sh);
+                }
+            }
+            closedir($dh);
+        }
+    }
+    return $files;
+}
+
+// path = /x/y/z
+// root = /x/y
+// retval = z
+function trimAsMuchAsYouCan($path, $root) {
+    $path_pieces = explode('/', $path);
+    $root_pieces = explode('/', $root);
+    for($i=0; $i < count($path_pieces) && $i < count($root_pieces) ; $i++) {
+        if ( $path_pieces[$i] != $root_pieces[$i] ) break;
+    }
+    $pieces = array();
+    for(;$i < count($path_pieces); $i++) {
+        if ( strlen($path_pieces[$i] ) < 1 ) continue;
+        $pieces[] = $path_pieces[$i];
+    }
+    $remainder = implode('/', $pieces);
+    return $remainder;
+}
+

@@ -60,16 +60,13 @@ create table {$plugins} (
     echo("Created plugins table...<br/>\n");
 }
 
-echo("Checking for any needed upgrades...<br/>\n");
 
-// Scan the tools folders
-$tools = findFiles("database.php","../");
-if ( count($tools) < 1 ) {
-    echo("No database.php files found...<br/>\n");
-    return;
-}
-
+echo("Checking Core LTI Tables...<br/>\n");
+$tools = searchTwoLevels("database.php", $CFG->dirroot.'/admin');
 // A simple precedence order..   Will have to improve this.
+for($i=0; $i<count($tools); $i++) {
+    $tools[$i] = U::remove_relative_path($tools[$i]);
+}
 foreach($tools as $k => $tool ) {
     if ( strpos($tool,"admin/lti/database.php") && $k != 0 ) {
         $tmp = $tools[0];
@@ -79,10 +76,28 @@ foreach($tools as $k => $tool ) {
     }
 }
 
+echo("Checking Installed Modules Tables...<br/>\n");
+// Scan the tools folders
+$moretools = findToolFiles("database.php", $CFG->dirroot);
+for($i=0; $i<count($moretools); $i++) {
+    $moretools[$i] = U::remove_relative_path($moretools[$i]);
+}
+// Add database.php files, not already in the list
+foreach($moretools as $tool) {
+    if ( in_array($tool, $tools) ) continue;
+    $tools[] = $tool;
+}
+
+if ( count($tools) < 1 ) {
+    echo("No database.php files found...<br/>\n");
+    return;
+}
+
+
 $maxversion = 0;
 $maxpath = '';
 foreach($tools as $tool ) {
-    $path = str_replace("../","",$tool);
+    $path = trimAsMuchAsYouCan($tool, $CFG->dirroot);
     echo("Checking $path ...<br/>\n");
     unset($DATABASE_INSTALL);
     unset($DATABASE_POST_CREATE);
