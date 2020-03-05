@@ -1115,16 +1115,7 @@ EOF;
     }
 
     public static function displaySize($size) {
-        if ( $size > 1024*1024*1024*2 ) {
-            return (int) ($size/(1024*1024*1024))."GB";
-        }
-        if ( $size > 1024*1024*2 ) {
-            return (int) ($size/(1024*1024))."MB";
-        }
-        if ( $size > 1024*2 ) {
-            return (int) ($size/(1024))."KB";
-        }
-        return $size."B";
+        return U::displaySize($size);
     }
 
     // Clean out the array of 'secret' keys
