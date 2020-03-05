@@ -615,4 +615,17 @@ class U {
         return $retval;
     }
 
+    // Convert to a user readable size
+    public static function displaySize($size) {
+        if ( $size > 1024*1024*1024*2 ) {
+            return (int) ($size/(1024*1024*1024))."GB";
+        }
+        if ( $size > 1024*1024*2 ) {
+            return (int) ($size/(1024*1024))."MB";
+        }
+        if ( $size > 1024*2 ) {
+            return (int) ($size/(1024))."KB";
+        }
+        return $size."B";
+    }
 }

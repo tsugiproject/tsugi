@@ -329,6 +329,48 @@ class BlobUtil {
         return $upload_mb;
     }
 
+    public static function maxUploadBytes() {
+        $maxUpload = self::return_bytes(ini_get('upload_max_filesize'));
+        $max_post = self::return_bytes(ini_get('post_max_size'));
+        $memory_limit = self::return_bytes(ini_get('memory_limit'));
+        $upload_mb = min($maxUpload, $max_post, $memory_limit);
+        return $upload_mb;
+    }
+
+    // https://www.php.net/manual/en/function.ini-get.php
+    public static function return_bytes ($val)
+    {
+        if(empty($val))return 0;
+
+        $val = trim($val);
+
+        preg_match('#([0-9]+)[\s]*([a-z]+)#i', $val, $matches);
+
+        $last = '';
+        if(isset($matches[2])){
+            $last = $matches[2];
+        }
+
+        if(isset($matches[1])){
+            $val = (int) $matches[1];
+        }
+
+        switch (strtolower($last))
+        {
+            case 'g':
+            case 'gb':
+                $val *= 1024;
+            case 'm':
+            case 'mb':
+                $val *= 1024;
+            case 'k':
+            case 'kb':
+                $val *= 1024;
+        }
+
+        return (int) $val;
+    }
+
     /** Check and migrate a blob from an old place to the right new place
      *
      * @return mixed true if the file was migrated, false if the file

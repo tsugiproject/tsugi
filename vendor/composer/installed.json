@@ -1373,54 +1373,6 @@
         ]
     },
     {
-        "name": "firebase/php-jwt",
-        "version": "v5.0.0",
-        "version_normalized": "5.0.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/firebase/php-jwt.git",
-            "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/firebase/php-jwt/zipball/9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
-            "reference": "9984a4d3a32ae7673d6971ea00bae9d0a1abba0e",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": " 4.8.35"
-        },
-        "time": "2017-06-27 22:17:23",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Firebase\\JWT\\": "src"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "BSD-3-Clause"
-        ],
-        "authors": [
-            {
-                "name": "Neuman Vong",
-                "email": "neuman+pear@twilio.com",
-                "role": "Developer"
-            },
-            {
-                "name": "Anant Narayanan",
-                "email": "anant@php.net",
-                "role": "Developer"
-            }
-        ],
-        "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
-        "homepage": "https://github.com/firebase/php-jwt"
-    },
-    {
         "name": "google/apiclient-services",
         "version": "v0.56",
         "version_normalized": "0.56.0.0",
@@ -1972,61 +1924,6 @@
         ]
     },
     {
-        "name": "cboden/ratchet",
-        "version": "v0.4.1",
-        "version_normalized": "0.4.1.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/ratchetphp/Ratchet.git",
-            "reference": "0d31f3a8ad4795fd48397712709e55cd07f51360"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/ratchetphp/Ratchet/zipball/0d31f3a8ad4795fd48397712709e55cd07f51360",
-            "reference": "0d31f3a8ad4795fd48397712709e55cd07f51360",
-            "shasum": ""
-        },
-        "require": {
-            "guzzlehttp/psr7": "^1.0",
-            "php": ">=5.4.2",
-            "ratchet/rfc6455": "^0.2",
-            "react/socket": "^1.0 || ^0.8 || ^0.7 || ^0.6 || ^0.5",
-            "symfony/http-foundation": "^2.6|^3.0|^4.0",
-            "symfony/routing": "^2.6|^3.0|^4.0"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "~4.8"
-        },
-        "time": "2017-12-12 00:49:31",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Ratchet\\": "src/Ratchet"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "Chris Boden",
-                "email": "cboden@gmail.com",
-                "role": "Developer"
-            }
-        ],
-        "description": "PHP WebSocket library",
-        "homepage": "http://socketo.me",
-        "keywords": [
-            "Ratchet",
-            "WebSockets",
-            "server",
-            "sockets",
-            "websocket"
-        ]
-    },
-    {
         "name": "react/promise-timer",
         "version": "v1.5.0",
         "version_normalized": "1.5.0.0",
@@ -2342,18 +2239,121 @@
         ]
     },
     {
+        "name": "cboden/ratchet",
+        "version": "v0.4.2",
+        "version_normalized": "0.4.2.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/ratchetphp/Ratchet.git",
+            "reference": "57721e1f184f9e29378fc5363867c47ddda743fd"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/ratchetphp/Ratchet/zipball/57721e1f184f9e29378fc5363867c47ddda743fd",
+            "reference": "57721e1f184f9e29378fc5363867c47ddda743fd",
+            "shasum": ""
+        },
+        "require": {
+            "guzzlehttp/psr7": "^1.0",
+            "php": ">=5.4.2",
+            "ratchet/rfc6455": "^0.2",
+            "react/socket": "^1.0 || ^0.8 || ^0.7 || ^0.6 || ^0.5",
+            "symfony/http-foundation": "^2.6|^3.0|^4.0|^5.0",
+            "symfony/routing": "^2.6|^3.0|^4.0|^5.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "~4.8"
+        },
+        "time": "2020-01-27 23:08:40",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Ratchet\\": "src/Ratchet"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Chris Boden",
+                "email": "cboden@gmail.com",
+                "role": "Developer"
+            }
+        ],
+        "description": "PHP WebSocket library",
+        "homepage": "http://socketo.me",
+        "keywords": [
+            "Ratchet",
+            "WebSockets",
+            "server",
+            "sockets",
+            "websocket"
+        ]
+    },
+    {
+        "name": "firebase/php-jwt",
+        "version": "v5.1.0",
+        "version_normalized": "5.1.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/firebase/php-jwt.git",
+            "reference": "4566062c68f76f43d44f1643f4970fe89757d4c6"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/firebase/php-jwt/zipball/4566062c68f76f43d44f1643f4970fe89757d4c6",
+            "reference": "4566062c68f76f43d44f1643f4970fe89757d4c6",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^4.8|^5"
+        },
+        "time": "2020-02-24 23:15:03",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Firebase\\JWT\\": "src"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "BSD-3-Clause"
+        ],
+        "authors": [
+            {
+                "name": "Neuman Vong",
+                "email": "neuman+pear@twilio.com",
+                "role": "Developer"
+            },
+            {
+                "name": "Anant Narayanan",
+                "email": "anant@php.net",
+                "role": "Developer"
+            }
+        ],
+        "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
+        "homepage": "https://github.com/firebase/php-jwt"
+    },
+    {
         "name": "tsugi/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "a101a3baac11621fa544240f5c7a21fc941df570"
+            "reference": "573b1483d94690d99d82a80d2323f62ab1f52028"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/a101a3baac11621fa544240f5c7a21fc941df570",
-            "reference": "a101a3baac11621fa544240f5c7a21fc941df570",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/573b1483d94690d99d82a80d2323f62ab1f52028",
+            "reference": "573b1483d94690d99d82a80d2323f62ab1f52028",
             "shasum": ""
         },
         "require": {
