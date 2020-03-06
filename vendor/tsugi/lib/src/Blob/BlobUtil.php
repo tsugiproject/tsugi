@@ -182,6 +182,8 @@ class BlobUtil {
     {
         global $CFG;
         $testlist = array('12345');
+        if ( isset($CFG->testblobs) && ! $CFG->testblobs ) return false;
+
         if ( isset($CFG->testblobs) ) {
             if ( is_string($CFG->testblobs) ) {
                 $testlist = array($CFG->testblobs);
@@ -286,6 +288,87 @@ class BlobUtil {
             return false;
         }
         return false;
+    }
+
+    /**
+     * Read a file off local disk and put it into a blob
+     */
+    public static function uploadPathToBlob($filename, $content_type)
+    {
+        global $CFG, $CONTEXT, $LINK, $PDOX;
+
+        $test_key = self::isTestKey($CONTEXT->key);
+
+
+            $blob_id = null;
+            $blob_name = null;
+            $sha256 = hash_file('sha256', $filename);
+
+            // Check if the blob is in the single instance store
+            $stmt = $PDOX->queryDie(
+                "SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA",
+                array(":SHA" => $sha256)
+            );
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ( $row !== false ) {
+                error_log("Already had instance of $filename");
+                $blob_id = $row['blob_id']+0;  // Make sure the id is an integer
+            }
+
+            // Don't store test_key (i.e. 12345) as new blobs on disk
+            if (! $test_key && ! $blob_id && isset($CFG->dataroot) && $CFG->dataroot ) {
+                $blob_folder = BlobUtil::mkdirSha256($sha256);
+                if ( $blob_folder ) {
+                    $blob_name =  $blob_folder . '/' . $sha256;
+                    if ( file_exists( $blob_name ) ) {
+                        error_log("Already had file on disk $filename => $blob_name");
+                    } else { // Put the file into the blob space if we can
+                        if ( ! (rename($filename,$blob_name))) {
+                            error_log("Move fail $filename to $blob_name ");
+                            $blob_name = null;
+                        }
+                    }
+                }
+            }
+
+            // If not on disk store in the single instance table
+            if (! $blob_id && ! $blob_name ) {
+                $fp = fopen($filename, "rb");
+                $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_blob
+                    (blob_sha256, content, created_at)
+                    VALUES (?, ?, NOW())");
+
+                $stmt->bindParam(1, $sha256);
+                $stmt->bindParam(2, $fp, \PDO::PARAM_LOB);
+                // $stmt->bindParam(5, $data, \PDO::PARAM_LOB);
+                $PDOX->beginTransaction();
+                $stmt->execute();
+                $blob_id = 0+$PDOX->lastInsertId();
+                $PDOX->commit();
+                fclose($fp);
+            }
+
+            // Blob is safe somewhere, insert the file record with pointers
+            if ( $blob_id || $blob_name ) {
+                $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
+                    (context_id, link_id, file_sha256, file_name, contenttype, path, blob_id, created_at)
+                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BID, NOW())");
+                $stmt->execute(array(
+                    ":CID" => $CONTEXT->id,
+                    ":LID" => $LINK->id,
+                    ":SHA" => $sha256,
+                    ":NAME" => $filename,
+                    ":TYPE" => $content_type,
+                    ":PATH" => $blob_name,
+                    ":BID" => $blob_id
+                ));
+                $id = 0+$PDOX->lastInsertId();
+                return $id;
+            }
+
+            // Somehow we were unable to store the blob
+            error_log("Error: Unable to store blob $filename ".$CONTEXT->id."\n");
+            return false;
     }
 
     public static function uploadFileToString($FILE_DESCRIPTOR)

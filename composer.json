@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#573b1483d94690d99d82a80d2323f62ab1f52028",
+        "tsugi/lib": "dev-master#ce5716fdd63142e81c3972f9419491ec176a4c34",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
