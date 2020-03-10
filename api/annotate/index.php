@@ -4,6 +4,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 
 require_once "../../config.php";
+require_once "annotate_util.php";
 
 $pieces = U::rest_path();
 if ( ! isset($pieces->controller) || strlen($pieces->controller) < 1 ) {
@@ -13,8 +14,19 @@ if ( ! isset($pieces->controller) || strlen($pieces->controller) < 1 ) {
     die();
 }
 
+$sessparts = explode(':',$pieces->controller);
+if ( count($sessparts) != 2 ) {
+    http_response_code(500);
+    echo("<pre>\nMissing result_id\n\n");
+    echo(htmlentities(print_r($pieces, TRUE)));
+    die();
+}
+
+$sess_id = $sessparts[0];
+$result_id = $sessparts[1];
+
 // Force the session ID REST style :)
-$_GET[session_name()] = $pieces->controller;
+$_GET[session_name()] = $sess_id;
 $LAUNCH = LTIX::requireData();
 
 // http://docs.annotatorjs.org/en/v1.2.x/storage.html#core-storage-api
@@ -35,9 +47,7 @@ if ( ! trim($pieces->action) == 'annotations' ) {
 }
     
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
-    $annotations = $LAUNCH->result->getJsonKey('annotations', '[ ]');
-    $annotations = json_decode($annotations);
-    if ( ! is_array($annotations) ) $annotations = array();
+    $annotations = loadAnnotations($LAUNCH, $result_id);
     $input = file_get_contents('php://input');
     $json = json_decode($input);
     $json->id = uniqid();
@@ -56,8 +66,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $json->permissions = $permissions;
 
     $annotations[] = $json;
-    $annotations = json_encode($annotations);
-    $LAUNCH->result->setJsonKey('annotations', $annotations);
+
+    storeAnnotations($LAUNCH, $result_id, $annotations);
+
     $location = $pieces->current . '/annotations/' . $json->id;
     http_response_code(303);
     header('Location: '.$location);
@@ -66,18 +77,14 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'GET' && count($pieces->parameters) < 1 ) {
-    $annotations = $LAUNCH->result->getJsonKey('annotations', '[ ]');
-    $retval = json_decode($annotations);
-    if ( ! is_array($retval) ) $retval = array();
+    $annotations = loadAnnotations($LAUNCH, $result_id);
     header('Content-Type: application/json; charset=utf-8');
-    echo(json_encode($retval, JSON_PRETTY_PRINT));
+    echo(json_encode($annotations, JSON_PRETTY_PRINT));
     return;
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'GET' ) {
-    $annotations = $LAUNCH->result->getJsonKey('annotations', '[ ]');
-    $annotations = json_decode($annotations);
-    if ( ! is_array($annotations) ) $annotations = array();
+    $annotations = loadAnnotations($LAUNCH, $result_id);
     $id = $pieces->parameters[0];
     foreach($annotations as $annotation) {
         if ( $id == $annotation->id ) {
@@ -91,9 +98,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'GET' ) {
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'PUT' ) {
-    $annotations = $LAUNCH->result->getJsonKey('annotations', '[ ]');
-    $annotations = json_decode($annotations);
-    if ( ! is_array($annotations) ) $annotations = array();
+    $annotations = loadAnnotations($LAUNCH, $result_id);
 
     $input = file_get_contents('php://input');
     $json = json_decode($input);
@@ -111,8 +116,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'PUT' ) {
             $annotations[$i] = $json;
         }
     }
-    $annotations = json_encode($annotations);
-    $LAUNCH->result->setJsonKey('annotations', $annotations);
+    storeAnnotations($LAUNCH, $result_id, $annotations);
     $location = $pieces->current . '/annotations/' . $id;
     http_response_code(303);
     header('Location: '.$location);
@@ -120,9 +124,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'PUT' ) {
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'DELETE' ) {
-    $annotations = $LAUNCH->result->getJsonKey('annotations', '[ ]');
-    $annotations = json_decode($annotations);
-    if ( ! is_array($annotations) ) $annotations = array();
+    $annotations = loadAnnotations($LAUNCH, $result_id);
 
     $id = $pieces->parameters[0];
     $found = false;
@@ -136,8 +138,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'DELETE' ) {
         unset($annotations[$found]);
         $annotations = array_values($annotations);
     }
-    $annotations = json_encode($annotations);
-    $LAUNCH->result->setJsonKey('annotations', $annotations);
+    storeAnnotations($LAUNCH, $result_id, $annotations);
     http_response_code(204);
     return;
 }
