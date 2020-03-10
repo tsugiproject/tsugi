@@ -30,7 +30,7 @@ class Annotate {
 
         if ( ! $api_endpoint ) {
             $pieces = U::rest_path();
-            $api_endpoint = $CFG->wwwroot . '/api/annotate/' . session_id() . ':' . $LAUNCH->result->id;
+            $api_endpoint = $CFG->wwwroot . '/api/annotate/' . session_id() . ':' . $LAUNCH->user->id;
         }
         ob_start();
 ?>

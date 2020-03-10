@@ -54,6 +54,7 @@ class U {
 
     // Makes sure a string is safe as an href
     public static function safe_href($string) {
+        if ( ! is_string($string) ) return $string;
         return str_replace(array('"', '<'),
             array('&quot;',''), $string);
     }
