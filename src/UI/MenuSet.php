@@ -48,13 +48,14 @@ class MenuSet {
      * @param $link The text of the link - can be text, HTML, or even an img tag
      * @param $href An optional place to go when the link is clicked
      * @param $push Indicates to push down the other menu entries
+     * @param $attr An optional string to add within the anchor tag
      *
      * @return MenuSet The instance to allow for chaining
      */
-    public function addLeft($link, $href, $push=false)
+    public function addLeft($link, $href, $push=false, $attr=false)
     {
         if ( $this->left == false ) $this->left = new Menu();
-        $x = new \Tsugi\UI\MenuEntry($link, $href);
+        $x = new \Tsugi\UI\MenuEntry($link, $href, $attr);
         $this->left->add($x, $push);
         return $this;
     }
@@ -65,13 +66,14 @@ class MenuSet {
      * @param $link The text of the link - can be text, HTML, or even an img tag
      * @param $href An optional place to go when the link is clicked
      * @param $push Indicates to push down the other menu entries
+     * @param $attr An optional string to add within the anchor tag
      *
      * @return MenuSet The instance to allow for chaining
      */
-    public function addRight($link, $href, $push=true)
+    public function addRight($link, $href, $push=true, $attr=false)
     {
         if ( $this->right == false ) $this->right = new Menu();
-        $x = new \Tsugi\UI\MenuEntry($link, $href);
+        $x = new \Tsugi\UI\MenuEntry($link, $href, $attr);
         $this->right->add($x, $push);
         return $this;
     }
