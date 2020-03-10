@@ -11,6 +11,8 @@ class Annotate {
 
     /**
      * Provide the header material to support annotations
+     *
+     * @return A string with the text to include
      */
     public static function header()
     {
@@ -21,17 +23,15 @@ class Annotate {
     /**
      * Define the function tsugiStartAnnotation(id) to start the annotations on a div
      *
-     * @param $LAUNCH The current launch
-     * @param $api_endpoint The id of the area to be annotated
+     * @param $user_id The user+id for the annotations
+     *
+     * @return A string with the text to include
      */
-    public static function footer($LAUNCH, $api_endpoint=false)
+    public static function footer($user_id)
     {
         global $CFG;
 
-        if ( ! $api_endpoint ) {
-            $pieces = U::rest_path();
-            $api_endpoint = $CFG->wwwroot . '/api/annotate/' . session_id() . ':' . $LAUNCH->user->id;
-        }
+        $api_endpoint = $CFG->wwwroot . '/api/annotate/' . session_id() . ':' . $user_id;
         ob_start();
 ?>
 <script src="<?= $CFG->staticroot ?>/js/annotator-full.1.2.10/annotator-full.min.js"></script>

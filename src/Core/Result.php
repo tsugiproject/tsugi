@@ -359,8 +359,10 @@ class Result extends Entity {
 
     /**
      * Get the JSON for this result
+     *
+     * TODO: Remove
      */
-    public function getJSON()
+    public function getJSON_deprecated()
     {
         global $CFG;
         $PDOX = $this->launch->pdox;
@@ -376,8 +378,11 @@ class Result extends Entity {
 
     /**
      * Set the JSON for this result
+     *
+     * TODO: Remove
+     *
      */
-    public function setJSON($json)
+    public function setJSON_deprecated($json)
     {
         global $CFG;
         $PDOX = $this->launch->pdox;
@@ -389,6 +394,115 @@ class Result extends Entity {
                 ':json' => $json,
                 ':RID' => $this->id)
         );
+    }
+
+
+    /**
+     * Get a JSON for a different user
+     *
+     * @param $user_id The primary key of the user (instructor only)
+     *
+     * @return The annotation array
+     */
+    public function getJsonForUser($user_id) {
+        global $CFG, $PDOX;
+        if ( ! $this->launch->user->instructor || ! $user_id || $user_id == $this->launch->user->id ){
+            $retval = $this->getJson();
+            return $retval;
+        } else if ( $this->launch->user->instructor ) {
+            $p = $CFG->dbprefix;
+            $row = $PDOX->rowDie(
+                "SELECT json
+                FROM {$p}lti_result AS R
+                WHERE R.link_id = :LID and R.user_id = :UID",
+                array(
+                    ":UID" => $user_id,
+                    ":LID" => $this->launch->link->id
+                )
+            );
+            if ( ! $row ) return $default;
+            $json_str = $row['json'];
+            return $json_str;
+        } else {
+            return false;
+            http_response_code(403);
+            die();
+        }
+    }
+
+    /**
+     * Get a JSON key for a result for a different user
+     *
+     * @param $key The key to be retrieved from the JSON
+     * @param $default The default value (optional)
+     * @param $user_id The primary key of the user (instructor only)
+     *
+     * @return The annotation array
+     */
+    public function getJsonKeyForUser($key, $default=false, $user_id=false) {
+        global $CFG, $PDOX;
+        if ( ! $this->launch->user->instructor || ! $user_id || $user_id == $this->launch->user->id ){
+            $retval = $this->getJsonKey($key, $default);
+            return $retval;
+        } else if ( $this->launch->user->instructor ) {
+            $json_str = $this->getJsonForUser($user_id);
+            $json = json_decode($json_str);
+            if ( isset($json->{$key}) ) return $json->{$key};
+            return $default;
+        } else {
+            return false;
+            http_response_code(403);
+            die();
+        }
+    }
+
+    /**
+     * Set JSON for a different user
+     *
+     * @param $json_str The JSON String
+     * @param $user_id The primary key of the user (instructor only)
+     *
+     * @return The annotation array
+     */
+    public function setJsonForUser($json_str, $user_id=false) {
+        global $CFG, $PDOX;
+        if ( ! $this->launch->user->instructor || ! $user_id || $user_id == $this->launch->user->id ){
+            $retval = $this->setJson($json_str);
+        } else if ( $this->launch->user->instructor ) {
+            $p = $CFG->dbprefix;
+            $stmt = $PDOX->queryDie(
+                "UPDATE {$p}lti_result SET json = :JSON
+                WHERE link_id = :LID and user_id = :UID",
+                array(
+                    ":JSON" => $json_str,
+                    ":UID" => $user_id,
+                    ":LID" => $this->launch->link->id
+                )
+            );
+        } else {
+            http_response_code(403);
+            die();
+        }
+    }
+
+    /**
+     * Set a JSON key for a result for a different user
+     *
+     * @param $key The key to be retrieved from the JSON
+     * @param $value The default value (optional)
+     * @param $user_id The primary key of the user (instructor only)
+     *
+     * @return The annotation array
+     */
+    public function setJsonKeyForUser($key, $value, $user_id=false) {
+        global $CFG, $PDOX;
+
+        $old = $this->getJsonForUser($user_id);
+        $old_json = json_decode($old);
+        if ( $old_json == null ) $old_json = new \stdClass();
+        $old_json->{$key} = $value;
+        $new = json_encode($old_json);
+        $this->setJsonForUser($new, $user_id);
     }
 
     /**
