@@ -8,7 +8,7 @@ use \Tsugi\Core\LTIX;
 
 class UI {
 
-    public static function gradeTable($GRADE_DETAIL_CLASS) {
+    public static function gradeTable($GRADE_DETAIL_CLASS, $done_href=false, $done_text=false) {
         global $CFG, $OUTPUT, $USER, $LINK;
         // Require CONTEXT, USER, and LINK
         $LAUNCH = LTIX::requireData();
@@ -41,8 +41,12 @@ class UI {
         Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, "grade-detail.php");
 
         // Since this is in a popup, put out a done button
-        $OUTPUT->closeButton();
-
+        if ( ! $done_href ) {
+            $OUTPUT->closeButton();
+        } else {
+            if ( ! $done_text ) $done_text = __('Done');
+            echo('<a href="'.$done_href.'" class="btn btn-info">'.htmlentities($done_text).'</a>');
+        }
         $OUTPUT->footer();
     }
 }
