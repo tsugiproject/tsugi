@@ -1,7 +1,7 @@
 <?php
 
-function loadAnnotations($LAUNCH, $result_id) {
-    if ( ! $LAUNCH->user->instructor || $result_id == $LAUNCH->result->id ){
+function loadAnnotations($LAUNCH, $user_id) {
+    if ( ! $LAUNCH->user->instructor || $user_id == $LAUNCH->user->id ){
         $annotations = $LAUNCH->result->getJsonKey('annotations', '[ ]');
     } else if ( $LAUNCH->user->instructor ) {
         die('Still working on this');
@@ -14,12 +14,12 @@ function loadAnnotations($LAUNCH, $result_id) {
     return $annotations;
 }
 
-function storeAnnotations($LAUNCH, $result_id, $annotations) {
+function storeAnnotations($LAUNCH, $user_id, $annotations) {
     if ( ! is_string($annotations) ) {
         $annotations = json_encode($annotations);
     }
 
-    if ( $result_id == $LAUNCH->result->id ){
+    if ( $user_id == $LAUNCH->user->id ){
         $LAUNCH->result->setJsonKey('annotations', $annotations);
     } else if ( $LAUNCH->user->instructor ) {
         die('Still working on this');

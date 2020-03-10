@@ -17,13 +17,13 @@ if ( ! isset($pieces->controller) || strlen($pieces->controller) < 1 ) {
 $sessparts = explode(':',$pieces->controller);
 if ( count($sessparts) != 2 ) {
     http_response_code(500);
-    echo("<pre>\nMissing result_id\n\n");
+    echo("<pre>\nMissing user_id\n\n");
     echo(htmlentities(print_r($pieces, TRUE)));
     die();
 }
 
 $sess_id = $sessparts[0];
-$result_id = $sessparts[1];
+$user_id = $sessparts[1];
 
 // Force the session ID REST style :)
 $_GET[session_name()] = $sess_id;
@@ -47,7 +47,7 @@ if ( ! trim($pieces->action) == 'annotations' ) {
 }
     
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
-    $annotations = loadAnnotations($LAUNCH, $result_id);
+    $annotations = loadAnnotations($LAUNCH, $user_id);
     $input = file_get_contents('php://input');
     $json = json_decode($input);
     $json->id = uniqid();
@@ -67,7 +67,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
     $annotations[] = $json;
 
-    storeAnnotations($LAUNCH, $result_id, $annotations);
+    storeAnnotations($LAUNCH, $user_id, $annotations);
 
     $location = $pieces->current . '/annotations/' . $json->id;
     http_response_code(303);
@@ -77,14 +77,14 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'GET' && count($pieces->parameters) < 1 ) {
-    $annotations = loadAnnotations($LAUNCH, $result_id);
+    $annotations = loadAnnotations($LAUNCH, $user_id);
     header('Content-Type: application/json; charset=utf-8');
     echo(json_encode($annotations, JSON_PRETTY_PRINT));
     return;
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'GET' ) {
-    $annotations = loadAnnotations($LAUNCH, $result_id);
+    $annotations = loadAnnotations($LAUNCH, $user_id);
     $id = $pieces->parameters[0];
     foreach($annotations as $annotation) {
         if ( $id == $annotation->id ) {
@@ -98,7 +98,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'GET' ) {
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'PUT' ) {
-    $annotations = loadAnnotations($LAUNCH, $result_id);
+    $annotations = loadAnnotations($LAUNCH, $user_id);
 
     $input = file_get_contents('php://input');
     $json = json_decode($input);
@@ -116,7 +116,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'PUT' ) {
             $annotations[$i] = $json;
         }
     }
-    storeAnnotations($LAUNCH, $result_id, $annotations);
+    storeAnnotations($LAUNCH, $user_id, $annotations);
     $location = $pieces->current . '/annotations/' . $id;
     http_response_code(303);
     header('Location: '.$location);
@@ -124,7 +124,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'PUT' ) {
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'DELETE' ) {
-    $annotations = loadAnnotations($LAUNCH, $result_id);
+    $annotations = loadAnnotations($LAUNCH, $user_id);
 
     $id = $pieces->parameters[0];
     $found = false;
@@ -138,7 +138,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'DELETE' ) {
         unset($annotations[$found]);
         $annotations = array_values($annotations);
     }
-    storeAnnotations($LAUNCH, $result_id, $annotations);
+    storeAnnotations($LAUNCH, $user_id, $annotations);
     http_response_code(204);
     return;
 }
