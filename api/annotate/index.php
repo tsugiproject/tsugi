@@ -2,6 +2,7 @@
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Annotate;
 
 require_once "../../config.php";
 require_once "annotate_util.php";

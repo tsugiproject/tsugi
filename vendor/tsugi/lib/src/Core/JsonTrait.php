@@ -34,8 +34,8 @@ trait JsonTrait {
     /**
      * Get a JSON key for this entity
      *
-     * @params $key The key to be retrieved from the JSON
-     * @params $default The default value (optional)
+     * @param $key The key to be retrieved from the JSON
+     * @param $default The default value (optional)
      *
      */
     public function getJsonKey($key,$default=false)
@@ -52,7 +52,7 @@ trait JsonTrait {
     /**
      * Set the JSON entry for this entity
      *
-     * @params $json This is a string - no validation is done
+     * @param $json This is a string - no validation is done
      *
      */
     public function setJson($json)
@@ -68,8 +68,8 @@ trait JsonTrait {
     /**
      * Set/update a JSON key for this entity
      *
-     * @params $key The key to be inserted/updated in the JSON
-     * @params $value The value to be inserted/updated in the JSON
+     * @param $key The key to be inserted/updated in the JSON
+     * @param $value The value to be inserted/updated in the JSON
      *
      */
     public function setJsonKey($key,$value)
@@ -87,7 +87,7 @@ trait JsonTrait {
     /**
      * Set/update an array of JSON keys for this entity
      *
-     * @params $values An array of key/value pairs to be inserted/updated in the JSON
+     * @param $values An array of key/value pairs to be inserted/updated in the JSON
      *
      */
     public function setJsonKeys($values)
