@@ -8,7 +8,7 @@ use \Tsugi\Core\LTIX;
 
 class UI {
 
-    public static function gradeTable($GRADE_DETAIL_CLASS, $done_href=false, $done_text=false) {
+    public static function gradeTable($GRADE_DETAIL_CLASS, $done_href=false, $done_text=false, $menu=false) {
         global $CFG, $OUTPUT, $USER, $LINK;
         // Require CONTEXT, USER, and LINK
         $LAUNCH = LTIX::requireData();
@@ -29,6 +29,7 @@ class UI {
         // View
         $OUTPUT->header();
         $OUTPUT->bodyStart();
+        if ( $menu ) $OUTPUT->topNav($menu);
         $OUTPUT->flashMessages();
         $OUTPUT->welcomeUserCourse();
 
@@ -43,6 +44,8 @@ class UI {
         // Since this is in a popup, put out a done button
         if ( ! $done_href ) {
             $OUTPUT->closeButton();
+        } else if ( $done_href == 'none' ) {
+            // DO nothing
         } else {
             if ( ! $done_text ) $done_text = __('Done');
             echo('<a href="'.$done_href.'" class="btn btn-info">'.htmlentities($done_text).'</a>');
