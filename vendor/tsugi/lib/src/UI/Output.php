@@ -354,7 +354,7 @@ if (window!=window.top) {
         echo($ob_output);
     }
 
-    function helpModal($help_title = "Help", $help_msg = '<em>No help for this page.</em>') {
+    function helpModalString($help_title = "Help", $help_msg = '<em>No help for this page.</em>') {
         $modal = <<< EOF
 <div id="helpModal" class="modal fade" role="dialog">
     <div class="modal-dialog">
@@ -372,6 +372,11 @@ if (window!=window.top) {
     </div>
 </div>
 EOF;
+        return $modal;
+    }
+
+    function helpModal($help_title = "Help", $help_msg = '<em>No help for this page.</em>') {
+        $modal = $this->helpModalString($help_title, $help_msg);
         if ( $this->buffer ) return $modal;
         echo($modal);
     }
