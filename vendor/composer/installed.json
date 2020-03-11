@@ -2348,12 +2348,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "9cdf90459f7c18a5eef7a6977212031db2800b42"
+            "reference": "7e063cf4ecda189e8d20a783ea54c61c5fba6860"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/9cdf90459f7c18a5eef7a6977212031db2800b42",
-            "reference": "9cdf90459f7c18a5eef7a6977212031db2800b42",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/7e063cf4ecda189e8d20a783ea54c61c5fba6860",
+            "reference": "7e063cf4ecda189e8d20a783ea54c61c5fba6860",
             "shasum": ""
         },
         "require": {

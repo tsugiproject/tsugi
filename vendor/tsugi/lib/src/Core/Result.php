@@ -402,7 +402,7 @@ class Result extends Entity {
      *
      * @param $user_id The primary key of the user (instructor only)
      *
-     * @return The annotation array
+     * @return The JSON string (unparsed)
      */
     public function getJsonForUser($user_id) {
         global $CFG, $PDOX;
@@ -437,7 +437,7 @@ class Result extends Entity {
      * @param $default The default value (optional)
      * @param $user_id The primary key of the user (instructor only)
      *
-     * @return The annotation array
+     * @return The value of the JSON key (parsed)
      */
     public function getJsonKeyForUser($key, $default=false, $user_id=false) {
         global $CFG, $PDOX;
@@ -488,8 +488,8 @@ class Result extends Entity {
     /**
      * Set a JSON key for a result for a different user
      *
-     * @param $key The key to be retrieved from the JSON
-     * @param $value The default value (optional)
+     * @param $key The key to be set in the JSON
+     * @param $value The value to store in the JSON
      * @param $user_id The primary key of the user (instructor only)
      *
      * @return The annotation array
