@@ -420,7 +420,7 @@ class Result extends Entity {
                     ":LID" => $this->launch->link->id
                 )
             );
-            if ( ! $row ) return $default;
+            if ( ! $row ) return '';
             $json_str = $row['json'];
             return $json_str;
         } else {
@@ -506,36 +506,78 @@ class Result extends Entity {
     }
 
     /**
-     * Get the Note for this result
+     * Get a Note 
+     *
+     * @param $user_id The primary key of the user (instructor only)
+     *
+     * @return The annotation array
      */
-    public function getNote()
-    {
+    public function getNote($user_id=false) {
         global $CFG;
-        $PDOX = $this->launch->pdox;
 
-        $stmt = $PDOX->queryDie(
-            "SELECT note FROM {$CFG->dbprefix}lti_result
-                WHERE result_id = :RID",
-            array(':RID' => $this->id)
-        );
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $row['note'];
+        $PDOX = $this->launch->pdox;
+        if ( ! $this->launch->user->instructor || ! $user_id || $user_id == $this->launch->user->id ){
+            $stmt = $PDOX->queryDie(
+                "SELECT note FROM {$CFG->dbprefix}lti_result
+                    WHERE result_id = :RID",
+                array(':RID' => $this->id)
+            );
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $row['note'];
+        } else if ( $this->launch->user->instructor ) {
+            $p = $CFG->dbprefix;
+            $row = $PDOX->rowDie(
+                "SELECT note
+                FROM {$p}lti_result AS R
+                WHERE R.link_id = :LID and R.user_id = :UID",
+                array(
+                    ":UID" => $user_id,
+                    ":LID" => $this->launch->link->id
+                )
+            );
+            $note_str = $row['note'];
+            return $note_str;
+        } else {
+            return false;
+            http_response_code(403);
+            die();
+        }
     }
 
     /**
      * Set the Note for this result
+     *
+     * @param $json_str The Note String
+     * @param $user_id The primary key of the user (instructor only)
+     *
+     * @return The annotation array
      */
-    public function setNote($note)
-    {
+    public function setNote($note_str, $user_id=false) {
         global $CFG;
         $PDOX = $this->launch->pdox;
-
-        $stmt = $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_result SET note = :note, updated_at = NOW()
-                WHERE result_id = :RID",
-            array(
-                ':note' => $note,
-                ':RID' => $this->id)
-        );
+        if ( ! $this->launch->user->instructor || ! $user_id || $user_id == $this->launch->user->id ){
+            $retval = $this->setNote($json_str);
+            $stmt = $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}lti_result SET note = :note, updated_at = NOW()
+                    WHERE result_id = :RID",
+                array(
+                    ':note' => $note,
+                    ':RID' => $this->id)
+            );
+        } else if ( $this->launch->user->instructor ) {
+            $p = $CFG->dbprefix;
+            $stmt = $PDOX->queryDie(
+                "UPDATE {$p}lti_result SET note = :NOTE
+                WHERE link_id = :LID and user_id = :UID",
+                array(
+                    ":NOTE" => $note_str,
+                    ":UID" => $user_id,
+                    ":LID" => $this->launch->link->id
+                )
+            );
+        } else {
+            http_response_code(403);
+            die();
+        }
     }
 }
