@@ -41,7 +41,7 @@ class Annotate {
             http_response_code(403);
             die();
         }
-        $annotations = json_decode($annotations);
+        if ( is_string($annotations) ) $annotations = json_decode($annotations);
         if ( ! is_array($annotations) ) $annotations = array();
         return $annotations;
     }

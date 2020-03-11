@@ -868,6 +868,10 @@ $('a').each(function (x) {
             $target = '';
             $url = $entry->href;
             $attr = $entry->attr;
+            if ( $url === false ) {
+                $retval .= $pad.'<p class="navbar-text">'.$entry->link.'</p>'."\n";
+                return $retval;
+            }
             if ( (strpos($url,'http:') === 0 || strpos($url,'https:') === 0 ) &&
                 ( strpos($url, $CFG->apphome) === false && strpos($url, $CFG->wwwroot) === false ) ) {
                 $target = ' target="_blank"';

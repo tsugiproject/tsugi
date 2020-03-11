@@ -32,6 +32,26 @@ trait JsonTrait {
     }
 
     /**
+     * Get a JSON key for this entity (legacy array style)
+     *
+     *
+     * @param $key The key to be retrieved from the JSON
+     * @param $default The default value (optional)
+     *
+     */
+    // TODO: Remove this
+    public function getJsonKeyLegacy($key,$default=false)
+    {
+        global $CFG, $PDOX;
+
+        $jsonStr = $this->getJson();
+        if ( ! $jsonStr ) return $default;
+        $json = json_decode($jsonStr, true);
+        if ( ! $json ) return $default;
+        return U::get($json, $key, $default);
+    }
+
+    /**
      * Get a JSON key for this entity
      *
      * @param $key The key to be retrieved from the JSON
@@ -44,9 +64,9 @@ trait JsonTrait {
 
         $jsonStr = $this->getJson();
         if ( ! $jsonStr ) return $default;
-        $json = json_decode($jsonStr, true);
+        $json = json_decode($jsonStr);
         if ( ! $json ) return $default;
-        return U::get($json, $key, $default);
+        return isset($json->{$key}) ? $json->{$key} : $default;
     }
 
     /**
