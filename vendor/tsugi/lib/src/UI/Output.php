@@ -354,16 +354,16 @@ if (window!=window.top) {
         echo($ob_output);
     }
 
-    function helpModalString($help_title = "Help", $help_msg = '<em>No help for this page.</em>') {
+    function modalString($title, $msg, $id) {
         $modal = <<< EOF
-<div id="helpModal" class="modal fade" role="dialog">
+<div id="$id" class="modal fade" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span class="fa fa-times" aria-hidden="true"></span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title">$help_title</h4>
+                <h4 class="modal-title">$title</h4>
             </div>
-            <div class="modal-body">$help_msg</div>
+            <div class="modal-body">$msg</div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
@@ -376,7 +376,7 @@ EOF;
     }
 
     function helpModal($help_title = "Help", $help_msg = '<em>No help for this page.</em>') {
-        $modal = $this->helpModalString($help_title, $help_msg);
+        $modal = $this->modalString($help_title, $help_msg, "helpModal");
         if ( $this->buffer ) return $modal;
         echo($modal);
     }

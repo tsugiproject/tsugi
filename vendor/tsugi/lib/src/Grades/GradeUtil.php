@@ -2,6 +2,7 @@
 
 namespace Tsugi\Grades;
 
+use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 
@@ -67,8 +68,8 @@ class GradeUtil {
         return $row;
     }
 
-    public static function gradeShowInfo($row) {
-        echo('<p><a href="grades.php">Back to All Grades</a>'."</p><p>\n");
+    public static function gradeShowInfo($row, $url='grades.php') {
+        if ($url) echo('<p><a href="'.U::safe_href($url).'">Back to All Grades</a>'."</p><p>\n");
         echo("User Name: ".htmlent_utf8($row['displayname'])."<br/>\n");
         echo("User Email: ".htmlent_utf8($row['email'])."<br/>\n");
         echo("Last Submision: ".htmlent_utf8($row['updated_at'])."<br/>\n");
