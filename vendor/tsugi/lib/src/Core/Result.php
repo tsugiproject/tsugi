@@ -157,6 +157,8 @@ class Result extends Entity {
         $lti13_token_audience = false;
         $lti13_issuer_client = false;
         if ( $row !== false ) {
+            // Using the note from the local db for the comment.
+            $comment = isset($row['note']) ? $row['note'] : false;
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
@@ -226,7 +228,7 @@ class Result extends Entity {
         }
 
         // TODO: Fix this
-        $comment = "";
+        // $comment = "";
         // Check is this is a Google Classroom Launch
         if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['gc_submit_id']) ) {
             $status = GoogleClassroom::gradeSend(intval($grade*100));
@@ -238,11 +240,19 @@ class Result extends Entity {
 
             $grade_token = LTI13::getGradeToken($lti13_issuer_client, $lti13_token_url, $lti13_privkey, $lti13_pubkey, $lti13_token_audience, $debug_log);
 
-            $comment = "Sending grade $grade subject_key=$subject_key lti13_lineitem=$lti13_lineitem grade_token=$grade_token";
-            error_log($comment);
-            $comment = "Sending grade $grade subject_key=$subject_key";
-            $status = LTI13::sendLineItemResult($subject_key, $grade, $comment, $lti13_lineitem,
-                        $grade_token, $debug_log);
+            // $comment = "Sending grade $grade subject_key=$subject_key lti13_lineitem=$lti13_lineitem grade_token=$grade_token";
+            error_log("Sending grade $grade subject_key=$subject_key lti13_lineitem=$lti13_lineitem grade_token=$grade_token");
+            if (!$comment) {
+            	$comment = "Sending grade $grade subject_key=$subject_key";
+            }
+            $status = LTI13::sendLineItemResult(
+                $subject_key,
+                $grade,
+                $comment,
+                $lti13_lineitem,
+                $grade_token,
+                $debug_log
+            );
 
         // Classic POX call
         } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {
