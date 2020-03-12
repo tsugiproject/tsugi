@@ -570,7 +570,7 @@ class Result extends Entity {
                 "UPDATE {$CFG->dbprefix}lti_result SET note = :note, updated_at = NOW()
                     WHERE result_id = :RID",
                 array(
-                    ':note' => $note,
+                    ':note' => $note_str,
                     ':RID' => $this->id)
             );
         } else if ( $this->launch->user->instructor ) {
