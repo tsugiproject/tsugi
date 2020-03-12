@@ -19,7 +19,9 @@ class Access {
 
         $retval = self::openContent($LAUNCH, $id);
 
-        if ( ! is_array($retval) ) return;
+        if ( ! is_array($retval) ) {
+            die($retval);
+        }
 
         $lob = $retval[0];
         $type = $retval[1];
@@ -38,7 +40,7 @@ class Access {
         global $CFG, $PDOX;
 
         if ( strlen($id) < 1 ) {
-            die("File not found");
+            return("File not found");
         }
 
         // Check to see if we are moving from Blob store to disk store
@@ -63,7 +65,7 @@ class Access {
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( $row === false ) {
             error_log('File not loaded: '.$id);
-            die("File not loaded");
+            return("File not loaded");
         }
         $type = $row['contenttype'];
         $file_name = $row['file_name'];
@@ -74,7 +76,7 @@ class Access {
 
         if ( ! BlobUtil::safeFileSuffix($file_name) )  {
             error_log('Unsafe file suffix: '.$file_name);
-            die('Unsafe file suffix');
+            return('Unsafe file suffix');
         }
 
         // Check to see if the path is there
@@ -143,7 +145,7 @@ class Access {
 
         if ( !$file_path && ! $lob ) {
             error_log("No file contents file_id=$id file_path=$file_path blob_id=$blob_id");
-            die('Unable to find file contents');
+            return('Unable to find file contents');
         }
 
         // Update the access time in the file table
