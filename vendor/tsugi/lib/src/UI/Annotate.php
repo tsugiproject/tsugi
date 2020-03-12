@@ -51,6 +51,8 @@ function tsugiStartAnnotation(id) {
 }
 </script>
 <?php
-        return ob_get_contents();
+        $retval = ob_get_contents();
+        ob_end_clean();
+        return $retval;
     }
 }
