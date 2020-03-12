@@ -547,7 +547,7 @@ class Result extends Entity {
     /**
      * Set the Note for this result
      *
-     * @param $json_str The Note String
+     * @param $note_str The Note String
      * @param $user_id The primary key of the user (instructor only)
      *
      * @return The annotation array
@@ -556,7 +556,6 @@ class Result extends Entity {
         global $CFG;
         $PDOX = $this->launch->pdox;
         if ( ! $this->launch->user->instructor || ! $user_id || $user_id == $this->launch->user->id ){
-            $retval = $this->setNote($json_str);
             $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}lti_result SET note = :note, updated_at = NOW()
                     WHERE result_id = :RID",
