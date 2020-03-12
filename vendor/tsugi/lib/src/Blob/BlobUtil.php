@@ -387,6 +387,71 @@ class BlobUtil {
         return false;
     }
 
+    /**
+     * Delete a blob based on its id
+     *
+     * This cleans up files from the file table and if there
+     * are no more references to the file, eliminates the blob.
+     * This can only delete blobs in the current CONTEXT - but
+     * ultimately it is up to the calling code to decide who
+     * (i.e. an instructor) is allowed to delete a file.
+     *
+     * @param $file_id The file to delete
+     */
+    public static function deleteBlob($file_id)
+    {
+        global $CFG, $CONTEXT, $PDOX;
+
+        $file_row = $PDOX->rowDie(
+            "SELECT * FROM {$CFG->dbprefix}blob_file
+             WHERE file_id = :FID AND context_id = :CID",
+            array(":FID" => $file_id, ":CID" => $CONTEXT->id)
+        );
+        if ( $file_row == false ) return;
+        $sha256 = $file_row['file_sha256'];
+        $blob_id = $file_row['blob_id'];
+        $path = $file_row['path'];
+        $count_row = $PDOX->rowDie(
+            "SELECT count(*) AS count FROM {$CFG->dbprefix}blob_file
+             WHERE file_sha256 = :SHA",
+            array(":SHA" => $sha256)
+        );
+        $count = $count_row['count'];
+        error_log("Count=$count blob_id=$blob_id path=$path\n");
+
+        // If this is the last / only reference...
+        if ( $count <= 1 ) {
+            error_log("Deleting file=$file_id sha=$sha256 last reference to blob_id=$blob_id path=$path\n");
+            if ( strlen($path) > 0 ) {
+                $retval = unlink($path);
+                if ( ! $retval ) {
+                    error_log("Unlink failed: $path");
+                }
+            }
+            if ( $blob_id > 0 ) {
+                $stmt = $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}blob_blob
+                    WHERE blob_id = :BID",
+                    array(':BID' => $blob_id)
+                );
+
+                if ( $stmt->rowCount() < 1 ) {
+                    error_log("Unable to delete blob_id=$blob_id");
+                }
+            }
+        }
+
+        // Delete the file entry
+        error_log("Deleting file=$file_id");
+        $stmt = $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}blob_file
+            WHERE file_id = :FID",
+            array(':FID' => $file_id)
+        );
+
+        if ( $stmt->rowCount() < 1 ) {
+            error_log("Unable to delete file_id=$file_id");
+        }
+    }
+
     // Does not do access control checks - blob_serve.php does the access
     // control checks
     public static function getAccessUrlForBlob($blob_id, $serv_file=false)
