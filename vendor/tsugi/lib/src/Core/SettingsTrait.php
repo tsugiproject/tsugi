@@ -131,7 +131,7 @@ trait SettingsTrait {
         $this->ltiParameterUpdate($name."_settings", json_encode($new_settings));
 
         $stmt = $this->launch->pdox->queryDie("UPDATE {$CFG->dbprefix}{$this->TABLE_NAME}
-            SET settings = :NEW WHERE {$name}_id = :ID",
+            SET settings = :NEW, updated_at=NOW() WHERE {$name}_id = :ID",
             array(":NEW" => json_encode($new_settings), ":ID" => $this->id));
 
         if ( ! $stmt->success ) {

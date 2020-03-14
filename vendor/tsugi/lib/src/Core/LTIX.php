@@ -1370,7 +1370,8 @@ class LTIX {
             if ( strlen($post_user_subject) > 0 ) {
                 $sql = "UPDATE {$p}lti_user SET
                     subject_key = :subject_key,
-                    subject_sha256 = :subject_sha256
+                    subject_sha256 = :subject_sha256,
+                    updated_at = NOW()
                     WHERE user_id = :UID";
 
                 $stmt = $PDOX->queryReturnError($sql, array(
@@ -1421,7 +1422,7 @@ class LTIX {
         if ( $row['user_id'] > 0 && strlen($post_user_subject) > 0 && strlen($lti11_transition_user_id) > 0 &&
             $row['user_key'] !=  $lti11_transition_user_id) {
             $sql = "UPDATE {$p}lti_user
-                SET user_key = :user_key, user_sha256 = :user_sha256
+                SET user_key = :user_key, user_sha256 = :user_sha256, updated_at = NOW()
                 WHERE user_id = :uid";
             $stmt = $PDOX->queryReturnError($sql, array(
                 ':uid' => $row['user_id'],
@@ -1444,7 +1445,7 @@ class LTIX {
         $row_subject_key = U::get($row, 'subject_key');
         if ( $row['user_id'] > 0 && strlen($post_user_subject) > 0 && $post_user_subject != $row_subject_key ) {
             $sql = "UPDATE {$p}lti_user
-                SET subject_key = :subject_key, subject_sha256 = :subject_sha256
+                SET subject_key = :subject_key, subject_sha256 = :subject_sha256, updated_at = NOW()
                 WHERE user_id = :uid";
             $stmt = $PDOX->queryReturnError($sql, array(
                 ':uid' => $row['user_id'],
@@ -1494,7 +1495,7 @@ class LTIX {
             // If we just created a new service entry but we already had a result entry, update it
             // This is for LTI 1.x only as service is not used for LTI 2.x
             if ( $oldserviceid === null && $row['result_id'] !== null && $row['service_id'] !== null && $post['service'] ) {
-                $sql = "UPDATE {$p}lti_result SET service_id = :service_id WHERE result_id = :result_id";
+                $sql = "UPDATE {$p}lti_result SET service_id = :service_id, updated_at = NOW() WHERE result_id = :result_id";
                 $PDOX->queryDie($sql, array(
                     ':service_id' => $row['service_id'],
                     ':result_id' => $row['result_id']));
@@ -1534,7 +1535,7 @@ class LTIX {
             $post['service'] != $row['service'] )
         ) {
             $sql = "UPDATE {$p}lti_result
-                SET sourcedid = :sourcedid, result_url = :result_url, service_id = :service_id
+                SET sourcedid = :sourcedid, result_url = :result_url, service_id = :service_id, updated_at = NOW()
                 WHERE result_id = :result_id";
             $PDOX->queryDie($sql, array(
                 ':result_url' => $post['result_url'],
@@ -1552,7 +1553,7 @@ class LTIX {
         if ( isset($row['link_id']) && isset($post['lti13_lineitem']) &&
             array_key_exists('lti13_lineitem',$row) && $post['lti13_lineitem'] != $row['lti13_lineitem'] ) {
             $sql = "UPDATE {$p}lti_link
-                SET lti13_lineitem = :lti13_lineitem
+                SET lti13_lineitem = :lti13_lineitem, updated_at = NOW()
                 WHERE link_id = :link_id";
             $PDOX->queryDie($sql, array(
                 ':lti13_lineitem' => $post['lti13_lineitem'],
@@ -1565,7 +1566,7 @@ class LTIX {
         if ( isset($row['context_id']) && isset($post['lti13_membership_url']) &&
             array_key_exists('lti13_membership_url',$row) && $post['lti13_membership_url'] != $row['lti13_membership_url'] ) {
             $sql = "UPDATE {$p}lti_context
-                SET lti13_membership_url = :lti13_membership_url
+                SET lti13_membership_url = :lti13_membership_url, updated_at = NOW()
                 WHERE context_id = :context_id";
             $PDOX->queryDie($sql, array(
                 ':lti13_membership_url' => $post['lti13_membership_url'],
@@ -1578,7 +1579,7 @@ class LTIX {
         if ( isset($row['context_id']) && isset($post['lti13_lineitems']) &&
             array_key_exists('lti13_lineitems',$row) && $post['lti13_lineitems'] != $row['lti13_lineitems'] ) {
             $sql = "UPDATE {$p}lti_context
-                SET lti13_lineitems = :lti13_lineitems
+                SET lti13_lineitems = :lti13_lineitems, updated_at = NOW()
                 WHERE context_id = :context_id";
             $PDOX->queryDie($sql, array(
                 ':lti13_lineitems' => $post['lti13_lineitems'],
@@ -1589,7 +1590,7 @@ class LTIX {
 
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
         if ( isset($row['context_id']) && isset($post['context_title']) && $post['context_title'] != $row['context_title'] ) {
-            $sql = "UPDATE {$p}lti_context SET title = :title WHERE context_id = :context_id";
+            $sql = "UPDATE {$p}lti_context SET title = :title, updated_at = NOW() WHERE context_id = :context_id";
             $PDOX->queryDie($sql, array(
                 ':title' => $post['context_title'],
                 ':context_id' => $row['context_id']));
@@ -1602,7 +1603,8 @@ class LTIX {
         if ( isset($row['context_id']) ) {
             foreach($context_services as $context_service ) {
                 if ( isset($post[$context_service]) && $post[$context_service] != $row[$context_service] ) {
-                    $sql = "UPDATE {$p}lti_context SET {$context_service} = :value WHERE context_id = :context_id";
+                    $sql = "UPDATE {$p}lti_context SET {$context_service} = :value, updated_at = NOW()
+                        WHERE context_id = :context_id";
                     $PDOX->queryDie($sql, array(
                         ':value' => $post[$context_service],
                         ':context_id' => $row['context_id']));
@@ -1613,7 +1615,7 @@ class LTIX {
         }
 
         if ( isset($row['link_id']) && isset($post['link_title']) && $post['link_title'] != $row['link_title'] ) {
-            $sql = "UPDATE {$p}lti_link SET title = :title WHERE link_id = :link_id";
+            $sql = "UPDATE {$p}lti_link SET title = :title, updated_at = NOW() WHERE link_id = :link_id";
             $PDOX->queryDie($sql, array(
                 ':title' => $post['link_title'],
                 ':link_id' => $row['link_id']));
@@ -1622,7 +1624,7 @@ class LTIX {
         }
 
         if ( isset($row['link_id']) && isset($post['link_path']) && $post['link_path'] != $row['link_path'] ) {
-            $sql = "UPDATE {$p}lti_link SET path = :path WHERE link_id = :link_id";
+            $sql = "UPDATE {$p}lti_link SET path = :path, updated_at = NOW() WHERE link_id = :link_id";
             $PDOX->queryDie($sql, array(
                 ':path' => $post['link_path'],
                 ':link_id' => $row['link_id']));
@@ -1636,7 +1638,7 @@ class LTIX {
             foreach($user_fields as $u_field ) {
                 $user_field = 'user_'.$u_field;
                 if ( isset($post[$user_field]) && $post[$user_field] != $row[$user_field] && strlen($post[$user_field]) > 0 ) {
-                    $sql = "UPDATE {$p}lti_user SET {$u_field} = :value WHERE user_id = :user_id";
+                    $sql = "UPDATE {$p}lti_user SET {$u_field} = :value, updated_at = NOW() WHERE user_id = :user_id";
                     $PDOX->queryDie($sql, array(
                         ':value' => $post[$user_field],
                         ':user_id' => $row['user_id']));
@@ -1647,7 +1649,7 @@ class LTIX {
         }
 
         if ( isset($row['membership_id']) && isset($post['role']) && $post['role'] != $row['role'] ) {
-            $sql = "UPDATE {$p}lti_membership SET role = :role WHERE membership_id = :membership_id";
+            $sql = "UPDATE {$p}lti_membership SET role = :role, updated_at = NOW() WHERE membership_id = :membership_id";
             $PDOX->queryDie($sql, array(
                 ':role' => $post['role'],
                 ':membership_id' => $row['membership_id']));
