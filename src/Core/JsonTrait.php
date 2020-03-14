@@ -80,7 +80,8 @@ trait JsonTrait {
         global $CFG, $PDOX;
 
         $q = $PDOX->queryDie("UPDATE {$CFG->dbprefix}{$this->TABLE_NAME}
-                SET json = :SET WHERE $this->PRIMARY_KEY = :PK",
+                SET json = :SET, updated_at=NOW()
+                WHERE $this->PRIMARY_KEY = :PK",
             array(":SET" => $json, ":PK" => $this->id)
         );
     }

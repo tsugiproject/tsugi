@@ -107,7 +107,7 @@ class Link extends Entity {
         $placementsecret = bin2Hex(openssl_random_pseudo_bytes(32));
 
         $stmt = $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_link SET placementsecret=:PC
+            "UPDATE {$CFG->dbprefix}lti_link SET placementsecret=:PC, updated_at=NOW()
                 WHERE link_id = :LID",
             array(':LID' => $this->id,
                 ':PC' => $placementsecret

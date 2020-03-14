@@ -481,7 +481,7 @@ class Result extends Entity {
         } else if ( $this->launch->user->instructor ) {
             $p = $CFG->dbprefix;
             $stmt = $PDOX->queryDie(
-                "UPDATE {$p}lti_result SET json = :JSON
+                "UPDATE {$p}lti_result SET json = :JSON, updated_at = NOW()
                 WHERE link_id = :LID and user_id = :UID",
                 array(
                     ":JSON" => $json_str,
@@ -576,7 +576,7 @@ class Result extends Entity {
         } else if ( $this->launch->user->instructor ) {
             $p = $CFG->dbprefix;
             $stmt = $PDOX->queryDie(
-                "UPDATE {$p}lti_result SET note = :NOTE
+                "UPDATE {$p}lti_result SET note = :NOTE, updated_at = NOW()
                 WHERE link_id = :LID and user_id = :UID",
                 array(
                     ":NOTE" => $note_str,
