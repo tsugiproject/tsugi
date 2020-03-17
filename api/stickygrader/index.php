@@ -33,7 +33,6 @@ $LAUNCH = LTIX::requireData();
 
 if ( $_SERVER['REQUEST_METHOD'] === 'GET' ) {
     $annotations = loadAnnotations($LAUNCH, $user_id);
-    error_log('GET'. count($annotations));
     header('Content-Type: application/json; charset=utf-8');
     echo(json_encode(array_values($annotations), JSON_PRETTY_PRINT));
     return;
