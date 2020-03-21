@@ -135,7 +135,12 @@ echo(' ');
 echo('<input type="submit" class="btn btn-default" value="Test"></form> ');
 echo("\n");
 
-echo("<ul>\n");
+echo("<p><ul>\n");
+$video = U::get($tool, 'video');
+if ( is_string($video) ) {
+    echo('<li><p><a href="'.$video.'"
+       target="_blank">'._m('Video Demonstration').'</a></p></li>'."\n");
+}
 if ( isset($CFG->privacy_url) ) {
     echo('<li><p><a href="'.$CFG->privacy_url.'"
        target="_blank">'._m('Privacy Policy').'</a></p></li>'."\n");
