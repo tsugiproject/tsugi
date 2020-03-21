@@ -3,7 +3,11 @@
 {% endblock %}
 {% block nav %}
 {{ app.tsugi.output.bodyStart | raw }} 
-{{ app.tsugi.output.topNav | raw }} 
+{% if app.tsugi.tsugi_menu %}
+{{ app.tsugi.tsugi_menu | raw }}
+{% else %}
+{{ app.tsugi.output.topNav() | raw }} 
+{% endif %}
 {{ app.tsugi.output.flashMessages | raw }} 
 {% endblock %}
 {% block content %}{% endblock %}

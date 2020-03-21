@@ -31,6 +31,9 @@ class Analytics {
 
         $analytics_url = U::addSession($CFG->wwwroot."/api/analytics");
 
+        $menu = new \Tsugi\UI\MenuSet();
+        $menu->addLeft(__('Back'), 'index.php');
+        $tsugi->tsugi_menu = $tsugi->output->topNav($menu);
         return $app['twig']->render('@Tsugi/Analytics.twig', 
             array('analytics_url' => $analytics_url) );
     }
