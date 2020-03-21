@@ -2,9 +2,13 @@
 {% block head %}
 {% endblock %}
 {% block nav %}
-{{ app.tsugi.output.bodyStart | raw }} 
-{{ app.tsugi.output.topNav() | raw }} 
-{{ app.tsugi.output.flashMessages | raw }} 
+{{ app.tsugi.output.bodyStart | raw }}
+{% if app.tsugi.tsugi_menu is defined %}
+{{ app.tsugi.tsugi_menu | raw }}
+{% else %}
+{{ app.tsugi.output.topNav() | raw }}
+{% endif %}
+{{ app.tsugi.output.flashMessages | raw }}
 {% endblock %}
 {% block content %}{% endblock %}
 {{ app.tsugi.output.footerStart() | raw }}
