@@ -225,6 +225,7 @@ class LTI13 {
      * @param array $failures A string array of failures (pass by reference)
      */
     public static function jonPostel($body, &$failures) {
+		global $CFG;
         if ( isset($CFG->jon_postel) ) return; // We are on Jon Postel mode
 
         // Sanity checks
