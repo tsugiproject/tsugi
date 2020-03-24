@@ -423,9 +423,13 @@ class BlobUtil {
         if ( $count <= 1 ) {
             error_log("Deleting file=$file_id sha=$sha256 last reference to blob_id=$blob_id path=$path\n");
             if ( strlen($path) > 0 ) {
-                $retval = unlink($path);
-                if ( ! $retval ) {
-                    error_log("Unlink failed: $path");
+                if ( ! file_exists($path) ) {
+                    error_log("File was already gone: $path");
+                } else {
+                    $retval = unlink($path);
+                    if ( ! $retval ) {
+                        error_log("Unlink failed: $path");
+                    }
                 }
             }
             if ( $blob_id > 0 ) {
