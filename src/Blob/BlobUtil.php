@@ -397,16 +397,25 @@ class BlobUtil {
      * (i.e. an instructor) is allowed to delete a file.
      *
      * @param $file_id The file to delete
+     * @param $admin_bypass Run outside the context of a launch
      */
-    public static function deleteBlob($file_id)
+    public static function deleteBlob($file_id, $admin_bypass=false)
     {
         global $CFG, $CONTEXT, $PDOX;
 
-        $file_row = $PDOX->rowDie(
-            "SELECT * FROM {$CFG->dbprefix}blob_file
-             WHERE file_id = :FID AND context_id = :CID",
-            array(":FID" => $file_id, ":CID" => $CONTEXT->id)
-        );
+        if ( $admin_bypass == "admin_bypass") {
+            $file_row = $PDOX->rowDie(
+                "SELECT * FROM {$CFG->dbprefix}blob_file
+                WHERE file_id = :FID",
+                array(":FID" => $file_id)
+            );
+        } else {
+            $file_row = $PDOX->rowDie(
+                "SELECT * FROM {$CFG->dbprefix}blob_file
+                WHERE file_id = :FID AND context_id = :CID",
+                array(":FID" => $file_id, ":CID" => $CONTEXT->id)
+            );
+        }
         if ( $file_row == false ) return;
         $sha256 = $file_row['file_sha256'];
         $blob_id = $file_row['blob_id'];
