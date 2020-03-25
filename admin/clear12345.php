@@ -7,6 +7,7 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Blob\BlobUtil;
 LTIX::getConnection();
 
 $key_sha256 = lti_sha256('12345');
@@ -23,7 +24,8 @@ $key_id = $row['key_id'];
 $error = false;
 $sql = false;
 if ( U::get($_GET,'delete') ) {
-    $sql = "DELETE FROM
+
+    $sql = "SELECT file_id FROM
         {$CFG->dbprefix}blob_file
         WHERE context_id IN (
             SELECT context_id FROM
@@ -31,19 +33,22 @@ if ( U::get($_GET,'delete') ) {
             WHERE key_id = :KID)
         ORDER BY created_at LIMIT 100";
 
-    $stmt = $PDOX->queryReturnError($sql,
+    $rows = $PDOX->allRowsDie($sql,
         array(':KID' => $key_id)
     );
 
-    if ( $stmt->success ) {
-        $sql = "DELETE FROM
-            {$CFG->dbprefix}lti_context
-            WHERE key_id = :KID
-            ORDER BY created_at LIMIT 100";
-        $stmt = $PDOX->queryReturnError($sql,
-            array(':KID' => $key_id)
-        );
+    foreach($rows as $row) {
+        $file_id = $row['file_id'];
+        BlobUtil::deleteBlob($file_id, "admin_bypass");
     }
+
+    $sql = "DELETE FROM
+        {$CFG->dbprefix}lti_context
+        WHERE key_id = :KID
+        ORDER BY created_at LIMIT 100";
+    $stmt = $PDOX->queryReturnError($sql,
+        array(':KID' => $key_id)
+    );
 
     if ( $stmt->success ) {
         $sql = "DELETE FROM
@@ -53,7 +58,7 @@ if ( U::get($_GET,'delete') ) {
         $stmt = $PDOX->queryReturnError($sql,
             array(':KID' => $key_id)
         );
-    } else { 
+    } else {
         $error = $stmt->errorImplode;
     }
 }
