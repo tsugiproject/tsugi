@@ -466,22 +466,28 @@ class BlobUtil {
         return $url;
     }
 
+    // Legacy maxUpload
+    public static function maxUpload() {
+        $bytes = self::maxUploadBytes();
+        $bytes = (int) (($bytes+1) / (1024*1024));
+        return $bytes;
+    }
 
     // http://stackoverflow.com/questions/2840755/how-to-determine-the-max-file-upload-limit-in-php
     // http://www.kavoir.com/2010/02/php-get-the-file-uploading-limit-max-file-size-allowed-to-upload.html
     /* See also the .htaccess file.   Many MySQL servers are configured to have a max size of a
        blob as 1MB.  if you change the .htaccess you need to change the mysql configuration as well.
-       this may not be possible on a low-cst provider.  */
-
-    public static function maxUpload() {
-        $maxUpload = (int)(ini_get('upload_max_filesize'));
-        $max_post = (int)(ini_get('post_max_size'));
-        $memory_limit = (int)(ini_get('memory_limit'));
-        $upload_mb = min($maxUpload, $max_post, $memory_limit);
-        return $upload_mb;
-    }
-
+       this may not be possible on a low-cost provider.  */
     public static function maxUploadBytes() {
+        global $CFG, $CONTEXT;
+        // If blobs are going into the database, keep them small
+        if ( ! isset($CFG->dataroot) ) return 1024*1024;
+
+        // If this is a test key, we are going into the database
+        $test_key = isset($CONTEXT->key) ? self::isTestKey($CONTEXT->key) : true;
+        if ( $test_key ) return 1024*1024;
+
+        // We are storing blobs on disk, look at all of the different locations
         $maxUpload = self::return_bytes(ini_get('upload_max_filesize'));
         $max_post = self::return_bytes(ini_get('post_max_size'));
         $memory_limit = self::return_bytes(ini_get('memory_limit'));
