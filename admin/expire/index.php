@@ -32,7 +32,7 @@ $context_days = isset($CFG->expire_context_days) ? $CFG->expire_context_days : 6
 $context_days = U::get($_GET,'context_days',$context_days);
 $user_days = isset($CFG->expire_user_days) ? $CFG->expire_user_days : 600;
 $user_days = U::get($_GET,'user_days',$user_days);
-$pii_days = isset($CFG->expire_pii_days) ? $CFG->expire_pii_days : 600;
+$pii_days = isset($CFG->expire_pii_days) ? $CFG->expire_pii_days : 180;
 $pii_days = U::get($_GET,'pii_days',$pii_days);
 
 $user_expire =  get_expirable_records('lti_user', $user_days);
