@@ -1,6 +1,6 @@
 {
     "require": {
-        "tsugi/lib": "dev-master#734756728b6b738bbbaa2feb84a3a6c55cd26c76",
+        "tsugi/lib": "dev-master#df71958f679f2896a21329d44466d931c285eb4b",
         "twig/twig": "v1.33.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
@@ -31,7 +31,8 @@
         "react/promise": "v2.7.0",
         "react/socket": "v1.1.0",
         "react/promise-timer": "v1.5.0",
-        "ratchet/rfc6455" : "0.2.4"
+        "ratchet/rfc6455" : "0.2.4",
+        "firebase/php-jwt" : "v5.1.0"
     },
     "config": {
         "preferred-install": "dist"

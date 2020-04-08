@@ -519,6 +519,7 @@ var disqus_config = function () {
         echo('<div id="box">'."\n");
         $count = 0;
         foreach($this->lessons->modules as $module) {
+        if ( isset($module->hidden) && $module->hidden ) continue;
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
             $count++;
             echo('<div class="card"><div>'."\n");
