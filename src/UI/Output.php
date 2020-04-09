@@ -873,7 +873,8 @@ $('a').each(function (x) {
                 return $retval;
             }
             if ( (strpos($url,'http:') === 0 || strpos($url,'https:') === 0 ) &&
-                ( strpos($url, $CFG->apphome) === false && strpos($url, $CFG->wwwroot) === false ) ) {
+                ( ! is_string($CFG->apphome) || strpos($url, $CFG->apphome) === false ) &&
+                ( ! is_string($CFG->wwwroot) || strpos($url, $CFG->wwwroot) === false ) ) {
                 $target = ' target="_blank"';
             }
             $active = '';
