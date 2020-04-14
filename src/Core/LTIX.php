@@ -1295,12 +1295,17 @@ class LTIX {
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $actions = array();
+
         // if we didn't get context_id from post, we can't update lti_context!
 
+        // Since we can't do all this in a transaction, we need to handle duplicate keys
+        // https://dev.mysql.com/doc/refman/5.6/en/insert-on-duplicate.html
         if ( $row['context_id'] === null && isset($post['context_id']) ) {
             $sql = "INSERT INTO {$p}lti_context
                 ( context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
-                ( :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )";
+                ( :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )
+                ON DUPLICATE KEY UPDATE
+                context_id=LAST_INSERT_ID(context_id), updated_at = NOW();";
             $context_settings_url = U::get($post, 'context_settings_url', null);
             $PDOX->queryDie($sql, array(
                 ':context_key' => $post['context_id'],
@@ -1318,7 +1323,9 @@ class LTIX {
         if ( $row['link_id'] === null && $row['context_id'] !== null && isset($post['link_id']) ) {
             $sql = "INSERT INTO {$p}lti_link
                 ( link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
-                    ( :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )";
+                    ( :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )
+                    ON DUPLICATE KEY UPDATE
+                    link_id=LAST_INSERT_ID(link_id), updated_at = NOW();";
             $link_settings_url = U::get($post, 'link_settings_url', null);
             $PDOX->queryDie($sql, array(
                 ':link_key' => $post['link_id'],
@@ -1348,7 +1355,9 @@ class LTIX {
         if ( $row['user_id'] === null && isset($post['user_id']) && strlen($post['user_id']) > 0) {
             $sql = "INSERT INTO {$p}lti_user
                 ( user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
-                ( :user_key, :user_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )";
+                ( :user_key, :user_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
+                ON DUPLICATE KEY UPDATE
+                user_id=LAST_INSERT_ID(user_id), updated_at = NOW();";
             $PDOX->queryDie($sql, array(
                 ':user_key' => $post['user_id'],
                 ':user_sha256' => lti_sha256($post['user_id']),
@@ -1396,7 +1405,9 @@ class LTIX {
         if ( $row['user_id'] === null && strlen($post_user_subject) > 0) {
             $sql = "INSERT INTO {$p}lti_user
                 ( user_key, user_sha256, subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
-                ( :user_key, :user_sha256, :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )";
+                ( :user_key, :user_sha256, :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
+                ON DUPLICATE KEY UPDATE
+                user_id=LAST_INSERT_ID(user_id), updated_at = NOW();";
             $PDOX->queryDie($sql, array(
                 ':user_key' => $lti11_transition_user_id,
                 ':user_sha256' => $lti11_transition_user_id_sha256,
@@ -1464,7 +1475,9 @@ class LTIX {
         if ( $row['membership_id'] === null && $row['context_id'] !== null && $row['user_id'] !== null ) {
             $sql = "INSERT INTO {$p}lti_membership
                 ( context_id, user_id, role, created_at, updated_at ) VALUES
-                ( :context_id, :user_id, :role, NOW(), NOW() )";
+                ( :context_id, :user_id, :role, NOW(), NOW() )
+                ON DUPLICATE KEY UPDATE
+                membership_id=LAST_INSERT_ID(membership_id), updated_at = NOW();";
             $PDOX->queryDie($sql, array(
                 ':context_id' => $row['context_id'],
                 ':user_id' => $row['user_id'],
@@ -1482,7 +1495,9 @@ class LTIX {
             if ( $row['service_id'] === null && $post['service'] ) {
                 $sql = "INSERT INTO {$p}lti_service
                     ( service_key, service_sha256, key_id, created_at, updated_at ) VALUES
-                    ( :service_key, :service_sha256, :key_id, NOW(), NOW() )";
+                    ( :service_key, :service_sha256, :key_id, NOW(), NOW() )
+                    ON DUPLICATE KEY UPDATE
+                    service_id=LAST_INSERT_ID(service_id), updated_at = NOW();";
                 $PDOX->queryDie($sql, array(
                     ':service_key' => $post['service'],
                     ':service_sha256' => lti_sha256($post['service']),
@@ -1508,7 +1523,9 @@ class LTIX {
         if ( $row['result_id'] === null && $row['link_id'] !== null && $row['user_id'] !== null ) {
             $sql = "INSERT INTO {$p}lti_result
                 ( link_id, user_id, created_at, updated_at ) VALUES
-                ( :link_id, :user_id, NOW(), NOW() )";
+                ( :link_id, :user_id, NOW(), NOW() )
+                ON DUPLICATE KEY UPDATE
+                result_id=LAST_INSERT_ID(result_id), updated_at = NOW();";
             $PDOX->queryDie($sql, array(
                 ':link_id' => $row['link_id'],
                 ':user_id' => $row['user_id']));
