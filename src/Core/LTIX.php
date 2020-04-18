@@ -589,7 +589,7 @@ class LTIX {
                     created_at < DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -{$CFG->noncetime} SECOND)");
                 // error_log("Nonce table cleanup done.");
             }
-            $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}lti_nonce
+            $PDOX->queryDie("INSERT IGNORE INTO {$CFG->dbprefix}lti_nonce
                 (key_id, nonce) VALUES ( :key_id, :nonce)",
                 array( ':nonce' => $post['nonce'], ':key_id' => $row['key_id'])
             );
