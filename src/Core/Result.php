@@ -368,46 +368,6 @@ class Result extends Entity {
     }
 
     /**
-     * Get the JSON for this result
-     *
-     * TODO: Remove
-     */
-    public function getJSON_deprecated()
-    {
-        global $CFG;
-        $PDOX = $this->launch->pdox;
-
-        $stmt = $PDOX->queryDie(
-            "SELECT json FROM {$CFG->dbprefix}lti_result
-                WHERE result_id = :RID",
-            array(':RID' => $this->id)
-        );
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $row['json'];
-    }
-
-    /**
-     * Set the JSON for this result
-     *
-     * TODO: Remove
-     *
-     */
-    public function setJSON_deprecated($json)
-    {
-        global $CFG;
-        $PDOX = $this->launch->pdox;
-
-        $stmt = $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_result SET json = :json, updated_at = NOW()
-                WHERE result_id = :RID",
-            array(
-                ':json' => $json,
-                ':RID' => $this->id)
-        );
-    }
-
-
-    /**
      * Get a JSON for a different user
      *
      * @param $user_id The primary key of the user (instructor only)
