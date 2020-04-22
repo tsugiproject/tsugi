@@ -616,7 +616,7 @@ class LTIX {
 
                 if ( $link_activity == null || $link_count == 0 ) {
 
-                    $sql = "INSERT INTO {$CFG->dbprefix}lti_link_activity
+                    $sql = "INSERT IGNORE INTO {$CFG->dbprefix}lti_link_activity
                                 (link_id, event, link_count, updated_at) VALUES
                                 (:link_id, 0, 0, NOW())";
 
@@ -653,7 +653,7 @@ class LTIX {
                 if ( isset($row['user_id']) && $row['user_id'] ) {
                     if ( $link_activity == null || $link_count == 0 ) {
 
-                        $sql = "INSERT INTO {$CFG->dbprefix}lti_link_user_activity
+                        $sql = "INSERT IGNORE INTO {$CFG->dbprefix}lti_link_user_activity
                                 (link_id, user_id, event, link_user_count, updated_at) VALUES
                                 (:link_id, :user_id, 0, 0, NOW())";
                         $stmt = $PDOX->queryReturnError($sql, array(
