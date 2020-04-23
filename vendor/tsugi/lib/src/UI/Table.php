@@ -81,7 +81,7 @@ class Table {
 
     // Normally $params should just default to $_GET
     public static function pagedQuery($sql, &$queryvalues, $searchfields=array(), $orderfields=false, $params=false) {
-        if ( $params == false ) $params = $_GET;
+        if ( $params === false ) $params = $_GET;
         if ( $orderfields == false ) $orderfields = $searchfields;
 
         $searchtext = '';
@@ -192,6 +192,7 @@ class Table {
         }
         echo("</div>\n");
         echo('<form>');
+        if ( $searchfields && count($searchfields) > 0 ) {
         echo('<input type="text" id="paged_search_box" value="'.htmlent_utf8($search).'" name="search_text">');
         Table::doForm($params,Array('search_text' => false, 'page_start' => false));
     ?>
@@ -201,8 +202,9 @@ class Table {
     >
 
 <?php
+    }
     // Add the sort drop-down
-    if ( isset($rows[0]) ) {
+    if ( isset($rows[0]) && $orderfields && count($orderfields) > 0 ) {
         $row = $rows[0];
         $thispage = LTIX::curPageUrlNoQuery();
         if ( $view === false ) $view = $thispage;
@@ -265,7 +267,7 @@ class Table {
 
     public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false) 
     {
-        if ( $params == false ) $params = $_GET;
+        if ( $params === false ) $params = $_GET;
         self::pagedHeader($rows, $searchfields, $orderfields, $view, $params, $extra_buttons);
 
         $count = count($rows);
@@ -384,7 +386,7 @@ class Table {
         $orderfields=false, $view=false, $params=false, $buttons=false) {
         global $PDOX;
 
-        if ( $params == false ) $params = $_GET;
+        if ( $params === false ) $params = $_GET;
 
         $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields, $params);
 

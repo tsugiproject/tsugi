@@ -510,7 +510,10 @@ class LTI {
             $LastPOXGradeParse = $retval;
             if ( is_array($retval) ) {
                 if ( isset($retval['imsx_codeMajor']) && $retval['imsx_codeMajor'] == 'success') {
-                    if ( isset($retval['textString'])) $grade = $retval['textString']+0.0;
+			if ( isset($retval['textString'])) {
+				$grade = $retval['textString'];
+				if ( is_numeric($grade) ) $grade = $grade + 0.0;
+			}
                 } else if ( isset($retval['imsx_description']) ) {
                     $LastPOXGradeError = $retval['imsx_description'];
                     error_log("Grade read failure: "+$LastPOXGradeError);

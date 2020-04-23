@@ -90,6 +90,7 @@ class Result extends Entity {
         if ( $row !== false ) {
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
+            if ( ! $service )  $service = isset($row['service_key']) ? $row['service_key'] : false;
             // Fall back to session if it is missing
             if ( $service === false ) $service = LTIX::ltiParameter('service');
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
@@ -162,6 +163,7 @@ class Result extends Entity {
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
+            if ( ! $service )  $service = isset($row['service_key']) ? $row['service_key'] : false;
             $key_key = isset($row['key_key']) ? $row['key_key'] : false;
             $subject_key = isset($row['subject_key']) ? $row['subject_key'] : false;
             $secret = isset($row['secret']) ? LTIX::decrypt_secret($row['secret']) : false;
