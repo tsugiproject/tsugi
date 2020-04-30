@@ -40,7 +40,6 @@ $OUTPUT->flashMessages();
 <?php if ( isset($CFG->lessons) ) { ?>
   <li><a href="#bb" data-toggle="tab" aria-expanded="false">Blackboard</a></li>
 <?php } ?>
-  <li><a href="#lti2" data-toggle="tab" aria-expanded="false">LTI 2.x</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="lti">
@@ -134,13 +133,6 @@ should start to function.
 </p>
 </div>
 <?php } ?>
-<div class="tab-pane fade" id="lti2">
-If your LMS supports LTI 2.x and you have received an LTI 2 key for this service,
-use the following registration URL:
-<pre>
-<?= $CFG->wwwroot ?>/lti/register
-</pre>
-</div>
 </div>
 </div>
 
