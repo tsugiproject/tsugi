@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Master TSUGI\n"
 "POT-Creation-Date: 2014-06-10 08:11-0500\n"
-"PO-Revision-Date: 2020-05-03 11:10+0200\n"
+"PO-Revision-Date: 2020-05-03 16:24+0200\n"
 "Last-Translator: Charles Severance <drchuck@gmail.com>\n"
 "Language-Team: TSUGI <drchuck@gmail.com>\n"
 "Language: es\n"
@@ -30,7 +30,7 @@ msgstr "Les demandes doivent avoir des titres"
 
 #: core/key/index.php:35
 msgid "LTI Version muse be 1 or 2"
-msgstr "LTI Version muse 1 ou 2"
+msgstr "La version LTI doit être 1 ou 2"
 
 #: lib/lms_lib.php:82
 #, php-format
@@ -53,7 +53,7 @@ msgstr "<p>Bienvenue "
 
 #: lib/lms_lib.php:95
 msgid "(Instructor)"
-msgstr "(Professeur)\t"
+msgstr "(Professeur)"
 
 #: lib/lms_lib.php:1251
 msgid "Record deleted"
@@ -61,7 +61,7 @@ msgstr "Enregistrement supprimé"
 
 #: lib/lms_lib.php:1270
 msgid "Missing POST field: "
-msgstr "Champ POST manquant: "
+msgstr "Champ POST manquant : "
 
 #: lib/lms_lib.php:1297
 msgid "Cancel Edit"
