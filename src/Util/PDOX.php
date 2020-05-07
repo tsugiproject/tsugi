@@ -142,6 +142,7 @@ class PDOX extends \PDO {
         $stmt = self::queryReturnError($sql, $arr, $error_log);
         if ( ! $stmt->success ) {
             error_log("Sql Failure:".$stmt->errorImplode." ".$sql);
+            $stmt->closeCursor();
             if ( $CFG->DEVELOPER ) {
                 die($stmt->errorImplode); // with error_log
             } else {
@@ -163,6 +164,7 @@ class PDOX extends \PDO {
     function rowDie($sql, $arr=FALSE, $error_log=TRUE) {
         $stmt = self::queryDie($sql, $arr, $error_log);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
         return $row;
     }
 
@@ -189,6 +191,7 @@ class PDOX extends \PDO {
         while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
             array_push($rows, $row);
         }
+        $stmt->closeCursor();
         return $rows;
     }
 
@@ -199,12 +202,14 @@ class PDOX extends \PDO {
      */
     function metadata($tablename) {
         $sql = "SHOW COLUMNS FROM ".$tablename;
-        $q = self::queryReturnError($sql);
-        if ( $q->success ) {
-            return $q->fetchAll();
+        $stmt = self::queryReturnError($sql);
+        if ( $stmt->success ) {
+            $retval= $stmt->fetchAll();
         } else {
-            return false;
+            $retval = false;
         }
+        $stmt->closeCursor();
+	return $retval;
     }
 
     /**
@@ -212,12 +217,14 @@ class PDOX extends \PDO {
      */
     function describe($tablename) {
         $sql = "DESCRIBE ".$tablename;
-        $q = self::queryReturnError($sql);
-        if ( $q->success ) {
-            return $q->fetchAll();
+        $stmt = self::queryReturnError($sql);
+        if ( $stmt->success ) {
+            $retval= $stmt->fetchAll();
         } else {
-            return false;
+            $retval = false;
         }
+        $stmt->closeCursor();
+	return $retval;
     }
 
     /**
