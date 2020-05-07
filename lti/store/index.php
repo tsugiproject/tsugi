@@ -612,8 +612,19 @@ if ( $l && ($allow_link || $allow_lti) ) {
             } else {
                 echo('<input type="radio" name="radio_value", value="'.$module->anchor.'::'.$i.'">');
             }
-            echo('<a href="'.$resource->url.'" target="_blank">');
-            echo(htmlentities($resource->title));
+	    // TODO: Make this more clever
+            if ( is_array($resource->url) ) {
+                 $res_url = $resource->url[0];
+            } else {
+                 $res_url = $resource->url;
+            }
+            if ( is_array($resource->title) ) {
+                 $res_title = $resource->title[0];
+            } else {
+                 $res_title = $resource->title;
+            }
+            echo('<a href="'.$res_url.'" target="_blank">');
+            echo(htmlentities($res_title));
             echo("</a>\n");
             echo('</li>');
         }

@@ -59,7 +59,7 @@ unset($apphome);
 // $CFG->websocket_url = 'wss://socket.tsugicloud.org:443'; // Production
 
 // If you are running a reverse proxy (proxy_wstunnel) set this to the port
-// you will forward to in your apache config  
+// you will forward to in your apache config
 // $CFG->websocket_proxyport = 8080;
 
 // Database connection information to configure the PDO connection
@@ -142,7 +142,7 @@ $CFG->adminpw = false;
 // This allows you to include various tool folders.  These are scanned
 // for register.php, database.php and index.php files to do automatic
 // table creation as well as making lists of tools in various UI places
-// such as ContentItem 
+// such as ContentItem
 
 // For normal tsugi, by default we use the built-in admin tools, and
 // install new tools (see /admin/install/) into mod.
@@ -182,9 +182,14 @@ $CFG->autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 // get the key and secret, and put them here:
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
-$CFG->google_translate = false; 
+$CFG->google_translate = false;
 
-// If these are not set, the auto expiration scripts in admin/expire 
+// Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
+$CFG->logout_return_url = false;
+// Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
+$CFG->login_return_url = false;
+
+// If these are not set, the auto expiration scripts in admin/expire
 // do nothing.  You can still manually expire data in the admin UI without
 // these values. There are software enforced mimimums for these values so you don't
 // inadvertently wipe out your whole database using either the auto expire

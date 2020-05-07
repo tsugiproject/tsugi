@@ -90,6 +90,7 @@ class Result extends Entity {
         if ( $row !== false ) {
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
+            if ( ! $service )  $service = isset($row['service_key']) ? $row['service_key'] : false;
             // Fall back to session if it is missing
             if ( $service === false ) $service = LTIX::ltiParameter('service');
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
@@ -162,6 +163,7 @@ class Result extends Entity {
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
+            if ( ! $service )  $service = isset($row['service_key']) ? $row['service_key'] : false;
             $key_key = isset($row['key_key']) ? $row['key_key'] : false;
             $subject_key = isset($row['subject_key']) ? $row['subject_key'] : false;
             $secret = isset($row['secret']) ? LTIX::decrypt_secret($row['secret']) : false;
@@ -366,46 +368,6 @@ class Result extends Entity {
             $this->session_put('error', "Grade sending error: ".substr($svd,0,100));
         }
     }
-
-    /**
-     * Get the JSON for this result
-     *
-     * TODO: Remove
-     */
-    public function getJSON_deprecated()
-    {
-        global $CFG;
-        $PDOX = $this->launch->pdox;
-
-        $stmt = $PDOX->queryDie(
-            "SELECT json FROM {$CFG->dbprefix}lti_result
-                WHERE result_id = :RID",
-            array(':RID' => $this->id)
-        );
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $row['json'];
-    }
-
-    /**
-     * Set the JSON for this result
-     *
-     * TODO: Remove
-     *
-     */
-    public function setJSON_deprecated($json)
-    {
-        global $CFG;
-        $PDOX = $this->launch->pdox;
-
-        $stmt = $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_result SET json = :json, updated_at = NOW()
-                WHERE result_id = :RID",
-            array(
-                ':json' => $json,
-                ':RID' => $this->id)
-        );
-    }
-
 
     /**
      * Get a JSON for a different user

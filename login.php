@@ -13,13 +13,13 @@ function login_redirect($path=false) {
     if ( $login_return ) {
         unset($_SESSION['login_return']);
         header('Location: '.$login_return);
-        return;
-    }
-    if ( isset($CFG->apphome) && $CFG->apphome ) {
+    } else if ( isset($CFG->login_return_url) && $CFG->login_return_url ) {
+        header('Location: '.$CFG->login_return_url);
+    } else if ( isset($CFG->apphome) && $CFG->apphome ) {
         header('Location: '.$CFG->apphome.'/'.$path);
-        return;
+    } else {
+        header('Location: '.$CFG->wwwroot.'/'.$path);
     }
-    header('Location: '.$CFG->wwwroot.'/'.$path);
 }
 
 $PDOX = LTIX::getConnection();
@@ -50,7 +50,7 @@ $context_id = false;
 // If there is a global course, grab it or make it
 if ( isset($CFG->context_title) ) {
     $context_key = 'course:'.md5($CFG->context_title);
-    
+
     $row = $PDOX->rowDie(
         "SELECT context_id FROM {$CFG->dbprefix}lti_context
             WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
@@ -161,13 +161,13 @@ if ( $doLogin ) {
 
         $userSHA = lti_sha256($user_key);
         $displayName = $firstName . ' ' . $lastName;
-        
+
         // Compensating/updating old lti_user records that are broken
         // First we find the most recently added account with matching email
         // if it exists
         $stmt = $PDOX->queryDie(
                 "SELECT user_id, user_key, user_sha256, user_key FROM {$CFG->dbprefix}lti_user
-                    WHERE key_id = :KEY AND email = :EM 
+                    WHERE key_id = :KEY AND email = :EM
                     ORDER BY updated_at DESC, created_at DESC
                     LIMIT 1;",
                 array(':EM' => $userEmail, ':KEY' => $google_key_id)
@@ -267,7 +267,7 @@ if ( $doLogin ) {
                 "UPDATE {$CFG->dbprefix}lti_user
                  SET displayname=:DN, email=:EMAIL, image=:IM, login_at=NOW(), ipaddr=:IP
                  WHERE user_id=:ID",
-                array(':DN' => $displayName,':IP' => Net::getIP(), 
+                array(':DN' => $displayName,':IP' => Net::getIP(),
                     ':ID' => $user_id, ':IM' => $userAvatar, ':EMAIL' => $userEmail)
             );
             error_log('User-Update:'.$user_key.','.$displayName.','.$userEmail);
@@ -293,7 +293,7 @@ if ( $doLogin ) {
                 "UPDATE {$CFG->dbprefix}lti_user
                  SET email=:EMAIL, displayname=:DN, image=:IM, profile_id = :PRID, login_at=NOW(), ipaddr=:IP
                  WHERE user_id=:ID",
-                array(':EMAIL' => $userEmail, ':DN' => $displayName,':IP' => Net::getIP(), 
+                array(':EMAIL' => $userEmail, ':DN' => $displayName,':IP' => Net::getIP(),
                     ':ID' => $user_id, ':PRID' => $profile_id, ':IM' => $userAvatar)
             );
             error_log('User-Update:'.$user_key.','.$displayName.','.$userEmail);
