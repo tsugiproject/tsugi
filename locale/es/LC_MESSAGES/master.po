@@ -111,6 +111,23 @@ msgstr "Siguiente"
 msgid "Tools"
 msgstr "Herramientas"
 
+#: Lessons
+msgid "Login Required"
+msgstr "Necesario iniciar sesión"
 
+#: Lessons
+msgid "LTI Required"
+msgstr "LTI Requerido"
 
+#: Lessons
+msgid "Assignment Solution"
+msgstr "Solución de asignación"
+
+#: Lessons
+msgid "Assignment Specification"
+msgstr "Especificación de asignación"
+
+#: Lessons
+msgid "Chapters"
+msgstr "Capítulos"
 

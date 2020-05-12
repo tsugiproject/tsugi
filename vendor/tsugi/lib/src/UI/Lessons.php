@@ -378,24 +378,24 @@ class Lessons {
                 }
             }
             if ( isset($module->chapters) ) {
-                echo('<li typeof="SupportingMaterial">Chapters: '.$module->chapters.'</a></li>'."\n");
+                echo('<li typeof="SupportingMaterial">'.__('Chapters').': '.$module->chapters.'</a></li>'."\n");
             }
             if ( isset($module->assignment) ) {
                 if ( $nostyle ) {
-                    echo('<li typeof="oer:assessment">Assignment Specification:');
+                    echo('<li typeof="oer:assessment">'.__('Assignment Specification').':');
                     self::nostyleUrl(__('Assignment Specification'), $module->assignment);
                     echo('</li>'."\n");
                 } else {
-                    echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank">Assignment Specification</a></li>'."\n");
+                    echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank">'.__('Assignment Specification').'</a></li>'."\n");
                 }
             }
             if ( isset($module->solution) ) {
                 if ( $nostyle ) {
-                    echo('<li typeof="oer:assessment">Assignment Solution:');
+                    echo('<li typeof="oer:assessment">'.__('Assignment Solution').':');
                     self::nostyleUrl(__('Assignment Solution'), $module->solution);
                     echo('</li>'."\n");
                 } else {
-                    echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank">Assignment Solution</a></li>'."\n");
+                    echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank">'.__('Assignment Solution').'</a></li>'."\n");
                 }
             }
             if ( isset($module->references) ) {
@@ -425,13 +425,13 @@ class Lessons {
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     if ( $nostyle ) {
-                        echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
+                        echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' ('.__('LTI Required').') <br/>'."\n");
                         $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
                         echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
                         echo("\n</li>\n");
                         continue;
                     }
-                    echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (Login Required)</li>'."\n");
+                    echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' ('.__('Login Required').')</li>'."\n");
                 }
                 if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
             }
@@ -447,7 +447,7 @@ class Lessons {
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     if ( $nostyle ) {
-                        echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
+                        echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' ('.__('LTI Required').') <br/>'."\n");
                         $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
                         echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
                         if ( isset($_SESSION['gc_count']) ) {
