@@ -309,17 +309,17 @@ class Lessons {
             $disabled = ($this->position == 1) ? ' disabled' : '';
             $all = U::get_rest_parent();
             if ( $this->position == 1 ) {
-                echo('<li class="previous disabled"><a href="#" onclick="return false;">&larr; Previous</a></li>'."\n");
+                echo('<li class="previous disabled"><a href="#" onclick="return false;">&larr; '.__('Previous').'</a></li>'."\n");
             } else {
                 $prev = $all . '/' . urlencode($this->lessons->modules[$this->position-2]->anchor);
-                echo('<li class="previous"><a href="'.$prev.'">&larr; Previous</a></li>'."\n");
+                echo('<li class="previous"><a href="'.$prev.'">&larr; '.__('Previous').'</a></li>'."\n");
             }
-            echo('<li><a href="'.$all.'">All ('.$this->position.' / '.count($this->lessons->modules).')</a></li>');
+            echo('<li><a href="'.$all.'">'.__('All').' ('.$this->position.' / '.count($this->lessons->modules).')</a></li>');
             if ( $this->position >= count($this->lessons->modules) ) {
-                echo('<li class="next disabled"><a href="#" onclick="return false;">&rarr; Next</a></li>'."\n");
+                echo('<li class="next disabled"><a href="#" onclick="return false;">&rarr; '.__('Next').'</a></li>'."\n");
             } else {
                 $next = $all . '/' . urlencode($this->lessons->modules[$this->position]->anchor);
-                echo('<li class="next"><a href="'.$next.'">&rarr; Next</a></li>'."\n");
+                echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
             }
             echo("</ul></div>\n");
             echo('<h1 property="oer:name">'.$module->title."</h1>\n");
@@ -353,7 +353,7 @@ class Lessons {
             echo("<ul>\n");
             if ( isset($module->slides) ) {
                 if ( count($module->slides) > 0 ) {
-                    echo('<li typeof="oer:SupportingMaterial">Slides:<ul>'."\n");
+                    echo('<li typeof="oer:SupportingMaterial">'.__('Slides').':<ul>'."\n");
                 }
                 foreach($module->slides as $slide ) {
                     if ( is_string($slide) ) {
@@ -400,7 +400,7 @@ class Lessons {
             }
             if ( isset($module->references) ) {
                 if ( count($module->references) > 0 ) {
-                    echo('<li typeof="oer:SupportingMaterial">References:<ul>'."\n");
+                    echo('<li typeof="oer:SupportingMaterial">'.__('References').':<ul>'."\n");
                 }
                 foreach($module->references as $reference ) {
                     if ( $nostyle ) {
@@ -421,7 +421,7 @@ class Lessons {
             // LTIs not logged in
             if ( isset($module->lti) && ! isset($_SESSION['secret']) ) {
                 $ltis = $module->lti;
-                if ( count($ltis) > 1 ) echo('<li typeof="oer:assessment">Tools:<ul> <!-- start of ltis -->'."\n");
+                if ( count($ltis) > 1 ) echo('<li typeof="oer:assessment">'.__('Tools').':<ul> <!-- start of ltis -->'."\n");
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     if ( $nostyle ) {
@@ -634,7 +634,7 @@ var disqus_config = function () {
             }
         }
         if ( isset($module->slides) ) {
-            $resources[] = self::makeUrlResource('slides','Slides: '.$module->title, $module->slides);
+            $resources[] = self::makeUrlResource('slides',__('Slides').': '.$module->title, $module->slides);
         }
         if ( isset($module->assignment) ) {
             $resources[] = self::makeUrlResource('assignment','Assignment Specification', $module->assignment);

@@ -86,3 +86,31 @@ msgstr "Registro insertado"
 #: lib/lms_lib.php:1430
 msgid "Save"
 msgstr "Conservar"
+
+#: Lessons
+msgid "Slides"
+msgstr "Diapositivas"
+
+#: Lessons
+msgid "References"
+msgstr "Referencias"
+
+#: Lessons
+msgid "Previous"
+msgstr "Espalda"
+
+#: Lessons
+msgid "All"
+msgstr "Todas"
+
+#: Lessons
+msgid "Next"
+msgstr "Siguiente"
+
+#: Lessons
+msgid "Tools"
+msgstr "Herramientas"
+
+
+
+

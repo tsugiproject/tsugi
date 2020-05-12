@@ -75,6 +75,7 @@ if ( !isset($CFG->unify) ) $CFG->unify = true;
 
 if ( !isset($CFG->apphome) ) $CFG->apphome = $CFG->wwwroot;
 
+if ( !isset($CFG->lang) ) $CFG->lang = false;
 if ( !isset($CFG->google_translate) ) $CFG->google_translate = false;
 
 if ( !isset($CFG->noncecheck) ) $CFG->noncecheck = 100;
