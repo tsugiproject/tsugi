@@ -122,9 +122,10 @@ class Output {
 
         if ( $HEAD_CONTENT_SENT === true ) return;
         header('Content-Type: text/html; charset=utf-8');
+        $lang = isset($CFG->lang) && $CFG->lang ? $CFG->lang : 'en';
         ob_start();
     ?><!DOCTYPE html>
-    <html>
+    <html lang="<?= $lang ?>">
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
