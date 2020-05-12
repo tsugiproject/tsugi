@@ -170,6 +170,9 @@ $CFG->upgrading = false;
 $CFG->servicename = 'TSUGI';
 $CFG->servicedesc = false;
 
+// Define the default language for the site
+$CFG->lang='en';
+
 // Information on the owner of this system and whether we
 // allow folks to request keys for the service
 $CFG->ownername = false;  // 'Charles Severance'
