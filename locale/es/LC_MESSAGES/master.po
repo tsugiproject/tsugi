@@ -97,7 +97,7 @@ msgstr "Referencias"
 
 #: Lessons
 msgid "Previous"
-msgstr "Espalda"
+msgstr "Anterior"
 
 #: Lessons
 msgid "All"
