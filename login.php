@@ -73,8 +73,12 @@ if ( isset($CFG->context_title) ) {
 }
 
 // Google Login Object
+$come_back = $CFG->wwwroot.'/login.php';
+if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
+    $come_back = $CFG->wwwroot.'/login';
+}
 $glog = new \Tsugi\Google\GoogleLogin($CFG->google_client_id,$CFG->google_client_secret,
-      $CFG->wwwroot.'/login.php',$CFG->wwwroot);
+      $come_back,$CFG->wwwroot);
 
 $errormsg = false;
 $success = false;

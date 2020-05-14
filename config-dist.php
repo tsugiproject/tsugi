@@ -185,12 +185,19 @@ $CFG->autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 // get the key and secret, and put them here:
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
+
+// This is a legacy backwards compatibility.   In the round-trip to Google it used to
+// come back login.php after login was successful - If this is true, we come back
+// to login (without the php) - se thtis to false to restore the old pattern
+$CFG->google_login_new = true;
+
 $CFG->google_translate = false;
 
 // Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
 $CFG->logout_return_url = false;
 // Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
 $CFG->login_return_url = false;
+
 
 // If these are not set, the auto expiration scripts in admin/expire
 // do nothing.  You can still manually expire data in the admin UI without
