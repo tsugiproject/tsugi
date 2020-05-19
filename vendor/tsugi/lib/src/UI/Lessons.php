@@ -644,6 +644,7 @@ var disqus_config = function () {
         }
         if ( isset($module->references) ) {
             foreach($module->references as $reference ) {
+                if ( !isset($reference->title) || ! isset($reference->href) ) continue;
                 $resources[] = self::makeUrlResource('reference',$reference->title, $reference->href);
             }
         }
