@@ -777,7 +777,6 @@ class LTIX {
         if ( $input === false ) $input = $_POST;
         $FIXED = array();
         foreach($input as $key => $value ) {
-            if (get_magic_quotes_gpc()) $value = stripslashes($value);
             if ( strpos($key, "custom_") === 0 ) {
                 $newkey = substr($key,7);
                 // Need to deal with custom_context_id=$Context.id

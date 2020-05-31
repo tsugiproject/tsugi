@@ -92,7 +92,6 @@ class Debug {
         print "Raw POST Parameters:\n\n";
         ksort($_POST);
         foreach($_POST as $key => $value ) {
-            if (get_magic_quotes_gpc()) $value = stripslashes($value);
             print "$key=$value (".mb_detect_encoding($value).")\n";
         }
         print "</pre>";
