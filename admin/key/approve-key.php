@@ -99,7 +99,7 @@ if ( isset($_POST['doApprove']) && isset($_POST['request_id']) ) {
         $message .= $CFG->wwwroot . "/settings/key/using\n\n";
         error_log("New LTI 1.x Key Inserted: $oauth_consumer_key User: ".$row['email']);
     } else {
-        die("LTI 2.x is no longer supported"):
+        die("LTI 2.x is no longer supported");
     }
 
     // Update the request row
