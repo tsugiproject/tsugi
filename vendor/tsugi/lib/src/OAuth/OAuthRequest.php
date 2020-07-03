@@ -55,7 +55,6 @@ class OAuthRequest {
       if ( get_magic_quotes_gpc() ) {
          $ourpost = array();
          foreach ($_POST as $k => $v) {
-            $v = stripslashes($v);
             $ourpost[$k] = $v;
          }
       }
