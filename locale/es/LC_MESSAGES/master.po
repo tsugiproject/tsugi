@@ -131,3 +131,28 @@ msgstr "Especificación de asignación"
 msgid "Chapters"
 msgstr "Capítulos"
 
+#: Menu
+msgid "Done"
+msgstr "Hecho"
+
+#: Menu
+msgid "Settings"
+msgstr "Configuraciones"
+
+#: Menu
+msgid "Admin"
+msgstr "Administrar"
+
+#: Menu
+msgid "Links"
+msgstr "Enlaces"
+
+#: Menu
+msgid "Login"
+msgstr "Iniciar sesión"
+
+#: Menu
+msgid "Logout"
+msgstr "Cerrar sesión"
+
+
