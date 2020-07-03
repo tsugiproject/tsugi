@@ -710,7 +710,7 @@ $('a').each(function (x) {
         global $CFG;
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
-        $set->setHome('Done', 'javascript:window.location.href=\''.urlencode($return_url).'\';');
+        $set->setHome(_m('Done'), 'javascript:window.location.href=\''.urlencode($return_url).'\';');
         return $set;
     }
 
@@ -718,7 +718,7 @@ $('a').each(function (x) {
         global $CFG;
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
-        $set->setHome('Done', 'javascript:window_close();');
+        $set->setHome(_m('Done'), 'javascript:window_close();');
         return $set;
     }
 
@@ -727,26 +727,26 @@ $('a').each(function (x) {
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
         $set->setHome($CFG->servicename, $CFG->apphome);
-        $set->addLeft('Tools', $R.'store');
+        $set->addLeft(_m('Tools'), $R.'store');
         if ( $this->session_get('id') ) {
-                $set->addLeft('Settings', $R . 'settings');
+                $set->addLeft(_m('Settings'), $R . 'settings');
         }
 
         if ( $this->session_get('id') ) {
             $submenu = new \Tsugi\UI\Menu();
-            $submenu->addLink('Profile', $R.'profile');
+            $submenu->addLink(_m('Profile'), $R.'profile');
             if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
-                $submenu->addLink('Admin', $R.'admin');
+                $submenu->addLink(_m('Admin'), $R.'admin');
             }
 
-            $submenu->addLink('Logout', $R.'logout');
+            $submenu->addLink(_m('Logout'), $R.'logout');
             $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);
         } else {
             if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
-                $set->addLeft('Admin', $R.'admin');
+                $set->addLeft(_m('Admin'), $R.'admin');
             }
             if ( $CFG->google_client_id ) {
-                $set->addRight('Login', $R.'login');
+                $set->addRight(_m('Login'), $R.'login');
             }
         }
 
@@ -756,7 +756,7 @@ $('a').each(function (x) {
             ->addLink('IMS LTI 2.0 Spec', 'http://www.imsglobal.org/lti/ltiv2p0/ltiIMGv2p0.html')
             ->addLink('Google Classroom', 'https://classroom.google.com/')
             ->addLink('Tsugi Project Site', 'https://www.tsugi.org/');
-        if ( $CFG->DEVELOPER) $set->addRight('Links', $submenu);
+        if ( $CFG->DEVELOPER) $set->addRight(_m('Links'), $submenu);
 
         return $set;
     }
