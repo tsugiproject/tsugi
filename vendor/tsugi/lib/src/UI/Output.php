@@ -825,8 +825,10 @@ $('a').each(function (x) {
         // Since canvas does not set launch_target properly
         } else if ( $launch_target !== false && ( $LAUNCH->isCanvas() || $LAUNCH->isCoursera() ) ) {
             $menu_set = self::closeMenuSet();
-        } else if ( $launch_return_url !== false ) {
+        } else if ( $launch_return_url !== false && strlen($launch_return_url) > 0 ) {
             $menu_set = self::returnMenuSet($launch_return_url);
+        } else {
+            $menu_set = self::closeMenuSet();
         }
 
         // Always put something out if we are an outer page - in an iframe, it will be hidden
