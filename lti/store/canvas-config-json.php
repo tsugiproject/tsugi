@@ -1,12 +1,9 @@
 <?php
 
 require_once "../../config.php";
+require_once "../../util/helpers.php";
 
 use Tsugi\Util\U;
-use phpseclib\Crypt\RSA;
-use Tsugi\Core\LTIX;
-
-LTIX::getConnection();
 
 // See the end of the file for some documentation references
 
@@ -49,26 +46,12 @@ $domain = isset($pieces['host']) ? $pieces['host'] : false;
 // https://github.com/nov/jose-php/blob/master/test/JOSE/JWK_Test.php
 
 // $z = new JOSE_JWK();
-$key = new RSA();
-$key->setPublicKey($pubkey);
 // var_dump(JOSE_JWK::encode($key));
 // echo("\n");
 // echo($pubkey);
 // echo("\n");
 
-$jwk = array(
-                    'kty' => 'RSA',
-                    'alg' => 'RS256',
-                    'e' => JOSE_URLSafeBase64::encode($key->publicExponent->toBytes()),
-                    'n' => JOSE_URLSafeBase64::encode($key->modulus->toBytes()),
-                    'kid' => LTIX::getKidForKey($pubkey),
-                    'use' => 'sig',
-                );
-                if ($key->exponent != $key->publicExponent) {
-                    $components = array_merge($components, array(
-                        'd' => JOSE_URLSafeBase64::encode($key->exponent->toBytes())
-                    ));
-                }
+$jwk = Helpers::build_jwk($pubkey);
 
 // echo(json_encode($jwk));
 // echo("\n");
