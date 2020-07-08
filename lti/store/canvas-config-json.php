@@ -58,9 +58,11 @@ $key->setPublicKey($pubkey);
 
 $jwk = array(
                     'kty' => 'RSA',
+                    'alg' => 'RS256',
                     'e' => JOSE_URLSafeBase64::encode($key->publicExponent->toBytes()),
                     'n' => JOSE_URLSafeBase64::encode($key->modulus->toBytes()),
                     'kid' => LTIX::getKidForKey($pubkey),
+                    'use' => 'sig',
                 );
                 if ($key->exponent != $key->publicExponent) {
                     $components = array_merge($components, array(
