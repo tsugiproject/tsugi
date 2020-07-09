@@ -368,7 +368,8 @@ class LTI13 {
         ];
 
         // echo("\n---\n$lineitem_url\n-----\n");
-        $actual_url = $lineitem_url."/scores";
+        $pos = strpos($lineitem_url, '?');
+        $actual_url = $pos === false ? $lineitem_url . '/scores' : substr_replace($lineitem_url, '/scores', $pos, 0);
         curl_setopt($ch, CURLOPT_URL, $actual_url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($grade_call));
