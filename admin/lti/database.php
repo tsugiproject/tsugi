@@ -30,7 +30,8 @@ $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}lti_issuer",
 "create table {$CFG->dbprefix}lti_issuer (
     issuer_id           INTEGER NOT NULL AUTO_INCREMENT,
-    issuer_sha256       CHAR(64) NOT NULL,
+    issuer_sha256       CHAR(64) NULL,  -- Will become obsolete
+    issuer_guid         CHAR(36) NOT NULL,  -- Our local GUID
     issuer_key          TEXT NOT NULL,  -- iss from the JWT
     issuer_client       TEXT NOT NULL,  -- aud from the JWT
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
@@ -58,9 +59,12 @@ array( "{$CFG->dbprefix}lti_issuer",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
-    CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_1` UNIQUE(issuer_sha256),
-    CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_pk` PRIMARY KEY (issuer_id)
+    CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_pk` PRIMARY KEY (issuer_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_guid` UNIQUE (issuer_guid)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// Removed in issuer refactor
+//    CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_1` UNIQUE(issuer_sha256),
 
 // https://stackoverflow.com/questions/28418360/jwt-json-web-token-audience-aud-versus-client-id-whats-the-difference
 
@@ -818,7 +822,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
 
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key DROP CONSTRAINT `{$CFG->dbprefix}lti_key_ibfk_1`";
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key DROP KEY `{$CFG->dbprefix}lti_key_ibfk_1`";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
@@ -967,6 +971,34 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
     }
+
+    // Add the issuer_guid field
+    if ( ! $PDOX->columnExists('issuer_guid', "{$CFG->dbprefix}lti_issuer") ) {
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_issuer ADD issuer_guid CHAR(36) NULL DEFAULT '42'";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+        $sql= "UPDATE {$CFG->dbprefix}lti_issuer SET issuer_guid=(SELECT UUID()) WHERE issuer_guid='42'";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_issuer ADD
+                   CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_guid`
+                   UNIQUE (`issuer_guid`)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+        // CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_1` UNIQUE(issuer_sha256),
+        $sql= "ALTER TABLE {$CFG->dbprefix}lti_issuer DROP KEY `{$CFG->dbprefix}lti_issuer_const_1`";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+
+    }
+
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
