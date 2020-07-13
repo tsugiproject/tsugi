@@ -131,7 +131,9 @@ if ( ! $json ) {
 header("Content-type: application/json");
 
 $json->title = $CFG->servicename;
-$json->description = $CFG->servicedesc;
+if ( $CFG->servicedesc ) {
+    $json->description = $CFG->servicedesc;
+}
 $json->public_jwk = $jwk;
 
 // TODO: Fix this
