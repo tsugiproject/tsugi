@@ -12,6 +12,7 @@ require_once "../config.php";
 // target_link_uri and lti_message_hint are not required by Tsugi
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
+$issuer_guid = U::get($_REQUEST, 'guid');
 
 // echo("<pre>\n");var_dump($_REQUEST); LTIX::abort_with_error_log();
 
@@ -29,12 +30,18 @@ $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 error_log("iss=".$iss." sha256=".$key_sha256);
 
+if($issuer_guid){
+    $query_where = "WHERE issuer_sha256 = :SHA AND issuer_guid = :issuer_guid AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
+    $query_where_params = array(":SHA" => $key_sha256, ":issuer_guid" => $issuer_guid);
+}else{
+    $query_where = "WHERE issuer_sha256 = :SHA AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
+    $query_where_params = array(":SHA" => $key_sha256);
+}
+
 $row = $PDOX->rowDie(
     "SELECT issuer_client, lti13_oidc_auth
-    FROM {$CFG->dbprefix}lti_issuer
-    WHERE issuer_sha256 = :SHA AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL",
-    array(":SHA" => $key_sha256)
-);
+    FROM {$CFG->dbprefix}lti_issuer $query_where", 
+    $query_where_params);
 
 if ( ! is_array($row) || count($row) < 1 ) {
     LTIX::abort_with_error_log('Unknown or improper iss');
