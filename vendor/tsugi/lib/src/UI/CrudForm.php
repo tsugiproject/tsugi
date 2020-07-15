@@ -53,8 +53,9 @@ class CrudForm {
      * @param $fields An array of fields to prompt for.
      * @param $from_location A URL to jump to when the user presses 'Cancel'.
      * @param $titles An array of fields->titles
+     * @param $fields_defaults An array of fields>default values
      */
-    public static function insertForm($fields, $from_location, $titles=false) {
+    public static function insertForm($fields, $from_location, $titles=false, $fields_defaults=false) {
         echo('<form method="post">'."\n");
 
         for($i=0; $i < count($fields); $i++ ) {
@@ -71,7 +72,7 @@ class CrudForm {
                 echo('<input id="'.$field.'" type="password" autocomplete="off" size="80" name="'.$field.'"');
                 echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
             } else {
-                echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'">'."\n");
+                echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'"'.(!empty($fields_defaults)?' value="'.htmlent_utf8(self::valueToField($field, $fields_defaults)).'"':'').'>'."\n");
             }
             echo("</label>\n</div>");
         }
@@ -385,6 +386,16 @@ class CrudForm {
     public static function fieldToTitle($name, $titles=false) {
         if ( is_array($titles) && U::get($titles, $name) ) return U::get($titles, $name);
         return ucwords(str_replace('_',' ',$name));
+    }
+
+    /**
+     * Maps a default value to a field.
+     * 
+     * @return string
+     */
+    public static function valueToField($name, $values=false) {
+        if ( is_array($values) && U::get($values, $name) ) return U::get($values, $name);
+        return '';
     }
 
     /**
