@@ -91,13 +91,13 @@ CrudForm::insertForm($fields, $from_location, $titles);
 <?php
 $OUTPUT->footerStart();
 
-$sql = "SELECT issuer_id, issuer_key
+$sql = "SELECT issuer_id, issuer_key, issuer_guid
         FROM {$CFG->dbprefix}lti_issuer";
 $rows = $PDOX->allRowsDie($sql);
 
 $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Issuer Selected</option>";
 foreach($rows as $row) {
-    $select_text .= '<option value="'.$row['issuer_id'].'">'.htmlentities($row['issuer_key'])."</option>";
+    $select_text .= '<option value="'.$row['issuer_id'].'">'.htmlentities($row['issuer_key']. ' ('.$row['issuer_guid'].')')."</option>";
 }
 $select_text .= "</select>";
 ?>
