@@ -87,11 +87,11 @@ if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
 }
 
 if ( ! $inedit && U::get($row, 'issuer_id') > 0 ) {
-    $issuer_row = $PDOX->rowDie("SELECT issuer_key FROM {$CFG->dbprefix}lti_issuer WHERE issuer_id = :issuer_id",
+    $issuer_row = $PDOX->rowDie("SELECT issuer_key, issuer_guid FROM {$CFG->dbprefix}lti_issuer WHERE issuer_id = :issuer_id",
         array(':issuer_id' => U::get($row, 'issuer_id'))
     );
     if ( $issuer_row ) {
-        $row['issuer_id'] = $issuer_row['issuer_key'];
+        $row['issuer_id'] = $issuer_row['issuer_key'].' ('.$issuer_row['issuer_guid'].')';
     }
 }
 
@@ -132,14 +132,14 @@ LTI Advantage legacy LTI 1.1 support.
 $OUTPUT->footerStart();
 
 if ( $inedit ) {
-    $sql = "SELECT issuer_id, issuer_key
+    $sql = "SELECT issuer_id, issuer_key, issuer_guid
         FROM {$CFG->dbprefix}lti_issuer";
     $issuer_rows = $PDOX->allRowsDie($sql);
 
     $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Issuer Selected</option>";
     foreach($issuer_rows as $issuer_row) {
         $selected = $row['issuer_id'] == $issuer_row['issuer_id'] ? ' selected ' : '';
-        $select_text .= '<option value="'.$issuer_row['issuer_id'].'"'.$selected.'>'.htmlentities($issuer_row['issuer_key'])."</option>";
+        $select_text .= '<option value="'.$issuer_row['issuer_id'].'"'.$selected.'>'.htmlentities($issuer_row['issuer_key']. ' ('.$issuer_row['issuer_guid'].')')."</option>";
     }
     $select_text .= "</select>";
     echo(htmlentities($select_text));
