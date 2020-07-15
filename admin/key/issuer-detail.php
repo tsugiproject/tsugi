@@ -26,16 +26,17 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('issuer_id', 'issuer_key', 'issuer_client',
+$fields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_guid',
      'lti13_keyset_url', 'lti13_token_url', 'lti13_token_audience', 'lti13_oidc_auth', 'lti13_platform_pubkey',
      'lti13_pubkey', 'lti13_privkey', 'lti13_tool_keyset_url', 'lti13_canvas_json_url',
      'created_at', 'updated_at');
-$realfields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_sha256',
+$realfields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_guid', 'issuer_sha256',
      'lti13_keyset_url', 'lti13_token_url', 'lti13_token_audience', 'lti13_oidc_auth', 'lti13_platform_pubkey',
      'lti13_pubkey', 'lti13_privkey', 'created_at', 'updated_at');
 
 $titles = array(
     'issuer_client' => 'LTI 1.3 Client ID (from the Platform)',
+    'issuer_guid' => 'LTI 1.3 Unique Issuer GUID',
     'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
     'lti13_token_audience' => 'LTI 1.3 Platform OAuth2 Bearer Token Audience Value (optional - from the platform)',
@@ -55,6 +56,17 @@ $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     header('Location: '.$from_location);
     return;
+}
+
+$show_guid = true;
+//Show guid if applicable.
+if ((!isset($row['issuer_guid']) || empty($row['issuer_guid'])) || !isGUIDValid($row['issuer_guid'])) {
+    /*$arrKey = array_search('issuer_guid', $fields);
+    if ($arrKey !== false) {
+        unset($fields[$arrKey]);
+    }*/
+    $fields = array_merge(array_diff($fields, array('issuer_guid')));
+    $show_guid = false;
 }
 
 $OUTPUT->header();
@@ -79,7 +91,7 @@ echo("</p>\n");
 <p>
 These URLs need to be in your LMS configuration associated with this Issuer/Client ID.
 <pre>
-LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login
+LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login<?= ($show_guid ? '/'.$row['issuer_guid']: '')."\n" ?>
 LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
 </pre>
 </p>
@@ -114,6 +126,8 @@ $('#lti13_platform_pubkey_label').append('<button onclick="copyToClipboard(\'lti
 $('#lti13_pubkey').css('white-space', 'pre').css('font-family', 'monospace');
 $('#lti13_pubkey_label').append('<button onclick="copyToClipboard(\'lti13_pubkey\');return false;">Copy</button>');
 $('#lti13_privkey').css('white-space', 'pre').css('font-family', 'monospace');
+// Make GUID as readonly
+$('#issuer_guid').attr('readonly', 'readonly');
 </script>
 <?php
 $OUTPUT->footerEnd();

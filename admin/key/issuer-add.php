@@ -21,7 +21,7 @@ if ( ! isAdmin() ) {
 
 $from_location = "issuers";
 $tablename = "{$CFG->dbprefix}lti_issuer";
-$fields = array("issuer_key", "issuer_client", "issuer_sha256",
+$fields = array("issuer_key", "issuer_client", "issuer_guid", "issuer_sha256",
     "lti13_keyset_url", "lti13_token_url", "lti13_token_audience", "lti13_oidc_auth",
     "lti13_pubkey", "lti13_privkey",
     "created_at", "updated_at");
@@ -29,6 +29,7 @@ $fields = array("issuer_key", "issuer_client", "issuer_sha256",
 $titles = array(
     'issuer_key' => 'LTI 1.3 Issuer (from the Platform)',
     'issuer_client' => 'LTI 1.3 Client ID (from the Platform)',
+    'issuer_guid' => 'LTI 1.3 Unique Issuer GUID',
     'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
     'lti13_token_audience' => 'LTI 1.3 Platform OAuth2 Bearer Token Audience Value (optional - from the platform)',
@@ -58,7 +59,11 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
-
+// Create a new GUID
+$guid = createGUID();
+$fields_defaults = array(
+    'issuer_guid' => $guid
+);
 ?>
 <h1>
 <img src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo-square.png" style="float:right; width:48px;">
@@ -68,7 +73,8 @@ For LTI 1.3, you need to enter these URLs in your LMS configuration
 associated with this Issuer/Client ID.
 <pre>
 LTI Content Item / Deep Link Endpoint: <?= $CFG->wwwroot ?>/lti/store/
-LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login
+LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login/<?= $guid ?>
+
 LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
 LTI 1.3 Tool Keyset URL (optional):
 <?= $CFG->wwwroot ?>/lti/keyset     (contains all keys)
@@ -84,11 +90,17 @@ for this ussuer will will be shown after you create and view the issuer.
 <p>
 <?php
 
-CrudForm::insertForm($fields, $from_location, $titles);
+CrudForm::insertForm($fields, $from_location, $titles, $fields_defaults);
 
 ?>
 </p>
 <?php
 
-$OUTPUT->footer();
-
+$OUTPUT->footerStart();
+?>
+<script>
+// Make GUID as readonly
+$('#issuer_guid').attr('readonly', 'readonly');
+</script>
+<?php
+$OUTPUT->footerEnd();
