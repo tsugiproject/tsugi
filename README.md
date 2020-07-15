@@ -72,7 +72,7 @@ own Tsugi Module.
 * [Tsugi Developer Exercises](https://github.com/tsugiproject/tsugi-php-exercises) - This
 is a set of exercises of increasing difficulty suitable for a class or
 workshop.  Working solutions are provided online.  Source code for working solutions
-is only available to inctructors that contact Dr. Chuck.
+is only available to instructors that contact Dr. Chuck.
 
 * [Sample Tsugi Module](https://github.com/tsugiproject/tsugi-php-module) - Copy
 this if you want to start a fresh Tsugi Module from scratch.  If you are building
