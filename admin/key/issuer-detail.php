@@ -26,7 +26,7 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('issuer_id', 'issuer_key', 'issuer_client',
+$fields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_guid',
      'lti13_keyset_url', 'lti13_token_url', 'lti13_token_audience', 'lti13_oidc_auth', 'lti13_platform_pubkey',
      'lti13_pubkey', 'lti13_privkey', 'lti13_tool_keyset_url', 'lti13_canvas_json_url',
      'created_at', 'updated_at');
@@ -58,11 +58,15 @@ if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     return;
 }
 
-$show_guid = false;
+$show_guid = true;
 //Show guid if applicable.
-if (isset($row['issuer_guid']) && !empty($row['issuer_guid']) && isGUIDValid($row['issuer_guid'])) {
-    $fields[] = 'issuer_guid';
-    $show_guid = true;
+if ((!isset($row['issuer_guid']) || empty($row['issuer_guid'])) || !isGUIDValid($row['issuer_guid'])) {
+    /*$arrKey = array_search('issuer_guid', $fields);
+    if ($arrKey !== false) {
+        unset($fields[$arrKey]);
+    }*/
+    $fields = array_merge(array_diff($fields, array('issuer_guid')));
+    $show_guid = false;
 }
 
 $OUTPUT->header();
