@@ -82,7 +82,8 @@ $title = 'Issuer Entry';
 <?php
 $extra_buttons=false;
 $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer=' . urlencode($row['issuer_key']);
-$row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer=' . urlencode($row['issuer_key']);
+//$row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer=' . urlencode($row['issuer_key']);
+$row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_id=' . urlencode($row['issuer_id']);
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");

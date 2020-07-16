@@ -21,8 +21,8 @@ if ( $issuer ) {
         array(":ISH" => $issuer_sha256)
     );
 } else if ( $issuer_id > 0 ) {
-    $rows = $PDOX->rowDie(
-        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
+    $row = $PDOX->rowDie(
+        "SELECT * FROM {$CFG->dbprefix}lti_issuer
             WHERE issuer_id = :IID AND lti13_pubkey IS NOT NULL",
         array(":IID" => $issuer_id)
     );
@@ -140,7 +140,7 @@ $json->public_jwk = $jwk;
 $json->target_link_uri = $CFG->wwwroot . "/lti/42_wtf_this_is_silly_when_there_are_placements";
 
 $json->oidc_redirect_url = $CFG->wwwroot . "/lti/oidc_launch";
-$json->oidc_initiation_url = $CFG->wwwroot . "/lti/oidc_login";
+$json->oidc_initiation_url = $CFG->wwwroot . "/lti/oidc_login/".$row['issuer_guid'];
 $json->extensions[0]->domain = $domain;
 $json->extensions[0]->tool_id = md5($CFG->wwwroot);
 $json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
