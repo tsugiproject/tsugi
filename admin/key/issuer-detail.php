@@ -81,9 +81,14 @@ $title = 'Issuer Entry';
 <?= $title ?></h1>
 <?php
 $extra_buttons=false;
-$row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer=' . urlencode($row['issuer_key']);
-//$row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer=' . urlencode($row['issuer_key']);
-$row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_id=' . urlencode($row['issuer_id']);
+// If we have a valid GUID
+if ($show_guid) {
+    $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer_guid=' . urlencode($row['issuer_guid']);
+    $row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($row['issuer_guid']);
+} else {
+    $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer=' . urlencode($row['issuer_key']);
+    $row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer=' . urlencode($row['issuer_key']);
+}
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
@@ -128,7 +133,9 @@ $('#lti13_pubkey').css('white-space', 'pre').css('font-family', 'monospace');
 $('#lti13_pubkey_label').append('<button onclick="copyToClipboard(\'lti13_pubkey\');return false;">Copy</button>');
 $('#lti13_privkey').css('white-space', 'pre').css('font-family', 'monospace');
 // Make GUID as readonly
-$('#issuer_guid').attr('readonly', 'readonly');
+if ($('#issuer_guid').length) {
+    $('#issuer_guid').attr('readonly', 'readonly');
+}
 </script>
 <?php
 $OUTPUT->footerEnd();
