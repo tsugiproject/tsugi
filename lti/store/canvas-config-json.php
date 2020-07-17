@@ -145,7 +145,7 @@ if ( $CFG->servicedesc ) {
 $json->public_jwk = $jwk;
 
 // TODO: Fix this
-$json->target_link_uri = $CFG->wwwroot . "/lti/42_wtf_this_is_silly_when_there_are_placements";
+$json->target_link_uri = $CFG->wwwroot . "/lti/this_url_is_a_placeholder_when_there_are_placements";
 
 $json->oidc_redirect_url = $CFG->wwwroot . "/lti/oidc_launch";
 $json->oidc_initiation_url = $CFG->wwwroot . "/lti/oidc_login".(isset($row['issuer_guid']) ? "/".$row['issuer_guid'] : '');
