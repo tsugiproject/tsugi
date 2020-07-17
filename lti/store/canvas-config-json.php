@@ -158,5 +158,7 @@ for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
         urlencode($json->extensions[0]->settings->placements[$i]->placement);
     $json->extensions[0]->settings->placements[$i]->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 }
-
+// removing placements for now.
+unset($json->extensions[0]->settings->placements);
+$json->extensions[0]->settings->placements = [];
 echo(json_encode($json, JSON_PRETTY_PRINT));
