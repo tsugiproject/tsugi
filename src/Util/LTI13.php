@@ -346,8 +346,14 @@ class LTI13 {
 
         $ch = curl_init();
 
-        $grade = $grade * 100.0;
-        $grade = (int) $grade;
+        // An empty grade is considered a "delete" request
+        // Per Eric Preston, since we are overloading update - comments should work with null grades
+        if ( strlen($grade) > 0 ) {
+            $grade = $grade * 100.0;
+            $grade = (int) $grade;
+        } else {
+            $grade = null;
+        }
 
         // user_id comes from the "sub" in the JWT launch
         $grade_call = [
