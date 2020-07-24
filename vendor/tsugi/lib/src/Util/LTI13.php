@@ -347,14 +347,6 @@ class LTI13 {
         $ch = curl_init();
 
         // An empty grade is considered a "delete" request
-        // Per Eric Preston, since we are overloading update - comments should work with null grades
-        if ( strlen($grade) > 0 ) {
-            $grade = $grade * 100.0;
-            $grade = (int) $grade;
-        } else {
-            $grade = null;
-        }
-
         // user_id comes from the "sub" in the JWT launch
         $grade_call = [
             // "timestamp" => "2017-04-16T18:54:36.736+00:00",
