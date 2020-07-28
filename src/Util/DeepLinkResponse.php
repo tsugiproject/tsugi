@@ -65,6 +65,7 @@ $text='{
      * @param $custom An optional array of custom key / value pairs
      * @param $points The number of points if this is an assignment
      * @param $activityId The activity for the item
+     * @param array $additionalParms A key/value array of additional values to send
      *
      */
     public function addLtiLinkItem($url, $title=false, $text=false,
@@ -84,13 +85,9 @@ $text='{
             'activityId' => $activityId,
         );
 
-        // package the parameter list into an array for the helper function
-        if (! empty($additionalParams['placementTarget']))
-            $params['placementTarget'] = $additionalParams['placementTarget'];
-        if (! empty($additionalParams['placementWidth']))
-            $params['placementWidth'] = $additionalParams['placementWidth'];
-        if (! empty($additionalParams['placementHeight']))
-            $params['placementHeight'] = $additionalParams['placementHeight'];
+        if ( is_array($additionalParams) ) {
+            $params = array_merge($additionalParams, $params);
+        }
 
         $this->addLtiLinkItemExtended($params);
     }
@@ -151,6 +148,13 @@ $text='{
                 "resourceId": "xyzpdq1234",
                 "tag": "originality"
             },
+            "available": {
+                "startDateTime": "2018-02-06T20:05:02Z",
+                "endDateTime": "2018-03-07T20:05:02Z"
+            },
+            "submission": {
+                "endDateTime": "2018-03-06T20:05:02Z"
+            },
             "custom": {
                 "quiz_id": "az-123",
                 "duedate": "$Resource.submission.endDateTime"
@@ -162,7 +166,7 @@ $text='{
                 "height": 800,
                 "height": 600
             }
-       }';
+        }';
 
         $json = json_decode($item);
         $json->url = $params['url'];
@@ -183,6 +187,21 @@ $text='{
             unset($json->lineItem);
         }
 
+        unset($json->available);
+        unset($json->submission);
+
+        if ( U::get($params, "availableStart") || U::get($params, "availableEnd") ) {
+            $available = new \stdClass();
+            if ( U::get($params, "availableStart") ) $available->startDateTime = U::get($params, "availableStart");
+            if ( U::get($params, "availableEnd"  ) ) $available->endDateTime   = U::get($params, "availableEnd");
+            $json->available = $availble;
+        }
+
+        if ( U::get($params, "submissionEnd") ) {
+            $submission = new \stdClass();
+            $submission->startDateTime = U::get($params, "submissionEnd");
+            $json->submission = $submission;
+        }
         unset($json->window);
         unset($json->iframe);
 
