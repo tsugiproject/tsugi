@@ -158,13 +158,10 @@ class ContentItem {
             'points' => $points,
             'activityId' => $activityId,
         );
-        // package the parameter list into an array for the helper function
-        if (! empty($additionalParams['placementTarget']))
-            $params['placementTarget'] = $additionalParams['placementTarget'];
-        if (! empty($additionalParams['placementWidth']))
-            $params['placementWidth'] = $additionalParams['placementWidth'];
-        if (! empty($additionalParams['placementHeight']))
-            $params['placementHeight'] = $additionalParams['placementHeight'];
+
+        if ( is_array($additionalParams) ) {
+            $params = array_merge($additionalParams, $params);
+        }
 
         $this->addLtiLinkItemExtended($params);
     }
@@ -203,6 +200,7 @@ class ContentItem {
         if (empty($params['placementHeight']))
             $params['placementHeight'] = '';
 
+        // https://www.imsglobal.org/lti/model/uml/purl.imsglobal.org/vocab/lti/v1/ci/index.html
         $item = '{ "@type" : "LtiLinkItem",
                     "@id" : ":item2",
                     "title" : "A cool tool hosted in the Tsugi environment.",
