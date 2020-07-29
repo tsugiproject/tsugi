@@ -149,11 +149,12 @@ $text='{
                 "tag": "originality"
             },
             "available": {
-                "startDateTime": "2018-02-06T20:05:02Z",
-                "endDateTime": "2018-03-07T20:05:02Z"
+                "startDateTime": "2020-07-23T20:05:02Z",
+                "endDateTime": "2020-08-25T20:05:02Z"
             },
             "submission": {
-                "endDateTime": "2018-03-06T20:05:02Z"
+                "startDateTime": "2020-07-24T20:05:02Z",
+                "endDateTime": "2020-08-24T20:05:02Z"
             },
             "custom": {
                 "quiz_id": "az-123",
@@ -194,7 +195,7 @@ $text='{
             $available = new \stdClass();
             if ( U::get($params, "availableStart") ) $available->startDateTime = U::get($params, "availableStart");
             if ( U::get($params, "availableEnd"  ) ) $available->endDateTime   = U::get($params, "availableEnd");
-            $json->available = $availble;
+            $json->available = $available;
         }
 
         if ( U::get($params, "submissionEnd") ) {
