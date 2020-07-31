@@ -802,6 +802,9 @@ $('a').each(function (x) {
         global $CFG, $LAUNCH;
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
         $launch_return_url = $LAUNCH->ltiRawParameter('launch_presentation_return_url', false);
+        // Ways to know if this was a launch or are we stand alone
+        $user_id = $LAUNCH->ltiRawParameter('user_id', false);
+        $oauth_nonce = $LAUNCH->ltiRawParameter('oauth_nonce', false);
 
         $same_host = false;
         if ( $CFG->apphome && startsWith($launch_return_url, $CFG->apphome) ) $same_host = true;
@@ -827,6 +830,9 @@ $('a').each(function (x) {
             $menu_set = self::closeMenuSet();
         } else if ( $launch_return_url !== false && strlen($launch_return_url) > 0 ) {
             $menu_set = self::returnMenuSet($launch_return_url);
+        // We are running stand alone (i.e. not from a real LTI Launch)
+        } else if ( $user_id === false ) {
+            $menu_set = self::defaultMenuSet();
         } else {
             $menu_set = self::closeMenuSet();
         }
