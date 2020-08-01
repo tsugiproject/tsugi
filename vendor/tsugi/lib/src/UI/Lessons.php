@@ -51,12 +51,6 @@ class Lessons {
     public function header($buffer=false) {
         global $CFG;
         ob_start();
-        // See is there are any carousels in the lessons
-        $carousel = false;
-        foreach($this->lessons->modules as $module) {
-            if ( isset($module->carousel) ) $carousel = true;
-        }
-        if ( $carousel ) {
 ?>
 <style>
     .card {
@@ -84,6 +78,14 @@ class Lessons {
       z-index: 100;
 }
 </style>
+<?php
+        // See if there are any carousels in the lessons
+        $carousel = false;
+        foreach($this->lessons->modules as $module) {
+            if ( isset($module->carousel) ) $carousel = true;
+        }
+        if ( $carousel ) {
+?>
 <link rel="stylesheet" href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css" type="text/css"/>
 <?php
         }
