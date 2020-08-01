@@ -498,14 +498,25 @@ class Lessons {
                 $count = 0;
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
-                    echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('LTI Required').') <br/>'."\n");
-                    $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
-                    if ( isset($_SESSION['gc_count']) ) {
-                        echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$lti->resource_link_id);
-                        echo('" title="Install Assignment in Classroom" target="iframe-frame"'."\n");
-                        echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
-                        echo('<img height=16 width=16 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+
+                    if ( $nostyle ) {
+                        echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
+                        $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
+                        echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
+                        if ( isset($_SESSION['gc_count']) ) {
+                            echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$lti->resource_link_id);
+                            echo('" title="Install Assignment in Classroom" target="iframe-frame"'."\n");
+                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
+                            echo('<img height=16 width=16 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+                        }
+                        echo("\n</li>\n");
+                        continue;
                     }
+
+                    $rest_path = U::rest_path();
+                    $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $lti->resource_link_id;
+                    $title = isset($lti->title) ? $lti->title : "Autograder";
+                    echo('<li class="tsugi-lessons-module-lti"><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
                     echo("\n</li>\n");
                 }
 
