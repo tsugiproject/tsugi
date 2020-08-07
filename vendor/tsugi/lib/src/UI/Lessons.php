@@ -36,9 +36,19 @@ class Lessons {
     public $resource_links;
 
     /**
+     * get a setting for the lesson
+     */
+    public function getSetting($key, $default=false) {
+        if ( ! isset($this->lessons) ) return $default;
+        if ( ! isset($this->lessons->settings) ) return $default;
+        if ( ! isset($this->lessons->settings->{$key}) ) return $default;
+        return $this->lessons->settings->{$key};
+    }
+
+    /**
      * emit the header material
      */
-    public static function header($buffer=false) {
+    public function header($buffer=false) {
         global $CFG;
         ob_start();
 ?>
@@ -68,8 +78,32 @@ class Lessons {
       z-index: 100;
 }
 </style>
+<?php
+        // See if there are any carousels in the lessons
+        $carousel = false;
+        foreach($this->lessons->modules as $module) {
+            if ( isset($module->carousel) ) $carousel = true;
+        }
+        if ( $carousel ) {
+?>
 <link rel="stylesheet" href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css" type="text/css"/>
 <?php
+        }
+        if ( isset($this->lessons->headers) && is_array($this->lessons->headers) ) {
+            foreach($this->lessons->headers as $header) {
+                $search = array(
+                    "{apphome}",
+                    "{wwwroot}",
+                );
+                $replace = array(
+                    $CFG->apphome,
+                    $CFG->wwwroot,
+                );
+                $header = str_replace($search, $replace, $header);
+                echo($header);
+                echo("\n");
+            }
+        }
         $ob_output = ob_get_contents();
         ob_end_clean();
         if ( $buffer ) return $ob_output;
@@ -133,6 +167,7 @@ class Lessons {
 
         // Pretty up the data structure
         for($i=0;$i<count($this->lessons->modules);$i++) {
+            if ( isset($this->lessons->modules[$i]->carousel) ) self::adjustArray($this->lessons->modules[$i]->carousel);
             if ( isset($this->lessons->modules[$i]->videos) ) self::adjustArray($this->lessons->modules[$i]->videos);
             if ( isset($this->lessons->modules[$i]->references) ) self::adjustArray($this->lessons->modules[$i]->references);
             if ( isset($this->lessons->modules[$i]->slides) ) self::adjustArray($this->lessons->modules[$i]->slides);
@@ -280,6 +315,19 @@ class Lessons {
     }
 
     /*
+     * A Nostyle URL Link with title as the href text
+     */
+    public static function nostyleLink($title, $url) {
+        echo('<a href="'.$url.'" target="_blank" class="tsugi-lessons-link" typeof="oer:SupportingMaterial">'.htmlentities($title)."</a>\n");
+        if ( isset($_SESSION['gc_count']) ) {
+            echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
+	    echo(' data-title="'.htmlentities($title).'" ');
+	    echo('></div>');
+        }
+    }
+
+
+    /*
      * render a lesson
      */
     public function renderSingle($buffer=false) {
@@ -305,7 +353,13 @@ class Lessons {
 </div>
 <?php
         }
-            echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
+            if ( $this->getSetting('prev-next') == "right" ) {
+                echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
+            } else if ( $this->getSetting('prev-next') == "left" ) {
+                echo('<div typeof="oer:Lesson" style="float:left; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
+            } else {
+                echo('<div typeof="oer:Lesson" style="padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
+            }
             $disabled = ($this->position == 1) ? ' disabled' : '';
             $all = U::get_rest_parent();
             if ( $this->position == 1 ) {
@@ -322,17 +376,17 @@ class Lessons {
                 echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
             }
             echo("</ul></div>\n");
-            echo('<h1 property="oer:name">'.$module->title."</h1>\n");
+            echo('<h1 property="oer:name" class="tsugi-lessons-module-title">'.$module->title."</h1>\n");
             $lessonurl = $CFG->apphome . U::get_rest_path();
             if ( $nostyle ) {
                 self::nostyleUrl($module->title, $lessonurl);
                 echo("<hr/>\n");
             }
 
-            if ( isset($module->videos) ) {
-                $videos = $module->videos;
+            if ( isset($module->carousel) ) {
+                $carousel = $module->carousel;
                 echo($nostyle ? 'Videos: <ul>' : '<ul class="bxslider">'."\n");
-                foreach($videos as $video ) {
+                foreach($carousel as $video ) {
                     echo('<li>');
                     if ( $nostyle ) {
                         echo(htmlentities($video->title)."<br/>");
@@ -347,14 +401,29 @@ class Lessons {
             }
 
             if ( isset($module->description) ) {
-                echo('<p property="oer:description">'.$module->description."</p>\n");
+                echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
             }
 
             echo("<ul>\n");
-            if ( isset($module->slides) ) {
-                if ( count($module->slides) > 0 ) {
-                    echo('<li typeof="oer:SupportingMaterial">'.__('Slides').':<ul>'."\n");
+
+            if ( isset($module->videos) ) {
+                $videos = $module->videos;
+                echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-videos">');
+                echo(__('Videos:'));
+                echo('<ul class="tsugi-lessons-module-videos-ul">'."\n");
+                foreach($videos as $video ) {
+                    echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
+                    $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
+                    self::nostyleLink($video->title, $yurl);
+                    echo('</li>');
                 }
+                echo("</ul></li>\n");
+            }
+
+            if ( isset($module->slides) ) {
+                echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slides">');
+                echo(__('Slides:'));
+                echo('<ul class="tsugi-lessons-module-slides-ul">'."\n");
                 foreach($module->slides as $slide ) {
                     if ( is_string($slide) ) {
                         $slide_title = basename($slide);
@@ -363,15 +432,9 @@ class Lessons {
                         $slide_title = $slide->title ;
                         $slide_href = $slide->href ;
                     }
-                    if ( $nostyle ) {
-                        echo('<li typeof="oer:SupportingMaterial">');
-                        echo(htmlentities($slide_title).' ');
-                        self::nostyleUrl($slide_title, $slide_href);
-                        echo('</li>'."\n");
-                    } else {
-                        echo('<li typeof="oer:SupportingMaterial"><a href="'.$slide_href.'" target="_blank">'.
-                            $slide_title."</a></li>\n");
-                    }
+                    echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slide">');
+                    self::nostyleLink($slide_title, $slide_href);
+                    echo('</li>'."\n");
                 }
                 if ( count($module->slides) > 0 ) {
                     echo("</ul></li>\n");
@@ -399,41 +462,29 @@ class Lessons {
                 }
             }
             if ( isset($module->references) ) {
-                if ( count($module->references) > 0 ) {
-                    echo('<li typeof="oer:SupportingMaterial">'.__('References').':<ul>'."\n");
-                }
+                echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-references">');
+                echo(__('References:'));
+                echo('<ul class="tsugi-lessons-module-references-ul">'."\n");
                 foreach($module->references as $reference ) {
-                    if ( $nostyle ) {
-                        echo('<li typeof="oer:SupportingMaterial">');
-                        echo(htmlentities($reference->title).' ');
-                        self::nostyleUrl($reference->title, $reference->href);
-                        echo('</li>'."\n");
-                    } else {
-                        echo('<li typeof="oer:SupportingMaterial"><a href="'.$reference->href.'" target="_blank">'.
-                            $reference->title."</a></li>\n");
-                    }
+                    echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-reference">');
+                    self::nostyleLink($reference->title, $reference->href);
+                    echo('</li>'."\n");
                 }
-                if ( count($module->references) > 0 ) {
-                    echo("</ul></li>\n");
-                }
+                echo("</ul></li>\n");
             }
 
             // LTIs not logged in
             if ( isset($module->lti) && ! isset($_SESSION['secret']) ) {
                 $ltis = $module->lti;
-                if ( count($ltis) > 1 ) echo('<li typeof="oer:assessment">'.__('Tools').':<ul> <!-- start of ltis -->'."\n");
+                echo('<li typeof="oer:assessment" class="tsugi-lessons-module-ltis">');
+                echo(__('Tools:'));
+                echo('<ul class="tsugi-lessons-module-ltis-ul"> <!-- start of ltis -->'."\n");
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
-                    if ( $nostyle ) {
-                        echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' ('.__('LTI Required').') <br/>'."\n");
-                        $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
-                        echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
-                        echo("\n</li>\n");
-                        continue;
-                    }
-                    echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' ('.__('Login Required').')</li>'."\n");
+                    echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('LTI Required').') <br/>'."\n");
+                    echo("\n</li>\n");
                 }
-                if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
+                echo("</li></ul><!-- end of ltis -->\n");
             }
 
             // LTIs logged in
@@ -441,13 +492,15 @@ class Lessons {
                 && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
             {
                 $ltis = $module->lti;
-
-                if ( count($ltis) > 1 ) echo("<li>Tools:<ul> <!-- start of ltis -->\n");
+                echo('<li typeof="oer:assessment" class="tsugi-lessons-module-ltis">');
+                echo(__('Tools:'));
+                echo('<ul class="tsugi-lessons-module-ltis-ul"> <!-- start of ltis -->'."\n");
                 $count = 0;
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
+
                     if ( $nostyle ) {
-                        echo('<li typeof="oer:assessment">'.htmlentities($resource_link_title).' ('.__('LTI Required').') <br/>'."\n");
+                        echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
                         $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
                         echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
                         if ( isset($_SESSION['gc_count']) ) {
@@ -463,10 +516,11 @@ class Lessons {
                     $rest_path = U::rest_path();
                     $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $lti->resource_link_id;
                     $title = isset($lti->title) ? $lti->title : "Autograder";
-                    echo('<li><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
+                    echo('<li class="tsugi-lessons-module-lti"><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
+                    echo("\n</li>\n");
                 }
 
-                if ( count($ltis) > 1 ) echo("</li></ul><!-- end of ltis -->\n");
+                echo("</li></ul><!-- end of ltis -->\n");
             }
 
         echo("</ul>\n");
@@ -627,6 +681,12 @@ var disqus_config = function () {
 
     public static function getUrlResources($module) {
         $resources = array();
+        if ( isset($module->carousel) ) {
+            foreach($module->carousel as $carousel ) {
+                $resources[] = self::makeUrlResource('video',$carousel->title,
+                    'https://www.youtube.com/watch?v='.urlencode($carousel->youtube));
+            }
+        }
         if ( isset($module->videos) ) {
             foreach($module->videos as $video ) {
                 $resources[] = self::makeUrlResource('video',$video->title,

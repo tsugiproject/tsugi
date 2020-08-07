@@ -31,6 +31,29 @@ class LTI13 {
     const SCORE_TYPE = 'application/vnd.ims.lis.v1.score+json';
     const RESULTS_TYPE = 'application/vnd.ims.lis.v2.resultcontainer+json';
 
+    // https://www.imsglobal.org/spec/lti-ags/v2p0#score-publish-service
+    const LINEITEM_TIMESTAMP = "timestamp";
+    const LINEITEM_SCOREGIVEN = "scoreGiven";
+    const LINEITEM_SCOREMAXIMUM = "scoreMaximum";
+    const LINEITEM_COMMENT = "comment";
+    const LINEITEM_USERID = "userId";
+
+    // https://www.imsglobal.org/spec/lti-ags/v2p0#activityprogress
+    const ACTIVITY_PROGRESS = 'activityProgress';
+    const ACTIVITY_PROGRESS_INITIALIZED = 'Initialized';
+    const ACTIVITY_PROGRESS_STARTED = 'Started';
+    const ACTIVITY_PROGRESS_INPROGRESS = 'InProgress';
+    const ACTIVITY_PROGRESS_SUBMITTED = 'Submitted';
+    const ACTIVITY_PROGRESS_COMPLETED = 'Completed';
+
+    // https://www.imsglobal.org/spec/lti-ags/v2p0#gradingprogress
+    const GRADING_PROGRESS = 'gradingProgress';
+    const GRADING_PROGRESS_FULLYGRADED = 'FullyGraded';
+    const GRADING_PROGRESS_PENDING = 'Pending';
+    const GRADING_PROGRESS_PENDINGMANUAL = 'PendingManual';
+    const GRADING_PROGRESS_FAILED = 'Failed';
+    const GRADING_PROGRESS_NOTREADY = 'NotReady';
+
     /**
      * Pull out the issuer_key from a JWT
      *
@@ -329,13 +352,14 @@ class LTI13 {
      * @param $comment An optional comment
      * @param $lineitem_url The REST endpoint (id) for this line item
      * @param $access_token The access token for this request
+     * @param array $extra A set of key value extensions to be added/replaced in the request
      * @param array $debug_log An optional array passed by reference.   Actions taken will be
      * logged into this array.
      *
      * @return mixed Returns the token (string) or false on error.
      */
     public static function sendLineItemResult($user_id, $grade, $comment, $lineitem_url,
-        $access_token, &$debug_log=false) {
+        $access_token, $extra=false, &$debug_log=false) {
 
         if ( strlen($user_id) < 1 ) {
             if ( is_array($debug_log) ) $debug_log[] = 'Missing user_id';
@@ -346,20 +370,23 @@ class LTI13 {
 
         $ch = curl_init();
 
-        $grade = $grade * 100.0;
-        $grade = (int) $grade;
-
+        // An empty grade is considered a "delete" request
         // user_id comes from the "sub" in the JWT launch
         $grade_call = [
             // "timestamp" => "2017-04-16T18:54:36.736+00:00",
-            "timestamp" => U::iso8601(),
-            "scoreGiven" => $grade,
-            "scoreMaximum" => 100,
-            "comment" => $comment,
-            "activityProgress" => "Completed",
-            "gradingProgress" => "FullyGraded",
-            "userId" => $user_id,
+            LINEITEM_TIMESTAMP => U::iso8601(),
+            LINEITEM_SCOREGIVEN => $grade,
+            LINEITEM_SCOREMAXIMUM => 100,
+            LINEITEM_COMMENT => $comment,
+            ACTIVITY_PROGRESS => ACTIVITY_PROGRESS_COMPLETED,
+            GRADING_PROGRESS => GRADING_PROGRESS_FULLYGRADED,
+            LINEITEM_USERID => $user_id,
         ];
+
+        // Allow the extra to override any of the normal values - trust the caller :)
+        if ( is_array($extra) ) {
+            $grade_call = array_merge($grade_call, $extra);
+        }
 
         $headers = [
             'Authorization: Bearer '. $access_token,
