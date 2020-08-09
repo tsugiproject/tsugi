@@ -103,6 +103,15 @@ class WebSocket {
     }
 
     /**
+     * Returns the proxyport if set in config
+     */
+    public static function getProxyPort() {
+        global $CFG;
+        if ( ! self::enabled() ) return null;
+        return $CFG->websocket_proxyport;
+    }
+
+    /**
      * Returns the host that the configured web socket server
      */
     public static function getHost() {
