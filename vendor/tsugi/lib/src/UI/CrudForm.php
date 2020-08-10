@@ -390,7 +390,7 @@ class CrudForm {
 
     /**
      * Maps a default value to a field.
-     * 
+     *
      * @return string
      */
     public static function valueToField($name, $values=false) {
