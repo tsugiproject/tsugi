@@ -9,8 +9,10 @@ use Tsugi\Util\U;
 
 $issuer = U::get($_GET,"issuer",false);
 $issuer_id = U::get($_GET,"issuer_id",false);
-if ( strlen($issuer) < 1 && $issuer_id < 1 ) {
-    die('Missing issuer or issuer_id');
+$issuer_guid = U::get($_GET,"issuer_guid",false);
+
+if ( strlen($issuer) < 1 && $issuer_id < 1 && strlen($issuer_guid) < 1 ) {
+    die('Missing issuer, issuer_id or issuer_guid');
 }
 
 if ( $issuer ) {
@@ -21,10 +23,16 @@ if ( $issuer ) {
         array(":ISH" => $issuer_sha256)
     );
 } else if ( $issuer_id > 0 ) {
-    $rows = $PDOX->rowDie(
+    $row = $PDOX->rowDie(
         "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
             WHERE issuer_id = :IID AND lti13_pubkey IS NOT NULL",
         array(":IID" => $issuer_id)
+    );
+} else if ( strlen($issuer_guid) > 0 ) {
+    $row = $PDOX->rowDie(
+        "SELECT lti13_pubkey, issuer_guid FROM {$CFG->dbprefix}lti_issuer
+            WHERE issuer_guid = :IGUID AND lti13_pubkey IS NOT NULL",
+        array(":IGUID" => $issuer_guid)
     );
 } else {
     die('Missing issuer or issuer_id');
@@ -137,10 +145,10 @@ if ( $CFG->servicedesc ) {
 $json->public_jwk = $jwk;
 
 // TODO: Fix this
-$json->target_link_uri = $CFG->wwwroot . "/lti/42_wtf_this_is_silly_when_there_are_placements";
+$json->target_link_uri = $CFG->wwwroot . "/lti/this_url_is_a_placeholder_when_there_are_placements";
 
 $json->oidc_redirect_url = $CFG->wwwroot . "/lti/oidc_launch";
-$json->oidc_initiation_url = $CFG->wwwroot . "/lti/oidc_login";
+$json->oidc_initiation_url = $CFG->wwwroot . "/lti/oidc_login".(isset($row['issuer_guid']) ? "/".$row['issuer_guid'] : '');
 $json->extensions[0]->domain = $domain;
 $json->extensions[0]->tool_id = md5($CFG->wwwroot);
 $json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
@@ -150,5 +158,7 @@ for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
         urlencode($json->extensions[0]->settings->placements[$i]->placement);
     $json->extensions[0]->settings->placements[$i]->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 }
-
+// removing placements for now.
+unset($json->extensions[0]->settings->placements);
+$json->extensions[0]->settings->placements = [];
 echo(json_encode($json, JSON_PRETTY_PRINT));

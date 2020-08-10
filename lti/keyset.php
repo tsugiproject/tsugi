@@ -9,6 +9,7 @@ use Tsugi\Util\U;
 
 $issuer = U::get($_GET,"issuer",false);
 $issuer_id = U::get($_GET,"issuer_id",false);
+$issuer_guid = U::get($_GET,"issuer_guid",false);
 
 if ( $issuer ) {
     $issuer_sha256 = hash('sha256', trim($issuer));
@@ -22,6 +23,12 @@ if ( $issuer ) {
         "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
             WHERE issuer_id = :IID AND lti13_pubkey IS NOT NULL",
         array(":IID" => $issuer_id)
+    );
+} else if ( strlen($issuer_guid) > 0 ) {
+    $rows = $PDOX->allRowsDie(
+        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
+            WHERE issuer_guid = :IGUID AND lti13_pubkey IS NOT NULL",
+        array(":IGUID" => $issuer_guid)
     );
 } else {
     $rows = $PDOX->allRowsDie(
