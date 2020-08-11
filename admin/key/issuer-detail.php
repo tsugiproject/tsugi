@@ -27,12 +27,12 @@ $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
 $fields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_guid',
-     'lti13_keyset_url', 'lti13_token_url', 'lti13_token_audience', 'lti13_oidc_auth', 'lti13_platform_pubkey',
-     'lti13_pubkey', 'lti13_privkey', 'lti13_tool_keyset_url', 'lti13_canvas_json_url',
+     'lti13_keyset_url', 'lti13_token_url', 'lti13_token_audience', 'lti13_oidc_auth',
+     'lti13_tool_keyset_url', 'lti13_canvas_json_url',
      'created_at', 'updated_at');
 $realfields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_guid', 'issuer_sha256',
-     'lti13_keyset_url', 'lti13_token_url', 'lti13_token_audience', 'lti13_oidc_auth', 'lti13_platform_pubkey',
-     'lti13_pubkey', 'lti13_privkey', 'created_at', 'updated_at');
+     'lti13_keyset_url', 'lti13_token_url', 'lti13_token_audience', 'lti13_oidc_auth',
+     'created_at', 'updated_at');
 
 $titles = array(
     'issuer_client' => 'LTI 1.3 Client ID (from the Platform)',
@@ -41,10 +41,7 @@ $titles = array(
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
     'lti13_token_audience' => 'LTI 1.3 Platform OAuth2 Bearer Token Audience Value (optional - from the platform)',
     'lti13_oidc_auth' => 'LTI 1.3 Platform OIDC Authentication URL (from the Platform)',
-    'lti13_platform_pubkey' => 'LTI 1.3 Platform Public Key (Usually retrieved via keyset url)',
 
-    'lti13_pubkey' => 'LTI 1.3 Tool Public Key (Provide to the platform)',
-    'lti13_privkey' => 'LTI 1.3 Private Key (kept internally only)',
     'lti13_tool_keyset_url' => 'LTI 1.3 Tool Keyset Url (Extension - may not be needed/used by LMS)',
     'lti13_canvas_json_url' => 'Canvas Configuration URL (json)',
 );
