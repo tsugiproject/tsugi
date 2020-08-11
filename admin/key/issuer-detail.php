@@ -27,12 +27,13 @@ $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
 $fields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_guid',
-     'lti13_keyset_url', 'lti13_token_url', 'lti13_token_audience', 'lti13_oidc_auth',
-     'lti13_tool_keyset_url', 'lti13_canvas_json_url',
-     'created_at', 'updated_at');
+    'lti13_keyset_url', 'lti13_token_url', 
+    'lti13_oidc_auth', 'lti13_token_audience', 
+    'created_at', 'updated_at');
 $realfields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_guid', 'issuer_sha256',
-     'lti13_keyset_url', 'lti13_token_url', 'lti13_token_audience', 'lti13_oidc_auth',
-     'created_at', 'updated_at');
+    'lti13_keyset_url', 'lti13_token_url', 
+    'lti13_oidc_auth', 'lti13_token_audience', 
+    'created_at', 'updated_at');
 
 $titles = array(
     'issuer_client' => 'LTI 1.3 Client ID (from the Platform)',
@@ -41,9 +42,6 @@ $titles = array(
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
     'lti13_token_audience' => 'LTI 1.3 Platform OAuth2 Bearer Token Audience Value (optional - from the platform)',
     'lti13_oidc_auth' => 'LTI 1.3 Platform OIDC Authentication URL (from the Platform)',
-
-    'lti13_tool_keyset_url' => 'LTI 1.3 Tool Keyset Url (Extension - may not be needed/used by LMS)',
-    'lti13_canvas_json_url' => 'Canvas Configuration URL (json)',
 );
 
 // Handle the post data
@@ -80,22 +78,43 @@ $title = 'Issuer Entry';
 $extra_buttons=false;
 // If we have a valid GUID
 if ($show_guid) {
-    $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer_guid=' . urlencode($row['issuer_guid']);
-    $row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($row['issuer_guid']);
+    $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset/' . urlencode($row['issuer_guid']);
+    $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($row['issuer_guid']);
 } else {
-    $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?issuer=' . urlencode($row['issuer_key']);
-    $row['lti13_canvas_json_url'] = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer=' . urlencode($row['issuer_key']);
+    $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset?issuer=' . urlencode($row['issuer_key']);
+    $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer=' . urlencode($row['issuer_key']);
 }
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
+
+$oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . ($show_guid ? '/'.urlencode($row['issuer_guid']): '');
+$oidc_redirect = $CFG->wwwroot . '/lti/oidc_launch';
+$lti13_keyset = $CFG->wwwroot . '/lti/keyset/' . ($show_guid ? '/'.urlencode($row['issuer_guid']): '');
+$deep_link = $CFG->wwwroot . '/lti/store/';
 ?>
 <hr/>
 <p>
 These URLs need to be in your LMS configuration associated with this Issuer/Client ID.
 <pre>
-LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login<?= ($show_guid ? '/'.$row['issuer_guid']: '')."\n" ?>
-LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
+LTI 1.3 OpenID Connect Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $oidc_login ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $oidc_login ?> 
+
+LTI 1.3 Tool Redirect Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $oidc_redirect ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $oidc_redirect ?> 
+
+LTI 1.3 Tool Keyset URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $lti13_keyset ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $lti13_keyset ?> 
+
+LTI Content Item / Deep Link Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $deep_link ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $deep_link ?> 
+</pre>
+</p>
+<p>
+If you use Canvas, you can use this configuration URL to transfer this tool's configuration data:
+<pre>
+Canvas Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_canvas_json_url) ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= htmlentities($lti13_canvas_json_url) ?>
 </pre>
 </p>
 <?php
@@ -104,34 +123,9 @@ LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
 $OUTPUT->footerStart();
 ?>
 <script>
-// Adapted from
-// https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard-using-jquery
-function copyToClipboard(elementId) {
-
-  // Create a "hidden" input
-  var aux = document.createElement("textarea");
-  aux.textContent = document.getElementById(elementId).textContent;
-  document.body.appendChild(aux);
-
-  // Highlight its content
-  aux.select();
-
-  // Copy the highlighted text
-  document.execCommand("copy");
-
-  // Remove it from the body
-  document.body.removeChild(aux);
-
-}
-
-$('#lti13_platform_pubkey').css('white-space', 'pre').css('font-family', 'monospace');
-$('#lti13_platform_pubkey_label').append('<button onclick="copyToClipboard(\'lti13_platform_pubkey\');return false;">Copy</button>');
-$('#lti13_pubkey').css('white-space', 'pre').css('font-family', 'monospace');
-$('#lti13_pubkey_label').append('<button onclick="copyToClipboard(\'lti13_pubkey\');return false;">Copy</button>');
-$('#lti13_privkey').css('white-space', 'pre').css('font-family', 'monospace');
-// Make GUID as readonly
+// Hide GUID as readonly
 if ($('#issuer_guid').length) {
-    $('#issuer_guid').attr('readonly', 'readonly');
+    $('#issuer_guid_parent').hide();
 }
 </script>
 <?php

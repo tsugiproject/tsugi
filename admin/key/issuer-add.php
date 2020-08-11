@@ -21,24 +21,28 @@ if ( ! isAdmin() ) {
 
 $from_location = "issuers";
 $tablename = "{$CFG->dbprefix}lti_issuer";
-$fields = array("issuer_key", "issuer_client", "issuer_guid", "issuer_sha256",
-    "lti13_keyset_url", "lti13_token_url", "lti13_token_audience", "lti13_oidc_auth",
+
+$fields = array("issuer_key", "issuer_client", "issuer_sha256",
+    "lti13_keyset_url", "lti13_token_url", "lti13_oidc_auth",
+    "lti13_pubkey", "lti13_privkey",
+    "issuer_guid", "lti13_token_audience",
     "created_at", "updated_at");
 
 $titles = array(
     'issuer_key' => 'LTI 1.3 Issuer (from the Platform)',
     'issuer_client' => 'LTI 1.3 Client ID (from the Platform)',
-    'issuer_guid' => 'LTI 1.3 Unique Issuer GUID',
     'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
-    'lti13_token_audience' => 'LTI 1.3 Platform OAuth2 Bearer Token Audience Value (optional - from the platform)',
     'lti13_oidc_auth' => 'LTI 1.3 Platform OIDC Authentication URL (from the Platform)',
 
-    'lti13_tool_keyset_url' => 'LTI 1.3 Tool Keyset Url (Extension - may not be needed/used by LMS)',
+    'lti13_pubkey' => 'LTI 1.3 Tool Public Key (Provide to the platform)',
+    'lti13_privkey' => 'LTI 1.3 Private Key (kept internally only)',
+    'lti13_tool_keyset_url' => 'LTI 1.3 Tool Keyset Url',
+    'lti13_token_audience' => 'LTI 1.3 Platform OAuth2 Bearer Token Audience Value (from the platform - Optional)',
+    'issuer_guid' => 'LTI 1.3 Unique Issuer GUID (within Tool)',
 );
 
 if ( U::get($_POST,'issuer_key') ) {
-    // $_POST['issuer_sha256'] = LTI13::extract_issuer_key_string(U::get($_POST,'issuer_key'));
     if ( strlen(U::get($_POST,'lti13_pubkey')) < 1 && strlen(U::get($_POST,'lti13_privkey')) < 1 ) {
         LTI13::generatePKCS8Pair($publicKey, $privateKey);
         $_POST['lti13_pubkey'] = $publicKey;
@@ -60,6 +64,11 @@ $guid = createGUID();
 $fields_defaults = array(
     'issuer_guid' => $guid
 );
+
+$oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . urlencode($guid);
+$oidc_redirect = $CFG->wwwroot . '/lti/oidc_launch';
+$lti13_keyset = $CFG->wwwroot . '/lti/keyset/' . urlencode($guid);
+$deep_link = $CFG->wwwroot . '/lti/store/';
 ?>
 <h1>
 <img src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo-square.png" style="float:right; width:48px;">
@@ -68,27 +77,34 @@ Adding Issuer Entry</h1>
 For LTI 1.3, you need to enter these URLs in your LMS configuration
 associated with this Issuer/Client ID.
 <pre>
-LTI Content Item / Deep Link Endpoint: <?= $CFG->wwwroot ?>/lti/store/
-LTI 1.3 OpenID Connect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_login/<?= $guid ?>
+LTI 1.3 OpenID Connect Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $oidc_login ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $oidc_login ?> 
 
-LTI 1.3 Tool Redirect Endpoint: <?= $CFG->wwwroot ?>/lti/oidc_launch
-LTI 1.3 Tool Keyset URL (optional):
-<?= $CFG->wwwroot ?>/lti/keyset     (contains all keys)
-<?= $CFG->wwwroot ?>/lti/keyset?issuer=<b><span id="issuer_id_ui">&lt;issuer&gt;</span></b>
+LTI 1.3 Tool Redirect Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $oidc_redirect ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $oidc_redirect ?> 
+
+LTI 1.3 Tool Keyset URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $lti13_keyset ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $lti13_keyset ?> 
+
+LTI Content Item / Deep Link Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $deep_link ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $deep_link ?> 
 </pre>
-</p>
-<p>
-If your platform needs a tool keyset url (an extension to LTI 1.3),
-you can either use the keyset url to retrieve public keys for all integrations,
-or just request the public key for this itegration.  The exact URL
-for this ussuer will will be shown after you create and view the issuer.
 </p>
 <p>
 <?php
 
 CrudForm::insertForm($fields, $from_location, $titles, $fields_defaults);
 
+$lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($guid);
+
 ?>
+</p>
+<p>
+After you have saved this entry, you can use this URL in Canvas to transfer this tool's configuration data:
+<pre>
+Canvas Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_canvas_json_url) ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= htmlentities($lti13_canvas_json_url) ?>
+</pre>
 </p>
 <?php
 
@@ -96,7 +112,10 @@ $OUTPUT->footerStart();
 ?>
 <script>
 // Make GUID as readonly
-$('#issuer_guid').attr('readonly', 'readonly');
+// $('#issuer_guid').attr('readonly', 'readonly');
+$('#issuer_guid_label').parent().hide();
+$('#lti13_pubkey_label').parent().hide();
+$('#lti13_privkey_label').parent().hide();
 </script>
 <?php
 $OUTPUT->footerEnd();

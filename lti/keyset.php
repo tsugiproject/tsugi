@@ -11,6 +11,7 @@ $issuer = U::get($_GET,"issuer",false);
 $issuer_id = U::get($_GET,"issuer_id",false);
 $issuer_guid = U::get($_GET,"issuer_guid",false);
 
+$rows = false;
 if ( $issuer ) {
     $issuer_sha256 = hash('sha256', trim($issuer));
     $rows = $PDOX->allRowsDie(
@@ -30,7 +31,10 @@ if ( $issuer ) {
             WHERE issuer_guid = :IGUID AND lti13_pubkey IS NOT NULL",
         array(":IGUID" => $issuer_guid)
     );
-} else {
+}
+
+// Fall back if nothing was specified or found
+if ( count($rows) < 1 )  {
     $rows = $PDOX->allRowsDie(
         "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
             WHERE lti13_pubkey IS NOT NULL"
