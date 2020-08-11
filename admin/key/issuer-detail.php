@@ -88,10 +88,13 @@ $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_e
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 
-$oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . ($show_guid ? '/'.urlencode($row['issuer_guid']): '');
+$guid = $row['issuer_guid'];
+$oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . ($show_guid ? '/'.urlencode($guid): '');
 $oidc_redirect = $CFG->wwwroot . '/lti/oidc_launch';
-$lti13_keyset = $CFG->wwwroot . '/lti/keyset/' . ($show_guid ? '/'.urlencode($row['issuer_guid']): '');
+$lti13_keyset = $CFG->wwwroot . '/lti/keyset/' . ($show_guid ? '/'.urlencode($guid): '');
 $deep_link = $CFG->wwwroot . '/lti/store/';
+$lti13_sakai_json_url = ($show_guid ? $CFG->wwwroot . '/lti/store/sakai-config/' . urlencode($guid): '');
+
 ?>
 <hr/>
 <p>
@@ -117,8 +120,18 @@ Canvas Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?
 <?= htmlentities($lti13_canvas_json_url) ?>
 </pre>
 </p>
+<?php 
+if ( $show_guid ) {
+?>
+<p>
+For Sakai-21 and later, you can use this URL to copy configuration data instead of copying all of the above values:
+<pre>
+Sakai Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_sakai_json_url) ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= htmlentities($lti13_sakai_json_url) ?>
+</pre>
+</p>
 <?php
-
+}
 
 $OUTPUT->footerStart();
 ?>

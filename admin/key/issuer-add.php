@@ -96,6 +96,7 @@ LTI Content Item / Deep Link Endpoint: <a href="#" onclick="copyToClipboardNoScr
 CrudForm::insertForm($fields, $from_location, $titles, $fields_defaults);
 
 $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($guid);
+$lti13_sakai_json_url = $CFG->wwwroot . '/lti/store/sakai-config/' . urlencode($guid);
 
 ?>
 </p>
@@ -104,6 +105,13 @@ After you have saved this entry, you can use this URL in Canvas to transfer this
 <pre>
 Canvas Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_canvas_json_url) ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
 <?= htmlentities($lti13_canvas_json_url) ?>
+</pre>
+</p>
+<p>
+For Sakai-21 and later, you can use this URL to copy configuration data instead of copying all of the above values:
+<pre>
+Sakai Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_sakai_json_url) ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= htmlentities($lti13_sakai_json_url) ?>
 </pre>
 </p>
 <?php
