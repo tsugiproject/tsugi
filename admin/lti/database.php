@@ -999,6 +999,15 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     }
 
+    // It seems like some automatically created LTI1.1 keys between
+    // 2017-10-25 and 2019-07-04 ended up with the wrong key_sha256 for the
+    // key_key value - because of the way LTIX.php works it is as if these keys
+    // don't exist
+    $sql = "UPDATE {$CFG->dbprefix}lti_key SET key_sha256=sha2(key_key, 256)
+        WHERE key_key IS NOT NULL AND key_sha256 != sha2(key_key, 256);";
+    echo("Upgrading: ".$sql."<br/>\n");
+    error_log("Upgrading: ".$sql);
+    $q = $PDOX->queryReturnError($sql);
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
