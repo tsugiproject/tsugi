@@ -142,7 +142,7 @@ if ( $inedit ) {
         $select_text .= '<option value="'.$issuer_row['issuer_id'].'"'.$selected.'>'.htmlentities($issuer_row['issuer_key']. ' ('.$issuer_row['issuer_client'].')')."</option>";
     }
     $select_text .= "</select>";
-    echo(htmlentities($select_text));
+    // echo(htmlentities($select_text));
 
 ?>
 <script>
