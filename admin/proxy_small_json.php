@@ -3,7 +3,13 @@
 use \Tsugi\Util\U;
 use \Tsugi\Util\PS;
 
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
+
+session_start();
+if ( ! isset($_SESSION["admin"]) ) {
+    die('Must be admin');
+}
 
 $url = U::get($_GET, 'url');
 if ( ! $url ) {
