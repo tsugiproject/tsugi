@@ -89,9 +89,9 @@ if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 
 $guid = $row['issuer_guid'];
-$oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . ($show_guid ? '/'.urlencode($guid): '');
+$oidc_login = $CFG->wwwroot . '/lti/oidc_login' . ($show_guid ? '/'.urlencode($guid): '');
 $oidc_redirect = $CFG->wwwroot . '/lti/oidc_launch';
-$lti13_keyset = $CFG->wwwroot . '/lti/keyset/' . ($show_guid ? '/'.urlencode($guid): '');
+$lti13_keyset = $CFG->wwwroot . '/lti/keyset' . ($show_guid ? '/'.urlencode($guid): '');
 $deep_link = $CFG->wwwroot . '/lti/store/';
 $lti13_sakai_json_url = ($show_guid ? $CFG->wwwroot . '/lti/store/sakai-config/' . urlencode($guid): '');
 
