@@ -11,20 +11,20 @@ if ( ! isset($_SESSION["admin"]) ) {
     die('Must be admin');
 }
 
-$url = U::get($_GET, 'url');
-if ( ! $url ) {
+$proxyUrl = U::get($_GET, 'proxyUrl');
+if ( ! $proxyUrl ) {
     die('Missing URL parameter');
 }
 
-$url = new PS($url);
-if ( ! ( $url->startswith('https://') || $url->startswith('http://') ) ) {
+$proxyUrl = new PS($proxyUrl);
+if ( ! ( $proxyUrl->startswith('https://') || $proxyUrl->startswith('http://') ) ) {
     die('Urls must start with https');
 }
 
 // file_get_contents ( string $filename [, bool $use_include_path = FALSE [, resource $context [, int $offset = 0 [, int $maxlen ]]]] ) : string
 // Limit the length to 10000 characters
 
-$content = file_get_contents($url, FALSE, NULL, 0, 10000);
+$content = file_get_contents($proxyUrl, FALSE, NULL, 0, 10000);
 $json = json_decode($content);
 
 if ( ! is_object($json) ) {

@@ -113,6 +113,9 @@ For Sakai-21 and later, you can use this URL to copy configuration data instead 
 Sakai Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_sakai_json_url) ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
 <?= htmlentities($lti13_sakai_json_url) ?>
 </pre>
+Once this is done, and Sakai has added the tool and provided you with a configuration URL press this button:
+<p><input type="submit" onclick="importLTI13Config();return false;" class="btn btn-primary" value="Import LMS LTI 1.3 JSON"/>
+</p>
 </p>
 <?php
 
@@ -124,6 +127,29 @@ $OUTPUT->footerStart();
 $('#issuer_guid_label').parent().hide();
 $('#lti13_pubkey_label').parent().hide();
 $('#lti13_privkey_label').parent().hide();
+
+// Test
+// https://trunk-mysql.nightly.sakaiproject.org/imsblis/lti13/sakai_config?key=4&clientId=8e96d26d-5c69-4b41-aae4-8e8aa8524636&issuerURL=http%3A%2F%2Ftrunk-mysql.nightly.sakaiproject.org&deploymentId=1
+function importLTI13Config() {
+    var importUrl = prompt("Enter JSON Configuration URL");
+    importUrl = "<?= $CFG->wwwroot . '/admin/proxy_small_json.php' ?>" + '?proxyUrl=' + encodeURIComponent(importUrl);
+    console.log(importUrl);
+
+    jQuery.getJSON( importUrl, function(data) {
+        console.log(data);
+        if ( data.issuerURL ) jQuery("#issuer_key").val(data.issuerURL);
+        if ( data.issuerUrl ) jQuery("#issuer_key").val(data.issuerUrl);
+        if ( data.clientId ) jQuery("#issuer_client").val(data.clientId);
+        if ( data.keySetUrl ) jQuery("#lti13_keyset_url").val(data.keySetUrl);
+        if ( data.tokenUrl ) jQuery("#lti13_token_url").val(data.tokenUrl);
+        if ( data.authOIDC ) jQuery("#lti13_oidc_auth").val(data.authOIDC);
+    })
+    .fail(function() {
+        alert("Could not retrieve JSON" );
+    });
+
+}
+
 </script>
 <?php
 $OUTPUT->footerEnd();
