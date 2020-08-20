@@ -428,7 +428,6 @@ class LTIX {
             self::abort_with_error_log('Unable to load key / deployment for launch');
         }
 
-        // TODO: Might want to add general warning for close LTI13 Timestamps
         $delta = 0;
         if ( isset($request_data['oauth_timestamp']) ) {
             $server_time = $request_data['oauth_timestamp']+0;
@@ -537,7 +536,6 @@ class LTIX {
                     error_log("New public key $issuer_sha256\n$new_public_key");
                     $public_key = $new_public_key;
                 } else {
-                    // TODO: Understand if we should kill the old key here
                     $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
                         SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE issuer_sha256 = :SHA",
                     array(':SHA' => $issuer_sha256) );
@@ -1095,6 +1093,7 @@ class LTIX {
         if ( $LTI13 ) {
             $sql = "SELECT i.issuer_id, i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
                 i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_privkey, i.lti13_pubkey,
+                i.lti13_token_audience,
                 k.deploy_key, u.subject_key,
             ";
         } else {
@@ -1246,24 +1245,6 @@ class LTIX {
         // die();
         $row = $PDOX->rowDie($sql, $parms);
         // var_dump($row);die();
-
-        // TODO: Fold this in when the data model is safely changed
-        $row['lti13_token_audience'] = null;
-        $issuer_id = U::get($row, 'issuer_id');
-        if ( $LTI13 && $row && $issuer_id) {
-            $stmt = $PDOX->queryReturnError(
-                "SELECT lti13_token_audience FROM {$p}lti_issuer WHERE issuer_id = :issuer_id",
-                array(":issuer_id" => $issuer_id)
-            );
-
-            // print_r($stmt); die();
-            if ( $stmt->success ) {
-                $extra_row = $stmt->fetch(\PDO::FETCH_ASSOC);
-                if ( $extra_row ) {
-                    $row['lti13_token_audience'] = $extra_row['lti13_token_audience'];
-                }
-            }
-        }
 
         // Restore ERRMODE
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
