@@ -440,7 +440,7 @@ class Lessons {
                 $lecturetitle = __(self::getSetting('lectures-title', 'Lectures'));
                 echo("<p>");
                 echo($lecturetitle);
-                echo("<i/p>");
+                echo("</p>");
                 echo('<ul class="tsugi-lessons-module-lectures-ul">'."\n");
                 foreach($lectures as $lecture ) {
                     if ( isset($lecture->youtube) ) {
