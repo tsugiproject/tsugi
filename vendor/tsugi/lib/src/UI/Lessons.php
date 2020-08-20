@@ -528,7 +528,7 @@ class Lessons {
                 echo('<ul class="tsugi-lessons-module-ltis-ul"> <!-- start of ltis -->'."\n");
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
-                    echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('LTI Required').') <br/>'."\n");
+                    echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
                     echo("\n</li>\n");
                 }
                 echo("</li></ul><!-- end of ltis -->\n");
@@ -547,7 +547,7 @@ class Lessons {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
 
                     if ( $nostyle ) {
-                        echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' (LTI Required) <br/>'."\n");
+                        echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' (Login Required) <br/>'."\n");
                         $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
                         echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
                         if ( isset($_SESSION['gc_count']) ) {
