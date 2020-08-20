@@ -114,7 +114,7 @@ provided values below.
 <p>
 For LTI 1.3, you need to enter these URLs in your Brightspace configuration
 associated with this Issuer/Client ID. Brightspace provides a value for
-"Bearer Token Audience Value" that is not provided by other LMS systems.
+"Bearer Token Audience Value" that is not necessary for other LMS systems.
 <pre>
 <?php addLinks(); ?>
 </pre>
@@ -123,7 +123,7 @@ provided values below.
 </p>
 </div>
 <div class="tab-pane fade" id="sakai">
-For Sakai-21 and later, you can auto-provision this ussier using a two-step process.
+For Sakai-21 and later, you can auto-provision an issuer using a two-step process.
 </p>
 <ol>
 <li><p>
