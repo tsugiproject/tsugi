@@ -91,15 +91,7 @@ class Lessons {
         }
         if ( isset($this->lessons->headers) && is_array($this->lessons->headers) ) {
             foreach($this->lessons->headers as $header) {
-                $search = array(
-                    "{apphome}",
-                    "{wwwroot}",
-                );
-                $replace = array(
-                    $CFG->apphome,
-                    $CFG->wwwroot,
-                );
-                $header = str_replace($search, $replace, $header);
+                $header = self::expandLink($header);
                 echo($header);
                 echo("\n");
             }
@@ -303,6 +295,23 @@ class Lessons {
     }
 
     /*
+     * Do macro substitution on a link
+     */
+    public static function expandLink($url) {
+        global $CFG;
+        $search = array(
+            "{apphome}",
+            "{wwwroot}",
+        );
+        $replace = array(
+            $CFG->apphome,
+            $CFG->wwwroot,
+        );
+        $url = str_replace($search, $replace, $url);
+        return $url;
+    }
+
+    /*
      * A Nostyle URL Link with title
      */
     public static function nostyleUrl($title, $url) {
@@ -318,6 +327,7 @@ class Lessons {
      * A Nostyle URL Link with title as the href text
      */
     public static function nostyleLink($title, $url) {
+        $url = self::expandLink($url);
         echo('<a href="'.$url.'" target="_blank" class="tsugi-lessons-link" typeof="oer:SupportingMaterial">'.htmlentities($title)."</a>\n");
         if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
@@ -385,7 +395,8 @@ class Lessons {
 
             if ( isset($module->carousel) ) {
                 $carousel = $module->carousel;
-                echo($nostyle ? 'Videos: <ul>' : '<ul class="bxslider">'."\n");
+                $videotitle = __(self::getSetting('videos-title', 'Videos'));
+                echo($nostyle ? $video-title . ': <ul>' : '<ul class="bxslider">'."\n");
                 foreach($carousel as $video ) {
                     echo('<li>');
                     if ( $nostyle ) {
@@ -409,7 +420,10 @@ class Lessons {
             if ( isset($module->videos) ) {
                 $videos = $module->videos;
                 echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-videos">');
-                echo(__('Videos:'));
+                $videotitle = __(self::getSetting('videos-title', 'Videos'));
+                echo("<p>");
+                echo($videotitle);
+                echo("</p>");
                 echo('<ul class="tsugi-lessons-module-videos-ul">'."\n");
                 foreach($videos as $video ) {
                     echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
@@ -420,9 +434,40 @@ class Lessons {
                 echo("</ul></li>\n");
             }
 
+            if ( isset($module->lectures) ) {
+                $lectures = $module->lectures;
+                echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lectures">');
+                $lecturetitle = __(self::getSetting('lectures-title', 'Lectures'));
+                echo("<p>");
+                echo($lecturetitle);
+                echo("<i/p>");
+                echo('<ul class="tsugi-lessons-module-lectures-ul">'."\n");
+                foreach($lectures as $lecture ) {
+                    if ( isset($lecture->youtube) ) {
+                        echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-youtube">');
+                        $yurl = 'https://www.youtube.com/watch?v='.$lecture->youtube;
+                        self::nostyleLink($lecture->title, $yurl);
+                        echo('</li>');
+                    } else if ( isset($lecture->audio) ) {
+                        echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-audio">');
+                        self::nostyleLink($lecture->title, $lecture->audio);
+                        echo('</li>');
+                    } else if ( isset($lecture->video) ) {
+                        echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-video">');
+                        $yurl = 'https://www.youtube.com/watch?v='.$lecture->youtube;
+                        self::nostyleLink($lecture->title, $lecture->audio);
+                        echo('</li>');
+                    }
+                }
+                echo("</ul></li>\n");
+            }
+
             if ( isset($module->slides) ) {
                 echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slides">');
-                echo(__('Slides:'));
+                echo("<p>");
+                $slidestitle = __(self::getSetting('slides-title', 'Slides'));
+                echo(__($slidestitle));
+                echo("</p>");
                 echo('<ul class="tsugi-lessons-module-slides-ul">'."\n");
                 foreach($module->slides as $slide ) {
                     if ( is_string($slide) ) {
@@ -463,7 +508,9 @@ class Lessons {
             }
             if ( isset($module->references) ) {
                 echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-references">');
+                echo("<p>");
                 echo(__('References:'));
+                echo("</p>");
                 echo('<ul class="tsugi-lessons-module-references-ul">'."\n");
                 foreach($module->references as $reference ) {
                     echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-reference">');
