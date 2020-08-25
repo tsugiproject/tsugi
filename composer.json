@@ -9,7 +9,7 @@
         "google/auth" : "1.3.2",
         "fproject/php-jwt" : ">=4.0.5",
         "gree/jose" : ">1.0",
-        "koseu/lib": "dev-master#5ffba8a948e6fceaa20d73d9dce83151ca4deaf6",
+        "koseu/lib": "dev-master#e3dd104756b6de337fbb8e62601c6468ec1390ec",
 
         "cboden/ratchet" : "*",
 

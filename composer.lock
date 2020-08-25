@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "2161a7d72d0dd5495ac6ad1c8202b493",
-    "content-hash": "03002ad7c92e4d93d813692717e73e21",
+    "hash": "2237e222090f494fa7f0625144aa1da8",
+    "content-hash": "abcb931acb35d877253cc6879e2d8963",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -729,12 +729,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "5ffba8a948e6fceaa20d73d9dce83151ca4deaf6"
+                "reference": "e3dd104756b6de337fbb8e62601c6468ec1390ec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/5ffba8a948e6fceaa20d73d9dce83151ca4deaf6",
-                "reference": "5ffba8a948e6fceaa20d73d9dce83151ca4deaf6",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/e3dd104756b6de337fbb8e62601c6468ec1390ec",
+                "reference": "e3dd104756b6de337fbb8e62601c6468ec1390ec",
                 "shasum": ""
             },
             "require": {
@@ -769,7 +769,7 @@
             ],
             "description": "A Next Generation Embeddable Learning Management System",
             "homepage": "http://www.koseu.org/",
-            "time": "2018-09-14 23:14:26"
+            "time": "2019-06-15 13:45:53"
         },
         {
             "name": "monolog/monolog",
