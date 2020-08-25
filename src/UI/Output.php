@@ -1294,6 +1294,7 @@ EOF;
             $style .= isset($theme["secondary"]) ? '--secondary-menu:'.$theme["secondary"].';' : '#EEEEEE;';
             $style .= isset($theme["text"]) ? '--text:'.$theme["text"].';' : '#111111;';
             $style .= isset($theme["text-light"]) ? '--text-light:'.$theme["text-light"].';' : '#5E5E5E;';
+            $style .= isset($theme["background-color"]) ? '--background-color:'.$theme["background-color"].';' : '#FFFFFF;';
             $style .= isset($theme["font-family"]) ? '--font-family:'.$theme["font-family"].';' : 'sans-serif;';
             $style .= isset($theme["font-size"]) ? '--font-size:'.$theme["font-size"].';' : '14px;';
         } else {
@@ -1307,6 +1308,7 @@ EOF;
             $style .= '--secondary-menu:#EEEEEE;';
             $style .= '--text:#111111;';
             $style .= '--text-light:#5E5E5E;';
+            $style .= '--background-color:#FFFFFF;';
             $style .= '--font-family:sans-serif;';
             $style .= '--font-size:14px;';
         }
