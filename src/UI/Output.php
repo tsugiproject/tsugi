@@ -194,7 +194,7 @@ class Output {
         
         self::theme($CFG->theme) ?>
 
-          <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
+          <link href="<?= $CFG->staticroot ?>/css/tsugi2.css" rel="stylesheet">
 
           <style>
               <?php
@@ -1286,10 +1286,12 @@ EOF;
         $style = '<style>:root {';
         if (is_array($theme)) {
             $style .= isset($theme["primary"]) ? '--primary:'.$theme["primary"].';' : '#0D47A1;';
+            $style .= isset($theme["primary"]) ? '--primary-menu:'.$theme["primary"].';' : '#0D47A1;';
             $style .= isset($theme["primary"]) ? '--primary-border:'.self::adjustBrightness($theme["primary"],-0.075).';' : '#0d4295;';
             $style .= isset($theme["primary"]) ? '--primary-darker:'.self::adjustBrightness($theme["primary"],-0.1).';' : '#0c4091;';
             $style .= isset($theme["primary"]) ? '--primary-darkest:'.self::adjustBrightness($theme["primary"],-0.175).';' : '#0b3b85;';
             $style .= isset($theme["secondary"]) ? '--secondary:'.$theme["secondary"].';' : '#EEEEEE;';
+            $style .= isset($theme["secondary"]) ? '--secondary-menu:'.$theme["secondary"].';' : '#EEEEEE;';
             $style .= isset($theme["text"]) ? '--text:'.$theme["text"].';' : '#111111;';
             $style .= isset($theme["text-light"]) ? '--text-light:'.$theme["text-light"].';' : '#5E5E5E;';
             $style .= isset($theme["font-family"]) ? '--font-family:'.$theme["font-family"].';' : 'sans-serif;';
@@ -1297,10 +1299,12 @@ EOF;
         } else {
             // No theme set use all defaults
             $style .= '--primary:#0D47A1;';
+            $style .= '--primary-menu:#0D47A1;';
             $style .= '--primary-border:#0d4295;';
             $style .= '--primary-darker:#0c4091;';
             $style .= '--primary-darkest:#0b3b85;';
             $style .= '--secondary:#EEEEEE;';
+            $style .= '--secondary-menu:#EEEEEE;';
             $style .= '--text:#111111;';
             $style .= '--text-light:#5E5E5E;';
             $style .= '--font-family:sans-serif;';
