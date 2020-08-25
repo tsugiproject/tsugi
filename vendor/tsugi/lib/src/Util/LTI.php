@@ -740,6 +740,8 @@ class LTI {
 
                 $result[] = array(
                     "user_id" => $node->user_id->__toString(),
+                    "person_name_given" => $node->person_name_given->__toString(),
+                    "person_name_family" => $node->person_name_family->__toString(),
                     "role" => $node->role->__toString(),
                     "roles" => $node->roles->__toString(),
                     "user_email" => $node->person_contact_email_primary->__toString(),
