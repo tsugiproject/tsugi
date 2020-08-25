@@ -139,6 +139,10 @@ $CFG->adminpw = false;
 // create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';
 
+// If we are going to use the Topics section, we need to create and
+// point to the topics.json file
+// $CFG->topics = $CFG->dirroot.'/../topics.json';
+
 // This allows you to include various tool folders.  These are scanned
 // for register.php, database.php and index.php files to do automatic
 // table creation as well as making lists of tools in various UI places
