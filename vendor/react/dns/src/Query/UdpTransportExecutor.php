@@ -19,10 +19,9 @@ use React\Promise\Deferred;
  *
  * ```php
  * $loop = Factory::create();
- * $executor = new UdpTransportExecutor($loop);
+ * $executor = new UdpTransportExecutor('8.8.8.8:53', $loop);
  *
  * $executor->query(
- *     '8.8.8.8:53',
  *     new Query($name, Message::TYPE_AAAA, Message::CLASS_IN)
  * )->then(function (Message $message) {
  *     foreach ($message->answers as $answer) {
@@ -40,7 +39,7 @@ use React\Promise\Deferred;
  *
  * ```php
  * $executor = new TimeoutExecutor(
- *     new UdpTransportExecutor($loop),
+ *     new UdpTransportExecutor($nameserver, $loop),
  *     3.0,
  *     $loop
  * );
@@ -53,9 +52,29 @@ use React\Promise\Deferred;
  * ```php
  * $executor = new RetryExecutor(
  *     new TimeoutExecutor(
- *         new UdpTransportExecutor($loop),
+ *         new UdpTransportExecutor($nameserver, $loop),
  *         3.0,
  *         $loop
+ *     )
+ * );
+ * ```
+ *
+ * Note that this executor is entirely async and as such allows you to execute
+ * any number of queries concurrently. You should probably limit the number of
+ * concurrent queries in your application or you're very likely going to face
+ * rate limitations and bans on the resolver end. For many common applications,
+ * you may want to avoid sending the same query multiple times when the first
+ * one is still pending, so you will likely want to use this in combination with
+ * a `CoopExecutor` like this:
+ *
+ * ```php
+ * $executor = new CoopExecutor(
+ *     new RetryExecutor(
+ *         new TimeoutExecutor(
+ *             new UdpTransportExecutor($nameserver, $loop),
+ *             3.0,
+ *             $loop
+ *         )
  *     )
  * );
  * ```
@@ -66,44 +85,49 @@ use React\Promise\Deferred;
  *   packages. Higher-level components should take advantage of the Datagram
  *   component instead of reimplementing this socket logic from scratch.
  */
-class UdpTransportExecutor implements ExecutorInterface
+final class UdpTransportExecutor implements ExecutorInterface
 {
+    private $nameserver;
     private $loop;
     private $parser;
     private $dumper;
 
     /**
-     * @param LoopInterface     $loop
-     * @param null|Parser       $parser optional/advanced: DNS protocol parser to use
-     * @param null|BinaryDumper $dumper optional/advanced: DNS protocol dumper to use
+     * @param string        $nameserver
+     * @param LoopInterface $loop
      */
-    public function __construct(LoopInterface $loop, Parser $parser = null, BinaryDumper $dumper = null)
+    public function __construct($nameserver, LoopInterface $loop)
     {
-        if ($parser === null) {
-            $parser = new Parser();
-        }
-        if ($dumper === null) {
-            $dumper = new BinaryDumper();
+        if (\strpos($nameserver, '[') === false && \substr_count($nameserver, ':') >= 2 && \strpos($nameserver, '://') === false) {
+            // several colons, but not enclosed in square brackets => enclose IPv6 address in square brackets
+            $nameserver = '[' . $nameserver . ']';
         }
 
+        $parts = \parse_url((\strpos($nameserver, '://') === false ? 'udp://' : '') . $nameserver);
+        if (!isset($parts['scheme'], $parts['host']) || $parts['scheme'] !== 'udp' || !\filter_var(\trim($parts['host'], '[]'), \FILTER_VALIDATE_IP)) {
+            throw new \InvalidArgumentException('Invalid nameserver address given');
+        }
+
+        $this->nameserver = 'udp://' . $parts['host'] . ':' . (isset($parts['port']) ? $parts['port'] : 53);
         $this->loop = $loop;
-        $this->parser = $parser;
-        $this->dumper = $dumper;
+        $this->parser = new Parser();
+        $this->dumper = new BinaryDumper();
     }
 
-    public function query($nameserver, Query $query)
+    public function query(Query $query)
     {
         $request = Message::createRequestForQuery($query);
 
         $queryData = $this->dumper->toBinary($request);
         if (isset($queryData[512])) {
             return \React\Promise\reject(new \RuntimeException(
-                'DNS query for ' . $query->name . ' failed: Query too large for UDP transport'
+                'DNS query for ' . $query->name . ' failed: Query too large for UDP transport',
+                \defined('SOCKET_EMSGSIZE') ? \SOCKET_EMSGSIZE : 90
             ));
         }
 
         // UDP connections are instant, so try connection without a loop or timeout
-        $socket = @\stream_socket_client("udp://$nameserver", $errno, $errstr, 0);
+        $socket = @\stream_socket_client($this->nameserver, $errno, $errstr, 0);
         if ($socket === false) {
             return \React\Promise\reject(new \RuntimeException(
                 'DNS query for ' . $query->name . ' failed: Unable to connect to DNS server ('  . $errstr . ')',
@@ -140,7 +164,7 @@ class UdpTransportExecutor implements ExecutorInterface
 
             // ignore and await next if we received an unexpected response ID
             // this may as well be a fake response from an attacker (possible cache poisoning)
-            if ($response->getId() !== $request->getId()) {
+            if ($response->id !== $request->id) {
                 return;
             }
 
@@ -148,8 +172,11 @@ class UdpTransportExecutor implements ExecutorInterface
             $loop->removeReadStream($socket);
             \fclose($socket);
 
-            if ($response->header->isTruncated()) {
-                $deferred->reject(new \RuntimeException('DNS query for ' . $query->name . ' failed: The server returned a truncated result for a UDP query, but retrying via TCP is currently not supported'));
+            if ($response->tc) {
+                $deferred->reject(new \RuntimeException(
+                    'DNS query for ' . $query->name . ' failed: The server returned a truncated result for a UDP query',
+                    \defined('SOCKET_EMSGSIZE') ? \SOCKET_EMSGSIZE : 90
+                ));
                 return;
             }
 

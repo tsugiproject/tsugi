@@ -119,10 +119,10 @@ class RequestVerifier {
 
     /**
      * Verify the version passed matches this RFC
-     * @param string|int $versionHeader MUST equal 13|"13"
+     * @param string[] $versionHeader MUST equal ["13"]
      * @return bool
      */
-    public function verifyVersion($versionHeader) {
+    public function verifyVersion(array $versionHeader) {
         return (1 === count($versionHeader) && static::VERSION === (int)$versionHeader[0]);
     }
 
@@ -136,5 +136,28 @@ class RequestVerifier {
      * @todo Write logic for this method.  See section 4.2.1.9
      */
     public function verifyExtensions($val) {
+    }
+
+    public function getPermessageDeflateOptions(array $requestHeader, array $responseHeader) {
+        $deflate = true;
+        if (!isset($requestHeader['Sec-WebSocket-Extensions']) || count(array_filter($requestHeader['Sec-WebSocket-Extensions'], function ($val) {
+            return 'permessage-deflate' === substr($val, 0, strlen('permessage-deflate'));
+        })) === 0) {
+             $deflate = false;
+        }
+
+        if (!isset($responseHeader['Sec-WebSocket-Extensions']) || count(array_filter($responseHeader['Sec-WebSocket-Extensions'], function ($val) {
+                return 'permessage-deflate' === substr($val, 0, strlen('permessage-deflate'));
+            })) === 0) {
+            $deflate = false;
+        }
+
+        return [
+            'deflate' => $deflate,
+            'no_context_takeover' => false,
+            'max_window_bits' => null,
+            'request_no_context_takeover' => false,
+            'request_max_window_bits' => null
+        ];
     }
 }

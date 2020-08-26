@@ -165,7 +165,7 @@ For more details on the promise cancellation, please refer to the
 
 #### Input cancellation
 
-Irrespective of the timout handling, you can also explicitly `cancel()` the
+Irrespective of the timeout handling, you can also explicitly `cancel()` the
 input `$promise` at any time.
 This means that the `timeout()` handling does not affect cancellation of the
 input `$promise`, as demonstrated in the following example:
@@ -342,7 +342,7 @@ This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-$ composer require react/promise-timer:^1.5
+$ composer require react/promise-timer:^1.6
 ```
 
 See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.

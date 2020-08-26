@@ -2,12 +2,10 @@
 
 namespace React\Socket;
 
-use React\Dns\Config\Config;
-use React\Dns\Resolver\Factory;
-use React\Dns\Resolver\Resolver;
+use React\Dns\Config\Config as DnsConfig;
+use React\Dns\Resolver\Factory as DnsFactory;
+use React\Dns\Resolver\ResolverInterface;
 use React\EventLoop\LoopInterface;
-use React\Promise;
-use RuntimeException;
 
 /**
  * The `Connector` class is the main class in this package that implements the
@@ -38,10 +36,11 @@ final class Connector implements ConnectorInterface
 
             'dns' => true,
             'timeout' => true,
+            'happy_eyeballs' => true,
         );
 
         if ($options['timeout'] === true) {
-            $options['timeout'] = (float)ini_get("default_socket_timeout");
+            $options['timeout'] = (float)\ini_get("default_socket_timeout");
         }
 
         if ($options['tcp'] instanceof ConnectorInterface) {
@@ -49,30 +48,34 @@ final class Connector implements ConnectorInterface
         } else {
             $tcp = new TcpConnector(
                 $loop,
-                is_array($options['tcp']) ? $options['tcp'] : array()
+                \is_array($options['tcp']) ? $options['tcp'] : array()
             );
         }
 
         if ($options['dns'] !== false) {
-            if ($options['dns'] instanceof Resolver) {
+            if ($options['dns'] instanceof ResolverInterface) {
                 $resolver = $options['dns'];
             } else {
                 if ($options['dns'] !== true) {
                     $server = $options['dns'];
                 } else {
                     // try to load nameservers from system config or default to Google's public DNS
-                    $config = Config::loadSystemConfigBlocking();
-                    $server = $config->nameservers ? reset($config->nameservers) : '8.8.8.8';
+                    $config = DnsConfig::loadSystemConfigBlocking();
+                    $server = $config->nameservers ? \reset($config->nameservers) : '8.8.8.8';
                 }
 
-                $factory = new Factory();
-                $resolver = $factory->create(
+                $factory = new DnsFactory();
+                $resolver = $factory->createCached(
                     $server,
                     $loop
                 );
             }
 
-            $tcp = new DnsConnector($tcp, $resolver);
+            if ($options['happy_eyeballs'] === true) {
+                $tcp = new HappyEyeBallsConnector($loop, $tcp, $resolver);
+            } else {
+                $tcp = new DnsConnector($tcp, $resolver);
+            }
         }
 
         if ($options['tcp'] !== false) {
@@ -94,7 +97,7 @@ final class Connector implements ConnectorInterface
                 $options['tls'] = new SecureConnector(
                     $tcp,
                     $loop,
-                    is_array($options['tls']) ? $options['tls'] : array()
+                    \is_array($options['tls']) ? $options['tls'] : array()
                 );
             }
 
@@ -120,12 +123,12 @@ final class Connector implements ConnectorInterface
     public function connect($uri)
     {
         $scheme = 'tcp';
-        if (strpos($uri, '://') !== false) {
-            $scheme = (string)substr($uri, 0, strpos($uri, '://'));
+        if (\strpos($uri, '://') !== false) {
+            $scheme = (string)\substr($uri, 0, \strpos($uri, '://'));
         }
 
         if (!isset($this->connectors[$scheme])) {
-            return Promise\reject(new RuntimeException(
+            return \React\Promise\reject(new \RuntimeException(
                 'No connector available for URI scheme "' . $scheme . '"'
             ));
         }

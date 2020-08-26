@@ -1,11 +1,14 @@
 <?php
+
 namespace Ratchet\RFC6455\Test\Unit\Handshake;
+
 use Ratchet\RFC6455\Handshake\ResponseVerifier;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers Ratchet\RFC6455\Handshake\ResponseVerifier
  */
-class ResponseVerifierTest extends \PHPUnit_Framework_TestCase {
+class ResponseVerifierTest extends TestCase {
     /**
      * @var ResponseVerifier
      */
@@ -18,17 +21,19 @@ class ResponseVerifierTest extends \PHPUnit_Framework_TestCase {
     public static function subProtocolsProvider() {
         return [
             [true,  ['a'], ['a']]
-          , [true,  ['b', 'a'], ['c', 'd', 'a']]
-          , [false, ['a', 'b', 'c'], ['d']]
+          , [true,  ['c', 'd', 'a'], ['a']]
+          , [true,  ['c, a', 'd'], ['a']]
           , [true,  [], []]
           , [true,  ['a', 'b'], []]
+          , [false, ['c', 'd', 'a'], ['b', 'a']]
+          , [false, ['a', 'b', 'c'], ['d']]
         ];
     }
 
     /**
      * @dataProvider subProtocolsProvider
      */
-    public function testVerifySubProtocol($expected, $response, $request) {
-        $this->assertEquals($expected, $this->_v->verifySubProtocol($response, $request));
+    public function testVerifySubProtocol($expected, $request, $response) {
+        $this->assertEquals($expected, $this->_v->verifySubProtocol($request, $response));
     }
 }

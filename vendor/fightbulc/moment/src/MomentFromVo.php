@@ -225,12 +225,17 @@ class MomentFromVo
     {
         $formatArgs = array();
 
-        if ($this->valueInRange($this->getSeconds(), 0, 45))
+        if ($this->valueInRange($this->getSeconds(), 0, 4))
         {
             $localeKeys = array('relativeTime', 's');
             $formatArgs[] = 1;
         }
-        elseif ($this->valueInRange($this->getSeconds(), 45, 90))
+        elseif ($this->valueInRange($this->getSeconds(), 4, 60))
+        {
+            $localeKeys = array('relativeTime', 'ss');
+            $formatArgs[] = $this->roundAbs($this->getSeconds());
+        }
+        elseif ($this->valueInRange($this->getSeconds(), 60, 90))
         {
             $localeKeys = array('relativeTime', 'm');
             $formatArgs[] = 1;
@@ -265,12 +270,12 @@ class MomentFromVo
             $localeKeys = array('relativeTime', 'M');
             $formatArgs[] = 1;
         }
-        elseif ($this->valueInRange($this->getDays(), 25, 345))
+        elseif ($this->valueInRange($this->getDays(), 45, 345))
         {
             $localeKeys = array('relativeTime', 'MM');
             $formatArgs[] = $this->roundAbs($this->getMonths());
         }
-        elseif ($this->valueInRange($this->getDays(), 345, 547))
+        elseif ($this->valueInRange($this->getDays(), 345, 548))
         {
             $localeKeys = array('relativeTime', 'y');
             $formatArgs[] = 1;
@@ -301,7 +306,7 @@ class MomentFromVo
      */
     private function valueInRange($value, $from, $to)
     {
-        return abs($value) >= $from && abs($value) <= $to ? true : false;
+        return abs($value) >= $from && abs($value) < $to ? true : false;
     }
 
     /**

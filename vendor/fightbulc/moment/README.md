@@ -1,3 +1,9 @@
+# Support
+
+I am a dad now for the last 1,5 years and that clearly shows in being on time with merging PRs or pushing this package further.
+Time is the biggest constraint here. I would be happy to pass the project on to somebody who has more time and the motivation to push the project forward.
+Just drop me a message. Cheers!
+
 <pre>
                                       _           _           
  _ __ ___   ___  _ __ ___   ___ _ __ | |_   _ __ | |__  _ __  
@@ -7,7 +13,7 @@
                                            |_|         |_|    
 </pre>
 
-[![Build Status](https://travis-ci.org/fightbulc/moment.php.svg?branch=master)](https://travis-ci.org/fightbulc/moment.php)
+![Build Status](https://github.com/fightbulc/moment.php/workflows/qa/badge.svg?branch=master)
 [![Total Downloads](https://img.shields.io/packagist/dt/fightbulc/moment.svg?style=flat-square)](https://packagist.org/packages/fightbulc/moment)
 
 [Change log](#changelog)
@@ -28,12 +34,8 @@ PHP 5.3 or later since moment.php is based on php's [DateTime Class](http://php.
 
 Easy install via composer. Still no idea what composer is? Inform yourself [here](http://getcomposer.org).
 
-```json
-{
-    "require": {
-        "fightbulc/moment": "*"
-    }
-}
+```
+composer require fightbulc/moment
 ```
 
 -------------------------------------------------
@@ -110,21 +112,26 @@ __Supported languages so far:__
 ```cs_CZ``` Czech  
 ```da_DK``` Danish  
 ```nl_NL``` Dutch  
+```en_CA``` English (Canada)  
 ```en_GB``` English (British)  
 ```en_US``` English (American)  
+```fa_IR``` Farsi  
+```fi_FI``` Finnish  
 ```fr_FR``` French (Europe)  
+```fr_CA``` French (Canada)  
 ```de_DE``` German (Germany)  
 ```hu_HU``` Hungarian    
-```in_ID``` Indonesian  
+```id_ID``` Indonesian  
 ```it_IT``` Italian  
 ```ja_JP``` Japanese  
-```oc_LNC``` Lengadocian    
+```oc_LNC``` Lengadocian  
+```lv_LV``` Latvian (Latviešu)  
 ```pl_PL``` Polish  
 ```pt_BR``` Portuguese (Brazil)  
 ```pt_PT``` Portuguese (Portugal)  
 ```ru_RU``` Russian (Basic version)  
 ```es_ES``` Spanish (Europe)  
-```se_SV``` Swedish  
+```sv_SE``` Swedish  
 ```uk_UA``` Ukrainian  
 ```th_TH``` Thai  
 ```tr_TR``` Turkish  
@@ -365,7 +372,7 @@ Same process as for moment.js: mutates the original moment by setting it to the 
 $m = new \Moment\Moment('20140515T10:15:23', 'CET');
 
 $m->startOf('year');    // set to January 1st, 00:00 this year
-$m->startOf('quarter');  // set to the beginning of the current quarter, 1st day of months, 00:00
+$m->startOf('quarter'); // set to the beginning of the current quarter, 1st day of months, 00:00
 $m->startOf('month');   // set to the first of this month, 00:00
 $m->startOf('week');    // set to the first day of this week, 00:00
 $m->startOf('day');     // set to 00:00 today
@@ -373,7 +380,7 @@ $m->startOf('hour');    // set to now, but with 0 mins, 0 secs
 $m->startOf('minute');  // set to now, but with 0 seconds
 
 $m->endOf('year');    // set to December 31st, 23:59 this year
-$m->endOf('quarter');  // set to the end of the current quarter, last day of month, 23:59
+$m->endOf('quarter'); // set to the end of the current quarter, last day of month, 23:59
 $m->endOf('month');   // set to the last of this month, 23:59
 $m->endOf('week');    // set to the last day of this week, 23:59
 $m->endOf('day');     // set to 23:59 today
@@ -415,7 +422,54 @@ You can now run through the result and put it formatted into a drop-down field o
 
 -------------------------------------------------
 
-# Changelog
+# Change Log
+
+### 1.32.1
+ - fixed:
+    - DateTime::createFromFormat signature match
+
+### 1.32.0
+ - added:
+    - Farsi locale
+
+### 1.31.0
+ - added:
+    - code checks vis GH action workflows
+    - Canadian locale for English/French
+
+### 1.30.1
+ - fixed:
+    - merge with a couple of PRs (thanks!)
+
+### 1.30.0
+ - added:
+    - Finish locale
+ - fixed:
+    - Swedish locale
+
+### 1.29.0
+ - updated Italian locale
+ - added:
+    - custom formats for en_US
+    - flag for loading similar locale
+
+### 1.28.3
+ - fixed typehint issue
+
+### 1.28.2
+ - fixed:
+    - missing relativeTime format
+    - allow 9-digit unixtime
+
+### 1.28.1
+ - fixed RFC2822 as valid format
+
+### 1.28.0
+ - fixed relative time
+ - added Norwegian locale
+
+### 1.27.0
+ - fixes and locale additions [(see commits for the 22.11.2018)](https://github.com/fightbulc/moment.php/commits/master)
 
 ### 1.26.10
  - fixed:

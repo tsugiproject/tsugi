@@ -7,8 +7,14 @@ class Message implements \IteratorAggregate, MessageInterface {
      */
     private $_frames;
 
+    /**
+     * @var int
+     */
+    private $len;
+
     public function __construct() {
         $this->_frames = new \SplDoublyLinkedList;
+        $this->len = 0;
     }
 
     public function getIterator() {
@@ -39,6 +45,7 @@ class Message implements \IteratorAggregate, MessageInterface {
      * {@inheritdoc}
      */
     public function addFrame(FrameInterface $fragment) {
+        $this->len += $fragment->getPayloadLength();
         $this->_frames->push($fragment);
 
         return $this;
@@ -59,17 +66,7 @@ class Message implements \IteratorAggregate, MessageInterface {
      * {@inheritdoc}
      */
     public function getPayloadLength() {
-        $len = 0;
-
-        foreach ($this->_frames as $frame) {
-            try {
-                $len += $frame->getPayloadLength();
-            } catch (\UnderflowException $e) {
-                // Not an error, want the current amount buffered
-            }
-        }
-
-        return $len;
+        return $this->len;
     }
 
     /**
@@ -119,5 +116,17 @@ class Message implements \IteratorAggregate, MessageInterface {
         }
 
         return Frame::OP_BINARY === $this->_frames->bottom()->getOpcode();
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getRsv1() {
+        if ($this->_frames->isEmpty()) {
+            return false;
+            //throw new \UnderflowException('Not enough data has been received to determine if message is binary');
+        }
+
+        return $this->_frames->bottom()->getRsv1();
     }
 }

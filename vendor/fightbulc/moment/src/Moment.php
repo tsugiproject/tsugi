@@ -37,13 +37,14 @@ class Moment extends \DateTime
 
     /**
      * @param string $locale
+     * @param bool   $findSimilar
      *
      * @throws MomentException
      */
-    public static function setLocale($locale)
+    public static function setLocale($locale, $findSimilar = false)
     {
         // set current language
-        MomentLocale::setLocale($locale);
+        MomentLocale::setLocale($locale, $findSimilar);
     }
 
     /**
@@ -58,9 +59,69 @@ class Moment extends \DateTime
     }
 
     /**
-     * @param string $dateTime
+     * Creates a new Moment from a DateTime
+     *
+     * @param \DateTimeInterface $date
+     *
+     * @return Moment
+     * @throws MomentException
+     */
+    public static function fromDateTime(\DateTimeInterface $date)
+    {
+        $moment = new static('@' . $date->format('U'));
+        $moment->setTimezone($date->getTimezone());
+
+        if ($date instanceof \DateTimeImmutable)
+        {
+            $moment->setImmutableMode(true);
+        }
+
+        return $moment;
+    }
+
+    /**
+     * Workaround for {@see https://bugs.php.net/bug.php?id=60302} and
+     * {@see https://github.com/fightbulc/moment.php/issues/89}
+     *
+     * @param string                $format format of the date
+     * @param string                $time date string to parse
+     * @param null|\DateTimeZone    $timezone optional timezone to parse the string with
+     * @param null|FormatsInterface $formatsInterface optional interface to use for {@see $format}.
+     *
+     * @return static|false         Returns a new Moment instance or FALSE on failure.
+     * @throws MomentException
+     */
+    public static function createFromFormat($format, $time, $timezone = null, FormatsInterface $formatsInterface = null)
+    {
+        // handle diverse format types
+        if ($formatsInterface instanceof FormatsInterface)
+        {
+            // merge localized custom formats
+            $localeContent = MomentLocale::getLocaleContent();
+            if (isset($localeContent['customFormats']) && is_array($localeContent['customFormats']))
+            {
+                $formatsInterface->setTokens($localeContent['customFormats']);
+            }
+
+            $format = $formatsInterface->format($format);
+        }
+
+        $date = $timezone ?
+            parent::createFromFormat($format, $time, $timezone) :
+            parent::createFromFormat($format, $time);
+
+        if ($date === false)
+        {
+            return false;
+        }
+
+        return static::fromDateTime($date);
+    }
+
+    /**
+     * @param string      $dateTime
      * @param string|null $timezone
-     * @param bool $immutableMode
+     * @param bool        $immutableMode
      *
      * @throws MomentException
      */
@@ -103,11 +164,14 @@ class Moment extends \DateTime
      *
      * @return $this
      * @throws MomentException
+     * @throws \Exception
      */
     public function resetDateTime($dateTime = 'now', $timezone = null)
     {
+        $lengthDateTime = strlen((int)$dateTime);
+
         // unix timestamp helper
-        if (strlen((int)$dateTime) === 10)
+        if ($lengthDateTime >= 9 && $lengthDateTime <= 10)
         {
             $dateTime = '@' . $dateTime;
         }
@@ -129,7 +193,7 @@ class Moment extends \DateTime
         parent::__construct($dateTime, $this->getDateTimeZone($timezone));
 
         // set timezone if unix time
-        if (strpos($dateTime, '@') !== false)
+        if (strpos($dateTime, '@') !== false && $timezone)
         {
             $this->setTimezone($timezone);
         }
@@ -144,7 +208,7 @@ class Moment extends \DateTime
     }
 
     /**
-     * @param string $timezone
+     * @param string|\DateTimeZone $timezone
      *
      * @return \DateTime|Moment
      */
@@ -155,6 +219,11 @@ class Moment extends \DateTime
             return $this->implicitCloning(__FUNCTION__, func_get_args());
         }
 
+        if ($timezone instanceof \DateTimeZone)
+        {
+            $timezone = $timezone->getName();
+        }
+
         $this->setTimezoneString($timezone);
 
         parent::setTimezone($this->getDateTimeZone($timezone));
@@ -163,7 +232,7 @@ class Moment extends \DateTime
     }
 
     /**
-     * @param null|string $format
+     * @param null|string           $format
      * @param null|FormatsInterface $formatsInterface
      *
      * @return string
@@ -616,8 +685,8 @@ class Moment extends \DateTime
     }
 
     /**
-     * @param int $hour
-     * @param int $minute
+     * @param int      $hour
+     * @param int      $minute
      * @param int|null $second
      * @param int|null $microseconds
      *
@@ -637,9 +706,10 @@ class Moment extends \DateTime
 
     /**
      * @param string|Moment $fromMoment
-     * @param null $timezoneString
+     * @param null          $timezoneString
      *
      * @return MomentFromVo
+     * @throws MomentException
      */
     public function from($fromMoment = 'now', $timezoneString = null)
     {
@@ -669,6 +739,7 @@ class Moment extends \DateTime
      * @param null $timezoneString
      *
      * @return MomentFromVo
+     * @throws MomentException
      */
     public function fromNow($timezoneString = null)
     {
@@ -690,11 +761,11 @@ class Moment extends \DateTime
 
     /**
      * @param string $type
-     * @param int $value
+     * @param int    $value
      *
      * @return Moment
      */
-    private function addTime($type = 'day', $value = 1)
+    protected function addTime($type = 'day', $value = 1)
     {
         if ($this->immutableMode)
         {
@@ -835,7 +906,7 @@ class Moment extends \DateTime
     }
 
     /**
-     * @param bool $withTime
+     * @param bool        $withTime
      * @param Moment|null $refMoment
      *
      * @return string
@@ -1020,11 +1091,11 @@ class Moment extends \DateTime
 
     /**
      * @param string $method
-     * @param array $params
+     * @param array  $params
      *
      * @return self
      */
-    private function implicitCloning($method, $params = array())
+    protected function implicitCloning($method, $params = array())
     {
         $clone = $this->cloning();
 
@@ -1037,7 +1108,7 @@ class Moment extends \DateTime
 
     /**
      * @param array $weekdayNumbers
-     * @param int $forUpcomingWeeks
+     * @param int   $forUpcomingWeeks
      *
      * @return Moment[]
      * @throws MomentException
@@ -1083,7 +1154,7 @@ class Moment extends \DateTime
      * Check if a moment is the same as another moment
      *
      * @param string|Moment $dateTime
-     * @param string $period 'seconds|minute|hour|day|month|year'
+     * @param string        $period 'seconds|minute|hour|day|month|year'
      *
      * @return bool
      * @throws MomentException
@@ -1099,7 +1170,7 @@ class Moment extends \DateTime
      * Checks if Moment is before given time
      *
      * @param string|Moment $dateTime
-     * @param string $period 'seconds|minute|hour|day|month|year'
+     * @param string        $period 'seconds|minute|hour|day|month|year'
      *
      * @return bool
      * @throws MomentException
@@ -1115,7 +1186,7 @@ class Moment extends \DateTime
      * Checks if Moment is after given time
      *
      * @param string|Moment $dateTime
-     * @param string $period 'seconds|minute|hour|day|month|year'
+     * @param string        $period 'seconds|minute|hour|day|month|year'
      *
      * @return bool
      * @throws MomentException
@@ -1132,8 +1203,8 @@ class Moment extends \DateTime
      *
      * @param string|Moment $minDateTime
      * @param string|Moment $maxDateTime
-     * @param boolean $closed
-     * @param string $period 'seconds|minute|hour|day|month|year'
+     * @param boolean       $closed
+     * @param string        $period 'seconds|minute|hour|day|month|year'
      *
      * @return bool
      * @throws MomentException
@@ -1157,7 +1228,7 @@ class Moment extends \DateTime
      *
      * @return Moment
      */
-    private function setRawDateTimeString($rawDateTimeString)
+    protected function setRawDateTimeString($rawDateTimeString)
     {
         if ($this->immutableMode)
         {
@@ -1182,7 +1253,7 @@ class Moment extends \DateTime
      *
      * @return Moment
      */
-    private function setTimezoneString($timezoneString)
+    protected function setTimezoneString($timezoneString)
     {
         if ($this->immutableMode)
         {
@@ -1298,22 +1369,49 @@ class Moment extends \DateTime
             }
         }
 
+        // raw timestamp
+        elseif (strpos($rawDateTime, '@') === 0)
+        {
+            $momentDateTime = '@' . $this->format('U');
+        }
+
         // without time
         else
         {
             $momentDateTime = $this->format(self::NO_TIME);
         }
 
-        return $rawDateTime === $momentDateTime;
+        $isValid = $rawDateTime === $momentDateTime;
+
+        // TODO: hack until we include a proper validation
+
+        if (!$isValid)
+        {
+            $rfcs = array(
+                self::RFC2822,
+                self::RFC822,
+                self::RFC1036,
+            );
+
+            foreach ($rfcs as $rfc)
+            {
+                if ($this->format($rfc) === $rawDateTime)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return $isValid;
     }
 
     /**
      * @param string $type
-     * @param int $value
+     * @param int    $value
      *
      * @return Moment
      */
-    private function subtractTime($type = 'day', $value = 1)
+    protected function subtractTime($type = 'day', $value = 1)
     {
         if ($this->immutableMode)
         {
@@ -1326,7 +1424,7 @@ class Moment extends \DateTime
     }
 
     /**
-     * @param int $number
+     * @param int    $number
      * @param string $token
      *
      * @return string
@@ -1336,4 +1434,5 @@ class Moment extends \DateTime
     {
         return (string)call_user_func(MomentLocale::getLocaleString(array('ordinal')), $number, $token);
     }
+
 }

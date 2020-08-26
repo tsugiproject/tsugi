@@ -12,14 +12,14 @@ use RuntimeException;
  * is responsible for accepting plaintext TCP/IP connections.
  *
  * ```php
- * $server = new TcpServer(8080, $loop);
+ * $server = new React\Socket\TcpServer(8080, $loop);
  * ```
  *
  * Whenever a client connects, it will emit a `connection` event with a connection
  * instance implementing `ConnectionInterface`:
  *
  * ```php
- * $server->on('connection', function (ConnectionInterface $connection) {
+ * $server->on('connection', function (React\Socket\ConnectionInterface $connection) {
  *     echo 'Plaintext connection from ' . $connection->getRemoteAddress() . PHP_EOL;
  *     $connection->write('hello there!' . PHP_EOL);
  *     …
@@ -45,7 +45,7 @@ final class TcpServer extends EventEmitter implements ServerInterface
      * for more details.
      *
      * ```php
-     * $server = new TcpServer(8080, $loop);
+     * $server = new React\Socket\TcpServer(8080, $loop);
      * ```
      *
      * As above, the `$uri` parameter can consist of only a port, in which case the
@@ -55,7 +55,7 @@ final class TcpServer extends EventEmitter implements ServerInterface
      * In order to use a random port assignment, you can use the port `0`:
      *
      * ```php
-     * $server = new TcpServer(0, $loop);
+     * $server = new React\Socket\TcpServer(0, $loop);
      * $address = $server->getAddress();
      * ```
      *
@@ -64,14 +64,14 @@ final class TcpServer extends EventEmitter implements ServerInterface
      * preceded by the `tcp://` scheme:
      *
      * ```php
-     * $server = new TcpServer('192.168.0.1:8080', $loop);
+     * $server = new React\Socket\TcpServer('192.168.0.1:8080', $loop);
      * ```
      *
      * If you want to listen on an IPv6 address, you MUST enclose the host in square
      * brackets:
      *
      * ```php
-     * $server = new TcpServer('[::1]:8080', $loop);
+     * $server = new React\Socket\TcpServer('[::1]:8080', $loop);
      * ```
      *
      * If the given URI is invalid, does not contain a port, any other scheme or if it
@@ -79,7 +79,7 @@ final class TcpServer extends EventEmitter implements ServerInterface
      *
      * ```php
      * // throws InvalidArgumentException due to missing port
-     * $server = new TcpServer('127.0.0.1', $loop);
+     * $server = new React\Socket\TcpServer('127.0.0.1', $loop);
      * ```
      *
      * If the given URI appears to be valid, but listening on it fails (such as if port
@@ -87,10 +87,10 @@ final class TcpServer extends EventEmitter implements ServerInterface
      * throw a `RuntimeException`:
      *
      * ```php
-     * $first = new TcpServer(8080, $loop);
+     * $first = new React\Socket\TcpServer(8080, $loop);
      *
      * // throws RuntimeException because port is already in use
-     * $second = new TcpServer(8080, $loop);
+     * $second = new React\Socket\TcpServer(8080, $loop);
      * ```
      *
      * Note that these error conditions may vary depending on your system and/or
@@ -98,18 +98,18 @@ final class TcpServer extends EventEmitter implements ServerInterface
      * See the exception message and code for more details about the actual error
      * condition.
      *
-     * Optionally, you can specify [socket context options](http://php.net/manual/en/context.socket.php)
+     * Optionally, you can specify [socket context options](https://www.php.net/manual/en/context.socket.php)
      * for the underlying stream socket resource like this:
      *
      * ```php
-     * $server = new TcpServer('[::1]:8080', $loop, array(
+     * $server = new React\Socket\TcpServer('[::1]:8080', $loop, array(
      *     'backlog' => 200,
      *     'so_reuseport' => true,
      *     'ipv6_v6only' => true
      * ));
      * ```
      *
-     * Note that available [socket context options](http://php.net/manual/en/context.socket.php),
+     * Note that available [socket context options](https://www.php.net/manual/en/context.socket.php),
      * their defaults and effects of changing these may vary depending on your system
      * and/or PHP version.
      * Passing unknown context options has no effect.
@@ -130,57 +130,56 @@ final class TcpServer extends EventEmitter implements ServerInterface
         }
 
         // assume default scheme if none has been given
-        if (strpos($uri, '://') === false) {
+        if (\strpos($uri, '://') === false) {
             $uri = 'tcp://' . $uri;
         }
 
         // parse_url() does not accept null ports (random port assignment) => manually remove
-        if (substr($uri, -2) === ':0') {
-            $parts = parse_url(substr($uri, 0, -2));
+        if (\substr($uri, -2) === ':0') {
+            $parts = \parse_url(\substr($uri, 0, -2));
             if ($parts) {
                 $parts['port'] = 0;
             }
         } else {
-            $parts = parse_url($uri);
+            $parts = \parse_url($uri);
         }
 
         // ensure URI contains TCP scheme, host and port
         if (!$parts || !isset($parts['scheme'], $parts['host'], $parts['port']) || $parts['scheme'] !== 'tcp') {
-            throw new InvalidArgumentException('Invalid URI "' . $uri . '" given');
+            throw new \InvalidArgumentException('Invalid URI "' . $uri . '" given');
         }
 
-        if (false === filter_var(trim($parts['host'], '[]'), FILTER_VALIDATE_IP)) {
-            throw new InvalidArgumentException('Given URI "' . $uri . '" does not contain a valid host IP');
+        if (false === \filter_var(\trim($parts['host'], '[]'), \FILTER_VALIDATE_IP)) {
+            throw new \InvalidArgumentException('Given URI "' . $uri . '" does not contain a valid host IP');
         }
 
-        $this->master = @stream_socket_server(
+        $this->master = @\stream_socket_server(
             $uri,
             $errno,
             $errstr,
-            STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-            stream_context_create(array('socket' => $context))
+            \STREAM_SERVER_BIND | \STREAM_SERVER_LISTEN,
+            \stream_context_create(array('socket' => $context))
         );
         if (false === $this->master) {
-            throw new RuntimeException('Failed to listen on "' . $uri . '": ' . $errstr, $errno);
+            throw new \RuntimeException('Failed to listen on "' . $uri . '": ' . $errstr, $errno);
         }
-        stream_set_blocking($this->master, 0);
+        \stream_set_blocking($this->master, false);
 
         $this->resume();
     }
 
     public function getAddress()
     {
-        if (!is_resource($this->master)) {
+        if (!\is_resource($this->master)) {
             return null;
         }
 
-        $address = stream_socket_get_name($this->master, false);
+        $address = \stream_socket_get_name($this->master, false);
 
         // check if this is an IPv6 address which includes multiple colons but no square brackets
-        $pos = strrpos($address, ':');
-        if ($pos !== false && strpos($address, ':') < $pos && substr($address, 0, 1) !== '[') {
-            $port = substr($address, $pos + 1);
-            $address = '[' . substr($address, 0, $pos) . ']:' . $port;
+        $pos = \strrpos($address, ':');
+        if ($pos !== false && \strpos($address, ':') < $pos && \substr($address, 0, 1) !== '[') {
+            $address = '[' . \substr($address, 0, $pos) . ']:' . \substr($address, $pos + 1); // @codeCoverageIgnore
         }
 
         return 'tcp://' . $address;
@@ -198,15 +197,15 @@ final class TcpServer extends EventEmitter implements ServerInterface
 
     public function resume()
     {
-        if ($this->listening || !is_resource($this->master)) {
+        if ($this->listening || !\is_resource($this->master)) {
             return;
         }
 
         $that = $this;
         $this->loop->addReadStream($this->master, function ($master) use ($that) {
-            $newSocket = @stream_socket_accept($master);
+            $newSocket = @\stream_socket_accept($master);
             if (false === $newSocket) {
-                $that->emit('error', array(new RuntimeException('Error accepting new connection')));
+                $that->emit('error', array(new \RuntimeException('Error accepting new connection')));
 
                 return;
             }
@@ -217,12 +216,12 @@ final class TcpServer extends EventEmitter implements ServerInterface
 
     public function close()
     {
-        if (!is_resource($this->master)) {
+        if (!\is_resource($this->master)) {
             return;
         }
 
         $this->pause();
-        fclose($this->master);
+        \fclose($this->master);
         $this->removeAllListeners();
     }
 

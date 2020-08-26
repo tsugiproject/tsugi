@@ -5,15 +5,20 @@
     "keywords": ["WebSockets", "websocket", "RFC6455"],
     "homepage": "http://socketo.me",
     "license": "MIT",
-    "authors": [{
-        "name": "Chris Boden"
-      , "email": "cboden@gmail.com"
-      , "role": "Developer"
-    }],
+    "authors": [
+        {
+            "name": "Chris Boden"
+          , "email": "cboden@gmail.com"
+          , "role": "Developer"
+        },
+        {
+            "name": "Matt Bonneau",
+            "role": "Developer"
+        }
+    ],
     "support": {
-        "forum": "https://groups.google.com/forum/#!forum/ratchet-php"
-      , "issues": "https://github.com/ratchetphp/RFC6455/issues"
-      , "irc": "irc://irc.freenode.org/reactphp"
+        "issues": "https://github.com/ratchetphp/RFC6455/issues",
+        "chat": "https://gitter.im/reactphp/reactphp"
     },
     "autoload": {
         "psr-4": {
@@ -25,8 +30,17 @@
         "guzzlehttp/psr7": "^1.0"
     },
     "require-dev": {
-        "react/http": "^0.4.1",
-        "react/socket-client": "^0.4.3",
-        "phpunit/phpunit": "4.8.*"
+        "phpunit/phpunit": "5.7.*",
+        "react/socket": "^1.3"
+    },
+    "scripts": {
+        "abtest-client": "ABTEST=client && sh tests/ab/run_ab_tests.sh",
+        "abtest-server": "ABTEST=server && sh tests/ab/run_ab_tests.sh",
+        "phpunit": "phpunit --colors=always",
+        "test": [
+            "@abtest-client",
+            "@abtest-server",
+            "@phpunit"
+        ]
     }
 }

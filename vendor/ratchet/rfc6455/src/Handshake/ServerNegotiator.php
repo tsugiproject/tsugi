@@ -17,8 +17,22 @@ class ServerNegotiator implements NegotiatorInterface {
 
     private $_strictSubProtocols = false;
 
-    public function __construct(RequestVerifier $requestVerifier) {
+    private $enablePerMessageDeflate = false;
+
+    public function __construct(RequestVerifier $requestVerifier, $enablePerMessageDeflate = false) {
         $this->verifier = $requestVerifier;
+
+        // https://bugs.php.net/bug.php?id=73373
+        // https://bugs.php.net/bug.php?id=74240 - need >=7.1.4 or >=7.0.18
+        $supported = PermessageDeflateOptions::permessageDeflateSupported();
+        if ($enablePerMessageDeflate && !$supported) {
+            throw new \Exception('permessage-deflate is not supported by your PHP version (need >=7.1.4 or >=7.0.18).');
+        }
+        if ($enablePerMessageDeflate && !function_exists('deflate_add')) {
+            throw new \Exception('permessage-deflate is not supported because you do not have the zlib extension.');
+        }
+
+        $this->enablePerMessageDeflate = $enablePerMessageDeflate;
     }
 
     /**
@@ -61,7 +75,7 @@ class ServerNegotiator implements NegotiatorInterface {
             'Sec-WebSocket-Version'  => $this->getVersionNumber()
         ];
         if (count($this->_supportedSubProtocols) > 0) {
-            $upgradeSuggestion['Sec-WebSocket-Protocol'] = implode(', ', $this->_supportedSubProtocols);
+            $upgradeSuggestion['Sec-WebSocket-Protocol'] = implode(', ', array_keys($this->_supportedSubProtocols));
         }
         if (true !== $this->verifier->verifyUpgradeRequest($request->getHeader('Upgrade'))) {
             return new Response(426, $upgradeSuggestion, null, '1.1', 'Upgrade header MUST be provided');
@@ -97,12 +111,24 @@ class ServerNegotiator implements NegotiatorInterface {
             }
         }
 
-        return new Response(101, array_merge($headers, [
+        $response = new Response(101, array_merge($headers, [
             'Upgrade'              => 'websocket'
-          , 'Connection'           => 'Upgrade'
-          , 'Sec-WebSocket-Accept' => $this->sign((string)$request->getHeader('Sec-WebSocket-Key')[0])
-          , 'X-Powered-By'         => 'Ratchet'
+            , 'Connection'           => 'Upgrade'
+            , 'Sec-WebSocket-Accept' => $this->sign((string)$request->getHeader('Sec-WebSocket-Key')[0])
+            , 'X-Powered-By'         => 'Ratchet'
         ]));
+
+        try {
+            $perMessageDeflateRequest = PermessageDeflateOptions::fromRequestOrResponse($request)[0];
+        } catch (InvalidPermessageDeflateOptionsException $e) {
+            return new Response(400, [], null, '1.1', $e->getMessage());
+        }
+
+        if ($this->enablePerMessageDeflate && $perMessageDeflateRequest->isEnabled()) {
+            $response = $perMessageDeflateRequest->addHeaderToResponse($response);
+        }
+
+        return $response;
     }
 
     /**

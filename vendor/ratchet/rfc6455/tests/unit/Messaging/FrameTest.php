@@ -1,13 +1,16 @@
 <?php
+
 namespace Ratchet\RFC6455\Test\Unit\Messaging;
+
 use Ratchet\RFC6455\Messaging\Frame;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers Ratchet\RFC6455\Messaging\Frame
  * @todo getMaskingKey, getPayloadStartingByte don't have tests yet
  * @todo Could use some clean up in general, I had to rush to fix a bug for a deadline, sorry.
  */
-class FrameTest extends \PHPUnit_Framework_TestCase {
+class FrameTest extends TestCase {
     protected $_firstByteFinText    = '10000001';
 
     protected $_secondByteMaskedSPL = '11111101';

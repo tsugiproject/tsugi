@@ -2,9 +2,11 @@
 
 namespace React\Dns\Query;
 
+use React\Promise\CancellablePromiseInterface;
 use React\Promise\Deferred;
+use React\Promise\PromiseInterface;
 
-class RetryExecutor implements ExecutorInterface
+final class RetryExecutor implements ExecutorInterface
 {
     private $executor;
     private $retries;
@@ -15,30 +17,70 @@ class RetryExecutor implements ExecutorInterface
         $this->retries = $retries;
     }
 
-    public function query($nameserver, Query $query)
+    public function query(Query $query)
     {
-        return $this->tryQuery($nameserver, $query, $this->retries);
+        return $this->tryQuery($query, $this->retries);
     }
 
-    public function tryQuery($nameserver, Query $query, $retries)
+    public function tryQuery(Query $query, $retries)
     {
-        $that = $this;
-        $errorback = function ($error) use ($nameserver, $query, $retries, $that) {
-            if (!$error instanceof TimeoutException) {
-                throw $error;
+        $deferred = new Deferred(function () use (&$promise) {
+            if ($promise instanceof CancellablePromiseInterface || (!\interface_exists('React\Promise\CancellablePromiseInterface') && \method_exists($promise, 'cancel'))) {
+                $promise->cancel();
             }
-            if (0 >= $retries) {
-                throw new \RuntimeException(
-                    sprintf("DNS query for %s failed: too many retries", $query->name),
-                    0,
-                    $error
-                );
-            }
-            return $that->tryQuery($nameserver, $query, $retries-1);
+        });
+
+        $success = function ($value) use ($deferred, &$errorback) {
+            $errorback = null;
+            $deferred->resolve($value);
         };
 
-        return $this->executor
-            ->query($nameserver, $query)
-            ->then(null, $errorback);
+        $executor = $this->executor;
+        $errorback = function ($e) use ($deferred, &$promise, $query, $success, &$errorback, &$retries, $executor) {
+            if (!$e instanceof TimeoutException) {
+                $errorback = null;
+                $deferred->reject($e);
+            } elseif ($retries <= 0) {
+                $errorback = null;
+                $deferred->reject($e = new \RuntimeException(
+                    'DNS query for ' . $query->name . ' failed: too many retries',
+                    0,
+                    $e
+                ));
+
+                // avoid garbage references by replacing all closures in call stack.
+                // what a lovely piece of code!
+                $r = new \ReflectionProperty('Exception', 'trace');
+                $r->setAccessible(true);
+                $trace = $r->getValue($e);
+
+                // Exception trace arguments are not available on some PHP 7.4 installs
+                // @codeCoverageIgnoreStart
+                foreach ($trace as &$one) {
+                    if (isset($one['args'])) {
+                        foreach ($one['args'] as &$arg) {
+                            if ($arg instanceof \Closure) {
+                                $arg = 'Object(' . \get_class($arg) . ')';
+                            }
+                        }
+                    }
+                }
+                // @codeCoverageIgnoreEnd
+                $r->setValue($e, $trace);
+            } else {
+                --$retries;
+                $promise = $executor->query($query)->then(
+                    $success,
+                    $errorback
+                );
+            }
+        };
+
+        $promise = $this->executor->query($query)->then(
+            $success,
+            $errorback
+        );
+
+        return $deferred->promise();
     }
 }

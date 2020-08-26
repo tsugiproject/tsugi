@@ -25,35 +25,21 @@ class StreamEncryption
         $this->server = $server;
 
         // support TLSv1.0+ by default and exclude legacy SSLv2/SSLv3.
-        // PHP 5.6+ supports bitmasks, legacy PHP only supports predefined
-        // constants, so apply accordingly below.
-        // Also, since PHP 5.6.7 up until before PHP 7.2.0 the main constant did
-        // only support TLSv1.0, so we explicitly apply all versions.
-        // @link http://php.net/manual/en/migration56.openssl.php#migration56.openssl.crypto-method
-        // @link https://3v4l.org/plbFn
+        // As of PHP 7.2+ the main crypto method constant includes all TLS versions.
+        // As of PHP 5.6+ the crypto method is a bitmask, so we explicitly include all TLS versions.
+        // For legacy PHP < 5.6 the crypto method is a single value only and this constant includes all TLS versions.
+        // @link https://3v4l.org/9PSST
         if ($server) {
-            $this->method = STREAM_CRYPTO_METHOD_TLS_SERVER;
+            $this->method = \STREAM_CRYPTO_METHOD_TLS_SERVER;
 
-            if (defined('STREAM_CRYPTO_METHOD_TLSv1_0_SERVER')) {
-                $this->method |= STREAM_CRYPTO_METHOD_TLSv1_0_SERVER;
-            }
-            if (defined('STREAM_CRYPTO_METHOD_TLSv1_1_SERVER')) {
-                $this->method |= STREAM_CRYPTO_METHOD_TLSv1_1_SERVER;
-            }
-            if (defined('STREAM_CRYPTO_METHOD_TLSv1_2_SERVER')) {
-                $this->method |= STREAM_CRYPTO_METHOD_TLSv1_2_SERVER;
+            if (\PHP_VERSION_ID < 70200 && \PHP_VERSION_ID >= 50600) {
+                $this->method |= \STREAM_CRYPTO_METHOD_TLSv1_0_SERVER | \STREAM_CRYPTO_METHOD_TLSv1_1_SERVER | \STREAM_CRYPTO_METHOD_TLSv1_2_SERVER; // @codeCoverageIgnore
             }
         } else {
-            $this->method = STREAM_CRYPTO_METHOD_TLS_CLIENT;
+            $this->method = \STREAM_CRYPTO_METHOD_TLS_CLIENT;
 
-            if (defined('STREAM_CRYPTO_METHOD_TLSv1_0_CLIENT')) {
-                $this->method |= STREAM_CRYPTO_METHOD_TLSv1_0_CLIENT;
-            }
-            if (defined('STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT')) {
-                $this->method |= STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT;
-            }
-            if (defined('STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT')) {
-                $this->method |= STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT;
+            if (\PHP_VERSION_ID < 70200 && \PHP_VERSION_ID >= 50600) {
+                $this->method |= \STREAM_CRYPTO_METHOD_TLSv1_0_CLIENT | \STREAM_CRYPTO_METHOD_TLSv1_1_CLIENT | \STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT; // @codeCoverageIgnore
             }
         }
     }
@@ -63,11 +49,6 @@ class StreamEncryption
         return $this->toggle($stream, true);
     }
 
-    public function disable(Connection $stream)
-    {
-        return $this->toggle($stream, false);
-    }
-
     public function toggle(Connection $stream, $toggle)
     {
         // pause actual stream instance to continue operation on raw stream socket
@@ -75,10 +56,8 @@ class StreamEncryption
 
         // TODO: add write() event to make sure we're not sending any excessive data
 
-        $deferred = new Deferred(function ($_, $reject) use ($toggle) {
-            // cancelling this leaves this stream in an inconsistent state…
-            $reject(new RuntimeException('Cancelled toggling encryption ' . $toggle ? 'on' : 'off'));
-        });
+        // cancelling this leaves this stream in an inconsistent state…
+        $deferred = new Deferred();
 
         // get actual stream socket from stream instance
         $socket = $stream->stream;
@@ -143,13 +122,13 @@ class StreamEncryption
 
             if (\feof($socket) || $error === null) {
                 // EOF or failed without error => connection closed during handshake
-                $d->reject(new UnexpectedValueException(
+                $d->reject(new \UnexpectedValueException(
                     'Connection lost during TLS handshake',
                     \defined('SOCKET_ECONNRESET') ? \SOCKET_ECONNRESET : 0
                 ));
             } else {
                 // handshake failed with error message
-                $d->reject(new UnexpectedValueException(
+                $d->reject(new \UnexpectedValueException(
                     'Unable to complete TLS handshake: ' . $error
                 ));
             }

@@ -1,5 +1,120 @@
 # Changelog
 
+## 1.3.0 (2020-07-10)
+
+*   Feature: Forward compatibility with react/promise v3.
+    (#153 by @WyriHaximus)
+
+*   Feature: Support parsing `OPT` records (EDNS0).
+    (#157 by @clue)
+
+*   Fix: Avoid PHP warnings due to lack of args in exception trace on PHP 7.4.
+    (#160 by @clue)
+
+*   Improve test suite and add `.gitattributes` to exclude dev files from exports.
+    Run tests on PHPUnit 9 and PHP 7.4 and clean up test suite.
+    (#154 by @reedy, #156 by @clue and #163 by @SimonFrings)
+
+## 1.2.0 (2019-08-15)
+
+*   Feature: Add `TcpTransportExecutor` to send DNS queries over TCP/IP connection,
+    add `SelectiveTransportExecutor` to retry with TCP if UDP is truncated and
+    automatically select transport protocol when no explicit `udp://` or `tcp://` scheme is given in `Factory`.
+    (#145, #146, #147 and #148 by @clue)
+
+*   Feature: Support escaping literal dots and special characters in domain names.
+    (#144 by @clue)
+
+## 1.1.0 (2019-07-18)
+
+*   Feature: Support parsing `CAA` and `SSHFP` records.
+    (#141 and #142 by @clue)
+
+*   Feature: Add `ResolverInterface` as common interface for `Resolver` class.
+    (#139 by @clue)
+
+*   Fix: Add missing private property definitions and
+    remove unneeded dependency on `react/stream`.
+    (#140 and #143 by @clue)
+
+## 1.0.0 (2019-07-11)
+
+*   First stable LTS release, now following [SemVer](https://semver.org/).
+    We'd like to emphasize that this component is production ready and battle-tested.
+    We plan to support all long-term support (LTS) releases for at least 24 months,
+    so you have a rock-solid foundation to build on top of.
+
+This update involves a number of BC breaks due to dropped support for
+deprecated functionality and some internal API cleanup. We've tried hard to
+avoid BC breaks where possible and minimize impact otherwise. We expect that
+most consumers of this package will actually not be affected by any BC
+breaks, see below for more details:
+
+*   BC break: Delete all deprecated APIs, use `Query` objects for `Message` questions
+    instead of nested arrays and increase code coverage to 100%.
+    (#130 by @clue)
+
+*   BC break: Move `$nameserver` from `ExecutorInterface` to `UdpTransportExecutor`,
+    remove advanced/internal `UdpTransportExecutor` args for `Parser`/`BinaryDumper` and
+    add API documentation for `ExecutorInterface`.
+    (#135, #137 and #138 by @clue)
+
+*   BC break: Replace `HeaderBag` attributes with simple `Message` properties.
+    (#132 by @clue)
+
+*   BC break: Mark all `Record` attributes as required, add documentation vs `Query`.
+    (#136 by @clue)
+
+*   BC break: Mark all classes as final to discourage inheritance
+    (#134 by @WyriHaximus)
+
+## 0.4.19 (2019-07-10)
+
+*   Feature: Avoid garbage references when DNS resolution rejects on legacy PHP <= 5.6.
+    (#133 by @clue)
+
+## 0.4.18 (2019-09-07)
+
+*   Feature / Fix: Implement `CachingExecutor` using cache TTL, deprecate old `CachedExecutor`,
+    respect TTL from response records when caching and do not cache truncated responses.
+    (#129 by @clue)
+
+*   Feature: Limit cache size to 256 last responses by default. 
+    (#127 by @clue)
+
+*   Feature: Cooperatively resolve hosts to avoid running same query concurrently.
+    (#125 by @clue)
+
+## 0.4.17 (2019-04-01)
+
+*   Feature: Support parsing `authority` and `additional` records from DNS response.
+    (#123 by @clue)
+
+*   Feature: Support dumping records as part of outgoing binary DNS message.
+    (#124 by @clue)
+
+*   Feature: Forward compatibility with upcoming Cache v0.6 and Cache v1.0
+    (#121 by @clue)
+
+*   Improve test suite to add forward compatibility with PHPUnit 7,
+    test against PHP 7.3 and use legacy PHPUnit 5 on legacy HHVM.
+    (#122 by @clue)
+
+## 0.4.16 (2018-11-11)
+
+*   Feature: Improve promise cancellation for DNS lookup retries and clean up any garbage references.
+    (#118 by @clue)
+
+*   Fix: Reject parsing malformed DNS response messages such as incomplete DNS response messages,
+    malformed record data or malformed compressed domain name labels.
+    (#115 and #117 by @clue)
+
+*   Fix: Fix interpretation of TTL as UINT32 with most significant bit unset.
+    (#116 by @clue)
+
+*   Fix: Fix caching advanced MX/SRV/TXT/SOA structures.
+    (#112 by @clue)
+
 ## 0.4.15 (2018-07-02)
 
 *   Feature: Add `resolveAll()` method to support custom query types in `Resolver`.
@@ -14,7 +129,7 @@
 *   Feature: Support parsing `NS`, `TXT`, `MX`, `SOA` and `SRV` records.
     (#104, #105, #106, #107 and #108 by @clue)
 
-*   Feature: Add support for `Message::TYPE_ANY` parse unknown types as binary data.
+*   Feature: Add support for `Message::TYPE_ANY` and parse unknown types as binary data.
     (#104 by @clue)
 
 *   Feature: Improve error messages for failed queries and improve documentation.

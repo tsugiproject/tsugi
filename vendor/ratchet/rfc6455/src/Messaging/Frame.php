@@ -149,6 +149,23 @@ class Frame implements FrameInterface {
         return 128 === ($this->firstByte & 128);
     }
 
+    public function setRsv1($value = true) {
+        if (strlen($this->data) == 0) {
+            throw new \UnderflowException("Cannot set Rsv1 because there is no data.");
+        }
+
+        $this->firstByte =
+            ($this->isFinal() ? 128 : 0)
+            + $this->getOpcode()
+            + ($value ? 64 : 0)
+            + ($this->getRsv2() ? 32 : 0)
+            + ($this->getRsv3() ? 16 : 0)
+        ;
+
+        $this->data[0] = chr($this->firstByte);
+        return $this;
+    }
+
     /**
      * @return boolean
      * @throws \UnderflowException

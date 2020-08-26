@@ -13,11 +13,13 @@ easily be used to create a DNS server.
 * [Basic usage](#basic-usage)
 * [Caching](#caching)
   * [Custom cache adapter](#custom-cache-adapter)
-* [Resolver](#resolver)
+* [ResolverInterface](#resolverinterface)
   * [resolve()](#resolve)
   * [resolveAll()](#resolveall)
 * [Advanced usage](#advanced-usage)
   * [UdpTransportExecutor](#udptransportexecutor)
+  * [TcpTransportExecutor](#tcptransportexecutor)
+  * [SelectiveTransportExecutor](#selectivetransportexecutor)
   * [HostsFileExecutor](#hostsfileexecutor)
 * [Install](#install)
 * [Tests](#tests)
@@ -111,7 +113,9 @@ $dns = $factory->createCached('8.8.8.8', $loop, $cache);
 
 See also the wiki for possible [cache implementations](https://github.com/reactphp/react/wiki/Users#cache-implementations).
 
-## Resolver
+## ResolverInterface
+
+<a id="resolver"><!-- legacy reference --></a>
 
 ### resolve()
 
@@ -208,10 +212,9 @@ The following example looks up the `IPv6` address for `igor.io`.
 
 ```php
 $loop = Factory::create();
-$executor = new UdpTransportExecutor($loop);
+$executor = new UdpTransportExecutor('8.8.8.8:53', $loop);
 
 $executor->query(
-    '8.8.8.8:53', 
     new Query($name, Message::TYPE_AAAA, Message::CLASS_IN)
 )->then(function (Message $message) {
     foreach ($message->answers as $answer) {
@@ -229,7 +232,7 @@ want to use this in combination with a `TimeoutExecutor` like this:
 
 ```php
 $executor = new TimeoutExecutor(
-    new UdpTransportExecutor($loop),
+    new UdpTransportExecutor($nameserver, $loop),
     3.0,
     $loop
 );
@@ -242,9 +245,29 @@ combination with a `RetryExecutor` like this:
 ```php
 $executor = new RetryExecutor(
     new TimeoutExecutor(
-        new UdpTransportExecutor($loop),
+        new UdpTransportExecutor($nameserver, $loop),
         3.0,
         $loop
+    )
+);
+```
+
+Note that this executor is entirely async and as such allows you to execute
+any number of queries concurrently. You should probably limit the number of
+concurrent queries in your application or you're very likely going to face
+rate limitations and bans on the resolver end. For many common applications,
+you may want to avoid sending the same query multiple times when the first
+one is still pending, so you will likely want to use this in combination with
+a `CoopExecutor` like this:
+
+```php
+$executor = new CoopExecutor(
+    new RetryExecutor(
+        new TimeoutExecutor(
+            new UdpTransportExecutor($nameserver, $loop),
+            3.0,
+            $loop
+        )
     )
 );
 ```
@@ -255,6 +278,127 @@ $executor = new RetryExecutor(
   packages. Higher-level components should take advantage of the Datagram
   component instead of reimplementing this socket logic from scratch.
 
+### TcpTransportExecutor
+
+The `TcpTransportExecutor` class can be used to
+send DNS queries over a TCP/IP stream transport.
+
+This is one of the main classes that send a DNS query to your DNS server.
+
+For more advanced usages one can utilize this class directly.
+The following example looks up the `IPv6` address for `reactphp.org`.
+
+```php
+$loop = Factory::create();
+$executor = new TcpTransportExecutor('8.8.8.8:53', $loop);
+
+$executor->query(
+    new Query($name, Message::TYPE_AAAA, Message::CLASS_IN)
+)->then(function (Message $message) {
+    foreach ($message->answers as $answer) {
+        echo 'IPv6: ' . $answer->data . PHP_EOL;
+    }
+}, 'printf');
+
+$loop->run();
+```
+
+See also [example #92](examples).
+
+Note that this executor does not implement a timeout, so you will very likely
+want to use this in combination with a `TimeoutExecutor` like this:
+
+```php
+$executor = new TimeoutExecutor(
+    new TcpTransportExecutor($nameserver, $loop),
+    3.0,
+    $loop
+);
+```
+
+Unlike the `UdpTransportExecutor`, this class uses a reliable TCP/IP
+transport, so you do not necessarily have to implement any retry logic.
+
+Note that this executor is entirely async and as such allows you to execute
+queries concurrently. The first query will establish a TCP/IP socket
+connection to the DNS server which will be kept open for a short period.
+Additional queries will automatically reuse this existing socket connection
+to the DNS server, will pipeline multiple requests over this single
+connection and will keep an idle connection open for a short period. The
+initial TCP/IP connection overhead may incur a slight delay if you only send
+occasional queries – when sending a larger number of concurrent queries over
+an existing connection, it becomes increasingly more efficient and avoids
+creating many concurrent sockets like the UDP-based executor. You may still
+want to limit the number of (concurrent) queries in your application or you
+may be facing rate limitations and bans on the resolver end. For many common
+applications, you may want to avoid sending the same query multiple times
+when the first one is still pending, so you will likely want to use this in
+combination with a `CoopExecutor` like this:
+
+```php
+$executor = new CoopExecutor(
+    new TimeoutExecutor(
+        new TcpTransportExecutor($nameserver, $loop),
+        3.0,
+        $loop
+    )
+);
+```
+
+> Internally, this class uses PHP's TCP/IP sockets and does not take advantage
+  of [react/socket](https://github.com/reactphp/socket) purely for
+  organizational reasons to avoid a cyclic dependency between the two
+  packages. Higher-level components should take advantage of the Socket
+  component instead of reimplementing this socket logic from scratch.
+
+### SelectiveTransportExecutor
+
+The `SelectiveTransportExecutor` class can be used to
+Send DNS queries over a UDP or TCP/IP stream transport.
+
+This class will automatically choose the correct transport protocol to send
+a DNS query to your DNS server. It will always try to send it over the more
+efficient UDP transport first. If this query yields a size related issue
+(truncated messages), it will retry over a streaming TCP/IP transport.
+
+For more advanced usages one can utilize this class directly.
+The following example looks up the `IPv6` address for `reactphp.org`.
+
+```php
+$executor = new SelectiveTransportExecutor($udpExecutor, $tcpExecutor);
+
+$executor->query(
+    new Query($name, Message::TYPE_AAAA, Message::CLASS_IN)
+)->then(function (Message $message) {
+    foreach ($message->answers as $answer) {
+        echo 'IPv6: ' . $answer->data . PHP_EOL;
+    }
+}, 'printf');
+```
+
+Note that this executor only implements the logic to select the correct
+transport for the given DNS query. Implementing the correct transport logic,
+implementing timeouts and any retry logic is left up to the given executors,
+see also [`UdpTransportExecutor`](#udptransportexecutor) and
+[`TcpTransportExecutor`](#tcptransportexecutor) for more details.
+
+Note that this executor is entirely async and as such allows you to execute
+any number of queries concurrently. You should probably limit the number of
+concurrent queries in your application or you're very likely going to face
+rate limitations and bans on the resolver end. For many common applications,
+you may want to avoid sending the same query multiple times when the first
+one is still pending, so you will likely want to use this in combination with
+a `CoopExecutor` like this:
+
+```php
+$executor = new CoopExecutor(
+    new SelectiveTransportExecutor(
+        $datagramExecutor,
+        $streamExecutor
+    )
+);
+```
+
 ### HostsFileExecutor
 
 Note that the above `UdpTransportExecutor` class always performs an actual DNS query.
@@ -264,11 +408,10 @@ use this code:
 ```php
 $hosts = \React\Dns\Config\HostsFile::loadFromPathBlocking();
 
-$executor = new UdpTransportExecutor($loop);
+$executor = new UdpTransportExecutor('8.8.8.8:53', $loop);
 $executor = new HostsFileExecutor($hosts, $executor);
 
 $executor->query(
-    '8.8.8.8:53', 
     new Query('localhost', Message::TYPE_A, Message::CLASS_IN)
 );
 ```
@@ -278,10 +421,11 @@ $executor->query(
 The recommended way to install this library is [through Composer](https://getcomposer.org).
 [New to Composer?](https://getcomposer.org/doc/00-intro.md)
 
+This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-$ composer require react/dns:^0.4.15
+$ composer require react/dns:^1.3
 ```
 
 See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.

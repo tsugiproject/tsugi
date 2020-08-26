@@ -2,32 +2,41 @@
 
 namespace React\Dns\Query;
 
-class Query
+/**
+ * This class represents a single question in a query/response message
+ *
+ * It uses a structure similar to `\React\Dns\Message\Record`, but does not
+ * contain fields for resulting TTL and resulting record data (IPs etc.).
+ *
+ * @link https://tools.ietf.org/html/rfc1035#section-4.1.2
+ * @see \React\Dns\Message\Record
+ */
+final class Query
 {
+    /**
+     * @var string query name, i.e. hostname to look up
+     */
     public $name;
+
+    /**
+     * @var int query type (aka QTYPE), see Message::TYPE_* constants
+     */
     public $type;
+
+    /**
+     * @var int query class (aka QCLASS), see Message::CLASS_IN constant
+     */
     public $class;
 
     /**
-     * @deprecated still used internally for BC reasons, should not be used externally.
+     * @param string $name  query name, i.e. hostname to look up
+     * @param int    $type  query type, see Message::TYPE_* constants
+     * @param int    $class query class, see Message::CLASS_IN constant
      */
-    public $currentTime;
-
-    /**
-     * @param string   $name        query name, i.e. hostname to look up
-     * @param int      $type        query type, see Message::TYPE_* constants
-     * @param int      $class       query class, see Message::CLASS_IN constant
-     * @param int|null $currentTime (deprecated) still used internally, should not be passed explicitly anymore.
-     */
-    public function __construct($name, $type, $class, $currentTime = null)
+    public function __construct($name, $type, $class)
     {
-        if($currentTime === null) {
-            $currentTime = time();
-        }
-
         $this->name = $name;
         $this->type = $type;
         $this->class = $class;
-        $this->currentTime = $currentTime;
     }
 }
