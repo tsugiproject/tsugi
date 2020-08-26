@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Koseu\Core;
 
 use Symfony\Component\HttpFoundation\Request;

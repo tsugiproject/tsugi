@@ -29,6 +29,11 @@ class CloneVarDataCollector extends DataCollector
         $this->data = $this->cloneVar($this->varToClone);
     }
 
+    public function reset()
+    {
+        $this->data = [];
+    }
+
     public function getData()
     {
         return $this->data;

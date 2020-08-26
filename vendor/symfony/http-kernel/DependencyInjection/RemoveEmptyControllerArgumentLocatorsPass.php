@@ -48,9 +48,9 @@ class RemoveEmptyControllerArgumentLocatorsPass implements CompilerPassInterface
                 // any methods listed for call-at-instantiation cannot be actions
                 $reason = false;
                 $action = substr(strrchr($controller, ':'), 1);
-                $id = substr($controller, 0, -1 - strlen($action));
+                $id = substr($controller, 0, -1 - \strlen($action));
                 $controllerDef = $container->getDefinition($id);
-                foreach ($controllerDef->getMethodCalls() as list($method, $args)) {
+                foreach ($controllerDef->getMethodCalls() as list($method)) {
                     if (0 === strcasecmp($action, $method)) {
                         $reason = sprintf('Removing method "%s" of service "%s" from controller candidates: the method is called at instantiation, thus cannot be an action.', $action, $id);
                         break;

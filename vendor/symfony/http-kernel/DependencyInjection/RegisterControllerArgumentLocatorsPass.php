@@ -22,6 +22,7 @@ use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\LazyProxy\ProxyHelper;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\TypedReference;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Creates the service-locators required by ServiceValueResolver.
@@ -46,17 +47,20 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
         }
 
         $parameterBag = $container->getParameterBag();
-        $controllers = array();
+        $controllers = [];
 
         foreach ($container->findTaggedServiceIds($this->controllerTag, true) as $id => $tags) {
             $def = $container->getDefinition($id);
+            $def->setPublic(true);
             $class = $def->getClass();
             $autowire = $def->isAutowired();
+            $bindings = $def->getBindings();
 
             // resolve service class, taking parent definitions into account
-            while (!$class && $def instanceof ChildDefinition) {
+            while ($def instanceof ChildDefinition) {
                 $def = $container->findDefinition($def->getParent());
-                $class = $def->getClass();
+                $class = $class ?: $def->getClass();
+                $bindings += $def->getBindings();
             }
             $class = $parameterBag->resolveValue($class);
 
@@ -66,14 +70,14 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
             $isContainerAware = $r->implementsInterface(ContainerAwareInterface::class) || is_subclass_of($class, AbstractController::class);
 
             // get regular public methods
-            $methods = array();
-            $arguments = array();
+            $methods = [];
+            $arguments = [];
             foreach ($r->getMethods(\ReflectionMethod::IS_PUBLIC) as $r) {
                 if ('setContainer' === $r->name && $isContainerAware) {
                     continue;
                 }
                 if (!$r->isConstructor() && !$r->isDestructor() && !$r->isAbstract()) {
-                    $methods[strtolower($r->name)] = array($r, $r->getParameters());
+                    $methods[strtolower($r->name)] = [$r, $r->getParameters()];
                 }
             }
 
@@ -83,7 +87,7 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
                     $autowire = true;
                     continue;
                 }
-                foreach (array('action', 'argument', 'id') as $k) {
+                foreach (['action', 'argument', 'id'] as $k) {
                     if (!isset($attributes[$k][0])) {
                         throw new InvalidArgumentException(sprintf('Missing "%s" attribute on tag "%s" %s for service "%s".', $k, $this->controllerTag, json_encode($attributes, JSON_UNESCAPED_UNICODE), $id));
                     }
@@ -113,7 +117,7 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
                 /** @var \ReflectionMethod $r */
 
                 // create a per-method map of argument-names to service/type-references
-                $args = array();
+                $args = [];
                 foreach ($parameters as $p) {
                     /** @var \ReflectionParameter $p */
                     $type = $target = ProxyHelper::getTypeHint($r, $p, true);
@@ -128,7 +132,24 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
                         } elseif ($p->allowsNull() && !$p->isOptional()) {
                             $invalidBehavior = ContainerInterface::NULL_ON_INVALID_REFERENCE;
                         }
+                    } elseif (isset($bindings[$bindingName = '$'.$p->name]) || isset($bindings[$bindingName = $type])) {
+                        $binding = $bindings[$bindingName];
+
+                        list($bindingValue, $bindingId) = $binding->getValues();
+
+                        if (!$bindingValue instanceof Reference) {
+                            continue;
+                        }
+
+                        $binding->setValues([$bindingValue, $bindingId, true]);
+                        $args[$p->name] = $bindingValue;
+
+                        continue;
                     } elseif (!$type || !$autowire) {
+                        continue;
+                    }
+
+                    if (Request::class === $type) {
                         continue;
                     }
 
