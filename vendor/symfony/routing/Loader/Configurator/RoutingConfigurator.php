@@ -38,9 +38,10 @@ class RoutingConfigurator
      */
     final public function import($resource, $type = null, $ignoreErrors = false)
     {
-        $this->loader->setCurrentDir(dirname($this->path));
-        $imported = $this->loader->import($resource, $type, $ignoreErrors, $this->file);
-        if (!is_array($imported)) {
+        $this->loader->setCurrentDir(\dirname($this->path));
+        $imported = $this->loader->import($resource, $type, $ignoreErrors, $this->file) ?: [];
+
+        if (!\is_array($imported)) {
             return new ImportConfigurator($this->collection, $imported);
         }
 

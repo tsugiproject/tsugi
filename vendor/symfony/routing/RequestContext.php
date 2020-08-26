@@ -31,7 +31,7 @@ class RequestContext
     private $httpPort;
     private $httpsPort;
     private $queryString;
-    private $parameters = array();
+    private $parameters = [];
 
     /**
      * @param string $baseUrl     The base URL
@@ -67,8 +67,8 @@ class RequestContext
         $this->setMethod($request->getMethod());
         $this->setHost($request->getHost());
         $this->setScheme($request->getScheme());
-        $this->setHttpPort($request->isSecure() ? $this->httpPort : $request->getPort());
-        $this->setHttpsPort($request->isSecure() ? $request->getPort() : $this->httpsPort);
+        $this->setHttpPort($request->isSecure() || null === $request->getPort() ? $this->httpPort : $request->getPort());
+        $this->setHttpsPort($request->isSecure() && null !== $request->getPort() ? $request->getPort() : $this->httpsPort);
         $this->setQueryString($request->server->get('QUERY_STRING', ''));
 
         return $this;
@@ -316,7 +316,7 @@ class RequestContext
      */
     public function hasParameter($name)
     {
-        return array_key_exists($name, $this->parameters);
+        return \array_key_exists($name, $this->parameters);
     }
 
     /**

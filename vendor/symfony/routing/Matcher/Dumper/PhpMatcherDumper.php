@@ -11,10 +11,10 @@
 
 namespace Symfony\Component\Routing\Matcher\Dumper;
 
+use Symfony\Component\ExpressionLanguage\ExpressionFunctionProviderInterface;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-use Symfony\Component\ExpressionLanguage\ExpressionFunctionProviderInterface;
 
 /**
  * PhpMatcherDumper creates a PHP class able to match URLs for a given set of routes.
@@ -30,7 +30,7 @@ class PhpMatcherDumper extends MatcherDumper
     /**
      * @var ExpressionFunctionProviderInterface[]
      */
-    private $expressionLanguageProviders = array();
+    private $expressionLanguageProviders = [];
 
     /**
      * Dumps a set of routes to a PHP class.
@@ -44,12 +44,12 @@ class PhpMatcherDumper extends MatcherDumper
      *
      * @return string A PHP class representing the matcher class
      */
-    public function dump(array $options = array())
+    public function dump(array $options = [])
     {
-        $options = array_replace(array(
+        $options = array_replace([
             'class' => 'ProjectUrlMatcher',
             'base_class' => 'Symfony\\Component\\Routing\\Matcher\\UrlMatcher',
-        ), $options);
+        ], $options);
 
         // trailing slash support is only enabled if we know how to redirect the user
         $interfaces = class_implements($options['base_class']);
@@ -98,7 +98,7 @@ EOF;
         return <<<EOF
     public function match(\$rawPathinfo)
     {
-        \$allow = array();
+        \$allow = [];
         \$pathinfo = rawurldecode(\$rawPathinfo);
         \$trimmedPathinfo = rtrim(\$pathinfo, '/');
         \$context = \$this->context;
@@ -230,16 +230,16 @@ EOF;
     {
         $code = '';
         $compiledRoute = $route->compile();
-        $conditions = array();
+        $conditions = [];
         $hasTrailingSlash = false;
         $matches = false;
         $hostMatches = false;
         $methods = $route->getMethods();
 
-        $supportsTrailingSlash = $supportsRedirections && (!$methods || in_array('GET', $methods));
+        $supportsTrailingSlash = $supportsRedirections && (!$methods || \in_array('GET', $methods));
         $regex = $compiledRoute->getRegex();
 
-        if (!count($compiledRoute->getPathVariables()) && false !== preg_match('#^(.)\^(?P<url>.*?)\$\1#'.('u' === substr($regex, -1) ? 'u' : ''), $regex, $m)) {
+        if (!\count($compiledRoute->getPathVariables()) && false !== preg_match('#^(.)\^(?P<url>.*?)\$\1#'.('u' === substr($regex, -1) ? 'u' : ''), $regex, $m)) {
             if ($supportsTrailingSlash && '/' === substr($m['url'], -1)) {
                 $conditions[] = sprintf('%s === $trimmedPathinfo', var_export(rtrim(str_replace('\\', '', $m['url']), '/'), true));
                 $hasTrailingSlash = true;
@@ -265,7 +265,7 @@ EOF;
         }
 
         if ($route->getCondition()) {
-            $conditions[] = $this->getExpressionLanguage()->compile($route->getCondition(), array('context', 'request'));
+            $conditions[] = $this->getExpressionLanguage()->compile($route->getCondition(), ['context', 'request']);
         }
 
         $conditions = implode(' && ', $conditions);
@@ -278,19 +278,19 @@ EOF;
 
         $gotoname = 'not_'.preg_replace('/[^A-Za-z0-9_]/', '', $name);
 
-        // the offset where the return value is appended below, with indendation
-        $retOffset = 12 + strlen($code);
+        // the offset where the return value is appended below, with indentation
+        $retOffset = 12 + \strlen($code);
 
         // optimize parameters array
         if ($matches || $hostMatches) {
-            $vars = array();
+            $vars = [];
             if ($hostMatches) {
                 $vars[] = '$hostMatches';
             }
             if ($matches) {
                 $vars[] = '$matches';
             }
-            $vars[] = "array('_route' => '$name')";
+            $vars[] = "['_route' => '$name']";
 
             $code .= sprintf(
                 "            \$ret = \$this->mergeDefaults(array_replace(%s), %s);\n",
@@ -298,9 +298,9 @@ EOF;
                 str_replace("\n", '', var_export($route->getDefaults(), true))
             );
         } elseif ($route->getDefaults()) {
-            $code .= sprintf("            \$ret = %s;\n", str_replace("\n", '', var_export(array_replace($route->getDefaults(), array('_route' => $name)), true)));
+            $code .= sprintf("            \$ret = %s;\n", str_replace("\n", '', var_export(array_replace($route->getDefaults(), ['_route' => $name]), true)));
         } else {
-            $code .= sprintf("            \$ret = array('_route' => '%s');\n", $name);
+            $code .= sprintf("            \$ret = ['_route' => '%s'];\n", $name);
         }
 
         if ($hasTrailingSlash) {
@@ -318,7 +318,7 @@ EOF;
         }
 
         if ($methods) {
-            $methodVariable = in_array('GET', $methods) ? '$canonicalMethod' : '$requestMethod';
+            $methodVariable = \in_array('GET', $methods) ? '$canonicalMethod' : '$requestMethod';
             $methods = implode("', '", $methods);
         }
 
@@ -331,9 +331,9 @@ EOF;
                 $code .= <<<EOF
             \$requiredSchemes = $schemes;
             \$hasRequiredScheme = isset(\$requiredSchemes[\$context->getScheme()]);
-            if (!in_array($methodVariable, array('$methods'))) {
+            if (!in_array($methodVariable, ['$methods'])) {
                 if (\$hasRequiredScheme) {
-                    \$allow = array_merge(\$allow, array('$methods'));
+                    \$allow = array_merge(\$allow, ['$methods']);
                 }
                 goto $gotoname;
             }
@@ -363,8 +363,8 @@ EOF;
             }
         } elseif ($methods) {
             $code .= <<<EOF
-            if (!in_array($methodVariable, array('$methods'))) {
-                \$allow = array_merge(\$allow, array('$methods'));
+            if (!in_array($methodVariable, ['$methods'])) {
+                \$allow = array_merge(\$allow, ['$methods']);
                 goto $gotoname;
             }
 

@@ -11,11 +11,11 @@
 
 namespace Symfony\Component\Routing\Loader;
 
-use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\Config\Loader\FileLoader;
+use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\Config\Util\XmlUtils;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouteCollection;
 
 /**
  * XmlFileLoader loads XML routing files.
@@ -93,7 +93,7 @@ class XmlFileLoader extends FileLoader
      */
     public function supports($resource, $type = null)
     {
-        return is_string($resource) && 'xml' === pathinfo($resource, PATHINFO_EXTENSION) && (!$type || 'xml' === $type);
+        return \is_string($resource) && 'xml' === pathinfo($resource, PATHINFO_EXTENSION) && (!$type || 'xml' === $type);
     }
 
     /**
@@ -144,12 +144,13 @@ class XmlFileLoader extends FileLoader
 
         list($defaults, $requirements, $options, $condition) = $this->parseConfigs($node, $path);
 
-        $this->setCurrentDir(dirname($path));
+        $this->setCurrentDir(\dirname($path));
 
-        $imported = $this->import($resource, ('' !== $type ? $type : null), false, $file);
+        /** @var RouteCollection[] $imported */
+        $imported = $this->import($resource, ('' !== $type ? $type : null), false, $file) ?: [];
 
-        if (!is_array($imported)) {
-            $imported = array($imported);
+        if (!\is_array($imported)) {
+            $imported = [$imported];
         }
 
         foreach ($imported as $subCollection) {
@@ -203,11 +204,12 @@ class XmlFileLoader extends FileLoader
      */
     private function parseConfigs(\DOMElement $node, $path)
     {
-        $defaults = array();
-        $requirements = array();
-        $options = array();
+        $defaults = [];
+        $requirements = [];
+        $options = [];
         $condition = null;
 
+        /** @var \DOMElement $n */
         foreach ($node->getElementsByTagNameNS(self::NAMESPACE_URI, '*') as $n) {
             if ($node !== $n->parentNode) {
                 continue;
@@ -226,7 +228,7 @@ class XmlFileLoader extends FileLoader
                     $requirements[$n->getAttribute('key')] = trim($n->textContent);
                     break;
                 case 'option':
-                    $options[$n->getAttribute('key')] = trim($n->textContent);
+                    $options[$n->getAttribute('key')] = XmlUtils::phpize(trim($n->textContent));
                     break;
                 case 'condition':
                     $condition = trim($n->textContent);
@@ -238,15 +240,15 @@ class XmlFileLoader extends FileLoader
 
         if ($controller = $node->getAttribute('controller')) {
             if (isset($defaults['_controller'])) {
-                $name = $node->hasAttribute('id') ? sprintf('"%s"', $node->getAttribute('id')) : sprintf('the "%s" tag', $node->tagName);
+                $name = $node->hasAttribute('id') ? sprintf('"%s".', $node->getAttribute('id')) : sprintf('the "%s" tag.', $node->tagName);
 
-                throw new \InvalidArgumentException(sprintf('The routing file "%s" must not specify both the "controller" attribute and the defaults key "_controller" for %s.', $path, $name));
+                throw new \InvalidArgumentException(sprintf('The routing file "%s" must not specify both the "controller" attribute and the defaults key "_controller" for ', $path).$name);
             }
 
             $defaults['_controller'] = $controller;
         }
 
-        return array($defaults, $requirements, $options, $condition);
+        return [$defaults, $requirements, $options, $condition];
     }
 
     /**
@@ -260,7 +262,7 @@ class XmlFileLoader extends FileLoader
     private function parseDefaultsConfig(\DOMElement $element, $path)
     {
         if ($this->isElementValueNull($element)) {
-            return;
+            return null;
         }
 
         // Check for existing element nodes in the default element. There can
@@ -297,7 +299,7 @@ class XmlFileLoader extends FileLoader
     private function parseDefaultNode(\DOMElement $node, $path)
     {
         if ($this->isElementValueNull($node)) {
-            return;
+            return null;
         }
 
         switch ($node->localName) {
@@ -310,7 +312,7 @@ class XmlFileLoader extends FileLoader
             case 'string':
                 return trim($node->nodeValue);
             case 'list':
-                $list = array();
+                $list = [];
 
                 foreach ($node->childNodes as $element) {
                     if (!$element instanceof \DOMElement) {
@@ -326,7 +328,7 @@ class XmlFileLoader extends FileLoader
 
                 return $list;
             case 'map':
-                $map = array();
+                $map = [];
 
                 foreach ($node->childNodes as $element) {
                     if (!$element instanceof \DOMElement) {
