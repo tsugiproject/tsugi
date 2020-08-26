@@ -477,6 +477,14 @@ if ( isset($CFG->dynamodb_key) && isset($CFG->dynamodb_secret) && isset($CFG->dy
     }
 }
 
+
+if ( isset($CFG->apphome) && $CFG->apphome ) {
+    $tsugi_settings = $CFG->dirroot."/../tsugi_settings.php";
+    if ( file_exists($tsugi_settings) ) {
+        require_once $tsugi_settings;
+    }
+}
+
 // The vendor include and root - generally leave these alone
 // unless you have a very custom checkout
 $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
