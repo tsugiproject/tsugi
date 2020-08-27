@@ -11,7 +11,7 @@
         "tsugi/lib": "dev-master#f181ac2ecf8767ac4ea29a693b2cfb307a3eb4bf",
         "koseu/lib": "dev-master#aa8e7a06ec5706a573a566d8ce62c968342f33be",
 
-        "cboden/ratchet" : "*",
+        "cboden/ratchet" : "v0.4.3",
 
         "symfony/event-dispatcher": "v3.4.43",
         "symfony/polyfill-php70": "v1.18.1",
