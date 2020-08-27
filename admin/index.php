@@ -28,6 +28,15 @@ require_once("sanity-db.php");
    </iframe>
 </div>
 <h1>Administration Console</h1>
+<?php
+$recommended = '7.2.0';
+echo("<p>\nCurrent PHP Version: ". phpversion(). "\n");
+if ( version_compare(PHP_VERSION, $recommended) < 0 ) {
+    echo(' - <span style="color: red;">Soon Tsugi will require a minimum version of PHP '.$recommended.".</span>\n");
+}
+echo("</p>\n");
+?>
+</p>
 <ul>
 <li>
   <a href="#" title="Upgrade Database" 
