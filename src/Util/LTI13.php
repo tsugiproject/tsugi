@@ -374,13 +374,13 @@ class LTI13 {
         // user_id comes from the "sub" in the JWT launch
         $grade_call = [
             // "timestamp" => "2017-04-16T18:54:36.736+00:00",
-            LINEITEM_TIMESTAMP => U::iso8601(),
-            LINEITEM_SCOREGIVEN => $grade,
-            LINEITEM_SCOREMAXIMUM => 100,
-            LINEITEM_COMMENT => $comment,
-            ACTIVITY_PROGRESS => ACTIVITY_PROGRESS_COMPLETED,
-            GRADING_PROGRESS => GRADING_PROGRESS_FULLYGRADED,
-            LINEITEM_USERID => $user_id,
+            self::LINEITEM_TIMESTAMP => U::iso8601(),
+            self::LINEITEM_SCOREGIVEN => $grade,
+            self::LINEITEM_SCOREMAXIMUM => 100,
+            self::LINEITEM_COMMENT => $comment,
+            self::ACTIVITY_PROGRESS => self::ACTIVITY_PROGRESS_COMPLETED,
+            self::GRADING_PROGRESS => self::GRADING_PROGRESS_FULLYGRADED,
+            self::LINEITEM_USERID => $user_id,
         ];
 
         // Allow the extra to override any of the normal values - trust the caller :)
