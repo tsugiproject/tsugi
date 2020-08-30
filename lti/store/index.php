@@ -214,6 +214,7 @@ if ( isset($_GET['install']) ) {
         $retval = new ContentItem();
     }
 
+    var_dump($_GET); die();
     $additionalParams = array();
     $extraParmList = array(
         "scoreMaximum", "resourceId", "tag", "availableStart", "availableEnd", "submissionStart", "submissionEnd",
@@ -544,13 +545,14 @@ if ( $registrations && $allow_lti ) {
                             </div>
                             <!-- https://www.imsglobal.org/spec/lti-dl/v2p0 -->
 <?php if ( $grade_launch ) { ?>
-<div class="form-group">
-<a href="#" onclick="$('.assignment-fields').toggle(); return false;" class="btn btn-success">
-<?= __("Assignment Setup") ?>
-<span class="assignment-fields" style="display:inline;">&#9660;</span><span class="assignment-fields" style="display:none;">&#9650;</span>
-</a>
-</div>
-<div class="assignment-fields" style="display:none;">
+                            <div class="form-group">
+                                <label for="lineitem">Configure LineItem</label> 
+                                <select name="lineitem" id="lineitem">
+                                    <option value="none">No LineItem</option>
+                                    <option value="send">Send LineItem</option>
+                                </select>
+                            </div>
+<div class="lineitem-fields" style="display:none;">
                             <div class="form-group">
                                 <label for="scoreMaximum">Maximum possible score for an activity.</label>
                                 <input type="number" class="form-control" id="scoreMaximum" name="scoreMaximum">
@@ -777,6 +779,17 @@ $OUTPUT->footerStart();
                 $('.tsugi-form-embedded-size').show();
             } else {
                 $('.tsugi-form-embedded-size').hide();
+            }
+        });
+
+        $(document).on('change', '#lineitem',  function() {
+            var value = $(this).find("option:selected").attr('value');
+            console.log(value);
+            if ( value == 'send' ) {
+                $('.lineitem-fields').show();
+            } else {
+                $('.lineitem-fields').hide();
+                $('#scoreMaximum').val('');
             }
         });
 
