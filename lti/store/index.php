@@ -214,7 +214,6 @@ if ( isset($_GET['install']) ) {
         $retval = new ContentItem();
     }
 
-    var_dump($_GET); die();
     $additionalParams = array();
     $extraParmList = array(
         "scoreMaximum", "resourceId", "tag", "availableStart", "availableEnd", "submissionStart", "submissionEnd",
@@ -226,7 +225,14 @@ if ( isset($_GET['install']) ) {
         $additionalParams[$parm] = $value;
     }
 
-    $custom = false;
+    $custom = array(
+        'availableStart' => '$ResourceLink.avalable.startDateTime',
+        'availableEnd' => '$ResourceLink.avalable.endDateTime',
+        'submissionStart' => '$ResourceLink.submission.startDateTime',
+        'submissionEnd' => '$ResourceLink.submission.endDateTime',
+        'canvas_caliper_url' => '$Caliper.url',
+    );
+
     $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $scoreMaximum, $resourceId, $additionalParams);
 
     $iframeattr=false; $endform=false;

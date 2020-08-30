@@ -185,8 +185,8 @@ $text='{
         unset($json->window);
         unset($json->iframe);
 
-        if ($params['placementTarget'] == 'iframe' &&
-            is_numeric($params['placementHeight']) && is_numeric($params['placementWidth']) ) {
+        if (U::get($params, 'placementTarget') == 'iframe' &&
+            is_numeric(U::get($params,'placementHeight')) && is_numeric(U::get($params,'placementWidth')) ) {
 
             $iframe = new \stdClass();
             $iframe->height = $params['placementHeight'];
