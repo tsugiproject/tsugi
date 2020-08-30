@@ -55,7 +55,7 @@ $text='{
     }
 
     /**
-     * addLtiLinkItem - Add an LTI Link Content Item
+     * addLtiLinkItem - Add an LTI Link Deep Link
      *
      * @param $url The launch URL of the tool that is about to be placed
      * @param $title A plain text title of the content-item.
@@ -63,14 +63,14 @@ $text='{
      * @param $icon An image URL of an icon
      * @param $fa_icon The class name of a FontAwesome icon
      * @param $custom An optional array of custom key / value pairs
-     * @param $points The number of points if this is an assignment
-     * @param $activityId The activity for the item
+     * @param $scoreMaximum The scoreMaximum if this is an assignment
+     * @param $resourceId The resourceId for the item if it is an assignment
      * @param array $additionalParms A key/value array of additional values to send
      *
      */
     public function addLtiLinkItem($url, $title=false, $text=false,
         $icon=false, $fa_icon=false, $custom=false,
-        $points=false, $activityId=false, $additionalParams = array())
+        $scoreMaximum=false, $resourceId=false, $additionalParams = array())
     {
         global $CFG;
         $params = array(
@@ -81,8 +81,8 @@ $text='{
             'icon' => $icon,
             'fa_icon' => $fa_icon,
             'custom' => $custom,
-            'points' => $points,
-            'activityId' => $activityId,
+            'scoreMaximum' => $scoreMaximum,
+            'resourceId' => $resourceId,
         );
 
         if ( is_array($additionalParams) ) {
@@ -101,30 +101,6 @@ $text='{
     public function addLtiLinkItemExtended($params = array())
     {
         global $CFG;
-
-        // populate the default parameters
-        if (empty($params['title']))
-            $params['title'] = false;
-        if (empty($params['text']))
-            $params['text'] = false;
-        if (empty($params['icon']))
-            $params['icon'] = false;
-        if (empty($params['fa_icon']))
-            $params['fa_icon'] = false;
-        if (empty($params['custom']))
-            $params['custom'] = false;
-        if (empty($params['points']))
-            $params['points'] = false;
-        if (empty($params['activityId']))
-            $params['activityId'] = false;
-        if (empty($params['placementTarget']))
-            $params['placementTarget'] = 'iframe';
-        if (empty($params['placementWindowTarget']))
-            $params['placementWindowTarget'] = '';
-        if (empty($params['placementWidth']))
-            $params['placementWidth'] = '';
-        if (empty($params['placementHeight']))
-            $params['placementHeight'] = '';
 
         // https://www.imsglobal.org/spec/lti-dl/v2p0
         $item = '{
@@ -171,19 +147,21 @@ $text='{
 
         $json = json_decode($item);
         $json->url = $params['url'];
-        if ( $params['title'] ) $json->{'title'} = $params['title'];
-        // TODO: WTF? Text is gone?
-        // if ( $params['text'] ) $json->text = $params['text'];
-        if ( $params['icon'] ) $json->icon->url = $params['icon'];
-        if ( $params['fa_icon'] ) $json->icon->fa_icon = $params['fa_icon'];
+        if ( U::get($params, 'title') ) $json->{'title'} = U::get($params, 'title');
+        if ( U::get($params, 'icon') ) $json->{'icon_url'} = U::get($params, 'icon');
+        if ( U::get($params, 'fa_icon') ) $json->{'fa_icon'} = U::get($params, 'fa_icon');
+
         unset($json->custom);
-        if ( $params['custom'] ) $json->custom = $params['custom'];
-        if ( $params['points'] && $params['activityId'] ) {
+        if ( U::get($params, 'custom') ) $json->{'custom'} = U::get($params, 'custom');
+
+        if ( U::get($params, 'scoreMaximum') ) {
             $json->lineItem->label = $params['title'];
-            // Leave guid in as an extension until we are forced to get rid of it :)
-            $json->lineItem->guid = $CFG->wwwroot . '/lti/activity/' . $params['activityId'];
-            $json->lineItem->resourceId = $params['activityId'];
-            $json->lineItem->scoreMaximum = $params['points'];
+            unset($json->lineItem->scoreMaximum);
+            if ( U::get($params, 'scoreMaximum') ) $json->lineItem->scoreMaximum = U::get($params, 'scoreMaximum');
+            unset($json->lineItem->resourceId);
+            if ( U::get($params, 'resourceId') ) $json->lineItem->resourceId = U::get($params, 'resourceId');
+            unset($json->lineItem->tag);
+            if ( U::get($params, 'tag') ) $json->lineItem->tag = U::get($params, 'tag');
         } else {
             unset($json->lineItem);
         }
@@ -198,9 +176,10 @@ $text='{
             $json->available = $available;
         }
 
-        if ( U::get($params, "submissionEnd") ) {
+        if ( U::get($params, "submissionStart") || U::get($params, "submissionEnd") ) {
             $submission = new \stdClass();
-            $submission->startDateTime = U::get($params, "submissionEnd");
+            if ( U::get($params, "submissionStart") ) $submission->startDateTime = U::get($params, "submissionStart");
+            if ( U::get($params, "submissionEnd"  ) ) $submission->endDateTime = U::get($params, "submissionEnd");
             $json->submission = $submission;
         }
         unset($json->window);

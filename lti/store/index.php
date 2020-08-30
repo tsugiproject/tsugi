@@ -197,18 +197,8 @@ if ( isset($_GET['install']) ) {
     $title = isset($_GET["title"]) ? $_GET["title"] : $tool['name'];
     $text = isset($_GET["description"]) ? $_GET["description"] : $tool['description'];
     $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
-    $presentationDocumentTarget = U::get($_GET, "presentationDocumentTarget");
-    $displayWidth = U::get($_GET, "displayWidth");
-    $displayHeight = U::get($_GET, "displayHeight");
-    $additionalParams = array();
-    if ( $presentationDocumentTarget ) {
-        $additionalParams['presentationDocumentTarget'] = $presentationDocumentTarget;
-        if ( ($presentationDocumentTarget == 'embed' || $presentationDocumentTarget == 'iframe') &&
-        $displayWidth && $displayHeight && is_numeric($displayWidth) && is_numeric($displayHeight) ) {
-            $additionalParams['placementWidth'] = $displayWidth;
-            $additionalParams['placementHeight'] = $displayHeight;
-        }
-    }
+    $scoreMaximum = U::get($_GET, "scoreMaximum");
+    $resourceId = U::get($_GET, "resourceId");
     $icon = false;
     if ( $fa_icon !== false ) {
         $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
@@ -223,15 +213,20 @@ if ( isset($_GET['install']) ) {
     } else {
         $retval = new ContentItem();
     }
-    $points = false;
-    $activity_id = false;
-    if ( isset($tool['messages']) && is_array($tool['messages']) &&
-        array_search('launch_grade', $tool['messages']) !== false ) {
-        $points = 10;
-        $activity_id = $install;
+
+    $additionalParams = array();
+    $extraParmList = array(
+        "scoreMaximum", "resourceId", "tag", "availableStart", "availableEnd", "submissionStart", "submissionEnd",
+        "presentationDocumentTarget", "placementWidth", "placementHeight"
+    );
+    foreach ( $extraParmList as $parm ) {
+        $value = U::get($_GET, $parm);
+        if ( ! $value ) continue;
+        $additionalParams[$parm] = $value;
     }
+
     $custom = false;
-    $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $points, $activity_id, $additionalParams);
+    $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $scoreMaximum, $resourceId, $additionalParams);
 
     $iframeattr=false; $endform=false;
     $content = $retval->prepareResponse($endform, $debug, $iframeattr);
@@ -470,6 +465,12 @@ if ( $registrations && $allow_lti ) {
             $keywords = implode(", ", $tool['keywords']);
         }
 
+        $grade_launch = false;
+        if ( isset($tool['messages']) && is_array($tool['messages']) &&
+            array_search('launch_grade', $tool['messages']) !== false ) {
+            $grade_launch = true;
+        }
+
         echo('<div class="col-sm-4 appcolumn">');
 
         echo('<div class="panel panel-default" data-keywords="'.$keywords.'">');
@@ -526,7 +527,7 @@ if ( $registrations && $allow_lti ) {
                                 <textarea class="form-control" rows="5" name="description"><?=htmlent_utf8($text)?></textarea>
                             </div>
                             <div class="form-group">
-                                <label>Link Type</label> (Not all LMS's support all options)
+                                <label for="presentationDocumentTarget">Link Target</label> (Not all LMS's support all options)
                                 <select name="presentationDocumentTarget" id="presentationDocumentTarget">
                                     <option value="none">Any</option>
                                     <option value="iframe">iFrame</option>
@@ -535,12 +536,45 @@ if ( $registrations && $allow_lti ) {
                             </div>
                             <div class="form-group tsugi-form-embedded-size" style="display:none;">
                                 <label>Width (pixels)</label>
-                                <input type="text" class="form-control displayWidth" name="displayWidth">
+                                <input type="number" class="form-control placementWidth" name="placementWidth">
                             </div>
                             <div class="form-group tsugi-form-embedded-size" style="display:none;">
                                 <label>Height (pixels)</label>
-                                <input type="text" class="form-control" name="displayHeight">
+                                <input type="number" class="form-control" name="placementHeight">
                             </div>
+                            <!-- https://www.imsglobal.org/spec/lti-dl/v2p0 -->
+<?php if ( $grade_launch ) { ?>
+<div class="form-group">
+<a href="#" onclick="$('.assignment-fields').toggle(); return false;" class="btn btn-success">
+<?= __("Assignment Setup") ?>
+<span class="assignment-fields" style="display:inline;">&#9660;</span><span class="assignment-fields" style="display:none;">&#9650;</span>
+</a>
+</div>
+<div class="assignment-fields" style="display:none;">
+                            <div class="form-group">
+                                <label for="scoreMaximum">Maximum possible score for an activity.</label>
+                                <input type="number" class="form-control" id="scoreMaximum" name="scoreMaximum">
+                            </div>
+                            <div class="form-group" for="resourceId">
+                                <label>Tool provided ID for the resource. (optional) This is opaque to the LMS.</label>
+                                <input type="text" class="form-control" id="resourceId" name="resourceId">
+                            </div>
+                            <div class="form-group">
+                                <label for="tag">A tag used to mark this item. (optional) This is opaque to the LMS</label>
+                                <input type="text" class="form-control" id="tag" name="tag">
+                            </div>
+                            <div class="form-group">
+                                <label for="availableStart">Available dates:</label>
+                                <input type="date" id="availableStart" name="availableStart"> - 
+                                <input type="date" id="availableEnd" name="availableEnd">
+                            </div>
+                            <div class="form-group">
+                                <label for="submissionStart">Submission dates:</label>
+                                <input type="date" id="submissionStart" name="submissionStart"> - 
+                                <input type="date" id="submissionEnd" name="submissionEnd">
+                            </div>
+</div>
+<?php } ?>
                             <div class="debug-claims" style="display:none;">
                             <div class="form-group">
                                 <label>Msg claim</label>
@@ -746,7 +780,7 @@ $OUTPUT->footerStart();
             }
         });
 
-        $(document).on('keyup', '.displayWidth',  function() {
+        $(document).on('keyup', '.placementWidth',  function() {
             var value = $(this).val();
             console.log(this);
             console.log(value);
