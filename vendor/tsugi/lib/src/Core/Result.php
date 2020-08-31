@@ -143,7 +143,7 @@ class Result extends Entity {
      *
      */
     public static function gradeSendStatic($grade, $row=false, &$debug_log=false) {
-        global $CFG, $LINK;
+        global $CFG, $LINK, $LTI;
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
 
@@ -154,9 +154,7 @@ class Result extends Entity {
         $subject_key = false;
         $secret = false;
         $lti13_privkey = false;
-        $lti13_pubkey = false;
-        $lti13_token_audience = false;
-        $lti13_issuer_client = false;
+        $lti13_subject_key = false;
         if ( $row !== false ) {
             // Using the note from the local db for the comment.
             $comment = isset($row['note']) ? $row['note'] : false;
@@ -170,20 +168,15 @@ class Result extends Entity {
             // Fall back to session if it is missing
             if ( $service === false ) $service = LTIX::ltiParameter('service');
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
-            $lti13_privkey = isset($row['lti13_privkey']) ? LTIX::decrypt_secret($row['lti13_privkey']) : false;
             $lti13_lineitem = isset($row['lti13_lineitem']) ? $row['lti13_lineitem'] : false;
-            $lti13_token_url = isset($row['lti13_token_url']) ? $row['lti13_token_url'] : false;
-            $lti13_token_audience = isset($row['lti13_token_audience']) ? $row['lti13_token_audience'] : false;
-            $lti13_pubkey = isset($row['lti13_pubkey']) ? $row['lti13_pubkey'] : false;
-            $lti13_issuer_client = isset($row['issuer_client']) ? $row['issuer_client'] : false;
+            $lti13_subject_key = isset($row['lti13_subject_key']) ? $row['lti13_subject_key'] : false;
         } else {
             $result_url = LTIX::ltiParameter('result_url');
             $sourcedid = LTIX::ltiParameter('sourcedid');
             $service = LTIX::ltiParameter('service');
             $result_id = LTIX::ltiParameter('result_id');
             $lti13_lineitem = LTIX::ltiParameter('lti13_lineitem');
-            $lti13_token_url = LTIX::ltiParameter('lti13_token_url');
-            $lti13_token_audience = LTIX::ltiParameter('lti13_token_audience');
+            $lti13_subject_key = LTIX::ltiParameter('subject_key');
         }
 
         // Check if we are to use SHA256 as the signature
@@ -197,8 +190,6 @@ class Result extends Entity {
         if ( ! $key_key ) $key_key = LTIX::ltiParameter('key_key');
         if ( ! $subject_key ) $subject_key = LTIX::ltiParameter('subject_key');
         if ( ! $secret ) $secret = LTIX::decrypt_secret(LTIX::ltiParameter('secret'));
-        if ( ! $lti13_privkey ) $lti13_privkey = LTIX::decrypt_secret(LTIX::ltiParameter('lti13_privkey'));
-        if ( ! $lti13_pubkey ) $lti13_pubkey = LTIX::ltiParameter('lti13_pubkey');
 
         // Get the IP Address
         $ipaddr = Net::getIP();
@@ -223,38 +214,18 @@ class Result extends Entity {
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
         }
 
-        // A broken launch
-        if ( $key_key == false || $secret === false ) {
-            error_log("Result::gradeSend stored data locally");
-            return false;
-        }
+            error_log("Sending LTI ??? grade if $grade for $lti13_subject_key to $lti13_lineitem");
 
-        // TODO: Fix this
-        // $comment = "";
         // Check is this is a Google Classroom Launch
+        // TODO: we should accept a comment
+        $comment = '';
         if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['gc_submit_id']) ) {
             $status = GoogleClassroom::gradeSend(intval($grade*100));
 
-        // TODO: Cache the token and renew
         // LTI 1.3 grade passback - Prefer if available
-        } else if ( strlen($lti13_issuer_client) > 0 && strlen($lti13_privkey) > 0 && strlen($lti13_lineitem) > 0 && strlen($lti13_token_url) > 0 ) {
-            error_log("Getting token lti13_issuer_client=$lti13_issuer_client lti13_token_url=$lti13_token_url");
-
-            $grade_token = LTI13::getGradeToken($lti13_issuer_client, $lti13_token_url, $lti13_privkey, $lti13_pubkey, $lti13_token_audience, $debug_log);
-
-            // $comment = "Sending grade $grade subject_key=$subject_key lti13_lineitem=$lti13_lineitem grade_token=$grade_token";
-            error_log("Sending grade $grade subject_key=$subject_key lti13_lineitem=$lti13_lineitem grade_token=$grade_token");
-            if (!$comment) {
-            	$comment = "Sending grade $grade subject_key=$subject_key";
-            }
-            $status = LTI13::sendLineItemResult(
-                $subject_key,
-                $grade,
-                $comment,
-                $lti13_lineitem,
-                $grade_token,
-                $debug_log
-            );
+        } else if ( strlen($lti13_subject_key) > 0 && strlen($lti13_lineitem) > 0 ) {
+            error_log("Sending LTI 1.3 grade if $grade for $lti13_subject_key to $lti13_lineitem");
+            $status = $LTI->context->sendLineItemResult($lti13_lineitem, $lti13_subject_key, $grade."", "1", $comment, $debug_log);
 
         // Classic POX call
         } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {
@@ -265,6 +236,7 @@ class Result extends Entity {
             $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log, $signature);
 
         } else {
+            error_log("Result::gradeSend stored data locally");
             return true;   // Local storage only
         }
 
@@ -320,7 +292,7 @@ class Result extends Entity {
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
             $svd = Output::safe_var_dump($debug_log);
-            error_log("Grade falure detail:\n".$svd);
+            error_log("Grade failure detail:\n".$svd);
             return $status;
         }
 
