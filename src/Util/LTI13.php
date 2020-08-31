@@ -349,6 +349,7 @@ class LTI13 {
      *
      * @param $user_id The user for this grade
      * @param $grade Value to send
+     * @param $scoreMaximum The amount that $grade is realative to
      * @param $comment An optional comment
      * @param $lineitem_url The REST endpoint (id) for this line item
      * @param $access_token The access token for this request
@@ -358,7 +359,7 @@ class LTI13 {
      *
      * @return mixed Returns the token (string) or false on error.
      */
-    public static function sendLineItemResult($user_id, $grade, $comment, $lineitem_url,
+    public static function sendLineItemResult($user_id, $grade, $scoreMaximum, $comment, $lineitem_url,
         $access_token, $extra=false, &$debug_log=false) {
 
         if ( strlen($user_id) < 1 ) {
@@ -376,7 +377,7 @@ class LTI13 {
             // "timestamp" => "2017-04-16T18:54:36.736+00:00",
             self::LINEITEM_TIMESTAMP => U::iso8601(),
             self::LINEITEM_SCOREGIVEN => $grade,
-            self::LINEITEM_SCOREMAXIMUM => 100,
+            self::LINEITEM_SCOREMAXIMUM => $scoreMaximum,
             self::LINEITEM_COMMENT => $comment,
             self::ACTIVITY_PROGRESS => self::ACTIVITY_PROGRESS_COMPLETED,
             self::GRADING_PROGRESS => self::GRADING_PROGRESS_FULLYGRADED,

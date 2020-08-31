@@ -292,18 +292,19 @@ class Context extends Entity {
      * @param $id The REST endpoint (id) for this line item
      * @param $user_key The user for this grade
      * @param $grade Value to send
+     * @param $scoreMaximum What the score is relative to
      * @param $comment An optional comment
      * @param $debug_log Returns a log of actions taken
      *
      * @return mixed If this is a success a true is returned, if not a string with an error
      * is returned.
      */
-    public function sendLineItemResult($id, $user_key, $grade, $comment, &$debug_log=false) {
+    public function sendLineItemResult($id, $user_key, $grade, $scoreMaximum, $comment, &$debug_log=false) {
         $grade_token = self::getGradeToken($missing, $subject, $debug_log);
         if ( strlen($missing) > 0 ) return $missing;
         if ( ! $grade_token ) return "Unable to get grade_token";
 
-        $status = LTI13::sendLineItemResult($user_key, $grade, $comment, $id,
+        $status = LTI13::sendLineItemResult($user_key, $grade, $scoreMaximum, $comment, $id,
                         $grade_token, $debug_log);
 
         return $status;
