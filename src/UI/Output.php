@@ -450,7 +450,7 @@ function googleTranslateElementInit() {
         // Failed in 7.0.0 - 7.1.8
         // Fixed in 7.1.9
         // https://www.php.net/ChangeLog-7.php#7.1.9
-        if ( version_compare(PHP_VERSION, '7.1.9') < 0 && version_compare(PHP_VERSION, '7.0.0') >= 0 ) {
+        if ( version_compare(PHP_VERSION, '7.2.1') < 0 && version_compare(PHP_VERSION, '7.0.0') >= 0 ) {
 ?>
 <script>
 // PHP VERSION 7.0 and 7.1 HACK
