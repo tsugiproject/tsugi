@@ -15,6 +15,7 @@
         "symfony/polyfill-php70": "v1.18.1",
         "symfony/polyfill-mbstring": "v1.18.1",
         "symfony/http-foundation": "v3.4.43",
+        "symfony/http-kernel": "v3.4.43",
         "symfony/routing": "v3.4.43",
         "symfony/debug": "v4.4.11",
         "google/apiclient": "v2.2.1",
@@ -32,7 +33,7 @@
         "ratchet/rfc6455" : "v0.3",
         "firebase/php-jwt" : "v5.2.0",
 
-        "tsugi/lib": "dev-master#ec53b23e65af6b10839448e7a1ac8d5db7cece24",
+        "tsugi/lib": "dev-master#df84263e5ed01c25f3cdd22d32337e952bb3e42f",
         "koseu/lib": "dev-master#aa8e7a06ec5706a573a566d8ce62c968342f33be"
     },
     "config": {
