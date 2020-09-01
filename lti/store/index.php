@@ -552,7 +552,7 @@ if ( $registrations && $allow_lti ) {
                             <!-- https://www.imsglobal.org/spec/lti-dl/v2p0 -->
 <?php if ( $grade_launch ) { ?>
                             <div class="form-group">
-                                <label for="lineitem">Configure LineItem</label> 
+                                <label for="lineitem">Configure LineItem</label> (Not all LMS placements support all features)
                                 <select name="lineitem" id="lineitem">
                                     <option value="none">No LineItem</option>
                                     <option value="send">Send LineItem</option>
