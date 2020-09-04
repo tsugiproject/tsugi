@@ -731,6 +731,13 @@ class LTIX {
         if ( $ipaddr ) {
             self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
         }
+
+	// Get the CloudFlare identity cookie
+	$cfduid = U::get($_COOKIE, "__cfduid");
+	if ( $cfduid ) {
+	    error_log("Priming session cfduid=$cfduid");
+            self::wrapped_session_put($session_object, 'CFDUID', $cfduid);
+        }
         self::wrapped_session_put($session_object, 'CSRF_TOKEN', uniqid());
 
         // Save this to make sure the user does not wander unless we launched from the root
@@ -1829,6 +1836,16 @@ class LTIX {
             }
         }
 
+	// Check the Cloudflare cookie __cfduid in session
+	$cfduid = U::get($_COOKIE, "__cfduid");
+        $session_cfduid = self::wrapped_session_get($session_object, 'CFDUID', null);
+	if ( $cfduid && $session_cfduid == null ) {
+	    error_log("Upgrading session cfduid=$cfduid");
+            self::wrapped_session_put($session_object, 'CFDUID', $cfduid);
+        }
+	$cfdmatch = $session_cfduid != null && ($cfduid == $session_cfduid);
+	// error_log("cfdmatch=$cfdmatch cfduid=$cfduid session_cfduid=$session_cfduid");
+
         // We only check the first three octets as some systems wander through the addresses on
         // class C - Perhaps it is even NAT - who knows - but we forgive those on the same Class C
         $session_addr = self::wrapped_session_get($session_object, 'REMOTE_ADDR', null);
@@ -1840,11 +1857,16 @@ class LTIX {
             if ( count($sess_pieces) == 4 && count($serv_pieces) == 4 ) {
                 if ( $sess_pieces[0] != $serv_pieces[0] || $sess_pieces[1] != $serv_pieces[1] ||
                     $sess_pieces[2] != $serv_pieces[2] ) {
+		     if ( $cfdmatch ) {
+			error_log("IP Address changed, session_addr=".  $session_addr.' current='.$ipaddr." but trusting cfduid");
+            		self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
+                    } else {
                     // Need to clear out session data
                     self::wrapped_session_flush($session_object);
                     self::send403();
                     self::abort_with_error_log('Session address has expired', " ".session_id()." session_addr=".
                         $session_addr.' current='.$ipaddr, 'DIE:');
+                    }
                 }
             }
         }
