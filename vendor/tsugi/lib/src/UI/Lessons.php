@@ -168,11 +168,11 @@ class Lessons {
             // Non arrays
             if ( isset($this->lessons->modules[$i]->assignment) ) {
                 if ( ! is_string($this->lessons->modules[$i]->assignment) ) die_with_error_log('Assignment must be a string: '.$module->title);
-                U::absolute_url_ref($this->lessons->modules[$i]->assignment);
+                self::absolute_url_ref($this->lessons->modules[$i]->assignment);
             }
             if ( isset($this->lessons->modules[$i]->solution) ) {
                 if ( ! is_string($this->lessons->modules[$i]->solution) ) die_with_error_log('Solution must be a string: '.$module->title);
-                U::absolute_url_ref($this->lessons->modules[$i]->solution);
+                self::absolute_url_ref($this->lessons->modules[$i]->solution);
             }
         }
 
@@ -233,9 +233,9 @@ class Lessons {
             $entry = array($entry);
         }
         for($i=0; $i < count($entry); $i++ ) {
-            if ( is_string($entry[$i]) ) U::absolute_url_ref($entry[$i]);
-            if ( isset($entry[$i]->href) && is_string($entry[$i]->href) ) U::absolute_url_ref($entry[$i]->href);
-            if ( isset($entry[$i]->launch) && is_string($entry[$i]->launch) ) U::absolute_url_ref($entry[$i]->launch);
+            if ( is_string($entry[$i]) ) self::absolute_url_ref($entry[$i]);
+            if ( isset($entry[$i]->href) && is_string($entry[$i]->href) ) self::absolute_url_ref($entry[$i]->href);
+            if ( isset($entry[$i]->launch) && is_string($entry[$i]->launch) ) self::absolute_url_ref($entry[$i]->launch);
         }
     }
 
@@ -296,6 +296,11 @@ class Lessons {
         }
     }
 
+    public static function absolute_url_ref(&$url) {
+        $url = self::expandLink($url);
+        $url = U::absolute_url($url);
+    }
+
     /*
      * Do macro substitution on a link
      */
@@ -317,6 +322,7 @@ class Lessons {
      * A Nostyle URL Link with title
      */
     public static function nostyleUrl($title, $url) {
+        $url = self::expandLink($url);
         echo('<a href="'.$url.'" target="_blank" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
         if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
