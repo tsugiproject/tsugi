@@ -162,6 +162,7 @@ class Lessons {
             if ( isset($this->lessons->modules[$i]->carousel) ) self::adjustArray($this->lessons->modules[$i]->carousel);
             if ( isset($this->lessons->modules[$i]->videos) ) self::adjustArray($this->lessons->modules[$i]->videos);
             if ( isset($this->lessons->modules[$i]->references) ) self::adjustArray($this->lessons->modules[$i]->references);
+            if ( isset($this->lessons->modules[$i]->assignments) ) self::adjustArray($this->lessons->modules[$i]->assignments);
             if ( isset($this->lessons->modules[$i]->slides) ) self::adjustArray($this->lessons->modules[$i]->slides);
             if ( isset($this->lessons->modules[$i]->lti) ) self::adjustArray($this->lessons->modules[$i]->lti);
 
@@ -513,12 +514,14 @@ class Lessons {
             }
 
             if ( isset($module->slides) ) {
+                $singular = 'slide';
+                $plural = $singular.'s';
                 echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slides">');
                 echo("<p>");
-                $slidestitle = __(self::getSetting('slides-title', 'Slides'));
+                $slidestitle = __(self::getSetting($plural.'title', ucfirst($plural)));
                 echo(__($slidestitle));
                 echo("</p>");
-                echo('<ul class="tsugi-lessons-module-slides-ul">'."\n");
+                echo('<ul class="tsugi-lessons-module-'.$plural.'-ul">'."\n");
                 foreach($module->slides as $slide ) {
                     if ( is_string($slide) ) {
                         $slide_title = basename($slide);
@@ -527,8 +530,11 @@ class Lessons {
                         $slide_title = $slide->title ;
                         $slide_href = $slide->href ;
                     }
-                    echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slide">');
+                    echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-'.$singular.'">');
+                    echo('<span class="tsugi-lessons-module-'.$singular.'-icon"></span>');
+                    echo('<span class="tsugi-lessons-module-'.$singular.'-link">');
                     self::nostyleLink($slide_title, $slide_href);
+                    echo("</span>\n");
                     echo('</li>'."\n");
                 }
                 if ( count($module->slides) > 0 ) {
@@ -556,18 +562,29 @@ class Lessons {
                     echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank">'.__('Assignment Solution').'</a></li>'."\n");
                 }
             }
-            if ( isset($module->references) ) {
-                echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-references">');
-                echo("<p>");
-                echo(__('References:'));
-                echo("</p>");
-                echo('<ul class="tsugi-lessons-module-references-ul">'."\n");
-                foreach($module->references as $reference ) {
-                    echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-reference">');
-                    self::nostyleLink($reference->title, $reference->href);
-                    echo('</li>'."\n");
+
+            // Reference like entries
+            $lists = array("reference", "assignment");
+            foreach($lists as $list) {
+                $singular = $list;
+                $plural = $list."s";
+                if ( isset($module->{$plural}) ) {
+                    echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-'.$plural.'">');
+                    $list_title = __(self::getSetting($plural.'-title', ucfirst($plural)));
+                    echo("<p>");
+                    echo(__($list_title));
+                    echo("</p>");
+                    echo('<ul class="tsugi-lessons-module-'.$plural.'-ul">'."\n");
+                    foreach($module->{$plural} as $reference ) {
+                        echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-'.$singular.'">');
+                        echo('<span class="tsugi-lessons-module-'.$singular.'-icon"></span>');
+                        echo('<span class="tsugi-lessons-module-'.$singular.'-link">');
+                        self::nostyleLink($reference->title, $reference->href);
+                        echo("</span>\n");
+                        echo('</li>'."\n");
+                    }
+                    echo("</ul></li>\n");
                 }
-                echo("</ul></li>\n");
             }
 
             // LTIs not logged in
@@ -983,6 +1000,13 @@ $(function(){
 });
 </script>
 <?php
+        }
+        if ( isset($this->lessons->footers) && is_array($this->lessons->footers) ) {
+            foreach($this->lessons->footers as $footer) {
+                $footer = self::expandLink($footer);
+                echo($footer);
+                echo("\n");
+            }
         }
         $ob_output = ob_get_contents();
         ob_end_clean();
