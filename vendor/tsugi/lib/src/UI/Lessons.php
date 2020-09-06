@@ -425,11 +425,23 @@ class Lessons {
                 echo($videotitle);
                 echo("</p>");
                 echo('<ul class="tsugi-lessons-module-videos-ul">'."\n");
+                $i = 0;
                 foreach($videos as $video ) {
                     echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
                     $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
-                    self::nostyleLink($video->title, $yurl);
-                    echo('</li>');
+                    $i = $i + 1;
+                    $navid = md5($i.$yurl);
+                    // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
+?>
+<div id="<?= $navid ?>" class="w3schools-overlay">
+  <div class="w3schools-overlay-content" style="background-color: black;">
+  <div class="youtube-player" data-id="<?= $video->youtube ?>"></div>
+  </div>
+</div>
+<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></a>
+<?php
+                    // self::nostyleLink($video->title, $yurl);
+                    echo("</li>\n");
                 }
                 echo("</ul></li>\n");
             }
@@ -882,6 +894,18 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
         if ( $this->isSingle() ) {
 // http://bxslider.com/examples/video
 ?>
+<script>
+$(document).ready(function() {
+    $('.w3schools-overlay').on('click', function(event) {
+        if ( event.target.id == event.currentTarget.id ) {
+            labnolStopPlayers();
+            event.target.style.display = 'none';
+        } else {
+            event.stopPropagation();
+        }
+    })
+});
+</script>
 <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/plugins/jquery.fitvids.js">
 </script>
 <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js">
