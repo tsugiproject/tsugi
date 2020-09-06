@@ -167,9 +167,11 @@ class Lessons {
 
             // Non arrays
             if ( isset($this->lessons->modules[$i]->assignment) ) {
+                if ( ! is_string($this->lessons->modules[$i]->assignment) ) die_with_error_log('Assignment must be a string: '.$module->title);
                 U::absolute_url_ref($this->lessons->modules[$i]->assignment);
             }
             if ( isset($this->lessons->modules[$i]->solution) ) {
+                if ( ! is_string($this->lessons->modules[$i]->solution) ) die_with_error_log('Solution must be a string: '.$module->title);
                 U::absolute_url_ref($this->lessons->modules[$i]->solution);
             }
         }
@@ -425,12 +427,12 @@ class Lessons {
                 echo($videotitle);
                 echo("</p>");
                 echo('<ul class="tsugi-lessons-module-videos-ul">'."\n");
-                $i = 0;
+                $lecno = 0;
                 foreach($videos as $video ) {
                     echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
                     $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
-                    $i = $i + 1;
-                    $navid = md5($i.$yurl);
+                    $lecno = $lecno + 1;
+                    $navid = md5($lecno.$yurl);
                     // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
 ?>
 <div id="<?= $navid ?>" class="w3schools-overlay">
@@ -440,7 +442,6 @@ class Lessons {
 </div>
 <a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></a>
 <?php
-                    // self::nostyleLink($video->title, $yurl);
                     echo("</li>\n");
                 }
                 echo("</ul></li>\n");
@@ -454,20 +455,51 @@ class Lessons {
                 echo($lecturetitle);
                 echo("</p>");
                 echo('<ul class="tsugi-lessons-module-lectures-ul">'."\n");
+                $lecno = 1;
                 foreach($lectures as $lecture ) {
+                    $lecno = $lecno + 1;
                     if ( isset($lecture->youtube) ) {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-youtube">');
                         $yurl = 'https://www.youtube.com/watch?v='.$lecture->youtube;
-                        self::nostyleLink($lecture->title, $yurl);
+                        // self::nostyleLink($lecture->title, $yurl);
+                        $navid = md5($lecno.$yurl);
+                        // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
+?>
+<div id="<?= $navid ?>" class="w3schools-overlay">
+  <div class="w3schools-overlay-content" style="background-color: black;">
+  <div class="youtube-player" data-id="<?= $lecture->youtube ?>"></div>
+  </div>
+</div>
+<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></a>
+<?php
                         echo('</li>');
                     } else if ( isset($lecture->audio) ) {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-audio">');
-                        self::nostyleLink($lecture->title, $lecture->audio);
+                        // self::nostyleLink($lecture->title, $lecture->audio);
+                        $navid = md5($lecno.$lecture->audio);
+?>
+<div id="<?= $navid ?>" class="w3schools-overlay">
+  <div class="w3schools-overlay-content" style="background-color: black;">
+<h2><?= htmlentities($lecture->title) ?></h2>
+  <audio controls preload='none' src="<?= self::expandLink($lecture->audio) ?>"></audio>
+  </div>
+</div>
+<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></a>
+<?php
                         echo('</li>');
                     } else if ( isset($lecture->video) ) {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-video">');
-                        $yurl = 'https://www.youtube.com/watch?v='.$lecture->youtube;
-                        self::nostyleLink($lecture->title, $lecture->audio);
+                        $yurl = 'https://www.youtube.com/watch?v='.$lecture->video;
+                        // self::nostyleLink($lecture->title, $lecture->video);
+                        $navid = md5($lecno.$lecture->video);
+?>
+<div id="<?= $navid ?>" class="w3schools-overlay">
+  <div class="w3schools-overlay-content" style="background-color: black;">
+  <video controls style="width:95%;" preload="none" src="<?= self::expandLink($lecture->video) ?>"></video>
+  </div>
+</div>
+<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></a>
+<?php
                         echo('</li>');
                     }
                 }
@@ -898,7 +930,19 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
 $(document).ready(function() {
     $('.w3schools-overlay').on('click', function(event) {
         if ( event.target.id == event.currentTarget.id ) {
+            // Sop our embedded YouTube Players
             labnolStopPlayers();
+            // https://stackoverflow.com/questions/4071872/html5-video-force-abort-of-buffering
+            // https://stackoverflow.com/a/34058996
+            $('.w3schools-overlay audio, video').each(function (i,e) {
+                    var tmp_src = this.src;
+                    var playtime = this.currentTime;
+                    this.src = '';
+                    this.load();
+                    this.src = tmp_src;
+                    this.currentTime = playtime;
+
+            });
             event.target.style.display = 'none';
         } else {
             event.stopPropagation();
