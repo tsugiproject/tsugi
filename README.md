@@ -41,8 +41,10 @@ your web server can read it
 will need different commands):
 
         CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
-        GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
-        GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+        CREATE USER 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
+        GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost';
+        CREATE USER 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+        GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1';
 
 * Copy the file config-dist.php to config.php and edit the file
 to put in the appropriate values.  Make sure to change all the secrets.
