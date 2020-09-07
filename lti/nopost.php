@@ -20,7 +20,6 @@ if ( count($_POST) > 0 ) {
     print "Raw POST Parameters:\n\n";
     ksort($_POST);
     foreach($_POST as $key => $value ) {
-        if (get_magic_quotes_gpc()) $value = stripslashes($value);
         print htmlent_utf8($key) . "=" . htmlent_utf8($value) . " (".mb_detect_encoding($value).")\n";
     }
     print "</pre>\n";

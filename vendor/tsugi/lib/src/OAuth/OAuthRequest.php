@@ -49,17 +49,8 @@ class OAuthRequest {
       // Parse the query-string to find GET parameters
       $parameters = OAuthUtil::parse_parameters($_SERVER['QUERY_STRING']);
 
-      $ourpost = $_POST;
-      // Deal with magic_quotes
-      // http://www.php.net/manual/en/security.magicquotes.disabling.php
-      if ( get_magic_quotes_gpc() ) {
-         $ourpost = array();
-         foreach ($_POST as $k => $v) {
-            $ourpost[$k] = $v;
-         }
-      }
-     // Add POST Parameters if they exist
-      $parameters = array_merge($parameters, $ourpost);
+      // Add POST Parameters if they exist
+      $parameters = array_merge($parameters, $_POST);
 
       // We have a Authorization-header with OAuth data. Parse the header
       // and add those overriding any duplicates from GET or POST
