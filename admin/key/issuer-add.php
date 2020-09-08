@@ -71,6 +71,7 @@ $lti13_keyset = $CFG->wwwroot . '/lti/keyset/' . urlencode($guid);
 $deep_link = $CFG->wwwroot . '/lti/store/';
 $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($guid);
 $lti13_sakai_json_url = $CFG->wwwroot . '/lti/store/sakai-config/' . urlencode($guid);
+$lti13_ims_json_url = $CFG->wwwroot . '/lti/store/ims-config/' . urlencode($guid);
 
 function addLinks() {
     global $oidc_login, $oidc_redirect, $oidc_redirect, $lti13_keyset, $deep_link;
@@ -97,6 +98,7 @@ Adding Issuer Entry</h1>
   <li><a href="#brightspace" id="brightspace-click" data-toggle="tab" aria-expanded="false">Brightspace</a></li>
   <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
   <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai 21</a></li>
+  <li><a href="#ims" data-toggle="tab" aria-expanded="false">Draft IMS Config</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="generic">
@@ -165,6 +167,18 @@ Canvas Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?
 </pre>
 Once you have completed the registration process in Canvas, it should provide
 you the values to fill in the fields below.
+</p>
+</div>
+<div class="tab-pane fade" id="ims">
+IMS is working on a draft auto-provisioning spec.   This is a place to explore
+that spec as it is implemented.
+</p>
+<pre>
+IMS Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_ims_json_url) ?>');return false;"><i class="fas fa-file-export" aria-hidden="true"></i> <i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= htmlentities($lti13_ims_json_url) ?>
+</pre>
+<p>
+There is not yet a documented flow to use this url.
 </p>
 </div>
 </div>
