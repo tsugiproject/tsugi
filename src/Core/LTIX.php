@@ -730,6 +730,15 @@ class LTIX {
         $ipaddr = Net::getIP();
         if ( $ipaddr ) {
             self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
+            // Check our list of IP address history
+            // TODO: decrypt
+            $iphistory = U::get($_COOKIE, "TSUGI-HISTORY");
+            // Add this IP Address to the Tsugi IP History if it is not there
+            if ( strpos($iphistory, $ipaddr) === false ) {
+                $iphistory .= '!' . $ipaddr;
+                // TODO: encrypt
+                setcookie('TSUGI-HISTORY',$iphistory, 0, '/'); // Expire 100 seconds ago
+            }
         }
 
         // Get the CloudFlare identity cookie
@@ -1836,6 +1845,10 @@ class LTIX {
             }
         }
 
+        // Check our list of IP address history
+        // TODO: decrypt
+        $iphistory = U::get($_COOKIE, "TSUGI-HISTORY");
+
         // Check the Cloudflare cookie __cfduid in session
         $cfduid = U::get($_COOKIE, "__cfduid");
         $session_cfduid = self::wrapped_session_get($session_object, 'CFDUID', null);
@@ -1860,12 +1873,23 @@ class LTIX {
                     if ( $cfdmatch ) {
                         error_log("IP Address changed, session_addr=".  $session_addr.' current='.$ipaddr." but trusting cfduid");
                         self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
+                    } else if ( strpos($session_addr, $iphistory) !== false ) {
+                        error_log("IP Address changed, session_addr=".  $session_addr.' current='.$ipaddr." but trusting TSUGI-HISTORY");
+                        self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
+                        // Add new IP Address to the Tsugi IP History if it is not there
+                        if ( strpos($iphistory, $ipaddr) === false ) {
+                            $iphistory .= '!' . $ipaddr;
+                            // TODO: encrypt
+                            error_log("Extending TSUGI-HISTORY $iphistory");
+                            setcookie('TSUGI-HISTORY',$iphistory, 0, '/'); // Expire 100 seconds ago
+                        }
+
                     } else {
                         // Need to clear out session data
                         self::wrapped_session_flush($session_object);
                         self::send403();
                         self::abort_with_error_log('Session address has expired', " ".session_id()." session_addr=".
-                            $session_addr.' current='.$ipaddr, 'DIE:');
+                            $session_addr.' current='.$ipaddr.' cfduid='.$cfduid.' iphistory='.$iphistory, 'DIE:');
                     }
                 }
             }
