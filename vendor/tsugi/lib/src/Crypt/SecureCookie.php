@@ -7,17 +7,30 @@ class SecureCookie {
     /**
      * Utility code to deal with Secure Cookies.
      */
+
+    public static function encrypt($plain) {
+        global $CFG;
+        $cipher = \Tsugi\Crypt\AesCtr::encrypt($plain, $CFG->cookiesecret, 256) ;
+        return $cipher;
+    }
+
+    public static function decrypt($cipher) {
+        global $CFG;
+        $plain = \Tsugi\Crypt\AesCtr::decrypt($cipher, $CFG->cookiesecret, 256) ;
+        return $plain;
+    }
+
     public static function create($id,$guid,$context_id,$debug=false) {
         global $CFG;
         $pt = $CFG->cookiepad.'::'.$id.'::'.$guid.'::'.$context_id;
         if ( $debug ) echo("PT1: $pt\n");
-        $ct = \Tsugi\Crypt\AesCtr::encrypt($pt, $CFG->cookiesecret, 256) ;
+        $ct = self::encrypt($pt);
         return $ct;
     }
-    
+
     public static function extract($encr,$debug=false) {
         global $CFG;
-        $pt = \Tsugi\Crypt\AesCtr::decrypt($encr, $CFG->cookiesecret, 256) ;
+        $pt = self::decrypt($encr);
         if ( $debug ) echo("PT2: $pt\n");
         $pieces = explode('::',$pt);
         if ( count($pieces) != 4 ) return false;
