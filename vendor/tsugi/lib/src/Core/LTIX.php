@@ -1873,7 +1873,7 @@ class LTIX {
                     if ( $cfdmatch ) {
                         error_log("IP Address changed, session_addr=".  $session_addr.' current='.$ipaddr." but trusting cfduid");
                         self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
-                    } else if ( strpos($session_addr, $iphistory) !== false ) {
+                    } else if ( strpos($iphistory, $session_addr) !== false ) {
                         error_log("IP Address changed, session_addr=".  $session_addr.' current='.$ipaddr." but trusting TSUGI-HISTORY");
                         self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
                         // Add new IP Address to the Tsugi IP History if it is not there
