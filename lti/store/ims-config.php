@@ -4,7 +4,7 @@ require_once "../../config.php";
 
 use Tsugi\Util\U;
 
-// See the end of the file for some documentation references
+// https://tools.ietf.org/html/rfc7591
 
 $guid = U::get($_GET,"guid",false);
 
@@ -18,27 +18,20 @@ $json->grant_types = array("implicit", "client_credentials");
 $json->iniate_login_uri = $CFG->wwwroot . '/lti/oidc_login/' . urlencode($guid);
 $json->redirect_uris = array($CFG->wwwroot . '/lti/oidc_launch');
 $json->jwks_uri = $CFG->wwwroot . '/lti/keyset/' . urlencode($guid);
-$json->tsugiRoot = $CFG->wwwroot;
 if ( $CFG->apphome) {
-    $json->tsugiApp = $CFG->apphome;
+    $json->client_uri = $CFG->apphome;
 }
 
-// Missing from the spec
 if ( isset($CFG->privacy_url) && $CFG->privacy_url ) {
-    $json->privacy_url = $CFG->privacy_url;
+    $json->tos_uri = $CFG->privacy_url;
 }
 
-// Missing from the spec
 if ( isset($CFG->sla_url) && $CFG->sla_url ) {
-    $json->privacyUrl = $CFG->sla_url;
+    $json->policy_uri = $CFG->sla_url;
 }
 
 if ( isset($CFG->servicename) && $CFG->servicename ) {
     $json->client_name = $CFG->servicename;
-}
-
-if ( isset($CFG->servicedesc) && $CFG->servicedesc ) {
-    $json->client_description = $CFG->servicedesc;
 }
 
 if ( isset($CFG->owneremail) && $CFG->owneremail ) {
@@ -55,7 +48,13 @@ $toolconfig->domain = "https://wtf.is.this.here.for?";
 if ( isset($CFG->servicedesc) && $CFG->servicedesc && strlen($CFG->servicedesc) > 0 ) {
     $toolconfig->description = $CFG->servicedesc;
 }
-$json->label = $CFG->servicename;
+// Shouldn't this be title?
+$toolconfig->label = $CFG->servicename;
+$toolconfig->{'title'} = $CFG->servicename;
+if ( isset($CFG->servicedesc) && $CFG->servicedesc ) {
+    $toolconfig->{'description'} = $CFG->servicedesc;
+}
+
 $toolconfig->target_link_uri = $CFG->wwwroot . '/lti/store/';
 $toolconfig->scopes = array(
     "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
@@ -68,9 +67,11 @@ $toolconfig->claims = array("iss", "sub", "name", "given_name", "family_name");
 
 $deeplink = new \stdClass();
 $deeplink->{'type'} = "LTIDeepLinkingRequest";
-$deeplink->allowLearner = false;
+$deeplink->allowLearner = false;  // Should remove
 $deeplink->allow_learner = false;
 $deeplink->placements = array("assignment_selection", "link_selection",  "editor_button");
+
+$toolconfig->messages = array ( $deeplink);
 
 $json->{'https://purl.imsglobal.org/spec/lti-tool-configuration'} = $toolconfig;
 

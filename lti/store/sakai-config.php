@@ -17,14 +17,16 @@ $json->deepLinkUrl = $CFG->wwwroot . '/lti/store/';
 $json->tsugiRoot = $CFG->wwwroot;
 if ( $CFG->apphome) {
     $json->tsugiApp = $CFG->apphome;
+    $json->client_uri = $CFG->apphome;
 }
 
 if ( isset($CFG->privacy_url) && $CFG->privacy_url ) {
-    $json->privacyUrl = $CFG->apphome;
+    $json->privacyUrl = $CFG->privacy_url;
+    $json->policy_uri = $CFG->privacy_url;
 }
 
 if ( isset($CFG->sla_url) && $CFG->sla_url ) {
-    $json->privacyUrl = $CFG->sla_url;
+    $json->tos_uri = $CFG->sla_url;
 }
 
 if ( isset($CFG->servicename) && $CFG->servicename ) {
