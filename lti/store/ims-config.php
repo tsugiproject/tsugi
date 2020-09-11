@@ -4,6 +4,11 @@ require_once "../../config.php";
 
 use Tsugi\Util\U;
 
+// Based on:
+// https://openid.net/specs/openid-connect-registration-1_0.html
+// https://openid.net/specs/openid-connect-discovery-1_0.html
+
+// See also:
 // https://tools.ietf.org/html/rfc7591
 
 $guid = U::get($_GET,"guid",false);
