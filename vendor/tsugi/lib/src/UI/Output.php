@@ -1185,7 +1185,6 @@ EOF;
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $CFG->servicename ?><?php if ( isset($CFG->context_title) ) echo(' - '.$CFG->context_title); ?></title>
-    <script>
     <!-- Tiny bit of JS -->
     <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
     <!-- Le styles -->
