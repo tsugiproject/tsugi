@@ -44,7 +44,7 @@ $row = $PDOX->rowDie(
     $query_where_params);
 
 if ( ! is_array($row) || count($row) < 1 ) {
-    LTIX::abort_with_error_log('Unknown or improper iss');
+    LTIX::abort_with_error_log('Login could not find issuer '.htmlentities($iss));
 }
 $client_id = trim($row['issuer_client']);
 $redirect = trim($row['lti13_oidc_auth']);

@@ -424,8 +424,13 @@ class LTIX {
         $row = self::loadAllData($CFG->dbprefix, $CFG->dbprefix.'profile', $post);
 
         // Make sure that we received reasonable data
+
+        if ( $row && ! U::get($row, 'deploy_key') ) {
+            self::abort_with_error_log('Found issuer, but did not find corresponding deployment: '.htmlentities(U::get($post,'deployment_id')));
+        }
+
         if ( ! $row || ! U::get($row, 'key_id') ) {
-            self::abort_with_error_log('Unable to load key / deployment for launch');
+            self::abort_with_error_log('Launch could not find issuer: '.htmlentities(U::get($post,'issuer_key')));
         }
 
         $delta = 0;
@@ -1150,7 +1155,7 @@ class LTIX {
 
         if ( $LTI13 ) {
             $sql .="\nFROM {$p}lti_issuer AS i
-                JOIN {$p}lti_key AS k ON i.issuer_id = k.issuer_id";
+                LEFT JOIN {$p}lti_key AS k ON i.issuer_id = k.issuer_id";
         } else {
             $sql .="\nFROM {$p}lti_key AS k";
         }
@@ -1189,7 +1194,7 @@ class LTIX {
         // Add the WHERE clause
         if ( $LTI13 ) {
             $sql .= "\nWHERE i.issuer_sha256 = :issuer_sha256 AND i.issuer_client = :issuer_client
-                AND k.deploy_key = :deployment_id
+                AND (k.deploy_key = :deployment_id OR k.deploy_key IS NULL)
                 AND (i.deleted IS NULL OR i.deleted = 0)";
         } else {
            $sql .= "\nWHERE k.key_sha256 = :key AND (k.deleted IS NULL OR k.deleted = 0)";
@@ -1255,6 +1260,7 @@ class LTIX {
         /*
         echo("<pre>\n$sql\n"); var_dump($parms);
         $zapsql = $sql;
+
         foreach($parms as $k => $v ) { $zapsql = str_replace($k, "'".$v."'", $zapsql); }
         echo("\n$zapsql\n");
         */
