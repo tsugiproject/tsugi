@@ -4,7 +4,7 @@
 The ``first`` filter returns the first "element" of a sequence, a mapping, or
 a string:
 
-.. code-block:: twig
+.. code-block:: jinja
 
     {{ [1, 2, 3, 4]|first }}
     {# outputs 1 #}

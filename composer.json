@@ -1,6 +1,6 @@
 {
     "require": {
-        "twig/twig": "v2.13.1",
+        "twig/twig": "v2.6.2",
         "silex/silex": "v2.0.4",
         "pimple/pimple": "v3.0.2",
         "aws/aws-sdk-php": "v3.55.0",
@@ -33,8 +33,8 @@
         "ratchet/rfc6455" : "v0.3",
         "firebase/php-jwt" : "v5.2.0",
 
-        "tsugi/lib": "dev-master#251120e4567a167bed8801c2331e9308afdd1d25",
-        "koseu/lib": "dev-master#aa8e7a06ec5706a573a566d8ce62c968342f33be"
+        "tsugi/lib": "dev-master#40b56a5fa2e3e1dc3d18a90da4436de563e83493",
+        "koseu/lib": "dev-master#aecd78ef03724ada2034ff37ade6ca3897cf80ce"
     },
     "config": {
         "preferred-install": "dist"

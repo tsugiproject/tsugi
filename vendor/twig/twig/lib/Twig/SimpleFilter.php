@@ -9,18 +9,13 @@
  * file that was distributed with this source code.
  */
 
-use Twig\TwigFilter;
-
-/*
+/**
  * For Twig 1.x compatibility.
  */
-class_exists(TwigFilter::class);
-
-@trigger_error(sprintf('Using the "Twig_SimpleFilter" class is deprecated since Twig version 2.7, use "Twig\TwigFilter" instead.'), E_USER_DEPRECATED);
+class_exists('Twig_Filter');
 
 if (false) {
-    /** @deprecated since Twig 2.7, use "Twig\TwigFilter" instead */
-    final class Twig_SimpleFilter extends TwigFilter
+    final class Twig_SimpleFilter extends Twig_Filter
     {
     }
 }

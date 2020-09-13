@@ -1,0 +1,16 @@
+
+Sat Sep 12 21:35:05 EDT 2020
+
+We cannot advance past:
+
+        "twig/twig": "v2.6.2",
+        "silex/silex": "v2.0.4",
+
+Twig 2.13.1 could run - but Silex experienced deprecation errors
+
+If we upgraded to the latest (still deprecated) silex 2.3.0, it wanted to move 
+to Symfony 4 and a bunch of other things.
+
+So we have a standoff. Honestly - we need to kick Silex right out
+of the code base.
+
