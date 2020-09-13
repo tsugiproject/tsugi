@@ -22,8 +22,8 @@
     },
     "require": {
         "php": ">=5.5.0",
-        "silex/silex": "v2.3.0",
         "twig/twig": "v2.13.1",
+        "silex/silex": "v2.3.0",
         "symfony/translation": "v3.2.7"
     },
     "require-dev": {
