@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "89d07af3f14464d4c0ca16c3103f6d2d",
-    "content-hash": "07bce265466ca541e2d8aeb1a1edd179",
+    "hash": "f2d5eab4bcec79b5f387fd2c5899a705",
+    "content-hash": "10e1d6cef375bc269d6e4285039dbb46",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -744,7 +744,7 @@
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.5.0",
+                "php": ">=7.0.0",
                 "silex/silex": "v2.0.4",
                 "symfony/translation": "v3.2.7",
                 "tsugi/lib": "dev-master",
@@ -2711,12 +2711,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "40b56a5fa2e3e1dc3d18a90da4436de563e83493"
+                "reference": "9ff043d15ceb3e9d058449eaa414642ac8768e8b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/40b56a5fa2e3e1dc3d18a90da4436de563e83493",
-                "reference": "40b56a5fa2e3e1dc3d18a90da4436de563e83493",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/9ff043d15ceb3e9d058449eaa414642ac8768e8b",
+                "reference": "9ff043d15ceb3e9d058449eaa414642ac8768e8b",
                 "shasum": ""
             },
             "require": {
@@ -2754,7 +2754,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2020-09-13 02:06:20"
+            "time": "2020-09-13 17:09:51"
         },
         {
             "name": "twig/twig",
