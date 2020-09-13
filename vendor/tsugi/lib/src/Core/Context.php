@@ -304,8 +304,9 @@ class Context extends Entity {
         if ( strlen($missing) > 0 ) return $missing;
         if ( ! $grade_token ) return "Unable to get grade_token";
 
+	$extra = false;
         $status = LTI13::sendLineItemResult($user_key, $grade, $scoreMaximum, $comment, $id,
-                        $grade_token, $debug_log);
+                        $grade_token, $extra, $debug_log);
 
         return $status;
     }

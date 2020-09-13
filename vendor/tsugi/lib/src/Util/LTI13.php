@@ -419,7 +419,7 @@ class LTI13 {
 
         if ( ! Net::httpSuccess($httpcode) ) {
             $json = json_decode($line_item, true);
-            $status = U::get($json, "error", "Unable to send lineitem");
+            $status = U::get($json, "error", "Unable to send lineitem ".$httpcode);
             if ( is_array($debug_log) ) $debug_log[] = "Error status: $status";
             return $status;
         }
