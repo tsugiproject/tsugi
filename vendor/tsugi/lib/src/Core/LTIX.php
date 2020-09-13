@@ -423,14 +423,17 @@ class LTIX {
         // $row = loadAllData($CFG->dbprefix, false, $post);
         $row = self::loadAllData($CFG->dbprefix, $CFG->dbprefix.'profile', $post);
 
-        // Make sure that we received reasonable data
-
-        if ( $row && ! U::get($row, 'deploy_key') ) {
+        // For LTI 1.3
+        if ( $row && U::get($post,'deployment_id') &&  ! U::get($row, 'deploy_key') ) {
             self::abort_with_error_log('Found issuer, but did not find corresponding deployment: '.htmlentities(U::get($post,'deployment_id')));
         }
 
         if ( ! $row || ! U::get($row, 'key_id') ) {
-            self::abort_with_error_log('Launch could not find issuer: '.htmlentities(U::get($post,'issuer_key')));
+            if ( U::get($post,'key') ) {  // LTI 1.1
+                self::abort_with_error_log('Launch could not find key: '.htmlentities(U::get($post,'key')));
+            } else {
+                self::abort_with_error_log('Launch could not find issuer: '.htmlentities(U::get($post,'issuer_key')));
+            }
         }
 
         $delta = 0;
