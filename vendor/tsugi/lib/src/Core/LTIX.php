@@ -2841,12 +2841,14 @@ class LTIX {
     public static function getBrowserSignatureRaw() {
         global $CFG;
 
-        $look_at = array( 'x-forwarded-proto', 'x-forwarded-port', 'host',
+        $look_at = array( 'x-forwarded-proto', 'x-forwarded-port', 'host', '_cfduid',
         'accept-encoding', 'cf-ipcountry', 'user-agent', 'accept', 'accept-language');
 
         $headers = \Tsugi\Util\U::apache_request_headers();
 
-        $concat = \Tsugi\Util\Net::getIP();
+        // Living behind Cloudflare, IP adresses seem to change
+        // $concat = \Tsugi\Util\Net::getIP();
+        $concat = "";
         if ( isset($CFG->cookiepad) ) $concat .= ':::' . $CFG->cookiepad;
         if ( isset($CFG->cookiesecret) ) $concat .= ':::' . $CFG->cookiesecret;
         $used = array();
