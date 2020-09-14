@@ -33,7 +33,7 @@
         "ratchet/rfc6455" : "v0.3",
         "firebase/php-jwt" : "v5.2.0",
 
-        "tsugi/lib": "dev-master#396a5f934065afabdef849dc3896cd686e7fb46f",
+        "tsugi/lib": "dev-master#99fbac04452c4588f88b98bf682a692adaf939c8",
         "koseu/lib": "dev-master#aecd78ef03724ada2034ff37ade6ca3897cf80ce"
     },
     "config": {

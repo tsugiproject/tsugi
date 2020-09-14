@@ -371,6 +371,11 @@ class LTI13 {
 
         $ch = curl_init();
 
+        // https://www.imsglobal.org/spec/lti-ags/v2p0#scoregiven-and-scoremaximum
+        // From Karen L: "All 'scoreGiven' values MUST be positive numeric".
+        $grade = floatval($grade);
+        $scoreMaximum = floatval($scoreMaximum);
+
         // An empty grade is considered a "delete" request
         // user_id comes from the "sub" in the JWT launch
         $grade_call = [
