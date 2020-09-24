@@ -1580,48 +1580,6 @@
         ]
     },
     {
-        "name": "react/cache",
-        "version": "v1.0.0",
-        "version_normalized": "1.0.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/reactphp/cache.git",
-            "reference": "aa10d63a1b40a36a486bdf527f28bac607ee6466"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/reactphp/cache/zipball/aa10d63a1b40a36a486bdf527f28bac607ee6466",
-            "reference": "aa10d63a1b40a36a486bdf527f28bac607ee6466",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0",
-            "react/promise": "~2.0|~1.1"
-        },
-        "require-dev": {
-            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
-        },
-        "time": "2019-07-11 13:45:28",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "React\\Cache\\": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Async, Promise-based cache interface for ReactPHP",
-        "keywords": [
-            "cache",
-            "caching",
-            "promise",
-            "reactphp"
-        ]
-    },
-    {
         "name": "react/dns",
         "version": "v1.3.0",
         "version_normalized": "1.3.0.0",
@@ -2867,12 +2825,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "12eafcd143093abec797a3fd12ac99b741d7f95f"
+            "reference": "901004494c7d7196ec11ff569c56dfc31c138568"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/12eafcd143093abec797a3fd12ac99b741d7f95f",
-            "reference": "12eafcd143093abec797a3fd12ac99b741d7f95f",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/901004494c7d7196ec11ff569c56dfc31c138568",
+            "reference": "901004494c7d7196ec11ff569c56dfc31c138568",
             "shasum": ""
         },
         "require": {
@@ -2912,5 +2870,47 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "react/cache",
+        "version": "v1.0.0",
+        "version_normalized": "1.0.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/reactphp/cache.git",
+            "reference": "aa10d63a1b40a36a486bdf527f28bac607ee6466"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/reactphp/cache/zipball/aa10d63a1b40a36a486bdf527f28bac607ee6466",
+            "reference": "aa10d63a1b40a36a486bdf527f28bac607ee6466",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0",
+            "react/promise": "~2.0|~1.1"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^6.4 || ^5.7 || ^4.8.35"
+        },
+        "time": "2019-07-11 13:45:28",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "React\\Cache\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "description": "Async, Promise-based cache interface for ReactPHP",
+        "keywords": [
+            "cache",
+            "caching",
+            "promise",
+            "reactphp"
+        ]
     }
 ]
