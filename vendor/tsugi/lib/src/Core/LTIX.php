@@ -2838,10 +2838,11 @@ class LTIX {
         return $h;
     }
 
+    // As the anti-trackers gain traction cookies come and go - so don't depend on them
     public static function getBrowserSignatureRaw() {
         global $CFG;
 
-        $look_at = array( 'x-forwarded-proto', 'x-forwarded-port', 'host', '_cfduid',
+        $look_at = array( 'x-forwarded-proto', 'x-forwarded-port', 'host',
         'accept-encoding', 'cf-ipcountry', 'user-agent', 'accept', 'accept-language');
 
         $headers = \Tsugi\Util\U::apache_request_headers();
@@ -2860,11 +2861,6 @@ class LTIX {
                 $concat .= ':::' . $k . '=' . $v;
                 continue;
             }
-        }
-
-        foreach($_COOKIE as $k => $v ) {
-            if ( $k == self::getTsugiStateCookieName() ) continue;
-            $concat .= '===' . $k . '=' . $v;
         }
 
         return $concat;

@@ -39,6 +39,13 @@ if ( ! isset($decoded->signature) ) {
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
 if ( $signature != $decoded->signature ) {
+    if ( U::apcAvailable() ) {
+         $found = false;
+	 $previous = apc_fetch('oidc_login_state',$zap);
+	 if ( $found ) error_log('oidc_state '.$previous);
+    }
+    $raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
+    error_log('oidc_launch '.$raw);
     LTIX::abort_with_error_log("Invalid state signature value");
 }
 

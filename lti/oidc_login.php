@@ -49,6 +49,12 @@ if ( ! is_array($row) || count($row) < 1 ) {
 $client_id = trim($row['issuer_client']);
 $redirect = trim($row['lti13_oidc_auth']);
 
+$raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
+if (  U::apcAvailable() ) {
+    apc_store('oidc_login_state', $raw);
+} else {
+    error_log('oidc_login '.$raw);
+}
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
 $payload = array();
