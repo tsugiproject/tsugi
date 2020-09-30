@@ -30,6 +30,7 @@ $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}lti_issuer",
 "create table {$CFG->dbprefix}lti_issuer (
     issuer_id           INTEGER NOT NULL AUTO_INCREMENT,
+    issuer_title        TEXT NULL,
     issuer_sha256       CHAR(64) NULL,  -- Will become obsolete
     issuer_guid         CHAR(36) NOT NULL,  -- Our local GUID
     issuer_key          TEXT NOT NULL,  -- iss from the JWT
@@ -76,6 +77,7 @@ array( "{$CFG->dbprefix}lti_issuer",
 array( "{$CFG->dbprefix}lti_key",
 "create table {$CFG->dbprefix}lti_key (
     key_id              INTEGER NOT NULL AUTO_INCREMENT,
+    key_title           TEXT NULL,
     key_sha256          CHAR(64) NULL,
     key_key             TEXT NULL,   -- oauth_consumer_key
     deploy_sha256       CHAR(64) NULL,
@@ -999,19 +1001,44 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     }
 
+    // This is a place to make sure added fields are present
+    // if you add a field to a table, put it in here and it will be auto-added
+    $add_some_fields = array(
+        array('lti_issuer', 'issuer_title', 'TEXT NULL'),
+        array('lti_key', 'key_title', 'TEXT NULL'),
+    );
+
+    foreach ( $add_some_fields as $add_field ) {
+        if (count($add_field) != 3 ) {
+            echo("Badly formatted add_field");
+            var_dump($add_field);
+            continue;
+        }
+        $table = $CFG->dbprefix . $add_field[0];
+        $column = $add_field[1];
+        $type = $add_field[2];
+        if ( $PDOX->columnExists($column, $table ) ) continue;
+        $sql= "ALTER TABLE {$CFG->dbprefix}$table ADD $column $type";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
     // It seems like some automatically created LTI1.1 keys between
     // 2017-10-25 and 2019-07-04 ended up with the wrong key_sha256 for the
     // key_key value - because of the way LTIX.php works it is as if these keys
     // don't exist
+    /* Removed 2020-Sep-30 - I am sure the keys are cleaned up by now.
     $sql = "UPDATE {$CFG->dbprefix}lti_key SET key_sha256=sha2(key_key, 256)
         WHERE key_key IS NOT NULL AND key_sha256 != sha2(key_key, 256);";
     echo("Upgrading: ".$sql."<br/>\n");
     error_log("Upgrading: ".$sql);
     $q = $PDOX->queryReturnError($sql);
+     */
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 201907070902;
+    return 202009300851;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
