@@ -25,12 +25,22 @@ if ( $deeplink ) {
     $allow_link = $deeplink->allowLink();
     $allow_multiple = $deeplink->allowMultiple();
     $allow_import = $deeplink->allowImportItem();
+    // These can be missing (null -> assume true), true, or false
+    $accept_lineitem = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_lineitem');
+    if ( $accept_lineitem !== false ) $accept_lineitem = true;
+    $accept_available = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_available');
+    if ( $accept_available !== false ) $accept_available = true;
+    $accept_submission = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_submission');
+    if ( $accept_submission !== false ) $accept_submission = true;
 } else {
     $return_url = ContentItem::returnUrl();
     $allow_lti = ContentItem::allowLtiLinkItem();
     $allow_link = ContentItem::allowLink();
     $allow_import = ContentItem::allowImportItem();
     $allow_multiple = ContentItem::allowMultiple();
+    $accept_lineitem = true;
+    $accept_available = true;
+    $accept_submission = true;
 }
 $debug = true;  /* Pause when sending back */
 
@@ -550,7 +560,7 @@ if ( $registrations && $allow_lti ) {
                                 <input type="number" class="form-control" name="placementHeight">
                             </div>
                             <!-- https://www.imsglobal.org/spec/lti-dl/v2p0 -->
-<?php if ( $grade_launch ) { ?>
+<?php if ( $grade_launch && $accept_lineitem ) { ?>
                             <div class="form-group">
                                 <label for="lineitem">Configure LineItem</label> (Not all LMS placements support all features)
                                 <select name="lineitem" id="lineitem">
@@ -571,16 +581,20 @@ if ( $registrations && $allow_lti ) {
                                 <label for="tag">A tag used to mark this item. (optional) This is opaque to the LMS</label>
                                 <input type="text" class="form-control" id="tag" name="tag">
                             </div>
+<?php if ( $accept_available ) { ?>
                             <div class="form-group">
                                 <label for="availableStart">Available dates:</label>
                                 <input type="date" id="availableStart" name="availableStart"> - 
                                 <input type="date" id="availableEnd" name="availableEnd">
                             </div>
+<?php } ?>
+<?php if ( $accept_submission ) { ?>
                             <div class="form-group">
                                 <label for="submissionStart">Submission dates:</label>
                                 <input type="date" id="submissionStart" name="submissionStart"> - 
                                 <input type="date" id="submissionEnd" name="submissionEnd">
                             </div>
+<?php } ?>
 </div>
 <?php } ?>
                             <div class="debug-claims" style="display:none;">

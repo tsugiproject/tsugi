@@ -121,4 +121,15 @@ class DeepLinkRequest {
         return false;
     }
 
+    /**
+     * getClaim - get a extension claim
+     *
+     * @param str The claim to retrieve
+     * @retval null if the claim is not present.
+     */
+    public function getClaim($string) {
+        if ( ! property_exists($this->claim, $string) ) return null;
+        return $this->claim->{$string};
+    }
+
 }
