@@ -22,7 +22,7 @@ if ( ! isAdmin() ) {
 $from_location = "issuers";
 $tablename = "{$CFG->dbprefix}lti_issuer";
 
-$fields = array("issuer_key", "issuer_client", "issuer_sha256",
+$fields = array("issuer_title", "issuer_key", "issuer_client", "issuer_sha256",
     "lti13_keyset_url", "lti13_token_url", "lti13_oidc_auth",
     "lti13_pubkey", "lti13_privkey",
     "issuer_guid", "lti13_token_audience",

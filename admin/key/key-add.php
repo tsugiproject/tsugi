@@ -21,7 +21,7 @@ if ( ! isAdmin() ) {
 
 $from_location = "keys";
 $tablename = "{$CFG->dbprefix}lti_key";
-$fields = array('key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
+$fields = array('key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
      'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 
 $titles = array(

@@ -26,11 +26,11 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_guid',
+$fields = array('issuer_id', 'issuer_title', 'issuer_key', 'issuer_client', 'issuer_guid',
     'lti13_keyset_url', 'lti13_token_url', 
     'lti13_oidc_auth', 'lti13_token_audience', 
     'created_at', 'updated_at');
-$realfields = array('issuer_id', 'issuer_key', 'issuer_client', 'issuer_guid', 'issuer_sha256',
+$realfields = array('issuer_id', 'issuer_title', 'issuer_key', 'issuer_client', 'issuer_guid', 'issuer_sha256',
     'lti13_keyset_url', 'lti13_token_url', 
     'lti13_oidc_auth', 'lti13_token_audience', 
     'created_at', 'updated_at');

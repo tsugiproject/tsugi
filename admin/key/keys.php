@@ -17,8 +17,8 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 if ( ! isAdmin() ) die('Must be admin');
 
 $query_parms = false;
-$searchfields = array("key_id", "key_key", "login_at", "created_at", "updated_at", "user_id");
-$sql = "SELECT key_id, key_key, secret, login_at, created_at, updated_at, user_id
+$searchfields = array("key_id", "key_title", "key_key", "login_at", "created_at", "updated_at", "user_id");
+$sql = "SELECT key_id, key_title, key_key, secret, login_at, created_at, updated_at, user_id
         FROM {$CFG->dbprefix}lti_key";
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
@@ -41,6 +41,7 @@ $OUTPUT->flashMessages();
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Key Requests</a>
   <a href="issuers" class="btn btn-default">LTI 1.3 Issuers</a>
   <a href="keys" class="btn btn-default active">Tenant Keys</a>
+  <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>
