@@ -35,6 +35,12 @@ class Result extends Entity {
      */
     public $grade = null;
 
+    /**
+     * The transport used to send the most recent grade.
+     * Set to false if the grade was local-only.
+     */
+    public $lastSendTransport = null;
+
     // Looks up a result for a potentially different user_id so we make
     // sure they are in the same key/ context / link as the current user
     // hence the complex query to make sure we don't cross silos
@@ -144,6 +150,7 @@ class Result extends Entity {
      */
     public static function gradeSendStatic($grade, $row=false, &$debug_log=false) {
         global $CFG, $LINK, $LTI;
+        global $GradeSendTransport;
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
 
@@ -214,25 +221,32 @@ class Result extends Entity {
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
         }
 
-            error_log("Sending LTI ??? grade if $grade for $lti13_subject_key to $lti13_lineitem");
-
         // Check is this is a Google Classroom Launch
         // TODO: we should accept a comment
         $comment = '';
+        $GradeSendTransport = false;
         if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['gc_submit_id']) ) {
+            if ( is_array($debug_log) )  $debug_log[] = "Using Google Classroom";
+            $GradeSendTransport = "Google";
             $status = GoogleClassroom::gradeSend(intval($grade*100));
 
         // LTI 1.3 grade passback - Prefer if available
         } else if ( strlen($lti13_subject_key) > 0 && strlen($lti13_lineitem) > 0 ) {
-            error_log("Sending LTI 1.3 grade if $grade for $lti13_subject_key to $lti13_lineitem");
+            if ( is_array($debug_log) )  $debug_log[] = "Using LTI Advantage";
+            $GradeSendTransport = "LTI 1.3";
+            error_log("Sending LTI 1.3 grade of $grade for $lti13_subject_key to $lti13_lineitem");
             $status = $LTI->context->sendLineItemResult($lti13_lineitem, $lti13_subject_key, $grade."", "1", $comment, $debug_log);
 
         // Classic POX call
         } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {
+            if ( is_array($debug_log) )  $debug_log[] = "Using LTI 1.1";
+            $GradeSendTransport = "LTI 1.1";
             $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log, $signature);
 
         // LTI 2.x call - Least likely
         } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($result_url) > 0 ) {
+            if ( is_array($debug_log) )  $debug_log[] = "Using LTI 2.0";
+            $GradeSendTransport = "LTI 2.0";
             $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log, $signature);
 
         } else {
@@ -266,8 +280,10 @@ class Result extends Entity {
      */
     public function gradeSend($grade, $row=false, &$debug_log=false) {
         global $CFG, $USER;
+        global $GradeSendTransport;
 
         $status = self::gradeSendStatic($grade, $row, $debug_log);
+        $this->lastSendTransport = $GradeSendTransport;
 
         if ( $row !== false ) {
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
