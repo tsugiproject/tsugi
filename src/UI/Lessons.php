@@ -1,5 +1,6 @@
 <?php
 
+
 namespace Tsugi\UI;
 
 use \Tsugi\Util\U;
@@ -421,7 +422,13 @@ class Lessons {
             }
 
             if ( isset($module->description) ) {
+                if ( isset($module->image) ) {
+                    echo('<img class="tsugi-module-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
+                }
                 echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
+                if ( isset($module->image) ) {
+                    echo('<br clear="all">');
+                }
             }
 
             echo("<ul>\n");
@@ -694,6 +701,9 @@ var disqus_config = function () {
             $href = U::get_rest_path() . '/' . urlencode($module->anchor);
             if ( isset($module->icon) ) {
                 echo('<i class="fa '.$module->icon.' fa-2x" aria-hidden="true" style="float: left; padding-right: 5px;"></i>');
+            }
+            if ( isset($module->image) ) {
+                echo('<img class="tsugi-all-modules-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
             }
             echo('<a href="'.$href.'">'."\n");
             echo($count.': '.$module->title."<br clear=\"all\"/>\n");
