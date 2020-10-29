@@ -837,8 +837,24 @@ var disqus_config = function () {
     public function renderBadges($allgrades, $buffer=false)
     {
         ob_start();
-        global $CFG;
+        global $CFG, $OUTPUT;
         echo('<h1>'.$this->lessons->title."</h1>\n");
+        $display = '';
+        $displayname = U::get($_SESSION, 'displayname');
+        $email = U::get($_SESSION, 'email');
+        if ( $displayname ) $display .=  $displayname;
+        if ( $email ) {
+            if ( strlen($display) > 0 ) {
+                $display .= ' (';
+                $display .= $email;
+                $display .= ')';
+            } else {
+                $display = $email;
+            }
+        }
+        if (strlen($display) > 0 ) {
+            echo("<p>".__("Student:")." ".$display."</p>\n");
+        }
         $awarded = array();
 ?>
 <ul class="nav nav-tabs">
