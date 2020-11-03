@@ -236,8 +236,8 @@ if ( isset($_GET['install']) ) {
     }
 
     $custom = array(
-        'availableStart' => '$ResourceLink.avalable.startDateTime',
-        'availableEnd' => '$ResourceLink.avalable.endDateTime',
+        'availableStart' => '$ResourceLink.available.startDateTime',
+        'availableEnd' => '$ResourceLink.available.endDateTime',
         'submissionStart' => '$ResourceLink.submission.startDateTime',
         'submissionEnd' => '$ResourceLink.submission.endDateTime',
         'canvas_caliper_url' => '$Caliper.url',
