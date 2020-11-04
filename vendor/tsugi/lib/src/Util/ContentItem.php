@@ -8,7 +8,6 @@ namespace Tsugi\Util;
  * Deep Linking 1.0 / Content Item Spec
  *
  * https://www.imsglobal.org/specs/lticiv1p0/specification
- * https://www.imsglobal.org/specs/lticiv1p0/specification-3
  *
  */
 class ContentItem {
@@ -238,11 +237,15 @@ class ContentItem {
         if ( $params['icon'] ) $json->{'icon'}->{'@id'} = $params['icon'];
         if ( $params['fa_icon'] ) $json->icon->fa_icon = $params['fa_icon'];
         if ( $params['custom'] ) $json->custom = $params['custom'];
-        if ( $params['points'] && $params['activityId'] ) {
+        if ( $params['points'] || $params['activityId'] ) {
             $json->lineItem->label = $params['title'];
-            $json->lineItem->assignedActivity->{'@id'} = $CFG->wwwroot . '/lti/activity/' . $params['activityId'];
-            $json->lineItem->assignedActivity->activityId = $params['activityId'];
-            $json->lineItem->scoreConstraints->normalMaximum = $params['points'];
+            if ( $params['activityId'] ) {
+                $json->lineItem->assignedActivity->{'@id'} = $CFG->wwwroot . '/lti/activity/' . $params['activityId'];
+                $json->lineItem->assignedActivity->activityId = $params['activityId'];
+            }
+            if ( $params['points'] ) {
+                $json->lineItem->scoreConstraints->normalMaximum = $params['points'];
+            }
         } else {
             unset($json->lineItem);
         }
