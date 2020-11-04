@@ -114,7 +114,7 @@ class PDOX extends \PDO {
         if ( $this->slow_query < 0 || ($this->slow_query > 0 && $q->ellapsed_time > $this->slow_query ) ) {
             $dbt = U::getCaller(2);
             $caller_uri = U::get($_SERVER,'REQUEST_URI');
-            error_log("PDOX Slow Query:".$q->ellapsed_time.' '.$caller_uri.' '.$dbt);
+            error_log("PDOX Slow Query:".$q->ellapsed_time.' '.$caller_uri.' '.$dbt.' '.$sql);
         }
 
         // In case we build this...

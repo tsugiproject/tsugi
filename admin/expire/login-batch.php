@@ -13,7 +13,7 @@ if ( ! isset($argv[1]) ) die("user / context / tenant required\n");
 $base = $argv[1];
 if ( $base == 'user' ) {
     $table = 'lti_user';
-    $limit = 100; // Takes about 10 seconds
+    $limit = 12000; // Takes about 10 seconds
     $where = '';
 } else if ( $base == 'context' ) {
     $table = 'lti_context';

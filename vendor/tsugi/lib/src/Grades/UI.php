@@ -21,7 +21,7 @@ class UI {
         $searchfields = $orderfields;
         $sql =
             "SELECT R.user_id AS user_id, displayname, email,
-                grade, note, R.ipaddr, user_key, R.updated_at AS updated_at
+                grade, R.ipaddr, user_key, R.updated_at AS updated_at
             FROM {$p}lti_result AS R
             JOIN {$p}lti_user AS U ON R.user_id = U.user_id
             WHERE R.link_id = :LID";
