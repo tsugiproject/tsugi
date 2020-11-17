@@ -633,7 +633,7 @@ $DATABASE_POST_CREATE = function($table) {
 
     if ( $table == "{$CFG->dbprefix}lti_key") {
         $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret) values
-            ( '5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5', '12345', 'secret')";
+            ( sha2('12345', 256), '12345', 'secret')";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
@@ -641,7 +641,7 @@ $DATABASE_POST_CREATE = function($table) {
         // Secret is big ugly string for the google key - in case we launch internally in Koseu
         $secret = bin2hex(openssl_random_pseudo_bytes(16));
         $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key) values
-            ( 'd4c9d9027326271a89ce51fcaf328ed673f17be33469ff979e8ab8dd501e664f', '$secret', 'google.com')";
+            ( sha2('google.com', 256), '$secret', 'google.com')";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
