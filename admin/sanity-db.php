@@ -19,8 +19,10 @@ not yet been created or you cannot connect to the database.
 MAMP or XAMPP, you may need to run commands like this:</p>
 <pre>
     CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
-    GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
-    GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+    CREATE USER 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
+    GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost';
+    CREATE USER 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+    GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1';
 </pre>
 <p>Note: MySQL 8.0 may require different commands.</p>
 <p>Make sure to choose appropriate passwords when setting this up.</p>
