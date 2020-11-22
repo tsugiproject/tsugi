@@ -552,6 +552,7 @@ array( "{$CFG->dbprefix}profile",
     image               TEXT NULL,
     locale              CHAR(63) NULL,
     subscribe           SMALLINT NULL,
+    google_translate    TINYINT(1) NOT NULL DEFAULT 0,
 
     json                MEDIUMTEXT NULL,
     login_at            TIMESTAMP NULL,
@@ -1006,6 +1007,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     $add_some_fields = array(
         array('lti_issuer', 'issuer_title', 'TEXT NULL'),
         array('lti_key', 'key_title', 'TEXT NULL'),
+        array('profile', 'google_translate', 'TINYINT(1) NOT NULL DEFAULT 0'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
