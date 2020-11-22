@@ -668,6 +668,37 @@ $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
 
     // Removed the 2014 - 2017 migrations - 2019-06-15
+ 
+    // This is a place to make sure added fields are present
+    // if you add a field to a table, put it in here and it will be auto-added
+    $add_some_fields = array(
+        array('lti_issuer', 'issuer_title', 'TEXT NULL'),
+        array('lti_key', 'key_title', 'TEXT NULL'),
+        array('profile', 'google_translate', 'TINYINT(1) NOT NULL DEFAULT 0'),
+        array('lti_link', 'lti13_lineitem', 'TEXT NULL'),
+        array('lti_context', 'lti13_lineitems', 'TEXT NULL'),
+        array('lti_context', 'lti13_membership_url', 'TEXT NULL'),
+        array('lti_key', 'deploy_key', 'TEXT NULL'),
+        array('lti_key', 'issuer_id', 'INTEGER NULL'),
+        array('lti_issuer', 'lti13_token_audience', 'TEXT NULL'),
+    );
+
+    foreach ( $add_some_fields as $add_field ) {
+        if (count($add_field) != 3 ) {
+            echo("Badly formatted add_field");
+            var_dump($add_field);
+            continue;
+        }
+        $table = $CFG->dbprefix . $add_field[0];
+        $column = $add_field[1];
+        $type = $add_field[2];
+        if ( $PDOX->columnExists($column, $table ) ) continue;
+        $sql= "ALTER TABLE {$CFG->dbprefix}$table ADD $column $type";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
 
     if ( $oldversion < 201801271430 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}mail_bulk
@@ -797,27 +828,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    if ( ! $PDOX->columnExists('lti13_lineitem', "{$CFG->dbprefix}lti_link") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_link ADD lti13_lineitem TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    if ( ! $PDOX->columnExists('lti13_lineitems', "{$CFG->dbprefix}lti_context") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD lti13_lineitems TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    if ( ! $PDOX->columnExists('lti13_membership_url', "{$CFG->dbprefix}lti_context") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_context ADD lti13_membership_url TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
     // New for the LTI Advantage issuer refactor
     if ( ! $PDOX->columnExists('deploy_sha256', "{$CFG->dbprefix}lti_key") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD deploy_sha256 CHAR(64) NULL";
@@ -835,20 +845,6 @@ $DATABASE_UPGRADE = function($oldversion) {
                 FOREIGN KEY (`issuer_id`)
                 REFERENCES `{$CFG->dbprefix}lti_issuer` (`issuer_id`)
                 ON DELETE SET NULL ON UPDATE CASCADE";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    if ( ! $PDOX->columnExists('deploy_key', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD deploy_key TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    if ( ! $PDOX->columnExists('issuer_id', "{$CFG->dbprefix}lti_key") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_key ADD issuer_id INTEGER NULL";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
@@ -967,14 +963,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    // Add the lti13_token_audience field
-    if ( ! $PDOX->columnExists('lti13_token_audience', "{$CFG->dbprefix}lti_issuer") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_issuer ADD lti13_token_audience TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
     // Add the issuer_guid field
     if ( ! $PDOX->columnExists('issuer_guid', "{$CFG->dbprefix}lti_issuer") ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_issuer ADD issuer_guid CHAR(36) NULL DEFAULT '42'";
@@ -1000,30 +988,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
 
-    }
-
-    // This is a place to make sure added fields are present
-    // if you add a field to a table, put it in here and it will be auto-added
-    $add_some_fields = array(
-        array('lti_issuer', 'issuer_title', 'TEXT NULL'),
-        array('lti_key', 'key_title', 'TEXT NULL'),
-        array('profile', 'google_translate', 'TINYINT(1) NOT NULL DEFAULT 0'),
-    );
-
-    foreach ( $add_some_fields as $add_field ) {
-        if (count($add_field) != 3 ) {
-            echo("Badly formatted add_field");
-            var_dump($add_field);
-            continue;
-        }
-        $table = $CFG->dbprefix . $add_field[0];
-        $column = $add_field[1];
-        $type = $add_field[2];
-        if ( $PDOX->columnExists($column, $table ) ) continue;
-        $sql= "ALTER TABLE {$CFG->dbprefix}$table ADD $column $type";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
     }
 
     // It seems like some automatically created LTI1.1 keys between
