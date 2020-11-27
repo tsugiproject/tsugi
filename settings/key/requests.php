@@ -27,7 +27,7 @@ if ( ! ( isset($_SESSION['id']) ) ) {
 $goodsession = isset($_SESSION['id']) && isset($_SESSION['email']) && isset($_SESSION['displayname']) &&
     strlen($_SESSION['email']) > 0 && strlen($_SESSION['displayname']) > 0 ;
 
-if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
+if ( $goodsession && isset($_POST['title']) &&
         isset($_POST['title']) && isset($_POST['notes']) ) {
     if ( strlen($_POST['title']) < 1 ) {
         $_SESSION['error'] = _m("Requests must have titles");
@@ -39,18 +39,12 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
         header("Location: ".LTIX::curPageUrl());
         return;
     }
-    $version = $_POST['lti']+0;
-    if ( $version != 1 && $version != 2 ) {
-        $_SESSION['error'] = _m("LTI Version muse be 1 or 2");
-        header("Location: ".LTIX::curPageUrlFolder());
-        return;
-    }
     $stmt = $PDOX->queryDie(
         "INSERT INTO {$CFG->dbprefix}key_request
         (user_id, title, notes, state, lti, created_at, updated_at)
         VALUES ( :UID, :TITLE, :NOTES, 0, :LTI, NOW(), NOW() )",
         array(":UID" => $_SESSION['id'], ":TITLE" => $_POST['title'],
-            ":NOTES" => $_POST['notes'], ":LTI" => $version)
+            ":NOTES" => $_POST['notes'], ":LTI" => 1)
     );
 
     $request_id = $PDOX->lastInsertId();
@@ -69,31 +63,29 @@ if ( $goodsession && isset($_POST['title']) && isset($_POST['lti']) &&
                 "\nSystem Admin: ".$CFG->ownername." (".$CFG->owneremail.")\n";
         }
 
-        if ( $version == 1 ) {
-            $oauth_consumer_key = 'lti1i_'.bin2hex(openssl_random_pseudo_bytes(256/8));
-            $oauth_secret = bin2hex(openssl_random_pseudo_bytes(256/8));
-            $key_sha256 = lti_sha256($oauth_consumer_key);
-            $PDOX->queryDie(
-                "INSERT INTO {$CFG->dbprefix}lti_key 
-                    (key_sha256, key_key, secret, user_id, created_at, updated_at)
-                    VALUES ( :k256, :key, :secret, :uid, NOW(), NOW() )",
-                array(
-                    'k256' => $key_sha256,
-                    'key' => $oauth_consumer_key,
-                    'secret' => $oauth_secret,
-                    'uid' => $user_id
-                )
-            );
-            // Don't send the key and secret to the admin
-            $admin_message = $message;
-            $message .= "\n\nKey: $oauth_consumer_key\n";
-            $message .= "\nSecret: $oauth_secret\n";
-            $message .= "\nInstructions for using your LTI 1.x key are at\n\n";
-            $message .= $CFG->wwwroot . "/settings/key/using\n\n";
-            error_log("New LTI 1.x Key Inserted: $oauth_consumer_key User: ".$_SESSION['email']);
-        } else {
-            die('LTI 2.x no longer supported');
-        }
+        $oauth_consumer_key = 'lti1i_'.bin2hex(openssl_random_pseudo_bytes(256/8));
+        $oauth_secret = bin2hex(openssl_random_pseudo_bytes(256/8));
+        $key_sha256 = lti_sha256($oauth_consumer_key);
+        $PDOX->queryDie(
+            "INSERT INTO {$CFG->dbprefix}lti_key 
+                (key_sha256, key_key, secret, user_id, created_at, updated_at)
+                VALUES ( :k256, :key, :secret, :uid, NOW(), NOW() )",
+            array(
+            'k256' => $key_sha256,
+                'key' => $oauth_consumer_key,
+                'secret' => $oauth_secret,
+                'uid' => $user_id
+            )
+        );
+        // $PDOX->lastInsertId
+
+        // Don't send the key and secret to the admin
+        $admin_message = $message;
+        $message .= "\n\nKey: $oauth_consumer_key\n";
+        $message .= "\nSecret: $oauth_secret\n";
+        $message .= "\nInstructions for using your LTI 1.x key are at\n\n";
+        $message .= $CFG->wwwroot . "/settings/key/using\n\n";
+        error_log("New LTI 1.x Key Inserted: $oauth_consumer_key User: ".$_SESSION['email']);
 
         // Update the request row
         $PDOX->queryDie(
@@ -205,20 +197,11 @@ connect to Google Classroom and install tools.
                 value="<?php echo(htmlent_utf8($_SESSION['email'])); ?>">
             </div>
             <div class="form-group">
-                <label for="request_title">Course Title:</label>
+                <label for="request_title">Course Title: (Required)</label>
                 <input type="name" class="form-control" id="request_title" name="title" required="required">
             </div>
 
-            <div class="radio">
-                <label>
-                    <input type="radio" name="lti" id="request_lti_1" value="1" checked>
-                    IMS LTI 1.x (You will get a key/secret - this is the most common option)
-                </label>
-            </div>
-            <p>To get an LTI Advantage Key, apply for an LTI 1.x key add a note in the comments
-            below.</p>
-
-            <label for="request_reason">Reason / Comments: (required)</label>
+            <label for="request_reason">Comments: (required)</label>
             <textarea class="form-control" id="request_reason" name="notes" rows="6"></textarea>
       </div>
       <div class="modal-footer">
