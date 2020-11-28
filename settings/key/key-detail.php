@@ -50,6 +50,15 @@ echo("</p>\n");
 $autoConfigUrl = $from_location . "/auto?tsugi_key=" . $row['key_id'];
 
 echo("<p>LTI Advantage Auto Configuration URL: ".htmlentities($autoConfigUrl)."</p>\n");
+?>
+<p>
+To use the auto configuration URL in your Learning Management System,
+keep this window open in a separate tab while using the LMS in another tab
+as the auto configuration process requires that you are logged in to this system
+in order to complete the auto configuration process.
+</p>
+<?php
+
 
 $OUTPUT->footer();
 
