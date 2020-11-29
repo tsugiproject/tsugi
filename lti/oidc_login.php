@@ -14,6 +14,10 @@ $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
 $issuer_guid = U::get($_REQUEST, 'guid');
 
+// Allow a format where the parameter is the primary key of the lti_key row
+$key_id = null;
+if ( is_numeric($issuer_guid) ) $key_id = intval($issuer_guid);
+
 // echo("<pre>\n");var_dump($_REQUEST); LTIX::abort_with_error_log();
 
 if ( ! $login_hint ) {
@@ -29,19 +33,29 @@ $PDOX = \Tsugi\Core\LTIX::getConnection();
 $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 error_log("iss=".$iss." sha256=".$key_sha256);
+if ( $key_id ) {
+    $row = $PDOX->allRowsDie(
+        "SELECT issuer_client, lti13_oidc_auth
+        FROM {$CFG->dbprefix}lti_issuer AS I
+            JOIN {$CFG->dbprefix}lti_key AS K ON
+                K.issuer_id = I.issuer_id
+            WHERE key_id = :KID AND issuer_sha256 = :SHA",
+        array(":KID" => $key_id, ":SHA" => $key_sha256)
+    );
+} else {
+    if ( $issuer_guid ) {
+        $query_where = "WHERE issuer_sha256 = :SHA AND issuer_guid = :issuer_guid AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
+        $query_where_params = array(":SHA" => $key_sha256, ":issuer_guid" => $issuer_guid);
+    } else {
+        $query_where = "WHERE issuer_sha256 = :SHA AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
+        $query_where_params = array(":SHA" => $key_sha256);
+    }
 
-if($issuer_guid){
-    $query_where = "WHERE issuer_sha256 = :SHA AND issuer_guid = :issuer_guid AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
-    $query_where_params = array(":SHA" => $key_sha256, ":issuer_guid" => $issuer_guid);
-}else{
-    $query_where = "WHERE issuer_sha256 = :SHA AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
-    $query_where_params = array(":SHA" => $key_sha256);
+    $row = $PDOX->rowDie(
+        "SELECT issuer_client, lti13_oidc_auth
+        FROM {$CFG->dbprefix}lti_issuer $query_where",
+        $query_where_params);
 }
-
-$row = $PDOX->rowDie(
-    "SELECT issuer_client, lti13_oidc_auth
-    FROM {$CFG->dbprefix}lti_issuer $query_where", 
-    $query_where_params);
 
 if ( ! is_array($row) || count($row) < 1 ) {
     LTIX::abort_with_error_log('Login could not find issuer '.htmlentities($iss));

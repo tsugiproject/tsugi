@@ -11,8 +11,20 @@ $issuer = U::get($_GET,"issuer",false);
 $issuer_id = U::get($_GET,"issuer_id",false);
 $issuer_guid = U::get($_GET,"issuer_guid",false);
 
+// Allow a format where the parameter is the primary key of the lti_key row
+$key_id = null;
+if ( is_numeric($issuer_guid) ) $key_id = intval($issuer_guid);
+
 $rows = false;
-if ( $issuer ) {
+if ( $key_id ) {
+    $rows = $PDOX->allRowsDie(
+        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer AS I
+            JOIN {$CFG->dbprefix}lti_key AS K ON
+                K.issuer_id = I.issuer_id
+            WHERE key_id = :KID",
+        array(":KID" => $key_id)
+    );
+} else if ( $issuer ) {
     $issuer_sha256 = hash('sha256', trim($issuer));
     $rows = $PDOX->allRowsDie(
         "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
