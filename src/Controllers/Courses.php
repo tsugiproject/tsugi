@@ -2,9 +2,8 @@
 
 namespace Koseu\Controllers;
 
-use Silex\Application;
+use Tsugi\Lumen\Application;;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 use \Tsugi\Core\LTIX;
 
@@ -13,16 +12,18 @@ class Courses {
     const ROUTE = '/courses';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix.'/json', 'Koseu\\Controllers\\Courses::getjson');
+        $app->router->get($prefix.'/json', function(Request $request) use ($app) {
+            return Courses::getjson($app);
+        });
     }
 
-    public function getjson(Request $request, Application $app)
+    public static function getjson(Application $app)
     {
         global $CFG;
         $tsugi = $app['tsugi'];
         if ( !isset($tsugi->user)) {
         // if ( !isset($_SESSION['id'])) {
-            return $app['twig']->render('@Tsugi/Error.twig',
+            return view('Error',
                 array('error' => '<p>You are not logged in.</p>')
                 );
         }
@@ -47,6 +48,6 @@ class Courses {
             WHERE P.profile_id = :PID";
 
         $rows = $PDOX->allRowsDie($sql, array(':PID' => $row['profile_id']));
-        return $app->json($rows);
+        return response()->json($rows);
     }
 }
