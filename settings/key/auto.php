@@ -5,6 +5,7 @@ require_once("../../config.php");
 
 use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
+use \Tsugi\Util\LTI13;
 use \Tsugi\Core\LTIX;
 
 $openid_configuration = U::get($_REQUEST, 'openid_configuration');
@@ -77,13 +78,16 @@ try {
     return;
 }
 
+$authorization_server = isset($platform_configuration->authorization_server) ? $platform_configuration->authorization_server : null;
+$title = isset($platform_configuration->title) ? $platform_configuration->title : null;
+
 \Tsugi\Core\LTIX::getConnection();
 
 // Lets retrieve our key entry if it belongs to us
 $row = $PDOX->rowDie(
-    "SELECT key_title, key_key, issuer_key, issuer_client,
+    "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
         lti13_oidc_auth, lti13_keyset_url, lti13_token_url
-    FROM {$CFG->dbprefix}lti_KEY AS K
+    FROM {$CFG->dbprefix}lti_key AS K
         LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
             K.issuer_id = I.issuer_id
         WHERE key_id = :KID AND K.user_id = :UID",
@@ -238,8 +242,104 @@ echo("issuer: $issuer\n");
 echo("authorization_endpoint: $authorization_endpoint\n");
 echo("token_endpoint: $token_endpoint\n");
 echo("jwks_uri: $jwks_uri\n");
-echo("registration_endpoint: $registration_endpoint\n");
+echo("authorization_server: $authorization_server\n");
+echo("title: $title\n");
 
+// One day will be obsolete...
+$issuer_sha256 = hash('sha256', trim($issuer));
+$guid = U::createGUID();
+
+echo("\nLets get ready to rumble!\n");
+
+// Retrieve the issuer
+$issuer_row = $PDOX->rowDie(
+    "SELECT * FROM {$CFG->dbprefix}lti_issuer
+        WHERE issuer_key = :ISS AND issuer_client = :CLI",
+    array(":ISS" => $issuer, ":CLI" => $client_id)
+);
+
+
+$success = false;
+// Simple case - no issuer - lets make one!
+if ( ! $issuer_row ) {
+    LTI13::generatePKCS8Pair($publicKey, $privateKey);
+    $sql = "INSERT INTO {$CFG->dbprefix}lti_issuer 
+        (issuer_title, issuer_sha256, issuer_guid, issuer_key, issuer_client, user_id, lti13_oidc_auth, 
+            lti13_keyset_url, lti13_pubkey, lti13_privkey, lti13_token_url, lti13_token_audience)
+        VALUES
+        (:title, :sha256, :guid, :key, :client, :user_id, :oidc_auth, 
+            :keyset_url, :pubkey, :privkey, :token_url, :token_audience)
+    ";
+    $values = array(
+        ":title" => $title, 
+        ":sha256" => $issuer_sha256,
+        ":guid" => $guid,
+        ":key" => $issuer,
+        ":client" => $client_id,
+        ":user_id" => $user_id,
+        ":oidc_auth" => $authorization_endpoint,
+        ":keyset_url" => $jwks_uri,
+        ":pubkey" => $publicKey,
+        ":privkey" => $privateKey,
+        ":token_url" => $token_endpoint,
+        ":token_audience" => $authorization_server,
+    );
+
+    $stmt = $PDOX->queryReturnError($sql, $values);
+
+    if ( ! $stmt->success ) {
+        echo("Unable to insert issuer\n");
+        return;
+    }
+
+    $issuer_id = $PDOX->lastInsertId();
+
+    echo("issuer = $issuer_id\n");
+
+    $stmt = $PDOX->queryDie(
+        "UPDATE {$CFG->dbprefix}lti_key SET issuer_id = :IID
+            WHERE key_id = :KID AND user_id = :UID",
+        array(":IID" => $issuer_id, ":KID" => $tsugi_key, ":UID" => $user_id)
+    );
+
+    if ( ! $stmt->success ) {
+        echo("Unable to update key entry to connect to the issuer\n");
+        return;
+    }
+
+    $success = true;
+
+} else {
+    $old_issuer_id = $issuer_row['issuer_id'];
+    $old_oidc_auth = $issuer_row['lti13_oidc_auth'];
+    $old_keyset_url = $issuer_row['lti13_keyset_url'];
+    $old_token_url = $issuer_row['lti13_token_url'];
+    $old_token_audience = $issuer_row['lti13_token_audience'];
+
+    $current_issuer_id = $row['issuer_id'];
+
+    // Existing issuer is good...
+    if ( $authorization_endpoint == $old_oidc_auth &&
+        $jwks_uri == $old_keyset_url && 
+        $token_endpoint == $old_token_url &&
+        $authorization_server == $old_token_audience ) {
+        if ( $current_issuer_id == $old_issuer_id ) {
+            echo("We have no work to do at all\n");
+            $success = true;
+        } else {
+            echo("Updated the key to point at existing issuer\n");
+            $stmt = $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}lti_key SET issuer_id = :IID
+                    WHERE key_id = :KID AND user_id = :UID",
+                array(":IID" => $old_issuer_id, ":KID" => $tsugi_key, ":UID" => $user_id)
+            );
+            $success = true;
+        }
+    } else {
+        echo("You are not allower to redefine the issuer=".htmlentities($issuer)." / client=".htmlentities($client_id). "\n");
+        $success = false;
+    }
+}
 echo("\n</pre>\n");
 
 /*
@@ -289,3 +389,34 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJ .
     }
 }
  */
+/*
+    issuer_id           INTEGER NOT NULL AUTO_INCREMENT,
+    issuer_title        TEXT NULL,
+    issuer_sha256       CHAR(64) NULL,  -- Will become obsolete
+    issuer_guid         CHAR(36) NOT NULL,  -- Our local GUID
+    issuer_key          TEXT NOT NULL,  -- iss from the JWT
+    issuer_client       TEXT NOT NULL,  -- aud from the JWT
+    deleted             TINYINT(1) NOT NULL DEFAULT 0,
+
+    -- This is the owner of this issuer - it is not a foreign key
+    -- We might use this if we end up with self-service issuers
+    user_id             INTEGER NULL,
+
+    lti13_oidc_auth     TEXT NULL,
+    lti13_keyset_url    TEXT NULL,
+    lti13_keyset        TEXT NULL,
+    lti13_platform_pubkey TEXT NULL,
+    lti13_kid           TEXT NULL,
+    lti13_pubkey        TEXT NULL,
+    lti13_privkey       TEXT NULL,
+    lti13_token_url     TEXT NULL,
+    lti13_token_audience  TEXT NULL,
+
+    $fields = array("issuer_title", "issuer_key", "issuer_client", "issuer_sha256",
+    "lti13_keyset_url", "lti13_token_url", "lti13_oidc_auth",
+    "lti13_pubkey", "lti13_privkey",
+    "issuer_guid", "lti13_token_audience",
+    "created_at", "updated_at");
+
+*/
+
