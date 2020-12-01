@@ -60,7 +60,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 // Create a new GUID
-$guid = createGUID();
+$guid = U::createGUID();
 $fields_defaults = array(
     'issuer_guid' => $guid
 );

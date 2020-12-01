@@ -55,7 +55,7 @@ if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
 
 $show_guid = true;
 //Show guid if applicable.
-if ((!isset($row['issuer_guid']) || empty($row['issuer_guid'])) || !isGUIDValid($row['issuer_guid'])) {
+if ((!isset($row['issuer_guid']) || empty($row['issuer_guid'])) || ! U::isGUIDValid($row['issuer_guid'])) {
     /*$arrKey = array_search('issuer_guid', $fields);
     if ($arrKey !== false) {
         unset($fields[$arrKey]);
