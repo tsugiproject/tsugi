@@ -183,7 +183,62 @@ $tool->messages = array(
 $json->{"https://purl.imsglobal.org/spec/lti-tool-configuration"} = $tool;
 
 echo("\n");
-echo(json_encode($json, JSON_PRETTY_PRINT));
+$body = json_encode($json, JSON_PRETTY_PRINT);
+
+$method = "POST";
+$header = "Content-type: application/json;\n" .
+            "Authorization: Bearer ".$registration_token;
+$url = $registration_endpoint;
+
+echo("\nSending in registration\n");
+echo("$registration_endpoint\n\n");
+echo("\nDATA SENT:\n\n");
+echo(htmlentities($body));
+
+$response = Net::bodyCurl($url, $method, $body, $header);
+
+$retval = Net::getLastBODYDebug();
+$retval['body_url'] = $url;
+$retval['body_sent'] = $body;
+$retval['body_received'] = $response;
+
+$response_code = Net::getLastHttpResponse();
+
+echo("\nRESPONSE CODE: $response_code\n");
+
+if ( $response_code != 200 ) {
+    echo("\nDID NOT GET 1200 :(\n");
+    echo("</pre>\n");
+    return;
+}
+
+$resp = json_decode($response);
+if ( ! $resp || ! is_object($resp) ) {
+    echo("Unable to parse JSON retrieved from:\n".htmlentities($registration_endpoint)."\n\n");
+    echo(htmlentities($response));
+    echo("</pre>\n");
+    return;
+}
+
+if ( !isset($resp->client_id) ) {
+    echo("Did not find client_id in response\n");
+    print_r($resp);
+    echo("</pre>\n");
+    return;
+}
+
+var_dump($resp);
+
+$client_id = $resp->client_id;
+
+echo("We have a live one:\n");
+
+echo("client_id: $client_id\n");
+echo("issuer: $issuer\n");
+echo("authorization_endpoint: $authorization_endpoint\n");
+echo("token_endpoint: $token_endpoint\n");
+echo("jwks_uri: $jwks_uri\n");
+echo("registration_endpoint: $registration_endpoint\n");
 
 echo("\n</pre>\n");
 
