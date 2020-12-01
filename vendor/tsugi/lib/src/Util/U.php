@@ -629,4 +629,38 @@ class U {
         }
         return $size."B";
     }
+
+    /**
+     * Create a unique GUID
+     * return string
+     *
+     * https://www.texelate.co.uk/blog/create-a-guid-with-php
+    */
+    public static function createGUID() {
+        // Create a token
+        $token = $_SERVER['HTTP_HOST'];
+        $token .= $_SERVER['REQUEST_URI'];
+        $token .= uniqid(rand(), true);
+        // GUID is 128-bit hex
+        $hash = strtoupper(md5($token));
+        // Create formatted GUID
+        $guid = '';
+        // GUID format is XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX for readability
+        $guid .= substr($hash,  0,  8) .
+            '-' .
+            substr($hash,  8,  4) .
+            '-' .
+            substr($hash, 12,  4) .
+            '-' .
+            substr($hash, 16,  4) .
+            '-' .
+            substr($hash, 20, 12);
+        return $guid;
+    }
+
+    public static function isGUIDValid($guid) {
+        return (preg_match("/^(\{)?[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}(?(1)\})$/i", $guid)
+    ? true : false);
+    }
+
 }
