@@ -149,9 +149,20 @@ $tool->claims = array( "iss", "sub", "name", "given_name", "family_name" );
 // TODO: Issue #53 - Define placements...
 $tool->messages = array(
     array(
+        // ContextPlacementLaunch
         "type" => "LtiDeepLinkingRequest",
         "label" => $CFG->servicedesc,
         "target_link_uri" => $CFG->wwwroot . '/lti/store',
+    ),
+    array(
+        "type" => "DataPrivacyLaunchRequest",
+        "label" => $CFG->servicedesc,
+        "target_link_uri" => $CFG->wwwroot,
+    ),
+    array(
+        "type" => "MartinImportRequest",
+        "label" => $CFG->servicedesc,
+        "target_link_uri" => __("Import from") . " ". $CFG->wwwroot . '/cc/export',
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
@@ -176,11 +187,6 @@ $tool->messages = array(
         "label" => $CFG->servicedesc,
         "target_link_uri" => $CFG->wwwroot . '/lti/store?type=assignment_selection',
         "placements" => array( "assignment_selection")
-    ),
-    array(
-        "type" => "LtiEmergentPrivacyRequest",
-        "label" => $CFG->servicedesc,
-        "target_link_uri" => $CFG->wwwroot,
     ),
 );
 
@@ -341,6 +347,11 @@ if ( ! $issuer_row ) {
     }
 }
 echo("\n</pre>\n");
+
+?>
+<button onclick="(window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'}, '*')">I dare you to press this</button>
+<button onclick="(window.parent).postMessage({subject:'org.imsglobal.lti.close'}, '*')">I dare you to press this</button>
+<?php
 
 /*
 

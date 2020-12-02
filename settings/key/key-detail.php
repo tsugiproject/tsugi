@@ -48,17 +48,35 @@ if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 
 $autoConfigUrl = $from_location . "/auto?tsugi_key=" . $row['key_id'];
-
-echo("<p>LTI Advantage Auto Configuration URL: ".htmlentities($autoConfigUrl)."</p>\n");
 ?>
+<p>
+<b>LTI Advantage Auto Configuration URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $autoConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+<br/><?= htmlentities($autoConfigUrl) ?>
 <p>
 To use the auto configuration URL in your Learning Management System,
 keep this window open in a separate tab while using the LMS in another tab
-as the auto configuration process requires that you are logged in to this system
+as the LTI Advantage auto configuration process requires that you are logged in to this system
 in order to complete the auto configuration process.
 </p>
 <?php
+$OUTPUT->footerStart();
+?>
+<script>
+$(document).ready( function() {
+        $( "#key_key_label" ).after(
+            ' <button onclick="copyToClipboardNoScroll(this, $(\'#key_key\').text());return false;">' +
+            '<i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button>' +
+            '</p>'
+        );
+        $( "#secret_label" ).after(
+            ' <button onclick="copyToClipboardNoScroll(this, $(\'#text_2\').text());return false;">' +
+            '<i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button>' +
+            '</p>'
+        );
+});
+</script>
 
-
-$OUTPUT->footer();
+<?php
+$OUTPUT->footerEnd();
 
