@@ -34,14 +34,12 @@ $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 error_log("iss=".$iss." sha256=".$key_sha256);
 if ( $key_id ) {
-    $row = $PDOX->allRowsDie(
-        "SELECT issuer_client, lti13_oidc_auth
+     $sql = "SELECT issuer_client, lti13_oidc_auth
         FROM {$CFG->dbprefix}lti_issuer AS I
             JOIN {$CFG->dbprefix}lti_key AS K ON
                 K.issuer_id = I.issuer_id
-            WHERE key_id = :KID AND issuer_sha256 = :SHA",
-        array(":KID" => $key_id, ":SHA" => $key_sha256)
-    );
+            WHERE K.key_id = :KID AND I.issuer_sha256 = :SHA";
+    $row = $PDOX->rowDie($sql, array(":KID" => $key_id, ":SHA" => $key_sha256));
 } else {
     if ( $issuer_guid ) {
         $query_where = "WHERE issuer_sha256 = :SHA AND issuer_guid = :issuer_guid AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
@@ -58,7 +56,7 @@ if ( $key_id ) {
 }
 
 if ( ! is_array($row) || count($row) < 1 ) {
-    LTIX::abort_with_error_log('Login could not find issuer '.htmlentities($iss));
+    LTIX::abort_with_error_log('Login could not find issuer '.htmlentities($iss)." issuer_guid=".$issuer_guid);
 }
 $client_id = trim($row['issuer_client']);
 $redirect = trim($row['lti13_oidc_auth']);
