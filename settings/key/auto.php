@@ -45,6 +45,9 @@ re-check your login status.
     return;
 }
 
+echo("<p><b>Retrieving OpenId configuration from LMS</b><br>\n");
+echo(htmlentities($openid_configuration)."\n</p>\n");
+
 $response = Net::doGet($openid_configuration );
 $code = Net::getLastHttpResponse();
 if ( ! $response || strlen($response) < 1 ) {
@@ -54,6 +57,8 @@ if ( ! $response || strlen($response) < 1 ) {
     echo("</pre>\n");
     return;
 }
+
+$OUTPUT->togglePre("LMS-Provided OpenId Configuration", $response);
 
 $platform_configuration = json_decode($response);
 if ( ! $platform_configuration || ! is_object($platform_configuration) ) {
@@ -100,10 +105,6 @@ if ( ! $row ) {
     echo("</pre>\n");
     return;
 }
-
-echo("<pre>\n");
-
-print_r($row);
 
 // See the end of the file for some documentation references
 $json = new \stdClass();
@@ -192,7 +193,6 @@ $tool->messages = array(
 
 $json->{"https://purl.imsglobal.org/spec/lti-tool-configuration"} = $tool;
 
-echo("\n");
 $body = json_encode($json, JSON_PRETTY_PRINT);
 
 $method = "POST";
@@ -200,10 +200,9 @@ $header = "Content-type: application/json;\n" .
             "Authorization: Bearer ".$registration_token;
 $url = $registration_endpoint;
 
-echo("\nSending in registration\n");
-echo("$registration_endpoint\n\n");
-echo("\nDATA SENT:\n\n");
-echo(htmlentities($body));
+echo("\n<p><b>Sending registration to LMS</b><br>\n");
+echo(htmlentities($url)."\n</p>\n");
+$OUTPUT->togglePre("Registration data sent to LMS", $body);
 
 $response = Net::bodyCurl($url, $method, $body, $header);
 
@@ -214,14 +213,13 @@ $retval['body_received'] = $response;
 
 $response_code = Net::getLastHttpResponse();
 
-echo("\nRESPONSE CODE: $response_code\n");
-
 if ( $response_code != 200 ) {
     echo("\nDID NOT GET 1200 :(\n");
     echo("</pre>\n");
     return;
 }
 
+$OUTPUT->togglePre("Registration response from LMS", $response);
 $resp = json_decode($response);
 if ( ! $resp || ! is_object($resp) ) {
     echo("Unable to parse JSON retrieved from:\n".htmlentities($registration_endpoint)."\n\n");
@@ -237,8 +235,6 @@ if ( !isset($resp->client_id) ) {
     return;
 }
 
-var_dump($resp);
-
 $client_id = $resp->client_id;
 
 $tc_key = "https://purl.imsglobal.org/spec/lti-tool-configuration";
@@ -248,22 +244,9 @@ if ( $tool_configuration ) {
     $deployment_id = isset($tool_configuration->deployment_id) ? $tool_configuration->deployment_id : null;
 }
 
-echo("We have a live one:\n");
-
-echo("client_id: $client_id\n");
-echo("issuer: $issuer\n");
-echo("authorization_endpoint: $authorization_endpoint\n");
-echo("token_endpoint: $token_endpoint\n");
-echo("jwks_uri: $jwks_uri\n");
-echo("authorization_server: $authorization_server\n");
-echo("title: $title\n");
-echo("deployment_id: $deployment_id\n");
-
 // One day will be obsolete...
 $issuer_sha256 = hash('sha256', trim($issuer));
 $guid = U::createGUID();
-
-echo("\nLets get ready to rumble!\n");
 
 // Retrieve the issuer
 $issuer_row = $PDOX->rowDie(
@@ -308,7 +291,7 @@ if ( ! $issuer_row ) {
 
     $issuer_id = $PDOX->lastInsertId();
 
-    echo("issuer = $issuer_id\n");
+    echo("<p>Created new issuer = $issuer_id</p>\n");
 
     $stmt = $PDOX->queryDie(
         "UPDATE {$CFG->dbprefix}lti_key SET issuer_id = :IID
@@ -352,10 +335,9 @@ if ( ! $issuer_row ) {
         $token_endpoint == $old_token_url &&
         $authorization_server == $old_token_audience ) {
         if ( $current_issuer_id == $old_issuer_id ) {
-            echo("We have no work to do at all\n");
             $success = true;
         } else {
-            echo("Updated the key to point at existing issuer\n");
+            echo("<p>Updated the key to point at an existing issuer/client_id</p>\n");
             $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}lti_key SET issuer_id = :IID
                     WHERE key_id = :KID AND user_id = :UID",
@@ -381,11 +363,9 @@ if ( ! $issuer_row ) {
         $success = false;
     }
 }
-echo("\n</pre>\n");
 
 ?>
-<button onclick="(window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'}, '*')">I dare you to press this</button>
-<button onclick="(window.parent).postMessage({subject:'org.imsglobal.lti.close'}, '*')">I dare you to press this</button>
+<button onclick="(window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'}, '*')">Continue Registration in the LMS</button>
 <?php
 
 /*
