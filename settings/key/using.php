@@ -27,19 +27,21 @@ $OUTPUT->flashMessages();
 ?>
 <h1>Using Your Key</h1>
 <p>
-  <a href="index" class="btn btn-default">LTI 1.x Keys</a>
+  <a href="index" class="btn btn-default">LTI Keys</a>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Using Your Key</a>
   <a href="requests" class="btn btn-default">Key Requests</a>
+  <a href="<?= $CFG->wwwroot.'/settings/' ?>" class="btn btn-default">My Settings</a>
 </p>
 <p>
 <ul class="nav nav-tabs">
-  <li class="active"><a href="#lti" data-toggle="tab" aria-expanded="true">LTI 1.x</a></li>
+  <li class="active"><a href="#lti" data-toggle="tab" aria-expanded="true">General</a></li>
   <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai</a></li>
   <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
   <li><a href="#moodle" data-toggle="tab" aria-expanded="false">Moodle</a></li>
 <?php if ( isset($CFG->lessons) ) { ?>
   <li><a href="#bb" data-toggle="tab" aria-expanded="false">Blackboard</a></li>
 <?php } ?>
+  <li><a href="#auto" data-toggle="tab" aria-expanded="false">LTI Auto Configuration</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="lti">
@@ -87,6 +89,12 @@ with your key and secret.  Then as LTI items are imported they will automaticall
 be associated with your key and secret.
 </p>
 <?php } ?>
+<p>
+There is an effort to include <b>"LTI Advantage Auto Configuration"</b> as part of Sakai 21.1.
+Once that is available, instructions on how to auto-provision a <?= $CFG->servicename ?> key into 
+Sakai will be included here.  Reference:
+<a href="https://jira.sakaiproject.org/browse/SAK-44055" target="_blank">https://jira.sakaiproject.org/browse/SAK-44055</a>.
+</p>
 </div>
 <div class="tab-pane fade" id="canvas">
 You can install this into Canvas as an "App Store" / "Learning Object Repository"
@@ -120,6 +128,12 @@ this site as an "App Store" / "Learning Object Repository" using this url:
 Make sure to find and check the "Supports Content Item" option when installing 
 this URL.
 </p>
+<p>
+Moodle supports an early draft of <b>"LTI Advantage Auto Configuration"</b> in Moodle 3.10.
+Tsugi also supports an early draft of the specification - but the combination needs to be
+tested and interoperability needs to be aligned - this is part of standards development.
+You can find the auto configuration URL in the detail page of your LTI key.
+</p>
 </div>
 <?php if ( isset($CFG->lessons) ) { ?>
 <div class="tab-pane fade" id="bb">
@@ -133,6 +147,23 @@ should start to function.
 </p>
 </div>
 <?php } ?>
+<div class="tab-pane fade" id="auto">
+<p>
+There is an under-development standard to allow to automatically provision
+an LTI Advantage tool in an LMS using web services.   This specification
+will likely be made public sometime on 2021.  The code in Tsugi is test/pre-release
+code to help in the early testing of the specification as it is being developed.
+</p>
+<p>
+You can look a the detail page for your key and at the bootom there is a
+<b>"LTI Advantage Auto Configuration URL"</b> that can be copied into an LMS
+that supports this new protocol.
+</p>
+<p>
+Once the standard is finalized and each LMS implementation has been tested with Tsugi,
+instructions will be added to each ot the LMS sections of this document.
+</p>
+</div>
 </div>
 </div>
 

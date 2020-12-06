@@ -44,15 +44,16 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
-<h1>LTI 1.x Keys</h1>
+<h1>LTI Keys</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">LTI 1.x Keys</a>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">LTI Keys</a>
   <a href="using" class="btn btn-default">Using Your Key</a>
   <a href="requests" class="btn btn-default">Key Requests</a>
+  <a href="<?= $CFG->wwwroot.'/settings/' ?>" class="btn btn-default">My Settings</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>
-You have no IMS LTI 1.1 Keys for this system.
+You have no IMS LTI Keys for this system.
 </p>
 <p>
 If you want to use the tools / content in this system

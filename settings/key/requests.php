@@ -83,9 +83,9 @@ if ( $goodsession && isset($_POST['title']) &&
         $admin_message = $message;
         $message .= "\n\nKey: $oauth_consumer_key\n";
         $message .= "\nSecret: $oauth_secret\n";
-        $message .= "\nInstructions for using your LTI 1.x key are at\n\n";
+        $message .= "\nInstructions for using your LTI key are at\n\n";
         $message .= $CFG->wwwroot . "/settings/key/using\n\n";
-        error_log("New LTI 1.x Key Inserted: $oauth_consumer_key User: ".$_SESSION['email']);
+        error_log("New LTI Key Inserted: $oauth_consumer_key User: ".$_SESSION['email']);
 
         // Update the request row
         $PDOX->queryDie(
@@ -156,9 +156,10 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI Key Requests</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">LTI 1.x Keys</a>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">LTI Keys</a>
   <a href="using" class="btn btn-default">Using Your Key</a>
   <a href="requests" class="btn btn-default active">Key Requests</a>
+  <a href="<?= $CFG->wwwroot.'/settings/' ?>" class="btn btn-default">My Settings</a>
 </p>
 <p>
 If you are a teacher and want to use the interactive elements on this web
