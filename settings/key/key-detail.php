@@ -16,6 +16,8 @@ if ( ! U::get($_SESSION,'id') ) {
     die('Must be logged in');
 }
 
+$inedit = U::get($_REQUEST,'edit');
+
 $tablename = "{$CFG->dbprefix}lti_key";
 $current = $CFG->getCurrentFileUrl(__FILE__);
 $from_location = LTIX::curPageUrlFolder();
@@ -23,17 +25,42 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array("key_id", "key_key", "secret", "created_at", "updated_at");
+if ( $inedit ) {
+    $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'updated_at');
+    $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret',
+        'deploy_key', 'deploy_sha256', 'updated_at');
+} else {
+    $fields = array('key_id', 'key_title', 'key_key', 'secret', 'issuer_id', 'deploy_key', 'updated_at');
+    $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret',
+        'issuer_id', 'deploy_key', 'deploy_sha256', 'updated_at');
+}
+
+$titles = array(
+    'key_key' => 'LTI 1.1: OAuth Consumer Key',
+    'secret' => 'LTI 1.1: OAuth Consumer Secret',
+    'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
+    'issuer_id' => 'LTI 1.3: Issuer',
+);
+
 $where_clause .= "user_id = :UID";
 $query_fields[":UID"] = $_SESSION['id'];
 
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
-    $query_fields, $allow_edit, $allow_delete);
+    $query_fields, $allow_edit, $allow_delete, $titles);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     header("Location: ".$from_location);
     return;
+}
+
+if ( ! $inedit && U::get($row, 'issuer_id') > 0 ) {
+    $issuer_row = $PDOX->rowDie("SELECT issuer_key, issuer_client FROM {$CFG->dbprefix}lti_issuer WHERE issuer_id = :issuer_id",
+        array(':issuer_id' => U::get($row, 'issuer_id'))
+    );
+    if ( $issuer_row ) {
+        $row['issuer_id'] = $issuer_row['issuer_key'].' ('.$issuer_row['issuer_client'].')';
+    }
 }
 
 $OUTPUT->header();
@@ -43,7 +70,8 @@ $OUTPUT->flashMessages();
 
 $title = "Key Entry";
 echo("<h1>$title</h1>\n<p>\n");
-$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
+$extra_buttons = false;
+$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, $extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 
