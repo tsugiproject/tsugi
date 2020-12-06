@@ -107,6 +107,8 @@ $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?key_id=' . $row['ke
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
+$autoConfigUrl = $CFG->wwwroot . "/admin/key/auto?tsugi_key=" . $row['key_id'];
+
 ?>
 <p>
 A single entry in this table defines a "distinct tenant" in Tsugi.
@@ -128,6 +130,16 @@ and <b>secret</b> connected to its LTI 1.3 launches, and then Tsugi can link the
 and courses regardless of the type of launch.  For this to work, the LMS must support
 LTI Advantage legacy LTI 1.1 support.
 <p>
+<b>LTI Advantage Auto Configuration URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $autoConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+<br/><?= htmlentities($autoConfigUrl) ?>
+<p>
+To use the auto configuration URL in your Learning Management System,
+keep this window open in a separate tab while using the LMS in another tab
+as the LTI Advantage auto configuration process requires that you are logged in to this system
+in order to complete the auto configuration process.
+</p>
+</p>
 <?php
 $OUTPUT->footerStart();
 
