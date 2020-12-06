@@ -35,7 +35,8 @@ if ( isset($_POST['passphrase']) ) {
             (isset($_SESSION['id']) ? " id=". $_SESSION['id'].' email='.$_SESSION['email'] : " developer mode"));
     }
     $rest_path = \Tsugi\Util\U::rest_path();
-    header("Location: ".$rest_path->current);
+    $redirect = U::reconstruct_query($rest_path->current);
+    header("Location: ".$redirect);
     $REDIRECTED = true;
     return;
 }

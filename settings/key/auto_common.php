@@ -4,7 +4,7 @@ use \Tsugi\Util\Net;
 use \Tsugi\Util\LTI13;
 use \Tsugi\Core\LTIX;
 
-if ( ! $user_id ) {
+if ( ! isset($user_id) ) {
     echo("<p><b>You are not logged in.</b></p>\n");
     $OUTPUT->footer();
     return;
@@ -52,16 +52,31 @@ $title = isset($platform_configuration->title) ? $platform_configuration->title 
 
 \Tsugi\Core\LTIX::getConnection();
 
+// Retrieve key for super user
+if ( $user_id == 0 ) {
+    $row = $PDOX->rowDie(
+        "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
+            lti13_oidc_auth, lti13_keyset_url, lti13_token_url, K.user_id AS user_id
+        FROM {$CFG->dbprefix}lti_key AS K
+            LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
+                K.issuer_id = I.issuer_id
+            WHERE key_id = :KID",
+        array(":KID" => $tsugi_key)
+    );
+    if ( $row && isset($row['user_id']) ) $user_id = $row['user_id']+0;
+
 // Lets retrieve our key entry if it belongs to us
-$row = $PDOX->rowDie(
-    "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
-        lti13_oidc_auth, lti13_keyset_url, lti13_token_url
-    FROM {$CFG->dbprefix}lti_key AS K
-        LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
-            K.issuer_id = I.issuer_id
-        WHERE key_id = :KID AND K.user_id = :UID",
-    array(":KID" => $tsugi_key, ":UID" => $user_id)
-);
+} else {
+    $row = $PDOX->rowDie(
+        "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
+            lti13_oidc_auth, lti13_keyset_url, lti13_token_url, K.user_id AS user_id
+        FROM {$CFG->dbprefix}lti_key AS K
+            LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
+                K.issuer_id = I.issuer_id
+            WHERE key_id = :KID AND K.user_id = :UID",
+        array(":KID" => $tsugi_key, ":UID" => $user_id)
+    );
+}
 
 if ( ! $row ) {
     echo("<pre>\n");
