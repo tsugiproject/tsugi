@@ -98,7 +98,7 @@ $(document).ready( function() {
             '</p>'
         );
         $( "#secret_label" ).after(
-            ' <button onclick="copyToClipboardNoScroll(this, $(\'#text_2\').text());return false;">' +
+            ' <button onclick="copyToClipboardNoScroll(this, $(\'#text_3\').text());return false;">' +
             '<i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button>' +
             '</p>'
         );
