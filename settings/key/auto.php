@@ -241,6 +241,13 @@ var_dump($resp);
 
 $client_id = $resp->client_id;
 
+$tc_key = "https://purl.imsglobal.org/spec/lti-tool-configuration";
+$tool_configuration = isset($resp->{$tc_key}) ? $resp->{$tc_key} : null;
+$deployment_id = null;
+if ( $tool_configuration ) {
+    $deployment_id = isset($tool_configuration->deployment_id) ? $tool_configuration->deployment_id : null;
+}
+
 echo("We have a live one:\n");
 
 echo("client_id: $client_id\n");
@@ -250,6 +257,7 @@ echo("token_endpoint: $token_endpoint\n");
 echo("jwks_uri: $jwks_uri\n");
 echo("authorization_server: $authorization_server\n");
 echo("title: $title\n");
+echo("deployment_id: $deployment_id\n");
 
 // One day will be obsolete...
 $issuer_sha256 = hash('sha256', trim($issuer));
@@ -269,15 +277,15 @@ $success = false;
 // Simple case - no issuer - lets make one!
 if ( ! $issuer_row ) {
     LTI13::generatePKCS8Pair($publicKey, $privateKey);
-    $sql = "INSERT INTO {$CFG->dbprefix}lti_issuer 
-        (issuer_title, issuer_sha256, issuer_guid, issuer_key, issuer_client, user_id, lti13_oidc_auth, 
+    $sql = "INSERT INTO {$CFG->dbprefix}lti_issuer
+        (issuer_title, issuer_sha256, issuer_guid, issuer_key, issuer_client, user_id, lti13_oidc_auth,
             lti13_keyset_url, lti13_pubkey, lti13_privkey, lti13_token_url, lti13_token_audience)
         VALUES
-        (:title, :sha256, :guid, :key, :client, :user_id, :oidc_auth, 
+        (:title, :sha256, :guid, :key, :client, :user_id, :oidc_auth,
             :keyset_url, :pubkey, :privkey, :token_url, :token_audience)
     ";
     $values = array(
-        ":title" => $title, 
+        ":title" => $title,
         ":sha256" => $issuer_sha256,
         ":guid" => $guid,
         ":key" => $issuer,
@@ -313,6 +321,20 @@ if ( ! $issuer_row ) {
         return;
     }
 
+    if ( $deployment_id ) {
+        $deployment_sha256 = hash('sha256', trim($deployment_id));
+        $stmt = $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
+                WHERE key_id = :KID AND user_id = :UID",
+            array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
+        );
+
+        if ( ! $stmt->success ) {
+            echo("Unable to update key entry to set deployment_id\n");
+            return;
+        }
+    }
+
     $success = true;
 
 } else {
@@ -326,7 +348,7 @@ if ( ! $issuer_row ) {
 
     // Existing issuer is good...
     if ( $authorization_endpoint == $old_oidc_auth &&
-        $jwks_uri == $old_keyset_url && 
+        $jwks_uri == $old_keyset_url &&
         $token_endpoint == $old_token_url &&
         $authorization_server == $old_token_audience ) {
         if ( $current_issuer_id == $old_issuer_id ) {
@@ -339,6 +361,19 @@ if ( ! $issuer_row ) {
                     WHERE key_id = :KID AND user_id = :UID",
                 array(":IID" => $old_issuer_id, ":KID" => $tsugi_key, ":UID" => $user_id)
             );
+            if ( $deployment_id ) {
+                $deployment_sha256 = hash('sha256', trim($deployment_id));
+                $stmt = $PDOX->queryDie(
+                    "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
+                        WHERE key_id = :KID AND user_id = :UID",
+                    array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
+                );
+
+                if ( ! $stmt->success ) {
+                    echo("Unable to update key entry to set deployment_id\n");
+                    return;
+                }
+            }
             $success = true;
         }
     } else {
