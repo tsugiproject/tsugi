@@ -687,7 +687,7 @@ $('a').each(function (x) {
         global $div_id;
         $div_id = $div_id + 1;
         $text = _m('Show/Hide');
-        $detail = _m('characters of HTML retrieved');
+        $detail = _m('characters retrieved');
         echo('<strong>'.htmlpre_utf8($title));
         echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">'.$text.'</a></strong>'."\n");
         echo(' '.strlen($html).' '.$detail.')'."\n");
