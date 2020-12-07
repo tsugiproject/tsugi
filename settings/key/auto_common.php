@@ -124,7 +124,7 @@ if ( isset($CFG->servicedesc) && $CFG->servicedesc ) {
     $tool->description = $CFG->servicedesc;
 }
 
-$tool->claims = array( "iss", "sub", "name", "given_name", "family_name" );
+$tool->claims = array( "iss", "sub", "name", "given_name", "family_name", "email" );
 
 // TODO: Issue #53 - Define placements...
 $tool->messages = array(
