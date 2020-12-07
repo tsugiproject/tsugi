@@ -114,6 +114,9 @@ if ( isset($CFG->owneremail) && $CFG->owneremail ) {
     $tool->better_contacts = array($contact);
 }
 
+// Yes, this *is* an array of strings serialized into a string with a space separator
+$json->scope = "https://purl.imsglobal.org/spec/lti-ags/scope/score https://purl.imsglobal.org/spec/lti-ags/scope/lineitem https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly";
+
 $tool->product_family_code = "tsugi.org";
 $tool->target_link_uri = $CFG->wwwroot . '/lti/store/';
 
