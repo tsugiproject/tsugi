@@ -135,7 +135,7 @@ $tool->messages = array(
         // ContextPlacementLaunch
         "type" => "LtiDeepLinkingRequest",
         "label" => $CFG->servicedesc,
-        "target_link_uri" => $CFG->wwwroot . '/lti/store',
+        "target_link_uri" => $CFG->wwwroot . '/lti/store/',
     ),
     array(
         "type" => "DataPrivacyLaunchRequest",
@@ -156,19 +156,19 @@ $tool->messages = array(
     array(
         "type" => "LtiDeepLinkingRequest",
         "label" => $CFG->servicedesc,
-        "target_link_uri" => $CFG->wwwroot . '/lti/store?type=link_selection',
+        "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=link_selection',
         "placements" => array( "link_selection")
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
         "label" => $CFG->servicedesc,
-        "target_link_uri" => $CFG->wwwroot . '/lti/store?type=editor_button',
+        "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=editor_button',
         "placements" => array( "editor_button")
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
         "label" => $CFG->servicedesc,
-        "target_link_uri" => $CFG->wwwroot . '/lti/store?type=assignment_selection',
+        "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=assignment_selection',
         "placements" => array( "assignment_selection")
     ),
 );
