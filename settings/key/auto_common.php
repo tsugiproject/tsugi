@@ -130,46 +130,55 @@ if ( isset($CFG->servicedesc) && $CFG->servicedesc ) {
 $tool->claims = array( "iss", "sub", "name", "given_name", "family_name", "email" );
 
 // TODO: Issue #53 - Define placements...
+// TODO: Issue #59 - Message parsing order - Sakai takes first, Moodle takes last
 $tool->messages = array(
+    // TODO: ContextPlacementLaunch
+    // Issue #59 - For LMS's that take the "first"
     array(
-        // ContextPlacementLaunch
         "type" => "LtiDeepLinkingRequest",
-        "label" => $CFG->servicedesc,
+        "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/lti/store/',
     ),
     array(
         "type" => "DataPrivacyLaunchRequest",
-        "label" => $CFG->servicedesc,
+        "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot,
     ),
     array(
         "type" => "MartinImportRequest",
-        "label" => $CFG->servicedesc,
-        "target_link_uri" => __("Import from") . " ". $CFG->wwwroot . '/cc/export',
+        "label" => $json->client_name,
+        "target_link_uri" => __("Import from") . " ". $CFG->wwwroot . '/cc/export/',
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
-        "label" => $CFG->servicedesc,
-        "target_link_uri" => __("Import from") . " ". $CFG->wwwroot . '/cc/export',
+        "label" => __("Import from") . " ".$json->client_name,
+        "target_link_uri" => $CFG->wwwroot . '/cc/export',
         "placements" => array( "migration_selection")
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
-        "label" => $CFG->servicedesc,
+        "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=link_selection',
         "placements" => array( "link_selection")
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
-        "label" => $CFG->servicedesc,
+        "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=editor_button',
         "placements" => array( "editor_button")
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
-        "label" => $CFG->servicedesc,
+        "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=assignment_selection',
         "placements" => array( "assignment_selection")
+    ),
+    // TODO: Make this not needed
+    // Issue #59 - For LMS's that take the "last" (i.e. like Moodle)
+    array(
+        "type" => "LtiDeepLinkingRequest",
+        "label" => $json->client_name,
+        "target_link_uri" => $CFG->wwwroot . '/lti/store/',
     ),
 );
 
