@@ -17,25 +17,67 @@ $l = new Lessons($CFG->lessons);
 
 $OUTPUT->header();
 $OUTPUT->bodystart(false);
-echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
+echo("<h1>Course: ".htmlentities($l->lessons->title)."</h1>\n");
 echo("<p>".htmlentities($l->lessons->description)."</p>\n");
 echo("<p>This course has: ".count($l->lessons->modules)." modules</p>\n");
 ?>
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#allcontent" data-toggle="tab" aria-expanded="true">All Content</a></li>
+  <li><a href="#select" data-toggle="tab" aria-expanded="false">Select Content</a></li>
+</ul>
+
+<div id="myTabContent" class="tab-content" style="margin-top:10px;">
+  <div class="tab-pane fade active in" id="allcontent">
 <p>You can download all the modules in a single cartridge, or you can download any 
-combination of the modules below.</p>
+combination of the modules.</p>
 <p>
-<a href="export" class="btn btn-primary">Download all the modules</a>
-<?php     if ( isset($CFG->youtube_url) ) { ?>
-<a href="export?youtube=yes" class="btn btn-primary">Download all modules with YouTube tracking</a>
-<?php } ?>
-</li>
+<form id="real" action="export">
+<p>
+<label for="tsugi_lms_select">Choose the LMS that will use this cartridge:</label>
+<select name="tsugi_lms" id="tsugi_lms_select" form="carform">
+  <option value="generic">Generic</option>
+  <option value="canvas">Canvas</option>
+  <option value="sakai">Sakai</option>
+</select>
 </p>
-<hr/>
-<p>Select from these modules:</p>
+<?php     if ( isset($CFG->youtube_url) ) { ?>
+<p>
+<label for="tsugi_lms_select">Would you like Youtube Tracked URLs?</label>
+<select name="youtube" id="youtube_select">
+  <option value="no">No</option>
+  <option value="yes">Yes</option>
+</select>
+</p>
+<?php } ?>
+<p>
+<input type="submit" class="btn btn-primary" value="Download modules" />
+</p>
+</form>
+<?php     if ( isset($CFG->youtube_url) ) { ?>
+<p>
+If you select YouTube tracked URLs, each Youtube URL will be launched via LTI
+to a YouTube tracking tool on this server so you can get analytics on who
+watches your YouTube videos through the LMS.  Some LMS's do not do well with
+tracked URLs because they treat every LTI link as a gradable link.
+</p>
+<?php } ?>
+</div>
+<div class="tab-pane fade" id="select">
+<p>Select the modules to include, and download below.  You must select at least one module.</p>
 <?php
 $resource_count = 0;
 $assignment_count = 0;
 echo('<form id="void">'."\n");
+?>
+<p>
+<label for="tsugi_lms_select">Choose the LMS that will use this cartridge:</label>
+<select name="tsugi_lms" id="tsugi_lms_select" form="carform">
+  <option value="generic">Generic</option>
+  <option value="canvas">Canvas</option>
+  <option value="sakai">Sakai</option>
+</select>
+</p>
+<?php
 foreach($l->lessons->modules as $module) {
     echo('<input type="checkbox" name="'.$module->anchor.'" value="'.$module->anchor.'">'."\n");
     echo(htmlentities($module->title));
@@ -51,15 +93,20 @@ foreach($l->lessons->modules as $module) {
     echo("</ul>\n");
 }
 ?>
-<input type="submit" value="Download selected modules" class="btn btn-primary" onclick="myfunc(''); return false;"/>
+<p>
+<input type="submit" value="Download selected modules" class="btn btn-primary" onclick=";myfunc(''); return false;"/>
 <?php     if ( isset($CFG->youtube_url) ) { ?>
 <input type="submit" class="btn btn-primary" value="Download selected modules with YouTube tracking" onclick="myfunc('yes'); return false;"/>
 <?php } ?>
+</p>
 </form>
 <form id="real" action="export">
 <input id="youtube" type="hidden" name="youtube"/>
+<input id="tsugi_lms" type="hidden" name="tsugi_lms" />
 <input id="res" type="hidden" name="anchors" value=""/>
 </form>
+</div>
+</div>
 <?php
 
 $OUTPUT->footerStart();
@@ -78,6 +125,8 @@ function myfunc(youtube){
         }
 
     });
+    var tsugi_lms = $("#tsugi_lms_select").val();
+    $("#tsugi_lms").val(tsugi_lms);
     var stuff = $("#res").val();
     if ( stuff.length < 1 ) {
         alert('<?= _m("Please select at least one module") ?>');

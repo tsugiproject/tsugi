@@ -111,8 +111,19 @@ $autoConfigUrl = $CFG->wwwroot . "/admin/key/auto?tsugi_key=" . $row['key_id'];
 
 ?>
 <p>
+<b>LTI Advantage Auto Configuration URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $autoConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+<br/><?= htmlentities($autoConfigUrl) ?>
+<p>
+To use the auto configuration URL in your Learning Management System,
+keep this window open in a separate tab while using the LMS in another tab
+as the LTI Advantage auto configuration process requires that you are logged in to this system
+in order to complete the auto configuration process.
+</p>
+<hr/>
+<p>
 A single entry in this table defines a "distinct tenant" in Tsugi.
-Data in Tsugi is isolated to a tenant.  You can route both
+Data in Tsugi data is isolated to a tenant.  You can route both
 LTI 1.1 and LTI 1.3 launches to one tenant by setting fields on
 this entry properly.  See below for details.
 </p>
@@ -129,16 +140,6 @@ If this is a pre-existing LTI 1.1 tenant, the LMS must have the <b>oauth_consume
 and <b>secret</b> connected to its LTI 1.3 launches, and then Tsugi can link the accounts
 and courses regardless of the type of launch.  For this to work, the LMS must support
 LTI Advantage legacy LTI 1.1 support.
-<p>
-<b>LTI Advantage Auto Configuration URL:
-<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $autoConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
-<br/><?= htmlentities($autoConfigUrl) ?>
-<p>
-To use the auto configuration URL in your Learning Management System,
-keep this window open in a separate tab while using the LMS in another tab
-as the LTI Advantage auto configuration process requires that you are logged in to this system
-in order to complete the auto configuration process.
-</p>
 </p>
 <?php
 $OUTPUT->footerStart();
