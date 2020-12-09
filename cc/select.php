@@ -31,10 +31,10 @@ echo("<p>This course has: ".count($l->lessons->modules)." modules</p>\n");
 <p>You can download all the modules in a single cartridge, or you can download any 
 combination of the modules.</p>
 <p>
-<form id="real" action="export">
+<form action="export">
 <p>
-<label for="tsugi_lms_select">Choose the LMS that will use this cartridge:</label>
-<select name="tsugi_lms" id="tsugi_lms_select" form="carform">
+<label for="tsugi_lms_select_full">Choose the LMS that will use this cartridge:</label>
+<select name="tsugi_lms" id="tsugi_lms_select_full">
   <option value="generic">Generic</option>
   <option value="canvas">Canvas</option>
   <option value="sakai">Sakai</option>
@@ -42,8 +42,8 @@ combination of the modules.</p>
 </p>
 <?php     if ( isset($CFG->youtube_url) ) { ?>
 <p>
-<label for="tsugi_lms_select">Would you like Youtube Tracked URLs?</label>
-<select name="youtube" id="youtube_select">
+<label for="youtube_select_full">Would you like Youtube Tracked URLs?</label>
+<select name="youtube" id="youtube_select_full">
   <option value="no">No</option>
   <option value="yes">Yes</option>
 </select>
@@ -70,13 +70,22 @@ $assignment_count = 0;
 echo('<form id="void">'."\n");
 ?>
 <p>
-<label for="tsugi_lms_select">Choose the LMS that will use this cartridge:</label>
-<select name="tsugi_lms" id="tsugi_lms_select" form="carform">
+<label for="tsugi_lms_select_partial">Choose the LMS that will use this cartridge:</label>
+<select name="tsugi_lms" id="tsugi_lms_select_partial">
   <option value="generic">Generic</option>
   <option value="canvas">Canvas</option>
   <option value="sakai">Sakai</option>
 </select>
 </p>
+<?php if ( isset($CFG->youtube_url) ) { ?>
+<p>
+<label for="youtube_select_partial">Would you like Youtube Tracked URLs?</label>
+<select name="youtube" id="youtube_select_partial">
+  <option value="no">No</option>
+  <option value="yes">Yes</option>
+</select>
+</p>
+<?php } ?>
 <?php
 foreach($l->lessons->modules as $module) {
     echo('<input type="checkbox" name="'.$module->anchor.'" value="'.$module->anchor.'">'."\n");
@@ -95,14 +104,11 @@ foreach($l->lessons->modules as $module) {
 ?>
 <p>
 <input type="submit" value="Download selected modules" class="btn btn-primary" onclick=";myfunc(''); return false;"/>
-<?php     if ( isset($CFG->youtube_url) ) { ?>
-<input type="submit" class="btn btn-primary" value="Download selected modules with YouTube tracking" onclick="myfunc('yes'); return false;"/>
-<?php } ?>
 </p>
 </form>
 <form id="real" action="export">
 <input id="youtube" type="hidden" name="youtube"/>
-<input id="tsugi_lms" type="hidden" name="tsugi_lms" />
+<input id="tsugi_lms" type="hidden" name="tsugi_lms_real" />
 <input id="res" type="hidden" name="anchors" value=""/>
 </form>
 </div>
@@ -125,8 +131,9 @@ function myfunc(youtube){
         }
 
     });
-    var tsugi_lms = $("#tsugi_lms_select").val();
-    $("#tsugi_lms").val(tsugi_lms);
+
+    var tsugi_lms = $("#tsugi_lms_select_partial").val();
+    $("#tsugi_lms_real").val(tsugi_lms);
     var stuff = $("#res").val();
     if ( stuff.length < 1 ) {
         alert('<?= _m("Please select at least one module") ?>');
