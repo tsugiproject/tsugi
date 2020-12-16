@@ -411,6 +411,13 @@ if ( $l && isset($_GET['import']) ) {
     $url = $CFG->wwwroot . '/cc/export';
     if ( $LAUNCH->isSakai() ) $url .= '?tsugi_lms=sakai';
     else if ( $LAUNCH->isCanvas() ) $url .= '?tsugi_lms=canvas';
+    if ( U::get($_GET, 'anchors') ) {
+        $url = U::add_url_parm($url, 'anchors',  U::get($_GET, 'anchors'));
+    }
+    if ( U::get($_GET, 'youtube') == 'yes') {
+        $url = U::add_url_parm($url, 'youtube',  'yes');
+    }
+    // echo("<pre>\n");echo("$url\n");print_r($_GET);die();
     $retval->addFileItem($url, $l->lessons->title);
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
     $content = $retval->prepareResponse($endform);
@@ -439,8 +446,9 @@ if ( $l && $allow_lti ) {
 }
 
 if ( $l && $allow_import ) {
-    echo('<li class="'.$active.'"><a href="#Import" data-toggle="tab" aria-expanded="false">Import</a></li>'."\n");
+    echo('<li class="'.$active.'"><a href="#allcontent" data-toggle="tab" aria-expanded="false">All Content</a></li>'."\n");
     $active = '';
+    echo('<li class="'.$active.'"><a href="#select" data-toggle="tab" aria-expanded="false">Select Content</a></li>'."\n");
 }
 echo("</ul>\n");
 
@@ -737,10 +745,11 @@ if ( $l && $allow_lti ) {
 }
 
 if ( $l && $allow_import ) {
-    echo('<div class="tab-pane fade '.$active.' in" id="import">'."\n");
-    $active = '';
-    echo("&nbsp;<br/>\n");
-    echo("<form>\n");
+?>
+<div class="tab-pane fade active in" id="allcontent">
+<p>You can download all the modules in a single cartridge, or you can download any 
+combination of the modules.</p>
+<?php
     echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
     echo("<p>".htmlentities($l->lessons->description)."</p>\n");
     echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
@@ -756,15 +765,112 @@ if ( $l && $allow_import ) {
     }
     echo("<p>Resources: $resource_count </p>\n");
     echo("<p>Assignments: $assignment_count </p>\n");
-    echo('<p><input type="submit" class="btn btn-default" name="import" value="Import"></p>'."\n");
-    echo("</form>\n");
-    echo("</div>\n");
+?>
+<p>
+<form>
+<?php     if ( isset($CFG->youtube_url) ) { ?>
+<p>
+<label for="youtube_select_full">Would you like Youtube Tracked URLs?</label>
+<select name="youtube" id="youtube_select_full">
+  <option value="no">No</option>
+  <option value="yes">Yes</option>
+</select>
+</p>
+<?php } ?>
+<p>
+<input type="submit" class="btn btn-primary" value="Import modules" name="import"/>
+</p>
+</form>
+<?php     if ( isset($CFG->youtube_url) ) { ?>
+<p>
+If you select YouTube tracked URLs, each Youtube URL will be launched via LTI
+to a YouTube tracking tool on this server so you can get analytics on who
+watches your YouTube videos through the LMS.  Some LMS's do not do well with
+tracked URLs because they treat every LTI link as a gradable link.
+</p>
+<?php } ?>
+</div>
+<div class="tab-pane fade" id="select">
+<p>Select the modules to include, and download below.  You must select at least one module.</p>
+<?php
+$resource_count = 0;
+$assignment_count = 0;
+echo('<form id="void">'."\n");
+?>
+<?php if ( isset($CFG->youtube_url) ) { ?>
+<p>
+<label for="youtube_select_partial">Would you like Youtube Tracked URLs?</label>
+<select name="youtube" id="youtube_select_partial">
+  <option value="no">No</option>
+  <option value="yes">Yes</option>
+</select>
+</p>
+<?php } ?>
+<?php
+foreach($l->lessons->modules as $module) {
+    echo('<input type="checkbox" name="'.$module->anchor.'" value="'.$module->anchor.'">'."\n");
+    echo(htmlentities($module->title));
+    $resources = Lessons::getUrlResources($module);
+    if ( ! $resources ) continue;
+    echo("<ul>\n");
+    echo("<li>Resources in this module: ".count($resources)."</li>\n");
+    $resource_count = $resource_count + count($resources);
+    if ( isset($module->lti) ) {
+        echo("<li>Assignments in this module: ".count($module->lti)."</li>\n");
+        $assignment_count = $assignment_count + count($module->lti);
+    }
+    echo("</ul>\n");
 }
-
-echo("</div>\n"); // myTabContent
+?>
+<p>
+<input type="submit" value="Import selected modules" class="btn btn-primary" onclick=";myfunc(''); return false;"/>
+</p>
+</form>
+<form id="real">
+<input id="youtube" type="hidden" name="youtube"/>
+<input id="res" type="hidden" name="anchors" value=""/>
+<input type="hidden" name="import" value="import"/>
+</form>
+</div>
+<?php } ?>
+</div>
+<?php
 
 $OUTPUT->footerStart();
 ?>
+
+<script>
+// https://stackoverflow.com/questions/13830276/how-to-append-multiple-values-to-a-single-parameter-in-html-form
+function myfunc(youtube){
+    $('#void input[type="checkbox"]').each(function(id,elem){
+         console.log(this);
+         if ( ! $(this).is(':checked') ) return;
+         b = $("#res").val();
+         if(b.length > 0){
+            $("#res").val( b + ',' + $(this).val() );
+        } else {
+            $("#res").val( $(this).val() );
+        }
+
+    });
+
+    var tsugi_lms = $("#tsugi_lms_select_partial").val();
+    $("#tsugi_lms_real").val(tsugi_lms);
+    var stuff = $("#res").val();
+    if ( stuff.length < 1 ) {
+        alert('<?= _m("Please select at least one module") ?>');
+    } else {
+        if ( youtube == 'yes' ) {
+            $("#youtube").val('yes');
+        } else {
+            $("#youtube").val('');
+        }
+        $("#real").submit();
+    }
+}
+</script>
+
+
     <script type="text/javascript">
         var filter = filter || {};
 
