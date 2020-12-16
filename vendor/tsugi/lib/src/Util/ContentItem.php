@@ -395,7 +395,7 @@ class ContentItem {
 
         $json = json_decode($item);
         $json->url = $url;
-        if ( $params['title'] ) $json->{'title'} = $params['title'];
+        if ( isset($additionalParams['title']) ) $json->{'title'} = $additionalParams['title'];
 
         $datetime = (new \DateTime('+1 day'))->format(\DateTime::ATOM);
         $datetime = substr($datetime,0,19) . 'Z';
