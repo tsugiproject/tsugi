@@ -44,7 +44,7 @@
         "symfony/polyfill-php80" : "v1.18.1",
 
 
-        "tsugi/lib": "dev-master#fff56a6827bb780c3e76a9a8d80e58221d340eaf",
+        "tsugi/lib": "dev-master#c737e9e37db2ddbe391ed3621d8bdd73b7948ec9",
         "koseu/lib": "dev-master#aecd78ef03724ada2034ff37ade6ca3897cf80ce"
     },
     "config": {

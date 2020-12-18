@@ -10,6 +10,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\LTI13;
 use \Tsugi\UI\Lessons;
+use \Tsugi\Util\LTIConstants;
 
 // No parameter means we require CONTEXT, USER, and LINK
 $LAUNCH = LTIX::requireData(LTIX::USER);
@@ -407,7 +408,13 @@ if ($l && count($content_items) > 0 ) {
 }
 
 if ( $l && isset($_GET['import']) ) {
-    $retval = new ContentItem();
+    // Set up to send the response
+    if ( $deeplink ) {
+        $retval = new DeepLinkResponse($deeplink);
+    } else {
+        $retval = new ContentItem();
+    }
+
     $url = $CFG->wwwroot . '/cc/export';
     if ( $LAUNCH->isSakai() ) $url .= '?tsugi_lms=sakai';
     else if ( $LAUNCH->isCanvas() ) $url .= '?tsugi_lms=canvas';
@@ -418,7 +425,10 @@ if ( $l && isset($_GET['import']) ) {
         $url = U::add_url_parm($url, 'youtube',  'yes');
     }
     // echo("<pre>\n");echo("$url\n");print_r($_GET);die();
-    $retval->addFileItem($url, $l->lessons->title);
+    $additionalParams = array(
+        'mediaType' => LTIConstants::MEDIA_CC_1_3,
+    );
+    $retval->addFileItem($url, $l->lessons->title, $additionalParams);
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
     $content = $retval->prepareResponse($endform);
     echo("<center>\n");
