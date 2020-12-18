@@ -254,7 +254,7 @@ $text='{
         if (empty($params['placementHeight']))
             $params['placementHeight'] = '';
 
-        $item = '{ "@type" : "ContentItem",
+        $item = '{ "type" : "ContentItem",
                 "@id" : ":item2",
                 "title" : "A cool tool hosted in the Tsugi environment.",
                 "mediaType" : "text/html",
@@ -302,42 +302,22 @@ $text='{
     public function addFileItem($url, $title=false, $additionalParams = array())
     {
         $item = '{
-  "@type" : "FileItem",
+  "type" : "file",
   "url" : "http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_v2p1.xsd",
-  "copyAdvice" : "true",
   "expiresAt" : "2014-03-05T00:00:00Z",
   "mediaType" : "application/xml",
-  "title" : "Imported from Tsugi",
-  "placementAdvice" : {
-    "windowTarget" : "_blank"
-  }
+  "title" : "Imported from Tsugi"
 }';
-
-        if (empty($additionalParams['placementTarget']))
-            $additionalParams['placementTarget'] = 'window';
-        if (empty($additionalParams['placementWindowTarget']))
-            $additionalParams['placementWindowTarget'] = '_blank';
-        if (empty($additionalParams['placementWidth']))
-            $additionalParams['placementWidth'] = '';
-        if (empty($additionalParams['placementHeight']))
-            $additionalParams['placementHeight'] = '';
 
         $json = json_decode($item);
         $json->url = $url;
-        if ( $params['title'] ) $json->{'title'} = $params['title'];
-
+        if ( $title ) $json->{'title'} = $title;
         $datetime = (new \DateTime('+1 day'))->format(\DateTime::ATOM);
         $datetime = substr($datetime,0,19) . 'Z';
         $json->expiresAt = $datetime;
 
-        if ($additionalParams['placementTarget'])
-            $json->placementAdvice->presentationDocumentTarget = $additionalParams['placementTarget'];
-        if ($additionalParams['placementWindowTarget'])
-            $json->placementAdvice->windowTarget = $additionalParams['placementWindowTarget'];
-        if (! empty($additionalParams['placementWidth']))
-            $json->placementAdvice->displayWidth = $additionalParams['placementWidth'];
-        if (! empty($additionalParams['placementHeight']))
-            $json->placementAdvice->displayHeight = $additionalParams['placementHeight'];
+        if ( U::get($additionalParams,'mediaType') ) $json->{'mediaType'} = $additionalParams['mediaType'];
+        if ( U::get($additionalParams,'expiresAt') ) $json->{'expiresAt'} = $additionalParams['expiresAt'];
 
         $json->{'@id'} = ':item'.(count($this->items)+1);
 
