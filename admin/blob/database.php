@@ -3,8 +3,6 @@
 // If the table does not exist, these create statements will be used
 // And the version will be set to 1
 
-// Note that as of 2018-02, new installs dont have a content
-// column in blob_file.
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}blob_file",
 "create table {$CFG->dbprefix}blob_file (
@@ -13,6 +11,7 @@ array( "{$CFG->dbprefix}blob_file",
 
     context_id   INTEGER NULL,
     link_id      INTEGER NULL,
+    backref      CHAR(128) NULL,
     file_name    VARCHAR(2048),
     bytelen      BIGINT NULL,
     deleted      TINYINT(1),
@@ -61,7 +60,7 @@ $DATABASE_UNINSTALL = array(
 );
 
 // No upgrades yet
-$DATABASE_UPGRADE = function($oldversion) { 
+$DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
 
     if ( $oldversion < 201801011200 ) {
@@ -86,72 +85,32 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryDie($sql);
     }
 
-    // Check the path in case an upgrade was missed
-    if ( ! $PDOX->columnExists('path', "{$CFG->dbprefix}blob_file") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD path VARCHAR(2048) NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
+    // This is a place to make sure added fields are present
+    // if you add a field to a table, put it in here and it will be auto-added
+    $add_some_fields = array(
+        array('blob_file', 'bytelen', 'BIGINT NULL'),
+        array('blob_file', 'backref', 'CHAR(128) NULL'), // 202012201622
+    );
 
-    // Check the context_id in case an upgrade was missed
-    if ( ! $PDOX->columnExists('context_id', "{$CFG->dbprefix}blob_file") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD context_id INTEGER NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
-
-    // Check the link_id in case an upgrade was missed
-    if ( ! $PDOX->columnExists('link_id', "{$CFG->dbprefix}blob_file") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD link_id INTEGER NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
-
-    // 201802091240
-    if ( ! $PDOX->columnExists('link_id', "{$CFG->dbprefix}blob_file") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD link_id INTEGER NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
-    if ( ! $PDOX->columnExists('blob_id', "{$CFG->dbprefix}blob_file") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD blob_id INTEGER NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
-
-    if ( $oldversion < 201803021044 ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_blob ADD INDEX `{$CFG->dbprefix}blob_indx_3` (`blob_sha256`)";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD INDEX `{$CFG->dbprefix}blob_indx_2` ( path(128))";
+    foreach ( $add_some_fields as $add_field ) {
+        if (count($add_field) != 3 ) {
+            echo("Badly formatted add_field");
+            var_dump($add_field);
+            continue;
+        }
+        $table = $CFG->dbprefix . $add_field[0];
+        $column = $add_field[1];
+        $type = $add_field[2];
+        if ( $PDOX->columnExists($column, $table ) ) continue;
+        $sql= "ALTER TABLE {$CFG->dbprefix}$table ADD $column $type";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
     }
 
-    if ( $oldversion < 201803050123 ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD INDEX `{$CFG->dbprefix}blob_indx_4` (`context_id`)";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
+    // Removed 2018 and earlier as of 2012-12-20
 
-    if ( ! $PDOX->columnExists('bytelen', "{$CFG->dbprefix}blob_file") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}blob_file ADD bytelen BIGINT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
-    return 201803281114;
-
+    return 202012201622;
 };
 
 
