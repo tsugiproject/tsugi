@@ -24,7 +24,8 @@
         "php": ">=7.0.0",
         "twig/twig": "v2.6.2",
         "silex/silex": "v2.0.4",
-        "symfony/translation": "v3.2.7"
+        "symfony/translation": "v3.2.7",
+        "ezyang/htmlpurifier": ">=v4.13.0"
     },
     "require-dev": {
         "phpunit/phpunit": "5.*",
