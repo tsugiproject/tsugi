@@ -36,7 +36,7 @@ function session_safe_id() {
 
 function print_stack_trace() {
     ob_start();
-    debug_print_backtrace();
+    debug_print_backtrace(0, 10);
     $data = ob_get_clean();
     error_log($data);
 }
