@@ -241,6 +241,35 @@ class SettingsForm {
     }
 
     /**
+     * Handle a settings number box
+     */
+    public static function number($name, $title=false)
+    {
+        global $USER;
+        if ( ! $USER ) return false;
+
+        $oldsettings = Settings::linkGetAll();
+        $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
+        if ( $title === false ) $title = $name;
+        if ( ! $USER->instructor ) {
+            if ( $configured === false || strlen($configured) < 1 ) {
+                echo('<p>'._m('Setting').' '.htmlent_utf8($name).' '._m('is not set').'</p>');
+            } else {
+                echo('<p>'.htmlent_utf8(ucwords($name)).' '._m('is set to').' '.htmlent_utf8($configured).'</p>');
+            }
+            return;
+        }
+
+        // Instructor view
+        ?>
+        <div class="form-group">
+            <label for="<?=$name?>"><?=htmlent_utf8($title)?></label>
+            <input type="number" class="form-control" id="<?=$name?>" name="<?=$name?>" value="<?=htmlent_utf8($configured)?>">
+        </div>
+        <?php
+    }
+
+    /**
      * Handle a settings textarea box
      */
     public static function textarea($name, $title=false)
@@ -445,9 +474,9 @@ class SettingsForm {
             set the period to be 86400 (24*60*60) and the penalty to be 0.2.") ?>
             </p>
         <label for="penalty_time"><?= _m("Please enter the penalty time period in seconds.") ?><br/>
-        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($time)); ?>" name="penalty_time"></label>
+        <input type="number" class="form-control" value="<?php echo(htmlspec_utf8($time)); ?>" name="penalty_time"></label>
         <label for="penalty_cost"><?= _m("Please enter the penalty deduction as a decimal between 0.0 and 1.0.") ?><br/>
-        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($cost)); ?>" name="penalty_cost"></label>
+        <input type="number" class="form-control" value="<?php echo(htmlspec_utf8($cost)); ?>" name="penalty_cost"></label>
 <?php
     }
 

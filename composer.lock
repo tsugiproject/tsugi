@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "59f73b8381e7eca24b27a3ec430daa9f",
-    "content-hash": "16785dd75e46ecbaacda75cf852f65aa",
+    "hash": "5c04033d7a4a74e579564e32157a9466",
+    "content-hash": "d003586ace85d0c5d395da31ae2a1e45",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -2761,15 +2761,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "e44c02378edcd3e8ed0f458db6843812a5fa9f58"
+                "reference": "be20e8a4469e67dcb11dc06d5928cb45888077ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e44c02378edcd3e8ed0f458db6843812a5fa9f58",
-                "reference": "e44c02378edcd3e8ed0f458db6843812a5fa9f58",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/be20e8a4469e67dcb11dc06d5928cb45888077ef",
+                "reference": "be20e8a4469e67dcb11dc06d5928cb45888077ef",
                 "shasum": ""
             },
             "require": {
+                "ezyang/htmlpurifier": ">=v4.13.0",
                 "php": ">=7.0.0",
                 "silex/silex": "v2.0.4",
                 "symfony/translation": "v3.2.7",
@@ -2804,7 +2805,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2020-12-21 00:46:59"
+            "time": "2020-12-21 16:30:00"
         },
         {
             "name": "twig/twig",
