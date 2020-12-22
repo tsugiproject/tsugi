@@ -2,53 +2,61 @@
 
 namespace Tsugi\Controllers;
 
-use Silex\Application;
+use Laravel\Lumen\Routing\Controller;
+use Laravel\Lumen\Routing\Router;
+use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 use \Tsugi\Core\LTIX;
 
-class Map {
+class Map extends Controller {
 
     const ROUTE = '/map';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix.'/json', 'Tsugi\\Controllers\\Map::getjson');
-        $app->get($prefix, 'Tsugi\\Controllers\\Map::get');
-        $app->get($prefix.'/', 'Tsugi\\Controllers\\Map::get');
+        $app->router->get($prefix.'/json', function (Request $request) use ($app) {
+            return Map::getjson($app);
+        });
+        $app->router->get($prefix, function (Request $request) use ($app) {
+            return Map::getMap($app);
+        });
+        $app->router->get($prefix.'/', function (Request $request) use ($app) {
+            return Map::getMap($app);
+        });
     }
 
-    public function get(Request $request, Application $app)
+    public static function getMap(Application $app)
     {
         global $CFG;
         $tsugi = $app['tsugi'];
         if ( !isset($tsugi->user) ) {
-            return $app['twig']->render('@Tsugi/Error.twig',
+            return view('Error',
                 array('error' => '<p>You are not logged in.</p>')
                 );
         }
 
         if ( !isset($tsugi->cfg->google_map_api_key) ) {
-            return $app['twig']->render('@Tsugi/Error.twig',
+            return view('Error',
                 array('error' => '<p>There is no MAP api key ($CFG->google_map_api_key)</p>')
                 );
         }
 
-        return $app['twig']->render('@Tsugi/Map.twig');
+        return view('Map');
     }
 
-    public function getjson(Request $request, Application $app)
+    public static function getjson(Application $app)
     {
         global $CFG;
         $tsugi = $app['tsugi'];
         if ( !isset($tsugi->user) ) {
-            return $app['twig']->render('@Tsugi/Error.twig',
+            return view('Error',
                 array('error' => '<p>You are not logged in.</p>')
                 );
         }
 
         if ( !isset($tsugi->cfg->google_map_api_key) ) {
-            return $app['twig']->render('@Tsugi/Error.twig',
+            return view('Error',
                 array('error' => '<p>There is no MAP api key ($CFG->google_map_api_key)</p>')
                 );
         }
@@ -90,6 +98,6 @@ class Map {
         }
         if ( $center === false ) $center = array(42.279070216140425, -83.73981015789798);
         $retval = array('center' => $center, 'points' => $points );
-        return $app->json($retval);
+        return response()->json($retval);
     }
 }

@@ -1,26 +1,25 @@
 <?php
 
 namespace Tsugi\Controllers;
+use Laravel\Lumen\Routing\Controller;
+use Laravel\Lumen\Routing\Router;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-use Silex\Application;
+use Tsugi\Lumen\Application;
 
 use \Tsugi\Crypt\SecureCookie;
 
-class Logout {
+class Logout extends Controller {
 
     const ROUTE = '/logout';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix, 'Tsugi\\Controllers\\Logout::get');
-    }
-
-    public function get(Request $request, Application $app)
-    {
+        $app->router->get($prefix, function (Request $request) use ($app) {
             global $CFG;
             session_unset();
             SecureCookie::delete();
             return $app->tsugiRedirectHome();
+        });
     }
 }

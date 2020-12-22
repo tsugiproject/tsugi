@@ -1,23 +1,26 @@
 <?php
-namespace Tsugi\Silex;
+namespace Tsugi\Lumen;
+
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFilter;
 
 /**
  * Support Tsugi's po-style of translation with the __ function 
  */
 
-class GettextExtension extends \Twig_Extension
+class GettextExtension extends AbstractExtension
 {
     public function getFilters()
     {
         return array(
-            new \Twig_SimpleFilter('__', array($this, '__')),
+            new TwigFilter('__', array($this, '__')),
         );
     }
 
     public function getFunctions()
     {
         return array(
-            new \Twig_SimpleFunction('__', array($this, '__')),
+            new TwigFilter('__', array($this, '__')),
         );
     }
 

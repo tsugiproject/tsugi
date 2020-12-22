@@ -21,10 +21,11 @@
         ]
     },
     "require": {
-        "php": ">=7.0.0",
-        "twig/twig": "v2.6.2",
-        "silex/silex": "v2.0.4",
-        "symfony/translation": "v3.2.7",
+        "php": ">=7.2.0",
+        "twig/twig": "^2.11",
+        "laravel/lumen-framework": "^6.0",
+        "rcrowe/twigbridge": "^0.12",
+        "symfony/translation": "^4.3",
         "ezyang/htmlpurifier": ">=v4.13.0"
     },
     "require-dev": {

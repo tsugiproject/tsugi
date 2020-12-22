@@ -2,30 +2,39 @@
 
 namespace Tsugi\Controllers;
 
-use Silex\Application;
+use Laravel\Lumen\Routing\Controller;
+use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
-use \Tsugi\Core\LTIX;
-
-class Profile {
+class Profile extends Controller {
 
     const ROUTE = '/profile';
     const REDIRECT = 'tsugi_controllers_profile';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix, 'Tsugi\\Controllers\\Profile::get')->bind(self::REDIRECT);
-        $app->get($prefix.'/', 'Tsugi\\Controllers\\Profile::get');
-        $app->post($prefix, 'Tsugi\\Controllers\\Profile::post');
-        $app->post($prefix.'/', 'Tsugi\\Controllers\\Profile::post');
+        $app->router->get($prefix, function(Request $request) use ($app) {
+            return Profile::getProfile($app);
+        });
+        $app->router->get('/'.self::REDIRECT, function(Request $request) use ($app) {
+            return Profile::getProfile($app);
+        });
+        $app->router->get($prefix.'/', function(Request $request) use ($app) {
+            return Profile::getProfile($app);
+        });
+        $app->router->post($prefix, function(Request $request) use ($app) {
+            return Profile::postProfile($app);
+        });
+        $app->router->post($prefix.'/', function(Request $request) use ($app) {
+            return Profile::postProfile($app);
+        });
     }
-    public function get(Request $request, Application $app)
+    public static function getProfile(Application $app)
     {
         global $CFG, $PDOX, $OUTPUT;
         $home = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
 
         if ( ! isset($_SESSION['profile_id']) ) {
-            return $app->redirect($home);
+            return redirect($home);
         }
         $stmt = $PDOX->queryDie(
                 "SELECT json FROM {$CFG->dbprefix}profile WHERE profile_id = :PID",
@@ -34,7 +43,7 @@ class Profile {
         $profile_row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( $profile_row === false ) {
             $app->tsugiFlashError(__('Unable to load profile'));
-            return $app->redirect($home);
+            return redirect($home);
         }
 
         $profile = json_decode($profile_row['json']);
@@ -166,6 +175,7 @@ Send me notification mail for important things like my assignment was graded.
         </p>
         <?php } ?>
         </form>
+        </div>
         <?php
 
         // After jquery gets loaded at the *very* end...
@@ -195,7 +205,7 @@ Send me notification mail for important things like my assignment was graded.
         if ( $val == 1 ) echo(' checked ');
     }
 
-    public function post(Request $request, Application $app)
+    public static function postProfile(Application $app)
     {
         global $CFG, $PDOX;
         $p = $CFG->dbprefix;
@@ -203,7 +213,7 @@ Send me notification mail for important things like my assignment was graded.
         $home = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
 
         if ( ! isset($_SESSION['profile_id']) ) {
-            return $app->redirect($home);
+            return redirect($home);
         }
 
         $stmt = $PDOX->queryDie(
@@ -213,7 +223,7 @@ Send me notification mail for important things like my assignment was graded.
         $profile_row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( $profile_row === false ) {
             $app->tsugiFlashError(__('Unable to load profile'));
-            return $app->redirect($home);
+            return redirect($home);
         }
 
         $profile = json_decode($profile_row['json']);
@@ -232,7 +242,7 @@ Send me notification mail for important things like my assignment was graded.
                 array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
                 );
         $app->tsugiFlashSuccess(__('Profile updated.'));
-        return $app->redirect($home);
+        return redirect($home);
     }
 }
 

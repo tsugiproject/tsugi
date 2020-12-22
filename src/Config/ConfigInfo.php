@@ -397,6 +397,15 @@ class ConfigInfo {
     public $tdiscus;
 
     /**
+     * Storage location for Lumen Application.
+     *
+     * Needed for log files, by default dirroot."/storage/". This needs
+     * to be a location on your server that has write access.
+     *
+     */
+    public $lumen_storage;
+
+    /**
      * Create the configuration object.
      *
      * Generally this is done once to create the global variable $CFG
@@ -438,6 +447,7 @@ class ConfigInfo {
         $this->dirroot = $dirroot;
         $this->wwwroot = $wwwroot;
         $this->staticroot = 'https://static.tsugi.org';
+        $this->lumen_storage = sprintf("%s/storage/", $dirroot);
     }
 
     function getCurrentFile($file) {

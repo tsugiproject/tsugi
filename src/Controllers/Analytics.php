@@ -2,31 +2,32 @@
 
 namespace Tsugi\Controllers;
 
-use Silex\Application;
+use Laravel\Lumen\Routing\Controller;
+use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 use \Tsugi\Util\U;
-use \Tsugi\Core\LTIX;
 
-class Analytics {
+class Analytics extends Controller {
 
     const ROUTE = '/analytics';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix.'/json', 'Tsugi\\Controllers\\Analytics::getjson');
-        $app->get($prefix, 'Tsugi\\Controllers\\Analytics::get');
-        $app->get($prefix.'/', 'Tsugi\\Controllers\\Analytics::get');
+        $app->get($prefix.'/json', 'Analytics@getjson');
+        $app->router->get($prefix, function (Request $request) use ($app) {
+            return Analytics::getAnalytics($app);
+        });
+        $app->router->get($prefix.'/', function (Request $request) use ($app) {
+            return Analytics::getAnalytics($app);
+        });
     }
 
-    public function get(Request $request, Application $app)
+    public static function getAnalytics(Application $app)
     {
         global $CFG;
         $tsugi = $app['tsugi'];
         if ( !isset($tsugi->user) ) {
-            return $app['twig']->render('@Tsugi/Error.twig',
-                array('error' => '<p>You are not logged in.</p>')
-                );
+            return view('Error', ['error' => '<p>You are not logged in.</p>']);
         }
 
         $analytics_url = U::addSession($CFG->wwwroot."/api/analytics");
@@ -34,8 +35,7 @@ class Analytics {
         $menu = new \Tsugi\UI\MenuSet();
         $menu->addLeft(__('Back'), 'index.php');
         $tsugi->tsugi_menu = $tsugi->output->topNav($menu);
-        return $app['twig']->render('@Tsugi/Analytics.twig', 
-            array('analytics_url' => $analytics_url) );
+        return view('Analytics', ['analytics_url' => $analytics_url]);
     }
 
 }

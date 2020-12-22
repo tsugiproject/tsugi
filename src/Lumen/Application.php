@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\Silex;
+namespace Tsugi\Lumen;
 
 use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Request;
@@ -10,31 +10,31 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 
 /**
- * The Tsugi variant of a Silex Application
+ * The Tsugi variant of a Lumen Application
  *
- * Returns an augmented Silex Application
+ * Returns an augmented Lumen Application
  *
  *     <?php
  *     require_once "../config.php";
  *     $launch = \Tsugi\Core\LTIX::requireData();
- *     $app = new \Tsugi\Silex\Application($launch);
+ *     $app = new \Tsugi\Lumen\Application($launch);
  *     $app->get('/', 'AppBundle\\Attend::get')->bind('main');
  *     $app->post('/', 'AppBundle\\Attend::post');
  *     $app->run();
- * 
+ *
  */
 
-class Application extends \Silex\Application {
+class Application extends \Laravel\Lumen\Application {
 
     /**
      * Requires a Tsugi Launch object for initializing.
      *
      *     $launch = \Tsugi\Core\LTIX::requireData();
-     *     $app = new \Tsugi\Silex\Application($launch);
+     *     $app = new \Tsugi\Lumen\Application($launch);
      *
      * The launch object is added to the $app variable and can be accessed
      * as follows:
-     * 
+     *
      *     $app['tsugi']->user->displayname;
      *
      * Or in a Twig template:
@@ -44,9 +44,9 @@ class Application extends \Silex\Application {
      * This sets up a PHP bridge session to allow old session and new
      * session code to coexist.
      */
-    function __construct($launch, array $values = array()) {
+    function __construct($launch) {
         global $CFG;
-        parent::__construct($values);
+        parent::__construct(__DIR__);
         if ( ! isset($CFG->loader) ) {
             echo("<pre>\n".'Please fix your config.php to set $CFG->loader as follows:'."\n");
             echo('$loader = require_once($dirroot."/vendor/autoload.php");'."\n");
@@ -63,42 +63,39 @@ class Application extends \Silex\Application {
         $session->start();
         $this['session'] = $session;
 
-        if ( file_exists('templates') ) {
-            $loader = new \Twig_Loader_Filesystem('templates');
-        } else {
-            $loader = new \Twig_Loader_Filesystem('.');
-        }
+        $this->useStoragePath($CFG->lumen_storage);
+        $this->registerViewBindings();
 
         $this->tsugi_path = U::get_rest_path();
         $this->tsugi_parent = U::get_rest_parent();
-        
-        $yourNewPath = $CFG->dirroot . '/vendor/tsugi/lib/src/Templates';
-        $loader->addPath($yourNewPath, 'Tsugi');
-        $yourNewPath = $CFG->dirroot . '/vendor/koseu/lib/src/Templates';
-        if ( file_exists($yourNewPath) ) {
-            $loader->addPath($yourNewPath, 'Koseu');
-        }
+
+
+        //$yourNewPath = $CFG->dirroot . '/vendor/tsugi/lib/src/Templates';
+        //$loader->addPath($yourNewPath, 'Tsugi');
+        //$yourNewPath = $CFG->dirroot . '/vendor/koseu/lib/src/Templates';
+        //if ( file_exists($yourNewPath) ) {
+        //    $loader->addPath($yourNewPath, 'Koseu');
+        //}
         $CFG->loader->addPsr4('AppBundle\\', 'src/AppBundle');
 
-        //$loader = new \Tsugi\Twig\Twig_Loader_Class();
-        $this->register(new \Silex\Provider\TwigServiceProvider(), array(
-            'twig.loader' => $loader
-        ));
+        $this->configure('twigbridge');
+        $this->register('TwigBridge\ServiceProvider');
+
 
         // Add the __() and __ filter for translations
-        $this->extend('twig', function($twig, $app) {
-            $twig->addExtension(new \Tsugi\Silex\GettextExtension());
-            return $twig;
-        });
+        //$this->extend('twig', function($twig, $app) {
+        //    $twig->addExtension(new GettextExtension());
+        //    return $twig;
+        //});
 
         // Handle failure of the routes
-        $this->error(function (NotFoundHttpException $e, Request $request, $code) {
-            global $CFG, $LAUNCH, $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT;
-
-            return $this['twig']->render('@Tsugi/Error.twig',
-                array('error' => '<p>Page not found.</p>')
-            );
-        });
+//        $this->error(function (NotFoundHttpException $e, Request $request, $code) {
+//            global $CFG, $LAUNCH, $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT;
+//
+//            return $this['twig']->render('@Tsugi/Error.twig',
+//                array('error' => '<p>Page not found.</p>')
+//            );
+//        });
 
     }
 
@@ -115,16 +112,16 @@ class Application extends \Silex\Application {
      *
      */
 
-    function tsugiReroute($route) 
+    function tsugiReroute($route)
     {
-        return $this->redirect( addSession($this['url_generator']->generate($route)) );
+        return redirect()->route( addSession($this['url_generator']->generate($route)) );
     }
 
     function tsugiRedirectHome()
     {
         global $CFG;
         $home = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
-        return $this->redirect($home);
+        return redirect()->route($home);
     }
 
     function tsugiRedirect($route) { return $this->tsugiReroute($route); } // Deprecated
