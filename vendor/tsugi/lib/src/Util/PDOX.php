@@ -328,4 +328,35 @@ class PDOX extends \PDO {
         return 0;
     }
 
+    /**
+     * Get the version number of the current connection
+     *
+     * $version = $PDOX->versionNumber();
+     * $min = '5.6.0';
+     * if ( version_compare($version, $min) >= 0) {
+     *
+     */
+    // https://stackoverflow.com/questions/31788297/get-mysql-server-version-with-pdo
+    function versionNumber()
+    {
+        $version = $this->query('select version()')->fetchColumn();
+        preg_match("/^[0-9\.]+/", $version, $match);
+
+        if ( count($match) < 1 ) return "0.0.0";
+        $version = $match[0];
+
+        return $version;
+    }
+
+    /**
+     * Check the current connection against a version
+     *
+     * if ( $PDOX->versionAtLeast('8.0.0') ) {
+     */
+    function versionAtLeast($min)
+    {
+        $version = $this->versionNumber();
+        return (version_compare($version, $min) >= 0);
+    }
+
 }
