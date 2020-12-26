@@ -79,7 +79,6 @@ class Discussions {
         if ( isset($_SESSION['secret']) ) {
             $secret = LTIX::decrypt_secret($_SESSION['secret']);
         }
-        echo("key=$key secret=$secret");
 
         $resource_link_id = $lti->resource_link_id;
         $parms = array(
