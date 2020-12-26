@@ -280,6 +280,12 @@ class Lessons {
      */
     public function getLtiByRlid($resource_link_id)
     {
+        if (isset($this->lessons->discussions) ) {
+            foreach($this->lessons->discussions as $discussion) {
+                if ( $discussion->resource_link_id == $resource_link_id) return $discussion;
+            }
+        }
+
         foreach($this->lessons->modules as $mod) {
             if ( isset($mod->lti) ) {
                 foreach($mod->lti as $lti ) {
@@ -664,7 +670,7 @@ class Lessons {
 
                     $rest_path = U::rest_path();
                     $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
-                    $title = isset($discussion->title) ? $discussion->title : "Autograder";
+                    $title = isset($discussion->title) ? $discussion->title : "Discussion";
                     echo('<li class="tsugi-lessons-module-discussion"><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
                     echo("\n</li>\n");
                 }
@@ -731,32 +737,6 @@ class Lessons {
             echo("</a>\n");
         }
 
-        if ( !isset($module->discuss) ) $module->discuss = true;
-        if ( !isset($module->anchor) ) $module->anchor = $this->position;
-        // For now do not add disqus to each page.
-        if ( false && isset($CFG->disqushost) && isset($_SESSION['id']) && $module->discuss ) {
-    ?>
-<hr/>
-<div id="disqus_thread" style="margin-top: 30px;"></div>
-<script>
-
-/**
- *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
- *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables */
-var disqus_config = function () {
-    this.page.url = '<?= $CFG->disqushost ?>';  // Replace PAGE_URL with your page's canonical URL variable
-    this.page.identifier = '<?= $module->anchor ?>'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-};
-(function() { // DON'T EDIT BELOW THIS LINE
-    var d = document, s = d.createElement('script');
-    s.src = '//php-intro.disqus.com/embed.js';
-    s.setAttribute('data-timestamp', +new Date());
-    (d.head || d.body).appendChild(s);
-})();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<?php
-        }
         $ob_output = ob_get_contents();
         ob_end_clean();
         if ( $buffer ) return $ob_output;
@@ -771,6 +751,7 @@ var disqus_config = function () {
         echo('<p property="description">'.$this->lessons->description."</p>\n");
         echo('<div id="box">'."\n");
         $count = 0;
+
         foreach($this->lessons->modules as $module) {
         if ( isset($module->hidden) && $module->hidden ) continue;
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
@@ -1046,6 +1027,64 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
         echo($ob_output);
     }
 
+    public function renderDiscussions($buffer=false)
+    {
+        ob_start();
+        global $CFG, $OUTPUT;
+
+        echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
+
+        // Flatten the discussions
+        $discussions = array();
+        if (isset($this->lessons->discussions) ) {
+            foreach($this->lessons->discussions as $discussion) {
+                $discussions [] = $discussion;
+            }
+        }
+
+        foreach($this->lessons->modules as $module) {
+            if ( isset($module->hidden) && $module->hidden ) continue;
+            if ( isset($module->discussion) && is_array($module->discussion) ) {
+                foreach($module->discussion as $discussion) {
+                    $discussions [] = $discussion;
+                }
+            }
+        }
+
+            // DISCUSSIONs not logged in
+            if ( count($discussions) > 0 && ! isset($_SESSION['secret']) ) {
+                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+                foreach($discussions as $discussion ) {
+                    $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
+                    echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
+                    echo("\n</li>\n");
+                }
+                echo("</li></ul><!-- end of discussions -->\n");
+            }
+
+            // DISCUSSIONs logged in
+            if ( count($discussions) > 0 && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
+            {
+                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+                $count = 0;
+                foreach($discussions as $discussion ) {
+                    $resource_link_title = $discussion->title;
+
+                    $rest_path = U::rest_path();
+                    $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
+                    echo('<li class="tsugi-lessons-module-discussion"><a href="'.$launch_path.'">'.htmlentities($discussion->title).'</a></li>'."\n");
+                    echo("\n</li>\n");
+                }
+
+                echo("</li></ul><!-- end of discussions -->\n");
+            }
+
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $buffer ) return $ob_output;
+        echo($ob_output);
+    }
     public function footer($buffer=false)
     {
         global $CFG;

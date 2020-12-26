@@ -2261,56 +2261,6 @@
         ]
     },
     {
-        "name": "koseu/lib",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/tsugiproject/koseu-php.git",
-            "reference": "aecd78ef03724ada2034ff37ade6ca3897cf80ce"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/aecd78ef03724ada2034ff37ade6ca3897cf80ce",
-            "reference": "aecd78ef03724ada2034ff37ade6ca3897cf80ce",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=7.0.0",
-            "silex/silex": "v2.0.4",
-            "symfony/translation": "v3.2.7",
-            "tsugi/lib": "dev-master",
-            "twig/twig": "v2.6.2"
-        },
-        "time": "2020-09-13 02:08:50",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Koseu\\": "src/"
-            },
-            "exclude-from-classmap": [
-                "/tests/",
-                "phpdoc.dist.xml",
-                "phpunit.xml.dist"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "authors": [
-            {
-                "name": "csev",
-                "email": "drchuck@gmail.com",
-                "homepage": "http://www.dr-chuck.com/",
-                "role": "Developer"
-            }
-        ],
-        "description": "A Next Generation Embeddable Learning Management System",
-        "homepage": "http://www.koseu.org/"
-    },
-    {
         "name": "react/cache",
         "version": "v1.0.0",
         "version_normalized": "1.0.0.0",
@@ -2919,12 +2869,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "85f54980e36e14bd6d6f3c98522566cda3c2e139"
+            "reference": "b830cda936b2cf005cf2e3fe05c3501895599556"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/85f54980e36e14bd6d6f3c98522566cda3c2e139",
-            "reference": "85f54980e36e14bd6d6f3c98522566cda3c2e139",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/b830cda936b2cf005cf2e3fe05c3501895599556",
+            "reference": "b830cda936b2cf005cf2e3fe05c3501895599556",
             "shasum": ""
         },
         "require": {
@@ -2965,5 +2915,55 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "koseu/lib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/tsugiproject/koseu-php.git",
+            "reference": "8fcb6d47119f058e8a00c0e63afd02467a7ee963"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/8fcb6d47119f058e8a00c0e63afd02467a7ee963",
+            "reference": "8fcb6d47119f058e8a00c0e63afd02467a7ee963",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=7.0.0",
+            "silex/silex": "v2.0.4",
+            "symfony/translation": "v3.2.7",
+            "tsugi/lib": "dev-master",
+            "twig/twig": "v2.6.2"
+        },
+        "time": "2020-09-13 02:22:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Koseu\\": "src/"
+            },
+            "exclude-from-classmap": [
+                "/tests/",
+                "phpdoc.dist.xml",
+                "phpunit.xml.dist"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "csev",
+                "email": "drchuck@gmail.com",
+                "homepage": "http://www.dr-chuck.com/",
+                "role": "Developer"
+            }
+        ],
+        "description": "A Next Generation Embeddable Learning Management System",
+        "homepage": "http://www.koseu.org/"
     }
 ]

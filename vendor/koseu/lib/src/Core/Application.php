@@ -22,6 +22,7 @@ class Application extends \Tsugi\Silex\Application {
         \Tsugi\Controllers\Logout::routes($this);
         \Koseu\Controllers\Lessons::routes($this);
         \Koseu\Controllers\Topics::routes($this);
+        \Koseu\Controllers\Discussions::routes($this);
 
         // Tools that require logged in user
         if ( isset($launch->user->id) ) {
