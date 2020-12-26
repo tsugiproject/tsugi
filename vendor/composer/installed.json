@@ -2863,60 +2863,6 @@
         ]
     },
     {
-        "name": "tsugi/lib",
-        "version": "dev-master",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "b830cda936b2cf005cf2e3fe05c3501895599556"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/b830cda936b2cf005cf2e3fe05c3501895599556",
-            "reference": "b830cda936b2cf005cf2e3fe05c3501895599556",
-            "shasum": ""
-        },
-        "require": {
-            "ezyang/htmlpurifier": ">=v4.13.0",
-            "php": ">=7.0.0",
-            "silex/silex": "v2.0.4",
-            "symfony/translation": "v3.2.7",
-            "twig/twig": "v2.6.2"
-        },
-        "require-dev": {
-            "phpunit/php-timer": ">=1.0.6",
-            "phpunit/phpunit": "5.*"
-        },
-        "time": "2020-12-21 21:28:13",
-        "type": "library",
-        "installation-source": "source",
-        "autoload": {
-            "psr-4": {
-                "Tsugi\\": "src/"
-            },
-            "exclude-from-classmap": [
-                "/tests/",
-                "phpdoc.dist.xml",
-                "phpunit.xml.dist"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "authors": [
-            {
-                "name": "csev",
-                "email": "drchuck@gmail.com",
-                "homepage": "http://www.dr-chuck.com/",
-                "role": "Developer"
-            }
-        ],
-        "description": "The PHP Library to build interoperable learning tools",
-        "homepage": "http://www.tsugi.org/"
-    },
-    {
         "name": "koseu/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
@@ -2965,5 +2911,59 @@
         ],
         "description": "A Next Generation Embeddable Learning Management System",
         "homepage": "http://www.koseu.org/"
+    },
+    {
+        "name": "tsugi/lib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/tsugiproject/tsugi-php.git",
+            "reference": "e9d79ddaeaef3789b6ac865c65fbb205e2221e15"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e9d79ddaeaef3789b6ac865c65fbb205e2221e15",
+            "reference": "e9d79ddaeaef3789b6ac865c65fbb205e2221e15",
+            "shasum": ""
+        },
+        "require": {
+            "ezyang/htmlpurifier": ">=v4.13.0",
+            "php": ">=7.0.0",
+            "silex/silex": "v2.0.4",
+            "symfony/translation": "v3.2.7",
+            "twig/twig": "v2.6.2"
+        },
+        "require-dev": {
+            "phpunit/php-timer": ">=1.0.6",
+            "phpunit/phpunit": "5.*"
+        },
+        "time": "2020-12-21 21:28:13",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "Tsugi\\": "src/"
+            },
+            "exclude-from-classmap": [
+                "/tests/",
+                "phpdoc.dist.xml",
+                "phpunit.xml.dist"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "csev",
+                "email": "drchuck@gmail.com",
+                "homepage": "http://www.dr-chuck.com/",
+                "role": "Developer"
+            }
+        ],
+        "description": "The PHP Library to build interoperable learning tools",
+        "homepage": "http://www.tsugi.org/"
     }
 ]

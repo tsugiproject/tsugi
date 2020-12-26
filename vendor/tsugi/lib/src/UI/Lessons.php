@@ -629,7 +629,7 @@ class Lessons {
             }
 
             // DISCUSSIONs not logged in
-            if ( isset($module->discussion) && ! isset($_SESSION['secret']) ) {
+            if ( isset($CFG->tdiscus) && $CFG->tdiscus && isset($module->discussion) && ! isset($_SESSION['secret']) ) {
                 $discussions = $module->discussion;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
                 echo(__('Discussions:'));
@@ -643,7 +643,8 @@ class Lessons {
             }
 
             // DISCUSSIONs logged in
-            if ( isset($module->discussion) && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+            if ( isset($CFG->tdiscus) && $CFG->tdiscus && isset($module->discussion) 
+                && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
                 && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
             {
                 $discussions = $module->discussion;
@@ -1032,7 +1033,16 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
         ob_start();
         global $CFG, $OUTPUT;
 
-        echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
+        if ( isset($CFG->tdiscus) && $CFG->tdiscus ) {
+            echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
+        } else {
+            echo('<h1>'.__('Discussions not available')."</h1>\n");
+            $ob_output = ob_get_contents();
+            ob_end_clean();
+            if ( $buffer ) return $ob_output;
+            echo($ob_output);
+            return;
+        }
 
         // Flatten the discussions
         $discussions = array();
