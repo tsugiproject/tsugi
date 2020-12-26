@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "acd5a3371f3f1cdf0ccbce35a8a7bd75",
-    "content-hash": "d3d02ea3aff5a3ae0ec9a988b4af7326",
+    "hash": "52274681b4609cc1b7ce68487606fdd4",
+    "content-hash": "25777d66d13b46bd1f846272ae2d4c1a",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -785,12 +785,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "8fcb6d47119f058e8a00c0e63afd02467a7ee963"
+                "reference": "cc0be77c4ca04295feaee74ff3fbad3115ddb4b9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/8fcb6d47119f058e8a00c0e63afd02467a7ee963",
-                "reference": "8fcb6d47119f058e8a00c0e63afd02467a7ee963",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/cc0be77c4ca04295feaee74ff3fbad3115ddb4b9",
+                "reference": "cc0be77c4ca04295feaee74ff3fbad3115ddb4b9",
                 "shasum": ""
             },
             "require": {

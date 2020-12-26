@@ -46,7 +46,7 @@
 
 
         "tsugi/lib": "dev-master#e9d79ddaeaef3789b6ac865c65fbb205e2221e15",
-        "koseu/lib": "dev-master#8fcb6d47119f058e8a00c0e63afd02467a7ee963"
+        "koseu/lib": "dev-master#cc0be77c4ca04295feaee74ff3fbad3115ddb4b9"
     },
     "config": {
         "preferred-install": "dist"
