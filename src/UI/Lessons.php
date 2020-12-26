@@ -165,6 +165,7 @@ class Lessons {
             if ( isset($this->lessons->modules[$i]->assignments) ) self::adjustArray($this->lessons->modules[$i]->assignments);
             if ( isset($this->lessons->modules[$i]->slides) ) self::adjustArray($this->lessons->modules[$i]->slides);
             if ( isset($this->lessons->modules[$i]->lti) ) self::adjustArray($this->lessons->modules[$i]->lti);
+            if ( isset($this->lessons->modules[$i]->discussion) ) self::adjustArray($this->lessons->modules[$i]->discussion);
 
             // Non arrays
             if ( isset($this->lessons->modules[$i]->assignment) ) {
@@ -200,6 +201,22 @@ class Lessons {
                         die_with_error_log('Duplicate resource link in Lessons '. $lti->resource_link_id);
                     }
                     $this->resource_links[$lti->resource_link_id] = $module->anchor;
+                }
+            }
+            if ( isset($module->discussion) ) {
+                $discussions = $module->discussion;
+                if ( ! is_array($discussions) ) $discussions = array($discussions);
+                foreach($discussions as $discussion) {
+                    if ( ! isset($discussion->title) ) {
+                        die_with_error_log('Missing discussion title in module:'. $module->title);
+                    }
+                    if ( ! isset($discussion->resource_link_id) ) {
+                        die_with_error_log('Missing resource link in Lessons '. $discussion->title);
+                    }
+                    if (isset($this->resource_links[$discussion->resource_link_id]) ) {
+                        die_with_error_log('Duplicate resource link in Lessons '. $discussion->resource_link_id);
+                    }
+                    $this->resource_links[$discussion->resource_link_id] = $module->anchor;
                 }
             }
         }
@@ -259,14 +276,20 @@ class Lessons {
     }
 
     /**
-     * Get an LTI associated with a resource link ID
+     * Get an LTI or Discussion associated with a resource link ID
      */
     public function getLtiByRlid($resource_link_id)
     {
         foreach($this->lessons->modules as $mod) {
-            if ( ! isset($mod->lti) ) continue;
-            foreach($mod->lti as $lti ) {
-                if ( $lti->resource_link_id == $resource_link_id) return $lti;
+            if ( isset($mod->lti) ) {
+                foreach($mod->lti as $lti ) {
+                    if ( $lti->resource_link_id == $resource_link_id) return $lti;
+                }
+            }
+            if ( isset($mod->discussion) ) {
+                foreach($mod->discussion as $discussion ) {
+                    if ( $discussion->resource_link_id == $resource_link_id) return $discussion;
+                }
             }
         }
         return null;
@@ -278,9 +301,15 @@ class Lessons {
     public function getModuleByRlid($resource_link_id)
     {
         foreach($this->lessons->modules as $mod) {
-            if ( ! isset($mod->lti) ) continue;
-            foreach($mod->lti as $lti ) {
-                if ( $lti->resource_link_id == $resource_link_id) return $mod;
+            if ( isset($mod->lti) ) {
+                foreach($mod->lti as $lti ) {
+                    if ( $lti->resource_link_id == $resource_link_id) return $mod;
+                }
+            }
+            if ( isset($mod->discussion) ) {
+                foreach($mod->discussion as $discussion ) {
+                    if ( $discussion->resource_link_id == $resource_link_id) return $mod;
+                }
             }
         }
         return null;
@@ -591,6 +620,56 @@ class Lessons {
                     }
                     echo("</ul></li>\n");
                 }
+            }
+
+            // DISCUSSIONs not logged in
+            if ( isset($module->discussion) && ! isset($_SESSION['secret']) ) {
+                $discussions = $module->discussion;
+                echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
+                echo(__('Discussions:'));
+                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+                foreach($discussions as $discussion ) {
+                    $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
+                    echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
+                    echo("\n</li>\n");
+                }
+                echo("</li></ul><!-- end of discussions -->\n");
+            }
+
+            // DISCUSSIONs logged in
+            if ( isset($module->discussion) && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
+            {
+                $discussions = $module->discussion;
+                echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
+                echo(__('Discussions:'));
+                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+                $count = 0;
+                foreach($discussions as $discussion ) {
+                    $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
+
+                    if ( $nostyle ) {
+                        echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' (Login Required) <br/>'."\n");
+                        $discussionurl = U::add_url_parm($discussion->launch, 'inherit', $discussion->resource_link_id);
+                        echo('<span style="color:green">'.htmlentities($discussionurl)."</span>\n");
+                        if ( isset($_SESSION['gc_count']) ) {
+                            echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$discussion->resource_link_id);
+                            echo('" title="Install Assignment in Classroom" target="iframe-frame"'."\n");
+                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
+                            echo('<img height=16 width=16 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+                        }
+                        echo("\n</li>\n");
+                        continue;
+                    }
+
+                    $rest_path = U::rest_path();
+                    $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
+                    $title = isset($discussion->title) ? $discussion->title : "Autograder";
+                    echo('<li class="tsugi-lessons-module-discussion"><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
+                    echo("\n</li>\n");
+                }
+
+                echo("</li></ul><!-- end of discussions -->\n");
             }
 
             // LTIs not logged in
