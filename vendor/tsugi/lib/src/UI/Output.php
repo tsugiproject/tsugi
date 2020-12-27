@@ -1037,7 +1037,7 @@ EOF;
         if ( ! is_array($debug_log) ) return;
 
         foreach ( $debug_log as $k => $v ) {
-            if ( count($v) > 1 ) {
+            if ( is_array($v) && count($v) > 1 ) {
                 $this->togglePre($v[0], $v[1]);
             } else if ( is_array($v) ) {
                 line_out($v[0]);
