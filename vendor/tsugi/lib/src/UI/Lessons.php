@@ -1031,18 +1031,7 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
     public function renderDiscussions($buffer=false)
     {
         ob_start();
-        global $CFG, $OUTPUT;
-
-        if ( isset($CFG->tdiscus) && $CFG->tdiscus ) {
-            echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
-        } else {
-            echo('<h1>'.__('Discussions not available')."</h1>\n");
-            $ob_output = ob_get_contents();
-            ob_end_clean();
-            if ( $buffer ) return $ob_output;
-            echo($ob_output);
-            return;
-        }
+        global $CFG, $OUTPUT, $PDOX;
 
         // Flatten the discussions
         $discussions = array();
@@ -1061,34 +1050,64 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
             }
         }
 
-            // DISCUSSIONs not logged in
-            if ( count($discussions) > 0 && ! isset($_SESSION['secret']) ) {
-                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
-                foreach($discussions as $discussion ) {
-                    $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
-                    echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
-                    echo("\n</li>\n");
-                }
-                echo("</li></ul><!-- end of discussions -->\n");
+        if ( count($discussions) < 1 || ! isset($CFG->tdiscus) || ! $CFG->tdiscus ) {
+            echo('<h1>'.__('Discussions not available')."</h1>\n");
+            $ob_output = ob_get_contents();
+            ob_end_clean();
+            if ( $buffer ) return $ob_output;
+            echo($ob_output);
+            return;
+        }
+
+        echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
+
+        // TODO: Perhaps the tdiscus service will get promoted to Tsugi
+        // but for now we bypass the abstraction and go straight to the source...
+        $rows_dict = array();
+        if ( U::get($_SESSION,'context_id') > 0 ) {
+            $rows = $PDOX->allRowsDie("SELECT L.link_key, L.link_sha256, count(L.link_sha256) AS thread_count,
+                CONCAT(CONVERT_TZ(MAX(COALESCE(T.updated_at, T.created_at)), @@session.time_zone, '+00:00'), 'Z') 
+                AS modified_at
+                FROM {$CFG->dbprefix}lti_link AS L
+                JOIN {$CFG->dbprefix}tdiscus_thread AS T ON T.link_id = L.link_id
+                WHERE L.context_id = :CID
+                GROUP BY L.link_sha256
+                ORDER BY L.link_sha256",
+                array(':CID' => U::get($_SESSION,'context_id'))
+            );
+            $rows_dict = array();
+            foreach($rows as $row) {
+                $rows_dict[$row['link_key']] = $row;
+            }
+            // echo("<pre>\n");var_dump($rows_dict);echo("</pre>\n");
+        }
+
+        $launchable = U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email');
+
+        echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+        foreach($discussions as $discussion ) {
+            $resource_link_title = $discussion->title;
+            $rest_path = U::rest_path();
+            $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
+            $info = "";
+            $row = U::get($rows_dict, $discussion->resource_link_id);
+            if ( $row ) {
+                $info = '<br/>'.$row['thread_count'].' '.__('threads'). ' - '.__('last post').
+                    ' <time class="timeago" datetime="'.$row['modified_at'].'">'.$row['modified_at'].'</time>'.
+                    "\n";
             }
 
-            // DISCUSSIONs logged in
-            if ( count($discussions) > 0 && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
-            {
-                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
-                $count = 0;
-                foreach($discussions as $discussion ) {
-                    $resource_link_title = $discussion->title;
-
-                    $rest_path = U::rest_path();
-                    $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
-                    echo('<li class="tsugi-lessons-module-discussion"><a href="'.$launch_path.'">'.htmlentities($discussion->title).'</a></li>'."\n");
-                    echo("\n</li>\n");
-                }
-
-                echo("</li></ul><!-- end of discussions -->\n");
+            echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'."\n");
+            if ( $launchable ) {
+                echo('<a href="'.$launch_path.'">'.htmlentities($discussion->title).'</a>'.$info."\n");
+            } else {
+                echo(htmlentities($resource_link_title).' ('.__('Login Required').')'.$info."\n");
             }
+            echo("</li>\n");
+        }
+        echo("</ul><!-- end of discussions -->\n");
+
 
         $ob_output = ob_get_contents();
         ob_end_clean();
