@@ -5,3 +5,6 @@
 {{ data | raw }}
 </div>
 {% endblock %}
+{% block footer %}
+<script>$(document).ready(function() { jQuery("time.timeago").timeago(); });</script>
+{% endblock %}
