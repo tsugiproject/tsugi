@@ -117,5 +117,19 @@ class UTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($arr,array('y'=>'hat','z'=>'apple'));
     }
 
+    public function testgetServerBase() {
+        $a = array(
+            'https://www.py4e.com' => 'https://www.py4e.com',
+            'https://www.py4e.com/abc' => 'https://www.py4e.com',
+            'https://www.py4e.com:443/abc' => 'https://www.py4e.com:443',
+            'http://localhost:8888/abc' => 'http://localhost:8888',
+            'http://localhost:8888' => 'http://localhost:8888',
+        );
+
+        foreach($a as $k => $v ) {
+            $retval = U::getServerBase($k);
+            $this->assertEquals($retval, $v);
+        }
+    }
 
 }

@@ -663,4 +663,12 @@ class U {
     ? true : false);
     }
 
+    public static function getServerBase($url) {
+        $pieces = parse_url($url);
+        $port = U::get($pieces, 'port');
+        $retval = U::get($pieces, 'scheme') . '://' . U::get($pieces, 'host');
+        if ( $port ) $retval .= ':' . $port;
+        return $retval;
+    }
+
 }
