@@ -165,7 +165,7 @@ class Lessons {
             if ( isset($this->lessons->modules[$i]->assignments) ) self::adjustArray($this->lessons->modules[$i]->assignments);
             if ( isset($this->lessons->modules[$i]->slides) ) self::adjustArray($this->lessons->modules[$i]->slides);
             if ( isset($this->lessons->modules[$i]->lti) ) self::adjustArray($this->lessons->modules[$i]->lti);
-            if ( isset($this->lessons->modules[$i]->discussion) ) self::adjustArray($this->lessons->modules[$i]->discussion);
+            if ( isset($this->lessons->modules[$i]->discussions) ) self::adjustArray($this->lessons->modules[$i]->discussions);
 
             // Non arrays
             if ( isset($this->lessons->modules[$i]->assignment) ) {
@@ -203,8 +203,8 @@ class Lessons {
                     $this->resource_links[$lti->resource_link_id] = $module->anchor;
                 }
             }
-            if ( isset($module->discussion) ) {
-                $discussions = $module->discussion;
+            if ( isset($module->discussions) ) {
+                $discussions = $module->discussions;
                 if ( ! is_array($discussions) ) $discussions = array($discussions);
                 foreach($discussions as $discussion) {
                     if ( ! isset($discussion->title) ) {
@@ -292,8 +292,8 @@ class Lessons {
                     if ( $lti->resource_link_id == $resource_link_id) return $lti;
                 }
             }
-            if ( isset($mod->discussion) ) {
-                foreach($mod->discussion as $discussion ) {
+            if ( isset($mod->discussions) ) {
+                foreach($mod->discussions as $discussion ) {
                     if ( $discussion->resource_link_id == $resource_link_id) return $discussion;
                 }
             }
@@ -312,8 +312,8 @@ class Lessons {
                     if ( $lti->resource_link_id == $resource_link_id) return $mod;
                 }
             }
-            if ( isset($mod->discussion) ) {
-                foreach($mod->discussion as $discussion ) {
+            if ( isset($mod->discussions) ) {
+                foreach($mod->discussions as $discussion ) {
                     if ( $discussion->resource_link_id == $resource_link_id) return $mod;
                 }
             }
@@ -629,8 +629,8 @@ class Lessons {
             }
 
             // DISCUSSIONs not logged in
-            if ( isset($CFG->tdiscus) && $CFG->tdiscus && isset($module->discussion) && ! isset($_SESSION['secret']) ) {
-                $discussions = $module->discussion;
+            if ( isset($CFG->tdiscus) && $CFG->tdiscus && isset($module->discussions) && ! isset($_SESSION['secret']) ) {
+                $discussions = $module->discussions;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
                 echo(__('Discussions:'));
                 echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
@@ -643,11 +643,11 @@ class Lessons {
             }
 
             // DISCUSSIONs logged in
-            if ( isset($CFG->tdiscus) && $CFG->tdiscus && isset($module->discussion) 
+            if ( isset($CFG->tdiscus) && $CFG->tdiscus && isset($module->discussions)
                 && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
                 && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
             {
-                $discussions = $module->discussion;
+                $discussions = $module->discussions;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
                 echo(__('Discussions:'));
                 echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
@@ -1043,8 +1043,8 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
 
         foreach($this->lessons->modules as $module) {
             if ( isset($module->hidden) && $module->hidden ) continue;
-            if ( isset($module->discussion) && is_array($module->discussion) ) {
-                foreach($module->discussion as $discussion) {
+            if ( isset($module->discussions) && is_array($module->discussions) ) {
+                foreach($module->discussions as $discussion) {
                     $discussions [] = $discussion;
                 }
             }
@@ -1066,7 +1066,7 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
         $rows_dict = array();
         if ( U::get($_SESSION,'context_id') > 0 ) {
             $rows = $PDOX->allRowsDie("SELECT L.link_key, L.link_sha256, count(L.link_sha256) AS thread_count,
-                CONCAT(CONVERT_TZ(MAX(COALESCE(T.updated_at, T.created_at)), @@session.time_zone, '+00:00'), 'Z') 
+                CONCAT(CONVERT_TZ(MAX(COALESCE(T.updated_at, T.created_at)), @@session.time_zone, '+00:00'), 'Z')
                 AS modified_at
                 FROM {$CFG->dbprefix}lti_link AS L
                 JOIN {$CFG->dbprefix}tdiscus_thread AS T ON T.link_id = L.link_id
