@@ -21,7 +21,28 @@ are now moved to separate repositories (see below).
 * Install a PHP/MySQL Environment like XAMPP / MAMP following the
 instructions at:
 
-    http://www.wa4e.com/install.php
+http://www.wa4e.com/install.php
+
+## Tsugi Versions
+
+Tsugi is intended as a continuously upgrading cloud deployment.  Most of the Dr. Chuck
+servers have a cron job that does a `git pull` and runs `upgrade.php` *every 30 minutes*.
+You can see this infrastructure at:
+
+https://github.com/tsugiproject/tsugi-build/tree/master/common
+
+As a result, there are no traditional "releases" of Tsugi - the common use case is to
+be pretty close to the tip of the main branch.
+
+But sometimes, folks want to "hold back" from upgrading for a while.  Perhaps they have an old
+version of PHP and can't run the latest.  It is risky to hold back too long.  But to help those
+running Tsugi that want to hold back, a series of versions / tags are maintained as "safe
+plateaus".  These tags are often snapped right before a signifacant upgrade or data model change
+and announced on the dev list.
+
+These versions originally were the classic geek-style '0.7.0' releases but as of
+December 2020, we are switching to a year.month.patch approach to Tsugi versioning, adapting from
+the Linux model.
 
 ## Installation
 
@@ -58,6 +79,16 @@ file - here is some additional documentation on the configuration values:
 tables - you will need the Admin password you just put into config.php
 If all goes well, lots of tables should be created.  You can run upgrade.php
 more than once - it will automatically detect that it has been run.
+
+## Production instances
+
+There is an entire repository that contains varous build / deploy documentation
+showing how to install on EC2, Docker, Digital Ocean and Ubuntu.
+
+https://github.com/tsugiproject/tsugi-build
+
+These scripts make sure you have all the necessary pre-requisites installed and
+configured.
 
 ## Adding Some Tools
 
@@ -136,8 +167,6 @@ parallel version of the Tsugi core code and administration in Python.
 
 You can play with an early version of a [Tsugi Python Tool](https://www.tsugi.org/django_sakai.txt).
 
-
-
 While the PHP Implementation of Tsugi is the most well developed, there are additional
 Tsugi implementations being developed:
 
@@ -146,7 +175,7 @@ implementation of the Tsugi run-time in Java.  It shares low level IMS libraries
 Sakai and is ready for production use.
 
 * [Tsugi NodeJS](https://github.com/tsugiproject/tsugi-node-sample) - This is early
-pre-emergent code.
+pre-emergent code and not under active development.
 
 ## Tsugi Developer List
 
