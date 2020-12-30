@@ -44,9 +44,9 @@ class Application extends \Laravel\Lumen\Application {
      * This sets up a PHP bridge session to allow old session and new
      * session code to coexist.
      */
-    function __construct($launch) {
+    function __construct($launch, $basePath = __DIR__) {
         global $CFG;
-        parent::__construct(__DIR__);
+        parent::__construct($basePath);
         if ( ! isset($CFG->loader) ) {
             echo("<pre>\n".'Please fix your config.php to set $CFG->loader as follows:'."\n");
             echo('$loader = require_once($dirroot."/vendor/autoload.php");'."\n");
