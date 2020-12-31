@@ -2675,6 +2675,8 @@ class LTIX {
      * We are aborting this request.  If this is a launch, redirect back
      */
     public static function abort_with_error_log($msg, $extra=false, $prefix="DIE:") {
+        global $CFG;
+
         $return_url = isset($_POST['launch_presentation_return_url']) ? $_POST['launch_presentation_return_url'] : null;
         if ( is_array($extra) ) $extra = Output::safe_var_dump($extra);
         if ($return_url === null) {
