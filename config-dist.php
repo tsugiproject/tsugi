@@ -174,6 +174,11 @@ $CFG->upgrading = false;
 $CFG->servicename = 'TSUGI';
 $CFG->servicedesc = false;
 
+// If the launch experiences an error and there is not return_url in the launch, the user
+// is sent to this URL with a detail= parameter
+// $CFG->launcherror = "https://www.tsugi.org/launcherror";
+// $CFG->launcherror = $CFG->apphome . "/launcherror";
+
 // Define the default language for the site
 $CFG->lang='en';
 
