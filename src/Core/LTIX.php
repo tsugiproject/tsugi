@@ -2687,6 +2687,7 @@ class LTIX {
             error_log($prefix.' '.$msg.' '.$extra);
             print_stack_trace();
             $url = "https://www.tsugi.org/launcherror";
+            if ( isset($CFG->launcherror) ) $url = $CFG->launcherror;
             $url = U::add_url_parm($url, "detail", $msg);
             Output::htmlError("The LTI Launch Failed", "Detail: $msg", $url);
             exit();
