@@ -186,6 +186,33 @@ foreach($l->lessons->modules as $module) {
             $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
         }
     }
+
+    if ( isset($module->discussions) ) {
+        foreach($module->discussions as $discussion ) {
+            $title = isset($discussion->title) ? $discussion->title : $module->title;
+            $text = isset($discussion->description) ? $discussion->description : $module->description;
+            $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text);
+/*
+            $title = 'Discussion: '.$title;
+            $custom_arr = array();
+            if ( isset($discussion->custom) ) {
+                foreach($discussion->custom as $custom) {
+                    if ( isset($custom->value) ) {
+                        $custom_arr[$custom->key] = $custom->value;
+                    }
+                    if ( isset($custom->json) ) {
+                        $custom_arr[$custom->key] = json_encode($custom->json);
+                    }
+                }
+            }
+            $endpoint = U::absolute_url($discussion->launch);
+            // Sigh - some LMSs don't handle custom - sigh
+            $endpoint = U::add_url_parm($endpoint, 'inherit', $discussion->resource_link_id);
+            $extensions = array('apphome' => $CFG->apphome);
+    */
+            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+        }
+    }
 }
 
 $zip->addFromString('imsmanifest.xml',$cc_dom->saveXML());

@@ -27,6 +27,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
     const CC_1_1_CP =   'http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1';
     const WL_NS =       'http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1';
     const BLTI_NS =     'http://www.imsglobal.org/xsd/imsbasiclti_v1p0';
+    const TOPIC_NS =    'http://www.imsglobal.org/xsd/imsccv1p1/imsdt_v1p1';
     const LTICM_NS =    'http://www.imsglobal.org/xsd/imslticm_v1p0';
     const LTICP_NS =    'http://www.imsglobal.org/xsd/imslticp_v1p0';
     const LOM_NS =      'http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource';
@@ -182,6 +183,28 @@ class CC extends \Tsugi\Util\TsugiDOM {
         return $file;
     }
 
+    /*
+     * Add a topic resource item
+     *
+     * This adds the topic to the manifest,  to complete this when making a
+     * zip file, you must generate and place the web link XML in the returned file
+     * name within the ZIP.  The `zip_add_topic_to_module()` combines these two steps.
+     *
+     * @param $module DOMNode The module or sub module where we are adding the web link
+     * @param $title The title of the link
+     *
+     * @return The name of a file to contain the web link XML in the ZIP.
+     */
+    public function add_topic($module, $title=null) {
+        $this->resource_count++;
+        $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
+        $file = 'xml/TO_'.$resource_str.'.xml';
+        $identifier = 'T_'.$resource_str;
+        $type = 'imsdt_v1p1';
+        $this-> add_resource_item($module, $title, $type, $identifier, $file);
+        return $file;
+    }
+
     /**
      * Add an LTI link resource item
      *
@@ -295,5 +318,24 @@ class CC extends \Tsugi\Util\TsugiDOM {
         }
         $zip->addFromString($file,$lti_dom->saveXML());
     }
+
+    /*
+     * Add a topic item and create the file within the ZIP
+     *
+     * @param $zip The zip file handle that we are creating
+     * @param $module DOMNode The module or sub module where we are adding the web link
+     * @param $title The title of the link
+     * @param $text The url for the link
+     *
+     * @return The name of a file to contain the web link XML in the ZIP.
+     */
+    function zip_add_topic_to_module($zip, $module, $title, $text) {
+        $file = $this->add_topic($module, $title);
+        $web_dom = new CC_Topic();
+        $web_dom->set_title($title);
+        $web_dom->set_text($text);
+        $zip->addFromString($file,$web_dom->saveXML());
+    }
+
 
 }
