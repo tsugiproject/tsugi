@@ -22,10 +22,10 @@
     },
     "require": {
         "php": ">=7.2.0",
-        "twig/twig": "^2.11",
-        "laravel/lumen-framework": "^6.0",
-        "rcrowe/twigbridge": "^0.12",
-        "symfony/translation": "^4.3",
+        "twig/twig": "v2.14.1",
+        "laravel/lumen-framework": "v6.3.5",
+        "rcrowe/twigbridge": "v0.12.3",
+        "symfony/translation": "v4.4.17",
         "ezyang/htmlpurifier": ">=v4.13.0"
     },
     "require-dev": {

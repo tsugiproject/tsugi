@@ -13,7 +13,7 @@ class Analytics extends Controller {
     const ROUTE = '/analytics';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix.'/json', 'Analytics@getjson');
+        $app->router->get($prefix.'/json', 'Analytics@getjson');
         $app->router->get($prefix, function (Request $request) use ($app) {
             return Analytics::getAnalytics($app);
         });
