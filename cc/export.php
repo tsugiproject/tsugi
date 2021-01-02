@@ -109,14 +109,12 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->videos) ) {
         foreach($module->videos as $video ) {
             $title = __('Video:').' '.$video->title;
-            error_log('Youtube '.$youtube);
             // Sakai's import does not handle topics (yet)
             if ( $youtube && isset($CFG->youtube_url) ) {
                 $custom_arr = array();
                 $endpoint = U::absolute_url($CFG->youtube_url);
                 $endpoint = U::add_url_parm($endpoint, 'v', $video->youtube);
                 $extensions = array('apphome' => $CFG->apphome);
-                error_log('Here we go'.$endpoint);
                 if ( $youtube == 'track_grade' ) {
                     $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
                 } else {
@@ -200,7 +198,6 @@ foreach($l->lessons->modules as $module) {
             $title = isset($discussion->title) ? $discussion->title : $module->title;
             $text = isset($discussion->description) ? $discussion->description : $module->description;
             // Sakai does not import discussions
-            error_log("tsugi_lms = $tsugi_lms");
             if ( $tsugi_lms != 'sakai' && ($topic ==  "lms" || ! isset($CFG->tdiscus) ) ) {
                 $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text);
                 continue;
