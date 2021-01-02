@@ -421,10 +421,13 @@ if ( $l && isset($_GET['import']) ) {
     if ( U::get($_GET, 'anchors') ) {
         $url = U::add_url_parm($url, 'anchors',  U::get($_GET, 'anchors'));
     }
-    if ( U::get($_GET, 'youtube') == 'yes') {
-        $url = U::add_url_parm($url, 'youtube',  'yes');
+    if ( U::get($_GET, 'youtube') ) {
+        $url = U::add_url_parm($url, 'youtube', U::get($_GET, 'youtube') );
     }
-    // echo("<pre>\n");echo("$url\n");print_r($_GET);die();
+    if ( U::get($_GET, 'topic') ) {
+        $url = U::add_url_parm($url, 'topic', U::get($_GET, 'topic') );
+    }
+    error_log('Export url: '.$url);
     $additionalParams = array(
         'mediaType' => LTIConstants::MEDIA_CC_1_3,
     );
@@ -754,46 +757,62 @@ if ( $l && $allow_lti ) {
     echo("</div>\n");
 }
 
+$resource_count = 0;
+$assignment_count = 0;
+$discussion_count = 0;
+foreach($l->lessons->modules as $module) {
+    $resources = Lessons::getUrlResources($module);
+    if ( ! $resources ) continue;
+    $resource_count = $resource_count + count($resources);
+    if ( isset($module->lti) ) {
+        $assignment_count = $assignment_count + count($module->lti);
+    }
+    if ( isset($module->discussions) ) {
+        $discussion_count = $discussion_count + count($module->discussions);
+    }
+}
+
 if ( $l && $allow_import ) {
 ?>
 <div class="tab-pane fade active in" id="allcontent">
 <p>You can download all the modules in a single cartridge, or you can download any 
 combination of the modules.</p>
-<?php
-    echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
-    echo("<p>".htmlentities($l->lessons->description)."</p>\n");
-    echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
-    $resource_count = 0;
-    $assignment_count = 0;
-    foreach($l->lessons->modules as $module) {
-        $resources = Lessons::getUrlResources($module);
-        if ( ! $resources ) continue;
-        $resource_count = $resource_count + count($resources);
-        if ( isset($module->lti) ) {
-            $assignment_count = $assignment_count + count($module->lti);
-        }
-    }
-    echo("<p>Resources: $resource_count </p>\n");
-    echo("<p>Assignments: $assignment_count </p>\n");
-?>
 <p>
 <form>
-<?php     if ( isset($CFG->youtube_url) ) { ?>
+<?php if ( $discussion_count > 0 && isset($CFG->tdiscus) ) { ?>
 <p>
-<label for="youtube_select_full">Would you like Youtube Tracked URLs?</label>
-<select name="youtube" id="youtube_select_full">
-  <option value="no">No</option>
-  <option value="yes">Yes</option>
+<label for="topic_select_full">How would you like to import discussions/topics?</label>
+<select name="topic" id="topic_select_full">
+  <option value="lti">Use discussion tool on this server (LTI)</option>
+  <option value="lms">Use the LMS Discussion Tool</option>
+  <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
 </select>
 </p>
 <?php } ?>
+<?php if ( isset($CFG->youtube_url) ) { ?>
+<p>
+<label for="youtube_select_full">Would you like YouTube Tracked URLs?</label>
+<select name="youtube" id="youtube_select_full">
+  <option value="no">No - Launch directly to YouTube</option>
+  <option value="track">Use LTI launch to track access</option>
+  <option value="track_grade">Use LTI launch to track access and send grades</option>
+</select>
+</p>
+<?php } ?>
+<?php
+    echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
+    echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
+    echo("<p>Resources: $resource_count </p>\n");
+    echo("<p>Assignments: $assignment_count </p>\n");
+    echo("<p>Discussion topics: $discussion_count </p>\n");
+?>
 <p>
 <input type="submit" class="btn btn-primary" value="Import modules" name="import"/>
 </p>
 </form>
 <?php     if ( isset($CFG->youtube_url) ) { ?>
 <p>
-If you select YouTube tracked URLs, each Youtube URL will be launched via LTI
+If you select YouTube tracked URLs, each YouTube URL will be launched via LTI
 to a YouTube tracking tool on this server so you can get analytics on who
 watches your YouTube videos through the LMS.  Some LMS's do not do well with
 tracked URLs because they treat every LTI link as a gradable link.
@@ -807,12 +826,23 @@ $resource_count = 0;
 $assignment_count = 0;
 echo('<form id="void">'."\n");
 ?>
+<?php if ( $discussion_count > 0 && isset($CFG->tdiscus) ) { ?>
+<p>
+<label for="topic_select_partial">How would you like to import discussions/topics?</label>
+<select name="topic" id="topic_select_partial">
+  <option value="lti">Use discussion tool on this server (LTI)</option>
+  <option value="lms">Use the LMS Discussion Tool</option>
+  <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
+</select>
+</p>
+<?php } ?>
 <?php if ( isset($CFG->youtube_url) ) { ?>
 <p>
-<label for="youtube_select_partial">Would you like Youtube Tracked URLs?</label>
+<label for="youtube_select_partial">Would you like YouTube Tracked URLs?</label>
 <select name="youtube" id="youtube_select_partial">
-  <option value="no">No</option>
-  <option value="yes">Yes</option>
+  <option value="no">No - Launch directly to YouTube</option>
+  <option value="track">Use LTI launch to track access</option>
+  <option value="track_grade">Use LTI launch to track access and send grades</option>
 </select>
 </p>
 <?php } ?>
@@ -825,6 +855,9 @@ foreach($l->lessons->modules as $module) {
     echo("<ul>\n");
     echo("<li>Resources in this module: ".count($resources)."</li>\n");
     $resource_count = $resource_count + count($resources);
+    if ( isset($module->discussions) ) {
+        echo("<li>Discussion topics in this module: ".count($module->discussions)."</li>\n");
+    }
     if ( isset($module->lti) ) {
         echo("<li>Assignments in this module: ".count($module->lti)."</li>\n");
         $assignment_count = $assignment_count + count($module->lti);
@@ -837,7 +870,8 @@ foreach($l->lessons->modules as $module) {
 </p>
 </form>
 <form id="real">
-<input id="youtube" type="hidden" name="youtube"/>
+<input id="youtube_real" type="hidden" name="youtube"/>
+<input id="topic_real" type="hidden" name="topic"/>
 <input id="res" type="hidden" name="anchors" value=""/>
 <input type="hidden" name="import" value="import"/>
 </form>
@@ -851,7 +885,7 @@ $OUTPUT->footerStart();
 
 <script>
 // https://stackoverflow.com/questions/13830276/how-to-append-multiple-values-to-a-single-parameter-in-html-form
-function myfunc(youtube){
+function myfunc(){
     $('#void input[type="checkbox"]').each(function(id,elem){
          console.log(this);
          if ( ! $(this).is(':checked') ) return;
@@ -864,17 +898,15 @@ function myfunc(youtube){
 
     });
 
-    var tsugi_lms = $("#tsugi_lms_select_partial").val();
-    $("#tsugi_lms_real").val(tsugi_lms);
+    var youtube = $("#youtube_select_partial").val();
+    $("#youtube_real").val(youtube);
+    var topic = $("#topic_select_partial").val();
+    $("#topic_real").val(topic);
+    console.log('topic',topic,'youtube',youtube);
     var stuff = $("#res").val();
     if ( stuff.length < 1 ) {
         alert('<?= _m("Please select at least one module") ?>');
     } else {
-        if ( youtube == 'yes' ) {
-            $("#youtube").val('yes');
-        } else {
-            $("#youtube").val('');
-        }
         $("#real").submit();
     }
 }

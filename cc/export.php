@@ -84,8 +84,9 @@ if ( ! isCli() ) {
 }
 
 $tsugi_lms = U::get($_GET,'tsugi_lms', false);
+$topic = U::get($_GET,'topic', false);
 $youtube = U::get($_GET,'youtube', false);
-if ( $youtube != 'yes' ) $youtube = false;
+if ( $youtube == 'no' ) $youtube = false;
 
 $cc_dom = new CC();
 $cc_dom->set_title($CFG->context_title.' import');
@@ -107,13 +108,20 @@ foreach($l->lessons->modules as $module) {
 
     if ( isset($module->videos) ) {
         foreach($module->videos as $video ) {
-            $title = 'Video: '.$video->title;
+            $title = __('Video:').' '.$video->title;
+            error_log('Youtube '.$youtube);
+            // Sakai's import does not handle topics (yet)
             if ( $youtube && isset($CFG->youtube_url) ) {
                 $custom_arr = array();
                 $endpoint = U::absolute_url($CFG->youtube_url);
                 $endpoint = U::add_url_parm($endpoint, 'v', $video->youtube);
                 $extensions = array('apphome' => $CFG->apphome);
-                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+                error_log('Here we go'.$endpoint);
+                if ( $youtube == 'track_grade' ) {
+                    $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+                } else {
+                    $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+                }
             } else {
                 $url = 'https://www.youtube.com/watch?v=' . $video->youtube;
                 $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
@@ -191,9 +199,14 @@ foreach($l->lessons->modules as $module) {
         foreach($module->discussions as $discussion ) {
             $title = isset($discussion->title) ? $discussion->title : $module->title;
             $text = isset($discussion->description) ? $discussion->description : $module->description;
-            $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text);
-/*
-            $title = 'Discussion: '.$title;
+            // Sakai does not import discussions
+            error_log("tsugi_lms = $tsugi_lms");
+            if ( $tsugi_lms != 'sakai' && ($topic ==  "lms" || ! isset($CFG->tdiscus) ) ) {
+                $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text);
+                continue;
+            }
+
+            $title = __('Discussion:').' '.$title;
             $custom_arr = array();
             if ( isset($discussion->custom) ) {
                 foreach($discussion->custom as $custom) {
@@ -205,12 +218,16 @@ foreach($l->lessons->modules as $module) {
                     }
                 }
             }
-            $endpoint = U::absolute_url($discussion->launch);
-            // Sigh - some LMSs don't handle custom - sigh
+
+            $endpoint = U::absolute_url($CFG->tdiscus);
             $endpoint = U::add_url_parm($endpoint, 'inherit', $discussion->resource_link_id);
             $extensions = array('apphome' => $CFG->apphome);
-    */
-            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+
+            if ( $topic == 'lti_grade' ) {
+                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+            } else {
+                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+            }
         }
     }
 }

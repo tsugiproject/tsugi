@@ -17,9 +17,24 @@ $l = new Lessons($CFG->lessons);
 
 $OUTPUT->header();
 $OUTPUT->bodystart(false);
-echo("<h1>Course: ".htmlentities($l->lessons->title)."</h1>\n");
-echo("<p>".htmlentities($l->lessons->description)."</p>\n");
-echo("<p>This course has: ".count($l->lessons->modules)." modules</p>\n");
+
+    echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
+    echo("<p>".htmlentities($l->lessons->description)."</p>\n");
+    $resource_count = 0;
+    $assignment_count = 0;
+    $discussion_count = 0;
+    foreach($l->lessons->modules as $module) {
+        $resources = Lessons::getUrlResources($module);
+        if ( ! $resources ) continue;
+        $resource_count = $resource_count + count($resources);
+        if ( isset($module->lti) ) {
+            $assignment_count = $assignment_count + count($module->lti);
+        }
+        if ( isset($module->discussions) ) {
+            $discussion_count = $discussion_count + count($module->discussions);
+        }
+    }
+
 ?>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#allcontent" data-toggle="tab" aria-expanded="true">All Content</a></li>
@@ -30,6 +45,12 @@ echo("<p>This course has: ".count($l->lessons->modules)." modules</p>\n");
   <div class="tab-pane fade active in" id="allcontent">
 <p>You can download all the modules in a single cartridge, or you can download any 
 combination of the modules.</p>
+<?php
+    echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
+    echo("<p>Resources: $resource_count </p>\n");
+    echo("<p>Assignments: $assignment_count </p>\n");
+    echo("<p>Discussion topics: $discussion_count </p>\n");
+?>
 <p>
 <form action="export">
 <p>
@@ -40,12 +61,23 @@ combination of the modules.</p>
   <option value="sakai">Sakai</option>
 </select>
 </p>
-<?php     if ( isset($CFG->youtube_url) ) { ?>
+<?php if ( $discussion_count > 0 && isset($CFG->tdiscus) ) { ?>
 <p>
-<label for="youtube_select_full">Would you like Youtube Tracked URLs?</label>
+<label for="topic_select_full">How would you like to import discussions/topics?</label>
+<select name="topic" id="topic_select_full">
+  <option value="lti">Use discussion tool on this server (LTI)</option>
+  <option value="lms">Use the LMS Discussion Tool</option>
+  <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
+</select>
+</p>
+<?php } ?>
+<?php if ( isset($CFG->youtube_url) ) { ?>
+<p>
+<label for="youtube_select_full">Would you like YouTube Tracked URLs?</label>
 <select name="youtube" id="youtube_select_full">
-  <option value="no">No</option>
-  <option value="yes">Yes</option>
+  <option value="no">No - Launch directly to YouTube</option>
+  <option value="track">Use LTI launch to track access</option>
+  <option value="track_grade">Use LTI launch to track access and send grades</option>
 </select>
 </p>
 <?php } ?>
@@ -55,7 +87,7 @@ combination of the modules.</p>
 </form>
 <?php     if ( isset($CFG->youtube_url) ) { ?>
 <p>
-If you select YouTube tracked URLs, each Youtube URL will be launched via LTI
+If you select YouTube tracked URLs, each YouTube URL will be launched via LTI
 to a YouTube tracking tool on this server so you can get analytics on who
 watches your YouTube videos through the LMS.  Some LMS's do not do well with
 tracked URLs because they treat every LTI link as a gradable link.
@@ -79,10 +111,21 @@ echo('<form id="void">'."\n");
 </p>
 <?php if ( isset($CFG->youtube_url) ) { ?>
 <p>
-<label for="youtube_select_partial">Would you like Youtube Tracked URLs?</label>
+<label for="youtube_select_partial">Would you like YouTube Tracked URLs?</label>
 <select name="youtube" id="youtube_select_partial">
-  <option value="no">No</option>
-  <option value="yes">Yes</option>
+  <option value="no">No - Launch directly to YouTube</option>
+  <option value="track">Use LTI launch to track access</option>
+  <option value="track_grade">Use LTI launch to track access and send grades</option>
+</select>
+</p>
+<?php } ?>
+<?php if ( $discussion_count > 0 && isset($CFG->tdiscus) ) { ?>
+<p>
+<label for="topic_select_full">How would you like to import discussions/topics?</label>
+<select name="youtube" id="topic_select_full">
+  <option value="lti">Use discussion tool on this server (LTI)</option>
+  <option value="lms">Use the LMS Discussion Tool</option>
+  <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
 </select>
 </p>
 <?php } ?>
