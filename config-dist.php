@@ -207,6 +207,13 @@ $CFG->logout_return_url = false;
 // Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
 $CFG->login_return_url = false;
 
+// You can specify a default menu for Tsugi to use across the site if there is no
+// defined menu given
+// $buildmenu = $CFG->dirroot."/../buildmenu.php";
+// if ( file_exists($buildmenu) ) {
+    // require_once $buildmenu;
+    // $CFG->defaultmenu = buildMenu();
+// }
 
 // If these are not set, the auto expiration scripts in admin/expire
 // do nothing.  You can still manually expire data in the admin UI without

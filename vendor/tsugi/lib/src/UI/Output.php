@@ -728,6 +728,8 @@ $('a').each(function (x) {
 
     function defaultMenuSet() {
         global $CFG;
+        if ( isset($CFG->defaultmenu) ) return $CFG->defaultmenu;
+
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
         $set->setHome($CFG->servicename, $CFG->apphome);
