@@ -860,10 +860,12 @@ $('a').each(function (x) {
         $menu_txt .= "if ( ! inIframe() ) {\n";
         $menu_txt .= "  document.getElementById('tsugi_main_nav_bar').style.display = 'block';\n";
         $menu_txt .= "  document.getElementsByTagName('body')[0].style.paddingTop = '5.93rem';\n";
+        $menu_txt .= "} else {\n";
         if ( $tool_menu ) {
-            $menu_txt .= "} else {\n";
             $menu_txt .= "  document.getElementById('tsugi_tool_nav_bar').classList.add(\"navbar-fixed-top\");\n";
             $menu_txt .= "  document.getElementsByTagName('body')[0].style.paddingTop = '5.93rem';\n";
+        } else {
+            $menu_txt .= "  document.getElementsByTagName('body')[0].style.paddingTop = '1.0rem';\n";
         }
         $menu_txt .= "}\n";
         $menu_txt .= "</script>\n";
