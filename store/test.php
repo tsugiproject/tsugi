@@ -97,7 +97,7 @@ $install = $rest_path->extra;
         echo('<span class="hidden-xs fa '.$fa_icon.' fa-3x" style="color: var(--primary); float:right; margin: 2px"></span>');
     }
     echo('<center>');
-    echo("<b>".htmlent_utf8($title)."</b>\n");
+    echo("<h1>".htmlent_utf8($title)."</h1>\n");
     echo("</center>\n");
 ?>
 <ul class="nav nav-tabs">

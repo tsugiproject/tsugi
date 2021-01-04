@@ -106,7 +106,7 @@ $register_good = $json_obj && isset($json_obj->name);
 if ( $fa_icon ) {
     echo('<span class="hidden-xs fa '.$fa_icon.' fa-2x" style="color: var(--primary); float:right; margin: 2px"></span>');
 }
-echo("<b>".htmlent_utf8($title)."</b>\n");
+echo("<h1>".htmlent_utf8($title)."</h1>\n");
 echo('<p class="hidden-xs">'.htmlent_utf8($text)."</p>\n");
 if (is_array($keywords)) {
     sort($keywords);
