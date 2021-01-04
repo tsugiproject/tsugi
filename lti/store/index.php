@@ -760,7 +760,7 @@ if ( $l && $allow_lti ) {
 $resource_count = 0;
 $assignment_count = 0;
 $discussion_count = 0;
-foreach($l->lessons->modules as $module) {
+if ( $l ) foreach($l->lessons->modules as $module) {
     $resources = Lessons::getUrlResources($module);
     if ( ! $resources ) continue;
     $resource_count = $resource_count + count($resources);
@@ -847,7 +847,7 @@ echo('<form id="void">'."\n");
 </p>
 <?php } ?>
 <?php
-foreach($l->lessons->modules as $module) {
+if ( $l ) foreach($l->lessons->modules as $module) {
     echo('<input type="checkbox" name="'.$module->anchor.'" value="'.$module->anchor.'">'."\n");
     echo(htmlentities($module->title));
     $resources = Lessons::getUrlResources($module);
