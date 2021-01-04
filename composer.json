@@ -25,7 +25,7 @@
         "twig/twig": "v2.14.1",
         "laravel/lumen-framework": "v6.3.5",
         "rcrowe/twigbridge": "v0.12.3",
-        "symfony/translation": "v4.4.17",
+        "symfony/translation": "v4.4.18",
         "ezyang/htmlpurifier": ">=v4.13.0"
     },
     "require-dev": {
