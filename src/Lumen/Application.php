@@ -69,34 +69,11 @@ class Application extends \Laravel\Lumen\Application {
         $this->tsugi_path = U::get_rest_path();
         $this->tsugi_parent = U::get_rest_parent();
 
-
-        //$yourNewPath = $CFG->dirroot . '/vendor/tsugi/lib/src/Templates';
-        //$loader->addPath($yourNewPath, 'Tsugi');
-        //$yourNewPath = $CFG->dirroot . '/vendor/koseu/lib/src/Templates';
-        //if ( file_exists($yourNewPath) ) {
-        //    $loader->addPath($yourNewPath, 'Koseu');
-        //}
         $CFG->loader->addPsr4('AppBundle\\', 'src/AppBundle');
 
+        // Configure / Register TwigBridge to enable Twig templates with Lumen/Laravel
         $this->configure('twigbridge');
         $this->register('TwigBridge\ServiceProvider');
-
-
-        // Add the __() and __ filter for translations
-        //$this->extend('twig', function($twig, $app) {
-        //    $twig->addExtension(new GettextExtension());
-        //    return $twig;
-        //});
-
-        // Handle failure of the routes
-//        $this->error(function (NotFoundHttpException $e, Request $request, $code) {
-//            global $CFG, $LAUNCH, $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT;
-//
-//            return $this['twig']->render('@Tsugi/Error.twig',
-//                array('error' => '<p>Page not found.</p>')
-//            );
-//        });
-
     }
 
     /**
