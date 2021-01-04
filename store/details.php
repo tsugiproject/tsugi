@@ -25,6 +25,16 @@ $OUTPUT->header();
     .keyword-span {
         text-transform: lowercase;
     }
+.overlay{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: none;
+  background-color: rgba(0,0,0,0.5); /*dim the background*/
+}
 </style>
 <?php
 
@@ -34,6 +44,12 @@ $registrations = findAllRegistrations(false, true);
 if ( count($registrations) < 1 ) $registrations = false;
 
 $OUTPUT->bodyStart();
+?>
+<div id="overlay" class="overlay" style="text-align: center;"
+   onclick="document.getElementById('overlay').style.display = 'none';" >
+<img id="overlay_img" style="width:90%;margin-top: 50px;" src="<?= $OUTPUT->getSpinnerUrl(); ?>">
+</div>
+<?php
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
@@ -78,9 +94,6 @@ $register_good = $json_obj && isset($json_obj->name);
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
    <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
-</div>
-<div id="image-dialog" title="Image Dialog" style="display: none;">
-    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" style="width:100%" id="popup-image">
 </div>
 <div id="url-dialog" title="URL Dialog" style="display: none;">
     <h1>Single Tool URLs</h1>
@@ -242,7 +255,8 @@ if ( $screen_shots ) {
     echo("<center>\n");
     echo('<div class="bxslider">');
     foreach($screen_shots as $screen_shot ) {
-        echo('<div><img title="'.htmlentities($title).'" onclick="$(\'#popup-image\').attr(\'src\',this.src);showModal(this.title,\'image-dialog\');" src="'.$screen_shot.'"></div>'."\n");
+       echo('<div><img title="'.htmlentities($title).'" onclick="$(\'#overlay_img\').attr(\'src\',this.src);document.getElementById(\'overlay\').style.display = \'block\';"');
+       echo(' src="'.$screen_shot.'"></div>'."\n");
     }
     echo("</center>\n");
     echo("<!-- .col-sm-8--></div>\n");
