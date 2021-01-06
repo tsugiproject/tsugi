@@ -170,6 +170,12 @@ class Output {
             rest_path: <?= json_encode(U::rest_path()) ?>,
             spinnerUrl: "<?= self::getSpinnerUrl() ?>",
             staticroot: "<?= $CFG->staticroot ?>",
+<?php if ( isset ($CFG->apphome) ) { ?>
+            apphome: "<?= $CFG->apphome ?>",
+<?php } else { ?>
+            apphome: false;
+<?php } ?>
+            wwwroot: "<?= $CFG->wwwroot ?>",
             websocket_url: <?= WebSocket::enabled() && $LINK ? '"'.$CFG->websocket_url.'"' : 'false' ?>,
             websocket_token: <?= WebSocket::enabled() && $LINK ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false' ?>,
             window_close_message: "<?= _m('Application complete') ?>",
@@ -445,16 +451,17 @@ function googleTranslateElementInit() {
 
         if ( U::allow_track() ) $this->doAnalytics();
 
+        // This was originallly supposed to be Fixed in 7.1.9 - but this seems to regress
+        // periodically in PHP so - we will just keep doing it
+
         // https://bugs.php.net/bug.php?id=74892
         // Worked in PHP 5.5
         // Failed in 7.0.0 - 7.1.8
         // Fixed in 7.1.9
         // https://www.php.net/ChangeLog-7.php#7.1.9
-        if ( version_compare(PHP_VERSION, '7.2.1') < 0 && version_compare(PHP_VERSION, '7.0.0') >= 0 ) {
+        // https://stackoverflow.com/questions/44980654/how-can-i-make-trans-sid-cookie-less-sessions-work-in-php-7-1
 ?>
 <script>
-// PHP VERSION 7.0 and 7.1 HACK
-// https://stackoverflow.com/questions/44980654/how-can-i-make-trans-sid-cookie-less-sessions-work-in-php-7-1
 $('a').each(function (x) {
     var href = $(this).attr('href');
     if ( ! href ) return;
@@ -469,18 +476,26 @@ $('a').each(function (x) {
 // Hack to compensate for PHP 7.0 cookiless session failure
     if ( ini_get('session.use_cookies') == '0' ) {
 ?>
-console.log('Checking malformed href for php 7.0');
 $('a').each(function (x) {
     var href = $(this).attr('href');
     var sess_name = '<?= session_name() ?>';
     var sess_id = '<?= session_id() ?>';
     if ( ! href ) return;
     if ( href.startsWith('#') ) return;
-    if ( href.startsWith('http://') ) return;
-    if ( href.startsWith('javascript:') ) return;
-    if ( href.startsWith('https://') ) return;
-    if ( href.startsWith('//') ) return;
     if ( href.indexOf(sess_name) > 0 ) return;
+    if ( href.startsWith('javascript:') ) return;
+
+    var localurl = true;
+    if ( href.startsWith('http://') ) localurl = false;
+    if ( href.startsWith('https://') ) localurl = false;
+    if ( href.startsWith('//') ) localurl = false;
+
+    if ( href.startsWith(_TSUGI.wwwroot) ) localurl = true;
+    if ( _TSUGI.apphome && href.startsWith(_TSUGI.apphome) ) localurl = true;
+
+    // console.log(href,localurl);
+ 
+    if ( ! localurl ) return;
     if ( href.indexOf('?') > 0 ) {
         href = href + '&';
     } else {
@@ -494,8 +509,6 @@ $('a').each(function (x) {
 
 </script>
 <?php
-        }
-
         $ob_output = ob_get_contents();
         ob_end_clean();
         if ( $this->buffer ) return $ob_output;
