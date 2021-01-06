@@ -106,6 +106,7 @@ $text='{
         $item = '{
             "type": "ltiResourceLink",
             "title": "A title",
+            "text": "Extended description",
             "url": "https://lti.example.com/launchMe",
             "icon": {
                 "url": "https://lti.example.com/image.jpg",
@@ -148,6 +149,7 @@ $text='{
         $json = json_decode($item);
         $json->url = $params['url'];
         if ( U::get($params, 'title') ) $json->{'title'} = U::get($params, 'title');
+        if ( U::get($params, 'text') ) $json->{'text'} = U::get($params, 'text');
         if ( U::get($params, 'icon') ) $json->{'icon_url'} = U::get($params, 'icon');
         if ( U::get($params, 'fa_icon') ) $json->{'fa_icon'} = U::get($params, 'fa_icon');
 
