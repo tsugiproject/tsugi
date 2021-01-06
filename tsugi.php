@@ -1,6 +1,11 @@
 <?php
 
-use \Tsugi\Core\LTIX;
+use Tsugi\Controllers\Login;
+use Tsugi\Controllers\Logout;
+use Tsugi\Controllers\Map;
+use Tsugi\Controllers\Profile;
+use Tsugi\Core\LTIX;
+use Tsugi\Lumen\Application;
 
 define('COOKIE_SESSION', true);
 require_once('config.php');
@@ -15,15 +20,22 @@ if ( $file ) {
 
 $launch = LTIX::session_start();
 
-$app = new \Tsugi\Silex\Application($launch);
+(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
+    dirname(__DIR__)
+))->bootstrap();
+
+$app = new Application($launch);
+
 $app['tsugi']->output->buffer = false;
 
 // Hook up the Koseu and Tsugi tools
-\Tsugi\Controllers\Login::routes($app);
-\Tsugi\Controllers\Logout::routes($app);
-if ( isset($launch->user->id) ) {
-    \Tsugi\Controllers\Profile::routes($app);
-    \Tsugi\Controllers\Map::routes($app);
-}
+$app->router->group([
+    'namespace' => 'Tsugi\Controllers'
+], function () use ($app) {
+    Login::routes($app);
+    Logout::routes($app);
+    Profile::routes($app);
+    Map::routes($app);
+});
 
 $app->run();

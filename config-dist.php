@@ -508,6 +508,8 @@ $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
 $CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/lib/include";
 $CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/lib/static";
 
+$CFG->lumen_storage = $CFG->dirroot."/storage/";
+
 // Leave these here
 require_once $CFG->vendorinclude."/setup.php";
 require_once $CFG->vendorinclude."/lms_lib.php";

@@ -30,3 +30,4 @@ cc.zip
 mod
 tsugi-php-samples
 vendor/ezyang/htmlpurifier/library/HTMLPurifier/DefinitionCache/Serializer/HTML/
+storage/
