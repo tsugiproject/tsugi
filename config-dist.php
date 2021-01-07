@@ -16,7 +16,12 @@ register_shutdown_function('__the_end');
 
 // If this file is symbolically linked you'll need to manually define the absolute path,
 // otherwise this will resolve incorrectly.
+
 $dirroot = realpath(dirname(__FILE__));
+
+// New for 2021 - We may need to do some tweaking before the autoloader wakes up
+// So we need to add this to front of config.php
+require_once $dirroot."/vendor/tsugi/lib/include/pre_config.php";
 
 $loader = require_once($dirroot."/vendor/autoload.php");
 
