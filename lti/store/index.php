@@ -241,6 +241,8 @@ if ( isset($_GET['install']) ) {
         'availableEnd' => '$ResourceLink.available.endDateTime',
         'submissionStart' => '$ResourceLink.submission.startDateTime',
         'submissionEnd' => '$ResourceLink.submission.endDateTime',
+        'resourcelink_id_history' => '$ResourceLink.id.history',
+        'context_id_history' => '$Context.id.history',
         'canvas_caliper_url' => '$Caliper.url',
     );
 
