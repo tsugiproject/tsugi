@@ -2,6 +2,7 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Util\LTI13;
 use \Tsugi\UI\Output;
 
 /**
@@ -150,6 +151,14 @@ class Launch {
     }
 
     /**
+     * Return the original JWT
+     */
+    public function ltiRawJWT() {
+        $lti_jwt = $this->session_get('tsugi_jwt', null);
+        return $lti_jwt;
+    }
+
+    /**
      * Pull a keyed variable from the original LTI post data in the current session with default
      */
     public function ltiRawParameter($varname, $default=false) {
@@ -160,10 +169,30 @@ class Launch {
     }
 
     /**
-     * Pull out a custom variable from the LTIX session. Do not
-     * include the "custom_" prefix - this is automatic.
+     * Pull a claim from the body of the Launch JWT
+     */
+    public function ltiJWTClaim($claim, $default=null) {
+        $lti_jwt = $this->ltiRawJWT();
+        if ( ! is_object($lti_jwt) ) return $default;
+        if ( ! is_object($lti_jwt->body) ) return $default;
+        if ( ! isset($lti_jwt->body->{$claim}) ) return $default;
+        return $lti_jwt->body->{$claim};
+    }
+
+    /**
+     * Pull out a custom variable from the LTIX session.
+     *
+     * For LTI 1.1, it adds the "custom_" prefix automatically and looks in POST values
+     * For LTI Advantage, the data is pulled from the Java Web Token (JWT)
      */
     public function ltiCustomGet($varname, $default=false) {
+        $claim = $this->ltiJWTClaim(LTI13::CUSTOM_CLAIM);
+        if ( is_object($claim) ) {
+            if ( isset($claim->{$varname}) ) {
+                return $claim->{$varname};
+            }
+            return $default;
+        }
         return $this->ltiRawParameter('custom_'.$varname, $default);
     }
 
