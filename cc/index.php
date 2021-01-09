@@ -43,7 +43,7 @@ $OUTPUT->bodystart(false);
 
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="allcontent">
-<p>You can download all the modules in a single cartridge, or you can download any 
+<p>You can download all the modules in a single cartridge, or you can download any
 combination of the modules.</p>
 <?php
     echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
@@ -61,7 +61,8 @@ combination of the modules.</p>
   <option value="sakai">Sakai</option>
 </select>
 </p>
-<?php if ( $discussion_count > 0 && isset($CFG->tdiscus) ) { ?>
+<?php if ( $discussion_count > 0 ) {
+    if (isset($CFG->tdiscus) ) { ?>
 <p>
 <label for="topic_select_full">How would you like to import discussions/topics?</label>
 <select name="topic" id="topic_select_full">
@@ -70,6 +71,9 @@ combination of the modules.</p>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
 </select>
 </p>
+<?php } else { ?>
+<input type="hidden" name="topic" value="lms" />
+<?php } ?>
 <?php } ?>
 <?php if ( isset($CFG->youtube_url) ) { ?>
 <p>
@@ -119,17 +123,21 @@ echo('<form id="void">'."\n");
 </select>
 </p>
 <?php } ?>
-<?php if ( $discussion_count > 0 && isset($CFG->tdiscus) ) { ?>
+<?php if ( $discussion_count > 0 ) {
+    if ( isset($CFG->tdiscus) ) { ?>
 <p>
 <label for="topic_select_full">How would you like to import discussions/topics?</label>
-<select name="youtube" id="topic_select_full">
+<select name="topic" id="topic_select_partial">
   <option value="lti">Use discussion tool on this server (LTI)</option>
   <option value="lms">Use the LMS Discussion Tool</option>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
 </select>
 </p>
-<?php } ?>
-<?php
+<?php } else { ?>
+<input type="hidden" name="topic" value="lms" id="topic_select_partial"/>
+<?php }
+}
+
 foreach($l->lessons->modules as $module) {
     echo('<input type="checkbox" name="'.$module->anchor.'" value="'.$module->anchor.'">'."\n");
     echo(htmlentities($module->title));
@@ -137,10 +145,11 @@ foreach($l->lessons->modules as $module) {
     if ( ! $resources ) continue;
     echo("<ul>\n");
     echo("<li>Resources in this module: ".count($resources)."</li>\n");
-    $resource_count = $resource_count + count($resources);
     if ( isset($module->lti) ) {
         echo("<li>Assignments in this module: ".count($module->lti)."</li>\n");
-        $assignment_count = $assignment_count + count($module->lti);
+    }
+    if ( isset($module->discussions) ) {
+        echo("<li>Discussions in this module: ".count($module->discussions)."</li>\n");
     }
     echo("</ul>\n");
 }
@@ -150,8 +159,9 @@ foreach($l->lessons->modules as $module) {
 </p>
 </form>
 <form id="real" action="export">
-<input id="youtube" type="hidden" name="youtube"/>
-<input id="tsugi_lms" type="hidden" name="tsugi_lms_real" />
+<input id="youtube_real" type="hidden" name="youtube"/>
+<input id="tsugi_lms_real" type="hidden" name="tsugi_lms" />
+<input id="topic_real" type="hidden" name="topic" />
 <input id="res" type="hidden" name="anchors" value=""/>
 </form>
 </div>
@@ -163,6 +173,7 @@ $OUTPUT->footerStart();
 <script>
 // https://stackoverflow.com/questions/13830276/how-to-append-multiple-values-to-a-single-parameter-in-html-form
 function myfunc(youtube){
+    var b = '';
     $('#void input[type="checkbox"]').each(function(id,elem){
          console.log(this);
          if ( ! $(this).is(':checked') ) return;
@@ -178,14 +189,14 @@ function myfunc(youtube){
     var tsugi_lms = $("#tsugi_lms_select_partial").val();
     $("#tsugi_lms_real").val(tsugi_lms);
     var stuff = $("#res").val();
+    var youtube = $("#youtube_select_partial").val();
+    $("#youtube_real").val(youtube);
+    var topic = $("#topic_select_partial").val();
+    $("#topic_real").val(topic);
+
     if ( stuff.length < 1 ) {
         alert('<?= _m("Please select at least one module") ?>');
     } else {
-        if ( youtube == 'yes' ) {
-            $("#youtube").val('yes');
-        } else {
-            $("#youtube").val('');
-        }
         $("#real").submit();
     }
 }
