@@ -109,7 +109,6 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->videos) ) {
         foreach($module->videos as $video ) {
             $title = __('Video:').' '.$video->title;
-            // Sakai's import does not handle topics (yet)
             if ( $youtube && isset($CFG->youtube_url) ) {
                 $custom_arr = array();
                 $endpoint = U::absolute_url($CFG->youtube_url);
@@ -198,7 +197,7 @@ foreach($l->lessons->modules as $module) {
             $title = isset($discussion->title) ? $discussion->title : $module->title;
             $text = isset($discussion->description) ? $discussion->description : $module->description;
             // Sakai does not import discussions
-            if ( $tsugi_lms != 'sakai' && ($topic ==  "lms" || ! isset($CFG->tdiscus) ) ) {
+            if ( $topic ==  "lms" || ! isset($CFG->tdiscus) ) {
                 $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text);
                 continue;
             }
