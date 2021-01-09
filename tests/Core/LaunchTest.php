@@ -3,6 +3,7 @@
 require_once "src/Core/LTIX.php";
 require_once "src/Core/Launch.php";
 require_once "src/Util/PDOX.php";
+require_once "src/Util/LTIConstants.php";
 require_once "tests/Mock/MockSession.php";
 
 use \Tsugi\Core\LTIX;
@@ -59,6 +60,8 @@ class LaunchTest extends PHPUnit_Framework_TestCase
         $launch->session_object = $sess;
         $this->assertFalse($launch->isSakai());
         $this->assertFalse($launch->isCanvas());
+        $this->assertFalse($launch->isMoodle());
+        $this->assertFalse($launch->isCoursera());
     }
 
 
