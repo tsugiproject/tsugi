@@ -3,6 +3,7 @@
 namespace Tsugi\Core;
 
 use \Tsugi\Util\LTI13;
+use \Tsugi\Util\LTIConstants;
 use \Tsugi\UI\Output;
 
 /**
@@ -162,7 +163,7 @@ class Launch {
      * Pull a keyed variable from the original LTI post data in the current session with default
      */
     public function ltiRawParameter($varname, $default=false) {
-        $lti_post = $this->ltiRawPostArray('lti_post', false);
+        $lti_post = $this->ltiRawPostArray();
         if ( $lti_post === false ) return $default;
         if ( ! isset($lti_post[$varname]) ) return $default;
         return $lti_post[$varname];
@@ -198,37 +199,85 @@ class Launch {
 
     /**
      * Indicate if this launch came from Sakai
+     *
+     * if ( $LTI->isSakai() ) echo("SAKAI");
      */
     public function isSakai() {
-        $ext_lms = $this->ltiRawParameter('ext_lms', false);
-        $ext_lms = strtolower($ext_lms);
-        return strpos($ext_lms, 'sakai') === 0 ;
+        $claim = $this->ltiJWTClaim(LTI13::TOOL_PLATFORM_CLAIM, null);
+        if ( $claim !== null ) {
+            $ext_lms = null;
+            if ( isset($claim->{LTI13::PRODUCT_FAMILY_CODE}) ) {
+                $ext_lms = $claim->{LTI13::PRODUCT_FAMILY_CODE};
+            }
+        } else {
+            $ext_lms = $this->ltiRawParameter('ext_lms', false);
+            $ext_lms = strtolower($ext_lms);
+        }
+        return stripos($ext_lms, 'sakai') === 0 ;
     }
 
     /**
      * Indicate if this launch came from Canvas
+     *
+     * if ( $LTI->isCanvas() ) echo("CANVAS");
      */
     public function isCanvas() {
-        $product = $this->ltiRawParameter('tool_consumer_info_product_family_code', false);
-        return $product == 'canvas';
+        $claim = $this->ltiJWTClaim(LTI13::TOOL_PLATFORM_CLAIM, null);
+        if ( $claim !== null ) {
+            $product = null;
+            if ( isset($claim->{LTI13::PRODUCT_FAMILY_CODE}) ) {
+                $product = $claim->{LTI13::PRODUCT_FAMILY_CODE};
+            }
+        } else {
+            $product = $this->ltiRawParameter(LTIConstants::TOOL_CONSUMER_INFO_PRODUCT_FAMILY_CODE, false);
+        }
+        return stripos($product, 'canvas') === 0 ;
     }
 
     /**
      * Indicate if this launch came from Moodle
+     *
+     * if ( $LTI->isMoodle() ) echo("MOODLE");
      */
     public function isMoodle() {
-        $ext_lms = $this->ltiRawParameter('ext_lms', false);
-        $ext_lms = strtolower($ext_lms);
-        return strpos($ext_lms, 'moodle') === 0 ;
+        $claim = $this->ltiJWTClaim(LTI13::TOOL_PLATFORM_CLAIM, null);
+        if ( is_object($claim) ) {
+            $ext_lms = null;
+            if ( isset($claim->{LTI13::PRODUCT_FAMILY_CODE}) ) {
+                $ext_lms = $claim->{LTI13::PRODUCT_FAMILY_CODE};
+            }
+        } else {
+            $ext_lms = $this->ltiRawParameter('ext_lms', false);
+            $ext_lms = strtolower($ext_lms);
+        }
+        return stripos($ext_lms, 'moodle') === 0 ;
     }
 
     /**
      * Indicate if this launch came from Coursera
+     *
+     * if ( $LTI->isCoursera() ) echo("Coursera");
      */
     public function isCoursera() {
-        $product = $this->ltiRawParameter('tool_consumer_info_product_family_code', false);
-        $tci_description = $this->ltiRawParameter('tool_consumer_instance_description', false);
-        return ( $product == 'ims' && $tci_description == 'Coursera');
+        $claim = $this->ltiJWTClaim(LTI13::TOOL_PLATFORM_CLAIM, null);
+        if ( is_object($claim) ) {
+            $product = null;
+            if ( isset($claim->{LTI13::PRODUCT_FAMILY_CODE}) ) {
+                $product = $claim->{LTI13::PRODUCT_FAMILY_CODE};
+            }
+            return stripos($product, 'coursera')!== false ;
+        } else {
+            $product = $this->ltiRawParameter(LTIConstants::TOOL_CONSUMER_INFO_PRODUCT_FAMILY_CODE, false);
+            $tci_description = $this->ltiRawParameter(LTIConstants::TOOL_CONSUMER_INSTANCE_DESCRIPTION, false);
+            return ( $product == 'ims' && $tci_description == 'Coursera');
+        }
+    }
+
+    /**
+     * Return a boolean is this is an LTI Advantage launch
+     */
+    public function isLTIAdvantage() {
+        return $this->ltiRawJWT !== null;
     }
 
     /**
@@ -236,9 +285,9 @@ class Launch {
      */
     public function newLaunch($send_name=true, $send_email=true) {
         $parms = array(
-            'lti_message_type' => 'basic-lti-launch-request',
-            'tool_consumer_info_product_family_code' => 'tsugi',
-            'tool_consumer_info_version' => '1.1',
+            LTIConstants::LTI_MESSAGE_TYPE => LTIConstants::LTI_MESSAGE_TYPE_BASICLTILAUNCHREQUEST,
+            LTIConstants::TOOL_CONSUMER_INFO_PRODUCT_FAMILY_CODE => 'tsugi',
+            LTIConstants::TOOL_CONSUMER_INFO_VERSION => '1.1',
         );
 
         // Some Tsugi Goodness
@@ -246,24 +295,25 @@ class Launch {
         $parms['ext_lti_form_id'] = $form_id;
 
         if ( $this->user ) {
-            $parms['user_id'] = $this->user->id;
-            $parms['roles'] = $this->user->instructor ? 'Instructor' : 'Learner';
-            if ( $send_name ) $parms['lis_person_name_full'] = $this->user->displayname;
-            if ( $send_email ) $parms['lis_person_contact_email_primary'] = $this->user->email;
-            if ( $send_email || $send_email ) $parms['image'] = $this->user->image;
+            $parms[LTIConstants::USER_ID] = $this->user->id;
+            $parms[LTIConstants::ROLES] = $this->user->instructor ?
+                LTIConstants::ROLE_INSTRUCTOR : LTIConstants::ROLE_LEARNER;
+            if ( $send_name ) $parms[LTIConstants::LIS_PERSON_NAME_FULL] = $this->user->displayname;
+            if ( $send_email ) $parms[LTIConstants::LIS_PERSON_CONTACT_EMAIL_PRIMARY] = $this->user->email;
+            if ( $send_email || $send_email ) $parms[LTIConstants::USER_IMAGE] = $this->user->image;
         }
         if ( $this->context ) {
-           $parms['context_id'] = $this->context->id;
-           $parms['context_title'] = $this->context->title;
-           $parms['context_label'] = $this->context->title;
+           $parms[LTIConstants::CONTEXT_ID] = $this->context->id;
+           $parms[LTIConstants::CONTEXT_TITLE] = $this->context->title;
+           $parms[LTIConstants::CONTEXT_LABEL] = $this->context->title;
         }
         if ( $this->link ) {
-           $parms['resource_link_id'] = $this->link->id;
-           $parms['resource_link_title'] = $this->link->title;
+           $parms[LTIConstants::RESOURCE_LINK_ID] = $this->link->id;
+           $parms[LTIConstants::RESOURCE_LINK_TITLE] = $this->link->title;
         }
         if ( $this->result ) {
-           $parms['resource_link_id'] = $this->link->id;
-           $parms['resource_link_title'] = $this->link->title;
+           $parms[LTIConstants::RESOURCE_LINK_ID] = $this->link->id;
+           $parms[LTIConstants::RESOURCE_LINK_TITLE] = $this->link->title;
         }
         foreach ( $parms as $k => $v ) {
             if ( $v === false || $v === null ) unset($parms[$k]);

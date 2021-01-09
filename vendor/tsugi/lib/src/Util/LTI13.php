@@ -7,6 +7,8 @@ use \Firebase\JWT\JWT;
 
 /**
  * This is a general purpose LTI 1.3 class with no Tsugi-specific dependencies.
+ *
+ * https://www.imsglobal.org/spec/lti/v1p3/
  */
 class LTI13 {
 
@@ -32,6 +34,9 @@ class LTI13 {
     const MEDIA_TYPE_LINEITEMS = 'application/vnd.ims.lis.v2.lineitemcontainer+json';
     const SCORE_TYPE = 'application/vnd.ims.lis.v1.score+json';
     const RESULTS_TYPE = 'application/vnd.ims.lis.v2.resultcontainer+json';
+
+    const TOOL_PLATFORM_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/tool_platform';
+    const PRODUCT_FAMILY_CODE = "product_family_code";
 
     // https://www.imsglobal.org/spec/lti-ags/v2p0#score-publish-service
     const LINEITEM_TIMESTAMP = "timestamp";
