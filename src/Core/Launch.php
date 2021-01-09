@@ -192,10 +192,6 @@ class Launch {
             if ( isset($claim->{$varname}) ) {
                 return $claim->{$varname};
             }
-            // Rumor is that some LMS's add custom_ in their Advantage claim
-            if ( isset($claim->{'custom_'.$varname}) ) {
-                return $claim->{'custom_'.$varname};
-            }
             return $default;
         }
         return $this->ltiRawParameter('custom_'.$varname, $default);
