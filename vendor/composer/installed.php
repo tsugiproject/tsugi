@@ -1,24 +1,24 @@
 <?php return array (
   'root' => 
   array (
-    'pretty_version' => 'dev-master',
-    'version' => 'dev-master',
+    'pretty_version' => 'dev-trunk',
+    'version' => 'dev-trunk',
     'aliases' => 
     array (
     ),
-    'reference' => 'd42fd3a372f8dea2e4e5c0923417a7b9272acf0c',
+    'reference' => '85e055f3cf57467dfcbcaf83d58a120eaf030d55',
     'name' => '__root__',
   ),
   'versions' => 
   array (
     '__root__' => 
     array (
-      'pretty_version' => 'dev-master',
-      'version' => 'dev-master',
+      'pretty_version' => 'dev-trunk',
+      'version' => 'dev-trunk',
       'aliases' => 
       array (
       ),
-      'reference' => 'd42fd3a372f8dea2e4e5c0923417a7b9272acf0c',
+      'reference' => '85e055f3cf57467dfcbcaf83d58a120eaf030d55',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -909,7 +909,7 @@
       'aliases' => 
       array (
       ),
-      'reference' => '00d85dab0abe177eff6bf6c3b48ac9ce8142439e',
+      'reference' => '5b6f4b84119000d45c084455bb57b43e8b76d775',
     ),
     'twig/twig' => 
     array (
