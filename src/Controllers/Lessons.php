@@ -26,7 +26,7 @@ class Lessons {
 
     public function get(Request $request, $anchor=null)
     {
-        global $CFG;
+        global $CFG, $OUTPUT;
 
         if ( ! isset($CFG->lessons) ) {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
@@ -44,13 +44,18 @@ class Lessons {
         // Load the Lesson
         $l = new \Tsugi\UI\Lessons($CFG->lessons,$anchor);
 
-        $context = array();
-        $context['head'] = $l->header(true);
-        $context['container'] = $l->render(true);
-        $context['footer'] = $l->footer(true);
-
-        return view('Lessons',$context);
-
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $menu = false;
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        $l->header();
+        echo('<div class="container">');
+        $l->render();
+        echo('</div>');
+        $OUTPUT->footerStart();
+        $l->footer();
+        $OUTPUT->footerEnd();
     }
 
     public static function launch(Application $app, $anchor=null)
@@ -150,4 +155,5 @@ class Lessons {
         print($content);
         return "";
     }
+
 }
