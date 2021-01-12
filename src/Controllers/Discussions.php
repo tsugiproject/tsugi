@@ -32,7 +32,7 @@ class Discussions {
         // Load the Lesson
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
 
-        return view('Discussions.twig',
+        return view('Discussions',
             array('data' => $l->renderDiscussions(true))
         );
 
