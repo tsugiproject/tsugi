@@ -6035,12 +6035,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "5b6f4b84119000d45c084455bb57b43e8b76d775"
+                "reference": "08092e9d955cddba5266876ccb501afbbf08ca7b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/5b6f4b84119000d45c084455bb57b43e8b76d775",
-                "reference": "5b6f4b84119000d45c084455bb57b43e8b76d775",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/08092e9d955cddba5266876ccb501afbbf08ca7b",
+                "reference": "08092e9d955cddba5266876ccb501afbbf08ca7b",
                 "shasum": ""
             },
             "require": {

@@ -6,7 +6,7 @@
     'aliases' => 
     array (
     ),
-    'reference' => '85e055f3cf57467dfcbcaf83d58a120eaf030d55',
+    'reference' => 'be88623f0c922c1e2447e31e90126ca972dcb61d',
     'name' => '__root__',
   ),
   'versions' => 
@@ -18,7 +18,7 @@
       'aliases' => 
       array (
       ),
-      'reference' => '85e055f3cf57467dfcbcaf83d58a120eaf030d55',
+      'reference' => 'be88623f0c922c1e2447e31e90126ca972dcb61d',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -909,7 +909,7 @@
       'aliases' => 
       array (
       ),
-      'reference' => '5b6f4b84119000d45c084455bb57b43e8b76d775',
+      'reference' => '08092e9d955cddba5266876ccb501afbbf08ca7b',
     ),
     'twig/twig' => 
     array (
