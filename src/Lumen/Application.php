@@ -91,14 +91,14 @@ class Application extends \Laravel\Lumen\Application {
 
     function tsugiReroute($route)
     {
-        return redirect()->route( addSession($this['url_generator']->generate($route)) );
+        return redirect( addSession($this['url_generator']->generate($route)) );
     }
 
     function tsugiRedirectHome()
     {
         global $CFG;
         $home = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
-        return redirect()->route($home);
+        return redirect($home);
     }
 
     function tsugiRedirect($route) { return $this->tsugiReroute($route); } // Deprecated
