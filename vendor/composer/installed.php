@@ -6,7 +6,7 @@
     'aliases' => 
     array (
     ),
-    'reference' => '16f5b013c3d538397b0c0db641ceb3d53ed5435b',
+    'reference' => '2f7687f5fb9774c7b8f5a771311d900a5a50ae60',
     'name' => '__root__',
   ),
   'versions' => 
@@ -18,7 +18,7 @@
       'aliases' => 
       array (
       ),
-      'reference' => '16f5b013c3d538397b0c0db641ceb3d53ed5435b',
+      'reference' => '2f7687f5fb9774c7b8f5a771311d900a5a50ae60',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -396,7 +396,7 @@
       'aliases' => 
       array (
       ),
-      'reference' => 'c136ff89eb3f700aa203e802f10ec68c1874f4a8',
+      'reference' => 'b86e4d83c8ed998dbcd65ceea8dab568fc7dfa38',
     ),
     'laravel/lumen-framework' => 
     array (

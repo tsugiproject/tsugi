@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f7a9446aee7c3e3fadf8507f8c9d2a0",
+    "content-hash": "ca20197b1488a872f4dbabaffcc4c23b",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -2378,12 +2378,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "c136ff89eb3f700aa203e802f10ec68c1874f4a8"
+                "reference": "b86e4d83c8ed998dbcd65ceea8dab568fc7dfa38"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/c136ff89eb3f700aa203e802f10ec68c1874f4a8",
-                "reference": "c136ff89eb3f700aa203e802f10ec68c1874f4a8",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/b86e4d83c8ed998dbcd65ceea8dab568fc7dfa38",
+                "reference": "b86e4d83c8ed998dbcd65ceea8dab568fc7dfa38",
                 "shasum": ""
             },
             "require": {
@@ -2423,7 +2423,7 @@
                 "issues": "https://github.com/tsugiproject/koseu-php/issues",
                 "source": "https://github.com/tsugiproject/koseu-php/tree/trunk"
             },
-            "time": "2021-01-12T04:17:47+00:00"
+            "time": "2021-01-12T12:01:38+00:00"
         },
         {
             "name": "laravel/lumen-framework",
