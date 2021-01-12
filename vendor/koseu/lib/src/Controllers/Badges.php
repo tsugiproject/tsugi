@@ -18,7 +18,7 @@ class Badges {
 
     public function get(Request $request)
     {
-        global $CFG;
+        global $CFG, $OUTPUT;
 
         if ( ! isset($CFG->lessons) ) {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
@@ -36,9 +36,13 @@ class Badges {
             }
         }
 
-        return view('Badges',
-            array('data' => $l->renderBadges($allgrades, true))
-        );
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $menu = false;
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        $l->renderBadges($allgrades, false);
+        $OUTPUT->footer();
 
     }
 }

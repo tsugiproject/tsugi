@@ -5,6 +5,7 @@ namespace Tsugi\Controllers;
 use Laravel\Lumen\Routing\Controller;
 use Laravel\Lumen\Routing\Router;
 use Tsugi\Lumen\Application;
+use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -31,18 +32,14 @@ class Map extends Controller {
         global $CFG;
         $tsugi = $app['tsugi'];
         if ( !isset($tsugi->user) ) {
-            return view('Error',
-                array('error' => '<p>You are not logged in.</p>')
-                );
+            return self::viewError('<p>You are not logged in.</p>');
         }
 
         if ( !isset($tsugi->cfg->google_map_api_key) ) {
-            return view('Error',
-                array('error' => '<p>There is no MAP api key ($CFG->google_map_api_key)</p>')
-                );
+            return self::viewError('<p>There is no MAP api key ($CFG->google_map_api_key)</p>');
         }
 
-        return view('Map');
+        return self::viewMap();
     }
 
     public static function getjson(Application $app)
@@ -50,15 +47,11 @@ class Map extends Controller {
         global $CFG;
         $tsugi = $app['tsugi'];
         if ( !isset($tsugi->user) ) {
-            return view('Error',
-                array('error' => '<p>You are not logged in.</p>')
-                );
+            return self::viewError('<p>You are not logged in.</p>');
         }
 
         if ( !isset($tsugi->cfg->google_map_api_key) ) {
-            return view('Error',
-                array('error' => '<p>There is no MAP api key ($CFG->google_map_api_key)</p>')
-                );
+            return self::viewError('<p>There is no MAP api key ($CFG->google_map_api_key)</p>');
         }
 
         $PDOX = LTIX::getConnection();
@@ -99,5 +92,91 @@ class Map extends Controller {
         if ( $center === false ) $center = array(42.279070216140425, -83.73981015789798);
         $retval = array('center' => $center, 'points' => $points );
         return response()->json($retval);
+    }
+
+    public static function viewMap()
+    {
+        global $OUTPUT, $CFG;
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $menu = false;
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        $rest_path = U::rest_path();
+?>
+<div class="container">
+<div id="map_canvas" style="width:100%; height:400px"></div>
+</div>
+<p id="counter" style="text-align:center; padding-top:10px; display:none">
+</p>
+<?php
+        $OUTPUT->footerStart();
+?>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=<?= $CFG->google_map_api_key ?>"></script>
+<script type="text/javascript">
+var map;
+
+// https://developers.google.com/maps/documentation/javascript/reference
+function initialize_map(data) {
+  var myLatlng = new google.maps.LatLng(data.center[0],data.center[1]);
+  window.console && console.log("Building map...");
+
+  var myOptions = {
+     zoom: 3,
+     center: myLatlng,
+     mapTypeId: google.maps.MapTypeId.ROADMAP
+  }
+
+  map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+
+  // Add the other points
+  window.console && console.log("Loading "+data.points.length+" points");
+  for ( var i = 0; i < data.points.length; i++ ) {
+    var row = data.points[i];
+    if ( i < 3 ) { console.log(row); }
+    var newLatlng = new google.maps.LatLng(row[0], row[1]);
+    var iconpath = '<?= $CFG->staticroot ?>/img/icons/';
+    var icon = row[3] ? 'green-dot.png' : 'green.png';
+    var marker = new google.maps.Marker({
+      position: newLatlng,
+      map: map,
+      icon: iconpath + icon,
+      title : row[2]
+     });
+  }
+  if ( data.points.length == 1 ) {
+    $("#counter").text('There is one user on the map.');
+    $("#counter").show();
+  }
+  if ( data.points.length > 1 ) {
+    $("#counter").text('There are '+data.points.length+' users who have placed themselves on the map.');
+    $("#counter").show();
+  }
+}
+
+$(document).ready(function() {
+    $.getJSON('<?= $rest_path->current ?>/json', function(data) {
+        initialize_map(data);
+    } );
+
+} );
+</script>
+<?php
+        $OUTPUT->footerEnd();
+    }
+
+    public static function viewError($msg)
+    {
+        global $OUTPUT, $CFG;
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $menu = false;
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        echo("<h1>Error</h1>\n");
+        echo($msg);
+        $OUTPUT->footer();
     }
 }

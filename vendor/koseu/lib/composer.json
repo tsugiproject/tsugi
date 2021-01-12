@@ -22,10 +22,8 @@
     },
     "require": {
         "php": ">=7.2.0",
-        "tsugi/lib": "dev-trunk",
-        "twig/twig": "v2.14.1",
+        "tsugi/lib": "dev-trunk#321e9786823d6c6ffa27f917dd820106403545b2",
         "laravel/lumen-framework": "v6.3.5",
-        "rcrowe/twigbridge": "v0.12.3",
         "symfony/translation": "v4.4.18"
     }
 }

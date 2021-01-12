@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7
+class ComposerStaticInit5242a2b51db638d63d4295c1bfe933f3
 {
     public static $files = array (
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
@@ -14,8 +14,8 @@ class ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
-        '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         '0d59ee240a4cd96ddbb4ff164fccea4d' => __DIR__ . '/..' . '/symfony/polyfill-php73/bootstrap.php',
+        '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         '72579e7bd17821bb1321b87411366eae' => __DIR__ . '/..' . '/illuminate/support/helpers.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
@@ -41,9 +41,6 @@ class ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7
         ),
         'T' => 
         array (
-            'Twig\\' => 5,
-            'TwigBridge\\Tests\\' => 17,
-            'TwigBridge\\' => 11,
             'Tsugi\\' => 6,
         ),
         'S' => 
@@ -180,18 +177,6 @@ class ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7
         'phpseclib\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
-        ),
-        'Twig\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/twig/twig/src',
-        ),
-        'TwigBridge\\Tests\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/rcrowe/twigbridge/tests',
-        ),
-        'TwigBridge\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/rcrowe/twigbridge/src',
         ),
         'Tsugi\\' => 
         array (
@@ -533,13 +518,6 @@ class ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7
     );
 
     public static $prefixesPsr0 = array (
-        'T' => 
-        array (
-            'Twig_' => 
-            array (
-                0 => __DIR__ . '/..' . '/twig/twig/lib',
-            ),
-        ),
         'P' => 
         array (
             'Pimple' => 
@@ -601,10 +579,10 @@ class ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit6bb07b90d70dc70168d3dead1dde2bd7::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit5242a2b51db638d63d4295c1bfe933f3::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit5242a2b51db638d63d4295c1bfe933f3::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit5242a2b51db638d63d4295c1bfe933f3::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit5242a2b51db638d63d4295c1bfe933f3::$classMap;
 
         }, null, ClassLoader::class);
     }

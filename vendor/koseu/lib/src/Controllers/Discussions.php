@@ -23,7 +23,7 @@ class Discussions {
 
     public function get(Request $request)
     {
-        global $CFG;
+        global $CFG, $OUTPUT;
 
         if ( ! isset($CFG->lessons) ) {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
@@ -32,9 +32,14 @@ class Discussions {
         // Load the Lesson
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
 
-        return view('Discussions',
-            array('data' => $l->renderDiscussions(true))
-        );
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $menu = false;
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        $l->renderDiscussions(false);
+        $OUTPUT->footer();
+
 
     }
 
