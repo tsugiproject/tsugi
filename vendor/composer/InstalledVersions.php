@@ -19,7 +19,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '197e91aff83c1fb09ab9546d49ab6c685e252e34',
+    'reference' => '16f5b013c3d538397b0c0db641ceb3d53ed5435b',
     'name' => '__root__',
   ),
   'versions' => 
@@ -31,7 +31,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '197e91aff83c1fb09ab9546d49ab6c685e252e34',
+      'reference' => '16f5b013c3d538397b0c0db641ceb3d53ed5435b',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -409,7 +409,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '6a3513392469a32a97b817358421be59791fc3a8',
+      'reference' => 'c136ff89eb3f700aa203e802f10ec68c1874f4a8',
     ),
     'laravel/lumen-framework' => 
     array (

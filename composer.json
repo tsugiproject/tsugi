@@ -46,7 +46,7 @@
 
 
         "tsugi/lib": "dev-trunk#5fdf6bb6066874fb792f80536d256f1ca1584d2a",
-        "koseu/lib": "dev-trunk#6a3513392469a32a97b817358421be59791fc3a8"
+        "koseu/lib": "dev-trunk#c136ff89eb3f700aa203e802f10ec68c1874f4a8"
     },
     "config": {
         "preferred-install": "dist"

@@ -2439,12 +2439,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "6a3513392469a32a97b817358421be59791fc3a8"
+                "reference": "c136ff89eb3f700aa203e802f10ec68c1874f4a8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/6a3513392469a32a97b817358421be59791fc3a8",
-                "reference": "6a3513392469a32a97b817358421be59791fc3a8",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/c136ff89eb3f700aa203e802f10ec68c1874f4a8",
+                "reference": "c136ff89eb3f700aa203e802f10ec68c1874f4a8",
                 "shasum": ""
             },
             "require": {
@@ -2455,7 +2455,7 @@
                 "tsugi/lib": "dev-trunk",
                 "twig/twig": "v2.14.1"
             },
-            "time": "2021-01-12T02:07:58+00:00",
+            "time": "2021-01-12T04:17:47+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
