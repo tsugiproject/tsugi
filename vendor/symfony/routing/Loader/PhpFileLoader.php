@@ -46,7 +46,7 @@ class PhpFileLoader extends FileLoader
 
         $result = $load($path);
 
-        if ($result instanceof \Closure) {
+        if (\is_object($result) && \is_callable($result)) {
             $collection = new RouteCollection();
             $result(new RoutingConfigurator($collection, $this, $path, $file));
         } else {
@@ -63,7 +63,7 @@ class PhpFileLoader extends FileLoader
      */
     public function supports($resource, $type = null)
     {
-        return \is_string($resource) && 'php' === pathinfo($resource, PATHINFO_EXTENSION) && (!$type || 'php' === $type);
+        return \is_string($resource) && 'php' === pathinfo($resource, \PATHINFO_EXTENSION) && (!$type || 'php' === $type);
     }
 }
 

@@ -30,11 +30,9 @@ class FileProfilerStorage implements ProfilerStorageInterface
      *
      * Example : "file:/path/to/the/storage/folder"
      *
-     * @param string $dsn The DSN
-     *
      * @throws \RuntimeException
      */
-    public function __construct($dsn)
+    public function __construct(string $dsn)
     {
         if (0 !== strpos($dsn, 'file:')) {
             throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use FileStorage with an invalid dsn "%s". The expected format is "file:/path/to/the/storage/folder".', $dsn));
@@ -49,7 +47,7 @@ class FileProfilerStorage implements ProfilerStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function find($ip, $url, $limit, $method, $start = null, $end = null, $statusCode = null)
+    public function find($ip, $url, $limit, $method, $start = null, $end = null, $statusCode = null): array
     {
         $file = $this->getIndexFilename();
 
@@ -58,12 +56,12 @@ class FileProfilerStorage implements ProfilerStorageInterface
         }
 
         $file = fopen($file, 'r');
-        fseek($file, 0, SEEK_END);
+        fseek($file, 0, \SEEK_END);
 
         $result = [];
         while (\count($result) < $limit && $line = $this->readLineFromFile($file)) {
             $values = str_getcsv($line);
-            list($csvToken, $csvIp, $csvMethod, $csvUrl, $csvTime, $csvParent, $csvStatusCode) = $values;
+            [$csvToken, $csvIp, $csvMethod, $csvUrl, $csvTime, $csvParent, $csvStatusCode] = $values;
             $csvTime = (int) $csvTime;
 
             if ($ip && false === strpos($csvIp, $ip) || $url && false === strpos($csvUrl, $url) || $method && false === strpos($csvMethod, $method) || $statusCode && false === strpos($csvStatusCode, $statusCode)) {
@@ -115,10 +113,14 @@ class FileProfilerStorage implements ProfilerStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function read($token)
+    public function read($token): ?Profile
     {
         if (!$token || !file_exists($file = $this->getFilename($token))) {
             return null;
+        }
+
+        if (\function_exists('gzcompress')) {
+            $file = 'compress.zlib://'.$file;
         }
 
         return $this->createProfileFromData($token, unserialize(file_get_contents($file)));
@@ -129,7 +131,7 @@ class FileProfilerStorage implements ProfilerStorageInterface
      *
      * @throws \RuntimeException
      */
-    public function write(Profile $profile)
+    public function write(Profile $profile): bool
     {
         $file = $this->getFilename($profile->getToken());
 
@@ -146,7 +148,7 @@ class FileProfilerStorage implements ProfilerStorageInterface
         // when there are errors in sub-requests, the parent and/or children tokens
         // may equal the profile token, resulting in infinite loops
         $parentToken = $profile->getParentToken() !== $profileToken ? $profile->getParentToken() : null;
-        $childrenToken = array_filter(array_map(function ($p) use ($profileToken) {
+        $childrenToken = array_filter(array_map(function (Profile $p) use ($profileToken) {
             return $profileToken !== $p->getToken() ? $p->getToken() : null;
         }, $profile->getChildren()));
 
@@ -163,7 +165,14 @@ class FileProfilerStorage implements ProfilerStorageInterface
             'status_code' => $profile->getStatusCode(),
         ];
 
-        if (false === file_put_contents($file, serialize($data))) {
+        $context = stream_context_create();
+
+        if (\function_exists('gzcompress')) {
+            $file = 'compress.zlib://'.$file;
+            stream_context_set_option($context, 'zlib', 'level', 3);
+        }
+
+        if (false === file_put_contents($file, serialize($data), 0, $context)) {
             return false;
         }
 
@@ -251,7 +260,7 @@ class FileProfilerStorage implements ProfilerStorageInterface
 
             $position += $upTo;
             $line = substr($buffer, $upTo + 1).$line;
-            fseek($file, max(0, $position), SEEK_SET);
+            fseek($file, max(0, $position), \SEEK_SET);
 
             if ('' !== $line) {
                 break;
@@ -282,6 +291,10 @@ class FileProfilerStorage implements ProfilerStorageInterface
         foreach ($data['children'] as $token) {
             if (!$token || !file_exists($file = $this->getFilename($token))) {
                 continue;
+            }
+
+            if (\function_exists('gzcompress')) {
+                $file = 'compress.zlib://'.$file;
             }
 
             $profile->addChild($this->createProfileFromData($token, unserialize(file_get_contents($file)), $profile));

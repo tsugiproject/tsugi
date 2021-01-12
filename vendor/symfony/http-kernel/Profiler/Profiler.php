@@ -12,18 +12,20 @@
 namespace Symfony\Component\HttpKernel\Profiler;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Symfony\Component\HttpFoundation\Exception\ConflictingHeadersException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollectorInterface;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Profiler.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class Profiler
+class Profiler implements ResetInterface
 {
     private $storage;
 
@@ -36,14 +38,11 @@ class Profiler
     private $initiallyEnabled = true;
     private $enabled = true;
 
-    /**
-     * @param bool $enable The initial enabled state
-     */
-    public function __construct(ProfilerStorageInterface $storage, LoggerInterface $logger = null, $enable = true)
+    public function __construct(ProfilerStorageInterface $storage, LoggerInterface $logger = null, bool $enable = true)
     {
         $this->storage = $storage;
         $this->logger = $logger;
-        $this->initiallyEnabled = $this->enabled = (bool) $enable;
+        $this->initiallyEnabled = $this->enabled = $enable;
     }
 
     /**
@@ -140,10 +139,14 @@ class Profiler
     /**
      * Collects data for the given Response.
      *
+     * @param \Throwable|null $exception
+     *
      * @return Profile|null A Profile instance or null if the profiler is disabled
      */
-    public function collect(Request $request, Response $response, \Exception $exception = null)
+    public function collect(Request $request, Response $response/*, \Throwable $exception = null*/)
     {
+        $exception = 2 < \func_num_args() ? func_get_arg(2) : null;
+
         if (false === $this->enabled) {
             return null;
         }
@@ -159,11 +162,20 @@ class Profiler
             $profile->setIp('Unknown');
         }
 
+        if ($prevToken = $response->headers->get('X-Debug-Token')) {
+            $response->headers->set('X-Previous-Debug-Token', $prevToken);
+        }
+
         $response->headers->set('X-Debug-Token', $profile->getToken());
 
+        $wrappedException = null;
         foreach ($this->collectors as $collector) {
-            $collector->collect($request, $response, $exception);
+            if (($e = $exception) instanceof \Error) {
+                $r = new \ReflectionMethod($collector, 'collect');
+                $e = 2 >= $r->getNumberOfParameters() || !($p = $r->getParameters()[2])->hasType() || \Exception::class !== $p->getType()->getName() ? $e : ($wrappedException ?? $wrappedException = new FatalThrowableError($e));
+            }
 
+            $collector->collect($request, $response, $e);
             // we need to clone for sub-requests
             $profile->addCollector(clone $collector);
         }
@@ -174,10 +186,6 @@ class Profiler
     public function reset()
     {
         foreach ($this->collectors as $collector) {
-            if (!method_exists($collector, 'reset')) {
-                continue;
-            }
-
             $collector->reset();
         }
         $this->enabled = $this->initiallyEnabled;
@@ -211,10 +219,6 @@ class Profiler
      */
     public function add(DataCollectorInterface $collector)
     {
-        if (!method_exists($collector, 'reset')) {
-            @trigger_error(sprintf('Implementing "%s" without the "reset()" method is deprecated since Symfony 3.4 and will be unsupported in 4.0 for class "%s".', DataCollectorInterface::class, \get_class($collector)), E_USER_DEPRECATED);
-        }
-
         $this->collectors[$collector->getName()] = $collector;
     }
 
@@ -248,12 +252,9 @@ class Profiler
         return $this->collectors[$name];
     }
 
-    /**
-     * @return int|null
-     */
-    private function getTimestamp($value)
+    private function getTimestamp(?string $value): ?int
     {
-        if (null === $value || '' == $value) {
+        if (null === $value || '' === $value) {
             return null;
         }
 

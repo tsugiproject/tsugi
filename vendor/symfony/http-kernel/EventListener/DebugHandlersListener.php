@@ -15,8 +15,9 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleEvent;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
-use Symfony\Component\Debug\ErrorHandler;
-use Symfony\Component\Debug\ExceptionHandler;
+use Symfony\Component\Debug\ErrorHandler as LegacyErrorHandler;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
+use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Debug\FileLinkFormatter;
@@ -27,6 +28,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * Configures errors and exceptions handlers.
  *
  * @author Nicolas Grekas <p@tchwork.com>
+ *
+ * @final since Symfony 4.4
  */
 class DebugHandlersListener implements EventSubscriberInterface
 {
@@ -41,23 +44,22 @@ class DebugHandlersListener implements EventSubscriberInterface
     private $hasTerminatedWithException;
 
     /**
-     * @param callable|null                 $exceptionHandler A handler that will be called on Exception
-     * @param LoggerInterface|null          $logger           A PSR-3 logger
+     * @param callable|null                 $exceptionHandler A handler that must support \Throwable instances that will be called on Exception
      * @param array|int                     $levels           An array map of E_* to LogLevel::* or an integer bit field of E_* constants
      * @param int|null                      $throwAt          Thrown errors in a bit field of E_* constants, or null to keep the current value
      * @param bool                          $scream           Enables/disables screaming mode, where even silenced errors are logged
      * @param string|FileLinkFormatter|null $fileLinkFormat   The format for links to source files
      * @param bool                          $scope            Enables/disables scoping mode
      */
-    public function __construct(callable $exceptionHandler = null, LoggerInterface $logger = null, $levels = E_ALL, $throwAt = E_ALL, $scream = true, $fileLinkFormat = null, $scope = true)
+    public function __construct(callable $exceptionHandler = null, LoggerInterface $logger = null, $levels = \E_ALL, ?int $throwAt = \E_ALL, bool $scream = true, $fileLinkFormat = null, bool $scope = true)
     {
         $this->exceptionHandler = $exceptionHandler;
         $this->logger = $logger;
-        $this->levels = null === $levels ? E_ALL : $levels;
-        $this->throwAt = is_numeric($throwAt) ? (int) $throwAt : (null === $throwAt ? null : ($throwAt ? E_ALL : null));
-        $this->scream = (bool) $scream;
+        $this->levels = null === $levels ? \E_ALL : $levels;
+        $this->throwAt = \is_int($throwAt) ? $throwAt : (null === $throwAt ? null : ($throwAt ? \E_ALL : null));
+        $this->scream = $scream;
         $this->fileLinkFormat = $fileLinkFormat;
-        $this->scope = (bool) $scope;
+        $this->scope = $scope;
     }
 
     /**
@@ -78,7 +80,7 @@ class DebugHandlersListener implements EventSubscriberInterface
         restore_exception_handler();
 
         if ($this->logger || null !== $this->throwAt) {
-            if ($handler instanceof ErrorHandler) {
+            if ($handler instanceof ErrorHandler || $handler instanceof LegacyErrorHandler) {
                 if ($this->logger) {
                     $handler->setDefaultLogger($this->logger, $this->levels);
                     if (\is_array($this->levels)) {
@@ -93,7 +95,7 @@ class DebugHandlersListener implements EventSubscriberInterface
                         $handler->screamAt($levels);
                     }
                     if ($this->scope) {
-                        $handler->scopeAt($levels & ~E_USER_DEPRECATED & ~E_DEPRECATED);
+                        $handler->scopeAt($levels & ~\E_USER_DEPRECATED & ~\E_DEPRECATED);
                     } else {
                         $handler->scopeAt(0, true);
                     }
@@ -109,10 +111,11 @@ class DebugHandlersListener implements EventSubscriberInterface
                 if (method_exists($kernel = $event->getKernel(), 'terminateWithException')) {
                     $request = $event->getRequest();
                     $hasRun = &$this->hasTerminatedWithException;
-                    $this->exceptionHandler = static function (\Exception $e) use ($kernel, $request, &$hasRun) {
+                    $this->exceptionHandler = static function (\Throwable $e) use ($kernel, $request, &$hasRun) {
                         if ($hasRun) {
                             throw $e;
                         }
+
                         $hasRun = true;
                         $kernel->terminateWithException($e, $request);
                     };
@@ -122,26 +125,22 @@ class DebugHandlersListener implements EventSubscriberInterface
                 if ($output instanceof ConsoleOutputInterface) {
                     $output = $output->getErrorOutput();
                 }
-                $this->exceptionHandler = function ($e) use ($app, $output) {
-                    $app->renderException($e, $output);
+                $this->exceptionHandler = static function (\Throwable $e) use ($app, $output) {
+                    if (method_exists($app, 'renderThrowable')) {
+                        $app->renderThrowable($e, $output);
+                    } else {
+                        if (!$e instanceof \Exception) {
+                            $e = new FatalThrowableError($e);
+                        }
+
+                        $app->renderException($e, $output);
+                    }
                 };
             }
         }
         if ($this->exceptionHandler) {
-            if ($handler instanceof ErrorHandler) {
-                $h = $handler->setExceptionHandler('var_dump');
-                if (\is_array($h) && $h[0] instanceof ExceptionHandler) {
-                    $handler->setExceptionHandler($h);
-                    $handler = $h[0];
-                } else {
-                    $handler->setExceptionHandler($this->exceptionHandler);
-                }
-            }
-            if ($handler instanceof ExceptionHandler) {
-                $handler->setHandler($this->exceptionHandler);
-                if (null !== $this->fileLinkFormat) {
-                    $handler->setFileLinkFormat($this->fileLinkFormat);
-                }
+            if ($handler instanceof ErrorHandler || $handler instanceof LegacyErrorHandler) {
+                $handler->setExceptionHandler($this->exceptionHandler);
             }
             $this->exceptionHandler = null;
         }

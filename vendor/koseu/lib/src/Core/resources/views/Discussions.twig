@@ -1,0 +1,10 @@
+{% extends "Page.twig" %}
+
+{% block content %}
+<div class="container">
+{{ data | raw }}
+</div>
+{% endblock %}
+{% block footer %}
+<script>$(document).ready(function() { jQuery("time.timeago").timeago(); });</script>
+{% endblock %}

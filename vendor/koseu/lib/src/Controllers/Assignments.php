@@ -2,9 +2,8 @@
 
 namespace Koseu\Controllers;
 
-use Silex\Application;
+use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 use \Tsugi\Grades\GradeUtil;
 
@@ -13,14 +12,13 @@ class Assignments {
     const ROUTE = '/assignments';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix, 'Koseu\\Controllers\\Assignments::get');
-        $app->get($prefix.'/', 'Koseu\\Controllers\\Assignments::get');
+        $app->router->get($prefix, 'Assignments@get');
+        $app->router->get($prefix.'/', 'Assignments@get');
     }
 
-    public function get(Request $request, Application $app)
+    public function get(Request $request)
     {
         global $CFG;
-        $tsugi = $app['tsugi'];
 
         if ( ! isset($CFG->lessons) ) {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
@@ -38,7 +36,7 @@ class Assignments {
             }
         }
 
-        return $app['twig']->render('@Koseu/Badges.twig',
+        return view('Badges',
             array('data' => $l->renderAssignments($allgrades, true))
         );
 

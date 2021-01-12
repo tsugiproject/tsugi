@@ -26,10 +26,18 @@ use Symfony\Component\HttpKernel\KernelEvents;
  *
  * @author Bulat Shakirzyanov <mallluhuct@gmail.com>
  * @author Fabien Potencier <fabien@symfony.com>
+ *
+ * @internal since Symfony 4.3
  */
 abstract class AbstractTestSessionListener implements EventSubscriberInterface
 {
     private $sessionId;
+    private $sessionOptions;
+
+    public function __construct(array $sessionOptions = [])
+    {
+        $this->sessionOptions = $sessionOptions;
+    }
 
     public function onKernelRequest(GetResponseEvent $event)
     {
@@ -38,8 +46,7 @@ abstract class AbstractTestSessionListener implements EventSubscriberInterface
         }
 
         // bootstrap the session
-        $session = $this->getSession();
-        if (!$session) {
+        if (!$session = $this->getSession()) {
             return;
         }
 
@@ -61,16 +68,23 @@ abstract class AbstractTestSessionListener implements EventSubscriberInterface
             return;
         }
 
-        if (!$session = $event->getRequest()->getSession()) {
+        $request = $event->getRequest();
+        if (!$request->hasSession()) {
             return;
         }
 
+        $session = $request->getSession();
         if ($wasStarted = $session->isStarted()) {
             $session->save();
         }
 
         if ($session instanceof Session ? !$session->isEmpty() || (null !== $this->sessionId && $session->getId() !== $this->sessionId) : $wasStarted) {
-            $params = session_get_cookie_params();
+            $params = session_get_cookie_params() + ['samesite' => null];
+            foreach ($this->sessionOptions as $k => $v) {
+                if (0 === strpos($k, 'cookie_')) {
+                    $params[substr($k, 7)] = $v;
+                }
+            }
 
             foreach ($event->getResponse()->headers->getCookies() as $cookie) {
                 if ($session->getName() === $cookie->getName() && $params['path'] === $cookie->getPath() && $params['domain'] == $cookie->getDomain()) {
@@ -78,7 +92,7 @@ abstract class AbstractTestSessionListener implements EventSubscriberInterface
                 }
             }
 
-            $event->getResponse()->headers->setCookie(new Cookie($session->getName(), $session->getId(), 0 === $params['lifetime'] ? 0 : time() + $params['lifetime'], $params['path'], $params['domain'], $params['secure'], $params['httponly']));
+            $event->getResponse()->headers->setCookie(new Cookie($session->getName(), $session->getId(), 0 === $params['lifetime'] ? 0 : time() + $params['lifetime'], $params['path'], $params['domain'], $params['secure'], $params['httponly'], false, $params['samesite'] ?: null));
             $this->sessionId = $session->getId();
         }
     }

@@ -2,27 +2,26 @@
 
 namespace Tsugi\Controllers;
 
-use Silex\Application;
+use Laravel\Lumen\Routing\Controller;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
+use Tsugi\Lumen\Application;
 use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\SecureCookie;
 
-class Login {
+class Login extends Controller {
 
     const ROUTE = '/login';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix, 'Tsugi\\Controllers\\Login::get');
-        $app->get($prefix.'/', 'Tsugi\\Controllers\\Login::get');
+        $app->router->get($prefix, 'Login@get');
+        $app->router->get($prefix.'/', 'Login@get');
     }
 
-    public function get(Request $request, Application $app)
+    public function get(Request $request)
     {
         global $CFG;
-        $tsugi = $app['tsugi'];
 
         $PDOX = LTIX::getConnection();
 
@@ -397,7 +396,7 @@ class Login {
         $context['login_return'] = $login_return;
         $context['loginUrl'] = $loginUrl;
 
-        return $app['twig']->render('@Tsugi/Login.twig',$context);
+        return view('Login', $context);
     }
 
 }

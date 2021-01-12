@@ -34,7 +34,7 @@ final class ArgumentResolver implements ArgumentResolverInterface
      */
     private $argumentValueResolvers;
 
-    public function __construct(ArgumentMetadataFactoryInterface $argumentMetadataFactory = null, $argumentValueResolvers = [])
+    public function __construct(ArgumentMetadataFactoryInterface $argumentMetadataFactory = null, iterable $argumentValueResolvers = [])
     {
         $this->argumentMetadataFactory = $argumentMetadataFactory ?: new ArgumentMetadataFactory();
         $this->argumentValueResolvers = $argumentValueResolvers ?: self::getDefaultArgumentValueResolvers();
@@ -43,7 +43,7 @@ final class ArgumentResolver implements ArgumentResolverInterface
     /**
      * {@inheritdoc}
      */
-    public function getArguments(Request $request, $controller)
+    public function getArguments(Request $request, $controller): array
     {
         $arguments = [];
 
@@ -55,12 +55,14 @@ final class ArgumentResolver implements ArgumentResolverInterface
 
                 $resolved = $resolver->resolve($request, $metadata);
 
-                if (!$resolved instanceof \Generator) {
-                    throw new \InvalidArgumentException(sprintf('"%s::resolve()" must yield at least one value.', \get_class($resolver)));
+                $atLeastOne = false;
+                foreach ($resolved as $append) {
+                    $atLeastOne = true;
+                    $arguments[] = $append;
                 }
 
-                foreach ($resolved as $append) {
-                    $arguments[] = $append;
+                if (!$atLeastOne) {
+                    throw new \InvalidArgumentException(sprintf('"%s::resolve()" must yield at least one value.', \get_class($resolver)));
                 }
 
                 // continue to the next controller argument
@@ -81,7 +83,7 @@ final class ArgumentResolver implements ArgumentResolverInterface
         return $arguments;
     }
 
-    public static function getDefaultArgumentValueResolvers()
+    public static function getDefaultArgumentValueResolvers(): iterable
     {
         return [
             new RequestAttributeValueResolver(),

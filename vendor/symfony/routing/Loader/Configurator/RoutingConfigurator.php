@@ -25,7 +25,7 @@ class RoutingConfigurator
     private $path;
     private $file;
 
-    public function __construct(RouteCollection $collection, PhpFileLoader $loader, $path, $file)
+    public function __construct(RouteCollection $collection, PhpFileLoader $loader, string $path, string $file)
     {
         $this->collection = $collection;
         $this->loader = $loader;
@@ -34,13 +34,13 @@ class RoutingConfigurator
     }
 
     /**
-     * @return ImportConfigurator
+     * @param string|string[]|null $exclude Glob patterns to exclude from the import
      */
-    final public function import($resource, $type = null, $ignoreErrors = false)
+    final public function import($resource, string $type = null, bool $ignoreErrors = false, $exclude = null): ImportConfigurator
     {
         $this->loader->setCurrentDir(\dirname($this->path));
-        $imported = $this->loader->import($resource, $type, $ignoreErrors, $this->file) ?: [];
 
+        $imported = $this->loader->import($resource, $type, $ignoreErrors, $this->file, $exclude) ?: [];
         if (!\is_array($imported)) {
             return new ImportConfigurator($this->collection, $imported);
         }
@@ -53,10 +53,7 @@ class RoutingConfigurator
         return new ImportConfigurator($this->collection, $mergedCollection);
     }
 
-    /**
-     * @return CollectionConfigurator
-     */
-    final public function collection($name = '')
+    final public function collection(string $name = ''): CollectionConfigurator
     {
         return new CollectionConfigurator($this->collection, $name);
     }

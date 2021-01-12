@@ -1,6 +1,5 @@
 <?php
 use \Tsugi\Util\U;
-use \Tsugi\Core\I18N;
 
 if ( ! isset($CFG) ) die("Please configure this product using config.php");
 
@@ -170,30 +169,6 @@ if (!function_exists('http_response_code'))
         return U::http_response_code($newcode);
     }
 }
-
-// Convience method, pattern borrowed from WordPress
-if (! function_exists('__')) {
-function __($message, $textdomain=false) {
-    return I18N::__($message, $textdomain);
-}
-}
-
-function _e($message, $textdomain=false) {
-    I18N::_e($message, $textdomain);
-}
-
-function _m($message, $textdomain=false) {
-    return I18N::_m($message, $textdomain);
-}
-
-function _me($message, $textdomain=false) {
-    I18N::_me($message, $textdomain);
-}
-
-// Set up the user's locale - May be overridden later
-$TSUGI_LOCALE = null;
-$TSUGI_LOCALE_RELOAD = true;
-I18N::setLocale();
 
 function isCli() {
     return U::isCli();
