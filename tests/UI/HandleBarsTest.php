@@ -2,6 +2,7 @@
 
 $toppath = dirname(__FILE__).'/../..';
 
+require_once "include/pre_config.php";
 require_once "src/UI/HandleBars.php";
 require_once $toppath.'/vendor/symfony/translation/TranslatorBagInterface.php';
 require_once $toppath.'/vendor/symfony/translation/TranslatorInterface.php';
