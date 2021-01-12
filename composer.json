@@ -1,6 +1,5 @@
 {
     "require": {
-        "twig/twig": "v2.14.1",
         "laravel/lumen-framework": "v6.3.5",
         "pimple/pimple": "v3.0.2",
         "aws/aws-sdk-php": "v3.55.0",
@@ -45,8 +44,8 @@
         "symfony/polyfill-php80" : "v1.18.1",
 
 
-        "tsugi/lib": "dev-trunk#e0be6acb52fa74c56675fe710609ebf8b1b424c9",
-        "koseu/lib": "dev-trunk#b86e4d83c8ed998dbcd65ceea8dab568fc7dfa38"
+        "tsugi/lib": "dev-trunk#321e9786823d6c6ffa27f917dd820106403545b2",
+        "koseu/lib": "dev-trunk#c73146da8729b0dbad1a13fce217ed7f90f59d7b"
     },
     "config": {
         "preferred-install": "dist"
