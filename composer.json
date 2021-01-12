@@ -22,7 +22,7 @@
     },
     "require": {
         "php": ">=7.2.0",
-        "tsugi/lib": "dev-silex_removal",
+        "tsugi/lib": "dev-trunk",
         "twig/twig": "v2.14.1",
         "laravel/lumen-framework": "v6.3.5",
         "rcrowe/twigbridge": "v0.12.3",
