@@ -8,7 +8,6 @@ use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class Topics {
 
@@ -28,7 +27,7 @@ class Topics {
 
     public function get(Request $request, $anchor=null)
     {
-        global $CFG;
+        global $CFG, $OUTPUT;
 
         if ( ! isset($CFG->topics) ) {
             die_with_error_log('Cannot find topics.json ($CFG->topics)');
@@ -44,15 +43,20 @@ class Topics {
         }
 
         // Load the Topic
-        $l = new \Tsugi\UI\Topics($CFG->topics,$anchor);
+        $t = new \Tsugi\UI\Topics($CFG->topics,$anchor);
 
-        $context = array();
-        $context['head'] = $l->header(true);
-        $context['container'] = $l->render(true);
-        $context['footer'] = $l->footer(true);
-
-        return view('Topics',$context);
-
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $menu = false;
+        $OUTPUT->topNav($menu);
+        $OUTPUT->flashMessages();
+        $t->header();
+        echo('<div class="container">');
+        $t->render();
+        echo('</div>');
+        $OUTPUT->footerStart();
+        $t->footer();
+        $OUTPUT->footerEnd();
     }
 
     public static function launch(Application $app, $anchor=null)

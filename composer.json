@@ -44,8 +44,8 @@
         "symfony/polyfill-php80" : "v1.18.1",
 
 
-        "tsugi/lib": "dev-trunk#4d304e7c037bb585e71e84d1ae0ae580a0f20751",
-        "koseu/lib": "dev-trunk#e0cce43ff664f3c428986009dfc1eb2df5e3fc50"
+        "tsugi/lib": "dev-trunk#54777ea1b7b7528ab9951f3d568d85ccfaae3072",
+        "koseu/lib": "dev-trunk#8b51d72177c171fb36af211e1bfe85bc67eda264"
     },
     "config": {
         "preferred-install": "dist"
