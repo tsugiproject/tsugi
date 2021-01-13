@@ -3,12 +3,6 @@
 
 namespace Koseu\Core;
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
-use \Tsugi\Core\LTIX;
-
 class Application extends \Tsugi\Lumen\Application {
 
     public function __construct($launch)
