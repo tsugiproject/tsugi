@@ -37,10 +37,6 @@ class Application extends \Laravel\Lumen\Application {
      *
      *     $app['tsugi']->user->displayname;
      *
-     * Or in a Twig template:
-     *
-     *     app.tsugi.user.displayname
-     *
      * This sets up a PHP bridge session to allow old session and new
      * session code to coexist.
      */
@@ -71,9 +67,6 @@ class Application extends \Laravel\Lumen\Application {
 
         $CFG->loader->addPsr4('AppBundle\\', 'src/AppBundle');
 
-        // Configure / Register TwigBridge to enable Twig templates with Lumen/Laravel
-        $this->configure('twigbridge');
-        $this->register('TwigBridge\ServiceProvider');
     }
 
     /**
