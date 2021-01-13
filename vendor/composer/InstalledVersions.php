@@ -1,15 +1,5 @@
 <?php
 
-
-
-
-
-
-
-
-
-
-
 namespace Composer;
 
 use Composer\Semver\VersionParser;
@@ -29,7 +19,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '3f9ba2e9856fe8e77c621a45c1af78b968c8711d',
+    'reference' => '997aa08cc583ffcdc9f71b1ae698bd74e4afd7e6',
     'name' => '__root__',
   ),
   'versions' => 
@@ -41,7 +31,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '3f9ba2e9856fe8e77c621a45c1af78b968c8711d',
+      'reference' => '997aa08cc583ffcdc9f71b1ae698bd74e4afd7e6',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -923,7 +913,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '54777ea1b7b7528ab9951f3d568d85ccfaae3072',
+      'reference' => '524c7d0fe5c741384c960508506f7c9bd021dd91',
     ),
     'vlucas/phpdotenv' => 
     array (

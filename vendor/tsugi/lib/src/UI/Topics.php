@@ -54,7 +54,7 @@ class Topics {
         $this->resource_links = array();
 
         if (isset($CFG->warpwire_baseurl)) {
-            $warpwire_baseurl = $CFG->warpwire_baseurl;
+            $this->warpwire_baseurl = $CFG->warpwire_baseurl;
         }
 
         if ( $course === null ) {
@@ -329,14 +329,15 @@ class Topics {
 
     public static function getUrlResources($topic) {
         $resources = array();
+        $topics = new Topics();
         if ( isset($topic->videos) ) {
             foreach($topic->videos as $video ) {
                 if (isset($video->youtube)) {
                     $resources[] = self::makeUrlResource('video',$video->title,
                         'https://www.youtube.com/watch?v='.urlencode($video->youtube));
-                } else if (isset($video->warpwire) && $warpwire_baseurl) {
+                } else if (isset($video->warpwire) && ($topics->warpwire_baseurl)) {
                     $resources[] = self::makeUrlResource('video',$video->title,
-                        $warpwire_baseurl.'/w/'.urlencode($video->warpwire));
+                        $topics->warpwire_baseurl.'/w/'.urlencode($video->warpwire));
                 }
             }
         }
@@ -458,9 +459,9 @@ class Topics {
                             } else {
                                 $OUTPUT->embedYouTube($video->youtube, $video->title);
                             }
-                        } else if (isset($video->warpwire) && $warpwire_baseurl) {
+                        } else if (isset($video->warpwire) && $this->warpwire_baseurl) {
                             echo '<div class="videoWrapper">';
-                            echo('<iframe src="'.$warpwire_baseurl.'/w/'.$video->warpwire.'/?share=0&title=0" frameborder="0" scrolling="0" allow="autoplay; encrypted-media; fullscreen;  picture-in-picture;" allowfullscreen></iframe>');
+                            echo('<iframe src="'.$this->warpwire_baseurl.'/w/'.$video->warpwire.'/?share=0&title=0" frameborder="0" scrolling="0" allow="autoplay; encrypted-media; fullscreen;  picture-in-picture;" allowfullscreen></iframe>');
                             echo '</div>';
                         } else if (isset($video->embed)) {
                             echo '<div class="videoWrapper">';
