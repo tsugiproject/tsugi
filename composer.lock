@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "62063a76845be648939bf14c8e74fd89",
-    "content-hash": "0cab398cbb1b44b97e80931362a9c8f7",
+    "hash": "a1754d5ff9ed342039e6f87f51ae6390",
+    "content-hash": "2e3828079450452cd6a001d842fd8583",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -825,7 +825,7 @@
             ],
             "description": "A Next Generation Embeddable Learning Management System",
             "homepage": "http://www.koseu.org/",
-            "time": "2020-09-13 02:22:00"
+            "time": "2020-12-27 15:45:48"
         },
         {
             "name": "monolog/monolog",
@@ -2761,12 +2761,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "da65365622d525a7d652a2986f53def549701d11"
+                "reference": "04fe24e562e92125152135b260c80b42d8aeaee2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/da65365622d525a7d652a2986f53def549701d11",
-                "reference": "da65365622d525a7d652a2986f53def549701d11",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/04fe24e562e92125152135b260c80b42d8aeaee2",
+                "reference": "04fe24e562e92125152135b260c80b42d8aeaee2",
                 "shasum": ""
             },
             "require": {
