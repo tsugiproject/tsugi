@@ -277,7 +277,7 @@ class Launch {
      * Return a boolean is this is an LTI Advantage launch
      */
     public function isLTIAdvantage() {
-        return $this->ltiRawJWT !== null;
+        return $this->ltiRawJWT() !== null;
     }
 
     /**
