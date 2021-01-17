@@ -6,6 +6,10 @@ use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 
+require_once "LumenHandler.php";
+require_once "Handler.php";
+
+
 /**
  * The Tsugi variant of a Lumen Application
  *
