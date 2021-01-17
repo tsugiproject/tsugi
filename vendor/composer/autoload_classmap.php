@@ -8,7 +8,6 @@ $baseDir = dirname($vendorDir);
 return array(
     'ArithmeticError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/ArithmeticError.php',
     'AssertionError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/AssertionError.php',
-    'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'DivisionByZeroError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/DivisionByZeroError.php',
     'Error' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/Error.php',
     'Google_Service_Exception' => $vendorDir . '/google/apiclient/src/Google/Service/Exception.php',
