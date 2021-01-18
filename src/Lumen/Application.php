@@ -3,6 +3,10 @@
 namespace Tsugi\Lumen;
 
 use Tsugi\Util\U;
+use Illuminate\Log\LogManager;
+use Monolog\Handler\ErrorLogHandler;
+use Monolog\Logger as Monolog;
+
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 
@@ -55,14 +59,22 @@ class Application extends \Laravel\Lumen\Application {
         $session = new Session(new PhpBridgeSessionStorage());
         $session->start();
         $this['session'] = $session;
-
-        $this->useStoragePath($CFG->lumen_storage);
-        $this->registerViewBindings();
-
         $this->tsugi_path = U::get_rest_path();
         $this->tsugi_parent = U::get_rest_parent();
 
-        $CFG->loader->addPsr4('AppBundle\\', 'src/AppBundle');
+        // At this point nothing should use storage
+        // (no blade templates and logging goes to php error log).
+        // $this->useStoragePath($CFG->lumen_storage);
+
+        // We are not using any view technology from Lumen at this point
+        // $this->registerViewBindings();
+
+        // TODO: We get an error when we try to use the illuminate logging
+        // tsugi.lumen.ERROR: RuntimeException: A facade root has not been set.
+        // might want to fix this at some point.
+
+        // TODO: It is not clear this is used at all - it is a vestige from Silex methinks
+        // $CFG->loader->addPsr4('AppBundle\\', 'src/AppBundle');
 
     }
 
@@ -74,6 +86,24 @@ class Application extends \Laravel\Lumen\Application {
     protected function resolveExceptionHandler()
     {
         return($this->make('\Tsugi\Lumen\ExceptionHandler'));
+    }
+
+    /**
+     * Override the log bindings to use the php error log
+     *
+     * @return void
+     */
+    protected function registerLogBindings()
+    {
+        // https://github.com/illuminate/log/blob/master/LogManager.php
+        $this->singleton('Psr\Log\LoggerInterface', function () {
+
+            $handler = new \Monolog\Handler\ErrorLogHandler(
+                    \Monolog\Handler\ErrorLogHandler::OPERATING_SYSTEM, 'debug');
+
+            $logger = new MonoLog("tsugi.lumen", [ $handler ] );
+            return $logger;
+        });
     }
 
     /**
