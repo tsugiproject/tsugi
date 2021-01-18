@@ -6,10 +6,6 @@ use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 
-require_once "LumenHandler.php";
-require_once "Handler.php";
-
-
 /**
  * The Tsugi variant of a Lumen Application
  *
@@ -68,6 +64,16 @@ class Application extends \Laravel\Lumen\Application {
 
         $CFG->loader->addPsr4('AppBundle\\', 'src/AppBundle');
 
+    }
+
+    /**
+     * Override the Exception Handler
+     *
+     * @return mixed
+     */
+    protected function resolveExceptionHandler()
+    {
+        return($this->make('\Tsugi\Lumen\ExceptionHandler'));
     }
 
     /**
