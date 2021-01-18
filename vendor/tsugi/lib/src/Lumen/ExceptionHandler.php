@@ -3,24 +3,11 @@
 namespace Tsugi\Lumen;
 
 use Illuminate\Http\Response;
-
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 use Tsugi\UI\Output;
 
-/**
- * This is a hack of extreme magnitude which I wish were simpler
- *
- * Since the Lumen run-time is hard coded to load the
- * Laravel\Lumen\Exceptions\Handler to handle exceptions we are
- * going to jump infront of the one that comes from Lumen.
- * We copy the Handler form Lumen as LumenHandler and make it
- * our parent class so we can extend one method (for now)
- * to customize the response for a 404.
- *
- * I would love to fins a way to use the Container bindings to perform
- * this trick.  But I have not dug through them.
- */
+// I wrote this stack overflow and then after I wrote it I figured out the answer
+// https://stackoverflow.com/questions/65777054/how-do-i-add-a-custom-404-page-to-a-lumen-not-laravel-application
 
 class ExceptionHandler extends \Laravel\Lumen\Exceptions\Handler {
 
