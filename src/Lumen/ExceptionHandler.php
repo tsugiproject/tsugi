@@ -1,8 +1,6 @@
 <?php
 
-namespace Laravel\Lumen\Exceptions;
-
-use Laravel\Lumen\Exceptions\LumenHandler;
+namespace Tsugi\Lumen;
 
 use Illuminate\Http\Response;
 
@@ -24,7 +22,7 @@ use Tsugi\UI\Output;
  * this trick.  But I have not dug through them.
  */
 
-class Handler extends LumenHandler {
+class ExceptionHandler extends \Laravel\Lumen\Exceptions\Handler {
 
     /**
      * Render an exception into an HTTP response.
