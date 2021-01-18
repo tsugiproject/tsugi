@@ -81,6 +81,10 @@ class Application extends \Laravel\Lumen\Application {
     /**
      * Override the Exception Handler
      *
+     * I wrote a stack overflow question and after I wrote it I figured out the answer and wrote this method
+     *
+     * https://stackoverflow.com/questions/65777054/how-do-i-add-a-custom-404-page-to-a-lumen-not-laravel-application
+     *
      * @return mixed
      */
     protected function resolveExceptionHandler()
