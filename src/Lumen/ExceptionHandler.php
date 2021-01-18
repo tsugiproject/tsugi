@@ -11,10 +11,10 @@ use Tsugi\UI\Output;
 /**
  * This is a hack of extreme magnitude which I wish were simpler
  *
- * Since the Lumen run-time is hard coded to load the 
+ * Since the Lumen run-time is hard coded to load the
  * Laravel\Lumen\Exceptions\Handler to handle exceptions we are
  * going to jump infront of the one that comes from Lumen.
- * We copy the Handler form Lumen as LumenHandler and make it 
+ * We copy the Handler form Lumen as LumenHandler and make it
  * our parent class so we can extend one method (for now)
  * to customize the response for a 404.
  *
@@ -23,6 +23,25 @@ use Tsugi\UI\Output;
  */
 
 class ExceptionHandler extends \Laravel\Lumen\Exceptions\Handler {
+
+    // TODO: figure out why we could not set
+    // protected $dontReport = [];
+    // in a constructor here.  Instead we override report() below
+    // because it works.
+
+    /**
+     * Override report to eat our 404's
+     *
+     * @param  \Exception  $e
+     * @return void
+     *
+     * @throws \Exception
+     */
+    public function report(\Exception $e)
+    {
+        if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException ) return;
+        parent::report($e);
+    }
 
     /**
      * Render an exception into an HTTP response.
