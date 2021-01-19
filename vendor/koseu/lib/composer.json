@@ -24,6 +24,6 @@
         "php": ">=7.2.0",
         "laravel/lumen-framework": "v6.3.5",
         "symfony/translation": "v4.4.18",
-        "tsugi/lib": "dev-trunk#4d304e7c037bb585e71e84d1ae0ae580a0f20751"
+        "tsugi/lib": "dev-master#a09ce4e47ad1e4cfbc095316fef443a9a91f84c3"
     }
 }

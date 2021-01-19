@@ -5440,12 +5440,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/koseu-php.git",
-            "reference": "8b51d72177c171fb36af211e1bfe85bc67eda264"
+            "reference": "345e4089961facc7a4c00c12480ea0437009b837"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/8b51d72177c171fb36af211e1bfe85bc67eda264",
-            "reference": "8b51d72177c171fb36af211e1bfe85bc67eda264",
+            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/345e4089961facc7a4c00c12480ea0437009b837",
+            "reference": "345e4089961facc7a4c00c12480ea0437009b837",
             "shasum": ""
         },
         "require": {
