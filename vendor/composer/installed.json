@@ -4993,15 +4993,13 @@
             "illuminate/support": "^6.0",
             "php": "^7.2.5|^8.0"
         },
-        "time": "2020-10-27 15:05:51",
+        "time": "2018-04-21 00:23:45",
         "type": "library",
         "extra": {
             "branch-alias": {
                 "dev-master": "6.x-dev"
             }
         },
-        "time": "2018-04-21 00:23:45",
-        "type": "library",
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
@@ -5190,15 +5188,13 @@
             "illuminate/support": "^6.0",
             "php": "^7.2.5|^8.0"
         },
-        "time": "2020-10-27 15:05:51",
+        "time": "2020-03-04 06:31:17",
         "type": "library",
         "extra": {
             "branch-alias": {
                 "dev-master": "6.x-dev"
             }
         },
-        "time": "2020-03-04 06:31:17",
-        "type": "library",
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
@@ -5428,11 +5424,10 @@
             "shasum": ""
         },
         "require": {
-            "ezyang/htmlpurifier": ">=v4.13.0",
-            "php": ">=7.0.0",
-            "silex/silex": "v2.0.4",
-            "symfony/translation": "v3.2.7",
-            "twig/twig": "v2.6.2"
+            "laravel/lumen-framework": "v6.3.5",
+            "php": ">=7.2.0",
+            "symfony/translation": "v4.4.18",
+            "tsugi/lib": "dev-trunk#4d304e7c037bb585e71e84d1ae0ae580a0f20751"
         },
         "time": "2021-01-13 02:01:19",
         "type": "library",
@@ -5464,17 +5459,17 @@
     },
     {
         "name": "tsugi/lib",
-        "version": "dev-trunk",
+        "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/tsugiproject/tsugi-php.git",
-            "reference": "ee2294556581e77cfae5c44da0469a5fb3c721bf"
+            "reference": "a09ce4e47ad1e4cfbc095316fef443a9a91f84c3"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/ee2294556581e77cfae5c44da0469a5fb3c721bf",
-            "reference": "ee2294556581e77cfae5c44da0469a5fb3c721bf",
+            "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/a09ce4e47ad1e4cfbc095316fef443a9a91f84c3",
+            "reference": "a09ce4e47ad1e4cfbc095316fef443a9a91f84c3",
             "shasum": ""
         },
         "require": {
@@ -5487,12 +5482,12 @@
             "phpunit/php-timer": ">=1.0.6",
             "phpunit/phpunit": "5.*"
         },
-        "time": "2021-01-18 16:53:28",
+        "time": "2021-01-19 01:21:00",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
-                "Koseu\\": "src/"
+                "Tsugi\\": "src/"
             },
             "exclude-from-classmap": [
                 "/tests/",
@@ -5512,7 +5507,7 @@
                 "role": "Developer"
             }
         ],
-        "description": "A Next Generation Embeddable Learning Management System",
-        "homepage": "http://www.koseu.org/"
+        "description": "The PHP Library to build interoperable learning tools",
+        "homepage": "http://www.tsugi.org/"
     }
 ]

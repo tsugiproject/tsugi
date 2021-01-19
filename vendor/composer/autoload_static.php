@@ -18,8 +18,8 @@ class ComposerStaticInit1384816e0aaa5ab9b3d2184ea93577a2
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         '72579e7bd17821bb1321b87411366eae' => __DIR__ . '/..' . '/illuminate/support/helpers.php',
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
-        'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
+        'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
         '538ca81a9a966a6716601ecf48f4eaef' => __DIR__ . '/..' . '/opis/closure/functions.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
@@ -28,9 +28,9 @@ class ComposerStaticInit1384816e0aaa5ab9b3d2184ea93577a2
         '8a9dc1de0ca7e01f3e08231539562f61' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/functions.php',
         '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
+        'bee9632da3ca00a99623b9c35d0c4f8b' => __DIR__ . '/..' . '/laravel/lumen-framework/src/helpers.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
-        'bee9632da3ca00a99623b9c35d0c4f8b' => __DIR__ . '/..' . '/laravel/lumen-framework/src/helpers.php',
         'bd9634f2d41831496de0d3dfe4c94881' => __DIR__ . '/..' . '/symfony/polyfill-php56/bootstrap.php',
     );
 
@@ -106,10 +106,6 @@ class ComposerStaticInit1384816e0aaa5ab9b3d2184ea93577a2
         array (
             'Laravel\\Lumen\\' => 14,
         ),
-        'K' => 
-        array (
-            'Koseu\\' => 6,
-        ),
         'J' => 
         array (
             'JmesPath\\' => 9,
@@ -180,7 +176,8 @@ class ComposerStaticInit1384816e0aaa5ab9b3d2184ea93577a2
         ),
         'Tsugi\\' => 
         array (
-            0 => __DIR__ . '/..' . '/tsugi/lib/src',
+            0 => __DIR__ . '/..' . '/koseu/lib/src',
+            1 => __DIR__ . '/..' . '/tsugi/lib/src',
         ),
         'Symfony\\Polyfill\\Util\\' => 
         array (
@@ -361,10 +358,6 @@ class ComposerStaticInit1384816e0aaa5ab9b3d2184ea93577a2
         'Laravel\\Lumen\\' => 
         array (
             0 => __DIR__ . '/..' . '/laravel/lumen-framework/src',
-        ),
-        'Koseu\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/koseu/lib/src',
         ),
         'JmesPath\\' => 
         array (
