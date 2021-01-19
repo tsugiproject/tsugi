@@ -1111,6 +1111,58 @@
         ]
     },
     {
+        "name": "ezyang/htmlpurifier",
+        "version": "v4.13.0",
+        "version_normalized": "4.13.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/ezyang/htmlpurifier.git",
+            "reference": "08e27c97e4c6ed02f37c5b2b20488046c8d90d75"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/ezyang/htmlpurifier/zipball/08e27c97e4c6ed02f37c5b2b20488046c8d90d75",
+            "reference": "08e27c97e4c6ed02f37c5b2b20488046c8d90d75",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.2"
+        },
+        "require-dev": {
+            "simpletest/simpletest": "dev-master#72de02a7b80c6bb8864ef9bf66d41d2f58f826bd"
+        },
+        "time": "2020-06-29 00:56:53",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "HTMLPurifier": "library/"
+            },
+            "files": [
+                "library/HTMLPurifier.composer.php"
+            ],
+            "exclude-from-classmap": [
+                "/library/HTMLPurifier/Language/"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "LGPL-2.1-or-later"
+        ],
+        "authors": [
+            {
+                "name": "Edward Z. Yang",
+                "email": "admin@htmlpurifier.org",
+                "homepage": "http://ezyang.com"
+            }
+        ],
+        "description": "Standards compliant HTML filter written in PHP",
+        "homepage": "http://htmlpurifier.org/",
+        "keywords": [
+            "html"
+        ]
+    },
+    {
         "name": "symfony/routing",
         "version": "v4.4.18",
         "version_normalized": "4.4.18.0",
@@ -2648,58 +2700,6 @@
         ]
     },
     {
-        "name": "ezyang/htmlpurifier",
-        "version": "v4.13.0",
-        "version_normalized": "4.13.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/ezyang/htmlpurifier.git",
-            "reference": "08e27c97e4c6ed02f37c5b2b20488046c8d90d75"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/ezyang/htmlpurifier/zipball/08e27c97e4c6ed02f37c5b2b20488046c8d90d75",
-            "reference": "08e27c97e4c6ed02f37c5b2b20488046c8d90d75",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.2"
-        },
-        "require-dev": {
-            "simpletest/simpletest": "dev-master#72de02a7b80c6bb8864ef9bf66d41d2f58f826bd"
-        },
-        "time": "2020-06-29 00:56:53",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "HTMLPurifier": "library/"
-            },
-            "files": [
-                "library/HTMLPurifier.composer.php"
-            ],
-            "exclude-from-classmap": [
-                "/library/HTMLPurifier/Language/"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "LGPL-2.1-or-later"
-        ],
-        "authors": [
-            {
-                "name": "Edward Z. Yang",
-                "email": "admin@htmlpurifier.org",
-                "homepage": "http://ezyang.com"
-            }
-        ],
-        "description": "Standards compliant HTML filter written in PHP",
-        "homepage": "http://htmlpurifier.org/",
-        "keywords": [
-            "html"
-        ]
-    },
-    {
         "name": "symfony/translation-contracts",
         "version": "v2.3.0",
         "version_normalized": "2.3.0.0",
@@ -2809,15 +2809,6 @@
         },
         "time": "2020-12-08 16:59:59",
         "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "1.18-dev"
-            },
-            "thanks": {
-                "name": "symfony/polyfill",
-                "url": "https://github.com/symfony/polyfill"
-            }
-        },
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
@@ -3319,15 +3310,6 @@
         },
         "time": "2020-12-09 11:15:38",
         "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "1.18-dev"
-            },
-            "thanks": {
-                "name": "symfony/polyfill",
-                "url": "https://github.com/symfony/polyfill"
-            }
-        },
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
@@ -3417,11 +3399,6 @@
         },
         "time": "2020-12-18 13:32:33",
         "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "6.5-dev"
-            }
-        },
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
@@ -3670,7 +3647,7 @@
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "Apache-2.0"
+            "MIT"
         ],
         "authors": [
             {
@@ -3721,7 +3698,7 @@
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "BSD-3-Clause"
+            "MIT"
         ],
         "authors": [
             {
@@ -4361,11 +4338,6 @@
         },
         "time": "2020-12-08 16:59:59",
         "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "1.1.x-dev"
-            }
-        },
         "installation-source": "dist",
         "autoload": {
             "psr-4": {
@@ -4962,7 +4934,7 @@
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "BSD-3-Clause"
+            "MIT"
         ],
         "authors": [
             {
@@ -4993,7 +4965,7 @@
             "illuminate/support": "^6.0",
             "php": "^7.2.5|^8.0"
         },
-        "time": "2018-04-21 00:23:45",
+        "time": "2020-10-27 15:05:51",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -5188,7 +5160,7 @@
             "illuminate/support": "^6.0",
             "php": "^7.2.5|^8.0"
         },
-        "time": "2020-03-04 06:31:17",
+        "time": "2020-10-27 15:05:51",
         "type": "library",
         "extra": {
             "branch-alias": {
@@ -5309,7 +5281,7 @@
         },
         "notification-url": "https://packagist.org/downloads/",
         "license": [
-            "BSD-3-Clause"
+            "MIT"
         ],
         "authors": [
             {
@@ -5409,55 +5381,6 @@
         ]
     },
     {
-        "name": "koseu/lib",
-        "version": "dev-trunk",
-        "version_normalized": "9999999-dev",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/tsugiproject/koseu-php.git",
-            "reference": "8b51d72177c171fb36af211e1bfe85bc67eda264"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/8b51d72177c171fb36af211e1bfe85bc67eda264",
-            "reference": "8b51d72177c171fb36af211e1bfe85bc67eda264",
-            "shasum": ""
-        },
-        "require": {
-            "laravel/lumen-framework": "v6.3.5",
-            "php": ">=7.2.0",
-            "symfony/translation": "v4.4.18",
-            "tsugi/lib": "dev-trunk#4d304e7c037bb585e71e84d1ae0ae580a0f20751"
-        },
-        "time": "2021-01-13 02:01:19",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Tsugi\\": "src/"
-            },
-            "exclude-from-classmap": [
-                "/tests/",
-                "phpdoc.dist.xml",
-                "phpunit.xml.dist"
-            ]
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "Apache-2.0"
-        ],
-        "authors": [
-            {
-                "name": "csev",
-                "email": "drchuck@gmail.com",
-                "homepage": "http://www.dr-chuck.com/",
-                "role": "Developer"
-            }
-        ],
-        "description": "The PHP Library to build interoperable learning tools",
-        "homepage": "http://www.tsugi.org/"
-    },
-    {
         "name": "tsugi/lib",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
@@ -5509,5 +5432,54 @@
         ],
         "description": "The PHP Library to build interoperable learning tools",
         "homepage": "http://www.tsugi.org/"
+    },
+    {
+        "name": "koseu/lib",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/tsugiproject/koseu-php.git",
+            "reference": "8b51d72177c171fb36af211e1bfe85bc67eda264"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/8b51d72177c171fb36af211e1bfe85bc67eda264",
+            "reference": "8b51d72177c171fb36af211e1bfe85bc67eda264",
+            "shasum": ""
+        },
+        "require": {
+            "laravel/lumen-framework": "v6.3.5",
+            "php": ">=7.2.0",
+            "symfony/translation": "v4.4.18",
+            "tsugi/lib": "dev-trunk#4d304e7c037bb585e71e84d1ae0ae580a0f20751"
+        },
+        "time": "2021-01-13 02:01:19",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Koseu\\": "src/"
+            },
+            "exclude-from-classmap": [
+                "/tests/",
+                "phpdoc.dist.xml",
+                "phpunit.xml.dist"
+            ]
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Apache-2.0"
+        ],
+        "authors": [
+            {
+                "name": "csev",
+                "email": "drchuck@gmail.com",
+                "homepage": "http://www.dr-chuck.com/",
+                "role": "Developer"
+            }
+        ],
+        "description": "A Next Generation Embeddable Learning Management System",
+        "homepage": "http://www.koseu.org/"
     }
 ]
