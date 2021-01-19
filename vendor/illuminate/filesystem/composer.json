@@ -1,0 +1,44 @@
+{
+    "name": "illuminate/filesystem",
+    "description": "The Illuminate Filesystem package.",
+    "license": "MIT",
+    "homepage": "https://laravel.com",
+    "support": {
+        "issues": "https://github.com/laravel/framework/issues",
+        "source": "https://github.com/laravel/framework"
+    },
+    "authors": [
+        {
+            "name": "Taylor Otwell",
+            "email": "taylor@laravel.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2.5|^8.0",
+        "illuminate/contracts": "^6.0",
+        "illuminate/support": "^6.0",
+        "symfony/finder": "^4.3.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Illuminate\\Filesystem\\": ""
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "6.x-dev"
+        }
+    },
+    "suggest": {
+        "ext-ftp": "Required to use the Flysystem FTP driver.",
+        "league/flysystem": "Required to use the Flysystem local and FTP drivers (^1.1).",
+        "league/flysystem-aws-s3-v3": "Required to use the Flysystem S3 driver (^1.0).",
+        "league/flysystem-cached-adapter": "Required to use the Flysystem cache (^1.0).",
+        "league/flysystem-sftp": "Required to use the Flysystem SFTP driver (^1.0).",
+        "psr/http-message": "Required to allow Storage::put to accept a StreamInterface (^1.0)."
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev"
+}

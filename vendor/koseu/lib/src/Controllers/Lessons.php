@@ -5,9 +5,8 @@ namespace Koseu\Controllers;
 use Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
-use Silex\Application;
+use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class Lessons {
 
@@ -16,16 +15,18 @@ class Lessons {
     const REDIRECT = 'koseu_controllers_lessons';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix, 'Koseu\\Controllers\\Lessons::get');
-        $app->get($prefix.'/', 'Koseu\\Controllers\\Lessons::get')->bind(self::REDIRECT);
-        $app->get($prefix.'/{anchor}', 'Koseu\\Controllers\\Lessons::get');
-        $app->get($prefix.'_launch/{anchor}', 'Koseu\\Controllers\\Lessons::launch');
+        $app->router->get($prefix, 'Lessons@get');
+        $app->router->get($prefix.'/', 'Lessons@get');
+        $app->router->get('/'.self::REDIRECT, 'Lessons@get');
+        $app->router->get($prefix.'/{anchor}', 'Lessons@get');
+        $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
+            return Lessons::launch($app, $anchor);
+        });
     }
 
-    public function get(Request $request, Application $app, $anchor=null)
+    public function get(Request $request, $anchor=null)
     {
-        global $CFG;
-        $tsugi = $app['tsugi'];
+        global $CFG, $OUTPUT;
 
         if ( ! isset($CFG->lessons) ) {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
@@ -43,16 +44,21 @@ class Lessons {
         // Load the Lesson
         $l = new \Tsugi\UI\Lessons($CFG->lessons,$anchor);
 
-        $context = array();
-        $context['head'] = $l->header(true);
-        $context['container'] = $l->render(true);
-        $context['footer'] = $l->footer(true);
-
-        return $app['twig']->render('@Koseu/Lessons.twig',$context);
-
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $menu = false;
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        $l->header();
+        echo('<div class="container">');
+        $l->render();
+        echo('</div>');
+        $OUTPUT->footerStart();
+        $l->footer();
+        $OUTPUT->footerEnd();
     }
 
-    public function launch(Request $request, Application $app, $anchor=null)
+    public static function launch(Application $app, $anchor=null)
     {
         global $CFG;
         $tsugi = $app['tsugi'];
@@ -63,26 +69,26 @@ class Lessons {
 
         if ( ! isset($CFG->lessons) ) {
             $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons)'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         /// Load the Lesson
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         if ( ! $l ) {
             $app->tsugiFlashError(__('Cannot load lessons.'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         $module = $l->getModuleByRlid($anchor);
         if ( ! $module ) {
             $app->tsugiFlashError(__('Cannot find module resource link id'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         $lti = $l->getLtiByRlid($anchor);
         if ( ! $lti ) {
             $app->tsugiFlashError(__('Cannot find lti resource link id'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         // Check that the session has the minimums...
@@ -92,7 +98,7 @@ class Lessons {
             // All good
         } else {
             $app->tsugiFlashError(__('Missing session data required for launch'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
@@ -149,4 +155,5 @@ class Lessons {
         print($content);
         return "";
     }
+
 }

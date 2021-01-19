@@ -1,7 +1,6 @@
 {
     "require": {
-        "twig/twig": "v2.6.2",
-        "silex/silex": "v2.0.4",
+        "laravel/lumen-framework": "v6.3.5",
         "pimple/pimple": "v3.0.2",
         "aws/aws-sdk-php": "v3.55.0",
         "google/apiclient-services" : "v0.56",
@@ -12,12 +11,12 @@
 
         "cboden/ratchet" : "v0.4.3",
 
-        "symfony/event-dispatcher": "v3.4.43",
+        "symfony/event-dispatcher": "v4.4.18",
         "symfony/polyfill-php70": "v1.18.1",
         "symfony/polyfill-mbstring": "v1.18.1",
-        "symfony/http-foundation": "v3.4.43",
-        "symfony/http-kernel": "v3.4.43",
-        "symfony/routing": "v3.4.43",
+        "symfony/http-foundation": "v4.4.18",
+        "symfony/http-kernel": "v4.4.18",
+        "symfony/routing": "v4.4.18",
         "symfony/debug": "v4.4.11",
         "google/apiclient": "v2.2.1",
         "paragonie/random_compat": "v9.99.99",
@@ -45,8 +44,8 @@
         "symfony/polyfill-php80" : "v1.18.1",
 
 
-        "tsugi/lib": "dev-master#04fe24e562e92125152135b260c80b42d8aeaee2",
-        "koseu/lib": "dev-master#e12ce09c73c7bb8c4c9377012260d36ad5138bbe"
+        "tsugi/lib": "dev-trunk#ee2294556581e77cfae5c44da0469a5fb3c721bf",
+        "koseu/lib": "dev-trunk#8b51d72177c171fb36af211e1bfe85bc67eda264"
     },
     "config": {
         "preferred-install": "dist"

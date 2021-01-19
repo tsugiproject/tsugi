@@ -53,14 +53,14 @@ class HandleBars {
         $new = preg_replace_callback(
             '|{{__ *\'([^\']*)\' *}}|',
             function ($matches) {
-                return __(htmlent_utf8(trim($matches[1])));
+                return \Tsugi\Core\I18N::__(htmlent_utf8(trim($matches[1])));
             },
             $template
         );
         $new = preg_replace_callback(
             '|{{__ *"([^"]*)" *}}|',
             function ($matches) {
-                return __(htmlent_utf8(trim($matches[1])));
+                return \Tsugi\Core\I18N::__(htmlent_utf8(trim($matches[1])));
             },
             $new
         );

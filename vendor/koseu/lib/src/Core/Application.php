@@ -3,35 +3,32 @@
 
 namespace Koseu\Core;
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
-use \Tsugi\Core\LTIX;
-
-class Application extends \Tsugi\Silex\Application {
+class Application extends \Tsugi\Lumen\Application {
 
     public function __construct($launch)
     {
-        // $app = new \Tsugi\Silex\Application($launch);
-        parent::__construct($launch);
+        parent::__construct($launch, __DIR__);
         $this['tsugi']->output->buffer = false;
 
-        // Hook up the Koseu and Tsugi tools
-        \Tsugi\Controllers\Login::routes($this);
-        \Tsugi\Controllers\Logout::routes($this);
-        \Koseu\Controllers\Lessons::routes($this);
-        \Koseu\Controllers\Topics::routes($this);
-        \Koseu\Controllers\Discussions::routes($this);
-
-        // Tools that require logged in user
-        if ( isset($launch->user->id) ) {
-            \Tsugi\Controllers\Profile::routes($this);
-            \Tsugi\Controllers\Map::routes($this);
+        $this->router->group([
+            'namespace' => 'Koseu\Controllers',
+        ], function () {
+            \Koseu\Controllers\Lessons::routes($this);
+            \Koseu\Controllers\Topics::routes($this);
+            \Koseu\Controllers\Discussions::routes($this);
             \Koseu\Controllers\Badges::routes($this);
             \Koseu\Controllers\Assignments::routes($this);
             \Koseu\Controllers\Courses::routes($this);
-        }
+        });
+
+        $this->router->group([
+            'namespace' => 'Tsugi\Controllers',
+        ], function () {
+            \Tsugi\Controllers\Login::routes($this);
+            \Tsugi\Controllers\Logout::routes($this);
+            \Tsugi\Controllers\Profile::routes($this);
+            \Tsugi\Controllers\Map::routes($this);
+        });
     }
 }
 

@@ -6,9 +6,8 @@ namespace Koseu\Controllers;
 use Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
-use Silex\Application;
+use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class Topics {
 
@@ -17,16 +16,18 @@ class Topics {
     const REDIRECT = 'koseu_controllers_topics';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->get($prefix, 'Koseu\\Controllers\\Topics::get');
-        $app->get($prefix.'/', 'Koseu\\Controllers\\Topics::get')->bind(self::REDIRECT);
-        $app->get($prefix.'/{anchor}', 'Koseu\\Controllers\\Topics::get');
-        $app->get($prefix.'_launch/{anchor}', 'Koseu\\Controllers\\Topics::launch');
+        $app->router->get($prefix, 'Topics@get');
+        $app->router->get($prefix.'/', 'Topics@get');
+        $app->router->get('/'.self::REDIRECT, 'Topics@get');
+        $app->router->get($prefix.'/{anchor}', 'Topics@get');
+        $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
+            return Topics::launch($app, $anchor);
+        });
     }
 
-    public function get(Request $request, Application $app, $anchor=null)
+    public function get(Request $request, $anchor=null)
     {
-        global $CFG;
-        $tsugi = $app['tsugi'];
+        global $CFG, $OUTPUT;
 
         if ( ! isset($CFG->topics) ) {
             die_with_error_log('Cannot find topics.json ($CFG->topics)');
@@ -42,18 +43,23 @@ class Topics {
         }
 
         // Load the Topic
-        $l = new \Tsugi\UI\Topics($CFG->topics,$anchor);
+        $t = new \Tsugi\UI\Topics($CFG->topics,$anchor);
 
-        $context = array();
-        $context['head'] = $l->header(true);
-        $context['container'] = $l->render(true);
-        $context['footer'] = $l->footer(true);
-
-        return $app['twig']->render('@Koseu/Topics.twig',$context);
-
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $menu = false;
+        $OUTPUT->topNav($menu);
+        $OUTPUT->flashMessages();
+        $t->header();
+        echo('<div class="container">');
+        $t->render();
+        echo('</div>');
+        $OUTPUT->footerStart();
+        $t->footer();
+        $OUTPUT->footerEnd();
     }
 
-    public function launch(Request $request, Application $app, $anchor=null)
+    public static function launch(Application $app, $anchor=null)
     {
         global $CFG;
         $tsugi = $app['tsugi'];
@@ -64,26 +70,26 @@ class Topics {
 
         if ( ! isset($CFG->topics) ) {
             $app->tsugiFlashError(__('Cannot find topics.json ($CFG->topics)'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         /// Load the Topic
         $l = new \Tsugi\UI\Topics($CFG->topics);
         if ( ! $l ) {
             $app->tsugiFlashError(__('Cannot load topics.'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         $topic = $l->getTopicByRlid($anchor);
         if ( ! $topic ) {
             $app->tsugiFlashError(__('Cannot find topic resource link id'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         $lti = $l->getLtiByRlid($anchor);
         if ( ! $lti ) {
             $app->tsugiFlashError(__('Cannot find lti resource link id'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         // Check that the session has the minimums...
@@ -93,7 +99,7 @@ class Topics {
             // All good
         } else {
             $app->tsugiFlashError(__('Missing session data required for launch'));
-            return $app->redirect($redirect_path);
+            return redirect($redirect_path);
         }
 
         $resource_link_title = isset($lti->title) ? $lti->title : $topic->title;
