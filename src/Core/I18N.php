@@ -3,7 +3,6 @@
 namespace Tsugi\Core;
 
 use Symfony\Component\Translation\Translator;
-use Symfony\Component\Translation\MessageSelector;
 use Symfony\Component\Translation\Loader\MoFileLoader;
 
 
@@ -157,7 +156,7 @@ class I18N {
         // error_log("lang=$lang");
         $master_file = $CFG->dirroot."/locale/$lang/LC_MESSAGES/master.mo";
         $domain_file = $CFG->getScriptPathFull()."/locale/$lang/LC_MESSAGES/$domain.mo";
-        $TSUGI_TRANSLATE = new Translator($lang, new MessageSelector());
+        $TSUGI_TRANSLATE = new Translator($lang);
         if ( file_exists($master_file) ) {
             $TSUGI_TRANSLATE->addLoader('master', new MoFileLoader());
             $TSUGI_TRANSLATE->addResource('master', $master_file, $lang);

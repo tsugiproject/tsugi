@@ -1,52 +1,49 @@
 <?php
 
-namespace Tsugi\Silex;
+namespace Tsugi\Lumen;
 
 use Tsugi\Util\U;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Log\LogManager;
+use Monolog\Handler\ErrorLogHandler;
+use Monolog\Logger as Monolog;
+
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
 
 /**
- * The Tsugi variant of a Silex Application
+ * The Tsugi variant of a Lumen Application
  *
- * Returns an augmented Silex Application
+ * Returns an augmented Lumen Application
  *
  *     <?php
  *     require_once "../config.php";
  *     $launch = \Tsugi\Core\LTIX::requireData();
- *     $app = new \Tsugi\Silex\Application($launch);
+ *     $app = new \Tsugi\Lumen\Application($launch);
  *     $app->get('/', 'AppBundle\\Attend::get')->bind('main');
  *     $app->post('/', 'AppBundle\\Attend::post');
  *     $app->run();
- * 
+ *
  */
 
-class Application extends \Silex\Application {
+class Application extends \Laravel\Lumen\Application {
 
     /**
      * Requires a Tsugi Launch object for initializing.
      *
      *     $launch = \Tsugi\Core\LTIX::requireData();
-     *     $app = new \Tsugi\Silex\Application($launch);
+     *     $app = new \Tsugi\Lumen\Application($launch);
      *
      * The launch object is added to the $app variable and can be accessed
      * as follows:
-     * 
+     *
      *     $app['tsugi']->user->displayname;
-     *
-     * Or in a Twig template:
-     *
-     *     app.tsugi.user.displayname
      *
      * This sets up a PHP bridge session to allow old session and new
      * session code to coexist.
      */
-    function __construct($launch, array $values = array()) {
+    function __construct($launch, $basePath = __DIR__) {
         global $CFG;
-        parent::__construct($values);
+        parent::__construct($basePath);
         if ( ! isset($CFG->loader) ) {
             echo("<pre>\n".'Please fix your config.php to set $CFG->loader as follows:'."\n");
             echo('$loader = require_once($dirroot."/vendor/autoload.php");'."\n");
@@ -62,44 +59,55 @@ class Application extends \Silex\Application {
         $session = new Session(new PhpBridgeSessionStorage());
         $session->start();
         $this['session'] = $session;
-
-        if ( file_exists('templates') ) {
-            $loader = new \Twig_Loader_Filesystem('templates');
-        } else {
-            $loader = new \Twig_Loader_Filesystem('.');
-        }
-
         $this->tsugi_path = U::get_rest_path();
         $this->tsugi_parent = U::get_rest_parent();
-        
-        $yourNewPath = $CFG->dirroot . '/vendor/tsugi/lib/src/Templates';
-        $loader->addPath($yourNewPath, 'Tsugi');
-        $yourNewPath = $CFG->dirroot . '/vendor/koseu/lib/src/Templates';
-        if ( file_exists($yourNewPath) ) {
-            $loader->addPath($yourNewPath, 'Koseu');
-        }
-        $CFG->loader->addPsr4('AppBundle\\', 'src/AppBundle');
 
-        //$loader = new \Tsugi\Twig\Twig_Loader_Class();
-        $this->register(new \Silex\Provider\TwigServiceProvider(), array(
-            'twig.loader' => $loader
-        ));
+        // At this point nothing should use storage
+        // (no blade templates and logging goes to php error log).
+        // $this->useStoragePath($CFG->lumen_storage);
 
-        // Add the __() and __ filter for translations
-        $this->extend('twig', function($twig, $app) {
-            $twig->addExtension(new \Tsugi\Silex\GettextExtension());
-            return $twig;
+        // We are not using any view technology from Lumen at this point
+        // $this->registerViewBindings();
+
+        // TODO: We get an error when we try to use the illuminate logging
+        // tsugi.lumen.ERROR: RuntimeException: A facade root has not been set.
+        // might want to fix this at some point.
+
+        // TODO: It is not clear this is used at all - it is a vestige from Silex methinks
+        // $CFG->loader->addPsr4('AppBundle\\', 'src/AppBundle');
+
+    }
+
+    /**
+     * Override the Exception Handler
+     *
+     * I wrote a stack overflow question and after I wrote it I figured out the answer and wrote this method
+     *
+     * https://stackoverflow.com/questions/65777054/how-do-i-add-a-custom-404-page-to-a-lumen-not-laravel-application
+     *
+     * @return mixed
+     */
+    protected function resolveExceptionHandler()
+    {
+        return($this->make('\Tsugi\Lumen\ExceptionHandler'));
+    }
+
+    /**
+     * Override the log bindings to use the php error log
+     *
+     * @return void
+     */
+    protected function registerLogBindings()
+    {
+        // https://github.com/illuminate/log/blob/master/LogManager.php
+        $this->singleton('Psr\Log\LoggerInterface', function () {
+
+            $handler = new \Monolog\Handler\ErrorLogHandler(
+                    \Monolog\Handler\ErrorLogHandler::OPERATING_SYSTEM, 'debug');
+
+            $logger = new MonoLog("tsugi.lumen", [ $handler ] );
+            return $logger;
         });
-
-        // Handle failure of the routes
-        $this->error(function (NotFoundHttpException $e, Request $request, $code) {
-            global $CFG, $LAUNCH, $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT;
-
-            return $this['twig']->render('@Tsugi/Error.twig',
-                array('error' => '<p>Page not found.</p>')
-            );
-        });
-
     }
 
     /**
@@ -115,16 +123,16 @@ class Application extends \Silex\Application {
      *
      */
 
-    function tsugiReroute($route) 
+    function tsugiReroute($route)
     {
-        return $this->redirect( addSession($this['url_generator']->generate($route)) );
+        return redirect( addSession($this['url_generator']->generate($route)) );
     }
 
     function tsugiRedirectHome()
     {
         global $CFG;
         $home = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
-        return $this->redirect($home);
+        return redirect($home);
     }
 
     function tsugiRedirect($route) { return $this->tsugiReroute($route); } // Deprecated
