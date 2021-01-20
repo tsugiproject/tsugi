@@ -427,6 +427,7 @@ EOF;
 <script type="text/javascript">
     HEARTBEAT_TIMEOUT = setTimeout(doHeartBeat, _TSUGI.heartbeat);
     tsugiEmbedMenu();
+    $(document).ready(function() { jQuery("time.timeago").timeago(); });
 </script>
 <?php
 
