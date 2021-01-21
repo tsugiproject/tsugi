@@ -38,7 +38,6 @@ class ExceptionHandler extends \Laravel\Lumen\Exceptions\Handler {
     public function render($request, \Throwable $e)
     {
         global $CFG, $OUTPUT;
-        var_dump($this->dontReport);
         if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException ) {
             $OUTPUT->buffer = true;
             $txt = $OUTPUT->header();
