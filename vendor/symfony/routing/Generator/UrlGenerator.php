@@ -108,9 +108,9 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
     /**
      * {@inheritdoc}
      */
-    public function setStrictRequirements($enabled)
+    public function setStrictRequirements(?bool $enabled)
     {
-        $this->strictRequirements = null === $enabled ? null : (bool) $enabled;
+        $this->strictRequirements = $enabled;
     }
 
     /**
@@ -124,7 +124,7 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
     /**
      * {@inheritdoc}
      */
-    public function generate($name, $parameters = [], $referenceType = self::ABSOLUTE_PATH)
+    public function generate(string $name, array $parameters = [], int $referenceType = self::ABSOLUTE_PATH)
     {
         $route = null;
         $locale = $parameters['_locale']
@@ -167,7 +167,7 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
      *
      * @return string
      */
-    protected function doGenerate($variables, $defaults, $requirements, $tokens, $parameters, $name, $referenceType, $hostTokens, array $requiredSchemes = [])
+    protected function doGenerate(array $variables, array $defaults, array $requirements, array $tokens, array $parameters, string $name, int $referenceType, array $hostTokens, array $requiredSchemes = [])
     {
         $variables = array_flip($variables);
         $mergedParams = array_replace($defaults, $this->context->getParameters(), $parameters);
@@ -333,7 +333,7 @@ class UrlGenerator implements UrlGeneratorInterface, ConfigurableRequirementsInt
      *
      * @return string The relative target path
      */
-    public static function getRelativePath($basePath, $targetPath)
+    public static function getRelativePath(string $basePath, string $targetPath)
     {
         if ($basePath === $targetPath) {
             return '';
