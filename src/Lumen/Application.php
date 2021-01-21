@@ -89,7 +89,9 @@ class Application extends \Laravel\Lumen\Application {
      */
     protected function resolveExceptionHandler()
     {
-        return($this->make('\Tsugi\Lumen\ExceptionHandler'));
+        $retval = $this->make('\Tsugi\Lumen\ExceptionHandler');
+        $retval->pleaseDontReport('\Symfony\Component\HttpKernel\Exception\NotFoundHttpException');
+        return($retval);
     }
 
     /**
