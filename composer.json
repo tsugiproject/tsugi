@@ -8,7 +8,7 @@
 
         "cboden/ratchet" : "v0.4.3",
 
-        "tsugi/lib": "dev-master#33463517c3a4e2305b61ceb26d95e05d7891be2e",
+        "tsugi/lib": "dev-master#03684590503e8089b2c643949b38ae17979910ff",
         "koseu/lib": "dev-master#216acd20abaa62cbc5eb51606598ee48a54bed68"
     },
     "config": {
