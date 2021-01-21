@@ -1,6 +1,6 @@
 {
     "require": {
-        "laravel/lumen-framework": "v6.3.5",
+        "laravel/lumen-framework": "v7.2.2",
         "aws/aws-sdk-php": "v3.55.0",
         "google/apiclient-services" : "v0.56",
         "google/auth" : "1.3.2",
@@ -8,8 +8,8 @@
 
         "cboden/ratchet" : "v0.4.3",
 
-        "tsugi/lib": "dev-master#6bae2409497c6241e2cca836fb738b349503d0ff",
-        "koseu/lib": "dev-master#345e4089961facc7a4c00c12480ea0437009b837"
+        "tsugi/lib": "dev-master#fe7ace3c999494885e541755a0122aecf908e4ad",
+        "koseu/lib": "dev-master#216acd20abaa62cbc5eb51606598ee48a54bed68"
     },
     "config": {
         "preferred-install": "dist"

@@ -15,9 +15,10 @@ use Psr\Container\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\FinishRequestEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\Exception\UnexpectedSessionUsageException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -33,7 +34,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  * @author Tobias Schultze <http://tobion.de>
  *
- * @internal since Symfony 4.3
+ * @internal
  */
 abstract class AbstractSessionListener implements EventSubscriberInterface
 {
@@ -41,13 +42,15 @@ abstract class AbstractSessionListener implements EventSubscriberInterface
 
     protected $container;
     private $sessionUsageStack = [];
+    private $debug;
 
-    public function __construct(ContainerInterface $container = null)
+    public function __construct(ContainerInterface $container = null, bool $debug = false)
     {
         $this->container = $container;
+        $this->debug = $debug;
     }
 
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(RequestEvent $event)
     {
         if (!$event->isMasterRequest()) {
             return;
@@ -64,7 +67,7 @@ abstract class AbstractSessionListener implements EventSubscriberInterface
         $this->sessionUsageStack[] = $session instanceof Session ? $session->getUsageIndex() : 0;
     }
 
-    public function onKernelResponse(FilterResponseEvent $event)
+    public function onKernelResponse(ResponseEvent $event)
     {
         if (!$event->isMasterRequest()) {
             return;
@@ -77,16 +80,6 @@ abstract class AbstractSessionListener implements EventSubscriberInterface
 
         if (!$session = $this->container && $this->container->has('initialized_session') ? $this->container->get('initialized_session') : $event->getRequest()->getSession()) {
             return;
-        }
-
-        if ($session instanceof Session ? $session->getUsageIndex() !== end($this->sessionUsageStack) : $session->isStarted()) {
-            if ($autoCacheControl) {
-                $response
-                    ->setExpires(new \DateTime())
-                    ->setPrivate()
-                    ->setMaxAge(0)
-                    ->headers->addCacheControlDirective('must-revalidate');
-            }
         }
 
         if ($session->isStarted()) {
@@ -117,11 +110,32 @@ abstract class AbstractSessionListener implements EventSubscriberInterface
              */
             $session->save();
         }
+
+        if ($session instanceof Session ? $session->getUsageIndex() === end($this->sessionUsageStack) : !$session->isStarted()) {
+            return;
+        }
+
+        if ($autoCacheControl) {
+            $response
+                ->setExpires(new \DateTime())
+                ->setPrivate()
+                ->setMaxAge(0)
+                ->headers->addCacheControlDirective('must-revalidate');
+        }
+
+        if (!$event->getRequest()->attributes->get('_stateless', false)) {
+            return;
+        }
+
+        if ($this->debug) {
+            throw new UnexpectedSessionUsageException('Session was used while the request was declared stateless.');
+        }
+
+        if ($this->container->has('logger')) {
+            $this->container->get('logger')->warning('Session was used while the request was declared stateless.');
+        }
     }
 
-    /**
-     * @internal
-     */
     public function onFinishRequest(FinishRequestEvent $event)
     {
         if ($event->isMasterRequest()) {
@@ -129,7 +143,42 @@ abstract class AbstractSessionListener implements EventSubscriberInterface
         }
     }
 
-    public static function getSubscribedEvents()
+    public function onSessionUsage(): void
+    {
+        if (!$this->debug) {
+            return;
+        }
+
+        if ($this->container && $this->container->has('session_collector')) {
+            $this->container->get('session_collector')();
+        }
+
+        if (!$requestStack = $this->container && $this->container->has('request_stack') ? $this->container->get('request_stack') : null) {
+            return;
+        }
+
+        $stateless = false;
+        $clonedRequestStack = clone $requestStack;
+        while (null !== ($request = $clonedRequestStack->pop()) && !$stateless) {
+            $stateless = $request->attributes->get('_stateless');
+        }
+
+        if (!$stateless) {
+            return;
+        }
+
+        if (!$session = $this->container && $this->container->has('initialized_session') ? $this->container->get('initialized_session') : $requestStack->getCurrentRequest()->getSession()) {
+            return;
+        }
+
+        if ($session->isStarted()) {
+            $session->save();
+        }
+
+        throw new UnexpectedSessionUsageException('Session was used while the request was declared stateless.');
+    }
+
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::REQUEST => ['onKernelRequest', 128],
