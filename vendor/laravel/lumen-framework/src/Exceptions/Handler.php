@@ -14,11 +14,11 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
-use Symfony\Component\Debug\Exception\FlattenException;
-use Symfony\Component\Debug\ExceptionHandler as SymfonyExceptionHandler;
+use Symfony\Component\ErrorHandler\ErrorRenderer\HtmlErrorRenderer;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Throwable;
 
 class Handler implements ExceptionHandler
 {
@@ -32,12 +32,12 @@ class Handler implements ExceptionHandler
     /**
      * Report or log an exception.
      *
-     * @param  \Exception  $e
+     * @param  \Throwable  $e
      * @return void
      *
      * @throws \Exception
      */
-    public function report(Exception $e)
+    public function report(Throwable $e)
     {
         if ($this->shouldntReport($e)) {
             return;
@@ -53,16 +53,16 @@ class Handler implements ExceptionHandler
             throw $e; // throw the original exception
         }
 
-        $logger->error($e, ['exception' => $e]);
+        $logger->error($e->getMessage(), ['exception' => $e]);
     }
 
     /**
      * Determine if the exception should be reported.
      *
-     * @param  \Exception  $e
+     * @param  \Throwable  $e
      * @return bool
      */
-    public function shouldReport(Exception $e)
+    public function shouldReport(Throwable $e)
     {
         return ! $this->shouldntReport($e);
     }
@@ -70,10 +70,10 @@ class Handler implements ExceptionHandler
     /**
      * Determine if the exception is in the "do not report" list.
      *
-     * @param  \Exception  $e
+     * @param  \Throwable  $e
      * @return bool
      */
-    protected function shouldntReport(Exception $e)
+    protected function shouldntReport(Throwable $e)
     {
         foreach ($this->dontReport as $type) {
             if ($e instanceof $type) {
@@ -88,12 +88,12 @@ class Handler implements ExceptionHandler
      * Render an exception into an HTTP response.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $e
+     * @param  \Throwable  $e
      * @return \Symfony\Component\HttpFoundation\Response
      *
-     * @throws \Exception
+     * @throws \Throwable
      */
-    public function render($request, Exception $e)
+    public function render($request, Throwable $e)
     {
         if (method_exists($e, 'render')) {
             return $e->render($request);
@@ -120,10 +120,10 @@ class Handler implements ExceptionHandler
      * Prepare a JSON response for the given exception.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception $e
+     * @param  \Throwable  $e
      * @return \Illuminate\Http\JsonResponse
      */
-    protected function prepareJsonResponse($request, Exception $e)
+    protected function prepareJsonResponse($request, Throwable $e)
     {
         return new JsonResponse(
             $this->convertExceptionToArray($e),
@@ -134,34 +134,12 @@ class Handler implements ExceptionHandler
     }
 
     /**
-     * Prepare a response for the given exception.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception $e
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    protected function prepareResponse($request, Exception $e)
-    {
-        $fe = FlattenException::create($e);
-
-        $handler = new SymfonyExceptionHandler(config('app.debug', false));
-
-        $decorated = $this->decorate($handler->getContent($fe), $handler->getStylesheet($fe));
-
-        $response = new Response($decorated, $fe->getStatusCode(), $fe->getHeaders());
-
-        $response->exception = $e;
-
-        return $response;
-    }
-
-    /**
      * Convert the given exception to an array.
      *
-     * @param  \Exception  $e
+     * @param  \Throwable  $e
      * @return array
      */
-    protected function convertExceptionToArray(Exception $e)
+    protected function convertExceptionToArray(Throwable $e)
     {
         return config('app.debug', false) ? [
             'message' => $e->getMessage(),
@@ -177,54 +155,57 @@ class Handler implements ExceptionHandler
     }
 
     /**
-     * Get the html response content.
+     * Prepare a response for the given exception.
      *
-     * @param  string  $content
-     * @param  string  $css
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Throwable  $e
+     * @return \Illuminate\Http\Response
+     */
+    protected function prepareResponse($request, Throwable $e)
+    {
+        $response = new Response(
+            $this->renderExceptionWithSymfony($e, config('app.debug', false)),
+            $this->isHttpException($e) ? $e->getStatusCode() : 500
+        );
+
+        $response->exception = $e;
+
+        return $response;
+    }
+
+    /**
+     * Render an exception to a string using Symfony.
+     *
+     * @param  \Throwable  $e
+     * @param  bool  $debug
      * @return string
      */
-    protected function decorate($content, $css)
+    protected function renderExceptionWithSymfony(Throwable $e, $debug)
     {
-        return <<<EOF
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta name="robots" content="noindex,nofollow" />
-        <style>
-            /* Copyright (c) 2010, Yahoo! Inc. All rights reserved. Code licensed under the BSD License: https://yuilibrary.com/license/ */
-            html{color:#000;background:#FFF;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}sup{vertical-align:text-top;}sub{vertical-align:text-bottom;}input,textarea,select{font-family:inherit;font-size:inherit;font-weight:inherit;}input,textarea,select{*font-size:100%;}legend{color:#000;}
-            html { background: #eee; padding: 10px }
-            img { border: 0; }
-            #sf-resetcontent { width:970px; margin:0 auto; }
-            $css
-        </style>
-    </head>
-    <body>
-        $content
-    </body>
-</html>
-EOF;
+        $renderer = new HtmlErrorRenderer($debug);
+
+        return $renderer->render($e)->getAsString();
     }
 
     /**
      * Render an exception to the console.
      *
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @param  \Exception  $e
+     * @param  \Throwable  $e
      * @return void
      */
-    public function renderForConsole($output, Exception $e)
+    public function renderForConsole($output, Throwable $e)
     {
-        (new ConsoleApplication)->renderException($e, $output);
+        (new ConsoleApplication)->renderThrowable($e, $output);
     }
 
     /**
      * Determine if the given exception is an HTTP exception.
      *
-     * @param  \Exception  $e
+     * @param  \Throwable  $e
      * @return bool
      */
-    protected function isHttpException(Exception $e)
+    protected function isHttpException(Throwable $e)
     {
         return $e instanceof HttpExceptionInterface;
     }

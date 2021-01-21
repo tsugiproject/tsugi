@@ -13,33 +13,29 @@ class ExceptionHandler extends \Laravel\Lumen\Exceptions\Handler {
 
     // TODO: figure out why we could not set
     // protected $dontReport = [];
-    // in a constructor here.  Instead we override report() below
-    // because it works.
+    // in a constructor here.  Instead we add our own setter.
 
     /**
-     * Override report to eat our 404's
+     * Indicate an exception that should not be reported
      *
-     * @param  \Exception  $e
+     * @param  string type
      * @return void
-     *
-     * @throws \Exception
      */
-    public function report(\Exception $e)
+    public function pleaseDontReport($type)
     {
-        if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException ) return;
-        parent::report($e);
+        if ( ! in_array($type, $this->dontReport) ) $this->dontReport[] = $type;
     }
 
     /**
      * Render an exception into an HTTP response.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $e
+     * @param  \Throwable  $e
      * @return \Symfony\Component\HttpFoundation\Response
      *
      * @throws \Exception
      */
-    public function render($request, \Exception $e)
+    public function render($request, \Throwable $e)
     {
         global $CFG, $OUTPUT;
         if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException ) {

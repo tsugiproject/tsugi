@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+5.1.0
+-----
+
+ * The `LegacyEventDispatcherProxy` class has been deprecated.
+ * Added an optional `dispatcher` attribute to the listener and subscriber tags in `RegisterListenerPass`.
+
+5.0.0
+-----
+
+ * The signature of the `EventDispatcherInterface::dispatch()` method has been changed to `dispatch($event, string $eventName = null): object`.
+ * The `Event` class has been removed in favor of `Symfony\Contracts\EventDispatcher\Event`.
+ * The `TraceableEventDispatcherInterface` has been removed.
+ * The `WrappedListener` class is now final.
+
 4.4.0
 -----
 

@@ -28,11 +28,15 @@ class AddConsoleCommandPass implements CompilerPassInterface
 {
     private $commandLoaderServiceId;
     private $commandTag;
+    private $noPreloadTag;
+    private $privateTagName;
 
-    public function __construct(string $commandLoaderServiceId = 'console.command_loader', string $commandTag = 'console.command')
+    public function __construct(string $commandLoaderServiceId = 'console.command_loader', string $commandTag = 'console.command', string $noPreloadTag = 'container.no_preload', string $privateTagName = 'container.private')
     {
         $this->commandLoaderServiceId = $commandLoaderServiceId;
         $this->commandTag = $commandTag;
+        $this->noPreloadTag = $noPreloadTag;
+        $this->privateTagName = $privateTagName;
     }
 
     public function process(ContainerBuilder $container)
@@ -44,6 +48,7 @@ class AddConsoleCommandPass implements CompilerPassInterface
 
         foreach ($commandServices as $id => $tags) {
             $definition = $container->getDefinition($id);
+            $definition->addTag($this->noPreloadTag);
             $class = $container->getParameterBag()->resolveValue($definition->getClass());
 
             if (isset($tags[0]['command'])) {
@@ -59,7 +64,7 @@ class AddConsoleCommandPass implements CompilerPassInterface
             }
 
             if (null === $commandName) {
-                if (!$definition->isPublic() || $definition->isPrivate()) {
+                if (!$definition->isPublic() || $definition->isPrivate() || $definition->hasTag($this->privateTagName)) {
                     $commandId = 'console.command.public_alias.'.$id;
                     $container->setAlias($commandId, $id)->setPublic(true);
                     $id = $commandId;
@@ -91,6 +96,7 @@ class AddConsoleCommandPass implements CompilerPassInterface
         $container
             ->register($this->commandLoaderServiceId, ContainerCommandLoader::class)
             ->setPublic(true)
+            ->addTag($this->noPreloadTag)
             ->setArguments([ServiceLocatorTagPass::register($container, $lazyCommandRefs), $lazyCommandMap]);
 
         $container->setParameter('console.command.ids', $serviceIds);

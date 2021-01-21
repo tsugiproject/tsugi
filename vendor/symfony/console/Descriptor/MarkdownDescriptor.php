@@ -44,7 +44,7 @@ class MarkdownDescriptor extends Descriptor
     /**
      * {@inheritdoc}
      */
-    protected function write($content, $decorated = true)
+    protected function write(string $content, bool $decorated = true)
     {
         parent::write($content, $decorated);
     }
@@ -92,7 +92,9 @@ class MarkdownDescriptor extends Descriptor
             $this->write('### Arguments');
             foreach ($definition->getArguments() as $argument) {
                 $this->write("\n\n");
-                $this->write($this->describeInputArgument($argument));
+                if (null !== $describeInputArgument = $this->describeInputArgument($argument)) {
+                    $this->write($describeInputArgument);
+                }
             }
         }
 
@@ -104,7 +106,9 @@ class MarkdownDescriptor extends Descriptor
             $this->write('### Options');
             foreach ($definition->getOptions() as $option) {
                 $this->write("\n\n");
-                $this->write($this->describeInputOption($option));
+                if (null !== $describeInputOption = $this->describeInputOption($option)) {
+                    $this->write($describeInputOption);
+                }
             }
         }
     }
@@ -114,7 +118,6 @@ class MarkdownDescriptor extends Descriptor
      */
     protected function describeCommand(Command $command, array $options = [])
     {
-        $command->getSynopsis();
         $command->mergeApplicationDefinition(false);
 
         $this->write(
@@ -132,9 +135,10 @@ class MarkdownDescriptor extends Descriptor
             $this->write($help);
         }
 
-        if ($command->getNativeDefinition()) {
+        $definition = $command->getDefinition();
+        if ($definition->getOptions() || $definition->getArguments()) {
             $this->write("\n\n");
-            $this->describeInputDefinition($command->getNativeDefinition());
+            $this->describeInputDefinition($definition);
         }
     }
 
@@ -163,7 +167,9 @@ class MarkdownDescriptor extends Descriptor
 
         foreach ($description->getCommands() as $command) {
             $this->write("\n\n");
-            $this->write($this->describeCommand($command));
+            if (null !== $describeCommand = $this->describeCommand($command)) {
+                $this->write($describeCommand);
+            }
         }
     }
 
