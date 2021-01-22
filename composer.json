@@ -4,11 +4,12 @@
         "aws/aws-sdk-php": "v3.55.0",
         "google/apiclient-services" : "v0.56",
         "google/auth" : "1.3.2",
-         "ezyang/htmlpurifier": ">=v4.13.0",
-
+        "phpseclib/phpseclib" : ">=3.0.3",
+        "fproject/php-jwt" : ">=4.0.5",
+        "ezyang/htmlpurifier": ">=v4.13.0",
         "cboden/ratchet" : "v0.4.3",
 
-        "tsugi/lib": "dev-master#03684590503e8089b2c643949b38ae17979910ff",
+        "tsugi/lib": "dev-master#1a501973d3c4f505578a41e3e6fdeafbfd176b26",
         "koseu/lib": "dev-master#216acd20abaa62cbc5eb51606598ee48a54bed68"
     },
     "config": {

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee
+class ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2
 {
     public static $files = array (
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
@@ -33,12 +33,18 @@ class ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
         'bee9632da3ca00a99623b9c35d0c4f8b' => __DIR__ . '/..' . '/laravel/lumen-framework/src/helpers.php',
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
+        '5255c38a0faeba867671b61dfda6d864' => __DIR__ . '/..' . '/paragonie/random_compat/lib/random.php',
+        'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
     );
 
     public static $prefixLengthsPsr4 = array (
         'v' => 
         array (
             'voku\\' => 5,
+        ),
+        'p' => 
+        array (
+            'phpseclib3\\' => 11,
         ),
         'T' => 
         array (
@@ -94,6 +100,7 @@ class ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee
             'Psr\\Container\\' => 14,
             'Psr\\Cache\\' => 10,
             'PhpOption\\' => 10,
+            'ParagonIE\\ConstantTime\\' => 23,
         ),
         'O' => 
         array (
@@ -183,6 +190,10 @@ class ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee
         'voku\\' => 
         array (
             0 => __DIR__ . '/..' . '/voku/portable-ascii/src/voku',
+        ),
+        'phpseclib3\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
         ),
         'Tsugi\\' => 
         array (
@@ -356,6 +367,10 @@ class ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
         ),
+        'ParagonIE\\ConstantTime\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
+        ),
         'Opis\\Closure\\' => 
         array (
             0 => __DIR__ . '/..' . '/opis/closure/src',
@@ -491,6 +506,7 @@ class ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee
         'Firebase\\JWT\\' => 
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+            1 => __DIR__ . '/..' . '/fproject/php-jwt/src',
         ),
         'FastRoute\\' => 
         array (
@@ -566,10 +582,10 @@ class ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInitd5942e1b8dde3f6845422b7341bf2eee::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2::$classMap;
 
         }, null, ClassLoader::class);
     }
