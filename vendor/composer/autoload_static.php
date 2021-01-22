@@ -33,7 +33,6 @@ class ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
         'bee9632da3ca00a99623b9c35d0c4f8b' => __DIR__ . '/..' . '/laravel/lumen-framework/src/helpers.php',
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
-        '5255c38a0faeba867671b61dfda6d864' => __DIR__ . '/..' . '/paragonie/random_compat/lib/random.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
     );
 
@@ -44,7 +43,7 @@ class ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2
         ),
         'p' => 
         array (
-            'phpseclib3\\' => 11,
+            'phpseclib\\' => 10,
         ),
         'T' => 
         array (
@@ -100,7 +99,6 @@ class ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2
             'Psr\\Container\\' => 14,
             'Psr\\Cache\\' => 10,
             'PhpOption\\' => 10,
-            'ParagonIE\\ConstantTime\\' => 23,
         ),
         'O' => 
         array (
@@ -191,7 +189,7 @@ class ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2
         array (
             0 => __DIR__ . '/..' . '/voku/portable-ascii/src/voku',
         ),
-        'phpseclib3\\' => 
+        'phpseclib\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
         ),
@@ -366,10 +364,6 @@ class ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2
         'PhpOption\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
-        ),
-        'ParagonIE\\ConstantTime\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
         ),
         'Opis\\Closure\\' => 
         array (
@@ -547,6 +541,13 @@ class ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2
     );
 
     public static $prefixesPsr0 = array (
+        'J' => 
+        array (
+            'JOSE' => 
+            array (
+                0 => __DIR__ . '/..' . '/gree/jose/src',
+            ),
+        ),
         'H' => 
         array (
             'HTMLPurifier' => 
