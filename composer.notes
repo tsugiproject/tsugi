@@ -3,3 +3,10 @@
 If this goes up to 3.x it seems to break - Test LTI Advantage and all
 apects of LMSTest before assuming it works.
 
+"firebase/php-jwt" : "v5.1.0"
+
+In 5.2 they added a JWK class that has private parseKey() method.  We were 
+using the "fproject/php-jwt" JWK class all this time and its parseKey()
+method is public.  So we hold back until this is resolved - or perhaps
+force load the fproject version in pre_config.php.
+

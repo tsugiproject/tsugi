@@ -499,8 +499,8 @@ class ComposerStaticInit326d9d73dbd44a5a3a5f5c4f5b166aa2
         ),
         'Firebase\\JWT\\' => 
         array (
-            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
-            1 => __DIR__ . '/..' . '/fproject/php-jwt/src',
+            0 => __DIR__ . '/..' . '/fproject/php-jwt/src',
+            1 => __DIR__ . '/..' . '/firebase/php-jwt/src',
         ),
         'FastRoute\\' => 
         array (

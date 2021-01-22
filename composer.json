@@ -7,6 +7,7 @@
         "phpseclib/phpseclib" : "v2.0.11",
         "gree/jose" : ">1.0",
         "fproject/php-jwt" : ">=4.0.5",
+         "firebase/php-jwt" : "v5.1.0",
         "ezyang/htmlpurifier": ">=v4.13.0",
         "cboden/ratchet" : "v0.4.3",
 
