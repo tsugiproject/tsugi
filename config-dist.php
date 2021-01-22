@@ -463,40 +463,6 @@ if ( isset($CFG->sessions_in_db) && $CFG->sessions_in_db ) {
     );
 }
 
-// Storing Sessions in DynamoDB - Beta
-// http://docs.aws.amazon.com/aws-sdk-php/v2/guide/feature-dynamodb-session-handler.html
-// $CFG->dynamodb_key = 'AKIISDIUSDOUISDHFBUQ';
-// $CFG->dynamodb_secret = 'zFKsdkjhkjskhjSAKJHsakjhSAKJHakjhdsasYaZ';
-// $CFG->dynamodb_region = 'us-east-2';
-
-if ( isset($CFG->dynamodb_key) && isset($CFG->dynamodb_secret) && isset($CFG->dynamodb_region) &&
-     strlen($CFG->dynamodb_key) > 0 && strlen($CFG->dynamodb_secret) > 0 &&
-     strlen($CFG->dynamodb_region) > 0 ) {
-    $CFG->sessions_in_dynamodb = true;
-    if ( $CFG->sessions_in_dynamodb ) {
-        $dynamoDb = \Aws\DynamoDb\DynamoDbClient::factory(
-            array('region' => $CFG->dynamodb_region,
-            'credentials' => array(
-                'key'    => $CFG->dynamodb_key,
-                'secret' => $CFG->dynamodb_secret
-            ),
-            'version' => 'latest'));
-        $sessionHandler = $dynamoDb->registerSessionHandler(array(
-            'table_name'               => 'sessions',
-            'hash_key'                 => 'id',
-            'session_lifetime'         => 3600,
-            'consistent_read'          => true,
-            'locking_strategy'         => null,
-            'automatic_gc'             => 0,
-            'gc_batch_size'            => 50,
-            'max_lock_wait_time'       => 15,
-            'min_lock_retry_microtime' => 5000,
-            'max_lock_retry_microtime' => 50000,
-        ));
-    }
-}
-
-
 if ( isset($CFG->apphome) && $CFG->apphome ) {
     $tsugi_settings = $CFG->dirroot."/../tsugi_settings.php";
     if ( file_exists($tsugi_settings) ) {
