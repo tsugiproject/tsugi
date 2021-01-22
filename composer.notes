@@ -10,3 +10,5 @@ using the "fproject/php-jwt" JWK class all this time and its parseKey()
 method is public.  So we hold back until this is resolved - or perhaps
 force load the fproject version in pre_config.php.
 
+https://github.com/firebase/php-jwt/issues/319
+
