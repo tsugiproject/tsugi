@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "84af9b0615de4bf2e9faea8a5cfbe895",
-    "content-hash": "0925ad950e8d5485cd203b9e80ad532f",
+    "hash": "3aa46d2bddaefc9f738782723adcfb17",
+    "content-hash": "2c0e3d6ff4511e421bb1fc99fb102dab",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -583,6 +583,57 @@
                 "php"
             ],
             "time": "2020-03-25 18:49:23"
+        },
+        {
+            "name": "fproject/php-jwt",
+            "version": "4.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/fproject/php-jwt.git",
+                "reference": "91047b202bbe7d966e8fce67ab16ebca8bdcb6b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/fproject/php-jwt/zipball/91047b202bbe7d966e8fce67ab16ebca8bdcb6b7",
+                "reference": "91047b202bbe7d966e8fce67ab16ebca8bdcb6b7",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.8.36"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Firebase\\JWT\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Neuman Vong",
+                    "email": "neuman+pear@twilio.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Anant Narayanan",
+                    "email": "anant@php.net",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Bui Sy Nguyen",
+                    "email": "nguyenbs@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Support several key types including JWK.",
+            "homepage": "https://github.com/fproject/php-jwt",
+            "time": "2018-04-02 10:36:30"
         },
         {
             "name": "google/apiclient-services",
@@ -5291,16 +5342,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "03684590503e8089b2c643949b38ae17979910ff"
+                "reference": "1a501973d3c4f505578a41e3e6fdeafbfd176b26"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/03684590503e8089b2c643949b38ae17979910ff",
-                "reference": "03684590503e8089b2c643949b38ae17979910ff",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/1a501973d3c4f505578a41e3e6fdeafbfd176b26",
+                "reference": "1a501973d3c4f505578a41e3e6fdeafbfd176b26",
                 "shasum": ""
             },
             "require": {
                 "ezyang/htmlpurifier": ">=v4.13.0",
+                "fproject/php-jwt": ">=4.0.5",
                 "laravel/lumen-framework": "v7.2.2",
                 "php": ">=7.2.0"
             },
@@ -5333,7 +5385,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2021-01-21 13:28:04"
+            "time": "2021-01-21 14:33:58"
         },
         {
             "name": "vlucas/phpdotenv",
