@@ -20,7 +20,6 @@ use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Crypt\AesCtr;
 
 use \Firebase\JWT\JWT;
-use \Firebase\JWT\JWK;
 
 /**
  * This an opinionated LTI class that defines how Tsugi tools interact with LTI
@@ -522,18 +521,8 @@ class LTIX {
             // If we have a keyset and a kid mismatch, lets grab that new key
             if ( strlen($our_keyset) > 0 &&
                 ($our_kid != $request_kid || strlen($public_key) < 1) ) {
-                $key_set = json_decode($our_keyset, true);
-                $new_public_key = false;
 
-                foreach ($key_set['keys'] as $key) {
-                    if ($key['kid'] == $request_kid) {
-                        $details = openssl_pkey_get_details(JWK::parseKey($key));
-                        if ( $details && is_array($details) && isset($details['key']) ) {
-                            $new_public_key = $details['key'];
-                        }
-                        break;
-                    }
-                }
+                $new_public_key = LTI13::extractKeyFromKeySet($our_keyset, $request_kid);
 
                 if ( $new_public_key ) {
                     $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
