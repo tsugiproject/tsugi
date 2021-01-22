@@ -9,7 +9,7 @@
         "ezyang/htmlpurifier": ">=v4.13.0",
         "cboden/ratchet" : "v0.4.3",
 
-        "tsugi/lib": "dev-master#0005e4eb569315b5116974c4097ed2ac4be3643a",
+        "tsugi/lib": "dev-master#01f591236614a0b1dfe9dfc79412d3b330a8bc69",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {
