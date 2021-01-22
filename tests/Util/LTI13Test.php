@@ -26,8 +26,12 @@ $wwwroot = 'http://localhost:8888';
 $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 $CFG->vendorinclude = dirname(__FILE__).'/../../include';
 
+$toppath = dirname(__FILE__).'/../..';
+require_once $toppath.'/vendor//fproject/php-jwt/src/JWT.php';
+
 require_once "include/setup.php";
 
+use \Firebase\JWT\JWT;
 
 class LTI13Test extends PHPUnit_Framework_TestCase
 {
@@ -48,6 +52,8 @@ class LTI13Test extends PHPUnit_Framework_TestCase
         }
 EOF
 ;
+
+    public $raw_jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
     public function testBasics() {
         $lj = json_decode($this->test_jwt_str);
@@ -81,4 +87,41 @@ EOF
 
      */
 
+
+    public function testJWT() {
+        $required_fields = false;
+        $retval = \Tsugi\Util\LTI13::parse_jwt($this->raw_jwt, $required_fields);
+        $this->assertTrue(is_object($retval));
+        $this->assertEquals($retval->header->alg, "HS256");
+        $this->assertEquals($retval->body->name, "John Doe");
+        $this->assertEquals($retval->extra["name"], "John Doe");
+    }
+/*
+  ["header"]=>
+  object(stdClass)#394 (2) {
+    ["alg"]=>
+    string(5) "HS256"
+    ["typ"]=>
+    string(3) "JWT"
+  }
+  ["body"]=>
+  object(stdClass)#395 (3) {
+    ["sub"]=>
+    string(10) "1234567890"
+    ["name"]=>
+    string(8) "John Doe"
+    ["iat"]=>
+    int(1516239022)
+  }
+  ["extra"]=>
+  array(3) {
+    ["sub"]=>
+    string(10) "1234567890"
+    ["name"]=>
+    string(8) "John Doe"
+    ["iat"]=>
+    int(1516239022)
+  }
+}
+ */
 }

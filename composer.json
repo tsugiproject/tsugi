@@ -23,6 +23,7 @@
     "require": {
         "php": ">=7.2.0",
         "laravel/lumen-framework": "v7.2.2",
+        "fproject/php-jwt" : ">=4.0.5",
         "ezyang/htmlpurifier": ">=v4.13.0"
     },
     "require-dev": {
