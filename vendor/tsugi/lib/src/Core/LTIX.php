@@ -1751,8 +1751,10 @@ class LTIX {
         global $CFG;
 
         // You would think that this would just work :)
-        session_id($session_id);
-        session_start();
+        if ( session_id() == "" ) {
+            session_id($session_id);
+            session_start();
+        }
 
         if ( U::get($_SESSION, 'lti') && U::get($_SESSION, 'lti_post') ) return;
 
