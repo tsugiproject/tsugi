@@ -1,6 +1,5 @@
 <?php
 
-
 require_once "src/Util/U.php";
 require_once "src/Util/PS.php";
 require_once "src/Util/LTI.php";
@@ -27,11 +26,13 @@ $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 $CFG->vendorinclude = dirname(__FILE__).'/../../include';
 
 $toppath = dirname(__FILE__).'/../..';
-require_once $toppath.'/vendor//fproject/php-jwt/src/JWT.php';
+require_once $toppath.'/vendor/firebase/php-jwt/src/JWT.php';
+require_once $toppath.'/vendor/firebase/php-jwt/src/JWK.php';
 
 require_once "include/setup.php";
 
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\JWK;
 
 class LTI13Test extends PHPUnit_Framework_TestCase
 {
@@ -87,7 +88,6 @@ EOF
 
      */
 
-
     public function testJWT() {
         $required_fields = false;
         $retval = \Tsugi\Util\LTI13::parse_jwt($this->raw_jwt, $required_fields);
@@ -124,4 +124,52 @@ EOF
   }
 }
  */
+
+    // https://tools.ietf.org/html/rfc7517#appendix-A.1
+    public function testJWK() {
+        $json_str = trim( <<< EOF
+     {"keys":
+       [
+         {"kty":"RSA",
+          "n": "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw",
+          "e":"AQAB",
+          "alg":"RS256",
+          "kid":"2011-04-29"}
+       ]
+     }
+EOF
+);
+        $json = json_decode($json_str, true);
+        $this->assertTrue(is_array($json));
+        $this->assertTrue(is_array($json['keys']));
+        $key_set = JWK::parseKeySet($json);
+        $this->assertTrue(is_array($key_set));
+        $this->assertEquals(count($key_set), 1);
+        $this->assertTrue(isset($key_set["2011-04-29"]));
+
+        $pub_expected = trim( <<< EOF
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0vx7agoebGcQSuuPiLJX
+ZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tS
+oc/BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ/2W+5JsGY4Hc5n9yBXArwl93lqt
+7/RN5w6Cf0h4QyQ5v+65YGjQR0/FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0
+zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt+bFTWhAI4vMQFh6WeZu0f
+M4lFd2NcRwr3XPksINHaQ+G/xBniIqbw0Ls1jF44+csFCur+kEgU8awapJzKnqDK
+gwIDAQAB
+-----END PUBLIC KEY-----
+EOF
+);
+        $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet($json_str, '2011-04-29');
+        $this->assertEquals(trim($pub_key), $pub_expected);
+        $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet($json_str, 'bob');
+        $this->assertNull($pub_key);
+        $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet('{{{{{', 'bob');
+        $this->assertNull($pub_key);
+        $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet('{"bob": "bob"}', 'bob');
+        $this->assertNull($pub_key);
+        $pub_key = \Tsugi\Util\LTI13::extractKeyFromKeySet('{"keys": [{"kty":"RSA"} ]}', 'bob');
+        $this->assertNull($pub_key);
+    }
+
+
 }

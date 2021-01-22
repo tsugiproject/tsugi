@@ -4,6 +4,7 @@ namespace Tsugi\Util;
 
 use \Tsugi\Util\U;
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\JWK;
 
 /**
  * This is a general purpose LTI 1.3 class with no Tsugi-specific dependencies.
@@ -1191,6 +1192,30 @@ class LTI13 {
         $s = hash_hmac('sha256', $message, $secret, true);
         $hash = base64_encode($s);
         return $hash;
+    }
+
+    /**
+     * Extract a public key from a string containing a JSON keyset
+     */
+    public static function extractKeyFromKeySet($keyset_str, $kid)
+    {
+        $key_set_arr = json_decode($keyset_str, true);
+        if  ($key_set_arr == null ) return null;
+        try {
+            $key_set = JWK::parseKeySet($key_set_arr);
+        } catch (\Exception $e ) {
+            return null;
+        }
+
+        $key = U::get($key_set, $kid, false);
+        if ( ! $key ) return null;
+
+        $details = openssl_pkey_get_details($key);
+        if ( $details && is_array($details) && isset($details['key']) ) {
+            $new_public_key = $details['key'];
+            return $new_public_key;
+        }
+        return null;
     }
 
 }
