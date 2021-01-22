@@ -1,0 +1,5 @@
+"phpseclib/phpseclib" : "v2.0.11",
+
+If this goes up to 3.x it seems to break - Test LTI Advantage and all
+apects of LMSTest before assuming it works.
+
