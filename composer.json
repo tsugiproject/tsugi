@@ -6,13 +6,11 @@
         "google/auth" : "1.3.2",
         "phpseclib/phpseclib" : "v2.0.11",
         "gree/jose" : ">1.0",
-        "fproject/php-jwt" : ">=4.0.5",
-         "firebase/php-jwt" : "v5.1.0",
         "ezyang/htmlpurifier": ">=v4.13.0",
         "cboden/ratchet" : "v0.4.3",
 
-        "tsugi/lib": "dev-master#1a501973d3c4f505578a41e3e6fdeafbfd176b26",
-        "koseu/lib": "dev-master#216acd20abaa62cbc5eb51606598ee48a54bed68"
+        "tsugi/lib": "dev-master#0005e4eb569315b5116974c4097ed2ac4be3643a",
+        "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {
         "preferred-install": "dist"

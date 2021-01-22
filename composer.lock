@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "e3e85274e5615702f8f38e6ed7fb85da",
-    "content-hash": "cc6870b362acf75773434667895cf714",
+    "hash": "9e358ba9f3fa6cc801ae10043822f21d",
+    "content-hash": "98b2c7d4cc2d2970f910805c9e6004ac",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -536,23 +536,23 @@
         },
         {
             "name": "firebase/php-jwt",
-            "version": "v5.1.0",
+            "version": "v5.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/firebase/php-jwt.git",
-                "reference": "4566062c68f76f43d44f1643f4970fe89757d4c6"
+                "reference": "feb0e820b8436873675fd3aca04f3728eb2185cb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/4566062c68f76f43d44f1643f4970fe89757d4c6",
-                "reference": "4566062c68f76f43d44f1643f4970fe89757d4c6",
+                "url": "https://api.github.com/repos/firebase/php-jwt/zipball/feb0e820b8436873675fd3aca04f3728eb2185cb",
+                "reference": "feb0e820b8436873675fd3aca04f3728eb2185cb",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4.8|^5"
+                "phpunit/phpunit": ">=4.8 <=9"
             },
             "type": "library",
             "autoload": {
@@ -578,58 +578,11 @@
             ],
             "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Should conform to the current spec.",
             "homepage": "https://github.com/firebase/php-jwt",
-            "time": "2020-02-24 23:15:03"
-        },
-        {
-            "name": "fproject/php-jwt",
-            "version": "4.0.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/fproject/php-jwt.git",
-                "reference": "91047b202bbe7d966e8fce67ab16ebca8bdcb6b7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/fproject/php-jwt/zipball/91047b202bbe7d966e8fce67ab16ebca8bdcb6b7",
-                "reference": "91047b202bbe7d966e8fce67ab16ebca8bdcb6b7",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.4.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "4.8.36"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Firebase\\JWT\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
+            "keywords": [
+                "jwt",
+                "php"
             ],
-            "authors": [
-                {
-                    "name": "Neuman Vong",
-                    "email": "neuman+pear@twilio.com",
-                    "role": "Developer"
-                },
-                {
-                    "name": "Anant Narayanan",
-                    "email": "anant@php.net",
-                    "role": "Developer"
-                },
-                {
-                    "name": "Bui Sy Nguyen",
-                    "email": "nguyenbs@gmail.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "A simple library to encode and decode JSON Web Tokens (JWT) in PHP. Support several key types including JWK.",
-            "homepage": "https://github.com/fproject/php-jwt",
-            "time": "2018-04-02 10:36:30"
+            "time": "2020-03-25 18:49:23"
         },
         {
             "name": "google/apiclient-services",
@@ -2167,18 +2120,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "216acd20abaa62cbc5eb51606598ee48a54bed68"
+                "reference": "5c5bcb32469977bea262b1900461c3f205adb899"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/216acd20abaa62cbc5eb51606598ee48a54bed68",
-                "reference": "216acd20abaa62cbc5eb51606598ee48a54bed68",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/5c5bcb32469977bea262b1900461c3f205adb899",
+                "reference": "5c5bcb32469977bea262b1900461c3f205adb899",
                 "shasum": ""
             },
             "require": {
                 "laravel/lumen-framework": "v7.2.2",
                 "php": ">=7.2.0",
-                "tsugi/lib": "dev-master#fe7ace3c999494885e541755a0122aecf908e4ad"
+                "tsugi/lib": "dev-master#7fee428276d0cc7b4d0e04d8b69d1116afcc900f"
             },
             "type": "library",
             "autoload": {
@@ -5282,17 +5235,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "1a501973d3c4f505578a41e3e6fdeafbfd176b26"
+                "reference": "0005e4eb569315b5116974c4097ed2ac4be3643a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/1a501973d3c4f505578a41e3e6fdeafbfd176b26",
-                "reference": "1a501973d3c4f505578a41e3e6fdeafbfd176b26",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/0005e4eb569315b5116974c4097ed2ac4be3643a",
+                "reference": "0005e4eb569315b5116974c4097ed2ac4be3643a",
                 "shasum": ""
             },
             "require": {
                 "ezyang/htmlpurifier": ">=v4.13.0",
-                "fproject/php-jwt": ">=4.0.5",
+                "firebase/php-jwt": "v5.2.0",
                 "laravel/lumen-framework": "v7.2.2",
                 "php": ">=7.2.0"
             },
@@ -5325,7 +5278,7 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
-            "time": "2021-01-21 14:33:58"
+            "time": "2021-01-22 05:34:36"
         },
         {
             "name": "vlucas/phpdotenv",
