@@ -4,7 +4,8 @@
         "aws/aws-sdk-php": "v3.55.0",
         "google/apiclient-services" : "v0.56",
         "google/auth" : "1.3.2",
-         "ezyang/htmlpurifier": ">=v4.13.0",
+        "phpseclib/phpseclib" : ">=3.0.3",
+        "ezyang/htmlpurifier": ">=v4.13.0",
 
         "cboden/ratchet" : "v0.4.3",
 
