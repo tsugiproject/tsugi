@@ -1793,10 +1793,12 @@ class LTIX {
             }
 
             // Copy into session
+            $fields = "";
             foreach($data as $k => $v) {
                 $_SESSION[$k] = $data[$k];
+                if ( strlen($fields) < 50 ) $fields .= ' '.$k.'='.$data[$k];
             }
-            error_log("restoreLTISession copied ".count($data)." ".$session_id);
+            error_log("restoreLTISession copied ".count($data)." ".$session_id.$fields);
         } catch(\Exception $e) {
             error_log("restoreLTISession exception ".$e->getMessage());
         }
