@@ -27,7 +27,7 @@
         "ezyang/htmlpurifier": ">=v4.13.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "5.*",
+        "phpunit/phpunit": "8.*",
         "phpunit/php-timer": ">=1.0.6"
     }
 }

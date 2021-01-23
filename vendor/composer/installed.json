@@ -5502,12 +5502,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "068ec64e97285ea2a3460653eedd5cd7b1a33263"
+                "reference": "9373cad18a6885f4370c737054549db96e214991"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/068ec64e97285ea2a3460653eedd5cd7b1a33263",
-                "reference": "068ec64e97285ea2a3460653eedd5cd7b1a33263",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/9373cad18a6885f4370c737054549db96e214991",
+                "reference": "9373cad18a6885f4370c737054549db96e214991",
                 "shasum": ""
             },
             "require": {
@@ -5520,7 +5520,8 @@
                 "phpunit/php-timer": ">=1.0.6",
                 "phpunit/phpunit": "5.*"
             },
-            "time": "2021-01-23T15:54:43+00:00",
+            "time": "2021-01-23T16:50:44+00:00",
+            "default-branch": true,
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -5547,6 +5548,10 @@
             ],
             "description": "The PHP Library to build interoperable learning tools",
             "homepage": "http://www.tsugi.org/",
+            "support": {
+                "issues": "https://github.com/tsugiproject/tsugi-php/issues",
+                "source": "https://github.com/tsugiproject/tsugi-php/tree/master"
+            },
             "install-path": "../tsugi/lib"
         },
         {
