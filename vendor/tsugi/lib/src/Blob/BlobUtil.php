@@ -168,9 +168,9 @@ class BlobUtil {
      * Returns false for any number of failures, for better detail, use
      * validateUpload() before calling this to do the actual upload.
      */
-    public static function uploadToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
+    public static function uploadToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true, $backref=null)
     {
-        $retval = self::uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK);
+        $retval = self::uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK, $backref);
         if ( is_array($retval) ) $retval = $retval[0];
         return $retval;
     }
@@ -202,7 +202,7 @@ class BlobUtil {
      * Returns false for any number of failures, for better detail, use
      * validateUpload() before calling this to do the actual upload.
      */
-    public static function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true)
+    public static function uploadFileToBlob($FILE_DESCRIPTOR, $SAFETY_CHECK=true, $backref=null)
     {
         global $CFG, $CONTEXT, $LINK, $PDOX;
 
@@ -268,8 +268,8 @@ class BlobUtil {
             // Blob is safe somewhere, insert the file record with pointers
             if ( $blob_id || $blob_name ) {
                 $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
-                    (context_id, link_id, file_sha256, file_name, contenttype, path, blob_id, created_at)
-                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BID, NOW())");
+                    (context_id, link_id, file_sha256, file_name, contenttype, path, backref, blob_id, created_at)
+                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BACKREF, :BID, NOW())");
                 $stmt->execute(array(
                     ":CID" => $CONTEXT->id,
                     ":LID" => $LINK->id,
@@ -277,6 +277,7 @@ class BlobUtil {
                     ":NAME" => $filename,
                     ":TYPE" => $FILE_DESCRIPTOR['type'],
                     ":PATH" => $blob_name,
+                    ":BACKREF" => $backref,
                     ":BID" => $blob_id
                 ));
                 $id = 0+$PDOX->lastInsertId();
@@ -291,9 +292,46 @@ class BlobUtil {
     }
 
     /**
+     * Set the backref for a file entry
+     *
+     * This is a soft foreign key in the frorm of:
+     *
+     *    table:column:value
+     *    peer_submit::submit_id::2
+     *
+     * This is uses when we want to link a blob to a record at an even finer
+     * level than context_id and link_id which is done by default.
+     *
+     * When an application is doing a two-phase commit where it
+     * is uploading the file and then creating the record in the
+     * table that references the file (i.e. peer_submit in the
+     * above example), it can set the back ref to have a value
+     * of -1 to indicate that the file is as yet unlinked
+     *
+     *    peer_submit::submit_id::-1
+     *
+     * and then once the peer_submit record is committed call this routine to
+     * point to the real record in the table.
+     */
+    public static function setBackref($file_id, $backref)
+    {
+        global $CFG, $CONTEXT, $LINK, $PDOX;
+
+        $stmt = $PDOX->queryDie("UPDATE {$CFG->dbprefix}blob_file
+            SET backref=:BACKREF
+            WHERE file_id = :ID AND context_id=:CID AND link_id = :LID",
+        array(
+            ":ID" => $file_id,
+            ":CID" => $CONTEXT->id,
+            ":LID" => $LINK->id,
+            ":BACKREF" => $backref,
+        ));
+    }
+
+    /**
      * Read a file off local disk and put it into a blob
      */
-    public static function uploadPathToBlob($filename, $content_type)
+    public static function uploadPathToBlob($filename, $content_type, $backref=null)
     {
         global $CFG, $CONTEXT, $LINK, $PDOX;
 
@@ -351,8 +389,8 @@ class BlobUtil {
             // Blob is safe somewhere, insert the file record with pointers
             if ( $blob_id || $blob_name ) {
                 $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
-                    (context_id, link_id, file_sha256, file_name, contenttype, path, blob_id, created_at)
-                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BID, NOW())");
+                    (context_id, link_id, file_sha256, file_name, contenttype, path, backref, blob_id, created_at)
+                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BACKREF, :BID, NOW())");
                 $stmt->execute(array(
                     ":CID" => $CONTEXT->id,
                     ":LID" => $LINK->id,
@@ -360,6 +398,7 @@ class BlobUtil {
                     ":NAME" => $filename,
                     ":TYPE" => $content_type,
                     ":PATH" => $blob_name,
+                    ":BACKREF" => $backref,
                     ":BID" => $blob_id
                 ));
                 $id = 0+$PDOX->lastInsertId();
