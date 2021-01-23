@@ -8,7 +8,7 @@ require_once "tests/Mock/MockSession.php";
 
 use \Tsugi\Core\LTIX;
 
-class LaunchTest extends PHPUnit_Framework_TestCase
+class LaunchTest extends \PHPUnit\Framework\TestCase
 {
     // Mostly make sure this does not blow up with a traceback
     // The null code paths depends on the existence of the $_SESSION superglobal

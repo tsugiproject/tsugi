@@ -4,7 +4,7 @@ require_once "src/Util/ContentItem.php";
 require_once "src/Core/ContentItem.php";
 
 // Need a different name from the Util test
-class ContentItemTestCore extends PHPUnit_Framework_TestCase
+class ContentItemTestCore extends \PHPUnit\Framework\TestCase
 {
     public function testGeneral() {
 
@@ -63,6 +63,7 @@ class ContentItemTestCore extends PHPUnit_Framework_TestCase
         // Make sure these compile
         $retval = \Tsugi\Core\ContentItem::allowMultiple(array());
         $retval = \Tsugi\Util\ContentItem::allowMultiple(array());
+        $this->assertNotNull($retval);
 
     }
 }

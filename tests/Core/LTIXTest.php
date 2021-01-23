@@ -6,7 +6,7 @@ require_once "tests/Mock/MockSession.php";
 
 use \Tsugi\Core\LTIX;
 
-class LTIXTest extends PHPUnit_Framework_TestCase
+class LTIXTest extends \PHPUnit\Framework\TestCase
 {
     public function testSecretEncrypt() {
         global $CFG;
@@ -17,12 +17,8 @@ class LTIXTest extends PHPUnit_Framework_TestCase
         $zot = LTIX::decrypt_secret($zap);
         $this->assertEquals($zot,"apereo");
     }
-    public function testAnon() {
-        // $LAUNCH = LTIX::requireData(LTIX::NONE);
-    }
 
     public function testCSRF() {
-        // $LAUNCH = LTIX::requireData(LTIX::NONE);
         $this->assertEquals(LTIX::ltiParameter('bob', 'sam'), 'sam');
     }
 

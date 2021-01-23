@@ -3,7 +3,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Blob\BlobUtil;
 
-class BlobTest extends PHPUnit_Framework_TestCase
+class BlobTest extends \PHPUnit\Framework\TestCase
 {
     // https://stackoverflow.com/questions/11267086/php-unlink-all-files-within-a-directory-and-then-deleting-that-directory
     public static function recursiveRemoveDirectory($directory)

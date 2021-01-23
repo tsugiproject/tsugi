@@ -6,7 +6,7 @@ require_once "src/Util/CC_Topic.php";
 
 use \Tsugi\Util\CC_Topic;
 
-class CC_TopicTest extends PHPUnit_Framework_TestCase
+class CC_TopicTest extends \PHPUnit\Framework\TestCase
 {
     public function testGeneral() {
         $web_dom = new CC_Topic();

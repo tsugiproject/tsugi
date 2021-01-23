@@ -9,7 +9,7 @@ class mockPDOX extends \Tsugi\Util\PDOX
 
 }
 
-class PDOXTest extends PHPUnit_Framework_TestCase
+class PDOXTest extends \PHPUnit\Framework\TestCase
 {
     public function testDescribe() {
         $describe = self::mockDescribe();

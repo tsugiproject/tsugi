@@ -6,7 +6,7 @@ require_once "src/Util/CC_WebLink.php";
 
 use \Tsugi\Util\CC_WebLink;
 
-class CC_WebLinkTest extends PHPUnit_Framework_TestCase
+class CC_WebLinkTest extends \PHPUnit\Framework\TestCase
 {
     public function testGeneral() {
 

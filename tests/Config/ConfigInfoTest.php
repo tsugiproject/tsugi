@@ -4,7 +4,7 @@ require "src/Config/ConfigInfo.php";
 
 use \Tsugi\Config\ConfigInfo;
 
-class ConfigInfoTest extends PHPUnit_Framework_TestCase
+class ConfigInfoTest extends \PHPUnit\Framework\TestCase
 {
     public function testGet() {
         $CFG = new \Tsugi\Config\ConfigInfo(realpath(dirname(__FILE__)),

@@ -5,7 +5,7 @@ require_once "src/Event/Entry.php";
 use \Tsugi\Util\U;
 use \Tsugi\Event\Entry;
 
-class EntryTest extends PHPUnit_Framework_TestCase
+class EntryTest extends \PHPUnit\Framework\TestCase
 {
     public function testClicking() {
         $x = 1502553699;

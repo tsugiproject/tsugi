@@ -9,7 +9,7 @@ require_once "src/Config/ConfigInfo.php";
 
 // From: http://www.movable-type.co.uk/scripts/aes-php.html
 
-class SecureCookieTest extends PHPUnit_Framework_TestCase
+class SecureCookieTest extends \PHPUnit\Framework\TestCase
 {
     public function testAESCookie() {
         global $CFG;

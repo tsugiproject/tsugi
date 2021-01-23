@@ -4,7 +4,7 @@ require_once "src/UI/MenuEntry.php";
 require_once "src/UI/Menu.php";
 
 
-class MenuTest extends PHPUnit_Framework_TestCase
+class MenuTest extends \PHPUnit\Framework\TestCase
 {
     public function testConstruct() {
         $left = new \Tsugi\UI\Menu();

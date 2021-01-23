@@ -6,7 +6,7 @@ require_once('src/Crypt/AesCtr.php');
 
 use \Tsugi\Core\WebSocket;
 
-class WebSocketTest extends PHPUnit_Framework_TestCase
+class WebSocketTest extends \PHPUnit\Framework\TestCase
 {
     public function testEnabled() {
         global $CFG;

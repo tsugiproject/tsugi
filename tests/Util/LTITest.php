@@ -27,7 +27,7 @@ $CFG->vendorinclude = dirname(__FILE__).'/../../include';
 
 require_once "include/setup.php";
 
-class LTITest extends PHPUnit_Framework_TestCase
+class LTITest extends \PHPUnit\Framework\TestCase
 {
     public $parms = array(
         'lti_message_type' => 'basic-lti-launch-request',

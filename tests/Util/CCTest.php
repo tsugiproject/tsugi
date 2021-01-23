@@ -5,7 +5,7 @@ require_once "src/Util/CC.php";
 
 use \Tsugi\Util\CC;
 
-class CCTest extends PHPUnit_Framework_TestCase
+class CCTest extends \PHPUnit\Framework\TestCase
 {
     public function testGeneral() {
 

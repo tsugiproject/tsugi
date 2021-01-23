@@ -4,7 +4,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\PDOX;
 use \Tsugi\Util\KVS;
 
-class KVSTest extends PHPUnit_Framework_TestCase
+class KVSTest extends \PHPUnit\Framework\TestCase
 {
 
     public static $USE_DISK = true;
@@ -32,6 +32,7 @@ class KVSTest extends PHPUnit_Framework_TestCase
     // Leave the file at the end
     public function testFileDB() {
         $kvs = self::getKVS();
+        $this->assertTrue(is_object($kvs)); 
     }
 
     public function testValidate() {

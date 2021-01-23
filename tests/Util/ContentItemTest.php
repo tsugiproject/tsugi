@@ -4,7 +4,7 @@ require_once "src/Util/ContentItem.php";
 
 use \Tsugi\Util\ContentItem;
 
-class ContentItemTest extends PHPUnit_Framework_TestCase
+class ContentItemTest extends \PHPUnit\Framework\TestCase
 {
     public function testGeneral() {
 

@@ -8,7 +8,7 @@ require_once "src/UI/Output.php";
 require_once "src/Config/ConfigInfo.php";
 
 
-class MenuSetTest extends PHPUnit_Framework_TestCase
+class MenuSetTest extends \PHPUnit\Framework\TestCase
 {
     public function testBasics() {
         $right = new \Tsugi\UI\Menu();
@@ -61,6 +61,11 @@ class MenuSetTest extends PHPUnit_Framework_TestCase
             ->addLink('GitHub', 'http://www.github.org');
         // print_r($menu);
         // echo(json_encode($menu->menu, JSON_PRETTY_PRINT));
+        $this->assertTrue(is_object($menu));
+        $this->assertTrue(is_array($menu->menu));
+        $this->assertTrue(is_object($menu->menu[2]));
+        $this->assertEquals($menu->menu[2]->link,"More...");
+
 
     }
 

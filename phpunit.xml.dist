@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    curl -O https://phar.phpunit.de/phpunit-old.phar
-    php phpunit-old.phar 
-
-    curl -O https://phar.phpunit.de/phpunit.phar
-    php phpunit.phar 
+    curl -O https://phar.phpunit.de/phpunit-8.phar
+    php phpunit-8.phar 
 -->
 <phpunit>
     <testsuites>

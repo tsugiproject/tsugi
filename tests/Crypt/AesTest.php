@@ -8,7 +8,7 @@ require_once('src/Crypt/AesCtr.php');
 
 // From: http://www.movable-type.co.uk/scripts/aes-php.html
 
-class AesTest extends PHPUnit_Framework_TestCase
+class AesTest extends \PHPUnit\Framework\TestCase
 {
     public function testGet() {
         $pw = 'L0ck it up saf3';

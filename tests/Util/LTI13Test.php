@@ -34,7 +34,7 @@ require_once "include/setup.php";
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\JWK;
 
-class LTI13Test extends PHPUnit_Framework_TestCase
+class LTI13Test extends \PHPUnit\Framework\TestCase
 {
     public $test_jwt_str = <<< EOF
         {

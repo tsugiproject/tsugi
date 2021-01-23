@@ -2,7 +2,7 @@
 
 use \Tsugi\Util\PS;
 
-class PSTest extends PHPUnit_Framework_TestCase
+class PSTest extends \PHPUnit\Framework\TestCase
 {
     public function testOne() {
         // hello

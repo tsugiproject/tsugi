@@ -2,7 +2,7 @@
 
 use \Tsugi\Util\U;
 
-class UTest extends PHPUnit_Framework_TestCase
+class UTest extends \PHPUnit\Framework\TestCase
 {
     public function testGet() {
         $this->assertFalse(U::goodFolder(' '));

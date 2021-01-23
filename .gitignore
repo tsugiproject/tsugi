@@ -9,6 +9,7 @@ sami.phar
 
 phpunit.phar
 phpunit-old.phar
+.phpunit.result.cache
 
 composer.phar
 

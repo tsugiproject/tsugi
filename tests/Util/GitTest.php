@@ -4,7 +4,7 @@
 require_once "src/Util/Git.php";
 require_once "src/Util/GitRepo.php";
 
-class GitTest extends PHPUnit_Framework_TestCase
+class GitTest extends \PHPUnit\Framework\TestCase
 {
     public function testIndent() {
         $repo = new \Tsugi\Util\GitRepo();

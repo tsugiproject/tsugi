@@ -18,7 +18,7 @@ require_once("src/Util/Mimeparse.php");
 
 // Unit tests //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class MimeparseTest extends PHPUnit_Framework_TestCase
+class MimeparseTest extends \PHPUnit\Framework\TestCase
 {
 
     public $m;
