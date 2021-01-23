@@ -1,0 +1,25 @@
+
+.out_phpdoc/
+.tmp_phpdoc/
+phpDocumentor.phar
+sami.phar
+.DS_Store
+
+*.swp
+
+phpunit.phar
+phpunit-old.phar
+
+composer.phar
+
+# Since this is bound for packagist, do not commit vendor or lockfile
+vendor/
+composer.lock
+
+# Intellij
+.idea/
+*.iml
+*.ipr
+*.iws
+*.uml
+out/
