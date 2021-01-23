@@ -565,6 +565,15 @@ $('a').each(function (x) {
         session_start();
         $session_object = null;
 
+        $session_id = U::get($_GET, session_name());
+        if ( $session_id && $session_id != session_id() ) {
+            error_log("Heartbeat session_id=".$session_id." session_start=".session_id());
+        }
+
+        if ( $session_id && ! U::get($_SESSION,'lti') ) {
+            error_log("Heartbeat session_id=".$session_id." missing lti value");
+        }
+
         // TODO: Make sure to do the right thing with the session eventially
 
         // See how long since the last update of the activity time
