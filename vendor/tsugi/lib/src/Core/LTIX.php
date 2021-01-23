@@ -2734,13 +2734,35 @@ class LTIX {
 
         $return_url = isset($_POST['launch_presentation_return_url']) ? $_POST['launch_presentation_return_url'] : null;
         if ( is_array($extra) ) $extra = Output::safe_var_dump($extra);
-        if ($return_url === null) {
-            // make the msg a bit friendlier
+
+        // make the msg a bit friendlier
+        if ( ! headers_sent() ) {
             header('X-Tsugi-Test-Harness: https://www.tsugi.org/lti-test/');
             header('X-Tsugi-Base-String-Checker: https://www.tsugi.org/lti-test/basecheck.php');
-            if ( $extra && ! headers_sent() ) {
+            if ( $extra ) {
                 header('X-Tsugi-Error-Detail: '.str_replace("\n"," -- ",$extra));
             }
+        }
+
+        $headers = headers_list();
+        $json = false;
+        foreach($headers as $header ) {
+            $header = strtolower($header);
+            if ( stripos($header, 'content-type:') === 0 && stripos($header, 'json') > 0 ) $json = true;
+        }
+
+        if ( $json ) {
+            http_response_code(403);
+            $response = new \stdClass();
+            $response->status = "error";
+            if ( $extra ) $response->tsugi_detail = $extra;
+            $response->tsugi_tester = 'https://www.tsugi.org/lti-test/';
+            $response->base_string = 'https://www.tsugi.org/lti-test/basecheck.php';
+            echo(json_encode($response));
+            exit();
+        }
+
+        if ($return_url === null) {
             error_log($prefix.' '.$msg.' '.$extra);
             print_stack_trace();
             $url = "https://www.tsugi.org/launcherror";
@@ -2753,7 +2775,6 @@ class LTIX {
         $return_url .= 'lti_errormsg=' . urlencode($msg);
         if ( $extra !== false ) {
             if ( strlen($extra) < 200 ) $return_url .= '&detail=' . urlencode($extra);
-            header('X-Tsugi-Error-Detail: '.str_replace("\n"," -- ",$extra));
         }
         header("Location: ".$return_url);
         error_log($prefix.' '.$msg.' '.$extra);
