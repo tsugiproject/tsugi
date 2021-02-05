@@ -13,7 +13,17 @@ if ( $CFG->adminpw === false ) {
     die('Please set $CFG->adminpw to a plaintext or hashed string');
 }
 
-if ( $CFG->google_client_id && ! U::get($_SESSION,'id') ) {
+// Make sure we have an initialized database before sending to login.php
+try {
+    define('PDO_WILL_CATCH', true);
+    $PDOX = \Tsugi\Core\LTIX::getConnection();
+    $stmt = $PDOX->queryReturnError("SELECT key_id FROM {$CFG->dbprefix}lti_key  LIMIT 1");
+    $havedatabase = $stmt->success;
+} catch(\PDOException $ex){
+    $havedatabase = false;
+}
+
+if ( $havedatabase && $CFG->google_client_id && ! U::get($_SESSION,'id') ) {
     $_SESSION['login_return'] = $rest_path->full;
     Output::doRedirect($CFG->wwwroot.'/login.php');
     return;

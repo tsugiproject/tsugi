@@ -10,7 +10,7 @@ setcookie("adminmenu","true", time()+365*24*60*60, "/");
 require_once("sanity.php");
 $PDOX = false;
 try {
-    define('PDO_WILL_CATCH', true);
+    if ( ! defined('PDO_WILL_CATCH') ) define('PDO_WILL_CATCH', true);
     $PDOX = \Tsugi\Core\LTIX::getConnection();
 } catch(\PDOException $ex){
     $PDOX = false;  // sanity-db-will re-check this below
