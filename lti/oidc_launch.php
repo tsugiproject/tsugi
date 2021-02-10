@@ -4,6 +4,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
 use \Tsugi\Core\LTIX;
+use \Tsugi\UI\Output;
 
 require_once "../config.php";
 
@@ -33,20 +34,26 @@ if ( $delta > 60 ) {
     LTIX::abort_with_error_log('Bad time value');
 }
 
-if ( ! isset($decoded->signature) ) {
-    LTIX::abort_with_error_log('No signature in state');
-}
-$signature = \Tsugi\Core\LTIX::getBrowserSignature();
-
-if ( $signature != $decoded->signature ) {
-    if ( U::apcAvailable() ) {
-         $found = false;
-	 $previous = apc_fetch('oidc_login_state',$zap);
-	 if ( $found ) error_log('oidc_state '.$previous);
+if ( isset($decoded->type) && $decoded->type == "json" ) {
+    // No browser signature check
+    error_log("JSON STATE");
+} else {
+    if ( ! isset($decoded->signature) ) {
+        LTIX::abort_with_error_log('No signature in state');
     }
-    $raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
-    error_log('oidc_launch '.$raw);
-    LTIX::abort_with_error_log("Invalid state signature value");
+
+    $signature = \Tsugi\Core\LTIX::getBrowserSignature();
+
+    if ( $signature != $decoded->signature ) {
+        if ( U::apcAvailable() ) {
+            $found = false;
+	        $previous = apc_fetch('oidc_login_state',$zap);
+	        if ( $found ) error_log('oidc_state '.$previous);
+        }
+        $raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
+        error_log('oidc_launch '.$raw);
+        LTIX::abort_with_error_log("Invalid state signature value");
+    }
 }
 
 $url_claim = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
