@@ -34,7 +34,7 @@ array( "{$CFG->dbprefix}lms_tools_status",
     ipaddr              VARCHAR(64),
     status_note         TEXT NULL,
     commit              TEXT NULL,
-    commit_log          TEXT NULL,
+    commit_log          MEDIUMTEXT NULL,
 
     json                MEDIUMTEXT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -52,35 +52,13 @@ array( "{$CFG->dbprefix}lms_tools_status",
 $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
 
-    if ( ! $PDOX->columnExists('commit', "{$CFG->dbprefix}lms_tools_status") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status ADD commit TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
+    // Thu Feb 11 12:05:44 EST 2021
+    $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status MODIFY commit_log MEDIUMTEXT NULL";
+    echo("Upgrading: ".$sql."<br/>\n");
+    error_log("Upgrading: ".$sql);
+    $q = $PDOX->queryDie($sql);
 
-    if ( ! $PDOX->columnExists('commit_log', "{$CFG->dbprefix}lms_tools_status") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status ADD commit_log TEXT NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
-
-    if ( ! $PDOX->columnExists('git_user', "{$CFG->dbprefix}lms_tools_status") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status ADD git_user VARCHAR(1024) NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
-
-    if ( ! $PDOX->columnExists('git_password', "{$CFG->dbprefix}lms_tools_status") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status ADD git_password VARCHAR(1024) NULL";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryDie($sql);
-    }
-
-    return 201804301336;
+    return 202002111206;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
