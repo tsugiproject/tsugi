@@ -23,6 +23,7 @@ class Google_Service_Compute_NetworkInterface extends Google_Collection
   protected $aliasIpRangesType = 'Google_Service_Compute_AliasIpRange';
   protected $aliasIpRangesDataType = 'array';
   public $fingerprint;
+  public $ipv6Address;
   public $kind;
   public $name;
   public $network;
@@ -30,28 +31,28 @@ class Google_Service_Compute_NetworkInterface extends Google_Collection
   public $subnetwork;
 
   /**
-   * @param Google_Service_Compute_AccessConfig
+   * @param Google_Service_Compute_AccessConfig[]
    */
   public function setAccessConfigs($accessConfigs)
   {
     $this->accessConfigs = $accessConfigs;
   }
   /**
-   * @return Google_Service_Compute_AccessConfig
+   * @return Google_Service_Compute_AccessConfig[]
    */
   public function getAccessConfigs()
   {
     return $this->accessConfigs;
   }
   /**
-   * @param Google_Service_Compute_AliasIpRange
+   * @param Google_Service_Compute_AliasIpRange[]
    */
   public function setAliasIpRanges($aliasIpRanges)
   {
     $this->aliasIpRanges = $aliasIpRanges;
   }
   /**
-   * @return Google_Service_Compute_AliasIpRange
+   * @return Google_Service_Compute_AliasIpRange[]
    */
   public function getAliasIpRanges()
   {
@@ -64,6 +65,14 @@ class Google_Service_Compute_NetworkInterface extends Google_Collection
   public function getFingerprint()
   {
     return $this->fingerprint;
+  }
+  public function setIpv6Address($ipv6Address)
+  {
+    $this->ipv6Address = $ipv6Address;
+  }
+  public function getIpv6Address()
+  {
+    return $this->ipv6Address;
   }
   public function setKind($kind)
   {

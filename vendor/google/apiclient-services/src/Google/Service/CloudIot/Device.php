@@ -23,6 +23,8 @@ class Google_Service_CloudIot_Device extends Google_Collection
   protected $configDataType = '';
   protected $credentialsType = 'Google_Service_CloudIot_DeviceCredential';
   protected $credentialsDataType = 'array';
+  protected $gatewayConfigType = 'Google_Service_CloudIot_GatewayConfig';
+  protected $gatewayConfigDataType = '';
   public $id;
   public $lastConfigAckTime;
   public $lastConfigSendTime;
@@ -32,6 +34,7 @@ class Google_Service_CloudIot_Device extends Google_Collection
   public $lastEventTime;
   public $lastHeartbeatTime;
   public $lastStateTime;
+  public $logLevel;
   public $metadata;
   public $name;
   public $numId;
@@ -61,18 +64,32 @@ class Google_Service_CloudIot_Device extends Google_Collection
     return $this->config;
   }
   /**
-   * @param Google_Service_CloudIot_DeviceCredential
+   * @param Google_Service_CloudIot_DeviceCredential[]
    */
   public function setCredentials($credentials)
   {
     $this->credentials = $credentials;
   }
   /**
-   * @return Google_Service_CloudIot_DeviceCredential
+   * @return Google_Service_CloudIot_DeviceCredential[]
    */
   public function getCredentials()
   {
     return $this->credentials;
+  }
+  /**
+   * @param Google_Service_CloudIot_GatewayConfig
+   */
+  public function setGatewayConfig(Google_Service_CloudIot_GatewayConfig $gatewayConfig)
+  {
+    $this->gatewayConfig = $gatewayConfig;
+  }
+  /**
+   * @return Google_Service_CloudIot_GatewayConfig
+   */
+  public function getGatewayConfig()
+  {
+    return $this->gatewayConfig;
   }
   public function setId($id)
   {
@@ -143,6 +160,14 @@ class Google_Service_CloudIot_Device extends Google_Collection
   public function getLastStateTime()
   {
     return $this->lastStateTime;
+  }
+  public function setLogLevel($logLevel)
+  {
+    $this->logLevel = $logLevel;
+  }
+  public function getLogLevel()
+  {
+    return $this->logLevel;
   }
   public function setMetadata($metadata)
   {

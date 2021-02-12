@@ -35,12 +35,13 @@ class Google_Service_Books_Resource_MylibraryBookshelves extends Google_Service_
    * @opt_param string reason The reason for which the book is added to the
    * library.
    * @opt_param string source String to identify the originator of this request.
+   * @return Google_Service_Books_BooksEmpty
    */
   public function addVolume($shelf, $volumeId, $optParams = array())
   {
     $params = array('shelf' => $shelf, 'volumeId' => $volumeId);
     $params = array_merge($params, $optParams);
-    return $this->call('addVolume', array($params));
+    return $this->call('addVolume', array($params), "Google_Service_Books_BooksEmpty");
   }
   /**
    * Clears all volumes from a bookshelf. (bookshelves.clearVolumes)
@@ -49,12 +50,13 @@ class Google_Service_Books_Resource_MylibraryBookshelves extends Google_Service_
    * @param array $optParams Optional parameters.
    *
    * @opt_param string source String to identify the originator of this request.
+   * @return Google_Service_Books_BooksEmpty
    */
   public function clearVolumes($shelf, $optParams = array())
   {
     $params = array('shelf' => $shelf);
     $params = array_merge($params, $optParams);
-    return $this->call('clearVolumes', array($params));
+    return $this->call('clearVolumes', array($params), "Google_Service_Books_BooksEmpty");
   }
   /**
    * Retrieves metadata for a specific bookshelf belonging to the authenticated
@@ -98,12 +100,13 @@ class Google_Service_Books_Resource_MylibraryBookshelves extends Google_Service_
    * @param array $optParams Optional parameters.
    *
    * @opt_param string source String to identify the originator of this request.
+   * @return Google_Service_Books_BooksEmpty
    */
   public function moveVolume($shelf, $volumeId, $volumePosition, $optParams = array())
   {
     $params = array('shelf' => $shelf, 'volumeId' => $volumeId, 'volumePosition' => $volumePosition);
     $params = array_merge($params, $optParams);
-    return $this->call('moveVolume', array($params));
+    return $this->call('moveVolume', array($params), "Google_Service_Books_BooksEmpty");
   }
   /**
    * Removes a volume from a bookshelf. (bookshelves.removeVolume)
@@ -115,11 +118,12 @@ class Google_Service_Books_Resource_MylibraryBookshelves extends Google_Service_
    * @opt_param string reason The reason for which the book is removed from the
    * library.
    * @opt_param string source String to identify the originator of this request.
+   * @return Google_Service_Books_BooksEmpty
    */
   public function removeVolume($shelf, $volumeId, $optParams = array())
   {
     $params = array('shelf' => $shelf, 'volumeId' => $volumeId);
     $params = array_merge($params, $optParams);
-    return $this->call('removeVolume', array($params));
+    return $this->call('removeVolume', array($params), "Google_Service_Books_BooksEmpty");
   }
 }

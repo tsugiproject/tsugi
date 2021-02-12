@@ -19,6 +19,7 @@ class Google_Service_AndroidEnterprise_Policy extends Google_Collection
 {
   protected $collection_key = 'productPolicy';
   public $autoUpdatePolicy;
+  public $deviceReportPolicy;
   protected $maintenanceWindowType = 'Google_Service_AndroidEnterprise_MaintenanceWindow';
   protected $maintenanceWindowDataType = '';
   public $productAvailabilityPolicy;
@@ -32,6 +33,14 @@ class Google_Service_AndroidEnterprise_Policy extends Google_Collection
   public function getAutoUpdatePolicy()
   {
     return $this->autoUpdatePolicy;
+  }
+  public function setDeviceReportPolicy($deviceReportPolicy)
+  {
+    $this->deviceReportPolicy = $deviceReportPolicy;
+  }
+  public function getDeviceReportPolicy()
+  {
+    return $this->deviceReportPolicy;
   }
   /**
    * @param Google_Service_AndroidEnterprise_MaintenanceWindow
@@ -56,14 +65,14 @@ class Google_Service_AndroidEnterprise_Policy extends Google_Collection
     return $this->productAvailabilityPolicy;
   }
   /**
-   * @param Google_Service_AndroidEnterprise_ProductPolicy
+   * @param Google_Service_AndroidEnterprise_ProductPolicy[]
    */
   public function setProductPolicy($productPolicy)
   {
     $this->productPolicy = $productPolicy;
   }
   /**
-   * @return Google_Service_AndroidEnterprise_ProductPolicy
+   * @return Google_Service_AndroidEnterprise_ProductPolicy[]
    */
   public function getProductPolicy()
   {

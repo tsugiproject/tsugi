@@ -20,19 +20,21 @@ class Google_Service_AdExchangeBuyerII_ServingRestriction extends Google_Collect
   protected $collection_key = 'disapprovalReasons';
   protected $contextsType = 'Google_Service_AdExchangeBuyerII_ServingContext';
   protected $contextsDataType = 'array';
+  protected $disapprovalType = 'Google_Service_AdExchangeBuyerII_Disapproval';
+  protected $disapprovalDataType = '';
   protected $disapprovalReasonsType = 'Google_Service_AdExchangeBuyerII_Disapproval';
   protected $disapprovalReasonsDataType = 'array';
   public $status;
 
   /**
-   * @param Google_Service_AdExchangeBuyerII_ServingContext
+   * @param Google_Service_AdExchangeBuyerII_ServingContext[]
    */
   public function setContexts($contexts)
   {
     $this->contexts = $contexts;
   }
   /**
-   * @return Google_Service_AdExchangeBuyerII_ServingContext
+   * @return Google_Service_AdExchangeBuyerII_ServingContext[]
    */
   public function getContexts()
   {
@@ -41,12 +43,26 @@ class Google_Service_AdExchangeBuyerII_ServingRestriction extends Google_Collect
   /**
    * @param Google_Service_AdExchangeBuyerII_Disapproval
    */
+  public function setDisapproval(Google_Service_AdExchangeBuyerII_Disapproval $disapproval)
+  {
+    $this->disapproval = $disapproval;
+  }
+  /**
+   * @return Google_Service_AdExchangeBuyerII_Disapproval
+   */
+  public function getDisapproval()
+  {
+    return $this->disapproval;
+  }
+  /**
+   * @param Google_Service_AdExchangeBuyerII_Disapproval[]
+   */
   public function setDisapprovalReasons($disapprovalReasons)
   {
     $this->disapprovalReasons = $disapprovalReasons;
   }
   /**
-   * @return Google_Service_AdExchangeBuyerII_Disapproval
+   * @return Google_Service_AdExchangeBuyerII_Disapproval[]
    */
   public function getDisapprovalReasons()
   {

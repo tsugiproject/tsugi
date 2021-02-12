@@ -20,6 +20,7 @@ class Google_Service_Partners_Company extends Google_Collection
   protected $collection_key = 'specializationStatus';
   public $additionalWebsites;
   public $autoApprovalEmailDomains;
+  public $badgeAuthorityInAwn;
   public $badgeTier;
   protected $certificationStatusesType = 'Google_Service_Partners_CertificationStatus';
   protected $certificationStatusesDataType = 'array';
@@ -64,6 +65,14 @@ class Google_Service_Partners_Company extends Google_Collection
   public function getAutoApprovalEmailDomains()
   {
     return $this->autoApprovalEmailDomains;
+  }
+  public function setBadgeAuthorityInAwn($badgeAuthorityInAwn)
+  {
+    $this->badgeAuthorityInAwn = $badgeAuthorityInAwn;
+  }
+  public function getBadgeAuthorityInAwn()
+  {
+    return $this->badgeAuthorityInAwn;
   }
   public function setBadgeTier($badgeTier)
   {

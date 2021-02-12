@@ -28,6 +28,7 @@ class Google_Service_Compute_Network extends Google_Collection
   public $gatewayIPv4;
   public $id;
   public $kind;
+  public $mtu;
   public $name;
   protected $peeringsType = 'Google_Service_Compute_NetworkPeering';
   protected $peeringsDataType = 'array';
@@ -92,6 +93,14 @@ class Google_Service_Compute_Network extends Google_Collection
   {
     return $this->kind;
   }
+  public function setMtu($mtu)
+  {
+    $this->mtu = $mtu;
+  }
+  public function getMtu()
+  {
+    return $this->mtu;
+  }
   public function setName($name)
   {
     $this->name = $name;
@@ -101,14 +110,14 @@ class Google_Service_Compute_Network extends Google_Collection
     return $this->name;
   }
   /**
-   * @param Google_Service_Compute_NetworkPeering
+   * @param Google_Service_Compute_NetworkPeering[]
    */
   public function setPeerings($peerings)
   {
     $this->peerings = $peerings;
   }
   /**
-   * @return Google_Service_Compute_NetworkPeering
+   * @return Google_Service_Compute_NetworkPeering[]
    */
   public function getPeerings()
   {

@@ -19,6 +19,7 @@ class Google_Service_Genomics_ContainerStoppedEvent extends Google_Model
 {
   public $actionId;
   public $exitStatus;
+  public $stderr;
 
   public function setActionId($actionId)
   {
@@ -35,5 +36,13 @@ class Google_Service_Genomics_ContainerStoppedEvent extends Google_Model
   public function getExitStatus()
   {
     return $this->exitStatus;
+  }
+  public function setStderr($stderr)
+  {
+    $this->stderr = $stderr;
+  }
+  public function getStderr()
+  {
+    return $this->stderr;
   }
 }

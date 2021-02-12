@@ -24,6 +24,8 @@ class Google_Service_AdExchangeBuyer_Creative extends Google_Collection
   public $hTMLSnippet;
   public $accountId;
   public $adChoicesDestinationUrl;
+  protected $adTechnologyProvidersType = 'Google_Service_AdExchangeBuyer_CreativeAdTechnologyProviders';
+  protected $adTechnologyProvidersDataType = '';
   public $advertiserId;
   public $advertiserName;
   public $agencyId;
@@ -33,6 +35,7 @@ class Google_Service_AdExchangeBuyer_Creative extends Google_Collection
   public $clickThroughUrl;
   protected $correctionsType = 'Google_Service_AdExchangeBuyer_CreativeCorrections';
   protected $correctionsDataType = 'array';
+  public $creativeStatusIdentityType;
   public $dealsStatus;
   public $detectedDomains;
   protected $filteringReasonsType = 'Google_Service_AdExchangeBuyer_CreativeFilteringReasons';
@@ -78,6 +81,20 @@ class Google_Service_AdExchangeBuyer_Creative extends Google_Collection
   public function getAdChoicesDestinationUrl()
   {
     return $this->adChoicesDestinationUrl;
+  }
+  /**
+   * @param Google_Service_AdExchangeBuyer_CreativeAdTechnologyProviders
+   */
+  public function setAdTechnologyProviders(Google_Service_AdExchangeBuyer_CreativeAdTechnologyProviders $adTechnologyProviders)
+  {
+    $this->adTechnologyProviders = $adTechnologyProviders;
+  }
+  /**
+   * @return Google_Service_AdExchangeBuyer_CreativeAdTechnologyProviders
+   */
+  public function getAdTechnologyProviders()
+  {
+    return $this->adTechnologyProviders;
   }
   public function setAdvertiserId($advertiserId)
   {
@@ -136,18 +153,26 @@ class Google_Service_AdExchangeBuyer_Creative extends Google_Collection
     return $this->clickThroughUrl;
   }
   /**
-   * @param Google_Service_AdExchangeBuyer_CreativeCorrections
+   * @param Google_Service_AdExchangeBuyer_CreativeCorrections[]
    */
   public function setCorrections($corrections)
   {
     $this->corrections = $corrections;
   }
   /**
-   * @return Google_Service_AdExchangeBuyer_CreativeCorrections
+   * @return Google_Service_AdExchangeBuyer_CreativeCorrections[]
    */
   public function getCorrections()
   {
     return $this->corrections;
+  }
+  public function setCreativeStatusIdentityType($creativeStatusIdentityType)
+  {
+    $this->creativeStatusIdentityType = $creativeStatusIdentityType;
+  }
+  public function getCreativeStatusIdentityType()
+  {
+    return $this->creativeStatusIdentityType;
   }
   public function setDealsStatus($dealsStatus)
   {
@@ -258,14 +283,14 @@ class Google_Service_AdExchangeBuyer_Creative extends Google_Collection
     return $this->sensitiveCategories;
   }
   /**
-   * @param Google_Service_AdExchangeBuyer_CreativeServingRestrictions
+   * @param Google_Service_AdExchangeBuyer_CreativeServingRestrictions[]
    */
   public function setServingRestrictions($servingRestrictions)
   {
     $this->servingRestrictions = $servingRestrictions;
   }
   /**
-   * @return Google_Service_AdExchangeBuyer_CreativeServingRestrictions
+   * @return Google_Service_AdExchangeBuyer_CreativeServingRestrictions[]
    */
   public function getServingRestrictions()
   {

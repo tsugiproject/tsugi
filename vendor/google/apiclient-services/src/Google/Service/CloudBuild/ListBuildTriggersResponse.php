@@ -18,18 +18,27 @@
 class Google_Service_CloudBuild_ListBuildTriggersResponse extends Google_Collection
 {
   protected $collection_key = 'triggers';
+  public $nextPageToken;
   protected $triggersType = 'Google_Service_CloudBuild_BuildTrigger';
   protected $triggersDataType = 'array';
 
+  public function setNextPageToken($nextPageToken)
+  {
+    $this->nextPageToken = $nextPageToken;
+  }
+  public function getNextPageToken()
+  {
+    return $this->nextPageToken;
+  }
   /**
-   * @param Google_Service_CloudBuild_BuildTrigger
+   * @param Google_Service_CloudBuild_BuildTrigger[]
    */
   public function setTriggers($triggers)
   {
     $this->triggers = $triggers;
   }
   /**
-   * @return Google_Service_CloudBuild_BuildTrigger
+   * @return Google_Service_CloudBuild_BuildTrigger[]
    */
   public function getTriggers()
   {

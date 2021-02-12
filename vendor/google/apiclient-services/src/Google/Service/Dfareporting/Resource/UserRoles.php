@@ -103,7 +103,7 @@ class Google_Service_Dfareporting_Resource_UserRoles extends Google_Service_Reso
    * (userRoles.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id User role ID.
+   * @param string $id UserRole ID.
    * @param Google_Service_Dfareporting_UserRole $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_UserRole

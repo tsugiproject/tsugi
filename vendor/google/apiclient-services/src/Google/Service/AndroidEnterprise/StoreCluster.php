@@ -19,7 +19,6 @@ class Google_Service_AndroidEnterprise_StoreCluster extends Google_Collection
 {
   protected $collection_key = 'productId';
   public $id;
-  public $kind;
   protected $nameType = 'Google_Service_AndroidEnterprise_LocalizedText';
   protected $nameDataType = 'array';
   public $orderInPage;
@@ -33,23 +32,15 @@ class Google_Service_AndroidEnterprise_StoreCluster extends Google_Collection
   {
     return $this->id;
   }
-  public function setKind($kind)
-  {
-    $this->kind = $kind;
-  }
-  public function getKind()
-  {
-    return $this->kind;
-  }
   /**
-   * @param Google_Service_AndroidEnterprise_LocalizedText
+   * @param Google_Service_AndroidEnterprise_LocalizedText[]
    */
   public function setName($name)
   {
     $this->name = $name;
   }
   /**
-   * @return Google_Service_AndroidEnterprise_LocalizedText
+   * @return Google_Service_AndroidEnterprise_LocalizedText[]
    */
   public function getName()
   {

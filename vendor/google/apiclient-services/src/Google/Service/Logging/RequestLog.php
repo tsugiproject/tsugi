@@ -48,6 +48,7 @@ class Google_Service_Logging_RequestLog extends Google_Collection
   public $taskName;
   public $taskQueueName;
   public $traceId;
+  public $traceSampled;
   public $urlMapEntry;
   public $userAgent;
   public $versionId;
@@ -150,14 +151,14 @@ class Google_Service_Logging_RequestLog extends Google_Collection
     return $this->latency;
   }
   /**
-   * @param Google_Service_Logging_LogLine
+   * @param Google_Service_Logging_LogLine[]
    */
   public function setLine($line)
   {
     $this->line = $line;
   }
   /**
-   * @return Google_Service_Logging_LogLine
+   * @return Google_Service_Logging_LogLine[]
    */
   public function getLine()
   {
@@ -236,14 +237,14 @@ class Google_Service_Logging_RequestLog extends Google_Collection
     return $this->responseSize;
   }
   /**
-   * @param Google_Service_Logging_SourceReference
+   * @param Google_Service_Logging_SourceReference[]
    */
   public function setSourceReference($sourceReference)
   {
     $this->sourceReference = $sourceReference;
   }
   /**
-   * @return Google_Service_Logging_SourceReference
+   * @return Google_Service_Logging_SourceReference[]
    */
   public function getSourceReference()
   {
@@ -288,6 +289,14 @@ class Google_Service_Logging_RequestLog extends Google_Collection
   public function getTraceId()
   {
     return $this->traceId;
+  }
+  public function setTraceSampled($traceSampled)
+  {
+    $this->traceSampled = $traceSampled;
+  }
+  public function getTraceSampled()
+  {
+    return $this->traceSampled;
   }
   public function setUrlMapEntry($urlMapEntry)
   {

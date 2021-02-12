@@ -17,40 +17,37 @@
 
 class Google_Service_DeploymentManager_Policy extends Google_Collection
 {
-  protected $collection_key = 'rules';
+  protected $collection_key = 'bindings';
   protected $auditConfigsType = 'Google_Service_DeploymentManager_AuditConfig';
   protected $auditConfigsDataType = 'array';
   protected $bindingsType = 'Google_Service_DeploymentManager_Binding';
   protected $bindingsDataType = 'array';
   public $etag;
-  public $iamOwned;
-  protected $rulesType = 'Google_Service_DeploymentManager_Rule';
-  protected $rulesDataType = 'array';
   public $version;
 
   /**
-   * @param Google_Service_DeploymentManager_AuditConfig
+   * @param Google_Service_DeploymentManager_AuditConfig[]
    */
   public function setAuditConfigs($auditConfigs)
   {
     $this->auditConfigs = $auditConfigs;
   }
   /**
-   * @return Google_Service_DeploymentManager_AuditConfig
+   * @return Google_Service_DeploymentManager_AuditConfig[]
    */
   public function getAuditConfigs()
   {
     return $this->auditConfigs;
   }
   /**
-   * @param Google_Service_DeploymentManager_Binding
+   * @param Google_Service_DeploymentManager_Binding[]
    */
   public function setBindings($bindings)
   {
     $this->bindings = $bindings;
   }
   /**
-   * @return Google_Service_DeploymentManager_Binding
+   * @return Google_Service_DeploymentManager_Binding[]
    */
   public function getBindings()
   {
@@ -63,28 +60,6 @@ class Google_Service_DeploymentManager_Policy extends Google_Collection
   public function getEtag()
   {
     return $this->etag;
-  }
-  public function setIamOwned($iamOwned)
-  {
-    $this->iamOwned = $iamOwned;
-  }
-  public function getIamOwned()
-  {
-    return $this->iamOwned;
-  }
-  /**
-   * @param Google_Service_DeploymentManager_Rule
-   */
-  public function setRules($rules)
-  {
-    $this->rules = $rules;
-  }
-  /**
-   * @return Google_Service_DeploymentManager_Rule
-   */
-  public function getRules()
-  {
-    return $this->rules;
   }
   public function setVersion($version)
   {

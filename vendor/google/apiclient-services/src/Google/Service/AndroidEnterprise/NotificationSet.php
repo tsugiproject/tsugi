@@ -18,28 +18,19 @@
 class Google_Service_AndroidEnterprise_NotificationSet extends Google_Collection
 {
   protected $collection_key = 'notification';
-  public $kind;
   protected $notificationType = 'Google_Service_AndroidEnterprise_Notification';
   protected $notificationDataType = 'array';
   public $notificationSetId;
 
-  public function setKind($kind)
-  {
-    $this->kind = $kind;
-  }
-  public function getKind()
-  {
-    return $this->kind;
-  }
   /**
-   * @param Google_Service_AndroidEnterprise_Notification
+   * @param Google_Service_AndroidEnterprise_Notification[]
    */
   public function setNotification($notification)
   {
     $this->notification = $notification;
   }
   /**
-   * @return Google_Service_AndroidEnterprise_Notification
+   * @return Google_Service_AndroidEnterprise_Notification[]
    */
   public function getNotification()
   {

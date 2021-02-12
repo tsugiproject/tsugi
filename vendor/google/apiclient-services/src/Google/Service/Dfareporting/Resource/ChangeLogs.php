@@ -56,7 +56,7 @@ class Google_Service_Dfareporting_Resource_ChangeLogs extends Google_Service_Res
    * system), minute, second, and then the time zone offset.
    * @opt_param int maxResults Maximum number of results to return.
    * @opt_param string minChangeTime Select only change logs whose change time is
-   * before the specified minChangeTime.The time should be formatted as an RFC3339
+   * after the specified minChangeTime.The time should be formatted as an RFC3339
    * date/time string. For example, for 10:54 PM on July 18th, 2015, in the
    * America/New York time zone, the format is "2015-07-18T22:54:00-04:00". In
    * other words, the year, month, day, the letter T, the hour (24-hour clock

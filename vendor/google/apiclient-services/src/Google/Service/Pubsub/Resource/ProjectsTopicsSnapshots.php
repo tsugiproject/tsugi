@@ -26,18 +26,21 @@
 class Google_Service_Pubsub_Resource_ProjectsTopicsSnapshots extends Google_Service_Resource
 {
   /**
-   * Lists the names of the snapshots on this topic. [ALPHA] This method is a part
-   * of a closed Alpha API. (snapshots.listProjectsTopicsSnapshots)
+   * Lists the names of the snapshots on this topic. Snapshots are used in
+   * [Seek](https://cloud.google.com/pubsub/docs/replay-overview) operations,
+   * which allow you to manage message acknowledgments in bulk. That is, you can
+   * set the acknowledgment state of messages in an existing subscription to the
+   * state captured by a snapshot. (snapshots.listProjectsTopicsSnapshots)
    *
-   * @param string $topic The name of the topic that snapshots are attached to.
-   * Format is `projects/{project}/topics/{topic}`.
+   * @param string $topic Required. The name of the topic that snapshots are
+   * attached to. Format is `projects/{project}/topics/{topic}`.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param int pageSize Maximum number of snapshot names to return.
    * @opt_param string pageToken The value returned by the last
    * `ListTopicSnapshotsResponse`; indicates that this is a continuation of a
    * prior `ListTopicSnapshots` call, and that the system should return the next
    * page of data.
-   * @opt_param int pageSize Maximum number of snapshot names to return.
    * @return Google_Service_Pubsub_ListTopicSnapshotsResponse
    */
   public function listProjectsTopicsSnapshots($topic, $optParams = array())

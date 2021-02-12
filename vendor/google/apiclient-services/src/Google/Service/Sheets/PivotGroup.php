@@ -18,6 +18,10 @@
 class Google_Service_Sheets_PivotGroup extends Google_Collection
 {
   protected $collection_key = 'valueMetadata';
+  protected $dataSourceColumnReferenceType = 'Google_Service_Sheets_DataSourceColumnReference';
+  protected $dataSourceColumnReferenceDataType = '';
+  protected $groupLimitType = 'Google_Service_Sheets_PivotGroupLimit';
+  protected $groupLimitDataType = '';
   protected $groupRuleType = 'Google_Service_Sheets_PivotGroupRule';
   protected $groupRuleDataType = '';
   public $label;
@@ -30,6 +34,34 @@ class Google_Service_Sheets_PivotGroup extends Google_Collection
   protected $valueMetadataType = 'Google_Service_Sheets_PivotGroupValueMetadata';
   protected $valueMetadataDataType = 'array';
 
+  /**
+   * @param Google_Service_Sheets_DataSourceColumnReference
+   */
+  public function setDataSourceColumnReference(Google_Service_Sheets_DataSourceColumnReference $dataSourceColumnReference)
+  {
+    $this->dataSourceColumnReference = $dataSourceColumnReference;
+  }
+  /**
+   * @return Google_Service_Sheets_DataSourceColumnReference
+   */
+  public function getDataSourceColumnReference()
+  {
+    return $this->dataSourceColumnReference;
+  }
+  /**
+   * @param Google_Service_Sheets_PivotGroupLimit
+   */
+  public function setGroupLimit(Google_Service_Sheets_PivotGroupLimit $groupLimit)
+  {
+    $this->groupLimit = $groupLimit;
+  }
+  /**
+   * @return Google_Service_Sheets_PivotGroupLimit
+   */
+  public function getGroupLimit()
+  {
+    return $this->groupLimit;
+  }
   /**
    * @param Google_Service_Sheets_PivotGroupRule
    */
@@ -99,14 +131,14 @@ class Google_Service_Sheets_PivotGroup extends Google_Collection
     return $this->valueBucket;
   }
   /**
-   * @param Google_Service_Sheets_PivotGroupValueMetadata
+   * @param Google_Service_Sheets_PivotGroupValueMetadata[]
    */
   public function setValueMetadata($valueMetadata)
   {
     $this->valueMetadata = $valueMetadata;
   }
   /**
-   * @return Google_Service_Sheets_PivotGroupValueMetadata
+   * @return Google_Service_Sheets_PivotGroupValueMetadata[]
    */
   public function getValueMetadata()
   {

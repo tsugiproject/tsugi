@@ -20,6 +20,7 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2EntityType extends Google
   protected $collection_key = 'entities';
   public $autoExpansionMode;
   public $displayName;
+  public $enableFuzzyExtraction;
   protected $entitiesType = 'Google_Service_Dialogflow_GoogleCloudDialogflowV2EntityTypeEntity';
   protected $entitiesDataType = 'array';
   public $kind;
@@ -41,15 +42,23 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2EntityType extends Google
   {
     return $this->displayName;
   }
+  public function setEnableFuzzyExtraction($enableFuzzyExtraction)
+  {
+    $this->enableFuzzyExtraction = $enableFuzzyExtraction;
+  }
+  public function getEnableFuzzyExtraction()
+  {
+    return $this->enableFuzzyExtraction;
+  }
   /**
-   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2EntityTypeEntity
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2EntityTypeEntity[]
    */
   public function setEntities($entities)
   {
     $this->entities = $entities;
   }
   /**
-   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2EntityTypeEntity
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2EntityTypeEntity[]
    */
   public function getEntities()
   {

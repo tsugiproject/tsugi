@@ -40,8 +40,8 @@ class Google_Service_Dfareporting_Resource_Projects extends Google_Service_Resou
     return $this->call('get', array($params), "Google_Service_Dfareporting_Project");
   }
   /**
-   * Retrieves a list of projects, possibly filtered. This method supports paging.
-   * (projects.listProjects)
+   * Retrieves a list of projects, possibly filtered. This method supports paging
+   * . (projects.listProjects)
    *
    * @param string $profileId User profile ID associated with this request.
    * @param array $optParams Optional parameters.

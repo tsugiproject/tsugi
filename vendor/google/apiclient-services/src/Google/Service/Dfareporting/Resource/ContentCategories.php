@@ -99,7 +99,7 @@ class Google_Service_Dfareporting_Resource_ContentCategories extends Google_Serv
    * (contentCategories.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id Content category ID.
+   * @param string $id ContentCategory ID.
    * @param Google_Service_Dfareporting_ContentCategory $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_ContentCategory

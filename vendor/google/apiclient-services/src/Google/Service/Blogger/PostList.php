@@ -23,6 +23,7 @@ class Google_Service_Blogger_PostList extends Google_Collection
   protected $itemsDataType = 'array';
   public $kind;
   public $nextPageToken;
+  public $prevPageToken;
 
   public function setEtag($etag)
   {
@@ -33,14 +34,14 @@ class Google_Service_Blogger_PostList extends Google_Collection
     return $this->etag;
   }
   /**
-   * @param Google_Service_Blogger_Post
+   * @param Google_Service_Blogger_Post[]
    */
   public function setItems($items)
   {
     $this->items = $items;
   }
   /**
-   * @return Google_Service_Blogger_Post
+   * @return Google_Service_Blogger_Post[]
    */
   public function getItems()
   {
@@ -61,5 +62,13 @@ class Google_Service_Blogger_PostList extends Google_Collection
   public function getNextPageToken()
   {
     return $this->nextPageToken;
+  }
+  public function setPrevPageToken($prevPageToken)
+  {
+    $this->prevPageToken = $prevPageToken;
+  }
+  public function getPrevPageToken()
+  {
+    return $this->prevPageToken;
   }
 }

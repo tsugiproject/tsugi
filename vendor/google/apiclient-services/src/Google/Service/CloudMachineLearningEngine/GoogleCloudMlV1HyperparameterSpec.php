@@ -22,6 +22,7 @@ class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1HyperparameterSpe
   public $enableTrialEarlyStopping;
   public $goal;
   public $hyperparameterMetricTag;
+  public $maxFailedTrials;
   public $maxParallelTrials;
   public $maxTrials;
   protected $paramsType = 'Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1ParameterSpec';
@@ -60,6 +61,14 @@ class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1HyperparameterSpe
   {
     return $this->hyperparameterMetricTag;
   }
+  public function setMaxFailedTrials($maxFailedTrials)
+  {
+    $this->maxFailedTrials = $maxFailedTrials;
+  }
+  public function getMaxFailedTrials()
+  {
+    return $this->maxFailedTrials;
+  }
   public function setMaxParallelTrials($maxParallelTrials)
   {
     $this->maxParallelTrials = $maxParallelTrials;
@@ -77,14 +86,14 @@ class Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1HyperparameterSpe
     return $this->maxTrials;
   }
   /**
-   * @param Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1ParameterSpec
+   * @param Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1ParameterSpec[]
    */
   public function setParams($params)
   {
     $this->params = $params;
   }
   /**
-   * @return Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1ParameterSpec
+   * @return Google_Service_CloudMachineLearningEngine_GoogleCloudMlV1ParameterSpec[]
    */
   public function getParams()
   {

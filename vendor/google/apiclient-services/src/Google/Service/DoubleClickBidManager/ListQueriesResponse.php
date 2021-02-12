@@ -19,6 +19,7 @@ class Google_Service_DoubleClickBidManager_ListQueriesResponse extends Google_Co
 {
   protected $collection_key = 'queries';
   public $kind;
+  public $nextPageToken;
   protected $queriesType = 'Google_Service_DoubleClickBidManager_Query';
   protected $queriesDataType = 'array';
 
@@ -30,15 +31,23 @@ class Google_Service_DoubleClickBidManager_ListQueriesResponse extends Google_Co
   {
     return $this->kind;
   }
+  public function setNextPageToken($nextPageToken)
+  {
+    $this->nextPageToken = $nextPageToken;
+  }
+  public function getNextPageToken()
+  {
+    return $this->nextPageToken;
+  }
   /**
-   * @param Google_Service_DoubleClickBidManager_Query
+   * @param Google_Service_DoubleClickBidManager_Query[]
    */
   public function setQueries($queries)
   {
     $this->queries = $queries;
   }
   /**
-   * @return Google_Service_DoubleClickBidManager_Query
+   * @return Google_Service_DoubleClickBidManager_Query[]
    */
   public function getQueries()
   {

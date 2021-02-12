@@ -41,70 +41,24 @@ class Google_Service_Surveys extends Google_Service
   const USERINFO_EMAIL =
       "https://www.googleapis.com/auth/userinfo.email";
 
-  public $mobileapppanels;
   public $results;
   public $surveys;
   
   /**
    * Constructs the internal representation of the Surveys service.
    *
-   * @param Google_Client $client
+   * @param Google_Client $client The client used to deliver requests.
+   * @param string $rootUrl The root URL used for requests to the service.
    */
-  public function __construct(Google_Client $client)
+  public function __construct(Google_Client $client, $rootUrl = null)
   {
     parent::__construct($client);
-    $this->rootUrl = 'https://www.googleapis.com/';
+    $this->rootUrl = $rootUrl ?: 'https://www.googleapis.com/';
     $this->servicePath = 'surveys/v2/';
+    $this->batchPath = 'batch/surveys/v2';
     $this->version = 'v2';
     $this->serviceName = 'surveys';
 
-    $this->mobileapppanels = new Google_Service_Surveys_Resource_Mobileapppanels(
-        $this,
-        $this->serviceName,
-        'mobileapppanels',
-        array(
-          'methods' => array(
-            'get' => array(
-              'path' => 'mobileAppPanels/{panelId}',
-              'httpMethod' => 'GET',
-              'parameters' => array(
-                'panelId' => array(
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ),
-              ),
-            ),'list' => array(
-              'path' => 'mobileAppPanels',
-              'httpMethod' => 'GET',
-              'parameters' => array(
-                'maxResults' => array(
-                  'location' => 'query',
-                  'type' => 'integer',
-                ),
-                'startIndex' => array(
-                  'location' => 'query',
-                  'type' => 'integer',
-                ),
-                'token' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
-              ),
-            ),'update' => array(
-              'path' => 'mobileAppPanels/{panelId}',
-              'httpMethod' => 'PUT',
-              'parameters' => array(
-                'panelId' => array(
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ),
-              ),
-            ),
-          )
-        )
-    );
     $this->results = new Google_Service_Surveys_Resource_Results(
         $this,
         $this->serviceName,

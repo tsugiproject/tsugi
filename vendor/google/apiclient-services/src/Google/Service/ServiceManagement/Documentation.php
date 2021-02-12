@@ -24,6 +24,7 @@ class Google_Service_ServiceManagement_Documentation extends Google_Collection
   protected $pagesDataType = 'array';
   protected $rulesType = 'Google_Service_ServiceManagement_DocumentationRule';
   protected $rulesDataType = 'array';
+  public $serviceRootUrl;
   public $summary;
 
   public function setDocumentationRootUrl($documentationRootUrl)
@@ -43,32 +44,40 @@ class Google_Service_ServiceManagement_Documentation extends Google_Collection
     return $this->overview;
   }
   /**
-   * @param Google_Service_ServiceManagement_Page
+   * @param Google_Service_ServiceManagement_Page[]
    */
   public function setPages($pages)
   {
     $this->pages = $pages;
   }
   /**
-   * @return Google_Service_ServiceManagement_Page
+   * @return Google_Service_ServiceManagement_Page[]
    */
   public function getPages()
   {
     return $this->pages;
   }
   /**
-   * @param Google_Service_ServiceManagement_DocumentationRule
+   * @param Google_Service_ServiceManagement_DocumentationRule[]
    */
   public function setRules($rules)
   {
     $this->rules = $rules;
   }
   /**
-   * @return Google_Service_ServiceManagement_DocumentationRule
+   * @return Google_Service_ServiceManagement_DocumentationRule[]
    */
   public function getRules()
   {
     return $this->rules;
+  }
+  public function setServiceRootUrl($serviceRootUrl)
+  {
+    $this->serviceRootUrl = $serviceRootUrl;
+  }
+  public function getServiceRootUrl()
+  {
+    return $this->serviceRootUrl;
   }
   public function setSummary($summary)
   {

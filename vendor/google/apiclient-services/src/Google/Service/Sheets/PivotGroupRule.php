@@ -17,11 +17,27 @@
 
 class Google_Service_Sheets_PivotGroupRule extends Google_Model
 {
+  protected $dateTimeRuleType = 'Google_Service_Sheets_DateTimeRule';
+  protected $dateTimeRuleDataType = '';
   protected $histogramRuleType = 'Google_Service_Sheets_HistogramRule';
   protected $histogramRuleDataType = '';
   protected $manualRuleType = 'Google_Service_Sheets_ManualRule';
   protected $manualRuleDataType = '';
 
+  /**
+   * @param Google_Service_Sheets_DateTimeRule
+   */
+  public function setDateTimeRule(Google_Service_Sheets_DateTimeRule $dateTimeRule)
+  {
+    $this->dateTimeRule = $dateTimeRule;
+  }
+  /**
+   * @return Google_Service_Sheets_DateTimeRule
+   */
+  public function getDateTimeRule()
+  {
+    return $this->dateTimeRule;
+  }
   /**
    * @param Google_Service_Sheets_HistogramRule
    */

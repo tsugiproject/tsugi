@@ -20,19 +20,28 @@ class Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta
   protected $collection_key = 'frames';
   protected $framesType = 'Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame';
   protected $framesDataType = 'array';
+  public $version;
 
   /**
-   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame
+   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame[]
    */
   public function setFrames($frames)
   {
     $this->frames = $frames;
   }
   /**
-   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame
+   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame[]
    */
   public function getFrames()
   {
     return $this->frames;
+  }
+  public function setVersion($version)
+  {
+    $this->version = $version;
+  }
+  public function getVersion()
+  {
+    return $this->version;
   }
 }

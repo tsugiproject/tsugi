@@ -36,6 +36,7 @@ class Google_Service_Bigquery_ExplainQueryStage extends Google_Collection
   public $recordsWritten;
   public $shuffleOutputBytes;
   public $shuffleOutputBytesSpilled;
+  public $slotMs;
   public $startMs;
   public $status;
   protected $stepsType = 'Google_Service_Bigquery_ExplainQueryStep';
@@ -193,6 +194,14 @@ class Google_Service_Bigquery_ExplainQueryStage extends Google_Collection
   {
     return $this->shuffleOutputBytesSpilled;
   }
+  public function setSlotMs($slotMs)
+  {
+    $this->slotMs = $slotMs;
+  }
+  public function getSlotMs()
+  {
+    return $this->slotMs;
+  }
   public function setStartMs($startMs)
   {
     $this->startMs = $startMs;
@@ -210,14 +219,14 @@ class Google_Service_Bigquery_ExplainQueryStage extends Google_Collection
     return $this->status;
   }
   /**
-   * @param Google_Service_Bigquery_ExplainQueryStep
+   * @param Google_Service_Bigquery_ExplainQueryStep[]
    */
   public function setSteps($steps)
   {
     $this->steps = $steps;
   }
   /**
-   * @return Google_Service_Bigquery_ExplainQueryStep
+   * @return Google_Service_Bigquery_ExplainQueryStep[]
    */
   public function getSteps()
   {

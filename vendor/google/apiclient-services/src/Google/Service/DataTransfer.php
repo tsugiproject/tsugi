@@ -19,11 +19,13 @@
  * Service definition for DataTransfer (datatransfer_v1).
  *
  * <p>
- * Transfers user data from one user to another.</p>
+ * Admin SDK lets administrators of enterprise domains to view and manage
+ * resources like user, groups etc. It also provides audit and usage reports of
+ * domain.</p>
  *
  * <p>
  * For more information about this service, see the API
- * <a href="https://developers.google.com/admin-sdk/data-transfer/" target="_blank">Documentation</a>
+ * <a href="http://developers.google.com/admin-sdk/" target="_blank">Documentation</a>
  * </p>
  *
  * @author Google, Inc.
@@ -39,17 +41,19 @@ class Google_Service_DataTransfer extends Google_Service
 
   public $applications;
   public $transfers;
-  
+
   /**
    * Constructs the internal representation of the DataTransfer service.
    *
-   * @param Google_Client $client
+   * @param Google_Client $client The client used to deliver requests.
+   * @param string $rootUrl The root URL used for requests to the service.
    */
-  public function __construct(Google_Client $client)
+  public function __construct(Google_Client $client, $rootUrl = null)
   {
     parent::__construct($client);
-    $this->rootUrl = 'https://www.googleapis.com/';
-    $this->servicePath = 'admin/datatransfer/v1/';
+    $this->rootUrl = $rootUrl ?: 'https://admin.googleapis.com/';
+    $this->servicePath = '';
+    $this->batchPath = 'batch';
     $this->version = 'datatransfer_v1';
     $this->serviceName = 'admin';
 
@@ -60,7 +64,7 @@ class Google_Service_DataTransfer extends Google_Service
         array(
           'methods' => array(
             'get' => array(
-              'path' => 'applications/{applicationId}',
+              'path' => 'admin/datatransfer/v1/applications/{applicationId}',
               'httpMethod' => 'GET',
               'parameters' => array(
                 'applicationId' => array(
@@ -70,7 +74,7 @@ class Google_Service_DataTransfer extends Google_Service
                 ),
               ),
             ),'list' => array(
-              'path' => 'applications',
+              'path' => 'admin/datatransfer/v1/applications',
               'httpMethod' => 'GET',
               'parameters' => array(
                 'customerId' => array(
@@ -97,7 +101,7 @@ class Google_Service_DataTransfer extends Google_Service
         array(
           'methods' => array(
             'get' => array(
-              'path' => 'transfers/{dataTransferId}',
+              'path' => 'admin/datatransfer/v1/transfers/{dataTransferId}',
               'httpMethod' => 'GET',
               'parameters' => array(
                 'dataTransferId' => array(
@@ -107,11 +111,11 @@ class Google_Service_DataTransfer extends Google_Service
                 ),
               ),
             ),'insert' => array(
-              'path' => 'transfers',
+              'path' => 'admin/datatransfer/v1/transfers',
               'httpMethod' => 'POST',
               'parameters' => array(),
             ),'list' => array(
-              'path' => 'transfers',
+              'path' => 'admin/datatransfer/v1/transfers',
               'httpMethod' => 'GET',
               'parameters' => array(
                 'customerId' => array(

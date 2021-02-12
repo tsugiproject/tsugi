@@ -20,14 +20,13 @@ class Google_Service_AndroidPublisher_InAppProduct extends Google_Model
   public $defaultLanguage;
   protected $defaultPriceType = 'Google_Service_AndroidPublisher_Price';
   protected $defaultPriceDataType = '';
+  public $gracePeriod;
   protected $listingsType = 'Google_Service_AndroidPublisher_InAppProductListing';
   protected $listingsDataType = 'map';
   public $packageName;
   protected $pricesType = 'Google_Service_AndroidPublisher_Price';
   protected $pricesDataType = 'map';
   public $purchaseType;
-  protected $seasonType = 'Google_Service_AndroidPublisher_Season';
-  protected $seasonDataType = '';
   public $sku;
   public $status;
   public $subscriptionPeriod;
@@ -55,15 +54,23 @@ class Google_Service_AndroidPublisher_InAppProduct extends Google_Model
   {
     return $this->defaultPrice;
   }
+  public function setGracePeriod($gracePeriod)
+  {
+    $this->gracePeriod = $gracePeriod;
+  }
+  public function getGracePeriod()
+  {
+    return $this->gracePeriod;
+  }
   /**
-   * @param Google_Service_AndroidPublisher_InAppProductListing
+   * @param Google_Service_AndroidPublisher_InAppProductListing[]
    */
   public function setListings($listings)
   {
     $this->listings = $listings;
   }
   /**
-   * @return Google_Service_AndroidPublisher_InAppProductListing
+   * @return Google_Service_AndroidPublisher_InAppProductListing[]
    */
   public function getListings()
   {
@@ -78,14 +85,14 @@ class Google_Service_AndroidPublisher_InAppProduct extends Google_Model
     return $this->packageName;
   }
   /**
-   * @param Google_Service_AndroidPublisher_Price
+   * @param Google_Service_AndroidPublisher_Price[]
    */
   public function setPrices($prices)
   {
     $this->prices = $prices;
   }
   /**
-   * @return Google_Service_AndroidPublisher_Price
+   * @return Google_Service_AndroidPublisher_Price[]
    */
   public function getPrices()
   {
@@ -98,20 +105,6 @@ class Google_Service_AndroidPublisher_InAppProduct extends Google_Model
   public function getPurchaseType()
   {
     return $this->purchaseType;
-  }
-  /**
-   * @param Google_Service_AndroidPublisher_Season
-   */
-  public function setSeason(Google_Service_AndroidPublisher_Season $season)
-  {
-    $this->season = $season;
-  }
-  /**
-   * @return Google_Service_AndroidPublisher_Season
-   */
-  public function getSeason()
-  {
-    return $this->season;
   }
   public function setSku($sku)
   {

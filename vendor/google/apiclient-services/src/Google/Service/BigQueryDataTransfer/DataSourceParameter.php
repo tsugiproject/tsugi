@@ -19,6 +19,7 @@ class Google_Service_BigQueryDataTransfer_DataSourceParameter extends Google_Col
 {
   protected $collection_key = 'fields';
   public $allowedValues;
+  public $deprecated;
   public $description;
   public $displayName;
   protected $fieldsType = 'Google_Service_BigQueryDataTransfer_DataSourceParameter';
@@ -43,6 +44,14 @@ class Google_Service_BigQueryDataTransfer_DataSourceParameter extends Google_Col
   {
     return $this->allowedValues;
   }
+  public function setDeprecated($deprecated)
+  {
+    $this->deprecated = $deprecated;
+  }
+  public function getDeprecated()
+  {
+    return $this->deprecated;
+  }
   public function setDescription($description)
   {
     $this->description = $description;
@@ -60,14 +69,14 @@ class Google_Service_BigQueryDataTransfer_DataSourceParameter extends Google_Col
     return $this->displayName;
   }
   /**
-   * @param Google_Service_BigQueryDataTransfer_DataSourceParameter
+   * @param Google_Service_BigQueryDataTransfer_DataSourceParameter[]
    */
   public function setFields($fields)
   {
     $this->fields = $fields;
   }
   /**
-   * @return Google_Service_BigQueryDataTransfer_DataSourceParameter
+   * @return Google_Service_BigQueryDataTransfer_DataSourceParameter[]
    */
   public function getFields()
   {

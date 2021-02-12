@@ -15,14 +15,16 @@
  * the License.
  */
 
-class Google_Service_Compute_InterconnectAttachmentAggregatedList extends Google_Model
+class Google_Service_Compute_InterconnectAttachmentAggregatedList extends Google_Collection
 {
+  protected $collection_key = 'unreachables';
   public $id;
   protected $itemsType = 'Google_Service_Compute_InterconnectAttachmentsScopedList';
   protected $itemsDataType = 'map';
   public $kind;
   public $nextPageToken;
   public $selfLink;
+  public $unreachables;
   protected $warningType = 'Google_Service_Compute_InterconnectAttachmentAggregatedListWarning';
   protected $warningDataType = '';
 
@@ -35,14 +37,14 @@ class Google_Service_Compute_InterconnectAttachmentAggregatedList extends Google
     return $this->id;
   }
   /**
-   * @param Google_Service_Compute_InterconnectAttachmentsScopedList
+   * @param Google_Service_Compute_InterconnectAttachmentsScopedList[]
    */
   public function setItems($items)
   {
     $this->items = $items;
   }
   /**
-   * @return Google_Service_Compute_InterconnectAttachmentsScopedList
+   * @return Google_Service_Compute_InterconnectAttachmentsScopedList[]
    */
   public function getItems()
   {
@@ -71,6 +73,14 @@ class Google_Service_Compute_InterconnectAttachmentAggregatedList extends Google
   public function getSelfLink()
   {
     return $this->selfLink;
+  }
+  public function setUnreachables($unreachables)
+  {
+    $this->unreachables = $unreachables;
+  }
+  public function getUnreachables()
+  {
+    return $this->unreachables;
   }
   /**
    * @param Google_Service_Compute_InterconnectAttachmentAggregatedListWarning

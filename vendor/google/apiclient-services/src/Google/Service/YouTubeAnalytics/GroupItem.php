@@ -17,6 +17,8 @@
 
 class Google_Service_YouTubeAnalytics_GroupItem extends Google_Model
 {
+  protected $errorsType = 'Google_Service_YouTubeAnalytics_Errors';
+  protected $errorsDataType = '';
   public $etag;
   public $groupId;
   public $id;
@@ -24,6 +26,20 @@ class Google_Service_YouTubeAnalytics_GroupItem extends Google_Model
   protected $resourceType = 'Google_Service_YouTubeAnalytics_GroupItemResource';
   protected $resourceDataType = '';
 
+  /**
+   * @param Google_Service_YouTubeAnalytics_Errors
+   */
+  public function setErrors(Google_Service_YouTubeAnalytics_Errors $errors)
+  {
+    $this->errors = $errors;
+  }
+  /**
+   * @return Google_Service_YouTubeAnalytics_Errors
+   */
+  public function getErrors()
+  {
+    return $this->errors;
+  }
   public function setEtag($etag)
   {
     $this->etag = $etag;

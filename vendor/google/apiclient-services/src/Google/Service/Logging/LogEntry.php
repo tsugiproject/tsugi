@@ -23,6 +23,8 @@ class Google_Service_Logging_LogEntry extends Google_Model
   public $jsonPayload;
   public $labels;
   public $logName;
+  protected $metadataType = 'Google_Service_Logging_MonitoredResourceMetadata';
+  protected $metadataDataType = '';
   protected $operationType = 'Google_Service_Logging_LogEntryOperation';
   protected $operationDataType = '';
   public $protoPayload;
@@ -36,6 +38,7 @@ class Google_Service_Logging_LogEntry extends Google_Model
   public $textPayload;
   public $timestamp;
   public $trace;
+  public $traceSampled;
 
   /**
    * @param Google_Service_Logging_HttpRequest
@@ -82,6 +85,20 @@ class Google_Service_Logging_LogEntry extends Google_Model
   public function getLogName()
   {
     return $this->logName;
+  }
+  /**
+   * @param Google_Service_Logging_MonitoredResourceMetadata
+   */
+  public function setMetadata(Google_Service_Logging_MonitoredResourceMetadata $metadata)
+  {
+    $this->metadata = $metadata;
+  }
+  /**
+   * @return Google_Service_Logging_MonitoredResourceMetadata
+   */
+  public function getMetadata()
+  {
+    return $this->metadata;
   }
   /**
    * @param Google_Service_Logging_LogEntryOperation
@@ -180,5 +197,13 @@ class Google_Service_Logging_LogEntry extends Google_Model
   public function getTrace()
   {
     return $this->trace;
+  }
+  public function setTraceSampled($traceSampled)
+  {
+    $this->traceSampled = $traceSampled;
+  }
+  public function getTraceSampled()
+  {
+    return $this->traceSampled;
   }
 }

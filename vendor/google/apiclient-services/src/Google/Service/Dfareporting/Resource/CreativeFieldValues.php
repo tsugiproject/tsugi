@@ -102,9 +102,8 @@ class Google_Service_Dfareporting_Resource_CreativeFieldValues extends Google_Se
    * semantics. (creativeFieldValues.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $creativeFieldId Creative field ID for this creative field
-   * value.
-   * @param string $id Creative Field Value ID
+   * @param string $creativeFieldId CreativeField ID.
+   * @param string $id CreativeFieldValue ID.
    * @param Google_Service_Dfareporting_CreativeFieldValue $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_CreativeFieldValue

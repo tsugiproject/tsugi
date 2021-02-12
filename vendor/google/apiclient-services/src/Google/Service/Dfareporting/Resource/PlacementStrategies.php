@@ -100,7 +100,7 @@ class Google_Service_Dfareporting_Resource_PlacementStrategies extends Google_Se
    * (placementStrategies.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id Placement strategy ID.
+   * @param string $id PlacementStrategy ID.
    * @param Google_Service_Dfareporting_PlacementStrategy $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_PlacementStrategy

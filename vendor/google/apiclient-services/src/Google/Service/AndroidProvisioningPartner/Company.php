@@ -23,6 +23,7 @@ class Google_Service_AndroidProvisioningPartner_Company extends Google_Collectio
   public $companyName;
   public $name;
   public $ownerEmails;
+  public $termsStatus;
 
   public function setAdminEmails($adminEmails)
   {
@@ -63,5 +64,13 @@ class Google_Service_AndroidProvisioningPartner_Company extends Google_Collectio
   public function getOwnerEmails()
   {
     return $this->ownerEmails;
+  }
+  public function setTermsStatus($termsStatus)
+  {
+    $this->termsStatus = $termsStatus;
+  }
+  public function getTermsStatus()
+  {
+    return $this->termsStatus;
   }
 }

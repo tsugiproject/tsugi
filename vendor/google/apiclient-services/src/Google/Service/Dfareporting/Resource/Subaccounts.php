@@ -70,7 +70,7 @@ class Google_Service_Dfareporting_Resource_Subaccounts extends Google_Service_Re
    * "subaccount 2015". Most of the searches also add wildcards implicitly at the
    * start and the end of the search string. For example, a search string of
    * "subaccount" will match objects with name "my subaccount", "subaccount 2015",
-   * or simply "subaccount".
+   * or simply "subaccount" .
    * @opt_param string sortField Field by which to sort the list.
    * @opt_param string sortOrder Order of sorted results.
    * @return Google_Service_Dfareporting_SubaccountsListResponse

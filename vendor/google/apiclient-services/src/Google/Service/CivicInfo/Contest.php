@@ -19,16 +19,17 @@ class Google_Service_CivicInfo_Contest extends Google_Collection
 {
   protected $collection_key = 'sources';
   public $ballotPlacement;
+  public $ballotTitle;
   protected $candidatesType = 'Google_Service_CivicInfo_Candidate';
   protected $candidatesDataType = 'array';
   protected $districtType = 'Google_Service_CivicInfo_ElectoralDistrict';
   protected $districtDataType = '';
   public $electorateSpecifications;
-  public $id;
   public $level;
   public $numberElected;
   public $numberVotingFor;
   public $office;
+  public $primaryParties;
   public $primaryParty;
   public $referendumBallotResponses;
   public $referendumBrief;
@@ -54,15 +55,23 @@ class Google_Service_CivicInfo_Contest extends Google_Collection
   {
     return $this->ballotPlacement;
   }
+  public function setBallotTitle($ballotTitle)
+  {
+    $this->ballotTitle = $ballotTitle;
+  }
+  public function getBallotTitle()
+  {
+    return $this->ballotTitle;
+  }
   /**
-   * @param Google_Service_CivicInfo_Candidate
+   * @param Google_Service_CivicInfo_Candidate[]
    */
   public function setCandidates($candidates)
   {
     $this->candidates = $candidates;
   }
   /**
-   * @return Google_Service_CivicInfo_Candidate
+   * @return Google_Service_CivicInfo_Candidate[]
    */
   public function getCandidates()
   {
@@ -89,14 +98,6 @@ class Google_Service_CivicInfo_Contest extends Google_Collection
   public function getElectorateSpecifications()
   {
     return $this->electorateSpecifications;
-  }
-  public function setId($id)
-  {
-    $this->id = $id;
-  }
-  public function getId()
-  {
-    return $this->id;
   }
   public function setLevel($level)
   {
@@ -129,6 +130,14 @@ class Google_Service_CivicInfo_Contest extends Google_Collection
   public function getOffice()
   {
     return $this->office;
+  }
+  public function setPrimaryParties($primaryParties)
+  {
+    $this->primaryParties = $primaryParties;
+  }
+  public function getPrimaryParties()
+  {
+    return $this->primaryParties;
   }
   public function setPrimaryParty($primaryParty)
   {
@@ -227,14 +236,14 @@ class Google_Service_CivicInfo_Contest extends Google_Collection
     return $this->roles;
   }
   /**
-   * @param Google_Service_CivicInfo_Source
+   * @param Google_Service_CivicInfo_Source[]
    */
   public function setSources($sources)
   {
     $this->sources = $sources;
   }
   /**
-   * @return Google_Service_CivicInfo_Source
+   * @return Google_Service_CivicInfo_Source[]
    */
   public function getSources()
   {

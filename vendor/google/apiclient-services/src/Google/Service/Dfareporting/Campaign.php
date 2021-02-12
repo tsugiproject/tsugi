@@ -52,8 +52,6 @@ class Google_Service_Dfareporting_Campaign extends Google_Collection
   public $kind;
   protected $lastModifiedInfoType = 'Google_Service_Dfareporting_LastModifiedInfo';
   protected $lastModifiedInfoDataType = '';
-  protected $lookbackConfigurationType = 'Google_Service_Dfareporting_LookbackConfiguration';
-  protected $lookbackConfigurationDataType = '';
   public $name;
   public $nielsenOcrEnabled;
   public $startDate;
@@ -83,14 +81,14 @@ class Google_Service_Dfareporting_Campaign extends Google_Collection
     return $this->adBlockingConfiguration;
   }
   /**
-   * @param Google_Service_Dfareporting_CreativeOptimizationConfiguration
+   * @param Google_Service_Dfareporting_CreativeOptimizationConfiguration[]
    */
   public function setAdditionalCreativeOptimizationConfigurations($additionalCreativeOptimizationConfigurations)
   {
     $this->additionalCreativeOptimizationConfigurations = $additionalCreativeOptimizationConfigurations;
   }
   /**
-   * @return Google_Service_Dfareporting_CreativeOptimizationConfiguration
+   * @return Google_Service_Dfareporting_CreativeOptimizationConfiguration[]
    */
   public function getAdditionalCreativeOptimizationConfigurations()
   {
@@ -135,14 +133,14 @@ class Google_Service_Dfareporting_Campaign extends Google_Collection
     return $this->archived;
   }
   /**
-   * @param Google_Service_Dfareporting_AudienceSegmentGroup
+   * @param Google_Service_Dfareporting_AudienceSegmentGroup[]
    */
   public function setAudienceSegmentGroups($audienceSegmentGroups)
   {
     $this->audienceSegmentGroups = $audienceSegmentGroups;
   }
   /**
-   * @return Google_Service_Dfareporting_AudienceSegmentGroup
+   * @return Google_Service_Dfareporting_AudienceSegmentGroup[]
    */
   public function getAudienceSegmentGroups()
   {
@@ -245,14 +243,14 @@ class Google_Service_Dfareporting_Campaign extends Google_Collection
     return $this->endDate;
   }
   /**
-   * @param Google_Service_Dfareporting_EventTagOverride
+   * @param Google_Service_Dfareporting_EventTagOverride[]
    */
   public function setEventTagOverrides($eventTagOverrides)
   {
     $this->eventTagOverrides = $eventTagOverrides;
   }
   /**
-   * @return Google_Service_Dfareporting_EventTagOverride
+   * @return Google_Service_Dfareporting_EventTagOverride[]
    */
   public function getEventTagOverrides()
   {
@@ -309,20 +307,6 @@ class Google_Service_Dfareporting_Campaign extends Google_Collection
   public function getLastModifiedInfo()
   {
     return $this->lastModifiedInfo;
-  }
-  /**
-   * @param Google_Service_Dfareporting_LookbackConfiguration
-   */
-  public function setLookbackConfiguration(Google_Service_Dfareporting_LookbackConfiguration $lookbackConfiguration)
-  {
-    $this->lookbackConfiguration = $lookbackConfiguration;
-  }
-  /**
-   * @return Google_Service_Dfareporting_LookbackConfiguration
-   */
-  public function getLookbackConfiguration()
-  {
-    return $this->lookbackConfiguration;
   }
   public function setName($name)
   {

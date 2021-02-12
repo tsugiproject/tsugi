@@ -26,6 +26,9 @@ class Google_Service_TagManager_Tag extends Google_Collection
   public $firingRuleId;
   public $firingTriggerId;
   public $liveOnly;
+  protected $monitoringMetadataType = 'Google_Service_TagManager_Parameter';
+  protected $monitoringMetadataDataType = '';
+  public $monitoringMetadataTagNameKey;
   public $name;
   public $notes;
   protected $parameterType = 'Google_Service_TagManager_Parameter';
@@ -111,6 +114,28 @@ class Google_Service_TagManager_Tag extends Google_Collection
   {
     return $this->liveOnly;
   }
+  /**
+   * @param Google_Service_TagManager_Parameter
+   */
+  public function setMonitoringMetadata(Google_Service_TagManager_Parameter $monitoringMetadata)
+  {
+    $this->monitoringMetadata = $monitoringMetadata;
+  }
+  /**
+   * @return Google_Service_TagManager_Parameter
+   */
+  public function getMonitoringMetadata()
+  {
+    return $this->monitoringMetadata;
+  }
+  public function setMonitoringMetadataTagNameKey($monitoringMetadataTagNameKey)
+  {
+    $this->monitoringMetadataTagNameKey = $monitoringMetadataTagNameKey;
+  }
+  public function getMonitoringMetadataTagNameKey()
+  {
+    return $this->monitoringMetadataTagNameKey;
+  }
   public function setName($name)
   {
     $this->name = $name;
@@ -128,14 +153,14 @@ class Google_Service_TagManager_Tag extends Google_Collection
     return $this->notes;
   }
   /**
-   * @param Google_Service_TagManager_Parameter
+   * @param Google_Service_TagManager_Parameter[]
    */
   public function setParameter($parameter)
   {
     $this->parameter = $parameter;
   }
   /**
-   * @return Google_Service_TagManager_Parameter
+   * @return Google_Service_TagManager_Parameter[]
    */
   public function getParameter()
   {
@@ -196,14 +221,14 @@ class Google_Service_TagManager_Tag extends Google_Collection
     return $this->scheduleStartMs;
   }
   /**
-   * @param Google_Service_TagManager_SetupTag
+   * @param Google_Service_TagManager_SetupTag[]
    */
   public function setSetupTag($setupTag)
   {
     $this->setupTag = $setupTag;
   }
   /**
-   * @return Google_Service_TagManager_SetupTag
+   * @return Google_Service_TagManager_SetupTag[]
    */
   public function getSetupTag()
   {
@@ -234,14 +259,14 @@ class Google_Service_TagManager_Tag extends Google_Collection
     return $this->tagManagerUrl;
   }
   /**
-   * @param Google_Service_TagManager_TeardownTag
+   * @param Google_Service_TagManager_TeardownTag[]
    */
   public function setTeardownTag($teardownTag)
   {
     $this->teardownTag = $teardownTag;
   }
   /**
-   * @return Google_Service_TagManager_TeardownTag
+   * @return Google_Service_TagManager_TeardownTag[]
    */
   public function getTeardownTag()
   {

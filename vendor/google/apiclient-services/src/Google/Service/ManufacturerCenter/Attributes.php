@@ -50,6 +50,7 @@ class Google_Service_ManufacturerCenter_Attributes extends Google_Collection
   public $productPageUrl;
   public $productType;
   public $releaseDate;
+  public $richProductContent;
   public $scent;
   public $size;
   public $sizeSystem;
@@ -62,14 +63,14 @@ class Google_Service_ManufacturerCenter_Attributes extends Google_Collection
   public $videoLink;
 
   /**
-   * @param Google_Service_ManufacturerCenter_Image
+   * @param Google_Service_ManufacturerCenter_Image[]
    */
   public function setAdditionalImageLink($additionalImageLink)
   {
     $this->additionalImageLink = $additionalImageLink;
   }
   /**
-   * @return Google_Service_ManufacturerCenter_Image
+   * @return Google_Service_ManufacturerCenter_Image[]
    */
   public function getAdditionalImageLink()
   {
@@ -152,14 +153,14 @@ class Google_Service_ManufacturerCenter_Attributes extends Google_Collection
     return $this->excludedDestination;
   }
   /**
-   * @param Google_Service_ManufacturerCenter_FeatureDescription
+   * @param Google_Service_ManufacturerCenter_FeatureDescription[]
    */
   public function setFeatureDescription($featureDescription)
   {
     $this->featureDescription = $featureDescription;
   }
   /**
-   * @return Google_Service_ManufacturerCenter_FeatureDescription
+   * @return Google_Service_ManufacturerCenter_FeatureDescription[]
    */
   public function getFeatureDescription()
   {
@@ -252,14 +253,14 @@ class Google_Service_ManufacturerCenter_Attributes extends Google_Collection
     return $this->pattern;
   }
   /**
-   * @param Google_Service_ManufacturerCenter_ProductDetail
+   * @param Google_Service_ManufacturerCenter_ProductDetail[]
    */
   public function setProductDetail($productDetail)
   {
     $this->productDetail = $productDetail;
   }
   /**
-   * @return Google_Service_ManufacturerCenter_ProductDetail
+   * @return Google_Service_ManufacturerCenter_ProductDetail[]
    */
   public function getProductDetail()
   {
@@ -304,6 +305,14 @@ class Google_Service_ManufacturerCenter_Attributes extends Google_Collection
   public function getReleaseDate()
   {
     return $this->releaseDate;
+  }
+  public function setRichProductContent($richProductContent)
+  {
+    $this->richProductContent = $richProductContent;
+  }
+  public function getRichProductContent()
+  {
+    return $this->richProductContent;
   }
   public function setScent($scent)
   {

@@ -41,6 +41,7 @@ class Google_Service_Compute_Interconnect extends Google_Collection
   public $provisionedLinkCount;
   public $requestedLinkCount;
   public $selfLink;
+  public $state;
 
   public function setAdminEnabled($adminEnabled)
   {
@@ -51,14 +52,14 @@ class Google_Service_Compute_Interconnect extends Google_Collection
     return $this->adminEnabled;
   }
   /**
-   * @param Google_Service_Compute_InterconnectCircuitInfo
+   * @param Google_Service_Compute_InterconnectCircuitInfo[]
    */
   public function setCircuitInfos($circuitInfos)
   {
     $this->circuitInfos = $circuitInfos;
   }
   /**
-   * @return Google_Service_Compute_InterconnectCircuitInfo
+   * @return Google_Service_Compute_InterconnectCircuitInfo[]
    */
   public function getCircuitInfos()
   {
@@ -89,14 +90,14 @@ class Google_Service_Compute_Interconnect extends Google_Collection
     return $this->description;
   }
   /**
-   * @param Google_Service_Compute_InterconnectOutageNotification
+   * @param Google_Service_Compute_InterconnectOutageNotification[]
    */
   public function setExpectedOutages($expectedOutages)
   {
     $this->expectedOutages = $expectedOutages;
   }
   /**
-   * @return Google_Service_Compute_InterconnectOutageNotification
+   * @return Google_Service_Compute_InterconnectOutageNotification[]
    */
   public function getExpectedOutages()
   {
@@ -221,5 +222,13 @@ class Google_Service_Compute_Interconnect extends Google_Collection
   public function getSelfLink()
   {
     return $this->selfLink;
+  }
+  public function setState($state)
+  {
+    $this->state = $state;
+  }
+  public function getState()
+  {
+    return $this->state;
   }
 }

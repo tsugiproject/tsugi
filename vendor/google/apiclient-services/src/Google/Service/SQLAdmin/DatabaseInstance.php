@@ -22,6 +22,10 @@ class Google_Service_SQLAdmin_DatabaseInstance extends Google_Collection
   public $connectionName;
   public $currentDiskSize;
   public $databaseVersion;
+  protected $diskEncryptionConfigurationType = 'Google_Service_SQLAdmin_DiskEncryptionConfiguration';
+  protected $diskEncryptionConfigurationDataType = '';
+  protected $diskEncryptionStatusType = 'Google_Service_SQLAdmin_DiskEncryptionStatus';
+  protected $diskEncryptionStatusDataType = '';
   public $etag;
   protected $failoverReplicaType = 'Google_Service_SQLAdmin_DatabaseInstanceFailoverReplica';
   protected $failoverReplicaDataType = '';
@@ -41,6 +45,11 @@ class Google_Service_SQLAdmin_DatabaseInstance extends Google_Collection
   protected $replicaConfigurationType = 'Google_Service_SQLAdmin_ReplicaConfiguration';
   protected $replicaConfigurationDataType = '';
   public $replicaNames;
+  public $rootPassword;
+  public $satisfiesPzs;
+  protected $scheduledMaintenanceType = 'Google_Service_SQLAdmin_SqlScheduledMaintenance';
+  protected $scheduledMaintenanceDataType = '';
+  public $secondaryGceZone;
   public $selfLink;
   protected $serverCaCertType = 'Google_Service_SQLAdmin_SslCert';
   protected $serverCaCertDataType = '';
@@ -82,6 +91,34 @@ class Google_Service_SQLAdmin_DatabaseInstance extends Google_Collection
   {
     return $this->databaseVersion;
   }
+  /**
+   * @param Google_Service_SQLAdmin_DiskEncryptionConfiguration
+   */
+  public function setDiskEncryptionConfiguration(Google_Service_SQLAdmin_DiskEncryptionConfiguration $diskEncryptionConfiguration)
+  {
+    $this->diskEncryptionConfiguration = $diskEncryptionConfiguration;
+  }
+  /**
+   * @return Google_Service_SQLAdmin_DiskEncryptionConfiguration
+   */
+  public function getDiskEncryptionConfiguration()
+  {
+    return $this->diskEncryptionConfiguration;
+  }
+  /**
+   * @param Google_Service_SQLAdmin_DiskEncryptionStatus
+   */
+  public function setDiskEncryptionStatus(Google_Service_SQLAdmin_DiskEncryptionStatus $diskEncryptionStatus)
+  {
+    $this->diskEncryptionStatus = $diskEncryptionStatus;
+  }
+  /**
+   * @return Google_Service_SQLAdmin_DiskEncryptionStatus
+   */
+  public function getDiskEncryptionStatus()
+  {
+    return $this->diskEncryptionStatus;
+  }
   public function setEtag($etag)
   {
     $this->etag = $etag;
@@ -121,14 +158,14 @@ class Google_Service_SQLAdmin_DatabaseInstance extends Google_Collection
     return $this->instanceType;
   }
   /**
-   * @param Google_Service_SQLAdmin_IpMapping
+   * @param Google_Service_SQLAdmin_IpMapping[]
    */
   public function setIpAddresses($ipAddresses)
   {
     $this->ipAddresses = $ipAddresses;
   }
   /**
-   * @return Google_Service_SQLAdmin_IpMapping
+   * @return Google_Service_SQLAdmin_IpMapping[]
    */
   public function getIpAddresses()
   {
@@ -225,6 +262,44 @@ class Google_Service_SQLAdmin_DatabaseInstance extends Google_Collection
   public function getReplicaNames()
   {
     return $this->replicaNames;
+  }
+  public function setRootPassword($rootPassword)
+  {
+    $this->rootPassword = $rootPassword;
+  }
+  public function getRootPassword()
+  {
+    return $this->rootPassword;
+  }
+  public function setSatisfiesPzs($satisfiesPzs)
+  {
+    $this->satisfiesPzs = $satisfiesPzs;
+  }
+  public function getSatisfiesPzs()
+  {
+    return $this->satisfiesPzs;
+  }
+  /**
+   * @param Google_Service_SQLAdmin_SqlScheduledMaintenance
+   */
+  public function setScheduledMaintenance(Google_Service_SQLAdmin_SqlScheduledMaintenance $scheduledMaintenance)
+  {
+    $this->scheduledMaintenance = $scheduledMaintenance;
+  }
+  /**
+   * @return Google_Service_SQLAdmin_SqlScheduledMaintenance
+   */
+  public function getScheduledMaintenance()
+  {
+    return $this->scheduledMaintenance;
+  }
+  public function setSecondaryGceZone($secondaryGceZone)
+  {
+    $this->secondaryGceZone = $secondaryGceZone;
+  }
+  public function getSecondaryGceZone()
+  {
+    return $this->secondaryGceZone;
   }
   public function setSelfLink($selfLink)
   {

@@ -41,48 +41,47 @@ class Google_Service_Storagetransfer_Resource_TransferJobs extends Google_Servic
   /**
    * Gets a transfer job. (transferJobs.get)
    *
-   * @param string $jobName The job to get. Required.
+   * @param string $jobName Required. " The job to get.
+   * @param string $projectId Required. The ID of the Google Cloud Platform
+   * Console project that owns the job.
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param string projectId The ID of the Google Cloud Platform Console
-   * project that owns the job. Required.
    * @return Google_Service_Storagetransfer_TransferJob
    */
-  public function get($jobName, $optParams = array())
+  public function get($jobName, $projectId, $optParams = array())
   {
-    $params = array('jobName' => $jobName);
+    $params = array('jobName' => $jobName, 'projectId' => $projectId);
     $params = array_merge($params, $optParams);
     return $this->call('get', array($params), "Google_Service_Storagetransfer_TransferJob");
   }
   /**
    * Lists transfer jobs. (transferJobs.listTransferJobs)
    *
+   * @param string $filter Required. A list of query parameters specified as JSON
+   * text in the form of: `{"projectId":"my_project_id",
+   * "jobNames":["jobid1","jobid2",...], "jobStatuses":["status1","status2",...]}`
+   * Since `jobNames` and `jobStatuses` support multiple values, their values must
+   * be specified with array notation. `projectId` is required. `jobNames` and
+   * `jobStatuses` are optional. The valid values for `jobStatuses` are case-
+   * insensitive: ENABLED, DISABLED, and DELETED.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string filter A list of query parameters specified as JSON text in
-   * the form of {"project_id":"my_project_id",
-   * "job_names":["jobid1","jobid2",...],
-   * "job_statuses":["status1","status2",...]}. Since `job_names` and
-   * `job_statuses` support multiple values, their values must be specified with
-   * array notation. `project_id` is required. `job_names` and `job_statuses` are
-   * optional.  The valid values for `job_statuses` are case-insensitive:
-   * `ENABLED`, `DISABLED`, and `DELETED`.
-   * @opt_param string pageToken The list page token.
    * @opt_param int pageSize The list page size. The max allowed value is 256.
+   * @opt_param string pageToken The list page token.
    * @return Google_Service_Storagetransfer_ListTransferJobsResponse
    */
-  public function listTransferJobs($optParams = array())
+  public function listTransferJobs($filter, $optParams = array())
   {
-    $params = array();
+    $params = array('filter' => $filter);
     $params = array_merge($params, $optParams);
     return $this->call('list', array($params), "Google_Service_Storagetransfer_ListTransferJobsResponse");
   }
   /**
    * Updates a transfer job. Updating a job's transfer spec does not affect
-   * transfer operations that are running already. Updating the scheduling of a
-   * job is not allowed. (transferJobs.patch)
+   * transfer operations that are running already. **Note:** The job's status
+   * field can be modified using this RPC (for example, to set a job's status to
+   * DELETED, DISABLED, or ENABLED). (transferJobs.patch)
    *
-   * @param string $jobName The name of job to update. Required.
+   * @param string $jobName Required. The name of job to update.
    * @param Google_Service_Storagetransfer_UpdateTransferJobRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Storagetransfer_TransferJob

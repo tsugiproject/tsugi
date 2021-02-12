@@ -22,6 +22,7 @@ class Google_Service_StreetViewPublish_Photo extends Google_Collection
   protected $connectionsType = 'Google_Service_StreetViewPublish_Connection';
   protected $connectionsDataType = 'array';
   public $downloadUrl;
+  public $mapsPublishStatus;
   protected $photoIdType = 'Google_Service_StreetViewPublish_PhotoId';
   protected $photoIdDataType = '';
   protected $placesType = 'Google_Service_StreetViewPublish_Place';
@@ -30,6 +31,7 @@ class Google_Service_StreetViewPublish_Photo extends Google_Collection
   protected $poseDataType = '';
   public $shareLink;
   public $thumbnailUrl;
+  public $transferStatus;
   protected $uploadReferenceType = 'Google_Service_StreetViewPublish_UploadRef';
   protected $uploadReferenceDataType = '';
   public $viewCount;
@@ -43,14 +45,14 @@ class Google_Service_StreetViewPublish_Photo extends Google_Collection
     return $this->captureTime;
   }
   /**
-   * @param Google_Service_StreetViewPublish_Connection
+   * @param Google_Service_StreetViewPublish_Connection[]
    */
   public function setConnections($connections)
   {
     $this->connections = $connections;
   }
   /**
-   * @return Google_Service_StreetViewPublish_Connection
+   * @return Google_Service_StreetViewPublish_Connection[]
    */
   public function getConnections()
   {
@@ -63,6 +65,14 @@ class Google_Service_StreetViewPublish_Photo extends Google_Collection
   public function getDownloadUrl()
   {
     return $this->downloadUrl;
+  }
+  public function setMapsPublishStatus($mapsPublishStatus)
+  {
+    $this->mapsPublishStatus = $mapsPublishStatus;
+  }
+  public function getMapsPublishStatus()
+  {
+    return $this->mapsPublishStatus;
   }
   /**
    * @param Google_Service_StreetViewPublish_PhotoId
@@ -79,14 +89,14 @@ class Google_Service_StreetViewPublish_Photo extends Google_Collection
     return $this->photoId;
   }
   /**
-   * @param Google_Service_StreetViewPublish_Place
+   * @param Google_Service_StreetViewPublish_Place[]
    */
   public function setPlaces($places)
   {
     $this->places = $places;
   }
   /**
-   * @return Google_Service_StreetViewPublish_Place
+   * @return Google_Service_StreetViewPublish_Place[]
    */
   public function getPlaces()
   {
@@ -121,6 +131,14 @@ class Google_Service_StreetViewPublish_Photo extends Google_Collection
   public function getThumbnailUrl()
   {
     return $this->thumbnailUrl;
+  }
+  public function setTransferStatus($transferStatus)
+  {
+    $this->transferStatus = $transferStatus;
+  }
+  public function getTransferStatus()
+  {
+    return $this->transferStatus;
   }
   /**
    * @param Google_Service_StreetViewPublish_UploadRef

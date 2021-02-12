@@ -34,8 +34,9 @@ class Google_Service_Bigquery_Resource_Jobs extends Google_Service_Resource
    * @param string $jobId [Required] Job ID of the job to cancel
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string location [Experimental] The geographic location of the job.
-   * Required except for US and EU.
+   * @opt_param string location The geographic location of the job. Required
+   * except for US and EU. See details at
+   * https://cloud.google.com/bigquery/docs/locations#specifying_your_location.
    * @return Google_Service_Bigquery_JobCancelResponse
    */
   public function cancel($projectId, $jobId, $optParams = array())
@@ -53,8 +54,9 @@ class Google_Service_Bigquery_Resource_Jobs extends Google_Service_Resource
    * @param string $jobId [Required] Job ID of the requested job
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string location [Experimental] The geographic location of the job.
-   * Required except for US and EU.
+   * @opt_param string location The geographic location of the job. Required
+   * except for US and EU. See details at
+   * https://cloud.google.com/bigquery/docs/locations#specifying_your_location.
    * @return Google_Service_Bigquery_Job
    */
   public function get($projectId, $jobId, $optParams = array())
@@ -70,8 +72,9 @@ class Google_Service_Bigquery_Resource_Jobs extends Google_Service_Resource
    * @param string $jobId [Required] Job ID of the query job
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string location [Experimental] The geographic location where the
-   * job should run. Required except for US and EU.
+   * @opt_param string location The geographic location where the job should run.
+   * Required except for US and EU. See details at
+   * https://cloud.google.com/bigquery/docs/locations#specifying_your_location.
    * @opt_param string maxResults Maximum number of results to read
    * @opt_param string pageToken Page token, returned by a previous call, to
    * request the next page of results
@@ -125,6 +128,8 @@ class Google_Service_Bigquery_Resource_Jobs extends Google_Service_Resource
    * this timestamp are returned
    * @opt_param string pageToken Page token, returned by a previous call, to
    * request the next page of results
+   * @opt_param string parentJobId If set, retrieves only jobs whose parent is
+   * this job. Otherwise, retrieves only jobs which have no parent
    * @opt_param string projection Restrict information returned to a set of
    * selected fields
    * @opt_param string stateFilter Filter for job state

@@ -18,20 +18,36 @@
 class Google_Service_DLP_GooglePrivacyDlpV2Result extends Google_Collection
 {
   protected $collection_key = 'infoTypeStats';
+  protected $hybridStatsType = 'Google_Service_DLP_GooglePrivacyDlpV2HybridInspectStatistics';
+  protected $hybridStatsDataType = '';
   protected $infoTypeStatsType = 'Google_Service_DLP_GooglePrivacyDlpV2InfoTypeStats';
   protected $infoTypeStatsDataType = 'array';
   public $processedBytes;
   public $totalEstimatedBytes;
 
   /**
-   * @param Google_Service_DLP_GooglePrivacyDlpV2InfoTypeStats
+   * @param Google_Service_DLP_GooglePrivacyDlpV2HybridInspectStatistics
+   */
+  public function setHybridStats(Google_Service_DLP_GooglePrivacyDlpV2HybridInspectStatistics $hybridStats)
+  {
+    $this->hybridStats = $hybridStats;
+  }
+  /**
+   * @return Google_Service_DLP_GooglePrivacyDlpV2HybridInspectStatistics
+   */
+  public function getHybridStats()
+  {
+    return $this->hybridStats;
+  }
+  /**
+   * @param Google_Service_DLP_GooglePrivacyDlpV2InfoTypeStats[]
    */
   public function setInfoTypeStats($infoTypeStats)
   {
     $this->infoTypeStats = $infoTypeStats;
   }
   /**
-   * @return Google_Service_DLP_GooglePrivacyDlpV2InfoTypeStats
+   * @return Google_Service_DLP_GooglePrivacyDlpV2InfoTypeStats[]
    */
   public function getInfoTypeStats()
   {

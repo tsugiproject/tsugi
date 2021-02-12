@@ -33,6 +33,7 @@ class Google_Service_DeploymentManager_Deployment extends Google_Collection
   protected $targetDataType = '';
   protected $updateType = 'Google_Service_DeploymentManager_DeploymentUpdate';
   protected $updateDataType = '';
+  public $updateTime;
 
   public function setDescription($description)
   {
@@ -67,14 +68,14 @@ class Google_Service_DeploymentManager_Deployment extends Google_Collection
     return $this->insertTime;
   }
   /**
-   * @param Google_Service_DeploymentManager_DeploymentLabelEntry
+   * @param Google_Service_DeploymentManager_DeploymentLabelEntry[]
    */
   public function setLabels($labels)
   {
     $this->labels = $labels;
   }
   /**
-   * @return Google_Service_DeploymentManager_DeploymentLabelEntry
+   * @return Google_Service_DeploymentManager_DeploymentLabelEntry[]
    */
   public function getLabels()
   {
@@ -145,5 +146,13 @@ class Google_Service_DeploymentManager_Deployment extends Google_Collection
   public function getUpdate()
   {
     return $this->update;
+  }
+  public function setUpdateTime($updateTime)
+  {
+    $this->updateTime = $updateTime;
+  }
+  public function getUpdateTime()
+  {
+    return $this->updateTime;
   }
 }

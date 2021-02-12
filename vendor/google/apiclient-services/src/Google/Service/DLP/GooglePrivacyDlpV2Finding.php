@@ -18,14 +18,21 @@
 class Google_Service_DLP_GooglePrivacyDlpV2Finding extends Google_Model
 {
   public $createTime;
+  public $findingId;
   protected $infoTypeType = 'Google_Service_DLP_GooglePrivacyDlpV2InfoType';
   protected $infoTypeDataType = '';
+  public $jobCreateTime;
+  public $jobName;
+  public $labels;
   public $likelihood;
   protected $locationType = 'Google_Service_DLP_GooglePrivacyDlpV2Location';
   protected $locationDataType = '';
+  public $name;
   public $quote;
   protected $quoteInfoType = 'Google_Service_DLP_GooglePrivacyDlpV2QuoteInfo';
   protected $quoteInfoDataType = '';
+  public $resourceName;
+  public $triggerName;
 
   public function setCreateTime($createTime)
   {
@@ -34,6 +41,14 @@ class Google_Service_DLP_GooglePrivacyDlpV2Finding extends Google_Model
   public function getCreateTime()
   {
     return $this->createTime;
+  }
+  public function setFindingId($findingId)
+  {
+    $this->findingId = $findingId;
+  }
+  public function getFindingId()
+  {
+    return $this->findingId;
   }
   /**
    * @param Google_Service_DLP_GooglePrivacyDlpV2InfoType
@@ -48,6 +63,30 @@ class Google_Service_DLP_GooglePrivacyDlpV2Finding extends Google_Model
   public function getInfoType()
   {
     return $this->infoType;
+  }
+  public function setJobCreateTime($jobCreateTime)
+  {
+    $this->jobCreateTime = $jobCreateTime;
+  }
+  public function getJobCreateTime()
+  {
+    return $this->jobCreateTime;
+  }
+  public function setJobName($jobName)
+  {
+    $this->jobName = $jobName;
+  }
+  public function getJobName()
+  {
+    return $this->jobName;
+  }
+  public function setLabels($labels)
+  {
+    $this->labels = $labels;
+  }
+  public function getLabels()
+  {
+    return $this->labels;
   }
   public function setLikelihood($likelihood)
   {
@@ -71,6 +110,14 @@ class Google_Service_DLP_GooglePrivacyDlpV2Finding extends Google_Model
   {
     return $this->location;
   }
+  public function setName($name)
+  {
+    $this->name = $name;
+  }
+  public function getName()
+  {
+    return $this->name;
+  }
   public function setQuote($quote)
   {
     $this->quote = $quote;
@@ -92,5 +139,21 @@ class Google_Service_DLP_GooglePrivacyDlpV2Finding extends Google_Model
   public function getQuoteInfo()
   {
     return $this->quoteInfo;
+  }
+  public function setResourceName($resourceName)
+  {
+    $this->resourceName = $resourceName;
+  }
+  public function getResourceName()
+  {
+    return $this->resourceName;
+  }
+  public function setTriggerName($triggerName)
+  {
+    $this->triggerName = $triggerName;
+  }
+  public function getTriggerName()
+  {
+    return $this->triggerName;
   }
 }

@@ -17,6 +17,7 @@
 
 class Google_Service_Directory_SchemaFieldSpec extends Google_Model
 {
+  public $displayName;
   public $etag;
   public $fieldId;
   public $fieldName;
@@ -28,6 +29,14 @@ class Google_Service_Directory_SchemaFieldSpec extends Google_Model
   protected $numericIndexingSpecDataType = '';
   public $readAccessType;
 
+  public function setDisplayName($displayName)
+  {
+    $this->displayName = $displayName;
+  }
+  public function getDisplayName()
+  {
+    return $this->displayName;
+  }
   public function setEtag($etag)
   {
     $this->etag = $etag;

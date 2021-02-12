@@ -35,7 +35,8 @@ class Google_Service_Games_Resource_AchievementDefinitions extends Google_Servic
    * by this method.
    * @opt_param int maxResults The maximum number of achievement resources to
    * return in the response, used for paging. For any response, the actual number
-   * of achievement resources returned may be less than the specified maxResults.
+   * of achievement resources returned may be less than the specified
+   * `maxResults`.
    * @opt_param string pageToken The token returned by the previous request.
    * @return Google_Service_Games_AchievementDefinitionsListResponse
    */

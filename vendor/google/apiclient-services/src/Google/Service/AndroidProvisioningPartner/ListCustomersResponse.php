@@ -20,19 +20,37 @@ class Google_Service_AndroidProvisioningPartner_ListCustomersResponse extends Go
   protected $collection_key = 'customers';
   protected $customersType = 'Google_Service_AndroidProvisioningPartner_Company';
   protected $customersDataType = 'array';
+  public $nextPageToken;
+  public $totalSize;
 
   /**
-   * @param Google_Service_AndroidProvisioningPartner_Company
+   * @param Google_Service_AndroidProvisioningPartner_Company[]
    */
   public function setCustomers($customers)
   {
     $this->customers = $customers;
   }
   /**
-   * @return Google_Service_AndroidProvisioningPartner_Company
+   * @return Google_Service_AndroidProvisioningPartner_Company[]
    */
   public function getCustomers()
   {
     return $this->customers;
+  }
+  public function setNextPageToken($nextPageToken)
+  {
+    $this->nextPageToken = $nextPageToken;
+  }
+  public function getNextPageToken()
+  {
+    return $this->nextPageToken;
+  }
+  public function setTotalSize($totalSize)
+  {
+    $this->totalSize = $totalSize;
+  }
+  public function getTotalSize()
+  {
+    return $this->totalSize;
   }
 }

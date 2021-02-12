@@ -32,7 +32,7 @@ class Google_Service_CivicInfo_Resource_Representatives extends Google_Service_R
    * @param array $optParams Optional parameters.
    *
    * @opt_param string address The address to look up. May only be specified if
-   * the field ocdId is not given in the URL.
+   * the field ocdId is not given in the URL
    * @opt_param bool includeOffices Whether to return information about offices
    * and officials. If false, only the top-level district information will be
    * returned.

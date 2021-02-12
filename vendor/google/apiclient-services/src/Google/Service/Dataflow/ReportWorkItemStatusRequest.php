@@ -20,6 +20,7 @@ class Google_Service_Dataflow_ReportWorkItemStatusRequest extends Google_Collect
   protected $collection_key = 'workItemStatuses';
   public $currentWorkerTime;
   public $location;
+  public $unifiedWorkerRequest;
   protected $workItemStatusesType = 'Google_Service_Dataflow_WorkItemStatus';
   protected $workItemStatusesDataType = 'array';
   public $workerId;
@@ -40,15 +41,23 @@ class Google_Service_Dataflow_ReportWorkItemStatusRequest extends Google_Collect
   {
     return $this->location;
   }
+  public function setUnifiedWorkerRequest($unifiedWorkerRequest)
+  {
+    $this->unifiedWorkerRequest = $unifiedWorkerRequest;
+  }
+  public function getUnifiedWorkerRequest()
+  {
+    return $this->unifiedWorkerRequest;
+  }
   /**
-   * @param Google_Service_Dataflow_WorkItemStatus
+   * @param Google_Service_Dataflow_WorkItemStatus[]
    */
   public function setWorkItemStatuses($workItemStatuses)
   {
     $this->workItemStatuses = $workItemStatuses;
   }
   /**
-   * @return Google_Service_Dataflow_WorkItemStatus
+   * @return Google_Service_Dataflow_WorkItemStatus[]
    */
   public function getWorkItemStatuses()
   {

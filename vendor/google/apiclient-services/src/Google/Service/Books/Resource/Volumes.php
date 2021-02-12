@@ -37,7 +37,7 @@ class Google_Service_Books_Resource_Volumes extends Google_Service_Resource
    * @opt_param string partner Brand results for partner ID.
    * @opt_param string projection Restrict information returned to a set of
    * selected fields.
-   * @opt_param string source String to identify the originator of this request.
+   * @opt_param string source string to identify the originator of this request.
    * @opt_param bool user_library_consistent_read
    * @return Google_Service_Books_Volume
    */

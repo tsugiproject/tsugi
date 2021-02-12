@@ -22,6 +22,9 @@ class Google_Service_HangoutsChat_Message extends Google_Collection
   protected $actionResponseDataType = '';
   protected $annotationsType = 'Google_Service_HangoutsChat_Annotation';
   protected $annotationsDataType = 'array';
+  public $argumentText;
+  protected $attachmentType = 'Google_Service_HangoutsChat_Attachment';
+  protected $attachmentDataType = 'array';
   protected $cardsType = 'Google_Service_HangoutsChat_Card';
   protected $cardsDataType = 'array';
   public $createTime;
@@ -30,6 +33,8 @@ class Google_Service_HangoutsChat_Message extends Google_Collection
   public $previewText;
   protected $senderType = 'Google_Service_HangoutsChat_User';
   protected $senderDataType = '';
+  protected $slashCommandType = 'Google_Service_HangoutsChat_SlashCommand';
+  protected $slashCommandDataType = '';
   protected $spaceType = 'Google_Service_HangoutsChat_Space';
   protected $spaceDataType = '';
   public $text;
@@ -51,28 +56,50 @@ class Google_Service_HangoutsChat_Message extends Google_Collection
     return $this->actionResponse;
   }
   /**
-   * @param Google_Service_HangoutsChat_Annotation
+   * @param Google_Service_HangoutsChat_Annotation[]
    */
   public function setAnnotations($annotations)
   {
     $this->annotations = $annotations;
   }
   /**
-   * @return Google_Service_HangoutsChat_Annotation
+   * @return Google_Service_HangoutsChat_Annotation[]
    */
   public function getAnnotations()
   {
     return $this->annotations;
   }
+  public function setArgumentText($argumentText)
+  {
+    $this->argumentText = $argumentText;
+  }
+  public function getArgumentText()
+  {
+    return $this->argumentText;
+  }
   /**
-   * @param Google_Service_HangoutsChat_Card
+   * @param Google_Service_HangoutsChat_Attachment[]
+   */
+  public function setAttachment($attachment)
+  {
+    $this->attachment = $attachment;
+  }
+  /**
+   * @return Google_Service_HangoutsChat_Attachment[]
+   */
+  public function getAttachment()
+  {
+    return $this->attachment;
+  }
+  /**
+   * @param Google_Service_HangoutsChat_Card[]
    */
   public function setCards($cards)
   {
     $this->cards = $cards;
   }
   /**
-   * @return Google_Service_HangoutsChat_Card
+   * @return Google_Service_HangoutsChat_Card[]
    */
   public function getCards()
   {
@@ -123,6 +150,20 @@ class Google_Service_HangoutsChat_Message extends Google_Collection
   public function getSender()
   {
     return $this->sender;
+  }
+  /**
+   * @param Google_Service_HangoutsChat_SlashCommand
+   */
+  public function setSlashCommand(Google_Service_HangoutsChat_SlashCommand $slashCommand)
+  {
+    $this->slashCommand = $slashCommand;
+  }
+  /**
+   * @return Google_Service_HangoutsChat_SlashCommand
+   */
+  public function getSlashCommand()
+  {
+    return $this->slashCommand;
   }
   /**
    * @param Google_Service_HangoutsChat_Space

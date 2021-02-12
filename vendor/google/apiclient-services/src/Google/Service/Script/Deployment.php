@@ -23,10 +23,6 @@ class Google_Service_Script_Deployment extends Google_Collection
   public $deploymentId;
   protected $entryPointsType = 'Google_Service_Script_EntryPoint';
   protected $entryPointsDataType = 'array';
-  protected $functionSetType = 'Google_Service_Script_GoogleAppsScriptTypeFunctionSet';
-  protected $functionSetDataType = '';
-  protected $scopeSetType = 'Google_Service_Script_GoogleAppsScriptTypeScopeSet';
-  protected $scopeSetDataType = '';
   public $updateTime;
 
   /**
@@ -52,46 +48,18 @@ class Google_Service_Script_Deployment extends Google_Collection
     return $this->deploymentId;
   }
   /**
-   * @param Google_Service_Script_EntryPoint
+   * @param Google_Service_Script_EntryPoint[]
    */
   public function setEntryPoints($entryPoints)
   {
     $this->entryPoints = $entryPoints;
   }
   /**
-   * @return Google_Service_Script_EntryPoint
+   * @return Google_Service_Script_EntryPoint[]
    */
   public function getEntryPoints()
   {
     return $this->entryPoints;
-  }
-  /**
-   * @param Google_Service_Script_GoogleAppsScriptTypeFunctionSet
-   */
-  public function setFunctionSet(Google_Service_Script_GoogleAppsScriptTypeFunctionSet $functionSet)
-  {
-    $this->functionSet = $functionSet;
-  }
-  /**
-   * @return Google_Service_Script_GoogleAppsScriptTypeFunctionSet
-   */
-  public function getFunctionSet()
-  {
-    return $this->functionSet;
-  }
-  /**
-   * @param Google_Service_Script_GoogleAppsScriptTypeScopeSet
-   */
-  public function setScopeSet(Google_Service_Script_GoogleAppsScriptTypeScopeSet $scopeSet)
-  {
-    $this->scopeSet = $scopeSet;
-  }
-  /**
-   * @return Google_Service_Script_GoogleAppsScriptTypeScopeSet
-   */
-  public function getScopeSet()
-  {
-    return $this->scopeSet;
   }
   public function setUpdateTime($updateTime)
   {

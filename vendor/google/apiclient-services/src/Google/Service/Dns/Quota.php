@@ -21,10 +21,16 @@ class Google_Service_Dns_Quota extends Google_Collection
   public $dnsKeysPerManagedZone;
   public $kind;
   public $managedZones;
+  public $managedZonesPerNetwork;
+  public $networksPerManagedZone;
+  public $networksPerPolicy;
+  public $policies;
   public $resourceRecordsPerRrset;
   public $rrsetAdditionsPerChange;
   public $rrsetDeletionsPerChange;
   public $rrsetsPerManagedZone;
+  public $targetNameServersPerManagedZone;
+  public $targetNameServersPerPolicy;
   public $totalRrdataSizePerChange;
   protected $whitelistedKeySpecsType = 'Google_Service_Dns_DnsKeySpec';
   protected $whitelistedKeySpecsDataType = 'array';
@@ -52,6 +58,38 @@ class Google_Service_Dns_Quota extends Google_Collection
   public function getManagedZones()
   {
     return $this->managedZones;
+  }
+  public function setManagedZonesPerNetwork($managedZonesPerNetwork)
+  {
+    $this->managedZonesPerNetwork = $managedZonesPerNetwork;
+  }
+  public function getManagedZonesPerNetwork()
+  {
+    return $this->managedZonesPerNetwork;
+  }
+  public function setNetworksPerManagedZone($networksPerManagedZone)
+  {
+    $this->networksPerManagedZone = $networksPerManagedZone;
+  }
+  public function getNetworksPerManagedZone()
+  {
+    return $this->networksPerManagedZone;
+  }
+  public function setNetworksPerPolicy($networksPerPolicy)
+  {
+    $this->networksPerPolicy = $networksPerPolicy;
+  }
+  public function getNetworksPerPolicy()
+  {
+    return $this->networksPerPolicy;
+  }
+  public function setPolicies($policies)
+  {
+    $this->policies = $policies;
+  }
+  public function getPolicies()
+  {
+    return $this->policies;
   }
   public function setResourceRecordsPerRrset($resourceRecordsPerRrset)
   {
@@ -85,6 +123,22 @@ class Google_Service_Dns_Quota extends Google_Collection
   {
     return $this->rrsetsPerManagedZone;
   }
+  public function setTargetNameServersPerManagedZone($targetNameServersPerManagedZone)
+  {
+    $this->targetNameServersPerManagedZone = $targetNameServersPerManagedZone;
+  }
+  public function getTargetNameServersPerManagedZone()
+  {
+    return $this->targetNameServersPerManagedZone;
+  }
+  public function setTargetNameServersPerPolicy($targetNameServersPerPolicy)
+  {
+    $this->targetNameServersPerPolicy = $targetNameServersPerPolicy;
+  }
+  public function getTargetNameServersPerPolicy()
+  {
+    return $this->targetNameServersPerPolicy;
+  }
   public function setTotalRrdataSizePerChange($totalRrdataSizePerChange)
   {
     $this->totalRrdataSizePerChange = $totalRrdataSizePerChange;
@@ -94,14 +148,14 @@ class Google_Service_Dns_Quota extends Google_Collection
     return $this->totalRrdataSizePerChange;
   }
   /**
-   * @param Google_Service_Dns_DnsKeySpec
+   * @param Google_Service_Dns_DnsKeySpec[]
    */
   public function setWhitelistedKeySpecs($whitelistedKeySpecs)
   {
     $this->whitelistedKeySpecs = $whitelistedKeySpecs;
   }
   /**
-   * @return Google_Service_Dns_DnsKeySpec
+   * @return Google_Service_Dns_DnsKeySpec[]
    */
   public function getWhitelistedKeySpecs()
   {

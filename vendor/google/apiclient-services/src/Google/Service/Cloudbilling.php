@@ -31,6 +31,12 @@
  */
 class Google_Service_Cloudbilling extends Google_Service
 {
+  /** View and manage your Google Cloud Platform billing accounts. */
+  const CLOUD_BILLING =
+      "https://www.googleapis.com/auth/cloud-billing";
+  /** View your Google Cloud Platform billing accounts. */
+  const CLOUD_BILLING_READONLY =
+      "https://www.googleapis.com/auth/cloud-billing.readonly";
   /** View and manage your data across Google Cloud Platform services. */
   const CLOUD_PLATFORM =
       "https://www.googleapis.com/auth/cloud-platform";
@@ -40,17 +46,19 @@ class Google_Service_Cloudbilling extends Google_Service
   public $projects;
   public $services;
   public $services_skus;
-  
+
   /**
    * Constructs the internal representation of the Cloudbilling service.
    *
-   * @param Google_Client $client
+   * @param Google_Client $client The client used to deliver requests.
+   * @param string $rootUrl The root URL used for requests to the service.
    */
-  public function __construct(Google_Client $client)
+  public function __construct(Google_Client $client, $rootUrl = null)
   {
     parent::__construct($client);
-    $this->rootUrl = 'https://cloudbilling.googleapis.com/';
+    $this->rootUrl = $rootUrl ?: 'https://cloudbilling.googleapis.com/';
     $this->servicePath = '';
+    $this->batchPath = 'batch';
     $this->version = 'v1';
     $this->serviceName = 'cloudbilling';
 
@@ -83,12 +91,16 @@ class Google_Service_Cloudbilling extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
+                'options.requestedPolicyVersion' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
+                ),
               ),
             ),'list' => array(
               'path' => 'v1/billingAccounts',
               'httpMethod' => 'GET',
               'parameters' => array(
-                'pageToken' => array(
+                'filter' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -96,7 +108,7 @@ class Google_Service_Cloudbilling extends Google_Service
                   'location' => 'query',
                   'type' => 'integer',
                 ),
-                'filter' => array(
+                'pageToken' => array(
                   'location' => 'query',
                   'type' => 'string',
                 ),
@@ -154,13 +166,13 @@ class Google_Service_Cloudbilling extends Google_Service
                   'type' => 'string',
                   'required' => true,
                 ),
-                'pageToken' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
                 'pageSize' => array(
                   'location' => 'query',
                   'type' => 'integer',
+                ),
+                'pageToken' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
               ),
             ),
@@ -207,13 +219,13 @@ class Google_Service_Cloudbilling extends Google_Service
               'path' => 'v1/services',
               'httpMethod' => 'GET',
               'parameters' => array(
-                'pageToken' => array(
-                  'location' => 'query',
-                  'type' => 'string',
-                ),
                 'pageSize' => array(
                   'location' => 'query',
                   'type' => 'integer',
+                ),
+                'pageToken' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
               ),
             ),
@@ -243,6 +255,10 @@ class Google_Service_Cloudbilling extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                 ),
+                'pageSize' => array(
+                  'location' => 'query',
+                  'type' => 'integer',
+                ),
                 'pageToken' => array(
                   'location' => 'query',
                   'type' => 'string',
@@ -250,10 +266,6 @@ class Google_Service_Cloudbilling extends Google_Service
                 'startTime' => array(
                   'location' => 'query',
                   'type' => 'string',
-                ),
-                'pageSize' => array(
-                  'location' => 'query',
-                  'type' => 'integer',
                 ),
               ),
             ),

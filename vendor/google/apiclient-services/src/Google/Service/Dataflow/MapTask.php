@@ -18,20 +18,29 @@
 class Google_Service_Dataflow_MapTask extends Google_Collection
 {
   protected $collection_key = 'instructions';
+  public $counterPrefix;
   protected $instructionsType = 'Google_Service_Dataflow_ParallelInstruction';
   protected $instructionsDataType = 'array';
   public $stageName;
   public $systemName;
 
+  public function setCounterPrefix($counterPrefix)
+  {
+    $this->counterPrefix = $counterPrefix;
+  }
+  public function getCounterPrefix()
+  {
+    return $this->counterPrefix;
+  }
   /**
-   * @param Google_Service_Dataflow_ParallelInstruction
+   * @param Google_Service_Dataflow_ParallelInstruction[]
    */
   public function setInstructions($instructions)
   {
     $this->instructions = $instructions;
   }
   /**
-   * @return Google_Service_Dataflow_ParallelInstruction
+   * @return Google_Service_Dataflow_ParallelInstruction[]
    */
   public function getInstructions()
   {

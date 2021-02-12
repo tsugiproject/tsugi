@@ -32,12 +32,13 @@ class Google_Service_Books_Resource_MylibraryAnnotations extends Google_Service_
    * @param array $optParams Optional parameters.
    *
    * @opt_param string source String to identify the originator of this request.
+   * @return Google_Service_Books_BooksEmpty
    */
   public function delete($annotationId, $optParams = array())
   {
     $params = array('annotationId' => $annotationId);
     $params = array_merge($params, $optParams);
-    return $this->call('delete', array($params));
+    return $this->call('delete', array($params), "Google_Service_Books_BooksEmpty");
   }
   /**
    * Inserts a new annotation. (annotations.insert)

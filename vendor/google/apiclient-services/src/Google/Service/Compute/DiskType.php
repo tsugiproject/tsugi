@@ -25,6 +25,7 @@ class Google_Service_Compute_DiskType extends Google_Model
   public $id;
   public $kind;
   public $name;
+  public $region;
   public $selfLink;
   public $validDiskSize;
   public $zone;
@@ -90,6 +91,14 @@ class Google_Service_Compute_DiskType extends Google_Model
   public function getName()
   {
     return $this->name;
+  }
+  public function setRegion($region)
+  {
+    $this->region = $region;
+  }
+  public function getRegion()
+  {
+    return $this->region;
   }
   public function setSelfLink($selfLink)
   {

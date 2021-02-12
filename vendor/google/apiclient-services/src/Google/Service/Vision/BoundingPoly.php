@@ -18,18 +18,34 @@
 class Google_Service_Vision_BoundingPoly extends Google_Collection
 {
   protected $collection_key = 'vertices';
+  protected $normalizedVerticesType = 'Google_Service_Vision_NormalizedVertex';
+  protected $normalizedVerticesDataType = 'array';
   protected $verticesType = 'Google_Service_Vision_Vertex';
   protected $verticesDataType = 'array';
 
   /**
-   * @param Google_Service_Vision_Vertex
+   * @param Google_Service_Vision_NormalizedVertex[]
+   */
+  public function setNormalizedVertices($normalizedVertices)
+  {
+    $this->normalizedVertices = $normalizedVertices;
+  }
+  /**
+   * @return Google_Service_Vision_NormalizedVertex[]
+   */
+  public function getNormalizedVertices()
+  {
+    return $this->normalizedVertices;
+  }
+  /**
+   * @param Google_Service_Vision_Vertex[]
    */
   public function setVertices($vertices)
   {
     $this->vertices = $vertices;
   }
   /**
-   * @return Google_Service_Vision_Vertex
+   * @return Google_Service_Vision_Vertex[]
    */
   public function getVertices()
   {

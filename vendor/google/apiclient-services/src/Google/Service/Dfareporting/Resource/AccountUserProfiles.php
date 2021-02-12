@@ -91,7 +91,7 @@ class Google_Service_Dfareporting_Resource_AccountUserProfiles extends Google_Se
    * semantics. (accountUserProfiles.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id User profile ID.
+   * @param string $id AccountUserProfile ID.
    * @param Google_Service_Dfareporting_AccountUserProfile $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_AccountUserProfile

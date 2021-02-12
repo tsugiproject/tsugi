@@ -29,8 +29,6 @@ class Google_Service_YouTube_Channel extends Google_Model
   protected $conversionPingsDataType = '';
   public $etag;
   public $id;
-  protected $invideoPromotionType = 'Google_Service_YouTube_InvideoPromotion';
-  protected $invideoPromotionDataType = '';
   public $kind;
   protected $localizationsType = 'Google_Service_YouTube_ChannelLocalization';
   protected $localizationsDataType = 'map';
@@ -129,20 +127,6 @@ class Google_Service_YouTube_Channel extends Google_Model
   {
     return $this->id;
   }
-  /**
-   * @param Google_Service_YouTube_InvideoPromotion
-   */
-  public function setInvideoPromotion(Google_Service_YouTube_InvideoPromotion $invideoPromotion)
-  {
-    $this->invideoPromotion = $invideoPromotion;
-  }
-  /**
-   * @return Google_Service_YouTube_InvideoPromotion
-   */
-  public function getInvideoPromotion()
-  {
-    return $this->invideoPromotion;
-  }
   public function setKind($kind)
   {
     $this->kind = $kind;
@@ -152,14 +136,14 @@ class Google_Service_YouTube_Channel extends Google_Model
     return $this->kind;
   }
   /**
-   * @param Google_Service_YouTube_ChannelLocalization
+   * @param Google_Service_YouTube_ChannelLocalization[]
    */
   public function setLocalizations($localizations)
   {
     $this->localizations = $localizations;
   }
   /**
-   * @return Google_Service_YouTube_ChannelLocalization
+   * @return Google_Service_YouTube_ChannelLocalization[]
    */
   public function getLocalizations()
   {

@@ -17,7 +17,7 @@
 
 class Google_Service_Compute_Image extends Google_Collection
 {
-  protected $collection_key = 'licenses';
+  protected $collection_key = 'storageLocations';
   public $archiveSizeBytes;
   public $creationTimestamp;
   protected $deprecatedType = 'Google_Service_Compute_DeprecationStatus';
@@ -39,6 +39,8 @@ class Google_Service_Compute_Image extends Google_Collection
   protected $rawDiskType = 'Google_Service_Compute_ImageRawDisk';
   protected $rawDiskDataType = '';
   public $selfLink;
+  protected $shieldedInstanceInitialStateType = 'Google_Service_Compute_InitialStateConfig';
+  protected $shieldedInstanceInitialStateDataType = '';
   public $sourceDisk;
   protected $sourceDiskEncryptionKeyType = 'Google_Service_Compute_CustomerEncryptionKey';
   protected $sourceDiskEncryptionKeyDataType = '';
@@ -53,6 +55,7 @@ class Google_Service_Compute_Image extends Google_Collection
   public $sourceSnapshotId;
   public $sourceType;
   public $status;
+  public $storageLocations;
 
   public function setArchiveSizeBytes($archiveSizeBytes)
   {
@@ -109,14 +112,14 @@ class Google_Service_Compute_Image extends Google_Collection
     return $this->family;
   }
   /**
-   * @param Google_Service_Compute_GuestOsFeature
+   * @param Google_Service_Compute_GuestOsFeature[]
    */
   public function setGuestOsFeatures($guestOsFeatures)
   {
     $this->guestOsFeatures = $guestOsFeatures;
   }
   /**
-   * @return Google_Service_Compute_GuestOsFeature
+   * @return Google_Service_Compute_GuestOsFeature[]
    */
   public function getGuestOsFeatures()
   {
@@ -213,6 +216,20 @@ class Google_Service_Compute_Image extends Google_Collection
   public function getSelfLink()
   {
     return $this->selfLink;
+  }
+  /**
+   * @param Google_Service_Compute_InitialStateConfig
+   */
+  public function setShieldedInstanceInitialState(Google_Service_Compute_InitialStateConfig $shieldedInstanceInitialState)
+  {
+    $this->shieldedInstanceInitialState = $shieldedInstanceInitialState;
+  }
+  /**
+   * @return Google_Service_Compute_InitialStateConfig
+   */
+  public function getShieldedInstanceInitialState()
+  {
+    return $this->shieldedInstanceInitialState;
   }
   public function setSourceDisk($sourceDisk)
   {
@@ -319,5 +336,13 @@ class Google_Service_Compute_Image extends Google_Collection
   public function getStatus()
   {
     return $this->status;
+  }
+  public function setStorageLocations($storageLocations)
+  {
+    $this->storageLocations = $storageLocations;
+  }
+  public function getStorageLocations()
+  {
+    return $this->storageLocations;
   }
 }

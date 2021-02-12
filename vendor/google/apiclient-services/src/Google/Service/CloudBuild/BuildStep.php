@@ -24,6 +24,8 @@ class Google_Service_CloudBuild_BuildStep extends Google_Collection
   public $env;
   public $id;
   public $name;
+  protected $pullTimingType = 'Google_Service_CloudBuild_TimeSpan';
+  protected $pullTimingDataType = '';
   public $secretEnv;
   public $status;
   public $timeout;
@@ -81,6 +83,20 @@ class Google_Service_CloudBuild_BuildStep extends Google_Collection
   {
     return $this->name;
   }
+  /**
+   * @param Google_Service_CloudBuild_TimeSpan
+   */
+  public function setPullTiming(Google_Service_CloudBuild_TimeSpan $pullTiming)
+  {
+    $this->pullTiming = $pullTiming;
+  }
+  /**
+   * @return Google_Service_CloudBuild_TimeSpan
+   */
+  public function getPullTiming()
+  {
+    return $this->pullTiming;
+  }
   public function setSecretEnv($secretEnv)
   {
     $this->secretEnv = $secretEnv;
@@ -120,14 +136,14 @@ class Google_Service_CloudBuild_BuildStep extends Google_Collection
     return $this->timing;
   }
   /**
-   * @param Google_Service_CloudBuild_Volume
+   * @param Google_Service_CloudBuild_Volume[]
    */
   public function setVolumes($volumes)
   {
     $this->volumes = $volumes;
   }
   /**
-   * @return Google_Service_CloudBuild_Volume
+   * @return Google_Service_CloudBuild_Volume[]
    */
   public function getVolumes()
   {

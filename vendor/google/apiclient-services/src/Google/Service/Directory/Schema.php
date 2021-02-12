@@ -18,6 +18,7 @@
 class Google_Service_Directory_Schema extends Google_Collection
 {
   protected $collection_key = 'fields';
+  public $displayName;
   public $etag;
   protected $fieldsType = 'Google_Service_Directory_SchemaFieldSpec';
   protected $fieldsDataType = 'array';
@@ -25,6 +26,14 @@ class Google_Service_Directory_Schema extends Google_Collection
   public $schemaId;
   public $schemaName;
 
+  public function setDisplayName($displayName)
+  {
+    $this->displayName = $displayName;
+  }
+  public function getDisplayName()
+  {
+    return $this->displayName;
+  }
   public function setEtag($etag)
   {
     $this->etag = $etag;
@@ -34,14 +43,14 @@ class Google_Service_Directory_Schema extends Google_Collection
     return $this->etag;
   }
   /**
-   * @param Google_Service_Directory_SchemaFieldSpec
+   * @param Google_Service_Directory_SchemaFieldSpec[]
    */
   public function setFields($fields)
   {
     $this->fields = $fields;
   }
   /**
-   * @return Google_Service_Directory_SchemaFieldSpec
+   * @return Google_Service_Directory_SchemaFieldSpec[]
    */
   public function getFields()
   {

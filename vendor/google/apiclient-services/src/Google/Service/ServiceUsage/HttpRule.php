@@ -17,54 +17,33 @@
 
 class Google_Service_ServiceUsage_HttpRule extends Google_Collection
 {
-  protected $collection_key = 'authorizations';
+  protected $collection_key = 'additionalBindings';
   protected $additionalBindingsType = 'Google_Service_ServiceUsage_HttpRule';
   protected $additionalBindingsDataType = 'array';
-  protected $authorizationsType = 'Google_Service_ServiceUsage_AuthorizationRule';
-  protected $authorizationsDataType = 'array';
   public $body;
   protected $customType = 'Google_Service_ServiceUsage_CustomHttpPattern';
   protected $customDataType = '';
   public $delete;
   public $get;
-  protected $mediaDownloadType = 'Google_Service_ServiceUsage_MediaDownload';
-  protected $mediaDownloadDataType = '';
-  protected $mediaUploadType = 'Google_Service_ServiceUsage_MediaUpload';
-  protected $mediaUploadDataType = '';
   public $patch;
   public $post;
   public $put;
-  public $restCollection;
-  public $restMethodName;
+  public $responseBody;
   public $selector;
 
   /**
-   * @param Google_Service_ServiceUsage_HttpRule
+   * @param Google_Service_ServiceUsage_HttpRule[]
    */
   public function setAdditionalBindings($additionalBindings)
   {
     $this->additionalBindings = $additionalBindings;
   }
   /**
-   * @return Google_Service_ServiceUsage_HttpRule
+   * @return Google_Service_ServiceUsage_HttpRule[]
    */
   public function getAdditionalBindings()
   {
     return $this->additionalBindings;
-  }
-  /**
-   * @param Google_Service_ServiceUsage_AuthorizationRule
-   */
-  public function setAuthorizations($authorizations)
-  {
-    $this->authorizations = $authorizations;
-  }
-  /**
-   * @return Google_Service_ServiceUsage_AuthorizationRule
-   */
-  public function getAuthorizations()
-  {
-    return $this->authorizations;
   }
   public function setBody($body)
   {
@@ -104,34 +83,6 @@ class Google_Service_ServiceUsage_HttpRule extends Google_Collection
   {
     return $this->get;
   }
-  /**
-   * @param Google_Service_ServiceUsage_MediaDownload
-   */
-  public function setMediaDownload(Google_Service_ServiceUsage_MediaDownload $mediaDownload)
-  {
-    $this->mediaDownload = $mediaDownload;
-  }
-  /**
-   * @return Google_Service_ServiceUsage_MediaDownload
-   */
-  public function getMediaDownload()
-  {
-    return $this->mediaDownload;
-  }
-  /**
-   * @param Google_Service_ServiceUsage_MediaUpload
-   */
-  public function setMediaUpload(Google_Service_ServiceUsage_MediaUpload $mediaUpload)
-  {
-    $this->mediaUpload = $mediaUpload;
-  }
-  /**
-   * @return Google_Service_ServiceUsage_MediaUpload
-   */
-  public function getMediaUpload()
-  {
-    return $this->mediaUpload;
-  }
   public function setPatch($patch)
   {
     $this->patch = $patch;
@@ -156,21 +107,13 @@ class Google_Service_ServiceUsage_HttpRule extends Google_Collection
   {
     return $this->put;
   }
-  public function setRestCollection($restCollection)
+  public function setResponseBody($responseBody)
   {
-    $this->restCollection = $restCollection;
+    $this->responseBody = $responseBody;
   }
-  public function getRestCollection()
+  public function getResponseBody()
   {
-    return $this->restCollection;
-  }
-  public function setRestMethodName($restMethodName)
-  {
-    $this->restMethodName = $restMethodName;
-  }
-  public function getRestMethodName()
-  {
-    return $this->restMethodName;
+    return $this->responseBody;
   }
   public function setSelector($selector)
   {

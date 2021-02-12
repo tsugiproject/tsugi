@@ -31,7 +31,7 @@ class Google_Service_Dns_Resource_ResourceRecordSets extends Google_Service_Reso
    *
    * @param string $project Identifies the project addressed by this request.
    * @param string $managedZone Identifies the managed zone addressed by this
-   * request. Can be the managed zone name or id.
+   * request. Can be the managed zone name or ID.
    * @param array $optParams Optional parameters.
    *
    * @opt_param int maxResults Optional. Maximum number of results to be returned.
