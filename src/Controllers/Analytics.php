@@ -13,7 +13,6 @@ class Analytics extends Controller {
     const ROUTE = '/analytics';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->router->get($prefix.'/json', 'Analytics@getjson');
         $app->router->get($prefix, function (Request $request) use ($app) {
             return Analytics::getAnalytics($app);
         });
@@ -24,18 +23,28 @@ class Analytics extends Controller {
 
     public static function getAnalytics(Application $app)
     {
-        global $CFG;
+        global $CFG, $OUTPUT;
         $tsugi = $app['tsugi'];
+        // echo("<pre>\n");var_dump($tsugi);
         if ( !isset($tsugi->user) ) {
-            return view('Error', ['error' => '<p>You are not logged in.</p>']);
+            $app->tsugiFlashError(__('You are not logged in.'));
+            return redirect($redirect_path);
         }
 
         $analytics_url = U::addSession($CFG->wwwroot."/api/analytics");
 
         $menu = new \Tsugi\UI\MenuSet();
         $menu->addLeft(__('Back'), 'index.php');
-        $tsugi->tsugi_menu = $tsugi->output->topNav($menu);
-        return view('Analytics', ['analytics_url' => $analytics_url]);
+        $OUTPUT->buffer = false;
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav($menu);
+        $OUTPUT->flashMessages();
+        echo(\Tsugi\UI\Analytics::graphBody());
+        $OUTPUT->footerStart();
+        echo(\Tsugi\UI\Analytics::graphScript($analytics_url));
+        $OUTPUT->footerEnd();
+        return;
     }
 
 }

@@ -42,6 +42,10 @@ EOF;
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
     $.getJSON('$json', function (x) {
+        if ( typeof x == 'undefined' || typeof x.rows == 'undefined' ) {
+            alert('No analytics data');
+            return;
+        }
         var rows = Array();
         var j = 0;
         for(var i=0; i<x.rows.length;i++) {
@@ -71,7 +75,8 @@ EOF;
 
             chart.draw(data, options);
         }
-    });
+    })
+    .fail(function() { alert("Error retrieving analytics data"); });
 </script>
 EOF;
         return $x;
