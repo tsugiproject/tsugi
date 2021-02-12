@@ -29,7 +29,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '6cd66ce278bef74b3892435269608d0094490482',
+    'reference' => '4d534195865934aa7742b4c1c87b9973a408ecd9',
     'name' => '__root__',
   ),
   'versions' => 
@@ -41,7 +41,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '6cd66ce278bef74b3892435269608d0094490482',
+      'reference' => '4d534195865934aa7742b4c1c87b9973a408ecd9',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -442,12 +442,12 @@ private static $installed = array (
     ),
     'nesbot/carbon' => 
     array (
-      'pretty_version' => '2.45.0',
-      'version' => '2.45.0.0',
+      'pretty_version' => '2.45.1',
+      'version' => '2.45.1.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'e2ba3174ce869da1713c38340dbb36572dfacd5a',
+      'reference' => '528783b188bdb853eb21239b1722831e0f000a8d',
     ),
     'nikic/fast-route' => 
     array (
@@ -921,7 +921,7 @@ private static $installed = array (
       array (
         0 => '9999999-dev',
       ),
-      'reference' => '9373cad18a6885f4370c737054549db96e214991',
+      'reference' => '0d608b6976ef8344b2f6bad785b77c552b05dd14',
     ),
     'vlucas/phpdotenv' => 
     array (
