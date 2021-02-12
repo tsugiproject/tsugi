@@ -1,0 +1,22 @@
+
+name: test-class-loader
+on: [push]
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup PHP 7.4
+        uses: shivammathur/setup-php@v2
+        with:
+            php-version: '7.4'
+
+      - run: php -version
+
+      - run: cp config-dist.php config.php
+
+      - run: php test.php
+
+
