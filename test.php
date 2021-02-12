@@ -27,3 +27,5 @@ $materials = new \Google_Service_Classroom_Material();
 $cw = new \Google_Service_Classroom_CourseWork();
  */
 
+echo "Test complete"
+
