@@ -414,6 +414,14 @@ $CFG->prefer_lti1_for_grade_send = true;
 // This of course is something to consider carefully.
 // $CFG->git_command = '/home/csev/git';
 
+// By default tools and tusgi are auto-upgraded to the master branch,
+// but you can override this on a repo by repo basis in the following
+// array - if you remove an entry from this array the next auto-update
+// will switch back to master.
+$CFG->branch_override = array(
+    // "https://github.com/tsugiproject/tsugi.git" => "beta",
+);
+
 // Should we record launch activity - multi-bucket lossy historgram
 $CFG->launchactivity = true;
 
