@@ -21,7 +21,10 @@ class Google_Service_Storagetransfer_TransferJob extends Google_Model
   public $deletionTime;
   public $description;
   public $lastModificationTime;
+  public $latestOperationName;
   public $name;
+  protected $notificationConfigType = 'Google_Service_Storagetransfer_NotificationConfig';
+  protected $notificationConfigDataType = '';
   public $projectId;
   protected $scheduleType = 'Google_Service_Storagetransfer_Schedule';
   protected $scheduleDataType = '';
@@ -61,6 +64,14 @@ class Google_Service_Storagetransfer_TransferJob extends Google_Model
   {
     return $this->lastModificationTime;
   }
+  public function setLatestOperationName($latestOperationName)
+  {
+    $this->latestOperationName = $latestOperationName;
+  }
+  public function getLatestOperationName()
+  {
+    return $this->latestOperationName;
+  }
   public function setName($name)
   {
     $this->name = $name;
@@ -68,6 +79,20 @@ class Google_Service_Storagetransfer_TransferJob extends Google_Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param Google_Service_Storagetransfer_NotificationConfig
+   */
+  public function setNotificationConfig(Google_Service_Storagetransfer_NotificationConfig $notificationConfig)
+  {
+    $this->notificationConfig = $notificationConfig;
+  }
+  /**
+   * @return Google_Service_Storagetransfer_NotificationConfig
+   */
+  public function getNotificationConfig()
+  {
+    return $this->notificationConfig;
   }
   public function setProjectId($projectId)
   {

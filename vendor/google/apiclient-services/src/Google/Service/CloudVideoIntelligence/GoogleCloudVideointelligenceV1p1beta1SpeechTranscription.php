@@ -20,19 +20,28 @@ class Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta
   protected $collection_key = 'alternatives';
   protected $alternativesType = 'Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative';
   protected $alternativesDataType = 'array';
+  public $languageCode;
 
   /**
-   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative
+   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative[]
    */
   public function setAlternatives($alternatives)
   {
     $this->alternatives = $alternatives;
   }
   /**
-   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative
+   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative[]
    */
   public function getAlternatives()
   {
     return $this->alternatives;
+  }
+  public function setLanguageCode($languageCode)
+  {
+    $this->languageCode = $languageCode;
+  }
+  public function getLanguageCode()
+  {
+    return $this->languageCode;
   }
 }

@@ -25,6 +25,7 @@ class Google_Service_Appengine_Version extends Google_Collection
   protected $basicScalingType = 'Google_Service_Appengine_BasicScaling';
   protected $basicScalingDataType = '';
   public $betaSettings;
+  public $buildEnvVariables;
   public $createTime;
   public $createdBy;
   public $defaultExpiration;
@@ -33,6 +34,8 @@ class Google_Service_Appengine_Version extends Google_Collection
   public $diskUsageBytes;
   protected $endpointsApiServiceType = 'Google_Service_Appengine_EndpointsApiService';
   protected $endpointsApiServiceDataType = '';
+  protected $entrypointType = 'Google_Service_Appengine_Entrypoint';
+  protected $entrypointDataType = '';
   public $env;
   public $envVariables;
   protected $errorHandlersType = 'Google_Service_Appengine_ErrorHandler';
@@ -61,10 +64,13 @@ class Google_Service_Appengine_Version extends Google_Collection
   public $runtime;
   public $runtimeApiVersion;
   public $runtimeChannel;
+  public $runtimeMainExecutablePath;
   public $servingStatus;
   public $threadsafe;
   public $versionUrl;
   public $vm;
+  protected $vpcAccessConnectorType = 'Google_Service_Appengine_VpcAccessConnector';
+  protected $vpcAccessConnectorDataType = '';
   public $zones;
 
   /**
@@ -116,6 +122,14 @@ class Google_Service_Appengine_Version extends Google_Collection
   public function getBetaSettings()
   {
     return $this->betaSettings;
+  }
+  public function setBuildEnvVariables($buildEnvVariables)
+  {
+    $this->buildEnvVariables = $buildEnvVariables;
+  }
+  public function getBuildEnvVariables()
+  {
+    return $this->buildEnvVariables;
   }
   public function setCreateTime($createTime)
   {
@@ -177,6 +191,20 @@ class Google_Service_Appengine_Version extends Google_Collection
   {
     return $this->endpointsApiService;
   }
+  /**
+   * @param Google_Service_Appengine_Entrypoint
+   */
+  public function setEntrypoint(Google_Service_Appengine_Entrypoint $entrypoint)
+  {
+    $this->entrypoint = $entrypoint;
+  }
+  /**
+   * @return Google_Service_Appengine_Entrypoint
+   */
+  public function getEntrypoint()
+  {
+    return $this->entrypoint;
+  }
   public function setEnv($env)
   {
     $this->env = $env;
@@ -194,28 +222,28 @@ class Google_Service_Appengine_Version extends Google_Collection
     return $this->envVariables;
   }
   /**
-   * @param Google_Service_Appengine_ErrorHandler
+   * @param Google_Service_Appengine_ErrorHandler[]
    */
   public function setErrorHandlers($errorHandlers)
   {
     $this->errorHandlers = $errorHandlers;
   }
   /**
-   * @return Google_Service_Appengine_ErrorHandler
+   * @return Google_Service_Appengine_ErrorHandler[]
    */
   public function getErrorHandlers()
   {
     return $this->errorHandlers;
   }
   /**
-   * @param Google_Service_Appengine_UrlMap
+   * @param Google_Service_Appengine_UrlMap[]
    */
   public function setHandlers($handlers)
   {
     $this->handlers = $handlers;
   }
   /**
-   * @return Google_Service_Appengine_UrlMap
+   * @return Google_Service_Appengine_UrlMap[]
    */
   public function getHandlers()
   {
@@ -260,14 +288,14 @@ class Google_Service_Appengine_Version extends Google_Collection
     return $this->instanceClass;
   }
   /**
-   * @param Google_Service_Appengine_Library
+   * @param Google_Service_Appengine_Library[]
    */
   public function setLibraries($libraries)
   {
     $this->libraries = $libraries;
   }
   /**
-   * @return Google_Service_Appengine_Library
+   * @return Google_Service_Appengine_Library[]
    */
   public function getLibraries()
   {
@@ -383,6 +411,14 @@ class Google_Service_Appengine_Version extends Google_Collection
   {
     return $this->runtimeChannel;
   }
+  public function setRuntimeMainExecutablePath($runtimeMainExecutablePath)
+  {
+    $this->runtimeMainExecutablePath = $runtimeMainExecutablePath;
+  }
+  public function getRuntimeMainExecutablePath()
+  {
+    return $this->runtimeMainExecutablePath;
+  }
   public function setServingStatus($servingStatus)
   {
     $this->servingStatus = $servingStatus;
@@ -414,6 +450,20 @@ class Google_Service_Appengine_Version extends Google_Collection
   public function getVm()
   {
     return $this->vm;
+  }
+  /**
+   * @param Google_Service_Appengine_VpcAccessConnector
+   */
+  public function setVpcAccessConnector(Google_Service_Appengine_VpcAccessConnector $vpcAccessConnector)
+  {
+    $this->vpcAccessConnector = $vpcAccessConnector;
+  }
+  /**
+   * @return Google_Service_Appengine_VpcAccessConnector
+   */
+  public function getVpcAccessConnector()
+  {
+    return $this->vpcAccessConnector;
   }
   public function setZones($zones)
   {

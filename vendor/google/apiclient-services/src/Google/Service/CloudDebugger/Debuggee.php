@@ -19,6 +19,7 @@ class Google_Service_CloudDebugger_Debuggee extends Google_Collection
 {
   protected $collection_key = 'sourceContexts';
   public $agentVersion;
+  public $canaryMode;
   public $description;
   protected $extSourceContextsType = 'Google_Service_CloudDebugger_ExtendedSourceContext';
   protected $extSourceContextsDataType = 'array';
@@ -41,6 +42,14 @@ class Google_Service_CloudDebugger_Debuggee extends Google_Collection
   {
     return $this->agentVersion;
   }
+  public function setCanaryMode($canaryMode)
+  {
+    $this->canaryMode = $canaryMode;
+  }
+  public function getCanaryMode()
+  {
+    return $this->canaryMode;
+  }
   public function setDescription($description)
   {
     $this->description = $description;
@@ -50,14 +59,14 @@ class Google_Service_CloudDebugger_Debuggee extends Google_Collection
     return $this->description;
   }
   /**
-   * @param Google_Service_CloudDebugger_ExtendedSourceContext
+   * @param Google_Service_CloudDebugger_ExtendedSourceContext[]
    */
   public function setExtSourceContexts($extSourceContexts)
   {
     $this->extSourceContexts = $extSourceContexts;
   }
   /**
-   * @return Google_Service_CloudDebugger_ExtendedSourceContext
+   * @return Google_Service_CloudDebugger_ExtendedSourceContext[]
    */
   public function getExtSourceContexts()
   {
@@ -104,14 +113,14 @@ class Google_Service_CloudDebugger_Debuggee extends Google_Collection
     return $this->project;
   }
   /**
-   * @param Google_Service_CloudDebugger_SourceContext
+   * @param Google_Service_CloudDebugger_SourceContext[]
    */
   public function setSourceContexts($sourceContexts)
   {
     $this->sourceContexts = $sourceContexts;
   }
   /**
-   * @return Google_Service_CloudDebugger_SourceContext
+   * @return Google_Service_CloudDebugger_SourceContext[]
    */
   public function getSourceContexts()
   {

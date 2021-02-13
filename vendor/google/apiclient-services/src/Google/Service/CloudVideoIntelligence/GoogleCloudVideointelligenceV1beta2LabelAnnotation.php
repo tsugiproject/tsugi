@@ -26,16 +26,17 @@ class Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2L
   protected $framesDataType = 'array';
   protected $segmentsType = 'Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2LabelSegment';
   protected $segmentsDataType = 'array';
+  public $version;
 
   /**
-   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2Entity
+   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2Entity[]
    */
   public function setCategoryEntities($categoryEntities)
   {
     $this->categoryEntities = $categoryEntities;
   }
   /**
-   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2Entity
+   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2Entity[]
    */
   public function getCategoryEntities()
   {
@@ -56,31 +57,39 @@ class Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2L
     return $this->entity;
   }
   /**
-   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2LabelFrame
+   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2LabelFrame[]
    */
   public function setFrames($frames)
   {
     $this->frames = $frames;
   }
   /**
-   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2LabelFrame
+   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2LabelFrame[]
    */
   public function getFrames()
   {
     return $this->frames;
   }
   /**
-   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2LabelSegment
+   * @param Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2LabelSegment[]
    */
   public function setSegments($segments)
   {
     $this->segments = $segments;
   }
   /**
-   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2LabelSegment
+   * @return Google_Service_CloudVideoIntelligence_GoogleCloudVideointelligenceV1beta2LabelSegment[]
    */
   public function getSegments()
   {
     return $this->segments;
+  }
+  public function setVersion($version)
+  {
+    $this->version = $version;
+  }
+  public function getVersion()
+  {
+    return $this->version;
   }
 }

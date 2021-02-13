@@ -20,6 +20,8 @@ class Google_Service_CloudSourceRepositories_Repo extends Google_Model
   protected $mirrorConfigType = 'Google_Service_CloudSourceRepositories_MirrorConfig';
   protected $mirrorConfigDataType = '';
   public $name;
+  protected $pubsubConfigsType = 'Google_Service_CloudSourceRepositories_PubsubConfig';
+  protected $pubsubConfigsDataType = 'map';
   public $size;
   public $url;
 
@@ -44,6 +46,20 @@ class Google_Service_CloudSourceRepositories_Repo extends Google_Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param Google_Service_CloudSourceRepositories_PubsubConfig[]
+   */
+  public function setPubsubConfigs($pubsubConfigs)
+  {
+    $this->pubsubConfigs = $pubsubConfigs;
+  }
+  /**
+   * @return Google_Service_CloudSourceRepositories_PubsubConfig[]
+   */
+  public function getPubsubConfigs()
+  {
+    return $this->pubsubConfigs;
   }
   public function setSize($size)
   {

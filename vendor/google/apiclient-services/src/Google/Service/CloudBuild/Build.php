@@ -27,13 +27,16 @@ class Google_Service_CloudBuild_Build extends Google_Collection
   public $images;
   public $logUrl;
   public $logsBucket;
+  public $name;
   protected $optionsType = 'Google_Service_CloudBuild_BuildOptions';
   protected $optionsDataType = '';
   public $projectId;
+  public $queueTtl;
   protected $resultsType = 'Google_Service_CloudBuild_Results';
   protected $resultsDataType = '';
   protected $secretsType = 'Google_Service_CloudBuild_Secret';
   protected $secretsDataType = 'array';
+  public $serviceAccount;
   protected $sourceType = 'Google_Service_CloudBuild_Source';
   protected $sourceDataType = '';
   protected $sourceProvenanceType = 'Google_Service_CloudBuild_SourceProvenance';
@@ -119,6 +122,14 @@ class Google_Service_CloudBuild_Build extends Google_Collection
   {
     return $this->logsBucket;
   }
+  public function setName($name)
+  {
+    $this->name = $name;
+  }
+  public function getName()
+  {
+    return $this->name;
+  }
   /**
    * @param Google_Service_CloudBuild_BuildOptions
    */
@@ -141,6 +152,14 @@ class Google_Service_CloudBuild_Build extends Google_Collection
   {
     return $this->projectId;
   }
+  public function setQueueTtl($queueTtl)
+  {
+    $this->queueTtl = $queueTtl;
+  }
+  public function getQueueTtl()
+  {
+    return $this->queueTtl;
+  }
   /**
    * @param Google_Service_CloudBuild_Results
    */
@@ -156,18 +175,26 @@ class Google_Service_CloudBuild_Build extends Google_Collection
     return $this->results;
   }
   /**
-   * @param Google_Service_CloudBuild_Secret
+   * @param Google_Service_CloudBuild_Secret[]
    */
   public function setSecrets($secrets)
   {
     $this->secrets = $secrets;
   }
   /**
-   * @return Google_Service_CloudBuild_Secret
+   * @return Google_Service_CloudBuild_Secret[]
    */
   public function getSecrets()
   {
     return $this->secrets;
+  }
+  public function setServiceAccount($serviceAccount)
+  {
+    $this->serviceAccount = $serviceAccount;
+  }
+  public function getServiceAccount()
+  {
+    return $this->serviceAccount;
   }
   /**
    * @param Google_Service_CloudBuild_Source
@@ -222,14 +249,14 @@ class Google_Service_CloudBuild_Build extends Google_Collection
     return $this->statusDetail;
   }
   /**
-   * @param Google_Service_CloudBuild_BuildStep
+   * @param Google_Service_CloudBuild_BuildStep[]
    */
   public function setSteps($steps)
   {
     $this->steps = $steps;
   }
   /**
-   * @return Google_Service_CloudBuild_BuildStep
+   * @return Google_Service_CloudBuild_BuildStep[]
    */
   public function getSteps()
   {
@@ -260,14 +287,14 @@ class Google_Service_CloudBuild_Build extends Google_Collection
     return $this->timeout;
   }
   /**
-   * @param Google_Service_CloudBuild_TimeSpan
+   * @param Google_Service_CloudBuild_TimeSpan[]
    */
   public function setTiming($timing)
   {
     $this->timing = $timing;
   }
   /**
-   * @return Google_Service_CloudBuild_TimeSpan
+   * @return Google_Service_CloudBuild_TimeSpan[]
    */
   public function getTiming()
   {

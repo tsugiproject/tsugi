@@ -23,6 +23,8 @@ class Google_Service_Dfareporting_FloodlightConfiguration extends Google_Collect
   protected $advertiserIdDimensionValueType = 'Google_Service_Dfareporting_DimensionValue';
   protected $advertiserIdDimensionValueDataType = '';
   public $analyticsDataSharingEnabled;
+  protected $customViewabilityMetricType = 'Google_Service_Dfareporting_CustomViewabilityMetric';
+  protected $customViewabilityMetricDataType = '';
   public $exposureToConversionEnabled;
   public $firstDayOfWeek;
   public $id;
@@ -80,6 +82,20 @@ class Google_Service_Dfareporting_FloodlightConfiguration extends Google_Collect
   public function getAnalyticsDataSharingEnabled()
   {
     return $this->analyticsDataSharingEnabled;
+  }
+  /**
+   * @param Google_Service_Dfareporting_CustomViewabilityMetric
+   */
+  public function setCustomViewabilityMetric(Google_Service_Dfareporting_CustomViewabilityMetric $customViewabilityMetric)
+  {
+    $this->customViewabilityMetric = $customViewabilityMetric;
+  }
+  /**
+   * @return Google_Service_Dfareporting_CustomViewabilityMetric
+   */
+  public function getCustomViewabilityMetric()
+  {
+    return $this->customViewabilityMetric;
   }
   public function setExposureToConversionEnabled($exposureToConversionEnabled)
   {
@@ -194,28 +210,28 @@ class Google_Service_Dfareporting_FloodlightConfiguration extends Google_Collect
     return $this->tagSettings;
   }
   /**
-   * @param Google_Service_Dfareporting_ThirdPartyAuthenticationToken
+   * @param Google_Service_Dfareporting_ThirdPartyAuthenticationToken[]
    */
   public function setThirdPartyAuthenticationTokens($thirdPartyAuthenticationTokens)
   {
     $this->thirdPartyAuthenticationTokens = $thirdPartyAuthenticationTokens;
   }
   /**
-   * @return Google_Service_Dfareporting_ThirdPartyAuthenticationToken
+   * @return Google_Service_Dfareporting_ThirdPartyAuthenticationToken[]
    */
   public function getThirdPartyAuthenticationTokens()
   {
     return $this->thirdPartyAuthenticationTokens;
   }
   /**
-   * @param Google_Service_Dfareporting_UserDefinedVariableConfiguration
+   * @param Google_Service_Dfareporting_UserDefinedVariableConfiguration[]
    */
   public function setUserDefinedVariableConfigurations($userDefinedVariableConfigurations)
   {
     $this->userDefinedVariableConfigurations = $userDefinedVariableConfigurations;
   }
   /**
-   * @return Google_Service_Dfareporting_UserDefinedVariableConfiguration
+   * @return Google_Service_Dfareporting_UserDefinedVariableConfiguration[]
    */
   public function getUserDefinedVariableConfigurations()
   {

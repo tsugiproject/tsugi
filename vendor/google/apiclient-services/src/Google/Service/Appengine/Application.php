@@ -20,6 +20,7 @@ class Google_Service_Appengine_Application extends Google_Collection
   protected $collection_key = 'dispatchRules';
   public $authDomain;
   public $codeBucket;
+  public $databaseType;
   public $defaultBucket;
   public $defaultCookieExpiration;
   public $defaultHostname;
@@ -51,6 +52,14 @@ class Google_Service_Appengine_Application extends Google_Collection
   {
     return $this->codeBucket;
   }
+  public function setDatabaseType($databaseType)
+  {
+    $this->databaseType = $databaseType;
+  }
+  public function getDatabaseType()
+  {
+    return $this->databaseType;
+  }
   public function setDefaultBucket($defaultBucket)
   {
     $this->defaultBucket = $defaultBucket;
@@ -76,14 +85,14 @@ class Google_Service_Appengine_Application extends Google_Collection
     return $this->defaultHostname;
   }
   /**
-   * @param Google_Service_Appengine_UrlDispatchRule
+   * @param Google_Service_Appengine_UrlDispatchRule[]
    */
   public function setDispatchRules($dispatchRules)
   {
     $this->dispatchRules = $dispatchRules;
   }
   /**
-   * @return Google_Service_Appengine_UrlDispatchRule
+   * @return Google_Service_Appengine_UrlDispatchRule[]
    */
   public function getDispatchRules()
   {

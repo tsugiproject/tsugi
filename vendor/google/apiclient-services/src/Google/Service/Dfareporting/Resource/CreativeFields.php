@@ -102,7 +102,7 @@ class Google_Service_Dfareporting_Resource_CreativeFields extends Google_Service
    * (creativeFields.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id Creative Field ID
+   * @param string $id CreativeField ID.
    * @param Google_Service_Dfareporting_CreativeField $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_CreativeField

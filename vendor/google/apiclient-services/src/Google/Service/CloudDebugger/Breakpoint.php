@@ -19,6 +19,7 @@ class Google_Service_CloudDebugger_Breakpoint extends Google_Collection
 {
   protected $collection_key = 'variableTable';
   public $action;
+  public $canaryExpireTime;
   public $condition;
   public $createTime;
   protected $evaluatedExpressionsType = 'Google_Service_CloudDebugger_Variable';
@@ -34,6 +35,7 @@ class Google_Service_CloudDebugger_Breakpoint extends Google_Collection
   public $logMessageFormat;
   protected $stackFramesType = 'Google_Service_CloudDebugger_StackFrame';
   protected $stackFramesDataType = 'array';
+  public $state;
   protected $statusType = 'Google_Service_CloudDebugger_StatusMessage';
   protected $statusDataType = '';
   public $userEmail;
@@ -47,6 +49,14 @@ class Google_Service_CloudDebugger_Breakpoint extends Google_Collection
   public function getAction()
   {
     return $this->action;
+  }
+  public function setCanaryExpireTime($canaryExpireTime)
+  {
+    $this->canaryExpireTime = $canaryExpireTime;
+  }
+  public function getCanaryExpireTime()
+  {
+    return $this->canaryExpireTime;
   }
   public function setCondition($condition)
   {
@@ -65,14 +75,14 @@ class Google_Service_CloudDebugger_Breakpoint extends Google_Collection
     return $this->createTime;
   }
   /**
-   * @param Google_Service_CloudDebugger_Variable
+   * @param Google_Service_CloudDebugger_Variable[]
    */
   public function setEvaluatedExpressions($evaluatedExpressions)
   {
     $this->evaluatedExpressions = $evaluatedExpressions;
   }
   /**
-   * @return Google_Service_CloudDebugger_Variable
+   * @return Google_Service_CloudDebugger_Variable[]
    */
   public function getEvaluatedExpressions()
   {
@@ -149,18 +159,26 @@ class Google_Service_CloudDebugger_Breakpoint extends Google_Collection
     return $this->logMessageFormat;
   }
   /**
-   * @param Google_Service_CloudDebugger_StackFrame
+   * @param Google_Service_CloudDebugger_StackFrame[]
    */
   public function setStackFrames($stackFrames)
   {
     $this->stackFrames = $stackFrames;
   }
   /**
-   * @return Google_Service_CloudDebugger_StackFrame
+   * @return Google_Service_CloudDebugger_StackFrame[]
    */
   public function getStackFrames()
   {
     return $this->stackFrames;
+  }
+  public function setState($state)
+  {
+    $this->state = $state;
+  }
+  public function getState()
+  {
+    return $this->state;
   }
   /**
    * @param Google_Service_CloudDebugger_StatusMessage
@@ -185,14 +203,14 @@ class Google_Service_CloudDebugger_Breakpoint extends Google_Collection
     return $this->userEmail;
   }
   /**
-   * @param Google_Service_CloudDebugger_Variable
+   * @param Google_Service_CloudDebugger_Variable[]
    */
   public function setVariableTable($variableTable)
   {
     $this->variableTable = $variableTable;
   }
   /**
-   * @return Google_Service_CloudDebugger_Variable
+   * @return Google_Service_CloudDebugger_Variable[]
    */
   public function getVariableTable()
   {

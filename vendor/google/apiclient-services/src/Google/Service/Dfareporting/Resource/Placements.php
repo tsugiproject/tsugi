@@ -35,8 +35,7 @@ class Google_Service_Dfareporting_Resource_Placements extends Google_Service_Res
    * This is a required field.
    * @opt_param string placementIds Generate tags for these placements.
    * @opt_param string tagFormats Tag formats to generate for these placements.
-   *
-   * Note: PLACEMENT_TAG_STANDARD can only be generated for 1x1 placements.
+   * *Note:* PLACEMENT_TAG_STANDARD can only be generated for 1x1 placements.
    * @return Google_Service_Dfareporting_PlacementsGenerateTagsResponse
    */
   public function generatetags($profileId, $optParams = array())
@@ -126,7 +125,7 @@ class Google_Service_Dfareporting_Resource_Placements extends Google_Service_Res
    * simply "placements 2015". Most of the searches also add wildcards implicitly
    * at the start and the end of the search string. For example, a search string
    * of "placement" will match placements with name "my placement", "placement
-   * 2015", or simply "placement".
+   * 2015", or simply "placement" .
    * @opt_param string siteIds Select only placements that are associated with
    * these sites.
    * @opt_param string sizeIds Select only placements that are associated with

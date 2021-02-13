@@ -91,7 +91,7 @@ class Google_Service_Dfareporting_Resource_CreativeGroups extends Google_Service
    * (creativeGroups.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id Creative group ID.
+   * @param string $id CreativeGroup ID.
    * @param Google_Service_Dfareporting_CreativeGroup $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_CreativeGroup

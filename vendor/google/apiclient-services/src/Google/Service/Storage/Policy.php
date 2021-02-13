@@ -23,16 +23,17 @@ class Google_Service_Storage_Policy extends Google_Collection
   public $etag;
   public $kind;
   public $resourceId;
+  public $version;
 
   /**
-   * @param Google_Service_Storage_PolicyBindings
+   * @param Google_Service_Storage_PolicyBindings[]
    */
   public function setBindings($bindings)
   {
     $this->bindings = $bindings;
   }
   /**
-   * @return Google_Service_Storage_PolicyBindings
+   * @return Google_Service_Storage_PolicyBindings[]
    */
   public function getBindings()
   {
@@ -61,5 +62,13 @@ class Google_Service_Storage_Policy extends Google_Collection
   public function getResourceId()
   {
     return $this->resourceId;
+  }
+  public function setVersion($version)
+  {
+    $this->version = $version;
+  }
+  public function getVersion()
+  {
+    return $this->version;
   }
 }

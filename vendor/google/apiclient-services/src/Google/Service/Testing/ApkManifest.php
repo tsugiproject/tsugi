@@ -24,6 +24,7 @@ class Google_Service_Testing_ApkManifest extends Google_Collection
   public $maxSdkVersion;
   public $minSdkVersion;
   public $packageName;
+  public $targetSdkVersion;
 
   public function setApplicationLabel($applicationLabel)
   {
@@ -34,14 +35,14 @@ class Google_Service_Testing_ApkManifest extends Google_Collection
     return $this->applicationLabel;
   }
   /**
-   * @param Google_Service_Testing_IntentFilter
+   * @param Google_Service_Testing_IntentFilter[]
    */
   public function setIntentFilters($intentFilters)
   {
     $this->intentFilters = $intentFilters;
   }
   /**
-   * @return Google_Service_Testing_IntentFilter
+   * @return Google_Service_Testing_IntentFilter[]
    */
   public function getIntentFilters()
   {
@@ -70,5 +71,13 @@ class Google_Service_Testing_ApkManifest extends Google_Collection
   public function getPackageName()
   {
     return $this->packageName;
+  }
+  public function setTargetSdkVersion($targetSdkVersion)
+  {
+    $this->targetSdkVersion = $targetSdkVersion;
+  }
+  public function getTargetSdkVersion()
+  {
+    return $this->targetSdkVersion;
   }
 }

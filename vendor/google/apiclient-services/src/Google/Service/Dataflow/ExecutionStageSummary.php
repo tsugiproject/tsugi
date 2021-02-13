@@ -17,7 +17,7 @@
 
 class Google_Service_Dataflow_ExecutionStageSummary extends Google_Collection
 {
-  protected $collection_key = 'outputSource';
+  protected $collection_key = 'prerequisiteStage';
   protected $componentSourceType = 'Google_Service_Dataflow_ComponentSource';
   protected $componentSourceDataType = 'array';
   protected $componentTransformType = 'Google_Service_Dataflow_ComponentTransform';
@@ -29,30 +29,31 @@ class Google_Service_Dataflow_ExecutionStageSummary extends Google_Collection
   public $name;
   protected $outputSourceType = 'Google_Service_Dataflow_StageSource';
   protected $outputSourceDataType = 'array';
+  public $prerequisiteStage;
 
   /**
-   * @param Google_Service_Dataflow_ComponentSource
+   * @param Google_Service_Dataflow_ComponentSource[]
    */
   public function setComponentSource($componentSource)
   {
     $this->componentSource = $componentSource;
   }
   /**
-   * @return Google_Service_Dataflow_ComponentSource
+   * @return Google_Service_Dataflow_ComponentSource[]
    */
   public function getComponentSource()
   {
     return $this->componentSource;
   }
   /**
-   * @param Google_Service_Dataflow_ComponentTransform
+   * @param Google_Service_Dataflow_ComponentTransform[]
    */
   public function setComponentTransform($componentTransform)
   {
     $this->componentTransform = $componentTransform;
   }
   /**
-   * @return Google_Service_Dataflow_ComponentTransform
+   * @return Google_Service_Dataflow_ComponentTransform[]
    */
   public function getComponentTransform()
   {
@@ -67,14 +68,14 @@ class Google_Service_Dataflow_ExecutionStageSummary extends Google_Collection
     return $this->id;
   }
   /**
-   * @param Google_Service_Dataflow_StageSource
+   * @param Google_Service_Dataflow_StageSource[]
    */
   public function setInputSource($inputSource)
   {
     $this->inputSource = $inputSource;
   }
   /**
-   * @return Google_Service_Dataflow_StageSource
+   * @return Google_Service_Dataflow_StageSource[]
    */
   public function getInputSource()
   {
@@ -97,17 +98,25 @@ class Google_Service_Dataflow_ExecutionStageSummary extends Google_Collection
     return $this->name;
   }
   /**
-   * @param Google_Service_Dataflow_StageSource
+   * @param Google_Service_Dataflow_StageSource[]
    */
   public function setOutputSource($outputSource)
   {
     $this->outputSource = $outputSource;
   }
   /**
-   * @return Google_Service_Dataflow_StageSource
+   * @return Google_Service_Dataflow_StageSource[]
    */
   public function getOutputSource()
   {
     return $this->outputSource;
+  }
+  public function setPrerequisiteStage($prerequisiteStage)
+  {
+    $this->prerequisiteStage = $prerequisiteStage;
+  }
+  public function getPrerequisiteStage()
+  {
+    return $this->prerequisiteStage;
   }
 }

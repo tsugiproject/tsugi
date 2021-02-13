@@ -20,21 +20,30 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessageListSelect e
   protected $collection_key = 'items';
   protected $itemsType = 'Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessageListSelectItem';
   protected $itemsDataType = 'array';
+  public $subtitle;
   public $title;
 
   /**
-   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessageListSelectItem
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessageListSelectItem[]
    */
   public function setItems($items)
   {
     $this->items = $items;
   }
   /**
-   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessageListSelectItem
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessageListSelectItem[]
    */
   public function getItems()
   {
     return $this->items;
+  }
+  public function setSubtitle($subtitle)
+  {
+    $this->subtitle = $subtitle;
+  }
+  public function getSubtitle()
+  {
+    return $this->subtitle;
   }
   public function setTitle($title)
   {

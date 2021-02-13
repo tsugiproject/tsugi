@@ -64,6 +64,8 @@ class Google_Service_Dfareporting_Resource_AdvertiserLandingPages extends Google
    * these advertisers.
    * @opt_param bool archived Select only archived landing pages. Don't set this
    * field to select both archived and non-archived landing pages.
+   * @opt_param string campaignIds Select only landing pages that are associated
+   * with these campaigns.
    * @opt_param string ids Select only landing pages with these IDs.
    * @opt_param int maxResults Maximum number of results to return.
    * @opt_param string pageToken Value of the nextPageToken from the previous
@@ -88,11 +90,11 @@ class Google_Service_Dfareporting_Resource_AdvertiserLandingPages extends Google
     return $this->call('list', array($params), "Google_Service_Dfareporting_AdvertiserLandingPagesListResponse");
   }
   /**
-   * Updates an existing landing page. This method supports patch semantics.
-   * (advertiserLandingPages.patch)
+   * Updates an existing advertiser landing page. This method supports patch
+   * semantics. (advertiserLandingPages.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id Landing page ID.
+   * @param string $id LandingPage ID.
    * @param Google_Service_Dfareporting_LandingPage $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_LandingPage

@@ -21,16 +21,17 @@ class Google_Service_Monitoring_ListAlertPoliciesResponse extends Google_Collect
   protected $alertPoliciesType = 'Google_Service_Monitoring_AlertPolicy';
   protected $alertPoliciesDataType = 'array';
   public $nextPageToken;
+  public $totalSize;
 
   /**
-   * @param Google_Service_Monitoring_AlertPolicy
+   * @param Google_Service_Monitoring_AlertPolicy[]
    */
   public function setAlertPolicies($alertPolicies)
   {
     $this->alertPolicies = $alertPolicies;
   }
   /**
-   * @return Google_Service_Monitoring_AlertPolicy
+   * @return Google_Service_Monitoring_AlertPolicy[]
    */
   public function getAlertPolicies()
   {
@@ -43,5 +44,13 @@ class Google_Service_Monitoring_ListAlertPoliciesResponse extends Google_Collect
   public function getNextPageToken()
   {
     return $this->nextPageToken;
+  }
+  public function setTotalSize($totalSize)
+  {
+    $this->totalSize = $totalSize;
+  }
+  public function getTotalSize()
+  {
+    return $this->totalSize;
   }
 }

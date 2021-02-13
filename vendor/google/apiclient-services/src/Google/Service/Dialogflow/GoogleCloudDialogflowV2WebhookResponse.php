@@ -17,7 +17,7 @@
 
 class Google_Service_Dialogflow_GoogleCloudDialogflowV2WebhookResponse extends Google_Collection
 {
-  protected $collection_key = 'outputContexts';
+  protected $collection_key = 'sessionEntityTypes';
   protected $followupEventInputType = 'Google_Service_Dialogflow_GoogleCloudDialogflowV2EventInput';
   protected $followupEventInputDataType = '';
   protected $fulfillmentMessagesType = 'Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessage';
@@ -26,6 +26,8 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2WebhookResponse extends G
   protected $outputContextsType = 'Google_Service_Dialogflow_GoogleCloudDialogflowV2Context';
   protected $outputContextsDataType = 'array';
   public $payload;
+  protected $sessionEntityTypesType = 'Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType';
+  protected $sessionEntityTypesDataType = 'array';
   public $source;
 
   /**
@@ -43,14 +45,14 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2WebhookResponse extends G
     return $this->followupEventInput;
   }
   /**
-   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessage
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessage[]
    */
   public function setFulfillmentMessages($fulfillmentMessages)
   {
     $this->fulfillmentMessages = $fulfillmentMessages;
   }
   /**
-   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessage
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2IntentMessage[]
    */
   public function getFulfillmentMessages()
   {
@@ -65,14 +67,14 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2WebhookResponse extends G
     return $this->fulfillmentText;
   }
   /**
-   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2Context
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2Context[]
    */
   public function setOutputContexts($outputContexts)
   {
     $this->outputContexts = $outputContexts;
   }
   /**
-   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2Context
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2Context[]
    */
   public function getOutputContexts()
   {
@@ -85,6 +87,20 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2WebhookResponse extends G
   public function getPayload()
   {
     return $this->payload;
+  }
+  /**
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType[]
+   */
+  public function setSessionEntityTypes($sessionEntityTypes)
+  {
+    $this->sessionEntityTypes = $sessionEntityTypes;
+  }
+  /**
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType[]
+   */
+  public function getSessionEntityTypes()
+  {
+    return $this->sessionEntityTypes;
   }
   public function setSource($source)
   {

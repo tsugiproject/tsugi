@@ -90,7 +90,7 @@ class Google_Service_Dfareporting_Resource_RemarketingLists extends Google_Servi
    * (remarketingLists.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id Remarketing list ID.
+   * @param string $id RemarketingList ID.
    * @param Google_Service_Dfareporting_RemarketingList $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_RemarketingList

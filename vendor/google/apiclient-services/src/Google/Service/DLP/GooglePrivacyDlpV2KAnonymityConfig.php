@@ -18,18 +18,34 @@
 class Google_Service_DLP_GooglePrivacyDlpV2KAnonymityConfig extends Google_Collection
 {
   protected $collection_key = 'quasiIds';
+  protected $entityIdType = 'Google_Service_DLP_GooglePrivacyDlpV2EntityId';
+  protected $entityIdDataType = '';
   protected $quasiIdsType = 'Google_Service_DLP_GooglePrivacyDlpV2FieldId';
   protected $quasiIdsDataType = 'array';
 
   /**
-   * @param Google_Service_DLP_GooglePrivacyDlpV2FieldId
+   * @param Google_Service_DLP_GooglePrivacyDlpV2EntityId
+   */
+  public function setEntityId(Google_Service_DLP_GooglePrivacyDlpV2EntityId $entityId)
+  {
+    $this->entityId = $entityId;
+  }
+  /**
+   * @return Google_Service_DLP_GooglePrivacyDlpV2EntityId
+   */
+  public function getEntityId()
+  {
+    return $this->entityId;
+  }
+  /**
+   * @param Google_Service_DLP_GooglePrivacyDlpV2FieldId[]
    */
   public function setQuasiIds($quasiIds)
   {
     $this->quasiIds = $quasiIds;
   }
   /**
-   * @return Google_Service_DLP_GooglePrivacyDlpV2FieldId
+   * @return Google_Service_DLP_GooglePrivacyDlpV2FieldId[]
    */
   public function getQuasiIds()
   {

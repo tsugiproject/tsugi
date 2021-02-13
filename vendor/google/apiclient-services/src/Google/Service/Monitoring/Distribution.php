@@ -17,11 +17,13 @@
 
 class Google_Service_Monitoring_Distribution extends Google_Collection
 {
-  protected $collection_key = 'bucketCounts';
+  protected $collection_key = 'exemplars';
   public $bucketCounts;
   protected $bucketOptionsType = 'Google_Service_Monitoring_BucketOptions';
   protected $bucketOptionsDataType = '';
   public $count;
+  protected $exemplarsType = 'Google_Service_Monitoring_Exemplar';
+  protected $exemplarsDataType = 'array';
   public $mean;
   protected $rangeType = 'Google_Service_Monitoring_Range';
   protected $rangeDataType = '';
@@ -56,6 +58,20 @@ class Google_Service_Monitoring_Distribution extends Google_Collection
   public function getCount()
   {
     return $this->count;
+  }
+  /**
+   * @param Google_Service_Monitoring_Exemplar[]
+   */
+  public function setExemplars($exemplars)
+  {
+    $this->exemplars = $exemplars;
+  }
+  /**
+   * @return Google_Service_Monitoring_Exemplar[]
+   */
+  public function getExemplars()
+  {
+    return $this->exemplars;
   }
   public function setMean($mean)
   {

@@ -21,6 +21,8 @@ class Google_Service_Analytics_Webproperty extends Google_Model
   protected $childLinkType = 'Google_Service_Analytics_WebpropertyChildLink';
   protected $childLinkDataType = '';
   public $created;
+  public $dataRetentionResetOnNewActivity;
+  public $dataRetentionTtl;
   public $defaultProfileId;
   public $id;
   public $industryVertical;
@@ -67,6 +69,22 @@ class Google_Service_Analytics_Webproperty extends Google_Model
   public function getCreated()
   {
     return $this->created;
+  }
+  public function setDataRetentionResetOnNewActivity($dataRetentionResetOnNewActivity)
+  {
+    $this->dataRetentionResetOnNewActivity = $dataRetentionResetOnNewActivity;
+  }
+  public function getDataRetentionResetOnNewActivity()
+  {
+    return $this->dataRetentionResetOnNewActivity;
+  }
+  public function setDataRetentionTtl($dataRetentionTtl)
+  {
+    $this->dataRetentionTtl = $dataRetentionTtl;
+  }
+  public function getDataRetentionTtl()
+  {
+    return $this->dataRetentionTtl;
   }
   public function setDefaultProfileId($defaultProfileId)
   {

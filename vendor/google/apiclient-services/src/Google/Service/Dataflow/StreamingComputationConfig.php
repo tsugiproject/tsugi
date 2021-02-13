@@ -23,6 +23,7 @@ class Google_Service_Dataflow_StreamingComputationConfig extends Google_Collecti
   protected $instructionsDataType = 'array';
   public $stageName;
   public $systemName;
+  public $transformUserNameToStateFamily;
 
   public function setComputationId($computationId)
   {
@@ -33,14 +34,14 @@ class Google_Service_Dataflow_StreamingComputationConfig extends Google_Collecti
     return $this->computationId;
   }
   /**
-   * @param Google_Service_Dataflow_ParallelInstruction
+   * @param Google_Service_Dataflow_ParallelInstruction[]
    */
   public function setInstructions($instructions)
   {
     $this->instructions = $instructions;
   }
   /**
-   * @return Google_Service_Dataflow_ParallelInstruction
+   * @return Google_Service_Dataflow_ParallelInstruction[]
    */
   public function getInstructions()
   {
@@ -61,5 +62,13 @@ class Google_Service_Dataflow_StreamingComputationConfig extends Google_Collecti
   public function getSystemName()
   {
     return $this->systemName;
+  }
+  public function setTransformUserNameToStateFamily($transformUserNameToStateFamily)
+  {
+    $this->transformUserNameToStateFamily = $transformUserNameToStateFamily;
+  }
+  public function getTransformUserNameToStateFamily()
+  {
+    return $this->transformUserNameToStateFamily;
   }
 }

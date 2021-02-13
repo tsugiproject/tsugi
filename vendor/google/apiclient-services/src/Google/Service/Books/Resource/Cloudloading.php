@@ -26,7 +26,7 @@
 class Google_Service_Books_Resource_Cloudloading extends Google_Service_Resource
 {
   /**
-   * (cloudloading.addBook)
+   * Add a user-upload volume and triggers processing. (cloudloading.addBook)
    *
    * @param array $optParams Optional parameters.
    *
@@ -36,7 +36,7 @@ class Google_Service_Books_Resource_Cloudloading extends Google_Service_Resource
    * drive_document_id is set.
    * @opt_param string name The document name. It can be set only if the
    * drive_document_id is set.
-   * @opt_param string upload_client_token
+   * @opt_param string upload_client_token Scotty upload token.
    * @return Google_Service_Books_BooksCloudloadingResource
    */
   public function addBook($optParams = array())
@@ -50,15 +50,16 @@ class Google_Service_Books_Resource_Cloudloading extends Google_Service_Resource
    *
    * @param string $volumeId The id of the book to be removed.
    * @param array $optParams Optional parameters.
+   * @return Google_Service_Books_BooksEmpty
    */
   public function deleteBook($volumeId, $optParams = array())
   {
     $params = array('volumeId' => $volumeId);
     $params = array_merge($params, $optParams);
-    return $this->call('deleteBook', array($params));
+    return $this->call('deleteBook', array($params), "Google_Service_Books_BooksEmpty");
   }
   /**
-   * (cloudloading.updateBook)
+   * Updates a user-upload volume. (cloudloading.updateBook)
    *
    * @param Google_Service_Books_BooksCloudloadingResource $postBody
    * @param array $optParams Optional parameters.

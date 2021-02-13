@@ -22,7 +22,10 @@ class Google_Service_Testing_TestMatrix extends Google_Collection
   protected $clientInfoDataType = '';
   protected $environmentMatrixType = 'Google_Service_Testing_EnvironmentMatrix';
   protected $environmentMatrixDataType = '';
+  public $failFast;
+  public $flakyTestAttempts;
   public $invalidMatrixDetails;
+  public $outcomeSummary;
   public $projectId;
   protected $resultStorageType = 'Google_Service_Testing_ResultStorage';
   protected $resultStorageDataType = '';
@@ -62,6 +65,22 @@ class Google_Service_Testing_TestMatrix extends Google_Collection
   {
     return $this->environmentMatrix;
   }
+  public function setFailFast($failFast)
+  {
+    $this->failFast = $failFast;
+  }
+  public function getFailFast()
+  {
+    return $this->failFast;
+  }
+  public function setFlakyTestAttempts($flakyTestAttempts)
+  {
+    $this->flakyTestAttempts = $flakyTestAttempts;
+  }
+  public function getFlakyTestAttempts()
+  {
+    return $this->flakyTestAttempts;
+  }
   public function setInvalidMatrixDetails($invalidMatrixDetails)
   {
     $this->invalidMatrixDetails = $invalidMatrixDetails;
@@ -69,6 +88,14 @@ class Google_Service_Testing_TestMatrix extends Google_Collection
   public function getInvalidMatrixDetails()
   {
     return $this->invalidMatrixDetails;
+  }
+  public function setOutcomeSummary($outcomeSummary)
+  {
+    $this->outcomeSummary = $outcomeSummary;
+  }
+  public function getOutcomeSummary()
+  {
+    return $this->outcomeSummary;
   }
   public function setProjectId($projectId)
   {
@@ -101,14 +128,14 @@ class Google_Service_Testing_TestMatrix extends Google_Collection
     return $this->state;
   }
   /**
-   * @param Google_Service_Testing_TestExecution
+   * @param Google_Service_Testing_TestExecution[]
    */
   public function setTestExecutions($testExecutions)
   {
     $this->testExecutions = $testExecutions;
   }
   /**
-   * @return Google_Service_Testing_TestExecution
+   * @return Google_Service_Testing_TestExecution[]
    */
   public function getTestExecutions()
   {

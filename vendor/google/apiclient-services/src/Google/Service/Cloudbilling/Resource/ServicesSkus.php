@@ -29,7 +29,7 @@ class Google_Service_Cloudbilling_Resource_ServicesSkus extends Google_Service_R
    * Lists all publicly available SKUs for a given cloud service.
    * (skus.listServicesSkus)
    *
-   * @param string $parent The name of the service. Example:
+   * @param string $parent Required. The name of the service. Example:
    * "services/DA34-426B-A397"
    * @param array $optParams Optional parameters.
    *
@@ -41,6 +41,7 @@ class Google_Service_Cloudbilling_Resource_ServicesSkus extends Google_Service_R
    * allowed. The time range has to be within a single calendar month in
    * America/Los_Angeles timezone. Time range as a whole is optional. If not
    * specified, the latest pricing will be returned (up to 12 hours old at most).
+   * @opt_param int pageSize Requested page size. Defaults to 5000.
    * @opt_param string pageToken A token identifying a page of results to return.
    * This should be a `next_page_token` value returned from a previous `ListSkus`
    * call. If unspecified, the first page of results is returned.
@@ -49,7 +50,6 @@ class Google_Service_Cloudbilling_Resource_ServicesSkus extends Google_Service_R
    * not allowed. The time range has to be within a single calendar month in
    * America/Los_Angeles timezone. Time range as a whole is optional. If not
    * specified, the latest pricing will be returned (up to 12 hours old at most).
-   * @opt_param int pageSize Requested page size. Defaults to 5000.
    * @return Google_Service_Cloudbilling_ListSkusResponse
    */
   public function listServicesSkus($parent, $optParams = array())

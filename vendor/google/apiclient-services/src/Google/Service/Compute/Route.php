@@ -26,6 +26,7 @@ class Google_Service_Compute_Route extends Google_Collection
   public $name;
   public $network;
   public $nextHopGateway;
+  public $nextHopIlb;
   public $nextHopInstance;
   public $nextHopIp;
   public $nextHopNetwork;
@@ -101,6 +102,14 @@ class Google_Service_Compute_Route extends Google_Collection
   {
     return $this->nextHopGateway;
   }
+  public function setNextHopIlb($nextHopIlb)
+  {
+    $this->nextHopIlb = $nextHopIlb;
+  }
+  public function getNextHopIlb()
+  {
+    return $this->nextHopIlb;
+  }
   public function setNextHopInstance($nextHopInstance)
   {
     $this->nextHopInstance = $nextHopInstance;
@@ -166,14 +175,14 @@ class Google_Service_Compute_Route extends Google_Collection
     return $this->tags;
   }
   /**
-   * @param Google_Service_Compute_RouteWarnings
+   * @param Google_Service_Compute_RouteWarnings[]
    */
   public function setWarnings($warnings)
   {
     $this->warnings = $warnings;
   }
   /**
-   * @return Google_Service_Compute_RouteWarnings
+   * @return Google_Service_Compute_RouteWarnings[]
    */
   public function getWarnings()
   {

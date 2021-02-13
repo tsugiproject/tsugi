@@ -23,6 +23,7 @@ class Google_Service_ShoppingContent_RateGroup extends Google_Collection
   protected $carrierRatesDataType = 'array';
   protected $mainTableType = 'Google_Service_ShoppingContent_Table';
   protected $mainTableDataType = '';
+  public $name;
   protected $singleValueType = 'Google_Service_ShoppingContent_Value';
   protected $singleValueDataType = '';
   protected $subtablesType = 'Google_Service_ShoppingContent_Table';
@@ -37,14 +38,14 @@ class Google_Service_ShoppingContent_RateGroup extends Google_Collection
     return $this->applicableShippingLabels;
   }
   /**
-   * @param Google_Service_ShoppingContent_CarrierRate
+   * @param Google_Service_ShoppingContent_CarrierRate[]
    */
   public function setCarrierRates($carrierRates)
   {
     $this->carrierRates = $carrierRates;
   }
   /**
-   * @return Google_Service_ShoppingContent_CarrierRate
+   * @return Google_Service_ShoppingContent_CarrierRate[]
    */
   public function getCarrierRates()
   {
@@ -64,6 +65,14 @@ class Google_Service_ShoppingContent_RateGroup extends Google_Collection
   {
     return $this->mainTable;
   }
+  public function setName($name)
+  {
+    $this->name = $name;
+  }
+  public function getName()
+  {
+    return $this->name;
+  }
   /**
    * @param Google_Service_ShoppingContent_Value
    */
@@ -79,14 +88,14 @@ class Google_Service_ShoppingContent_RateGroup extends Google_Collection
     return $this->singleValue;
   }
   /**
-   * @param Google_Service_ShoppingContent_Table
+   * @param Google_Service_ShoppingContent_Table[]
    */
   public function setSubtables($subtables)
   {
     $this->subtables = $subtables;
   }
   /**
-   * @return Google_Service_ShoppingContent_Table
+   * @return Google_Service_ShoppingContent_Table[]
    */
   public function getSubtables()
   {

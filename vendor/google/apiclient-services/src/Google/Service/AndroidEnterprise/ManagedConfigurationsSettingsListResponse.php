@@ -18,27 +18,18 @@
 class Google_Service_AndroidEnterprise_ManagedConfigurationsSettingsListResponse extends Google_Collection
 {
   protected $collection_key = 'managedConfigurationsSettings';
-  public $kind;
   protected $managedConfigurationsSettingsType = 'Google_Service_AndroidEnterprise_ManagedConfigurationsSettings';
   protected $managedConfigurationsSettingsDataType = 'array';
 
-  public function setKind($kind)
-  {
-    $this->kind = $kind;
-  }
-  public function getKind()
-  {
-    return $this->kind;
-  }
   /**
-   * @param Google_Service_AndroidEnterprise_ManagedConfigurationsSettings
+   * @param Google_Service_AndroidEnterprise_ManagedConfigurationsSettings[]
    */
   public function setManagedConfigurationsSettings($managedConfigurationsSettings)
   {
     $this->managedConfigurationsSettings = $managedConfigurationsSettings;
   }
   /**
-   * @return Google_Service_AndroidEnterprise_ManagedConfigurationsSettings
+   * @return Google_Service_AndroidEnterprise_ManagedConfigurationsSettings[]
    */
   public function getManagedConfigurationsSettings()
   {

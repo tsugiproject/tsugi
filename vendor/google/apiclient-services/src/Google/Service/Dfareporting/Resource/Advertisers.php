@@ -78,7 +78,7 @@ class Google_Service_Dfareporting_Resource_Advertisers extends Google_Service_Re
    * "advertiser 2015". Most of the searches also add wildcards implicitly at the
    * start and the end of the search string. For example, a search string of
    * "advertiser" will match objects with name "my advertiser", "advertiser 2015",
-   * or simply "advertiser".
+   * or simply "advertiser" .
    * @opt_param string sortField Field by which to sort the list.
    * @opt_param string sortOrder Order of sorted results.
    * @opt_param string status Select only advertisers with the specified status.

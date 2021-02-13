@@ -22,6 +22,7 @@ class Google_Service_Dfareporting_FloodlightActivity extends Google_Collection
   public $advertiserId;
   protected $advertiserIdDimensionValueType = 'Google_Service_Dfareporting_DimensionValue';
   protected $advertiserIdDimensionValueDataType = '';
+  public $attributionEnabled;
   public $cacheBustingType;
   public $countingMethod;
   protected $defaultTagsType = 'Google_Service_Dfareporting_FloodlightActivityDynamicTag';
@@ -35,7 +36,6 @@ class Google_Service_Dfareporting_FloodlightActivity extends Google_Collection
   protected $floodlightConfigurationIdDimensionValueType = 'Google_Service_Dfareporting_DimensionValue';
   protected $floodlightConfigurationIdDimensionValueDataType = '';
   public $floodlightTagType;
-  public $hidden;
   public $id;
   protected $idDimensionValueType = 'Google_Service_Dfareporting_DimensionValue';
   protected $idDimensionValueDataType = '';
@@ -47,6 +47,7 @@ class Google_Service_Dfareporting_FloodlightActivity extends Google_Collection
   public $secure;
   public $sslCompliant;
   public $sslRequired;
+  public $status;
   public $subaccountId;
   public $tagFormat;
   public $tagString;
@@ -82,6 +83,14 @@ class Google_Service_Dfareporting_FloodlightActivity extends Google_Collection
   {
     return $this->advertiserIdDimensionValue;
   }
+  public function setAttributionEnabled($attributionEnabled)
+  {
+    $this->attributionEnabled = $attributionEnabled;
+  }
+  public function getAttributionEnabled()
+  {
+    return $this->attributionEnabled;
+  }
   public function setCacheBustingType($cacheBustingType)
   {
     $this->cacheBustingType = $cacheBustingType;
@@ -99,14 +108,14 @@ class Google_Service_Dfareporting_FloodlightActivity extends Google_Collection
     return $this->countingMethod;
   }
   /**
-   * @param Google_Service_Dfareporting_FloodlightActivityDynamicTag
+   * @param Google_Service_Dfareporting_FloodlightActivityDynamicTag[]
    */
   public function setDefaultTags($defaultTags)
   {
     $this->defaultTags = $defaultTags;
   }
   /**
-   * @return Google_Service_Dfareporting_FloodlightActivityDynamicTag
+   * @return Google_Service_Dfareporting_FloodlightActivityDynamicTag[]
    */
   public function getDefaultTags()
   {
@@ -182,14 +191,6 @@ class Google_Service_Dfareporting_FloodlightActivity extends Google_Collection
   {
     return $this->floodlightTagType;
   }
-  public function setHidden($hidden)
-  {
-    $this->hidden = $hidden;
-  }
-  public function getHidden()
-  {
-    return $this->hidden;
-  }
   public function setId($id)
   {
     $this->id = $id;
@@ -237,14 +238,14 @@ class Google_Service_Dfareporting_FloodlightActivity extends Google_Collection
     return $this->notes;
   }
   /**
-   * @param Google_Service_Dfareporting_FloodlightActivityPublisherDynamicTag
+   * @param Google_Service_Dfareporting_FloodlightActivityPublisherDynamicTag[]
    */
   public function setPublisherTags($publisherTags)
   {
     $this->publisherTags = $publisherTags;
   }
   /**
-   * @return Google_Service_Dfareporting_FloodlightActivityPublisherDynamicTag
+   * @return Google_Service_Dfareporting_FloodlightActivityPublisherDynamicTag[]
    */
   public function getPublisherTags()
   {
@@ -273,6 +274,14 @@ class Google_Service_Dfareporting_FloodlightActivity extends Google_Collection
   public function getSslRequired()
   {
     return $this->sslRequired;
+  }
+  public function setStatus($status)
+  {
+    $this->status = $status;
+  }
+  public function getStatus()
+  {
+    return $this->status;
   }
   public function setSubaccountId($subaccountId)
   {

@@ -118,7 +118,7 @@ class Google_Service_Dfareporting_Resource_EventTags extends Google_Service_Reso
    * (eventTags.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id Event tag ID.
+   * @param string $id EventTag ID.
    * @param Google_Service_Dfareporting_EventTag $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_EventTag

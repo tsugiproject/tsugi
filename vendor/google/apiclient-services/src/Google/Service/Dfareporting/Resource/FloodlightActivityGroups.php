@@ -99,7 +99,7 @@ class Google_Service_Dfareporting_Resource_FloodlightActivityGroups extends Goog
    * semantics. (floodlightActivityGroups.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id Floodlight activity Group ID.
+   * @param string $id FloodlightActivityGroup ID.
    * @param Google_Service_Dfareporting_FloodlightActivityGroup $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_FloodlightActivityGroup

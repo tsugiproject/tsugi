@@ -26,6 +26,8 @@ class Google_Service_AndroidManagement_Enterprise extends Google_Collection
   public $name;
   public $primaryColor;
   public $pubsubTopic;
+  protected $signinDetailsType = 'Google_Service_AndroidManagement_SigninDetail';
+  protected $signinDetailsDataType = 'array';
   protected $termsAndConditionsType = 'Google_Service_AndroidManagement_TermsAndConditions';
   protected $termsAndConditionsDataType = 'array';
 
@@ -92,14 +94,28 @@ class Google_Service_AndroidManagement_Enterprise extends Google_Collection
     return $this->pubsubTopic;
   }
   /**
-   * @param Google_Service_AndroidManagement_TermsAndConditions
+   * @param Google_Service_AndroidManagement_SigninDetail[]
+   */
+  public function setSigninDetails($signinDetails)
+  {
+    $this->signinDetails = $signinDetails;
+  }
+  /**
+   * @return Google_Service_AndroidManagement_SigninDetail[]
+   */
+  public function getSigninDetails()
+  {
+    return $this->signinDetails;
+  }
+  /**
+   * @param Google_Service_AndroidManagement_TermsAndConditions[]
    */
   public function setTermsAndConditions($termsAndConditions)
   {
     $this->termsAndConditions = $termsAndConditions;
   }
   /**
-   * @return Google_Service_AndroidManagement_TermsAndConditions
+   * @return Google_Service_AndroidManagement_TermsAndConditions[]
    */
   public function getTermsAndConditions()
   {

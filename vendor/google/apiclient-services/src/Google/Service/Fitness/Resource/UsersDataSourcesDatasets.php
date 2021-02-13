@@ -74,7 +74,9 @@ class Google_Service_Fitness_Resource_UsersDataSourcesDatasets extends Google_Se
    *
    * @opt_param int limit If specified, no more than this many data points will be
    * included in the dataset. If there are more data points in the dataset,
-   * nextPageToken will be set in the dataset response.
+   * nextPageToken will be set in the dataset response. The limit is applied from
+   * the end of the time range. That is, if pageToken is absent, the limit most
+   * recent data points will be returned.
    * @opt_param string pageToken The continuation token, which is used to page
    * through large datasets. To get the next page of a dataset, set this parameter
    * to the value of nextPageToken from the previous response. Each subsequent

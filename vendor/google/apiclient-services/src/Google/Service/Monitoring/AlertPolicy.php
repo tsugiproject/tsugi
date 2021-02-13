@@ -32,6 +32,8 @@ class Google_Service_Monitoring_AlertPolicy extends Google_Collection
   public $name;
   public $notificationChannels;
   public $userLabels;
+  protected $validityType = 'Google_Service_Monitoring_Status';
+  protected $validityDataType = '';
 
   public function setCombiner($combiner)
   {
@@ -42,14 +44,14 @@ class Google_Service_Monitoring_AlertPolicy extends Google_Collection
     return $this->combiner;
   }
   /**
-   * @param Google_Service_Monitoring_Condition
+   * @param Google_Service_Monitoring_Condition[]
    */
   public function setConditions($conditions)
   {
     $this->conditions = $conditions;
   }
   /**
-   * @return Google_Service_Monitoring_Condition
+   * @return Google_Service_Monitoring_Condition[]
    */
   public function getConditions()
   {
@@ -136,5 +138,19 @@ class Google_Service_Monitoring_AlertPolicy extends Google_Collection
   public function getUserLabels()
   {
     return $this->userLabels;
+  }
+  /**
+   * @param Google_Service_Monitoring_Status
+   */
+  public function setValidity(Google_Service_Monitoring_Status $validity)
+  {
+    $this->validity = $validity;
+  }
+  /**
+   * @return Google_Service_Monitoring_Status
+   */
+  public function getValidity()
+  {
+    return $this->validity;
   }
 }

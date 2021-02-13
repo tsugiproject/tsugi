@@ -26,6 +26,22 @@
 class Google_Service_AdSense_Resource_AccountsAdclients extends Google_Service_Resource
 {
   /**
+   * Get Auto ad code for a given ad client. (adclients.getAdCode)
+   *
+   * @param string $accountId Account which contains the ad client.
+   * @param string $adClientId Ad client to get the code for.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string tagPartner Tag partner to include in the ad code snippet.
+   * @return Google_Service_AdSense_AdCode
+   */
+  public function getAdCode($accountId, $adClientId, $optParams = array())
+  {
+    $params = array('accountId' => $accountId, 'adClientId' => $adClientId);
+    $params = array_merge($params, $optParams);
+    return $this->call('getAdCode', array($params), "Google_Service_AdSense_AdCode");
+  }
+  /**
    * List all ad clients in the specified account.
    * (adclients.listAccountsAdclients)
    *

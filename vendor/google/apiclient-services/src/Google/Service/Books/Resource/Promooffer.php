@@ -26,7 +26,7 @@
 class Google_Service_Books_Resource_Promooffer extends Google_Service_Resource
 {
   /**
-   * (promooffer.accept)
+   * Accepts the promo offer. (promooffer.accept)
    *
    * @param array $optParams Optional parameters.
    *
@@ -38,15 +38,16 @@ class Google_Service_Books_Resource_Promooffer extends Google_Service_Resource
    * @opt_param string product device product
    * @opt_param string serial device serial
    * @opt_param string volumeId Volume id to exercise the offer
+   * @return Google_Service_Books_BooksEmpty
    */
   public function accept($optParams = array())
   {
     $params = array();
     $params = array_merge($params, $optParams);
-    return $this->call('accept', array($params));
+    return $this->call('accept', array($params), "Google_Service_Books_BooksEmpty");
   }
   /**
-   * (promooffer.dismiss)
+   * Marks the promo offer as dismissed. (promooffer.dismiss)
    *
    * @param array $optParams Optional parameters.
    *
@@ -57,12 +58,13 @@ class Google_Service_Books_Resource_Promooffer extends Google_Service_Resource
    * @opt_param string offerId Offer to dimiss
    * @opt_param string product device product
    * @opt_param string serial device serial
+   * @return Google_Service_Books_BooksEmpty
    */
   public function dismiss($optParams = array())
   {
     $params = array();
     $params = array_merge($params, $optParams);
-    return $this->call('dismiss', array($params));
+    return $this->call('dismiss', array($params), "Google_Service_Books_BooksEmpty");
   }
   /**
    * Returns a list of promo offers available to the user (promooffer.get)

@@ -20,6 +20,8 @@ class Google_Service_Testing_AndroidRoboTest extends Google_Collection
   protected $collection_key = 'startingIntents';
   protected $appApkType = 'Google_Service_Testing_FileReference';
   protected $appApkDataType = '';
+  protected $appBundleType = 'Google_Service_Testing_AppBundle';
+  protected $appBundleDataType = '';
   public $appInitialActivity;
   public $appPackageId;
   public $maxDepth;
@@ -44,6 +46,20 @@ class Google_Service_Testing_AndroidRoboTest extends Google_Collection
   public function getAppApk()
   {
     return $this->appApk;
+  }
+  /**
+   * @param Google_Service_Testing_AppBundle
+   */
+  public function setAppBundle(Google_Service_Testing_AppBundle $appBundle)
+  {
+    $this->appBundle = $appBundle;
+  }
+  /**
+   * @return Google_Service_Testing_AppBundle
+   */
+  public function getAppBundle()
+  {
+    return $this->appBundle;
   }
   public function setAppInitialActivity($appInitialActivity)
   {
@@ -78,14 +94,14 @@ class Google_Service_Testing_AndroidRoboTest extends Google_Collection
     return $this->maxSteps;
   }
   /**
-   * @param Google_Service_Testing_RoboDirective
+   * @param Google_Service_Testing_RoboDirective[]
    */
   public function setRoboDirectives($roboDirectives)
   {
     $this->roboDirectives = $roboDirectives;
   }
   /**
-   * @return Google_Service_Testing_RoboDirective
+   * @return Google_Service_Testing_RoboDirective[]
    */
   public function getRoboDirectives()
   {
@@ -106,14 +122,14 @@ class Google_Service_Testing_AndroidRoboTest extends Google_Collection
     return $this->roboScript;
   }
   /**
-   * @param Google_Service_Testing_RoboStartingIntent
+   * @param Google_Service_Testing_RoboStartingIntent[]
    */
   public function setStartingIntents($startingIntents)
   {
     $this->startingIntents = $startingIntents;
   }
   /**
-   * @return Google_Service_Testing_RoboStartingIntent
+   * @return Google_Service_Testing_RoboStartingIntent[]
    */
   public function getStartingIntents()
   {

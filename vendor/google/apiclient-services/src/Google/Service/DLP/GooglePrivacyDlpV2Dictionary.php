@@ -17,9 +17,25 @@
 
 class Google_Service_DLP_GooglePrivacyDlpV2Dictionary extends Google_Model
 {
+  protected $cloudStoragePathType = 'Google_Service_DLP_GooglePrivacyDlpV2CloudStoragePath';
+  protected $cloudStoragePathDataType = '';
   protected $wordListType = 'Google_Service_DLP_GooglePrivacyDlpV2WordList';
   protected $wordListDataType = '';
 
+  /**
+   * @param Google_Service_DLP_GooglePrivacyDlpV2CloudStoragePath
+   */
+  public function setCloudStoragePath(Google_Service_DLP_GooglePrivacyDlpV2CloudStoragePath $cloudStoragePath)
+  {
+    $this->cloudStoragePath = $cloudStoragePath;
+  }
+  /**
+   * @return Google_Service_DLP_GooglePrivacyDlpV2CloudStoragePath
+   */
+  public function getCloudStoragePath()
+  {
+    return $this->cloudStoragePath;
+  }
   /**
    * @param Google_Service_DLP_GooglePrivacyDlpV2WordList
    */

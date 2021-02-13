@@ -17,10 +17,11 @@
 
 class Google_Service_TPU_ListNodesResponse extends Google_Collection
 {
-  protected $collection_key = 'nodes';
+  protected $collection_key = 'unreachable';
   public $nextPageToken;
   protected $nodesType = 'Google_Service_TPU_Node';
   protected $nodesDataType = 'array';
+  public $unreachable;
 
   public function setNextPageToken($nextPageToken)
   {
@@ -31,17 +32,25 @@ class Google_Service_TPU_ListNodesResponse extends Google_Collection
     return $this->nextPageToken;
   }
   /**
-   * @param Google_Service_TPU_Node
+   * @param Google_Service_TPU_Node[]
    */
   public function setNodes($nodes)
   {
     $this->nodes = $nodes;
   }
   /**
-   * @return Google_Service_TPU_Node
+   * @return Google_Service_TPU_Node[]
    */
   public function getNodes()
   {
     return $this->nodes;
+  }
+  public function setUnreachable($unreachable)
+  {
+    $this->unreachable = $unreachable;
+  }
+  public function getUnreachable()
+  {
+    return $this->unreachable;
   }
 }

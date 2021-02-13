@@ -22,6 +22,7 @@ class Google_Service_Logging_MonitoredResourceDescriptor extends Google_Collecti
   public $displayName;
   protected $labelsType = 'Google_Service_Logging_LabelDescriptor';
   protected $labelsDataType = 'array';
+  public $launchStage;
   public $name;
   public $type;
 
@@ -42,18 +43,26 @@ class Google_Service_Logging_MonitoredResourceDescriptor extends Google_Collecti
     return $this->displayName;
   }
   /**
-   * @param Google_Service_Logging_LabelDescriptor
+   * @param Google_Service_Logging_LabelDescriptor[]
    */
   public function setLabels($labels)
   {
     $this->labels = $labels;
   }
   /**
-   * @return Google_Service_Logging_LabelDescriptor
+   * @return Google_Service_Logging_LabelDescriptor[]
    */
   public function getLabels()
   {
     return $this->labels;
+  }
+  public function setLaunchStage($launchStage)
+  {
+    $this->launchStage = $launchStage;
+  }
+  public function getLaunchStage()
+  {
+    return $this->launchStage;
   }
   public function setName($name)
   {

@@ -78,7 +78,7 @@ class Google_Service_GamesConfiguration_Resource_LeaderboardConfigurations exten
    *
    * @opt_param int maxResults The maximum number of resource configurations to
    * return in the response, used for paging. For any response, the actual number
-   * of resources returned may be less than the specified maxResults.
+   * of resources returned may be less than the specified `maxResults`.
    * @opt_param string pageToken The token returned by the previous request.
    * @return Google_Service_GamesConfiguration_LeaderboardConfigurationListResponse
    */
@@ -87,21 +87,6 @@ class Google_Service_GamesConfiguration_Resource_LeaderboardConfigurations exten
     $params = array('applicationId' => $applicationId);
     $params = array_merge($params, $optParams);
     return $this->call('list', array($params), "Google_Service_GamesConfiguration_LeaderboardConfigurationListResponse");
-  }
-  /**
-   * Update the metadata of the leaderboard configuration with the given ID. This
-   * method supports patch semantics. (leaderboardConfigurations.patch)
-   *
-   * @param string $leaderboardId The ID of the leaderboard.
-   * @param Google_Service_GamesConfiguration_LeaderboardConfiguration $postBody
-   * @param array $optParams Optional parameters.
-   * @return Google_Service_GamesConfiguration_LeaderboardConfiguration
-   */
-  public function patch($leaderboardId, Google_Service_GamesConfiguration_LeaderboardConfiguration $postBody, $optParams = array())
-  {
-    $params = array('leaderboardId' => $leaderboardId, 'postBody' => $postBody);
-    $params = array_merge($params, $optParams);
-    return $this->call('patch', array($params), "Google_Service_GamesConfiguration_LeaderboardConfiguration");
   }
   /**
    * Update the metadata of the leaderboard configuration with the given ID.

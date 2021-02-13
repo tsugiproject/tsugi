@@ -18,6 +18,8 @@
 class Google_Service_Compute_MachineType extends Google_Collection
 {
   protected $collection_key = 'scratchDisks';
+  protected $acceleratorsType = 'Google_Service_Compute_MachineTypeAccelerators';
+  protected $acceleratorsDataType = 'array';
   public $creationTimestamp;
   protected $deprecatedType = 'Google_Service_Compute_DeprecationStatus';
   protected $deprecatedDataType = '';
@@ -36,6 +38,20 @@ class Google_Service_Compute_MachineType extends Google_Collection
   public $selfLink;
   public $zone;
 
+  /**
+   * @param Google_Service_Compute_MachineTypeAccelerators[]
+   */
+  public function setAccelerators($accelerators)
+  {
+    $this->accelerators = $accelerators;
+  }
+  /**
+   * @return Google_Service_Compute_MachineTypeAccelerators[]
+   */
+  public function getAccelerators()
+  {
+    return $this->accelerators;
+  }
   public function setCreationTimestamp($creationTimestamp)
   {
     $this->creationTimestamp = $creationTimestamp;
@@ -139,14 +155,14 @@ class Google_Service_Compute_MachineType extends Google_Collection
     return $this->name;
   }
   /**
-   * @param Google_Service_Compute_MachineTypeScratchDisks
+   * @param Google_Service_Compute_MachineTypeScratchDisks[]
    */
   public function setScratchDisks($scratchDisks)
   {
     $this->scratchDisks = $scratchDisks;
   }
   /**
-   * @return Google_Service_Compute_MachineTypeScratchDisks
+   * @return Google_Service_Compute_MachineTypeScratchDisks[]
    */
   public function getScratchDisks()
   {

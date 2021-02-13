@@ -68,14 +68,12 @@ class Google_Service_Dfareporting_Resource_DirectorySites extends Google_Service
    * that accept publisher paid placements. This field can be left blank.
    * @opt_param bool active Select only active directory sites. Leave blank to
    * retrieve both active and inactive directory sites.
-   * @opt_param string countryId Select only directory sites with this country ID.
-   * @opt_param string dfpNetworkCode Select only directory sites with this DFP
-   * network code.
+   * @opt_param string dfpNetworkCode Select only directory sites with this Ad
+   * Manager network code.
    * @opt_param string ids Select only directory sites with these IDs.
    * @opt_param int maxResults Maximum number of results to return.
    * @opt_param string pageToken Value of the nextPageToken from the previous
    * result page.
-   * @opt_param string parentId Select only directory sites with this parent ID.
    * @opt_param string searchString Allows searching for objects by name, ID or
    * URL. Wildcards (*) are allowed. For example, "directory site*2015" will
    * return objects with names like "directory site June 2015", "directory site

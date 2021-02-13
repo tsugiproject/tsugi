@@ -19,8 +19,14 @@ class Google_Service_Testing_TestEnvironmentCatalog extends Google_Model
 {
   protected $androidDeviceCatalogType = 'Google_Service_Testing_AndroidDeviceCatalog';
   protected $androidDeviceCatalogDataType = '';
+  protected $deviceIpBlockCatalogType = 'Google_Service_Testing_DeviceIpBlockCatalog';
+  protected $deviceIpBlockCatalogDataType = '';
+  protected $iosDeviceCatalogType = 'Google_Service_Testing_IosDeviceCatalog';
+  protected $iosDeviceCatalogDataType = '';
   protected $networkConfigurationCatalogType = 'Google_Service_Testing_NetworkConfigurationCatalog';
   protected $networkConfigurationCatalogDataType = '';
+  protected $softwareCatalogType = 'Google_Service_Testing_ProvidedSoftwareCatalog';
+  protected $softwareCatalogDataType = '';
 
   /**
    * @param Google_Service_Testing_AndroidDeviceCatalog
@@ -37,6 +43,34 @@ class Google_Service_Testing_TestEnvironmentCatalog extends Google_Model
     return $this->androidDeviceCatalog;
   }
   /**
+   * @param Google_Service_Testing_DeviceIpBlockCatalog
+   */
+  public function setDeviceIpBlockCatalog(Google_Service_Testing_DeviceIpBlockCatalog $deviceIpBlockCatalog)
+  {
+    $this->deviceIpBlockCatalog = $deviceIpBlockCatalog;
+  }
+  /**
+   * @return Google_Service_Testing_DeviceIpBlockCatalog
+   */
+  public function getDeviceIpBlockCatalog()
+  {
+    return $this->deviceIpBlockCatalog;
+  }
+  /**
+   * @param Google_Service_Testing_IosDeviceCatalog
+   */
+  public function setIosDeviceCatalog(Google_Service_Testing_IosDeviceCatalog $iosDeviceCatalog)
+  {
+    $this->iosDeviceCatalog = $iosDeviceCatalog;
+  }
+  /**
+   * @return Google_Service_Testing_IosDeviceCatalog
+   */
+  public function getIosDeviceCatalog()
+  {
+    return $this->iosDeviceCatalog;
+  }
+  /**
    * @param Google_Service_Testing_NetworkConfigurationCatalog
    */
   public function setNetworkConfigurationCatalog(Google_Service_Testing_NetworkConfigurationCatalog $networkConfigurationCatalog)
@@ -49,5 +83,19 @@ class Google_Service_Testing_TestEnvironmentCatalog extends Google_Model
   public function getNetworkConfigurationCatalog()
   {
     return $this->networkConfigurationCatalog;
+  }
+  /**
+   * @param Google_Service_Testing_ProvidedSoftwareCatalog
+   */
+  public function setSoftwareCatalog(Google_Service_Testing_ProvidedSoftwareCatalog $softwareCatalog)
+  {
+    $this->softwareCatalog = $softwareCatalog;
+  }
+  /**
+   * @return Google_Service_Testing_ProvidedSoftwareCatalog
+   */
+  public function getSoftwareCatalog()
+  {
+    return $this->softwareCatalog;
   }
 }

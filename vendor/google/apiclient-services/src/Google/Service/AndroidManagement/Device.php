@@ -19,9 +19,13 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
 {
   protected $collection_key = 'previousDeviceNames';
   public $apiLevel;
+  protected $applicationReportsType = 'Google_Service_AndroidManagement_ApplicationReport';
+  protected $applicationReportsDataType = 'array';
   public $appliedPolicyName;
   public $appliedPolicyVersion;
   public $appliedState;
+  protected $commonCriteriaModeInfoType = 'Google_Service_AndroidManagement_CommonCriteriaModeInfo';
+  protected $commonCriteriaModeInfoDataType = '';
   protected $deviceSettingsType = 'Google_Service_AndroidManagement_DeviceSettings';
   protected $deviceSettingsDataType = '';
   protected $disabledReasonType = 'Google_Service_AndroidManagement_UserFacingMessage';
@@ -38,6 +42,7 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
   public $lastPolicyComplianceReportTime;
   public $lastPolicySyncTime;
   public $lastStatusReportTime;
+  public $managementMode;
   protected $memoryEventsType = 'Google_Service_AndroidManagement_MemoryEvent';
   protected $memoryEventsDataType = 'array';
   protected $memoryInfoType = 'Google_Service_AndroidManagement_MemoryInfo';
@@ -47,14 +52,20 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
   protected $networkInfoDataType = '';
   protected $nonComplianceDetailsType = 'Google_Service_AndroidManagement_NonComplianceDetail';
   protected $nonComplianceDetailsDataType = 'array';
+  public $ownership;
   public $policyCompliant;
   public $policyName;
   protected $powerManagementEventsType = 'Google_Service_AndroidManagement_PowerManagementEvent';
   protected $powerManagementEventsDataType = 'array';
   public $previousDeviceNames;
+  protected $securityPostureType = 'Google_Service_AndroidManagement_SecurityPosture';
+  protected $securityPostureDataType = '';
   protected $softwareInfoType = 'Google_Service_AndroidManagement_SoftwareInfo';
   protected $softwareInfoDataType = '';
   public $state;
+  public $systemProperties;
+  protected $userType = 'Google_Service_AndroidManagement_User';
+  protected $userDataType = '';
   public $userName;
 
   public function setApiLevel($apiLevel)
@@ -64,6 +75,20 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
   public function getApiLevel()
   {
     return $this->apiLevel;
+  }
+  /**
+   * @param Google_Service_AndroidManagement_ApplicationReport[]
+   */
+  public function setApplicationReports($applicationReports)
+  {
+    $this->applicationReports = $applicationReports;
+  }
+  /**
+   * @return Google_Service_AndroidManagement_ApplicationReport[]
+   */
+  public function getApplicationReports()
+  {
+    return $this->applicationReports;
   }
   public function setAppliedPolicyName($appliedPolicyName)
   {
@@ -88,6 +113,20 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
   public function getAppliedState()
   {
     return $this->appliedState;
+  }
+  /**
+   * @param Google_Service_AndroidManagement_CommonCriteriaModeInfo
+   */
+  public function setCommonCriteriaModeInfo(Google_Service_AndroidManagement_CommonCriteriaModeInfo $commonCriteriaModeInfo)
+  {
+    $this->commonCriteriaModeInfo = $commonCriteriaModeInfo;
+  }
+  /**
+   * @return Google_Service_AndroidManagement_CommonCriteriaModeInfo
+   */
+  public function getCommonCriteriaModeInfo()
+  {
+    return $this->commonCriteriaModeInfo;
   }
   /**
    * @param Google_Service_AndroidManagement_DeviceSettings
@@ -118,14 +157,14 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
     return $this->disabledReason;
   }
   /**
-   * @param Google_Service_AndroidManagement_Display
+   * @param Google_Service_AndroidManagement_Display[]
    */
   public function setDisplays($displays)
   {
     $this->displays = $displays;
   }
   /**
-   * @return Google_Service_AndroidManagement_Display
+   * @return Google_Service_AndroidManagement_Display[]
    */
   public function getDisplays()
   {
@@ -170,14 +209,14 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
     return $this->hardwareInfo;
   }
   /**
-   * @param Google_Service_AndroidManagement_HardwareStatus
+   * @param Google_Service_AndroidManagement_HardwareStatus[]
    */
   public function setHardwareStatusSamples($hardwareStatusSamples)
   {
     $this->hardwareStatusSamples = $hardwareStatusSamples;
   }
   /**
-   * @return Google_Service_AndroidManagement_HardwareStatus
+   * @return Google_Service_AndroidManagement_HardwareStatus[]
    */
   public function getHardwareStatusSamples()
   {
@@ -207,15 +246,23 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
   {
     return $this->lastStatusReportTime;
   }
+  public function setManagementMode($managementMode)
+  {
+    $this->managementMode = $managementMode;
+  }
+  public function getManagementMode()
+  {
+    return $this->managementMode;
+  }
   /**
-   * @param Google_Service_AndroidManagement_MemoryEvent
+   * @param Google_Service_AndroidManagement_MemoryEvent[]
    */
   public function setMemoryEvents($memoryEvents)
   {
     $this->memoryEvents = $memoryEvents;
   }
   /**
-   * @return Google_Service_AndroidManagement_MemoryEvent
+   * @return Google_Service_AndroidManagement_MemoryEvent[]
    */
   public function getMemoryEvents()
   {
@@ -258,18 +305,26 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
     return $this->networkInfo;
   }
   /**
-   * @param Google_Service_AndroidManagement_NonComplianceDetail
+   * @param Google_Service_AndroidManagement_NonComplianceDetail[]
    */
   public function setNonComplianceDetails($nonComplianceDetails)
   {
     $this->nonComplianceDetails = $nonComplianceDetails;
   }
   /**
-   * @return Google_Service_AndroidManagement_NonComplianceDetail
+   * @return Google_Service_AndroidManagement_NonComplianceDetail[]
    */
   public function getNonComplianceDetails()
   {
     return $this->nonComplianceDetails;
+  }
+  public function setOwnership($ownership)
+  {
+    $this->ownership = $ownership;
+  }
+  public function getOwnership()
+  {
+    return $this->ownership;
   }
   public function setPolicyCompliant($policyCompliant)
   {
@@ -288,14 +343,14 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
     return $this->policyName;
   }
   /**
-   * @param Google_Service_AndroidManagement_PowerManagementEvent
+   * @param Google_Service_AndroidManagement_PowerManagementEvent[]
    */
   public function setPowerManagementEvents($powerManagementEvents)
   {
     $this->powerManagementEvents = $powerManagementEvents;
   }
   /**
-   * @return Google_Service_AndroidManagement_PowerManagementEvent
+   * @return Google_Service_AndroidManagement_PowerManagementEvent[]
    */
   public function getPowerManagementEvents()
   {
@@ -308,6 +363,20 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
   public function getPreviousDeviceNames()
   {
     return $this->previousDeviceNames;
+  }
+  /**
+   * @param Google_Service_AndroidManagement_SecurityPosture
+   */
+  public function setSecurityPosture(Google_Service_AndroidManagement_SecurityPosture $securityPosture)
+  {
+    $this->securityPosture = $securityPosture;
+  }
+  /**
+   * @return Google_Service_AndroidManagement_SecurityPosture
+   */
+  public function getSecurityPosture()
+  {
+    return $this->securityPosture;
   }
   /**
    * @param Google_Service_AndroidManagement_SoftwareInfo
@@ -330,6 +399,28 @@ class Google_Service_AndroidManagement_Device extends Google_Collection
   public function getState()
   {
     return $this->state;
+  }
+  public function setSystemProperties($systemProperties)
+  {
+    $this->systemProperties = $systemProperties;
+  }
+  public function getSystemProperties()
+  {
+    return $this->systemProperties;
+  }
+  /**
+   * @param Google_Service_AndroidManagement_User
+   */
+  public function setUser(Google_Service_AndroidManagement_User $user)
+  {
+    $this->user = $user;
+  }
+  /**
+   * @return Google_Service_AndroidManagement_User
+   */
+  public function getUser()
+  {
+    return $this->user;
   }
   public function setUserName($userName)
   {

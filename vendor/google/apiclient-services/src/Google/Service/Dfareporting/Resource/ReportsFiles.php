@@ -26,9 +26,10 @@
 class Google_Service_Dfareporting_Resource_ReportsFiles extends Google_Service_Resource
 {
   /**
-   * Retrieves a report file. This method supports media download. (files.get)
+   * Retrieves a report file by its report ID and file ID. This method supports
+   * media download. (files.get)
    *
-   * @param string $profileId The DFA profile ID.
+   * @param string $profileId The Campaign Manager 360 user profile ID.
    * @param string $reportId The ID of the report.
    * @param string $fileId The ID of the report file.
    * @param array $optParams Optional parameters.
@@ -43,7 +44,7 @@ class Google_Service_Dfareporting_Resource_ReportsFiles extends Google_Service_R
   /**
    * Lists files for a report. (files.listReportsFiles)
    *
-   * @param string $profileId The DFA profile ID.
+   * @param string $profileId The Campaign Manager 360 user profile ID.
    * @param string $reportId The ID of the parent report.
    * @param array $optParams Optional parameters.
    *

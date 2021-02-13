@@ -17,6 +17,10 @@
 
 class Google_Service_AndroidManagement_StatusReportingSettings extends Google_Model
 {
+  protected $applicationReportingSettingsType = 'Google_Service_AndroidManagement_ApplicationReportingSettings';
+  protected $applicationReportingSettingsDataType = '';
+  public $applicationReportsEnabled;
+  public $commonCriteriaModeEnabled;
   public $deviceSettingsEnabled;
   public $displayInfoEnabled;
   public $hardwareStatusEnabled;
@@ -24,7 +28,38 @@ class Google_Service_AndroidManagement_StatusReportingSettings extends Google_Mo
   public $networkInfoEnabled;
   public $powerManagementEventsEnabled;
   public $softwareInfoEnabled;
+  public $systemPropertiesEnabled;
 
+  /**
+   * @param Google_Service_AndroidManagement_ApplicationReportingSettings
+   */
+  public function setApplicationReportingSettings(Google_Service_AndroidManagement_ApplicationReportingSettings $applicationReportingSettings)
+  {
+    $this->applicationReportingSettings = $applicationReportingSettings;
+  }
+  /**
+   * @return Google_Service_AndroidManagement_ApplicationReportingSettings
+   */
+  public function getApplicationReportingSettings()
+  {
+    return $this->applicationReportingSettings;
+  }
+  public function setApplicationReportsEnabled($applicationReportsEnabled)
+  {
+    $this->applicationReportsEnabled = $applicationReportsEnabled;
+  }
+  public function getApplicationReportsEnabled()
+  {
+    return $this->applicationReportsEnabled;
+  }
+  public function setCommonCriteriaModeEnabled($commonCriteriaModeEnabled)
+  {
+    $this->commonCriteriaModeEnabled = $commonCriteriaModeEnabled;
+  }
+  public function getCommonCriteriaModeEnabled()
+  {
+    return $this->commonCriteriaModeEnabled;
+  }
   public function setDeviceSettingsEnabled($deviceSettingsEnabled)
   {
     $this->deviceSettingsEnabled = $deviceSettingsEnabled;
@@ -80,5 +115,13 @@ class Google_Service_AndroidManagement_StatusReportingSettings extends Google_Mo
   public function getSoftwareInfoEnabled()
   {
     return $this->softwareInfoEnabled;
+  }
+  public function setSystemPropertiesEnabled($systemPropertiesEnabled)
+  {
+    $this->systemPropertiesEnabled = $systemPropertiesEnabled;
+  }
+  public function getSystemPropertiesEnabled()
+  {
+    return $this->systemPropertiesEnabled;
   }
 }

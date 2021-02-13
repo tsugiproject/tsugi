@@ -24,19 +24,22 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2QueryParameters extends G
   protected $geoLocationDataType = '';
   public $payload;
   public $resetContexts;
+  protected $sentimentAnalysisRequestConfigType = 'Google_Service_Dialogflow_GoogleCloudDialogflowV2SentimentAnalysisRequestConfig';
+  protected $sentimentAnalysisRequestConfigDataType = '';
   protected $sessionEntityTypesType = 'Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType';
   protected $sessionEntityTypesDataType = 'array';
   public $timeZone;
+  public $webhookHeaders;
 
   /**
-   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2Context
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2Context[]
    */
   public function setContexts($contexts)
   {
     $this->contexts = $contexts;
   }
   /**
-   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2Context
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2Context[]
    */
   public function getContexts()
   {
@@ -73,14 +76,28 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2QueryParameters extends G
     return $this->resetContexts;
   }
   /**
-   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2SentimentAnalysisRequestConfig
+   */
+  public function setSentimentAnalysisRequestConfig(Google_Service_Dialogflow_GoogleCloudDialogflowV2SentimentAnalysisRequestConfig $sentimentAnalysisRequestConfig)
+  {
+    $this->sentimentAnalysisRequestConfig = $sentimentAnalysisRequestConfig;
+  }
+  /**
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2SentimentAnalysisRequestConfig
+   */
+  public function getSentimentAnalysisRequestConfig()
+  {
+    return $this->sentimentAnalysisRequestConfig;
+  }
+  /**
+   * @param Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType[]
    */
   public function setSessionEntityTypes($sessionEntityTypes)
   {
     $this->sessionEntityTypes = $sessionEntityTypes;
   }
   /**
-   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType
+   * @return Google_Service_Dialogflow_GoogleCloudDialogflowV2SessionEntityType[]
    */
   public function getSessionEntityTypes()
   {
@@ -93,5 +110,13 @@ class Google_Service_Dialogflow_GoogleCloudDialogflowV2QueryParameters extends G
   public function getTimeZone()
   {
     return $this->timeZone;
+  }
+  public function setWebhookHeaders($webhookHeaders)
+  {
+    $this->webhookHeaders = $webhookHeaders;
+  }
+  public function getWebhookHeaders()
+  {
+    return $this->webhookHeaders;
   }
 }

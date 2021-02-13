@@ -88,7 +88,7 @@ class Google_Service_Dfareporting_Resource_TargetingTemplates extends Google_Ser
    * (targetingTemplates.patch)
    *
    * @param string $profileId User profile ID associated with this request.
-   * @param string $id Targeting template ID.
+   * @param string $id TargetingTemplate ID.
    * @param Google_Service_Dfareporting_TargetingTemplate $postBody
    * @param array $optParams Optional parameters.
    * @return Google_Service_Dfareporting_TargetingTemplate

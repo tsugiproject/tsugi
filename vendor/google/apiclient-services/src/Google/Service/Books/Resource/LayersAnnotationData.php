@@ -45,13 +45,13 @@ class Google_Service_Books_Resource_LayersAnnotationData extends Google_Service_
    * @opt_param string source String to identify the originator of this request.
    * @opt_param int w The requested pixel width for any images. If width is
    * provided height must also be provided.
-   * @return Google_Service_Books_Annotationdata
+   * @return Google_Service_Books_DictionaryAnnotationdata
    */
   public function get($volumeId, $layerId, $annotationDataId, $contentVersion, $optParams = array())
   {
     $params = array('volumeId' => $volumeId, 'layerId' => $layerId, 'annotationDataId' => $annotationDataId, 'contentVersion' => $contentVersion);
     $params = array_merge($params, $optParams);
-    return $this->call('get', array($params), "Google_Service_Books_Annotationdata");
+    return $this->call('get', array($params), "Google_Service_Books_DictionaryAnnotationdata");
   }
   /**
    * Gets the annotation data for a volume and layer.

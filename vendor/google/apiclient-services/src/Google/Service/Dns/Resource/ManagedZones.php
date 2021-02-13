@@ -48,7 +48,7 @@ class Google_Service_Dns_Resource_ManagedZones extends Google_Service_Resource
    *
    * @param string $project Identifies the project addressed by this request.
    * @param string $managedZone Identifies the managed zone addressed by this
-   * request. Can be the managed zone name or id.
+   * request. Can be the managed zone name or ID.
    * @param array $optParams Optional parameters.
    *
    * @opt_param string clientOperationId For mutating operation requests only. An
@@ -66,7 +66,7 @@ class Google_Service_Dns_Resource_ManagedZones extends Google_Service_Resource
    *
    * @param string $project Identifies the project addressed by this request.
    * @param string $managedZone Identifies the managed zone addressed by this
-   * request. Can be the managed zone name or id.
+   * request. Can be the managed zone name or ID.
    * @param array $optParams Optional parameters.
    *
    * @opt_param string clientOperationId For mutating operation requests only. An
@@ -103,12 +103,11 @@ class Google_Service_Dns_Resource_ManagedZones extends Google_Service_Resource
     return $this->call('list', array($params), "Google_Service_Dns_ManagedZonesListResponse");
   }
   /**
-   * Update an existing ManagedZone. This method supports patch semantics.
-   * (managedZones.patch)
+   * Apply a partial update to an existing ManagedZone. (managedZones.patch)
    *
    * @param string $project Identifies the project addressed by this request.
    * @param string $managedZone Identifies the managed zone addressed by this
-   * request. Can be the managed zone name or id.
+   * request. Can be the managed zone name or ID.
    * @param Google_Service_Dns_ManagedZone $postBody
    * @param array $optParams Optional parameters.
    *
@@ -128,7 +127,7 @@ class Google_Service_Dns_Resource_ManagedZones extends Google_Service_Resource
    *
    * @param string $project Identifies the project addressed by this request.
    * @param string $managedZone Identifies the managed zone addressed by this
-   * request. Can be the managed zone name or id.
+   * request. Can be the managed zone name or ID.
    * @param Google_Service_Dns_ManagedZone $postBody
    * @param array $optParams Optional parameters.
    *

@@ -44,17 +44,19 @@ class Google_Service_AdSenseHost extends Google_Service
   public $customchannels;
   public $reports;
   public $urlchannels;
-  
+
   /**
    * Constructs the internal representation of the AdSenseHost service.
    *
-   * @param Google_Client $client
+   * @param Google_Client $client The client used to deliver requests.
+   * @param string $rootUrl The root URL used for requests to the service.
    */
-  public function __construct(Google_Client $client)
+  public function __construct(Google_Client $client, $rootUrl = null)
   {
     parent::__construct($client);
-    $this->rootUrl = 'https://www.googleapis.com/';
+    $this->rootUrl = $rootUrl ?: 'https://www.googleapis.com/';
     $this->servicePath = 'adsensehost/v4.1/';
+    $this->batchPath = 'batch/adsensehost/v4.1';
     $this->version = 'v4.1';
     $this->serviceName = 'adsensehost';
 
@@ -399,6 +401,10 @@ class Google_Service_AdSenseHost extends Google_Service
                   'location' => 'query',
                   'type' => 'string',
                   'required' => true,
+                ),
+                'callbackUrl' => array(
+                  'location' => 'query',
+                  'type' => 'string',
                 ),
                 'userLocale' => array(
                   'location' => 'query',

@@ -18,11 +18,28 @@
 class Google_Service_Vision_GoogleCloudVisionV1p2beta1AnnotateFileResponse extends Google_Collection
 {
   protected $collection_key = 'responses';
+  protected $errorType = 'Google_Service_Vision_Status';
+  protected $errorDataType = '';
   protected $inputConfigType = 'Google_Service_Vision_GoogleCloudVisionV1p2beta1InputConfig';
   protected $inputConfigDataType = '';
   protected $responsesType = 'Google_Service_Vision_GoogleCloudVisionV1p2beta1AnnotateImageResponse';
   protected $responsesDataType = 'array';
+  public $totalPages;
 
+  /**
+   * @param Google_Service_Vision_Status
+   */
+  public function setError(Google_Service_Vision_Status $error)
+  {
+    $this->error = $error;
+  }
+  /**
+   * @return Google_Service_Vision_Status
+   */
+  public function getError()
+  {
+    return $this->error;
+  }
   /**
    * @param Google_Service_Vision_GoogleCloudVisionV1p2beta1InputConfig
    */
@@ -38,17 +55,25 @@ class Google_Service_Vision_GoogleCloudVisionV1p2beta1AnnotateFileResponse exten
     return $this->inputConfig;
   }
   /**
-   * @param Google_Service_Vision_GoogleCloudVisionV1p2beta1AnnotateImageResponse
+   * @param Google_Service_Vision_GoogleCloudVisionV1p2beta1AnnotateImageResponse[]
    */
   public function setResponses($responses)
   {
     $this->responses = $responses;
   }
   /**
-   * @return Google_Service_Vision_GoogleCloudVisionV1p2beta1AnnotateImageResponse
+   * @return Google_Service_Vision_GoogleCloudVisionV1p2beta1AnnotateImageResponse[]
    */
   public function getResponses()
   {
     return $this->responses;
+  }
+  public function setTotalPages($totalPages)
+  {
+    $this->totalPages = $totalPages;
+  }
+  public function getTotalPages()
+  {
+    return $this->totalPages;
   }
 }
