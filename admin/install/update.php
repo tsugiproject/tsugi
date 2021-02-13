@@ -46,7 +46,12 @@ foreach($tools as $tool) {
     echo("Path: ".htmlentities($path)."\n");
     $remote = $tool['clone_url'];
     echo("URL: ".htmlentities($remote)."\n");
-    echo("Version: ".htmlentities($tool['gitversion'])."\n");
+    $gitversion = $tool['gitversion'];
+    if ( strlen($gitversion) < 1 ) $gitversion = 'master';
+    if ( isset($CFG->branch_override) && U::get($CFG->branch_override, $remote) ) {
+        $gitversion = U::get($CFG->branch_override, $remote);
+    }
+    echo("Version: ".htmlentities($gitversion)."\n");
     if ( $tool['deleted'] == 1 ) {
         echo(" Tool is deleted...\n");
         continue;
@@ -87,13 +92,13 @@ foreach($tools as $tool) {
     echo("Origin: ".htmlentities($origin)."\n");
     echo("Pull----\n");
     try {
-        $pull_output = $repo->run('pull');
+        $pull_output = $repo->run('pull -s recursive -X theirs');
     } catch(Exception $e) {
         echo("Error: ".htmlentities($e->getMessage())."\n");
         continue;
     }
     echo(htmlentities($pull_output));
-    $command = 'checkout '.$tool['gitversion'];
+    $command = 'checkout '.$gitversion;
     echo("Checkout: git ".$command."\n");
     $check_output = $repo->run($command);
     echo(htmlentities($check_output));
