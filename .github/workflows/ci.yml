@@ -8,6 +8,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Setup PHP 7.4
+        uses: shivammathur/setup-php@v2
+        with:
+            php-version: '7.4'
     - uses: php-actions/composer@v5 # or alternative dependency management
     - uses: php-actions/phpunit@v2
 
