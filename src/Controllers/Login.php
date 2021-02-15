@@ -419,7 +419,9 @@ detecting robot-login storms, and other issues so we let Google do that hard wor
     <input class="btn btn-warning" type="button"
     onclick="location.href='<?= $context['login_return'] ?>'; return false;" value="Cancel"
         style="height: 2.5em;"/>
-    <a href="<?= $context['loginUrl'] ?>"><img src="<?= $CFG->staticroot ?>/img/google_signin_buttons/2x/btn_google_signin_dark_normal_web@2x.png" style="height: 3em;"></a>
+    <a href="<?= $context['loginUrl'] ?>"><img src="<?= $CFG->staticroot ?>/img/google_signin_buttons/2x/btn_google_signin_dark_normal_web@2x.png"
+      title="<?= htmlentities(__('Sign in with Google')) ?>"
+      style="height: 3em;"></a>
 </form>
 <p>
 So you must have a Google account and we will require your
