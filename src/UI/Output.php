@@ -3,6 +3,7 @@
 namespace Tsugi\UI;
 
 use Tsugi\Util\U;
+use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\WebSocket;
 use \Tsugi\Crypt\SecureCookie;
@@ -1313,35 +1314,67 @@ EOF;
         ini_set('zlib.output_compression', false);
     }
 
+    public static function theme_defaults() {
+        return array(
+            "primary" => '#0D47A1',
+            "primary-menu" => '#0D47A1',
+            "primary-border" => self::adjustBrightness('#0D47A1',-0.075),
+            "primary-darker" => self::adjustBrightness('#0D47A1',-0.1),
+            "primary-darkest" => self::adjustBrightness('#0D47A1',-0.175),
+            'secondary' => '#EEEEEE',
+            'background-color' => '#EEEEEE',
+            "secondary" => '#EEEEEE',
+            "secondary-menu" => '#EEEEEE',
+            "text" => '#111111',
+            "text-light" => '#5E5E5E',
+            "font-family" => 'sans-serif',
+            "font-size" => '14px',
+        );
+    }
+
+    /**
+     * Get the theme from various places based on the following precedence
+     *
+     * (1) From a Link Setting
+     * (2) From a Context Setting
+     * (3) From a custom variable prefixed by "tsugi_theme_"
+     * (4) From the $CFG->theme variable (parameter to this routine)
+     * (5) The tsugi default value
+     */
+    public static function themeValue($theme, $name) {
+        global $LAUNCH, $LINK, $CONTEXT;
+        $theme_defaults = self::theme_defaults();
+
+        $retval = $theme_defaults[$name];
+        if ( is_array($theme) ) {
+            $check = U::get($theme, $name, $retval);
+            if ( U::isValidCSSColor($check) ) $retval = $check;
+        }
+
+        // LTI 1.1 custom values map dashes to underscores :(
+        $check = $LAUNCH->ltiCustomGet('tsugi_theme_'.LTI::mapCustomName($name), $retval);
+        if ( U::isValidCSSColor($check) ) $retval = $check;
+
+        // Prefer exact match (i.e. with LTI 1.3)
+        $check = $LAUNCH->ltiCustomGet('tsugi_theme_'.$name, $retval);
+        if ( U::isValidCSSColor($check) ) $retval = $check;
+
+        if ( is_object($CONTEXT) ) {
+            $check = $CONTEXT->settingsGet($name, $retval);
+            if ( U::isValidCSSColor($check) ) $retval = $check;
+        }
+        if ( is_object($LINK) ) {
+            $check = $LINK->settingsGet($name, $retval);
+            if ( U::isValidCSSColor($check) ) $retval = $check;
+        }
+        return $retval;
+    }
+
     public static function theme($theme) {
         $style = '<style>:root {';
-        if (is_array($theme)) {
-            $style .= isset($theme["primary"]) ? '--primary:'.$theme["primary"].';' : '#0D47A1;';
-            $style .= isset($theme["primary"]) ? '--primary-menu:'.$theme["primary"].';' : '#0D47A1;';
-            $style .= isset($theme["primary"]) ? '--primary-border:'.self::adjustBrightness($theme["primary"],-0.075).';' : '#0d4295;';
-            $style .= isset($theme["primary"]) ? '--primary-darker:'.self::adjustBrightness($theme["primary"],-0.1).';' : '#0c4091;';
-            $style .= isset($theme["primary"]) ? '--primary-darkest:'.self::adjustBrightness($theme["primary"],-0.175).';' : '#0b3b85;';
-            $style .= isset($theme["secondary"]) ? '--secondary:'.$theme["secondary"].';' : '#EEEEEE;';
-            $style .= isset($theme["secondary"]) ? '--secondary-menu:'.$theme["secondary"].';' : '#EEEEEE;';
-            $style .= isset($theme["text"]) ? '--text:'.$theme["text"].';' : '#111111;';
-            $style .= isset($theme["text-light"]) ? '--text-light:'.$theme["text-light"].';' : '#5E5E5E;';
-            $style .= isset($theme["background-color"]) ? '--background-color:'.$theme["background-color"].';' : '#FFFFFF;';
-            $style .= isset($theme["font-family"]) ? '--font-family:'.$theme["font-family"].';' : 'sans-serif;';
-            $style .= isset($theme["font-size"]) ? '--font-size:'.$theme["font-size"].';' : '14px;';
-        } else {
-            // No theme set use all defaults
-            $style .= '--primary:#0D47A1;';
-            $style .= '--primary-menu:#0D47A1;';
-            $style .= '--primary-border:#0d4295;';
-            $style .= '--primary-darker:#0c4091;';
-            $style .= '--primary-darkest:#0b3b85;';
-            $style .= '--secondary:#EEEEEE;';
-            $style .= '--secondary-menu:#EEEEEE;';
-            $style .= '--text:#111111;';
-            $style .= '--text-light:#5E5E5E;';
-            $style .= '--background-color:#FFFFFF;';
-            $style .= '--font-family:sans-serif;';
-            $style .= '--font-size:14px;';
+        foreach(self::theme_defaults() as $name => $value ) {
+            $value = self::themeValue($theme, $name);
+            $style .= '--'.$name.':'.$value.";\n";
         }
         $style .= '}</style>';
         echo($style);

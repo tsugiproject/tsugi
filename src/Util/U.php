@@ -671,4 +671,18 @@ class U {
         return $retval;
     }
 
+    /**
+     * Validate a CSS color value
+     */
+
+    public static function isValidCSSColor($color) {
+        $patterns = array(
+            "/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/",
+        );
+        foreach($patterns as $pattern) {
+            if (preg_match($pattern,$color) ) return true;
+        }
+        return false;
+    }
+
 }
