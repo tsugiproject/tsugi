@@ -267,6 +267,34 @@ class LTI {
       return Net::doBody($url,$method,$data,$header);
     }
 
+    /**
+     * Lower case and turn non letters / numbers into underscores per LTI 1.1
+     *
+     * http://www.imsglobal.org/specs/ltiv1p1p1/implementation-guide
+     *
+     * When there are custom name / value parameters in the launch, a POST parameter is
+     * included for each custom parameter.  The parameter names are mapped to lower
+     * case and any character that is neither a number nor letter in a parameter
+     * name is replaced with an "underscore".  So if a custom entry was as follows:
+     *
+     *    Review:Chapter=1.2.56
+     *
+     * would be mapped to:
+     *
+     *  custom_review_chapter=1.2.56
+     */
+    public static function mapCustomName($name) {
+        $name = strtolower($name);
+        $retval = "";
+        for($i=0; $i < strlen($name); $i++) {
+            $ch = substr($name,$i,1);
+            if ( $ch >= "a" && $ch <= "z" ) $retval .= $ch;
+            else if ( $ch >= "0" && $ch <= "9" ) $retval .= $ch;
+            else $retval .= "_";
+        }
+        return $retval;
+    }
+
     public static function addCustom(&$parms, $custom) {
         if ( ! is_array($custom)) {
             $lines = explode("\n", $custom);
@@ -281,15 +309,8 @@ class LTI {
             }
         }
         foreach ( $custom as $key => $val) {
-          $key = strtolower($key);
-          $nk = "";
-          for($i=0; $i < strlen($key); $i++) {
-            $ch = substr($key,$i,1);
-            if ( $ch >= "a" && $ch <= "z" ) $nk .= $ch;
-            else if ( $ch >= "0" && $ch <= "9" ) $nk .= $ch;
-            else $nk .= "_";
-          }
-          $parms["custom_".$nk] = $val;
+            $nk = self::mapCustomName($key);
+            $parms["custom_".$nk] = $val;
         }
     }
 

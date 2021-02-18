@@ -29,7 +29,7 @@ private static $installed = array (
     'aliases' => 
     array (
     ),
-    'reference' => '5fd0de25fd141a257790661710026e9b0151c440',
+    'reference' => 'c118a544fe458ae80d25c209278603fae36f806b',
     'name' => '__root__',
   ),
   'versions' => 
@@ -41,7 +41,7 @@ private static $installed = array (
       'aliases' => 
       array (
       ),
-      'reference' => '5fd0de25fd141a257790661710026e9b0151c440',
+      'reference' => 'c118a544fe458ae80d25c209278603fae36f806b',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -930,7 +930,7 @@ private static $installed = array (
       array (
         0 => '9999999-dev',
       ),
-      'reference' => 'f636082d52e88527b6417004854e5b3519d288e5',
+      'reference' => 'bcd61f0177559b1a5024dce51be544a0c6b377f0',
     ),
     'vlucas/phpdotenv' => 
     array (

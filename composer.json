@@ -10,7 +10,16 @@
         "ezyang/htmlpurifier": ">=v4.13.0",
         "cboden/ratchet" : "v0.4.3",
 
-        "tsugi/lib": "dev-master#f636082d52e88527b6417004854e5b3519d288e5",
+        "symfony/polyfill-ctype": "v1.22.0",
+        "symfony/polyfill-intl-grapheme": "v1.22.0",
+        "symfony/polyfill-intl-idn": "v1.22.0",
+        "symfony/polyfill-intl-normalizer": "v1.22.0",
+        "symfony/polyfill-mbstring": "v1.22.0",
+        "symfony/polyfill-php72": "v1.22.0",
+        "symfony/polyfill-php73": "v1.22.0",
+        "symfony/polyfill-php80": "v1.22.0",
+
+        "tsugi/lib": "dev-master#bcd61f0177559b1a5024dce51be544a0c6b377f0",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {
