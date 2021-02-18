@@ -97,6 +97,7 @@ array( "{$CFG->dbprefix}lti_key",
     caliper_key         TEXT NULL,
 
     json                MEDIUMTEXT NULL,
+    user_json           MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
@@ -206,6 +207,7 @@ array( "{$CFG->dbprefix}lti_context",
     lessons             MEDIUMTEXT NULL,
 
     json                MEDIUMTEXT NULL,
+    user_json           MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
     settings_url        TEXT NULL,
     ext_memberships_id  TEXT NULL,
@@ -677,9 +679,11 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('profile', 'google_translate', 'TINYINT(1) NOT NULL DEFAULT 0'),
         array('lti_link', 'lti13_lineitem', 'TEXT NULL'),
         array('lti_context', 'lti13_lineitems', 'TEXT NULL'),
+        array('lti_context', 'user_json', 'MEDIUMTEXT NULL'),
         array('lti_context', 'lti13_membership_url', 'TEXT NULL'),
         array('lti_key', 'deploy_key', 'TEXT NULL'),
         array('lti_key', 'issuer_id', 'INTEGER NULL'),
+        array('lti_key', 'user_json', 'MEDIUMTEXT NULL'),
         array('lti_issuer', 'lti13_token_audience', 'TEXT NULL'),
     );
 
