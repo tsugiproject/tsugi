@@ -194,7 +194,11 @@ class CrudForm {
         }
         if ( is_array($extra_buttons) ) {
             foreach($extra_buttons as $button_text => $button_url ) {
-                echo('<a href="'.$button_url.'" class="btn btn-success">'._m($button_text).'</a>'."\n");
+                if ( is_string($button_url) && strpos($button_url, "<a href=") === 0 ) {
+                    echo($button_url."\n");
+                } else {
+                    echo('<a href="'.$button_url.'" class="btn btn-success">'._m($button_text).'</a>'."\n");
+                }
             }
         }
         if ( $allow_delete ) {

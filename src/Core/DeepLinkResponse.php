@@ -27,14 +27,14 @@ class DeepLinkResponse extends \Tsugi\Util\DeepLinkResponse {
      *
      */
     function prepareResponse($endform=false, $debug=false, $iframeattr=false) {
-        global $LAUNCH;
+        global $TSUGI_LAUNCH;
 
         $params = $this->getContentItemSelection();
         $return_url = $this->returnUrl();
 
 
         $debug_log = array();
-        $issuer = $LAUNCH->ltiParameter('issuer_client');
+        $issuer = $TSUGI_LAUNCH->ltiParameter('issuer_client');
         $jwt = LTI13::base_jwt($issuer, 'subject', $debug_log);
 
         // Yup this is weird - nonce is not a jwt concept in general

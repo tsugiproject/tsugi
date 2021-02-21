@@ -25,6 +25,7 @@ trait SettingsTrait {
         global $CFG;
         $name = $this->ENTITY_NAME;
         $retval = $this->ltiParameter($name."_settings", false);
+        $inSession = $retval !== false;
 
         // Null means in the session - false means not in the session
         if ( $retval === null || ( is_string($retval) && strlen($retval) < 1 ) ) {
