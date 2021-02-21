@@ -18,6 +18,8 @@ $set = new \Tsugi\UI\MenuSet();
 
 $submenu = new \Tsugi\UI\Menu();
 
+$settignsDialog = new \Tsugi\UI\SettingsDialog();
+
 $cc_dom = new \Tsugi\Util\CC();
 
 $client = new \Google_Client();
