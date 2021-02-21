@@ -51,6 +51,7 @@ trait SessionTrait {
      * Pull a keyed variable from the original LTI post data in the current session with default
      */
     public function ltiParameter($varname, $default=false) {
+        if ( ! isset($this->launch) ) return $default;
         return $this->launch->ltiParameter($varname, $default);
     }
 
@@ -58,6 +59,7 @@ trait SessionTrait {
      * Update a keyed variable from the original LTI post data in the current session with default
      */
     public function ltiParameterUpdate($varname, $value) {
+        if ( ! isset($this->launch) ) return;
         return $this->launch->ltiParameterUpdate($varname, $value);
     }
 
@@ -66,6 +68,7 @@ trait SessionTrait {
      * Pull a keyed variable from the original LTI post data in the current session with default
      */
     public function ltiRawParameter($varname, $default=false) {
+        if ( ! isset($this->launch) ) return $default;
         return $this->launch->ltiRawParameter($varname, $default);
     }
 
@@ -74,8 +77,8 @@ trait SessionTrait {
      * include the "custom_" prefix - this is automatic.
      */
     public function ltiCustomGet($varname, $default=false) {
+        if ( ! isset($this->launch) ) return $default;
         return $this->launch->ltiCustomGet($varname, $default);
     }
-
 
 }

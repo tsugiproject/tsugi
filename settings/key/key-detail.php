@@ -6,6 +6,7 @@ require_once("../../config.php");
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\CrudForm;
+use \Tsugi\UI\SettingsDialog;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -45,6 +46,21 @@ $titles = array(
 $where_clause .= "user_id = :UID";
 $query_fields[":UID"] = $_SESSION['id'];
 
+// Load the row - to check a few things
+$sql = CrudForm::selectSql($tablename, $fields, $where_clause);
+$oldrow = $PDOX->rowDie($sql, $query_fields);
+if ( $oldrow === false ) {
+    $_SESSION['error'] = "Unable to retrieve row";
+    header("Location: ".$from_location);
+    return;
+}
+
+if ( U::get($_POST,'key_key') && U::get($_POST,'key_key') != $oldrow['key_key'] ) {
+    $_SESSION['error'] = "Cannot change key value";
+    header("Location: ".$from_location);
+    return;
+}
+
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
     $query_fields, $allow_edit, $allow_delete, $titles);
@@ -63,14 +79,38 @@ if ( ! $inedit && U::get($row, 'issuer_id') > 0 ) {
     }
 }
 
+// Make settings work
+$key = new \Tsugi\Core\Key();
+$key->id = $row['key_id'];
+$key->title = $row['key_title'];
+$launch = new \Tsugi\Core\Launch();
+$launch->pdox = $PDOX;
+$key->launch = $launch;
+
+$settingsDialog = new \Tsugi\UI\SettingsDialog($key);
+$settingsDialog->instructor_override = true;
+$settingsDialog->ready_override = true;
+if ( $settingsDialog->handleSettingsPost() ) {
+    $_SESSION['success'] = __('Settings updated');
+    header( 'Location: '.addSession('key-detail.php?key_id='.htmlentities($_REQUEST['key_id'])) ) ;
+    return;
+}
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-$title = "Key Entry";
+$title = __("Key Detail");
 echo("<h1>$title</h1>\n<p>\n");
-$extra_buttons = false;
+$extra_buttons = array(
+    __('Settings') => '<a href="#" class="btn btn-success" '.$settingsDialog->attr().'>'.__('Settings').'</a>'."\n",
+);
+
+$settingsDialog->start();
+$settingsDialog->color('primary-menu',__('Menu background color.'));
+$settingsDialog->end();
+
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, $extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
@@ -102,6 +142,8 @@ $(document).ready( function() {
             '<i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button>' +
             '</p>'
         );
+        document.getElementById("key_key").readOnly = true;
+        document.getElementById("key_key").disabled = true;
 });
 </script>
 
