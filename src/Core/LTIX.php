@@ -841,6 +841,11 @@ class LTIX {
         $retval['lineitems_url'] = isset($FIXED['lineitems_url']) ? $FIXED['lineitems_url'] : null;
         $retval['memberships_url'] = isset($FIXED['memberships_url']) ? $FIXED['memberships_url'] : null;
 
+        // Copy the settings into session
+        $retval['link_settings'] = isset($FIXED['link_settings']) ? $FIXED['link_settings'] : null;
+        $retval['context_settings'] = isset($FIXED['context_settings']) ? $FIXED['context_settings'] : null;
+        $retval['key_settings'] = isset($FIXED['key_settings']) ? $FIXED['key_settings'] : null;
+
         // Context
         $retval['context_title'] = isset($FIXED['context_title']) ? $FIXED['context_title'] : null;
         $retval['link_title'] = isset($FIXED['resource_link_title']) ? $FIXED['resource_link_title'] : null;
@@ -1114,14 +1119,15 @@ class LTIX {
         }
 
         $sql .= "k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
-            k.login_at AS key_login_at,
+            k.login_at AS key_login_at, k.settings AS key_settings,
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
             c.ext_memberships_id AS ext_memberships_id, c.ext_memberships_url AS ext_memberships_url,
             c.lineitems_url AS lineitems_url, c.memberships_url AS memberships_url,
             c.lti13_lineitems AS lti13_lineitems, c.lti13_membership_url AS lti13_membership_url,
+            c.settings AS context_settings,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
-            l.lti13_lineitem AS lti13_lineitem,
+            l.lti13_lineitem AS lti13_lineitem, l.settings AS link_settings,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email, user_key, u.image AS user_image,
             u.locale AS user_locale,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
