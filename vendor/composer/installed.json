@@ -5941,12 +5941,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "887faaa9e17d3ba5be17f52e4fc3faa0fd7243d7"
+                "reference": "50a9a591dbd39d35c0c0a5d321b303d7dfb304a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/887faaa9e17d3ba5be17f52e4fc3faa0fd7243d7",
-                "reference": "887faaa9e17d3ba5be17f52e4fc3faa0fd7243d7",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/50a9a591dbd39d35c0c0a5d321b303d7dfb304a3",
+                "reference": "50a9a591dbd39d35c0c0a5d321b303d7dfb304a3",
                 "shasum": ""
             },
             "require": {

@@ -92,6 +92,8 @@ $settingsDialog->instructor_override = true;
 $settingsDialog->ready_override = true;
 if ( $settingsDialog->handleSettingsPost() ) {
     $_SESSION['success'] = __('Settings updated');
+    // Don't want this to effect the current logged in user
+    unset($_SESSION['key_settings']);
     header( 'Location: '.addSession('key-detail.php?key_id='.htmlentities($_REQUEST['key_id'])) ) ;
     return;
 }
