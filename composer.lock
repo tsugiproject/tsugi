@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "afa77891b0f291f616e0ccd1b0d78fa5",
+    "content-hash": "974af4908845207fa5c9d511f0c8fa30",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -6123,12 +6123,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "69b6b00aa17977efa801b1cfe551ceb601b48663"
+                "reference": "fb4464636da370ad4b4a1b41bcc58d127b8a61a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/69b6b00aa17977efa801b1cfe551ceb601b48663",
-                "reference": "69b6b00aa17977efa801b1cfe551ceb601b48663",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/fb4464636da370ad4b4a1b41bcc58d127b8a61a0",
+                "reference": "fb4464636da370ad4b4a1b41bcc58d127b8a61a0",
                 "shasum": ""
             },
             "require": {
@@ -6171,7 +6171,7 @@
                 "issues": "https://github.com/tsugiproject/tsugi-php/issues",
                 "source": "https://github.com/tsugiproject/tsugi-php/tree/master"
             },
-            "time": "2021-02-18T18:02:39+00:00"
+            "time": "2021-02-21T16:23:14+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

@@ -1993,7 +1993,7 @@ class LTIX {
     }
 
     public static function buildLaunch($LTI, $session_object=null) {
-        global $CFG, $TSUGI_LAUNCH;
+        global $CFG, $TSUGI_LAUNCH, $TSUGI_KEY;
         global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
 
         if ( ! isset($TSUGI_LAUNCH) ) {
@@ -2021,6 +2021,16 @@ class LTIX {
             $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
             $USER->admin = isset($LTI['role']) && $LTI['role'] >= self::ROLE_ADMINISTRATOR;
             $TSUGI_LAUNCH->user = $USER;
+        }
+
+        if ( isset($LTI['key_id']) && ! is_object($TSUGI_KEY) ) {
+            $TSUGI_KEY = new \Tsugi\Core\Key();
+            $TSUGI_KEY->launch = $TSUGI_LAUNCH;
+            $TSUGI_KEY->id = $LTI['key_id'];
+            if (isset($LTI['key_title']) ) $TSUGI_KEY->title = $LTI['key_title'];
+            if (isset($LTI['key_key']) ) $TSUGI_KEY->key = $LTI['key_key'];
+            if (isset($LTI['secret']) ) $TSUGI_KEY->secret = $LTI['secret'];
+            $TSUGI_LAUNCH->key = $TSUGI_KEY;
         }
 
         if ( isset($LTI['context_id']) && ! is_object($CONTEXT) ) {

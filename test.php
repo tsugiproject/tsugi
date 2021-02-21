@@ -7,8 +7,11 @@ if ( ! \Tsugi\Util\U::isCLI() ) die('Can only be run from the command line');
 
 $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__),'http://localhost');
 
-
 $LAUNCH = new \Tsugi\Core\LTIX();
+$key = new \Tsugi\Core\Key();
+$context = new \Tsugi\Core\Context();
+$link = new \Tsugi\Core\Link();
+$user = new \Tsugi\Core\User();
 
 $OUTPUT = new \Tsugi\UI\Output();
 
@@ -18,7 +21,7 @@ $set = new \Tsugi\UI\MenuSet();
 
 $submenu = new \Tsugi\UI\Menu();
 
-$settignsDialog = new \Tsugi\UI\SettingsDialog();
+$settingsDialog = new \Tsugi\UI\SettingsDialog();
 
 $cc_dom = new \Tsugi\Util\CC();
 
