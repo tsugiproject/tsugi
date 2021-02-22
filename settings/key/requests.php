@@ -183,9 +183,9 @@ connect to Google Classroom and install tools.
         <h4 class="modal-title">Request an API Key</h4>
       </div>
       <div class="modal-body">
-            <p>Please how you will be using the key below (i.e. the course you are
-            teaching and the school where you are teaching).
-            Students do not need a key to use this site.</p>
+            <p>Please indicate how you will be using the key below (i.e. the school where you are
+            teaching and if applicable the course you are teaching).
+            Students do not need a key to use this site.  Keys are for instructors to use in an LMS.</p>
             </p>
             <div class="form-group">
                 <label for="request_name">Name:</label>
@@ -198,7 +198,7 @@ connect to Google Classroom and install tools.
                 value="<?php echo(htmlent_utf8($_SESSION['email'])); ?>">
             </div>
             <div class="form-group">
-                <label for="request_title">Course Title: (Required)</label>
+                <label for="request_title">Key Title: (Required)</label>
                 <input type="name" class="form-control" id="request_title" name="title" required="required">
             </div>
 

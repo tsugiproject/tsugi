@@ -829,12 +829,13 @@ $('a').each(function (x) {
      * (2) If we are launched via LTI w/o a session
      */
     function topNav($tool_menu=false) {
-        global $CFG, $LAUNCH;
+        global $CFG, $TSUGI_LAUNCH;
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
-        $launch_return_url = $LAUNCH->ltiRawParameter('launch_presentation_return_url', false);
+
+        $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
         // Ways to know if this was a launch or are we stand alone
-        $user_id = $LAUNCH->ltiRawParameter('user_id', false);
-        $oauth_nonce = $LAUNCH->ltiRawParameter('oauth_nonce', false);
+        $user_id = LTIX::ltiRawParameter('user_id', false);
+        $oauth_nonce = LTIX::ltiRawParameter('oauth_nonce', false);
 
         $same_host = false;
         if ( $CFG->apphome && startsWith($launch_return_url, $CFG->apphome) ) $same_host = true;
@@ -853,10 +854,10 @@ $('a').each(function (x) {
         } else if ( $launch_target !== false && strtolower($launch_target) == 'window' ) {
             $menu_set = self::closeMenuSet();
         // Since Coursers sets precious little
-        } else if ( $LAUNCH->isCoursera() ) {
+        } else if ( is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->isCoursera() ) {
             $menu_set = self::closeMenuSet();
         // Since canvas does not set launch_target properly
-        } else if ( $launch_target !== false && ( $LAUNCH->isCanvas() || $LAUNCH->isCoursera() ) ) {
+        } else if ( $launch_target !== false && is_object($TSUGI_LAUNCH) && ( $TSUGI_LAUNCH->isCanvas() || $TSUGI_LAUNCH->isCoursera() ) ) {
             $menu_set = self::closeMenuSet();
         } else if ( $launch_return_url !== false && strlen($launch_return_url) > 0 ) {
             $menu_set = self::returnMenuSet($launch_return_url);
@@ -942,7 +943,7 @@ $('a').each(function (x) {
     }
 
     function menuNav($set, $is_tool_menu = false) {
-        global $CFG, $LAUNCH;
+        global $CFG, $TSUGI_LAUNCH;
 
         if ( $is_tool_menu ) {
             $retval = '<nav class="navbar navbar-default" role="navigation" id="tsugi_tool_nav_bar">';
@@ -1314,36 +1315,39 @@ EOF;
         ini_set('zlib.output_compression', false);
     }
 
-    public static function theme_defaults() {
+    public static function theme_defaults($theme=false) {
+        if ( ! is_array($theme) ) $theme = array();
+        $primary = U::get($theme, 'primary', '#0D47A1');
+        $secondary = U::get($theme, 'secondary', '#EEEEEE');
         return array(
-            "primary" => '#0D47A1',
-            "primary-menu" => '#0D47A1',
-            "primary-border" => self::adjustBrightness('#0D47A1',-0.075),
-            "primary-darker" => self::adjustBrightness('#0D47A1',-0.1),
-            "primary-darkest" => self::adjustBrightness('#0D47A1',-0.175),
-            'secondary' => '#EEEEEE',
-            'background-color' => '#EEEEEE',
-            "secondary" => '#EEEEEE',
-            "secondary-menu" => '#EEEEEE',
-            "text" => '#111111',
-            "text-light" => '#5E5E5E',
-            "font-family" => 'sans-serif',
-            "font-size" => '14px',
+            "primary" => U::get($theme, 'primary', $primary),
+            "primary-menu" => U::get($theme, 'primary-menu', $primary),
+            "primary-border" => U::get($theme, 'primary-border', self::adjustBrightness($primary,-0.075)),
+            "primary-darker" => U::get($theme, 'primary-darker', self::adjustBrightness($primary,-0.1)),
+            "primary-darkest" => U::get($theme, 'primary-darkest', self::adjustBrightness($primary,-0.175)),
+            'background-color' => U::get($theme, 'background-color', '#FFFFFF'),
+            "secondary" => U::get($theme, 'secondary', $secondary),
+            "secondary-menu" => U::get($theme, 'secondary-menu', $secondary),
+            "text" => U::get($theme, 'text', '#111111'),
+            "text-light" => U::get($theme, 'text-light', '#5E5E5E'),
+            "font-family" => U::get($theme, 'font-family', 'sans-serif'),
+            "font-size" => U::get($theme, 'font-size', '14px'),
         );
     }
 
     /**
      * Get the theme from various places based on the following precedence
      *
-     * (1) From a Link Setting
-     * (2) From a Context Setting
-     * (3) From a custom variable prefixed by "tsugi_theme_"
-     * (4) From the $CFG->theme variable (parameter to this routine)
-     * (5) The tsugi default value
+     * (1) From a custom variable prefixed by "tsugi_theme_"
+     * (2) From a Link Setting
+     * (3) From a Context Setting
+     * (4) From a Key Setting
+     * (5) From the $CFG->theme variable (parameter to this routine)
+     * (7) The tsugi default value
      */
     public static function themeValue($theme, $name) {
-        global $LAUNCH, $LINK, $CONTEXT;
-        $theme_defaults = self::theme_defaults();
+        global $TSUGI_LAUNCH, $TSUGI_KEY, $LINK, $CONTEXT;
+        $theme_defaults = self::theme_defaults($theme);
 
         $retval = $theme_defaults[$name];
         if ( is_array($theme) ) {
@@ -1351,22 +1355,30 @@ EOF;
             if ( U::isValidCSSColor($check) ) $retval = $check;
         }
 
-        // LTI 1.1 custom values map dashes to underscores :(
-        $check = $LAUNCH->ltiCustomGet('tsugi_theme_'.LTI::mapCustomName($name), $retval);
-        if ( U::isValidCSSColor($check) ) $retval = $check;
-
-        // Prefer exact match (i.e. with LTI 1.3)
-        $check = $LAUNCH->ltiCustomGet('tsugi_theme_'.$name, $retval);
-        if ( U::isValidCSSColor($check) ) $retval = $check;
+        if ( is_object($TSUGI_KEY) ) {
+            $check = $TSUGI_KEY->settingsGet($name, $retval);
+            if ( U::isValidCSSColor($check) ) $retval = $check;
+        }
 
         if ( is_object($CONTEXT) ) {
             $check = $CONTEXT->settingsGet($name, $retval);
             if ( U::isValidCSSColor($check) ) $retval = $check;
         }
+
         if ( is_object($LINK) ) {
             $check = $LINK->settingsGet($name, $retval);
             if ( U::isValidCSSColor($check) ) $retval = $check;
         }
+
+        if ( is_object($TSUGI_LAUNCH) ) {
+            // LTI 1.1 custom values map dashes to underscores :(
+            $check = $TSUGI_LAUNCH->ltiCustomGet('tsugi_theme_'.LTI::mapCustomName($name), $retval);
+            if ( U::isValidCSSColor($check) ) $retval = $check;
+            // Prefer exact match (i.e. with LTI 1.3)
+            $check = $TSUGI_LAUNCH->ltiCustomGet('tsugi_theme_'.$name, $retval);
+            if ( U::isValidCSSColor($check) ) $retval = $check;
+        }
+
         return $retval;
     }
 

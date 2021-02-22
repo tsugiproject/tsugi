@@ -14,6 +14,10 @@ class SettingsDialog {
     /* The container we will use - link or context */
     private $container;
 
+    /* Allow us to mock a dialog up up outside of a launch */
+    public $ready_override = false;
+    public $instructor_override = false;
+
     /**
      * Construct us with with a container that has a settings trait and launch
      *
@@ -35,6 +39,7 @@ class SettingsDialog {
      * Check if we are ready to go
      */
     function ready() {
+        if ( $this->ready_override ) return true;
         if ( ! is_object($this->container) ) return false;
         if ( ! is_object($this->container->launch) ) return false;
         if ( ! is_object($this->container->launch->user) ) return false;
@@ -47,6 +52,7 @@ class SettingsDialog {
     public function instructor()
     {
         if ( ! $this->ready() ) return false;
+        if ( $this->instructor_override ) return true;
         return $this->container->launch->user->instructor;
     }
         
@@ -267,6 +273,34 @@ class SettingsDialog {
         <div class="form-group">
             <label for="<?=$name?>"><?=htmlent_utf8($title)?></label>
             <input type="text" class="form-control" id="<?=$name?>" name="<?=$name?>" value="<?=htmlent_utf8($configured)?>">
+        </div>
+        <?php
+    }
+
+    /**
+     * Handle a settings color box
+     */
+    public function color($name, $title=false)
+    {
+        if ( ! $this->ready() ) return false;
+
+        $oldsettings = $this->container->settingsGetAll();
+        $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
+        if ( $title === false ) $title = $name;
+        if ( ! $this->instructor() ) {
+            if ( $configured === false || strlen($configured) < 1 ) {
+                echo('<p>'._m('Setting').' '.htmlent_utf8($name).' '._m('is not set').'</p>');
+            } else {
+                echo('<p>'.htmlent_utf8(ucwords($name)).' '._m('is set to').' '.htmlent_utf8($configured).'</p>');
+            }
+            return;
+        }
+
+        // Instructor view
+        ?>
+        <div class="form-group">
+            <label for="<?=$name?>"><?=htmlent_utf8($title)?></label>
+            <input type="color" class="form-control" id="<?=$name?>" name="<?=$name?>" value="<?=htmlent_utf8($configured)?>">
         </div>
         <?php
     }

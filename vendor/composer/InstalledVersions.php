@@ -24,24 +24,24 @@ class InstalledVersions
 private static $installed = array (
   'root' => 
   array (
-    'pretty_version' => 'dev-master',
-    'version' => 'dev-master',
+    'pretty_version' => '21.02.01.x-dev',
+    'version' => '21.02.01.9999999-dev',
     'aliases' => 
     array (
     ),
-    'reference' => 'd1bc97361e853cc9035ef66bda02d3606d84a92a',
+    'reference' => 'c86a3e41dfd3841930a84517c691d88fcd637eb7',
     'name' => '__root__',
   ),
   'versions' => 
   array (
     '__root__' => 
     array (
-      'pretty_version' => 'dev-master',
-      'version' => 'dev-master',
+      'pretty_version' => '21.02.01.x-dev',
+      'version' => '21.02.01.9999999-dev',
       'aliases' => 
       array (
       ),
-      'reference' => 'd1bc97361e853cc9035ef66bda02d3606d84a92a',
+      'reference' => 'c86a3e41dfd3841930a84517c691d88fcd637eb7',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -930,7 +930,7 @@ private static $installed = array (
       array (
         0 => '9999999-dev',
       ),
-      'reference' => 'fb4464636da370ad4b4a1b41bcc58d127b8a61a0',
+      'reference' => 'e1119cf731f0b0012ae0b19382dc5e08ca959721',
     ),
     'vlucas/phpdotenv' => 
     array (
