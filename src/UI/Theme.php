@@ -6,17 +6,20 @@ use \Tsugi\Util\Color;
     
 class Theme {
     
+    /**
+     * Take a color and move it along its luminance until it is halfway between
+     * a given dark color and white 
+     */
     public static function findLMidPointForHue($r, $g=false, $b=false, $dark=false) {
         // echo("findLMidPoint $r $g $b\n");
         if ( ! $dark ) $dark = "#000000";
         $rgb = Color::fixRgb($r, $g, $b);
-        // print_r($rgb);
         $hsl = self::rgbToHsl($rgb[0], $rgb[1], $rgb[2] );
-        // print_r($hsl);
         $h = $hsl[0];
         $s = $hsl[1];
         $l = $hsl[2];
         $lasttot = 100;  // > 21
+        // TODO: Find closed form way to solve this problem
         for($l = 0.0; $l <= 1.0; $l += 0.01 ) {
             $rgb = self::hslToRgb( $h, $s, $l );
             // print_r($rgb);
@@ -34,6 +37,10 @@ class Theme {
     
     }
     
+    /**
+     * Take a color, move a pair of colors outwards towards white and black
+     * until the colors are at least as far apart as $difference
+     */
     public static function luminosityPair($difference, $r, $g=false, $b=false) {
         // echo("luminosityPair $difference $r $g $b\n");
         $rgb = Color::fixRgb($r, $g, $b);
@@ -50,6 +57,7 @@ class Theme {
         $updist = 1.0 - $l;
         $downdist = $l;
         $increment = 0.01;
+        // TODO: Find closed form way to solve this problem
         for($d = 0.0; $d <= 1.0; $d += 0.01 ) {
             $downl =  $l - ($d * $downdist);
             $upl =  $l + ($d * $updist);
