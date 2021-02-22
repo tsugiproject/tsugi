@@ -1315,21 +1315,23 @@ EOF;
         ini_set('zlib.output_compression', false);
     }
 
-    public static function theme_defaults() {
+    public static function theme_defaults($theme=false) {
+        if ( ! is_array($theme) ) $theme = array();
+        $primary = U::get($theme, 'primary', '#0D47A1');
+        $secondary = U::get($theme, 'secondary', '#EEEEEE');
         return array(
-            "primary" => '#0D47A1',
-            "primary-menu" => '#0D47A1',
-            "primary-border" => self::adjustBrightness('#0D47A1',-0.075),
-            "primary-darker" => self::adjustBrightness('#0D47A1',-0.1),
-            "primary-darkest" => self::adjustBrightness('#0D47A1',-0.175),
-            'secondary' => '#EEEEEE',
-            'background-color' => '#EEEEEE',
-            "secondary" => '#EEEEEE',
-            "secondary-menu" => '#EEEEEE',
-            "text" => '#111111',
-            "text-light" => '#5E5E5E',
-            "font-family" => 'sans-serif',
-            "font-size" => '14px',
+            "primary" => U::get($theme, 'primary', $primary),
+            "primary-menu" => U::get($theme, 'primary-menu', $primary),
+            "primary-border" => U::get($theme, 'primary-border', self::adjustBrightness($primary,-0.075)),
+            "primary-darker" => U::get($theme, 'primary-darker', self::adjustBrightness($primary,-0.1)),
+            "primary-darkest" => U::get($theme, 'primary-darkest', self::adjustBrightness($primary,-0.175)),
+            'background-color' => U::get($theme, 'background-color', '#FFFFFF'),
+            "secondary" => U::get($theme, 'secondary', $secondary),
+            "secondary-menu" => U::get($theme, 'secondary-menu', $secondary),
+            "text" => U::get($theme, 'text', '#111111'),
+            "text-light" => U::get($theme, 'text-light', '#5E5E5E'),
+            "font-family" => U::get($theme, 'font-family', 'sans-serif'),
+            "font-size" => U::get($theme, 'font-size', '14px'),
         );
     }
 
@@ -1345,7 +1347,7 @@ EOF;
      */
     public static function themeValue($theme, $name) {
         global $TSUGI_LAUNCH, $TSUGI_KEY, $LINK, $CONTEXT;
-        $theme_defaults = self::theme_defaults();
+        $theme_defaults = self::theme_defaults($theme);
 
         $retval = $theme_defaults[$name];
         if ( is_array($theme) ) {
