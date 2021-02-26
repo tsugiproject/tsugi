@@ -1341,7 +1341,7 @@ EOF;
         // Construct a theme the old way
         $theme = array();
         if ( isset($CFG->theme) && is_array($CFG->theme) ) {
-            $theme = $CFG->theme();
+            $theme = $CFG->theme;
         }
 
         $theme = Theme::defaults($theme);
