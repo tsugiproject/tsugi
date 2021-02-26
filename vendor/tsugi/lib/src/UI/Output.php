@@ -196,11 +196,12 @@ class Output {
         <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
         <?php }
         
-        if (is_array($CFG->theme) && isset($CFG->theme["font-url"])) {
-            echo '<link href="'.$CFG->theme["font-url"].'" rel="stylesheet">';
+        $theme = self::get_theme();
+        if (isset($theme["font-url"])) {
+            echo '<link href="'.$theme["font-url"].'" rel="stylesheet">';
         }
         
-        self::theme($CFG->theme) ?>
+        self::output_theme_css($theme) ?>
 
           <link href="<?= $CFG->staticroot ?>/css/tsugi2.css" rel="stylesheet">
 
@@ -1223,12 +1224,12 @@ EOF;
     <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
 
       <?php
-      if (is_array($CFG->theme) && isset($CFG->theme["font-url"])) {
-          echo '<link href="'.$CFG->theme["font-url"].'" rel="stylesheet">';
-      }
-      ?>
-
-      <?= self::theme($CFG->theme) ?>
+        $theme = self::get_theme();
+        if (isset($theme["font-url"])) {
+            echo '<link href="'.$theme["font-url"].'" rel="stylesheet">';
+        }
+        
+        self::output_theme_css($theme) ?>
 
       <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
    </head>
@@ -1316,56 +1317,75 @@ EOF;
         ini_set('zlib.output_compression', false);
     }
 
-    /**
-     * Get the theme from various places based on the following precedence
-     *
-     * (1) From a custom variable prefixed by "tsugi_theme_"
-     * (2) From a Link Setting
-     * (3) From a Context Setting
-     * (4) From a Key Setting
-     * (5) From the $CFG->theme variable (parameter to this routine)
-     * (7) The tsugi default value
-     */
-    public static function themeValue($theme, $name) {
-        global $TSUGI_LAUNCH, $TSUGI_KEY, $LINK, $CONTEXT;
-        $theme_defaults = Theme::defaults($theme);
-
-        $retval = $theme_defaults[$name];
-        if ( is_array($theme) ) {
-            $check = U::get($theme, $name, $retval);
-            if ( U::isValidCSSColor($check) ) $retval = $check;
-        }
-
-        if ( is_object($TSUGI_KEY) ) {
-            $check = $TSUGI_KEY->settingsGet($name, $retval);
-            if ( U::isValidCSSColor($check) ) $retval = $check;
-        }
-
-        if ( is_object($CONTEXT) ) {
-            $check = $CONTEXT->settingsGet($name, $retval);
-            if ( U::isValidCSSColor($check) ) $retval = $check;
-        }
-
-        if ( is_object($LINK) ) {
-            $check = $LINK->settingsGet($name, $retval);
-            if ( U::isValidCSSColor($check) ) $retval = $check;
-        }
+    public static function get_theme() {
+        global $CFG;
+        global $TSUGI_LAUNCH;
 
         if ( is_object($TSUGI_LAUNCH) ) {
-            // LTI 1.1 custom values map dashes to underscores :(
-            $check = $TSUGI_LAUNCH->ltiCustomGet('tsugi_theme_'.LTI::mapCustomName($name), $retval);
-            if ( U::isValidCSSColor($check) ) $retval = $check;
-            // Prefer exact match (i.e. with LTI 1.3)
-            $check = $TSUGI_LAUNCH->ltiCustomGet('tsugi_theme_'.$name, $retval);
-            if ( U::isValidCSSColor($check) ) $retval = $check;
+            $theme = $TSUGI_LAUNCH->session_get('tsugi_theme');
+            if ( is_array($theme) ) return $theme;
         }
-        return $retval;
+        
+        $theme = array();
+        if ( isset($CFG->theme) && is_array($CFG->theme) ) {
+            $theme = $CFG->theme();
+        }
+
+        $theme = Theme::defaults($theme);
+        self::adjust_theme($theme);
+
+        if ( is_object($TSUGI_LAUNCH) ) {
+            $TSUGI_LAUNCH->session_put('tsugi_theme', $theme);
+        }
+
+        return $theme;
     }
 
-    public static function theme($theme) {
+    /**
+     * Adjust the theme from various places based on the following low-to-high precedence
+     *
+     * (4) From a Key Setting
+     * (3) From a Context Setting
+     * (2) From a Link Setting
+     * (1) From a custom launch variable prefixed by "tsugi_theme_"
+     */
+    public static function adjust_theme(&$theme) {
+        global $TSUGI_LAUNCH, $TSUGI_KEY, $LINK, $CONTEXT;
+
+        $copy = $theme;
+
+        foreach($copy as $name => $value ) {
+            if ( is_object($TSUGI_KEY) ) {
+                $check = $TSUGI_KEY->settingsGet($name, $value);
+                if ( U::isValidCSSColor($check) ) $value = $check;
+            }
+
+            if ( is_object($CONTEXT) ) {
+                $check = $CONTEXT->settingsGet($name, $value);
+                if ( U::isValidCSSColor($check) ) $value = $check;
+            }
+
+            if ( is_object($LINK) ) {
+                $check = $LINK->settingsGet($name, $value);
+                if ( U::isValidCSSColor($check) ) $value = $check;
+            }
+
+            if ( is_object($TSUGI_LAUNCH) ) {
+                // LTI 1.1 custom values map dashes to underscores :(
+                $check = $TSUGI_LAUNCH->ltiCustomGet('tsugi_theme_'.LTI::mapCustomName($name), $value);
+                if ( U::isValidCSSColor($check) ) $value = $check;
+                // Prefer exact match (i.e. with LTI 1.3)
+                $check = $TSUGI_LAUNCH->ltiCustomGet('tsugi_theme_'.$name, $value);
+                if ( U::isValidCSSColor($check) ) $value = $check;
+            }
+            $theme[$name] = $value;
+        }
+    }
+
+    public static function output_theme_css($theme) {
+
         $style = '<style>:root {';
-        foreach(Theme::defaults() as $name => $value ) {
-            $value = self::themeValue($theme, $name);
+        foreach($theme as $name => $value ) {
             $style .= '--'.$name.':'.$value.";\n";
         }
         $style .= '}</style>';
