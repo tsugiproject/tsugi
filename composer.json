@@ -19,7 +19,7 @@
         "symfony/polyfill-php73": "v1.22.0",
         "symfony/polyfill-php80": "v1.22.0",
 
-        "tsugi/lib": "dev-master#b93d43f8dcc071198d8c5b36135db8f4064394c6",
+        "tsugi/lib": "dev-master#e9adea2670d239818debc42e8ab8da9fdbcdcdc6",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {
