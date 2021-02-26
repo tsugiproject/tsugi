@@ -1,24 +1,24 @@
 <?php return array (
   'root' => 
   array (
-    'pretty_version' => '21.02.01.x-dev',
-    'version' => '21.02.01.9999999-dev',
+    'pretty_version' => 'dev-master',
+    'version' => 'dev-master',
     'aliases' => 
     array (
     ),
-    'reference' => 'c86a3e41dfd3841930a84517c691d88fcd637eb7',
+    'reference' => '4f16e905e1fe9a6199374475557e0f754ef135c8',
     'name' => '__root__',
   ),
   'versions' => 
   array (
     '__root__' => 
     array (
-      'pretty_version' => '21.02.01.x-dev',
-      'version' => '21.02.01.9999999-dev',
+      'pretty_version' => 'dev-master',
+      'version' => 'dev-master',
       'aliases' => 
       array (
       ),
-      'reference' => 'c86a3e41dfd3841930a84517c691d88fcd637eb7',
+      'reference' => '4f16e905e1fe9a6199374475557e0f754ef135c8',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -907,7 +907,7 @@
       array (
         0 => '9999999-dev',
       ),
-      'reference' => 'e1119cf731f0b0012ae0b19382dc5e08ca959721',
+      'reference' => 'bb02e404be801eb6393bf0d7a42366c18c917c84',
     ),
     'vlucas/phpdotenv' => 
     array (
