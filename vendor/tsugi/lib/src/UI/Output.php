@@ -8,6 +8,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Core\WebSocket;
 use \Tsugi\Crypt\SecureCookie;
 use Tsugi\UI\HandleBars;
+use Tsugi\UI\Theme;
 
 /**
  * This is a class that captures the output conventions of Tusgi.
@@ -1315,26 +1316,6 @@ EOF;
         ini_set('zlib.output_compression', false);
     }
 
-    public static function theme_defaults($theme=false) {
-        if ( ! is_array($theme) ) $theme = array();
-        $primary = U::get($theme, 'primary', '#0D47A1');
-        $secondary = U::get($theme, 'secondary', '#EEEEEE');
-        return array(
-            "primary" => U::get($theme, 'primary', $primary),
-            "primary-menu" => U::get($theme, 'primary-menu', $primary),
-            "primary-border" => U::get($theme, 'primary-border', self::adjustBrightness($primary,-0.075)),
-            "primary-darker" => U::get($theme, 'primary-darker', self::adjustBrightness($primary,-0.1)),
-            "primary-darkest" => U::get($theme, 'primary-darkest', self::adjustBrightness($primary,-0.175)),
-            'background-color' => U::get($theme, 'background-color', '#FFFFFF'),
-            "secondary" => U::get($theme, 'secondary', $secondary),
-            "secondary-menu" => U::get($theme, 'secondary-menu', $secondary),
-            "text" => U::get($theme, 'text', '#111111'),
-            "text-light" => U::get($theme, 'text-light', '#5E5E5E'),
-            "font-family" => U::get($theme, 'font-family', 'sans-serif'),
-            "font-size" => U::get($theme, 'font-size', '14px'),
-        );
-    }
-
     /**
      * Get the theme from various places based on the following precedence
      *
@@ -1347,7 +1328,7 @@ EOF;
      */
     public static function themeValue($theme, $name) {
         global $TSUGI_LAUNCH, $TSUGI_KEY, $LINK, $CONTEXT;
-        $theme_defaults = self::theme_defaults($theme);
+        $theme_defaults = Theme::defaults($theme);
 
         $retval = $theme_defaults[$name];
         if ( is_array($theme) ) {
@@ -1378,47 +1359,17 @@ EOF;
             $check = $TSUGI_LAUNCH->ltiCustomGet('tsugi_theme_'.$name, $retval);
             if ( U::isValidCSSColor($check) ) $retval = $check;
         }
-
         return $retval;
     }
 
     public static function theme($theme) {
         $style = '<style>:root {';
-        foreach(self::theme_defaults() as $name => $value ) {
+        foreach(Theme::defaults() as $name => $value ) {
             $value = self::themeValue($theme, $name);
             $style .= '--'.$name.':'.$value.";\n";
         }
         $style .= '}</style>';
         echo($style);
-    }
-
-    /**
-    * From https://stackoverflow.com/questions/3512311/how-to-generate-lighter-darker-color-with-php
-    *
-    * Increases or decreases the brightness of a color by a percentage of the current brightness.
-    *
-    * @param   string  $hexCode        Supported formats: `#FFF`, `#FFFFFF`, `FFF`, `FFFFFF`
-    * @param   float   $adjustPercent  A number between -1 and 1. E.g. 0.3 = 30% lighter; -0.4 = 40% darker.
-    *
-    * @return  string
-    */
-    private static function adjustBrightness($hexCode, $adjustPercent) {
-        $hexCode = ltrim($hexCode, '#');
-
-        if (strlen($hexCode) == 3) {
-            $hexCode = $hexCode[0] . $hexCode[0] . $hexCode[1] . $hexCode[1] . $hexCode[2] . $hexCode[2];
-        }
-
-        $hexCode = array_map('hexdec', str_split($hexCode, 2));
-
-        foreach ($hexCode as & $color) {
-            $adjustableLimit = $adjustPercent < 0 ? $color : 255 - $color;
-            $adjustAmount = ceil($adjustableLimit * $adjustPercent);
-
-            $color = str_pad(dechex($color + $adjustAmount), 2, '0', STR_PAD_LEFT);
-        }
-
-        return '#' . implode($hexCode);
     }
 
 }
