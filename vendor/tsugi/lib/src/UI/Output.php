@@ -1318,21 +1318,41 @@ EOF;
     }
 
     public static function get_theme() {
-        global $CFG;
-        global $TSUGI_LAUNCH;
+        global $CFG, $TSUGI_LAUNCH;
 
-        if ( is_object($TSUGI_LAUNCH) ) {
+        // TODO: Enable this
+        if ( false && is_object($TSUGI_LAUNCH) ) {
             $theme = $TSUGI_LAUNCH->session_get('tsugi_theme');
             if ( is_array($theme) ) return $theme;
         }
-        
+
+        // Check if we are to construct a theme
+        if ( is_object($TSUGI_LAUNCH) ) {
+            $theme_base = $TSUGI_LAUNCH->settingsCascade('theme-base', false);
+            $dark_mode = $TSUGI_LAUNCH->settingsCascade('theme-dark-mode', false);
+            $dark_mode = ($dark_mode == 'true') || ($dark_mode == 'yes');
+            if ( U::isValidCSSColor($theme_base) ) {
+                $theme = Theme::getLegacyTheme($theme_base, $dark_mode);
+                $TSUGI_LAUNCH->session_put('tsugi_theme', $theme);
+                return $theme;
+            }
+        }
+
+        // Construct a theme the old way
         $theme = array();
         if ( isset($CFG->theme) && is_array($CFG->theme) ) {
             $theme = $CFG->theme();
         }
 
         $theme = Theme::defaults($theme);
-        self::adjust_theme($theme);
+
+        // Check for individual overides from link, context, key, or launch
+        foreach($theme as $name => $value ) {
+            if ( is_object($TSUGI_LAUNCH) ) {
+                $check = $TSUGI_LAUNCH->settingsCascade($name, $value);
+                if ( U::isValidCSSColor($check) ) $theme[$name] = $check;
+            }
+        }
 
         if ( is_object($TSUGI_LAUNCH) ) {
             $TSUGI_LAUNCH->session_put('tsugi_theme', $theme);
@@ -1354,32 +1374,6 @@ EOF;
 
         $copy = $theme;
 
-        foreach($copy as $name => $value ) {
-            if ( is_object($TSUGI_KEY) ) {
-                $check = $TSUGI_KEY->settingsGet($name, $value);
-                if ( U::isValidCSSColor($check) ) $value = $check;
-            }
-
-            if ( is_object($CONTEXT) ) {
-                $check = $CONTEXT->settingsGet($name, $value);
-                if ( U::isValidCSSColor($check) ) $value = $check;
-            }
-
-            if ( is_object($LINK) ) {
-                $check = $LINK->settingsGet($name, $value);
-                if ( U::isValidCSSColor($check) ) $value = $check;
-            }
-
-            if ( is_object($TSUGI_LAUNCH) ) {
-                // LTI 1.1 custom values map dashes to underscores :(
-                $check = $TSUGI_LAUNCH->ltiCustomGet('tsugi_theme_'.LTI::mapCustomName($name), $value);
-                if ( U::isValidCSSColor($check) ) $value = $check;
-                // Prefer exact match (i.e. with LTI 1.3)
-                $check = $TSUGI_LAUNCH->ltiCustomGet('tsugi_theme_'.$name, $value);
-                if ( U::isValidCSSColor($check) ) $value = $check;
-            }
-            $theme[$name] = $value;
-        }
     }
 
     public static function output_theme_css($theme) {
