@@ -2,6 +2,7 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Util\LTI;
 use \Tsugi\Util\LTI13;
 use \Tsugi\Util\LTIConstants;
 use \Tsugi\UI\Output;
@@ -195,6 +196,39 @@ class Launch {
             return $default;
         }
         return $this->ltiRawParameter('custom_'.$varname, $default);
+    }
+
+    /**
+     * Check for a setting starting nearby
+     *
+     * This routine looks for a key based on the following low-to-high precedence:
+     *
+     * (4) From a Key Setting
+     * (3) From a Context Setting
+     * (2) From a Link Setting
+     * (1) From a custom launch variable prefixed by "tsugi_setting"
+     */
+    public function settingsCascade($key, $retval=null)
+    {
+        if ( is_object($this->key) ) {
+            $retval = $this->key->settingsGet($key, $retval);
+        }
+
+        if ( is_object($this->context) ) {
+            $retval = $this->context->settingsGet($key, $retval);
+        }
+
+        if ( is_object($this->link) ) {
+            $retval = $this->link->settingsGet($key, $retval);
+        }
+
+        // LTI 1.1 custom values map dashes to underscores :(
+        $retval = $this->ltiCustomGet('tsugi_setting_'.LTI::mapCustomName($key), $retval);
+
+        // Prefer exact match (i.e. with LTI 1.3)
+        $retval = $this->ltiCustomGet('tsugi_setting_'.$key, $retval);
+
+        return $retval;
     }
 
     /**
