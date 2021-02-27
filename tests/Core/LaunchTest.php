@@ -6,6 +6,8 @@ require_once "src/Util/PDOX.php";
 require_once "src/Util/LTIConstants.php";
 require_once "tests/Mock/MockSession.php";
 
+// We can't include Key, Context, User, or Link because SettingsTrait :(
+
 use \Tsugi\Core\LTIX;
 
 class LaunchTest extends \PHPUnit\Framework\TestCase
@@ -62,6 +64,14 @@ class LaunchTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($launch->isCanvas());
         $this->assertFalse($launch->isMoodle());
         $this->assertFalse($launch->isCoursera());
+    }
+
+    public function testCascadeSetting() {
+        $sess = new MockSession();
+        $launch = new \Tsugi\Core\Launch();
+        $launch->session_object = $sess;
+        $zap = $launch->settingsCascade('bob','sarah');
+        $this->assertEquals($zap, 'sarah');
     }
 
 
