@@ -1802,7 +1802,7 @@ class LTIX {
             $fields = "";
             foreach($data as $k => $v) {
                 $_SESSION[$k] = $data[$k];
-                if ( strlen($fields) < 50 ) $fields .= ' '.$k.'='.$data[$k];
+                if ( strlen($fields) < 50 && is_string($data[$k]) ) $fields .= ' '.$k.'='.$data[$k];
             }
             error_log("restoreLTISession copied ".count($data)." ".$session_id.$fields);
         } catch(\Exception $e) {
