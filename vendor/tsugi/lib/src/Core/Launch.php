@@ -16,6 +16,11 @@ class Launch {
     /**
      * Get the User associated with the launch.
      */
+    public $key;
+
+    /**
+     * Get the User associated with the launch.
+     */
     public $user;
 
     /**
@@ -210,11 +215,10 @@ class Launch {
      */
     public function settingsCascade($key, $retval=null)
     {
-        /*
         if ( is_object($this->key) ) {
             $retval = $this->key->settingsGet($key, $retval);
         }
-         */
+
         if ( is_object($this->context) ) {
             $retval = $this->context->settingsGet($key, $retval);
         }
