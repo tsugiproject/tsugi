@@ -85,7 +85,7 @@ class Table {
         if ( $orderfields == false ) $orderfields = $searchfields;
 
         $searchtext = '';
-        if ( count($searchfields) > 0 && isset($params['search_text']) ) {
+        if ( is_array($searchfields) && count($searchfields) > 0 && isset($params['search_text']) ) {
             for($i=0; $i < count($searchfields); $i++ ) {
                 if ( $i > 0 ) $searchtext .= " OR ";
                 $searchtext .= $searchfields[$i]." LIKE :SEARCH".$i;
@@ -99,7 +99,7 @@ class Table {
             if ( isset($params['desc']) && $params['desc'] == 1) {
                 $ordertext .= "DESC ";
             }
-        } else if ( count($orderfields) > 0 ) {
+        } else if ( is_array($orderfields) && count($orderfields) > 0 ) {
             $ordertext = $orderfields[0]." ";
         }
 
@@ -192,7 +192,7 @@ class Table {
         }
         echo("</div>\n");
         echo('<form>');
-        if ( $searchfields && count($searchfields) > 0 ) {
+        if ( is_array($searchfields) && count($searchfields) > 0 ) {
         echo('<input type="text" id="paged_search_box" value="'.htmlent_utf8($search).'" name="search_text">');
         Table::doForm($params,Array('search_text' => false, 'page_start' => false));
     ?>
