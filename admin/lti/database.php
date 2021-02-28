@@ -693,10 +693,10 @@ $DATABASE_UPGRADE = function($oldversion) {
             var_dump($add_field);
             continue;
         }
-        $table = $CFG->dbprefix . $add_field[0];
+        $table = $add_field[0];
         $column = $add_field[1];
         $type = $add_field[2];
-        if ( $PDOX->columnExists($column, $table ) ) continue;
+        if ( $PDOX->columnExists($column, "{$CFG->dbprefix}".$table ) ) continue;
         $sql= "ALTER TABLE {$CFG->dbprefix}$table ADD $column $type";
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
