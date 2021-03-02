@@ -33,6 +33,7 @@ $titles = array(
 
 if ( isset($_POST['issuer_id']) && strlen($_POST['issuer_id']) == 0 ) $_POST['issuer_id'] = null;
 if ( isset($_POST['key_key']) && strlen($_POST['key_key']) == 0 ) $_POST['key_key'] = null;
+if ( isset($_POST['user_id']) && strlen($_POST['user_id']) < 1 ) $_POST['user_id'] = $_SESSION['id'];
 
 // Check the complex interaction of constraints
 $key_key = U::get($_POST,'key_key');
@@ -61,32 +62,33 @@ $OUTPUT->flashMessages();
 <h1>Adding Tsugi Tenant/Key</h1>
 <p>
 A single entry in this table defines a "distinct tenant" in Tsugi.
-Data in Tsugi is isolated to a tenant.  You can route both
-LTI 1.1 and LTI 1.3 launches to one tenant by setting fields on
-this entry properly.
-</p>
+Data in Tsugi is isolated to a tenant.
+All keys need an <b>oauth_consumer_key</b> that must be unique in this system.
+To support LTI 1.1 launches you also also need to specify a <b>secret</b>.
+If this tenant will be LTI 1.3 only, the secret can be left blank.
 <p>
-For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
+For LTI 1.3, you need to set choose the <b>issuer</b> and set the <b>deployment_id</b> or
+these can be left blank and set by the LMS using the LTI 1.3 Auto Provisioning process.
+The LMS auto provisioning URL for this key will be shown after you create and view the key.
+See below for information about LTI 1.1 to LTI 1.3 migration.
 </p>
-<p>
-For LTI 1.3, you need to select the issuer and provide the <b>deployment_id</b>
-for this tenant from the LMS.  You must create the issuer before you can add
-the tenant.
-</p>
-<p>
-To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
-</p>
-<p>
-If this is a pre-existing LTI 1.1 tenant, the LMS must have the <b>oauth_consumer_key</b>
-and <b>secret</b> connected to its LTI 1.3 launches, and then Tsugi can link the accounts
-and courses regardless of the type of launch.  For this to work, the LMS must support
-LTI Advantage legacy LTI 1.1 support.
 <p>
 <?php
 
 CrudForm::insertForm($fields, $from_location, $titles);
 
 ?>
+</p>
+<p>
+To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
+If you are adding LTI 1.3 to a pre-existing LTI 1.1 tenant, the LMS must 
+support
+LTI Advantage legacy LTI 1.1 support as described in the 
+<a href="http://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim" target="_blank">
+IMS Learning Tools® Interoperability Migration Guide - Migration Claim
+</a>.   The LMS must sign the claim using both the LTI 1.1 and LTI 1.3 security data.
+The migration claim is not required - but if it is present, Tsugi will insist that it is properly
+signed or it will reject the launch.
 </p>
 <?php
 $OUTPUT->footerStart();
