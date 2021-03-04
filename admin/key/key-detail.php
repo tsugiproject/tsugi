@@ -107,7 +107,7 @@ $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?key_id=' . $row['ke
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
-$autoConfigUrl = $CFG->wwwroot . "/admin/key/auto?tsugi_key=" . $row['key_id'];
+$autoConfigUrl = $CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'];
 
 ?>
 <p>

@@ -117,7 +117,7 @@ $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_e
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 
-$autoConfigUrl = $from_location . "/auto?tsugi_key=" . $row['key_id'];
+$autoConfigUrl = $from_location . "/auto.php?tsugi_key=" . $row['key_id'];
 ?>
 <p>
 <b>LTI Advantage Auto Configuration URL:

@@ -46,7 +46,9 @@ if ( isset($_POST['passphrase']) ) {
     }
     $rest_path = \Tsugi\Util\U::rest_path();
     $redirect = U::reconstruct_query($rest_path->current);
-    header("Location: ".$redirect);
+    $redirect = U::addSession($redirect);
+
+    Output::doRedirect($redirect);
     $REDIRECTED = true;
     return;
 }

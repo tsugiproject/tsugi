@@ -1,5 +1,8 @@
 <?php
-if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
+# Do not use cookie session here. We might be in an iframe and unable to establish
+# a session - thanks trackers!.  Make sure the auto endpoint has the .php or
+# route.php will do cookie session.
+
 require_once("../../config.php");
 session_start();
 require_once("../gate.php");
