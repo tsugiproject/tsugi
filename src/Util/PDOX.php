@@ -88,12 +88,30 @@ class PDOX extends \PDO {
         if ( $arr !== FALSE && ! is_array($arr) ) $arr = Array($arr);
         $start = microtime(true);
         // debug_log($sql, $arr);
-        try {
-            $q = $this->prepare($sql);
-            if ( $arr === FALSE ) {
-                $success = $q->execute();
+
+        // Optionally patch the SQL to support different variants
+        $todo = array();
+        $todo[] = $sql;
+        if ( isset($this->sqlPatch) && is_callable($this->sqlPatch) ) {
+            $func = $this->sqlPatch;
+            $check = $func($this, $sql);
+            if ( is_array($check) ) {
+                $todo = $check;
             } else {
-                $success = $q->execute($arr);
+                $todo = array();
+                $todo[] = $check;
+            }
+        }
+
+        try {
+            foreach($todo as $query) {
+                $q = $this->prepare($query);
+                if ( $arr === FALSE ) {
+                    $success = $q->execute();
+                } else {
+                    $success = $q->execute($arr);
+                }
+                if ( ! $success ) break;
             }
         } catch(\Exception $e) {
             $success = FALSE;
@@ -121,6 +139,8 @@ class PDOX extends \PDO {
         if ( !isset($q->errorCode) ) $q->errorCode = '42000';
         if ( !isset($q->errorInfo) ) $q->errorInfo = Array('42000', '42000', $message);
         if ( !isset($q->errorImplode) ) $q->errorImplode = implode(':',$q->errorInfo);
+        if ( !isset($q->sqlQuery) ) $q->sqlQuery = implode('; ', $todo);
+        if ( !isset($q->sqlOriginalQuery) ) $q->sqlOriginalQuery = $sql;
         // Restore ERRMODE if we changed it
         if ( $errormode != \PDO::ERRMODE_EXCEPTION) {
             $this->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
@@ -201,30 +221,28 @@ class PDOX extends \PDO {
      * Retrieve the metadata for a table.
      */
     function metadata($tablename) {
-        $sql = "SHOW COLUMNS FROM ".$tablename;
+        if ( $this->isMySQL() ) {
+            $sql = "SHOW COLUMNS FROM ".$tablename;
+        } else {
+            $sql = 'SELECT column_name AS "Field", data_type AS "Type", is_nullable AS "Null"
+                FROM information_schema.columns WHERE table_name = \''.$tablename.'\';';
+        }
         $stmt = self::queryReturnError($sql);
         if ( $stmt->success ) {
             $retval= $stmt->fetchAll();
+            if ( count($retval) == 0 ) $retval = false;
         } else {
             $retval = false;
         }
         $stmt->closeCursor();
-	return $retval;
+	    return $retval;
     }
 
     /**
      * Retrieve the metadata for a table.
      */
     function describe($tablename) {
-        $sql = "DESCRIBE ".$tablename;
-        $stmt = self::queryReturnError($sql);
-        if ( $stmt->success ) {
-            $retval= $stmt->fetchAll();
-        } else {
-            $retval = false;
-        }
-        $stmt->closeCursor();
-	return $retval;
+        return $this->metadata($tablename);
     }
 
     /**
@@ -279,8 +297,9 @@ class PDOX extends \PDO {
     function columnExists($fieldname, $source)
     {
         if ( is_string($source) ) {  // Demand table exists
-            $source = self::describe($source);
-            if ( ! $source ) throw new \Exception("Could not find $source");
+            $check = self::describe($source);
+            if ( ! $check ) throw new \Exception("Could not find $source");
+            $source = $check;
         }
         $column = self::describeColumn($fieldname, $source);
         return is_array($column);
@@ -359,4 +378,21 @@ class PDOX extends \PDO {
         return (version_compare($version, $min) >= 0);
     }
 
+    /**
+     * Return true if the current connection is MySQL
+     */
+    function isMySQL()
+    {
+        $name = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        return $name == 'mysql';
+    }
+
+    /**
+     * Return true if the current connection is PgSQL
+     */
+    function isPgSQL()
+    {
+        $name = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        return $name == 'pgsql';
+    }
 }

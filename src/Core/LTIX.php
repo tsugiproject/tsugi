@@ -15,6 +15,7 @@ use \Tsugi\Util\LTIConstants;
 use \Tsugi\UI\Output;
 use \Tsugi\Core\I18N;
 use \Tsugi\Core\Settings;
+use \Tsugi\Core\SQLDialect;
 use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Crypt\AesCtr;
@@ -74,6 +75,7 @@ class LTIX {
             }
         }
         if ( isset($CFG->slow_query) ) $PDOX->slow_query = $CFG->slow_query;
+        $PDOX->sqlPatch = function($PDOX, $sql) { return \Tsugi\Core\SQLDialect::sqlPatch($PDOX, $sql); } ;
         return $PDOX;
     }
 
