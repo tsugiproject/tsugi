@@ -88,4 +88,41 @@ class PS {
         }
         return strrpos($tmp, $sub);
     }
+
+    /**
+     * emulate python strip()
+     *
+     * string.strip(characters)
+     *
+     * characters Optional. A set of characters to remove as leading/trailing characters
+     *
+     * txt = ",,,,,rrttgg.....banana....rrr"
+     * x = txt.strip(",.grt")
+     */
+    public function strip($characters=false) {
+        if ( ! is_string($characters) ) return trim($this->internal);
+        return trim($this->internal, $characters);
+    }
+
+    /**
+     * emulate the Python split()
+     *
+     * string.split(separator, maxsplit)
+     *
+     * separator Optional. Specifies the separator to use when splitting the string. By default any whitespace is a separator
+     * maxsplit Optional. Specifies how many splits to do. Default value is -1, which is "all occurrences"
+     *
+     * Note: When maxsplit is specified, the list will contain the specified number of elements plus one.
+     */
+    public function split($separator=false,$maxsplit=false) {
+        if ( $separator == false ) {
+            $retval = preg_split('/\s+/', $this->strip());
+        } else {
+            $retval = explode($separator, $this->internal);
+        }
+        if ( $maxsplit !== false && count($retval) > $maxsplit + 1 ) {
+            return array_slice($retval, 0, $maxsplit+1);
+        }
+        return $retval;
+    }
 }

@@ -6,7 +6,7 @@
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}blob_file",
 "create table {$CFG->dbprefix}blob_file (
-    file_id      INTEGER NOT NULL KEY AUTO_INCREMENT,
+    file_id      INTEGER NOT NULL AUTO_INCREMENT,
     file_sha256  CHAR(64) NOT NULL,
 
     context_id   INTEGER NULL,
@@ -27,6 +27,8 @@ array( "{$CFG->dbprefix}blob_file",
     INDEX `{$CFG->dbprefix}blob_indx_1` USING HASH ( file_sha256 ),
     INDEX `{$CFG->dbprefix}blob_indx_2` ( path (128) ),
     INDEX `{$CFG->dbprefix}blob_indx_4` ( context_id ),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_blob_file_pk` PRIMARY KEY (file_id),
 
     CONSTRAINT `{$CFG->dbprefix}blob_ibfk_1`
         FOREIGN KEY (`context_id`)

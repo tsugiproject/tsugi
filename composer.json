@@ -19,7 +19,25 @@
         "symfony/polyfill-php73": "v1.22.0",
         "symfony/polyfill-php80": "v1.22.0",
 
-        "tsugi/lib": "dev-master#20f59d1ba8d8b558830df55497ba137a887bc504",
+        "guzzlehttp/promises": "1.4.0",
+        "guzzlehttp/psr7": "1.7.0",
+        "nesbot/carbon": "2.45.1",
+        "psr/container": "1.0.0",
+        "react/dns": "v1.4.0",
+        "symfony/console": "v5.2.3",
+        "symfony/error-handler": "v5.2.3",
+        "symfony/event-dispatcher": "v5.2.3",
+        "symfony/finder": "v5.2.3",
+        "symfony/http-foundation": "v5.2.3",
+        "symfony/http-kernel": "v5.2.3",
+        "symfony/mime": "v5.2.3",
+        "symfony/process": "v5.2.3",
+        "symfony/routing": "v5.2.3",
+        "symfony/string": "v5.2.3",
+        "symfony/translation": "v5.2.3",
+        "symfony/var-dumper": "v5.2.3",
+
+        "tsugi/lib": "dev-master#d7e042ccb6aac340f41726e502fe271dbaa30d8e",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {
