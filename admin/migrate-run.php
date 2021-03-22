@@ -17,17 +17,17 @@ LTIX::getConnection();
                 echo("-- Creating table ".$entry[0]."<br/>\n");
                 error_log("-- Creating table ".$entry[0]);
                 $q = $PDOX->queryReturnError($entry[1]);
-                if ( ! $q->success ) die("Unable to create ".$entry[1]." ".$q->errorImplode."<br/>".$entry[1] );
+                if ( ! $q->success ) die("Unable to create ".$entry[0]." ".$q->errorImplode."<br/>".$q->sqlQuery );
                 $OUTPUT->togglePre("-- Created table ".$entry[0], $entry[1]);
                 $sql = "INSERT INTO {$plugins}
                     ( plugin_path, version, created_at, updated_at ) VALUES
                     ( :plugin_path, :version, NOW(), NOW() )
-                    ON DUPLICATE KEY
+                    ON DUPLICATE KEY /* plugin_path */
                     UPDATE version = :version, updated_at = NOW()";
                 $values = array( ":plugin_path" => $path,
                         ":version" => $CFG->dbversion);
                 $q = $PDOX->queryReturnError($sql, $values);
-                if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
+                if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorImplode."<br/>".$q->sqlQuery );
                 // Do the POST-Create
                 if ( isset($DATABASE_POST_CREATE) && $DATABASE_POST_CREATE !== false ) {
                     $DATABASE_POST_CREATE($entry[0]);
@@ -48,7 +48,7 @@ LTIX::getConnection();
         $values = array( ":plugin_path" => $path,
                 ":version" => $CFG->dbversion);
         $q = $PDOX->queryReturnError($sql, $values);
-        if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
+        if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorImplode."<br/>".$q->sqlQuery );
         $delta = time() - $ticks;
         if ( $delta > 1 ) echo("--- Ellapsed time=".$delta." seconds<br/>\n");
         $ticks = time();
@@ -88,11 +88,11 @@ LTIX::getConnection();
         $sql = "INSERT INTO {$plugins}
             ( plugin_path, version, created_at, updated_at ) VALUES
             ( :plugin_path, :version, NOW(), NOW() )
-            ON DUPLICATE KEY
+            ON DUPLICATE KEY /* plugin_path */
             UPDATE version = :version, updated_at = NOW()";
         $values = array( ":version" => $newversion, ":plugin_path" => $path);
         $q = $PDOX->queryReturnError($sql, $values);
-        if ( ! $q->success ) die("Unable to update version for ".$path." ".$q->errorimplode."<br/>".$entry[1] );
+        if ( ! $q->success ) die("Unable to update version for ".$path." ".$q->errorImplode."<br/>".$q->sqlQuery );
     }
 
     // Make sure these do not run twice

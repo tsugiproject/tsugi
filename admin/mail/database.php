@@ -33,7 +33,7 @@ array( "{$CFG->dbprefix}mail_bulk",
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}mail_sent",
-"create table {$CFG->dbprefix}mail_sent(
+"create table {$CFG->dbprefix}mail_sent (
     sent_id             INTEGER NOT NULL AUTO_INCREMENT,
 
     context_id          INTEGER NOT NULL,
