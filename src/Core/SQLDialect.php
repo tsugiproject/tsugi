@@ -19,7 +19,6 @@ class SQLDialect
             die('Only MySQL and PostgreSQL are supported');
         }
     
-        // echo("Dialect\n".$sql."\n");
         $pieces = (new PS($sql))->split();
         if ( count($pieces) < 1 ) return $sql;
         if ( strcasecmp($pieces[0], "create") == 0 ) {
@@ -33,36 +32,28 @@ class SQLDialect
     }
 
     public static function sqlCreate2Postgres($PDOX, $sql) {
-
         $nsql = self::patchPostgresQuotes($PDOX, $sql);
         $nsql = self::patchDataTypes($PDOX, $nsql);
 
         // ) ENGINE = InnoDB DEFAULT CHARSET=utf8;";
         // ) COLLATE utf8_bin, ENGINE = InnoDB;
-        $nsql = preg_replace('/\).*ENGINE\s*=\s*InnoDB.*$/i', ');', $nsql);
-        $nsql = preg_replace('/\s+USING\s+HASH\s+/i', ' ', $nsql);
+        $nsql = preg_replace('/\s+USING\s+HASH\s*/i', ' ', $nsql);
+        $nsql = preg_replace('/\).*ENGINE\s*=\s*InnoDB\s*DEFAULT\s*CHARSET=utf8/i', ')', $nsql);
+        $nsql = preg_replace('/\s+COLLATE\s*utf8_bin,\s*ENGINE\s*=\s*InnoDB/i', ' ', $nsql);
 
         return $nsql;
     }
 
-    // ON DUPLICATE KEY /* plugin_path */ UPDATE
-    // ON CONFLICT (plugin_path) DO UPDATE SET
+    // INSERT IGNORE ...
+    // INSERT ... ON CONFLICT DO NOTHING
     public static function sqlInsert2Postgres($PDOX, $sql) {
         $nsql = self::patchPostgresQuotes($PDOX, $sql);
 
-        $matches = array();
-        preg_match('/ON\s+DUPLICATE\s+KEY\s\/\*\s+[^ *]*\s+\*\/\s+UPDATE\s+/i', $nsql, $matches, PREG_OFFSET_CAPTURE);
-        if ( count($matches) < 1 ) return $nsql;
-        $str = $matches[0][0];
-        $pos = $matches[0][1];
-        $len = strlen($str);
-        $str = preg_replace('/\sDUPLICATE\s+KEY\s/i', ' CONFLICT ', $str);
-        $str = preg_replace('/\/\*/i', '(', $str);
-        $str = preg_replace('/\*\//i', ')', $str);
-        $str = preg_replace('/\s+UPDATE\s+/i', " DO UPDATE SET\n", $str);
-
-        $newsql = substr($nsql,0,$pos) . $str . substr($nsql, $pos+$len);
-        return $newsql;
+        $check = preg_replace('/^\s*INSERT\s+IGNORE\s/i', 'INSERT ', $nsql);
+        if ( $check != $nsql ) {
+            $nsql = $check . "\nON CONFLICT DO NOTHING";
+        }
+        return $nsql;
     }
 
     public static function sqlAlter2Postgres($PDOX, $sql) {
@@ -139,6 +130,7 @@ class SQLDialect
         $nsql = preg_replace('/\sDOUBLE([\s,])/i', ' DOUBLE PRECISION$1', $nsql);
 
         $nsql = preg_replace('/\sBLOB([\s,])/i', ' BYTEA$1', $nsql);
+        $nsql = preg_replace('/\sLONGBLOB([\s,])/i', ' BYTEA$1', $nsql);
 
         return $nsql;
     }

@@ -96,7 +96,9 @@ class KVS {
      */
     public function insert($data) {
         $map = $this->extractMap($data);
-        $sql = "INSERT INTO $this->KVS_TABLE ($this->KVS_FK_NAME, $this->KVS_SK_NAME,
+        $sql = "INSERT INTO $this->KVS_TABLE 
+            /*PDOX pk: id lk: $this->KVS_FK_NAME,$this->KVS_SK_NAME,uk1 */
+            ($this->KVS_FK_NAME, $this->KVS_SK_NAME,
             uk1, sk1, tk1, co1, co2, json_body, created_at)
             VALUES (:foreign_key, :secondary_key, :uk1, :sk1, :tk1, :co1, :co2, :json_body, $this->NOW)";
         $map[':foreign_key'] = $this->KVS_FK;
@@ -104,8 +106,8 @@ class KVS {
 
         $copy = self::preStoreCleanup($data);
         $map[':json_body'] = json_encode($copy);
-        $stmt = $this->PDOX->queryDie($sql, $map);
-
+        $stmt = $this->PDOX->upsertGetPKDie($sql, $map);
+        // $stmt = $this->PDOX->queryDie($sql, $map);
         if ( $stmt->success) return(intval($this->PDOX->lastInsertId()));
         return false;
     }
