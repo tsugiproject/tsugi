@@ -37,7 +37,13 @@
         "symfony/translation": "v5.2.3",
         "symfony/var-dumper": "v5.2.3",
 
-        "tsugi/lib": "dev-master#d7e042ccb6aac340f41726e502fe271dbaa30d8e",
+         "opis/closure": "3.6.1",
+         "symfony/deprecation-contracts": "v2.2.0",
+         "symfony/event-dispatcher-contracts": "v2.2.0",
+         "symfony/http-client-contracts": "v2.3.1",
+         "symfony/translation-contracts": "v2.3.0",
+
+        "tsugi/lib": "dev-master#43aa740367305ef612c8a807a08435fbabcbca5d",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {

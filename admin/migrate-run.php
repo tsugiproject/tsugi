@@ -22,11 +22,11 @@ LTIX::getConnection();
                 $sql = "INSERT INTO {$plugins}
                     ( plugin_path, version, created_at, updated_at ) VALUES
                     ( :plugin_path, :version, NOW(), NOW() )
-                    ON DUPLICATE KEY /* plugin_path */
+                    ON DUPLICATE KEY
                     UPDATE version = :version, updated_at = NOW()";
                 $values = array( ":plugin_path" => $path,
                         ":version" => $CFG->dbversion);
-                $q = $PDOX->queryReturnError($sql, $values);
+                $q = $PDOX->upsertGetPKReturnError($sql, $values);
                 if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorImplode."<br/>".$q->sqlQuery );
                 // Do the POST-Create
                 if ( isset($DATABASE_POST_CREATE) && $DATABASE_POST_CREATE !== false ) {
@@ -47,7 +47,7 @@ LTIX::getConnection();
             UPDATE version = :version, updated_at = NOW()";
         $values = array( ":plugin_path" => $path,
                 ":version" => $CFG->dbversion);
-        $q = $PDOX->queryReturnError($sql, $values);
+        $q = $PDOX->upsertGetPKReturnError($sql, $values);
         if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorImplode."<br/>".$q->sqlQuery );
         $delta = time() - $ticks;
         if ( $delta > 1 ) echo("--- Ellapsed time=".$delta." seconds<br/>\n");
@@ -88,10 +88,10 @@ LTIX::getConnection();
         $sql = "INSERT INTO {$plugins}
             ( plugin_path, version, created_at, updated_at ) VALUES
             ( :plugin_path, :version, NOW(), NOW() )
-            ON DUPLICATE KEY /* plugin_path */
+            ON DUPLICATE KEY
             UPDATE version = :version, updated_at = NOW()";
         $values = array( ":version" => $newversion, ":plugin_path" => $path);
-        $q = $PDOX->queryReturnError($sql, $values);
+        $q = $PDOX->upsertGetPKReturnError($sql, $values);
         if ( ! $q->success ) die("Unable to update version for ".$path." ".$q->errorImplode."<br/>".$q->sqlQuery );
     }
 

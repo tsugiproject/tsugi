@@ -439,7 +439,6 @@ array( "{$CFG->dbprefix}lti_nonce",
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    INDEX `{$CFG->dbprefix}nonce_indx_1` USING HASH (`nonce`),
     CONSTRAINT `{$CFG->dbprefix}lti_nonce_const_1` UNIQUE(key_id, nonce)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -634,33 +633,44 @@ array( "{$CFG->dbprefix}cal_context",
 $DATABASE_POST_CREATE = function($table) {
     global $CFG, $PDOX;
 
+
     if ( $table == "{$CFG->dbprefix}lti_key") {
+        $shaval = lti_sha256('12345');
         $sql= "insert into {$CFG->dbprefix}lti_key (key_sha256, key_key, secret) values
-            ( sha2('12345', 256), '12345', 'secret')";
+            ( '$shaval', '12345', 'secret')";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
 
         // Secret is big ugly string for the google key - in case we launch internally in Koseu
         $secret = bin2hex(openssl_random_pseudo_bytes(16));
+        $shaval = lti_sha256('12345');
         $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key) values
-            ( sha2('google.com', 256), '$secret', 'google.com')";
+            ( '$shaval', '$secret', 'google.com')";
         error_log("Post-create: ".$sql);
         echo("Post-create: ".$sql."<br/>\n");
         $q = $PDOX->queryDie($sql);
     }
 
     if ( $table == "{$CFG->dbprefix}lti_nonce") {
-        $sql = "CREATE EVENT IF NOT EXISTS {$CFG->dbprefix}lti_nonce_auto
-            ON SCHEDULE EVERY 1 HOUR DO
-            DELETE FROM {$CFG->dbprefix}lti_nonce WHERE created_at < (UNIX_TIMESTAMP() - 3600)";
-        error_log("Post-create: ".$sql);
-        echo("Post-create: ".$sql."<br/>\n");
-        $q = $PDOX->queryReturnError($sql);
-        if ( ! $q->success ) {
-            $message = "Non-Fatal error creating event: ".$q->errorImplode;
-            error_log($message);
-            echo($message);
+        $sql = "CREATE INDEX `{$CFG->dbprefix}nonce_indx_1` ON {$CFG->dbprefix}lti_nonce ( nonce ) USING HASH";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+
+        // PGSQL has no CRON feature - we depend on the probabilistic cleanup
+        if ( $PDOX->isMySQL() ) {
+            $sql = "CREATE EVENT IF NOT EXISTS {$CFG->dbprefix}lti_nonce_auto
+                ON SCHEDULE EVERY 1 HOUR DO
+                DELETE FROM {$CFG->dbprefix}lti_nonce WHERE created_at < (UNIX_TIMESTAMP() - 3600)";
+            error_log("Post-create: ".$sql);
+            echo("Post-create: ".$sql."<br/>\n");
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) {
+                $message = "Non-Fatal error creating event: ".$q->errorImplode;
+                error_log($message);
+                echo($message);
+            }
         }
     }
 

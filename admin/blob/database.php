@@ -24,10 +24,6 @@ array( "{$CFG->dbprefix}blob_file",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     accessed_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
-    INDEX `{$CFG->dbprefix}blob_indx_1` USING HASH ( file_sha256 ),
-    INDEX `{$CFG->dbprefix}blob_indx_2` ( path (128) ),
-    INDEX `{$CFG->dbprefix}blob_indx_4` ( context_id ),
-
     CONSTRAINT `{$CFG->dbprefix}lti_blob_file_pk` PRIMARY KEY (file_id),
 
     CONSTRAINT `{$CFG->dbprefix}blob_ibfk_1`
@@ -35,7 +31,7 @@ array( "{$CFG->dbprefix}blob_file",
         REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
         ON DELETE SET NULL ON UPDATE CASCADE
 
-) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;"),
 array( "{$CFG->dbprefix}blob_blob",
 "create table {$CFG->dbprefix}blob_blob (
     blob_id      INTEGER NOT NULL AUTO_INCREMENT,
@@ -48,18 +44,46 @@ array( "{$CFG->dbprefix}blob_blob",
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     accessed_at          TIMESTAMP NOT NULL DEFAULT '1970-01-02 00:00:00',
 
-    INDEX `{$CFG->dbprefix}blob_indx_3` (`blob_sha256`),
-
     PRIMARY KEY(blob_id),
     UNIQUE(blob_sha256)
 
-) ENGINE = InnoDB DEFAULT CHARSET=utf8")
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;")
 );
+
+$DATABASE_POST_CREATE = function($table) {
+    global $CFG, $PDOX;
+    if ( $table == "{$CFG->dbprefix}blob_file" ) {
+        $sql = "CREATE INDEX `{$CFG->dbprefix}blob_indx_1` ON {$CFG->dbprefix}blob_file ( file_sha256 ) USING HASH";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        if ( $PDOX->isMySQL() ) {
+            $sql = "CREATE INDEX `{$CFG->dbprefix}blob_indx_2` ON {$CFG->dbprefix}blob_file ( path (128) )";
+        } else {
+            $sql = "CREATE INDEX `{$CFG->dbprefix}blob_indx_2` ON {$CFG->dbprefix}blob_file ( path )";
+        }
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+        $sql = "CREATE INDEX `{$CFG->dbprefix}blob_indx_4` ON {$CFG->dbprefix}blob_file ( context_id )";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+
+    if ( $table == "{$CFG->dbprefix}blob_blob" ) {
+        $sql = "CREATE INDEX `{$CFG->dbprefix}blob_indx_3` ON {$CFG->dbprefix}blob_blob (`blob_sha256`)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryDie($sql);
+    }
+};
 
 $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}blob_file",
 "drop table if exists {$CFG->dbprefix}blob_blob"
 );
+
 
 // No upgrades yet
 $DATABASE_UPGRADE = function($oldversion) {
