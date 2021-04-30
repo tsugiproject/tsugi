@@ -18,7 +18,8 @@ LTIX::getConnection();
                 error_log("-- Creating table ".$entry[0]);
                 $q = $PDOX->queryReturnError($entry[1]);
                 if ( ! $q->success ) die("Unable to create ".$entry[0]." ".$q->errorImplode."<br/>".$q->sqlQuery );
-                $OUTPUT->togglePre("-- Created table ".$entry[0], $entry[1]);
+                // Show the converted statement
+                $OUTPUT->togglePre("-- Created table ".$entry[0], $q->sqlQuery);
                 $sql = "INSERT INTO {$plugins}
                     ( plugin_path, version, created_at, updated_at ) VALUES
                     ( :plugin_path, :version, NOW(), NOW() )
@@ -26,7 +27,7 @@ LTIX::getConnection();
                     UPDATE version = :version, updated_at = NOW()";
                 $values = array( ":plugin_path" => $path,
                         ":version" => $CFG->dbversion);
-                $q = $PDOX->upsertGetPKReturnError($sql, $values);
+                $q = $PDOX->queryReturnError($sql, $values);
                 if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorImplode."<br/>".$q->sqlQuery );
                 // Do the POST-Create
                 if ( isset($DATABASE_POST_CREATE) && $DATABASE_POST_CREATE !== false ) {
@@ -47,7 +48,7 @@ LTIX::getConnection();
             UPDATE version = :version, updated_at = NOW()";
         $values = array( ":plugin_path" => $path,
                 ":version" => $CFG->dbversion);
-        $q = $PDOX->upsertGetPKReturnError($sql, $values);
+        $q = $PDOX->queryReturnError($sql, $values);
         if ( ! $q->success ) die("Unable to set version for ".$path." ".$q->errorImplode."<br/>".$q->sqlQuery );
         $delta = time() - $ticks;
         if ( $delta > 1 ) echo("--- Ellapsed time=".$delta." seconds<br/>\n");
@@ -91,7 +92,7 @@ LTIX::getConnection();
             ON DUPLICATE KEY
             UPDATE version = :version, updated_at = NOW()";
         $values = array( ":version" => $newversion, ":plugin_path" => $path);
-        $q = $PDOX->upsertGetPKReturnError($sql, $values);
+        $q = $PDOX->queryReturnError($sql, $values);
         if ( ! $q->success ) die("Unable to update version for ".$path." ".$q->errorImplode."<br/>".$q->sqlQuery );
     }
 

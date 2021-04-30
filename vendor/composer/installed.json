@@ -6013,12 +6013,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "43aa740367305ef612c8a807a08435fbabcbca5d"
+                "reference": "5df6d7d520e1ff1fe4764262ae61b506ac56c8cd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/43aa740367305ef612c8a807a08435fbabcbca5d",
-                "reference": "43aa740367305ef612c8a807a08435fbabcbca5d",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/5df6d7d520e1ff1fe4764262ae61b506ac56c8cd",
+                "reference": "5df6d7d520e1ff1fe4764262ae61b506ac56c8cd",
                 "shasum": ""
             },
             "require": {

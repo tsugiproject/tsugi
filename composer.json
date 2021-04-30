@@ -43,7 +43,7 @@
          "symfony/http-client-contracts": "v2.3.1",
          "symfony/translation-contracts": "v2.3.0",
 
-        "tsugi/lib": "dev-master#43aa740367305ef612c8a807a08435fbabcbca5d",
+        "tsugi/lib": "dev-master#5df6d7d520e1ff1fe4764262ae61b506ac56c8cd",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {
