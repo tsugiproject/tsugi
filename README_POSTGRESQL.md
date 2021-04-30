@@ -184,16 +184,22 @@ to the $PDOX variable after the `getConnection()` or `requireData()` calls to st
     $PDOX->addPDOXMeta("{$p}lti_key", array("pk" => "key_id", "lk" => array("key_sha256")));
     $PDOX->addPDOXMeta("{$p}lti_context", array("pk" => "context_id", "lk" => array("context_sha256", "key_id")));
     $PDOX->addPDOXMeta("{$p}lti_link", array("pk" => "link_id", "lk" => array("link_sha256", "context_id")));
+    $PDOX->addPDOXMeta("{$p}cal_event", array("pk" => "event_id"));
 
     $LAUNCH = LTIX::requireData();
     $LAUNCH->pdox->addPDOXMeta("{$p}lti_key", array("pk" => "key_id", "lk" => array("key_sha256")));
     $LAUNCH->pdox->addPDOXMeta("{$p}lti_context", array("pk" => "context_id", "lk" => array("context_sha256", "key_id")));
     $LAUNCH->pdox->addPDOXMeta("{$p}lti_link", array("pk" => "link_id", "lk" => array("link_sha256", "context_id")));
+    $LAUNCH->pdox->addPDOXMeta("{$p}cal_event", array("pk" => "event_id"));
 
 You need to tell PDOX which column is the primary key of the table and which column(s) are
-the logical keys for the table.  The examples above are the LTIX tables - you do not have
-to add these particular meta entries - they are already added by LTIX.  Only add Meta entries
-for tables you create in your `database.php`;
+the logical keys for the table.  Some tables do not have a logical key.  If your table does not
+have a logical key, you cannot use ON DUPLICATE KEY on that table. Of course On DUPLICATE KEY
+by definition is a collision of logical key values so that is kind of moot.
+
+The examples above are the LTIX tables - you do not have to add these particular meta
+entries - they are already added by LTIX.  Only add Meta entries for tables you create
+in your `database.php`;
 
 You can also add Meta information as a comment on every INSERT statement using this syntax:
 
@@ -351,7 +357,7 @@ If you are doing any significant development of portable SQL you will need to ro
 Here is some SQL to get you a set of DROP commands:
 
     SELECT
-        'DROP TABLE IF EXISTS "' || tablename || '" CASCADE;' 
+        'DROP TABLE IF EXISTS "' || tablename || '" CASCADE;'
     FROM
         pg_tables WHERE schemaname = 'public';
 
@@ -365,7 +371,7 @@ This will give you a series of commands like:
 Overall Summary
 ---------------
 
-This is a work in progress.   As you wander into porting your tools to PostgreSQL - feel free to 
+This is a work in progress.   As you wander into porting your tools to PostgreSQL - feel free to
 reach out to the Tsugi dev list t0 make sure that when you see an error in your SQL that it might not be your error
 and instead be a bug in the Tsugi code.  One way or another it is always good to get a bit of help
 and so others can benefit from your experience.

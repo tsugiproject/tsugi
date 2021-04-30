@@ -88,6 +88,7 @@ class LTIX {
         $PDOX->addPDOXMeta("{$p}lti_service", array("pk" => "service_id", "lk" => array("service_sha256", "key_id")));
         $PDOX->addPDOXMeta("{$p}lti_result", array("pk" => "result_id", "lk" => array("user_id", "link_id")));
         $PDOX->addPDOXMeta("{$p}lti_nonce", array("pk" => "none", "lk" => array("key_id", "nonce")));
+        $PDOX->addPDOXMeta("{$p}cal_event", array("pk" => "event_id"));
         $PDOX->addPDOXMeta("{$p}tsugi_string", array("pk" => "string_id", "lk" => array("domain", "string_sha256")));
         $PDOX->addPDOXMeta("{$p}profile", array("pk" => "profile_id", "lk" => array("profile_sha256")));
         $PDOX->addPDOXMeta("{$p}blob_blob", array("pk" => "blob_id", "lk" => array("blob_sha256")));
