@@ -95,6 +95,28 @@ want the SQLDialect process to run add a comment somewhere in your SQL as follow
 
 Spaces matter.
 
+Error Messages In Your Code
+---------------------------
+
+This feature is designed to have no impact on existing code that works on MySQL.   When in doubt,
+PDOX just runs the query exactly the way you wrote it.  Sometimes it warns you in the log when it
+sees something you should fix.  Here is an example log message:
+
+    $PDOX->getQueryMeta() table=tdiscus_user_thread expected comment
+    of the form /*PDOX pk: context_id lk: context_sha256,key_id */ - spaces are significant
+    INSERT IGNORE INTO tdiscus_user_thread ...
+
+This means that you are missing the Meta data for the `tdiscus_user_thread` table in your tool.
+But your tool will keep working as long as you are using MySQL.  PDOX notices this issue, warns
+you and then runs your SQL unchanged.
+
+Now if you ran this code while using PostgreSQL, PDOX would still give you an error and not
+change your SQL. But quite often the next error will be an PostgreSQL syntax error because PDOX did not
+convert your query to PostgreSQL.  When you add the Meta entry or Meta comment, the error
+message will go away and your code should work both on PostgreSQL and MySQL.
+
+The error messages can help guide you to make needed changes to your code.
+
 Simple Syntax Transformation - SQLDialect
 -----------------------------------------
 
