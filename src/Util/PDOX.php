@@ -539,8 +539,6 @@ class PDOX extends \PDO {
                     return $meta;
                 }
             }
-            error_log('$PDOX->getQueryMeta() table='.$table.' expected comment of the form'.
-               ' /*PDOX pk: context_id lk: context_sha256,key_id */ - spaces are significant'."\n".$sql);
             return false;
         }
         $str = $matches[0][0];
@@ -726,7 +724,7 @@ class PDOX extends \PDO {
                 $value = U::get($values, $valkey, False);
                 if ( $value === False ) {
                     error_log($sql);
-                    die('$PDOX->upsertGetPKReturnError() missing '.$valkey.' in the values array');
+                    die('$PDOX->upsertGetPKReturnError() missing '.$valkey.' in the values array for PostgreSQL');
                 }
                 if ( strlen($whereclause) > 0 ) $whereclause .= ' AND ';
                 $whereclause .= $lk . '=' . $valkey;
