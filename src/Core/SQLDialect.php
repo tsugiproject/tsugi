@@ -5,19 +5,26 @@ namespace Tsugi\Core;
 use \Tsugi\Util\PS;
 
 /**
- * This is a helper class to transform between SQL Dialects
+ * This is a helper class to transform MySQL and PgSQL dialects
  */
 
 class SQLDialect
 {
+    public static $marker = '/*PDOX SQLDialect */';
+
     public static function sqlPatch($PDOX, $sql) {
-        // Our default dialect is MySQL
-        if ( $PDOX->isMySQL() ) {
+        // Our default dialect is MySQL and SQLite is treated the same
+        if ( $PDOX->isMySQL() || $PDOX->isSQLite() ) {
             return $sql;
         }
+
+        // Don't apply twice
+        if ( stripos($sql, self::$marker) !== false ) return $sql;
+
         if ( ! $PDOX->isPgSQL() ) {
             die('Only MySQL and PostgreSQL are supported');
         }
+
     
         $pieces = (new PS($sql))->split();
         if ( count($pieces) < 1 ) return $sql;
@@ -28,7 +35,7 @@ class SQLDialect
         } else if ( strcasecmp($pieces[0], "alter") == 0 ) {
             return self::sqlAlter2Postgres($PDOX, $sql);
         }
-        return $sql;
+        return $sql . "\n".self::$marker;
     }
 
     public static function sqlCreate2Postgres($PDOX, $sql) {
