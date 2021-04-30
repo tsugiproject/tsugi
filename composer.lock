@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "88bc91df57cf3d7caf54f1feb4fb679c",
+    "content-hash": "8412352db209abd4948b8a4ea3193175",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -6123,12 +6123,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "ef0c46203a04a57d0eb52c5eeccc7d2b4269907a"
+                "reference": "f0f438ec34053e4edc9f1cf8a75c6700edaa349e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/ef0c46203a04a57d0eb52c5eeccc7d2b4269907a",
-                "reference": "ef0c46203a04a57d0eb52c5eeccc7d2b4269907a",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f0f438ec34053e4edc9f1cf8a75c6700edaa349e",
+                "reference": "f0f438ec34053e4edc9f1cf8a75c6700edaa349e",
                 "shasum": ""
             },
             "require": {

@@ -67,7 +67,7 @@ fixed.   If it is your table (i.e. `database.php`) then you may be able to figur
 what is non portable, either you can fix the SQL in `database.php` or add a bit more
 magic to `SQLDialect.php`.
 
-Detecting which Driver is Active
+Detecting Which Driver is Active
 --------------------------------
 
 Much of the work in the sytnax transformation is accomplished in the `\Tsugi\Util\PDOX`
@@ -89,31 +89,46 @@ PDOX also lets you check which database is running in a portable way using
     $PDOX->isSQLite()
 
 Your application can check these methods and write driver specific queries.  If you do not
-want the SQLDialect process to run add a comment somewhere in your SQL as follows:
+want the `SQLDialect` process to alter your SQL add a comment somewhere in your SQL as follows:
 
     /*PDOX SQLDialect */
 
-Spaces matter.
+You can use the following code to get the marker from `SQLDialect`.
+
+    $sql = $sql . "\n" . \Tsugi\Core\SQLDialect::$marker;
 
 Error Messages In Your Code
 ---------------------------
 
 This feature is designed to have no impact on existing code that works on MySQL.   When in doubt,
 PDOX just runs the query exactly the way you wrote it.  Sometimes it warns you in the log when it
-sees something you should fix.  Here is an example log message:
+sees something you should fix.  Here are some example log messages:
 
-    $PDOX->getQueryMeta() table=tdiscus_user_thread expected comment
-    of the form /*PDOX pk: context_id lk: context_sha256,key_id */ - spaces are significant
-    INSERT IGNORE INTO tdiscus_user_thread ...
+    $PDOX->upsertGetPKReturnError() LAST_INSERT_ID is a non-portable construct
+    $PDOX->upsertGetPKReturnError() RETURNING is a non-portable construct
 
-This means that you are missing the Meta data for the `tdiscus_user_thread` table in your tool.
-But your tool will keep working as long as you are using MySQL.  PDOX notices this issue, warns
-you and then runs your SQL unchanged.
+These are informative errors, but your tool will keep working as long as you are using MySQL.
+PDOX notices this issue, warns you and then runs your SQL unchanged.
 
-Now if you ran this code while using PostgreSQL, PDOX would still give you an error and not
+Now if you ran this code while connected to a PostgreSQL database, PDOX would give you an error and not
 change your SQL. But quite often the next error will be an PostgreSQL syntax error because PDOX did not
-convert your query to PostgreSQL.  When you add the Meta entry or Meta comment, the error
-message will go away and your code should work both on PostgreSQL and MySQL.
+convert your query to PostgreSQL and it will not be happy with your MySQL syntax.
+
+Other errors are PostgreSQL specific and will only happen when you are running code
+with a PostgreSQL database and the error mean PostgreSQL cannot do an upsert properly.  For
+exmaple if you need a Meta entry for your table or a Meta comment for a query, you might see:
+
+    $PDOX->upsertGetPKReturnError() needs "table" and "lk" entries in the $meta parameter for PostgreSQL
+
+If you have not included a properly named value for the logical key in your `values` array you might see:
+
+    $PDOX->upsertGetPKReturnError() missing :context_sha256 in the values array
+
+If you see this message, it probably means you have not include *all* you logical keys in the Meta
+information when your table has a UNIQUE together clause that includes more than one column:
+
+    $PDOX->upsertGetPKReturnError() pre-SELECT expects 0 or 1 row, got 5
+    $PDOX->upsertGetPKReturnError() post-SELECT expects exactly 1 row, got 2
 
 The error messages can help guide you to make needed changes to your code.
 
@@ -144,7 +159,7 @@ CREATE Statement Differences
 ----------------------------
 
 Thankfully, PostgreSQL `CONSTRAINT` syntax seems pretty compatible with the MySQL `CONSTRAINT`
-syntax for primary and foreign keys.  This kins of syntax just works:
+syntax for primary and foreign keys.  This kind of syntax just works with no transformation:
 
     file_id      INTEGER NOT NULL AUTO_INCREMENT,
 
@@ -184,8 +199,8 @@ to give you the affected whether the "INSERT" clause happend or the "ON DUPLICAT
 triggers.
 
 Also PostgreSQL increments the AUTO INCREMENT sequence *before* it checks if there is a logical
-key mismatch.  So if you use an `UPSERT` where more often is going to do an `UPDATE`, your primary
-key sequences end up with lots of gaps.
+key mismatch.  So if you use an `UPSERT` where more often the query is going to trigger an `UPDATE`,
+your primary key sequences end up with lots of gaps.
 
 I am glad I started with the MySQL upsert approach (clean, simple and 95% elegant) and adapted
 it to the clunkier PostgreSQL approach inside the abstraction.
@@ -221,17 +236,17 @@ by definition is a collision of logical key values so that is kind of moot.
 
 The examples above are the LTIX tables - you do not have to add these particular meta
 entries - they are already added by LTIX.  Only add Meta entries for tables you create
-in your `database.php`;
+in *your* `database.php`.
 
 You can also add Meta information as a comment on every INSERT statement using this syntax:
 
     INSERT INTO lti_context / *PDOX pk: context_id lk: context_sha256,key_id * /
 
-*Important:* Do not iplace any comment before the name of the table or you will
+*Important:* Do not place any comment before the name of the table or you will
 bypass all UPSERT processing in PDOX.   You can use this as a feature if you
 want to write your own different SQL for each database.
 
-You can completely suppress UPSERT processing with the following syntax:
+You completely suppress the PDOX automatic UPSERT processing with the following syntax:
 
     INSERT /* upsert */ INTO my_table ... RETURNING ...
 
@@ -241,7 +256,7 @@ from being run on INSERT statements.
 If you are using PostgreSQL and you are executing INSERT statements and PDOX is missing
 the Meta entry for your table, you will get error logs and (probably) get SQL syntax errors.
 Before you start editing your INSERT syntax - make sure you are adding the correct Meta entries
-before calling INSERT.
+to PDOX or adding the coment to the query before calling INSERT.
 
 Portable Upsert
 ---------------
@@ -269,11 +284,11 @@ and so you add a MySQL specific trick with `last_insert_id()`:
         context_id=LAST_INSERT_ID(context_id), title=:title, updated_at = NOW();
 
 This is not pretty and very not portable between MySQL and PostgreSQL.  So the portable
-PDOX way of doing this is not to include the `last_insert_id()` in the update list and provide
-PDOX the Meta information (i.e. the primary key column) and let PDOX add the `last_insert_id()`
-clause only when we are sending queries MySQL.
+PDOX way of doing this is *not* to include the `last_insert_id()` in the UPDATE list and provide
+PDOX the Meta information (i.e. the primary key column) and let PDOX append the `last_insert_id()`
+clause only when we are sending queries to a MySQL database.
 
-And then when we are running the same "portable" query in PostgreSQL, it is transformed into:
+And *then* when we are running the same "portable" query in PostgreSQL, it is transformed into:
 
     INSERT INTO {$p}lti_context
         ( context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
@@ -282,8 +297,8 @@ And then when we are running the same "portable" query in PostgreSQL, it is tran
         title=:title, updated_at = NOW()
         RETURNING context_id;
 
-PDOX also overrides the `lastInsertId()` method go get the generated key using the PostgreSQL
-pattern when we are using PostgreSQL.  So the portable way to do an UPSERT is as follows:
+PDOX also overrides the `lastInsertId()` method to get the generated key using the PostgreSQL
+pattern when we are using PostgreSQL.  So the portable way to do an UPSERT with PDOX  is as follows:
 
     ...  Sometime in the past
     $PDOX->addPDOXMeta("{$p}lti_context", array("pk" => "context_id", "lk" => array("context_sha256", "key_id")));
@@ -302,13 +317,17 @@ SQLite, MySQL, and PostgreSQL.  It means that unless you are doing the `last_ins
 you do not have to change your SQL or PHP code *at all* beyond adding the Meta information.  And
 if you are using the `last_insert_id()` trick you simply have to remove it to become portable.
 
+Note that the substitution values `:context_sha256` and `:key_id` must match the column names of
+the logical keys *exactly* because we need these values for SELECT statements that will be auto generated
+to implement UPSERT in PostgreSQL.
+
 Handling Prepared Statements
 ----------------------------
 
 The `queryDie()` and `queryReturnError()` automatically do a lot of transformation to support
 UPSERT use cases.  But sometimes you need to use `prepare()` and `execute()` explicitly.  You are
 responsibile for writing portable code when using `prepare()` and `execute()`.  For example in
-the following code from the Tsugi's Blob support, you can see the check for PgSQL and adding the
+the following code from the Tsugi's BlobUtil support, you can see the check for PgSQL and adding the
 RETURNING clause:
 
                 $fp = fopen($filename, "rb");
@@ -330,12 +349,11 @@ But what *is* cool is that `lastInsertId()` knows that you are connected to Post
 the RETURNING pattern to get the primary key (assuming you added RETURNING before prepare) so
 you don't need any if-the-else code after `execute()` runs.
 
-
 PostgreSQL UPSERT Implementation Detail
 ---------------------------------------
 
-The MySQL portable UPSERT is pretty simple.  Add the `last_insert_id()` trick to any ON
-DUPLICATE KEY UPDATE clause.
+The MySQL portable UPSERT is pretty simple.  Add the `last_insert_id()` trick to any INSERT
+with an ON DUPLICATE KEY UPDATE clause.
 
 It is not so simple for PostgreSQL upsert.  Sometimes when we use UPSERT it is "almost always an INSERT"
 other times it is an "almost always an UPDATE".  In real PostgreSQL you would write quite different
@@ -344,7 +362,7 @@ SQL for these cases to avoid the "sequence gap" problem.
 * https://stackoverflow.com/questions/37204749/serial-in-postgres-is-being-increased-even-though-i-added-on-conflict-do-nothing
 
 Aside: At this point real PostgreSQL fans would say 'who cares about your sequences having gaps'.  I say,
-'The gaps will be really large when we are doing the "almost always an UPDATE" use case a billion times on a table
+'The gaps will be really large when we are doing the "almost always an UPDATE" use case a few billion times on a table
 with 250K real rows'.  The the real PostgreSQL fans would say 'Of course! You should write completely
 different PostgreSQL-specific highly tweaked SQL for the two cases'. I say, 'but portable..'.  They say,
 'No one should ever use MySQL'.  I say, 'sigh'.
@@ -354,13 +372,16 @@ PostgreSQL UPSERT into several separate steps:
 
 * Do a SELECT of the primary key with the logical key(s) in a WHERE clause to see if the record already exists
 
-* If the logical keys are not returned by the SELECT, perform the INSERT part of the query adding a
+* If the primary key is not found by the SELECT, perform the INSERT part of the query adding a
 RETURNING clause and then check to see if the INSERT worked.
-The INSERT might fail due to duplicate logical keys, even if the initial SELECT missed because of a race condition.
-If the INSERT worked(most common case), capture the resulting primary key and return.
+If the INSERT worked (most common case), capture the resulting primary key and return.
+If there are multiple INSERTs racing towards the database with the same duplicate key combination,
+the later INSERT will fail due to duplicate logical keys, even if the initial SELECT missed because
+of a race condition.
 
-* If the INSERT key failed due to duplicate key (rare race condition), run another SELECT to get
-the primary key.   This one will work because one way or another the INSERT is telling us the key exists.
+* If the INSERT failed because a row with the duplicate logical key(s) are already there because the
+current INSERT lost the race, run another SELECT to get the primary key.  This one will work because
+one way or another the INSERT is telling us the key exists.
 
 * Since we did not do an INSERT, run the UPDATE clause using the primary key in the WHERE clause.
 
@@ -370,12 +391,18 @@ without causing PostgreSQL sequence gaps for "update mostly" use cases.
 While you might think we should add transactions to avoid race conditions, the race conditions in this approach
 are no worse than two INSERT ON DUPLICATE KEY statements racing towards a MySQL server.  All you get is eventual
 consistency with "last UPDATE wins" semantics - even in MySQL.  And the extra queries are *only* using logical
-keys and priary keys - so they will be highly cached.
+keys and primary keys - so they will be highly cached.
 
-A Cool Trick to Restart with a Clean PostgreSQL Database
---------------------------------------------------------
+P.S. If your application requirements need to support multiple simultaneous racing DELETEs and INSERTs
+aimed at rows with the same logical key(s) then all bets are of no matter how you build this.  This
+turns out to be a pretty common user case in gaming applications but to implement that correctly
+you need transactions and non-portable SQL.
 
-If you are doing any significant development of portable SQL you will need to rop all your tables a few times.
+Restarting with a Clean PostgreSQL Database
+-------------------------------------------
+
+If you are doing any significant development of portable SQL and checking to see if your code
+works on PostgreSQL you will need to drop all your tables a few times.
 Here is some SQL to get you a set of DROP commands:
 
     SELECT
@@ -390,12 +417,21 @@ This will give you a series of commands like:
     DROP TABLE IF EXISTS "lti_context" CASCADE;
     DROP TABLE IF EXISTS "lti_issuer" CASCADE;
 
+Then ocf course you need to rebuild the Tsugi tables with:
+
+    cd tsugi/admin
+    php upgrade.php
+
+That upgrade code will get a lot of testing - which is nice.
+
 Overall Summary
 ---------------
 
-This is a work in progress.   As you wander into porting your tools to PostgreSQL - feel free to
-reach out to the Tsugi dev list t0 make sure that when you see an error in your SQL that it might not be your error
-and instead be a bug in the Tsugi code.  One way or another it is always good to get a bit of help
+This is a work in progress.   As you wander into porting your tools to
+PostgreSQL - feel free to reach out to the Tsugi dev list to make sure that
+when you see an error in your SQL that it might not be your error
+and instead be a bug in the Tsugi PDOX or SQLDialect code.  One way or
+another it is always good to get a bit of help
 and so others can benefit from your experience.
 
 
