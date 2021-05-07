@@ -76,6 +76,24 @@ class LTIX {
         }
         if ( isset($CFG->slow_query) ) $PDOX->slow_query = $CFG->slow_query;
         $PDOX->sqlPatch = function($PDOX, $sql) { return \Tsugi\Core\SQLDialect::sqlPatch($PDOX, $sql); } ;
+
+        // Add meta entries describing primary and logical keys for LTI tables
+        $p = $CFG->dbprefix;
+        $PDOX->addPDOXMeta("{$p}lms_plugins", array("pk" => "plugin_id", "lk" => array("plugin_path")));
+        $PDOX->addPDOXMeta("{$p}lti_key", array("pk" => "key_id", "lk" => array("key_sha256")));
+        $PDOX->addPDOXMeta("{$p}lti_context", array("pk" => "context_id", "lk" => array("context_sha256", "key_id")));
+        $PDOX->addPDOXMeta("{$p}lti_link", array("pk" => "link_id", "lk" => array("link_sha256", "context_id")));
+        $PDOX->addPDOXMeta("{$p}lti_user", array("pk" => "user_id", "lk" => array("user_sha256", "subject_sha256", "key_id")));
+        $PDOX->addPDOXMeta("{$p}lti_membership", array("pk" => "membership_id", "lk" => array("user_id", "context_id")));
+        $PDOX->addPDOXMeta("{$p}lti_service", array("pk" => "service_id", "lk" => array("service_sha256", "key_id")));
+        $PDOX->addPDOXMeta("{$p}lti_result", array("pk" => "result_id", "lk" => array("user_id", "link_id")));
+        $PDOX->addPDOXMeta("{$p}lti_nonce", array("pk" => "none", "lk" => array("key_id", "nonce")));
+        $PDOX->addPDOXMeta("{$p}cal_event", array("pk" => "event_id"));
+        $PDOX->addPDOXMeta("{$p}tsugi_string", array("pk" => "string_id", "lk" => array("domain", "string_sha256")));
+        $PDOX->addPDOXMeta("{$p}profile", array("pk" => "profile_id", "lk" => array("profile_sha256")));
+        $PDOX->addPDOXMeta("{$p}blob_blob", array("pk" => "blob_id", "lk" => array("blob_sha256")));
+        // Does not have a logical key
+        $PDOX->addPDOXMeta("{$p}blob_file", array("pk" => "file_id"));
         return $PDOX;
     }
 
@@ -685,8 +703,16 @@ class LTIX {
 
             // Now the place the event into the circular buffer
             if ( $CFG->eventcheck !== false ) {
+                $event_nonce = $post['nonce'].':'.$row['key_key'];
+
+                // Store binary nonce in fixed-length CHAR field with no encoding
                 // https://stackoverflow.com/questions/3554296/how-to-store-hashes-in-mysql-databases-without-using-text-fields
-                $event_nonce = $row['nonce'].':'.$row['key_key'];
+                $event_nonce = md5($event_nonce, True);   // Was UNHEX(MD5(:nonce)) in MySQL
+ 
+                // https://stackoverflow.com/questions/16001238/writing-to-a-bytea-field-error-invalid-byte-sequence-for-encoding-utf8-0x9
+                if ( $PDOX->isPgSQL() ) {
+                    $event_nonce = substr( base64_encode($event_nonce), 0, 16);
+                }
                 $event_launch = null;
                 $canvasUrl = U::get($request_data,'custom_sub_canvas_caliper_url');
                 if ( $canvasUrl ) {
@@ -695,7 +721,7 @@ class LTIX {
 
                 $sql = "INSERT INTO {$CFG->dbprefix}cal_event
                         (event, key_id, context_id, link_id, user_id, nonce, launch, updated_at) VALUES
-                        (0, :key_id, :context_id, :link_id, :user_id, UNHEX(MD5(:nonce)), :launch, NOW())";
+                        (0, :key_id, :context_id, :link_id, :user_id, :nonce, :launch, NOW())";
                 $stmt = $PDOX->queryReturnError($sql, array(
                     ':key_id' => U::get($row, 'key_id'),
                     ':context_id' => U::get($row, 'context_id'),
@@ -1306,8 +1332,7 @@ class LTIX {
             $sql = "INSERT INTO {$p}lti_context
                 ( context_key, context_sha256, settings_url, title, key_id, created_at, updated_at ) VALUES
                 ( :context_key, :context_sha256, :settings_url, :title, :key_id, NOW(), NOW() )
-                ON DUPLICATE KEY UPDATE
-                context_id=LAST_INSERT_ID(context_id), updated_at = NOW();";
+                ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $context_settings_url = U::get($post, 'context_settings_url', null);
             $PDOX->queryDie($sql, array(
                 ':context_key' => $post['context_id'],
@@ -1326,8 +1351,7 @@ class LTIX {
             $sql = "INSERT INTO {$p}lti_link
                 ( link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
                     ( :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )
-                    ON DUPLICATE KEY UPDATE
-                    link_id=LAST_INSERT_ID(link_id), updated_at = NOW();";
+                    ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $link_settings_url = U::get($post, 'link_settings_url', null);
             $PDOX->queryDie($sql, array(
                 ':link_key' => $post['link_id'],
@@ -1356,10 +1380,10 @@ class LTIX {
         // $row['subject_key'] is the subject from the row
         if ( $row['user_id'] === null && isset($post['user_id']) && strlen($post['user_id']) > 0) {
             $sql = "INSERT INTO {$p}lti_user
+                /*PDOX pk: user_id lk: user_sha256,key_id */
                 ( user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
                 ( :user_key, :user_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
-                ON DUPLICATE KEY UPDATE
-                user_id=LAST_INSERT_ID(user_id), updated_at = NOW();";
+                ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $PDOX->queryDie($sql, array(
                 ':user_key' => $post['user_id'],
                 ':user_sha256' => lti_sha256($post['user_id']),
@@ -1406,6 +1430,7 @@ class LTIX {
         $lti11_transition_user_id_sha256 = $lti11_transition_user_id === null ? null : lti_sha256($lti11_transition_user_id);
         if ( $row['user_id'] === null && strlen($post_user_subject) > 0) {
             $sql = "INSERT INTO {$p}lti_user
+                /*PDOX pk: user_id lk: subject_sha256,user_sha256,key_id */
                 ( user_key, user_sha256, subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
                 ( :user_key, :user_sha256, :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
                 ON DUPLICATE KEY UPDATE
@@ -1478,8 +1503,7 @@ class LTIX {
             $sql = "INSERT INTO {$p}lti_membership
                 ( context_id, user_id, role, created_at, updated_at ) VALUES
                 ( :context_id, :user_id, :role, NOW(), NOW() )
-                ON DUPLICATE KEY UPDATE
-                membership_id=LAST_INSERT_ID(membership_id), updated_at = NOW();";
+                ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $PDOX->queryDie($sql, array(
                 ':context_id' => $row['context_id'],
                 ':user_id' => $row['user_id'],
@@ -1526,8 +1550,7 @@ class LTIX {
             $sql = "INSERT INTO {$p}lti_result
                 ( link_id, user_id, created_at, updated_at ) VALUES
                 ( :link_id, :user_id, NOW(), NOW() )
-                ON DUPLICATE KEY UPDATE
-                result_id=LAST_INSERT_ID(result_id), updated_at = NOW();";
+                ON DUPLICATE KEY UPDATE updated_at = NOW();";
             $PDOX->queryDie($sql, array(
                 ':link_id' => $row['link_id'],
                 ':user_id' => $row['user_id']));
