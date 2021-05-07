@@ -5,7 +5,7 @@
         "google/auth" : "1.15.0",
         "google/apiclient": "^2.9",
         "google/apiclient-services" : "v0.156",
-        "phpseclib/phpseclib" : "v2.0.11",
+        "phpseclib/phpseclib" : "v2.0.31",
         "gree/jose" : ">1.0",
         "ezyang/htmlpurifier": ">=v4.13.0",
         "cboden/ratchet" : "v0.4.3",
