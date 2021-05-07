@@ -18,11 +18,12 @@ LTIX::getConnection();
                 error_log("-- Creating table ".$entry[0]);
                 $q = $PDOX->queryReturnError($entry[1]);
                 if ( ! $q->success ) die("Unable to create ".$entry[0]." ".$q->errorImplode."<br/>".$q->sqlQuery );
-                $OUTPUT->togglePre("-- Created table ".$entry[0], $entry[1]);
+                // Show the converted statement
+                $OUTPUT->togglePre("-- Created table ".$entry[0], $q->sqlQuery);
                 $sql = "INSERT INTO {$plugins}
                     ( plugin_path, version, created_at, updated_at ) VALUES
                     ( :plugin_path, :version, NOW(), NOW() )
-                    ON DUPLICATE KEY /* plugin_path */
+                    ON DUPLICATE KEY
                     UPDATE version = :version, updated_at = NOW()";
                 $values = array( ":plugin_path" => $path,
                         ":version" => $CFG->dbversion);
@@ -88,7 +89,7 @@ LTIX::getConnection();
         $sql = "INSERT INTO {$plugins}
             ( plugin_path, version, created_at, updated_at ) VALUES
             ( :plugin_path, :version, NOW(), NOW() )
-            ON DUPLICATE KEY /* plugin_path */
+            ON DUPLICATE KEY
             UPDATE version = :version, updated_at = NOW()";
         $values = array( ":version" => $newversion, ":plugin_path" => $path);
         $q = $PDOX->queryReturnError($sql, $values);

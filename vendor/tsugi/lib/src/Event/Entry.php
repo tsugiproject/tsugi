@@ -121,7 +121,7 @@ class Entry {
      * Optionally uncompress a serialized entry if it is compressed
      */
     public static function uncompressEntry($text) {
-        if ( $text === null | $text === false ) return $text;
+        if ( !is_string($text) ) return $text;
         $needed = false;
         for ($i = 0; $i < strlen($text); $i++){
             $ch = $text[$i];
@@ -141,9 +141,10 @@ class Entry {
      */
     public function deSerialize($data) {
         $data = self::uncompressEntry($data);
-        $chunks = explode(':',$data);
+        $chunks = False;
+        if ( is_string($data) ) $chunks = explode(':',$data);
         // Nothing to see here - Might be null ... is OK
-        if ( count($chunks) != 3 || !is_numeric($chunks[0]) || !is_numeric($chunks[1]) ) {
+        if ( !is_array($chunks) || count($chunks) != 3 || !is_numeric($chunks[0]) || !is_numeric($chunks[1]) ) {
             $this->scale = 900;
             $this->timestart = 0;
             $this->buckets = array();

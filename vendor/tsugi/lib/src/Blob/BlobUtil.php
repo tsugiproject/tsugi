@@ -251,9 +251,11 @@ class BlobUtil {
             // If not on disk store in the single instance table
             if (! $blob_id && ! $blob_name ) {
                 $fp = fopen($FILE_DESCRIPTOR['tmp_name'], "rb");
-                $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_blob
+                $sql = "INSERT INTO {$CFG->dbprefix}blob_blob
                     (blob_sha256, content, created_at)
-                    VALUES (?, ?, NOW())");
+                    VALUES (?, ?, NOW())";
+                if ( $PDOX->isPgSQL() ) $sql .= "\n RETURNING blob_id";
+                $stmt = $PDOX->prepare($sql);
 
                 $stmt->bindParam(1, $sha256);
                 $stmt->bindParam(2, $fp, \PDO::PARAM_LOB);
@@ -262,15 +264,15 @@ class BlobUtil {
                 $stmt->execute();
                 $blob_id = 0+$PDOX->lastInsertId();
                 $PDOX->commit();
-                fclose($fp);
+                @fclose($fp);
             }
 
             // Blob is safe somewhere, insert the file record with pointers
             if ( $blob_id || $blob_name ) {
-                $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
+                $stmt = $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}blob_file
                     (context_id, link_id, file_sha256, file_name, contenttype, path, backref, blob_id, created_at)
-                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BACKREF, :BID, NOW())");
-                $stmt->execute(array(
+                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BACKREF, :BID, NOW())",
+                array(
                     ":CID" => $CONTEXT->id,
                     ":LID" => $LINK->id,
                     ":SHA" => $sha256,
@@ -372,9 +374,11 @@ class BlobUtil {
             // If not on disk store in the single instance table
             if (! $blob_id && ! $blob_name ) {
                 $fp = fopen($filename, "rb");
-                $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_blob
+                $sql = "INSERT INTO {$CFG->dbprefix}blob_blob
                     (blob_sha256, content, created_at)
-                    VALUES (?, ?, NOW())");
+                    VALUES (?, ?, NOW())";
+                if ( $PDOX->isPgSQL() ) $sql .= "\n RETURNING blob_id";
+                $stmt = $PDOX->prepare($sql);
 
                 $stmt->bindParam(1, $sha256);
                 $stmt->bindParam(2, $fp, \PDO::PARAM_LOB);
@@ -383,15 +387,15 @@ class BlobUtil {
                 $stmt->execute();
                 $blob_id = 0+$PDOX->lastInsertId();
                 $PDOX->commit();
-                fclose($fp);
+                @fclose($fp);
             }
 
             // Blob is safe somewhere, insert the file record with pointers
             if ( $blob_id || $blob_name ) {
-                $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_file
+                $stmt = $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}blob_file
                     (context_id, link_id, file_sha256, file_name, contenttype, path, backref, blob_id, created_at)
-                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BACKREF, :BID, NOW())");
-                $stmt->execute(array(
+                    VALUES (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BACKREF, :BID, NOW())",
+                array(
                     ":CID" => $CONTEXT->id,
                     ":LID" => $LINK->id,
                     ":SHA" => $sha256,
