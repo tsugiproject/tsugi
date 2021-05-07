@@ -644,7 +644,7 @@ $DATABASE_POST_CREATE = function($table) {
 
         // Secret is big ugly string for the google key - in case we launch internally in Koseu
         $secret = bin2hex(openssl_random_pseudo_bytes(16));
-        $shaval = lti_sha256('12345');
+        $shaval = lti_sha256('google.com');
         $sql = "insert into {$CFG->dbprefix}lti_key (key_sha256, secret, key_key) values
             ( '$shaval', '$secret', 'google.com')";
         error_log("Post-create: ".$sql);
