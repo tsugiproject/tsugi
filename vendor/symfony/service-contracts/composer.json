@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": ">=7.2.5",
-        "psr/container": "^1.0"
+        "psr/container": "^1.1"
     },
     "suggest": {
         "symfony/service-implementation": ""
@@ -28,7 +28,7 @@
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "2.2-dev"
+            "dev-main": "2.4-dev"
         },
         "thanks": {
             "name": "symfony/contracts",

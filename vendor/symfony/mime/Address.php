@@ -12,6 +12,7 @@
 namespace Symfony\Component\Mime;
 
 use Egulias\EmailValidator\EmailValidator;
+use Egulias\EmailValidator\Validation\MessageIDValidation;
 use Egulias\EmailValidator\Validation\RFCValidation;
 use Symfony\Component\Mime\Encoder\IdnAddressEncoder;
 use Symfony\Component\Mime\Exception\InvalidArgumentException;
@@ -51,7 +52,7 @@ final class Address
         $this->address = trim($address);
         $this->name = trim(str_replace(["\n", "\r"], '', $name));
 
-        if (!self::$validator->isValid($this->address, new RFCValidation())) {
+        if (!self::$validator->isValid($this->address, class_exists(MessageIDValidation::class) ? new MessageIDValidation() : new RFCValidation())) {
             throw new RfcComplianceException(sprintf('Email "%s" does not comply with addr-spec of RFC 2822.', $address));
         }
     }
@@ -77,7 +78,16 @@ final class Address
 
     public function toString(): string
     {
-        return ($n = $this->getName()) ? $n.' <'.$this->getEncodedAddress().'>' : $this->getEncodedAddress();
+        return ($n = $this->getEncodedName()) ? $n.' <'.$this->getEncodedAddress().'>' : $this->getEncodedAddress();
+    }
+
+    public function getEncodedName(): string
+    {
+        if ('' === $this->getName()) {
+            return '';
+        }
+
+        return sprintf('"%s"', preg_replace('/"/u', '\"', $this->getName()));
     }
 
     /**
@@ -104,7 +114,7 @@ final class Address
     }
 
     /**
-     * @param (Address|string)[] $addresses
+     * @param array<Address|string> $addresses
      *
      * @return Address[]
      */

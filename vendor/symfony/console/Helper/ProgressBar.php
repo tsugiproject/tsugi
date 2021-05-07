@@ -462,8 +462,15 @@ final class ProgressBar
         if ($this->overwrite) {
             if (null !== $this->previousMessage) {
                 if ($this->output instanceof ConsoleSectionOutput) {
-                    $lines = floor(Helper::strlen($message) / $this->terminal->getWidth()) + $this->formatLineCount + 1;
-                    $this->output->clear($lines);
+                    $messageLines = explode("\n", $message);
+                    $lineCount = \count($messageLines);
+                    foreach ($messageLines as $messageLine) {
+                        $messageLineLength = Helper::strlenWithoutDecoration($this->output->getFormatter(), $messageLine);
+                        if ($messageLineLength > $this->terminal->getWidth()) {
+                            $lineCount += floor($messageLineLength / $this->terminal->getWidth());
+                        }
+                    }
+                    $this->output->clear($lineCount);
                 } else {
                     if ($this->formatLineCount > 0) {
                         $this->cursor->moveUp($this->formatLineCount);
@@ -506,7 +513,7 @@ final class ProgressBar
                 $completeBars = $bar->getBarOffset();
                 $display = str_repeat($bar->getBarCharacter(), $completeBars);
                 if ($completeBars < $bar->getBarWidth()) {
-                    $emptyBars = $bar->getBarWidth() - $completeBars - Helper::strlenWithoutDecoration($output->getFormatter(), $bar->getProgressCharacter());
+                    $emptyBars = $bar->getBarWidth() - $completeBars - Helper::length(Helper::removeDecoration($output->getFormatter(), $bar->getProgressCharacter()));
                     $display .= $bar->getProgressCharacter().str_repeat($bar->getEmptyBarCharacter(), $emptyBars);
                 }
 
