@@ -1,0 +1,52 @@
+{
+    "require": {
+        "laravel/lumen-framework": "v7.2.2",
+        "aws/aws-sdk-php": "v3.55.0",
+        "google/auth" : "1.15.0",
+        "google/apiclient": "^2.9",
+        "google/apiclient-services" : "v0.156",
+        "phpseclib/phpseclib" : "v2.0.31",
+        "gree/jose" : ">1.0",
+        "ezyang/htmlpurifier": ">=v4.13.0",
+        "cboden/ratchet" : "v0.4.3",
+
+        "symfony/polyfill-ctype": "v1.22.0",
+        "symfony/polyfill-intl-grapheme": "v1.22.0",
+        "symfony/polyfill-intl-idn": "v1.22.0",
+        "symfony/polyfill-intl-normalizer": "v1.22.0",
+        "symfony/polyfill-mbstring": "v1.22.0",
+        "symfony/polyfill-php72": "v1.22.0",
+        "symfony/polyfill-php73": "v1.22.0",
+        "symfony/polyfill-php80": "v1.22.0",
+
+        "guzzlehttp/promises": "1.4.0",
+        "guzzlehttp/psr7": "1.7.0",
+        "nesbot/carbon": "2.45.1",
+        "psr/container": "1.0.0",
+        "react/dns": "v1.4.0",
+        "symfony/console": "v5.2.3",
+        "symfony/error-handler": "v5.2.3",
+        "symfony/event-dispatcher": "v5.2.3",
+        "symfony/finder": "v5.2.3",
+        "symfony/http-foundation": "v5.2.3",
+        "symfony/http-kernel": "v5.2.3",
+        "symfony/mime": "v5.2.3",
+        "symfony/process": "v5.2.3",
+        "symfony/routing": "v5.2.3",
+        "symfony/string": "v5.2.3",
+        "symfony/translation": "v5.2.3",
+        "symfony/var-dumper": "v5.2.3",
+
+         "opis/closure": "3.6.1",
+         "symfony/deprecation-contracts": "v2.2.0",
+         "symfony/event-dispatcher-contracts": "v2.2.0",
+         "symfony/http-client-contracts": "v2.3.1",
+         "symfony/translation-contracts": "v2.3.0",
+
+        "tsugi/lib": "dev-master#27238ac24e716bb9713d7a455f0ab26dd0897d7d",
+        "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
+    },
+    "config": {
+        "preferred-install": "dist"
+    }
+}
