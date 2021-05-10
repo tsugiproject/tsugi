@@ -230,7 +230,7 @@ function findToolFiles($filename="index.php", $reldir=false) {
     return $retval;
 }
 
-function searchTwoLevels($filename="index.php", $dir) {
+function searchTwoLevels($filename, $dir) {
     $files = array();
     if ( is_dir($dir) ) {
         if ($dh = opendir($dir)) {
