@@ -12,7 +12,7 @@ Tsugi PHP will never support any database other than MySQL and PsotgreSQL.
 With this as backdrop the experiment is to use the \Tsugi\Util\PDOX abstraction to transform
 the (generally simpler) MySQL syntax into PostgreSQL automatically wherever possible and provide
 ways for application developers and the code inside of Tsugi to write code for both variations
-when automatic transformation is not necessary.
+when automatic transformation is not feasible.
 
 If you are interested in playing with PostgreSQL and Tsugi - please have a conversation on the
 Tsugi developers list before starting out.
@@ -124,7 +124,7 @@ If you have not included a properly named value for the logical key in your `val
 
     $PDOX->upsertGetPKReturnError() missing :context_sha256 in the values array
 
-If you see this message, it probably means you have not include *all* you logical keys in the Meta
+If you see this message, it probably means you have not include *all* your logical keys in the Meta
 information when your table has a UNIQUE together clause that includes more than one column:
 
     $PDOX->upsertGetPKReturnError() pre-SELECT expects 0 or 1 row, got 5
@@ -214,7 +214,7 @@ Here is some reading about this very different approaches for upsert between the
 * https://stackoverflow.com/questions/37204749/serial-in-postgres-is-being-increased-even-though-i-added-on-conflict-do-nothing
 
 The most important new code to make UPSERT work across both databases is to add meta data
-to PDOX for each of the tables your tool creates in its `database.php`.  You can Meta entriesi
+to PDOX for each of the tables your tool creates in its `database.php`.  You can Meta entries
 to the $PDOX variable after the `getConnection()` or `requireData()` calls to start up Tsugi in your code.
 
     $PDOX = LTIX::getConnection();
@@ -240,7 +240,7 @@ in *your* `database.php`.
 
 You can also add Meta information as a comment on every INSERT statement using this syntax:
 
-    INSERT INTO lti_context / *PDOX pk: context_id lk: context_sha256,key_id * /
+    INSERT INTO lti_context /*PDOX pk: context_id lk: context_sha256,key_id */
 
 *Important:* Do not place any comment before the name of the table or you will
 bypass all UPSERT processing in PDOX.   You can use this as a feature if you
@@ -391,7 +391,7 @@ without causing PostgreSQL sequence gaps for "update mostly" use cases.
 While you might think we should add transactions to avoid race conditions, the race conditions in this approach
 are no worse than two INSERT ON DUPLICATE KEY statements racing towards a MySQL server.  All you get is eventual
 consistency with "last UPDATE wins" semantics - even in MySQL.  And the extra queries are *only* using logical
-keys and primary keys - so they will be highly cached.
+keys and primary keys - so they will (or should) be indexed and highly cached.
 
 P.S. If your application requirements need to support multiple simultaneous racing DELETEs and INSERTs
 aimed at rows with the same logical key(s) then all bets are of no matter how you build this.  This
@@ -417,7 +417,7 @@ This will give you a series of commands like:
     DROP TABLE IF EXISTS "lti_context" CASCADE;
     DROP TABLE IF EXISTS "lti_issuer" CASCADE;
 
-Then ocf course you need to rebuild the Tsugi tables with:
+Then of course you need to rebuild the Tsugi tables with:
 
     cd tsugi/admin
     php upgrade.php
