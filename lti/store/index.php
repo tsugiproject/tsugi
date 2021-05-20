@@ -776,7 +776,7 @@ if ( $l ) foreach($l->lessons->modules as $module) {
 
 if ( $l && $allow_import ) {
 ?>
-<div class="tab-pane fade active in" id="allcontent">
+    <div class="tab-pane fade <?= $active ?> in" id="allcontent">
 <p>You can download all the modules in a single cartridge, or you can download any 
 combination of the modules.</p>
 <p>
@@ -800,7 +800,9 @@ combination of the modules.</p>
   <option value="track_grade">Use LTI launch to track access and send grades</option>
 </select>
 </p>
-<?php } ?>
+<?php 
+    $active = '';
+} ?>
 <?php
     echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
     echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
