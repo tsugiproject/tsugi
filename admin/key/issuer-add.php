@@ -97,8 +97,8 @@ Adding Issuer Entry</h1>
   <li class="active"><a href="#generic" data-toggle="tab" aria-expanded="true">Generic Instructions</a></li>
   <li><a href="#brightspace" id="brightspace-click" data-toggle="tab" aria-expanded="false">Brightspace</a></li>
   <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
-  <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai 21</a></li>
-  <li><a href="#ims" data-toggle="tab" aria-expanded="false">Draft IMS Config</a></li>
+  <li><a href="#sakai" data-toggle="tab" aria-expanded="false" style="display: none;">Sakai 21</a></li>
+  <li><a href="#ims" data-toggle="tab" aria-expanded="false" style="display: none;">Draft IMS Config</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="generic">
@@ -124,7 +124,7 @@ Once you have created the security arrangement in the LMS you can fill in the
 provided values below.
 </p>
 </div>
-<div class="tab-pane fade" id="sakai">
+<div class="tab-pane fade" id="sakai" style="display: none;">
 For Sakai-21 and later, you can auto-provision an issuer using a two-step process.
 </p>
 <ol>
@@ -169,7 +169,7 @@ Once you have completed the registration process in Canvas, it should provide
 you the values to fill in the fields below.
 </p>
 </div>
-<div class="tab-pane fade" id="ims">
+<div class="tab-pane fade" id="ims" style="display: none;">
 IMS is working on a draft auto-provisioning spec.   This is a place to explore
 that spec as it is implemented.
 </p>

@@ -155,7 +155,7 @@ will likely be made public sometime on 2021.  The code in Tsugi is test/pre-rele
 code to help in the early testing of the specification as it is being developed.
 </p>
 <p>
-You can look a the detail page for your key and at the bootom there is a
+You can look a the detail page for your key and at the bottom there is a
 <b>"LTI Advantage Auto Configuration URL"</b> that can be copied into an LMS
 that supports this new protocol.
 </p>
