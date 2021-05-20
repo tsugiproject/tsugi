@@ -6,7 +6,6 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
 use \Tsugi\Core\LTIX;
-use \Tsugi\UI\Output;
 
 require_once "../config.php";
 
@@ -14,11 +13,6 @@ require_once "../config.php";
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
 $issuer_guid = U::get($_REQUEST, 'guid');
-
-$headers = U::apache_request_headers();
-$accept = U::get($headers,'Accept', ' ');
-$do_json = isset($CFG->oidc_login_json) && $CFG->oidc_login_json && strpos($accept, 'application/json') !== false;
-if ( $do_json ) Output::headerJson();
 
 // Allow a format where the parameter is the primary key of the lti_key row
 $key_id = null;
@@ -66,27 +60,18 @@ if ( ! is_array($row) || count($row) < 1 ) {
 }
 $client_id = trim($row['issuer_client']);
 $redirect = trim($row['lti13_oidc_auth']);
-$nonce = uniqid();
-$lti_message_hint = U::get($_REQUEST, 'lti_message_hint');
+
+$raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
+if (  U::apcAvailable() ) {
+    apc_store('oidc_login_state', $raw);
+} else {
+    error_log('oidc_login '.$raw);
+}
+$signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
 $payload = array();
-if ( $do_json ) {
-    $payload['type'] = 'json';
-} else {
-    $payload['type'] = 'browser';
-    $raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
-    if (  U::apcAvailable() ) {
-        apc_store('oidc_login_state', $raw);
-    } else {
-        error_log('oidc_login '.$raw);
-    }
-    $signature = \Tsugi\Core\LTIX::getBrowserSignature();
-    $payload['signature'] = $signature;
-};
+$payload['signature'] = $signature;
 $payload['time'] = time();
-$payload['nonce'] = $nonce;
-$redirect_uri = $CFG->wwwroot . '/lti/oidc_launch';
-
 // Someday we might do something clever with this...
 if ( U::get($_REQUEST,'target_link_uri') ) {
     $payload['target_link_uri'] = $_REQUEST['target_link_uri'];
@@ -94,34 +79,21 @@ if ( U::get($_REQUEST,'target_link_uri') ) {
 
 $state = JWT::encode($payload, $CFG->cookiesecret, 'HS256');
 
-$parm = array();
-$parm["scope"] = "openid";
-$parm["response_type"] = "id_token";
-$parm["response_mode"] = "form_post";
-$parm["prompt"] = "none";
-$parm["nonce"] = $nonce;
+$redirect = U::add_url_parm($redirect, "scope", "openid");
+$redirect = U::add_url_parm($redirect, "response_type", "id_token");
+$redirect = U::add_url_parm($redirect, "response_mode", "form_post");
+$redirect = U::add_url_parm($redirect, "prompt", "none");
+$redirect = U::add_url_parm($redirect, "nonce", uniqid());
 
 // client_id - Required, per OIDC spec, the tool’s client id for this issuer.
-$parm["client_id"] = $client_id;
-$parm["login_hint"] = $login_hint;
-if ( $lti_message_hint ) {
-    $parm["lti_message_hint"] = $lti_message_hint;
+$redirect = U::add_url_parm($redirect, "client_id", $client_id);
+$redirect = U::add_url_parm($redirect, "login_hint", $login_hint);
+if ( U::get($_REQUEST,'lti_message_hint') ) {
+    $redirect = U::add_url_parm($redirect, "lti_message_hint", $_REQUEST['lti_message_hint']);
 }
-$parm["redirect_uri"] = $redirect_uri;
-$parm["state"] = $state;
+$redirect = U::add_url_parm($redirect, "redirect_uri", $CFG->wwwroot . '/lti/oidc_launch');
+$redirect = U::add_url_parm($redirect, "state", $state);
 
-
-if ( $do_json ) {
-    $retval = new \stdClass();
-    foreach($parm as $p => $v){
-        $retval->{$p} = $v;
-    }
-    echo(json_encode($retval));
-} else {
-    foreach($parm as $p => $v){
-        $redirect = U::add_url_parm($redirect, $p,$v);
-    };
-    error_log("oidc_login redirect: ".$redirect);
-    header("Location: ".$redirect);
-}
+error_log("oidc_login redirect: ".$redirect);
+header("Location: ".$redirect);
 
