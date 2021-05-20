@@ -567,8 +567,8 @@ if ( $registrations && $allow_lti ) {
                                 <textarea class="form-control" rows="5" name="description"><?=htmlent_utf8($text)?></textarea>
                             </div>
                             <div class="form-group">
-                                <label for="presentationDocumentTarget">Link Target</label> (Not all LMS's support all options)
-                                <select name="presentationDocumentTarget" id="presentationDocumentTarget">
+                                <label for="presentationDocumentTarget_<?= $count ?>">Link Target</label> (Not all LMS's support all options)
+                                <select name="presentationDocumentTarget" id="presentationDocumentTarget_<?= $count ?>">
                                     <option value="none">Any</option>
                                     <option value="iframe">iFrame</option>
                                     <option value="window">New Window</option>
@@ -585,37 +585,37 @@ if ( $registrations && $allow_lti ) {
                             <!-- https://www.imsglobal.org/spec/lti-dl/v2p0 -->
 <?php if ( $grade_launch && $accept_lineitem ) { ?>
                             <div class="form-group">
-                                <label for="lineitem">Configure LineItem</label> (Not all LMS placements support all features)
-                                <select name="lineitem" id="lineitem">
+                                <label for="lineitem_<?= $count ?>">Configure LineItem</label> (Not all LMS placements support all features)
+                                <select name="lineitem" id="lineitem_<?= $count ?>">
                                     <option value="none">No LineItem</option>
                                     <option value="send">Send LineItem</option>
                                 </select>
                             </div>
 <div class="lineitem-fields" style="display:none;">
                             <div class="form-group">
-                                <label for="scoreMaximum">Maximum possible score for an activity.</label>
-                                <input type="number" class="form-control" id="scoreMaximum" name="scoreMaximum">
+                                <label for="scoreMaximum_<?= $count ?>">Maximum possible score for an activity.</label>
+                                <input type="number" class="form-control" id="scoreMaximum_<?= $count ?>" name="scoreMaximum">
                             </div>
-                            <div class="form-group" for="resourceId">
+                            <div class="form-group" for="resourceId_<?= $count ?>">
                                 <label>Tool provided ID for the resource. (optional) This is opaque to the LMS.</label>
-                                <input type="text" class="form-control" id="resourceId" name="resourceId">
+                                <input type="text" class="form-control" id="resourceId_<?= $count ?>" name="resourceId">
                             </div>
                             <div class="form-group">
-                                <label for="tag">A tag used to mark this item. (optional) This is opaque to the LMS</label>
-                                <input type="text" class="form-control" id="tag" name="tag">
+                                <label for="tag_<?= $count ?>">A tag used to mark this item. (optional) This is opaque to the LMS</label>
+                                <input type="text" class="form-control" id="tag_<?= $count ?>" name="tag">
                             </div>
 <?php if ( $accept_available ) { ?>
                             <div class="form-group">
-                                <label for="availableStart">Available dates:</label>
-                                <input type="date" id="availableStart" name="availableStart"> - 
-                                <input type="date" id="availableEnd" name="availableEnd">
+                                <label for="availableStart_<?= $count ?>">Available dates:</label>
+                                <input type="date" id="availableStart_<?= $count ?>" name="availableStart"> - 
+                                <input type="date" id="availableEnd_<?= $count ?>" name="availableEnd">
                             </div>
 <?php } ?>
 <?php if ( $accept_submission ) { ?>
                             <div class="form-group">
-                                <label for="submissionStart">Submission dates:</label>
-                                <input type="date" id="submissionStart" name="submissionStart"> - 
-                                <input type="date" id="submissionEnd" name="submissionEnd">
+                                <label for="submissionStart_<?= $count ?>">Submission dates:</label>
+                                <input type="date" id="submissionStart_<?= $count ?>" name="submissionStart"> - 
+                                <input type="date" id="submissionEnd_<?= $count ?>" name="submissionEnd">
                             </div>
 <?php } ?>
 </div>
