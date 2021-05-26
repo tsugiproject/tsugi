@@ -10,6 +10,7 @@ require_once "../config.php";
 
 $id_token = U::get($_POST, 'id_token');
 $state = U::get($_POST, 'state');
+$verifydata = U::get($_POST, 'postverify');
 
 if ( ! $state || ! $id_token ) {
     LTIX::abort_with_error_log('Missing id_token and/or state');
@@ -98,6 +99,100 @@ if ( strpos($launch_url, $oidc_launch) === 0 ) {
 
 if ( ! U::startsWith($launch_url, $CFG->apphome) ) {
     LTIX::abort_with_error_log("Launch_url must start with ".$CFG->apphome);
+}
+
+$sub = isset($jwt->body->sub) ? $jwt->body->sub : null;
+// Lets check if we need to do a postverify
+$postverify = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
+$origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
+$request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
+$iss = isset($jwt->body->iss) ? $jwt->body->iss : null;
+$issuer_sha256 = $iss ? LTI13::extract_issuer_key_string($iss) : null;
+$key_id = isset($decoded->key_id) ? $decoded->key_id : null;
+
+if ( $sub && $postverify && $origin && $key_id && $issuer_sha256 ) {
+    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 postverify $postverify origin $origin key_id $key_id");
+    $PDOX = \Tsugi\Core\LTIX::getConnection();
+    $sql = "SELECT key_id, issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
+        FROM {$CFG->dbprefix}lti_issuer AS I
+            JOIN {$CFG->dbprefix}lti_key AS K ON
+                K.issuer_id = I.issuer_id
+            WHERE K.key_id = :KID AND I.issuer_sha256 = :SHA";
+    $row = $PDOX->rowDie($sql, array(":KID" => $key_id, ":SHA" => $issuer_sha256));
+
+    $issuer_key = $row['issuer_key'];
+    $platform_public_key = $row['lti13_platform_pubkey'];
+    $our_kid = $row['lti13_kid'];
+    $our_keyset_url = $row['lti13_keyset'];
+    $our_keyset = $row['lti13_keyset'];
+
+    $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
+
+    error_log('id_token '.$id_token);
+    error_log('platform_public_key '.$platform_public_key);
+
+    $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
+    if ( $e !== true ) {
+        LTIX::abort_with_error_log('JWT validation fail key='.$issuer_key.' error='.$e->getMessage());
+    }
+
+    // The launch JWT is valid, lets do the postverify
+    $tool_private_key = $row['lti13_privkey'];
+
+    if ( $verifydata === null ) {
+
+        $postjson = new \stdClass();
+        $postjson->subject = "org.imsglobal.lti.postverify";
+        $postjson->postverify = $postverify;
+        $postjson->sub = $sub;
+        $poststr = json_encode($postjson);
+?>
+<form method="POST" id="oidc_verify">
+<input type="hidden" name="id_token" value="<?= htmlspecialchars($id_token) ?>">
+<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
+<input type="hidden" id="postverify" name="postverify">
+</form>
+<script>
+window.addEventListener('message', function (e) {
+    console.log('oidc_launch received message');
+    console.log(e);
+    console.log((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
+                (e.origin == '<?= $origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
+    if ( e.source == parent && e.origin == '<?= $origin ?>' ) {
+        document.getElementById("postverify").value = e.data;
+        document.getElementById("oidc_verify").submit();
+    }
+});
+console.log('trophy sending org.imsglobal.lti.postverify');
+parent.postMessage('<?= $poststr ?>', '<?= $origin ?>');
+</script>
+<?php
+        return;
+    } else {
+        $verify_jwt = false;
+        $verify_sub = false;
+        error_log("Returned JWT $verifydata");
+        $verify_jwt = LTI13::parse_jwt($verifydata);
+        error_log("Platform public ".$platform_public_key);
+
+        $e = LTI13::verifyPublicKey($verifydata, $platform_public_key, array($verify_jwt->header->alg));
+        if ( $e !== true ) {
+            LTIX::abort_with_error_log('Postverify validation fail key='.$issuer_key.' error='.$e->getMessage());
+        }
+
+        if ( isset($verify_jwt->body->sub) && is_string($verify_jwt->body->sub) ) {
+            $verify_sub = $verify_jwt->body->sub;
+        } else {
+            error_log("Unable to parse postverify JWT ".$verifydata);
+            LTIX::abort_with_error_log("Unable to parse postverify JWT");
+        }
+
+
+        if ( $verify_sub != $sub ) {
+            error_log("Subject $sub does not match verified_subject of $verify_sub");
+            LTIX::abort_with_error_log("Unable to verify subject - ".$sub);
+        }
+   }
 }
 
 // Looks good - time to forward

@@ -517,6 +517,8 @@ class LTIX {
 
             $issuer_sha256 = $post['issuer_sha256'];
 
+            $public_key = self::getPlatformPublicKey($request_kid, $our_kid, $public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
+/*
             // Sanity check
             if ( strlen($our_keyset_url) < 1 ) {
                  self::abort_with_error_log("Could not find keyset and $issuer_key");
@@ -565,6 +567,7 @@ class LTIX {
                     }
                 }
             }
+ */
 
             $e = LTI13::verifyPublicKey($raw_jwt, $public_key, array($jwt->header->alg));
             if ( $e !== true ) {
@@ -708,7 +711,7 @@ class LTIX {
                 // Store binary nonce in fixed-length CHAR field with no encoding
                 // https://stackoverflow.com/questions/3554296/how-to-store-hashes-in-mysql-databases-without-using-text-fields
                 $event_nonce = md5($event_nonce, True);   // Was UNHEX(MD5(:nonce)) in MySQL
- 
+
                 // https://stackoverflow.com/questions/16001238/writing-to-a-bytea-field-error-invalid-byte-sequence-for-encoding-utf8-0x9
                 if ( $PDOX->isPgSQL() ) {
                     $event_nonce = substr( base64_encode($event_nonce), 0, 16);
@@ -801,6 +804,61 @@ class LTIX {
 
         if ( $session_object === null ) {
             return $session_id;
+        }
+    }
+
+    /**
+     * getPlatformPublicKey - Get the platform public key for the various sources
+     *
+     * This will check the current kid, the current keyset, and if nothing matches
+     * re-load the keyset url, and check the new keyset url.  If new information is retrieved, it
+     * is cached until the kid chages for this issuer.
+     */
+    public static function getPlatformPublicKey($request_kid, $our_kid, $public_key, $issuer_sha256, $our_keyset_url, $our_keyset)
+    {
+        if ( strlen($public_key) > 0 && $request_kid == $our_kid ) return $public_key;
+
+        // Make sure we have or update to the latest keyset if we have a keyset_url
+        // and the kid is new to us
+        if ( strlen($our_keyset_url) > 0 ) {
+            $our_keyset = file_get_contents($our_keyset_url);
+            $decoded = json_decode($our_keyset);
+            if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
+                $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
+                    SET lti13_keyset=:KS, updated_at=NOW() WHERE issuer_sha256 = :SHA",
+                array(':SHA' => $issuer_sha256, ':KS' => $our_keyset) );
+                error_log("Updated keyset $issuer_sha256 from $our_keyset_url\n");
+            } else {
+                self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url,
+                            substr($our_keyset,0,1000));
+            }
+        }
+
+        // If we have a keyset, lets look for the new key
+        if ( strlen($our_keyset) > 0 ) {
+            $new_public_key = LTI13::extractKeyFromKeySet($our_keyset, $request_kid);
+
+            if ( $new_public_key ) {
+                $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
+                    SET lti13_platform_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE issuer_sha256 = :SHA",
+                    array(':SHA' => $issuer_sha256, ':PK' => $new_public_key,
+                        ':KID' => $request_kid )
+                );
+                error_log("New public key $issuer_sha256\n$new_public_key");
+                return $new_public_key;
+            }
+        }
+
+        // Despite our best efforts, we could not get a key - clear things out to enable reset
+        $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
+            SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE issuer_sha256 = :SHA",
+        array(':SHA' => $issuer_sha256) );
+        if ( strlen($public_key) > 0 ) {
+            error_log("Cleared public key $issuer_sha256 invalid kid");
+            self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
+        } else {
+            error_log("Could not find public key $issuer_sha256 invalid kid");
+            self::abort_with_error_log("Invalid Key Id (header.kid), could not find public key");
         }
     }
 

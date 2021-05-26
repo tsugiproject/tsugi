@@ -24,6 +24,9 @@ class LTI13 {
     const PRESENTATION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
     const LTI11_TRANSITION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/lti1p1';
 
+    const ORIGIN_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/origin";
+    const POSTVERIFY_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/postverify";
+
     const NAMESANDROLES_CLAIM = 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
     const ENDPOINT_CLAIM =      'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
     const DEEPLINK_CLAIM =      'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';

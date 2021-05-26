@@ -34,7 +34,7 @@ $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 error_log("iss=".$iss." sha256=".$key_sha256);
 if ( $key_id ) {
-     $sql = "SELECT issuer_client, lti13_oidc_auth
+     $sql = "SELECT key_id, issuer_client, lti13_oidc_auth
         FROM {$CFG->dbprefix}lti_issuer AS I
             JOIN {$CFG->dbprefix}lti_key AS K ON
                 K.issuer_id = I.issuer_id
@@ -50,7 +50,7 @@ if ( $key_id ) {
     }
 
     $row = $PDOX->rowDie(
-        "SELECT issuer_client, lti13_oidc_auth
+        "SELECT key_id, issuer_client, lti13_oidc_auth
         FROM {$CFG->dbprefix}lti_issuer $query_where",
         $query_where_params);
 }
@@ -59,6 +59,7 @@ if ( ! is_array($row) || count($row) < 1 ) {
     LTIX::abort_with_error_log('Login could not find issuer '.htmlentities($iss)." issuer_guid=".$issuer_guid);
 }
 $client_id = trim($row['issuer_client']);
+$key_id = trim($row['key_id']);
 $redirect = trim($row['lti13_oidc_auth']);
 
 $raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
@@ -71,6 +72,7 @@ $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
 $payload = array();
 $payload['signature'] = $signature;
+$payload['key_id'] = $key_id;
 $payload['time'] = time();
 // Someday we might do something clever with this...
 if ( U::get($_REQUEST,'target_link_uri') ) {
