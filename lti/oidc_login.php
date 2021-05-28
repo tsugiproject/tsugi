@@ -81,6 +81,15 @@ if ( U::get($_REQUEST,'target_link_uri') ) {
 
 $state = JWT::encode($payload, $CFG->cookiesecret, 'HS256');
 
+// Make a short-lived session
+$sid = substr("log-".md5($state), 0, 20);
+    ini_set('session.use_cookies', '0');
+    ini_set('session.use_only_cookies',0);
+    ini_set('session.use_trans_sid',1);
+session_id($sid);
+session_start();
+$_SESSION['state'] = $state;
+
 $redirect = U::add_url_parm($redirect, "scope", "openid");
 $redirect = U::add_url_parm($redirect, "response_type", "id_token");
 $redirect = U::add_url_parm($redirect, "response_mode", "form_post");
@@ -97,5 +106,7 @@ $redirect = U::add_url_parm($redirect, "redirect_uri", $CFG->wwwroot . '/lti/oid
 $redirect = U::add_url_parm($redirect, "state", $state);
 
 error_log("oidc_login redirect: ".$redirect);
+// Store it in a session cookie - likely won't work
+setcookie("TSUGI_STATE", $state);
 header("Location: ".$redirect);
 

@@ -11,6 +11,7 @@ require_once "../config.php";
 $id_token = U::get($_POST, 'id_token');
 $state = U::get($_POST, 'state');
 $verifydata = U::get($_POST, 'postverify');
+$verified = false;
 
 if ( ! $state || ! $id_token ) {
     LTIX::abort_with_error_log('Missing id_token and/or state');
@@ -33,6 +34,17 @@ if ( ! isset($decoded->time) ) {
 $delta = abs($decoded->time - time());
 if ( $delta > 60 ) {
     LTIX::abort_with_error_log('Bad time value');
+}
+
+$sid = substr("log-".md5($state), 0, 20);
+    ini_set('session.use_cookies', '0');
+    ini_set('session.use_only_cookies',0);
+    ini_set('session.use_trans_sid',1);
+session_id($sid);
+session_start();
+$session_state = U::get($_SESSION, 'state');
+if ( $session_state != $state ) {
+    LTIX::abort_with_error_log('Could not find state in session');
 }
 
 if ( isset($decoded->type) && $decoded->type == "json" ) {
@@ -101,6 +113,19 @@ if ( ! U::startsWith($launch_url, $CFG->apphome) ) {
     LTIX::abort_with_error_log("Launch_url must start with ".$CFG->apphome);
 }
 
+// Check if we are already verified
+if ( U::get($_SESSION, 'verified') == 'yes' ) {
+    error_log("Verified with session");
+    $verified = true;
+}
+
+$cookie_state = U::get($_COOKIE, "TSUGI_STATE");
+if ( $cookie_state == $state ) {
+    error_log("Verified with cookie");
+    $verified = true;
+}
+
+
 $sub = isset($jwt->body->sub) ? $jwt->body->sub : null;
 // Lets check if we need to do a postverify
 $postverify = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
@@ -110,7 +135,7 @@ $iss = isset($jwt->body->iss) ? $jwt->body->iss : null;
 $issuer_sha256 = $iss ? LTI13::extract_issuer_key_string($iss) : null;
 $key_id = isset($decoded->key_id) ? $decoded->key_id : null;
 
-if ( $sub && $postverify && $origin && $key_id && $issuer_sha256 ) {
+if ( ! $verified && $sub && $postverify && $origin && $key_id && $issuer_sha256 ) {
     error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 postverify $postverify origin $origin key_id $key_id");
     $PDOX = \Tsugi\Core\LTIX::getConnection();
     $sql = "SELECT key_id, issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
@@ -140,6 +165,13 @@ if ( $sub && $postverify && $origin && $key_id && $issuer_sha256 ) {
     $tool_private_key = $row['lti13_privkey'];
 
     if ( $verifydata === null ) {
+
+        // Save for oidc_verify
+        $_SESSION['platform_public_key'] = $platform_public_key;
+        $_SESSION['id_token'] = $id_token;
+        $_SESSION['subject'] = $sub;
+        // TODO: Move to user_id and not subject
+        $_SESSION['user_id'] = $sub;
 
         $postjson = new \stdClass();
         $postjson->subject = "org.imsglobal.lti.postverify";
@@ -192,7 +224,17 @@ parent.postMessage('<?= $poststr ?>', '<?= $origin ?>');
             error_log("Subject $sub does not match verified_subject of $verify_sub");
             LTIX::abort_with_error_log("Unable to verify subject - ".$sub);
         }
+        // TODO: Do this better later
+        $verified = true;
    }
+}
+
+// Reclaim the short-lived session
+unset($_SESSION);
+session_destroy();
+
+if ( ! $verified ) {
+    LTIX::abort_with_error_log("Unable to multi-verify subject - ".$sub);
 }
 
 // Looks good - time to forward
