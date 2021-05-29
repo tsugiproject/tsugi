@@ -170,12 +170,11 @@ if ( ! $verified && $sub && $postverify && $origin && $key_id && $issuer_sha256 
         $_SESSION['platform_public_key'] = $platform_public_key;
         $_SESSION['id_token'] = $id_token;
         $_SESSION['subject'] = $sub;
-        // TODO: Move to user_id and not subject
-        $_SESSION['user_id'] = $sub;
 
+        $verify_url = $CFG->wwwroot . '/lti/oidc_verify.php?sid=' . $sid;
         $postjson = new \stdClass();
         $postjson->subject = "org.imsglobal.lti.postverify";
-        $postjson->postverify = $postverify;
+        $postjson->postverify = U::add_url_parm($postverify, 'callback', $verify_url) ;
         $postjson->sub = $sub;
         $poststr = json_encode($postjson);
 ?>
@@ -200,32 +199,6 @@ parent.postMessage('<?= $poststr ?>', '<?= $origin ?>');
 </script>
 <?php
         return;
-    } else {
-        $verify_jwt = false;
-        $verify_sub = false;
-        error_log("Returned JWT $verifydata");
-        $verify_jwt = LTI13::parse_jwt($verifydata);
-        error_log("Platform public ".$platform_public_key);
-
-        $e = LTI13::verifyPublicKey($verifydata, $platform_public_key, array($verify_jwt->header->alg));
-        if ( $e !== true ) {
-            LTIX::abort_with_error_log('Postverify validation fail key='.$issuer_key.' error='.$e->getMessage());
-        }
-
-        if ( isset($verify_jwt->body->sub) && is_string($verify_jwt->body->sub) ) {
-            $verify_sub = $verify_jwt->body->sub;
-        } else {
-            error_log("Unable to parse postverify JWT ".$verifydata);
-            LTIX::abort_with_error_log("Unable to parse postverify JWT");
-        }
-
-
-        if ( $verify_sub != $sub ) {
-            error_log("Subject $sub does not match verified_subject of $verify_sub");
-            LTIX::abort_with_error_log("Unable to verify subject - ".$sub);
-        }
-        // TODO: Do this better later
-        $verified = true;
    }
 }
 

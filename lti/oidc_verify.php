@@ -8,12 +8,15 @@ use \Tsugi\UI\Output;
 
 require_once "../config.php";
 
+
 $sid = U::get($_GET, 'sid');
 if ( !is_string($sid) || strlen($sid) < 0 ) {
     LTIX::abort_with_error_log('Missing sid parameter');
 }
 
-$verifydata = U::get($_POST, 'postverify');
+error_log(" =============== oidc_verify ===================== $sid");
+
+$verifydata = file_get_contents('php://input');
 if ( !is_string($verifydata) || strlen($verifydata) < 0 ) {
     LTIX::abort_with_error_log('Missing verify data in POST');
 }
@@ -28,16 +31,15 @@ if ( !is_string($session_state) || strlen($session_state) < 0 ) {
     LTIX::abort_with_error_log('Could not find state in session');
 }
 
-$platform_public_key = U::get($_POST, 'platform_public_key');
+$platform_public_key = U::get($_SESSION, 'platform_public_key');
 if ( !is_string($platform_public_key) || strlen($platform_public_key) < 0 ) {
     LTIX::abort_with_error_log('Missing platform_public_key in session');
 }
 
-$subject = U::get($_POST, 'subject');
+$subject = U::get($_SESSION, 'subject');
 if ( !is_string($subject) || strlen($subject) < 0 ) {
     LTIX::abort_with_error_log('Missing subject in session');
 }
-
 
         $verify_jwt = false;
         $verify_sub = false;
@@ -58,11 +60,12 @@ if ( !is_string($subject) || strlen($subject) < 0 ) {
         }
 
 
-        if ( $verify_sub != $sub ) {
+        if ( $verify_sub != $subject ) {
             error_log("Subject $sub does not match verified_subject of $verify_sub");
             LTIX::abort_with_error_log("Unable to verify subject - ".$sub);
         }
 
 $_SESSION['verified'] = 'yes';
+error_log("VERIFIED");
 
 
