@@ -177,7 +177,7 @@ window.addEventListener('message', function (e) {
     console.log((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
                 (e.origin == '<?= $origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
     if ( e.source == parent && e.origin == '<?= $origin ?>' ) {
-        document.getElementById("postverify").value = e.data;
+        document.getElementById("postverify").value = 'done';
         document.getElementById("oidc_verify").submit();
     }
 });
