@@ -5,6 +5,7 @@ use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Output;
+use \Tsugi\Crypt\AesCtr;
 
 require_once "../config.php";
 
@@ -37,9 +38,6 @@ if ( $delta > 60 ) {
 }
 
 $sid = substr("log-".md5($state), 0, 20);
-    ini_set('session.use_cookies', '0');
-    ini_set('session.use_only_cookies',0);
-    ini_set('session.use_trans_sid',1);
 session_id($sid);
 session_start();
 $session_state = U::get($_SESSION, 'state');
@@ -133,24 +131,17 @@ $origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_
 $request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
 $iss = isset($jwt->body->iss) ? $jwt->body->iss : null;
 $issuer_sha256 = $iss ? LTI13::extract_issuer_key_string($iss) : null;
-$key_id = isset($decoded->key_id) ? $decoded->key_id : null;
 
-if ( ! $verified && $sub && $postverify && $origin && $key_id && $issuer_sha256 ) {
-    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 postverify $postverify origin $origin key_id $key_id");
-    $PDOX = \Tsugi\Core\LTIX::getConnection();
-    $sql = "SELECT key_id, issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
-        FROM {$CFG->dbprefix}lti_issuer AS I
-            JOIN {$CFG->dbprefix}lti_key AS K ON
-                K.issuer_id = I.issuer_id
-            WHERE K.key_id = :KID AND I.issuer_sha256 = :SHA";
-    $row = $PDOX->rowDie($sql, array(":KID" => $key_id, ":SHA" => $issuer_sha256));
+$platform_public_key = U::get($_SESSION, 'platform_public_key');
+$our_kid = U::get($_SESSION, 'our_kid');
+$our_keyset_url = U::get($_SESSION, 'our_keyset_url');
+$our_keyset = U::get($_SESSION, 'our_keyset');
 
-    $issuer_key = $row['issuer_key'];
-    $platform_public_key = $row['lti13_platform_pubkey'];
-    $our_kid = $row['lti13_kid'];
-    $our_keyset_url = $row['lti13_keyset'];
-    $our_keyset = $row['lti13_keyset'];
+$tool_private_key_encr = U::get($_SESSION, 'tool_private_key_encr');
+$tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 256) ;
 
+if ( ! $verified && $sub && $postverify && $origin && $issuer_sha256 ) {
+    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 postverify $postverify origin $origin");
     $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
 
     error_log('id_token '.$id_token);
@@ -158,11 +149,8 @@ if ( ! $verified && $sub && $postverify && $origin && $key_id && $issuer_sha256 
 
     $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
     if ( $e !== true ) {
-        LTIX::abort_with_error_log('JWT validation fail key='.$issuer_key.' error='.$e->getMessage());
+        LTIX::abort_with_error_log('JWT validation fail key='.$iss.' error='.$e->getMessage());
     }
-
-    // The launch JWT is valid, lets do the postverify
-    $tool_private_key = $row['lti13_privkey'];
 
     if ( $verifydata === null ) {
 

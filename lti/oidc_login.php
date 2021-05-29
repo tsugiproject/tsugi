@@ -6,6 +6,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Crypt\AesCtr;
 
 require_once "../config.php";
 
@@ -34,8 +35,9 @@ $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 error_log("iss=".$iss." sha256=".$key_sha256);
 if ( $key_id ) {
-     $sql = "SELECT key_id, issuer_client, lti13_oidc_auth
-        FROM {$CFG->dbprefix}lti_issuer AS I
+     $sql = "SELECT key_id, issuer_client, lti13_oidc_auth,
+         issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
+         FROM {$CFG->dbprefix}lti_issuer AS I
             JOIN {$CFG->dbprefix}lti_key AS K ON
                 K.issuer_id = I.issuer_id
             WHERE K.key_id = :KID AND I.issuer_sha256 = :SHA";
@@ -50,7 +52,8 @@ if ( $key_id ) {
     }
 
     $row = $PDOX->rowDie(
-        "SELECT key_id, issuer_client, lti13_oidc_auth
+        "SELECT key_id, issuer_client, lti13_oidc_auth,
+        issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
         FROM {$CFG->dbprefix}lti_issuer $query_where",
         $query_where_params);
 }
@@ -62,6 +65,13 @@ $client_id = trim($row['issuer_client']);
 $key_id = trim($row['key_id']);
 $redirect = trim($row['lti13_oidc_auth']);
 
+$issuer_key = $row['issuer_key'];
+$platform_public_key = $row['lti13_platform_pubkey'];
+$our_kid = $row['lti13_kid'];
+$our_keyset_url = $row['lti13_keyset'];
+$our_keyset = $row['lti13_keyset'];
+$tool_private_key = $row['lti13_privkey'];
+
 $raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
 if (  U::apcAvailable() ) {
     apc_store('oidc_login_state', $raw);
@@ -72,7 +82,6 @@ $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
 $payload = array();
 $payload['signature'] = $signature;
-$payload['key_id'] = $key_id;
 $payload['time'] = time();
 // Someday we might do something clever with this...
 if ( U::get($_REQUEST,'target_link_uri') ) {
@@ -83,12 +92,18 @@ $state = JWT::encode($payload, $CFG->cookiesecret, 'HS256');
 
 // Make a short-lived session
 $sid = substr("log-".md5($state), 0, 20);
-    ini_set('session.use_cookies', '0');
-    ini_set('session.use_only_cookies',0);
-    ini_set('session.use_trans_sid',1);
 session_id($sid);
 session_start();
 $_SESSION['state'] = $state;
+$_SESSION['issuer_key'] = $issuer_key;
+$_SESSION['platform_public_key'] = $platform_public_key;
+
+$_SESSION['our_kid'] = $our_kid;
+$_SESSION['our_keyset_url'] = $our_keyset_url;
+$_SESSION['our_keyset'] = $our_keyset;
+
+$encr = AesCtr::encrypt($tool_private_key, $CFG->cookiesecret, 256) ;
+$_SESSION['tool_private_key_encr'] = $encr;
 
 $redirect = U::add_url_parm($redirect, "scope", "openid");
 $redirect = U::add_url_parm($redirect, "response_type", "id_token");
