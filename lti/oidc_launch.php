@@ -46,6 +46,7 @@ if ( $session_state != $state ) {
     LTIX::abort_with_error_log('Could not find state in session');
 }
 
+$signature_check = false;
 if ( isset($decoded->type) && $decoded->type == "json" ) {
     // No browser signature check
     error_log("JSON STATE");
@@ -66,6 +67,7 @@ if ( isset($decoded->type) && $decoded->type == "json" ) {
         error_log('oidc_launch '.$raw);
         LTIX::abort_with_error_log("Invalid state signature value");
     }
+    $signature_check = true;
 }
 
 $url_claim = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
@@ -114,7 +116,7 @@ if ( ! U::startsWith($launch_url, $CFG->apphome) ) {
 
 // Check if we are already verified
 if ( U::get($_SESSION, 'verified') == 'yes' ) {
-    error_log("oidc_login verified with session");
+    error_log("oidc_login verified with postverify from session");
     $verified = true;
 }
 
@@ -193,8 +195,13 @@ parent.postMessage('<?= $poststr ?>', '<?= $origin ?>');
 unset($_SESSION);
 session_destroy();
 
-if ( ! $verified ) {
-    LTIX::abort_with_error_log("Unable to multi-verify subject - ".$sub);
+// Check if we are verified or have a fallback
+if ( $verified ) {
+    // Verified via cookie or post verify
+} else if ( $signature_check ) {
+    error_log("oidc_login verified with browser signature");
+} else {
+    LTIX::abort_with_error_log("Unable to verify subject ".$sub." iss ".$iss);
 }
 
 // Looks good - time to forward

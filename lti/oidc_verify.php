@@ -63,6 +63,6 @@ if ( $verify_sub != $subject ) {
 }
 
 $_SESSION['verified'] = 'yes';
-error_log("VERIFIED");
+error_log("oidc_verify success");
 
 
