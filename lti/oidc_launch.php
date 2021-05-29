@@ -38,6 +38,7 @@ if ( $delta > 60 ) {
 }
 
 $sid = substr("log-".md5($state), 0, 20);
+error_log(" =============== oidc_launch ===================== $sid");
 session_id($sid);
 session_start();
 $session_state = U::get($_SESSION, 'state');
@@ -113,18 +114,18 @@ if ( ! U::startsWith($launch_url, $CFG->apphome) ) {
 
 // Check if we are already verified
 if ( U::get($_SESSION, 'verified') == 'yes' ) {
-    error_log("Verified with session");
+    error_log("oidc_login verified with session");
     $verified = true;
 }
 
 $cookie_state = U::get($_COOKIE, "TSUGI_STATE");
 if ( $cookie_state == $state ) {
-    error_log("Verified with cookie");
+    error_log("oidc_login verified with cookie");
     $verified = true;
 }
 
-
 $sub = isset($jwt->body->sub) ? $jwt->body->sub : null;
+
 // Lets check if we need to do a postverify
 $postverify = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
 $origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
@@ -132,20 +133,18 @@ $request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
 $iss = isset($jwt->body->iss) ? $jwt->body->iss : null;
 $issuer_sha256 = $iss ? LTI13::extract_issuer_key_string($iss) : null;
 
-$platform_public_key = U::get($_SESSION, 'platform_public_key');
+// Get verification data from oidc_login via session
 $our_kid = U::get($_SESSION, 'our_kid');
 $our_keyset_url = U::get($_SESSION, 'our_keyset_url');
 $our_keyset = U::get($_SESSION, 'our_keyset');
+$platform_public_key = U::get($_SESSION, 'platform_public_key');
 
 $tool_private_key_encr = U::get($_SESSION, 'tool_private_key_encr');
 $tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 256) ;
 
 if ( ! $verified && $sub && $postverify && $origin && $issuer_sha256 ) {
-    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 postverify $postverify origin $origin");
+    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  origin $origin postverify $postverify");
     $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
-
-    error_log('id_token '.$id_token);
-    error_log('platform_public_key '.$platform_public_key);
 
     $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
     if ( $e !== true ) {

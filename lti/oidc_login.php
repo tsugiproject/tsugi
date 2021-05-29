@@ -92,6 +92,7 @@ $state = JWT::encode($payload, $CFG->cookiesecret, 'HS256');
 
 // Make a short-lived session
 $sid = substr("log-".md5($state), 0, 20);
+error_log(" =============== oidc_login ===================== $sid");
 session_id($sid);
 session_start();
 $_SESSION['state'] = $state;
