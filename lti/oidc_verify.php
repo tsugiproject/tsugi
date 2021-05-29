@@ -8,6 +8,8 @@ use \Tsugi\UI\Output;
 
 require_once "../config.php";
 
+// To make abort_with_error_log do its JSON thing.
+header('Content-Type: application/json');
 
 $sid = U::get($_GET, 'sid');
 if ( !is_string($sid) || strlen($sid) < 0 ) {
