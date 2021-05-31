@@ -9,13 +9,12 @@ use \Tsugi\Crypt\AesCtr;
 
 require_once "../config.php";
 
-$id_token = U::get($_POST, 'id_token');
+$verified = false;
 $state = U::get($_POST, 'state');
 $verifydata = U::get($_POST, 'postverify');
-$verified = false;
 
-if ( ! $state || ! $id_token ) {
-    LTIX::abort_with_error_log('Missing id_token and/or state');
+if ( ! $state ) {
+    LTIX::abort_with_error_log('Missing state');
 }
 
 try {
@@ -46,29 +45,31 @@ if ( $session_state != $state ) {
     LTIX::abort_with_error_log('Could not find state in session');
 }
 
-$signature_check = false;
-if ( isset($decoded->type) && $decoded->type == "json" ) {
-    // No browser signature check
-    error_log("JSON STATE");
+// Get the id_token - only take on the first post
+if ( $verifydata === null ) {
+    $id_token = U::get($_POST, 'id_token');
+    $_SESSION['id_token'] = $id_token;
 } else {
-    if ( ! isset($decoded->signature) ) {
-        LTIX::abort_with_error_log('No signature in state');
-    }
-
-    $signature = \Tsugi\Core\LTIX::getBrowserSignature();
-
-    if ( $signature != $decoded->signature ) {
-        if ( U::apcAvailable() ) {
-            $found = false;
-	        $previous = apc_fetch('oidc_login_state',$zap);
-	        if ( $found ) error_log('oidc_state '.$previous);
-        }
-        $raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
-        error_log('oidc_launch '.$raw);
-        LTIX::abort_with_error_log("Invalid state signature value");
-    }
-    $signature_check = true;
+    $id_token = U::get($_SESSION, 'id_token');
 }
+
+if ( ! $id_token ) {
+    LTIX::abort_with_error_log('Missing id_token');
+}
+
+$signature_check = false;
+if ( ! isset($decoded->signature) ) {
+    LTIX::abort_with_error_log('No signature in state');
+}
+
+$signature = \Tsugi\Core\LTIX::getBrowserSignature();
+
+if ( $signature != $decoded->signature ) {
+    $raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
+    error_log('oidc_launch '.$raw);
+    LTIX::abort_with_error_log("Invalid state signature value");
+}
+$signature_check = true;
 
 $url_claim = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
 
@@ -168,7 +169,6 @@ if ( ! $verified && $sub && $postverify && $origin && $issuer_sha256 ) {
         $poststr = json_encode($postjson);
 ?>
 <form method="POST" id="oidc_verify">
-<input type="hidden" name="id_token" value="<?= htmlspecialchars($id_token) ?>">
 <input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
 <input type="hidden" id="postverify" name="postverify">
 </form>

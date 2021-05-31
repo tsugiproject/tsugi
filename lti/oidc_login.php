@@ -72,12 +72,6 @@ $our_keyset_url = $row['lti13_keyset'];
 $our_keyset = $row['lti13_keyset'];
 $tool_private_key = $row['lti13_privkey'];
 
-$raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
-if (  U::apcAvailable() ) {
-    apc_store('oidc_login_state', $raw);
-} else {
-    error_log('oidc_login '.$raw);
-}
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
 $payload = array();
