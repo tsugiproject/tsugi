@@ -48,7 +48,7 @@ class GradeUtil {
 
     // Not cached
     public static function gradeLoad($user_id=false) {
-        global $CFG, $USER, $LINK, $PDOX;
+        global $LAUNCH, $CFG, $USER, $LINK, $PDOX;
         $LAUNCH = LTIX::requireData(array(LTIX::LINK, LTIX::USER));
         if ( ! $USER->instructor && $user_id !== false ) die("Requires instructor role");
         if ( $user_id == false ) $user_id = $USER->id;
