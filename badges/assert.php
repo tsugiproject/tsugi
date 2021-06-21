@@ -48,7 +48,6 @@ header('Content-Type: application/ld+json');
   "recipient": {
     "type": "email",
     "hashed": true,
-    "salt": "deadsea",
     "salt": "<?= $CFG->badge_assert_salt ?>",
     "identity": "<?= $recepient ?>"
   },
