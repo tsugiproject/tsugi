@@ -41,7 +41,7 @@ $image = $CFG->apphome.'/badges/'.$code.'.png';
 header('Content-Type: application/json');
 ?>
 {
-  "@context": "https://w3id.org/openbadges/v1",
+  "@context": "https://w3id.org/openbadges/v2",
   "type": "Assertion",
   "id": "<?= $image ?>",
   "recipient": {
@@ -51,18 +51,24 @@ header('Content-Type: application/json');
     "salt": "<?= $CFG->badge_assert_salt ?>",
     "identity": "<?= $recepient ?>"
   },
-  "issued_on": "<?= $date ?>",
+  "issuedOn": "<?= $date ?>",
   "badge": {
-    "version": "1.0.0",
+    "id": "https://example.org/robotics-badge.json",
+    "type": "BadgeClass",
     "name": "<?= $badge->title ?>",
     "image": "<?= $image ?>",
     "description": "Completed <?= $badge->title.' in course '.$title.' at '.$CFG->servicename ?>",
-    "criteria": "<?= $CFG->apphome?>",
+    "criteria": "<?= $CFG->apphome ?>",
     "issuer": {
-      "origin": "<?= $CFG->apphome?>",
-      "name": "<?= $CFG->servicename?>",
-      "org": "<?= $CFG->servicename?>"
+      "type": "Profile",
+      "id": "<?= $CFG->apphome ?>",
+      "url": "<?= $CFG->apphome ?>",
+      "name": "<?= $CFG->servicename ?>",
+      "org": "<?= $CFG->servicename ?>"
     }
+  }
+  "verification": {
+    "type": "hosted"
   }
 }
 
