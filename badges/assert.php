@@ -36,14 +36,14 @@ $recepient = 'sha256$' . hash('sha256', $row['email'] . $CFG->badge_assert_salt)
 $title = $row['title'];
 $code = $pieces[1];
 error_log('Assertion:'.$pieces[0].':'.$pieces[1].':'.$pieces[2]);
-$image = $CFG->apphome.'/badges/'.$code.'.png';
+$image = $CFG->badge_url.'/'.$code.'.png';
 
-header('Content-Type: application/json');
+header('Content-Type: application/ld+json');
 ?>
 {
   "@context": "https://w3id.org/openbadges/v2",
   "type": "Assertion",
-  "id": "<?= $image ?>",
+  "id": "<?= $CFG->apphome. "/badges/". $encrypted ?>",
   "recipient": {
     "type": "email",
     "hashed": true,
@@ -53,7 +53,7 @@ header('Content-Type: application/json');
   },
   "issuedOn": "<?= $date ?>",
   "badge": {
-    "id": "https://example.org/robotics-badge.json",
+  "id": "<?= $image ?>",
     "type": "BadgeClass",
     "name": "<?= $badge->title ?>",
     "image": "<?= $image ?>",
@@ -66,9 +66,8 @@ header('Content-Type: application/json');
       "name": "<?= $CFG->servicename ?>",
       "org": "<?= $CFG->servicename ?>"
     }
-  }
+  },
   "verification": {
     "type": "hosted"
   }
 }
-
