@@ -2,6 +2,7 @@
 
 // https://github.com/mozilla/openbadges/wiki/Assertions
 
+use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Lessons;
 
@@ -31,7 +32,7 @@ $row = $x[0];
 $pieces = $x[2];
 $badge = $x[3];
 
-$date = substr($row['login_at'],0,10);
+$date = U::iso8601($row['login_at']);
 $recepient = 'sha256$' . hash('sha256', $row['email'] . $CFG->badge_assert_salt);
 $title = $row['title'];
 $code = $pieces[1];
@@ -43,7 +44,7 @@ header('Content-Type: application/ld+json');
 {
   "@context": "https://w3id.org/openbadges/v2",
   "type": "Assertion",
-  "id": "<?= $CFG->apphome. "/badges/". $encrypted ?>",
+  "id": "<?= $CFG->wwwroot . "/badges/assert.php?id=". $encrypted ?>",
   "recipient": {
     "type": "email",
     "hashed": true,
