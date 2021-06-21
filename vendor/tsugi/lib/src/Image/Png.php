@@ -9,15 +9,16 @@ class Png {
 
     // Adapted from
     // http://stackoverflow.com/questions/8842387/php-add-itxt-comment-to-a-png-image
-    public static function addOrReplaceTextInPng($png,$key,$text) {
-        $png = self::removeTextChunks($key, $png);
-        $chunk = self::phpTextChunk($key,$text);
+    public static function addOrReplaceTextInPng($png,$key,$text, $type=false) {
+        $png = self::removeTextChunks($key, $png, $type);
+        $chunk = self::phpTextChunk($key,$text, $type);
         $png2 = self::addPngChunk($chunk,$png);
         return $png2;
     }
 
     // Strip out any existing text chunks with a particular key
-    public static function removeTextChunks($key,$png) {
+    public static function removeTextChunks($key,$png,$type=false) {
+        $chunktype = is_string($type) ? $type : "tEXt";
         // Read the magic bytes and verify
         $retval = substr($png,0,8);
         $ipos = 8;
@@ -31,7 +32,7 @@ class Png {
             // Extract length and type from binary data
             $chunk = @unpack('Nsize/a4type', $chunkHeader);
             $skip = false;
-            if ( $chunk['type'] == 'tEXt' ) {
+            if ( $chunk['type'] == $chunktype ) {
                 $data = substr($png,$ipos,$chunk['size']);
                 $sections = explode("\0", $data);
                 print_r($sections);
@@ -54,8 +55,8 @@ class Png {
 
     // creates a tEXt chunk with given key and text (iso8859-1)
     // ToDo: check that key length is less than 79 and that neither includes null bytes
-    public static function phpTextChunk($key,$text) {
-        $chunktype = "tEXt";
+    public static function phpTextChunk($key,$text, $type=false) {
+        $chunktype = is_string($type) ? $type : "tEXt";
         $chunkdata = $key . "\0" . $text;
         $crc = pack("N", crc32($chunktype . $chunkdata));
         $len = pack("N",strlen($chunkdata));

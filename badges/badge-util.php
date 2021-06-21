@@ -65,3 +65,44 @@ function parse_badge_id($encrypted, $lesson) {
 
     return array($row, $png, $pieces, $badge);
 }
+
+function get_assertion($encrypted, $date, $code, $badge, $title, $email ) {
+    global $CFG;
+
+    $image = $CFG->badge_url.'/'.$code.'.png';
+    $recepient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
+    $assert_id = $CFG->wwwroot . "/badges/assert.php?id=". $encrypted;
+    $retval = <<< EOF
+{
+  "@context": "https://w3id.org/openbadges/v2",
+  "type": "Assertion",
+  "id": "$assert_id",
+  "recipient": {
+    "type": "email",
+    "hashed": true,
+    "salt": "$CFG->badge_assert_salt",
+    "identity": "$recepient"
+  },
+  "issuedOn": "$date",
+  "badge": {
+  "id": "$image",
+    "type": "BadgeClass",
+    "name": "$badge->title",
+    "image": "$image",
+    "description": "Completed $badge->title in course $title at $CFG->servicename",
+    "criteria": "$CFG->apphome",
+    "issuer": {
+      "type": "Profile",
+      "id": "$CFG->apphome",
+      "url": "$CFG->apphome",
+      "name": "$CFG->servicename",
+      "org": "$CFG->servicename"
+    }
+  },
+  "verification": {
+    "type": "hosted"
+  }
+}
+EOF;
+    return $retval;
+}

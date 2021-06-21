@@ -33,41 +33,13 @@ $pieces = $x[2];
 $badge = $x[3];
 
 $date = U::iso8601($row['login_at']);
-$recepient = 'sha256$' . hash('sha256', $row['email'] . $CFG->badge_assert_salt);
+$email = $row['email'];
 $title = $row['title'];
 $code = $pieces[1];
 error_log('Assertion:'.$pieces[0].':'.$pieces[1].':'.$pieces[2]);
 $image = $CFG->badge_url.'/'.$code.'.png';
 
+$text = get_assertion($encrypted, $date, $code, $badge, $title, $email );
 header('Content-Type: application/ld+json');
-?>
-{
-  "@context": "https://w3id.org/openbadges/v2",
-  "type": "Assertion",
-  "id": "<?= $CFG->wwwroot . "/badges/assert.php?id=". $encrypted ?>",
-  "recipient": {
-    "type": "email",
-    "hashed": true,
-    "salt": "<?= $CFG->badge_assert_salt ?>",
-    "identity": "<?= $recepient ?>"
-  },
-  "issuedOn": "<?= $date ?>",
-  "badge": {
-  "id": "<?= $image ?>",
-    "type": "BadgeClass",
-    "name": "<?= $badge->title ?>",
-    "image": "<?= $image ?>",
-    "description": "Completed <?= $badge->title.' in course '.$title.' at '.$CFG->servicename ?>",
-    "criteria": "<?= $CFG->apphome ?>",
-    "issuer": {
-      "type": "Profile",
-      "id": "<?= $CFG->apphome ?>",
-      "url": "<?= $CFG->apphome ?>",
-      "name": "<?= $CFG->servicename ?>",
-      "org": "<?= $CFG->servicename ?>"
-    }
-  },
-  "verification": {
-    "type": "hosted"
-  }
-}
+echo($text);
+
