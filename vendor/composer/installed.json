@@ -2607,6 +2607,10 @@
                 "json",
                 "jsonpath"
             ],
+            "support": {
+                "issues": "https://github.com/jmespath/jmespath.php/issues",
+                "source": "https://github.com/jmespath/jmespath.php/tree/2.6.0"
+            },
             "install-path": "../mtdowling/jmespath.php"
         },
         {
@@ -6087,12 +6091,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "59a357b44fbec5a8b4da8f45a2c0417329109759"
+                "reference": "2610da57d85988f752440489d50c90826d462f6b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/59a357b44fbec5a8b4da8f45a2c0417329109759",
-                "reference": "59a357b44fbec5a8b4da8f45a2c0417329109759",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/2610da57d85988f752440489d50c90826d462f6b",
+                "reference": "2610da57d85988f752440489d50c90826d462f6b",
                 "shasum": ""
             },
             "require": {
@@ -6105,7 +6109,7 @@
                 "phpunit/php-timer": ">=1.0.6",
                 "phpunit/phpunit": "8.*"
             },
-            "time": "2021-06-09T02:08:28+00:00",
+            "time": "2021-06-21T18:46:55+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",
