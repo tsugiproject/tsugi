@@ -35,7 +35,6 @@ class Png {
             if ( $chunk['type'] == $chunktype ) {
                 $data = substr($png,$ipos,$chunk['size']);
                 $sections = explode("\0", $data);
-                print_r($sections);
                 if ( $sections[0] == $key ) $skip = true;
             }
 

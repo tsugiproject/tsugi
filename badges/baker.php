@@ -36,13 +36,12 @@ $code = $pieces[1];
 error_log('Assertion:'.$pieces[0].':'.$pieces[1].':'.$pieces[2]);
 $image = $CFG->badge_url.'/'.$code.'.png';
 
-$text = get_assertion($encrypted, $date, $code, $badge, $title, $email );
+$text = get_assertion($encrypted, $date, $code, $badge, $title, $email);
 
 // https://www.imsglobal.org/sites/default/files/Badges/OBv2p0Final/baking/index.html
 $png2 = Png::addOrReplaceTextInPng($png,"openbadges",$text, 'iTXt');
 
 header('Content-Type: image/png');
 header('Content-Length: ' . strlen($png2));
-// header('Content-Type: application/text');
 
 echo($png2);
