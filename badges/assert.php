@@ -40,6 +40,6 @@ error_log('Assertion:'.$pieces[0].':'.$pieces[1].':'.$pieces[2]);
 $image = $CFG->badge_url.'/'.$code.'.png';
 
 $text = get_assertion($encrypted, $date, $code, $badge, $title, $email );
-header('Content-Type: application/ld+json');
+header('Content-Type: application/json');
 echo($text);
 

@@ -99,10 +99,13 @@ function get_assertion($encrypted, $date, $code, $badge, $title, $email ) {
       "org": "$CFG->servicename"
     }
   },
+  "image" : "$image",
+  "evidence" : "$CFG->apphome",
   "verification": {
     "type": "hosted"
   }
 }
 EOF;
+    $retval = json_encode(json_decode($retval), JSON_PRETTY_PRINT);
     return $retval;
 }
