@@ -85,7 +85,7 @@ function get_assertion($encrypted, $date, $code, $badge, $title, $email ) {
   },
   "issuedOn": "$date",
   "badge": {
-  "id": "$image",
+    "id": "$image",
     "type": "BadgeClass",
     "name": "$badge->title",
     "image": "$image",
