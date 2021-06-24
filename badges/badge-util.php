@@ -72,6 +72,7 @@ function get_assertion($encrypted, $date, $code, $badge, $title, $email ) {
     $image = $CFG->badge_url.'/'.$code.'.png';
     $recepient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
     $assert_id = $CFG->wwwroot . "/badges/assert.php?id=". $encrypted;
+    $badge_url = $CFG->wwwroot . "/badges/badge-info.php?id=". $encrypted;
     $retval = <<< EOF
 {
   "@context": "https://w3id.org/openbadges/v2",
@@ -84,26 +85,58 @@ function get_assertion($encrypted, $date, $code, $badge, $title, $email ) {
     "identity": "$recepient"
   },
   "issuedOn": "$date",
-  "badge": {
-    "id": "$image",
-    "type": "BadgeClass",
-    "name": "$badge->title",
-    "image": "$image",
-    "description": "Completed $badge->title in course $title at $CFG->servicename",
-    "criteria": "$CFG->apphome",
-    "issuer": {
-      "type": "Profile",
-      "id": "$CFG->apphome",
-      "url": "$CFG->apphome",
-      "name": "$CFG->servicename",
-      "org": "$CFG->servicename"
-    }
-  },
+  "badge": "$badge_url",
   "image" : "$image",
   "evidence" : "$CFG->apphome",
   "verification": {
     "type": "hosted"
   }
+}
+EOF;
+    $retval = json_encode(json_decode($retval), JSON_PRETTY_PRINT);
+    return $retval;
+}
+
+function get_badge($encrypted, $code, $badge, $title) {
+    global $CFG;
+
+    $image = $CFG->badge_url.'/'.$code.'.png';
+    $badge_url = $CFG->wwwroot . "/badges/badge-info.php?id=". $encrypted;
+    $badge_issuer = $CFG->wwwroot . "/badges/badge-issuer.php?id=". $encrypted;
+    $retval = <<< EOF
+{
+  "@context": "https://w3id.org/openbadges/v2",
+    "id": "$badge_url",
+    "type": "BadgeClass",
+    "name": "$badge->title",
+    "image": "$image",
+    "description": "Completed $badge->title in course $title at $CFG->servicename",
+    "criteria": "$CFG->apphome",
+    "issuer": "$badge_issuer"
+}
+EOF;
+    $retval = json_encode(json_decode($retval), JSON_PRETTY_PRINT);
+    return $retval;
+}
+
+function get_issuer($encrypted, $code, $badge, $title) {
+    global $CFG;
+
+    $image = $CFG->badge_url.'/'.$code.'.png';
+    $badge_issuer = $CFG->wwwroot . "/badges/badge-issuer.php?id=". $encrypted;
+    $parse = parse_url($CFG->wwwroot);
+    $domain = $parse['host'];
+    $retval = <<< EOF
+{
+  "@context": "https://w3id.org/openbadges/v2",
+      "id": "$badge_issuer",
+      "type": "Profile",
+      "url": "$CFG->apphome",
+      "name": "$CFG->servicename",
+      "org": "$CFG->servicename",
+      "verification": {
+         "allowedOrigins": "$domain"
+      }
 }
 EOF;
     $retval = json_encode(json_decode($retval), JSON_PRETTY_PRINT);
