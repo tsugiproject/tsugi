@@ -2547,6 +2547,20 @@
                 "logging",
                 "psr-3"
             ],
+            "support": {
+                "issues": "https://github.com/Seldaek/monolog/issues",
+                "source": "https://github.com/Seldaek/monolog/tree/2.2.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/Seldaek",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/monolog/monolog",
+                    "type": "tidelift"
+                }
+            ],
             "install-path": "../monolog/monolog"
         },
         {
@@ -6091,12 +6105,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "2610da57d85988f752440489d50c90826d462f6b"
+                "reference": "9bd851b7051f3481d1d07a0725a4caf4dc6b592b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/2610da57d85988f752440489d50c90826d462f6b",
-                "reference": "2610da57d85988f752440489d50c90826d462f6b",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/9bd851b7051f3481d1d07a0725a4caf4dc6b592b",
+                "reference": "9bd851b7051f3481d1d07a0725a4caf4dc6b592b",
                 "shasum": ""
             },
             "require": {
@@ -6109,7 +6123,7 @@
                 "phpunit/php-timer": ">=1.0.6",
                 "phpunit/phpunit": "8.*"
             },
-            "time": "2021-06-21T18:46:55+00:00",
+            "time": "2021-07-07T20:47:30+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",

@@ -34,8 +34,9 @@
         "google/apiclient": "v2.9.1",
         "mtdowling/jmespath.php": "2.6.0",
         "react/dns": "v1.5.0",
+        "monolog/monolog": "2.2.0",
 
-        "tsugi/lib": "dev-master#2610da57d85988f752440489d50c90826d462f6b",
+        "tsugi/lib": "dev-master#9bd851b7051f3481d1d07a0725a4caf4dc6b592b",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {

@@ -833,4 +833,20 @@ class PDOX extends \PDO {
         return $this->PGSQL_LastInsertId;
     }
 
+    /** limitVars - Filter out substitution variables that are not needed
+     * @param $sql The SQL to execute in a string.
+     * @param $arr An optional array of the substitition values if needed by the query
+     * @return An array of the variables that actually can be found in the SQL.
+     */
+    public static function limitVars($sql, $vars) {
+        $retval = array();
+        $parts = preg_split('/\s+/', $sql);
+        foreach($parts as $part) {
+            if ( strpos($part,':') !== 0 ) continue;
+            if ( ! U::get($vars, $part) ) continue;
+            $retval[$part] = U::get($vars, $part);
+        }
+        return $retval;
+    }
+
 }
