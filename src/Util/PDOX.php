@@ -840,7 +840,7 @@ class PDOX extends \PDO {
      */
     public static function limitVars($sql, $vars) {
         $retval = array();
-        $parts = preg_split('/\s+/', $sql);
+        $parts = preg_split('/\s+/', str_replace(array('(',')'),array(' ',' '), $sql));
         foreach($parts as $part) {
             if ( strpos($part,':') !== 0 ) continue;
             if ( ! U::get($vars, $part) ) continue;
