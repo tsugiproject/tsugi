@@ -36,7 +36,7 @@
         "react/dns": "v1.5.0",
         "monolog/monolog": "2.2.0",
 
-        "tsugi/lib": "dev-master#9bd851b7051f3481d1d07a0725a4caf4dc6b592b",
+        "tsugi/lib": "dev-master#e246f484cf992d4c5f721cf532203945d8dc142f",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {
