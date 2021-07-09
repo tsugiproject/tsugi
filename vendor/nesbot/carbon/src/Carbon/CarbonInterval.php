@@ -27,6 +27,7 @@ use Closure;
 use DateInterval;
 use Exception;
 use ReflectionException;
+use ReturnTypeWillChange;
 use Throwable;
 
 /**
@@ -352,7 +353,7 @@ class CarbonInterval extends DateInterval implements CarbonConverterInterface
 
         $spec = $years;
 
-        if (!\is_string($spec) || \floatval($years) || preg_match('/^[0-9.]/', $years)) {
+        if (!\is_string($spec) || (float) $years || preg_match('/^[0-9.]/', $years)) {
             $spec = static::PERIOD_PREFIX;
 
             $spec .= $years > 0 ? $years.static::PERIOD_YEARS : '';
@@ -522,6 +523,8 @@ class CarbonInterval extends DateInterval implements CarbonConverterInterface
             $interval = implode($match[1], $interval);
         }
 
+        $interval = $interval ?? '';
+
         for ($index = 0; $index < $length; $index++) {
             $expected = mb_substr($format, $index, 1);
             $nextCharacter = mb_substr($interval, 0, 1);
@@ -533,7 +536,7 @@ class CarbonInterval extends DateInterval implements CarbonConverterInterface
                 }
 
                 $interval = mb_substr($interval, mb_strlen($match[0]));
-                $instance->$unit += \intval($match[0]);
+                $instance->$unit += (int) ($match[0]);
 
                 continue;
             }
@@ -543,7 +546,7 @@ class CarbonInterval extends DateInterval implements CarbonConverterInterface
                     "'$expected'",
                     $nextCharacter,
                     'Allowed substitutes for interval formats are '.implode(', ', array_keys(static::$formats))."\n".
-                    'See https://www.php.net/manual/en/function.date.php for their meaning'
+                    'See https://php.net/manual/en/function.date.php for their meaning'
                 );
             }
 
@@ -676,8 +679,8 @@ class CarbonInterval extends DateInterval implements CarbonConverterInterface
         preg_match_all($pattern, $intervalDefinition, $parts, PREG_SET_ORDER);
 
         while ([$part, $value, $unit] = array_shift($parts)) {
-            $intValue = \intval($value);
-            $fraction = \floatval($value) - $intValue;
+            $intValue = (int) $value;
+            $fraction = (float) $value - $intValue;
 
             // Fix calculation precision
             switch (round($fraction, 6)) {
@@ -961,8 +964,9 @@ class CarbonInterval extends DateInterval implements CarbonConverterInterface
      *
      * @return static
      *
-     * @link http://php.net/manual/en/dateinterval.createfromdatestring.php
+     * @link https://php.net/manual/en/dateinterval.createfromdatestring.php
      */
+    #[ReturnTypeWillChange]
     public static function createFromDateString($time)
     {
         $interval = @parent::createFromDateString(strtr($time, [
@@ -1856,7 +1860,7 @@ class CarbonInterval extends DateInterval implements CarbonConverterInterface
             [$value, $unit] = [$unit, $value];
         }
 
-        return $this->add($unit, -\floatval($value));
+        return $this->add($unit, -(float) $value);
     }
 
     /**
@@ -2100,7 +2104,7 @@ class CarbonInterval extends DateInterval implements CarbonConverterInterface
     public static function compareDateIntervals(DateInterval $first, DateInterval $second)
     {
         $current = Carbon::now();
-        $passed = $current->copy()->add($second);
+        $passed = $current->avoidMutation()->add($second);
         $current->add($first);
 
         if ($current < $passed) {

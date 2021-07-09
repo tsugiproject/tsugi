@@ -43,10 +43,10 @@ class JsonParser
                 return $target;
 
             case 'timestamp':
-                // The Unix epoch (or Unix time or POSIX time or Unix
-                // timestamp) is the number of seconds that have elapsed since
-                // January 1, 1970 (midnight UTC/GMT).
-                return DateTimeResult::fromEpoch($value);
+                return DateTimeResult::fromTimestamp(
+                    $value,
+                    !empty($shape['timestampFormat']) ? $shape['timestampFormat'] : null
+                );
 
             case 'blob':
                 return base64_decode($value);
@@ -56,3 +56,4 @@ class JsonParser
         }
     }
 }
+

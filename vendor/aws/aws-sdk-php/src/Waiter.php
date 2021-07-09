@@ -175,7 +175,7 @@ class Waiter implements PromisorInterface
     }
 
     /**
-     * @param result $result   Result or exception.
+     * @param Result $result   Result or exception.
      * @param array  $acceptor Acceptor configuration being checked.
      *
      * @return bool
@@ -188,7 +188,7 @@ class Waiter implements PromisorInterface
     }
 
     /**
-     * @param result $result   Result or exception.
+     * @param Result $result   Result or exception.
      * @param array  $acceptor Acceptor configuration being checked.
      *
      * @return bool
@@ -210,7 +210,7 @@ class Waiter implements PromisorInterface
     }
 
     /**
-     * @param result $result   Result or exception.
+     * @param Result $result   Result or exception.
      * @param array  $acceptor Acceptor configuration being checked.
      *
      * @return bool
@@ -222,17 +222,11 @@ class Waiter implements PromisorInterface
         }
 
         $actuals = $result->search($acceptor['argument']) ?: [];
-        foreach ($actuals as $actual) {
-            if ($actual == $acceptor['expected']) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($acceptor['expected'], $actuals);
     }
 
     /**
-     * @param result $result   Result or exception.
+     * @param Result $result   Result or exception.
      * @param array  $acceptor Acceptor configuration being checked.
      *
      * @return bool
@@ -251,7 +245,7 @@ class Waiter implements PromisorInterface
     }
 
     /**
-     * @param result $result   Result or exception.
+     * @param Result $result   Result or exception.
      * @param array  $acceptor Acceptor configuration being checked.
      *
      * @return bool
