@@ -1,6 +1,8 @@
 <?php
 namespace Aws\S3;
 
+use Aws\Api\ApiProvider;
+use Aws\Api\Service;
 use Aws\CommandInterface;
 use GuzzleHttp\Psr7;
 use Psr\Http\Message\RequestInterface;
@@ -14,37 +16,32 @@ use Psr\Http\Message\RequestInterface;
  */
 class ApplyChecksumMiddleware
 {
-    private static $md5 = [
-        'DeleteObjects',
-        'PutBucketCors',
-        'PutBucketLifecycle',
-        'PutBucketLifecycleConfiguration',
-        'PutBucketPolicy',
-        'PutBucketTagging',
-        'PutBucketReplication',
-    ];
-
     private static $sha256 = [
         'PutObject',
         'UploadPart',
     ];
+
+    /** @var Service */
+    private $api;
 
     private $nextHandler;
 
     /**
      * Create a middleware wrapper function.
      *
+     * @param Service $api
      * @return callable
      */
-    public static function wrap()
+    public static function wrap(Service $api)
     {
-        return function (callable $handler) {
-            return new self($handler);
+        return function (callable $handler) use ($api) {
+            return new self($handler, $api);
         };
     }
 
-    public function __construct(callable $nextHandler)
+    public function __construct(callable $nextHandler, Service $api)
     {
+        $this->api = $api;
         $this->nextHandler = $nextHandler;
     }
 
@@ -56,11 +53,13 @@ class ApplyChecksumMiddleware
         $name = $command->getName();
         $body = $request->getBody();
 
-        if (in_array($name, self::$md5) && !$request->hasHeader('Content-MD5')) {
+        $op = $this->api->getOperation($command->getName());
+
+        if (!empty($op['httpChecksumRequired']) && !$request->hasHeader('Content-MD5')) {
             // Set the content MD5 header for operations that require it.
             $request = $request->withHeader(
                 'Content-MD5',
-                base64_encode(Psr7\hash($body, 'md5', true))
+                base64_encode(Psr7\Utils::hash($body, 'md5', true))
             );
         } elseif (in_array($name, self::$sha256) && $command['ContentSHA256']) {
             // Set the content hash header if provided in the parameters.

@@ -11,6 +11,7 @@
 namespace Carbon\Traits;
 
 use Carbon\Exceptions\InvalidFormatException;
+use ReturnTypeWillChange;
 
 /**
  * Trait Serialization.
@@ -75,7 +76,7 @@ trait Serialization
      */
     public static function fromSerialized($value)
     {
-        $instance = @unserialize("$value");
+        $instance = @unserialize((string) $value);
 
         if (!$instance instanceof static) {
             throw new InvalidFormatException("Invalid serialized value: $value");
@@ -91,6 +92,7 @@ trait Serialization
      *
      * @return static
      */
+    #[ReturnTypeWillChange]
     public static function __set_state($dump)
     {
         if (\is_string($dump)) {
@@ -125,6 +127,7 @@ trait Serialization
     /**
      * Set locale if specified on unserialize() called.
      */
+    #[ReturnTypeWillChange]
     public function __wakeup()
     {
         if (get_parent_class() && method_exists(parent::class, '__wakeup')) {

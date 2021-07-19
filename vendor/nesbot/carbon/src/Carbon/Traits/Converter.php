@@ -19,6 +19,7 @@ use Carbon\Exceptions\UnitException;
 use Closure;
 use DateTime;
 use DateTimeImmutable;
+use ReturnTypeWillChange;
 
 /**
  * Trait Converter.
@@ -75,6 +76,7 @@ trait Converter
      *
      * @return string
      */
+    #[ReturnTypeWillChange]
     public function format($format)
     {
         $function = $this->localFormatFunction ?: static::$formatFunction;
@@ -322,7 +324,9 @@ trait Converter
      */
     public function toIso8601ZuluString($unitPrecision = 'second')
     {
-        return $this->copy()->utc()->rawFormat('Y-m-d\T'.static::getTimeFormatByPrecision($unitPrecision).'\Z');
+        return $this->avoidMutation()
+            ->utc()
+            ->rawFormat('Y-m-d\T'.static::getTimeFormatByPrecision($unitPrecision).'\Z');
     }
 
     /**
@@ -450,7 +454,7 @@ trait Converter
      */
     public function toRfc7231String()
     {
-        return $this->copy()
+        return $this->avoidMutation()
             ->setTimezone('GMT')
             ->rawFormat(\defined('static::RFC7231_FORMAT') ? static::RFC7231_FORMAT : CarbonInterface::RFC7231_FORMAT);
     }
@@ -510,7 +514,7 @@ trait Converter
      */
     public function toString()
     {
-        return $this->copy()->locale('en')->isoFormat('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
+        return $this->avoidMutation()->locale('en')->isoFormat('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
     }
 
     /**
@@ -535,7 +539,7 @@ trait Converter
 
         $yearFormat = $this->year < 0 || $this->year > 9999 ? 'YYYYYY' : 'YYYY';
         $tzFormat = $keepOffset ? 'Z' : '[Z]';
-        $date = $keepOffset ? $this : $this->copy()->utc();
+        $date = $keepOffset ? $this : $this->avoidMutation()->utc();
 
         return $date->isoFormat("$yearFormat-MM-DD[T]HH:mm:ss.SSSSSS$tzFormat");
     }

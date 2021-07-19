@@ -97,6 +97,7 @@ trait Options
         'I' => '(0|1)',
         'O' => '([+-](1[012]|0[0-9])[0134][05])',
         'P' => '([+-](1[012]|0[0-9]):[0134][05])',
+        'p' => '(Z|[+-](1[012]|0[0-9]):[0134][05])',
         'T' => '([a-zA-Z]{1,5})',
         'Z' => '(-?[1-5]?[0-9]{1,4})',
         'U' => '([0-9]*)',
@@ -448,7 +449,7 @@ trait Options
 
     protected function addExtraDebugInfos(&$infos): void
     {
-        if ($this instanceof CarbonInterface || $this instanceof DateTimeInterface) {
+        if ($this instanceof DateTimeInterface) {
             try {
                 if (!isset($infos['date'])) {
                     $infos['date'] = $this->format(CarbonInterface::MOCK_DATETIME_FORMAT);

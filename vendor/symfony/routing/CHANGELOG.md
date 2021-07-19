@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+5.3
+---
+
+ * Already encoded slashes are not decoded nor double-encoded anymore when generating URLs
+ * Add support for per-env configuration in XML and Yaml loaders
+ * Deprecate creating instances of the `Route` annotation class by passing an array of parameters
+ * Add `RoutingConfigurator::env()` to get the current environment
+
 5.2.0
 -----
 
@@ -73,15 +81,15 @@ CHANGELOG
 3.3.0
 -----
 
-  * [DEPRECATION] Class parameters have been deprecated and will be removed in 4.0.
-    * router.options.generator_class
-    * router.options.generator_base_class
-    * router.options.generator_dumper_class
-    * router.options.matcher_class
-    * router.options.matcher_base_class
-    * router.options.matcher_dumper_class
-    * router.options.matcher.cache_class
-    * router.options.generator.cache_class
+ * [DEPRECATION] Class parameters have been deprecated and will be removed in 4.0.
+   * router.options.generator_class
+   * router.options.generator_base_class
+   * router.options.generator_dumper_class
+   * router.options.matcher_class
+   * router.options.matcher_base_class
+   * router.options.matcher_dumper_class
+   * router.options.matcher.cache_class
+   * router.options.generator.cache_class
 
 3.2.0
 -----

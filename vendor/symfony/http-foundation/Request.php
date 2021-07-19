@@ -13,6 +13,7 @@ namespace Symfony\Component\HttpFoundation;
 
 use Symfony\Component\HttpFoundation\Exception\ConflictingHeadersException;
 use Symfony\Component\HttpFoundation\Exception\JsonException;
+use Symfony\Component\HttpFoundation\Exception\SessionNotFoundException;
 use Symfony\Component\HttpFoundation\Exception\SuspiciousOperationException;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -90,7 +91,7 @@ class Request
     /**
      * Request body parameters ($_POST).
      *
-     * @var InputBag|ParameterBag
+     * @var InputBag
      */
     public $request;
 
@@ -274,7 +275,7 @@ class Request
      */
     public function initialize(array $query = [], array $request = [], array $attributes = [], array $cookies = [], array $files = [], array $server = [], $content = null)
     {
-        $this->request = new ParameterBag($request);
+        $this->request = new InputBag($request);
         $this->query = new InputBag($query);
         $this->attributes = new ParameterBag($attributes);
         $this->cookies = new InputBag($cookies);
@@ -304,9 +305,7 @@ class Request
     {
         $request = self::createRequestFromFactory($_GET, $_POST, [], $_COOKIE, $_FILES, $_SERVER);
 
-        if ($_POST) {
-            $request->request = new InputBag($_POST);
-        } elseif (0 === strpos($request->headers->get('CONTENT_TYPE', ''), 'application/x-www-form-urlencoded')
+        if (0 === strpos($request->headers->get('CONTENT_TYPE', ''), 'application/x-www-form-urlencoded')
             && \in_array(strtoupper($request->server->get('REQUEST_METHOD', 'GET')), ['PUT', 'DELETE', 'PATCH'])
         ) {
             parse_str($request->getContent(), $data);
@@ -456,7 +455,7 @@ class Request
             $dup->query = new InputBag($query);
         }
         if (null !== $request) {
-            $dup->request = new ParameterBag($request);
+            $dup->request = new InputBag($request);
         }
         if (null !== $attributes) {
             $dup->attributes = new ParameterBag($attributes);
@@ -735,7 +734,7 @@ class Request
         }
 
         if (null === $session) {
-            throw new \BadMethodCallException('Session has not been set.');
+            throw new SessionNotFoundException('Session has not been set.');
         }
 
         return $session;
@@ -1503,7 +1502,7 @@ class Request
      * if the proxy is trusted (see "setTrustedProxies()"), otherwise it returns
      * the latter (from the "SERVER_PROTOCOL" server parameter).
      *
-     * @return string
+     * @return string|null
      */
     public function getProtocolVersion()
     {

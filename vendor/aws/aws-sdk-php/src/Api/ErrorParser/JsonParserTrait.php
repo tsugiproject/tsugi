@@ -2,6 +2,7 @@
 namespace Aws\Api\ErrorParser;
 
 use Aws\Api\Parser\PayloadParserTrait;
+use Aws\Api\StructureShape;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -20,7 +21,18 @@ trait JsonParserTrait
             'code'        => null,
             'message'     => null,
             'type'        => $code[0] == '4' ? 'client' : 'server',
-            'parsed'      => $this->parseJson($response->getBody())
+            'parsed'      => $this->parseJson($response->getBody(), $response)
         ];
+    }
+
+    protected function payload(
+        ResponseInterface $response,
+        StructureShape $member
+    ) {
+        $jsonBody = $this->parseJson($response->getBody(), $response);
+
+        if ($jsonBody) {
+            return $this->parser->parse($member, $jsonBody);
+        }
     }
 }

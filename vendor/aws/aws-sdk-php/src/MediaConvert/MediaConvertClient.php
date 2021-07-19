@@ -5,6 +5,8 @@ use Aws\AwsClient;
 
 /**
  * This client is used to interact with the **AWS Elemental MediaConvert** service.
+ * @method \Aws\Result associateCertificate(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise associateCertificateAsync(array $args = [])
  * @method \Aws\Result cancelJob(array $args = [])
  * @method \GuzzleHttp\Promise\Promise cancelJobAsync(array $args = [])
  * @method \Aws\Result createJob(array $args = [])
@@ -23,6 +25,8 @@ use Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise deleteQueueAsync(array $args = [])
  * @method \Aws\Result describeEndpoints(array $args = [])
  * @method \GuzzleHttp\Promise\Promise describeEndpointsAsync(array $args = [])
+ * @method \Aws\Result disassociateCertificate(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise disassociateCertificateAsync(array $args = [])
  * @method \Aws\Result getJob(array $args = [])
  * @method \GuzzleHttp\Promise\Promise getJobAsync(array $args = [])
  * @method \Aws\Result getJobTemplate(array $args = [])
@@ -39,6 +43,12 @@ use Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise listPresetsAsync(array $args = [])
  * @method \Aws\Result listQueues(array $args = [])
  * @method \GuzzleHttp\Promise\Promise listQueuesAsync(array $args = [])
+ * @method \Aws\Result listTagsForResource(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise listTagsForResourceAsync(array $args = [])
+ * @method \Aws\Result tagResource(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise tagResourceAsync(array $args = [])
+ * @method \Aws\Result untagResource(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  * @method \Aws\Result updateJobTemplate(array $args = [])
  * @method \GuzzleHttp\Promise\Promise updateJobTemplateAsync(array $args = [])
  * @method \Aws\Result updatePreset(array $args = [])

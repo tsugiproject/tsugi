@@ -52,6 +52,7 @@ use ReflectionMethod;
  *                                                                                                                                                                                               will be 0.
  *                                                                                                                                                                                               If one of the set values is not valid, an InvalidDateException
  *                                                                                                                                                                                               will be thrown.
+ * @method CarbonInterface                                    createStrict(?int $year = 0, ?int $month = 1, ?int $day = 1, ?int $hour = 0, ?int $minute = 0, ?int $second = 0, $tz = null)       Create a new Carbon instance from a specific date and time using strict validation.
  * @method Carbon                                             disableHumanDiffOption($humanDiffOption)                                                                                           @deprecated To avoid conflict between different third-party libraries, static setters should not be used.
  *                                                                                                                                                                                                           You should rather use the ->settings() method.
  * @method Carbon                                             enableHumanDiffOption($humanDiffOption)                                                                                            @deprecated To avoid conflict between different third-party libraries, static setters should not be used.
@@ -76,7 +77,7 @@ use ReflectionMethod;
  * @method Closure|Carbon                                     getTestNow()                                                                                                                       Get the Carbon instance (real or mock) to be returned when a "now"
  *                                                                                                                                                                                               instance is created.
  * @method string                                             getTimeFormatByPrecision($unitPrecision)                                                                                           Return a format from H:i to H:i:s.u according to given unit precision.
- * @method string                                             getTranslationMessageWith($translator, string $key, string $locale = null, string $default = null)                                 Returns raw translation message for a given key.
+ * @method string                                             getTranslationMessageWith($translator, string $key, ?string $locale = null, ?string $default = null)                               Returns raw translation message for a given key.
  * @method \Symfony\Component\Translation\TranslatorInterface getTranslator()                                                                                                                    Get the default translator instance in use.
  * @method int                                                getWeekEndsAt()                                                                                                                    Get the last day of week
  * @method int                                                getWeekStartsAt()                                                                                                                  Get the first day of week
@@ -214,7 +215,7 @@ use ReflectionMethod;
  *                                                                                                                                                                                                           You should rather use the ->settings() method.
  *                                                                                                                                                                                                           Or you can use method variants: addYearsWithOverflow/addYearsNoOverflow, same variants
  *                                                                                                                                                                                                           are available for quarters, years, decade, centuries, millennia (singular and plural forms).
- * @method Carbon                                             withTestNow($testNow = null, $callback = null)                                                                                     Temporarily sets a static date to be used within the callback.
+ * @method mixed                                              withTestNow($testNow = null, $callback = null)                                                                                     Temporarily sets a static date to be used within the callback.
  *                                                                                                                                                                                               Using setTestNow to set the date, executing the callback, then
  *                                                                                                                                                                                               clearing the test instance.
  *                                                                                                                                                                                               /!\ Use this method for unit tests only.
@@ -228,7 +229,7 @@ class Factory
 
     protected $settings = [];
 
-    public function __construct(array $settings = [], string $className = null)
+    public function __construct(array $settings = [], ?string $className = null)
     {
         if ($className) {
             $this->className = $className;

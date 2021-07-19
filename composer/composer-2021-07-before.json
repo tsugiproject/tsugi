@@ -1,0 +1,45 @@
+{
+    "require": {
+        "laravel/lumen-framework": "v7.2.2",
+        "aws/aws-sdk-php": "v3.55.0",
+        "google/auth" : "1.15.0",
+        "google/apiclient": "^2.9",
+        "google/apiclient-services" : "v0.156",
+        "phpseclib/phpseclib" : "v2.0.31",
+        "gree/jose" : ">1.0",
+        "ezyang/htmlpurifier": ">=v4.13.0",
+        "cboden/ratchet" : "v0.4.3",
+
+         "nesbot/carbon": "2.47.0",
+         "symfony/console": "v5.2.7",
+         "symfony/error-handler": "v5.2.7",
+         "symfony/event-dispatcher": "v5.2.4",
+         "symfony/finder": "v5.2.4",
+         "symfony/http-foundation": "v5.2.7",
+         "symfony/http-kernel": "v5.2.7",
+         "symfony/mime": "v5.2.7",
+         "symfony/polyfill-ctype": "v1.22.1",
+         "symfony/polyfill-intl-grapheme": "v1.22.1",
+         "symfony/polyfill-intl-idn": "v1.22.1",
+         "symfony/polyfill-intl-normalizer": "v1.22.1",
+         "symfony/polyfill-mbstring": "v1.22.1",
+         "symfony/polyfill-php72": "v1.22.1",
+         "symfony/polyfill-php73": "v1.22.1",
+         "symfony/polyfill-php80": "v1.22.1",
+         "symfony/process": "v5.2.7",
+         "symfony/routing": "v5.2.7",
+         "symfony/string": "v5.2.6",
+         "symfony/translation": "v5.2.7",
+         "symfony/var-dumper": "v5.2.7",
+        "google/apiclient": "v2.9.1",
+        "mtdowling/jmespath.php": "2.6.0",
+        "react/dns": "v1.5.0",
+        "monolog/monolog": "2.2.0",
+
+        "tsugi/lib": "dev-master#e246f484cf992d4c5f721cf532203945d8dc142f",
+        "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
+    },
+    "config": {
+        "preferred-install": "dist"
+    }
+}
