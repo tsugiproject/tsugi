@@ -54,6 +54,7 @@ class SettingsForm {
                 if ( $k == session_name() ) continue;
                 if ( $k == 'settings_internal_post' ) continue;
                 if ( strpos('_ignore',$k) > 0 ) continue;
+                if ( strpos('.ignore',$k) > 0 ) continue;
                 $newsettings[$k] = $v;
             }
 
@@ -118,7 +119,7 @@ class SettingsForm {
      */
     public static function attr()
     {
-        return 'data-toggle="modal" data-target="#settings"';
+        return 'data-toggle="modal" data-target="#tsugi_settings_dialog"';
     }
 
 
@@ -127,7 +128,7 @@ class SettingsForm {
         if ( ! $USER ) return;
 ?>
 <!-- Modal -->
-<div id="settings" class="modal fade" role="dialog" style="display: none;">
+<div id="tsugi_settings_dialog" class="modal fade" role="dialog" style="display: none;">
   <div class="modal-dialog">
 
     <!-- Modal content-->
@@ -138,10 +139,10 @@ class SettingsForm {
       </div>
       <div class="modal-body">
       <?php if ( $USER->instructor ) { ?>
-        <form method="post">
+        <form method="post" id="tsugi_settings_form">
       <?php } ?>
-            <img id="settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
-            <span id="save_fail" class="text-danger" style="display:none;"><?php _me('Unable to save settings'); ?></span>
+            <img id="tsugi_settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
+            <span id="tsugi_settings_save_fail" class="text-danger" style="display:none;"><?php _me('Unable to save settings'); ?></span>
             <?php if ( $USER->instructor ) { ?>
             <input type="hidden" name="settings_internal_post" value="1"/>
             <?php }
@@ -150,12 +151,41 @@ class SettingsForm {
     /**
      * Finish the form output
      */
-    public static function end() {
-        global $USER;
+    public static function end($ajax=false) {
+        global $USER, $CFG;
         if ( ! $USER ) return;
+        $settings_url = U::addSession($CFG->wwwroot."/api/settings.php");
 ?>
         <?php if ( $USER->instructor ) { ?>
-        <button type="button" id="settings_save" onclick="submit();" class="btn btn-primary"><?= _m("Save changes") ?></button>
+        <?php if ( true || $ajax ) { ?>
+        <button type="button" id="tsugi_settings_save" onclick="tsugi_settings_submit();" class="btn btn-primary"><?= _m("Save changes") ?></button>
+        <script>
+        function tsugi_settings_submit() {
+            var inputs = $("#tsugi_settings_form :input");
+            var json = {};
+            $.map(inputs, function(n, i) {
+                if (n.name.length < 1) return;
+                if (n.name.endsWith('.ignore') ) return;
+                if (n.name == 'settings_internal_post' ) return;
+                json[n.name] = $(n).val();
+                return;
+            });
+            // console.log(json);
+            $.ajax({
+                type: "POST",
+                url: '<?= U::addSession($CFG->wwwroot."/api/settings.php") ?>',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(json),
+                success: function (data) {
+                    $('#tsugi_settings_dialog').modal('hide');
+                }
+            });
+        }
+        </script>
+        <?php } else { ?>
+        <button type="button" id="tsugi_settings_save" onclick="submit();" class="btn btn-primary"><?= _m("Save changes") ?></button>
+        <?php } ?>
         </form>
         <?php } ?>
       </div>
@@ -195,7 +225,7 @@ class SettingsForm {
 
         // Instructor view
         if ( $default === false ) $default = _m('Please Select');
-        echo('<div class="form-group"><select class="form-control" name="'.$name.'">');
+        echo('<div class="form-group"><select class="tsugi_setting form-control" id="tsugi_setting_'.$name.'" name="'.$name.'">');
         echo('<option value="0">'.$default.'</option>');
         foreach ( $fields as $k => $v ) {
             $index = $k;
@@ -234,8 +264,8 @@ class SettingsForm {
         // Instructor view
         ?>
         <div class="form-group">
-            <label for="<?=$name?>"><?=htmlent_utf8($title)?></label>
-            <input type="text" class="form-control" id="<?=$name?>" name="<?=$name?>" value="<?=htmlent_utf8($configured)?>">
+            <label for="tsugi_setting_<?=$name?>"><?=htmlent_utf8($title)?></label>
+            <input type="text" class="tsugi_setting form-control" id="tsugi_setting_<?=$name?>" name="<?=$name?>" value="<?=htmlent_utf8($configured)?>">
         </div>
         <?php
     }
@@ -264,7 +294,7 @@ class SettingsForm {
         ?>
         <div class="form-group">
             <label for="<?=$name?>"><?=htmlent_utf8($title)?></label>
-            <input type="number" class="form-control" id="<?=$name?>" name="<?=$name?>" value="<?=htmlent_utf8($configured)?>">
+            <input type="number" class="tsugi_setting form-control" id="tsugi_setting_<?=$name?>" name="<?=$name?>" value="<?=htmlent_utf8($configured)?>">
         </div>
         <?php
     }
@@ -292,7 +322,7 @@ class SettingsForm {
         ?>
         <div class="form-group">
             <label for="<?=$name?>"><?=htmlent_utf8($title)?></label>
-            <textarea class="form-control" rows="5" id="<?=$name?>" name="<?=$name?>"><?=htmlent_utf8($configured)?></textarea>
+            <textarea class="tsugi_setting form-control" rows="5" id="tsugi_setting_<?=$name?>" name="<?=$name?>"><?=htmlent_utf8($configured)?></textarea>
         </div>
         <?php
     }
@@ -319,7 +349,7 @@ class SettingsForm {
         // Instructor view
         ?>
         <div class="checkbox">
-            <label><input type="checkbox" value="1" name="<?=$name?>"
+            <label><input type="checkbox" class="tsugi_setting" value="1" id="tsugi_setting_<?=$name?>" name="<?=$name?>"
             <?php
         if ( $configured == 1 ) {
             echo(' checked ');
@@ -453,12 +483,12 @@ class SettingsForm {
         <label for="due">
             <?= _m("Please enter a due date in ISO 8601 format (2015-01-30T20:30) or leave blank for no due date.
             You can leave off the time to allow the assignment to be turned in any time during the day.") ?><br/>
-        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($due)); ?>" name="due"></label>
+        <input type="text" class="tsugi_setting form-control" id="tsugi_setting_due" value="<?php echo(htmlspec_utf8($due)); ?>" name="due"></label>
         <label for="timezone">
             <?= _m("Please enter a valid PHP Time Zone like 'Pacific/Honolulu' (default).  If you are
             teaching in many time zones around the world, 'Pacific/Honolulu' is a good time
             zone to choose - this is why it is the default if it is available.") ?><br/>
-        <select name="timezone" class="form-control">
+        <select name="timezone" id="tsugi_setting_timezone" class="tsugi_setting form-control">
 <?php
             foreach(timezone_identifiers_list() as $tz ) {
                 echo('<option value="'.htmlspec_utf8($tz).'" ');
@@ -474,9 +504,9 @@ class SettingsForm {
             set the period to be 86400 (24*60*60) and the penalty to be 0.2.") ?>
             </p>
         <label for="penalty_time"><?= _m("Please enter the penalty time period in seconds.") ?><br/>
-        <input type="number" class="form-control" value="<?php echo(htmlspec_utf8($time)); ?>" name="penalty_time"></label>
+        <input type="number" id="tsugi_setting_penalty_time" class="tsugi_setting form-control" value="<?php echo(htmlspec_utf8($time)); ?>" name="penalty_time"></label>
         <label for="penalty_cost"><?= _m("Please enter the penalty deduction as a decimal between 0.0 and 1.0.") ?><br/>
-        <input type="number" class="form-control" value="<?php echo(htmlspec_utf8($cost)); ?>" name="penalty_cost"></label>
+        <input type="number" id="tsugi_setting_penalty_cost" class="tsugi_setting form-control" value="<?php echo(htmlspec_utf8($cost)); ?>" name="penalty_cost"></label>
 <?php
     }
 
@@ -498,7 +528,7 @@ class SettingsForm {
             If you put a URL here, a Done button will be shown and when pressed the tool will navigate to
             the specified URL.  If you expect to launch this tool in a popup, enter "_close" here and
             the tool will close its window when Done is pressed.<br/>
-        <input type="text" class="form-control" value="<?php echo(htmlspec_utf8($done)); ?>" name="done"></label>
+        <input type="text" class="tsugi_setting form-control" value="<?php echo(htmlspec_utf8($done)); ?>" name="done"></label>
 <?php
 */
     }

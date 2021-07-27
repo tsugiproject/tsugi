@@ -3998,6 +3998,10 @@
                 "asynchronous",
                 "event-loop"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/event-loop/issues",
+                "source": "https://github.com/reactphp/event-loop/tree/v1.1.1"
+            },
             "install-path": "../react/event-loop"
         },
         {
@@ -4103,6 +4107,10 @@
                 "timeout",
                 "timer"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/promise-timer/issues",
+                "source": "https://github.com/reactphp/promise-timer/tree/v1.6.0"
+            },
             "install-path": "../react/promise-timer"
         },
         {
@@ -4239,6 +4247,10 @@
                 "stream",
                 "writable"
             ],
+            "support": {
+                "issues": "https://github.com/reactphp/stream/issues",
+                "source": "https://github.com/reactphp/stream/tree/v1.1.1"
+            },
             "install-path": "../react/stream"
         },
         {
@@ -6352,12 +6364,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "e246f484cf992d4c5f721cf532203945d8dc142f"
+                "reference": "46c7cff8a715199422bc4dc673496b35bdf1dbdb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e246f484cf992d4c5f721cf532203945d8dc142f",
-                "reference": "e246f484cf992d4c5f721cf532203945d8dc142f",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/46c7cff8a715199422bc4dc673496b35bdf1dbdb",
+                "reference": "46c7cff8a715199422bc4dc673496b35bdf1dbdb",
                 "shasum": ""
             },
             "require": {
@@ -6370,7 +6382,7 @@
                 "phpunit/php-timer": ">=1.0.6",
                 "phpunit/phpunit": "8.*"
             },
-            "time": "2021-07-07T21:01:19+00:00",
+            "time": "2021-07-27T11:21:34+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",
