@@ -132,58 +132,7 @@ class Output {
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= $CFG->servicename ?><?php if ( isset($CFG->context_title) ) echo(' - '.$CFG->context_title); ?></title>
-        <script>
-        var _TSUGI = {
-<?php
-            // https://security.stackexchange.com/questions/110101/proper-way-to-protect-against-xss-when-output-is-directly-into-js-not-html
-            if ( isset($CONTEXT->title) ) {
-                echo('            context_title: '.self::json_encode_string_value($CONTEXT->title).",\n");
-            }
-            if ( isset($LINK->title) ) {
-                echo('            link_title: '.self::json_encode_string_value($LINK->title).",\n");
-            }
-            if ( isset($USER->displayname) ) {
-                echo('            user_displayname: '.self::json_encode_string_value($USER->displayname).",\n");
-            }
-            if ( isset($USER->locale) ) {
-                echo('            user_locale: '.self::json_encode_string_value($USER->locale).",\n");
-            }
-            if ( strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
-                echo('            ajax_session: "'.urlencode(session_name()).'='.urlencode(session_id()).'"'.",\n");
-            } else {
-                echo('            ajax_session: false,'."\n");
-            }
-
-            if ( isset($USER->instructor) && $USER->instructor ) {
-                echo('            instructor: true,  // Use only for UI display'."\n");
-            }
-            $heartbeat = 10*60*1000; // 10 minutes
-            if ( isset($CFG->sessionlifetime) ) {
-                $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
-            }
-            if ( $heartbeat < 10*60*1000 ) $heartbeat = 10*60*1000;   // Minumum 10 minutes
-            // $heartbeat = 10000; // Debug 10 seconds
-            $heartbeat_url = self::getUtilUrl('/heartbeat.php');
-            $heartbeat_url = U::add_url_parm($heartbeat_url,'msec',$heartbeat);
-            $heartbeat_url = U::addSession($heartbeat_url);
-?>
-            heartbeat: <?= $heartbeat ?>,
-            heartbeat_url: "<?= $heartbeat_url ?>",
-            rest_path: <?= json_encode(U::rest_path()) ?>,
-            spinnerUrl: "<?= self::getSpinnerUrl() ?>",
-            staticroot: "<?= $CFG->staticroot ?>",
-<?php if ( isset ($CFG->apphome) ) { ?>
-            apphome: "<?= $CFG->apphome ?>",
-<?php } else { ?>
-            apphome: false;
-<?php } ?>
-            wwwroot: "<?= $CFG->wwwroot ?>",
-            websocket_url: <?= WebSocket::enabled() && $LINK ? '"'.$CFG->websocket_url.'"' : 'false' ?>,
-            websocket_token: <?= WebSocket::enabled() && $LINK ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false' ?>,
-            window_close_message: "<?= _m('Application complete') ?>",
-            session_expire_message: "<?= _m('Your session has expired') ?>"
-        }
-        </script>
+<?php echo($this->headerData()); ?>
         <!-- Tiny bit of JS -->
         <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
         <!-- Le styles -->
@@ -257,6 +206,69 @@ body {
         ob_end_clean();
         if ( $this->buffer ) return $ob_output;
         echo($ob_output);
+    }
+
+    /**
+     * Set the header variables for a Tsugi Page
+     *
+     * If this class is set to buffer, the output is returned
+     * in a string instead of being printed to the response.
+     */
+    function headerData() {
+        global $CFG, $CONTEXT, $USER, $LINK;
+
+        // https://security.stackexchange.com/questions/110101/proper-way-to-protect-against-xss-when-output-is-directly-into-js-not-html
+        $retval = "<script>\n var _TSUGI = {\n";
+        if ( isset($CONTEXT->title) ) {
+            $retval .= '            context_title: '.self::json_encode_string_value($CONTEXT->title).",\n";
+        }
+        if ( isset($LINK->title) ) {
+            $retval .= '            link_title: '.self::json_encode_string_value($LINK->title).",\n";
+        }
+        if ( isset($USER->displayname) ) {
+            $retval .= '            user_displayname: '.self::json_encode_string_value($USER->displayname).",\n";
+        }
+        if ( isset($USER->locale) ) {
+            $retval .= '            user_locale: '.self::json_encode_string_value($USER->locale).",\n";
+        }
+        if ( strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
+            $retval .= '            ajax_session: "'.urlencode(session_name()).'='.urlencode(session_id()).'"'.",\n";
+        } else {
+            $retval .= '            ajax_session: false,'."\n";
+        }
+
+        if ( isset($USER->instructor) && $USER->instructor ) {
+            $retval .= '            instructor: true,  // Use only for UI display'."\n";
+        }
+        $heartbeat = 10*60*1000; // 10 minutes
+        if ( isset($CFG->sessionlifetime) ) {
+            $heartbeat = ( $CFG->sessionlifetime * 1000) / 2;
+        }
+        if ( $heartbeat < 10*60*1000 ) $heartbeat = 10*60*1000;   // Minumum 10 minutes
+        // $heartbeat = 10000; // Debug 10 seconds
+        $heartbeat_url = self::getUtilUrl('/heartbeat.php');
+        $heartbeat_url = U::add_url_parm($heartbeat_url,'msec',$heartbeat);
+        $heartbeat_url = U::addSession($heartbeat_url);
+
+        $retval .= "heartbeat: ".$heartbeat.",\n";
+        $retval .= "heartbeat_url: \"".$heartbeat_url."\",\n";
+        $retval .= "rest_path: ".json_encode(U::rest_path()).",\n";
+        $retval .= "spinnerUrl: \"".self::getSpinnerUrl()."\",\n";
+        $retval .= "staticroot: \"".$CFG->staticroot."\",\n";
+        if ( isset ($CFG->apphome) ) {
+            $retval .= "apphome: \"".$CFG->apphome."\",\n";
+        } else {
+            $retval .= "apphome: false,\n";
+        }
+        $retval .= "wwwroot: \"".$CFG->wwwroot."\",\n";
+        $websocket_url = (WebSocket::enabled() && $LINK) ? '"'.$CFG->websocket_url.'"' : 'false';
+        $retval .= "websocket_url: ".$websocket_url.",\n";
+        $websocket_token = (WebSocket::enabled() && $LINK) ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false';
+        $retval .= "websocket_token: ".$websocket_token.",\n";
+        $retval .= "window_close_message: \""._m('Application complete')."\",\n";
+        $retval .= "session_expire_message: \""._m('Your session has expired')."\"\n";
+        $retval .= "\n}\n</script>\n";
+        return $retval;
     }
 
     /**
