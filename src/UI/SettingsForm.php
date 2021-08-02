@@ -157,7 +157,7 @@ class SettingsForm {
         $settings_url = U::addSession($CFG->wwwroot."/api/settings.php");
 ?>
         <?php if ( $USER->instructor ) { ?>
-        <?php if ( true || $ajax ) { ?>
+        <?php if ( $ajax ) { ?>
         <button type="button" id="tsugi_settings_save" onclick="tsugi_settings_submit();" class="btn btn-primary"><?= _m("Save changes") ?></button>
         <script>
         function tsugi_settings_submit() {
