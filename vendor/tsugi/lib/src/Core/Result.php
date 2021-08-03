@@ -149,7 +149,7 @@ class Result extends Entity {
      *
      */
     public static function gradeSendStatic($grade, $row=false, &$debug_log=false) {
-        global $CFG, $LINK, $LTI;
+        global $CFG, $LINK, $TSUGI_LAUNCH;
         global $GradeSendTransport;
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
@@ -231,11 +231,13 @@ class Result extends Entity {
             $status = GoogleClassroom::gradeSend(intval($grade*100));
 
         // LTI 1.3 grade passback - Prefer if available
-        } else if ( strlen($lti13_subject_key) > 0 && strlen($lti13_lineitem) > 0 ) {
+        } else if ( is_object($TSUGI_LAUNCH) && isset($TSUGI_LAUNCH->context) && is_object($TSUGI_LAUNCH->context) &&
+            strlen($lti13_subject_key) > 0 && strlen($lti13_lineitem) > 0 ) {
+
             if ( is_array($debug_log) )  $debug_log[] = "Using LTI Advantage";
             $GradeSendTransport = "LTI 1.3";
             error_log("Sending LTI 1.3 grade of $grade for $lti13_subject_key to $lti13_lineitem");
-            $status = $LTI->context->sendLineItemResult($lti13_lineitem, $lti13_subject_key, $grade."", "1", $comment, $debug_log);
+            $status = $TSUGI_LAUNCH->context->sendLineItemResult($lti13_lineitem, $lti13_subject_key, $grade."", "1", $comment, $debug_log);
 
         // Classic POX call
         } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {
@@ -466,7 +468,7 @@ class Result extends Entity {
     }
 
     /**
-     * Get a Note 
+     * Get a Note
      *
      * @param $user_id The primary key of the user (instructor only)
      *
