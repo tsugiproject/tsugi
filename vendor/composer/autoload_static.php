@@ -45,7 +45,7 @@ class ComposerStaticInit129cbc536a214697caadba3ab28a195d
         ),
         'p' => 
         array (
-            'phpseclib3\\' => 11,
+            'phpseclib\\' => 10,
         ),
         'T' => 
         array (
@@ -102,7 +102,6 @@ class ComposerStaticInit129cbc536a214697caadba3ab28a195d
             'Psr\\Container\\' => 14,
             'Psr\\Cache\\' => 10,
             'PhpOption\\' => 10,
-            'ParagonIE\\ConstantTime\\' => 23,
         ),
         'O' => 
         array (
@@ -195,7 +194,7 @@ class ComposerStaticInit129cbc536a214697caadba3ab28a195d
         array (
             0 => __DIR__ . '/..' . '/voku/portable-ascii/src/voku',
         ),
-        'phpseclib3\\' => 
+        'phpseclib\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
         ),
@@ -374,10 +373,6 @@ class ComposerStaticInit129cbc536a214697caadba3ab28a195d
         'PhpOption\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
-        ),
-        'ParagonIE\\ConstantTime\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
         ),
         'Opis\\Closure\\' => 
         array (

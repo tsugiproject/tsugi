@@ -1,5 +1,7 @@
-"phpseclib/phpseclib" : "v2.0.11",
+"phpseclib/phpseclib" : ">=2.0.31 <3.0.0",
 
-If this goes up to 3.x it seems to break - Test LTI Advantage and all
-apects of LMSTest before assuming it works.
+If this goes up to 3.x the package names change to phpseclib3
+It breaks LTI Advantage badly.
+
+An upgrade to 3.0 would require a bunch of code change and extensive testing.
 

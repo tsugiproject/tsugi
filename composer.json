@@ -3,7 +3,7 @@
         "laravel/lumen-framework": "v7.2.2",
         "google/auth" : ">=1.15.0",
         "google/apiclient": ">=2.9",
-        "phpseclib/phpseclib" : ">=2.0.31",
+        "phpseclib/phpseclib" : ">=2.0.31 <3.0.0",
         "gree/jose" : ">=2.2.1",
         "ezyang/htmlpurifier": ">=v4.13.0",
         "cboden/ratchet" : ">=0.4.3",
