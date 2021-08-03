@@ -84,6 +84,7 @@ echo("</p>\n");
   </a>
 </li>
 <li><a href="context/">View Contexts</a></li>
+<li><a href="users/">View Users</a></li>
 <li><a href="activity/">View Activity</a></li>
 <li><a href="key">Manage Access Keys</a></li>
 <li><a href="expire">Manage Data Expiry</a></li>
