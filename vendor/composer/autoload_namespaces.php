@@ -8,5 +8,6 @@ $baseDir = dirname($vendorDir);
 return array(
     'JOSE' => array($vendorDir . '/gree/jose/src'),
     'HTMLPurifier' => array($vendorDir . '/ezyang/htmlpurifier/library'),
+    'Google_Service_' => array($vendorDir . '/google/apiclient-services/src'),
     'Evenement' => array($vendorDir . '/evenement/evenement/src'),
 );

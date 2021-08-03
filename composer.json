@@ -1,9 +1,11 @@
 {
     "require": {
         "laravel/lumen-framework": "v7.2.2",
-        "google/auth" : ">=1.15.0",
-        "google/apiclient": ">=2.9",
+        "google/apiclient-services": "v0.156",
+        "google/apiclient": "v2.9.1",
+        "google/auth": "v1.15.0",
         "phpseclib/phpseclib" : ">=2.0.31 <3.0.0",
+
         "gree/jose" : ">=2.2.1",
         "ezyang/htmlpurifier": ">=v4.13.0",
         "cboden/ratchet" : ">=0.4.3",
@@ -17,7 +19,6 @@
         "react/dns" : "v1.7.0",
         "react/socket" : "v1.7.0",
         "monolog/monolog" : "2.3.0",
-        "google/apiclient-services" : "v0.202.0",
         "symfony/translation" : "v5.3.3",
         "symfony/process" : "v5.3.2",
         "symfony/finder" : "v5.3.0",

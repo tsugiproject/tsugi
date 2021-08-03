@@ -1,3 +1,26 @@
+
+Master 3-Aug-2021 - Google Problems
+-----------------------------------
+        "google/apiclient-services": "v0.202.0",
+        "google/apiclient": "v2.10.1",
+        "google/auth": "v1.16.0",
+
+Got this error
+Aug 03 15:45:00 phpwebserver apache2[13491]: PHP Warning:  Class 'Google_Service' not found in /users/tom/public_html/xotdev/tsugi/vendor/google/apiclient-services/autoload.php on line 21
+Aug 03 15:45:00 phpwebserver apache2[13491]: PHP Warning:  Class 'Google_Service_Resource' not found in /users/tom/public_html/xotdev/tsugi/vendor/google/apiclient-services/autoload.php on line 21
+
+Test this and it worked so we backleveled:
+
+        "google/apiclient-services": "v0.156",
+        "google/apiclient": "v2.9.1",
+        "google/auth": "v1.15.0",
+
+We can't advence these dependencies without extensive testing and likey code changes.  Note
+that even small version increments introduce breaking changes.  But "Hey Google" :)
+
+Master 3-Aug-2021 - phpseclib3 problems
+---------------------------------------
+
 "phpseclib/phpseclib" : ">=2.0.31 <3.0.0",
 
 If this goes up to 3.x the package names change to phpseclib3

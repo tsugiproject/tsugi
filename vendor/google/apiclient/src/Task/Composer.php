@@ -37,18 +37,10 @@ class Composer
     $servicesToKeep = isset($extra['google/apiclient-services']) ?
       $extra['google/apiclient-services'] : [];
     if ($servicesToKeep) {
-      $vendorDir = $composer->getConfig()->get('vendor-dir');
       $serviceDir = sprintf(
           '%s/google/apiclient-services/src/Google/Service',
-          $vendorDir
+          $composer->getConfig()->get('vendor-dir')
       );
-      if (!is_dir($serviceDir)) {
-        // path for google/apiclient-services >= 0.200.0
-        $serviceDir = sprintf(
-            '%s/google/apiclient-services/src',
-            $vendorDir
-        );
-      }
       self::verifyServicesToKeep($serviceDir, $servicesToKeep);
       $finder = self::getServicesToRemove($serviceDir, $servicesToKeep);
       $filesystem = $filesystem ?: new Filesystem();

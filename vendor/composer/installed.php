@@ -6,7 +6,7 @@
     'aliases' => 
     array (
     ),
-    'reference' => 'bda43a52ab1610891de4b77c48575f16975e3910',
+    'reference' => '526b2fc420292b91b3891e31dcbc47bd02287afa',
     'name' => '__root__',
   ),
   'versions' => 
@@ -18,7 +18,7 @@
       'aliases' => 
       array (
       ),
-      'reference' => 'bda43a52ab1610891de4b77c48575f16975e3910',
+      'reference' => '526b2fc420292b91b3891e31dcbc47bd02287afa',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -112,30 +112,30 @@
     ),
     'google/apiclient' => 
     array (
-      'pretty_version' => 'v2.10.1',
-      'version' => '2.10.1.0',
+      'pretty_version' => 'v2.9.1',
+      'version' => '2.9.1.0',
       'aliases' => 
       array (
       ),
-      'reference' => '11871e94006ce7a419bb6124d51b6f9ace3f679b',
+      'reference' => '2fb6e702aca5d68203fa737f89f6f774022494c6',
     ),
     'google/apiclient-services' => 
     array (
-      'pretty_version' => 'v0.202.0',
-      'version' => '0.202.0.0',
+      'pretty_version' => 'v0.156',
+      'version' => '0.156.0.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'c72cb04fde47a2cc3336c1f513f9ff5db27ccc35',
+      'reference' => '2f5e54fdef034f856208328126bddd8376dae4b3',
     ),
     'google/auth' => 
     array (
-      'pretty_version' => 'v1.16.0',
-      'version' => '1.16.0.0',
+      'pretty_version' => 'v1.15.0',
+      'version' => '1.15.0.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'c747738d2dd450f541f09f26510198fbedd1c8a0',
+      'reference' => 'b346c07de6613e26443d7b4830e5e1933b830dc4',
     ),
     'gree/jose' => 
     array (

@@ -57,10 +57,8 @@ class ServiceAccountJwtAccessCredentials extends CredentialsLoader implements
      *
      * @param string|array $jsonKey JSON credential file path or JSON credentials
      *   as an associative array
-     * @param string|array $scope the scope of the access request, expressed
-     *   either as an Array or as a space-delimited String.
      */
-    public function __construct($jsonKey, $scope = null)
+    public function __construct($jsonKey)
     {
         if (is_string($jsonKey)) {
             if (!file_exists($jsonKey)) {
@@ -89,7 +87,6 @@ class ServiceAccountJwtAccessCredentials extends CredentialsLoader implements
             'sub' => $jsonKey['client_email'],
             'signingAlgorithm' => 'RS256',
             'signingKey' => $jsonKey['private_key'],
-            'scope' => $scope,
         ]);
 
         $this->projectId = isset($jsonKey['project_id'])
@@ -110,8 +107,7 @@ class ServiceAccountJwtAccessCredentials extends CredentialsLoader implements
         $authUri = null,
         callable $httpHandler = null
     ) {
-        $scope = $this->auth->getScope();
-        if (empty($authUri) && empty($scope)) {
+        if (empty($authUri)) {
             return $metadata;
         }
 
@@ -132,15 +128,8 @@ class ServiceAccountJwtAccessCredentials extends CredentialsLoader implements
     public function fetchAuthToken(callable $httpHandler = null)
     {
         $audience = $this->auth->getAudience();
-        $scope = $this->auth->getScope();
-        if (empty($audience) && empty($scope)) {
+        if (empty($audience)) {
             return null;
-        }
-
-        if (!empty($audience) && !empty($scope)) {
-            throw new \UnexpectedValueException(
-                'Cannot sign both audience and scope in JwtAccess'
-            );
         }
 
         $access_token = $this->auth->toJwt();
