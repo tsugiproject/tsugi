@@ -257,8 +257,8 @@ class U {
         return $retobj;
     }
 
-    public static function addSession($url) {
-        if ( ini_get('session.use_cookies') != '0' ) return $url;
+    public static function addSession($url, $force=false) {
+        if ( !$force && ini_get('session.use_cookies') != '0' ) return $url;
         if ( stripos($url, '&'.session_name().'=') > 0 ||
              stripos($url, '?'.session_name().'=') > 0 ) return $url;
         $session_id = session_id();

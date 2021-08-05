@@ -3,6 +3,10 @@
 # a session - thanks trackers!.  Make sure the auto endpoint has the .php or
 # route.php will do cookie session.
 
+if ( isset($_COOKIE[session_name()]) ) {
+   if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
+}
+
 require_once("../../config.php");
 session_start();
 require_once("../gate.php");
