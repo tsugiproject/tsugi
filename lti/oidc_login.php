@@ -1,99 +1,215 @@
 <?php
 
-// https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-//
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
 use \Tsugi\Core\LTIX;
+use \Tsugi\UI\Output;
+use \Tsugi\Crypt\AesCtr;
 
 require_once "../config.php";
 
-// target_link_uri and lti_message_hint are not required by Tsugi
-$login_hint = U::get($_REQUEST, 'login_hint');
-$iss = U::get($_REQUEST, 'iss');
-$issuer_guid = U::get($_REQUEST, 'guid');
+$verified = false;
+$state = U::get($_POST, 'state');
+$verifydata = U::get($_POST, 'postverify');
 
-// Allow a format where the parameter is the primary key of the lti_key row
-$key_id = null;
-if ( is_numeric($issuer_guid) ) $key_id = intval($issuer_guid);
-
-// echo("<pre>\n");var_dump($_REQUEST); LTIX::abort_with_error_log();
-
-if ( ! $login_hint ) {
-    LTIX::abort_with_error_log('Missing login_hint');
+if ( ! $state ) {
+    LTIX::abort_with_error_log('Missing state');
 }
 
-if ( ! $iss ) {
-    LTIX::abort_with_error_log('Missing iss');
+try {
+    $decoded = JWT::decode($state, $CFG->cookiesecret, array('HS256'));
+} catch(Exception $e) {
+    LTIX::abort_with_error_log('Unable to decode state value');
 }
 
-$PDOX = \Tsugi\Core\LTIX::getConnection();
+if ( ! is_object($decoded) ) {
+    LTIX::abort_with_error_log('Incorrect state value');
+}
 
-$key_sha256 = LTI13::extract_issuer_key_string($iss);
+if ( ! isset($decoded->time) ) {
+    LTIX::abort_with_error_log('No time in state');
+}
 
-error_log("iss=".$iss." sha256=".$key_sha256);
-if ( $key_id ) {
-     $sql = "SELECT issuer_client, lti13_oidc_auth
-        FROM {$CFG->dbprefix}lti_issuer AS I
-            JOIN {$CFG->dbprefix}lti_key AS K ON
-                K.issuer_id = I.issuer_id
-            WHERE K.key_id = :KID AND I.issuer_sha256 = :SHA";
-    $row = $PDOX->rowDie($sql, array(":KID" => $key_id, ":SHA" => $key_sha256));
+$delta = abs($decoded->time - time());
+if ( $delta > 60 ) {
+    LTIX::abort_with_error_log('Bad time value');
+}
+
+$sid = substr("log-".md5($state), 0, 20);
+error_log(" =============== oidc_launch ===================== $sid");
+session_id($sid);
+session_start();
+$session_state = U::get($_SESSION, 'state');
+if ( $session_state != $state ) {
+    LTIX::abort_with_error_log('Could not find state in session');
+}
+
+// Get the id_token - only take on the first post
+if ( $verifydata === null ) {
+    $id_token = U::get($_POST, 'id_token');
+    $_SESSION['id_token'] = $id_token;
 } else {
-    if ( $issuer_guid ) {
-        $query_where = "WHERE issuer_sha256 = :SHA AND issuer_guid = :issuer_guid AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
-        $query_where_params = array(":SHA" => $key_sha256, ":issuer_guid" => $issuer_guid);
-    } else {
-        $query_where = "WHERE issuer_sha256 = :SHA AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
-        $query_where_params = array(":SHA" => $key_sha256);
-    }
-
-    $row = $PDOX->rowDie(
-        "SELECT issuer_client, lti13_oidc_auth
-        FROM {$CFG->dbprefix}lti_issuer $query_where",
-        $query_where_params);
+    $id_token = U::get($_SESSION, 'id_token');
 }
 
-if ( ! is_array($row) || count($row) < 1 ) {
-    LTIX::abort_with_error_log('Login could not find issuer '.htmlentities($iss)." issuer_guid=".$issuer_guid);
+if ( ! $id_token ) {
+    LTIX::abort_with_error_log('Missing id_token');
 }
-$client_id = trim($row['issuer_client']);
-$redirect = trim($row['lti13_oidc_auth']);
 
-$raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
-if (  U::apcAvailable() ) {
-    apc_store('oidc_login_state', $raw);
-} else {
-    error_log('oidc_login '.$raw);
+$signature_check = false;
+if ( ! isset($decoded->signature) ) {
+    LTIX::abort_with_error_log('No signature in state');
 }
+
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
-$payload = array();
-$payload['signature'] = $signature;
-$payload['time'] = time();
-// Someday we might do something clever with this...
-if ( U::get($_REQUEST,'target_link_uri') ) {
-    $payload['target_link_uri'] = $_REQUEST['target_link_uri'];
+if ( $signature != $decoded->signature ) {
+    $raw = \Tsugi\Core\LTIX::getBrowserSignatureRaw();
+    error_log('oidc_launch '.$raw);
+    LTIX::abort_with_error_log("Invalid state signature value");
+}
+$signature_check = true;
+
+$url_claim = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
+
+$jwt = LTI13::parse_jwt($id_token);
+
+if ( ! $jwt ) {
+    LTIX::abort_with_error_log("Unable to parse JWT");
 }
 
-$state = JWT::encode($payload, $CFG->cookiesecret, 'HS256');
-
-$redirect = U::add_url_parm($redirect, "scope", "openid");
-$redirect = U::add_url_parm($redirect, "response_type", "id_token");
-$redirect = U::add_url_parm($redirect, "response_mode", "form_post");
-$redirect = U::add_url_parm($redirect, "prompt", "none");
-$redirect = U::add_url_parm($redirect, "nonce", uniqid());
-
-// client_id - Required, per OIDC spec, the tool’s client id for this issuer.
-$redirect = U::add_url_parm($redirect, "client_id", $client_id);
-$redirect = U::add_url_parm($redirect, "login_hint", $login_hint);
-if ( U::get($_REQUEST,'lti_message_hint') ) {
-    $redirect = U::add_url_parm($redirect, "lti_message_hint", $_REQUEST['lti_message_hint']);
+if ( ! isset($jwt->body) ) {
+    LTIX::abort_with_error_log("Missing body in JWT");
 }
-$redirect = U::add_url_parm($redirect, "redirect_uri", $CFG->wwwroot . '/lti/oidc_launch');
-$redirect = U::add_url_parm($redirect, "state", $state);
 
-error_log("oidc_login redirect: ".$redirect);
-header("Location: ".$redirect);
+$launch_url = false;
+if ( isset($jwt->body->{$url_claim}) && is_string($jwt->body->{$url_claim}) ) {
+    $launch_url = $jwt->body->{$url_claim};
+    error_log("target_link_uri from id_token ".$launch_url);
+}
 
+if ( ! $launch_url ) {
+    LTIX::abort_with_error_log("Missing or incorrect launch_url claim in body");
+}
+
+// Double check that target_link_uri did not change from oidc_login to now
+if ( isset($decoded->target_link_uri) && is_string($decoded->target_link_uri) ) {
+    $state_target_link_uri = $decoded->target_link_uri;
+    if ( $launch_url != $state_target_link_uri ) {
+        LTIX::abort_with_error_log("Mis-match between claim target ($launch_url) and state target($state_target_link_uri)");
+    }
+}
+
+// Check for bad places to go
+$oidc_login = $CFG->wwwroot . '/lti/oidc_login';
+$oidc_launch = $CFG->wwwroot . '/lti/oidc_launch';
+if ( strpos($launch_url, $oidc_login) === 0 ) {
+    LTIX::abort_with_error_log("target_link_uri cannot be the same as oidc_login - ".$launch_url);
+}
+if ( strpos($launch_url, $oidc_launch) === 0 ) {
+    LTIX::abort_with_error_log("target_link_uri cannot be the same as oidc_launch - ".$launch_url);
+}
+
+if ( ! U::startsWith($launch_url, $CFG->apphome) ) {
+    LTIX::abort_with_error_log("Launch_url must start with ".$CFG->apphome);
+}
+
+// Check if we are already verified
+if ( U::get($_SESSION, 'verified') == 'yes' ) {
+    error_log("oidc_login verified with postverify from session");
+    $verified = true;
+}
+
+$cookie_state = U::get($_COOKIE, "TSUGI_STATE");
+if ( $cookie_state == $state ) {
+    error_log("oidc_login verified with cookie");
+    $verified = true;
+}
+
+$sub = isset($jwt->body->sub) ? $jwt->body->sub : null;
+
+// Lets check if we need to do a postverify
+$postverify = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
+$origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
+$request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
+$iss = isset($jwt->body->iss) ? $jwt->body->iss : null;
+$issuer_sha256 = $iss ? LTI13::extract_issuer_key_string($iss) : null;
+
+// Get verification data from oidc_login via session
+$our_kid = U::get($_SESSION, 'our_kid');
+$our_keyset_url = U::get($_SESSION, 'our_keyset_url');
+$our_keyset = U::get($_SESSION, 'our_keyset');
+$platform_public_key = U::get($_SESSION, 'platform_public_key');
+
+$tool_private_key_encr = U::get($_SESSION, 'tool_private_key_encr');
+$tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 256) ;
+
+if ( ! $verified && $sub && $postverify && $origin && $issuer_sha256 ) {
+    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  origin $origin postverify $postverify");
+    $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
+
+    $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
+    if ( $e !== true ) {
+        LTIX::abort_with_error_log('JWT validation fail key='.$iss.' error='.$e->getMessage());
+    }
+
+    if ( $verifydata === null ) {
+
+        // Save for oidc_verify
+        $_SESSION['platform_public_key'] = $platform_public_key;
+        $_SESSION['id_token'] = $id_token;
+        $_SESSION['subject'] = $sub;
+
+        $verify_url = $CFG->wwwroot . '/lti/oidc_verify.php?sid=' . $sid;
+        $postjson = new \stdClass();
+        $postjson->subject = "org.sakailms.lti.postverify";
+        $postjson->postverify = U::add_url_parm($postverify, 'callback', $verify_url) ;
+        $postjson->sub = $sub;
+        $poststr = json_encode($postjson);
+?>
+<form method="POST" id="oidc_verify">
+<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
+<input type="hidden" id="postverify" name="postverify">
+</form>
+<script>
+window.addEventListener('message', function (e) {
+    console.log('oidc_launch received message');
+    console.log(e);
+    console.log((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
+                (e.origin == '<?= $origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
+    if ( e.source == parent && e.origin == '<?= $origin ?>' ) {
+        document.getElementById("postverify").value = 'done';
+        document.getElementById("oidc_verify").submit();
+    }
+});
+console.log('trophy sending org.sakailms.lti.postverify');
+parent.postMessage('<?= $poststr ?>', '<?= $origin ?>');
+</script>
+<?php
+        return;
+   }
+}
+
+// Reclaim the short-lived session
+unset($_SESSION);
+session_destroy();
+
+// Check if we are verified or have a fallback
+if ( $verified ) {
+    // Verified via cookie or post verify
+} else if ( $signature_check ) {
+    error_log("oidc_login verified with browser signature");
+} else {
+    LTIX::abort_with_error_log("Unable to verify subject ".$sub." iss ".$iss);
+}
+
+// Looks good - time to forward
+?>
+<form method="POST" id="oidc_forward" action="<?= htmlspecialchars($launch_url) ?>">
+<input type="hidden" name="id_token" value="<?= htmlspecialchars($id_token) ?>">
+<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
+</form>
+<script>
+document.getElementById("oidc_forward").submit();
+</script>
