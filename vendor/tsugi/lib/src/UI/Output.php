@@ -484,7 +484,7 @@ $('a').each(function (x) {
     if ( ! href.startsWith('#') ) return;
     var pos = href.indexOf('/?');
     if ( pos < 1 ) return;
-    console.dir('Patching broken # href='+href);
+    // console.dir('Patching broken # href='+href);
     href = href.substring(0,pos);
     $(this).attr('href', href);
 });
@@ -518,7 +518,7 @@ $('a').each(function (x) {
         href = href + '?';
     }
     href = href + sess_name + '=' + sess_id;
-    console.dir('Patching missing session href='+href);
+    // console.dir('Patching missing session href='+href);
     $(this).attr('href', href);
 });
 <?php } ?>
