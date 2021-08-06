@@ -240,19 +240,19 @@ if ( ! $verified && $sub && $postverify && $origin && $issuer_sha256 ) {
 
     if ( $verifydata === null ) {
 
-        // Save for oidc_verify
+        // Save for oidc_postverify
         $_SESSION['platform_public_key'] = $platform_public_key;
         $_SESSION['id_token'] = $id_token;
         $_SESSION['subject'] = $sub;
 
-        $verify_url = $CFG->wwwroot . '/lti/oidc_verify.php?sid=' . $sid;
+        $verify_url = $CFG->wwwroot . '/lti/oidc_postverify.php?sid=' . $sid;
         $postjson = new \stdClass();
         $postjson->subject = "org.sakailms.lti.postverify";
         $postjson->postverify = U::add_url_parm($postverify, 'callback', $verify_url) ;
         $postjson->sub = $sub;
         $poststr = json_encode($postjson);
 ?>
-<form method="POST" id="oidc_verify">
+<form method="POST" id="oidc_postverify">
 <input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
 <input type="hidden" id="postverify" name="postverify">
 </form>
@@ -264,7 +264,7 @@ window.addEventListener('message', function (e) {
                 (e.origin == '<?= $origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
     if ( e.source == parent && e.origin == '<?= $origin ?>' ) {
         document.getElementById("postverify").value = 'done';
-        document.getElementById("oidc_verify").submit();
+        document.getElementById("oidc_postverify").submit();
     }
 });
 console.log('trophy sending org.sakailms.lti.postverify');
