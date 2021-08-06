@@ -10,6 +10,10 @@ use \Tsugi\Crypt\AesCtr;
 
 require_once "../config.php";
 
+// We will switch these defaults in the future...
+$postverify_enabled = isset($CFG->postverify) ? $CFG->postverify : false;
+$postmessage_enabled = isset($CFG->postmessage) ? $CFG->postmessage : false;
+
 // target_link_uri and lti_message_hint are not required by Tsugi
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
@@ -122,7 +126,17 @@ error_log("oidc_login redirect: ".$redirect);
 // Store it in a session cookie - likely won't work inside iframes on future browsers
 setcookie("TSUGI_STATE", $state);
 
-// Also send data using the postMessage approach
+if ( ! $postmessage_enabled ) {
+?>
+<script>
+    let TSUGI_REDIRECT = <?= json_encode($redirect, JSON_UNESCAPED_SLASHES) ?>;
+    console.log("Redirecting to "+TSUGI_REDIRECT);
+    window.location.href = TSUGI_REDIRECT;
+</script>
+<?php
+    return;
+}
+// Send our data using the postMessage approach
 ?>
 <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
 <script>
