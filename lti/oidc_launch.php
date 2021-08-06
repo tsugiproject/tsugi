@@ -17,6 +17,10 @@ $state = U::get($_POST, 'state');
 $postmessage_form = U::get($_POST, 'postmessage', null);
 $postverify_form = U::get($_POST, 'postverify', null);
 
+// We will switch these defaults in the future...
+$postverify_enabled = isset($CFG->postverify) ? $CFG->postverify : false;
+$postmessage_enabled = isset($CFG->postmessage) ? $CFG->postmessage : false;
+
 if ( ! $state ) {
     LTIX::abort_with_error_log('Missing state');
 }
@@ -154,7 +158,7 @@ $tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 
 // Sakai postverify approach
 $postverify_url = isset($jwt->body->{$POSTVERIFY_CLAIM}) ? $jwt->body->{$POSTVERIFY_CLAIM} : null;
 $postverify_origin = isset($jwt->body->{$ORIGIN_CLAIM}) ? $jwt->body->{$ORIGIN_CLAIM} : null;
-if ( ! $verified && $sub && $postverify_url && $postverify_origin && $issuer_sha256 ) {
+if ( $postverify_enabled && ! $verified && $sub && $postverify_url && $postverify_origin && $issuer_sha256 ) {
     error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  postverify_origin $postverify_origin postverify_url $postverify_url");
     $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
 
@@ -203,7 +207,7 @@ parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
 // Lets check if we need to verify the browser through window.postMessage
 // https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/launch.php
 $postmessage_signal = true;  // I sure wish there were a signal :)
-if ( $postmessage_signal && $postmessage_form === null && ! $verified && $sub && $issuer_sha256 && $lti13_oidc_auth ) {
+if ( $postmessage_enabled && $postmessage_signal && $postmessage_form === null && ! $verified && $sub && $issuer_sha256 && $lti13_oidc_auth ) {
     error_log("postmessage request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 lti13_oidc_auth $lti13_oidc_auth");
 
     $platform_login_auth_endpoint = $lti13_oidc_auth;
@@ -247,18 +251,11 @@ if ( ! inIframe() ) {
             return;
         }
 
-        // Good news here..
-        console.log('Got some state', event.data.value);
-
         if (event.data.value !== '<?= $state ?>') {
             console.log([event.data.value, '<?= $state ?>']);
             alert('invalid state');
             return;
         }
-
-
-        // We are feeling pretty groovy.
-        console.log("Feeling groovy");
 
         $.ajax
         ({
@@ -297,7 +294,7 @@ if ( ! inIframe() ) {
             document.getElementById("postmessage").value = 'timeout';
             document.getElementById("oidc_postmessage").submit();
         }
-    }, 1000);
+    }, 100);  // Timeout 0.1 seconds per the specification
 } // inIframe()
 </script>
 <p style="display: none;" id="waiting"><?= _m("Contacting LMS through postMessage...") ?></p>
