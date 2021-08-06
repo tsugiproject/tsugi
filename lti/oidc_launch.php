@@ -122,7 +122,7 @@ if ( ! U::startsWith($launch_url, $CFG->apphome) ) {
 
 // Check if we are already verified
 if ( U::get($_SESSION, 'verified') == 'yes' ) {
-    error_log("oidc_login verified with postverify from session");
+    error_log("oidc_login verified from session");
     $verified = true;
 }
 
@@ -147,6 +147,55 @@ $lti13_oidc_auth = U::get($_SESSION, 'lti13_oidc_auth');
 
 $tool_private_key_encr = U::get($_SESSION, 'tool_private_key_encr');
 $tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 256) ;
+
+// Sakai postverify approach
+$postverify_url = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
+$postverify_origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
+if ( ! $verified && $sub && $postverify_url && $postverify_origin && $issuer_sha256 ) {
+    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  postverify_origin $postverify_origin postverify_url $postverify_url");
+    $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
+
+    $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
+    if ( $e !== true ) {
+        LTIX::abort_with_error_log('JWT validation fail key='.$iss.' error='.$e->getMessage());
+    }
+
+    if ( $postverify_form === null ) {
+
+        // Save for oidc_postverify
+        $_SESSION['platform_public_key'] = $platform_public_key;
+        $_SESSION['id_token'] = $id_token;
+        $_SESSION['subject'] = $sub;
+
+        $verify_url = $CFG->wwwroot . '/lti/oidc_postverify.php?sid=' . $sid;
+        $postjson = new \stdClass();
+        $postjson->subject = "org.sakailms.lti.postverify";
+        $postjson->postverify = U::add_url_parm($postverify_url, 'callback', $verify_url) ;
+        $postjson->sub = $sub;
+        $poststr = json_encode($postjson);
+?>
+<form method="POST" id="oidc_postverify">
+<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
+<input type="hidden" id="postverify" name="postverify">
+</form>
+<script>
+window.addEventListener('message', function (e) {
+    console.log('oidc_launch received message');
+    console.log(e);
+    console.log((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
+                (e.origin == '<?= $postverify_origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
+    if ( e.source == parent && e.origin == '<?= $postverify_origin ?>' ) {
+        document.getElementById("postverify").value = 'done';
+        document.getElementById("oidc_postverify").submit();
+    }
+});
+console.log('trophy sending org.sakailms.lti.postverify');
+parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
+</script>
+<?php
+        return;
+   }
+}
 
 // Lets check if we need to verify the browser through window.postMessage
 // https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/launch.php
@@ -250,7 +299,7 @@ if ( ! inIframe() ) {
 </script>
 <p style="display: none;" id="waiting"><?= _m("Contacting LMS through postMessage...") ?></p>
 <script>
-setTimeout(() => { $("#waiting").show();, 1000);
+setTimeout(() => { {$("#waiting").show();}, 1000);
 </script>
 <form method="POST" id="oidc_postmessage">
 <input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
@@ -260,55 +309,6 @@ setTimeout(() => { $("#waiting").show();, 1000);
 </html>
 <?php
         return;
-}
-
-// Sakai postverify approach
-$postverify_url = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
-$postverify_origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
-if ( ! $verified && $sub && $postverify_url && $postverify_origin && $issuer_sha256 ) {
-    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  postverify_origin $postverify_origin postverify_url $postverify_url");
-    $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
-
-    $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
-    if ( $e !== true ) {
-        LTIX::abort_with_error_log('JWT validation fail key='.$iss.' error='.$e->getMessage());
-    }
-
-    if ( $postverify_form === null ) {
-
-        // Save for oidc_postverify
-        $_SESSION['platform_public_key'] = $platform_public_key;
-        $_SESSION['id_token'] = $id_token;
-        $_SESSION['subject'] = $sub;
-
-        $verify_url = $CFG->wwwroot . '/lti/oidc_postverify.php?sid=' . $sid;
-        $postjson = new \stdClass();
-        $postjson->subject = "org.sakailms.lti.postverify";
-        $postjson->postverify = U::add_url_parm($postverify_url, 'callback', $verify_url) ;
-        $postjson->sub = $sub;
-        $poststr = json_encode($postjson);
-?>
-<form method="POST" id="oidc_postverify">
-<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
-<input type="hidden" id="postverify" name="postverify">
-</form>
-<script>
-window.addEventListener('message', function (e) {
-    console.log('oidc_launch received message');
-    console.log(e);
-    console.log((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
-                (e.origin == '<?= $postverify_origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
-    if ( e.source == parent && e.origin == '<?= $postverify_origin ?>' ) {
-        document.getElementById("postverify").value = 'done';
-        document.getElementById("oidc_postverify").submit();
-    }
-});
-console.log('trophy sending org.sakailms.lti.postverify');
-parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
-</script>
-<?php
-        return;
-   }
 }
 
 // Reclaim the short-lived session
