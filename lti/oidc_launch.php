@@ -9,6 +9,9 @@ use \Tsugi\Crypt\AesCtr;
 
 require_once "../config.php";
 
+$ORIGIN_CLAIM = "https://purl.sakailms.org/spec/lti/claim/origin";
+$POSTVERIFY_CLAIM = "https://purl.sakailms.org/spec/lti/claim/postverify";
+
 $verified = false;
 $state = U::get($_POST, 'state');
 $postmessage_form = U::get($_POST, 'postmessage', null);
@@ -149,8 +152,8 @@ $tool_private_key_encr = U::get($_SESSION, 'tool_private_key_encr');
 $tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 256) ;
 
 // Sakai postverify approach
-$postverify_url = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
-$postverify_origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
+$postverify_url = isset($jwt->body->{$POSTVERIFY_CLAIM}) ? $jwt->body->{$POSTVERIFY_CLAIM} : null;
+$postverify_origin = isset($jwt->body->{$ORIGIN_CLAIM}) ? $jwt->body->{$ORIGIN_CLAIM} : null;
 if ( ! $verified && $sub && $postverify_url && $postverify_origin && $issuer_sha256 ) {
     error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  postverify_origin $postverify_origin postverify_url $postverify_url");
     $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
