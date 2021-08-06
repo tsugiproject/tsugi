@@ -96,6 +96,7 @@ $_SESSION['platform_public_key'] = $platform_public_key;
 $_SESSION['our_kid'] = $our_kid;
 $_SESSION['our_keyset_url'] = $our_keyset_url;
 $_SESSION['our_keyset'] = $our_keyset;
+$_SESSION['lti13_oidc_auth'] = trim($row['lti13_oidc_auth']);
 
 $encr = AesCtr::encrypt($tool_private_key, $CFG->cookiesecret, 256) ;
 $_SESSION['tool_private_key_encr'] = $encr;
@@ -116,60 +117,55 @@ $redirect = U::add_url_parm($redirect, "redirect_uri", $CFG->wwwroot . '/lti/oid
 $redirect = U::add_url_parm($redirect, "state", $state);
 
 error_log("oidc_login redirect: ".$redirect);
-// Store it in a session cookie - likely won't work
+
+// Store it in a session cookie - likely won't work inside iframes on future browsers
 setcookie("TSUGI_STATE", $state);
-// header("Location: ".$redirect);
+
+// Also send data using the postMessage approach
 ?>
+<script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
 <script>
-// https://stackoverflow.com/questions/326069/how-to-identify-if-a-webpage-is-being-loaded-inside-an-iframe-or-directly-into-t
-function inIframe () {
-    try {
-        return window.self !== window.top;
-    } catch (e) {
-        return true;
-    }
-}
 
 let TSUGI_REDIRECT = <?= json_encode($redirect, JSON_UNESCAPED_SLASHES) ?>;
-//
+
 // Adapted from https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/login_initiation.php
-let return_url = new URL(<?= json_encode($redirect, JSON_UNESCAPED_SLASHES); ?>);
-let send_data = {
+if ( inIframe() ) {
+    let return_url = new URL(<?= json_encode($redirect, JSON_UNESCAPED_SLASHES); ?>);
+    let send_data = {
         subject: 'org.imsglobal.lti.put_data',
         message_id: Math.random(),
         key: "state",
         value: "<?= $state ?>",
-};
+    };
 
-let state_set = false;
-
-// Listen for response containing the id_token from the platform
-window.addEventListener("message", function(event) {
-    console.log(window.location.origin + " Got post message from " + event.origin);
-    console.log(JSON.stringify(event.data, null, '    '));
-
-    // Origin MUST be the same as the registered oauth return url origin
-    if (event.origin !== return_url.origin) {
-        console.log('invalid origin');
-        return;
-    }
-
-    // Check state matches the one sent to the platform
-    if (event.data.subject !== 'org.imsglobal.lti.put_data.response' ) {
-        console.log('invalid response');
-        return;
-    }
-
-    state_set = true;
-
-    window.location.href=TSUGI_REDIRECT;;
-
-}, false);
-
-if ( inIframe() ) {
-    // Ask Martin about this...
+    let state_set = false;
+    //
+    // TODO: Ask Martin about this extra complexity in this if test ...
     // let message_window = (window.opener || window.parent)<?= isset($_REQUEST['ims_web_message_target']) ? '.frames["'.$_REQUEST['ims_web_message_target'].'"]' : ''; ?>;
     let message_window = (window.opener || window.parent);
+
+    // Listen for the response from the platform
+    window.addEventListener("message", function(event) {
+        console.log(window.location.origin + " Got post message from " + event.origin);
+        console.log(JSON.stringify(event.data, null, '    '));
+
+        // Origin MUST be the same as the registered oauth return url origin
+        if (event.origin !== return_url.origin) {
+            console.log('invalid origin');
+            return;
+        }
+
+        // Check state matches the one sent to the platform
+        if (event.data.subject !== 'org.imsglobal.lti.put_data.response' ) {
+            console.log('invalid response');
+            return;
+        }
+
+        state_set = true;
+
+        window.location.href=TSUGI_REDIRECT;;
+
+    }, false);
 
     console.log(window.location.origin + " Sending post message to " + return_url.origin);
     console.log(JSON.stringify(send_data, null, '    '));

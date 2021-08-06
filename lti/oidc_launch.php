@@ -44,6 +44,11 @@ $session_state = U::get($_SESSION, 'state');
 if ( $session_state != $state ) {
     LTIX::abort_with_error_log('Could not find state in session');
 }
+$session_password = U::get($_SESSION, 'password');
+if ( ! $session_password ) {
+    $session_password = uniqid();
+    $_SESSION['password'] = $session_password;
+}
 
 // Get the id_token - only take on the first post
 if ( $verifydata === null ) {
@@ -129,9 +134,6 @@ if ( $cookie_state == $state ) {
 
 $sub = isset($jwt->body->sub) ? $jwt->body->sub : null;
 
-// Lets check if we need to do a postverify
-$postverify = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
-$origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
 $request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
 $iss = isset($jwt->body->iss) ? $jwt->body->iss : null;
 $issuer_sha256 = $iss ? LTI13::extract_issuer_key_string($iss) : null;
@@ -141,10 +143,92 @@ $our_kid = U::get($_SESSION, 'our_kid');
 $our_keyset_url = U::get($_SESSION, 'our_keyset_url');
 $our_keyset = U::get($_SESSION, 'our_keyset');
 $platform_public_key = U::get($_SESSION, 'platform_public_key');
+$lti13_oidc_auth = U::get($_SESSION, 'lti13_oidc_auth');
 
 $tool_private_key_encr = U::get($_SESSION, 'tool_private_key_encr');
 $tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 256) ;
 
+// Lets check if we need to verify the browser through window.postMessage
+// https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/launch.php
+$postmessage_signal = true;  // I sure wish there were a signal :)
+if ( $postmessage_signal && ! $verified && $sub && $issuer_sha256 && $lti13_oidc_auth ) {
+    error_log("postmessage request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 lti13_oidc_auth $lti13_oidc_auth");
+    
+    $platform_login_auth_endpoint = $lti13_oidc_auth;
+// TODO: If in iframe / fail gracefully
+?>
+<html>
+<head>
+<script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
+</head>
+<body>
+<h1>Top</h1>
+<script>
+    // Get data about the registration linked to the request
+    let return_url = new URL(<?= json_encode($platform_login_auth_endpoint, JSON_UNESCAPED_SLASHES); ?>);
+
+    // Get the parent window or opener
+    let message_window = (window.opener || window.parent)<?= isset($_REQUEST['ims_web_message_target']) ? '.frames["'.$_REQUEST['ims_web_message_target'].'"]' : ''; ?>;
+
+    alert('Yada');
+
+    let state_set = false;
+
+    // Listen for response containing the id_token from the platform
+    window.addEventListener("message", function(event) {
+        console.log(window.location.origin + " Got post message from " + event.origin);
+        console.log(JSON.stringify(event.data, null, '    '));
+        state_set = true;
+
+        // Origin MUST be the same as the registered oauth return url origin
+        if (event.origin !== return_url.origin) {
+            console.log('invalid origin');
+            return;
+        }
+
+        // Check state matches the one sent to the platform
+        if (event.data.subject !== 'org.imsglobal.lti.get_data.response' ) {
+            console.log('invalid response');
+            return;
+        }
+
+        // Good news here..
+        console.log('Got some state', event.data.value);
+
+        if (event.data.value !== '<?= $state ?>') {
+            console.log([event.data.value, '<?= $state ?>']);
+            alert('invalid state');
+            return;
+        }
+
+
+        // We are feeling pretty groovy.
+        console.log("Feeling groovy");
+
+    }, false);
+
+    // Send post message to platform window with login initiation data
+    let send_data = {
+        subject: 'org.imsglobal.lti.get_data',
+        message_id: Math.random(),
+        key: "state",
+    };
+    console.log(window.location.origin + " Sending post message to " + return_url.origin);
+    console.log(JSON.stringify(send_data, null, '    '));
+    message_window.postMessage(send_data, return_url.origin);
+    setTimeout(() => { if (!state_set) { alert('no response from platform'); } }, 1000);
+</script>
+<h1>Yada</h1>
+</body>
+</html>
+<?php
+        return;
+}
+
+
+// Sakai postverify approach
+$postverify = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
+$origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
 if ( ! $verified && $sub && $postverify && $origin && $issuer_sha256 ) {
     error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  origin $origin postverify $postverify");
     $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
