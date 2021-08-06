@@ -2859,6 +2859,7 @@ class LTIX {
             $response->tsugi_tester = 'https://www.tsugi.org/lti-test/';
             $response->base_string = 'https://www.tsugi.org/lti-test/basecheck.php';
             echo(json_encode($response));
+            error_log($prefix.' '.$msg.' '.$extra);
             exit();
         }
 

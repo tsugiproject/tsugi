@@ -11,7 +11,8 @@ require_once "../config.php";
 
 $verified = false;
 $state = U::get($_POST, 'state');
-$verifydata = U::get($_POST, 'postverify');
+$postmessage_form = U::get($_POST, 'postmessage', null);
+$postverify_form = U::get($_POST, 'postverify', null);
 
 if ( ! $state ) {
     LTIX::abort_with_error_log('Missing state');
@@ -46,16 +47,15 @@ if ( $session_state != $state ) {
 }
 $session_password = U::get($_SESSION, 'password');
 if ( ! $session_password ) {
-    $session_password = uniqid();
-    $_SESSION['password'] = $session_password;
+    LTIX::abort_with_error_log('Could not session_password');
 }
 
 // Get the id_token - only take on the first post
-if ( $verifydata === null ) {
+if ( $postverify_form !== null || $postmessage_form !== null) {
+    $id_token = U::get($_SESSION, 'id_token');
+} else {
     $id_token = U::get($_POST, 'id_token');
     $_SESSION['id_token'] = $id_token;
-} else {
-    $id_token = U::get($_SESSION, 'id_token');
 }
 
 if ( ! $id_token ) {
@@ -151,26 +151,29 @@ $tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 
 // Lets check if we need to verify the browser through window.postMessage
 // https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/launch.php
 $postmessage_signal = true;  // I sure wish there were a signal :)
-if ( $postmessage_signal && ! $verified && $sub && $issuer_sha256 && $lti13_oidc_auth ) {
+if ( $postmessage_signal && $postmessage_form === null && ! $verified && $sub && $issuer_sha256 && $lti13_oidc_auth ) {
     error_log("postmessage request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 lti13_oidc_auth $lti13_oidc_auth");
-    
+
     $platform_login_auth_endpoint = $lti13_oidc_auth;
-// TODO: If in iframe / fail gracefully
 ?>
 <html>
 <head>
 <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
+<script src="<?= $CFG->staticroot ?>/js/jquery-1.11.3.js"></script>
 </head>
 <body>
-<h1>Top</h1>
 <script>
+// No point to do postmessage in iframe
+if ( ! inIframe() ) {
+    document.getElementById("postmessage").value = 'success';
+    document.getElementById("oidc_postmessage").submit();
+} else {
+
     // Get data about the registration linked to the request
     let return_url = new URL(<?= json_encode($platform_login_auth_endpoint, JSON_UNESCAPED_SLASHES); ?>);
 
     // Get the parent window or opener
     let message_window = (window.opener || window.parent)<?= isset($_REQUEST['ims_web_message_target']) ? '.frames["'.$_REQUEST['ims_web_message_target'].'"]' : ''; ?>;
-
-    alert('Yada');
 
     let state_set = false;
 
@@ -205,6 +208,26 @@ if ( $postmessage_signal && ! $verified && $sub && $issuer_sha256 && $lti13_oidc
         // We are feeling pretty groovy.
         console.log("Feeling groovy");
 
+        $.ajax
+        ({
+            type: "POST",
+            url: "oidc_postmessage.php",
+            headers: {
+                "X-Tsugi-Authorization": "TsugiOAuthVerify <?= $session_password ?>"
+            },
+            data: {
+                "state": "<?= $state ?>"
+            },
+            error: function (jqXHR, textStatus, errorThrown ){
+                console.log('Got error from oidc_postmessage '+errorThrown);
+                document.getElementById("postmessage").value = 'error';
+                document.getElementById("oidc_postmessage").submit();
+            },
+            success: function (){
+                document.getElementById("postmessage").value = 'success';
+                document.getElementById("oidc_postmessage").submit();
+            }
+        });
     }, false);
 
     // Send post message to platform window with login initiation data
@@ -216,21 +239,34 @@ if ( $postmessage_signal && ! $verified && $sub && $issuer_sha256 && $lti13_oidc
     console.log(window.location.origin + " Sending post message to " + return_url.origin);
     console.log(JSON.stringify(send_data, null, '    '));
     message_window.postMessage(send_data, return_url.origin);
-    setTimeout(() => { if (!state_set) { alert('no response from platform'); } }, 1000);
+    setTimeout(() => {
+        if (!state_set) {
+            console.log('no response from platform');
+            document.getElementById("postmessage").value = 'timeout';
+            document.getElementById("oidc_postmessage").submit();
+        }
+    }, 1000);
+} // inIframe()
 </script>
-<h1>Yada</h1>
+<p style="display: none;" id="waiting"><?= _m("Contacting LMS through postMessage...") ?></p>
+<script>
+setTimeout(() => { $("#waiting").show();, 1000);
+</script>
+<form method="POST" id="oidc_postmessage">
+<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
+<input type="hidden" id="postmessage" name="postmessage" value="failure">
+</form>
 </body>
 </html>
 <?php
         return;
 }
 
-
 // Sakai postverify approach
-$postverify = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
-$origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
-if ( ! $verified && $sub && $postverify && $origin && $issuer_sha256 ) {
-    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  origin $origin postverify $postverify");
+$postverify_url = isset($jwt->body->{LTI13::POSTVERIFY_CLAIM}) ? $jwt->body->{LTI13::POSTVERIFY_CLAIM} : null;
+$postverify_origin = isset($jwt->body->{LTI13::ORIGIN_CLAIM}) ? $jwt->body->{LTI13::ORIGIN_CLAIM} : null;
+if ( ! $verified && $sub && $postverify_url && $postverify_origin && $issuer_sha256 ) {
+    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  postverify_origin $postverify_origin postverify_url $postverify_url");
     $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
 
     $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
@@ -238,7 +274,7 @@ if ( ! $verified && $sub && $postverify && $origin && $issuer_sha256 ) {
         LTIX::abort_with_error_log('JWT validation fail key='.$iss.' error='.$e->getMessage());
     }
 
-    if ( $verifydata === null ) {
+    if ( $postverify_form === null ) {
 
         // Save for oidc_postverify
         $_SESSION['platform_public_key'] = $platform_public_key;
@@ -248,7 +284,7 @@ if ( ! $verified && $sub && $postverify && $origin && $issuer_sha256 ) {
         $verify_url = $CFG->wwwroot . '/lti/oidc_postverify.php?sid=' . $sid;
         $postjson = new \stdClass();
         $postjson->subject = "org.sakailms.lti.postverify";
-        $postjson->postverify = U::add_url_parm($postverify, 'callback', $verify_url) ;
+        $postjson->postverify = U::add_url_parm($postverify_url, 'callback', $verify_url) ;
         $postjson->sub = $sub;
         $poststr = json_encode($postjson);
 ?>
@@ -261,14 +297,14 @@ window.addEventListener('message', function (e) {
     console.log('oidc_launch received message');
     console.log(e);
     console.log((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
-                (e.origin == '<?= $origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
-    if ( e.source == parent && e.origin == '<?= $origin ?>' ) {
+                (e.origin == '<?= $postverify_origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
+    if ( e.source == parent && e.origin == '<?= $postverify_origin ?>' ) {
         document.getElementById("postverify").value = 'done';
         document.getElementById("oidc_postverify").submit();
     }
 });
 console.log('trophy sending org.sakailms.lti.postverify');
-parent.postMessage('<?= $poststr ?>', '<?= $origin ?>');
+parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
 </script>
 <?php
         return;

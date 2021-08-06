@@ -97,6 +97,7 @@ $_SESSION['our_kid'] = $our_kid;
 $_SESSION['our_keyset_url'] = $our_keyset_url;
 $_SESSION['our_keyset'] = $our_keyset;
 $_SESSION['lti13_oidc_auth'] = trim($row['lti13_oidc_auth']);
+$_SESSION['password'] = uniqid();
 
 $encr = AesCtr::encrypt($tool_private_key, $CFG->cookiesecret, 256) ;
 $_SESSION['tool_private_key_encr'] = $encr;

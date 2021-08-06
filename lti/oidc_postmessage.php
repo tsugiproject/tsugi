@@ -17,36 +17,47 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $state = U::get($_POST, 'state');
 
 if ( ! $state ) {
-    LTIX::abort_with_error_log('Missing state');
+    LTIX::abort_with_error_log('oidc_postmesage Missing state');
 }
 
 $sid = substr("log-".md5($state), 0, 20);
-error_log(" =============== oidc_launch ===================== $sid");
+error_log(" =============== oidc_postmessage ===================== $sid");
+error_log($state);
 session_id($sid);
 session_start();
 $session_state = U::get($_SESSION, 'state');
 $session_password = U::get($_SESSION, 'password');
 
-if ( $state == $session_state ) {
-    LTIX::abort_with_error_log('State mis-match');
+if ( ! $session_password ) {
+    var_dump($_SESSION);
+    LTIX::abort_with_error_log('oidc_postmessage could not find session password');
 }
 
+if ( $state != $session_state ) {
+    LTIX::abort_with_error_log('oidc_postmessage state mis-match');
+}
+
+
 $headers = U::apache_request_headers();
-$auth_header = U::get($headers, 'Authorization');
+$auth_header = U::get($headers, 'X-Tsugi-Authorization');
 if ( ! $auth_header ) {
-    LTIX::abort_with_error_log('Missing Authorization Header');
+    LTIX::abort_with_error_log('oidc_postmessage Missing Authorization Header');
 }
 
 error_log("Header ".$auth_header);
 
 $pieces = explode(' ', $auth_header);
-if ( count($pieces) != 3 || $pieces[1] != 'TsugiOauthVerify' ) {
-    LTIX::abort_with_error_log('Bad format for Authorization Header');
+if ( count($pieces) != 2 || $pieces[0] != 'TsugiOAuthVerify' ) {
+    LTIX::abort_with_error_log('oidc_postmessage Bad format for Authorization Header');
 }
 
-if ( $pieces[2] != $session_password ) {
-    LTIX::abort_with_error_log('Bad format for Authorization Header');
+error_log("Compare ".$pieces[1].' ? '.$session_password);
+if ( $pieces[1] != $session_password ) {
+    LTIX::abort_with_error_log('oidc_postmessage Authorization failed');
 }
 
+error_log("Verify_success");
 $_SESSION['verified'] = 'yes';
 
+// Because JQuery :)
+echo("{ }");
