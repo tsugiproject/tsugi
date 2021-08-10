@@ -15,8 +15,8 @@ the removal of the 2014-2017 migrations did not affect you. All the necessary pr
 conversions were run well before they were removed from `database.php` is 2019.
 
 But if you installed a server before 2018, and never upgraded the server and never ran the database
-upgrade script and them sometime after June 2019 you want to upgrade that system the conversions
-will be missing.  The process is simple:
+upgrade script and then sometime after June 2019 you want to upgrade that system the conversions
+will be missing.  The process to run these old conversions is simple:
 
     cd admin/lti
     # Optional
