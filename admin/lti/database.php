@@ -1,5 +1,12 @@
 <?php
 
+// To allow this to be called directly or from admin/upgrade.php
+if ( !isset($PDOX) ) {
+    require_once "../../config.php";
+    $CURRENT_FILE = __FILE__;
+    require $CFG->dirroot."/admin/migrate-setup.php";
+}
+
 $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_result",
 "drop table if exists {$CFG->dbprefix}lti_service",
@@ -1021,4 +1028,9 @@ $DATABASE_UPGRADE = function($oldversion) {
     return 202012201622;
 
 }; // Don't forget the semicolon on anonymous functions :)
+
+// Do the actual migration if we are not in admin/upgrade.php
+if ( isset($CURRENT_FILE) ) {
+    include $CFG->dirroot."/admin/migrate-run.php";
+}
 
