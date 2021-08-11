@@ -265,6 +265,7 @@ body {
         $retval .= "websocket_url: ".$websocket_url.",\n";
         $websocket_token = (WebSocket::enabled() && $LINK) ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false';
         $retval .= "websocket_token: ".$websocket_token.",\n";
+        $retval .= "react_token: \"".session_id()."\",\n";
         $retval .= "window_close_message: \""._m('Application complete')."\",\n";
         $retval .= "session_expire_message: \""._m('Your session has expired')."\"\n";
         $retval .= "\n}\n</script>\n";

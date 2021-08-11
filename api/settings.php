@@ -3,12 +3,12 @@
 require_once "../config.php";
 
 use \Tsugi\Util\Net;
+use \Tsugi\Core\Rest;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Settings;
 use \Tsugi\UI\Output;
 
-// Make sure errors are sent via JSON
-Output::headerJson();
+if ( Rest::preFlight() ) return;
 
 $LAUNCH = LTIX::requireData();
 
