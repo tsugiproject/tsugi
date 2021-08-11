@@ -866,6 +866,7 @@ class LTI13 {
 
         $jwt_claim = self::base_jwt($subject, $subject, $debug_log);
         $jwt_claim["aud"] = $audience;
+        // TODO add client ID
 
         $jwt = self::encode_jwt($jwt_claim, $lti13_privkey, $lti13_kid);
 
