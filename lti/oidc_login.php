@@ -39,7 +39,7 @@ $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 error_log("iss=".$iss." sha256=".$key_sha256);
 if ( $key_id ) {
-     $sql = "SELECT key_id, issuer_client, lti13_oidc_auth,
+     $sql = "SELECT issuer_client, lti13_oidc_auth,
          issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
          FROM {$CFG->dbprefix}lti_issuer AS I
             JOIN {$CFG->dbprefix}lti_key AS K ON
@@ -56,7 +56,7 @@ if ( $key_id ) {
     }
 
     $row = $PDOX->rowDie(
-        "SELECT key_id, issuer_client, lti13_oidc_auth,
+        "SELECT issuer_client, lti13_oidc_auth,
         issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
         FROM {$CFG->dbprefix}lti_issuer $query_where",
         $query_where_params);
@@ -66,7 +66,6 @@ if ( ! is_array($row) || count($row) < 1 ) {
     LTIX::abort_with_error_log('Login could not find issuer '.htmlentities($iss)." issuer_guid=".$issuer_guid);
 }
 $client_id = trim($row['issuer_client']);
-$key_id = trim($row['key_id']);
 $redirect = trim($row['lti13_oidc_auth']);
 
 $issuer_key = $row['issuer_key'];
