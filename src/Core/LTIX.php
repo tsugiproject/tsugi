@@ -816,6 +816,8 @@ class LTIX {
      */
     public static function getPlatformPublicKey($request_kid, $our_kid, $public_key, $issuer_sha256, $our_keyset_url, $our_keyset)
     {
+        global $PDOX, $CFG;
+
         if ( strlen($public_key) > 0 && $request_kid == $our_kid ) return $public_key;
 
         // Make sure we have or update to the latest keyset if we have a keyset_url
