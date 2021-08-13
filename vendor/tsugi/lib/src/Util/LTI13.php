@@ -289,14 +289,14 @@ class LTI13 {
      *
      * @return mixed Returns the token (string) or false on error.
      */
-    public static function getGradeToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, &$debug_log=false) {
+    public static function getGradeToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, &$debug_log=false) {
 
         $token_data = self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
             "https://purl.imsglobal.org/spec/lti-ags/scope/score",
             "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly"
-        // ], $issuer, $subject, $lti13_token_url, $lti13_privkey, $debug_log);
-        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
+        // ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
+        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, $debug_log);
 
         return self::extract_access_token($token_data, $debug_log);
     }
@@ -308,11 +308,11 @@ class LTI13 {
      *
      * @return mixed Returns the token (string) or false on error.
      */
-    public static function getNRPSToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, &$debug_log=false) {
+    public static function getNRPSToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, &$debug_log=false) {
 
          $roster_token_data = self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
-        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
+        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, $debug_log);
 
         return self::extract_access_token($roster_token_data, $debug_log);
     }
@@ -327,13 +327,13 @@ class LTI13 {
      *
      * @return mixed Returns the token (string) or false on error.
      */
-    public static function getNRPSWithSourceDidsToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, &$debug_log=false) {
+    public static function getNRPSWithSourceDidsToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, &$debug_log=false) {
 
         $roster_token_data =  self::get_access_token([
             // TODO: Uncomment this after (I think) the certification suite tolerates extra stuff
             // "https://purl.imsglobal.org/spec/lti-ags/scope/basicoutcome",
             "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
-        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
+        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, $debug_log);
 
         return self::extract_access_token($roster_token_data, $debug_log);
     }
@@ -345,10 +345,10 @@ class LTI13 {
      *
      * @return mixed Returns the token (string) or false on error.
      */
-    public static function getLineItemsToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, &$debug_log=false) {
+    public static function getLineItemsToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, &$debug_log=false) {
         $token_data = self::get_access_token([
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
-        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
+        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, $debug_log);
 
         return self::extract_access_token($token_data, $debug_log);
     }
@@ -840,6 +840,7 @@ class LTI13 {
      * @param string $lti13_token_url
      * @param string $lti13_privkey
      * @param string $lti13_kid The optional kid to include in the JWT
+     * @param string $deployment_id The optional deployment_id to include in the JWT
      * @param string $lti13_token_audience The optional value for token audience.  If not
      * provided, use the $lti13_token_url.
      * @param array $debug_log An optional array passed by reference.   Actions taken will be
@@ -851,7 +852,7 @@ class LTI13 {
      * @return array The retrieved and parsed JSON data.  There is no validation performed,
      * and we might have got a 403 and received no data at all.
      */
-    public static function get_access_token($scope, $subject, $lti13_token_url, $lti13_privkey, $lti13_kid=false, $lti13_token_audience=false, &$debug_log=false) {
+    public static function get_access_token($scope, $subject, $lti13_token_url, $lti13_privkey, $lti13_kid=false, $lti13_token_audience=false, $deployment_id=false, &$debug_log=false) {
 
         $lti13_token_url = trim($lti13_token_url);
         $subject = trim($subject);
@@ -866,7 +867,11 @@ class LTI13 {
 
         $jwt_claim = self::base_jwt($subject, $subject, $debug_log);
         $jwt_claim["aud"] = $audience;
-        // TODO add client ID
+        if ( $deployment_id ) {
+            $jwt_claim[self::DEPLOYMENT_ID_CLAIM] = $deployment_id;
+        }
+
+        // echo("<pre>\n");var_dump($jwt_claim);echo("</pre>\n");die();
 
         $jwt = self::encode_jwt($jwt_claim, $lti13_privkey, $lti13_kid);
 
