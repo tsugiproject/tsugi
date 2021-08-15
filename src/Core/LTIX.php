@@ -447,6 +447,12 @@ class LTIX {
             self::abort_with_error_log('Found issuer, but did not find corresponding deployment: '.htmlentities(U::get($post,'deployment_id')));
         }
 
+        // Copy the deployment_id into run=time data for later
+        if ( $LTI13 && U::get($post,'deployment_id') ) {
+            $row['deployment_id'] = $post['deployment_id'];
+        }
+
+
         if ( ! $row || ! U::get($row, 'key_id') ) {
             if ( U::get($post,'key') ) {  // LTI 1.1
                 self::abort_with_error_log('Launch could not find key: '.htmlentities(U::get($post,'key')));
