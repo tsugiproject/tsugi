@@ -34,6 +34,7 @@ if ( isset($_POST['ext_content_return_url']) ) {
     echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
     $resource_count = 0;
     $assignment_count = 0;
+    $discussion_count = 0;
     foreach($l->lessons->modules as $module) {
         $resources = Lessons::getUrlResources($module);
         if ( ! $resources ) continue;
@@ -41,15 +42,58 @@ if ( isset($_POST['ext_content_return_url']) ) {
         if ( isset($module->lti) ) {
             $assignment_count = $assignment_count + count($module->lti);
         }
+        if ( isset($module->discussions) ) {
+            $discussion_count = $discussion_count + count($module->discussions);
+        }
     }
     echo("<p>Resources: $resource_count </p>\n");
     echo("<p>Assignments: $assignment_count </p>\n");
-    echo("<center>\n");
-    echo('<a href="'.$return_url_normal.'" role="button" class="btn btn-success">Import Course</a>');
-    if ( isset($CFG->youtube_url) ) {
-            echo('<br/><a href="'.$return_url_youtube.'" role="button" class="btn btn-success">Import Course With Tracked YouTube URLs</a>');
-    }
-    echo("</center>\n");
+    echo("<p>Discussion topics: $discussion_count </p>\n");
+?>
+<p>
+<form action="export">
+<input type="hidden" name="tsugi_lms" value="canvas" />
+<?php if ( $discussion_count > 0 ) {
+    if (isset($CFG->tdiscus) ) { ?>
+<p>
+<label for="topic_select_full">How would you like to import discussions/topics?</label>
+<select name="topic" id="topic_select_full">
+  <!-- <option value="lti">Use discussion tool on this server (LTI)</option> -->
+  <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
+  <option value="lms">Use the Canvas Discussion Tool</option>
+</select>
+</p>
+<?php } else { ?>
+<input type="hidden" name="topic" value="lms" />
+<?php } ?>
+<?php } ?>
+<?php if ( isset($CFG->youtube_url) ) { ?>
+<p>
+<label for="youtube_select_full">Would you like YouTube Tracked URLs?</label>
+<select name="youtube" id="youtube_select_full">
+  <option value="no">No - Launch directly to YouTube</option>
+  <!-- <option value="track">Use LTI launch to track access</option> -->
+  <option value="track_grade">Use LTI launch to track access and send grades</option>
+</select>
+</p>
+<input type="submit" onclick= "sendToCanvas(); return false;" class="btn btn-primary" value="Import modules" />
+</p>
+</form>
+<?php } ?>
+<script>
+function sendToCanvas() {
+    let youtube = $("#youtube_select_full").val();
+    let topic = $("#topic_select_full").val();
+	let return_url = "<?= $return_url ?>";
+	let export_url = "<?= $CFG->wwwroot.'/cc/export?tsugi_lms=canvas' ?>";
+	export_url = export_url + '&youtube=' + youtube;
+	export_url = export_url + '&topic=' + topic;
+    return_url = return_url + "&url=" + encodeURIComponent(export_url);
+    console.log(youtube, topic, export_url);
+    window.location.href = return_url;
+}
+</script>
+<?php
     $OUTPUT->footer();
     return;
 }
@@ -196,7 +240,8 @@ foreach($l->lessons->modules as $module) {
         foreach($module->discussions as $discussion ) {
             $title = isset($discussion->title) ? $discussion->title : $module->title;
             $text = isset($discussion->description) ? $discussion->description : $module->description;
-            // Sakai does not import discussions
+
+			// If there is no LTI involved
             if ( $topic ==  "lms" || ! isset($CFG->tdiscus) ) {
                 $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text);
                 continue;
