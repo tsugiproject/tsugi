@@ -4,6 +4,9 @@ require_once "../config.php";
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Event\Entry;
+use \Tsugi\Core\Rest;
+
+if ( Rest::preFlight() ) return;
 
 $LAUNCH = LTIX::requireData();
 

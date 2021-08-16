@@ -12,8 +12,8 @@ class Rest {
      * Preflight a REST request - handle OPTIONS
      */
      public static function preFlight() {
-         $http_origin = $_SERVER['HTTP_ORIGIN'];
-         $http_method = $_SERVER['REQUEST_METHOD'];
+         $http_origin = U::get($_SERVER, 'HTTP_ORIGIN');
+         $http_method = U::get($_SERVER, 'REQUEST_METHOD');
 
          header('Content-Type: application/json; charset=UTF-8');
          header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.

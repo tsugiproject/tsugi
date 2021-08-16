@@ -6,6 +6,9 @@ require_once "../config.php";
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Rest;
+
+if ( Rest::preFlight() ) return;
 
 $max_seconds = 60;
 
