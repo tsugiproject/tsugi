@@ -299,7 +299,7 @@ if ( ! inIframe() ) {
 </script>
 <p style="display: none;" id="waiting"><?= _m("Contacting LMS through postMessage...") ?></p>
 <script>
-setTimeout(() => { {$("#waiting").show();}, 1000);
+setTimeout(function(){$("#waiting").show();}, 1000);
 </script>
 <form method="POST" id="oidc_postmessage">
 <input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
