@@ -186,7 +186,7 @@ if ( inIframe() ) {
     message_window.postMessage(send_data, return_url.origin);
 
 
-    setTimeout(() => { if (!state_set) { console.log('no response from platform'); window.location.href=TSUGI_REDIRECT;} }, 2000);
+    setTimeout(() => { if (!state_set) { console.log('no response from platform'); window.location.href=TSUGI_REDIRECT;} }, 500);
 } else {
     console.log("Redirecting to "+TSUGI_REDIRECT);
     window.location.href = TSUGI_REDIRECT;
