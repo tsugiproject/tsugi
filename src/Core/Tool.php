@@ -168,10 +168,6 @@ class Tool {
             $tool['app_store_url'] = $CFG->wwwroot . '/lti/store';
         }
 
-        if ( ! U::get($tool, 'lti_2_url') ) {
-            $tool['lti_2_url'] = $CFG->wwwroot . '/lti/register';
-        }
-
         if ( ! U::get($tool, 'app_store_canvas_url') ) {
             $tool['app_store_canvas_url'] = $CFG->wwwroot . '/lti/store/canvas-config.xml';
         }
@@ -366,7 +362,6 @@ $retval .= '    <lticm:property name="sub_canvas_assignment_id">$Canvas.assignme
     $key_url = U::get($tool, 'key_url');
     if ( $key_url ) $retval .= '    <lticm:property name="key_url">'.$key_url."</lticm:property>\n";
     $retval .= '    <lticm:property name="app_store_url">'.$CFG->wwwroot."/lti/store</lticm:property>\n";
-    $retval .= '    <lticm:property name="lti_2_url">'.$CFG->wwwroot."/lti/register</lticm:property>\n";
     $retval .= '    <lticm:property name="app_store_canvas_url">'.$CFG->wwwroot."/lti/store/canvas-config.xml</lticm:property>\n";
   $retval .='  </blti:extensions>
 </cartridge_basiclti_link>';
