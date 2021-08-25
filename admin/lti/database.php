@@ -53,8 +53,13 @@ array( "{$CFG->dbprefix}lti_issuer",
     lti13_keyset        TEXT NULL,
     lti13_platform_pubkey TEXT NULL,
     lti13_kid           TEXT NULL,
+    lti13_pubkey_old    TEXT NULL,
+    lti13_pubkey_old_at TIMESTAMP NULL,
     lti13_pubkey        TEXT NULL,
     lti13_privkey       TEXT NULL,
+    lti13_pubkey_next   TEXT NULL,
+    lti13_pubkey_next_at TIMESTAMP NULL,
+    lti13_privkey_next  TEXT NULL,
     lti13_token_url     TEXT NULL,
     lti13_token_audience  TEXT NULL,
 
@@ -702,6 +707,11 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'issuer_id', 'INTEGER NULL'),
         array('lti_key', 'user_json', 'MEDIUMTEXT NULL'),
         array('lti_issuer', 'lti13_token_audience', 'TEXT NULL'),
+        array('lti_issuer', 'lti13_pubkey_old', 'TEXT NULL'),
+        array('lti_issuer', 'lti13_pubkey_old_at', 'TIMESTAMP NULL'),
+        array('lti_issuer', 'lti13_pubkey_next', 'TEXT NULL'),
+        array('lti_issuer', 'lti13_pubkey_next_at', 'TIMESTAMP NULL'),
+        array('lti_issuer', 'lti13_privkey_next', 'TEXT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1025,7 +1035,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202012201622;
+    return 202108250427;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
