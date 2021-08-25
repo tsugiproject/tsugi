@@ -29,8 +29,10 @@ $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
 $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'issuer_id',
+     'xapi_url', 'xapi_user', 'xapi_password',
      'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
+     'xapi_url', 'xapi_user', 'xapi_password',
      'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 
 $titles = array(

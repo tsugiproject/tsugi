@@ -105,6 +105,10 @@ array( "{$CFG->dbprefix}lti_key",
     -- on purpose to avoid potential circular foreign keys
     user_id             INTEGER NULL,
 
+    xapi_url            TEXT NULL,
+    xapi_user           TEXT NULL,
+    xapi_password       TEXT NULL,
+
     caliper_url         TEXT NULL,
     caliper_key         TEXT NULL,
 
@@ -712,6 +716,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_issuer', 'lti13_pubkey_next', 'TEXT NULL'),
         array('lti_issuer', 'lti13_pubkey_next_at', 'TIMESTAMP NULL'),
         array('lti_issuer', 'lti13_privkey_next', 'TEXT NULL'),
+        array('lti_key', 'xapi_url', 'TEXT NULL'),
+        array('lti_key', 'xapi_user', 'TEXT NULL'),
+        array('lti_key', 'xapi_password', 'TEXT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
