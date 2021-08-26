@@ -54,7 +54,7 @@ if ( $session_state != $state ) {
 }
 $session_password = U::get($_SESSION, 'password');
 if ( ! $session_password ) {
-    LTIX::abort_with_error_log('Could not session_password');
+    LTIX::abort_with_error_log('Could not find session_password');
 }
 
 // Get the id_token - only take on the first post
@@ -155,6 +155,8 @@ $lti13_oidc_auth = U::get($_SESSION, 'lti13_oidc_auth');
 $tool_private_key_encr = U::get($_SESSION, 'tool_private_key_encr');
 $tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 256) ;
 
+$put_data_supported = U::get($_SESSION, 'put_data_supported');
+
 // Sakai postverify approach
 $postverify_url = isset($jwt->body->{$POSTVERIFY_CLAIM}) ? $jwt->body->{$POSTVERIFY_CLAIM} : null;
 $postverify_origin = isset($jwt->body->{$ORIGIN_CLAIM}) ? $jwt->body->{$ORIGIN_CLAIM} : null;
@@ -206,11 +208,11 @@ parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
 
 // Lets check if we need to verify the browser through window.postMessage
 // https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/launch.php
-$postmessage_signal = true;  // I sure wish there were a signal :)
-if ( $postmessage_enabled && $postmessage_signal && $postmessage_form === null && ! $verified && $sub && $issuer_sha256 && $lti13_oidc_auth ) {
+if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub && $issuer_sha256 && $lti13_oidc_auth ) {
     error_log("postmessage request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 lti13_oidc_auth $lti13_oidc_auth");
 
     $platform_login_auth_endpoint = $lti13_oidc_auth;
+    $state_key = 'state_'.md5($state.$session_password);
 ?>
 <html>
 <head>
@@ -283,7 +285,7 @@ if ( ! inIframe() ) {
     let send_data = {
         subject: 'org.imsglobal.lti.get_data',
         message_id: Math.random(),
-        key: "state",
+        key: "<?= $state_key ?>",
     };
     console.log(window.location.origin + " Sending post message to " + return_url.origin);
     console.log(JSON.stringify(send_data, null, '    '));
@@ -294,12 +296,12 @@ if ( ! inIframe() ) {
             document.getElementById("postmessage").value = 'timeout';
             document.getElementById("oidc_postmessage").submit();
         }
-    }, 100);  // Timeout 0.1 seconds per the specification
+    }, 2000);  // Timeout 2 seconds because Angular
 } // inIframe()
 </script>
 <p style="display: none;" id="waiting"><?= _m("Contacting LMS through postMessage...") ?></p>
 <script>
-setTimeout(function(){$("#waiting").show();}, 1000);
+setTimeout(function(){$("#waiting").show();}, 3000);
 </script>
 <form method="POST" id="oidc_postmessage">
 <input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">

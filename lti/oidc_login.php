@@ -107,10 +107,13 @@ $_SESSION['our_kid'] = $our_kid;
 $_SESSION['our_keyset_url'] = $our_keyset_url;
 $_SESSION['our_keyset'] = $our_keyset;
 $_SESSION['lti13_oidc_auth'] = trim($row['lti13_oidc_auth']);
-$_SESSION['password'] = uniqid();
+$session_password = uniqid();
+$_SESSION['password'] = $session_password;
 
 $encr = AesCtr::encrypt($tool_private_key, $CFG->cookiesecret, 256) ;
 $_SESSION['tool_private_key_encr'] = $encr;
+
+$_SESSION['put_data_supported'] = $put_data_supported;
 
 $redirect = U::add_url_parm($redirect, "scope", "openid");
 $redirect = U::add_url_parm($redirect, "response_type", "id_token");
@@ -132,7 +135,11 @@ error_log("oidc_login redirect: ".$redirect);
 // Store it in a session cookie - likely won't work inside iframes on future browsers
 setcookie("TSUGI_STATE", $state);
 
-if ( ! $postmessage_enabled || ! $put_data_supported ) {
+// We use postmessage if we have explicit notification from the LMS or if we always enable it through config
+if ( $put_data_supported || $postmessage_enabled ) {
+    // Fall through to below
+} else {
+    // Simple fallback
 ?>
 <script>
     let TSUGI_REDIRECT = <?= json_encode($redirect, JSON_UNESCAPED_SLASHES) ?>;
@@ -144,6 +151,7 @@ if ( ! $postmessage_enabled || ! $put_data_supported ) {
 }
 // Send our data using the postMessage approach
 $post_frame = (is_string($web_message_target)) ? ('.frames["'.$web_message_target.'"]') : '';
+$state_key = 'state_'.md5($state.$session_password);
 ?>
 <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
 <script>
@@ -156,7 +164,7 @@ if ( inIframe() ) {
     let send_data = {
         subject: 'org.imsglobal.lti.put_data',
         message_id: Math.random(),
-        key: "state",
+        key: "<?= $state_key ?>",
         value: "<?= $state ?>",
     };
 
@@ -191,7 +199,7 @@ if ( inIframe() ) {
     message_window.postMessage(send_data, return_url.origin);
 
 
-    setTimeout(() => { if (!state_set) { console.log('no response from platform'); window.location.href=TSUGI_REDIRECT;} }, 500);
+    setTimeout(() => { if (!state_set) { console.log('no response from platform'); window.location.href=TSUGI_REDIRECT;} }, 2000);
 } else {
     console.log("Redirecting to "+TSUGI_REDIRECT);
     window.location.href = TSUGI_REDIRECT;
