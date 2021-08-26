@@ -18,6 +18,13 @@ $postmessage_enabled = isset($CFG->postmessage) ? $CFG->postmessage : false;
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
 $issuer_guid = U::get($_REQUEST, 'guid');
+$web_message_target = U::get($_REQUEST, 'web_message_target');
+$web_message_target = U::get($_REQUEST, 'ims_web_message_target', $web_message_target);
+$put_data_supported = is_string($web_message_target) && strlen($web_message_target) > 0;
+if ( $web_message_target == "_parent" ) $web_message_target = null;
+
+// TODO: Try to get rid of this
+$put_data_supported = true; // For Now
 
 // Allow a format where the parameter is the primary key of the lti_key row
 $key_id = null;
@@ -125,7 +132,7 @@ error_log("oidc_login redirect: ".$redirect);
 // Store it in a session cookie - likely won't work inside iframes on future browsers
 setcookie("TSUGI_STATE", $state);
 
-if ( ! $postmessage_enabled ) {
+if ( ! $postmessage_enabled || ! $put_data_supported ) {
 ?>
 <script>
     let TSUGI_REDIRECT = <?= json_encode($redirect, JSON_UNESCAPED_SLASHES) ?>;
@@ -136,6 +143,7 @@ if ( ! $postmessage_enabled ) {
     return;
 }
 // Send our data using the postMessage approach
+$post_frame = (is_string($web_message_target)) ? ('.frames["'.$web_message_target.'"]') : '';
 ?>
 <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
 <script>
@@ -153,10 +161,7 @@ if ( inIframe() ) {
     };
 
     let state_set = false;
-    //
-    // TODO: Ask Martin about this extra complexity in this if test ...
-    // let message_window = (window.opener || window.parent)<?= isset($_REQUEST['ims_web_message_target']) ? '.frames["'.$_REQUEST['ims_web_message_target'].'"]' : ''; ?>;
-    let message_window = (window.opener || window.parent);
+    let message_window = (window.opener || window.parent<?= $post_frame ?>);
 
     // Listen for the response from the platform
     window.addEventListener("message", function(event) {
