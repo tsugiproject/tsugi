@@ -133,18 +133,7 @@ Canvas Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?
 <?= htmlentities($lti13_canvas_json_url) ?>
 </pre>
 </p>
-<?php 
-if ( $show_guid ) {
-?>
-<p>
-For Sakai-21 and later, you can use this URL to copy configuration data instead of copying all of the above values:
-<pre>
-Sakai Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_sakai_json_url) ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
-<?= htmlentities($lti13_sakai_json_url) ?>
-</pre>
-</p>
 <?php
-}
 
 $OUTPUT->footerStart();
 ?>
