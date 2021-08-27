@@ -69,12 +69,25 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
+$csql = "SELECT COUNT(key_id) AS count FROM {$CFG->dbprefix}lti_key
+        WHERE issuer_id = :IID";
+$values = array(":IID" => $row['issuer_id']);
+$crow = $PDOX->rowDie($csql, $values);
+$count = $crow ? $crow['count'] : 0;
+
 $title = 'Issuer Entry';
 ?>
 <h1>
 <img src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo-square.png" style="float:right; width:48px;">
 <?= $title ?></h1>
+<p>
+<b>Keys that use this issuer:</b> <?= $count ?>
+</p>
 <?php
+if ( $count > 0 ) {
+    echo('<p style="color:red;">If you delete this issuer, the keys that reference this issuer will stop working.</p>');
+}
+
 $extra_buttons=false;
 // If we have a valid GUID
 if ($show_guid) {

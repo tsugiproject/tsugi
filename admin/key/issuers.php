@@ -28,7 +28,12 @@ $rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
     $newrow = $row;
-    // $newrow['secret'] = '****';
+    $sql = "SELECT COUNT(key_id) AS count FROM {$CFG->dbprefix}lti_key
+        WHERE issuer_id = :IID";
+    $values = array(":IID" => $row['issuer_id']);
+    $crow = $PDOX->rowDie($sql, $values);
+    $count = $crow ? $crow['count'] : 0;
+    $newrow['key_count'] = $count;
     $newrows[] = $newrow;
 }
 
