@@ -17,17 +17,39 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 if ( ! isAdmin() ) die('Must be admin');
 
 $query_parms = false;
-$searchfields = array("key_id", "key_title", "key_key", "login_at", "created_at", "updated_at", "user_id");
-$sql = "SELECT key_id, key_title, key_key, secret, login_at, created_at, updated_at, user_id
-        FROM {$CFG->dbprefix}lti_key";
+$searchfields = array("key_id", "key_title", "key_key", "deploy_key", "login_at", "updated_at", "user_id", "issuer_key");
+$sql = "SELECT key_id, key_title, key_key, secret, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at, 
+    K.user_id AS user_id
+        FROM {$CFG->dbprefix}lti_key AS K
+        LEFT JOIN {$CFG->dbprefix}lti_issuer AS I 
+        ON K.issuer_id = I.issuer_id
+";
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
-    $newrow = $row;
-    $newrow['secret'] = '****';
+    $newrow = array();
+    $newrow['key_id'] = $row['key_id'];
+    $newrow['key'] = $row['key_key'];
+    if ( strlen($row['key_title']) > 0 ) $newrow['key'] = $row['key_title'];
+    $key_type = '';
+    if ( is_string($row['key_key']) && strlen($row['key_key']) > 1 && is_string($row['secret']) && strlen($row['secret']) > 0 ) {
+        $key_type .= 'LTI 1.1';
+    }
+    if ( is_string($row['issuer_key']) && strlen($row['issuer_key']) > 1 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
+        if ( strlen($key_type) > 0 ) $key_type .= ' / ';
+        $key_type .= 'LTI 1.3';
+    }
+    if ( $key_type == '' ) $key_type = 'Incomplete';
+    $newrow['key_type'] = $key_type;
+    $issuer_key = $row['issuer_key'];
+    if ( strlen($issuer_key) > 0 && strlen($row['deploy_key']) > 0 ) $issuer_key .= ' | ' . $row['deploy_key'];
+    $newrow['issuer_|_deployment'] = $issuer_key;
+    $newrow['login_at'] = $row['login_at'];
+    $newrow['updated_at'] = $row['updated_at'];
+    $newrow['user_id'] = $row['user_id'];
     $newrows[] = $newrow;
 }
 
@@ -52,6 +74,7 @@ $extra_buttons = array(
   "Insert New Key" => "key-add"
 );
 Table::pagedTable($newrows, $searchfields, false, "key-detail", false, $extra_buttons);
+// echo("<pre>\n");print_r($newrows);echo("</pre>\n");
 if ( isAdmin() ) { ?>
 <?php } ?>
 

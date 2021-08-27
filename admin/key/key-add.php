@@ -41,12 +41,23 @@ $key_key = U::get($_POST,'key_key');
 $deploy_key = U::get($_POST,'deploy_key');
 $issuer_id = U::get($_POST,'issuer_id');
 if ( count($_POST) > 0 ) {
+    $key_title = U::get($_POST,'key_title');
+    if ( !is_string($key_title) || strlen($key_title) < 1 ) {
+        $_SESSION['error'] = 'Key title is required';
+        header("Location: key-add");
+        return;
+    }
+}
+
+/*
+if ( count($_POST) > 0 ) {
     $retval = validate_key_details($key_key, $deploy_key, $issuer_id);
     if ( ! $retval ) {
         header("Location: key-add");
         return;
     }
 }
+*/
 
 $retval = CrudForm::handleInsert($tablename, $fields);
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
@@ -63,15 +74,15 @@ $OUTPUT->flashMessages();
 <h1>Adding Tsugi Tenant/Key</h1>
 <p>
 A single entry in this table defines a "distinct tenant" in Tsugi.
-Data in Tsugi is isolated to a tenant.
-All keys need an <b>oauth_consumer_key</b> that must be unique in this system.
-To support LTI 1.1 launches you also also need to specify a <b>secret</b>.
-If this tenant will be LTI 1.3 only, the secret can be left blank.
+Data in Tsugi is isolated to a tenant.  For a key to work it must have at least one of
+(a) an LTI 1.1 <b>oauth_consumer_key</b> that must be unique in this system and 
+a <b>secret</b> or (b) an LTI 1.3 <b>issuer</b> and <b>deployment_id</b>. Some keys 
+specifiy both credentials when an existing LTI 1.1 key is being transitioned to LTI 1.3.
+</p>
 <p>
-For LTI 1.3, you need to set choose the <b>issuer</b> and set the <b>deployment_id</b> or
-these can be left blank and set by the LMS using the LTI 1.3 Auto Provisioning process.
-The LMS auto provisioning URL for this key will be shown after you create and view the key.
-See below for information about LTI 1.1 to LTI 1.3 migration.
+If you are planning on using the LTI 1.3 Auto Provisioning, you can create a key
+with just a title and then view the key detail page to see instructions to perform
+the auto-configuration process.  Launches to incomplete keys will fail.
 </p>
 <p>
 <?php

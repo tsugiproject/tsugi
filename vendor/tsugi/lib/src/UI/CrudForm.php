@@ -183,7 +183,7 @@ class CrudForm {
         $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
 
         echo('<form method="post">'."\n");
-        echo('<a href="'.$from_location.'" class="btn btn-default">'._m('Exit').'</a>'."\n");
+        if ( is_string($from_location) ) echo('<a href="'.$from_location.'" class="btn btn-default">'._m('Exit').'</a>'."\n");
         if ( $allow_edit ) {
             if ( $do_edit ) {
                 echo('<input type="submit" name="doUpdate" class="btn btn-normal" value="'._m("Update").'">'."\n");
