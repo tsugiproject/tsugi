@@ -42,7 +42,7 @@ foreach ( $rows as $row ) {
         if ( strlen($key_type) > 0 ) $key_type .= ' / ';
         $key_type .= 'LTI 1.3';
     }
-    if ( $key_type == '' ) $key_type = 'Incomplete';
+    if ( $key_type == '' ) $key_type = 'Draft';
     $newrow['key_type'] = $key_type;
     $issuer_key = $row['issuer_key'];
     if ( strlen($issuer_key) > 0 && strlen($row['deploy_key']) > 0 ) $issuer_key .= ' | ' . $row['deploy_key'];

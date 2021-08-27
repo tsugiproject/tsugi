@@ -97,20 +97,34 @@ if ( ! $inedit && U::get($row, 'issuer_id') > 0 ) {
     }
 }
 
+$key_type = '';
+if ( is_string($row['key_key']) && strlen($row['key_key']) > 1 && is_string($row['secret']) && strlen($row['secret']) > 0 ) {
+    $key_type .= 'LTI 1.1';
+}
+if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && strlen($row['issuer_key']) > 1 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
+    if ( strlen($key_type) > 0 ) $key_type .= ' / ';
+    $key_type .= 'LTI 1.3';
+}
+if ( $key_type == '' ) $key_type = 'Draft';
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-$title = 'Tenant Entry';
-echo("<h1>$title</h1>\n<p>\n");
 ?>
+<h1>Tennant Details
+  <a class="btn btn-default" href="#" onclick="window.location.reload(); return false;">Refresh</a>
+  <a class="btn btn-default" href="keys">Exit</a>
+</h1>
+<p>
+<b>Key status: <?= $key_type ?></b>
+</p>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
   <li class=""><a href="#info" data-toggle="tab" aria-expanded="true">About Keys</a></li>
   <li class=""><a href="#auto" data-toggle="tab" aria-expanded="true">Auto Configuration</a></li>
   <li class=""><a href="#manual" data-toggle="tab" aria-expanded="false">Manual Configuration</a></li>
-  <li class=""><a href="keys">Exit</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
 <div class="tab-pane fade active in" id="data">
@@ -148,20 +162,26 @@ LTI Advantage legacy LTI 1.1 support.
 </p>
 </div>
   <div class="tab-pane fade" id="auto">
+<p>
 <b>LTI Advantage Auto Configuration URL:
 <button href="#" onclick="copyToClipboardNoScroll(this, '<?= $autoConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
-<br/><?= htmlentities($autoConfigUrl) ?>
+</p>
+<p>
+<?= htmlentities($autoConfigUrl) ?>
+</p>
 <p>
 To use the auto configuration URL in your Learning Management System,
 keep this window open in a separate tab while using the LMS in another tab
 as the LTI Advantage auto configuration process requires that you are logged in to this system
 in order to complete the auto configuration process.
 </p>
+<p>
+<b>Important:</b>
+Once the LMS has finished its configuration in the other tab, come back to this tab or window, press "Refresh"
+and check to verify that the key has been set up properly.
+</p>
 </div>
 <div class="tab-pane fade" id="manual">
-<p>
-Manual Configuration URLs:
-</p>
 <?php
 $key_id = $row['key_id'];
 $oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . $key_id;
@@ -171,7 +191,13 @@ $deep_link = $CFG->wwwroot . '/lti/store/';
 
 ?>
 <p>
-These URLs need to be in your LMS configuration associated with this key. <?= $key_id ?>
+These URLs need to be provided to your LMS configuration associated with this key.
+You can create a draft key, then provide these values to the LMS.</p>
+<p>
+Then the LMS can us the values to
+complete its configuration process and provide you the needed
+values (which may include a new issuer) so that you can finish configuring this key.
+</p>
 <p>
 LTI 1.3 OpenID Connect Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $oidc_login ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a><br/>
 <?= $oidc_login ?>

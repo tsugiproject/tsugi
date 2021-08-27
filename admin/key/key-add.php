@@ -71,19 +71,15 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 ?>
-<h1>Adding Tsugi Tenant/Key</h1>
-<p>
-A single entry in this table defines a "distinct tenant" in Tsugi.
-Data in Tsugi is isolated to a tenant.  For a key to work it must have at least one of
-(a) an LTI 1.1 <b>oauth_consumer_key</b> that must be unique in this system and 
-a <b>secret</b> or (b) an LTI 1.3 <b>issuer</b> and <b>deployment_id</b>. Some keys 
-specifiy both credentials when an existing LTI 1.1 key is being transitioned to LTI 1.3.
-</p>
-<p>
-If you are planning on using the LTI 1.3 Auto Provisioning, you can create a key
-with just a title and then view the key detail page to see instructions to perform
-the auto-configuration process.  Launches to incomplete keys will fail.
-</p>
+<h1>Adding Tsugi Tenant/Key
+  <a class="btn btn-default" href="keys">Cancel</a>
+</h1>
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
+  <li class=""><a href="#info" data-toggle="tab" aria-expanded="true">About Keys</a></li>
+</ul>
+<div id="myTabContent" class="tab-content" style="margin-top:10px;">
+<div class="tab-pane fade active in" id="data">
 <p>
 <?php
 
@@ -91,17 +87,40 @@ CrudForm::insertForm($fields, $from_location, $titles);
 
 ?>
 </p>
+</div>
+<div class="tab-pane fade" id="info">
+<p>
+A single entry in this table defines a "distinct tenant" in Tsugi.
+Data in Tsugi is isolated to a tenant.  For a key to work it must have at least one of
+<ul>
+<li>An LTI 1.1 <b>oauth_consumer_key</b> that must be unique in this system and
+a <b>secret</b>
+<li>An LTI 1.3 <b>issuer</b> and <b>deployment_id</b>.  You may need to add an
+issuer if the issuer does not already exist in Tsugi.
+</li>
+</ul>
+Some keys
+specify both credentials when an existing LTI 1.1 key is being transitioned to LTI 1.3.
+</p>
+<p>
+If you are planning on using the LTI 1.3 Auto Provisioning or you need to provide the LMS
+configuration information before they can provide you the values needed on this page,
+you can create a draft key here with just a title and then view the key detail page
+to see instructions to perform the configuration process.  Launches to draft keys will fail.
+</p>
 <p>
 To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
-If you are adding LTI 1.3 to a pre-existing LTI 1.1 tenant, the LMS must 
+If you are adding LTI 1.3 to a pre-existing LTI 1.1 tenant, the LMS must
 support
-LTI Advantage legacy LTI 1.1 support as described in the 
+LTI Advantage legacy LTI 1.1 support as described in the
 <a href="http://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim" target="_blank">
 IMS Learning Tools® Interoperability Migration Guide - Migration Claim
 </a>.   The LMS must sign the claim using both the LTI 1.1 and LTI 1.3 security data.
 The migration claim is not required - but if it is present, Tsugi will insist that it is properly
 signed or it will reject the launch.
 </p>
+</div>
+</div>
 <?php
 $OUTPUT->footerStart();
 
