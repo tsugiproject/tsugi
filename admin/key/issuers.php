@@ -19,10 +19,11 @@ if ( ! isAdmin() ) die('Must be admin');
 $query_parms = false;
 $searchfields = array("issuer_id", "issuer_title", "issuer_key", "issuer_guid",
     "issuer_client", "created_at", "updated_at");
+$orderfields = $searchfields;
 $sql = "SELECT issuer_id, issuer_title, issuer_key, issuer_guid, issuer_client, created_at, updated_at
         FROM {$CFG->dbprefix}lti_issuer";
 
-$newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
+$newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);
 // echo("<pre>\n$newsql\n</pre>\n");
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
@@ -57,7 +58,7 @@ $OUTPUT->flashMessages();
     $extra_buttons = array(
         "New Issuer" => "issuer-add"
     );
-    Table::pagedTable($newrows, $searchfields, false, "issuer-detail", false, $extra_buttons);
+    Table::pagedTable($newrows, $searchfields, $orderfields, "issuer-detail", false, $extra_buttons);
 }
 if ( isAdmin() ) { ?>
 <?php } ?>
