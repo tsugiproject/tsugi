@@ -17,6 +17,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_context",
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_issuer",
+"drop table if exists {$CFG->dbprefix}lti_keyset",
 "drop table if exists {$CFG->dbprefix}lti_key",
 "drop table if exists {$CFG->dbprefix}lti_nonce",
 "drop table if exists {$CFG->dbprefix}lti_message",
@@ -76,6 +77,20 @@ array( "{$CFG->dbprefix}lti_issuer",
     CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_guid` UNIQUE (issuer_guid)
  ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+array( "{$CFG->dbprefix}lti_keyset",
+"create table {$CFG->dbprefix}lti_keyset (
+    keyset_id           INTEGER NOT NULL AUTO_INCREMENT,
+    deleted             TINYINT(1) NOT NULL DEFAULT 0,
+
+    pubkey              TEXT NULL,
+    privkey             TEXT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+    deleted_at          TIMESTAMP NULL,
+    CONSTRAINT `{$CFG->dbprefix}lti_keyset_const_pk` PRIMARY KEY (keyset_id)
+ ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
 // Removed in issuer refactor
 //    CONSTRAINT `{$CFG->dbprefix}lti_issuer_const_1` UNIQUE(issuer_sha256),
 
@@ -92,8 +107,6 @@ array( "{$CFG->dbprefix}lti_key",
     key_title           TEXT NULL,
     key_sha256          CHAR(64) NULL,
     key_key             TEXT NULL,   -- oauth_consumer_key
-    deploy_sha256       CHAR(64) NULL,
-    deploy_key          TEXT NULL,
 
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
@@ -107,35 +120,41 @@ array( "{$CFG->dbprefix}lti_key",
     -- When LTI 1.3 Security arrangements are auto-provisioned
     -- and the issuer matches a pre-created issuer, we link to it.
     -- Or if the key is being manually configured, we link to
-    -- a pre-created issuer.  If this is set, all the platform_
-    -- and our_ values are in effect ignored.
+    -- a pre-created issuer.  If this is set, all the lms_
+    -- values below are in effect ignored.
     issuer_id           INTEGER NULL,
+    deploy_sha256       CHAR(64) NULL,
+    deploy_key          TEXT NULL,     -- deployment_id renamed
 
-    -- But if the issuer is not pre-existing, we leave issuer_id null
-    -- and store the security arrangement data here in the key.  The
-    -- user never touches these LTI 1.3 fields in the management UI
-    -- These columns are explicitly *not* the same as the fields in the
-    -- lti_issuers table so as to allow LEFT JOIN and COALESCE to be
-    -- easily used and to make sure we are doing the right things
+    -- But if the issuer is not pre-existing during dynamic configuration,
+    -- we leave issuer_id null -- and store the security arrangement data
+    -- here in the key.  The user never touches these LTI 1.3 fields in the
+    -- management UI These columns are explicitly *not* named the same as the
+    -- fields in the lti_issuers table so as to allow LEFT JOIN and COALESCE
+    -- to be easily used and to make sure we are doing the right things
     -- to the right tables.
 
-    lms_issuer_key         TEXT NULL,  -- iss from the JWT
-    lms_issuer_client      TEXT NULL,  -- aud from the JWT
-    lms_oidc_auth          TEXT NULL,
-    lms_keyset_url         TEXT NULL,
-    lms_keyset             TEXT NULL,
-    lms_pubkey             TEXT NULL,
-    lms_kid                TEXT NULL,
+    -- Issuer is not unique - especially in single instance cloud LMS systems
+    -- Issuer / client_id uniquely identifies a security arrangement
+    -- But because Tsugi forces oidc_login and oidc_launch to a URL that
+    -- includes key_id, we can just look up the proper row in this table by PK
+    lms_issuer             TEXT NULL,  -- iss from the JWT
+    lms_client             TEXT NULL,  -- aud from the JWT / client_id in OAuth
 
-    our_pubkey             TEXT NULL,
-    our_privkey            TEXT NULL,
-    our_pubkey_old         TEXT NULL,
-    our_pubkey_old_at      TIMESTAMP NULL,
-    our_pubkey_next        TEXT NULL,
-    our_pubkey_next_at     TIMESTAMP NULL,
-    our_privkey_next       TEXT NULL,
-    our_token_url          TEXT NULL,
-    our_token_audience     TEXT NULL,
+    -- Issuer / client_id / deployment_id defines a client (i.e. who
+    -- pays the bill) again because we include key_id in URLs - we just
+    -- look the right row up.
+    lms_deployment      TEXT NULL,  -- deployment_id from LTI data
+
+    lms_oidc_auth       TEXT NULL,
+    lms_keyset_url      TEXT NULL,
+    lms_token_url       TEXT NULL,
+    lms_token_audience  TEXT NULL,
+
+    -- Our cache of the LMS data
+    lms_cache_keyset    TEXT NULL,
+    lms_cache_pubkey    TEXT NULL,
+    lms_cache_kid       TEXT NULL,
 
     xapi_url            TEXT NULL,
     xapi_user           TEXT NULL,
@@ -753,22 +772,18 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'xapi_password', 'TEXT NULL'),
 
         // 2021-08-26 - Add key-local security arrangements
-        array('lti_key', 'lms_issuer_key', 'TEXT NULL'),
-        array('lti_key', 'lms_issuer_client', 'TEXT NULL'),
+        array('lti_key', 'lms_issuer', 'TEXT NULL'),
+        array('lti_key', 'lms_deployment', 'TEXT NULL'),
+        array('lti_key', 'lms_client', 'TEXT NULL'),
         array('lti_key', 'lms_oidc_auth', 'TEXT NULL'),
         array('lti_key', 'lms_keyset_url', 'TEXT NULL'),
-        array('lti_key', 'lms_keyset', 'TEXT NULL'),
-        array('lti_key', 'lms_pubkey', 'TEXT NULL'),
-        array('lti_key', 'lms_kid', 'TEXT NULL'),
-        array('lti_key', 'our_pubkey', 'TEXT NULL'),
-        array('lti_key', 'our_privkey', 'TEXT NULL'),
-        array('lti_key', 'our_pubkey_old', 'TEXT NULL'),
-        array('lti_key', 'our_pubkey_old_at', 'TIMESTAMP NULL'),
-        array('lti_key', 'our_pubkey_next', 'TEXT NULL'),
-        array('lti_key', 'our_pubkey_next_at', 'TIMESTAMP NULL'),
-        array('lti_key', 'our_privkey_next', 'TEXT NULL'),
-        array('lti_key', 'our_token_url', 'TEXT NULL'),
-        array('lti_key', 'our_token_audience', 'TEXT NULL'),
+        array('lti_key', 'lms_token_url', 'TEXT NULL'),
+        array('lti_key', 'lms_token_audience', 'TEXT NULL'),
+
+        // Our cache of the LMS signing data
+        array('lti_key', 'lms_cache_keyset', 'TEXT NULL'),
+        array('lti_key', 'lms_cache_pubkey', 'TEXT NULL'),
+        array('lti_key', 'lms_cache_kid', 'TEXT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -787,7 +802,71 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Generally wait a while to drop the fields - there is no rush
+    $drop_some_fields = array(
 
+        array('lti_result', 'lti13_lineitem'),
+
+        // 20190610 - Remove lti13 fields from lti_key
+        // (Yes this is somewhat ironic :) )
+        array('lti_key', 'lti13_oidc_auth'),
+        array('lti_key', 'lti13_keyset_url'),
+        array('lti_key', 'lti13_keyset'),
+        array('lti_key', 'lti13_platform_pubkey'),
+        array('lti_key', 'lti13_kid'),
+        array('lti_key', 'lti13_pubkey'),
+        array('lti_key', 'lti13_privkey'),
+        array('lti_key', 'lti13_token_url'),
+
+        // Remove from lti2
+        array('lti_key', 'consumer_profile'),
+        array('lti_key', 'new_consumer_profile'),
+        array('lti_key', 'tool_profile'),
+        array('lti_key', 'new_tool_profile'),
+        array('lti_key', 'ack'),
+
+        // TODO: Remove this after the branch has run for a bit
+        array('lti_key', 'lms_issuer_key'),
+        array('lti_key', 'our_pubkey'),
+        array('lti_key', 'our_privkey'),
+        array('lti_key', 'our_pubkey_old'),
+        array('lti_key', 'our_pubkey_old_at'),
+        array('lti_key', 'our_pubkey_next'),
+        array('lti_key', 'our_pubkey_next_at'),
+        array('lti_key', 'our_privkey_next'),
+        array('lti_key', 'our_token_url'),
+        array('lti_key', 'our_token_audience'),
+        array('lti_key', 'platform_issuer_key'),
+        array('lti_key', 'platform_issuer_client'),
+        array('lti_key', 'platform_oidc_auth'),
+        array('lti_key', 'platform_keyset_url'),
+        array('lti_key', 'platform_keyset'),
+        array('lti_key', 'platform_kid'),
+        array('lti_key', 'platform_pubkey'),
+        array('lti_key', 'lms_deployment_id'),
+        array('lti_key', 'lms_issuer_client_id'),
+        array('lti_key', 'lms_issuer_client'),
+        array('lti_key', 'lms_keyset'),
+        array('lti_key', 'lms_pubkey'),
+        array('lti_key', 'lms_kid'),
+    );
+
+    foreach ( $drop_some_fields as $drop_field ) {
+        if (count($drop_field) != 2 ) {
+            echo("Badly formatted drop_field");
+            var_dump($drop_field);
+            continue;
+        }
+        $table = $drop_field[0];
+        $column = $drop_field[1];
+        if ( ! $PDOX->columnExists($column, "{$CFG->dbprefix}".$table ) ) continue;
+        $sql= "ALTER TABLE {$CFG->dbprefix}$table DROP $column";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+    }
+
+    // Old-school migrations
     if ( $oldversion < 201801271430 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}mail_bulk
                   DROP FOREIGN KEY `{$CFG->dbprefix}mail_bulk_ibfk_2`";
@@ -938,14 +1017,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    // Remove lti13_lineitem from lti_result - no longer used
-    if ( $PDOX->columnExists('lti13_lineitem', "{$CFG->dbprefix}lti_result") ) {
-        $sql= "ALTER TABLE {$CFG->dbprefix}lti_result DROP lti13_lineitem";
-        echo("Upgrading: ".$sql."<br/>\n");
-        error_log("Upgrading: ".$sql);
-        $q = $PDOX->queryReturnError($sql);
-    }
-
     // Version 201905111039 improvements - Prepare for issuer refactor
     if ( $oldversion < 201905111039 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}lti_key MODIFY key_sha256 CHAR(64) NULL";
@@ -1013,34 +1084,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
-    }
-
-    // 20190610 - Remove lti13 fields from lti_key
-    $remove_from_lti_key = array(
-        'lti13_oidc_auth', 'lti13_keyset_url', 'lti13_keyset', 'lti13_platform_pubkey',
-        'lti13_kid', 'lti13_pubkey', 'lti13_privkey', 'lti13_token_url'
-    );
-    foreach($remove_from_lti_key as $key) {
-        if ( $PDOX->columnExists($key, "{$CFG->dbprefix}lti_key") ) {
-            $sql= "ALTER TABLE {$CFG->dbprefix}lti_key DROP $key";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-        }
-    }
-
-    // Remove from lti2
-    $remove_from_lti_key = array(
-        'consumer_profile', 'new_consumer_profile',
-        'tool_profile', 'new_tool_profile', 'ack',
-    );
-    foreach($remove_from_lti_key as $column) {
-        if ( $PDOX->columnExists($column, "{$CFG->dbprefix}lti_key") ) {
-            $sql= "ALTER TABLE {$CFG->dbprefix}lti_key DROP $column";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-        }
     }
 
     // Version 201907070902 improvements - Bad CREATE statement
