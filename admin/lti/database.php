@@ -1173,7 +1173,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202108250427;
+    return 202108281331;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
