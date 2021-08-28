@@ -94,7 +94,6 @@ array( "{$CFG->dbprefix}lti_key",
     key_key             TEXT NULL,   -- oauth_consumer_key
     deploy_sha256       CHAR(64) NULL,
     deploy_key          TEXT NULL,
-    issuer_id           INTEGER NULL,
 
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
@@ -104,6 +103,39 @@ array( "{$CFG->dbprefix}lti_key",
     -- This is the owner of this key - it is not a foreign key
     -- on purpose to avoid potential circular foreign keys
     user_id             INTEGER NULL,
+
+    -- When LTI 1.3 Security arrangements are auto-provisioned
+    -- and the issuer matches a pre-created issuer, we link to it.
+    -- Or if the key is being manually configured, we link to
+    -- a pre-created issuer.  If this is set, all the platform_
+    -- and our_ values are in effect ignored.
+    issuer_id           INTEGER NULL,
+
+    -- But if the issuer is not pre-existing, we leave issuer_id null
+    -- and store the security arrangement data here in the key.  The
+    -- user never touches these LTI 1.3 fields in the management UI
+    -- These columns are explicitly *not* the same as the fields in the
+    -- lti_issuers table so as to allow LEFT JOIN and COALESCE to be
+    -- easily used and to make sure we are doing the right things
+    -- to the right tables.
+
+    lms_issuer_key         TEXT NULL,  -- iss from the JWT
+    lms_issuer_client      TEXT NULL,  -- aud from the JWT
+    lms_oidc_auth          TEXT NULL,
+    lms_keyset_url         TEXT NULL,
+    lms_keyset             TEXT NULL,
+    lms_pubkey             TEXT NULL,
+    lms_kid                TEXT NULL,
+
+    our_pubkey             TEXT NULL,
+    our_privkey            TEXT NULL,
+    our_pubkey_old         TEXT NULL,
+    our_pubkey_old_at      TIMESTAMP NULL,
+    our_pubkey_next        TEXT NULL,
+    our_pubkey_next_at     TIMESTAMP NULL,
+    our_privkey_next       TEXT NULL,
+    our_token_url          TEXT NULL,
+    our_token_audience     TEXT NULL,
 
     xapi_url            TEXT NULL,
     xapi_user           TEXT NULL,
@@ -696,7 +728,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
 
     // Removed the 2014 - 2017 migrations - 2019-06-15
- 
+
     // This is a place to make sure added fields are present
     // if you add a field to a table, put it in here and it will be auto-added
     $add_some_fields = array(
@@ -719,6 +751,24 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'xapi_url', 'TEXT NULL'),
         array('lti_key', 'xapi_user', 'TEXT NULL'),
         array('lti_key', 'xapi_password', 'TEXT NULL'),
+
+        // 2021-08-26 - Add key-local security arrangements
+        array('lti_key', 'lms_issuer_key', 'TEXT NULL'),
+        array('lti_key', 'lms_issuer_client', 'TEXT NULL'),
+        array('lti_key', 'lms_oidc_auth', 'TEXT NULL'),
+        array('lti_key', 'lms_keyset_url', 'TEXT NULL'),
+        array('lti_key', 'lms_keyset', 'TEXT NULL'),
+        array('lti_key', 'lms_pubkey', 'TEXT NULL'),
+        array('lti_key', 'lms_kid', 'TEXT NULL'),
+        array('lti_key', 'our_pubkey', 'TEXT NULL'),
+        array('lti_key', 'our_privkey', 'TEXT NULL'),
+        array('lti_key', 'our_pubkey_old', 'TEXT NULL'),
+        array('lti_key', 'our_pubkey_old_at', 'TIMESTAMP NULL'),
+        array('lti_key', 'our_pubkey_next', 'TEXT NULL'),
+        array('lti_key', 'our_pubkey_next_at', 'TIMESTAMP NULL'),
+        array('lti_key', 'our_privkey_next', 'TEXT NULL'),
+        array('lti_key', 'our_token_url', 'TEXT NULL'),
+        array('lti_key', 'our_token_audience', 'TEXT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
