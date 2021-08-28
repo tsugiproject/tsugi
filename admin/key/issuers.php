@@ -56,7 +56,8 @@ $OUTPUT->flashMessages();
 </p>
 <?php } else {
     $extra_buttons = array(
-        "New Issuer" => "issuer-add"
+        "New Issuer" => "issuer-add",
+        "Maintenance" => "issuer-maint"
     );
     Table::pagedTable($newrows, $searchfields, $orderfields, "issuer-detail", false, $extra_buttons);
 }
