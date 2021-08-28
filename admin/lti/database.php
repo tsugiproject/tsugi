@@ -41,28 +41,28 @@ array( "{$CFG->dbprefix}lti_issuer",
     issuer_title        TEXT NULL,
     issuer_sha256       CHAR(64) NULL,  -- Will become obsolete
     issuer_guid         CHAR(36) NOT NULL,  -- Our local GUID
-    issuer_key          TEXT NOT NULL,  -- iss from the JWT
-    issuer_client       TEXT NOT NULL,  -- aud from the JWT
+
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     -- This is the owner of this issuer - it is not a foreign key
     -- We might use this if we end up with self-service issuers
     user_id             INTEGER NULL,
 
+    issuer_key          TEXT NOT NULL,  -- iss from the JWT
+    issuer_client       TEXT NOT NULL,  -- aud from the JWT
     lti13_oidc_auth     TEXT NULL,
     lti13_keyset_url    TEXT NULL,
+    lti13_token_url     TEXT NULL,
+    lti13_token_audience  TEXT NULL,
+
+    -- Cached values
     lti13_keyset        TEXT NULL,
     lti13_platform_pubkey TEXT NULL,
     lti13_kid           TEXT NULL,
-    lti13_pubkey_old    TEXT NULL,
-    lti13_pubkey_old_at TIMESTAMP NULL,
+
+    -- TODO: Remove these once we switch to global key signing
     lti13_pubkey        TEXT NULL,
     lti13_privkey       TEXT NULL,
-    lti13_pubkey_next   TEXT NULL,
-    lti13_pubkey_next_at TIMESTAMP NULL,
-    lti13_privkey_next  TEXT NULL,
-    lti13_token_url     TEXT NULL,
-    lti13_token_audience  TEXT NULL,
 
     json                MEDIUMTEXT NULL,
 
@@ -763,11 +763,6 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'issuer_id', 'INTEGER NULL'),
         array('lti_key', 'user_json', 'MEDIUMTEXT NULL'),
         array('lti_issuer', 'lti13_token_audience', 'TEXT NULL'),
-        array('lti_issuer', 'lti13_pubkey_old', 'TEXT NULL'),
-        array('lti_issuer', 'lti13_pubkey_old_at', 'TIMESTAMP NULL'),
-        array('lti_issuer', 'lti13_pubkey_next', 'TEXT NULL'),
-        array('lti_issuer', 'lti13_pubkey_next_at', 'TIMESTAMP NULL'),
-        array('lti_issuer', 'lti13_privkey_next', 'TEXT NULL'),
         array('lti_key', 'xapi_url', 'TEXT NULL'),
         array('lti_key', 'xapi_user', 'TEXT NULL'),
         array('lti_key', 'xapi_password', 'TEXT NULL'),
@@ -781,12 +776,11 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'lms_token_url', 'TEXT NULL'),
         array('lti_key', 'lms_token_audience', 'TEXT NULL'),
 
-        // Our cache of the LMS signing data
+        // Tenant/key cache of the LMS signing data
         array('lti_key', 'lms_cache_keyset', 'TEXT NULL'),
         array('lti_key', 'lms_cache_pubkey', 'TEXT NULL'),
         array('lti_key', 'lms_cache_kid', 'TEXT NULL'),
 
-        // TODO: Remove before merging the branch
         array('lti_keyset', 'keyset_title', 'TEXT NULL'),
     );
 
@@ -829,7 +823,14 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'new_tool_profile'),
         array('lti_key', 'ack'),
 
-        // TODO: Remove this after the branch has run for a bit
+        // Short-lived key rotation idea - replaced by lti_keyset
+        array('lti_issuer', 'lti13_pubkey_old',),
+        array('lti_issuer', 'lti13_pubkey_old_at'),
+        array('lti_issuer', 'lti13_pubkey_next'),
+        array('lti_issuer', 'lti13_pubkey_next_at'),
+        array('lti_issuer', 'lti13_privkey_next'),
+
+        // TODO: Twists and turns - remove these after the branch has run for a bit
         array('lti_key', 'lms_issuer_key'),
         array('lti_key', 'our_pubkey'),
         array('lti_key', 'our_privkey'),
