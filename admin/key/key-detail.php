@@ -123,7 +123,7 @@ $OUTPUT->flashMessages();
 <ul class="nav nav-tabs">
   <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
   <li class=""><a href="#info" data-toggle="tab" aria-expanded="true">About Keys</a></li>
-  <li class=""><a href="#auto" data-toggle="tab" aria-expanded="true">Auto Configuration</a></li>
+  <li class=""><a href="#auto" data-toggle="tab" aria-expanded="true">Dynamic Configuration</a></li>
   <li class=""><a href="#manual" data-toggle="tab" aria-expanded="false">Manual Configuration</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
@@ -135,7 +135,7 @@ $from_location = null;
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
-$autoConfigUrl = U::addSession($CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'], true);
+$dynamicConfigUrl = U::addSession($CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'], true);
 
 ?>
 </div>
@@ -163,17 +163,17 @@ LTI Advantage legacy LTI 1.1 support.
 </div>
   <div class="tab-pane fade" id="auto">
 <p>
-<b>LTI Advantage Auto Configuration URL:
-<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $autoConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+<b>LTI Advantage Dynamic Configuration URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
 </p>
 <p>
-<?= htmlentities($autoConfigUrl) ?>
+<?= htmlentities($dynamicConfigUrl) ?>
 </p>
 <p>
-To use the auto configuration URL in your Learning Management System,
+To use the Dynamic Configuration URL in your Learning Management System,
 keep this window open in a separate tab while using the LMS in another tab
-as the LTI Advantage auto configuration process requires that you are logged in to this system
-in order to complete the auto configuration process.
+as the LTI Advantage Dynamic Configuration process requires that you are logged in to this system
+in order to complete the Dynamic Configuration process.
 </p>
 <p>
 <b>Important:</b>

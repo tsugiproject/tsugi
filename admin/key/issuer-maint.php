@@ -19,6 +19,9 @@ if ( ! isAdmin() ) {
     die('Must be admin');
 }
 
+// TODO: Write code to transfer single-use issuers into their keys to handle
+// legacy dynamic configuration set ups
+
 if ( U::get($_POST, 'unused') ) {
     $sql = "DELETE FROM {$CFG->dbprefix}lti_issuer 
         WHERE issuer_id IN (

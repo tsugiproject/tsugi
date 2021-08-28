@@ -103,7 +103,7 @@ Some keys
 specify both credentials when an existing LTI 1.1 key is being transitioned to LTI 1.3.
 </p>
 <p>
-If you are planning on using the LTI 1.3 Auto Provisioning or you need to provide the LMS
+If you are planning on using the LTI 1.3 Dynamic Configurtation or you need to provide the LMS
 configuration information before they can provide you the values needed on this page,
 you can create a draft key here with just a title and then view the key detail page
 to see instructions to perform the configuration process.  Launches to draft keys will fail.
