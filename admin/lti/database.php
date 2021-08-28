@@ -80,6 +80,7 @@ array( "{$CFG->dbprefix}lti_issuer",
 array( "{$CFG->dbprefix}lti_keyset",
 "create table {$CFG->dbprefix}lti_keyset (
     keyset_id           INTEGER NOT NULL AUTO_INCREMENT,
+    keyset_title        TEXT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     pubkey              TEXT NULL,
@@ -784,6 +785,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'lms_cache_keyset', 'TEXT NULL'),
         array('lti_key', 'lms_cache_pubkey', 'TEXT NULL'),
         array('lti_key', 'lms_cache_kid', 'TEXT NULL'),
+
+        // TODO: Remove before merging the branch
+        array('lti_keyset', 'keyset_title', 'TEXT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1144,10 +1148,11 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Adding a row to lti_keyset<br/>\n");
         // Returns those call by reference parms
         \Tsugi\Util\LTI13::generatePKCS8Pair($publicKey, $privateKey);
-        $sql = "INSERT INTO {$CFG->dbprefix}lti_keyset (pubkey, privkey)
-            VALUES (:pubkey, :privkey)
+        $sql = "INSERT INTO {$CFG->dbprefix}lti_keyset (keyset_title, pubkey, privkey)
+            VALUES (:title, :pubkey, :privkey)
         ";
         $values = array(
+            ":title" => 'From lti/database.php',
             ":pubkey" => $publicKey,
             ":privkey" => $privateKey,
         );

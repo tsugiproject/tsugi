@@ -53,6 +53,19 @@ if ( count($rows) < 1 )  {
     );
 }
 
+// Read up to the three most recent global keys
+// TODO: Make this the only one needed :)
+$stmt = $PDOX->queryReturnError(
+    "SELECT pubkey as lti13_pubkey FROM {$CFG->dbprefix}lti_keyset
+        WHERE deleted = 0 AND pubkey IS NOT NULL AND privkey IS NOT NULL
+        ORDER BY created_at DESC LIMIT 3"
+);
+if ( $stmt->success ) {
+    $global_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ( count($rows) < 1 ) $rows = $global_rows;
+    else if ( count($global_rows) > 0 ) $rows = array_merge($rows, $global_rows);
+}
+
 if ( count($rows) < 1 ) die("Could not load key");
 
 // $pubkey = "-----BEGIN PUBLIC KEY-----
