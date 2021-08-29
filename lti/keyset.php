@@ -46,7 +46,7 @@ if ( $key_id ) {
 }
 
 // Fall back if nothing was specified or found
-if ( count($rows) < 1 )  {
+if ( !is_array($rows) || count($rows) < 1 )  {
     $rows = $PDOX->allRowsDie(
         "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
             WHERE lti13_pubkey IS NOT NULL"
@@ -62,11 +62,11 @@ $stmt = $PDOX->queryReturnError(
 );
 if ( $stmt->success ) {
     $global_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if ( count($rows) < 1 ) $rows = $global_rows;
-    else if ( count($global_rows) > 0 ) $rows = array_merge($rows, $global_rows);
+    if ( !is_array($rows) || count($rows) < 1 ) $rows = $global_rows;
+    else if ( is_array($global_rows) && count($global_rows) > 0 ) $rows = array_merge($rows, $global_rows);
 }
 
-if ( count($rows) < 1 ) die("Could not load key");
+if ( !is_array($rows) || count($rows) < 1 ) die("Could not load key");
 
 // $pubkey = "-----BEGIN PUBLIC KEY-----
 // MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvESXFmlzHz+nhZXTkjo2 9SBpamCzkd7SnpMXgdFEWjLfDeOu0D3JivEEUQ4U67xUBMY9voiJsG2oydMXjgkm GliUIVg+rhyKdBUJu5v6F659FwCj60A8J8qcstIkZfBn3yyOPVwp1FHEUSNvtbDL SRIHFPv+kh8gYyvqz130hE37qAVcaNME7lkbDmH1vbxi3D3A8AxKtiHs8oS41ui2 MuSAN9MDb7NjAlFkf2iXlSVxAW5xSek4nHGr4BJKe/13vhLOvRUCTN8h8z+SLORW abxoNIkzuAab0NtfO/Qh0rgoWFC9T69jJPAPsXMDCn5oQ3xh/vhG0vltSSIzHsZ8 pwIDAQAB
