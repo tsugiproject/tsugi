@@ -1,9 +1,12 @@
 <?php
 
 require_once "../config.php";
-require_once "../util/helpers.php";
 
 use Tsugi\Util\U;
+use Tsugi\Core\LTIX;
+use Tsugi\Core\Keyset;
+
+LTIX::getConnection();
 
 // See the end of the file for some documentation references
 
@@ -53,17 +56,11 @@ if ( !is_array($rows) || count($rows) < 1 )  {
     );
 }
 
-// Read up to the three most recent global keys
 // TODO: Make this the only one needed :)
-$stmt = $PDOX->queryReturnError(
-    "SELECT pubkey as lti13_pubkey FROM {$CFG->dbprefix}lti_keyset
-        WHERE deleted = 0 AND pubkey IS NOT NULL AND privkey IS NOT NULL
-        ORDER BY created_at DESC LIMIT 3"
-);
-if ( $stmt->success ) {
-    $global_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if ( !is_array($rows) || count($rows) < 1 ) $rows = $global_rows;
-    else if ( is_array($global_rows) && count($global_rows) > 0 ) $rows = array_merge($rows, $global_rows);
+$global_rows = Keyset::getCurrentKeys();
+if ( count($global_rows) > 0 ) {
+    if ( ! is_array($rows) ) $rows = array();
+    $rows = array_merge($rows, $global_rows);
 }
 
 if ( !is_array($rows) || count($rows) < 1 ) die("Could not load key");
@@ -78,8 +75,9 @@ if ( !is_array($rows) || count($rows) < 1 ) die("Could not load key");
 
 $jwks = array();
 foreach ( $rows as $row ) {
-    $pubkey = $row['lti13_pubkey'];
-    $components = Helpers::build_jwk($pubkey);
+    $pubkey = U::get($row,'pubkey',U::get($row, 'lti13_pubkey'));
+    if ( ! is_string($pubkey) ) continue;
+    $components = Keyset::build_jwk($pubkey);
     $jwks[] = $components;
 }
 

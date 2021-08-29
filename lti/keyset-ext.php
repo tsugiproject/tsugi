@@ -1,7 +1,11 @@
 <?php
 
 require_once "../config.php";
-require_once "../util/helpers.php";
+
+use Tsugi\Core\LTIX;
+use Tsugi\Core\Keyset;
+
+LTIX::getConnection();
 
 use Tsugi\Util\U;
 
@@ -13,18 +17,10 @@ $rows = $PDOX->allRowsDie(
 
 if ( count($rows) < 1 ) die("Could not load keys");
 
-// $pubkey = "-----BEGIN PUBLIC KEY-----
-// MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvESXFmlzHz+nhZXTkjo2 9SBpamCzkd7SnpMXgdFEWjLfDeOu0D3JivEEUQ4U67xUBMY9voiJsG2oydMXjgkm GliUIVg+rhyKdBUJu5v6F659FwCj60A8J8qcstIkZfBn3yyOPVwp1FHEUSNvtbDL SRIHFPv+kh8gYyvqz130hE37qAVcaNME7lkbDmH1vbxi3D3A8AxKtiHs8oS41ui2 MuSAN9MDb7NjAlFkf2iXlSVxAW5xSek4nHGr4BJKe/13vhLOvRUCTN8h8z+SLORW abxoNIkzuAab0NtfO/Qh0rgoWFC9T69jJPAPsXMDCn5oQ3xh/vhG0vltSSIzHsZ8 pwIDAQAB
-// -----END PUBLIC KEY-----";
-
-// https://8gwifi.org/jwkconvertfunctions.jsp
-// https://github.com/nov/jose-php/blob/master/src/JOSE/JWK.php
-// https://github.com/nov/jose-php/blob/master/test/JOSE/JWK_Test.php
-
 $jwks = array();
 foreach ( $rows as $row ) {
     $pubkey = $row['pubkey'];
-    $components = Helpers::build_jwk($pubkey);
+    $components = Keyset::build_jwk($pubkey);
     $jwks[] = $components;
 }
 

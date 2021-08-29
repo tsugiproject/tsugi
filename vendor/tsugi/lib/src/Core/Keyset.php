@@ -2,8 +2,9 @@
 
 namespace Tsugi\Core;
 
-use  Tsugi\Util\U;
-use  Tsugi\Core\LTIX;
+use Tsugi\Util\U;
+use Tsugi\Core\LTIX;
+use phpseclib\Crypt\RSA;
 
 /**
  * Helper class for Using Tsugi's internal global outgoing keyset
@@ -110,4 +111,59 @@ class Keyset {
         }
     }
 
+    public static function getCurrentKeys() {
+        global $PDOX, $CFG;
+
+        // TODO: Once we are convident this table exists switch to allRowsDie()
+        $stmt = $PDOX->queryReturnError(
+        "SELECT pubkey FROM {$CFG->dbprefix}lti_keyset
+            WHERE deleted = 0 AND pubkey IS NOT NULL AND privkey IS NOT NULL
+            ORDER BY created_at DESC LIMIT 3"
+        );
+        if ( $stmt->success ) {
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } else {
+            $rows = array();
+        }
+        return $rows;
+    }
+
+    // $pubkey = "-----BEGIN PUBLIC KEY-----
+    // MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvESXFmlzHz+nhZXTkjo2 9SBpamCzkd7SnpMXgdFEWjLfDeOu0D3JivEEUQ4U67xUBMY9voiJsG2oydMXjgkm GliUIVg+rhyKdBUJu5v6F659FwCj60A8J8qcstIkZfBn3yyOPVwp1FHEUSNvtbDL SRIHFPv+kh8gYyvqz130hE37qAVcaNME7lkbDmH1vbxi3D3A8AxKtiHs8oS41ui2 MuSAN9MDb7NjAlFkf2iXlSVxAW5xSek4nHGr4BJKe/13vhLOvRUCTN8h8z+SLORW abxoNIkzuAab0NtfO/Qh0rgoWFC9T69jJPAPsXMDCn5oQ3xh/vhG0vltSSIzHsZ8 pwIDAQAB
+    // -----END PUBLIC KEY-----";
+
+    // https://8gwifi.org/jwkconvertfunctions.jsp
+    // https://github.com/nov/jose-php/blob/master/src/JOSE/JWK.php
+    // https://github.com/nov/jose-php/blob/master/test/JOSE/JWK_Test.php
+    //
+    // $z = new JOSE_JWK();
+    // var_dump(JOSE_JWK::encode($key));
+    // echo("\n");
+    // $jwk = Keyset::build_jwk($pubkey);
+    // echo(json_encode($jwk));
+    // echo("\n");
+
+    public static function build_jwk($pubkey) {
+        $key = new RSA();
+        $key->setPublicKey($pubkey);
+        if ( ! $key->publicExponent ) die('Invalid public key');
+
+        $kid = LTIX::getKidForKey($pubkey);
+
+        $components = array(
+                    'kty' => 'RSA',
+                    'alg' => 'RS256',
+                    'e' => \JOSE_URLSafeBase64::encode($key->publicExponent->toBytes()),
+                    'n' => \JOSE_URLSafeBase64::encode($key->modulus->toBytes()),
+                    'kid' => $kid,
+                    'use' => 'sig',
+        );
+
+        if ($key->exponent != $key->publicExponent) {
+            $components = array_merge($components, array(
+            'd' => \JOSE_URLSafeBase64::encode($key->exponent->toBytes())
+            ));
+        }
+        return $components;
+  }
 }
