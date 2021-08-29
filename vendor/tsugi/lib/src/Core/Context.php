@@ -3,6 +3,7 @@
 namespace Tsugi\Core;
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Keyset;
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 
@@ -48,7 +49,7 @@ class Context extends Entity {
      * @param $lti13_kid The current kid for the public key (output)
      * @param $lti13_token_audience The current optional token audience (output)
      * @param $issuer_client The current client_id (output)
-     * @param $deployment_id The current client_id (output)
+     * @param $deployment_id The current deployment_id (output)
      *
      * @return string When the string is non-empty, it means an error has occurred and
      * the string contains the error detail.
@@ -56,12 +57,19 @@ class Context extends Entity {
      */
     private function loadLTI13Data(&$lti13_token_url, &$lti13_privkey, &$lti13_kid, &$lti13_token_audience, &$issuer_client, &$deployment_id)
     {
-        $lti13_token_url = $this->launch->ltiParameter('lti13_token_url');
-        $lti13_privkey = LTIX::decrypt_secret($this->launch->ltiParameter('lti13_privkey'));
-        $issuer_client = $this->launch->ltiParameter('issuer_client');
+        global $CFG;
 
-        $lti13_pubkey = $this->launch->ltiParameter('lti13_pubkey');
-        $lti13_kid = LTIX::getKidForKey($lti13_pubkey);
+        // TODO: Make this default when we are more brave :)
+        if ( isset($CFG->globalkeyset) && $CFG->globalkeyset ) {
+            Keyset::getSigning($lti13_privkey, $lti13_kid);
+        } else {
+            $lti13_privkey = LTIX::decrypt_secret($this->launch->ltiParameter('lti13_privkey'));
+            $lti13_pubkey = $this->launch->ltiParameter('lti13_pubkey');
+            $lti13_kid = LTIX::getKidForKey($lti13_pubkey);
+        }
+
+        $lti13_token_url = $this->launch->ltiParameter('lti13_token_url');
+        $issuer_client = $this->launch->ltiParameter('issuer_client');
 
         $lti13_token_audience = $this->launch->ltiParameter('lti13_token_audience'); // Optional
         $deployment_id = $this->launch->ltiParameter('deployment_id');
@@ -69,7 +77,7 @@ class Context extends Entity {
         $missing = '';
         if ( strlen($issuer_client) < 1 ) $missing .= ' ' . 'issuer_client';
         if ( strlen($lti13_privkey) < 1 ) $missing .= ' ' . 'private_key';
-        if ( strlen($lti13_pubkey) < 1 ) $missing .= ' ' . 'public_key';
+        if ( strlen($lti13_kid) < 1 ) $missing .= ' ' . 'public_key kid';
         if ( strlen($lti13_token_url) < 1 ) $missing .= ' ' . 'token_url';
         $missing = trim($missing);
         return($missing);

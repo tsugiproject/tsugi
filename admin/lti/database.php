@@ -1126,44 +1126,9 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     }
 
-    // TODO: Make a configuration option and truncate the table in a MYSQL and PostgreSQL friendly way
-    // Also make this into a utility class and make an admin UI to run it - but for now there will be
-    // reasonble data in this table to build code upon 
- 
-    // TODO: Add a private key encryption regime like Sakai
-
     // Auto populate and/or rotate the lti_keyset data
     echo("Checking lti_keyset<br/>\n");
-    $sql = "SELECT *, NOW() as now FROM {$CFG->dbprefix}lti_keyset ORDER BY created_at DESC LIMIT 10";
-    $rows = $PDOX->allRowsDie($sql);
-
-    $days = -1;
-    if ( count($rows) > 0 ) {
-        $now = new \DateTime($rows[0]['now']);
-        $create = new \DateTime($rows[0]['created_at']);
-        $delta = $now->diff($create, true);
-        $days = $delta->d;
-        echo("Most recent key age days=".$days."<br/>\n");
-    }
-    if ( $days == -1 || $days >= 30) {
-        echo("Adding a row to lti_keyset<br/>\n");
-        // Returns those call by reference parms
-        \Tsugi\Util\LTI13::generatePKCS8Pair($publicKey, $privateKey);
-        $sql = "INSERT INTO {$CFG->dbprefix}lti_keyset (keyset_title, pubkey, privkey)
-            VALUES (:title, :pubkey, :privkey)
-        ";
-        $values = array(
-            ":title" => 'From lti/database.php',
-            ":pubkey" => $publicKey,
-            ":privkey" => $privateKey,
-        );
-        $stmt = $PDOX->queryReturnError($sql, $values);
-    
-        if ( ! $stmt->success ) {
-            echo("Unable to insert new key into keyset\n");
-            return;
-        }
-    }
+    \Tsugi\Core\Keyset::maintain();
 
     // It seems like some automatically created LTI1.1 keys between
     // 2017-10-25 and 2019-07-04 ended up with the wrong key_sha256 for the
