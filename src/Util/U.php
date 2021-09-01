@@ -586,6 +586,30 @@ class U {
         return (extension_loaded('apc') && ini_get('apc.enabled'));
     }
 
+    /**
+     * Return if APCU cache is available
+     */
+    public static function apcuAvailable() {
+        return (function_exists('apcu_enabled') && apcu_enabled());
+    }
+
+    public static function appCacheGet($key, $default=null) {
+        if ( ! self::apcuAvailable() ) return $default;
+        $retval = apcu_fetch($key,$success);
+        if ( ! $success ) return $default;
+        return $retval;
+    }
+
+    public static function appCacheSet($key, $value, $ttl=0) {
+        if ( ! self::apcuAvailable() ) return;
+        apcu_store($key, $value, $ttl);
+    }
+
+    public static function appCacheDelete($key) {
+        if ( ! self::apcuAvailable() ) return;
+        apcu_delete($key);
+    }
+
     // https://stackoverflow.com/questions/2110732/how-to-get-name-of-calling-function-method-in-php
     /**
      * Get caller outside this file as string
