@@ -70,7 +70,6 @@ $oidc_redirect = $CFG->wwwroot . '/lti/oidc_launch';
 $lti13_keyset = $CFG->wwwroot . '/lti/keyset/' . urlencode($guid);
 $deep_link = $CFG->wwwroot . '/lti/store/';
 $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($guid);
-$lti13_sakai_json_url = $CFG->wwwroot . '/lti/store/sakai-config/' . urlencode($guid);
 $lti13_ims_json_url = $CFG->wwwroot . '/lti/store/ims-config/' . urlencode($guid);
 
 function addLinks() {
@@ -97,8 +96,7 @@ Adding Issuer Entry</h1>
   <li class="active"><a href="#generic" data-toggle="tab" aria-expanded="true">Generic Instructions</a></li>
   <li><a href="#brightspace" id="brightspace-click" data-toggle="tab" aria-expanded="false">Brightspace</a></li>
   <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
-  <li><a href="#sakai" data-toggle="tab" aria-expanded="false" style="display: none;">Sakai 21</a></li>
-  <li><a href="#ims" data-toggle="tab" aria-expanded="false" style="display: none;">Draft IMS Config</a></li>
+  <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="generic">
@@ -112,7 +110,7 @@ Once you have created the security arrangement in the LMS you can fill in the
 provided values below.
 </p>
 </div>
-  <div class="tab-pane fade" id="brightspace">
+<div class="tab-pane fade" id="brightspace">
 <p>
 For LTI 1.3, you need to enter these URLs in your Brightspace configuration
 associated with this Issuer/Client ID. Brightspace provides a value for
@@ -124,38 +122,15 @@ Once you have created the security arrangement in the LMS you can fill in the
 provided values below.
 </p>
 </div>
-<div class="tab-pane fade" id="sakai" style="display: none;">
-For Sakai-21 and later, you can auto-provision an issuer using a two-step process.
-</p>
-<ol>
-<li><p>
-First copy this url and use the <b>Import LTI 1.3 Configuration</b> option in Sakai
-You may need to scroll down to see the button
-(<a href="sakai-import.png" target="_blank">example</a>)
-in the Sakai interface.
-<pre>
-Sakai Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_sakai_json_url) ?>');return false;"><i class="fas fa-file-export" aria-hidden="true"></i> <i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
-<?= htmlentities($lti13_sakai_json_url) ?>
-</pre>
-</p>
-</li>
-<li>
+<div class="tab-pane fade" id="sakai">
 <p>
-After you add the tool in Sakai, it will provide you with a configuration URL.
-Once this is done, copy the configuration URL press this button and enter the URL.
-<pre>
-<a href="#" onclick="importLTI13Config();return false;"><i class="fas fa-file-import"></i> Import Sakai LTI 1.3 Configuration</a>
-</pre>
-The import will automatically fill in all the fields below.
-</li>
-</ol>
-<p>
-If you don't see the <b>Import LTI 1.3 Configuration</b> button
-(<a href="sakai-import.png" target="_blank">example</a>)
-in your Sakai interface, you 
-are not yet on Sakai 21 so you will need to manually copy values back and forth
-using the generic instructions.
+For Sakai 21 and later you can use Dynamic Configuration - which is actually initiated from the
+Tenant Key detail page.   You can create a issuer here, but the simplest thing is just to create
+a draft Tenant key and then use Dynamic Configuration.
 </p>
+<pre>
+<?php addLinks(); ?>
+</pre>
 </div>
 <div class="tab-pane fade" id="canvas">
 <p>
