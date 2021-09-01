@@ -18,10 +18,11 @@ $postmessage_enabled = isset($CFG->postmessage) ? $CFG->postmessage : false;
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
 $issuer_guid = U::get($_REQUEST, 'guid');
-$web_message_target = U::get($_REQUEST, 'web_message_target');
-$web_message_target = U::get($_REQUEST, 'ims_web_message_target', $web_message_target);
-$put_data_supported = is_string($web_message_target) && strlen($web_message_target) > 0;
-if ( $web_message_target == "_parent" ) $web_message_target = null;
+$lti_torage_target = U::get($_REQUEST, 'web_message_target');
+$lti_torage_target = U::get($_REQUEST, 'ims_web_message_target', $lti_torage_target);
+$lti_torage_target = U::get($_REQUEST, 'lti_storage_target', $lti_torage_target);
+$put_data_supported = is_string($lti_torage_target) && strlen($lti_torage_target) > 0;
+if ( $lti_torage_target == "_parent" ) $lti_torage_target = null;
 
 // TODO: Try to get rid of this
 $put_data_supported = true; // For Now
@@ -150,7 +151,7 @@ if ( $put_data_supported || $postmessage_enabled ) {
     return;
 }
 // Send our data using the postMessage approach
-$post_frame = (is_string($web_message_target)) ? ('.frames["'.$web_message_target.'"]') : '';
+$post_frame = (is_string($lti_torage_target)) ? ('.frames["'.$lti_torage_target.'"]') : '';
 $state_key = 'state_'.md5($state.$session_password);
 ?>
 <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
