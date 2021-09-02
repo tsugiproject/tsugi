@@ -67,6 +67,14 @@ will need different commands):
         CREATE USER 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
         GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1';
 
+        Or
+
+        CREATE DATABASE ltiuser DEFAULT CHARACTER SET utf8;
+        GRANT ALL ON tsugi.* TO ltiuser@'localhost';
+        GRANT ALL ON tsugi.* TO ltiuser@'127.0.0.1';
+        SET PASSWORD FOR 'ltiuser'@'localhost' = PASSWORD('ltipassword');
+        SET PASSWORD FOR 'ltiuser'@'127.0.0.1' = PASSWORD('ltipassword');
+
 * Copy the file config-dist.php to config.php and edit the file
 to put in the appropriate values.  Make sure to change all the secrets.
 If you are just getting started turn on DEVELOPER mode so you can launch
