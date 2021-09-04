@@ -1128,7 +1128,11 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // Auto populate and/or rotate the lti_keyset data
     echo("Checking lti_keyset<br/>\n");
-    \Tsugi\Core\Keyset::maintain();
+    $success = \Tsugi\Core\Keyset::maintain()
+    if ( is_string($succes) ) {
+        error_log("Unable to generate public/private pair: ".$retval);
+        echo("Unable to generate public/private pair: ".$retval."<br/>\n");
+    }
 
     // It seems like some automatically created LTI1.1 keys between
     // 2017-10-25 and 2019-07-04 ended up with the wrong key_sha256 for the

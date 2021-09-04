@@ -40,7 +40,12 @@ $titles = array(
 // Handle the post data
 if ( U::get($_POST,'endpoint') ) {
     if ( strlen(U::get($_POST,'pubkey')) < 1 || strlen(U::get($_POST,'privkey'))) {
-        LTI13::generatePKCS8Pair($publicKey, $privateKey);
+        $success = LTI13::generatePKCS8Pair($publicKey, $privateKey);
+        if ( is_string($success) ) {
+            $_SESSION['error'] = "Could not create key pair:".$success;
+            header("Location: ".U::addsession($from_location));
+            return;
+        }
         $_POST['pubkey'] = $publicKey;
         $_POST['privkey'] = $privateKey;
     }
@@ -49,7 +54,7 @@ $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
     $query_fields, $allow_edit, $allow_delete, $titles);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
-    header('Location: '.$from_location);
+    header("Location: ".U::addsession($from_location));
     return;
 }
 

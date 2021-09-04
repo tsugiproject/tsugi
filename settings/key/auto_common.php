@@ -248,9 +248,15 @@ $issuer_row = $PDOX->rowDie(
 
 
 $success = false;
+// TODO: Make this store into lti_key  instead of lti_issuer if not found
 // Simple case - no issuer - lets make one!
 if ( ! $issuer_row ) {
-    LTI13::generatePKCS8Pair($publicKey, $privateKey);
+    $success = LTI13::generatePKCS8Pair($publicKey, $privateKey);
+    if ( is_string($success) ) {
+        $_SESSION['error'] = "Could not create key pair:".$success;
+        header("Location: ".U::addsession($from_location));
+        return;
+    }
     $sql = "INSERT INTO {$CFG->dbprefix}lti_issuer
         (issuer_title, issuer_sha256, issuer_guid, issuer_key, issuer_client, user_id, lti13_oidc_auth,
             lti13_keyset_url, lti13_pubkey, lti13_privkey, lti13_token_url, lti13_token_audience)

@@ -49,7 +49,9 @@ class Keyset {
         if ( $days == -1 || $days >= 30) {
             error_log("Adding a row to lti_keyset days=".$days);
             // Returns those call by reference parms
-            \Tsugi\Util\LTI13::generatePKCS8Pair($publicKey, $privateKey);
+            $success = \Tsugi\Util\LTI13::generatePKCS8Pair($publicKey, $privateKey);
+            if ( is_string($success) ) return $success;
+
             $sql = "INSERT INTO {$CFG->dbprefix}lti_keyset (keyset_title, pubkey, privkey)
                 VALUES (:title, :pubkey, :privkey)
             ";
