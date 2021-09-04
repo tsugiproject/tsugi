@@ -24,7 +24,6 @@ $tablename = "{$CFG->dbprefix}lti_issuer";
 
 $fields = array("issuer_title", "issuer_key", "issuer_client", "issuer_sha256",
     "lti13_keyset_url", "lti13_token_url", "lti13_oidc_auth",
-    "lti13_pubkey", "lti13_privkey",
     "issuer_guid", "lti13_token_audience",
     "created_at", "updated_at");
 
@@ -35,24 +34,12 @@ $titles = array(
     'lti13_token_url' => 'LTI 1.3 Platform Access Token URL',
     'lti13_oidc_auth' => 'LTI 1.3 Platform OIDC Authentication Request URL',
 
-    'lti13_pubkey' => 'LTI 1.3 Tool Public Key (Provide to the platform)',
-    'lti13_privkey' => 'LTI 1.3 Private Key (kept internally only)',
     'lti13_tool_keyset_url' => 'LTI 1.3 Tool Keyset Url',
     'lti13_token_audience' => 'LTI 1.3 Platform OAuth2 Bearer Token Audience Value (Optional)',
     'issuer_guid' => 'LTI 1.3 Unique Issuer GUID (within Tool)',
 );
 
 if ( U::get($_POST,'issuer_key') ) {
-    if ( strlen(U::get($_POST,'lti13_pubkey')) < 1 && strlen(U::get($_POST,'lti13_privkey')) < 1 ) {
-        $success = LTI13::generatePKCS8Pair($publicKey, $privateKey);
-        if ( is_string($success) ) {
-            $_SESSION['error'] = "Could not create key pair:".$success;
-            header("Location: ".U::addsession($from_location));
-            return;
-        }
-        $_POST['lti13_pubkey'] = $publicKey;
-        $_POST['lti13_privkey'] = $privateKey;
-    }
     $retval = CrudForm::handleInsert($tablename, $fields);
     if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
         header("Location: $from_location");
@@ -177,8 +164,6 @@ $OUTPUT->footerStart();
 // Make GUID as readonly
 // $('#issuer_guid').attr('readonly', 'readonly');
 $('#issuer_guid_label').parent().hide();
-$('#lti13_pubkey_label').parent().hide();
-$('#lti13_privkey_label').parent().hide();
 $('#lti13_token_audience').parent().parent().parent().hide();
 $('#brightspace-click').on('click', 
     function () {$('#lti13_token_audience').parent().parent().parent().show();}

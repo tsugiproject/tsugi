@@ -251,18 +251,12 @@ $success = false;
 // TODO: Make this store into lti_key  instead of lti_issuer if not found
 // Simple case - no issuer - lets make one!
 if ( ! $issuer_row ) {
-    $success = LTI13::generatePKCS8Pair($publicKey, $privateKey);
-    if ( is_string($success) ) {
-        $_SESSION['error'] = "Could not create key pair:".$success;
-        header("Location: ".U::addsession($from_location));
-        return;
-    }
     $sql = "INSERT INTO {$CFG->dbprefix}lti_issuer
         (issuer_title, issuer_sha256, issuer_guid, issuer_key, issuer_client, user_id, lti13_oidc_auth,
-            lti13_keyset_url, lti13_pubkey, lti13_privkey, lti13_token_url, lti13_token_audience)
+            lti13_keyset_url, lti13_token_url, lti13_token_audience)
         VALUES
         (:title, :sha256, :guid, :key, :client, :user_id, :oidc_auth,
-            :keyset_url, :pubkey, :privkey, :token_url, :token_audience)
+            :keyset_url, :token_url, :token_audience)
     ";
     $values = array(
         ":title" => $title,
@@ -273,8 +267,6 @@ if ( ! $issuer_row ) {
         ":user_id" => $user_id,
         ":oidc_auth" => $authorization_endpoint,
         ":keyset_url" => $jwks_uri,
-        ":pubkey" => $publicKey,
-        ":privkey" => $privateKey,
         ":token_url" => $token_endpoint,
         ":token_audience" => $authorization_server,
     );
@@ -414,34 +406,3 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJ .
     }
 }
  */
-/*
-    issuer_id           INTEGER NOT NULL AUTO_INCREMENT,
-    issuer_title        TEXT NULL,
-    issuer_sha256       CHAR(64) NULL,  -- Will become obsolete
-    issuer_guid         CHAR(36) NOT NULL,  -- Our local GUID
-    issuer_key          TEXT NOT NULL,  -- iss from the JWT
-    issuer_client       TEXT NOT NULL,  -- aud from the JWT
-    deleted             TINYINT(1) NOT NULL DEFAULT 0,
-
-    -- This is the owner of this issuer - it is not a foreign key
-    -- We might use this if we end up with self-service issuers
-    user_id             INTEGER NULL,
-
-    lti13_oidc_auth     TEXT NULL,
-    lti13_keyset_url    TEXT NULL,
-    lti13_keyset        TEXT NULL,
-    lti13_platform_pubkey TEXT NULL,
-    lti13_kid           TEXT NULL,
-    lti13_pubkey        TEXT NULL,
-    lti13_privkey       TEXT NULL,
-    lti13_token_url     TEXT NULL,
-    lti13_token_audience  TEXT NULL,
-
-    $fields = array("issuer_title", "issuer_key", "issuer_client", "issuer_sha256",
-    "lti13_keyset_url", "lti13_token_url", "lti13_oidc_auth",
-    "lti13_pubkey", "lti13_privkey",
-    "issuer_guid", "lti13_token_audience",
-    "created_at", "updated_at");
-
-*/
-

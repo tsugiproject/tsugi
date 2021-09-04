@@ -152,9 +152,6 @@ $our_keyset = U::get($_SESSION, 'our_keyset');
 $platform_public_key = U::get($_SESSION, 'platform_public_key');
 $lti13_oidc_auth = U::get($_SESSION, 'lti13_oidc_auth');
 
-$tool_private_key_encr = U::get($_SESSION, 'tool_private_key_encr');
-$tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 256) ;
-
 $put_data_supported = U::get($_SESSION, 'put_data_supported');
 
 // Sakai postverify approach

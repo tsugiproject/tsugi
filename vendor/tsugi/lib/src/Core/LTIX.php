@@ -16,6 +16,7 @@ use \Tsugi\UI\Output;
 use \Tsugi\Core\I18N;
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\SQLDialect;
+use \Tsugi\Core\Keyset;
 use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Crypt\AesCtr;
@@ -518,7 +519,6 @@ class LTIX {
             $our_keyset_url = $row['lti13_keyset_url'];
             $public_key = $row['lti13_platform_pubkey'];
 
-            $private_key = $row['lti13_privkey'];
             $token_url = $row['lti13_token_url'];
 
             $issuer_sha256 = $post['issuer_sha256'];
@@ -590,7 +590,6 @@ class LTIX {
                 if ( ! $check ) self::abort_with_error_log('LTI 1.1 Transition signature mis-match key='.$lti11_oauth_consumer_key);
             }
 
-            $row['lti13_privkey'] = self::encrypt_secret($private_key);
             $row['lti13_token_url'] = $token_url;
 
             // Just copy across
@@ -1166,13 +1165,10 @@ class LTIX {
      * encode and sign a JWT with a bunch of parameters
      */
     public static function encode_jwt($params) {
-        $lti13_privkey = self::ltiParameter('lti13_privkey');
-        $lti13_privkey = $lti13_privkey ? self::decrypt_secret($lti13_privkey) : false;
-        $lti13_pubkey = self::ltiParameter('lti13_pubkey');
+        $success = Keyset::getSigning($privkey, $kid);
 
-        $lti13_kid = self::getKidForKey($lti13_pubkey);
-        // error_log('kid='. $lti13_kid. ' pub='.$lti13_pubkey.' priv='.$lti13_privkey);
-        $jws = LTI13::encode_jwt($params, $lti13_privkey, $lti13_kid);
+        // error_log('kid='. $kid.' priv='.$privkey);
+        $jws = LTI13::encode_jwt($params, $privkey, $kid);
         return $jws;
     }
 
@@ -1204,7 +1200,7 @@ class LTIX {
 
         if ( $LTI13 ) {
             $sql = "SELECT i.issuer_id, i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
-                i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_privkey, i.lti13_pubkey,
+                i.lti13_platform_pubkey, i.lti13_token_url,
                 i.lti13_token_audience,
                 k.deploy_key, u.subject_key,
             ";

@@ -48,7 +48,7 @@ $key_sha256 = LTI13::extract_issuer_key_string($iss);
 error_log("iss=".$iss." sha256=".$key_sha256);
 if ( $key_id ) {
      $sql = "SELECT issuer_client, lti13_oidc_auth,
-         issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
+         issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey
          FROM {$CFG->dbprefix}lti_issuer AS I
             JOIN {$CFG->dbprefix}lti_key AS K ON
                 K.issuer_id = I.issuer_id
@@ -65,7 +65,7 @@ if ( $key_id ) {
 
     $row = $PDOX->rowDie(
         "SELECT issuer_client, lti13_oidc_auth,
-        issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
+        issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey
         FROM {$CFG->dbprefix}lti_issuer $query_where",
         $query_where_params);
 }
@@ -81,7 +81,6 @@ $platform_public_key = $row['lti13_platform_pubkey'];
 $our_kid = $row['lti13_kid'];
 $our_keyset_url = $row['lti13_keyset'];
 $our_keyset = $row['lti13_keyset'];
-$tool_private_key = $row['lti13_privkey'];
 
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
@@ -110,9 +109,6 @@ $_SESSION['our_keyset'] = $our_keyset;
 $_SESSION['lti13_oidc_auth'] = trim($row['lti13_oidc_auth']);
 $session_password = uniqid();
 $_SESSION['password'] = $session_password;
-
-$encr = AesCtr::encrypt($tool_private_key, $CFG->cookiesecret, 256) ;
-$_SESSION['tool_private_key_encr'] = $encr;
 
 $_SESSION['put_data_supported'] = $put_data_supported;
 

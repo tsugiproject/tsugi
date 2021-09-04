@@ -160,7 +160,6 @@ class Result extends Entity {
         $key_key = false;
         $subject_key = false;
         $secret = false;
-        $lti13_privkey = false;
         $lti13_subject_key = false;
         if ( $row !== false ) {
             // Using the note from the local db for the comment.

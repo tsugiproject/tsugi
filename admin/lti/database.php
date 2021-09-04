@@ -60,10 +60,6 @@ array( "{$CFG->dbprefix}lti_issuer",
     lti13_platform_pubkey TEXT NULL,
     lti13_kid           TEXT NULL,
 
-    -- TODO: Remove these once we switch to global key signing
-    lti13_pubkey        TEXT NULL,
-    lti13_privkey       TEXT NULL,
-
     json                MEDIUMTEXT NULL,
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -854,6 +850,11 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'lms_keyset'),
         array('lti_key', 'lms_pubkey'),
         array('lti_key', 'lms_kid'),
+
+        // TODO: Remove these later - well after 2021-09 / global key signing
+        // array('lti_issuer', 'lti13_pubkey',),
+        // array('lti_issuer', 'lti13_privkey',),
+
     );
 
     foreach ( $drop_some_fields as $drop_field ) {

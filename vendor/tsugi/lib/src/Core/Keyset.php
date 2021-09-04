@@ -97,8 +97,8 @@ class Keyset {
         $row = $PDOX->rowDie($sql);
 
         $privkey = LTIX::decrypt_secret($row['privkey']);
-        $lti13_pubkey = $row['pubkey'];
-        $kid = LTIX::getKidForKey($lti13_pubkey);
+        $pubkey = $row['pubkey'];
+        $kid = LTIX::getKidForKey($pubkey);
         error_log("Keyset::getSigning loaded key from database now=".$now." kid=".$kid);
 
         // Save for later

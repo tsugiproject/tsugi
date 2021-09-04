@@ -9,42 +9,12 @@ LTIX::getConnection();
 
 use Tsugi\Util\U;
 
-// See the end of the file for some documentation references
-
-$issuer = U::get($_GET,"issuer",false);
-$issuer_id = U::get($_GET,"issuer_id",false);
-$issuer_guid = U::get($_GET,"issuer_guid",false);
-
-if ( strlen($issuer) < 1 && $issuer_id < 1 && strlen($issuer_guid) < 1 ) {
-    die('Missing issuer, issuer_id or issuer_guid');
+$rows = Keyset::getCurrentKeys();
+if ( ! $rows || ! is_array($rows) || count($rows) < 1 ) {
+    die("Could not load key");
 }
 
-if ( $issuer ) {
-    $issuer_sha256 = hash('sha256', trim($issuer));
-    $row = $PDOX->rowDie(
-        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
-            WHERE issuer_sha256 = :ISH AND lti13_pubkey IS NOT NULL",
-        array(":ISH" => $issuer_sha256)
-    );
-} else if ( $issuer_id > 0 ) {
-    $row = $PDOX->rowDie(
-        "SELECT lti13_pubkey FROM {$CFG->dbprefix}lti_issuer
-            WHERE issuer_id = :IID AND lti13_pubkey IS NOT NULL",
-        array(":IID" => $issuer_id)
-    );
-} else if ( strlen($issuer_guid) > 0 ) {
-    $row = $PDOX->rowDie(
-        "SELECT lti13_pubkey, issuer_guid FROM {$CFG->dbprefix}lti_issuer
-            WHERE issuer_guid = :IGUID AND lti13_pubkey IS NOT NULL",
-        array(":IGUID" => $issuer_guid)
-    );
-} else {
-    die('Missing issuer or issuer_id');
-}
-
-if ( ! $row ) die("Could not load key");
-
-$pubkey = $row['lti13_pubkey'];
+$pubkey = $rows[0]['pubkey'];
 
 $pieces = parse_url($CFG->wwwroot);
 $domain = isset($pieces['host']) ? $pieces['host'] : false;

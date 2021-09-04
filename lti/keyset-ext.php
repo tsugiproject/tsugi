@@ -11,6 +11,7 @@ use Tsugi\Util\U;
 
 // See the end of the file for some documentation references
 
+// TODO: Fix this when the external tool has migrated to the new signing pattern
 $rows = $PDOX->allRowsDie(
     "SELECT DISTINCT pubkey FROM {$CFG->dbprefix}lti_external WHERE pubkey IS NOT NULL"
 );
