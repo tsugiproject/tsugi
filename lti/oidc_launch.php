@@ -143,7 +143,6 @@ $sub = isset($jwt->body->sub) ? $jwt->body->sub : null;
 
 $request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
 $iss = isset($jwt->body->iss) ? $jwt->body->iss : null;
-$issuer_sha256 = $iss ? LTI13::extract_issuer_key_string($iss) : null;
 
 // Get verification data from oidc_login via session
 $our_kid = U::get($_SESSION, 'our_kid');
@@ -153,13 +152,15 @@ $platform_public_key = U::get($_SESSION, 'platform_public_key');
 $lti13_oidc_auth = U::get($_SESSION, 'lti13_oidc_auth');
 
 $put_data_supported = U::get($_SESSION, 'put_data_supported');
+$issuer_id = U::get($_SESSION, 'issuer_id');
+$key_id = U::get($_SESSION, 'key_id');
 
 // Sakai postverify approach
 $postverify_url = isset($jwt->body->{$POSTVERIFY_CLAIM}) ? $jwt->body->{$POSTVERIFY_CLAIM} : null;
 $postverify_origin = isset($jwt->body->{$ORIGIN_CLAIM}) ? $jwt->body->{$ORIGIN_CLAIM} : null;
-if ( $postverify_enabled && ! $verified && $sub && $postverify_url && $postverify_origin && $issuer_sha256 ) {
-    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  postverify_origin $postverify_origin postverify_url $postverify_url");
-    $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
+if ( $postverify_enabled && ! $verified && $sub && $postverify_url && $postverify_origin && $key_id ) {
+    error_log("request_kid $request_kid iss $iss key_id $key_id issuer_id $isuer_id postverify_origin $postverify_origin postverify_url $postverify_url");
+    $platform_public_key = LTIX::getPlatformPublicKey($issuer_id, $key_id, $request_kid, $our_kid, $platform_public_key, $our_keyset_url, $our_keyset);
 
     $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
     if ( $e !== true ) {
@@ -205,8 +206,8 @@ parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
 
 // Lets check if we need to verify the browser through window.postMessage
 // https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/launch.php
-if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub && $issuer_sha256 && $lti13_oidc_auth ) {
-    error_log("postmessage request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 lti13_oidc_auth $lti13_oidc_auth");
+if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub && $key_id && $lti13_oidc_auth ) {
+    error_log("postmessage request_kid $request_kid iss $iss key_id $key_id lti13_oidc_auth $lti13_oidc_auth");
 
     $platform_login_auth_endpoint = $lti13_oidc_auth;
     $state_key = 'state_'.md5($state.$session_password);

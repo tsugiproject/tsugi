@@ -12,7 +12,7 @@ $json = new \stdClass();
 
 $json->oidcConnect = $CFG->wwwroot . '/lti/oidc_login/' . urlencode($guid);
 $json->oidcRedirect = $CFG->wwwroot . '/lti/oidc_launch';
-$json->keySetUrl = $CFG->wwwroot . '/lti/keyset/' . urlencode($guid);
+$json->keySetUrl = $CFG->wwwroot . '/lti/keyset/';
 $json->deepLinkUrl = $CFG->wwwroot . '/lti/store/';
 $json->tsugiRoot = $CFG->wwwroot;
 if ( $CFG->apphome) {
@@ -46,7 +46,7 @@ $json->grant_types = array("implicit", "client_credentials");
 
 $json->iniate_login_uri = $CFG->wwwroot . '/lti/oidc_login/' . urlencode($guid);
 $json->redirect_uris = array($CFG->wwwroot . '/lti/oidc_launch');
-$json->jwks_uri = $CFG->wwwroot . '/lti/keyset/' . urlencode($guid);
+$json->jwks_uri = $CFG->wwwroot . '/lti/keyset/';
 
 if ( isset($CFG->owneremail) && $CFG->owneremail ) {
     $json->contacts = array($CFG->owneremail);

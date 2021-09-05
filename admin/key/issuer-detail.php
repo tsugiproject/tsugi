@@ -91,10 +91,10 @@ if ( $count > 0 ) {
 $extra_buttons=false;
 // If we have a valid GUID
 if ($show_guid) {
-    $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset/' . urlencode($row['issuer_guid']);
+    $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset';
     $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($row['issuer_guid']);
 } else {
-    $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset?issuer=' . urlencode($row['issuer_key']);
+    $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset';
     $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer=' . urlencode($row['issuer_key']);
 }
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
@@ -104,7 +104,7 @@ echo("</p>\n");
 $guid = $row['issuer_guid'];
 $oidc_login = $CFG->wwwroot . '/lti/oidc_login' . ($show_guid ? '/'.urlencode($guid): '');
 $oidc_redirect = $CFG->wwwroot . '/lti/oidc_launch';
-$lti13_keyset = $CFG->wwwroot . '/lti/keyset' . ($show_guid ? '/'.urlencode($guid): '');
+$lti13_keyset = $CFG->wwwroot . '/lti/keyset';
 $deep_link = $CFG->wwwroot . '/lti/store/';
 $lti13_sakai_json_url = ($show_guid ? $CFG->wwwroot . '/lti/store/sakai-config/' . urlencode($guid): '');
 

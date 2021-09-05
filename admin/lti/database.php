@@ -120,6 +120,9 @@ array( "{$CFG->dbprefix}lti_key",
     -- a pre-created issuer.  If this is set, all the lms_
     -- values below are in effect ignored.
     issuer_id           INTEGER NULL,
+
+    -- Issuer / client_id / deployment_id defines a client (i.e. who -- pays the bill)
+
     deploy_sha256       CHAR(64) NULL,
     deploy_key          TEXT NULL,     -- deployment_id renamed
 
@@ -135,13 +138,10 @@ array( "{$CFG->dbprefix}lti_key",
     -- Issuer / client_id uniquely identifies a security arrangement
     -- But because Tsugi forces oidc_login and oidc_launch to a URL that
     -- includes key_id, we can just look up the proper row in this table by PK
-    lms_issuer             TEXT NULL,  -- iss from the JWT
-    lms_client             TEXT NULL,  -- aud from the JWT / client_id in OAuth
 
-    -- Issuer / client_id / deployment_id defines a client (i.e. who
-    -- pays the bill) again because we include key_id in URLs - we just
-    -- look the right row up.
-    lms_deployment      TEXT NULL,  -- deployment_id from LTI data
+    lms_issuer           TEXT NULL,  -- iss from the JWT
+    lms_issuer_sha256    CHAR(64) NULL,
+    lms_client           TEXT NULL,  -- aud from the JWT / client_id in OAuth
 
     lms_oidc_auth       TEXT NULL,
     lms_keyset_url      TEXT NULL,
@@ -765,7 +765,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2021-08-26 - Add key-local security arrangements
         array('lti_key', 'lms_issuer', 'TEXT NULL'),
-        array('lti_key', 'lms_deployment', 'TEXT NULL'),
+        array('lti_key', 'lms_issuer_sha256', 'CHAR(64) NULL'),
         array('lti_key', 'lms_client', 'TEXT NULL'),
         array('lti_key', 'lms_oidc_auth', 'TEXT NULL'),
         array('lti_key', 'lms_keyset_url', 'TEXT NULL'),
@@ -845,6 +845,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'platform_kid'),
         array('lti_key', 'platform_pubkey'),
         array('lti_key', 'lms_deployment_id'),
+        array('lti_key', 'lms_deployment'),
         array('lti_key', 'lms_issuer_client_id'),
         array('lti_key', 'lms_issuer_client'),
         array('lti_key', 'lms_keyset'),

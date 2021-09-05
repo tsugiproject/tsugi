@@ -130,7 +130,7 @@ $OUTPUT->flashMessages();
 <div class="tab-pane fade active in" id="data">
 <?php
 $extra_buttons=false;
-$row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?key_id=' . $row['key_id'];
+$row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset';
 $from_location = null;
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
@@ -172,8 +172,20 @@ LTI Advantage legacy LTI 1.1 support.
 <p>
 To use the Dynamic Configuration URL in your Learning Management System,
 keep this window open in a separate tab while using the LMS in another tab
-as the LTI Advantage Dynamic Configuration process requires that you are logged in to this system
-in order to complete the Dynamic Configuration process.
+as the Tsugi Dynamic Configuration process requires that you stay logged in to this system
+in order to ensure you have permission to perform this confguration exchange.
+</p>
+<p>
+Dynamic Configuration sets up the security relationship between a tool and LMS.  Values like
+the Issuer, ClientID, Keyset URL, etc. will be set up.  If the issuer data returned by the LMS
+matches an existing issuer in this system, that issuer will be used for this key, otherwise
+the new issuer data will be added to this key.
+</p>
+<p>
+A secondary and optional part of Dynamic Configuration is to communicate the <b>Deployment ID</b> for this tenant / key.
+Sometimes this is included in the dynamic configuration exchange (Sakai, Moodle, and Brightspace for example).
+For other LMS's you may need to run the dynamic configuration process, and then manually enter the Deployment Id
+later.  LTI Advantage keys without a Deployment ID will not work in Tsugi.
 </p>
 <p>
 <b>Important:</b>
@@ -186,7 +198,7 @@ and check to verify that the key has been set up properly.
 $key_id = $row['key_id'];
 $oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . $key_id;
 $oidc_redirect = $CFG->wwwroot . '/lti/oidc_launch';
-$lti13_keyset = $CFG->wwwroot . '/lti/keyset/' . $key_id;
+$lti13_keyset = $CFG->wwwroot . '/lti/keyset';
 $deep_link = $CFG->wwwroot . '/lti/store/';
 
 ?>
