@@ -1131,7 +1131,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     // Auto populate and/or rotate the lti_keyset data
     echo("Checking lti_keyset<br/>\n");
     $success = \Tsugi\Core\Keyset::maintain();
-    if ( is_string($succes) ) {
+    if ( is_string($success) ) {
         error_log("Unable to generate public/private pair: ".$retval);
         echo("Unable to generate public/private pair: ".$retval."<br/>\n");
     }
