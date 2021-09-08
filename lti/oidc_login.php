@@ -18,11 +18,11 @@ $postmessage_enabled = isset($CFG->postmessage) ? $CFG->postmessage : false;
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
 $issuer_guid = U::get($_REQUEST, 'guid');
-$lti_torage_target = U::get($_REQUEST, 'web_message_target');
-$lti_torage_target = U::get($_REQUEST, 'ims_web_message_target', $lti_torage_target);
-$lti_torage_target = U::get($_REQUEST, 'lti_storage_target', $lti_torage_target);
-$put_data_supported = is_string($lti_torage_target) && strlen($lti_torage_target) > 0;
-if ( $lti_torage_target == "_parent" ) $lti_torage_target = null;
+$lti_storage_target = U::get($_REQUEST, 'web_message_target');
+$lti_storage_target = U::get($_REQUEST, 'ims_web_message_target', $lti_storage_target);
+$lti_storage_target = U::get($_REQUEST, 'lti_storage_target', $lti_storage_target);
+$put_data_supported = is_string($lti_storage_target) && strlen($lti_storage_target) > 0;
+if ( $lti_storage_target == "_parent" ) $lti_storage_target = null;
 
 // TODO: Try to get rid of this
 $put_data_supported = true; // For Now
@@ -46,7 +46,7 @@ $PDOX = \Tsugi\Core\LTIX::getConnection();
 $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
 // TODO: This is a mess :(
-error_log("iss=".$iss." sha256=".$key_sha256);
+error_log("key_id=$key_id issuer_giud=$issuer_guid iss=".$iss." sha256=".$key_sha256);
 if ( $key_id ) {
     $sql = "SELECT key_id,
         lms_issuer, lms_client, lms_oidc_auth, lms_keyset_url,
@@ -124,7 +124,7 @@ $_SESSION['issuer_id'] = $row['issuer_id'];
 $_SESSION['key_id'] = $row['key_id'];
 $_SESSION['issuer_key'] = $issuer_key;
 $_SESSION['platform_public_key'] = $platform_public_key;
-
+$_SESSION['lti_storage_target'] = $lti_storage_target;
 $_SESSION['our_kid'] = $our_kid;
 $_SESSION['our_keyset_url'] = $our_keyset_url;
 $_SESSION['our_keyset'] = $our_keyset;
@@ -169,7 +169,7 @@ if ( $put_data_supported || $postmessage_enabled ) {
     return;
 }
 // Send our data using the postMessage approach
-$post_frame = (is_string($lti_torage_target)) ? ('.frames["'.$lti_torage_target.'"]') : '';
+$post_frame = (is_string($lti_storage_target)) ? ('.frames["'.$lti_storage_target.'"]') : '';
 $state_key = 'state_'.md5($state.$session_password);
 ?>
 <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>

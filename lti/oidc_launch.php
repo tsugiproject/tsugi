@@ -150,6 +150,8 @@ $our_keyset_url = U::get($_SESSION, 'our_keyset_url');
 $our_keyset = U::get($_SESSION, 'our_keyset');
 $platform_public_key = U::get($_SESSION, 'platform_public_key');
 $lti13_oidc_auth = U::get($_SESSION, 'lti13_oidc_auth');
+$lti_storage_target = U::get($_SESSION, 'lti_storage_target', null);
+error_log("lti_storage_target = $lti_storage_target");
 
 $put_data_supported = U::get($_SESSION, 'put_data_supported');
 $issuer_id = U::get($_SESSION, 'issuer_id');
@@ -206,11 +208,12 @@ parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
 
 // Lets check if we need to verify the browser through window.postMessage
 // https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/launch.php
-if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub && $key_id && $lti13_oidc_auth ) {
+if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub && $lti13_oidc_auth ) {
     error_log("postmessage request_kid $request_kid iss $iss key_id $key_id lti13_oidc_auth $lti13_oidc_auth");
 
     $platform_login_auth_endpoint = $lti13_oidc_auth;
     $state_key = 'state_'.md5($state.$session_password);
+    $post_frame = (is_string($lti_storage_target)) ? ('.frames["'.$lti_storage_target.'"]') : '';
 ?>
 <html>
 <head>
@@ -228,8 +231,7 @@ if ( ! inIframe() ) {
     // Get data about the registration linked to the request
     let return_url = new URL(<?= json_encode($platform_login_auth_endpoint, JSON_UNESCAPED_SLASHES); ?>);
 
-    // Get the parent window or opener
-    let message_window = (window.opener || window.parent)<?= isset($_REQUEST['ims_web_message_target']) ? '.frames["'.$_REQUEST['ims_web_message_target'].'"]' : ''; ?>;
+    let message_window = (window.opener || window.parent<?= $post_frame ?>);
 
     let state_set = false;
 
