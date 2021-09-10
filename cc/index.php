@@ -69,6 +69,7 @@ combination of the modules.</p>
   <option value="lti">Use discussion tool on this server (LTI)</option>
   <option value="lms">Use the LMS Discussion Tool</option>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
+  <option value="none">Do not import discussion topics</option>
 </select>
 </p>
 <?php } else { ?>
@@ -131,6 +132,7 @@ echo('<form id="void">'."\n");
   <option value="lti">Use discussion tool on this server (LTI)</option>
   <option value="lms">Use the LMS Discussion Tool</option>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
+  <option value="none">Do not import discussion topics</option>
 </select>
 </p>
 <?php } else { ?>

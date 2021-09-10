@@ -60,7 +60,8 @@ if ( isset($_POST['ext_content_return_url']) ) {
 <select name="topic" id="topic_select_full">
   <!-- <option value="lti">Use discussion tool on this server (LTI)</option> -->
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
-  <option value="lms">Use the Canvas Discussion Tool</option>
+  <option value="lms">Use the Canvas discussion tool</option>
+  <option value="none">Do not import discussion topics</option>
 </select>
 </p>
 <?php } else { ?>
@@ -236,7 +237,7 @@ foreach($l->lessons->modules as $module) {
         }
     }
 
-    if ( isset($module->discussions) ) {
+    if ( isset($module->discussions) && $topic !=  "none" ) {
         foreach($module->discussions as $discussion ) {
             $title = isset($discussion->title) ? $discussion->title : $module->title;
             $text = isset($discussion->description) ? $discussion->description : $module->description;
