@@ -33,6 +33,7 @@ $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'issue
      'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
      'xapi_url', 'xapi_user', 'xapi_password',
+     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 
 $titles = array(
@@ -107,6 +108,14 @@ if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && strlen($row['
 }
 if ( $key_type == '' ) $key_type = 'Draft';
 
+// Move the lms_values to the auxiliary row
+$aux_row = array();
+foreach($row as $k => $v) {
+  if ( strpos($k, "lms_") !== 0 ) continue;
+  $aux_row[$k] = $v;
+  unset($row[$k]);
+}
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -137,7 +146,16 @@ if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 $dynamicConfigUrl = U::addSession($CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'], true);
 
+$global_issuer = $row['issuer_id'] > 0 ;
+if ( count($aux_row) > 0 && ! $global_issuer ) {
+    echo("<h2>Key-Local Issuer Data</h2>\n");
+    foreach($aux_row as $k => $v ) {
+        if ( strlen($v) < 1 ) continue;
+        echo("<p><b>".htmlentities($k)."</b>: ".htmlentities($v)."</p>\n");
+    }
+}
 ?>
+</pre>
 </div>
 <div class="tab-pane fade" id="info">
 <p>
@@ -236,7 +254,7 @@ if ( $inedit ) {
         FROM {$CFG->dbprefix}lti_issuer";
     $issuer_rows = $PDOX->allRowsDie($sql);
 
-    $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Issuer Selected</option>";
+    $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Global Issuer Selected</option>";
     foreach($issuer_rows as $issuer_row) {
         $selected = $row['issuer_id'] == $issuer_row['issuer_id'] ? ' selected ' : '';
         $select_text .= '<option value="'.$issuer_row['issuer_id'].'"'.$selected.'>'.htmlentities($issuer_row['issuer_key']. ' ('.$issuer_row['issuer_client'].')')."</option>";

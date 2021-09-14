@@ -332,7 +332,7 @@ if ( ! $issuer_row ) {
         $deployment_sha256 = hash('sha256', trim($deployment_id));
         $stmt = $PDOX->queryDie(
             "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
-                WHERE key_id = :KID AND user_id = :UID",
+                WHERE key_id = :KID AND (user_id = :UID OR :UID = 0 )",
             array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
         );
 
