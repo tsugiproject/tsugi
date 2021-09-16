@@ -48,6 +48,7 @@ class Result extends Entity {
         global $CFG, $PDOX, $CONTEXT, $LINK;
         $stmt = $PDOX->queryDie(
             "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id,
+                L.lti13_lineitem AS lti13_lineitem, U.subject_key AS lti13_subject_key,
                 sourcedid, service_id, grade, note, R.json AS json, R.note AS note
             FROM {$CFG->dbprefix}lti_result AS R
             JOIN {$CFG->dbprefix}lti_link AS L
@@ -227,7 +228,9 @@ class Result extends Entity {
         if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['gc_submit_id']) ) {
             if ( is_array($debug_log) )  $debug_log[] = "Using Google Classroom";
             $GradeSendTransport = "Google";
+            // TODO: Need to send to the user from $row
             $status = GoogleClassroom::gradeSend(intval($grade*100));
+            error_log("Sending Classroom grade of $grade ");
 
         // LTI 1.3 grade passback - Prefer if available
         } else if ( is_object($TSUGI_LAUNCH) && isset($TSUGI_LAUNCH->context) && is_object($TSUGI_LAUNCH->context) &&
@@ -235,7 +238,7 @@ class Result extends Entity {
 
             if ( is_array($debug_log) )  $debug_log[] = "Using LTI Advantage";
             $GradeSendTransport = "LTI 1.3";
-            error_log("Sending LTI 1.3 grade of $grade for $lti13_subject_key to $lti13_lineitem");
+            error_log("Sending LTI 1.3 grade of $grade for $lti13_subject_key to $lti13_lineitem for $lti13_subject_key");
             $status = $TSUGI_LAUNCH->context->sendLineItemResult($lti13_lineitem, $lti13_subject_key, $grade."", "1", $comment, $debug_log);
 
         // Classic POX call
@@ -243,12 +246,6 @@ class Result extends Entity {
             if ( is_array($debug_log) )  $debug_log[] = "Using LTI 1.1";
             $GradeSendTransport = "LTI 1.1";
             $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log, $signature);
-
-        // LTI 2.x call - Least likely
-        } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($result_url) > 0 ) {
-            if ( is_array($debug_log) )  $debug_log[] = "Using LTI 2.0";
-            $GradeSendTransport = "LTI 2.0";
-            $status = LTI::sendJSONGrade($grade, $comment, $result_url, $key_key, $secret, $debug_log, $signature);
 
         } else {
             error_log("Result::gradeSend stored data locally");
