@@ -190,15 +190,15 @@ if ( $postverify_enabled && ! $verified && $sub && $postverify_url && $postverif
 <script>
 window.addEventListener('message', function (e) {
     console.log('oidc_launch received message');
-    console.log(e);
-    console.log((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
+    console.debug(e);
+    console.debug((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
                 (e.origin == '<?= $postverify_origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
     if ( e.source == parent && e.origin == '<?= $postverify_origin ?>' ) {
         document.getElementById("postverify").value = 'done';
         document.getElementById("oidc_postverify").submit();
     }
 });
-console.log('trophy sending org.sakailms.lti.postverify');
+console.log('sending org.sakailms.lti.postverify');
 parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
 </script>
 <?php
@@ -221,11 +221,18 @@ if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub &&
 <script src="<?= $CFG->staticroot ?>/js/jquery-1.11.3.js"></script>
 </head>
 <body>
+<form method="POST" id="oidc_postmessage">
+<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
+<input type="hidden" id="postmessage" name="postmessage" value="failure">
+</form>
 <script>
 // No point to do postmessage in iframe
 if ( ! inIframe() ) {
+    console.log('Top frame', document.getElementById("postmessage"));
     document.getElementById("postmessage").value = 'success';
+    console.log('Top frame 2');
     document.getElementById("oidc_postmessage").submit();
+    console.log('Top frame 3');
 } else {
 
     // Get data about the registration linked to the request
@@ -238,7 +245,7 @@ if ( ! inIframe() ) {
     // Listen for response containing the id_token from the platform
     window.addEventListener("message", function(event) {
         console.log(window.location.origin + " Got post message from " + event.origin);
-        console.log(JSON.stringify(event.data, null, '    '));
+        console.debug(JSON.stringify(event.data, null, '    '));
         state_set = true;
 
         // Origin MUST be the same as the registered oauth return url origin
@@ -287,8 +294,8 @@ if ( ! inIframe() ) {
         message_id: Math.random(),
         key: "<?= $state_key ?>",
     };
-    console.log(window.location.origin + " Sending post message to " + return_url.origin);
-    console.log(JSON.stringify(send_data, null, '    '));
+    console.debug(window.location.origin + " Sending post message to " + return_url.origin);
+    console.debug(JSON.stringify(send_data, null, '    '));
     message_window.postMessage(send_data, return_url.origin);
     setTimeout(() => {
         if (!state_set) {
@@ -303,10 +310,6 @@ if ( ! inIframe() ) {
 <script>
 setTimeout(function(){$("#waiting").show();}, 3000);
 </script>
-<form method="POST" id="oidc_postmessage">
-<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
-<input type="hidden" id="postmessage" name="postmessage" value="failure">
-</form>
 </body>
 </html>
 <?php
