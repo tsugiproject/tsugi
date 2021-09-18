@@ -33,6 +33,7 @@ $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'issue
      'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
      'xapi_url', 'xapi_user', 'xapi_password',
+     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 
 $titles = array(
@@ -107,6 +108,14 @@ if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && strlen($row['
 }
 if ( $key_type == '' ) $key_type = 'Draft';
 
+// Move the lms_values to the auxiliary row
+$aux_row = array();
+foreach($row as $k => $v) {
+  if ( strpos($k, "lms_") !== 0 ) continue;
+  $aux_row[$k] = $v;
+  unset($row[$k]);
+}
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -130,14 +139,23 @@ $OUTPUT->flashMessages();
 <div class="tab-pane fade active in" id="data">
 <?php
 $extra_buttons=false;
-$row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset?key_id=' . $row['key_id'];
+$row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset';
 $from_location = null;
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 $dynamicConfigUrl = U::addSession($CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'], true);
 
+$global_issuer = $row['issuer_id'] > 0 ;
+if ( count($aux_row) > 0 && ! $global_issuer ) {
+    echo("<h2>Key-Local Issuer Data</h2>\n");
+    foreach($aux_row as $k => $v ) {
+        if ( strlen($v) < 1 ) continue;
+        echo("<p><b>".htmlentities($k)."</b>: ".htmlentities($v)."</p>\n");
+    }
+}
 ?>
+</pre>
 </div>
 <div class="tab-pane fade" id="info">
 <p>
@@ -172,8 +190,20 @@ LTI Advantage legacy LTI 1.1 support.
 <p>
 To use the Dynamic Configuration URL in your Learning Management System,
 keep this window open in a separate tab while using the LMS in another tab
-as the LTI Advantage Dynamic Configuration process requires that you are logged in to this system
-in order to complete the Dynamic Configuration process.
+as the Tsugi Dynamic Configuration process requires that you stay logged in to this system
+in order to ensure you have permission to perform this confguration exchange.
+</p>
+<p>
+Dynamic Configuration sets up the security relationship between a tool and LMS.  Values like
+the Issuer, ClientID, Keyset URL, etc. will be set up.  If the issuer data returned by the LMS
+matches an existing issuer in this system, that issuer will be used for this key, otherwise
+the new issuer data will be added to this key.
+</p>
+<p>
+A secondary and optional part of Dynamic Configuration is to communicate the <b>Deployment ID</b> for this tenant / key.
+Sometimes this is included in the dynamic configuration exchange (Sakai, Moodle, and Brightspace for example).
+For other LMS's you may need to run the dynamic configuration process, and then manually enter the Deployment Id
+later.  LTI Advantage keys without a Deployment ID will not work in Tsugi.
 </p>
 <p>
 <b>Important:</b>
@@ -186,7 +216,7 @@ and check to verify that the key has been set up properly.
 $key_id = $row['key_id'];
 $oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . $key_id;
 $oidc_redirect = $CFG->wwwroot . '/lti/oidc_launch';
-$lti13_keyset = $CFG->wwwroot . '/lti/keyset/' . $key_id;
+$lti13_keyset = $CFG->wwwroot . '/lti/keyset';
 $deep_link = $CFG->wwwroot . '/lti/store/';
 
 ?>
@@ -224,7 +254,7 @@ if ( $inedit ) {
         FROM {$CFG->dbprefix}lti_issuer";
     $issuer_rows = $PDOX->allRowsDie($sql);
 
-    $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Issuer Selected</option>";
+    $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Global Issuer Selected</option>";
     foreach($issuer_rows as $issuer_row) {
         $selected = $row['issuer_id'] == $issuer_row['issuer_id'] ? ' selected ' : '';
         $select_text .= '<option value="'.$issuer_row['issuer_id'].'"'.$selected.'>'.htmlentities($issuer_row['issuer_key']. ' ('.$issuer_row['issuer_client'].')')."</option>";

@@ -97,7 +97,7 @@ $json->redirect_uris = array($CFG->wwwroot . '/lti/oidc_launch');
 if ( isset($CFG->servicename) && $CFG->servicename ) {
     $json->client_name = $CFG->servicename;
 }
-$json->jwks_uri = $CFG->wwwroot . '/lti/keyset/' . urlencode($tsugi_key);
+$json->jwks_uri = $CFG->wwwroot . '/lti/keyset/';
 if ( isset($CFG->privacy_url) && $CFG->privacy_url ) {
     $json->policy_uri = $CFG->privacy_url;
 }
@@ -250,56 +250,89 @@ $issuer_row = $PDOX->rowDie(
 $success = false;
 // Simple case - no issuer - lets make one!
 if ( ! $issuer_row ) {
-    LTI13::generatePKCS8Pair($publicKey, $privateKey);
-    $sql = "INSERT INTO {$CFG->dbprefix}lti_issuer
-        (issuer_title, issuer_sha256, issuer_guid, issuer_key, issuer_client, user_id, lti13_oidc_auth,
-            lti13_keyset_url, lti13_pubkey, lti13_privkey, lti13_token_url, lti13_token_audience)
-        VALUES
-        (:title, :sha256, :guid, :key, :client, :user_id, :oidc_auth,
-            :keyset_url, :pubkey, :privkey, :token_url, :token_audience)
-    ";
-    $values = array(
-        ":title" => $title,
-        ":sha256" => $issuer_sha256,
-        ":guid" => $guid,
-        ":key" => $issuer,
-        ":client" => $client_id,
-        ":user_id" => $user_id,
-        ":oidc_auth" => $authorization_endpoint,
-        ":keyset_url" => $jwks_uri,
-        ":pubkey" => $publicKey,
-        ":privkey" => $privateKey,
-        ":token_url" => $token_endpoint,
-        ":token_audience" => $authorization_server,
-    );
 
-    $stmt = $PDOX->queryReturnError($sql, $values);
+    // Default (for now) is insert issuer data into the key
+    // TODO: Just remove this option
+    if ( isset($CFG->autoissuer) && $CFG->autoissuer ) {
+        $sql = "INSERT INTO {$CFG->dbprefix}lti_issuer
+            (issuer_title, issuer_sha256, issuer_guid, issuer_key, issuer_client, user_id, lti13_oidc_auth,
+                lti13_keyset_url, lti13_token_url, lti13_token_audience)
+            VALUES
+            (:title, :sha256, :guid, :key, :client, :user_id, :oidc_auth,
+                :keyset_url, :token_url, :token_audience)
+        ";
+        $values = array(
+            ":title" => $title,
+            ":sha256" => $issuer_sha256,
+            ":guid" => $guid,
+            ":key" => $issuer,
+            ":client" => $client_id,
+            ":user_id" => $user_id,
+            ":oidc_auth" => $authorization_endpoint,
+            ":keyset_url" => $jwks_uri,
+            ":token_url" => $token_endpoint,
+            ":token_audience" => $authorization_server,
+        );
 
-    if ( ! $stmt->success ) {
-        echo("Unable to insert issuer\n");
-        return;
-    }
+        $stmt = $PDOX->queryReturnError($sql, $values);
 
-    $issuer_id = $PDOX->lastInsertId();
+        if ( ! $stmt->success ) {
+            echo("Unable to insert issuer\n");
+            return;
+        }
 
-    echo("<p>Created new issuer = $issuer_id</p>\n");
+        $issuer_id = $PDOX->lastInsertId();
 
-    $stmt = $PDOX->queryDie(
-        "UPDATE {$CFG->dbprefix}lti_key SET issuer_id = :IID
-            WHERE key_id = :KID AND user_id = :UID",
-        array(":IID" => $issuer_id, ":KID" => $tsugi_key, ":UID" => $user_id)
-    );
+        echo("<p>Created new issuer = $issuer_id</p>\n");
 
-    if ( ! $stmt->success ) {
-        echo("Unable to update key entry to connect to the issuer\n");
-        return;
-    }
+        $stmt = $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_key SET issuer_id = :IID
+                WHERE key_id = :KID AND user_id = :UID",
+            array(":IID" => $issuer_id, ":KID" => $tsugi_key, ":UID" => $user_id)
+        );
+
+        if ( ! $stmt->success ) {
+            echo("Unable to update key entry to connect to the issuer\n");
+            return;
+        }
+
+    // TODO: "this is the way" when you are ready for it
+    } else { // Store LMS data in the row
+
+        $sql = "UPDATE {$CFG->dbprefix}lti_key SET
+                issuer_id = NULL,
+                lms_issuer = :lms_issuer,
+                lms_issuer_sha256 = :lms_issuer_sha256,
+                lms_client = :lms_client,
+                lms_oidc_auth = :lms_oidc_auth,
+                lms_keyset_url = :lms_keyset_url,
+                lms_token_url = :lms_token_url,
+                lms_token_audience = :lms_token_audience
+            WHERE key_id = :ID
+        ";
+
+        $values = array(
+            ":ID" => $tsugi_key,
+            ":lms_issuer" => $issuer,
+            ":lms_issuer_sha256" => $issuer_sha256,
+            ":lms_client" => $client_id,
+            ":lms_oidc_auth" => $authorization_endpoint,
+            ":lms_keyset_url" => $jwks_uri,
+            ":lms_token_url" => $token_endpoint,
+            ":lms_token_audience" => $authorization_server,
+        );
+
+        $PDOX->queryDie($sql, $values);
+
+        error_log("Stored issuer $issuer / $client_id in lti_key table");
+
+    } // End Store LMS Data in the row
 
     if ( $deployment_id ) {
         $deployment_sha256 = hash('sha256', trim($deployment_id));
         $stmt = $PDOX->queryDie(
             "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
-                WHERE key_id = :KID AND user_id = :UID",
+                WHERE key_id = :KID AND (user_id = :UID OR :UID = 0 )",
             array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
         );
 
@@ -408,34 +441,3 @@ Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJ .
     }
 }
  */
-/*
-    issuer_id           INTEGER NOT NULL AUTO_INCREMENT,
-    issuer_title        TEXT NULL,
-    issuer_sha256       CHAR(64) NULL,  -- Will become obsolete
-    issuer_guid         CHAR(36) NOT NULL,  -- Our local GUID
-    issuer_key          TEXT NOT NULL,  -- iss from the JWT
-    issuer_client       TEXT NOT NULL,  -- aud from the JWT
-    deleted             TINYINT(1) NOT NULL DEFAULT 0,
-
-    -- This is the owner of this issuer - it is not a foreign key
-    -- We might use this if we end up with self-service issuers
-    user_id             INTEGER NULL,
-
-    lti13_oidc_auth     TEXT NULL,
-    lti13_keyset_url    TEXT NULL,
-    lti13_keyset        TEXT NULL,
-    lti13_platform_pubkey TEXT NULL,
-    lti13_kid           TEXT NULL,
-    lti13_pubkey        TEXT NULL,
-    lti13_privkey       TEXT NULL,
-    lti13_token_url     TEXT NULL,
-    lti13_token_audience  TEXT NULL,
-
-    $fields = array("issuer_title", "issuer_key", "issuer_client", "issuer_sha256",
-    "lti13_keyset_url", "lti13_token_url", "lti13_oidc_auth",
-    "lti13_pubkey", "lti13_privkey",
-    "issuer_guid", "lti13_token_audience",
-    "created_at", "updated_at");
-
-*/
-

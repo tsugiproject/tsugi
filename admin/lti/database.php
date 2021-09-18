@@ -60,10 +60,6 @@ array( "{$CFG->dbprefix}lti_issuer",
     lti13_platform_pubkey TEXT NULL,
     lti13_kid           TEXT NULL,
 
-    -- TODO: Remove these once we switch to global key signing
-    lti13_pubkey        TEXT NULL,
-    lti13_privkey       TEXT NULL,
-
     json                MEDIUMTEXT NULL,
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -124,6 +120,9 @@ array( "{$CFG->dbprefix}lti_key",
     -- a pre-created issuer.  If this is set, all the lms_
     -- values below are in effect ignored.
     issuer_id           INTEGER NULL,
+
+    -- Issuer / client_id / deployment_id defines a client (i.e. who -- pays the bill)
+
     deploy_sha256       CHAR(64) NULL,
     deploy_key          TEXT NULL,     -- deployment_id renamed
 
@@ -139,13 +138,10 @@ array( "{$CFG->dbprefix}lti_key",
     -- Issuer / client_id uniquely identifies a security arrangement
     -- But because Tsugi forces oidc_login and oidc_launch to a URL that
     -- includes key_id, we can just look up the proper row in this table by PK
-    lms_issuer             TEXT NULL,  -- iss from the JWT
-    lms_client             TEXT NULL,  -- aud from the JWT / client_id in OAuth
 
-    -- Issuer / client_id / deployment_id defines a client (i.e. who
-    -- pays the bill) again because we include key_id in URLs - we just
-    -- look the right row up.
-    lms_deployment      TEXT NULL,  -- deployment_id from LTI data
+    lms_issuer           TEXT NULL,  -- iss from the JWT
+    lms_issuer_sha256    CHAR(64) NULL,
+    lms_client           TEXT NULL,  -- aud from the JWT / client_id in OAuth
 
     lms_oidc_auth       TEXT NULL,
     lms_keyset_url      TEXT NULL,
@@ -769,7 +765,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2021-08-26 - Add key-local security arrangements
         array('lti_key', 'lms_issuer', 'TEXT NULL'),
-        array('lti_key', 'lms_deployment', 'TEXT NULL'),
+        array('lti_key', 'lms_issuer_sha256', 'CHAR(64) NULL'),
         array('lti_key', 'lms_client', 'TEXT NULL'),
         array('lti_key', 'lms_oidc_auth', 'TEXT NULL'),
         array('lti_key', 'lms_keyset_url', 'TEXT NULL'),
@@ -849,11 +845,17 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'platform_kid'),
         array('lti_key', 'platform_pubkey'),
         array('lti_key', 'lms_deployment_id'),
+        array('lti_key', 'lms_deployment'),
         array('lti_key', 'lms_issuer_client_id'),
         array('lti_key', 'lms_issuer_client'),
         array('lti_key', 'lms_keyset'),
         array('lti_key', 'lms_pubkey'),
         array('lti_key', 'lms_kid'),
+
+        // TODO: Remove these later - well after 2021-09 / global key signing
+        // array('lti_issuer', 'lti13_pubkey',),
+        // array('lti_issuer', 'lti13_privkey',),
+
     );
 
     foreach ( $drop_some_fields as $drop_field ) {
@@ -1128,7 +1130,11 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // Auto populate and/or rotate the lti_keyset data
     echo("Checking lti_keyset<br/>\n");
-    \Tsugi\Core\Keyset::maintain();
+    $success = \Tsugi\Core\Keyset::maintain();
+    if ( is_string($success) ) {
+        error_log("Unable to generate public/private pair: ".$retval);
+        echo("Unable to generate public/private pair: ".$retval."<br/>\n");
+    }
 
     // It seems like some automatically created LTI1.1 keys between
     // 2017-10-25 and 2019-07-04 ended up with the wrong key_sha256 for the

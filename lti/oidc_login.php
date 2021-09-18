@@ -18,11 +18,11 @@ $postmessage_enabled = isset($CFG->postmessage) ? $CFG->postmessage : false;
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
 $issuer_guid = U::get($_REQUEST, 'guid');
-$lti_torage_target = U::get($_REQUEST, 'web_message_target');
-$lti_torage_target = U::get($_REQUEST, 'ims_web_message_target', $lti_torage_target);
-$lti_torage_target = U::get($_REQUEST, 'lti_storage_target', $lti_torage_target);
-$put_data_supported = is_string($lti_torage_target) && strlen($lti_torage_target) > 0;
-if ( $lti_torage_target == "_parent" ) $lti_torage_target = null;
+$lti_storage_target = U::get($_REQUEST, 'web_message_target');
+$lti_storage_target = U::get($_REQUEST, 'ims_web_message_target', $lti_storage_target);
+$lti_storage_target = U::get($_REQUEST, 'lti_storage_target', $lti_storage_target);
+$put_data_supported = is_string($lti_storage_target) && strlen($lti_storage_target) > 0;
+if ( $lti_storage_target == "_parent" ) $lti_storage_target = null;
 
 // TODO: Try to get rid of this
 $put_data_supported = true; // For Now
@@ -45,15 +45,35 @@ $PDOX = \Tsugi\Core\LTIX::getConnection();
 
 $key_sha256 = LTI13::extract_issuer_key_string($iss);
 
-error_log("iss=".$iss." sha256=".$key_sha256);
+// TODO: This is a mess :(
+error_log("key_id=$key_id issuer_giud=$issuer_guid iss=".$iss." sha256=".$key_sha256);
 if ( $key_id ) {
-     $sql = "SELECT issuer_client, lti13_oidc_auth,
-         issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
-         FROM {$CFG->dbprefix}lti_issuer AS I
-            JOIN {$CFG->dbprefix}lti_key AS K ON
-                K.issuer_id = I.issuer_id
-            WHERE K.key_id = :KID AND I.issuer_sha256 = :SHA";
+    $sql = "SELECT key_id,
+        lms_issuer, lms_client, lms_oidc_auth, lms_keyset_url,
+        lms_token_url, lms_token_audience, lms_cache_keyset, lms_cache_pubkey, lms_cache_kid,
+        K.issuer_id AS issuer_id,
+        issuer_client, lti13_oidc_auth, issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey
+        FROM {$CFG->dbprefix}lti_key AS K
+        LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
+                K.issuer_id = I.issuer_id AND I.issuer_sha256 = :SHA
+            WHERE K.key_id = :KID";
     $row = $PDOX->rowDie($sql, array(":KID" => $key_id, ":SHA" => $key_sha256));
+    if ( ! is_array($row) || count($row) < 1 ) {
+        LTIX::abort_with_error_log('Login could not find issuer '.htmlentities($iss)." for key=".$key_id);
+        return;
+    }
+
+    // Move issuer data from key to global if needed
+    if ( $row['issuer_id'] < 1 ) {
+        $row['issuer_client'] = $row['lms_client'];
+        $row['lti13_oidc_auth'] = $row['lms_oidc_auth'];
+        $row['issuer_key'] = $row['lms_issuer'];
+        $row['lti13_kid'] = $row['lms_cache_kid'];
+        $row['lti13_keyset_url'] = $row['lms_keyset_url'];
+        $row['lti13_keyset'] = $row['lms_cache_keyset'];
+        $row['lti13_platform_pubkey'] = $row['lms_cache_pubkey'];
+    }
+
 } else {
     if ( $issuer_guid ) {
         $query_where = "WHERE issuer_sha256 = :SHA AND issuer_guid = :issuer_guid AND issuer_client IS NOT NULL AND lti13_oidc_auth IS NOT NULL";
@@ -64,8 +84,8 @@ if ( $key_id ) {
     }
 
     $row = $PDOX->rowDie(
-        "SELECT issuer_client, lti13_oidc_auth,
-        issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey, lti13_privkey
+        "SELECT NULL as key_id, issuer_id, issuer_client, lti13_oidc_auth,
+        issuer_key, lti13_kid, lti13_keyset_url, lti13_keyset, lti13_platform_pubkey
         FROM {$CFG->dbprefix}lti_issuer $query_where",
         $query_where_params);
 }
@@ -81,7 +101,6 @@ $platform_public_key = $row['lti13_platform_pubkey'];
 $our_kid = $row['lti13_kid'];
 $our_keyset_url = $row['lti13_keyset'];
 $our_keyset = $row['lti13_keyset'];
-$tool_private_key = $row['lti13_privkey'];
 
 $signature = \Tsugi\Core\LTIX::getBrowserSignature();
 
@@ -101,18 +120,17 @@ error_log(" =============== oidc_login ===================== $sid");
 session_id($sid);
 session_start();
 $_SESSION['state'] = $state;
+$_SESSION['issuer_id'] = $row['issuer_id'];
+$_SESSION['key_id'] = $row['key_id'];
 $_SESSION['issuer_key'] = $issuer_key;
 $_SESSION['platform_public_key'] = $platform_public_key;
-
+$_SESSION['lti_storage_target'] = $lti_storage_target;
 $_SESSION['our_kid'] = $our_kid;
 $_SESSION['our_keyset_url'] = $our_keyset_url;
 $_SESSION['our_keyset'] = $our_keyset;
 $_SESSION['lti13_oidc_auth'] = trim($row['lti13_oidc_auth']);
 $session_password = uniqid();
 $_SESSION['password'] = $session_password;
-
-$encr = AesCtr::encrypt($tool_private_key, $CFG->cookiesecret, 256) ;
-$_SESSION['tool_private_key_encr'] = $encr;
 
 $_SESSION['put_data_supported'] = $put_data_supported;
 
@@ -151,7 +169,7 @@ if ( $put_data_supported || $postmessage_enabled ) {
     return;
 }
 // Send our data using the postMessage approach
-$post_frame = (is_string($lti_torage_target)) ? ('.frames["'.$lti_torage_target.'"]') : '';
+$post_frame = (is_string($lti_storage_target)) ? ('.frames["'.$lti_storage_target.'"]') : '';
 $state_key = 'state_'.md5($state.$session_password);
 ?>
 <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>

@@ -143,7 +143,6 @@ $sub = isset($jwt->body->sub) ? $jwt->body->sub : null;
 
 $request_kid = isset($jwt->header->kid) ? $jwt->header->kid : null;
 $iss = isset($jwt->body->iss) ? $jwt->body->iss : null;
-$issuer_sha256 = $iss ? LTI13::extract_issuer_key_string($iss) : null;
 
 // Get verification data from oidc_login via session
 $our_kid = U::get($_SESSION, 'our_kid');
@@ -151,18 +150,19 @@ $our_keyset_url = U::get($_SESSION, 'our_keyset_url');
 $our_keyset = U::get($_SESSION, 'our_keyset');
 $platform_public_key = U::get($_SESSION, 'platform_public_key');
 $lti13_oidc_auth = U::get($_SESSION, 'lti13_oidc_auth');
-
-$tool_private_key_encr = U::get($_SESSION, 'tool_private_key_encr');
-$tool_private_key = AesCtr::decrypt($tool_private_key_encr, $CFG->cookiesecret, 256) ;
+$lti_storage_target = U::get($_SESSION, 'lti_storage_target', null);
+error_log("lti_storage_target = $lti_storage_target");
 
 $put_data_supported = U::get($_SESSION, 'put_data_supported');
+$issuer_id = U::get($_SESSION, 'issuer_id');
+$key_id = U::get($_SESSION, 'key_id');
 
 // Sakai postverify approach
 $postverify_url = isset($jwt->body->{$POSTVERIFY_CLAIM}) ? $jwt->body->{$POSTVERIFY_CLAIM} : null;
 $postverify_origin = isset($jwt->body->{$ORIGIN_CLAIM}) ? $jwt->body->{$ORIGIN_CLAIM} : null;
-if ( $postverify_enabled && ! $verified && $sub && $postverify_url && $postverify_origin && $issuer_sha256 ) {
-    error_log("request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256  postverify_origin $postverify_origin postverify_url $postverify_url");
-    $platform_public_key = LTIX::getPlatformPublicKey($request_kid, $our_kid, $platform_public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
+if ( $postverify_enabled && ! $verified && $sub && $postverify_url && $postverify_origin && $key_id ) {
+    error_log("request_kid $request_kid iss $iss key_id $key_id issuer_id $isuer_id postverify_origin $postverify_origin postverify_url $postverify_url");
+    $platform_public_key = LTIX::getPlatformPublicKey($issuer_id, $key_id, $request_kid, $our_kid, $platform_public_key, $our_keyset_url, $our_keyset);
 
     $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
     if ( $e !== true ) {
@@ -190,15 +190,15 @@ if ( $postverify_enabled && ! $verified && $sub && $postverify_url && $postverif
 <script>
 window.addEventListener('message', function (e) {
     console.log('oidc_launch received message');
-    console.log(e);
-    console.log((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
+    console.debug(e);
+    console.debug((e.source == parent ? 'Source parent' : 'Source not parent '+e.source), '/',
                 (e.origin == '<?= $postverify_origin ?>' ? 'Origin match' : 'Origin mismatch '+e.origin));
     if ( e.source == parent && e.origin == '<?= $postverify_origin ?>' ) {
         document.getElementById("postverify").value = 'done';
         document.getElementById("oidc_postverify").submit();
     }
 });
-console.log('trophy sending org.sakailms.lti.postverify');
+console.log('sending org.sakailms.lti.postverify');
 parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
 </script>
 <?php
@@ -208,11 +208,12 @@ parent.postMessage('<?= $poststr ?>', '<?= $postverify_origin ?>');
 
 // Lets check if we need to verify the browser through window.postMessage
 // https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/launch.php
-if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub && $issuer_sha256 && $lti13_oidc_auth ) {
-    error_log("postmessage request_kid $request_kid iss $iss issuer_sha256 $issuer_sha256 lti13_oidc_auth $lti13_oidc_auth");
+if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub && $lti13_oidc_auth ) {
+    error_log("postmessage request_kid $request_kid iss $iss key_id $key_id lti13_oidc_auth $lti13_oidc_auth");
 
     $platform_login_auth_endpoint = $lti13_oidc_auth;
     $state_key = 'state_'.md5($state.$session_password);
+    $post_frame = (is_string($lti_storage_target)) ? ('.frames["'.$lti_storage_target.'"]') : '';
 ?>
 <html>
 <head>
@@ -220,25 +221,31 @@ if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub &&
 <script src="<?= $CFG->staticroot ?>/js/jquery-1.11.3.js"></script>
 </head>
 <body>
+<form method="POST" id="oidc_postmessage">
+<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
+<input type="hidden" id="postmessage" name="postmessage" value="failure">
+</form>
 <script>
 // No point to do postmessage in iframe
 if ( ! inIframe() ) {
+    console.log('Top frame', document.getElementById("postmessage"));
     document.getElementById("postmessage").value = 'success';
+    console.log('Top frame 2');
     document.getElementById("oidc_postmessage").submit();
+    console.log('Top frame 3');
 } else {
 
     // Get data about the registration linked to the request
     let return_url = new URL(<?= json_encode($platform_login_auth_endpoint, JSON_UNESCAPED_SLASHES); ?>);
 
-    // Get the parent window or opener
-    let message_window = (window.opener || window.parent)<?= isset($_REQUEST['ims_web_message_target']) ? '.frames["'.$_REQUEST['ims_web_message_target'].'"]' : ''; ?>;
+    let message_window = (window.opener || window.parent<?= $post_frame ?>);
 
     let state_set = false;
 
     // Listen for response containing the id_token from the platform
     window.addEventListener("message", function(event) {
         console.log(window.location.origin + " Got post message from " + event.origin);
-        console.log(JSON.stringify(event.data, null, '    '));
+        console.debug(JSON.stringify(event.data, null, '    '));
         state_set = true;
 
         // Origin MUST be the same as the registered oauth return url origin
@@ -287,8 +294,8 @@ if ( ! inIframe() ) {
         message_id: Math.random(),
         key: "<?= $state_key ?>",
     };
-    console.log(window.location.origin + " Sending post message to " + return_url.origin);
-    console.log(JSON.stringify(send_data, null, '    '));
+    console.debug(window.location.origin + " Sending post message to " + return_url.origin);
+    console.debug(JSON.stringify(send_data, null, '    '));
     message_window.postMessage(send_data, return_url.origin);
     setTimeout(() => {
         if (!state_set) {
@@ -303,10 +310,6 @@ if ( ! inIframe() ) {
 <script>
 setTimeout(function(){$("#waiting").show();}, 3000);
 </script>
-<form method="POST" id="oidc_postmessage">
-<input type="hidden" name="state" value="<?= htmlspecialchars($state) ?>">
-<input type="hidden" id="postmessage" name="postmessage" value="failure">
-</form>
 </body>
 </html>
 <?php

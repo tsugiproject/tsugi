@@ -16,6 +16,7 @@ use \Tsugi\UI\Output;
 use \Tsugi\Core\I18N;
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\SQLDialect;
+use \Tsugi\Core\Keyset;
 use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Crypt\AesCtr;
@@ -501,6 +502,7 @@ class LTIX {
 
         } else { // LTI 1.3
             $key_id = $row['key_id'];
+            $issuer_id = $row['issuer_id'];
             $issuer_key = $post['issuer_key'];
             $issuer_client = $post['issuer_client'];
             $deployment_id = $post['deployment_id'];
@@ -518,12 +520,9 @@ class LTIX {
             $our_keyset_url = $row['lti13_keyset_url'];
             $public_key = $row['lti13_platform_pubkey'];
 
-            $private_key = $row['lti13_privkey'];
             $token_url = $row['lti13_token_url'];
 
-            $issuer_sha256 = $post['issuer_sha256'];
-
-            $public_key = self::getPlatformPublicKey($request_kid, $our_kid, $public_key, $issuer_sha256, $our_keyset_url, $our_keyset);
+            $public_key = self::getPlatformPublicKey($issuer_id, $key_id, $request_kid, $our_kid, $public_key, $our_keyset_url, $our_keyset);
 /*
             // Sanity check
             if ( strlen($our_keyset_url) < 1 ) {
@@ -590,7 +589,6 @@ class LTIX {
                 if ( ! $check ) self::abort_with_error_log('LTI 1.1 Transition signature mis-match key='.$lti11_oauth_consumer_key);
             }
 
-            $row['lti13_privkey'] = self::encrypt_secret($private_key);
             $row['lti13_token_url'] = $token_url;
 
             // Just copy across
@@ -820,11 +818,13 @@ class LTIX {
      * re-load the keyset url, and check the new keyset url.  If new information is retrieved, it
      * is cached until the kid chages for this issuer.
      */
-    public static function getPlatformPublicKey($request_kid, $our_kid, $public_key, $issuer_sha256, $our_keyset_url, $our_keyset)
+    public static function getPlatformPublicKey($issuer_id, $key_id, $request_kid, $our_kid, $public_key, $our_keyset_url, $our_keyset)
     {
         global $PDOX, $CFG;
 
         if ( strlen($public_key) > 0 && $request_kid == $our_kid ) return $public_key;
+
+        error_log("getPlatformPublicKey issuer_id=$issuer_id key_id=$key_id request_kid=$request_kid stored_kid=$our_kid");
 
         // Make sure we have or update to the latest keyset if we have a keyset_url
         // and the kid is new to us
@@ -832,10 +832,17 @@ class LTIX {
             $our_keyset = file_get_contents($our_keyset_url);
             $decoded = json_decode($our_keyset);
             if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
-                $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
-                    SET lti13_keyset=:KS, updated_at=NOW() WHERE issuer_sha256 = :SHA",
-                array(':SHA' => $issuer_sha256, ':KS' => $our_keyset) );
-                error_log("Updated keyset $issuer_sha256 from $our_keyset_url\n");
+                if ( $issuer_id > 0 ) {
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
+                        SET lti13_keyset=:KS, updated_at=NOW() WHERE issuer_id = :ID",
+                    array(':ID' => $issuer_id, ':KS' => $our_keyset) );
+                    error_log("Updated issuer keyset $issuer_id from $our_keyset_url\n");
+                } else {
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
+                        SET lms_cache_keyset=:KS, updated_at=NOW() WHERE key_id = :ID",
+                    array(':ID' => $key_id, ':KS' => $our_keyset) );
+                    error_log("Updated lms_cache_keyset $issuer_id from $our_keyset_url\n");
+                }
             } else {
                 self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url,
                             substr($our_keyset,0,1000));
@@ -847,26 +854,48 @@ class LTIX {
             $new_public_key = LTI13::extractKeyFromKeySet($our_keyset, $request_kid);
 
             if ( $new_public_key ) {
-                $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
-                    SET lti13_platform_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE issuer_sha256 = :SHA",
-                    array(':SHA' => $issuer_sha256, ':PK' => $new_public_key,
-                        ':KID' => $request_kid )
-                );
-                error_log("New public key $issuer_sha256\n$new_public_key");
+                if ( $issuer_id > 0 ) {
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
+                        SET lti13_platform_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE issuer_id = :ID",
+                        array(':ID' => $issuer_id, ':PK' => $new_public_key,
+                            ':KID' => $request_kid )
+                    );
+                    error_log("New issuer public key $issuer_id\n$new_public_key");
+                } else {
+                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
+                        SET lms_cache_pubkey=:PK, lms_cache_kid=:KID, updated_at=NOW() WHERE key_id = :ID",
+                        array(':ID' => $key_id, ':PK' => $new_public_key,
+                            ':KID' => $request_kid )
+                    );
+                    error_log("New lms_cache_pubkey $key_id\n$new_public_key");
+                }
                 return $new_public_key;
             }
         }
 
         // Despite our best efforts, we could not get a key - clear things out to enable reset
-        $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
-            SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE issuer_sha256 = :SHA",
-        array(':SHA' => $issuer_sha256) );
-        if ( strlen($public_key) > 0 ) {
-            error_log("Cleared public key $issuer_sha256 invalid kid");
-            self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
+        if ( $issuer_id > 0 ) {
+            $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
+                SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE issuer_id = :ID",
+            array(':ID' => $issuer_id) );
+            if ( strlen($public_key) > 0 ) {
+                error_log("Cleared public key $issuer_id invalid kid");
+                self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
+            } else {
+                error_log("Could not find public key $issuer_id invalid kid");
+                self::abort_with_error_log("Invalid Key Id (header.kid), could not find public key");
+            }
         } else {
-            error_log("Could not find public key $issuer_sha256 invalid kid");
-            self::abort_with_error_log("Invalid Key Id (header.kid), could not find public key");
+            $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
+                SET lms_cache_pubkey=NULL, updated_at=NOW() WHERE key_id = :ID",
+            array(':ID' => $key_id) );
+            if ( strlen($public_key) > 0 ) {
+                error_log("Cleared lms_cache_pubkey key $key_id invalid kid");
+                self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
+            } else {
+                error_log("Could not find lms_cache_pubkey $key_id invalid kid");
+                self::abort_with_error_log("Invalid Key Id (header.kid), could not find public key");
+            }
         }
     }
 
@@ -1166,13 +1195,10 @@ class LTIX {
      * encode and sign a JWT with a bunch of parameters
      */
     public static function encode_jwt($params) {
-        $lti13_privkey = self::ltiParameter('lti13_privkey');
-        $lti13_privkey = $lti13_privkey ? self::decrypt_secret($lti13_privkey) : false;
-        $lti13_pubkey = self::ltiParameter('lti13_pubkey');
+        $success = Keyset::getSigning($privkey, $kid);
 
-        $lti13_kid = self::getKidForKey($lti13_pubkey);
-        // error_log('kid='. $lti13_kid. ' pub='.$lti13_pubkey.' priv='.$lti13_privkey);
-        $jws = LTI13::encode_jwt($params, $lti13_privkey, $lti13_kid);
+        // error_log('kid='. $kid.' priv='.$privkey);
+        $jws = LTI13::encode_jwt($params, $privkey, $kid);
         return $jws;
     }
 
@@ -1200,12 +1226,12 @@ class LTIX {
         $errormode = $PDOX->getAttribute(\PDO::ATTR_ERRMODE);
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        $LTI13 = U::get($post, "issuer_key", false) !== false;
+        $issuer_key = U::get($post, "issuer_key", false);
+        $LTI13 = $issuer_key !== false;
 
         if ( $LTI13 ) {
-            $sql = "SELECT i.issuer_id, i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
-                i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_privkey, i.lti13_pubkey,
-                i.lti13_token_audience,
+            $sql = "SELECT i.issuer_id, i.issuer_key, i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
+                i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_token_audience,
                 k.deploy_key, u.subject_key,
             ";
         } else {
@@ -1214,6 +1240,8 @@ class LTIX {
 
         $sql .= "k.key_id, k.key_key, k.secret, k.new_secret, k.settings_url AS key_settings_url,
             k.login_at AS key_login_at, k.settings AS key_settings,
+            k.lms_issuer, k.lms_client, k.lms_oidc_auth, k.lms_keyset_url,
+            k.lms_token_url, k.lms_token_audience, k.lms_cache_keyset, k.lms_cache_pubkey, k.lms_cache_kid,
             n.nonce,
             c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
             c.ext_memberships_id AS ext_memberships_id, c.ext_memberships_url AS ext_memberships_url,
@@ -1246,8 +1274,12 @@ class LTIX {
         }
 
         if ( $LTI13 ) {
-            $sql .="\nFROM {$p}lti_issuer AS i
-                LEFT JOIN {$p}lti_key AS k ON i.issuer_id = k.issuer_id";
+            // $sql .="\nFROM {$p}lti_issuer AS i
+                // LEFT JOIN {$p}lti_key AS k ON i.issuer_id = k.issuer_id";
+            $sql .="\nFROM {$p}lti_key AS k
+                LEFT JOIN {$p}lti_issuer AS i ON i.issuer_id = k.issuer_id AND
+                (i.deleted IS NULL OR i.deleted = 0) AND
+                (i.issuer_sha256 = :issuer_sha256 AND i.issuer_client = :issuer_client) ";
         } else {
             $sql .="\nFROM {$p}lti_key AS k";
         }
@@ -1285,9 +1317,13 @@ class LTIX {
 
         // Add the WHERE clause
         if ( $LTI13 ) {
-            $sql .= "\nWHERE i.issuer_sha256 = :issuer_sha256 AND i.issuer_client = :issuer_client
-                AND (k.deploy_key = :deployment_id OR k.deploy_key IS NULL)
-                AND (i.deleted IS NULL OR i.deleted = 0)";
+            // TODO: Index lms_issuer_sha256
+            $sql .= "\nWHERE (k.deploy_key = :deployment_id OR k.deploy_key IS NULL)
+                AND (
+                    (i.issuer_sha256 = :issuer_sha256 AND i.issuer_client = :issuer_client)
+                    OR ( lms_issuer_sha256 = :issuer_sha256 AND lms_client = :issuer_client )
+                )
+            ";
         } else {
            $sql .= "\nWHERE k.key_sha256 = :key AND (k.deleted IS NULL OR k.deleted = 0)";
         }
@@ -1336,6 +1372,7 @@ class LTIX {
             ':user' => $user_sha256,
         );
 
+        // Pick the correct public key, etc
         if ( $LTI13 ) {
             $parms[':subject'] = $subject_sha256;
             $parms[':issuer_sha256'] = $post["issuer_sha256"];
@@ -1355,10 +1392,23 @@ class LTIX {
 
         foreach($parms as $k => $v ) { $zapsql = str_replace($k, "'".$v."'", $zapsql); }
         echo("\n$zapsql\n");
-        */
+         */
         // die();
         $row = $PDOX->rowDie($sql, $parms);
-        // var_dump($row);die();
+        // echo("<pre>\n");var_dump($row);die();
+
+        // Check if we have an issuer for lti_issuers
+        if ( $LTI13 && is_array($row) && $row['issuer_id'] < 1 ) {
+            error_log("Using LTI13 key values ".$row['lms_issuer']." / ".$row['lms_client']);
+            $row['issuer_key'] = $row['lms_issuer'];
+            $row['issuer_client'] = $row['lms_client'];
+            $row['lti13_kid'] = $row['lms_cache_kid'];
+            $row['lti13_keyset_url'] = $row['lms_keyset_url'];
+            $row['lti13_keyset'] = $row['lms_cache_keyset'];
+            $row['lti13_platform_pubkey'] = $row['lms_cache_pubkey'];
+            $row['lti13_token_url'] = $row['lms_token_url'];
+            $row['lti13_token_audience'] = $row['lms_token_audience'];
+        }
 
         // Restore ERRMODE
         $PDOX->setAttribute(\PDO::ATTR_ERRMODE, $errormode);
