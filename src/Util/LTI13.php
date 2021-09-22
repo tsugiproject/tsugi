@@ -1022,6 +1022,8 @@ class LTI13 {
      *
      * @param string $publicKey Returned public key
      * @param string $privateKey Returned private key
+     *
+     * @return string or true If there was an error, we return it, on success return true
      */
     // https://stackoverflow.com/questions/6648337/generate-ssh-keypair-form-php
     public static function generatePKCS8Pair(&$publicKey, &$privateKey) {
@@ -1030,6 +1032,14 @@ class LTI13 {
                 'private_key_bits' => 2048,
                 'private_key_type' => OPENSSL_KEYTYPE_RSA));
 
+        if ( $privKey === false ) {
+            $error = openssl_error_string();
+            error_log("generatePKCS8Pair error="+$error);
+            $privateKey = null;
+            $publicKey = null;
+            return $error;
+        }
+
         // Private Key
         $privKey = openssl_pkey_get_private($privKey);
         openssl_pkey_export($privKey, $privateKey);
@@ -1037,6 +1047,7 @@ class LTI13 {
         // Public Key
         $pubKey = openssl_pkey_get_details($privKey);
         $publicKey = $pubKey['key'];
+        return true;
     }
 
     /** Cleanup common mess-ups in PKCS8 strings
