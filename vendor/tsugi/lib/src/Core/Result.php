@@ -144,12 +144,13 @@ class Result extends Entity {
      * steps that were taken.
      * Each entry is an array with the [0] element a message and an optional [1]
      * element as some detail (i.e. like a POST body)
+     * @param $extra12 A key/value store of extra LTI1.3 parameters
      *
      * @return mixed If this works it returns true.  If not, you get
      * a string with an error.
      *
      */
-    public static function gradeSendStatic($grade, $row=false, &$debug_log=false) {
+    public static function gradeSendStatic($grade, $row=false, &$debug_log=false, $extra13=false) {
         global $CFG, $LINK, $TSUGI_LAUNCH;
         global $GradeSendTransport;
         global $LastPOXGradeResponse;
@@ -239,7 +240,7 @@ class Result extends Entity {
             if ( is_array($debug_log) )  $debug_log[] = "Using LTI Advantage";
             $GradeSendTransport = "LTI 1.3";
             error_log("Sending LTI 1.3 grade of $grade for $lti13_subject_key to $lti13_lineitem for $lti13_subject_key");
-            $status = $TSUGI_LAUNCH->context->sendLineItemResult($lti13_lineitem, $lti13_subject_key, $grade."", "1", $comment, $debug_log);
+            $status = $TSUGI_LAUNCH->context->sendLineItemResult($lti13_lineitem, $lti13_subject_key, $grade."", "1", $comment, $debug_log, $extra13);
 
         // Classic POX call
         } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {
@@ -271,16 +272,17 @@ class Result extends Entity {
      * steps that were taken.
      * Each entry is an array with the [0] element a message and an optional [1]
      * element as some detail (i.e. like a POST body)
+     * @param $extra12 A key/value store of extra LTI1.3 parameters
      *
      * @return mixed If this works it returns true.  If not, you get
      * a string with an error.
      *
      */
-    public function gradeSend($grade, $row=false, &$debug_log=false) {
+    public function gradeSend($grade, $row=false, &$debug_log=false, $extra13=false) {
         global $CFG, $USER;
         global $GradeSendTransport;
 
-        $status = self::gradeSendStatic($grade, $row, $debug_log);
+        $status = self::gradeSendStatic($grade, $row, $debug_log, $extra13);
         $this->lastSendTransport = $GradeSendTransport;
 
         if ( $row !== false ) {
