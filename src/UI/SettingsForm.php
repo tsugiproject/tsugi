@@ -198,11 +198,17 @@ class SettingsForm {
 
     /**
      * Handle a settings selector box
+     *
+     *
+     * @param string $name  The name of the setting value
+     * @param string $default  What to display as the first entry in the drop down
+     * @param array $fields  The options to provide for the user (required)
      */
-    public static function select($name, $default=false, $fields)
+    public static function select($name, $default=false, $fields=false)
     {
         global $USER;
         if ( ! $USER ) return;
+        if ( ! is_array($fields) ) die('SettingsForm::select() requires the $fields parameter');
         $oldsettings = Settings::linkGetAll();
         if ( ! $USER->instructor ) {
             $configured = false;
