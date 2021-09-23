@@ -23,6 +23,7 @@ class LTI13 {
     const ROLES_CLAIM =         'https://purl.imsglobal.org/spec/lti/claim/roles';
     const PRESENTATION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
     const LTI11_TRANSITION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/lti1p1';
+    const FOR_USER_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/for_user';
 
     const NAMESANDROLES_CLAIM = 'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice';
     const ENDPOINT_CLAIM =      'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint';
