@@ -30,7 +30,7 @@
         "symfony/http-kernel" : "v5.3.3",
 
 
-        "tsugi/lib": "dev-master#00714d7749e17f0f8b8a29be5a658d2a7edeea22",
+        "tsugi/lib": "dev-master#0cff12147018d0ccc3c5b20079b68a45d704aa27",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {

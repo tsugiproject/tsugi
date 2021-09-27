@@ -18,6 +18,9 @@ $LAUNCH = LTIX::requireData(LTIX::USER);
 // Model
 $p = $CFG->dbprefix;
 
+$message_type = $LAUNCH->ltiJWTClaim(LTI13::FOR_USER_CLAIM);
+error_log("Store launch message_type=".$message_type);
+
 $deeplink = false;
 if ( isset($LAUNCH->deeplink) ) $deeplink = $LAUNCH->deeplink;
 if ( $deeplink ) {
