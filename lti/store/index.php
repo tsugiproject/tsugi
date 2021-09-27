@@ -222,6 +222,8 @@ if ( isset($_GET['install']) ) {
     $script = isset($tool['script']) ? $tool['script'] : "index";
     $path = $tool['url'];
 
+    $submissionReview = U::get($tool,'submissionReview');
+
     // Set up to send the response
     if ( $deeplink ) {
         $retval = new DeepLinkResponse($deeplink);
@@ -239,6 +241,7 @@ if ( isset($_GET['install']) ) {
         if ( ! $value ) continue;
         $additionalParams[$parm] = $value;
     }
+    if ( is_array($submissionReview) ) $additionalParams['submissionReview'] = $submissionReview;
 
     $custom = array(
         'availableStart' => '$ResourceLink.available.startDateTime',

@@ -6,7 +6,7 @@
     'aliases' => 
     array (
     ),
-    'reference' => '77d9ba26ae7ba97672f78b50cd7d19bf665f433d',
+    'reference' => '42c1bd440d4869eb3faffa32efef363efec61e83',
     'name' => '__root__',
   ),
   'versions' => 
@@ -18,7 +18,7 @@
       'aliases' => 
       array (
       ),
-      'reference' => '77d9ba26ae7ba97672f78b50cd7d19bf665f433d',
+      'reference' => '42c1bd440d4869eb3faffa32efef363efec61e83',
     ),
     'aws/aws-sdk-php' => 
     array (
@@ -923,7 +923,7 @@
       array (
         0 => '9999999-dev',
       ),
-      'reference' => '0cff12147018d0ccc3c5b20079b68a45d704aa27',
+      'reference' => 'c77ed7d5cdbccafe36625fa62a88fd3233e8b823',
     ),
     'vlucas/phpdotenv' => 
     array (

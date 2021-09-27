@@ -88,7 +88,6 @@ $text='{
         if ( is_array($additionalParams) ) {
             $params = array_merge($additionalParams, $params);
         }
-
         $this->addLtiLinkItemExtended($params);
     }
 
@@ -194,6 +193,10 @@ $text='{
             $iframe->height = $params['placementHeight'];
             $iframe->width = $params['placementWidth'];
             $json->iframe = $iframe;
+        }
+
+        if (is_array(U::get($params, 'submissionReview')) ) {
+            $json->submissionReview = U::get($params, 'submissionReview');
         }
 
         $this->items[] = $json;
