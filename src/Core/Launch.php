@@ -187,6 +187,19 @@ class Launch {
     }
 
     /**
+     * Return the LTI 1.3 Message Type with Reasonable Fall Backs
+     */
+    public function ltiMessageType() {
+        $lti_jwt = $this->ltiRawJWT();
+        $claim = LTI13::MESSAGE_TYPE_CLAIM;
+        if ( ! is_object($lti_jwt) ) return LTI13::MESSAGE_TYPE_RESOURCE;
+        if ( ! is_object($lti_jwt->body) ) return LTI13::MESSAGE_TYPE_RESOURCE;
+        if ( ! isset($lti_jwt->body->{$claim}) ) return LTI13::MESSAGE_TYPE_RESOURCE;
+        $message_type = $lti_jwt->body->{$claim};
+        if ( is_string($message_type) ) return $message_type;
+        return $message_type;
+    }
+    /**
      * Pull out a custom variable from the LTIX session.
      *
      * For LTI 1.1, it adds the "custom_" prefix automatically and looks in POST values

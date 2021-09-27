@@ -17,6 +17,8 @@ class LTI13 {
     const MESSAGE_TYPE_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/message_type';
     const MESSAGE_TYPE_RESOURCE = 'LtiResourceLinkRequest';
     const MESSAGE_TYPE_DEEPLINK = 'LtiDeepLinkingRequest';
+    const MESSAGE_TYPE_CONTENT_REVIEW = 'LtiSubmissionReviewRequest';
+    const MESSAGE_TYPE_PRIVACY = 'DataPrivacyLaunchRequest';
     const RESOURCE_LINK_CLAIM = 'https://purl.imsglobal.org/spec/lti/claim/resource_link';
     const CONTEXT_ID_CLAIM =    'https://purl.imsglobal.org/spec/lti/claim/context';
     const DEPLOYMENT_ID_CLAIM = 'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
@@ -274,6 +276,10 @@ class LTI13 {
             if ( ! isset($body->{self::RESOURCE_LINK_CLAIM}) ) $failures[] = "Missing required resource_link claim";
             if ( ! isset($body->{self::RESOURCE_LINK_CLAIM}->id) ) $failures[] = "Missing required resource_link id";
         } else if ( $message_type == self::MESSAGE_TYPE_DEEPLINK ) {
+            // OK
+        } else if ( $message_type == self::MESSAGE_TYPE_CONTENT_REVIEW ) {
+            // OK
+        } else if ( $message_type == self::MESSAGE_TYPE_PRIVACY ) {
             // OK
         } else {
             $failures[] = "Bad message type: ".$message_type;
