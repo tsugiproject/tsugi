@@ -18,8 +18,12 @@ $LAUNCH = LTIX::requireData(LTIX::USER);
 // Model
 $p = $CFG->dbprefix;
 
-$message_type = $LAUNCH->ltiJWTClaim(LTI13::FOR_USER_CLAIM);
+$message_type = $LAUNCH->ltiMessageType();
 error_log("Store launch message_type=".$message_type);
+if ( $message_type == LTI13::MESSAGE_TYPE_PRIVACY ) {
+    header("Location: ".addSession("privacy.php"));
+    return;
+}
 
 $deeplink = false;
 if ( isset($LAUNCH->deeplink) ) $deeplink = $LAUNCH->deeplink;
