@@ -223,8 +223,6 @@ class Result extends Entity {
         }
 
         // Check is this is a Google Classroom Launch
-        // TODO: we should accept a comment
-        $comment = '';
         $GradeSendTransport = false;
         if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['gc_submit_id']) ) {
             if ( is_array($debug_log) )  $debug_log[] = "Using Google Classroom";
