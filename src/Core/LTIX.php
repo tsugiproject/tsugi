@@ -622,6 +622,10 @@ class LTIX {
             $row['role_override'] > $row['role'] ) {
             $row['role'] = $row['role_override'];
         }
+        if ( isset($row['for_user_role_override']) && isset($row['for_user_role']) &&
+            $row['for_user_role_override'] > $row['for_user_role'] ) {
+            $row['for_user_role'] = $row['for_user_role_override'];
+        }
 
         // Update the login_at data and do analytics if requested
         // There are a lot of queryReturnError() calls because we don't want to
@@ -1083,6 +1087,16 @@ class LTIX {
             }
         }
 
+        // Handle the for_user claim
+        if ( isset($body->{LTI13::FOR_USER_CLAIM}) ) {
+            $for_user_claim = $body->{LTI13::FOR_USER_CLAIM};
+            $retval['for_user_subject'] = isset($for_user_claim->user_id) ? $for_user_claim->user_id : null;
+            $retval['for_user_email'] = isset($for_user_claim->email) ? $for_user_claim->email : null;
+            $retval['for_user_image'] = isset($for_user_claim->picture) ? $for_user_claim->picture : null;
+            $retval['for_user_locale'] = isset($for_user_claim->locale) ? $for_user_claim->locale : null;
+            $retval['for_user_displayname'] = self::displayNameFromClaim($for_user_claim);
+        }
+
         // The rest of the claims
         $resource_link_claim = LTI13::RESOURCE_LINK_CLAIM;
         $context_id_claim = LTI13::CONTEXT_ID_CLAIM;
@@ -1123,12 +1137,7 @@ class LTIX {
         $retval['user_locale'] = isset($body->locale) ? $body->locale : null;
         $retval['user_email'] = isset($body->email) ? $body->email : null;
         $retval['user_image'] = isset($body->picture) ? $body->picture : null;
-        $retval['user_displayname'] = isset($body->name) ? $body->name : null;
-
-        // Trim out repeated spaces and/or weird whitespace from the user_displayname
-        if ( isset($retval['user_displayname']) ) {
-            $retval['user_displayname'] = trim(preg_replace('/\s+/', ' ',$retval['user_displayname']));
-        }
+        $retval['user_displayname'] = self::displayNameFromClaim($body);
 
         // Get the line item
         $retval['lti13_lineitem'] = null;
@@ -1215,6 +1224,28 @@ class LTIX {
     }
 
     /**
+     * Get a display name from a LTI 1.3 user claim
+     */
+    public static function displayNameFromClaim($claim) {
+        if ( ! is_object($claim) ) return '';
+
+        if ( isset($for_user_claim->name) ) {
+            $retval = $for_user_claim->name;
+        } else if ( isset($for_user_claim->given_name) && isset($for_user_claim->family_name) ) {
+            $retval = $for_user_claim->given_name . ' ' . $for_user_claim->family_name;
+        } else if ( isset($for_user_claim->given_name) ) {
+            $retval = $for_user_claim->given_name;
+        } else if ( isset($for_user_claim->family_name) ) {
+            $retval = $for_user_claim->family_name;
+        } else {
+            $retval = ''; // TODO: IS THIS RIGHT?
+        }
+        // Trim out repeated spaces and/or weird whitespace from the user_displayname
+        $retval=  trim(preg_replace('/\s+/', ' ',$retval));
+        return $retval;
+    }
+
+    /**
      * Load the data from our lti_ tables using one long LEFT JOIN
      *
      * This data may or may not exist - hence the use of the long
@@ -1228,6 +1259,7 @@ class LTIX {
 
         $issuer_key = U::get($post, "issuer_key", false);
         $LTI13 = $issuer_key !== false;
+        $for_user_subject = U::get($post, "for_user_subject", false);
 
         if ( $LTI13 ) {
             $sql = "SELECT i.issuer_id, i.issuer_key, i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
@@ -1250,11 +1282,19 @@ class LTIX {
             c.settings AS context_settings,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
             l.lti13_lineitem AS lti13_lineitem, l.settings AS link_settings,
-            u.user_id, u.displayname AS user_displayname, u.email AS user_email, user_key, u.image AS user_image,
+            u.user_id, u.displayname AS user_displayname, u.email AS user_email, u.user_key AS user_key, u.image AS user_image,
             u.locale AS user_locale,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
             m.membership_id, m.role, m.role_override,
             r.result_id, r.grade, r.result_url, r.sourcedid";
+
+        if ( $for_user_subject ) {
+            $sql .= ",
+            f.user_id AS for_user_id, f.displayname AS for_user_displayname, f.email AS for_user_email,
+            f.user_key as for_user_key, f.image AS for_user_image, f.locale AS for_user_locale,
+            f.subscribe AS for_subscribe, f.user_sha256 AS for_user_sha256,
+            fm.membership_id AS for_membership_id, fm.role AS for_user_role, fm.role_override AS for_user_role_override";
+        }
 
         if ( $profile_table ) {
             $sql .= ",
@@ -1302,6 +1342,13 @@ class LTIX {
         if ( $profile_table ) {
             $sql .= "
             LEFT JOIN {$profile_table} AS p ON u.profile_id = p.profile_id";
+        }
+
+        if ( $for_user_subject ) {
+            $sql .= "
+            LEFT JOIN {$p}lti_user AS f ON f.key_id = k.key_id AND f.subject_sha256 = :for_user_subject_sha256
+            LEFT JOIN {$p}lti_membership AS fm ON f.user_id = m.user_id AND c.context_id = m.context_id";
+            // TODO: Afterwards - don't accept the user if it is not in the same context...
         }
 
         if ( isset($post['service']) ) {
@@ -1378,6 +1425,7 @@ class LTIX {
             $parms[':issuer_sha256'] = $post["issuer_sha256"];
             $parms[':issuer_client'] = $post["issuer_client"];
             $parms[':deployment_id'] = $post["deployment_id"];
+            if ( $for_user_subject ) $parms[":for_user_subject_sha256"] = lti_sha256($for_user_subject);
         } else {
             $parms[':key'] = lti_sha256($post['key']);
         }
@@ -1386,16 +1434,10 @@ class LTIX {
             $parms[':service'] = lti_sha256($post['service']);
         }
 
-        /*
-        echo("<pre>\n$sql\n"); var_dump($parms);
-        $zapsql = $sql;
-
-        foreach($parms as $k => $v ) { $zapsql = str_replace($k, "'".$v."'", $zapsql); }
-        echo("\n$zapsql\n");
-         */
-        // die();
+        // echo("<pre>\n"); $zapsql = $sql; foreach($parms as $k => $v ) { $zapsql = str_replace($k, "'".$v."'", $zapsql); } echo("\n$zapsql\n"); // Debug
+        // die(); // Debug
         $row = $PDOX->rowDie($sql, $parms);
-        // echo("<pre>\n");var_dump($row);die();
+        // echo("<pre>\n");var_dump($row);die();  // Debug
 
         // Check if we have an issuer for lti_issuers
         if ( $LTI13 && is_array($row) && $row['issuer_id'] < 1 ) {
@@ -2168,6 +2210,29 @@ class LTIX {
             $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
             $USER->admin = isset($LTI['role']) && $LTI['role'] >= self::ROLE_ADMINISTRATOR;
             $TSUGI_LAUNCH->user = $USER;
+        }
+
+        $TSUGI_LAUNCH->for_user = null;
+        if ( isset($LTI['for_user_id']) ) {
+            $for_user = new \Tsugi\Core\User();
+            $for_user->launch = $TSUGI_LAUNCH;
+            $for_user->id = $LTI['for_user_id'];
+            $for_user->key = $LTI['for_user_key'];
+            if (isset($LTI['for_user_email']) ) $for_user->email = $LTI['for_user_email'];
+            if (isset($LTI['for_user_displayname']) ) {
+                $for_user->displayname = $LTI['for_user_displayname'];
+                $pieces = explode(' ',$for_user->displayname);
+                if ( count($pieces) > 0 ) $for_user->firstname = $pieces[0];
+                if ( count($pieces) > 1 ) $for_user->lastname = $pieces[count($pieces)-1];
+            }
+            if (isset($LTI['for_user_image']) ) $for_user->image = $LTI['for_user_image'];
+            if (isset($LTI['for_user_locale']) ) $for_user->locale = $LTI['for_user_locale'];
+            if ( $for_user->locale ) {
+                I18N::setLocale($for_user->locale);
+            }
+            $for_user->instructor = isset($LTI['for_user_role']) && $LTI['for_user_role'] != 0 ;
+            $for_user->admin = isset($LTI['for_user_role']) && $LTI['for_user_role'] >= self::ROLE_ADMINISTRATOR;
+            $TSUGI_LAUNCH->for_user = $for_user;
         }
 
         if ( isset($LTI['key_id']) && ! is_object($TSUGI_KEY) ) {

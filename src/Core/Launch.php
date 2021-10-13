@@ -24,6 +24,11 @@ class Launch {
     public $user;
 
     /**
+     * Get the "For User" associated with the launch.
+     */
+    public $for_user;
+
+    /**
      * Get the Context associated with the launch.
      */
     public $context;
