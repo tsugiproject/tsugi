@@ -19,7 +19,7 @@ LTIX::getConnection();
 
 $key_count = settings_key_count();
 
-$sql = "SELECT count(C.context_id)
+$sql = "SELECT count(C.context_id) AS count
         FROM {$CFG->dbprefix}lti_context AS C
         LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
         WHERE C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID ) 
