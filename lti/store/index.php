@@ -51,7 +51,7 @@ if ( $deeplink ) {
     $accept_available = true;
     $accept_submission = true;
 }
-$debug = true;  /* Pause when sending back */
+$debug = false;  /* Pause when sending back */
 
 $OUTPUT->header();
 ?>

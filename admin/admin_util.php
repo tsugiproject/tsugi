@@ -150,6 +150,14 @@ function findAllRegistrations($folders=false, $appStore=false)
                 $REGISTER_LTI['screen_shots'] = $new;
             }
 
+            $submissionReview = U::get($REGISTER_LTI, 'submissionReview');
+            if ( is_array($submissionReview) && U::get($submissionReview, 'url')) {
+                // Make the URL absolute
+                $submissionUrl =  U::get($submissionReview, 'url');
+                $submissionReview['url'] = str_replace('/register.php','/'.$submissionUrl, $url);
+                $REGISTER_LTI['submissionReview'] = $submissionReview;
+            }
+
             $tools[$key] = $REGISTER_LTI;
         }
     }
