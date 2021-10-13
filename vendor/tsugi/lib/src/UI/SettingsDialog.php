@@ -208,9 +208,10 @@ class SettingsDialog {
     /**
      * Handle a settings selector box
      */
-    public function select($name, $default=false, $fields)
+    public function select($name, $default=false, $fields=false)
     {
         if ( ! $this->ready() ) return;
+        if ( $fields == false ) return;
         $oldsettings = $this->container->settingsGetAll();
         if ( ! $this->instructor() ) {
             $configured = false;
