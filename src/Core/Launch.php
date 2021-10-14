@@ -192,6 +192,13 @@ class Launch {
     }
 
     /**
+     * Return whether this is an LTI13 launch or not
+     */
+    public function isLTI13() {
+        return is_object($this->key);
+    }
+
+    /**
      * Return the LTI 1.3 Message Type with Reasonable Fall Backs
      */
     public function ltiMessageType() {
@@ -204,6 +211,7 @@ class Launch {
         if ( is_string($message_type) ) return $message_type;
         return $message_type;
     }
+
     /**
      * Pull out a custom variable from the LTIX session.
      *
