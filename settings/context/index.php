@@ -39,9 +39,17 @@ foreach ( $rows as $row ) {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
+?>
+<h1>Contexts</h1>
+<?php
+
 $OUTPUT->flashMessages();
 
-Table::pagedTable($newrows, $searchfields, $orderfields, "membership");
+$extra_buttons = array(__("My Settings") =>   $CFG->wwwroot."/settings");
+$params=false; // Defaults to _GET
+
+Table::pagedTable($newrows, $searchfields, $orderfields, "membership", $params, $extra_buttons);
+
 
 $OUTPUT->footer();
 

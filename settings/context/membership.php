@@ -47,13 +47,14 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
+
 ?>
-<p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Contexts</a>
-</p>
+<h1>Roster / Membership</h1>
 <?php
 
-Table::pagedTable($newrows, $searchfields, $searchfields, "member-detail");
+$extra_buttons = array(__("All Contexts") =>   $CFG->wwwroot."/settings/context");
+$params=false; // Defaults to _GET
+Table::pagedTable($newrows, $searchfields, $searchfields, "member-detail", $params, $extra_buttons);
 
 $OUTPUT->footer();
 
