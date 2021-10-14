@@ -53,6 +53,11 @@ that support the IMS Learning Tools Interoperability specification.
 </p>
 </li>
 <?php } ?>
+<li><p><a href="expire/">Manage Data Expiry</a>
+<br/>
+This allows you to manage Personally Identifiable Information (PII) for your learners in this system.
+</p>
+</li>
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
 <li><p><a href="gclass_login">Connect to Google Classroom</a>
 <?php
