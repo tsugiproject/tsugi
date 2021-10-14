@@ -1,21 +1,27 @@
 <?php
 use \Tsugi\Util\U;
-use \Tsugi\Blob\Access;
+use \Tsugi\UI\Output;
+use \Tsugi\UI\Table;
+use \Tsugi\Core\LTIX;
 
-if ( ! isset($_REQUEST['pii_days']) ) die('pii_days required');
-
+// In the top frame, we use cookies for session.
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../../config.php");
-session_start();
-require_once("../gate.php");
-require_once("../admin_util.php");
+require_once("../settings_util.php");
 require_once("expire_util.php");
-if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-use \Tsugi\Core\LTIX;
-LTIX::getConnection();
+session_start();
 
-$limit = 1000;
+if ( ! U::get($_SESSION,'id') ) {
+    $login_return = U::reconstruct_query($CFG->wwwroot . '/settings/expire');
+    $_SESSION['login_return'] = $login_return;
+    Output::doRedirect($CFG->wwwroot.'/login.php');
+    return;
+}
+
+\Tsugi\Core\LTIX::getConnection();
+
+$limit = 5000;
 
 $days = $_REQUEST['pii_days'];
 
@@ -60,16 +66,7 @@ using the following SQL:
 </form>
 <p>
 Note that online we limit the number of records that an be deleted per request to 
-keep requests from timing out.   If you want to automate the process of PII expiration,
-set the value
-<pre>
-$CFG-&gt;expire_pii_days = 120;
-</pre>
-in your <b>config.php</b> and then run the commands:
-<pre>
-cd tsugi/admin/expire
-php pii-batch.php [remove]
-</pre>
-If you don't include <b>remove</b> it will just do a dry run and tell you what would
-have been removed.
+keep requests from timing out.   Server administrators have offline commands they
+can run on the server to expire more data at once or even automate the expiry
+of this type of data.
 </p>

@@ -1,23 +1,26 @@
 <?php
-// In the top frame, we use cookies for session.
-if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
-require_once("../../config.php");
-require_once("../../admin/admin_util.php");
-require_once("expire_util.php");
 
 use \Tsugi\Util\U;
+use \Tsugi\UI\Output;
 use \Tsugi\UI\Table;
+use \Tsugi\Core\LTIX;
+
+// In the top frame, we use cookies for session.
+if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
+require_once("../../config.php");
+require_once("../settings_util.php");
+require_once("expire_util.php");
+
+session_start();
+
+if ( ! U::get($_SESSION,'id') ) {
+    $login_return = U::reconstruct_query($CFG->wwwroot . '/settings/expire');
+    $_SESSION['login_return'] = $login_return;
+    Output::doRedirect($CFG->wwwroot.'/login.php');
+    return;
+}
 
 \Tsugi\Core\LTIX::getConnection();
-
-header('Content-Type: text/html; charset=utf-8');
-session_start();
-require_once("../gate.php");
-if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
-
-if ( ! isAdmin() ) {
-    die('Must be admin');
-}
 
 if ( ! isset($_GET['pii_days']) ) die('Required parameter pii_days');
 if ( ! is_numeric($_GET['pii_days']) ) die('pii_days must be a number');

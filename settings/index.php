@@ -92,6 +92,8 @@ Google information.
 <p>If you are an administrator for the overall site, you
 can visit the administrator dashboard.
 </p>
+<p>
+<b>Note:</b> The modal popups in this screen work best in the FireFox browser.
 <?php
 
 $OUTPUT->footer();

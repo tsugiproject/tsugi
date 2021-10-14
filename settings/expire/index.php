@@ -12,7 +12,7 @@ require_once("expire_util.php");
 session_start();
 
 if ( ! U::get($_SESSION,'id') ) {
-    $login_return = U::reconstruct_query($CFG->wwwroot . '/settings/privacy');
+    $login_return = U::reconstruct_query($CFG->wwwroot . '/settings/expire');
     $_SESSION['login_return'] = $login_return;
     Output::doRedirect($CFG->wwwroot.'/login.php');
     return;
@@ -24,18 +24,18 @@ $tenant_count = get_count_table('lti_key');
 $context_count = get_count_table('lti_context');
 $user_count = get_count_table('lti_user');
 
-$tenant_days = isset($CFG->expire_tenant_days) ? $CFG->expire_tenant_days : 1000;
-$tenant_days = U::get($_GET,'tenant_days',$tenant_days);
-$context_days = isset($CFG->expire_context_days) ? $CFG->expire_context_days : 600;
-$context_days = U::get($_GET,'context_days',$context_days);
-$user_days = isset($CFG->expire_user_days) ? $CFG->expire_user_days : 600;
-$user_days = U::get($_GET,'user_days',$user_days);
+// $tenant_days = isset($CFG->expire_tenant_days) ? $CFG->expire_tenant_days : 1000;
+// $tenant_days = U::get($_GET,'tenant_days',$tenant_days);
+// $context_days = isset($CFG->expire_context_days) ? $CFG->expire_context_days : 600;
+// $context_days = U::get($_GET,'context_days',$context_days);
+// $user_days = isset($CFG->expire_user_days) ? $CFG->expire_user_days : 600;
+// $user_days = U::get($_GET,'user_days',$user_days);
 $pii_days = isset($CFG->expire_pii_days) ? $CFG->expire_pii_days : 180;
 $pii_days = U::get($_GET,'pii_days',$pii_days);
 
-$user_expire =  get_expirable_records('lti_user', $user_days);
-$context_expire =  get_expirable_records('lti_context', $context_days);
-$tenant_expire =  get_expirable_records('lti_key', $tenant_days);
+// $user_expire =  get_expirable_records('lti_user', $user_days);
+// $context_expire =  get_expirable_records('lti_context', $context_days);
+// $tenant_expire =  get_expirable_records('lti_key', $tenant_days);
 $pii_expire =  get_pii_count($pii_days);
 
 $check = sanity_check_days();
