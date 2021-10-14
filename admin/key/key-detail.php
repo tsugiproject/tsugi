@@ -30,11 +30,13 @@ $where_clause = '';
 $query_fields = array();
 $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'issuer_id',
      'xapi_url', 'xapi_user', 'xapi_password',
-     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
+     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id',
+     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience');
+
 $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
      'xapi_url', 'xapi_user', 'xapi_password',
-     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
-     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
+     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id',
+     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience');
 
 $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
@@ -71,8 +73,9 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && strlen($key_id) > 0 ) {
     $old_key_key = $row['key_key'];
     $old_deploy_key = $row['deploy_key'];
     $old_issuer_id = $row['issuer_id'];
+    $lms_issuer = $row['lms_issuer'];
 
-    $retval = validate_key_details($key_key, $deploy_key, $issuer_id, $old_key_key, $old_deploy_key, $old_issuer_id);
+    $retval = validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $old_key_key, $old_deploy_key, $old_issuer_id);
 
     if ( ! $retval ) {
         header("Location: ".$redir);
@@ -108,14 +111,6 @@ if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && strlen($row['
 }
 if ( $key_type == '' ) $key_type = 'Draft';
 
-// Move the lms_values to the auxiliary row
-$aux_row = array();
-foreach($row as $k => $v) {
-  if ( strpos($k, "lms_") !== 0 ) continue;
-  $aux_row[$k] = $v;
-  unset($row[$k]);
-}
-
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -145,15 +140,6 @@ $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_e
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 $dynamicConfigUrl = U::addSession($CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'], true);
-
-$global_issuer = $row['issuer_id'] > 0 ;
-if ( count($aux_row) > 0 && ! $global_issuer ) {
-    echo("<h2>Key-Local Issuer Data</h2>\n");
-    foreach($aux_row as $k => $v ) {
-        if ( strlen($v) < 1 ) continue;
-        echo("<p><b>".htmlentities($k)."</b>: ".htmlentities($v)."</p>\n");
-    }
-}
 ?>
 </pre>
 </div>
@@ -264,10 +250,15 @@ if ( $inedit ) {
 
 ?>
 <script>
+    $('#lms_issuer').closest('div').before("<h2>The fields below are read only.</h2>");
     $('<?= $select_text ?>').insertBefore('#issuer_id');
     $('#issuer_id').hide();
     $('#issuer_id_select').on('change', function() {
-    $('input[name="issuer_id"]').val(this.value);
+        $('input[name="issuer_id"]').val(this.value);
+    });
+    $("input[type=text]").each(function() {
+        if ( ! this.name.startsWith("lms_") ) return;
+        $(this).attr('readonly', true);
     });
 </script>
 <?php

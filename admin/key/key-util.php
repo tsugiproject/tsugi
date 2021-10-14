@@ -2,7 +2,7 @@
 
 use \Tsugi\Util\U;
 
-function validate_key_details($key_key, $deploy_key, $issuer_id, $old_key_key=null, $old_deploy_key=null, $old_issuer_id=null) {
+function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $old_key_key=null, $old_deploy_key=null, $old_issuer_id=null) {
     global $PDOX, $CFG;
 
     // Enforce in software because MySQL can't do it
@@ -20,8 +20,9 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $old_key_key=nu
     //  CHECK (
     //     (deploy_key IS NOT NULL AND issuer_id IS NOT NULL)
     //     OR (deploy_key NOT NULL AND issuer_id NOT NULL)
-    if (strlen($issuer_id) < 1 && strlen($deploy_key) > 0 ||
-        strlen($issuer_id) > 0 && strlen($deploy_key) < 1
+    $have_issuer = strlen($issuer_id) > 0 || strlen($lms_issuer) > 0;
+    if ( (strlen($deploy_key) > 0 && ! $have_issuer) ||
+         (strlen($deploy_key) < 1 && $have_issuer) 
     ) {
         $_SESSION['error'] = "You must specify an issuer when you specify a deployment id";
         return false;

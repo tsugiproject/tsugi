@@ -49,16 +49,6 @@ if ( count($_POST) > 0 ) {
     }
 }
 
-/*
-if ( count($_POST) > 0 ) {
-    $retval = validate_key_details($key_key, $deploy_key, $issuer_id);
-    if ( ! $retval ) {
-        header("Location: key-add");
-        return;
-    }
-}
-*/
-
 $retval = CrudForm::handleInsert($tablename, $fields);
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
     header("Location: $from_location");
