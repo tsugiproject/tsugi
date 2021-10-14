@@ -25,15 +25,11 @@ $OUTPUT->flashMessages();
 ?>
 <h1>Privacy Management</h1>
 <p>
-  <a href="<?= $CFG->wwwroot ?>/settings" class="btn btn-default">Settings</a>
+  <a href="<?= $CFG->wwwroot ?>/settings" class="btn btn-default">My Settings</a>
 </p>
-<p>
-Yada
-<p>
 <pre>
 <?php
 var_dump($_GET);
-var_dump($_SESSION);
 ?>
 </pre>
 <?php
