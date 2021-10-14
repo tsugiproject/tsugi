@@ -465,6 +465,8 @@ array( "{$CFG->dbprefix}lti_result",
     grade              FLOAT NULL,
     note               MEDIUMTEXT NULL,
     server_grade       FLOAT NULL,
+    grading_progress   TINYINT(1) NOT NULL DEFAULT 0,
+    activity_progress  TINYINT(1) NOT NULL DEFAULT 0,
 
     json               MEDIUMTEXT NULL,
     entity_version     INTEGER NOT NULL DEFAULT 0,
@@ -778,6 +780,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_key', 'lms_cache_kid', 'TEXT NULL'),
 
         array('lti_keyset', 'keyset_title', 'TEXT NULL'),
+
+        array('lti_result', 'grading_progress', 'TINYINT(1) NOT NULL DEFAULT 0'),
+        array('lti_result', 'activity_progress', 'TINYINT(1) NOT NULL DEFAULT 0'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
