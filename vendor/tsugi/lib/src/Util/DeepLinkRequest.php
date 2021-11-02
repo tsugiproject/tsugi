@@ -125,10 +125,11 @@ class DeepLinkRequest {
      * getClaim - get a extension claim
      *
      * @param str The claim to retrieve
+     * @param default The default value
      * @retval null if the claim is not present.
      */
-    public function getClaim($string) {
-        if ( ! property_exists($this->claim, $string) ) return null;
+    public function getClaim($string, $default=null) {
+        if ( ! property_exists($this->claim, $string) ) return $default;
         return $this->claim->{$string};
     }
 

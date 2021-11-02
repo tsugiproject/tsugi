@@ -34,12 +34,13 @@ if ( $deeplink ) {
     $allow_multiple = $deeplink->allowMultiple();
     $allow_import = $deeplink->allowImportItem();
     // These can be missing (null -> assume true), true, or false
-    $accept_lineitem = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_lineitem');
+    $accept_lineitem = $LAUNCH->deeplink->getClaim('accept_lineitem');
+    if ( $accept_lineitem == null ) $accept_lineitem = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_lineitem');
     if ( $accept_lineitem == null ) $accept_lineitem = $LAUNCH->deeplink->getClaim('https://www.moodle.org/spec/lti-dl/accept_lineitem');
     if ( $accept_lineitem !== false ) $accept_lineitem = true;
-    $accept_available = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_available');
+    $accept_available = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_available', $accept_lineitem);
     if ( $accept_available !== false ) $accept_available = true;
-    $accept_submission = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_submission');
+    $accept_submission = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_submission', $accept_lineitem);
     if ( $accept_submission !== false ) $accept_submission = true;
 } else {
     $return_url = ContentItem::returnUrl();
@@ -51,6 +52,11 @@ if ( $deeplink ) {
     $accept_available = true;
     $accept_submission = true;
 }
+
+// Time zones are just too tricky
+$accept_available = false;
+$accept_submission = false;
+
 $debug = false;  /* Pause when sending back */
 
 $OUTPUT->header();
@@ -256,6 +262,8 @@ if ( isset($_GET['install']) ) {
         'context_id_history' => '$Context.id.history',
         'canvas_caliper_url' => '$Caliper.url',
     );
+
+    echo("<pre>\n");var_dump($additionalParams);die();
 
     $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $scoreMaximum, $resourceId, $additionalParams);
 
@@ -597,12 +605,12 @@ if ( $registrations && $allow_lti ) {
 <?php if ( $grade_launch && $accept_lineitem ) { ?>
                             <div class="form-group">
                                 <label for="lineitem_<?= $count ?>">Configure LineItem</label> (Not all LMS placements support all features)
-                                <select name="lineitem" id="lineitem_<?= $count ?>">
+                                <select name="lineitem" id="lineitem_<?= $count ?>" onchange="toggleLineItem(this, <?= $count ?>);">
                                     <option value="none">No LineItem</option>
                                     <option value="send">Send LineItem</option>
                                 </select>
                             </div>
-<div class="lineitem-fields" style="display:none;">
+<div class="lineitem-fields" id="lineitem-fields_<?= $count ?>" style="display:none;">
                             <div class="form-group">
                                 <label for="scoreMaximum_<?= $count ?>">Maximum possible score for an activity.</label>
                                 <input type="number" class="form-control" id="scoreMaximum_<?= $count ?>" name="scoreMaximum">
@@ -925,6 +933,18 @@ function myfunc(){
         $("#real").submit();
     }
 }
+
+function toggleLineItem(item, count) {
+    // https://stackoverflow.com/questions/5416767/get-selected-value-text-from-select-on-change
+    var x = (item.value || item.options[item.selectedIndex].value);
+    if ( x == "send" ) {
+       $('#lineitem-fields_'+count).show();
+    } else {
+       $('#lineitem-fields_'+count).hide();
+      $('#scoreMaximum_'+$count).val('');
+    }
+}
+
 </script>
 
 
@@ -962,17 +982,6 @@ function myfunc(){
                 $('.tsugi-form-embedded-size').show();
             } else {
                 $('.tsugi-form-embedded-size').hide();
-            }
-        });
-
-        $(document).on('change', '#lineitem',  function() {
-            var value = $(this).find("option:selected").attr('value');
-            console.log(value);
-            if ( value == 'send' ) {
-                $('.lineitem-fields').show();
-            } else {
-                $('.lineitem-fields').hide();
-                $('#scoreMaximum').val('');
             }
         });
 
