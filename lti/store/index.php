@@ -263,8 +263,6 @@ if ( isset($_GET['install']) ) {
         'canvas_caliper_url' => '$Caliper.url',
     );
 
-    echo("<pre>\n");var_dump($additionalParams);die();
-
     $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $scoreMaximum, $resourceId, $additionalParams);
 
     $iframeattr=false; $endform=false;
