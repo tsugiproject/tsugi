@@ -1223,14 +1223,14 @@ class LTIX {
     public static function displayNameFromClaim($claim) {
         if ( ! is_object($claim) ) return '';
 
-        if ( isset($for_user_claim->name) ) {
-            $retval = $for_user_claim->name;
-        } else if ( isset($for_user_claim->given_name) && isset($for_user_claim->family_name) ) {
-            $retval = $for_user_claim->given_name . ' ' . $for_user_claim->family_name;
-        } else if ( isset($for_user_claim->given_name) ) {
-            $retval = $for_user_claim->given_name;
-        } else if ( isset($for_user_claim->family_name) ) {
-            $retval = $for_user_claim->family_name;
+        if ( isset($claim->name) ) {
+            $retval = $claim->name;
+        } else if ( isset($claim->given_name) && isset($claim->family_name) ) {
+            $retval = $claim->given_name . ' ' . $claim->family_name;
+        } else if ( isset($claim->given_name) ) {
+            $retval = $claim->given_name;
+        } else if ( isset($claim->family_name) ) {
+            $retval = $claim->family_name;
         } else {
             $retval = ''; // TODO: IS THIS RIGHT?
         }
