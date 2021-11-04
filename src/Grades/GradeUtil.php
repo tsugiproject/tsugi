@@ -70,8 +70,8 @@ class GradeUtil {
 
     public static function gradeShowInfo($row, $url='grades.php') {
         if ($url) echo('<p><a href="'.U::safe_href($url).'">Back to All Grades</a>'."</p><p>\n");
-        echo("User Name: ".htmlent_utf8($row['displayname'])."<br/>\n");
-        echo("User Email: ".htmlent_utf8($row['email'])."<br/>\n");
+        echo("Name: ".htmlent_utf8($row['displayname'])."<br/>\n");
+        echo("Email: ".htmlent_utf8($row['email'])."<br/>\n");
         echo("Last Submision: ".htmlent_utf8($row['updated_at'])."<br/>\n");
         echo("Score: ".htmlent_utf8($row['grade'])."<br/>\n");
         echo("</p>\n");
