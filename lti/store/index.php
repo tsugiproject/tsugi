@@ -35,8 +35,8 @@ if ( $deeplink ) {
     $allow_import = $deeplink->allowImportItem();
     // These can be missing (null -> assume true), true, or false
     $accept_lineitem = $LAUNCH->deeplink->getClaim('accept_lineitem');
-    if ( $accept_lineitem == null ) $accept_lineitem = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_lineitem');
-    if ( $accept_lineitem == null ) $accept_lineitem = $LAUNCH->deeplink->getClaim('https://www.moodle.org/spec/lti-dl/accept_lineitem');
+    if ( $accept_lineitem === null ) $accept_lineitem = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_lineitem');
+    if ( $accept_lineitem === null ) $accept_lineitem = $LAUNCH->deeplink->getClaim('https://www.moodle.org/spec/lti-dl/accept_lineitem');
     if ( $accept_lineitem !== false ) $accept_lineitem = true;
     $accept_available = $LAUNCH->deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_available', $accept_lineitem);
     if ( $accept_available !== false ) $accept_available = true;
