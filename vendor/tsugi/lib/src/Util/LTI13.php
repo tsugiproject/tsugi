@@ -398,11 +398,14 @@ class LTI13 {
             self::LINEITEM_TIMESTAMP => U::iso8601(),
             self::LINEITEM_SCOREGIVEN => $grade,
             self::LINEITEM_SCOREMAXIMUM => $scoreMaximum,
-            self::LINEITEM_COMMENT => $comment,
             self::ACTIVITY_PROGRESS => self::ACTIVITY_PROGRESS_COMPLETED,
             self::GRADING_PROGRESS => self::GRADING_PROGRESS_FULLYGRADED,
             self::LINEITEM_USERID => $user_id,
         ];
+
+        if ( is_string($comment) ) {
+            $grade_call[self::LINEITEM_COMMENT] = $comment;
+        }
 
         // Allow the extra to override any of the normal values - trust the caller :)
         if ( is_array($extra) ) {
