@@ -52,6 +52,14 @@ if ( isset($CFG->staticroot) ) $CFG->staticroot = \Tsugi\Util\U::remove_relative
 
 require_once $CFG->vendorinclude . "/lms_lib.php";
 
+// Check to see if pre_config was included
+// TODO: Make this a die() about a year after - Thu Nov 11 19:34:23 EST 2021
+if ( !function_exists('_me') ) {
+    error_log('config.php out of date, you need to require "pre_config.php" before the autoloader starts - see config-dist.php for the needed command and where to put it in config.php');
+    // die('config.php out of date, you need to require "pre_config.php" before the autoloader starts - see config-dist.php for the needed command and where to put it in config.php');
+}
+
+
 // Check if we have been asked to do cookie or cookieless sessions
 if ( defined('COOKIE_SESSION') ) {
     // Do nothing - let the session be in a cookie

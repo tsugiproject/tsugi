@@ -20,9 +20,10 @@ register_shutdown_function('__the_end');
 $dirroot = realpath(dirname(__FILE__));
 
 // New for 2021 - We may need to do some tweaking before the autoloader wakes up
-// So we need to add this to front of config.php
+// So we need to add this require to config.php before requiring autoload.php
 require_once $dirroot."/vendor/tsugi/lib/include/pre_config.php";
 
+// Activate the autoloader...
 $loader = require_once($dirroot."/vendor/autoload.php");
 
 // If we just are using Tsugi but not part of another site
