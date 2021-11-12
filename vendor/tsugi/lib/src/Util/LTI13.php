@@ -1044,7 +1044,7 @@ class LTI13 {
 
         if ( $privKey === false ) {
             $error = openssl_error_string();
-            error_log("generatePKCS8Pair error="+$error);
+            error_log("generatePKCS8Pair error=". $error);
             $privateKey = null;
             $publicKey = null;
             return $error;
