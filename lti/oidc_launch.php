@@ -228,75 +228,11 @@ if ( $put_data_supported && $postmessage_form === null && ! $verified && $sub &&
 <script>
 // No point to do postmessage in iframe
 if ( ! inIframe() ) {
-    console.log('Top frame', document.getElementById("postmessage"));
     document.getElementById("postmessage").value = 'success';
-    console.log('Top frame 2');
     document.getElementById("oidc_postmessage").submit();
-    console.log('Top frame 3');
 } else {
 
-    // Get data about the registration linked to the request
-    let return_url = new URL(<?= json_encode($platform_login_auth_endpoint, JSON_UNESCAPED_SLASHES); ?>);
-
-    let message_window = (window.opener || window.parent<?= $post_frame ?>);
-
     let state_set = false;
-
-    // Listen for response containing the id_token from the platform
-    window.addEventListener("message", function(event) {
-        console.log(window.location.origin + " Got post message from " + event.origin);
-        console.debug(JSON.stringify(event.data, null, '    '));
-        state_set = true;
-
-        // Origin MUST be the same as the registered oauth return url origin
-        if (event.origin !== return_url.origin) {
-            console.log('invalid origin');
-            return;
-        }
-
-        // Check state matches the one sent to the platform
-        if (event.data.subject !== 'org.imsglobal.lti.get_data.response' ) {
-            console.log('invalid response');
-            return;
-        }
-
-        if (event.data.value !== '<?= $state ?>') {
-            console.log([event.data.value, '<?= $state ?>']);
-            alert('invalid state');
-            return;
-        }
-
-        $.ajax
-        ({
-            type: "POST",
-            url: "oidc_postmessage.php",
-            headers: {
-                "X-Tsugi-Authorization": "TsugiOAuthVerify <?= $session_password ?>"
-            },
-            data: {
-                "state": "<?= $state ?>"
-            },
-            error: function (jqXHR, textStatus, errorThrown ){
-                console.log('Got error from oidc_postmessage '+errorThrown);
-                document.getElementById("postmessage").value = 'error';
-                document.getElementById("oidc_postmessage").submit();
-            },
-            success: function (){
-                document.getElementById("postmessage").value = 'success';
-                document.getElementById("oidc_postmessage").submit();
-            }
-        });
-    }, false);
-
-    // Send post message to platform window with login initiation data
-    let send_data = {
-        subject: 'org.imsglobal.lti.get_data',
-        message_id: Math.random(),
-        key: "<?= $state_key ?>",
-    };
-    console.debug(window.location.origin + " Sending post message to " + return_url.origin);
-    console.debug(JSON.stringify(send_data, null, '    '));
-    message_window.postMessage(send_data, return_url.origin);
     setTimeout(() => {
         if (!state_set) {
             console.log('no response from platform');
@@ -304,6 +240,74 @@ if ( ! inIframe() ) {
             document.getElementById("oidc_postmessage").submit();
         }
     }, 2000);  // Timeout 2 seconds because Angular
+
+    try {
+        // Get data about the registration linked to the request
+        let return_url = new URL(<?= json_encode($platform_login_auth_endpoint, JSON_UNESCAPED_SLASHES); ?>);
+
+        let message_window = (window.opener || window.parent<?= $post_frame ?>);
+
+        // Listen for response containing the id_token from the platform
+        window.addEventListener("message", function(event) {
+            console.log(window.location.origin + " Got post message from " + event.origin);
+            console.debug(JSON.stringify(event.data, null, '    '));
+            state_set = true;
+
+            // Origin MUST be the same as the registered oauth return url origin
+            if (event.origin !== return_url.origin) {
+                console.log('invalid origin');
+                return;
+            }
+
+            // Check state matches the one sent to the platform
+            if (event.data.subject !== 'org.imsglobal.lti.get_data.response' ) {
+                console.log('invalid response');
+                return;
+            }
+
+            if (event.data.value !== '<?= $state ?>') {
+                console.log([event.data.value, '<?= $state ?>']);
+                alert('invalid state');
+                return;
+            }
+
+            $.ajax
+            ({
+                type: "POST",
+                url: "oidc_postmessage.php",
+                headers: {
+                    "X-Tsugi-Authorization": "TsugiOAuthVerify <?= $session_password ?>"
+                },
+                data: {
+                    "state": "<?= $state ?>"
+                },
+                error: function (jqXHR, textStatus, errorThrown ){
+                    console.log('Got error from oidc_postmessage '+errorThrown);
+                    document.getElementById("postmessage").value = 'error';
+                    document.getElementById("oidc_postmessage").submit();
+                },
+                success: function (){
+                    document.getElementById("postmessage").value = 'success';
+                    document.getElementById("oidc_postmessage").submit();
+                }
+            });
+        }, false);
+
+        // Send post message to platform window with login initiation data
+        let send_data = {
+            subject: 'org.imsglobal.lti.get_data',
+            message_id: Math.random(),
+            key: "<?= $state_key ?>",
+        };
+        console.debug(window.location.origin + " Sending post message to " + return_url.origin);
+        console.debug(JSON.stringify(send_data, null, '    '));
+        message_window.postMessage(send_data, return_url.origin);
+    } catch (error) {
+        console.log('Failure to exchange post message')
+        console.log(error);
+        document.getElementById("postmessage").value = 'error';
+        document.getElementById("oidc_postmessage").submit();
+    }
 } // inIframe()
 </script>
 <p style="display: none;" id="waiting"><?= _m("Contacting LMS through postMessage...") ?></p>

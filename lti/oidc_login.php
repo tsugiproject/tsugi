@@ -179,6 +179,9 @@ let TSUGI_REDIRECT = <?= json_encode($redirect, JSON_UNESCAPED_SLASHES) ?>;
 
 // Adapted from https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/login_initiation.php
 if ( inIframe() ) {
+    let state_set = false;
+    setTimeout(() => { if (!state_set) { console.log('no response from platform'); window.location.href=TSUGI_REDIRECT;} }, 2000);
+
     let return_url = new URL(<?= json_encode($redirect, JSON_UNESCAPED_SLASHES); ?>);
     let send_data = {
         subject: 'org.imsglobal.lti.put_data',
@@ -187,38 +190,41 @@ if ( inIframe() ) {
         value: "<?= $state ?>",
     };
 
-    let state_set = false;
-    let message_window = (window.opener || window.parent<?= $post_frame ?>);
+    try {
+        let message_window = (window.opener || window.parent<?= $post_frame ?>);
 
-    // Listen for the response from the platform
-    window.addEventListener("message", function(event) {
-        console.log(window.location.origin + " Got post message from " + event.origin);
-        console.log(JSON.stringify(event.data, null, '    '));
+        // Listen for the response from the platform
+        window.addEventListener("message", function(event) {
+            console.log(window.location.origin + " Got post message from " + event.origin);
+            console.debug(JSON.stringify(event.data, null, '    '));
 
-        // Origin MUST be the same as the registered oauth return url origin
-        if (event.origin !== return_url.origin) {
-            console.log('invalid origin');
-            return;
-        }
+            // Origin MUST be the same as the registered oauth return url origin
+            if (event.origin !== return_url.origin) {
+                console.log('invalid origin');
+                return;
+             }
 
-        // Check state matches the one sent to the platform
-        if (event.data.subject !== 'org.imsglobal.lti.put_data.response' ) {
-            console.log('invalid response');
-            return;
-        }
+            // Check state matches the one sent to the platform
+            if (event.data.subject !== 'org.imsglobal.lti.put_data.response' ) {
+                console.log('invalid response');
+                return;
+            }
 
-        state_set = true;
+            state_set = true;
 
+            window.location.href=TSUGI_REDIRECT;;
+
+        }, false);
+
+        console.log(window.location.origin + " Sending post message to " + return_url.origin);
+        console.debug(JSON.stringify(send_data, null, '    '));
+        message_window.postMessage(send_data, return_url.origin);
+    } catch (error) {
+        console.log('Failure to to exchange post message')
+        console.log(error);
         window.location.href=TSUGI_REDIRECT;;
+    }
 
-    }, false);
-
-    console.log(window.location.origin + " Sending post message to " + return_url.origin);
-    console.log(JSON.stringify(send_data, null, '    '));
-    message_window.postMessage(send_data, return_url.origin);
-
-
-    setTimeout(() => { if (!state_set) { console.log('no response from platform'); window.location.href=TSUGI_REDIRECT;} }, 2000);
 } else {
     console.log("Redirecting to "+TSUGI_REDIRECT);
     window.location.href = TSUGI_REDIRECT;
