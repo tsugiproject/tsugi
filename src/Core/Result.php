@@ -482,7 +482,8 @@ class Result extends Entity {
                 array(':RID' => $this->id)
             );
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-            return $row['note'];
+            $note_str = is_array($row) ? $row['note'] : "";
+            return $note_str;
         } else if ( $this->launch->user->instructor ) {
             $p = $CFG->dbprefix;
             $row = $PDOX->rowDie(
@@ -494,7 +495,7 @@ class Result extends Entity {
                     ":LID" => $this->launch->link->id
                 )
             );
-            $note_str = $row['note'];
+            $note_str = is_array($row) ? $row['note'] : "";
             return $note_str;
         } else {
             return false;

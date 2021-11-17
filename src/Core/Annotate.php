@@ -32,7 +32,7 @@ class Annotate {
                     ":LID" => $LAUNCH->link->id
                 )
             );
-            if ( ! $row ) return false;
+            if ( ! $row ) return array();
             $json_str = $row['json'];
             $json = json_decode($json_str);
             if ( isset($json->annotations) ) return $json->annotations;
