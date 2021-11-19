@@ -45,6 +45,7 @@ if ( strlen($privkey) < 1 || strlen($pubkey) < 1 ) {
 $LTI = LTIX::requireData();
 
 $json = $_SESSION['lti'];
+unset($json['event_nonce']);
 $jwt_claim = LTI13::base_jwt("iss","subj");
 $jwt_claim["lti"] = $json;
 
