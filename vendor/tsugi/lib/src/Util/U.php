@@ -590,6 +590,8 @@ class U {
      * Return if APCU cache is available
      */
     public static function apcuAvailable() {
+        global $CFG;
+        if ( isset($CFG->apcuAvailable) ) return ($CFG->apcuAvailable === true || $CFG->apcuAvailable == 'true');
         return (function_exists('apcu_enabled') && apcu_enabled());
     }
 
