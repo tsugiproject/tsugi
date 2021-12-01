@@ -284,12 +284,6 @@ class Result extends Entity {
         $status = self::gradeSendStatic($grade, $row, $debug_log, $extra);
         $this->lastSendTransport = $GradeSendTransport;
 
-        if ( $row !== false ) {
-            $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
-        } else {
-            $sourcedid = LTIX::ltiParameter('sourcedid');
-        }
-
         // Update the session view of the grade
         if ( $status === true ) {
             $ltidata = $this->session_get('lti');
@@ -297,13 +291,13 @@ class Result extends Entity {
                 $ltidata['grade'] = $grade;
                 $this->session_put('lti', $ltidata);
             }
-            if ( strlen($sourcedid) > 0 ) {
-                $msg = 'Grade sent '.$grade.' to '.$sourcedid.' by '.$USER->id;
+            if ( is_string($GradeSendTransport) ) {
+                $msg = 'Grade sent '.$grade.' id='.$USER->id.' via '.$GradeSendTransport;
                 if ( is_array($debug_log) )  $debug_log[] = array($msg);
                 error_log($msg);
             }
         } else {
-            $msg = 'Grade failure '.$grade.' to '.$sourcedid.' by '.$USER->id;
+            $msg = 'Grade failure '.$grade.' id='.$USER->id.' via '.$GradeSendTransport;
             if ( is_array($debug_log) )  $debug_log[] = array($msg);
             error_log($msg);
             $svd = Output::safe_var_dump($debug_log);
