@@ -863,6 +863,7 @@ class LTI13 {
      * and we might have got a 403 and received no data at all.
      */
     public static function get_access_token($scope, $subject, $lti13_token_url, $lti13_privkey, $lti13_kid=false, $lti13_token_audience=false, $deployment_id=false, &$debug_log=false) {
+        global $CFG;
 
         $lti13_token_url = trim($lti13_token_url);
         $subject = trim($subject);
@@ -877,7 +878,7 @@ class LTI13 {
 
         $jwt_claim = self::base_jwt($subject, $subject, $debug_log);
         $jwt_claim["aud"] = $audience;
-        if ( $deployment_id ) {
+        if ( isset($CFG->token_deployment_id) && $CFG->token_deployment_id && is_string($deployment_id) ) {
             $jwt_claim[self::DEPLOYMENT_ID_CLAIM] = $deployment_id;
         }
 
