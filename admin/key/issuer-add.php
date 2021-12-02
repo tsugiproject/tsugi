@@ -61,7 +61,7 @@ $oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . urlencode($guid);
 $oidc_redirect = $CFG->wwwroot . '/lti/oidc_launch';
 $lti13_keyset = $CFG->wwwroot . '/lti/keyset';
 $deep_link = $CFG->wwwroot . '/lti/store/';
-$lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($guid);
+$lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config-json.php?issuer_guid=' . urlencode($guid);
 $lti13_ims_json_url = $CFG->wwwroot . '/lti/store/ims-config/' . urlencode($guid);
 
 function addLinks() {

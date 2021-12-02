@@ -154,6 +154,12 @@ error_log("oidc_login redirect: ".$redirect);
 // Store it in a session cookie - likely won't work inside iframes on future browsers
 setcookie("TSUGI_STATE", $state);
 
+if ( is_string(U::get($_POST, ‘canvas_region’)) ) {
+    error_log("Activating Canvas bypass of cookie handling code");
+    header("Location: ".$redirect);
+    return;
+}
+
 // We use postmessage if we have explicit notification from the LMS or if we always enable it through config
 if ( $put_data_supported || $postmessage_enabled ) {
     // Fall through to below
