@@ -154,7 +154,7 @@ error_log("oidc_login redirect: ".$redirect);
 // Store it in a session cookie - likely won't work inside iframes on future browsers
 setcookie("TSUGI_STATE", $state);
 
-if ( is_string(U::get($_POST, ‘canvas_region’)) ) {
+if ( is_string(U::get($_POST, 'canvas_region')) ) {
     error_log("Activating Canvas bypass of cookie handling code");
     header("Location: ".$redirect);
     return;
