@@ -29,14 +29,19 @@ $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
 $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'issuer_id',
+     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
-     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id',
-     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience');
+     'caliper_url', 'caliper_key',
+     'created_at', 'updated_at', 'user_id',
+);
 
-$realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
+$realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256',
+     'issuer_id',
+     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
-     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id',
-     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience');
+     'caliper_url', 'caliper_key',
+     'created_at', 'updated_at', 'user_id',
+);
 
 $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
@@ -105,7 +110,10 @@ $key_type = '';
 if ( is_string($row['key_key']) && strlen($row['key_key']) > 1 && is_string($row['secret']) && strlen($row['secret']) > 0 ) {
     $key_type .= 'LTI 1.1';
 }
-if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && strlen($row['issuer_key']) > 1 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
+if ( is_string($row['lms_issuer']) && strlen($row['lms_issuer']) > 0 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
+    if ( strlen($key_type) > 0 ) $key_type .= ' / ';
+    $key_type .= 'LTI 1.3';
+} else if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && strlen($row['issuer_key']) > 0 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
     if ( strlen($key_type) > 0 ) $key_type .= ' / ';
     $key_type .= 'LTI 1.3';
 }
@@ -152,8 +160,10 @@ this entry properly.  See below for details.
 </p>
 <p>
 For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
-For LTI 1.3, you first need to create an issuer/client_id, select it and then enter
-the <b>deployment_id</b> for this integration from the LMS to define the tenant.
+For LTI 1.3, you can either
+(a) create a global issuer select it here, and then set the <b>client_id</b> and <b>deployment_id</b>
+or you can
+(b) leave the global issuer alone and set all of the LMS values in this screen.
 </p>
 <p>
 To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
@@ -250,15 +260,11 @@ if ( $inedit ) {
 
 ?>
 <script>
-    $('#lms_issuer').closest('div').before("<h2>The fields below are read only.</h2>");
+    $('#lms_issuer').closest('div').before("<h2>If you enter data into the the LTI 1.3 fields below, (a) set them all and (b) do not select a global issuer for this tenant. If you select a global issuer, the LTI 1.3 fields below should not be set.</h2>");
     $('<?= $select_text ?>').insertBefore('#issuer_id');
     $('#issuer_id').hide();
     $('#issuer_id_select').on('change', function() {
         $('input[name="issuer_id"]').val(this.value);
-    });
-    $("input[type=text]").each(function() {
-        if ( ! this.name.startsWith("lms_") ) return;
-        $(this).attr('readonly', true);
     });
 </script>
 <?php

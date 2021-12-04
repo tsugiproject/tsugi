@@ -18,11 +18,11 @@ if ( ! isAdmin() ) die('Must be admin');
 
 $query_parms = false;
 $searchfields = array("key_id", "key_title", "key_key", "deploy_key", "login_at", "updated_at", "user_id", "issuer_key");
-$sql = "SELECT key_id, key_title, key_key, secret, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at, 
+$sql = "SELECT key_id, key_title, key_key, secret, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
     lms_issuer,
     K.user_id AS user_id
         FROM {$CFG->dbprefix}lti_key AS K
-        LEFT JOIN {$CFG->dbprefix}lti_issuer AS I 
+        LEFT JOIN {$CFG->dbprefix}lti_issuer AS I
         ON K.issuer_id = I.issuer_id
 ";
 
@@ -39,10 +39,10 @@ foreach ( $rows as $row ) {
     if ( is_string($row['key_key']) && strlen($row['key_key']) > 1 && is_string($row['secret']) && strlen($row['secret']) > 0 ) {
         $key_type .= 'LTI 1.1';
     }
-    if ( is_string($row['lms_issuer']) && strlen($row['lms_issuer']) > 1 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
+    if ( is_string($row['lms_issuer']) && strlen($row['lms_issuer']) > 0 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
         if ( strlen($key_type) > 0 ) $key_type .= ' / ';
         $key_type .= 'LTI 1.3';
-    } else if ( is_string($row['issuer_key']) && strlen($row['issuer_key']) > 1 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
+    } else if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && strlen($row['issuer_key']) > 0 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
         if ( strlen($key_type) > 0 ) $key_type .= ' / ';
         $key_type .= 'LTI 1.3';
     }
@@ -73,7 +73,7 @@ $OUTPUT->flashMessages();
 <p>
 You have no Tenant keys for this system.
 </p>
-<?php } 
+<?php }
 $extra_buttons = array(
   "Insert New Key" => "key-add"
 );

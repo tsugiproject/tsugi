@@ -20,6 +20,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
     //  CHECK (
     //     (deploy_key IS NOT NULL AND issuer_id IS NOT NULL)
     //     OR (deploy_key NOT NULL AND issuer_id NOT NULL)
+    /*
     $have_issuer = strlen($issuer_id) > 0 || strlen($lms_issuer) > 0;
     if ( (strlen($deploy_key) > 0 && ! $have_issuer) ||
          (strlen($deploy_key) < 1 && $have_issuer) 
@@ -27,6 +28,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
         $_SESSION['error'] = "You must specify an issuer when you specify a deployment id";
         return false;
     }
+     */
 
     $key_sha256 = U::lti_sha256($key_key);
     $deploy_sha256 = U::lti_sha256($deploy_key);
@@ -60,6 +62,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
 
     // CONSTRAINT `{$CFG->dbprefix}lti_key_const_2` UNIQUE(issuer_id, deploy_sha256),
     if ( ($deploy_key != $old_deploy_key || $issuer_id != $old_issuer_id) &&
+	$issuer_id > 0 &&
         strlen($issuer_id) > 0 && strlen($deploy_key) > 0 ) {
         $row = $PDOX->rowDie( "SELECT deploy_sha256 FROM {$CFG->dbprefix}lti_key
                 WHERE issuer_id = :issuer_id AND deploy_sha256 = :deploy_sha256",
