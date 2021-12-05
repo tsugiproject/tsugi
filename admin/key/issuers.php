@@ -20,7 +20,9 @@ $query_parms = false;
 $searchfields = array("issuer_id", "issuer_title", "issuer_key", "issuer_guid",
     "issuer_client", "created_at", "updated_at");
 $orderfields = $searchfields;
-$sql = "SELECT issuer_id, issuer_title, issuer_key, issuer_guid, issuer_client, created_at, updated_at
+$sql = "SELECT issuer_id, issuer_title, issuer_key, issuer_guid, issuer_client,
+        lti13_keyset_url, lti13_token_url, lti13_oidc_auth,
+        created_at, updated_at
         FROM {$CFG->dbprefix}lti_issuer";
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);
@@ -28,13 +30,25 @@ $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
-    $newrow = $row;
     $sql = "SELECT COUNT(key_id) AS count FROM {$CFG->dbprefix}lti_key
         WHERE issuer_id = :IID";
     $values = array(":IID" => $row['issuer_id']);
     $crow = $PDOX->rowDie($sql, $values);
     $count = $crow ? $crow['count'] : 0;
+
+    $status = 'Ready';
+    foreach($row as $key => $value ) {
+        if ( strpos($key, "lti13_") !== 0 ) continue;
+        if ( ! is_string($value) || strlen($value) < 1 ) $status = 'Draft';
+    }
+    $newrow['issuer_id'] = $row['issuer_id'];
+    $newrow['issuer_title'] = $row['issuer_title'];
+    $newrow['issuer_client'] = $row['issuer_client'];
+    $newrow['status'] = $status;
     $newrow['key_count'] = $count;
+    $newrow['created_at'] = $row['created_at'];
+    $newrow['updated_at'] = $row['updated_at'];
+
     $newrows[] = $newrow;
 }
 

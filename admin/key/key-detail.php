@@ -135,8 +135,8 @@ $OUTPUT->flashMessages();
 <ul class="nav nav-tabs">
   <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
   <li class=""><a href="#info" data-toggle="tab" aria-expanded="true">About Keys</a></li>
-  <li class=""><a href="#auto" data-toggle="tab" aria-expanded="true">Dynamic Configuration</a></li>
   <li class=""><a href="#manual" data-toggle="tab" aria-expanded="false">Manual Configuration</a></li>
+  <li class=""><a href="#auto" data-toggle="tab" aria-expanded="true">Dynamic Configuration</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
 <div class="tab-pane fade active in" id="data">
@@ -156,20 +156,22 @@ $dynamicConfigUrl = U::addSession($CFG->wwwroot . "/admin/key/auto.php?tsugi_key
 A single entry in this table defines a "distinct tenant" in Tsugi.
 Data in Tsugi data is isolated to a tenant.  You can route both
 LTI 1.1 and LTI 1.3 launches to one tenant by setting fields on
-this entry properly.  See below for details.
+this entry properly.   If a tenant key is in "Draft" status - launches
+will not work.
 </p>
 <p>
 For LTI 1.1, set the <b>oauth_consumer_key</b> and <b>secret</b>.
+</p>
+<p>
 For LTI 1.3, you can either
-(a) create a global issuer select it here, and then set the <b>client_id</b> and <b>deployment_id</b>
-or you can
-(b) leave the global issuer alone and set all of the LMS values in this screen.
+(a) create a global issuer and select it here, and then set the <b>deployment_id</b>
+<b>or</b> you can
+(b) leave the global issuer unset and set all of the LMS values in this screen.  If you mix
+a global issuer and per-key LTI 1.3 settings, you will most likely end up with a tenant that
+won't be able to receive launches.
 </p>
 <p>
-To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
-</p>
-<p>
-If this is a pre-existing LTI 1.1 tenant, the LMS must have the <b>oauth_consumer_key</b>
+If this is a pre-existing LTI 1.1 tenant, the LMS must provide the <b>oauth_consumer_key</b>
 and <b>secret</b> connected to its LTI 1.3 launches, and then Tsugi can link the accounts
 and courses regardless of the type of launch.  For this to work, the LMS must support
 LTI Advantage legacy LTI 1.1 support.
@@ -193,7 +195,7 @@ a "draft" or incomplete key and then come back later to add the LMS / Platform p
 <p>
 To use the Dynamic Configuration URL in your Learning Management System,
 keep this window open in a separate tab while using the LMS in another tab
-as the Tsugi Dynamic Configuration process requires that you stay logged in to this system
+as the Dynamic Configuration process requires that you stay logged in to this system
 in order to ensure you have permission to perform this confguration exchange.
 </p>
 <p>
@@ -206,12 +208,14 @@ the new issuer data will be added to this key.
 A secondary and optional part of Dynamic Configuration is to communicate the <b>Deployment ID</b> for this tenant / key.
 Sometimes this is included in the dynamic configuration exchange (Sakai, Moodle, and Brightspace for example).
 For other LMS's you may need to run the dynamic configuration process, and then manually enter the Deployment Id
-later.  LTI Advantage keys without a Deployment ID will not work in Tsugi.
+later.  LTI Advantage keys without a Deployment ID will not work in Tsugi.  Since Sakai and Moodle usually run in a "single-tenant"
+model, they usually use a <b>deployment_id</b> of <b>1</b>.
 </p>
 <p>
 <b>Important:</b>
 Once the LMS has finished its configuration in the other tab, come back to this tab or window, press "Refresh"
-and check to verify that the key has been set up properly.
+and check to verify that the key has been set up properly.  Sometimes you get logged out and will need to log back
+in to check the results of the dynamic configuration process.
 </p>
 </div>
 <div class="tab-pane fade" id="manual">
@@ -225,28 +229,24 @@ $deep_link = $CFG->wwwroot . '/lti/store/';
 ?>
 <p>
 These URLs need to be provided to your LMS configuration associated with this key.
-You can create a draft key, then provide these values to the LMS.</p>
-<p>
+You can create a draft key, then provide these values to the LMS.
 Then the LMS can us the values to
 complete its configuration process and provide you the needed
 values (which may include a new issuer) so that you can finish configuring this key.
 </p>
-<p>
-LTI 1.3 OpenID Connect Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $oidc_login ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a><br/>
-<?= $oidc_login ?>
-</p>
-<p>
-LTI 1.3 Tool Redirect Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $oidc_redirect ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a><br/>
-<?= $oidc_redirect ?>
-</p>
-<p>
-LTI 1.3 Tool Keyset URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $lti13_keyset ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a><br/>
-<?= $lti13_keyset ?>
-</p>
-<p>
-LTI Content Item / Deep Link Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $deep_link ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a><br/>
-<?= $deep_link ?>
-</p>
+<pre>
+LTI 1.3 OpenID Connect Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $oidc_login ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $oidc_login ?> 
+
+LTI 1.3 Tool Redirect Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $oidc_redirect ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $oidc_redirect ?> 
+
+LTI 1.3 Tool Keyset URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $lti13_keyset ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $lti13_keyset ?> 
+
+LTI Content Item / Deep Link Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $deep_link ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
+<?= $deep_link ?> 
+</pre>
 
 </div>
 <?php
@@ -267,7 +267,10 @@ if ( $inedit ) {
 
 ?>
 <script>
-    $('#lms_issuer').closest('div').before("<h2>If you enter data into the the LTI 1.3 fields below, (a) set them all and (b) do not select a global issuer for this tenant. If you select a global issuer, the LTI 1.3 fields below should not be set.</h2>");
+    $(document).ready(function(){
+        $('form').attr('autocomplete', 'off');
+    });
+    $('#lms_issuer').closest('div').before("<p>If you enter data into the the LTI 1.3 fields below, (a) set them all and (b) do not select a global issuer for this tenant. If you select a global issuer, the LTI 1.3 fields below should not be set.</p>");
     $('<?= $select_text ?>').insertBefore('#issuer_id');
     $('#issuer_id').hide();
     $('#issuer_id_select').on('change', function() {
