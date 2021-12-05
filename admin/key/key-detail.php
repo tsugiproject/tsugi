@@ -174,6 +174,13 @@ and <b>secret</b> connected to its LTI 1.3 launches, and then Tsugi can link the
 and courses regardless of the type of launch.  For this to work, the LMS must support
 LTI Advantage legacy LTI 1.1 support.
 </p>
+<p>
+Sometimes you need to give the LMS the Tsugi URLs to make a new security arrangement
+<b>before</b> they can give you the Platform values to put into either a global issuer
+on this form.  We solve this "who goes first" problem in Tsugi by allowing you to create
+a "draft" or incomplete key and then come back later to add the LMS / Platform provided data.
+</p>
+
 </div>
   <div class="tab-pane fade" id="auto">
 <p>

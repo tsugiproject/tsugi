@@ -92,10 +92,10 @@ $extra_buttons=false;
 // If we have a valid GUID
 if ($show_guid) {
     $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset';
-    $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer_guid=' . urlencode($row['issuer_guid']);
+    $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config-json.php?issuer_guid=' . urlencode($row['issuer_guid']);
 } else {
     $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset';
-    $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config.json?issuer=' . urlencode($row['issuer_key']);
+    $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config-json.php?issuer=' . urlencode($row['issuer_key']);
 }
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
