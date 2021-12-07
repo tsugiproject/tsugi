@@ -77,14 +77,6 @@ $json_str = <<<JSON
 		}
     ],
 	"public_jwk_url" : "https://www.tsugi.org/jwk_url_goes_here",
-    "public_jwk": {
-        "e": "AQAB",
-        "n": "qO4FGwu73DwNXVFG6EJKNCnE5ceBAnxi5kOk3exYqx-mSCJNU7J3E88qbZa_jyhSOtSs1ZwtcBoBhROIcbfGznCLGoi3OjZzt223I7cT8WaR1gZlB0XJ6f1XPPo6-IleRZZ7BF1O6SlsIorN00i-K7hF-S9euzdvOHkGLWS6UU537wT19famfvjO-UDzXWTxCVOcdmCnW0oSBVXJeFia-yk9gYMyRuoozKyb6T-s9--OgSVhpvtxNF4fDFc_h26Syve1d7BJwa8Nd0LwKxIniXAtVJi-1Itm3pqwspCE0VJPdPpTx6HRW9wexDn6EtYdUcKjy93l7xLvgnObd3mxfQ",
-        "alg": "RS256",
-        "kid": "6rW2pCGQblYiEvW_OIDTRBOr6_Pt1NVQaGZ-Z_FF9Ys",
-        "kty": "RSA",
-        "use": "sig"
-    },
     "description": "Tsugi Cloud for Canvas",
     "custom_fields": {
         "availableStart": "\$ResourceLink.available.startDateTime",
@@ -181,22 +173,5 @@ for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
 // User the public url variant
 // https://canvas.instructure.com/doc/api/file.lti_dev_key_config.html
 $json->public_jwk_url = $CFG->wwwroot . "/lti/keyset";
-unset($json->public_jwk);
-
-// TODO: Remove all this
-/*
-$rows = Keyset::getCurrentKeys();
-if ( ! $rows || ! is_array($rows) || count($rows) < 1 ) {
-    die("Could not load key");
-}
-
-$pubkey = $rows[0]['pubkey'];
-// Handle the keyset
-$jwk = Keyset::build_jwk($pubkey);
-
-// echo(json_encode($jwk));
-// echo("\n");
-$json->public_jwk = $jwk;
-*/
 
 echo(json_encode($json, JSON_PRETTY_PRINT));
