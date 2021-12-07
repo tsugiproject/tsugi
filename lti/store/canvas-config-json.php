@@ -23,6 +23,7 @@ $json_str = <<<JSON
     "extensions": [
         {
             "platform": "canvas.instructure.com",
+            "privacy_level":"public",
             "settings": {
         		"selection_width": 800,
         		"selection_height": 800,
