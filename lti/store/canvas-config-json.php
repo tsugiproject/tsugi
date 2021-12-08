@@ -70,10 +70,6 @@ $json_str = <<<JSON
                     }
                 ]
             }
-        },
-        {
-            "platform": "tsugi.org",
-			"note": "Canvas finds a default redirect_uris value from target_link_uri.  So Tsugi puts its redirect_uri there and makes sure to override target_link_uri in each of the placements so the global target_link_uri is in effect ignored."
 		}
     ],
 	"public_jwk_url" : "https://www.tsugi.org/jwk_url_goes_here",
@@ -111,7 +107,8 @@ $json_str = <<<JSON
         "sourceUserId": "\$Person.sourcedId"
 	},
     "oidc_initiation_url": "https://canvas.tsugicloud.org/tsugi/lti/oidc_login",
-    "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/42_wtf_this_is_silly_when_there_are_placements"
+    "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/42_wtf_this_is_silly_when_there_are_placements",
+    "note_from_tsugi": "Canvas finds a default redirect_uris value from target_link_uri.  So Tsugi puts its redirect_uri there and makes sure to override target_link_uri in each of the placements so the global target_link_uri is in effect ignored."
 }
 JSON
 ;
