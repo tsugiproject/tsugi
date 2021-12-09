@@ -239,6 +239,20 @@ class LTI13 {
         return ($lti_version == "LTI-1p0" || $lti_version == "LTI-2p0");
     }
 
+    /** Handle a curl that fails
+     *
+     * @param object $ch The curl handle that just had an error
+     *
+     * @return string The error message
+     */
+    public static function handle_curl_error($ch, $debug_log) {
+        $msg = 'Curl_error: '.curl_error($ch);
+        error_log($msg);
+        if( is_array($debug_log) ) $debug_log[] = $msg;
+        curl_close($ch);
+        return $msg;
+    }
+
     /**
      * Apply Jon Postel's Law as appropriate
      *
@@ -259,8 +273,8 @@ class LTI13 {
      * @param array $failures A string array of failures (pass by reference)
      */
     public static function jonPostel($body, &$failures) {
-		global $CFG;
-        if ( isset($CFG->jon_postel) ) return; // We are on Jon Postel mode
+        global $CFG;
+        if ( isset($CFG->jon_postel) ) return; // We are in Jon Postel mode
 
         // Sanity checks
         $version = false;
@@ -432,6 +446,7 @@ class LTI13 {
         if ( is_array($debug_log) ) $debug_log[] = $grade_call;
 
         $line_item = curl_exec($ch);
+        if ( $line_item === false ) return self::handle_curl_error($ch, $debug_log);
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
@@ -481,6 +496,8 @@ class LTI13 {
         if ( is_array($debug_log) ) $debug_log[] = $headers;
 
         $membership = curl_exec($ch);
+        if ( $membership === false ) return self::handle_curl_error($ch, $debug_log);
+
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".strlen($membership)." characters)";
@@ -541,6 +558,8 @@ class LTI13 {
         if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $lineitems = curl_exec($ch);
+        if ( $lineitems === false ) return self::handle_curl_error($ch, $debug_log);
+
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent lineitems request, received status=$httpcode (".strlen($lineitems)." characters)";
@@ -591,6 +610,8 @@ class LTI13 {
         if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $lineitem = curl_exec($ch);
+        if ( $lineitem === false ) return self::handle_curl_error($ch, $debug_log);
+
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem request, received status=$httpcode (".strlen($lineitem)." characters)";
@@ -646,6 +667,8 @@ class LTI13 {
         if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $results = curl_exec($ch);
+        if ( $results === false ) return self::handle_curl_error($ch, $debug_log);
+
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent results request, received status=$httpcode (".strlen($results)." characters)";
@@ -705,6 +728,8 @@ class LTI13 {
         if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $response = curl_exec($ch);
+        if ( $response === false ) return self::handle_curl_error($ch, $debug_log);
+
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem delete, received status=$httpcode (".strlen($response)." characters)";
@@ -771,6 +796,7 @@ class LTI13 {
         if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $line_item = curl_exec($ch);
+        if ( $line_item === false ) return self::handle_curl_error($ch, $debug_log);
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
@@ -826,6 +852,7 @@ class LTI13 {
         if (is_array($debug_log) ) $debug_log[] = $headers;
 
         $line_item = curl_exec($ch);
+        if ( $line_item === false ) return self::handle_curl_error($ch, $debug_log);
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
@@ -905,6 +932,11 @@ class LTI13 {
         if ( is_array($debug_log) ) $debug_log[] = $auth_request;
 
         $token_str = curl_exec($ch);
+        if ( $token_str === false ) {
+            self::handle_curl_error($ch, $debug_log);
+            return false;
+        }
+
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ( is_array($debug_log) ) $debug_log[] = "Returned token code $httpcode\n".$token_str;
         $token_data = json_decode($token_str, true);
