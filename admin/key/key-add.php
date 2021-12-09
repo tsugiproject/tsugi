@@ -70,7 +70,7 @@ $OUTPUT->flashMessages();
 
 ?>
 <h1>Adding Tsugi Tenant/Key
-  <a class="btn btn-default" href="keys">Cancel</a>
+  <a class="btn btn-default" href="keys">Exit</a>
 </h1>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
@@ -148,7 +148,7 @@ foreach($rows as $row) {
 $select_text .= "</select>";
 ?>
 <script>
-$('#lms_issuer').closest('div').before("<h2>If you enter data into the the LTI 1.3 fields below, (a) set them all and (b) do not select a global issuer for this tenant. If you select a global issuer, the LTI 1.3 fields below should not be set.</h2>");
+$('#lms_issuer').closest('div').before("<p>If you enter data into the the LTI 1.3 fields below, (a) set them all and (b) do not select a global issuer for this tenant. If you select a global issuer, the LTI 1.3 fields below should not be set.</p>");
 $('<?= $select_text ?>').insertBefore('#issuer_id');
 $('#issuer_id').hide();
 $('#issuer_id_select').on('change', function() {

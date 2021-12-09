@@ -9,22 +9,7 @@ LTIX::getConnection();
 
 use Tsugi\Util\U;
 
-$rows = Keyset::getCurrentKeys();
-if ( ! $rows || ! is_array($rows) || count($rows) < 1 ) {
-    die("Could not load key");
-}
-
-$pubkey = $rows[0]['pubkey'];
-
-$pieces = parse_url($CFG->wwwroot);
-$domain = isset($pieces['host']) ? $pieces['host'] : false;
-
-$jwk = Keyset::build_jwk($pubkey);
-
-// echo(json_encode($jwk));
-// echo("\n");
-
-// TODO: Remove course_navigation
+// https://canvas.instructure.com/doc/api/file.lti_dev_key_config.html
 $json_str = <<<JSON
 {
     "title": "Tsugi Cloud for Canvas",
@@ -38,54 +23,102 @@ $json_str = <<<JSON
     "extensions": [
         {
             "platform": "canvas.instructure.com",
+            "privacy_level":"public",
             "settings": {
+        		"selection_width": 800,
+        		"selection_height": 800,
                 "placements": [
                     {
                         "text": "Canvas Tsugi",
-                        "placement": "course_navigation",
-                        "message_type": "LtiResourceLinkRequest",
-                        "target_link_uri": "https://canvas.tsugicloud.org/mod/cats/"
-                    },
-                    {
-                        "text": "Canvas Tsugi",
+			            "enabled": true,
                         "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
                         "placement": "assignment_selection",
                         "message_type": "LtiDeepLinkingRequest",
+            			"selection_width": 800,
+            			"selection_height": 800,
                         "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=assignment_selection"
                     },
                     {
                         "text": "Canvas Tsugi",
+			            "enabled": true,
                         "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
                         "placement": "link_selection",
                         "message_type": "LtiDeepLinkingRequest",
-                        "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=assignment_selection"
+            			"selection_width": 800,
+            			"selection_height": 800,
+                        "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=link_selection"
                     },
                     {
                         "text": "Canvas Tsugi",
+			            "enabled": true,
+                        "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
+                        "placement": "migration_selection",
+                        "message_type": "LtiDeepLinkingRequest",
+            			"selection_width": 800,
+            			"selection_height": 800,
+                        "target_link_uri": "https://canvas.tsugicloud.org/tsugi/cc/export/?placement=migration_selection"
+                    },
+                    {
+                        "text": "Canvas Tsugi",
+			            "enabled": true,
                         "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
                         "placement": "editor_button",
                         "message_type": "LtiDeepLinkingRequest",
+            			"selection_width": 800,
+            			"selection_height": 800,
                         "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=editor_button"
                     }
                 ]
             }
-        }
+		}
     ],
-    "public_jwk": {
-        "e": "AQAB",
-        "n": "qO4FGwu73DwNXVFG6EJKNCnE5ceBAnxi5kOk3exYqx-mSCJNU7J3E88qbZa_jyhSOtSs1ZwtcBoBhROIcbfGznCLGoi3OjZzt223I7cT8WaR1gZlB0XJ6f1XPPo6-IleRZZ7BF1O6SlsIorN00i-K7hF-S9euzdvOHkGLWS6UU537wT19famfvjO-UDzXWTxCVOcdmCnW0oSBVXJeFia-yk9gYMyRuoozKyb6T-s9--OgSVhpvtxNF4fDFc_h26Syve1d7BJwa8Nd0LwKxIniXAtVJi-1Itm3pqwspCE0VJPdPpTx6HRW9wexDn6EtYdUcKjy93l7xLvgnObd3mxfQ",
-        "alg": "RS256",
-        "kid": "6rW2pCGQblYiEvW_OIDTRBOr6_Pt1NVQaGZ-Z_FF9Ys",
-        "kty": "RSA",
-        "use": "sig"
-    },
+	"public_jwk_url" : "https://www.tsugi.org/jwk_url_goes_here",
     "description": "Tsugi Cloud for Canvas",
-    "custom_fields": {},
+    "custom_fields": {
+        "availableStart": "\$ResourceLink.available.startDateTime",
+        "availableEnd": "\$ResourceLink.available.endDateTime",
+        "submissionStart": "\$ResourceLink.submission.startDateTime",
+        "submissionEnd": "\$ResourceLink.submission.endDateTime",
+        "resourcelink_id_history": "\$ResourceLink.id.history",
+        "context_id_history": "\$Context.id.history",
+        "canvas_caliper_url": "\$Caliper.url",
+    	"timezone": "\$Person.address.timezone",
+    	"pointsPossible": "\$Canvas.assignment.pointsPossible",
+    	"userPronouns": "\$com.instructure.Person.pronouns",
+        "localAssignmentId": "\$Canvas.assignment.id",
+        "prevCourses": "\$Canvas.course.previousCourseIds",
+        "termName": "\$Canvas.term.name",
+        "assignmentUnlockAt": "\$Canvas.assignment.unlockAt.iso8601",
+        "courseId": "\$Canvas.course.id",
+        "canvas_api_domain": "\$Canvas.api.domain",
+        "canvas_module_id": "\$Canvas.module.id",
+        "toolContextLinkUrl": "\$Canvas.externalTool.url",
+        "canvas_assignment_id": "\$Canvas.assignment.id",
+        "prevContexts": "\$Canvas.course.previousContextIds",
+        "userDisplayName": "\$Person.name.display",
+        "assignmentLockAt": "\$Canvas.assignment.lockAt.iso8601",
+        "anonymousGrading": "\$com.instructure.Assignment.anonymous_grading",
+        "canvas_module_item_id": "\$Canvas.moduleItem.id",
+        "ltiGroupContextIds": "\$Membership.course.groupIds",
+        "termStart": "\$Canvas.term.startAt",
+        "canvas_course_id": "\$Canvas.course.id",
+        "courseName": "\$Canvas.course.name",
+        "sectionIds": "\$Canvas.course.sectionIds",
+        "sourceUserId": "\$Person.sourcedId"
+	},
+    "oidc_initiation_url": "https://canvas.tsugicloud.org/tsugi/lti/oidc_login",
     "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/42_wtf_this_is_silly_when_there_are_placements",
-    "oidc_initiation_url": "https://canvas.tsugicloud.org/tsugi/lti/oidc_login"
+    "note_from_tsugi": "Canvas finds a default redirect_uris value from target_link_uri.  So Tsugi puts its redirect_uri there and makes sure to override target_link_uri in each of the placements so the global target_link_uri is in effect ignored."
 }
 JSON
 ;
+
+// Possible additional custom values - if we can understand.
+/*
+    "supportsPrivateGroups": "true",
+    "supportsExternalGrading": "true",
+    "supportsUserGroups": "true",
+*/
 
 $json = json_decode(trim($json_str));
 
@@ -99,26 +132,43 @@ if ( ! $json ) {
 header("Content-type: application/json");
 
 $json->title = $CFG->servicename;
+$json->description = $CFG->servicename;
 if ( $CFG->servicedesc ) {
     $json->description = $CFG->servicedesc;
 }
-$json->public_jwk = $jwk;
 
-// TODO: Fix this
-$json->target_link_uri = $CFG->wwwroot . "/lti/this_url_is_a_placeholder_when_there_are_placements";
-
-$json->oidc_redirect_url = $CFG->wwwroot . "/lti/oidc_launch";
 $json->oidc_initiation_url = $CFG->wwwroot . "/lti/oidc_login".(isset($row['issuer_guid']) ? "/".$row['issuer_guid'] : '');
+
+
+// TODO: Submit PR to Canvas :)
+// Canvas sems not to have any way to specify the redirect_uris
+// https://github.com/instructure/canvas-lms/blob/master/app/models/lti/tool_configuration.rb#L67
+$json->redirect_uris = $CFG->wwwroot . "/lti/oidc_launch";  // What it *should be* if it were fixed properly
+$json->oidc_redirect_uris = $json->redirect_uris;   // Maybe it should be this once fixed,
+
+$json->target_link_uri = $json->redirect_uris;  // Work around bug in Canvas
+
+$pieces = parse_url($CFG->wwwroot);
+$domain = isset($pieces['host']) ? $pieces['host'] : false;
+
 $json->extensions[0]->domain = $domain;
 $json->extensions[0]->tool_id = md5($CFG->wwwroot);
 $json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
+    $placement =$json->extensions[0]->settings->placements[$i]->placement;
     $json->extensions[0]->settings->placements[$i]->text = $CFG->servicename;
-    $json->extensions[0]->settings->placements[$i]->target_link_uri = $CFG->wwwroot . "/lti/store/?placement=" .
-        urlencode($json->extensions[0]->settings->placements[$i]->placement);
+	if ( $placement == "migration_selection" ) {
+    	$json->extensions[0]->settings->placements[$i]->target_link_uri = 
+			$CFG->wwwroot . "/cc/export";
+	} else {
+    	$json->extensions[0]->settings->placements[$i]->target_link_uri = 
+			$CFG->wwwroot . "/lti/store/?placement=" .  urlencode($placement);
+	}
     $json->extensions[0]->settings->placements[$i]->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 }
-// removing placements for now.
-unset($json->extensions[0]->settings->placements);
-$json->extensions[0]->settings->placements = [];
+
+// User the public url variant
+// https://canvas.instructure.com/doc/api/file.lti_dev_key_config.html
+$json->public_jwk_url = $CFG->wwwroot . "/lti/keyset";
+
 echo(json_encode($json, JSON_PRETTY_PRINT));
