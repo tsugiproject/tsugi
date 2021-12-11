@@ -486,9 +486,11 @@ class LTI {
         global $LastPOXGradeResponse;
         global $LastPOXGradeParse;
         global $LastPOXGradeError;
+        global $LastCurlError;
         $LastPOXGradeResponse = false;
         $LastPOXGradeParse = false;
         $LastPOXGradeError = false;
+        $LastCurlError = false;
 
         if ( strlen($sourcedid) < 1 ) {
             if ( is_array($debug_log) ) $debug_log[] = array('Missing sourcedid');
@@ -514,6 +516,7 @@ class LTI {
         $more_headers = false;
         $response = self::sendOAuthBody("POST", $service, $key_key, $secret,
             $content_type, $postBody, $more_headers, $signature);
+        if ( is_string($LastCurlError) && is_array($debug_log) )  $debug_log[] = array("Curl Error",$LastCurlError);
         $LastPOXGradeResponse = $response;
         if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response",$response);
 
@@ -596,8 +599,10 @@ class LTI {
         $response = self::sendOAuthBody("POST", $service, $key_key, $secret,
             $content_type, $postBody, $more_headers, $signature);
         global $LastOAuthBodyBaseString;
+        global $LastCurlError;
         $lbs = $LastOAuthBodyBaseString;
         if ( is_array($debug_log) )  $debug_log[] = array("Grade API Response",$response);
+        if ( is_string($LastCurlError) && is_array($debug_log) )  $debug_log[] = array("Curl Error",$LastCurlError);
         $LastPOXGradeResponse = $response;
         $status = "Failure to store grade";
         if ( strpos($response, '<?xml') !== 0 ) {

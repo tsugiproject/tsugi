@@ -17,8 +17,16 @@ class NetTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testGetCurl() {
+        global $LastCurlError;
         $stuff = Net::getCurl("http://www.dr-chuck.com/page1.htm");
         $this->assertStringContainsStringIgnoringCase("The First Page",$stuff);
+        $this->assertFalse($LastCurlError);
+    }
+
+    public function testGetCurlFail() {
+        global $LastCurlError;
+        $stuff = Net::getCurl("http://fail.lkdfjdfljfdlj1298.com/page1.htm");
+        $this->assertTrue(is_string($LastCurlError));
     }
 
     public function testGetIP() {
