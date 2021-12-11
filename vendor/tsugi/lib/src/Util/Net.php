@@ -204,9 +204,9 @@ class Net {
         global $LastHeadersSent;
 
         $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" .
-    	     $LastBODYURL . "\n\n" .
-    		 $LastHeadersSent . "\n";
-    	return $ret;
+             $LastBODYURL . "\n\n" .
+             $LastHeadersSent . "\n";
+        return $ret;
     }
 
     public static function getBodyReceivedDebug() {
@@ -218,11 +218,11 @@ class Net {
         global $LastCurlError;
 
         $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" .
-    	     $LastBODYURL . "\n" .
-    		 (is_string($LastCurlError) ? "Curl Error: " . $LastCurlError . "\n" : ' ').
-    		 "HTTP Response Code: " . $last_http_response . "\n" .
-    		 $LastHeadersReceived . "\n";
-    	return $ret;
+             $LastBODYURL . "\n" .
+             (is_string($LastCurlError) ? "Curl Error: " . $LastCurlError . "\n" : ' ').
+             "HTTP Response Code: " . $last_http_response . "\n" .
+             $LastHeadersReceived . "\n";
+        return $ret;
     }
 
     public static function getGetSentDebug() {
@@ -231,9 +231,9 @@ class Net {
         global $LastHeadersSent;
 
         $ret = "GET Used: " . $LastGETImpl . "\n" .
-    	     $LastGETURL . "\n\n" .
-    		 $LastHeadersSent . "\n";
-    	return $ret;
+             $LastGETURL . "\n\n" .
+             $LastHeadersSent . "\n";
+        return $ret;
     }
 
     public static function getGetReceivedDebug() {
@@ -244,11 +244,11 @@ class Net {
         global $LastHeadersReceived;
 
         $ret = "GET Used: " . $LastGETImpl . "\n" .
-    	     $LastGETURL . "\n" .
-    		 (is_string($LastCurlError) ? "Curl Error: " . $LastCurlError . "\n" : ' ').
-    		 "HTTP Response: " . $last_http_response . "\n" .
-    		 $LastHeadersReceived . "\n";
-    	return $ret;
+             $LastGETURL . "\n" .
+             (is_string($LastCurlError) ? "Curl Error: " . $LastCurlError . "\n" : ' ').
+             "HTTP Response: " . $last_http_response . "\n" .
+             $LastHeadersReceived . "\n";
+        return $ret;
     }
 
     // Sadly this tries several approaches depending on
@@ -265,7 +265,7 @@ class Net {
         global $LastHeadersReceived;
         global $LastBODYContent;
 
-    	$LastBODYURL = $url;
+        $LastBODYURL = $url;
         $LastBODYMethod = $method;
         $LastBODYImpl = false;
         $LastHeadersSent = false;
