@@ -41,6 +41,10 @@ class Net {
         global $last_http_response;
         return $last_http_response;
     }
+    public static function getLastCurlError() {
+        global $LastCurlError;
+        return $LastCurlError;
+    }
     public static function getLastHeadersReceived() {
         global $LastHeadersReceived;
         return $LastHeadersReceived;
@@ -70,6 +74,7 @@ class Net {
         global $LastHeadersReceived;
         global $LastHeadersSent;
         global $last_http_response;
+        global $LastCurlError;
 
         // Caller knows the body_sent
         $retval = array();
@@ -107,12 +112,14 @@ class Net {
         global $LastGETImpl;
         global $LastHeadersSent;
         global $last_http_response;
+        global $LastCurlError;
         global $LastHeadersReceived;
 
         $LastGETURL = $url;
         $LastGETImpl = false;
         $LastHeadersSent = false;
         $last_http_response = false;
+        $LastCurlError = false;
         $LastHeadersReceived = false;
         $lastGETResponse = false;
 
@@ -146,6 +153,7 @@ class Net {
     public static function getCurl($url, $header=false) {
       if ( ! function_exists('curl_init') ) return false;
       global $last_http_response;
+      global $LastCurlError;
       global $LastHeadersSent;
       global $LastHeadersReceived;
 
@@ -176,6 +184,9 @@ class Net {
 
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
+      if ( $result === false ) {
+              $LastCurlError = curl_error($ch);
+      }
       $info = curl_getinfo($ch);
       $last_http_response = $info['http_code'];
       $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
@@ -204,10 +215,12 @@ class Net {
         global $LastBODYImpl;
         global $LastHeadersReceived;
         global $last_http_response;
+        global $LastCurlError;
 
         $ret = $LastBODYMethod . " Used: " . $LastBODYImpl . "\n" .
-    		 "HTTP Response Code: " . $last_http_response . "\n" .
     	     $LastBODYURL . "\n" .
+    		 (is_string($LastCurlError) ? "Curl Error: " . $LastCurlError . "\n" : ' ').
+    		 "HTTP Response Code: " . $last_http_response . "\n" .
     		 $LastHeadersReceived . "\n";
     	return $ret;
     }
@@ -226,12 +239,14 @@ class Net {
     public static function getGetReceivedDebug() {
         global $LastGETURL;
         global $last_http_response;
+        global $LastCurlError;
         global $LastGETImpl;
         global $LastHeadersReceived;
 
         $ret = "GET Used: " . $LastGETImpl . "\n" .
-    		 "HTTP Response: " . $last_http_response . "\n" .
     	     $LastGETURL . "\n" .
+    		 (is_string($LastCurlError) ? "Curl Error: " . $LastCurlError . "\n" : ' ').
+    		 "HTTP Response: " . $last_http_response . "\n" .
     		 $LastHeadersReceived . "\n";
     	return $ret;
     }
@@ -246,6 +261,7 @@ class Net {
         global $LastBODYImpl;
         global $LastHeadersSent;
         global $last_http_response;
+        global $LastCurlError;
         global $LastHeadersReceived;
         global $LastBODYContent;
 
@@ -352,6 +368,7 @@ class Net {
     public static function bodyCurl($url, $method, $body, $header) {
       if ( ! function_exists('curl_init') ) return false;
       global $last_http_response;
+      global $LastCurlError;
       global $LastHeadersSent;
       global $LastHeadersReceived;
       global $LastBODYImpl;
@@ -393,6 +410,9 @@ class Net {
 
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
+      if ( $result === false ) {
+          $LastCurlError = curl_error($ch);
+      }
       $info = curl_getinfo($ch);
       $last_http_response = $info['http_code'];
       if(curl_errno($ch))
