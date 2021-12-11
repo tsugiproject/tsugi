@@ -195,7 +195,8 @@ class Launch {
      * Return whether this is an LTI13 launch or not
      */
     public function isLTI13() {
-        return is_object($this->key);
+        $issuer_client = $this->ltiParameter('issuer_client');
+        return is_string($issuer_client) && strlen($issuer_client) > 0 ;
     }
 
     /**
