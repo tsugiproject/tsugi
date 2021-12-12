@@ -25,54 +25,54 @@ $json_str = <<<JSON
             "platform": "canvas.instructure.com",
             "privacy_level":"public",
             "settings": {
-        		"selection_width": 800,
-        		"selection_height": 800,
+                "selection_width": 800,
+                "selection_height": 800,
                 "placements": [
                     {
-                        "text": "Canvas Tsugi",
-			            "enabled": true,
+                        "text": "Tsugi Assignments",
+                        "enabled": true,
                         "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
                         "placement": "assignment_selection",
                         "message_type": "LtiDeepLinkingRequest",
-            			"selection_width": 800,
-            			"selection_height": 800,
+                        "selection_width": 800,
+                        "selection_height": 800,
                         "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=assignment_selection"
                     },
                     {
-                        "text": "Canvas Tsugi",
-			            "enabled": true,
+                        "text": "Tsugi",
+                        "enabled": true,
                         "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
                         "placement": "link_selection",
                         "message_type": "LtiDeepLinkingRequest",
-            			"selection_width": 800,
-            			"selection_height": 800,
+                        "selection_width": 800,
+                        "selection_height": 800,
                         "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=link_selection"
                     },
                     {
-                        "text": "Canvas Tsugi",
-			            "enabled": true,
+                        "text": "Import from Tsugi",
+                        "enabled": true,
                         "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
                         "placement": "migration_selection",
                         "message_type": "LtiDeepLinkingRequest",
-            			"selection_width": 800,
-            			"selection_height": 800,
-                        "target_link_uri": "https://canvas.tsugicloud.org/tsugi/cc/export/?placement=migration_selection"
+                        "selection_width": 800,
+                        "selection_height": 800,
+                        "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=migration_selection"
                     },
                     {
-                        "text": "Canvas Tsugi",
-			            "enabled": true,
+                        "text": "Tsugi",
+                        "enabled": true,
                         "icon_url": "https://static.tsugi.org/img/logos/tsugi-logo-square.png",
                         "placement": "editor_button",
                         "message_type": "LtiDeepLinkingRequest",
-            			"selection_width": 800,
-            			"selection_height": 800,
+                        "selection_width": 800,
+                        "selection_height": 800,
                         "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/store/?placement=editor_button"
                     }
                 ]
             }
-		}
+        }
     ],
-	"public_jwk_url" : "https://www.tsugi.org/jwk_url_goes_here",
+    "public_jwk_url" : "https://www.tsugi.org/jwk_url_goes_here",
     "description": "Tsugi Cloud for Canvas",
     "custom_fields": {
         "availableStart": "\$ResourceLink.available.startDateTime",
@@ -82,9 +82,9 @@ $json_str = <<<JSON
         "resourcelink_id_history": "\$ResourceLink.id.history",
         "context_id_history": "\$Context.id.history",
         "canvas_caliper_url": "\$Caliper.url",
-    	"timezone": "\$Person.address.timezone",
-    	"pointsPossible": "\$Canvas.assignment.pointsPossible",
-    	"userPronouns": "\$com.instructure.Person.pronouns",
+        "timezone": "\$Person.address.timezone",
+        "pointsPossible": "\$Canvas.assignment.pointsPossible",
+        "userPronouns": "\$com.instructure.Person.pronouns",
         "localAssignmentId": "\$Canvas.assignment.id",
         "prevCourses": "\$Canvas.course.previousCourseIds",
         "termName": "\$Canvas.term.name",
@@ -105,7 +105,7 @@ $json_str = <<<JSON
         "courseName": "\$Canvas.course.name",
         "sectionIds": "\$Canvas.course.sectionIds",
         "sourceUserId": "\$Person.sourcedId"
-	},
+    },
     "oidc_initiation_url": "https://canvas.tsugicloud.org/tsugi/lti/oidc_login",
     "target_link_uri": "https://canvas.tsugicloud.org/tsugi/lti/42_wtf_this_is_silly_when_there_are_placements",
     "note_from_tsugi": "Canvas finds a default redirect_uris value from target_link_uri.  So Tsugi puts its redirect_uri there and makes sure to override target_link_uri in each of the placements so the global target_link_uri is in effect ignored."
@@ -156,14 +156,10 @@ $json->extensions[0]->tool_id = md5($CFG->wwwroot);
 $json->extensions[0]->settings->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
     $placement =$json->extensions[0]->settings->placements[$i]->placement;
-    $json->extensions[0]->settings->placements[$i]->text = $CFG->servicename;
-	if ( $placement == "migration_selection" ) {
-    	$json->extensions[0]->settings->placements[$i]->target_link_uri = 
-			$CFG->wwwroot . "/cc/export";
-	} else {
-    	$json->extensions[0]->settings->placements[$i]->target_link_uri = 
-			$CFG->wwwroot . "/lti/store/?placement=" .  urlencode($placement);
-	}
+    $json->extensions[0]->settings->placements[$i]->text =
+        str_replace('Tsugi', $CFG->servicename, $json->extensions[0]->settings->placements[$i]->text);
+    $json->extensions[0]->settings->placements[$i]->target_link_uri =
+        $CFG->wwwroot . "/lti/store/?placement=" .  urlencode($placement);
     $json->extensions[0]->settings->placements[$i]->icon_url = $CFG->staticroot . "/img/logos/tsugi-logo-square.png";
 }
 
@@ -172,3 +168,5 @@ for($i=0; $i < count($json->extensions[0]->settings->placements); $i++) {
 $json->public_jwk_url = $CFG->wwwroot . "/lti/keyset";
 
 echo(json_encode($json, JSON_PRETTY_PRINT));
+
+// vim: ts=8 et sw=4 sts=4
