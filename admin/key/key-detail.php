@@ -137,6 +137,7 @@ $OUTPUT->flashMessages();
   <li class=""><a href="#info" data-toggle="tab" aria-expanded="true">About Keys</a></li>
   <li class=""><a href="#manual" data-toggle="tab" aria-expanded="false">Manual Configuration</a></li>
   <li class=""><a href="#auto" data-toggle="tab" aria-expanded="true">Dynamic Configuration</a></li>
+  <li class=""><a href="#canvas" data-toggle="tab" aria-expanded="true">Canvas LTI 1.3</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
 <div class="tab-pane fade active in" id="data">
@@ -247,7 +248,26 @@ LTI 1.3 Tool Keyset URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?=
 LTI Content Item / Deep Link Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $deep_link ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
 <?= $deep_link ?> 
 </pre>
-
+</div>
+<div class="tab-pane fade" id="canvas">
+<p>
+To use LTI 1.3 in Canvas,
+you should first create an Issuer in Tsugi and then use that Issuer to create
+the Tenant Key.  A Canvas Issuer is a set of URLs and a <b>Client ID</b>
+(like <b>38288000000000436</b>).  Once the issuer is created, you need
+to create a <b>deployment</b> in Canvas to get a <b>Deployment ID</b>
+(like <b>a16eaea622168ab8327cddef847ccabeea459a79</b>).
+</p>
+<p>
+Create a Tsugi tenant key by selecting the Canvas issuer and adding
+the Deployment Id.  At that point the tenant key should start working.
+</p>
+<p>
+In Canvas you create a <b>Deployment ID</b> by using the <b>+ App</b>
+in your course settings or by having an administrator do the <b>+ App</b>
+for you.
+</p>
+</div>
 </div>
 <?php
 $OUTPUT->footerStart();

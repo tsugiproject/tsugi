@@ -132,17 +132,14 @@ Because a Moodle server usually supports a single tenant they usually set the
 </div>
 <div class="tab-pane fade" id="canvas">
 <p>
-Canvas supports a JSON-based configuration URL.  The best strategy is probably to create a
-draft issuer in here in Tsugi, then view the issuer, and provide the configuration URL to Canvas.  Then
-when the Canvas admin sends you their configuration values and URLs, come back and edit the issuer with
-the provided information to complete the security arrangement.
+Canvas supports a JSON-based configuration URL. To get the JSON configuration URL,
+create a draft issuer  a title, issuer key and all other fields blank:
+<pre>
+<b>Issuer Key</b>
+https://canvas.instructure.com
+</pre>
+Then view the issuer here in Tsugi to get the configuration URL and further instructions.
 </p>
-<p>
-Canvas may want you to create multiple issuers for a client (production, test, dev) and then
-have you create a tenant key for each issuer.  This is normal.  A Tsugi client / tenant key can
-only be associated with one issuer - so if you make three issuers - you will need to make three
-tenants.  And you want to "silo" the three sets of data in Tsugi for best security.  It might feel
-weird - but it is the right approach.
 </div>
 </div>
 <?php

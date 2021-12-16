@@ -165,7 +165,53 @@ Canvas Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?
 <?= htmlentities($lti13_canvas_json_url) ?>
 </pre>
 Once you have completed the registration process in Canvas, it should provide
-you the values to fill in the fields below.
+you the values to fill in the configuration URLs and
+<b>LTI 1.3 Client ID</b> that you have been assigned.  A Canvas Client ID looks 
+like <b>38288000000000436</b>.
+</p>
+<p>
+The following are the typical values the other configuration values 
+for a production / cloud hosted instance of Canvas:
+<pre>
+<b>Issuer Key</b>
+https://canvas.instructure.com
+
+<b>LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)</b>
+https://canvas.instructure.com/api/lti/security/jwks
+
+<b>LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)</b>
+https://canvas.instructure.com/login/oauth2/token
+
+<b>LTI 1.3 Platform OIDC Authentication URL (from the Platform)</b>
+https://canvas.instructure.com/api/lti/authorize_redirect
+</pre>
+<p>
+If you are being installed in a cloud-hosted test or dev environment, the
+<b>canvas.instructure.com</b> in the above URLs might be changed to
+<b>canvas.test.instructure.com</b> or <b>canvas.beta.instructure.com</b>.
+If this is a locally hosted environment, you will use your own domain name for these URLs.
+</p>
+The <b>Keyset URL</b> is a readonly URL that you should be able to open in your browser -
+(<a href="https://canvas.instructure.com/api/lti/security/jwks" target="_blank">Try it</a>).
+It is a simple way to test if the URLs are somewhat correct.
+</p>
+<p>
+Once the issuer is complete you need to get a<b>deployment id</b> and use it to add 
+a <b>Tenant Key</b> in Tsugi.
+</p>
+<h2>If you are the Canvas Administrator</h2>
+<p>
+If you see an <b>Admin</b> button in your Canvas UI, you may be an account or sub-account admin and may be able
+to set up the Issuer.  Go into
+<b>Admin -> Developer Keys -> + Developer Key -> + LTI Key -> (Method) Enter URL</b> 
+and paste in the configuration URL.  Before you save the developer key, make sure to
+mark the key as <b>Public</b>.
+</p>
+<p>
+Once you save the developer key it will give you the new Client Id 
+(like <b>38288000000000436</b>)
+that you can then put into the Tsugi Issuer entry
+to complete the issuer.
 </p>
 </div>
 <div class="tab-pane fade" id="ims" style="display: none;">
