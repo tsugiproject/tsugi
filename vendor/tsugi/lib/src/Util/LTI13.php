@@ -245,7 +245,7 @@ class LTI13 {
      *
      * @return string The error message
      */
-    public static function handle_curl_error($ch, $debug_log) {
+    public static function handle_curl_error($ch, &$debug_log) {
         $msg = 'Curl_error: '.curl_error($ch);
         error_log($msg);
         if( is_array($debug_log) ) $debug_log[] = $msg;
@@ -956,9 +956,15 @@ class LTI13 {
      * @return mixed This returns the token as a string if it is successful, or false
      */
     public static function extract_access_token($token_data, &$debug_log=false) {
-        if ( ! $token_data ) return false;
+        if ( ! $token_data ) {
+            if ( is_array($debug_log) ) $debug_log[] = 'No token_data found';
+            return false;
+        }
 
-        if ( ! isset($token_data['access_token']) ) return false;
+        if ( ! isset($token_data['access_token']) ) {
+            if ( is_array($debug_log) ) $debug_log[] = 'Missing access_token in returned token_data';
+            return false;
+        }
 
         $access_token = $token_data['access_token'];
         if ( is_array($debug_log) ) {
