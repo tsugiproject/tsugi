@@ -95,7 +95,7 @@ class Context extends Entity {
         if ( strlen($lti13_membership_url) < 1 ) $missing .= ' ' . 'membership_url';
         $missing = trim($missing);
 
-        if ( strlen($missing) > 0 ) {
+        if ( is_string($missing) && strlen($missing) > 0 ) {
             if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
             return $missing;
         }
@@ -108,6 +108,11 @@ class Context extends Entity {
             $nrps_access_token = LTI13::getNRPSWithSourceDidsToken($issuer_client, $lti13_token_url, $privkey, $kid, $lti13_token_audience, $deployment_id, $debug_log);
         } else {
             $nrps_access_token = LTI13::getNRPSToken($issuer_client, $lti13_token_url, $privkey, $kid, $lti13_token_audience, $deployment_id, $debug_log);
+        }
+
+        if ( $nrps_access_token === false ) {
+            $debug_log[] = "NRPS data could not be retrieved";
+            return;
         }
 
         $nrps = LTI13::loadNRPS($lti13_membership_url, $nrps_access_token, $debug_log);
@@ -137,13 +142,13 @@ class Context extends Entity {
         if ( strlen($lti13_lineitems) < 1 ) $missing .= ' ' . 'lineitems';
 
         $missing = trim($missing);
-        if ( strlen($missing) > 0 ) {
+        if ( is_string($missing) && strlen($missing) > 0 ) {
             if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
             return false;
         }
 
         // TODO: In the future we might cache this access token perhaps in session for a while
-        $lineitems_access_token = LTI13::getLineItemsToken($issuer_client, $lti13_token_url, $privkey, $kid, $lti13_token_audience, $debug_log);
+        $lineitems_access_token = LTI13::getLineItemsToken($issuer_client, $lti13_token_url, $privkey, $kid, $lti13_token_audience, $deployment_id, $debug_log);
         return $lineitems_access_token;
     }
 
@@ -158,7 +163,7 @@ class Context extends Entity {
      */
     public function loadLineItems($search=false, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
-        if ( strlen($missing) > 0 ) return $missing;
+        if ( is_string($missing) && strlen($missing) > 0 ) return $missing;
         if ( ! $lineitems_access_token ) return "Unable to get LineItems access_token";
 
         $url = $lti13_lineitems;
@@ -183,7 +188,7 @@ class Context extends Entity {
      */
     public function loadLineItem($id, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
-        if ( strlen($missing) > 0 ) return $missing;
+        if ( is_string($missing) && strlen($missing) > 0 ) return $missing;
         if ( ! $lineitems_access_token ) return "Unable to get LineItems access_token";
 
         $lineitem = LTI13::loadLineItem($id, $lineitems_access_token, $debug_log);
@@ -207,7 +212,7 @@ class Context extends Entity {
      */
     public function createLineItem($newitem, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
-        if ( strlen($missing) > 0 ) return $missing;
+        if ( is_string($missing) && strlen($missing) > 0 ) return $missing;
         if ( ! $lineitems_access_token ) return "Unable to get lineitems_access_token";
 
         $retval = LTI13::createLineItem($lti13_lineitems, $lineitems_access_token, $newitem, $debug_log);
@@ -226,7 +231,7 @@ class Context extends Entity {
      */
     public function deleteLineItem($id, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
-        if ( strlen($missing) > 0 ) return $missing;
+        if ( is_string($missing) && strlen($missing) > 0 ) return $missing;
         if ( ! $lineitems_access_token ) return "Unable to get LineItems access_token";
 
         $lineitem = LTI13::deleteLineItem($id, $lineitems_access_token, $debug_log);
@@ -252,7 +257,7 @@ class Context extends Entity {
      */
     public function updateLineItem($id, $newitem, &$debug_log=false) {
         $grade_token = self::getGradeToken($missing, $subject, $debug_log);
-        if ( strlen($missing) > 0 ) return $missing;
+        if ( is_string($missing) && strlen($missing) > 0 ) return $missing;
         if ( ! $grade_token ) return "Unable to get grade_token";
 
         $retval = LTI13::updateLineItem($id, $grade_token, $newitem, $debug_log);
@@ -279,7 +284,7 @@ class Context extends Entity {
         $missing = $this->loadLTI13Data($lti13_token_url, $privkey, $kid, $lti13_token_audience, $issuer_client, $deployment_id);
 
         $missing = trim($missing);
-        if ( strlen($missing) > 0 ) {
+        if ( is_string($missing) && strlen($missing) > 0 ) {
             if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
             return false;
         }
@@ -305,7 +310,7 @@ class Context extends Entity {
      */
     public function sendLineItemResult($id, $user_key, $grade, $scoreMaximum, $comment, &$debug_log=false, $extra13=false) {
         $grade_token = self::getGradeToken($missing, $subject, $debug_log);
-        if ( strlen($missing) > 0 ) return $missing;
+        if ( is_string($missing) && strlen($missing) > 0 ) return $missing;
         if ( ! $grade_token ) return "Unable to get grade_token";
 
         $status = LTI13::sendLineItemResult($user_key, $grade, $scoreMaximum, $comment, $id,
@@ -327,7 +332,7 @@ class Context extends Entity {
 
         // TODO: Further evidence that $subject might want to be client_id
         $grade_token = self::getGradeToken($missing, $subject, $debug_log);
-        if ( strlen($missing) > 0 ) return $missing;
+        if ( is_string($missing) && strlen($missing) > 0 ) return $missing;
         if ( ! $grade_token ) return "Unable to get grade_token";
 
         $results = LTI13::loadResults($id, $grade_token, $debug_log);
