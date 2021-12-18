@@ -132,4 +132,21 @@ class UTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testhtmlspec_utf8() {
+        $t1 = U::htmlspec_utf8("zap");
+        $this->assertEquals($t1, "zap");
+        $t1 = U::htmlspec_utf8(42);
+        $this->assertEquals($t1, 42);
+        $t1 = U::htmlspec_utf8(array('bob'));
+        $this->assertEquals($t1, array('bob'));
+        $t1 = U::htmlspec_utf8("zap'zap");
+        $this->assertEquals($t1, "zap&#039;zap");
+        $t1 = U::htmlspec_utf8("zap&zap");
+        $this->assertEquals($t1, "zap&amp;zap");
+        $t1 = U::htmlspec_utf8("zap?zap");
+        $this->assertEquals($t1, "zap?zap");
+        $t1 = U::htmlspec_utf8("zap<zap");
+        $this->assertEquals($t1, "zap&lt;zap");
+    }
+
 }
