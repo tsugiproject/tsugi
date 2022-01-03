@@ -66,7 +66,8 @@ if ( $postverify_form !== null || $postmessage_form !== null) {
 }
 
 if ( ! $id_token ) {
-    LTIX::abort_with_error_log('Missing id_token');
+    $error_detail = U::get($_POST, "error_description", 'Missing id_token');
+    LTIX::abort_with_error_log($error_detail);
 }
 
 $signature_check = false;
