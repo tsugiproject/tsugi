@@ -137,8 +137,7 @@ if ( $CFG->servicedesc ) {
     $json->description = $CFG->servicedesc;
 }
 
-$json->oidc_initiation_url = $CFG->wwwroot . "/lti/oidc_login".(isset($row['issuer_guid']) ? "/".$row['issuer_guid'] : '');
-
+$json->oidc_initiation_url = $CFG->wwwroot . "/lti/oidc_login".(isset($_GET['issuer_guid']) ? "/".$_GET['issuer_guid'] : '');
 
 // TODO: Submit PR to Canvas :)
 // Canvas sems not to have any way to specify the redirect_uris
