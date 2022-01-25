@@ -827,7 +827,12 @@ class LTIX {
         // Make sure we have or update to the latest keyset if we have a keyset_url
         // and the kid is new to us
         if ( strlen($our_keyset_url) > 0 ) {
-            $our_keyset = file_get_contents($our_keyset_url);
+            $our_keyset = @file_get_contents($our_keyset_url);
+            if ( $our_keyset === false ) {
+                $error = error_get_last();
+                self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url." detail:".U::get($error, 'message'));
+            }
+
             $decoded = json_decode($our_keyset);
             if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
                 if ( $issuer_id > 0 ) {
