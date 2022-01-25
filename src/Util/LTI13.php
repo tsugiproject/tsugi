@@ -922,14 +922,17 @@ class LTI13 {
 
         $ch = curl_init();
 
+        $query = http_build_query($auth_request);
         curl_setopt($ch, CURLOPT_URL,$lti13_token_url);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($auth_request));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $query);
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         if ( is_array($debug_log) ) $debug_log[] = "Token Url: ".$lti13_token_url;
         if ( is_array($debug_log) ) $debug_log[] = $auth_request;
+        if ( is_array($debug_log) ) $debug_log[] = "Post Data:";
+        if ( is_array($debug_log) ) $debug_log[] = $query;
 
         $token_str = curl_exec($ch);
         if ( $token_str === false ) {
