@@ -38,7 +38,7 @@ $realfields = array('issuer_id', 'issuer_title', 'issuer_key', 'issuer_client', 
 
 $titles = array(
     'issuer_client' => 'LTI 1.3 Client ID (from the Platform)',
-    'issuer_guid' => 'LTI 1.3 Unique Issuer GUID',
+    'issuer_guid' => 'LTI 1.3 Tsugi Unique Issuer GUID',
     'lti13_keyset_url' => 'LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)',
     'lti13_token_url' => 'LTI 1.3 Platform OAuth2 Bearer Token Retrieval URL (from the platform)',
     'lti13_token_audience' => 'LTI 1.3 Platform OAuth2 Bearer Token Audience Value (optional - from the platform)',
@@ -88,6 +88,7 @@ Editing Issuer
   <li class="active"><a href="#generic" data-toggle="tab" aria-expanded="true">Issuer Data</a></li>
   <li><a href="#brightspace" id="brightspace-click" data-toggle="tab" aria-expanded="false">Brightspace</a></li>
   <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
+  <li><a href="#blackboard" data-toggle="tab" aria-expanded="false">Blackboard</a></li>
   <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai</a></li>
   <li><a href="#moodle" data-toggle="tab" aria-expanded="false">Moodle</a></li>
 </ul>
@@ -213,6 +214,18 @@ Once you save the developer key it will give you the new Client Id
 that you can then put into the Tsugi Issuer entry
 to complete the issuer.
 </p>
+</div>
+<div class="tab-pane fade" id="blackboard">
+<p>
+Since Blackboard includes a unique identifier in the KeySet URL, it is best
+not to create an issuer here at all and instead set all the values
+in a Tenant Key.
+</p>
+<pre>
+<b>LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)</b>
+https://developer.blackboard.com/api/vl/management/applications/...unique.identifier.../jwks.json
+
+</pre>
 </div>
 <div class="tab-pane fade" id="ims" style="display: none;">
 IMS is working on a draft auto-provisioning spec.   This is a place to explore

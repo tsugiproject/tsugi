@@ -136,8 +136,9 @@ $OUTPUT->flashMessages();
   <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
   <li class=""><a href="#info" data-toggle="tab" aria-expanded="true">About Keys</a></li>
   <li class=""><a href="#manual" data-toggle="tab" aria-expanded="false">Manual Configuration</a></li>
-  <li class=""><a href="#auto" data-toggle="tab" aria-expanded="true">Dynamic Configuration</a></li>
+  <li class=""><a href="#auto" data-toggle="tab" aria-expanded="true">IMS Auto Install</a></li>
   <li class=""><a href="#canvas" data-toggle="tab" aria-expanded="true">Canvas LTI 1.3</a></li>
+  <li class=""><a href="#blackboard" data-toggle="tab" aria-expanded="true">Blackboard LTI 1.3</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
 <div class="tab-pane fade active in" id="data">
@@ -267,6 +268,11 @@ In Canvas you create a <b>Deployment ID</b> by using the <b>+ App</b>
 in your course settings or by having an administrator do the <b>+ App</b>
 for you.
 </p>
+</div>
+<div class="tab-pane fade" id="blackboard">
+<?php
+require_once("blackboard-detail.php");
+?>
 </div>
 </div>
 <?php

@@ -76,6 +76,7 @@ Adding Issuer Entry
   <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai</a></li>
   <li><a href="#brightspace" id="brightspace-click" data-toggle="tab" aria-expanded="false">Brightspace</a></li>
   <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
+  <li><a href="#blackboard" data-toggle="tab" aria-expanded="false">Blackboard</a></li>
   <li><a href="#moodle" data-toggle="tab" aria-expanded="false">Moodle</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
@@ -135,10 +136,23 @@ Because a Moodle server usually supports a single tenant they usually set the
 Canvas supports a JSON-based configuration URL. To get the JSON configuration URL,
 create a draft issuer  a title, issuer key and all other fields blank:
 <pre>
-<b>Issuer Key</b>
+<b>LTI 1.3 Issuer URL</b>
 https://canvas.instructure.com
 </pre>
 Then view the issuer here in Tsugi to get the configuration URL and further instructions.
+</p>
+</div>
+<div class="tab-pane fade" id="blackboard">
+<p>
+Since Blackboard includes a unique identifier in the KeySet URL, it is best
+not to create an issuer here at all and instead set all the values issuer
+values in a Tenant key in Tsugi.
+</p>
+<pre>
+<b>LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)</b>
+https://developer.blackboard.com/api/vl/management/applications/...unique.identifier.../jwks.json
+
+</pre>
 </p>
 </div>
 </div>
