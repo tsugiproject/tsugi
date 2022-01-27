@@ -6,19 +6,34 @@ Since a Blackboard developer key <b>Well-Known/KeySet URL</b> that is unique
 to each developer key, it is best to skip creating an Issuer, select
 "No Global Issuer Selected" and set all the issuer values here
 to create a Tenant key.
+<p>
+When you create a devloper key in the Balckboard Developer portal, there
+are two values that are only used for Blackboard's REST web services.
+The <b>Application Key</b> and <b>Secret</b> are not used at all
+for LTI 1.3 integrations.  The <b>Client ID</b> and the URLs from the
+developer portal are used to configure LTI 1.3.  To make things a little
+more confusing, the Blackboard UI might call the "Client ID" the "Application ID".
+"Application ID" and "Application Key" are not the same thing at all..
+</p>
+<p>
+The <b>Deployment ID</b> is provided when you place the tool into a Blackboard
+instance using the <b>Client ID</b>
+<p>
 For Blackboard, the following are the typical values for the Tsugi items:
 <pre>
 <b>LTI 1.3 Platform Issuer URL</b>
 https://blackboard.com
 
-<b>LTI 1.3 Platform Client ID - usually a GUID (from the Platform)</b>
-This is the "Application ID" from the Blackboard developer portal.
+<b>LTI 1.3 Platform Client ID</b>
+fe3ebd13-39a4-42c4-8b83-194f08e77f8a  (just an example value)
 
 <b>LTI 1.3 Deployent ID</b>
-This is the "???" from the Blackboard developer portal.
+ea4e4459-2363-348e-bd38-048993689aa0  (just an example value)
 
 <b>LTI 1.3 Platform KeySet URL </b>
-https://developer.blackboard.com/api/vl/management/applications/...unique.identifier.../jwks.json
+https://developer.blackboard.com/api/vl/management/applications/fe3ebd13-39a4-42c4-8b83-194f08e77f8a/jwks.json
+
+The path parameter in the Keyset URL is the Client Id.
 
 <b> LTI 1.3 Platform Token URL</b>
 https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken
@@ -26,7 +41,5 @@ https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken
 <b>LTI 1.3 Platform OIDC Login / Authorization Endpoint URL</b>
 https://developer.blackboard.com/api/v1/gateway/oidcauth
 
-<b>LTI 1.3 Platform OAuth2 Bearer Token Audience</b>
-This value is required and it is the "???" in the Blackboard developer portal.
 </pre>
 </p>
