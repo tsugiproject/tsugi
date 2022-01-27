@@ -1,24 +1,10 @@
 <p>
-<b>(under construction)</b>
-</p>
-<p>
-Since a Blackboard developer key <b>Well-Known/KeySet URL</b> that is unique
-to each developer key, it is best to skip creating an Issuer, select
+Since the Blackboard developer portal assigns a <b>Well-Known/KeySet URL</b> that is unique
+to each Client ID, it is best to skip creating an Issuer here in Tsugi, select
 "No Global Issuer Selected" and set all the issuer values here
 to create a Tenant key.
-<p>
-When you create a devloper key in the Balckboard Developer portal, there
-are two values that are only used for Blackboard's REST web services.
-The <b>Application Key</b> and <b>Secret</b> are not used at all
-for LTI 1.3 integrations.  The <b>Client ID</b> and the URLs from the
-developer portal are used to configure LTI 1.3.  To make things a little
-more confusing, the Blackboard UI might call the "Client ID" the "Application ID".
-"Application ID" and "Application Key" are not the same thing at all..
-</p>
-<p>
-The <b>Deployment ID</b> is provided when you place the tool into a Blackboard
-instance using the <b>Client ID</b>
-<p>
+The <b>Deployment ID</b> is provided when you place Tsugi into a Blackboard
+instance using the <b>Client ID</b>.
 For Blackboard, the following are the typical values for the Tsugi items:
 <pre>
 <b>LTI 1.3 Platform Issuer URL</b>
@@ -42,4 +28,13 @@ https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken
 https://developer.blackboard.com/api/v1/gateway/oidcauth
 
 </pre>
+</p>
+<p>
+When you create a developer key in the Blackboard Developer portal, there
+are two values that are <b>only</b> used for Blackboard's REST web services.
+The <b>Application Key</b> and <b>Secret</b> are not used at all
+for LTI 1.3 integrations.  The <b>Client ID</b> and the URLs from the
+developer portal are used to configure LTI 1.3.  To make things a little
+more confusing, the Blackboard UI might call the "Client ID" the "Application ID".
+"Application ID" and "Application Key" are not the same thing at all..
 </p>
