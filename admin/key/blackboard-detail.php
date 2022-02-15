@@ -36,5 +36,5 @@ The <b>Application Key</b> and <b>Secret</b> are not used at all
 for LTI 1.3 integrations.  The <b>Client ID</b> and the URLs from the
 developer portal are used to configure LTI 1.3.  To make things a little
 more confusing, the Blackboard UI might call the "Client ID" the "Application ID".
-"Application ID" and "Application Key" are not the same thing at all..
+"Application ID" and "Application Key" are not the same thing at all.
 </p>
