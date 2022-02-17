@@ -187,8 +187,11 @@ $json->{"https://purl.imsglobal.org/spec/lti-tool-configuration"} = $tool;
 $body = json_encode($json, JSON_PRETTY_PRINT);
 
 $method = "POST";
-$header = "Content-type: application/json;\n" .
+$header = "Content-type: application/json;" ;
+if ( is_string($registration_token) && strlen($registration_token) > 0 ) {
+    $header = $header . "\n" .
             "Authorization: Bearer ".$registration_token;
+}
 $url = $registration_endpoint;
 
 echo("\n<p><b>Sending registration to LMS</b><br>\n");
