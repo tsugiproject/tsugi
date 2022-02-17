@@ -17,7 +17,7 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 if ( ! isAdmin() ) die('Must be admin');
 
 $query_parms = false;
-$searchfields = array("key_id", "key_title", "key_key", "deploy_key", "login_at", "updated_at", "user_id", "issuer_key");
+$searchfields = array("K.key_id", "key_title", "key_key", "deploy_key", "K.login_at", "K.updated_at", "K.user_id", "issuer_key");
 $sql = "SELECT K.key_id AS key_id, key_title, key_key, secret, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
     lms_issuer,
     K.user_id AS user_id
