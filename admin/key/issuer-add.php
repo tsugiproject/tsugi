@@ -73,25 +73,26 @@ Adding Issuer Entry
 </h1>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#generic" data-toggle="tab" aria-expanded="true">Issuer Data</a></li>
+  <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
   <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai</a></li>
   <li><a href="#brightspace" id="brightspace-click" data-toggle="tab" aria-expanded="false">Brightspace</a></li>
-  <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
   <li><a href="#blackboard" data-toggle="tab" aria-expanded="false">Blackboard</a></li>
   <li><a href="#moodle" data-toggle="tab" aria-expanded="false">Moodle</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="generic">
 <p>
-For LTI 1.3, you need to enter these URLs in your LMS configuration
-associated with this Issuer/Client ID.
+In general the only major LMS where it is useful to create an Issuer in Tsugi
+and reuse the Issuer across multiple Client ID's / Tenant Keys is Canvas.   For all
+of the other LMS's (including those that support IMS Dynamid Registration)
+you should just add a Tenant key and enter the issuer URLs and values in
+the Tenant key.
 </p>
 <p>
 Often the LMS expects you
 to create the Issuer in Tsugi and provide the configuration URLs
 before they will create their side of the security arrangement
 and provide you the URLs needed for this screen.
-</p>
-<p>
 You solve this "who goes first" problem by creating a "draft" issuer
 with only a title and Issuer URL.  If you don't know the issuer URL
 just put something in close - you can edit it later after the LMS Admin
@@ -105,32 +106,6 @@ CrudForm::insertForm($fields, $from_location, $titles, $fields_defaults);
 ?>
 </p>
 </div>
-<div class="tab-pane fade" id="brightspace">
-<p>
-Brightspace is the one LMS that will provide you with an <b>audience</b>
-value.  Launches and token requests to Brightspace will fail without this value.
-</p>
-</div>
-<div class="tab-pane fade" id="sakai">
-<p>
-For Sakai 21 and later you can use Dynamic Configuration - which is actually initiated from the
-Tenant Key detail page.   You can create a issuer here and link it to a tenant key,
-but the simplest thing is just to create a draft Tenant key and then use Dynamic Configuration.
-</p><p>
-Because a Sakai server usually supports a single tenant they usually set the
-<b>deployment id</b> to <b>1</b> in the tenant configuration.
-</p>
-</div>
-<div class="tab-pane fade" id="moodle">
-<p>
-For later versions of Moodle, you can use Dynamic Configuration - which is actually initiated from the
-Tenant Key detail page.   You can create a issuer here and link it to a tenant key,
-but the simplest thing is just to create a draft Tenant key and then use Dynamic Configuration.
-</p><p>
-Because a Moodle server usually supports a single tenant they usually set the
-<b>deployment id</b> to <b>1</b> in the tenant configuration.
-</p>
-</div>
 <div class="tab-pane fade" id="canvas">
 <p>
 Canvas supports a JSON-based configuration URL. To get the JSON configuration URL,
@@ -139,22 +114,11 @@ create a draft issuer  a title, issuer key and all other fields blank:
 <b>LTI 1.3 Issuer URL</b>
 https://canvas.instructure.com
 </pre>
-Then view the issuer here in Tsugi to get the configuration URL and further instructions.
+Then view the draft Issuer here in Tsugi to get the configuration URL and
+further instructions.
 </p>
 </div>
-<div class="tab-pane fade" id="blackboard">
-<p>
-Since Blackboard includes a unique identifier in the KeySet URL, it is best
-not to create an issuer here at all and instead set all the values issuer
-values in a Tenant key in Tsugi.
-</p>
-<pre>
-<b>LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)</b>
-https://developer.blackboard.com/api/vl/management/applications/...unique.identifier.../jwks.json
-
-</pre>
-</p>
-</div>
+<?php require_once("issuer-not.php"); ?>
 </div>
 <?php
 

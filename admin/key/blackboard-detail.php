@@ -1,6 +1,6 @@
 <p>
 Since the Blackboard developer portal assigns a <b>Well-Known/KeySet URL</b> that is unique
-to each Client ID, it is best to skip creating an Issuer here in Tsugi, select
+to each Client ID, it is best to skip creating an Issuer in Tsugi, create a Key, select
 "No Global Issuer Selected" and set all the issuer values here
 to create a Tenant key.
 The <b>Deployment ID</b> is provided when you place Tsugi into a Blackboard
@@ -21,7 +21,7 @@ https://developer.blackboard.com/api/vl/management/applications/fe3ebd13-39a4-42
 
 The path parameter in the Keyset URL is the Client Id.
 
-<b> LTI 1.3 Platform Token URL</b>
+<b>LTI 1.3 Platform Token URL</b>
 https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken
 
 <b>LTI 1.3 Platform OIDC Login / Authorization Endpoint URL</b>

@@ -83,7 +83,7 @@ $OUTPUT->flashMessages();
 <p>
 Sometimes you need to give the LMS the Tsugi URLs to make a new security arrangement
 <b>before</b> they can give you the Platform values to put into either a global issuer
-on this form.  See "About Keys" for detail on how to create a <b>draft</b> key.
+or this form.  See "About Keys" for detail on how to create a <b>draft</b> key.
 <p>
 <?php
 
@@ -124,7 +124,8 @@ The migration claim is not required - but if it is present, Tsugi will insist th
 signed or it will reject the launch.
 </p>
 <h2>Draft Keys</h2>
-Sometimes you need to give the LMS the Tsugi URLs to make a new security arrangement
+Sometimes you need to give the LMS the Tsugi URLs (including using the IMS Dynamic Registration process)
+to make a new security arrangement
 <b>before</b> they can give you the Platform values to put into either a global issuer
 or this form.  We solve this "who goes first" problem in Tsugi by allowing you to create
 a "draft" or incomplete key.

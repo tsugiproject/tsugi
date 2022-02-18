@@ -86,29 +86,29 @@ Editing Issuer
 </h1>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#generic" data-toggle="tab" aria-expanded="true">Issuer Data</a></li>
-  <li><a href="#brightspace" id="brightspace-click" data-toggle="tab" aria-expanded="false">Brightspace</a></li>
   <li><a href="#canvas" data-toggle="tab" aria-expanded="false">Canvas</a></li>
+<li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai</a></li>
+  <li><a href="#brightspace" id="brightspace-click" data-toggle="tab" aria-expanded="false">Brightspace</a></li>
   <li><a href="#blackboard" data-toggle="tab" aria-expanded="false">Blackboard</a></li>
-  <li><a href="#sakai" data-toggle="tab" aria-expanded="false">Sakai</a></li>
-  <li><a href="#moodle" data-toggle="tab" aria-expanded="false">Moodle</a></li>
+<li><a href="#moodle" data-toggle="tab" aria-expanded="false">Moodle</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
-  <div class="tab-pane fade active in" id="generic">
+<div class="tab-pane fade active in" id="generic">
 <b>Keys that use this issuer:</b> <?= $count ?>
 </p>
 <?php
 if ( $count > 0 ) {
-    echo('<p style="color:red;">If you delete this issuer, the keys that reference this issuer will stop working.</p>');
+echo('<p style="color:red;">If you delete this issuer, the keys that reference this issuer will stop working.</p>');
 }
 
 $extra_buttons=false;
 // If we have a valid GUID
 if ($show_guid) {
-    $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset';
-    $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config-json.php?issuer_guid=' . urlencode($row['issuer_guid']);
+$lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset';
+$lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config-json.php?issuer_guid=' . urlencode($row['issuer_guid']);
 } else {
-    $lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset';
-    $lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config-json.php?issuer=' . urlencode($row['issuer_key']);
+$lti13_tool_keyset_url = $CFG->wwwroot . '/lti/keyset';
+$lti13_canvas_json_url = $CFG->wwwroot . '/lti/store/canvas-config-json.php?issuer=' . urlencode($row['issuer_key']);
 }
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
@@ -122,40 +122,6 @@ $deep_link = $CFG->wwwroot . '/lti/store/';
 $lti13_sakai_json_url = ($show_guid ? $CFG->wwwroot . '/lti/store/sakai-config/' . urlencode($guid): '');
 
 ?>
-</div>
-<div class="tab-pane fade" id="brightspace">
-<p>
-For LTI 1.3, you need to enter these URLs in your Brightspace configuration
-associated with this Issuer/Client ID. Brightspace provides a value for
-"Bearer Token Audience Value" that is not necessary for other LMS systems.
-<pre>
-<?php addLinks(); ?>
-</pre>
-Once you have created the security arrangement in the LMS you can put the
-provided values into this entry to complete the configuration process.
-</p>
-</div>
-<div class="tab-pane fade" id="sakai">
-<p>
-For Sakai 21 and later you can use Dynamic Configuration - which is actually initiated from the
-Tenant Key detail page.   You can create a issuer here for a Sakai installation, but the simplest
-thing is just to create a draft Tenant key and then use Dynamic Configuration from the Tennant
-screens.
-</p>
-<pre>
-<?php addLinks(); ?>
-</pre>
-</div>
-<div class="tab-pane fade" id="moodle">
-<p>
-For later versions of Moodle you can use Dynamic Configuration - which is actually initiated from the
-Tenant Key detail page.   You can create a issuer here for a Moodle installation, but the simplest
-thing is just to create a draft Tenant key and then use Dynamic Configuration from the Tennant
-screens.
-</p>
-<pre>
-<?php addLinks(); ?>
-</pre>
 </div>
 <div class="tab-pane fade" id="canvas">
 <p>
@@ -215,30 +181,7 @@ that you can then put into the Tsugi Issuer entry
 to complete the issuer.
 </p>
 </div>
-<div class="tab-pane fade" id="blackboard">
-<p>
-Since Blackboard includes a unique identifier in the KeySet URL, it is best
-not to create an issuer here at all and instead set all the values
-in a Tenant Key.
-</p>
-<pre>
-<b>LTI 1.3 Platform OAuth2 Well-Known/KeySet URL (from the platform)</b>
-https://developer.blackboard.com/api/vl/management/applications/...unique.identifier.../jwks.json
-
-</pre>
-</div>
-<div class="tab-pane fade" id="ims" style="display: none;">
-IMS is working on a draft auto-provisioning spec.   This is a place to explore
-that spec as it is implemented.
-</p>
-<pre>
-IMS Configuration URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($lti13_ims_json_url) ?>');return false;"><i class="fas fa-file-export" aria-hidden="true"></i> <i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
-<?= htmlentities($lti13_ims_json_url) ?>
-</pre>
-<p>
-There is not yet a documented flow to use this url.
-</p>
-</div>
+<?php require_once("issuer-not.php"); ?>
 </div>
 <?php
 

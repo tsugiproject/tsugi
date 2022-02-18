@@ -135,10 +135,12 @@ $OUTPUT->flashMessages();
 <ul class="nav nav-tabs">
   <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
   <li class=""><a href="#info" data-toggle="tab" aria-expanded="true">About Keys</a></li>
+  <li class=""><a href="#brightspace" data-toggle="tab" aria-expanded="true">Brightspace</a></li>
+  <li class=""><a href="#sakai" data-toggle="tab" aria-expanded="true">Sakai</a></li>
+  <li class=""><a href="#moodle" data-toggle="tab" aria-expanded="true">Moodle</a></li>
+  <li class=""><a href="#blackboard" data-toggle="tab" aria-expanded="true">Blackboard</a></li>
+  <li class=""><a href="#canvas" data-toggle="tab" aria-expanded="true">Canvas</a></li>
   <li class=""><a href="#manual" data-toggle="tab" aria-expanded="false">Manual Configuration</a></li>
-  <li class=""><a href="#auto" data-toggle="tab" aria-expanded="true">IMS Auto Install</a></li>
-  <li class=""><a href="#canvas" data-toggle="tab" aria-expanded="true">Canvas LTI 1.3</a></li>
-  <li class=""><a href="#blackboard" data-toggle="tab" aria-expanded="true">Blackboard LTI 1.3</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
 <div class="tab-pane fade active in" id="data">
@@ -184,40 +186,130 @@ Sometimes you need to give the LMS the Tsugi URLs to make a new security arrange
 on this form.  We solve this "who goes first" problem in Tsugi by allowing you to create
 a "draft" or incomplete key and then come back later to add the LMS / Platform provided data.
 </p>
+<b>IMS LTI Advantage Dynamic Registration</b>
+<p>
+Sakai, Moodle, and Brightspace support the IMS Dynamic Registration process.  This process takes
+a draft Tsugi key, and sends its data to the LMS and the LMSresponds with all of its valuse
+and Tsugi automatically update the Tenant key with the LMS values.  It is basically a one-click
+LTI Advantage install.
+</p>
+<p>
+<b>LTI Advantage Dynamic Registration URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($dynamicConfigUrl) ?>
+</p>
+The <a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
+process is supported by Brightspace, Moodle, and Sakai.  You create a Tenant key in
+Tsugi with a title, and issuer, then take the Dynamic Registration URL
+from this page and paste it into the LMS configuration process.
+<p>
+To use the Dynamic Registration URL in your Learning Management System,
+keep this window open in a separate tab while using the LMS in another tab
+as the Dynamic Registration process requires that you stay logged in to this system
+in order to ensure you have permission to perform this confguration exchange.
+</p>
+<p>
+Dynamic Registration sets up the security relationship between a tool and LMS.  Values like
+the Issuer, ClientID, Keyset URL, etc. will be set up.  If the issuer data returned by the LMS
+matches an existing issuer in this system, that issuer will be used for this key, otherwise
+the new issuer data will be added to this key.
+</p>
+<p>
+A secondary and optional part of Dynamic Registration is to communicate the <b>Deployment ID</b> for this tenant / key.
+Sometimes this is included in the dynamic registration exchange (Sakai, Moodle, and Brightspace for example).
+For other LMS's you may need to run the dynamic registration process, and then manually enter the Deployment Id
+later.  LTI Advantage keys without a Deployment ID will not work in Tsugi.  Since Sakai and Moodle usually run in a "single-tenant"
+model, they usually use a <b>deployment_id</b> of <b>1</b>.
+</p>
+<p>
+<b>Important:</b>
+Once the LMS has finished its registration in the other tab, come back to this tab or window, press "Refresh"
+and check to verify that the key has been set up properly.  Sometimes you get logged out and will need to log back
+in to check the results of the dynamic registration process.
+</p>
 
 </div>
-  <div class="tab-pane fade" id="auto">
+<div class="tab-pane fade" id="brightspace">
+<p><b>LTI Advantage Integrations</b></p>
 <p>
-<b>LTI Advantage Dynamic Configuration URL:
+Brightspace supports
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
+</p>
+<p>
+In Brightspace, go to the settings (gear icon) drop down, and select
+<b>External Learning Tools</b> -&gt; <b>LTI Advantage</b> -&gt; <b>New Deployment</b>.  Before
+we can create the deployment, we need to register a tool which can be launched
+from the help/question mark link by the "Tool" drop
+down that brings up a pop up - then click on <b>Register</b> and it will pop up a new window.  Then
+press <b>Register Tool</b>.
+</p>
+<p>
+Select <b>Dynamic</b>, check the <b>Configure Deployment</b> checkbox and enter the Dynamic Configuration
+URL and press <b>Register</b>.  Bright space will open another new tab which will come back to Tsugi.  Once Tsugi
+Brightspace exchange all their data, press <b>Continue Tool Registration in the LMS</b>.
+</p>
+<p>
+Then in Brightspace make sure you have a Tool, Deployment, and then set up one or more <b>Links</b> to tell BrightSpace
+where to show Tsugi in the Brightspace UI.  The <b>Deep Link Quick Link</b> works pretty well for Tsugi but
+ others might be useful as well.
+<p>
+<b>LTI Advantage Dynamic Registration URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($dynamicConfigUrl) ?>
+</p>
+</div>
+<div class="tab-pane fade" id="sakai">
+<p><b>LTI Advantage Integrations</b></p>
+<p>
+Sakai supports
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
+</p>
+<p>
+In Sakai go into <b>Administration Workspace</b> -&gt; <b>External Tools</b> -&gt; <b>LTI Advantage Auto Provision</b>
+</p>
+<p>
+Give the tool a title, and press <b>Auto Provision</b>.  Sakai will create a draft integration and give you the
+option to <b>Use LTI Advantage Auto Configuration</b> - press that button and enter the Dynamic Configuration
+URL.
+<p>
+<b>LTI Advantage Dynamic Registration URL:
 <button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
 </p>
 <p>
 <?= htmlentities($dynamicConfigUrl) ?>
 </p>
 <p>
-To use the Dynamic Configuration URL in your Learning Management System,
-keep this window open in a separate tab while using the LMS in another tab
-as the Dynamic Configuration process requires that you stay logged in to this system
-in order to ensure you have permission to perform this confguration exchange.
+Sakai supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this tenant / key
+in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
+Sakai systems are not usually multi-tenant so they usually use a <b>deployment_id</b> of <b>1</b>.
+</p>
+</div>
+<div class="tab-pane fade" id="moodle">
+<p><b>LTI Advantage Integrations</b></p>
+<p>
+Moodle supports
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
 </p>
 <p>
-Dynamic Configuration sets up the security relationship between a tool and LMS.  Values like
-the Issuer, ClientID, Keyset URL, etc. will be set up.  If the issuer data returned by the LMS
-matches an existing issuer in this system, that issuer will be used for this key, otherwise
-the new issuer data will be added to this key.
+In Moodle go into <b>Site Administration</b> -&gt; <b>Plugins</b> -&gt; <b>Manage Tools</b> -&gt; <b>Add LTI Advantage</b>
 </p>
 <p>
-A secondary and optional part of Dynamic Configuration is to communicate the <b>Deployment ID</b> for this tenant / key.
-Sometimes this is included in the dynamic configuration exchange (Sakai, Moodle, and Brightspace for example).
-For other LMS's you may need to run the dynamic configuration process, and then manually enter the Deployment Id
-later.  LTI Advantage keys without a Deployment ID will not work in Tsugi.  Since Sakai and Moodle usually run in a "single-tenant"
-model, they usually use a <b>deployment_id</b> of <b>1</b>.
+Moodle will prompt you for the Dynamic Registration URL.
+<p>
+<b>LTI Advantage Dynamic Registration URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
 </p>
 <p>
-<b>Important:</b>
-Once the LMS has finished its configuration in the other tab, come back to this tab or window, press "Refresh"
-and check to verify that the key has been set up properly.  Sometimes you get logged out and will need to log back
-in to check the results of the dynamic configuration process.
+<?= htmlentities($dynamicConfigUrl) ?>
+</p>
+<p>
+Moodle supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this tenant / key
+in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
+Moodle systems are not usually multi-tenant so they usually use a <b>deployment_id</b> of <b>1</b>.
 </p>
 </div>
 <div class="tab-pane fade" id="manual">
@@ -230,7 +322,7 @@ $deep_link = $CFG->wwwroot . '/lti/store/';
 
 ?>
 <p>
-These URLs need to be provided to your LMS configuration associated with this key.
+These URLs need to be provided to your LMS registration associated with this key.
 You can create a draft key, then provide these values to the LMS.
 Then the LMS can us the values to
 complete its configuration process and provide you the needed
