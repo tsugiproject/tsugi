@@ -878,6 +878,44 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
+    // Make sure that lti_key has the correct unique indexes
+    $needed_indexes = array(
+        'lti_key_const_1' => 'ADD CONSTRAINT `lti_key_const_1` UNIQUE(key_sha256, deploy_sha256)',
+        'lti_key_const_2' => 'ADD CONSTRAINT `lti_key_const_2` UNIQUE(issuer_id, deploy_sha256)',
+    );
+
+    $indexes = $PDOX->indexes($CFG->dbprefix."lti_key");
+
+    // DROP INDEX index_name ON tbl_name
+    foreach($indexes as $index) {
+        if ( strcasecmp($index, "PRIMARY") == 0 ) continue;
+        $command = isset($needed_indexes[$index]) ? $needed_indexes[$index] : null;
+        if ( is_string($command) ) continue;
+        $sql = "DROP INDEX ".$index." ON ".$CFG->dbprefix."lti_key";
+        echo($sql."<br/>\n");
+        error_log($sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal dropping index: ".$q->errorImplode;
+            error_log($message);
+            echo($message);
+        }
+    }
+
+    // ALTER TABLE `table` ADD INDEX `product_id_index` (`product_id`)
+    foreach($needed_indexes as $index => $command) {
+        if ( in_array($index, $indexes) ) continue;
+        $sql = "ALTER TABLE ".$CFG->dbprefix."lti_key". " " . $command;
+        echo($sql."<br/>\n");
+        error_log($sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal adding index: ".$q->errorImplode;
+            error_log($message);
+            echo($message);
+        }
+    }
+
     // Old-school migrations
     if ( $oldversion < 201801271430 ) {
         $sql= "ALTER TABLE {$CFG->dbprefix}mail_bulk
