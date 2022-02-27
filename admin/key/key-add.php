@@ -156,7 +156,7 @@ The issuer for all three systems is the base URL of the system as deployed with 
 <pre>
 https://d2l.msu.edu
 https://sakai.dayton.edu
-http://modules.lancaster.ac.uk
+https://modules.lancaster.ac.uk
 </pre>
 If you are using a test server the issuer is still the base url of the server:
 <pre>
