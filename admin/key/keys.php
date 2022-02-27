@@ -62,7 +62,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
-<h1>LTI Keys</h1>
+<h1>LTI Tenants (Keys)</h1>
 <p>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Key Requests</a>
   <a href="issuers" class="btn btn-default">LTI 1.3 Issuers</a>
@@ -75,7 +75,7 @@ You have no Tenant keys for this system.
 </p>
 <?php }
 $extra_buttons = array(
-  "Insert New Key" => "key-add"
+  "Insert Tenant" => "key-add"
 );
 Table::pagedTable($newrows, $searchfields, false, "key-detail", false, $extra_buttons);
 // echo("<pre>\n");print_r($newrows);echo("</pre>\n");

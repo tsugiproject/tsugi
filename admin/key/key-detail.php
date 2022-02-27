@@ -152,10 +152,14 @@ $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_e
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 $dynamicConfigUrl = U::addSession($CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'], true);
+$contentItemUrl = $CFG->wwwroot . "/lti/store/";
+$canvasContentItemUrl = $CFG->wwwroot . "/lti/store/canvas-config.xml";
+$storeUrl = $CFG->wwwroot . "/store/";
 ?>
 </pre>
 </div>
 <div class="tab-pane fade" id="info">
+<h2>Tenant Key Options</h2>
 <p>
 A single entry in this table defines a "distinct tenant" in Tsugi.
 Data in Tsugi data is isolated to a tenant.  You can route both
@@ -232,7 +236,8 @@ in to check the results of the dynamic registration process.
 
 </div>
 <div class="tab-pane fade" id="brightspace">
-<p><b>LTI Advantage Integrations</b></p>
+
+<h2>LTI 1.3</h2>
 <p>
 Brightspace supports
 <a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
@@ -248,7 +253,8 @@ press <b>Register Tool</b>.
 <p>
 Select <b>Dynamic</b>, check the <b>Configure Deployment</b> checkbox and enter the Dynamic Configuration
 URL and press <b>Register</b>.  Bright space will open another new tab which will come back to Tsugi.  Once Tsugi
-Brightspace exchange all their data, press <b>Continue Tool Registration in the LMS</b>.
+and Brightspace exchange all their data, and update their respective configurations,
+press <b>Continue Tool Registration in the LMS</b>.
 </p>
 <p>
 Then in Brightspace make sure you have a Tool, Deployment, and then set up one or more <b>Links</b> to tell BrightSpace
@@ -261,9 +267,30 @@ where to show Tsugi in the Brightspace UI.  The <b>Deep Link Quick Link</b> work
 <p>
 <?= htmlentities($dynamicConfigUrl) ?>
 </p>
+<h2>LTI 1.1</h2>
+<p>
+You can install Tsugi as a
+<a href="http://www.imsglobal.org/specs/lticiv1p0/specification" target="_blank">Content-Item</a>
+(i.e. a tool picker) by using the <b>consumer_key</b> and <b>consumer_secret</b> and the following
+URL.
+<p>
+<b>Tsugi App Store URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $contentItemUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($contentItemUrl) ?>
+</p>
+<p>
+You can also install direct LTI 1.1 launches to individual tools on this system.  You can
+see any installed tools in the
+<a href="<?= htmlentities($storeUrl) ?>" target="_blank">Tsugi App Store</a> on this system.
+Each tool listing provides its direct launch endpoints.
+</p>
+
 </div>
 <div class="tab-pane fade" id="sakai">
-<p><b>LTI Advantage Integrations</b></p>
+
+<h2>LTI 1.3</h2>
 <p>
 Sakai supports
 <a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
@@ -287,9 +314,29 @@ Sakai supports the optional part of Dynamic Registration and so it provides the 
 in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
 Sakai systems are not usually multi-tenant so they usually use a <b>deployment_id</b> of <b>1</b>.
 </p>
+<h2>LTI 1.1</h2>
+<p>
+You can install Tsugi as a
+<a href="http://www.imsglobal.org/specs/lticiv1p0/specification" target="_blank">Content-Item</a>
+(i.e. a tool picker) by using the <b>consumer_key</b> and <b>consumer_secret</b> and the following
+URL.
+<p>
+<b>Tsugi App Store URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $contentItemUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($contentItemUrl) ?>
+</p>
+<p>
+You can also install direct LTI 1.1 launches to individual tools on this system.  You can
+see any installed tools in the
+<a href="<?= htmlentities($storeUrl) ?>" target="_blank">Tsugi App Store</a> on this system.
+Each tool listing provides its direct launch endpoints.
+</p>
+
 </div>
 <div class="tab-pane fade" id="moodle">
-<p><b>LTI Advantage Integrations</b></p>
+<h2>LTI 1.3</h2>
 <p>
 Moodle supports
 <a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
@@ -311,8 +358,28 @@ Moodle supports the optional part of Dynamic Registration and so it provides the
 in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
 Moodle systems are not usually multi-tenant so they usually use a <b>deployment_id</b> of <b>1</b>.
 </p>
+<h2>LTI 1.1</h2>
+<p>
+You can install Tsugi as a
+<a href="http://www.imsglobal.org/specs/lticiv1p0/specification" target="_blank">Content-Item</a>
+(i.e. a tool picker) by using the <b>consumer_key</b> and <b>consumer_secret</b> and the following
+URL.
+</p>
+<b>Tsugi App Store URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $contentItemUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($contentItemUrl) ?>
+</p>
+<p>
+You can also install direct LTI 1.1 launches to individual tools on this system.  You can
+see any installed tools in the
+<a href="<?= htmlentities($storeUrl) ?>" target="_blank">Tsugi App Store</a> on this system.
+Each tool listing provides its direct launch endpoints.
+</p>
 </div>
 <div class="tab-pane fade" id="manual">
+<h2>LTI 1.3</h2>
 <?php
 $key_id = $row['key_id'];
 $oidc_login = $CFG->wwwroot . '/lti/oidc_login/' . $key_id;
@@ -341,8 +408,23 @@ LTI 1.3 Tool Keyset URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?=
 LTI Content Item / Deep Link Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $deep_link ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
 <?= $deep_link ?> 
 </pre>
+<h2>LTI 1.1</h2>
+<p>
+You can install Tsugi as a
+<a href="http://www.imsglobal.org/specs/lticiv1p0/specification" target="_blank">Content-Item</a>
+(i.e. a tool picker) by using the <b>consumer_key</b> and <b>consumer_secret</b> and the following
+URL.
+<p>
+<b>Canvas LTI 1.1 Configuration URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $canvasContentItemUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($canvasContentItemUrl) ?>
+</p>
+
 </div>
 <div class="tab-pane fade" id="canvas">
+<h2>LTI 1.3</h2>
 <p>
 To use LTI 1.3 in Canvas,
 you should first create an Issuer in Tsugi and then use that Issuer to create
@@ -360,11 +442,47 @@ In Canvas you create a <b>Deployment ID</b> by using the <b>+ App</b>
 in your course settings or by having an administrator do the <b>+ App</b>
 for you.
 </p>
+<h2>LTI 1.1</h2>
+<p>
+You can install Tsugi as a
+<a href="http://www.imsglobal.org/specs/lticiv1p0/specification" target="_blank">Content-Item</a>
+(i.e. a tool picker) by using the <b>consumer_key</b> and <b>consumer_secret</b> and the following
+URL.
+<p>
+<b>Canvas LTI 1.1 Configuration URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $canvasContentItemUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($canvasContentItemUrl) ?>
+</p>
+
 </div>
 <div class="tab-pane fade" id="blackboard">
+
+
 <?php
 require_once("blackboard-detail.php");
 ?>
+<h2>LTI 1.1</h2>
+<p>
+You can install Tsugi as a
+<a href="http://www.imsglobal.org/specs/lticiv1p0/specification" target="_blank">Content-Item</a>
+(i.e. a tool picker) by using the <b>consumer_key</b> and <b>consumer_secret</b> and the following
+URL.
+<p>
+<b>Tsugi App Store URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $contentItemUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($contentItemUrl) ?>
+</p>
+<p>
+You can also install direct LTI 1.1 launches to individual tools on this system.  You can
+see any installed tools in the
+<a href="<?= htmlentities($storeUrl) ?>" target="_blank">Tsugi App Store</a> on this system.
+Each tool listing provides its direct launch endpoints.
+</p>
+
 </div>
 </div>
 <?php
