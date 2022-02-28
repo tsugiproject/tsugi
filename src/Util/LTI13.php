@@ -773,7 +773,7 @@ class LTI13 {
      *
      * @param $debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns true.  If it fails, it returns a string.
+     * @return mixed If this works it returns an array including the new line item url.  If it fails, it returns a string.
      */
     public static function createLineItem($lineitems_url, $access_token, $lineitem, &$debug_log = false) {
 
@@ -811,7 +811,20 @@ class LTI13 {
             return $status;
         }
 
-        return true;
+        /*
+            {
+            "scoreMaximum" : 1.0,
+            "label" : "Zap",
+            "resourceId" : "",
+            "id" : "http://localhost:8080/imsblis/lti13/lineitems/ba1e064d75c8849c47:::0a7178c02ee4d7:::content:17/54"
+            }
+        */
+
+        $json = json_decode($line_item, true);
+        if ( is_array($json) ) return $json;
+        if ( is_array($debug_log) ) $debug_log[] = "Unable to parse return data as JSON";
+
+        return "Unable to parse lineItem response as JSON\n" . $line_item;
     }
 
     /**
