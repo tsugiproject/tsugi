@@ -316,6 +316,7 @@ array( "{$CFG->dbprefix}lti_link",
     lti13_lineitem      TEXT NULL,
 
     title               TEXT NULL,
+    score_maximum       DOUBLE NULL;
 
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
@@ -783,6 +784,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         array('lti_result', 'grading_progress', 'TINYINT(1) NOT NULL DEFAULT 0'),
         array('lti_result', 'activity_progress', 'TINYINT(1) NOT NULL DEFAULT 0'),
+        array('lti_link', 'score_maximum', 'DOUBLE NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {

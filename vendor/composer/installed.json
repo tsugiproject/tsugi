@@ -6236,25 +6236,25 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "bfc9d4341463e76119b5d3664c6a77673ad6bb46"
+                "reference": "149d70fd24cc912262c0796007907fb1f893a124"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/bfc9d4341463e76119b5d3664c6a77673ad6bb46",
-                "reference": "bfc9d4341463e76119b5d3664c6a77673ad6bb46",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/149d70fd24cc912262c0796007907fb1f893a124",
+                "reference": "149d70fd24cc912262c0796007907fb1f893a124",
                 "shasum": ""
             },
             "require": {
                 "ezyang/htmlpurifier": ">=v4.13.0",
                 "firebase/php-jwt": "v5.2.0",
                 "laravel/lumen-framework": "v7.2.2",
-                "php": ">=7.2.0"
+                "php": ">=7.2.0 <8.1.0"
             },
             "require-dev": {
                 "phpunit/php-timer": ">=1.0.6",
                 "phpunit/phpunit": "8.*"
             },
-            "time": "2022-02-27T14:49:45+00:00",
+            "time": "2022-02-28T17:53:56+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",

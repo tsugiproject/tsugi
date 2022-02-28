@@ -176,7 +176,11 @@ class Result extends Entity {
             // Fall back to session if it is missing
             if ( $service === false ) $service = LTIX::ltiParameter('service');
             $result_id = isset($row['result_id']) ? $row['result_id'] : false;
+            $lti13_lineitems = isset($row['lti13_lineitems']) ? $row['lti13_lineitems'] : false;
             $lti13_lineitem = isset($row['lti13_lineitem']) ? $row['lti13_lineitem'] : false;
+            // The title is not likely to be there and we will fix this below
+            $title = isset($row['title']) ? $row['title'] : false;
+            $link_id = isset($row['link_id']) ? $row['link_id'] : false;
             $lti13_subject_key = isset($row['lti13_subject_key']) ? $row['lti13_subject_key'] : false;
         } else {
             $result_url = LTIX::ltiParameter('result_url');
@@ -184,7 +188,10 @@ class Result extends Entity {
             $service = LTIX::ltiParameter('service');
             $result_id = LTIX::ltiParameter('result_id');
             $lti13_lineitem = LTIX::ltiParameter('lti13_lineitem');
+            $lti13_lineitems = LTIX::ltiParameter('lti13_lineitems');
             $lti13_subject_key = LTIX::ltiParameter('subject_key');
+            $title = LTIX::ltiParameter('link_title');
+            $link_id = LTIX::ltiParameter('link_id');
             $comment = is_array($extra) && isset($extra[LTI13::LINEITEM_COMMENT]) ? $extra[LTI13::LINEITEM_COMMENT] : false;
         }
 
@@ -220,7 +227,93 @@ class Result extends Entity {
                 $msg = "Grade NOT stored locally result_id=".$result_id." grade=$grade";
             }
             error_log($msg);
-            if ( is_array($debug_log) )  $debug_log[] = array($msg);
+            if ( is_array($debug_log) )  $debug_log[] = $msg;
+        }
+
+        // Check if we don't have a lineitem_url but do have a lineitems url so we can create a lineitem
+        if ( strlen($lti13_lineitem) < 1 && strlen($lti13_lineitems) > 0 ) {
+            if ( ! is_string($title) || strlen($title) < 1 ) {
+                $msg = "Loading link title for result $result_id";
+                if ( is_array($debug_log) )  $debug_log[] = $msg;
+
+                $p = $CFG->dbprefix;
+                $row = $PDOX->rowDie(
+                    "SELECT DISTINCT link_id, title, lti13_lineitem
+                    FROM {$p}lti_link AS L
+                    JOIN {$p}lti_result AS R ON L.link_id = R.link_id
+                    WHERE R.result_id = :RID",
+                    array(
+                        ":RID" => $result_id,
+                    )
+                );
+                if ( is_array($row) ) {
+                    $title = $row['title'];
+                    $link_id = $row['link_id'];
+                    if ( strlen($row['lti13_lineitem']) > 0 ) $lti13_lineitem = $row['lti13_lineitem'];
+                    if ( strlen($title) < 1 ) {
+                        // TODO: Think how to make this less chatty if the attempt is forever pointless
+                        $msg = "No title found for result $result_id - cannot create lineItem";
+                        error_log($msg);
+                        if ( is_array($debug_log) )  $debug_log[] = msg;
+                    }
+                    $msg = "Found link title for result $result_id: $title";
+                    if ( is_array($debug_log) )  $debug_log[] = $msg;
+                } else {
+                    $msg = "Could not retrieve link title from result $result_id";
+                    error_log($msg);
+                    if ( is_array($debug_log) )  $debug_log[] = $msg;
+                }
+            }
+
+            if ( strlen($lti13_lineitem) < 1 && strlen($title) > 0  && strlen($lti13_lineitems) > 0 ) {
+                $msg = "Creating LineItem for result $result_id title '$title' lineitems url=$lti13_lineitems";
+                error_log($msg);
+                if ( is_array($debug_log) )  $debug_log[] = $msg;
+
+                $newitem = new \stdClass();
+                // TODO: Lets get smarter later
+                $newitem->scoreMaximum = 1.0;
+                $newitem->label = $title;
+                $newitem->resourceId = $link_id;
+                $created = $TSUGI_LAUNCH->context->createLineItem($newitem, $debug_log);
+
+                /*
+                    {
+                    "scoreMaximum" : 1.0,
+                    "label" : "Zap",
+                    "resourceId" : "",
+                    "id" : "http://localhost:8080/imsblis/lti13/lineitems/ba1e064d75c8849c47:::0a7178c02ee4d7:::content:17/54"
+                    }
+                */
+
+                if ( is_array($created) && isset($created['id']) ) {
+                    $lti13_lineitem = $created['id'];
+                    $msg = "Created new lineitem $lti13_lineitem result $result_id link $link_id $title";
+                    error_log($msg);
+                    if ( is_array($debug_log) )  $debug_log[] = $msg;
+
+                    // Update the link to have the line item
+
+                    $stmt = $PDOX->queryReturnError(
+                        "UPDATE {$CFG->dbprefix}lti_link SET lti13_lineitem = :ITEM,
+                            updated_at = NOW() WHERE link_id = :LID",
+                        array(
+                            ':ITEM' => $lti13_lineitem,
+                            ':LID' => $link_id)
+                    );
+
+                    if ( $stmt->success ) {
+                        $msg = "LineItem updated result_id=$result_id link_id=".$link_id." $lti13_lineitem";
+                    } else {
+                        $msg = "LineItem NOT updated result_id=$result_id link_id=".$link_id." $lti13_lineitem";
+                    }
+                    error_log($msg);
+                    if ( is_array($debug_log) )  $debug_log[] = $msg;
+
+                } else {
+                    $msg = "Line Item create failed $result_id $title";
+                }
+            }
         }
 
         // Check is this is a Google Classroom Launch
@@ -293,12 +386,12 @@ class Result extends Entity {
             }
             if ( is_string($GradeSendTransport) ) {
                 $msg = 'Grade sent '.$grade.' id='.$USER->id.' via '.$GradeSendTransport;
-                if ( is_array($debug_log) )  $debug_log[] = array($msg);
+                if ( is_array($debug_log) )  $debug_log[] = $msg;
                 error_log($msg);
             }
         } else {
             $msg = 'Grade failure '.$grade.' id='.$USER->id.' via '.$GradeSendTransport;
-            if ( is_array($debug_log) )  $debug_log[] = array($msg);
+            if ( is_array($debug_log) )  $debug_log[] = $msg;
             error_log($msg);
             $svd = Output::safe_var_dump($debug_log);
             error_log("Grade failure detail:\n".$svd);
