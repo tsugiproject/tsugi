@@ -1,6 +1,8 @@
 <div class="tab-pane fade" id="brightspace">
 <p>
-Brightspace uses a per-server Issuer value and supports IMS Dynamic Registration so you
+Brightspace uses a per-server Issuer value and supports
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
+so you
 should create a Tenant Key without a global Issuer.
 </p>
 <p>
@@ -10,7 +12,9 @@ value.  Launches and token requests to Brightspace will fail without this value.
 </div>
 <div class="tab-pane fade" id="sakai">
 <p>
-Sakai uses a per-server Issuer value and supports IMS Dynamic Registration so you
+Sakai uses a per-server Issuer value and supports
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
+so you
 should create a Tenant Key without a global Issuer.
 </p><p>
 Because a Sakai server usually supports a single tenant they usually set the
@@ -19,7 +23,9 @@ Because a Sakai server usually supports a single tenant they usually set the
 </div>
 <div class="tab-pane fade" id="moodle">
 <p>
-Moodle uses a per-server Issuer value and supports IMS Dynamic Registration so you
+Moodle uses a per-server Issuer value and supports
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
+so you
 should create a Tenant Key without a global Issuer.
 </p><p>
 Because a Moodle server usually supports a single tenant they usually set the

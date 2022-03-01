@@ -84,7 +84,8 @@ Adding Issuer Entry
 <p>
 In general the only major LMS where it is useful to create an Issuer in Tsugi
 and reuse the Issuer across multiple Client ID's / Tenant Keys is Canvas.   For all
-of the other LMS's (including those that support IMS Dynamid Registration)
+of the other LMS's (including those that support
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>)
 you should just add a Tenant key and enter the issuer URLs and values in
 the Tenant key.
 </p>

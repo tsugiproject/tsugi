@@ -192,8 +192,10 @@ a "draft" or incomplete key and then come back later to add the LMS / Platform p
 </p>
 <b>IMS LTI Advantage Dynamic Registration</b>
 <p>
-Sakai, Moodle, and Brightspace support the IMS Dynamic Registration process.  This process takes
-a draft Tsugi key, and sends its data to the LMS and the LMSresponds with all of its valuse
+Sakai, Moodle, and Brightspace support the
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
+process.  This process takes
+a draft Tsugi key, and sends its data to the LMS and the LMSresponds with all of its values
 and Tsugi automatically update the Tenant key with the LMS values.  It is basically a one-click
 LTI Advantage install.
 </p>
@@ -204,7 +206,8 @@ LTI Advantage install.
 <p>
 <?= htmlentities($dynamicConfigUrl) ?>
 </p>
-The <a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
+The
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
 process is supported by Brightspace, Moodle, and Sakai.  You create a Tenant key in
 Tsugi with a title, and issuer, then take the Dynamic Registration URL
 from this page and paste it into the LMS configuration process.
@@ -258,8 +261,15 @@ press <b>Continue Tool Registration in the LMS</b>.
 </p>
 <p>
 Then in Brightspace make sure you have a Tool, Deployment, and then set up one or more <b>Links</b> to tell BrightSpace
-where to show Tsugi in the Brightspace UI.  The <b>Deep Link Quick Link</b> works pretty well for Tsugi but
- others might be useful as well.
+where to show Tsugi in the Brightspace UI.  The <b>Deep Linking Quicklink</b> works pretty well for Tsugi but
+others might be useful as well.   The URL to provide to use for Deep Linking Quicklink is the Tsugi store URL:
+<p>
+<b>Tsugi App Store URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $contentItemUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($contentItemUrl) ?>
+</p>
 <p>
 <b>LTI Advantage Dynamic Registration URL:
 <button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
