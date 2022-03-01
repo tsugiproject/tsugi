@@ -29,7 +29,7 @@
         "symfony/error-handler" : "v5.3.3",
         "symfony/http-kernel" : "v5.3.3",
 
-        "tsugi/lib": "dev-master#149d70fd24cc912262c0796007907fb1f893a124",
+        "tsugi/lib": "dev-master#057238b7c5d129b2bd7f21bb18e42f8b8d8fe7fe",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {

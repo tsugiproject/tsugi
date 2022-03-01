@@ -67,7 +67,7 @@ class DeepLinkResponse extends \Tsugi\Util\DeepLinkResponse {
         }
 
         $jws = LTIX::encode_jwt($params);
-        $html = LTI13::build_jwt_html($return_url, $jws);
+        $html = LTI13::build_jwt_html($return_url, $jws, $debug);
         return $html;
     }
 
