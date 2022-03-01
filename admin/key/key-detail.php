@@ -498,11 +498,12 @@ Each tool listing provides its direct launch endpoints.
 <?php
 $OUTPUT->footerStart();
 
-if ( $inedit ) {
-    $sql = "SELECT issuer_id, issuer_key, issuer_client
-        FROM {$CFG->dbprefix}lti_issuer";
-    $issuer_rows = $PDOX->allRowsDie($sql);
+$sql = "SELECT issuer_id, issuer_key, issuer_client
+    FROM {$CFG->dbprefix}lti_issuer";
+$issuer_rows = $PDOX->allRowsDie($sql);
 
+
+if ( $inedit && count($issuer_rows) > 0 ) {
     $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Global Issuer Selected</option>";
     foreach($issuer_rows as $issuer_row) {
         $selected = $row['issuer_id'] == $issuer_row['issuer_id'] ? ' selected ' : '';
@@ -513,14 +514,38 @@ if ( $inedit ) {
 
 ?>
 <script>
+    function showHideLMSValues(issuer_id)
+    {
+        const array = ["lms_issuer", "lms_client", "lms_keyset_url", "lms_oidc_auth", "lms_token_url", "lms_token_audience"];
+        if ( issuer_id > 0 ) {
+            $("#lms_note").hide();
+            var ignored = '';
+            array.forEach(function (item, index) {
+                $('#'+item).closest('div').hide();
+                var val = $('#'+item).val();
+                if ( val.length > 0 ) {
+                    if ( ignored.length > 0 ) ignored = ignored + ' ';
+                    ignored = ignored + item;
+                }
+            });
+            if ( ignored.length > 0 ) {
+                alert("By choosing a Global Issuer the following tenant key fields will be ignored: "+ignored);
+            }
+        } else {
+            array.forEach(function (item, index) { $('#'+item).closest('div').show(); });
+            $("#lms_note").show();
+        }
+    }
+
     $(document).ready(function(){
         $('form').attr('autocomplete', 'off');
     });
-    $('#lms_issuer').closest('div').before("<p>If you enter data into the the LTI 1.3 fields below, (a) set them all and (b) do not select a global issuer for this tenant. If you select a global issuer, the LTI 1.3 fields below should not be set.</p>");
+    $('#lms_issuer').closest('div').before("<p  id=\"lms_note\">If you enter data into the the LTI 1.3 fields below, (a) set them all and (b) do not select a global issuer for this tenant. If you select a global issuer, the LTI 1.3 Platform fields below should not be set.</p>");
     $('<?= $select_text ?>').insertBefore('#issuer_id');
     $('#issuer_id').hide();
     $('#issuer_id_select').on('change', function() {
         $('input[name="issuer_id"]').val(this.value);
+        showHideLMSValues(this.value);
     });
 </script>
 <?php

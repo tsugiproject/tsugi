@@ -1,8 +1,9 @@
 <h2>LTI 1.3</h2>
 <p>
-Since the Blackboard developer portal assigns a <b>Well-Known/KeySet URL</b> that is unique
-to each Client ID, it is best to skip creating an Issuer in Tsugi, create a Key, select
-"No Global Issuer Selected" and set all the issuer values here
+Blackboard useds a single issuer for all tenants, but
+since the Blackboard developer portal assigns a <b>Well-Known/KeySet URL</b> that is unique
+to each Client ID, it is best to skip creating a reusable Issuer in Tsugi, and instead create a Key for each Tenant,
+select "No Global Issuer Selected" and set all the issuer values here
 to create a Tenant key.
 The <b>Deployment ID</b> is provided when you place Tsugi into a Blackboard
 instance using the <b>Client ID</b>.
