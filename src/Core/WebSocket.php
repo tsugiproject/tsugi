@@ -4,7 +4,7 @@ namespace Tsugi\Core;
 
 use \Tsugi\Util\U;
 use \Tsugi\Crypt\Aes;
-use \Tsugi\Crypt\AesCtr;
+use \Tsugi\Crypt\AesOpenSSL;
 
 /**
  * This class contains the server side of Tsugi notification web sockets
@@ -152,7 +152,7 @@ class WebSocket {
         if ( ! isset($CFG->websocket_secret) || strlen($CFG->websocket_secret) < 1 ) return false;
         $plain = self::makeToken($launch);
         if ( ! $plain ) return $plain;
-        $encrypted = AesCtr::encrypt($plain, $CFG->websocket_secret, 256) ;
+        $encrypted = AesOpenSSL::encrypt($plain, $CFG->websocket_secret, 256) ;
         return $encrypted;
     }
 
@@ -165,7 +165,8 @@ class WebSocket {
      */
     public static function decodeToken($token) {
         global $CFG;
-        $plain = AesCtr::decrypt($token, $CFG->websocket_secret, 256) ;
+        $plain = AesOpenSSL::decrypt($token, $CFG->websocket_secret, 256) ;
+        if ( ! is_string($plain) ) return false;
         $pieces = explode('::', $plain);
         if ( count($pieces) != 4 ) return false;
         return $plain;

@@ -2,8 +2,7 @@
 
 use \Tsugi\Crypt\SecureCookie;
 
-require_once('src/Crypt/Aes.php');
-require_once('src/Crypt/AesCtr.php');
+require_once('src/Crypt/AesOpenSSL.php');
 require_once('src/Crypt/SecureCookie.php');
 require_once "src/Config/ConfigInfo.php";
 
@@ -17,11 +16,8 @@ class SecureCookieTest extends \PHPUnit\Framework\TestCase
         $CFG->cookiepad = 'Helloworld';
         $CFG->cookiesecret = '42';
         $pt = 'HHGTTG';
-        $expected = 'BwHVfvOvWF9+H9K0arM=';
         $ct = SecureCookie::encrypt($pt);
         $this->assertNotEquals($pt, $ct);
-        // You can't assertEquals on ct because the encryption is never the same twice
-        $this->assertEquals(strlen($ct), strlen($expected));
         $pt2 = SecureCookie::decrypt($ct);
         $this->assertEquals($pt, $pt2);
     }

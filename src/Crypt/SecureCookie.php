@@ -10,13 +10,13 @@ class SecureCookie {
 
     public static function encrypt($plain) {
         global $CFG;
-        $cipher = \Tsugi\Crypt\AesCtr::encrypt($plain, $CFG->cookiesecret, 256) ;
+        $cipher = \Tsugi\Crypt\AesOpenSSL::encrypt($plain, $CFG->cookiesecret, 256) ;
         return $cipher;
     }
 
     public static function decrypt($cipher) {
         global $CFG;
-        $plain = \Tsugi\Crypt\AesCtr::decrypt($cipher, $CFG->cookiesecret, 256) ;
+        $plain = \Tsugi\Crypt\AesOpenSSL::decrypt($cipher, $CFG->cookiesecret, 256) ;
         return $plain;
     }
 

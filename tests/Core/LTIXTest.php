@@ -13,7 +13,6 @@ class LTIXTest extends \PHPUnit\Framework\TestCase
         $CFG->cookiesecret = "hockey";
         $zap = LTIX::encrypt_secret("apereo");
         $this->assertTrue(strpos($zap,"AES::") === 0 );
-        $this->assertEquals(strlen($zap),strlen("AES::UQJX0tVxkFmlzzaOOlw="));
         $zot = LTIX::decrypt_secret($zap);
         $this->assertEquals($zot,"apereo");
     }
