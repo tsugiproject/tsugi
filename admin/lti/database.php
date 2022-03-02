@@ -891,6 +891,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     // DROP INDEX index_name ON tbl_name
     foreach($indexes as $index) {
         if ( strcasecmp($index, "PRIMARY") == 0 ) continue;
+        if ( strcasecmp($index, "ibfk") == 0 ) continue;
         $command = isset($needed_indexes[$index]) ? $needed_indexes[$index] : null;
         if ( is_string($command) ) continue;
         $sql = "DROP INDEX ".$index." ON ".$CFG->dbprefix."lti_key";
