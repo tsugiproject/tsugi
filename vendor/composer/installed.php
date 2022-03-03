@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '067acd5d9f384b9b9ff6b1163544b5d938703e31',
+        'reference' => '1533cf321f68a13fa69be5883c8cbb584de3e7ee',
         'name' => '__root__',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '067acd5d9f384b9b9ff6b1163544b5d938703e31',
+            'reference' => '1533cf321f68a13fa69be5883c8cbb584de3e7ee',
             'dev_requirement' => false,
         ),
         'aws/aws-sdk-php' => array(
@@ -915,7 +915,7 @@
             'aliases' => array(
                 0 => '9999999-dev',
             ),
-            'reference' => '29a4f6ee045ff69886baa7235b53dcfb45f626be',
+            'reference' => '8d63ebd57f535eb0dbffd0f4904f01e1e5f58a2c',
             'dev_requirement' => false,
         ),
         'vlucas/phpdotenv' => array(

@@ -152,7 +152,7 @@ class LTIX {
     {
         global $CFG;
         if ( startsWith($secret,'AES::') ) return $secret;
-        $encr = AesOpenSSL::encrypt($secret, $CFG->cookiesecret, 256) ;
+        $encr = AesOpenSSL::encrypt($secret, $CFG->cookiesecret) ;
         return 'AES::'.$encr;
     }
 
@@ -165,7 +165,9 @@ class LTIX {
         if ( $secret === null || $secret === false ) return $secret;
         if ( ! startsWith($secret,'AES::') ) return $secret;
         $secret = substr($secret, 5);
-        $decr = AesOpenSSL::decrypt($secret, $CFG->cookiesecret, 256) ;
+        // TODO: Switch to AesOpenSSL after time passes from March 1, 2022
+        // $decr = AesOpenSSL::decrypt($secret, $CFG->cookiesecret) ;
+        $decr = \Tsugi\Crypt\AesCtr::decrypt($secret, $CFG->cookiesecret, 256) ;
         return $decr;
     }
 

@@ -1005,7 +1005,7 @@ class Lessons {
             echo("<li><p>");
             $code = basename($badge->image,'.png');
             $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
-            $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password, 256));
+            $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
             echo('<a href="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" target="_blank">');
             echo('<img src="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" width="90"></a>');
             echo($badge->title);
