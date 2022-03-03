@@ -152,7 +152,7 @@ class WebSocket {
         if ( ! isset($CFG->websocket_secret) || strlen($CFG->websocket_secret) < 1 ) return false;
         $plain = self::makeToken($launch);
         if ( ! $plain ) return $plain;
-        $encrypted = AesOpenSSL::encrypt($plain, $CFG->websocket_secret, 256) ;
+        $encrypted = AesOpenSSL::encrypt($plain, $CFG->websocket_secret) ;
         return $encrypted;
     }
 

@@ -17,13 +17,13 @@ class AesTest extends \PHPUnit\Framework\TestCase
     public function testOpenSSL() {
         $pw = 'L0ck it up saf3';
         $pt = 'pssst ... đon’t tell anyøne!';
-        $encr = AesOpenSSL::encrypt($pt, $pw, 256) ;
+        $encr = AesOpenSSL::encrypt($pt, $pw) ;
         $this->assertNotEquals($encr,$pw);
         $this->assertNotEquals($encr,$pt);
-        $decr = AesOpenSSL::decrypt($encr, $pw, 256);
+        $decr = AesOpenSSL::decrypt($encr, $pw);
         $this->assertEquals($decr,$pt);
         $this->assertNotEquals($encr,$pw);
-        $decr = AesOpenSSL::decrypt($encr, $pw."x", 256);
+        $decr = AesOpenSSL::decrypt($encr, $pw."x");
         $this->assertNotEquals($decr,$pt);
 
         // Test legacy
