@@ -195,6 +195,9 @@ class Process implements \IteratorAggregate
         return $process;
     }
 
+    /**
+     * @return array
+     */
     public function __sleep()
     {
         throw new \BadMethodCallException('Cannot serialize '.__CLASS__);
@@ -617,6 +620,7 @@ class Process implements \IteratorAggregate
      *
      * @return \Generator
      */
+    #[\ReturnTypeWillChange]
     public function getIterator(int $flags = 0)
     {
         $this->readPipesForOutput(__FUNCTION__, false);
@@ -1383,7 +1387,7 @@ class Process implements \IteratorAggregate
         ob_start();
         phpinfo(\INFO_GENERAL);
 
-        return self::$sigchild = false !== strpos(ob_get_clean(), '--enable-sigchild');
+        return self::$sigchild = str_contains(ob_get_clean(), '--enable-sigchild');
     }
 
     /**
@@ -1570,7 +1574,7 @@ class Process implements \IteratorAggregate
                 if (isset($varCache[$m[0]])) {
                     return $varCache[$m[0]];
                 }
-                if (false !== strpos($value = $m[1], "\0")) {
+                if (str_contains($value = $m[1], "\0")) {
                     $value = str_replace("\0", '?', $value);
                 }
                 if (false === strpbrk($value, "\"%!\n")) {
@@ -1631,7 +1635,7 @@ class Process implements \IteratorAggregate
         if ('\\' !== \DIRECTORY_SEPARATOR) {
             return "'".str_replace("'", "'\\''", $argument)."'";
         }
-        if (false !== strpos($argument, "\0")) {
+        if (str_contains($argument, "\0")) {
             $argument = str_replace("\0", '?', $argument);
         }
         if (!preg_match('/[\/()%!^"<>&|\s]/', $argument)) {
@@ -1655,13 +1659,8 @@ class Process implements \IteratorAggregate
 
     private function getDefaultEnv(): array
     {
-        $env = [];
-
-        foreach ($_SERVER as $k => $v) {
-            if (\is_string($v) && false !== $v = getenv($k)) {
-                $env[$k] = $v;
-            }
-        }
+        $env = getenv();
+        $env = array_intersect_key($env, $_SERVER) ?: $env;
 
         foreach ($_ENV as $k => $v) {
             if (\is_string($v)) {
