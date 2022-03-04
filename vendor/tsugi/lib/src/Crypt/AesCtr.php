@@ -1,4 +1,10 @@
 <?php
+// This code was originally taken from moveable-typs - but it fell apart in PHP 8 and there is no update
+// so we switch to using an OpenSSL approach as described in
+// https://stackoverflow.com/questions/3422759/php-aes-encrypt-decrypt
+
+// This routine now simply wraps the OpenSSL version
+//
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 /*  AES counter (CTR) mode implementation in PHP                                                  */
 /*    (c) Chris Veness 2005-2011 www.movable-type.co.uk/scripts                                   */
@@ -6,7 +12,11 @@
 /*    copyright notice is retainded. No warranty of any form is offered.                          */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
+// TODO: Remove this completely and switch to using AesOpenSSL
+
 namespace Tsugi\Crypt;
+
+use \Tsugi\Crypt\AesOpenSSL;
 
 class AesCtr extends Aes {
 
@@ -22,6 +32,23 @@ class AesCtr extends Aes {
    * @return string   encrypted text
    */
   public static function encrypt($plaintext, $password, $nBits) {
+    $ciphertext = AesOpenSSL::encrypt($plaintext, $password);
+    return $ciphertext;
+  }
+
+  /**
+   * LEGACY Encrypt a text using AES encryption in Counter mode of operation
+   *  - see http://csrc.nist.gov/publications/nistpubs/800-38a/sp800-38a.pdf
+   *
+   * Unicode multi-byte character safe
+   *
+   * @param plaintext source text to be encrypted
+   * @param password  the password to use to generate a key
+   * @param nBits     number of bits to be used in the key (128, 192, or 256)
+   * @return string   encrypted text
+   */
+  // USE ONLY FOR UNIT TESTING!!
+  public static function legacyEncrypt($plaintext, $password, $nBits) {
     $blockSize = 16;  // block size fixed at 16 bytes / 128 bits (Nb=4) for AES
     if (!($nBits==128 || $nBits==192 || $nBits==256)) return '';  // standard allows 128/192/256 bit keys
     // note PHP (5) gives us plaintext and password in UTF8 encoding!
@@ -82,7 +109,6 @@ class AesCtr extends Aes {
     return $ciphertext;
   }
 
-
   /**
    * Decrypt a text encrypted by AES in counter mode of operation
    *
@@ -92,6 +118,11 @@ class AesCtr extends Aes {
    * @return string    decrypted text
    */
   public static function decrypt($ciphertext, $password, $nBits) {
+    // Try new decrypt
+    $plaintext = AesOpenSSL::decrypt($ciphertext, $password);
+    if ( $plaintext != null && is_string($plaintext) ) return $plaintext;
+
+    // Fall through and try the old algorithm
     $blockSize = 16;  // block size fixed at 16 bytes / 128 bits (Nb=4) for AES
     if (!($nBits==128 || $nBits==192 || $nBits==256)) return '';  // standard allows 128/192/256 bit keys
     $ciphertext = base64_decode($ciphertext);
@@ -151,8 +182,19 @@ class AesCtr extends Aes {
    * @param b  number of bits to shift a to the right (0..31)
    * @return integer  a right-shifted and zero-filled by b bits
    */
-  private static function urs($a, $b) {
-    $a &= 0xffffffff; $b &= 0x1f;  // (bounds check)
+  public static function urs($a, $b) {
+    // Original pre 8.1 code rounded floats like 0.99 and -0.99 down to zero
+    // probably not what the moveable-type folks intended - but it is what it is
+    // and we need to be able to decode legacy Aes strings in the interim without
+    // a bunch of warnings :)
+
+    // $a &= 0xffffffff;
+    // $b &= 0x1f;  // (bounds check)
+
+    // New post 8.1 code - probably insecure - but the same as with pre-7.4
+    $a = ( (int) $a ) & 0xffffffff;
+    $b = ( (int) $b ) & 0x1f;  // (bounds check)
+
     if ($a&0x80000000 && $b>0) {   // if left-most bit set
       $a = ($a>>1) & 0x7fffffff;   //   right-shift one bit & clear left-most bit
       $a = $a >> ($b-1);           //   remaining right-shifts

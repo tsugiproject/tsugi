@@ -16,13 +16,13 @@ class SimpleEncryption {
         global $CFG;
         $pt = $CFG->cookiepad.'::'.$id.'::'.$guid;
         if ( $debug ) echo("PT1: $pt\n");
-        $ct = \Tsugi\Crypt\AesCtr::encrypt($pt, $CFG->cookiesecret, 256) ;
+        $ct = \Tsugi\Crypt\AesOpenSSL::encrypt($pt, $CFG->cookiesecret) ;
         return $ct;
     }
     
     public static function extract($encr,$debug=false) {
         global $CFG;
-        $pt = \Tsugi\Crypt\AesCtr::decrypt($encr, $CFG->cookiesecret, 256) ;
+        $pt = \Tsugi\Crypt\AesOpenSSL::decrypt($encr, $CFG->cookiesecret) ;
         if ( $debug ) echo("PT2: $pt\n");
         $pieces = explode('::',$pt);
         if ( count($pieces) != 3 ) return false;
