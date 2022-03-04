@@ -470,7 +470,7 @@ class RSA
                 case defined('MATH_BIGINTEGER_OPENSSL_DISABLE'):
                     define('CRYPT_RSA_MODE', self::MODE_INTERNAL);
                     break;
-                case extension_loaded('openssl') && file_exists($this->configFile):
+                case function_exists('phpinfo') && extension_loaded('openssl') && file_exists($this->configFile):
                     // some versions of XAMPP have mismatched versions of OpenSSL which causes it not to work
                     $versions = array();
 
@@ -878,9 +878,9 @@ class RSA
                 );
                 $key = "openssh-key-v1\0$key";
 
-                return "-----BEGIN OPENSSH PRIVATE KEY-----\r\n" .
-                       chunk_split(base64_encode($key), 70) .
-                       "-----END OPENSSH PRIVATE KEY-----";
+                return "-----BEGIN OPENSSH PRIVATE KEY-----\n" .
+                       chunk_split(base64_encode($key), 70, "\n") .
+                       "-----END OPENSSH PRIVATE KEY-----\n";
             default: // eg. self::PRIVATE_FORMAT_PKCS1
                 $components = array();
                 foreach ($raw as $name => $value) {

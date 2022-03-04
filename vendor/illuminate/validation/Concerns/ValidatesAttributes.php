@@ -1264,7 +1264,7 @@ trait ValidatesAttributes
         }
 
         $phpExtensions = [
-            'php', 'php3', 'php4', 'php5', 'phtml',
+            'php', 'php3', 'php4', 'php5', 'phtml', 'phar',
         ];
 
         return ($value instanceof UploadedFile)
@@ -1918,7 +1918,6 @@ trait ValidatesAttributes
      *
      * @param  string  $attribute
      * @param  string  $rule
-     *
      * @return void
      */
     protected function shouldBeNumeric($attribute, $rule)

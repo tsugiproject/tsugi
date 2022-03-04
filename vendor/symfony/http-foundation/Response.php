@@ -138,7 +138,7 @@ class Response
      *
      * The list of codes is complete according to the
      * {@link https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml Hypertext Transfer Protocol (HTTP) Status Code Registry}
-     * (last updated 2016-03-01).
+     * (last updated 2018-09-21).
      *
      * Unless otherwise noted, the status code is defined in RFC2616.
      *
@@ -324,7 +324,7 @@ class Response
         }
 
         // Check if we need to send extra expire info headers
-        if ('1.0' == $this->getProtocolVersion() && false !== strpos($headers->get('Cache-Control'), 'no-cache')) {
+        if ('1.0' == $this->getProtocolVersion() && str_contains($headers->get('Cache-Control', ''), 'no-cache')) {
             $headers->set('pragma', 'no-cache');
             $headers->set('expires', -1);
         }
@@ -462,7 +462,7 @@ class Response
      *
      * @final
      */
-    public function setStatusCode(int $code, $text = null): object
+    public function setStatusCode(int $code, string $text = null): object
     {
         $this->statusCode = $code;
         if ($this->isInvalid()) {
@@ -926,7 +926,7 @@ class Response
         if (null === $etag) {
             $this->headers->remove('Etag');
         } else {
-            if (0 !== strpos($etag, '"')) {
+            if (!str_starts_with($etag, '"')) {
                 $etag = '"'.$etag.'"';
             }
 
@@ -1090,12 +1090,27 @@ class Response
         $lastModified = $this->headers->get('Last-Modified');
         $modifiedSince = $request->headers->get('If-Modified-Since');
 
-        if ($etags = $request->getETags()) {
-            $notModified = \in_array($this->getEtag(), $etags) || \in_array('*', $etags);
-        }
+        if ($ifNoneMatchEtags = $request->getETags()) {
+            $etag = $this->getEtag();
+            if (0 == strncmp($etag, 'W/', 2)) {
+                $etag = substr($etag, 2);
+            }
 
-        if ($modifiedSince && $lastModified) {
-            $notModified = strtotime($modifiedSince) >= strtotime($lastModified) && (!$etags || $notModified);
+            // Use weak comparison as per https://tools.ietf.org/html/rfc7232#section-3.2.
+            foreach ($ifNoneMatchEtags as $ifNoneMatchEtag) {
+                if (0 == strncmp($ifNoneMatchEtag, 'W/', 2)) {
+                    $ifNoneMatchEtag = substr($ifNoneMatchEtag, 2);
+                }
+
+                if ($ifNoneMatchEtag === $etag || '*' === $ifNoneMatchEtag) {
+                    $notModified = true;
+                    break;
+                }
+            }
+        }
+        // Only do If-Modified-Since date comparison when If-None-Match is not present as per https://tools.ietf.org/html/rfc7232#section-3.3.
+        elseif ($modifiedSince && $lastModified) {
+            $notModified = strtotime($modifiedSince) >= strtotime($lastModified);
         }
 
         if ($notModified) {

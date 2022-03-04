@@ -86,7 +86,7 @@ class NativeSessionStorage implements SessionStorageInterface
      * name, "PHPSESSID"
      * referer_check, ""
      * serialize_handler, "php"
-     * use_strict_mode, "0"
+     * use_strict_mode, "1"
      * use_cookies, "1"
      * use_only_cookies, "1"
      * use_trans_sid, "0"
@@ -256,7 +256,7 @@ class NativeSessionStorage implements SessionStorageInterface
 
         // Register error handler to add information about the current save handler
         $previousHandler = set_error_handler(function ($type, $msg, $file, $line) use (&$previousHandler) {
-            if (\E_WARNING === $type && 0 === strpos($msg, 'session_write_close():')) {
+            if (\E_WARNING === $type && str_starts_with($msg, 'session_write_close():')) {
                 $handler = $this->saveHandler instanceof SessionHandlerProxy ? $this->saveHandler->getHandler() : $this->saveHandler;
                 $msg = sprintf('session_write_close(): Failed to write session data with "%s" handler', \get_class($handler));
             }

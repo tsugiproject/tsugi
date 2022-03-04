@@ -25,7 +25,7 @@ use function unserialize;
  * the effort required to implement this interface.
  *
  * @template T
- * @template-implements ArrayInterface<T>
+ * @implements ArrayInterface<T>
  */
 abstract class AbstractArray implements ArrayInterface
 {
@@ -54,6 +54,8 @@ abstract class AbstractArray implements ArrayInterface
      * Returns an iterator for this array.
      *
      * @link http://php.net/manual/en/iteratoraggregate.getiterator.php IteratorAggregate::getIterator()
+     *
+     * @return Traversable<array-key, T>
      */
     public function getIterator(): Traversable
     {
@@ -81,7 +83,10 @@ abstract class AbstractArray implements ArrayInterface
      *
      * @return T|null the value stored at the offset, or null if the offset
      *     does not exist.
+     *
+     * @psalm-suppress InvalidAttribute
      */
+    #[\ReturnTypeWillChange] // phpcs:ignore
     public function offsetGet($offset)
     {
         return $this->data[$offset] ?? null;
@@ -121,6 +126,8 @@ abstract class AbstractArray implements ArrayInterface
     /**
      * Returns a serialized string representation of this array object.
      *
+     * @deprecated The Serializable interface will go away in PHP 9.
+     *
      * @link http://php.net/manual/en/serializable.serialize.php Serializable::serialize()
      *
      * @return string a PHP serialized string.
@@ -131,7 +138,22 @@ abstract class AbstractArray implements ArrayInterface
     }
 
     /**
+     * Returns data suitable for PHP serialization.
+     *
+     * @link https://www.php.net/manual/en/language.oop5.magic.php#language.oop5.magic.serialize
+     * @link https://www.php.net/serialize
+     *
+     * @return array<array-key, T>
+     */
+    public function __serialize(): array
+    {
+        return $this->data;
+    }
+
+    /**
      * Converts a serialized string representation into an instance object.
+     *
+     * @deprecated The Serializable interface will go away in PHP 9.
      *
      * @link http://php.net/manual/en/serializable.unserialize.php Serializable::unserialize()
      *
@@ -144,6 +166,16 @@ abstract class AbstractArray implements ArrayInterface
         /** @var array<array-key, T> $data */
         $data = unserialize($serialized, ['allowed_classes' => false]);
 
+        $this->data = $data;
+    }
+
+    /**
+     * Adds unserialized data to the object.
+     *
+     * @param array<array-key, T> $data
+     */
+    public function __unserialize(array $data): void
+    {
         $this->data = $data;
     }
 
