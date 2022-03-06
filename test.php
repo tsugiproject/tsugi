@@ -25,10 +25,11 @@ $settingsDialog = new \Tsugi\UI\SettingsDialog();
 
 $cc_dom = new \Tsugi\Util\CC();
 
-$client = new \Google_Client();
-$link = new \Google_Service_Classroom_Link();
-$materials = new \Google_Service_Classroom_Material();
-$cw = new \Google_Service_Classroom_CourseWork();
+// No more Google
+// $client = new \Google_Client();
+// $link = new \Google_Service_Classroom_Link();
+// $materials = new \Google_Service_Classroom_Material();
+// $cw = new \Google_Service_Classroom_CourseWork();
 
 echo("Test complete\n");
 
