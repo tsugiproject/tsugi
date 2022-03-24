@@ -84,5 +84,5 @@ print_r($debug_log);
 $sql = "DELETE FROM {$CFG->dbprefix}cal_event WHERE event_id = :event_id";
 $PDOX->queryDie($sql, array(':event_id' => $row['event_id']));
 
-error_log("Send event_id=".$row['event_id']." response="+$response_code);
+error_log("Send event_id=". $row['event_id'] ." response=". $response_code);
 
