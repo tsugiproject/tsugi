@@ -316,7 +316,7 @@ array( "{$CFG->dbprefix}lti_link",
     lti13_lineitem      TEXT NULL,
 
     title               TEXT NULL,
-    score_maximum       DOUBLE NULL;
+    score_maximum       DOUBLE NULL,
 
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
