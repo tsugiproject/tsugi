@@ -53,7 +53,7 @@ your web server can read it
 
 ### Method 1: Docker install
 
-* If you have Docker installed (OSX/Linux currently) you should just be able to run `docker-compose build` and `docker-compose up` and Tsugi will start up and initialize.
+* If you have Docker installed (OSX/Linux currently) you should just be able to run `docker compose build` and `docker compose up` and Tsugi will start up and initialize.
 * config-dist.php will be copied, you need to edit a few things in this like `CFG->adminpw`just edit these in place and they'll be updated.
 * Go to http://localhost:8888/tsugi and you should be all set.
 
