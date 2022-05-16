@@ -1,4 +1,4 @@
-FROM php:7-apache
+FROM php:8.1-apache
 #Install git
 EXPOSE 80
 # Modules that this needs
