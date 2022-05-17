@@ -22,7 +22,7 @@ if ( ! isAdmin() ) {
 $from_location = "keys";
 $tablename = "{$CFG->dbprefix}lti_key";
 $fields = array('key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
-    'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
+    'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
     'xapi_url', 'xapi_user', 'xapi_password',
     'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
 
@@ -42,7 +42,7 @@ $titles = array(
 
 if ( isset($_POST['issuer_id']) && strlen($_POST['issuer_id']) == 0 ) $_POST['issuer_id'] = null;
 if ( isset($_POST['key_key']) && strlen($_POST['key_key']) == 0 ) $_POST['key_key'] = null;
-if ( isset($_POST['user_id']) && strlen($_POST['user_id']) < 1 ) $_POST['user_id'] = $_SESSION['id'];
+if ( isset($_POST['user_id']) && strlen($_POST['user_id']) < 1 && isset($_SESSION['id']) ) $_POST['user_id'] = $_SESSION['id'];
 
 // Check the complex interaction of constraints
 $key_key = U::get($_POST,'key_key');

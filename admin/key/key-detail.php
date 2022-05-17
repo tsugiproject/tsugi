@@ -37,7 +37,7 @@ $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'issue
 
 $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256',
      'issuer_id',
-     'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
+     'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
      'caliper_url', 'caliper_key',
      'created_at', 'updated_at', 'user_id',

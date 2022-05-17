@@ -1369,7 +1369,7 @@ class LTIX {
             $sql .= "\nWHERE (k.deploy_key = :deployment_id OR k.deploy_key IS NULL)
                 AND (
                     (i.issuer_sha256 = :issuer_sha256 AND i.issuer_client = :issuer_client)
-                    OR ( lms_issuer_sha256 = :issuer_sha256 AND lms_client = :issuer_client )
+                    OR ( (lms_issuer_sha256 IS NULL OR lms_issuer_sha256 = :issuer_sha256 ) AND lms_client = :issuer_client )
                 )
             ";
         } else {

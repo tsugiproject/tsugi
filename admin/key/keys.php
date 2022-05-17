@@ -16,9 +16,14 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 if ( ! isAdmin() ) die('Must be admin');
 
+// Patch lms_issuer_sha256 in case it ended up null
+$patch_sql = "UPDATE {$CFG->dbprefix}lti_key SET lms_issuer_sha256 = sha2(lms_issuer, 256)
+    WHERE lms_issuer_sha256 IS NULL AND lms_issuer IS NOT NULL";
+$rows = $PDOX->queryDie($patch_sql);
+
 $query_parms = false;
 $searchfields = array("K.key_id", "key_title", "key_key", "deploy_key", "K.login_at", "K.updated_at", "K.user_id", "issuer_key");
-$sql = "SELECT K.key_id AS key_id, key_title, key_key, secret, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
+$sql = "SELECT K.key_id AS key_id, key_title, key_key, secret, lms_issuer, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
     lms_issuer,
     K.user_id AS user_id
         FROM {$CFG->dbprefix}lti_key AS K
@@ -48,7 +53,8 @@ foreach ( $rows as $row ) {
     }
     if ( $key_type == '' ) $key_type = 'Draft';
     $newrow['key_type'] = $key_type;
-    $issuer_key = $row['issuer_key'];
+    $issuer_key = $row['lms_issuer'];
+    if ( strlen($row['issuer_key']) > 0 ) $issuer_key = "I: " . $row['issuer_key'];
     if ( strlen($issuer_key) > 0 && strlen($row['deploy_key']) > 0 ) $issuer_key .= ' | ' . $row['deploy_key'];
     $newrow['issuer_|_deployment'] = $issuer_key;
     $newrow['login_at'] = $row['login_at'];

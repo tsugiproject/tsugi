@@ -118,6 +118,16 @@ class CrudForm {
                 // Set the sha256 value if it is not there
                 if ( strpos($field, "_sha256") !== false && ! isset($_POST[$field])) {
                     $key = str_replace("_sha256", "_key", $field);
+                    $key2 = str_replace("_sha256", "", $field);
+                    // Allow nulls
+		    if ( array_key_exists($key, $_POST)) {
+			    // All good
+		    } else if ( array_key_exists($key2, $_POST)) {
+			    $key = $key2;
+		    } else {
+			    continue;
+		    }
+
                     // Nulls allowed
                     if ( !array_key_exists($key, $_POST) ) {
                         $_SESSION['error'] = "Missing POST field: ".$key;
@@ -352,10 +362,20 @@ class CrudForm {
                 }
 
                 // Update the sha256 value if we have a corresponding _key value
+		// xyz => xyz_sha256
+		// xyz_key => xyz_sha256
                 if ( strpos($field, "_sha256") !== false && ! isset($_POST[$field])) {
                     $key = str_replace("_sha256", "_key", $field);
+                    $key2 = str_replace("_sha256", "", $field);
                     // Allow nulls
-                    if ( ! array_key_exists($key, $_POST) ) continue;
+		    if ( array_key_exists($key, $_POST)) {
+			    // All good
+		    } else if ( array_key_exists($key2, $_POST)) {
+			    $key = $key2;
+		    } else {
+			    continue;
+		    }
+
                     if ( $_POST[$key] === null ) {
                         $value = null;
                     } else {
