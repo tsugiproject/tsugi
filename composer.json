@@ -26,7 +26,7 @@
         "symfony/error-handler" : "v5.3.11",
         "symfony/http-kernel" : "v5.3.12",
 
-        "tsugi/lib": "dev-master#feb6f2bdbca32b8939fe746ade14268cc596d55e",
+        "tsugi/lib": "dev-master#8b1eeda28f71457a5199c0fce2ba34e911553fb2",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
     },
     "config": {

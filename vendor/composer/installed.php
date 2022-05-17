@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '3875e8bc910cd5c7d8b0d94877433f9007726a51',
+        'reference' => '5f8b66dcbe62b498a59be6853ca6e0a0ad6962fc',
         'name' => '__root__',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '3875e8bc910cd5c7d8b0d94877433f9007726a51',
+            'reference' => '5f8b66dcbe62b498a59be6853ca6e0a0ad6962fc',
             'dev_requirement' => false,
         ),
         'brick/math' => array(
@@ -852,7 +852,7 @@
             'aliases' => array(
                 0 => '9999999-dev',
             ),
-            'reference' => 'feb6f2bdbca32b8939fe746ade14268cc596d55e',
+            'reference' => '8b1eeda28f71457a5199c0fce2ba34e911553fb2',
             'dev_requirement' => false,
         ),
         'vlucas/phpdotenv' => array(
