@@ -50,7 +50,7 @@ class U {
     }
 
     public static function htmlent_utf8($string) {
-        return htmlentities($string,ENT_QUOTES,$encoding = 'UTF-8');
+        return htmlentities($string ?? '',ENT_QUOTES,$encoding = 'UTF-8');
     }
 
     // Makes sure a string is safe as an href
