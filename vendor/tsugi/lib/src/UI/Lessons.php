@@ -333,6 +333,7 @@ class Lessons {
     }
 
     public static function absolute_url_ref(&$url) {
+        $url = trim($url);
         $url = self::expandLink($url);
         $url = U::absolute_url($url);
     }
