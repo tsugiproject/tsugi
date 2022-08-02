@@ -7,7 +7,7 @@ but until it is used in production, it should be considered experimental.
 
 Tsugi PHP was built with MySQL from the beginning back in 2010.   Tsugi PHP will not use an ORM.
 Of course without an ORM, portability is a challenge.  But at this point, it is likely that
-Tsugi PHP will never support any database other than MySQL and PsotgreSQL.
+Tsugi PHP will never support any database other than MySQL and PostgreSQL.
 
 With this as backdrop the experiment is to use the \Tsugi\Util\PDOX abstraction to transform
 the (generally simpler) MySQL syntax into PostgreSQL automatically wherever possible and provide
@@ -21,8 +21,8 @@ Effects on Tool Code (TL;DR)
 ----------------------------
 
 The approach to this syntax transformation is to minimize the effects on tool code.
-The dream is to write clean MySQL give PDOX meta data about the tables, and then just
-let the syntax transformaton and the PDOX object to the rest.
+The dream is to write clean MySQL give PDOX metadata about the tables, and then just
+let the syntax transformation and the PDOX object to the rest.
 
 The first time you switch to PostgreSQL - you may encounter errors in your CREATE
 or other setup statement.  These need to be fixed and then you need to go back
@@ -70,7 +70,7 @@ magic to `SQLDialect.php`.
 Detecting Which Driver is Active
 --------------------------------
 
-Much of the work in the sytnax transformation is accomplished in the `\Tsugi\Util\PDOX`
+Much of the work in the syntax transformation is accomplished in the `\Tsugi\Util\PDOX`
 class.  Form the beginning of Tsugi this has been an abstraction to clean up and simplify
 the use of the`\PDO` class in PHP.   PDOX makes it much easier to write code that does
 a good job checking all SQL statements for syntax errors and catching things in development
@@ -110,13 +110,13 @@ sees something you should fix.  Here are some example log messages:
 These are informative errors, but your tool will keep working as long as you are using MySQL.
 PDOX notices this issue, warns you and then runs your SQL unchanged.
 
-Now if you ran this code while connected to a PostgreSQL database, PDOX would give you an error and not
-change your SQL. But quite often the next error will be an PostgreSQL syntax error because PDOX did not
+Now if you run this code while connected to a PostgreSQL database, PDOX would give you an error and not
+change your SQL. But quite often the next error will be a PostgreSQL syntax error because PDOX did not
 convert your query to PostgreSQL and it will not be happy with your MySQL syntax.
 
 Other errors are PostgreSQL specific and will only happen when you are running code
 with a PostgreSQL database and the error mean PostgreSQL cannot do an upsert properly.  For
-exmaple if you need a Meta entry for your table or a Meta comment for a query, you might see:
+example, if you need a Meta entry for your table or a Meta comment for a query, you might see:
 
     $PDOX->upsertGetPKReturnError() needs "table" and "lk" entries in the $meta parameter for PostgreSQL
 
@@ -124,7 +124,7 @@ If you have not included a properly named value for the logical key in your `val
 
     $PDOX->upsertGetPKReturnError() missing :context_sha256 in the values array
 
-If you see this message, it probably means you have not include *all* your logical keys in the Meta
+If you see this message, it probably means you have not included *all* your logical keys in the Meta
 information when your table has a UNIQUE together clause that includes more than one column:
 
     $PDOX->upsertGetPKReturnError() pre-SELECT expects 0 or 1 row, got 5
@@ -145,7 +145,7 @@ the general kinds of transformations you will find:
 transformations are applied to CREATE TABLE and ALTER statements
 
 * CREATE statements are tweaked - things like "engine=InnoDB" are simply removed.  This is not too
-sophisticates but meets the needs as long as tools don't get too tricky on CREATE statements.
+sophisticated but meets the needs as long as tools don't get too tricky on CREATE statements.
 
 * ALTER statements are the most difficult.  MySQL's ALTER is very nice - it mostly just reuses the syntax
 used to define columns on the CREATE statement.   PostgreSQL's ALTER has different syntaxes for different
@@ -195,17 +195,17 @@ INSERT Processing and Duplicate Keys
 
 Probably the biggest problem to solve is how to handle "ON DUPLICATE KEY" and `lastInsertId()`
 processing in a portable way.  Another issue is that in MySQL, you commonly want `lastInsertId()`
-to give you the affected whether the "INSERT" clause happend or the "ON DUPLICATE KEY"
+to give you the affected whether the "INSERT" clause happened or the "ON DUPLICATE KEY"
 triggers.
 
-Also PostgreSQL increments the AUTO INCREMENT sequence *before* it checks if there is a logical
+Also, PostgreSQL increments the AUTO INCREMENT sequence *before* it checks if there is a logical
 key mismatch.  So if you use an `UPSERT` where more often the query is going to trigger an `UPDATE`,
 your primary key sequences end up with lots of gaps.
 
 I am glad I started with the MySQL upsert approach (clean, simple and 95% elegant) and adapted
 it to the clunkier PostgreSQL approach inside the abstraction.
 
-Here is some reading about this very different approaches for upsert between the two databases:
+Here is some reading about these very different approaches for upsert between the two databases:
 
 * https://www.php.net/manual/en/pdo.lastinsertid.php#102614
 * https://dev.mysql.com/doc/refman/5.6/en/insert-on-duplicate.html
@@ -213,7 +213,7 @@ Here is some reading about this very different approaches for upsert between the
 * https://stackoverflow.com/questions/34708509/how-to-use-returning-with-on-conflict-in-postgresql
 * https://stackoverflow.com/questions/37204749/serial-in-postgres-is-being-increased-even-though-i-added-on-conflict-do-nothing
 
-The most important new code to make UPSERT work across both databases is to add meta data
+The most important new code to make UPSERT work across both databases is to add metadata
 to PDOX for each of the tables your tool creates in its `database.php`.  You can Meta entries
 to the $PDOX variable after the `getConnection()` or `requireData()` calls to start up Tsugi in your code.
 
@@ -326,7 +326,7 @@ Handling Prepared Statements
 
 The `queryDie()` and `queryReturnError()` automatically do a lot of transformation to support
 UPSERT use cases.  But sometimes you need to use `prepare()` and `execute()` explicitly.  You are
-responsibile for writing portable code when using `prepare()` and `execute()`.  For example in
+responsible for writing portable code when using `prepare()` and `execute()`.  For example in
 the following code from the Tsugi's BlobUtil support, you can see the check for PgSQL and adding the
 RETURNING clause:
 
@@ -361,9 +361,9 @@ SQL for these cases to avoid the "sequence gap" problem.
 
 * https://stackoverflow.com/questions/37204749/serial-in-postgres-is-being-increased-even-though-i-added-on-conflict-do-nothing
 
-Aside: At this point real PostgreSQL fans would say 'who cares about your sequences having gaps'.  I say,
+Aside: At this point, real PostgreSQL fans would say 'who cares about your sequences having gaps'.  I say,
 'The gaps will be really large when we are doing the "almost always an UPDATE" use case a few billion times on a table
-with 250K real rows'.  The the real PostgreSQL fans would say 'Of course! You should write completely
+with 250K real rows'.  The real PostgreSQL fans would say 'Of course! You should write completely
 different PostgreSQL-specific highly tweaked SQL for the two cases'. I say, 'but portable..'.  They say,
 'No one should ever use MySQL'.  I say, 'sigh'.
 
