@@ -37,7 +37,7 @@ be pretty close to the tip of the main branch.
 But sometimes, folks want to "hold back" from upgrading for a while.  Perhaps they have an old
 version of PHP and can't run the latest.  It is risky to hold back too long.  But to help those
 running Tsugi that want to hold back, a series of versions / tags are maintained as "safe
-plateaus".  These tags are often snapped right before a signifacant upgrade or data model change
+plateaus".  These tags are often snapped right before a significant upgrade or data model change
 and announced on the dev list.
 
 These versions originally were the classic geek-style '0.7.0' releases but as of
@@ -54,7 +54,7 @@ your web server can read it
 ### Method 1: Docker install
 
 * If you have Docker installed (OSX/Linux currently) you should just be able to run `docker compose build` and `docker compose up` and Tsugi will start up and initialize.
-* config-dist.php will be copied, you need to edit a few things in this like `CFG->adminpw`just edit these in place and they'll be updated.
+* config-dist.php will be copied, you need to edit a few things in this like `CFG->adminpw`. Just edit these in place and they'll be updated.
 * Go to http://localhost:8888/tsugi and you should be all set.
 
 ### Method 2: Manual install 
@@ -84,13 +84,13 @@ file - here is some additional documentation on the configuration values:
     http://do1.dr-chuck.com/tsugi/phpdoc/classes/Tsugi.Config.ConfigInfo.html
 
 * Go to the main page, and click on "Admin" to make all the database
-tables - you will need the Admin password you just put into config.php
+tables - you will need the Admin password you just put into config.php.
 If all goes well, lots of tables should be created.  You can run upgrade.php
 more than once - it will automatically detect that it has been run.
 
 ## Production instances
 
-There is an entire repository that contains varous build / deploy documentation
+There is an entire repository that contains various build / deploy documentation
 showing how to install on EC2, Docker, Digital Ocean and Ubuntu.
 
 https://github.com/tsugiproject/tsugi-build
@@ -164,7 +164,7 @@ at your own copy of the library.
 
 There were some emergent efforts to port the core Tsugi code to Java and Node.  Partial implementations
 were built with the hopes that those interested in these languages would pick the code up, use it,
-and invest in those implementations.  This has not happenned so those projects are deprecated
+and invest in those implementations.  This has not happened so those projects are deprecated
 until some resources show up.
 
 Going forward, there is an effort to increasingly move away from PHP and towards Python in a series of careful
