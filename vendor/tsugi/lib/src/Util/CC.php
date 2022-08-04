@@ -40,6 +40,11 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
     public $resource_count = 0;
 
+    public $last_type = false;
+    public $last_file = false;
+    public $last_identifier = false;
+    public $last_identifierref = false;
+
     function __construct() {
         parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
 <manifest identifier="cctd0015" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1" xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource" xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd">
@@ -230,19 +235,21 @@ class CC extends \Tsugi\Util\TsugiDOM {
     /**
      * Add a resource to the manifest.
      */
-    public function add_resource_item($module, $title, $type, $identifier, $file) {
-        $identifier_ref = $identifier."_R";
+    public function add_resource_item($module, $title=null, $type, $identifier, $file) {
+        $this->last_file = $file;
+        $this->last_type = $type;
+        $this->last_identifier = $identifier;
+        $this->last_identifierref = $identifier."_R";
 
         $xpath = new \DOMXpath($this);
 
-        $new_item = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $identifier, "identifierref" => $identifier_ref));
+        $new_item = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $this->last_identifier, "identifierref" => $this->last_identifierref));
         if ( $title != null ) {
             $new_title = $this->add_child_ns(CC::CC_1_1_CP, $new_item, 'title', $title);
         }
 
         $resources = $xpath->query(CC::resource_xpath)->item(0);
-        $identifier_ref = $identifier."_R";
-        $new_resource = $this->add_child_ns(CC::CC_1_1_CP, $resources, 'resource', null, array('identifier' => $identifier_ref, "type" => $type));
+        $new_resource = $this->add_child_ns(CC::CC_1_1_CP, $resources, 'resource', null, array('identifier' => $this->last_identifierref, "type" => $type));
         $new_file = $this->add_child_ns(CC::CC_1_1_CP, $new_resource, 'file', null, array("href" => $file));
         return $file;
     }
