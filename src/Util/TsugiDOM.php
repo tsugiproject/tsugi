@@ -145,7 +145,7 @@ class TsugiDOM extends \DOMDocument{
             echo "Level $level ($class): $node->length items\n";
                 foreach ($node as $child_node) {
                 echo $level.':'.$child_node->getNodePath() . "\n";
-                dump_dom_levels($child_node, $level+1);
+                $this->dump_dom_levels($child_node, $level+1);
             }
         } else {
             $nChildren = 0;
@@ -160,7 +160,7 @@ class TsugiDOM extends \DOMDocument{
             foreach ($node->childNodes as $child_node) {
                 echo $level.':'.$child_node->getNodePath() . "\n";
                 if ($child_node->hasChildNodes()) {
-                    dump_dom_levels($child_node, $level+1);
+                    $this->dump_dom_levels($child_node, $level+1);
                 }
             }
         }
