@@ -266,7 +266,7 @@ body {
         $websocket_token = (WebSocket::enabled() && $LINK) ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false';
         $retval .= "websocket_token: ".$websocket_token.",\n";
         $retval .= "react_token: \"".session_id()."\",\n";
-        $retval .= "window_close_message: \""._m('Application complete')."\",\n";
+        $retval .= "window_close_message: \""._m('Application complete - You can close this tab.')."\",\n";
         $retval .= "session_expire_message: \""._m('Your session has expired')."\"\n";
         $retval .= "\n}\n</script>\n";
         return $retval;
@@ -847,7 +847,15 @@ $('a').each(function (x) {
         global $CFG, $TSUGI_LAUNCH;
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
 
-        $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
+        // $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
+        // $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
+		$launch_target = null;
+		$launch_return_url = null;
+		if ( is_object($TSUGI_LAUNCH) ) {
+			$launch_target = $TSUGI_LAUNCH->documentTarget();
+			$launch_return_url = $TSUGI_LAUNCH->returnUrl();
+		}
+
         // Ways to know if this was a launch or are we stand alone
         $user_id = LTIX::ltiRawParameter('user_id', false);
         $oauth_nonce = LTIX::ltiRawParameter('oauth_nonce', false);
@@ -857,7 +865,6 @@ $('a').each(function (x) {
         if ( $CFG->wwwroot && startsWith($launch_return_url, $CFG->wwwroot) ) $same_host = true;
 
         // Canvas bug: launch_target is iframe even in new window (2017-01-10)
-        $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
         $menu_set = false;
         if ( $menu_set === false && $this->session_get($sess_key) ) {
             $menu_set = \Tsugi\UI\MenuSet::import($this->session_get($sess_key));
@@ -866,15 +873,19 @@ $('a').each(function (x) {
         } else if ( $same_host && $launch_return_url ) {
             // If we are in an iframe we will be hidden
             $menu_set = self::returnMenuSet($launch_return_url);
-        } else if ( $launch_target !== false && strtolower($launch_target) == 'window' ) {
+        } else if ( is_string($launch_target) && strtolower($launch_target) == 'window' ) {
             $menu_set = self::closeMenuSet();
-        // Since Coursers sets precious little
+        // Since Sakai sets returnUrl but really does nothing with it except tell the user
+		// to close the tab
+        } else if ( is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->isSakai() ) {
+            $menu_set = self::closeMenuSet();
+        // Since Coursera sets precious little
         } else if ( is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->isCoursera() ) {
             $menu_set = self::closeMenuSet();
-        // Since canvas does not set launch_target properly
-        } else if ( $launch_target !== false && is_object($TSUGI_LAUNCH) && ( $TSUGI_LAUNCH->isCanvas() || $TSUGI_LAUNCH->isCoursera() ) ) {
+        // Since Canvas does not set launch_target properly
+        } else if ( is_string($launch_target) && is_object($TSUGI_LAUNCH) && ( $TSUGI_LAUNCH->isCanvas() || $TSUGI_LAUNCH->isCoursera() ) ) {
             $menu_set = self::closeMenuSet();
-        } else if ( $launch_return_url !== false && strlen($launch_return_url) > 0 ) {
+        } else if ( is_string($launch_return_url) && strlen($launch_return_url) > 0 ) {
             $menu_set = self::returnMenuSet($launch_return_url);
         // We are running stand alone (i.e. not from a real LTI Launch)
         } else if ( $user_id === false ) {

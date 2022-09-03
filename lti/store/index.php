@@ -802,6 +802,7 @@ combination of the modules.</p>
 <p>
 <label for="topic_select_full">How would you like to import discussions/topics?</label>
 <select name="topic" id="topic_select_full">
+  <option value="none">Do not import discussion topics</option>
   <option value="lti">Use discussion tool on this server (LTI)</option>
   <option value="lms">Use the LMS Discussion Tool</option>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
@@ -851,6 +852,7 @@ echo('<form id="void">'."\n");
 <p>
 <label for="topic_select_partial">How would you like to import discussions/topics?</label>
 <select name="topic" id="topic_select_partial">
+  <option value="none">Do not import discussion topics</option>
   <option value="lti">Use discussion tool on this server (LTI)</option>
   <option value="lms">Use the LMS Discussion Tool</option>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>

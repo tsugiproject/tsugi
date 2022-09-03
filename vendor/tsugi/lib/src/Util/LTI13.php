@@ -24,6 +24,13 @@ class LTI13 {
     const DEPLOYMENT_ID_CLAIM = 'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
     const ROLES_CLAIM =         'https://purl.imsglobal.org/spec/lti/claim/roles';
     const PRESENTATION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/launch_presentation';
+    // The value for this property MUST be one of: frame, iframe, or window.
+    const DOCUMENT_TARGET =  'document_target';
+    const DOCUMENT_TARGET_FRAME =  'frame';
+    const DOCUMENT_TARGET_IFRAME =  'iframe';
+    const DOCUMENT_TARGET_WINDOW =  'window';
+    const RETURN_URL =  'return_url';
+
     const LTI11_TRANSITION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/lti1p1';
     const FOR_USER_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/for_user';
 
@@ -39,6 +46,7 @@ class LTI13 {
     const SCORE_TYPE = 'application/vnd.ims.lis.v1.score+json';
     const RESULTS_TYPE = 'application/vnd.ims.lis.v2.resultcontainer+json';
 
+    // https://www.imsglobal.org/spec/lti/v1p3/#platform-instance-claim
     const TOOL_PLATFORM_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/tool_platform';
     const PRODUCT_FAMILY_CODE = "product_family_code";
 
