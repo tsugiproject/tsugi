@@ -340,6 +340,41 @@ class Launch {
     }
 
     /**
+     * Return the document target
+     * The value for this property MUST be one of: frame, iframe, or window.
+     */
+    public function documentTarget() {
+        $claim = $this->ltiJWTClaim(LTI13::PRESENTATION_CLAIM, null);
+        if ( is_object($claim) ) {
+            $target = null;
+            if ( isset($claim->{LTI13::DOCUMENT_TARGET}) ) {
+                $target = $claim->{LTI13::DOCUMENT_TARGET};
+            }
+            return $target;
+        } else {
+            $target = $this->ltiRawParameter(LTIConstants::LAUNCH_PRESENTATION_DOCUMENT_TARGET, null);
+            return $target;
+        }
+    }
+
+    /**
+     * Return the return Url
+     */
+    public function returnUrl() {
+        $claim = $this->ltiJWTClaim(LTI13::PRESENTATION_CLAIM, null);
+        if ( is_object($claim) ) {
+            $target = null;
+            if ( isset($claim->{LTI13::RETURN_URL}) ) {
+                $target = $claim->{LTI13::RETURN_URL};
+            }
+            return $target;
+        } else {
+            $target = $this->ltiRawParameter(LTIConstants::LAUNCH_PRESENTATION_RETURN_URL, null);
+            return $target;
+        }
+    }
+
+    /**
      * Return a boolean is this is an LTI Advantage launch
      */
     public function isLTIAdvantage() {
