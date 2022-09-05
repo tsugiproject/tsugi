@@ -433,15 +433,31 @@ class Net {
     /**
      * Send a 403 header
      */
-    public static function send403() {
-        header("HTTP/1.1 403 Forbidden");
+    public static function send403($msg=null, $detail=null) {
+        if ( headers_sent() ) {
+            echo("Headers sent - they would be:\n");
+            echo("HTTP/1.1 403 Forbidden"."\n");
+            if ( is_string($msg) ) echo("X-Error-Message: ".$msg."\n");
+            if ( is_string($detail) ) echo("X-Error-Detail: ".$detail."\n");
+        } else {
+            header("HTTP/1.1 403 Forbidden");
+            if ( is_string($msg) ) header("X-Error-Message: ".$msg);
+            if ( is_string($detail) ) header("X-Error-Detail: ".$detail);
+        }
     }
 
     /**
      * Send a 400 (Malformed request) header
      */
-    public static function send400($msg='Malformed request') {
-        header("HTTP/1.1 400 ".$msg);
+    public static function send400($msg='Malformed request', $detail=null) {
+        if ( headers_sent() ) {
+            echo("Headers sent - they would be:\n");
+            echo("HTTP/1.1 400 ".$msg."\n");
+            if ( is_string($detail) ) echo("X-Error-Detail: ".$detail."\n");
+        } else {
+            header("HTTP/1.1 400 ".$msg);
+            if ( is_string($detail) ) header("X-Error-Detail: ".$detail);
+        }
     }
 
     /**
@@ -449,7 +465,7 @@ class Net {
      *
      * Handle being behind a load balancer or a proxy like Cloudflare.
      * This will often return NULL when talking to localhost to make sure
-     * to test code using this ona  real IP address.
+     * to test code using this on a real IP address.
      *
      * Adapted from: https://www.chriswiegman.com/2014/05/getting-correct-ip-address-php/
      * With some additional explode goodness via: http://stackoverflow.com/a/25193833/1994792
