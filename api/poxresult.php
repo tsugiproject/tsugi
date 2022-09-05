@@ -12,6 +12,9 @@ use \Tsugi\Core\Result;
 $request_headers = OAuthUtil::get_headers();
 $hct = U::get($request_headers,'Content-Type', U::get($_SERVER, 'CONTENT_TYPE'));
 
+// Get skeleton response
+$response = LTI::getPOXResponse();
+
 if (strpos($hct,'application/xml') === false ) {
     header('Content-Type: text/plain');
 
@@ -107,9 +110,6 @@ if ( $incoming_sig != $sig ) {
     Net::send403('Invalid sourcedid signature');
     return;
 }
-
-// Get skeleton response
-$response = LTI::getPOXResponse();
 
 if ( strlen($oauth_consumer_key) < 1 || strlen($oauth_consumer_secret) < 1 ) {
    echo(sprintf($response,uniqid(),'failure', "Missing key/secret key=$oauth_consumer_key",$message_ref,"",""));
