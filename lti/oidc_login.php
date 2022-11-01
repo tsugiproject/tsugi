@@ -24,6 +24,9 @@ $lti_storage_target = U::get($_REQUEST, 'lti_storage_target', $lti_storage_targe
 $put_data_supported = is_string($lti_storage_target) && strlen($lti_storage_target) > 0;
 if ( $lti_storage_target == "_parent" ) $lti_storage_target = null;
 
+// Lets mark the browser every chance we get
+LTIX::getBrowserMark();
+
 // TODO: Try to get rid of this
 $put_data_supported = true; // For Now
 

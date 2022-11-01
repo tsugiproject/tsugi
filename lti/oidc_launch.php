@@ -17,6 +17,9 @@ $state = U::get($_POST, 'state');
 $postmessage_form = U::get($_POST, 'postmessage', null);
 $postverify_form = U::get($_POST, 'postverify', null);
 
+// Lets mark the browser every chance we get
+LTIX::getBrowserMark();
+
 // We will switch these defaults in the future...
 $postverify_enabled = isset($CFG->postverify) ? $CFG->postverify : false;
 $postmessage_enabled = isset($CFG->postmessage) ? $CFG->postmessage : false;
