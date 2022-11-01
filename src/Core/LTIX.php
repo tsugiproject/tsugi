@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Tsugi\Core;
 
 use \Tsugi\OAuth\TrivialOAuthDataStore;
@@ -49,6 +48,8 @@ class LTIX {
     const ROLE_LEARNER = 0;
     const ROLE_INSTRUCTOR = 1000;
     const ROLE_ADMINISTRATOR = 5000;
+
+    const BROWSER_MARK_COOKIE = "TSUGI-BROWSER-MARK";
 
     /**
      * Get a singleton global connection or set it up if not already set up.
@@ -358,6 +359,35 @@ class LTIX {
             $parameters = array_merge($parameters, $header_parameters);
         }
         return $parameters;
+    }
+
+    // Put as much oomph into setting a cookie as we can
+    public static function setCookieStrong($name, $value, $expires) {
+        global $CFG;
+        Net::setCookieStrong($name, $value, parse_url($CFG->wwwroot)['host'], $expires);
+    }
+
+    public static function getBrowserMark() {
+        global $CFG, $TSUGI_BROWSER_MARK;
+        $browser_mark = U::get($_COOKIE, self::BROWSER_MARK_COOKIE);
+        if (is_string($browser_mark) && strlen($browser_mark) > 1 ) {
+            // error_log('Got browser_mark '.$browser_mark."\n");
+        } else if ( is_string($TSUGI_BROWSER_MARK) && strlen($TSUGI_BROWSER_MARK) > 1 ) {
+            $browser_mark = $TSUGI_BROWSER_MARK;
+        } else {
+            $browser_mark = uniqid();
+            $expires = time() + 1*30*24*3600;
+            self::setCookieStrong(
+                self::BROWSER_MARK_COOKIE,
+                $browser_mark,
+                $expires
+            );
+            // error_log('Set browser_mark '.$browser_mark."\n");
+        }
+
+        // Only check once
+        $TSUGI_BROWSER_MARK = $browser_mark;
+        return $browser_mark;
     }
 
     /**
@@ -779,6 +809,9 @@ class LTIX {
                 setcookie('TSUGI-HISTORY',$iphistory, 0, '/'); // Expire 100 seconds ago
             }
         }
+
+        $browser_mark = self::getBrowserMark();
+        self::wrapped_session_put($session_object, 'BROWSER_MARK', $browser_mark);
 
         self::wrapped_session_put($session_object, 'CSRF_TOKEN', uniqid());
 
@@ -2004,6 +2037,9 @@ class LTIX {
         global $CFG, $TSUGI_LAUNCH;
         global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
 
+        // Always mark the browser
+        $browser_mark = self::getBrowserMark();
+
         if ( $request_data == null ) $request_data = self::oauth_parameters();
 
         $TSUGI_LAUNCH = new \Tsugi\Core\Launch();
@@ -2108,6 +2144,8 @@ class LTIX {
         // class C - Perhaps it is even NAT - who knows - but we forgive those on the same Class C
         $session_addr = self::wrapped_session_get($session_object, 'REMOTE_ADDR', null);
         $ipaddr = Net::getIP();
+        $browser_mark = self::getBrowserMark();
+        $session_browser_mark = self::wrapped_session_get($session_object, 'BROWSER_MARK', null);
         if ( (!$trusted) &&  $session_addr && $ipaddr &&
             Net::isRoutable($session_addr) && Net::isRoutable($ipaddr) ) {
             $sess_pieces = explode('.',$session_addr);
@@ -2125,6 +2163,9 @@ class LTIX {
                             setcookie('TSUGI-HISTORY',$iphistory, 0, '/');
                         }
 
+                    } else if ( $browser_mark == $session_browser_mark ) {
+                        error_log("IP address change, trusting browser mark ".$browser_mark);
+                        self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
                     } else {
                         // Need to clear out session data
                         self::wrapped_session_flush($session_object);

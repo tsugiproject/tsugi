@@ -557,4 +557,26 @@ class Net {
         return ($httpcode >= 200) && ($httpcode < 300);
     }
 
+    /**
+     * Put as much oomph into setting a cookie as we can
+     */
+    public static function setCookieStrong($name, $value, $domain, $expires) {
+        $old_value = U::get($_COOKIE, $name);
+        if (is_string($old_value) && strlen($old_value) > 1 ) {
+            if ( $old_value == $value ) return;
+        } else {
+            setcookie(
+                $name,
+                $value,
+                [
+                    'expires' => $expires,
+                    'path' => '/',
+                    'domain' => $domain,
+                    'samesite' => 'None',
+                    'secure' => true,
+                ]
+            );
+        }
+    }
+
 }
