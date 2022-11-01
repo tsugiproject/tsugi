@@ -32,3 +32,9 @@ mod
 tsugi-php-samples
 vendor/ezyang/htmlpurifier/library/HTMLPurifier/DefinitionCache/Serializer/HTML/
 storage/
+vendor/**/.git
+vendor/tsugi/lib/.gitattributes
+vendor/tsugi/lib/.gitignore
+vendor/tsugi/lib/phpdoc.dist.xml
+vendor/tsugi/lib/phpunit.xml.dist
+vendor/tsugi/lib/tests/
