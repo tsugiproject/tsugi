@@ -787,6 +787,18 @@ class Lessons {
     {
         ob_start();
         echo('<h1>'.$this->lessons->title."</h1>\n");
+        $displayname = U::get($_SESSION, 'displayname');
+        $email = U::get($_SESSION, 'email');
+        if ( is_string($displayname) || is_string($email) ) {
+            $output = "";
+            if ( is_string($displayname) ) $output .= $displayname;
+            if ( is_string($displayname) && is_string($email) ) $output .= ' ';
+            if ( is_string($email) ) $output .= $email;
+            echo("<p>Grades for: ");
+            echo(htmlentities($output));
+            $sig = md5("42 ".$output);
+            echo(" | ".substr($sig,0,5)."</p>\n");
+        }
         echo('<table class="table table-striped table-hover "><tbody>'."\n");
         $count = 0;
         foreach($this->lessons->modules as $module) {
