@@ -237,6 +237,7 @@ if ( ! inIframe() ) {
 } else {
 
     let state_set = false;
+    let messageReceived = false;
     setTimeout(() => {
         if (!state_set) {
             console.log('no response from platform');
@@ -251,6 +252,7 @@ if ( ! inIframe() ) {
 
         let message_window = (window.opener || window.parent<?= $post_frame ?>);
 
+
         // Listen for response containing the id_token from the platform
         window.addEventListener("message", function(event) {
             console.log(window.location.origin + " Got post message from " + event.origin);
@@ -264,7 +266,8 @@ if ( ! inIframe() ) {
             }
 
             // Check state matches the one sent to the platform
-            if (event.data.subject !== 'org.imsglobal.lti.get_data.response' ) {
+            if (event.data.subject !== 'lti.get_data.response' &&
+                event.data.subject !== 'org.imsglobal.lti.get_data.response' ) {
                 console.log('invalid response');
                 return;
             }
@@ -273,6 +276,16 @@ if ( ! inIframe() ) {
                 console.log([event.data.value, '<?= $state ?>']);
                 alert('invalid state');
                 return;
+            }
+
+            if ( messageReceived ) {
+                console.log("Received second get_data.response - likely due to legacy support - ignored");
+                return;
+            }
+            messageReceived = true;
+
+            if ( event.data.subject == 'org.imsglobal.lti.get_data.response' ) {
+                console.log('LMS Uses legacy windows.postMessage org.imsglobal.lti :)');
             }
 
             $.ajax
@@ -299,12 +312,15 @@ if ( ! inIframe() ) {
 
         // Send post message to platform window with login initiation data
         let send_data = {
-            subject: 'org.imsglobal.lti.get_data',
+            subject: 'lti.get_data',
             message_id: Math.random(),
             key: "<?= $state_key ?>",
         };
         console.debug(window.location.origin + " Sending post message to " + return_url.origin);
         console.debug(JSON.stringify(send_data, null, '    '));
+        message_window.postMessage(send_data, return_url.origin);
+        // Legacy double send - sheesh
+        send_data.subject = 'org.imsglobal.lti.get_data';
         message_window.postMessage(send_data, return_url.origin);
     } catch (error) {
         console.log('Failure to exchange post message')

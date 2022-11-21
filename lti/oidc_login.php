@@ -193,7 +193,7 @@ if ( inIframe() ) {
 
     let return_url = new URL(<?= json_encode($redirect, JSON_UNESCAPED_SLASHES); ?>);
     let send_data = {
-        subject: 'org.imsglobal.lti.put_data',
+        subject: 'lti.put_data',
         message_id: Math.random(),
         key: "<?= $state_key ?>",
         value: "<?= $state ?>",
@@ -214,9 +214,18 @@ if ( inIframe() ) {
              }
 
             // Check state matches the one sent to the platform
-            if (event.data.subject !== 'org.imsglobal.lti.put_data.response' ) {
+            if (event.data.subject !== 'lti.put_data.response' &&
+                event.data.subject !== 'org.imsglobal.lti.put_data.response' ) {
                 console.log('invalid response');
                 return;
+            }
+
+            if ( event.data.subject == 'org.imsglobal.lti.put_data.response' ) {
+                if ( state_set ) {
+                    console.log('LMS Supports legacy windows.postMessage org.imsglobal.lti.put_data.response :)');
+                } else {
+                    console.log('LMS Uses legacy windows.postMessage org.imsglobal.lti.put_data.response :)');
+                }
             }
 
             state_set = true;
@@ -227,6 +236,9 @@ if ( inIframe() ) {
 
         console.log(window.location.origin + " Sending post message to " + return_url.origin);
         console.debug(JSON.stringify(send_data, null, '    '));
+        message_window.postMessage(send_data, return_url.origin);
+        // Legacy double send - sheesh
+        send_data.subject = 'org.imsglobal.lti.put_data';
         message_window.postMessage(send_data, return_url.origin);
     } catch (error) {
         console.log('Failure to to exchange post message')
