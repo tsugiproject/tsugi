@@ -1092,12 +1092,16 @@ EOF;
         if ( ! is_array($debug_log) ) return;
 
         foreach ( $debug_log as $k => $v ) {
-            if ( is_array($v) && count($v) > 1 ) {
+            if ( is_array($v) && count($v) > 1 && isset($v[0]) ) {
                 $this->togglePre($v[0], $v[1]);
-            } else if ( is_array($v) ) {
-                line_out($v[0]);
+            } else if ( is_array($v) && isset($v[0]) && is_string($v[0]) ) {
+                echo("<pre>\n");echo(htmlentities($v[0]));echo("\n</pre>\n");
             } else if ( is_string($v) ) {
-                line_out($v);
+                echo("<pre>\n");echo(htmlentities($v));echo("\n</pre>\n");
+            } else {
+                echo("<pre>\n");
+                echo(htmlentities(print_r($v)));
+                echo("\n</pre>\n");
             }
         }
     }
