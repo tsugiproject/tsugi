@@ -434,6 +434,20 @@ $CFG->eventtime = 7*24*60*60;  // Length in seconds of the event buffer
 $CFG->eventpushcount = 50;     // Set to zero to suspend event push
 $CFG->eventpushtime = 2;       // Maximum length in seconds to push events
 
+// See if our apphome folder has any opinions about settings
+if ( isset($CFG->apphome) && $CFG->apphome ) {
+    $tsugi_settings = $CFG->dirroot."/../tsugi_settings.php";
+    if ( file_exists($tsugi_settings) ) {
+        require_once $tsugi_settings;
+    }
+}
+
+// See if our installation has some extra settings stashed somewhere
+$extra_settings = false;
+if ( is_string($extra_settings) && file_exists($extra_settings) ) {
+    require_once $extra_settings;
+}
+
 // Store sessions in memcache - this seems like the fastest, best, and simplest
 // way when running on AWS.
 // http://php.net/manual/en/memcached.sessions.php
@@ -470,13 +484,6 @@ if ( isset($CFG->sessions_in_db) && $CFG->sessions_in_db ) {
             array('db_table' => $CFG->dbprefix . "sessions")
         )
     );
-}
-
-if ( isset($CFG->apphome) && $CFG->apphome ) {
-    $tsugi_settings = $CFG->dirroot."/../tsugi_settings.php";
-    if ( file_exists($tsugi_settings) ) {
-        require_once $tsugi_settings;
-    }
 }
 
 // The vendor include and root - generally leave these alone
