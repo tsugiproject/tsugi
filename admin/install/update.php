@@ -57,10 +57,9 @@ foreach($tools as $tool) {
         continue;
     }
 
-
     // Check to see if we need to clone
-    if ( ! file_exists($path ) ) {
-        echo("\nNeed to Checkout ".htmlentities($remote)."\n");
+    if ( ! file_exists($path) ) {
+        echo("\nNeed to Checkout ".htmlentities($remote)." to ".htmlentities($path)."\n");
         if (! U::conservativeUrl($remote) ) {
             echo('Badly formatted git URL: '.$remote."\n");
             continue;
@@ -68,7 +67,15 @@ foreach($tools as $tool) {
         $parent = dirname($path);
         if ( strlen($parent) < 1 || ! file_exists($parent) ) {
             echo('Bad parent path: '.$parent."\n");
-            continue;
+	    // Perhaps this is checked out to a new location in the /var area
+	    $parent = U::remove_relative_path($CFG->install_folder);
+	    $path = $parent . '/' . basename($path);
+	    echo('Attempting path of '.$path."\n");
+	    if ( file_exists($path) ) continue;  // Already checked out
+            if ( strlen($parent) < 1 || ! file_exists($parent) ) {
+                echo('Bad parent path: '.$parent."\n");
+                continue;
+	    }
         }
 
         if ( ! is_writeable($parent) ) {
@@ -76,7 +83,7 @@ foreach($tools as $tool) {
             continue;
         }
 
-        echo("Parent: $parent\n");
+        echo("doClone: $remote $parent\n");
         doClone($remote, $path);
         continue;
     }
