@@ -200,6 +200,11 @@ $CFG->autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 // get the key and secret, and put them here:
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
+$CFG->google_login_new = true;
+$CFG->login_return_url = false; // 'https://apps.learnxp.com/tsugi';
+if ( isset($CFG->apphome) ) {
+    $CFG->login_return_url = $apphome . '/tsugi';
+}
 
 // This is a legacy backwards compatibility.   In the round-trip to Google it used to
 // come back login.php after login was successful - If this is true, we come back
@@ -230,19 +235,6 @@ $CFG->login_return_url = false;
 // $CFG->expire_user_days = 400;  // One year (minimum 40)
 // $CFG->expire_context_days = 600; // 1.5 Years (minimum 60)
 // $CFG->expire_tenant_days = 800; // Two years (minimum 80)
-
-// Alpha: Google Classroom support
-// First, Go to https://console.developers.google.com/apis/credentials
-// And add access to "Google Classroom API" to your google_client_id (above)
-
-// Set the secret to a long random string - this is used for internal
-// url Tsugi signing - not for Google interactions.  Don't change it
-// once you set it.
-// $CFG->google_classroom_secret = 'oLKJHi....jkhgJGHJGH';
-
-// This should be an absolute URL that will be used to generate previews
-// in Google Classroom
-// $CFG->logo_url = 'https://www.wa4e.com/logo.png';
 
 // Indicate whether the PHP on this server wants to verify SSL or not
 // It seems that PHP > 7 and curl > 7.53 or above want this to be true
