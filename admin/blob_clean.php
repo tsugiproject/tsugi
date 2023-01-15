@@ -28,7 +28,12 @@ $OUTPUT->header();
 <?php if ( isset($CFG->dataroot) && strlen($CFG->dataroot) > 0 ) { ?>
 <p>
 To remove unused files from the on-disk store, you must log in and
-run <b>admin\blob\filecheck.php</b> since it is a long running task.
+run
+<pre>
+cd tsugi/admin/blob
+php filecheck.php
+</pre>
+since it is a long running task.
 </p>
 <?php } ?>
 <?php
