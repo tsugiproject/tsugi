@@ -282,6 +282,9 @@ class Context extends Entity {
         }
 
         // TODO: In the future we might cache this access token perhaps in session for a while
+        // Vanity URL allow for ASU only - Done by Aqib Younas - CUR-4596
+        $lti13_token_url = 'https://' . $_SESSION['tsugi_jwt']->body->{"https://purl.imsglobal.org/spec/lti/claim/custom"}->api_domain_url . '/login/oauth2/token';
+        echo $lti13_token_url;
         $grade_token = LTI13::getGradeToken($issuer_client, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $debug_log);
         return $grade_token;
     }
