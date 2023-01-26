@@ -113,7 +113,7 @@ class TsugiDOM extends \DOMDocument{
             $entry = $this->get_tag($entry);
         }
         if ( $text != null && strlen($text) > 0 ) {
-            $element = $this->createElementNS($ns, $tag, $text);
+            $element = $this->createElementNS($ns, $tag, htmlspecialchars($text, ENT_XML1, 'UTF-8'));
         } else {
             $element = $this->createElementNS($ns, $tag);
         }
