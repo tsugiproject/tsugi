@@ -18,7 +18,7 @@ class LTI13 {
     const MESSAGE_TYPE_RESOURCE = 'LtiResourceLinkRequest';
     const MESSAGE_TYPE_DEEPLINK = 'LtiDeepLinkingRequest';
     const MESSAGE_TYPE_CONTENT_REVIEW = 'LtiSubmissionReviewRequest';
-    const MESSAGE_TYPE_PRIVACY = 'DataPrivacyLaunchRequest';
+    const MESSAGE_TYPE_PRIVACY = 'LtiDataPrivacyLaunchRequest';
     const RESOURCE_LINK_CLAIM = 'https://purl.imsglobal.org/spec/lti/claim/resource_link';
     const CONTEXT_ID_CLAIM =    'https://purl.imsglobal.org/spec/lti/claim/context';
     const DEPLOYMENT_ID_CLAIM = 'https://purl.imsglobal.org/spec/lti/claim/deployment_id';
