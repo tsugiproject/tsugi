@@ -140,7 +140,7 @@ $tool->messages = array(
         "target_link_uri" => $CFG->wwwroot . '/lti/store/',
     ),
     array(
-        "type" => "DataPrivacyLaunchRequest",
+        "type" => "LtiDataPrivacyLaunchRequest",
         "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot,
     ),
