@@ -3,6 +3,8 @@
 namespace Tsugi\Util;
 
 use \Tsugi\Util\U;
+use \Tsugi\Util\Net;
+use \Tsugi\Util\LinkHeader;
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\JWK;
 
@@ -486,55 +488,90 @@ class LTI13 {
      */
     public static function loadNRPS($membership_url, $access_token, &$debug_log=false) {
 
-        $ch = curl_init();
+        $return_array = null;
 
         $membership_url = trim($membership_url);
 
-        $headers = [
-            'Authorization: Bearer '. $access_token,
-            'Accept: '.self::MEDIA_TYPE_MEMBERSHIPS,
-            'Content-Type: '.self::MEDIA_TYPE_MEMBERSHIPS // TODO: Remove when certification is fixed
-        ];
+        // Handle paging
+        while(1) {
+            if ( is_array($debug_log) ) $debug_log[] = 'Loading: ' . $membership_url;
 
-        curl_setopt($ch, CURLOPT_URL, $membership_url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $ch = curl_init();
 
-        if ( is_array($debug_log) ) $debug_log[] = $membership_url;
-        if ( is_array($debug_log) ) $debug_log[] = $headers;
+            $headers = [
+                'Authorization: Bearer '. $access_token,
+                'Accept: '.self::MEDIA_TYPE_MEMBERSHIPS,
+                'Content-Type: '.self::MEDIA_TYPE_MEMBERSHIPS // TODO: Remove when certification is fixed
+            ];
 
-        $membership = curl_exec($ch);
-        if ( $membership === false ) return self::handle_curl_error($ch, $debug_log);
+            curl_setopt($ch, CURLOPT_URL, $membership_url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_HEADER, true); // Ask for headers in the return data
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close ($ch);
-        if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".strlen($membership)." characters)";
+            if ( is_array($debug_log) ) $debug_log[] = $membership_url;
+            if ( is_array($debug_log) ) $debug_log[] = $headers;
 
-        if ( strlen($membership) < 1 ) {
-            return "No data retrieved status=" . $httpcode;
-        }
+            $membership = curl_exec($ch);
+            if ( $membership === false ) return self::handle_curl_error($ch, $debug_log);
 
-        $json = json_decode($membership, false);   // Top level object
-        if ( $json === null ) {
-            $retval = "Unable to parse returned roster JSON:". json_last_error_msg();
+            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $headerSize = curl_getinfo($ch , CURLINFO_HEADER_SIZE );
+            curl_close ($ch);
+            if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".strlen($membership)." characters)";
+
+            if ( strlen($membership) < 1 ) {
+                return "No data retrieved status=" . $httpcode;
+            }
+
+            $headerStr = substr( $membership , 0 , $headerSize );
+            $membership = substr( $membership , $headerSize );
+            $response_headers = Net::parseHeaders($headerStr);
+
+            if (is_array($debug_log) ) $debug_log[] = $response_headers;
+
+            $nextUrl = null;
+            $link_header = U::get($response_headers, 'Link', null);
+            if ( is_string($link_header) ) {
+                if ( is_array($debug_log) ) $debug_log[] = 'Link header: ' . $link_header;
+                $linkHeader = LinkHeader::fromString($link_header);
+                $nextRel = is_object($linkHeader) ? $linkHeader->getRel('next') : null;
+                $nextUrl = is_object($nextRel) ? $nextRel->getUri() : null;
+            }
+
+            $json = json_decode($membership, false);   // Top level object
+            if ( $json === null ) {
+                $retval = "Unable to parse returned roster JSON:". json_last_error_msg();
+                if ( is_array($debug_log) ) {
+                    if (is_array($debug_log) ) $debug_log[] = $retval;
+                    if (is_array($debug_log) ) $debug_log[] = substr($membership, 0, 3000);
+                }
+                return $retval;
+            }
+
+            if ( Net::httpSuccess($httpcode) && isset($json->members) ) {
+                if ( is_array($debug_log) ) $debug_log[] = "Loaded ".count($json->members)." roster entries";
+                if ( $return_array == null ) {
+                    $return_array = $json;
+                } else {
+                    $return_array->members = array_merge($return_array->members, $json->members);
+                }
+                if ( $nextUrl == null ) {
+                    if ( is_array($debug_log) ) $debug_log[] = "Returning ".count($return_array->members)." roster entries";
+                    return $return_array;
+                }
+                if ( is_array($debug_log) ) $debug_log[] = 'Retrieving Next URL: ' . $nextUrl;
+                $membership_url = trim($nextUrl);
+                continue;
+            }
+
+            $status = isset($json->error) ? $json->error : "Unable to load results";
             if ( is_array($debug_log) ) {
-                if (is_array($debug_log) ) $debug_log[] = $retval;
+                $debug_log[] = "Error status: $status";
                 if (is_array($debug_log) ) $debug_log[] = substr($membership, 0, 3000);
             }
-            return $retval;
+            return $status;
         }
-
-        if ( Net::httpSuccess($httpcode) && isset($json->members) ) {
-            if ( is_array($debug_log) ) $debug_log[] = "Loaded ".count($json->members)." roster entries";
-            return $json;
-        }
-
-        $status = isset($json->error) ? $json->error : "Unable to load results";
-        if ( is_array($debug_log) ) {
-            $debug_log[] = "Error status: $status";
-            if (is_array($debug_log) ) $debug_log[] = substr($membership, 0, 3000);
-        }
-        return $status;
     }
 
     /**
