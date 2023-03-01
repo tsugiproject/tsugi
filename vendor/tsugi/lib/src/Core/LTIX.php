@@ -3221,15 +3221,19 @@ class LTIX {
 
     /** Retrieve the context and link ids for a previous installation of the tool, such as
      *  if it were imported from another site during a site import. Returns false, if not.
+     * @return array[
+     *  'context_id' => number,
+     *  'link_id' => number
+     * ] | false
      */
-    public static function getPreviousInstanceIds() {
+    public static function getLatestHistoryIds() {
         global $CFG, $LAUNCH, $PDOX;
         $resource_history = $LAUNCH->ltiCustomGet("resourcelink_id_history", '$ResourceLink.id.history');
         if ($resource_history != '$ResourceLink.id.history') {
             // Split the link_key and use the most recent one
             $link_key_arr = explode(',', $resource_history);
             $prev_link_key = end($link_key_arr);
-            // Get the previous link id (link with data to be imported)
+            // Get the previous context and link ids
             $linkquery = "SELECT context_id, link_id FROM {$CFG->dbprefix}lti_link WHERE link_key = :link_key;";
             $linkarr = array(':link_key' => $prev_link_key);
             return $PDOX->rowDie($linkquery, $linkarr);
