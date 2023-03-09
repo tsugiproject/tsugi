@@ -18,35 +18,91 @@ $p = $CFG->dbprefix;
 
 $OUTPUT->header();
 ?>
+<link rel="stylesheet" type="text/css" href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css"/>
 <style>
-    .panel-default {
-        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-        position: relative;
+    .app-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
     }
-    .panel-default:hover{
-        border: 1px solid #aaa;
+    .app {
+        width: 265px;
+        box-sizing: border-box;
+    }
+    .app.featured {
+        width: 90%;
+        max-width: 350px;
+    }
+    .tool-icon {
+        color: var(--secondary);
+        margin-left: 8px;
+    }
+    .featured-panel-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-top: 20px;
+    }
+    .panel {
+        border: 1px solid transparent;
+        background-color: transparent;
+    }
+    .panel-default {
+        position: relative;
+        box-shadow: none;
+        -webkit-box-shadow: none;
+    }
+    .panel-default:hover {
+        border-color: var(--background-focus);
     }
     .panel-description {
         display:block;
         overflow:hidden;
-        height: 6em; 
-        max-height: 6em; 
-        /* border: 2px solid red; */
+        height: 8em;
+        max-height: 8em;
     }
-
-    .panel-body h3 {
-overflow: hidden;
-white-space: nowrap;
-        margin-top: 0.5em;
+    .panel-default > .panel-heading {
+        border-bottom: none;
+        background: var(--primary);
+        color: #fff;
     }
-    .approw {
-        margin: 0;
+    .panel-default > .panel-heading .heading-container h3 {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin: 0 0.5rem;
+        font-weight: 500;
+        line-height: normal;
+        color: #fff;
     }
-    .appcolumn {
-        padding: 0 4px;
+    .panel-body {
+        border: 1px solid var(--background-focus);
+        border-top: 5px solid var(--secondary);
+        padding: 15px 25px 20px;
+    }
+    .panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: 75px;
+        flex-wrap: wrap;
+    }
+    .panel-heading a {
+        font-weight: 300;
+        width: 100%;
+    }
+    .heading-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    .heading-container span.fa {
+        font-size: 2.75rem;
     }
     h3.phase-title {
-        padding-left: 10px;
+        padding-left: 15px;
     }
     .keywords {
         font-size: .85em;
@@ -101,18 +157,54 @@ white-space: nowrap;
         border-bottom: 3px solid transparent;
         border-top: 3px solid #dc3545;
     }
-#loader {
-      position: fixed;
-      left: 0px;
-      top: 0px;
-      width: 100%;
-      height: 100%;
-      background-color: white;
-      margin: 0;
-      z-index: 100;
+    .action-button {
+        width: 100%;
+        margin-top: 15px;
+    }
+    .search-container {
+        padding: 20px 0;
+        display: flex;
+        justify-content: flex-end;
+    }
+    .search-container input {
+        width: 250px;
+    }
+    #loader {
+        position: fixed;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        margin: 0;
+        z-index: 100;
+    }
+    #XbasicltiDebugToggle {
+        display: none;
+    }
+    .bx-wrapper {
+        margin-bottom: 20px;
+    }
+    .bx-wrapper .bx-pager {
+        bottom: -40px;
+    }
+    .bx-wrapper .bx-viewport {
+    background-color: var(--background-focus);
+    border-width: 2px;
+    border-color: var(--secondary);
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
 }
-#XbasicltiDebugToggle {
-    display: none;
+.bxslider {
+    display: flex;
+    align-items: center;
+}
+.bx-pager-item {
+    line-height: normal;
+}
+body .bx-wrapper .bx-pager.bx-default-pager a {
+    border: 1px solid var(--text);
 }
 </style>
 <?php
@@ -154,102 +246,145 @@ if ( ! ( $registrations ) ) {
 echo(settings_status($key_count));
 
 // Render the tools in the site
-    echo('<div id="box">'."\n");
+$count = 0;
 
-    echo('<p class="text-right">
-        <label class="sr-only" for="keywordFilter">Filter by keyword</label>
-        <input type="text" placeholder="Filter by keyword" id="keywordFilter">
-        </p>');
+// Sort tools alpha
+array_multisort(array_column($registrations, 'name'), SORT_ASC, $registrations);
 
-    $count = 0;
-    foreach($registrations as $name => $tool ) {
+$newApps = array_filter($registrations, 'new_apps');
+$theRest = array_filter($registrations, 'the_rest');
 
-        // This will keep the rows nice
-        if ($count % 3 == 0) {
-            if ($count > 0) {
-                echo('</div>');
-            }
-            echo('<div class="row approw">');
+?>
+<div>
+    <div class="bxslider">
+        <?php
+        foreach ($newApps as $name => $newApp)
+        {
+            ?><div class="featured-panel-container"><?php
+            renderAppPanel($name, $newApp, true);
+            ?></div><?php
         }
+        ?>
+    </div>
+</div>
 
-        $title = $tool['name'];
-        $text = $tool['description'];
-        $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
-        $icon = false;
-        if ( $fa_icon !== false ) {
-            $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
-        }
+<?php
 
-        $keywords = '';
-        if (isset($tool['keywords'])) {
-            sort($tool['keywords']);
-            $keywords = implode(", ", $tool['keywords']);
-        }
+echo('<div id="box">'."\n");
 
-        echo('<div class="col-sm-4 appcolumn">');
+echo('<div class="search-container">
+    <label class="sr-only" for="keywordFilter">Filter by name</label>
+    <input type="text" class="form-control" placeholder="Filter by name" id="keywordFilter">
+    </div>');
 
-        echo('<div class="panel panel-default" data-keywords="'.$keywords.'">');
+echo ('<div class="app-container">');
+function new_apps($val)
+{
+    return isset($val['tool_phase']) && $val['tool_phase'] === 'new';
+}
+function the_rest($val)
+{
+    return !isset($val['tool_phase']);
+}
 
-        $phase = isset($tool['tool_phase']) ? $tool['tool_phase'] : false;
-        if ($phase !== false) {
-            echo('<div class="ribbon ribbon-top-left"><span>'.$phase.'</span></div>');
-        }
+// Tool Phase new at top
+// $registrations = array_merge($newApps, $theRest);
 
-        echo('<div class="panel-body">');
-        if ( $fa_icon ) {
-            echo('<a href="details/'.urlencode($name).'">');
-            echo('<span class="fa '.$fa_icon.' fa-2x" style="float:right; margin: 2px"></span>');
-            echo('</a>');
-        }
-        if ($phase !== false) {
-            echo('<h3 class="phase-title">');
-        } else {
-            echo('<h3>');
-        }
-        echo(htmlent_utf8($title)."</h3>");
-        echo('<div class="panel-description js-ellipsis">');
-        echo('<p>'.htmlent_utf8($text)."</p>");
-        if ($keywords !== '') {
-            echo('<p class="keywords">');
-            echo(__('Tags:'));
-            echo('<span class="keyword-span">'.$keywords.'</span></p>');
-        }
-        echo("</div></div><div class=\"panel-footer\">");
-        echo('<a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a> ');
-
-        $ltiurl = $tool['url'];
-        if ( isset($_SESSION['gc_count']) ) {
-            echo('<a href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
-            echo('" title="Install in Classroom" target="iframe-frame"'."\n");
-            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" class=\"pull-right\">\n");
-            echo('<img height=32 width=32 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
-        }
-        echo("</div></div></div>\n");
-
-        $count++;
-    }
-    if ( $count < 1 ) {
-        echo("<p>No available tools</p>\n");
-    } else {
-        echo("</div>");
-    }
+foreach($registrations as $name => $tool ) {
+    renderAppPanel($name, $tool);
+    $count++;
+}
+echo ('</div>');
+if ( $count < 1 ) {
+    echo("<p>No available tools</p>\n");
+}
 
 echo("</div>\n");
 // echo("<pre>\n");print_r($tool);echo("</pre>\n");
 
 $OUTPUT->footerStart();
+
+function renderAppPanel($name, $tool, $featured = false) {
+    global $CFG;
+    $title = $tool['name'];
+    $text = $tool['description'];
+    $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
+    $icon = false;
+    if ( $fa_icon !== false ) {
+        $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+    }
+
+    $keywords = '';
+    if (isset($tool['keywords'])) {
+        sort($tool['keywords']);
+        $keywords = implode(", ", $tool['keywords']);
+    }
+
+    $filterClass = !$featured ? ' filterable' : '';
+    $featuredClass = $featured ? ' featured' : '';
+    
+    echo('<div class="app' . $filterClass . $featuredClass . '">'); 
+    echo('<div class="panel panel-default" data-keywords="'.$keywords.'">');
+
+    $phase = isset($tool['tool_phase']) ? $tool['tool_phase'] : false;
+    if ($phase !== false) {
+        echo('<div class="ribbon ribbon-top-left"><span>'.$phase.'</span></div>');
+    }
+
+    echo('<div class="panel-heading">');
+    echo('<a href="details/'.urlencode($name).'">');
+    echo('<div class="heading-container">');
+    if ($phase !== false) {
+        echo('<h3 class="phase-title">');
+    } else {
+        echo('<h3>');
+    }
+    echo(htmlent_utf8($title)."</h3>");
+    if ( $fa_icon ) {
+        echo('<div><span class="tool-icon fa '.$fa_icon.'"></span></div>');
+    }
+    echo('</div>'); // end heading container
+    echo('</a>');
+    echo('</div><div class="panel-body">');
+    echo('<div class="panel-description js-ellipsis">');
+    echo('<p>'.htmlent_utf8($text)."</p>");
+    if ($keywords !== '') {
+        echo('<p class="keywords">');
+        echo(__('Tags:'));
+        echo('<span class="keyword-span">'.$keywords.'</span></p>');
+    }
+    echo("</div>");
+    if ( isset($_SESSION['gc_count']) ) {
+        echo('<div style="text-align: center;">');
+        $ltiurl = $tool['url'];
+        echo('<a href="details/'.urlencode($name).'" class="action-button" role="button">More Details</a> ');
+        echo('<a class="btn btn-primary action-button" href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
+        echo('" title="Install in Classroom" target="iframe-frame"'."\n");
+        echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\">\n");
+        echo('<span class="fa fa-plus"></span> Install');
+        echo('</a>'."\n");
+        echo('</div>');
+    } else {
+        echo('<div stlye="display: flex;">');
+        echo('<a href="details/'.urlencode($name).'" class="btn btn-primary action-button" role="button">Details</a> ');
+        echo('</div>');
+    }
+    echo("</div></div></div>\n");
+}
+
 ?>
-<script type="text/javascript" src="static/ftellipsis.js"/>
+<script type="text/javascript" src="static/ftellipsis.js"></script>
+<script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js"></script>
 <script type="text/javascript">
     var filter = filter || {};
 
     filter.setUpListener = function() {
         $("#keywordFilter").on("keyup", function(){
             var search = $(this).val().toLowerCase();
-            $(".appcolumn").each(function(){
+            $(".app.filterable").each(function(){
                 var panel = $(this).find("div.panel");
-                var words = panel.data("keywords");
-                if (typeof words !== "undefined" && words.toLowerCase().indexOf(search) >= 0) {
+                var title = $(this).find("h3").text().toLowerCase();
+                if (title.indexOf(search) >= 0) {
                     $(this).fadeIn("slow");
                     var keywordSpan = panel.find("div.panel-body").find("p.keywords").find("span.keyword-span");
                     var keywordText = keywordSpan.text().toLowerCase();
@@ -268,6 +403,19 @@ $OUTPUT->footerStart();
 
     $(document).ready(function() {
         filter.setUpListener();
+
+        $('.bxslider').bxSlider({
+            auto: true,
+            // autoControls: true,
+            pager: true,
+            useCSS: false,
+            adaptiveHeight: false,
+            infiniteLoop: true,
+            // slideWidth: "300px",
+            randomStart: true,
+            speed: 750,
+            pause: 5000,
+        });
     });
 </script>
 <script>

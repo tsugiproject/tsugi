@@ -61,96 +61,195 @@ $debug = false;  /* Pause when sending back */
 
 $OUTPUT->header();
 ?>
-<style>
-    .panel-default {
-        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-        position: relative;
+    <link rel="stylesheet" type="text/css" href="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.css"/>
+    <style>
+        .app-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+        }
+        .app {
+            width: 265px;
+            box-sizing: border-box;
+        }
+        .app.featured {
+            width: 90%;
+            max-width: 350px;
+        }
+        .tool-icon {
+            color: var(--secondary);
+            margin-left: 8px;
+        }
+        .featured-panel-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 20px;
+        }
+        .panel {
+            border: 1px solid transparent;
+            background-color: transparent;
+        }
+        .panel-default {
+            position: relative;
+            box-shadow: none;
+            -webkit-box-shadow: none;
+        }
+        .panel-default:hover {
+            border-color: var(--background-focus);
+        }
+        .panel-description {
+            display:block;
+            overflow:hidden;
+            height: 8em;
+            max-height: 8em;
+        }
+        .panel-default > .panel-heading {
+            border-bottom: none;
+            background: var(--primary);
+            color: #fff;
+        }
+        .panel-default > .panel-heading .heading-container h3 {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0 0.5rem;
+            font-weight: 500;
+            line-height: normal;
+            color: #fff;
+        }
+        .panel-body {
+            border: 1px solid var(--background-focus);
+            border-top: 5px solid var(--secondary);
+            padding: 15px 25px 20px;
+        }
+        .panel-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            min-height: 75px;
+            flex-wrap: wrap;
+        }
+        .panel-heading a {
+            font-weight: 300;
+            width: 100%;
+        }
+        .heading-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .heading-container span.fa {
+            font-size: 2.75rem;
+        }
+        h3.phase-title {
+            padding-left: 15px;
+        }
+        .keywords {
+            font-size: .85em;
+            font-style: italic;
+            color: #666;
+            margin: 0;
+            padding: 0;
+        }
+        .keyword-span {
+            text-transform: lowercase;
+        }
+        /* Created with cssportal.com CSS Ribbon Generator */
+        .ribbon {
+            position: absolute;
+            left: -5px; top: -5px;
+            z-index: 1;
+            overflow: hidden;
+            width: 75px; height: 75px;
+            text-align: right;
+        }
+        .ribbon span {
+            font-size: 14px;
+            font-weight: bold;
+            color: #FFF;
+            text-transform: uppercase;
+            text-align: center;
+            line-height: 20px;
+            transform: rotate(-45deg);
+            -webkit-transform: rotate(-45deg);
+            width: 100px;
+            display: block;
+            background: #dc3545;
+            box-shadow: 0 3px 10px -5px rgba(0, 0, 0, 1);
+            position: absolute;
+            top: 19px; left: -21px;
+        }
+        .ribbon span::before {
+            content: "";
+            position: absolute; left: 0; top: 100%;
+            z-index: -1;
+            border-left: 3px solid #dc3545;
+            border-right: 3px solid transparent;
+            border-bottom: 3px solid transparent;
+            border-top: 3px solid #dc3545;
+        }
+        .ribbon span::after {
+            content: "";
+            position: absolute; right: 0; top: 100%;
+            z-index: -1;
+            border-left: 3px solid transparent;
+            border-right: 3px solid #dc3545;
+            border-bottom: 3px solid transparent;
+            border-top: 3px solid #dc3545;
+        }
+        .action-button {
+            width: 100%;
+            margin-top: 15px;
+        }
+        .search-container {
+            padding: 20px 0;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .search-container input {
+            width: 250px;
+        }
+        #loader {
+            position: fixed;
+            left: 0px;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            margin: 0;
+            z-index: 100;
+        }
+        #XbasicltiDebugToggle {
+            display: none;
+        }
+        .bx-wrapper {
+            margin-bottom: 20px;
+        }
+        .bx-wrapper .bx-pager {
+            bottom: -40px;
+        }
+        .bx-wrapper .bx-viewport {
+        background-color: var(--background-focus);
+        border-width: 2px;
+        border-color: var(--secondary);
+        box-shadow: none;
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
     }
-    .panel-default:hover{
-        border: 1px solid #aaa;
+    .bxslider {
+        display: flex;
+        align-items: center;
     }
-    .panel-body h3 {
-        margin-top: 0.5em;
+    .bx-pager-item {
+        line-height: normal;
     }
-    .approw {
-        margin: 0;
+    body .bx-wrapper .bx-pager.bx-default-pager a {
+        border: 1px solid var(--text);
     }
-    .appcolumn {
-        padding: 0 4px;
-    }
-    h3.phase-title {
-        padding-left: 10px;
-    }
-    .keywords {
-        font-size: .85em;
-        font-style: italic;
-        color: #666;
-        margin: 0;
-        padding: 0;
-    }
-    .keyword-span {
-        text-transform: lowercase;
-    }
-    /* Created with cssportal.com CSS Ribbon Generator */
-    .ribbon {
-        position: absolute;
-        left: -5px; top: -5px;
-        z-index: 1;
-        overflow: hidden;
-        width: 75px; height: 75px;
-        text-align: right;
-    }
-    .ribbon span {
-        font-size: 14px;
-        font-weight: bold;
-        color: #FFF;
-        text-transform: uppercase;
-        text-align: center;
-        line-height: 20px;
-        transform: rotate(-45deg);
-        -webkit-transform: rotate(-45deg);
-        width: 100px;
-        display: block;
-        background: #dc3545;
-        box-shadow: 0 3px 10px -5px rgba(0, 0, 0, 1);
-        position: absolute;
-        top: 19px; left: -21px;
-    }
-    .ribbon span::before {
-        content: "";
-        position: absolute; left: 0; top: 100%;
-        z-index: -1;
-        border-left: 3px solid #dc3545;
-        border-right: 3px solid transparent;
-        border-bottom: 3px solid transparent;
-        border-top: 3px solid #dc3545;
-    }
-    .ribbon span::after {
-        content: "";
-        position: absolute; right: 0; top: 100%;
-        z-index: -1;
-        border-left: 3px solid transparent;
-        border-right: 3px solid #dc3545;
-        border-bottom: 3px solid transparent;
-        border-top: 3px solid #dc3545;
-    }
-    #box {
-        margin-top: 1em;
-    }
-#loader {
-      position: fixed;
-      left: 0px;
-      top: 0px;
-      width: 100%;
-      height: 100%;
-      background-color: white;
-      margin: 0;
-      z-index: 100;
-}
-#XbasicltiDebugToggle {
-    display: none;
-}
-</style>
+    </style>
 <?php
 
 // Load Lessons Data
@@ -327,7 +426,8 @@ if ( $l && isset($_GET['assignment']) ) {
 
 // Handle the content install
 $content_items = array();
-if ( strlen(U::get($_GET,'radio_value')) > 0 ) {
+$val = U::get($_GET,'radio_value');
+if ( isset($val) && strlen($val) > 0 ) {
     $content_items[] = U::get($_GET,'radio_value');
 }
 foreach($_GET as $k => $v) {
@@ -492,71 +592,46 @@ if ( $registrations && $allow_lti ) {
     echo('<div class="tab-pane fade '.$active.' in" id="box">'."\n");
     $active = '';
 
-    echo('<p class="text-right">
-        <label class="sr-only" for="keywordFilter">Filter by keyword</label>
-        <input type="text" placeholder="Filter by keyword" id="keywordFilter">
-        </p>');
-
+    
     $count = 0;
-    foreach($registrations as $name => $tool ) {
 
-        // This will keep the rows nice
-        if ($count % 3 == 0) {
-            if ($count > 0) {
-                echo('</div>');
+    array_multisort(array_column($registrations, 'name'), SORT_ASC, $registrations);
+
+    $newApps = array_filter($registrations, 'new_apps');
+    $theRest = array_filter($registrations, 'the_rest');
+
+    ?>
+    <div>
+        <div class="bxslider">
+            <?php
+            foreach ($newApps as $name => $newApp)
+            {
+                ?><div class="featured-panel-container"><?php
+                renderAppPanel($name, $newApp, true);
+                ?></div><?php
             }
-            echo('<div class="row approw">');
-        }
+            ?>
+        </div>
+    </div>
+    <?php
 
+    echo('<div class="search-container">
+    <label class="sr-only" for="keywordFilter">Filter by name</label>
+    <input type="text" class="form-control" placeholder="Filter by name" id="keywordFilter">
+    </div>');
+
+    echo ('<div class="app-container">');
+
+    foreach($registrations as $name => $tool ) {
+        
         $title = $tool['name'];
         $text = $tool['description'];
-        $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
-        $icon = false;
-        if ( $fa_icon !== false ) {
-            $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
-        }
-
-        $keywords = '';
-        if (isset($tool['keywords'])) {
-            sort($tool['keywords']);
-            $keywords = implode(", ", $tool['keywords']);
-        }
-
         $grade_launch = false;
         if ( isset($tool['messages']) && is_array($tool['messages']) &&
             array_search('launch_grade', $tool['messages']) !== false ) {
             $grade_launch = true;
         }
-
-        echo('<div class="col-sm-4 appcolumn">');
-
-        echo('<div class="panel panel-default" data-keywords="'.$keywords.'">');
-
-        $phase = isset($tool['tool_phase']) ? $tool['tool_phase'] : false;
-        if ($phase !== false) {
-            echo('<div class="ribbon ribbon-top-left"><span>'.$phase.'</span></div>');
-        }
-
-        echo('<div class="panel-body">');
-        if ( $fa_icon ) {
-            echo('<a href="index.php?install='.urlencode($name).'">');
-            echo('<span class="fa '.$fa_icon.' fa-2x" style="float:right; margin: 2px"></span>');
-            echo('</a>');
-        }
-        if ($phase !== false) {
-            echo('<h3 class="phase-title">');
-        } else {
-            echo('<h3>');
-        }
-        echo(htmlent_utf8($title)."</h3>");
-        echo('<p>'.htmlent_utf8($text)."</p>");
-        if ($keywords !== '') {
-            echo('<p class="keywords">Tags: <span class="keyword-span">'.$keywords.'</span></p>');
-        }
-        echo("</div><div class=\"panel-footer\">");
-        echo('<button type="button" class="btn btn-success pull-right" role="button" data-toggle="modal" data-target="#'.urlencode($name).'_modal"><span class="fa fa-plus" aria-hidden="true"></span> Install</button>');
-        echo('<a href="details/'.urlencode($name).'" class="btn btn-default" role="button">Details</a>');
-        echo("</div></div></div>\n");
+        renderAppPanel($name, $tool);
 
         // Deep Linking 1.0 / Content Item
         // https://www.imsglobal.org/specs/lticiv1p0/specification
@@ -666,10 +741,9 @@ if ( $registrations && $allow_lti ) {
 
         $count++;
     }
+    echo '</div>';
     if ( $count < 1 ) {
         echo("<p>No available tools</p>\n");
-    } else {
-        echo("</div>");
     }
     echo("</div>\n");
 }
@@ -904,6 +978,78 @@ if ( $l ) foreach($l->lessons->modules as $module) {
 <?php
 
 $OUTPUT->footerStart();
+
+function renderAppPanel($name, $tool, $featured = false, $canInstall = true) {
+    global $CFG;
+    $title = $tool['name'];
+    $text = $tool['description'];
+    $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
+    $icon = false;
+    if ( $fa_icon !== false ) {
+        $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+    }
+
+    $keywords = '';
+    if (isset($tool['keywords'])) {
+        sort($tool['keywords']);
+        $keywords = implode(", ", $tool['keywords']);
+    }
+
+    $filterClass = !$featured ? ' filterable' : '';
+    $featuredClass = $featured ? ' featured' : '';
+    
+    echo('<div class="app' . $filterClass . $featuredClass . '">'); 
+    echo('<div class="panel panel-default" data-keywords="'.$keywords.'">');
+
+    $phase = isset($tool['tool_phase']) ? $tool['tool_phase'] : false;
+    if ($phase !== false) {
+        echo('<div class="ribbon ribbon-top-left"><span>'.$phase.'</span></div>');
+    }
+
+    echo('<div class="panel-heading">');
+    echo('<a href="details/'.urlencode($name).'">');
+    echo('<div class="heading-container">');
+    if ($phase !== false) {
+        echo('<h3 class="phase-title">');
+    } else {
+        echo('<h3>');
+    }
+    echo(htmlent_utf8($title)."</h3>");
+    if ( $fa_icon ) {
+        echo('<div><span class="tool-icon fa '.$fa_icon.'"></span></div>');
+    }
+    echo('</div>'); // end heading container
+    echo('</a>');
+    echo('</div><div class="panel-body">');
+    echo('<div class="panel-description js-ellipsis">');
+    echo('<p>'.htmlent_utf8($text)."</p>");
+    if ($keywords !== '') {
+        echo('<p class="keywords">');
+        echo(__('Tags:'));
+        echo('<span class="keyword-span">'.$keywords.'</span></p>');
+    }
+    echo("</div>");
+    if ( isset($_SESSION['gc_count']) || $canInstall ) {
+        echo('<div style="text-align: center;">');
+        echo('<a href="details/'.urlencode($name).'" class="action-button" role="button">More Details</a> ');
+        echo('<button type="button" class="btn btn-primary action-button" role="button" data-toggle="modal" data-target="#'.urlencode($name).'_modal"><span class="fa fa-plus" aria-hidden="true"></span> Install</button>');
+        echo('</div>');
+    } else {
+        echo('<div stlye="display: flex;">');
+        echo('<a href="details/'.urlencode($name).'" class="btn btn-primary action-button" role="button">Details</a> ');
+        echo('</div>');
+    }
+    echo("</div></div></div>\n");
+}
+
+function new_apps($val)
+{
+    return isset($val['tool_phase']) && $val['tool_phase'] === 'new';
+}
+function the_rest($val)
+{
+    return !isset($val['tool_phase']);
+}
 ?>
 
 <script>
@@ -947,17 +1093,18 @@ function toggleLineItem(item, count) {
 
 </script>
 
-
+    <script type="text/javascript" src="static/ftellipsis.js"></script>
+    <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js"></script>
     <script type="text/javascript">
         var filter = filter || {};
 
         filter.setUpListener = function() {
             $("#keywordFilter").on("keyup", function(){
                 var search = $(this).val().toLowerCase();
-                $(".appcolumn").each(function(){
+                $(".app.filterable").each(function(){
                     var panel = $(this).find("div.panel");
-                    var words = panel.data("keywords");
-                    if (typeof words !== "undefined" && words.toLowerCase().indexOf(search) >= 0) {
+                    var title = $(this).find("h3").text().toLowerCase();
+                    if (title.indexOf(search) >= 0) {
                         $(this).fadeIn("slow");
                         var keywordSpan = panel.find("div.panel-body").find("p.keywords").find("span.keyword-span");
                         var keywordText = keywordSpan.text().toLowerCase();
@@ -997,6 +1144,19 @@ function toggleLineItem(item, count) {
 
         $(document).ready(function() {
             filter.setUpListener();
+
+            $('.bxslider').bxSlider({
+                auto: true,
+                // autoControls: true,
+                pager: true,
+                useCSS: false,
+                adaptiveHeight: false,
+                infiniteLoop: true,
+                // slideWidth: "300px",
+                randomStart: true,
+                speed: 750,
+                pause: 5000,
+            });
         });
 
         // https://stackoverflow.com/questions/4471401/getting-value-of-html-checkbox-from-onclick-onchange-events
@@ -1011,6 +1171,18 @@ function toggleLineItem(item, count) {
             $('.module_all').each(function () { $(this).prop("checked", ! $(this).prop("checked")); } );
             return false;
         }
+    </script>
+    <script>
+    // https://github.com/ftlabs/ftellipsis
+    var forEach = Array.prototype.forEach;
+    var els = document.getElementsByClassName('js-ellipsis');
+
+    forEach.call(els, function(el) {
+        var ellipsis = new Ellipsis(el);
+        ellipsis.calc();
+        ellipsis.set();
+    });
+
     </script>
 <?php
 $OUTPUT->footerend();

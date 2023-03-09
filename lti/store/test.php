@@ -6,7 +6,7 @@ use \Tsugi\Core\LTIX;
 
 require_once "../../config.php";
 require_once "../../admin/admin_util.php";
-require_once("../../dev/dev-data.php");
+require_once("dev-data.php");
 
 // No parameter means we require CONTEXT, USER, and LINK
 $LAUNCH = LTIX::requireData(LTIX::USER);
@@ -16,6 +16,12 @@ $p = $CFG->dbprefix;
 $OUTPUT->header();
 ?>
     <style>
+        #body_container.container-fluid {
+            padding: 0;
+        }
+        .content-container {
+            padding-top: 20px;
+        }
         .card {
             border: 1px solid black;
             margin: 5px;
@@ -33,6 +39,51 @@ $OUTPUT->header();
         }
         #XbasicltiDebugToggle {
             display: none;
+        }
+        #body_container {
+            padding-top: 40px;
+        }
+        .breadcrumb {
+            background-color: var(--background-color);
+            margin-bottom: 5px;
+            padding: 5px 15px;
+        }
+        .breadcrumb>.active {
+            color: var(--text-light);
+        }
+        .test-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2rem;
+            background-color: var(--background-focus);
+            border-bottom: 8px solid var(--secondary);
+            flex-wrap: wrap;
+        }
+        .test-header-icon {
+            font-size: 3rem;
+            margin-right: 20px;
+            color: var(--text);
+        }
+        .test-header-text {
+            font-size: 3rem;
+            line-height: 3rem;
+            color: var(--text);
+        }
+        @media(max-width: 768px) {
+            .title-container {
+                display: flex;
+                width: 100%;
+                justify-content: center;
+            }
+            .install-button-container {
+                width: 100%;
+                text-align: center;
+            }
+            .install-button-container .btn {
+                width: 275px;
+                margin-top: 20px;
+            }
         }
     </style>
 <?php
@@ -86,19 +137,66 @@ $tool = $registrations[$install];
 
 $title = $tool['name'];
 $text = $tool['description'];
+$ltiurl = $tool['url'];
 $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
 $icon = false;
 if ( $fa_icon !== false ) {
     $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
 }
 
-if ( $fa_icon ) {
-    echo('<span class="hidden-xs fa '.$fa_icon.' fa-3x" style="color: var(--primary); float:right; margin: 2px"></span>');
-}
-echo('<center>');
-echo("<b>".htmlent_utf8($title)."</b>\n");
-echo("</center>\n");
 ?>
+    <!-- Install modal -->
+    <div id="<?=urlencode($install)?>_modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span class="fa fa-times" aria-hidden="true"></span><span class="sr-only">Cancel</span></button>
+                    <h4 class="modal-title">Install Learning App</h4>
+                </div>
+                <div class="modal-body">
+                    <form method="get" action="../index.php">
+                        <input type="hidden" name="install" value="<?=urlencode($install)?>">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="form-control" name="title" value="<?=htmlent_utf8($title)?>">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea class="form-control" rows="5" name="description"><?=htmlent_utf8($text)?></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Banner/Header section -->
+    <div class="header-back-nav">
+        <ol class="breadcrumb">
+            <li><a href="../index.php">Store</a></li>
+            <li><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>"><?= $title; ?></a></li>
+            <li class="active">Try It</li>
+        </ol>
+    </div>
+    <div class="test-header">
+    <div class="title-container">
+        <?php
+        if ( $fa_icon ) {
+            ?>
+            <span class="fa <?= $fa_icon; ?> test-header-icon"></span>
+            <?php
+        }
+        ?>
+        <span class="test-header-text"><?= htmlent_utf8($title); ?></span>
+    </div>
+    <div class="install-button-container">
+    <?php
+        echo('<button type="button" class="btn btn-success" role="button" data-toggle="modal" data-target="#'.urlencode($install).'_modal"><span class="fa fa-plus" aria-hidden="true"></span> Install</button>');
+    ?>
+    </div>
+</div>
+<div class="content-container container-fluid">
     <ul class="nav nav-tabs">
         <li class="active"><a href="#test" onclick="console.log('yada');" data-toggle="tab" aria-expanded="true">Test</a></li>
         <li><a href="#identity" data-toggle="tab" aria-expanded="false">
@@ -110,8 +208,6 @@ echo("</center>\n");
         </li>
         <!-- <li><a href="#grades" data-toggle="tab" aria-expanded="false">Grades</a></li> -->
         <li><a href="#debug" data-toggle="tab" aria-expanded="false">Debug</a></li>
-        <li class="hidden-xs"><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>" role="button">Back to Details</a></li>
-        <li class="visible-xs"><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>" role="button">Details</a></li>
     </ul>
     <div id="myTabContent" class="tab-content" style="margin-top:10px;">
         <div class="tab-pane fade" id="identity">
@@ -164,7 +260,7 @@ echo("</center>\n");
             ?>
         </div>
         <div class="tab-pane fade" id="debug">
-    <pre>
+    <pre class="debug-output">
     Launch Parameters:
         <?php print_r($parms) ?>
         <hr/>
@@ -176,6 +272,7 @@ echo("</center>\n");
     </pre>
         </div>
     </div>
+</div>
 <?php
 echo("<!-- \n");print_r($tool);echo("\n-->\n");
 $OUTPUT->footer();
