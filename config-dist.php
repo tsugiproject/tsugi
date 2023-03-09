@@ -135,6 +135,8 @@ $CFG->adminpw = false;
     "font-family" => "'Muli', sans-serif", // Font family
     "font-size" => "14px", // This is the base font size used for body copy. Headers,etc. are scaled off this value
 );*/
+// $CFG->theme_base = "#0d47a1"; // Tsugi Blue
+// $CFG->theme_dark_mode = false;
 
 // If we are running Embedded Tsugi we need to set the
 // "course title" for the course that represents
