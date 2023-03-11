@@ -41,7 +41,7 @@ $OUTPUT->flashMessages();
 <?php if ( isset($CFG->lessons) ) { ?>
   <li><a href="#bb" data-toggle="tab" aria-expanded="false">Blackboard</a></li>
 <?php } ?>
-  <li><a href="#auto" data-toggle="tab" aria-expanded="false">LTI Auto Configuration</a></li>
+  <li><a href="#auto" data-toggle="tab" aria-expanded="false">LTI 1.3 Dynamic Registration</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="lti">
@@ -59,27 +59,27 @@ foreach($tools as $tool) {
 ?>
 </div>
 <div class="tab-pane fade" id="sakai">
-Sakai 10 and later supports the IMS Content Item standard so you can install
+In Sakai, you can install
 this site as an "App Store" / "Learning Object Repository" using this url:
 <pre>
 <?= $CFG->wwwroot ?>/lti/store/
 </pre>
-In Sakai, use the Lessons tool, select "External Tools" and install this as 
-an LTI 1.x tool.  Make sure to check the 
-"Supports Content Item" option when installing this URL in Sakai and tick 
+In Sakai, use the Lessons tool, select "External Tools" and install this as
+an LTI 1.x tool.  Make sure to check the
+"Supports Deep Linking / Content Item" option when installing this URL in Sakai and tick
 the boxes to allow both the title and url to be changed.
 </p>
 <p>
-Then this "<?= $CFG->servicename ?> store" will appear in Lessons as a new external tool, when you 
+Then this "<?= $CFG->servicename ?> store" will appear in Lessons as a new external tool, when you
 select the store you will be launched into the picker to choose tools and/or
 resources to be pulled into Lessons.   The key and secret will be inherited
-from the store to each of the installed tools.  In Sakai-12, once the app store
-is installed, the rerources fomr this site will be avilable from within the 
+from the store to each of the installed tools.  Once the app store
+is installed, the rerources from this site will be avilable from within the
 rich text editor.
 <?php if ( isset($CFG->lessons) ) { ?>
 <p>
 You can import all the content (including autograders) from this site into your Sakai
-course by downloading it as an 
+course by downloading it as an
 <a href="<?= $CFG->wwwroot ?>/cc/export">Common Cartridge</a> and then using
 the Import feature in Lessons.   In order to activate all the LTI links automatically, install an External tool with the URL:
 <pre>
@@ -90,10 +90,8 @@ be associated with your key and secret.
 </p>
 <?php } ?>
 <p>
-There is an effort to include <b>"LTI Advantage Auto Configuration"</b> as part of Sakai 21.1.
-Once that is available, instructions on how to auto-provision a <?= $CFG->servicename ?> key into 
-Sakai will be included here.  Reference:
-<a href="https://jira.sakaiproject.org/browse/SAK-44055" target="_blank">https://jira.sakaiproject.org/browse/SAK-44055</a>.
+Sakai supports LTI Advantage Dynamic Registration but you need help from this system's admin to
+set the unlock code for this key and get a dynamic configuration URL.
 </p>
 </div>
 <div class="tab-pane fade" id="canvas">
@@ -112,7 +110,7 @@ within Canvas under "external tools".
 <?php if ( isset($CFG->lessons) ) { ?>
 <p>
 You can import all the content (including autograders) from this site into your Moodle
-course by downloading it as an 
+course by downloading it as an
 <a href="<?= $CFG->wwwroot ?>/cc/export">Common Cartridge</a> and then using
 the Restore feature to upload the content into your Moodle course.   Once you
 install your LTI key and secret in the course, the LTI links to the autograder
@@ -120,26 +118,23 @@ should start to function.
 </p>
 <?php } ?>
 <p>
-Moodle 3.4 and later also supports the IMS Content Item standard so you can install
+You can install
 this site as an "App Store" / "Learning Object Repository" using this url:
 <pre>
 <?= $CFG->wwwroot ?>/lti/store/
 </pre>
-Make sure to find and check the "Supports Content Item" option when installing 
+Make sure to find and check the "Supports Content Item" or "Deep Linking" option when installing
 this URL.
 </p>
 <p>
-Moodle supports an early draft of <b>"LTI Advantage Auto Configuration"</b> in Moodle 3.10.
-Tsugi also supports an early draft of the specification - but the combination needs to be
-tested and interoperability needs to be aligned - this is part of standards development.
-You can find the auto configuration URL in the detail page of your LTI key.
+Moodle supports <b>LTI Advantage Dynamic Registration</b>.
 </p>
 </div>
 <?php if ( isset($CFG->lessons) ) { ?>
 <div class="tab-pane fade" id="bb">
 <p>
 You can import all the content from (including autograders) this site into your Blackboard
-course by downloading it as an 
+course by downloading it as an
 <a href="<?= $CFG->wwwroot ?>/cc/export">Common Cartridge</a> and then using
 the Import feature to upload the content into your course.   Once you
 install your LTI key and secret in the course, the LTI links to the autograder
@@ -149,19 +144,11 @@ should start to function.
 <?php } ?>
 <div class="tab-pane fade" id="auto">
 <p>
-There is an under-development standard to allow to automatically provision
-an LTI Advantage tool in an LMS using web services.   This specification
-will likely be made public sometime on 2021.  The code in Tsugi is test/pre-release
-code to help in the early testing of the specification as it is being developed.
-</p>
-<p>
-You can look a the detail page for your key and at the bottom there is a
-<b>"LTI Advantage Auto Configuration URL"</b> that can be copied into an LMS
-that supports this new protocol.
-</p>
-<p>
-Once the standard is finalized and each LMS implementation has been tested with Tsugi,
-instructions will be added to each ot the LMS sections of this document.
+Tsugi supports the
+<b>LTI Advantage Dynamic</b> but it is not yet self service.  You will need
+to contact the administator of this system to get a LTI advantage key set up and prepared
+for Dynamic registration.  The administrator will send you the Dynamic Regustration URL with
+a one-time access code.
 </p>
 </div>
 </div>

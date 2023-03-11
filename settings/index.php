@@ -49,7 +49,7 @@ applications in their courses.
 <li><p><a href="key">Manage LMS Access Keys</a>
 (<?= $key_count ?>)<br/>
 These tools can be integrated into Learning Management Systems
-that support the IMS Learning Tools Interoperability specification.
+that support the Learning Tools Interoperability specification.
 </p>
 </li>
 <?php } ?>
@@ -58,6 +58,7 @@ that support the IMS Learning Tools Interoperability specification.
 This allows you to manage Personally Identifiable Information (PII) for your learners in this system.
 </p>
 </li>
+<!--
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
 <li><p><a href="gclass_login">Connect to Google Classroom</a>
 <?php

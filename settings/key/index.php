@@ -53,7 +53,7 @@ $OUTPUT->flashMessages();
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>
-You have no IMS LTI Keys for this system.
+You have no LTI Keys for this system.
 </p>
 <p>
 If you want to use the tools / content in this system

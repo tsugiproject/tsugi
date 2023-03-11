@@ -163,7 +163,7 @@ $OUTPUT->flashMessages();
 </p>
 <p>
 If you are a teacher and want to use the interactive elements on this web
-site using IMS Learning Tools Interoperability, you can request a key
+site using Learning Tools Interoperability, you can request a key
 from this page.  Please include a description of how you are
 planning on using your key.
 </p>

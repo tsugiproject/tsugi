@@ -153,6 +153,8 @@ array( "{$CFG->dbprefix}lti_key",
     lms_cache_pubkey    TEXT NULL,
     lms_cache_kid       TEXT NULL,
 
+    unlock_code         MEDIUMTEXT NULL,
+
     xapi_url            TEXT NULL,
     xapi_user           TEXT NULL,
     xapi_password       TEXT NULL,
@@ -785,6 +787,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_result', 'grading_progress', 'TINYINT(1) NOT NULL DEFAULT 0'),
         array('lti_result', 'activity_progress', 'TINYINT(1) NOT NULL DEFAULT 0'),
         array('lti_link', 'score_maximum', 'DOUBLE NULL'),
+
+        // 2023-05-11
+        array('lti_key', 'unlock_code', 'MEDIUMTEXT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {

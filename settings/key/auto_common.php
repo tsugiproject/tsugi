@@ -9,6 +9,56 @@ if ( ! isset($user_id) ) {
     $OUTPUT->footer();
     return;
 }
+
+if ( ! isset($tsugi_key) || ! isset($unlock_code) || ! is_string($unlock_code) ) {
+    echo("<p><b>Missing tsugi_key and/or unlock_code.</b></p>\n");
+    $OUTPUT->footer();
+    return;
+}
+
+
+\Tsugi\Core\LTIX::getConnection();
+
+// Retrieve key for super user
+if ( $user_id == 0 ) {
+    $row = $PDOX->rowDie(
+        "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
+            lti13_oidc_auth, lti13_keyset_url, lti13_token_url, K.user_id AS user_id
+        FROM {$CFG->dbprefix}lti_key AS K
+            LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
+                K.issuer_id = I.issuer_id
+            WHERE key_id = :KID AND unlock_code = :UNLOCK",
+        array(":KID" => $tsugi_key, ":UNLOCK" => $unlock_code)
+    );
+    if ( $row && isset($row['user_id']) ) $user_id = $row['user_id']+0;
+
+// Lets retrieve our key entry if it belongs to us
+} else {
+    $row = $PDOX->rowDie(
+        "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
+            unlock_code,
+            lti13_oidc_auth, lti13_keyset_url, lti13_token_url, K.user_id AS user_id
+        FROM {$CFG->dbprefix}lti_key AS K
+            LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
+                K.issuer_id = I.issuer_id
+            WHERE key_id = :KID AND K.user_id = :UID AND unlock_code = :UNLOCK",
+        array(":KID" => $tsugi_key, ":UID" => $user_id, ":UNLOCK" => $unlock_code)
+    );
+}
+
+if ( ! $row ) {
+    echo("<pre>\n");
+    echo "Could not load your key, perhaps you did not set the one-time unlock code\n";
+    echo("</pre>\n");
+    return;
+}
+
+// Clear out the single-use unlock code
+$stmt = $PDOX->queryDie(
+    "UPDATE {$CFG->dbprefix}lti_key SET unlock_code = NULL WHERE key_id = :KID",
+     array(":KID" => $tsugi_key)
+);
+
 echo("<p><b>Retrieving OpenId configuration from LMS</b><br>\n");
 echo(htmlentities($openid_configuration)."\n</p>\n");
 
@@ -49,41 +99,6 @@ try {
 
 $authorization_server = isset($platform_configuration->authorization_server) ? $platform_configuration->authorization_server : null;
 $title = isset($platform_configuration->title) ? $platform_configuration->title : null;
-
-\Tsugi\Core\LTIX::getConnection();
-
-// Retrieve key for super user
-if ( $user_id == 0 ) {
-    $row = $PDOX->rowDie(
-        "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
-            lti13_oidc_auth, lti13_keyset_url, lti13_token_url, K.user_id AS user_id
-        FROM {$CFG->dbprefix}lti_key AS K
-            LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
-                K.issuer_id = I.issuer_id
-            WHERE key_id = :KID",
-        array(":KID" => $tsugi_key)
-    );
-    if ( $row && isset($row['user_id']) ) $user_id = $row['user_id']+0;
-
-// Lets retrieve our key entry if it belongs to us
-} else {
-    $row = $PDOX->rowDie(
-        "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
-            lti13_oidc_auth, lti13_keyset_url, lti13_token_url, K.user_id AS user_id
-        FROM {$CFG->dbprefix}lti_key AS K
-            LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
-                K.issuer_id = I.issuer_id
-            WHERE key_id = :KID AND K.user_id = :UID",
-        array(":KID" => $tsugi_key, ":UID" => $user_id)
-    );
-}
-
-if ( ! $row ) {
-    echo("<pre>\n");
-    echo "Could not load your key\n";
-    echo("</pre>\n");
-    return;
-}
 
 // See the end of the file for some documentation references
 $json = new \stdClass();

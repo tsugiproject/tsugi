@@ -29,6 +29,7 @@ $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
 $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'issuer_id',
+     'unlock_code',
      'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
      'caliper_url', 'caliper_key',
@@ -37,6 +38,7 @@ $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'issue
 
 $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256',
      'issuer_id',
+     'unlock_code',
      'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
      'caliper_url', 'caliper_key',
@@ -48,6 +50,7 @@ $titles = array(
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
     'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
     'issuer_id' => 'LTI 1.3: Issuer',
+    'unlock_code' => 'LTI 1.3: Dynamic Registration Unlock Code (one time use)',
 );
 
 if ( isset($_POST['issuer_id']) && strlen($_POST['issuer_id']) == 0 ) $_POST['issuer_id'] = null;
@@ -151,10 +154,29 @@ $from_location = null;
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
-$dynamicConfigUrl = U::addSession($CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'], true);
+$dynamicConfigUrl = null;
+if ( is_string(U::get($row, 'unlock_code', null)) ) {
+    $dynamicConfigUrl = $CFG->wwwroot . "/admin/key/auto.php?tsugi_key=" . $row['key_id'] . "&unlock_code=" . $row['unlock_code'];
+}
 $contentItemUrl = $CFG->wwwroot . "/lti/store/";
 $canvasContentItemUrl = $CFG->wwwroot . "/lti/store/canvas-config.xml";
 $storeUrl = $CFG->wwwroot . "/store/";
+
+function showDynamicConfig($url) {
+    if ( is_string($url) ) {
+?>
+<p><b>LTI Advantage Dynamic Registration URL:</b>
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $url ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($url) ?>
+</p>
+<?php
+    } else {
+        echo("<p><b>NOTE: You must set the one-time use unlock_code in the key data to get a dynamic registration URL.</b></p>\n");
+    }
+
+}
 ?>
 </pre>
 </div>
@@ -190,32 +212,23 @@ Sometimes you need to give the LMS the Tsugi URLs to make a new security arrange
 on this form.  We solve this "who goes first" problem in Tsugi by allowing you to create
 a "draft" or incomplete key and then come back later to add the LMS / Platform provided data.
 </p>
-<b>IMS LTI Advantage Dynamic Registration</b>
+<b>LTI Advantage Dynamic Registration</b>
 <p>
 Sakai, Moodle, and Brightspace support the
-<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>
 process.  This process takes
-a draft Tsugi key, and sends its data to the LMS and the LMSresponds with all of its values
+a draft Tsugi key, and sends its data to the LMS and the LMS responds with all of its values
 and Tsugi automatically update the Tenant key with the LMS values.  It is basically a one-click
 LTI Advantage install.
 </p>
 <p>
-<b>LTI Advantage Dynamic Registration URL:
-<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
-</p>
+<?php showDynamicConfig($dynamicConfigUrl); ?>
 <p>
-<?= htmlentities($dynamicConfigUrl) ?>
-</p>
 The
-<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>
 process is supported by Brightspace, Moodle, and Sakai.  You create a Tenant key in
 Tsugi with a title, and issuer, then take the Dynamic Registration URL
 from this page and paste it into the LMS configuration process.
-<p>
-To use the Dynamic Registration URL in your Learning Management System,
-keep this window open in a separate tab while using the LMS in another tab
-as the Dynamic Registration process requires that you stay logged in to this system
-in order to ensure you have permission to perform this confguration exchange.
 </p>
 <p>
 Dynamic Registration sets up the security relationship between a tool and LMS.  Values like
@@ -231,19 +244,13 @@ later.  LTI Advantage keys without a Deployment ID will not work in Tsugi.  Sinc
 model, they usually use a <b>deployment_id</b> of <b>1</b>.
 </p>
 <p>
-<b>Important:</b>
-Once the LMS has finished its registration in the other tab, come back to this tab or window, press "Refresh"
-and check to verify that the key has been set up properly.  Sometimes you get logged out and will need to log back
-in to check the results of the dynamic registration process.
-</p>
-
 </div>
 <div class="tab-pane fade" id="brightspace">
 
 <h2>LTI 1.3</h2>
 <p>
 Brightspace supports
-<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>.
 </p>
 <p>
 In Brightspace, go to the settings (gear icon) drop down, and select
@@ -271,12 +278,7 @@ others might be useful as well.   The URL to provide to use for Deep Linking Qui
 <?= htmlentities($contentItemUrl) ?>
 </p>
 <p>
-<b>LTI Advantage Dynamic Registration URL:
-<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
-</p>
-<p>
-<?= htmlentities($dynamicConfigUrl) ?>
-</p>
+<?php showDynamicConfig($dynamicConfigUrl); ?>
 <h2>LTI 1.1</h2>
 <p>
 You can install Tsugi as a
@@ -303,7 +305,7 @@ Each tool listing provides its direct launch endpoints.
 <h2>LTI 1.3</h2>
 <p>
 Sakai supports
-<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>.
 </p>
 <p>
 In Sakai go into <b>Administration Workspace</b> -&gt; <b>External Tools</b> -&gt; <b>LTI Advantage Auto Provision</b>
@@ -313,12 +315,7 @@ Give the tool a title, and press <b>Auto Provision</b>.  Sakai will create a dra
 option to <b>Use LTI Advantage Auto Configuration</b> - press that button and enter the Dynamic Configuration
 URL.
 <p>
-<b>LTI Advantage Dynamic Registration URL:
-<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
-</p>
-<p>
-<?= htmlentities($dynamicConfigUrl) ?>
-</p>
+<?php showDynamicConfig($dynamicConfigUrl); ?>
 <p>
 Sakai supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this tenant / key
 in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
@@ -349,7 +346,7 @@ Each tool listing provides its direct launch endpoints.
 <h2>LTI 1.3</h2>
 <p>
 Moodle supports
-<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>.
 </p>
 <p>
 In Moodle go into <b>Site Administration</b> -&gt; <b>Plugins</b> -&gt; <b>Manage Tools</b> -&gt; <b>Add LTI Advantage</b>
@@ -357,12 +354,7 @@ In Moodle go into <b>Site Administration</b> -&gt; <b>Plugins</b> -&gt; <b>Manag
 <p>
 Moodle will prompt you for the Dynamic Registration URL.
 <p>
-<b>LTI Advantage Dynamic Registration URL:
-<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $dynamicConfigUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
-</p>
-<p>
-<?= htmlentities($dynamicConfigUrl) ?>
-</p>
+<?php showDynamicConfig($dynamicConfigUrl); ?>
 <p>
 Moodle supports the optional part of Dynamic Registration and so it provides the <b>Deployment ID</b> for this tenant / key
 in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
