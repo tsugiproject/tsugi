@@ -49,7 +49,15 @@ class Profile extends Controller {
         $profile = json_decode($profile_row['json']);
         if ( ! is_object($profile) ) $profile = new \stdClass();
 
-        // Load data from the profile
+        $themeId = 0;
+        // Load data from the profile, if it exists
+        if (isset($profile->theme_override)) {
+            if ($profile->theme_override == 'light') {
+                $themeId = 1;
+            } else if ($profile->theme_override == 'dark') {
+                $themeId = 2;
+            }
+        }
         $subscribe = isset($profile->subscribe) ? $profile->subscribe+0 : false;
         $map = isset($profile->map) ? $profile->map+0 : false;
         $lat = isset($profile->lat) ? $profile->lat+0.0 : 0.0;
@@ -112,10 +120,32 @@ echo(' ('.$_SESSION['email'].")</h4>\n");
 
         <p>
         <form method="POST">
-        <div class="control-group pull-right" style="margin-top: 20px">
-        <button type="submit" class="btn btn-primary visible-phone">Save</button>
-        <input class="btn btn-warning" type="button" onclick="location.href='<?= $CFG->apphome ?>/index.php'; return false;" value="Cancel"/>
-        </div>
+            <div style="display: flex; justify-content: space-between;">
+                <div class="control-group">
+                    <div class="controls">
+                        <p>Would you like to set a theme override?</p>
+                        <em>Overrides will only show if theme information is set in the launch data (such as from an LMS) or configured.</em>
+                        <label class="radio">
+                            <?php self::radio('theme',0,$themeId); ?> >
+                            Use the default configuration
+                        </label>
+                        <label class="radio">
+                            <?php self::radio('theme',1,$themeId); ?> >
+                            Use light theme
+                        </label>
+                        <label class="radio">
+                            <?php self::radio('theme',2,$themeId); ?> >
+                            Use dark theme
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group pull-right" style="margin-top: 20px">
+                    <button type="submit" class="btn btn-primary visible-phone">Save</button>
+                    <input class="btn btn-warning" type="button" onclick="location.href='<?= $CFG->apphome ?>/index.php'; return false;" value="Cancel"/>
+                </div>
+            </div>
+            <hr class="hidden-phone"/>
+            <div style="display: flex; justify-content: space-between;">
         <div class="control-group">
         <div class="controls">
         How much mail would you like us to send?
@@ -137,7 +167,11 @@ Send me notification mail for important things like my assignment was graded.
 </label>
 </div>
 </div>
-<hr class="hidden-phone"/>
+<div class="control-group pull-right" style="margin-top: 20px">
+    <button type="submit" class="btn btn-primary visible-phone">Save</button>
+    <input class="btn btn-warning" type="button" onclick="location.href='<?= $CFG->apphome ?>/index.php'; return false;" value="Cancel"/>
+</div>
+</div>
 <?php if ( isset($CFG->google_map_api_key) && ! $CFG->OFFLINE ) { ?>
     <hr class="hidden-phone"/>
         How would you like to be shown in maps.<br/>
@@ -200,9 +234,10 @@ Send me notification mail for important things like my assignment was graded.
         if ( $num == $val ) echo(' selected ');
     }
 
-    public static function checkbox($val) {
-        echo(' value="1" ');
-        if ( $val == 1 ) echo(' checked ');
+    public static function checkbox($var, $num, $initialVal) {
+        $ret = '<input type="checkbox" name="'.$var.'" id="'.$var.$num.'" value="'.$num.'" ';
+        if ( $num == $initialVal ) $ret .= ' checked ';
+        echo($ret);
     }
 
     public static function postProfile(Application $app)
@@ -230,11 +265,21 @@ Send me notification mail for important things like my assignment was graded.
         if ( ! is_object($profile) ) $profile = new \stdClass();
 
         $profile->subscribe = $_POST['subscribe']+0 ;
+
+        if ($_POST['theme'] == 1) {
+            $profile->theme_override = 'light';
+        } else if ($_POST['theme'] == 2) {
+            $profile->theme_override = 'dark';
+        } else {
+            $profile->theme_override = null;
+        }
+
         if ( isset($_POST['map']) ) {
             $profile->map = $_POST['map']+0 ;
             $profile->lat = $_POST['lat']+0.0 ;
             $profile->lng = $_POST['lng']+0.0 ;
         }
+
         $new_json = json_encode($profile);
         $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}profile SET json= :JSON

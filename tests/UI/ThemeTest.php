@@ -21,7 +21,8 @@ class ThemeTest extends \PHPUnit\Framework\TestCase
         $tsugi_dark = '#99FF99';
         $tsugicolors = Theme::deriveTsugiColors($tsugi_dark);
         $expected = array(
-            'tsugi-theme-dark-background' => '#000700',
+            'tsugi-theme-dark-background' => '#1f2225',
+            'tsugi-theme-dark-background-tint' => '#3a3f45',
             'tsugi-theme-dark-text' => '#071507',
             'tsugi-theme-dark-darker' => '#001c00',
             'tsugi-theme-dark' => '#003200',
@@ -32,20 +33,23 @@ class ThemeTest extends \PHPUnit\Framework\TestCase
             'tsugi-theme-light-lighter' => '#b0ffb0',
             'tsugi-theme-light-text' => '#c4ebc4',
             'tsugi-theme-light-background' => '#ecffec',
+            'tsugi-theme-light-background-tint' => '#b5e6b5',
+            'tsugi-theme-light-background' => '#FFFFFF',
         );
         $this->assertEquals($tsugicolors, $expected);
 
         $dark_mode = true;
         $legacy_theme = Theme::getLegacyTheme($tsugi_dark, $dark_mode);
         $expected = array(
-            'background-color' => '#000700',
+            'background-color' => '#1f2225',
+            'background-focus' => '#3a3f45',
+            'primary' => '#003200',
             'primary-menu' => '#003200',
             'primary-border' => '#2aff2a',
             'text-light' => '#76ff76',
-            'primary' => '#76ff76',
             'secondary-menu' => '#76ff76',
             'text' => '#c4ebc4',
-            'primary-darkest' => '#c4ebc4',
+            'secondary' => '#76ff76',
         );
         $this->assertEquals($legacy_theme, $expected);
 
@@ -61,7 +65,10 @@ class ThemeTest extends \PHPUnit\Framework\TestCase
             'text-light' => '#003200',
             'primary-border' => '#005200',
             'secondary' => '#76ff76',
-            'background-color' => '#ecffec',
+            'secondary-menu' => '#76ff76',
+            'background-focus' => '#b5e6b5',
+            'background-color' => '#FFFFFF',
+
         );
         $this->assertEquals($legacy_theme, $expected);
     }

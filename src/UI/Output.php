@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Tsugi\UI;
 
 use Tsugi\Util\U;
@@ -1346,8 +1345,14 @@ EOF;
         ini_set('zlib.output_compression', false);
     }
 
+    /** Retrieves or generates a theme based on optional specs (base color, dark mode flag).
+     *  $TSUGI_LAUNCH theme data is provided, it will override the $CFG data.
+     *  Otherwise, $CFG theme data will be used (either a theme_base or legacy theme data)
+     *  If $CFG and $TSUGI_LAUNCH theme data aren't provided, regular defaults will be used.
+     */
     public static function get_theme() {
         global $CFG, $TSUGI_LAUNCH;
+        $PDOX = LTIX::getConnection(); // Not globally accessible in tool details
 
         // TODO: Enable this
         if ( false && is_object($TSUGI_LAUNCH) ) {
@@ -1355,21 +1360,71 @@ EOF;
             if ( is_array($theme) ) return $theme;
         }
 
+        /** Theme generation from a base color */
+
         // Check if we are to construct a theme
-        if ( is_object($TSUGI_LAUNCH) ) {
-            $theme_base = $TSUGI_LAUNCH->settingsCascade('theme-base', false);
-            $dark_mode = $TSUGI_LAUNCH->settingsCascade('theme-dark-mode', false);
-            $dark_mode = ($dark_mode == 'true') || ($dark_mode == 'yes');
-            if ( U::isValidCSSColor($theme_base) ) {
-                $theme = Theme::getLegacyTheme($theme_base, $dark_mode);
-                $TSUGI_LAUNCH->session_put('tsugi_theme', $theme);
-                return $theme;
+        $theme_base = isset($CFG->theme_base) ? $CFG->theme_base : null;
+        $dark_mode = isset($CFG->theme_dark_mode) && Theme::isActive($CFG->theme_dark_mode) ? $CFG->theme_dark_mode : null;
+
+        // Override config values with launch values, if they exist
+        if (is_object($TSUGI_LAUNCH)) {
+            $launched_theme_base = null;
+            $launched_dark_mode = null;
+            if (isset($_SESSION) && isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['theme_base'])) {
+                $launched_theme_base = $_SESSION['lti_post']['theme_base'];
+            }
+            if (isset($_SESSION) && isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['theme_dark_mode'])) {
+                $launched_dark_mode = $_SESSION['lti_post']['theme_dark_mode'];
+            }
+            if (isset($launched_theme_base)) {
+                $theme_base = U::isValidCSSColor($launched_theme_base) ? $launched_theme_base : $theme_base;
+            }
+            if (isset($launched_dark_mode)) {
+                $dark_mode = Theme::isActive($launched_dark_mode);
             }
         }
 
-        // Construct a theme the old way
+        // Override the config AND launch values if the user's preference is set in the $_SESSION
+        if (isset($_SESSION) && isset($_SESSION['profile_id'])) {
+            $stmt = $PDOX->queryDie(
+                "SELECT json FROM {$CFG->dbprefix}profile WHERE profile_id = :PID",
+                array('PID' => $_SESSION['profile_id'])
+            );
+            $profile_row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if (!empty($profile_row) && !is_null($profile_row['json'])) {
+                $profile = json_decode($profile_row['json']);
+                if (isset($profile->theme_override)) {
+                    if ($profile->theme_override == 'dark') {
+                        $dark_mode = true;
+                    } else if ($profile->theme_override == 'light') {
+                        $dark_mode = null;
+                    }
+                }
+            }
+        }
+
+        // Set dark mode configuration on the theme so apps can check
+        // Example: conditional rendering of a twitter embed attribute
+        Theme::$dark_mode = $dark_mode;
+        Theme::$theme_base = $theme_base;
+
+        // Generate the theme
+        if (isset($theme_base) && U::isValidCSSColor($theme_base)) {
+            $theme = Theme::getLegacyTheme($theme_base, $dark_mode);
+            // Default any remaining values that weren't already configured
+            $theme = Theme::defaults($theme);
+            if (is_object($TSUGI_LAUNCH)) $TSUGI_LAUNCH->session_put('tsugi_theme', $theme);
+            return $theme;
+        }
+
+        /** Legacy theming */
+
         $theme = array();
-        if ( isset($CFG->theme) && is_array($CFG->theme) ) {
+        if ($dark_mode && isset($CFG->theme_dark) && is_array($CFG->theme_dark)) {
+            // If we are at this point and dark mode was requested but a provided or generated theme wasn't used, may use config
+            $theme = $CFG->theme_dark;
+        } else if (isset($CFG->theme) && is_array($CFG->theme)) {
+            // Otherwise use the non-dark theme configuration
             $theme = $CFG->theme;
         }
 
@@ -1379,7 +1434,7 @@ EOF;
         foreach($theme as $name => $value ) {
             if ( is_object($TSUGI_LAUNCH) ) {
                 $check = $TSUGI_LAUNCH->settingsCascade($name, $value);
-                if ( U::isValidCSSColor($check) ) $theme[$name] = $check;
+                if (isset($check) && U::isValidCSSColor($check) ) $theme[$name] = $check;
             }
         }
 

@@ -1,11 +1,14 @@
 <?php
-    
+
 namespace Tsugi\UI;
     
 use \Tsugi\Util\U;
 use \Tsugi\Util\Color;
     
 class Theme {
+
+    public static $dark_mode = false;
+    public static $theme_base = null;
     
     /**
      * Get default theme values from a configured theme or the actual defaults
@@ -20,7 +23,9 @@ class Theme {
             "primary-border" => U::get($theme, 'primary-border', self::adjustBrightness($primary,-0.075)),
             "primary-darker" => U::get($theme, 'primary-darker', self::adjustBrightness($primary,-0.1)),
             "primary-darkest" => U::get($theme, 'primary-darkest', self::adjustBrightness($primary,-0.175)),
-            'background-color' => U::get($theme, 'background-color', '#FFFFFF'),
+            "background-color" => U::get($theme, 'background-color', '#FFFFFF'),
+            "background-focus" => U::get($theme, 'background-focus', '#F5F5F5'),
+            "background-accent" => U::get($theme, 'background-accent', $primary),
             "secondary" => U::get($theme, 'secondary', $secondary),
             "secondary-menu" => U::get($theme, 'secondary-menu', $secondary),
             "text" => U::get($theme, 'text', '#111111'),
@@ -28,6 +33,11 @@ class Theme {
             "font-family" => U::get($theme, 'font-family', 'sans-serif'),
             "font-size" => U::get($theme, 'font-size', '14px'),
         );
+    }
+
+    public static function isActive($themeIndicator=false)
+    {
+        return ($themeIndicator == 'true') || ($themeIndicator == 'yes');
     }
 
     /**
@@ -129,13 +139,14 @@ class Theme {
     public static function getLegacyTheme($tsugi_dark, $dark_mode) {
     
         $tsuginames = self::deriveTsugiColors($tsugi_dark);
-        if ( $dark_mode ) {
+        if (Theme::isActive($dark_mode)) {
             $tusgitolegacy = array(
-                'tsugi-theme-light-text' => ['text', 'primary-darkest'],
-                'tsugi-theme-light' => ['text-light', 'primary', 'secondary-menu'],
+                'tsugi-theme-light-text' => ['text'],
+                'tsugi-theme-light' => ['text-light', 'secondary-menu', 'secondary'],
                 'tsugi-theme-light-darker' => 'primary-darker',
                 'tsugi-theme-light-accent' => 'primary-border',
-                'tsugi-theme-dark' => 'primary-menu',
+                'tsugi-theme-dark' => ['primary', 'primary-menu'],
+                'tsugi-theme-dark-background-tint' => 'background-focus',
                 'tsugi-theme-dark-background' => 'background-color',
             );
         } else {
@@ -144,7 +155,8 @@ class Theme {
                 'tsugi-theme-dark' => ['primary', 'primary-menu', 'text-light'],
                 'tsugi-theme-dark-darker' => 'primary-darker',
                 'tsugi-theme-dark-accent' => 'primary-border',
-                'tsugi-theme-light' => 'secondary',
+                'tsugi-theme-light' => [ 'secondary', 'secondary-menu'],
+                "tsugi-theme-light-background-tint" => 'background-focus',
                 'tsugi-theme-light-background' => 'background-color',
             );
         }
@@ -210,7 +222,8 @@ class Theme {
         $lightness_dark_accent = ($tsugi_dark_hsl[2] + $dark_inner_hsl[2]) / 2.0;
     
         $tsuginames = array(
-            "tsugi-theme-dark-background" => $outerpair[0],
+            "tsugi-theme-dark-background" => "#1f2225",
+            "tsugi-theme-dark-background-tint" => "#3a3f45",
             "tsugi-theme-dark-text" =>  Color::hex(self::hslToRgb($hue, $sat_dark*0.5, $lightness_darker)),
             "tsugi-theme-dark-darker" => Color::hex(self::hslToRgb($hue, $sat_dark, $lightness_darker)),
             "tsugi-theme-dark" =>  $tsugi_dark,
@@ -220,7 +233,8 @@ class Theme {
             "tsugi-theme-light" => Color::hex(self::hslToRgb($hue, $sat_light, $lightness_light - ($ldelta * 0.6))),
             "tsugi-theme-light-lighter" => Color::hex(self::hslToRgb($hue, $sat_light, $lightness_light - ($ldelta * 0.3))),
             "tsugi-theme-light-text" => Color::hex(self::hslToRgb($hue, $sat_light*0.5, $lightness_light - ($ldelta * 0.3))),
-            "tsugi-theme-light-background" => $outerpair[1],
+            "tsugi-theme-light-background-tint" => Color::hex(self::hslToRgb($hue, $sat_light*0.5, $lightness_light - ($ldelta * 0.4))),
+            "tsugi-theme-light-background" => '#FFFFFF',
         );
     
         return $tsuginames;
