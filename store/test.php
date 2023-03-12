@@ -36,6 +36,51 @@ $OUTPUT->header();
 #XbasicltiDebugToggle {
     display: none;
 }
+#body_container {
+    padding-top: 40px;
+}
+.breadcrumb {
+    background-color: var(--background-color);
+    margin-bottom: 5px;
+    padding: 5px 15px;
+}
+.breadcrumb>.active {
+    color: var(--text-light);
+}
+.test-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem;
+    background-color: var(--background-focus);
+    border-bottom: 8px solid var(--secondary);
+    flex-wrap: wrap;
+}
+.test-header-icon {
+    font-size: 3rem;
+    margin-right: 20px;
+    color: var(--text);
+}
+.test-header-text {
+    font-size: 3rem;
+    line-height: 3rem;
+    color: var(--text);
+}
+@media(max-width: 768px) {
+    .title-container {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+    }
+    .install-button-container {
+        width: 100%;
+        text-align: center;
+    }
+    .install-button-container .btn {
+        width: 275px;
+        margin-top: 20px;
+    }
+}
 </style>
 <?php
 
@@ -65,6 +110,51 @@ if ( $secret === false ) {
     return;
 }
 
+$rest_path = U::rest_path();
+$install = $rest_path->extra;
+
+if ($registrations && isset($registrations[$install])) {
+    $tool = $registrations[$install];
+    $ltiurl = $tool['url'];
+    $text = $tool['description'];
+    $title = $tool['name'];
+    $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
+    $icon = false;
+    if ( $fa_icon !== false ) {
+        $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+    }
+?>
+    <div class="header-back-nav">
+        <ol class="breadcrumb">
+            <li><a href="<?= $rest_path->parent; ?>">Store</a></li>
+            <li><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>"><?= $title; ?></a></li>
+            <li class="active">Try It</li>
+        </ol>
+    </div>
+    <div class="test-header">
+    <div class="title-container">
+        <?php
+        if ( $fa_icon ) {
+            ?>
+            <span class="fa <?= $fa_icon; ?> test-header-icon"></span>
+            <?php
+        }
+        ?>
+        <span class="test-header-text"><?= htmlent_utf8($title); ?></span>
+    </div>
+    <div class="install-button-container">
+    <?php
+    if ( isset($_SESSION['gc_count']) ) {
+        echo('<a class="btn btn-success" href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
+        echo('" title="Install in Classroom" target="iframe-frame"'."\n");
+        echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
+        echo('<span class="fa fa-plus"></span> Install</a>'."\n");
+    }
+    ?>
+    </div>
+</div>
+<?php
+}
 
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -76,30 +166,12 @@ if ( ! ( $registrations ) ) {
     return;
 }
 
-$rest_path = U::rest_path();
-$install = $rest_path->extra;
+if ( ! isset($registrations[$install])) {
+    echo("<p>Tool registration for ".htmlentities($install)." not found</p>\n");
+    $OUTPUT->footer();
+    return;
+}
 
-    if ( ! isset($registrations[$install])) {
-        echo("<p>Tool registration for ".htmlentities($install)." not found</p>\n");
-        $OUTPUT->footer();
-        return;
-    }
-    $tool = $registrations[$install];
-
-    $title = $tool['name'];
-    $text = $tool['description'];
-    $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
-    $icon = false;
-    if ( $fa_icon !== false ) {
-        $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
-    }
-
-    if ( $fa_icon ) {
-        echo('<span class="hidden-xs fa '.$fa_icon.' fa-3x" style="color: var(--primary); float:right; margin: 2px"></span>');
-    }
-    echo('<center>');
-    echo("<h1>".htmlent_utf8($title)."</h1>\n");
-    echo("</center>\n");
 ?>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#test" onclick="console.log('yada');" data-toggle="tab" aria-expanded="true">Test</a></li>
@@ -112,8 +184,6 @@ $install = $rest_path->extra;
       </li>
   <!-- <li><a href="#grades" data-toggle="tab" aria-expanded="false">Grades</a></li> -->
   <li><a href="#debug" data-toggle="tab" aria-expanded="false">Debug</a></li>
-  <li class="hidden-xs"><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>" role="button">Back to Details</a></li>
-  <li class="visible-xs"><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>" role="button">Details</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade" id="identity">
@@ -171,7 +241,7 @@ print($content);
 ?>
   </div>
   <div class="tab-pane fade" id="debug">
-    <pre>
+    <pre class="debug-output">
     Launch Parameters:
     <?php print_r($parms) ?>
     <hr/>

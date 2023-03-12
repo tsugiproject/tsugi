@@ -31,9 +31,139 @@ $OUTPUT->header();
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 9999;
+  z-index: 10000;
   display: none;
   background-color: rgba(0,0,0,0.5); /*dim the background*/
+  justify-content: center;
+  align-items: center;
+}
+#overlay_img {
+    max-width: 90%;
+}
+.slider-thumbnail {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    background-color: var(--background-focus);
+}
+.detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem;
+    background-color: var(--background-focus);
+    border-bottom: 8px solid var(--secondary);
+    flex-wrap: wrap;
+}
+.detail-header-icon {
+    font-size: 3rem;
+    margin-right: 20px;
+    color: var(--text);
+}
+.detail-header-text {
+    font-size: 3rem;
+    line-height: 3rem;
+    color: var(--text);
+}
+@media(max-width: 768px) {
+    .title-container {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+    }
+    .install-button-container {
+        width: 100%;
+        text-align: center;
+    }
+    .install-button-container .btn {
+        width: 275px;
+        margin-top: 20px;
+    }
+}
+.breadcrumb {
+    background-color: var(--background-color);
+    margin-bottom: 5px;
+    padding: 5px 15px;
+}
+.breadcrumb>.active {
+    color: var(--text-light);
+}
+.summary-text {
+    margin-bottom: 40px;
+    font-size: large;
+}
+.video-frame {
+    max-width: 100%;
+}
+.content-container {
+    display: flex;
+    padding: 20px;
+    padding-top: 40px;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 20px;
+}
+.summary-column {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 600px;
+    justify-content: flex-start;
+}
+.details-column {
+    width: 275px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.details-column input {
+    margin-bottom: 20px;
+}
+.button-container {
+    display: flex;
+    justify-content: center;
+}
+.button-container input {
+    width: 100%;
+}
+.tool-link-container {
+    padding: 8px 0;
+}
+.sidebar-header {
+    font-size: large;
+}
+a.tool-url-link {
+    text-decoration: none;
+    padding: 0;
+}
+a.tool-url-link:hover, a.tool-url-link:focus, a.tool-url-link:active {
+    color: var(--text-light);
+    text-decoration: none;
+}
+.bx-wrapper .bx-viewport {
+    background-color: var(--background-focus);
+    border-width: 2px;
+    border-color: var(--secondary);
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+}
+.bxslider {
+    display: flex;
+    align-items: center;
+    height: 315px;
+    width: 560px;
+}
+.bx-pager-item {
+    line-height: normal;
+}
+body .bx-wrapper .bx-pager.bx-default-pager a {
+    border: 1px solid var(--text);
+}
+.not-found-text {
+    margin: 40px;
+    font-size: 20px;
+    text-align: center;
 }
 </style>
 <?php
@@ -43,11 +173,64 @@ $registrations = findAllRegistrations(false, true);
 // echo("<pre>\n");var_dump($registrations);echo("</pre>");die();
 if ( count($registrations) < 1 ) $registrations = false;
 
+$rest_path = U::rest_path();
+$install = $rest_path->extra;
+$title = '';
+$fa_icon = 'fa-question';
+if (isset($registrations[$install])) {
+    $tool = $registrations[$install];
+    
+    $screen_shots = U::get($tool, 'screen_shots');
+    $video = U::get($tool, 'video');
+    if ( !is_array($screen_shots) || count($screen_shots) < 1 ) $screen_shots = false;
+    
+    $title = $tool['name'];
+    $text = $tool['description'];
+    $keywords = U::get($tool,'keywords');
+    $ltiurl = $tool['url'];
+    $fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
+    $icon = false;
+    if ( $fa_icon !== false ) {
+        $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+    }
+}
+
+?>
+<div class="header-back-nav">
+    <ol class="breadcrumb">
+    <li><a href="<?= $rest_path->parent; ?>">Store</a></li>
+    <li class="active"><?= $title ?></li>
+    </ol>
+</div>
+<div class="detail-header">
+    <div class="title-container">
+        <?php
+        if ( $fa_icon ) {
+            ?>
+            <span class="fa <?= $fa_icon; ?> detail-header-icon"></span>
+            <?php
+        }
+        ?>
+        <span class="detail-header-text"><?= htmlent_utf8($title); ?></span>
+    </div>
+    <div class="install-button-container">
+    <?php
+    if ( isset($_SESSION['gc_count']) ) {
+        echo('<a class="btn btn-success" href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
+        echo('" title="Install in Classroom" target="iframe-frame"'."\n");
+        echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
+        echo('<span class="fa fa-plus"></span> Install</a>'."\n");
+    }
+    ?>
+    </div>
+</div>
+<?php
+
 $OUTPUT->bodyStart();
 ?>
-<div id="overlay" class="overlay" style="text-align: center;"
+<div id="overlay" class="overlay"
    onclick="document.getElementById('overlay').style.display = 'none';" >
-<img id="overlay_img" style="width:90%;margin-top: 50px;" src="<?= $OUTPUT->getSpinnerUrl(); ?>">
+<img id="overlay_img" src="<?= $OUTPUT->getSpinnerUrl(); ?>">
 </div>
 <?php
 $OUTPUT->topNav();
@@ -59,27 +242,11 @@ if ( ! ( $registrations ) ) {
     return;
 }
 
-$rest_path = U::rest_path();
-$install = $rest_path->extra;
 
 if ( ! isset($registrations[$install])) {
-    echo("<p>Tool registration for ".htmlentities($install)." not found</p>\n");
+    echo("<p class=\"not-found-text\">Tool registration for ".htmlentities($install)." not found</p>\n");
     $OUTPUT->footer();
     return;
-}
-$tool = $registrations[$install];
-
-$screen_shots = U::get($tool, 'screen_shots');
-if ( !is_array($screen_shots) || count($screen_shots) < 1 ) $screen_shots = false;
-
-$title = $tool['name'];
-$text = $tool['description'];
-$keywords = U::get($tool,'keywords');
-$ltiurl = $tool['url'];
-$fa_icon = isset($tool['FontAwesome']) ? $tool['FontAwesome'] : false;
-$icon = false;
-if ( $fa_icon !== false ) {
-    $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
 }
 
 // Check if the tsugi.php is upgraded for this tool
@@ -114,46 +281,102 @@ $register_good = $json_obj && isset($json_obj->name);
     <p>App Store Canvas Configuration URL<br/>
     <a href="<?= $CFG->wwwroot ?>/lti/store/canvas-config.xml" target="_blank"><?= $CFG->wwwroot ?>/lti/store/canvas-config.xml</a></p>
 </div>
-<?php
 
-if ( $fa_icon ) {
-    echo('<span class="hidden-xs fa '.$fa_icon.' fa-2x" style="color: var(--primary); float:right; margin: 2px"></span>');
-}
-echo("<h1>".htmlent_utf8($title)."</h1>\n");
-echo('<p class="hidden-xs">'.htmlent_utf8($text)."</p>\n");
-if (is_array($keywords)) {
-    sort($keywords);
-    echo('<p class="keywords">Tags: <span class="keyword-span">'.implode(", ", $keywords).'</span></p>');
-}
-if ( $screen_shots ) {
-    echo('<div class="row">'."\n");
-    echo('<div class="col-sm-4">'."\n");
-}
+<div class="content-container">
+    <div class="summary-column">
+        <span class="summary-text"> <?= htmlent_utf8($text); ?></span>
+        <?php
+        if ($video || $screen_shots) {
+            ?>
+            <div class="bxslider">
+                <?php
+                
+                if (is_string($video)) { ?>
+                    <iframe class="video-frame" height="315" width="560" src="<?= $video; ?>" frameborder="0" scrolling="0" allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *;" allowfullscreen></iframe>
+                    <?php
+                }
+                if ($screen_shots) {
+                    foreach($screen_shots as $idx=>$screen_shot ) { ?>
+                        <div class="slider-thumbnail" id="slider-thumbnail-<?= $idx; ?>"><img src="<?= $screen_shot; ?>" title="<?= htmlentities($title); ?>"></div>
+                        <?php
+                    } 
+                }
+            ?>
+            </div>
+        <?php
+        }
+        ?>
+    </div>
+    <div class="details-column">
+        <?php
+            
+            echo('<form method="POST" style="display:inline" action="'.$rest_path->parent.'/test/'.urlencode($install).'">');
+            echo('<div class="button-container">');
+            echo('<input type="submit" class="btn btn-primary" value="Try It"></form> ');
+            echo('</div>');
+            if ( is_array(U::get($tool, 'languages')) ) {
+                ?>
+                <div class="tool-link-container">
+                    <div class="sidebar-header">Languages</div>
+                    <?php
+                    $first = true;
+                    foreach(U::get($tool, 'languages') as $language) {
+                        if ( ! $first ) echo(', ');
+                        $first = false;
+                        echo(htmlentities($language));
+                    }
+                    ?>
+                </div>
+                <?php
+            }
+            if ( is_string(U::get($tool, 'license')) ) {
+                ?>
+                <div class="tool-link-container">
+                    <div class="sidebar-header">License</div>
+                    <?php
+                        echo(htmlentities(U::get($tool, 'license')));
+                    ?>
+                </div>
+                <?php
+            }
+            $source_url = U::get($tool, 'source_url');
+            if ( is_string($source_url) ) {
+                ?>
+                <div class="tool-link-container">
+                    <a href="<?= $source_url; ?>" target="_blank" class="tool-url-link sidebar-header">Source Code <span class="fa fa-chevron-right"></span></a>
+                </div>
+                <?php
+            }
+            echo('<div class="tool-link-container">');
+            echo('<a href="#" class="tool-url-link sidebar-header" role="button" onclick="showModal(\'Tool URLs\',\'url-dialog\');">Tool URLs <span class="fa fa-chevron-right"></span></a>');
+            echo('</div>');
+
+            if (is_array($keywords)) {
+                sort($keywords);
+                ?>
+                <div class="tool-link-container">
+                    <div class="sidebar-header">Tags</div>
+                    <h3 style="margin-top: 0;">
+
+                    <?php
+                        foreach ($keywords as $tag) {
+                            ?>
+                                <span class="label label-default"><?= $tag; ?></span>
+                            <?php
+                        }
+                    ?>
+                    </h3>
+                </div>
+                <?php
+            }
+            ?>
+            <div class="tool-link-container">
+                <div class="sidebar-header">Additional Details</div>
+            </div>
+            <?php
 $script = isset($tool['script']) ? $tool['script'] : "index";
 $path = $tool['url'];
-
-
-echo('<form method="POST" style="display:inline" action="'.$rest_path->parent.'/test/'.urlencode($install).'">');
-echo('<a href="'.$rest_path->parent.'" class="btn btn-default" role="button">Back to Store</a>');
-echo(' ');
-if ( isset($_SESSION['gc_count']) ) {
-    echo('<a href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
-    echo('" title="Install in Classroom" target="iframe-frame"'."\n");
-    echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
-    echo('<img height=32 width=32 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
-}
-echo(' ');
-echo('<a href="#" class="btn btn-default" role="button" onclick="showModal(\'Tool URLs\',\'url-dialog\');">Tool URLs</a>');
-echo(' ');
-echo('<input type="submit" class="btn btn-default" value="Test"></form> ');
-echo("\n");
-
 echo("<p><ul>\n");
-$video = U::get($tool, 'video');
-if ( is_string($video) ) {
-    echo('<li><p><a href="'.$video.'"
-       target="_blank">'._m('Video Demonstration').'</a></p></li>'."\n");
-}
 if ( isset($CFG->privacy_url) ) {
     echo('<li><p><a href="'.$CFG->privacy_url.'"
        target="_blank">'._m('Privacy Policy').'</a></p></li>'."\n");
@@ -193,32 +416,9 @@ if ( $CFG->launchactivity ) {
     echo(_m('Can send analytics to learning record store.'));
     echo("</p></li>\n");
 }
-if ( is_array(U::get($tool, 'languages')) ) {
-    echo('<li><p>');
-    echo(_m('Languages:'));
-    echo(' ');
-    $first = true;
-    foreach(U::get($tool, 'languages') as $language) {
-        if ( ! $first ) echo(', ');
-        $first = false;
-        echo(htmlentities($language));
-    }
-    echo("</p></li>\n");
-}
 if ( isset($CFG->sla_url) ) {
     echo('<li><p><a href="'.$CFG->sla_url.'"
        target="_blank">'._m('Service Level Agreement').'</a></p></li>'."\n");
-}
-if ( is_string(U::get($tool, 'license')) ) {
-    echo('<li><p>');
-    echo(_m('License:'));
-    echo(' ');
-    echo(htmlentities(U::get($tool, 'license')));
-}
-$source_url = U::get($tool, 'source_url');
-if ( is_string($source_url) ) {
-    echo('<li><p><a href="'.$source_url.'"
-       target="_blank">'._m('Source code').'</a></p></li>'."\n");
 }
 
 if ( isset($CFG->google_classroom_secret) ) {
@@ -248,20 +448,8 @@ echo("</p></li>\n");
 
 
 echo("</ul>\n");
-
-if ( $screen_shots ) {
-    echo("<!-- .col-sm-4--></div>\n");
-    echo('<div class="col-sm-8">'."\n");
-    echo("<center>\n");
-    echo('<div class="bxslider">');
-    foreach($screen_shots as $screen_shot ) {
-       echo('<div><img title="'.htmlentities($title).'" onclick="$(\'#overlay_img\').attr(\'src\',this.src);document.getElementById(\'overlay\').style.display = \'block\';"');
-       echo(' src="'.$screen_shot.'"></div>'."\n");
-    }
-    echo("</center>\n");
-    echo("<!-- .col-sm-8--></div>\n");
-    echo("</div>\n");
-}
+echo("</div>\n");
+echo("</div>\n");
 
 echo("<!-- \n");print_r($tool);echo("\n-->\n");
 $OUTPUT->footerStart();
@@ -273,10 +461,23 @@ $(document).ready(function() {
     $('.bxslider').bxSlider({
         useCSS: false,
         adaptiveHeight: false,
-        slideWidth: "240px",
+        // slideWidth: "240px",
         infiniteLoop: false,
-        maxSlides: 3
+        // maxSlides: 3
     });
+
+    <?php
+    if ($screen_shots) {
+        foreach($screen_shots as $idx=>$screen_shot) {
+            ?>
+            $('#slider-thumbnail-<?= $idx; ?>').click(function () {
+                $('#overlay_img').attr('src', "<?= $screen_shot; ?>");
+                document.getElementById('overlay').style.display = 'flex';
+            });
+            <?php
+        }
+    }
+    ?>
 });
 </script>
 <?php
