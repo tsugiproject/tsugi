@@ -273,13 +273,13 @@ Send me notification mail for important things like my assignment was graded.
         } else {
             $profile->theme_override = null;
         }
-        
+
         if ( isset($_POST['map']) ) {
             $profile->map = $_POST['map']+0 ;
             $profile->lat = $_POST['lat']+0.0 ;
             $profile->lng = $_POST['lng']+0.0 ;
         }
-        echo('HERE');
+
         $new_json = json_encode($profile);
         $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}profile SET json= :JSON
