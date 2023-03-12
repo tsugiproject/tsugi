@@ -1073,6 +1073,10 @@ class LTIX {
         $sub_caliper_url = U::get($FIXED,'sub_caliper_url');
         if ($sub_caliper_url ) $retval['sub_caliper_url'] = $sub_caliper_url;
 
+        // Get the theme data
+        $retval['theme_base'] = isset($FIXED['theme_base']) ? $FIXED['theme_base'] : null;
+        $retval['theme_dark_mode'] = isset($FIXED['theme_dark_mode']) ? $FIXED['theme_dark_mode'] : null;
+
         return $retval;
     }
 
@@ -1231,6 +1235,10 @@ class LTIX {
         if ( isset($body->{LTI13::DEEPLINK_CLAIM}) ) {
             $retval['lti13_deeplink'] = $body->{LTI13::DEEPLINK_CLAIM};
         }
+
+        // Get the theme data
+        $retval['theme_base'] = isset($body->theme_base) ? $body->theme_base : null;
+        $retval['theme_dark_mode'] = isset($body->theme_dark_mode) ? $body->theme_dark_mode : null;
 
         return $retval;
     }

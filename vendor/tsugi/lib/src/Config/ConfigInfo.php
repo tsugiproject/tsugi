@@ -342,6 +342,18 @@ class ConfigInfo {
     public $theme;
 
     /**
+     * The color to be used as the theme base
+     * This could optionally be overridden by a launch parameter
+     */
+    public $theme_base;
+
+    /**
+     * A boolean indicator as to whether dark mode should be used
+     * This could optionally be overridden by a launch parameter
+     */
+    public $theme_dark_mode;
+
+    /**
      * The path to an LTI-launch error handling page
      *
      * When the LTI runtime (LTIX.php) is lost and confused because

@@ -3,6 +3,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
+use \Tsugi\UI\Theme;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
@@ -155,7 +156,8 @@ if ( $outcomes ) {
 }
 
 $parms['launch_presentation_return_url'] = $rest_path->current . '/return';
-
+// Add the dark mode preference from the Theme (defaulting to false)
+$parms['theme_dark_mode'] = Theme::$dark_mode ? 'true' : 'false';
 $tool_consumer_instance_guid = $lmsdata['tool_consumer_instance_guid'];
 $tool_consumer_instance_description = $lmsdata['tool_consumer_instance_description'];
 
