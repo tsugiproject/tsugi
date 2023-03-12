@@ -67,6 +67,27 @@ class User {
     public $instructor = null;
 
     /**
+     * Is the user an administrator?
+     */
+    public $admin = false;
+
+     /*
+     * The LTI 1.1 key (if defined)
+     */
+    // TODO: Check if this is needed.
+    public $key = false;
+
+    /*
+     * The LTI 1.1 secret (if defined)
+     */
+    // TODO: Check if this is needed.
+    public $secret = false;
+
+    // Dynamic properties
+    // TODO: Check if this is needed.
+    public $launch = false;
+
+    /**
      * Construct the user's name / email combination
      */
     public function getNameAndEmail() {

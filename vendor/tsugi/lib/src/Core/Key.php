@@ -37,4 +37,14 @@ class Key extends Entity {
      */
     public $title;
 
+    /*
+     * The LTI 1.1 key (if defined)
+     */
+    public $key;
+
+    /*
+     * The LTI 1.1 secret (if defined)
+     */
+    public $secret;
+
 }

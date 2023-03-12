@@ -417,6 +417,35 @@ class ConfigInfo {
      */
     public $lumen_storage;
 
+    /* Declare these to avoid dynamic properties */
+    public $loader = false;
+    public $bootswatch = false;
+    public $bootswatch_color = false;
+    public $install_folder = false;
+    public $youtube_url = false;
+    public $google_client_id = false;
+    public $google_client_secret = false;
+    public $google_map_api_key = false;
+    public $context_title = false;
+    public $lessons = false;
+    public $vendorroot = false;
+    public $vendorinclude = false;
+    public $vendorstatic = false;
+    public $websocket_secret = false;
+    public $websocket_url = false;
+    public $require_conformance_parameters = false;
+    public $launchactivity = false;
+    public $eventcheck = false;
+    public $eventtime = false;
+    public $eventpushtime = false;
+    public $eventpushcount = false;
+    public $dbversion = false;
+    public $certification = false;
+    public $unify = false;
+    public $lang = false;
+    public $fontawesome = false;
+    public $prefer_lti1_for_grade_send = false;
+
     /**
      * Create the configuration object.
      *
