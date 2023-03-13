@@ -2438,7 +2438,7 @@ class LTIX {
      * Call the right LTI service to retrieve the server's grade and
      * update our local cached copy of the server_grade and the date
      * retrieved. This routine pulls the key and secret from the LTIX
-     * session to avoid crossing cross tennant boundaries.
+     * session to avoid crossing cross tenant boundaries.
      *
      * @param $row An optional array with the data that has the result_id, sourcedid,
      * and service (url) if this is not present, the data is pulled from the LTI
@@ -2464,7 +2464,7 @@ class LTIX {
      * Call the right LTI service to send a new grade up to the server.
      * update our local cached copy of the server_grade and the date
      * retrieved. This routine pulls the key and secret from the LTIX
-     * session to avoid crossing cross tennant boundaries.
+     * session to avoid crossing cross tenant boundaries.
      *
      * @param $grade A new grade - floating point number between 0.0 and 1.0
      * @param $row An optional array with the data that has the result_id, sourcedid,

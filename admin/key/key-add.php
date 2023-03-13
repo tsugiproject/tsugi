@@ -172,7 +172,7 @@ https://dev1.sakaicloud.com
 </pre>
 <h2>LTI 1.1</h2>
 <p>
-Create a Tennant key with the LTI key and secret. Then come back here and view the key to
+Create a Tenant key with the LTI key and secret. Then come back here and view the key to
 see the various URLs you can use to install Tsugi in your LMS.
 </p>
 
@@ -214,7 +214,7 @@ require_once("blackboard-detail.php");
 ?>
 <h2>LTI 1.1</h2>
 <p>
-Create a Tennant key with the LTI key and secret.  Then come back here and view the key
+Create a Tenant key with the LTI key and secret.  Then come back here and view the key
 to see the various URLs you can use to install Tsugi in Blackboard.
 </p>
 </div>

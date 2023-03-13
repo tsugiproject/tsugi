@@ -128,7 +128,7 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 ?>
-<h1>Tennant Details
+<h1>Tenant Details
   <a class="btn btn-default" href="#" onclick="window.location.reload(); return false;">Refresh</a>
   <a class="btn btn-default" href="keys">Exit</a>
 </h1>
