@@ -39,12 +39,17 @@ $LAUNCH = new \Tsugi\Core\Launch();
 $OUTPUT->launch = $LAUNCH;
 
 // http://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
-if ( ! function_exists('startsWith') ) {
+https://stefvanlooveren.me/errors/how-fix-strlen-passing-null-parameter-1-string-type-string-deprecated
+if ( ! function_exists('startsWith') ) {    
 function startsWith($haystack, $needle) {
+    if ($haystack && $needle) {
+        if (strlen($haystack) > 0 && strlen($needle) > 0) {
     // search backwards starting from haystack length characters from the end
     return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
 }
 }
+            }
+            }
 
 if ( ! function_exists('endsWith') ) {
 function endsWith($haystack, $needle) {
