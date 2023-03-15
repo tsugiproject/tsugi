@@ -223,6 +223,7 @@ $retval['body_received'] = $response;
 $response_code = Net::getLastHttpResponse();
 
 if ( $response_code != 200 ) {
+    echo("<pre>\n");
     echo("\nHttp response code: $response_code\n");
     if ( is_string($body) ) {
         echo("\nBody:\n");
