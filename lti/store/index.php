@@ -1093,7 +1093,7 @@ function toggleLineItem(item, count) {
 
 </script>
 
-    <script type="text/javascript" src="static/ftellipsis.js"></script>
+    <script type="text/javascript" src="<?= $CFG->staticroot ?>/js/ftellipsis.js"></script>
     <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js"></script>
     <script type="text/javascript">
         var filter = filter || {};
