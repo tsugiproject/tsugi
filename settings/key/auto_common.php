@@ -226,7 +226,7 @@ if ( $response_code != 200 ) {
     echo("\nHttp response code: $response_code\n");
     if ( is_string($body) ) {
         echo("\nBody:\n");
-        echo(htmlentities(substr($body), 0, 5000));
+        echo(htmlentities(substr($body, 0, 5000)));
         echo("\n");
     }
     echo("</pre>\n");
