@@ -26,10 +26,20 @@ class User {
     protected $ENTITY_NAME = "user";
     use JsonTrait;  // Pull in the trait
 
+    /*
+     * The upwards pointer to the corresponding launch
+     */
+    public $launch = false;
+
     /**
      * The integer primary key for this user in the 'lti_user' table.
      */
     public $id;
+
+    /**
+     * The logical key for this user in the 'lti_user' table.
+     */
+    public $key;
 
     /**
      * The user's email
@@ -70,22 +80,6 @@ class User {
      * Is the user an administrator?
      */
     public $admin = false;
-
-     /*
-     * The LTI 1.1 key (if defined)
-     */
-    // TODO: Check if this is needed.
-    public $key = false;
-
-    /*
-     * The LTI 1.1 secret (if defined)
-     */
-    // TODO: Check if this is needed.
-    public $secret = false;
-
-    // Dynamic properties
-    // TODO: Check if this is needed.
-    public $launch = false;
 
     /**
      * Construct the user's name / email combination
