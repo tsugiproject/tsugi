@@ -1,5 +1,6 @@
 <?php
 
+
 require_once($CFG->dirroot."/vendor/autoload.php");
 
 function lmsDie($message=false) {
@@ -42,11 +43,11 @@ $OUTPUT->launch = $LAUNCH;
 if (!function_exists('startsWith')) {
     function startsWith($haystack, $needle)
     {
-        if (!empty($haystack) && !empty($needle)) {
+        if (is_string($haystack) && is_string($needle)) {
             // search backwards starting from haystack length characters from the end
             return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
         } else {
-            return "";
+            return false;
         }
     }
 }
@@ -55,12 +56,22 @@ if (!function_exists('endsWith')) {
     function endsWith($haystack, $needle)
     {
         // search forward starting from end minus needle length characters
-        if (!empty($haystack) && !empty($needle)) {
+        if (is_string($haystack) && is_string($needle)) {
             return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
         } else {
-            return "";
+            return false;
         }
     }
+}
+
+// Quick test - make sure we don't regress these.
+if ( startsWith("Hello", "H") && endsWith("Hello", "o") &&
+     startsWith(null, null) == false && endsWith(null, null) == false &&
+     startsWith("Hello", null) == false && endsWith("Hello", null) == false &&
+     startsWith(null, "H") == false && endsWith(null, "o") == false ) {
+    // all good.
+} else {
+    die('startsWith or endsWith fail');
 }
 
 // No trailer

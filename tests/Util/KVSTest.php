@@ -1,7 +1,11 @@
 <?php
 
+require_once "src/Util/PDOX.php";
+require_once "src/Util/PDOXStatement.php";
+
 use \Tsugi\Util\U;
 use \Tsugi\Util\PDOX;
+use \Tsugi\Util\PDOXStatement;
 use \Tsugi\Util\KVS;
 
 class KVSTest extends \PHPUnit\Framework\TestCase

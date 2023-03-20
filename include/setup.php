@@ -1,4 +1,5 @@
 <?php
+
 use \Tsugi\Util\U;
 
 if ( ! isset($CFG) ) die("Please configure this product using config.php");
@@ -43,12 +44,10 @@ function print_stack_trace() {
 if ( isset($CFG->upgrading) && $CFG->upgrading === true ) require_once("upgrading.php");
 
 // The vendor include and root
-if ( ! isset($CFG->vendorroot) ) $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
-if ( ! isset($CFG->vendorinclude) ) $CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/lib/include";
-if ( ! isset($CFG->vendorstatic) ) $CFG->vendorstatic = $CFG->dirroot."/vendor/tsugi/lib/static";
-if ( ! isset($CFG->launchactivity) ) $CFG->launchactivity = false;
-if ( ! isset($CFG->certification) ) $CFG->certification = false;
-if ( isset($CFG->staticroot) ) $CFG->staticroot = \Tsugi\Util\U::remove_relative_path($CFG->staticroot);
+if ( ! is_string($CFG->vendorroot) ) $CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
+if ( ! is_string($CFG->vendorinclude) ) $CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/lib/include";
+if ( ! is_string($CFG->vendorstatic) ) $CFG->vendorstatic = $CFG->dirroot."/vendor/tsugi/lib/static";
+if ( is_string($CFG->staticroot) ) $CFG->staticroot = \Tsugi\Util\U::remove_relative_path($CFG->staticroot);
 
 require_once $CFG->vendorinclude . "/lms_lib.php";
 
@@ -73,33 +72,9 @@ if ( ! isset($CFG->staticroot) ) die_with_error_log('$CFG->staticroot not define
 if ( ! isset($CFG->timezone) ) die_with_error_log('$CFG->timezone not defined in config.php');
 if ( strpos($CFG->dbprefix, ' ') !== false ) die_with_error_log('$CFG->dbprefix cannot have spaces in it');
 
-if ( !isset($CFG->ownername) ) $CFG->ownername = false;
-if ( !isset($CFG->owneremail) ) $CFG->owneremail = false;
-if ( !isset($CFG->providekeys) ) $CFG->providekeys = false;
-if ( !isset($CFG->unify) ) $CFG->unify = true;
-
-if ( !isset($CFG->apphome) ) $CFG->apphome = $CFG->wwwroot;
-
-if ( !isset($CFG->lang) ) $CFG->lang = false;
-if ( !isset($CFG->google_translate) ) $CFG->google_translate = false;
-
-if ( !isset($CFG->noncecheck) ) $CFG->noncecheck = 100;
-if ( !isset($CFG->noncetime) ) $CFG->noncetime = 1800;
-
-// By default we don't record events
-if ( !isset($CFG->eventcheck) ) $CFG->eventcheck = false;
-if ( !isset($CFG->eventtime) ) $CFG->eventtime = 7*24*60*60;
-
 if ( !isset($CFG->git_command) && strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ) $CFG->git_command = 'git';
 
-// By default we don't push events
-if ( ! isset($CFG->eventpushcount) ) $CFG->eventpushcount = 0;
-if ( ! isset($CFG->eventpushtime) ) $CFG->eventpushtime = 2;
-
-// New fontawesome configuration
-// If you want to stick with 4.7.0 add this to your config.php
-// $CFG->fontawesome = $CFG->staticroot . '/font-awesome-4.7.0'
-if ( ! isset($CFG->fontawesome) ) $CFG->fontawesome = $CFG->staticroot . '/fontawesome-free-5.8.2-web';
+if ( ! isset($CFG->fontawesome) || ! is_string($CFG->fontawesome) ) $CFG->fontawesome = $CFG->staticroot . '/fontawesome-free-5.8.2-web';
 
 // Certification hacks
 if ( !isset($CFG->prefer_lti1_for_grade_send) ) $CFG->prefer_lti1_for_grade_send = true;
@@ -108,7 +83,7 @@ error_reporting(E_ALL & ~E_NOTICE);
 error_reporting(E_ALL );
 ini_set('display_errors', 1);
 
-if ( isset($CFG->sessionlifetime) ) {
+if ( isset($CFG->sessionlifetime) && is_numeric($CFG->sessionlifetime)  ) {
     ini_set('session.gc_maxlifetime', $CFG->sessionlifetime);
 } else {
     $CFG->sessionlifetime = ini_get('session.gc_maxlifetime');

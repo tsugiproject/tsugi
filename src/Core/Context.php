@@ -41,6 +41,16 @@ class Context extends Entity {
      */
     public $title;
 
+    /*
+     * The LTI 1.1 key (if defined)
+     */
+    public $key;
+
+    /*
+     * The LTI 1.1 secret (if defined)
+     */
+    public $secret;
+
     /**
      * Load the LTI 1.3 data from the session, checking for sanity
      *

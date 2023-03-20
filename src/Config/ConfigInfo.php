@@ -74,6 +74,7 @@ class ConfigInfo {
      * knows who to send the mail for key requests to.
      */
     public $providekeys = false;
+    public $autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 
     /**
      * Database connection information to configure the PDO connection
@@ -266,6 +267,11 @@ class ConfigInfo {
      */
     public $universal_analytics = false;  // "UA-423997-16";
 
+    /*
+     * The default language for this systyem
+     */
+    public $lang = 'en';
+
     /**
      * Enable Google Translate on this site
      *
@@ -288,12 +294,23 @@ class ConfigInfo {
     /**
      * Indicate which directories to scan for tools.
      *
-     * This allows you to make your own tool folders.  These are scanned
-     * for database.php, register.php and index.php files to do automatic
-     * table creation as well as making lists of tools in various UI places
-     * and during LTI 2.x tool registration.
+     *  This allows you to include various tool folders.  These are scanned
+     *  for register.php, database.php and index.php files to do automatic
+     *  table creation as well as making lists of tools in various UI places
+     *  such as ContentItem and Deep Linking.
      */
-    public $tool_folders = array("core", "mod", "samples");
+    public $tool_folders = array("admin", "mod");
+
+    /**
+     * Indicate which folder to install new modules into.
+     *
+     * By default we use the built-in admin tools, and
+     * install new tools (see /admin/install/) into mod.  If this is left to
+     * false, it will suppress automatic tool installation in Tsugi admin.
+     *
+     * $CFG->install_folder = $CFG->dirroot.'/mod';
+     */
+    public $install_folder = false;
 
     /**
      * Set the session timeout - in seconds
@@ -385,19 +402,31 @@ class ConfigInfo {
      */
     public $defaultmenu;
 
+    /*
+     * If we are running Embedded Tsugi we need to set the
+     * "course title" for the course that represents
+     * the "local" students that log in through Google.
+     *
+     * $CFG->context_title = "Web Applications for Everybody";
+     */
+    public $context_title = false;
+
     /**
-     * Path to the gift quiz content. You can maintain a set of gift quizes
+     * Path (on disk) to the gift quiz content.
+     *
+     * You can maintain a set of gift quizes
      * as text files in github if you like.   These can be part of your main
      * Koseu repository or a separate checked-out private repository.
      * When you are configuring a quiz, quiz content can be loaded from these files.
      * There is a '.lock' file in the folder if you want to hide the quiz content
      * from those using the test feature in the store.
+     *
      * $CFG->giftquizzes = $CFG->dirroot.'/../py4e-private/quiz';
      */
     public $giftquizzes;
 
     /**
-     * The path to the installed instance of the tdiscus tool.
+     * The url of the installed instance of the tdiscus tool.
      *
      * When you set this, and you add discussions to lessons.json
      * LTI links to your dicussions are added to exported common
@@ -409,6 +438,34 @@ class ConfigInfo {
     public $tdiscus;
 
     /**
+     * The url of the installed YouTube tool
+     *
+     * If you want lessons to launch YouTube URLs using the tracking
+     * tool, put its path here.  If you have not installed this tool,
+     * leave this value blank.
+     *
+     * $CFG->youtube_url = $CFG->apphome . '/mod/youtube/';
+     *
+     */
+    public $youtube_url = false;
+
+    /*
+     * If we are going to use the lessons tool and/or badges, we need to
+     * create and point to a lessons.json file
+     *
+     * $CFG->lessons = $CFG->dirroot.'/../lessons.json';
+     */
+    public $lessons = false;
+
+    /*
+     * If we are going to use the Topics section, we need to create and
+     * point to the topics.json file
+     *
+     * $CFG->topics = $CFG->dirroot.'/../topics.json';
+     */
+    public $topics = false;
+
+    /**
      * Storage location for Lumen Application.
      *
      * Needed for log files, by default dirroot."/storage/". This needs
@@ -416,6 +473,112 @@ class ConfigInfo {
      *
      */
     public $lumen_storage;
+
+    /*
+     * Whether or not to track launch activity
+     */
+    public $launchactivity = true;
+
+    /*
+     * Set this to true if you are running certification since it is wonky at times
+     */
+    public $certification = false;
+    public $require_conformance_parameters = false;
+    public $prefer_lti1_for_grade_send = false;
+
+    /*
+     * Set these to enable Tsugi's option to uify accounts by email address
+     */
+    public $unify = false;
+
+    /*
+     * Controls the event push logic
+     */
+    public $eventcheck = false;
+    public $eventtime = 7*24*60*60;
+    public $eventpushtime = 2;
+    public $eventpushcount = 0;
+
+    /*
+     * Controls google log in and maps setup.
+     *
+     * Go to https://console.developers.google.com/apis/credentials
+     * create a new OAuth 2.0 credential for a web application,
+     * get the key and secret, and put them in these attributes
+     */
+    public $google_client_id = false;
+    public $google_client_secret = false;
+    public $google_map_api_key = false;
+
+    /*
+     * Tells Google to come back to "/login" after Google Login.
+     * If set to false our login comes back to "login.php".
+     *
+     * The login return is part of your OAuth 2.0 configuration
+     * in Google.  And some old integrations used login.php.
+     * New integrations should use "/login" and leave this true.
+     * This is here to for old integrations.
+     */
+    public $google_login_new = true;
+
+    /*
+     * This allows you to force login.php to always go to the same
+     * page after login success.  Tsugi looks at the session for a
+     * "go back after login" URL, and will go to apphome or wwwroot.
+     *
+     * But if you want for the return to always go to some particular
+     * URL, set this field.
+     *
+     * $CFG->login_return_url = $CFG->apphome . "/welcome";
+     */
+    public $login_return_url = false;
+
+    /**
+     * If we have a web socket server, put its URL here
+     * Do not add a path here - just the host and port
+     * Make sure the port is open on your server
+     *
+     * $CFG->websocket_secret = 'changeme';
+     * $CFG->websocket_url = 'ws://localhost:2021'; // Local dev test
+     * $CFG->websocket_url = 'wss://socket.tsugicloud.org:443'; // Production
+     *
+     * If you are running a reverse proxy (proxy_wstunnel) set this to the port
+     * you will forward to in your apache config
+     *
+     * $CFG->websocket_proxyport = 8080;
+    */
+    public $websocket_secret = false;
+    public $websocket_url = false;
+    public $websocket_proxyport = false;
+
+    /*
+     * This is the internal version of the datbase.   This is an internal
+     * value and set in setup.php and read in migrate.php - you should not
+     * touch this value.
+     */
+    public $dbversion = false;
+
+    /*
+     * These are here to override the defaults for the vendor folder naming conventions
+     *
+     * It is unlikely you need to change these.
+     */
+    public $vendorroot = false;
+    public $vendorinclude = false;
+    public $vendorstatic = false;
+
+    /**
+     * The autoloader to be used when loading classes.
+     *
+     * This is part of configuration startup and should be left as-is
+     * from config.dist
+     */
+    public $loader = false;
+
+    // Legacy values no longer used
+    public $bootswatch = false;
+    public $bootswatch_color = false;
+    public $fontawesome = false;
 
     /**
      * Create the configuration object.
