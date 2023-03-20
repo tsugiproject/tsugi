@@ -26,10 +26,20 @@ class User {
     protected $ENTITY_NAME = "user";
     use JsonTrait;  // Pull in the trait
 
+    /*
+     * The upwards pointer to the corresponding launch
+     */
+    public $launch = false;
+
     /**
      * The integer primary key for this user in the 'lti_user' table.
      */
     public $id;
+
+    /**
+     * The logical key for this user in the 'lti_user' table.
+     */
+    public $key;
 
     /**
      * The user's email
@@ -65,6 +75,11 @@ class User {
      * Is the user an instructor?
      */
     public $instructor = null;
+
+    /**
+     * Is the user an administrator?
+     */
+    public $admin = false;
 
     /**
      * Construct the user's name / email combination
