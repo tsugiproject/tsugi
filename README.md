@@ -40,9 +40,21 @@ running Tsugi that want to hold back, a series of versions / tags are maintained
 plateaus".  These tags are often snapped right before a significant upgrade or data model change
 and announced on the dev list.
 
-These versions originally were the classic geek-style '0.7.0' releases but as of
-December 2020, we are switching to a year.month.patch approach to Tsugi versioning, adapting from
-the Linux model.
+## Long Term Support Versions
+
+Mostly because PHP is evolving from version 7.0 to version 9.0 in ways that break code and break
+dependencies, we are maintaining several long term branches for those stuck on older versions
+of PHP - we maintain these as branches.
+
+* Branch: master - currently tested and working PHP versions 7.4 - 8.0 - this does not work on
+PHP 8.1
+
+* Branch: php-72-x - If you have a system that is lower than PHP 7.4, you should stick on this
+branch
+
+As of early 2023, work on PHP 8.1 will be done in a dev branch and won't be back ported into
+master for quite some time.
+
 
 ## Installation
 
