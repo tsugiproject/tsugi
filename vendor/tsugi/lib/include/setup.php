@@ -1,4 +1,5 @@
 <?php
+
 use \Tsugi\Util\U;
 
 if ( ! isset($CFG) ) die("Please configure this product using config.php");

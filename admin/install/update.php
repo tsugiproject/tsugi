@@ -48,7 +48,7 @@ foreach($tools as $tool) {
     echo("URL: ".htmlentities($remote)."\n");
     $gitversion = $tool['gitversion'];
     if ( strlen($gitversion) < 1 ) $gitversion = 'master';
-    if ( isset($CFG->branch_override) && U::get($CFG->branch_override, $remote) ) {
+    if ( isset($CFG->branch_override) && is_array($CFG->branch_override) && U::get($CFG->branch_override, $remote) ) {
         $gitversion = U::get($CFG->branch_override, $remote);
     }
     echo("Version: ".htmlentities($gitversion)."\n");

@@ -575,6 +575,20 @@ class ConfigInfo {
      */
     public $loader = false;
 
+    /*
+     * Allows you to run your Tsugi on a branch other than master
+     *
+     * This is an array of key value pairs when Tsugi is auto-upgrading Tsugi
+     * or a tool.   If it is checking out a particular remote, once
+     * that is checked out - it will switch to the specified branch instead
+     * of master.
+     *
+     *   $CFG->branch_override = array(
+     *    "https://github.com/tsugiproject/tsugi.git" => "php81"
+      *  }
+     */
+    public $branch_override = false;
+
     // Legacy values no longer used
     public $bootswatch = false;
     public $bootswatch_color = false;

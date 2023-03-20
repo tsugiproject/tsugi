@@ -49,6 +49,9 @@ of PHP - we maintain these as branches.
 * Branch: master - currently tested and working PHP versions 7.4 - 8.0 - this does not work on
 PHP 8.1
 
+* Branch: php-74-x - This branch will continue to work with PHP versions 7.4 - 8.0 even
+after master has introduced 8.1 only syntax.
+
 * Branch: php-72-x - If you have a system that is lower than PHP 7.4, you should stick on this
 branch
 
