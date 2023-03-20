@@ -324,7 +324,7 @@ class Login extends Controller {
                 $_SESSION["oauth_consumer_key"] = $oauth_consumer_key;
                 $lti['key_key'] = $oauth_consumer_key;
 
-                if ( is_string($google_secret) && strlen($google_secret) > 1 ) {
+                if ( strlen($google_secret) ) {
                     $_SESSION['secret'] = LTIX::encrypt_secret($google_secret);
                     $lti['secret'] = LTIX::encrypt_secret($google_secret);
                 } else {

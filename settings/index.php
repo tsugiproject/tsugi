@@ -58,6 +58,7 @@ that support the Learning Tools Interoperability specification.
 This allows you to manage Personally Identifiable Information (PII) for your learners in this system.
 </p>
 </li>
+<!--
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
 <li><p><a href="gclass_login">Connect to Google Classroom</a>
 <?php
