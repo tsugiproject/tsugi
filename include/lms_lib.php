@@ -1,6 +1,5 @@
 <?php
 
-
 require_once($CFG->dirroot."/vendor/autoload.php");
 
 function lmsDie($message=false) {
