@@ -24,7 +24,7 @@
         "symfony/event-dispatcher" : "v5.3.11",
         "symfony/var-dumper" : "v5.3.11",
         "symfony/error-handler" : "v5.3.11",
-        "symfony/http-kernel" : "v5.3.12",
+        "symfony/http-kernel" : "v5.4.20",
 
         "tsugi/lib": "dev-master#c3e888445a2af85b46becbf591b19898bfa8c376",
         "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
