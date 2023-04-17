@@ -254,6 +254,7 @@ array_multisort(array_column($registrations, 'name'), SORT_ASC, $registrations);
 $newApps = array_filter($registrations, 'new_apps');
 $theRest = array_filter($registrations, 'the_rest');
 
+if ( count($newApps) > 0 ) {
 ?>
 <div>
     <div class="bxslider">
@@ -267,8 +268,8 @@ $theRest = array_filter($registrations, 'the_rest');
         ?>
     </div>
 </div>
-
 <?php
+}
 
 echo('<div id="box">'."\n");
 
