@@ -796,10 +796,8 @@ $('a').each(function (x) {
         }
 
         $submenu = new \Tsugi\UI\Menu();
-        $submenu->addLink('IMS LTI 1.1 Spec', 'http://www.imsglobal.org/LTI/v1p1p1/ltiIMGv1p1p1.html')
-            ->addLink('IMS LTI Deep Linking', 'https://www.imsglobal.org/specs/lticiv1p0')
-            ->addLink('IMS LTI 2.0 Spec', 'http://www.imsglobal.org/lti/ltiv2p0/ltiIMGv2p0.html')
-            ->addLink('Google Classroom', 'https://classroom.google.com/')
+        $submenu->addLink('1EdTech', 'https://www.1edtech.org/')
+            ->addLink('LTI Advantage', 'http://www.imsglobal.org/lti-advantage-overview')
             ->addLink('Tsugi Project Site', 'https://www.tsugi.org/');
         if ( $CFG->DEVELOPER) $set->addRight(_m('Links'), $submenu);
 

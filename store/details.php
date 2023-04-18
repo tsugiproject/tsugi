@@ -179,11 +179,10 @@ $title = '';
 $fa_icon = 'fa-question';
 if (isset($registrations[$install])) {
     $tool = $registrations[$install];
-    
+
     $screen_shots = U::get($tool, 'screen_shots');
-    $video = U::get($tool, 'video');
     if ( !is_array($screen_shots) || count($screen_shots) < 1 ) $screen_shots = false;
-    
+
     $title = $tool['name'];
     $text = $tool['description'];
     $keywords = U::get($tool,'keywords');
@@ -286,21 +285,14 @@ $register_good = $json_obj && isset($json_obj->name);
     <div class="summary-column">
         <span class="summary-text"> <?= htmlent_utf8($text); ?></span>
         <?php
-        if ($video || $screen_shots) {
+        if ($screen_shots) {
             ?>
             <div class="bxslider">
-                <?php
-                
-                if (is_string($video)) { ?>
-                    <iframe class="video-frame" height="315" width="560" src="<?= $video; ?>" frameborder="0" scrolling="0" allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *;" allowfullscreen></iframe>
-                    <?php
-                }
-                if ($screen_shots) {
+            <?php
                     foreach($screen_shots as $idx=>$screen_shot ) { ?>
                         <div class="slider-thumbnail" id="slider-thumbnail-<?= $idx; ?>"><img src="<?= $screen_shot; ?>" title="<?= htmlentities($title); ?>"></div>
                         <?php
-                    } 
-                }
+                    }
             ?>
             </div>
         <?php
@@ -309,11 +301,19 @@ $register_good = $json_obj && isset($json_obj->name);
     </div>
     <div class="details-column">
         <?php
-            
+
             echo('<form method="POST" style="display:inline" action="'.$rest_path->parent.'/test/'.urlencode($install).'">');
             echo('<div class="button-container">');
             echo('<input type="submit" class="btn btn-primary" value="Try It"></form> ');
             echo('</div>');
+            if ( is_string(U::get($tool, 'video')) ) {
+                ?>
+                <div class="tool-link-container">
+                    <div class="sidebar-header">Video Demo</div>
+		    <a href="<?= U::get($tool, 'video') ?>" target="_blank">View in new window</a>.
+                </div>
+                <?php
+            }
             if ( is_array(U::get($tool, 'languages')) ) {
                 ?>
                 <div class="tool-link-container">
@@ -411,7 +411,7 @@ if ( is_array($analytics) && in_array('internal', $analytics) ) {
     echo(_m('Has internal analytics visualization'));
     echo("</p></li>\n");
 }
-if ( $CFG->launchactivity ) { 
+if ( $CFG->launchactivity ) {
     echo('<li><p>');
     echo(_m('Can send analytics to learning record store.'));
     echo("</p></li>\n");
