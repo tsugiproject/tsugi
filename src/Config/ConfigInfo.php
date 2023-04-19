@@ -362,7 +362,7 @@ class ConfigInfo {
      *     "tool_phase" => "sample",
      * If this is null, then all tools are shown.
      */
-    public ?string $storehide = null; // A regex like - '/dev|sample|test|beta/';
+    public $storehide = null; // A regex like - '/dev|sample|test|beta/';
 
     /**
      * Set the session timeout - in seconds
@@ -650,19 +650,19 @@ class ConfigInfo {
     /**
      * Badge generation settings - once you start issuing badges - don't change these
      */
-    public ?string $badge_encrypt_password = null; // "somethinglongwithhex387438758974987";
-    public ?string $badge_assert_salt = null; // "mediumlengthhexstring";
-    public ?string $badge_path = null; // $CFG->dirroot . '/../bimages';
-    public ?string $badge_url = null; // $CFG->apphome . '/bimages';
+    public $badge_encrypt_password = null; // "somethinglongwithhex387438758974987";
+    public $badge_assert_salt = null; // "mediumlengthhexstring";
+    public $badge_path = null; // $CFG->dirroot . '/../bimages';
+    public $badge_url = null; // $CFG->apphome . '/bimages';
 
     /**
      * The defaults for data expiration.  Data expiration is not done by default, but can
      * be triggered in the Tsugi Admin UI or via a php CLI program.
      */
-    public ?int $expire_pii_days = 150;  // Three months
-    public ?int $expire_user_days = 400;  // One year
-    public ?int $expire_context_days = 600; // 1.5 Years
-    public ?int $expire_tenant_days = 800; // Two years
+    public $expire_pii_days = 150;  // Three months
+    public $expire_user_days = 400;  // One year
+    public $expire_context_days = 600; // 1.5 Years
+    public $expire_tenant_days = 800; // Two years
 
     /**
      * Create the configuration object.
