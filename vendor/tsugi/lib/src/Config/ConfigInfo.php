@@ -14,6 +14,11 @@ namespace Tsugi\Config;
 class ConfigInfo {
 
     /**
+     * Extensions
+     */
+    public array $extensions = array();
+
+    /**
      * The URL where tsugi is located
      *
      * Do not add a trailing slash to this string
@@ -208,8 +213,46 @@ class ConfigInfo {
      * the application, but you may have no other choice to leave this false
      * (default). Make sure that this folder is readable and writable by
      * the web server.
+     *
+     * If you set $dataroot to a writeable folder, Tsugi will store blobs on disk
+     * instead of the database using the following folder / file pattern
+     *     tsugi_blobs/1f/84/00001754/1f84ab151...56a
+     *     tsugi_blobs/67/fb/00001754/67fba23c8...123b
+     * The folders are based on the sha256 of file contents
+     *
+     * In a normal setup - make sure the folder is writable by the web server,
+     * backed up and not in the document root hierarchy.
+     *
+     * It is important to note that changing dataroot does not migrate the data.
+     * Tsugi stores the blob path in the blob_file table.  Data uploaded to a blob
+     * will stay there and data uploaded to a path will stay there regardless of
+     * this setting.  There will are separate migration processes to move blob data
+     * from the database to dataroot.  See tsugi/admin/blob for more detail.
+     *
+     * You can set dataroot to a temporary folder for dev but never for production
      */
-    public $dataroot = false;
+    public $dataroot = false; // '/backedup/tsugi_blobs';
+
+    /**
+     * This turns on auto-migration of blobs from the database to dataroot, as
+     * blobs are accessed
+     */
+    public $migrateblobs = false;
+
+    /**
+     * Configure lti keys that go into blob_blob regardless of $dataroot
+     *
+     * The use case for this can be for testing.  Many servers set up the
+     * 12345/secret ask key and secret to allow testing.   The Admin tool
+     * has the ability to clear out the 12345 data regularly.   We want to
+     * wipe out any blob data that is stored whlist testing with 12345.
+     *
+     * Blobs in the blob_blob table get removed during the 12345 cleanup.
+     *
+     * This can also be used for testing to route a particular key into
+     * blob_blob.
+     */
+    public $testblobs = false; // array('12345');
 
     /**
      * Configure the long-term login cookie encryption values.
@@ -311,6 +354,15 @@ class ConfigInfo {
      * $CFG->install_folder = $CFG->dirroot.'/mod';
      */
     public $install_folder = false;
+
+    /**
+     *
+     * Tools to hide in the store for non-admin users.  Each tool sets their status
+     * in their register.php with a line like:
+     *     "tool_phase" => "sample",
+     * If this is null, then all tools are shown.
+     */
+    public ?string $storehide = null; // A regex like - '/dev|sample|test|beta/';
 
     /**
      * Set the session timeout - in seconds
@@ -593,6 +645,24 @@ class ConfigInfo {
     public $bootswatch = false;
     public $bootswatch_color = false;
     public $fontawesome = false;
+    public $logo_url = null;  // Formerly Google Classroom
+
+    /**
+     * Badge generation settings - once you start issuing badges - don't change these
+     */
+    public ?string $badge_encrypt_password = null; // "somethinglongwithhex387438758974987";
+    public ?string $badge_assert_salt = null; // "mediumlengthhexstring";
+    public ?string $badge_path = null; // $CFG->dirroot . '/../bimages';
+    public ?string $badge_url = null; // $CFG->apphome . '/bimages';
+
+    /**
+     * The defaults for data expiration.  Data expiration is not done by default, but can
+     * be triggered in the Tsugi Admin UI or via a php CLI program.
+     */
+    public ?int $expire_pii_days = 150;  // Three months
+    public ?int $expire_user_days = 400;  // One year
+    public ?int $expire_context_days = 600; // 1.5 Years
+    public ?int $expire_tenant_days = 800; // Two years
 
     /**
      * Create the configuration object.
