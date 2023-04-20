@@ -705,7 +705,7 @@ class ConfigInfo {
     public function __construct($dirroot, $wwwroot, $dataroot=false) {
         $this->dirroot = $dirroot;
         $this->wwwroot = $wwwroot;
-        $this->extenstions = array();
+        $this->extensions = array();
         $this->staticroot = 'https://static.tsugi.org';
         $this->lumen_storage = sprintf("%s/storage/", $dirroot);
     }
