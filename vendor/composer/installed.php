@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '7eba1c7c893a3e910763e86694684054603db856',
+        'reference' => 'a891e2faaad713985ed3f43254852f7f25c9f8dc',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '7eba1c7c893a3e910763e86694684054603db856',
+            'reference' => 'a891e2faaad713985ed3f43254852f7f25c9f8dc',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -529,8 +529,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0|2.0|3.0',
-                1 => '3.0.0',
+                0 => '3.0.0',
+                1 => '1.0|2.0|3.0',
             ),
         ),
         'psr/simple-cache' => array(
@@ -875,7 +875,7 @@
         'tsugi/lib' => array(
             'pretty_version' => 'dev-php-81-future',
             'version' => 'dev-php-81-future',
-            'reference' => '2b7cefd1c75c281e3db620b13f2cbe08b5bd18f7',
+            'reference' => 'f7c421b048fa43a3f0ed406c979247fb6e5cb266',
             'type' => 'library',
             'install_path' => __DIR__ . '/../tsugi/lib',
             'aliases' => array(),

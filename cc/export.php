@@ -116,7 +116,9 @@ if ( $anchors ) {
 
 // here we go...
 $service = strtolower($CFG->servicename);
+// https://stackoverflow.com/questions/64698935/using-ziparchive-with-php-8-and-temporary-files:wq
 $filename = tempnam(sys_get_temp_dir(), $CFG->servicename);
+unlink($filename);
 if ( isCli() ) $filename = 'cc.zip';
 $zip = new ZipArchive();
 if ($zip->open($filename, ZipArchive::CREATE)!==TRUE) {
