@@ -33,7 +33,7 @@ $installed = array();
 $paths = array();
 
 // In case we need a setuid copy of git
-if ( isset($CFG->git_command) ) {
+if ( isset($CFG->git_command) && is_string($CFG->git_command) ) {
     Git::set_bin($CFG->git_command);
 }
 

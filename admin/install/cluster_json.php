@@ -22,7 +22,7 @@ require_once("../admin_util.php");
 require_once("install_util.php");
 
 $PDOX = LTIX::getConnection();
-if ( isset($CFG->git_command) ) {
+if ( isset($CFG->git_command) && is_string($CFG->git_command) ) {
     Git::set_bin($CFG->git_command);
 }
 
