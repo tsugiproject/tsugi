@@ -4,6 +4,10 @@ namespace Illuminate\Cache;
 
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Contracts\Redis\Factory as Redis;
+use Illuminate\Redis\Connections\PhpRedisConnection;
+use Illuminate\Redis\Connections\PredisConnection;
+use Illuminate\Support\LazyCollection;
+use Illuminate\Support\Str;
 
 class RedisStore extends TaggableStore implements LockProvider
 {
@@ -22,11 +26,18 @@ class RedisStore extends TaggableStore implements LockProvider
     protected $prefix;
 
     /**
-     * The Redis connection that should be used.
+     * The Redis connection instance that should be used to manage locks.
      *
      * @var string
      */
     protected $connection;
+
+    /**
+     * The name of the connection that should be used for locks.
+     *
+     * @var string
+     */
+    protected $lockConnection;
 
     /**
      * Create a new Redis store.
@@ -181,7 +192,15 @@ class RedisStore extends TaggableStore implements LockProvider
      */
     public function lock($name, $seconds = 0, $owner = null)
     {
-        return new RedisLock($this->connection(), $this->prefix.$name, $seconds, $owner);
+        $lockName = $this->prefix.$name;
+
+        $lockConnection = $this->lockConnection();
+
+        if ($lockConnection instanceof PhpRedisConnection) {
+            return new PhpRedisLock($lockConnection, $lockName, $seconds, $owner);
+        }
+
+        return new RedisLock($lockConnection, $lockName, $seconds, $owner);
     }
 
     /**
@@ -220,6 +239,18 @@ class RedisStore extends TaggableStore implements LockProvider
     }
 
     /**
+     * Remove all expired tag set entries.
+     *
+     * @return bool
+     */
+    public function flushStaleTags()
+    {
+        foreach ($this->currentTags()->chunk(1000) as $tags) {
+            $this->tags($tags->all())->flushStale();
+        }
+    }
+
+    /**
      * Begin executing a new tags operation.
      *
      * @param  array|mixed  $names
@@ -228,8 +259,53 @@ class RedisStore extends TaggableStore implements LockProvider
     public function tags($names)
     {
         return new RedisTaggedCache(
-            $this, new TagSet($this, is_array($names) ? $names : func_get_args())
+            $this, new RedisTagSet($this, is_array($names) ? $names : func_get_args())
         );
+    }
+
+    /**
+     * Get a collection of all of the cache tags currently being used.
+     *
+     * @param  int  $chunkSize
+     * @return \Illuminate\Support\LazyCollection
+     */
+    protected function currentTags($chunkSize = 1000)
+    {
+        $connection = $this->connection();
+
+        // Connections can have a global prefix...
+        $connectionPrefix = match (true) {
+            $connection instanceof PhpRedisConnection => $connection->_prefix(''),
+            $connection instanceof PredisConnection => $connection->getOptions()->prefix ?: '',
+            default => '',
+        };
+
+        $prefix = $connectionPrefix.$this->getPrefix();
+
+        return LazyCollection::make(function () use ($connection, $chunkSize, $prefix) {
+            $cursor = $defaultCursorValue = '0';
+
+            do {
+                [$cursor, $tagsChunk] = $connection->scan(
+                    $cursor,
+                    ['match' => $prefix.'tag:*:entries', 'count' => $chunkSize]
+                );
+
+                if (! is_array($tagsChunk)) {
+                    break;
+                }
+
+                $tagsChunk = array_unique($tagsChunk);
+
+                if (empty($tagsChunk)) {
+                    continue;
+                }
+
+                foreach ($tagsChunk as $tag) {
+                    yield $tag;
+                }
+            } while (((string) $cursor) !== $defaultCursorValue);
+        })->map(fn (string $tagKey) => Str::match('/^'.preg_quote($prefix).'tag:(.*):entries$/', $tagKey));
     }
 
     /**
@@ -243,7 +319,17 @@ class RedisStore extends TaggableStore implements LockProvider
     }
 
     /**
-     * Set the connection name to be used.
+     * Get the Redis connection instance that should be used to manage locks.
+     *
+     * @return \Illuminate\Redis\Connections\Connection
+     */
+    public function lockConnection()
+    {
+        return $this->redis->connection($this->lockConnection ?? $this->connection);
+    }
+
+    /**
+     * Specify the name of the connection that should be used to store data.
      *
      * @param  string  $connection
      * @return void
@@ -251,6 +337,19 @@ class RedisStore extends TaggableStore implements LockProvider
     public function setConnection($connection)
     {
         $this->connection = $connection;
+    }
+
+    /**
+     * Specify the name of the connection that should be used to manage locks.
+     *
+     * @param  string  $connection
+     * @return $this
+     */
+    public function setLockConnection($connection)
+    {
+        $this->lockConnection = $connection;
+
+        return $this;
     }
 
     /**

@@ -11,6 +11,8 @@
 
 namespace Monolog\Handler;
 
+use Monolog\LogRecord;
+
 /**
  * No-op
  *
@@ -23,17 +25,17 @@ namespace Monolog\Handler;
 class NoopHandler extends Handler
 {
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function isHandling(array $record): bool
+    public function isHandling(LogRecord $record): bool
     {
         return true;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function handle(array $record): bool
+    public function handle(LogRecord $record): bool
     {
         return false;
     }

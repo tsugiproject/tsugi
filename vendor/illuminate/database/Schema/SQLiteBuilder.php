@@ -2,8 +2,34 @@
 
 namespace Illuminate\Database\Schema;
 
+use Illuminate\Support\Facades\File;
+
 class SQLiteBuilder extends Builder
 {
+    /**
+     * Create a database in the schema.
+     *
+     * @param  string  $name
+     * @return bool
+     */
+    public function createDatabase($name)
+    {
+        return File::put($name, '') !== false;
+    }
+
+    /**
+     * Drop a database from the schema if the database exists.
+     *
+     * @param  string  $name
+     * @return bool
+     */
+    public function dropDatabaseIfExists($name)
+    {
+        return File::exists($name)
+            ? File::delete($name)
+            : true;
+    }
+
     /**
      * Drop all tables from the database.
      *
@@ -38,6 +64,30 @@ class SQLiteBuilder extends Builder
         $this->connection->select($this->grammar->compileDisableWriteableSchema());
 
         $this->connection->select($this->grammar->compileRebuild());
+    }
+
+    /**
+     * Get all of the table names for the database.
+     *
+     * @return array
+     */
+    public function getAllTables()
+    {
+        return $this->connection->select(
+            $this->grammar->compileGetAllTables()
+        );
+    }
+
+    /**
+     * Get all of the view names for the database.
+     *
+     * @return array
+     */
+    public function getAllViews()
+    {
+        return $this->connection->select(
+            $this->grammar->compileGetAllViews()
+        );
     }
 
     /**

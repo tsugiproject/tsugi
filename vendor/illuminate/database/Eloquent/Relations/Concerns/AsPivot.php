@@ -2,7 +2,6 @@
 
 namespace Illuminate\Database\Eloquent\Relations\Concerns;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -77,21 +76,23 @@ trait AsPivot
 
         $instance->timestamps = $instance->hasTimestampAttributes($attributes);
 
-        $instance->setRawAttributes($attributes, $exists);
+        $instance->setRawAttributes(
+            array_merge($instance->getRawOriginal(), $attributes), $exists
+        );
 
         return $instance;
     }
 
     /**
-     * Set the keys for a save update query.
+     * Set the keys for a select query.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    protected function setKeysForSaveQuery(Builder $query)
+    protected function setKeysForSelectQuery($query)
     {
         if (isset($this->attributes[$this->getKeyName()])) {
-            return parent::setKeysForSaveQuery($query);
+            return parent::setKeysForSelectQuery($query);
         }
 
         $query->where($this->foreignKey, $this->getOriginal(
@@ -101,6 +102,17 @@ trait AsPivot
         return $query->where($this->relatedKey, $this->getOriginal(
             $this->relatedKey, $this->getAttribute($this->relatedKey)
         ));
+    }
+
+    /**
+     * Set the keys for a save update query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    protected function setKeysForSaveQuery($query)
+    {
+        return $this->setKeysForSelectQuery($query);
     }
 
     /**
@@ -267,7 +279,7 @@ trait AsPivot
             return $this->newQueryForCollectionRestoration($ids);
         }
 
-        if (! Str::contains($ids, ':')) {
+        if (! str_contains($ids, ':')) {
             return parent::newQueryForRestoration($ids);
         }
 
@@ -288,7 +300,7 @@ trait AsPivot
     {
         $ids = array_values($ids);
 
-        if (! Str::contains($ids[0], ':')) {
+        if (! str_contains($ids[0], ':')) {
             return parent::newQueryForRestoration($ids);
         }
 

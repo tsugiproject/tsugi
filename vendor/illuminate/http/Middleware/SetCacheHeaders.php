@@ -4,9 +4,29 @@ namespace Illuminate\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SetCacheHeaders
 {
+    /**
+     * Specify the options for the middleware.
+     *
+     * @param  array|string  $options
+     * @return string
+     */
+    public static function using($options)
+    {
+        if (is_string($options)) {
+            return static::class.':'.$options;
+        }
+
+        return collect($options)
+            ->map(fn ($value, $key) => is_int($key) ? $value : "{$key}={$value}")
+            ->map(fn ($value) => Str::finish($value, ';'))
+            ->pipe(fn ($options) => rtrim(static::class.':'.$options->implode(''), ';'));
+    }
+
     /**
      * Add cache related HTTP headers.
      *
@@ -21,7 +41,7 @@ class SetCacheHeaders
     {
         $response = $next($request);
 
-        if (! $request->isMethodCacheable() || ! $response->getContent()) {
+        if (! $request->isMethodCacheable() || (! $response->getContent() && ! $response instanceof BinaryFileResponse)) {
             return $response;
         }
 
@@ -30,7 +50,7 @@ class SetCacheHeaders
         }
 
         if (isset($options['etag']) && $options['etag'] === true) {
-            $options['etag'] = md5($response->getContent());
+            $options['etag'] = $response->getEtag() ?? md5($response->getContent());
         }
 
         if (isset($options['last_modified'])) {
@@ -55,7 +75,7 @@ class SetCacheHeaders
      */
     protected function parseOptions($options)
     {
-        return collect(explode(';', $options))->mapWithKeys(function ($option) {
+        return collect(explode(';', rtrim($options, ';')))->mapWithKeys(function ($option) {
             $data = explode('=', $option, 2);
 
             return [$data[0] => $data[1] ?? true];

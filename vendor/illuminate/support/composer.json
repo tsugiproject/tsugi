@@ -14,13 +14,17 @@
         }
     ],
     "require": {
-        "php": "^7.2.5|^8.0",
-        "ext-json": "*",
+        "php": "^8.1",
+        "ext-ctype": "*",
+        "ext-filter": "*",
         "ext-mbstring": "*",
-        "doctrine/inflector": "^1.4|^2.0",
-        "illuminate/contracts": "^7.0",
-        "nesbot/carbon": "^2.31",
-        "voku/portable-ascii": "^1.4.8"
+        "doctrine/inflector": "^2.0",
+        "illuminate/collections": "^10.0",
+        "illuminate/conditionable": "^10.0",
+        "illuminate/contracts": "^10.0",
+        "illuminate/macroable": "^10.0",
+        "nesbot/carbon": "^2.62.1",
+        "voku/portable-ascii": "^2.0"
     },
     "conflict": {
         "tightenco/collect": "<5.5.33"
@@ -35,16 +39,17 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "7.x-dev"
+            "dev-master": "10.x-dev"
         }
     },
     "suggest": {
-        "illuminate/filesystem": "Required to use the composer class (^7.0).",
-        "moontoast/math": "Required to use ordered UUIDs (^1.1).",
-        "ramsey/uuid": "Required to use Str::uuid() (^3.7|^4.0).",
-        "symfony/process": "Required to use the composer class (^5.0).",
-        "symfony/var-dumper": "Required to use the dd function (^5.0).",
-        "vlucas/phpdotenv": "Required to use the Env class and env helper (^4.0)."
+        "illuminate/filesystem": "Required to use the composer class (^10.0).",
+        "league/commonmark": "Required to use Str::markdown() and Stringable::markdown() (^2.0.2).",
+        "ramsey/uuid": "Required to use Str::uuid() (^4.7).",
+        "symfony/process": "Required to use the composer class (^6.2).",
+        "symfony/uid": "Required to use Str::ulid() (^6.2).",
+        "symfony/var-dumper": "Required to use the dd function (^6.2).",
+        "vlucas/phpdotenv": "Required to use the Env class and env helper (^5.4.1)."
     },
     "config": {
         "sort-packages": true

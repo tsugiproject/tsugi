@@ -13,7 +13,7 @@ class Pipeline implements PipelineContract
     /**
      * The container implementation.
      *
-     * @var \Illuminate\Contracts\Container\Container
+     * @var \Illuminate\Contracts\Container\Container|null
      */
     protected $container;
 
@@ -71,6 +71,19 @@ class Pipeline implements PipelineContract
     public function through($pipes)
     {
         $this->pipes = is_array($pipes) ? $pipes : func_get_args();
+
+        return $this;
+    }
+
+    /**
+     * Push additional pipes onto the pipeline.
+     *
+     * @param  array|mixed  $pipes
+     * @return $this
+     */
+    public function pipe($pipes)
+    {
+        array_push($this->pipes, ...(is_array($pipes) ? $pipes : func_get_args()));
 
         return $this;
     }
@@ -216,6 +229,19 @@ class Pipeline implements PipelineContract
         }
 
         return $this->container;
+    }
+
+    /**
+     * Set the container instance.
+     *
+     * @param  \Illuminate\Contracts\Container\Container  $container
+     * @return $this
+     */
+    public function setContainer(Container $container)
+    {
+        $this->container = $container;
+
+        return $this;
     }
 
     /**

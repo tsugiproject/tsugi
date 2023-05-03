@@ -32,9 +32,12 @@ require_once __DIR__.'/Resources/functions/dump.php';
  */
 class VarDumper
 {
+    /**
+     * @var callable|null
+     */
     private static $handler;
 
-    public static function dump($var)
+    public static function dump(mixed $var)
     {
         if (null === self::$handler) {
             self::register();
@@ -43,8 +46,11 @@ class VarDumper
         return (self::$handler)($var);
     }
 
-    public static function setHandler(callable $callable = null)
+    public static function setHandler(callable $callable = null): ?callable
     {
+        if (1 > \func_num_args()) {
+            trigger_deprecation('symfony/var-dumper', '6.2', 'Calling "%s()" without any arguments is deprecated, pass null explicitly instead.', __METHOD__);
+        }
         $prevHandler = self::$handler;
 
         // Prevent replacing the handler with expected format as soon as the env var was set:
@@ -93,7 +99,7 @@ class VarDumper
     {
         $contextProviders = [];
 
-        if (!\in_array(\PHP_SAPI, ['cli', 'phpdbg'], true) && (class_exists(Request::class))) {
+        if (!\in_array(\PHP_SAPI, ['cli', 'phpdbg'], true) && class_exists(Request::class)) {
             $requestStack = new RequestStack();
             $requestStack->push(Request::createFromGlobals());
             $contextProviders['request'] = new RequestContextProvider($requestStack);

@@ -27,44 +27,51 @@ class Factory implements FactoryContract
     /**
      * The IoC container instance.
      *
-     * @var \Illuminate\Contracts\Container\Container
+     * @var \Illuminate\Contracts\Container\Container|null
      */
     protected $container;
 
     /**
      * All of the custom validator extensions.
      *
-     * @var array
+     * @var array<string, \Closure|string>
      */
     protected $extensions = [];
 
     /**
      * All of the custom implicit validator extensions.
      *
-     * @var array
+     * @var array<string, \Closure|string>
      */
     protected $implicitExtensions = [];
 
     /**
      * All of the custom dependent validator extensions.
      *
-     * @var array
+     * @var array<string, \Closure|string>
      */
     protected $dependentExtensions = [];
 
     /**
      * All of the custom validator message replacers.
      *
-     * @var array
+     * @var array<string, \Closure|string>
      */
     protected $replacers = [];
 
     /**
      * All of the fallback messages for custom rules.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $fallbackMessages = [];
+
+    /**
+     * Indicates that unvalidated array keys should be excluded, even if the parent array was validated.
+     *
+     * @var bool
+     */
+    protected $excludeUnvalidatedArrayKeys = true;
 
     /**
      * The Validator resolver instance.
@@ -92,13 +99,13 @@ class Factory implements FactoryContract
      * @param  array  $data
      * @param  array  $rules
      * @param  array  $messages
-     * @param  array  $customAttributes
+     * @param  array  $attributes
      * @return \Illuminate\Validation\Validator
      */
-    public function make(array $data, array $rules, array $messages = [], array $customAttributes = [])
+    public function make(array $data, array $rules, array $messages = [], array $attributes = [])
     {
         $validator = $this->resolve(
-            $data, $rules, $messages, $customAttributes
+            $data, $rules, $messages, $attributes
         );
 
         // The presence verifier is responsible for checking the unique and exists data
@@ -115,6 +122,8 @@ class Factory implements FactoryContract
             $validator->setContainer($this->container);
         }
 
+        $validator->excludeUnvalidatedArrayKeys = $this->excludeUnvalidatedArrayKeys;
+
         $this->addExtensions($validator);
 
         return $validator;
@@ -126,14 +135,14 @@ class Factory implements FactoryContract
      * @param  array  $data
      * @param  array  $rules
      * @param  array  $messages
-     * @param  array  $customAttributes
+     * @param  array  $attributes
      * @return array
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function validate(array $data, array $rules, array $messages = [], array $customAttributes = [])
+    public function validate(array $data, array $rules, array $messages = [], array $attributes = [])
     {
-        return $this->make($data, $rules, $messages, $customAttributes)->validate();
+        return $this->make($data, $rules, $messages, $attributes)->validate();
     }
 
     /**
@@ -142,16 +151,16 @@ class Factory implements FactoryContract
      * @param  array  $data
      * @param  array  $rules
      * @param  array  $messages
-     * @param  array  $customAttributes
+     * @param  array  $attributes
      * @return \Illuminate\Validation\Validator
      */
-    protected function resolve(array $data, array $rules, array $messages, array $customAttributes)
+    protected function resolve(array $data, array $rules, array $messages, array $attributes)
     {
         if (is_null($this->resolver)) {
-            return new Validator($this->translator, $data, $rules, $messages, $customAttributes);
+            return new Validator($this->translator, $data, $rules, $messages, $attributes);
         }
 
-        return call_user_func($this->resolver, $this->translator, $data, $rules, $messages, $customAttributes);
+        return call_user_func($this->resolver, $this->translator, $data, $rules, $messages, $attributes);
     }
 
     /**
@@ -165,8 +174,8 @@ class Factory implements FactoryContract
         $validator->addExtensions($this->extensions);
 
         // Next, we will add the implicit extensions, which are similar to the required
-        // and accepted rule in that they are run even if the attributes is not in a
-        // array of data that is given to a validator instances via instantiation.
+        // and accepted rule in that they're run even if the attributes aren't in an
+        // array of data which is given to a validator instance via instantiation.
         $validator->addImplicitExtensions($this->implicitExtensions);
 
         $validator->addDependentExtensions($this->dependentExtensions);
@@ -240,6 +249,26 @@ class Factory implements FactoryContract
     }
 
     /**
+     * Indicate that unvalidated array keys should be included in validated data when the parent array is validated.
+     *
+     * @return void
+     */
+    public function includeUnvalidatedArrayKeys()
+    {
+        $this->excludeUnvalidatedArrayKeys = false;
+    }
+
+    /**
+     * Indicate that unvalidated array keys should be excluded from the validated data, even if the parent array was validated.
+     *
+     * @return void
+     */
+    public function excludeUnvalidatedArrayKeys()
+    {
+        $this->excludeUnvalidatedArrayKeys = true;
+    }
+
+    /**
      * Set the Validator instance resolver.
      *
      * @param  \Closure  $resolver
@@ -279,5 +308,28 @@ class Factory implements FactoryContract
     public function setPresenceVerifier(PresenceVerifierInterface $presenceVerifier)
     {
         $this->verifier = $presenceVerifier;
+    }
+
+    /**
+     * Get the container instance used by the validation factory.
+     *
+     * @return \Illuminate\Contracts\Container\Container|null
+     */
+    public function getContainer()
+    {
+        return $this->container;
+    }
+
+    /**
+     * Set the container instance used by the validation factory.
+     *
+     * @param  \Illuminate\Contracts\Container\Container  $container
+     * @return $this
+     */
+    public function setContainer(Container $container)
+    {
+        $this->container = $container;
+
+        return $this;
     }
 }

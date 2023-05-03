@@ -1,0 +1,40 @@
+{
+    "require": {
+        "php": ">=8.2.0",
+        "laravel/lumen-framework": ">=8.0.0",
+        "firebase/php-jwt" : ">=6.3.2",
+        "ezyang/htmlpurifier": ">=4.14.0"
+
+        "laravel/lumen-framework": "v7.2.2",
+        "phpseclib/phpseclib" : ">=2.0.36 <3.0.0",
+
+        "gree/jose" : "v2.2.1",
+        "ezyang/htmlpurifier": "v4.14.0",
+        "cboden/ratchet" : "v0.4.4",
+        "firebase/php-jwt" : "v5.2.0",
+
+        "symfony/routing" : "v5.3.7",
+        "symfony/http-foundation" : "v5.3.11",
+        "react/event-loop" : "v1.1.1",
+        "react/stream" : "v1.1.1",
+        "react/promise-timer" : "v1.6.0",
+        "react/dns" : "v1.7.0",
+        "react/socket" : "v1.7.0",
+        "monolog/monolog" : "2.3.0",
+        "symfony/translation" : "v5.3.11",
+        "symfony/process" : "v5.3.11",
+        "symfony/finder" : "v5.3.7",
+        "symfony/console" : "v5.3.11",
+        "symfony/mime" : "v5.3.11",
+        "symfony/event-dispatcher" : "v5.3.11",
+        "symfony/var-dumper" : "v5.3.11",
+        "symfony/error-handler" : "v5.3.11",
+        "symfony/http-kernel" : "v5.3.12",
+
+        "tsugi/lib": "dev-master#154ff3779bd36282d5af376b764d2dcc8589e4d5",
+        "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
+    },
+    "config": {
+        "preferred-install": "dist"
+    }
+}

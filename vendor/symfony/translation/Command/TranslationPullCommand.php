@@ -11,7 +11,10 @@
 
 namespace Symfony\Component\Translation\Command;
 
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Completion\CompletionInput;
+use Symfony\Component\Console\Completion\CompletionSuggestions;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -25,22 +28,18 @@ use Symfony\Component\Translation\Writer\TranslationWriterInterface;
 
 /**
  * @author Mathieu Santostefano <msantostefano@protonmail.com>
- *
- * @experimental in 5.3
  */
+#[AsCommand(name: 'translation:pull', description: 'Pull translations from a given provider.')]
 final class TranslationPullCommand extends Command
 {
     use TranslationTrait;
 
-    protected static $defaultName = 'translation:pull';
-    protected static $defaultDescription = 'Pull translations from a given provider.';
-
-    private $providerCollection;
-    private $writer;
-    private $reader;
-    private $defaultLocale;
-    private $transPaths;
-    private $enabledLocales;
+    private TranslationProviderCollection $providerCollection;
+    private TranslationWriterInterface $writer;
+    private TranslationReaderInterface $reader;
+    private string $defaultLocale;
+    private array $transPaths;
+    private array $enabledLocales;
 
     public function __construct(TranslationProviderCollection $providerCollection, TranslationWriterInterface $writer, TranslationReaderInterface $reader, string $defaultLocale, array $transPaths = [], array $enabledLocales = [])
     {
@@ -54,9 +53,35 @@ final class TranslationPullCommand extends Command
         parent::__construct();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    public function complete(CompletionInput $input, CompletionSuggestions $suggestions): void
+    {
+        if ($input->mustSuggestArgumentValuesFor('provider')) {
+            $suggestions->suggestValues($this->providerCollection->keys());
+
+            return;
+        }
+
+        if ($input->mustSuggestOptionValuesFor('domains')) {
+            $provider = $this->providerCollection->get($input->getArgument('provider'));
+
+            if (method_exists($provider, 'getDomains')) {
+                $suggestions->suggestValues($provider->getDomains());
+            }
+
+            return;
+        }
+
+        if ($input->mustSuggestOptionValuesFor('locales')) {
+            $suggestions->suggestValues($this->enabledLocales);
+
+            return;
+        }
+
+        if ($input->mustSuggestOptionValuesFor('format')) {
+            $suggestions->suggestValues(['php', 'xlf', 'xlf12', 'xlf20', 'po', 'mo', 'yml', 'yaml', 'ts', 'csv', 'json', 'ini', 'res']);
+        }
+    }
+
     protected function configure()
     {
         $keys = $this->providerCollection->keys();
@@ -81,7 +106,7 @@ You can overwrite existing translations (and remove the missing ones on local si
 
 Full example:
 
-  <info>php %command.full_name% provider --force --domains=messages,validators --locales=en</>
+  <info>php %command.full_name% provider --force --domains=messages --domains=validators --locales=en</>
 
 This command pulls all translations associated with the <comment>messages</> and <comment>validators</> domains for the <comment>en</> locale.
 Local translations for the specified domains and locale are deleted if they're not present on the provider and overwritten if it's the case.
@@ -91,9 +116,6 @@ EOF
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -112,7 +134,7 @@ EOF
 
         switch ($format) {
             case 'xlf20': $xliffVersion = '2.0';
-            // no break
+                // no break
             case 'xlf12': $format = 'xlf';
         }
 
@@ -130,7 +152,7 @@ EOF
 
         if ($force) {
             foreach ($providerTranslations->getCatalogues() as $catalogue) {
-                $operation = new TargetOperation((new MessageCatalogue($catalogue->getLocale())), $catalogue);
+                $operation = new TargetOperation(new MessageCatalogue($catalogue->getLocale()), $catalogue);
                 if ($intlIcu) {
                     $operation->moveMessagesToIntlDomainsIfPossible();
                 }

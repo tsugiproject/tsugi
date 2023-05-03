@@ -25,20 +25,32 @@ use Symfony\Component\HttpFoundation\Response;
 class Store implements StoreInterface
 {
     protected $root;
-    private $keyCache;
-    private $locks;
+    /** @var \SplObjectStorage<Request, string> */
+    private \SplObjectStorage $keyCache;
+    /** @var array<string, resource> */
+    private array $locks = [];
+    private array $options;
 
     /**
+     * Constructor.
+     *
+     * The available options are:
+     *
+     *   * private_headers  Set of response headers that should not be stored
+     *                      when a response is cached. (default: Set-Cookie)
+     *
      * @throws \RuntimeException
      */
-    public function __construct(string $root)
+    public function __construct(string $root, array $options = [])
     {
         $this->root = $root;
         if (!is_dir($this->root) && !@mkdir($this->root, 0777, true) && !is_dir($this->root)) {
             throw new \RuntimeException(sprintf('Unable to create the store directory (%s).', $this->root));
         }
         $this->keyCache = new \SplObjectStorage();
-        $this->locks = [];
+        $this->options = array_merge([
+            'private_headers' => ['Set-Cookie'],
+        ], $options);
     }
 
     /**
@@ -60,7 +72,7 @@ class Store implements StoreInterface
      *
      * @return bool|string true if the lock is acquired, the path to the current lock otherwise
      */
-    public function lock(Request $request)
+    public function lock(Request $request): bool|string
     {
         $key = $this->getCacheKey($request);
 
@@ -87,7 +99,7 @@ class Store implements StoreInterface
      *
      * @return bool False if the lock file does not exist or cannot be unlocked, true otherwise
      */
-    public function unlock(Request $request)
+    public function unlock(Request $request): bool
     {
         $key = $this->getCacheKey($request);
 
@@ -102,7 +114,7 @@ class Store implements StoreInterface
         return false;
     }
 
-    public function isLocked(Request $request)
+    public function isLocked(Request $request): bool
     {
         $key = $this->getCacheKey($request);
 
@@ -124,10 +136,8 @@ class Store implements StoreInterface
 
     /**
      * Locates a cached Response for the Request provided.
-     *
-     * @return Response|null A Response instance, or null if no cache entry was found
      */
-    public function lookup(Request $request)
+    public function lookup(Request $request): ?Response
     {
         $key = $this->getCacheKey($request);
 
@@ -166,11 +176,9 @@ class Store implements StoreInterface
      * Existing entries are read and any that match the response are removed. This
      * method calls write with the new list of cache entries.
      *
-     * @return string The key under which the response is stored
-     *
      * @throws \RuntimeException
      */
-    public function write(Request $request, Response $response)
+    public function write(Request $request, Response $response): string
     {
         $key = $this->getCacheKey($request);
         $storedEnv = $this->persistRequest($request);
@@ -185,7 +193,7 @@ class Store implements StoreInterface
             if ($this->getPath($digest) !== $response->headers->get('X-Body-File')) {
                 throw new \RuntimeException('X-Body-File and X-Content-Digest do not match.');
             }
-            // Everything seems ok, omit writing content to disk
+        // Everything seems ok, omit writing content to disk
         } else {
             $digest = $this->generateContentDigest($response);
             $response->headers->set('X-Content-Digest', $digest);
@@ -215,6 +223,10 @@ class Store implements StoreInterface
         $headers = $this->persistResponse($response);
         unset($headers['age']);
 
+        foreach ($this->options['private_headers'] as $h) {
+            unset($headers[strtolower($h)]);
+        }
+
         array_unshift($entries, [$storedEnv, $headers]);
 
         if (!$this->save($key, serialize($entries))) {
@@ -226,12 +238,10 @@ class Store implements StoreInterface
 
     /**
      * Returns content digest for $response.
-     *
-     * @return string
      */
-    protected function generateContentDigest(Response $response)
+    protected function generateContentDigest(Response $response): string
     {
-        return 'en'.hash('sha256', $response->getContent());
+        return 'en'.hash('xxh128', $response->getContent());
     }
 
     /**
@@ -308,7 +318,7 @@ class Store implements StoreInterface
      *
      * @return bool true if the URL exists with either HTTP or HTTPS scheme and has been purged, false otherwise
      */
-    public function purge(string $url)
+    public function purge(string $url): bool
     {
         $http = preg_replace('#^https:#', 'http:', $url);
         $https = preg_replace('#^http:#', 'https:', $url);
@@ -417,10 +427,8 @@ class Store implements StoreInterface
      * If the same URI can have more than one representation, based on some
      * headers, use a Vary header to indicate them, and each representation will
      * be stored independently under the same cache key.
-     *
-     * @return string A key for the given Request
      */
-    protected function generateCacheKey(Request $request)
+    protected function generateCacheKey(Request $request): string
     {
         return 'md'.hash('sha256', $request->getUri());
     }
