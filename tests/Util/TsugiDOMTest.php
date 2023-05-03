@@ -3,7 +3,7 @@
 require_once "src/Util/TsugiDOM.php";
 
 
-class TsugiDomTest extends \PHPUnit\Framework\TestCase
+class TsugiDOMTest extends \PHPUnit\Framework\TestCase
 {
     public function testGeneral() {
 

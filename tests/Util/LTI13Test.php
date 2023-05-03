@@ -28,6 +28,7 @@ $CFG->vendorinclude = dirname(__FILE__).'/../../include';
 $toppath = dirname(__FILE__).'/../..';
 require_once $toppath.'/vendor/firebase/php-jwt/src/JWT.php';
 require_once $toppath.'/vendor/firebase/php-jwt/src/JWK.php';
+require_once $toppath.'/vendor/firebase/php-jwt/src/Key.php';
 
 require_once "include/setup.php";
 

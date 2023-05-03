@@ -4,7 +4,7 @@ require_once "src/UI/MenuEntry.php";
 
 use \Tsugi\UI\MenuEntry;
 
-class MenyEntryTest extends \PHPUnit\Framework\TestCase
+class MenuEntryTest extends \PHPUnit\Framework\TestCase
 {
     public function testConstruct() {
         $left = new MenuEntry('<b>x</b>','y');

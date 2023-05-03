@@ -21,10 +21,10 @@
         ]
     },
     "require": {
-        "php": ">=7.2.0 <8.1.0",
-        "laravel/lumen-framework": "v7.2.2",
-        "firebase/php-jwt" : "v5.2.0",
-        "ezyang/htmlpurifier": "v4.14.0"
+        "php": ">=8.2.0",
+        "laravel/lumen-framework": ">=8.0.0",
+        "firebase/php-jwt" : ">=6.3.2",
+        "ezyang/htmlpurifier": ">=4.14.0"
 
     },
     "require-dev": {

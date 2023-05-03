@@ -2,6 +2,9 @@
 <!--
     curl -O https://phar.phpunit.de/phpunit-8.phar
     php phpunit-8.phar 
+
+<phpunit displayDetailsOnTestsThatTriggerDeprecations="true">
+
 -->
 <phpunit>
     <testsuites>

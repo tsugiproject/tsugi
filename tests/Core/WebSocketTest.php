@@ -2,6 +2,7 @@
 
 require_once("src/Core/WebSocket.php");
 require_once('src/Crypt/AesOpenSSL.php');
+require_once "src/Config/ConfigInfo.php";
 
 use \Tsugi\Core\WebSocket;
 
@@ -10,6 +11,7 @@ class WebSocketTest extends \PHPUnit\Framework\TestCase
     public function testEnabled() {
         global $CFG;
         $CFG->wwwroot = 'http://localhost:8888';
+        $CFG = $CFG ?? new \Tsugi\Config\ConfigInfo("dir", "www");
         unset($CFG->websocket_url);
         unset($CFG->websocket_secret);
         $this->assertFalse(WebSocket::enabled());

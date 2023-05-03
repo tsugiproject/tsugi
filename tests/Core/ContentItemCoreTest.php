@@ -4,7 +4,7 @@ require_once "src/Util/ContentItem.php";
 require_once "src/Core/ContentItem.php";
 
 // Need a different name from the Util test
-class ContentItemTestCore extends \PHPUnit\Framework\TestCase
+class ContentItemCoreTest extends \PHPUnit\Framework\TestCase
 {
     public function testGeneral() {
 
