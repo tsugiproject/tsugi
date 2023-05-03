@@ -1,6 +1,7 @@
 # Socket
 
 [![CI status](https://github.com/reactphp/socket/workflows/CI/badge.svg)](https://github.com/reactphp/socket/actions)
+[![installs on Packagist](https://img.shields.io/packagist/dt/react/socket?color=blue&label=installs%20on%20Packagist)](https://packagist.org/packages/react/socket)
 
 Async, streaming plaintext TCP/IP and secure TLS socket server and client
 connections for [ReactPHP](https://reactphp.org/).
@@ -30,7 +31,7 @@ handle multiple concurrent connections without blocking.
     * [pause()](#pause)
     * [resume()](#resume)
     * [close()](#close)
-  * [Server](#server)
+  * [SocketServer](#socketserver)
   * [Advanced server usage](#advanced-server-usage)
     * [TcpServer](#tcpserver)
     * [SecureServer](#secureserver)
@@ -58,8 +59,7 @@ handle multiple concurrent connections without blocking.
 Here is a server that closes the connection if you send it anything:
 
 ```php
-$loop = React\EventLoop\Factory::create();
-$socket = new React\Socket\Server('127.0.0.1:8080', $loop);
+$socket = new React\Socket\SocketServer('127.0.0.1:8080');
 
 $socket->on('connection', function (React\Socket\ConnectionInterface $connection) {
     $connection->write("Hello " . $connection->getRemoteAddress() . "!\n");
@@ -70,8 +70,6 @@ $socket->on('connection', function (React\Socket\ConnectionInterface $connection
         $connection->close();
     });
 });
-
-$loop->run();
 ```
 
 See also the [examples](examples).
@@ -80,15 +78,14 @@ Here's a client that outputs the output of said server and then attempts to
 send it a string:
 
 ```php
-$loop = React\EventLoop\Factory::create();
-$connector = new React\Socket\Connector($loop);
+$connector = new React\Socket\Connector();
 
-$connector->connect('127.0.0.1:8080')->then(function (React\Socket\ConnectionInterface $connection) use ($loop) {
-    $connection->pipe(new React\Stream\WritableResourceStream(STDOUT, $loop));
+$connector->connect('127.0.0.1:8080')->then(function (React\Socket\ConnectionInterface $connection) {
+    $connection->pipe(new React\Stream\WritableResourceStream(STDOUT));
     $connection->write("Hello World!\n");
+}, function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
 });
-
-$loop->run();
 ```
 
 ## Connection usage
@@ -220,7 +217,7 @@ The `connection` event will be emitted whenever a new connection has been
 established, i.e. a new client connects to this server socket:
 
 ```php
-$server->on('connection', function (React\Socket\ConnectionInterface $connection) {
+$socket->on('connection', function (React\Socket\ConnectionInterface $connection) {
     echo 'new connection' . PHP_EOL;
 });
 ```
@@ -234,7 +231,7 @@ The `error` event will be emitted whenever there's an error accepting a new
 connection from a client.
 
 ```php
-$server->on('error', function (Exception $e) {
+$socket->on('error', function (Exception $e) {
     echo 'error: ' . $e->getMessage() . PHP_EOL;
 });
 ```
@@ -242,14 +239,13 @@ $server->on('error', function (Exception $e) {
 Note that this is not a fatal error event, i.e. the server keeps listening for
 new connections even after this event.
 
-
 #### getAddress()
 
 The `getAddress(): ?string` method can be used to
 return the full address (URI) this server is currently listening on.
 
 ```php
-$address = $server->getAddress();
+$address = $socket->getAddress();
 echo 'Server listening on ' . $address . PHP_EOL;
 ```
 
@@ -266,7 +262,7 @@ If this is a TCP/IP based server and you only want the local port, you may
 use something like this:
 
 ```php
-$address = $server->getAddress();
+$address = $socket->getAddress();
 $port = parse_url($address, PHP_URL_PORT);
 echo 'Server listening on port ' . $port . PHP_EOL;
 ```
@@ -290,9 +286,9 @@ Once the server is paused, no futher `connection` events SHOULD
 be emitted.
 
 ```php
-$server->pause();
+$socket->pause();
 
-$server->on('connection', assertShouldNeverCalled());
+$socket->on('connection', assertShouldNeverCalled());
 ```
 
 This method is advisory-only, though generally not recommended, the
@@ -315,10 +311,10 @@ resume accepting new incoming connections.
 Re-attach the socket resource to the EventLoop after a previous `pause()`.
 
 ```php
-$server->pause();
+$socket->pause();
 
-$loop->addTimer(1.0, function () use ($server) {
-    $server->resume();
+Loop::addTimer(1.0, function () use ($socket) {
+    $socket->resume();
 });
 ```
 
@@ -335,53 +331,62 @@ This will stop listening for new incoming connections on this socket.
 
 ```php
 echo 'Shutting down server socket' . PHP_EOL;
-$server->close();
+$socket->close();
 ```
 
 Calling this method more than once on the same instance is a NO-OP.
 
-### Server
+### SocketServer
 
-The `Server` class is the main class in this package that implements the
+<a id="server"></a> <!-- legacy id -->
+
+The `SocketServer` class is the main class in this package that implements the
 [`ServerInterface`](#serverinterface) and allows you to accept incoming
 streaming connections, such as plaintext TCP/IP or secure TLS connection streams.
-Connections can also be accepted on Unix domain sockets.
+
+In order to accept plaintext TCP/IP connections, you can simply pass a host
+and port combination like this:
 
 ```php
-$server = new React\Socket\Server(8080, $loop);
+$socket = new React\Socket\SocketServer('127.0.0.1:8080');
 ```
 
-As above, the `$uri` parameter can consist of only a port, in which case the
-server will default to listening on the localhost address `127.0.0.1`,
-which means it will not be reachable from outside of this system.
-
-In order to use a random port assignment, you can use the port `0`:
-
-```php
-$server = new React\Socket\Server(0, $loop);
-$address = $server->getAddress();
-```
-
+Listening on the localhost address `127.0.0.1` means it will not be reachable from
+outside of this system.
 In order to change the host the socket is listening on, you can provide an IP
-address through the first parameter provided to the constructor, optionally
-preceded by the `tcp://` scheme:
+address of an interface or use the special `0.0.0.0` address to listen on all
+interfaces:
 
 ```php
-$server = new React\Socket\Server('192.168.0.1:8080', $loop);
+$socket = new React\Socket\SocketServer('0.0.0.0:8080');
 ```
 
 If you want to listen on an IPv6 address, you MUST enclose the host in square
 brackets:
 
 ```php
-$server = new React\Socket\Server('[::1]:8080', $loop);
+$socket = new React\Socket\SocketServer('[::1]:8080');
+```
+
+In order to use a random port assignment, you can use the port `0`:
+
+```php
+$socket = new React\Socket\SocketServer('127.0.0.1:0');
+$address = $socket->getAddress();
 ```
 
 To listen on a Unix domain socket (UDS) path, you MUST prefix the URI with the
 `unix://` scheme:
 
 ```php
-$server = new React\Socket\Server('unix:///tmp/server.sock', $loop);
+$socket = new React\Socket\SocketServer('unix:///tmp/server.sock');
+```
+
+In order to listen on an existing file descriptor (FD) number, you MUST prefix
+the URI with `php://fd/` like this:
+
+```php
+$socket = new React\Socket\SocketServer('php://fd/3');
 ```
 
 If the given URI is invalid, does not contain a port, any other scheme or if it
@@ -389,7 +394,7 @@ contains a hostname, it will throw an `InvalidArgumentException`:
 
 ```php
 // throws InvalidArgumentException due to missing port
-$server = new React\Socket\Server('127.0.0.1', $loop);
+$socket = new React\Socket\SocketServer('127.0.0.1');
 ```
 
 If the given URI appears to be valid, but listening on it fails (such as if port
@@ -397,10 +402,10 @@ is already in use or port below 1024 may require root access etc.), it will
 throw a `RuntimeException`:
 
 ```php
-$first = new React\Socket\Server(8080, $loop);
+$first = new React\Socket\SocketServer('127.0.0.1:8080');
 
 // throws RuntimeException because port is already in use
-$second = new React\Socket\Server(8080, $loop);
+$second = new React\Socket\SocketServer('127.0.0.1:8080');
 ```
 
 > Note that these error conditions may vary depending on your system and/or
@@ -412,7 +417,7 @@ Optionally, you can specify [TCP socket context options](https://www.php.net/man
 for the underlying stream socket resource like this:
 
 ```php
-$server = new React\Socket\Server('[::1]:8080', $loop, array(
+$socket = new React\Socket\SocketServer('[::1]:8080', array(
     'tcp' => array(
         'backlog' => 200,
         'so_reuseport' => true,
@@ -426,8 +431,6 @@ $server = new React\Socket\Server('[::1]:8080', $loop, array(
   and/or PHP version.
   Passing unknown context options has no effect.
   The `backlog` context option defaults to `511` unless given explicitly.
-  For BC reasons, you can also pass the TCP socket context options as a simple
-  array without wrapping this in another array under the `tcp` key.
 
 You can start a secure TLS (formerly known as SSL) server by simply prepending
 the `tls://` URI scheme.
@@ -438,7 +441,7 @@ which in its most basic form may look something like this if you're using a
 PEM encoded certificate file:
 
 ```php
-$server = new React\Socket\Server('tls://127.0.0.1:8080', $loop, array(
+$socket = new React\Socket\SocketServer('tls://127.0.0.1:8080', array(
     'tls' => array(
         'local_cert' => 'server.pem'
     )
@@ -454,7 +457,7 @@ If your private key is encrypted with a passphrase, you have to specify it
 like this:
 
 ```php
-$server = new React\Socket\Server('tls://127.0.0.1:8000', $loop, array(
+$socket = new React\Socket\SocketServer('tls://127.0.0.1:8000', array(
     'tls' => array(
         'local_cert' => 'server.pem',
         'passphrase' => 'secret'
@@ -467,7 +470,7 @@ SSLv2/SSLv3. As of PHP 5.6+ you can also explicitly choose the TLS version you
 want to negotiate with the remote side:
 
 ```php
-$server = new React\Socket\Server('tls://127.0.0.1:8000', $loop, array(
+$socket = new React\Socket\SocketServer('tls://127.0.0.1:8000', array(
     'tls' => array(
         'local_cert' => 'server.pem',
         'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_2_SERVER
@@ -488,7 +491,7 @@ Whenever a client connects, it will emit a `connection` event with a connection
 instance implementing [`ConnectionInterface`](#connectioninterface):
 
 ```php
-$server->on('connection', function (React\Socket\ConnectionInterface $connection) {
+$socket->on('connection', function (React\Socket\ConnectionInterface $connection) {
     echo 'Plaintext connection from ' . $connection->getRemoteAddress() . PHP_EOL;
     
     $connection->write('hello there!' . PHP_EOL);
@@ -498,9 +501,19 @@ $server->on('connection', function (React\Socket\ConnectionInterface $connection
 
 See also the [`ServerInterface`](#serverinterface) for more details.
 
-> Note that the `Server` class is a concrete implementation for TCP/IP sockets.
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
+
+> Note that the `SocketServer` class is a concrete implementation for TCP/IP sockets.
   If you want to typehint in your higher-level protocol implementation, you SHOULD
   use the generic [`ServerInterface`](#serverinterface) instead.
+
+> Changelog v1.9.0: This class has been added with an improved constructor signature
+  as a replacement for the previous `Server` class in order to avoid any ambiguities.
+  The previous name has been deprecated and should not be used anymore.
 
 ### Advanced server usage
 
@@ -510,7 +523,7 @@ The `TcpServer` class implements the [`ServerInterface`](#serverinterface) and
 is responsible for accepting plaintext TCP/IP connections.
 
 ```php
-$server = new React\Socket\TcpServer(8080, $loop);
+$server = new React\Socket\TcpServer(8080);
 ```
 
 As above, the `$uri` parameter can consist of only a port, in which case the
@@ -520,7 +533,7 @@ which means it will not be reachable from outside of this system.
 In order to use a random port assignment, you can use the port `0`:
 
 ```php
-$server = new React\Socket\TcpServer(0, $loop);
+$server = new React\Socket\TcpServer(0);
 $address = $server->getAddress();
 ```
 
@@ -529,14 +542,14 @@ address through the first parameter provided to the constructor, optionally
 preceded by the `tcp://` scheme:
 
 ```php
-$server = new React\Socket\TcpServer('192.168.0.1:8080', $loop);
+$server = new React\Socket\TcpServer('192.168.0.1:8080');
 ```
 
 If you want to listen on an IPv6 address, you MUST enclose the host in square
 brackets:
 
 ```php
-$server = new React\Socket\TcpServer('[::1]:8080', $loop);
+$server = new React\Socket\TcpServer('[::1]:8080');
 ```
 
 If the given URI is invalid, does not contain a port, any other scheme or if it
@@ -544,7 +557,7 @@ contains a hostname, it will throw an `InvalidArgumentException`:
 
 ```php
 // throws InvalidArgumentException due to missing port
-$server = new React\Socket\TcpServer('127.0.0.1', $loop);
+$server = new React\Socket\TcpServer('127.0.0.1');
 ```
 
 If the given URI appears to be valid, but listening on it fails (such as if port
@@ -552,10 +565,10 @@ is already in use or port below 1024 may require root access etc.), it will
 throw a `RuntimeException`:
 
 ```php
-$first = new React\Socket\TcpServer(8080, $loop);
+$first = new React\Socket\TcpServer(8080);
 
 // throws RuntimeException because port is already in use
-$second = new React\Socket\TcpServer(8080, $loop);
+$second = new React\Socket\TcpServer(8080);
 ```
 
 > Note that these error conditions may vary depending on your system and/or
@@ -563,11 +576,17 @@ configuration.
 See the exception message and code for more details about the actual error
 condition.
 
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
+
 Optionally, you can specify [socket context options](https://www.php.net/manual/en/context.socket.php)
 for the underlying stream socket resource like this:
 
 ```php
-$server = new React\Socket\TcpServer('[::1]:8080', $loop, array(
+$server = new React\Socket\TcpServer('[::1]:8080', null, array(
     'backlog' => 200,
     'so_reuseport' => true,
     'ipv6_v6only' => true
@@ -606,8 +625,8 @@ which in its most basic form may look something like this if you're using a
 PEM encoded certificate file:
 
 ```php
-$server = new React\Socket\TcpServer(8000, $loop);
-$server = new React\Socket\SecureServer($server, $loop, array(
+$server = new React\Socket\TcpServer(8000);
+$server = new React\Socket\SecureServer($server, null, array(
     'local_cert' => 'server.pem'
 ));
 ```
@@ -621,8 +640,8 @@ If your private key is encrypted with a passphrase, you have to specify it
 like this:
 
 ```php
-$server = new React\Socket\TcpServer(8000, $loop);
-$server = new React\Socket\SecureServer($server, $loop, array(
+$server = new React\Socket\TcpServer(8000);
+$server = new React\Socket\SecureServer($server, null, array(
     'local_cert' => 'server.pem',
     'passphrase' => 'secret'
 ));
@@ -633,8 +652,8 @@ SSLv2/SSLv3. As of PHP 5.6+ you can also explicitly choose the TLS version you
 want to negotiate with the remote side:
 
 ```php
-$server = new React\Socket\TcpServer(8000, $loop);
-$server = new React\Socket\SecureServer($server, $loop, array(
+$server = new React\Socket\TcpServer(8000);
+$server = new React\Socket\SecureServer($server, null, array(
     'local_cert' => 'server.pem',
     'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_2_SERVER
 ));
@@ -672,6 +691,12 @@ Note that the `SecureServer` class is a concrete implementation for TLS sockets.
 If you want to typehint in your higher-level protocol implementation, you SHOULD
 use the generic [`ServerInterface`](#serverinterface) instead.
 
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
+
 > Advanced usage: Despite allowing any `ServerInterface` as first parameter,
 you SHOULD pass a `TcpServer` instance as first parameter, unless you
 know what you're doing.
@@ -692,7 +717,7 @@ The `UnixServer` class implements the [`ServerInterface`](#serverinterface) and
 is responsible for accepting connections on Unix domain sockets (UDS).
 
 ```php
-$server = new React\Socket\UnixServer('/tmp/server.sock', $loop);
+$server = new React\Socket\UnixServer('/tmp/server.sock');
 ```
 
 As above, the `$uri` parameter can consist of only a socket path or socket path
@@ -703,10 +728,10 @@ socket is already in use or the file not accessible etc.), it will throw a
 `RuntimeException`:
 
 ```php
-$first = new React\Socket\UnixServer('/tmp/same.sock', $loop);
+$first = new React\Socket\UnixServer('/tmp/same.sock');
 
 // throws RuntimeException because socket is already in use
-$second = new React\Socket\UnixServer('/tmp/same.sock', $loop);
+$second = new React\Socket\UnixServer('/tmp/same.sock');
 ```
 
 > Note that these error conditions may vary depending on your system and/or
@@ -716,6 +741,12 @@ $second = new React\Socket\UnixServer('/tmp/same.sock', $loop);
   given UDS path to report a more user-friendly error message in this case.
   See the exception message and code for more details about the actual error
   condition.
+
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
 
 Whenever a client connects, it will emit a `connection` event with a connection
 instance implementing [`ConnectionInterface`](#connectioninterface):
@@ -871,15 +902,14 @@ as plaintext TCP/IP, secure TLS or local Unix connection streams.
 It binds to the main event loop and can be used like this:
 
 ```php
-$loop = React\EventLoop\Factory::create();
-$connector = new React\Socket\Connector($loop);
+$connector = new React\Socket\Connector();
 
 $connector->connect($uri)->then(function (React\Socket\ConnectionInterface $connection) {
     $connection->write('...');
     $connection->end();
+}, function (Exception $e) {
+    echo 'Error: ' . $e->getMessage() . PHP_EOL;
 });
-
-$loop->run();
 ```
 
 In order to create a plaintext TCP/IP connection, you can simply pass a host
@@ -939,7 +969,7 @@ If you want to revert to the old behavior of only doing an IPv4 lookup and
 only attempt a single IPv4 connection, you can set up the `Connector` like this:
 
 ```php
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'happy_eyeballs' => false
 ));
 ```
@@ -953,7 +983,7 @@ If you explicitly want to use a custom DNS server (such as a local DNS relay or
 a company wide DNS server), you can set up the `Connector` like this:
 
 ```php
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'dns' => '127.0.1.1'
 ));
 
@@ -967,7 +997,7 @@ If you do not want to use a DNS resolver at all and want to connect to IP
 addresses only, you can also set up your `Connector` like this:
 
 ```php
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'dns' => false
 ));
 
@@ -982,9 +1012,9 @@ can also set up your `Connector` like this:
 
 ```php
 $dnsResolverFactory = new React\Dns\Resolver\Factory();
-$resolver = $dnsResolverFactory->createCached('127.0.1.1', $loop);
+$resolver = $dnsResolverFactory->createCached('127.0.1.1');
 
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'dns' => $resolver
 ));
 
@@ -999,7 +1029,7 @@ respects your `default_socket_timeout` ini setting (which defaults to 60s).
 If you want a custom timeout value, you can simply pass this like this:
 
 ```php
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'timeout' => 10.0
 ));
 ```
@@ -1008,7 +1038,7 @@ Similarly, if you do not want to apply a timeout at all and let the operating
 system handle this, you can pass a boolean flag like this:
 
 ```php
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'timeout' => false
 ));
 ```
@@ -1019,7 +1049,7 @@ pass boolean flags like this:
 
 ```php
 // only allow secure TLS connections
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'tcp' => false,
     'tls' => true,
     'unix' => false,
@@ -1038,7 +1068,7 @@ pass arrays of context options like this:
 
 ```php
 // allow insecure TLS connections
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'tcp' => array(
         'bindto' => '192.168.0.1:0'
     ),
@@ -1059,7 +1089,7 @@ SSLv2/SSLv3. As of PHP 5.6+ you can also explicitly choose the TLS version you
 want to negotiate with the remote side:
 
 ```php
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'tls' => array(
         'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT
     )
@@ -1078,14 +1108,14 @@ pass an instance implementing the `ConnectorInterface` like this:
 
 ```php
 $dnsResolverFactory = new React\Dns\Resolver\Factory();
-$resolver = $dnsResolverFactory->createCached('127.0.1.1', $loop);
-$tcp = new React\Socket\HappyEyeBallsConnector($loop, new React\Socket\TcpConnector($loop), $resolver);
+$resolver = $dnsResolverFactory->createCached('127.0.1.1');
+$tcp = new React\Socket\HappyEyeBallsConnector(null, new React\Socket\TcpConnector(), $resolver);
 
-$tls = new React\Socket\SecureConnector($tcp, $loop);
+$tls = new React\Socket\SecureConnector($tcp);
 
-$unix = new React\Socket\UnixConnector($loop);
+$unix = new React\Socket\UnixConnector();
 
-$connector = new React\Socket\Connector($loop, array(
+$connector = new React\Socket\Connector(array(
     'tcp' => $tcp,
     'tls' => $tls,
     'unix' => $unix,
@@ -1112,6 +1142,24 @@ $connector->connect('google.com:80')->then(function (React\Socket\ConnectionInte
   Internally, the `tcp://` and `tls://` connectors will always be wrapped by
   `TimeoutConnector`, unless you disable timeouts like in the above example.
 
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
+
+> Changelog v1.9.0: The constructur signature has been updated to take the
+> optional `$context` as the first parameter and the optional `$loop` as a second
+> argument. The previous signature has been deprecated and should not be used anymore.
+>
+> ```php
+> // constructor signature as of v1.9.0
+> $connector = new React\Socket\Connector(array $context = [], ?LoopInterface $loop = null);
+>
+> // legacy constructor signature before v1.9.0
+> $connector = new React\Socket\Connector(?LoopInterface $loop = null, array $context = []);
+> ```
+
 ### Advanced client usage
 
 #### TcpConnector
@@ -1121,14 +1169,12 @@ The `TcpConnector` class implements the
 TCP/IP connections to any IP-port-combination:
 
 ```php
-$tcpConnector = new React\Socket\TcpConnector($loop);
+$tcpConnector = new React\Socket\TcpConnector();
 
 $tcpConnector->connect('127.0.0.1:80')->then(function (React\Socket\ConnectionInterface $connection) {
     $connection->write('...');
     $connection->end();
 });
-
-$loop->run();
 ```
 
 See also the [examples](examples).
@@ -1145,12 +1191,18 @@ Calling `cancel()` on a pending promise will close the underlying socket
 resource, thus cancelling the pending TCP/IP connection, and reject the
 resulting promise.
 
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
+
 You can optionally pass additional
 [socket context options](https://www.php.net/manual/en/context.socket.php)
 to the constructor like this:
 
 ```php
-$tcpConnector = new React\Socket\TcpConnector($loop, array(
+$tcpConnector = new React\Socket\TcpConnector(null, array(
     'bindto' => '192.168.0.1:0'
 ));
 ```
@@ -1189,16 +1241,14 @@ Make sure to set up your DNS resolver and underlying TCP connector like this:
 
 ```php
 $dnsResolverFactory = new React\Dns\Resolver\Factory();
-$dns = $dnsResolverFactory->createCached('8.8.8.8', $loop);
+$dns = $dnsResolverFactory->createCached('8.8.8.8');
 
-$dnsConnector = new React\Socket\HappyEyeBallsConnector($loop, $tcpConnector, $dns);
+$dnsConnector = new React\Socket\HappyEyeBallsConnector(null, $tcpConnector, $dns);
 
 $dnsConnector->connect('www.google.com:80')->then(function (React\Socket\ConnectionInterface $connection) {
     $connection->write('...');
     $connection->end();
 });
-
-$loop->run();
 ```
 
 See also the [examples](examples).
@@ -1214,6 +1264,11 @@ $promise->cancel();
 Calling `cancel()` on a pending promise will cancel the underlying DNS lookups
 and/or the underlying TCP/IP connection(s) and reject the resulting promise.
 
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
 
 > Advanced usage: Internally, the `HappyEyeBallsConnector` relies on a `Resolver` to
 look up the IP addresses for the given hostname.
@@ -1241,7 +1296,7 @@ Make sure to set up your DNS resolver and underlying TCP connector like this:
 
 ```php
 $dnsResolverFactory = new React\Dns\Resolver\Factory();
-$dns = $dnsResolverFactory->createCached('8.8.8.8', $loop);
+$dns = $dnsResolverFactory->createCached('8.8.8.8');
 
 $dnsConnector = new React\Socket\DnsConnector($tcpConnector, $dns);
 
@@ -1249,8 +1304,6 @@ $dnsConnector->connect('www.google.com:80')->then(function (React\Socket\Connect
     $connection->write('...');
     $connection->end();
 });
-
-$loop->run();
 ```
 
 See also the [examples](examples).
@@ -1288,14 +1341,12 @@ creates a plaintext TCP/IP connection and then enables TLS encryption on this
 stream.
 
 ```php
-$secureConnector = new React\Socket\SecureConnector($dnsConnector, $loop);
+$secureConnector = new React\Socket\SecureConnector($dnsConnector);
 
 $secureConnector->connect('www.google.com:443')->then(function (React\Socket\ConnectionInterface $connection) {
     $connection->write("GET / HTTP/1.0\r\nHost: www.google.com\r\n\r\n");
     ...
 });
-
-$loop->run();
 ```
 
 See also the [examples](examples).
@@ -1311,12 +1362,18 @@ $promise->cancel();
 Calling `cancel()` on a pending promise will cancel the underlying TCP/IP
 connection and/or the SSL/TLS negotiation and reject the resulting promise.
 
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
+
 You can optionally pass additional
 [SSL context options](https://www.php.net/manual/en/context.ssl.php)
 to the constructor like this:
 
 ```php
-$secureConnector = new React\Socket\SecureConnector($dnsConnector, $loop, array(
+$secureConnector = new React\Socket\SecureConnector($dnsConnector, null, array(
     'verify_peer' => false,
     'verify_peer_name' => false
 ));
@@ -1327,7 +1384,7 @@ SSLv2/SSLv3. As of PHP 5.6+ you can also explicitly choose the TLS version you
 want to negotiate with the remote side:
 
 ```php
-$secureConnector = new React\Socket\SecureConnector($dnsConnector, $loop, array(
+$secureConnector = new React\Socket\SecureConnector($dnsConnector, null, array(
     'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT
 ));
 ```
@@ -1352,7 +1409,7 @@ instance and starting a timer that will automatically reject and abort any
 underlying connection attempt if it takes too long.
 
 ```php
-$timeoutConnector = new React\Socket\TimeoutConnector($connector, 3.0, $loop);
+$timeoutConnector = new React\Socket\TimeoutConnector($connector, 3.0);
 
 $timeoutConnector->connect('google.com:80')->then(function (React\Socket\ConnectionInterface $connection) {
     // connection succeeded within 3.0 seconds
@@ -1360,6 +1417,12 @@ $timeoutConnector->connect('google.com:80')->then(function (React\Socket\Connect
 ```
 
 See also any of the [examples](examples).
+
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
 
 Pending connection attempts can be cancelled by cancelling its pending promise like so:
 
@@ -1379,13 +1442,11 @@ The `UnixConnector` class implements the
 Unix domain socket (UDS) paths like this:
 
 ```php
-$connector = new React\Socket\UnixConnector($loop);
+$connector = new React\Socket\UnixConnector();
 
 $connector->connect('/tmp/demo.sock')->then(function (React\Socket\ConnectionInterface $connection) {
     $connection->write("HELLO\n");
 });
-
-$loop->run();
 ```
 
 Connecting to Unix domain sockets is an atomic operation, i.e. its promise will
@@ -1397,6 +1458,12 @@ As such, calling `cancel()` on the resulting promise has no effect.
   with the `unix://` scheme, for example `unix:///tmp/demo.sock`.
   The [`getLocalAddress()`](#getlocaladdress) method will most likely return a
   `null` value as this value is not applicable to UDS connections here.
+
+This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+pass the event loop instance to use for this object. You can use a `null` value
+here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+This value SHOULD NOT be given unless you're sure you want to explicitly use a
+given event loop instance.
 
 #### FixedUriConnector
 
@@ -1411,7 +1478,7 @@ instead of connecting to a default address assumed by an higher-level API:
 ```php
 $connector = new React\Socket\FixedUriConnector(
     'unix:///var/run/docker.sock',
-    new React\Socket\UnixConnector($loop)
+    new React\Socket\UnixConnector()
 );
 
 // destination will be ignored, actually connects to Unix domain socket
@@ -1420,23 +1487,23 @@ $promise = $connector->connect('localhost:80');
 
 ## Install
 
-The recommended way to install this library is [through Composer](https://getcomposer.org).
+The recommended way to install this library is [through Composer](https://getcomposer.org/).
 [New to Composer?](https://getcomposer.org/doc/00-intro.md)
 
 This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-$ composer require react/socket:^1.7
+composer require react/socket:^1.12
 ```
 
 See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.
 
 This project aims to run on any platform and thus does not require any PHP
 extensions and supports running on legacy PHP 5.3 through current PHP 8+ and HHVM.
-It's *highly recommended to use PHP 7+* for this project, partly due to its vast
-performance improvements and partly because legacy PHP versions require several
-workarounds as described below.
+It's *highly recommended to use the latest supported PHP version* for this project,
+partly due to its vast performance improvements and partly because legacy PHP
+versions require several workarounds as described below.
 
 Secure TLS connections received some major upgrades starting with PHP 5.6, with
 the defaults now being more secure, while older versions required explicit
@@ -1472,16 +1539,16 @@ on affected versions.
 ## Tests
 
 To run the test suite, you first need to clone this repo and then install all
-dependencies [through Composer](https://getcomposer.org):
+dependencies [through Composer](https://getcomposer.org/):
 
 ```bash
-$ composer install
+composer install
 ```
 
 To run the test suite, go to the project root and run:
 
 ```bash
-$ php vendor/bin/phpunit
+vendor/bin/phpunit
 ```
 
 The test suite also contains a number of functional integration tests that rely
@@ -1489,7 +1556,7 @@ on a stable internet connection.
 If you do not want to run these, they can simply be skipped like this:
 
 ```bash
-$ php vendor/bin/phpunit --exclude-group internet
+vendor/bin/phpunit --exclude-group internet
 ```
 
 ## License

@@ -12,8 +12,10 @@
 namespace Monolog\Handler;
 
 use DateTimeInterface;
-use Monolog\Logger;
 use Monolog\Handler\SyslogUdp\UdpSocket;
+use Monolog\Level;
+use Monolog\LogRecord;
+use Monolog\Utils;
 
 /**
  * A Handler for logging to a remote syslogd server.
@@ -28,31 +30,34 @@ class SyslogUdpHandler extends AbstractSyslogHandler
     const RFC5424e = 2;
 
     /** @var array<self::RFC*, string> */
-    private $dateFormats = array(
+    private array $dateFormats = [
         self::RFC3164 => 'M d H:i:s',
         self::RFC5424 => \DateTime::RFC3339,
         self::RFC5424e => \DateTime::RFC3339_EXTENDED,
-    );
+    ];
 
-    /** @var UdpSocket */
-    protected $socket;
-    /** @var string */
-    protected $ident;
+    protected UdpSocket $socket;
+    protected string $ident;
     /** @var self::RFC* */
-    protected $rfc;
+    protected int $rfc;
 
     /**
-     * @param string     $host     Either IP/hostname or a path to a unix socket (port must be 0 then)
-     * @param int        $port     Port number, or 0 if $host is a unix socket
-     * @param string|int $facility Either one of the names of the keys in $this->facilities, or a LOG_* facility constant
-     * @param bool       $bubble   Whether the messages that are handled can bubble up the stack or not
-     * @param string     $ident    Program name or tag for each log message.
-     * @param int        $rfc      RFC to format the message for.
+     * @param  string                    $host     Either IP/hostname or a path to a unix socket (port must be 0 then)
+     * @param  int                       $port     Port number, or 0 if $host is a unix socket
+     * @param  string|int                $facility Either one of the names of the keys in $this->facilities, or a LOG_* facility constant
+     * @param  bool                      $bubble   Whether the messages that are handled can bubble up the stack or not
+     * @param  string                    $ident    Program name or tag for each log message.
+     * @param  int                       $rfc      RFC to format the message for.
+     * @throws MissingExtensionException when there is no socket extension
      *
      * @phpstan-param self::RFC* $rfc
      */
-    public function __construct(string $host, int $port = 514, $facility = LOG_USER, $level = Logger::DEBUG, bool $bubble = true, string $ident = 'php', int $rfc = self::RFC5424)
+    public function __construct(string $host, int $port = 514, string|int $facility = LOG_USER, int|string|Level $level = Level::Debug, bool $bubble = true, string $ident = 'php', int $rfc = self::RFC5424)
     {
+        if (!extension_loaded('sockets')) {
+            throw new MissingExtensionException('The sockets extension is required to use the SyslogUdpHandler');
+        }
+
         parent::__construct($facility, $level, $bubble);
 
         $this->ident = $ident;
@@ -61,11 +66,11 @@ class SyslogUdpHandler extends AbstractSyslogHandler
         $this->socket = new UdpSocket($host, $port);
     }
 
-    protected function write(array $record): void
+    protected function write(LogRecord $record): void
     {
-        $lines = $this->splitMessageIntoLines($record['formatted']);
+        $lines = $this->splitMessageIntoLines($record->formatted);
 
-        $header = $this->makeCommonSyslogHeader($this->logLevels[$record['level']], $record['datetime']);
+        $header = $this->makeCommonSyslogHeader($this->toSyslogPriority($record->level), $record->datetime);
 
         foreach ($lines as $line) {
             $this->socket->write($line, $header);
@@ -89,7 +94,9 @@ class SyslogUdpHandler extends AbstractSyslogHandler
 
         $lines = preg_split('/$\R?^/m', (string) $message, -1, PREG_SPLIT_NO_EMPTY);
         if (false === $lines) {
-            throw new \RuntimeException('Could not preg_split: '.preg_last_error().' / '.preg_last_error_msg());
+            $pcreErrorCode = preg_last_error();
+
+            throw new \RuntimeException('Could not preg_split: ' . $pcreErrorCode . ' / ' . Utils::pcreLastErrorMessage($pcreErrorCode));
         }
 
         return $lines;
@@ -102,34 +109,35 @@ class SyslogUdpHandler extends AbstractSyslogHandler
     {
         $priority = $severity + $this->facility;
 
-        if (!$pid = getmypid()) {
+        $pid = getmypid();
+        if (false === $pid) {
             $pid = '-';
         }
 
-        if (!$hostname = gethostname()) {
+        $hostname = gethostname();
+        if (false === $hostname) {
             $hostname = '-';
         }
 
-        if ($this->rfc === self::RFC3164 && ($datetime instanceof \DateTimeImmutable || $datetime instanceof \DateTime)) {
+        if ($this->rfc === self::RFC3164) {
+            // see https://github.com/phpstan/phpstan/issues/5348
+            // @phpstan-ignore-next-line
             $dateNew = $datetime->setTimezone(new \DateTimeZone('UTC'));
             $date = $dateNew->format($this->dateFormats[$this->rfc]);
-        }
-        else {
-            $date = $datetime->format($this->dateFormats[$this->rfc]);
-        }
 
-        if ($this->rfc === self::RFC3164) {
             return "<$priority>" .
                 $date . " " .
                 $hostname . " " .
                 $this->ident . "[" . $pid . "]: ";
-        } else {
-            return "<$priority>1 " .
-                $date . " " .
-                $hostname . " " .
-                $this->ident . " " .
-                $pid . " - - ";
         }
+
+        $date = $datetime->format($this->dateFormats[$this->rfc]);
+
+        return "<$priority>1 " .
+            $date . " " .
+            $hostname . " " .
+            $this->ident . " " .
+            $pid . " - - ";
     }
 
     /**

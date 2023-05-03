@@ -28,7 +28,7 @@ class DateCaster
     {
         $prefix = Caster::PREFIX_VIRTUAL;
         $location = $d->getTimezone()->getLocation();
-        $fromNow = (new \DateTime())->diff($d);
+        $fromNow = (new \DateTimeImmutable())->diff($d);
 
         $title = $d->format('l, F j, Y')
             ."\n".self::formatInterval($fromNow).' from now'
@@ -79,7 +79,7 @@ class DateCaster
     public static function castTimeZone(\DateTimeZone $timeZone, array $a, Stub $stub, bool $isNested, int $filter)
     {
         $location = $timeZone->getLocation();
-        $formatted = (new \DateTime('now', $timeZone))->format($location ? 'e (P)' : 'P');
+        $formatted = (new \DateTimeImmutable('now', $timeZone))->format($location ? 'e (P)' : 'P');
         $title = $location && \extension_loaded('intl') ? \Locale::getDisplayRegion('-'.$location['country_code']) : '';
 
         $z = [Caster::PREFIX_VIRTUAL.'timezone' => new ConstStub($formatted, $title)];
@@ -103,11 +103,11 @@ class DateCaster
         }
 
         $period = sprintf(
-            'every %s, from %s (%s) %s',
+            'every %s, from %s%s %s',
             self::formatInterval($p->getDateInterval()),
+            $p->include_start_date ? '[' : ']',
             self::formatDateTime($p->getStartDate()),
-            $p->include_start_date ? 'included' : 'excluded',
-            ($end = $p->getEndDate()) ? 'to '.self::formatDateTime($end) : 'recurring '.$p->recurrences.' time/s'
+            ($end = $p->getEndDate()) ? 'to '.self::formatDateTime($end).(\PHP_VERSION_ID >= 80200 && $p->include_end_date ? ']' : '[') : 'recurring '.$p->recurrences.' time/s'
         );
 
         $p = [Caster::PREFIX_VIRTUAL.'period' => new ConstStub($period, implode("\n", $dates))];

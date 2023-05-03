@@ -15,7 +15,7 @@ trait MakesHttpRequests
     /**
      * The last response returned by the application.
      *
-     * @var \Illuminate\Http\Response
+     * @var \Illuminate\Testing\TestResponse
      */
     protected $response;
 
@@ -344,7 +344,7 @@ trait MakesHttpRequests
      * @param  array  $files
      * @param  array  $server
      * @param  string  $content
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Testing\TestResponse
      */
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {

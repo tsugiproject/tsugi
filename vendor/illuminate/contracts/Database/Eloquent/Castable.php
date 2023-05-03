@@ -7,7 +7,8 @@ interface Castable
     /**
      * Get the name of the caster class to use when casting from / to this cast target.
      *
-     * @return string|\Illuminate\Contracts\Database\Eloquent\CastsAttributes|\Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes
+     * @param  array  $arguments
+     * @return class-string<CastsAttributes|CastsInboundAttributes>|CastsAttributes|CastsInboundAttributes
      */
-    public static function castUsing();
+    public static function castUsing(array $arguments);
 }

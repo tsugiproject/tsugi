@@ -27,6 +27,11 @@ class Entry {
     public $total = 0;
 
     /**
+     * The maximum length
+     */
+    public $maxlen = 0;
+
+    /**
      * The buckets key->value
      */
     public $buckets = array();

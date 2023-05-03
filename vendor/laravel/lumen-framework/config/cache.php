@@ -43,7 +43,7 @@ return [
         'database' => [
             'driver' => 'database',
             'table' => env('CACHE_DATABASE_TABLE', 'cache'),
-            'connection' => env('CACHE_DATABASE_CONNECTION', null),
+            'connection' => env('CACHE_DATABASE_CONNECTION'),
         ],
 
         'file' => [
@@ -72,7 +72,7 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => env('CACHE_REDIS_CONNECTION', 'default'),
+            'connection' => env('CACHE_REDIS_CONNECTION', 'cache'),
         ],
 
     ],

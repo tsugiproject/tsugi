@@ -1337,7 +1337,7 @@ class LTI13 {
         $key = U::get($key_set, $kid, false);
         if ( ! $key ) return null;
 
-        $details = openssl_pkey_get_details($key);
+        $details = openssl_pkey_get_details($key->getKeyMaterial());
         if ( $details && is_array($details) && isset($details['key']) ) {
             $new_public_key = $details['key'];
             return $new_public_key;

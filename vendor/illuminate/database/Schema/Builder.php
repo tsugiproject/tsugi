@@ -3,10 +3,10 @@
 namespace Illuminate\Database\Schema;
 
 use Closure;
-use Doctrine\DBAL\Types\Type;
+use Illuminate\Container\Container;
 use Illuminate\Database\Connection;
+use InvalidArgumentException;
 use LogicException;
-use RuntimeException;
 
 class Builder
 {
@@ -34,9 +34,23 @@ class Builder
     /**
      * The default string length for migrations.
      *
-     * @var int
+     * @var int|null
      */
     public static $defaultStringLength = 255;
+
+    /**
+     * The default relationship morph key type.
+     *
+     * @var string
+     */
+    public static $defaultMorphKeyType = 'int';
+
+    /**
+     * Indicates whether Doctrine DBAL usage will be prevented if possible when dropping, renaming, and modifying columns.
+     *
+     * @var bool
+     */
+    public static $alwaysUsesNativeSchemaOperationsIfPossible = false;
 
     /**
      * Create a new database Schema manager.
@@ -59,6 +73,80 @@ class Builder
     public static function defaultStringLength($length)
     {
         static::$defaultStringLength = $length;
+    }
+
+    /**
+     * Set the default morph key type for migrations.
+     *
+     * @param  string  $type
+     * @return void
+     *
+     * @throws \InvalidArgumentException
+     */
+    public static function defaultMorphKeyType(string $type)
+    {
+        if (! in_array($type, ['int', 'uuid', 'ulid'])) {
+            throw new InvalidArgumentException("Morph key type must be 'int', 'uuid', or 'ulid'.");
+        }
+
+        static::$defaultMorphKeyType = $type;
+    }
+
+    /**
+     * Set the default morph key type for migrations to UUIDs.
+     *
+     * @return void
+     */
+    public static function morphUsingUuids()
+    {
+        return static::defaultMorphKeyType('uuid');
+    }
+
+    /**
+     * Set the default morph key type for migrations to ULIDs.
+     *
+     * @return void
+     */
+    public static function morphUsingUlids()
+    {
+        return static::defaultMorphKeyType('ulid');
+    }
+
+    /**
+     * Attempt to use native schema operations for dropping, renaming, and modifying columns, even if Doctrine DBAL is installed.
+     *
+     * @param  bool  $value
+     * @return void
+     */
+    public static function useNativeSchemaOperationsIfPossible(bool $value = true)
+    {
+        static::$alwaysUsesNativeSchemaOperationsIfPossible = $value;
+    }
+
+    /**
+     * Create a database in the schema.
+     *
+     * @param  string  $name
+     * @return bool
+     *
+     * @throws \LogicException
+     */
+    public function createDatabase($name)
+    {
+        throw new LogicException('This database driver does not support creating databases.');
+    }
+
+    /**
+     * Drop a database from the schema if the database exists.
+     *
+     * @param  string  $name
+     * @return bool
+     *
+     * @throws \LogicException
+     */
+    public function dropDatabaseIfExists($name)
+    {
+        throw new LogicException('This database driver does not support dropping databases.');
     }
 
     /**
@@ -108,6 +196,36 @@ class Builder
         }
 
         return true;
+    }
+
+    /**
+     * Execute a table builder callback if the given table has a given column.
+     *
+     * @param  string  $table
+     * @param  string  $column
+     * @param  \Closure  $callback
+     * @return void
+     */
+    public function whenTableHasColumn(string $table, string $column, Closure $callback)
+    {
+        if ($this->hasColumn($table, $column)) {
+            $this->table($table, fn (Blueprint $table) => $callback($table));
+        }
+    }
+
+    /**
+     * Execute a table builder callback if the given table doesn't have a given column.
+     *
+     * @param  string  $table
+     * @param  string  $column
+     * @param  \Closure  $callback
+     * @return void
+     */
+    public function whenTableDoesntHaveColumn(string $table, string $column, Closure $callback)
+    {
+        if (! $this->hasColumn($table, $column)) {
+            $this->table($table, fn (Blueprint $table) => $callback($table));
+        }
     }
 
     /**
@@ -194,6 +312,20 @@ class Builder
     }
 
     /**
+     * Drop columns from a table schema.
+     *
+     * @param  string  $table
+     * @param  string|array  $columns
+     * @return void
+     */
+    public function dropColumns($table, $columns)
+    {
+        $this->table($table, function (Blueprint $blueprint) use ($columns) {
+            $blueprint->dropColumn($columns);
+        });
+    }
+
+    /**
      * Drop all tables from the database.
      *
      * @return void
@@ -232,7 +364,7 @@ class Builder
     /**
      * Get all of the table names for the database.
      *
-     * @return void
+     * @return array
      *
      * @throws \LogicException
      */
@@ -280,6 +412,23 @@ class Builder
     }
 
     /**
+     * Disable foreign key constraints during the execution of a callback.
+     *
+     * @param  \Closure  $callback
+     * @return mixed
+     */
+    public function withoutForeignKeyConstraints(Closure $callback)
+    {
+        $this->disableForeignKeyConstraints();
+
+        $result = $callback();
+
+        $this->enableForeignKeyConstraints();
+
+        return $result;
+    }
+
+    /**
      * Execute the blueprint to build / modify the table.
      *
      * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
@@ -307,36 +456,7 @@ class Builder
             return call_user_func($this->resolver, $table, $callback, $prefix);
         }
 
-        return new Blueprint($table, $callback, $prefix);
-    }
-
-    /**
-     * Register a custom Doctrine mapping type.
-     *
-     * @param  string  $class
-     * @param  string  $name
-     * @param  string  $type
-     * @return void
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws \RuntimeException
-     */
-    public function registerCustomDoctrineType($class, $name, $type)
-    {
-        if (! $this->connection->isDoctrineAvailable()) {
-            throw new RuntimeException(
-                'Registering a custom Doctrine type requires Doctrine DBAL (doctrine/dbal).'
-            );
-        }
-
-        if (! Type::hasType($name)) {
-            Type::addType($name, $class);
-
-            $this->connection
-                ->getDoctrineSchemaManager()
-                ->getDatabasePlatform()
-                ->registerDoctrineTypeMapping($type, $name);
-        }
+        return Container::getInstance()->make(Blueprint::class, compact('table', 'callback', 'prefix'));
     }
 
     /**

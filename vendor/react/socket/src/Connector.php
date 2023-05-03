@@ -15,7 +15,7 @@ use React\EventLoop\LoopInterface;
  * as plaintext TCP/IP, secure TLS or local Unix connection streams.
  *
  * Under the hood, the `Connector` is implemented as a *higher-level facade*
- * or the lower-level connectors implemented in this package. This means it
+ * for the lower-level connectors implemented in this package. This means it
  * also shares all of their features and implementation details.
  * If you want to typehint in your higher-level protocol implementation, you SHOULD
  * use the generic [`ConnectorInterface`](#connectorinterface) instead.
@@ -26,10 +26,48 @@ final class Connector implements ConnectorInterface
 {
     private $connectors = array();
 
-    public function __construct(LoopInterface $loop, array $options = array())
+    /**
+     * Instantiate new `Connector`
+     *
+     * ```php
+     * $connector = new React\Socket\Connector();
+     * ```
+     *
+     * This class takes two optional arguments for more advanced usage:
+     *
+     * ```php
+     * // constructor signature as of v1.9.0
+     * $connector = new React\Socket\Connector(array $context = [], ?LoopInterface $loop = null);
+     *
+     * // legacy constructor signature before v1.9.0
+     * $connector = new React\Socket\Connector(?LoopInterface $loop = null, array $context = []);
+     * ```
+     *
+     * This class takes an optional `LoopInterface|null $loop` parameter that can be used to
+     * pass the event loop instance to use for this object. You can use a `null` value
+     * here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
+     * This value SHOULD NOT be given unless you're sure you want to explicitly use a
+     * given event loop instance.
+     *
+     * @param array|LoopInterface|null $context
+     * @param null|LoopInterface|array $loop
+     * @throws \InvalidArgumentException for invalid arguments
+     */
+    public function __construct($context = array(), $loop = null)
     {
+        // swap arguments for legacy constructor signature
+        if (($context instanceof LoopInterface || $context === null) && (\func_num_args() <= 1 || \is_array($loop))) {
+            $swap = $loop === null ? array(): $loop;
+            $loop = $context;
+            $context = $swap;
+        }
+
+        if (!\is_array($context) || ($loop !== null && !$loop instanceof LoopInterface)) {
+            throw new \InvalidArgumentException('Expected "array $context" and "?LoopInterface $loop" arguments');
+        }
+
         // apply default options if not explicitly given
-        $options += array(
+        $context += array(
             'tcp' => true,
             'tls' => true,
             'unix' => true,
@@ -39,25 +77,25 @@ final class Connector implements ConnectorInterface
             'happy_eyeballs' => true,
         );
 
-        if ($options['timeout'] === true) {
-            $options['timeout'] = (float)\ini_get("default_socket_timeout");
+        if ($context['timeout'] === true) {
+            $context['timeout'] = (float)\ini_get("default_socket_timeout");
         }
 
-        if ($options['tcp'] instanceof ConnectorInterface) {
-            $tcp = $options['tcp'];
+        if ($context['tcp'] instanceof ConnectorInterface) {
+            $tcp = $context['tcp'];
         } else {
             $tcp = new TcpConnector(
                 $loop,
-                \is_array($options['tcp']) ? $options['tcp'] : array()
+                \is_array($context['tcp']) ? $context['tcp'] : array()
             );
         }
 
-        if ($options['dns'] !== false) {
-            if ($options['dns'] instanceof ResolverInterface) {
-                $resolver = $options['dns'];
+        if ($context['dns'] !== false) {
+            if ($context['dns'] instanceof ResolverInterface) {
+                $resolver = $context['dns'];
             } else {
-                if ($options['dns'] !== true) {
-                    $config = $options['dns'];
+                if ($context['dns'] !== true) {
+                    $config = $context['dns'];
                 } else {
                     // try to load nameservers from system config or default to Google's public DNS
                     $config = DnsConfig::loadSystemConfigBlocking();
@@ -73,52 +111,52 @@ final class Connector implements ConnectorInterface
                 );
             }
 
-            if ($options['happy_eyeballs'] === true) {
+            if ($context['happy_eyeballs'] === true) {
                 $tcp = new HappyEyeBallsConnector($loop, $tcp, $resolver);
             } else {
                 $tcp = new DnsConnector($tcp, $resolver);
             }
         }
 
-        if ($options['tcp'] !== false) {
-            $options['tcp'] = $tcp;
+        if ($context['tcp'] !== false) {
+            $context['tcp'] = $tcp;
 
-            if ($options['timeout'] !== false) {
-                $options['tcp'] = new TimeoutConnector(
-                    $options['tcp'],
-                    $options['timeout'],
+            if ($context['timeout'] !== false) {
+                $context['tcp'] = new TimeoutConnector(
+                    $context['tcp'],
+                    $context['timeout'],
                     $loop
                 );
             }
 
-            $this->connectors['tcp'] = $options['tcp'];
+            $this->connectors['tcp'] = $context['tcp'];
         }
 
-        if ($options['tls'] !== false) {
-            if (!$options['tls'] instanceof ConnectorInterface) {
-                $options['tls'] = new SecureConnector(
+        if ($context['tls'] !== false) {
+            if (!$context['tls'] instanceof ConnectorInterface) {
+                $context['tls'] = new SecureConnector(
                     $tcp,
                     $loop,
-                    \is_array($options['tls']) ? $options['tls'] : array()
+                    \is_array($context['tls']) ? $context['tls'] : array()
                 );
             }
 
-            if ($options['timeout'] !== false) {
-                $options['tls'] = new TimeoutConnector(
-                    $options['tls'],
-                    $options['timeout'],
+            if ($context['timeout'] !== false) {
+                $context['tls'] = new TimeoutConnector(
+                    $context['tls'],
+                    $context['timeout'],
                     $loop
                 );
             }
 
-            $this->connectors['tls'] = $options['tls'];
+            $this->connectors['tls'] = $context['tls'];
         }
 
-        if ($options['unix'] !== false) {
-            if (!$options['unix'] instanceof ConnectorInterface) {
-                $options['unix'] = new UnixConnector($loop);
+        if ($context['unix'] !== false) {
+            if (!$context['unix'] instanceof ConnectorInterface) {
+                $context['unix'] = new UnixConnector($loop);
             }
-            $this->connectors['unix'] = $options['unix'];
+            $this->connectors['unix'] = $context['unix'];
         }
     }
 
@@ -131,11 +169,68 @@ final class Connector implements ConnectorInterface
 
         if (!isset($this->connectors[$scheme])) {
             return \React\Promise\reject(new \RuntimeException(
-                'No connector available for URI scheme "' . $scheme . '"'
+                'No connector available for URI scheme "' . $scheme . '" (EINVAL)',
+                \defined('SOCKET_EINVAL') ? \SOCKET_EINVAL : 22
             ));
         }
 
         return $this->connectors[$scheme]->connect($uri);
     }
-}
 
+
+    /**
+     * [internal] Builds on URI from the given URI parts and ip address with original hostname as query
+     *
+     * @param array  $parts
+     * @param string $host
+     * @param string $ip
+     * @return string
+     * @internal
+     */
+    public static function uri(array $parts, $host, $ip)
+    {
+        $uri = '';
+
+        // prepend original scheme if known
+        if (isset($parts['scheme'])) {
+            $uri .= $parts['scheme'] . '://';
+        }
+
+        if (\strpos($ip, ':') !== false) {
+            // enclose IPv6 addresses in square brackets before appending port
+            $uri .= '[' . $ip . ']';
+        } else {
+            $uri .= $ip;
+        }
+
+        // append original port if known
+        if (isset($parts['port'])) {
+            $uri .= ':' . $parts['port'];
+        }
+
+        // append orignal path if known
+        if (isset($parts['path'])) {
+            $uri .= $parts['path'];
+        }
+
+        // append original query if known
+        if (isset($parts['query'])) {
+            $uri .= '?' . $parts['query'];
+        }
+
+        // append original hostname as query if resolved via DNS and if
+        // destination URI does not contain "hostname" query param already
+        $args = array();
+        \parse_str(isset($parts['query']) ? $parts['query'] : '', $args);
+        if ($host !== $ip && !isset($args['hostname'])) {
+            $uri .= (isset($parts['query']) ? '&' : '?') . 'hostname=' . \rawurlencode($host);
+        }
+
+        // append original fragment if known
+        if (isset($parts['fragment'])) {
+            $uri .= '#' . $parts['fragment'];
+        }
+
+        return $uri;
+    }
+}

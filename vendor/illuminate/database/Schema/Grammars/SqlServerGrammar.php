@@ -2,6 +2,8 @@
 
 namespace Illuminate\Database\Schema\Grammars;
 
+use Illuminate\Database\Connection;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 
@@ -17,16 +19,52 @@ class SqlServerGrammar extends Grammar
     /**
      * The possible column modifiers.
      *
-     * @var array
+     * @var string[]
      */
-    protected $modifiers = ['Increment', 'Collate', 'Nullable', 'Default', 'Persisted'];
+    protected $modifiers = ['Collate', 'Nullable', 'Default', 'Persisted', 'Increment'];
 
     /**
      * The columns available as serials.
      *
-     * @var array
+     * @var string[]
      */
     protected $serials = ['tinyInteger', 'smallInteger', 'mediumInteger', 'integer', 'bigInteger'];
+
+    /**
+     * The commands to be executed outside of create or alter command.
+     *
+     * @var string[]
+     */
+    protected $fluentCommands = ['Default'];
+
+    /**
+     * Compile a create database command.
+     *
+     * @param  string  $name
+     * @param  \Illuminate\Database\Connection  $connection
+     * @return string
+     */
+    public function compileCreateDatabase($name, $connection)
+    {
+        return sprintf(
+            'create database %s',
+            $this->wrapValue($name),
+        );
+    }
+
+    /**
+     * Compile a drop database if exists command.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    public function compileDropDatabaseIfExists($name)
+    {
+        return sprintf(
+            'drop database if exists %s',
+            $this->wrapValue($name)
+        );
+    }
 
     /**
      * Compile the query to determine if a table exists.
@@ -35,7 +73,7 @@ class SqlServerGrammar extends Grammar
      */
     public function compileTableExists()
     {
-        return "select * from sysobjects where type = 'U' and name = ?";
+        return "select * from sys.sysobjects where id = object_id(?) and xtype in ('U', 'V')";
     }
 
     /**
@@ -46,9 +84,7 @@ class SqlServerGrammar extends Grammar
      */
     public function compileColumnListing($table)
     {
-        return "select col.name from sys.columns as col
-                join sys.objects as obj on col.object_id = obj.object_id
-                where obj.type = 'U' and obj.object_id = object_id('$table')";
+        return "select name from sys.columns where object_id = object_id('$table')";
     }
 
     /**
@@ -78,6 +114,61 @@ class SqlServerGrammar extends Grammar
             $this->wrapTable($blueprint),
             implode(', ', $this->getColumns($blueprint))
         );
+    }
+
+    /**
+     * Compile a rename column command.
+     *
+     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
+     * @param  \Illuminate\Support\Fluent  $command
+     * @param  \Illuminate\Database\Connection  $connection
+     * @return array|string
+     */
+    public function compileRenameColumn(Blueprint $blueprint, Fluent $command, Connection $connection)
+    {
+        return $connection->usingNativeSchemaOperations()
+            ? sprintf("sp_rename '%s', %s, 'COLUMN'",
+                $this->wrap($blueprint->getTable().'.'.$command->from),
+                $this->wrap($command->to)
+            )
+            : parent::compileRenameColumn($blueprint, $command, $connection);
+    }
+
+    /**
+     * Compile a change column command into a series of SQL statements.
+     *
+     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
+     * @param  \Illuminate\Support\Fluent  $command
+     * @param  \Illuminate\Database\Connection  $connection
+     * @return array|string
+     *
+     * @throws \RuntimeException
+     */
+    public function compileChange(Blueprint $blueprint, Fluent $command, Connection $connection)
+    {
+        if (! $connection->usingNativeSchemaOperations()) {
+            return parent::compileChange($blueprint, $command, $connection);
+        }
+
+        $changes = [$this->compileDropDefaultConstraint($blueprint, $command)];
+
+        foreach ($blueprint->getChangedColumns() as $column) {
+            $sql = sprintf('alter table %s alter column %s %s',
+                $this->wrapTable($blueprint),
+                $this->wrap($column),
+                $this->getType($column)
+            );
+
+            foreach ($this->modifiers as $modifier) {
+                if (method_exists($this, $method = "modify{$modifier}")) {
+                    $sql .= $this->{$method}($blueprint, $column);
+                }
+            }
+
+            $changes[] = $sql;
+        }
+
+        return $changes;
     }
 
     /**
@@ -145,6 +236,24 @@ class SqlServerGrammar extends Grammar
     }
 
     /**
+     * Compile a default command.
+     *
+     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
+     * @param  \Illuminate\Support\Fluent  $command
+     * @return string|null
+     */
+    public function compileDefault(Blueprint $blueprint, Fluent $command)
+    {
+        if ($command->column->change && ! is_null($command->column->default)) {
+            return sprintf('alter table %s add default %s for %s',
+                $this->wrapTable($blueprint),
+                $this->getDefaultValue($command->column->default),
+                $this->wrap($command->column)
+            );
+        }
+    }
+
+    /**
      * Compile a drop table command.
      *
      * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
@@ -165,7 +274,7 @@ class SqlServerGrammar extends Grammar
      */
     public function compileDropIfExists(Blueprint $blueprint, Fluent $command)
     {
-        return sprintf('if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME = %s) drop table %s',
+        return sprintf('if exists (select * from sys.sysobjects where id = object_id(%s, \'U\')) drop table %s',
             "'".str_replace("'", "''", $this->getTablePrefix().$blueprint->getTable())."'",
             $this->wrapTable($blueprint)
         );
@@ -206,13 +315,15 @@ class SqlServerGrammar extends Grammar
      */
     public function compileDropDefaultConstraint(Blueprint $blueprint, Fluent $command)
     {
-        $columns = "'".implode("','", $command->columns)."'";
+        $columns = $command->name === 'change'
+            ? "'".collect($blueprint->getChangedColumns())->pluck('name')->implode("','")."'"
+            : "'".implode("','", $command->columns)."'";
 
         $tableName = $this->getTablePrefix().$blueprint->getTable();
 
         $sql = "DECLARE @sql NVARCHAR(MAX) = '';";
         $sql .= "SELECT @sql += 'ALTER TABLE [dbo].[{$tableName}] DROP CONSTRAINT ' + OBJECT_NAME([default_object_id]) + ';' ";
-        $sql .= 'FROM SYS.COLUMNS ';
+        $sql .= 'FROM sys.columns ';
         $sql .= "WHERE [object_id] = OBJECT_ID('[dbo].[{$tableName}]') AND [name] in ({$columns}) AND [default_object_id] <> 0;";
         $sql .= 'EXEC(@sql)';
 
@@ -367,6 +478,26 @@ class SqlServerGrammar extends Grammar
     }
 
     /**
+     * Compile the SQL needed to retrieve all table names.
+     *
+     * @return string
+     */
+    public function compileGetAllTables()
+    {
+        return "select name, type from sys.tables where type = 'U'";
+    }
+
+    /**
+     * Compile the SQL needed to retrieve all view names.
+     *
+     * @return string
+     */
+    public function compileGetAllViews()
+    {
+        return "select name, type from sys.objects where type = 'V'";
+    }
+
+    /**
      * Create the column definition for a char type.
      *
      * @param  \Illuminate\Support\Fluent  $column
@@ -386,6 +517,17 @@ class SqlServerGrammar extends Grammar
     protected function typeString(Fluent $column)
     {
         return "nvarchar({$column->length})";
+    }
+
+    /**
+     * Create the column definition for a tiny text type.
+     *
+     * @param  \Illuminate\Support\Fluent  $column
+     * @return string
+     */
+    protected function typeTinyText(Fluent $column)
+    {
+        return 'nvarchar(255)';
     }
 
     /**
@@ -620,9 +762,11 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeTimestamp(Fluent $column)
     {
-        $columnType = $column->precision ? "datetime2($column->precision)" : 'datetime';
+        if ($column->useCurrent) {
+            $column->default(new Expression('CURRENT_TIMESTAMP'));
+        }
 
-        return $column->useCurrent ? "$columnType default CURRENT_TIMESTAMP" : $columnType;
+        return $column->precision ? "datetime2($column->precision)" : 'datetime';
     }
 
     /**
@@ -635,9 +779,11 @@ class SqlServerGrammar extends Grammar
      */
     protected function typeTimestampTz(Fluent $column)
     {
-        $columnType = $column->precision ? "datetimeoffset($column->precision)" : 'datetimeoffset';
+        if ($column->useCurrent) {
+            $column->default(new Expression('CURRENT_TIMESTAMP'));
+        }
 
-        return $column->useCurrent ? "$columnType default CURRENT_TIMESTAMP" : $columnType;
+        return $column->precision ? "datetimeoffset($column->precision)" : 'datetimeoffset';
     }
 
     /**
@@ -831,7 +977,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function modifyDefault(Blueprint $blueprint, Fluent $column)
     {
-        if (! is_null($column->default)) {
+        if (! $column->change && ! is_null($column->default)) {
             return ' default '.$this->getDefaultValue($column->default);
         }
     }
@@ -845,7 +991,7 @@ class SqlServerGrammar extends Grammar
      */
     protected function modifyIncrement(Blueprint $blueprint, Fluent $column)
     {
-        if (in_array($column->type, $this->serials) && $column->autoIncrement) {
+        if (! $column->change && in_array($column->type, $this->serials) && $column->autoIncrement) {
             return ' identity primary key';
         }
     }
@@ -859,6 +1005,14 @@ class SqlServerGrammar extends Grammar
      */
     protected function modifyPersisted(Blueprint $blueprint, Fluent $column)
     {
+        if ($column->change) {
+            if ($column->type === 'computed') {
+                return $column->persisted ? ' add persisted' : ' drop persisted';
+            }
+
+            return null;
+        }
+
         if ($column->persisted) {
             return ' persisted';
         }
@@ -867,7 +1021,7 @@ class SqlServerGrammar extends Grammar
     /**
      * Wrap a table in keyword identifiers.
      *
-     * @param  \Illuminate\Database\Query\Expression|string  $table
+     * @param  \Illuminate\Database\Schema\Blueprint|\Illuminate\Contracts\Database\Query\Expression|string  $table
      * @return string
      */
     public function wrapTable($table)

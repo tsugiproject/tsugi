@@ -1,5 +1,57 @@
 # Changelog
 
+## 1.10.0 (2022-09-08)
+
+*   Feature: Full support for PHP 8.2 release.
+    (#201 by @clue and #207 by @WyriHaximus)
+
+*   Feature: Optimize forward compatibility with Promise v3, avoid hitting autoloader.
+    (#202 by @clue)
+
+*   Feature / Fix: Improve error reporting when custom error handler is used.
+    (#197 by @clue)
+
+*   Fix: Fix invalid references in exception stack trace.
+    (#191 by @clue)
+
+*   Minor documentation improvements.
+    (#195 by @SimonFrings and #203 by @nhedger)
+
+*   Improve test suite, update to use default loop and new reactphp/async package.
+    (#204, #205 and #206 by @clue and #196 by @SimonFrings)
+
+## 1.9.0 (2021-12-20)
+
+*   Feature: Full support for PHP 8.1 release and prepare PHP 8.2 compatibility
+    by refactoring `Parser` to avoid assigning dynamic properties.
+    (#188 and #186 by @clue and #184 by @SimonFrings)
+
+*   Feature: Avoid dependency on `ext-filter`.
+    (#185 by @clue)
+
+*   Feature / Fix: Skip invalid nameserver entries from `resolv.conf` and ignore IPv6 zone IDs.
+    (#187 by @clue)
+
+*   Feature / Fix: Reduce socket read chunk size for queries over TCP/IP.
+    (#189 by @clue)
+
+## 1.8.0 (2021-07-11)
+
+A major new feature release, see [**release announcement**](https://clue.engineering/2021/announcing-reactphp-default-loop).
+
+*   Feature: Simplify usage by supporting new [default loop](https://reactphp.org/event-loop/#loop).
+    (#182 by @clue)
+
+    ```php
+    // old (still supported)
+    $factory = new React\Dns\Resolver\Factory();
+    $resolver = $factory->create($config, $loop);
+
+    // new (using default loop)
+    $factory = new React\Dns\Resolver\Factory();
+    $resolver = $factory->create($config);
+    ```
+
 ## 1.7.0 (2021-06-25)
 
 *   Feature: Update DNS `Factory` to accept complete `Config` object.

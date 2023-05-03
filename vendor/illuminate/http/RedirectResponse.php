@@ -146,6 +146,21 @@ class RedirectResponse extends BaseRedirectResponse
     }
 
     /**
+     * Parse the given errors into an appropriate value.
+     *
+     * @param  \Illuminate\Contracts\Support\MessageProvider|array|string  $provider
+     * @return \Illuminate\Support\MessageBag
+     */
+    protected function parseErrors($provider)
+    {
+        if ($provider instanceof MessageProvider) {
+            return $provider->getMessageBag();
+        }
+
+        return new MessageBag((array) $provider);
+    }
+
+    /**
      * Add a fragment identifier to the URL.
      *
      * @param  string  $fragment
@@ -165,21 +180,6 @@ class RedirectResponse extends BaseRedirectResponse
     public function withoutFragment()
     {
         return $this->setTargetUrl(Str::before($this->getTargetUrl(), '#'));
-    }
-
-    /**
-     * Parse the given errors into an appropriate value.
-     *
-     * @param  \Illuminate\Contracts\Support\MessageProvider|array|string  $provider
-     * @return \Illuminate\Support\MessageBag
-     */
-    protected function parseErrors($provider)
-    {
-        if ($provider instanceof MessageProvider) {
-            return $provider->getMessageBag();
-        }
-
-        return new MessageBag((array) $provider);
     }
 
     /**
@@ -249,7 +249,7 @@ class RedirectResponse extends BaseRedirectResponse
             return $this->macroCall($method, $parameters);
         }
 
-        if (Str::startsWith($method, 'with')) {
+        if (str_starts_with($method, 'with')) {
             return $this->with(Str::snake(substr($method, 4)), $parameters[0]);
         }
 
