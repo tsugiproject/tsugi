@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'cc42983d9b3df6b698afed14766201e87a254f8b',
+        'reference' => 'fad9fc7383cde5be5b679309e63c7e41d007463e',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'cc42983d9b3df6b698afed14766201e87a254f8b',
+            'reference' => 'fad9fc7383cde5be5b679309e63c7e41d007463e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -875,7 +875,7 @@
         'tsugi/lib' => array(
             'pretty_version' => 'dev-php-81-future',
             'version' => 'dev-php-81-future',
-            'reference' => 'f7c421b048fa43a3f0ed406c979247fb6e5cb266',
+            'reference' => 'cba201043ed67f9db0c38db6609e0167fca7fda5',
             'type' => 'library',
             'install_path' => __DIR__ . '/../tsugi/lib',
             'aliases' => array(),
