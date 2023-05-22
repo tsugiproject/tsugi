@@ -1,0 +1,38 @@
+{
+    "name": "symfony/browser-kit",
+    "type": "library",
+    "description": "Simulates the behavior of a web browser, allowing you to make requests, click on links and submit forms programmatically",
+    "keywords": [],
+    "homepage": "https://symfony.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Fabien Potencier",
+            "email": "fabien@symfony.com"
+        },
+        {
+            "name": "Symfony Community",
+            "homepage": "https://symfony.com/contributors"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "symfony/dom-crawler": "^5.4|^6.0"
+    },
+    "require-dev": {
+        "symfony/css-selector": "^5.4|^6.0",
+        "symfony/http-client": "^5.4|^6.0",
+        "symfony/mime": "^5.4|^6.0",
+        "symfony/process": "^5.4|^6.0"
+    },
+    "suggest": {
+        "symfony/process": ""
+    },
+    "autoload": {
+        "psr-4": { "Symfony\\Component\\BrowserKit\\": "" },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "minimum-stability": "dev"
+}

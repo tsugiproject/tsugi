@@ -15,6 +15,8 @@
         "react/socket" : "v1.12.0",
         "monolog/monolog" : "3.3.1",
         "symfony/translation" : "v6.2.8",
+        "symfony/browser-kit" : "v6.2",
+        "symfony/http-client" : "v6.2",
 
         "tsugi/lib": "dev-php-81-future#cba201043ed67f9db0c38db6609e0167fca7fda5",
         "koseu/lib": "dev-php-81-future#a39dabccec53cf365110dba123d77eb7d9b59d25"
