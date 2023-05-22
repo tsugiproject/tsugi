@@ -1,8 +1,6 @@
 
-Normal:
+To update only one thing whilst not bumping the transitive dependencies
 
-    composer update 
+    composer update tsugi/lib
+    composer update symfony/browser-kit
 
-Used for PHP 7.4 holding back 
-
-    composer update --ignore-platform-req=php tsugi/lib
