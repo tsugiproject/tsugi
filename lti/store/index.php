@@ -53,10 +53,6 @@ if ( $deeplink ) {
     $accept_submission = true;
 }
 
-// Time zones are just too tricky
-$accept_available = false;
-$accept_submission = false;
-
 $debug = false;  /* Pause when sending back */
 
 $OUTPUT->header();
@@ -701,6 +697,7 @@ if ( $registrations && $allow_lti ) {
                                 <label for="availableStart_<?= $count ?>">Available dates:</label>
                                 <input type="date" id="availableStart_<?= $count ?>" name="availableStart"> - 
                                 <input type="date" id="availableEnd_<?= $count ?>" name="availableEnd">
+                                <p>Please check this date in the LMS to make sure the time zone is correct.</p>
                             </div>
 <?php } ?>
 <?php if ( $accept_submission ) { ?>
@@ -708,6 +705,7 @@ if ( $registrations && $allow_lti ) {
                                 <label for="submissionStart_<?= $count ?>">Submission dates:</label>
                                 <input type="date" id="submissionStart_<?= $count ?>" name="submissionStart"> - 
                                 <input type="date" id="submissionEnd_<?= $count ?>" name="submissionEnd">
+                                <p>Please check this date in the LMS to make sure the time zone is correct.</p>
                             </div>
 <?php } ?>
 </div>

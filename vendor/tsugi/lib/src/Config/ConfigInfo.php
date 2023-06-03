@@ -356,6 +356,46 @@ class ConfigInfo {
     public $install_folder = false;
 
     /**
+     * Configure git for auto-installation
+     *
+     * On Windows, to run the automatic install of modules:
+     *
+     * (1) Make sure Git is installed (https://git-scm.com/download/win
+     * Maybe also install a GIT GUI https://git-scm.com/downloads/guis
+     *
+     * (2) Open "cmd" and type "git --version"
+     * this should give you the current version of git. If this fails
+     * then git is not setup in your path
+     * (Control Panel > System and Security > System > Advanced System Settings > Environment Variables)
+     *
+     * (3) Then in "config.php":
+     * $CFG->git_command = 'git'
+     *
+     * In order to run git from the a PHP script, we may need a setuid version
+     * of git - example commands if you are not root:
+     *
+     *    cd /home/csev
+     *    cp /usr/bin/git .
+     *    chmod a+s git
+     *
+     * If you are root, your web area and git must belong to the user that owns
+     * the web process.  You can check this using:
+     *
+     * apache2ctl -S
+     *  ..
+     *  User: name="www-data" id=33
+     *  Group: name="www-data" id=33
+     *
+     * cd /var/www/html
+     * chown -R 33:33 site-folder
+     * chown 33:33 /home/csev/git
+     *
+     * This of course is something to consider carefully.
+     * $CFG->git_command = '/home/csev/git';
+     */
+    public $git_command = false;
+
+    /**
      *
      * Tools to hide in the store for non-admin users.  Each tool sets their status
      * in their register.php with a line like:
@@ -705,7 +745,7 @@ class ConfigInfo {
     public function __construct($dirroot, $wwwroot, $dataroot=false) {
         $this->dirroot = $dirroot;
         $this->wwwroot = $wwwroot;
-        $this->extenstions = array();
+        $this->extensions = array();
         $this->staticroot = 'https://static.tsugi.org';
         $this->lumen_storage = sprintf("%s/storage/", $dirroot);
     }
