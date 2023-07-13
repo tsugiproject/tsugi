@@ -705,6 +705,14 @@ class ConfigInfo {
     public $expire_tenant_days = 800; // Two years
 
     /**
+     * The slow_query setting indicated when we want PDOX to log a query for
+     * being too slow.  Set to -1 to log all queries.
+     */
+    public $logout_return_url = false;
+    public $slow_query = 0;
+    public $verifypeer = false;
+
+    /**
      * Create the configuration object.
      *
      * Generally this is done once to create the global variable $CFG
