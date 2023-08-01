@@ -696,7 +696,7 @@ class BlobUtil {
     {
         global $CFG, $PDOX;
 
-        if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) return;
+        if ( !isset($CFG->dataroot) || empty($CFG->dataroot) ) return;
 
         $stmt = $PDOX->prepare("SELECT file_sha256, blob_id
             FROM {$CFG->dbprefix}blob_file

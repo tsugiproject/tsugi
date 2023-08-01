@@ -51,7 +51,7 @@ class FileRouter {
 	if ( ! endsWith($cwd, '/') ) $cwd = $cwd .'/';
         if ( strpos($uri,$cwd) === 0 ) {
             $remainder = substr($uri, strlen($cwd));
-            if ( strlen($remainder) < 1 ) return false;
+            if ( empty($remainder) ) return false;
             $pieces = explode('/',$remainder,2);
             $file = $pieces[0] . '.php';
             if ( file_exists($file) ) {

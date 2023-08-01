@@ -344,27 +344,27 @@ class KVS {
         $uk1 = U::get($data, 'uk1');
         if ( $uk1 ) {
             if ( ! is_string($uk1) ) return "uk1 must be a string";
-            if ( strlen($uk1) < 1 || strlen($uk1) > 150 ) return "uk1 must be no more than 150 characters";
+            if ( empty($uk1) || strlen($uk1) > 150 ) return "uk1 must be no more than 150 characters";
         }
         $sk1 = U::get($data, 'sk1');
         if ( $sk1 ) {
             if ( ! is_string($sk1) ) return "sk1 must be a string";
-            if ( strlen($sk1) < 1 || strlen($sk1) > 75 ) return "sk1 must be no more than 75 characters";
+            if ( empty($sk1) || strlen($sk1) > 75 ) return "sk1 must be no more than 75 characters";
         }
         $tk1 = U::get($data, 'tk1');
         if ( $tk1 ) {
             if ( ! is_string($tk1) ) return "tk1 must be a string";
-            if ( strlen($tk1) < 1 ) return "tk1 cannot be empty";
+            if ( empty($tk1) ) return "tk1 cannot be empty";
         }
         $co1 = U::get($data, 'co1');
         if ( $co1 ) {
             if ( ! is_string($co1) ) return "co1 must be a string";
-            if ( strlen($co1) < 1 || strlen($co1) > 150 ) return "co1 must be no more than 150 characters";
+            if ( empty($co1) || strlen($co1) > 150 ) return "co1 must be no more than 150 characters";
         }
         $co2 = U::get($data, 'co2');
         if ( $co2 ) {
             if ( ! is_string($co2) ) return "co2 must be a string";
-            if ( strlen($co2) < 1 || strlen($co2) > 150 ) return "co2 must be no more than 150 characters";
+            if ( empty($co2) || strlen($co2) > 150 ) return "co2 must be no more than 150 characters";
         }
         return true;
     }
