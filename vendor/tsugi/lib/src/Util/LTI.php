@@ -304,7 +304,7 @@ class LTI {
                 if ( $pos < 1 ) continue;
                 $key = substr($line,0,$pos);
                 $val = substr($line,$pos+1);
-                if ( strlen($val) < 1 ) continue;
+                if ( empty($val) ) continue;
                 $custom[$key] = trim($val);
             }
         }
@@ -492,11 +492,11 @@ class LTI {
         $LastPOXGradeError = false;
         $LastCurlError = false;
 
-        if ( strlen($sourcedid) < 1 ) {
+        if ( empty($sourcedid) ) {
             if ( is_array($debug_log) ) $debug_log[] = array('Missing sourcedid');
             return "Missing sourcedid";
         }
-        if ( strlen($service) < 1 ) {
+        if ( empty($service) ) {
             if ( is_array($debug_log) ) $debug_log[] = array('Missing service');
             return "Missing service";
         }
@@ -573,11 +573,11 @@ class LTI {
         global $LastPOXGradeResponse;
         $LastPOXGradeResponse = false;
 
-        if ( strlen($sourcedid) < 1 ) {
+        if ( empty($sourcedid) ) {
             if ( is_array($debug_log) ) $debug_log[] = array('Missing service');
             return "Missing sourcedid";
         }
-        if ( strlen($service) < 1 ) {
+        if ( empty($service) ) {
             if ( is_array($debug_log) ) $debug_log[] = array('Missing service');
             return "Missing service";
         }

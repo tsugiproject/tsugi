@@ -401,7 +401,7 @@ class LTI13 {
     public static function sendLineItemResult($user_id, $grade, $scoreMaximum, $comment, $lineitem_url,
         $access_token, $extra=false, &$debug_log=false) {
 
-        if ( strlen($user_id) < 1 ) {
+        if ( empty($user_id) ) {
             if ( is_array($debug_log) ) $debug_log[] = 'Missing user_id';
             return false;
         }
@@ -520,7 +520,7 @@ class LTI13 {
             curl_close ($ch);
             if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".strlen($membership)." characters)";
 
-            if ( strlen($membership) < 1 ) {
+            if ( empty($membership) ) {
                 return "No data retrieved status=" . $httpcode;
             }
 
@@ -784,7 +784,7 @@ class LTI13 {
             return true;
         }
 
-        if ( strlen($response) < 1 ) {
+        if ( empty($response) ) {
             return "Failed with no response body and code=".$httpcode;
         }
 
