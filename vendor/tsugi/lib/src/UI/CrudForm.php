@@ -322,7 +322,7 @@ class CrudForm {
 
         // Inner WHERE clause
         $key_value = $_REQUEST[$key] + 0;
-        if ( $where_clause === false || strlen($where_clause) < 1 ) {
+        if ( empty($where_clause) ) {
             $where_clause = "$key = :KID";
         } else {
             $where_clause = "( ".$where_clause." ) AND $key = :KID";
