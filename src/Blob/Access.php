@@ -13,7 +13,7 @@ class Access {
         $LAUNCH = LTIX::requireData();
 
         $id = $_REQUEST['id'];
-        if ( strlen($id) < 1 ) {
+        if ( empty($id) ) {
             die("File not found");
         }
 
@@ -39,7 +39,7 @@ class Access {
     public static function openContent($LAUNCH, $id) {
         global $CFG, $PDOX;
 
-        if ( strlen($id) < 1 ) {
+        if ( empty($id) ) {
             return("File not found");
         }
 
@@ -185,7 +185,7 @@ class Access {
         $LAUNCH = LTIX::requireData();
 
         $id = $_REQUEST['id'];
-        if ( strlen($id) < 1 ) {
+        if ( empty($id) ) {
             die("File not found");
         }
 
