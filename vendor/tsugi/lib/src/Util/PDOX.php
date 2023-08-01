@@ -529,7 +529,8 @@ class PDOX extends \PDO {
         } else {
             $stmt = parent::prepare($statement, $options);
         }
-        $stmt->PDOX = $this;
+        // TODO: Comment this out for PHP 8.2 and later :( - This may break PostgreSQL - Which probably should be removed - Chuck 1-Aug-23
+        // $stmt->PDOX = $this;
         if ( self::isInsertStatement($statement) ) {
             $this->PDOX_LastInsertStatement = $stmt;
         }
