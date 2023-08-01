@@ -149,7 +149,7 @@ class WebSocket {
      */
     public static function getToken($launch) {
         global $CFG;
-        if ( ! isset($CFG->websocket_secret) || strlen($CFG->websocket_secret) < 1 ) return false;
+        if ( ! isset($CFG->websocket_secret) || empty($CFG->websocket_secret) ) return false;
         $plain = self::makeToken($launch);
         if ( ! $plain ) return $plain;
         $encrypted = AesOpenSSL::encrypt($plain, $CFG->websocket_secret) ;

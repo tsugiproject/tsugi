@@ -231,8 +231,8 @@ class Result extends Entity {
         }
 
         // Check if we don't have a lineitem_url but do have a lineitems url so we can create a lineitem
-        if ( strlen($lti13_lineitem) < 1 && strlen($lti13_lineitems) > 0 ) {
-            if ( ! is_string($title) || strlen($title) < 1 ) {
+        if ( empty($lti13_lineitem) && strlen($lti13_lineitems) > 0 ) {
+            if ( ! is_string($title) || empty($title) ) {
                 $msg = "Loading link title for result $result_id";
                 if ( is_array($debug_log) )  $debug_log[] = $msg;
 
@@ -250,7 +250,7 @@ class Result extends Entity {
                     $title = $row['title'];
                     $link_id = $row['link_id'];
                     if ( strlen($row['lti13_lineitem']) > 0 ) $lti13_lineitem = $row['lti13_lineitem'];
-                    if ( strlen($title) < 1 ) {
+                    if ( empty($title) ) {
                         // TODO: Think how to make this less chatty if the attempt is forever pointless
                         $msg = "No title found for result $result_id - cannot create lineItem";
                         error_log($msg);
@@ -265,7 +265,7 @@ class Result extends Entity {
                 }
             }
 
-            if ( strlen($lti13_lineitem) < 1 && strlen($title) > 0  && strlen($lti13_lineitems) > 0 ) {
+            if ( empty($lti13_lineitem) && strlen($title) > 0  && strlen($lti13_lineitems) > 0 ) {
                 $msg = "Creating LineItem for result $result_id title '$title' lineitems url=$lti13_lineitems";
                 error_log($msg);
                 if ( is_array($debug_log) )  $debug_log[] = $msg;

@@ -24,7 +24,7 @@ class Mail {
             die_with_error_log("Incomplete mail configuration in mailSend");
         }
 
-        if ( strlen($to) < 1 || strlen($subject) < 1 ) return false;
+        if ( empty($to) || empty($subject) ) return false;
 
         $EOL = $CFG->maileol;
         $maildomain = $CFG->maildomain;
