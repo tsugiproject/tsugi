@@ -700,7 +700,7 @@ $('a').each(function (x) {
             }
         }
         // If we have no where to go and nothing to do,
-        if ( $url === false || strlen($url) < 1 ) return;
+        if ( empty($url) ) return;
 
         $button = "btn-success";
         if ( $text == "Cancel" || $text == _m("Cancel") ) $button = "btn-warning";
