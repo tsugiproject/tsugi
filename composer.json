@@ -18,7 +18,7 @@
         "symfony/browser-kit" : "v6.2",
         "symfony/http-client" : "v6.2",
 
-        "tsugi/lib": "dev-php-81-future#cba201043ed67f9db0c38db6609e0167fca7fda5",
+        "tsugi/lib": "dev-php-81-future#06ffd51d23f29e75ac7245623a60fbb5f7194ef9",
         "koseu/lib": "dev-php-81-future#a39dabccec53cf365110dba123d77eb7d9b59d25"
     },
     "config": {

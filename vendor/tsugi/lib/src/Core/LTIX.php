@@ -558,13 +558,13 @@ class LTIX {
             $public_key = self::getPlatformPublicKey($issuer_id, $key_id, $request_kid, $our_kid, $public_key, $our_keyset_url, $our_keyset);
 /*
             // Sanity check
-            if ( strlen($our_keyset_url) < 1 ) {
+            if ( empty($our_keyset_url) ) {
                  self::abort_with_error_log("Could not find keyset and $issuer_key");
             }
 
             // Make sure we have or update to the latest keyset if we have a keyset_url
             if ( strlen($our_keyset_url) > 0 &&
-                    (strlen($our_keyset) < 1 || $our_kid != $request_kid ) ) {
+                    (empty($our_keyset) || $our_kid != $request_kid ) ) {
                 $our_keyset = file_get_contents($our_keyset_url);
                 $decoded = json_decode($our_keyset);
                 if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
@@ -580,7 +580,7 @@ class LTIX {
 
             // If we have a keyset and a kid mismatch, lets grab that new key
             if ( strlen($our_keyset) > 0 &&
-                ($our_kid != $request_kid || strlen($public_key) < 1) ) {
+                ($our_kid != $request_kid || empty($public_key)) ) {
 
                 $new_public_key = LTI13::extractKeyFromKeySet($our_keyset, $request_kid);
 
@@ -1450,7 +1450,7 @@ class LTIX {
 
         // Allow for for the legacy user id
         $user_check = U::get($post, "user_id");
-        if ( strlen($user_check) < 1 ) {
+        if ( empty($user_check) ) {
             $user_check = U::get($post, 'lti11_transition_user_id', null);
         }
         $user_sha256 = strlen($user_check) > 0 ? lti_sha256($user_check) : null;
@@ -1992,7 +1992,7 @@ class LTIX {
 
         // https://stackoverflow.com/questions/35728486/read-php-session-without-actually-starting-it
         $serializer = ini_get('session.serialize_handler');
-        if ( ! isset($CFG->memcached) || strlen($CFG->memcached) < 1 || $serializer != 'php_serialize') return;
+        if ( ! isset($CFG->memcached) || empty($CFG->memcached) || $serializer != 'php_serialize') return;
 
         sleep(1);
         try {
@@ -2854,9 +2854,9 @@ class LTIX {
         }
 
         // Coalesce from profile to user where there is missing data
-        if ( strlen($row['user_image']) < 1 ) $row['user_image'] = $row['p_user_image'];
-        if ( strlen($row['email']) < 1 ) $row['email'] = $row['p_email'];
-        if ( strlen($row['displayname']) < 1 ) $row['displayname'] = $row['p_displayname'];
+        if ( empty($row['user_image']) ) $row['user_image'] = $row['p_user_image'];
+        if ( empty($row['email']) ) $row['email'] = $row['p_email'];
+        if ( empty($row['displayname']) ) $row['displayname'] = $row['p_displayname'];
         unset($row['p_user_image']);
         unset($row['p_email']);
         unset($row['p_displayname']);
