@@ -142,6 +142,10 @@ class TextPart extends AbstractPart
     {
         if ($this->body instanceof File) {
             $path = $this->body->getPath();
+            if ( empty($path) ) {
+                yield $this->getEncoder()->encodeString('');
+                return;
+            }
             if (false === $handle = @fopen($path, 'r', false)) {
                 throw new InvalidArgumentException(sprintf('Unable to open path "%s".', $path));
             }
