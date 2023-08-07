@@ -18,8 +18,8 @@
         "symfony/browser-kit" : "v6.2",
         "symfony/http-client" : "v6.2",
 
-        "tsugi/lib": "dev-php-81-future#c5976856eae91b96818986656826dc9b4eee12fc",
-        "koseu/lib": "dev-php-81-future#a39dabccec53cf365110dba123d77eb7d9b59d25"
+        "tsugi/lib": "dev-master#b2c0afb9989eddcaaeeed818c45025cca33fda4b",
+        "koseu/lib": "dev-master#1e42cf5fb4270cab5740e04acd31524a3e8ef265"
     },
     "config": {
         "preferred-install": "dist"

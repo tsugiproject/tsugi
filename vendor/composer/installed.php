@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '4c471d31d7c48b9cab2c57bfc279bcf636cab609',
+        'reference' => '908fba1aff8ac7dc5ae69f55c99f9478b7c4a5b8',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '4c471d31d7c48b9cab2c57bfc279bcf636cab609',
+            'reference' => '908fba1aff8ac7dc5ae69f55c99f9478b7c4a5b8',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -380,12 +380,14 @@
             'dev_requirement' => false,
         ),
         'koseu/lib' => array(
-            'pretty_version' => 'dev-php-81-future',
-            'version' => 'dev-php-81-future',
-            'reference' => 'a39dabccec53cf365110dba123d77eb7d9b59d25',
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '1e42cf5fb4270cab5740e04acd31524a3e8ef265',
             'type' => 'library',
             'install_path' => __DIR__ . '/../koseu/lib',
-            'aliases' => array(),
+            'aliases' => array(
+                0 => '9999999-dev',
+            ),
             'dev_requirement' => false,
         ),
         'laravel/lumen-framework' => array(
@@ -942,12 +944,14 @@
             'dev_requirement' => false,
         ),
         'tsugi/lib' => array(
-            'pretty_version' => 'dev-php-81-future',
-            'version' => 'dev-php-81-future',
-            'reference' => 'c5976856eae91b96818986656826dc9b4eee12fc',
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => 'b2c0afb9989eddcaaeeed818c45025cca33fda4b',
             'type' => 'library',
             'install_path' => __DIR__ . '/../tsugi/lib',
-            'aliases' => array(),
+            'aliases' => array(
+                0 => '9999999-dev',
+            ),
             'dev_requirement' => false,
         ),
         'vlucas/phpdotenv' => array(

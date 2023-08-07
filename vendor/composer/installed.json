@@ -2543,25 +2543,26 @@
         },
         {
             "name": "koseu/lib",
-            "version": "dev-php-81-future",
-            "version_normalized": "dev-php-81-future",
+            "version": "dev-master",
+            "version_normalized": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "a39dabccec53cf365110dba123d77eb7d9b59d25"
+                "reference": "1e42cf5fb4270cab5740e04acd31524a3e8ef265"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/a39dabccec53cf365110dba123d77eb7d9b59d25",
-                "reference": "a39dabccec53cf365110dba123d77eb7d9b59d25",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/1e42cf5fb4270cab5740e04acd31524a3e8ef265",
+                "reference": "1e42cf5fb4270cab5740e04acd31524a3e8ef265",
                 "shasum": ""
             },
             "require": {
                 "laravel/lumen-framework": ">=8.0.0",
                 "php": ">=8.2.0",
-                "tsugi/lib": "dev-php-81-future#2b7cefd1c75c281e3db620b13f2cbe08b5bd18f7"
+                "tsugi/lib": "dev-master#b2c0afb9989eddcaaeeed818c45025cca33fda4b"
             },
-            "time": "2023-05-03T04:31:11+00:00",
+            "time": "2023-08-07T14:21:32+00:00",
+            "default-branch": true,
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -2590,7 +2591,7 @@
             "homepage": "http://www.koseu.org/",
             "support": {
                 "issues": "https://github.com/tsugiproject/koseu-php/issues",
-                "source": "https://github.com/tsugiproject/koseu-php/tree/php-81-future"
+                "source": "https://github.com/tsugiproject/koseu-php/tree/master"
             },
             "install-path": "../koseu/lib"
         },
@@ -6738,17 +6739,17 @@
         },
         {
             "name": "tsugi/lib",
-            "version": "dev-php-81-future",
-            "version_normalized": "dev-php-81-future",
+            "version": "dev-master",
+            "version_normalized": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "c5976856eae91b96818986656826dc9b4eee12fc"
+                "reference": "b2c0afb9989eddcaaeeed818c45025cca33fda4b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/c5976856eae91b96818986656826dc9b4eee12fc",
-                "reference": "c5976856eae91b96818986656826dc9b4eee12fc",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/b2c0afb9989eddcaaeeed818c45025cca33fda4b",
+                "reference": "b2c0afb9989eddcaaeeed818c45025cca33fda4b",
                 "shasum": ""
             },
             "require": {
@@ -6761,7 +6762,8 @@
                 "phpunit/php-timer": "v5.0.3",
                 "phpunit/phpunit": "9.*"
             },
-            "time": "2023-08-01T23:12:46+00:00",
+            "time": "2023-08-07T14:15:04+00:00",
+            "default-branch": true,
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -6790,7 +6792,7 @@
             "homepage": "http://www.tsugi.org/",
             "support": {
                 "issues": "https://github.com/tsugiproject/tsugi-php/issues",
-                "source": "https://github.com/tsugiproject/tsugi-php/tree/php-81-future"
+                "source": "https://github.com/tsugiproject/tsugi-php/tree/master"
             },
             "install-path": "../tsugi/lib"
         },
