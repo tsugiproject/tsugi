@@ -5,6 +5,7 @@ namespace React\Dns\Query;
 use React\Dns\Model\Message;
 use React\Dns\Protocol\BinaryDumper;
 use React\Dns\Protocol\Parser;
+use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 use React\Promise\Deferred;
 
@@ -18,8 +19,7 @@ use React\Promise\Deferred;
  * The following example looks up the `IPv6` address for `igor.io`.
  *
  * ```php
- * $loop = Factory::create();
- * $executor = new UdpTransportExecutor('8.8.8.8:53', $loop);
+ * $executor = new UdpTransportExecutor('8.8.8.8:53');
  *
  * $executor->query(
  *     new Query($name, Message::TYPE_AAAA, Message::CLASS_IN)
@@ -28,8 +28,6 @@ use React\Promise\Deferred;
  *         echo 'IPv6: ' . $answer->data . PHP_EOL;
  *     }
  * }, 'printf');
- *
- * $loop->run();
  * ```
  *
  * See also the [fourth example](examples).
@@ -39,9 +37,8 @@ use React\Promise\Deferred;
  *
  * ```php
  * $executor = new TimeoutExecutor(
- *     new UdpTransportExecutor($nameserver, $loop),
- *     3.0,
- *     $loop
+ *     new UdpTransportExecutor($nameserver),
+ *     3.0
  * );
  * ```
  *
@@ -52,9 +49,8 @@ use React\Promise\Deferred;
  * ```php
  * $executor = new RetryExecutor(
  *     new TimeoutExecutor(
- *         new UdpTransportExecutor($nameserver, $loop),
- *         3.0,
- *         $loop
+ *         new UdpTransportExecutor($nameserver),
+ *         3.0
  *     )
  * );
  * ```
@@ -71,9 +67,8 @@ use React\Promise\Deferred;
  * $executor = new CoopExecutor(
  *     new RetryExecutor(
  *         new TimeoutExecutor(
- *             new UdpTransportExecutor($nameserver, $loop),
- *             3.0,
- *             $loop
+ *             new UdpTransportExecutor($nameserver),
+ *             3.0
  *         )
  *     )
  * );
@@ -100,10 +95,10 @@ final class UdpTransportExecutor implements ExecutorInterface
     private $maxPacketSize = 512;
 
     /**
-     * @param string        $nameserver
-     * @param LoopInterface $loop
+     * @param string         $nameserver
+     * @param ?LoopInterface $loop
      */
-    public function __construct($nameserver, LoopInterface $loop)
+    public function __construct($nameserver, LoopInterface $loop = null)
     {
         if (\strpos($nameserver, '[') === false && \substr_count($nameserver, ':') >= 2 && \strpos($nameserver, '://') === false) {
             // several colons, but not enclosed in square brackets => enclose IPv6 address in square brackets
@@ -111,12 +106,12 @@ final class UdpTransportExecutor implements ExecutorInterface
         }
 
         $parts = \parse_url((\strpos($nameserver, '://') === false ? 'udp://' : '') . $nameserver);
-        if (!isset($parts['scheme'], $parts['host']) || $parts['scheme'] !== 'udp' || !\filter_var(\trim($parts['host'], '[]'), \FILTER_VALIDATE_IP)) {
+        if (!isset($parts['scheme'], $parts['host']) || $parts['scheme'] !== 'udp' || @\inet_pton(\trim($parts['host'], '[]')) === false) {
             throw new \InvalidArgumentException('Invalid nameserver address given');
         }
 
         $this->nameserver = 'udp://' . $parts['host'] . ':' . (isset($parts['port']) ? $parts['port'] : 53);
-        $this->loop = $loop;
+        $this->loop = $loop ?: Loop::get();
         $this->parser = new Parser();
         $this->dumper = new BinaryDumper();
     }
@@ -134,6 +129,8 @@ final class UdpTransportExecutor implements ExecutorInterface
         }
 
         // UDP connections are instant, so try connection without a loop or timeout
+        $errno = 0;
+        $errstr = '';
         $socket = @\stream_socket_client($this->nameserver, $errno, $errstr, 0);
         if ($socket === false) {
             return \React\Promise\reject(new \RuntimeException(
@@ -144,18 +141,25 @@ final class UdpTransportExecutor implements ExecutorInterface
 
         // set socket to non-blocking and immediately try to send (fill write buffer)
         \stream_set_blocking($socket, false);
-        $written = @\fwrite($socket, $queryData);
 
-        if ($written !== \strlen($queryData)) {
+        \set_error_handler(function ($_, $error) use (&$errno, &$errstr) {
             // Write may potentially fail, but most common errors are already caught by connection check above.
             // Among others, macOS is known to report here when trying to send to broadcast address.
             // This can also be reproduced by writing data exceeding `stream_set_chunk_size()` to a server refusing UDP data.
             // fwrite(): send of 8192 bytes failed with errno=111 Connection refused
-            $error = \error_get_last();
-            \preg_match('/errno=(\d+) (.+)/', $error['message'], $m);
+            \preg_match('/errno=(\d+) (.+)/', $error, $m);
+            $errno = isset($m[1]) ? (int) $m[1] : 0;
+            $errstr = isset($m[2]) ? $m[2] : $error;
+        });
+
+        $written = \fwrite($socket, $queryData);
+
+        \restore_error_handler();
+
+        if ($written !== \strlen($queryData)) {
             return \React\Promise\reject(new \RuntimeException(
-                'DNS query for ' . $query->describe() . ' failed: Unable to send query to DNS server ' . $this->nameserver . ' ('  . (isset($m[2]) ? $m[2] : $error['message']) . ')',
-                isset($m[1]) ? (int) $m[1] : 0
+                'DNS query for ' . $query->describe() . ' failed: Unable to send query to DNS server ' . $this->nameserver . ' ('  . $errstr . ')',
+                $errno
             ));
         }
 

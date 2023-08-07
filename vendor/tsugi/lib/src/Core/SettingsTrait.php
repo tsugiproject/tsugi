@@ -28,7 +28,7 @@ trait SettingsTrait {
         $inSession = $retval !== false;
 
         // Null means in the session - false means not in the session
-        if ( $retval === null || ( is_string($retval) && strlen($retval) < 1 ) ) {
+        if ( $retval === null || ( is_string($retval) && empty($retval) ) ) {
             $retval = array();
         } else if ( strlen($retval) > 0 ) {
             try {

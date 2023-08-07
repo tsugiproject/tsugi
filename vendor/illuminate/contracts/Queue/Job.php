@@ -33,9 +33,7 @@ interface Job
     public function fire();
 
     /**
-     * Release the job back into the queue.
-     *
-     * Accepts a delay specified in seconds.
+     * Release the job back into the queue after (n) seconds.
      *
      * @param  int  $delay
      * @return void
@@ -125,7 +123,7 @@ interface Job
      *
      * @return int|null
      */
-    public function timeoutAt();
+    public function retryUntil();
 
     /**
      * Get the name of the queued job class.

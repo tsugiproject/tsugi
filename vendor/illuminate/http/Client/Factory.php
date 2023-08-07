@@ -3,17 +3,29 @@
 namespace Illuminate\Http\Client;
 
 use Closure;
-use function GuzzleHttp\Promise\promise_for;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Response as Psr7Response;
+use GuzzleHttp\TransferStats;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use PHPUnit\Framework\Assert as PHPUnit;
 
+/**
+ * @mixin \Illuminate\Http\Client\PendingRequest
+ */
 class Factory
 {
     use Macroable {
         __call as macroCall;
     }
+
+    /**
+     * The event dispatcher implementation.
+     *
+     * @var \Illuminate\Contracts\Events\Dispatcher|null
+     */
+    protected $dispatcher;
 
     /**
      * The stub callables that will handle requests.
@@ -44,19 +56,29 @@ class Factory
     protected $responseSequences = [];
 
     /**
+     * Indicates that an exception should be thrown if any request is not faked.
+     *
+     * @var bool
+     */
+    protected $preventStrayRequests = false;
+
+    /**
      * Create a new factory instance.
      *
+     * @param  \Illuminate\Contracts\Events\Dispatcher|null  $dispatcher
      * @return void
      */
-    public function __construct()
+    public function __construct(Dispatcher $dispatcher = null)
     {
+        $this->dispatcher = $dispatcher;
+
         $this->stubCallbacks = collect();
     }
 
     /**
      * Create a new response instance for use during stubbing.
      *
-     * @param  array|string  $body
+     * @param  array|string|null  $body
      * @param  int  $status
      * @param  array  $headers
      * @return \GuzzleHttp\Promise\PromiseInterface
@@ -69,7 +91,11 @@ class Factory
             $headers['Content-Type'] = 'application/json';
         }
 
-        return promise_for(new Psr7Response($status, $headers, $body));
+        $response = new Psr7Response($status, $headers, $body);
+
+        return class_exists(\GuzzleHttp\Promise\Create::class)
+            ? \GuzzleHttp\Promise\Create::promiseFor($response)
+            : \GuzzleHttp\Promise\promise_for($response);
     }
 
     /**
@@ -86,12 +112,14 @@ class Factory
     /**
      * Register a stub callable that will intercept requests and be able to return stub responses.
      *
-     * @param  callable|array  $callback
+     * @param  callable|array|null  $callback
      * @return $this
      */
     public function fake($callback = null)
     {
         $this->record();
+
+        $this->recorded = [];
 
         if (is_null($callback)) {
             $callback = function () {
@@ -108,11 +136,20 @@ class Factory
         }
 
         $this->stubCallbacks = $this->stubCallbacks->merge(collect([
-            $callback instanceof Closure
-                    ? $callback
-                    : function () use ($callback) {
-                        return $callback;
-                    },
+            function ($request, $options) use ($callback) {
+                $response = $callback instanceof Closure
+                                ? $callback($request, $options)
+                                : $callback;
+
+                if ($response instanceof PromiseInterface) {
+                    $options['on_stats'](new TransferStats(
+                        $request->toPsrRequest(),
+                        $response->wait(),
+                    ));
+                }
+
+                return $response;
+            },
         ]));
 
         return $this;
@@ -149,6 +186,29 @@ class Factory
                         ? $callback($request, $options)
                         : $callback;
         });
+    }
+
+    /**
+     * Indicate that an exception should be thrown if any request is not faked.
+     *
+     * @param  bool  $prevent
+     * @return $this
+     */
+    public function preventStrayRequests($prevent = true)
+    {
+        $this->preventStrayRequests = $prevent;
+
+        return $this;
+    }
+
+    /**
+     * Indicate that an exception should not be thrown if any request is not faked.
+     *
+     * @return $this
+     */
+    public function allowStrayRequests()
+    {
+        return $this->preventStrayRequests(false);
     }
 
     /**
@@ -189,6 +249,28 @@ class Factory
             $this->recorded($callback)->count() > 0,
             'An expected request was not recorded.'
         );
+    }
+
+    /**
+     * Assert that the given request was sent in the given order.
+     *
+     * @param  array  $callbacks
+     * @return void
+     */
+    public function assertSentInOrder($callbacks)
+    {
+        $this->assertSentCount(count($callbacks));
+
+        foreach ($callbacks as $index => $url) {
+            $callback = is_callable($url) ? $url : function ($request) use ($url) {
+                return $request->url() == $url;
+            };
+
+            PHPUnit::assertTrue($callback(
+                $this->recorded[$index][0],
+                $this->recorded[$index][1]
+            ), 'An expected request (#'.($index + 1).') was not recorded.');
+        }
     }
 
     /**
@@ -250,7 +332,7 @@ class Factory
      * @param  callable  $callback
      * @return \Illuminate\Support\Collection
      */
-    public function recorded($callback)
+    public function recorded($callback = null)
     {
         if (empty($this->recorded)) {
             return collect();
@@ -266,6 +348,26 @@ class Factory
     }
 
     /**
+     * Create a new pending request instance for this factory.
+     *
+     * @return \Illuminate\Http\Client\PendingRequest
+     */
+    protected function newPendingRequest()
+    {
+        return new PendingRequest($this);
+    }
+
+    /**
+     * Get the current event dispatcher implementation.
+     *
+     * @return \Illuminate\Contracts\Events\Dispatcher|null
+     */
+    public function getDispatcher()
+    {
+        return $this->dispatcher;
+    }
+
+    /**
      * Execute a method against a new pending request instance.
      *
      * @param  string  $method
@@ -278,8 +380,8 @@ class Factory
             return $this->macroCall($method, $parameters);
         }
 
-        return tap(new PendingRequest($this), function ($request) {
-            $request->stub($this->stubCallbacks);
+        return tap($this->newPendingRequest(), function ($request) {
+            $request->stub($this->stubCallbacks)->preventStrayRequests($this->preventStrayRequests);
         })->{$method}(...$parameters);
     }
 }

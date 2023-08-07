@@ -35,12 +35,11 @@ class Request extends BaseRequest
      *
      * @param  string|null  $param
      * @param  mixed  $default
-     *
      * @return array|string
      */
     public function route($param = null, $default = null)
     {
-        $route = call_user_func($this->getRouteResolver());
+        $route = ($this->getRouteResolver())();
 
         if (is_null($route) || is_null($param)) {
             return $route;
@@ -58,7 +57,7 @@ class Request extends BaseRequest
      */
     public function fingerprint()
     {
-        if (! $route = $this->route()) {
+        if (! $this->route()) {
             throw new RuntimeException('Unable to generate fingerprint. Route unavailable.');
         }
 
@@ -73,7 +72,7 @@ class Request extends BaseRequest
      * @param  string  $offset
      * @return bool
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return Arr::has(
             $this->all() + $this->route()[2],

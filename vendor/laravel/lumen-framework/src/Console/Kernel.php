@@ -113,14 +113,28 @@ class Kernel implements KernelContract
         try {
             $this->app->boot();
 
-            return $this->getArtisan()->run($input, $output);
+            $status = $this->getArtisan()->run($input, $output);
         } catch (Throwable $e) {
             $this->reportException($e);
 
             $this->renderException($output, $e);
 
-            return 1;
+            $status = 1;
         }
+
+        $this->terminate($input, $status);
+
+        return $status;
+    }
+
+    /**
+     * Bootstrap the application for artisan commands.
+     *
+     * @return void
+     */
+    public function bootstrap()
+    {
+        //
     }
 
     /**
@@ -132,7 +146,7 @@ class Kernel implements KernelContract
      */
     public function terminate($input, $status)
     {
-        //
+        $this->app->terminate();
     }
 
     /**
@@ -199,7 +213,8 @@ class Kernel implements KernelContract
     {
         if (is_null($this->artisan)) {
             return $this->artisan = (new Artisan($this->app, $this->app->make('events'), $this->app->version()))
-                                ->resolveCommands($this->getCommands());
+                                ->resolveCommands($this->getCommands())
+                                ->setContainerCommandLoader();
         }
 
         return $this->artisan;

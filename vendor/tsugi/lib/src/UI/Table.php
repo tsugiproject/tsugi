@@ -28,7 +28,7 @@ class Table {
     public static function doForm($values, $override=Array()) {
         foreach (array_merge($values,$override) as $key => $value) {
             if ( $value === false ) continue;
-            if ( is_string($value) && strlen($value) < 1 ) continue;
+            if ( is_string($value) && empty($value) ) continue;
             if ( is_int($value) && $value === 0 ) continue;
             if ( $key == session_name() ) continue; // Will be added automatically
             echo('<input type="hidden" name="'.htmlent_utf8($key).
@@ -40,7 +40,7 @@ class Table {
         $retval = '';
         foreach (array_merge($values,$override) as $key => $value) {
             if ( $value === false ) continue;
-            if ( is_string($value) && strlen($value) < 1 ) continue;
+            if ( is_string($value) && empty($value) ) continue;
             if ( is_int($value) && $value === 0 ) continue;
             if ( $key == session_name() ) continue; // Will be added automatically
             if ( strlen($retval) > 0 ) $retval .= '&';
@@ -361,7 +361,7 @@ class Table {
                 if ( $link_name !== false ) {
                     $detail = Table::makeUrl($view,$params,Array($link_name => $link_val));
                     echo('<a href="'.$detail.'">');
-                    if ( strlen($v) < 1 ) $v = $link_name.':'.$link_val;
+                    if ( empty($v) ) $v = $link_name.':'.$link_val;
                 }
                 echo(htmlent_utf8($v));
                 if ( $link_name !== false ) {

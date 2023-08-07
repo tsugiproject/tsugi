@@ -4,7 +4,7 @@ namespace Tsugi\Core;
 
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
-use phpseclib\Crypt\RSA;
+use Tsugi\Google\JWT;
 
 /**
  * Helper class for Using Tsugi's internal global outgoing keyset
@@ -134,38 +134,27 @@ class Keyset {
     // MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvESXFmlzHz+nhZXTkjo2 9SBpamCzkd7SnpMXgdFEWjLfDeOu0D3JivEEUQ4U67xUBMY9voiJsG2oydMXjgkm GliUIVg+rhyKdBUJu5v6F659FwCj60A8J8qcstIkZfBn3yyOPVwp1FHEUSNvtbDL SRIHFPv+kh8gYyvqz130hE37qAVcaNME7lkbDmH1vbxi3D3A8AxKtiHs8oS41ui2 MuSAN9MDb7NjAlFkf2iXlSVxAW5xSek4nHGr4BJKe/13vhLOvRUCTN8h8z+SLORW abxoNIkzuAab0NtfO/Qh0rgoWFC9T69jJPAPsXMDCn5oQ3xh/vhG0vltSSIzHsZ8 pwIDAQAB
     // -----END PUBLIC KEY-----";
 
-    // https://8gwifi.org/jwkconvertfunctions.jsp
-    // https://github.com/nov/jose-php/blob/master/src/JOSE/JWK.php
-    // https://github.com/nov/jose-php/blob/master/test/JOSE/JWK_Test.php
-    //
-    // $z = new JOSE_JWK();
-    // var_dump(JOSE_JWK::encode($key));
-    // echo("\n");
-    // $jwk = Keyset::build_jwk($pubkey);
-    // echo(json_encode($jwk));
-    // echo("\n");
-
+    // https://stackoverflow.com/questions/11681133/how-to-acquire-modulus-and-exponent-from-existing-rsa-public-key-in-php-openssl
     public static function build_jwk($pubkey) {
-        $key = new RSA();
-        $key->setPublicKey($pubkey);
-        if ( ! $key->publicExponent ) die('Invalid public key');
 
         $kid = LTIX::getKidForKey($pubkey);
+
+	$data = openssl_pkey_get_public($pubkey);
+	$data = openssl_pkey_get_details($data);
+
+	$key = $data['key'];
+	$modulus = $data['rsa']['n'];
+	$exponent = $data['rsa']['e'];
 
         $components = array(
                     'kty' => 'RSA',
                     'alg' => 'RS256',
-                    'e' => \JOSE_URLSafeBase64::encode($key->publicExponent->toBytes()),
-                    'n' => \JOSE_URLSafeBase64::encode($key->modulus->toBytes()),
+                    'e' => JWT::urlsafeB64Encode($exponent),
+                    'n' => JWT::urlsafeB64Encode($modulus),
                     'kid' => $kid,
                     'use' => 'sig',
         );
 
-        if ($key->exponent != $key->publicExponent) {
-            $components = array_merge($components, array(
-            'd' => \JOSE_URLSafeBase64::encode($key->exponent->toBytes())
-            ));
-        }
         return $components;
   }
 }

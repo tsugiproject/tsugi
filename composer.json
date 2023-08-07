@@ -1,33 +1,25 @@
 {
     "require": {
-        "laravel/lumen-framework": "v7.2.2",
-        "phpseclib/phpseclib" : ">=2.0.36 <3.0.0",
-
-        "gree/jose" : "v2.2.1",
-        "ezyang/htmlpurifier": "v4.14.0",
+        "php": ">=8.2.0",
+        "laravel/lumen-framework": "v10.0.0",
+        "firebase/php-jwt" : "v6.4.0",
+        "ezyang/htmlpurifier": "v4.16.0",
         "cboden/ratchet" : "v0.4.4",
-        "firebase/php-jwt" : "v5.2.0",
 
-        "symfony/routing" : "v5.3.7",
-        "symfony/http-foundation" : "v5.3.11",
-        "react/event-loop" : "v1.1.1",
-        "react/stream" : "v1.1.1",
-        "react/promise-timer" : "v1.6.0",
-        "react/dns" : "v1.7.0",
-        "react/socket" : "v1.7.0",
-        "monolog/monolog" : "2.3.0",
-        "symfony/translation" : "v5.3.11",
-        "symfony/process" : "v5.3.11",
-        "symfony/finder" : "v5.3.7",
-        "symfony/console" : "v5.3.11",
-        "symfony/mime" : "v5.3.11",
-        "symfony/event-dispatcher" : "v5.3.11",
-        "symfony/var-dumper" : "v5.3.11",
-        "symfony/error-handler" : "v5.3.11",
-        "symfony/http-kernel" : "v5.3.12",
+        "symfony/routing" : "v6.2.8",
+        "symfony/http-foundation" : "v6.2.10",
+        "react/event-loop" : "v1.3.0",
+        "react/stream" : "v1.2.0",
+        "react/promise-timer" : "v1.9.0",
+        "react/dns" : "v1.10.0",
+        "react/socket" : "v1.12.0",
+        "monolog/monolog" : "3.3.1",
+        "symfony/translation" : "v6.2.8",
+        "symfony/browser-kit" : "v6.2",
+        "symfony/http-client" : "v6.2",
 
-        "tsugi/lib": "dev-master#54d4477a25d97f7f4a5a6dbae28c1218faf8de05",
-        "koseu/lib": "dev-master#5c5bcb32469977bea262b1900461c3f205adb899"
+        "tsugi/lib": "dev-php-81-future#c5976856eae91b96818986656826dc9b4eee12fc",
+        "koseu/lib": "dev-php-81-future#a39dabccec53cf365110dba123d77eb7d9b59d25"
     },
     "config": {
         "preferred-install": "dist"

@@ -43,7 +43,7 @@ To download PHPUnit (and any other development dependencies):
 
 To test:
 
-    vendor/bin/phpunit
+    ./vendor/bin/phpunit tests --bootstrap vendor/autoload.php
 
 To run one test:
 

@@ -105,7 +105,7 @@ class SyncQueue extends Queue implements QueueContract
     /**
      * Handle an exception that occurred while processing a job.
      *
-     * @param  \Illuminate\Queue\Jobs\Job  $queueJob
+     * @param  \Illuminate\Contracts\Queue\Job  $queueJob
      * @param  \Throwable  $e
      * @return void
      *
@@ -134,7 +134,7 @@ class SyncQueue extends Queue implements QueueContract
     }
 
     /**
-     * Push a new job onto the queue after a delay.
+     * Push a new job onto the queue after (n) seconds.
      *
      * @param  \DateTimeInterface|\DateInterval|int  $delay
      * @param  string  $job

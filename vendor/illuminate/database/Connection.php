@@ -2,15 +2,18 @@
 
 namespace Illuminate\Database;
 
+use Carbon\CarbonInterval;
 use Closure;
 use DateTimeInterface;
 use Doctrine\DBAL\Connection as DoctrineConnection;
+use Doctrine\DBAL\Types\Type;
 use Exception;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Database\Events\TransactionBeginning;
 use Illuminate\Database\Events\TransactionCommitted;
+use Illuminate\Database\Events\TransactionCommitting;
 use Illuminate\Database\Events\TransactionRolledBack;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\Expression;
@@ -18,15 +21,19 @@ use Illuminate\Database\Query\Grammars\Grammar as QueryGrammar;
 use Illuminate\Database\Query\Processors\Processor;
 use Illuminate\Database\Schema\Builder as SchemaBuilder;
 use Illuminate\Support\Arr;
-use LogicException;
+use Illuminate\Support\InteractsWithTime;
+use Illuminate\Support\Traits\Macroable;
 use PDO;
 use PDOStatement;
+use RuntimeException;
 
 class Connection implements ConnectionInterface
 {
     use DetectsConcurrencyErrors,
         DetectsLostConnections,
-        Concerns\ManagesTransactions;
+        Concerns\ManagesTransactions,
+        InteractsWithTime,
+        Macroable;
 
     /**
      * The active PDO connection.
@@ -48,6 +55,13 @@ class Connection implements ConnectionInterface
      * @var string
      */
     protected $database;
+
+    /**
+     * The type of the connection.
+     *
+     * @var string|null
+     */
+    protected $readWriteType;
 
     /**
      * The table prefix for the connection.
@@ -113,11 +127,25 @@ class Connection implements ConnectionInterface
     protected $transactions = 0;
 
     /**
+     * The transaction manager instance.
+     *
+     * @var \Illuminate\Database\DatabaseTransactionsManager
+     */
+    protected $transactionsManager;
+
+    /**
      * Indicates if changes have been made to the database.
      *
-     * @var int
+     * @var bool
      */
     protected $recordsModified = false;
+
+    /**
+     * Indicates if the connection should use the "write" PDO connection.
+     *
+     * @var bool
+     */
+    protected $readOnWriteConnection = false;
 
     /**
      * All of the queries run against the connection.
@@ -134,11 +162,32 @@ class Connection implements ConnectionInterface
     protected $loggingQueries = false;
 
     /**
+     * The duration of all executed queries in milliseconds.
+     *
+     * @var float
+     */
+    protected $totalQueryDuration = 0.0;
+
+    /**
+     * All of the registered query duration handlers.
+     *
+     * @var array
+     */
+    protected $queryDurationHandlers = [];
+
+    /**
      * Indicates if the connection is in a "dry run".
      *
      * @var bool
      */
     protected $pretending = false;
+
+    /**
+     * All of the callbacks that should be invoked before a query is executed.
+     *
+     * @var \Closure[]
+     */
+    protected $beforeExecutingCallbacks = [];
 
     /**
      * The instance of Doctrine connection.
@@ -148,9 +197,16 @@ class Connection implements ConnectionInterface
     protected $doctrineConnection;
 
     /**
+     * Type mappings that should be registered with new Doctrine connections.
+     *
+     * @var array<string, string>
+     */
+    protected $doctrineTypeMappings = [];
+
+    /**
      * The connection resolvers.
      *
-     * @var array
+     * @var \Closure[]
      */
     protected static $resolvers = [];
 
@@ -217,7 +273,7 @@ class Connection implements ConnectionInterface
     /**
      * Get the default schema grammar instance.
      *
-     * @return \Illuminate\Database\Schema\Grammars\Grammar
+     * @return \Illuminate\Database\Schema\Grammars\Grammar|null
      */
     protected function getDefaultSchemaGrammar()
     {
@@ -298,6 +354,33 @@ class Connection implements ConnectionInterface
     }
 
     /**
+     * Run a select statement and return the first column of the first row.
+     *
+     * @param  string  $query
+     * @param  array  $bindings
+     * @param  bool  $useReadPdo
+     * @return mixed
+     *
+     * @throws \Illuminate\Database\MultipleColumnsSelectedException
+     */
+    public function scalar($query, $bindings = [], $useReadPdo = true)
+    {
+        $record = $this->selectOne($query, $bindings, $useReadPdo);
+
+        if (is_null($record)) {
+            return null;
+        }
+
+        $record = (array) $record;
+
+        if (count($record) > 1) {
+            throw new MultipleColumnsSelectedException;
+        }
+
+        return reset($record);
+    }
+
+    /**
      * Run a select statement against the database.
      *
      * @param  string  $query
@@ -336,6 +419,39 @@ class Connection implements ConnectionInterface
             $statement->execute();
 
             return $statement->fetchAll();
+        });
+    }
+
+    /**
+     * Run a select statement against the database and returns all of the result sets.
+     *
+     * @param  string  $query
+     * @param  array  $bindings
+     * @param  bool  $useReadPdo
+     * @return array
+     */
+    public function selectResultSets($query, $bindings = [], $useReadPdo = true)
+    {
+        return $this->run($query, $bindings, function ($query, $bindings) use ($useReadPdo) {
+            if ($this->pretending()) {
+                return [];
+            }
+
+            $statement = $this->prepared(
+                $this->getPdoForSelect($useReadPdo)->prepare($query)
+            );
+
+            $this->bindValues($statement, $this->prepareBindings($bindings));
+
+            $statement->execute();
+
+            $sets = [];
+
+            do {
+                $sets[] = $statement->fetchAll();
+            } while ($statement->nextRowset());
+
+            return $sets;
         });
     }
 
@@ -387,9 +503,7 @@ class Connection implements ConnectionInterface
     {
         $statement->setFetchMode($this->fetchMode);
 
-        $this->event(new StatementPrepared(
-            $this, $statement
-        ));
+        $this->event(new StatementPrepared($this, $statement));
 
         return $statement;
     }
@@ -579,7 +693,11 @@ class Connection implements ConnectionInterface
             $statement->bindValue(
                 is_string($key) ? $key : $key + 1,
                 $value,
-                is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR
+                match (true) {
+                    is_int($value) => PDO::PARAM_INT,
+                    is_resource($value) => PDO::PARAM_LOB,
+                    default => PDO::PARAM_STR
+                },
             );
         }
     }
@@ -620,6 +738,10 @@ class Connection implements ConnectionInterface
      */
     protected function run($query, $bindings, Closure $callback)
     {
+        foreach ($this->beforeExecutingCallbacks as $beforeExecutingCallback) {
+            $beforeExecutingCallback($query, $bindings, $this);
+        }
+
         $this->reconnectIfMissingConnection();
 
         $start = microtime(true);
@@ -661,7 +783,7 @@ class Connection implements ConnectionInterface
         // run the SQL against the PDO connection. Then we can calculate the time it
         // took to execute and log the query SQL, bindings and time in our memory.
         try {
-            $result = $callback($query, $bindings);
+            return $callback($query, $bindings);
         }
 
         // If an exception occurs when attempting to run a query, we'll format the error
@@ -669,11 +791,9 @@ class Connection implements ConnectionInterface
         // lot more helpful to the developer instead of just the database's errors.
         catch (Exception $e) {
             throw new QueryException(
-                $query, $this->prepareBindings($bindings), $e
+                $this->getName(), $query, $this->prepareBindings($bindings), $e
             );
         }
-
-        return $result;
     }
 
     /**
@@ -686,6 +806,8 @@ class Connection implements ConnectionInterface
      */
     public function logQuery($query, $bindings, $time = null)
     {
+        $this->totalQueryDuration += $time ?? 0.0;
+
         $this->event(new QueryExecuted($query, $bindings, $time, $this));
 
         if ($this->loggingQueries) {
@@ -702,6 +824,71 @@ class Connection implements ConnectionInterface
     protected function getElapsedTime($start)
     {
         return round((microtime(true) - $start) * 1000, 2);
+    }
+
+    /**
+     * Register a callback to be invoked when the connection queries for longer than a given amount of time.
+     *
+     * @param  \DateTimeInterface|\Carbon\CarbonInterval|float|int  $threshold
+     * @param  callable  $handler
+     * @return void
+     */
+    public function whenQueryingForLongerThan($threshold, $handler)
+    {
+        $threshold = $threshold instanceof DateTimeInterface
+            ? $this->secondsUntil($threshold) * 1000
+            : $threshold;
+
+        $threshold = $threshold instanceof CarbonInterval
+            ? $threshold->totalMilliseconds
+            : $threshold;
+
+        $this->queryDurationHandlers[] = [
+            'has_run' => false,
+            'handler' => $handler,
+        ];
+
+        $key = count($this->queryDurationHandlers) - 1;
+
+        $this->listen(function ($event) use ($threshold, $handler, $key) {
+            if (! $this->queryDurationHandlers[$key]['has_run'] && $this->totalQueryDuration() > $threshold) {
+                $handler($this, $event);
+
+                $this->queryDurationHandlers[$key]['has_run'] = true;
+            }
+        });
+    }
+
+    /**
+     * Allow all the query duration handlers to run again, even if they have already run.
+     *
+     * @return void
+     */
+    public function allowQueryDurationHandlersToRunAgain()
+    {
+        foreach ($this->queryDurationHandlers as $key => $queryDurationHandler) {
+            $this->queryDurationHandlers[$key]['has_run'] = false;
+        }
+    }
+
+    /**
+     * Get the duration of all run queries in milliseconds.
+     *
+     * @return float
+     */
+    public function totalQueryDuration()
+    {
+        return $this->totalQueryDuration;
+    }
+
+    /**
+     * Reset the duration of all run queries.
+     *
+     * @return void
+     */
+    public function resetTotalQueryDuration()
+    {
+        $this->totalQueryDuration = 0.0;
     }
 
     /**
@@ -751,9 +938,9 @@ class Connection implements ConnectionInterface
     /**
      * Reconnect to the database.
      *
-     * @return void
+     * @return mixed|false
      *
-     * @throws \LogicException
+     * @throws \Illuminate\Database\LostConnectionException
      */
     public function reconnect()
     {
@@ -763,7 +950,7 @@ class Connection implements ConnectionInterface
             return call_user_func($this->reconnector, $this);
         }
 
-        throw new LogicException('Lost connection and no reconnector available.');
+        throw new LostConnectionException('Lost connection and no reconnector available.');
     }
 
     /**
@@ -771,7 +958,7 @@ class Connection implements ConnectionInterface
      *
      * @return void
      */
-    protected function reconnectIfMissingConnection()
+    public function reconnectIfMissingConnection()
     {
         if (is_null($this->pdo)) {
             $this->reconnect();
@@ -786,6 +973,21 @@ class Connection implements ConnectionInterface
     public function disconnect()
     {
         $this->setPdo(null)->setReadPdo(null);
+
+        $this->doctrineConnection = null;
+    }
+
+    /**
+     * Register a hook to be run just before a database query is executed.
+     *
+     * @param  \Closure  $callback
+     * @return $this
+     */
+    public function beforeExecuting(Closure $callback)
+    {
+        $this->beforeExecutingCallbacks[] = $callback;
+
+        return $this;
     }
 
     /**
@@ -796,9 +998,7 @@ class Connection implements ConnectionInterface
      */
     public function listen(Closure $callback)
     {
-        if (isset($this->events)) {
-            $this->events->listen(Events\QueryExecuted::class, $callback);
-        }
+        $this->events?->listen(Events\QueryExecuted::class, $callback);
     }
 
     /**
@@ -809,18 +1009,13 @@ class Connection implements ConnectionInterface
      */
     protected function fireConnectionEvent($event)
     {
-        if (! isset($this->events)) {
-            return;
-        }
-
-        switch ($event) {
-            case 'beganTransaction':
-                return $this->events->dispatch(new TransactionBeginning($this));
-            case 'committed':
-                return $this->events->dispatch(new TransactionCommitted($this));
-            case 'rollingBack':
-                return $this->events->dispatch(new TransactionRolledBack($this));
-        }
+        return $this->events?->dispatch(match ($event) {
+            'beganTransaction' => new TransactionBeginning($this),
+            'committed' => new TransactionCommitted($this),
+            'committing' => new TransactionCommitting($this),
+            'rollingBack' => new TransactionRolledBack($this),
+            default => null,
+        });
     }
 
     /**
@@ -831,20 +1026,28 @@ class Connection implements ConnectionInterface
      */
     protected function event($event)
     {
-        if (isset($this->events)) {
-            $this->events->dispatch($event);
-        }
+        $this->events?->dispatch($event);
     }
 
     /**
      * Get a new raw query expression.
      *
      * @param  mixed  $value
-     * @return \Illuminate\Database\Query\Expression
+     * @return \Illuminate\Contracts\Database\Query\Expression
      */
     public function raw($value)
     {
         return new Expression($value);
+    }
+
+    /**
+     * Determine if the database connection has modified any database records.
+     *
+     * @return bool
+     */
+    public function hasModifiedRecords()
+    {
+        return $this->recordsModified;
     }
 
     /**
@@ -861,6 +1064,42 @@ class Connection implements ConnectionInterface
     }
 
     /**
+     * Set the record modification state.
+     *
+     * @param  bool  $value
+     * @return $this
+     */
+    public function setRecordModificationState(bool $value)
+    {
+        $this->recordsModified = $value;
+
+        return $this;
+    }
+
+    /**
+     * Reset the record modification state.
+     *
+     * @return void
+     */
+    public function forgetRecordModificationState()
+    {
+        $this->recordsModified = false;
+    }
+
+    /**
+     * Indicate that the connection should use the write PDO connection for reads.
+     *
+     * @param  bool  $value
+     * @return $this
+     */
+    public function useWriteConnectionWhenReading($value = true)
+    {
+        $this->readOnWriteConnection = $value;
+
+        return $this;
+    }
+
+    /**
      * Is Doctrine available?
      *
      * @return bool
@@ -868,6 +1107,16 @@ class Connection implements ConnectionInterface
     public function isDoctrineAvailable()
     {
         return class_exists('Doctrine\DBAL\Connection');
+    }
+
+    /**
+     * Indicates whether native alter operations will be used when dropping, renaming, or modifying columns, even if Doctrine DBAL is installed.
+     *
+     * @return bool
+     */
+    public function usingNativeSchemaOperations()
+    {
+        return ! $this->isDoctrineAvailable() || SchemaBuilder::$alwaysUsesNativeSchemaOperationsIfPossible;
     }
 
     /**
@@ -881,7 +1130,7 @@ class Connection implements ConnectionInterface
     {
         $schema = $this->getDoctrineSchemaManager();
 
-        return $schema->listTableDetails($table)->getColumn($column);
+        return $schema->introspectTable($table)->getColumn($column);
     }
 
     /**
@@ -891,7 +1140,9 @@ class Connection implements ConnectionInterface
      */
     public function getDoctrineSchemaManager()
     {
-        return $this->getDoctrineDriver()->getSchemaManager($this->getDoctrineConnection());
+        $connection = $this->getDoctrineConnection();
+
+        return $connection->createSchemaManager();
     }
 
     /**
@@ -910,9 +1161,42 @@ class Connection implements ConnectionInterface
                 'driver' => $driver->getName(),
                 'serverVersion' => $this->getConfig('server_version'),
             ]), $driver);
+
+            foreach ($this->doctrineTypeMappings as $name => $type) {
+                $this->doctrineConnection
+                    ->getDatabasePlatform()
+                    ->registerDoctrineTypeMapping($type, $name);
+            }
         }
 
         return $this->doctrineConnection;
+    }
+
+    /**
+     * Register a custom Doctrine mapping type.
+     *
+     * @param  Type|class-string<Type>  $class
+     * @param  string  $name
+     * @param  string  $type
+     * @return void
+     *
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \RuntimeException
+     */
+    public function registerDoctrineType(Type|string $class, string $name, string $type): void
+    {
+        if (! $this->isDoctrineAvailable()) {
+            throw new RuntimeException(
+                'Registering a custom Doctrine type requires Doctrine DBAL (doctrine/dbal).'
+            );
+        }
+
+        if (! Type::hasType($name)) {
+            Type::getTypeRegistry()
+                ->register($name, is_string($class) ? new $class() : $class);
+        }
+
+        $this->doctrineTypeMappings[$name] = $type;
     }
 
     /**
@@ -950,7 +1234,8 @@ class Connection implements ConnectionInterface
             return $this->getPdo();
         }
 
-        if ($this->recordsModified && $this->getConfig('sticky')) {
+        if ($this->readOnWriteConnection ||
+            ($this->recordsModified && $this->getConfig('sticky'))) {
             return $this->getPdo();
         }
 
@@ -1020,6 +1305,16 @@ class Connection implements ConnectionInterface
     public function getName()
     {
         return $this->getConfig('name');
+    }
+
+    /**
+     * Get the database connection full name.
+     *
+     * @return string|null
+     */
+    public function getNameWithReadWriteType()
+    {
+        return $this->getName().($this->readWriteType ? '::'.$this->readWriteType : '');
     }
 
     /**
@@ -1146,6 +1441,29 @@ class Connection implements ConnectionInterface
     }
 
     /**
+     * Set the transaction manager instance on the connection.
+     *
+     * @param  \Illuminate\Database\DatabaseTransactionsManager  $manager
+     * @return $this
+     */
+    public function setTransactionManager($manager)
+    {
+        $this->transactionsManager = $manager;
+
+        return $this;
+    }
+
+    /**
+     * Unset the transaction manager for this connection.
+     *
+     * @return void
+     */
+    public function unsetTransactionManager()
+    {
+        $this->transactionsManager = null;
+    }
+
+    /**
      * Determine if the connection is in a "dry run".
      *
      * @return bool
@@ -1224,6 +1542,19 @@ class Connection implements ConnectionInterface
     public function setDatabaseName($database)
     {
         $this->database = $database;
+
+        return $this;
+    }
+
+    /**
+     * Set the read / write type of the connection.
+     *
+     * @param  string|null  $readWriteType
+     * @return $this
+     */
+    public function setReadWriteType($readWriteType)
+    {
+        $this->readWriteType = $readWriteType;
 
         return $this;
     }

@@ -24,7 +24,7 @@ LUA;
      * Get the Lua script for pushing jobs onto the queue.
      *
      * KEYS[1] - The queue to push the job onto, for example: queues:foo
-     * KEYS[2] - The notification list fot the queue we are pushing jobs onto, for example: queues:foo:notify
+     * KEYS[2] - The notification list for the queue we are pushing jobs onto, for example: queues:foo:notify
      * ARGV[1] - The job payload
      *
      * @return string
@@ -106,7 +106,7 @@ LUA;
     {
         return <<<'LUA'
 -- Get all of the jobs with an expired "score"...
-local val = redis.call('zrangebyscore', KEYS[1], '-inf', ARGV[1])
+local val = redis.call('zrangebyscore', KEYS[1], '-inf', ARGV[1], 'limit', 0, ARGV[2])
 
 -- If we have values in the array, we will remove them from the first queue
 -- and add them onto the destination queue in chunks of 100, which moves
@@ -124,6 +124,25 @@ if(next(val) ~= nil) then
 end
 
 return val
+LUA;
+    }
+
+    /**
+     * Get the Lua script for removing all jobs from the queue.
+     *
+     * KEYS[1] - The name of the primary queue
+     * KEYS[2] - The name of the "delayed" queue
+     * KEYS[3] - The name of the "reserved" queue
+     * KEYS[4] - The name of the "notify" queue
+     *
+     * @return string
+     */
+    public static function clear()
+    {
+        return <<<'LUA'
+local size = redis.call('llen', KEYS[1]) + redis.call('zcard', KEYS[2]) + redis.call('zcard', KEYS[3])
+redis.call('del', KEYS[1], KEYS[2], KEYS[3], KEYS[4])
+return size
 LUA;
     }
 }

@@ -112,6 +112,13 @@ class Application extends Container
     public $router;
 
     /**
+     * The array of terminating callbacks.
+     *
+     * @var callable[]
+     */
+    protected $terminatingCallbacks = [];
+
+    /**
      * Create a new Lumen application instance.
      *
      * @param  string|null  $basePath
@@ -162,7 +169,7 @@ class Application extends Container
      */
     public function version()
     {
-        return 'Lumen (7.2.2) (Laravel Components ^7.0)';
+        return 'Lumen (10.0.0) (Laravel Components ^10.0)';
     }
 
     /**
@@ -198,6 +205,26 @@ class Application extends Container
         }
 
         return $env;
+    }
+
+    /**
+     * Determine if the application is in the local environment.
+     *
+     * @return bool
+     */
+    public function isLocal()
+    {
+        return $this->environment() === 'local';
+    }
+
+    /**
+     * Determine if the application is in the production environment.
+     *
+     * @return bool
+     */
+    public function isProduction()
+    {
+        return $this->environment() === 'production';
     }
 
     /**
@@ -526,7 +553,7 @@ class Application extends Container
     /**
      * Prepare the given request instance for use with the application.
      *
-     * @param  \Symfony\Component\HttpFoundation\Request $request
+     * @param  \Symfony\Component\HttpFoundation\Request  $request
      * @return \Illuminate\Http\Request
      */
     protected function prepareRequest(SymfonyRequest $request)
@@ -791,10 +818,10 @@ class Application extends Container
     /**
      * Get the base path for the application.
      *
-     * @param  string|null  $path
+     * @param  string  $path
      * @return string
      */
-    public function basePath($path = null)
+    public function basePath($path = '')
     {
         if (isset($this->basePath)) {
             return $this->basePath.($path ? '/'.$path : $path);
@@ -829,6 +856,17 @@ class Application extends Container
     public function databasePath($path = '')
     {
         return $this->basePath.DIRECTORY_SEPARATOR.'database'.($path ? DIRECTORY_SEPARATOR.$path : $path);
+    }
+
+    /**
+     * Get the path to the language files.
+     *
+     * @param  string  $path
+     * @return string
+     */
+    public function langPath($path = '')
+    {
+        return $this->getLanguagePath().($path != '' ? DIRECTORY_SEPARATOR.$path : '');
     }
 
     /**
@@ -895,7 +933,7 @@ class Application extends Container
      */
     public function runningUnitTests()
     {
-        return $this->environment() == 'testing';
+        return $this->environment() === 'testing';
     }
 
     /**
@@ -979,6 +1017,16 @@ class Application extends Container
     }
 
     /**
+     * Get the current application fallback locale.
+     *
+     * @return string
+     */
+    public function getFallbackLocale()
+    {
+        return $this['config']->get('app.fallback_locale');
+    }
+
+    /**
      * Set the current application locale.
      *
      * @param  string  $locale
@@ -1002,6 +1050,35 @@ class Application extends Container
     }
 
     /**
+     * Register a terminating callback with the application.
+     *
+     * @param  callable|string  $callback
+     * @return $this
+     */
+    public function terminating($callback)
+    {
+        $this->terminatingCallbacks[] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Terminate the application.
+     *
+     * @return void
+     */
+    public function terminate()
+    {
+        $index = 0;
+
+        while ($index < count($this->terminatingCallbacks)) {
+            $this->call($this->terminatingCallbacks[$index]);
+
+            $index++;
+        }
+    }
+
+    /**
      * Register the core container aliases.
      *
      * @return void
@@ -1015,6 +1092,7 @@ class Application extends Container
             \Illuminate\Contracts\Cache\Factory::class => 'cache',
             \Illuminate\Contracts\Cache\Repository::class => 'cache.store',
             \Illuminate\Contracts\Config\Repository::class => 'config',
+            \Illuminate\Config\Repository::class => 'config',
             \Illuminate\Container\Container::class => 'app',
             \Illuminate\Contracts\Container\Container::class => 'app',
             \Illuminate\Database\ConnectionResolverInterface::class => 'db',

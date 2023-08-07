@@ -78,10 +78,10 @@ class Context extends Entity {
         $deployment_id = $this->launch->ltiParameter('deployment_id');
 
         $missing = '';
-        if ( strlen($issuer_client) < 1 ) $missing .= ' ' . 'issuer_client';
-        if ( strlen($privkey) < 1 ) $missing .= ' ' . 'private_key';
-        if ( strlen($kid) < 1 ) $missing .= ' ' . 'public_key kid';
-        if ( strlen($lti13_token_url) < 1 ) $missing .= ' ' . 'token_url';
+        if ( empty($issuer_client) ) $missing .= ' ' . 'issuer_client';
+        if ( empty($privkey) ) $missing .= ' ' . 'private_key';
+        if ( empty($kid) ) $missing .= ' ' . 'public_key kid';
+        if ( empty($lti13_token_url) ) $missing .= ' ' . 'token_url';
         $missing = trim($missing);
         return($missing);
     }
@@ -102,7 +102,7 @@ class Context extends Entity {
 
         $missing = $this->loadLTI13Data($lti13_token_url, $privkey, $kid, $lti13_token_audience, $issuer_client, $deployment_id);
         $lti13_membership_url = $this->launch->ltiParameter('lti13_membership_url');
-        if ( strlen($lti13_membership_url) < 1 ) $missing .= ' ' . 'membership_url';
+        if ( empty($lti13_membership_url) ) $missing .= ' ' . 'membership_url';
         $missing = trim($missing);
 
         if ( is_string($missing) && strlen($missing) > 0 ) {
@@ -149,7 +149,7 @@ class Context extends Entity {
         $missing = $this->loadLTI13Data($lti13_token_url, $privkey, $kid, $lti13_token_audience, $issuer_client, $deployment_id);
 
         $lti13_lineitems = $this->launch->ltiParameter('lti13_lineitems');
-        if ( strlen($lti13_lineitems) < 1 ) $missing .= ' ' . 'lineitems';
+        if ( empty($lti13_lineitems) ) $missing .= ' ' . 'lineitems';
 
         $missing = trim($missing);
         if ( is_string($missing) && strlen($missing) > 0 ) {

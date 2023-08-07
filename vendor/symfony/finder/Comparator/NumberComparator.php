@@ -35,7 +35,7 @@ namespace Symfony\Component\Finder\Comparator;
 class NumberComparator extends Comparator
 {
     /**
-     * @param string|int $test A comparison string or an integer
+     * @param string|null $test A comparison string or null
      *
      * @throws \InvalidArgumentException If the test is not understood
      */
@@ -73,7 +73,6 @@ class NumberComparator extends Comparator
             }
         }
 
-        $this->setTarget($target);
-        $this->setOperator($matches[1] ?? '==');
+        parent::__construct($target, $matches[1] ?: '==');
     }
 }

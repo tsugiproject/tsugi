@@ -11,12 +11,32 @@ class SqlServerGrammar extends Grammar
     /**
      * All of the available clause operators.
      *
-     * @var array
+     * @var string[]
      */
     protected $operators = [
         '=', '<', '>', '<=', '>=', '!<', '!>', '<>', '!=',
         'like', 'not like', 'ilike',
         '&', '&=', '|', '|=', '^', '^=',
+    ];
+
+    /**
+     * The components that make up a select clause.
+     *
+     * @var string[]
+     */
+    protected $selectComponents = [
+        'aggregate',
+        'columns',
+        'from',
+        'indexHint',
+        'joins',
+        'wheres',
+        'groups',
+        'havings',
+        'orders',
+        'offset',
+        'limit',
+        'lock',
     ];
 
     /**
@@ -27,20 +47,12 @@ class SqlServerGrammar extends Grammar
      */
     public function compileSelect(Builder $query)
     {
-        if (! $query->offset) {
-            return parent::compileSelect($query);
+        // An order by clause is required for SQL Server offset to function...
+        if ($query->offset && empty($query->orders)) {
+            $query->orders[] = ['sql' => '(SELECT 0)'];
         }
 
-        // If an offset is present on the query, we will need to wrap the query in
-        // a big "ANSI" offset syntax block. This is very nasty compared to the
-        // other database systems but is necessary for implementing features.
-        if (is_null($query->columns)) {
-            $query->columns = ['*'];
-        }
-
-        return $this->compileAnsiOffset(
-            $query, $this->compileComponents($query)
-        );
+        return parent::compileSelect($query);
     }
 
     /**
@@ -61,8 +73,8 @@ class SqlServerGrammar extends Grammar
         // If there is a limit on the query, but not an offset, we will add the top
         // clause to the query, which serves as a "limit" type clause within the
         // SQL Server system similar to the limit keywords available in MySQL.
-        if ($query->limit > 0 && $query->offset <= 0) {
-            $select .= 'top '.$query->limit.' ';
+        if (is_numeric($query->limit) && $query->limit > 0 && $query->offset <= 0) {
+            $select .= 'top '.((int) $query->limit).' ';
         }
 
         return $select.$this->columnize($columns);
@@ -88,6 +100,36 @@ class SqlServerGrammar extends Grammar
         }
 
         return $from;
+    }
+
+    /**
+     * Compile the index hints for the query.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  \Illuminate\Database\Query\IndexHint  $indexHint
+     * @return string
+     */
+    protected function compileIndexHint(Builder $query, $indexHint)
+    {
+        return $indexHint->type === 'force'
+                    ? "with (index({$indexHint->index}))"
+                    : '';
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $where
+     * @return string
+     */
+    protected function whereBitwise(Builder $query, $where)
+    {
+        $value = $this->parameter($where['value']);
+
+        $operator = str_replace('?', '??', $where['operator']);
+
+        return '('.$this->wrap($where['column']).' '.$operator.' '.$value.') != 0';
     }
 
     /**
@@ -144,6 +186,31 @@ class SqlServerGrammar extends Grammar
     }
 
     /**
+     * Compile a "JSON contains key" statement into SQL.
+     *
+     * @param  string  $column
+     * @return string
+     */
+    protected function compileJsonContainsKey($column)
+    {
+        $segments = explode('->', $column);
+
+        $lastSegment = array_pop($segments);
+
+        if (preg_match('/\[([0-9]+)\]$/', $lastSegment, $matches)) {
+            $segments[] = Str::beforeLast($lastSegment, $matches[0]);
+
+            $key = $matches[1];
+        } else {
+            $key = "'".str_replace("'", "''", $lastSegment)."'";
+        }
+
+        [$field, $path] = $this->wrapJsonFieldAndPath(implode('->', $segments));
+
+        return $key.' in (select [key] from openjson('.$field.$path.'))';
+    }
+
+    /**
      * Compile a "JSON length" statement into SQL.
      *
      * @param  string  $column
@@ -159,59 +226,57 @@ class SqlServerGrammar extends Grammar
     }
 
     /**
-     * Create a full ANSI offset clause for the query.
+     * Compile a "JSON value cast" statement into SQL.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $components
+     * @param  string  $value
      * @return string
      */
-    protected function compileAnsiOffset(Builder $query, $components)
+    public function compileJsonValueCast($value)
     {
-        // An ORDER BY clause is required to make this offset query work, so if one does
-        // not exist we'll just create a dummy clause to trick the database and so it
-        // does not complain about the queries for not having an "order by" clause.
-        if (empty($components['orders'])) {
-            $components['orders'] = 'order by (select 0)';
+        return 'json_query('.$value.')';
+    }
+
+    /**
+     * Compile a single having clause.
+     *
+     * @param  array  $having
+     * @return string
+     */
+    protected function compileHaving(array $having)
+    {
+        if ($having['type'] === 'Bitwise') {
+            return $this->compileHavingBitwise($having);
         }
 
-        // We need to add the row number to the query so we can compare it to the offset
-        // and limit values given for the statements. So we will add an expression to
-        // the "select" that will give back the row numbers on each of the records.
-        $components['columns'] .= $this->compileOver($components['orders']);
-
-        unset($components['orders']);
-
-        // Next we need to calculate the constraints that should be placed on the query
-        // to get the right offset and limit from our query but if there is no limit
-        // set we will just handle the offset only since that is all that matters.
-        $sql = $this->concatenate($components);
-
-        return $this->compileTableExpression($sql, $query);
+        return parent::compileHaving($having);
     }
 
     /**
-     * Compile the over statement for a table expression.
+     * Compile a having clause involving a bitwise operator.
      *
-     * @param  string  $orderings
+     * @param  array  $having
      * @return string
      */
-    protected function compileOver($orderings)
+    protected function compileHavingBitwise($having)
     {
-        return ", row_number() over ({$orderings}) as row_num";
+        $column = $this->wrap($having['column']);
+
+        $parameter = $this->parameter($having['value']);
+
+        return '('.$column.' '.$having['operator'].' '.$parameter.') != 0';
     }
 
     /**
-     * Compile a common table expression for a query.
+     * Move the order bindings to be after the "select" statement to account for an order by subquery.
      *
-     * @param  string  $sql
      * @param  \Illuminate\Database\Query\Builder  $query
-     * @return string
+     * @return array
      */
-    protected function compileTableExpression($sql, $query)
+    protected function sortBindingsForSubqueryOrderBy($query)
     {
-        $constraint = $this->compileRowConstraint($query);
-
-        return "select * from ({$sql}) as temp_table where row_num {$constraint} order by row_num";
+        return Arr::sort($query->bindings, function ($bindings, $key) {
+            return array_search($key, ['select', 'order', 'from', 'join', 'where', 'groupBy', 'having', 'union', 'unionOrder']);
+        });
     }
 
     /**
@@ -222,10 +287,10 @@ class SqlServerGrammar extends Grammar
      */
     protected function compileRowConstraint($query)
     {
-        $start = $query->offset + 1;
+        $start = (int) $query->offset + 1;
 
         if ($query->limit > 0) {
-            $finish = $query->offset + $query->limit;
+            $finish = (int) $query->offset + (int) $query->limit;
 
             return "between {$start} and {$finish}";
         }
@@ -253,7 +318,7 @@ class SqlServerGrammar extends Grammar
     /**
      * Compile the random statement into SQL.
      *
-     * @param  string  $seed
+     * @param  string|int  $seed
      * @return string
      */
     public function compileRandom($seed)
@@ -270,6 +335,12 @@ class SqlServerGrammar extends Grammar
      */
     protected function compileLimit(Builder $query, $limit)
     {
+        $limit = (int) $limit;
+
+        if ($limit && $query->offset > 0) {
+            return "fetch next {$limit} rows only";
+        }
+
         return '';
     }
 
@@ -282,6 +353,12 @@ class SqlServerGrammar extends Grammar
      */
     protected function compileOffset(Builder $query, $offset)
     {
+        $offset = (int) $offset;
+
+        if ($offset) {
+            return "offset {$offset} rows";
+        }
+
         return '';
     }
 
@@ -339,6 +416,48 @@ class SqlServerGrammar extends Grammar
         $joins = $this->compileJoins($query, $query->joins);
 
         return "update {$alias} set {$columns} from {$table} {$joins} {$where}";
+    }
+
+    /**
+     * Compile an "upsert" statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $values
+     * @param  array  $uniqueBy
+     * @param  array  $update
+     * @return string
+     */
+    public function compileUpsert(Builder $query, array $values, array $uniqueBy, array $update)
+    {
+        $columns = $this->columnize(array_keys(reset($values)));
+
+        $sql = 'merge '.$this->wrapTable($query->from).' ';
+
+        $parameters = collect($values)->map(function ($record) {
+            return '('.$this->parameterize($record).')';
+        })->implode(', ');
+
+        $sql .= 'using (values '.$parameters.') '.$this->wrapTable('laravel_source').' ('.$columns.') ';
+
+        $on = collect($uniqueBy)->map(function ($column) use ($query) {
+            return $this->wrap('laravel_source.'.$column).' = '.$this->wrap($query->from.'.'.$column);
+        })->implode(' and ');
+
+        $sql .= 'on '.$on.' ';
+
+        if ($update) {
+            $update = collect($update)->map(function ($value, $key) {
+                return is_numeric($key)
+                    ? $this->wrap($value).' = '.$this->wrap('laravel_source.'.$value)
+                    : $this->wrap($key).' = '.$this->parameter($value);
+            })->implode(', ');
+
+            $sql .= 'when matched then update set '.$update.' ';
+        }
+
+        $sql .= 'when not matched then insert ('.$columns.') values ('.$columns.');';
+
+        return $sql;
     }
 
     /**
@@ -427,7 +546,7 @@ class SqlServerGrammar extends Grammar
     /**
      * Wrap a table in keyword identifiers.
      *
-     * @param  \Illuminate\Database\Query\Expression|string  $table
+     * @param  \Illuminate\Contracts\Database\Query\Expression|string  $table
      * @return string
      */
     public function wrapTable($table)

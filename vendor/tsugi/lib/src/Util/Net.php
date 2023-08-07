@@ -101,7 +101,7 @@ class Net {
             if ( $pos < 1 ) continue;
             $key = substr($line,0,$pos);
             $value = trim(substr($line, $pos+1));
-            if ( strlen($key) < 1 || strlen($value) < 1 ) continue;
+            if ( empty($key) || empty($value) ) continue;
             $headermap[$key] = $value;
         }
         return $headermap;
@@ -485,7 +485,7 @@ class Net {
         $headers = array();
         foreach($rawheaders as $key => $value) {
             $key = trim(strtolower($key));
-            if ( !is_string($key) || strlen($key) < 1 ) continue;
+            if ( !is_string($key) || empty($key) ) continue;
             $headers[$key] = $value;
         }
 

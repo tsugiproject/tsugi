@@ -19,7 +19,15 @@ final class Utils
     {
         $class = \get_class($object);
 
-        return 'c' === $class[0] && 0 === strpos($class, "class@anonymous\0") ? get_parent_class($class).'@anonymous' : $class;
+        if (false === ($pos = \strpos($class, "@anonymous\0"))) {
+            return $class;
+        }
+
+        if (false === ($parent = \get_parent_class($class))) {
+            return \substr($class, 0, $pos + 10);
+        }
+
+        return $parent . '@anonymous';
     }
 
     public static function substr(string $string, int $start, ?int $length = null): string
@@ -114,7 +122,7 @@ final class Utils
         if (is_string($data)) {
             self::detectAndCleanUtf8($data);
         } elseif (is_array($data)) {
-            array_walk_recursive($data, array('Monolog\Utils', 'detectAndCleanUtf8'));
+            array_walk_recursive($data, ['Monolog\Utils', 'detectAndCleanUtf8']);
         } else {
             self::throwEncodeError($code, $data);
         }
@@ -133,32 +141,40 @@ final class Utils
     }
 
     /**
+     * @internal
+     */
+    public static function pcreLastErrorMessage(int $code): string
+    {
+        if (PHP_VERSION_ID >= 80000) {
+            return preg_last_error_msg();
+        }
+
+        $constants = (get_defined_constants(true))['pcre'];
+        $constants = array_filter($constants, function ($key) {
+            return substr($key, -6) == '_ERROR';
+        }, ARRAY_FILTER_USE_KEY);
+
+        $constants = array_flip($constants);
+
+        return $constants[$code] ?? 'UNDEFINED_ERROR';
+    }
+
+    /**
      * Throws an exception according to a given code with a customized message
      *
      * @param  int               $code return code of json_last_error function
      * @param  mixed             $data data that was meant to be encoded
      * @throws \RuntimeException
-     *
-     * @return never
      */
-    private static function throwEncodeError(int $code, $data): void
+    private static function throwEncodeError(int $code, $data): never
     {
-        switch ($code) {
-            case JSON_ERROR_DEPTH:
-                $msg = 'Maximum stack depth exceeded';
-                break;
-            case JSON_ERROR_STATE_MISMATCH:
-                $msg = 'Underflow or the modes mismatch';
-                break;
-            case JSON_ERROR_CTRL_CHAR:
-                $msg = 'Unexpected control character found';
-                break;
-            case JSON_ERROR_UTF8:
-                $msg = 'Malformed UTF-8 characters, possibly incorrectly encoded';
-                break;
-            default:
-                $msg = 'Unknown error';
-        }
+        $msg = match ($code) {
+            JSON_ERROR_DEPTH => 'Maximum stack depth exceeded',
+            JSON_ERROR_STATE_MISMATCH => 'Underflow or the modes mismatch',
+            JSON_ERROR_CTRL_CHAR => 'Unexpected control character found',
+            JSON_ERROR_UTF8 => 'Malformed UTF-8 characters, possibly incorrectly encoded',
+            default => 'Unknown error',
+        };
 
         throw new \RuntimeException('JSON encoding failed: '.$msg.'. Encoding: '.var_export($data, true));
     }
@@ -180,16 +196,18 @@ final class Utils
      */
     private static function detectAndCleanUtf8(&$data): void
     {
-        if (is_string($data) && !preg_match('//u', $data)) {
+        if (is_string($data) && preg_match('//u', $data) !== 1) {
             $data = preg_replace_callback(
                 '/[\x80-\xFF]+/',
                 function ($m) {
-                    return utf8_encode($m[0]);
+                    return function_exists('mb_convert_encoding') ? mb_convert_encoding($m[0], 'UTF-8', 'ISO-8859-1') : utf8_encode($m[0]);
                 },
                 $data
             );
             if (!is_string($data)) {
-                throw new \RuntimeException('Failed to preg_replace_callback: '.preg_last_error().' / '.preg_last_error_msg());
+                $pcreErrorCode = preg_last_error();
+
+                throw new \RuntimeException('Failed to preg_replace_callback: ' . $pcreErrorCode . ' / ' . self::pcreLastErrorMessage($pcreErrorCode));
             }
             $data = str_replace(
                 ['¤', '¦', '¨', '´', '¸', '¼', '½', '¾'],
@@ -197,5 +215,60 @@ final class Utils
                 $data
             );
         }
+    }
+
+    /**
+     * Converts a string with a valid 'memory_limit' format, to bytes.
+     *
+     * @param  string|false $val
+     * @return int|false    Returns an integer representing bytes. Returns FALSE in case of error.
+     */
+    public static function expandIniShorthandBytes($val)
+    {
+        if (!is_string($val)) {
+            return false;
+        }
+
+        // support -1
+        if ((int) $val < 0) {
+            return (int) $val;
+        }
+
+        if (preg_match('/^\s*(?<val>\d+)(?:\.\d+)?\s*(?<unit>[gmk]?)\s*$/i', $val, $match) !== 1) {
+            return false;
+        }
+
+        $val = (int) $match['val'];
+        switch (strtolower($match['unit'] ?? '')) {
+            case 'g':
+                $val *= 1024;
+                // no break
+            case 'm':
+                $val *= 1024;
+                // no break
+            case 'k':
+                $val *= 1024;
+        }
+
+        return $val;
+    }
+
+    public static function getRecordMessageForException(LogRecord $record): string
+    {
+        $context = '';
+        $extra = '';
+
+        try {
+            if (\count($record->context) > 0) {
+                $context = "\nContext: " . json_encode($record->context, JSON_THROW_ON_ERROR);
+            }
+            if (\count($record->extra) > 0) {
+                $extra = "\nExtra: " . json_encode($record->extra, JSON_THROW_ON_ERROR);
+            }
+        } catch (\Throwable $e) {
+            // noop
+        }
+
+        return "\nThe exception occurred while attempting to log: " . $record->message . $context . $extra;
     }
 }

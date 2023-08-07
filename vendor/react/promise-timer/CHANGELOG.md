@@ -1,5 +1,59 @@
 # Changelog
 
+## 1.9.0 (2022-06-13)
+
+*   Feature: Improve forward compatibility with upcoming Promise v3 API.
+    (#54 and #55 by @clue)
+
+*   Minor documentation improvements for upcoming Promise v3.
+    (#58 by @clue and #56 by @SimonFrings)
+
+*   Improve test suite, fix legacy HHVM build by downgrading Composer.
+    (#57 by @SimonFrings)
+
+## 1.8.0 (2021-12-06)
+
+*   Feature: Add new `sleep()` function and deprecate `resolve()` and `reject()` functions.
+    (#51 by @clue)
+
+    ```php
+    // deprecated
+    React\Promise\Timer\resolve($time);
+    React\Promise\Timer\reject($time);
+
+    // new
+    React\Promise\Timer\sleep($time);
+    ```
+
+*   Feature: Support PHP 8.1 release.
+    (#50 by @Thomas-Gelf, #52 by @clue and #48 by @SimonFrings)
+
+*   Improve API documentation and add parameter types and return types.
+    (#49 by @clue and #47 by @SimonFrings)
+
+## 1.7.0 (2021-07-11)
+
+A major new feature release, see [**release announcement**](https://clue.engineering/2021/announcing-reactphp-default-loop).
+
+*   Feature: Simplify usage by supporting new [default loop](https://reactphp.org/event-loop/#loop).
+    (#46 by @clue)
+
+    ```php
+    // old (still supported)
+    $promise = timeout($promise, $time, $loop);
+    $promise = resolve($time, $loop);
+    $promise = reject($time, $loop);
+
+    // new (using default loop)
+    $promise = timeout($promise, $time);
+    $promise = resolve($time);
+    $promise = reject($time);
+    ```
+
+*   Improve test suite, use GitHub actions for continuous integration (CI),
+    update PHPUnit config, run tests on PHP 8 and add full core team to the license.
+    (#43 by @WyriHaximus, #44 and #45 by @SimonFrings)
+
 ## 1.6.0 (2020-07-10)
 
 *   Feature: Forward compatibility with react/promise v3.
