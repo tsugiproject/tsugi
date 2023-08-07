@@ -266,10 +266,10 @@ class U {
 
         // If doing this before the session is running, check for the
         // id as GET or POST parameter
-        if ( strlen($session_id) < 1 ) {
+        if ( empty($session_id) ) {
             $session_id = self::get($_POST, session_name());
         }
-        if ( strlen($session_id) < 1 ) {
+        if ( empty($session_id) ) {
             $session_id = self::get($_GET, session_name());
         }
 

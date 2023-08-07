@@ -6,7 +6,7 @@ require_once "src/Util/CC_LTI_Outcome.php";
 
 use \Tsugi\Util\CC_LTI_Outcome;
 
-class CC_LTI_Outcome_TEST extends \PHPUnit\Framework\TestCase
+class CC_LTI_OutcomeTest extends \PHPUnit\Framework\TestCase
 {
     public function testGeneral() {
 

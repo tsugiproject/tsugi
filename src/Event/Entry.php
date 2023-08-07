@@ -17,6 +17,11 @@ class Entry {
     public $timestart = null;
 
     /**
+     * The default maximum length of a serialized set of buckets
+     */
+    public $maxlen = 0;
+
+    /**
      * The scale in seconds
      */
     public $scale = 900;

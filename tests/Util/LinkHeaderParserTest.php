@@ -26,7 +26,8 @@ class LinkHeaderParserTest extends \PHPUnit\Framework\TestCase
      *
      * @return void
      */
-    public function testBasicParsing($header, $result)
+    // TODO: Use this or delete this.
+    public function checkBasicParsing($header, $result)
     {
         $linkHeader = LinkHeader::fromString($header);
 

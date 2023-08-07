@@ -259,7 +259,7 @@ class SettingsForm {
         $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
         if ( $title === false ) $title = $name;
         if ( ! $USER->instructor ) {
-            if ( $configured === false || strlen($configured) < 1 ) {
+            if ( empty($configured) ) {
                 echo('<p>'._m('Setting').' '.htmlent_utf8($name).' '._m('is not set').'</p>');
             } else {
                 echo('<p>'.htmlent_utf8(ucwords($name)).' '._m('is set to').' '.htmlent_utf8($configured).'</p>');
@@ -288,7 +288,7 @@ class SettingsForm {
         $configured = isset($oldsettings[$name]) ? $oldsettings[$name] : false;
         if ( $title === false ) $title = $name;
         if ( ! $USER->instructor ) {
-            if ( $configured === false || strlen($configured) < 1 ) {
+            if ( empty($configured) ) {
                 echo('<p>'._m('Setting').' '.htmlent_utf8($name).' '._m('is not set').'</p>');
             } else {
                 echo('<p>'.htmlent_utf8(ucwords($name)).' '._m('is set to').' '.htmlent_utf8($configured).'</p>');
@@ -473,7 +473,7 @@ class SettingsForm {
         $cost = Settings::linkGet('penalty_cost', 0.2);
 
         if ( ! $USER->instructor ) {
-            if ( strlen($due) < 1 ) {
+            if ( empty($due) ) {
                 echo("<p>"._m("There is currently no due date/time for this assignment.")."</p>\n");
                 return;
             }

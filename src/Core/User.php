@@ -97,7 +97,7 @@ class User {
             }
         }
         $display = trim($display);
-        if ( strlen($display) < 1 ) return false;
+        if ( empty($display) ) return false;
         return $display;
     }
 
@@ -133,7 +133,7 @@ class User {
             array(":UID" => $user_id, ":CID" => $CONTEXT->id)
         );
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if ( strlen($row['displayname']) < 1 && strlen($row['user_key']) > 0 ) {
+        if ( empty($row['displayname']) && strlen($row['user_key']) > 0 ) {
             $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
         }
         Cache::set($cacheloc, $user_id, $row);
@@ -149,7 +149,7 @@ class User {
     public function loadUserInfoBypassBySubject($user_subject)
     {
         global $CFG;
-        if ( ! is_string($user_subject) || strlen($user_subject) < 1 ) return null;
+        if ( ! is_string($user_subject) || empty($user_subject) ) return null;
         if ( ! isset($this->launch->key) || ! isset($this->launch->key->id) ) return null;
 
         $subject_sha256 = lti_sha256($user_subject);
@@ -166,7 +166,7 @@ class User {
         );
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( ! is_array($row) ) return null;
-        if ( strlen($row['displayname']) < 1 && strlen($row['user_key']) > 0 ) {
+        if ( empty($row['displayname']) && strlen($row['user_key']) > 0 ) {
             $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
         }
         $cacheloc = 'lti_user';

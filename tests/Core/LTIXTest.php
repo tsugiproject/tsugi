@@ -2,6 +2,7 @@
 
 require_once "src/Core/LTIX.php";
 require_once "src/Util/PDOX.php";
+require_once "src/Config/ConfigInfo.php";
 require_once "tests/Mock/MockSession.php";
 
 use \Tsugi\Core\LTIX;
@@ -10,6 +11,7 @@ class LTIXTest extends \PHPUnit\Framework\TestCase
 {
     public function testSecretEncrypt() {
         global $CFG;
+        $CFG = $CFG ?? new \Tsugi\Config\ConfigInfo("dir", "www");
         $CFG->cookiesecret = "hockey";
         $zap = LTIX::encrypt_secret("apereo");
         $this->assertTrue(strpos($zap,"AES::") === 0 );

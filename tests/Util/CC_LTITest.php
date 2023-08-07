@@ -6,7 +6,7 @@ require_once "src/Util/CC_LTI.php";
 
 use \Tsugi\Util\CC_LTI;
 
-class CC_LTI_TEST extends \PHPUnit\Framework\TestCase
+class CC_LTITest extends \PHPUnit\Framework\TestCase
 {
     public function testGeneral() {
 
