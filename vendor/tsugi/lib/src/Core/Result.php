@@ -231,7 +231,7 @@ class Result extends Entity {
         }
 
         // Check if we don't have a lineitem_url but do have a lineitems url so we can create a lineitem
-        if ( empty($lti13_lineitem) && strlen($lti13_lineitems) > 0 ) {
+        if ( empty($lti13_lineitem) && !empty($lti13_lineitems) ) {
             if ( ! is_string($title) || empty($title) ) {
                 $msg = "Loading link title for result $result_id";
                 if ( is_array($debug_log) )  $debug_log[] = $msg;
@@ -249,7 +249,7 @@ class Result extends Entity {
                 if ( is_array($row) ) {
                     $title = $row['title'];
                     $link_id = $row['link_id'];
-                    if ( strlen($row['lti13_lineitem']) > 0 ) $lti13_lineitem = $row['lti13_lineitem'];
+                    if ( !empty($row['lti13_lineitem']) ) $lti13_lineitem = $row['lti13_lineitem'];
                     if ( empty($title) ) {
                         // TODO: Think how to make this less chatty if the attempt is forever pointless
                         $msg = "No title found for result $result_id - cannot create lineItem";
@@ -265,7 +265,7 @@ class Result extends Entity {
                 }
             }
 
-            if ( empty($lti13_lineitem) && strlen($title) > 0  && strlen($lti13_lineitems) > 0 ) {
+            if ( empty($lti13_lineitem) && !empty($title) && !empty($lti13_lineitems) ) {
                 $msg = "Creating LineItem for result $result_id title '$title' lineitems url=$lti13_lineitems";
                 error_log($msg);
                 if ( is_array($debug_log) )  $debug_log[] = $msg;
@@ -327,7 +327,7 @@ class Result extends Entity {
 
         // LTI 1.3 grade passback - Prefer if available
         } else if ( is_object($TSUGI_LAUNCH) && isset($TSUGI_LAUNCH->context) && is_object($TSUGI_LAUNCH->context) &&
-            strlen($lti13_subject_key) > 0 && strlen($lti13_lineitem) > 0 ) {
+            !empty($lti13_subject_key) && !empty($lti13_lineitem) ) {
 
             if ( is_array($debug_log) )  $debug_log[] = "Using LTI Advantage";
             $GradeSendTransport = "LTI 1.3";
@@ -335,7 +335,7 @@ class Result extends Entity {
             $status = $TSUGI_LAUNCH->context->sendLineItemResult($lti13_lineitem, $lti13_subject_key, $grade."", "1", $comment, $debug_log, $extra);
 
         // Classic POX call
-        } else if ( strlen($key_key) > 0 && strlen($secret) > 0 && strlen($sourcedid) > 0 && strlen($service) > 0 ) {
+        } else if ( !empty($key_key) && !empty($secret) && !empty($sourcedid) && !empty($service) ) {
             if ( is_array($debug_log) )  $debug_log[] = "Using LTI 1.1";
             $GradeSendTransport = "LTI 1.1";
             $status = LTI::sendPOXGrade($grade, $sourcedid, $service, $key_key, $secret, $debug_log, $signature);

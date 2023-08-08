@@ -18,7 +18,7 @@
         "symfony/browser-kit" : "v6.2",
         "symfony/http-client" : "v6.2",
 
-        "tsugi/lib": "dev-master#b2c0afb9989eddcaaeeed818c45025cca33fda4b",
+        "tsugi/lib": "dev-master#3ba3733ee3055db77960d272ee552f6f0ca82c0c",
         "koseu/lib": "dev-master#1e42cf5fb4270cab5740e04acd31524a3e8ef265"
     },
     "config": {
