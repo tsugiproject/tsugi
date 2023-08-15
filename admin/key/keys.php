@@ -39,7 +39,7 @@ foreach ( $rows as $row ) {
     $newrow = array();
     $newrow['key_id'] = $row['key_id'];
     $newrow['key'] = $row['key_key'];
-    if ( strlen($row['key_title']) > 0 ) $newrow['key'] = $row['key_title'];
+    if ( !empty($row['key_title']) ) $newrow['key'] = $row['key_title'];
     $key_type = '';
     if ( is_string($row['key_key']) && strlen($row['key_key']) > 1 && is_string($row['secret']) && strlen($row['secret']) > 0 ) {
         $key_type .= 'LTI 1.1';
@@ -54,8 +54,8 @@ foreach ( $rows as $row ) {
     if ( $key_type == '' ) $key_type = 'Draft';
     $newrow['key_type'] = $key_type;
     $issuer_key = $row['lms_issuer'];
-    if ( strlen($row['issuer_key']) > 0 ) $issuer_key = "I: " . $row['issuer_key'];
-    if ( strlen($issuer_key) > 0 && strlen($row['deploy_key']) > 0 ) $issuer_key .= ' | ' . $row['deploy_key'];
+    if ( !empty($row['issuer_key']) ) $issuer_key = "I: " . $row['issuer_key'];
+    if ( !empty($issuer_key) && !empty($row['deploy_key']) ) $issuer_key .= ' | ' . $row['deploy_key'];
     $newrow['issuer_|_deployment'] = $issuer_key;
     $newrow['login_at'] = $row['login_at'];
     $newrow['updated_at'] = $row['updated_at'];
