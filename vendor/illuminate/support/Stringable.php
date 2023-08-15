@@ -323,6 +323,16 @@ class Stringable implements JsonSerializable, ArrayAccess
     }
 
     /**
+     * Determine if a given value is a valid URL.
+     *
+     * @return bool
+     */
+    public function isUrl()
+    {
+        return Str::isUrl($this->value);
+    }
+
+    /**
      * Determine if a given string is a valid UUID.
      *
      * @return bool
@@ -1101,6 +1111,19 @@ class Stringable implements JsonSerializable, ArrayAccess
     public function wordCount($characters = null)
     {
         return Str::wordCount($this->value, $characters);
+    }
+
+    /**
+     * Wrap a string to a given number of characters.
+     *
+     * @param  int  $characters
+     * @param  string  $break
+     * @param  bool  $cutLongWords
+     * @return static
+     */
+    public function wordWrap($characters = 75, $break = "\n", $cutLongWords = false)
+    {
+        return new static(Str::wordWrap($this->value, $characters, $break, $cutLongWords));
     }
 
     /**

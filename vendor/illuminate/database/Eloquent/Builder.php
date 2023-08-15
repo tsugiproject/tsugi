@@ -96,9 +96,11 @@ class Builder implements BuilderContract
         'avg',
         'count',
         'dd',
+        'ddRawSql',
         'doesntExist',
         'doesntExistOr',
         'dump',
+        'dumpRawSql',
         'exists',
         'existsOr',
         'explain',
@@ -116,6 +118,7 @@ class Builder implements BuilderContract
         'rawValue',
         'sum',
         'toSql',
+        'toRawSql',
     ];
 
     /**
@@ -969,19 +972,26 @@ class Builder implements BuilderContract
             $this->enforceOrderBy();
         }
 
-        if ($shouldReverse) {
-            $this->query->orders = collect($this->query->orders)->map(function ($order) {
-                $order['direction'] = $order['direction'] === 'asc' ? 'desc' : 'asc';
-
+        $reverseDirection = function ($order) {
+            if (! isset($order['direction'])) {
                 return $order;
-            })->toArray();
+            }
+
+            $order['direction'] = $order['direction'] === 'asc' ? 'desc' : 'asc';
+
+            return $order;
+        };
+
+        if ($shouldReverse) {
+            $this->query->orders = collect($this->query->orders)->map($reverseDirection)->toArray();
+            $this->query->unionOrders = collect($this->query->unionOrders)->map($reverseDirection)->toArray();
         }
 
-        if ($this->query->unionOrders) {
-            return collect($this->query->unionOrders);
-        }
+        $orders = ! empty($this->query->unionOrders) ? $this->query->unionOrders : $this->query->orders;
 
-        return collect($this->query->orders);
+        return collect($orders)
+            ->filter(fn ($order) => Arr::has($order, 'direction'))
+            ->values();
     }
 
     /**
@@ -1008,6 +1018,17 @@ class Builder implements BuilderContract
         return $this->model->unguarded(function () use ($attributes) {
             return $this->newModelInstance()->create($attributes);
         });
+    }
+
+    /**
+     * Save a new model instance with mass assignment without raising model events.
+     *
+     * @param  array  $attributes
+     * @return \Illuminate\Database\Eloquent\Model|$this
+     */
+    public function forceCreateQuietly(array $attributes = [])
+    {
+        return Model::withoutEvents(fn () => $this->forceCreate($attributes));
     }
 
     /**
@@ -1118,10 +1139,21 @@ class Builder implements BuilderContract
 
         $column = $this->model->getUpdatedAtColumn();
 
-        $values = array_merge(
-            [$column => $this->model->freshTimestampString()],
-            $values
-        );
+        if (! array_key_exists($column, $values)) {
+            $timestamp = $this->model->freshTimestampString();
+
+            if (
+                $this->model->hasSetMutator($column)
+                || $this->model->hasAttributeSetMutator($column)
+                || $this->model->hasCast($column)
+            ) {
+                $timestamp = $this->model->newInstance()
+                    ->forceFill([$column => $timestamp])
+                    ->getAttributes()[$column];
+            }
+
+            $values = array_merge([$column => $timestamp], $values);
+        }
 
         $segments = preg_split('/\s+as\s+/i', $this->query->from);
 
@@ -1958,8 +1990,6 @@ class Builder implements BuilderContract
 
         foreach ($methods as $method) {
             if ($replace || ! static::hasGlobalMacro($method->name)) {
-                $method->setAccessible(true);
-
                 static::macro($method->name, $method->invoke($mixin));
             }
         }

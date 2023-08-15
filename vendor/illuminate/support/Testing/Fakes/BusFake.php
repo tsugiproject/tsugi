@@ -90,7 +90,7 @@ class BusFake implements Fake, QueueingDispatcher
      * Specify the jobs that should be dispatched instead of faked.
      *
      * @param  array|string  $jobsToDispatch
-     * @return void
+     * @return $this
      */
     public function except($jobsToDispatch)
     {
@@ -339,11 +339,6 @@ class BusFake implements Fake, QueueingDispatcher
         PHPUnit::assertTrue(
             $this->dispatched($command, $callback)->isNotEmpty(),
             "The expected [{$command}] job was not dispatched."
-        );
-
-        PHPUnit::assertTrue(
-            collect($expectedChain)->isNotEmpty(),
-            'The expected chain can not be empty.'
         );
 
         $this->isChainOfObjects($expectedChain)
