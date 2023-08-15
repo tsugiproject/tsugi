@@ -14,6 +14,21 @@ namespace Tsugi\Config;
 class ConfigInfo {
 
     /**
+     * The slow_query setting indicated when we want PDOX to log a query for being too slow.
+     */
+    public $slow_query;
+
+    /**
+     * Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
+     */
+    public $logout_return_url;
+
+    /**
+     * Indicate whether the PHP on this server wants to verify SSL or not
+     */
+    public $verifypeer;
+    
+    /**
      * Extensions
      */
     public $extensions;
