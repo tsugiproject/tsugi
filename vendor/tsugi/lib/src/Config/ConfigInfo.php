@@ -14,21 +14,6 @@ namespace Tsugi\Config;
 class ConfigInfo {
 
     /**
-     * The slow_query setting indicated when we want PDOX to log a query for being too slow.
-     */
-    public $slow_query;
-
-    /**
-     * Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
-     */
-    public $logout_return_url;
-
-    /**
-     * Indicate whether the PHP on this server wants to verify SSL or not
-     */
-    public $verifypeer;
-    
-    /**
      * Extensions
      */
     public $extensions;
@@ -154,6 +139,11 @@ class ConfigInfo {
     public $dbprefix  = 't_';
 
     /**
+     * The slow_query setting indicated when we want PDOX to log a query for being too slow.
+     */
+    public $slow_query;
+
+    /**
      * This is the PW that you need to access the Administration features of this application.
      *
      * You should change this from the default.
@@ -182,6 +172,11 @@ class ConfigInfo {
      * Default time zone - see http://www.php.net/....
      */
     public $timezone = 'America/New_York';
+
+    /**
+     * Indicate whether the PHP on this server wants to verify SSL or not
+     */
+    public $verifypeer;
 
     /**
      * Enable developer features of the application.
@@ -639,6 +634,11 @@ class ConfigInfo {
      * $CFG->login_return_url = $CFG->apphome . "/welcome";
      */
     public $login_return_url = false;
+
+    /**
+     * Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
+     */
+    public $logout_return_url;
 
     /**
      * If we have a web socket server, put its URL here
