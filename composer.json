@@ -20,7 +20,9 @@
         "symfony/http-kernel" : "v6.2.6",
         "guzzlehttp/psr7" : "v2.5.0",
 
-        "tsugi/lib": "dev-master#f8c432a7d26c4af787985978ab0d010c7c281020",
+        "nesbot/carbon" : "2.68.1",
+
+        "tsugi/lib": "dev-master#c39c4c27d8b4291e7b938d8920a807f05a36f45d",
         "koseu/lib": "dev-master#1e42cf5fb4270cab5740e04acd31524a3e8ef265"
     },
     "config": {

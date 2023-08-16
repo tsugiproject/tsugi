@@ -151,20 +151,22 @@ class I18N {
             return;
         }
 
-        $lang = substr($TSUGI_LOCALE, 0, 2);
-        if ( $lang == '*' ) $lang = 'en';  // Symfony can't handle '*'
-        // error_log("lang=$lang");
-        $master_file = $CFG->dirroot."/locale/$lang/LC_MESSAGES/master.mo";
-        $domain_file = $CFG->getScriptPathFull()."/locale/$lang/LC_MESSAGES/$domain.mo";
-        $TSUGI_TRANSLATE = new Translator($lang);
-        if ( file_exists($master_file) ) {
-            $TSUGI_TRANSLATE->addLoader('master', new MoFileLoader());
-            $TSUGI_TRANSLATE->addResource('master', $master_file, $lang);
-        }
+        if ( isset($TSUGI_LOCALE) && is_string($TSUGI_LOCALE) ) {
+            $lang = substr($TSUGI_LOCALE, 0, 2);
+            if ( $lang == '*' ) $lang = 'en';  // Symfony can't handle '*'
+            // error_log("lang=$lang");
+            $master_file = $CFG->dirroot."/locale/$lang/LC_MESSAGES/master.mo";
+            $domain_file = $CFG->getScriptPathFull()."/locale/$lang/LC_MESSAGES/$domain.mo";
+            $TSUGI_TRANSLATE = new Translator($lang);
+            if ( file_exists($master_file) ) {
+                $TSUGI_TRANSLATE->addLoader('master', new MoFileLoader());
+                $TSUGI_TRANSLATE->addResource('master', $master_file, $lang);
+            }
 
-        if ( file_exists($domain_file) ) {
-            $TSUGI_TRANSLATE->addLoader($domain, new MoFileLoader());
-            $TSUGI_TRANSLATE->addResource($domain, $domain_file, $lang);
+            if ( file_exists($domain_file) ) {
+                $TSUGI_TRANSLATE->addLoader($domain, new MoFileLoader());
+                $TSUGI_TRANSLATE->addResource($domain, $domain_file, $lang);
+            }
         }
 
     }
