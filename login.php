@@ -13,9 +13,9 @@ function login_redirect($path=false) {
     if ( $login_return ) {
         unset($_SESSION['login_return']);
         header('Location: '.$login_return);
-    } else if ( isset($CFG->login_return_url) && $CFG->login_return_url ) {
+    } else if ( isset($CFG->login_return_url) && is_string($CFG->login_return_url) ) {
         header('Location: '.$CFG->login_return_url);
-    } else if ( isset($CFG->apphome) && $CFG->apphome ) {
+    } else if ( isset($CFG->apphome) && is_string($CFG->apphome) ) {
         header('Location: '.$CFG->apphome.'/'.$path);
     } else {
         header('Location: '.$CFG->wwwroot.'/'.$path);

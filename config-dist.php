@@ -202,23 +202,21 @@ $CFG->autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 // get the key and secret, and put them here:
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
-$CFG->google_login_new = true;
-$CFG->login_return_url = false; // 'https://apps.learnxp.com/tsugi';
-if ( isset($CFG->apphome) ) {
-    $CFG->login_return_url = $CFG->apphome . '/tsugi';
-}
 
 // This is a legacy backwards compatibility.   In the round-trip to Google it used to
 // come back login.php after login was successful - If this is true, we come back
-// to login (without the php) - se thtis to false to restore the old pattern
+// to login (without the php) - set this to false to restore the old pattern
 $CFG->google_login_new = true;
-
-$CFG->google_translate = false;
+$CFG->login_return_url = false;
 
 // Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
 $CFG->logout_return_url = false;
-// Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
-$CFG->login_return_url = false;
+
+// Go to https://console.developers.google.com/apis/credentials
+// Create and configure an API key and enter it here
+$CFG->google_map_api_key = false; // 'Ve8eH490843cIA9IGl8';
+
+$CFG->google_translate = false;
 
 // You can specify a default menu for Tsugi to use across the site if there is no
 // defined menu given
@@ -245,11 +243,7 @@ $CFG->verifypeer = false;
 
 // Whether or not to unify accounts between global site-wide login
 // and LTI launches
-$CFG->unify = true;
-
-// Go to https://console.developers.google.com/apis/credentials
-// Create and configure an API key and enter it here
-$CFG->google_map_api_key = false; // 'Ve8eH490843cIA9IGl8';
+$CFG->unify = false;
 
 // Badge generation settings - once you set these values to something
 // other than false and start issuing badges - don't change these or

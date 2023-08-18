@@ -6,7 +6,7 @@ session_start();
 session_unset();
 SecureCookie::delete();
 
-if ( isset($CFG->logout_return_url) && $CFG->logout_return_url ) {
+if ( isset($CFG->logout_return_url) && is_string($CFG->logout_return_url) ) {
     header('Location: '.$CFG->logout_return_url);
 } else if ( isset($CFG->apphome) && $CFG->apphome ) {
     header('Location: '.$CFG->apphome);
