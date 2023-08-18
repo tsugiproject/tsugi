@@ -205,7 +205,7 @@ $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 $CFG->google_login_new = true;
 $CFG->login_return_url = false; // 'https://apps.learnxp.com/tsugi';
 if ( isset($CFG->apphome) ) {
-    $CFG->login_return_url = $apphome . '/tsugi';
+    $CFG->login_return_url = $CFG->apphome . '/tsugi';
 }
 
 // This is a legacy backwards compatibility.   In the round-trip to Google it used to
