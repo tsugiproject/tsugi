@@ -10,8 +10,8 @@ jobs:
     - uses: actions/checkout@v2
     - uses: php-actions/composer@v5 # or alternative dependency management
       with:
-          php_version: 7.4
+          php_version: 8.2
     - uses: php-actions/phpunit@v2
       with:
-          php_version: 7.4
+          php_version: 8.2
 
