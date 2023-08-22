@@ -168,8 +168,8 @@ if ( $gc_course ) {
     $link = new Google_Service_Classroom_Link();
     $link->setTitle($endpoint_title);
     $link->setUrl($launch_url);
-    if ( isset($CFG->logo_url) ) {
-        $link->setThumbnailUrl($CFG->logo_url);
+    if ( isset($CFG->google_classroom_logo) ) {
+        $link->setThumbnailUrl($CFG->google_classroom_logo);
     }
     $materials = new Google_Service_Classroom_Material();
     $materials->setLink($link);

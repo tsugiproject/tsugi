@@ -700,7 +700,6 @@ class ConfigInfo {
     public $bootswatch = false;
     public $bootswatch_color = false;
     public $fontawesome = false;
-    public $logo_url = null;  // Formerly Google Classroom
 
     /**
      * Badge generation settings - once you start issuing badges - don't change these
@@ -718,6 +717,23 @@ class ConfigInfo {
     public $expire_user_days = 400;  // One year
     public $expire_context_days = 600; // 1.5 Years
     public $expire_tenant_days = 800; // Two years
+
+    /**
+     * Legacy: Google Classroom support - this was an experiment and is no longer supported
+     * First, Go to https://console.developers.google.com/apis/credentials
+     * And add access to "Google Classroom API" to your google_client_id (above)
+
+     * (legacy) Set the secret to a long random string - this is used for internal
+     * url Tsugi signing - not for Google interactions.  Don't change it
+     * once you set it.
+     */
+    public $google_classroom_secret = null;
+
+    /**
+     * (legacy) This should be an absolute URL that will be used to populate previews
+     * in Google Classroom
+     */
+    public $google_classroom_logo = null;
 
     /**
      * Create the configuration object.

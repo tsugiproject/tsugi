@@ -10,8 +10,8 @@ require_once("util.php");
 
 $request_headers = apache_request_headers();
 $agent = U::get($request_headers,'User-Agent');
-if ( isset($CFG->logo_url) && $agent && stripos($agent,'Google Web Preview') !== false ) {
-    echo('<center><img src="'.$CFG->logo_url.'"></center>'."\n");
+if ( isset($CFG->google_classroom_logo) && $agent && stripos($agent,'Google Web Preview') !== false ) {
+    echo('<center><img src="'.$CFG->google_classroom_logo.'"></center>'."\n");
     return;
 }
 
