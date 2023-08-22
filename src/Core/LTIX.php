@@ -517,7 +517,7 @@ class LTIX {
 
             // If there is a new_secret it means an LTI2 re-registration is in progress and we
             // need to check both the current and new secret until the re-registration is committed
-            if ( $valid !== true && strlen($row['new_secret']) > 0 && $row['new_secret'] != $row['secret']) {
+            if ( $valid !== true && !empty($row['new_secret']) && $row['new_secret'] != $row['secret']) {
                 $valid = LTI::verifyKeyAndSecret($post['key'],$row['new_secret'],self::curPageUrl(), $request_data);
                 if ( $valid ) {
                     $row['secret'] = $row['new_secret'];
@@ -563,7 +563,7 @@ class LTIX {
             }
 
             // Make sure we have or update to the latest keyset if we have a keyset_url
-            if ( strlen($our_keyset_url) > 0 &&
+            if ( !empty($our_keyset_url) &&
                     (empty($our_keyset) || $our_kid != $request_kid ) ) {
                 $our_keyset = file_get_contents($our_keyset_url);
                 $decoded = json_decode($our_keyset);
@@ -579,7 +579,7 @@ class LTIX {
             }
 
             // If we have a keyset and a kid mismatch, lets grab that new key
-            if ( strlen($our_keyset) > 0 &&
+            if ( !empty($our_keyset) &&
                 ($our_kid != $request_kid || empty($public_key)) ) {
 
                 $new_public_key = LTI13::extractKeyFromKeySet($our_keyset, $request_kid);
@@ -596,7 +596,7 @@ class LTIX {
                     $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
                         SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE issuer_sha256 = :SHA",
                     array(':SHA' => $issuer_sha256) );
-                    if ( strlen($public_key) > 0 ) {
+                    if ( !empty($public_key) ) {
                         error_log("Cleared public key $issuer_sha256 invalid kid");
                         self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
                     } else {
@@ -614,7 +614,7 @@ class LTIX {
 
             // Check validity of LTI 1.1 transition data if it exists
             $lti11_transition_user_id = U::get($post, 'lti11_transition_user_id');
-            if ( strlen($lti11_transition_user_id) > 0 ) {
+            if ( !empty($lti11_transition_user_id) ) {
                 $lti11_oauth_consumer_key = $row['key_key'];  // From the join
                 $lti11_oauth_consumer_secret = self::decrypt_secret($row['secret']);
                 $check = LTI13::checkLTI11Transition($jwt->body, $lti11_oauth_consumer_key, $lti11_oauth_consumer_secret);
@@ -817,7 +817,7 @@ class LTIX {
 
         // Save this to make sure the user does not wander unless we launched from the root
         $scp = $CFG->getScriptPath();
-        if ( strlen($scp) > 0 ) {
+        if ( !empty($scp) ) {
             self::wrapped_session_put($session_object, 'script_path', $CFG->getScriptPath());
         }
 
@@ -856,13 +856,13 @@ class LTIX {
     {
         global $PDOX, $CFG;
 
-        if ( strlen($public_key) > 0 && $request_kid == $our_kid ) return $public_key;
+        if ( !empty($public_key) && $request_kid == $our_kid ) return $public_key;
 
         error_log("getPlatformPublicKey issuer_id=$issuer_id key_id=$key_id request_kid=$request_kid stored_kid=$our_kid");
 
         // Make sure we have or update to the latest keyset if we have a keyset_url
         // and the kid is new to us
-        if ( strlen($our_keyset_url) > 0 ) {
+        if ( !empty($our_keyset_url) ) {
             $our_keyset = @file_get_contents($our_keyset_url);
             if ( $our_keyset === false ) {
                 $error = error_get_last();
@@ -889,7 +889,7 @@ class LTIX {
         }
 
         // If we have a keyset, lets look for the new key
-        if ( strlen($our_keyset) > 0 ) {
+        if ( !empty($our_keyset) ) {
             $new_public_key = LTI13::extractKeyFromKeySet($our_keyset, $request_kid);
 
             if ( $new_public_key ) {
@@ -917,7 +917,7 @@ class LTIX {
             $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
                 SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE issuer_id = :ID",
             array(':ID' => $issuer_id) );
-            if ( strlen($public_key) > 0 ) {
+            if ( !empty($public_key) ) {
                 error_log("Cleared public key $issuer_id invalid kid");
                 self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
             } else {
@@ -928,7 +928,7 @@ class LTIX {
             $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_key
                 SET lms_cache_pubkey=NULL, updated_at=NOW() WHERE key_id = :ID",
             array(':ID' => $key_id) );
-            if ( strlen($public_key) > 0 ) {
+            if ( !empty($public_key) ) {
                 error_log("Cleared lms_cache_pubkey key $key_id invalid kid");
                 self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
             } else {
@@ -1055,7 +1055,7 @@ class LTIX {
             $roles = $FIXED['roles'];
         }
 
-        if ( strlen($roles) > 0 ) {
+        if ( !empty($roles) ) {
             $roles = strtolower($roles);
             if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = self::ROLE_INSTRUCTOR;
             if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = self::ROLE_ADMINISTRATOR;
@@ -1160,7 +1160,7 @@ class LTIX {
         $failmsg = '';
         if ( count($failures) > 0 ) {
             foreach($failures as $failure) {
-                if ( strlen($failmsg) > 0 ) $failmsg .= ", \n";
+                if ( !empty($failmsg) ) $failmsg .= ", \n";
                 $failmsg .= $failure;
             }
             error_log("Could not find all required items in body (link_id, user_id, context_id)");
@@ -1222,7 +1222,7 @@ class LTIX {
 
             $roles = implode(':',$body->{LTI13::ROLES_CLAIM});
 
-            if ( strlen($roles) > 0 ) {
+            if ( !empty($roles) ) {
                 $roles = strtolower($roles);
                 if ( ! ( strpos($roles,'instructor') === false ) ) $retval['role'] = self::ROLE_INSTRUCTOR;
                 if ( ! ( strpos($roles,'administrator') === false ) ) $retval['role'] = self::ROLE_ADMINISTRATOR;
@@ -1446,14 +1446,14 @@ class LTIX {
 
         // Compute user identity bits based on user_subject, user_id and LTI 1.1 transition id if present
         $post_user_subject = U::get($post, 'user_subject');
-        $subject_sha256 = strlen($post_user_subject) > 0 ? lti_sha256($post_user_subject) : null;
+        $subject_sha256 = !empty($post_user_subject) ? lti_sha256($post_user_subject) : null;
 
         // Allow for for the legacy user id
         $user_check = U::get($post, "user_id");
         if ( empty($user_check) ) {
             $user_check = U::get($post, 'lti11_transition_user_id', null);
         }
-        $user_sha256 = strlen($user_check) > 0 ? lti_sha256($user_check) : null;
+        $user_sha256 = !empty($user_check) ? lti_sha256($user_check) : null;
 
         $parms = array(
             ':nonce' => substr($post['nonce'],0,128),
@@ -1579,7 +1579,7 @@ class LTIX {
         // $post['user_id'] is the user_id from the launch
         // $post['user_subject'] is the user_subject from the launch
         // $row['subject_key'] is the subject from the row
-        if ( $row['user_id'] === null && isset($post['user_id']) && strlen($post['user_id']) > 0) {
+        if ( $row['user_id'] === null && isset($post['user_id']) && !empty($post['user_id']) ) {
             $sql = "INSERT INTO {$p}lti_user
                 /*PDOX pk: user_id lk: user_sha256,key_id */
                 ( user_key, user_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
@@ -1603,7 +1603,7 @@ class LTIX {
             $actions[] = "=== Inserted user id=".$row['user_id']." ".$row['user_email'];
 
             // TODO: Combine this into the previous query after user_subject migrations run - 28-May-2019
-            if ( strlen($post_user_subject) > 0 ) {
+            if ( !empty($post_user_subject) ) {
                 $sql = "UPDATE {$p}lti_user SET
                     subject_key = :subject_key,
                     subject_sha256 = :subject_sha256,
@@ -1629,7 +1629,7 @@ class LTIX {
         // An LTI 1.3 launch with a subject and no legacy user_id
         $lti11_transition_user_id = isset($post['lti11_transition_user_id']) ? $post['lti11_transition_user_id'] : null;
         $lti11_transition_user_id_sha256 = $lti11_transition_user_id === null ? null : lti_sha256($lti11_transition_user_id);
-        if ( $row['user_id'] === null && strlen($post_user_subject) > 0) {
+        if ( $row['user_id'] === null && !empty($post_user_subject) ) {
             $sql = "INSERT INTO {$p}lti_user
                 /*PDOX pk: user_id lk: subject_sha256,user_sha256,key_id */
                 ( user_key, user_sha256, subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
@@ -1658,7 +1658,7 @@ class LTIX {
 
         // If we have a user subject and all of a we get a new transition id, keep it
         // Note that we will forever check for errors because of duplicate key possibilities
-        if ( $row['user_id'] > 0 && strlen($post_user_subject) > 0 && strlen($lti11_transition_user_id) > 0 &&
+        if ( $row['user_id'] > 0 && !empty($post_user_subject) && !empty($lti11_transition_user_id) &&
             $row['user_key'] !=  $lti11_transition_user_id) {
             $sql = "UPDATE {$p}lti_user
                 SET user_key = :user_key, user_sha256 = :user_sha256, updated_at = NOW()
@@ -1682,7 +1682,7 @@ class LTIX {
         // If we already have a user_key and we just got a new post_user_subject
         // Always check and log errors in case the transition went badly and then was reconfigured
         $row_subject_key = U::get($row, 'subject_key');
-        if ( $row['user_id'] > 0 && strlen($post_user_subject) > 0 && $post_user_subject != $row_subject_key ) {
+        if ( $row['user_id'] > 0 && !empty($post_user_subject) && $post_user_subject != $row_subject_key ) {
             $sql = "UPDATE {$p}lti_user
                 SET subject_key = :subject_key, subject_sha256 = :subject_sha256, updated_at = NOW()
                 WHERE user_id = :uid";
@@ -1880,7 +1880,7 @@ class LTIX {
         if ( isset($row['user_id']) ) {
             foreach($user_fields as $u_field ) {
                 $user_field = 'user_'.$u_field;
-                if ( isset($post[$user_field]) && $post[$user_field] != $row[$user_field] && strlen($post[$user_field]) > 0 ) {
+                if ( isset($post[$user_field]) && $post[$user_field] != $row[$user_field] && !empty($post[$user_field]) ) {
                     $sql = "UPDATE {$p}lti_user SET {$u_field} = :value, updated_at = NOW() WHERE user_id = :user_id";
                     $PDOX->queryDie($sql, array(
                         ':value' => $post[$user_field],
