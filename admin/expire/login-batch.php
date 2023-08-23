@@ -17,7 +17,7 @@ if ( $base == 'user' ) {
     $where = '';
 } else if ( $base == 'context' ) {
     $table = 'lti_context';
-    $limit = 10;
+    $limit = 100;
     $where = '';
 } else if ( $base == 'tenant' ) {
     $table = 'lti_key';
