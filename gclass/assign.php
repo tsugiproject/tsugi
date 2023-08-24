@@ -226,9 +226,9 @@ $OUTPUT->bodyStart();
 Installing assignment in Google Classroom.
 </p>
 <form>
-<input type="hidden" name="rlid" value="<?= htmlentities(U::get($_GET,'rlid') ) ?>"/>
-<input type="hidden" name="lti" value="<?= htmlentities(U::get($_GET,'lti') ) ?>"/>
-<input type="hidden" name="title" value="<?= htmlentities(U::get($_GET,'title') ) ?>"/>
+<input type="hidden" name="rlid" value="<?= htmlentities(U::get($_GET,'rlid') ?? '') ?>"/>
+<input type="hidden" name="lti" value="<?= htmlentities(U::get($_GET,'lti') ?? '') ?>"/>
+<input type="hidden" name="title" value="<?= htmlentities(U::get($_GET,'title') ?? '') ?>"/>
 <p>
 <select name="gc_course">
 <option value="">Please Select a Course</option>
