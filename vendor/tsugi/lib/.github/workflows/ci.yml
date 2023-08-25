@@ -7,11 +7,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: php-actions/composer@v5 # or alternative dependency management
+    - uses: actions/checkout@v3
+    - uses: php-actions/composer@v6
       with:
-          php_version: 7.4
-    - uses: php-actions/phpunit@v2
+          php_version: 8.2
+    - uses: php-actions/phpunit@v3
       with:
-          php_version: 7.4
+          php_version: 8.2
+          bootstrap: vendor/autoload.php
+          configuration: phpunit.xml.dist
 
