@@ -25,6 +25,7 @@ class NetTest extends \PHPUnit\Framework\TestCase
 
     public function testGetCurlFail() {
         global $LastCurlError;
+        // Wow - AT&T fakes a domain response - Thanks AT&T
         $stuff = Net::getCurl("http://fail.lkdfjdfljfdlj1298.com/page1.htm");
         $this->assertTrue(is_string($LastCurlError));
     }

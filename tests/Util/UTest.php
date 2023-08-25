@@ -171,4 +171,56 @@ class UTest extends \PHPUnit\Framework\TestCase
         $t1 = U::htmlent_utf8(null);
         $this->assertEquals($t1, "");
     }
+
+    public function testEmpty() {
+        // Sane stuff
+        $this->assertTrue(U::isEmpty(''));
+        $this->assertTrue(U::isEmpty(null));
+        $this->assertTrue(U::isEmpty(false));
+        $this->assertTrue(U::isNotEmpty('bob'));
+        $this->assertTrue(U::isNotEmpty('0'));
+
+        // Non string parameters in the old days were treated as "stringy" - if
+        // something can be converted to a string, what would its length be?
+        // PHP beyond 8.2 might get cranky with these illegal calls.
+        // Test these in case PHP changes its mind in the future
+        $this->assertEquals(strlen('0'), 1);
+        $this->assertEquals(strlen(42), 2);
+        $this->assertEquals(strlen(4.2), 3);
+        $this->assertEquals(strlen(false), 0);
+        $this->assertEquals(strlen(true), 1);
+
+        $this->assertFalse(U::isNotEmpty(42));
+        $this->assertFalse(U::isNotEmpty(4.2));
+        $this->assertFalse(U::isNotEmpty(true));
+
+        // We are not going to follow PHP down this rabbit hole :)
+        $this->assertTrue(U::isEmpty(false));
+
+        // Lets just run the PHP empty() through its paces - normal
+        // and otherwise - to check f PHP changes its mind in a
+        // future version.
+        $this->assertTrue(empty(''));
+        $this->assertTrue(empty(null));
+        $this->assertTrue(empty(false));
+        $this->assertFalse(empty(42));
+        $this->assertFalse(empty(4.2));
+
+        $this->assertFalse(empty('false'));
+        $this->assertFalse(empty('bob'));
+
+        // Rasmus, this should be false - what are they thinking
+        $this->assertTrue(empty('0'));
+
+        /*  strlen(42) = 2
+            strlen(4.2) = 3
+            strlen(false) = 0
+            strlen(true) = 1
+            empty(42) = false
+            empty(4.2) = false
+            empty(false) = true
+            empty(true) = false
+        */
+
+    }
 }

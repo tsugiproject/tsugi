@@ -266,10 +266,10 @@ class U {
 
         // If doing this before the session is running, check for the
         // id as GET or POST parameter
-        if ( empty($session_id) ) {
+        if ( self::isEmpty($session_id) ) {
             $session_id = self::get($_POST, session_name());
         }
-        if ( empty($session_id) ) {
+        if ( self::isEmpty($session_id) ) {
             $session_id = self::get($_GET, session_name());
         }
 
@@ -368,7 +368,7 @@ class U {
     }
 
     public static function isCli() {
-         if(php_sapi_name() == 'cli' && empty($_SERVER['REMOTE_ADDR'])) {
+         if(php_sapi_name() == 'cli' && self::isEmpty($_SERVER['REMOTE_ADDR'])) {
               return true;
          } else {
               return false;
@@ -710,6 +710,52 @@ class U {
             if (preg_match($pattern,$color) ) return true;
         }
         return false;
+    }
+
+    /**
+     * Determine if a variable is empty
+     *
+     * This is needed because in PHP 8.2 strlen() demands a string (i.e. can't handle false, etc)
+     * Sadly, empty('0') becomes falsey and so returns true - What??
+     *
+     * We follow the legacy strlen() patterns for Stringable things - which works OK most of the time.
+     * See the unit tests for too much fun detail on the decisions.
+     *
+     * The method name is taken from Java since its rules are corect.
+     *
+     * https://docs.oracle.com/javase/8/docs/api/java/lang/String.html#isEmpty--
+     */
+    public static function isEmpty($string) {
+        if ( !isset($string) ) return true;
+        if ( $string instanceof Stringable ) $string = $string + '';
+        if ( !is_string($string) ) return true;
+        return strlen($string) < 1;
+    }
+
+    /**
+     * Imitate StringUtils.isNotEmpty()
+     *
+     * Sigh, Java 8.0 does not have isNotEmpty - which is super useful so we imitate
+     *
+     * https://commons.apache.org/proper/commons-lang/javadocs/api-3.3/org/apache/commons/lang3/StringUtils.html
+     *
+     * It is the little things - sigh.
+     *
+     */
+
+    public static function isNotEmpty($string) {
+        return ! self::isEmpty($string);
+    }
+
+    /**
+     * Make an htmlentities() that is more tolerant than the PHP 8.2 version.
+     *
+     * https://commons.apache.org/proper/commons-text/apidocs/org/apache/commons/text/StringEscapeUtils.html
+     */
+    public static function escapeHtml($string) {
+        if ( !isset($string) ) return '';
+        if ( !is_string($string) ) return '';
+        return htmlentities($string);
     }
 
 }
