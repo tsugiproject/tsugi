@@ -6,6 +6,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LinkHeader;
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
 use \Firebase\JWT\JWK;
 
 /**
@@ -204,13 +205,19 @@ class LTI13 {
      *
      * @param string $raw_jwt The raw JWT from the request
      * @param string $public_key The public key
-     * @param array $algs The algorithms to use for validating the key.
+     * @param string $algs The algorithm to use for validating the key.
      *
      * @return mixed This returns true if the request verified.  If the request did not verify,
      * this returns the exception that was generated.
      */
     public static function verifyPublicKey($raw_jwt, $public_key, $algs=false) {
-        if ( ! $algs ) $algs = array('RS256');
+        if ( is_string($algs) ) {
+            $alg = $algs;
+        } else if ( is_array($algs) && count($algs) == 1 ) {
+            $alg = $algs[0];
+        } else {
+            $alg = 'RS256';
+        }
 
         // From Google/AccessToken/Verify.php
         if (property_exists('\Firebase\JWT\JWT', 'leeway')) {
@@ -220,7 +227,7 @@ class LTI13 {
         }
 
         try {
-            $decoded = JWT::decode($raw_jwt, $public_key, $algs);
+            $decoded = JWT::decode($raw_jwt, new Key($public_key, $alg));
             return true;
         } catch(\Exception $e) {
             return $e;
@@ -1070,6 +1077,10 @@ class LTI13 {
      * @return string The signed JWT
      */
     public static function encode_jwt($jwt_claim, $lti13_privkey, $lti13_kid=false) {
+	if ( ! is_array($jwt_claim) ) {
+		$jwt_claim = json_decode(json_encode($jwt_claim), true);
+	}
+
         if ( $lti13_kid ) {
             $jws = JWT::encode($jwt_claim, self::cleanup_PKCS8($lti13_privkey), 'RS256', $lti13_kid);
         } else {

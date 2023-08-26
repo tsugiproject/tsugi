@@ -3,6 +3,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Output;
 use \Tsugi\Crypt\AesCtr;
@@ -29,9 +30,9 @@ if ( ! $state ) {
 }
 
 try {
-    $decoded = JWT::decode($state, $CFG->cookiesecret, array('HS256'));
+    $decoded = JWT::decode($state, new Key($CFG->cookiesecret, 'HS256'));
 } catch(Exception $e) {
-    LTIX::abort_with_error_log('Unable to decode state value');
+    LTIX::abort_with_error_log('Unable to decode state value '.$e);
 }
 
 if ( ! is_object($decoded) ) {

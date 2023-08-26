@@ -5,6 +5,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\AesCtr;
 
@@ -21,7 +22,7 @@ $issuer_guid = U::get($_REQUEST, 'guid');
 $lti_storage_target = U::get($_REQUEST, 'web_message_target');
 $lti_storage_target = U::get($_REQUEST, 'ims_web_message_target', $lti_storage_target);
 $lti_storage_target = U::get($_REQUEST, 'lti_storage_target', $lti_storage_target);
-$put_data_supported = is_string($lti_storage_target) && strlen($lti_storage_target) > 0;
+$put_data_supported = is_string($lti_storage_target) && !empty($lti_storage_target);
 if ( $lti_storage_target == "_parent" ) $lti_storage_target = null;
 
 // Lets mark the browser every chance we get

@@ -99,6 +99,11 @@ class Launch {
     public $error_message = null;
 
     /**
+     * The deeplink url, if any
+     */
+    public $deeplink = null;
+
+    /**
      * Get a key from the session
      */
     public function session_get($key, $default=null) {
