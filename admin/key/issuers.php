@@ -16,7 +16,7 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 if ( ! isAdmin() ) die('Must be admin');
 
-$query_parms = false;
+$query_parms = array();
 $searchfields = array("issuer_id", "issuer_title", "issuer_key", "issuer_guid",
     "issuer_client", "created_at", "updated_at");
 $orderfields = $searchfields;

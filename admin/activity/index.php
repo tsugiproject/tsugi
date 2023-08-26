@@ -18,7 +18,7 @@ if ( ! isAdmin() ) {
     return;
 }
 
-$query_parms = false;
+$query_parms = array();
 $searchfields = array("A.link_id", "L.title", "C.title", "L.path", "A.created_at", "A.updated_at");
 $sql = "SELECT A.link_id AS link_id, L.title AS link_title, link_count, C.title AS context_title, A.created_at, A.updated_at, event, L.path
         FROM {$CFG->dbprefix}lti_link_activity AS A

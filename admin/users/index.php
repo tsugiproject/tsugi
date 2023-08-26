@@ -18,7 +18,7 @@ if ( ! isAdmin() ) {
     return;
 }
 
-$query_parms = false;
+$query_parms = array();
 $searchfields = array("U.user_id", "displayname", "email", "key_title", "key_key", "U.created_at", "U.updated_at", "U.login_at", "U.login_count");
 $sql = "SELECT U.user_id AS user_id, displayname, email, U.key_id AS key_value, key_title, key_key,
             U.login_at, U.login_count, U.created_at, U.updated_at

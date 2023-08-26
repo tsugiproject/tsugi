@@ -61,7 +61,7 @@ $extra_buttons = array(
 );
 
 
-$query_parms = false;
+$query_parms = array();
 $searchfields = $fields;
 $orderfields = $fields;
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);

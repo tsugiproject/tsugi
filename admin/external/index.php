@@ -18,7 +18,7 @@ if ( ! isAdmin() ) {
     return;
 }
 
-$query_parms = false;
+$query_parms = array();
 $searchfields = array("endpoint", "name", "description", "fa_icon", "url", "created_at", "updated_at");
 $sql = "SELECT external_id, endpoint, name, url, created_at, updated_at
         FROM {$CFG->dbprefix}lti_external";

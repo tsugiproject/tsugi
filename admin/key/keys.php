@@ -21,7 +21,7 @@ $patch_sql = "UPDATE {$CFG->dbprefix}lti_key SET lms_issuer_sha256 = sha2(lms_is
     WHERE lms_issuer_sha256 IS NULL AND lms_issuer IS NOT NULL";
 $rows = $PDOX->queryDie($patch_sql);
 
-$query_parms = false;
+$query_parms = array();
 $searchfields = array("K.key_id", "key_title", "key_key", "deploy_key", "K.login_at", "K.updated_at", "K.user_id", "issuer_key");
 $sql = "SELECT K.key_id AS key_id, key_title, key_key, secret, lms_issuer, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
     lms_issuer,

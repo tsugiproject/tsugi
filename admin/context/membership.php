@@ -18,7 +18,7 @@ if ( ! isAdmin() ) {
     return;
 }
 
-$query_parms = false;
+$query_parms = array();
 
 $searchfields = array("M.membership_id", "context_id", "M.user_id", "role", "role_override", 
 	"M.created_at", "U.login_at", "email", "displayname", "user_key");
