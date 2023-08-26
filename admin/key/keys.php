@@ -41,14 +41,14 @@ foreach ( $rows as $row ) {
     $newrow['key'] = $row['key_key'];
     if ( !empty($row['key_title']) ) $newrow['key'] = $row['key_title'];
     $key_type = '';
-    if ( is_string($row['key_key']) && strlen($row['key_key']) > 1 && is_string($row['secret']) && strlen($row['secret']) > 0 ) {
+    if ( is_string($row['key_key']) && !empty($row['key_key']) && is_string($row['secret']) && !empty($row['secret']) ) {
         $key_type .= 'LTI 1.1';
     }
-    if ( is_string($row['lms_issuer']) && strlen($row['lms_issuer']) > 0 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
-        if ( strlen($key_type) > 0 ) $key_type .= ' / ';
+    if ( is_string($row['lms_issuer']) && !empty($row['lms_issuer'])  && is_string($row['deploy_key']) && !empty($row['deploy_key']) ) {
+        if ( !empty($key_type) ) $key_type .= ' / ';
         $key_type .= 'LTI 1.3';
-    } else if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && strlen($row['issuer_key']) > 0 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
-        if ( strlen($key_type) > 0 ) $key_type .= ' / ';
+    } else if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && !empty($row['issuer_key']) && is_string($row['deploy_key']) && !empty($row['deploy_key'])) {
+        if ( !empty($key_type) ) $key_type .= ' / ';
         $key_type .= 'LTI 1.3';
     }
     if ( $key_type == '' ) $key_type = 'Draft';

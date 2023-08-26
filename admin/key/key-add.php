@@ -40,9 +40,9 @@ $titles = array(
 	'lms_token_audience' => 'LTI 1.3 Platform Audience (optional)',
 );
 
-if ( isset($_POST['issuer_id']) && strlen($_POST['issuer_id']) == 0 ) $_POST['issuer_id'] = null;
-if ( isset($_POST['key_key']) && strlen($_POST['key_key']) == 0 ) $_POST['key_key'] = null;
-if ( isset($_POST['user_id']) && strlen($_POST['user_id']) < 1 && isset($_SESSION['id']) ) $_POST['user_id'] = $_SESSION['id'];
+if ( isset($_POST['issuer_id']) && empty($_POST['issuer_id']) ) $_POST['issuer_id'] = null;
+if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
+if ( isset($_POST['user_id']) && empty($_POST['user_id']) && isset($_SESSION['id']) ) $_POST['user_id'] = $_SESSION['id'];
 
 // Check the complex interaction of constraints
 $key_key = U::get($_POST,'key_key');
@@ -50,7 +50,7 @@ $deploy_key = U::get($_POST,'deploy_key');
 $issuer_id = U::get($_POST,'issuer_id');
 if ( count($_POST) > 0 ) {
     $key_title = U::get($_POST,'key_title');
-    if ( !is_string($key_title) || strlen($key_title) < 1 ) {
+    if ( !is_string($key_title) || empty($key_title) ) {
         $_SESSION['error'] = 'Key title is required';
         header("Location: key-add");
         return;

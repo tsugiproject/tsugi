@@ -39,7 +39,7 @@ foreach ( $rows as $row ) {
     $status = 'Ready';
     foreach($row as $key => $value ) {
         if ( strpos($key, "lti13_") !== 0 ) continue;
-        if ( ! is_string($value) || strlen($value) < 1 ) $status = 'Draft';
+        if ( ! is_string($value) || empty($value) ) $status = 'Draft';
     }
     $newrow['issuer_id'] = $row['issuer_id'];
     $newrow['issuer_title'] = $row['issuer_title'];

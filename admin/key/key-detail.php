@@ -53,9 +53,9 @@ $titles = array(
     'unlock_code' => 'LTI 1.3: Dynamic Registration Unlock Code (one time use)',
 );
 
-if ( isset($_POST['issuer_id']) && strlen($_POST['issuer_id']) == 0 ) $_POST['issuer_id'] = null;
-if ( isset($_POST['key_key']) && strlen($_POST['key_key']) == 0 ) $_POST['key_key'] = null;
-if ( isset($_POST['user_id']) && strlen($_POST['user_id']) == 0 ) $_POST['user_id'] = null;
+if ( isset($_POST['issuer_id']) && empty($_POST['issuer_id']) ) $_POST['issuer_id'] = null;
+if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
+if ( isset($_POST['user_id']) && empty($_POST['user_id']) ) $_POST['user_id'] = null;
 
 // Check the complex interaction of constraints
 $key_id = U::get($_POST,'key_id');
@@ -64,7 +64,7 @@ $deploy_key = U::get($_POST,'deploy_key');
 $issuer_id = U::get($_POST,'issuer_id');
 
 // Check the complex validation
-if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && strlen($key_id) > 0 ) {
+if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
     $row = $PDOX->rowDie( "SELECT * FROM {$CFG->dbprefix}lti_key
             WHERE key_id = :key_id",
         array(':key_id' => $key_id)
@@ -110,14 +110,14 @@ if ( ! $inedit && U::get($row, 'issuer_id') > 0 ) {
 }
 
 $key_type = '';
-if ( is_string($row['key_key']) && strlen($row['key_key']) > 1 && is_string($row['secret']) && strlen($row['secret']) > 0 ) {
+if ( is_string($row['key_key']) && !empty($row['key_key']) && is_string($row['secret']) && !empty($row['secret']) ) {
     $key_type .= 'LTI 1.1';
 }
-if ( is_string($row['lms_issuer']) && strlen($row['lms_issuer']) > 0 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
-    if ( strlen($key_type) > 0 ) $key_type .= ' / ';
+if ( is_string($row['lms_issuer']) && !empty($row['lms_issuer']) && is_string($row['deploy_key']) && !empty($row['deploy_key'])) {
+    if ( !empty($key_type) ) $key_type .= ' / ';
     $key_type .= 'LTI 1.3';
-} else if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && strlen($row['issuer_key']) > 0 && is_string($row['deploy_key']) && strlen($row['deploy_key']) > 0) {
-    if ( strlen($key_type) > 0 ) $key_type .= ' / ';
+} else if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && !empty($row['issuer_key']) && is_string($row['deploy_key']) && !empty($row['deploy_key'])) {
+    if ( !empty($key_type) ) $key_type .= ' / ';
     $key_type .= 'LTI 1.3';
 }
 if ( $key_type == '' ) $key_type = 'Draft';

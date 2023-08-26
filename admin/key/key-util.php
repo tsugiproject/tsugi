@@ -10,7 +10,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
     //  CHECK (
     //        (key_sha256 IS NOT NULL OR deploy_sha256 IS NOT NULL)
     //  )
-    if ( strlen($key_key) < 1 && strlen($deploy_key) < 1 ) {
+    if ( empty($key_key) && empty($deploy_key) ) {
         $_SESSION['error'] = "Either consumer key or deployment id are required";
         return false;
     }
@@ -21,9 +21,9 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
     //     (deploy_key IS NOT NULL AND issuer_id IS NOT NULL)
     //     OR (deploy_key NOT NULL AND issuer_id NOT NULL)
     /*
-    $have_issuer = strlen($issuer_id) > 0 || strlen($lms_issuer) > 0;
-    if ( (strlen($deploy_key) > 0 && ! $have_issuer) ||
-         (strlen($deploy_key) < 1 && $have_issuer) 
+    $have_issuer = !empty($issuer_id) || !empty($lms_issuer);
+    if ( (!empty($deploy_key) && ! $have_issuer) ||
+         (empty($deploy_key) && $have_issuer) 
     ) {
         $_SESSION['error'] = "You must specify an issuer when you specify a deployment id";
         return false;
@@ -35,7 +35,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
 
     // TODO: Decide if we put this in the DB
     // Extra constraint in software is oauth key is there is must be unique
-    if ( $key_key != $old_key_key && strlen($key_key) > 0 ) {
+    if ( $key_key != $old_key_key && !empty($key_key) ) {
         $row = $PDOX->rowDie( "SELECT key_sha256 FROM {$CFG->dbprefix}lti_key
                 WHERE key_sha256 = :key_sha256",
             array(':key_sha256' => $key_sha256)
@@ -49,7 +49,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
     // Now check these
     // CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
     if ( ($key_key != $old_key_key || $deploy_key != $old_deploy_key) && 
-        strlen($key_key) > 0 && strlen($deploy_key) > 0 ) {
+        !empty($key_key) && !empty($deploy_key) ) {
         $row = $PDOX->rowDie( "SELECT key_sha256 FROM {$CFG->dbprefix}lti_key
                 WHERE key_sha256 = :key_sha256 AND deploy_sha256 = :deploy_sha256",
             array(':key_sha256' => $key_sha256, ":deploy_sha256" => $deploy_sha256)
@@ -63,7 +63,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
     // CONSTRAINT `{$CFG->dbprefix}lti_key_const_2` UNIQUE(issuer_id, deploy_sha256),
     if ( ($deploy_key != $old_deploy_key || $issuer_id != $old_issuer_id) &&
 	$issuer_id > 0 &&
-        strlen($issuer_id) > 0 && strlen($deploy_key) > 0 ) {
+        !empty($issuer_id) && !empty($deploy_key) ) {
         $row = $PDOX->rowDie( "SELECT deploy_sha256 FROM {$CFG->dbprefix}lti_key
                 WHERE issuer_id = :issuer_id AND deploy_sha256 = :deploy_sha256",
             array(':issuer_id' => $issuer_id, ":deploy_sha256" => $deploy_sha256)
