@@ -53,16 +53,16 @@ class DeepLinkResponse extends \Tsugi\Util\DeepLinkResponse {
         }
 
         // Easter egg to set message returns (D2L)
-        if ( strlen(U::get($_GET, "message_log")) > 0 ) {
+        if ( !empty(U::get($_GET, "message_log")) ) {
             $params->{DeepLinkResponse::MESSAGE_LOG} = U::get($_GET, "message_log");
         }
-        if ( strlen(U::get($_GET, "message_msg")) > 0 ) {
+        if ( !empty(U::get($_GET, "message_msg")) ) {
             $params->{DeepLinkResponse::MESSAGE_MSG} = U::get($_GET, "message_msg");
         }
-        if ( strlen(U::get($_GET, "message_errorlog")) > 0 ) {
+        if ( !empty(U::get($_GET, "message_errorlog")) ) {
             $params->{DeepLinkResponse::MESSAGE_ERRORLOG} = U::get($_GET, "message_errorlog");
         }
-        if ( strlen(U::get($_GET, "message_errormsg")) > 0 ) {
+        if ( !empty(U::get($_GET, "message_errormsg")) ) {
             $params->{DeepLinkResponse::MESSAGE_ERRORMSG} = U::get($_GET, "message_errormsg");
         }
 
