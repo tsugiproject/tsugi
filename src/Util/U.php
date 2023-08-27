@@ -721,8 +721,8 @@ class U {
         if ( !isset($string) ) return 0;
         if ( $string === true ) return 0; // Depart from PHP on this one
         if ( $string === false ) return 0;
-        if ( is_numeric($string) ) $string = $string + '';
-        if ( $string instanceof Stringable ) $string = $string + '';
+        if ( is_numeric($string) ) $string = $string . '';
+        if ( $string instanceof Stringable ) $string = $string . '';
         if ( !is_string($string) ) return 0;
         return strlen($string);
     }
