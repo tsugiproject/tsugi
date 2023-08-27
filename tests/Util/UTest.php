@@ -183,7 +183,7 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(strlen(42), 2);
         $this->assertEquals(strlen(4.2), 3);
         $this->assertEquals(strlen(false), 0);
-        $this->assertEquals(strlen(null), 0);
+        // $this->assertEquals(strlen(null), 0); // Breaks on 8.2 
         $this->assertEquals(strlen(true), 1);  // Why oh why?
 
         // Make a sane strlen
@@ -203,15 +203,17 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(U::isNotEmpty('bob'));
         $this->assertTrue(U::isNotEmpty('0'));
 
-        $this->assertFalse(U::isNotEmpty(42));
-        $this->assertFalse(U::isNotEmpty(4.2));
+        // Weird but like 7.4 strlen
+        $this->assertTrue(U::isNotEmpty(42));
+        $this->assertTrue(U::isNotEmpty(4.2));
+
+
+        // We are not going to follow PHP down these rabbit holes :)
+        $this->assertTrue(U::isEmpty(false));
         $this->assertFalse(U::isNotEmpty(true));
 
-        // We are not going to follow PHP down this rabbit hole :)
-        $this->assertTrue(U::isEmpty(false));
-
-        // Lets just run the PHP empty() through its paces - normal
-        // and otherwise - to check f PHP changes its mind in a
+        // Lets just run the PHP empty() through its paces as of 8.2
+        // sane and otherwise - to check if PHP changes its mind in a
         // future version.
         $this->assertTrue(empty(''));
         $this->assertTrue(empty(null));
