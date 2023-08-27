@@ -2,6 +2,7 @@
 
 namespace Tsugi\Blob;
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\Output;
 
 class BlobUtil {
@@ -38,7 +39,7 @@ class BlobUtil {
         global $CFG, $CONTEXT;
         $foldername = $CONTEXT->id;
         $root = sys_get_temp_dir(); // ends in slash
-        if (strlen($root) > 1 && substr($root, -1) == '/') $root = substr($root,0,-1);
+        if (U::strlen($root) > 1 && substr($root, -1) == '/') $root = substr($root,0,-1);
         if ( isset($CFG->dataroot) ) $root = $CFG->dataroot;
         $root = $root . '/lti_files';
         if ( !file_exists($root) ) mkdir($root);
@@ -474,7 +475,7 @@ class BlobUtil {
         // If this is the last / only reference...
         if ( $count <= 1 ) {
             error_log("Deleting file=$file_id sha=$sha256 last reference to blob_id=$blob_id path=$path\n");
-            if ( strlen($path) > 0 ) {
+            if ( U::strlen($path) > 0 ) {
                 if ( ! file_exists($path) ) {
                     error_log("File was already gone: $path");
                 } else {
@@ -593,7 +594,7 @@ class BlobUtil {
         $retval = false;
 
         // Check to see where we are moving to...
-        if ( isset($CFG->dataroot) && strlen($CFG->dataroot) > 0 ) {
+        if ( isset($CFG->dataroot) && U::strlen($CFG->dataroot) > 0 ) {
             if ( ! $test_key ) {
                 $retval = self::blob2file($file_id);
             }
@@ -612,7 +613,7 @@ class BlobUtil {
     {
         global $CFG, $PDOX;
 
-        if ( isset($CFG->dataroot) && strlen($CFG->dataroot) > 0 ) return;
+        if ( isset($CFG->dataroot) && U::strlen($CFG->dataroot) > 0 ) return;
 
         // Need to deal with the post 2018-02 situation where we don't even
         // have a content column in blob_file
@@ -655,7 +656,7 @@ class BlobUtil {
             error_log($retval);
             return $retval;
         }
-        // error_log("Lob size=".strlen($lob));
+        // error_log("Lob size=".U::strlen($lob));
 
         $stmt = $PDOX->prepare("INSERT INTO {$CFG->dbprefix}blob_blob
             (blob_sha256, content, created_at)

@@ -30,7 +30,7 @@ trait SettingsTrait {
         // Null means in the session - false means not in the session
         if ( $retval === null || ( is_string($retval) && empty($retval) ) ) {
             $retval = array();
-        } else if ( strlen($retval) > 0 ) {
+        } else if ( U::strlen($retval) > 0 ) {
             try {
                 $retval = json_decode($retval, true);
             } catch(Exception $e) {

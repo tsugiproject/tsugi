@@ -213,7 +213,7 @@ class Tool {
 
         $rest_path = U::rest_path();
 
-        if ( $rest_path->action && strlen($rest_path->action) > 0 ) {
+        if ( $rest_path->action && U::strlen($rest_path->action) > 0 ) {
             echo("<!-- Locale ".htmlentities($rest_path->action)." -->\n");
             I18N::setLocale($rest_path->action);
         } else {

@@ -3,6 +3,8 @@
 // Debugging utilities - partially implemented
 namespace Tsugi\Core;
 
+use \Tsugi\Util\U;
+
 global $DEBUG_STRING;
 $DEBUG_STRING='';
 
@@ -28,23 +30,23 @@ class Debug {
 
      public static function log($text,$mixed=false) {
          global $DEBUG_STRING;
-         $sess = (strlen(session_id()) > 0 );
+         $sess = (U::strlen(session_id()) > 0 );
          if ( $sess && isset($_SESSION['__zzz_debug']) ) {
-             if ( strlen($DEBUG_STRING) > 0 && strlen($_SESSION['__zzz_debug']) > 0) {
+             if ( U::strlen($DEBUG_STRING) > 0 && U::strlen($_SESSION['__zzz_debug']) > 0) {
                  $_SESSION['__zzz_debug'] = $_SESSION['__zzz_debug'] ."\n" . $DEBUG_STRING;
-             } else if ( strlen($DEBUG_STRING) > 0 ) {
+             } else if ( U::strlen($DEBUG_STRING) > 0 ) {
                  $_SESSION['__zzz_debug'] = $DEBUG_STRING;
              }
              $DEBUG_STRING = $_SESSION['__zzz_debug'];
          }
-         if ( strlen($text) > 0 ) {
-             if ( strlen($DEBUG_STRING) > 0 ) {
+         if ( U::strlen($text) > 0 ) {
+             if ( U::strlen($DEBUG_STRING) > 0 ) {
                  if ( substr($DEBUG_STRING,-1) != "\n") $DEBUG_STRING .= "\n";
              }
              $DEBUG_STRING .= $text;
          }
          if ( $mixed !== false ) {
-             if ( strlen($DEBUG_STRING) > 0 ) {
+             if ( U::strlen($DEBUG_STRING) > 0 ) {
                  if ( substr($DEBUG_STRING,-1) != "\n") $DEBUG_STRING .= "\n";
              }
              if ( $mixed !== $_SESSION ) {
@@ -66,18 +68,18 @@ class Debug {
      public static function dump() {
          global $DEBUG_STRING;
          $retval = '';
-         $sess = (strlen(session_id()) > 0 );
+         $sess = (U::strlen(session_id()) > 0 );
          if ( $sess ) {
              // echo("<br/>=== DUMP ====<br/>".$_SESSION['__zzz_debug']."<br/>\n");flush();
-             if (strlen($_SESSION['__zzz_debug']) > 0) {
+             if (U::strlen($_SESSION['__zzz_debug']) > 0) {
                  $retval = $_SESSION['__zzz_debug'];
                  unset($_SESSION['__zzz_debug']);
              }
          }
-         if ( strlen($retval) > 0 && strlen($DEBUG_STRING) > 0) {
+         if ( U::strlen($retval) > 0 && U::strlen($DEBUG_STRING) > 0) {
              $retval .= "\n";
          }
-         if (strlen($DEBUG_STRING) > 0) {
+         if (U::strlen($DEBUG_STRING) > 0) {
              $retval .= $DEBUG_STRING;
              $DEBUG_STRING = '';
          }

@@ -104,8 +104,8 @@ class CrudForm {
             for($i=0; $i < count($fields); $i++ ) {
                 $field = $fields[$i];
 
-                if ( strlen($names) > 0 ) $names .= ', ';
-                if ( strlen($values) > 0 ) $values .= ', ';
+                if ( U::strlen($names) > 0 ) $names .= ', ';
+                if ( U::strlen($values) > 0 ) $values .= ', ';
 
                 $names .= $field;
                 if ( strpos($field, "_at") > 0 ) {
@@ -254,7 +254,7 @@ class CrudForm {
                 echo('<input id="'.$field.'" type="password" autocomplete="off" size="80" name="'.$field.'" value="'.
                         htmlent_utf8($value).'"');
                 echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
-            } else if ( strlen($value) > 60 ) {
+            } else if ( U::strlen($value) > 60 ) {
                 echo('<textarea rows="10" cols="70" id="'.$field.'" name="'.$field.'">'.htmlent_utf8($value).'</textarea>'."\n");
             } else {
                 echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'" value="'.htmlent_utf8($value).'">'."\n");
@@ -355,7 +355,7 @@ class CrudForm {
                 if ( $i == 0 && strpos($field, "_id") > 0 ) continue;
                 if ( $field != 'updated_at' && strpos($field, "_at") > 0 ) continue;
 
-                if ( strlen($set) > 0 ) $set .= ', ';
+                if ( U::strlen($set) > 0 ) $set .= ', ';
                 if ( $field == 'updated_at' ) {
                     $set .= $field."= NOW()";
                     continue;
@@ -438,7 +438,7 @@ class CrudForm {
             $first = false;
         }
         $sql .= "\n FROM ".$tablename;
-        if ( $where_clause && strlen($where_clause) > 0 ) $sql .= "\nWHERE ".$where_clause;
+        if ( $where_clause && U::strlen($where_clause) > 0 ) $sql .= "\nWHERE ".$where_clause;
         return $sql;
     }
 

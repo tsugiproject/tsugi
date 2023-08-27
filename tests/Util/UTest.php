@@ -173,22 +173,35 @@ class UTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testEmpty() {
+        // Non string parameters in the old days were treated as "stringy" - if
+        // something can be converted to a string, what would its length be?
+        // PHP beyond 8.2 might get cranky with these illegal calls.
+        // Test these in case PHP changes its mind in the future
+        $this->assertEquals(strlen(''), 0);
+        $this->assertEquals(strlen('0'), 1);
+        $this->assertEquals(strlen('bob'), 3);
+        $this->assertEquals(strlen(42), 2);
+        $this->assertEquals(strlen(4.2), 3);
+        $this->assertEquals(strlen(false), 0);
+        $this->assertEquals(strlen(null), 0);
+        $this->assertEquals(strlen(true), 1);  // Why oh why?
+
+        // Make a sane strlen
+        $this->assertEquals(U::strlen(''), 0);
+        $this->assertEquals(U::strlen('0'), 1);
+        $this->assertEquals(U::strlen('bob'), 3);
+        $this->assertEquals(U::strlen(42), 2);
+        $this->assertEquals(U::strlen(4.2), 3);
+        $this->assertEquals(U::strlen(false), 0);
+        $this->assertEquals(U::strlen(null), 0);
+        $this->assertEquals(U::strlen(true), 0);  // Depart from PHP here
+
         // Sane stuff
         $this->assertTrue(U::isEmpty(''));
         $this->assertTrue(U::isEmpty(null));
         $this->assertTrue(U::isEmpty(false));
         $this->assertTrue(U::isNotEmpty('bob'));
         $this->assertTrue(U::isNotEmpty('0'));
-
-        // Non string parameters in the old days were treated as "stringy" - if
-        // something can be converted to a string, what would its length be?
-        // PHP beyond 8.2 might get cranky with these illegal calls.
-        // Test these in case PHP changes its mind in the future
-        $this->assertEquals(strlen('0'), 1);
-        $this->assertEquals(strlen(42), 2);
-        $this->assertEquals(strlen(4.2), 3);
-        $this->assertEquals(strlen(false), 0);
-        $this->assertEquals(strlen(true), 1);
 
         $this->assertFalse(U::isNotEmpty(42));
         $this->assertFalse(U::isNotEmpty(4.2));

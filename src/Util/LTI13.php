@@ -525,7 +525,7 @@ class LTI13 {
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $headerSize = curl_getinfo($ch , CURLINFO_HEADER_SIZE );
             curl_close ($ch);
-            if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".strlen($membership)." characters)";
+            if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".U::strlen($membership)." characters)";
 
             if ( empty($membership) ) {
                 return "No data retrieved status=" . $httpcode;
@@ -614,7 +614,7 @@ class LTI13 {
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
-        if ( is_array($debug_log) ) $debug_log[] = "Sent lineitems request, received status=$httpcode (".strlen($lineitems)." characters)";
+        if ( is_array($debug_log) ) $debug_log[] = "Sent lineitems request, received status=$httpcode (".U::strlen($lineitems)." characters)";
 
         $json = json_decode($lineitems, false);
         if ( $json === null ) {
@@ -666,7 +666,7 @@ class LTI13 {
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
-        if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem request, received status=$httpcode (".strlen($lineitem)." characters)";
+        if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem request, received status=$httpcode (".U::strlen($lineitem)." characters)";
 
         $json = json_decode($lineitem, false);
         if ( $json === null ) {
@@ -723,7 +723,7 @@ class LTI13 {
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
-        if ( is_array($debug_log) ) $debug_log[] = "Sent results request, received status=$httpcode (".strlen($results)." characters)";
+        if ( is_array($debug_log) ) $debug_log[] = "Sent results request, received status=$httpcode (".U::strlen($results)." characters)";
         if ( is_array($debug_log)) $debug_log[] = substr($results, 0, 3000);
 
         $json = json_decode($results, false);
@@ -784,7 +784,7 @@ class LTI13 {
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close ($ch);
-        if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem delete, received status=$httpcode (".strlen($response)." characters)";
+        if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem delete, received status=$httpcode (".U::strlen($response)." characters)";
 
         if ( Net::httpSuccess($httpcode) ) {
             if ( is_array($debug_log) ) $debug_log[] = "Deleted lineitem";
@@ -1190,7 +1190,7 @@ class LTI13 {
         $indashes = false;
         foreach($parts as $part) {
             if ( strpos($part,'-----') === 0 ) {
-                if ( strlen($better) > 0 ) $better .= "\n";
+                if ( U::strlen($better) > 0 ) $better .= "\n";
                 $better .= $part;
                 $indashes = true;
                 continue;

@@ -7,7 +7,6 @@ use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\AesOpenSSL;
 
-
 class Lessons {
 
     /**
@@ -918,7 +917,7 @@ class Lessons {
         $email = U::get($_SESSION, 'email');
         if ( $displayname ) $display .=  $displayname;
         if ( $email ) {
-            if ( strlen($display) > 0 ) {
+            if ( U::strlen($display) > 0 ) {
                 $display .= ' (';
                 $display .= $email;
                 $display .= ')';
@@ -926,7 +925,7 @@ class Lessons {
                 $display = $email;
             }
         }
-        if (strlen($display) > 0 ) {
+        if (U::strlen($display) > 0 ) {
             echo("<p>".__("Student:")." ".$display."</p>\n");
         }
         $awarded = array();
@@ -1241,7 +1240,7 @@ $(function(){
         global $CFG;
 
         $custom = LTIX::ltiCustomGet($key);
-        if ( strlen($custom) > 0 ) return $custom;
+        if ( U::strlen($custom) > 0 ) return $custom;
 
         if ( $rlid === false ) return false;
         $lti = $this->getLtiByRlid($rlid);

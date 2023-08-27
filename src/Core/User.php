@@ -2,6 +2,7 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Util\U;
 use \Tsugi\Core\Cache;
 
 /**
@@ -86,11 +87,11 @@ class User {
      */
     public function getNameAndEmail() {
         $display = '';
-        if ( isset($this->displayname) && strlen($this->displayname) > 0 ) {
+        if ( isset($this->displayname) && U::strlen($this->displayname) > 0 ) {
             $display = $this->displayname;
         }
-        if ( isset($this->email) && strlen($this->email) > 0 ) {
-            if ( strlen($display) > 0 ) {
+        if ( isset($this->email) && U::strlen($this->email) > 0 ) {
+            if ( U::strlen($display) > 0 ) {
                 $display .= ' ('.$this->email.')';
             } else {
                 $display = $this->email;
@@ -133,7 +134,7 @@ class User {
             array(":UID" => $user_id, ":CID" => $CONTEXT->id)
         );
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if ( empty($row['displayname']) && strlen($row['user_key']) > 0 ) {
+        if ( empty($row['displayname']) && U::strlen($row['user_key']) > 0 ) {
             $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
         }
         Cache::set($cacheloc, $user_id, $row);
@@ -166,7 +167,7 @@ class User {
         );
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( ! is_array($row) ) return null;
-        if ( empty($row['displayname']) && strlen($row['user_key']) > 0 ) {
+        if ( empty($row['displayname']) && U::strlen($row['user_key']) > 0 ) {
             $row['displayname'] = 'user_key:'.substr($row['user_key'],0,25);
         }
         $cacheloc = 'lti_user';

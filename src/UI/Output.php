@@ -231,7 +231,7 @@ body {
         if ( isset($USER->locale) ) {
             $retval .= '            user_locale: '.self::json_encode_string_value($USER->locale).",\n";
         }
-        if ( strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
+        if ( U::U::strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
             $retval .= '            ajax_session: "'.urlencode(session_name()).'='.urlencode(session_id()).'"'.",\n";
         } else {
             $retval .= '            ajax_session: false,'."\n";
@@ -883,7 +883,7 @@ $('a').each(function (x) {
         // Since Canvas does not set launch_target properly
         } else if ( is_string($launch_target) && is_object($TSUGI_LAUNCH) && ( $TSUGI_LAUNCH->isCanvas() || $TSUGI_LAUNCH->isCoursera() ) ) {
             $menu_set = self::closeMenuSet();
-        } else if ( is_string($launch_return_url) && strlen($launch_return_url) > 0 ) {
+        } else if ( is_string($launch_return_url) && U::strlen($launch_return_url) > 0 ) {
             $menu_set = self::returnMenuSet($launch_return_url);
         // We are running stand alone (i.e. not from a real LTI Launch)
         } else if ( $user_id === false ) {
@@ -1204,7 +1204,7 @@ EOF;
         if ( $depth >= 5 ) return;
         if ( is_array($x) || is_object($x) ) {
             foreach($x as $k => $v ) {
-                if (  is_string($v) && strlen($v) > 0 && strpos($k, 'secret') !== false || strpos($k, 'priv') !== false ) {
+                if (  is_string($v) && U::strlen($v) > 0 && strpos($k, 'secret') !== false || strpos($k, 'priv') !== false ) {
                     if ( is_array($x) ) {
                         $x[$k] = 'Hidden as MD5: '.MD5($v);
                     } else {
@@ -1320,7 +1320,7 @@ EOF;
         echo("<failure>\n  <message>\n    ");
         echo(htmlentities($error));
         echo("  </message>\n");
-        if ( strlen($detail) > 0 ) {
+        if ( U::strlen($detail) > 0 ) {
             echo("  <detail>\n    ");
             echo(htmlentities($detail));
             echo("  </detail>\n");
