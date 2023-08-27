@@ -231,7 +231,7 @@ body {
         if ( isset($USER->locale) ) {
             $retval .= '            user_locale: '.self::json_encode_string_value($USER->locale).",\n";
         }
-        if ( U::U::strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
+        if ( U::strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
             $retval .= '            ajax_session: "'.urlencode(session_name()).'='.urlencode(session_id()).'"'.",\n";
         } else {
             $retval .= '            ajax_session: false,'."\n";
