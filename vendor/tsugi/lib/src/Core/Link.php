@@ -2,6 +2,7 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Util\U;
 use \Tsugi\Core\Cache;
 
 /**
@@ -131,7 +132,7 @@ class Link extends Entity {
         foreach($keys as $key) {
             if ( array_key_exists($key, $oldsettings) ) continue;
             $default = $this->launch->ltiCustomGet($key);
-            if ( $default && is_string($default) && strlen($default) > 0 ) {
+            if ( $default && is_string($default) && U::strlen($default) > 0 ) {
                 $oldsettings[$key] = $default;
                 $changed = true;
             }

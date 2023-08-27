@@ -382,7 +382,7 @@ class U {
             error_log($message);
         }
         if ( $CFG->DEVELOPER === TRUE ) {
-            if ( strlen($DEBUG_STRING) > 0 ) {
+            if ( self::strlen($DEBUG_STRING) > 0 ) {
                 echo("\n<pre>\n");
                 echo(htmlentities($DEBUG_STRING ?? ''));
                 echo("\n</pre>\n");
@@ -634,7 +634,7 @@ class U {
             if ( ! isset($dbt['file']) ) continue;
             if ( ! isset($dbt['line']) ) continue;
             if ( $myfile != $dbt['file'] ) {
-                if ( strlen($retval) > 0 ) $retval .= " ";
+                if ( self::strlen($retval) > 0 ) $retval .= " ";
                 $retval.= $dbt['file'].':'.$dbt['line'];
                 $count--;
                 if ( $count < 1 ) return $retval;
@@ -713,23 +713,32 @@ class U {
     }
 
     /**
+     * Build a PHP 7 strlen for PHP 8.2 and later
+     *
+     * This is needed because in PHP 8.2 strlen() demands a string (i.e. can't handle false, etc)
+     */
+    public static function strlen($string) {
+        if ( !isset($string) ) return 0;
+        if ( $string === true ) return 0; // Depart from PHP on this one
+        if ( $string === false ) return 0;
+        if ( is_numeric($string) ) $string = $string . '';
+        if ( $string instanceof Stringable ) $string = $string . '';
+        if ( !is_string($string) ) return 0;
+        return strlen($string);
+    }
+
+    /**
      * Determine if a variable is empty
      *
      * This is needed because in PHP 8.2 strlen() demands a string (i.e. can't handle false, etc)
      * Sadly, empty('0') becomes falsey and so returns true - What??
-     *
-     * We follow the legacy strlen() patterns for Stringable things - which works OK most of the time.
-     * See the unit tests for too much fun detail on the decisions.
      *
      * The method name is taken from Java since its rules are corect.
      *
      * https://docs.oracle.com/javase/8/docs/api/java/lang/String.html#isEmpty--
      */
     public static function isEmpty($string) {
-        if ( !isset($string) ) return true;
-        if ( $string instanceof Stringable ) $string = $string + '';
-        if ( !is_string($string) ) return true;
-        return strlen($string) < 1;
+        return self::strlen($string) < 1;
     }
 
     /**

@@ -201,7 +201,7 @@ class Launch {
      */
     public function isLTI13() {
         $issuer_client = $this->ltiParameter('issuer_client');
-        return is_string($issuer_client) && strlen($issuer_client) > 0 ;
+        return is_string($issuer_client) && U::strlen($issuer_client) > 0 ;
     }
 
     /**

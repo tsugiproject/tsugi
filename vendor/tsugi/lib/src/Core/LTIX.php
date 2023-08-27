@@ -370,9 +370,9 @@ class LTIX {
     public static function getBrowserMark() {
         global $CFG, $TSUGI_BROWSER_MARK;
         $browser_mark = U::get($_COOKIE, self::BROWSER_MARK_COOKIE);
-        if (is_string($browser_mark) && strlen($browser_mark) > 1 ) {
+        if (is_string($browser_mark) && U::strlen($browser_mark) > 1 ) {
             // error_log('Got browser_mark '.$browser_mark."\n");
-        } else if ( is_string($TSUGI_BROWSER_MARK) && strlen($TSUGI_BROWSER_MARK) > 1 ) {
+        } else if ( is_string($TSUGI_BROWSER_MARK) && U::strlen($TSUGI_BROWSER_MARK) > 1 ) {
             $browser_mark = $TSUGI_BROWSER_MARK;
         } else {
             $browser_mark = uniqid();
@@ -2535,7 +2535,7 @@ class LTIX {
     {
 
         $caliperURL = LTIX::ltiRawParameter('custom_sub_canvas_xapi_url');
-        if ( strlen($caliperURL) == 0 ) {
+        if ( U::strlen($caliperURL) == 0 ) {
             if ( is_array($debug_log) ) $debug_log[] = array('custom_sub_canvas_xapi_url not found in launch data');
             return false;
         }

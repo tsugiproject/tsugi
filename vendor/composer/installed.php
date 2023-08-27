@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'dc079dbfb00b0fe91ee249e7d750f4fc0f583d1a',
+        'reference' => '0e5ce9b5a852e7a24f167fb63e85ccd2207049a6',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'dc079dbfb00b0fe91ee249e7d750f4fc0f583d1a',
+            'reference' => '0e5ce9b5a852e7a24f167fb63e85ccd2207049a6',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -955,7 +955,7 @@
         'tsugi/lib' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'f89a60c319955859fc7e6a4914122e5fda288165',
+            'reference' => 'f43476c18372002836952fe6d638423814d108c7',
             'type' => 'library',
             'install_path' => __DIR__ . '/../tsugi/lib',
             'aliases' => array(

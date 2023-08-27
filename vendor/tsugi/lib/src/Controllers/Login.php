@@ -5,10 +5,11 @@ namespace Tsugi\Controllers;
 use Laravel\Lumen\Routing\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
-use Tsugi\Lumen\Application;
+use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\SecureCookie;
+use Tsugi\Lumen\Application;
 
 class Login extends Controller {
 
@@ -324,7 +325,7 @@ class Login extends Controller {
                 $_SESSION["oauth_consumer_key"] = $oauth_consumer_key;
                 $lti['key_key'] = $oauth_consumer_key;
 
-                if ( is_string($google_secret) && strlen($google_secret) > 1 ) {
+                if ( is_string($google_secret) && U::strlen($google_secret) > 1 ) {
                     $_SESSION['secret'] = LTIX::encrypt_secret($google_secret);
                     $lti['secret'] = LTIX::encrypt_secret($google_secret);
                 } else {

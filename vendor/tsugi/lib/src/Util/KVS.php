@@ -2,6 +2,8 @@
 
 namespace Tsugi\Util;
 
+use \Tsugi\Util\U;
+
 /*
  * KVS - A Simple Key/Value Store
  *
@@ -297,7 +299,7 @@ class KVS {
 
         foreach (self::$allKeys as $key ) {
             if ( ! $keys->{$key} ) continue;
-            if ( strlen($where) > 0 ) $where .= ' AND ';
+            if ( U::strlen($where) > 0 ) $where .= ' AND ';
             $value = $keys->{$key};
             if ( strpos($value, "LIKE ") === 0 ) {
                 $where .=  $key . ' LIKE :' . $key;
@@ -314,7 +316,7 @@ class KVS {
     public static function extractOrder($orders) {
         $retval = '';
         foreach ($orders as $order ) {
-            if ( strlen($retval) > 0 ) $retval .= ', ';
+            if ( U::strlen($retval) > 0 ) $retval .= ', ';
             if ( in_array($order, self::$allKeys) ) {
                 $retval .= $order;
                 continue;
@@ -344,12 +346,12 @@ class KVS {
         $uk1 = U::get($data, 'uk1');
         if ( $uk1 ) {
             if ( ! is_string($uk1) ) return "uk1 must be a string";
-            if ( empty($uk1) || strlen($uk1) > 150 ) return "uk1 must be no more than 150 characters";
+            if ( empty($uk1) || U::strlen($uk1) > 150 ) return "uk1 must be no more than 150 characters";
         }
         $sk1 = U::get($data, 'sk1');
         if ( $sk1 ) {
             if ( ! is_string($sk1) ) return "sk1 must be a string";
-            if ( empty($sk1) || strlen($sk1) > 75 ) return "sk1 must be no more than 75 characters";
+            if ( empty($sk1) || U::strlen($sk1) > 75 ) return "sk1 must be no more than 75 characters";
         }
         $tk1 = U::get($data, 'tk1');
         if ( $tk1 ) {
@@ -359,12 +361,12 @@ class KVS {
         $co1 = U::get($data, 'co1');
         if ( $co1 ) {
             if ( ! is_string($co1) ) return "co1 must be a string";
-            if ( empty($co1) || strlen($co1) > 150 ) return "co1 must be no more than 150 characters";
+            if ( empty($co1) || U::strlen($co1) > 150 ) return "co1 must be no more than 150 characters";
         }
         $co2 = U::get($data, 'co2');
         if ( $co2 ) {
             if ( ! is_string($co2) ) return "co2 must be a string";
-            if ( empty($co2) || strlen($co2) > 150 ) return "co2 must be no more than 150 characters";
+            if ( empty($co2) || U::strlen($co2) > 150 ) return "co2 must be no more than 150 characters";
         }
         return true;
     }

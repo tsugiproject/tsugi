@@ -2,6 +2,8 @@
 
 namespace Tsugi\Util;
 
+use \Tsugi\Util\U;
+
 /**
  * Wrap the DOMDocument class with some convienence methods
  *
@@ -112,7 +114,7 @@ class TsugiDOM extends \DOMDocument{
         if ( is_string($entry) ) {
             $entry = $this->get_tag($entry);
         }
-        if ( $text != null && strlen($text) > 0 ) {
+        if ( $text != null && U::strlen($text) > 0 ) {
             $element = $this->createElementNS($ns, $tag, htmlspecialchars($text, ENT_XML1, 'UTF-8'));
         } else {
             $element = $this->createElementNS($ns, $tag);

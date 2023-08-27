@@ -2,6 +2,7 @@
 
 namespace Tsugi\Util;
 
+use \Tsugi\Util\U;
 use \Tsugi\Util\PS;
 use \Tsugi\Util\PDOXStatement;
 
@@ -763,7 +764,7 @@ class PDOX extends \PDO {
                     error_log($sql);
                     die('$PDOX->upsertGetPKReturnError() missing '.$valkey.' in the values array for PostgreSQL');
                 }
-                if ( strlen($whereclause) > 0 ) $whereclause .= ' AND ';
+                if ( U::strlen($whereclause) > 0 ) $whereclause .= ' AND ';
                 $whereclause .= $lk . '=' . $valkey;
                 $wherevalues[$valkey] = $value;
             }

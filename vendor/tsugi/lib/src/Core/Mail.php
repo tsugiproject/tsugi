@@ -2,6 +2,7 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\Output;
 
 /** Mail utilities */
@@ -30,7 +31,7 @@ class Mail {
         $maildomain = $CFG->maildomain;
         $manage = $CFG->wwwroot . "/profile";
         $unsubscribe_url = $manage;
-        if ( strlen($id) > 0 && strlen($token) > 0 ) {
+        if ( U::strlen($id) > 0 && U::strlen($token) > 0 ) {
             $unsubscribe_url = Output::getUtilUrl("/unsubscribe?id=$id&token=$token");
         }
         $msg = $message;

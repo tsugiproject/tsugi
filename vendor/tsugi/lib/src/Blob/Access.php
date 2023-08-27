@@ -2,6 +2,7 @@
 
 namespace Tsugi\Blob;
 
+use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Blob\BlobUtil;
 
@@ -26,7 +27,7 @@ class Access {
         $lob = $retval[0];
         $type = $retval[1];
 
-        if ( strlen($type) > 0 ) header('Content-Type: '.$type );
+        if ( U::strlen($type) > 0 ) header('Content-Type: '.$type );
 
         if ( is_string($lob) ) {
             echo($lob);
