@@ -83,7 +83,7 @@ if ( $incoming_sig != $sig ) {
     return;
 }
 
-if ( strlen($oauth_consumer_key) < 1 || strlen($oauth_consumer_secret) < 1 ) {
+if ( U::strlen($oauth_consumer_key) < 1 || U::strlen($oauth_consumer_secret) < 1 ) {
     Net::send403("Missing key/secret key=$oauth_consumer_key");
    return;
 }

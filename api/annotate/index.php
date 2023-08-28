@@ -8,7 +8,7 @@ require_once "../../config.php";
 require_once "annotate_util.php";
 
 $pieces = U::rest_path();
-if ( ! isset($pieces->controller) || strlen($pieces->controller) < 1 ) {
+if ( ! isset($pieces->controller) || U::strlen($pieces->controller) < 1 ) {
     http_response_code(500);
     echo("<pre>\nMissing Session\n\n");
     echo(htmlentities(print_r($pieces, TRUE)));
@@ -31,7 +31,7 @@ $_GET[session_name()] = $sess_id;
 $LAUNCH = LTIX::requireData();
 
 // http://docs.annotatorjs.org/en/v1.2.x/storage.html#core-storage-api
-if ( strlen($pieces->action) < 1 ) {
+if ( U::strlen($pieces->action) < 1 ) {
     $retval = array(
           "name" => "Annotator Store API",
           "version" => "2.0.0",

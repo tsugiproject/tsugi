@@ -8,7 +8,7 @@ require_once "../../config.php";
 require_once "annotate_util.php";
 
 $pieces = U::rest_path();
-if ( ! isset($pieces->controller) || strlen($pieces->controller) < 1 ) {
+if ( ! isset($pieces->controller) || U::strlen($pieces->controller) < 1 ) {
     http_response_code(500);
     echo("<pre>\nMissing Session\n\n");
     echo(htmlentities(print_r($pieces, TRUE)));
@@ -50,7 +50,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 if ( $_SERVER['REQUEST_METHOD'] === 'DELETE' ) {
     $annotations = loadAnnotations($LAUNCH, $user_id);
 
-    if ( isset($pieces->extra) && strlen($pieces->extra) > 0 ) {
+    if ( isset($pieces->extra) && U::strlen($pieces->extra) > 0 ) {
         $id = $pieces->extra;
         unset($annotations[$id]);
     } else {

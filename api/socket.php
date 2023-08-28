@@ -24,7 +24,7 @@ if ( is_numeric($path->action) ) {
 $micro_now = microtime(true);
 
 $message = U::get($_POST, 'message');
-if ( is_string($message) && strlen($message) > 0 ) {
+if ( is_string($message) && U::strlen($message) > 0 ) {
 
     $sql = "INSERT INTO {$CFG->dbprefix}lti_message
         (link_id, room_id, message, micro_time ) VALUES
