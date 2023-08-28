@@ -2,6 +2,7 @@
 
 namespace Tsugi\Core;
 
+use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\LTI13;
 use \Tsugi\Util\LTIConstants;
