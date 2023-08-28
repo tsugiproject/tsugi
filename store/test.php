@@ -176,7 +176,7 @@ if ( ! isset($registrations[$install])) {
 <ul class="nav nav-tabs">
   <li class="active"><a href="#test" onclick="console.log('yada');" data-toggle="tab" aria-expanded="true">Test</a></li>
   <li><a href="#identity" data-toggle="tab" aria-expanded="false">
-                    <?php if ( strlen($lmsdata['lis_person_name_full']) > 0 ) echo($lmsdata['lis_person_name_full']);
+                    <?php if ( U::strlen($lmsdata['lis_person_name_full']) > 0 ) echo($lmsdata['lis_person_name_full']);
                         else echo('Anonymous');
                     ?>
         &#9660;

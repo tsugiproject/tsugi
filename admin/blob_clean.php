@@ -25,7 +25,7 @@ $OUTPUT->header();
 <h1>Blob cleanup</h1>
 <p>This tool removes unused blobs from the <b>blob_blob</b> table.
 </p>
-<?php if ( isset($CFG->dataroot) && strlen($CFG->dataroot) > 0 ) { ?>
+<?php if ( isset($CFG->dataroot) && U::strlen($CFG->dataroot) > 0 ) { ?>
 <p>
 To remove unused files from the on-disk store, you must log in and
 run

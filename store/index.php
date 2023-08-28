@@ -212,7 +212,7 @@ body .bx-wrapper .bx-pager.bx-default-pager a {
 $registrations = findAllRegistrations(false, true);
 
 // Filter the registrations
-if ( isset($CFG->storehide) && strlen($CFG->storehide) > 0 && ! isAdmin() ) {
+if ( isset($CFG->storehide) && U::strlen($CFG->storehide) > 0 && ! isAdmin() ) {
     $filtered = array();
     foreach($registrations as $name => $tool ) {
         if ( isset($tool['tool_phase']) &&

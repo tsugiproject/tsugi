@@ -50,7 +50,7 @@ if ( isset($CFG->owneremail) && $CFG->owneremail ) {
 $toolconfig = new \stdClass();
 
 $toolconfig->domain = "https://wtf.is.this.here.for?";
-if ( isset($CFG->servicedesc) && $CFG->servicedesc && strlen($CFG->servicedesc) > 0 ) {
+if ( isset($CFG->servicedesc) && $CFG->servicedesc && U::strlen($CFG->servicedesc) > 0 ) {
     $toolconfig->description = $CFG->servicedesc;
 }
 // Shouldn't this be title?

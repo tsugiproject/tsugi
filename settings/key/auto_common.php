@@ -64,7 +64,7 @@ echo(htmlentities($openid_configuration)."\n</p>\n");
 
 $response = Net::doGet($openid_configuration );
 $code = Net::getLastHttpResponse();
-if ( ! $response || strlen($response) < 1 ) {
+if ( ! $response || U::strlen($response) < 1 ) {
     echo("<pre>\n");
     echo("Unable to retrieve:\n".htmlentities($openid_configuration)."\n");
     echo("Error code:".htmlentities($code)."\n");

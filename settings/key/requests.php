@@ -3,6 +3,7 @@
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\Table;
 use \Tsugi\Core\Mail;
 use \Tsugi\Core\LTIX;
@@ -25,16 +26,16 @@ if ( ! ( isset($_SESSION['id']) ) ) {
 }
 
 $goodsession = isset($_SESSION['id']) && isset($_SESSION['email']) && isset($_SESSION['displayname']) &&
-    strlen($_SESSION['email']) > 0 && strlen($_SESSION['displayname']) > 0 ;
+    U::strlen($_SESSION['email']) > 0 && U::strlen($_SESSION['displayname']) > 0 ;
 
 if ( $goodsession && isset($_POST['title']) &&
         isset($_POST['title']) && isset($_POST['notes']) ) {
-    if ( strlen($_POST['title']) < 1 ) {
+    if ( U::strlen($_POST['title']) < 1 ) {
         $_SESSION['error'] = _m("Requests must have titles");
         header("Location: ".LTIX::curPageUrl());
         return;
     }
-    if ( strlen($_POST['notes']) < 1 ) {
+    if ( U::strlen($_POST['notes']) < 1 ) {
         $_SESSION['error'] = _m("You must include a reason (i.e. what course you are teaching) in this request.");
         header("Location: ".LTIX::curPageUrl());
         return;
@@ -48,7 +49,7 @@ if ( $goodsession && isset($_POST['title']) &&
     );
 
     $request_id = $PDOX->lastInsertId();
-    if ( isset($CFG->autoapprovekeys) && strlen($CFG->autoapprovekeys) > 0 &&
+    if ( isset($CFG->autoapprovekeys) && U::strlen($CFG->autoapprovekeys) > 0 &&
         preg_match($CFG->autoapprovekeys, $_SESSION['email']) == 1) {
         // Set up the email variables
         $user_id = $_SESSION['id'];

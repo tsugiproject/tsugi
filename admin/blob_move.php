@@ -9,7 +9,7 @@ require_once("gate.php");
 require_once("admin_util.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-$todisk = isset($CFG->dataroot) && strlen($CFG->dataroot) > 0;
+$todisk = isset($CFG->dataroot) && U::strlen($CFG->dataroot) > 0;
 
 use \Tsugi\Core\LTIX;
 LTIX::getConnection();

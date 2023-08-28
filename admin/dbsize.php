@@ -36,7 +36,7 @@ FROM information_schema.TABLES WHERE table_schema = :DBNAME";
 
 $parms = array(':DBNAME' => $dbname);
 
-if ( strlen($CFG->dbprefix) > 0 ) {
+if ( U::strlen($CFG->dbprefix) > 0 ) {
     $parms[':PREFIX'] = $CFG->dbprefix;
     $sql .= ' AND table_name like :PREFIX';
 }

@@ -152,7 +152,7 @@ $service = new Google_Service_Classroom($client);
 $student_id = false;
 // If we have a membership record...
 if ( $role != null ) {
-    if ( $role <= LTIX::ROLE_LEARNER && strlen($membership_json) > 0 ) {
+    if ( $role <= LTIX::ROLE_LEARNER && U::isNotEmpty($membership_json) ) {
         $mj = json_decode($membership_json, true);
         $student_id = U::get($mj, 'student_id');
 	if ( ! $student_id ) error_log('Could not restore student_id');
@@ -280,7 +280,7 @@ $lti = array();
 $lti['key_id'] = $key_id;
 $lti['key_key'] = $key_key;
 
-if ( strlen($key_secret) ) {
+if ( U::isNotEmpty($key_secret) ) {
     $lti['secret'] = LTIX::encrypt_secret($key_secret);
 }
 
@@ -288,7 +288,7 @@ $lti['user_id'] = $user_id;
 $lti['user_key'] = $user_key;
 $lti['user_email'] = $user_email;
 $lti['user_displayname'] = $user_displayname;
-if ( strlen($user_avatar) ) {
+if ( U::isNotEmpty($user_avatar) ) {
     $lti['user_image'] = $user_avatar;
 }
 $lti['role'] = $role;

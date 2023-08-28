@@ -311,7 +311,7 @@ $CFG->DEVELOPER = true;
 /*
 if ( $CFG->DEVELOPER && ! isset($CFG->dataroot) ) {
     $tmp = sys_get_temp_dir();
-    if (strlen($tmp) > 1 && substr($tmp, -1) == '/') $tmp = substr($tmp,0,-1);
+    if (U::strlen($tmp) > 1 && substr($tmp, -1) == '/') $tmp = substr($tmp,0,-1);
     $CFG->dataroot = $tmp . '/tsugi_blobs';
 }
 */
@@ -441,14 +441,14 @@ if ( is_string($extra_settings) && file_exists($extra_settings) ) {
 // http://php.net/manual/en/memcached.sessions.php
 
 // $CFG->memcache = 'tcp://memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
-if ( isset($CFG->memcache) && strlen($CFG->memcache) > 0 ) {
+if ( isset($CFG->memcache) && U::strlen($CFG->memcache) > 0 ) {
     ini_set('session.save_handler', 'memcache');
     ini_set('session.save_path', $CFG->memcache);
 }
 
 // Note no "tcp://" for the memcached version of the url
 // $CFG->memcached = 'memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
-if ( isset($CFG->memcached) && strlen($CFG->memcached) > 0 ) {
+if ( isset($CFG->memcached) && U::strlen($CFG->memcached) > 0 ) {
     ini_set('session.save_handler', 'memcached');
     ini_set('session.save_path', $CFG->memcached);
     // https://github.com/php-memcached-dev/php-memcached/issues/269
