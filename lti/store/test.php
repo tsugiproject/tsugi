@@ -228,7 +228,7 @@ if ( $fa_icon !== false ) {
             $parms = $lmsdata;
             // Cleanup parms before we sign
             foreach( $parms as $k => $val ) {
-                if (strlen(trim($parms[$k]) ) < 1 ) {
+                if (U::strlen(trim($parms[$k]) ) < 1 ) {
                     unset($parms[$k]);
                 }
             }

@@ -22,7 +22,7 @@ if ( $dryrun ) {
 }
 
 // Check if the destination is blob_blob or dataroot
-if ( !isset($CFG->dataroot) || strlen($CFG->dataroot) < 1 ) {
+if ( !isset($CFG->dataroot) || U::strlen($CFG->dataroot) < 1 ) {
     echo("Migrating from blob_file to blob_blob\n");
     $where = "path IS NULL AND blob_id IS NULL"; // Leave disk blobs alone
 } else {

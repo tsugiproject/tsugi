@@ -29,7 +29,7 @@ if ( $row === false ) {
 
 $privkey = U::get($row,'privkey');
 $pubkey = U::get($row,'pubkey');
-if ( strlen($privkey) < 1 || strlen($pubkey) < 1 ) {
+if ( U::strlen($privkey) < 1 || U::strlen($pubkey) < 1 ) {
     http_response_code(404);
     $OUTPUT->header();
     $OUTPUT->bodyStart();

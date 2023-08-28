@@ -51,13 +51,13 @@ $oauth_consumer_key = $b64[0];
 $oauth_consumer_secret = $b64[1];
 $operation = "unknown";
 
-if ( strlen($oauth_consumer_key) < 1 || strlen($oauth_consumer_secret) < 1 ) {
+if ( U::strlen($oauth_consumer_key) < 1 || U::strlen($oauth_consumer_secret) < 1 ) {
    echo(sprintf($response,uniqid(),'failure', "Missing key/secret B64=$b64dec B64key=$oauth_consumer_key secret=$oauth_consumer_secret",$message_ref,$operation,""));
    exit();
 }
 
 $header_key = LTI::getOAuthKeyFromHeaders();
-if ( strlen($header_key) < 1 ) {
+if ( U::strlen($header_key) < 1 ) {
    echo(sprintf($response,uniqid(),'failure', "Empty header key. Note that some proxy configurations do not pass the Authorization header.",$message_ref,$operation,""));
    exit();
 } else if ( $header_key != $oauth_consumer_key ) {

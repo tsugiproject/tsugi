@@ -113,7 +113,7 @@ if ( (! isset($_GET['force']) ) && $repos !== false ) {
     $expiresec = 600;
     $repos_str = Net::doGet($url, $headers);
     $note = 'Retrieved from github API. Data is cached for '.$expiresec.' seconds to avoit github limit. Add ?force=yes to force pull from github before cache expires.';
-    if ( strlen($repos_str) < 1 ) {
+    if ( U::strlen($repos_str) < 1 ) {
         $error = 'No data retrieved from '.$url;
         $retval['available_error'] = $error;
         $retval['available_error_detail'] = '';

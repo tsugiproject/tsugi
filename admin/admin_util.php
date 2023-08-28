@@ -74,7 +74,7 @@ function findAllFolders($paths)
 
 function addSlash($path)
 {
-    if ( strlen($path) < 1 ) return $path;
+    if ( U::strlen($path) < 1 ) return $path;
     if ( substr($path,strlen($path)-1) == DIRECTORY_SEPARATOR ) return $path;
     return $path . DIRECTORY_SEPARATOR;
 }
@@ -277,7 +277,7 @@ function trimAsMuchAsYouCan($path, $root) {
     }
     $pieces = array();
     for(;$i < count($path_pieces); $i++) {
-        if ( strlen($path_pieces[$i] ) < 1 ) continue;
+        if ( U::strlen($path_pieces[$i] ) < 1 ) continue;
         $pieces[] = $path_pieces[$i];
     }
     $remainder = implode('/', $pieces);

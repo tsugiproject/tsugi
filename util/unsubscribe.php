@@ -2,6 +2,7 @@
 
 if ( ! isset($CFG) ) return; // Only from within tsugi.php
 
+use \Tsugi\Util\U;
 use \Tsugi\Core\Mail;
 
 $id = false;
@@ -20,7 +21,7 @@ if ( isset($_GET['id']) && isset($_GET['token']) ) {
     $token = $_GET['token'];
 }
 
-if ( strlen($token) < 1 ) $token = false;
+if ( U::strlen($token) < 1 ) $token = false;
 
 if ( $id === false || $token === false ) {
     error_log("Unsubscribe missing id or token");

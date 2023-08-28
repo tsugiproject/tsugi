@@ -47,7 +47,7 @@ foreach($tools as $tool) {
     $remote = $tool['clone_url'];
     echo("URL: ".htmlentities($remote)."\n");
     $gitversion = $tool['gitversion'];
-    if ( strlen($gitversion) < 1 ) $gitversion = 'master';
+    if ( U::strlen($gitversion) < 1 ) $gitversion = 'master';
     if ( isset($CFG->branch_override) && is_array($CFG->branch_override) && U::get($CFG->branch_override, $remote) ) {
         $gitversion = U::get($CFG->branch_override, $remote);
     }
@@ -65,14 +65,14 @@ foreach($tools as $tool) {
             continue;
         }
         $parent = dirname($path);
-        if ( strlen($parent) < 1 || ! file_exists($parent) ) {
+        if ( U::strlen($parent) < 1 || ! file_exists($parent) ) {
             echo('Bad parent path: '.$parent."\n");
 	    // Perhaps this is checked out to a new location in the /var area
 	    $parent = U::remove_relative_path($CFG->install_folder);
 	    $path = $parent . '/' . basename($path);
 	    echo('Attempting path of '.$path."\n");
 	    if ( file_exists($path) ) continue;  // Already checked out
-            if ( strlen($parent) < 1 || ! file_exists($parent) ) {
+            if ( U::strlen($parent) < 1 || ! file_exists($parent) ) {
                 echo('Bad parent path: '.$parent."\n");
                 continue;
 	    }
