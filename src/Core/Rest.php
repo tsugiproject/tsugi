@@ -20,7 +20,7 @@ class Rest {
          header('Pragma: no-cache'); // HTTP 1.0.
          header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past - proxies
 
-        if ( strpos($http_origin, "http://localhost:") === 0 )  {
+        if ( is_string($http_origin) && strpos($http_origin, "http://localhost:") === 0 )  {
             header("Access-Control-Allow-Origin: $http_origin");
             header('Access-Control-Allow-Credentials: true');
             header('Access-Control-Allow-Headers: x-tsugi-authorization');
@@ -35,7 +35,6 @@ class Rest {
 
         if ( is_string($session) ) $_GET[session_name()] = $session;
         return false;
-
      }
 
 }
