@@ -120,6 +120,7 @@ class U {
      */
     public static function get_rest_path($uri=false) {
         if ( ! $uri ) $uri = $_SERVER['REQUEST_URI'];     // /tsugi/lti/some/cool/stuff
+        if ( ! is_string($uri) ) return $uri;
         $pos = strpos($uri,'?');
         if ( $pos > 0 ) $uri = substr($uri,0,$pos);
         if ( self::endsWith($uri, '/') ) {
@@ -272,6 +273,7 @@ class U {
         if ( self::isEmpty($session_id) ) {
             $session_id = self::get($_GET, session_name());
         }
+        if ( self::isEmpty($session_id) ) return $url;
 
         // Don't add more than once...
         $parameter = session_name().'=';
@@ -295,6 +297,7 @@ class U {
     }
 
     public static function add_url_parm($url, $key, $val) {
+        if ( ! is_string($url) || ! is_string($key) || ! is_string($val) ) return $url;
         $url .= strpos($url,'?') === false ? '?' : '&';
         $url .= urlencode($key) . '=' . urlencode($val);
         return $url;

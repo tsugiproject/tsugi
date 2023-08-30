@@ -238,4 +238,14 @@ class UTest extends \PHPUnit\Framework\TestCase
         */
 
     }
+
+    public function testUrlParm() {
+        $url = "http://www.tsugi.org";
+        $this->assertEquals(U::add_url_parm(null, null, null), null);
+        $this->assertEquals(U::add_url_parm('bob', null, null), 'bob');
+        $this->assertEquals(U::add_url_parm('bob', 'x', null), 'bob');
+        $this->assertEquals(U::add_url_parm('bob', null, 'y'), 'bob');
+        $this->assertEquals(U::add_url_parm('bob', 'x', 'y'), 'bob?x=y');
+        $this->assertEquals(U::add_url_parm('bob?a=b', 'x', 'y'), 'bob?a=b&x=y');
+    }
 }
