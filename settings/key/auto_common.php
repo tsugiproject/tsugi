@@ -60,13 +60,13 @@ $stmt = $PDOX->queryDie(
 );
 
 echo("<p><b>Retrieving OpenId configuration from LMS</b><br>\n");
-echo(htmlentities($openid_configuration)."\n</p>\n");
+echo(htmlentities($openid_configuration ?? '')."\n</p>\n");
 
 $response = Net::doGet($openid_configuration );
 $code = Net::getLastHttpResponse();
 if ( ! $response || U::strlen($response) < 1 ) {
     echo("<pre>\n");
-    echo("Unable to retrieve:\n".htmlentities($openid_configuration)."\n");
+    echo("Unable to retrieve:\n".htmlentities($openid_configuration??'')."\n");
     echo("Error code:".htmlentities($code)."\n");
     echo("</pre>\n");
     return;
@@ -77,7 +77,7 @@ $OUTPUT->togglePre("LMS-Provided OpenId Configuration", $response);
 $platform_configuration = json_decode($response);
 if ( ! $platform_configuration || ! is_object($platform_configuration) ) {
     echo("<pre>\n");
-    echo("Unable to parse JSON retrieved from:\n".htmlentities($openid_configuration)."\n\n");
+    echo("Unable to parse JSON retrieved from:\n".htmlentities($openid_configuration??'')."\n\n");
     echo(htmlentities($response));
     echo("</pre>\n");
     return;
