@@ -20,6 +20,8 @@
         "symfony/http-kernel" : "v6.2.6",
         "guzzlehttp/psr7" : "v2.5.0",
 
+        "google/apiclient": "v2.15.0",
+
         "nesbot/carbon" : "2.68.1",
 
         "tsugi/lib": "dev-master#ca98d93b0bb8942e637e7a535a31060f36395869",
