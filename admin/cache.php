@@ -23,6 +23,7 @@ if (U::isKeyNotEmpty($_POST, "delete")) {
 </head>
 <body>
 <h1>Cache Detail</h1>
+<p>Server prefix: <?= htmlentities($CFG->serverPrefix()) ?></p>
 <?php
 if ( U::apcuAvailable() ) {
     $value = U::appCacheGet('tsugi_test', false);

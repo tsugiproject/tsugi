@@ -599,20 +599,23 @@ class U {
     }
 
     public static function appCacheGet($key, $default=null) {
+        global $CFG;
         if ( ! self::apcuAvailable() ) return $default;
-        $retval = apcu_fetch($key,$success);
+        $retval = apcu_fetch($CFG->serverPrefix().":".$key,$success);
         if ( ! $success ) return $default;
         return $retval;
     }
 
     public static function appCacheSet($key, $value, $ttl=0) {
+        global $CFG;
         if ( ! self::apcuAvailable() ) return;
-        apcu_store($key, $value, $ttl);
+        apcu_store($CFG->serverPrefix().":".$key, $value, $ttl);
     }
 
     public static function appCacheDelete($key) {
+        global $CFG;
         if ( ! self::apcuAvailable() ) return;
-        apcu_delete($key);
+        apcu_delete($CFG->serverPrefix().":".$key);
     }
 
     // https://stackoverflow.com/questions/2110732/how-to-get-name-of-calling-function-method-in-php
