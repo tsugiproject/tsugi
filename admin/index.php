@@ -1,4 +1,7 @@
 <?php
+
+use \Tsugi\Util\U;
+
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../config.php");
 session_start();
@@ -64,7 +67,7 @@ echo("</p>\n");
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'clear12345', _TSUGI.spinnerUrl); return false;" >
   Remove 12345 Data
   </a></li>
-<?php if ( isset($CFG->websocket_url) ) {?>
+<?php if ( U::isNotEmpty($CFG->websocket_url) ) {?>
 <li>
   <a href="#" title="Check Socket Server"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'sock-test', _TSUGI.spinnerUrl, true); return false;" >
@@ -108,6 +111,11 @@ echo("</p>\n");
   Unreferenced BLOB Cleanup
   </a>
 </li>
+<li>
+  <a href="#" title="Check Cache"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'cache', _TSUGI.spinnerUrl); return false;" >
+  Check Cache
+  </a></li>
 </ul>
 <p>
 Best viewed with <a href="https://www.mozilla.org/en-US/firefox/" target="_new">FireFox</a> since 

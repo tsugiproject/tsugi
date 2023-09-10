@@ -582,12 +582,12 @@ class U {
         return $dt->format(\DateTime::ATOM);
     }
 
-    // https://stackoverflow.com/questions/4393626/how-do-i-know-if-any-php-caching-is-enabled
     /**
-     * Return if APC cache is available
+     * Return if APC cache is available (Deprecated)
      */
     public static function apcAvailable() {
-        return (extension_loaded('apc') && ini_get('apc.enabled'));
+        error_log("U::apcAvailable() should be changed to U::apcuAvailable()");
+        return self::apcuAvailable();
     }
 
     /**
@@ -595,7 +595,6 @@ class U {
      */
     public static function apcuAvailable() {
         global $CFG;
-        if ( isset($CFG->apcuAvailable) ) return ($CFG->apcuAvailable === true || $CFG->apcuAvailable == 'true');
         return (function_exists('apcu_enabled') && apcu_enabled());
     }
 
@@ -720,10 +719,11 @@ class U {
      *
      * This is needed because in PHP 8.2 strlen() demands a string (i.e. can't handle false, etc)
      */
-    public static function strlen($string) {
+    public static function strlen($string) : int {
         if ( !isset($string) ) return 0;
         if ( $string === true ) return 0; // Depart from PHP on this one
         if ( $string === false ) return 0;
+        if ( $string === NULL ) return 0;
         if ( is_numeric($string) ) $string = $string . '';
         if ( $string instanceof Stringable ) $string = $string . '';
         if ( !is_string($string) ) return 0;
@@ -740,7 +740,7 @@ class U {
      *
      * https://docs.oracle.com/javase/8/docs/api/java/lang/String.html#isEmpty--
      */
-    public static function isEmpty($string) {
+    public static function isEmpty($string) : bool {
         return self::strlen($string) < 1;
     }
 
@@ -754,9 +754,15 @@ class U {
      * It is the little things - sigh.
      *
      */
-
-    public static function isNotEmpty($string) {
+    public static function isNotEmpty($string) : bool {
         return ! self::isEmpty($string);
+    }
+
+    /**
+     * Check if a key in an array is not empty
+     */
+    public static function isKeyNotEmpty(array $collection, string $key) : bool {
+        return self::isNotEmpty(self::get($collection, $key));
     }
 
     /**

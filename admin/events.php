@@ -65,10 +65,10 @@ echo( $row ? $row['count'] : '0'  );
 </li>
 <li>
 <?php
-if ( U::apcAvailable() ) {
+if ( U::apcuAvailable() ) {
     echo('Last event push time: ');
     $success = false;
-    $timestamp = apc_fetch('last_event_push_time',$success);
+    $timestamp = apcu_fetch('last_event_push_time',$success);
     if ( ! $success ) {
         echo(" Not set");
     } else {
@@ -77,17 +77,17 @@ if ( U::apcAvailable() ) {
         echo($diff.' seconds ago '.$date.' ('.$timestamp.')');
     }
 } else {
-   echo("APC Cache is not available");
+   echo("APCU Cache is not available");
 }
 
 ?>
 </li>
 <li>
 <?php
-if ( U::apcAvailable() ) {
+if ( U::apcuAvailable() ) {
     echo('Last event purge time: ');
     $success = false;
-    $timestamp = apc_fetch('last_event_purge_time',$success);
+    $timestamp = apcu_fetch('last_event_purge_time',$success);
     if ( ! $success ) {
         echo(" Not set");
     } else {
@@ -96,7 +96,7 @@ if ( U::apcAvailable() ) {
         echo($diff.' seconds ago '.$date.' ('.$timestamp.')');
     }
 } else {
-   echo("APC Cache is not available");
+   echo("APCU Cache is not available");
 }
 
 ?>
