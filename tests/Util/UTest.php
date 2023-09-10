@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\Util\U;
+use \Tsugi\Config\ConfigInfo;
 
 class UTest extends \PHPUnit\Framework\TestCase
 {
@@ -258,4 +259,17 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(U::isKeyNotEmpty($arr, ""));
         $this->assertFalse(U::isKeyNotEmpty($arr, "zap"));
     }
+
+    public function testServerPrefix() {
+        $CFG = new ConfigInfo("bob", "http://www.zap.com/tsugi");
+        $this->assertEquals($CFG->serverPrefix(), "www.zap.com/tsugi");
+        $CFG->apphome = "https://www.zap.com";
+        $this->assertEquals($CFG->serverPrefix(), "www.zap.com");
+        $CFG->apphome = "www.zap.com";
+        $this->assertEquals($CFG->serverPrefix(), "www.zap.com");
+        // Use MD5 if too long
+        $CFG->apphome = "dlsjsdflkjdfljdljdflkjflkjlkjfdklja;ljdfsl;jgfl;jgfl;jgl;jgfds;ljgfl;jgfd;ljdfl;kjdsljalwskjaskhfkdjhdfgkjhgkhkdshkghdfkhgfkhfgkh";
+        $this->assertEquals($CFG->serverPrefix(), "227b19f82bca5eb23f9cd02cfe34dbbe");
+    }
+
 }

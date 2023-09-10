@@ -901,5 +901,16 @@ class ConfigInfo {
         if ( strpos($this->wwwroot,'://127.0.0.1') !== false ) return true;
         return false;
     }
+
+    /**
+     * Return a prefix unique to this server for things like shared cache keys
+     */
+    public function serverPrefix() : string {
+        $prefix = $this->wwwroot;
+        if ( is_string($this->apphome) && strlen($this->apphome) > 0 ) $prefix = $this->apphome;
+        $prefix = preg_replace('/https?:\/\//', '', $prefix);
+        if (strlen($prefix) > 50 ) $prefix = md5($prefix);
+        return $prefix;
+    }
 }
 
