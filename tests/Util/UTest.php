@@ -248,4 +248,14 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(U::add_url_parm('bob', 'x', 'y'), 'bob?x=y');
         $this->assertEquals(U::add_url_parm('bob?a=b', 'x', 'y'), 'bob?a=b&x=y');
     }
+
+    public function testIsKeyNotEmpty() {
+        $arr = array("bob" => "42", "sam" => 43, "sarah" => null, "sue" => false);
+        $this->assertTrue(U::isKeyNotEmpty($arr, "bob"));
+        $this->assertTrue(U::isKeyNotEmpty($arr, "sam"));
+        $this->assertFalse(U::isKeyNotEmpty($arr, "sarah"));
+        $this->assertFalse(U::isKeyNotEmpty($arr, "sue"));
+        $this->assertFalse(U::isKeyNotEmpty($arr, ""));
+        $this->assertFalse(U::isKeyNotEmpty($arr, "zap"));
+    }
 }

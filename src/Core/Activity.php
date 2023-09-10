@@ -29,9 +29,9 @@ class Activity {
         $failure = 0;
         $failure_code = false;
         $retval = array();
-        if ( U::apcAvailable() ) {
+        if ( U::apcuAvailable() ) {
             $found = false;
-            $last_push = apc_fetch('last_event_push_time',$found);
+            $last_push = apcu_fetch('last_event_push_time',$found);
             $diff = $start - $last_push;
             if ( $found && $diff < self::PUSH_REPEAT_SECONDS ) {
                 // error_log("Last push was $diff seconds ago");
@@ -84,13 +84,13 @@ class Activity {
         global $CFG;
 
         // We really want some quiet time...
-        if ( U::apcAvailable() ) {
+        if ( U::apcuAvailable() ) {
             $push_found = false;
-            $last_push = apc_fetch('last_event_push_time',$push_found);
+            $last_push = apcu_fetch('last_event_push_time',$push_found);
             $push_diff = time() - $last_push;
 
             $purge_found = false;
-            $last_purge = apc_fetch('last_event_purge_time',$purge_found);
+            $last_purge = apcu_fetch('last_event_purge_time',$purge_found);
             $purge_diff = time() - $last_purge;
 
             if ( ($push_found && $push_diff < self::PUSH_REPEAT_SECONDS) ||
