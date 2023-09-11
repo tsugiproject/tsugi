@@ -42,7 +42,7 @@ class Activity {
                 $retval['purged'] = $purged;
                 return $retval;
             }
-            apc_store('last_event_push_time',$start);
+            apcu_store('last_event_push_time',$start);
         }
 
         while ($count < $max && $now < $end ) {
@@ -98,7 +98,7 @@ class Activity {
                 // error_log("Last purge was $purge_diff seconds ago last push was $push_diff seconds ago");
                 return 0;
             }
-            apc_store('last_event_purge_time', time());
+            apcu_store('last_event_purge_time', time());
         } else { // purge probabilistically
             $check = isset($CFG->eventcheck) ? $CFG->eventcheck : 1000;
             if ( $check < 1 ) $check = 1000;
