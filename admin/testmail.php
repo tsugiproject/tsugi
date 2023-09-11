@@ -34,6 +34,10 @@ $OUTPUT->flashMessages();
 ?>
 <h1>Test Mail Sending</h1>
 <p>
+Configured owneremail:
+<?= $CFG->owneremail ?>
+</p>
+<p>
 <form method="POST">
 <p>
 Mail address:<br/>
