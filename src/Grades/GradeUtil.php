@@ -76,7 +76,7 @@ class GradeUtil {
         }
         echo("Name: ".htmlent_utf8($row['displayname'])."<br/>\n");
         echo("Email: ".htmlent_utf8($row['email'])."<br/>\n");
-        echo("Last Submision: ".htmlent_utf8($row['updated_at'])."<br/>\n");
+        echo("Last Submission: ".htmlent_utf8($row['updated_at'])."<br/>\n");
         echo("Score: ".htmlent_utf8($row['grade'])."<br/>\n");
         echo("</p>\n");
     }
