@@ -219,7 +219,7 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->lti) ) {
         foreach($module->lti as $lti ) {
             $title = isset($lti->title) ? $lti->title : $module->title;
-            $title = 'Tool: '.$title;
+            if (strpos($title, ':') === false ) $title = 'Tool: '.$title;
             $custom_arr = array();
             if ( isset($lti->custom) ) {
                 foreach($lti->custom as $custom) {
