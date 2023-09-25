@@ -28,8 +28,8 @@ $titles = array(
     'name' => 'Short title of tool shown to user in the store',
     'fa_icon' => "An optional FontAwesome icon like 'fa-fast-forward'",
     'url' => 'URL Where the external tool receives launches',
-    'pubkey' => 'External Tool Public Key (Leave blank to auto-generate)',
-    'privkey' => 'External Tool Private Key (Leave blank to auto-generate)',
+    'pubkey' => 'Remote Tsugi Tool Public Key (Leave blank to auto-generate)',
+    'privkey' => 'Remote Tsugi Tool Private Key (Leave blank to auto-generate)',
     'json' => 'Additional settings for your tool registration (see below)'
 );
 
@@ -58,7 +58,7 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 ?>
-<h1>Adding External Tool</h1>
+<h1>Adding Remote Tsugi Tool</h1>
 <p>
 And external tool is registered in this system and launches are forwarded to the
 tool after Tsugi validates the incoming launch.   Tools are provided an API callback

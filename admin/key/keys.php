@@ -70,9 +70,11 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI Tenants (Keys)</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Key Requests</a>
-  <a href="issuers" class="btn btn-default">LTI 1.3 Issuers</a>
   <a href="keys" class="btn btn-default active">Tenant Keys</a>
+<?php if ( $CFG->providekeys ) { ?>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Key Requests</a>
+<?php } ?>
+  <a href="issuers" class="btn btn-default">LTI 1.3 Issuers</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>

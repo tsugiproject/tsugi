@@ -33,7 +33,7 @@ $titles = array(
     'name' => 'Name of tool shown to user in the store',
     'fa_icon' => "An optional FontAwesome icon like 'fa-fast-forward'",
     'url' => 'URL Where the external tool receives launches',
-    'pubkey' => 'External Tool Public Key (Do not edit this value, set to blank to re-generate)',
+    'pubkey' => 'Remote Tsugi Tool Public Key (Do not edit this value, set to blank to re-generate)',
     'json' => 'Additional settings for your tool registration (see below)'
 );
 
@@ -63,7 +63,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-$title = 'External Tool Entry';
+$title = 'Remote Tsugi Tool Entry';
 echo("<h1>$title</h1>\n<p>\n");
 $extra_buttons=false;
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);

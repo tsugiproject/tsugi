@@ -41,21 +41,33 @@ echo("</p>\n");
 ?>
 </p>
 <ul>
+<li><a href="key">Manage Access Keys</a></li>
+<li><a href="expire">Manage Data Expiry</a></li>
+<li><a href="context/">View Contexts</a></li>
+<li><a href="activity/">View Activity</a></li>
+<li><a href="users/">View Users</a></li>
+<li>
+  <a href="#" title="Recent Logins"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'recent', _TSUGI.spinnerUrl); return false;" >
+  Recent Logins
+  </a></li>
+<li><a href="install">Manage Installed Modules</a></li>
 <li>
   <a href="#" title="Upgrade Database" 
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'upgrade', _TSUGI.spinnerUrl, true); return false;" >
   Upgrade Database
   </a>
 </li>
+<hr/>
+<li>
+  <a href="#" title="Check Cache"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'cache', _TSUGI.spinnerUrl); return false;" >
+  Check Cache
+  </a></li>
 <li>
   <a href="#" title="Check Nonces"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'nonce', _TSUGI.spinnerUrl); return false;" >
   Check Nonces
-  </a></li>
-<li>
-  <a href="#" title="Recent Logins"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'recent', _TSUGI.spinnerUrl); return false;" >
-  Recent Logins
   </a></li>
 <li>
   <a href="#" title="Check database size"
@@ -86,13 +98,6 @@ echo("</p>\n");
   Event Status
   </a>
 </li>
-<li><a href="context/">View Contexts</a></li>
-<li><a href="users/">View Users</a></li>
-<li><a href="activity/">View Activity</a></li>
-<li><a href="key">Manage Access Keys</a></li>
-<li><a href="expire">Manage Data Expiry</a></li>
-<li><a href="install">Manage Installed Modules</a></li>
-<li><a href="external">Manage External Tools</a></li>
 <li>
   <a href="#" title="Blob Status"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'blob_status', _TSUGI.spinnerUrl, true); return false;" >
@@ -111,11 +116,7 @@ echo("</p>\n");
   Unreferenced BLOB Cleanup
   </a>
 </li>
-<li>
-  <a href="#" title="Check Cache"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'cache', _TSUGI.spinnerUrl); return false;" >
-  Check Cache
-  </a></li>
+<li><a href="external">Manage Remote Tsugi Tools (deprecated)</a></li>
 </ul>
 <p>
 Best viewed with <a href="https://www.mozilla.org/en-US/firefox/" target="_new">FireFox</a> since 

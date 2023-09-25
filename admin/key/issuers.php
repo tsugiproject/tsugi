@@ -59,12 +59,22 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI 1.3 Issuers</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Key Requests</a>
-  <a href="issuers" class="btn btn-default active">LTI 1.3 Issuers</a>
   <a href="keys" class="btn btn-default">Tenant Keys</a>
+<?php if ( $CFG->providekeys ) { ?>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Key Requests</a>
+<?php } ?>
+  <a href="issuers" class="btn btn-default active">LTI 1.3 Issuers</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
+<p>
+Creating an Issuer allows for a single LTI 1.3 security configuration to be shared across many tenants.
+This might be useful when you are dealing with a SASS-only LMS that shares Keyset URLs, etc. 
+across many different tenants.  It is generally simpler to simply put in all of the security arrangement
+detail in each of the Tenants even if some of the URLs are the same across Tenants.  Once you create an Issuer
+here, you will see a drop down in the "Add Tenant" screen to select the issuer rather than entering all of the
+per-LMS URLs.
+</p>
 <p>
 <a href="issuer-add" class="btn btn-default">Add Issuer</a>
 </p>

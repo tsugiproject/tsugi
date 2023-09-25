@@ -38,13 +38,26 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-echo("<h1>Manage External Tools</h1>\n");
+echo("<h1>Manage Remote Tsugi Tools</h1>\n");
+if ( count($newrows) == 0 ) {
+?>
+<p>This section allows you to manage tools that use a Tsugi-specific lightweight
+protocol to lauch tools hosted on other systems.  The idea was to make it super
+simple to write a Django tool that could be hosted externally.
+</p>
+<p>
+While the feature works - you should consider it <b>deprecated</b> unless there is some increased
+interest in the approach.
+</p>
+<?php
+}
 
 $extra_buttons = array(
     "Add Tool" => "ext-add",
     "Admin" =>   $CFG->wwwroot."/admin"
 );
 Table::pagedTable($newrows, $searchfields, false, "ext-detail", false, $extra_buttons);
+
 
 $OUTPUT->footer();
 

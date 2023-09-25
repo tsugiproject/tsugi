@@ -19,25 +19,41 @@ if ( ! isAdmin() ) {
     die('Must be admin');
 }
 
+// Get the issuer count
+$sql = "SELECT issuer_id, issuer_key, issuer_guid
+        FROM {$CFG->dbprefix}lti_issuer";
+$rows = $PDOX->allRowsDie($sql);
+
 $from_location = "keys";
 $tablename = "{$CFG->dbprefix}lti_key";
-$fields = array('key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256', 'issuer_id',
-    'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
+$fields = array('key_title', 'key_key', 'key_sha256', 'secret', 
+    'lms_issuer', 'lms_issuer_sha256', 
+    'deploy_key', 'deploy_sha256', 
+    'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
     'xapi_url', 'xapi_user', 'xapi_password',
-    'caliper_url', 'caliper_key', 'created_at', 'updated_at', 'user_id');
+    'caliper_url', 'caliper_key', 
+    'created_at', 'updated_at', 
+    'user_id',
+);
+
+if ( count($rows) > 0 ) {
+    $fields[] = 'issuer_id';
+}
 
 $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
-    'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
-    'issuer_id' => 'LTI 1.3: Issuer (from this system)',
 
     'lms_issuer' => 'LTI 1.3 Platform Issuer URL',
+    'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
+    'unlock_code' => 'LTI 1.3: Single-use unlock code to LTI Dynamic Registration',
 	'lms_client' => 'LTI 1.3 Platform Client ID - usually a GUID',
 	'lms_oidc_auth' => 'LTI 1.3 Platform OIDC Login / Authorization Endpoint URL',
 	'lms_keyset_url' => 'LTI 1.3 Platform KeySet URL',
 	'lms_token_url' => 'LTI 1.3 Platform Token URL',
 	'lms_token_audience' => 'LTI 1.3 Platform Audience (optional)',
+
+    'issuer_id' => 'LTI 1.3: Global Issuer (from this system)',
 );
 
 if ( isset($_POST['issuer_id']) && empty($_POST['issuer_id']) ) $_POST['issuer_id'] = null;
@@ -62,12 +78,6 @@ if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
     header("Location: $from_location");
     return;
 }
-
-// Get the issuer count
-$sql = "SELECT issuer_id, issuer_key, issuer_guid
-        FROM {$CFG->dbprefix}lti_issuer";
-$rows = $PDOX->allRowsDie($sql);
-
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -107,20 +117,24 @@ Data in Tsugi is isolated to a tenant.  For a key to work it must have at least 
 <ul>
 <li>An LTI 1.1 <b>oauth_consumer_key</b> that must be unique in this system and
 a <b>secret</b>
-<li>LTI 1.3 <b>issuer</b> configuration data and a <b>deployment_id</b>.  Some LMS's support
-dynamic registration do not need to have a pre-created Tsugi Issuer entry and other LMS's
-work well by first creating an issuer and then associating a tenant key with that issuer.
-See the per-LMS documentation for more details.
+<li>For an LMS that supports LTI 1.3 and Dynamic Registration, enter the <b>issuer</b>, a <b>deployment_id</b>, and <b>unlock_key</b> 
+and leave the other fields blank.
+If you do not know the <b>deployment_id</b> or it will be set automatically later using Dynamic Registration, you can put a
+random value into the field in order to get the key created which can be edited or automatically updated later.
+</li>
+<li>For an LTI 1.3 LMS that does not support Dynamic Registration, you will need to fill in all the fields (except <b>unlock_code</b>).
+Sometimes LMS's create a chicken-and-egg problem where they want to the URLs from the tool before they give you some of their values.
+Get as many of the values as you can get, and fill them in while adding the key, then give them the LMS the values from Tsugi and they
+should be able to give you the rest of the values and you can come back and edit the entry here.
 </li>
 </ul>
-Some keys
-specify both credentials when an existing LTI 1.1 key is being transitioned to LTI 1.3
-or if you want to flow LTI 1.1 and LTI 1.3 launches into a single tenant.
+Some tenants can have both LTI 1.1 and LTI 1.3 values if you want to have automatic conversion of accounts
+created in Tsugi using LTI 1.1 and letting them be converted to support LTI 1.3 without creating a second account.
 </p>
 <h2>LTI 1.3 Dynamic Registration</h2>
 <p>
 If you are planning on using the
-<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>
 or you need to provide the LMS tool
 configuration information before they can provide you the values needed on this page,
 you can create a <b>draft</b> key here with just a title and then view the key detail page
@@ -140,7 +154,7 @@ If you are adding LTI 1.3 to a pre-existing LTI 1.1 tenant, the LMS must
 support
 LTI Advantage legacy LTI 1.1 support as described in the
 <a href="http://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim" target="_blank">
-IMS Learning Tools® Interoperability Migration Guide - Migration Claim
+Learning Tools® Interoperability Migration Guide - Migration Claim
 </a>.   The LMS must sign the claim using both the LTI 1.1 and LTI 1.3 security data.
 The migration claim is not required - but if it is present, Tsugi will insist that it is properly
 signed or it will reject the launch.
@@ -150,7 +164,7 @@ signed or it will reject the launch.
 <h2>LTI 1.3</h2>
 <p>
 Congratulations! Your LMS supports
-<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">IMS Dynamic Registration</a>.
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>.
 This standard greatly simplifies the process of creating and configuring a security relationship between
 Tsugi and an LMS.
 Create a <b>draft</b> key in Tsugi by entering the <b>title</b> and <b>issuer</b>.  Leave the rest of the fields blank
@@ -221,13 +235,18 @@ to see the various URLs you can use to install Tsugi in Blackboard.
 </div>
 <?php
 $OUTPUT->footerStart();
+?>
+<script>
+</script>
+
+<?php
+if ( count($rows) > 0 ) {
 $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Global Issuer Selected</option>";
 foreach($rows as $row) {
     $select_text .= '<option value="'.$row['issuer_id'].'">'.htmlentities($row['issuer_key']. ' ('.$row['issuer_guid'].')')."</option>";
 }
 $select_text .= "</select>";
 
-if ( count($rows) > 0 ) {
 ?>
 <script>
     function showHideLMSValues(issuer_id)
@@ -238,11 +257,8 @@ if ( count($rows) > 0 ) {
             var ignored = '';
             array.forEach(function (item, index) {
                 $('#'+item).closest('div').hide();
-                var val = $('#'+item).val();
-                if ( val.length > 0 ) {
-                    if ( ignored.length > 0 ) ignored = ignored + ' ';
-                    ignored = ignored + item;
-                }
+                if ( ignored.length > 0 ) ignored = ignored + ' ';
+                ignored = ignored + item;
             });
             if ( ignored.length > 0 ) {
                 alert("By choosing a Global Issuer the following tenant key fields will be ignored: "+ignored);
@@ -252,9 +268,9 @@ if ( count($rows) > 0 ) {
             $("#lms_note").show();
         }
     }
-$('#lms_issuer').closest('div').before("<p id=\"lms_note\">If you enter per-tenant LTI 1.3 Platform data in the fields below, (a) set them all and (b) do not select a global issuer for this tenant. If you select a global issuer, the LTI 1.3 Platform fields below will be ignored.</p>");
-$('<?= $select_text ?>').insertBefore('#issuer_id');
+$('#lms_issuer').closest('div').before("<p id=\"lms_note\">If you enter per-tenant LTI 1.3 Platform data in the fields below, (a) set them all and (b) do not select a Global Issuer for this tenant. If you select a Global Issuer from the drop-down below, most of the LTI 1.3 Platform fields below will be ignored and instead taken from the Issuer configuration.</p>");
 $('#issuer_id').hide();
+$('<?= $select_text ?>').insertBefore('#issuer_id');
 $('#issuer_id_select').on('change', function() {
   $('input[name="issuer_id"]').val(this.value);
   showHideLMSValues(this.value);
@@ -262,6 +278,7 @@ $('#issuer_id_select').on('change', function() {
 </script>
 
 <?php
-}
+} /* count($rows) > 0 */
+
 $OUTPUT->footerEnd();
 
