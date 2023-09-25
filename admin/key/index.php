@@ -1,51 +1,65 @@
 <?php
 // In the top frame, we use cookies for session.
-if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
 use \Tsugi\UI\Table;
-use \Tsugi\Core\Mail;
 use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
+header('Content-Type: text/html; charset=utf-8');
 session_start();
-
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
-    $_SESSION['login_return'] = LTIX::curPageUrlFolder();
-    header('Location: '.$CFG->wwwroot.'/login');
-    return;
-}
+if ( ! isAdmin() ) die('Must be admin');
+
+// Patch lms_issuer_sha256 in case it ended up null
+$patch_sql = "UPDATE {$CFG->dbprefix}lti_key SET lms_issuer_sha256 = sha2(lms_issuer, 256)
+    WHERE lms_issuer_sha256 IS NULL AND lms_issuer IS NOT NULL";
+$rows = $PDOX->queryDie($patch_sql);
 
 $query_parms = array();
-$searchfields = array("request_id", "title", "notes", "state", "admin", "email", "displayname", "R.created_at", "R.updated_at");
-$sql = "SELECT request_id, title, notes, state, admin, R.created_at, R.updated_at, email, displayname
-        FROM {$CFG->dbprefix}key_request  as R
-        JOIN {$CFG->dbprefix}lti_user AS U ON R.user_id = U.user_id ";
-
-if ( !isAdmin() ) {
-    $sql .= "\nWHERE R.user_id = :UID";
-    $query_parms = array(":UID" => $_SESSION['id']);
-}
+$searchfields = array("K.key_id", "key_title", "key_key", "deploy_key", "K.login_at", "K.updated_at", "K.user_id", "issuer_key");
+$sql = "SELECT K.key_id AS key_id, key_title, key_key, secret, lms_issuer, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
+    lms_issuer,
+    K.user_id AS user_id
+        FROM {$CFG->dbprefix}lti_key AS K
+        LEFT JOIN {$CFG->dbprefix}lti_issuer AS I
+        ON K.issuer_id = I.issuer_id
+";
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
 // echo("<pre>\n$newsql\n</pre>\n");
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {
-    $newrow = $row;
-    $state = $row['state'];
-    if ( $state == 0 ) {
-        $newrow['state'] = "0 (Waiting)";
-    } else if ( $state == 1 ) {
-        $newrow['state'] = "1 (Approved)";
-    } else if ( $state == 2 ) {
-        $newrow['state'] = "2 (Not approved)";
+    $newrow = array();
+    $newrow['key_id'] = $row['key_id'];
+    $newrow['key'] = $row['key_key'];
+    if ( !empty($row['key_title']) ) $newrow['key'] = $row['key_title'];
+    $key_type = '';
+    if ( is_string($row['key_key']) && !empty($row['key_key']) && is_string($row['secret']) && !empty($row['secret']) ) {
+        $key_type .= 'LTI 1.1';
     }
+    if ( is_string($row['lms_issuer']) && !empty($row['lms_issuer'])  && is_string($row['deploy_key']) && !empty($row['deploy_key']) ) {
+        if ( !empty($key_type) ) $key_type .= ' / ';
+        $key_type .= 'LTI 1.3';
+    } else if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && !empty($row['issuer_key']) && is_string($row['deploy_key']) && !empty($row['deploy_key'])) {
+        if ( !empty($key_type) ) $key_type .= ' / ';
+        $key_type .= 'LTI 1.3';
+    }
+    if ( $key_type == '' ) $key_type = 'Draft';
+    $newrow['key_type'] = $key_type;
+    $issuer_key = $row['lms_issuer'];
+    if ( !empty($row['issuer_key']) ) $issuer_key = "I: " . $row['issuer_key'];
+    if ( !empty($issuer_key) && !empty($row['deploy_key']) ) $issuer_key .= ' | ' . $row['deploy_key'];
+    $newrow['issuer_|_deployment'] = $issuer_key;
+    $newrow['login_at'] = $row['login_at'];
+    $newrow['updated_at'] = $row['updated_at'];
+    $newrow['user_id'] = $row['user_id'];
     $newrows[] = $newrow;
 }
 
@@ -54,16 +68,28 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
-<h1>LTI Key Requests</h1>
+<h1>LTI Tenants (Keys)</h1>
 <p>
-  <a href="keys" class="btn btn-default">Tenant Keys</a>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Tenant Keys</a>
 <?php if ( $CFG->providekeys ) { ?>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">Key Requests</a>
+  <a href="requests" class="btn btn-default">Key Requests</a>
 <?php } ?>
   <a href="issuers" class="btn btn-default">LTI 1.3 Issuers</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
+<?php if ( count($newrows) < 1 ) { ?>
+<p>
+You have no Tenant keys for this system.
+</p>
+<?php }
+$extra_buttons = array(
+  "Insert Tenant" => "key-add"
+);
+Table::pagedTable($newrows, $searchfields, false, "key-detail", false, $extra_buttons);
+// echo("<pre>\n");print_r($newrows);echo("</pre>\n");
+if ( isAdmin() ) { ?>
+<?php } ?>
+
 <?php
-Table::pagedTable($newrows, $searchfields, false, "request-detail");
 $OUTPUT->footer();
 

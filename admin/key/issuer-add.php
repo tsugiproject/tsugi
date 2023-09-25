@@ -8,6 +8,7 @@ require_once("issuer-util.php");
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Tsugi\UI\CrudForm;
+use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -69,7 +70,7 @@ $lti13_ims_json_url = $CFG->wwwroot . '/lti/store/ims-config/' . urlencode($guid
 <h1>
 <img src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo-square.png" style="float:right; width:48px;">
 Adding Issuer Entry
-  <a class="btn btn-default" href="keys">Exit</a>
+  <a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">Exit</a>
 </h1>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#generic" data-toggle="tab" aria-expanded="true">Issuer Data</a></li>

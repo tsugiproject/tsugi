@@ -7,6 +7,7 @@ require_once("key-util.php");
 
 use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
+use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -23,12 +24,12 @@ $inedit = U::get($_REQUEST,'edit');
 
 $tablename = "{$CFG->dbprefix}lti_key";
 $current = $CFG->getCurrentFileUrl(__FILE__);
-$from_location = "keys";
+$from_location = LTIX::curPageUrlFolder();
 $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'issuer_id',
+$fields = array('key_id', 'key_title', 'key_key', 'secret', 'issuer_id', 'deploy_key',
      'unlock_code',
      'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
@@ -130,7 +131,7 @@ $OUTPUT->flashMessages();
 ?>
 <h1>Tenant Details
   <a class="btn btn-default" href="#" onclick="window.location.reload(); return false;">Refresh</a>
-  <a class="btn btn-default" href="keys">Exit</a>
+  <a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">Exit</a>
 </h1>
 <p>
 <b>Key status: <?= $key_type ?></b>

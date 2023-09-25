@@ -8,6 +8,7 @@ require_once("issuer-util.php");
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI13;
 use \Tsugi\UI\CrudForm;
+use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -82,7 +83,7 @@ $title = 'Issuer Entry';
 <img src="<?= $CFG->staticroot ?>/img/logos/tsugi-logo-square.png" style="float:right; width:48px;">
 Editing Issuer
   <a class="btn btn-default" href="#" onclick="window.location.reload(); return false;">Refresh</a>
-  <a class="btn btn-default" href="keys">Exit</a>
+  <a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">Exit</a>
 </h1>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#generic" data-toggle="tab" aria-expanded="true">Issuer Data</a></li>

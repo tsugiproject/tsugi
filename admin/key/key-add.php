@@ -7,6 +7,7 @@ require_once("key-util.php");
 
 use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
+use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -24,7 +25,7 @@ $sql = "SELECT issuer_id, issuer_key, issuer_guid
         FROM {$CFG->dbprefix}lti_issuer";
 $rows = $PDOX->allRowsDie($sql);
 
-$from_location = "keys";
+$from_location = "<?= LTIX::curPageUrlFolder() ?>";
 $tablename = "{$CFG->dbprefix}lti_key";
 $fields = array('key_title', 'key_key', 'key_sha256', 'secret', 
     'lms_issuer', 'lms_issuer_sha256', 
@@ -86,7 +87,7 @@ $OUTPUT->flashMessages();
 
 ?>
 <h1>Adding Tsugi Tenant/Key
-  <a class="btn btn-default" href="keys">Exit</a>
+<a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">Exit</a>
 </h1>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
