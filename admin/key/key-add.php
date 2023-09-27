@@ -25,7 +25,7 @@ $sql = "SELECT issuer_id, issuer_key, issuer_guid
         FROM {$CFG->dbprefix}lti_issuer";
 $rows = $PDOX->allRowsDie($sql);
 
-$from_location = "<?= LTIX::curPageUrlFolder() ?>";
+$from_location = LTIX::curPageUrlFolder();
 $tablename = "{$CFG->dbprefix}lti_key";
 $fields = array('key_title', 'key_key', 'key_sha256', 'secret', 
     'lms_issuer', 'lms_issuer_sha256', 
