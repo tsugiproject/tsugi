@@ -27,13 +27,14 @@ $rows = $PDOX->allRowsDie($sql);
 
 $from_location = LTIX::curPageUrlFolder();
 $tablename = "{$CFG->dbprefix}lti_key";
-$fields = array('key_title', 'key_key', 'key_sha256', 'secret', 
-    'lms_issuer', 'lms_issuer_sha256', 
-    'deploy_key', 'deploy_sha256', 
-    'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
+$fields = array('key_title', 'key_key', 'key_sha256', 'secret',
+    'lms_issuer', 'lms_issuer_sha256',
+    'lms_client',
+    'deploy_key', 'deploy_sha256',
+    'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
     'xapi_url', 'xapi_user', 'xapi_password',
-    'caliper_url', 'caliper_key', 
-    'created_at', 'updated_at', 
+    'caliper_url', 'caliper_key',
+    'created_at', 'updated_at',
     'user_id',
 );
 
@@ -46,7 +47,7 @@ $titles = array(
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
 
     'lms_issuer' => 'LTI 1.3 Platform Issuer URL',
-    'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
+    'deploy_key' => 'LTI 1.3: Deployment ID',
     'unlock_code' => 'LTI 1.3: Single-use unlock code to LTI Dynamic Registration',
 	'lms_client' => 'LTI 1.3 Platform Client ID - usually a GUID',
 	'lms_oidc_auth' => 'LTI 1.3 Platform OIDC Login / Authorization Endpoint URL',
@@ -101,8 +102,15 @@ $OUTPUT->flashMessages();
 <p>
 Sometimes you need to give the LMS the Tsugi URLs to make a new security arrangement
 <b>before</b> they can give you the Platform values to put into either a global issuer
-or this form.  See "About Keys" for detail on how to create a <b>draft</b> key.
+or this form. Tsugi solves this with a concept called "Draft Keys" where you can create a key
+with minimal information and then edit it later (perhaps by dynamic registration) to fill in the
+remaining details.   To create a draft LTI 1.3 key, you need to set the <b>LTI 1.3 Issuer</b> to the
+correct issuer and set <b>LTI 1.3 Deployment Id</b> to a random unique placeholder value
+which will be overwritten later in the process.
+</p>
 <p>
+See "About Keys" tab for detail on how to create a <b>draft</b> key.
+</p>
 <?php
 
 CrudForm::insertForm($fields, $from_location, $titles);
@@ -118,7 +126,7 @@ Data in Tsugi is isolated to a tenant.  For a key to work it must have at least 
 <ul>
 <li>An LTI 1.1 <b>oauth_consumer_key</b> that must be unique in this system and
 a <b>secret</b>
-<li>For an LMS that supports LTI 1.3 and Dynamic Registration, enter the <b>issuer</b>, a <b>deployment_id</b>, and <b>unlock_key</b> 
+<li>For an LMS that supports LTI 1.3 and Dynamic Registration, enter the <b>issuer</b>, a <b>deployment_id</b>, and <b>unlock_key</b>
 and leave the other fields blank.
 If you do not know the <b>deployment_id</b> or it will be set automatically later using Dynamic Registration, you can put a
 random value into the field in order to get the key created which can be edited or automatically updated later.
