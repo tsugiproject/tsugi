@@ -779,4 +779,17 @@ class U {
         return htmlentities($string);
     }
 
+    /**
+     * Build an "always works" json_decode()
+     *
+     * This is needed because in PHP 8.2 json_decode() demands a string (i.e. can't handle false, etc)
+     */
+    public static function json_decode($string) : object {
+        if ( !isset($string) ) return  new \stdClass();
+        if ( ! is_string($string) ) return  new \stdClass();
+        $retval = json_decode($string);
+        if ( is_object($retval) ) return $retval;
+        return new \stdClass();
+    }
+
 }
