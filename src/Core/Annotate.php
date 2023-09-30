@@ -34,7 +34,8 @@ class Annotate {
             );
             if ( ! $row ) return array();
             $json_str = $row['json'];
-            $json = json_decode($json_str);
+            if ( is_string($json_str) ) $json = json_decode($json_str);
+            if ( ! is_object($json) ) $json = new \stdClass();
             if ( isset($json->annotations) ) return $json->annotations;
             return array();
         } else {
