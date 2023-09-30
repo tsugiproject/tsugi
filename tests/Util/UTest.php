@@ -173,7 +173,7 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($t1, "");
     }
 
-    public function testEmpty() {
+    public function testStrlen() {
         // Non string parameters in the old days were treated as "stringy" - if
         // something can be converted to a string, what would its length be?
         // PHP beyond 8.2 might get cranky with these illegal calls.
@@ -196,7 +196,9 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(U::strlen(false), 0);
         $this->assertEquals(U::strlen(null), 0);
         $this->assertEquals(U::strlen(true), 0);  // Depart from PHP here
+    }
 
+    public function testEmpty() {
         // Sane stuff
         $this->assertTrue(U::isEmpty(''));
         $this->assertTrue(U::isEmpty(null));
@@ -238,6 +240,31 @@ class UTest extends \PHPUnit\Framework\TestCase
             empty(true) = false
         */
 
+    }
+
+    public function testJsonDecode() {
+        $this->assertIsObject(U::json_decode(null));
+        $this->assertIsObject(U::json_decode(false));
+        $this->assertIsObject(U::json_decode(42));
+        $this->assertIsObject(U::json_decode('funky'));
+        $this->assertIsObject(U::json_decode('{ "zap }'));
+
+        $json = '{ "key" : 42 }';
+        $js = U::json_decode($json);
+        $this->assertIsObject($js);
+
+        // $this->assertObjectHasProperty('key', $js);
+        $this->assertTrue(property_exists($js, 'key'));
+        // $this->assertObjectHasNotProperty('bob', $js);
+        $this->assertFalse(property_exists($js, 'bob'));
+
+        // Bad json
+        $json = '{ "key : 42 }';
+        $js = U::json_decode($json);
+        $this->assertIsObject($js);
+
+        $this->assertFalse(property_exists($js, 'key'));
+        $this->assertFalse(property_exists($js, 'bob'));
     }
 
     public function testUrlParm() {
