@@ -492,7 +492,8 @@ class Result extends Entity {
             return $retval;
         } else if ( $this->launch->user->instructor ) {
             $json_str = $this->getJsonForUser($user_id);
-            $json = json_decode($json_str);
+            if ( is_string($json_str) ) $json = json_decode($json_str);
+            if ( ! is_object($json) ) $json = new \stdClass();
             if ( isset($json->{$key}) ) return $json->{$key};
             return $default;
         } else {
