@@ -143,10 +143,12 @@ class ConfigInfo {
      */
     public $slow_query;
 
-    public $redis;
     /**
      * Adding in support for using Redis for session caching.
+     *
+     * $CFG->redis = 'tcp://localhost:6379?auth=addYourRedisPasswordHere';
      */
+    public $redis;
 
     /**
      * This is the PW that you need to access the Administration features of this application.
