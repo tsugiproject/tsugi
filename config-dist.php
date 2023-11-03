@@ -457,6 +457,11 @@ if ( isset($CFG->memcached) && U::strlen($CFG->memcached) > 0 ) {
     ini_set('session.serialize_handler', 'php_serialize');
 }
 
+// Redis sessions configuration
+// $CFG->redis = 'tcp://localhost:6379?auth=addYourRedisPasswordHere';
+if ( isset($CFG->redis) AND strlen($CFG->redis) > 0 ) {
+   ini_set('session.save_handler', 'redis');
+   ini_set('session.save_path', $CFG->redis);
 // Store sessions in a database -  Keep this false until the DB upgrade
 // has run once or you won't be able to get into the admin. The
 // connection used should should be a different database or at
