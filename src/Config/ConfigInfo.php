@@ -143,6 +143,11 @@ class ConfigInfo {
      */
     public $slow_query;
 
+    public $redis;
+    /**
+     * Adding in support for using Redis for session caching.
+     */
+
     /**
      * This is the PW that you need to access the Administration features of this application.
      *
