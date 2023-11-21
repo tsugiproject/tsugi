@@ -95,6 +95,19 @@ function findAllTools()
 function findAllRegistrations($folders=false, $appStore=false)
 {
     global $CFG, $PDOX;
+
+    $regCode = $CFG->dirroot . '/../load_registrations.php';
+    if ( file_exists($regCode) ) {
+        require_once($regCode);
+        return loadRegistrations();
+    }
+    return findAllRegistrationsInternal($folders, $appStore);
+}
+
+function findAllRegistrationsInternal($folders=false, $appStore=false)
+{
+    global $CFG, $PDOX;
+
     // Scan the tools folders for registration settings
     if ( $folders == false ) $folders = $CFG->tool_folders;
     if ( is_string($folders) ) $folders = array($folders);
