@@ -788,6 +788,10 @@ class ConfigInfo {
         $this->lumen_storage = sprintf("%s/storage/", $dirroot);
     }
 
+    function getExtension($key, $default=null) {
+	    return $this->extensions[$key] ?? $default;
+    }
+
     function getCurrentFile($file) {
         $root = $this->dirroot;
         $path = realpath($file);
