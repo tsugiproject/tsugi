@@ -124,7 +124,7 @@ class GradeUtil {
         $p = $CFG->dbprefix;
         $sql =
         "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id, 
-            R.grade AS grade, R.note AS note
+            R.grade AS grade, R.note AS note, R.updated_at AS updated_at
         FROM {$p}lti_result AS R
         JOIN {$p}lti_link as L ON R.link_id = L.link_id
         LEFT JOIN {$p}lti_service AS S ON R.service_id = S.service_id

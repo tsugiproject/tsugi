@@ -782,7 +782,7 @@ class Lessons {
         echo($ob_output);
     }
 
-    public function renderAssignments($allgrades, $buffer=false)
+    public function renderAssignments($allgrades, $alldates, $buffer=false)
     {
         ob_start();
         echo('<h1>'.$this->lessons->title."</h1>\n");
@@ -822,7 +822,11 @@ class Lessons {
                     }
                     echo("</td><td>".$lti->title."</td>\n");
                     if ( isset($allgrades[$lti->resource_link_id]) ) {
-                        echo("<td>Score: ".(100*$allgrades[$lti->resource_link_id])."</td>");
+                        $datestring = U::get($alldates, $lti->resource_link_id, "");
+                        if ( strlen($datestring) > 0 ) {
+                            $datestring = " (".substr($datestring,0,10).")";
+                        }
+                        echo("<td>Score: ".(100*$allgrades[$lti->resource_link_id]).$datestring."</td>");
                     } else {
                         echo("<td>&nbsp;</td>");
                     }
