@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'df6058153df65ab70253728b499f8c2736e4c79a',
+        'reference' => 'd4b1baae3f7611f7cc940d9b2e047eb62191ed93',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'df6058153df65ab70253728b499f8c2736e4c79a',
+            'reference' => 'd4b1baae3f7611f7cc940d9b2e047eb62191ed93',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -427,7 +427,7 @@
         'koseu/lib' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '1e42cf5fb4270cab5740e04acd31524a3e8ef265',
+            'reference' => 'f040950ea3603199fa1dd2702f426773323bdd79',
             'type' => 'library',
             'install_path' => __DIR__ . '/../koseu/lib',
             'aliases' => array(
@@ -1045,7 +1045,7 @@
         'tsugi/lib' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '6c130d21b2ad165a4200d3574b55b9db7e53adea',
+            'reference' => 'e4fbf3a1c2b02aea675878d5c098daaf38b0e105',
             'type' => 'library',
             'install_path' => __DIR__ . '/../tsugi/lib',
             'aliases' => array(

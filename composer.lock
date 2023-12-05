@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2aaeb9f68580bfdbfd9c3cbc050125ba",
+    "content-hash": "7c91ac24e6697980ad50068546c6b22a",
     "packages": [
         {
             "name": "brick/math",
@@ -2814,18 +2814,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "1e42cf5fb4270cab5740e04acd31524a3e8ef265"
+                "reference": "f040950ea3603199fa1dd2702f426773323bdd79"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/1e42cf5fb4270cab5740e04acd31524a3e8ef265",
-                "reference": "1e42cf5fb4270cab5740e04acd31524a3e8ef265",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/f040950ea3603199fa1dd2702f426773323bdd79",
+                "reference": "f040950ea3603199fa1dd2702f426773323bdd79",
                 "shasum": ""
             },
             "require": {
                 "laravel/lumen-framework": ">=8.0.0",
                 "php": ">=8.2.0",
-                "tsugi/lib": "dev-master#b2c0afb9989eddcaaeeed818c45025cca33fda4b"
+                "tsugi/lib": "dev-master#e4fbf3a1c2b02aea675878d5c098daaf38b0e105"
             },
             "default-branch": true,
             "type": "library",
@@ -2857,7 +2857,7 @@
                 "issues": "https://github.com/tsugiproject/koseu-php/issues",
                 "source": "https://github.com/tsugiproject/koseu-php/tree/master"
             },
-            "time": "2023-08-07T14:21:32+00:00"
+            "time": "2023-12-05T13:07:48+00:00"
         },
         {
             "name": "laravel/lumen-framework",
@@ -7204,12 +7204,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "6c130d21b2ad165a4200d3574b55b9db7e53adea"
+                "reference": "e4fbf3a1c2b02aea675878d5c098daaf38b0e105"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/6c130d21b2ad165a4200d3574b55b9db7e53adea",
-                "reference": "6c130d21b2ad165a4200d3574b55b9db7e53adea",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/e4fbf3a1c2b02aea675878d5c098daaf38b0e105",
+                "reference": "e4fbf3a1c2b02aea675878d5c098daaf38b0e105",
                 "shasum": ""
             },
             "require": {
@@ -7252,7 +7252,7 @@
                 "issues": "https://github.com/tsugiproject/tsugi-php/issues",
                 "source": "https://github.com/tsugiproject/tsugi-php/tree/master"
             },
-            "time": "2023-11-22T04:48:46+00:00"
+            "time": "2023-12-05T13:05:02+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
