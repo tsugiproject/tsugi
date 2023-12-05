@@ -29,10 +29,12 @@ class Assignments {
 
         // Load all the Grades so far
         $allgrades = array();
+        $alldates = array();
         if ( isset($_SESSION['id']) && isset($_SESSION['context_id'])) {
             $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
             foreach($rows as $row) {
                 $allgrades[$row['resource_link_id']] = $row['grade'];
+                $alldates[$row['resource_link_id']] = $row['updated_at'];
             }
         }
 
@@ -41,7 +43,7 @@ class Assignments {
         $menu = false;
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        $l->renderAssignments($allgrades, false);
+        $l->renderAssignments($allgrades, $alldates, false);
         $OUTPUT->footer();
     }
 }
