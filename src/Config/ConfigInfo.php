@@ -792,6 +792,13 @@ class ConfigInfo {
 	    return $this->extensions[$key] ?? $default;
     }
 
+    /**
+     * Set an extension value
+     */
+    function setExtension($key, $value) {
+	    $this->extensions[$key] = $value;
+    }
+
     function getCurrentFile($file) {
         $root = $this->dirroot;
         $path = realpath($file);
