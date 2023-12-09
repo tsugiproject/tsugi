@@ -24,7 +24,7 @@
 
         "nesbot/carbon" : "2.68.1",
 
-        "tsugi/lib": "dev-master#e4fbf3a1c2b02aea675878d5c098daaf38b0e105",
+        "tsugi/lib": "dev-master#69c5164b339083aff6b5d032488f64136c5ad8b7",
         "koseu/lib": "dev-master#f040950ea3603199fa1dd2702f426773323bdd79"
     },
     "config": {
