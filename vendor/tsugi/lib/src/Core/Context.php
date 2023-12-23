@@ -51,6 +51,11 @@ class Context extends Entity {
      */
     public $secret;
 
+    /*
+     * The context_id from the server
+     */
+    public $context_id;
+
     /**
      * Load the LTI 1.3 data from the session, checking for sanity
      *
