@@ -1317,7 +1317,7 @@ class LTIX {
             k.lms_issuer, k.lms_client, k.lms_oidc_auth, k.lms_keyset_url,
             k.lms_token_url, k.lms_token_audience, k.lms_cache_keyset, k.lms_cache_pubkey, k.lms_cache_kid,
             n.nonce,
-            c.context_id, c.title AS context_title, context_sha256, C.context_key as context_key,
+            c.context_id, c.title AS context_title, context_sha256, c.context_key as context_key,
             c.settings_url AS context_settings_url,
             c.ext_memberships_id AS ext_memberships_id, c.ext_memberships_url AS ext_memberships_url,
             c.lineitems_url AS lineitems_url, c.memberships_url AS memberships_url,
