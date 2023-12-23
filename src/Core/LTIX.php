@@ -486,7 +486,6 @@ class LTIX {
             $row['deployment_id'] = $post['deployment_id'];
         }
 
-
         if ( ! $row || ! U::get($row, 'key_id') ) {
             if ( U::get($post,'key') ) {  // LTI 1.1
                 self::abort_with_error_log('Launch could not find key: '.htmlentities(U::get($post,'key')));
@@ -1318,7 +1317,8 @@ class LTIX {
             k.lms_issuer, k.lms_client, k.lms_oidc_auth, k.lms_keyset_url,
             k.lms_token_url, k.lms_token_audience, k.lms_cache_keyset, k.lms_cache_pubkey, k.lms_cache_kid,
             n.nonce,
-            c.context_id, c.title AS context_title, context_sha256, c.settings_url AS context_settings_url,
+            c.context_id, c.title AS context_title, context_sha256, C.context_key as context_key,
+            c.settings_url AS context_settings_url,
             c.ext_memberships_id AS ext_memberships_id, c.ext_memberships_url AS ext_memberships_url,
             c.lineitems_url AS lineitems_url, c.memberships_url AS memberships_url,
             c.lti13_lineitems AS lti13_lineitems, c.lti13_membership_url AS lti13_membership_url,
@@ -1542,6 +1542,7 @@ class LTIX {
                 ':title' => $post['context_title'],
                 ':key_id' => $row['key_id']));
             $row['context_id'] = $PDOX->lastInsertId();
+            $row['context_key'] = $post['context_id'];  // We rename this for all internal structures...
             $row['context_title'] = $post['context_title'];
             $row['context_settings_url'] = $context_settings_url;
             $actions[] = "=== Inserted context id=".$row['context_id']." ".$row['context_title'];
@@ -2290,6 +2291,7 @@ class LTIX {
             if (isset($LTI['context_title']) ) $CONTEXT->title = $LTI['context_title'];
             if (isset($LTI['key_key']) ) $CONTEXT->key = $LTI['key_key'];
             if (isset($LTI['secret']) ) $CONTEXT->secret = $LTI['secret'];
+            if (isset($LTI['context_key']) ) $CONTEXT->context_id = $LTI['context_key'];
             $TSUGI_LAUNCH->context = $CONTEXT;
         }
 
