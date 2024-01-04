@@ -16,7 +16,7 @@ class GradeUtil {
         // Get basic grade data
         $stmt = $PDOX->queryDie(
             "SELECT R.result_id AS result_id, R.user_id AS user_id,
-                grade, note, R.json AS json, R.note as note, R.updated_at AS updated_at, displayname, email
+                grade, note, R.json AS json, R.note as note, R.updated_at AS updated_at, R.created_at AS created_at, displayname, email
             FROM {$p}lti_result AS R
             JOIN {$p}lti_user AS U ON R.user_id = U.user_id
             WHERE R.link_id = :LID
@@ -57,7 +57,7 @@ class GradeUtil {
         // Get basic grade data
         $stmt = $PDOX->queryDie(
             "SELECT R.result_id AS result_id, R.user_id AS user_id,
-                grade, note, R.json AS json, R.note as note, R.updated_at AS updated_at, displayname, email
+                grade, note, R.json AS json, R.note as note, R.updated_at AS updated_at, R.created_at AS created_at, displayname, email
             FROM {$p}lti_result AS R
             JOIN {$p}lti_user AS U ON R.user_id = U.user_id
             WHERE R.link_id = :LID AND R.user_id = :UID
@@ -76,6 +76,7 @@ class GradeUtil {
         }
         echo("Name: ".htmlent_utf8($row['displayname'])."<br/>\n");
         echo("Email: ".htmlent_utf8($row['email'])."<br/>\n");
+        echo("Started at: ".htmlent_utf8($row['created_at'])."<br/>\n");
         echo("Last Submission: ".htmlent_utf8($row['updated_at'])."<br/>\n");
         echo("Score: ".htmlent_utf8($row['grade'])."<br/>\n");
         echo("</p>\n");
@@ -123,8 +124,8 @@ class GradeUtil {
         global $CFG, $PDOX;
         $p = $CFG->dbprefix;
         $sql =
-        "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id, 
-            R.grade AS grade, R.note AS note, R.updated_at AS updated_at
+        "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id,
+            R.grade AS grade, R.note AS note, R.updated_at AS updated_at, R.created_at AS created_at
         FROM {$p}lti_result AS R
         JOIN {$p}lti_link as L ON R.link_id = L.link_id
         LEFT JOIN {$p}lti_service AS S ON R.service_id = S.service_id
