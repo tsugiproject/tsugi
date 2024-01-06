@@ -16,7 +16,7 @@ $values = array(':link_id' => $LINK->id);
 $row = $PDOX->rowDie($sql, $values);
 
 $ent = new Entry();
-if ( is_object($row) ) {
+if ( is_array($row) ) {
     $ent->deSerialize($row['activity']);
     $ent->total = $row['link_count']+0;
 }
