@@ -92,7 +92,7 @@ class Lessons {
         }
 
         // Check that the session has the minimums...
-        if ( isset($module->lti) && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+        if ( U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
                 && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
         {
             // All good

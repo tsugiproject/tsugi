@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "511182808be0d3431a6976b8fcc20dde",
+    "content-hash": "93ce89901f317d4490552a56abfe85ed",
     "packages": [
         {
             "name": "brick/math",
@@ -2814,12 +2814,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "f040950ea3603199fa1dd2702f426773323bdd79"
+                "reference": "70c7ac1ca413c2dd541e078ebe07719405621b1b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/f040950ea3603199fa1dd2702f426773323bdd79",
-                "reference": "f040950ea3603199fa1dd2702f426773323bdd79",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/70c7ac1ca413c2dd541e078ebe07719405621b1b",
+                "reference": "70c7ac1ca413c2dd541e078ebe07719405621b1b",
                 "shasum": ""
             },
             "require": {
@@ -2857,7 +2857,7 @@
                 "issues": "https://github.com/tsugiproject/koseu-php/issues",
                 "source": "https://github.com/tsugiproject/koseu-php/tree/master"
             },
-            "time": "2023-12-05T13:07:48+00:00"
+            "time": "2024-01-09T00:31:05+00:00"
         },
         {
             "name": "laravel/lumen-framework",

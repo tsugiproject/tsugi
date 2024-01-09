@@ -2944,12 +2944,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "f040950ea3603199fa1dd2702f426773323bdd79"
+                "reference": "70c7ac1ca413c2dd541e078ebe07719405621b1b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/f040950ea3603199fa1dd2702f426773323bdd79",
-                "reference": "f040950ea3603199fa1dd2702f426773323bdd79",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/70c7ac1ca413c2dd541e078ebe07719405621b1b",
+                "reference": "70c7ac1ca413c2dd541e078ebe07719405621b1b",
                 "shasum": ""
             },
             "require": {
@@ -2957,7 +2957,7 @@
                 "php": ">=8.2.0",
                 "tsugi/lib": "dev-master#e4fbf3a1c2b02aea675878d5c098daaf38b0e105"
             },
-            "time": "2023-12-05T13:07:48+00:00",
+            "time": "2024-01-09T00:31:05+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",
