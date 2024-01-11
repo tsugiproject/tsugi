@@ -86,22 +86,29 @@ class User {
      * Construct the user's name / email combination
      */
     public function getNameAndEmail() {
-        $display = '';
-        if ( isset($this->displayname) && U::strlen($this->displayname) > 0 ) {
-            $display = $this->displayname;
-        }
-        if ( isset($this->email) && U::strlen($this->email) > 0 ) {
-            if ( U::strlen($display) > 0 ) {
-                $display .= ' ('.$this->email.')';
-            } else {
-                $display = $this->email;
-            }
-        }
-        $display = trim($display);
-        if ( empty($display) ) return false;
-        return $display;
+        return self::getDisplay($this->id, $this->displayname, $this->email);
     }
 
+    /**
+     * Construct the user's name / email combination
+     */
+    public static function getDisplay($user_id, $displayname, $email) {
+        if ( !is_string($displayname) ) $displayname = '';
+        if ( !is_string($email) ) $email = '';
+
+        if ( strlen($displayname) > 0 && strlen($email) > 0) {
+            $display = trim($displayname) . ' (' . trim($email) . ')';
+        } else if ( strlen($displayname) > 0 ) {
+            $display = trim($displayname);
+        } else if ( strlen($email) > 0) {
+            $display = trim($email);
+        } else if ( $user_id > 0 ) {
+            $display = 'User: '.$user_id;
+        } else { 
+            $display = false;
+        }
+        return $display;
+    }
 
     /**
      * Get the user's first name, falling back to email
