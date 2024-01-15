@@ -139,10 +139,8 @@ $cc_dom = new CC();
 $cc_dom->set_title($CFG->context_title.' import');
 $top_module = false;
 if ( $tsugi_lms == 'sakai' ) {
-    $top_module = $cc_dom->add_module('Imported content');
+    $top_module = $cc_dom->add_module('Modules (import)');
 }
-
-// $cc_dom->set_description('Awesome MOOC to learn PHP, MySQL, and JavaScript.');
 
 foreach($l->lessons->modules as $module) {
     if ( isCli() ) echo("title=$module->title\n");
@@ -275,6 +273,9 @@ foreach($l->lessons->modules as $module) {
         }
     }
 }
+
+// Att Canvas meta data
+$cc_dom->zip_add_canvas_module_meta($zip);
 
 $zip->addFromString('imsmanifest.xml',$cc_dom->saveXML());
 

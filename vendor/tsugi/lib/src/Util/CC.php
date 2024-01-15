@@ -45,6 +45,10 @@ class CC extends \Tsugi\Util\TsugiDOM {
     public $last_identifier = false;
     public $last_identifierref = false;
 
+    public $canvas_module_meta = null;
+    public $canvas_modules = null;
+    public $canvas_items = null;
+
     function __construct() {
         parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
 <manifest identifier="cctd0015" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1" xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource" xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd">
@@ -92,6 +96,11 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $this->delete_children_ns(self::CC_1_1_CP, $items);
         $lom = $xpath->query(self::lom_general_xpath)->item(0);
         $this->delete_children_ns(self::LOMIMSCC_NS, $lom);
+
+        // Optionally create a DOM that can be used for the
+        // course_settings/module_meta.xml
+        // Canvas extension to CC
+        $this->canvas_module_meta = new CanvasModuleMeta();
     }
 
     /*
@@ -134,13 +143,19 @@ class CC extends \Tsugi\Util\TsugiDOM {
     public function add_module($title) {
         $this->resource_count++;
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
-        $identifier = 'T_'.$resource_str;
+        $this->last_identifier = 'T_'.$resource_str;
 
         $xpath = new \DOMXpath($this);
 
         $items = $xpath->query(CC::item_xpath)->item(0);
-        $module = $this->add_child_ns(CC::CC_1_1_CP, $items, 'item', null, array('identifier' => $identifier));
+        $module = $this->add_child_ns(CC::CC_1_1_CP, $items, 'item', null, array('identifier' => $this->last_identifier));
         $new_title = $this->add_child_ns(CC::CC_1_1_CP, $module, 'title', $title);
+
+        if ( $this->canvas_module_meta ) {
+            $this->canvas_modules = $this->canvas_module_meta->add_module($title, $this->last_identifier);
+            $this->canvas_items = $this->canvas_module_meta->add_items($this->canvas_modules);
+        }
+
         return $module;
     }
 
@@ -148,7 +163,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * Adds a sub module to a module
      *
      * As a note, while some LMS's are happpy with deeply nested
-     * sub-module trees, other LMS's prefre a strict two-layer
+     * sub-module trees, other LMS's prefer a strict two-layer
      * module / submodule structure.
      *
      * @param $sub_module DOMNode The module where we are adding the submodule
@@ -159,9 +174,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
     public function add_sub_module($module, $title) {
         $this->resource_count++;
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
-        $identifier = 'T_'.$resource_str;
+        $this->last_identifier = 'T_'.$resource_str;
 
-        $sub_module = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $identifier));
+        $sub_module = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $this->last_identifier));
         $new_title = $this->add_child_ns(CC::CC_1_1_CP, $sub_module, 'title',$title);
         return $sub_module;
     }
@@ -182,9 +197,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $this->resource_count++;
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
         $file = 'xml/WL_'.$resource_str.'.xml';
-        $identifier = 'T_'.$resource_str;
+        $this->last_identifier = 'T_'.$resource_str;
         $type = 'imswl_xmlv1p1';
-        $this-> add_resource_item($module, $title, $type, $identifier, $file);
+        $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
         return $file;
     }
 
@@ -204,9 +219,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $this->resource_count++;
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
         $file = 'xml/TO_'.$resource_str.'.xml';
-        $identifier = 'T_'.$resource_str;
+        $this->last_identifier = 'T_'.$resource_str;
         $type = 'imsdt_v1p1';
-        $this-> add_resource_item($module, $title, $type, $identifier, $file);
+        $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
         return $file;
     }
 
@@ -226,9 +241,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $this->resource_count++;
         $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
         $file = 'xml/LT_'.$resource_str.'.xml';
-        $identifier = 'T_'.$resource_str;
+        $this->last_identifier = 'T_'.$resource_str;
         $type = 'imsbasiclti_xmlv1p0';
-        $this-> add_resource_item($module, $title, $type, $identifier, $file);
+        $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
         return $file;
     }
 
@@ -243,14 +258,17 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
         $xpath = new \DOMXpath($this);
 
-        $new_item = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $this->last_identifier, "identifierref" => $this->last_identifierref));
+        $new_item = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null,
+            array('identifier' => $this->last_identifier, "identifierref" => $this->last_identifierref));
         if ( $title != null ) {
             $new_title = $this->add_child_ns(CC::CC_1_1_CP, $new_item, 'title', $title);
         }
 
         $resources = $xpath->query(CC::resource_xpath)->item(0);
-        $new_resource = $this->add_child_ns(CC::CC_1_1_CP, $resources, 'resource', null, array('identifier' => $this->last_identifierref, "type" => $type));
+        $new_resource = $this->add_child_ns(CC::CC_1_1_CP, $resources, 'resource', null,
+            array('identifier' => $this->last_identifierref, "type" => $type));
         $new_file = $this->add_child_ns(CC::CC_1_1_CP, $new_resource, 'file', null, array("href" => $file));
+
         return $file;
     }
 
@@ -270,6 +288,16 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $web_dom->set_title($title);
         $web_dom->set_url($url, array("target" => "_iframe"));
         $zip->addFromString($file,$web_dom->saveXML());
+
+        // Add to the ever-growing canvas_module_meta
+        if ( $this->canvas_items ) {
+            $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_ExternalUrl);
+            $w[CanvasModuleMeta::title] = $title;
+            $w[CanvasModuleMeta::url] = $url;
+            $w[CanvasModuleMeta::identifierref] = $this->last_identifierref;
+            $w[CanvasModuleMeta::new_tab] = CanvasModuleMeta::new_tab_true;
+            $item = $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
+        }
     }
 
     /*
@@ -297,6 +325,16 @@ class CC extends \Tsugi\Util\TsugiDOM {
             $lti_dom->set_extension($key,$value);
         }
         $zip->addFromString($file,$lti_dom->saveXML());
+
+        // Add to the ever-growing canvas_module_meta
+        if ( $this->canvas_items ) {
+            $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_ContextExternalTool);
+            $w[CanvasModuleMeta::title] = $title;
+            $w[CanvasModuleMeta::url] = $url;
+            $w[CanvasModuleMeta::identifierref] = $this->last_identifierref;
+            $w[CanvasModuleMeta::new_tab] = CanvasModuleMeta::new_tab_true;
+            $item = $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
+        }
     }
 
     /*
@@ -324,6 +362,16 @@ class CC extends \Tsugi\Util\TsugiDOM {
             $lti_dom->set_extension($key,$value);
         }
         $zip->addFromString($file,$lti_dom->saveXML());
+
+        // Add to the ever-growing canvas_module_meta
+        if ( $this->canvas_items ) {
+            $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_Assignment);
+            $w[CanvasModuleMeta::title] = $title;
+            $w[CanvasModuleMeta::url] = $url;
+            $w[CanvasModuleMeta::identifierref] = $this->last_identifierref;
+            $w[CanvasModuleMeta::new_tab] = CanvasModuleMeta::new_tab_true;
+            $item = $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
+        }
     }
 
     /*
@@ -342,7 +390,43 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $web_dom->set_title($title);
         $web_dom->set_text($text);
         $zip->addFromString($file,$web_dom->saveXML());
+
+        // Add to the ever-growing canvas_module_meta
+        if ( $this->canvas_items ) {
+            $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_DiscussionTopic);
+            $w[CanvasModuleMeta::title] = $title;
+            $w[CanvasModuleMeta::identifierref] = $this->last_identifierref;
+            $w[CanvasModuleMeta::new_tab] = CanvasModuleMeta::new_tab_false;
+            $item = $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
+        }
     }
 
+    /** Add the course_settings/module_meta.xml to the manifest and ZIP
+     *
+     * <resource identifier="g5d51089383699fa7bcf3f5c9b81c857d"
+     *     type="associatedcontent/imscc_xmlv1p1/learning-application-resource"
+     *      href="course_settings/canvas_export.txt">
+     */
+    function zip_add_canvas_module_meta($zip) {
 
+        $zip->addFromString('course_settings/canvas_export.txt',"Q: What did the panda say when he was forced out of his natural habitat?\nA: This is un-BEAR-able\n");
+
+        $xpath = new \DOMXpath($this);
+
+        $resources = $xpath->query(CC::resource_xpath)->item(0);
+        $new_resource = $this->add_child_ns(CC::CC_1_1_CP, $resources, 'resource', null,
+            array(
+                'identifier' => "g5d51089383699fa7bcf3f5c9b81c857d",
+                "type" => "associatedcontent/imscc_xmlv1p1/learning-application-resource",
+                "href" => "course_settings/canvas_export.txt"
+            )
+        );
+
+        $new_file = $this->add_child_ns(CC::CC_1_1_CP, $new_resource, 'file', null, array("href" => "course_settings/canvas_export.txt"));
+        $new_file = $this->add_child_ns(CC::CC_1_1_CP, $new_resource, 'file', null, array("href" => "course_settings/module_meta.xml"));
+
+        $meta = $this->canvas_module_meta->prettyXML();
+        $file = 'course_settings/module_meta.xml';
+        $zip->addFromString($file,$meta);
+    }
 }
