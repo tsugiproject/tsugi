@@ -401,5 +401,32 @@ class CC extends \Tsugi\Util\TsugiDOM {
         }
     }
 
+    /** Add the course_settings/module_meta.xml to the manifest and ZIP
+     *
+     * <resource identifier="g5d51089383699fa7bcf3f5c9b81c857d"
+     *     type="associatedcontent/imscc_xmlv1p1/learning-application-resource"
+     *      href="course_settings/canvas_export.txt">
+     */
+    function zip_add_canvas_module_meta($zip) {
 
+        $zip->addFromString('course_settings/canvas_export.txt',"Q: What did the panda say when he was forced out of his natural habitat?\nA: This is un-BEAR-able\n");
+
+        $xpath = new \DOMXpath($this);
+
+        $resources = $xpath->query(CC::resource_xpath)->item(0);
+        $new_resource = $this->add_child_ns(CC::CC_1_1_CP, $resources, 'resource', null,
+            array(
+                'identifier' => "g5d51089383699fa7bcf3f5c9b81c857d",
+                "type" => "associatedcontent/imscc_xmlv1p1/learning-application-resource",
+                "href" => "course_settings/canvas_export.txt"
+            )
+        );
+
+        $new_file = $this->add_child_ns(CC::CC_1_1_CP, $new_resource, 'file', null, array("href" => "course_settings/canvas_export.txt"));
+        $new_file = $this->add_child_ns(CC::CC_1_1_CP, $new_resource, 'file', null, array("href" => "course_settings/module_meta.xml"));
+
+        $meta = $this->canvas_module_meta->prettyXML();
+        $file = 'course_settings/module_meta.xml';
+        $zip->addFromString($file,$meta);
+    }
 }
