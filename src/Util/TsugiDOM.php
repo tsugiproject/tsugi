@@ -167,4 +167,14 @@ class TsugiDOM extends \DOMDocument{
             }
         }
     }
+
+    function prettyXML() 
+    {
+        $first = $this->saveXML();
+        $pretty = new \DOMDocument();
+        $pretty->preserveWhiteSpace = false;
+        $pretty->formatOutput = true;
+        $pretty->loadXML($first);
+        return $pretty->saveXML();
+    }
 }
