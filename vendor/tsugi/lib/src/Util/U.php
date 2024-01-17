@@ -62,7 +62,8 @@ class U {
 
     // Convienence method to wrap sha256
     public static function lti_sha256($val) {
-        return hash('sha256', $val);
+        if ( is_string($val) ) return hash('sha256', $val);
+        return null;
     }
 
     // Convienence method to get the local path if we are doing
