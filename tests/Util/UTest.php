@@ -299,4 +299,11 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($CFG->serverPrefix(), "227b19f82bca5eb23f9cd02cfe34dbbe");
     }
 
+    public function testSha256() {
+        $out = lti_sha256("hello world");
+        $this->assertEquals($out, "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
+        $out = lti_sha256(null);
+        $this->assertEquals($out, null);
+    }
+
 }
