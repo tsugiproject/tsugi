@@ -446,17 +446,6 @@ if ( isset($CFG->memcache) && U::strlen($CFG->memcache) > 0 ) {
     ini_set('session.save_path', $CFG->memcache);
 }
 
-// Note no "tcp://" for the memcached version of the url
-// $CFG->memcached = 'memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
-if ( isset($CFG->memcached) && U::strlen($CFG->memcached) > 0 ) {
-    ini_set('session.save_handler', 'memcached');
-    ini_set('session.save_path', $CFG->memcached);
-    // https://github.com/php-memcached-dev/php-memcached/issues/269
-    ini_set('memcached.sess_locking', '0');
-    ini_set('memcached.serializer', 'php');
-    ini_set('session.serialize_handler', 'php_serialize');
-}
-
 // Redis sessions configuration
 // $CFG->redis = 'tcp://localhost:6379?auth=addYourRedisPasswordHere';
 if ( isset($CFG->redis) AND strlen($CFG->redis) > 0 ) {

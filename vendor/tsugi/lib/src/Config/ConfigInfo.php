@@ -144,6 +144,20 @@ class ConfigInfo {
     public $slow_query;
 
     /**
+     * Support memcache for session caching
+     *
+     * Store sessions in memcache - this seems like the fastest, best, and simplest approach
+     * when running on AWS.
+     *
+     * http://php.net/manual/en/memcached.sessions.php
+     *
+     * Note - prefer "memcache" over "memcached"
+     *
+     * $CFG->memcache = 'tcp://memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
+     */
+    public $memcache;
+
+    /**
      * Adding in support for using Redis for session caching.
      *
      * $CFG->redis = 'tcp://localhost:6379?auth=addYourRedisPasswordHere';
