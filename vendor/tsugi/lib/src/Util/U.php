@@ -418,6 +418,7 @@ class U {
 
     public static function endsWith($haystack, $needle) {
         // search forward starting from end minus needle length characters
+        if ( !is_string($haystack) || !is_string($needle) ) return false;
         return $needle === "" || (($temp = strlen($haystack) - strlen($needle)) >= 0 && strpos($haystack, $needle, $temp) !== FALSE);
     }
 
