@@ -18,6 +18,8 @@
 namespace Google\Service\HangoutsChat\Resource;
 
 use Google\Service\HangoutsChat\ChatEmpty;
+use Google\Service\HangoutsChat\CompleteImportSpaceRequest;
+use Google\Service\HangoutsChat\CompleteImportSpaceResponse;
 use Google\Service\HangoutsChat\ListSpacesResponse;
 use Google\Service\HangoutsChat\SetUpSpaceRequest;
 use Google\Service\HangoutsChat\Space;
@@ -33,14 +35,34 @@ use Google\Service\HangoutsChat\Space;
 class Spaces extends \Google\Service\Resource
 {
   /**
+   * Completes the [import
+   * process](https://developers.google.com/chat/api/guides/import-data) for the
+   * specified space and makes it visible to users. Requires app authentication
+   * and domain-wide delegation. For more information, see [Authorize Google Chat
+   * apps to import data](https://developers.google.com/chat/api/guides/authorize-
+   * import). (spaces.completeImport)
+   *
+   * @param string $name Required. Resource name of the import mode space. Format:
+   * `spaces/{space}`
+   * @param CompleteImportSpaceRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return CompleteImportSpaceResponse
+   */
+  public function completeImport($name, CompleteImportSpaceRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('completeImport', [$params], CompleteImportSpaceResponse::class);
+  }
+  /**
    * Creates a named space. Spaces grouped by topics aren't supported. For an
    * example, see [Create a
    * space](https://developers.google.com/chat/api/guides/v1/spaces/create). If
    * you receive the error message `ALREADY_EXISTS` when creating a space, try a
    * different `displayName`. An existing space within the Google Workspace
    * organization might already use this display name. Requires [user
-   * authentication](https://developers.google.com/chat/api/guides/auth/users) and
-   * the `chat.spaces.create` or `chat.spaces` scope. (spaces.create)
+   * authentication](https://developers.google.com/chat/api/guides/auth/users).
+   * (spaces.create)
    *
    * @param Space $postBody
    * @param array $optParams Optional parameters.
@@ -65,8 +87,7 @@ class Spaces extends \Google\Service\Resource
    * space](https://developers.google.com/chat/api/guides/v1/spaces/delete).
    * Requires [user
    * authentication](https://developers.google.com/chat/api/guides/auth/users)
-   * from a user who has permission to delete the space, and the `chat.delete`
-   * scope. (spaces.delete)
+   * from a user who has permission to delete the space. (spaces.delete)
    *
    * @param string $name Required. Resource name of the space to delete. Format:
    * `spaces/{space}`
@@ -86,29 +107,29 @@ class Spaces extends \Google\Service\Resource
    * [user
    * authentication](https://developers.google.com/chat/api/guides/auth/users),
    * returns the direct message space between the specified user and the
-   * authenticated user. With [service account
+   * authenticated user. With [app
    * authentication](https://developers.google.com/chat/api/guides/auth/service-
    * accounts), returns the direct message space between the specified user and
    * the calling Chat app. Requires [user
    * authentication](https://developers.google.com/chat/api/guides/auth/users) or
-   * [service account
+   * [app
    * authentication](https://developers.google.com/chat/api/guides/auth/service-
    * accounts). (spaces.findDirectMessage)
    *
    * @param array $optParams Optional parameters.
    *
    * @opt_param string name Required. Resource name of the user to find direct
-   * message with. Format: `users/{user}`, where `{user}` is either the
-   * `{person_id}` for the
-   * [person](https://developers.google.com/people/api/rest/v1/people) from the
-   * People API, or the `id` for the [user](https://developers.google.com/admin-
+   * message with. Format: `users/{user}`, where `{user}` is either the `id` for
+   * the [person](https://developers.google.com/people/api/rest/v1/people) from
+   * the People API, or the `id` for the
+   * [user](https://developers.google.com/admin-
    * sdk/directory/reference/rest/v1/users) in the Directory API. For example, if
-   * the People API `Person.resourceName` is `people/123456789`, you can find a
-   * direct message with that person by using `users/123456789` as the `name`.
-   * When [authenticated as a
-   * user](https://developers.google.com/chat/api/guides/auth/users), you can use
-   * the email as an alias for `{user}`. For example, `users/example@gmail.com`
-   * where `example@gmail.com` is the email of the Google Chat user.
+   * the People API profile ID is `123456789`, you can find a direct message with
+   * that person by using `users/123456789` as the `name`. When [authenticated as
+   * a user](https://developers.google.com/chat/api/guides/auth/users), you can
+   * use the email as an alias for `{user}`. For example,
+   * `users/example@gmail.com` where `example@gmail.com` is the email of the
+   * Google Chat user.
    * @return Space
    */
   public function findDirectMessage($optParams = [])
@@ -120,14 +141,11 @@ class Spaces extends \Google\Service\Resource
   /**
    * Returns details about a space. For an example, see [Get a
    * space](https://developers.google.com/chat/api/guides/v1/spaces/get). Requires
-   * [authentication](https://developers.google.com/chat/api/guides/auth). Fully
-   * supports [service account
+   * [authentication](https://developers.google.com/chat/api/guides/auth).
+   * Supports [app
    * authentication](https://developers.google.com/chat/api/guides/auth/service-
    * accounts) and [user
    * authentication](https://developers.google.com/chat/api/guides/auth/users).
-   * [User
-   * authentication](https://developers.google.com/chat/api/guides/auth/users)
-   * requires the `chat.spaces` or `chat.spaces.readonly` authorization scope.
    * (spaces.get)
    *
    * @param string $name Required. Resource name of the space, in the form
@@ -146,31 +164,24 @@ class Spaces extends \Google\Service\Resource
    * until the first message is sent. For an example, see [List
    * spaces](https://developers.google.com/chat/api/guides/v1/spaces/list).
    * Requires
-   * [authentication](https://developers.google.com/chat/api/guides/auth). Fully
-   * supports [service account
+   * [authentication](https://developers.google.com/chat/api/guides/auth).
+   * Supports [app
    * authentication](https://developers.google.com/chat/api/guides/auth/service-
    * accounts) and [user
-   * authentication](https://developers.google.com/chat/api/guides/auth/users)
-   * requires the `chat.spaces` or `chat.spaces.readonly` authorization scope.
+   * authentication](https://developers.google.com/chat/api/guides/auth/users).
    * Lists spaces visible to the caller or authenticated user. Group chats and DMs
    * aren't listed until the first message is sent. (spaces.listSpaces)
    *
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string filter Optional. A query filter. Requires [user
-   * authentication](https://developers.google.com/chat/api/guides/auth/users).
-   * You can filter spaces by the space type ([`space_type`](https://developers.go
-   * ogle.com/chat/api/reference/rest/v1/spaces#spacetype)). To filter by space
-   * type, you must specify valid enum value, such as `SPACE` or `GROUP_CHAT` (the
-   * `space_type` can't be `SPACE_TYPE_UNSPECIFIED`). To query for multiple space
-   * types, use the `OR` operator. For example, the following queries are valid:
-   * ``` space_type = "SPACE" spaceType = "GROUP_CHAT" OR spaceType =
-   * "DIRECT_MESSAGE" ``` Invalid queries are rejected by the server with an
-   * `INVALID_ARGUMENT` error. With [service account
-   * authentication](https://developers.google.com/chat/api/guides/auth/service-
-   * accounts), this field is ignored and the query always returns all spaces. But
-   * the Chat API still validates the query syntax with service accounts, so
-   * invalid queries are still rejected.
+   * @opt_param string filter Optional. A query filter. You can filter spaces by
+   * the space type ([`space_type`](https://developers.google.com/chat/api/referen
+   * ce/rest/v1/spaces#spacetype)). To filter by space type, you must specify
+   * valid enum value, such as `SPACE` or `GROUP_CHAT` (the `space_type` can't be
+   * `SPACE_TYPE_UNSPECIFIED`). To query for multiple space types, use the `OR`
+   * operator. For example, the following queries are valid: ``` space_type =
+   * "SPACE" spaceType = "GROUP_CHAT" OR spaceType = "DIRECT_MESSAGE" ``` Invalid
+   * queries are rejected by the server with an `INVALID_ARGUMENT` error.
    * @opt_param int pageSize Optional. The maximum number of spaces to return. The
    * service might return fewer than this value. If unspecified, at most 100
    * spaces are returned. The maximum value is 1,000. If you use a value more than
@@ -195,8 +206,8 @@ class Spaces extends \Google\Service\Resource
    * `ALREADY_EXISTS`, try a different display name.. An existing space within the
    * Google Workspace organization might already use this display name. Requires
    * [user
-   * authentication](https://developers.google.com/chat/api/guides/auth/users) and
-   * the `chat.spaces` scope. (spaces.patch)
+   * authentication](https://developers.google.com/chat/api/guides/auth/users).
+   * (spaces.patch)
    *
    * @param string $name Resource name of the space. Format: `spaces/{space}`
    * @param Space $postBody
@@ -222,7 +233,12 @@ class Spaces extends \Google\Service\Resource
    * space](https://support.google.com/chat/answer/7664687) if [the organization
    * allows users to change their history
    * setting](https://support.google.com/a/answer/7664184). Warning: mutually
-   * exclusive with all other field paths.)
+   * exclusive with all other field paths.) - Developer Preview:
+   * `access_settings.audience` (Supports changing the [access
+   * setting](https://support.google.com/chat/answer/11971020) of a space. If no
+   * audience is specified in the access setting, the space's access setting is
+   * updated to restricted. Warning: mutually exclusive with all other field
+   * paths.)
    * @return Space
    */
   public function patch($name, Space $postBody, $optParams = [])
@@ -239,21 +255,20 @@ class Spaces extends \Google\Service\Resource
    * specify the human members to add, add memberships with the appropriate
    * `member.name` in the `SetUpSpaceRequest`. To add a human user, use
    * `users/{user}`, where `{user}` can be the email address for the user. For
-   * users in the same Workspace organization `{user}` can also be the
-   * `{person_id}` for the person from the People API, or the `id` for the user in
-   * the Directory API. For example, if the People API Person `resourceName` for
-   * `user@example.com` is `people/123456789`, you can add the user to the space
-   * by setting the `membership.member.name` to `users/user@example.com` or
-   * `users/123456789`. For a space or group chat, if the caller blocks or is
-   * blocked by some members, then those members aren't added to the created
-   * space. To create a direct message (DM) between the calling user and another
-   * human user, specify exactly one membership to represent the human user. If
-   * one user blocks the other, the request fails and the DM isn't created. To
-   * create a DM between the calling user and the calling app, set
-   * `Space.singleUserBotDm` to `true` and don't specify any memberships. You can
-   * only use this method to set up a DM with the calling app. To add the calling
-   * app as a member of a space or an existing DM between two human users, see
-   * [create a
+   * users in the same Workspace organization `{user}` can also be the `id` for
+   * the person from the People API, or the `id` for the user in the Directory
+   * API. For example, if the People API Person profile ID for `user@example.com`
+   * is `123456789`, you can add the user to the space by setting the
+   * `membership.member.name` to `users/user@example.com` or `users/123456789`.
+   * For a space or group chat, if the caller blocks or is blocked by some
+   * members, then those members aren't added to the created space. To create a
+   * direct message (DM) between the calling user and another human user, specify
+   * exactly one membership to represent the human user. If one user blocks the
+   * other, the request fails and the DM isn't created. To create a DM between the
+   * calling user and the calling app, set `Space.singleUserBotDm` to `true` and
+   * don't specify any memberships. You can only use this method to set up a DM
+   * with the calling app. To add the calling app as a member of a space or an
+   * existing DM between two human users, see [create a
    * membership](https://developers.google.com/chat/api/guides/v1/members/create).
    * If a DM already exists between two users, even when one user blocks the other
    * at the time a request is made, then the existing DM is returned. Spaces with
@@ -261,8 +276,8 @@ class Spaces extends \Google\Service\Resource
    * `ALREADY_EXISTS` when setting up a space, try a different `displayName`. An
    * existing space within the Google Workspace organization might already use
    * this display name. Requires [user
-   * authentication](https://developers.google.com/chat/api/guides/auth/users) and
-   * the `chat.spaces.create` or `chat.spaces` scope. (spaces.setup)
+   * authentication](https://developers.google.com/chat/api/guides/auth/users).
+   * (spaces.setup)
    *
    * @param SetUpSpaceRequest $postBody
    * @param array $optParams Optional parameters.

@@ -25,9 +25,19 @@ class KnowledgeAnswersAttributeType extends \Google\Collection
    */
   public $attribute;
   /**
+   * @var NlpMeaningComponentSpecificContracts
+   */
+  public $componentSpecificContracts;
+  protected $componentSpecificContractsType = NlpMeaningComponentSpecificContracts::class;
+  protected $componentSpecificContractsDataType = '';
+  /**
    * @var string
    */
   public $pivotEntitySlot;
+  /**
+   * @var NlpMeaningMeaningRemodelings
+   */
+  public $remodelings;
   protected $remodelingsType = NlpMeaningMeaningRemodelings::class;
   protected $remodelingsDataType = '';
 
@@ -44,6 +54,20 @@ class KnowledgeAnswersAttributeType extends \Google\Collection
   public function getAttribute()
   {
     return $this->attribute;
+  }
+  /**
+   * @param NlpMeaningComponentSpecificContracts
+   */
+  public function setComponentSpecificContracts(NlpMeaningComponentSpecificContracts $componentSpecificContracts)
+  {
+    $this->componentSpecificContracts = $componentSpecificContracts;
+  }
+  /**
+   * @return NlpMeaningComponentSpecificContracts
+   */
+  public function getComponentSpecificContracts()
+  {
+    return $this->componentSpecificContracts;
   }
   /**
    * @param string

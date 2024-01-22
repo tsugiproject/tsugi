@@ -71,6 +71,16 @@ class KnowledgeAnswersDateType extends \Google\Model
    * @var bool
    */
   public $allowYearResolution;
+  /**
+   * @var NlpMeaningComponentSpecificContracts
+   */
+  public $componentSpecificContracts;
+  protected $componentSpecificContractsType = NlpMeaningComponentSpecificContracts::class;
+  protected $componentSpecificContractsDataType = '';
+  /**
+   * @var NlpMeaningMeaningRemodelings
+   */
+  public $remodelings;
   protected $remodelingsType = NlpMeaningMeaningRemodelings::class;
   protected $remodelingsDataType = '';
   /**
@@ -259,6 +269,20 @@ class KnowledgeAnswersDateType extends \Google\Model
   public function getAllowYearResolution()
   {
     return $this->allowYearResolution;
+  }
+  /**
+   * @param NlpMeaningComponentSpecificContracts
+   */
+  public function setComponentSpecificContracts(NlpMeaningComponentSpecificContracts $componentSpecificContracts)
+  {
+    $this->componentSpecificContracts = $componentSpecificContracts;
+  }
+  /**
+   * @return NlpMeaningComponentSpecificContracts
+   */
+  public function getComponentSpecificContracts()
+  {
+    return $this->componentSpecificContracts;
   }
   /**
    * @param NlpMeaningMeaningRemodelings

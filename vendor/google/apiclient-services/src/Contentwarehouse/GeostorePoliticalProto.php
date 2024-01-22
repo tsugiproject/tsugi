@@ -17,10 +17,21 @@
 
 namespace Google\Service\Contentwarehouse;
 
-class GeostorePoliticalProto extends \Google\Model
+class GeostorePoliticalProto extends \Google\Collection
 {
+  protected $collection_key = 'claim';
+  /**
+   * @var GeostoreFeatureIdProto
+   */
+  public $capital;
   protected $capitalType = GeostoreFeatureIdProto::class;
   protected $capitalDataType = '';
+  /**
+   * @var GeostoreFeatureIdProto[]
+   */
+  public $claim;
+  protected $claimType = GeostoreFeatureIdProto::class;
+  protected $claimDataType = 'array';
   public $grossDomesticProductUsdMillions;
   /**
    * @var float
@@ -44,6 +55,20 @@ class GeostorePoliticalProto extends \Google\Model
   public function getCapital()
   {
     return $this->capital;
+  }
+  /**
+   * @param GeostoreFeatureIdProto[]
+   */
+  public function setClaim($claim)
+  {
+    $this->claim = $claim;
+  }
+  /**
+   * @return GeostoreFeatureIdProto[]
+   */
+  public function getClaim()
+  {
+    return $this->claim;
   }
   public function setGrossDomesticProductUsdMillions($grossDomesticProductUsdMillions)
   {

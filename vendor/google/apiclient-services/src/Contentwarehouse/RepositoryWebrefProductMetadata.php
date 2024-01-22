@@ -24,12 +24,12 @@ class RepositoryWebrefProductMetadata extends \Google\Collection
    * @var string[]
    */
   public $productLineId;
+  /**
+   * @var KnowledgeAnswersIntentQueryShoppingIds
+   */
+  public $shoppingIds;
   protected $shoppingIdsType = KnowledgeAnswersIntentQueryShoppingIds::class;
   protected $shoppingIdsDataType = '';
-  /**
-   * @var string
-   */
-  public $type;
   /**
    * @var string[]
    */
@@ -62,20 +62,6 @@ class RepositoryWebrefProductMetadata extends \Google\Collection
   public function getShoppingIds()
   {
     return $this->shoppingIds;
-  }
-  /**
-   * @param string
-   */
-  public function setType($type)
-  {
-    $this->type = $type;
-  }
-  /**
-   * @return string
-   */
-  public function getType()
-  {
-    return $this->type;
   }
   /**
    * @param string[]

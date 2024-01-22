@@ -23,14 +23,26 @@ class WorkflowInvocation extends \Google\Model
    * @var string
    */
   public $compilationResult;
+  /**
+   * @var InvocationConfig
+   */
+  public $invocationConfig;
   protected $invocationConfigType = InvocationConfig::class;
   protected $invocationConfigDataType = '';
+  /**
+   * @var Interval
+   */
+  public $invocationTiming;
   protected $invocationTimingType = Interval::class;
   protected $invocationTimingDataType = '';
   /**
    * @var string
    */
   public $name;
+  /**
+   * @var string
+   */
+  public $resolvedCompilationResult;
   /**
    * @var string
    */
@@ -95,6 +107,20 @@ class WorkflowInvocation extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param string
+   */
+  public function setResolvedCompilationResult($resolvedCompilationResult)
+  {
+    $this->resolvedCompilationResult = $resolvedCompilationResult;
+  }
+  /**
+   * @return string
+   */
+  public function getResolvedCompilationResult()
+  {
+    return $this->resolvedCompilationResult;
   }
   /**
    * @param string

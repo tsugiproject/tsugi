@@ -24,14 +24,26 @@ class RecognizeResponse extends \Google\Collection
    * @var string
    */
   public $requestId;
+  /**
+   * @var SpeechRecognitionResult[]
+   */
+  public $results;
   protected $resultsType = SpeechRecognitionResult::class;
   protected $resultsDataType = 'array';
+  /**
+   * @var SpeechAdaptationInfo
+   */
+  public $speechAdaptationInfo;
   protected $speechAdaptationInfoType = SpeechAdaptationInfo::class;
   protected $speechAdaptationInfoDataType = '';
   /**
    * @var string
    */
   public $totalBilledTime;
+  /**
+   * @var bool
+   */
+  public $usingLegacyModels;
 
   /**
    * @param string
@@ -88,6 +100,20 @@ class RecognizeResponse extends \Google\Collection
   public function getTotalBilledTime()
   {
     return $this->totalBilledTime;
+  }
+  /**
+   * @param bool
+   */
+  public function setUsingLegacyModels($usingLegacyModels)
+  {
+    $this->usingLegacyModels = $usingLegacyModels;
+  }
+  /**
+   * @return bool
+   */
+  public function getUsingLegacyModels()
+  {
+    return $this->usingLegacyModels;
   }
 }
 

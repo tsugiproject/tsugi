@@ -20,14 +20,36 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
 {
   protected $collection_key = 'webhookStatuses';
+  /**
+   * @var GoogleCloudDialogflowCxV3AdvancedSettings
+   */
+  public $advancedSettings;
+  protected $advancedSettingsType = GoogleCloudDialogflowCxV3AdvancedSettings::class;
+  protected $advancedSettingsDataType = '';
+  /**
+   * @var bool
+   */
+  public $allowAnswerFeedback;
+  /**
+   * @var GoogleCloudDialogflowCxV3Page
+   */
+  public $currentPage;
   protected $currentPageType = GoogleCloudDialogflowCxV3Page::class;
   protected $currentPageDataType = '';
   /**
    * @var array[]
    */
   public $diagnosticInfo;
+  /**
+   * @var GoogleCloudDialogflowCxV3DtmfInput
+   */
+  public $dtmf;
   protected $dtmfType = GoogleCloudDialogflowCxV3DtmfInput::class;
   protected $dtmfDataType = '';
+  /**
+   * @var GoogleCloudDialogflowCxV3Intent
+   */
+  public $intent;
   protected $intentType = GoogleCloudDialogflowCxV3Intent::class;
   protected $intentDataType = '';
   /**
@@ -38,14 +60,26 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
    * @var string
    */
   public $languageCode;
+  /**
+   * @var GoogleCloudDialogflowCxV3Match
+   */
+  public $match;
   protected $matchType = GoogleCloudDialogflowCxV3Match::class;
   protected $matchDataType = '';
   /**
    * @var array[]
    */
   public $parameters;
+  /**
+   * @var GoogleCloudDialogflowCxV3ResponseMessage[]
+   */
+  public $responseMessages;
   protected $responseMessagesType = GoogleCloudDialogflowCxV3ResponseMessage::class;
   protected $responseMessagesDataType = 'array';
+  /**
+   * @var GoogleCloudDialogflowCxV3SentimentAnalysisResult
+   */
+  public $sentimentAnalysisResult;
   protected $sentimentAnalysisResultType = GoogleCloudDialogflowCxV3SentimentAnalysisResult::class;
   protected $sentimentAnalysisResultDataType = '';
   /**
@@ -68,9 +102,41 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
    * @var array[]
    */
   public $webhookPayloads;
+  /**
+   * @var GoogleRpcStatus[]
+   */
+  public $webhookStatuses;
   protected $webhookStatusesType = GoogleRpcStatus::class;
   protected $webhookStatusesDataType = 'array';
 
+  /**
+   * @param GoogleCloudDialogflowCxV3AdvancedSettings
+   */
+  public function setAdvancedSettings(GoogleCloudDialogflowCxV3AdvancedSettings $advancedSettings)
+  {
+    $this->advancedSettings = $advancedSettings;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3AdvancedSettings
+   */
+  public function getAdvancedSettings()
+  {
+    return $this->advancedSettings;
+  }
+  /**
+   * @param bool
+   */
+  public function setAllowAnswerFeedback($allowAnswerFeedback)
+  {
+    $this->allowAnswerFeedback = $allowAnswerFeedback;
+  }
+  /**
+   * @return bool
+   */
+  public function getAllowAnswerFeedback()
+  {
+    return $this->allowAnswerFeedback;
+  }
   /**
    * @param GoogleCloudDialogflowCxV3Page
    */

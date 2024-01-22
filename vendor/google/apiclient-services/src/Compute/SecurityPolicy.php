@@ -19,15 +19,27 @@ namespace Google\Service\Compute;
 
 class SecurityPolicy extends \Google\Collection
 {
-  protected $collection_key = 'rules';
+  protected $collection_key = 'userDefinedFields';
+  /**
+   * @var SecurityPolicyAdaptiveProtectionConfig
+   */
+  public $adaptiveProtectionConfig;
   protected $adaptiveProtectionConfigType = SecurityPolicyAdaptiveProtectionConfig::class;
   protected $adaptiveProtectionConfigDataType = '';
+  /**
+   * @var SecurityPolicyAdvancedOptionsConfig
+   */
+  public $advancedOptionsConfig;
   protected $advancedOptionsConfigType = SecurityPolicyAdvancedOptionsConfig::class;
   protected $advancedOptionsConfigDataType = '';
   /**
    * @var string
    */
   public $creationTimestamp;
+  /**
+   * @var SecurityPolicyDdosProtectionConfig
+   */
+  public $ddosProtectionConfig;
   protected $ddosProtectionConfigType = SecurityPolicyDdosProtectionConfig::class;
   protected $ddosProtectionConfigDataType = '';
   /**
@@ -58,12 +70,20 @@ class SecurityPolicy extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * @var SecurityPolicyRecaptchaOptionsConfig
+   */
+  public $recaptchaOptionsConfig;
   protected $recaptchaOptionsConfigType = SecurityPolicyRecaptchaOptionsConfig::class;
   protected $recaptchaOptionsConfigDataType = '';
   /**
    * @var string
    */
   public $region;
+  /**
+   * @var SecurityPolicyRule[]
+   */
+  public $rules;
   protected $rulesType = SecurityPolicyRule::class;
   protected $rulesDataType = 'array';
   /**
@@ -74,6 +94,12 @@ class SecurityPolicy extends \Google\Collection
    * @var string
    */
   public $type;
+  /**
+   * @var SecurityPolicyUserDefinedField[]
+   */
+  public $userDefinedFields;
+  protected $userDefinedFieldsType = SecurityPolicyUserDefinedField::class;
+  protected $userDefinedFieldsDataType = 'array';
 
   /**
    * @param SecurityPolicyAdaptiveProtectionConfig
@@ -298,6 +324,20 @@ class SecurityPolicy extends \Google\Collection
   public function getType()
   {
     return $this->type;
+  }
+  /**
+   * @param SecurityPolicyUserDefinedField[]
+   */
+  public function setUserDefinedFields($userDefinedFields)
+  {
+    $this->userDefinedFields = $userDefinedFields;
+  }
+  /**
+   * @return SecurityPolicyUserDefinedField[]
+   */
+  public function getUserDefinedFields()
+  {
+    return $this->userDefinedFields;
   }
 }
 

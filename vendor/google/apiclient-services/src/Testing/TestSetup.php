@@ -19,9 +19,17 @@ namespace Google\Service\Testing;
 
 class TestSetup extends \Google\Collection
 {
-  protected $collection_key = 'filesToPush';
+  protected $collection_key = 'initialSetupApks';
+  /**
+   * @var Account
+   */
+  public $account;
   protected $accountType = Account::class;
   protected $accountDataType = '';
+  /**
+   * @var Apk[]
+   */
+  public $additionalApks;
   protected $additionalApksType = Apk::class;
   protected $additionalApksDataType = 'array';
   /**
@@ -32,14 +40,32 @@ class TestSetup extends \Google\Collection
    * @var bool
    */
   public $dontAutograntPermissions;
+  /**
+   * @var EnvironmentVariable[]
+   */
+  public $environmentVariables;
   protected $environmentVariablesType = EnvironmentVariable::class;
   protected $environmentVariablesDataType = 'array';
+  /**
+   * @var DeviceFile[]
+   */
+  public $filesToPush;
   protected $filesToPushType = DeviceFile::class;
   protected $filesToPushDataType = 'array';
+  /**
+   * @var Apk[]
+   */
+  public $initialSetupApks;
+  protected $initialSetupApksType = Apk::class;
+  protected $initialSetupApksDataType = 'array';
   /**
    * @var string
    */
   public $networkProfile;
+  /**
+   * @var SystraceSetup
+   */
+  public $systrace;
   protected $systraceType = SystraceSetup::class;
   protected $systraceDataType = '';
 
@@ -126,6 +152,20 @@ class TestSetup extends \Google\Collection
   public function getFilesToPush()
   {
     return $this->filesToPush;
+  }
+  /**
+   * @param Apk[]
+   */
+  public function setInitialSetupApks($initialSetupApks)
+  {
+    $this->initialSetupApks = $initialSetupApks;
+  }
+  /**
+   * @return Apk[]
+   */
+  public function getInitialSetupApks()
+  {
+    return $this->initialSetupApks;
   }
   /**
    * @param string

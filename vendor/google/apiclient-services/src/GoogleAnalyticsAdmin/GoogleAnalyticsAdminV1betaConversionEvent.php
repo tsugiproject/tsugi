@@ -32,6 +32,12 @@ class GoogleAnalyticsAdminV1betaConversionEvent extends \Google\Model
    */
   public $custom;
   /**
+   * @var GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue
+   */
+  public $defaultConversionValue;
+  protected $defaultConversionValueType = GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue::class;
+  protected $defaultConversionValueDataType = '';
+  /**
    * @var bool
    */
   public $deletable;
@@ -85,6 +91,20 @@ class GoogleAnalyticsAdminV1betaConversionEvent extends \Google\Model
   public function getCustom()
   {
     return $this->custom;
+  }
+  /**
+   * @param GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue
+   */
+  public function setDefaultConversionValue(GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue $defaultConversionValue)
+  {
+    $this->defaultConversionValue = $defaultConversionValue;
+  }
+  /**
+   * @return GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue
+   */
+  public function getDefaultConversionValue()
+  {
+    return $this->defaultConversionValue;
   }
   /**
    * @param bool

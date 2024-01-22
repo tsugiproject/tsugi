@@ -19,6 +19,10 @@ namespace Google\Service\AndroidPublisher;
 
 class RecurringExternalTransaction extends \Google\Model
 {
+  /**
+   * @var ExternalSubscription
+   */
+  public $externalSubscription;
   protected $externalSubscriptionType = ExternalSubscription::class;
   protected $externalSubscriptionDataType = '';
   /**
@@ -29,6 +33,10 @@ class RecurringExternalTransaction extends \Google\Model
    * @var string
    */
   public $initialExternalTransactionId;
+  /**
+   * @var string
+   */
+  public $migratedTransactionProgram;
 
   /**
    * @param ExternalSubscription
@@ -71,6 +79,20 @@ class RecurringExternalTransaction extends \Google\Model
   public function getInitialExternalTransactionId()
   {
     return $this->initialExternalTransactionId;
+  }
+  /**
+   * @param string
+   */
+  public function setMigratedTransactionProgram($migratedTransactionProgram)
+  {
+    $this->migratedTransactionProgram = $migratedTransactionProgram;
+  }
+  /**
+   * @return string
+   */
+  public function getMigratedTransactionProgram()
+  {
+    return $this->migratedTransactionProgram;
   }
 }
 

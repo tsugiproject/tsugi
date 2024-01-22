@@ -21,11 +21,25 @@ class KnowledgeAnswersNumberType extends \Google\Collection
 {
   protected $collection_key = 'subType';
   /**
+   * @var NlpMeaningComponentSpecificContracts
+   */
+  public $componentSpecificContracts;
+  protected $componentSpecificContractsType = NlpMeaningComponentSpecificContracts::class;
+  protected $componentSpecificContractsDataType = '';
+  /**
    * @var bool
    */
   public $keepAsString;
+  /**
+   * @var KnowledgeAnswersRangeConstraint
+   */
+  public $rangeConstraint;
   protected $rangeConstraintType = KnowledgeAnswersRangeConstraint::class;
   protected $rangeConstraintDataType = '';
+  /**
+   * @var NlpMeaningMeaningRemodelings
+   */
+  public $remodelings;
   protected $remodelingsType = NlpMeaningMeaningRemodelings::class;
   protected $remodelingsDataType = '';
   /**
@@ -33,6 +47,20 @@ class KnowledgeAnswersNumberType extends \Google\Collection
    */
   public $subType;
 
+  /**
+   * @param NlpMeaningComponentSpecificContracts
+   */
+  public function setComponentSpecificContracts(NlpMeaningComponentSpecificContracts $componentSpecificContracts)
+  {
+    $this->componentSpecificContracts = $componentSpecificContracts;
+  }
+  /**
+   * @return NlpMeaningComponentSpecificContracts
+   */
+  public function getComponentSpecificContracts()
+  {
+    return $this->componentSpecificContracts;
+  }
   /**
    * @param bool
    */

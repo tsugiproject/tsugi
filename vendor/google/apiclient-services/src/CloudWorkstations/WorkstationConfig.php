@@ -19,13 +19,21 @@ namespace Google\Service\CloudWorkstations;
 
 class WorkstationConfig extends \Google\Collection
 {
-  protected $collection_key = 'readinessChecks';
+  protected $collection_key = 'replicaZones';
   /**
    * @var string[]
    */
   public $annotations;
+  /**
+   * @var Status[]
+   */
+  public $conditions;
   protected $conditionsType = Status::class;
   protected $conditionsDataType = 'array';
+  /**
+   * @var Container
+   */
+  public $container;
   protected $containerType = Container::class;
   protected $containerDataType = '';
   /**
@@ -41,6 +49,10 @@ class WorkstationConfig extends \Google\Collection
    */
   public $deleteTime;
   /**
+   * @var bool
+   */
+  public $disableTcpConnections;
+  /**
    * @var string
    */
   public $displayName;
@@ -48,12 +60,20 @@ class WorkstationConfig extends \Google\Collection
    * @var bool
    */
   public $enableAuditAgent;
+  /**
+   * @var CustomerEncryptionKey
+   */
+  public $encryptionKey;
   protected $encryptionKeyType = CustomerEncryptionKey::class;
   protected $encryptionKeyDataType = '';
   /**
    * @var string
    */
   public $etag;
+  /**
+   * @var Host
+   */
+  public $host;
   protected $hostType = Host::class;
   protected $hostDataType = '';
   /**
@@ -68,14 +88,26 @@ class WorkstationConfig extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * @var PersistentDirectory[]
+   */
+  public $persistentDirectories;
   protected $persistentDirectoriesType = PersistentDirectory::class;
   protected $persistentDirectoriesDataType = 'array';
+  /**
+   * @var ReadinessCheck[]
+   */
+  public $readinessChecks;
   protected $readinessChecksType = ReadinessCheck::class;
   protected $readinessChecksDataType = 'array';
   /**
    * @var bool
    */
   public $reconciling;
+  /**
+   * @var string[]
+   */
+  public $replicaZones;
   /**
    * @var string
    */
@@ -172,6 +204,20 @@ class WorkstationConfig extends \Google\Collection
   public function getDeleteTime()
   {
     return $this->deleteTime;
+  }
+  /**
+   * @param bool
+   */
+  public function setDisableTcpConnections($disableTcpConnections)
+  {
+    $this->disableTcpConnections = $disableTcpConnections;
+  }
+  /**
+   * @return bool
+   */
+  public function getDisableTcpConnections()
+  {
+    return $this->disableTcpConnections;
   }
   /**
    * @param string
@@ -326,6 +372,20 @@ class WorkstationConfig extends \Google\Collection
   public function getReconciling()
   {
     return $this->reconciling;
+  }
+  /**
+   * @param string[]
+   */
+  public function setReplicaZones($replicaZones)
+  {
+    $this->replicaZones = $replicaZones;
+  }
+  /**
+   * @return string[]
+   */
+  public function getReplicaZones()
+  {
+    return $this->replicaZones;
   }
   /**
    * @param string

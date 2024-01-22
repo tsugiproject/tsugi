@@ -40,6 +40,10 @@ class GoogleCloudAiplatformV1Feature extends \Google\Collection
    * @var string[]
    */
   public $labels;
+  /**
+   * @var GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly[]
+   */
+  public $monitoringStatsAnomalies;
   protected $monitoringStatsAnomaliesType = GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly::class;
   protected $monitoringStatsAnomaliesDataType = 'array';
   /**
@@ -54,6 +58,10 @@ class GoogleCloudAiplatformV1Feature extends \Google\Collection
    * @var string
    */
   public $valueType;
+  /**
+   * @var string
+   */
+  public $versionColumnName;
 
   /**
    * @param string
@@ -180,6 +188,20 @@ class GoogleCloudAiplatformV1Feature extends \Google\Collection
   public function getValueType()
   {
     return $this->valueType;
+  }
+  /**
+   * @param string
+   */
+  public function setVersionColumnName($versionColumnName)
+  {
+    $this->versionColumnName = $versionColumnName;
+  }
+  /**
+   * @return string
+   */
+  public function getVersionColumnName()
+  {
+    return $this->versionColumnName;
   }
 }
 

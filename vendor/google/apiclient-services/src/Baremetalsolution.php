@@ -178,6 +178,16 @@ class Baremetalsolution extends \Google\Service
                   'type' => 'string',
                 ],
               ],
+            ],'loadAuthInfo' => [
+              'path' => 'v2/{+name}:loadAuthInfo',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'patch' => [
               'path' => 'v2/{+name}',
               'httpMethod' => 'PATCH',
@@ -424,7 +434,17 @@ class Baremetalsolution extends \Google\Service
         'osImages',
         [
           'methods' => [
-            'list' => [
+            'get' => [
+              'path' => 'v2/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'list' => [
               'path' => 'v2/{+parent}/osImages',
               'httpMethod' => 'GET',
               'parameters' => [

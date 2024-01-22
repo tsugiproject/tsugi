@@ -22,29 +22,25 @@ class YoutubeAndPartnersInventorySourceConfig extends \Google\Model
   /**
    * @var bool
    */
-  public $includeYoutubeSearch;
+  public $includeYoutube;
   /**
    * @var bool
    */
   public $includeYoutubeVideoPartners;
-  /**
-   * @var bool
-   */
-  public $includeYoutubeVideos;
 
   /**
    * @param bool
    */
-  public function setIncludeYoutubeSearch($includeYoutubeSearch)
+  public function setIncludeYoutube($includeYoutube)
   {
-    $this->includeYoutubeSearch = $includeYoutubeSearch;
+    $this->includeYoutube = $includeYoutube;
   }
   /**
    * @return bool
    */
-  public function getIncludeYoutubeSearch()
+  public function getIncludeYoutube()
   {
-    return $this->includeYoutubeSearch;
+    return $this->includeYoutube;
   }
   /**
    * @param bool
@@ -59,20 +55,6 @@ class YoutubeAndPartnersInventorySourceConfig extends \Google\Model
   public function getIncludeYoutubeVideoPartners()
   {
     return $this->includeYoutubeVideoPartners;
-  }
-  /**
-   * @param bool
-   */
-  public function setIncludeYoutubeVideos($includeYoutubeVideos)
-  {
-    $this->includeYoutubeVideos = $includeYoutubeVideos;
-  }
-  /**
-   * @return bool
-   */
-  public function getIncludeYoutubeVideos()
-  {
-    return $this->includeYoutubeVideos;
   }
 }
 

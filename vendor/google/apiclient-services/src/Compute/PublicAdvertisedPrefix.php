@@ -23,6 +23,10 @@ class PublicAdvertisedPrefix extends \Google\Collection
   /**
    * @var string
    */
+  public $byoipApiVersion;
+  /**
+   * @var string
+   */
   public $creationTimestamp;
   /**
    * @var string
@@ -52,6 +56,14 @@ class PublicAdvertisedPrefix extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * @var string
+   */
+  public $pdpScope;
+  /**
+   * @var PublicAdvertisedPrefixPublicDelegatedPrefix[]
+   */
+  public $publicDelegatedPrefixs;
   protected $publicDelegatedPrefixsType = PublicAdvertisedPrefixPublicDelegatedPrefix::class;
   protected $publicDelegatedPrefixsDataType = 'array';
   /**
@@ -67,6 +79,20 @@ class PublicAdvertisedPrefix extends \Google\Collection
    */
   public $status;
 
+  /**
+   * @param string
+   */
+  public function setByoipApiVersion($byoipApiVersion)
+  {
+    $this->byoipApiVersion = $byoipApiVersion;
+  }
+  /**
+   * @return string
+   */
+  public function getByoipApiVersion()
+  {
+    return $this->byoipApiVersion;
+  }
   /**
    * @param string
    */
@@ -178,6 +204,20 @@ class PublicAdvertisedPrefix extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param string
+   */
+  public function setPdpScope($pdpScope)
+  {
+    $this->pdpScope = $pdpScope;
+  }
+  /**
+   * @return string
+   */
+  public function getPdpScope()
+  {
+    return $this->pdpScope;
   }
   /**
    * @param PublicAdvertisedPrefixPublicDelegatedPrefix[]

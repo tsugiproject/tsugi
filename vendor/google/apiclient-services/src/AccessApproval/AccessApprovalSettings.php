@@ -32,6 +32,10 @@ class AccessApprovalSettings extends \Google\Collection
    * @var bool
    */
   public $enrolledAncestor;
+  /**
+   * @var EnrolledService[]
+   */
+  public $enrolledServices;
   protected $enrolledServicesType = EnrolledService::class;
   protected $enrolledServicesDataType = 'array';
   /**
@@ -46,6 +50,10 @@ class AccessApprovalSettings extends \Google\Collection
    * @var string[]
    */
   public $notificationEmails;
+  /**
+   * @var string
+   */
+  public $notificationPubsubTopic;
   /**
    * @var bool
    */
@@ -152,6 +160,20 @@ class AccessApprovalSettings extends \Google\Collection
   public function getNotificationEmails()
   {
     return $this->notificationEmails;
+  }
+  /**
+   * @param string
+   */
+  public function setNotificationPubsubTopic($notificationPubsubTopic)
+  {
+    $this->notificationPubsubTopic = $notificationPubsubTopic;
+  }
+  /**
+   * @return string
+   */
+  public function getNotificationPubsubTopic()
+  {
+    return $this->notificationPubsubTopic;
   }
   /**
    * @param bool

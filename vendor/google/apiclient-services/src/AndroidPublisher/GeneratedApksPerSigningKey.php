@@ -24,14 +24,40 @@ class GeneratedApksPerSigningKey extends \Google\Collection
    * @var string
    */
   public $certificateSha256Hash;
+  /**
+   * @var GeneratedAssetPackSlice[]
+   */
+  public $generatedAssetPackSlices;
   protected $generatedAssetPackSlicesType = GeneratedAssetPackSlice::class;
   protected $generatedAssetPackSlicesDataType = 'array';
+  /**
+   * @var GeneratedRecoveryApk[]
+   */
+  public $generatedRecoveryModules;
+  protected $generatedRecoveryModulesType = GeneratedRecoveryApk::class;
+  protected $generatedRecoveryModulesDataType = 'array';
+  /**
+   * @var GeneratedSplitApk[]
+   */
+  public $generatedSplitApks;
   protected $generatedSplitApksType = GeneratedSplitApk::class;
   protected $generatedSplitApksDataType = 'array';
+  /**
+   * @var GeneratedStandaloneApk[]
+   */
+  public $generatedStandaloneApks;
   protected $generatedStandaloneApksType = GeneratedStandaloneApk::class;
   protected $generatedStandaloneApksDataType = 'array';
+  /**
+   * @var GeneratedUniversalApk
+   */
+  public $generatedUniversalApk;
   protected $generatedUniversalApkType = GeneratedUniversalApk::class;
   protected $generatedUniversalApkDataType = '';
+  /**
+   * @var TargetingInfo
+   */
+  public $targetingInfo;
   protected $targetingInfoType = TargetingInfo::class;
   protected $targetingInfoDataType = '';
 
@@ -62,6 +88,20 @@ class GeneratedApksPerSigningKey extends \Google\Collection
   public function getGeneratedAssetPackSlices()
   {
     return $this->generatedAssetPackSlices;
+  }
+  /**
+   * @param GeneratedRecoveryApk[]
+   */
+  public function setGeneratedRecoveryModules($generatedRecoveryModules)
+  {
+    $this->generatedRecoveryModules = $generatedRecoveryModules;
+  }
+  /**
+   * @return GeneratedRecoveryApk[]
+   */
+  public function getGeneratedRecoveryModules()
+  {
+    return $this->generatedRecoveryModules;
   }
   /**
    * @param GeneratedSplitApk[]

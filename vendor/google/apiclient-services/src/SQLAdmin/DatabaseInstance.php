@@ -48,8 +48,16 @@ class DatabaseInstance extends \Google\Collection
    * @var string
    */
   public $databaseVersion;
+  /**
+   * @var DiskEncryptionConfiguration
+   */
+  public $diskEncryptionConfiguration;
   protected $diskEncryptionConfigurationType = DiskEncryptionConfiguration::class;
   protected $diskEncryptionConfigurationDataType = '';
+  /**
+   * @var DiskEncryptionStatus
+   */
+  public $diskEncryptionStatus;
   protected $diskEncryptionStatusType = DiskEncryptionStatus::class;
   protected $diskEncryptionStatusDataType = '';
   /**
@@ -60,6 +68,10 @@ class DatabaseInstance extends \Google\Collection
    * @var string
    */
   public $etag;
+  /**
+   * @var DatabaseInstanceFailoverReplica
+   */
+  public $failoverReplica;
   protected $failoverReplicaType = DatabaseInstanceFailoverReplica::class;
   protected $failoverReplicaDataType = '';
   /**
@@ -70,6 +82,10 @@ class DatabaseInstance extends \Google\Collection
    * @var string
    */
   public $instanceType;
+  /**
+   * @var IpMapping[]
+   */
+  public $ipAddresses;
   protected $ipAddressesType = IpMapping::class;
   protected $ipAddressesDataType = 'array';
   /**
@@ -96,10 +112,22 @@ class DatabaseInstance extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * @var OnPremisesConfiguration
+   */
+  public $onPremisesConfiguration;
   protected $onPremisesConfigurationType = OnPremisesConfiguration::class;
   protected $onPremisesConfigurationDataType = '';
+  /**
+   * @var SqlOutOfDiskReport
+   */
+  public $outOfDiskReport;
   protected $outOfDiskReportType = SqlOutOfDiskReport::class;
   protected $outOfDiskReportDataType = '';
+  /**
+   * @var string
+   */
+  public $primaryDnsName;
   /**
    * @var string
    */
@@ -112,6 +140,10 @@ class DatabaseInstance extends \Google\Collection
    * @var string
    */
   public $region;
+  /**
+   * @var ReplicaConfiguration
+   */
+  public $replicaConfiguration;
   protected $replicaConfigurationType = ReplicaConfiguration::class;
   protected $replicaConfigurationDataType = '';
   /**
@@ -126,6 +158,10 @@ class DatabaseInstance extends \Google\Collection
    * @var bool
    */
   public $satisfiesPzs;
+  /**
+   * @var SqlScheduledMaintenance
+   */
+  public $scheduledMaintenance;
   protected $scheduledMaintenanceType = SqlScheduledMaintenance::class;
   protected $scheduledMaintenanceDataType = '';
   /**
@@ -136,14 +172,26 @@ class DatabaseInstance extends \Google\Collection
    * @var string
    */
   public $selfLink;
+  /**
+   * @var SslCert
+   */
+  public $serverCaCert;
   protected $serverCaCertType = SslCert::class;
   protected $serverCaCertDataType = '';
   /**
    * @var string
    */
   public $serviceAccountEmailAddress;
+  /**
+   * @var Settings
+   */
+  public $settings;
   protected $settingsType = Settings::class;
   protected $settingsDataType = '';
+  /**
+   * @var string
+   */
+  public $sqlNetworkArchitecture;
   /**
    * @var string
    */
@@ -152,6 +200,10 @@ class DatabaseInstance extends \Google\Collection
    * @var string[]
    */
   public $suspensionReason;
+  /**
+   * @var string
+   */
+  public $writeEndpoint;
 
   /**
    * @param string[]
@@ -478,6 +530,20 @@ class DatabaseInstance extends \Google\Collection
   /**
    * @param string
    */
+  public function setPrimaryDnsName($primaryDnsName)
+  {
+    $this->primaryDnsName = $primaryDnsName;
+  }
+  /**
+   * @return string
+   */
+  public function getPrimaryDnsName()
+  {
+    return $this->primaryDnsName;
+  }
+  /**
+   * @param string
+   */
   public function setProject($project)
   {
     $this->project = $project;
@@ -660,6 +726,20 @@ class DatabaseInstance extends \Google\Collection
   /**
    * @param string
    */
+  public function setSqlNetworkArchitecture($sqlNetworkArchitecture)
+  {
+    $this->sqlNetworkArchitecture = $sqlNetworkArchitecture;
+  }
+  /**
+   * @return string
+   */
+  public function getSqlNetworkArchitecture()
+  {
+    return $this->sqlNetworkArchitecture;
+  }
+  /**
+   * @param string
+   */
   public function setState($state)
   {
     $this->state = $state;
@@ -684,6 +764,20 @@ class DatabaseInstance extends \Google\Collection
   public function getSuspensionReason()
   {
     return $this->suspensionReason;
+  }
+  /**
+   * @param string
+   */
+  public function setWriteEndpoint($writeEndpoint)
+  {
+    $this->writeEndpoint = $writeEndpoint;
+  }
+  /**
+   * @return string
+   */
+  public function getWriteEndpoint()
+  {
+    return $this->writeEndpoint;
   }
 }
 

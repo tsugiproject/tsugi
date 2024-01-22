@@ -20,10 +20,22 @@ namespace Google\Service\Integrations;
 class EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails extends \Google\Collection
 {
   protected $collection_key = 'eventExecutionSnapshot';
+  /**
+   * @var EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats[]
+   */
+  public $eventAttemptStats;
   protected $eventAttemptStatsType = EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats::class;
   protected $eventAttemptStatsDataType = 'array';
+  /**
+   * @var EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot[]
+   */
+  public $eventExecutionSnapshot;
   protected $eventExecutionSnapshotType = EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot::class;
   protected $eventExecutionSnapshotDataType = 'array';
+  /**
+   * @var string
+   */
+  public $eventExecutionSnapshotsSize;
   /**
    * @var string
    */
@@ -76,6 +88,20 @@ class EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails extends \Google\C
   public function getEventExecutionSnapshot()
   {
     return $this->eventExecutionSnapshot;
+  }
+  /**
+   * @param string
+   */
+  public function setEventExecutionSnapshotsSize($eventExecutionSnapshotsSize)
+  {
+    $this->eventExecutionSnapshotsSize = $eventExecutionSnapshotsSize;
+  }
+  /**
+   * @return string
+   */
+  public function getEventExecutionSnapshotsSize()
+  {
+    return $this->eventExecutionSnapshotsSize;
   }
   /**
    * @param string

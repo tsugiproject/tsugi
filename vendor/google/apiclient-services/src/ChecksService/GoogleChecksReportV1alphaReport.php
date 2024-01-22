@@ -20,14 +20,22 @@ namespace Google\Service\ChecksService;
 class GoogleChecksReportV1alphaReport extends \Google\Collection
 {
   protected $collection_key = 'checks';
+  /**
+   * @var GoogleChecksReportV1alphaAppBundle
+   */
+  public $appBundle;
   protected $appBundleType = GoogleChecksReportV1alphaAppBundle::class;
   protected $appBundleDataType = '';
   /**
-   * @var string
+   * @var GoogleChecksReportV1alphaCheck[]
    */
-  public $baseReport;
+  public $checks;
   protected $checksType = GoogleChecksReportV1alphaCheck::class;
   protected $checksDataType = 'array';
+  /**
+   * @var GoogleChecksReportV1alphaDataMonitoring
+   */
+  public $dataMonitoring;
   protected $dataMonitoringType = GoogleChecksReportV1alphaDataMonitoring::class;
   protected $dataMonitoringDataType = '';
   /**
@@ -52,20 +60,6 @@ class GoogleChecksReportV1alphaReport extends \Google\Collection
   public function getAppBundle()
   {
     return $this->appBundle;
-  }
-  /**
-   * @param string
-   */
-  public function setBaseReport($baseReport)
-  {
-    $this->baseReport = $baseReport;
-  }
-  /**
-   * @return string
-   */
-  public function getBaseReport()
-  {
-    return $this->baseReport;
   }
   /**
    * @param GoogleChecksReportV1alphaCheck[]

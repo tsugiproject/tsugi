@@ -20,6 +20,10 @@ namespace Google\Service\Dataproc;
 class DiagnoseClusterRequest extends \Google\Collection
 {
   protected $collection_key = 'yarnApplicationIds';
+  /**
+   * @var Interval
+   */
+  public $diagnosisInterval;
   protected $diagnosisIntervalType = Interval::class;
   protected $diagnosisIntervalDataType = '';
   /**
@@ -30,6 +34,14 @@ class DiagnoseClusterRequest extends \Google\Collection
    * @var string[]
    */
   public $jobs;
+  /**
+   * @var string
+   */
+  public $tarballAccess;
+  /**
+   * @var string
+   */
+  public $tarballGcsDir;
   /**
    * @var string
    */
@@ -80,6 +92,34 @@ class DiagnoseClusterRequest extends \Google\Collection
   public function getJobs()
   {
     return $this->jobs;
+  }
+  /**
+   * @param string
+   */
+  public function setTarballAccess($tarballAccess)
+  {
+    $this->tarballAccess = $tarballAccess;
+  }
+  /**
+   * @return string
+   */
+  public function getTarballAccess()
+  {
+    return $this->tarballAccess;
+  }
+  /**
+   * @param string
+   */
+  public function setTarballGcsDir($tarballGcsDir)
+  {
+    $this->tarballGcsDir = $tarballGcsDir;
+  }
+  /**
+   * @return string
+   */
+  public function getTarballGcsDir()
+  {
+    return $this->tarballGcsDir;
   }
   /**
    * @param string

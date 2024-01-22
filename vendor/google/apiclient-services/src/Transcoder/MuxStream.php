@@ -37,9 +37,19 @@ class MuxStream extends \Google\Collection
    */
   public $fileName;
   /**
+   * @var Fmp4Config
+   */
+  public $fmp4;
+  protected $fmp4Type = Fmp4Config::class;
+  protected $fmp4DataType = '';
+  /**
    * @var string
    */
   public $key;
+  /**
+   * @var SegmentSettings
+   */
+  public $segmentSettings;
   protected $segmentSettingsType = SegmentSettings::class;
   protected $segmentSettingsDataType = '';
 
@@ -98,6 +108,20 @@ class MuxStream extends \Google\Collection
   public function getFileName()
   {
     return $this->fileName;
+  }
+  /**
+   * @param Fmp4Config
+   */
+  public function setFmp4(Fmp4Config $fmp4)
+  {
+    $this->fmp4 = $fmp4;
+  }
+  /**
+   * @return Fmp4Config
+   */
+  public function getFmp4()
+  {
+    return $this->fmp4;
   }
   /**
    * @param string

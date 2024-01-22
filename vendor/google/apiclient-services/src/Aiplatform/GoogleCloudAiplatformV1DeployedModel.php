@@ -19,12 +19,20 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1DeployedModel extends \Google\Model
 {
+  /**
+   * @var GoogleCloudAiplatformV1AutomaticResources
+   */
+  public $automaticResources;
   protected $automaticResourcesType = GoogleCloudAiplatformV1AutomaticResources::class;
   protected $automaticResourcesDataType = '';
   /**
    * @var string
    */
   public $createTime;
+  /**
+   * @var GoogleCloudAiplatformV1DedicatedResources
+   */
+  public $dedicatedResources;
   protected $dedicatedResourcesType = GoogleCloudAiplatformV1DedicatedResources::class;
   protected $dedicatedResourcesDataType = '';
   /**
@@ -39,6 +47,10 @@ class GoogleCloudAiplatformV1DeployedModel extends \Google\Model
    * @var bool
    */
   public $enableAccessLogging;
+  /**
+   * @var GoogleCloudAiplatformV1ExplanationSpec
+   */
+  public $explanationSpec;
   protected $explanationSpecType = GoogleCloudAiplatformV1ExplanationSpec::class;
   protected $explanationSpecDataType = '';
   /**
@@ -53,12 +65,20 @@ class GoogleCloudAiplatformV1DeployedModel extends \Google\Model
    * @var string
    */
   public $modelVersionId;
+  /**
+   * @var GoogleCloudAiplatformV1PrivateEndpoints
+   */
+  public $privateEndpoints;
   protected $privateEndpointsType = GoogleCloudAiplatformV1PrivateEndpoints::class;
   protected $privateEndpointsDataType = '';
   /**
    * @var string
    */
   public $serviceAccount;
+  /**
+   * @var string
+   */
+  public $sharedResources;
 
   /**
    * @param GoogleCloudAiplatformV1AutomaticResources
@@ -227,6 +247,20 @@ class GoogleCloudAiplatformV1DeployedModel extends \Google\Model
   public function getServiceAccount()
   {
     return $this->serviceAccount;
+  }
+  /**
+   * @param string
+   */
+  public function setSharedResources($sharedResources)
+  {
+    $this->sharedResources = $sharedResources;
+  }
+  /**
+   * @return string
+   */
+  public function getSharedResources()
+  {
+    return $this->sharedResources;
   }
 }
 

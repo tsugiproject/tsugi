@@ -34,11 +34,19 @@ class AssistantGroundingRankerMediaGroundingProviderFeatures extends \Google\Mod
   /**
    * @var bool
    */
+  public $hasCastVideoDeeplink;
+  /**
+   * @var bool
+   */
   public $hasTypeSemanticEdge;
   /**
    * @var bool
    */
   public $isCastVideo;
+  /**
+   * @var bool
+   */
+  public $isExclusiveOriginalProvider;
   /**
    * @var bool
    */
@@ -58,7 +66,15 @@ class AssistantGroundingRankerMediaGroundingProviderFeatures extends \Google\Mod
   /**
    * @var bool
    */
+  public $isSelfReportedSvodProvider;
+  /**
+   * @var bool
+   */
   public $isYoutubeMusicSeeking;
+  /**
+   * @var string
+   */
+  public $mediaAccountType;
   /**
    * @var string
    */
@@ -120,6 +136,20 @@ class AssistantGroundingRankerMediaGroundingProviderFeatures extends \Google\Mod
   /**
    * @param bool
    */
+  public function setHasCastVideoDeeplink($hasCastVideoDeeplink)
+  {
+    $this->hasCastVideoDeeplink = $hasCastVideoDeeplink;
+  }
+  /**
+   * @return bool
+   */
+  public function getHasCastVideoDeeplink()
+  {
+    return $this->hasCastVideoDeeplink;
+  }
+  /**
+   * @param bool
+   */
   public function setHasTypeSemanticEdge($hasTypeSemanticEdge)
   {
     $this->hasTypeSemanticEdge = $hasTypeSemanticEdge;
@@ -144,6 +174,20 @@ class AssistantGroundingRankerMediaGroundingProviderFeatures extends \Google\Mod
   public function getIsCastVideo()
   {
     return $this->isCastVideo;
+  }
+  /**
+   * @param bool
+   */
+  public function setIsExclusiveOriginalProvider($isExclusiveOriginalProvider)
+  {
+    $this->isExclusiveOriginalProvider = $isExclusiveOriginalProvider;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsExclusiveOriginalProvider()
+  {
+    return $this->isExclusiveOriginalProvider;
   }
   /**
    * @param bool
@@ -204,6 +248,20 @@ class AssistantGroundingRankerMediaGroundingProviderFeatures extends \Google\Mod
   /**
    * @param bool
    */
+  public function setIsSelfReportedSvodProvider($isSelfReportedSvodProvider)
+  {
+    $this->isSelfReportedSvodProvider = $isSelfReportedSvodProvider;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsSelfReportedSvodProvider()
+  {
+    return $this->isSelfReportedSvodProvider;
+  }
+  /**
+   * @param bool
+   */
   public function setIsYoutubeMusicSeeking($isYoutubeMusicSeeking)
   {
     $this->isYoutubeMusicSeeking = $isYoutubeMusicSeeking;
@@ -214,6 +272,20 @@ class AssistantGroundingRankerMediaGroundingProviderFeatures extends \Google\Mod
   public function getIsYoutubeMusicSeeking()
   {
     return $this->isYoutubeMusicSeeking;
+  }
+  /**
+   * @param string
+   */
+  public function setMediaAccountType($mediaAccountType)
+  {
+    $this->mediaAccountType = $mediaAccountType;
+  }
+  /**
+   * @return string
+   */
+  public function getMediaAccountType()
+  {
+    return $this->mediaAccountType;
   }
   /**
    * @param string

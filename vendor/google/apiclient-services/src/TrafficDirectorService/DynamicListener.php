@@ -19,16 +19,36 @@ namespace Google\Service\TrafficDirectorService;
 
 class DynamicListener extends \Google\Model
 {
+  /**
+   * @var DynamicListenerState
+   */
+  public $activeState;
   protected $activeStateType = DynamicListenerState::class;
   protected $activeStateDataType = '';
+  /**
+   * @var string
+   */
+  public $clientStatus;
+  /**
+   * @var DynamicListenerState
+   */
+  public $drainingState;
   protected $drainingStateType = DynamicListenerState::class;
   protected $drainingStateDataType = '';
+  /**
+   * @var UpdateFailureState
+   */
+  public $errorState;
   protected $errorStateType = UpdateFailureState::class;
   protected $errorStateDataType = '';
   /**
    * @var string
    */
   public $name;
+  /**
+   * @var DynamicListenerState
+   */
+  public $warmingState;
   protected $warmingStateType = DynamicListenerState::class;
   protected $warmingStateDataType = '';
 
@@ -45,6 +65,20 @@ class DynamicListener extends \Google\Model
   public function getActiveState()
   {
     return $this->activeState;
+  }
+  /**
+   * @param string
+   */
+  public function setClientStatus($clientStatus)
+  {
+    $this->clientStatus = $clientStatus;
+  }
+  /**
+   * @return string
+   */
+  public function getClientStatus()
+  {
+    return $this->clientStatus;
   }
   /**
    * @param DynamicListenerState

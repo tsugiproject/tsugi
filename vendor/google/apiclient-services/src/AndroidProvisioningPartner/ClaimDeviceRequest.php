@@ -22,9 +22,21 @@ class ClaimDeviceRequest extends \Google\Model
   /**
    * @var string
    */
+  public $configurationId;
+  /**
+   * @var string
+   */
   public $customerId;
+  /**
+   * @var DeviceIdentifier
+   */
+  public $deviceIdentifier;
   protected $deviceIdentifierType = DeviceIdentifier::class;
   protected $deviceIdentifierDataType = '';
+  /**
+   * @var DeviceMetadata
+   */
+  public $deviceMetadata;
   protected $deviceMetadataType = DeviceMetadata::class;
   protected $deviceMetadataDataType = '';
   /**
@@ -44,6 +56,20 @@ class ClaimDeviceRequest extends \Google\Model
    */
   public $simlockProfileId;
 
+  /**
+   * @param string
+   */
+  public function setConfigurationId($configurationId)
+  {
+    $this->configurationId = $configurationId;
+  }
+  /**
+   * @return string
+   */
+  public function getConfigurationId()
+  {
+    return $this->configurationId;
+  }
   /**
    * @param string
    */

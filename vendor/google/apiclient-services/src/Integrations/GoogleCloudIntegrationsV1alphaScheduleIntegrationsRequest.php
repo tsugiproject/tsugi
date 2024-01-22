@@ -20,10 +20,22 @@ namespace Google\Service\Integrations;
 class GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest extends \Google\Collection
 {
   protected $collection_key = 'parameterEntries';
+  /**
+   * @var GoogleCloudIntegrationsV1alphaValueType[]
+   */
+  public $inputParameters;
   protected $inputParametersType = GoogleCloudIntegrationsV1alphaValueType::class;
   protected $inputParametersDataType = 'map';
+  /**
+   * @var EnterpriseCrmFrontendsEventbusProtoParameterEntry[]
+   */
+  public $parameterEntries;
   protected $parameterEntriesType = EnterpriseCrmFrontendsEventbusProtoParameterEntry::class;
   protected $parameterEntriesDataType = 'array';
+  /**
+   * @var EnterpriseCrmEventbusProtoEventParameters
+   */
+  public $parameters;
   protected $parametersType = EnterpriseCrmEventbusProtoEventParameters::class;
   protected $parametersDataType = '';
   /**
@@ -38,6 +50,10 @@ class GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest extends \Google\
    * @var string
    */
   public $triggerId;
+  /**
+   * @var string
+   */
+  public $userGeneratedExecutionId;
 
   /**
    * @param GoogleCloudIntegrationsV1alphaValueType[]
@@ -122,6 +138,20 @@ class GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest extends \Google\
   public function getTriggerId()
   {
     return $this->triggerId;
+  }
+  /**
+   * @param string
+   */
+  public function setUserGeneratedExecutionId($userGeneratedExecutionId)
+  {
+    $this->userGeneratedExecutionId = $userGeneratedExecutionId;
+  }
+  /**
+   * @return string
+   */
+  public function getUserGeneratedExecutionId()
+  {
+    return $this->userGeneratedExecutionId;
   }
 }
 

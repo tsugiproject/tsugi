@@ -45,7 +45,8 @@ class ProjectsLocationsRepositories extends \Google\Service\Resource
    * @param Repository $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string repositoryId The repository id to use for this repository.
+   * @opt_param string repositoryId Required. The repository id to use for this
+   * repository.
    * @return Operation
    */
   public function create($parent, Repository $postBody, $optParams = [])
@@ -135,7 +136,7 @@ class ProjectsLocationsRepositories extends \Google\Service\Resource
    * Updates a repository. (repositories.patch)
    *
    * @param string $name The name of the repository, for example:
-   * "projects/p1/locations/us-central1/repositories/repo1".
+   * `projects/p1/locations/us-central1/repositories/repo1`.
    * @param Repository $postBody
    * @param array $optParams Optional parameters.
    *

@@ -44,14 +44,30 @@ class Application extends \Google\Collection
    * @var string
    */
   public $defaultHostname;
+  /**
+   * @var UrlDispatchRule[]
+   */
+  public $dispatchRules;
   protected $dispatchRulesType = UrlDispatchRule::class;
   protected $dispatchRulesDataType = 'array';
+  /**
+   * @var FeatureSettings
+   */
+  public $featureSettings;
   protected $featureSettingsType = FeatureSettings::class;
   protected $featureSettingsDataType = '';
   /**
    * @var string
    */
   public $gcrDomain;
+  /**
+   * @var array[]
+   */
+  public $generatedCustomerMetadata;
+  /**
+   * @var IdentityAwareProxy
+   */
+  public $iap;
   protected $iapType = IdentityAwareProxy::class;
   protected $iapDataType = '';
   /**
@@ -200,6 +216,20 @@ class Application extends \Google\Collection
   public function getGcrDomain()
   {
     return $this->gcrDomain;
+  }
+  /**
+   * @param array[]
+   */
+  public function setGeneratedCustomerMetadata($generatedCustomerMetadata)
+  {
+    $this->generatedCustomerMetadata = $generatedCustomerMetadata;
+  }
+  /**
+   * @return array[]
+   */
+  public function getGeneratedCustomerMetadata()
+  {
+    return $this->generatedCustomerMetadata;
   }
   /**
    * @param IdentityAwareProxy

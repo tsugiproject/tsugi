@@ -20,6 +20,12 @@ namespace Google\Service\Logging;
 class Settings extends \Google\Model
 {
   /**
+   * @var DefaultSinkConfig
+   */
+  public $defaultSinkConfig;
+  protected $defaultSinkConfigType = DefaultSinkConfig::class;
+  protected $defaultSinkConfigDataType = '';
+  /**
    * @var bool
    */
   public $disableDefaultSink;
@@ -44,6 +50,20 @@ class Settings extends \Google\Model
    */
   public $storageLocation;
 
+  /**
+   * @param DefaultSinkConfig
+   */
+  public function setDefaultSinkConfig(DefaultSinkConfig $defaultSinkConfig)
+  {
+    $this->defaultSinkConfig = $defaultSinkConfig;
+  }
+  /**
+   * @return DefaultSinkConfig
+   */
+  public function getDefaultSinkConfig()
+  {
+    return $this->defaultSinkConfig;
+  }
   /**
    * @param bool
    */

@@ -19,10 +19,28 @@ namespace Google\Service\GKEHub;
 
 class CommonFeatureState extends \Google\Model
 {
+  /**
+   * @var AppDevExperienceFeatureState
+   */
+  public $appdevexperience;
   protected $appdevexperienceType = AppDevExperienceFeatureState::class;
   protected $appdevexperienceDataType = '';
+  /**
+   * @var ClusterUpgradeFleetState
+   */
+  public $clusterupgrade;
+  protected $clusterupgradeType = ClusterUpgradeFleetState::class;
+  protected $clusterupgradeDataType = '';
+  /**
+   * @var FleetObservabilityFeatureState
+   */
+  public $fleetobservability;
   protected $fleetobservabilityType = FleetObservabilityFeatureState::class;
   protected $fleetobservabilityDataType = '';
+  /**
+   * @var FeatureState
+   */
+  public $state;
   protected $stateType = FeatureState::class;
   protected $stateDataType = '';
 
@@ -39,6 +57,20 @@ class CommonFeatureState extends \Google\Model
   public function getAppdevexperience()
   {
     return $this->appdevexperience;
+  }
+  /**
+   * @param ClusterUpgradeFleetState
+   */
+  public function setClusterupgrade(ClusterUpgradeFleetState $clusterupgrade)
+  {
+    $this->clusterupgrade = $clusterupgrade;
+  }
+  /**
+   * @return ClusterUpgradeFleetState
+   */
+  public function getClusterupgrade()
+  {
+    return $this->clusterupgrade;
   }
   /**
    * @param FleetObservabilityFeatureState

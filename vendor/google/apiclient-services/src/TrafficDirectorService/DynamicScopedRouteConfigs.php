@@ -23,6 +23,16 @@ class DynamicScopedRouteConfigs extends \Google\Collection
   /**
    * @var string
    */
+  public $clientStatus;
+  /**
+   * @var UpdateFailureState
+   */
+  public $errorState;
+  protected $errorStateType = UpdateFailureState::class;
+  protected $errorStateDataType = '';
+  /**
+   * @var string
+   */
   public $lastUpdated;
   /**
    * @var string
@@ -37,6 +47,34 @@ class DynamicScopedRouteConfigs extends \Google\Collection
    */
   public $versionInfo;
 
+  /**
+   * @param string
+   */
+  public function setClientStatus($clientStatus)
+  {
+    $this->clientStatus = $clientStatus;
+  }
+  /**
+   * @return string
+   */
+  public function getClientStatus()
+  {
+    return $this->clientStatus;
+  }
+  /**
+   * @param UpdateFailureState
+   */
+  public function setErrorState(UpdateFailureState $errorState)
+  {
+    $this->errorState = $errorState;
+  }
+  /**
+   * @return UpdateFailureState
+   */
+  public function getErrorState()
+  {
+    return $this->errorState;
+  }
   /**
    * @param string
    */

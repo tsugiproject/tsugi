@@ -20,10 +20,22 @@ namespace Google\Service\SecurityCommandCenter;
 class Exfiltration extends \Google\Collection
 {
   protected $collection_key = 'targets';
+  /**
+   * @var ExfilResource[]
+   */
+  public $sources;
   protected $sourcesType = ExfilResource::class;
   protected $sourcesDataType = 'array';
+  /**
+   * @var ExfilResource[]
+   */
+  public $targets;
   protected $targetsType = ExfilResource::class;
   protected $targetsDataType = 'array';
+  /**
+   * @var string
+   */
+  public $totalExfiltratedBytes;
 
   /**
    * @param ExfilResource[]
@@ -52,6 +64,20 @@ class Exfiltration extends \Google\Collection
   public function getTargets()
   {
     return $this->targets;
+  }
+  /**
+   * @param string
+   */
+  public function setTotalExfiltratedBytes($totalExfiltratedBytes)
+  {
+    $this->totalExfiltratedBytes = $totalExfiltratedBytes;
+  }
+  /**
+   * @return string
+   */
+  public function getTotalExfiltratedBytes()
+  {
+    return $this->totalExfiltratedBytes;
   }
 }
 

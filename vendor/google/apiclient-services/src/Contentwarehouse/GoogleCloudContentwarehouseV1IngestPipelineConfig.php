@@ -19,6 +19,14 @@ namespace Google\Service\Contentwarehouse;
 
 class GoogleCloudContentwarehouseV1IngestPipelineConfig extends \Google\Model
 {
+  /**
+   * @var string
+   */
+  public $cloudFunction;
+  /**
+   * @var GoogleIamV1Policy
+   */
+  public $documentAclPolicy;
   protected $documentAclPolicyType = GoogleIamV1Policy::class;
   protected $documentAclPolicyDataType = '';
   /**
@@ -30,6 +38,20 @@ class GoogleCloudContentwarehouseV1IngestPipelineConfig extends \Google\Model
    */
   public $folder;
 
+  /**
+   * @param string
+   */
+  public function setCloudFunction($cloudFunction)
+  {
+    $this->cloudFunction = $cloudFunction;
+  }
+  /**
+   * @return string
+   */
+  public function getCloudFunction()
+  {
+    return $this->cloudFunction;
+  }
   /**
    * @param GoogleIamV1Policy
    */

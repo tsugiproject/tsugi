@@ -21,13 +21,31 @@ class GoogleCloudIntegrationsV1alphaExecution extends \Google\Collection
 {
   protected $collection_key = 'responseParams';
   /**
+   * @var GoogleCloudIntegrationsV1alphaCloudLoggingDetails
+   */
+  public $cloudLoggingDetails;
+  protected $cloudLoggingDetailsType = GoogleCloudIntegrationsV1alphaCloudLoggingDetails::class;
+  protected $cloudLoggingDetailsDataType = '';
+  /**
    * @var string
    */
   public $createTime;
+  /**
+   * @var GoogleCloudIntegrationsV1alphaExecution[]
+   */
+  public $directSubExecutions;
   protected $directSubExecutionsType = GoogleCloudIntegrationsV1alphaExecution::class;
   protected $directSubExecutionsDataType = 'array';
+  /**
+   * @var EnterpriseCrmEventbusProtoEventExecutionDetails
+   */
+  public $eventExecutionDetails;
   protected $eventExecutionDetailsType = EnterpriseCrmEventbusProtoEventExecutionDetails::class;
   protected $eventExecutionDetailsDataType = '';
+  /**
+   * @var GoogleCloudIntegrationsV1alphaExecutionDetails
+   */
+  public $executionDetails;
   protected $executionDetailsType = GoogleCloudIntegrationsV1alphaExecutionDetails::class;
   protected $executionDetailsDataType = '';
   /**
@@ -37,15 +55,39 @@ class GoogleCloudIntegrationsV1alphaExecution extends \Google\Collection
   /**
    * @var string
    */
+  public $integrationVersionState;
+  /**
+   * @var string
+   */
   public $name;
+  /**
+   * @var GoogleCloudIntegrationsV1alphaValueType[]
+   */
+  public $requestParameters;
   protected $requestParametersType = GoogleCloudIntegrationsV1alphaValueType::class;
   protected $requestParametersDataType = 'map';
+  /**
+   * @var EnterpriseCrmFrontendsEventbusProtoParameterEntry[]
+   */
+  public $requestParams;
   protected $requestParamsType = EnterpriseCrmFrontendsEventbusProtoParameterEntry::class;
   protected $requestParamsDataType = 'array';
+  /**
+   * @var GoogleCloudIntegrationsV1alphaValueType[]
+   */
+  public $responseParameters;
   protected $responseParametersType = GoogleCloudIntegrationsV1alphaValueType::class;
   protected $responseParametersDataType = 'map';
+  /**
+   * @var EnterpriseCrmFrontendsEventbusProtoParameterEntry[]
+   */
+  public $responseParams;
   protected $responseParamsType = EnterpriseCrmFrontendsEventbusProtoParameterEntry::class;
   protected $responseParamsDataType = 'array';
+  /**
+   * @var string
+   */
+  public $snapshotNumber;
   /**
    * @var string
    */
@@ -55,6 +97,20 @@ class GoogleCloudIntegrationsV1alphaExecution extends \Google\Collection
    */
   public $updateTime;
 
+  /**
+   * @param GoogleCloudIntegrationsV1alphaCloudLoggingDetails
+   */
+  public function setCloudLoggingDetails(GoogleCloudIntegrationsV1alphaCloudLoggingDetails $cloudLoggingDetails)
+  {
+    $this->cloudLoggingDetails = $cloudLoggingDetails;
+  }
+  /**
+   * @return GoogleCloudIntegrationsV1alphaCloudLoggingDetails
+   */
+  public function getCloudLoggingDetails()
+  {
+    return $this->cloudLoggingDetails;
+  }
   /**
    * @param string
    */
@@ -128,6 +184,20 @@ class GoogleCloudIntegrationsV1alphaExecution extends \Google\Collection
   /**
    * @param string
    */
+  public function setIntegrationVersionState($integrationVersionState)
+  {
+    $this->integrationVersionState = $integrationVersionState;
+  }
+  /**
+   * @return string
+   */
+  public function getIntegrationVersionState()
+  {
+    return $this->integrationVersionState;
+  }
+  /**
+   * @param string
+   */
   public function setName($name)
   {
     $this->name = $name;
@@ -194,6 +264,20 @@ class GoogleCloudIntegrationsV1alphaExecution extends \Google\Collection
   public function getResponseParams()
   {
     return $this->responseParams;
+  }
+  /**
+   * @param string
+   */
+  public function setSnapshotNumber($snapshotNumber)
+  {
+    $this->snapshotNumber = $snapshotNumber;
+  }
+  /**
+   * @return string
+   */
+  public function getSnapshotNumber()
+  {
+    return $this->snapshotNumber;
   }
   /**
    * @param string

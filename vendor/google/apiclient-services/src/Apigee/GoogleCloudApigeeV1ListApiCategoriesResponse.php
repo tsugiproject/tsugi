@@ -20,7 +20,11 @@ namespace Google\Service\Apigee;
 class GoogleCloudApigeeV1ListApiCategoriesResponse extends \Google\Collection
 {
   protected $collection_key = 'data';
-  protected $dataType = GoogleCloudApigeeV1ApiCategoryData::class;
+  /**
+   * @var GoogleCloudApigeeV1ApiCategory[]
+   */
+  public $data;
+  protected $dataType = GoogleCloudApigeeV1ApiCategory::class;
   protected $dataDataType = 'array';
   /**
    * @var string
@@ -40,14 +44,14 @@ class GoogleCloudApigeeV1ListApiCategoriesResponse extends \Google\Collection
   public $status;
 
   /**
-   * @param GoogleCloudApigeeV1ApiCategoryData[]
+   * @param GoogleCloudApigeeV1ApiCategory[]
    */
   public function setData($data)
   {
     $this->data = $data;
   }
   /**
-   * @return GoogleCloudApigeeV1ApiCategoryData[]
+   * @return GoogleCloudApigeeV1ApiCategory[]
    */
   public function getData()
   {

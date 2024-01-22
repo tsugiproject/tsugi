@@ -20,22 +20,84 @@ namespace Google\Service\TagManager;
 class Entity extends \Google\Model
 {
   /**
+   * @var BuiltInVariable
+   */
+  public $builtInVariable;
+  protected $builtInVariableType = BuiltInVariable::class;
+  protected $builtInVariableDataType = '';
+  /**
    * @var string
    */
   public $changeStatus;
+  /**
+   * @var Client
+   */
+  public $client;
   protected $clientType = Client::class;
   protected $clientDataType = '';
+  /**
+   * @var CustomTemplate
+   */
+  public $customTemplate;
+  protected $customTemplateType = CustomTemplate::class;
+  protected $customTemplateDataType = '';
+  /**
+   * @var Folder
+   */
+  public $folder;
   protected $folderType = Folder::class;
   protected $folderDataType = '';
+  /**
+   * @var GtagConfig
+   */
+  public $gtagConfig;
+  protected $gtagConfigType = GtagConfig::class;
+  protected $gtagConfigDataType = '';
+  /**
+   * @var Tag
+   */
+  public $tag;
   protected $tagType = Tag::class;
   protected $tagDataType = '';
+  /**
+   * @var Transformation
+   */
+  public $transformation;
   protected $transformationType = Transformation::class;
   protected $transformationDataType = '';
+  /**
+   * @var Trigger
+   */
+  public $trigger;
   protected $triggerType = Trigger::class;
   protected $triggerDataType = '';
+  /**
+   * @var Variable
+   */
+  public $variable;
   protected $variableType = Variable::class;
   protected $variableDataType = '';
+  /**
+   * @var Zone
+   */
+  public $zone;
+  protected $zoneType = Zone::class;
+  protected $zoneDataType = '';
 
+  /**
+   * @param BuiltInVariable
+   */
+  public function setBuiltInVariable(BuiltInVariable $builtInVariable)
+  {
+    $this->builtInVariable = $builtInVariable;
+  }
+  /**
+   * @return BuiltInVariable
+   */
+  public function getBuiltInVariable()
+  {
+    return $this->builtInVariable;
+  }
   /**
    * @param string
    */
@@ -65,6 +127,20 @@ class Entity extends \Google\Model
     return $this->client;
   }
   /**
+   * @param CustomTemplate
+   */
+  public function setCustomTemplate(CustomTemplate $customTemplate)
+  {
+    $this->customTemplate = $customTemplate;
+  }
+  /**
+   * @return CustomTemplate
+   */
+  public function getCustomTemplate()
+  {
+    return $this->customTemplate;
+  }
+  /**
    * @param Folder
    */
   public function setFolder(Folder $folder)
@@ -77,6 +153,20 @@ class Entity extends \Google\Model
   public function getFolder()
   {
     return $this->folder;
+  }
+  /**
+   * @param GtagConfig
+   */
+  public function setGtagConfig(GtagConfig $gtagConfig)
+  {
+    $this->gtagConfig = $gtagConfig;
+  }
+  /**
+   * @return GtagConfig
+   */
+  public function getGtagConfig()
+  {
+    return $this->gtagConfig;
   }
   /**
    * @param Tag
@@ -133,6 +223,20 @@ class Entity extends \Google\Model
   public function getVariable()
   {
     return $this->variable;
+  }
+  /**
+   * @param Zone
+   */
+  public function setZone(Zone $zone)
+  {
+    $this->zone = $zone;
+  }
+  /**
+   * @return Zone
+   */
+  public function getZone()
+  {
+    return $this->zone;
   }
 }
 

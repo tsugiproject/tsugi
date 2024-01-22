@@ -19,12 +19,38 @@ namespace Google\Service\TrafficDirectorService;
 
 class PerXdsConfig extends \Google\Model
 {
+  /**
+   * @var string
+   */
+  public $clientStatus;
+  /**
+   * @var ClustersConfigDump
+   */
+  public $clusterConfig;
   protected $clusterConfigType = ClustersConfigDump::class;
   protected $clusterConfigDataType = '';
+  /**
+   * @var EndpointsConfigDump
+   */
+  public $endpointConfig;
+  protected $endpointConfigType = EndpointsConfigDump::class;
+  protected $endpointConfigDataType = '';
+  /**
+   * @var ListenersConfigDump
+   */
+  public $listenerConfig;
   protected $listenerConfigType = ListenersConfigDump::class;
   protected $listenerConfigDataType = '';
+  /**
+   * @var RoutesConfigDump
+   */
+  public $routeConfig;
   protected $routeConfigType = RoutesConfigDump::class;
   protected $routeConfigDataType = '';
+  /**
+   * @var ScopedRoutesConfigDump
+   */
+  public $scopedRouteConfig;
   protected $scopedRouteConfigType = ScopedRoutesConfigDump::class;
   protected $scopedRouteConfigDataType = '';
   /**
@@ -32,6 +58,20 @@ class PerXdsConfig extends \Google\Model
    */
   public $status;
 
+  /**
+   * @param string
+   */
+  public function setClientStatus($clientStatus)
+  {
+    $this->clientStatus = $clientStatus;
+  }
+  /**
+   * @return string
+   */
+  public function getClientStatus()
+  {
+    return $this->clientStatus;
+  }
   /**
    * @param ClustersConfigDump
    */
@@ -45,6 +85,20 @@ class PerXdsConfig extends \Google\Model
   public function getClusterConfig()
   {
     return $this->clusterConfig;
+  }
+  /**
+   * @param EndpointsConfigDump
+   */
+  public function setEndpointConfig(EndpointsConfigDump $endpointConfig)
+  {
+    $this->endpointConfig = $endpointConfig;
+  }
+  /**
+   * @return EndpointsConfigDump
+   */
+  public function getEndpointConfig()
+  {
+    return $this->endpointConfig;
   }
   /**
    * @param ListenersConfigDump

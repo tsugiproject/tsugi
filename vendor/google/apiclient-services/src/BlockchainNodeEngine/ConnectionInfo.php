@@ -19,8 +19,16 @@ namespace Google\Service\BlockchainNodeEngine;
 
 class ConnectionInfo extends \Google\Model
 {
+  /**
+   * @var EndpointInfo
+   */
+  public $endpointInfo;
   protected $endpointInfoType = EndpointInfo::class;
   protected $endpointInfoDataType = '';
+  /**
+   * @var string
+   */
+  public $serviceAttachment;
 
   /**
    * @param EndpointInfo
@@ -35,6 +43,20 @@ class ConnectionInfo extends \Google\Model
   public function getEndpointInfo()
   {
     return $this->endpointInfo;
+  }
+  /**
+   * @param string
+   */
+  public function setServiceAttachment($serviceAttachment)
+  {
+    $this->serviceAttachment = $serviceAttachment;
+  }
+  /**
+   * @return string
+   */
+  public function getServiceAttachment()
+  {
+    return $this->serviceAttachment;
   }
 }
 

@@ -44,6 +44,10 @@ class RouterNat extends \Google\Collection
    * @var int
    */
   public $icmpIdleTimeoutSec;
+  /**
+   * @var RouterNatLogConfig
+   */
+  public $logConfig;
   protected $logConfigType = RouterNatLogConfig::class;
   protected $logConfigDataType = '';
   /**
@@ -66,12 +70,20 @@ class RouterNat extends \Google\Collection
    * @var string[]
    */
   public $natIps;
+  /**
+   * @var RouterNatRule[]
+   */
+  public $rules;
   protected $rulesType = RouterNatRule::class;
   protected $rulesDataType = 'array';
   /**
    * @var string
    */
   public $sourceSubnetworkIpRangesToNat;
+  /**
+   * @var RouterNatSubnetworkToNat[]
+   */
+  public $subnetworks;
   protected $subnetworksType = RouterNatSubnetworkToNat::class;
   protected $subnetworksDataType = 'array';
   /**
@@ -86,6 +98,10 @@ class RouterNat extends \Google\Collection
    * @var int
    */
   public $tcpTransitoryIdleTimeoutSec;
+  /**
+   * @var string
+   */
+  public $type;
   /**
    * @var int
    */
@@ -342,6 +358,20 @@ class RouterNat extends \Google\Collection
   public function getTcpTransitoryIdleTimeoutSec()
   {
     return $this->tcpTransitoryIdleTimeoutSec;
+  }
+  /**
+   * @param string
+   */
+  public function setType($type)
+  {
+    $this->type = $type;
+  }
+  /**
+   * @return string
+   */
+  public function getType()
+  {
+    return $this->type;
   }
   /**
    * @param int

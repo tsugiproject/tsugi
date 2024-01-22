@@ -24,14 +24,30 @@ class QueryResponse extends \Google\Collection
    * @var bool
    */
   public $cacheHit;
+  /**
+   * @var DmlStatistics
+   */
+  public $dmlStats;
   protected $dmlStatsType = DmlStatistics::class;
   protected $dmlStatsDataType = '';
+  /**
+   * @var ErrorProto[]
+   */
+  public $errors;
   protected $errorsType = ErrorProto::class;
   protected $errorsDataType = 'array';
   /**
    * @var bool
    */
   public $jobComplete;
+  /**
+   * @var array
+   */
+  public $jobCreationReason;
+  /**
+   * @var JobReference
+   */
+  public $jobReference;
   protected $jobReferenceType = JobReference::class;
   protected $jobReferenceDataType = '';
   /**
@@ -46,10 +62,26 @@ class QueryResponse extends \Google\Collection
    * @var string
    */
   public $pageToken;
+  /**
+   * @var string
+   */
+  public $queryId;
+  /**
+   * @var TableRow[]
+   */
+  public $rows;
   protected $rowsType = TableRow::class;
   protected $rowsDataType = 'array';
+  /**
+   * @var TableSchema
+   */
+  public $schema;
   protected $schemaType = TableSchema::class;
   protected $schemaDataType = '';
+  /**
+   * @var SessionInfo
+   */
+  public $sessionInfo;
   protected $sessionInfoType = SessionInfo::class;
   protected $sessionInfoDataType = '';
   /**
@@ -118,6 +150,20 @@ class QueryResponse extends \Google\Collection
     return $this->jobComplete;
   }
   /**
+   * @param array
+   */
+  public function setJobCreationReason($jobCreationReason)
+  {
+    $this->jobCreationReason = $jobCreationReason;
+  }
+  /**
+   * @return array
+   */
+  public function getJobCreationReason()
+  {
+    return $this->jobCreationReason;
+  }
+  /**
    * @param JobReference
    */
   public function setJobReference(JobReference $jobReference)
@@ -172,6 +218,20 @@ class QueryResponse extends \Google\Collection
   public function getPageToken()
   {
     return $this->pageToken;
+  }
+  /**
+   * @param string
+   */
+  public function setQueryId($queryId)
+  {
+    $this->queryId = $queryId;
+  }
+  /**
+   * @return string
+   */
+  public function getQueryId()
+  {
+    return $this->queryId;
   }
   /**
    * @param TableRow[]

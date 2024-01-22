@@ -20,12 +20,26 @@ namespace Google\Service\PaymentsResellerSubscription;
 class GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItem extends \Google\Collection
 {
   protected $collection_key = 'lineItemPromotionSpecs';
+  /**
+   * @var GoogleCloudPaymentsResellerSubscriptionV1Amount
+   */
+  public $amount;
   protected $amountType = GoogleCloudPaymentsResellerSubscriptionV1Amount::class;
   protected $amountDataType = '';
+  /**
+   * @var SubscriptionLineItemBundleDetails
+   */
+  public $bundleDetails;
+  protected $bundleDetailsType = SubscriptionLineItemBundleDetails::class;
+  protected $bundleDetailsDataType = '';
   /**
    * @var string
    */
   public $description;
+  /**
+   * @var GoogleCloudPaymentsResellerSubscriptionV1FiniteBillingCycleDetails
+   */
+  public $finiteBillingCycleDetails;
   protected $finiteBillingCycleDetailsType = GoogleCloudPaymentsResellerSubscriptionV1FiniteBillingCycleDetails::class;
   protected $finiteBillingCycleDetailsDataType = '';
   /**
@@ -36,14 +50,26 @@ class GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItem extends \Goo
    * @var int
    */
   public $lineItemIndex;
+  /**
+   * @var GoogleCloudPaymentsResellerSubscriptionV1SubscriptionPromotionSpec[]
+   */
+  public $lineItemPromotionSpecs;
   protected $lineItemPromotionSpecsType = GoogleCloudPaymentsResellerSubscriptionV1SubscriptionPromotionSpec::class;
   protected $lineItemPromotionSpecsDataType = 'array';
+  /**
+   * @var GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItemOneTimeRecurrenceDetails
+   */
+  public $oneTimeRecurrenceDetails;
   protected $oneTimeRecurrenceDetailsType = GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItemOneTimeRecurrenceDetails::class;
   protected $oneTimeRecurrenceDetailsDataType = '';
   /**
    * @var string
    */
   public $product;
+  /**
+   * @var GoogleCloudPaymentsResellerSubscriptionV1ProductPayload
+   */
+  public $productPayload;
   protected $productPayloadType = GoogleCloudPaymentsResellerSubscriptionV1ProductPayload::class;
   protected $productPayloadDataType = '';
   /**
@@ -68,6 +94,20 @@ class GoogleCloudPaymentsResellerSubscriptionV1SubscriptionLineItem extends \Goo
   public function getAmount()
   {
     return $this->amount;
+  }
+  /**
+   * @param SubscriptionLineItemBundleDetails
+   */
+  public function setBundleDetails(SubscriptionLineItemBundleDetails $bundleDetails)
+  {
+    $this->bundleDetails = $bundleDetails;
+  }
+  /**
+   * @return SubscriptionLineItemBundleDetails
+   */
+  public function getBundleDetails()
+  {
+    return $this->bundleDetails;
   }
   /**
    * @param string

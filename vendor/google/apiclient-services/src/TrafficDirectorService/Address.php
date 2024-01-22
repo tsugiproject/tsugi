@@ -19,11 +19,39 @@ namespace Google\Service\TrafficDirectorService;
 
 class Address extends \Google\Model
 {
+  /**
+   * @var EnvoyInternalAddress
+   */
+  public $envoyInternalAddress;
+  protected $envoyInternalAddressType = EnvoyInternalAddress::class;
+  protected $envoyInternalAddressDataType = '';
+  /**
+   * @var Pipe
+   */
+  public $pipe;
   protected $pipeType = Pipe::class;
   protected $pipeDataType = '';
+  /**
+   * @var SocketAddress
+   */
+  public $socketAddress;
   protected $socketAddressType = SocketAddress::class;
   protected $socketAddressDataType = '';
 
+  /**
+   * @param EnvoyInternalAddress
+   */
+  public function setEnvoyInternalAddress(EnvoyInternalAddress $envoyInternalAddress)
+  {
+    $this->envoyInternalAddress = $envoyInternalAddress;
+  }
+  /**
+   * @return EnvoyInternalAddress
+   */
+  public function getEnvoyInternalAddress()
+  {
+    return $this->envoyInternalAddress;
+  }
   /**
    * @param Pipe
    */

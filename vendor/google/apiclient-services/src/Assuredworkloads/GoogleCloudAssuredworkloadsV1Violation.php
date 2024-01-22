@@ -31,6 +31,10 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Collection
   /**
    * @var string
    */
+  public $associatedOrgPolicyViolationId;
+  /**
+   * @var string
+   */
   public $auditLogLink;
   /**
    * @var string
@@ -48,6 +52,10 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Collection
    * @var string
    */
   public $exceptionAuditLogLink;
+  /**
+   * @var GoogleCloudAssuredworkloadsV1ViolationExceptionContext[]
+   */
+  public $exceptionContexts;
   protected $exceptionContextsType = GoogleCloudAssuredworkloadsV1ViolationExceptionContext::class;
   protected $exceptionContextsDataType = 'array';
   /**
@@ -62,6 +70,14 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Collection
    * @var string
    */
   public $orgPolicyConstraint;
+  /**
+   * @var string
+   */
+  public $parentProjectNumber;
+  /**
+   * @var GoogleCloudAssuredworkloadsV1ViolationRemediation
+   */
+  public $remediation;
   protected $remediationType = GoogleCloudAssuredworkloadsV1ViolationRemediation::class;
   protected $remediationDataType = '';
   /**
@@ -71,11 +87,23 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Collection
   /**
    * @var string
    */
+  public $resourceName;
+  /**
+   * @var string
+   */
+  public $resourceType;
+  /**
+   * @var string
+   */
   public $state;
   /**
    * @var string
    */
   public $updateTime;
+  /**
+   * @var string
+   */
+  public $violationType;
 
   /**
    * @param bool
@@ -104,6 +132,20 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Collection
   public function getAcknowledgementTime()
   {
     return $this->acknowledgementTime;
+  }
+  /**
+   * @param string
+   */
+  public function setAssociatedOrgPolicyViolationId($associatedOrgPolicyViolationId)
+  {
+    $this->associatedOrgPolicyViolationId = $associatedOrgPolicyViolationId;
+  }
+  /**
+   * @return string
+   */
+  public function getAssociatedOrgPolicyViolationId()
+  {
+    return $this->associatedOrgPolicyViolationId;
   }
   /**
    * @param string
@@ -232,6 +274,20 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Collection
     return $this->orgPolicyConstraint;
   }
   /**
+   * @param string
+   */
+  public function setParentProjectNumber($parentProjectNumber)
+  {
+    $this->parentProjectNumber = $parentProjectNumber;
+  }
+  /**
+   * @return string
+   */
+  public function getParentProjectNumber()
+  {
+    return $this->parentProjectNumber;
+  }
+  /**
    * @param GoogleCloudAssuredworkloadsV1ViolationRemediation
    */
   public function setRemediation(GoogleCloudAssuredworkloadsV1ViolationRemediation $remediation)
@@ -262,6 +318,34 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Collection
   /**
    * @param string
    */
+  public function setResourceName($resourceName)
+  {
+    $this->resourceName = $resourceName;
+  }
+  /**
+   * @return string
+   */
+  public function getResourceName()
+  {
+    return $this->resourceName;
+  }
+  /**
+   * @param string
+   */
+  public function setResourceType($resourceType)
+  {
+    $this->resourceType = $resourceType;
+  }
+  /**
+   * @return string
+   */
+  public function getResourceType()
+  {
+    return $this->resourceType;
+  }
+  /**
+   * @param string
+   */
   public function setState($state)
   {
     $this->state = $state;
@@ -286,6 +370,20 @@ class GoogleCloudAssuredworkloadsV1Violation extends \Google\Collection
   public function getUpdateTime()
   {
     return $this->updateTime;
+  }
+  /**
+   * @param string
+   */
+  public function setViolationType($violationType)
+  {
+    $this->violationType = $violationType;
+  }
+  /**
+   * @return string
+   */
+  public function getViolationType()
+  {
+    return $this->violationType;
   }
 }
 

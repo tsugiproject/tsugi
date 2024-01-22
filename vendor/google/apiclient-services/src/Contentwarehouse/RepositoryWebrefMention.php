@@ -24,6 +24,10 @@ class RepositoryWebrefMention extends \Google\Collection
    * @var bool
    */
   public $addedByCloseAnswers;
+  /**
+   * @var RepositoryWebrefMentionAdditionalExplainedRange[]
+   */
+  public $additionalExplainedRange;
   protected $additionalExplainedRangeType = RepositoryWebrefMentionAdditionalExplainedRange::class;
   protected $additionalExplainedRangeDataType = 'array';
   /**
@@ -34,14 +38,26 @@ class RepositoryWebrefMention extends \Google\Collection
    * @var int
    */
   public $beginTokenIndex;
+  /**
+   * @var RepositoryWebrefMentionCompoundMention[]
+   */
+  public $compoundMention;
   protected $compoundMentionType = RepositoryWebrefMentionCompoundMention::class;
   protected $compoundMentionDataType = 'array';
   /**
    * @var float
    */
   public $confidenceScore;
+  /**
+   * @var RepositoryWebrefMentionDebugInfo
+   */
+  public $debugInfo;
   protected $debugInfoType = RepositoryWebrefMentionDebugInfo::class;
   protected $debugInfoDataType = '';
+  /**
+   * @var RepositoryWebrefDetailedMentionScores
+   */
+  public $detailedMentionScores;
   protected $detailedMentionScoresType = RepositoryWebrefDetailedMentionScores::class;
   protected $detailedMentionScoresDataType = '';
   /**
@@ -52,6 +68,10 @@ class RepositoryWebrefMention extends \Google\Collection
    * @var int
    */
   public $endTokenIndex;
+  /**
+   * @var RepositoryWebrefMentionEvalInfo
+   */
+  public $evalInfo;
   protected $evalInfoType = RepositoryWebrefMentionEvalInfo::class;
   protected $evalInfoDataType = '';
   /**
@@ -62,6 +82,10 @@ class RepositoryWebrefMention extends \Google\Collection
    * @var bool
    */
   public $isImplicit;
+  /**
+   * @var RepositoryWebrefLexicalAnnotation
+   */
+  public $lexicalAnnotation;
   protected $lexicalAnnotationType = RepositoryWebrefLexicalAnnotation::class;
   protected $lexicalAnnotationDataType = '';
   /**
@@ -72,14 +96,22 @@ class RepositoryWebrefMention extends \Google\Collection
    * @var string
    */
   public $matchingText;
+  /**
+   * @var RepositoryWebrefConceptNameMetadata
+   */
+  public $nameMetadata;
   protected $nameMetadataType = RepositoryWebrefConceptNameMetadata::class;
   protected $nameMetadataDataType = '';
   /**
-   * @var float
+   * @var RepositoryWebrefLightweightTokensPerMentionLightweightToken
    */
-  public $nonLocationalScore;
+  public $perMentionLightweightToken;
   protected $perMentionLightweightTokenType = RepositoryWebrefLightweightTokensPerMentionLightweightToken::class;
   protected $perMentionLightweightTokenDataType = '';
+  /**
+   * @var RepositoryWebrefPersonalizationContextOutputs
+   */
+  public $personalizationContextOutputs;
   protected $personalizationContextOutputsType = RepositoryWebrefPersonalizationContextOutputs::class;
   protected $personalizationContextOutputsDataType = '';
   /**
@@ -94,18 +126,18 @@ class RepositoryWebrefMention extends \Google\Collection
    * @var float
    */
   public $resolutionScore;
+  /**
+   * @var Proto2BridgeMessageSet
+   */
+  public $stuff;
   protected $stuffType = Proto2BridgeMessageSet::class;
   protected $stuffDataType = '';
+  /**
+   * @var RepositoryWebrefSubSegmentIndex
+   */
+  public $subsegmentIndex;
   protected $subsegmentIndexType = RepositoryWebrefSubSegmentIndex::class;
   protected $subsegmentIndexDataType = '';
-  /**
-   * @var int
-   */
-  public $timeOffsetConfidence;
-  /**
-   * @var int
-   */
-  public $timeOffsetMs;
   /**
    * @var float
    */
@@ -350,20 +382,6 @@ class RepositoryWebrefMention extends \Google\Collection
     return $this->nameMetadata;
   }
   /**
-   * @param float
-   */
-  public function setNonLocationalScore($nonLocationalScore)
-  {
-    $this->nonLocationalScore = $nonLocationalScore;
-  }
-  /**
-   * @return float
-   */
-  public function getNonLocationalScore()
-  {
-    return $this->nonLocationalScore;
-  }
-  /**
    * @param RepositoryWebrefLightweightTokensPerMentionLightweightToken
    */
   public function setPerMentionLightweightToken(RepositoryWebrefLightweightTokensPerMentionLightweightToken $perMentionLightweightToken)
@@ -460,34 +478,6 @@ class RepositoryWebrefMention extends \Google\Collection
   public function getSubsegmentIndex()
   {
     return $this->subsegmentIndex;
-  }
-  /**
-   * @param int
-   */
-  public function setTimeOffsetConfidence($timeOffsetConfidence)
-  {
-    $this->timeOffsetConfidence = $timeOffsetConfidence;
-  }
-  /**
-   * @return int
-   */
-  public function getTimeOffsetConfidence()
-  {
-    return $this->timeOffsetConfidence;
-  }
-  /**
-   * @param int
-   */
-  public function setTimeOffsetMs($timeOffsetMs)
-  {
-    $this->timeOffsetMs = $timeOffsetMs;
-  }
-  /**
-   * @return int
-   */
-  public function getTimeOffsetMs()
-  {
-    return $this->timeOffsetMs;
   }
   /**
    * @param float

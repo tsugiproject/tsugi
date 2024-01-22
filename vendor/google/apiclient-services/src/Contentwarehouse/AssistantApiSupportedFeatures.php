@@ -23,14 +23,26 @@ class AssistantApiSupportedFeatures extends \Google\Model
    * @var bool
    */
   public $aaeNotificationSourceSupported;
+  /**
+   * @var AssistantApiAssistantContinuedPresenceSupport
+   */
+  public $acpSupport;
   protected $acpSupportType = AssistantApiAssistantContinuedPresenceSupport::class;
   protected $acpSupportDataType = '';
+  /**
+   * @var AssistantApiActionV2SupportedFeatures
+   */
+  public $actionV2SupportedFeatures;
   protected $actionV2SupportedFeaturesType = AssistantApiActionV2SupportedFeatures::class;
   protected $actionV2SupportedFeaturesDataType = '';
   /**
    * @var bool
    */
   public $alarmTimerManagerApiSupported;
+  /**
+   * @var AssistantApiAppControlSupport
+   */
+  public $appControlSupport;
   protected $appControlSupportType = AssistantApiAppControlSupport::class;
   protected $appControlSupportDataType = '';
   /**
@@ -64,6 +76,10 @@ class AssistantApiSupportedFeatures extends \Google\Model
   /**
    * @var bool
    */
+  public $conversationalCareSupported;
+  /**
+   * @var bool
+   */
   public $crossDeviceBroadcastSupported;
   /**
    * @var string
@@ -81,8 +97,16 @@ class AssistantApiSupportedFeatures extends \Google\Model
    * @var bool
    */
   public $duoGroupCallingSupported;
+  /**
+   * @var AssistantApiFitnessFeatureSupport
+   */
+  public $fitnessFeatureSupport;
   protected $fitnessFeatureSupportType = AssistantApiFitnessFeatureSupport::class;
   protected $fitnessFeatureSupportDataType = '';
+  /**
+   * @var AssistantApiFluidActionsSupport
+   */
+  public $fluidActionsSupport;
   protected $fluidActionsSupportType = AssistantApiFluidActionsSupport::class;
   protected $fluidActionsSupportDataType = '';
   /**
@@ -105,6 +129,10 @@ class AssistantApiSupportedFeatures extends \Google\Model
    * @var bool
    */
   public $immersiveCanvasConfirmationMessageSupported;
+  /**
+   * @var AssistantApiImmersiveCanvasSupport
+   */
+  public $immersiveCanvasSupport;
   protected $immersiveCanvasSupportType = AssistantApiImmersiveCanvasSupport::class;
   protected $immersiveCanvasSupportDataType = '';
   /**
@@ -147,6 +175,10 @@ class AssistantApiSupportedFeatures extends \Google\Model
    * @var bool
    */
   public $masqueradeModeSupported;
+  /**
+   * @var AssistantApiMediaControlSupport
+   */
+  public $mediaControlSupport;
   protected $mediaControlSupportType = AssistantApiMediaControlSupport::class;
   protected $mediaControlSupportDataType = '';
   /**
@@ -197,6 +229,10 @@ class AssistantApiSupportedFeatures extends \Google\Model
    * @var bool
    */
   public $shLockScreenSupported;
+  /**
+   * @var AssistantApiSignInMethod
+   */
+  public $signInMethod;
   protected $signInMethodType = AssistantApiSignInMethod::class;
   protected $signInMethodDataType = '';
   /**
@@ -211,8 +247,16 @@ class AssistantApiSupportedFeatures extends \Google\Model
    * @var bool
    */
   public $soliGestureDetectionSupported;
+  /**
+   * @var AssistantApiSuggestionsSupport
+   */
+  public $suggestionsSupport;
   protected $suggestionsSupportType = AssistantApiSuggestionsSupport::class;
   protected $suggestionsSupportDataType = '';
+  /**
+   * @var AssistantApiSunriseFeaturesSupport
+   */
+  public $sunriseFeaturesSupport;
   protected $sunriseFeaturesSupportType = AssistantApiSunriseFeaturesSupport::class;
   protected $sunriseFeaturesSupportDataType = '';
   /**
@@ -223,6 +267,10 @@ class AssistantApiSupportedFeatures extends \Google\Model
    * @var bool
    */
   public $thirdPartyGuiSupported;
+  /**
+   * @var AssistantApiTransactionFeaturesSupport
+   */
+  public $transactionFeaturesSupport;
   protected $transactionFeaturesSupportType = AssistantApiTransactionFeaturesSupport::class;
   protected $transactionFeaturesSupportDataType = '';
   /**
@@ -421,6 +469,20 @@ class AssistantApiSupportedFeatures extends \Google\Model
   public function getConfirmationBeforeReadingMultipleMessagesSupported()
   {
     return $this->confirmationBeforeReadingMultipleMessagesSupported;
+  }
+  /**
+   * @param bool
+   */
+  public function setConversationalCareSupported($conversationalCareSupported)
+  {
+    $this->conversationalCareSupported = $conversationalCareSupported;
+  }
+  /**
+   * @return bool
+   */
+  public function getConversationalCareSupported()
+  {
+    return $this->conversationalCareSupported;
   }
   /**
    * @param bool

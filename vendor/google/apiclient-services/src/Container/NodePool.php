@@ -20,12 +20,28 @@ namespace Google\Service\Container;
 class NodePool extends \Google\Collection
 {
   protected $collection_key = 'locations';
+  /**
+   * @var NodePoolAutoscaling
+   */
+  public $autoscaling;
   protected $autoscalingType = NodePoolAutoscaling::class;
   protected $autoscalingDataType = '';
+  /**
+   * @var BestEffortProvisioning
+   */
+  public $bestEffortProvisioning;
   protected $bestEffortProvisioningType = BestEffortProvisioning::class;
   protected $bestEffortProvisioningDataType = '';
+  /**
+   * @var StatusCondition[]
+   */
+  public $conditions;
   protected $conditionsType = StatusCondition::class;
   protected $conditionsDataType = 'array';
+  /**
+   * @var NodeConfig
+   */
+  public $config;
   protected $configType = NodeConfig::class;
   protected $configDataType = '';
   /**
@@ -44,22 +60,44 @@ class NodePool extends \Google\Collection
    * @var string[]
    */
   public $locations;
+  /**
+   * @var NodeManagement
+   */
+  public $management;
   protected $managementType = NodeManagement::class;
   protected $managementDataType = '';
+  /**
+   * @var MaxPodsConstraint
+   */
+  public $maxPodsConstraint;
   protected $maxPodsConstraintType = MaxPodsConstraint::class;
   protected $maxPodsConstraintDataType = '';
   /**
    * @var string
    */
   public $name;
+  /**
+   * @var NodeNetworkConfig
+   */
+  public $networkConfig;
   protected $networkConfigType = NodeNetworkConfig::class;
   protected $networkConfigDataType = '';
+  /**
+   * @var PlacementPolicy
+   */
+  public $placementPolicy;
   protected $placementPolicyType = PlacementPolicy::class;
   protected $placementPolicyDataType = '';
   /**
    * @var int
    */
   public $podIpv4CidrSize;
+  /**
+   * @var QueuedProvisioning
+   */
+  public $queuedProvisioning;
+  protected $queuedProvisioningType = QueuedProvisioning::class;
+  protected $queuedProvisioningDataType = '';
   /**
    * @var string
    */
@@ -72,8 +110,16 @@ class NodePool extends \Google\Collection
    * @var string
    */
   public $statusMessage;
+  /**
+   * @var UpdateInfo
+   */
+  public $updateInfo;
   protected $updateInfoType = UpdateInfo::class;
   protected $updateInfoDataType = '';
+  /**
+   * @var UpgradeSettings
+   */
+  public $upgradeSettings;
   protected $upgradeSettingsType = UpgradeSettings::class;
   protected $upgradeSettingsDataType = '';
   /**
@@ -276,6 +322,20 @@ class NodePool extends \Google\Collection
   public function getPodIpv4CidrSize()
   {
     return $this->podIpv4CidrSize;
+  }
+  /**
+   * @param QueuedProvisioning
+   */
+  public function setQueuedProvisioning(QueuedProvisioning $queuedProvisioning)
+  {
+    $this->queuedProvisioning = $queuedProvisioning;
+  }
+  /**
+   * @return QueuedProvisioning
+   */
+  public function getQueuedProvisioning()
+  {
+    return $this->queuedProvisioning;
   }
   /**
    * @param string

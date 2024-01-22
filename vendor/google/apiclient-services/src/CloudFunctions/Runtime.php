@@ -21,6 +21,18 @@ class Runtime extends \Google\Collection
 {
   protected $collection_key = 'warnings';
   /**
+   * @var Date
+   */
+  public $decommissionDate;
+  protected $decommissionDateType = Date::class;
+  protected $decommissionDateDataType = '';
+  /**
+   * @var Date
+   */
+  public $deprecationDate;
+  protected $deprecationDateType = Date::class;
+  protected $deprecationDateDataType = '';
+  /**
    * @var string
    */
   public $displayName;
@@ -41,6 +53,34 @@ class Runtime extends \Google\Collection
    */
   public $warnings;
 
+  /**
+   * @param Date
+   */
+  public function setDecommissionDate(Date $decommissionDate)
+  {
+    $this->decommissionDate = $decommissionDate;
+  }
+  /**
+   * @return Date
+   */
+  public function getDecommissionDate()
+  {
+    return $this->decommissionDate;
+  }
+  /**
+   * @param Date
+   */
+  public function setDeprecationDate(Date $deprecationDate)
+  {
+    $this->deprecationDate = $deprecationDate;
+  }
+  /**
+   * @return Date
+   */
+  public function getDeprecationDate()
+  {
+    return $this->deprecationDate;
+  }
   /**
    * @param string
    */

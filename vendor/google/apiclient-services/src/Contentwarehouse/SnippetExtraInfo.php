@@ -20,6 +20,10 @@ namespace Google\Service\Contentwarehouse;
 class SnippetExtraInfo extends \Google\Collection
 {
   protected $collection_key = 'candidateInfo';
+  /**
+   * @var SnippetExtraInfoSnippetCandidateInfo[]
+   */
+  public $candidateInfo;
   protected $candidateInfoType = SnippetExtraInfoSnippetCandidateInfo::class;
   protected $candidateInfoDataType = 'array';
   /**
@@ -39,9 +43,17 @@ class SnippetExtraInfo extends \Google\Collection
    */
   public $disableQueryFeatures;
   /**
+   * @var bool
+   */
+  public $forceLeadingTextOrMeta;
+  /**
    * @var int
    */
   public $snippetBrainSelectedCandidateIndex;
+  /**
+   * @var SnippetExtraInfoSnippetsBrainModelInfo
+   */
+  public $snippetsbrainModelInfo;
   protected $snippetsbrainModelInfoType = SnippetExtraInfoSnippetsBrainModelInfo::class;
   protected $snippetsbrainModelInfoDataType = '';
 
@@ -114,6 +126,20 @@ class SnippetExtraInfo extends \Google\Collection
   public function getDisableQueryFeatures()
   {
     return $this->disableQueryFeatures;
+  }
+  /**
+   * @param bool
+   */
+  public function setForceLeadingTextOrMeta($forceLeadingTextOrMeta)
+  {
+    $this->forceLeadingTextOrMeta = $forceLeadingTextOrMeta;
+  }
+  /**
+   * @return bool
+   */
+  public function getForceLeadingTextOrMeta()
+  {
+    return $this->forceLeadingTextOrMeta;
   }
   /**
    * @param int

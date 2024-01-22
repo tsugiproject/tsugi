@@ -36,18 +36,30 @@ class GoogleCloudAiplatformV1PublisherModel extends \Google\Collection
    * @var string
    */
   public $openSourceCategory;
+  /**
+   * @var GoogleCloudAiplatformV1PredictSchemata
+   */
+  public $predictSchemata;
   protected $predictSchemataType = GoogleCloudAiplatformV1PredictSchemata::class;
   protected $predictSchemataDataType = '';
   /**
    * @var string
    */
   public $publisherModelTemplate;
+  /**
+   * @var GoogleCloudAiplatformV1PublisherModelCallToAction
+   */
+  public $supportedActions;
   protected $supportedActionsType = GoogleCloudAiplatformV1PublisherModelCallToAction::class;
   protected $supportedActionsDataType = '';
   /**
    * @var string
    */
   public $versionId;
+  /**
+   * @var string
+   */
+  public $versionState;
 
   /**
    * @param string[]
@@ -160,6 +172,20 @@ class GoogleCloudAiplatformV1PublisherModel extends \Google\Collection
   public function getVersionId()
   {
     return $this->versionId;
+  }
+  /**
+   * @param string
+   */
+  public function setVersionState($versionState)
+  {
+    $this->versionState = $versionState;
+  }
+  /**
+   * @return string
+   */
+  public function getVersionState()
+  {
+    return $this->versionState;
   }
 }
 

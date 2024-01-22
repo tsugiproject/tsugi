@@ -140,7 +140,17 @@ class HangoutsChat extends \Google\Service
         'spaces',
         [
           'methods' => [
-            'create' => [
+            'completeImport' => [
+              'path' => 'v1/{+name}:completeImport',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'create' => [
               'path' => 'v1/spaces',
               'httpMethod' => 'POST',
               'parameters' => [
@@ -273,6 +283,10 @@ class HangoutsChat extends \Google\Service
                 'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'showGroups' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
                 'showInvited' => [
                   'location' => 'query',

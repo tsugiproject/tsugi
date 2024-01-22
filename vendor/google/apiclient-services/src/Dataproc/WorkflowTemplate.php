@@ -29,9 +29,19 @@ class WorkflowTemplate extends \Google\Collection
    */
   public $dagTimeout;
   /**
+   * @var GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig
+   */
+  public $encryptionConfig;
+  protected $encryptionConfigType = GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig::class;
+  protected $encryptionConfigDataType = '';
+  /**
    * @var string
    */
   public $id;
+  /**
+   * @var OrderedJob[]
+   */
+  public $jobs;
   protected $jobsType = OrderedJob::class;
   protected $jobsDataType = 'array';
   /**
@@ -42,8 +52,16 @@ class WorkflowTemplate extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * @var TemplateParameter[]
+   */
+  public $parameters;
   protected $parametersType = TemplateParameter::class;
   protected $parametersDataType = 'array';
+  /**
+   * @var WorkflowTemplatePlacement
+   */
+  public $placement;
   protected $placementType = WorkflowTemplatePlacement::class;
   protected $placementDataType = '';
   /**
@@ -82,6 +100,20 @@ class WorkflowTemplate extends \Google\Collection
   public function getDagTimeout()
   {
     return $this->dagTimeout;
+  }
+  /**
+   * @param GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig
+   */
+  public function setEncryptionConfig(GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig $encryptionConfig)
+  {
+    $this->encryptionConfig = $encryptionConfig;
+  }
+  /**
+   * @return GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig
+   */
+  public function getEncryptionConfig()
+  {
+    return $this->encryptionConfig;
   }
   /**
    * @param string

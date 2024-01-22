@@ -20,20 +20,36 @@ namespace Google\Service\DataFusion;
 class Instance extends \Google\Collection
 {
   protected $collection_key = 'disabledReason';
+  /**
+   * @var Accelerator[]
+   */
+  public $accelerators;
   protected $acceleratorsType = Accelerator::class;
   protected $acceleratorsDataType = 'array';
   /**
    * @var string
    */
   public $apiEndpoint;
+  /**
+   * @var Version[]
+   */
+  public $availableVersion;
   protected $availableVersionType = Version::class;
   protected $availableVersionDataType = 'array';
   /**
    * @var string
    */
   public $createTime;
+  /**
+   * @var CryptoKeyConfig
+   */
+  public $cryptoKeyConfig;
   protected $cryptoKeyConfigType = CryptoKeyConfig::class;
   protected $cryptoKeyConfigDataType = '';
+  /**
+   * @var bool
+   */
+  public $dataplexDataLineageIntegrationEnabled;
   /**
    * @var string
    */
@@ -66,6 +82,10 @@ class Instance extends \Google\Collection
    * @var bool
    */
   public $enableZoneSeparation;
+  /**
+   * @var EventPublishConfig
+   */
+  public $eventPublishConfig;
   protected $eventPublishConfigType = EventPublishConfig::class;
   protected $eventPublishConfigDataType = '';
   /**
@@ -80,6 +100,10 @@ class Instance extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * @var NetworkConfig
+   */
+  public $networkConfig;
   protected $networkConfigType = NetworkConfig::class;
   protected $networkConfigDataType = '';
   /**
@@ -90,6 +114,10 @@ class Instance extends \Google\Collection
    * @var string
    */
   public $p4ServiceAccount;
+  /**
+   * @var string
+   */
+  public $patchRevision;
   /**
    * @var bool
    */
@@ -130,6 +158,10 @@ class Instance extends \Google\Collection
    * @var string
    */
   public $version;
+  /**
+   * @var string
+   */
+  public $workforceIdentityServiceEndpoint;
   /**
    * @var string
    */
@@ -204,6 +236,20 @@ class Instance extends \Google\Collection
   public function getCryptoKeyConfig()
   {
     return $this->cryptoKeyConfig;
+  }
+  /**
+   * @param bool
+   */
+  public function setDataplexDataLineageIntegrationEnabled($dataplexDataLineageIntegrationEnabled)
+  {
+    $this->dataplexDataLineageIntegrationEnabled = $dataplexDataLineageIntegrationEnabled;
+  }
+  /**
+   * @return bool
+   */
+  public function getDataplexDataLineageIntegrationEnabled()
+  {
+    return $this->dataplexDataLineageIntegrationEnabled;
   }
   /**
    * @param string
@@ -416,6 +462,20 @@ class Instance extends \Google\Collection
     return $this->p4ServiceAccount;
   }
   /**
+   * @param string
+   */
+  public function setPatchRevision($patchRevision)
+  {
+    $this->patchRevision = $patchRevision;
+  }
+  /**
+   * @return string
+   */
+  public function getPatchRevision()
+  {
+    return $this->patchRevision;
+  }
+  /**
    * @param bool
    */
   public function setPrivateInstance($privateInstance)
@@ -554,6 +614,20 @@ class Instance extends \Google\Collection
   public function getVersion()
   {
     return $this->version;
+  }
+  /**
+   * @param string
+   */
+  public function setWorkforceIdentityServiceEndpoint($workforceIdentityServiceEndpoint)
+  {
+    $this->workforceIdentityServiceEndpoint = $workforceIdentityServiceEndpoint;
+  }
+  /**
+   * @return string
+   */
+  public function getWorkforceIdentityServiceEndpoint()
+  {
+    return $this->workforceIdentityServiceEndpoint;
   }
   /**
    * @param string

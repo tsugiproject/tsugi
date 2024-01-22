@@ -23,18 +23,38 @@ class GoogleCloudAiplatformV1PublisherModelCallToActionDeploy extends \Google\Mo
    * @var string
    */
   public $artifactUri;
+  /**
+   * @var GoogleCloudAiplatformV1AutomaticResources
+   */
+  public $automaticResources;
   protected $automaticResourcesType = GoogleCloudAiplatformV1AutomaticResources::class;
   protected $automaticResourcesDataType = '';
+  /**
+   * @var GoogleCloudAiplatformV1ModelContainerSpec
+   */
+  public $containerSpec;
   protected $containerSpecType = GoogleCloudAiplatformV1ModelContainerSpec::class;
   protected $containerSpecDataType = '';
+  /**
+   * @var GoogleCloudAiplatformV1DedicatedResources
+   */
+  public $dedicatedResources;
   protected $dedicatedResourcesType = GoogleCloudAiplatformV1DedicatedResources::class;
   protected $dedicatedResourcesDataType = '';
+  /**
+   * @var GoogleCloudAiplatformV1LargeModelReference
+   */
+  public $largeModelReference;
   protected $largeModelReferenceType = GoogleCloudAiplatformV1LargeModelReference::class;
   protected $largeModelReferenceDataType = '';
   /**
    * @var string
    */
   public $modelDisplayName;
+  /**
+   * @var string
+   */
+  public $publicArtifactUri;
   /**
    * @var string
    */
@@ -127,6 +147,20 @@ class GoogleCloudAiplatformV1PublisherModelCallToActionDeploy extends \Google\Mo
   public function getModelDisplayName()
   {
     return $this->modelDisplayName;
+  }
+  /**
+   * @param string
+   */
+  public function setPublicArtifactUri($publicArtifactUri)
+  {
+    $this->publicArtifactUri = $publicArtifactUri;
+  }
+  /**
+   * @return string
+   */
+  public function getPublicArtifactUri()
+  {
+    return $this->publicArtifactUri;
   }
   /**
    * @param string

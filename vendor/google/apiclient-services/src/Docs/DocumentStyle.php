@@ -19,6 +19,10 @@ namespace Google\Service\Docs;
 
 class DocumentStyle extends \Google\Model
 {
+  /**
+   * @var Background
+   */
+  public $background;
   protected $backgroundType = Background::class;
   protected $backgroundDataType = '';
   /**
@@ -45,22 +49,54 @@ class DocumentStyle extends \Google\Model
    * @var string
    */
   public $firstPageHeaderId;
+  /**
+   * @var bool
+   */
+  public $flipPageOrientation;
+  /**
+   * @var Dimension
+   */
+  public $marginBottom;
   protected $marginBottomType = Dimension::class;
   protected $marginBottomDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginFooter;
   protected $marginFooterType = Dimension::class;
   protected $marginFooterDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginHeader;
   protected $marginHeaderType = Dimension::class;
   protected $marginHeaderDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginLeft;
   protected $marginLeftType = Dimension::class;
   protected $marginLeftDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginRight;
   protected $marginRightType = Dimension::class;
   protected $marginRightDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginTop;
   protected $marginTopType = Dimension::class;
   protected $marginTopDataType = '';
   /**
    * @var int
    */
   public $pageNumberStart;
+  /**
+   * @var Size
+   */
+  public $pageSize;
   protected $pageSizeType = Size::class;
   protected $pageSizeDataType = '';
   /**
@@ -173,6 +209,20 @@ class DocumentStyle extends \Google\Model
   public function getFirstPageHeaderId()
   {
     return $this->firstPageHeaderId;
+  }
+  /**
+   * @param bool
+   */
+  public function setFlipPageOrientation($flipPageOrientation)
+  {
+    $this->flipPageOrientation = $flipPageOrientation;
+  }
+  /**
+   * @return bool
+   */
+  public function getFlipPageOrientation()
+  {
+    return $this->flipPageOrientation;
   }
   /**
    * @param Dimension

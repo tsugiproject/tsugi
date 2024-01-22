@@ -20,8 +20,16 @@ namespace Google\Service\Dataproc;
 class InstanceGroupConfig extends \Google\Collection
 {
   protected $collection_key = 'instanceReferences';
+  /**
+   * @var AcceleratorConfig[]
+   */
+  public $accelerators;
   protected $acceleratorsType = AcceleratorConfig::class;
   protected $acceleratorsDataType = 'array';
+  /**
+   * @var DiskConfig
+   */
+  public $diskConfig;
   protected $diskConfigType = DiskConfig::class;
   protected $diskConfigDataType = '';
   /**
@@ -29,9 +37,19 @@ class InstanceGroupConfig extends \Google\Collection
    */
   public $imageUri;
   /**
+   * @var InstanceFlexibilityPolicy
+   */
+  public $instanceFlexibilityPolicy;
+  protected $instanceFlexibilityPolicyType = InstanceFlexibilityPolicy::class;
+  protected $instanceFlexibilityPolicyDataType = '';
+  /**
    * @var string[]
    */
   public $instanceNames;
+  /**
+   * @var InstanceReference[]
+   */
+  public $instanceReferences;
   protected $instanceReferencesType = InstanceReference::class;
   protected $instanceReferencesDataType = 'array';
   /**
@@ -42,6 +60,10 @@ class InstanceGroupConfig extends \Google\Collection
    * @var string
    */
   public $machineTypeUri;
+  /**
+   * @var ManagedGroupConfig
+   */
+  public $managedGroupConfig;
   protected $managedGroupConfigType = ManagedGroupConfig::class;
   protected $managedGroupConfigDataType = '';
   /**
@@ -60,6 +82,12 @@ class InstanceGroupConfig extends \Google\Collection
    * @var string
    */
   public $preemptibility;
+  /**
+   * @var StartupConfig
+   */
+  public $startupConfig;
+  protected $startupConfigType = StartupConfig::class;
+  protected $startupConfigDataType = '';
 
   /**
    * @param AcceleratorConfig[]
@@ -102,6 +130,20 @@ class InstanceGroupConfig extends \Google\Collection
   public function getImageUri()
   {
     return $this->imageUri;
+  }
+  /**
+   * @param InstanceFlexibilityPolicy
+   */
+  public function setInstanceFlexibilityPolicy(InstanceFlexibilityPolicy $instanceFlexibilityPolicy)
+  {
+    $this->instanceFlexibilityPolicy = $instanceFlexibilityPolicy;
+  }
+  /**
+   * @return InstanceFlexibilityPolicy
+   */
+  public function getInstanceFlexibilityPolicy()
+  {
+    return $this->instanceFlexibilityPolicy;
   }
   /**
    * @param string[]
@@ -228,6 +270,20 @@ class InstanceGroupConfig extends \Google\Collection
   public function getPreemptibility()
   {
     return $this->preemptibility;
+  }
+  /**
+   * @param StartupConfig
+   */
+  public function setStartupConfig(StartupConfig $startupConfig)
+  {
+    $this->startupConfig = $startupConfig;
+  }
+  /**
+   * @return StartupConfig
+   */
+  public function getStartupConfig()
+  {
+    return $this->startupConfig;
   }
 }
 

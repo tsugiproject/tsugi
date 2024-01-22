@@ -21,10 +21,6 @@ class Node extends \Google\Collection
 {
   protected $collection_key = 'listeningAddresses';
   /**
-   * @var string
-   */
-  public $buildVersion;
-  /**
    * @var string[]
    */
   public $clientFeatures;
@@ -32,20 +28,42 @@ class Node extends \Google\Collection
    * @var string
    */
   public $cluster;
+  /**
+   * @var ContextParams[]
+   */
+  public $dynamicParameters;
+  protected $dynamicParametersType = ContextParams::class;
+  protected $dynamicParametersDataType = 'map';
+  /**
+   * @var Extension[]
+   */
+  public $extensions;
   protected $extensionsType = Extension::class;
   protected $extensionsDataType = 'array';
   /**
    * @var string
    */
   public $id;
+  /**
+   * @var Address[]
+   */
+  public $listeningAddresses;
   protected $listeningAddressesType = Address::class;
   protected $listeningAddressesDataType = 'array';
+  /**
+   * @var Locality
+   */
+  public $locality;
   protected $localityType = Locality::class;
   protected $localityDataType = '';
   /**
    * @var array[]
    */
   public $metadata;
+  /**
+   * @var BuildVersion
+   */
+  public $userAgentBuildVersion;
   protected $userAgentBuildVersionType = BuildVersion::class;
   protected $userAgentBuildVersionDataType = '';
   /**
@@ -57,20 +75,6 @@ class Node extends \Google\Collection
    */
   public $userAgentVersion;
 
-  /**
-   * @param string
-   */
-  public function setBuildVersion($buildVersion)
-  {
-    $this->buildVersion = $buildVersion;
-  }
-  /**
-   * @return string
-   */
-  public function getBuildVersion()
-  {
-    return $this->buildVersion;
-  }
   /**
    * @param string[]
    */
@@ -98,6 +102,20 @@ class Node extends \Google\Collection
   public function getCluster()
   {
     return $this->cluster;
+  }
+  /**
+   * @param ContextParams[]
+   */
+  public function setDynamicParameters($dynamicParameters)
+  {
+    $this->dynamicParameters = $dynamicParameters;
+  }
+  /**
+   * @return ContextParams[]
+   */
+  public function getDynamicParameters()
+  {
+    return $this->dynamicParameters;
   }
   /**
    * @param Extension[]

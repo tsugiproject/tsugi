@@ -28,6 +28,10 @@ class ConnectivityTest extends \Google\Collection
    * @var string
    */
   public $description;
+  /**
+   * @var Endpoint
+   */
+  public $destination;
   protected $destinationType = Endpoint::class;
   protected $destinationDataType = '';
   /**
@@ -43,15 +47,29 @@ class ConnectivityTest extends \Google\Collection
    */
   public $name;
   /**
+   * @var ProbingDetails
+   */
+  public $probingDetails;
+  protected $probingDetailsType = ProbingDetails::class;
+  protected $probingDetailsDataType = '';
+  /**
    * @var string
    */
   public $protocol;
+  /**
+   * @var ReachabilityDetails
+   */
+  public $reachabilityDetails;
   protected $reachabilityDetailsType = ReachabilityDetails::class;
   protected $reachabilityDetailsDataType = '';
   /**
    * @var string[]
    */
   public $relatedProjects;
+  /**
+   * @var Endpoint
+   */
+  public $source;
   protected $sourceType = Endpoint::class;
   protected $sourceDataType = '';
   /**
@@ -142,6 +160,20 @@ class ConnectivityTest extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param ProbingDetails
+   */
+  public function setProbingDetails(ProbingDetails $probingDetails)
+  {
+    $this->probingDetails = $probingDetails;
+  }
+  /**
+   * @return ProbingDetails
+   */
+  public function getProbingDetails()
+  {
+    return $this->probingDetails;
   }
   /**
    * @param string

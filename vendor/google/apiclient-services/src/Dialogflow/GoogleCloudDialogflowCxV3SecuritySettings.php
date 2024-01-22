@@ -20,6 +20,10 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3SecuritySettings extends \Google\Collection
 {
   protected $collection_key = 'purgeDataTypes';
+  /**
+   * @var GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings
+   */
+  public $audioExportSettings;
   protected $audioExportSettingsType = GoogleCloudDialogflowCxV3SecuritySettingsAudioExportSettings::class;
   protected $audioExportSettingsDataType = '';
   /**
@@ -30,6 +34,10 @@ class GoogleCloudDialogflowCxV3SecuritySettings extends \Google\Collection
    * @var string
    */
   public $displayName;
+  /**
+   * @var GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings
+   */
+  public $insightsExportSettings;
   protected $insightsExportSettingsType = GoogleCloudDialogflowCxV3SecuritySettingsInsightsExportSettings::class;
   protected $insightsExportSettingsDataType = '';
   /**
@@ -52,6 +60,10 @@ class GoogleCloudDialogflowCxV3SecuritySettings extends \Google\Collection
    * @var string
    */
   public $redactionStrategy;
+  /**
+   * @var string
+   */
+  public $retentionStrategy;
   /**
    * @var int
    */
@@ -182,6 +194,20 @@ class GoogleCloudDialogflowCxV3SecuritySettings extends \Google\Collection
   public function getRedactionStrategy()
   {
     return $this->redactionStrategy;
+  }
+  /**
+   * @param string
+   */
+  public function setRetentionStrategy($retentionStrategy)
+  {
+    $this->retentionStrategy = $retentionStrategy;
+  }
+  /**
+   * @return string
+   */
+  public function getRetentionStrategy()
+  {
+    return $this->retentionStrategy;
   }
   /**
    * @param int

@@ -19,17 +19,57 @@ namespace Google\Service\Contentwarehouse;
 
 class KnowledgeAnswersDependencyType extends \Google\Model
 {
+  /**
+   * @var NlpMeaningComponentSpecificContracts
+   */
+  public $componentSpecificContracts;
+  protected $componentSpecificContractsType = NlpMeaningComponentSpecificContracts::class;
+  protected $componentSpecificContractsDataType = '';
+  /**
+   * @var KnowledgeAnswersContainerType
+   */
+  public $containerType;
   protected $containerTypeType = KnowledgeAnswersContainerType::class;
   protected $containerTypeDataType = '';
+  /**
+   * @var KnowledgeAnswersIntersectType
+   */
+  public $intersectType;
   protected $intersectTypeType = KnowledgeAnswersIntersectType::class;
   protected $intersectTypeDataType = '';
+  /**
+   * @var NlpMeaningMeaningRemodelings
+   */
+  public $remodelings;
   protected $remodelingsType = NlpMeaningMeaningRemodelings::class;
   protected $remodelingsDataType = '';
+  /**
+   * @var KnowledgeAnswersSameType
+   */
+  public $sameType;
   protected $sameTypeType = KnowledgeAnswersSameType::class;
   protected $sameTypeDataType = '';
+  /**
+   * @var KnowledgeAnswersUnionType
+   */
+  public $unionType;
   protected $unionTypeType = KnowledgeAnswersUnionType::class;
   protected $unionTypeDataType = '';
 
+  /**
+   * @param NlpMeaningComponentSpecificContracts
+   */
+  public function setComponentSpecificContracts(NlpMeaningComponentSpecificContracts $componentSpecificContracts)
+  {
+    $this->componentSpecificContracts = $componentSpecificContracts;
+  }
+  /**
+   * @return NlpMeaningComponentSpecificContracts
+   */
+  public function getComponentSpecificContracts()
+  {
+    return $this->componentSpecificContracts;
+  }
   /**
    * @param KnowledgeAnswersContainerType
    */

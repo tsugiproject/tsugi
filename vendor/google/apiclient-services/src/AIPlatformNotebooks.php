@@ -168,6 +168,16 @@ class AIPlatformNotebooks extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'getConfig' => [
+              'path' => 'v2/{+name}/instances:getConfig',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'getIamPolicy' => [
               'path' => 'v2/{+resource}:getIamPolicy',
               'httpMethod' => 'GET',
@@ -190,6 +200,14 @@ class AIPlatformNotebooks extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
                 'pageSize' => [
                   'location' => 'query',
@@ -233,6 +251,16 @@ class AIPlatformNotebooks extends \Google\Service
               'httpMethod' => 'POST',
               'parameters' => [
                 'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'resizeDisk' => [
+              'path' => 'v2/{+notebookInstance}:resizeDisk',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'notebookInstance' => [
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,

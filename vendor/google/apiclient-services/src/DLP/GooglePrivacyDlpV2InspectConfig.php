@@ -24,6 +24,10 @@ class GooglePrivacyDlpV2InspectConfig extends \Google\Collection
    * @var string[]
    */
   public $contentOptions;
+  /**
+   * @var GooglePrivacyDlpV2CustomInfoType[]
+   */
+  public $customInfoTypes;
   protected $customInfoTypesType = GooglePrivacyDlpV2CustomInfoType::class;
   protected $customInfoTypesDataType = 'array';
   /**
@@ -34,14 +38,32 @@ class GooglePrivacyDlpV2InspectConfig extends \Google\Collection
    * @var bool
    */
   public $includeQuote;
+  /**
+   * @var GooglePrivacyDlpV2InfoType[]
+   */
+  public $infoTypes;
   protected $infoTypesType = GooglePrivacyDlpV2InfoType::class;
   protected $infoTypesDataType = 'array';
+  /**
+   * @var GooglePrivacyDlpV2FindingLimits
+   */
+  public $limits;
   protected $limitsType = GooglePrivacyDlpV2FindingLimits::class;
   protected $limitsDataType = '';
   /**
    * @var string
    */
   public $minLikelihood;
+  /**
+   * @var GooglePrivacyDlpV2InfoTypeLikelihood[]
+   */
+  public $minLikelihoodPerInfoType;
+  protected $minLikelihoodPerInfoTypeType = GooglePrivacyDlpV2InfoTypeLikelihood::class;
+  protected $minLikelihoodPerInfoTypeDataType = 'array';
+  /**
+   * @var GooglePrivacyDlpV2InspectionRuleSet[]
+   */
+  public $ruleSet;
   protected $ruleSetType = GooglePrivacyDlpV2InspectionRuleSet::class;
   protected $ruleSetDataType = 'array';
 
@@ -142,6 +164,20 @@ class GooglePrivacyDlpV2InspectConfig extends \Google\Collection
   public function getMinLikelihood()
   {
     return $this->minLikelihood;
+  }
+  /**
+   * @param GooglePrivacyDlpV2InfoTypeLikelihood[]
+   */
+  public function setMinLikelihoodPerInfoType($minLikelihoodPerInfoType)
+  {
+    $this->minLikelihoodPerInfoType = $minLikelihoodPerInfoType;
+  }
+  /**
+   * @return GooglePrivacyDlpV2InfoTypeLikelihood[]
+   */
+  public function getMinLikelihoodPerInfoType()
+  {
+    return $this->minLikelihoodPerInfoType;
   }
   /**
    * @param GooglePrivacyDlpV2InspectionRuleSet[]

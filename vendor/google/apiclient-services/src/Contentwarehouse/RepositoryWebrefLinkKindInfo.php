@@ -19,12 +19,12 @@ namespace Google\Service\Contentwarehouse;
 
 class RepositoryWebrefLinkKindInfo extends \Google\Model
 {
+  /**
+   * @var RepositoryWebrefLinkKindFlags
+   */
+  public $flags;
   protected $flagsType = RepositoryWebrefLinkKindFlags::class;
   protected $flagsDataType = '';
-  /**
-   * @var string
-   */
-  public $kcLinkName;
   /**
    * @var string
    */
@@ -43,20 +43,6 @@ class RepositoryWebrefLinkKindInfo extends \Google\Model
   public function getFlags()
   {
     return $this->flags;
-  }
-  /**
-   * @param string
-   */
-  public function setKcLinkName($kcLinkName)
-  {
-    $this->kcLinkName = $kcLinkName;
-  }
-  /**
-   * @return string
-   */
-  public function getKcLinkName()
-  {
-    return $this->kcLinkName;
   }
   /**
    * @param string

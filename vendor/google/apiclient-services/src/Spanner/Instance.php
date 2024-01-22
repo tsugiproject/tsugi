@@ -21,6 +21,12 @@ class Instance extends \Google\Collection
 {
   protected $collection_key = 'endpointUris';
   /**
+   * @var AutoscalingConfig
+   */
+  public $autoscalingConfig;
+  protected $autoscalingConfigType = AutoscalingConfig::class;
+  protected $autoscalingConfigDataType = '';
+  /**
    * @var string
    */
   public $config;
@@ -36,6 +42,10 @@ class Instance extends \Google\Collection
    * @var string[]
    */
   public $endpointUris;
+  /**
+   * @var FreeInstanceMetadata
+   */
+  public $freeInstanceMetadata;
   protected $freeInstanceMetadataType = FreeInstanceMetadata::class;
   protected $freeInstanceMetadataDataType = '';
   /**
@@ -67,6 +77,20 @@ class Instance extends \Google\Collection
    */
   public $updateTime;
 
+  /**
+   * @param AutoscalingConfig
+   */
+  public function setAutoscalingConfig(AutoscalingConfig $autoscalingConfig)
+  {
+    $this->autoscalingConfig = $autoscalingConfig;
+  }
+  /**
+   * @return AutoscalingConfig
+   */
+  public function getAutoscalingConfig()
+  {
+    return $this->autoscalingConfig;
+  }
   /**
    * @param string
    */

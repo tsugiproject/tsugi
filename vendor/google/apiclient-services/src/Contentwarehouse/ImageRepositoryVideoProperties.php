@@ -17,14 +17,23 @@
 
 namespace Google\Service\Contentwarehouse;
 
-class ImageRepositoryVideoProperties extends \Google\Model
+class ImageRepositoryVideoProperties extends \Google\Collection
 {
+  protected $collection_key = 'indexedVerticals';
   /**
    * @var bool
    */
   public $audioOnly;
+  /**
+   * @var ImageRepositoryContentBasedVideoMetadata
+   */
+  public $contentBasedMetadata;
   protected $contentBasedMetadataType = ImageRepositoryContentBasedVideoMetadata::class;
   protected $contentBasedMetadataDataType = '';
+  /**
+   * @var ImageMoosedogCrawlState
+   */
+  public $crawlState;
   protected $crawlStateType = ImageMoosedogCrawlState::class;
   protected $crawlStateDataType = '';
   /**
@@ -35,6 +44,16 @@ class ImageRepositoryVideoProperties extends \Google\Model
    * @var string
    */
   public $firstProcessingTimestampSec;
+  /**
+   * @var ImageRepositoryVideoPropertiesVerticalIndexingInfoVideo[]
+   */
+  public $indexedVerticals;
+  protected $indexedVerticalsType = ImageRepositoryVideoPropertiesVerticalIndexingInfoVideo::class;
+  protected $indexedVerticalsDataType = 'array';
+  /**
+   * @var VideoCrawlVideoInlinePlaybackMetadata
+   */
+  public $inlinePlayback;
   protected $inlinePlaybackType = VideoCrawlVideoInlinePlaybackMetadata::class;
   protected $inlinePlaybackDataType = '';
   /**
@@ -119,6 +138,20 @@ class ImageRepositoryVideoProperties extends \Google\Model
   public function getFirstProcessingTimestampSec()
   {
     return $this->firstProcessingTimestampSec;
+  }
+  /**
+   * @param ImageRepositoryVideoPropertiesVerticalIndexingInfoVideo[]
+   */
+  public function setIndexedVerticals($indexedVerticals)
+  {
+    $this->indexedVerticals = $indexedVerticals;
+  }
+  /**
+   * @return ImageRepositoryVideoPropertiesVerticalIndexingInfoVideo[]
+   */
+  public function getIndexedVerticals()
+  {
+    return $this->indexedVerticals;
   }
   /**
    * @param VideoCrawlVideoInlinePlaybackMetadata

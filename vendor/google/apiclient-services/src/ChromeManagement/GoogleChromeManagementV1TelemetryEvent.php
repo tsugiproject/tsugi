@@ -19,14 +19,26 @@ namespace Google\Service\ChromeManagement;
 
 class GoogleChromeManagementV1TelemetryEvent extends \Google\Model
 {
+  /**
+   * @var GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent
+   */
+  public $audioSevereUnderrunEvent;
   protected $audioSevereUnderrunEventType = GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent::class;
   protected $audioSevereUnderrunEventDataType = '';
+  /**
+   * @var GoogleChromeManagementV1TelemetryDeviceInfo
+   */
+  public $device;
   protected $deviceType = GoogleChromeManagementV1TelemetryDeviceInfo::class;
   protected $deviceDataType = '';
   /**
    * @var string
    */
   public $eventType;
+  /**
+   * @var GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent
+   */
+  public $httpsLatencyChangeEvent;
   protected $httpsLatencyChangeEventType = GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent::class;
   protected $httpsLatencyChangeEventDataType = '';
   /**
@@ -34,13 +46,39 @@ class GoogleChromeManagementV1TelemetryEvent extends \Google\Model
    */
   public $name;
   /**
+   * @var GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent
+   */
+  public $networkStateChangeEvent;
+  protected $networkStateChangeEventType = GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent::class;
+  protected $networkStateChangeEventDataType = '';
+  /**
    * @var string
    */
   public $reportTime;
+  /**
+   * @var GoogleChromeManagementV1TelemetryUsbPeripheralsEvent
+   */
+  public $usbPeripheralsEvent;
   protected $usbPeripheralsEventType = GoogleChromeManagementV1TelemetryUsbPeripheralsEvent::class;
   protected $usbPeripheralsEventDataType = '';
+  /**
+   * @var GoogleChromeManagementV1TelemetryUserInfo
+   */
+  public $user;
   protected $userType = GoogleChromeManagementV1TelemetryUserInfo::class;
   protected $userDataType = '';
+  /**
+   * @var GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent
+   */
+  public $vpnConnectionStateChangeEvent;
+  protected $vpnConnectionStateChangeEventType = GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent::class;
+  protected $vpnConnectionStateChangeEventDataType = '';
+  /**
+   * @var GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent
+   */
+  public $wifiSignalStrengthEvent;
+  protected $wifiSignalStrengthEventType = GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent::class;
+  protected $wifiSignalStrengthEventDataType = '';
 
   /**
    * @param GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent
@@ -113,6 +151,20 @@ class GoogleChromeManagementV1TelemetryEvent extends \Google\Model
     return $this->name;
   }
   /**
+   * @param GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent
+   */
+  public function setNetworkStateChangeEvent(GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent $networkStateChangeEvent)
+  {
+    $this->networkStateChangeEvent = $networkStateChangeEvent;
+  }
+  /**
+   * @return GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent
+   */
+  public function getNetworkStateChangeEvent()
+  {
+    return $this->networkStateChangeEvent;
+  }
+  /**
    * @param string
    */
   public function setReportTime($reportTime)
@@ -153,6 +205,34 @@ class GoogleChromeManagementV1TelemetryEvent extends \Google\Model
   public function getUser()
   {
     return $this->user;
+  }
+  /**
+   * @param GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent
+   */
+  public function setVpnConnectionStateChangeEvent(GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent $vpnConnectionStateChangeEvent)
+  {
+    $this->vpnConnectionStateChangeEvent = $vpnConnectionStateChangeEvent;
+  }
+  /**
+   * @return GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent
+   */
+  public function getVpnConnectionStateChangeEvent()
+  {
+    return $this->vpnConnectionStateChangeEvent;
+  }
+  /**
+   * @param GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent
+   */
+  public function setWifiSignalStrengthEvent(GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent $wifiSignalStrengthEvent)
+  {
+    $this->wifiSignalStrengthEvent = $wifiSignalStrengthEvent;
+  }
+  /**
+   * @return GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent
+   */
+  public function getWifiSignalStrengthEvent()
+  {
+    return $this->wifiSignalStrengthEvent;
   }
 }
 

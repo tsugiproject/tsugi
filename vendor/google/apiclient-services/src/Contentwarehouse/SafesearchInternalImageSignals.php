@@ -24,6 +24,12 @@ class SafesearchInternalImageSignals extends \Google\Model
    */
   public $imageEntitiesViolenceScore;
   /**
+   * @var SafesearchImageOffensiveAnnotation
+   */
+  public $offensiveAnnotation;
+  protected $offensiveAnnotationType = SafesearchImageOffensiveAnnotation::class;
+  protected $offensiveAnnotationDataType = '';
+  /**
    * @var float
    */
   public $starburstPornScore;
@@ -45,6 +51,20 @@ class SafesearchInternalImageSignals extends \Google\Model
   public function getImageEntitiesViolenceScore()
   {
     return $this->imageEntitiesViolenceScore;
+  }
+  /**
+   * @param SafesearchImageOffensiveAnnotation
+   */
+  public function setOffensiveAnnotation(SafesearchImageOffensiveAnnotation $offensiveAnnotation)
+  {
+    $this->offensiveAnnotation = $offensiveAnnotation;
+  }
+  /**
+   * @return SafesearchImageOffensiveAnnotation
+   */
+  public function getOffensiveAnnotation()
+  {
+    return $this->offensiveAnnotation;
   }
   /**
    * @param float

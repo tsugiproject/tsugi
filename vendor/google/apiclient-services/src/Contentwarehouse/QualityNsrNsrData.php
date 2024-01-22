@@ -37,15 +37,27 @@ class QualityNsrNsrData extends \Google\Collection
    */
   public $chardVariance;
   /**
+   * @var float
+   */
+  public $chromeInTotal;
+  /**
    * @var int
    */
   public $clusterId;
+  /**
+   * @var QualityNsrNsrDataClusterUplift
+   */
+  public $clusterUplift;
   protected $clusterUpliftType = QualityNsrNsrDataClusterUplift::class;
   protected $clusterUpliftDataType = '';
   /**
    * @var float
    */
   public $clutterScore;
+  /**
+   * @var QualityNsrVersionedFloatSignal[]
+   */
+  public $clutterScores;
   protected $clutterScoresType = QualityNsrVersionedFloatSignal::class;
   protected $clutterScoresDataType = 'array';
   /**
@@ -92,6 +104,10 @@ class QualityNsrNsrData extends \Google\Collection
    * @var float
    */
   public $localityScore;
+  /**
+   * @var QualityNsrNsrDataMetadata
+   */
+  public $metadata;
   protected $metadataType = QualityNsrNsrDataMetadata::class;
   protected $metadataDataType = '';
   /**
@@ -126,6 +142,10 @@ class QualityNsrNsrData extends \Google\Collection
    * @var float
    */
   public $pnavClicks;
+  /**
+   * @var QualityNsrVersionedFloatSignal[]
+   */
+  public $priorAdjustedNsr;
   protected $priorAdjustedNsrType = QualityNsrVersionedFloatSignal::class;
   protected $priorAdjustedNsrDataType = 'array';
   /**
@@ -165,9 +185,23 @@ class QualityNsrNsrData extends \Google\Collection
    */
   public $siteQualityStddev;
   /**
+   * @var QualityNsrVersionedFloatSignal[]
+   */
+  public $siteQualityStddevs;
+  protected $siteQualityStddevsType = QualityNsrVersionedFloatSignal::class;
+  protected $siteQualityStddevsDataType = 'array';
+  /**
+   * @var float
+   */
+  public $smallPersonalSite;
+  /**
    * @var float
    */
   public $spambrainLavcScore;
+  /**
+   * @var QualityNsrVersionedFloatSignal[]
+   */
+  public $spambrainLavcScores;
   protected $spambrainLavcScoresType = QualityNsrVersionedFloatSignal::class;
   protected $spambrainLavcScoresDataType = 'array';
   /**
@@ -182,6 +216,10 @@ class QualityNsrNsrData extends \Google\Collection
    * @var string
    */
   public $url;
+  /**
+   * @var QualityNsrNSRVersionedData[]
+   */
+  public $versionedData;
   protected $versionedDataType = QualityNsrNSRVersionedData::class;
   protected $versionedDataDataType = 'array';
   /**
@@ -256,6 +294,20 @@ class QualityNsrNsrData extends \Google\Collection
   public function getChardVariance()
   {
     return $this->chardVariance;
+  }
+  /**
+   * @param float
+   */
+  public function setChromeInTotal($chromeInTotal)
+  {
+    $this->chromeInTotal = $chromeInTotal;
+  }
+  /**
+   * @return float
+   */
+  public function getChromeInTotal()
+  {
+    return $this->chromeInTotal;
   }
   /**
    * @param int
@@ -732,6 +784,34 @@ class QualityNsrNsrData extends \Google\Collection
   public function getSiteQualityStddev()
   {
     return $this->siteQualityStddev;
+  }
+  /**
+   * @param QualityNsrVersionedFloatSignal[]
+   */
+  public function setSiteQualityStddevs($siteQualityStddevs)
+  {
+    $this->siteQualityStddevs = $siteQualityStddevs;
+  }
+  /**
+   * @return QualityNsrVersionedFloatSignal[]
+   */
+  public function getSiteQualityStddevs()
+  {
+    return $this->siteQualityStddevs;
+  }
+  /**
+   * @param float
+   */
+  public function setSmallPersonalSite($smallPersonalSite)
+  {
+    $this->smallPersonalSite = $smallPersonalSite;
+  }
+  /**
+   * @return float
+   */
+  public function getSmallPersonalSite()
+  {
+    return $this->smallPersonalSite;
   }
   /**
    * @param float

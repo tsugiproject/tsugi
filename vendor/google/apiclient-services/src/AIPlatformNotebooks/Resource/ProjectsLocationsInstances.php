@@ -18,6 +18,7 @@
 namespace Google\Service\AIPlatformNotebooks\Resource;
 
 use Google\Service\AIPlatformNotebooks\CheckInstanceUpgradabilityResponse;
+use Google\Service\AIPlatformNotebooks\Config;
 use Google\Service\AIPlatformNotebooks\DiagnoseInstanceRequest;
 use Google\Service\AIPlatformNotebooks\Instance;
 use Google\Service\AIPlatformNotebooks\ListInstancesResponse;
@@ -25,6 +26,7 @@ use Google\Service\AIPlatformNotebooks\Operation;
 use Google\Service\AIPlatformNotebooks\Policy;
 use Google\Service\AIPlatformNotebooks\ReportInstanceInfoSystemRequest;
 use Google\Service\AIPlatformNotebooks\ResetInstanceRequest;
+use Google\Service\AIPlatformNotebooks\ResizeDiskRequest;
 use Google\Service\AIPlatformNotebooks\RollbackInstanceRequest;
 use Google\Service\AIPlatformNotebooks\SetIamPolicyRequest;
 use Google\Service\AIPlatformNotebooks\StartInstanceRequest;
@@ -125,6 +127,24 @@ class ProjectsLocationsInstances extends \Google\Service\Resource
     return $this->call('get', [$params], Instance::class);
   }
   /**
+   * Gets general backend configurations that might also affect the frontend.
+   * Location is required by CCFE. Although we could bypass it to send location-
+   * less request directly to the backend job, we would need CPE (go/cloud-cpe).
+   * Having the location might also be useful depending on the query.
+   * (instances.getConfig)
+   *
+   * @param string $name Required. Format:
+   * `projects/{project_id}/locations/{location}`
+   * @param array $optParams Optional parameters.
+   * @return Config
+   */
+  public function getConfig($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('getConfig', [$params], Config::class);
+  }
+  /**
    * Gets the access control policy for a resource. Returns an empty policy if the
    * resource exists and does not have a policy set. (instances.getIamPolicy)
    *
@@ -162,6 +182,9 @@ class ProjectsLocationsInstances extends \Google\Service\Resource
    * `parent=projects/{project_id}/locations/{location}`
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string filter Optional. List filter.
+   * @opt_param string orderBy Optional. Sort results. Supported values are
+   * "name", "name desc" or "" (unsorted).
    * @opt_param int pageSize Optional. Maximum return size of the list call.
    * @opt_param string pageToken Optional. A previous returned page token that can
    * be used to continue listing from the last result.
@@ -223,6 +246,21 @@ class ProjectsLocationsInstances extends \Google\Service\Resource
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('reset', [$params], Operation::class);
+  }
+  /**
+   * Resize a notebook instance disk to a higher capacity. (instances.resizeDisk)
+   *
+   * @param string $notebookInstance Required. Format:
+   * `projects/{project_id}/locations/{location}/instances/{instance_id}`
+   * @param ResizeDiskRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   */
+  public function resizeDisk($notebookInstance, ResizeDiskRequest $postBody, $optParams = [])
+  {
+    $params = ['notebookInstance' => $notebookInstance, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('resizeDisk', [$params], Operation::class);
   }
   /**
    * Rollbacks a notebook instance to the previous version. (instances.rollback)

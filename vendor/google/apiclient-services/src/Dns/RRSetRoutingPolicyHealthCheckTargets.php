@@ -20,9 +20,31 @@ namespace Google\Service\Dns;
 class RRSetRoutingPolicyHealthCheckTargets extends \Google\Collection
 {
   protected $collection_key = 'internalLoadBalancers';
+  /**
+   * @var string[]
+   */
+  public $externalEndpoints;
+  /**
+   * @var RRSetRoutingPolicyLoadBalancerTarget[]
+   */
+  public $internalLoadBalancers;
   protected $internalLoadBalancersType = RRSetRoutingPolicyLoadBalancerTarget::class;
   protected $internalLoadBalancersDataType = 'array';
 
+  /**
+   * @param string[]
+   */
+  public function setExternalEndpoints($externalEndpoints)
+  {
+    $this->externalEndpoints = $externalEndpoints;
+  }
+  /**
+   * @return string[]
+   */
+  public function getExternalEndpoints()
+  {
+    return $this->externalEndpoints;
+  }
   /**
    * @param RRSetRoutingPolicyLoadBalancerTarget[]
    */

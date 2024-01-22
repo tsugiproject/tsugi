@@ -41,6 +41,10 @@ class AttachedDiskInitializeParams extends \Google\Collection
    */
   public $diskType;
   /**
+   * @var bool
+   */
+  public $enableConfidentialCompute;
+  /**
    * @var string[]
    */
   public $labels;
@@ -76,12 +80,20 @@ class AttachedDiskInitializeParams extends \Google\Collection
    * @var string
    */
   public $sourceImage;
+  /**
+   * @var CustomerEncryptionKey
+   */
+  public $sourceImageEncryptionKey;
   protected $sourceImageEncryptionKeyType = CustomerEncryptionKey::class;
   protected $sourceImageEncryptionKeyDataType = '';
   /**
    * @var string
    */
   public $sourceSnapshot;
+  /**
+   * @var CustomerEncryptionKey
+   */
+  public $sourceSnapshotEncryptionKey;
   protected $sourceSnapshotEncryptionKeyType = CustomerEncryptionKey::class;
   protected $sourceSnapshotEncryptionKeyDataType = '';
 
@@ -154,6 +166,20 @@ class AttachedDiskInitializeParams extends \Google\Collection
   public function getDiskType()
   {
     return $this->diskType;
+  }
+  /**
+   * @param bool
+   */
+  public function setEnableConfidentialCompute($enableConfidentialCompute)
+  {
+    $this->enableConfidentialCompute = $enableConfidentialCompute;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableConfidentialCompute()
+  {
+    return $this->enableConfidentialCompute;
   }
   /**
    * @param string[]

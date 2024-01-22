@@ -18,6 +18,7 @@
 namespace Google\Service\Appengine\Resource;
 
 use Google\Service\Appengine\Application;
+use Google\Service\Appengine\ListRuntimesResponse;
 use Google\Service\Appengine\Operation;
 use Google\Service\Appengine\RepairApplicationRequest;
 
@@ -56,6 +57,8 @@ class Apps extends \Google\Service\Resource
    * @param string $appsId Part of `name`. Name of the Application resource to
    * get. Example: apps/myapp.
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string includeExtraData Options to include extra data
    * @return Application
    */
   public function get($appsId, $optParams = [])
@@ -63,6 +66,22 @@ class Apps extends \Google\Service\Resource
     $params = ['appsId' => $appsId];
     $params = array_merge($params, $optParams);
     return $this->call('get', [$params], Application::class);
+  }
+  /**
+   * Lists all the available runtimes for the application. (apps.listRuntimes)
+   *
+   * @param string $appsId Part of `parent`. Required. Name of the parent
+   * Application resource. Example: apps/myapp.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string environment Optional. The environment of the Application.
+   * @return ListRuntimesResponse
+   */
+  public function listRuntimes($appsId, $optParams = [])
+  {
+    $params = ['appsId' => $appsId];
+    $params = array_merge($params, $optParams);
+    return $this->call('listRuntimes', [$params], ListRuntimesResponse::class);
   }
   /**
    * Updates the specified Application resource. You can update the following

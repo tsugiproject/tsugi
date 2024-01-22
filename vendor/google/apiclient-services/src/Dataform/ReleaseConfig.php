@@ -20,12 +20,20 @@ namespace Google\Service\Dataform;
 class ReleaseConfig extends \Google\Collection
 {
   protected $collection_key = 'recentScheduledReleaseRecords';
+  /**
+   * @var CodeCompilationConfig
+   */
+  public $codeCompilationConfig;
   protected $codeCompilationConfigType = CodeCompilationConfig::class;
   protected $codeCompilationConfigDataType = '';
   /**
    * @var string
    */
   public $cronSchedule;
+  /**
+   * @var bool
+   */
+  public $disabled;
   /**
    * @var string
    */
@@ -34,6 +42,10 @@ class ReleaseConfig extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * @var ScheduledReleaseRecord[]
+   */
+  public $recentScheduledReleaseRecords;
   protected $recentScheduledReleaseRecordsType = ScheduledReleaseRecord::class;
   protected $recentScheduledReleaseRecordsDataType = 'array';
   /**
@@ -72,6 +84,20 @@ class ReleaseConfig extends \Google\Collection
   public function getCronSchedule()
   {
     return $this->cronSchedule;
+  }
+  /**
+   * @param bool
+   */
+  public function setDisabled($disabled)
+  {
+    $this->disabled = $disabled;
+  }
+  /**
+   * @return bool
+   */
+  public function getDisabled()
+  {
+    return $this->disabled;
   }
   /**
    * @param string

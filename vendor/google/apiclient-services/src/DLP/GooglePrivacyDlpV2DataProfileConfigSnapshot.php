@@ -19,8 +19,22 @@ namespace Google\Service\DLP;
 
 class GooglePrivacyDlpV2DataProfileConfigSnapshot extends \Google\Model
 {
+  /**
+   * @var GooglePrivacyDlpV2DataProfileJobConfig
+   */
+  public $dataProfileJob;
   protected $dataProfileJobType = GooglePrivacyDlpV2DataProfileJobConfig::class;
   protected $dataProfileJobDataType = '';
+  /**
+   * @var GooglePrivacyDlpV2DiscoveryConfig
+   */
+  public $discoveryConfig;
+  protected $discoveryConfigType = GooglePrivacyDlpV2DiscoveryConfig::class;
+  protected $discoveryConfigDataType = '';
+  /**
+   * @var GooglePrivacyDlpV2InspectConfig
+   */
+  public $inspectConfig;
   protected $inspectConfigType = GooglePrivacyDlpV2InspectConfig::class;
   protected $inspectConfigDataType = '';
 
@@ -37,6 +51,20 @@ class GooglePrivacyDlpV2DataProfileConfigSnapshot extends \Google\Model
   public function getDataProfileJob()
   {
     return $this->dataProfileJob;
+  }
+  /**
+   * @param GooglePrivacyDlpV2DiscoveryConfig
+   */
+  public function setDiscoveryConfig(GooglePrivacyDlpV2DiscoveryConfig $discoveryConfig)
+  {
+    $this->discoveryConfig = $discoveryConfig;
+  }
+  /**
+   * @return GooglePrivacyDlpV2DiscoveryConfig
+   */
+  public function getDiscoveryConfig()
+  {
+    return $this->discoveryConfig;
   }
   /**
    * @param GooglePrivacyDlpV2InspectConfig

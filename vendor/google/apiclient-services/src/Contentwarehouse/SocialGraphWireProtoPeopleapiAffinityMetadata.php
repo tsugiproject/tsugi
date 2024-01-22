@@ -19,11 +19,23 @@ namespace Google\Service\Contentwarehouse;
 
 class SocialGraphWireProtoPeopleapiAffinityMetadata extends \Google\Model
 {
+  /**
+   * @var SocialGraphWireProtoPeopleapiAffinityMetadataClientInteractionInfo
+   */
+  public $clientInteractionInfo;
   protected $clientInteractionInfoType = SocialGraphWireProtoPeopleapiAffinityMetadataClientInteractionInfo::class;
   protected $clientInteractionInfoDataType = '';
+  /**
+   * @var SocialGraphWireProtoPeopleapiAffinityMetadataCloudDeviceDataInfo
+   */
+  public $cloudDeviceDataInfo;
   protected $cloudDeviceDataInfoType = SocialGraphWireProtoPeopleapiAffinityMetadataCloudDeviceDataInfo::class;
   protected $cloudDeviceDataInfoDataType = '';
   public $cloudScore;
+  /**
+   * @var string
+   */
+  public $suggestionConfidence;
 
   /**
    * @param SocialGraphWireProtoPeopleapiAffinityMetadataClientInteractionInfo
@@ -60,6 +72,20 @@ class SocialGraphWireProtoPeopleapiAffinityMetadata extends \Google\Model
   public function getCloudScore()
   {
     return $this->cloudScore;
+  }
+  /**
+   * @param string
+   */
+  public function setSuggestionConfidence($suggestionConfidence)
+  {
+    $this->suggestionConfidence = $suggestionConfidence;
+  }
+  /**
+   * @return string
+   */
+  public function getSuggestionConfidence()
+  {
+    return $this->suggestionConfidence;
   }
 }
 

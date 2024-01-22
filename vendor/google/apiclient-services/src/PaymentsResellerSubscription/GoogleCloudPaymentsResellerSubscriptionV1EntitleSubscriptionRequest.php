@@ -17,8 +17,30 @@
 
 namespace Google\Service\PaymentsResellerSubscription;
 
-class GoogleCloudPaymentsResellerSubscriptionV1EntitleSubscriptionRequest extends \Google\Model
+class GoogleCloudPaymentsResellerSubscriptionV1EntitleSubscriptionRequest extends \Google\Collection
 {
+  protected $collection_key = 'lineItemEntitlementDetails';
+  /**
+   * @var GoogleCloudPaymentsResellerSubscriptionV1EntitleSubscriptionRequestLineItemEntitlementDetails[]
+   */
+  public $lineItemEntitlementDetails;
+  protected $lineItemEntitlementDetailsType = GoogleCloudPaymentsResellerSubscriptionV1EntitleSubscriptionRequestLineItemEntitlementDetails::class;
+  protected $lineItemEntitlementDetailsDataType = 'array';
+
+  /**
+   * @param GoogleCloudPaymentsResellerSubscriptionV1EntitleSubscriptionRequestLineItemEntitlementDetails[]
+   */
+  public function setLineItemEntitlementDetails($lineItemEntitlementDetails)
+  {
+    $this->lineItemEntitlementDetails = $lineItemEntitlementDetails;
+  }
+  /**
+   * @return GoogleCloudPaymentsResellerSubscriptionV1EntitleSubscriptionRequestLineItemEntitlementDetails[]
+   */
+  public function getLineItemEntitlementDetails()
+  {
+    return $this->lineItemEntitlementDetails;
+  }
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.

@@ -27,14 +27,32 @@ class AppProfile extends \Google\Model
    * @var string
    */
   public $etag;
+  /**
+   * @var MultiClusterRoutingUseAny
+   */
+  public $multiClusterRoutingUseAny;
   protected $multiClusterRoutingUseAnyType = MultiClusterRoutingUseAny::class;
   protected $multiClusterRoutingUseAnyDataType = '';
   /**
    * @var string
    */
   public $name;
+  /**
+   * @var string
+   */
+  public $priority;
+  /**
+   * @var SingleClusterRouting
+   */
+  public $singleClusterRouting;
   protected $singleClusterRoutingType = SingleClusterRouting::class;
   protected $singleClusterRoutingDataType = '';
+  /**
+   * @var StandardIsolation
+   */
+  public $standardIsolation;
+  protected $standardIsolationType = StandardIsolation::class;
+  protected $standardIsolationDataType = '';
 
   /**
    * @param string
@@ -93,6 +111,20 @@ class AppProfile extends \Google\Model
     return $this->name;
   }
   /**
+   * @param string
+   */
+  public function setPriority($priority)
+  {
+    $this->priority = $priority;
+  }
+  /**
+   * @return string
+   */
+  public function getPriority()
+  {
+    return $this->priority;
+  }
+  /**
    * @param SingleClusterRouting
    */
   public function setSingleClusterRouting(SingleClusterRouting $singleClusterRouting)
@@ -105,6 +137,20 @@ class AppProfile extends \Google\Model
   public function getSingleClusterRouting()
   {
     return $this->singleClusterRouting;
+  }
+  /**
+   * @param StandardIsolation
+   */
+  public function setStandardIsolation(StandardIsolation $standardIsolation)
+  {
+    $this->standardIsolation = $standardIsolation;
+  }
+  /**
+   * @return StandardIsolation
+   */
+  public function getStandardIsolation()
+  {
+    return $this->standardIsolation;
   }
 }
 

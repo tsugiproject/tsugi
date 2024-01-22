@@ -19,8 +19,18 @@ namespace Google\Service\VMMigrationService;
 
 class FetchInventoryResponse extends \Google\Model
 {
+  /**
+   * @var AwsVmsDetails
+   */
+  public $awsVms;
   protected $awsVmsType = AwsVmsDetails::class;
   protected $awsVmsDataType = '';
+  /**
+   * @var AzureVmsDetails
+   */
+  public $azureVms;
+  protected $azureVmsType = AzureVmsDetails::class;
+  protected $azureVmsDataType = '';
   /**
    * @var string
    */
@@ -29,6 +39,10 @@ class FetchInventoryResponse extends \Google\Model
    * @var string
    */
   public $updateTime;
+  /**
+   * @var VmwareVmsDetails
+   */
+  public $vmwareVms;
   protected $vmwareVmsType = VmwareVmsDetails::class;
   protected $vmwareVmsDataType = '';
 
@@ -45,6 +59,20 @@ class FetchInventoryResponse extends \Google\Model
   public function getAwsVms()
   {
     return $this->awsVms;
+  }
+  /**
+   * @param AzureVmsDetails
+   */
+  public function setAzureVms(AzureVmsDetails $azureVms)
+  {
+    $this->azureVms = $azureVms;
+  }
+  /**
+   * @return AzureVmsDetails
+   */
+  public function getAzureVms()
+  {
+    return $this->azureVms;
   }
   /**
    * @param string

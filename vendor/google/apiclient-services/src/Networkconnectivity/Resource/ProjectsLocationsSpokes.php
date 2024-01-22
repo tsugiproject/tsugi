@@ -17,11 +17,9 @@
 
 namespace Google\Service\Networkconnectivity\Resource;
 
-use Google\Service\Networkconnectivity\AcceptSpokeRequest;
 use Google\Service\Networkconnectivity\GoogleLongrunningOperation;
 use Google\Service\Networkconnectivity\ListSpokesResponse;
 use Google\Service\Networkconnectivity\Policy;
-use Google\Service\Networkconnectivity\RejectSpokeRequest;
 use Google\Service\Networkconnectivity\SetIamPolicyRequest;
 use Google\Service\Networkconnectivity\Spoke;
 use Google\Service\Networkconnectivity\TestIamPermissionsRequest;
@@ -38,21 +36,6 @@ use Google\Service\Networkconnectivity\TestIamPermissionsResponse;
 class ProjectsLocationsSpokes extends \Google\Service\Resource
 {
   /**
-   * Accepts a proposal to attach a Network Connectivity Center spoke to the hub.
-   * (spokes.accept)
-   *
-   * @param string $name Required. The name of the spoke to accept.
-   * @param AcceptSpokeRequest $postBody
-   * @param array $optParams Optional parameters.
-   * @return GoogleLongrunningOperation
-   */
-  public function accept($name, AcceptSpokeRequest $postBody, $optParams = [])
-  {
-    $params = ['name' => $name, 'postBody' => $postBody];
-    $params = array_merge($params, $optParams);
-    return $this->call('accept', [$params], GoogleLongrunningOperation::class);
-  }
-  /**
    * Creates a Network Connectivity Center spoke. (spokes.create)
    *
    * @param string $parent Required. The parent resource.
@@ -61,7 +44,7 @@ class ProjectsLocationsSpokes extends \Google\Service\Resource
    *
    * @opt_param string requestId Optional. A request ID to identify requests.
    * Specify a unique request ID so that if you must retry your request, the
-   * server will know to ignore the request if it has already been completed. The
+   * server knows to ignore the request if it has already been completed. The
    * server guarantees that a request doesn't result in creation of duplicate
    * commitments for at least 60 minutes. For example, consider a situation where
    * you make an initial request and the request times out. If you make the
@@ -87,7 +70,7 @@ class ProjectsLocationsSpokes extends \Google\Service\Resource
    *
    * @opt_param string requestId Optional. A request ID to identify requests.
    * Specify a unique request ID so that if you must retry your request, the
-   * server will know to ignore the request if it has already been completed. The
+   * server knows to ignore the request if it has already been completed. The
    * server guarantees that a request doesn't result in creation of duplicate
    * commitments for at least 60 minutes. For example, consider a situation where
    * you make an initial request and the request times out. If you make the
@@ -177,7 +160,7 @@ class ProjectsLocationsSpokes extends \Google\Service\Resource
    *
    * @opt_param string requestId Optional. A request ID to identify requests.
    * Specify a unique request ID so that if you must retry your request, the
-   * server will know to ignore the request if it has already been completed. The
+   * server knows to ignore the request if it has already been completed. The
    * server guarantees that a request doesn't result in creation of duplicate
    * commitments for at least 60 minutes. For example, consider a situation where
    * you make an initial request and the request times out. If you make the
@@ -198,23 +181,6 @@ class ProjectsLocationsSpokes extends \Google\Service\Resource
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('patch', [$params], GoogleLongrunningOperation::class);
-  }
-  /**
-   * Rejects a Network Connectivity Center spoke from being attached to the hub.
-   * If the spoke was previously in the `ACTIVE` state, it transitions to the
-   * `INACTIVE` state and is no longer able to connect to other spokes that are
-   * attached to the hub. (spokes.reject)
-   *
-   * @param string $name Required. The name of the spoke to reject.
-   * @param RejectSpokeRequest $postBody
-   * @param array $optParams Optional parameters.
-   * @return GoogleLongrunningOperation
-   */
-  public function reject($name, RejectSpokeRequest $postBody, $optParams = [])
-  {
-    $params = ['name' => $name, 'postBody' => $postBody];
-    $params = array_merge($params, $optParams);
-    return $this->call('reject', [$params], GoogleLongrunningOperation::class);
   }
   /**
    * Sets the access control policy on the specified resource. Replaces any

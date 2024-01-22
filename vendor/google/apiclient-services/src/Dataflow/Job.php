@@ -40,14 +40,26 @@ class Job extends \Google\Collection
    * @var string
    */
   public $currentStateTime;
+  /**
+   * @var Environment
+   */
+  public $environment;
   protected $environmentType = Environment::class;
   protected $environmentDataType = '';
+  /**
+   * @var JobExecutionInfo
+   */
+  public $executionInfo;
   protected $executionInfoType = JobExecutionInfo::class;
   protected $executionInfoDataType = '';
   /**
    * @var string
    */
   public $id;
+  /**
+   * @var JobMetadata
+   */
+  public $jobMetadata;
   protected $jobMetadataType = JobMetadata::class;
   protected $jobMetadataDataType = '';
   /**
@@ -62,6 +74,10 @@ class Job extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * @var PipelineDescription
+   */
+  public $pipelineDescription;
   protected $pipelineDescriptionType = PipelineDescription::class;
   protected $pipelineDescriptionDataType = '';
   /**
@@ -80,18 +96,34 @@ class Job extends \Google\Collection
    * @var string
    */
   public $requestedState;
+  /**
+   * @var RuntimeUpdatableParams
+   */
+  public $runtimeUpdatableParams;
   protected $runtimeUpdatableParamsType = RuntimeUpdatableParams::class;
   protected $runtimeUpdatableParamsDataType = '';
   /**
    * @var bool
    */
+  public $satisfiesPzi;
+  /**
+   * @var bool
+   */
   public $satisfiesPzs;
+  /**
+   * @var ExecutionStageState[]
+   */
+  public $stageStates;
   protected $stageStatesType = ExecutionStageState::class;
   protected $stageStatesDataType = 'array';
   /**
    * @var string
    */
   public $startTime;
+  /**
+   * @var Step[]
+   */
+  public $steps;
   protected $stepsType = Step::class;
   protected $stepsDataType = 'array';
   /**
@@ -362,6 +394,20 @@ class Job extends \Google\Collection
   public function getRuntimeUpdatableParams()
   {
     return $this->runtimeUpdatableParams;
+  }
+  /**
+   * @param bool
+   */
+  public function setSatisfiesPzi($satisfiesPzi)
+  {
+    $this->satisfiesPzi = $satisfiesPzi;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzi()
+  {
+    return $this->satisfiesPzi;
   }
   /**
    * @param bool

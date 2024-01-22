@@ -22,12 +22,84 @@ class GoogleCloudConnectorsV1ConnectorVersionInfraConfig extends \Google\Model
   /**
    * @var string
    */
+  public $connectionRatelimitWindowSeconds;
+  /**
+   * @var string
+   */
+  public $deploymentModel;
+  /**
+   * @var GoogleCloudConnectorsV1HPAConfig
+   */
+  public $hpaConfig;
+  protected $hpaConfigType = GoogleCloudConnectorsV1HPAConfig::class;
+  protected $hpaConfigDataType = '';
+  /**
+   * @var string
+   */
   public $internalclientRatelimitThreshold;
   /**
    * @var string
    */
   public $ratelimitThreshold;
+  /**
+   * @var GoogleCloudConnectorsV1ResourceLimits
+   */
+  public $resourceLimits;
+  protected $resourceLimitsType = GoogleCloudConnectorsV1ResourceLimits::class;
+  protected $resourceLimitsDataType = '';
+  /**
+   * @var GoogleCloudConnectorsV1ResourceRequests
+   */
+  public $resourceRequests;
+  protected $resourceRequestsType = GoogleCloudConnectorsV1ResourceRequests::class;
+  protected $resourceRequestsDataType = '';
+  /**
+   * @var string
+   */
+  public $sharedDeployment;
 
+  /**
+   * @param string
+   */
+  public function setConnectionRatelimitWindowSeconds($connectionRatelimitWindowSeconds)
+  {
+    $this->connectionRatelimitWindowSeconds = $connectionRatelimitWindowSeconds;
+  }
+  /**
+   * @return string
+   */
+  public function getConnectionRatelimitWindowSeconds()
+  {
+    return $this->connectionRatelimitWindowSeconds;
+  }
+  /**
+   * @param string
+   */
+  public function setDeploymentModel($deploymentModel)
+  {
+    $this->deploymentModel = $deploymentModel;
+  }
+  /**
+   * @return string
+   */
+  public function getDeploymentModel()
+  {
+    return $this->deploymentModel;
+  }
+  /**
+   * @param GoogleCloudConnectorsV1HPAConfig
+   */
+  public function setHpaConfig(GoogleCloudConnectorsV1HPAConfig $hpaConfig)
+  {
+    $this->hpaConfig = $hpaConfig;
+  }
+  /**
+   * @return GoogleCloudConnectorsV1HPAConfig
+   */
+  public function getHpaConfig()
+  {
+    return $this->hpaConfig;
+  }
   /**
    * @param string
    */
@@ -55,6 +127,48 @@ class GoogleCloudConnectorsV1ConnectorVersionInfraConfig extends \Google\Model
   public function getRatelimitThreshold()
   {
     return $this->ratelimitThreshold;
+  }
+  /**
+   * @param GoogleCloudConnectorsV1ResourceLimits
+   */
+  public function setResourceLimits(GoogleCloudConnectorsV1ResourceLimits $resourceLimits)
+  {
+    $this->resourceLimits = $resourceLimits;
+  }
+  /**
+   * @return GoogleCloudConnectorsV1ResourceLimits
+   */
+  public function getResourceLimits()
+  {
+    return $this->resourceLimits;
+  }
+  /**
+   * @param GoogleCloudConnectorsV1ResourceRequests
+   */
+  public function setResourceRequests(GoogleCloudConnectorsV1ResourceRequests $resourceRequests)
+  {
+    $this->resourceRequests = $resourceRequests;
+  }
+  /**
+   * @return GoogleCloudConnectorsV1ResourceRequests
+   */
+  public function getResourceRequests()
+  {
+    return $this->resourceRequests;
+  }
+  /**
+   * @param string
+   */
+  public function setSharedDeployment($sharedDeployment)
+  {
+    $this->sharedDeployment = $sharedDeployment;
+  }
+  /**
+   * @return string
+   */
+  public function getSharedDeployment()
+  {
+    return $this->sharedDeployment;
   }
 }
 

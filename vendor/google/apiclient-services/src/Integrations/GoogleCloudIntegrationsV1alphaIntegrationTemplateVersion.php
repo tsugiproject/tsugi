@@ -32,6 +32,14 @@ class GoogleCloudIntegrationsV1alphaIntegrationTemplateVersion extends \Google\C
    * @var string
    */
   public $description;
+  /**
+   * @var bool
+   */
+  public $enableVariableMasking;
+  /**
+   * @var GoogleCloudIntegrationsV1alphaErrorCatcherConfig[]
+   */
+  public $errorCatcherConfigs;
   protected $errorCatcherConfigsType = GoogleCloudIntegrationsV1alphaErrorCatcherConfig::class;
   protected $errorCatcherConfigsDataType = 'array';
   /**
@@ -54,12 +62,28 @@ class GoogleCloudIntegrationsV1alphaIntegrationTemplateVersion extends \Google\C
    * @var string
    */
   public $status;
+  /**
+   * @var EnterpriseCrmFrontendsEventbusProtoTaskConfig[]
+   */
+  public $taskConfigs;
   protected $taskConfigsType = EnterpriseCrmFrontendsEventbusProtoTaskConfig::class;
   protected $taskConfigsDataType = 'array';
+  /**
+   * @var EnterpriseCrmEventbusProtoTeardown
+   */
+  public $teardown;
   protected $teardownType = EnterpriseCrmEventbusProtoTeardown::class;
   protected $teardownDataType = '';
+  /**
+   * @var EnterpriseCrmFrontendsEventbusProtoWorkflowParameters
+   */
+  public $templateParameters;
   protected $templateParametersType = EnterpriseCrmFrontendsEventbusProtoWorkflowParameters::class;
   protected $templateParametersDataType = '';
+  /**
+   * @var EnterpriseCrmFrontendsEventbusProtoTriggerConfig[]
+   */
+  public $triggerConfigs;
   protected $triggerConfigsType = EnterpriseCrmFrontendsEventbusProtoTriggerConfig::class;
   protected $triggerConfigsDataType = 'array';
   /**
@@ -112,6 +136,20 @@ class GoogleCloudIntegrationsV1alphaIntegrationTemplateVersion extends \Google\C
   public function getDescription()
   {
     return $this->description;
+  }
+  /**
+   * @param bool
+   */
+  public function setEnableVariableMasking($enableVariableMasking)
+  {
+    $this->enableVariableMasking = $enableVariableMasking;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableVariableMasking()
+  {
+    return $this->enableVariableMasking;
   }
   /**
    * @param GoogleCloudIntegrationsV1alphaErrorCatcherConfig[]

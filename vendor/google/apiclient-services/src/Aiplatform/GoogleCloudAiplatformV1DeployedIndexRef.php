@@ -26,6 +26,10 @@ class GoogleCloudAiplatformV1DeployedIndexRef extends \Google\Model
   /**
    * @var string
    */
+  public $displayName;
+  /**
+   * @var string
+   */
   public $indexEndpoint;
 
   /**
@@ -41,6 +45,20 @@ class GoogleCloudAiplatformV1DeployedIndexRef extends \Google\Model
   public function getDeployedIndexId()
   {
     return $this->deployedIndexId;
+  }
+  /**
+   * @param string
+   */
+  public function setDisplayName($displayName)
+  {
+    $this->displayName = $displayName;
+  }
+  /**
+   * @return string
+   */
+  public function getDisplayName()
+  {
+    return $this->displayName;
   }
   /**
    * @param string

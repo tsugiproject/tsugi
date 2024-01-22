@@ -24,6 +24,12 @@ class GoogleCloudRunV2RunJobRequest extends \Google\Model
    */
   public $etag;
   /**
+   * @var GoogleCloudRunV2Overrides
+   */
+  public $overrides;
+  protected $overridesType = GoogleCloudRunV2Overrides::class;
+  protected $overridesDataType = '';
+  /**
    * @var bool
    */
   public $validateOnly;
@@ -41,6 +47,20 @@ class GoogleCloudRunV2RunJobRequest extends \Google\Model
   public function getEtag()
   {
     return $this->etag;
+  }
+  /**
+   * @param GoogleCloudRunV2Overrides
+   */
+  public function setOverrides(GoogleCloudRunV2Overrides $overrides)
+  {
+    $this->overrides = $overrides;
+  }
+  /**
+   * @return GoogleCloudRunV2Overrides
+   */
+  public function getOverrides()
+  {
+    return $this->overrides;
   }
   /**
    * @param bool

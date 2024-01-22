@@ -24,38 +24,86 @@ class UpdateNodePoolRequest extends \Google\Collection
    * @var string
    */
   public $clusterId;
+  /**
+   * @var ConfidentialNodes
+   */
+  public $confidentialNodes;
   protected $confidentialNodesType = ConfidentialNodes::class;
   protected $confidentialNodesDataType = '';
   /**
    * @var string
    */
+  public $diskSizeGb;
+  /**
+   * @var string
+   */
+  public $diskType;
+  /**
+   * @var string
+   */
   public $etag;
+  /**
+   * @var FastSocket
+   */
+  public $fastSocket;
   protected $fastSocketType = FastSocket::class;
   protected $fastSocketDataType = '';
+  /**
+   * @var GcfsConfig
+   */
+  public $gcfsConfig;
   protected $gcfsConfigType = GcfsConfig::class;
   protected $gcfsConfigDataType = '';
+  /**
+   * @var VirtualNIC
+   */
+  public $gvnic;
   protected $gvnicType = VirtualNIC::class;
   protected $gvnicDataType = '';
   /**
    * @var string
    */
   public $imageType;
+  /**
+   * @var NodeKubeletConfig
+   */
+  public $kubeletConfig;
   protected $kubeletConfigType = NodeKubeletConfig::class;
   protected $kubeletConfigDataType = '';
+  /**
+   * @var NodeLabels
+   */
+  public $labels;
   protected $labelsType = NodeLabels::class;
   protected $labelsDataType = '';
+  /**
+   * @var LinuxNodeConfig
+   */
+  public $linuxNodeConfig;
   protected $linuxNodeConfigType = LinuxNodeConfig::class;
   protected $linuxNodeConfigDataType = '';
   /**
    * @var string[]
    */
   public $locations;
+  /**
+   * @var NodePoolLoggingConfig
+   */
+  public $loggingConfig;
   protected $loggingConfigType = NodePoolLoggingConfig::class;
   protected $loggingConfigDataType = '';
   /**
    * @var string
    */
+  public $machineType;
+  /**
+   * @var string
+   */
   public $name;
+  /**
+   * @var NodeNetworkConfig
+   */
+  public $nodeNetworkConfig;
   protected $nodeNetworkConfigType = NodeNetworkConfig::class;
   protected $nodeNetworkConfigDataType = '';
   /**
@@ -70,16 +118,46 @@ class UpdateNodePoolRequest extends \Google\Collection
    * @var string
    */
   public $projectId;
+  /**
+   * @var ResourceLabels
+   */
+  public $resourceLabels;
   protected $resourceLabelsType = ResourceLabels::class;
   protected $resourceLabelsDataType = '';
+  /**
+   * @var ResourceManagerTags
+   */
+  public $resourceManagerTags;
+  protected $resourceManagerTagsType = ResourceManagerTags::class;
+  protected $resourceManagerTagsDataType = '';
+  /**
+   * @var NetworkTags
+   */
+  public $tags;
   protected $tagsType = NetworkTags::class;
   protected $tagsDataType = '';
+  /**
+   * @var NodeTaints
+   */
+  public $taints;
   protected $taintsType = NodeTaints::class;
   protected $taintsDataType = '';
+  /**
+   * @var UpgradeSettings
+   */
+  public $upgradeSettings;
   protected $upgradeSettingsType = UpgradeSettings::class;
   protected $upgradeSettingsDataType = '';
+  /**
+   * @var WindowsNodeConfig
+   */
+  public $windowsNodeConfig;
   protected $windowsNodeConfigType = WindowsNodeConfig::class;
   protected $windowsNodeConfigDataType = '';
+  /**
+   * @var WorkloadMetadataConfig
+   */
+  public $workloadMetadataConfig;
   protected $workloadMetadataConfigType = WorkloadMetadataConfig::class;
   protected $workloadMetadataConfigDataType = '';
   /**
@@ -114,6 +192,34 @@ class UpdateNodePoolRequest extends \Google\Collection
   public function getConfidentialNodes()
   {
     return $this->confidentialNodes;
+  }
+  /**
+   * @param string
+   */
+  public function setDiskSizeGb($diskSizeGb)
+  {
+    $this->diskSizeGb = $diskSizeGb;
+  }
+  /**
+   * @return string
+   */
+  public function getDiskSizeGb()
+  {
+    return $this->diskSizeGb;
+  }
+  /**
+   * @param string
+   */
+  public function setDiskType($diskType)
+  {
+    $this->diskType = $diskType;
+  }
+  /**
+   * @return string
+   */
+  public function getDiskType()
+  {
+    return $this->diskType;
   }
   /**
    * @param string
@@ -258,6 +364,20 @@ class UpdateNodePoolRequest extends \Google\Collection
   /**
    * @param string
    */
+  public function setMachineType($machineType)
+  {
+    $this->machineType = $machineType;
+  }
+  /**
+   * @return string
+   */
+  public function getMachineType()
+  {
+    return $this->machineType;
+  }
+  /**
+   * @param string
+   */
   public function setName($name)
   {
     $this->name = $name;
@@ -338,6 +458,20 @@ class UpdateNodePoolRequest extends \Google\Collection
   public function getResourceLabels()
   {
     return $this->resourceLabels;
+  }
+  /**
+   * @param ResourceManagerTags
+   */
+  public function setResourceManagerTags(ResourceManagerTags $resourceManagerTags)
+  {
+    $this->resourceManagerTags = $resourceManagerTags;
+  }
+  /**
+   * @return ResourceManagerTags
+   */
+  public function getResourceManagerTags()
+  {
+    return $this->resourceManagerTags;
   }
   /**
    * @param NetworkTags

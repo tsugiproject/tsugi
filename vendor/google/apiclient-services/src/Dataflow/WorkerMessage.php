@@ -19,6 +19,10 @@ namespace Google\Service\Dataflow;
 
 class WorkerMessage extends \Google\Model
 {
+  /**
+   * @var DataSamplingReport
+   */
+  public $dataSamplingReport;
   protected $dataSamplingReportType = DataSamplingReport::class;
   protected $dataSamplingReportDataType = '';
   /**
@@ -26,19 +30,55 @@ class WorkerMessage extends \Google\Model
    */
   public $labels;
   /**
+   * @var PerWorkerMetrics
+   */
+  public $perWorkerMetrics;
+  protected $perWorkerMetricsType = PerWorkerMetrics::class;
+  protected $perWorkerMetricsDataType = '';
+  /**
+   * @var StreamingScalingReport
+   */
+  public $streamingScalingReport;
+  protected $streamingScalingReportType = StreamingScalingReport::class;
+  protected $streamingScalingReportDataType = '';
+  /**
    * @var string
    */
   public $time;
+  /**
+   * @var WorkerHealthReport
+   */
+  public $workerHealthReport;
   protected $workerHealthReportType = WorkerHealthReport::class;
   protected $workerHealthReportDataType = '';
+  /**
+   * @var WorkerLifecycleEvent
+   */
+  public $workerLifecycleEvent;
   protected $workerLifecycleEventType = WorkerLifecycleEvent::class;
   protected $workerLifecycleEventDataType = '';
+  /**
+   * @var WorkerMessageCode
+   */
+  public $workerMessageCode;
   protected $workerMessageCodeType = WorkerMessageCode::class;
   protected $workerMessageCodeDataType = '';
+  /**
+   * @var ResourceUtilizationReport
+   */
+  public $workerMetrics;
   protected $workerMetricsType = ResourceUtilizationReport::class;
   protected $workerMetricsDataType = '';
+  /**
+   * @var WorkerShutdownNotice
+   */
+  public $workerShutdownNotice;
   protected $workerShutdownNoticeType = WorkerShutdownNotice::class;
   protected $workerShutdownNoticeDataType = '';
+  /**
+   * @var WorkerThreadScalingReport
+   */
+  public $workerThreadScalingReport;
   protected $workerThreadScalingReportType = WorkerThreadScalingReport::class;
   protected $workerThreadScalingReportDataType = '';
 
@@ -69,6 +109,34 @@ class WorkerMessage extends \Google\Model
   public function getLabels()
   {
     return $this->labels;
+  }
+  /**
+   * @param PerWorkerMetrics
+   */
+  public function setPerWorkerMetrics(PerWorkerMetrics $perWorkerMetrics)
+  {
+    $this->perWorkerMetrics = $perWorkerMetrics;
+  }
+  /**
+   * @return PerWorkerMetrics
+   */
+  public function getPerWorkerMetrics()
+  {
+    return $this->perWorkerMetrics;
+  }
+  /**
+   * @param StreamingScalingReport
+   */
+  public function setStreamingScalingReport(StreamingScalingReport $streamingScalingReport)
+  {
+    $this->streamingScalingReport = $streamingScalingReport;
+  }
+  /**
+   * @return StreamingScalingReport
+   */
+  public function getStreamingScalingReport()
+  {
+    return $this->streamingScalingReport;
   }
   /**
    * @param string

@@ -19,8 +19,24 @@ namespace Google\Service\Compute;
 
 class PreservedState extends \Google\Model
 {
+  /**
+   * @var PreservedStatePreservedDisk[]
+   */
+  public $disks;
   protected $disksType = PreservedStatePreservedDisk::class;
   protected $disksDataType = 'map';
+  /**
+   * @var PreservedStatePreservedNetworkIp[]
+   */
+  public $externalIPs;
+  protected $externalIPsType = PreservedStatePreservedNetworkIp::class;
+  protected $externalIPsDataType = 'map';
+  /**
+   * @var PreservedStatePreservedNetworkIp[]
+   */
+  public $internalIPs;
+  protected $internalIPsType = PreservedStatePreservedNetworkIp::class;
+  protected $internalIPsDataType = 'map';
   /**
    * @var string[]
    */
@@ -39,6 +55,34 @@ class PreservedState extends \Google\Model
   public function getDisks()
   {
     return $this->disks;
+  }
+  /**
+   * @param PreservedStatePreservedNetworkIp[]
+   */
+  public function setExternalIPs($externalIPs)
+  {
+    $this->externalIPs = $externalIPs;
+  }
+  /**
+   * @return PreservedStatePreservedNetworkIp[]
+   */
+  public function getExternalIPs()
+  {
+    return $this->externalIPs;
+  }
+  /**
+   * @param PreservedStatePreservedNetworkIp[]
+   */
+  public function setInternalIPs($internalIPs)
+  {
+    $this->internalIPs = $internalIPs;
+  }
+  /**
+   * @return PreservedStatePreservedNetworkIp[]
+   */
+  public function getInternalIPs()
+  {
+    return $this->internalIPs;
   }
   /**
    * @param string[]

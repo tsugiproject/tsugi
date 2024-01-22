@@ -32,18 +32,42 @@ class ManagedInstance extends \Google\Collection
    * @var string
    */
   public $instance;
+  /**
+   * @var ManagedInstanceInstanceHealth[]
+   */
+  public $instanceHealth;
   protected $instanceHealthType = ManagedInstanceInstanceHealth::class;
   protected $instanceHealthDataType = 'array';
   /**
    * @var string
    */
   public $instanceStatus;
+  /**
+   * @var ManagedInstanceLastAttempt
+   */
+  public $lastAttempt;
   protected $lastAttemptType = ManagedInstanceLastAttempt::class;
   protected $lastAttemptDataType = '';
+  /**
+   * @var string
+   */
+  public $name;
+  /**
+   * @var PreservedState
+   */
+  public $preservedStateFromConfig;
   protected $preservedStateFromConfigType = PreservedState::class;
   protected $preservedStateFromConfigDataType = '';
+  /**
+   * @var PreservedState
+   */
+  public $preservedStateFromPolicy;
   protected $preservedStateFromPolicyType = PreservedState::class;
   protected $preservedStateFromPolicyDataType = '';
+  /**
+   * @var ManagedInstanceVersion
+   */
+  public $version;
   protected $versionType = ManagedInstanceVersion::class;
   protected $versionDataType = '';
 
@@ -130,6 +154,20 @@ class ManagedInstance extends \Google\Collection
   public function getLastAttempt()
   {
     return $this->lastAttempt;
+  }
+  /**
+   * @param string
+   */
+  public function setName($name)
+  {
+    $this->name = $name;
+  }
+  /**
+   * @return string
+   */
+  public function getName()
+  {
+    return $this->name;
   }
   /**
    * @param PreservedState

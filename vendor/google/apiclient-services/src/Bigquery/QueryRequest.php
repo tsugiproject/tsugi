@@ -20,6 +20,10 @@ namespace Google\Service\Bigquery;
 class QueryRequest extends \Google\Collection
 {
   protected $collection_key = 'queryParameters';
+  /**
+   * @var ConnectionProperty[]
+   */
+  public $connectionProperties;
   protected $connectionPropertiesType = ConnectionProperty::class;
   protected $connectionPropertiesDataType = 'array';
   /**
@@ -30,12 +34,20 @@ class QueryRequest extends \Google\Collection
    * @var bool
    */
   public $createSession;
+  /**
+   * @var DatasetReference
+   */
+  public $defaultDataset;
   protected $defaultDatasetType = DatasetReference::class;
   protected $defaultDatasetDataType = '';
   /**
    * @var bool
    */
   public $dryRun;
+  /**
+   * @var string
+   */
+  public $jobCreationMode;
   /**
    * @var string
    */
@@ -68,6 +80,10 @@ class QueryRequest extends \Google\Collection
    * @var string
    */
   public $query;
+  /**
+   * @var QueryParameter[]
+   */
+  public $queryParameters;
   protected $queryParametersType = QueryParameter::class;
   protected $queryParametersDataType = 'array';
   /**
@@ -156,6 +172,20 @@ class QueryRequest extends \Google\Collection
   public function getDryRun()
   {
     return $this->dryRun;
+  }
+  /**
+   * @param string
+   */
+  public function setJobCreationMode($jobCreationMode)
+  {
+    $this->jobCreationMode = $jobCreationMode;
+  }
+  /**
+   * @return string
+   */
+  public function getJobCreationMode()
+  {
+    return $this->jobCreationMode;
   }
   /**
    * @param string

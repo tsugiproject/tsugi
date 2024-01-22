@@ -20,6 +20,10 @@ namespace Google\Service\Docs;
 class SectionStyle extends \Google\Collection
 {
   protected $collection_key = 'columnProperties';
+  /**
+   * @var SectionColumnProperties[]
+   */
+  public $columnProperties;
   protected $columnPropertiesType = SectionColumnProperties::class;
   protected $columnPropertiesDataType = 'array';
   /**
@@ -54,16 +58,44 @@ class SectionStyle extends \Google\Collection
    * @var string
    */
   public $firstPageHeaderId;
+  /**
+   * @var bool
+   */
+  public $flipPageOrientation;
+  /**
+   * @var Dimension
+   */
+  public $marginBottom;
   protected $marginBottomType = Dimension::class;
   protected $marginBottomDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginFooter;
   protected $marginFooterType = Dimension::class;
   protected $marginFooterDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginHeader;
   protected $marginHeaderType = Dimension::class;
   protected $marginHeaderDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginLeft;
   protected $marginLeftType = Dimension::class;
   protected $marginLeftDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginRight;
   protected $marginRightType = Dimension::class;
   protected $marginRightDataType = '';
+  /**
+   * @var Dimension
+   */
+  public $marginTop;
   protected $marginTopType = Dimension::class;
   protected $marginTopDataType = '';
   /**
@@ -204,6 +236,20 @@ class SectionStyle extends \Google\Collection
   public function getFirstPageHeaderId()
   {
     return $this->firstPageHeaderId;
+  }
+  /**
+   * @param bool
+   */
+  public function setFlipPageOrientation($flipPageOrientation)
+  {
+    $this->flipPageOrientation = $flipPageOrientation;
+  }
+  /**
+   * @return bool
+   */
+  public function getFlipPageOrientation()
+  {
+    return $this->flipPageOrientation;
   }
   /**
    * @param Dimension

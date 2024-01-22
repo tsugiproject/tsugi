@@ -27,6 +27,12 @@ class CseIdentity extends \Google\Model
    * @var string
    */
   public $primaryKeyPairId;
+  /**
+   * @var SignAndEncryptKeyPairs
+   */
+  public $signAndEncryptKeyPairs;
+  protected $signAndEncryptKeyPairsType = SignAndEncryptKeyPairs::class;
+  protected $signAndEncryptKeyPairsDataType = '';
 
   /**
    * @param string
@@ -55,6 +61,20 @@ class CseIdentity extends \Google\Model
   public function getPrimaryKeyPairId()
   {
     return $this->primaryKeyPairId;
+  }
+  /**
+   * @param SignAndEncryptKeyPairs
+   */
+  public function setSignAndEncryptKeyPairs(SignAndEncryptKeyPairs $signAndEncryptKeyPairs)
+  {
+    $this->signAndEncryptKeyPairs = $signAndEncryptKeyPairs;
+  }
+  /**
+   * @return SignAndEncryptKeyPairs
+   */
+  public function getSignAndEncryptKeyPairs()
+  {
+    return $this->signAndEncryptKeyPairs;
   }
 }
 

@@ -36,6 +36,10 @@ class ProvisioningConfig extends \Google\Collection
    * @var string
    */
   public $handoverServiceAccount;
+  /**
+   * @var InstanceConfig[]
+   */
+  public $instances;
   protected $instancesType = InstanceConfig::class;
   protected $instancesDataType = 'array';
   /**
@@ -46,8 +50,16 @@ class ProvisioningConfig extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * @var NetworkConfig[]
+   */
+  public $networks;
   protected $networksType = NetworkConfig::class;
   protected $networksDataType = 'array';
+  /**
+   * @var string
+   */
+  public $pod;
   /**
    * @var string
    */
@@ -64,6 +76,10 @@ class ProvisioningConfig extends \Google\Collection
    * @var string
    */
   public $updateTime;
+  /**
+   * @var VolumeConfig[]
+   */
+  public $volumes;
   protected $volumesType = VolumeConfig::class;
   protected $volumesDataType = 'array';
   /**
@@ -182,6 +198,20 @@ class ProvisioningConfig extends \Google\Collection
   public function getNetworks()
   {
     return $this->networks;
+  }
+  /**
+   * @param string
+   */
+  public function setPod($pod)
+  {
+    $this->pod = $pod;
+  }
+  /**
+   * @return string
+   */
+  public function getPod()
+  {
+    return $this->pod;
   }
   /**
    * @param string

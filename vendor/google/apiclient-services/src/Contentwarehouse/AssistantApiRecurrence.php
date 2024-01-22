@@ -20,9 +20,17 @@ namespace Google\Service\Contentwarehouse;
 class AssistantApiRecurrence extends \Google\Collection
 {
   protected $collection_key = 'weekOfMonth';
+  /**
+   * @var AssistantApiDate
+   */
+  public $begin;
   protected $beginType = AssistantApiDate::class;
   protected $beginDataType = '';
-  protected $blacklistedRangesType = AssistantApiRecurrenceDatetimeRange::class;
+  /**
+   * @var AssistantApiDateTimeRange[]
+   */
+  public $blacklistedRanges;
+  protected $blacklistedRangesType = AssistantApiDateTimeRange::class;
   protected $blacklistedRangesDataType = 'array';
   /**
    * @var int[]
@@ -32,6 +40,10 @@ class AssistantApiRecurrence extends \Google\Collection
    * @var int[]
    */
   public $dayOfWeek;
+  /**
+   * @var AssistantApiDate
+   */
+  public $end;
   protected $endType = AssistantApiDate::class;
   protected $endDataType = '';
   /**
@@ -66,14 +78,14 @@ class AssistantApiRecurrence extends \Google\Collection
     return $this->begin;
   }
   /**
-   * @param AssistantApiRecurrenceDatetimeRange[]
+   * @param AssistantApiDateTimeRange[]
    */
   public function setBlacklistedRanges($blacklistedRanges)
   {
     $this->blacklistedRanges = $blacklistedRanges;
   }
   /**
-   * @return AssistantApiRecurrenceDatetimeRange[]
+   * @return AssistantApiDateTimeRange[]
    */
   public function getBlacklistedRanges()
   {

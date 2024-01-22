@@ -20,10 +20,22 @@ namespace Google\Service\Batch;
 class InstancePolicy extends \Google\Collection
 {
   protected $collection_key = 'disks';
+  /**
+   * @var Accelerator[]
+   */
+  public $accelerators;
   protected $acceleratorsType = Accelerator::class;
   protected $acceleratorsDataType = 'array';
+  /**
+   * @var Disk
+   */
+  public $bootDisk;
   protected $bootDiskType = Disk::class;
   protected $bootDiskDataType = '';
+  /**
+   * @var AttachedDisk[]
+   */
+  public $disks;
   protected $disksType = AttachedDisk::class;
   protected $disksDataType = 'array';
   /**
@@ -38,6 +50,10 @@ class InstancePolicy extends \Google\Collection
    * @var string
    */
   public $provisioningModel;
+  /**
+   * @var string
+   */
+  public $reservation;
 
   /**
    * @param Accelerator[]
@@ -122,6 +138,20 @@ class InstancePolicy extends \Google\Collection
   public function getProvisioningModel()
   {
     return $this->provisioningModel;
+  }
+  /**
+   * @param string
+   */
+  public function setReservation($reservation)
+  {
+    $this->reservation = $reservation;
+  }
+  /**
+   * @return string
+   */
+  public function getReservation()
+  {
+    return $this->reservation;
   }
 }
 

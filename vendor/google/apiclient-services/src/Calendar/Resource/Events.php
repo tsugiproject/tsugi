@@ -193,21 +193,10 @@ class Events extends \Google\Service\Resource
    * the currently logged in user, use the "primary" keyword.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool alwaysIncludeEmail Deprecated and ignored. A value will
-   * always be returned in the email field for the organizer, creator and
-   * attendees, even if no real email address is available (i.e. a generated, non-
-   * working value will be provided).
-   * @opt_param string eventTypes Event types to return. Optional. Possible values
-   * are: - "default"  - "focusTime"  - "outOfOffice"This parameter can be
-   * repeated multiple times to return events of different types. Currently, this
-   * is the only allowed value for this field:  - ["default", "focusTime",
-   * "outOfOffice"] This value is the default.
-   *
-   * If you're enrolled in the Working Location developer preview program, in
-   * addition to the default value above you can also set the "workingLocation"
-   * event type:  - ["default", "focusTime", "outOfOffice", "workingLocation"]  -
-   * ["workingLocation"] Additional combinations of these four event types will be
-   * made available in later releases. Developer Preview.
+   * @opt_param bool alwaysIncludeEmail Deprecated and ignored.
+   * @opt_param string eventTypes Event types to return. Optional. This parameter
+   * can be repeated multiple times to return events of different types. The
+   * default is ["default", "focusTime", "outOfOffice"].
    * @opt_param string iCalUID Specifies an event ID in the iCalendar format to be
    * provided in the response. Optional. Use this if you want to search for an
    * event by its iCalendar ID.
@@ -229,8 +218,19 @@ class Events extends \Google\Service\Resource
    * parameter might be repeated multiple times to return events that match all
    * given constraints.
    * @opt_param string q Free text search terms to find events that match these
-   * terms in the following fields: summary, description, location, attendee's
-   * displayName, attendee's email. Optional.
+   * terms in the following fields:
+   *
+   * - summary  - description  - location  - attendee's displayName  - attendee's
+   * email  - organizer's displayName  - organizer's email  -
+   * workingLocationProperties.officeLocation.buildingId  -
+   * workingLocationProperties.officeLocation.deskId  -
+   * workingLocationProperties.officeLocation.label  -
+   * workingLocationProperties.customLocation.label  These search terms also match
+   * predefined keywords against all display title translations of working
+   * location, out-of-office, and focus-time events. For example, searching for
+   * "Office" or "Bureau" returns working location events of type officeLocation,
+   * whereas searching for "Out of office" or "Abwesend" returns out-of-office
+   * events. Optional.
    * @opt_param string sharedExtendedProperty Extended properties constraint
    * specified as propertyName=value. Matches only shared properties. This
    * parameter might be repeated multiple times to return events that match all
@@ -287,8 +287,9 @@ class Events extends \Google\Service\Resource
     return $this->call('list', [$params], EventsModel::class);
   }
   /**
-   * Moves an event to another calendar, i.e. changes an event's organizer.
-   * (events.move)
+   * Moves an event to another calendar, i.e. changes an event's organizer. Note
+   * that only default events can be moved; outOfOffice, focusTime and
+   * workingLocation events cannot be moved. (events.move)
    *
    * @param string $calendarId Calendar identifier of the source calendar where
    * the event currently is on.
@@ -423,21 +424,10 @@ class Events extends \Google\Service\Resource
    * @param Channel $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool alwaysIncludeEmail Deprecated and ignored. A value will
-   * always be returned in the email field for the organizer, creator and
-   * attendees, even if no real email address is available (i.e. a generated, non-
-   * working value will be provided).
-   * @opt_param string eventTypes Event types to return. Optional. Possible values
-   * are: - "default"  - "focusTime"  - "outOfOffice"This parameter can be
-   * repeated multiple times to return events of different types. Currently, this
-   * is the only allowed value for this field:  - ["default", "focusTime",
-   * "outOfOffice"] This value is the default.
-   *
-   * If you're enrolled in the Working Location developer preview program, in
-   * addition to the default value above you can also set the "workingLocation"
-   * event type:  - ["default", "focusTime", "outOfOffice", "workingLocation"]  -
-   * ["workingLocation"] Additional combinations of these four event types will be
-   * made available in later releases. Developer Preview.
+   * @opt_param bool alwaysIncludeEmail Deprecated and ignored.
+   * @opt_param string eventTypes Event types to return. Optional. This parameter
+   * can be repeated multiple times to return events of different types. The
+   * default is ["default", "focusTime", "outOfOffice"].
    * @opt_param string iCalUID Specifies an event ID in the iCalendar format to be
    * provided in the response. Optional. Use this if you want to search for an
    * event by its iCalendar ID.
@@ -459,8 +449,19 @@ class Events extends \Google\Service\Resource
    * parameter might be repeated multiple times to return events that match all
    * given constraints.
    * @opt_param string q Free text search terms to find events that match these
-   * terms in the following fields: summary, description, location, attendee's
-   * displayName, attendee's email. Optional.
+   * terms in the following fields:
+   *
+   * - summary  - description  - location  - attendee's displayName  - attendee's
+   * email  - organizer's displayName  - organizer's email  -
+   * workingLocationProperties.officeLocation.buildingId  -
+   * workingLocationProperties.officeLocation.deskId  -
+   * workingLocationProperties.officeLocation.label  -
+   * workingLocationProperties.customLocation.label  These search terms also match
+   * predefined keywords against all display title translations of working
+   * location, out-of-office, and focus-time events. For example, searching for
+   * "Office" or "Bureau" returns working location events of type officeLocation,
+   * whereas searching for "Out of office" or "Abwesend" returns out-of-office
+   * events. Optional.
    * @opt_param string sharedExtendedProperty Extended properties constraint
    * specified as propertyName=value. Matches only shared properties. This
    * parameter might be repeated multiple times to return events that match all

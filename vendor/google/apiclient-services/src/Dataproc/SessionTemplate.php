@@ -31,8 +31,16 @@ class SessionTemplate extends \Google\Model
    * @var string
    */
   public $description;
+  /**
+   * @var EnvironmentConfig
+   */
+  public $environmentConfig;
   protected $environmentConfigType = EnvironmentConfig::class;
   protected $environmentConfigDataType = '';
+  /**
+   * @var JupyterConfig
+   */
+  public $jupyterSession;
   protected $jupyterSessionType = JupyterConfig::class;
   protected $jupyterSessionDataType = '';
   /**
@@ -43,12 +51,20 @@ class SessionTemplate extends \Google\Model
    * @var string
    */
   public $name;
+  /**
+   * @var RuntimeConfig
+   */
+  public $runtimeConfig;
   protected $runtimeConfigType = RuntimeConfig::class;
   protected $runtimeConfigDataType = '';
   /**
    * @var string
    */
   public $updateTime;
+  /**
+   * @var string
+   */
+  public $uuid;
 
   /**
    * @param string
@@ -175,6 +191,20 @@ class SessionTemplate extends \Google\Model
   public function getUpdateTime()
   {
     return $this->updateTime;
+  }
+  /**
+   * @param string
+   */
+  public function setUuid($uuid)
+  {
+    $this->uuid = $uuid;
+  }
+  /**
+   * @return string
+   */
+  public function getUuid()
+  {
+    return $this->uuid;
   }
 }
 

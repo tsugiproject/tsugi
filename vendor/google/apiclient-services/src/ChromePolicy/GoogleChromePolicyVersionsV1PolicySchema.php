@@ -24,23 +24,43 @@ class GoogleChromePolicyVersionsV1PolicySchema extends \Google\Collection
    * @var string[]
    */
   public $accessRestrictions;
+  /**
+   * @var GoogleChromePolicyVersionsV1AdditionalTargetKeyName[]
+   */
+  public $additionalTargetKeyNames;
   protected $additionalTargetKeyNamesType = GoogleChromePolicyVersionsV1AdditionalTargetKeyName::class;
   protected $additionalTargetKeyNamesDataType = 'array';
   /**
    * @var string
    */
   public $categoryTitle;
+  /**
+   * @var Proto2FileDescriptorProto
+   */
+  public $definition;
   protected $definitionType = Proto2FileDescriptorProto::class;
   protected $definitionDataType = '';
+  /**
+   * @var GoogleChromePolicyVersionsV1PolicySchemaFieldDescription[]
+   */
+  public $fieldDescriptions;
   protected $fieldDescriptionsType = GoogleChromePolicyVersionsV1PolicySchemaFieldDescription::class;
   protected $fieldDescriptionsDataType = 'array';
   /**
    * @var string
    */
   public $name;
+  /**
+   * @var GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription[]
+   */
+  public $notices;
   protected $noticesType = GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription::class;
   protected $noticesDataType = 'array';
-  protected $policyApiLifecycleType = ChromeCrosDpanelAutosettingsProtoPolicyApiLifecycle::class;
+  /**
+   * @var GoogleChromePolicyVersionsV1PolicyApiLifecycle
+   */
+  public $policyApiLifecycle;
+  protected $policyApiLifecycleType = GoogleChromePolicyVersionsV1PolicyApiLifecycle::class;
   protected $policyApiLifecycleDataType = '';
   /**
    * @var string
@@ -54,6 +74,10 @@ class GoogleChromePolicyVersionsV1PolicySchema extends \Google\Collection
    * @var string
    */
   public $supportUri;
+  /**
+   * @var string[]
+   */
+  public $supportedPlatforms;
   /**
    * @var string[]
    */
@@ -158,14 +182,14 @@ class GoogleChromePolicyVersionsV1PolicySchema extends \Google\Collection
     return $this->notices;
   }
   /**
-   * @param ChromeCrosDpanelAutosettingsProtoPolicyApiLifecycle
+   * @param GoogleChromePolicyVersionsV1PolicyApiLifecycle
    */
-  public function setPolicyApiLifecycle(ChromeCrosDpanelAutosettingsProtoPolicyApiLifecycle $policyApiLifecycle)
+  public function setPolicyApiLifecycle(GoogleChromePolicyVersionsV1PolicyApiLifecycle $policyApiLifecycle)
   {
     $this->policyApiLifecycle = $policyApiLifecycle;
   }
   /**
-   * @return ChromeCrosDpanelAutosettingsProtoPolicyApiLifecycle
+   * @return GoogleChromePolicyVersionsV1PolicyApiLifecycle
    */
   public function getPolicyApiLifecycle()
   {
@@ -212,6 +236,20 @@ class GoogleChromePolicyVersionsV1PolicySchema extends \Google\Collection
   public function getSupportUri()
   {
     return $this->supportUri;
+  }
+  /**
+   * @param string[]
+   */
+  public function setSupportedPlatforms($supportedPlatforms)
+  {
+    $this->supportedPlatforms = $supportedPlatforms;
+  }
+  /**
+   * @return string[]
+   */
+  public function getSupportedPlatforms()
+  {
+    return $this->supportedPlatforms;
   }
   /**
    * @param string[]

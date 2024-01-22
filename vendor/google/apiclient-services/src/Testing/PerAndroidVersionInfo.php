@@ -24,6 +24,12 @@ class PerAndroidVersionInfo extends \Google\Model
    */
   public $deviceCapacity;
   /**
+   * @var DirectAccessVersionInfo
+   */
+  public $directAccessVersionInfo;
+  protected $directAccessVersionInfoType = DirectAccessVersionInfo::class;
+  protected $directAccessVersionInfoDataType = '';
+  /**
    * @var string
    */
   public $versionId;
@@ -41,6 +47,20 @@ class PerAndroidVersionInfo extends \Google\Model
   public function getDeviceCapacity()
   {
     return $this->deviceCapacity;
+  }
+  /**
+   * @param DirectAccessVersionInfo
+   */
+  public function setDirectAccessVersionInfo(DirectAccessVersionInfo $directAccessVersionInfo)
+  {
+    $this->directAccessVersionInfo = $directAccessVersionInfo;
+  }
+  /**
+   * @return DirectAccessVersionInfo
+   */
+  public function getDirectAccessVersionInfo()
+  {
+    return $this->directAccessVersionInfo;
   }
   /**
    * @param string

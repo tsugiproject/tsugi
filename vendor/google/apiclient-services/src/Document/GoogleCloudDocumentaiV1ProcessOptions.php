@@ -19,9 +19,69 @@ namespace Google\Service\Document;
 
 class GoogleCloudDocumentaiV1ProcessOptions extends \Google\Model
 {
+  /**
+   * @var int
+   */
+  public $fromEnd;
+  /**
+   * @var int
+   */
+  public $fromStart;
+  /**
+   * @var GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector
+   */
+  public $individualPageSelector;
+  protected $individualPageSelectorType = GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector::class;
+  protected $individualPageSelectorDataType = '';
+  /**
+   * @var GoogleCloudDocumentaiV1OcrConfig
+   */
+  public $ocrConfig;
   protected $ocrConfigType = GoogleCloudDocumentaiV1OcrConfig::class;
   protected $ocrConfigDataType = '';
 
+  /**
+   * @param int
+   */
+  public function setFromEnd($fromEnd)
+  {
+    $this->fromEnd = $fromEnd;
+  }
+  /**
+   * @return int
+   */
+  public function getFromEnd()
+  {
+    return $this->fromEnd;
+  }
+  /**
+   * @param int
+   */
+  public function setFromStart($fromStart)
+  {
+    $this->fromStart = $fromStart;
+  }
+  /**
+   * @return int
+   */
+  public function getFromStart()
+  {
+    return $this->fromStart;
+  }
+  /**
+   * @param GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector
+   */
+  public function setIndividualPageSelector(GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector $individualPageSelector)
+  {
+    $this->individualPageSelector = $individualPageSelector;
+  }
+  /**
+   * @return GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector
+   */
+  public function getIndividualPageSelector()
+  {
+    return $this->individualPageSelector;
+  }
   /**
    * @param GoogleCloudDocumentaiV1OcrConfig
    */

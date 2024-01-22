@@ -20,6 +20,10 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1CustomJobSpec extends \Google\Collection
 {
   protected $collection_key = 'workerPoolSpecs';
+  /**
+   * @var GoogleCloudAiplatformV1GcsDestination
+   */
+  public $baseOutputDirectory;
   protected $baseOutputDirectoryType = GoogleCloudAiplatformV1GcsDestination::class;
   protected $baseOutputDirectoryDataType = '';
   /**
@@ -39,13 +43,25 @@ class GoogleCloudAiplatformV1CustomJobSpec extends \Google\Collection
    */
   public $experimentRun;
   /**
+   * @var string[]
+   */
+  public $models;
+  /**
    * @var string
    */
   public $network;
   /**
+   * @var string
+   */
+  public $protectedArtifactLocationId;
+  /**
    * @var string[]
    */
   public $reservedIpRanges;
+  /**
+   * @var GoogleCloudAiplatformV1Scheduling
+   */
+  public $scheduling;
   protected $schedulingType = GoogleCloudAiplatformV1Scheduling::class;
   protected $schedulingDataType = '';
   /**
@@ -56,6 +72,10 @@ class GoogleCloudAiplatformV1CustomJobSpec extends \Google\Collection
    * @var string
    */
   public $tensorboard;
+  /**
+   * @var GoogleCloudAiplatformV1WorkerPoolSpec[]
+   */
+  public $workerPoolSpecs;
   protected $workerPoolSpecsType = GoogleCloudAiplatformV1WorkerPoolSpec::class;
   protected $workerPoolSpecsDataType = 'array';
 
@@ -130,6 +150,20 @@ class GoogleCloudAiplatformV1CustomJobSpec extends \Google\Collection
     return $this->experimentRun;
   }
   /**
+   * @param string[]
+   */
+  public function setModels($models)
+  {
+    $this->models = $models;
+  }
+  /**
+   * @return string[]
+   */
+  public function getModels()
+  {
+    return $this->models;
+  }
+  /**
    * @param string
    */
   public function setNetwork($network)
@@ -142,6 +176,20 @@ class GoogleCloudAiplatformV1CustomJobSpec extends \Google\Collection
   public function getNetwork()
   {
     return $this->network;
+  }
+  /**
+   * @param string
+   */
+  public function setProtectedArtifactLocationId($protectedArtifactLocationId)
+  {
+    $this->protectedArtifactLocationId = $protectedArtifactLocationId;
+  }
+  /**
+   * @return string
+   */
+  public function getProtectedArtifactLocationId()
+  {
+    return $this->protectedArtifactLocationId;
   }
   /**
    * @param string[]

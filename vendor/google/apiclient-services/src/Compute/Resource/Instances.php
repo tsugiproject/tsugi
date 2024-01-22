@@ -34,6 +34,7 @@ use Google\Service\Compute\InstancesSetMachineResourcesRequest;
 use Google\Service\Compute\InstancesSetMachineTypeRequest;
 use Google\Service\Compute\InstancesSetMinCpuPlatformRequest;
 use Google\Service\Compute\InstancesSetNameRequest;
+use Google\Service\Compute\InstancesSetSecurityPolicyRequest;
 use Google\Service\Compute\InstancesSetServiceAccountRequest;
 use Google\Service\Compute\InstancesStartWithEncryptionKeyRequest;
 use Google\Service\Compute\Metadata;
@@ -132,34 +133,35 @@ class Instances extends \Google\Service\Resource
    * @opt_param string filter A filter expression that filters resources listed in
    * the response. Most Compute resources support two types of filter expressions:
    * expressions that support regular expressions and expressions that follow API
-   * improvement proposal AIP-160. If you want to use AIP-160, your expression
-   * must specify the field name, an operator, and the value that you want to use
-   * for filtering. The value must be a string, a number, or a boolean. The
-   * operator must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example,
-   * if you are filtering Compute Engine instances, you can exclude instances
-   * named `example-instance` by specifying `name != example-instance`. The `:`
-   * operator can be used with string fields to match substrings. For non-string
-   * fields it is equivalent to the `=` operator. The `:*` comparison can be used
-   * to test whether a key has been defined. For example, to find all objects with
-   * `owner` label use: ``` labels.owner:* ``` You can also filter nested fields.
-   * For example, you could specify `scheduling.automaticRestart = false` to
-   * include instances only if they are not scheduled for automatic restarts. You
-   * can use filtering on nested fields to filter based on resource labels. To
-   * filter on multiple expressions, provide each separate expression within
-   * parentheses. For example: ``` (scheduling.automaticRestart = true)
-   * (cpuPlatform = "Intel Skylake") ``` By default, each expression is an `AND`
-   * expression. However, you can include `AND` and `OR` expressions explicitly.
-   * For example: ``` (cpuPlatform = "Intel Skylake") OR (cpuPlatform = "Intel
-   * Broadwell") AND (scheduling.automaticRestart = true) ``` If you want to use a
-   * regular expression, use the `eq` (equal) or `ne` (not equal) operator against
-   * a single un-parenthesized expression with or without quotes or against
-   * multiple parenthesized expressions. Examples: `fieldname eq unquoted literal`
+   * improvement proposal AIP-160. These two types of filter expressions cannot be
+   * mixed in one request. If you want to use AIP-160, your expression must
+   * specify the field name, an operator, and the value that you want to use for
+   * filtering. The value must be a string, a number, or a boolean. The operator
+   * must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example, if you
+   * are filtering Compute Engine instances, you can exclude instances named
+   * `example-instance` by specifying `name != example-instance`. The `:*`
+   * comparison can be used to test whether a key has been defined. For example,
+   * to find all objects with `owner` label use: ``` labels.owner:* ``` You can
+   * also filter nested fields. For example, you could specify
+   * `scheduling.automaticRestart = false` to include instances only if they are
+   * not scheduled for automatic restarts. You can use filtering on nested fields
+   * to filter based on resource labels. To filter on multiple expressions,
+   * provide each separate expression within parentheses. For example: ```
+   * (scheduling.automaticRestart = true) (cpuPlatform = "Intel Skylake") ``` By
+   * default, each expression is an `AND` expression. However, you can include
+   * `AND` and `OR` expressions explicitly. For example: ``` (cpuPlatform = "Intel
+   * Skylake") OR (cpuPlatform = "Intel Broadwell") AND
+   * (scheduling.automaticRestart = true) ``` If you want to use a regular
+   * expression, use the `eq` (equal) or `ne` (not equal) operator against a
+   * single un-parenthesized expression with or without quotes or against multiple
+   * parenthesized expressions. Examples: `fieldname eq unquoted literal`
    * `fieldname eq 'single quoted literal'` `fieldname eq "double quoted literal"`
    * `(fieldname1 eq literal) (fieldname2 ne "literal")` The literal value is
    * interpreted as a regular expression using Google RE2 library syntax. The
    * literal value must match the entire field. For example, to filter for
    * instances that do not end with name "instance", you would use `name ne
-   * .*instance`.
+   * .*instance`. You cannot combine constraints on multiple fields using regular
+   * expressions.
    * @opt_param bool includeAllScopes Indicates whether every visible scope for
    * each scope type (zone, region, global) should be included in the response.
    * For new resource types added after this field, the flag has no effect as new
@@ -186,6 +188,7 @@ class Instances extends \Google\Service\Resource
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
    * false.
+   * @opt_param string serviceProjectNumber
    * @return InstanceAggregatedList
    */
   public function aggregatedList($project, $optParams = [])
@@ -523,34 +526,35 @@ class Instances extends \Google\Service\Resource
    * @opt_param string filter A filter expression that filters resources listed in
    * the response. Most Compute resources support two types of filter expressions:
    * expressions that support regular expressions and expressions that follow API
-   * improvement proposal AIP-160. If you want to use AIP-160, your expression
-   * must specify the field name, an operator, and the value that you want to use
-   * for filtering. The value must be a string, a number, or a boolean. The
-   * operator must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example,
-   * if you are filtering Compute Engine instances, you can exclude instances
-   * named `example-instance` by specifying `name != example-instance`. The `:`
-   * operator can be used with string fields to match substrings. For non-string
-   * fields it is equivalent to the `=` operator. The `:*` comparison can be used
-   * to test whether a key has been defined. For example, to find all objects with
-   * `owner` label use: ``` labels.owner:* ``` You can also filter nested fields.
-   * For example, you could specify `scheduling.automaticRestart = false` to
-   * include instances only if they are not scheduled for automatic restarts. You
-   * can use filtering on nested fields to filter based on resource labels. To
-   * filter on multiple expressions, provide each separate expression within
-   * parentheses. For example: ``` (scheduling.automaticRestart = true)
-   * (cpuPlatform = "Intel Skylake") ``` By default, each expression is an `AND`
-   * expression. However, you can include `AND` and `OR` expressions explicitly.
-   * For example: ``` (cpuPlatform = "Intel Skylake") OR (cpuPlatform = "Intel
-   * Broadwell") AND (scheduling.automaticRestart = true) ``` If you want to use a
-   * regular expression, use the `eq` (equal) or `ne` (not equal) operator against
-   * a single un-parenthesized expression with or without quotes or against
-   * multiple parenthesized expressions. Examples: `fieldname eq unquoted literal`
+   * improvement proposal AIP-160. These two types of filter expressions cannot be
+   * mixed in one request. If you want to use AIP-160, your expression must
+   * specify the field name, an operator, and the value that you want to use for
+   * filtering. The value must be a string, a number, or a boolean. The operator
+   * must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example, if you
+   * are filtering Compute Engine instances, you can exclude instances named
+   * `example-instance` by specifying `name != example-instance`. The `:*`
+   * comparison can be used to test whether a key has been defined. For example,
+   * to find all objects with `owner` label use: ``` labels.owner:* ``` You can
+   * also filter nested fields. For example, you could specify
+   * `scheduling.automaticRestart = false` to include instances only if they are
+   * not scheduled for automatic restarts. You can use filtering on nested fields
+   * to filter based on resource labels. To filter on multiple expressions,
+   * provide each separate expression within parentheses. For example: ```
+   * (scheduling.automaticRestart = true) (cpuPlatform = "Intel Skylake") ``` By
+   * default, each expression is an `AND` expression. However, you can include
+   * `AND` and `OR` expressions explicitly. For example: ``` (cpuPlatform = "Intel
+   * Skylake") OR (cpuPlatform = "Intel Broadwell") AND
+   * (scheduling.automaticRestart = true) ``` If you want to use a regular
+   * expression, use the `eq` (equal) or `ne` (not equal) operator against a
+   * single un-parenthesized expression with or without quotes or against multiple
+   * parenthesized expressions. Examples: `fieldname eq unquoted literal`
    * `fieldname eq 'single quoted literal'` `fieldname eq "double quoted literal"`
    * `(fieldname1 eq literal) (fieldname2 ne "literal")` The literal value is
    * interpreted as a regular expression using Google RE2 library syntax. The
    * literal value must match the entire field. For example, to filter for
    * instances that do not end with name "instance", you would use `name ne
-   * .*instance`.
+   * .*instance`. You cannot combine constraints on multiple fields using regular
+   * expressions.
    * @opt_param string maxResults The maximum number of results per page that
    * should be returned. If the number of available results is larger than
    * `maxResults`, Compute Engine returns a `nextPageToken` that can be used to
@@ -594,34 +598,35 @@ class Instances extends \Google\Service\Resource
    * @opt_param string filter A filter expression that filters resources listed in
    * the response. Most Compute resources support two types of filter expressions:
    * expressions that support regular expressions and expressions that follow API
-   * improvement proposal AIP-160. If you want to use AIP-160, your expression
-   * must specify the field name, an operator, and the value that you want to use
-   * for filtering. The value must be a string, a number, or a boolean. The
-   * operator must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example,
-   * if you are filtering Compute Engine instances, you can exclude instances
-   * named `example-instance` by specifying `name != example-instance`. The `:`
-   * operator can be used with string fields to match substrings. For non-string
-   * fields it is equivalent to the `=` operator. The `:*` comparison can be used
-   * to test whether a key has been defined. For example, to find all objects with
-   * `owner` label use: ``` labels.owner:* ``` You can also filter nested fields.
-   * For example, you could specify `scheduling.automaticRestart = false` to
-   * include instances only if they are not scheduled for automatic restarts. You
-   * can use filtering on nested fields to filter based on resource labels. To
-   * filter on multiple expressions, provide each separate expression within
-   * parentheses. For example: ``` (scheduling.automaticRestart = true)
-   * (cpuPlatform = "Intel Skylake") ``` By default, each expression is an `AND`
-   * expression. However, you can include `AND` and `OR` expressions explicitly.
-   * For example: ``` (cpuPlatform = "Intel Skylake") OR (cpuPlatform = "Intel
-   * Broadwell") AND (scheduling.automaticRestart = true) ``` If you want to use a
-   * regular expression, use the `eq` (equal) or `ne` (not equal) operator against
-   * a single un-parenthesized expression with or without quotes or against
-   * multiple parenthesized expressions. Examples: `fieldname eq unquoted literal`
+   * improvement proposal AIP-160. These two types of filter expressions cannot be
+   * mixed in one request. If you want to use AIP-160, your expression must
+   * specify the field name, an operator, and the value that you want to use for
+   * filtering. The value must be a string, a number, or a boolean. The operator
+   * must be either `=`, `!=`, `>`, `<`, `<=`, `>=` or `:`. For example, if you
+   * are filtering Compute Engine instances, you can exclude instances named
+   * `example-instance` by specifying `name != example-instance`. The `:*`
+   * comparison can be used to test whether a key has been defined. For example,
+   * to find all objects with `owner` label use: ``` labels.owner:* ``` You can
+   * also filter nested fields. For example, you could specify
+   * `scheduling.automaticRestart = false` to include instances only if they are
+   * not scheduled for automatic restarts. You can use filtering on nested fields
+   * to filter based on resource labels. To filter on multiple expressions,
+   * provide each separate expression within parentheses. For example: ```
+   * (scheduling.automaticRestart = true) (cpuPlatform = "Intel Skylake") ``` By
+   * default, each expression is an `AND` expression. However, you can include
+   * `AND` and `OR` expressions explicitly. For example: ``` (cpuPlatform = "Intel
+   * Skylake") OR (cpuPlatform = "Intel Broadwell") AND
+   * (scheduling.automaticRestart = true) ``` If you want to use a regular
+   * expression, use the `eq` (equal) or `ne` (not equal) operator against a
+   * single un-parenthesized expression with or without quotes or against multiple
+   * parenthesized expressions. Examples: `fieldname eq unquoted literal`
    * `fieldname eq 'single quoted literal'` `fieldname eq "double quoted literal"`
    * `(fieldname1 eq literal) (fieldname2 ne "literal")` The literal value is
    * interpreted as a regular expression using Google RE2 library syntax. The
    * literal value must match the entire field. For example, to filter for
    * instances that do not end with name "instance", you would use `name ne
-   * .*instance`.
+   * .*instance`. You cannot combine constraints on multiple fields using regular
+   * expressions.
    * @opt_param string maxResults The maximum number of results per page that
    * should be returned. If the number of available results is larger than
    * `maxResults`, Compute Engine returns a `nextPageToken` that can be used to
@@ -648,6 +653,32 @@ class Instances extends \Google\Service\Resource
     $params = ['project' => $project, 'zone' => $zone, 'instance' => $instance];
     $params = array_merge($params, $optParams);
     return $this->call('listReferrers', [$params], InstanceListReferrers::class);
+  }
+  /**
+   * Perform a manual maintenance on the instance. (instances.performMaintenance)
+   *
+   * @param string $project Project ID for this request.
+   * @param string $zone The name of the zone for this request.
+   * @param string $instance Name of the instance scoping this request.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string requestId An optional request ID to identify requests.
+   * Specify a unique request ID so that if you must retry your request, the
+   * server will know to ignore the request if it has already been completed. For
+   * example, consider a situation where you make an initial request and the
+   * request times out. If you make the request again with the same request ID,
+   * the server can check if original operation with the same request ID was
+   * received, and if so, will ignore the second request. This prevents clients
+   * from accidentally creating duplicate commitments. The request ID must be a
+   * valid UUID with the exception that zero UUID is not supported (
+   * 00000000-0000-0000-0000-000000000000).
+   * @return Operation
+   */
+  public function performMaintenance($project, $zone, $instance, $optParams = [])
+  {
+    $params = ['project' => $project, 'zone' => $zone, 'instance' => $instance];
+    $params = array_merge($params, $optParams);
+    return $this->call('performMaintenance', [$params], Operation::class);
   }
   /**
    * Removes resource policies from an instance.
@@ -1023,6 +1054,36 @@ class Instances extends \Google\Service\Resource
     return $this->call('setScheduling', [$params], Operation::class);
   }
   /**
+   * Sets the Google Cloud Armor security policy for the specified instance. For
+   * more information, see Google Cloud Armor Overview
+   * (instances.setSecurityPolicy)
+   *
+   * @param string $project Project ID for this request.
+   * @param string $zone Name of the zone scoping this request.
+   * @param string $instance Name of the Instance resource to which the security
+   * policy should be set. The name should conform to RFC1035.
+   * @param InstancesSetSecurityPolicyRequest $postBody
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string requestId An optional request ID to identify requests.
+   * Specify a unique request ID so that if you must retry your request, the
+   * server will know to ignore the request if it has already been completed. For
+   * example, consider a situation where you make an initial request and the
+   * request times out. If you make the request again with the same request ID,
+   * the server can check if original operation with the same request ID was
+   * received, and if so, will ignore the second request. This prevents clients
+   * from accidentally creating duplicate commitments. The request ID must be a
+   * valid UUID with the exception that zero UUID is not supported (
+   * 00000000-0000-0000-0000-000000000000).
+   * @return Operation
+   */
+  public function setSecurityPolicy($project, $zone, $instance, InstancesSetSecurityPolicyRequest $postBody, $optParams = [])
+  {
+    $params = ['project' => $project, 'zone' => $zone, 'instance' => $instance, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('setSecurityPolicy', [$params], Operation::class);
+  }
+  /**
    * Sets the service account on the instance. For more information, read Changing
    * the service account and access scopes for an instance.
    * (instances.setServiceAccount)
@@ -1128,6 +1189,8 @@ class Instances extends \Google\Service\Resource
    * from accidentally creating duplicate commitments. The request ID must be a
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
+   * @opt_param bool withExtendedNotifications Determines whether the customers
+   * receive notifications before migration. Only applicable to SF vms.
    * @return Operation
    */
   public function simulateMaintenanceEvent($project, $zone, $instance, $optParams = [])
@@ -1204,8 +1267,10 @@ class Instances extends \Google\Service\Resource
    * @param string $instance Name of the instance resource to stop.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool discardLocalSsd If true, discard the contents of any attached
-   * localSSD partitions. Default value is false.
+   * @opt_param bool discardLocalSsd This property is required if the instance has
+   * any attached Local SSD disks. If false, Local SSD data will be preserved when
+   * the instance is suspended. If true, the contents of any attached Local SSD
+   * disks will be discarded.
    * @opt_param string requestId An optional request ID to identify requests.
    * Specify a unique request ID so that if you must retry your request, the
    * server will know to ignore the request if it has already been completed. For
@@ -1238,8 +1303,10 @@ class Instances extends \Google\Service\Resource
    * @param string $instance Name of the instance resource to suspend.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool discardLocalSsd If true, discard the contents of any attached
-   * localSSD partitions. Default value is false.
+   * @opt_param bool discardLocalSsd This property is required if the instance has
+   * any attached Local SSD disks. If false, Local SSD data will be preserved when
+   * the instance is suspended. If true, the contents of any attached Local SSD
+   * disks will be discarded.
    * @opt_param string requestId An optional request ID to identify requests.
    * Specify a unique request ID so that if you must retry your request, the
    * server will know to ignore the request if it has already been completed. For

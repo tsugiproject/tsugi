@@ -20,9 +20,51 @@ namespace Google\Service\TrafficDirectorService;
 class ClientStatusRequest extends \Google\Collection
 {
   protected $collection_key = 'nodeMatchers';
+  /**
+   * @var bool
+   */
+  public $excludeResourceContents;
+  /**
+   * @var Node
+   */
+  public $node;
+  protected $nodeType = Node::class;
+  protected $nodeDataType = '';
+  /**
+   * @var NodeMatcher[]
+   */
+  public $nodeMatchers;
   protected $nodeMatchersType = NodeMatcher::class;
   protected $nodeMatchersDataType = 'array';
 
+  /**
+   * @param bool
+   */
+  public function setExcludeResourceContents($excludeResourceContents)
+  {
+    $this->excludeResourceContents = $excludeResourceContents;
+  }
+  /**
+   * @return bool
+   */
+  public function getExcludeResourceContents()
+  {
+    return $this->excludeResourceContents;
+  }
+  /**
+   * @param Node
+   */
+  public function setNode(Node $node)
+  {
+    $this->node = $node;
+  }
+  /**
+   * @return Node
+   */
+  public function getNode()
+  {
+    return $this->node;
+  }
   /**
    * @param NodeMatcher[]
    */

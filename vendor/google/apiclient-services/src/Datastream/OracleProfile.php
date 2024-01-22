@@ -32,6 +32,12 @@ class OracleProfile extends \Google\Model
    */
   public $hostname;
   /**
+   * @var OracleSslConfig
+   */
+  public $oracleSslConfig;
+  protected $oracleSslConfigType = OracleSslConfig::class;
+  protected $oracleSslConfigDataType = '';
+  /**
    * @var string
    */
   public $password;
@@ -85,6 +91,20 @@ class OracleProfile extends \Google\Model
   public function getHostname()
   {
     return $this->hostname;
+  }
+  /**
+   * @param OracleSslConfig
+   */
+  public function setOracleSslConfig(OracleSslConfig $oracleSslConfig)
+  {
+    $this->oracleSslConfig = $oracleSslConfig;
+  }
+  /**
+   * @return OracleSslConfig
+   */
+  public function getOracleSslConfig()
+  {
+    return $this->oracleSslConfig;
   }
   /**
    * @param string

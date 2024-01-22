@@ -74,6 +74,7 @@ class Apigee extends \Google\Service
   public $organizations_envgroups;
   public $organizations_envgroups_attachments;
   public $organizations_environments;
+  public $organizations_environments_addonsConfig;
   public $organizations_environments_analytics_admin;
   public $organizations_environments_analytics_exports;
   public $organizations_environments_apis_deployments;
@@ -93,6 +94,7 @@ class Apigee extends \Google\Service
   public $organizations_environments_queries;
   public $organizations_environments_references;
   public $organizations_environments_resourcefiles;
+  public $organizations_environments_securityActions;
   public $organizations_environments_securityIncidents;
   public $organizations_environments_securityReports;
   public $organizations_environments_securityStats;
@@ -231,6 +233,16 @@ class Apigee extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'getSecuritySettings' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'getSyncAuthorization' => [
               'path' => 'v1/{+name}:getSyncAuthorization',
               'httpMethod' => 'POST',
@@ -279,6 +291,20 @@ class Apigee extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+              ],
+            ],'updateSecuritySettings' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'updateMask' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
               ],
             ],
@@ -765,6 +791,16 @@ class Apigee extends \Google\Service
                 'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+              ],
+            ],'update' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PUT',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],
@@ -2055,6 +2091,16 @@ class Apigee extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'getAddonsConfig' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'getApiSecurityRuntimeConfig' => [
               'path' => 'v1/{+name}',
               'httpMethod' => 'GET',
@@ -2097,6 +2143,16 @@ class Apigee extends \Google\Service
                 'options.requestedPolicyVersion' => [
                   'location' => 'query',
                   'type' => 'integer',
+                ],
+              ],
+            ],'getSecurityActionsConfig' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],'getTraceConfig' => [
@@ -2201,6 +2257,20 @@ class Apigee extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'updateSecurityActionsConfig' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'updateMask' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
             ],'updateTraceConfig' => [
               'path' => 'v1/{+name}',
               'httpMethod' => 'PATCH',
@@ -2213,6 +2283,26 @@ class Apigee extends \Google\Service
                 'updateMask' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
+    $this->organizations_environments_addonsConfig = new Apigee\Resource\OrganizationsEnvironmentsAddonsConfig(
+        $this,
+        $this->serviceName,
+        'addonsConfig',
+        [
+          'methods' => [
+            'setAddonEnablement' => [
+              'path' => 'v1/{+name}:setAddonEnablement',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],
@@ -2885,6 +2975,16 @@ class Apigee extends \Google\Service
                   'type' => 'string',
                 ],
               ],
+            ],'update' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PUT',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],
           ]
         ]
@@ -3220,13 +3320,99 @@ class Apigee extends \Google\Service
           ]
         ]
     );
+    $this->organizations_environments_securityActions = new Apigee\Resource\OrganizationsEnvironmentsSecurityActions(
+        $this,
+        $this->serviceName,
+        'securityActions',
+        [
+          'methods' => [
+            'create' => [
+              'path' => 'v1/{+parent}/securityActions',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'securityActionId' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'disable' => [
+              'path' => 'v1/{+name}:disable',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'enable' => [
+              'path' => 'v1/{+name}:enable',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'get' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'list' => [
+              'path' => 'v1/{+parent}/securityActions',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
     $this->organizations_environments_securityIncidents = new Apigee\Resource\OrganizationsEnvironmentsSecurityIncidents(
         $this,
         $this->serviceName,
         'securityIncidents',
         [
           'methods' => [
-            'get' => [
+            'batchUpdate' => [
+              'path' => 'v1/{+parent}/securityIncidents:batchUpdate',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'get' => [
               'path' => 'v1/{+name}',
               'httpMethod' => 'GET',
               'parameters' => [
@@ -3254,6 +3440,20 @@ class Apigee extends \Google\Service
                   'type' => 'integer',
                 ],
                 'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'patch' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'updateMask' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],
@@ -4230,6 +4430,16 @@ class Apigee extends \Google\Service
                 'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+              ],
+            ],'update' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PUT',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],

@@ -19,11 +19,11 @@ namespace Google\Service\DiscoveryEngine;
 
 class GoogleCloudDiscoveryengineV1betaCompleteQueryResponseQuerySuggestion extends \Google\Collection
 {
-  protected $collection_key = 'completableFieldPath';
+  protected $collection_key = 'completableFieldPaths';
   /**
    * @var string[]
    */
-  public $completableFieldPath;
+  public $completableFieldPaths;
   /**
    * @var string
    */
@@ -32,16 +32,16 @@ class GoogleCloudDiscoveryengineV1betaCompleteQueryResponseQuerySuggestion exten
   /**
    * @param string[]
    */
-  public function setCompletableFieldPath($completableFieldPath)
+  public function setCompletableFieldPaths($completableFieldPaths)
   {
-    $this->completableFieldPath = $completableFieldPath;
+    $this->completableFieldPaths = $completableFieldPaths;
   }
   /**
    * @return string[]
    */
-  public function getCompletableFieldPath()
+  public function getCompletableFieldPaths()
   {
-    return $this->completableFieldPath;
+    return $this->completableFieldPaths;
   }
   /**
    * @param string

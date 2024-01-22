@@ -20,8 +20,20 @@ namespace Google\Service\CloudRetail;
 class GoogleCloudRetailV2Condition extends \Google\Collection
 {
   protected $collection_key = 'queryTerms';
+  /**
+   * @var GoogleCloudRetailV2ConditionTimeRange[]
+   */
+  public $activeTimeRange;
   protected $activeTimeRangeType = GoogleCloudRetailV2ConditionTimeRange::class;
   protected $activeTimeRangeDataType = 'array';
+  /**
+   * @var string[]
+   */
+  public $pageCategories;
+  /**
+   * @var GoogleCloudRetailV2ConditionQueryTerm[]
+   */
+  public $queryTerms;
   protected $queryTermsType = GoogleCloudRetailV2ConditionQueryTerm::class;
   protected $queryTermsDataType = 'array';
 
@@ -38,6 +50,20 @@ class GoogleCloudRetailV2Condition extends \Google\Collection
   public function getActiveTimeRange()
   {
     return $this->activeTimeRange;
+  }
+  /**
+   * @param string[]
+   */
+  public function setPageCategories($pageCategories)
+  {
+    $this->pageCategories = $pageCategories;
+  }
+  /**
+   * @return string[]
+   */
+  public function getPageCategories()
+  {
+    return $this->pageCategories;
   }
   /**
    * @param GoogleCloudRetailV2ConditionQueryTerm[]

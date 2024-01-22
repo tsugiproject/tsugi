@@ -19,16 +19,40 @@ namespace Google\Service\PlayIntegrity;
 
 class TokenPayloadExternal extends \Google\Model
 {
+  /**
+   * @var AccountDetails
+   */
+  public $accountDetails;
   protected $accountDetailsType = AccountDetails::class;
   protected $accountDetailsDataType = '';
+  /**
+   * @var AppIntegrity
+   */
+  public $appIntegrity;
   protected $appIntegrityType = AppIntegrity::class;
   protected $appIntegrityDataType = '';
+  /**
+   * @var DeviceIntegrity
+   */
+  public $deviceIntegrity;
   protected $deviceIntegrityType = DeviceIntegrity::class;
   protected $deviceIntegrityDataType = '';
-  protected $guidanceDetailsType = GuidanceDetails::class;
-  protected $guidanceDetailsDataType = '';
+  /**
+   * @var EnvironmentDetails
+   */
+  public $environmentDetails;
+  protected $environmentDetailsType = EnvironmentDetails::class;
+  protected $environmentDetailsDataType = '';
+  /**
+   * @var RequestDetails
+   */
+  public $requestDetails;
   protected $requestDetailsType = RequestDetails::class;
   protected $requestDetailsDataType = '';
+  /**
+   * @var TestingDetails
+   */
+  public $testingDetails;
   protected $testingDetailsType = TestingDetails::class;
   protected $testingDetailsDataType = '';
 
@@ -75,18 +99,18 @@ class TokenPayloadExternal extends \Google\Model
     return $this->deviceIntegrity;
   }
   /**
-   * @param GuidanceDetails
+   * @param EnvironmentDetails
    */
-  public function setGuidanceDetails(GuidanceDetails $guidanceDetails)
+  public function setEnvironmentDetails(EnvironmentDetails $environmentDetails)
   {
-    $this->guidanceDetails = $guidanceDetails;
+    $this->environmentDetails = $environmentDetails;
   }
   /**
-   * @return GuidanceDetails
+   * @return EnvironmentDetails
    */
-  public function getGuidanceDetails()
+  public function getEnvironmentDetails()
   {
-    return $this->guidanceDetails;
+    return $this->environmentDetails;
   }
   /**
    * @param RequestDetails

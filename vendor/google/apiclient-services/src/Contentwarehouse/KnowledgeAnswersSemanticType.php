@@ -25,6 +25,12 @@ class KnowledgeAnswersSemanticType extends \Google\Collection
    */
   public $allowAll;
   /**
+   * @var NlpMeaningComponentSpecificContracts
+   */
+  public $componentSpecificContracts;
+  protected $componentSpecificContractsType = NlpMeaningComponentSpecificContracts::class;
+  protected $componentSpecificContractsDataType = '';
+  /**
    * @var bool
    */
   public $includesContainingIntent;
@@ -32,8 +38,22 @@ class KnowledgeAnswersSemanticType extends \Google\Collection
    * @var string[]
    */
   public $name;
+  /**
+   * @var NlpMeaningSemanticTypeNameComponentSpecificContracts[]
+   */
+  public $nameContracts;
+  protected $nameContractsType = NlpMeaningSemanticTypeNameComponentSpecificContracts::class;
+  protected $nameContractsDataType = 'array';
+  /**
+   * @var NlpMeaningSemanticTypeNameMeaningRemodelings[]
+   */
+  public $nameRemodelings;
   protected $nameRemodelingsType = NlpMeaningSemanticTypeNameMeaningRemodelings::class;
   protected $nameRemodelingsDataType = 'array';
+  /**
+   * @var NlpMeaningMeaningRemodelings
+   */
+  public $remodelings;
   protected $remodelingsType = NlpMeaningMeaningRemodelings::class;
   protected $remodelingsDataType = '';
 
@@ -50,6 +70,20 @@ class KnowledgeAnswersSemanticType extends \Google\Collection
   public function getAllowAll()
   {
     return $this->allowAll;
+  }
+  /**
+   * @param NlpMeaningComponentSpecificContracts
+   */
+  public function setComponentSpecificContracts(NlpMeaningComponentSpecificContracts $componentSpecificContracts)
+  {
+    $this->componentSpecificContracts = $componentSpecificContracts;
+  }
+  /**
+   * @return NlpMeaningComponentSpecificContracts
+   */
+  public function getComponentSpecificContracts()
+  {
+    return $this->componentSpecificContracts;
   }
   /**
    * @param bool
@@ -78,6 +112,20 @@ class KnowledgeAnswersSemanticType extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param NlpMeaningSemanticTypeNameComponentSpecificContracts[]
+   */
+  public function setNameContracts($nameContracts)
+  {
+    $this->nameContracts = $nameContracts;
+  }
+  /**
+   * @return NlpMeaningSemanticTypeNameComponentSpecificContracts[]
+   */
+  public function getNameContracts()
+  {
+    return $this->nameContracts;
   }
   /**
    * @param NlpMeaningSemanticTypeNameMeaningRemodelings[]

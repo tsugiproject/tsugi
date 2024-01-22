@@ -19,22 +19,70 @@ namespace Google\Service\CloudRetail;
 
 class GoogleCloudRetailV2Rule extends \Google\Model
 {
+  /**
+   * @var GoogleCloudRetailV2RuleBoostAction
+   */
+  public $boostAction;
   protected $boostActionType = GoogleCloudRetailV2RuleBoostAction::class;
   protected $boostActionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2Condition
+   */
+  public $condition;
   protected $conditionType = GoogleCloudRetailV2Condition::class;
   protected $conditionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2RuleDoNotAssociateAction
+   */
+  public $doNotAssociateAction;
   protected $doNotAssociateActionType = GoogleCloudRetailV2RuleDoNotAssociateAction::class;
   protected $doNotAssociateActionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2RuleFilterAction
+   */
+  public $filterAction;
   protected $filterActionType = GoogleCloudRetailV2RuleFilterAction::class;
   protected $filterActionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2RuleForceReturnFacetAction
+   */
+  public $forceReturnFacetAction;
+  protected $forceReturnFacetActionType = GoogleCloudRetailV2RuleForceReturnFacetAction::class;
+  protected $forceReturnFacetActionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2RuleIgnoreAction
+   */
+  public $ignoreAction;
   protected $ignoreActionType = GoogleCloudRetailV2RuleIgnoreAction::class;
   protected $ignoreActionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2RuleOnewaySynonymsAction
+   */
+  public $onewaySynonymsAction;
   protected $onewaySynonymsActionType = GoogleCloudRetailV2RuleOnewaySynonymsAction::class;
   protected $onewaySynonymsActionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2RuleRedirectAction
+   */
+  public $redirectAction;
   protected $redirectActionType = GoogleCloudRetailV2RuleRedirectAction::class;
   protected $redirectActionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2RuleRemoveFacetAction
+   */
+  public $removeFacetAction;
+  protected $removeFacetActionType = GoogleCloudRetailV2RuleRemoveFacetAction::class;
+  protected $removeFacetActionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2RuleReplacementAction
+   */
+  public $replacementAction;
   protected $replacementActionType = GoogleCloudRetailV2RuleReplacementAction::class;
   protected $replacementActionDataType = '';
+  /**
+   * @var GoogleCloudRetailV2RuleTwowaySynonymsAction
+   */
+  public $twowaySynonymsAction;
   protected $twowaySynonymsActionType = GoogleCloudRetailV2RuleTwowaySynonymsAction::class;
   protected $twowaySynonymsActionDataType = '';
 
@@ -95,6 +143,20 @@ class GoogleCloudRetailV2Rule extends \Google\Model
     return $this->filterAction;
   }
   /**
+   * @param GoogleCloudRetailV2RuleForceReturnFacetAction
+   */
+  public function setForceReturnFacetAction(GoogleCloudRetailV2RuleForceReturnFacetAction $forceReturnFacetAction)
+  {
+    $this->forceReturnFacetAction = $forceReturnFacetAction;
+  }
+  /**
+   * @return GoogleCloudRetailV2RuleForceReturnFacetAction
+   */
+  public function getForceReturnFacetAction()
+  {
+    return $this->forceReturnFacetAction;
+  }
+  /**
    * @param GoogleCloudRetailV2RuleIgnoreAction
    */
   public function setIgnoreAction(GoogleCloudRetailV2RuleIgnoreAction $ignoreAction)
@@ -135,6 +197,20 @@ class GoogleCloudRetailV2Rule extends \Google\Model
   public function getRedirectAction()
   {
     return $this->redirectAction;
+  }
+  /**
+   * @param GoogleCloudRetailV2RuleRemoveFacetAction
+   */
+  public function setRemoveFacetAction(GoogleCloudRetailV2RuleRemoveFacetAction $removeFacetAction)
+  {
+    $this->removeFacetAction = $removeFacetAction;
+  }
+  /**
+   * @return GoogleCloudRetailV2RuleRemoveFacetAction
+   */
+  public function getRemoveFacetAction()
+  {
+    return $this->removeFacetAction;
   }
   /**
    * @param GoogleCloudRetailV2RuleReplacementAction

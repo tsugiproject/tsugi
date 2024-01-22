@@ -19,8 +19,16 @@ namespace Google\Service\NetworkServices;
 
 class HttpRouteRequestMirrorPolicy extends \Google\Model
 {
+  /**
+   * @var HttpRouteDestination
+   */
+  public $destination;
   protected $destinationType = HttpRouteDestination::class;
   protected $destinationDataType = '';
+  /**
+   * @var float
+   */
+  public $mirrorPercent;
 
   /**
    * @param HttpRouteDestination
@@ -35,6 +43,20 @@ class HttpRouteRequestMirrorPolicy extends \Google\Model
   public function getDestination()
   {
     return $this->destination;
+  }
+  /**
+   * @param float
+   */
+  public function setMirrorPercent($mirrorPercent)
+  {
+    $this->mirrorPercent = $mirrorPercent;
+  }
+  /**
+   * @return float
+   */
+  public function getMirrorPercent()
+  {
+    return $this->mirrorPercent;
   }
 }
 

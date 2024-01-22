@@ -19,20 +19,50 @@ namespace Google\Service\ArtifactRegistry;
 
 class RemoteRepositoryConfig extends \Google\Model
 {
+  /**
+   * @var AptRepository
+   */
+  public $aptRepository;
   protected $aptRepositoryType = AptRepository::class;
   protected $aptRepositoryDataType = '';
   /**
    * @var string
    */
   public $description;
+  /**
+   * @var DockerRepository
+   */
+  public $dockerRepository;
   protected $dockerRepositoryType = DockerRepository::class;
   protected $dockerRepositoryDataType = '';
+  /**
+   * @var MavenRepository
+   */
+  public $mavenRepository;
   protected $mavenRepositoryType = MavenRepository::class;
   protected $mavenRepositoryDataType = '';
+  /**
+   * @var NpmRepository
+   */
+  public $npmRepository;
   protected $npmRepositoryType = NpmRepository::class;
   protected $npmRepositoryDataType = '';
+  /**
+   * @var PythonRepository
+   */
+  public $pythonRepository;
   protected $pythonRepositoryType = PythonRepository::class;
   protected $pythonRepositoryDataType = '';
+  /**
+   * @var UpstreamCredentials
+   */
+  public $upstreamCredentials;
+  protected $upstreamCredentialsType = UpstreamCredentials::class;
+  protected $upstreamCredentialsDataType = '';
+  /**
+   * @var YumRepository
+   */
+  public $yumRepository;
   protected $yumRepositoryType = YumRepository::class;
   protected $yumRepositoryDataType = '';
 
@@ -119,6 +149,20 @@ class RemoteRepositoryConfig extends \Google\Model
   public function getPythonRepository()
   {
     return $this->pythonRepository;
+  }
+  /**
+   * @param UpstreamCredentials
+   */
+  public function setUpstreamCredentials(UpstreamCredentials $upstreamCredentials)
+  {
+    $this->upstreamCredentials = $upstreamCredentials;
+  }
+  /**
+   * @return UpstreamCredentials
+   */
+  public function getUpstreamCredentials()
+  {
+    return $this->upstreamCredentials;
   }
   /**
    * @param YumRepository

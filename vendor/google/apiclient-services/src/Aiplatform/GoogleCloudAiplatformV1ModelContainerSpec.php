@@ -28,8 +28,28 @@ class GoogleCloudAiplatformV1ModelContainerSpec extends \Google\Collection
    * @var string[]
    */
   public $command;
+  /**
+   * @var string
+   */
+  public $deploymentTimeout;
+  /**
+   * @var GoogleCloudAiplatformV1EnvVar[]
+   */
+  public $env;
   protected $envType = GoogleCloudAiplatformV1EnvVar::class;
   protected $envDataType = 'array';
+  /**
+   * @var GoogleCloudAiplatformV1Port[]
+   */
+  public $grpcPorts;
+  protected $grpcPortsType = GoogleCloudAiplatformV1Port::class;
+  protected $grpcPortsDataType = 'array';
+  /**
+   * @var GoogleCloudAiplatformV1Probe
+   */
+  public $healthProbe;
+  protected $healthProbeType = GoogleCloudAiplatformV1Probe::class;
+  protected $healthProbeDataType = '';
   /**
    * @var string
    */
@@ -38,12 +58,26 @@ class GoogleCloudAiplatformV1ModelContainerSpec extends \Google\Collection
    * @var string
    */
   public $imageUri;
+  /**
+   * @var GoogleCloudAiplatformV1Port[]
+   */
+  public $ports;
   protected $portsType = GoogleCloudAiplatformV1Port::class;
   protected $portsDataType = 'array';
   /**
    * @var string
    */
   public $predictRoute;
+  /**
+   * @var string
+   */
+  public $sharedMemorySizeMb;
+  /**
+   * @var GoogleCloudAiplatformV1Probe
+   */
+  public $startupProbe;
+  protected $startupProbeType = GoogleCloudAiplatformV1Probe::class;
+  protected $startupProbeDataType = '';
 
   /**
    * @param string[]
@@ -74,6 +108,20 @@ class GoogleCloudAiplatformV1ModelContainerSpec extends \Google\Collection
     return $this->command;
   }
   /**
+   * @param string
+   */
+  public function setDeploymentTimeout($deploymentTimeout)
+  {
+    $this->deploymentTimeout = $deploymentTimeout;
+  }
+  /**
+   * @return string
+   */
+  public function getDeploymentTimeout()
+  {
+    return $this->deploymentTimeout;
+  }
+  /**
    * @param GoogleCloudAiplatformV1EnvVar[]
    */
   public function setEnv($env)
@@ -86,6 +134,34 @@ class GoogleCloudAiplatformV1ModelContainerSpec extends \Google\Collection
   public function getEnv()
   {
     return $this->env;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1Port[]
+   */
+  public function setGrpcPorts($grpcPorts)
+  {
+    $this->grpcPorts = $grpcPorts;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1Port[]
+   */
+  public function getGrpcPorts()
+  {
+    return $this->grpcPorts;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1Probe
+   */
+  public function setHealthProbe(GoogleCloudAiplatformV1Probe $healthProbe)
+  {
+    $this->healthProbe = $healthProbe;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1Probe
+   */
+  public function getHealthProbe()
+  {
+    return $this->healthProbe;
   }
   /**
    * @param string
@@ -142,6 +218,34 @@ class GoogleCloudAiplatformV1ModelContainerSpec extends \Google\Collection
   public function getPredictRoute()
   {
     return $this->predictRoute;
+  }
+  /**
+   * @param string
+   */
+  public function setSharedMemorySizeMb($sharedMemorySizeMb)
+  {
+    $this->sharedMemorySizeMb = $sharedMemorySizeMb;
+  }
+  /**
+   * @return string
+   */
+  public function getSharedMemorySizeMb()
+  {
+    return $this->sharedMemorySizeMb;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1Probe
+   */
+  public function setStartupProbe(GoogleCloudAiplatformV1Probe $startupProbe)
+  {
+    $this->startupProbe = $startupProbe;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1Probe
+   */
+  public function getStartupProbe()
+  {
+    return $this->startupProbe;
   }
 }
 

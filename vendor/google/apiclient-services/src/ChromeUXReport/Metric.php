@@ -20,11 +20,28 @@ namespace Google\Service\ChromeUXReport;
 class Metric extends \Google\Collection
 {
   protected $collection_key = 'histogram';
+  public $fractions;
+  /**
+   * @var Bin[]
+   */
+  public $histogram;
   protected $histogramType = Bin::class;
   protected $histogramDataType = 'array';
+  /**
+   * @var Percentiles
+   */
+  public $percentiles;
   protected $percentilesType = Percentiles::class;
   protected $percentilesDataType = '';
 
+  public function setFractions($fractions)
+  {
+    $this->fractions = $fractions;
+  }
+  public function getFractions()
+  {
+    return $this->fractions;
+  }
   /**
    * @param Bin[]
    */

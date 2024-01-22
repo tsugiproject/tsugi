@@ -20,14 +20,36 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3Fulfillment extends \Google\Collection
 {
   protected $collection_key = 'setParameterActions';
+  /**
+   * @var GoogleCloudDialogflowCxV3AdvancedSettings
+   */
+  public $advancedSettings;
+  protected $advancedSettingsType = GoogleCloudDialogflowCxV3AdvancedSettings::class;
+  protected $advancedSettingsDataType = '';
+  /**
+   * @var GoogleCloudDialogflowCxV3FulfillmentConditionalCases[]
+   */
+  public $conditionalCases;
   protected $conditionalCasesType = GoogleCloudDialogflowCxV3FulfillmentConditionalCases::class;
   protected $conditionalCasesDataType = 'array';
+  /**
+   * @var bool
+   */
+  public $enableGenerativeFallback;
+  /**
+   * @var GoogleCloudDialogflowCxV3ResponseMessage[]
+   */
+  public $messages;
   protected $messagesType = GoogleCloudDialogflowCxV3ResponseMessage::class;
   protected $messagesDataType = 'array';
   /**
    * @var bool
    */
   public $returnPartialResponses;
+  /**
+   * @var GoogleCloudDialogflowCxV3FulfillmentSetParameterAction[]
+   */
+  public $setParameterActions;
   protected $setParameterActionsType = GoogleCloudDialogflowCxV3FulfillmentSetParameterAction::class;
   protected $setParameterActionsDataType = 'array';
   /**
@@ -39,6 +61,20 @@ class GoogleCloudDialogflowCxV3Fulfillment extends \Google\Collection
    */
   public $webhook;
 
+  /**
+   * @param GoogleCloudDialogflowCxV3AdvancedSettings
+   */
+  public function setAdvancedSettings(GoogleCloudDialogflowCxV3AdvancedSettings $advancedSettings)
+  {
+    $this->advancedSettings = $advancedSettings;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3AdvancedSettings
+   */
+  public function getAdvancedSettings()
+  {
+    return $this->advancedSettings;
+  }
   /**
    * @param GoogleCloudDialogflowCxV3FulfillmentConditionalCases[]
    */
@@ -52,6 +88,20 @@ class GoogleCloudDialogflowCxV3Fulfillment extends \Google\Collection
   public function getConditionalCases()
   {
     return $this->conditionalCases;
+  }
+  /**
+   * @param bool
+   */
+  public function setEnableGenerativeFallback($enableGenerativeFallback)
+  {
+    $this->enableGenerativeFallback = $enableGenerativeFallback;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableGenerativeFallback()
+  {
+    return $this->enableGenerativeFallback;
   }
   /**
    * @param GoogleCloudDialogflowCxV3ResponseMessage[]

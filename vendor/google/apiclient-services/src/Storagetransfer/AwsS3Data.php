@@ -19,12 +19,20 @@ namespace Google\Service\Storagetransfer;
 
 class AwsS3Data extends \Google\Model
 {
+  /**
+   * @var AwsAccessKey
+   */
+  public $awsAccessKey;
   protected $awsAccessKeyType = AwsAccessKey::class;
   protected $awsAccessKeyDataType = '';
   /**
    * @var string
    */
   public $bucketName;
+  /**
+   * @var string
+   */
+  public $cloudfrontDomain;
   /**
    * @var string
    */
@@ -65,6 +73,20 @@ class AwsS3Data extends \Google\Model
   public function getBucketName()
   {
     return $this->bucketName;
+  }
+  /**
+   * @param string
+   */
+  public function setCloudfrontDomain($cloudfrontDomain)
+  {
+    $this->cloudfrontDomain = $cloudfrontDomain;
+  }
+  /**
+   * @return string
+   */
+  public function getCloudfrontDomain()
+  {
+    return $this->cloudfrontDomain;
   }
   /**
    * @param string

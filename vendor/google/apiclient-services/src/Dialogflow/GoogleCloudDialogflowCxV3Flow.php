@@ -21,6 +21,12 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
 {
   protected $collection_key = 'transitionRoutes';
   /**
+   * @var GoogleCloudDialogflowCxV3AdvancedSettings
+   */
+  public $advancedSettings;
+  protected $advancedSettingsType = GoogleCloudDialogflowCxV3AdvancedSettings::class;
+  protected $advancedSettingsDataType = '';
+  /**
    * @var string
    */
   public $description;
@@ -28,21 +34,53 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
    * @var string
    */
   public $displayName;
+  /**
+   * @var GoogleCloudDialogflowCxV3EventHandler[]
+   */
+  public $eventHandlers;
   protected $eventHandlersType = GoogleCloudDialogflowCxV3EventHandler::class;
   protected $eventHandlersDataType = 'array';
+  /**
+   * @var GoogleCloudDialogflowCxV3KnowledgeConnectorSettings
+   */
+  public $knowledgeConnectorSettings;
+  protected $knowledgeConnectorSettingsType = GoogleCloudDialogflowCxV3KnowledgeConnectorSettings::class;
+  protected $knowledgeConnectorSettingsDataType = '';
   /**
    * @var string
    */
   public $name;
+  /**
+   * @var GoogleCloudDialogflowCxV3NluSettings
+   */
+  public $nluSettings;
   protected $nluSettingsType = GoogleCloudDialogflowCxV3NluSettings::class;
   protected $nluSettingsDataType = '';
   /**
    * @var string[]
    */
   public $transitionRouteGroups;
+  /**
+   * @var GoogleCloudDialogflowCxV3TransitionRoute[]
+   */
+  public $transitionRoutes;
   protected $transitionRoutesType = GoogleCloudDialogflowCxV3TransitionRoute::class;
   protected $transitionRoutesDataType = 'array';
 
+  /**
+   * @param GoogleCloudDialogflowCxV3AdvancedSettings
+   */
+  public function setAdvancedSettings(GoogleCloudDialogflowCxV3AdvancedSettings $advancedSettings)
+  {
+    $this->advancedSettings = $advancedSettings;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3AdvancedSettings
+   */
+  public function getAdvancedSettings()
+  {
+    return $this->advancedSettings;
+  }
   /**
    * @param string
    */
@@ -84,6 +122,20 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
   public function getEventHandlers()
   {
     return $this->eventHandlers;
+  }
+  /**
+   * @param GoogleCloudDialogflowCxV3KnowledgeConnectorSettings
+   */
+  public function setKnowledgeConnectorSettings(GoogleCloudDialogflowCxV3KnowledgeConnectorSettings $knowledgeConnectorSettings)
+  {
+    $this->knowledgeConnectorSettings = $knowledgeConnectorSettings;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3KnowledgeConnectorSettings
+   */
+  public function getKnowledgeConnectorSettings()
+  {
+    return $this->knowledgeConnectorSettings;
   }
   /**
    * @param string

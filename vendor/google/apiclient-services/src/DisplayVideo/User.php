@@ -20,6 +20,10 @@ namespace Google\Service\DisplayVideo;
 class User extends \Google\Collection
 {
   protected $collection_key = 'assignedUserRoles';
+  /**
+   * @var AssignedUserRole[]
+   */
+  public $assignedUserRoles;
   protected $assignedUserRolesType = AssignedUserRole::class;
   protected $assignedUserRolesDataType = 'array';
   /**
@@ -30,6 +34,10 @@ class User extends \Google\Collection
    * @var string
    */
   public $email;
+  /**
+   * @var string
+   */
+  public $lastLoginTime;
   /**
    * @var string
    */
@@ -80,6 +88,20 @@ class User extends \Google\Collection
   public function getEmail()
   {
     return $this->email;
+  }
+  /**
+   * @param string
+   */
+  public function setLastLoginTime($lastLoginTime)
+  {
+    $this->lastLoginTime = $lastLoginTime;
+  }
+  /**
+   * @return string
+   */
+  public function getLastLoginTime()
+  {
+    return $this->lastLoginTime;
   }
   /**
    * @param string

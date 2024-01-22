@@ -33,7 +33,9 @@ use Google\Service\Directory\ChromeOsMoveDevicesToOu;
 class Chromeosdevices extends \Google\Service\Resource
 {
   /**
-   * Takes an action that affects a Chrome OS Device. This includes
+   * Use [BatchChangeChromeOsDeviceStatus](/admin-
+   * sdk/directory/reference/rest/v1/customer.devices.chromeos/batchChangeStatus)
+   * instead. Takes an action that affects a Chrome OS Device. This includes
    * deprovisioning, disabling, and re-enabling devices. *Warning:* *
    * Deprovisioning a device will stop device policy syncing and remove device-
    * level printers. After a device is deprovisioned, it must be wiped before it

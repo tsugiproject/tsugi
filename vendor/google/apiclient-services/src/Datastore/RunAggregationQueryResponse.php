@@ -19,10 +19,24 @@ namespace Google\Service\Datastore;
 
 class RunAggregationQueryResponse extends \Google\Model
 {
+  /**
+   * @var AggregationResultBatch
+   */
+  public $batch;
   protected $batchType = AggregationResultBatch::class;
   protected $batchDataType = '';
+  /**
+   * @var AggregationQuery
+   */
+  public $query;
   protected $queryType = AggregationQuery::class;
   protected $queryDataType = '';
+  /**
+   * @var ResultSetStats
+   */
+  public $stats;
+  protected $statsType = ResultSetStats::class;
+  protected $statsDataType = '';
   /**
    * @var string
    */
@@ -55,6 +69,20 @@ class RunAggregationQueryResponse extends \Google\Model
   public function getQuery()
   {
     return $this->query;
+  }
+  /**
+   * @param ResultSetStats
+   */
+  public function setStats(ResultSetStats $stats)
+  {
+    $this->stats = $stats;
+  }
+  /**
+   * @return ResultSetStats
+   */
+  public function getStats()
+  {
+    return $this->stats;
   }
   /**
    * @param string

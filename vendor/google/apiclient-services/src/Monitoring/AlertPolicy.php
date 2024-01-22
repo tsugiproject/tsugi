@@ -20,26 +20,46 @@ namespace Google\Service\Monitoring;
 class AlertPolicy extends \Google\Collection
 {
   protected $collection_key = 'notificationChannels';
+  /**
+   * @var AlertStrategy
+   */
+  public $alertStrategy;
   protected $alertStrategyType = AlertStrategy::class;
   protected $alertStrategyDataType = '';
   /**
    * @var string
    */
   public $combiner;
+  /**
+   * @var Condition[]
+   */
+  public $conditions;
   protected $conditionsType = Condition::class;
   protected $conditionsDataType = 'array';
+  /**
+   * @var MutationRecord
+   */
+  public $creationRecord;
   protected $creationRecordType = MutationRecord::class;
   protected $creationRecordDataType = '';
   /**
    * @var string
    */
   public $displayName;
+  /**
+   * @var Documentation
+   */
+  public $documentation;
   protected $documentationType = Documentation::class;
   protected $documentationDataType = '';
   /**
    * @var bool
    */
   public $enabled;
+  /**
+   * @var MutationRecord
+   */
+  public $mutationRecord;
   protected $mutationRecordType = MutationRecord::class;
   protected $mutationRecordDataType = '';
   /**
@@ -51,9 +71,17 @@ class AlertPolicy extends \Google\Collection
    */
   public $notificationChannels;
   /**
+   * @var string
+   */
+  public $severity;
+  /**
    * @var string[]
    */
   public $userLabels;
+  /**
+   * @var Status
+   */
+  public $validity;
   protected $validityType = Status::class;
   protected $validityDataType = '';
 
@@ -196,6 +224,20 @@ class AlertPolicy extends \Google\Collection
   public function getNotificationChannels()
   {
     return $this->notificationChannels;
+  }
+  /**
+   * @param string
+   */
+  public function setSeverity($severity)
+  {
+    $this->severity = $severity;
+  }
+  /**
+   * @return string
+   */
+  public function getSeverity()
+  {
+    return $this->severity;
   }
   /**
    * @param string[]

@@ -24,6 +24,12 @@ class Fleet extends \Google\Model
    */
   public $createTime;
   /**
+   * @var DefaultClusterConfig
+   */
+  public $defaultClusterConfig;
+  protected $defaultClusterConfigType = DefaultClusterConfig::class;
+  protected $defaultClusterConfigDataType = '';
+  /**
    * @var string
    */
   public $deleteTime;
@@ -39,6 +45,10 @@ class Fleet extends \Google\Model
    * @var string
    */
   public $name;
+  /**
+   * @var FleetLifecycleState
+   */
+  public $state;
   protected $stateType = FleetLifecycleState::class;
   protected $stateDataType = '';
   /**
@@ -63,6 +73,20 @@ class Fleet extends \Google\Model
   public function getCreateTime()
   {
     return $this->createTime;
+  }
+  /**
+   * @param DefaultClusterConfig
+   */
+  public function setDefaultClusterConfig(DefaultClusterConfig $defaultClusterConfig)
+  {
+    $this->defaultClusterConfig = $defaultClusterConfig;
+  }
+  /**
+   * @return DefaultClusterConfig
+   */
+  public function getDefaultClusterConfig()
+  {
+    return $this->defaultClusterConfig;
   }
   /**
    * @param string

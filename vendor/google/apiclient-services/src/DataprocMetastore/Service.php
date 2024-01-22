@@ -31,20 +31,42 @@ class Service extends \Google\Model
    * @var string
    */
   public $databaseType;
+  /**
+   * @var EncryptionConfig
+   */
+  public $encryptionConfig;
   protected $encryptionConfigType = EncryptionConfig::class;
   protected $encryptionConfigDataType = '';
   /**
    * @var string
    */
   public $endpointUri;
+  /**
+   * @var HiveMetastoreConfig
+   */
+  public $hiveMetastoreConfig;
   protected $hiveMetastoreConfigType = HiveMetastoreConfig::class;
   protected $hiveMetastoreConfigDataType = '';
   /**
    * @var string[]
    */
   public $labels;
+  /**
+   * @var MaintenanceWindow
+   */
+  public $maintenanceWindow;
   protected $maintenanceWindowType = MaintenanceWindow::class;
   protected $maintenanceWindowDataType = '';
+  /**
+   * @var MetadataIntegration
+   */
+  public $metadataIntegration;
+  protected $metadataIntegrationType = MetadataIntegration::class;
+  protected $metadataIntegrationDataType = '';
+  /**
+   * @var MetadataManagementActivity
+   */
+  public $metadataManagementActivity;
   protected $metadataManagementActivityType = MetadataManagementActivity::class;
   protected $metadataManagementActivityDataType = '';
   /**
@@ -55,6 +77,10 @@ class Service extends \Google\Model
    * @var string
    */
   public $network;
+  /**
+   * @var NetworkConfig
+   */
+  public $networkConfig;
   protected $networkConfigType = NetworkConfig::class;
   protected $networkConfigDataType = '';
   /**
@@ -65,6 +91,10 @@ class Service extends \Google\Model
    * @var string
    */
   public $releaseChannel;
+  /**
+   * @var ScalingConfig
+   */
+  public $scalingConfig;
   protected $scalingConfigType = ScalingConfig::class;
   protected $scalingConfigDataType = '';
   /**
@@ -75,6 +105,10 @@ class Service extends \Google\Model
    * @var string
    */
   public $stateMessage;
+  /**
+   * @var TelemetryConfig
+   */
+  public $telemetryConfig;
   protected $telemetryConfigType = TelemetryConfig::class;
   protected $telemetryConfigDataType = '';
   /**
@@ -201,6 +235,20 @@ class Service extends \Google\Model
   public function getMaintenanceWindow()
   {
     return $this->maintenanceWindow;
+  }
+  /**
+   * @param MetadataIntegration
+   */
+  public function setMetadataIntegration(MetadataIntegration $metadataIntegration)
+  {
+    $this->metadataIntegration = $metadataIntegration;
+  }
+  /**
+   * @return MetadataIntegration
+   */
+  public function getMetadataIntegration()
+  {
+    return $this->metadataIntegration;
   }
   /**
    * @param MetadataManagementActivity

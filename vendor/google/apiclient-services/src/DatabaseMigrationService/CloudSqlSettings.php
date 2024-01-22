@@ -40,6 +40,12 @@ class CloudSqlSettings extends \Google\Model
    */
   public $collation;
   /**
+   * @var DataCacheConfig
+   */
+  public $dataCacheConfig;
+  protected $dataCacheConfigType = DataCacheConfig::class;
+  protected $dataCacheConfigDataType = '';
+  /**
    * @var string
    */
   public $dataDiskSizeGb;
@@ -59,6 +65,10 @@ class CloudSqlSettings extends \Google\Model
    * @var string
    */
   public $edition;
+  /**
+   * @var SqlIpConfig
+   */
+  public $ipConfig;
   protected $ipConfigType = SqlIpConfig::class;
   protected $ipConfigDataType = '';
   /**
@@ -163,6 +173,20 @@ class CloudSqlSettings extends \Google\Model
   public function getCollation()
   {
     return $this->collation;
+  }
+  /**
+   * @param DataCacheConfig
+   */
+  public function setDataCacheConfig(DataCacheConfig $dataCacheConfig)
+  {
+    $this->dataCacheConfig = $dataCacheConfig;
+  }
+  /**
+   * @return DataCacheConfig
+   */
+  public function getDataCacheConfig()
+  {
+    return $this->dataCacheConfig;
   }
   /**
    * @param string

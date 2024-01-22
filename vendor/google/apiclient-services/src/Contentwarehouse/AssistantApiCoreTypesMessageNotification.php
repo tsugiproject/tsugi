@@ -57,9 +57,17 @@ class AssistantApiCoreTypesMessageNotification extends \Google\Collection
    */
   public $messageRecipientType;
   /**
+   * @var int
+   */
+  public $messageWordCount;
+  /**
    * @var string
    */
   public $mimeType;
+  /**
+   * @var AssistantApiCoreTypesMessageNotificationNotificationEntry[]
+   */
+  public $notificationEntries;
   protected $notificationEntriesType = AssistantApiCoreTypesMessageNotificationNotificationEntry::class;
   protected $notificationEntriesDataType = 'array';
   /**
@@ -86,6 +94,10 @@ class AssistantApiCoreTypesMessageNotification extends \Google\Collection
    * @var bool
    */
   public $replyActionAvailable;
+  /**
+   * @var AssistantApiCoreTypesMessageNotificationPerson
+   */
+  public $sender;
   protected $senderType = AssistantApiCoreTypesMessageNotificationPerson::class;
   protected $senderDataType = '';
   /**
@@ -218,6 +230,20 @@ class AssistantApiCoreTypesMessageNotification extends \Google\Collection
   public function getMessageRecipientType()
   {
     return $this->messageRecipientType;
+  }
+  /**
+   * @param int
+   */
+  public function setMessageWordCount($messageWordCount)
+  {
+    $this->messageWordCount = $messageWordCount;
+  }
+  /**
+   * @return int
+   */
+  public function getMessageWordCount()
+  {
+    return $this->messageWordCount;
   }
   /**
    * @param string

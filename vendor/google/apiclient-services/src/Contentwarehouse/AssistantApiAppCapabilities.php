@@ -23,12 +23,20 @@ class AssistantApiAppCapabilities extends \Google\Model
    * @var bool
    */
   public $allowlistedForMediaFulfillment;
+  /**
+   * @var AssistantApiAppIntegrationsSettings
+   */
+  public $appIntegrationsSettings;
   protected $appIntegrationsSettingsType = AssistantApiAppIntegrationsSettings::class;
   protected $appIntegrationsSettingsDataType = '';
   /**
    * @var bool
    */
   public $disabledSystemApp;
+  /**
+   * @var AssistantApiCoreTypesProvider
+   */
+  public $provider;
   protected $providerType = AssistantApiCoreTypesProvider::class;
   protected $providerDataType = '';
   /**
@@ -43,6 +51,10 @@ class AssistantApiAppCapabilities extends \Google\Model
    * @var bool
    */
   public $searchableOnServer;
+  /**
+   * @var bool
+   */
+  public $supports3pPodcastPlayback;
   /**
    * @var bool
    */
@@ -149,6 +161,20 @@ class AssistantApiAppCapabilities extends \Google\Model
   public function getSearchableOnServer()
   {
     return $this->searchableOnServer;
+  }
+  /**
+   * @param bool
+   */
+  public function setSupports3pPodcastPlayback($supports3pPodcastPlayback)
+  {
+    $this->supports3pPodcastPlayback = $supports3pPodcastPlayback;
+  }
+  /**
+   * @return bool
+   */
+  public function getSupports3pPodcastPlayback()
+  {
+    return $this->supports3pPodcastPlayback;
   }
   /**
    * @param bool

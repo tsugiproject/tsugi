@@ -19,6 +19,7 @@ namespace Google\Service\CloudHealthcare\Resource;
 
 use Google\Service\CloudHealthcare\DeidentifyDicomStoreRequest;
 use Google\Service\CloudHealthcare\DicomStore;
+use Google\Service\CloudHealthcare\DicomStoreMetrics;
 use Google\Service\CloudHealthcare\ExportDicomDataRequest;
 use Google\Service\CloudHealthcare\HealthcareEmpty;
 use Google\Service\CloudHealthcare\HttpBody;
@@ -128,6 +129,20 @@ class ProjectsLocationsDatasetsDicomStores extends \Google\Service\Resource
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
     return $this->call('get', [$params], DicomStore::class);
+  }
+  /**
+   * Gets metrics associated with the DICOM store.
+   * (dicomStores.getDICOMStoreMetrics)
+   *
+   * @param string $name The resource name of the DICOM store to get metrics for.
+   * @param array $optParams Optional parameters.
+   * @return DicomStoreMetrics
+   */
+  public function getDICOMStoreMetrics($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('getDICOMStoreMetrics', [$params], DicomStoreMetrics::class);
   }
   /**
    * Gets the access control policy for a resource. Returns an empty policy if the
@@ -247,10 +262,9 @@ class ProjectsLocationsDatasetsDicomStores extends \Google\Service\Resource
    * html#sect_10.6). For details on the implementation of SearchForInstances, see
    * [Search transaction](https://cloud.google.com/healthcare/docs/dicom#search_tr
    * ansaction) in the Cloud Healthcare API conformance statement. For samples
-   * that show how to call SearchForInstances, see [Searching for studies, series,
-   * instances, and frames](https://cloud.google.com/healthcare/docs/how-
-   * tos/dicomweb#searching_for_studies_series_instances_and_frames).
-   * (dicomStores.searchForInstances)
+   * that show how to call SearchForInstances, see [Search for DICOM
+   * data](https://cloud.google.com/healthcare/docs/how-tos/dicomweb#search-
+   * dicom). (dicomStores.searchForInstances)
    *
    * @param string $parent The name of the DICOM store that is being accessed. For
    * example, `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}
@@ -273,10 +287,9 @@ class ProjectsLocationsDatasetsDicomStores extends \Google\Service\Resource
    * ). For details on the implementation of SearchForSeries, see [Search transact
    * ion](https://cloud.google.com/healthcare/docs/dicom#search_transaction) in
    * the Cloud Healthcare API conformance statement. For samples that show how to
-   * call SearchForSeries, see [Searching for studies, series, instances, and
-   * frames](https://cloud.google.com/healthcare/docs/how-
-   * tos/dicomweb#searching_for_studies_series_instances_and_frames).
-   * (dicomStores.searchForSeries)
+   * call SearchForSeries, see [Search for DICOM
+   * data](https://cloud.google.com/healthcare/docs/how-tos/dicomweb#search-
+   * dicom). (dicomStores.searchForSeries)
    *
    * @param string $parent The name of the DICOM store that is being accessed. For
    * example, `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}
@@ -298,10 +311,9 @@ class ProjectsLocationsDatasetsDicomStores extends \Google\Service\Resource
    * 6). For details on the implementation of SearchForStudies, see [Search transa
    * ction](https://cloud.google.com/healthcare/docs/dicom#search_transaction) in
    * the Cloud Healthcare API conformance statement. For samples that show how to
-   * call SearchForStudies, see [Searching for studies, series, instances, and
-   * frames](https://cloud.google.com/healthcare/docs/how-
-   * tos/dicomweb#searching_for_studies_series_instances_and_frames).
-   * (dicomStores.searchForStudies)
+   * call SearchForStudies, see [Search for DICOM
+   * data](https://cloud.google.com/healthcare/docs/how-tos/dicomweb#search-
+   * dicom). (dicomStores.searchForStudies)
    *
    * @param string $parent The name of the DICOM store that is being accessed. For
    * example, `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}
@@ -343,8 +355,8 @@ class ProjectsLocationsDatasetsDicomStores extends \Google\Service\Resource
    * implementation of StoreInstances, see [Store transaction](https://cloud.googl
    * e.com/healthcare/docs/dicom#store_transaction) in the Cloud Healthcare API
    * conformance statement. For samples that show how to call StoreInstances, see
-   * [Storing DICOM data](https://cloud.google.com/healthcare/docs/how-
-   * tos/dicomweb#storing_dicom_data). (dicomStores.storeInstances)
+   * [Store DICOM data](https://cloud.google.com/healthcare/docs/how-
+   * tos/dicomweb#store-dicom). (dicomStores.storeInstances)
    *
    * @param string $parent The name of the DICOM store that is being accessed. For
    * example, `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}

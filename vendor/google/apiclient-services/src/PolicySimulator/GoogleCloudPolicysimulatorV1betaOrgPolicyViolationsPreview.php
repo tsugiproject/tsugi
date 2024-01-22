@@ -17,14 +17,31 @@
 
 namespace Google\Service\PolicySimulator;
 
-class GoogleCloudPolicysimulatorV1betaOrgPolicyViolationsPreview extends \Google\Model
+class GoogleCloudPolicysimulatorV1betaOrgPolicyViolationsPreview extends \Google\Collection
 {
+  protected $collection_key = 'customConstraints';
+  /**
+   * @var string
+   */
+  public $createTime;
+  /**
+   * @var string[]
+   */
+  public $customConstraints;
   /**
    * @var string
    */
   public $name;
+  /**
+   * @var GoogleCloudPolicysimulatorV1betaOrgPolicyOverlay
+   */
+  public $overlay;
   protected $overlayType = GoogleCloudPolicysimulatorV1betaOrgPolicyOverlay::class;
   protected $overlayDataType = '';
+  /**
+   * @var GoogleCloudPolicysimulatorV1betaOrgPolicyViolationsPreviewResourceCounts
+   */
+  public $resourceCounts;
   protected $resourceCountsType = GoogleCloudPolicysimulatorV1betaOrgPolicyViolationsPreviewResourceCounts::class;
   protected $resourceCountsDataType = '';
   /**
@@ -36,6 +53,34 @@ class GoogleCloudPolicysimulatorV1betaOrgPolicyViolationsPreview extends \Google
    */
   public $violationsCount;
 
+  /**
+   * @param string
+   */
+  public function setCreateTime($createTime)
+  {
+    $this->createTime = $createTime;
+  }
+  /**
+   * @return string
+   */
+  public function getCreateTime()
+  {
+    return $this->createTime;
+  }
+  /**
+   * @param string[]
+   */
+  public function setCustomConstraints($customConstraints)
+  {
+    $this->customConstraints = $customConstraints;
+  }
+  /**
+   * @return string[]
+   */
+  public function getCustomConstraints()
+  {
+    return $this->customConstraints;
+  }
   /**
    * @param string
    */

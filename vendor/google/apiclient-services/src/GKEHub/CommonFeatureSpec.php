@@ -19,10 +19,34 @@ namespace Google\Service\GKEHub;
 
 class CommonFeatureSpec extends \Google\Model
 {
+  /**
+   * @var AppDevExperienceFeatureSpec
+   */
+  public $appdevexperience;
   protected $appdevexperienceType = AppDevExperienceFeatureSpec::class;
   protected $appdevexperienceDataType = '';
+  /**
+   * @var ClusterUpgradeFleetSpec
+   */
+  public $clusterupgrade;
+  protected $clusterupgradeType = ClusterUpgradeFleetSpec::class;
+  protected $clusterupgradeDataType = '';
+  /**
+   * @var DataplaneV2FeatureSpec
+   */
+  public $dataplanev2;
+  protected $dataplanev2Type = DataplaneV2FeatureSpec::class;
+  protected $dataplanev2DataType = '';
+  /**
+   * @var FleetObservabilityFeatureSpec
+   */
+  public $fleetobservability;
   protected $fleetobservabilityType = FleetObservabilityFeatureSpec::class;
   protected $fleetobservabilityDataType = '';
+  /**
+   * @var MultiClusterIngressFeatureSpec
+   */
+  public $multiclusteringress;
   protected $multiclusteringressType = MultiClusterIngressFeatureSpec::class;
   protected $multiclusteringressDataType = '';
 
@@ -39,6 +63,34 @@ class CommonFeatureSpec extends \Google\Model
   public function getAppdevexperience()
   {
     return $this->appdevexperience;
+  }
+  /**
+   * @param ClusterUpgradeFleetSpec
+   */
+  public function setClusterupgrade(ClusterUpgradeFleetSpec $clusterupgrade)
+  {
+    $this->clusterupgrade = $clusterupgrade;
+  }
+  /**
+   * @return ClusterUpgradeFleetSpec
+   */
+  public function getClusterupgrade()
+  {
+    return $this->clusterupgrade;
+  }
+  /**
+   * @param DataplaneV2FeatureSpec
+   */
+  public function setDataplanev2(DataplaneV2FeatureSpec $dataplanev2)
+  {
+    $this->dataplanev2 = $dataplanev2;
+  }
+  /**
+   * @return DataplaneV2FeatureSpec
+   */
+  public function getDataplanev2()
+  {
+    return $this->dataplanev2;
   }
   /**
    * @param FleetObservabilityFeatureSpec

@@ -20,15 +20,85 @@ namespace Google\Service\Connectors;
 class Action extends \Google\Collection
 {
   protected $collection_key = 'resultMetadata';
+  /**
+   * @var string
+   */
+  public $description;
+  /**
+   * @var string
+   */
+  public $displayName;
+  /**
+   * @var JsonSchema
+   */
+  public $inputJsonSchema;
+  protected $inputJsonSchemaType = JsonSchema::class;
+  protected $inputJsonSchemaDataType = '';
+  /**
+   * @var InputParameter[]
+   */
+  public $inputParameters;
   protected $inputParametersType = InputParameter::class;
   protected $inputParametersDataType = 'array';
   /**
    * @var string
    */
   public $name;
+  /**
+   * @var JsonSchema
+   */
+  public $resultJsonSchema;
+  protected $resultJsonSchemaType = JsonSchema::class;
+  protected $resultJsonSchemaDataType = '';
+  /**
+   * @var ResultMetadata[]
+   */
+  public $resultMetadata;
   protected $resultMetadataType = ResultMetadata::class;
   protected $resultMetadataDataType = 'array';
 
+  /**
+   * @param string
+   */
+  public function setDescription($description)
+  {
+    $this->description = $description;
+  }
+  /**
+   * @return string
+   */
+  public function getDescription()
+  {
+    return $this->description;
+  }
+  /**
+   * @param string
+   */
+  public function setDisplayName($displayName)
+  {
+    $this->displayName = $displayName;
+  }
+  /**
+   * @return string
+   */
+  public function getDisplayName()
+  {
+    return $this->displayName;
+  }
+  /**
+   * @param JsonSchema
+   */
+  public function setInputJsonSchema(JsonSchema $inputJsonSchema)
+  {
+    $this->inputJsonSchema = $inputJsonSchema;
+  }
+  /**
+   * @return JsonSchema
+   */
+  public function getInputJsonSchema()
+  {
+    return $this->inputJsonSchema;
+  }
   /**
    * @param InputParameter[]
    */
@@ -56,6 +126,20 @@ class Action extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param JsonSchema
+   */
+  public function setResultJsonSchema(JsonSchema $resultJsonSchema)
+  {
+    $this->resultJsonSchema = $resultJsonSchema;
+  }
+  /**
+   * @return JsonSchema
+   */
+  public function getResultJsonSchema()
+  {
+    return $this->resultJsonSchema;
   }
   /**
    * @param ResultMetadata[]

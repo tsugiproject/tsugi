@@ -20,12 +20,28 @@ namespace Google\Service\VMMigrationService;
 class ComputeEngineDisksTargetDefaults extends \Google\Collection
 {
   protected $collection_key = 'disks';
+  /**
+   * @var PersistentDiskDefaults[]
+   */
+  public $disks;
   protected $disksType = PersistentDiskDefaults::class;
   protected $disksDataType = 'array';
+  /**
+   * @var DisksMigrationDisksTargetDefaults
+   */
+  public $disksTargetDefaults;
+  protected $disksTargetDefaultsType = DisksMigrationDisksTargetDefaults::class;
+  protected $disksTargetDefaultsDataType = '';
   /**
    * @var string
    */
   public $targetProject;
+  /**
+   * @var DisksMigrationVmTargetDefaults
+   */
+  public $vmTargetDefaults;
+  protected $vmTargetDefaultsType = DisksMigrationVmTargetDefaults::class;
+  protected $vmTargetDefaultsDataType = '';
   /**
    * @var string
    */
@@ -46,6 +62,20 @@ class ComputeEngineDisksTargetDefaults extends \Google\Collection
     return $this->disks;
   }
   /**
+   * @param DisksMigrationDisksTargetDefaults
+   */
+  public function setDisksTargetDefaults(DisksMigrationDisksTargetDefaults $disksTargetDefaults)
+  {
+    $this->disksTargetDefaults = $disksTargetDefaults;
+  }
+  /**
+   * @return DisksMigrationDisksTargetDefaults
+   */
+  public function getDisksTargetDefaults()
+  {
+    return $this->disksTargetDefaults;
+  }
+  /**
    * @param string
    */
   public function setTargetProject($targetProject)
@@ -58,6 +88,20 @@ class ComputeEngineDisksTargetDefaults extends \Google\Collection
   public function getTargetProject()
   {
     return $this->targetProject;
+  }
+  /**
+   * @param DisksMigrationVmTargetDefaults
+   */
+  public function setVmTargetDefaults(DisksMigrationVmTargetDefaults $vmTargetDefaults)
+  {
+    $this->vmTargetDefaults = $vmTargetDefaults;
+  }
+  /**
+   * @return DisksMigrationVmTargetDefaults
+   */
+  public function getVmTargetDefaults()
+  {
+    return $this->vmTargetDefaults;
   }
   /**
    * @param string

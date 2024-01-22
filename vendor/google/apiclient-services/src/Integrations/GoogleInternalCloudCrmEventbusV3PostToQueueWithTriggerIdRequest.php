@@ -27,6 +27,10 @@ class GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest extends \G
    * @var bool
    */
   public $ignoreErrorIfNoActiveWorkflow;
+  /**
+   * @var EnterpriseCrmEventbusProtoEventParameters
+   */
+  public $parameters;
   protected $parametersType = EnterpriseCrmEventbusProtoEventParameters::class;
   protected $parametersDataType = '';
   /**
@@ -53,6 +57,10 @@ class GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest extends \G
    * @var string
    */
   public $triggerId;
+  /**
+   * @var string
+   */
+  public $userGeneratedExecutionId;
   /**
    * @var string
    */
@@ -183,6 +191,20 @@ class GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest extends \G
   public function getTriggerId()
   {
     return $this->triggerId;
+  }
+  /**
+   * @param string
+   */
+  public function setUserGeneratedExecutionId($userGeneratedExecutionId)
+  {
+    $this->userGeneratedExecutionId = $userGeneratedExecutionId;
+  }
+  /**
+   * @return string
+   */
+  public function getUserGeneratedExecutionId()
+  {
+    return $this->userGeneratedExecutionId;
   }
   /**
    * @param string

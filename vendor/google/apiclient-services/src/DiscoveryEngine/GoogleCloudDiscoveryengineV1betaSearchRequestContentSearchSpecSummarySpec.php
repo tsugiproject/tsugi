@@ -36,6 +36,18 @@ class GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpec 
    */
   public $languageCode;
   /**
+   * @var GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelPromptSpec
+   */
+  public $modelPromptSpec;
+  protected $modelPromptSpecType = GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelPromptSpec::class;
+  protected $modelPromptSpecDataType = '';
+  /**
+   * @var GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelSpec
+   */
+  public $modelSpec;
+  protected $modelSpecType = GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelSpec::class;
+  protected $modelSpecDataType = '';
+  /**
    * @var int
    */
   public $summaryResultCount;
@@ -95,6 +107,34 @@ class GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpec 
   public function getLanguageCode()
   {
     return $this->languageCode;
+  }
+  /**
+   * @param GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelPromptSpec
+   */
+  public function setModelPromptSpec(GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelPromptSpec $modelPromptSpec)
+  {
+    $this->modelPromptSpec = $modelPromptSpec;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelPromptSpec
+   */
+  public function getModelPromptSpec()
+  {
+    return $this->modelPromptSpec;
+  }
+  /**
+   * @param GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelSpec
+   */
+  public function setModelSpec(GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelSpec $modelSpec)
+  {
+    $this->modelSpec = $modelSpec;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelSpec
+   */
+  public function getModelSpec()
+  {
+    return $this->modelSpec;
   }
   /**
    * @param int

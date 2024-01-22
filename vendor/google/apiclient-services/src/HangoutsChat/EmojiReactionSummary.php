@@ -19,6 +19,10 @@ namespace Google\Service\HangoutsChat;
 
 class EmojiReactionSummary extends \Google\Model
 {
+  /**
+   * @var Emoji
+   */
+  public $emoji;
   protected $emojiType = Emoji::class;
   protected $emojiDataType = '';
   /**

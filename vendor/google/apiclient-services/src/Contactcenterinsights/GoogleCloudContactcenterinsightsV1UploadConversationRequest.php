@@ -19,6 +19,10 @@ namespace Google\Service\Contactcenterinsights;
 
 class GoogleCloudContactcenterinsightsV1UploadConversationRequest extends \Google\Model
 {
+  /**
+   * @var GoogleCloudContactcenterinsightsV1Conversation
+   */
+  public $conversation;
   protected $conversationType = GoogleCloudContactcenterinsightsV1Conversation::class;
   protected $conversationDataType = '';
   /**
@@ -29,8 +33,18 @@ class GoogleCloudContactcenterinsightsV1UploadConversationRequest extends \Googl
    * @var string
    */
   public $parent;
+  /**
+   * @var GoogleCloudContactcenterinsightsV1RedactionConfig
+   */
+  public $redactionConfig;
   protected $redactionConfigType = GoogleCloudContactcenterinsightsV1RedactionConfig::class;
   protected $redactionConfigDataType = '';
+  /**
+   * @var GoogleCloudContactcenterinsightsV1SpeechConfig
+   */
+  public $speechConfig;
+  protected $speechConfigType = GoogleCloudContactcenterinsightsV1SpeechConfig::class;
+  protected $speechConfigDataType = '';
 
   /**
    * @param GoogleCloudContactcenterinsightsV1Conversation
@@ -87,6 +101,20 @@ class GoogleCloudContactcenterinsightsV1UploadConversationRequest extends \Googl
   public function getRedactionConfig()
   {
     return $this->redactionConfig;
+  }
+  /**
+   * @param GoogleCloudContactcenterinsightsV1SpeechConfig
+   */
+  public function setSpeechConfig(GoogleCloudContactcenterinsightsV1SpeechConfig $speechConfig)
+  {
+    $this->speechConfig = $speechConfig;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1SpeechConfig
+   */
+  public function getSpeechConfig()
+  {
+    return $this->speechConfig;
   }
 }
 

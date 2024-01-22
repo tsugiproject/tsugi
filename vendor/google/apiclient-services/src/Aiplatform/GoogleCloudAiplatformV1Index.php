@@ -24,6 +24,10 @@ class GoogleCloudAiplatformV1Index extends \Google\Collection
    * @var string
    */
   public $createTime;
+  /**
+   * @var GoogleCloudAiplatformV1DeployedIndexRef[]
+   */
+  public $deployedIndexes;
   protected $deployedIndexesType = GoogleCloudAiplatformV1DeployedIndexRef::class;
   protected $deployedIndexesDataType = 'array';
   /**
@@ -35,9 +39,19 @@ class GoogleCloudAiplatformV1Index extends \Google\Collection
    */
   public $displayName;
   /**
+   * @var GoogleCloudAiplatformV1EncryptionSpec
+   */
+  public $encryptionSpec;
+  protected $encryptionSpecType = GoogleCloudAiplatformV1EncryptionSpec::class;
+  protected $encryptionSpecDataType = '';
+  /**
    * @var string
    */
   public $etag;
+  /**
+   * @var GoogleCloudAiplatformV1IndexStats
+   */
+  public $indexStats;
   protected $indexStatsType = GoogleCloudAiplatformV1IndexStats::class;
   protected $indexStatsDataType = '';
   /**
@@ -120,6 +134,20 @@ class GoogleCloudAiplatformV1Index extends \Google\Collection
   public function getDisplayName()
   {
     return $this->displayName;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1EncryptionSpec
+   */
+  public function setEncryptionSpec(GoogleCloudAiplatformV1EncryptionSpec $encryptionSpec)
+  {
+    $this->encryptionSpec = $encryptionSpec;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1EncryptionSpec
+   */
+  public function getEncryptionSpec()
+  {
+    return $this->encryptionSpec;
   }
   /**
    * @param string

@@ -34,6 +34,9 @@ use Google\Client;
  */
 class CloudHealthcare extends \Google\Service
 {
+  /** Read, write and manage healthcare data. */
+  const CLOUD_HEALTHCARE =
+      "https://www.googleapis.com/auth/cloud-healthcare";
   /** See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.. */
   const CLOUD_PLATFORM =
       "https://www.googleapis.com/auth/cloud-platform";
@@ -46,6 +49,8 @@ class CloudHealthcare extends \Google\Service
   public $projects_locations_datasets_consentStores_consents;
   public $projects_locations_datasets_consentStores_userDataMappings;
   public $projects_locations_datasets_dicomStores;
+  public $projects_locations_datasets_dicomStores_dicomWeb_studies;
+  public $projects_locations_datasets_dicomStores_dicomWeb_studies_series;
   public $projects_locations_datasets_dicomStores_studies;
   public $projects_locations_datasets_dicomStores_studies_series;
   public $projects_locations_datasets_dicomStores_studies_series_instances;
@@ -805,6 +810,16 @@ class CloudHealthcare extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'getDICOMStoreMetrics' => [
+              'path' => 'v1/{+name}:getDICOMStoreMetrics',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'getIamPolicy' => [
               'path' => 'v1/{+resource}:getIamPolicy',
               'httpMethod' => 'GET',
@@ -940,6 +955,46 @@ class CloudHealthcare extends \Google\Service
               'httpMethod' => 'POST',
               'parameters' => [
                 'resource' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
+    $this->projects_locations_datasets_dicomStores_dicomWeb_studies = new CloudHealthcare\Resource\ProjectsLocationsDatasetsDicomStoresDicomWebStudies(
+        $this,
+        $this->serviceName,
+        'studies',
+        [
+          'methods' => [
+            'getStudyMetrics' => [
+              'path' => 'v1/{+study}:getStudyMetrics',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'study' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
+    $this->projects_locations_datasets_dicomStores_dicomWeb_studies_series = new CloudHealthcare\Resource\ProjectsLocationsDatasetsDicomStoresDicomWebStudiesSeries(
+        $this,
+        $this->serviceName,
+        'series',
+        [
+          'methods' => [
+            'getSeriesMetrics' => [
+              'path' => 'v1/{+series}:getSeriesMetrics',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'series' => [
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
@@ -1679,6 +1734,16 @@ class CloudHealthcare extends \Google\Service
               ],
             ],'get' => [
               'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'getHL7v2StoreMetrics' => [
+              'path' => 'v1/{+name}:getHL7v2StoreMetrics',
               'httpMethod' => 'GET',
               'parameters' => [
                 'name' => [

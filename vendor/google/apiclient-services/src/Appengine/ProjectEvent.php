@@ -27,9 +27,17 @@ class ProjectEvent extends \Google\Model
    * @var string
    */
   public $phase;
+  /**
+   * @var ProjectsMetadata
+   */
+  public $projectMetadata;
   protected $projectMetadataType = ProjectsMetadata::class;
   protected $projectMetadataDataType = '';
-  protected $stateType = ProjectState::class;
+  /**
+   * @var ContainerState
+   */
+  public $state;
+  protected $stateType = ContainerState::class;
   protected $stateDataType = '';
 
   /**
@@ -75,14 +83,14 @@ class ProjectEvent extends \Google\Model
     return $this->projectMetadata;
   }
   /**
-   * @param ProjectState
+   * @param ContainerState
    */
-  public function setState(ProjectState $state)
+  public function setState(ContainerState $state)
   {
     $this->state = $state;
   }
   /**
-   * @return ProjectState
+   * @return ContainerState
    */
   public function getState()
   {

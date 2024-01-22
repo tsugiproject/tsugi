@@ -20,11 +20,39 @@ namespace Google\Service\ChromeUXReport;
 class MetricTimeseries extends \Google\Collection
 {
   protected $collection_key = 'histogramTimeseries';
+  /**
+   * @var FractionTimeseries[]
+   */
+  public $fractionTimeseries;
+  protected $fractionTimeseriesType = FractionTimeseries::class;
+  protected $fractionTimeseriesDataType = 'map';
+  /**
+   * @var TimeseriesBin[]
+   */
+  public $histogramTimeseries;
   protected $histogramTimeseriesType = TimeseriesBin::class;
   protected $histogramTimeseriesDataType = 'array';
+  /**
+   * @var TimeseriesPercentiles
+   */
+  public $percentilesTimeseries;
   protected $percentilesTimeseriesType = TimeseriesPercentiles::class;
   protected $percentilesTimeseriesDataType = '';
 
+  /**
+   * @param FractionTimeseries[]
+   */
+  public function setFractionTimeseries($fractionTimeseries)
+  {
+    $this->fractionTimeseries = $fractionTimeseries;
+  }
+  /**
+   * @return FractionTimeseries[]
+   */
+  public function getFractionTimeseries()
+  {
+    return $this->fractionTimeseries;
+  }
   /**
    * @param TimeseriesBin[]
    */

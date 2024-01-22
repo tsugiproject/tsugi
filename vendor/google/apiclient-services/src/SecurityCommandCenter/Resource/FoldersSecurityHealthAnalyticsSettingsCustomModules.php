@@ -21,6 +21,8 @@ use Google\Service\SecurityCommandCenter\GoogleCloudSecuritycenterV1SecurityHeal
 use Google\Service\SecurityCommandCenter\ListDescendantSecurityHealthAnalyticsCustomModulesResponse;
 use Google\Service\SecurityCommandCenter\ListSecurityHealthAnalyticsCustomModulesResponse;
 use Google\Service\SecurityCommandCenter\SecuritycenterEmpty;
+use Google\Service\SecurityCommandCenter\SimulateSecurityHealthAnalyticsCustomModuleRequest;
+use Google\Service\SecurityCommandCenter\SimulateSecurityHealthAnalyticsCustomModuleResponse;
 
 /**
  * The "customModules" collection of methods.
@@ -154,7 +156,10 @@ class FoldersSecurityHealthAnalyticsSettingsCustomModules extends \Google\Servic
    * @param GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string updateMask The list of fields to update.
+   * @opt_param string updateMask The list of fields to be updated. The only
+   * fields that can be updated are `enablement_state` and `custom_config`. If
+   * empty or set to the wildcard value `*`, both `enablement_state` and
+   * `custom_config` are updated.
    * @return GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule
    */
   public function patch($name, GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule $postBody, $optParams = [])
@@ -162,6 +167,25 @@ class FoldersSecurityHealthAnalyticsSettingsCustomModules extends \Google\Servic
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('patch', [$params], GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule::class);
+  }
+  /**
+   * Simulates a given SecurityHealthAnalyticsCustomModule and Resource.
+   * (customModules.simulate)
+   *
+   * @param string $parent Required. The relative resource name of the
+   * organization, project, or folder. For more information about relative
+   * resource names, see [Relative Resource Name](https://cloud.google.com/apis/de
+   * sign/resource_names#relative_resource_name) Example:
+   * `organizations/{organization_id}`
+   * @param SimulateSecurityHealthAnalyticsCustomModuleRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return SimulateSecurityHealthAnalyticsCustomModuleResponse
+   */
+  public function simulate($parent, SimulateSecurityHealthAnalyticsCustomModuleRequest $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('simulate', [$params], SimulateSecurityHealthAnalyticsCustomModuleResponse::class);
   }
 }
 
