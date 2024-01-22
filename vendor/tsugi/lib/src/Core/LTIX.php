@@ -796,11 +796,11 @@ class LTIX {
             self::wrapped_session_put($session_object, 'HTTP_USER_AGENT', $_SERVER['HTTP_USER_AGENT']);
         }
         $ipaddr = Net::getIP();
-        if ( $ipaddr ) {
+        if ( is_string($ipaddr) ) {
             self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
             // Check our list of IP address history
             // TODO: decrypt
-            $iphistory = U::get($_COOKIE, "TSUGI-HISTORY");
+            $iphistory = U::get($_COOKIE, "TSUGI-HISTORY",'');
             // Add this IP Address to the Tsugi IP History if it is not there
             if ( strpos($iphistory, $ipaddr) === false ) {
                 $iphistory .= '!' . $ipaddr;
