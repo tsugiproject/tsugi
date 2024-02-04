@@ -14,6 +14,26 @@ require_once('src/Crypt/AesCtr.php');
 
 class AesTest extends \PHPUnit\Framework\TestCase
 {
+    public function testOpenSSLNull() {
+        $pw = 'L0ck it up saf3';
+        $pt = 'pssst ... đon’t tell anyøne!';
+
+        $encr = AesOpenSSL::encrypt(null, $pw) ;
+        $this->assertNull($encr);
+        $encr = AesOpenSSL::encrypt($pt, null) ;
+        $this->assertNull($encr);
+        $encr = AesOpenSSL::encrypt(null, null) ;
+        $this->assertNull($encr);
+
+        $decr = AesOpenSSL::decrypt(null, $pw) ;
+        $this->assertNull($decr);
+        $decr = AesOpenSSL::decrypt($pt, null) ;
+        $this->assertNull($decr);
+        $decr = AesOpenSSL::decrypt(null, null) ;
+        $this->assertNull($decr);
+
+    }
+
     public function testOpenSSL() {
         $pw = 'L0ck it up saf3';
         $pt = 'pssst ... đon’t tell anyøne!';
