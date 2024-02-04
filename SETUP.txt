@@ -2,9 +2,11 @@ To set up the database for this application,
 
 (1) Create a database if you can do so:
 
-create database tsugi DEFAULT CHARACTER SET utf8;
-grant all on tsugi.* to ltiuser@'localhost' identified by 'ltipassword';
-grant all on tsugi.* to ltiuser@'127.0.0.1' identified by 'ltipassword';
+CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
+CREATE USER 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
+CREATE USER 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+GRANT ALL ON tsugi.* TO ltiuser@'localhost';
+GRANT ALL ON tsugi.* To ltiuser@'127.0.0.1';
 
 It is OK if you already have a database or your hosting provider forces you to
 share a database across applications.  You can set a prefix for all the
@@ -17,7 +19,8 @@ like "tsugi_".
 
 (3) Run the
 
-http://localhost/tsugi/admin/upgrade.php
+cd admin
+php upgrade.php
 
 To create the needed tables.  Note that in the lti_key table already
 has some entries - you can change the secret in the '12345' entry
@@ -26,4 +29,4 @@ calculation as that is used as the indexed logical key.  There are
 many SHA256 calculators on the web.
 
 /Chuck
-Mon Jan 13 20:57:42 EST 2014
+Sat Feb  3 22:31:40 EST 2024

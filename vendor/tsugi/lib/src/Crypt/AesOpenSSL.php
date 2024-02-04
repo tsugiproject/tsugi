@@ -31,8 +31,11 @@ class AesOpenSSL {
    */
   public static function encrypt($plaintext, $password, $nBits=256) {
     $method = "AES-256-CBC";
+    if ( !is_string($plaintext) || ! is_string($password) ) return null;
     $key = hash('sha256', $password, true);
     $iv = openssl_random_pseudo_bytes(16);
+
+    if ( ! is_string($plaintext) || ! is_string($password) ) return null;
 
     $ciphertext = openssl_encrypt($plaintext, $method, $key, OPENSSL_RAW_DATA, $iv);
     $hash = hash_hmac('sha256', $ciphertext . $iv, $key, true);
@@ -50,6 +53,8 @@ class AesOpenSSL {
    * @return string    decrypted text
    */
   public static function decrypt($ciphertext, $password, $nBits=256) {
+    if ( ! is_string($ciphertext) || ! is_string($password) ) return null;
+
     $method = "AES-256-CBC";
     $ivHashCiphertext = base64_decode($ciphertext);
     $iv = substr($ivHashCiphertext, 0, 16);

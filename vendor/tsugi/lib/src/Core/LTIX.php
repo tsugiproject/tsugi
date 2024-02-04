@@ -153,6 +153,7 @@ class LTIX {
     public static function encrypt_secret($secret)
     {
         global $CFG;
+        if ( ! is_string($secret) ) return null;
         if ( startsWith($secret,'AES::') ) return $secret;
         $encr = AesOpenSSL::encrypt($secret, $CFG->cookiesecret) ;
         return 'AES::'.$encr;
