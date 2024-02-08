@@ -887,4 +887,18 @@ class PDOX extends \PDO {
         return $retval;
     }
 
+    /** 
+     *
+     */
+    public static function timeFromMySQLTimeStamp(string $datetime) {
+        return strtotime($datetime);
+    }
+
+    /** 
+     *
+     */
+    public static function timeToMySQLTimeStamp(int $when) {
+        return date("Y-m-d H:i:s",$when);
+    }
+
 }
