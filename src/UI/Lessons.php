@@ -990,12 +990,17 @@ class Lessons {
                 $lti = $this->getLtiByRlid($resource_link_id);
 
                 echo('<tr><td>');
+
                 $rest_path = U::rest_path();
-                $href = $rest_path->parent . '/lessons/' . urlencode($module->anchor);
+                $href= "Missing ". $resource_link_id;
+                if ($module != null )  $href = $rest_path->parent . '/lessons/' . urlencode($module->anchor);
+
+                $badge_title = "Missing ". $resource_link_id;
+                if ( $lti != null ) $badge_title = $lti->title;
 
                 echo('<a href="'.$href.'">');
                 echo('<i class="fa fa-square-o text-info" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
-                echo($lti->title."</a>\n");
+                echo($badge_title."</a>\n");
                 echo('</td><td style="width: 30%; min-width: 200px;">');
                 echo('<a href="'.$href.'">');
                 echo('<div class="progress">');
