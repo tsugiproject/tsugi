@@ -437,13 +437,21 @@ if ( is_string($extra_settings) && file_exists($extra_settings) ) {
 }
 
 // Store sessions in memcache - this seems like the fastest, best, and simplest
-// way when running on AWS.
-// http://php.net/manual/en/memcached.sessions.php
+// way when running on AWS.  There are two approaches - choose one.
 
 // $CFG->memcache = 'tcp://memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
 if ( isset($CFG->memcache) && U::strlen($CFG->memcache) > 0 ) {
     ini_set('session.save_handler', 'memcache');
     ini_set('session.save_path', $CFG->memcache);
+}
+
+// Note no "tcp://" for the memcached version of the url
+// $CFG->memcached = 'memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
+if ( isset($CFG->memcached) && strlen($CFG->memcached) > 0 ) {
+    ini_set('session.save_handler', 'memcached');
+    ini_set('session.save_path', $CFG->memcached);
+    // https://github.com/php-memcached-dev/php-memcached/issues/269
+    ini_set('memcached.sess_locking', '0');
 }
 
 // Redis sessions configuration
