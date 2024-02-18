@@ -146,45 +146,16 @@ class ConfigInfo {
     /**
      * Support memcache for session caching
      *
-     * Memcache is php-only and so is likely to require less overall dependencies.
-     *
-     * http://php.net/manual/en/memcache.sessions.php
-     *
-     * Installed on Ubuntu using
-     *
-     * apt-get install -y php${TSUGI_PHP_VERSION}-memcache
-     *
-     * You should only select one of memcache and memcached
-     *
-     * $CFG->memcache = 'tcp://memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
-     *
-     * In addition to setting this variable, your config.php must include the code
-     * to configure the PHP session save handler as shown in config-dist.php
-     *
-     */
-    public $memcache;
-
-    /**
-     * Support memcached for session caching
-     *
-     * Memcached is a combination of PHP and C and so may require extra dependencies.
+     * Store sessions in memcache - this seems like the fastest, best, and simplest approach
+     * when running on AWS.
      *
      * http://php.net/manual/en/memcached.sessions.php
      *
-     * Installed on Ubuntu using
+     * Note - prefer "memcache" over "memcached"
      *
-     * apt-get install -y php${TSUGI_PHP_VERSION}-memcached
-     *
-     * You should only select one of memcache and memcached
-     *
-     * $CFG->memcached = 'memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
-     *
-     * Note no "tcp://" for the memcached version of the url
-     *
-     * In addition to setting this variable, your config.php must include the code
-     * to configure the PHP session save handler as shown in config-dist.php
+     * $CFG->memcache = 'tcp://memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
      */
-    public $memcached;
+    public $memcache;
 
     /**
      * Adding in support for using Redis for session caching.

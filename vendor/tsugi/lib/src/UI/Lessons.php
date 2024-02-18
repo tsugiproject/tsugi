@@ -992,19 +992,11 @@ class Lessons {
                 echo('<tr><td>');
 
                 $rest_path = U::rest_path();
-<<<<<<< Updated upstream
                 $href= "Missing ". $resource_link_id;
                 if ($module != null )  $href = $rest_path->parent . '/lessons/' . urlencode($module->anchor);
 
                 $badge_title = "Missing ". $resource_link_id;
                 if ( $lti != null ) $badge_title = $lti->title;
-=======
-		$href= "Missing ". $resource_link_id;
-		if ($module != null )  $href = $rest_path->parent . '/lessons/' . urlencode($module->anchor);
-
-		$badge_title = "Missing ". $resource_link_id;
-		if ( $lti != null ) $badge_title = $lti->title;
->>>>>>> Stashed changes
 
                 echo('<a href="'.$href.'">');
                 echo('<i class="fa fa-square-o text-info" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
