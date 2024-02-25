@@ -456,6 +456,28 @@ class ConfigInfo {
     public $git_command = false;
 
     /**
+     * If defined, this is displayed as the privacy URL when Tsugi
+     * is used as an "App Store".  If you want to use Google login,
+     * you need these URLs available on the OAuth application.
+     *
+     * You can see sample wording at:
+     *
+     * https://www.py4e.com/service.php
+     */
+    public $privacy_url = false;
+
+    /**
+     * If defined, this is displayed as the SLA URL when Tsugi
+     * is used as an "App Store".  If you want to use Google login,
+     * you need these URLs available on the OAuth application.
+     *
+     * You can see sample wording at:
+     *
+     * https://www.py4e.com/service.php
+     */
+    public $sla_url = false;
+
+    /**
      *
      * Tools to hide in the store for non-admin users.  Each tool sets their status
      * in their register.php with a line like:
