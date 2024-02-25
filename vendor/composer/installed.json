@@ -7511,12 +7511,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "715bb90cc5913b7907f7a7e15dc71a52bfd8b4cc"
+                "reference": "a31404f87efd9c134f72c6197c0514c162993c57"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/715bb90cc5913b7907f7a7e15dc71a52bfd8b4cc",
-                "reference": "715bb90cc5913b7907f7a7e15dc71a52bfd8b4cc",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/a31404f87efd9c134f72c6197c0514c162993c57",
+                "reference": "a31404f87efd9c134f72c6197c0514c162993c57",
                 "shasum": ""
             },
             "require": {
