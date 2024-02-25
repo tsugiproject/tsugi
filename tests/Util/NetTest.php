@@ -7,18 +7,18 @@ use \Tsugi\Util\Net;
 class NetTest extends \PHPUnit\Framework\TestCase
 {
     public function testGet() {
-        $stuff = Net::doGet("http://www.dr-chuck.com/page1.htm");
+        $stuff = Net::doGet("https://www.dr-chuck.com/page1.htm");
         $this->assertStringContainsStringIgnoringCase("The First Page",$stuff);
     }
 
     public function testGetStream() {
-        $stuff = Net::getStream("http://www.dr-chuck.com/page1.htm");
+        $stuff = Net::getStream("https://www.dr-chuck.com/page1.htm");
         $this->assertStringContainsStringIgnoringCase("The First Page",$stuff);
     }
 
     public function testGetCurl() {
         global $LastCurlError;
-        $stuff = Net::getCurl("http://www.dr-chuck.com/page1.htm");
+        $stuff = Net::getCurl("https://www.dr-chuck.com/page1.htm");
         $this->assertStringContainsStringIgnoringCase("The First Page",$stuff);
         $this->assertFalse($LastCurlError);
     }
@@ -26,12 +26,12 @@ class NetTest extends \PHPUnit\Framework\TestCase
     public function testGetCurlFail() {
         global $LastCurlError;
         // Wow - AT&T fakes a domain response - Thanks AT&T
-        $stuff = Net::getCurl("http://fail.lkdfjdfljfdlj1298.com/page1.htm");
+        $stuff = Net::getCurl("https://fail.lkdfjdfljfdlj1298.com/page1.htm");
         $this->assertTrue(is_string($LastCurlError));
     }
 
     public function testGetIP() {
-        $stuff = Net::getIP("http://www.dr-chuck.com/page1.htm");
+        $stuff = Net::getIP("https://www.dr-chuck.com/page1.htm");
         $this->assertNull($stuff);
     }
 
