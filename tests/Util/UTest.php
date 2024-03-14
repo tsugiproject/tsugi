@@ -306,6 +306,17 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($out, null);
     }
 
+    public function testStartsWith() {
+        $this->assertTrue(U::startsWith("csev@umich.edu", "csev"));
+        $this->assertTrue(U::startsWith("csev@umich.edu", ""));
+        $this->assertFalse(U::startsWith("csev@umich.edu", "cxev"));
+        $this->assertFalse(U::startsWith("edu", "@umich.edu"));
+        $this->assertFalse(U::startsWith(null, "@umich.edu"));
+        $this->assertFalse(U::startsWith(null, null));
+        $this->assertFalse(U::startsWith("edu", null));
+    }
+
+
     public function testEndsWith() {
         $this->assertTrue(U::endsWith("csev@umich.edu", "@umich.edu"));
         $this->assertTrue(U::endsWith("csev@umich.edu", ""));
