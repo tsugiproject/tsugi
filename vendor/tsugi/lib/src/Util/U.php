@@ -413,6 +413,7 @@ class U {
     // http://stackoverflow.com/questions/834303/startswith-and-endswith-public static functions-in-php
     public static function startsWith($haystack, $needle) {
         // search backwards starting from haystack length characters from the end
+        if ( !is_string($haystack) || !is_string($needle) ) return false;
         return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
     }
 
