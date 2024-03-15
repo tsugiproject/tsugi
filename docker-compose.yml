@@ -5,7 +5,7 @@ version: '3'
 services:
   db:
     container_name: tsugi_db
-    image: mysql:5.7
+    image: mariadb:10.5
     environment:
       MYSQL_ROOT_PASSWORD: tsugi_root_pw
       MYSQL_DATABASE: tsugi
