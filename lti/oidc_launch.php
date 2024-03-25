@@ -128,8 +128,10 @@ if ( strpos($launch_url, $oidc_launch) === 0 ) {
     LTIX::abort_with_error_log("target_link_uri cannot be the same as oidc_launch - ".$launch_url);
 }
 
-if ( ! U::startsWith($launch_url, $CFG->apphome) ) {
-    LTIX::abort_with_error_log("Launch_url must start with ".$CFG->apphome);
+if ( U::startsWith($launch_url, $CFG->apphome) || U::startsWith($launch_url, $CFG->wwwroot) ) {
+    // Good news...
+} else {
+    LTIX::abort_with_error_log("Launch_url must start with wwwroot (". $CFG->wwwroot . ") or apphome (".$CFG->apphome.")");
 }
 
 // Check if we are already verified
