@@ -7511,12 +7511,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "aeb0dfef1eb2c28fead9fcfdb806258d9d6820e1"
+                "reference": "5143de10d4ca185330913494ddbf1b72816c05ea"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/aeb0dfef1eb2c28fead9fcfdb806258d9d6820e1",
-                "reference": "aeb0dfef1eb2c28fead9fcfdb806258d9d6820e1",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/5143de10d4ca185330913494ddbf1b72816c05ea",
+                "reference": "5143de10d4ca185330913494ddbf1b72816c05ea",
                 "shasum": ""
             },
             "require": {
@@ -7529,7 +7529,7 @@
                 "phpunit/php-timer": "v5.0.3",
                 "phpunit/phpunit": "9.*"
             },
-            "time": "2024-03-14T14:02:34+00:00",
+            "time": "2024-04-01T01:55:37+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",
