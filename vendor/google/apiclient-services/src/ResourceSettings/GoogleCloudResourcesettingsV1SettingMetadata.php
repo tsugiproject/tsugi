@@ -23,10 +23,6 @@ class GoogleCloudResourcesettingsV1SettingMetadata extends \Google\Model
    * @var string
    */
   public $dataType;
-  /**
-   * @var GoogleCloudResourcesettingsV1Value
-   */
-  public $defaultValue;
   protected $defaultValueType = GoogleCloudResourcesettingsV1Value::class;
   protected $defaultValueDataType = '';
   /**

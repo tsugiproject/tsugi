@@ -20,18 +20,12 @@ namespace Google\Service\Testing;
 class TestMatrix extends \Google\Collection
 {
   protected $collection_key = 'testExecutions';
-  /**
-   * @var ClientInfo
-   */
-  public $clientInfo;
   protected $clientInfoType = ClientInfo::class;
   protected $clientInfoDataType = '';
-  /**
-   * @var EnvironmentMatrix
-   */
-  public $environmentMatrix;
   protected $environmentMatrixType = EnvironmentMatrix::class;
   protected $environmentMatrixDataType = '';
+  protected $extendedInvalidMatrixDetailsType = MatrixErrorDetail::class;
+  protected $extendedInvalidMatrixDetailsDataType = 'array';
   /**
    * @var bool
    */
@@ -52,30 +46,18 @@ class TestMatrix extends \Google\Collection
    * @var string
    */
   public $projectId;
-  /**
-   * @var ResultStorage
-   */
-  public $resultStorage;
   protected $resultStorageType = ResultStorage::class;
   protected $resultStorageDataType = '';
   /**
    * @var string
    */
   public $state;
-  /**
-   * @var TestExecution[]
-   */
-  public $testExecutions;
   protected $testExecutionsType = TestExecution::class;
   protected $testExecutionsDataType = 'array';
   /**
    * @var string
    */
   public $testMatrixId;
-  /**
-   * @var TestSpecification
-   */
-  public $testSpecification;
   protected $testSpecificationType = TestSpecification::class;
   protected $testSpecificationDataType = '';
   /**
@@ -110,6 +92,20 @@ class TestMatrix extends \Google\Collection
   public function getEnvironmentMatrix()
   {
     return $this->environmentMatrix;
+  }
+  /**
+   * @param MatrixErrorDetail[]
+   */
+  public function setExtendedInvalidMatrixDetails($extendedInvalidMatrixDetails)
+  {
+    $this->extendedInvalidMatrixDetails = $extendedInvalidMatrixDetails;
+  }
+  /**
+   * @return MatrixErrorDetail[]
+   */
+  public function getExtendedInvalidMatrixDetails()
+  {
+    return $this->extendedInvalidMatrixDetails;
   }
   /**
    * @param bool

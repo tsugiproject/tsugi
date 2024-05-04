@@ -18,6 +18,7 @@
 namespace Google\Service\SQLAdmin\Resource;
 
 use Google\Service\SQLAdmin\DatabaseInstance;
+use Google\Service\SQLAdmin\InstancesAcquireSsrsLeaseRequest;
 use Google\Service\SQLAdmin\InstancesCloneRequest;
 use Google\Service\SQLAdmin\InstancesDemoteMasterRequest;
 use Google\Service\SQLAdmin\InstancesDemoteRequest;
@@ -31,6 +32,8 @@ use Google\Service\SQLAdmin\InstancesRestoreBackupRequest;
 use Google\Service\SQLAdmin\InstancesRotateServerCaRequest;
 use Google\Service\SQLAdmin\InstancesTruncateLogRequest;
 use Google\Service\SQLAdmin\Operation;
+use Google\Service\SQLAdmin\SqlInstancesAcquireSsrsLeaseResponse;
+use Google\Service\SQLAdmin\SqlInstancesReleaseSsrsLeaseResponse;
 
 /**
  * The "instances" collection of methods.
@@ -43,6 +46,27 @@ use Google\Service\SQLAdmin\Operation;
 class Instances extends \Google\Service\Resource
 {
   /**
+   * Acquire a lease for the setup of SQL Server Reporting Services (SSRS).
+   * (instances.acquireSsrsLease)
+   *
+   * @param string $project Required. Project ID of the project that contains the
+   * instance (Example: project-id).
+   * @param string $instance Required. Cloud SQL instance ID. This doesn't include
+   * the project ID. It's composed of lowercase letters, numbers, and hyphens, and
+   * it must start with a letter. The total length must be 98 characters or less
+   * (Example: instance-id).
+   * @param InstancesAcquireSsrsLeaseRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return SqlInstancesAcquireSsrsLeaseResponse
+   * @throws \Google\Service\Exception
+   */
+  public function acquireSsrsLease($project, $instance, InstancesAcquireSsrsLeaseRequest $postBody, $optParams = [])
+  {
+    $params = ['project' => $project, 'instance' => $instance, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('acquireSsrsLease', [$params], SqlInstancesAcquireSsrsLeaseResponse::class);
+  }
+  /**
    * Adds a new trusted Certificate Authority (CA) version for the specified
    * instance. Required to prepare for a certificate rotation. If a CA version was
    * previously added but never used in a certificate rotation, this operation
@@ -54,6 +78,7 @@ class Instances extends \Google\Service\Resource
    * project ID.
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function addServerCa($project, $instance, $optParams = [])
   {
@@ -72,6 +97,7 @@ class Instances extends \Google\Service\Resource
    * @param InstancesCloneRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function cloneInstances($project, $instance, InstancesCloneRequest $postBody, $optParams = [])
   {
@@ -88,6 +114,7 @@ class Instances extends \Google\Service\Resource
    * project ID.
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($project, $instance, $optParams = [])
   {
@@ -105,6 +132,7 @@ class Instances extends \Google\Service\Resource
    * @param InstancesDemoteRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function demote($project, $instance, InstancesDemoteRequest $postBody, $optParams = [])
   {
@@ -121,6 +149,7 @@ class Instances extends \Google\Service\Resource
    * @param InstancesDemoteMasterRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function demoteMaster($project, $instance, InstancesDemoteMasterRequest $postBody, $optParams = [])
   {
@@ -139,6 +168,7 @@ class Instances extends \Google\Service\Resource
    * @param InstancesExportRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function export($project, $instance, InstancesExportRequest $postBody, $optParams = [])
   {
@@ -161,6 +191,7 @@ class Instances extends \Google\Service\Resource
    * @param InstancesFailoverRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function failover($project, $instance, InstancesFailoverRequest $postBody, $optParams = [])
   {
@@ -177,6 +208,7 @@ class Instances extends \Google\Service\Resource
    * project ID.
    * @param array $optParams Optional parameters.
    * @return DatabaseInstance
+   * @throws \Google\Service\Exception
    */
   public function get($project, $instance, $optParams = [])
   {
@@ -194,6 +226,7 @@ class Instances extends \Google\Service\Resource
    * @param InstancesImportRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function import($project, $instance, InstancesImportRequest $postBody, $optParams = [])
   {
@@ -209,6 +242,7 @@ class Instances extends \Google\Service\Resource
    * @param DatabaseInstance $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function insert($project, DatabaseInstance $postBody, $optParams = [])
   {
@@ -237,6 +271,7 @@ class Instances extends \Google\Service\Resource
    * @opt_param string pageToken A previously-returned page token representing
    * part of the larger set of results to view.
    * @return InstancesListResponse
+   * @throws \Google\Service\Exception
    */
   public function listInstances($project, $optParams = [])
   {
@@ -256,6 +291,7 @@ class Instances extends \Google\Service\Resource
    * project ID.
    * @param array $optParams Optional parameters.
    * @return InstancesListServerCasResponse
+   * @throws \Google\Service\Exception
    */
   public function listServerCas($project, $instance, $optParams = [])
   {
@@ -274,6 +310,7 @@ class Instances extends \Google\Service\Resource
    * @param DatabaseInstance $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function patch($project, $instance, DatabaseInstance $postBody, $optParams = [])
   {
@@ -295,6 +332,7 @@ class Instances extends \Google\Service\Resource
    * Otherwise, if this value is false or not set, the original primary will be a
    * standalone instance.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function promoteReplica($project, $instance, $optParams = [])
   {
@@ -311,12 +349,32 @@ class Instances extends \Google\Service\Resource
    * @param InstancesReencryptRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function reencrypt($project, $instance, InstancesReencryptRequest $postBody, $optParams = [])
   {
     $params = ['project' => $project, 'instance' => $instance, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('reencrypt', [$params], Operation::class);
+  }
+  /**
+   * Release a lease for the setup of SQL Server Reporting Services (SSRS).
+   * (instances.releaseSsrsLease)
+   *
+   * @param string $project Required. The project ID that contains the instance.
+   * @param string $instance Required. The Cloud SQL instance ID. This doesn't
+   * include the project ID. The instance ID contains lowercase letters, numbers,
+   * and hyphens, and it must start with a letter. This ID can have a maximum
+   * length of 98 characters.
+   * @param array $optParams Optional parameters.
+   * @return SqlInstancesReleaseSsrsLeaseResponse
+   * @throws \Google\Service\Exception
+   */
+  public function releaseSsrsLease($project, $instance, $optParams = [])
+  {
+    $params = ['project' => $project, 'instance' => $instance];
+    $params = array_merge($params, $optParams);
+    return $this->call('releaseSsrsLease', [$params], SqlInstancesReleaseSsrsLeaseResponse::class);
   }
   /**
    * Deletes all client certificates and generates a new server SSL certificate
@@ -327,6 +385,7 @@ class Instances extends \Google\Service\Resource
    * project ID.
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function resetSslConfig($project, $instance, $optParams = [])
   {
@@ -343,6 +402,7 @@ class Instances extends \Google\Service\Resource
    * project ID.
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function restart($project, $instance, $optParams = [])
   {
@@ -360,6 +420,7 @@ class Instances extends \Google\Service\Resource
    * @param InstancesRestoreBackupRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function restoreBackup($project, $instance, InstancesRestoreBackupRequest $postBody, $optParams = [])
   {
@@ -378,6 +439,7 @@ class Instances extends \Google\Service\Resource
    * @param InstancesRotateServerCaRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function rotateServerCa($project, $instance, InstancesRotateServerCaRequest $postBody, $optParams = [])
   {
@@ -392,6 +454,7 @@ class Instances extends \Google\Service\Resource
    * @param string $instance Cloud SQL read replica instance name.
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function startReplica($project, $instance, $optParams = [])
   {
@@ -406,6 +469,7 @@ class Instances extends \Google\Service\Resource
    * @param string $instance Cloud SQL read replica instance name.
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function stopReplica($project, $instance, $optParams = [])
   {
@@ -425,6 +489,7 @@ class Instances extends \Google\Service\Resource
    * operations timeout, which is a sum of all database operations. Default value
    * is 10 minutes and can be modified to a maximum value of 24 hours.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function switchover($project, $instance, $optParams = [])
   {
@@ -442,6 +507,7 @@ class Instances extends \Google\Service\Resource
    * @param InstancesTruncateLogRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function truncateLog($project, $instance, InstancesTruncateLogRequest $postBody, $optParams = [])
   {
@@ -459,6 +525,7 @@ class Instances extends \Google\Service\Resource
    * @param DatabaseInstance $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function update($project, $instance, DatabaseInstance $postBody, $optParams = [])
   {

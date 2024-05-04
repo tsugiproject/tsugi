@@ -24,44 +24,20 @@ class BackendService extends \Google\Collection
    * @var int
    */
   public $affinityCookieTtlSec;
-  /**
-   * @var Backend[]
-   */
-  public $backends;
   protected $backendsType = Backend::class;
   protected $backendsDataType = 'array';
-  /**
-   * @var BackendServiceCdnPolicy
-   */
-  public $cdnPolicy;
   protected $cdnPolicyType = BackendServiceCdnPolicy::class;
   protected $cdnPolicyDataType = '';
-  /**
-   * @var CircuitBreakers
-   */
-  public $circuitBreakers;
   protected $circuitBreakersType = CircuitBreakers::class;
   protected $circuitBreakersDataType = '';
   /**
    * @var string
    */
   public $compressionMode;
-  /**
-   * @var ConnectionDraining
-   */
-  public $connectionDraining;
   protected $connectionDrainingType = ConnectionDraining::class;
   protected $connectionDrainingDataType = '';
-  /**
-   * @var BackendServiceConnectionTrackingPolicy
-   */
-  public $connectionTrackingPolicy;
   protected $connectionTrackingPolicyType = BackendServiceConnectionTrackingPolicy::class;
   protected $connectionTrackingPolicyDataType = '';
-  /**
-   * @var ConsistentHashLoadBalancerSettings
-   */
-  public $consistentHash;
   protected $consistentHashType = ConsistentHashLoadBalancerSettings::class;
   protected $consistentHashDataType = '';
   /**
@@ -88,10 +64,6 @@ class BackendService extends \Google\Collection
    * @var bool
    */
   public $enableCDN;
-  /**
-   * @var BackendServiceFailoverPolicy
-   */
-  public $failoverPolicy;
   protected $failoverPolicyType = BackendServiceFailoverPolicy::class;
   protected $failoverPolicyDataType = '';
   /**
@@ -102,10 +74,6 @@ class BackendService extends \Google\Collection
    * @var string[]
    */
   public $healthChecks;
-  /**
-   * @var BackendServiceIAP
-   */
-  public $iap;
   protected $iapType = BackendServiceIAP::class;
   protected $iapDataType = '';
   /**
@@ -120,26 +88,14 @@ class BackendService extends \Google\Collection
    * @var string
    */
   public $loadBalancingScheme;
-  /**
-   * @var BackendServiceLocalityLoadBalancingPolicyConfig[]
-   */
-  public $localityLbPolicies;
   protected $localityLbPoliciesType = BackendServiceLocalityLoadBalancingPolicyConfig::class;
   protected $localityLbPoliciesDataType = 'array';
   /**
    * @var string
    */
   public $localityLbPolicy;
-  /**
-   * @var BackendServiceLogConfig
-   */
-  public $logConfig;
   protected $logConfigType = BackendServiceLogConfig::class;
   protected $logConfigDataType = '';
-  /**
-   * @var Duration
-   */
-  public $maxStreamDuration;
   protected $maxStreamDurationType = Duration::class;
   protected $maxStreamDurationDataType = '';
   /**
@@ -154,10 +110,6 @@ class BackendService extends \Google\Collection
    * @var string
    */
   public $network;
-  /**
-   * @var OutlierDetection
-   */
-  public $outlierDetection;
   protected $outlierDetectionType = OutlierDetection::class;
   protected $outlierDetectionDataType = '';
   /**
@@ -180,10 +132,6 @@ class BackendService extends \Google\Collection
    * @var string
    */
   public $securityPolicy;
-  /**
-   * @var SecuritySettings
-   */
-  public $securitySettings;
   protected $securitySettingsType = SecuritySettings::class;
   protected $securitySettingsDataType = '';
   /**
@@ -197,21 +145,17 @@ class BackendService extends \Google\Collection
   /**
    * @var string
    */
-  public $sessionAffinity;
+  public $serviceLbPolicy;
   /**
-   * @var Subsetting
+   * @var string
    */
-  public $subsetting;
+  public $sessionAffinity;
   protected $subsettingType = Subsetting::class;
   protected $subsettingDataType = '';
   /**
    * @var int
    */
   public $timeoutSec;
-  /**
-   * @var BackendServiceUsedBy[]
-   */
-  public $usedBy;
   protected $usedByType = BackendServiceUsedBy::class;
   protected $usedByDataType = 'array';
 
@@ -732,6 +676,20 @@ class BackendService extends \Google\Collection
   public function getServiceBindings()
   {
     return $this->serviceBindings;
+  }
+  /**
+   * @param string
+   */
+  public function setServiceLbPolicy($serviceLbPolicy)
+  {
+    $this->serviceLbPolicy = $serviceLbPolicy;
+  }
+  /**
+   * @return string
+   */
+  public function getServiceLbPolicy()
+  {
+    return $this->serviceLbPolicy;
   }
   /**
    * @param string

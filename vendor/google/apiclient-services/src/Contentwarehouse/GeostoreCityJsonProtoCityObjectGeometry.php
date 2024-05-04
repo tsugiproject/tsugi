@@ -17,28 +17,19 @@
 
 namespace Google\Service\Contentwarehouse;
 
-class GeostoreCityJsonProtoCityObjectGeometry extends \Google\Model
+class GeostoreCityJsonProtoCityObjectGeometry extends \Google\Collection
 {
+  protected $collection_key = 'semantics';
   /**
    * @var string
    */
   public $lod;
-  /**
-   * @var GeostoreCityJsonProtoCityObjectGeometryMultiPoint
-   */
-  public $multipoint;
   protected $multipointType = GeostoreCityJsonProtoCityObjectGeometryMultiPoint::class;
   protected $multipointDataType = '';
-  /**
-   * @var GeostoreCityJsonProtoCityObjectGeometryMultiSurface
-   */
-  public $multisurface;
   protected $multisurfaceType = GeostoreCityJsonProtoCityObjectGeometryMultiSurface::class;
   protected $multisurfaceDataType = '';
-  /**
-   * @var GeostoreCityJsonProtoCityObjectGeometrySolid
-   */
-  public $solid;
+  protected $semanticsType = GeostoreCityJsonProtoCityObjectGeometrySemantic::class;
+  protected $semanticsDataType = 'array';
   protected $solidType = GeostoreCityJsonProtoCityObjectGeometrySolid::class;
   protected $solidDataType = '';
 
@@ -83,6 +74,20 @@ class GeostoreCityJsonProtoCityObjectGeometry extends \Google\Model
   public function getMultisurface()
   {
     return $this->multisurface;
+  }
+  /**
+   * @param GeostoreCityJsonProtoCityObjectGeometrySemantic[]
+   */
+  public function setSemantics($semantics)
+  {
+    $this->semantics = $semantics;
+  }
+  /**
+   * @return GeostoreCityJsonProtoCityObjectGeometrySemantic[]
+   */
+  public function getSemantics()
+  {
+    return $this->semantics;
   }
   /**
    * @param GeostoreCityJsonProtoCityObjectGeometrySolid

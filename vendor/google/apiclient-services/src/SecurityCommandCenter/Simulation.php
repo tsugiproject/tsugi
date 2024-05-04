@@ -23,18 +23,32 @@ class Simulation extends \Google\Collection
   /**
    * @var string
    */
+  public $cloudProvider;
+  /**
+   * @var string
+   */
   public $createTime;
   /**
    * @var string
    */
   public $name;
-  /**
-   * @var ResourceValueConfigMetadata[]
-   */
-  public $resourceValueConfigsMetadata;
   protected $resourceValueConfigsMetadataType = ResourceValueConfigMetadata::class;
   protected $resourceValueConfigsMetadataDataType = 'array';
 
+  /**
+   * @param string
+   */
+  public function setCloudProvider($cloudProvider)
+  {
+    $this->cloudProvider = $cloudProvider;
+  }
+  /**
+   * @return string
+   */
+  public function getCloudProvider()
+  {
+    return $this->cloudProvider;
+  }
   /**
    * @param string
    */

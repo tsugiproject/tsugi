@@ -36,10 +36,6 @@ class DeviceSignals extends \Google\Collection
    * @var bool
    */
   public $chromeRemoteDesktopAppBlocked;
-  /**
-   * @var CrowdStrikeAgent
-   */
-  public $crowdStrikeAgent;
   protected $crowdStrikeAgentType = CrowdStrikeAgent::class;
   protected $crowdStrikeAgentDataType = '';
   /**
@@ -102,6 +98,10 @@ class DeviceSignals extends \Google\Collection
    * @var string[]
    */
   public $profileAffiliationIds;
+  /**
+   * @var string
+   */
+  public $profileEnrollmentDomain;
   /**
    * @var string
    */
@@ -426,6 +426,20 @@ class DeviceSignals extends \Google\Collection
   public function getProfileAffiliationIds()
   {
     return $this->profileAffiliationIds;
+  }
+  /**
+   * @param string
+   */
+  public function setProfileEnrollmentDomain($profileEnrollmentDomain)
+  {
+    $this->profileEnrollmentDomain = $profileEnrollmentDomain;
+  }
+  /**
+   * @return string
+   */
+  public function getProfileEnrollmentDomain()
+  {
+    return $this->profileEnrollmentDomain;
   }
   /**
    * @param string

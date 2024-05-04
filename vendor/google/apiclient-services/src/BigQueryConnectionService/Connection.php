@@ -19,36 +19,18 @@ namespace Google\Service\BigQueryConnectionService;
 
 class Connection extends \Google\Model
 {
-  /**
-   * @var AwsProperties
-   */
-  public $aws;
   protected $awsType = AwsProperties::class;
   protected $awsDataType = '';
-  /**
-   * @var AzureProperties
-   */
-  public $azure;
   protected $azureType = AzureProperties::class;
   protected $azureDataType = '';
-  /**
-   * @var CloudResourceProperties
-   */
-  public $cloudResource;
   protected $cloudResourceType = CloudResourceProperties::class;
   protected $cloudResourceDataType = '';
-  /**
-   * @var CloudSpannerProperties
-   */
-  public $cloudSpanner;
   protected $cloudSpannerType = CloudSpannerProperties::class;
   protected $cloudSpannerDataType = '';
-  /**
-   * @var CloudSqlProperties
-   */
-  public $cloudSql;
   protected $cloudSqlType = CloudSqlProperties::class;
   protected $cloudSqlDataType = '';
+  protected $configurationType = ConnectorConfiguration::class;
+  protected $configurationDataType = '';
   /**
    * @var string
    */
@@ -77,16 +59,8 @@ class Connection extends \Google\Model
    * @var string
    */
   public $name;
-  /**
-   * @var SalesforceDataCloudProperties
-   */
-  public $salesforceDataCloud;
   protected $salesforceDataCloudType = SalesforceDataCloudProperties::class;
   protected $salesforceDataCloudDataType = '';
-  /**
-   * @var SparkProperties
-   */
-  public $spark;
   protected $sparkType = SparkProperties::class;
   protected $sparkDataType = '';
 
@@ -159,6 +133,20 @@ class Connection extends \Google\Model
   public function getCloudSql()
   {
     return $this->cloudSql;
+  }
+  /**
+   * @param ConnectorConfiguration
+   */
+  public function setConfiguration(ConnectorConfiguration $configuration)
+  {
+    $this->configuration = $configuration;
+  }
+  /**
+   * @return ConnectorConfiguration
+   */
+  public function getConfiguration()
+  {
+    return $this->configuration;
   }
   /**
    * @param string

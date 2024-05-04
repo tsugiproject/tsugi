@@ -20,10 +20,6 @@ namespace Google\Service\AnalyticsReporting;
 class SegmentDefinition extends \Google\Collection
 {
   protected $collection_key = 'segmentFilters';
-  /**
-   * @var SegmentFilter[]
-   */
-  public $segmentFilters;
   protected $segmentFiltersType = SegmentFilter::class;
   protected $segmentFiltersDataType = 'array';
 

@@ -24,9 +24,13 @@ class SparkStatistics extends \Google\Model
    */
   public $endpoints;
   /**
-   * @var SparkLoggingInfo
+   * @var string
    */
-  public $loggingInfo;
+  public $gcsStagingBucket;
+  /**
+   * @var string
+   */
+  public $kmsKeyName;
   protected $loggingInfoType = SparkLoggingInfo::class;
   protected $loggingInfoDataType = '';
   /**
@@ -51,6 +55,34 @@ class SparkStatistics extends \Google\Model
   public function getEndpoints()
   {
     return $this->endpoints;
+  }
+  /**
+   * @param string
+   */
+  public function setGcsStagingBucket($gcsStagingBucket)
+  {
+    $this->gcsStagingBucket = $gcsStagingBucket;
+  }
+  /**
+   * @return string
+   */
+  public function getGcsStagingBucket()
+  {
+    return $this->gcsStagingBucket;
+  }
+  /**
+   * @param string
+   */
+  public function setKmsKeyName($kmsKeyName)
+  {
+    $this->kmsKeyName = $kmsKeyName;
+  }
+  /**
+   * @return string
+   */
+  public function getKmsKeyName()
+  {
+    return $this->kmsKeyName;
   }
   /**
    * @param SparkLoggingInfo

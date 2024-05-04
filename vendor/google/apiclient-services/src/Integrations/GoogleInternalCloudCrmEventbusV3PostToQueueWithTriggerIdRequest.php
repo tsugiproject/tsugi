@@ -27,16 +27,16 @@ class GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest extends \G
    * @var bool
    */
   public $ignoreErrorIfNoActiveWorkflow;
-  /**
-   * @var EnterpriseCrmEventbusProtoEventParameters
-   */
-  public $parameters;
   protected $parametersType = EnterpriseCrmEventbusProtoEventParameters::class;
   protected $parametersDataType = '';
   /**
    * @var string
    */
   public $priority;
+  /**
+   * @var int
+   */
+  public $quotaRetryCount;
   /**
    * @var string
    */
@@ -121,6 +121,20 @@ class GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest extends \G
   public function getPriority()
   {
     return $this->priority;
+  }
+  /**
+   * @param int
+   */
+  public function setQuotaRetryCount($quotaRetryCount)
+  {
+    $this->quotaRetryCount = $quotaRetryCount;
+  }
+  /**
+   * @return int
+   */
+  public function getQuotaRetryCount()
+  {
+    return $this->quotaRetryCount;
   }
   /**
    * @param string

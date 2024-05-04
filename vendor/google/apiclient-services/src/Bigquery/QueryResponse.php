@@ -24,30 +24,16 @@ class QueryResponse extends \Google\Collection
    * @var bool
    */
   public $cacheHit;
-  /**
-   * @var DmlStatistics
-   */
-  public $dmlStats;
   protected $dmlStatsType = DmlStatistics::class;
   protected $dmlStatsDataType = '';
-  /**
-   * @var ErrorProto[]
-   */
-  public $errors;
   protected $errorsType = ErrorProto::class;
   protected $errorsDataType = 'array';
   /**
    * @var bool
    */
   public $jobComplete;
-  /**
-   * @var array
-   */
-  public $jobCreationReason;
-  /**
-   * @var JobReference
-   */
-  public $jobReference;
+  protected $jobCreationReasonType = JobCreationReason::class;
+  protected $jobCreationReasonDataType = '';
   protected $jobReferenceType = JobReference::class;
   protected $jobReferenceDataType = '';
   /**
@@ -66,22 +52,10 @@ class QueryResponse extends \Google\Collection
    * @var string
    */
   public $queryId;
-  /**
-   * @var TableRow[]
-   */
-  public $rows;
   protected $rowsType = TableRow::class;
   protected $rowsDataType = 'array';
-  /**
-   * @var TableSchema
-   */
-  public $schema;
   protected $schemaType = TableSchema::class;
   protected $schemaDataType = '';
-  /**
-   * @var SessionInfo
-   */
-  public $sessionInfo;
   protected $sessionInfoType = SessionInfo::class;
   protected $sessionInfoDataType = '';
   /**
@@ -150,14 +124,14 @@ class QueryResponse extends \Google\Collection
     return $this->jobComplete;
   }
   /**
-   * @param array
+   * @param JobCreationReason
    */
-  public function setJobCreationReason($jobCreationReason)
+  public function setJobCreationReason(JobCreationReason $jobCreationReason)
   {
     $this->jobCreationReason = $jobCreationReason;
   }
   /**
-   * @return array
+   * @return JobCreationReason
    */
   public function getJobCreationReason()
   {

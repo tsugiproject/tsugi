@@ -52,6 +52,7 @@ class ProjectsTopics extends \Google\Service\Resource
    * @param Topic $postBody
    * @param array $optParams Optional parameters.
    * @return Topic
+   * @throws \Google\Service\Exception
    */
   public function create($name, Topic $postBody, $optParams = [])
   {
@@ -70,6 +71,7 @@ class ProjectsTopics extends \Google\Service\Resource
    * `projects/{project}/topics/{topic}`.
    * @param array $optParams Optional parameters.
    * @return PubsubEmpty
+   * @throws \Google\Service\Exception
    */
   public function delete($topic, $optParams = [])
   {
@@ -84,6 +86,7 @@ class ProjectsTopics extends \Google\Service\Resource
    * `projects/{project}/topics/{topic}`.
    * @param array $optParams Optional parameters.
    * @return Topic
+   * @throws \Google\Service\Exception
    */
   public function get($topic, $optParams = [])
   {
@@ -114,6 +117,7 @@ class ProjectsTopics extends \Google\Service\Resource
    * documentation](https://cloud.google.com/iam/help/conditions/resource-
    * policies).
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function getIamPolicy($resource, $optParams = [])
   {
@@ -133,6 +137,7 @@ class ProjectsTopics extends \Google\Service\Resource
    * `ListTopicsResponse`; indicates that this is a continuation of a prior
    * `ListTopics` call, and that the system should return the next page of data.
    * @return ListTopicsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsTopics($project, $optParams = [])
   {
@@ -141,8 +146,9 @@ class ProjectsTopics extends \Google\Service\Resource
     return $this->call('list', [$params], ListTopicsResponse::class);
   }
   /**
-   * Updates an existing topic. Note that certain properties of a topic are not
-   * modifiable. (topics.patch)
+   * Updates an existing topic by updating the fields specified in the update
+   * mask. Note that certain properties of a topic are not modifiable.
+   * (topics.patch)
    *
    * @param string $name Required. The name of the topic. It must have the format
    * `"projects/{project}/topics/{topic}"`. `{topic}` must start with a letter,
@@ -153,6 +159,7 @@ class ProjectsTopics extends \Google\Service\Resource
    * @param UpdateTopicRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Topic
+   * @throws \Google\Service\Exception
    */
   public function patch($name, UpdateTopicRequest $postBody, $optParams = [])
   {
@@ -169,6 +176,7 @@ class ProjectsTopics extends \Google\Service\Resource
    * @param PublishRequest $postBody
    * @param array $optParams Optional parameters.
    * @return PublishResponse
+   * @throws \Google\Service\Exception
    */
   public function publish($topic, PublishRequest $postBody, $optParams = [])
   {
@@ -188,6 +196,7 @@ class ProjectsTopics extends \Google\Service\Resource
    * @param SetIamPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function setIamPolicy($resource, SetIamPolicyRequest $postBody, $optParams = [])
   {
@@ -209,6 +218,7 @@ class ProjectsTopics extends \Google\Service\Resource
    * @param TestIamPermissionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return TestIamPermissionsResponse
+   * @throws \Google\Service\Exception
    */
   public function testIamPermissions($resource, TestIamPermissionsRequest $postBody, $optParams = [])
   {

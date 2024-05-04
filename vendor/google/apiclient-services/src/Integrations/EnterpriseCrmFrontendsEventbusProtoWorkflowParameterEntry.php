@@ -20,16 +20,8 @@ namespace Google\Service\Integrations;
 class EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry extends \Google\Collection
 {
   protected $collection_key = 'children';
-  /**
-   * @var EnterpriseCrmEventbusProtoAttributes
-   */
-  public $attributes;
   protected $attributesType = EnterpriseCrmEventbusProtoAttributes::class;
   protected $attributesDataType = '';
-  /**
-   * @var EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry[]
-   */
-  public $children;
   protected $childrenType = EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry::class;
   protected $childrenDataType = 'array';
   /**
@@ -40,10 +32,6 @@ class EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry extends \Google\
    * @var string
    */
   public $dataType;
-  /**
-   * @var EnterpriseCrmFrontendsEventbusProtoParameterValueType
-   */
-  public $defaultValue;
   protected $defaultValueType = EnterpriseCrmFrontendsEventbusProtoParameterValueType::class;
   protected $defaultValueDataType = '';
   /**
@@ -70,10 +58,6 @@ class EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry extends \Google\
    * @var string
    */
   public $name;
-  /**
-   * @var EnterpriseCrmEventbusProtoNodeIdentifier
-   */
-  public $producedBy;
   protected $producedByType = EnterpriseCrmEventbusProtoNodeIdentifier::class;
   protected $producedByDataType = '';
   /**
@@ -88,6 +72,10 @@ class EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry extends \Google\
    * @var string
    */
   public $protoDefPath;
+  /**
+   * @var bool
+   */
+  public $required;
 
   /**
    * @param EnterpriseCrmEventbusProtoAttributes
@@ -298,6 +286,20 @@ class EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry extends \Google\
   public function getProtoDefPath()
   {
     return $this->protoDefPath;
+  }
+  /**
+   * @param bool
+   */
+  public function setRequired($required)
+  {
+    $this->required = $required;
+  }
+  /**
+   * @return bool
+   */
+  public function getRequired()
+  {
+    return $this->required;
   }
 }
 

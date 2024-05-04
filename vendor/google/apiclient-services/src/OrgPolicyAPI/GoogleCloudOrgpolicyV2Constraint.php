@@ -19,10 +19,6 @@ namespace Google\Service\OrgPolicyAPI;
 
 class GoogleCloudOrgpolicyV2Constraint extends \Google\Model
 {
-  /**
-   * @var GoogleCloudOrgpolicyV2ConstraintBooleanConstraint
-   */
-  public $booleanConstraint;
   protected $booleanConstraintType = GoogleCloudOrgpolicyV2ConstraintBooleanConstraint::class;
   protected $booleanConstraintDataType = '';
   /**
@@ -37,10 +33,8 @@ class GoogleCloudOrgpolicyV2Constraint extends \Google\Model
    * @var string
    */
   public $displayName;
-  /**
-   * @var GoogleCloudOrgpolicyV2ConstraintListConstraint
-   */
-  public $listConstraint;
+  protected $googleManagedConstraintType = GoogleCloudOrgpolicyV2ConstraintGoogleManagedConstraint::class;
+  protected $googleManagedConstraintDataType = '';
   protected $listConstraintType = GoogleCloudOrgpolicyV2ConstraintListConstraint::class;
   protected $listConstraintDataType = '';
   /**
@@ -107,6 +101,20 @@ class GoogleCloudOrgpolicyV2Constraint extends \Google\Model
   public function getDisplayName()
   {
     return $this->displayName;
+  }
+  /**
+   * @param GoogleCloudOrgpolicyV2ConstraintGoogleManagedConstraint
+   */
+  public function setGoogleManagedConstraint(GoogleCloudOrgpolicyV2ConstraintGoogleManagedConstraint $googleManagedConstraint)
+  {
+    $this->googleManagedConstraint = $googleManagedConstraint;
+  }
+  /**
+   * @return GoogleCloudOrgpolicyV2ConstraintGoogleManagedConstraint
+   */
+  public function getGoogleManagedConstraint()
+  {
+    return $this->googleManagedConstraint;
   }
   /**
    * @param GoogleCloudOrgpolicyV2ConstraintListConstraint

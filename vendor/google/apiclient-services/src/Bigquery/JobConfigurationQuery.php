@@ -24,16 +24,8 @@ class JobConfigurationQuery extends \Google\Collection
    * @var bool
    */
   public $allowLargeResults;
-  /**
-   * @var Clustering
-   */
-  public $clustering;
   protected $clusteringType = Clustering::class;
   protected $clusteringDataType = '';
-  /**
-   * @var ConnectionProperty[]
-   */
-  public $connectionProperties;
   protected $connectionPropertiesType = ConnectionProperty::class;
   protected $connectionPropertiesDataType = 'array';
   /**
@@ -48,22 +40,10 @@ class JobConfigurationQuery extends \Google\Collection
    * @var bool
    */
   public $createSession;
-  /**
-   * @var DatasetReference
-   */
-  public $defaultDataset;
   protected $defaultDatasetType = DatasetReference::class;
   protected $defaultDatasetDataType = '';
-  /**
-   * @var EncryptionConfiguration
-   */
-  public $destinationEncryptionConfiguration;
   protected $destinationEncryptionConfigurationType = EncryptionConfiguration::class;
   protected $destinationEncryptionConfigurationDataType = '';
-  /**
-   * @var TableReference
-   */
-  public $destinationTable;
   protected $destinationTableType = TableReference::class;
   protected $destinationTableDataType = '';
   /**
@@ -94,32 +74,20 @@ class JobConfigurationQuery extends \Google\Collection
    * @var string
    */
   public $query;
-  /**
-   * @var QueryParameter[]
-   */
-  public $queryParameters;
   protected $queryParametersType = QueryParameter::class;
   protected $queryParametersDataType = 'array';
-  /**
-   * @var RangePartitioning
-   */
-  public $rangePartitioning;
   protected $rangePartitioningType = RangePartitioning::class;
   protected $rangePartitioningDataType = '';
   /**
    * @var string[]
    */
   public $schemaUpdateOptions;
-  /**
-   * @var ExternalDataConfiguration[]
-   */
-  public $tableDefinitions;
+  protected $scriptOptionsType = ScriptOptions::class;
+  protected $scriptOptionsDataType = '';
+  protected $systemVariablesType = SystemVariables::class;
+  protected $systemVariablesDataType = '';
   protected $tableDefinitionsType = ExternalDataConfiguration::class;
   protected $tableDefinitionsDataType = 'map';
-  /**
-   * @var TimePartitioning
-   */
-  public $timePartitioning;
   protected $timePartitioningType = TimePartitioning::class;
   protected $timePartitioningDataType = '';
   /**
@@ -130,10 +98,6 @@ class JobConfigurationQuery extends \Google\Collection
    * @var bool
    */
   public $useQueryCache;
-  /**
-   * @var UserDefinedFunctionResource[]
-   */
-  public $userDefinedFunctionResources;
   protected $userDefinedFunctionResourcesType = UserDefinedFunctionResource::class;
   protected $userDefinedFunctionResourcesDataType = 'array';
   /**
@@ -406,6 +370,34 @@ class JobConfigurationQuery extends \Google\Collection
   public function getSchemaUpdateOptions()
   {
     return $this->schemaUpdateOptions;
+  }
+  /**
+   * @param ScriptOptions
+   */
+  public function setScriptOptions(ScriptOptions $scriptOptions)
+  {
+    $this->scriptOptions = $scriptOptions;
+  }
+  /**
+   * @return ScriptOptions
+   */
+  public function getScriptOptions()
+  {
+    return $this->scriptOptions;
+  }
+  /**
+   * @param SystemVariables
+   */
+  public function setSystemVariables(SystemVariables $systemVariables)
+  {
+    $this->systemVariables = $systemVariables;
+  }
+  /**
+   * @return SystemVariables
+   */
+  public function getSystemVariables()
+  {
+    return $this->systemVariables;
   }
   /**
    * @param ExternalDataConfiguration[]

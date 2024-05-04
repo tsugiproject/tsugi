@@ -24,10 +24,6 @@ class Region extends \Google\Collection
    * @var string
    */
   public $creationTimestamp;
-  /**
-   * @var DeprecationStatus
-   */
-  public $deprecated;
   protected $deprecatedType = DeprecationStatus::class;
   protected $deprecatedDataType = '';
   /**
@@ -46,10 +42,8 @@ class Region extends \Google\Collection
    * @var string
    */
   public $name;
-  /**
-   * @var Quota[]
-   */
-  public $quotas;
+  protected $quotaStatusWarningType = RegionQuotaStatusWarning::class;
+  protected $quotaStatusWarningDataType = '';
   protected $quotasType = Quota::class;
   protected $quotasDataType = 'array';
   /**
@@ -152,6 +146,20 @@ class Region extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param RegionQuotaStatusWarning
+   */
+  public function setQuotaStatusWarning(RegionQuotaStatusWarning $quotaStatusWarning)
+  {
+    $this->quotaStatusWarning = $quotaStatusWarning;
+  }
+  /**
+   * @return RegionQuotaStatusWarning
+   */
+  public function getQuotaStatusWarning()
+  {
+    return $this->quotaStatusWarning;
   }
   /**
    * @param Quota[]

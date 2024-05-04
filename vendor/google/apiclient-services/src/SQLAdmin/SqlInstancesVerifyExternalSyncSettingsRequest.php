@@ -20,15 +20,19 @@ namespace Google\Service\SQLAdmin;
 class SqlInstancesVerifyExternalSyncSettingsRequest extends \Google\Model
 {
   /**
-   * @var MySqlSyncConfig
+   * @var string
    */
-  public $mysqlSyncConfig;
+  public $migrationType;
   protected $mysqlSyncConfigType = MySqlSyncConfig::class;
   protected $mysqlSyncConfigDataType = '';
   /**
    * @var string
    */
   public $syncMode;
+  /**
+   * @var string
+   */
+  public $syncParallelLevel;
   /**
    * @var bool
    */
@@ -38,6 +42,20 @@ class SqlInstancesVerifyExternalSyncSettingsRequest extends \Google\Model
    */
   public $verifyReplicationOnly;
 
+  /**
+   * @param string
+   */
+  public function setMigrationType($migrationType)
+  {
+    $this->migrationType = $migrationType;
+  }
+  /**
+   * @return string
+   */
+  public function getMigrationType()
+  {
+    return $this->migrationType;
+  }
   /**
    * @param MySqlSyncConfig
    */
@@ -65,6 +83,20 @@ class SqlInstancesVerifyExternalSyncSettingsRequest extends \Google\Model
   public function getSyncMode()
   {
     return $this->syncMode;
+  }
+  /**
+   * @param string
+   */
+  public function setSyncParallelLevel($syncParallelLevel)
+  {
+    $this->syncParallelLevel = $syncParallelLevel;
+  }
+  /**
+   * @return string
+   */
+  public function getSyncParallelLevel()
+  {
+    return $this->syncParallelLevel;
   }
   /**
    * @param bool

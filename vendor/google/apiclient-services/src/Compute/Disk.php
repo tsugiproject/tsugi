@@ -24,16 +24,8 @@ class Disk extends \Google\Collection
    * @var string
    */
   public $architecture;
-  /**
-   * @var DiskAsyncReplication
-   */
-  public $asyncPrimaryDisk;
   protected $asyncPrimaryDiskType = DiskAsyncReplication::class;
   protected $asyncPrimaryDiskDataType = '';
-  /**
-   * @var DiskAsyncReplicationList[]
-   */
-  public $asyncSecondaryDisks;
   protected $asyncSecondaryDisksType = DiskAsyncReplicationList::class;
   protected $asyncSecondaryDisksDataType = 'map';
   /**
@@ -44,20 +36,12 @@ class Disk extends \Google\Collection
    * @var string
    */
   public $description;
-  /**
-   * @var CustomerEncryptionKey
-   */
-  public $diskEncryptionKey;
   protected $diskEncryptionKeyType = CustomerEncryptionKey::class;
   protected $diskEncryptionKeyDataType = '';
   /**
    * @var bool
    */
   public $enableConfidentialCompute;
-  /**
-   * @var GuestOsFeature[]
-   */
-  public $guestOsFeatures;
   protected $guestOsFeaturesType = GuestOsFeature::class;
   protected $guestOsFeaturesDataType = 'array';
   /**
@@ -104,10 +88,6 @@ class Disk extends \Google\Collection
    * @var string
    */
   public $options;
-  /**
-   * @var DiskParams
-   */
-  public $params;
   protected $paramsType = DiskParams::class;
   protected $paramsDataType = '';
   /**
@@ -134,10 +114,6 @@ class Disk extends \Google\Collection
    * @var string[]
    */
   public $resourcePolicies;
-  /**
-   * @var DiskResourceStatus
-   */
-  public $resourceStatus;
   protected $resourceStatusType = DiskResourceStatus::class;
   protected $resourceStatusDataType = '';
   /**
@@ -176,10 +152,6 @@ class Disk extends \Google\Collection
    * @var string
    */
   public $sourceImage;
-  /**
-   * @var CustomerEncryptionKey
-   */
-  public $sourceImageEncryptionKey;
   protected $sourceImageEncryptionKeyType = CustomerEncryptionKey::class;
   protected $sourceImageEncryptionKeyDataType = '';
   /**
@@ -189,11 +161,15 @@ class Disk extends \Google\Collection
   /**
    * @var string
    */
-  public $sourceSnapshot;
+  public $sourceInstantSnapshot;
   /**
-   * @var CustomerEncryptionKey
+   * @var string
    */
-  public $sourceSnapshotEncryptionKey;
+  public $sourceInstantSnapshotId;
+  /**
+   * @var string
+   */
+  public $sourceSnapshot;
   protected $sourceSnapshotEncryptionKeyType = CustomerEncryptionKey::class;
   protected $sourceSnapshotEncryptionKeyDataType = '';
   /**
@@ -208,6 +184,10 @@ class Disk extends \Google\Collection
    * @var string
    */
   public $status;
+  /**
+   * @var string
+   */
+  public $storagePool;
   /**
    * @var string
    */
@@ -756,6 +736,34 @@ class Disk extends \Google\Collection
   /**
    * @param string
    */
+  public function setSourceInstantSnapshot($sourceInstantSnapshot)
+  {
+    $this->sourceInstantSnapshot = $sourceInstantSnapshot;
+  }
+  /**
+   * @return string
+   */
+  public function getSourceInstantSnapshot()
+  {
+    return $this->sourceInstantSnapshot;
+  }
+  /**
+   * @param string
+   */
+  public function setSourceInstantSnapshotId($sourceInstantSnapshotId)
+  {
+    $this->sourceInstantSnapshotId = $sourceInstantSnapshotId;
+  }
+  /**
+   * @return string
+   */
+  public function getSourceInstantSnapshotId()
+  {
+    return $this->sourceInstantSnapshotId;
+  }
+  /**
+   * @param string
+   */
   public function setSourceSnapshot($sourceSnapshot)
   {
     $this->sourceSnapshot = $sourceSnapshot;
@@ -822,6 +830,20 @@ class Disk extends \Google\Collection
   public function getStatus()
   {
     return $this->status;
+  }
+  /**
+   * @param string
+   */
+  public function setStoragePool($storagePool)
+  {
+    $this->storagePool = $storagePool;
+  }
+  /**
+   * @return string
+   */
+  public function getStoragePool()
+  {
+    return $this->storagePool;
   }
   /**
    * @param string

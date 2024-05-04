@@ -2,20 +2,12 @@
 
 namespace Laravel\Prompts;
 
-use Closure;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 class SelectPrompt extends Prompt
 {
-    /**
-     * The index of the highlighted option.
-     */
-    public int $highlighted = 0;
-
-    /**
-     * The index of the first visible option.
-     */
-    public int $firstVisible = 0;
+    use Concerns\Scrolling;
 
     /**
      * The options for the select prompt.
@@ -34,22 +26,33 @@ class SelectPrompt extends Prompt
         array|Collection $options,
         public int|string|null $default = null,
         public int $scroll = 5,
-        public ?Closure $validate = null,
-        public string $hint = ''
+        public mixed $validate = null,
+        public string $hint = '',
+        public bool|string $required = true,
     ) {
+        if ($this->required === false) {
+            throw new InvalidArgumentException('Argument [required] must be true or a string.');
+        }
+
         $this->options = $options instanceof Collection ? $options->all() : $options;
 
         if ($this->default) {
             if (array_is_list($this->options)) {
-                $this->highlighted = array_search($this->default, $this->options) ?: 0;
+                $this->initializeScrolling(array_search($this->default, $this->options) ?: 0);
             } else {
-                $this->highlighted = array_search($this->default, array_keys($this->options)) ?: 0;
+                $this->initializeScrolling(array_search($this->default, array_keys($this->options)) ?: 0);
             }
+
+            $this->scrollToHighlighted(count($this->options));
+        } else {
+            $this->initializeScrolling(0);
         }
 
         $this->on('key', fn ($key) => match ($key) {
-            Key::UP, Key::UP_ARROW, Key::LEFT, Key::LEFT_ARROW, Key::SHIFT_TAB, 'k', 'h' => $this->highlightPrevious(),
-            Key::DOWN, Key::DOWN_ARROW, Key::RIGHT, Key::RIGHT_ARROW, Key::TAB, 'j', 'l' => $this->highlightNext(),
+            Key::UP, Key::UP_ARROW, Key::LEFT, Key::LEFT_ARROW, Key::SHIFT_TAB, Key::CTRL_P, Key::CTRL_B, 'k', 'h' => $this->highlightPrevious(count($this->options)),
+            Key::DOWN, Key::DOWN_ARROW, Key::RIGHT, Key::RIGHT_ARROW, Key::TAB, Key::CTRL_N, Key::CTRL_F, 'j', 'l' => $this->highlightNext(count($this->options)),
+            Key::oneOf([Key::HOME, Key::CTRL_A], $key) => $this->highlight(0),
+            Key::oneOf([Key::END, Key::CTRL_E], $key) => $this->highlight(count($this->options) - 1),
             Key::ENTER => $this->submit(),
             default => null,
         });
@@ -60,6 +63,10 @@ class SelectPrompt extends Prompt
      */
     public function value(): int|string|null
     {
+        if (static::$interactive === false) {
+            return $this->default;
+        }
+
         if (array_is_list($this->options)) {
             return $this->options[$this->highlighted] ?? null;
         } else {
@@ -90,30 +97,10 @@ class SelectPrompt extends Prompt
     }
 
     /**
-     * Highlight the previous entry, or wrap around to the last entry.
+     * Determine whether the given value is invalid when the prompt is required.
      */
-    protected function highlightPrevious(): void
+    protected function isInvalidWhenRequired(mixed $value): bool
     {
-        $this->highlighted = $this->highlighted === 0 ? count($this->options) - 1 : $this->highlighted - 1;
-
-        if ($this->highlighted < $this->firstVisible) {
-            $this->firstVisible--;
-        } elseif ($this->highlighted === count($this->options) - 1) {
-            $this->firstVisible = count($this->options) - min($this->scroll, count($this->options));
-        }
-    }
-
-    /**
-     * Highlight the next entry, or wrap around to the first entry.
-     */
-    protected function highlightNext(): void
-    {
-        $this->highlighted = $this->highlighted === count($this->options) - 1 ? 0 : $this->highlighted + 1;
-
-        if ($this->highlighted > $this->firstVisible + $this->scroll - 1) {
-            $this->firstVisible++;
-        } elseif ($this->highlighted === 0) {
-            $this->firstVisible = 0;
-        }
+        return $value === null;
     }
 }

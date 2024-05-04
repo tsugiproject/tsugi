@@ -30,11 +30,11 @@ class AuthorizationInfo extends \Google\Model
   /**
    * @var string
    */
-  public $resource;
+  public $permissionType;
   /**
-   * @var ServicecontrolResource
+   * @var string
    */
-  public $resourceAttributes;
+  public $resource;
   protected $resourceAttributesType = ServicecontrolResource::class;
   protected $resourceAttributesDataType = '';
 
@@ -65,6 +65,20 @@ class AuthorizationInfo extends \Google\Model
   public function getPermission()
   {
     return $this->permission;
+  }
+  /**
+   * @param string
+   */
+  public function setPermissionType($permissionType)
+  {
+    $this->permissionType = $permissionType;
+  }
+  /**
+   * @return string
+   */
+  public function getPermissionType()
+  {
+    return $this->permissionType;
   }
   /**
    * @param string

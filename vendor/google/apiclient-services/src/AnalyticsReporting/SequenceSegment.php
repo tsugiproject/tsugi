@@ -24,10 +24,6 @@ class SequenceSegment extends \Google\Collection
    * @var bool
    */
   public $firstStepShouldMatchFirstHit;
-  /**
-   * @var SegmentSequenceStep[]
-   */
-  public $segmentSequenceSteps;
   protected $segmentSequenceStepsType = SegmentSequenceStep::class;
   protected $segmentSequenceStepsDataType = 'array';
 

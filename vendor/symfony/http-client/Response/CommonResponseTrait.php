@@ -30,7 +30,9 @@ trait CommonResponseTrait
      * @var callable|null A callback that tells whether we're waiting for response headers
      */
     private $initializer;
+    /** @var bool|\Closure|resource|null */
     private $shouldBuffer;
+    /** @var resource|null */
     private $content;
     private int $offset = 0;
     private ?array $jsonData = null;
@@ -100,6 +102,9 @@ trait CommonResponseTrait
         return $content;
     }
 
+    /**
+     * @return resource
+     */
     public function toStream(bool $throw = true)
     {
         if ($throw) {
@@ -119,7 +124,7 @@ trait CommonResponseTrait
         throw new \BadMethodCallException('Cannot serialize '.__CLASS__);
     }
 
-    public function __wakeup()
+    public function __wakeup(): void
     {
         throw new \BadMethodCallException('Cannot unserialize '.__CLASS__);
     }
@@ -153,7 +158,7 @@ trait CommonResponseTrait
         $response->initializer = null;
     }
 
-    private function checkStatusCode()
+    private function checkStatusCode(): void
     {
         $code = $this->getInfo('http_code');
 

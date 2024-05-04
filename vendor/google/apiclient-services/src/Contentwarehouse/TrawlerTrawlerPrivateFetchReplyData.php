@@ -167,6 +167,14 @@ class TrawlerTrawlerPrivateFetchReplyData extends \Google\Model
    */
   public $downloadFileName;
   /**
+   * @var int
+   */
+  public $googleExtendedObeyWildcardRobotsStatus;
+  /**
+   * @var int
+   */
+  public $googleExtendedRobotsStatus;
+  /**
    * @var string
    */
   public $httpVersion;
@@ -194,20 +202,12 @@ class TrawlerTrawlerPrivateFetchReplyData extends \Google\Model
    * @var string
    */
   public $largeStoreHitLocation;
-  /**
-   * @var TrawlerMultiverseClientIdentifier
-   */
-  public $multiverseClientIdentifier;
   protected $multiverseClientIdentifierType = TrawlerMultiverseClientIdentifier::class;
   protected $multiverseClientIdentifierDataType = '';
   /**
    * @var string
    */
   public $numDroppedReplies;
-  /**
-   * @var TrawlerOriginalClientParams
-   */
-  public $originalClientParams;
   protected $originalClientParamsType = TrawlerOriginalClientParams::class;
   protected $originalClientParamsDataType = '';
   /**
@@ -226,10 +226,6 @@ class TrawlerTrawlerPrivateFetchReplyData extends \Google\Model
    * @var string
    */
   public $tier;
-  /**
-   * @var TrawlerLoggedVPCDestination
-   */
-  public $vpcDestination;
   protected $vpcDestinationType = TrawlerLoggedVPCDestination::class;
   protected $vpcDestinationDataType = '';
 
@@ -666,6 +662,34 @@ class TrawlerTrawlerPrivateFetchReplyData extends \Google\Model
   public function getDownloadFileName()
   {
     return $this->downloadFileName;
+  }
+  /**
+   * @param int
+   */
+  public function setGoogleExtendedObeyWildcardRobotsStatus($googleExtendedObeyWildcardRobotsStatus)
+  {
+    $this->googleExtendedObeyWildcardRobotsStatus = $googleExtendedObeyWildcardRobotsStatus;
+  }
+  /**
+   * @return int
+   */
+  public function getGoogleExtendedObeyWildcardRobotsStatus()
+  {
+    return $this->googleExtendedObeyWildcardRobotsStatus;
+  }
+  /**
+   * @param int
+   */
+  public function setGoogleExtendedRobotsStatus($googleExtendedRobotsStatus)
+  {
+    $this->googleExtendedRobotsStatus = $googleExtendedRobotsStatus;
+  }
+  /**
+   * @return int
+   */
+  public function getGoogleExtendedRobotsStatus()
+  {
+    return $this->googleExtendedRobotsStatus;
   }
   /**
    * @param string

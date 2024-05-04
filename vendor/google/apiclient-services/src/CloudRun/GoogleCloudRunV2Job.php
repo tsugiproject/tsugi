@@ -24,10 +24,6 @@ class GoogleCloudRunV2Job extends \Google\Collection
    * @var string[]
    */
   public $annotations;
-  /**
-   * @var GoogleCloudRunV2BinaryAuthorization
-   */
-  public $binaryAuthorization;
   protected $binaryAuthorizationType = GoogleCloudRunV2BinaryAuthorization::class;
   protected $binaryAuthorizationDataType = '';
   /**
@@ -38,10 +34,6 @@ class GoogleCloudRunV2Job extends \Google\Collection
    * @var string
    */
   public $clientVersion;
-  /**
-   * @var GoogleCloudRunV2Condition[]
-   */
-  public $conditions;
   protected $conditionsType = GoogleCloudRunV2Condition::class;
   protected $conditionsDataType = 'array';
   /**
@@ -80,10 +72,6 @@ class GoogleCloudRunV2Job extends \Google\Collection
    * @var string
    */
   public $lastModifier;
-  /**
-   * @var GoogleCloudRunV2ExecutionReference
-   */
-  public $latestCreatedExecution;
   protected $latestCreatedExecutionType = GoogleCloudRunV2ExecutionReference::class;
   protected $latestCreatedExecutionDataType = '';
   /**
@@ -107,15 +95,11 @@ class GoogleCloudRunV2Job extends \Google\Collection
    */
   public $satisfiesPzs;
   /**
-   * @var GoogleCloudRunV2ExecutionTemplate
+   * @var string
    */
-  public $template;
+  public $startExecutionToken;
   protected $templateType = GoogleCloudRunV2ExecutionTemplate::class;
   protected $templateDataType = '';
-  /**
-   * @var GoogleCloudRunV2Condition
-   */
-  public $terminalCondition;
   protected $terminalConditionType = GoogleCloudRunV2Condition::class;
   protected $terminalConditionDataType = '';
   /**
@@ -406,6 +390,20 @@ class GoogleCloudRunV2Job extends \Google\Collection
   public function getSatisfiesPzs()
   {
     return $this->satisfiesPzs;
+  }
+  /**
+   * @param string
+   */
+  public function setStartExecutionToken($startExecutionToken)
+  {
+    $this->startExecutionToken = $startExecutionToken;
+  }
+  /**
+   * @return string
+   */
+  public function getStartExecutionToken()
+  {
+    return $this->startExecutionToken;
   }
   /**
    * @param GoogleCloudRunV2ExecutionTemplate

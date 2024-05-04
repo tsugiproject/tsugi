@@ -20,16 +20,8 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3Agent extends \Google\Collection
 {
   protected $collection_key = 'supportedLanguageCodes';
-  /**
-   * @var GoogleCloudDialogflowCxV3AdvancedSettings
-   */
-  public $advancedSettings;
   protected $advancedSettingsType = GoogleCloudDialogflowCxV3AdvancedSettings::class;
   protected $advancedSettingsDataType = '';
-  /**
-   * @var GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings
-   */
-  public $answerFeedbackSettings;
   protected $answerFeedbackSettingsType = GoogleCloudDialogflowCxV3AgentAnswerFeedbackSettings::class;
   protected $answerFeedbackSettingsDataType = '';
   /**
@@ -51,21 +43,17 @@ class GoogleCloudDialogflowCxV3Agent extends \Google\Collection
   /**
    * @var bool
    */
+  public $enableMultiLanguageTraining;
+  /**
+   * @var bool
+   */
   public $enableSpellCorrection;
   /**
    * @var bool
    */
   public $enableStackdriverLogging;
-  /**
-   * @var GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings
-   */
-  public $genAppBuilderSettings;
   protected $genAppBuilderSettingsType = GoogleCloudDialogflowCxV3AgentGenAppBuilderSettings::class;
   protected $genAppBuilderSettingsDataType = '';
-  /**
-   * @var GoogleCloudDialogflowCxV3AgentGitIntegrationSettings
-   */
-  public $gitIntegrationSettings;
   protected $gitIntegrationSettingsType = GoogleCloudDialogflowCxV3AgentGitIntegrationSettings::class;
   protected $gitIntegrationSettingsDataType = '';
   /**
@@ -76,14 +64,12 @@ class GoogleCloudDialogflowCxV3Agent extends \Google\Collection
    * @var string
    */
   public $name;
+  protected $personalizationSettingsType = GoogleCloudDialogflowCxV3AgentPersonalizationSettings::class;
+  protected $personalizationSettingsDataType = '';
   /**
    * @var string
    */
   public $securitySettings;
-  /**
-   * @var GoogleCloudDialogflowCxV3SpeechToTextSettings
-   */
-  public $speechToTextSettings;
   protected $speechToTextSettingsType = GoogleCloudDialogflowCxV3SpeechToTextSettings::class;
   protected $speechToTextSettingsDataType = '';
   /**
@@ -94,10 +80,6 @@ class GoogleCloudDialogflowCxV3Agent extends \Google\Collection
    * @var string[]
    */
   public $supportedLanguageCodes;
-  /**
-   * @var GoogleCloudDialogflowCxV3TextToSpeechSettings
-   */
-  public $textToSpeechSettings;
   protected $textToSpeechSettingsType = GoogleCloudDialogflowCxV3TextToSpeechSettings::class;
   protected $textToSpeechSettingsDataType = '';
   /**
@@ -192,6 +174,20 @@ class GoogleCloudDialogflowCxV3Agent extends \Google\Collection
   /**
    * @param bool
    */
+  public function setEnableMultiLanguageTraining($enableMultiLanguageTraining)
+  {
+    $this->enableMultiLanguageTraining = $enableMultiLanguageTraining;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableMultiLanguageTraining()
+  {
+    return $this->enableMultiLanguageTraining;
+  }
+  /**
+   * @param bool
+   */
   public function setEnableSpellCorrection($enableSpellCorrection)
   {
     $this->enableSpellCorrection = $enableSpellCorrection;
@@ -272,6 +268,20 @@ class GoogleCloudDialogflowCxV3Agent extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param GoogleCloudDialogflowCxV3AgentPersonalizationSettings
+   */
+  public function setPersonalizationSettings(GoogleCloudDialogflowCxV3AgentPersonalizationSettings $personalizationSettings)
+  {
+    $this->personalizationSettings = $personalizationSettings;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3AgentPersonalizationSettings
+   */
+  public function getPersonalizationSettings()
+  {
+    return $this->personalizationSettings;
   }
   /**
    * @param string

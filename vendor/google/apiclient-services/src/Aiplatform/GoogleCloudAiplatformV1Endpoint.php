@@ -24,10 +24,6 @@ class GoogleCloudAiplatformV1Endpoint extends \Google\Collection
    * @var string
    */
   public $createTime;
-  /**
-   * @var GoogleCloudAiplatformV1DeployedModel[]
-   */
-  public $deployedModels;
   protected $deployedModelsType = GoogleCloudAiplatformV1DeployedModel::class;
   protected $deployedModelsDataType = 'array';
   /**
@@ -42,10 +38,6 @@ class GoogleCloudAiplatformV1Endpoint extends \Google\Collection
    * @var bool
    */
   public $enablePrivateServiceConnect;
-  /**
-   * @var GoogleCloudAiplatformV1EncryptionSpec
-   */
-  public $encryptionSpec;
   protected $encryptionSpecType = GoogleCloudAiplatformV1EncryptionSpec::class;
   protected $encryptionSpecDataType = '';
   /**
@@ -68,12 +60,10 @@ class GoogleCloudAiplatformV1Endpoint extends \Google\Collection
    * @var string
    */
   public $network;
-  /**
-   * @var GoogleCloudAiplatformV1PredictRequestResponseLoggingConfig
-   */
-  public $predictRequestResponseLoggingConfig;
   protected $predictRequestResponseLoggingConfigType = GoogleCloudAiplatformV1PredictRequestResponseLoggingConfig::class;
   protected $predictRequestResponseLoggingConfigDataType = '';
+  protected $privateServiceConnectConfigType = GoogleCloudAiplatformV1PrivateServiceConnectConfig::class;
+  protected $privateServiceConnectConfigDataType = '';
   /**
    * @var int[]
    */
@@ -250,6 +240,20 @@ class GoogleCloudAiplatformV1Endpoint extends \Google\Collection
   public function getPredictRequestResponseLoggingConfig()
   {
     return $this->predictRequestResponseLoggingConfig;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1PrivateServiceConnectConfig
+   */
+  public function setPrivateServiceConnectConfig(GoogleCloudAiplatformV1PrivateServiceConnectConfig $privateServiceConnectConfig)
+  {
+    $this->privateServiceConnectConfig = $privateServiceConnectConfig;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1PrivateServiceConnectConfig
+   */
+  public function getPrivateServiceConnectConfig()
+  {
+    return $this->privateServiceConnectConfig;
   }
   /**
    * @param int[]

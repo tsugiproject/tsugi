@@ -48,6 +48,8 @@ class Product extends \Google\Collection
    * @var string
    */
   public $ageGroup;
+  protected $autoPricingMinPriceType = Price::class;
+  protected $autoPricingMinPriceDataType = '';
   /**
    * @var string
    */
@@ -64,20 +66,12 @@ class Product extends \Google\Collection
    * @var string
    */
   public $canonicalLink;
-  /**
-   * @var ProductCertification[]
-   */
-  public $certifications;
   protected $certificationsType = ProductCertification::class;
   protected $certificationsDataType = 'array';
   /**
    * @var string
    */
   public $channel;
-  /**
-   * @var CloudExportAdditionalProperties[]
-   */
-  public $cloudExportAdditionalProperties;
   protected $cloudExportAdditionalPropertiesType = CloudExportAdditionalProperties::class;
   protected $cloudExportAdditionalPropertiesDataType = 'array';
   /**
@@ -92,16 +86,8 @@ class Product extends \Google\Collection
    * @var string
    */
   public $contentLanguage;
-  /**
-   * @var Price
-   */
-  public $costOfGoodsSold;
   protected $costOfGoodsSoldType = Price::class;
   protected $costOfGoodsSoldDataType = '';
-  /**
-   * @var CustomAttribute[]
-   */
-  public $customAttributes;
   protected $customAttributesType = CustomAttribute::class;
   protected $customAttributesDataType = 'array';
   /**
@@ -169,6 +155,8 @@ class Product extends \Google\Collection
    * @var string
    */
   public $feedLabel;
+  protected $freeShippingThresholdType = FreeShippingThreshold::class;
+  protected $freeShippingThresholdDataType = 'array';
   /**
    * @var string
    */
@@ -197,10 +185,6 @@ class Product extends \Google\Collection
    * @var string[]
    */
   public $includedDestinations;
-  /**
-   * @var Installment
-   */
-  public $installment;
   protected $installmentType = Installment::class;
   protected $installmentDataType = '';
   /**
@@ -227,12 +211,8 @@ class Product extends \Google\Collection
    * @var string
    */
   public $linkTemplate;
-  /**
-   * @var LoyaltyPoints
-   */
-  public $loyaltyPoints;
-  protected $loyaltyPointsType = LoyaltyPoints::class;
-  protected $loyaltyPointsDataType = '';
+  protected $loyaltyProgramType = LoyaltyProgram::class;
+  protected $loyaltyProgramDataType = '';
   /**
    * @var string
    */
@@ -289,58 +269,30 @@ class Product extends \Google\Collection
    * @var string
    */
   public $pickupSla;
-  /**
-   * @var Price
-   */
-  public $price;
   protected $priceType = Price::class;
   protected $priceDataType = '';
-  /**
-   * @var ProductProductDetail[]
-   */
-  public $productDetails;
   protected $productDetailsType = ProductProductDetail::class;
   protected $productDetailsDataType = 'array';
-  /**
-   * @var ProductDimension
-   */
-  public $productHeight;
   protected $productHeightType = ProductDimension::class;
   protected $productHeightDataType = '';
   /**
    * @var string[]
    */
   public $productHighlights;
-  /**
-   * @var ProductDimension
-   */
-  public $productLength;
   protected $productLengthType = ProductDimension::class;
   protected $productLengthDataType = '';
   /**
    * @var string[]
    */
   public $productTypes;
-  /**
-   * @var ProductWeight
-   */
-  public $productWeight;
   protected $productWeightType = ProductWeight::class;
   protected $productWeightDataType = '';
-  /**
-   * @var ProductDimension
-   */
-  public $productWidth;
   protected $productWidthType = ProductDimension::class;
   protected $productWidthDataType = '';
   /**
    * @var string[]
    */
   public $promotionIds;
-  /**
-   * @var Price
-   */
-  public $salePrice;
   protected $salePriceType = Price::class;
   protected $salePriceDataType = '';
   /**
@@ -351,38 +303,18 @@ class Product extends \Google\Collection
    * @var string
    */
   public $sellOnGoogleQuantity;
-  /**
-   * @var ProductShipping[]
-   */
-  public $shipping;
   protected $shippingType = ProductShipping::class;
   protected $shippingDataType = 'array';
-  /**
-   * @var ProductShippingDimension
-   */
-  public $shippingHeight;
   protected $shippingHeightType = ProductShippingDimension::class;
   protected $shippingHeightDataType = '';
   /**
    * @var string
    */
   public $shippingLabel;
-  /**
-   * @var ProductShippingDimension
-   */
-  public $shippingLength;
   protected $shippingLengthType = ProductShippingDimension::class;
   protected $shippingLengthDataType = '';
-  /**
-   * @var ProductShippingWeight
-   */
-  public $shippingWeight;
   protected $shippingWeightType = ProductShippingWeight::class;
   protected $shippingWeightDataType = '';
-  /**
-   * @var ProductShippingDimension
-   */
-  public $shippingWidth;
   protected $shippingWidthType = ProductShippingDimension::class;
   protected $shippingWidthDataType = '';
   /**
@@ -405,10 +337,10 @@ class Product extends \Google\Collection
    * @var string
    */
   public $source;
-  /**
-   * @var ProductSubscriptionCost
-   */
-  public $subscriptionCost;
+  protected $structuredDescriptionType = ProductStructuredDescription::class;
+  protected $structuredDescriptionDataType = '';
+  protected $structuredTitleType = ProductStructuredTitle::class;
+  protected $structuredTitleDataType = '';
   protected $subscriptionCostType = ProductSubscriptionCost::class;
   protected $subscriptionCostDataType = '';
   /**
@@ -419,10 +351,6 @@ class Product extends \Google\Collection
    * @var string
    */
   public $taxCategory;
-  /**
-   * @var ProductTax[]
-   */
-  public $taxes;
   protected $taxesType = ProductTax::class;
   protected $taxesDataType = 'array';
   /**
@@ -433,16 +361,8 @@ class Product extends \Google\Collection
    * @var string
    */
   public $transitTimeLabel;
-  /**
-   * @var ProductUnitPricingBaseMeasure
-   */
-  public $unitPricingBaseMeasure;
   protected $unitPricingBaseMeasureType = ProductUnitPricingBaseMeasure::class;
   protected $unitPricingBaseMeasureDataType = '';
-  /**
-   * @var ProductUnitPricingMeasure
-   */
-  public $unitPricingMeasure;
   protected $unitPricingMeasureType = ProductUnitPricingMeasure::class;
   protected $unitPricingMeasureDataType = '';
   /**
@@ -547,6 +467,20 @@ class Product extends \Google\Collection
   public function getAgeGroup()
   {
     return $this->ageGroup;
+  }
+  /**
+   * @param Price
+   */
+  public function setAutoPricingMinPrice(Price $autoPricingMinPrice)
+  {
+    $this->autoPricingMinPrice = $autoPricingMinPrice;
+  }
+  /**
+   * @return Price
+   */
+  public function getAutoPricingMinPrice()
+  {
+    return $this->autoPricingMinPrice;
   }
   /**
    * @param string
@@ -949,6 +883,20 @@ class Product extends \Google\Collection
     return $this->feedLabel;
   }
   /**
+   * @param FreeShippingThreshold[]
+   */
+  public function setFreeShippingThreshold($freeShippingThreshold)
+  {
+    $this->freeShippingThreshold = $freeShippingThreshold;
+  }
+  /**
+   * @return FreeShippingThreshold[]
+   */
+  public function getFreeShippingThreshold()
+  {
+    return $this->freeShippingThreshold;
+  }
+  /**
    * @param string
    */
   public function setGender($gender)
@@ -1145,18 +1093,18 @@ class Product extends \Google\Collection
     return $this->linkTemplate;
   }
   /**
-   * @param LoyaltyPoints
+   * @param LoyaltyProgram
    */
-  public function setLoyaltyPoints(LoyaltyPoints $loyaltyPoints)
+  public function setLoyaltyProgram(LoyaltyProgram $loyaltyProgram)
   {
-    $this->loyaltyPoints = $loyaltyPoints;
+    $this->loyaltyProgram = $loyaltyProgram;
   }
   /**
-   * @return LoyaltyPoints
+   * @return LoyaltyProgram
    */
-  public function getLoyaltyPoints()
+  public function getLoyaltyProgram()
   {
-    return $this->loyaltyPoints;
+    return $this->loyaltyProgram;
   }
   /**
    * @param string
@@ -1675,6 +1623,34 @@ class Product extends \Google\Collection
   public function getSource()
   {
     return $this->source;
+  }
+  /**
+   * @param ProductStructuredDescription
+   */
+  public function setStructuredDescription(ProductStructuredDescription $structuredDescription)
+  {
+    $this->structuredDescription = $structuredDescription;
+  }
+  /**
+   * @return ProductStructuredDescription
+   */
+  public function getStructuredDescription()
+  {
+    return $this->structuredDescription;
+  }
+  /**
+   * @param ProductStructuredTitle
+   */
+  public function setStructuredTitle(ProductStructuredTitle $structuredTitle)
+  {
+    $this->structuredTitle = $structuredTitle;
+  }
+  /**
+   * @return ProductStructuredTitle
+   */
+  public function getStructuredTitle()
+  {
+    return $this->structuredTitle;
   }
   /**
    * @param ProductSubscriptionCost

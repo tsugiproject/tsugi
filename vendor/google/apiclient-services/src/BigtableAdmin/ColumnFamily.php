@@ -19,18 +19,12 @@ namespace Google\Service\BigtableAdmin;
 
 class ColumnFamily extends \Google\Model
 {
-  /**
-   * @var GcRule
-   */
-  public $gcRule;
   protected $gcRuleType = GcRule::class;
   protected $gcRuleDataType = '';
-  /**
-   * @var ColumnFamilyStats
-   */
-  public $stats;
   protected $statsType = ColumnFamilyStats::class;
   protected $statsDataType = '';
+  protected $valueTypeType = Type::class;
+  protected $valueTypeDataType = '';
 
   /**
    * @param GcRule
@@ -59,6 +53,20 @@ class ColumnFamily extends \Google\Model
   public function getStats()
   {
     return $this->stats;
+  }
+  /**
+   * @param Type
+   */
+  public function setValueType(Type $valueType)
+  {
+    $this->valueType = $valueType;
+  }
+  /**
+   * @return Type
+   */
+  public function getValueType()
+  {
+    return $this->valueType;
   }
 }
 

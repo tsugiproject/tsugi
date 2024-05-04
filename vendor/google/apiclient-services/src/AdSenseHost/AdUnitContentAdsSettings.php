@@ -19,10 +19,6 @@ namespace Google\Service\AdSenseHost;
 
 class AdUnitContentAdsSettings extends \Google\Model
 {
-  /**
-   * @var AdUnitContentAdsSettingsBackupOption
-   */
-  public $backupOption;
   protected $backupOptionType = AdUnitContentAdsSettingsBackupOption::class;
   protected $backupOptionDataType = '';
   /**

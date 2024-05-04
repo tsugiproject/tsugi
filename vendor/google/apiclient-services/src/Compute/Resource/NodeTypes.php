@@ -32,7 +32,9 @@ use Google\Service\Compute\NodeTypeList;
 class NodeTypes extends \Google\Service\Resource
 {
   /**
-   * Retrieves an aggregated list of node types. (nodeTypes.aggregatedList)
+   * Retrieves an aggregated list of node types. To prevent failure, Google
+   * recommends that you set the `returnPartialSuccess` parameter to `true`.
+   * (nodeTypes.aggregatedList)
    *
    * @param string $project Project ID for this request.
    * @param array $optParams Optional parameters.
@@ -94,9 +96,14 @@ class NodeTypes extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
-   * @opt_param string serviceProjectNumber
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
+   * @opt_param string serviceProjectNumber The Shared VPC service project id or
+   * service project number for which aggregated list request is invoked for
+   * subnetworks list-usable api.
    * @return NodeTypeAggregatedList
+   * @throws \Google\Service\Exception
    */
   public function aggregatedList($project, $optParams = [])
   {
@@ -112,6 +119,7 @@ class NodeTypes extends \Google\Service\Resource
    * @param string $nodeType Name of the node type to return.
    * @param array $optParams Optional parameters.
    * @return NodeType
+   * @throws \Google\Service\Exception
    */
   public function get($project, $zone, $nodeType, $optParams = [])
   {
@@ -177,8 +185,11 @@ class NodeTypes extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return NodeTypeList
+   * @throws \Google\Service\Exception
    */
   public function listNodeTypes($project, $zone, $optParams = [])
   {

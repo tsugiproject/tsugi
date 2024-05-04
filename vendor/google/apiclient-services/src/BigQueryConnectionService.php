@@ -27,7 +27,7 @@ use Google\Client;
  *
  * <p>
  * For more information about this service, see the API
- * <a href="https://cloud.google.com/bigquery/" target="_blank">Documentation</a>
+ * <a href="https://cloud.google.com/bigquery/docs/connections-api-intro" target="_blank">Documentation</a>
  * </p>
  *
  * @author Google, Inc.
@@ -42,6 +42,7 @@ class BigQueryConnectionService extends \Google\Service
       "https://www.googleapis.com/auth/cloud-platform";
 
   public $projects_locations_connections;
+  public $rootUrlTemplate;
 
   /**
    * Constructs the internal representation of the BigQueryConnectionService
@@ -55,6 +56,7 @@ class BigQueryConnectionService extends \Google\Service
   {
     parent::__construct($clientOrConfig);
     $this->rootUrl = $rootUrl ?: 'https://bigqueryconnection.googleapis.com/';
+    $this->rootUrlTemplate = $rootUrl ?: 'https://bigqueryconnection.UNIVERSE_DOMAIN/';
     $this->servicePath = '';
     $this->batchPath = 'batch';
     $this->version = 'v1';

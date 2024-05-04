@@ -60,16 +60,8 @@ class CompressedQualitySignals extends \Google\Collection
    * @var string
    */
   public $exactMatchDomainDemotion;
-  /**
-   * @var QualityNsrExperimentalNsrTeamData
-   */
-  public $experimentalNsrTeamData;
   protected $experimentalNsrTeamDataType = QualityNsrExperimentalNsrTeamData::class;
   protected $experimentalNsrTeamDataDataType = '';
-  /**
-   * @var QualityNsrExperimentalNsrTeamWSJData[]
-   */
-  public $experimentalNsrTeamWsjData;
   protected $experimentalNsrTeamWsjDataType = QualityNsrExperimentalNsrTeamWSJData::class;
   protected $experimentalNsrTeamWsjDataDataType = 'array';
   /**
@@ -84,6 +76,10 @@ class CompressedQualitySignals extends \Google\Collection
    * @var float
    */
   public $experimentalQstarSiteSignal;
+  /**
+   * @var float
+   */
+  public $experimentalWebHealthSignal;
   /**
    * @var string
    */
@@ -100,22 +96,10 @@ class CompressedQualitySignals extends \Google\Collection
    * @var float
    */
   public $nsrOverrideBid;
-  /**
-   * @var NSRVersionedItem[]
-   */
-  public $nsrVersionedData;
   protected $nsrVersionedDataType = NSRVersionedItem::class;
   protected $nsrVersionedDataDataType = 'array';
-  /**
-   * @var PairwiseQScoringData
-   */
-  public $pairwiseqScoringData;
   protected $pairwiseqScoringDataType = PairwiseQScoringData::class;
   protected $pairwiseqScoringDataDataType = '';
-  /**
-   * @var PairwiseQVersionedItem[]
-   */
-  public $pairwiseqVersionedData;
   protected $pairwiseqVersionedDataType = PairwiseQVersionedItem::class;
   protected $pairwiseqVersionedDataDataType = 'array';
   /**
@@ -126,10 +110,6 @@ class CompressedQualitySignals extends \Google\Collection
    * @var string
    */
   public $pqData;
-  /**
-   * @var QualityNsrPQData
-   */
-  public $pqDataProto;
   protected $pqDataProtoType = QualityNsrPQData::class;
   protected $pqDataProtoDataType = '';
   /**
@@ -168,12 +148,12 @@ class CompressedQualitySignals extends \Google\Collection
    * @var string
    */
   public $siteAuthority;
-  /**
-   * @var QualityAuthorityTopicEmbeddingsVersionedItem[]
-   */
-  public $topicEmbeddingsVersionedData;
   protected $topicEmbeddingsVersionedDataType = QualityAuthorityTopicEmbeddingsVersionedItem::class;
   protected $topicEmbeddingsVersionedDataDataType = 'array';
+  /**
+   * @var string
+   */
+  public $ugcDiscussionEffortScore;
   /**
    * @var string
    */
@@ -392,6 +372,20 @@ class CompressedQualitySignals extends \Google\Collection
   public function getExperimentalQstarSiteSignal()
   {
     return $this->experimentalQstarSiteSignal;
+  }
+  /**
+   * @param float
+   */
+  public function setExperimentalWebHealthSignal($experimentalWebHealthSignal)
+  {
+    $this->experimentalWebHealthSignal = $experimentalWebHealthSignal;
+  }
+  /**
+   * @return float
+   */
+  public function getExperimentalWebHealthSignal()
+  {
+    return $this->experimentalWebHealthSignal;
   }
   /**
    * @param string
@@ -672,6 +666,20 @@ class CompressedQualitySignals extends \Google\Collection
   public function getTopicEmbeddingsVersionedData()
   {
     return $this->topicEmbeddingsVersionedData;
+  }
+  /**
+   * @param string
+   */
+  public function setUgcDiscussionEffortScore($ugcDiscussionEffortScore)
+  {
+    $this->ugcDiscussionEffortScore = $ugcDiscussionEffortScore;
+  }
+  /**
+   * @return string
+   */
+  public function getUgcDiscussionEffortScore()
+  {
+    return $this->ugcDiscussionEffortScore;
   }
   /**
    * @param string

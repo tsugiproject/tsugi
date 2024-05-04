@@ -12,6 +12,9 @@
 namespace Symfony\Component\BrowserKit;
 
 use Symfony\Component\BrowserKit\Exception\BadMethodCallException;
+use Symfony\Component\BrowserKit\Exception\InvalidArgumentException;
+use Symfony\Component\BrowserKit\Exception\LogicException;
+use Symfony\Component\BrowserKit\Exception\RuntimeException;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\DomCrawler\Form;
 use Symfony\Component\DomCrawler\Link;
@@ -29,18 +32,19 @@ use Symfony\Component\Process\PhpProcess;
  */
 abstract class AbstractBrowser
 {
-    protected $history;
-    protected $cookieJar;
-    protected $server = [];
-    protected $internalRequest;
-    protected $request;
-    protected $internalResponse;
-    protected $response;
-    protected $crawler;
-    protected $insulated = false;
-    protected $redirect;
-    protected $followRedirects = true;
-    protected $followMetaRefresh = false;
+    protected History $history;
+    protected CookieJar $cookieJar;
+    protected array $server = [];
+    protected Request $internalRequest;
+    protected object $request;
+    protected Response $internalResponse;
+    protected object $response;
+    protected Crawler $crawler;
+    protected bool $useHtml5Parser = true;
+    protected bool $insulated = false;
+    protected ?string $redirect;
+    protected bool $followRedirects = true;
+    protected bool $followMetaRefresh = false;
 
     private int $maxRedirects = -1;
     private int $redirectCount = 0;
@@ -50,7 +54,7 @@ abstract class AbstractBrowser
     /**
      * @param array $server The server parameters (equivalent of $_SERVER)
      */
-    public function __construct(array $server = [], History $history = null, CookieJar $cookieJar = null)
+    public function __construct(array $server = [], ?History $history = null, ?CookieJar $cookieJar = null)
     {
         $this->setServerParameters($server);
         $this->history = $history ?? new History();
@@ -60,7 +64,7 @@ abstract class AbstractBrowser
     /**
      * Sets whether to automatically follow redirects or not.
      */
-    public function followRedirects(bool $followRedirects = true)
+    public function followRedirects(bool $followRedirects = true): void
     {
         $this->followRedirects = $followRedirects;
     }
@@ -68,7 +72,7 @@ abstract class AbstractBrowser
     /**
      * Sets whether to automatically follow meta refresh redirects or not.
      */
-    public function followMetaRefresh(bool $followMetaRefresh = true)
+    public function followMetaRefresh(bool $followMetaRefresh = true): void
     {
         $this->followMetaRefresh = $followMetaRefresh;
     }
@@ -84,7 +88,7 @@ abstract class AbstractBrowser
     /**
      * Sets the maximum number of redirects that crawler can follow.
      */
-    public function setMaxRedirects(int $maxRedirects)
+    public function setMaxRedirects(int $maxRedirects): void
     {
         $this->maxRedirects = $maxRedirects < 0 ? -1 : $maxRedirects;
         $this->followRedirects = -1 !== $this->maxRedirects;
@@ -101,12 +105,12 @@ abstract class AbstractBrowser
     /**
      * Sets the insulated flag.
      *
-     * @throws \RuntimeException When Symfony Process Component is not installed
+     * @throws LogicException When Symfony Process Component is not installed
      */
-    public function insulate(bool $insulated = true)
+    public function insulate(bool $insulated = true): void
     {
         if ($insulated && !class_exists(\Symfony\Component\Process\Process::class)) {
-            throw new \LogicException('Unable to isolate requests as the Symfony Process Component is not installed.');
+            throw new LogicException('Unable to isolate requests as the Symfony Process Component is not installed. Try running "composer require symfony/process".');
         }
 
         $this->insulated = $insulated;
@@ -115,7 +119,7 @@ abstract class AbstractBrowser
     /**
      * Sets server parameters.
      */
-    public function setServerParameters(array $server)
+    public function setServerParameters(array $server): void
     {
         $this->server = array_merge([
             'HTTP_USER_AGENT' => 'Symfony BrowserKit',
@@ -125,7 +129,7 @@ abstract class AbstractBrowser
     /**
      * Sets single server parameter.
      */
-    public function setServerParameter(string $key, string $value)
+    public function setServerParameter(string $key, string $value): void
     {
         $this->server[$key] = $value;
     }
@@ -138,7 +142,7 @@ abstract class AbstractBrowser
         return $this->server[$key] ?? $default;
     }
 
-    public function xmlHttpRequest(string $method, string $uri, array $parameters = [], array $files = [], array $server = [], string $content = null, bool $changeHistory = true): Crawler
+    public function xmlHttpRequest(string $method, string $uri, array $parameters = [], array $files = [], array $server = [], ?string $content = null, bool $changeHistory = true): Crawler
     {
         $this->setServerParameter('HTTP_X_REQUESTED_WITH', 'XMLHttpRequest');
 
@@ -188,11 +192,19 @@ abstract class AbstractBrowser
      */
     public function getCrawler(): Crawler
     {
-        if (null === $this->crawler) {
-            throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
-        }
+        return $this->crawler ?? throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
+    }
 
-        return $this->crawler;
+    /**
+     * Sets whether parsing should be done using "masterminds/html5".
+     *
+     * @return $this
+     */
+    public function useHtml5Parser(bool $useHtml5Parser): static
+    {
+        $this->useHtml5Parser = $useHtml5Parser;
+
+        return $this;
     }
 
     /**
@@ -200,11 +212,7 @@ abstract class AbstractBrowser
      */
     public function getInternalResponse(): Response
     {
-        if (null === $this->internalResponse) {
-            throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
-        }
-
-        return $this->internalResponse;
+        return $this->internalResponse ?? throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
     }
 
     /**
@@ -217,11 +225,7 @@ abstract class AbstractBrowser
      */
     public function getResponse(): object
     {
-        if (null === $this->response) {
-            throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
-        }
-
-        return $this->response;
+        return $this->response ?? throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
     }
 
     /**
@@ -229,11 +233,7 @@ abstract class AbstractBrowser
      */
     public function getInternalRequest(): Request
     {
-        if (null === $this->internalRequest) {
-            throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
-        }
-
-        return $this->internalRequest;
+        return $this->internalRequest ?? throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
     }
 
     /**
@@ -246,37 +246,34 @@ abstract class AbstractBrowser
      */
     public function getRequest(): object
     {
-        if (null === $this->request) {
-            throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
-        }
-
-        return $this->request;
+        return $this->request ?? throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
     }
 
     /**
      * Clicks on a given link.
+     *
+     * @param array $serverParameters An array of server parameters
      */
-    public function click(Link $link): Crawler
+    public function click(Link $link, array $serverParameters = []): Crawler
     {
         if ($link instanceof Form) {
-            return $this->submit($link);
+            return $this->submit($link, [], $serverParameters);
         }
 
-        return $this->request($link->getMethod(), $link->getUri());
+        return $this->request($link->getMethod(), $link->getUri(), [], [], $serverParameters);
     }
 
     /**
      * Clicks the first link (or clickable image) that contains the given text.
      *
-     * @param string $linkText The text of the link or the alt attribute of the clickable image
+     * @param string $linkText         The text of the link or the alt attribute of the clickable image
+     * @param array  $serverParameters An array of server parameters
      */
-    public function clickLink(string $linkText): Crawler
+    public function clickLink(string $linkText, array $serverParameters = []): Crawler
     {
-        if (null === $this->crawler) {
-            throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
-        }
+        $crawler = $this->crawler ?? throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
 
-        return $this->click($this->crawler->selectLink($linkText)->link());
+        return $this->click($crawler->selectLink($linkText)->link(), $serverParameters);
     }
 
     /**
@@ -303,11 +300,13 @@ abstract class AbstractBrowser
      */
     public function submitForm(string $button, array $fieldValues = [], string $method = 'POST', array $serverParameters = []): Crawler
     {
-        if (null === $this->crawler) {
-            throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
+        $crawler = $this->crawler ?? throw new BadMethodCallException(sprintf('The "request()" method must be called before "%s()".', __METHOD__));
+        $buttonNode = $crawler->selectButton($button);
+
+        if (0 === $buttonNode->count()) {
+            throw new InvalidArgumentException(sprintf('There is no button with "%s" as its content, id, value or name.', $button));
         }
 
-        $buttonNode = $this->crawler->selectButton($button);
         $form = $buttonNode->form($fieldValues, $method);
 
         return $this->submit($form, [], $serverParameters);
@@ -324,7 +323,7 @@ abstract class AbstractBrowser
      * @param string $content       The raw body data
      * @param bool   $changeHistory Whether to update the history or not (only used internally for back(), forward(), and reload())
      */
-    public function request(string $method, string $uri, array $parameters = [], array $files = [], array $server = [], string $content = null, bool $changeHistory = true): Crawler
+    public function request(string $method, string $uri, array $parameters = [], array $files = [], array $server = [], ?string $content = null, bool $changeHistory = true): Crawler
     {
         if ($this->isMainRequest) {
             $this->redirectCount = 0;
@@ -429,7 +428,7 @@ abstract class AbstractBrowser
         }
 
         if (!$process->isSuccessful() || !preg_match('/^O\:\d+\:/', $process->getOutput())) {
-            throw new \RuntimeException(sprintf('OUTPUT: %s ERROR OUTPUT: %s.', $process->getOutput(), $process->getErrorOutput()));
+            throw new RuntimeException(sprintf('OUTPUT: %s ERROR OUTPUT: %s.', $process->getOutput(), $process->getErrorOutput()));
         }
 
         return unserialize($process->getOutput());
@@ -447,11 +446,13 @@ abstract class AbstractBrowser
      *
      * @param object $request An origin request instance
      *
-     * @throws \LogicException When this abstract class is not implemented
+     * @return string
+     *
+     * @throws LogicException When this abstract class is not implemented
      */
     protected function getScript(object $request)
     {
-        throw new \LogicException('To insulate requests, you need to override the getScript() method.');
+        throw new LogicException('To insulate requests, you need to override the getScript() method.');
     }
 
     /**
@@ -485,7 +486,7 @@ abstract class AbstractBrowser
             return null;
         }
 
-        $crawler = new Crawler(null, $uri);
+        $crawler = new Crawler(null, $uri, null, $this->useHtml5Parser);
         $crawler->addContent($content, $type);
 
         return $crawler;
@@ -526,18 +527,18 @@ abstract class AbstractBrowser
     /**
      * Follow redirects?
      *
-     * @throws \LogicException If request was not a redirect
+     * @throws LogicException If request was not a redirect
      */
     public function followRedirect(): Crawler
     {
         if (empty($this->redirect)) {
-            throw new \LogicException('The request was not redirected.');
+            throw new LogicException('The request was not redirected.');
         }
 
         if (-1 !== $this->maxRedirects) {
             if ($this->redirectCount > $this->maxRedirects) {
                 $this->redirectCount = 0;
-                throw new \LogicException(sprintf('The maximum number (%d) of redirections was reached.', $this->maxRedirects));
+                throw new LogicException(sprintf('The maximum number (%d) of redirections was reached.', $this->maxRedirects));
             }
         }
 
@@ -592,7 +593,7 @@ abstract class AbstractBrowser
      *
      * It flushes history and all cookies.
      */
-    public function restart()
+    public function restart(): void
     {
         $this->cookieJar->clear();
         $this->history->clear();

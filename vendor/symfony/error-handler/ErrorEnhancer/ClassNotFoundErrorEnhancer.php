@@ -107,7 +107,8 @@ class ClassNotFoundErrorEnhancer implements ErrorEnhancerInterface
 
     private function findClassInPath(string $path, string $class, string $prefix): array
     {
-        if (!$path = realpath($path.'/'.strtr($prefix, '\\_', '//')) ?: realpath($path.'/'.\dirname(strtr($prefix, '\\_', '//'))) ?: realpath($path)) {
+        $path = realpath($path.'/'.strtr($prefix, '\\_', '//')) ?: realpath($path.'/'.\dirname(strtr($prefix, '\\_', '//'))) ?: realpath($path);
+        if (!$path || !is_dir($path)) {
             return [];
         }
 
@@ -150,6 +151,14 @@ class ClassNotFoundErrorEnhancer implements ErrorEnhancerInterface
             if ($this->classExists($candidate)) {
                 return $candidate;
             }
+        }
+
+        // Symfony may ship some polyfills, like "Normalizer". But if the Intl
+        // extension is already installed, the next require_once will fail with
+        // a compile error because the class is already defined. And this one
+        // does not throw a Throwable. So it's better to skip it here.
+        if (str_contains($file, 'Resources/stubs')) {
+            return null;
         }
 
         try {

@@ -20,16 +20,12 @@ namespace Google\Service\NetworkManagement;
 class Trace extends \Google\Collection
 {
   protected $collection_key = 'steps';
-  /**
-   * @var EndpointInfo
-   */
-  public $endpointInfo;
   protected $endpointInfoType = EndpointInfo::class;
   protected $endpointInfoDataType = '';
   /**
-   * @var Step[]
+   * @var int
    */
-  public $steps;
+  public $forwardTraceId;
   protected $stepsType = Step::class;
   protected $stepsDataType = 'array';
 
@@ -46,6 +42,20 @@ class Trace extends \Google\Collection
   public function getEndpointInfo()
   {
     return $this->endpointInfo;
+  }
+  /**
+   * @param int
+   */
+  public function setForwardTraceId($forwardTraceId)
+  {
+    $this->forwardTraceId = $forwardTraceId;
+  }
+  /**
+   * @return int
+   */
+  public function getForwardTraceId()
+  {
+    return $this->forwardTraceId;
   }
   /**
    * @param Step[]

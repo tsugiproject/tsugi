@@ -20,30 +20,18 @@ namespace Google\Service\Bigquery;
 class Dataset extends \Google\Collection
 {
   protected $collection_key = 'tags';
-  /**
-   * @var DatasetAccess[]
-   */
-  public $access;
   protected $accessType = DatasetAccess::class;
   protected $accessDataType = 'array';
   /**
    * @var string
    */
   public $creationTime;
-  /**
-   * @var DatasetReference
-   */
-  public $datasetReference;
   protected $datasetReferenceType = DatasetReference::class;
   protected $datasetReferenceDataType = '';
   /**
    * @var string
    */
   public $defaultCollation;
-  /**
-   * @var EncryptionConfiguration
-   */
-  public $defaultEncryptionConfiguration;
   protected $defaultEncryptionConfigurationType = EncryptionConfiguration::class;
   protected $defaultEncryptionConfigurationDataType = '';
   /**
@@ -66,10 +54,8 @@ class Dataset extends \Google\Collection
    * @var string
    */
   public $etag;
-  /**
-   * @var ExternalDatasetReference
-   */
-  public $externalDatasetReference;
+  protected $externalCatalogDatasetOptionsType = ExternalCatalogDatasetOptions::class;
+  protected $externalCatalogDatasetOptionsDataType = '';
   protected $externalDatasetReferenceType = ExternalDatasetReference::class;
   protected $externalDatasetReferenceDataType = '';
   /**
@@ -96,6 +82,10 @@ class Dataset extends \Google\Collection
    * @var string
    */
   public $lastModifiedTime;
+  protected $linkedDatasetMetadataType = LinkedDatasetMetadata::class;
+  protected $linkedDatasetMetadataDataType = '';
+  protected $linkedDatasetSourceType = LinkedDatasetSource::class;
+  protected $linkedDatasetSourceDataType = '';
   /**
    * @var string
    */
@@ -104,6 +94,10 @@ class Dataset extends \Google\Collection
    * @var string
    */
   public $maxTimeTravelHours;
+  /**
+   * @var bool
+   */
+  public $satisfiesPzi;
   /**
    * @var bool
    */
@@ -116,12 +110,12 @@ class Dataset extends \Google\Collection
    * @var string
    */
   public $storageBillingModel;
-  /**
-   * @var DatasetTags[]
-   */
-  public $tags;
   protected $tagsType = DatasetTags::class;
   protected $tagsDataType = 'array';
+  /**
+   * @var string
+   */
+  public $type;
 
   /**
    * @param DatasetAccess[]
@@ -264,6 +258,20 @@ class Dataset extends \Google\Collection
     return $this->etag;
   }
   /**
+   * @param ExternalCatalogDatasetOptions
+   */
+  public function setExternalCatalogDatasetOptions(ExternalCatalogDatasetOptions $externalCatalogDatasetOptions)
+  {
+    $this->externalCatalogDatasetOptions = $externalCatalogDatasetOptions;
+  }
+  /**
+   * @return ExternalCatalogDatasetOptions
+   */
+  public function getExternalCatalogDatasetOptions()
+  {
+    return $this->externalCatalogDatasetOptions;
+  }
+  /**
    * @param ExternalDatasetReference
    */
   public function setExternalDatasetReference(ExternalDatasetReference $externalDatasetReference)
@@ -362,6 +370,34 @@ class Dataset extends \Google\Collection
     return $this->lastModifiedTime;
   }
   /**
+   * @param LinkedDatasetMetadata
+   */
+  public function setLinkedDatasetMetadata(LinkedDatasetMetadata $linkedDatasetMetadata)
+  {
+    $this->linkedDatasetMetadata = $linkedDatasetMetadata;
+  }
+  /**
+   * @return LinkedDatasetMetadata
+   */
+  public function getLinkedDatasetMetadata()
+  {
+    return $this->linkedDatasetMetadata;
+  }
+  /**
+   * @param LinkedDatasetSource
+   */
+  public function setLinkedDatasetSource(LinkedDatasetSource $linkedDatasetSource)
+  {
+    $this->linkedDatasetSource = $linkedDatasetSource;
+  }
+  /**
+   * @return LinkedDatasetSource
+   */
+  public function getLinkedDatasetSource()
+  {
+    return $this->linkedDatasetSource;
+  }
+  /**
    * @param string
    */
   public function setLocation($location)
@@ -388,6 +424,20 @@ class Dataset extends \Google\Collection
   public function getMaxTimeTravelHours()
   {
     return $this->maxTimeTravelHours;
+  }
+  /**
+   * @param bool
+   */
+  public function setSatisfiesPzi($satisfiesPzi)
+  {
+    $this->satisfiesPzi = $satisfiesPzi;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzi()
+  {
+    return $this->satisfiesPzi;
   }
   /**
    * @param bool
@@ -444,6 +494,20 @@ class Dataset extends \Google\Collection
   public function getTags()
   {
     return $this->tags;
+  }
+  /**
+   * @param string
+   */
+  public function setType($type)
+  {
+    $this->type = $type;
+  }
+  /**
+   * @return string
+   */
+  public function getType()
+  {
+    return $this->type;
   }
 }
 

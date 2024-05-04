@@ -20,28 +20,18 @@ namespace Google\Service\Container;
 class NodeConfig extends \Google\Collection
 {
   protected $collection_key = 'taints';
-  /**
-   * @var AcceleratorConfig[]
-   */
-  public $accelerators;
   protected $acceleratorsType = AcceleratorConfig::class;
   protected $acceleratorsDataType = 'array';
-  /**
-   * @var AdvancedMachineFeatures
-   */
-  public $advancedMachineFeatures;
   protected $advancedMachineFeaturesType = AdvancedMachineFeatures::class;
   protected $advancedMachineFeaturesDataType = '';
   /**
    * @var string
    */
   public $bootDiskKmsKey;
-  /**
-   * @var ConfidentialNodes
-   */
-  public $confidentialNodes;
   protected $confidentialNodesType = ConfidentialNodes::class;
   protected $confidentialNodesDataType = '';
+  protected $containerdConfigType = ContainerdConfig::class;
+  protected $containerdConfigDataType = '';
   /**
    * @var int
    */
@@ -51,63 +41,35 @@ class NodeConfig extends \Google\Collection
    */
   public $diskType;
   /**
-   * @var EphemeralStorageLocalSsdConfig
+   * @var bool
    */
-  public $ephemeralStorageLocalSsdConfig;
+  public $enableConfidentialStorage;
   protected $ephemeralStorageLocalSsdConfigType = EphemeralStorageLocalSsdConfig::class;
   protected $ephemeralStorageLocalSsdConfigDataType = '';
-  /**
-   * @var FastSocket
-   */
-  public $fastSocket;
   protected $fastSocketType = FastSocket::class;
   protected $fastSocketDataType = '';
-  /**
-   * @var GcfsConfig
-   */
-  public $gcfsConfig;
   protected $gcfsConfigType = GcfsConfig::class;
   protected $gcfsConfigDataType = '';
-  /**
-   * @var VirtualNIC
-   */
-  public $gvnic;
   protected $gvnicType = VirtualNIC::class;
   protected $gvnicDataType = '';
   /**
    * @var string
    */
   public $imageType;
-  /**
-   * @var NodeKubeletConfig
-   */
-  public $kubeletConfig;
   protected $kubeletConfigType = NodeKubeletConfig::class;
   protected $kubeletConfigDataType = '';
   /**
    * @var string[]
    */
   public $labels;
-  /**
-   * @var LinuxNodeConfig
-   */
-  public $linuxNodeConfig;
   protected $linuxNodeConfigType = LinuxNodeConfig::class;
   protected $linuxNodeConfigDataType = '';
-  /**
-   * @var LocalNvmeSsdBlockConfig
-   */
-  public $localNvmeSsdBlockConfig;
   protected $localNvmeSsdBlockConfigType = LocalNvmeSsdBlockConfig::class;
   protected $localNvmeSsdBlockConfigDataType = '';
   /**
    * @var int
    */
   public $localSsdCount;
-  /**
-   * @var NodePoolLoggingConfig
-   */
-  public $loggingConfig;
   protected $loggingConfigType = NodePoolLoggingConfig::class;
   protected $loggingConfigDataType = '';
   /**
@@ -134,42 +96,26 @@ class NodeConfig extends \Google\Collection
    * @var bool
    */
   public $preemptible;
-  /**
-   * @var ReservationAffinity
-   */
-  public $reservationAffinity;
   protected $reservationAffinityType = ReservationAffinity::class;
   protected $reservationAffinityDataType = '';
   /**
    * @var string[]
    */
   public $resourceLabels;
-  /**
-   * @var ResourceManagerTags
-   */
-  public $resourceManagerTags;
   protected $resourceManagerTagsType = ResourceManagerTags::class;
   protected $resourceManagerTagsDataType = '';
-  /**
-   * @var SandboxConfig
-   */
-  public $sandboxConfig;
   protected $sandboxConfigType = SandboxConfig::class;
   protected $sandboxConfigDataType = '';
+  protected $secondaryBootDiskUpdateStrategyType = SecondaryBootDiskUpdateStrategy::class;
+  protected $secondaryBootDiskUpdateStrategyDataType = '';
+  protected $secondaryBootDisksType = SecondaryBootDisk::class;
+  protected $secondaryBootDisksDataType = 'array';
   /**
    * @var string
    */
   public $serviceAccount;
-  /**
-   * @var ShieldedInstanceConfig
-   */
-  public $shieldedInstanceConfig;
   protected $shieldedInstanceConfigType = ShieldedInstanceConfig::class;
   protected $shieldedInstanceConfigDataType = '';
-  /**
-   * @var SoleTenantConfig
-   */
-  public $soleTenantConfig;
   protected $soleTenantConfigType = SoleTenantConfig::class;
   protected $soleTenantConfigDataType = '';
   /**
@@ -180,22 +126,10 @@ class NodeConfig extends \Google\Collection
    * @var string[]
    */
   public $tags;
-  /**
-   * @var NodeTaint[]
-   */
-  public $taints;
   protected $taintsType = NodeTaint::class;
   protected $taintsDataType = 'array';
-  /**
-   * @var WindowsNodeConfig
-   */
-  public $windowsNodeConfig;
   protected $windowsNodeConfigType = WindowsNodeConfig::class;
   protected $windowsNodeConfigDataType = '';
-  /**
-   * @var WorkloadMetadataConfig
-   */
-  public $workloadMetadataConfig;
   protected $workloadMetadataConfigType = WorkloadMetadataConfig::class;
   protected $workloadMetadataConfigDataType = '';
 
@@ -256,6 +190,20 @@ class NodeConfig extends \Google\Collection
     return $this->confidentialNodes;
   }
   /**
+   * @param ContainerdConfig
+   */
+  public function setContainerdConfig(ContainerdConfig $containerdConfig)
+  {
+    $this->containerdConfig = $containerdConfig;
+  }
+  /**
+   * @return ContainerdConfig
+   */
+  public function getContainerdConfig()
+  {
+    return $this->containerdConfig;
+  }
+  /**
    * @param int
    */
   public function setDiskSizeGb($diskSizeGb)
@@ -282,6 +230,20 @@ class NodeConfig extends \Google\Collection
   public function getDiskType()
   {
     return $this->diskType;
+  }
+  /**
+   * @param bool
+   */
+  public function setEnableConfidentialStorage($enableConfidentialStorage)
+  {
+    $this->enableConfidentialStorage = $enableConfidentialStorage;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableConfidentialStorage()
+  {
+    return $this->enableConfidentialStorage;
   }
   /**
    * @param EphemeralStorageLocalSsdConfig
@@ -576,6 +538,34 @@ class NodeConfig extends \Google\Collection
   public function getSandboxConfig()
   {
     return $this->sandboxConfig;
+  }
+  /**
+   * @param SecondaryBootDiskUpdateStrategy
+   */
+  public function setSecondaryBootDiskUpdateStrategy(SecondaryBootDiskUpdateStrategy $secondaryBootDiskUpdateStrategy)
+  {
+    $this->secondaryBootDiskUpdateStrategy = $secondaryBootDiskUpdateStrategy;
+  }
+  /**
+   * @return SecondaryBootDiskUpdateStrategy
+   */
+  public function getSecondaryBootDiskUpdateStrategy()
+  {
+    return $this->secondaryBootDiskUpdateStrategy;
+  }
+  /**
+   * @param SecondaryBootDisk[]
+   */
+  public function setSecondaryBootDisks($secondaryBootDisks)
+  {
+    $this->secondaryBootDisks = $secondaryBootDisks;
+  }
+  /**
+   * @return SecondaryBootDisk[]
+   */
+  public function getSecondaryBootDisks()
+  {
+    return $this->secondaryBootDisks;
   }
   /**
    * @param string

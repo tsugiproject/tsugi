@@ -21,9 +21,9 @@ class Project extends \Google\Collection
 {
   protected $collection_key = 'quotas';
   /**
-   * @var Metadata
+   * @var string
    */
-  public $commonInstanceMetadata;
+  public $cloudArmorTier;
   protected $commonInstanceMetadataType = Metadata::class;
   protected $commonInstanceMetadataDataType = '';
   /**
@@ -58,20 +58,12 @@ class Project extends \Google\Collection
    * @var string
    */
   public $name;
-  /**
-   * @var Quota[]
-   */
-  public $quotas;
   protected $quotasType = Quota::class;
   protected $quotasDataType = 'array';
   /**
    * @var string
    */
   public $selfLink;
-  /**
-   * @var UsageExportLocation
-   */
-  public $usageExportLocation;
   protected $usageExportLocationType = UsageExportLocation::class;
   protected $usageExportLocationDataType = '';
   /**
@@ -83,6 +75,20 @@ class Project extends \Google\Collection
    */
   public $xpnProjectStatus;
 
+  /**
+   * @param string
+   */
+  public function setCloudArmorTier($cloudArmorTier)
+  {
+    $this->cloudArmorTier = $cloudArmorTier;
+  }
+  /**
+   * @return string
+   */
+  public function getCloudArmorTier()
+  {
+    return $this->cloudArmorTier;
+  }
   /**
    * @param Metadata
    */

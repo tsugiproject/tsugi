@@ -25,10 +25,6 @@ class SearchUserActivityResponse extends \Google\Collection
    */
   public $nextPageToken;
   public $sampleRate;
-  /**
-   * @var UserActivitySession[]
-   */
-  public $sessions;
   protected $sessionsType = UserActivitySession::class;
   protected $sessionsDataType = 'array';
   /**

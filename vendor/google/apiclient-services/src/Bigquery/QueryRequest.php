@@ -20,10 +20,6 @@ namespace Google\Service\Bigquery;
 class QueryRequest extends \Google\Collection
 {
   protected $collection_key = 'queryParameters';
-  /**
-   * @var ConnectionProperty[]
-   */
-  public $connectionProperties;
   protected $connectionPropertiesType = ConnectionProperty::class;
   protected $connectionPropertiesDataType = 'array';
   /**
@@ -34,16 +30,14 @@ class QueryRequest extends \Google\Collection
    * @var bool
    */
   public $createSession;
-  /**
-   * @var DatasetReference
-   */
-  public $defaultDataset;
   protected $defaultDatasetType = DatasetReference::class;
   protected $defaultDatasetDataType = '';
   /**
    * @var bool
    */
   public $dryRun;
+  protected $formatOptionsType = DataFormatOptions::class;
+  protected $formatOptionsDataType = '';
   /**
    * @var string
    */
@@ -80,10 +74,6 @@ class QueryRequest extends \Google\Collection
    * @var string
    */
   public $query;
-  /**
-   * @var QueryParameter[]
-   */
-  public $queryParameters;
   protected $queryParametersType = QueryParameter::class;
   protected $queryParametersDataType = 'array';
   /**
@@ -172,6 +162,20 @@ class QueryRequest extends \Google\Collection
   public function getDryRun()
   {
     return $this->dryRun;
+  }
+  /**
+   * @param DataFormatOptions
+   */
+  public function setFormatOptions(DataFormatOptions $formatOptions)
+  {
+    $this->formatOptions = $formatOptions;
+  }
+  /**
+   * @return DataFormatOptions
+   */
+  public function getFormatOptions()
+  {
+    return $this->formatOptions;
   }
   /**
    * @param string

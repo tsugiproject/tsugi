@@ -22,7 +22,8 @@ use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaExecuteIntegration
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaListIntegrationsResponse;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse;
-use Google\Service\Integrations\GoogleProtobufEmpty;
+use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaTestIntegrationsRequest;
+use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaTestIntegrationsResponse;
 
 /**
  * The "integrations" collection of methods.
@@ -34,19 +35,6 @@ use Google\Service\Integrations\GoogleProtobufEmpty;
  */
 class ProjectsLocationsProductsIntegrations extends \Google\Service\Resource
 {
-  /**
-   * Delete the selected integration and all versions inside (integrations.delete)
-   *
-   * @param string $name Required. The location resource of the request.
-   * @param array $optParams Optional parameters.
-   * @return GoogleProtobufEmpty
-   */
-  public function delete($name, $optParams = [])
-  {
-    $params = ['name' => $name];
-    $params = array_merge($params, $optParams);
-    return $this->call('delete', [$params], GoogleProtobufEmpty::class);
-  }
   /**
    * Executes integrations synchronously by passing the trigger id in the request
    * body. The request is not returned until the requested executions are either
@@ -60,6 +48,7 @@ class ProjectsLocationsProductsIntegrations extends \Google\Service\Resource
    * @param GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse
+   * @throws \Google\Service\Exception
    */
   public function execute($name, GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest $postBody, $optParams = [])
   {
@@ -89,6 +78,7 @@ class ProjectsLocationsProductsIntegrations extends \Google\Service\Resource
    * @opt_param int pageSize The page size for the resquest.
    * @opt_param string pageToken The page token for the resquest.
    * @return GoogleCloudIntegrationsV1alphaListIntegrationsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsProductsIntegrations($parent, $optParams = [])
   {
@@ -104,12 +94,28 @@ class ProjectsLocationsProductsIntegrations extends \Google\Service\Resource
    * @param GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse
+   * @throws \Google\Service\Exception
    */
   public function schedule($name, GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest $postBody, $optParams = [])
   {
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('schedule', [$params], GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse::class);
+  }
+  /**
+   * Execute the integration in draft state (integrations.test)
+   *
+   * @param string $name Output only. Auto-generated primary key.
+   * @param GoogleCloudIntegrationsV1alphaTestIntegrationsRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudIntegrationsV1alphaTestIntegrationsResponse
+   * @throws \Google\Service\Exception
+   */
+  public function test($name, GoogleCloudIntegrationsV1alphaTestIntegrationsRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('test', [$params], GoogleCloudIntegrationsV1alphaTestIntegrationsResponse::class);
   }
 }
 

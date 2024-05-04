@@ -42,6 +42,7 @@ class ArtifactRegistry extends \Google\Service
   const CLOUD_PLATFORM_READ_ONLY =
       "https://www.googleapis.com/auth/cloud-platform.read-only";
 
+  public $media;
   public $projects;
   public $projects_locations;
   public $projects_locations_operations;
@@ -59,6 +60,7 @@ class ArtifactRegistry extends \Google\Service
   public $projects_locations_repositories_packages_versions;
   public $projects_locations_repositories_pythonPackages;
   public $projects_locations_repositories_yumArtifacts;
+  public $rootUrlTemplate;
 
   /**
    * Constructs the internal representation of the ArtifactRegistry service.
@@ -71,11 +73,32 @@ class ArtifactRegistry extends \Google\Service
   {
     parent::__construct($clientOrConfig);
     $this->rootUrl = $rootUrl ?: 'https://artifactregistry.googleapis.com/';
+    $this->rootUrlTemplate = $rootUrl ?: 'https://artifactregistry.UNIVERSE_DOMAIN/';
     $this->servicePath = '';
     $this->batchPath = 'batch';
     $this->version = 'v1';
     $this->serviceName = 'artifactregistry';
 
+    $this->media = new ArtifactRegistry\Resource\Media(
+        $this,
+        $this->serviceName,
+        'media',
+        [
+          'methods' => [
+            'download' => [
+              'path' => 'v1/{+name}:download',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
     $this->projects = new ArtifactRegistry\Resource\Projects(
         $this,
         $this->serviceName,
@@ -610,6 +633,20 @@ class ArtifactRegistry extends \Google\Service
                   'type' => 'integer',
                 ],
                 'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'patch' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'updateMask' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],

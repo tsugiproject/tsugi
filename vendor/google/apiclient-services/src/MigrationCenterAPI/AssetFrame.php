@@ -25,19 +25,15 @@ class AssetFrame extends \Google\Collection
    */
   public $attributes;
   /**
+   * @var string
+   */
+  public $collectionType;
+  /**
    * @var string[]
    */
   public $labels;
-  /**
-   * @var MachineDetails
-   */
-  public $machineDetails;
   protected $machineDetailsType = MachineDetails::class;
   protected $machineDetailsDataType = '';
-  /**
-   * @var PerformanceSample[]
-   */
-  public $performanceSamples;
   protected $performanceSamplesType = PerformanceSample::class;
   protected $performanceSamplesDataType = 'array';
   /**
@@ -62,6 +58,20 @@ class AssetFrame extends \Google\Collection
   public function getAttributes()
   {
     return $this->attributes;
+  }
+  /**
+   * @param string
+   */
+  public function setCollectionType($collectionType)
+  {
+    $this->collectionType = $collectionType;
+  }
+  /**
+   * @return string
+   */
+  public function getCollectionType()
+  {
+    return $this->collectionType;
   }
   /**
    * @param string[]

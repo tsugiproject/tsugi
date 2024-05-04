@@ -19,20 +19,12 @@ namespace Google\Service\Contentwarehouse;
 
 class PersonalizationMapsAliasIcon extends \Google\Model
 {
-  /**
-   * @var PersonalizationMapsAliasAliasId
-   */
-  public $aliasId;
   protected $aliasIdType = PersonalizationMapsAliasAliasId::class;
   protected $aliasIdDataType = '';
   /**
    * @var string
    */
   public $droppedPinS2cellId;
-  /**
-   * @var GeostoreFeatureIdProto
-   */
-  public $featureId;
   protected $featureIdType = GeostoreFeatureIdProto::class;
   protected $featureIdDataType = '';
   /**
@@ -48,19 +40,15 @@ class PersonalizationMapsAliasIcon extends \Google\Model
    */
   public $formattedAddress;
   /**
+   * @var bool
+   */
+  public $isAdsJoinCompliant;
+  /**
    * @var string
    */
   public $nickname;
-  /**
-   * @var GeostorePointProto
-   */
-  public $point;
   protected $pointType = GeostorePointProto::class;
   protected $pointDataType = '';
-  /**
-   * @var PtokenPToken
-   */
-  public $ptoken;
   protected $ptokenType = PtokenPToken::class;
   protected $ptokenDataType = '';
   /**
@@ -159,6 +147,20 @@ class PersonalizationMapsAliasIcon extends \Google\Model
   public function getFormattedAddress()
   {
     return $this->formattedAddress;
+  }
+  /**
+   * @param bool
+   */
+  public function setIsAdsJoinCompliant($isAdsJoinCompliant)
+  {
+    $this->isAdsJoinCompliant = $isAdsJoinCompliant;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsAdsJoinCompliant()
+  {
+    return $this->isAdsJoinCompliant;
   }
   /**
    * @param string

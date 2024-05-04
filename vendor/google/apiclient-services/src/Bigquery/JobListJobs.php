@@ -20,28 +20,17 @@ namespace Google\Service\Bigquery;
 class JobListJobs extends \Google\Model
 {
   protected $internal_gapi_mappings = [
+        "principalSubject" => "principal_subject",
         "userEmail" => "user_email",
   ];
-  /**
-   * @var JobConfiguration
-   */
-  public $configuration;
   protected $configurationType = JobConfiguration::class;
   protected $configurationDataType = '';
-  /**
-   * @var ErrorProto
-   */
-  public $errorResult;
   protected $errorResultType = ErrorProto::class;
   protected $errorResultDataType = '';
   /**
    * @var string
    */
   public $id;
-  /**
-   * @var JobReference
-   */
-  public $jobReference;
   protected $jobReferenceType = JobReference::class;
   protected $jobReferenceDataType = '';
   /**
@@ -51,17 +40,13 @@ class JobListJobs extends \Google\Model
   /**
    * @var string
    */
-  public $state;
+  public $principalSubject;
   /**
-   * @var JobStatistics
+   * @var string
    */
-  public $statistics;
+  public $state;
   protected $statisticsType = JobStatistics::class;
   protected $statisticsDataType = '';
-  /**
-   * @var JobStatus
-   */
-  public $status;
   protected $statusType = JobStatus::class;
   protected $statusDataType = '';
   /**
@@ -138,6 +123,20 @@ class JobListJobs extends \Google\Model
   public function getKind()
   {
     return $this->kind;
+  }
+  /**
+   * @param string
+   */
+  public function setPrincipalSubject($principalSubject)
+  {
+    $this->principalSubject = $principalSubject;
+  }
+  /**
+   * @return string
+   */
+  public function getPrincipalSubject()
+  {
+    return $this->principalSubject;
   }
   /**
    * @param string

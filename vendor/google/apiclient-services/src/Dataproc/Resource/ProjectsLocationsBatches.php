@@ -17,6 +17,7 @@
 
 namespace Google\Service\Dataproc\Resource;
 
+use Google\Service\Dataproc\AnalyzeBatchRequest;
 use Google\Service\Dataproc\Batch;
 use Google\Service\Dataproc\DataprocEmpty;
 use Google\Service\Dataproc\ListBatchesResponse;
@@ -32,6 +33,23 @@ use Google\Service\Dataproc\Operation;
  */
 class ProjectsLocationsBatches extends \Google\Service\Resource
 {
+  /**
+   * Analyze a Batch for possible recommendations and insights. (batches.analyze)
+   *
+   * @param string $name Required. The fully qualified name of the batch to
+   * analyze in the format
+   * "projects/PROJECT_ID/locations/DATAPROC_REGION/batches/BATCH_ID"
+   * @param AnalyzeBatchRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function analyze($name, AnalyzeBatchRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('analyze', [$params], Operation::class);
+  }
   /**
    * Creates a batch workload that executes asynchronously. (batches.create)
    *
@@ -53,6 +71,7 @@ class ProjectsLocationsBatches extends \Google\Service\Resource
    * contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens
    * (-). The maximum length is 40 characters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function create($parent, Batch $postBody, $optParams = [])
   {
@@ -70,6 +89,7 @@ class ProjectsLocationsBatches extends \Google\Service\Resource
    * "projects/PROJECT_ID/locations/DATAPROC_REGION/batches/BATCH_ID"
    * @param array $optParams Optional parameters.
    * @return DataprocEmpty
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -85,6 +105,7 @@ class ProjectsLocationsBatches extends \Google\Service\Resource
    * "projects/PROJECT_ID/locations/DATAPROC_REGION/batches/BATCH_ID"
    * @param array $optParams Optional parameters.
    * @return Batch
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -103,9 +124,11 @@ class ProjectsLocationsBatches extends \Google\Service\Resource
    * response.A filter is a logical expression constraining the values of various
    * fields in each batch resource. Filters are case sensitive, and may contain
    * multiple clauses combined with logical operators (AND/OR). Supported fields
-   * are batch_id, batch_uuid, state, and create_time.e.g. state = RUNNING and
-   * create_time < "2023-01-01T00:00:00Z" filters for batches in state RUNNING
-   * that were created before 2023-01-01See
+   * are batch_id, batch_uuid, state, create_time, and labels.e.g. state = RUNNING
+   * and create_time < "2023-01-01T00:00:00Z" filters for batches in state RUNNING
+   * that were created before 2023-01-01. state = RUNNING and
+   * labels.environment=production filters for batches in state in a RUNNING state
+   * that have a production environment label.See
    * https://google.aip.dev/assets/misc/ebnf-filtering.txt for a detailed
    * description of the filter syntax and a list of supported comparisons.
    * @opt_param string orderBy Optional. Field(s) on which to sort the list of
@@ -118,6 +141,7 @@ class ProjectsLocationsBatches extends \Google\Service\Resource
    * @opt_param string pageToken Optional. A page token received from a previous
    * ListBatches call. Provide this token to retrieve the subsequent page.
    * @return ListBatchesResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsBatches($parent, $optParams = [])
   {

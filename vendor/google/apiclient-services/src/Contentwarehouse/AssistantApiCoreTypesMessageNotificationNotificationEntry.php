@@ -20,6 +20,10 @@ namespace Google\Service\Contentwarehouse;
 class AssistantApiCoreTypesMessageNotificationNotificationEntry extends \Google\Model
 {
   /**
+   * @var string
+   */
+  public $audioDuration;
+  /**
    * @var int
    */
   public $charCount;
@@ -39,10 +43,6 @@ class AssistantApiCoreTypesMessageNotificationNotificationEntry extends \Google\
    * @var string
    */
   public $postTime;
-  /**
-   * @var AssistantApiCoreTypesMessageNotificationPerson
-   */
-  public $sender;
   protected $senderType = AssistantApiCoreTypesMessageNotificationPerson::class;
   protected $senderDataType = '';
   /**
@@ -50,6 +50,20 @@ class AssistantApiCoreTypesMessageNotificationNotificationEntry extends \Google\
    */
   public $wordCount;
 
+  /**
+   * @param string
+   */
+  public function setAudioDuration($audioDuration)
+  {
+    $this->audioDuration = $audioDuration;
+  }
+  /**
+   * @return string
+   */
+  public function getAudioDuration()
+  {
+    return $this->audioDuration;
+  }
   /**
    * @param int
    */

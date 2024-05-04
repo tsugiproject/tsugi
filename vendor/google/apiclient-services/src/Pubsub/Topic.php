@@ -19,6 +19,8 @@ namespace Google\Service\Pubsub;
 
 class Topic extends \Google\Model
 {
+  protected $ingestionDataSourceSettingsType = IngestionDataSourceSettings::class;
+  protected $ingestionDataSourceSettingsDataType = '';
   /**
    * @var string
    */
@@ -31,10 +33,6 @@ class Topic extends \Google\Model
    * @var string
    */
   public $messageRetentionDuration;
-  /**
-   * @var MessageStoragePolicy
-   */
-  public $messageStoragePolicy;
   protected $messageStoragePolicyType = MessageStoragePolicy::class;
   protected $messageStoragePolicyDataType = '';
   /**
@@ -45,13 +43,27 @@ class Topic extends \Google\Model
    * @var bool
    */
   public $satisfiesPzs;
-  /**
-   * @var SchemaSettings
-   */
-  public $schemaSettings;
   protected $schemaSettingsType = SchemaSettings::class;
   protected $schemaSettingsDataType = '';
+  /**
+   * @var string
+   */
+  public $state;
 
+  /**
+   * @param IngestionDataSourceSettings
+   */
+  public function setIngestionDataSourceSettings(IngestionDataSourceSettings $ingestionDataSourceSettings)
+  {
+    $this->ingestionDataSourceSettings = $ingestionDataSourceSettings;
+  }
+  /**
+   * @return IngestionDataSourceSettings
+   */
+  public function getIngestionDataSourceSettings()
+  {
+    return $this->ingestionDataSourceSettings;
+  }
   /**
    * @param string
    */
@@ -149,6 +161,20 @@ class Topic extends \Google\Model
   public function getSchemaSettings()
   {
     return $this->schemaSettings;
+  }
+  /**
+   * @param string
+   */
+  public function setState($state)
+  {
+    $this->state = $state;
+  }
+  /**
+   * @return string
+   */
+  public function getState()
+  {
+    return $this->state;
   }
 }
 

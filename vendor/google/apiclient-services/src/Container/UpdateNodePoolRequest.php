@@ -20,16 +20,16 @@ namespace Google\Service\Container;
 class UpdateNodePoolRequest extends \Google\Collection
 {
   protected $collection_key = 'locations';
+  protected $acceleratorsType = AcceleratorConfig::class;
+  protected $acceleratorsDataType = 'array';
   /**
    * @var string
    */
   public $clusterId;
-  /**
-   * @var ConfidentialNodes
-   */
-  public $confidentialNodes;
   protected $confidentialNodesType = ConfidentialNodes::class;
   protected $confidentialNodesDataType = '';
+  protected $containerdConfigType = ContainerdConfig::class;
+  protected $containerdConfigDataType = '';
   /**
    * @var string
    */
@@ -42,54 +42,26 @@ class UpdateNodePoolRequest extends \Google\Collection
    * @var string
    */
   public $etag;
-  /**
-   * @var FastSocket
-   */
-  public $fastSocket;
   protected $fastSocketType = FastSocket::class;
   protected $fastSocketDataType = '';
-  /**
-   * @var GcfsConfig
-   */
-  public $gcfsConfig;
   protected $gcfsConfigType = GcfsConfig::class;
   protected $gcfsConfigDataType = '';
-  /**
-   * @var VirtualNIC
-   */
-  public $gvnic;
   protected $gvnicType = VirtualNIC::class;
   protected $gvnicDataType = '';
   /**
    * @var string
    */
   public $imageType;
-  /**
-   * @var NodeKubeletConfig
-   */
-  public $kubeletConfig;
   protected $kubeletConfigType = NodeKubeletConfig::class;
   protected $kubeletConfigDataType = '';
-  /**
-   * @var NodeLabels
-   */
-  public $labels;
   protected $labelsType = NodeLabels::class;
   protected $labelsDataType = '';
-  /**
-   * @var LinuxNodeConfig
-   */
-  public $linuxNodeConfig;
   protected $linuxNodeConfigType = LinuxNodeConfig::class;
   protected $linuxNodeConfigDataType = '';
   /**
    * @var string[]
    */
   public $locations;
-  /**
-   * @var NodePoolLoggingConfig
-   */
-  public $loggingConfig;
   protected $loggingConfigType = NodePoolLoggingConfig::class;
   protected $loggingConfigDataType = '';
   /**
@@ -100,10 +72,6 @@ class UpdateNodePoolRequest extends \Google\Collection
    * @var string
    */
   public $name;
-  /**
-   * @var NodeNetworkConfig
-   */
-  public $nodeNetworkConfig;
   protected $nodeNetworkConfigType = NodeNetworkConfig::class;
   protected $nodeNetworkConfigDataType = '';
   /**
@@ -118,46 +86,20 @@ class UpdateNodePoolRequest extends \Google\Collection
    * @var string
    */
   public $projectId;
-  /**
-   * @var ResourceLabels
-   */
-  public $resourceLabels;
+  protected $queuedProvisioningType = QueuedProvisioning::class;
+  protected $queuedProvisioningDataType = '';
   protected $resourceLabelsType = ResourceLabels::class;
   protected $resourceLabelsDataType = '';
-  /**
-   * @var ResourceManagerTags
-   */
-  public $resourceManagerTags;
   protected $resourceManagerTagsType = ResourceManagerTags::class;
   protected $resourceManagerTagsDataType = '';
-  /**
-   * @var NetworkTags
-   */
-  public $tags;
   protected $tagsType = NetworkTags::class;
   protected $tagsDataType = '';
-  /**
-   * @var NodeTaints
-   */
-  public $taints;
   protected $taintsType = NodeTaints::class;
   protected $taintsDataType = '';
-  /**
-   * @var UpgradeSettings
-   */
-  public $upgradeSettings;
   protected $upgradeSettingsType = UpgradeSettings::class;
   protected $upgradeSettingsDataType = '';
-  /**
-   * @var WindowsNodeConfig
-   */
-  public $windowsNodeConfig;
   protected $windowsNodeConfigType = WindowsNodeConfig::class;
   protected $windowsNodeConfigDataType = '';
-  /**
-   * @var WorkloadMetadataConfig
-   */
-  public $workloadMetadataConfig;
   protected $workloadMetadataConfigType = WorkloadMetadataConfig::class;
   protected $workloadMetadataConfigDataType = '';
   /**
@@ -165,6 +107,20 @@ class UpdateNodePoolRequest extends \Google\Collection
    */
   public $zone;
 
+  /**
+   * @param AcceleratorConfig[]
+   */
+  public function setAccelerators($accelerators)
+  {
+    $this->accelerators = $accelerators;
+  }
+  /**
+   * @return AcceleratorConfig[]
+   */
+  public function getAccelerators()
+  {
+    return $this->accelerators;
+  }
   /**
    * @param string
    */
@@ -192,6 +148,20 @@ class UpdateNodePoolRequest extends \Google\Collection
   public function getConfidentialNodes()
   {
     return $this->confidentialNodes;
+  }
+  /**
+   * @param ContainerdConfig
+   */
+  public function setContainerdConfig(ContainerdConfig $containerdConfig)
+  {
+    $this->containerdConfig = $containerdConfig;
+  }
+  /**
+   * @return ContainerdConfig
+   */
+  public function getContainerdConfig()
+  {
+    return $this->containerdConfig;
   }
   /**
    * @param string
@@ -444,6 +414,20 @@ class UpdateNodePoolRequest extends \Google\Collection
   public function getProjectId()
   {
     return $this->projectId;
+  }
+  /**
+   * @param QueuedProvisioning
+   */
+  public function setQueuedProvisioning(QueuedProvisioning $queuedProvisioning)
+  {
+    $this->queuedProvisioning = $queuedProvisioning;
+  }
+  /**
+   * @return QueuedProvisioning
+   */
+  public function getQueuedProvisioning()
+  {
+    return $this->queuedProvisioning;
   }
   /**
    * @param ResourceLabels

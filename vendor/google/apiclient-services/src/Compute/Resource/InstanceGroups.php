@@ -60,6 +60,7 @@ class InstanceGroups extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function addInstances($project, $zone, $instanceGroup, InstanceGroupsAddInstancesRequest $postBody, $optParams = [])
   {
@@ -68,8 +69,9 @@ class InstanceGroups extends \Google\Service\Resource
     return $this->call('addInstances', [$params], Operation::class);
   }
   /**
-   * Retrieves the list of instance groups and sorts them by zone.
-   * (instanceGroups.aggregatedList)
+   * Retrieves the list of instance groups and sorts them by zone. To prevent
+   * failure, Google recommends that you set the `returnPartialSuccess` parameter
+   * to `true`. (instanceGroups.aggregatedList)
    *
    * @param string $project Project ID for this request.
    * @param array $optParams Optional parameters.
@@ -131,9 +133,14 @@ class InstanceGroups extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
-   * @opt_param string serviceProjectNumber
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
+   * @opt_param string serviceProjectNumber The Shared VPC service project id or
+   * service project number for which aggregated list request is invoked for
+   * subnetworks list-usable api.
    * @return InstanceGroupAggregatedList
+   * @throws \Google\Service\Exception
    */
   public function aggregatedList($project, $optParams = [])
   {
@@ -162,6 +169,7 @@ class InstanceGroups extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($project, $zone, $instanceGroup, $optParams = [])
   {
@@ -180,6 +188,7 @@ class InstanceGroups extends \Google\Service\Resource
    * @param string $instanceGroup The name of the instance group.
    * @param array $optParams Optional parameters.
    * @return InstanceGroup
+   * @throws \Google\Service\Exception
    */
   public function get($project, $zone, $instanceGroup, $optParams = [])
   {
@@ -208,6 +217,7 @@ class InstanceGroups extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function insert($project, $zone, InstanceGroup $postBody, $optParams = [])
   {
@@ -275,8 +285,11 @@ class InstanceGroups extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return InstanceGroupList
+   * @throws \Google\Service\Exception
    */
   public function listInstanceGroups($project, $zone, $optParams = [])
   {
@@ -347,8 +360,11 @@ class InstanceGroups extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return InstanceGroupsListInstances
+   * @throws \Google\Service\Exception
    */
   public function listInstances($project, $zone, $instanceGroup, InstanceGroupsListInstancesRequest $postBody, $optParams = [])
   {
@@ -381,6 +397,7 @@ class InstanceGroups extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function removeInstances($project, $zone, $instanceGroup, InstanceGroupsRemoveInstancesRequest $postBody, $optParams = [])
   {
@@ -410,6 +427,7 @@ class InstanceGroups extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function setNamedPorts($project, $zone, $instanceGroup, InstanceGroupsSetNamedPortsRequest $postBody, $optParams = [])
   {

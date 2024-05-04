@@ -19,10 +19,6 @@ namespace Google\Service\ArtifactRegistry;
 
 class RemoteRepositoryConfig extends \Google\Model
 {
-  /**
-   * @var AptRepository
-   */
-  public $aptRepository;
   protected $aptRepositoryType = AptRepository::class;
   protected $aptRepositoryDataType = '';
   /**
@@ -30,39 +26,19 @@ class RemoteRepositoryConfig extends \Google\Model
    */
   public $description;
   /**
-   * @var DockerRepository
+   * @var bool
    */
-  public $dockerRepository;
+  public $disableUpstreamValidation;
   protected $dockerRepositoryType = DockerRepository::class;
   protected $dockerRepositoryDataType = '';
-  /**
-   * @var MavenRepository
-   */
-  public $mavenRepository;
   protected $mavenRepositoryType = MavenRepository::class;
   protected $mavenRepositoryDataType = '';
-  /**
-   * @var NpmRepository
-   */
-  public $npmRepository;
   protected $npmRepositoryType = NpmRepository::class;
   protected $npmRepositoryDataType = '';
-  /**
-   * @var PythonRepository
-   */
-  public $pythonRepository;
   protected $pythonRepositoryType = PythonRepository::class;
   protected $pythonRepositoryDataType = '';
-  /**
-   * @var UpstreamCredentials
-   */
-  public $upstreamCredentials;
   protected $upstreamCredentialsType = UpstreamCredentials::class;
   protected $upstreamCredentialsDataType = '';
-  /**
-   * @var YumRepository
-   */
-  public $yumRepository;
   protected $yumRepositoryType = YumRepository::class;
   protected $yumRepositoryDataType = '';
 
@@ -93,6 +69,20 @@ class RemoteRepositoryConfig extends \Google\Model
   public function getDescription()
   {
     return $this->description;
+  }
+  /**
+   * @param bool
+   */
+  public function setDisableUpstreamValidation($disableUpstreamValidation)
+  {
+    $this->disableUpstreamValidation = $disableUpstreamValidation;
+  }
+  /**
+   * @return bool
+   */
+  public function getDisableUpstreamValidation()
+  {
+    return $this->disableUpstreamValidation;
   }
   /**
    * @param DockerRepository

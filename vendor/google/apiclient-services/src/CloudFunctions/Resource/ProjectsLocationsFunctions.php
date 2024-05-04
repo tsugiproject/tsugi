@@ -17,7 +17,9 @@
 
 namespace Google\Service\CloudFunctions\Resource;
 
+use Google\Service\CloudFunctions\AbortFunctionUpgradeRequest;
 use Google\Service\CloudFunctions\CloudfunctionsFunction;
+use Google\Service\CloudFunctions\CommitFunctionUpgradeRequest;
 use Google\Service\CloudFunctions\GenerateDownloadUrlRequest;
 use Google\Service\CloudFunctions\GenerateDownloadUrlResponse;
 use Google\Service\CloudFunctions\GenerateUploadUrlRequest;
@@ -25,7 +27,10 @@ use Google\Service\CloudFunctions\GenerateUploadUrlResponse;
 use Google\Service\CloudFunctions\ListFunctionsResponse;
 use Google\Service\CloudFunctions\Operation;
 use Google\Service\CloudFunctions\Policy;
+use Google\Service\CloudFunctions\RedirectFunctionUpgradeTrafficRequest;
+use Google\Service\CloudFunctions\RollbackFunctionUpgradeTrafficRequest;
 use Google\Service\CloudFunctions\SetIamPolicyRequest;
+use Google\Service\CloudFunctions\SetupFunctionUpgradeConfigRequest;
 use Google\Service\CloudFunctions\TestIamPermissionsRequest;
 use Google\Service\CloudFunctions\TestIamPermissionsResponse;
 
@@ -40,6 +45,44 @@ use Google\Service\CloudFunctions\TestIamPermissionsResponse;
 class ProjectsLocationsFunctions extends \Google\Service\Resource
 {
   /**
+   * Aborts generation upgrade process for a function with the given name from the
+   * specified project. Deletes all 2nd Gen copy related configuration and
+   * resources which were created during the upgrade process.
+   * (functions.abortFunctionUpgrade)
+   *
+   * @param string $name Required. The name of the function for which upgrade
+   * should be aborted.
+   * @param AbortFunctionUpgradeRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function abortFunctionUpgrade($name, AbortFunctionUpgradeRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('abortFunctionUpgrade', [$params], Operation::class);
+  }
+  /**
+   * Finalizes the upgrade after which function upgrade can not be rolled back.
+   * This is the last step of the multi step process to upgrade 1st Gen functions
+   * to 2nd Gen. Deletes all original 1st Gen related configuration and resources.
+   * (functions.commitFunctionUpgrade)
+   *
+   * @param string $name Required. The name of the function for which upgrade
+   * should be finalized.
+   * @param CommitFunctionUpgradeRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function commitFunctionUpgrade($name, CommitFunctionUpgradeRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('commitFunctionUpgrade', [$params], Operation::class);
+  }
+  /**
    * Creates a new function. If a function with the given name already exists in
    * the specified project, the long running operation will return
    * `ALREADY_EXISTS` error. (functions.create)
@@ -53,6 +96,7 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * become the final component of the function's resource name. This value should
    * be 4-63 characters, and valid characters are /a-z-/.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function create($parent, CloudfunctionsFunction $postBody, $optParams = [])
   {
@@ -69,6 +113,7 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * deleted.
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -88,6 +133,7 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * @param GenerateDownloadUrlRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GenerateDownloadUrlResponse
+   * @throws \Google\Service\Exception
    */
   public function generateDownloadUrl($name, GenerateDownloadUrlRequest $postBody, $optParams = [])
   {
@@ -116,6 +162,7 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * @param GenerateUploadUrlRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GenerateUploadUrlResponse
+   * @throws \Google\Service\Exception
    */
   public function generateUploadUrl($parent, GenerateUploadUrlRequest $postBody, $optParams = [])
   {
@@ -130,7 +177,15 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * @param string $name Required. The name of the function which details should
    * be obtained.
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string revision Optional. The optional version of the 1st gen
+   * function whose details should be obtained. The version of a 1st gen function
+   * is an integer that starts from 1 and gets incremented on redeployments. GCF
+   * may keep historical configs for old versions of 1st gen function. This field
+   * can be specified to fetch the historical configs. This field is valid only
+   * for GCF 1st gen function.
    * @return CloudfunctionsFunction
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -161,6 +216,7 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * documentation](https://cloud.google.com/iam/help/conditions/resource-
    * policies).
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function getIamPolicy($resource, $optParams = [])
   {
@@ -194,6 +250,7 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * `ListFunctions` call, and that the system should return the next page of
    * data.
    * @return ListFunctionsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsFunctions($parent, $optParams = [])
   {
@@ -212,12 +269,50 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * @opt_param string updateMask The list of fields to be updated. If no field
    * mask is provided, all provided fields in the request will be updated.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function patch($name, CloudfunctionsFunction $postBody, $optParams = [])
   {
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('patch', [$params], Operation::class);
+  }
+  /**
+   * Changes the traffic target of a function from the original 1st Gen function
+   * to the 2nd Gen copy. This is the second step of the multi step process to
+   * upgrade 1st Gen functions to 2nd Gen. After this operation, all new traffic
+   * will be served by 2nd Gen copy. (functions.redirectFunctionUpgradeTraffic)
+   *
+   * @param string $name Required. The name of the function for which traffic
+   * target should be changed to 2nd Gen from 1st Gen.
+   * @param RedirectFunctionUpgradeTrafficRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function redirectFunctionUpgradeTraffic($name, RedirectFunctionUpgradeTrafficRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('redirectFunctionUpgradeTraffic', [$params], Operation::class);
+  }
+  /**
+   * Reverts the traffic target of a function from the 2nd Gen copy to the
+   * original 1st Gen function. After this operation, all new traffic would be
+   * served by the 1st Gen. (functions.rollbackFunctionUpgradeTraffic)
+   *
+   * @param string $name Required. The name of the function for which traffic
+   * target should be changed back to 1st Gen from 2nd Gen.
+   * @param RollbackFunctionUpgradeTrafficRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function rollbackFunctionUpgradeTraffic($name, RollbackFunctionUpgradeTrafficRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('rollbackFunctionUpgradeTraffic', [$params], Operation::class);
   }
   /**
    * Sets the access control policy on the specified resource. Replaces any
@@ -231,12 +326,33 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * @param SetIamPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function setIamPolicy($resource, SetIamPolicyRequest $postBody, $optParams = [])
   {
     $params = ['resource' => $resource, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('setIamPolicy', [$params], Policy::class);
+  }
+  /**
+   * Creates a 2nd Gen copy of the function configuration based on the 1st Gen
+   * function with the given name. This is the first step of the multi step
+   * process to upgrade 1st Gen functions to 2nd Gen. Only 2nd Gen configuration
+   * is setup as part of this request and traffic continues to be served by 1st
+   * Gen. (functions.setupFunctionUpgradeConfig)
+   *
+   * @param string $name Required. The name of the function which should have
+   * configuration copied for upgrade.
+   * @param SetupFunctionUpgradeConfigRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function setupFunctionUpgradeConfig($name, SetupFunctionUpgradeConfigRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('setupFunctionUpgradeConfig', [$params], Operation::class);
   }
   /**
    * Returns permissions that a caller has on the specified resource. If the
@@ -253,6 +369,7 @@ class ProjectsLocationsFunctions extends \Google\Service\Resource
    * @param TestIamPermissionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return TestIamPermissionsResponse
+   * @throws \Google\Service\Exception
    */
   public function testIamPermissions($resource, TestIamPermissionsRequest $postBody, $optParams = [])
   {

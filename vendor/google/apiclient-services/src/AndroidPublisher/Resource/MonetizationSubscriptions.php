@@ -35,10 +35,7 @@ use Google\Service\AndroidPublisher\Subscription;
 class MonetizationSubscriptions extends \Google\Service\Resource
 {
   /**
-   * Archives a subscription. Can only be done if at least one base plan was
-   * active in the past, and no base plan is available for new or existing
-   * subscribers currently. This action is irreversible, and the subscription ID
-   * will remain reserved. (subscriptions.archive)
+   * Deprecated: subscription archiving is not supported. (subscriptions.archive)
    *
    * @param string $packageName Required. The parent app (package name) of the app
    * of the subscription to delete.
@@ -47,6 +44,7 @@ class MonetizationSubscriptions extends \Google\Service\Resource
    * @param ArchiveSubscriptionRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Subscription
+   * @throws \Google\Service\Exception
    */
   public function archive($packageName, $productId, ArchiveSubscriptionRequest $postBody, $optParams = [])
   {
@@ -65,6 +63,7 @@ class MonetizationSubscriptions extends \Google\Service\Resource
    * @opt_param string productIds Required. A list of up to 100 subscription
    * product IDs to retrieve. All the IDs must be different.
    * @return BatchGetSubscriptionsResponse
+   * @throws \Google\Service\Exception
    */
   public function batchGet($packageName, $optParams = [])
   {
@@ -83,6 +82,7 @@ class MonetizationSubscriptions extends \Google\Service\Resource
    * @param BatchUpdateSubscriptionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return BatchUpdateSubscriptionsResponse
+   * @throws \Google\Service\Exception
    */
   public function batchUpdate($packageName, BatchUpdateSubscriptionsRequest $postBody, $optParams = [])
   {
@@ -113,6 +113,7 @@ class MonetizationSubscriptions extends \Google\Service\Resource
    * regional prices and currencies will succeed even though a new version is
    * available. The latest version is 2022/02.
    * @return Subscription
+   * @throws \Google\Service\Exception
    */
   public function create($packageName, Subscription $postBody, $optParams = [])
   {
@@ -129,6 +130,7 @@ class MonetizationSubscriptions extends \Google\Service\Resource
    * @param string $productId Required. The unique product ID of the subscription
    * to delete.
    * @param array $optParams Optional parameters.
+   * @throws \Google\Service\Exception
    */
   public function delete($packageName, $productId, $optParams = [])
   {
@@ -145,6 +147,7 @@ class MonetizationSubscriptions extends \Google\Service\Resource
    * to get.
    * @param array $optParams Optional parameters.
    * @return Subscription
+   * @throws \Google\Service\Exception
    */
   public function get($packageName, $productId, $optParams = [])
   {
@@ -168,9 +171,10 @@ class MonetizationSubscriptions extends \Google\Service\Resource
    * `ListSubscriptions` call. Provide this to retrieve the subsequent page. When
    * paginating, all other parameters provided to `ListSubscriptions` must match
    * the call that provided the page token.
-   * @opt_param bool showArchived Whether archived subscriptions should be
-   * included in the response. Defaults to false.
+   * @opt_param bool showArchived Deprecated: subscription archiving is not
+   * supported.
    * @return ListSubscriptionsResponse
+   * @throws \Google\Service\Exception
    */
   public function listMonetizationSubscriptions($packageName, $optParams = [])
   {
@@ -206,6 +210,7 @@ class MonetizationSubscriptions extends \Google\Service\Resource
    * available. The latest version is 2022/02.
    * @opt_param string updateMask Required. The list of fields to be updated.
    * @return Subscription
+   * @throws \Google\Service\Exception
    */
   public function patch($packageName, $productId, Subscription $postBody, $optParams = [])
   {

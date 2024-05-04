@@ -41,6 +41,7 @@ class PartnersPromotions extends \Google\Service\Resource
    * @param GoogleCloudPaymentsResellerSubscriptionV1FindEligiblePromotionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudPaymentsResellerSubscriptionV1FindEligiblePromotionsResponse
+   * @throws \Google\Service\Exception
    */
   public function findEligible($parent, GoogleCloudPaymentsResellerSubscriptionV1FindEligiblePromotionsRequest $postBody, $optParams = [])
   {
@@ -59,11 +60,11 @@ class PartnersPromotions extends \Google\Service\Resource
    *
    * @opt_param string filter Optional. Specifies the filters for the promotion
    * results. The syntax is defined in https://google.aip.dev/160 with the
-   * following caveats: - Only the following features are supported: - Logical
+   * following caveats: 1. Only the following features are supported: - Logical
    * operator `AND` - Comparison operator `=` (no wildcards `*`) - Traversal
-   * operator `.` - Has operator `:` (no wildcards `*`) - Only the following
+   * operator `.` - Has operator `:` (no wildcards `*`) 2. Only the following
    * fields are supported: - `applicableProducts` - `regionCodes` -
-   * `youtubePayload.partnerEligibilityId` - `youtubePayload.postalCode` - Unless
+   * `youtubePayload.partnerEligibilityId` - `youtubePayload.postalCode` 3. Unless
    * explicitly mentioned above, other features are not supported. Example:
    * `applicableProducts:partners/partner1/products/product1 AND regionCodes:US
    * AND youtubePayload.postalCode=94043 AND
@@ -77,6 +78,7 @@ class PartnersPromotions extends \Google\Service\Resource
    * paginating, all other parameters provided to `ListPromotions` must match the
    * call that provided the page token.
    * @return GoogleCloudPaymentsResellerSubscriptionV1ListPromotionsResponse
+   * @throws \Google\Service\Exception
    */
   public function listPartnersPromotions($parent, $optParams = [])
   {

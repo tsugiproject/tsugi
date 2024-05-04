@@ -41,6 +41,7 @@ class ProjectsLocationsWorkflowsExecutions extends \Google\Service\Resource
    * @param CancelExecutionRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Execution
+   * @throws \Google\Service\Exception
    */
   public function cancel($name, CancelExecutionRequest $postBody, $optParams = [])
   {
@@ -59,6 +60,7 @@ class ProjectsLocationsWorkflowsExecutions extends \Google\Service\Resource
    * @param Execution $postBody
    * @param array $optParams Optional parameters.
    * @return Execution
+   * @throws \Google\Service\Exception
    */
   public function create($parent, Execution $postBody, $optParams = [])
   {
@@ -75,6 +77,7 @@ class ProjectsLocationsWorkflowsExecutions extends \Google\Service\Resource
    * }/executions/{execution}
    * @param array $optParams Optional parameters.
    * @return ExportDataResponse
+   * @throws \Google\Service\Exception
    */
   public function exportData($name, $optParams = [])
   {
@@ -93,6 +96,7 @@ class ProjectsLocationsWorkflowsExecutions extends \Google\Service\Resource
    * @opt_param string view Optional. A view defining which fields should be
    * filled in the returned execution. The API will default to the FULL view.
    * @return Execution
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -113,15 +117,16 @@ class ProjectsLocationsWorkflowsExecutions extends \Google\Service\Resource
    *
    * @opt_param string filter Optional. Filters applied to the
    * `[Executions.ListExecutions]` results. The following fields are supported for
-   * filtering: `executionId`, `state`, `startTime`, `endTime`, `duration`,
-   * `workflowRevisionId`, `stepName`, and `label`. For details, see AIP-160. For
-   * example, if you are using the Google APIs Explorer: `state="SUCCEEDED"` or
-   * `startTime>"2023-08-01" AND state="FAILED"`
+   * filtering: `executionId`, `state`, `createTime`, `startTime`, `endTime`,
+   * `duration`, `workflowRevisionId`, `stepName`, and `label`. For details, see
+   * AIP-160. For example, if you are using the Google APIs Explorer:
+   * `state="SUCCEEDED"` or `startTime>"2023-08-01" AND state="FAILED"`
    * @opt_param string orderBy Optional. Comma-separated list of fields that
    * specify the ordering applied to the `[Executions.ListExecutions]` results. By
-   * default the ordering is based on descending `startTime`. The following fields
-   * are supported for ordering: `executionId`, `state`, `startTime`, `endTime`,
-   * `duration`, and `workflowRevisionId`. For details, see AIP-132.
+   * default the ordering is based on descending `createTime`. The following
+   * fields are supported for ordering: `executionId`, `state`, `createTime`,
+   * `startTime`, `endTime`, `duration`, and `workflowRevisionId`. For details,
+   * see AIP-132.
    * @opt_param int pageSize Maximum number of executions to return per call. Max
    * supported value depends on the selected Execution view: it's 1000 for BASIC
    * and 100 for FULL. The default value used if the field is not specified is
@@ -135,6 +140,7 @@ class ProjectsLocationsWorkflowsExecutions extends \Google\Service\Resource
    * @opt_param string view Optional. A view defining which fields should be
    * filled in the returned executions. The API will default to the BASIC view.
    * @return ListExecutionsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsWorkflowsExecutions($parent, $optParams = [])
   {

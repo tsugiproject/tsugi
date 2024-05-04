@@ -19,13 +19,25 @@ namespace Google\Service\Contentwarehouse;
 
 class PhotosHdrMetadata extends \Google\Model
 {
-  /**
-   * @var PhotosHdrMetadataGainmap
-   */
-  public $gainmap;
+  protected $baseFormatType = PhotosHdrMetadataBaseFormat::class;
+  protected $baseFormatDataType = '';
   protected $gainmapType = PhotosHdrMetadataGainmap::class;
   protected $gainmapDataType = '';
 
+  /**
+   * @param PhotosHdrMetadataBaseFormat
+   */
+  public function setBaseFormat(PhotosHdrMetadataBaseFormat $baseFormat)
+  {
+    $this->baseFormat = $baseFormat;
+  }
+  /**
+   * @return PhotosHdrMetadataBaseFormat
+   */
+  public function getBaseFormat()
+  {
+    return $this->baseFormat;
+  }
   /**
    * @param PhotosHdrMetadataGainmap
    */

@@ -24,10 +24,6 @@ class Notice extends \Google\Collection
    * @var string[]
    */
   public $description;
-  /**
-   * @var Link[]
-   */
-  public $links;
   protected $linksType = Link::class;
   protected $linksDataType = 'array';
   /**

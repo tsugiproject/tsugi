@@ -34,7 +34,9 @@ class SslCertificates extends \Google\Service\Resource
 {
   /**
    * Retrieves the list of all SslCertificate resources, regional and global,
-   * available to the specified project. (sslCertificates.aggregatedList)
+   * available to the specified project. To prevent failure, Google recommends
+   * that you set the `returnPartialSuccess` parameter to `true`.
+   * (sslCertificates.aggregatedList)
    *
    * @param string $project Name of the project scoping this request.
    * @param array $optParams Optional parameters.
@@ -96,9 +98,14 @@ class SslCertificates extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
-   * @opt_param string serviceProjectNumber
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
+   * @opt_param string serviceProjectNumber The Shared VPC service project id or
+   * service project number for which aggregated list request is invoked for
+   * subnetworks list-usable api.
    * @return SslCertificateAggregatedList
+   * @throws \Google\Service\Exception
    */
   public function aggregatedList($project, $optParams = [])
   {
@@ -124,6 +131,7 @@ class SslCertificates extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($project, $sslCertificate, $optParams = [])
   {
@@ -138,6 +146,7 @@ class SslCertificates extends \Google\Service\Resource
    * @param string $sslCertificate Name of the SslCertificate resource to return.
    * @param array $optParams Optional parameters.
    * @return SslCertificate
+   * @throws \Google\Service\Exception
    */
   public function get($project, $sslCertificate, $optParams = [])
   {
@@ -164,6 +173,7 @@ class SslCertificates extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function insert($project, SslCertificate $postBody, $optParams = [])
   {
@@ -228,8 +238,11 @@ class SslCertificates extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return SslCertificateList
+   * @throws \Google\Service\Exception
    */
   public function listSslCertificates($project, $optParams = [])
   {

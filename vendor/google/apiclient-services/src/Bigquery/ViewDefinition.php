@@ -20,6 +20,8 @@ namespace Google\Service\Bigquery;
 class ViewDefinition extends \Google\Collection
 {
   protected $collection_key = 'userDefinedFunctionResources';
+  protected $privacyPolicyType = PrivacyPolicy::class;
+  protected $privacyPolicyDataType = '';
   /**
    * @var string
    */
@@ -32,13 +34,23 @@ class ViewDefinition extends \Google\Collection
    * @var bool
    */
   public $useLegacySql;
-  /**
-   * @var UserDefinedFunctionResource[]
-   */
-  public $userDefinedFunctionResources;
   protected $userDefinedFunctionResourcesType = UserDefinedFunctionResource::class;
   protected $userDefinedFunctionResourcesDataType = 'array';
 
+  /**
+   * @param PrivacyPolicy
+   */
+  public function setPrivacyPolicy(PrivacyPolicy $privacyPolicy)
+  {
+    $this->privacyPolicy = $privacyPolicy;
+  }
+  /**
+   * @return PrivacyPolicy
+   */
+  public function getPrivacyPolicy()
+  {
+    return $this->privacyPolicy;
+  }
   /**
    * @param string
    */

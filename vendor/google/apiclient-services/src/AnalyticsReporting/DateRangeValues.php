@@ -20,10 +20,6 @@ namespace Google\Service\AnalyticsReporting;
 class DateRangeValues extends \Google\Collection
 {
   protected $collection_key = 'values';
-  /**
-   * @var PivotValueRegion[]
-   */
-  public $pivotValueRegions;
   protected $pivotValueRegionsType = PivotValueRegion::class;
   protected $pivotValueRegionsDataType = 'array';
   /**

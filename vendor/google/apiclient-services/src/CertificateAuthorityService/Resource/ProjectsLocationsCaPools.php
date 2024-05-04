@@ -59,6 +59,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * exception that zero UUID is not supported
    * (00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function create($parent, CaPool $postBody, $optParams = [])
   {
@@ -76,7 +77,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * @opt_param bool ignoreDependentResources Optional. This field allows this
    * pool to be deleted even if it's being depended on by another resource.
    * However, doing so may result in unintended and unrecoverable effects on any
-   * dependent resource(s) since the pool will no longer be able to issue
+   * dependent resources since the pool will no longer be able to issue
    * certificates.
    * @opt_param string requestId Optional. An ID to identify requests. Specify a
    * unique request ID so that if you must retry your request, the server will
@@ -90,6 +91,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * exception that zero UUID is not supported
    * (00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -99,7 +101,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
   }
   /**
    * FetchCaCerts returns the current trust anchor for the CaPool. This will
-   * include CA certificate chains for all Certificate Authorities in the ENABLED,
+   * include CA certificate chains for all certificate authorities in the ENABLED,
    * DISABLED, or STAGED states. (caPools.fetchCaCerts)
    *
    * @param string $caPool Required. The resource name for the CaPool in the
@@ -107,6 +109,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * @param FetchCaCertsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return FetchCaCertsResponse
+   * @throws \Google\Service\Exception
    */
   public function fetchCaCerts($caPool, FetchCaCertsRequest $postBody, $optParams = [])
   {
@@ -120,6 +123,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * @param string $name Required. The name of the CaPool to get.
    * @param array $optParams Optional parameters.
    * @return CaPool
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -150,6 +154,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * documentation](https://cloud.google.com/iam/help/conditions/resource-
    * policies).
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function getIamPolicy($resource, $optParams = [])
   {
@@ -174,6 +179,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * @opt_param string pageToken Optional. Pagination token, returned earlier via
    * ListCaPoolsResponse.next_page_token.
    * @return ListCaPoolsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsCaPools($parent, $optParams = [])
   {
@@ -203,6 +209,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * @opt_param string updateMask Required. A list of fields to be updated in this
    * request.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function patch($name, CaPool $postBody, $optParams = [])
   {
@@ -222,6 +229,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * @param SetIamPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function setIamPolicy($resource, SetIamPolicyRequest $postBody, $optParams = [])
   {
@@ -243,6 +251,7 @@ class ProjectsLocationsCaPools extends \Google\Service\Resource
    * @param TestIamPermissionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return TestIamPermissionsResponse
+   * @throws \Google\Service\Exception
    */
   public function testIamPermissions($resource, TestIamPermissionsRequest $postBody, $optParams = [])
   {

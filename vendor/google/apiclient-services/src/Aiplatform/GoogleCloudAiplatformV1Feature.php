@@ -40,16 +40,16 @@ class GoogleCloudAiplatformV1Feature extends \Google\Collection
    * @var string[]
    */
   public $labels;
-  /**
-   * @var GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly[]
-   */
-  public $monitoringStatsAnomalies;
   protected $monitoringStatsAnomaliesType = GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly::class;
   protected $monitoringStatsAnomaliesDataType = 'array';
   /**
    * @var string
    */
   public $name;
+  /**
+   * @var string
+   */
+  public $pointOfContact;
   /**
    * @var string
    */
@@ -160,6 +160,20 @@ class GoogleCloudAiplatformV1Feature extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param string
+   */
+  public function setPointOfContact($pointOfContact)
+  {
+    $this->pointOfContact = $pointOfContact;
+  }
+  /**
+   * @return string
+   */
+  public function getPointOfContact()
+  {
+    return $this->pointOfContact;
   }
   /**
    * @param string

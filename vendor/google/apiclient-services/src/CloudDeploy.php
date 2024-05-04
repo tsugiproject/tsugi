@@ -48,6 +48,7 @@ class CloudDeploy extends \Google\Service
   public $projects_locations_deliveryPipelines_releases_rollouts_jobRuns;
   public $projects_locations_operations;
   public $projects_locations_targets;
+  public $rootUrlTemplate;
 
   /**
    * Constructs the internal representation of the CloudDeploy service.
@@ -60,6 +61,7 @@ class CloudDeploy extends \Google\Service
   {
     parent::__construct($clientOrConfig);
     $this->rootUrl = $rootUrl ?: 'https://clouddeploy.googleapis.com/';
+    $this->rootUrlTemplate = $rootUrl ?: 'https://clouddeploy.UNIVERSE_DOMAIN/';
     $this->servicePath = '';
     $this->batchPath = 'batch';
     $this->version = 'v1';
@@ -181,6 +183,20 @@ class CloudDeploy extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'getIamPolicy' => [
+              'path' => 'v1/{+resource}:getIamPolicy',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'resource' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'options.requestedPolicyVersion' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+              ],
             ],'list' => [
               'path' => 'v1/{+parent}/customTargetTypes',
               'httpMethod' => 'GET',
@@ -231,6 +247,16 @@ class CloudDeploy extends \Google\Service
                 'validateOnly' => [
                   'location' => 'query',
                   'type' => 'boolean',
+                ],
+              ],
+            ],'setIamPolicy' => [
+              'path' => 'v1/{+resource}:setIamPolicy',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'resource' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],

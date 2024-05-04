@@ -19,6 +19,8 @@ namespace Google\Service\Compute;
 
 class InstanceGroupManagerStatus extends \Google\Model
 {
+  protected $allInstancesConfigType = InstanceGroupManagerStatusAllInstancesConfig::class;
+  protected $allInstancesConfigDataType = '';
   /**
    * @var string
    */
@@ -27,19 +29,25 @@ class InstanceGroupManagerStatus extends \Google\Model
    * @var bool
    */
   public $isStable;
-  /**
-   * @var InstanceGroupManagerStatusStateful
-   */
-  public $stateful;
   protected $statefulType = InstanceGroupManagerStatusStateful::class;
   protected $statefulDataType = '';
-  /**
-   * @var InstanceGroupManagerStatusVersionTarget
-   */
-  public $versionTarget;
   protected $versionTargetType = InstanceGroupManagerStatusVersionTarget::class;
   protected $versionTargetDataType = '';
 
+  /**
+   * @param InstanceGroupManagerStatusAllInstancesConfig
+   */
+  public function setAllInstancesConfig(InstanceGroupManagerStatusAllInstancesConfig $allInstancesConfig)
+  {
+    $this->allInstancesConfig = $allInstancesConfig;
+  }
+  /**
+   * @return InstanceGroupManagerStatusAllInstancesConfig
+   */
+  public function getAllInstancesConfig()
+  {
+    return $this->allInstancesConfig;
+  }
   /**
    * @param string
    */

@@ -42,6 +42,7 @@ class CloudFunctions extends \Google\Service
   public $projects_locations_functions;
   public $projects_locations_operations;
   public $projects_locations_runtimes;
+  public $rootUrlTemplate;
 
   /**
    * Constructs the internal representation of the CloudFunctions service.
@@ -54,6 +55,7 @@ class CloudFunctions extends \Google\Service
   {
     parent::__construct($clientOrConfig);
     $this->rootUrl = $rootUrl ?: 'https://cloudfunctions.googleapis.com/';
+    $this->rootUrlTemplate = $rootUrl ?: 'https://cloudfunctions.UNIVERSE_DOMAIN/';
     $this->servicePath = '';
     $this->batchPath = 'batch';
     $this->version = 'v2';
@@ -97,7 +99,27 @@ class CloudFunctions extends \Google\Service
         'functions',
         [
           'methods' => [
-            'create' => [
+            'abortFunctionUpgrade' => [
+              'path' => 'v2/{+name}:abortFunctionUpgrade',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'commitFunctionUpgrade' => [
+              'path' => 'v2/{+name}:commitFunctionUpgrade',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'create' => [
               'path' => 'v2/{+parent}/functions',
               'httpMethod' => 'POST',
               'parameters' => [
@@ -149,6 +171,10 @@ class CloudFunctions extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+                'revision' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
               ],
             ],'getIamPolicy' => [
@@ -205,11 +231,41 @@ class CloudFunctions extends \Google\Service
                   'type' => 'string',
                 ],
               ],
+            ],'redirectFunctionUpgradeTraffic' => [
+              'path' => 'v2/{+name}:redirectFunctionUpgradeTraffic',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'rollbackFunctionUpgradeTraffic' => [
+              'path' => 'v2/{+name}:rollbackFunctionUpgradeTraffic',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'setIamPolicy' => [
               'path' => 'v2/{+resource}:setIamPolicy',
               'httpMethod' => 'POST',
               'parameters' => [
                 'resource' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'setupFunctionUpgradeConfig' => [
+              'path' => 'v2/{+name}:setupFunctionUpgradeConfig',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,

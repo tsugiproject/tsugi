@@ -24,16 +24,8 @@ class Settings extends \Google\Collection
    * @var string
    */
   public $activationPolicy;
-  /**
-   * @var SqlActiveDirectoryConfig
-   */
-  public $activeDirectoryConfig;
   protected $activeDirectoryConfigType = SqlActiveDirectoryConfig::class;
   protected $activeDirectoryConfigDataType = '';
-  /**
-   * @var AdvancedMachineFeatures
-   */
-  public $advancedMachineFeatures;
   protected $advancedMachineFeaturesType = AdvancedMachineFeatures::class;
   protected $advancedMachineFeaturesDataType = '';
   /**
@@ -44,10 +36,6 @@ class Settings extends \Google\Collection
    * @var string
    */
   public $availabilityType;
-  /**
-   * @var BackupConfiguration
-   */
-  public $backupConfiguration;
   protected $backupConfigurationType = BackupConfiguration::class;
   protected $backupConfigurationDataType = '';
   /**
@@ -62,10 +50,6 @@ class Settings extends \Google\Collection
    * @var bool
    */
   public $crashSafeReplicationEnabled;
-  /**
-   * @var DataCacheConfig
-   */
-  public $dataCacheConfig;
   protected $dataCacheConfigType = DataCacheConfig::class;
   protected $dataCacheConfigDataType = '';
   /**
@@ -76,10 +60,6 @@ class Settings extends \Google\Collection
    * @var string
    */
   public $dataDiskType;
-  /**
-   * @var DatabaseFlags[]
-   */
-  public $databaseFlags;
   protected $databaseFlagsType = DatabaseFlags::class;
   protected $databaseFlagsDataType = 'array';
   /**
@@ -90,10 +70,6 @@ class Settings extends \Google\Collection
    * @var bool
    */
   public $deletionProtectionEnabled;
-  /**
-   * @var DenyMaintenancePeriod[]
-   */
-  public $denyMaintenancePeriods;
   protected $denyMaintenancePeriodsType = DenyMaintenancePeriod::class;
   protected $denyMaintenancePeriodsDataType = 'array';
   /**
@@ -101,37 +77,21 @@ class Settings extends \Google\Collection
    */
   public $edition;
   /**
-   * @var InsightsConfig
+   * @var bool
    */
-  public $insightsConfig;
+  public $enableGoogleMlIntegration;
   protected $insightsConfigType = InsightsConfig::class;
   protected $insightsConfigDataType = '';
-  /**
-   * @var IpConfiguration
-   */
-  public $ipConfiguration;
   protected $ipConfigurationType = IpConfiguration::class;
   protected $ipConfigurationDataType = '';
   /**
    * @var string
    */
   public $kind;
-  /**
-   * @var LocationPreference
-   */
-  public $locationPreference;
   protected $locationPreferenceType = LocationPreference::class;
   protected $locationPreferenceDataType = '';
-  /**
-   * @var MaintenanceWindow
-   */
-  public $maintenanceWindow;
   protected $maintenanceWindowType = MaintenanceWindow::class;
   protected $maintenanceWindowDataType = '';
-  /**
-   * @var PasswordValidationPolicy
-   */
-  public $passwordValidationPolicy;
   protected $passwordValidationPolicyType = PasswordValidationPolicy::class;
   protected $passwordValidationPolicyDataType = '';
   /**
@@ -146,10 +106,6 @@ class Settings extends \Google\Collection
    * @var string
    */
   public $settingsVersion;
-  /**
-   * @var SqlServerAuditConfig
-   */
-  public $sqlServerAuditConfig;
   protected $sqlServerAuditConfigType = SqlServerAuditConfig::class;
   protected $sqlServerAuditConfigDataType = '';
   /**
@@ -410,6 +366,20 @@ class Settings extends \Google\Collection
   public function getEdition()
   {
     return $this->edition;
+  }
+  /**
+   * @param bool
+   */
+  public function setEnableGoogleMlIntegration($enableGoogleMlIntegration)
+  {
+    $this->enableGoogleMlIntegration = $enableGoogleMlIntegration;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableGoogleMlIntegration()
+  {
+    return $this->enableGoogleMlIntegration;
   }
   /**
    * @param InsightsConfig

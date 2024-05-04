@@ -19,10 +19,6 @@ namespace Google\Service\CloudProfiler;
 
 class Profile extends \Google\Model
 {
-  /**
-   * @var Deployment
-   */
-  public $deployment;
   protected $deploymentType = Deployment::class;
   protected $deploymentDataType = '';
   /**
@@ -45,6 +41,10 @@ class Profile extends \Google\Model
    * @var string
    */
   public $profileType;
+  /**
+   * @var string
+   */
+  public $startTime;
 
   /**
    * @param Deployment
@@ -129,6 +129,20 @@ class Profile extends \Google\Model
   public function getProfileType()
   {
     return $this->profileType;
+  }
+  /**
+   * @param string
+   */
+  public function setStartTime($startTime)
+  {
+    $this->startTime = $startTime;
+  }
+  /**
+   * @return string
+   */
+  public function getStartTime()
+  {
+    return $this->startTime;
   }
 }
 

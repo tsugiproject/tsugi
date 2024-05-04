@@ -19,16 +19,8 @@ namespace Google\Service\AnalyticsReporting;
 
 class SegmentFilterClause extends \Google\Model
 {
-  /**
-   * @var SegmentDimensionFilter
-   */
-  public $dimensionFilter;
   protected $dimensionFilterType = SegmentDimensionFilter::class;
   protected $dimensionFilterDataType = '';
-  /**
-   * @var SegmentMetricFilter
-   */
-  public $metricFilter;
   protected $metricFilterType = SegmentMetricFilter::class;
   protected $metricFilterDataType = '';
   /**

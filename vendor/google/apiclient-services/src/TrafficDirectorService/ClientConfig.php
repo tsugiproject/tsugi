@@ -21,24 +21,30 @@ class ClientConfig extends \Google\Collection
 {
   protected $collection_key = 'xdsConfig';
   /**
-   * @var GenericXdsConfig[]
+   * @var string
    */
-  public $genericXdsConfigs;
+  public $clientScope;
   protected $genericXdsConfigsType = GenericXdsConfig::class;
   protected $genericXdsConfigsDataType = 'array';
-  /**
-   * @var Node
-   */
-  public $node;
   protected $nodeType = Node::class;
   protected $nodeDataType = '';
-  /**
-   * @var PerXdsConfig[]
-   */
-  public $xdsConfig;
   protected $xdsConfigType = PerXdsConfig::class;
   protected $xdsConfigDataType = 'array';
 
+  /**
+   * @param string
+   */
+  public function setClientScope($clientScope)
+  {
+    $this->clientScope = $clientScope;
+  }
+  /**
+   * @return string
+   */
+  public function getClientScope()
+  {
+    return $this->clientScope;
+  }
   /**
    * @param GenericXdsConfig[]
    */

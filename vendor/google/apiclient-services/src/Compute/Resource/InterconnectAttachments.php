@@ -34,8 +34,9 @@ use Google\Service\Compute\RegionSetLabelsRequest;
 class InterconnectAttachments extends \Google\Service\Resource
 {
   /**
-   * Retrieves an aggregated list of interconnect attachments.
-   * (interconnectAttachments.aggregatedList)
+   * Retrieves an aggregated list of interconnect attachments. To prevent failure,
+   * Google recommends that you set the `returnPartialSuccess` parameter to
+   * `true`. (interconnectAttachments.aggregatedList)
    *
    * @param string $project Project ID for this request.
    * @param array $optParams Optional parameters.
@@ -97,9 +98,14 @@ class InterconnectAttachments extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
-   * @opt_param string serviceProjectNumber
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
+   * @opt_param string serviceProjectNumber The Shared VPC service project id or
+   * service project number for which aggregated list request is invoked for
+   * subnetworks list-usable api.
    * @return InterconnectAttachmentAggregatedList
+   * @throws \Google\Service\Exception
    */
   public function aggregatedList($project, $optParams = [])
   {
@@ -128,6 +134,7 @@ class InterconnectAttachments extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($project, $region, $interconnectAttachment, $optParams = [])
   {
@@ -144,6 +151,7 @@ class InterconnectAttachments extends \Google\Service\Resource
    * return.
    * @param array $optParams Optional parameters.
    * @return InterconnectAttachment
+   * @throws \Google\Service\Exception
    */
   public function get($project, $region, $interconnectAttachment, $optParams = [])
   {
@@ -172,6 +180,7 @@ class InterconnectAttachments extends \Google\Service\Resource
    * 00000000-0000-0000-0000-000000000000).
    * @opt_param bool validateOnly If true, the request will not be committed.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function insert($project, $region, InterconnectAttachment $postBody, $optParams = [])
   {
@@ -237,8 +246,11 @@ class InterconnectAttachments extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return InterconnectAttachmentList
+   * @throws \Google\Service\Exception
    */
   public function listInterconnectAttachments($project, $region, $optParams = [])
   {
@@ -269,6 +281,7 @@ class InterconnectAttachments extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function patch($project, $region, $interconnectAttachment, InterconnectAttachment $postBody, $optParams = [])
   {
@@ -298,6 +311,7 @@ class InterconnectAttachments extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function setLabels($project, $region, $resource, RegionSetLabelsRequest $postBody, $optParams = [])
   {

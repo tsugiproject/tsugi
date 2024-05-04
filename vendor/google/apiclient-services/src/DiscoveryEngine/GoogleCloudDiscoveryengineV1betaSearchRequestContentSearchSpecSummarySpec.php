@@ -35,22 +35,18 @@ class GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpec 
    * @var string
    */
   public $languageCode;
-  /**
-   * @var GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelPromptSpec
-   */
-  public $modelPromptSpec;
   protected $modelPromptSpecType = GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelPromptSpec::class;
   protected $modelPromptSpecDataType = '';
-  /**
-   * @var GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelSpec
-   */
-  public $modelSpec;
   protected $modelSpecType = GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelSpec::class;
   protected $modelSpecDataType = '';
   /**
    * @var int
    */
   public $summaryResultCount;
+  /**
+   * @var bool
+   */
+  public $useSemanticChunks;
 
   /**
    * @param bool
@@ -149,6 +145,20 @@ class GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpec 
   public function getSummaryResultCount()
   {
     return $this->summaryResultCount;
+  }
+  /**
+   * @param bool
+   */
+  public function setUseSemanticChunks($useSemanticChunks)
+  {
+    $this->useSemanticChunks = $useSemanticChunks;
+  }
+  /**
+   * @return bool
+   */
+  public function getUseSemanticChunks()
+  {
+    return $this->useSemanticChunks;
   }
 }
 

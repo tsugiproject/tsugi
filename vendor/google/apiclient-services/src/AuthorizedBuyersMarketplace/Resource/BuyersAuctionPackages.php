@@ -41,6 +41,7 @@ class BuyersAuctionPackages extends \Google\Service\Resource
    * `buyers/{accountId}/auctionPackages/{auctionPackageId}`
    * @param array $optParams Optional parameters.
    * @return AuctionPackage
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -49,18 +50,30 @@ class BuyersAuctionPackages extends \Google\Service\Resource
     return $this->call('get', [$params], AuctionPackage::class);
   }
   /**
-   * List the auction packages subscribed by a buyer and its clients.
+   * List the auction packages. Buyers can use the URL path
+   * "/v1/buyers/{accountId}/auctionPackages" to list auction packages for the
+   * current buyer and its clients. Bidders can use the URL path
+   * "/v1/bidders/{accountId}/auctionPackages" to list auction packages for the
+   * bidder, its media planners, its buyers, and all their clients.
    * (auctionPackages.listBuyersAuctionPackages)
    *
    * @param string $parent Required. Name of the parent buyer that can access the
-   * auction package. Format: `buyers/{accountId}`
+   * auction package. Format: `buyers/{accountId}`. When used with a bidder
+   * account, the auction packages that the bidder, its media planners, its buyers
+   * and clients are subscribed to will be listed, in the format
+   * `bidders/{accountId}`.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string filter Optional. Optional query string using the [Cloud API
+   * list filtering syntax](/authorized-buyers/apis/guides/list-filters). Only
+   * supported when parent is bidder. Supported columns for filtering are: *
+   * displayName * createTime * updateTime * eligibleSeatIds
    * @opt_param int pageSize Requested page size. The server may return fewer
    * results than requested. Max allowed page size is 500.
    * @opt_param string pageToken The page token as returned.
    * ListAuctionPackagesResponse.nextPageToken
    * @return ListAuctionPackagesResponse
+   * @throws \Google\Service\Exception
    */
   public function listBuyersAuctionPackages($parent, $optParams = [])
   {
@@ -79,6 +92,7 @@ class BuyersAuctionPackages extends \Google\Service\Resource
    * @param SubscribeAuctionPackageRequest $postBody
    * @param array $optParams Optional parameters.
    * @return AuctionPackage
+   * @throws \Google\Service\Exception
    */
   public function subscribe($name, SubscribeAuctionPackageRequest $postBody, $optParams = [])
   {
@@ -98,6 +112,7 @@ class BuyersAuctionPackages extends \Google\Service\Resource
    * @param SubscribeClientsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return AuctionPackage
+   * @throws \Google\Service\Exception
    */
   public function subscribeClients($auctionPackage, SubscribeClientsRequest $postBody, $optParams = [])
   {
@@ -115,6 +130,7 @@ class BuyersAuctionPackages extends \Google\Service\Resource
    * @param UnsubscribeAuctionPackageRequest $postBody
    * @param array $optParams Optional parameters.
    * @return AuctionPackage
+   * @throws \Google\Service\Exception
    */
   public function unsubscribe($name, UnsubscribeAuctionPackageRequest $postBody, $optParams = [])
   {
@@ -132,6 +148,7 @@ class BuyersAuctionPackages extends \Google\Service\Resource
    * @param UnsubscribeClientsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return AuctionPackage
+   * @throws \Google\Service\Exception
    */
   public function unsubscribeClients($auctionPackage, UnsubscribeClientsRequest $postBody, $optParams = [])
   {

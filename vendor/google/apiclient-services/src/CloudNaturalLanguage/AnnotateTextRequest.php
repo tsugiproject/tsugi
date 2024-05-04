@@ -19,21 +19,13 @@ namespace Google\Service\CloudNaturalLanguage;
 
 class AnnotateTextRequest extends \Google\Model
 {
-  /**
-   * @var Document
-   */
-  public $document;
   protected $documentType = Document::class;
   protected $documentDataType = '';
   /**
    * @var string
    */
   public $encodingType;
-  /**
-   * @var Features
-   */
-  public $features;
-  protected $featuresType = Features::class;
+  protected $featuresType = AnnotateTextRequestFeatures::class;
   protected $featuresDataType = '';
 
   /**
@@ -65,14 +57,14 @@ class AnnotateTextRequest extends \Google\Model
     return $this->encodingType;
   }
   /**
-   * @param Features
+   * @param AnnotateTextRequestFeatures
    */
-  public function setFeatures(Features $features)
+  public function setFeatures(AnnotateTextRequestFeatures $features)
   {
     $this->features = $features;
   }
   /**
-   * @return Features
+   * @return AnnotateTextRequestFeatures
    */
   public function getFeatures()
   {

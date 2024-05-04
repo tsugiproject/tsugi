@@ -20,12 +20,12 @@ namespace Google\Service\CloudFunctions;
 class CloudfunctionsFunction extends \Google\Collection
 {
   protected $collection_key = 'stateMessages';
-  /**
-   * @var BuildConfig
-   */
-  public $buildConfig;
   protected $buildConfigType = BuildConfig::class;
   protected $buildConfigDataType = '';
+  /**
+   * @var string
+   */
+  public $createTime;
   /**
    * @var string
    */
@@ -34,10 +34,6 @@ class CloudfunctionsFunction extends \Google\Collection
    * @var string
    */
   public $environment;
-  /**
-   * @var EventTrigger
-   */
-  public $eventTrigger;
   protected $eventTriggerType = EventTrigger::class;
   protected $eventTriggerDataType = '';
   /**
@@ -56,26 +52,20 @@ class CloudfunctionsFunction extends \Google\Collection
    * @var bool
    */
   public $satisfiesPzs;
-  /**
-   * @var ServiceConfig
-   */
-  public $serviceConfig;
   protected $serviceConfigType = ServiceConfig::class;
   protected $serviceConfigDataType = '';
   /**
    * @var string
    */
   public $state;
-  /**
-   * @var GoogleCloudFunctionsV2StateMessage[]
-   */
-  public $stateMessages;
   protected $stateMessagesType = GoogleCloudFunctionsV2StateMessage::class;
   protected $stateMessagesDataType = 'array';
   /**
    * @var string
    */
   public $updateTime;
+  protected $upgradeInfoType = UpgradeInfo::class;
+  protected $upgradeInfoDataType = '';
   /**
    * @var string
    */
@@ -94,6 +84,20 @@ class CloudfunctionsFunction extends \Google\Collection
   public function getBuildConfig()
   {
     return $this->buildConfig;
+  }
+  /**
+   * @param string
+   */
+  public function setCreateTime($createTime)
+  {
+    $this->createTime = $createTime;
+  }
+  /**
+   * @return string
+   */
+  public function getCreateTime()
+  {
+    return $this->createTime;
   }
   /**
    * @param string
@@ -248,6 +252,20 @@ class CloudfunctionsFunction extends \Google\Collection
   public function getUpdateTime()
   {
     return $this->updateTime;
+  }
+  /**
+   * @param UpgradeInfo
+   */
+  public function setUpgradeInfo(UpgradeInfo $upgradeInfo)
+  {
+    $this->upgradeInfo = $upgradeInfo;
+  }
+  /**
+   * @return UpgradeInfo
+   */
+  public function getUpgradeInfo()
+  {
+    return $this->upgradeInfo;
   }
   /**
    * @param string

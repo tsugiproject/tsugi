@@ -20,24 +20,30 @@ namespace Google\Service\Spanner;
 class TransactionOptions extends \Google\Model
 {
   /**
-   * @var PartitionedDml
+   * @var bool
    */
-  public $partitionedDml;
+  public $excludeTxnFromChangeStreams;
   protected $partitionedDmlType = PartitionedDml::class;
   protected $partitionedDmlDataType = '';
-  /**
-   * @var SpannerReadOnly
-   */
-  public $readOnly;
   protected $readOnlyType = SpannerReadOnly::class;
   protected $readOnlyDataType = '';
-  /**
-   * @var ReadWrite
-   */
-  public $readWrite;
   protected $readWriteType = ReadWrite::class;
   protected $readWriteDataType = '';
 
+  /**
+   * @param bool
+   */
+  public function setExcludeTxnFromChangeStreams($excludeTxnFromChangeStreams)
+  {
+    $this->excludeTxnFromChangeStreams = $excludeTxnFromChangeStreams;
+  }
+  /**
+   * @return bool
+   */
+  public function getExcludeTxnFromChangeStreams()
+  {
+    return $this->excludeTxnFromChangeStreams;
+  }
   /**
    * @param PartitionedDml
    */

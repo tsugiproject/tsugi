@@ -37,7 +37,8 @@ use Google\Service\Compute\TestPermissionsResponse;
 class ResourcePolicies extends \Google\Service\Resource
 {
   /**
-   * Retrieves an aggregated list of resource policies.
+   * Retrieves an aggregated list of resource policies. To prevent failure, Google
+   * recommends that you set the `returnPartialSuccess` parameter to `true`.
    * (resourcePolicies.aggregatedList)
    *
    * @param string $project Project ID for this request.
@@ -100,9 +101,14 @@ class ResourcePolicies extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
-   * @opt_param string serviceProjectNumber
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
+   * @opt_param string serviceProjectNumber The Shared VPC service project id or
+   * service project number for which aggregated list request is invoked for
+   * subnetworks list-usable api.
    * @return ResourcePolicyAggregatedList
+   * @throws \Google\Service\Exception
    */
   public function aggregatedList($project, $optParams = [])
   {
@@ -129,6 +135,7 @@ class ResourcePolicies extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($project, $region, $resourcePolicy, $optParams = [])
   {
@@ -145,6 +152,7 @@ class ResourcePolicies extends \Google\Service\Resource
    * @param string $resourcePolicy Name of the resource policy to retrieve.
    * @param array $optParams Optional parameters.
    * @return ResourcePolicy
+   * @throws \Google\Service\Exception
    */
   public function get($project, $region, $resourcePolicy, $optParams = [])
   {
@@ -163,6 +171,7 @@ class ResourcePolicies extends \Google\Service\Resource
    *
    * @opt_param int optionsRequestedPolicyVersion Requested IAM Policy version.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function getIamPolicy($project, $region, $resource, $optParams = [])
   {
@@ -189,6 +198,7 @@ class ResourcePolicies extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function insert($project, $region, ResourcePolicy $postBody, $optParams = [])
   {
@@ -254,8 +264,11 @@ class ResourcePolicies extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return ResourcePolicyList
+   * @throws \Google\Service\Exception
    */
   public function listResourcePolicies($project, $region, $optParams = [])
   {
@@ -285,6 +298,7 @@ class ResourcePolicies extends \Google\Service\Resource
    * @opt_param string updateMask update_mask indicates fields to be updated as
    * part of this request.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function patch($project, $region, $resourcePolicy, ResourcePolicy $postBody, $optParams = [])
   {
@@ -302,6 +316,7 @@ class ResourcePolicies extends \Google\Service\Resource
    * @param RegionSetPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function setIamPolicy($project, $region, $resource, RegionSetPolicyRequest $postBody, $optParams = [])
   {
@@ -319,6 +334,7 @@ class ResourcePolicies extends \Google\Service\Resource
    * @param TestPermissionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return TestPermissionsResponse
+   * @throws \Google\Service\Exception
    */
   public function testIamPermissions($project, $region, $resource, TestPermissionsRequest $postBody, $optParams = [])
   {

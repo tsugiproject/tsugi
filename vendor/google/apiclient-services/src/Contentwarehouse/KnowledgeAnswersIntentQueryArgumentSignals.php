@@ -28,40 +28,22 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
    * @var bool
    */
   public $allowedFuzzyMatch;
-  /**
-   * @var LogsSemanticInterpretationIntentQueryWebrefEntityRelationship[]
-   */
-  public $annotatedRelationship;
   protected $annotatedRelationshipType = LogsSemanticInterpretationIntentQueryWebrefEntityRelationship::class;
   protected $annotatedRelationshipDataType = 'array';
-  /**
-   * @var KnowledgeAnswersIntentQueryAnnotationLayerSignals
-   */
-  public $annotationLayerSignals;
   protected $annotationLayerSignalsType = KnowledgeAnswersIntentQueryAnnotationLayerSignals::class;
   protected $annotationLayerSignalsDataType = '';
-  /**
-   * @var LocalsearchChainId[]
-   */
-  public $chainId;
   protected $chainIdType = LocalsearchChainId::class;
   protected $chainIdDataType = 'array';
-  /**
-   * @var QualityViewsExtractionClusterInfo
-   */
-  public $clusterInfo;
   protected $clusterInfoType = QualityViewsExtractionClusterInfo::class;
   protected $clusterInfoDataType = '';
-  /**
-   * @var KnowledgeAnswersIntentQueryCollectionMembership[]
-   */
-  public $collectionMembership;
   protected $collectionMembershipType = KnowledgeAnswersIntentQueryCollectionMembership::class;
   protected $collectionMembershipDataType = 'array';
   /**
    * @var string
    */
   public $contextResolution;
+  protected $copleySourceTypeListType = CopleySourceTypeList::class;
+  protected $copleySourceTypeListDataType = '';
   /**
    * @var string[]
    */
@@ -70,22 +52,18 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
    * @var string[]
    */
   public $deprecatedSupportingMid;
+  protected $entityCardSignalsType = KnowledgeAnswersIntentQueryEntityCardSignals::class;
+  protected $entityCardSignalsDataType = '';
   /**
    * @var int
    */
   public $entityNumber;
-  /**
-   * @var NlpSemanticParsingQRefAnnotationEntityRelationship[]
-   */
-  public $entityRelationship;
   protected $entityRelationshipType = NlpSemanticParsingQRefAnnotationEntityRelationship::class;
   protected $entityRelationshipDataType = 'array';
-  /**
-   * @var NlpSemanticParsingExpressionStatus
-   */
-  public $expressionStatus;
   protected $expressionStatusType = NlpSemanticParsingExpressionStatus::class;
   protected $expressionStatusDataType = '';
+  protected $facetType = KnowledgeAnswersFacetParsing::class;
+  protected $facetDataType = '';
   /**
    * @var bool
    */
@@ -98,10 +76,6 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
    * @var string
    */
   public $gaiaId;
-  /**
-   * @var KnowledgeAnswersIntentQueryGroundingSignals
-   */
-  public $groundingSignals;
   protected $groundingSignalsType = KnowledgeAnswersIntentQueryGroundingSignals::class;
   protected $groundingSignalsDataType = '';
   /**
@@ -132,32 +106,16 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
    * @var bool
    */
   public $isNimbleAnnotation;
-  /**
-   * @var GeostorePointProto
-   */
-  public $location;
   protected $locationDataType = '';
   public $locationClassificationScore;
-  /**
-   * @var KnowledgeAnswersIntentQueryLocationMarkersSignals
-   */
-  public $locationMarkersSignals;
   protected $locationMarkersSignalsType = KnowledgeAnswersIntentQueryLocationMarkersSignals::class;
   protected $locationMarkersSignalsDataType = '';
   /**
    * @var string
    */
   public $locationType;
-  /**
-   * @var KnowledgeAnswersIntentQueryMediaEntitySignals
-   */
-  public $mediaEntitySignals;
   protected $mediaEntitySignalsType = KnowledgeAnswersIntentQueryMediaEntitySignals::class;
   protected $mediaEntitySignalsDataType = '';
-  /**
-   * @var KnowledgeAnswersIntentQueryImpliedEntity[]
-   */
-  public $mergedImpliedEntity;
   protected $mergedImpliedEntityType = KnowledgeAnswersIntentQueryImpliedEntity::class;
   protected $mergedImpliedEntityDataType = 'array';
   /**
@@ -168,38 +126,26 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
    * @var bool
    */
   public $multipleHorizontalListSelectionMatches;
-  /**
-   * @var KnowledgeAnswersIntentQueryMuninSignals
-   */
-  public $muninSignals;
   protected $muninSignalsType = KnowledgeAnswersIntentQueryMuninSignals::class;
   protected $muninSignalsDataType = '';
-  /**
-   * @var KnowledgeAnswersIntentQueryOnDeviceAnnotationSignals
-   */
-  public $onDeviceAnnotationSignals;
   protected $onDeviceAnnotationSignalsType = KnowledgeAnswersIntentQueryOnDeviceAnnotationSignals::class;
   protected $onDeviceAnnotationSignalsDataType = '';
-  /**
-   * @var GeostoreFeatureIdProto
-   */
-  public $oysterId;
   protected $oysterIdType = GeostoreFeatureIdProto::class;
   protected $oysterIdDataType = '';
   /**
    * @var string[]
    */
   public $parsedDueToExperiment;
-  /**
-   * @var KnowledgeAnswersIntentQueryPersonalEntity[]
-   */
-  public $personalEntity;
   protected $personalEntityType = KnowledgeAnswersIntentQueryPersonalEntity::class;
   protected $personalEntityDataType = 'array';
   /**
-   * @var KnowledgeAnswersIntentQueryArgumentProvenance[]
+   * @var float
    */
-  public $provenance;
+  public $personalQrefReferenceScore;
+  /**
+   * @var float
+   */
+  public $personalQrefResolutionScore;
   protected $provenanceType = KnowledgeAnswersIntentQueryArgumentProvenance::class;
   protected $provenanceDataType = 'array';
   /**
@@ -214,16 +160,8 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
    * @var string
    */
   public $rawQueryText;
-  /**
-   * @var NlpSemanticParsingRelatedEntity[]
-   */
-  public $relatedEntity;
   protected $relatedEntityType = NlpSemanticParsingRelatedEntity::class;
   protected $relatedEntityDataType = 'array';
-  /**
-   * @var KnowledgeAnswersIntentQueryRelatednessSignals
-   */
-  public $relatednessSignals;
   protected $relatednessSignalsType = KnowledgeAnswersIntentQueryRelatednessSignals::class;
   protected $relatednessSignalsDataType = '';
   /**
@@ -234,50 +172,22 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
    * @var bool
    */
   public $resolvedFromPronoun;
-  /**
-   * @var KnowledgeAnswersIntentQueryResponseMeaningSignalsResponseMeaningSignals
-   */
-  public $responseMeaningSignals;
   protected $responseMeaningSignalsType = KnowledgeAnswersIntentQueryResponseMeaningSignalsResponseMeaningSignals::class;
   protected $responseMeaningSignalsDataType = '';
-  /**
-   * @var UniversalsearchNewPackerKnowledgeResultSupport[]
-   */
-  public $resultSupport;
   protected $resultSupportType = UniversalsearchNewPackerKnowledgeResultSupport::class;
   protected $resultSupportDataType = 'array';
-  /**
-   * @var KnowledgeAnswersIntentQuerySaftSignals
-   */
-  public $saftSignals;
   protected $saftSignalsType = KnowledgeAnswersIntentQuerySaftSignals::class;
   protected $saftSignalsDataType = '';
-  /**
-   * @var KnowledgeAnswersIntentQueryShoppingIds
-   */
-  public $shoppingIds;
   protected $shoppingIdsType = KnowledgeAnswersIntentQueryShoppingIds::class;
   protected $shoppingIdsDataType = '';
   /**
    * @var string
    */
   public $source;
-  /**
-   * @var LogsSemanticInterpretationIntentQuerySupportTransferRule[]
-   */
-  public $supportTransferRules;
   protected $supportTransferRulesType = LogsSemanticInterpretationIntentQuerySupportTransferRule::class;
   protected $supportTransferRulesDataType = 'array';
-  /**
-   * @var KnowledgeAnswersIntentQuerySupportTransferSignals
-   */
-  public $supportTransferSignals;
   protected $supportTransferSignalsType = KnowledgeAnswersIntentQuerySupportTransferSignals::class;
   protected $supportTransferSignalsDataType = '';
-  /**
-   * @var KnowledgeAnswersValueType
-   */
-  public $ungroundedValueType;
   protected $ungroundedValueTypeType = KnowledgeAnswersValueType::class;
   protected $ungroundedValueTypeDataType = '';
   /**
@@ -406,6 +316,20 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
     return $this->contextResolution;
   }
   /**
+   * @param CopleySourceTypeList
+   */
+  public function setCopleySourceTypeList(CopleySourceTypeList $copleySourceTypeList)
+  {
+    $this->copleySourceTypeList = $copleySourceTypeList;
+  }
+  /**
+   * @return CopleySourceTypeList
+   */
+  public function getCopleySourceTypeList()
+  {
+    return $this->copleySourceTypeList;
+  }
+  /**
    * @param string[]
    */
   public function setDeprecatedFreebaseType($deprecatedFreebaseType)
@@ -432,6 +356,20 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
   public function getDeprecatedSupportingMid()
   {
     return $this->deprecatedSupportingMid;
+  }
+  /**
+   * @param KnowledgeAnswersIntentQueryEntityCardSignals
+   */
+  public function setEntityCardSignals(KnowledgeAnswersIntentQueryEntityCardSignals $entityCardSignals)
+  {
+    $this->entityCardSignals = $entityCardSignals;
+  }
+  /**
+   * @return KnowledgeAnswersIntentQueryEntityCardSignals
+   */
+  public function getEntityCardSignals()
+  {
+    return $this->entityCardSignals;
   }
   /**
    * @param int
@@ -474,6 +412,20 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
   public function getExpressionStatus()
   {
     return $this->expressionStatus;
+  }
+  /**
+   * @param KnowledgeAnswersFacetParsing
+   */
+  public function setFacet(KnowledgeAnswersFacetParsing $facet)
+  {
+    $this->facet = $facet;
+  }
+  /**
+   * @return KnowledgeAnswersFacetParsing
+   */
+  public function getFacet()
+  {
+    return $this->facet;
   }
   /**
    * @param bool
@@ -804,6 +756,34 @@ class KnowledgeAnswersIntentQueryArgumentSignals extends \Google\Collection
   public function getPersonalEntity()
   {
     return $this->personalEntity;
+  }
+  /**
+   * @param float
+   */
+  public function setPersonalQrefReferenceScore($personalQrefReferenceScore)
+  {
+    $this->personalQrefReferenceScore = $personalQrefReferenceScore;
+  }
+  /**
+   * @return float
+   */
+  public function getPersonalQrefReferenceScore()
+  {
+    return $this->personalQrefReferenceScore;
+  }
+  /**
+   * @param float
+   */
+  public function setPersonalQrefResolutionScore($personalQrefResolutionScore)
+  {
+    $this->personalQrefResolutionScore = $personalQrefResolutionScore;
+  }
+  /**
+   * @return float
+   */
+  public function getPersonalQrefResolutionScore()
+  {
+    return $this->personalQrefResolutionScore;
   }
   /**
    * @param KnowledgeAnswersIntentQueryArgumentProvenance[]

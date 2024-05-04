@@ -19,24 +19,20 @@ namespace Google\Service\DLP;
 
 class GooglePrivacyDlpV2DataProfileConfigSnapshot extends \Google\Model
 {
-  /**
-   * @var GooglePrivacyDlpV2DataProfileJobConfig
-   */
-  public $dataProfileJob;
   protected $dataProfileJobType = GooglePrivacyDlpV2DataProfileJobConfig::class;
   protected $dataProfileJobDataType = '';
-  /**
-   * @var GooglePrivacyDlpV2DiscoveryConfig
-   */
-  public $discoveryConfig;
   protected $discoveryConfigType = GooglePrivacyDlpV2DiscoveryConfig::class;
   protected $discoveryConfigDataType = '';
-  /**
-   * @var GooglePrivacyDlpV2InspectConfig
-   */
-  public $inspectConfig;
   protected $inspectConfigType = GooglePrivacyDlpV2InspectConfig::class;
   protected $inspectConfigDataType = '';
+  /**
+   * @var string
+   */
+  public $inspectTemplateModifiedTime;
+  /**
+   * @var string
+   */
+  public $inspectTemplateName;
 
   /**
    * @param GooglePrivacyDlpV2DataProfileJobConfig
@@ -79,6 +75,34 @@ class GooglePrivacyDlpV2DataProfileConfigSnapshot extends \Google\Model
   public function getInspectConfig()
   {
     return $this->inspectConfig;
+  }
+  /**
+   * @param string
+   */
+  public function setInspectTemplateModifiedTime($inspectTemplateModifiedTime)
+  {
+    $this->inspectTemplateModifiedTime = $inspectTemplateModifiedTime;
+  }
+  /**
+   * @return string
+   */
+  public function getInspectTemplateModifiedTime()
+  {
+    return $this->inspectTemplateModifiedTime;
+  }
+  /**
+   * @param string
+   */
+  public function setInspectTemplateName($inspectTemplateName)
+  {
+    $this->inspectTemplateName = $inspectTemplateName;
+  }
+  /**
+   * @return string
+   */
+  public function getInspectTemplateName()
+  {
+    return $this->inspectTemplateName;
   }
 }
 

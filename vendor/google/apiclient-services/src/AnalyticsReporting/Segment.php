@@ -19,10 +19,6 @@ namespace Google\Service\AnalyticsReporting;
 
 class Segment extends \Google\Model
 {
-  /**
-   * @var DynamicSegment
-   */
-  public $dynamicSegment;
   protected $dynamicSegmentType = DynamicSegment::class;
   protected $dynamicSegmentDataType = '';
   /**

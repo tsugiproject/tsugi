@@ -230,6 +230,10 @@ trait QueriesRelationships
             $types = $this->model->newModelQuery()->distinct()->pluck($relation->getMorphType())->filter()->all();
         }
 
+        if (empty($types)) {
+            return $this->where(new Expression('0'), $operator, $count, $boolean);
+        }
+
         foreach ($types as &$type) {
             $type = Relation::getMorphedModel($type) ?? $type;
         }
@@ -595,7 +599,7 @@ trait QueriesRelationships
      * Add subselect queries to include an aggregate value for a relationship.
      *
      * @param  mixed  $relations
-     * @param  string  $column
+     * @param  \Illuminate\Contracts\Database\Query\Expression|string  $column
      * @param  string  $function
      * @return $this
      */
@@ -626,15 +630,19 @@ trait QueriesRelationships
             $relation = $this->getRelationWithoutConstraints($name);
 
             if ($function) {
-                $hashedColumn = $this->getRelationHashedColumn($column, $relation);
+                if ($this->getQuery()->getGrammar()->isExpression($column)) {
+                    $aggregateColumn = $this->getQuery()->getGrammar()->getValue($column);
+                } else {
+                    $hashedColumn = $this->getRelationHashedColumn($column, $relation);
 
-                $wrappedColumn = $this->getQuery()->getGrammar()->wrap(
-                    $column === '*' ? $column : $relation->getRelated()->qualifyColumn($hashedColumn)
-                );
+                    $aggregateColumn = $this->getQuery()->getGrammar()->wrap(
+                        $column === '*' ? $column : $relation->getRelated()->qualifyColumn($hashedColumn)
+                    );
+                }
 
-                $expression = $function === 'exists' ? $wrappedColumn : sprintf('%s(%s)', $function, $wrappedColumn);
+                $expression = $function === 'exists' ? $aggregateColumn : sprintf('%s(%s)', $function, $aggregateColumn);
             } else {
-                $expression = $column;
+                $expression = $this->getQuery()->getGrammar()->getValue($column);
             }
 
             // Here, we will grab the relationship sub-query and prepare to add it to the main query
@@ -663,7 +671,7 @@ trait QueriesRelationships
             // the query builder. Then, we will return the builder instance back to the developer
             // for further constraint chaining that needs to take place on the query as needed.
             $alias ??= Str::snake(
-                preg_replace('/[^[:alnum:][:space:]_]/u', '', "$name $function $column")
+                preg_replace('/[^[:alnum:][:space:]_]/u', '', "$name $function {$this->getQuery()->getGrammar()->getValue($column)}")
             );
 
             if ($function === 'exists') {
@@ -686,7 +694,7 @@ trait QueriesRelationships
      * Get the relation hashed column name for the given column and relation.
      *
      * @param  string  $column
-     * @param  \Illuminate\Database\Eloquent\Relations\Relationship  $relation
+     * @param  \Illuminate\Database\Eloquent\Relations\Relation  $relation
      * @return string
      */
     protected function getRelationHashedColumn($column, $relation)
@@ -715,7 +723,7 @@ trait QueriesRelationships
      * Add subselect queries to include the max of the relation's column.
      *
      * @param  string|array  $relation
-     * @param  string  $column
+     * @param  \Illuminate\Contracts\Database\Query\Expression|string  $column
      * @return $this
      */
     public function withMax($relation, $column)
@@ -727,7 +735,7 @@ trait QueriesRelationships
      * Add subselect queries to include the min of the relation's column.
      *
      * @param  string|array  $relation
-     * @param  string  $column
+     * @param  \Illuminate\Contracts\Database\Query\Expression|string  $column
      * @return $this
      */
     public function withMin($relation, $column)
@@ -739,7 +747,7 @@ trait QueriesRelationships
      * Add subselect queries to include the sum of the relation's column.
      *
      * @param  string|array  $relation
-     * @param  string  $column
+     * @param  \Illuminate\Contracts\Database\Query\Expression|string  $column
      * @return $this
      */
     public function withSum($relation, $column)
@@ -751,7 +759,7 @@ trait QueriesRelationships
      * Add subselect queries to include the average of the relation's column.
      *
      * @param  string|array  $relation
-     * @param  string  $column
+     * @param  \Illuminate\Contracts\Database\Query\Expression|string  $column
      * @return $this
      */
     public function withAvg($relation, $column)
@@ -802,7 +810,7 @@ trait QueriesRelationships
         $wheres = $from->getQuery()->from !== $this->getQuery()->from
             ? $this->requalifyWhereTables(
                 $from->getQuery()->wheres,
-                $from->getQuery()->from,
+                $from->getQuery()->grammar->getValue($from->getQuery()->from),
                 $this->getModel()->getTable()
             ) : $from->getQuery()->wheres;
 

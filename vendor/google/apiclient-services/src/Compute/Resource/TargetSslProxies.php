@@ -54,6 +54,7 @@ class TargetSslProxies extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($project, $targetSslProxy, $optParams = [])
   {
@@ -68,6 +69,7 @@ class TargetSslProxies extends \Google\Service\Resource
    * @param string $targetSslProxy Name of the TargetSslProxy resource to return.
    * @param array $optParams Optional parameters.
    * @return TargetSslProxy
+   * @throws \Google\Service\Exception
    */
   public function get($project, $targetSslProxy, $optParams = [])
   {
@@ -94,6 +96,7 @@ class TargetSslProxies extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function insert($project, TargetSslProxy $postBody, $optParams = [])
   {
@@ -158,8 +161,11 @@ class TargetSslProxies extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return TargetSslProxyList
+   * @throws \Google\Service\Exception
    */
   public function listTargetSslProxies($project, $optParams = [])
   {
@@ -188,6 +194,7 @@ class TargetSslProxies extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function setBackendService($project, $targetSslProxy, TargetSslProxiesSetBackendServiceRequest $postBody, $optParams = [])
   {
@@ -217,6 +224,7 @@ class TargetSslProxies extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function setCertificateMap($project, $targetSslProxy, TargetSslProxiesSetCertificateMapRequest $postBody, $optParams = [])
   {
@@ -245,6 +253,7 @@ class TargetSslProxies extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function setProxyHeader($project, $targetSslProxy, TargetSslProxiesSetProxyHeaderRequest $postBody, $optParams = [])
   {
@@ -273,6 +282,7 @@ class TargetSslProxies extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function setSslCertificates($project, $targetSslProxy, TargetSslProxiesSetSslCertificatesRequest $postBody, $optParams = [])
   {
@@ -304,6 +314,7 @@ class TargetSslProxies extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function setSslPolicy($project, $targetSslProxy, SslPolicyReference $postBody, $optParams = [])
   {

@@ -20,6 +20,8 @@ namespace Google\Service\MapsPlaces;
 class GoogleMapsPlacesV1SearchTextRequest extends \Google\Collection
 {
   protected $collection_key = 'priceLevels';
+  protected $evOptionsType = GoogleMapsPlacesV1SearchTextRequestEVOptions::class;
+  protected $evOptionsDataType = '';
   /**
    * @var string
    */
@@ -28,16 +30,8 @@ class GoogleMapsPlacesV1SearchTextRequest extends \Google\Collection
    * @var string
    */
   public $languageCode;
-  /**
-   * @var GoogleMapsPlacesV1SearchTextRequestLocationBias
-   */
-  public $locationBias;
   protected $locationBiasType = GoogleMapsPlacesV1SearchTextRequestLocationBias::class;
   protected $locationBiasDataType = '';
-  /**
-   * @var GoogleMapsPlacesV1SearchTextRequestLocationRestriction
-   */
-  public $locationRestriction;
   protected $locationRestrictionType = GoogleMapsPlacesV1SearchTextRequestLocationRestriction::class;
   protected $locationRestrictionDataType = '';
   /**
@@ -70,6 +64,20 @@ class GoogleMapsPlacesV1SearchTextRequest extends \Google\Collection
    */
   public $textQuery;
 
+  /**
+   * @param GoogleMapsPlacesV1SearchTextRequestEVOptions
+   */
+  public function setEvOptions(GoogleMapsPlacesV1SearchTextRequestEVOptions $evOptions)
+  {
+    $this->evOptions = $evOptions;
+  }
+  /**
+   * @return GoogleMapsPlacesV1SearchTextRequestEVOptions
+   */
+  public function getEvOptions()
+  {
+    return $this->evOptions;
+  }
   /**
    * @param string
    */

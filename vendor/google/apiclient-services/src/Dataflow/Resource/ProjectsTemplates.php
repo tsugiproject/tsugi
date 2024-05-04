@@ -42,6 +42,7 @@ class ProjectsTemplates extends \Google\Service\Resource
    * @param CreateJobFromTemplateRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Job
+   * @throws \Google\Service\Exception
    */
   public function create($projectId, CreateJobFromTemplateRequest $postBody, $optParams = [])
   {
@@ -64,6 +65,7 @@ class ProjectsTemplates extends \Google\Service\Resource
    * to direct the request.
    * @opt_param string view The view to retrieve. Defaults to METADATA_ONLY.
    * @return GetTemplateResponse
+   * @throws \Google\Service\Exception
    */
   public function get($projectId, $optParams = [])
   {
@@ -79,20 +81,21 @@ class ProjectsTemplates extends \Google\Service\Resource
    * @param LaunchTemplateParameters $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string dynamicTemplate.gcsPath Path to dynamic template spec file
-   * on Cloud Storage. The file must be a Json serialized DynamicTemplateFieSpec
-   * object.
+   * @opt_param string dynamicTemplate.gcsPath Path to the dynamic template
+   * specification file on Cloud Storage. The file must be a JSON serialized
+   * `DynamicTemplateFileSpec` object.
    * @opt_param string dynamicTemplate.stagingLocation Cloud Storage path for
    * staging dependencies. Must be a valid Cloud Storage URL, beginning with
    * `gs://`.
-   * @opt_param string gcsPath A Cloud Storage path to the template from which to
-   * create the job. Must be valid Cloud Storage URL, beginning with 'gs://'.
+   * @opt_param string gcsPath A Cloud Storage path to the template to use to
+   * create the job. Must be valid Cloud Storage URL, beginning with `gs://`.
    * @opt_param string location The [regional endpoint]
    * (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) to which
    * to direct the request.
    * @opt_param bool validateOnly If true, the request is validated but not
    * actually executed. Defaults to false.
    * @return LaunchTemplateResponse
+   * @throws \Google\Service\Exception
    */
   public function launch($projectId, LaunchTemplateParameters $postBody, $optParams = [])
   {

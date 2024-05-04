@@ -65,6 +65,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens
    * (-). The maximum length is 40 characters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function create($projectId, $region, Cluster $postBody, $optParams = [])
   {
@@ -105,6 +106,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens
    * (-). The maximum length is 40 characters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($projectId, $region, $clusterName, $optParams = [])
   {
@@ -128,6 +130,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @param DiagnoseClusterRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function diagnose($projectId, $region, $clusterName, DiagnoseClusterRequest $postBody, $optParams = [])
   {
@@ -145,6 +148,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @param string $clusterName Required. The cluster name.
    * @param array $optParams Optional parameters.
    * @return Cluster
+   * @throws \Google\Service\Exception
    */
   public function get($projectId, $region, $clusterName, $optParams = [])
   {
@@ -163,6 +167,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @param GetIamPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function getIamPolicy($resource, GetIamPolicyRequest $postBody, $optParams = [])
   {
@@ -183,6 +188,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @param InjectCredentialsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function injectCredentials($project, $region, $cluster, InjectCredentialsRequest $postBody, $optParams = [])
   {
@@ -205,15 +211,17 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * AND field = value ...where field is one of status.state, clusterName, or
    * labels.[KEY], and [KEY] is a label key. value can be * to match all values.
    * status.state can be one of the following: ACTIVE, INACTIVE, CREATING,
-   * RUNNING, ERROR, DELETING, or UPDATING. ACTIVE contains the CREATING,
-   * UPDATING, and RUNNING states. INACTIVE contains the DELETING and ERROR
-   * states. clusterName is the name of the cluster provided at creation time.
-   * Only the logical AND operator is supported; space-separated items are treated
-   * as having an implicit AND operator.Example filter:status.state = ACTIVE AND
-   * clusterName = mycluster AND labels.env = staging AND labels.starred = *
+   * RUNNING, ERROR, DELETING, UPDATING, STOPPING, or STOPPED. ACTIVE contains the
+   * CREATING, UPDATING, and RUNNING states. INACTIVE contains the DELETING,
+   * ERROR, STOPPING, and STOPPED states. clusterName is the name of the cluster
+   * provided at creation time. Only the logical AND operator is supported; space-
+   * separated items are treated as having an implicit AND operator.Example
+   * filter:status.state = ACTIVE AND clusterName = mycluster AND labels.env =
+   * staging AND labels.starred = *
    * @opt_param int pageSize Optional. The standard List page size.
    * @opt_param string pageToken Optional. The standard List page token.
    * @return ListClustersResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsRegionsClusters($projectId, $region, $optParams = [])
   {
@@ -269,6 +277,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * config.autoscaling_config.policy_uri Use, stop using, or change autoscaling
    * policies
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function patch($projectId, $region, $clusterName, Cluster $postBody, $optParams = [])
   {
@@ -287,6 +296,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @param RepairClusterRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function repair($projectId, $region, $clusterName, RepairClusterRequest $postBody, $optParams = [])
   {
@@ -306,6 +316,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @param SetIamPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function setIamPolicy($resource, SetIamPolicyRequest $postBody, $optParams = [])
   {
@@ -324,6 +335,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @param StartClusterRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function start($projectId, $region, $clusterName, StartClusterRequest $postBody, $optParams = [])
   {
@@ -342,6 +354,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @param StopClusterRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function stop($projectId, $region, $clusterName, StopClusterRequest $postBody, $optParams = [])
   {
@@ -363,6 +376,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @param TestIamPermissionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return TestIamPermissionsResponse
+   * @throws \Google\Service\Exception
    */
   public function testIamPermissions($resource, TestIamPermissionsRequest $postBody, $optParams = [])
   {

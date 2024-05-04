@@ -19,16 +19,8 @@ namespace Google\Service\AnalyticsReporting;
 
 class Report extends \Google\Model
 {
-  /**
-   * @var ColumnHeader
-   */
-  public $columnHeader;
   protected $columnHeaderType = ColumnHeader::class;
   protected $columnHeaderDataType = '';
-  /**
-   * @var ReportData
-   */
-  public $data;
   protected $dataType = ReportData::class;
   protected $dataDataType = '';
   /**

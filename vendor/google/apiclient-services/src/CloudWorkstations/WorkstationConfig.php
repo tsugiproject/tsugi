@@ -24,16 +24,8 @@ class WorkstationConfig extends \Google\Collection
    * @var string[]
    */
   public $annotations;
-  /**
-   * @var Status[]
-   */
-  public $conditions;
   protected $conditionsType = Status::class;
   protected $conditionsDataType = 'array';
-  /**
-   * @var Container
-   */
-  public $container;
   protected $containerType = Container::class;
   protected $containerDataType = '';
   /**
@@ -60,20 +52,14 @@ class WorkstationConfig extends \Google\Collection
    * @var bool
    */
   public $enableAuditAgent;
-  /**
-   * @var CustomerEncryptionKey
-   */
-  public $encryptionKey;
   protected $encryptionKeyType = CustomerEncryptionKey::class;
   protected $encryptionKeyDataType = '';
+  protected $ephemeralDirectoriesType = EphemeralDirectory::class;
+  protected $ephemeralDirectoriesDataType = 'array';
   /**
    * @var string
    */
   public $etag;
-  /**
-   * @var Host
-   */
-  public $host;
   protected $hostType = Host::class;
   protected $hostDataType = '';
   /**
@@ -88,16 +74,8 @@ class WorkstationConfig extends \Google\Collection
    * @var string
    */
   public $name;
-  /**
-   * @var PersistentDirectory[]
-   */
-  public $persistentDirectories;
   protected $persistentDirectoriesType = PersistentDirectory::class;
   protected $persistentDirectoriesDataType = 'array';
-  /**
-   * @var ReadinessCheck[]
-   */
-  public $readinessChecks;
   protected $readinessChecksType = ReadinessCheck::class;
   protected $readinessChecksDataType = 'array';
   /**
@@ -260,6 +238,20 @@ class WorkstationConfig extends \Google\Collection
   public function getEncryptionKey()
   {
     return $this->encryptionKey;
+  }
+  /**
+   * @param EphemeralDirectory[]
+   */
+  public function setEphemeralDirectories($ephemeralDirectories)
+  {
+    $this->ephemeralDirectories = $ephemeralDirectories;
+  }
+  /**
+   * @return EphemeralDirectory[]
+   */
+  public function getEphemeralDirectories()
+  {
+    return $this->ephemeralDirectories;
   }
   /**
    * @param string

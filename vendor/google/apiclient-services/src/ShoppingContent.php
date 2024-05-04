@@ -39,7 +39,6 @@ class ShoppingContent extends \Google\Service
       "https://www.googleapis.com/auth/content";
 
   public $accounts;
-  public $accounts_businessmessageslinks;
   public $accounts_credentials;
   public $accounts_labels;
   public $accounts_returncarrier;
@@ -81,6 +80,7 @@ class ShoppingContent extends \Google\Service
   public $settlementtransactions;
   public $shippingsettings;
   public $shoppingadsprogram;
+  public $rootUrlTemplate;
 
   /**
    * Constructs the internal representation of the ShoppingContent service.
@@ -93,6 +93,7 @@ class ShoppingContent extends \Google\Service
   {
     parent::__construct($clientOrConfig);
     $this->rootUrl = $rootUrl ?: 'https://shoppingcontent.googleapis.com/';
+    $this->rootUrlTemplate = $rootUrl ?: 'https://shoppingcontent.UNIVERSE_DOMAIN/';
     $this->servicePath = 'content/v2.1/';
     $this->batchPath = 'batch';
     $this->version = 'v2.1';
@@ -305,74 +306,6 @@ class ShoppingContent extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
-                ],
-              ],
-            ],
-          ]
-        ]
-    );
-    $this->accounts_businessmessageslinks = new ShoppingContent\Resource\AccountsBusinessmessageslinks(
-        $this,
-        $this->serviceName,
-        'businessmessageslinks',
-        [
-          'methods' => [
-            'create' => [
-              'path' => 'accounts/{accountId}/businessmessageslinks',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'accountId' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'delete' => [
-              'path' => 'accounts/{accountId}/businessmessageslinks/{businessMessagesLinkId}',
-              'httpMethod' => 'DELETE',
-              'parameters' => [
-                'accountId' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'businessMessagesLinkId' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'get' => [
-              'path' => 'accounts/{accountId}/businessmessageslinks/{businessMessagesLinkId}',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'accountId' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'businessMessagesLinkId' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'list' => [
-              'path' => 'accounts/{accountId}/businessmessageslinks',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'accountId' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'pageSize' => [
-                  'location' => 'query',
-                  'type' => 'integer',
-                ],
-                'pageToken' => [
-                  'location' => 'query',
-                  'type' => 'string',
                 ],
               ],
             ],
@@ -1544,6 +1477,20 @@ class ShoppingContent extends \Google\Service
                   'type' => 'string',
                 ],
                 'timeZone' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'triggeraction' => [
+              'path' => '{merchantId}/merchantsupport/triggeraction',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'merchantId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'languageCode' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],
