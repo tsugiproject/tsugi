@@ -1123,6 +1123,11 @@ class LTIX {
                 $retval['lti11_transition_user_id'] = $lti11_transition->user_id;
                 $retval['lti11_transition_oauth_consumer_key'] = $lti11_transition->oauth_consumer_key;
                 $retval['lti11_transition_oauth_consumer_key_sign'] = $lti11_transition->oauth_consumer_key_sign;
+                // If the LTI 1.1 transition claim contains the resource_link_id,
+                // assign its value to the link_id in the return value array.
+                if (isset($lti11_transition->resource_link_id)) {
+                    $retval['link_id'] = $lti11_transition->resource_link_id;
+                }
             }
         }
 
@@ -1140,7 +1145,8 @@ class LTIX {
         $resource_link_claim = LTI13::RESOURCE_LINK_CLAIM;
         $context_id_claim = LTI13::CONTEXT_ID_CLAIM;
         $deployment_id_claim = LTI13::DEPLOYMENT_ID_CLAIM;
-        if ( isset($body->{$resource_link_claim}->id) ) $retval['link_id'] = $body->{$resource_link_claim}->id;
+        // If link_id in the return value array has not already been set
+        if ( isset($body->{$resource_link_claim}->id) && !isset($retval['link_id']) ) $retval['link_id'] = $body->{$resource_link_claim}->id;
         if ( isset($body->{$context_id_claim}->id) ) $retval['context_id'] = $body->{$context_id_claim}->id;
         if ( isset($body->{$deployment_id_claim}) ) $retval['deployment_id'] = $body->{$deployment_id_claim};
 
