@@ -23,32 +23,16 @@ class RunQueryRequest extends \Google\Model
    * @var string
    */
   public $databaseId;
-  /**
-   * @var GqlQuery
-   */
-  public $gqlQuery;
+  protected $explainOptionsType = ExplainOptions::class;
+  protected $explainOptionsDataType = '';
   protected $gqlQueryType = GqlQuery::class;
   protected $gqlQueryDataType = '';
-  /**
-   * @var string
-   */
-  public $mode;
-  /**
-   * @var PartitionId
-   */
-  public $partitionId;
   protected $partitionIdType = PartitionId::class;
   protected $partitionIdDataType = '';
-  /**
-   * @var Query
-   */
-  public $query;
+  protected $propertyMaskType = PropertyMask::class;
+  protected $propertyMaskDataType = '';
   protected $queryType = Query::class;
   protected $queryDataType = '';
-  /**
-   * @var ReadOptions
-   */
-  public $readOptions;
   protected $readOptionsType = ReadOptions::class;
   protected $readOptionsDataType = '';
 
@@ -67,6 +51,20 @@ class RunQueryRequest extends \Google\Model
     return $this->databaseId;
   }
   /**
+   * @param ExplainOptions
+   */
+  public function setExplainOptions(ExplainOptions $explainOptions)
+  {
+    $this->explainOptions = $explainOptions;
+  }
+  /**
+   * @return ExplainOptions
+   */
+  public function getExplainOptions()
+  {
+    return $this->explainOptions;
+  }
+  /**
    * @param GqlQuery
    */
   public function setGqlQuery(GqlQuery $gqlQuery)
@@ -81,20 +79,6 @@ class RunQueryRequest extends \Google\Model
     return $this->gqlQuery;
   }
   /**
-   * @param string
-   */
-  public function setMode($mode)
-  {
-    $this->mode = $mode;
-  }
-  /**
-   * @return string
-   */
-  public function getMode()
-  {
-    return $this->mode;
-  }
-  /**
    * @param PartitionId
    */
   public function setPartitionId(PartitionId $partitionId)
@@ -107,6 +91,20 @@ class RunQueryRequest extends \Google\Model
   public function getPartitionId()
   {
     return $this->partitionId;
+  }
+  /**
+   * @param PropertyMask
+   */
+  public function setPropertyMask(PropertyMask $propertyMask)
+  {
+    $this->propertyMask = $propertyMask;
+  }
+  /**
+   * @return PropertyMask
+   */
+  public function getPropertyMask()
+  {
+    return $this->propertyMask;
   }
   /**
    * @param Query

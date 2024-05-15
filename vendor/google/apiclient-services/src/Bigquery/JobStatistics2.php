@@ -20,10 +20,6 @@ namespace Google\Service\Bigquery;
 class JobStatistics2 extends \Google\Collection
 {
   protected $collection_key = 'undeclaredQueryParameters';
-  /**
-   * @var BiEngineStatistics
-   */
-  public $biEngineStatistics;
   protected $biEngineStatisticsType = BiEngineStatistics::class;
   protected $biEngineStatisticsDataType = '';
   /**
@@ -34,64 +30,48 @@ class JobStatistics2 extends \Google\Collection
    * @var bool
    */
   public $cacheHit;
+  protected $dclTargetDatasetType = DatasetReference::class;
+  protected $dclTargetDatasetDataType = '';
+  protected $dclTargetTableType = TableReference::class;
+  protected $dclTargetTableDataType = '';
+  protected $dclTargetViewType = TableReference::class;
+  protected $dclTargetViewDataType = '';
   /**
    * @var string
    */
   public $ddlAffectedRowAccessPolicyCount;
-  /**
-   * @var TableReference
-   */
-  public $ddlDestinationTable;
   protected $ddlDestinationTableType = TableReference::class;
   protected $ddlDestinationTableDataType = '';
   /**
    * @var string
    */
   public $ddlOperationPerformed;
-  /**
-   * @var DatasetReference
-   */
-  public $ddlTargetDataset;
   protected $ddlTargetDatasetType = DatasetReference::class;
   protected $ddlTargetDatasetDataType = '';
-  /**
-   * @var RoutineReference
-   */
-  public $ddlTargetRoutine;
   protected $ddlTargetRoutineType = RoutineReference::class;
   protected $ddlTargetRoutineDataType = '';
-  /**
-   * @var RowAccessPolicyReference
-   */
-  public $ddlTargetRowAccessPolicy;
   protected $ddlTargetRowAccessPolicyType = RowAccessPolicyReference::class;
   protected $ddlTargetRowAccessPolicyDataType = '';
-  /**
-   * @var TableReference
-   */
-  public $ddlTargetTable;
   protected $ddlTargetTableType = TableReference::class;
   protected $ddlTargetTableDataType = '';
-  /**
-   * @var DmlStatistics
-   */
-  public $dmlStats;
   protected $dmlStatsType = DmlStatistics::class;
   protected $dmlStatsDataType = '';
   /**
    * @var string
    */
   public $estimatedBytesProcessed;
-  /**
-   * @var MlStatistics
-   */
-  public $mlStatistics;
+  protected $exportDataStatisticsType = ExportDataStatistics::class;
+  protected $exportDataStatisticsDataType = '';
+  protected $externalServiceCostsType = ExternalServiceCost::class;
+  protected $externalServiceCostsDataType = 'array';
+  protected $loadQueryStatisticsType = LoadQueryStatistics::class;
+  protected $loadQueryStatisticsDataType = '';
+  protected $materializedViewStatisticsType = MaterializedViewStatistics::class;
+  protected $materializedViewStatisticsDataType = '';
+  protected $metadataCacheStatisticsType = MetadataCacheStatistics::class;
+  protected $metadataCacheStatisticsDataType = '';
   protected $mlStatisticsType = MlStatistics::class;
   protected $mlStatisticsDataType = '';
-  /**
-   * @var BigQueryModelTraining
-   */
-  public $modelTraining;
   protected $modelTrainingType = BigQueryModelTraining::class;
   protected $modelTrainingDataType = '';
   /**
@@ -106,56 +86,28 @@ class JobStatistics2 extends \Google\Collection
    * @var string
    */
   public $numDmlAffectedRows;
-  /**
-   * @var ExplainQueryStage[]
-   */
-  public $queryPlan;
+  protected $performanceInsightsType = PerformanceInsights::class;
+  protected $performanceInsightsDataType = '';
+  protected $queryInfoType = QueryInfo::class;
+  protected $queryInfoDataType = '';
   protected $queryPlanType = ExplainQueryStage::class;
   protected $queryPlanDataType = 'array';
-  /**
-   * @var RoutineReference[]
-   */
-  public $referencedRoutines;
   protected $referencedRoutinesType = RoutineReference::class;
   protected $referencedRoutinesDataType = 'array';
-  /**
-   * @var TableReference[]
-   */
-  public $referencedTables;
   protected $referencedTablesType = TableReference::class;
   protected $referencedTablesDataType = 'array';
-  /**
-   * @var JobStatistics2ReservationUsage[]
-   */
-  public $reservationUsage;
   protected $reservationUsageType = JobStatistics2ReservationUsage::class;
   protected $reservationUsageDataType = 'array';
-  /**
-   * @var TableSchema
-   */
-  public $schema;
   protected $schemaType = TableSchema::class;
   protected $schemaDataType = '';
-  /**
-   * @var SearchStatistics
-   */
-  public $searchStatistics;
   protected $searchStatisticsType = SearchStatistics::class;
   protected $searchStatisticsDataType = '';
-  /**
-   * @var SparkStatistics
-   */
-  public $sparkStatistics;
   protected $sparkStatisticsType = SparkStatistics::class;
   protected $sparkStatisticsDataType = '';
   /**
    * @var string
    */
   public $statementType;
-  /**
-   * @var QueryTimelineSample[]
-   */
-  public $timeline;
   protected $timelineType = QueryTimelineSample::class;
   protected $timelineDataType = 'array';
   /**
@@ -182,12 +134,10 @@ class JobStatistics2 extends \Google\Collection
    * @var string
    */
   public $transferredBytes;
-  /**
-   * @var QueryParameter[]
-   */
-  public $undeclaredQueryParameters;
   protected $undeclaredQueryParametersType = QueryParameter::class;
   protected $undeclaredQueryParametersDataType = 'array';
+  protected $vectorSearchStatisticsType = VectorSearchStatistics::class;
+  protected $vectorSearchStatisticsDataType = '';
 
   /**
    * @param BiEngineStatistics
@@ -230,6 +180,48 @@ class JobStatistics2 extends \Google\Collection
   public function getCacheHit()
   {
     return $this->cacheHit;
+  }
+  /**
+   * @param DatasetReference
+   */
+  public function setDclTargetDataset(DatasetReference $dclTargetDataset)
+  {
+    $this->dclTargetDataset = $dclTargetDataset;
+  }
+  /**
+   * @return DatasetReference
+   */
+  public function getDclTargetDataset()
+  {
+    return $this->dclTargetDataset;
+  }
+  /**
+   * @param TableReference
+   */
+  public function setDclTargetTable(TableReference $dclTargetTable)
+  {
+    $this->dclTargetTable = $dclTargetTable;
+  }
+  /**
+   * @return TableReference
+   */
+  public function getDclTargetTable()
+  {
+    return $this->dclTargetTable;
+  }
+  /**
+   * @param TableReference
+   */
+  public function setDclTargetView(TableReference $dclTargetView)
+  {
+    $this->dclTargetView = $dclTargetView;
+  }
+  /**
+   * @return TableReference
+   */
+  public function getDclTargetView()
+  {
+    return $this->dclTargetView;
   }
   /**
    * @param string
@@ -358,6 +350,76 @@ class JobStatistics2 extends \Google\Collection
     return $this->estimatedBytesProcessed;
   }
   /**
+   * @param ExportDataStatistics
+   */
+  public function setExportDataStatistics(ExportDataStatistics $exportDataStatistics)
+  {
+    $this->exportDataStatistics = $exportDataStatistics;
+  }
+  /**
+   * @return ExportDataStatistics
+   */
+  public function getExportDataStatistics()
+  {
+    return $this->exportDataStatistics;
+  }
+  /**
+   * @param ExternalServiceCost[]
+   */
+  public function setExternalServiceCosts($externalServiceCosts)
+  {
+    $this->externalServiceCosts = $externalServiceCosts;
+  }
+  /**
+   * @return ExternalServiceCost[]
+   */
+  public function getExternalServiceCosts()
+  {
+    return $this->externalServiceCosts;
+  }
+  /**
+   * @param LoadQueryStatistics
+   */
+  public function setLoadQueryStatistics(LoadQueryStatistics $loadQueryStatistics)
+  {
+    $this->loadQueryStatistics = $loadQueryStatistics;
+  }
+  /**
+   * @return LoadQueryStatistics
+   */
+  public function getLoadQueryStatistics()
+  {
+    return $this->loadQueryStatistics;
+  }
+  /**
+   * @param MaterializedViewStatistics
+   */
+  public function setMaterializedViewStatistics(MaterializedViewStatistics $materializedViewStatistics)
+  {
+    $this->materializedViewStatistics = $materializedViewStatistics;
+  }
+  /**
+   * @return MaterializedViewStatistics
+   */
+  public function getMaterializedViewStatistics()
+  {
+    return $this->materializedViewStatistics;
+  }
+  /**
+   * @param MetadataCacheStatistics
+   */
+  public function setMetadataCacheStatistics(MetadataCacheStatistics $metadataCacheStatistics)
+  {
+    $this->metadataCacheStatistics = $metadataCacheStatistics;
+  }
+  /**
+   * @return MetadataCacheStatistics
+   */
+  public function getMetadataCacheStatistics()
+  {
+    return $this->metadataCacheStatistics;
+  }
+  /**
    * @param MlStatistics
    */
   public function setMlStatistics(MlStatistics $mlStatistics)
@@ -426,6 +488,34 @@ class JobStatistics2 extends \Google\Collection
   public function getNumDmlAffectedRows()
   {
     return $this->numDmlAffectedRows;
+  }
+  /**
+   * @param PerformanceInsights
+   */
+  public function setPerformanceInsights(PerformanceInsights $performanceInsights)
+  {
+    $this->performanceInsights = $performanceInsights;
+  }
+  /**
+   * @return PerformanceInsights
+   */
+  public function getPerformanceInsights()
+  {
+    return $this->performanceInsights;
+  }
+  /**
+   * @param QueryInfo
+   */
+  public function setQueryInfo(QueryInfo $queryInfo)
+  {
+    $this->queryInfo = $queryInfo;
+  }
+  /**
+   * @return QueryInfo
+   */
+  public function getQueryInfo()
+  {
+    return $this->queryInfo;
   }
   /**
    * @param ExplainQueryStage[]
@@ -650,6 +740,20 @@ class JobStatistics2 extends \Google\Collection
   public function getUndeclaredQueryParameters()
   {
     return $this->undeclaredQueryParameters;
+  }
+  /**
+   * @param VectorSearchStatistics
+   */
+  public function setVectorSearchStatistics(VectorSearchStatistics $vectorSearchStatistics)
+  {
+    $this->vectorSearchStatistics = $vectorSearchStatistics;
+  }
+  /**
+   * @return VectorSearchStatistics
+   */
+  public function getVectorSearchStatistics()
+  {
+    return $this->vectorSearchStatistics;
   }
 }
 

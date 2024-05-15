@@ -23,72 +23,34 @@ class PageElement extends \Google\Model
    * @var string
    */
   public $description;
-  /**
-   * @var Group
-   */
-  public $elementGroup;
   protected $elementGroupType = Group::class;
   protected $elementGroupDataType = '';
-  /**
-   * @var Image
-   */
-  public $image;
   protected $imageType = Image::class;
   protected $imageDataType = '';
-  /**
-   * @var Line
-   */
-  public $line;
   protected $lineType = Line::class;
   protected $lineDataType = '';
   /**
    * @var string
    */
   public $objectId;
-  /**
-   * @var Shape
-   */
-  public $shape;
   protected $shapeType = Shape::class;
   protected $shapeDataType = '';
-  /**
-   * @var SheetsChart
-   */
-  public $sheetsChart;
   protected $sheetsChartType = SheetsChart::class;
   protected $sheetsChartDataType = '';
-  /**
-   * @var Size
-   */
-  public $size;
   protected $sizeType = Size::class;
   protected $sizeDataType = '';
-  /**
-   * @var Table
-   */
-  public $table;
+  protected $speakerSpotlightType = SpeakerSpotlight::class;
+  protected $speakerSpotlightDataType = '';
   protected $tableType = Table::class;
   protected $tableDataType = '';
   /**
    * @var string
    */
   public $title;
-  /**
-   * @var AffineTransform
-   */
-  public $transform;
   protected $transformType = AffineTransform::class;
   protected $transformDataType = '';
-  /**
-   * @var Video
-   */
-  public $video;
   protected $videoType = Video::class;
   protected $videoDataType = '';
-  /**
-   * @var WordArt
-   */
-  public $wordArt;
   protected $wordArtType = WordArt::class;
   protected $wordArtDataType = '';
 
@@ -203,6 +165,20 @@ class PageElement extends \Google\Model
   public function getSize()
   {
     return $this->size;
+  }
+  /**
+   * @param SpeakerSpotlight
+   */
+  public function setSpeakerSpotlight(SpeakerSpotlight $speakerSpotlight)
+  {
+    $this->speakerSpotlight = $speakerSpotlight;
+  }
+  /**
+   * @return SpeakerSpotlight
+   */
+  public function getSpeakerSpotlight()
+  {
+    return $this->speakerSpotlight;
   }
   /**
    * @param Table

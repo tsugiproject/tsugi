@@ -28,16 +28,16 @@ class CompositeDocPartialUpdateInfo extends \Google\Collection
    * @var string[]
    */
   public $imagesSignalNames;
-  /**
-   * @var CompositeDocPartialUpdateInfoLastFullIndexingInfo[]
-   */
-  public $lastFullIndexingInfo;
   protected $lastFullIndexingInfoType = CompositeDocPartialUpdateInfoLastFullIndexingInfo::class;
   protected $lastFullIndexingInfoDataType = 'array';
   /**
    * @var int
    */
   public $shouldLookupDocjoinsTier;
+  /**
+   * @var string
+   */
+  public $shouldLookupDocjoinsVerticalCorpus;
   /**
    * @var string[]
    */
@@ -98,6 +98,20 @@ class CompositeDocPartialUpdateInfo extends \Google\Collection
   public function getShouldLookupDocjoinsTier()
   {
     return $this->shouldLookupDocjoinsTier;
+  }
+  /**
+   * @param string
+   */
+  public function setShouldLookupDocjoinsVerticalCorpus($shouldLookupDocjoinsVerticalCorpus)
+  {
+    $this->shouldLookupDocjoinsVerticalCorpus = $shouldLookupDocjoinsVerticalCorpus;
+  }
+  /**
+   * @return string
+   */
+  public function getShouldLookupDocjoinsVerticalCorpus()
+  {
+    return $this->shouldLookupDocjoinsVerticalCorpus;
   }
   /**
    * @param string[]

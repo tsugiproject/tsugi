@@ -19,10 +19,6 @@ namespace Google\Service\Container;
 
 class NodePoolDefaults extends \Google\Model
 {
-  /**
-   * @var NodeConfigDefaults
-   */
-  public $nodeConfigDefaults;
   protected $nodeConfigDefaultsType = NodeConfigDefaults::class;
   protected $nodeConfigDefaultsDataType = '';
 

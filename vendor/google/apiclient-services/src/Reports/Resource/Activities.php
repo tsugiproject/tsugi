@@ -133,6 +133,7 @@ class Activities extends \Google\Service\Resource
    * until `endTime`. The `startTime` must be before the `endTime` (if specified)
    * and the current time when the request is made, or the API returns an error.
    * @return ActivitiesModel
+   * @throws \Google\Service\Exception
    */
   public function listActivities($userKey, $applicationName, $optParams = [])
   {
@@ -226,8 +227,9 @@ class Activities extends \Google\Service\Resource
    * report has two activities, the report has two pages. The response's
    * `nextPageToken` property has the token to the second page. The `maxResults`
    * query string is optional in the request. The default value is 1000.
-   * @opt_param string orgUnitID ID of the organizational unit to report on.
-   * Activity records will be shown only for users who belong to the specified
+   * @opt_param string orgUnitID `Deprecated`. This field is deprecated and is no
+   * longer supported. ID of the organizational unit to report on. Activity
+   * records will be shown only for users who belong to the specified
    * organizational unit. Data before Dec 17, 2018 doesn't appear in the filtered
    * results.
    * @opt_param string pageToken The token to specify next page. A report with
@@ -240,6 +242,7 @@ class Activities extends \Google\Service\Resource
    * until `endTime`. The `startTime` must be before the `endTime` (if specified)
    * and the current time when the request is made, or the API returns an error.
    * @return Channel
+   * @throws \Google\Service\Exception
    */
   public function watch($userKey, $applicationName, Channel $postBody, $optParams = [])
   {

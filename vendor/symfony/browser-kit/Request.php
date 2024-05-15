@@ -16,13 +16,13 @@ namespace Symfony\Component\BrowserKit;
  */
 class Request
 {
-    protected $uri;
-    protected $method;
-    protected $parameters;
-    protected $files;
-    protected $cookies;
-    protected $server;
-    protected $content;
+    protected string $uri;
+    protected string $method;
+    protected array $parameters;
+    protected array $files;
+    protected array $cookies;
+    protected array $server;
+    protected ?string $content;
 
     /**
      * @param string $uri        The request URI
@@ -33,7 +33,7 @@ class Request
      * @param array  $server     An array of server parameters
      * @param string $content    The raw body data
      */
-    public function __construct(string $uri, string $method, array $parameters = [], array $files = [], array $cookies = [], array $server = [], string $content = null)
+    public function __construct(string $uri, string $method, array $parameters = [], array $files = [], array $cookies = [], array $server = [], ?string $content = null)
     {
         $this->uri = $uri;
         $this->method = $method;

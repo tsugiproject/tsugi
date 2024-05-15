@@ -19,26 +19,22 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1DeployedModel extends \Google\Model
 {
-  /**
-   * @var GoogleCloudAiplatformV1AutomaticResources
-   */
-  public $automaticResources;
   protected $automaticResourcesType = GoogleCloudAiplatformV1AutomaticResources::class;
   protected $automaticResourcesDataType = '';
   /**
    * @var string
    */
   public $createTime;
-  /**
-   * @var GoogleCloudAiplatformV1DedicatedResources
-   */
-  public $dedicatedResources;
   protected $dedicatedResourcesType = GoogleCloudAiplatformV1DedicatedResources::class;
   protected $dedicatedResourcesDataType = '';
   /**
    * @var bool
    */
   public $disableContainerLogging;
+  /**
+   * @var bool
+   */
+  public $disableExplanations;
   /**
    * @var string
    */
@@ -47,10 +43,6 @@ class GoogleCloudAiplatformV1DeployedModel extends \Google\Model
    * @var bool
    */
   public $enableAccessLogging;
-  /**
-   * @var GoogleCloudAiplatformV1ExplanationSpec
-   */
-  public $explanationSpec;
   protected $explanationSpecType = GoogleCloudAiplatformV1ExplanationSpec::class;
   protected $explanationSpecDataType = '';
   /**
@@ -65,10 +57,6 @@ class GoogleCloudAiplatformV1DeployedModel extends \Google\Model
    * @var string
    */
   public $modelVersionId;
-  /**
-   * @var GoogleCloudAiplatformV1PrivateEndpoints
-   */
-  public $privateEndpoints;
   protected $privateEndpointsType = GoogleCloudAiplatformV1PrivateEndpoints::class;
   protected $privateEndpointsDataType = '';
   /**
@@ -135,6 +123,20 @@ class GoogleCloudAiplatformV1DeployedModel extends \Google\Model
   public function getDisableContainerLogging()
   {
     return $this->disableContainerLogging;
+  }
+  /**
+   * @param bool
+   */
+  public function setDisableExplanations($disableExplanations)
+  {
+    $this->disableExplanations = $disableExplanations;
+  }
+  /**
+   * @return bool
+   */
+  public function getDisableExplanations()
+  {
+    return $this->disableExplanations;
   }
   /**
    * @param string

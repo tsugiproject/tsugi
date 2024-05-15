@@ -1,10 +1,12 @@
+![Monolog](logo.jpg)
+
 # Monolog - Logging for PHP [![Continuous Integration](https://github.com/Seldaek/monolog/workflows/Continuous%20Integration/badge.svg?branch=main)](https://github.com/Seldaek/monolog/actions)
 
 [![Total Downloads](https://img.shields.io/packagist/dt/monolog/monolog.svg)](https://packagist.org/packages/monolog/monolog)
 [![Latest Stable Version](https://img.shields.io/packagist/v/monolog/monolog.svg)](https://packagist.org/packages/monolog/monolog)
 
-> ⚠ This is the **documentation for Monolog 3.x**, if you are using older releases
-> see the documentation for [Monolog 2.x](https://github.com/Seldaek/monolog/blob/2.x/README.md) or [Monolog 1.x](https://github.com/Seldaek/monolog/blob/1.x/README.md) ⚠
+>**Note** This is the **documentation for Monolog 3.x**, if you are using older releases
+>see the documentation for [Monolog 2.x](https://github.com/Seldaek/monolog/blob/2.x/README.md) or [Monolog 1.x](https://github.com/Seldaek/monolog/blob/1.x/README.md)
 
 Monolog sends your logs to files, sockets, inboxes, databases and various
 web services. See the complete list of handlers below. Special handlers
@@ -17,12 +19,28 @@ make sure you can always use another compatible logger at a later time.
 As of 1.11.0 Monolog public APIs will also accept PSR-3 log levels.
 Internally Monolog still uses its own level scheme since it predates PSR-3.
 
+<div align="center">
+  <hr>
+  <sup><b>Sponsored by:</b></sup>
+  <br>
+  <a href="https://betterstack.com">
+    <div>
+      <img src="https://github.com/Seldaek/monolog/assets/183678/7de58ce0-2fa2-45c0-b3e8-e60cebb3c4cf" width="200" alt="Better Stack">
+    </div>
+    <div>
+      Better Stack lets you centralize, search, and visualize your logs.
+    </div>
+  </a>
+  <br>
+  <hr>
+</div>
+
 ## Installation
 
 Install the latest version with
 
 ```bash
-$ composer require monolog/monolog
+composer require monolog/monolog
 ```
 
 ## Basic Usage

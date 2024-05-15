@@ -19,20 +19,14 @@ namespace Google\Service\DiscoveryEngine;
 
 class GoogleCloudDiscoveryengineV1betaConverseConversationRequest extends \Google\Model
 {
-  /**
-   * @var GoogleCloudDiscoveryengineV1betaConversation
-   */
-  public $conversation;
+  protected $boostSpecType = GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpec::class;
+  protected $boostSpecDataType = '';
   protected $conversationType = GoogleCloudDiscoveryengineV1betaConversation::class;
   protected $conversationDataType = '';
   /**
    * @var string
    */
   public $filter;
-  /**
-   * @var GoogleCloudDiscoveryengineV1betaTextInput
-   */
-  public $query;
   protected $queryType = GoogleCloudDiscoveryengineV1betaTextInput::class;
   protected $queryDataType = '';
   /**
@@ -43,10 +37,6 @@ class GoogleCloudDiscoveryengineV1betaConverseConversationRequest extends \Googl
    * @var string
    */
   public $servingConfig;
-  /**
-   * @var GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpec
-   */
-  public $summarySpec;
   protected $summarySpecType = GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpec::class;
   protected $summarySpecDataType = '';
   /**
@@ -54,6 +44,20 @@ class GoogleCloudDiscoveryengineV1betaConverseConversationRequest extends \Googl
    */
   public $userLabels;
 
+  /**
+   * @param GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpec
+   */
+  public function setBoostSpec(GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpec $boostSpec)
+  {
+    $this->boostSpec = $boostSpec;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpec
+   */
+  public function getBoostSpec()
+  {
+    return $this->boostSpec;
+  }
   /**
    * @param GoogleCloudDiscoveryengineV1betaConversation
    */

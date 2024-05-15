@@ -28,10 +28,6 @@ class PivotHeaderEntry extends \Google\Collection
    * @var string[]
    */
   public $dimensionValues;
-  /**
-   * @var MetricHeaderEntry
-   */
-  public $metric;
   protected $metricType = MetricHeaderEntry::class;
   protected $metricDataType = '';
 

@@ -50,9 +50,9 @@ class V1 extends \Google\Service\Resource
    * be an organization number (such as "organizations/123"), a folder number
    * (such as "folders/123"), a project ID (such as "projects/my-project-id"), or
    * a project number (such as "projects/12345"). To know how to get organization
-   * id, visit [here ](https://cloud.google.com/resource-manager/docs/creating-
+   * ID, visit [here ](https://cloud.google.com/resource-manager/docs/creating-
    * managing-organization#retrieving_your_organization_id). To know how to get
-   * folder or project id, visit [here ](https://cloud.google.com/resource-
+   * folder or project ID, visit [here ](https://cloud.google.com/resource-
    * manager/docs/creating-managing-
    * folders#viewing_or_listing_folders_and_projects).
    * @param array $optParams Optional parameters.
@@ -158,6 +158,7 @@ class V1 extends \Google\Service\Resource
    * as 0 or empty string, etc., because we use proto3, which doesn't support
    * field presence yet.
    * @return AnalyzeIamPolicyResponse
+   * @throws \Google\Service\Exception
    */
   public function analyzeIamPolicy($scope, $optParams = [])
   {
@@ -180,14 +181,15 @@ class V1 extends \Google\Service\Resource
    * be an organization number (such as "organizations/123"), a folder number
    * (such as "folders/123"), a project ID (such as "projects/my-project-id"), or
    * a project number (such as "projects/12345"). To know how to get organization
-   * id, visit [here ](https://cloud.google.com/resource-manager/docs/creating-
+   * ID, visit [here ](https://cloud.google.com/resource-manager/docs/creating-
    * managing-organization#retrieving_your_organization_id). To know how to get
-   * folder or project id, visit [here ](https://cloud.google.com/resource-
+   * folder or project ID, visit [here ](https://cloud.google.com/resource-
    * manager/docs/creating-managing-
    * folders#viewing_or_listing_folders_and_projects).
    * @param AnalyzeIamPolicyLongrunningRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function analyzeIamPolicyLongrunning($scope, AnalyzeIamPolicyLongrunningRequest $postBody, $optParams = [])
   {
@@ -216,6 +218,7 @@ class V1 extends \Google\Service\Resource
    * @opt_param string view Analysis view indicating what information should be
    * included in the analysis response. If unspecified, the default view is FULL.
    * @return AnalyzeMoveResponse
+   * @throws \Google\Service\Exception
    */
   public function analyzeMove($resource, $optParams = [])
   {
@@ -247,6 +250,7 @@ class V1 extends \Google\Service\Resource
    * items with a maximum of 200.
    * @opt_param string pageToken The pagination token to retrieve the next page.
    * @return AnalyzeOrgPoliciesResponse
+   * @throws \Google\Service\Exception
    */
   public function analyzeOrgPolicies($scope, $optParams = [])
   {
@@ -257,13 +261,44 @@ class V1 extends \Google\Service\Resource
   /**
    * Analyzes organization policies governed assets (Google Cloud resources or
    * policies) under a scope. This RPC supports custom constraints and the
-   * following 10 canned constraints: * storage.uniformBucketLevelAccess *
-   * iam.disableServiceAccountKeyCreation * iam.allowedPolicyMemberDomains *
-   * compute.vmExternalIpAccess * appengine.enforceServiceAccountActAsCheck *
-   * gcp.resourceLocations * compute.trustedImageProjects *
-   * compute.skipDefaultNetworkCreation * compute.requireOsLogin *
-   * compute.disableNestedVirtualization This RPC only returns either resources of
-   * types [supported by search APIs](https://cloud.google.com/asset-
+   * following canned constraints: * constraints/ainotebooks.accessMode *
+   * constraints/ainotebooks.disableFileDownloads *
+   * constraints/ainotebooks.disableRootAccess *
+   * constraints/ainotebooks.disableTerminal *
+   * constraints/ainotebooks.environmentOptions *
+   * constraints/ainotebooks.requireAutoUpgradeSchedule *
+   * constraints/ainotebooks.restrictVpcNetworks *
+   * constraints/compute.disableGuestAttributesAccess *
+   * constraints/compute.disableInstanceDataAccessApis *
+   * constraints/compute.disableNestedVirtualization *
+   * constraints/compute.disableSerialPortAccess *
+   * constraints/compute.disableSerialPortLogging *
+   * constraints/compute.disableVpcExternalIpv6 *
+   * constraints/compute.requireOsLogin * constraints/compute.requireShieldedVm *
+   * constraints/compute.restrictLoadBalancerCreationForTypes *
+   * constraints/compute.restrictProtocolForwardingCreationForTypes *
+   * constraints/compute.restrictXpnProjectLienRemoval *
+   * constraints/compute.setNewProjectDefaultToZonalDNSOnly *
+   * constraints/compute.skipDefaultNetworkCreation *
+   * constraints/compute.trustedImageProjects * constraints/compute.vmCanIpForward
+   * * constraints/compute.vmExternalIpAccess *
+   * constraints/gcp.detailedAuditLoggingMode * constraints/gcp.resourceLocations
+   * * constraints/iam.allowedPolicyMemberDomains *
+   * constraints/iam.automaticIamGrantsForDefaultServiceAccounts *
+   * constraints/iam.disableServiceAccountCreation *
+   * constraints/iam.disableServiceAccountKeyCreation *
+   * constraints/iam.disableServiceAccountKeyUpload *
+   * constraints/iam.restrictCrossProjectServiceAccountLienRemoval *
+   * constraints/iam.serviceAccountKeyExpiryHours *
+   * constraints/resourcemanager.accessBoundaries *
+   * constraints/resourcemanager.allowedExportDestinations *
+   * constraints/sql.restrictAuthorizedNetworks *
+   * constraints/sql.restrictNoncompliantDiagnosticDataAccess *
+   * constraints/sql.restrictNoncompliantResourceCreation *
+   * constraints/sql.restrictPublicIp * constraints/storage.publicAccessPrevention
+   * * constraints/storage.restrictAuthTypes *
+   * constraints/storage.uniformBucketLevelAccess This RPC only returns either
+   * resources of types [supported by search APIs](https://cloud.google.com/asset-
    * inventory/docs/supported-asset-types) or IAM policies.
    * (v1.analyzeOrgPolicyGovernedAssets)
    *
@@ -301,6 +336,7 @@ class V1 extends \Google\Service\Resource
    * contain 100 items with a maximum of 200.
    * @opt_param string pageToken The pagination token to retrieve the next page.
    * @return AnalyzeOrgPolicyGovernedAssetsResponse
+   * @throws \Google\Service\Exception
    */
   public function analyzeOrgPolicyGovernedAssets($scope, $optParams = [])
   {
@@ -334,6 +370,7 @@ class V1 extends \Google\Service\Resource
    * will contain 100 items with a maximum of 200.
    * @opt_param string pageToken The pagination token to retrieve the next page.
    * @return AnalyzeOrgPolicyGovernedContainersResponse
+   * @throws \Google\Service\Exception
    */
   public function analyzeOrgPolicyGovernedContainers($scope, $optParams = [])
   {
@@ -378,6 +415,7 @@ class V1 extends \Google\Service\Resource
    * inventory/docs/overview) for all supported asset types and relationship
    * types.
    * @return BatchGetAssetsHistoryResponse
+   * @throws \Google\Service\Exception
    */
   public function batchGetAssetsHistory($parent, $optParams = [])
   {
@@ -404,6 +442,7 @@ class V1 extends \Google\Service\Resource
    * @param ExportAssetsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function exportAssets($parent, ExportAssetsRequest $postBody, $optParams = [])
   {
@@ -431,6 +470,7 @@ class V1 extends \Google\Service\Resource
    * @param QueryAssetsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return QueryAssetsResponse
+   * @throws \Google\Service\Exception
    */
   public function queryAssets($parent, QueryAssetsRequest $postBody, $optParams = [])
   {
@@ -516,6 +556,7 @@ class V1 extends \Google\Service\Resource
    * the Compute Admin role. * `memberTypes:user` to find IAM policy bindings that
    * contain the principal type "user".
    * @return SearchAllIamPoliciesResponse
+   * @throws \Google\Service\Exception
    */
   public function searchAllIamPolicies($scope, $optParams = [])
   {
@@ -647,6 +688,7 @@ class V1 extends \Google\Service\Resource
    * `"name,location"`, `"name,versionedResources"`, `"*"`. Any invalid field path
    * will trigger INVALID_ARGUMENT error.
    * @return SearchAllResourcesResponse
+   * @throws \Google\Service\Exception
    */
   public function searchAllResources($scope, $optParams = [])
   {

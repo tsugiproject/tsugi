@@ -21,25 +21,17 @@ class CommitRequest extends \Google\Collection
 {
   protected $collection_key = 'mutations';
   /**
-   * @var Mutation[]
+   * @var string
    */
-  public $mutations;
+  public $maxCommitDelay;
   protected $mutationsType = Mutation::class;
   protected $mutationsDataType = 'array';
-  /**
-   * @var RequestOptions
-   */
-  public $requestOptions;
   protected $requestOptionsType = RequestOptions::class;
   protected $requestOptionsDataType = '';
   /**
    * @var bool
    */
   public $returnCommitStats;
-  /**
-   * @var TransactionOptions
-   */
-  public $singleUseTransaction;
   protected $singleUseTransactionType = TransactionOptions::class;
   protected $singleUseTransactionDataType = '';
   /**
@@ -47,6 +39,20 @@ class CommitRequest extends \Google\Collection
    */
   public $transactionId;
 
+  /**
+   * @param string
+   */
+  public function setMaxCommitDelay($maxCommitDelay)
+  {
+    $this->maxCommitDelay = $maxCommitDelay;
+  }
+  /**
+   * @return string
+   */
+  public function getMaxCommitDelay()
+  {
+    return $this->maxCommitDelay;
+  }
   /**
    * @param Mutation[]
    */

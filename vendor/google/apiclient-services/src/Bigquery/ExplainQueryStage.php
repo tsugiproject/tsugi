@@ -27,6 +27,10 @@ class ExplainQueryStage extends \Google\Collection
   /**
    * @var string
    */
+  public $computeMode;
+  /**
+   * @var string
+   */
   public $computeMsAvg;
   /**
    * @var string
@@ -92,10 +96,6 @@ class ExplainQueryStage extends \Google\Collection
    * @var string
    */
   public $status;
-  /**
-   * @var ExplainQueryStep[]
-   */
-  public $steps;
   protected $stepsType = ExplainQueryStep::class;
   protected $stepsDataType = 'array';
   /**
@@ -132,6 +132,20 @@ class ExplainQueryStage extends \Google\Collection
   public function getCompletedParallelInputs()
   {
     return $this->completedParallelInputs;
+  }
+  /**
+   * @param string
+   */
+  public function setComputeMode($computeMode)
+  {
+    $this->computeMode = $computeMode;
+  }
+  /**
+   * @return string
+   */
+  public function getComputeMode()
+  {
+    return $this->computeMode;
   }
   /**
    * @param string

@@ -79,6 +79,7 @@ class ProjectsLocationsAuthConfigs extends \Google\Service\Resource
    * 5dMsYf4CZS6w50r7hyzqyrwDoyNxkLnd2PdcHT/sym1QmflsjEs7pejtnohO6N2H
    * wQW6M0H7Zt8claGRla4fKkg= -----END CERTIFICATE-----
    * @return GoogleCloudIntegrationsV1alphaAuthConfig
+   * @throws \Google\Service\Exception
    */
   public function create($parent, GoogleCloudIntegrationsV1alphaAuthConfig $postBody, $optParams = [])
   {
@@ -93,6 +94,7 @@ class ProjectsLocationsAuthConfigs extends \Google\Service\Resource
    * AuthConfig.
    * @param array $optParams Optional parameters.
    * @return GoogleProtobufEmpty
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -109,6 +111,7 @@ class ProjectsLocationsAuthConfigs extends \Google\Service\Resource
    * AuthConfig.
    * @param array $optParams Optional parameters.
    * @return GoogleCloudIntegrationsV1alphaAuthConfig
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -132,6 +135,7 @@ class ProjectsLocationsAuthConfigs extends \Google\Service\Resource
    * @opt_param string readMask The mask which specifies fields that need to be
    * returned in the AuthConfig's response.
    * @return GoogleCloudIntegrationsV1alphaListAuthConfigsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsAuthConfigs($parent, $optParams = [])
   {
@@ -146,7 +150,8 @@ class ProjectsLocationsAuthConfigs extends \Google\Service\Resource
    * other fields, directly update the Spanner record. Returns the encrypted auth
    * config. (authConfigs.patch)
    *
-   * @param string $name Resource name of the SFDC instance
+   * @param string $name Resource name of the auth config. For more information,
+   * see Manage authentication profiles.
    * projects/{project}/locations/{location}/authConfigs/{authConfig}.
    * @param GoogleCloudIntegrationsV1alphaAuthConfig $postBody
    * @param array $optParams Optional parameters.
@@ -190,6 +195,7 @@ class ProjectsLocationsAuthConfigs extends \Google\Service\Resource
    * @opt_param string updateMask Field mask specifying the fields in the above
    * AuthConfig that have been modified and need to be updated.
    * @return GoogleCloudIntegrationsV1alphaAuthConfig
+   * @throws \Google\Service\Exception
    */
   public function patch($name, GoogleCloudIntegrationsV1alphaAuthConfig $postBody, $optParams = [])
   {

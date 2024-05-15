@@ -212,6 +212,11 @@ class Response
     ];
 
     /**
+     * Tracks headers already sent in informational responses.
+     */
+    private array $sentHeaders;
+
+    /**
      * @param int $status The HTTP status code (200 "OK" by default)
      *
      * @throws \InvalidArgumentException When the HTTP status code is not valid
@@ -281,7 +286,7 @@ class Response
             $charset = $this->charset ?: 'UTF-8';
             if (!$headers->has('Content-Type')) {
                 $headers->set('Content-Type', 'text/html; charset='.$charset);
-            } elseif (0 === stripos($headers->get('Content-Type'), 'text/') && false === stripos($headers->get('Content-Type'), 'charset')) {
+            } elseif (0 === stripos($headers->get('Content-Type') ?? '', 'text/') && false === stripos($headers->get('Content-Type') ?? '', 'charset')) {
                 // add the charset
                 $headers->set('Content-Type', $headers->get('Content-Type').'; charset='.$charset);
             }
@@ -326,20 +331,51 @@ class Response
     /**
      * Sends HTTP headers.
      *
+     * @param positive-int|null $statusCode The status code to use, override the statusCode property if set and not null
+     *
      * @return $this
      */
-    public function sendHeaders(): static
+    public function sendHeaders(/* int $statusCode = null */): static
     {
         // headers have already been sent by the developer
         if (headers_sent()) {
             return $this;
         }
 
+        $statusCode = \func_num_args() > 0 ? func_get_arg(0) : null;
+        $informationalResponse = $statusCode >= 100 && $statusCode < 200;
+        if ($informationalResponse && !\function_exists('headers_send')) {
+            // skip informational responses if not supported by the SAPI
+            return $this;
+        }
+
         // headers
         foreach ($this->headers->allPreserveCaseWithoutCookies() as $name => $values) {
+            $newValues = $values;
+            $replace = false;
+
+            // As recommended by RFC 8297, PHP automatically copies headers from previous 103 responses, we need to deal with that if headers changed
+            $previousValues = $this->sentHeaders[$name] ?? null;
+            if ($previousValues === $values) {
+                // Header already sent in a previous response, it will be automatically copied in this response by PHP
+                continue;
+            }
+
             $replace = 0 === strcasecmp($name, 'Content-Type');
-            foreach ($values as $value) {
+
+            if (null !== $previousValues && array_diff($previousValues, $values)) {
+                header_remove($name);
+                $previousValues = null;
+            }
+
+            $newValues = null === $previousValues ? $values : array_diff($values, $previousValues);
+
+            foreach ($newValues as $value) {
                 header($name.': '.$value, $replace, $this->statusCode);
+            }
+
+            if ($informationalResponse) {
+                $this->sentHeaders[$name] = $values;
             }
         }
 
@@ -348,8 +384,16 @@ class Response
             header('Set-Cookie: '.$cookie, false, $this->statusCode);
         }
 
+        if ($informationalResponse) {
+            headers_send($statusCode);
+
+            return $this;
+        }
+
+        $statusCode ??= $this->statusCode;
+
         // status
-        header(sprintf('HTTP/%s %s %s', $this->version, $this->statusCode, $this->statusText), true, $this->statusCode);
+        header(sprintf('HTTP/%s %s %s', $this->version, $statusCode, $this->statusText), true, $statusCode);
 
         return $this;
     }
@@ -369,18 +413,25 @@ class Response
     /**
      * Sends HTTP headers and content.
      *
+     * @param bool $flush Whether output buffers should be flushed
+     *
      * @return $this
      */
-    public function send(): static
+    public function send(/* bool $flush = true */): static
     {
         $this->sendHeaders();
         $this->sendContent();
+
+        $flush = 1 <= \func_num_args() ? func_get_arg(0) : true;
+        if (!$flush) {
+            return $this;
+        }
 
         if (\function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
         } elseif (\function_exists('litespeed_finish_request')) {
             litespeed_finish_request();
-        } elseif (!\in_array(\PHP_SAPI, ['cli', 'phpdbg'], true)) {
+        } elseif (!\in_array(\PHP_SAPI, ['cli', 'phpdbg', 'embed'], true)) {
             static::closeOutputBuffers(0, true);
             flush();
         }
@@ -444,7 +495,7 @@ class Response
      *
      * @final
      */
-    public function setStatusCode(int $code, string $text = null): static
+    public function setStatusCode(int $code, ?string $text = null): static
     {
         $this->statusCode = $code;
         if ($this->isInvalid()) {
@@ -453,12 +504,6 @@ class Response
 
         if (null === $text) {
             $this->statusText = self::$statusTexts[$code] ?? 'unknown status';
-
-            return $this;
-        }
-
-        if (false === $text) {
-            $this->statusText = '';
 
             return $this;
         }
@@ -641,7 +686,7 @@ class Response
      *
      * @final
      */
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?\DateTimeImmutable
     {
         return $this->headers->getDate('Date');
     }
@@ -655,10 +700,7 @@ class Response
      */
     public function setDate(\DateTimeInterface $date): static
     {
-        if ($date instanceof \DateTime) {
-            $date = \DateTimeImmutable::createFromMutable($date);
-        }
-
+        $date = \DateTimeImmutable::createFromInterface($date);
         $date = $date->setTimezone(new \DateTimeZone('UTC'));
         $this->headers->set('Date', $date->format('D, d M Y H:i:s').' GMT');
 
@@ -699,13 +741,13 @@ class Response
      *
      * @final
      */
-    public function getExpires(): ?\DateTimeInterface
+    public function getExpires(): ?\DateTimeImmutable
     {
         try {
             return $this->headers->getDate('Expires');
         } catch (\RuntimeException) {
             // according to RFC 2616 invalid date formats (e.g. "0" and "-1") must be treated as in the past
-            return \DateTime::createFromFormat('U', time() - 172800);
+            return \DateTimeImmutable::createFromFormat('U', time() - 172800);
         }
     }
 
@@ -718,7 +760,7 @@ class Response
      *
      * @final
      */
-    public function setExpires(\DateTimeInterface $date = null): static
+    public function setExpires(?\DateTimeInterface $date = null): static
     {
         if (1 > \func_num_args()) {
             trigger_deprecation('symfony/http-foundation', '6.2', 'Calling "%s()" without any arguments is deprecated, pass null explicitly instead.', __METHOD__);
@@ -729,10 +771,7 @@ class Response
             return $this;
         }
 
-        if ($date instanceof \DateTime) {
-            $date = \DateTimeImmutable::createFromMutable($date);
-        }
-
+        $date = \DateTimeImmutable::createFromInterface($date);
         $date = $date->setTimezone(new \DateTimeZone('UTC'));
         $this->headers->set('Expires', $date->format('D, d M Y H:i:s').' GMT');
 
@@ -888,7 +927,7 @@ class Response
      *
      * @final
      */
-    public function getLastModified(): ?\DateTimeInterface
+    public function getLastModified(): ?\DateTimeImmutable
     {
         return $this->headers->getDate('Last-Modified');
     }
@@ -902,7 +941,7 @@ class Response
      *
      * @final
      */
-    public function setLastModified(\DateTimeInterface $date = null): static
+    public function setLastModified(?\DateTimeInterface $date = null): static
     {
         if (1 > \func_num_args()) {
             trigger_deprecation('symfony/http-foundation', '6.2', 'Calling "%s()" without any arguments is deprecated, pass null explicitly instead.', __METHOD__);
@@ -913,10 +952,7 @@ class Response
             return $this;
         }
 
-        if ($date instanceof \DateTime) {
-            $date = \DateTimeImmutable::createFromMutable($date);
-        }
-
+        $date = \DateTimeImmutable::createFromInterface($date);
         $date = $date->setTimezone(new \DateTimeZone('UTC'));
         $this->headers->set('Last-Modified', $date->format('D, d M Y H:i:s').' GMT');
 
@@ -943,7 +979,7 @@ class Response
      *
      * @final
      */
-    public function setEtag(string $etag = null, bool $weak = false): static
+    public function setEtag(?string $etag = null, bool $weak = false): static
     {
         if (1 > \func_num_args()) {
             trigger_deprecation('symfony/http-foundation', '6.2', 'Calling "%s()" without any arguments is deprecated, pass null explicitly instead.', __METHOD__);
@@ -1246,7 +1282,7 @@ class Response
      *
      * @final
      */
-    public function isRedirect(string $location = null): bool
+    public function isRedirect(?string $location = null): bool
     {
         return \in_array($this->statusCode, [201, 301, 302, 303, 307, 308]) && (null === $location ?: $location == $this->headers->get('Location'));
     }

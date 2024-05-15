@@ -19,15 +19,9 @@ namespace Google\Service\Contentwarehouse;
 
 class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
 {
-  protected $collection_key = 'videoTimestamps';
+  protected $collection_key = 'stanzaRestrictions';
   public $ansibleScores;
   public $automodScores;
-  /**
-   * @var YoutubeDistillerBlarneyStoneScores
-   */
-  public $blarneyStoneScore;
-  protected $blarneyStoneScoreType = YoutubeDistillerBlarneyStoneScores::class;
-  protected $blarneyStoneScoreDataType = '';
   /**
    * @var string
    */
@@ -44,10 +38,8 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
    */
   public $commentClassificationBuckets;
   public $commentClassificationRanking;
-  /**
-   * @var YoutubeCommentsApiCommentModeratedRestriction[]
-   */
-  public $commentModeratedRestrictions;
+  protected $commentEnforcementStatusType = YoutubeCommentsApiCommentEnforcementStatus::class;
+  protected $commentEnforcementStatusDataType = '';
   protected $commentModeratedRestrictionsType = YoutubeCommentsApiCommentModeratedRestriction::class;
   protected $commentModeratedRestrictionsDataType = 'array';
   /**
@@ -78,23 +70,18 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
    * @var string
    */
   public $detailedLanguageCode;
-  /**
-   * @var AppsPeopleActivityStreamqualityDistillerEngagements
-   */
-  public $distillerEngagements;
   protected $distillerEngagementsType = AppsPeopleActivityStreamqualityDistillerEngagements::class;
   protected $distillerEngagementsDataType = '';
   /**
    * @var string[]
    */
   public $eligibleQualifiedTeaserFilters;
-  /**
-   * @var VideoYoutubeCommentsRankingCTRMetrics
-   */
-  public $empiricalCtrs;
   protected $empiricalCtrsType = VideoYoutubeCommentsRankingCTRMetrics::class;
   protected $empiricalCtrsDataType = '';
-  public $fds;
+  /**
+   * @var bool
+   */
+  public $endUserDeleted;
   /**
    * @var bool
    */
@@ -147,6 +134,10 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
   public $mentionedTimestampCommentSecond;
   public $misinfoScores;
   /**
+   * @var bool
+   */
+  public $mustDeleteComments;
+  /**
    * @var int
    */
   public $numDislikes;
@@ -175,47 +166,23 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
    * @var string
    */
   public $postId;
-  /**
-   * @var string
-   */
-  public $rankingPostLanguage;
-  /**
-   * @var SocialCommonSegments
-   */
-  public $segments;
   protected $segmentsType = SocialCommonSegments::class;
   protected $segmentsDataType = '';
   public $sensitivityScores;
-  /**
-   * @var YoutubeCommentsSentimentSentiment
-   */
-  public $sentiment;
   protected $sentimentType = YoutubeCommentsSentimentSentiment::class;
   protected $sentimentDataType = '';
   /**
    * @var string
    */
   public $shortReplyVideoId;
-  /**
-   * @var VideoYoutubeCommentsClassificationProtoYouTubeCommentSmartReply[]
-   */
-  public $smartReplies;
   protected $smartRepliesType = VideoYoutubeCommentsClassificationProtoYouTubeCommentSmartReply::class;
   protected $smartRepliesDataType = 'map';
   /**
    * @var string
    */
   public $stanzaId;
-  /**
-   * @var SocialStanzaStanzaRestriction[]
-   */
-  public $stanzaRestrictions;
   protected $stanzaRestrictionsType = SocialStanzaStanzaRestriction::class;
   protected $stanzaRestrictionsDataType = 'array';
-  /**
-   * @var SecurityCredentialsPrincipalProto
-   */
-  public $subject;
   protected $subjectType = SecurityCredentialsPrincipalProto::class;
   protected $subjectDataType = '';
   /**
@@ -226,42 +193,22 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
    * @var string
    */
   public $subscriptionTimestamp;
-  /**
-   * @var YoutubeBackstageSuperVodCommentInfo
-   */
-  public $superThanksInfo;
   protected $superThanksInfoType = YoutubeBackstageSuperVodCommentInfo::class;
   protected $superThanksInfoDataType = '';
-  /**
-   * @var YoutubeCommentsRankingYouTubeCommentTextEmbedding[]
-   */
-  public $textEmbedding;
   protected $textEmbeddingType = YoutubeCommentsRankingYouTubeCommentTextEmbedding::class;
   protected $textEmbeddingDataType = 'map';
   /**
    * @var int
    */
   public $textLength;
-  /**
-   * @var YoutubeCommentsRankingYouTubeCommentTextQualityAnnotation
-   */
-  public $textQualityScores;
   protected $textQualityScoresType = YoutubeCommentsRankingYouTubeCommentTextQualityAnnotation::class;
   protected $textQualityScoresDataType = '';
-  /**
-   * @var YoutubeCommentsRankingYouTubeCommentTextQualityAnnotation
-   */
-  public $textQualityScores2;
   protected $textQualityScores2Type = YoutubeCommentsRankingYouTubeCommentTextQualityAnnotation::class;
   protected $textQualityScores2DataType = '';
   /**
    * @var string
    */
   public $videoId;
-  /**
-   * @var int[]
-   */
-  public $videoTimestamps;
   public $wordEntropy;
   /**
    * @var string
@@ -290,20 +237,6 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
   public function getAutomodScores()
   {
     return $this->automodScores;
-  }
-  /**
-   * @param YoutubeDistillerBlarneyStoneScores
-   */
-  public function setBlarneyStoneScore(YoutubeDistillerBlarneyStoneScores $blarneyStoneScore)
-  {
-    $this->blarneyStoneScore = $blarneyStoneScore;
-  }
-  /**
-   * @return YoutubeDistillerBlarneyStoneScores
-   */
-  public function getBlarneyStoneScore()
-  {
-    return $this->blarneyStoneScore;
   }
   /**
    * @param string
@@ -378,6 +311,20 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
   public function getCommentClassificationRanking()
   {
     return $this->commentClassificationRanking;
+  }
+  /**
+   * @param YoutubeCommentsApiCommentEnforcementStatus
+   */
+  public function setCommentEnforcementStatus(YoutubeCommentsApiCommentEnforcementStatus $commentEnforcementStatus)
+  {
+    $this->commentEnforcementStatus = $commentEnforcementStatus;
+  }
+  /**
+   * @return YoutubeCommentsApiCommentEnforcementStatus
+   */
+  public function getCommentEnforcementStatus()
+  {
+    return $this->commentEnforcementStatus;
   }
   /**
    * @param YoutubeCommentsApiCommentModeratedRestriction[]
@@ -533,13 +480,19 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
   {
     return $this->empiricalCtrs;
   }
-  public function setFds($fds)
+  /**
+   * @param bool
+   */
+  public function setEndUserDeleted($endUserDeleted)
   {
-    $this->fds = $fds;
+    $this->endUserDeleted = $endUserDeleted;
   }
-  public function getFds()
+  /**
+   * @return bool
+   */
+  public function getEndUserDeleted()
   {
-    return $this->fds;
+    return $this->endUserDeleted;
   }
   /**
    * @param bool
@@ -734,6 +687,20 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
     return $this->misinfoScores;
   }
   /**
+   * @param bool
+   */
+  public function setMustDeleteComments($mustDeleteComments)
+  {
+    $this->mustDeleteComments = $mustDeleteComments;
+  }
+  /**
+   * @return bool
+   */
+  public function getMustDeleteComments()
+  {
+    return $this->mustDeleteComments;
+  }
+  /**
    * @param int
    */
   public function setNumDislikes($numDislikes)
@@ -838,20 +805,6 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
   public function getPostId()
   {
     return $this->postId;
-  }
-  /**
-   * @param string
-   */
-  public function setRankingPostLanguage($rankingPostLanguage)
-  {
-    $this->rankingPostLanguage = $rankingPostLanguage;
-  }
-  /**
-   * @return string
-   */
-  public function getRankingPostLanguage()
-  {
-    return $this->rankingPostLanguage;
   }
   /**
    * @param SocialCommonSegments
@@ -1070,20 +1023,6 @@ class YoutubeCommentsClusteringMiniStanza extends \Google\Collection
   public function getVideoId()
   {
     return $this->videoId;
-  }
-  /**
-   * @param int[]
-   */
-  public function setVideoTimestamps($videoTimestamps)
-  {
-    $this->videoTimestamps = $videoTimestamps;
-  }
-  /**
-   * @return int[]
-   */
-  public function getVideoTimestamps()
-  {
-    return $this->videoTimestamps;
   }
   public function setWordEntropy($wordEntropy)
   {

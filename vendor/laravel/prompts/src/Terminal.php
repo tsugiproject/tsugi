@@ -2,6 +2,8 @@
 
 namespace Laravel\Prompts;
 
+use ReflectionClass;
+use RuntimeException;
 use Symfony\Component\Console\Terminal as SymfonyTerminal;
 
 class Terminal
@@ -12,14 +14,17 @@ class Terminal
     protected ?string $initialTtyMode;
 
     /**
-     * The number of columns in the terminal.
+     * The Symfony Terminal instance.
      */
-    protected int $cols;
+    protected SymfonyTerminal $terminal;
 
     /**
-     * The number of lines in the terminal.
+     * Create a new Terminal instance.
      */
-    protected int $lines;
+    public function __construct()
+    {
+        $this->terminal = new SymfonyTerminal();
+    }
 
     /**
      * Read a line from the terminal.
@@ -36,9 +41,9 @@ class Terminal
      */
     public function setTty(string $mode): void
     {
-        $this->initialTtyMode ??= (shell_exec('stty -g') ?: null);
+        $this->initialTtyMode ??= $this->exec('stty -g');
 
-        shell_exec("stty $mode");
+        $this->exec("stty $mode");
     }
 
     /**
@@ -46,8 +51,8 @@ class Terminal
      */
     public function restoreTty(): void
     {
-        if ($this->initialTtyMode) {
-            shell_exec("stty {$this->initialTtyMode}");
+        if (isset($this->initialTtyMode)) {
+            $this->exec("stty {$this->initialTtyMode}");
 
             $this->initialTtyMode = null;
         }
@@ -58,7 +63,7 @@ class Terminal
      */
     public function cols(): int
     {
-        return $this->cols ??= (new SymfonyTerminal())->getWidth();
+        return $this->terminal->getWidth();
     }
 
     /**
@@ -66,7 +71,17 @@ class Terminal
      */
     public function lines(): int
     {
-        return $this->lines ??= (new SymfonyTerminal())->getHeight();
+        return $this->terminal->getHeight();
+    }
+
+    /**
+     * (Re)initialize the terminal dimensions.
+     */
+    public function initDimensions(): void
+    {
+        (new ReflectionClass($this->terminal))
+            ->getMethod('initDimensions')
+            ->invoke($this->terminal);
     }
 
     /**
@@ -75,5 +90,30 @@ class Terminal
     public function exit(): void
     {
         exit(1);
+    }
+
+    /**
+     * Execute the given command and return the output.
+     */
+    protected function exec(string $command): string
+    {
+        $process = proc_open($command, [
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ], $pipes);
+
+        if (! $process) {
+            throw new RuntimeException('Failed to create process.');
+        }
+
+        $stdout = stream_get_contents($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+        $code = proc_close($process);
+
+        if ($code !== 0 || $stdout === false) {
+            throw new RuntimeException(trim($stderr ?: "Unknown error (code: $code)"), $code);
+        }
+
+        return $stdout;
     }
 }

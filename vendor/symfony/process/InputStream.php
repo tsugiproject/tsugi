@@ -22,19 +22,18 @@ use Symfony\Component\Process\Exception\RuntimeException;
  */
 class InputStream implements \IteratorAggregate
 {
-    /** @var callable|null */
-    private $onEmpty;
-    private $input = [];
-    private $open = true;
+    private ?\Closure $onEmpty = null;
+    private array $input = [];
+    private bool $open = true;
 
     /**
      * Sets a callback that is called when the write buffer becomes empty.
      *
      * @return void
      */
-    public function onEmpty(callable $onEmpty = null)
+    public function onEmpty(?callable $onEmpty = null)
     {
-        $this->onEmpty = $onEmpty;
+        $this->onEmpty = null !== $onEmpty ? $onEmpty(...) : null;
     }
 
     /**

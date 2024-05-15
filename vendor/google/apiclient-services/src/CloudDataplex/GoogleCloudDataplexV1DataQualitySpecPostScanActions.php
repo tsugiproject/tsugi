@@ -19,12 +19,10 @@ namespace Google\Service\CloudDataplex;
 
 class GoogleCloudDataplexV1DataQualitySpecPostScanActions extends \Google\Model
 {
-  /**
-   * @var GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport
-   */
-  public $bigqueryExport;
   protected $bigqueryExportType = GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport::class;
   protected $bigqueryExportDataType = '';
+  protected $notificationReportType = GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport::class;
+  protected $notificationReportDataType = '';
 
   /**
    * @param GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport
@@ -39,6 +37,20 @@ class GoogleCloudDataplexV1DataQualitySpecPostScanActions extends \Google\Model
   public function getBigqueryExport()
   {
     return $this->bigqueryExport;
+  }
+  /**
+   * @param GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport
+   */
+  public function setNotificationReport(GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport $notificationReport)
+  {
+    $this->notificationReport = $notificationReport;
+  }
+  /**
+   * @return GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport
+   */
+  public function getNotificationReport()
+  {
+    return $this->notificationReport;
   }
 }
 

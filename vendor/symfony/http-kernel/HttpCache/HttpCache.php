@@ -29,6 +29,8 @@ use Symfony\Component\HttpKernel\TerminableInterface;
  */
 class HttpCache implements HttpKernelInterface, TerminableInterface
 {
+    public const BODY_EVAL_BOUNDARY_LENGTH = 24;
+
     private HttpKernelInterface $kernel;
     private StoreInterface $store;
     private Request $request;
@@ -60,6 +62,9 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
      *                            on responses that don't explicitly state whether the response is
      *                            public or private via a Cache-Control directive. (default: Authorization and Cookie)
      *
+     *   * skip_response_headers  Set of response headers that are never cached even if a response is cacheable (public).
+     *                            (default: Set-Cookie)
+     *
      *   * allow_reload           Specifies whether the client can force a cache reload by including a
      *                            Cache-Control "no-cache" directive in the request. Set it to ``true``
      *                            for compliance with RFC 2616. (default: false)
@@ -84,7 +89,7 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
      *                            Unless your application needs to process events on cache hits, it is recommended
      *                            to set this to false to avoid having to bootstrap the Symfony framework on a cache hit.
      */
-    public function __construct(HttpKernelInterface $kernel, StoreInterface $store, SurrogateInterface $surrogate = null, array $options = [])
+    public function __construct(HttpKernelInterface $kernel, StoreInterface $store, ?SurrogateInterface $surrogate = null, array $options = [])
     {
         $this->store = $store;
         $this->kernel = $kernel;
@@ -97,6 +102,7 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
             'debug' => false,
             'default_ttl' => 0,
             'private_headers' => ['Authorization', 'Cookie'],
+            'skip_response_headers' => ['Set-Cookie'],
             'allow_reload' => false,
             'allow_revalidate' => false,
             'stale_while_revalidate' => 2,
@@ -127,7 +133,7 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
         return $this->traces;
     }
 
-    private function addTraces(Response $response)
+    private function addTraces(Response $response): void
     {
         $traceString = null;
 
@@ -236,6 +242,9 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
         return $response;
     }
 
+    /**
+     * @return void
+     */
     public function terminate(Request $request, Response $response)
     {
         // Do not call any listeners in case of a cache hit.
@@ -456,7 +465,7 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
      *
      * @return Response
      */
-    protected function forward(Request $request, bool $catch = false, Response $entry = null)
+    protected function forward(Request $request, bool $catch = false, ?Response $entry = null)
     {
         $this->surrogate?->addSurrogateCapability($request);
 
@@ -586,13 +595,24 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
     /**
      * Writes the Response to the cache.
      *
+     * @return void
+     *
      * @throws \Exception
      */
     protected function store(Request $request, Response $response)
     {
         try {
-            $this->store->write($request, $response);
+            $restoreHeaders = [];
+            foreach ($this->options['skip_response_headers'] as $header) {
+                if (!$response->headers->has($header)) {
+                    continue;
+                }
 
+                $restoreHeaders[$header] = $response->headers->all($header);
+                $response->headers->remove($header);
+            }
+
+            $this->store->write($request, $response);
             $this->record($request, 'store');
 
             $response->headers->set('Age', $response->getAge());
@@ -601,6 +621,10 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
 
             if ($this->options['debug']) {
                 throw $e;
+            }
+        } finally {
+            foreach ($restoreHeaders as $header => $values) {
+                $response->headers->set($header, $values);
             }
         }
 
@@ -611,15 +635,25 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
     /**
      * Restores the Response body.
      */
-    private function restoreResponseBody(Request $request, Response $response)
+    private function restoreResponseBody(Request $request, Response $response): void
     {
         if ($response->headers->has('X-Body-Eval')) {
+            \assert(self::BODY_EVAL_BOUNDARY_LENGTH === 24);
+
             ob_start();
 
-            if ($response->headers->has('X-Body-File')) {
-                include $response->headers->get('X-Body-File');
-            } else {
-                eval('; ?>'.$response->getContent().'<?php ;');
+            $content = $response->getContent();
+            $boundary = substr($content, 0, 24);
+            $j = strpos($content, $boundary, 24);
+            echo substr($content, 24, $j - 24);
+            $i = $j + 24;
+
+            while (false !== $j = strpos($content, $boundary, $i)) {
+                [$uri, $alt, $ignoreErrors, $part] = explode("\n", substr($content, $i, $j - $i), 4);
+                $i = $j + 24;
+
+                echo $this->surrogate->handle($this, $uri, $alt, $ignoreErrors);
+                echo $part;
             }
 
             $response->setContent(ob_get_clean());
@@ -640,6 +674,9 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
         $response->headers->remove('X-Body-File');
     }
 
+    /**
+     * @return void
+     */
     protected function processResponseBody(Request $request, Response $response)
     {
         if ($this->surrogate?->needsParsing($response)) {
@@ -671,7 +708,7 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
     /**
      * Records that an event took place.
      */
-    private function record(Request $request, string $event)
+    private function record(Request $request, string $event): void
     {
         $this->traces[$this->getTraceKey($request)][] = $event;
     }
@@ -698,7 +735,11 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
         $timeout = $entry->headers->getCacheControlDirective('stale-while-revalidate');
         $timeout ??= $this->options['stale_while_revalidate'];
 
-        return abs($entry->getTtl() ?? 0) < $timeout;
+        $age = $entry->getAge();
+        $maxAge = $entry->getMaxAge() ?? 0;
+        $ttl = $maxAge - $age;
+
+        return abs($ttl) < $timeout;
     }
 
     /**

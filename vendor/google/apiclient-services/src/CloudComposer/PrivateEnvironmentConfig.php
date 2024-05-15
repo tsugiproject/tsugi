@@ -38,21 +38,17 @@ class PrivateEnvironmentConfig extends \Google\Model
   /**
    * @var bool
    */
+  public $enablePrivateBuildsOnly;
+  /**
+   * @var bool
+   */
   public $enablePrivateEnvironment;
   /**
    * @var bool
    */
   public $enablePrivatelyUsedPublicIps;
-  /**
-   * @var NetworkingConfig
-   */
-  public $networkingConfig;
   protected $networkingConfigType = NetworkingConfig::class;
   protected $networkingConfigDataType = '';
-  /**
-   * @var PrivateClusterConfig
-   */
-  public $privateClusterConfig;
   protected $privateClusterConfigType = PrivateClusterConfig::class;
   protected $privateClusterConfigDataType = '';
   /**
@@ -119,6 +115,20 @@ class PrivateEnvironmentConfig extends \Google\Model
   public function getCloudSqlIpv4CidrBlock()
   {
     return $this->cloudSqlIpv4CidrBlock;
+  }
+  /**
+   * @param bool
+   */
+  public function setEnablePrivateBuildsOnly($enablePrivateBuildsOnly)
+  {
+    $this->enablePrivateBuildsOnly = $enablePrivateBuildsOnly;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnablePrivateBuildsOnly()
+  {
+    return $this->enablePrivateBuildsOnly;
   }
   /**
    * @param bool

@@ -31,10 +31,6 @@ class TransferJob extends \Google\Model
    * @var string
    */
   public $description;
-  /**
-   * @var EventStream
-   */
-  public $eventStream;
   protected $eventStreamType = EventStream::class;
   protected $eventStreamDataType = '';
   /**
@@ -45,40 +41,26 @@ class TransferJob extends \Google\Model
    * @var string
    */
   public $latestOperationName;
-  /**
-   * @var LoggingConfig
-   */
-  public $loggingConfig;
   protected $loggingConfigType = LoggingConfig::class;
   protected $loggingConfigDataType = '';
   /**
    * @var string
    */
   public $name;
-  /**
-   * @var NotificationConfig
-   */
-  public $notificationConfig;
   protected $notificationConfigType = NotificationConfig::class;
   protected $notificationConfigDataType = '';
   /**
    * @var string
    */
   public $projectId;
-  /**
-   * @var Schedule
-   */
-  public $schedule;
+  protected $replicationSpecType = ReplicationSpec::class;
+  protected $replicationSpecDataType = '';
   protected $scheduleType = Schedule::class;
   protected $scheduleDataType = '';
   /**
    * @var string
    */
   public $status;
-  /**
-   * @var TransferSpec
-   */
-  public $transferSpec;
   protected $transferSpecType = TransferSpec::class;
   protected $transferSpecDataType = '';
 
@@ -221,6 +203,20 @@ class TransferJob extends \Google\Model
   public function getProjectId()
   {
     return $this->projectId;
+  }
+  /**
+   * @param ReplicationSpec
+   */
+  public function setReplicationSpec(ReplicationSpec $replicationSpec)
+  {
+    $this->replicationSpec = $replicationSpec;
+  }
+  /**
+   * @return ReplicationSpec
+   */
+  public function getReplicationSpec()
+  {
+    return $this->replicationSpec;
   }
   /**
    * @param Schedule

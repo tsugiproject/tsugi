@@ -27,220 +27,88 @@ class CompositeDoc extends \Google\Collection
    * @var string
    */
   public $contentChecksum96;
-  /**
-   * @var IndexingPrivacyAccessAccessRequirements
-   */
-  public $accessRequirements;
   protected $accessRequirementsType = IndexingPrivacyAccessAccessRequirements::class;
   protected $accessRequirementsDataType = '';
-  /**
-   * @var CompositeDocAdditionalChecksums
-   */
-  public $additionalchecksums;
   protected $additionalchecksumsType = CompositeDocAdditionalChecksums::class;
   protected $additionalchecksumsDataType = '';
-  /**
-   * @var CompositeDocAlternateName[]
-   */
-  public $alternatename;
   protected $alternatenameType = CompositeDocAlternateName::class;
   protected $alternatenameDataType = 'array';
-  /**
-   * @var IndexingDocjoinerAnchorStatistics
-   */
-  public $anchorStats;
   protected $anchorStatsType = IndexingDocjoinerAnchorStatistics::class;
   protected $anchorStatsDataType = '';
-  /**
-   * @var Anchors
-   */
-  public $anchors;
   protected $anchorsType = Anchors::class;
   protected $anchorsDataType = '';
-  /**
-   * @var IndexingBadSSLCertificate
-   */
-  public $badSslCertificate;
   protected $badSslCertificateType = IndexingBadSSLCertificate::class;
   protected $badSslCertificateDataType = '';
-  /**
-   * @var QualityProseCSEUrlInfo[]
-   */
-  public $cseId;
   protected $cseIdType = QualityProseCSEUrlInfo::class;
   protected $cseIdDataType = 'array';
   /**
    * @var int
    */
   public $csePagerankCutoff;
-  /**
-   * @var IndexingDocjoinerDataVersion
-   */
-  public $dataVersion;
   protected $dataVersionType = IndexingDocjoinerDataVersion::class;
   protected $dataVersionDataType = '';
-  /**
-   * @var GDocumentBase
-   */
-  public $doc;
   protected $docType = GDocumentBase::class;
   protected $docDataType = '';
-  /**
-   * @var Proto2BridgeMessageSet
-   */
-  public $docAttachments;
   protected $docAttachmentsType = Proto2BridgeMessageSet::class;
   protected $docAttachmentsDataType = '';
-  /**
-   * @var ImageData[]
-   */
-  public $docImages;
   protected $docImagesType = ImageData::class;
   protected $docImagesDataType = 'array';
-  /**
-   * @var ImageRepositoryVideoProperties[]
-   */
-  public $docVideos;
   protected $docVideosType = ImageRepositoryVideoProperties::class;
   protected $docVideosDataType = 'array';
-  /**
-   * @var Proto2BridgeMessageSet
-   */
-  public $docinfoPassthroughAttachments;
   protected $docinfoPassthroughAttachmentsType = Proto2BridgeMessageSet::class;
   protected $docinfoPassthroughAttachmentsDataType = '';
   /**
-   * @var IndexingEmbeddedContentEmbeddedContentInfo
+   * @var string
    */
-  public $embeddedContentInfo;
+  public $docjoinsOnSpannerCommitTimestampMicros;
   protected $embeddedContentInfoType = IndexingEmbeddedContentEmbeddedContentInfo::class;
   protected $embeddedContentInfoDataType = '';
-  /**
-   * @var CompositeDocExtraDup[]
-   */
-  public $extradup;
   protected $extradupType = CompositeDocExtraDup::class;
   protected $extradupDataType = 'array';
-  /**
-   * @var CompositeDocForwardingDup[]
-   */
-  public $forwardingdup;
   protected $forwardingdupType = CompositeDocForwardingDup::class;
   protected $forwardingdupDataType = 'array';
-  /**
-   * @var CompositeDocIncludedContent[]
-   */
-  public $includedcontent;
   protected $includedcontentType = CompositeDocIncludedContent::class;
   protected $includedcontentDataType = 'array';
   /**
    * @var string
    */
   public $indexingIntermediate;
-  /**
-   * @var CompositeDocIndexingInfo
-   */
-  public $indexinginfo;
   protected $indexinginfoType = CompositeDocIndexingInfo::class;
   protected $indexinginfoDataType = '';
-  /**
-   * @var QualityLabelsGoogleLabelData
-   */
-  public $labelData;
   protected $labelDataType = QualityLabelsGoogleLabelData::class;
   protected $labelDataDataType = '';
-  /**
-   * @var CompositeDocLiveExperimentInfo
-   */
-  public $liveexperimentinfo;
   protected $liveexperimentinfoType = CompositeDocLiveExperimentInfo::class;
   protected $liveexperimentinfoDataType = '';
-  /**
-   * @var LocalWWWInfo
-   */
-  public $localinfo;
   protected $localinfoType = LocalWWWInfo::class;
   protected $localinfoDataType = '';
-  /**
-   * @var IndexingConverterLocalizedAlternateName[]
-   */
-  public $localizedAlternateName;
   protected $localizedAlternateNameType = IndexingConverterLocalizedAlternateName::class;
   protected $localizedAlternateNameDataType = 'array';
-  /**
-   * @var CompositeDocLocalizedVariations
-   */
-  public $localizedvariations;
   protected $localizedvariationsType = CompositeDocLocalizedVariations::class;
   protected $localizedvariationsDataType = '';
-  /**
-   * @var CompositeDocPartialUpdateInfo
-   */
-  public $partialUpdateInfo;
   protected $partialUpdateInfoType = CompositeDocPartialUpdateInfo::class;
   protected $partialUpdateInfoDataType = '';
-  /**
-   * @var PerDocData
-   */
-  public $perDocData;
   protected $perDocDataType = PerDocData::class;
   protected $perDocDataDataType = '';
-  /**
-   * @var ClassifierPornDocumentData
-   */
-  public $porninfo;
   protected $porninfoType = ClassifierPornDocumentData::class;
   protected $porninfoDataType = '';
-  /**
-   * @var DocProperties
-   */
-  public $properties;
   protected $propertiesType = DocProperties::class;
   protected $propertiesDataType = '';
-  /**
-   * @var PtokenPToken
-   */
-  public $ptoken;
   protected $ptokenType = PtokenPToken::class;
   protected $ptokenDataType = '';
-  /**
-   * @var CompositeDocQualitySignals
-   */
-  public $qualitysignals;
   protected $qualitysignalsType = CompositeDocQualitySignals::class;
   protected $qualitysignalsDataType = '';
-  /**
-   * @var RegistrationInfo
-   */
-  public $registrationinfo;
   protected $registrationinfoType = RegistrationInfo::class;
   protected $registrationinfoDataType = '';
-  /**
-   * @var IndexingConverterRichContentData
-   */
-  public $richcontentData;
   protected $richcontentDataType = IndexingConverterRichContentData::class;
   protected $richcontentDataDataType = '';
-  /**
-   * @var RichsnippetsPageMap
-   */
-  public $richsnippet;
   protected $richsnippetType = RichsnippetsPageMap::class;
   protected $richsnippetDataType = '';
-  /**
-   * @var CompositeDocRobotsInfoList
-   */
-  public $robotsinfolist;
   protected $robotsinfolistType = CompositeDocRobotsInfoList::class;
   protected $robotsinfolistDataType = '';
   /**
    * @var int
    */
   public $scaledIndyRank;
-  /**
-   * @var Sitemap
-   */
-  public $sitemap;
   protected $sitemapType = Sitemap::class;
   protected $sitemapDataType = '';
   /**
@@ -251,10 +119,6 @@ class CompositeDoc extends \Google\Collection
    * @var string[]
    */
   public $subindexid;
-  /**
-   * @var QualityTimebasedSyntacticDate
-   */
-  public $syntacticDate;
   protected $syntacticDateType = QualityTimebasedSyntacticDate::class;
   protected $syntacticDateDataType = '';
   /**
@@ -475,6 +339,20 @@ class CompositeDoc extends \Google\Collection
   public function getDocinfoPassthroughAttachments()
   {
     return $this->docinfoPassthroughAttachments;
+  }
+  /**
+   * @param string
+   */
+  public function setDocjoinsOnSpannerCommitTimestampMicros($docjoinsOnSpannerCommitTimestampMicros)
+  {
+    $this->docjoinsOnSpannerCommitTimestampMicros = $docjoinsOnSpannerCommitTimestampMicros;
+  }
+  /**
+   * @return string
+   */
+  public function getDocjoinsOnSpannerCommitTimestampMicros()
+  {
+    return $this->docjoinsOnSpannerCommitTimestampMicros;
   }
   /**
    * @param IndexingEmbeddedContentEmbeddedContentInfo

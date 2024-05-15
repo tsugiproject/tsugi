@@ -20,26 +20,14 @@ namespace Google\Service\AnalyticsReporting;
 class Pivot extends \Google\Collection
 {
   protected $collection_key = 'metrics';
-  /**
-   * @var DimensionFilterClause[]
-   */
-  public $dimensionFilterClauses;
   protected $dimensionFilterClausesType = DimensionFilterClause::class;
   protected $dimensionFilterClausesDataType = 'array';
-  /**
-   * @var Dimension[]
-   */
-  public $dimensions;
   protected $dimensionsType = Dimension::class;
   protected $dimensionsDataType = 'array';
   /**
    * @var int
    */
   public $maxGroupCount;
-  /**
-   * @var Metric[]
-   */
-  public $metrics;
   protected $metricsType = Metric::class;
   protected $metricsDataType = 'array';
   /**

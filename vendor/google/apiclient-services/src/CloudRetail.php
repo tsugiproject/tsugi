@@ -23,9 +23,10 @@ use Google\Client;
  * Service definition for CloudRetail (v2).
  *
  * <p>
- * Cloud Retail service enables customers to build end-to-end personalized
- * recommendation systems without requiring a high level of expertise in machine
- * learning, recommendation system, or Google Cloud.</p>
+ * Vertex AI Search for Retail API is made up of Retail Search, Browse and
+ * Recommendations. These discovery AI solutions help you implement personalized
+ * search, browse and recommendations, based on machine learning models, across
+ * your websites and mobile applications.</p>
  *
  * <p>
  * For more information about this service, see the API
@@ -53,6 +54,7 @@ class CloudRetail extends \Google\Service
   public $projects_locations_catalogs_userEvents;
   public $projects_locations_operations;
   public $projects_operations;
+  public $rootUrlTemplate;
 
   /**
    * Constructs the internal representation of the CloudRetail service.
@@ -65,6 +67,7 @@ class CloudRetail extends \Google\Service
   {
     parent::__construct($clientOrConfig);
     $this->rootUrl = $rootUrl ?: 'https://retail.googleapis.com/';
+    $this->rootUrlTemplate = $rootUrl ?: 'https://retail.UNIVERSE_DOMAIN/';
     $this->servicePath = '';
     $this->batchPath = 'batch';
     $this->version = 'v2';
@@ -113,6 +116,16 @@ class CloudRetail extends \Google\Service
                 'visitorId' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+              ],
+            ],'exportAnalyticsMetrics' => [
+              'path' => 'v2/{+catalog}:exportAnalyticsMetrics',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'catalog' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],'getAttributesConfig' => [

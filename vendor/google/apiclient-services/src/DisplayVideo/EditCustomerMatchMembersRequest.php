@@ -19,22 +19,18 @@ namespace Google\Service\DisplayVideo;
 
 class EditCustomerMatchMembersRequest extends \Google\Model
 {
-  /**
-   * @var ContactInfoList
-   */
-  public $addedContactInfoList;
   protected $addedContactInfoListType = ContactInfoList::class;
   protected $addedContactInfoListDataType = '';
-  /**
-   * @var MobileDeviceIdList
-   */
-  public $addedMobileDeviceIdList;
   protected $addedMobileDeviceIdListType = MobileDeviceIdList::class;
   protected $addedMobileDeviceIdListDataType = '';
   /**
    * @var string
    */
   public $advertiserId;
+  protected $removedContactInfoListType = ContactInfoList::class;
+  protected $removedContactInfoListDataType = '';
+  protected $removedMobileDeviceIdListType = MobileDeviceIdList::class;
+  protected $removedMobileDeviceIdListDataType = '';
 
   /**
    * @param ContactInfoList
@@ -77,6 +73,34 @@ class EditCustomerMatchMembersRequest extends \Google\Model
   public function getAdvertiserId()
   {
     return $this->advertiserId;
+  }
+  /**
+   * @param ContactInfoList
+   */
+  public function setRemovedContactInfoList(ContactInfoList $removedContactInfoList)
+  {
+    $this->removedContactInfoList = $removedContactInfoList;
+  }
+  /**
+   * @return ContactInfoList
+   */
+  public function getRemovedContactInfoList()
+  {
+    return $this->removedContactInfoList;
+  }
+  /**
+   * @param MobileDeviceIdList
+   */
+  public function setRemovedMobileDeviceIdList(MobileDeviceIdList $removedMobileDeviceIdList)
+  {
+    $this->removedMobileDeviceIdList = $removedMobileDeviceIdList;
+  }
+  /**
+   * @return MobileDeviceIdList
+   */
+  public function getRemovedMobileDeviceIdList()
+  {
+    return $this->removedMobileDeviceIdList;
   }
 }
 

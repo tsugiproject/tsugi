@@ -23,62 +23,32 @@ class GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation extends \Google\
    * @var string
    */
   public $annotationId;
-  /**
-   * @var GoogleCloudContactcenterinsightsV1alpha1AnswerFeedback
-   */
-  public $answerFeedback;
   protected $answerFeedbackType = GoogleCloudContactcenterinsightsV1alpha1AnswerFeedback::class;
   protected $answerFeedbackDataType = '';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1alpha1ArticleSuggestionData
-   */
-  public $articleSuggestion;
   protected $articleSuggestionType = GoogleCloudContactcenterinsightsV1alpha1ArticleSuggestionData::class;
   protected $articleSuggestionDataType = '';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSuggestionData
-   */
-  public $conversationSummarizationSuggestion;
   protected $conversationSummarizationSuggestionType = GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSuggestionData::class;
   protected $conversationSummarizationSuggestionDataType = '';
   /**
    * @var string
    */
   public $createTime;
-  /**
-   * @var GoogleCloudContactcenterinsightsV1alpha1DialogflowInteractionData
-   */
-  public $dialogflowInteraction;
   protected $dialogflowInteractionType = GoogleCloudContactcenterinsightsV1alpha1DialogflowInteractionData::class;
   protected $dialogflowInteractionDataType = '';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary
-   */
-  public $endBoundary;
   protected $endBoundaryType = GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary::class;
   protected $endBoundaryDataType = '';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1alpha1FaqAnswerData
-   */
-  public $faqAnswer;
   protected $faqAnswerType = GoogleCloudContactcenterinsightsV1alpha1FaqAnswerData::class;
   protected $faqAnswerDataType = '';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1alpha1SmartComposeSuggestionData
-   */
-  public $smartComposeSuggestion;
+  protected $generatorSuggestionResultType = GoogleCloudContactcenterinsightsV1alpha1GetGeneratorSuggestionResponse::class;
+  protected $generatorSuggestionResultDataType = '';
+  protected $knowledgeAssistResultType = GoogleCloudContactcenterinsightsV1alpha1GetKnowledgeAssistResponse::class;
+  protected $knowledgeAssistResultDataType = '';
+  protected $knowledgeSearchResultType = GoogleCloudContactcenterinsightsV1alpha1SearchKnowledgeAnswer::class;
+  protected $knowledgeSearchResultDataType = '';
   protected $smartComposeSuggestionType = GoogleCloudContactcenterinsightsV1alpha1SmartComposeSuggestionData::class;
   protected $smartComposeSuggestionDataType = '';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1alpha1SmartReplyData
-   */
-  public $smartReply;
   protected $smartReplyType = GoogleCloudContactcenterinsightsV1alpha1SmartReplyData::class;
   protected $smartReplyDataType = '';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary
-   */
-  public $startBoundary;
   protected $startBoundaryType = GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary::class;
   protected $startBoundaryDataType = '';
 
@@ -193,6 +163,48 @@ class GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation extends \Google\
   public function getFaqAnswer()
   {
     return $this->faqAnswer;
+  }
+  /**
+   * @param GoogleCloudContactcenterinsightsV1alpha1GetGeneratorSuggestionResponse
+   */
+  public function setGeneratorSuggestionResult(GoogleCloudContactcenterinsightsV1alpha1GetGeneratorSuggestionResponse $generatorSuggestionResult)
+  {
+    $this->generatorSuggestionResult = $generatorSuggestionResult;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1alpha1GetGeneratorSuggestionResponse
+   */
+  public function getGeneratorSuggestionResult()
+  {
+    return $this->generatorSuggestionResult;
+  }
+  /**
+   * @param GoogleCloudContactcenterinsightsV1alpha1GetKnowledgeAssistResponse
+   */
+  public function setKnowledgeAssistResult(GoogleCloudContactcenterinsightsV1alpha1GetKnowledgeAssistResponse $knowledgeAssistResult)
+  {
+    $this->knowledgeAssistResult = $knowledgeAssistResult;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1alpha1GetKnowledgeAssistResponse
+   */
+  public function getKnowledgeAssistResult()
+  {
+    return $this->knowledgeAssistResult;
+  }
+  /**
+   * @param GoogleCloudContactcenterinsightsV1alpha1SearchKnowledgeAnswer
+   */
+  public function setKnowledgeSearchResult(GoogleCloudContactcenterinsightsV1alpha1SearchKnowledgeAnswer $knowledgeSearchResult)
+  {
+    $this->knowledgeSearchResult = $knowledgeSearchResult;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1alpha1SearchKnowledgeAnswer
+   */
+  public function getKnowledgeSearchResult()
+  {
+    return $this->knowledgeSearchResult;
   }
   /**
    * @param GoogleCloudContactcenterinsightsV1alpha1SmartComposeSuggestionData

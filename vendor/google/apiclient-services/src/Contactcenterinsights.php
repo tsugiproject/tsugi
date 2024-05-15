@@ -47,6 +47,7 @@ class Contactcenterinsights extends \Google\Service
   public $projects_locations_operations;
   public $projects_locations_phraseMatchers;
   public $projects_locations_views;
+  public $rootUrlTemplate;
 
   /**
    * Constructs the internal representation of the Contactcenterinsights
@@ -60,6 +61,7 @@ class Contactcenterinsights extends \Google\Service
   {
     parent::__construct($clientOrConfig);
     $this->rootUrl = $rootUrl ?: 'https://contactcenterinsights.googleapis.com/';
+    $this->rootUrlTemplate = $rootUrl ?: 'https://contactcenterinsights.UNIVERSE_DOMAIN/';
     $this->servicePath = '';
     $this->batchPath = 'batch';
     $this->version = 'v1';
@@ -201,6 +203,10 @@ class Contactcenterinsights extends \Google\Service
                   'required' => true,
                 ],
                 'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],
@@ -373,11 +379,31 @@ class Contactcenterinsights extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'export' => [
+              'path' => 'v1/{+name}:export',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'get' => [
               'path' => 'v1/{+name}',
               'httpMethod' => 'GET',
               'parameters' => [
                 'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'import' => [
+              'path' => 'v1/{+parent}/issueModels:import',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,

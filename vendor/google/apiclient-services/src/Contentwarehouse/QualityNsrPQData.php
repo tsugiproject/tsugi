@@ -24,6 +24,10 @@ class QualityNsrPQData extends \Google\Collection
    * @var int
    */
   public $chard;
+  protected $chardScoreEncodedType = QualityNsrVersionedIntSignal::class;
+  protected $chardScoreEncodedDataType = 'array';
+  protected $contentEffortType = QualityNsrVersionedFloatSignal::class;
+  protected $contentEffortDataType = 'array';
   /**
    * @var float
    */
@@ -39,15 +43,7 @@ class QualityNsrPQData extends \Google\Collection
   /**
    * @var float
    */
-  public $deltaPageQuality;
-  /**
-   * @var float
-   */
   public $deltaSubchunkAdjustment;
-  /**
-   * @var QualityNsrVersionedFloatSignal[]
-   */
-  public $keto;
   protected $ketoType = QualityNsrVersionedFloatSignal::class;
   protected $ketoDataType = 'array';
   /**
@@ -66,10 +62,10 @@ class QualityNsrPQData extends \Google\Collection
    * @var float
    */
   public $page2vecLq;
-  /**
-   * @var QualityNsrPQDataSubchunkData[]
-   */
-  public $subchunkData;
+  protected $predictedDefaultNsrType = QualityNsrVersionedFloatSignal::class;
+  protected $predictedDefaultNsrDataType = 'array';
+  protected $rhubarbType = QualityNsrVersionedFloatSignal::class;
+  protected $rhubarbDataType = 'array';
   protected $subchunkDataType = QualityNsrPQDataSubchunkData::class;
   protected $subchunkDataDataType = 'array';
   /**
@@ -98,6 +94,34 @@ class QualityNsrPQData extends \Google\Collection
   public function getChard()
   {
     return $this->chard;
+  }
+  /**
+   * @param QualityNsrVersionedIntSignal[]
+   */
+  public function setChardScoreEncoded($chardScoreEncoded)
+  {
+    $this->chardScoreEncoded = $chardScoreEncoded;
+  }
+  /**
+   * @return QualityNsrVersionedIntSignal[]
+   */
+  public function getChardScoreEncoded()
+  {
+    return $this->chardScoreEncoded;
+  }
+  /**
+   * @param QualityNsrVersionedFloatSignal[]
+   */
+  public function setContentEffort($contentEffort)
+  {
+    $this->contentEffort = $contentEffort;
+  }
+  /**
+   * @return QualityNsrVersionedFloatSignal[]
+   */
+  public function getContentEffort()
+  {
+    return $this->contentEffort;
   }
   /**
    * @param float
@@ -140,20 +164,6 @@ class QualityNsrPQData extends \Google\Collection
   public function getDeltaLinkOutgoing()
   {
     return $this->deltaLinkOutgoing;
-  }
-  /**
-   * @param float
-   */
-  public function setDeltaPageQuality($deltaPageQuality)
-  {
-    $this->deltaPageQuality = $deltaPageQuality;
-  }
-  /**
-   * @return float
-   */
-  public function getDeltaPageQuality()
-  {
-    return $this->deltaPageQuality;
   }
   /**
    * @param float
@@ -238,6 +248,34 @@ class QualityNsrPQData extends \Google\Collection
   public function getPage2vecLq()
   {
     return $this->page2vecLq;
+  }
+  /**
+   * @param QualityNsrVersionedFloatSignal[]
+   */
+  public function setPredictedDefaultNsr($predictedDefaultNsr)
+  {
+    $this->predictedDefaultNsr = $predictedDefaultNsr;
+  }
+  /**
+   * @return QualityNsrVersionedFloatSignal[]
+   */
+  public function getPredictedDefaultNsr()
+  {
+    return $this->predictedDefaultNsr;
+  }
+  /**
+   * @param QualityNsrVersionedFloatSignal[]
+   */
+  public function setRhubarb($rhubarb)
+  {
+    $this->rhubarb = $rhubarb;
+  }
+  /**
+   * @return QualityNsrVersionedFloatSignal[]
+   */
+  public function getRhubarb()
+  {
+    return $this->rhubarb;
   }
   /**
    * @param QualityNsrPQDataSubchunkData[]

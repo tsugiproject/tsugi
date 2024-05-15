@@ -23,20 +23,12 @@ class BlockchainNode extends \Google\Model
    * @var string
    */
   public $blockchainType;
-  /**
-   * @var ConnectionInfo
-   */
-  public $connectionInfo;
   protected $connectionInfoType = ConnectionInfo::class;
   protected $connectionInfoDataType = '';
   /**
    * @var string
    */
   public $createTime;
-  /**
-   * @var EthereumDetails
-   */
-  public $ethereumDetails;
   protected $ethereumDetailsType = EthereumDetails::class;
   protected $ethereumDetailsDataType = '';
   /**
@@ -47,6 +39,10 @@ class BlockchainNode extends \Google\Model
    * @var string
    */
   public $name;
+  /**
+   * @var bool
+   */
+  public $privateServiceConnectEnabled;
   /**
    * @var string
    */
@@ -139,6 +135,20 @@ class BlockchainNode extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param bool
+   */
+  public function setPrivateServiceConnectEnabled($privateServiceConnectEnabled)
+  {
+    $this->privateServiceConnectEnabled = $privateServiceConnectEnabled;
+  }
+  /**
+   * @return bool
+   */
+  public function getPrivateServiceConnectEnabled()
+  {
+    return $this->privateServiceConnectEnabled;
   }
   /**
    * @param string

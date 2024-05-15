@@ -20,16 +20,16 @@ namespace Google\Service\ContainerAnalysis;
 class ComplianceNote extends \Google\Collection
 {
   protected $collection_key = 'version';
-  /**
-   * @var CisBenchmark
-   */
-  public $cisBenchmark;
   protected $cisBenchmarkType = CisBenchmark::class;
   protected $cisBenchmarkDataType = '';
   /**
    * @var string
    */
   public $description;
+  /**
+   * @var string
+   */
+  public $impact;
   /**
    * @var string
    */
@@ -46,10 +46,6 @@ class ComplianceNote extends \Google\Collection
    * @var string
    */
   public $title;
-  /**
-   * @var ComplianceVersion[]
-   */
-  public $version;
   protected $versionType = ComplianceVersion::class;
   protected $versionDataType = 'array';
 
@@ -80,6 +76,20 @@ class ComplianceNote extends \Google\Collection
   public function getDescription()
   {
     return $this->description;
+  }
+  /**
+   * @param string
+   */
+  public function setImpact($impact)
+  {
+    $this->impact = $impact;
+  }
+  /**
+   * @return string
+   */
+  public function getImpact()
+  {
+    return $this->impact;
   }
   /**
    * @param string

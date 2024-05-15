@@ -24,10 +24,6 @@ class GoogleCloudAiplatformV1Scheduling extends \Google\Model
    */
   public $disableRetries;
   /**
-   * @var string
-   */
-  public $maxWaitDuration;
-  /**
    * @var bool
    */
   public $restartJobOnWorkerRestart;
@@ -49,20 +45,6 @@ class GoogleCloudAiplatformV1Scheduling extends \Google\Model
   public function getDisableRetries()
   {
     return $this->disableRetries;
-  }
-  /**
-   * @param string
-   */
-  public function setMaxWaitDuration($maxWaitDuration)
-  {
-    $this->maxWaitDuration = $maxWaitDuration;
-  }
-  /**
-   * @return string
-   */
-  public function getMaxWaitDuration()
-  {
-    return $this->maxWaitDuration;
   }
   /**
    * @param bool

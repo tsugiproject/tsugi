@@ -24,16 +24,8 @@ class ExternalDataConfiguration extends \Google\Collection
    * @var bool
    */
   public $autodetect;
-  /**
-   * @var AvroOptions
-   */
-  public $avroOptions;
   protected $avroOptionsType = AvroOptions::class;
   protected $avroOptionsDataType = '';
-  /**
-   * @var BigtableOptions
-   */
-  public $bigtableOptions;
   protected $bigtableOptionsType = BigtableOptions::class;
   protected $bigtableOptionsDataType = '';
   /**
@@ -44,10 +36,6 @@ class ExternalDataConfiguration extends \Google\Collection
    * @var string
    */
   public $connectionId;
-  /**
-   * @var CsvOptions
-   */
-  public $csvOptions;
   protected $csvOptionsType = CsvOptions::class;
   protected $csvOptionsDataType = '';
   /**
@@ -58,16 +46,8 @@ class ExternalDataConfiguration extends \Google\Collection
    * @var string
    */
   public $fileSetSpecType;
-  /**
-   * @var GoogleSheetsOptions
-   */
-  public $googleSheetsOptions;
   protected $googleSheetsOptionsType = GoogleSheetsOptions::class;
   protected $googleSheetsOptionsDataType = '';
-  /**
-   * @var HivePartitioningOptions
-   */
-  public $hivePartitioningOptions;
   protected $hivePartitioningOptionsType = HivePartitioningOptions::class;
   protected $hivePartitioningOptionsDataType = '';
   /**
@@ -75,9 +55,9 @@ class ExternalDataConfiguration extends \Google\Collection
    */
   public $ignoreUnknownValues;
   /**
-   * @var JsonOptions
+   * @var string
    */
-  public $jsonOptions;
+  public $jsonExtension;
   protected $jsonOptionsType = JsonOptions::class;
   protected $jsonOptionsDataType = '';
   /**
@@ -92,20 +72,12 @@ class ExternalDataConfiguration extends \Google\Collection
    * @var string
    */
   public $objectMetadata;
-  /**
-   * @var ParquetOptions
-   */
-  public $parquetOptions;
   protected $parquetOptionsType = ParquetOptions::class;
   protected $parquetOptionsDataType = '';
   /**
    * @var string
    */
   public $referenceFileSchemaUri;
-  /**
-   * @var TableSchema
-   */
-  public $schema;
   protected $schemaType = TableSchema::class;
   protected $schemaDataType = '';
   /**
@@ -270,6 +242,20 @@ class ExternalDataConfiguration extends \Google\Collection
   public function getIgnoreUnknownValues()
   {
     return $this->ignoreUnknownValues;
+  }
+  /**
+   * @param string
+   */
+  public function setJsonExtension($jsonExtension)
+  {
+    $this->jsonExtension = $jsonExtension;
+  }
+  /**
+   * @return string
+   */
+  public function getJsonExtension()
+  {
+    return $this->jsonExtension;
   }
   /**
    * @param JsonOptions

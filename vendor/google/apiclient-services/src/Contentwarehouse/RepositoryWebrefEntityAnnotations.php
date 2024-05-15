@@ -24,24 +24,14 @@ class RepositoryWebrefEntityAnnotations extends \Google\Collection
    * @var float
    */
   public $confidenceScore;
-  /**
-   * @var RepositoryWebrefAnnotationDebugInfo
-   */
-  public $debugInfo;
   protected $debugInfoType = RepositoryWebrefAnnotationDebugInfo::class;
   protected $debugInfoDataType = '';
-  /**
-   * @var RepositoryWebrefDetailedEntityScores
-   */
-  public $detailedEntityScores;
   protected $detailedEntityScoresType = RepositoryWebrefDetailedEntityScores::class;
   protected $detailedEntityScoresDataType = '';
-  /**
-   * @var RepositoryWebrefExplainedRangeInfo
-   */
-  public $explainedRangeInfo;
   protected $explainedRangeInfoType = RepositoryWebrefExplainedRangeInfo::class;
   protected $explainedRangeInfoDataType = '';
+  protected $imageMentionType = RepositoryWebrefImageMention::class;
+  protected $imageMentionDataType = 'array';
   /**
    * @var bool
    */
@@ -50,10 +40,6 @@ class RepositoryWebrefEntityAnnotations extends \Google\Collection
    * @var bool
    */
   public $isResolution;
-  /**
-   * @var RepositoryWebrefSegmentMentions[]
-   */
-  public $segmentMentions;
   protected $segmentMentionsType = RepositoryWebrefSegmentMentions::class;
   protected $segmentMentionsDataType = 'array';
   /**
@@ -120,6 +106,20 @@ class RepositoryWebrefEntityAnnotations extends \Google\Collection
   public function getExplainedRangeInfo()
   {
     return $this->explainedRangeInfo;
+  }
+  /**
+   * @param RepositoryWebrefImageMention[]
+   */
+  public function setImageMention($imageMention)
+  {
+    $this->imageMention = $imageMention;
+  }
+  /**
+   * @return RepositoryWebrefImageMention[]
+   */
+  public function getImageMention()
+  {
+    return $this->imageMention;
   }
   /**
    * @param bool

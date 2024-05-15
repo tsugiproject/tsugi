@@ -59,6 +59,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * be between 1-40 characters. * Must end with a number or a letter. * Must be
    * unique within the customer project
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function create($parent, ConnectivityTest $postBody, $optParams = [])
   {
@@ -73,6 +74,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * `projects/{project_id}/locations/global/connectivityTests/{test_id}`
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -87,6 +89,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * form: `projects/{project_id}/locations/global/connectivityTests/{test_id}`
    * @param array $optParams Optional parameters.
    * @return ConnectivityTest
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -118,6 +121,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * documentation](https://cloud.google.com/iam/help/conditions/resource-
    * policies).
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function getIamPolicy($resource, $optParams = [])
   {
@@ -148,6 +152,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * @opt_param string pageToken Page token from an earlier query, as returned in
    * `next_page_token`.
    * @return ListConnectivityTestsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsNetworkmanagementGlobalConnectivityTests($parent, $optParams = [])
   {
@@ -166,7 +171,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * reachability result returns a value of UNKNOWN. If the endpoint
    * specifications in `ConnectivityTest` are incomplete, the reachability result
    * returns a value of `AMBIGUOUS`. See the documentation in `ConnectivityTest`
-   * for for more details. (connectivityTests.patch)
+   * for more details. (connectivityTests.patch)
    *
    * @param string $name Required. Unique name of the resource using the form:
    * `projects/{project_id}/locations/global/connectivityTests/{test_id}`
@@ -176,6 +181,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * @opt_param string updateMask Required. Mask of fields to update. At least one
    * path must be supplied in this field.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function patch($name, ConnectivityTest $postBody, $optParams = [])
   {
@@ -199,6 +205,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * @param RerunConnectivityTestRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function rerun($name, RerunConnectivityTestRequest $postBody, $optParams = [])
   {
@@ -218,6 +225,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * @param SetIamPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function setIamPolicy($resource, SetIamPolicyRequest $postBody, $optParams = [])
   {
@@ -240,6 +248,7 @@ class ProjectsLocationsNetworkmanagementGlobalConnectivityTests extends \Google\
    * @param TestIamPermissionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return TestIamPermissionsResponse
+   * @throws \Google\Service\Exception
    */
   public function testIamPermissions($resource, TestIamPermissionsRequest $postBody, $optParams = [])
   {

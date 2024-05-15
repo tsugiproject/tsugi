@@ -40,11 +40,12 @@ class Projects extends \Google\Service\Resource
    * Service](https://cloud.google.com/bigquery/docs/working-with-transfers).
    * (projects.enrollDataSources)
    *
-   * @param string $name The name of the project resource in the form:
+   * @param string $name Required. The name of the project resource in the form:
    * `projects/{project_id}`
    * @param EnrollDataSourcesRequest $postBody
    * @param array $optParams Optional parameters.
    * @return BigquerydatatransferEmpty
+   * @throws \Google\Service\Exception
    */
   public function enrollDataSources($name, EnrollDataSourcesRequest $postBody, $optParams = [])
   {

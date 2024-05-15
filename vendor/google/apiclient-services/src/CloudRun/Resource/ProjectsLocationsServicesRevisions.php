@@ -17,6 +17,7 @@
 
 namespace Google\Service\CloudRun\Resource;
 
+use Google\Service\CloudRun\GoogleCloudRunV2ExportStatusResponse;
 use Google\Service\CloudRun\GoogleCloudRunV2ListRevisionsResponse;
 use Google\Service\CloudRun\GoogleCloudRunV2Revision;
 use Google\Service\CloudRun\GoogleLongrunningOperation;
@@ -43,6 +44,7 @@ class ProjectsLocationsServicesRevisions extends \Google\Service\Resource
    * @opt_param bool validateOnly Indicates that the request should be validated
    * without actually deleting any resources.
    * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -51,12 +53,33 @@ class ProjectsLocationsServicesRevisions extends \Google\Service\Resource
     return $this->call('delete', [$params], GoogleLongrunningOperation::class);
   }
   /**
+   * Read the status of an image export operation. (revisions.exportStatus)
+   *
+   * @param string $name Required. The name of the resource of which image export
+   * operation status has to be fetched. Format: `projects/{project_id_or_number}/
+   * locations/{location}/services/{service}/revisions/{revision}` for Revision `p
+   * rojects/{project_id_or_number}/locations/{location}/jobs/{job}/executions/{ex
+   * ecution}` for Execution
+   * @param string $operationId Required. The operation id returned from
+   * ExportImage.
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudRunV2ExportStatusResponse
+   * @throws \Google\Service\Exception
+   */
+  public function exportStatus($name, $operationId, $optParams = [])
+  {
+    $params = ['name' => $name, 'operationId' => $operationId];
+    $params = array_merge($params, $optParams);
+    return $this->call('exportStatus', [$params], GoogleCloudRunV2ExportStatusResponse::class);
+  }
+  /**
    * Gets information about a Revision. (revisions.get)
    *
    * @param string $name Required. The full name of the Revision. Format: projects
    * /{project}/locations/{location}/services/{service}/revisions/{revision}
    * @param array $optParams Optional parameters.
    * @return GoogleCloudRunV2Revision
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -79,6 +102,7 @@ class ProjectsLocationsServicesRevisions extends \Google\Service\Resource
    * @opt_param bool showDeleted If true, returns deleted (but unexpired)
    * resources along with active ones.
    * @return GoogleCloudRunV2ListRevisionsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsServicesRevisions($parent, $optParams = [])
   {

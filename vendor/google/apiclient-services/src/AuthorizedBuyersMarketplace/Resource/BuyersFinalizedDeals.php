@@ -49,6 +49,7 @@ class BuyersFinalizedDeals extends \Google\Service\Resource
    * @param AddCreativeRequest $postBody
    * @param array $optParams Optional parameters.
    * @return FinalizedDeal
+   * @throws \Google\Service\Exception
    */
   public function addCreative($deal, AddCreativeRequest $postBody, $optParams = [])
   {
@@ -63,6 +64,7 @@ class BuyersFinalizedDeals extends \Google\Service\Resource
    * `buyers/{accountId}/finalizedDeals/{dealId}`
    * @param array $optParams Optional parameters.
    * @return FinalizedDeal
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -87,7 +89,8 @@ class BuyersFinalizedDeals extends \Google\Service\Resource
    * filtering syntax](https://developers.google.com/authorized-
    * buyers/apis/guides/list-filters) Supported columns for filtering are: *
    * deal.displayName * deal.dealType * deal.createTime * deal.updateTime *
-   * deal.flightStartTime * deal.flightEndTime * dealServingStatus
+   * deal.flightStartTime * deal.flightEndTime * deal.eligibleSeatIds *
+   * dealServingStatus
    * @opt_param string orderBy An optional query string to sort finalized deals
    * using the [Cloud API sorting
    * syntax](https://cloud.google.com/apis/design/design_patterns#sorting_order).
@@ -105,6 +108,7 @@ class BuyersFinalizedDeals extends \Google\Service\Resource
    * @opt_param string pageToken The page token as returned from
    * ListFinalizedDealsResponse.
    * @return ListFinalizedDealsResponse
+   * @throws \Google\Service\Exception
    */
   public function listBuyersFinalizedDeals($parent, $optParams = [])
   {
@@ -123,6 +127,7 @@ class BuyersFinalizedDeals extends \Google\Service\Resource
    * @param PauseFinalizedDealRequest $postBody
    * @param array $optParams Optional parameters.
    * @return FinalizedDeal
+   * @throws \Google\Service\Exception
    */
   public function pause($name, PauseFinalizedDealRequest $postBody, $optParams = [])
   {
@@ -142,6 +147,7 @@ class BuyersFinalizedDeals extends \Google\Service\Resource
    * @param ResumeFinalizedDealRequest $postBody
    * @param array $optParams Optional parameters.
    * @return FinalizedDeal
+   * @throws \Google\Service\Exception
    */
   public function resume($name, ResumeFinalizedDealRequest $postBody, $optParams = [])
   {
@@ -165,6 +171,7 @@ class BuyersFinalizedDeals extends \Google\Service\Resource
    * @param SetReadyToServeRequest $postBody
    * @param array $optParams Optional parameters.
    * @return FinalizedDeal
+   * @throws \Google\Service\Exception
    */
   public function setReadyToServe($deal, SetReadyToServeRequest $postBody, $optParams = [])
   {

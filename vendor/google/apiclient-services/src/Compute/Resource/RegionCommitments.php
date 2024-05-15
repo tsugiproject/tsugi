@@ -33,8 +33,9 @@ use Google\Service\Compute\Operation;
 class RegionCommitments extends \Google\Service\Resource
 {
   /**
-   * Retrieves an aggregated list of commitments by region.
-   * (regionCommitments.aggregatedList)
+   * Retrieves an aggregated list of commitments by region. To prevent failure,
+   * Google recommends that you set the `returnPartialSuccess` parameter to
+   * `true`. (regionCommitments.aggregatedList)
    *
    * @param string $project Project ID for this request.
    * @param array $optParams Optional parameters.
@@ -96,9 +97,14 @@ class RegionCommitments extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
-   * @opt_param string serviceProjectNumber
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
+   * @opt_param string serviceProjectNumber The Shared VPC service project id or
+   * service project number for which aggregated list request is invoked for
+   * subnetworks list-usable api.
    * @return CommitmentAggregatedList
+   * @throws \Google\Service\Exception
    */
   public function aggregatedList($project, $optParams = [])
   {
@@ -114,6 +120,7 @@ class RegionCommitments extends \Google\Service\Resource
    * @param string $commitment Name of the commitment to return.
    * @param array $optParams Optional parameters.
    * @return Commitment
+   * @throws \Google\Service\Exception
    */
   public function get($project, $region, $commitment, $optParams = [])
   {
@@ -141,6 +148,7 @@ class RegionCommitments extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function insert($project, $region, Commitment $postBody, $optParams = [])
   {
@@ -206,8 +214,11 @@ class RegionCommitments extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return CommitmentList
+   * @throws \Google\Service\Exception
    */
   public function listRegionCommitments($project, $region, $optParams = [])
   {
@@ -242,6 +253,7 @@ class RegionCommitments extends \Google\Service\Resource
    * @opt_param string updateMask update_mask indicates fields to be updated as
    * part of this request.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function update($project, $region, $commitment, Commitment $postBody, $optParams = [])
   {

@@ -27,10 +27,6 @@ class DnsAuthorization extends \Google\Model
    * @var string
    */
   public $description;
-  /**
-   * @var DnsResourceRecord
-   */
-  public $dnsResourceRecord;
   protected $dnsResourceRecordType = DnsResourceRecord::class;
   protected $dnsResourceRecordDataType = '';
   /**
@@ -45,6 +41,10 @@ class DnsAuthorization extends \Google\Model
    * @var string
    */
   public $name;
+  /**
+   * @var string
+   */
+  public $type;
   /**
    * @var string
    */
@@ -133,6 +133,20 @@ class DnsAuthorization extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param string
+   */
+  public function setType($type)
+  {
+    $this->type = $type;
+  }
+  /**
+   * @return string
+   */
+  public function getType()
+  {
+    return $this->type;
   }
   /**
    * @param string

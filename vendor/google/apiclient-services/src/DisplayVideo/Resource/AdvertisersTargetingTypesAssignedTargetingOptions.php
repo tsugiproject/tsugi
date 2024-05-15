@@ -39,10 +39,11 @@ class AdvertisersTargetingTypesAssignedTargetingOptions extends \Google\Service\
    * @param string $targetingType Required. Identifies the type of this assigned
    * targeting option. Supported targeting types: * `TARGETING_TYPE_CHANNEL` *
    * `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION` * `TARGETING_TYPE_OMID` *
-   * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION`
+   * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION` * `TARGETING_TYPE_KEYWORD`
    * @param AssignedTargetingOption $postBody
    * @param array $optParams Optional parameters.
    * @return AssignedTargetingOption
+   * @throws \Google\Service\Exception
    */
   public function create($advertiserId, $targetingType, AssignedTargetingOption $postBody, $optParams = [])
   {
@@ -58,11 +59,12 @@ class AdvertisersTargetingTypesAssignedTargetingOptions extends \Google\Service\
    * @param string $targetingType Required. Identifies the type of this assigned
    * targeting option. Supported targeting types: * `TARGETING_TYPE_CHANNEL` *
    * `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION` * `TARGETING_TYPE_OMID` *
-   * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION`
+   * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION` * `TARGETING_TYPE_KEYWORD`
    * @param string $assignedTargetingOptionId Required. The ID of the assigned
    * targeting option to delete.
    * @param array $optParams Optional parameters.
    * @return DisplayvideoEmpty
+   * @throws \Google\Service\Exception
    */
   public function delete($advertiserId, $targetingType, $assignedTargetingOptionId, $optParams = [])
   {
@@ -85,6 +87,7 @@ class AdvertisersTargetingTypesAssignedTargetingOptions extends \Google\Service\
    * option being requested.
    * @param array $optParams Optional parameters.
    * @return AssignedTargetingOption
+   * @throws \Google\Service\Exception
    */
   public function get($advertiserId, $targetingType, $assignedTargetingOptionId, $optParams = [])
   {
@@ -126,6 +129,7 @@ class AdvertisersTargetingTypesAssignedTargetingOptions extends \Google\Service\
    * the previous call to `ListAdvertiserAssignedTargetingOptions` method. If not
    * specified, the first page of results will be returned.
    * @return ListAdvertiserAssignedTargetingOptionsResponse
+   * @throws \Google\Service\Exception
    */
   public function listAdvertisersTargetingTypesAssignedTargetingOptions($advertiserId, $targetingType, $optParams = [])
   {

@@ -20,10 +20,6 @@ namespace Google\Service\Directory;
 class ChromeOsDevice extends \Google\Collection
 {
   protected $collection_key = 'systemRamFreeReports';
-  /**
-   * @var ChromeOsDeviceActiveTimeRanges[]
-   */
-  public $activeTimeRanges;
   protected $activeTimeRangesType = ChromeOsDeviceActiveTimeRanges::class;
   protected $activeTimeRangesDataType = 'array';
   /**
@@ -42,30 +38,20 @@ class ChromeOsDevice extends \Google\Collection
    * @var string
    */
   public $autoUpdateExpiration;
+  protected $backlightInfoType = BacklightInfo::class;
+  protected $backlightInfoDataType = 'array';
   /**
    * @var string
    */
   public $bootMode;
-  /**
-   * @var ChromeOsDeviceCpuInfo[]
-   */
-  public $cpuInfo;
   protected $cpuInfoType = ChromeOsDeviceCpuInfo::class;
   protected $cpuInfoDataType = 'array';
-  /**
-   * @var ChromeOsDeviceCpuStatusReports[]
-   */
-  public $cpuStatusReports;
   protected $cpuStatusReportsType = ChromeOsDeviceCpuStatusReports::class;
   protected $cpuStatusReportsDataType = 'array';
   /**
    * @var string
    */
   public $deprovisionReason;
-  /**
-   * @var ChromeOsDeviceDeviceFiles[]
-   */
-  public $deviceFiles;
   protected $deviceFilesType = ChromeOsDeviceDeviceFiles::class;
   protected $deviceFilesDataType = 'array';
   /**
@@ -76,10 +62,6 @@ class ChromeOsDevice extends \Google\Collection
    * @var string
    */
   public $deviceLicenseType;
-  /**
-   * @var ChromeOsDeviceDiskVolumeReports[]
-   */
-  public $diskVolumeReports;
   protected $diskVolumeReportsType = ChromeOsDeviceDiskVolumeReports::class;
   protected $diskVolumeReportsDataType = 'array';
   /**
@@ -118,10 +100,6 @@ class ChromeOsDevice extends \Google\Collection
    * @var string
    */
   public $lastEnrollmentTime;
-  /**
-   * @var ChromeOsDeviceLastKnownNetwork[]
-   */
-  public $lastKnownNetwork;
   protected $lastKnownNetworkType = ChromeOsDeviceLastKnownNetwork::class;
   protected $lastKnownNetworkDataType = 'array';
   /**
@@ -160,10 +138,6 @@ class ChromeOsDevice extends \Google\Collection
    * @var string
    */
   public $orgUnitPath;
-  /**
-   * @var OsUpdateStatus
-   */
-  public $osUpdateStatus;
   protected $osUpdateStatusType = OsUpdateStatus::class;
   protected $osUpdateStatusDataType = '';
   /**
@@ -174,16 +148,8 @@ class ChromeOsDevice extends \Google\Collection
    * @var string
    */
   public $platformVersion;
-  /**
-   * @var ChromeOsDeviceRecentUsers[]
-   */
-  public $recentUsers;
   protected $recentUsersType = ChromeOsDeviceRecentUsers::class;
   protected $recentUsersDataType = 'array';
-  /**
-   * @var ChromeOsDeviceScreenshotFiles[]
-   */
-  public $screenshotFiles;
   protected $screenshotFilesType = ChromeOsDeviceScreenshotFiles::class;
   protected $screenshotFilesDataType = 'array';
   /**
@@ -198,20 +164,12 @@ class ChromeOsDevice extends \Google\Collection
    * @var string
    */
   public $supportEndDate;
-  /**
-   * @var ChromeOsDeviceSystemRamFreeReports[]
-   */
-  public $systemRamFreeReports;
   protected $systemRamFreeReportsType = ChromeOsDeviceSystemRamFreeReports::class;
   protected $systemRamFreeReportsDataType = 'array';
   /**
    * @var string
    */
   public $systemRamTotal;
-  /**
-   * @var ChromeOsDeviceTpmVersionInfo
-   */
-  public $tpmVersionInfo;
   protected $tpmVersionInfoType = ChromeOsDeviceTpmVersionInfo::class;
   protected $tpmVersionInfoDataType = '';
   /**
@@ -288,6 +246,20 @@ class ChromeOsDevice extends \Google\Collection
   public function getAutoUpdateExpiration()
   {
     return $this->autoUpdateExpiration;
+  }
+  /**
+   * @param BacklightInfo[]
+   */
+  public function setBacklightInfo($backlightInfo)
+  {
+    $this->backlightInfo = $backlightInfo;
+  }
+  /**
+   * @return BacklightInfo[]
+   */
+  public function getBacklightInfo()
+  {
+    return $this->backlightInfo;
   }
   /**
    * @param string

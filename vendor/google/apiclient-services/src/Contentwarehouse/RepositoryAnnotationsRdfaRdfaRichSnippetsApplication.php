@@ -20,20 +20,12 @@ namespace Google\Service\Contentwarehouse;
 class RepositoryAnnotationsRdfaRdfaRichSnippetsApplication extends \Google\Collection
 {
   protected $collection_key = 'subcategory';
-  /**
-   * @var RepositoryAnnotationsRdfaRdfaRichSnippetsApplicationAppTypeData
-   */
-  public $appTypeData;
   protected $appTypeDataType = RepositoryAnnotationsRdfaRdfaRichSnippetsApplicationAppTypeData::class;
   protected $appTypeDataDataType = '';
   /**
    * @var string
    */
   public $applicationUrl;
-  /**
-   * @var RepositoryAnnotationsRdfaBreadcrumbs
-   */
-  public $breadcrumbs;
   protected $breadcrumbsType = RepositoryAnnotationsRdfaBreadcrumbs::class;
   protected $breadcrumbsDataType = '';
   /**
@@ -44,10 +36,6 @@ class RepositoryAnnotationsRdfaRdfaRichSnippetsApplication extends \Google\Colle
    * @var string[]
    */
   public $countriesSupported;
-  /**
-   * @var RepositoryAnnotationsRdfaRdfaRichSnippetsApplicationCountryPrice[]
-   */
-  public $countryPrices;
   protected $countryPricesType = RepositoryAnnotationsRdfaRdfaRichSnippetsApplicationCountryPrice::class;
   protected $countryPricesDataType = 'array';
   /**
@@ -90,16 +78,16 @@ class RepositoryAnnotationsRdfaRdfaRichSnippetsApplication extends \Google\Colle
    * @var string
    */
   public $iconUrlThumbnail;
-  /**
-   * @var QualityCalypsoAppsUniversalImageData
-   */
-  public $imageData;
   protected $imageDataType = QualityCalypsoAppsUniversalImageData::class;
   protected $imageDataDataType = '';
   /**
    * @var bool
    */
   public $inAppPurchase;
+  /**
+   * @var bool
+   */
+  public $isBattlestarTitle;
   /**
    * @var bool
    */
@@ -112,16 +100,8 @@ class RepositoryAnnotationsRdfaRdfaRichSnippetsApplication extends \Google\Colle
    * @var string
    */
   public $lastUpdated;
-  /**
-   * @var QualityCalypsoAppsUniversalAuLiveOpsDetailInfo
-   */
-  public $liveOpDetails;
   protected $liveOpDetailsType = QualityCalypsoAppsUniversalAuLiveOpsDetailInfo::class;
   protected $liveOpDetailsDataType = '';
-  /**
-   * @var RepositoryAnnotationsRdfaRdfaRichSnippetsApplicationLocalizedTrustedGenome
-   */
-  public $localizedTrustedGenome;
   protected $localizedTrustedGenomeType = RepositoryAnnotationsRdfaRdfaRichSnippetsApplicationLocalizedTrustedGenome::class;
   protected $localizedTrustedGenomeDataType = '';
   /**
@@ -164,10 +144,6 @@ class RepositoryAnnotationsRdfaRdfaRichSnippetsApplication extends \Google\Colle
    * @var string
    */
   public $price;
-  /**
-   * @var RepositoryAnnotationsRdfaRdfaRichSnippetsApplicationRankData
-   */
-  public $rankData;
   protected $rankDataType = RepositoryAnnotationsRdfaRdfaRichSnippetsApplicationRankData::class;
   protected $rankDataDataType = '';
   /**
@@ -222,10 +198,6 @@ class RepositoryAnnotationsRdfaRdfaRichSnippetsApplication extends \Google\Colle
    * @var int
    */
   public $totalRatingCount;
-  /**
-   * @var VendingConsumerProtoTrustedGenomeAnnotation[]
-   */
-  public $trustedGenomeData;
   protected $trustedGenomeDataType = VendingConsumerProtoTrustedGenomeAnnotation::class;
   protected $trustedGenomeDataDataType = 'map';
   /**
@@ -496,6 +468,20 @@ class RepositoryAnnotationsRdfaRdfaRichSnippetsApplication extends \Google\Colle
   public function getInAppPurchase()
   {
     return $this->inAppPurchase;
+  }
+  /**
+   * @param bool
+   */
+  public function setIsBattlestarTitle($isBattlestarTitle)
+  {
+    $this->isBattlestarTitle = $isBattlestarTitle;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsBattlestarTitle()
+  {
+    return $this->isBattlestarTitle;
   }
   /**
    * @param bool

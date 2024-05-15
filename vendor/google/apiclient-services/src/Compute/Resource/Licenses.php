@@ -55,6 +55,7 @@ class Licenses extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($project, $license, $optParams = [])
   {
@@ -71,6 +72,7 @@ class Licenses extends \Google\Service\Resource
    * @param string $license Name of the License resource to return.
    * @param array $optParams Optional parameters.
    * @return License
+   * @throws \Google\Service\Exception
    */
   public function get($project, $license, $optParams = [])
   {
@@ -90,6 +92,7 @@ class Licenses extends \Google\Service\Resource
    *
    * @opt_param int optionsRequestedPolicyVersion Requested IAM Policy version.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function getIamPolicy($project, $resource, $optParams = [])
   {
@@ -117,6 +120,7 @@ class Licenses extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function insert($project, License $postBody, $optParams = [])
   {
@@ -186,8 +190,11 @@ class Licenses extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return LicensesListResponse
+   * @throws \Google\Service\Exception
    */
   public function listLicenses($project, $optParams = [])
   {
@@ -206,6 +213,7 @@ class Licenses extends \Google\Service\Resource
    * @param GlobalSetPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function setIamPolicy($project, $resource, GlobalSetPolicyRequest $postBody, $optParams = [])
   {
@@ -223,6 +231,7 @@ class Licenses extends \Google\Service\Resource
    * @param TestPermissionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return TestPermissionsResponse
+   * @throws \Google\Service\Exception
    */
   public function testIamPermissions($project, $resource, TestPermissionsRequest $postBody, $optParams = [])
   {

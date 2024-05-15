@@ -90,6 +90,7 @@ class SecurityCommandCenter extends \Google\Service
   public $projects_sources;
   public $projects_sources_findings;
   public $projects_sources_findings_externalSystems;
+  public $rootUrlTemplate;
 
   /**
    * Constructs the internal representation of the SecurityCommandCenter
@@ -103,6 +104,7 @@ class SecurityCommandCenter extends \Google\Service
   {
     parent::__construct($clientOrConfig);
     $this->rootUrl = $rootUrl ?: 'https://securitycenter.googleapis.com/';
+    $this->rootUrlTemplate = $rootUrl ?: 'https://securitycenter.UNIVERSE_DOMAIN/';
     $this->servicePath = '';
     $this->batchPath = 'batch';
     $this->version = 'v1';
@@ -1827,6 +1829,10 @@ class SecurityCommandCenter extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'orderBy' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
                 'pageSize' => [
                   'location' => 'query',
                   'type' => 'integer',
@@ -1898,6 +1904,10 @@ class SecurityCommandCenter extends \Google\Service
                   'required' => true,
                 ],
                 'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],

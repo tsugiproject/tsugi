@@ -19,16 +19,14 @@ namespace Google\Service\Firestore;
 
 class RunQueryResponse extends \Google\Model
 {
-  /**
-   * @var Document
-   */
-  public $document;
   protected $documentType = Document::class;
   protected $documentDataType = '';
   /**
    * @var bool
    */
   public $done;
+  protected $explainMetricsType = ExplainMetrics::class;
+  protected $explainMetricsDataType = '';
   /**
    * @var string
    */
@@ -37,12 +35,6 @@ class RunQueryResponse extends \Google\Model
    * @var int
    */
   public $skippedResults;
-  /**
-   * @var ResultSetStats
-   */
-  public $stats;
-  protected $statsType = ResultSetStats::class;
-  protected $statsDataType = '';
   /**
    * @var string
    */
@@ -77,6 +69,20 @@ class RunQueryResponse extends \Google\Model
     return $this->done;
   }
   /**
+   * @param ExplainMetrics
+   */
+  public function setExplainMetrics(ExplainMetrics $explainMetrics)
+  {
+    $this->explainMetrics = $explainMetrics;
+  }
+  /**
+   * @return ExplainMetrics
+   */
+  public function getExplainMetrics()
+  {
+    return $this->explainMetrics;
+  }
+  /**
    * @param string
    */
   public function setReadTime($readTime)
@@ -103,20 +109,6 @@ class RunQueryResponse extends \Google\Model
   public function getSkippedResults()
   {
     return $this->skippedResults;
-  }
-  /**
-   * @param ResultSetStats
-   */
-  public function setStats(ResultSetStats $stats)
-  {
-    $this->stats = $stats;
-  }
-  /**
-   * @return ResultSetStats
-   */
-  public function getStats()
-  {
-    return $this->stats;
   }
   /**
    * @param string

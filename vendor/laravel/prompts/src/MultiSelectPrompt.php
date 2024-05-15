@@ -2,20 +2,11 @@
 
 namespace Laravel\Prompts;
 
-use Closure;
 use Illuminate\Support\Collection;
 
 class MultiSelectPrompt extends Prompt
 {
-    /**
-     * The index of the highlighted option.
-     */
-    public int $highlighted = 0;
-
-    /**
-     * The index of the first visible option.
-     */
-    public int $firstVisible = 0;
+    use Concerns\Scrolling;
 
     /**
      * The options for the multi-select prompt.
@@ -50,16 +41,20 @@ class MultiSelectPrompt extends Prompt
         array|Collection $default = [],
         public int $scroll = 5,
         public bool|string $required = false,
-        public ?Closure $validate = null,
-        public string $hint = ''
+        public mixed $validate = null,
+        public string $hint = '',
     ) {
         $this->options = $options instanceof Collection ? $options->all() : $options;
         $this->default = $default instanceof Collection ? $default->all() : $default;
         $this->values = $this->default;
 
+        $this->initializeScrolling(0);
+
         $this->on('key', fn ($key) => match ($key) {
-            Key::UP, Key::UP_ARROW, Key::LEFT, Key::LEFT_ARROW, Key::SHIFT_TAB, 'k', 'h' => $this->highlightPrevious(),
-            Key::DOWN, Key::DOWN_ARROW, Key::RIGHT, Key::RIGHT_ARROW, Key::TAB, 'j', 'l' => $this->highlightNext(),
+            Key::UP, Key::UP_ARROW, Key::LEFT, Key::LEFT_ARROW, Key::SHIFT_TAB, Key::CTRL_P, Key::CTRL_B, 'k', 'h' => $this->highlightPrevious(count($this->options)),
+            Key::DOWN, Key::DOWN_ARROW, Key::RIGHT, Key::RIGHT_ARROW, Key::TAB, Key::CTRL_N, Key::CTRL_F, 'j', 'l' => $this->highlightNext(count($this->options)),
+            Key::oneOf([Key::HOME, Key::CTRL_A], $key) => $this->highlight(0),
+            Key::oneOf([Key::END, Key::CTRL_E], $key) => $this->highlight(count($this->options) - 1),
             Key::SPACE => $this->toggleHighlighted(),
             Key::ENTER => $this->submit(),
             default => null,
@@ -118,34 +113,6 @@ class MultiSelectPrompt extends Prompt
     public function isSelected(string $value): bool
     {
         return in_array($value, $this->values);
-    }
-
-    /**
-     * Highlight the previous entry, or wrap around to the last entry.
-     */
-    protected function highlightPrevious(): void
-    {
-        $this->highlighted = $this->highlighted === 0 ? count($this->options) - 1 : $this->highlighted - 1;
-
-        if ($this->highlighted < $this->firstVisible) {
-            $this->firstVisible--;
-        } elseif ($this->highlighted === count($this->options) - 1) {
-            $this->firstVisible = count($this->options) - min($this->scroll, count($this->options));
-        }
-    }
-
-    /**
-     * Highlight the next entry, or wrap around to the first entry.
-     */
-    protected function highlightNext(): void
-    {
-        $this->highlighted = $this->highlighted === count($this->options) - 1 ? 0 : $this->highlighted + 1;
-
-        if ($this->highlighted > $this->firstVisible + $this->scroll - 1) {
-            $this->firstVisible++;
-        } elseif ($this->highlighted === 0) {
-            $this->firstVisible = 0;
-        }
     }
 
     /**

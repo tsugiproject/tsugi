@@ -23,6 +23,8 @@ use Symfony\Component\HttpKernel\Controller\ArgumentResolver\TraceableValueResol
  */
 class TranslatorPathsPass extends AbstractRecursivePass
 {
+    protected bool $skipScalars = true;
+
     private int $level = 0;
 
     /**
@@ -40,6 +42,9 @@ class TranslatorPathsPass extends AbstractRecursivePass
      */
     private array $controllers = [];
 
+    /**
+     * @return void
+     */
     public function process(ContainerBuilder $container)
     {
         if (!$container->hasDefinition('translator')) {

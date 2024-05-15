@@ -40,6 +40,7 @@ class AndroidPublisher extends \Google\Service
   const ANDROIDPUBLISHER =
       "https://www.googleapis.com/auth/androidpublisher";
 
+  public $applications;
   public $applications_deviceTierConfigs;
   public $apprecovery;
   public $edits;
@@ -70,6 +71,7 @@ class AndroidPublisher extends \Google\Service
   public $reviews;
   public $systemapks_variants;
   public $users;
+  public $rootUrlTemplate;
 
   /**
    * Constructs the internal representation of the AndroidPublisher service.
@@ -82,11 +84,32 @@ class AndroidPublisher extends \Google\Service
   {
     parent::__construct($clientOrConfig);
     $this->rootUrl = $rootUrl ?: 'https://androidpublisher.googleapis.com/';
+    $this->rootUrlTemplate = $rootUrl ?: 'https://androidpublisher.UNIVERSE_DOMAIN/';
     $this->servicePath = '';
     $this->batchPath = 'batch';
     $this->version = 'v3';
     $this->serviceName = 'androidpublisher';
 
+    $this->applications = new AndroidPublisher\Resource\Applications(
+        $this,
+        $this->serviceName,
+        'applications',
+        [
+          'methods' => [
+            'dataSafety' => [
+              'path' => 'androidpublisher/v3/applications/{packageName}/dataSafety',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'packageName' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
     $this->applications_deviceTierConfigs = new AndroidPublisher\Resource\ApplicationsDeviceTierConfigs(
         $this,
         $this->serviceName,
@@ -2218,6 +2241,10 @@ class AndroidPublisher extends \Google\Service
                 'endTime' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'includeQuantityBasedPartialRefund' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
                 'maxResults' => [
                   'location' => 'query',

@@ -17,8 +17,8 @@
 
 namespace Google\Service\DiscoveryEngine\Resource;
 
-use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1betaListSchemasResponse;
-use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1betaSchema;
+use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1ListSchemasResponse;
+use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1Schema;
 use Google\Service\DiscoveryEngine\GoogleLongrunningOperation;
 
 /**
@@ -37,7 +37,7 @@ class ProjectsLocationsDataStoresSchemas extends \Google\Service\Resource
    * @param string $parent Required. The parent data store resource name, in the
    * format of `projects/{project}/locations/{location}/collections/{collection}/d
    * ataStores/{data_store}`.
-   * @param GoogleCloudDiscoveryengineV1betaSchema $postBody
+   * @param GoogleCloudDiscoveryengineV1Schema $postBody
    * @param array $optParams Optional parameters.
    *
    * @opt_param string schemaId Required. The ID to use for the Schema, which will
@@ -45,8 +45,9 @@ class ProjectsLocationsDataStoresSchemas extends \Google\Service\Resource
    * [RFC-1034](https://tools.ietf.org/html/rfc1034) standard with a length limit
    * of 63 characters.
    * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
    */
-  public function create($parent, GoogleCloudDiscoveryengineV1betaSchema $postBody, $optParams = [])
+  public function create($parent, GoogleCloudDiscoveryengineV1Schema $postBody, $optParams = [])
   {
     $params = ['parent' => $parent, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
@@ -60,6 +61,7 @@ class ProjectsLocationsDataStoresSchemas extends \Google\Service\Resource
    * ataStores/{data_store}/schemas/{schema}`.
    * @param array $optParams Optional parameters.
    * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -74,13 +76,14 @@ class ProjectsLocationsDataStoresSchemas extends \Google\Service\Resource
    * format of `projects/{project}/locations/{location}/collections/{collection}/d
    * ataStores/{data_store}/schemas/{schema}`.
    * @param array $optParams Optional parameters.
-   * @return GoogleCloudDiscoveryengineV1betaSchema
+   * @return GoogleCloudDiscoveryengineV1Schema
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
-    return $this->call('get', [$params], GoogleCloudDiscoveryengineV1betaSchema::class);
+    return $this->call('get', [$params], GoogleCloudDiscoveryengineV1Schema::class);
   }
   /**
    * Gets a list of Schemas. (schemas.listProjectsLocationsDataStoresSchemas)
@@ -98,13 +101,14 @@ class ProjectsLocationsDataStoresSchemas extends \Google\Service\Resource
    * SchemaService.ListSchemas call. Provide this to retrieve the subsequent page.
    * When paginating, all other parameters provided to SchemaService.ListSchemas
    * must match the call that provided the page token.
-   * @return GoogleCloudDiscoveryengineV1betaListSchemasResponse
+   * @return GoogleCloudDiscoveryengineV1ListSchemasResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsDataStoresSchemas($parent, $optParams = [])
   {
     $params = ['parent' => $parent];
     $params = array_merge($params, $optParams);
-    return $this->call('list', [$params], GoogleCloudDiscoveryengineV1betaListSchemasResponse::class);
+    return $this->call('list', [$params], GoogleCloudDiscoveryengineV1ListSchemasResponse::class);
   }
   /**
    * Updates a Schema. (schemas.patch)
@@ -113,14 +117,15 @@ class ProjectsLocationsDataStoresSchemas extends \Google\Service\Resource
    * format of `projects/{project}/locations/{location}/collections/{collection}/d
    * ataStores/{data_store}/schemas/{schema}`. This field must be a UTF-8 encoded
    * string with a length limit of 1024 characters.
-   * @param GoogleCloudDiscoveryengineV1betaSchema $postBody
+   * @param GoogleCloudDiscoveryengineV1Schema $postBody
    * @param array $optParams Optional parameters.
    *
    * @opt_param bool allowMissing If set to true, and the Schema is not found, a
    * new Schema will be created. In this situation, `update_mask` is ignored.
    * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
    */
-  public function patch($name, GoogleCloudDiscoveryengineV1betaSchema $postBody, $optParams = [])
+  public function patch($name, GoogleCloudDiscoveryengineV1Schema $postBody, $optParams = [])
   {
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);

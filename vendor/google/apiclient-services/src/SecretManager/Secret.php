@@ -28,6 +28,8 @@ class Secret extends \Google\Collection
    * @var string
    */
   public $createTime;
+  protected $customerManagedEncryptionType = CustomerManagedEncryption::class;
+  protected $customerManagedEncryptionDataType = '';
   /**
    * @var string
    */
@@ -44,22 +46,10 @@ class Secret extends \Google\Collection
    * @var string
    */
   public $name;
-  /**
-   * @var Replication
-   */
-  public $replication;
   protected $replicationType = Replication::class;
   protected $replicationDataType = '';
-  /**
-   * @var Rotation
-   */
-  public $rotation;
   protected $rotationType = Rotation::class;
   protected $rotationDataType = '';
-  /**
-   * @var Topic[]
-   */
-  public $topics;
   protected $topicsType = Topic::class;
   protected $topicsDataType = 'array';
   /**
@@ -70,6 +60,10 @@ class Secret extends \Google\Collection
    * @var string[]
    */
   public $versionAliases;
+  /**
+   * @var string
+   */
+  public $versionDestroyTtl;
 
   /**
    * @param string[]
@@ -98,6 +92,20 @@ class Secret extends \Google\Collection
   public function getCreateTime()
   {
     return $this->createTime;
+  }
+  /**
+   * @param CustomerManagedEncryption
+   */
+  public function setCustomerManagedEncryption(CustomerManagedEncryption $customerManagedEncryption)
+  {
+    $this->customerManagedEncryption = $customerManagedEncryption;
+  }
+  /**
+   * @return CustomerManagedEncryption
+   */
+  public function getCustomerManagedEncryption()
+  {
+    return $this->customerManagedEncryption;
   }
   /**
    * @param string
@@ -224,6 +232,20 @@ class Secret extends \Google\Collection
   public function getVersionAliases()
   {
     return $this->versionAliases;
+  }
+  /**
+   * @param string
+   */
+  public function setVersionDestroyTtl($versionDestroyTtl)
+  {
+    $this->versionDestroyTtl = $versionDestroyTtl;
+  }
+  /**
+   * @return string
+   */
+  public function getVersionDestroyTtl()
+  {
+    return $this->versionDestroyTtl;
   }
 }
 

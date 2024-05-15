@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\BrowserKit;
 
+use Symfony\Component\BrowserKit\Exception\InvalidArgumentException;
+
 /**
  * CookieJar.
  *
@@ -18,9 +20,9 @@ namespace Symfony\Component\BrowserKit;
  */
 class CookieJar
 {
-    protected $cookieJar = [];
+    protected array $cookieJar = [];
 
-    public function set(Cookie $cookie)
+    public function set(Cookie $cookie): void
     {
         $this->cookieJar[$cookie->getDomain()][$cookie->getPath()][$cookie->getName()] = $cookie;
     }
@@ -33,7 +35,7 @@ class CookieJar
      * (this behavior ensures a BC behavior with previous versions of
      * Symfony).
      */
-    public function get(string $name, string $path = '/', string $domain = null): ?Cookie
+    public function get(string $name, string $path = '/', ?string $domain = null): ?Cookie
     {
         $this->flushExpiredCookies();
 
@@ -65,7 +67,7 @@ class CookieJar
      * all cookies for the given name/path expire (this behavior
      * ensures a BC behavior with previous versions of Symfony).
      */
-    public function expire(string $name, ?string $path = '/', string $domain = null)
+    public function expire(string $name, ?string $path = '/', ?string $domain = null): void
     {
         $path ??= '/';
 
@@ -93,7 +95,7 @@ class CookieJar
     /**
      * Removes all the cookies from the jar.
      */
-    public function clear()
+    public function clear(): void
     {
         $this->cookieJar = [];
     }
@@ -103,7 +105,7 @@ class CookieJar
      *
      * @param string[] $setCookies Set-Cookie headers from an HTTP response
      */
-    public function updateFromSetCookie(array $setCookies, string $uri = null)
+    public function updateFromSetCookie(array $setCookies, ?string $uri = null): void
     {
         $cookies = [];
 
@@ -120,7 +122,7 @@ class CookieJar
         foreach ($cookies as $cookie) {
             try {
                 $this->set(Cookie::fromString($cookie, $uri));
-            } catch (\InvalidArgumentException) {
+            } catch (InvalidArgumentException) {
                 // invalid cookies are just ignored
             }
         }
@@ -129,7 +131,7 @@ class CookieJar
     /**
      * Updates the cookie jar from a Response object.
      */
-    public function updateFromResponse(Response $response, string $uri = null)
+    public function updateFromResponse(Response $response, ?string $uri = null): void
     {
         $this->updateFromSetCookie($response->getHeader('Set-Cookie', false), $uri);
     }
@@ -201,7 +203,7 @@ class CookieJar
     /**
      * Removes all expired cookies.
      */
-    public function flushExpiredCookies()
+    public function flushExpiredCookies(): void
     {
         foreach ($this->cookieJar as $domain => $pathCookies) {
             foreach ($pathCookies as $path => $namedCookies) {

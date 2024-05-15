@@ -44,10 +44,6 @@ class FirewallPolicyRule extends \Google\Collection
    * @var string
    */
   public $kind;
-  /**
-   * @var FirewallPolicyRuleMatcher
-   */
-  public $match;
   protected $matchType = FirewallPolicyRuleMatcher::class;
   protected $matchDataType = '';
   /**
@@ -63,19 +59,23 @@ class FirewallPolicyRule extends \Google\Collection
    */
   public $ruleTupleCount;
   /**
+   * @var string
+   */
+  public $securityProfileGroup;
+  /**
    * @var string[]
    */
   public $targetResources;
-  /**
-   * @var FirewallPolicyRuleSecureTag[]
-   */
-  public $targetSecureTags;
   protected $targetSecureTagsType = FirewallPolicyRuleSecureTag::class;
   protected $targetSecureTagsDataType = 'array';
   /**
    * @var string[]
    */
   public $targetServiceAccounts;
+  /**
+   * @var bool
+   */
+  public $tlsInspect;
 
   /**
    * @param string
@@ -218,6 +218,20 @@ class FirewallPolicyRule extends \Google\Collection
     return $this->ruleTupleCount;
   }
   /**
+   * @param string
+   */
+  public function setSecurityProfileGroup($securityProfileGroup)
+  {
+    $this->securityProfileGroup = $securityProfileGroup;
+  }
+  /**
+   * @return string
+   */
+  public function getSecurityProfileGroup()
+  {
+    return $this->securityProfileGroup;
+  }
+  /**
    * @param string[]
    */
   public function setTargetResources($targetResources)
@@ -258,6 +272,20 @@ class FirewallPolicyRule extends \Google\Collection
   public function getTargetServiceAccounts()
   {
     return $this->targetServiceAccounts;
+  }
+  /**
+   * @param bool
+   */
+  public function setTlsInspect($tlsInspect)
+  {
+    $this->tlsInspect = $tlsInspect;
+  }
+  /**
+   * @return bool
+   */
+  public function getTlsInspect()
+  {
+    return $this->tlsInspect;
   }
 }
 

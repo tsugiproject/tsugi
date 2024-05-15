@@ -28,32 +28,16 @@ class WWWSnippetResponse extends \Google\Collection
    * @var int[]
    */
   public $chosenBodyTidbits;
-  /**
-   * @var WWWDocInfo
-   */
-  public $docInfo;
   protected $docInfoType = WWWDocInfo::class;
   protected $docInfoDataType = '';
-  /**
-   * @var QualityDniDocPreviewRestrictions
-   */
-  public $docPreviewRestrictions;
   protected $docPreviewRestrictionsType = QualityDniDocPreviewRestrictions::class;
   protected $docPreviewRestrictionsDataType = '';
-  /**
-   * @var QualityDniDocPreviewRestrictions
-   */
-  public $docPreviewRestrictionsForAmp;
   protected $docPreviewRestrictionsForAmpType = QualityDniDocPreviewRestrictions::class;
   protected $docPreviewRestrictionsForAmpDataType = '';
   /**
    * @var string
    */
   public $events;
-  /**
-   * @var ExtraSnippetInfoResponse
-   */
-  public $extraInfo;
   protected $extraInfoType = ExtraSnippetInfoResponse::class;
   protected $extraInfoDataType = '';
   /**
@@ -64,10 +48,6 @@ class WWWSnippetResponse extends \Google\Collection
    * @var int[]
    */
   public $hasMessageType;
-  /**
-   * @var Proto2BridgeMessageSet
-   */
-  public $info;
   protected $infoType = Proto2BridgeMessageSet::class;
   protected $infoDataType = '';
   /**
@@ -82,20 +62,12 @@ class WWWSnippetResponse extends \Google\Collection
    * @var string[]
    */
   public $keyword;
-  /**
-   * @var ListSnippetResponse
-   */
-  public $listSnippet;
   protected $listSnippetType = ListSnippetResponse::class;
   protected $listSnippetDataType = '';
   /**
    * @var string
    */
   public $listSummary;
-  /**
-   * @var LongStructuredSnippet
-   */
-  public $longStructuredSnippet;
   protected $longStructuredSnippetType = LongStructuredSnippet::class;
   protected $longStructuredSnippetDataType = '';
   /**
@@ -106,10 +78,6 @@ class WWWSnippetResponse extends \Google\Collection
    * @var int
    */
   public $matchesBitmapSize;
-  /**
-   * @var WWWMetaTag[]
-   */
-  public $metaTags;
   protected $metaTagsType = WWWMetaTag::class;
   protected $metaTagsDataType = 'array';
   /**
@@ -140,16 +108,8 @@ class WWWSnippetResponse extends \Google\Collection
    * @var bool
    */
   public $odp;
-  /**
-   * @var OrionDocEntitiesProto
-   */
-  public $orionEntities;
   protected $orionEntitiesType = OrionDocEntitiesProto::class;
   protected $orionEntitiesDataType = '';
-  /**
-   * @var ScienceIndexSignal
-   */
-  public $scienceInfo;
   protected $scienceInfoType = ScienceIndexSignal::class;
   protected $scienceInfoDataType = '';
   /**
@@ -157,17 +117,9 @@ class WWWSnippetResponse extends \Google\Collection
    */
   public $sectionHeadingAnchorName;
   /**
-   * @var string
-   */
-  public $sectionHeadingText;
-  /**
    * @var bool
    */
   public $seenNotTerm;
-  /**
-   * @var RepositoryAnnotationsMustangSentimentSnippetAnnotations[]
-   */
-  public $sentimentSnippets;
   protected $sentimentSnippetsType = RepositoryAnnotationsMustangSentimentSnippetAnnotations::class;
   protected $sentimentSnippetsDataType = 'array';
   /**
@@ -178,16 +130,8 @@ class WWWSnippetResponse extends \Google\Collection
    * @var string
    */
   public $snippetBylineDate;
-  /**
-   * @var SnippetExtraInfo
-   */
-  public $snippetExtraInfo;
   protected $snippetExtraInfoType = SnippetExtraInfo::class;
   protected $snippetExtraInfoDataType = '';
-  /**
-   * @var WWWSnippetResponseBitmapPB[]
-   */
-  public $snippetHighlightMatchesBitmap;
   protected $snippetHighlightMatchesBitmapType = WWWSnippetResponseBitmapPB::class;
   protected $snippetHighlightMatchesBitmapDataType = 'array';
   /**
@@ -198,20 +142,12 @@ class WWWSnippetResponse extends \Google\Collection
    * @var int
    */
   public $snippetPrefixCharCount;
-  /**
-   * @var MustangSnippetsRenderedToken[]
-   */
-  public $snippetRenderedToken;
   protected $snippetRenderedTokenType = MustangSnippetsRenderedToken::class;
   protected $snippetRenderedTokenDataType = 'array';
   /**
    * @var string
    */
   public $snippethash;
-  /**
-   * @var MustangReposWwwSnippetsSnippetsRanklabFeatures
-   */
-  public $snippetsRanklabFeatures;
   protected $snippetsRanklabFeaturesType = MustangReposWwwSnippetsSnippetsRanklabFeatures::class;
   protected $snippetsRanklabFeaturesDataType = '';
   /**
@@ -222,16 +158,8 @@ class WWWSnippetResponse extends \Google\Collection
    * @var bool
    */
   public $titleLengthAdjustedForBrowserWidth;
-  /**
-   * @var MustangSnippetsRenderedToken[]
-   */
-  public $titleRenderedToken;
   protected $titleRenderedTokenType = MustangSnippetsRenderedToken::class;
   protected $titleRenderedTokenDataType = 'array';
-  /**
-   * @var TitleSizeParams
-   */
-  public $titleSizeParams;
   protected $titleSizeParamsType = TitleSizeParams::class;
   protected $titleSizeParamsDataType = '';
   /**
@@ -644,20 +572,6 @@ class WWWSnippetResponse extends \Google\Collection
   public function getSectionHeadingAnchorName()
   {
     return $this->sectionHeadingAnchorName;
-  }
-  /**
-   * @param string
-   */
-  public function setSectionHeadingText($sectionHeadingText)
-  {
-    $this->sectionHeadingText = $sectionHeadingText;
-  }
-  /**
-   * @return string
-   */
-  public function getSectionHeadingText()
-  {
-    return $this->sectionHeadingText;
   }
   /**
    * @param bool

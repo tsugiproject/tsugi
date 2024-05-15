@@ -19,102 +19,42 @@ namespace Google\Service\Contentwarehouse;
 
 class AssistantDevicesPlatformProtoSupportedDeviceOps extends \Google\Model
 {
-  /**
-   * @var AssistantDevicesPlatformProtoCallCallCapability
-   */
-  public $callCall;
   protected $callCallType = AssistantDevicesPlatformProtoCallCallCapability::class;
   protected $callCallDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoClientReconnectCapability
-   */
-  public $clientReconnect;
   protected $clientReconnectType = AssistantDevicesPlatformProtoClientReconnectCapability::class;
   protected $clientReconnectDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoCoreDismissAssistantCapability
-   */
-  public $coreDismissAssistant;
   protected $coreDismissAssistantType = AssistantDevicesPlatformProtoCoreDismissAssistantCapability::class;
   protected $coreDismissAssistantDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoDeviceModifySettingCapability
-   */
-  public $deviceModifySetting;
   protected $deviceModifySettingType = AssistantDevicesPlatformProtoDeviceModifySettingCapability::class;
   protected $deviceModifySettingDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoDeviceTakePhotoCapability
-   */
-  public $deviceTakePhoto;
   protected $deviceTakePhotoType = AssistantDevicesPlatformProtoDeviceTakePhotoCapability::class;
   protected $deviceTakePhotoDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoExecutionWaitCapability
-   */
-  public $executionWait;
   protected $executionWaitType = AssistantDevicesPlatformProtoExecutionWaitCapability::class;
   protected $executionWaitDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoMediaNextCapability
-   */
-  public $mediaNext;
+  protected $getHealthObservationType = AssistantDevicesPlatformProtoGetHealthObservationCapability::class;
+  protected $getHealthObservationDataType = '';
   protected $mediaNextType = AssistantDevicesPlatformProtoMediaNextCapability::class;
   protected $mediaNextDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoMediaPauseCapability
-   */
-  public $mediaPause;
   protected $mediaPauseType = AssistantDevicesPlatformProtoMediaPauseCapability::class;
   protected $mediaPauseDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoMediaPlayMediaCapability
-   */
-  public $mediaPlayMedia;
   protected $mediaPlayMediaType = AssistantDevicesPlatformProtoMediaPlayMediaCapability::class;
   protected $mediaPlayMediaDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoMediaPreviousCapability
-   */
-  public $mediaPrevious;
   protected $mediaPreviousType = AssistantDevicesPlatformProtoMediaPreviousCapability::class;
   protected $mediaPreviousDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoMediaResumeCapability
-   */
-  public $mediaResume;
   protected $mediaResumeType = AssistantDevicesPlatformProtoMediaResumeCapability::class;
   protected $mediaResumeDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoMediaShowControlsCapability
-   */
-  public $mediaShowControls;
   protected $mediaShowControlsType = AssistantDevicesPlatformProtoMediaShowControlsCapability::class;
   protected $mediaShowControlsDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoMediaStopCapability
-   */
-  public $mediaStop;
   protected $mediaStopType = AssistantDevicesPlatformProtoMediaStopCapability::class;
   protected $mediaStopDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoProviderFulfillCapability
-   */
-  public $providerFulfill;
   protected $providerFulfillType = AssistantDevicesPlatformProtoProviderFulfillCapability::class;
   protected $providerFulfillDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoProviderOpenCapability
-   */
-  public $providerOpen;
   protected $providerOpenType = AssistantDevicesPlatformProtoProviderOpenCapability::class;
   protected $providerOpenDataType = '';
-  /**
-   * @var AssistantDevicesPlatformProtoSendChatMessageCapability
-   */
-  public $sendChatMessage;
   protected $sendChatMessageType = AssistantDevicesPlatformProtoSendChatMessageCapability::class;
   protected $sendChatMessageDataType = '';
+  protected $uiShowInterpreterType = AssistantDevicesPlatformProtoUiShowInterpreterCapability::class;
+  protected $uiShowInterpreterDataType = '';
 
   /**
    * @param AssistantDevicesPlatformProtoCallCallCapability
@@ -199,6 +139,20 @@ class AssistantDevicesPlatformProtoSupportedDeviceOps extends \Google\Model
   public function getExecutionWait()
   {
     return $this->executionWait;
+  }
+  /**
+   * @param AssistantDevicesPlatformProtoGetHealthObservationCapability
+   */
+  public function setGetHealthObservation(AssistantDevicesPlatformProtoGetHealthObservationCapability $getHealthObservation)
+  {
+    $this->getHealthObservation = $getHealthObservation;
+  }
+  /**
+   * @return AssistantDevicesPlatformProtoGetHealthObservationCapability
+   */
+  public function getGetHealthObservation()
+  {
+    return $this->getHealthObservation;
   }
   /**
    * @param AssistantDevicesPlatformProtoMediaNextCapability
@@ -339,6 +293,20 @@ class AssistantDevicesPlatformProtoSupportedDeviceOps extends \Google\Model
   public function getSendChatMessage()
   {
     return $this->sendChatMessage;
+  }
+  /**
+   * @param AssistantDevicesPlatformProtoUiShowInterpreterCapability
+   */
+  public function setUiShowInterpreter(AssistantDevicesPlatformProtoUiShowInterpreterCapability $uiShowInterpreter)
+  {
+    $this->uiShowInterpreter = $uiShowInterpreter;
+  }
+  /**
+   * @return AssistantDevicesPlatformProtoUiShowInterpreterCapability
+   */
+  public function getUiShowInterpreter()
+  {
+    return $this->uiShowInterpreter;
   }
 }
 

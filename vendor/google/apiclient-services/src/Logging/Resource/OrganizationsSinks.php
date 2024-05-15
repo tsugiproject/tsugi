@@ -61,6 +61,7 @@ class OrganizationsSinks extends \Google\Service\Resource
    * by the sinks with the same parent. For more information, see writer_identity
    * in LogSink.
    * @return LogSink
+   * @throws \Google\Service\Exception
    */
   public function create($parent, LogSink $postBody, $optParams = [])
   {
@@ -81,6 +82,7 @@ class OrganizationsSinks extends \Google\Service\Resource
    * project/sinks/my-sink"
    * @param array $optParams Optional parameters.
    * @return LoggingEmpty
+   * @throws \Google\Service\Exception
    */
   public function delete($sinkName, $optParams = [])
   {
@@ -99,6 +101,7 @@ class OrganizationsSinks extends \Google\Service\Resource
    * project/sinks/my-sink"
    * @param array $optParams Optional parameters.
    * @return LogSink
+   * @throws \Google\Service\Exception
    */
   public function get($sinkName, $optParams = [])
   {
@@ -114,6 +117,13 @@ class OrganizationsSinks extends \Google\Service\Resource
    * "billingAccounts/[BILLING_ACCOUNT_ID]" "folders/[FOLDER_ID]"
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string filter Optional. A filter expression to constrain the sinks
+   * returned. Today, this only supports the following strings: ''
+   * 'in_scope("ALL")', 'in_scope("ANCESTOR")', 'in_scope("DEFAULT")'.Description
+   * of scopes below. ALL: Includes all of the sinks which can be returned in any
+   * other scope. ANCESTOR: Includes intercepting sinks owned by ancestor
+   * resources. DEFAULT: Includes sinks owned by parent.When the empty string is
+   * provided, then the filter 'in_scope("DEFAULT")' is applied.
    * @opt_param int pageSize Optional. The maximum number of results to return
    * from this request. Non-positive values are ignored. The presence of
    * nextPageToken in the response indicates that more results might be available.
@@ -122,6 +132,7 @@ class OrganizationsSinks extends \Google\Service\Resource
    * the value of nextPageToken from the previous response. The values of other
    * method parameters should be identical to those in the previous call.
    * @return ListSinksResponse
+   * @throws \Google\Service\Exception
    */
   public function listOrganizationsSinks($parent, $optParams = [])
   {
@@ -171,6 +182,7 @@ class OrganizationsSinks extends \Google\Service\Resource
    * buffers/docs/reference/google.protobuf#google.protobuf.FieldMaskFor example:
    * updateMask=filter
    * @return LogSink
+   * @throws \Google\Service\Exception
    */
   public function patch($sinkName, LogSink $postBody, $optParams = [])
   {
@@ -220,6 +232,7 @@ class OrganizationsSinks extends \Google\Service\Resource
    * buffers/docs/reference/google.protobuf#google.protobuf.FieldMaskFor example:
    * updateMask=filter
    * @return LogSink
+   * @throws \Google\Service\Exception
    */
   public function update($sinkName, LogSink $postBody, $optParams = [])
   {

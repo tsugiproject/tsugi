@@ -19,19 +19,27 @@ namespace Google\Service\Container;
 
 class NodeConfigDefaults extends \Google\Model
 {
-  /**
-   * @var GcfsConfig
-   */
-  public $gcfsConfig;
+  protected $containerdConfigType = ContainerdConfig::class;
+  protected $containerdConfigDataType = '';
   protected $gcfsConfigType = GcfsConfig::class;
   protected $gcfsConfigDataType = '';
-  /**
-   * @var NodePoolLoggingConfig
-   */
-  public $loggingConfig;
   protected $loggingConfigType = NodePoolLoggingConfig::class;
   protected $loggingConfigDataType = '';
 
+  /**
+   * @param ContainerdConfig
+   */
+  public function setContainerdConfig(ContainerdConfig $containerdConfig)
+  {
+    $this->containerdConfig = $containerdConfig;
+  }
+  /**
+   * @return ContainerdConfig
+   */
+  public function getContainerdConfig()
+  {
+    return $this->containerdConfig;
+  }
   /**
    * @param GcfsConfig
    */

@@ -55,7 +55,7 @@ It also provides several other useful promise-related concepts, such as joining
 multiple promises and mapping and reducing collections of promises.
 
 If you've never heard about promises before,
-[read this first](https://gist.github.com/3889970).
+[read this first](https://gist.github.com/domenic/3889970).
 
 Concepts
 --------
@@ -318,7 +318,7 @@ $promise = new React\Promise\Promise($resolver, $canceller);
 ```
 
 The promise constructor receives a resolver function and an optional canceller
-function which both will be called with 3 arguments:
+function which both will be called with two arguments:
 
   * `$resolve($value)` - Primary function that seals the fate of the
     returned promise. Accepts either a non-promise value, or another promise.
@@ -664,7 +664,7 @@ This project follows [SemVer](https://semver.org/).
 This will install the latest supported version from this branch:
 
 ```bash
-composer require react/promise:^3
+composer require react/promise:^3.1
 ```
 
 See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.

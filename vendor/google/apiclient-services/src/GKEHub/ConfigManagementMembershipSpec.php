@@ -23,22 +23,14 @@ class ConfigManagementMembershipSpec extends \Google\Model
    * @var string
    */
   public $cluster;
-  /**
-   * @var ConfigManagementConfigSync
-   */
-  public $configSync;
   protected $configSyncType = ConfigManagementConfigSync::class;
   protected $configSyncDataType = '';
-  /**
-   * @var ConfigManagementHierarchyControllerConfig
-   */
-  public $hierarchyController;
   protected $hierarchyControllerType = ConfigManagementHierarchyControllerConfig::class;
   protected $hierarchyControllerDataType = '';
   /**
-   * @var ConfigManagementPolicyController
+   * @var string
    */
-  public $policyController;
+  public $management;
   protected $policyControllerType = ConfigManagementPolicyController::class;
   protected $policyControllerDataType = '';
   /**
@@ -87,6 +79,20 @@ class ConfigManagementMembershipSpec extends \Google\Model
   public function getHierarchyController()
   {
     return $this->hierarchyController;
+  }
+  /**
+   * @param string
+   */
+  public function setManagement($management)
+  {
+    $this->management = $management;
+  }
+  /**
+   * @return string
+   */
+  public function getManagement()
+  {
+    return $this->management;
   }
   /**
    * @param ConfigManagementPolicyController

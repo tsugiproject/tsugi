@@ -19,15 +19,11 @@ namespace Google\Service\Bigquery;
 
 class JobList extends \Google\Collection
 {
-  protected $collection_key = 'jobs';
+  protected $collection_key = 'unreachable';
   /**
    * @var string
    */
   public $etag;
-  /**
-   * @var JobListJobs[]
-   */
-  public $jobs;
   protected $jobsType = JobListJobs::class;
   protected $jobsDataType = 'array';
   /**
@@ -38,6 +34,10 @@ class JobList extends \Google\Collection
    * @var string
    */
   public $nextPageToken;
+  /**
+   * @var string[]
+   */
+  public $unreachable;
 
   /**
    * @param string
@@ -94,6 +94,20 @@ class JobList extends \Google\Collection
   public function getNextPageToken()
   {
     return $this->nextPageToken;
+  }
+  /**
+   * @param string[]
+   */
+  public function setUnreachable($unreachable)
+  {
+    $this->unreachable = $unreachable;
+  }
+  /**
+   * @return string[]
+   */
+  public function getUnreachable()
+  {
+    return $this->unreachable;
   }
 }
 

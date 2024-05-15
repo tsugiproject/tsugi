@@ -19,13 +19,15 @@ namespace Google\Service\Contentwarehouse;
 
 class GeostoreCityJsonProtoCityObjectGeometrySurface extends \Google\Collection
 {
-  protected $collection_key = 'loops';
-  /**
-   * @var GeostoreCityJsonProtoCityObjectGeometryMultiPoint[]
-   */
-  public $loops;
+  protected $collection_key = 'materialSpecs';
   protected $loopsType = GeostoreCityJsonProtoCityObjectGeometryMultiPoint::class;
   protected $loopsDataType = 'array';
+  protected $materialSpecsType = GeostoreCityJsonProtoCityObjectGeometryMaterialSpec::class;
+  protected $materialSpecsDataType = 'array';
+  /**
+   * @var int
+   */
+  public $semanticsIndex;
 
   /**
    * @param GeostoreCityJsonProtoCityObjectGeometryMultiPoint[]
@@ -40,6 +42,34 @@ class GeostoreCityJsonProtoCityObjectGeometrySurface extends \Google\Collection
   public function getLoops()
   {
     return $this->loops;
+  }
+  /**
+   * @param GeostoreCityJsonProtoCityObjectGeometryMaterialSpec[]
+   */
+  public function setMaterialSpecs($materialSpecs)
+  {
+    $this->materialSpecs = $materialSpecs;
+  }
+  /**
+   * @return GeostoreCityJsonProtoCityObjectGeometryMaterialSpec[]
+   */
+  public function getMaterialSpecs()
+  {
+    return $this->materialSpecs;
+  }
+  /**
+   * @param int
+   */
+  public function setSemanticsIndex($semanticsIndex)
+  {
+    $this->semanticsIndex = $semanticsIndex;
+  }
+  /**
+   * @return int
+   */
+  public function getSemanticsIndex()
+  {
+    return $this->semanticsIndex;
   }
 }
 

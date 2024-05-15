@@ -51,6 +51,7 @@ class ProjectsLocationsJobs extends \Google\Service\Resource
    * and default values populated, without persisting the request or creating any
    * resources.
    * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
    */
   public function create($parent, GoogleCloudRunV2Job $postBody, $optParams = [])
   {
@@ -71,6 +72,7 @@ class ProjectsLocationsJobs extends \Google\Service\Resource
    * @opt_param bool validateOnly Indicates that the request should be validated
    * without actually deleting any resources.
    * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -86,6 +88,7 @@ class ProjectsLocationsJobs extends \Google\Service\Resource
    * project id or number.
    * @param array $optParams Optional parameters.
    * @return GoogleCloudRunV2Job
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -116,6 +119,7 @@ class ProjectsLocationsJobs extends \Google\Service\Resource
    * documentation](https://cloud.google.com/iam/help/conditions/resource-
    * policies).
    * @return GoogleIamV1Policy
+   * @throws \Google\Service\Exception
    */
   public function getIamPolicy($resource, $optParams = [])
   {
@@ -137,6 +141,7 @@ class ProjectsLocationsJobs extends \Google\Service\Resource
    * @opt_param bool showDeleted If true, returns deleted (but unexpired)
    * resources along with active ones.
    * @return GoogleCloudRunV2ListJobsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsJobs($parent, $optParams = [])
   {
@@ -152,13 +157,14 @@ class ProjectsLocationsJobs extends \Google\Service\Resource
    * @param GoogleCloudRunV2Job $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool allowMissing If set to true, and if the Job does not exist,
-   * it will create a new one. Caller must have both create and update permissions
-   * for this call if this is set to true.
+   * @opt_param bool allowMissing Optional. If set to true, and if the Job does
+   * not exist, it will create a new one. Caller must have both create and update
+   * permissions for this call if this is set to true.
    * @opt_param bool validateOnly Indicates that the request should be validated
    * and default values populated, without persisting the request or updating any
    * resources.
    * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
    */
   public function patch($name, GoogleCloudRunV2Job $postBody, $optParams = [])
   {
@@ -175,6 +181,7 @@ class ProjectsLocationsJobs extends \Google\Service\Resource
    * @param GoogleCloudRunV2RunJobRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
    */
   public function run($name, GoogleCloudRunV2RunJobRequest $postBody, $optParams = [])
   {
@@ -193,6 +200,7 @@ class ProjectsLocationsJobs extends \Google\Service\Resource
    * @param GoogleIamV1SetIamPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleIamV1Policy
+   * @throws \Google\Service\Exception
    */
   public function setIamPolicy($resource, GoogleIamV1SetIamPolicyRequest $postBody, $optParams = [])
   {
@@ -211,6 +219,7 @@ class ProjectsLocationsJobs extends \Google\Service\Resource
    * @param GoogleIamV1TestIamPermissionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleIamV1TestIamPermissionsResponse
+   * @throws \Google\Service\Exception
    */
   public function testIamPermissions($resource, GoogleIamV1TestIamPermissionsRequest $postBody, $optParams = [])
   {

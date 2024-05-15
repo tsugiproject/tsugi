@@ -56,10 +56,6 @@ class Snapshot extends \Google\Collection
    * @var bool
    */
   public $enableConfidentialCompute;
-  /**
-   * @var GuestOsFeature[]
-   */
-  public $guestOsFeatures;
   protected $guestOsFeaturesType = GuestOsFeature::class;
   protected $guestOsFeaturesDataType = 'array';
   /**
@@ -106,10 +102,6 @@ class Snapshot extends \Google\Collection
    * @var string
    */
   public $selfLink;
-  /**
-   * @var CustomerEncryptionKey
-   */
-  public $snapshotEncryptionKey;
   protected $snapshotEncryptionKeyType = CustomerEncryptionKey::class;
   protected $snapshotEncryptionKeyDataType = '';
   /**
@@ -120,10 +112,6 @@ class Snapshot extends \Google\Collection
    * @var string
    */
   public $sourceDisk;
-  /**
-   * @var CustomerEncryptionKey
-   */
-  public $sourceDiskEncryptionKey;
   protected $sourceDiskEncryptionKeyType = CustomerEncryptionKey::class;
   protected $sourceDiskEncryptionKeyDataType = '';
   /**
@@ -134,6 +122,16 @@ class Snapshot extends \Google\Collection
    * @var string
    */
   public $sourceDiskId;
+  /**
+   * @var string
+   */
+  public $sourceInstantSnapshot;
+  protected $sourceInstantSnapshotEncryptionKeyType = CustomerEncryptionKey::class;
+  protected $sourceInstantSnapshotEncryptionKeyDataType = '';
+  /**
+   * @var string
+   */
+  public $sourceInstantSnapshotId;
   /**
    * @var string
    */
@@ -536,6 +534,48 @@ class Snapshot extends \Google\Collection
   public function getSourceDiskId()
   {
     return $this->sourceDiskId;
+  }
+  /**
+   * @param string
+   */
+  public function setSourceInstantSnapshot($sourceInstantSnapshot)
+  {
+    $this->sourceInstantSnapshot = $sourceInstantSnapshot;
+  }
+  /**
+   * @return string
+   */
+  public function getSourceInstantSnapshot()
+  {
+    return $this->sourceInstantSnapshot;
+  }
+  /**
+   * @param CustomerEncryptionKey
+   */
+  public function setSourceInstantSnapshotEncryptionKey(CustomerEncryptionKey $sourceInstantSnapshotEncryptionKey)
+  {
+    $this->sourceInstantSnapshotEncryptionKey = $sourceInstantSnapshotEncryptionKey;
+  }
+  /**
+   * @return CustomerEncryptionKey
+   */
+  public function getSourceInstantSnapshotEncryptionKey()
+  {
+    return $this->sourceInstantSnapshotEncryptionKey;
+  }
+  /**
+   * @param string
+   */
+  public function setSourceInstantSnapshotId($sourceInstantSnapshotId)
+  {
+    $this->sourceInstantSnapshotId = $sourceInstantSnapshotId;
+  }
+  /**
+   * @return string
+   */
+  public function getSourceInstantSnapshotId()
+  {
+    return $this->sourceInstantSnapshotId;
   }
   /**
    * @param string

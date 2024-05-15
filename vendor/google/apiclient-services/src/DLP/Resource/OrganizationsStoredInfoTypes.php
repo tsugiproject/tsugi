@@ -35,24 +35,26 @@ class OrganizationsStoredInfoTypes extends \Google\Service\Resource
 {
   /**
    * Creates a pre-built stored infoType to be used for inspection. See
-   * https://cloud.google.com/dlp/docs/creating-stored-infotypes to learn more.
-   * (storedInfoTypes.create)
+   * https://cloud.google.com/sensitive-data-protection/docs/creating-stored-
+   * infotypes to learn more. (storedInfoTypes.create)
    *
    * @param string $parent Required. Parent resource name. The format of this
    * value varies depending on the scope of the request (project or organization)
    * and whether you have [specified a processing
-   * location](https://cloud.google.com/dlp/docs/specifying-location): + Projects
-   * scope, location specified: `projects/`PROJECT_ID`/locations/`LOCATION_ID +
-   * Projects scope, no location specified (defaults to global):
-   * `projects/`PROJECT_ID + Organizations scope, location specified:
-   * `organizations/`ORG_ID`/locations/`LOCATION_ID + Organizations scope, no
-   * location specified (defaults to global): `organizations/`ORG_ID The following
-   * example `parent` string specifies a parent project with the identifier
-   * `example-project`, and specifies the `europe-west3` location for processing
-   * data: parent=projects/example-project/locations/europe-west3
+   * location](https://cloud.google.com/sensitive-data-protection/docs/specifying-
+   * location): + Projects scope, location specified:
+   * `projects/`PROJECT_ID`/locations/`LOCATION_ID + Projects scope, no location
+   * specified (defaults to global): `projects/`PROJECT_ID + Organizations scope,
+   * location specified: `organizations/`ORG_ID`/locations/`LOCATION_ID +
+   * Organizations scope, no location specified (defaults to global):
+   * `organizations/`ORG_ID The following example `parent` string specifies a
+   * parent project with the identifier `example-project`, and specifies the
+   * `europe-west3` location for processing data: parent=projects/example-
+   * project/locations/europe-west3
    * @param GooglePrivacyDlpV2CreateStoredInfoTypeRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GooglePrivacyDlpV2StoredInfoType
+   * @throws \Google\Service\Exception
    */
   public function create($parent, GooglePrivacyDlpV2CreateStoredInfoTypeRequest $postBody, $optParams = [])
   {
@@ -61,8 +63,9 @@ class OrganizationsStoredInfoTypes extends \Google\Service\Resource
     return $this->call('create', [$params], GooglePrivacyDlpV2StoredInfoType::class);
   }
   /**
-   * Deletes a stored infoType. See https://cloud.google.com/dlp/docs/creating-
-   * stored-infotypes to learn more. (storedInfoTypes.delete)
+   * Deletes a stored infoType. See https://cloud.google.com/sensitive-data-
+   * protection/docs/creating-stored-infotypes to learn more.
+   * (storedInfoTypes.delete)
    *
    * @param string $name Required. Resource name of the organization and
    * storedInfoType to be deleted, for example
@@ -70,6 +73,7 @@ class OrganizationsStoredInfoTypes extends \Google\Service\Resource
    * id/storedInfoTypes/432452342.
    * @param array $optParams Optional parameters.
    * @return GoogleProtobufEmpty
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -78,8 +82,9 @@ class OrganizationsStoredInfoTypes extends \Google\Service\Resource
     return $this->call('delete', [$params], GoogleProtobufEmpty::class);
   }
   /**
-   * Gets a stored infoType. See https://cloud.google.com/dlp/docs/creating-
-   * stored-infotypes to learn more. (storedInfoTypes.get)
+   * Gets a stored infoType. See https://cloud.google.com/sensitive-data-
+   * protection/docs/creating-stored-infotypes to learn more.
+   * (storedInfoTypes.get)
    *
    * @param string $name Required. Resource name of the organization and
    * storedInfoType to be read, for example
@@ -87,6 +92,7 @@ class OrganizationsStoredInfoTypes extends \Google\Service\Resource
    * id/storedInfoTypes/432452342.
    * @param array $optParams Optional parameters.
    * @return GooglePrivacyDlpV2StoredInfoType
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -95,20 +101,20 @@ class OrganizationsStoredInfoTypes extends \Google\Service\Resource
     return $this->call('get', [$params], GooglePrivacyDlpV2StoredInfoType::class);
   }
   /**
-   * Lists stored infoTypes. See https://cloud.google.com/dlp/docs/creating-
-   * stored-infotypes to learn more.
+   * Lists stored infoTypes. See https://cloud.google.com/sensitive-data-
+   * protection/docs/creating-stored-infotypes to learn more.
    * (storedInfoTypes.listOrganizationsStoredInfoTypes)
    *
    * @param string $parent Required. Parent resource name. The format of this
    * value varies depending on the scope of the request (project or organization)
    * and whether you have [specified a processing
-   * location](https://cloud.google.com/dlp/docs/specifying-location): + Projects
-   * scope, location specified: `projects/`PROJECT_ID`/locations/`LOCATION_ID +
-   * Projects scope, no location specified (defaults to global):
-   * `projects/`PROJECT_ID The following example `parent` string specifies a
-   * parent project with the identifier `example-project`, and specifies the
-   * `europe-west3` location for processing data: parent=projects/example-
-   * project/locations/europe-west3
+   * location](https://cloud.google.com/sensitive-data-protection/docs/specifying-
+   * location): + Projects scope, location specified:
+   * `projects/`PROJECT_ID`/locations/`LOCATION_ID + Projects scope, no location
+   * specified (defaults to global): `projects/`PROJECT_ID The following example
+   * `parent` string specifies a parent project with the identifier `example-
+   * project`, and specifies the `europe-west3` location for processing data:
+   * parent=projects/example-project/locations/europe-west3
    * @param array $optParams Optional parameters.
    *
    * @opt_param string locationId Deprecated. This field has no effect.
@@ -125,6 +131,7 @@ class OrganizationsStoredInfoTypes extends \Google\Service\Resource
    * @opt_param string pageToken Page token to continue retrieval. Comes from the
    * previous call to `ListStoredInfoTypes`.
    * @return GooglePrivacyDlpV2ListStoredInfoTypesResponse
+   * @throws \Google\Service\Exception
    */
   public function listOrganizationsStoredInfoTypes($parent, $optParams = [])
   {
@@ -135,8 +142,8 @@ class OrganizationsStoredInfoTypes extends \Google\Service\Resource
   /**
    * Updates the stored infoType by creating a new version. The existing version
    * will continue to be used until the new version is ready. See
-   * https://cloud.google.com/dlp/docs/creating-stored-infotypes to learn more.
-   * (storedInfoTypes.patch)
+   * https://cloud.google.com/sensitive-data-protection/docs/creating-stored-
+   * infotypes to learn more. (storedInfoTypes.patch)
    *
    * @param string $name Required. Resource name of organization and
    * storedInfoType to be updated, for example
@@ -145,6 +152,7 @@ class OrganizationsStoredInfoTypes extends \Google\Service\Resource
    * @param GooglePrivacyDlpV2UpdateStoredInfoTypeRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GooglePrivacyDlpV2StoredInfoType
+   * @throws \Google\Service\Exception
    */
   public function patch($name, GooglePrivacyDlpV2UpdateStoredInfoTypeRequest $postBody, $optParams = [])
   {

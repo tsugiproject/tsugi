@@ -20,12 +20,12 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1UpsertDatapointsRequest extends \Google\Collection
 {
   protected $collection_key = 'datapoints';
-  /**
-   * @var GoogleCloudAiplatformV1IndexDatapoint[]
-   */
-  public $datapoints;
   protected $datapointsType = GoogleCloudAiplatformV1IndexDatapoint::class;
   protected $datapointsDataType = 'array';
+  /**
+   * @var string
+   */
+  public $updateMask;
 
   /**
    * @param GoogleCloudAiplatformV1IndexDatapoint[]
@@ -40,6 +40,20 @@ class GoogleCloudAiplatformV1UpsertDatapointsRequest extends \Google\Collection
   public function getDatapoints()
   {
     return $this->datapoints;
+  }
+  /**
+   * @param string
+   */
+  public function setUpdateMask($updateMask)
+  {
+    $this->updateMask = $updateMask;
+  }
+  /**
+   * @return string
+   */
+  public function getUpdateMask()
+  {
+    return $this->updateMask;
   }
 }
 

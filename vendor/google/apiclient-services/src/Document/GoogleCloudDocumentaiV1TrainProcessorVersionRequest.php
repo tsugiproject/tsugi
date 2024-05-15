@@ -23,28 +23,14 @@ class GoogleCloudDocumentaiV1TrainProcessorVersionRequest extends \Google\Model
    * @var string
    */
   public $baseProcessorVersion;
-  /**
-   * @var GoogleCloudDocumentaiV1TrainProcessorVersionRequestCustomDocumentExtractionOptions
-   */
-  public $customDocumentExtractionOptions;
   protected $customDocumentExtractionOptionsType = GoogleCloudDocumentaiV1TrainProcessorVersionRequestCustomDocumentExtractionOptions::class;
   protected $customDocumentExtractionOptionsDataType = '';
-  /**
-   * @var GoogleCloudDocumentaiV1DocumentSchema
-   */
-  public $documentSchema;
   protected $documentSchemaType = GoogleCloudDocumentaiV1DocumentSchema::class;
   protected $documentSchemaDataType = '';
-  /**
-   * @var GoogleCloudDocumentaiV1TrainProcessorVersionRequestInputData
-   */
-  public $inputData;
+  protected $foundationModelTuningOptionsType = GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTuningOptions::class;
+  protected $foundationModelTuningOptionsDataType = '';
   protected $inputDataType = GoogleCloudDocumentaiV1TrainProcessorVersionRequestInputData::class;
   protected $inputDataDataType = '';
-  /**
-   * @var GoogleCloudDocumentaiV1ProcessorVersion
-   */
-  public $processorVersion;
   protected $processorVersionType = GoogleCloudDocumentaiV1ProcessorVersion::class;
   protected $processorVersionDataType = '';
 
@@ -89,6 +75,20 @@ class GoogleCloudDocumentaiV1TrainProcessorVersionRequest extends \Google\Model
   public function getDocumentSchema()
   {
     return $this->documentSchema;
+  }
+  /**
+   * @param GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTuningOptions
+   */
+  public function setFoundationModelTuningOptions(GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTuningOptions $foundationModelTuningOptions)
+  {
+    $this->foundationModelTuningOptions = $foundationModelTuningOptions;
+  }
+  /**
+   * @return GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTuningOptions
+   */
+  public function getFoundationModelTuningOptions()
+  {
+    return $this->foundationModelTuningOptions;
   }
   /**
    * @param GoogleCloudDocumentaiV1TrainProcessorVersionRequestInputData

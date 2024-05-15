@@ -19,10 +19,6 @@ namespace Google\Service\DiscoveryEngine;
 
 class GoogleCloudDiscoveryengineV1betaDocument extends \Google\Model
 {
-  /**
-   * @var GoogleCloudDiscoveryengineV1betaDocumentContent
-   */
-  public $content;
   protected $contentType = GoogleCloudDiscoveryengineV1betaDocumentContent::class;
   protected $contentDataType = '';
   /**
@@ -33,6 +29,10 @@ class GoogleCloudDiscoveryengineV1betaDocument extends \Google\Model
    * @var string
    */
   public $id;
+  /**
+   * @var string
+   */
+  public $indexTime;
   /**
    * @var string
    */
@@ -95,6 +95,20 @@ class GoogleCloudDiscoveryengineV1betaDocument extends \Google\Model
   public function getId()
   {
     return $this->id;
+  }
+  /**
+   * @param string
+   */
+  public function setIndexTime($indexTime)
+  {
+    $this->indexTime = $indexTime;
+  }
+  /**
+   * @return string
+   */
+  public function getIndexTime()
+  {
+    return $this->indexTime;
   }
   /**
    * @param string

@@ -31,38 +31,20 @@ class VmwareCluster extends \Google\Model
    * @var string[]
    */
   public $annotations;
-  /**
-   * @var VmwareAAGConfig
-   */
-  public $antiAffinityGroups;
   protected $antiAffinityGroupsType = VmwareAAGConfig::class;
   protected $antiAffinityGroupsDataType = '';
-  /**
-   * @var Authorization
-   */
-  public $authorization;
   protected $authorizationType = Authorization::class;
   protected $authorizationDataType = '';
-  /**
-   * @var VmwareAutoRepairConfig
-   */
-  public $autoRepairConfig;
   protected $autoRepairConfigType = VmwareAutoRepairConfig::class;
   protected $autoRepairConfigDataType = '';
-  /**
-   * @var VmwareControlPlaneNodeConfig
-   */
-  public $controlPlaneNode;
+  protected $binaryAuthorizationType = BinaryAuthorization::class;
+  protected $binaryAuthorizationDataType = '';
   protected $controlPlaneNodeType = VmwareControlPlaneNodeConfig::class;
   protected $controlPlaneNodeDataType = '';
   /**
    * @var string
    */
   public $createTime;
-  /**
-   * @var VmwareDataplaneV2Config
-   */
-  public $dataplaneV2;
   protected $dataplaneV2Type = VmwareDataplaneV2Config::class;
   protected $dataplaneV2DataType = '';
   /**
@@ -89,16 +71,8 @@ class VmwareCluster extends \Google\Model
    * @var string
    */
   public $etag;
-  /**
-   * @var Fleet
-   */
-  public $fleet;
   protected $fleetType = Fleet::class;
   protected $fleetDataType = '';
-  /**
-   * @var VmwareLoadBalancerConfig
-   */
-  public $loadBalancer;
   protected $loadBalancerType = VmwareLoadBalancerConfig::class;
   protected $loadBalancerDataType = '';
   /**
@@ -109,10 +83,6 @@ class VmwareCluster extends \Google\Model
    * @var string
    */
   public $name;
-  /**
-   * @var VmwareNetworkConfig
-   */
-  public $networkConfig;
   protected $networkConfigType = VmwareNetworkConfig::class;
   protected $networkConfigDataType = '';
   /**
@@ -127,16 +97,8 @@ class VmwareCluster extends \Google\Model
    * @var string
    */
   public $state;
-  /**
-   * @var ResourceStatus
-   */
-  public $status;
   protected $statusType = ResourceStatus::class;
   protected $statusDataType = '';
-  /**
-   * @var VmwareStorageConfig
-   */
-  public $storage;
   protected $storageType = VmwareStorageConfig::class;
   protected $storageDataType = '';
   /**
@@ -147,22 +109,10 @@ class VmwareCluster extends \Google\Model
    * @var string
    */
   public $updateTime;
-  /**
-   * @var VmwareClusterUpgradePolicy
-   */
-  public $upgradePolicy;
   protected $upgradePolicyType = VmwareClusterUpgradePolicy::class;
   protected $upgradePolicyDataType = '';
-  /**
-   * @var ValidationCheck
-   */
-  public $validationCheck;
   protected $validationCheckType = ValidationCheck::class;
   protected $validationCheckDataType = '';
-  /**
-   * @var VmwareVCenterConfig
-   */
-  public $vcenter;
   protected $vcenterType = VmwareVCenterConfig::class;
   protected $vcenterDataType = '';
   /**
@@ -253,6 +203,20 @@ class VmwareCluster extends \Google\Model
   public function getAutoRepairConfig()
   {
     return $this->autoRepairConfig;
+  }
+  /**
+   * @param BinaryAuthorization
+   */
+  public function setBinaryAuthorization(BinaryAuthorization $binaryAuthorization)
+  {
+    $this->binaryAuthorization = $binaryAuthorization;
+  }
+  /**
+   * @return BinaryAuthorization
+   */
+  public function getBinaryAuthorization()
+  {
+    return $this->binaryAuthorization;
   }
   /**
    * @param VmwareControlPlaneNodeConfig

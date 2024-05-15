@@ -206,7 +206,7 @@ class AblyBroadcaster extends Broadcaster
     /**
      * Get the public token value from the Ably key.
      *
-     * @return mixed
+     * @return string
      */
     protected function getPublicToken()
     {
@@ -231,5 +231,16 @@ class AblyBroadcaster extends Broadcaster
     public function getAbly()
     {
         return $this->ably;
+    }
+
+    /**
+     * Set the underlying Ably SDK instance.
+     *
+     * @param  \Ably\AblyRest  $ably
+     * @return void
+     */
+    public function setAbly($ably)
+    {
+        $this->ably = $ably;
     }
 }

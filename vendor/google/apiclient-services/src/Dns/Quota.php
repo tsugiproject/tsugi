@@ -59,6 +59,10 @@ class Quota extends \Google\Collection
   /**
    * @var int
    */
+  public $nameserversPerDelegation;
+  /**
+   * @var int
+   */
   public $networksPerManagedZone;
   /**
    * @var int
@@ -112,10 +116,6 @@ class Quota extends \Google\Collection
    * @var int
    */
   public $totalRrdataSizePerChange;
-  /**
-   * @var DnsKeySpec[]
-   */
-  public $whitelistedKeySpecs;
   protected $whitelistedKeySpecsType = DnsKeySpec::class;
   protected $whitelistedKeySpecsDataType = 'array';
 
@@ -244,6 +244,20 @@ class Quota extends \Google\Collection
   public function getManagedZonesPerNetwork()
   {
     return $this->managedZonesPerNetwork;
+  }
+  /**
+   * @param int
+   */
+  public function setNameserversPerDelegation($nameserversPerDelegation)
+  {
+    $this->nameserversPerDelegation = $nameserversPerDelegation;
+  }
+  /**
+   * @return int
+   */
+  public function getNameserversPerDelegation()
+  {
+    return $this->nameserversPerDelegation;
   }
   /**
    * @param int

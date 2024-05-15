@@ -44,10 +44,6 @@ class ResearchScienceSearchSourceUrlDocjoinInfo extends \Google\Collection
    * @var string
    */
   public $latestPageUpdateDate;
-  /**
-   * @var ResearchScienceSearchNavboostQueryInfo[]
-   */
-  public $navboostQuery;
   protected $navboostQueryType = ResearchScienceSearchNavboostQueryInfo::class;
   protected $navboostQueryDataType = 'array';
   /**
@@ -55,21 +51,13 @@ class ResearchScienceSearchSourceUrlDocjoinInfo extends \Google\Collection
    */
   public $pagerank;
   /**
-   * @var FatcatCompactDocClassification
+   * @var int
    */
-  public $petacatInfo;
+  public $pagerankNs;
   protected $petacatInfoType = FatcatCompactDocClassification::class;
   protected $petacatInfoDataType = '';
-  /**
-   * @var QualitySalientTermsSalientTermSet
-   */
-  public $salientTerms;
   protected $salientTermsType = QualitySalientTermsSalientTermSet::class;
   protected $salientTermsDataType = '';
-  /**
-   * @var ScienceIndexSignal
-   */
-  public $scholarInfo;
   protected $scholarInfoType = ScienceIndexSignal::class;
   protected $scholarInfoDataType = '';
   /**
@@ -80,20 +68,12 @@ class ResearchScienceSearchSourceUrlDocjoinInfo extends \Google\Collection
    * @var string
    */
   public $title;
-  /**
-   * @var RepositoryWebrefWebrefEntity[]
-   */
-  public $topEntity;
   protected $topEntityType = RepositoryWebrefWebrefEntity::class;
   protected $topEntityDataType = 'array';
   /**
    * @var string
    */
   public $url;
-  /**
-   * @var ResearchScienceSearchSourceUrlDocjoinInfoWebrefEntityInfo[]
-   */
-  public $webrefEntity;
   protected $webrefEntityType = ResearchScienceSearchSourceUrlDocjoinInfoWebrefEntityInfo::class;
   protected $webrefEntityDataType = 'array';
 
@@ -208,6 +188,20 @@ class ResearchScienceSearchSourceUrlDocjoinInfo extends \Google\Collection
   public function getPagerank()
   {
     return $this->pagerank;
+  }
+  /**
+   * @param int
+   */
+  public function setPagerankNs($pagerankNs)
+  {
+    $this->pagerankNs = $pagerankNs;
+  }
+  /**
+   * @return int
+   */
+  public function getPagerankNs()
+  {
+    return $this->pagerankNs;
   }
   /**
    * @param FatcatCompactDocClassification

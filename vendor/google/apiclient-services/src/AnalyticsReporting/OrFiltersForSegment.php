@@ -20,10 +20,6 @@ namespace Google\Service\AnalyticsReporting;
 class OrFiltersForSegment extends \Google\Collection
 {
   protected $collection_key = 'segmentFilterClauses';
-  /**
-   * @var SegmentFilterClause[]
-   */
-  public $segmentFilterClauses;
   protected $segmentFilterClausesType = SegmentFilterClause::class;
   protected $segmentFilterClausesDataType = 'array';
 

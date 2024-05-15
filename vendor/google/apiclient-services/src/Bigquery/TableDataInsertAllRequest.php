@@ -28,10 +28,6 @@ class TableDataInsertAllRequest extends \Google\Collection
    * @var string
    */
   public $kind;
-  /**
-   * @var TableDataInsertAllRequestRows[]
-   */
-  public $rows;
   protected $rowsType = TableDataInsertAllRequestRows::class;
   protected $rowsDataType = 'array';
   /**
@@ -42,6 +38,10 @@ class TableDataInsertAllRequest extends \Google\Collection
    * @var string
    */
   public $templateSuffix;
+  /**
+   * @var string
+   */
+  public $traceId;
 
   /**
    * @param bool
@@ -112,6 +112,20 @@ class TableDataInsertAllRequest extends \Google\Collection
   public function getTemplateSuffix()
   {
     return $this->templateSuffix;
+  }
+  /**
+   * @param string
+   */
+  public function setTraceId($traceId)
+  {
+    $this->traceId = $traceId;
+  }
+  /**
+   * @return string
+   */
+  public function getTraceId()
+  {
+    return $this->traceId;
   }
 }
 

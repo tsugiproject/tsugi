@@ -42,14 +42,16 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
   /**
    * Creates a new HL7v2 store within the parent dataset. (hl7V2Stores.create)
    *
-   * @param string $parent The name of the dataset this HL7v2 store belongs to.
+   * @param string $parent Required. The name of the dataset this HL7v2 store
+   * belongs to.
    * @param Hl7V2Store $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string hl7V2StoreId The ID of the HL7v2 store that is being
-   * created. The string must match the following regex:
+   * @opt_param string hl7V2StoreId Required. The ID of the HL7v2 store that is
+   * being created. The string must match the following regex:
    * `[\p{L}\p{N}_\-\.]{1,256}`.
    * @return Hl7V2Store
+   * @throws \Google\Service\Exception
    */
   public function create($parent, Hl7V2Store $postBody, $optParams = [])
   {
@@ -61,9 +63,10 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
    * Deletes the specified HL7v2 store and removes all messages that it contains.
    * (hl7V2Stores.delete)
    *
-   * @param string $name The resource name of the HL7v2 store to delete.
+   * @param string $name Required. The resource name of the HL7v2 store to delete.
    * @param array $optParams Optional parameters.
    * @return HealthcareEmpty
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -81,12 +84,13 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
    * The metadata field type for this operation is OperationMetadata.
    * (hl7V2Stores.export)
    *
-   * @param string $name The name of the source HL7v2 store, in the format `projec
-   * ts/{project_id}/locations/{location_id}/datasets/{dataset_id}/hl7v2Stores/{hl
-   * 7v2_store_id}`
+   * @param string $name Required. The name of the source HL7v2 store, in the
+   * format `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/h
+   * l7v2Stores/{hl7v2_store_id}`
    * @param ExportMessagesRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function export($name, ExportMessagesRequest $postBody, $optParams = [])
   {
@@ -97,9 +101,10 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
   /**
    * Gets the specified HL7v2 store. (hl7V2Stores.get)
    *
-   * @param string $name The resource name of the HL7v2 store to get.
+   * @param string $name Required. The resource name of the HL7v2 store to get.
    * @param array $optParams Optional parameters.
    * @return Hl7V2Store
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -111,11 +116,12 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
    * Gets metrics associated with the HL7v2 store.
    * (hl7V2Stores.getHL7v2StoreMetrics)
    *
-   * @param string $name The resource name of the HL7v2 store to get metrics for,
-   * in the format `projects/{project_id}/locations/{location_id}/datasets/{datase
-   * t_id}/hl7V2Stores/{hl7v2_store_id}`.
+   * @param string $name Required. The resource name of the HL7v2 store to get
+   * metrics for, in the format `projects/{project_id}/locations/{location_id}/dat
+   * asets/{dataset_id}/hl7V2Stores/{hl7v2_store_id}`.
    * @param array $optParams Optional parameters.
    * @return Hl7V2StoreMetrics
+   * @throws \Google\Service\Exception
    */
   public function getHL7v2StoreMetrics($name, $optParams = [])
   {
@@ -146,6 +152,7 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
    * documentation](https://cloud.google.com/iam/help/conditions/resource-
    * policies).
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function getIamPolicy($resource, $optParams = [])
   {
@@ -179,12 +186,13 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
    * ImportMessagesResponse is returned in the response field. The metadata field
    * type for this operation is OperationMetadata. (hl7V2Stores.import)
    *
-   * @param string $name The name of the target HL7v2 store, in the format `projec
-   * ts/{project_id}/locations/{location_id}/datasets/{dataset_id}/hl7v2Stores/{hl
-   * 7v2_store_id}`
+   * @param string $name Required. The name of the target HL7v2 store, in the
+   * format `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/h
+   * l7v2Stores/{hl7v2_store_id}`
    * @param ImportMessagesRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function import($name, ImportMessagesRequest $postBody, $optParams = [])
   {
@@ -196,7 +204,7 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
    * Lists the HL7v2 stores in the given dataset.
    * (hl7V2Stores.listProjectsLocationsDatasetsHl7V2Stores)
    *
-   * @param string $parent Name of the dataset.
+   * @param string $parent Required. Name of the dataset.
    * @param array $optParams Optional parameters.
    *
    * @opt_param string filter Restricts stores returned to those matching a
@@ -227,6 +235,7 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
    * @opt_param string pageToken The next_page_token value returned from the
    * previous List request, if any.
    * @return ListHl7V2StoresResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsDatasetsHl7V2Stores($parent, $optParams = [])
   {
@@ -237,16 +246,18 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
   /**
    * Updates the HL7v2 store. (hl7V2Stores.patch)
    *
-   * @param string $name Resource name of the HL7v2 store, of the form `projects/{
-   * project_id}/locations/{location_id}/datasets/{dataset_id}/hl7V2Stores/{hl7v2_
-   * store_id}`.
+   * @param string $name Identifier. Resource name of the HL7v2 store, of the form
+   * `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/hl7V2Sto
+   * res/{hl7v2_store_id}`.
    * @param Hl7V2Store $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string updateMask The update mask applies to the resource. For the
-   * `FieldMask` definition, see https://developers.google.com/protocol-
+   * @opt_param string updateMask Required. The update mask applies to the
+   * resource. For the `FieldMask` definition, see
+   * https://developers.google.com/protocol-
    * buffers/docs/reference/google.protobuf#fieldmask
    * @return Hl7V2Store
+   * @throws \Google\Service\Exception
    */
   public function patch($name, Hl7V2Store $postBody, $optParams = [])
   {
@@ -266,6 +277,7 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
    * @param SetIamPolicyRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Policy
+   * @throws \Google\Service\Exception
    */
   public function setIamPolicy($resource, SetIamPolicyRequest $postBody, $optParams = [])
   {
@@ -288,6 +300,7 @@ class ProjectsLocationsDatasetsHl7V2Stores extends \Google\Service\Resource
    * @param TestIamPermissionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return TestIamPermissionsResponse
+   * @throws \Google\Service\Exception
    */
   public function testIamPermissions($resource, TestIamPermissionsRequest $postBody, $optParams = [])
   {

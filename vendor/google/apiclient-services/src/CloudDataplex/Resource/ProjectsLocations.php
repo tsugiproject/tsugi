@@ -17,6 +17,8 @@
 
 namespace Google\Service\CloudDataplex\Resource;
 
+use Google\Service\CloudDataplex\GoogleCloudDataplexV1Entry;
+use Google\Service\CloudDataplex\GoogleCloudDataplexV1SearchEntriesResponse;
 use Google\Service\CloudDataplex\GoogleCloudLocationListLocationsResponse;
 use Google\Service\CloudDataplex\GoogleCloudLocationLocation;
 
@@ -36,6 +38,7 @@ class ProjectsLocations extends \Google\Service\Resource
    * @param string $name Resource name for the location.
    * @param array $optParams Optional parameters.
    * @return GoogleCloudLocationLocation
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -59,12 +62,65 @@ class ProjectsLocations extends \Google\Service\Resource
    * @opt_param string pageToken A page token received from the next_page_token
    * field in the response. Send that page token to receive the subsequent page.
    * @return GoogleCloudLocationListLocationsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocations($name, $optParams = [])
   {
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
     return $this->call('list', [$params], GoogleCloudLocationListLocationsResponse::class);
+  }
+  /**
+   * Looks up a single entry. (locations.lookupEntry)
+   *
+   * @param string $name Required. The project to which the request should be
+   * attributed in the following form: projects/{project}/locations/{location}.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string aspectTypes Optional. Limits the aspects returned to the
+   * provided aspect types. Only works if the CUSTOM view is selected.
+   * @opt_param string entry Required. The resource name of the Entry: projects/{p
+   * roject}/locations/{location}/entryGroups/{entry_group}/entries/{entry}.
+   * @opt_param string paths Optional. Limits the aspects returned to those
+   * associated with the provided paths within the Entry. Only works if the CUSTOM
+   * view is selected.
+   * @opt_param string view Optional. View for controlling which parts of an entry
+   * are to be returned.
+   * @return GoogleCloudDataplexV1Entry
+   * @throws \Google\Service\Exception
+   */
+  public function lookupEntry($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('lookupEntry', [$params], GoogleCloudDataplexV1Entry::class);
+  }
+  /**
+   * Searches for entries matching given query and scope.
+   * (locations.searchEntries)
+   *
+   * @param string $name Required. The project to which the request should be
+   * attributed in the following form: projects/{project}/locations/{location}.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string orderBy Optional. Ordering of the results. Supported
+   * options to be added later.
+   * @opt_param int pageSize Optional. Pagination.
+   * @opt_param string pageToken
+   * @opt_param string query Required. The query against which entries in scope
+   * should be matched.
+   * @opt_param string scope Optional. The scope under which the search should be
+   * operating. Should either be organizations/ or projects/. If left unspecified,
+   * it will default to the organization where the project provided in name is
+   * located.
+   * @return GoogleCloudDataplexV1SearchEntriesResponse
+   * @throws \Google\Service\Exception
+   */
+  public function searchEntries($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('searchEntries', [$params], GoogleCloudDataplexV1SearchEntriesResponse::class);
   }
 }
 

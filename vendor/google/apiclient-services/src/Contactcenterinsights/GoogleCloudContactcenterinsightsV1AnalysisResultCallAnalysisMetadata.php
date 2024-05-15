@@ -20,42 +20,20 @@ namespace Google\Service\Contactcenterinsights;
 class GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata extends \Google\Collection
 {
   protected $collection_key = 'sentiments';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1CallAnnotation[]
-   */
-  public $annotations;
   protected $annotationsType = GoogleCloudContactcenterinsightsV1CallAnnotation::class;
   protected $annotationsDataType = 'array';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1Entity[]
-   */
-  public $entities;
   protected $entitiesType = GoogleCloudContactcenterinsightsV1Entity::class;
   protected $entitiesDataType = 'map';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1Intent[]
-   */
-  public $intents;
   protected $intentsType = GoogleCloudContactcenterinsightsV1Intent::class;
   protected $intentsDataType = 'map';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1IssueModelResult
-   */
-  public $issueModelResult;
   protected $issueModelResultType = GoogleCloudContactcenterinsightsV1IssueModelResult::class;
   protected $issueModelResultDataType = '';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1PhraseMatchData[]
-   */
-  public $phraseMatchers;
   protected $phraseMatchersType = GoogleCloudContactcenterinsightsV1PhraseMatchData::class;
   protected $phraseMatchersDataType = 'map';
-  /**
-   * @var GoogleCloudContactcenterinsightsV1ConversationLevelSentiment[]
-   */
-  public $sentiments;
   protected $sentimentsType = GoogleCloudContactcenterinsightsV1ConversationLevelSentiment::class;
   protected $sentimentsDataType = 'array';
+  protected $silenceType = GoogleCloudContactcenterinsightsV1ConversationLevelSilence::class;
+  protected $silenceDataType = '';
 
   /**
    * @param GoogleCloudContactcenterinsightsV1CallAnnotation[]
@@ -140,6 +118,20 @@ class GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata exten
   public function getSentiments()
   {
     return $this->sentiments;
+  }
+  /**
+   * @param GoogleCloudContactcenterinsightsV1ConversationLevelSilence
+   */
+  public function setSilence(GoogleCloudContactcenterinsightsV1ConversationLevelSilence $silence)
+  {
+    $this->silence = $silence;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1ConversationLevelSilence
+   */
+  public function getSilence()
+  {
+    return $this->silence;
   }
 }
 

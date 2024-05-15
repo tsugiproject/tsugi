@@ -26,19 +26,25 @@
             "email": "cboden@gmail.com"
         }
     ],
-    "autoload": {
-        "psr-4": { "React\\Promise\\Timer\\": "src/" },
-        "files": [ "src/functions_include.php" ]
-    },
-    "autoload-dev": {
-        "psr-4": { "React\\Tests\\Promise\\Timer\\": "tests/" }
-    },
     "require": {
         "php": ">=5.3",
         "react/event-loop": "^1.2",
         "react/promise": "^3.0 || ^2.7.0 || ^1.2.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
+        "phpunit/phpunit": "^9.5 || ^5.7 || ^4.8.35"
+    },
+    "autoload": {
+        "psr-4": {
+            "React\\Promise\\Timer\\": "src/"
+        },
+        "files": [
+            "src/functions_include.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "React\\Tests\\Promise\\Timer\\": "tests/"
+        }
     }
 }

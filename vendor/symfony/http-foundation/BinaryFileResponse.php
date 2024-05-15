@@ -45,7 +45,7 @@ class BinaryFileResponse extends Response
      * @param bool                $autoEtag           Whether the ETag header should be automatically set
      * @param bool                $autoLastModified   Whether the Last-Modified header should be automatically set
      */
-    public function __construct(\SplFileInfo|string $file, int $status = 200, array $headers = [], bool $public = true, string $contentDisposition = null, bool $autoEtag = false, bool $autoLastModified = true)
+    public function __construct(\SplFileInfo|string $file, int $status = 200, array $headers = [], bool $public = true, ?string $contentDisposition = null, bool $autoEtag = false, bool $autoLastModified = true)
     {
         parent::__construct(null, $status, $headers);
 
@@ -63,7 +63,7 @@ class BinaryFileResponse extends Response
      *
      * @throws FileException
      */
-    public function setFile(\SplFileInfo|string $file, string $contentDisposition = null, bool $autoEtag = false, bool $autoLastModified = true): static
+    public function setFile(\SplFileInfo|string $file, ?string $contentDisposition = null, bool $autoEtag = false, bool $autoLastModified = true): static
     {
         if (!$file instanceof File) {
             if ($file instanceof \SplFileInfo) {
@@ -125,7 +125,7 @@ class BinaryFileResponse extends Response
      */
     public function setAutoLastModified(): static
     {
-        $this->setLastModified(\DateTime::createFromFormat('U', $this->file->getMTime()));
+        $this->setLastModified(\DateTimeImmutable::createFromFormat('U', $this->file->getMTime()));
 
         return $this;
     }
@@ -293,7 +293,7 @@ class BinaryFileResponse extends Response
     {
         try {
             if (!$this->isSuccessful()) {
-                return parent::sendContent();
+                return $this;
             }
 
             if (0 === $this->maxlen) {
@@ -319,7 +319,7 @@ class BinaryFileResponse extends Response
                 while ('' !== $data) {
                     $read = fwrite($out, $data);
                     if (false === $read || connection_aborted()) {
-                        break;
+                        break 2;
                     }
                     if (0 < $length) {
                         $length -= $read;
@@ -358,6 +358,8 @@ class BinaryFileResponse extends Response
 
     /**
      * Trust X-Sendfile-Type header.
+     *
+     * @return void
      */
     public static function trustXSendfileTypeHeader()
     {

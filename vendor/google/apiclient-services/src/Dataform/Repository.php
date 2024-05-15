@@ -22,11 +22,11 @@ class Repository extends \Google\Model
   /**
    * @var string
    */
-  public $displayName;
+  public $createTime;
   /**
-   * @var GitRemoteSettings
+   * @var string
    */
-  public $gitRemoteSettings;
+  public $displayName;
   protected $gitRemoteSettingsType = GitRemoteSettings::class;
   protected $gitRemoteSettingsDataType = '';
   /**
@@ -49,13 +49,23 @@ class Repository extends \Google\Model
    * @var bool
    */
   public $setAuthenticatedUserAdmin;
-  /**
-   * @var WorkspaceCompilationOverrides
-   */
-  public $workspaceCompilationOverrides;
   protected $workspaceCompilationOverridesType = WorkspaceCompilationOverrides::class;
   protected $workspaceCompilationOverridesDataType = '';
 
+  /**
+   * @param string
+   */
+  public function setCreateTime($createTime)
+  {
+    $this->createTime = $createTime;
+  }
+  /**
+   * @return string
+   */
+  public function getCreateTime()
+  {
+    return $this->createTime;
+  }
   /**
    * @param string
    */

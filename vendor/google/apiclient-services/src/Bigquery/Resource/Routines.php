@@ -17,8 +17,11 @@
 
 namespace Google\Service\Bigquery\Resource;
 
+use Google\Service\Bigquery\GetIamPolicyRequest;
 use Google\Service\Bigquery\ListRoutinesResponse;
+use Google\Service\Bigquery\Policy;
 use Google\Service\Bigquery\Routine;
+use Google\Service\Bigquery\SetIamPolicyRequest;
 
 /**
  * The "routines" collection of methods.
@@ -38,6 +41,7 @@ class Routines extends \Google\Service\Resource
    * @param string $datasetId Required. Dataset ID of the routine to delete
    * @param string $routineId Required. Routine ID of the routine to delete
    * @param array $optParams Optional parameters.
+   * @throws \Google\Service\Exception
    */
   public function delete($projectId, $datasetId, $routineId, $optParams = [])
   {
@@ -56,12 +60,32 @@ class Routines extends \Google\Service\Resource
    * @opt_param string readMask If set, only the Routine fields in the field mask
    * are returned in the response. If unset, all Routine fields are returned.
    * @return Routine
+   * @throws \Google\Service\Exception
    */
   public function get($projectId, $datasetId, $routineId, $optParams = [])
   {
     $params = ['projectId' => $projectId, 'datasetId' => $datasetId, 'routineId' => $routineId];
     $params = array_merge($params, $optParams);
     return $this->call('get', [$params], Routine::class);
+  }
+  /**
+   * Gets the access control policy for a resource. Returns an empty policy if the
+   * resource exists and does not have a policy set. (routines.getIamPolicy)
+   *
+   * @param string $resource REQUIRED: The resource for which the policy is being
+   * requested. See [Resource
+   * names](https://cloud.google.com/apis/design/resource_names) for the
+   * appropriate value for this field.
+   * @param GetIamPolicyRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Policy
+   * @throws \Google\Service\Exception
+   */
+  public function getIamPolicy($resource, GetIamPolicyRequest $postBody, $optParams = [])
+  {
+    $params = ['resource' => $resource, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('getIamPolicy', [$params], Policy::class);
   }
   /**
    * Creates a new routine in the dataset. (routines.insert)
@@ -71,6 +95,7 @@ class Routines extends \Google\Service\Resource
    * @param Routine $postBody
    * @param array $optParams Optional parameters.
    * @return Routine
+   * @throws \Google\Service\Exception
    */
   public function insert($projectId, $datasetId, Routine $postBody, $optParams = [])
   {
@@ -101,12 +126,33 @@ class Routines extends \Google\Service\Resource
    * project_id, dataset_id, routine_id, routine_type, creation_time,
    * last_modified_time, and language.
    * @return ListRoutinesResponse
+   * @throws \Google\Service\Exception
    */
   public function listRoutines($projectId, $datasetId, $optParams = [])
   {
     $params = ['projectId' => $projectId, 'datasetId' => $datasetId];
     $params = array_merge($params, $optParams);
     return $this->call('list', [$params], ListRoutinesResponse::class);
+  }
+  /**
+   * Sets the access control policy on the specified resource. Replaces any
+   * existing policy. Can return `NOT_FOUND`, `INVALID_ARGUMENT`, and
+   * `PERMISSION_DENIED` errors. (routines.setIamPolicy)
+   *
+   * @param string $resource REQUIRED: The resource for which the policy is being
+   * specified. See [Resource
+   * names](https://cloud.google.com/apis/design/resource_names) for the
+   * appropriate value for this field.
+   * @param SetIamPolicyRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Policy
+   * @throws \Google\Service\Exception
+   */
+  public function setIamPolicy($resource, SetIamPolicyRequest $postBody, $optParams = [])
+  {
+    $params = ['resource' => $resource, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('setIamPolicy', [$params], Policy::class);
   }
   /**
    * Updates information in an existing routine. The update method replaces the
@@ -118,6 +164,7 @@ class Routines extends \Google\Service\Resource
    * @param Routine $postBody
    * @param array $optParams Optional parameters.
    * @return Routine
+   * @throws \Google\Service\Exception
    */
   public function update($projectId, $datasetId, $routineId, Routine $postBody, $optParams = [])
   {

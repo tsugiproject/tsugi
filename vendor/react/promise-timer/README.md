@@ -47,7 +47,7 @@ Timer\timeout(…);
 
 ### timeout()
 
-The `timeout(PromiseInterface<mixed, Throwable|mixed> $promise, float $time, ?LoopInterface $loop = null): PromiseInterface<mixed, TimeoutException|Throwable|mixed>` function can be used to
+The `timeout(PromiseInterface<T> $promise, float $time, ?LoopInterface $loop = null): PromiseInterface<T>` function can be used to
 cancel operations that take *too long*.
 
 You need to pass in an input `$promise` that represents a pending operation
@@ -171,7 +171,7 @@ For more details on the promise primitives, please refer to the
 
 ### sleep()
 
-The `sleep(float $time, ?LoopInterface $loop = null): PromiseInterface<void, RuntimeException>` function can be used to
+The `sleep(float $time, ?LoopInterface $loop = null): PromiseInterface<void>` function can be used to
 create a new promise that resolves in `$time` seconds.
 
 ```php
@@ -205,7 +205,7 @@ $timer->cancel();
 
 > Deprecated since v1.8.0, see [`sleep()`](#sleep) instead.
 
-The `resolve(float $time, ?LoopInterface $loop = null): PromiseInterface<float, RuntimeException>` function can be used to
+The `resolve(float $time, ?LoopInterface $loop = null): PromiseInterface<float>` function can be used to
 create a new promise that resolves in `$time` seconds with the `$time` as the fulfillment value.
 
 ```php
@@ -239,7 +239,7 @@ $timer->cancel();
 
 > Deprecated since v1.8.0, see [`sleep()`](#sleep) instead.
 
-The `reject(float $time, ?LoopInterface $loop = null): PromiseInterface<void, TimeoutException|RuntimeException>` function can be used to
+The `reject(float $time, ?LoopInterface $loop = null): PromiseInterface<never>` function can be used to
 create a new promise which rejects in `$time` seconds with a `TimeoutException`.
 
 ```php
@@ -288,7 +288,7 @@ This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-$ composer require react/promise-timer:^1.9
+composer require react/promise-timer:^1.10
 ```
 
 See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.
@@ -304,13 +304,13 @@ To run the test suite, you first need to clone this repo and then install all
 dependencies [through Composer](https://getcomposer.org/):
 
 ```bash
-$ composer install
+composer install
 ```
 
 To run the test suite, go to the project root and run:
 
 ```bash
-$ vendor/bin/phpunit
+vendor/bin/phpunit
 ```
 
 ## License

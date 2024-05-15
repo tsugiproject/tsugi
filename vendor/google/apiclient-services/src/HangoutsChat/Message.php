@@ -20,44 +20,22 @@ namespace Google\Service\HangoutsChat;
 class Message extends \Google\Collection
 {
   protected $collection_key = 'emojiReactionSummaries';
-  /**
-   * @var ActionResponse
-   */
-  public $actionResponse;
+  protected $accessoryWidgetsType = AccessoryWidget::class;
+  protected $accessoryWidgetsDataType = 'array';
   protected $actionResponseType = ActionResponse::class;
   protected $actionResponseDataType = '';
-  /**
-   * @var Annotation[]
-   */
-  public $annotations;
   protected $annotationsType = Annotation::class;
   protected $annotationsDataType = 'array';
   /**
    * @var string
    */
   public $argumentText;
-  /**
-   * @var AttachedGif[]
-   */
-  public $attachedGifs;
   protected $attachedGifsType = AttachedGif::class;
   protected $attachedGifsDataType = 'array';
-  /**
-   * @var Attachment[]
-   */
-  public $attachment;
   protected $attachmentType = Attachment::class;
   protected $attachmentDataType = 'array';
-  /**
-   * @var Card[]
-   */
-  public $cards;
   protected $cardsType = Card::class;
   protected $cardsDataType = 'array';
-  /**
-   * @var CardWithId[]
-   */
-  public $cardsV2;
   protected $cardsV2Type = CardWithId::class;
   protected $cardsV2DataType = 'array';
   /**
@@ -72,16 +50,8 @@ class Message extends \Google\Collection
    * @var string
    */
   public $deleteTime;
-  /**
-   * @var DeletionMetadata
-   */
-  public $deletionMetadata;
   protected $deletionMetadataType = DeletionMetadata::class;
   protected $deletionMetadataDataType = '';
-  /**
-   * @var EmojiReactionSummary[]
-   */
-  public $emojiReactionSummaries;
   protected $emojiReactionSummariesType = EmojiReactionSummary::class;
   protected $emojiReactionSummariesDataType = 'array';
   /**
@@ -96,54 +66,26 @@ class Message extends \Google\Collection
    * @var string
    */
   public $lastUpdateTime;
-  /**
-   * @var MatchedUrl
-   */
-  public $matchedUrl;
   protected $matchedUrlType = MatchedUrl::class;
   protected $matchedUrlDataType = '';
   /**
    * @var string
    */
   public $name;
-  /**
-   * @var User
-   */
-  public $privateMessageViewer;
   protected $privateMessageViewerType = User::class;
   protected $privateMessageViewerDataType = '';
-  /**
-   * @var QuotedMessageMetadata
-   */
-  public $quotedMessageMetadata;
   protected $quotedMessageMetadataType = QuotedMessageMetadata::class;
   protected $quotedMessageMetadataDataType = '';
-  /**
-   * @var User
-   */
-  public $sender;
   protected $senderType = User::class;
   protected $senderDataType = '';
-  /**
-   * @var SlashCommand
-   */
-  public $slashCommand;
   protected $slashCommandType = SlashCommand::class;
   protected $slashCommandDataType = '';
-  /**
-   * @var Space
-   */
-  public $space;
   protected $spaceType = Space::class;
   protected $spaceDataType = '';
   /**
    * @var string
    */
   public $text;
-  /**
-   * @var Thread
-   */
-  public $thread;
   protected $threadType = Thread::class;
   protected $threadDataType = '';
   /**
@@ -151,6 +93,20 @@ class Message extends \Google\Collection
    */
   public $threadReply;
 
+  /**
+   * @param AccessoryWidget[]
+   */
+  public function setAccessoryWidgets($accessoryWidgets)
+  {
+    $this->accessoryWidgets = $accessoryWidgets;
+  }
+  /**
+   * @return AccessoryWidget[]
+   */
+  public function getAccessoryWidgets()
+  {
+    return $this->accessoryWidgets;
+  }
   /**
    * @param ActionResponse
    */

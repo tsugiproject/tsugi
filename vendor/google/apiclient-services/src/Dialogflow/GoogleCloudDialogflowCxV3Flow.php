@@ -20,10 +20,6 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
 {
   protected $collection_key = 'transitionRoutes';
-  /**
-   * @var GoogleCloudDialogflowCxV3AdvancedSettings
-   */
-  public $advancedSettings;
   protected $advancedSettingsType = GoogleCloudDialogflowCxV3AdvancedSettings::class;
   protected $advancedSettingsDataType = '';
   /**
@@ -34,36 +30,22 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
    * @var string
    */
   public $displayName;
-  /**
-   * @var GoogleCloudDialogflowCxV3EventHandler[]
-   */
-  public $eventHandlers;
   protected $eventHandlersType = GoogleCloudDialogflowCxV3EventHandler::class;
   protected $eventHandlersDataType = 'array';
-  /**
-   * @var GoogleCloudDialogflowCxV3KnowledgeConnectorSettings
-   */
-  public $knowledgeConnectorSettings;
   protected $knowledgeConnectorSettingsType = GoogleCloudDialogflowCxV3KnowledgeConnectorSettings::class;
   protected $knowledgeConnectorSettingsDataType = '';
+  protected $multiLanguageSettingsType = GoogleCloudDialogflowCxV3FlowMultiLanguageSettings::class;
+  protected $multiLanguageSettingsDataType = '';
   /**
    * @var string
    */
   public $name;
-  /**
-   * @var GoogleCloudDialogflowCxV3NluSettings
-   */
-  public $nluSettings;
   protected $nluSettingsType = GoogleCloudDialogflowCxV3NluSettings::class;
   protected $nluSettingsDataType = '';
   /**
    * @var string[]
    */
   public $transitionRouteGroups;
-  /**
-   * @var GoogleCloudDialogflowCxV3TransitionRoute[]
-   */
-  public $transitionRoutes;
   protected $transitionRoutesType = GoogleCloudDialogflowCxV3TransitionRoute::class;
   protected $transitionRoutesDataType = 'array';
 
@@ -136,6 +118,20 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
   public function getKnowledgeConnectorSettings()
   {
     return $this->knowledgeConnectorSettings;
+  }
+  /**
+   * @param GoogleCloudDialogflowCxV3FlowMultiLanguageSettings
+   */
+  public function setMultiLanguageSettings(GoogleCloudDialogflowCxV3FlowMultiLanguageSettings $multiLanguageSettings)
+  {
+    $this->multiLanguageSettings = $multiLanguageSettings;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3FlowMultiLanguageSettings
+   */
+  public function getMultiLanguageSettings()
+  {
+    return $this->multiLanguageSettings;
   }
   /**
    * @param string

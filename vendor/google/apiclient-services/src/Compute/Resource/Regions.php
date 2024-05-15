@@ -43,6 +43,7 @@ class Regions extends \Google\Service\Resource
    * @param string $region Name of the region resource to return.
    * @param array $optParams Optional parameters.
    * @return Region
+   * @throws \Google\Service\Exception
    */
   public function get($project, $region, $optParams = [])
   {
@@ -113,8 +114,11 @@ class Regions extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return RegionList
+   * @throws \Google\Service\Exception
    */
   public function listRegions($project, $optParams = [])
   {

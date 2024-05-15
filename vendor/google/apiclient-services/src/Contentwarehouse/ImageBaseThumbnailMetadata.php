@@ -23,22 +23,10 @@ class ImageBaseThumbnailMetadata extends \Google\Model
    * @var int
    */
   public $byteSize;
-  /**
-   * @var ContentAwareCropsIndexing
-   */
-  public $crops;
   protected $cropsType = ContentAwareCropsIndexing::class;
   protected $cropsDataType = '';
-  /**
-   * @var DeepCropIndexing
-   */
-  public $deepCrop;
   protected $deepCropType = DeepCropIndexing::class;
   protected $deepCropDataType = '';
-  /**
-   * @var DeepCropPixels
-   */
-  public $deepCropPixels;
   protected $deepCropPixelsType = DeepCropPixels::class;
   protected $deepCropPixelsDataType = '';
   /**
@@ -49,6 +37,10 @@ class ImageBaseThumbnailMetadata extends \Google\Model
    * @var string
    */
   public $encryptedDocid;
+  /**
+   * @var string
+   */
+  public $expirationTimestampMicros;
   /**
    * @var string
    */
@@ -161,6 +153,20 @@ class ImageBaseThumbnailMetadata extends \Google\Model
   public function getEncryptedDocid()
   {
     return $this->encryptedDocid;
+  }
+  /**
+   * @param string
+   */
+  public function setExpirationTimestampMicros($expirationTimestampMicros)
+  {
+    $this->expirationTimestampMicros = $expirationTimestampMicros;
+  }
+  /**
+   * @return string
+   */
+  public function getExpirationTimestampMicros()
+  {
+    return $this->expirationTimestampMicros;
   }
   /**
    * @param string

@@ -38,6 +38,7 @@ class ZoneOperations extends \Google\Service\Resource
    * @param string $zone Name of the zone for this request.
    * @param string $operation Name of the Operations resource to delete.
    * @param array $optParams Optional parameters.
+   * @throws \Google\Service\Exception
    */
   public function delete($project, $zone, $operation, $optParams = [])
   {
@@ -54,6 +55,7 @@ class ZoneOperations extends \Google\Service\Resource
    * @param string $operation Name of the Operations resource to return.
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function get($project, $zone, $operation, $optParams = [])
   {
@@ -119,8 +121,11 @@ class ZoneOperations extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return OperationList
+   * @throws \Google\Service\Exception
    */
   public function listZoneOperations($project, $zone, $optParams = [])
   {
@@ -145,6 +150,7 @@ class ZoneOperations extends \Google\Service\Resource
    * @param string $operation Name of the Operations resource to return.
    * @param array $optParams Optional parameters.
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function wait($project, $zone, $operation, $optParams = [])
   {

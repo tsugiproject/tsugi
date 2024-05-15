@@ -17,16 +17,13 @@
 
 namespace Google\Service\SA360;
 
-class GoogleAdsSearchads360V0CommonSegments extends \Google\Model
+class GoogleAdsSearchads360V0CommonSegments extends \Google\Collection
 {
+  protected $collection_key = 'rawEventConversionDimensions';
   /**
    * @var string
    */
   public $adNetworkType;
-  /**
-   * @var GoogleAdsSearchads360V0CommonAssetInteractionTarget
-   */
-  public $assetInteractionTarget;
   protected $assetInteractionTargetType = GoogleAdsSearchads360V0CommonAssetInteractionTarget::class;
   protected $assetInteractionTargetDataType = '';
   /**
@@ -41,6 +38,8 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Model
    * @var string
    */
   public $conversionActionName;
+  protected $conversionCustomDimensionsType = GoogleAdsSearchads360V0CommonValue::class;
+  protected $conversionCustomDimensionsDataType = 'array';
   /**
    * @var string
    */
@@ -53,10 +52,6 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Model
    * @var string
    */
   public $device;
-  /**
-   * @var GoogleAdsSearchads360V0CommonKeyword
-   */
-  public $keyword;
   protected $keywordType = GoogleAdsSearchads360V0CommonKeyword::class;
   protected $keywordDataType = '';
   /**
@@ -239,6 +234,8 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Model
    * @var string
    */
   public $quarter;
+  protected $rawEventConversionDimensionsType = GoogleAdsSearchads360V0CommonValue::class;
+  protected $rawEventConversionDimensionsDataType = 'array';
   /**
    * @var string
    */
@@ -317,6 +314,20 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Model
   public function getConversionActionName()
   {
     return $this->conversionActionName;
+  }
+  /**
+   * @param GoogleAdsSearchads360V0CommonValue[]
+   */
+  public function setConversionCustomDimensions($conversionCustomDimensions)
+  {
+    $this->conversionCustomDimensions = $conversionCustomDimensions;
+  }
+  /**
+   * @return GoogleAdsSearchads360V0CommonValue[]
+   */
+  public function getConversionCustomDimensions()
+  {
+    return $this->conversionCustomDimensions;
   }
   /**
    * @param string
@@ -1003,6 +1014,20 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Model
   public function getQuarter()
   {
     return $this->quarter;
+  }
+  /**
+   * @param GoogleAdsSearchads360V0CommonValue[]
+   */
+  public function setRawEventConversionDimensions($rawEventConversionDimensions)
+  {
+    $this->rawEventConversionDimensions = $rawEventConversionDimensions;
+  }
+  /**
+   * @return GoogleAdsSearchads360V0CommonValue[]
+   */
+  public function getRawEventConversionDimensions()
+  {
+    return $this->rawEventConversionDimensions;
   }
   /**
    * @param string

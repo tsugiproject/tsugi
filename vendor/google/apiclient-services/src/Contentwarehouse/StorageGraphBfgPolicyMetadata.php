@@ -28,22 +28,12 @@ class StorageGraphBfgPolicyMetadata extends \Google\Collection
    * @var string
    */
   public $availabilityStartTimestamp;
-  /**
-   * @var KeGovernanceTypedRegions[]
-   */
-  public $legalAllowedRegions;
   protected $legalAllowedRegionsType = KeGovernanceTypedRegions::class;
   protected $legalAllowedRegionsDataType = 'array';
-  /**
-   * @var KeGovernanceTypedRegions[]
-   */
-  public $legalRemovalRegions;
   protected $legalRemovalRegionsType = KeGovernanceTypedRegions::class;
   protected $legalRemovalRegionsDataType = 'array';
-  /**
-   * @var StorageGraphBfgLmsPolicyMetadata
-   */
-  public $lmsPolicyMetadata;
+  protected $llmPolicyMetadataType = StorageGraphBfgLlmPolicyMetadata::class;
+  protected $llmPolicyMetadataDataType = '';
   protected $lmsPolicyMetadataType = StorageGraphBfgLmsPolicyMetadata::class;
   protected $lmsPolicyMetadataDataType = '';
   /**
@@ -54,16 +44,8 @@ class StorageGraphBfgPolicyMetadata extends \Google\Collection
    * @var string
    */
   public $policySourceType;
-  /**
-   * @var StorageGraphBfgRwjPolicyMetadata
-   */
-  public $rwjPolicyMetadata;
   protected $rwjPolicyMetadataType = StorageGraphBfgRwjPolicyMetadata::class;
   protected $rwjPolicyMetadataDataType = '';
-  /**
-   * @var StorageGraphBfgUmpPolicyMetadata
-   */
-  public $umpPolicyMetadata;
   protected $umpPolicyMetadataType = StorageGraphBfgUmpPolicyMetadata::class;
   protected $umpPolicyMetadataDataType = '';
 
@@ -122,6 +104,20 @@ class StorageGraphBfgPolicyMetadata extends \Google\Collection
   public function getLegalRemovalRegions()
   {
     return $this->legalRemovalRegions;
+  }
+  /**
+   * @param StorageGraphBfgLlmPolicyMetadata
+   */
+  public function setLlmPolicyMetadata(StorageGraphBfgLlmPolicyMetadata $llmPolicyMetadata)
+  {
+    $this->llmPolicyMetadata = $llmPolicyMetadata;
+  }
+  /**
+   * @return StorageGraphBfgLlmPolicyMetadata
+   */
+  public function getLlmPolicyMetadata()
+  {
+    return $this->llmPolicyMetadata;
   }
   /**
    * @param StorageGraphBfgLmsPolicyMetadata

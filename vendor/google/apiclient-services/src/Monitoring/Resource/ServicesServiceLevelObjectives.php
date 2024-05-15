@@ -44,6 +44,7 @@ class ServicesServiceLevelObjectives extends \Google\Service\Resource
    * id to use for this ServiceLevelObjective. If omitted, an id will be generated
    * instead. Must match the pattern ^[a-zA-Z0-9-_:.]+$
    * @return ServiceLevelObjective
+   * @throws \Google\Service\Exception
    */
   public function create($parent, ServiceLevelObjective $postBody, $optParams = [])
   {
@@ -59,6 +60,7 @@ class ServicesServiceLevelObjectives extends \Google\Service\Resource
    * serviceLevelObjectives/[SLO_NAME]
    * @param array $optParams Optional parameters.
    * @return MonitoringEmpty
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -79,6 +81,7 @@ class ServicesServiceLevelObjectives extends \Google\Service\Resource
    * and the ServiceLevelObjective is defined in terms of a BasicSli, replace the
    * BasicSli with a RequestBasedSli spelling out how the SLI is computed.
    * @return ServiceLevelObjective
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -109,6 +112,7 @@ class ServicesServiceLevelObjectives extends \Google\Service\Resource
    * and the ServiceLevelObjective is defined in terms of a BasicSli, replace the
    * BasicSli with a RequestBasedSli spelling out how the SLI is computed.
    * @return ListServiceLevelObjectivesResponse
+   * @throws \Google\Service\Exception
    */
   public function listServicesServiceLevelObjectives($parent, $optParams = [])
   {
@@ -119,15 +123,16 @@ class ServicesServiceLevelObjectives extends \Google\Service\Resource
   /**
    * Update the given ServiceLevelObjective. (serviceLevelObjectives.patch)
    *
-   * @param string $name Resource name for this ServiceLevelObjective. The format
-   * is: projects/[PROJECT_ID_OR_NUMBER]/services/[SERVICE_ID]/serviceLevelObjecti
-   * ves/[SLO_NAME]
+   * @param string $name Identifier. Resource name for this ServiceLevelObjective.
+   * The format is: projects/[PROJECT_ID_OR_NUMBER]/services/[SERVICE_ID]/serviceL
+   * evelObjectives/[SLO_NAME]
    * @param ServiceLevelObjective $postBody
    * @param array $optParams Optional parameters.
    *
    * @opt_param string updateMask A set of field paths defining which fields to
    * use for the update.
    * @return ServiceLevelObjective
+   * @throws \Google\Service\Exception
    */
   public function patch($name, ServiceLevelObjective $postBody, $optParams = [])
   {

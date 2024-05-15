@@ -37,7 +37,9 @@ use Google\Service\Compute\VmEndpointNatMappingsList;
 class Routers extends \Google\Service\Resource
 {
   /**
-   * Retrieves an aggregated list of routers. (routers.aggregatedList)
+   * Retrieves an aggregated list of routers. To prevent failure, Google
+   * recommends that you set the `returnPartialSuccess` parameter to `true`.
+   * (routers.aggregatedList)
    *
    * @param string $project Project ID for this request.
    * @param array $optParams Optional parameters.
@@ -99,9 +101,14 @@ class Routers extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
-   * @opt_param string serviceProjectNumber
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
+   * @opt_param string serviceProjectNumber The Shared VPC service project id or
+   * service project number for which aggregated list request is invoked for
+   * subnetworks list-usable api.
    * @return RouterAggregatedList
+   * @throws \Google\Service\Exception
    */
   public function aggregatedList($project, $optParams = [])
   {
@@ -128,6 +135,7 @@ class Routers extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function delete($project, $region, $router, $optParams = [])
   {
@@ -143,6 +151,7 @@ class Routers extends \Google\Service\Resource
    * @param string $router Name of the Router resource to return.
    * @param array $optParams Optional parameters.
    * @return Router
+   * @throws \Google\Service\Exception
    */
   public function get($project, $region, $router, $optParams = [])
   {
@@ -163,6 +172,7 @@ class Routers extends \Google\Service\Resource
    * information. If it is omitted, all nats for this router will be returned.
    * Name should conform to RFC1035.
    * @return NatIpInfoResponse
+   * @throws \Google\Service\Exception
    */
   public function getNatIpInfo($project, $region, $router, $optParams = [])
   {
@@ -233,8 +243,11 @@ class Routers extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return VmEndpointNatMappingsList
+   * @throws \Google\Service\Exception
    */
   public function getNatMappingInfo($project, $region, $router, $optParams = [])
   {
@@ -251,6 +264,7 @@ class Routers extends \Google\Service\Resource
    * @param string $router Name of the Router resource to query.
    * @param array $optParams Optional parameters.
    * @return RouterStatusResponse
+   * @throws \Google\Service\Exception
    */
   public function getRouterStatus($project, $region, $router, $optParams = [])
   {
@@ -278,6 +292,7 @@ class Routers extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function insert($project, $region, Router $postBody, $optParams = [])
   {
@@ -343,8 +358,11 @@ class Routers extends \Google\Service\Resource
    * of results.
    * @opt_param bool returnPartialSuccess Opt-in for partial success behavior
    * which provides partial results in case of failure. The default value is
-   * false.
+   * false. For example, when partial success behavior is enabled, aggregatedList
+   * for a single zone scope either returns all resources in the zone or no
+   * resources, with an error code.
    * @return RouterList
+   * @throws \Google\Service\Exception
    */
   public function listRouters($project, $region, $optParams = [])
   {
@@ -374,6 +392,7 @@ class Routers extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function patch($project, $region, $router, Router $postBody, $optParams = [])
   {
@@ -391,6 +410,7 @@ class Routers extends \Google\Service\Resource
    * @param Router $postBody
    * @param array $optParams Optional parameters.
    * @return RoutersPreviewResponse
+   * @throws \Google\Service\Exception
    */
   public function preview($project, $region, $router, Router $postBody, $optParams = [])
   {
@@ -421,6 +441,7 @@ class Routers extends \Google\Service\Resource
    * valid UUID with the exception that zero UUID is not supported (
    * 00000000-0000-0000-0000-000000000000).
    * @return Operation
+   * @throws \Google\Service\Exception
    */
   public function update($project, $region, $router, Router $postBody, $optParams = [])
   {

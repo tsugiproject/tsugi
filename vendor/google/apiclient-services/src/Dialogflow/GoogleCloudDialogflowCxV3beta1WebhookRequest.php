@@ -28,48 +28,26 @@ class GoogleCloudDialogflowCxV3beta1WebhookRequest extends \Google\Collection
    * @var string
    */
   public $dtmfDigits;
-  /**
-   * @var GoogleCloudDialogflowCxV3beta1WebhookRequestFulfillmentInfo
-   */
-  public $fulfillmentInfo;
   protected $fulfillmentInfoType = GoogleCloudDialogflowCxV3beta1WebhookRequestFulfillmentInfo::class;
   protected $fulfillmentInfoDataType = '';
-  /**
-   * @var GoogleCloudDialogflowCxV3beta1WebhookRequestIntentInfo
-   */
-  public $intentInfo;
   protected $intentInfoType = GoogleCloudDialogflowCxV3beta1WebhookRequestIntentInfo::class;
   protected $intentInfoDataType = '';
   /**
    * @var string
    */
   public $languageCode;
-  /**
-   * @var GoogleCloudDialogflowCxV3beta1ResponseMessage[]
-   */
-  public $messages;
+  protected $languageInfoType = GoogleCloudDialogflowCxV3beta1LanguageInfo::class;
+  protected $languageInfoDataType = '';
   protected $messagesType = GoogleCloudDialogflowCxV3beta1ResponseMessage::class;
   protected $messagesDataType = 'array';
-  /**
-   * @var GoogleCloudDialogflowCxV3beta1PageInfo
-   */
-  public $pageInfo;
   protected $pageInfoType = GoogleCloudDialogflowCxV3beta1PageInfo::class;
   protected $pageInfoDataType = '';
   /**
    * @var array[]
    */
   public $payload;
-  /**
-   * @var GoogleCloudDialogflowCxV3beta1WebhookRequestSentimentAnalysisResult
-   */
-  public $sentimentAnalysisResult;
   protected $sentimentAnalysisResultType = GoogleCloudDialogflowCxV3beta1WebhookRequestSentimentAnalysisResult::class;
   protected $sentimentAnalysisResultDataType = '';
-  /**
-   * @var GoogleCloudDialogflowCxV3beta1SessionInfo
-   */
-  public $sessionInfo;
   protected $sessionInfoType = GoogleCloudDialogflowCxV3beta1SessionInfo::class;
   protected $sessionInfoDataType = '';
   /**
@@ -158,6 +136,20 @@ class GoogleCloudDialogflowCxV3beta1WebhookRequest extends \Google\Collection
   public function getLanguageCode()
   {
     return $this->languageCode;
+  }
+  /**
+   * @param GoogleCloudDialogflowCxV3beta1LanguageInfo
+   */
+  public function setLanguageInfo(GoogleCloudDialogflowCxV3beta1LanguageInfo $languageInfo)
+  {
+    $this->languageInfo = $languageInfo;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3beta1LanguageInfo
+   */
+  public function getLanguageInfo()
+  {
+    return $this->languageInfo;
   }
   /**
    * @param GoogleCloudDialogflowCxV3beta1ResponseMessage[]

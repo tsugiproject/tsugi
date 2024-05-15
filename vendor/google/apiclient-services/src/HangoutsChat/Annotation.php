@@ -23,10 +23,8 @@ class Annotation extends \Google\Model
    * @var int
    */
   public $length;
-  /**
-   * @var SlashCommandMetadata
-   */
-  public $slashCommand;
+  protected $richLinkMetadataType = RichLinkMetadata::class;
+  protected $richLinkMetadataDataType = '';
   protected $slashCommandType = SlashCommandMetadata::class;
   protected $slashCommandDataType = '';
   /**
@@ -37,10 +35,6 @@ class Annotation extends \Google\Model
    * @var string
    */
   public $type;
-  /**
-   * @var UserMentionMetadata
-   */
-  public $userMention;
   protected $userMentionType = UserMentionMetadata::class;
   protected $userMentionDataType = '';
 
@@ -57,6 +51,20 @@ class Annotation extends \Google\Model
   public function getLength()
   {
     return $this->length;
+  }
+  /**
+   * @param RichLinkMetadata
+   */
+  public function setRichLinkMetadata(RichLinkMetadata $richLinkMetadata)
+  {
+    $this->richLinkMetadata = $richLinkMetadata;
+  }
+  /**
+   * @return RichLinkMetadata
+   */
+  public function getRichLinkMetadata()
+  {
+    return $this->richLinkMetadata;
   }
   /**
    * @param SlashCommandMetadata

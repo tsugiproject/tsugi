@@ -22,11 +22,11 @@ class GoogleCloudDatacatalogV1TagTemplate extends \Google\Model
   /**
    * @var string
    */
-  public $displayName;
+  public $dataplexTransferStatus;
   /**
-   * @var GoogleCloudDatacatalogV1TagTemplateField[]
+   * @var string
    */
-  public $fields;
+  public $displayName;
   protected $fieldsType = GoogleCloudDatacatalogV1TagTemplateField::class;
   protected $fieldsDataType = 'map';
   /**
@@ -38,6 +38,20 @@ class GoogleCloudDatacatalogV1TagTemplate extends \Google\Model
    */
   public $name;
 
+  /**
+   * @param string
+   */
+  public function setDataplexTransferStatus($dataplexTransferStatus)
+  {
+    $this->dataplexTransferStatus = $dataplexTransferStatus;
+  }
+  /**
+   * @return string
+   */
+  public function getDataplexTransferStatus()
+  {
+    return $this->dataplexTransferStatus;
+  }
   /**
    * @param string
    */

@@ -19,6 +19,7 @@ namespace Google\Service\Integrations\Resource;
 
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaCancelExecutionRequest;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaCancelExecutionResponse;
+use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaDownloadExecutionResponse;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaExecution;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaListExecutionsResponse;
 
@@ -41,12 +42,29 @@ class ProjectsLocationsProductsIntegrationsExecutions extends \Google\Service\Re
    * @param GoogleCloudIntegrationsV1alphaCancelExecutionRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudIntegrationsV1alphaCancelExecutionResponse
+   * @throws \Google\Service\Exception
    */
   public function cancel($name, GoogleCloudIntegrationsV1alphaCancelExecutionRequest $postBody, $optParams = [])
   {
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('cancel', [$params], GoogleCloudIntegrationsV1alphaCancelExecutionResponse::class);
+  }
+  /**
+   * Download the execution. (executions.download)
+   *
+   * @param string $name Required. The execution resource name. Format: projects/{
+   * gcp_project_id}/locations/{location}/products/{product}/integrations/{integra
+   * tion_id}/executions/{execution_id}
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudIntegrationsV1alphaDownloadExecutionResponse
+   * @throws \Google\Service\Exception
+   */
+  public function download($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('download', [$params], GoogleCloudIntegrationsV1alphaDownloadExecutionResponse::class);
   }
   /**
    * Get an execution in the specified project. (executions.get)
@@ -56,6 +74,7 @@ class ProjectsLocationsProductsIntegrationsExecutions extends \Google\Service\Re
    * tion_id}/executions/{execution_id}
    * @param array $optParams Optional parameters.
    * @return GoogleCloudIntegrationsV1alphaExecution
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -121,6 +140,7 @@ class ProjectsLocationsProductsIntegrationsExecutions extends \Google\Service\Re
    * the executions in order to make response smaller. Only works for UI and when
    * the params fields are not filtered out.
    * @return GoogleCloudIntegrationsV1alphaListExecutionsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsProductsIntegrationsExecutions($parent, $optParams = [])
   {

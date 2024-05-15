@@ -17,7 +17,6 @@
 
 namespace Google\Service\SASPortalTesting\Resource;
 
-use Google\Service\SASPortalTesting\SasPortalCheckHasProvisionedDeploymentResponse;
 use Google\Service\SASPortalTesting\SasPortalCustomer;
 use Google\Service\SASPortalTesting\SasPortalListCustomersResponse;
 use Google\Service\SASPortalTesting\SasPortalListGcpProjectDeploymentsResponse;
@@ -39,24 +38,12 @@ use Google\Service\SASPortalTesting\SasPortalSetupSasAnalyticsRequest;
 class Customers extends \Google\Service\Resource
 {
   /**
-   * Checks whether a SAS deployment for the authentication context exists.
-   * (customers.checkHasProvisionedDeployment)
-   *
-   * @param array $optParams Optional parameters.
-   * @return SasPortalCheckHasProvisionedDeploymentResponse
-   */
-  public function checkHasProvisionedDeployment($optParams = [])
-  {
-    $params = [];
-    $params = array_merge($params, $optParams);
-    return $this->call('checkHasProvisionedDeployment', [$params], SasPortalCheckHasProvisionedDeploymentResponse::class);
-  }
-  /**
    * Returns a requested customer. (customers.get)
    *
    * @param string $name Required. The name of the customer.
    * @param array $optParams Optional parameters.
    * @return SasPortalCustomer
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -74,6 +61,7 @@ class Customers extends \Google\Service\Resource
    * @opt_param string pageToken A pagination token returned from a previous call
    * to ListCustomers that indicates where this listing should continue from.
    * @return SasPortalListCustomersResponse
+   * @throws \Google\Service\Exception
    */
   public function listCustomers($optParams = [])
   {
@@ -88,6 +76,7 @@ class Customers extends \Google\Service\Resource
    *
    * @param array $optParams Optional parameters.
    * @return SasPortalListGcpProjectDeploymentsResponse
+   * @throws \Google\Service\Exception
    */
   public function listGcpProjectDeployments($optParams = [])
   {
@@ -100,6 +89,7 @@ class Customers extends \Google\Service\Resource
    *
    * @param array $optParams Optional parameters.
    * @return SasPortalListLegacyOrganizationsResponse
+   * @throws \Google\Service\Exception
    */
   public function listLegacyOrganizations($optParams = [])
   {
@@ -116,6 +106,7 @@ class Customers extends \Google\Service\Resource
    * @param SasPortalMigrateOrganizationRequest $postBody
    * @param array $optParams Optional parameters.
    * @return SasPortalOperation
+   * @throws \Google\Service\Exception
    */
   public function migrateOrganization(SasPortalMigrateOrganizationRequest $postBody, $optParams = [])
   {
@@ -132,6 +123,7 @@ class Customers extends \Google\Service\Resource
    *
    * @opt_param string updateMask Fields to be updated.
    * @return SasPortalCustomer
+   * @throws \Google\Service\Exception
    */
   public function patch($name, SasPortalCustomer $postBody, $optParams = [])
   {
@@ -147,6 +139,7 @@ class Customers extends \Google\Service\Resource
    * @param SasPortalProvisionDeploymentRequest $postBody
    * @param array $optParams Optional parameters.
    * @return SasPortalProvisionDeploymentResponse
+   * @throws \Google\Service\Exception
    */
   public function provisionDeployment(SasPortalProvisionDeploymentRequest $postBody, $optParams = [])
   {
@@ -163,6 +156,7 @@ class Customers extends \Google\Service\Resource
    * @param SasPortalSetupSasAnalyticsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return SasPortalOperation
+   * @throws \Google\Service\Exception
    */
   public function setupSasAnalytics(SasPortalSetupSasAnalyticsRequest $postBody, $optParams = [])
   {

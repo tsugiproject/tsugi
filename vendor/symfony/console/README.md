@@ -7,7 +7,7 @@ interfaces.
 Sponsor
 -------
 
-The Console component for Symfony 6.3 is [backed][1] by [Les-Tilleuls.coop][2].
+The Console component for Symfony 6.4 is [backed][1] by [Les-Tilleuls.coop][2].
 
 Les-Tilleuls.coop is a team of 70+ Symfony experts who can help you design, develop and
 fix your projects. They provide a wide range of professional services including development,

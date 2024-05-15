@@ -18,6 +18,7 @@
 namespace Google\Service\BigQueryReservation\Resource;
 
 use Google\Service\BigQueryReservation\BigqueryreservationEmpty;
+use Google\Service\BigQueryReservation\FailoverReservationRequest;
 use Google\Service\BigQueryReservation\ListReservationsResponse;
 use Google\Service\BigQueryReservation\Reservation;
 
@@ -43,6 +44,7 @@ class ProjectsLocationsReservations extends \Google\Service\Resource
    * lower case alphanumeric characters or dashes. It must start with a letter and
    * must not end with a dash. Its maximum length is 64 characters.
    * @return Reservation
+   * @throws \Google\Service\Exception
    */
   public function create($parent, Reservation $postBody, $optParams = [])
   {
@@ -58,6 +60,7 @@ class ProjectsLocationsReservations extends \Google\Service\Resource
    * E.g., `projects/myproject/locations/US/reservations/team1-prod`
    * @param array $optParams Optional parameters.
    * @return BigqueryreservationEmpty
+   * @throws \Google\Service\Exception
    */
   public function delete($name, $optParams = [])
   {
@@ -66,12 +69,33 @@ class ProjectsLocationsReservations extends \Google\Service\Resource
     return $this->call('delete', [$params], BigqueryreservationEmpty::class);
   }
   /**
+   * Failover a reservation to the secondary location. The operation should be
+   * done in the current secondary location, which will be promoted to the new
+   * primary location for the reservation. Attempting to failover a reservation in
+   * the current primary location will fail with the error code
+   * `google.rpc.Code.FAILED_PRECONDITION`. (reservations.failoverReservation)
+   *
+   * @param string $name Required. Resource name of the reservation to failover.
+   * E.g., `projects/myproject/locations/US/reservations/team1-prod`
+   * @param FailoverReservationRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Reservation
+   * @throws \Google\Service\Exception
+   */
+  public function failoverReservation($name, FailoverReservationRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('failoverReservation', [$params], Reservation::class);
+  }
+  /**
    * Returns information about the reservation. (reservations.get)
    *
    * @param string $name Required. Resource name of the reservation to retrieve.
    * E.g., `projects/myproject/locations/US/reservations/team1-prod`
    * @param array $optParams Optional parameters.
    * @return Reservation
+   * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
@@ -91,6 +115,7 @@ class ProjectsLocationsReservations extends \Google\Service\Resource
    * @opt_param string pageToken The next_page_token value returned from a
    * previous List request, if any.
    * @return ListReservationsResponse
+   * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsReservations($parent, $optParams = [])
   {
@@ -111,6 +136,7 @@ class ProjectsLocationsReservations extends \Google\Service\Resource
    * @opt_param string updateMask Standard field mask for the set of fields to be
    * updated.
    * @return Reservation
+   * @throws \Google\Service\Exception
    */
   public function patch($name, Reservation $postBody, $optParams = [])
   {
