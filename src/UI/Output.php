@@ -771,7 +771,11 @@ $('a').each(function (x) {
 
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
-        $set->setHome($CFG->servicename, $CFG->apphome);
+        if ( is_string($CFG->apphome) ) {
+            $set->setHome($CFG->servicename, $CFG->apphome);
+        } else {
+            $set->setHome($CFG->servicename, $R);
+        }
         $set->addLeft(_m('Tools'), $R.'store');
         if ( $this->session_get('id') ) {
                 $set->addLeft(_m('Settings'), $R . 'settings');
