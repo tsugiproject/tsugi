@@ -39,7 +39,7 @@
         "react/socket" : ">=1.15.0",
 
         "tsugi/lib": "dev-master#da95ced92a3a2222895cc06b0aeb04dd02928142",
-        "koseu/lib": "dev-master#70c7ac1ca413c2dd541e078ebe07719405621b1b"
+        "koseu/lib": "dev-master#b9a31b7875108196dbdf284e685b813d424f2def"
     },
     "config": {
         "preferred-install": "dist"
