@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fa4976b1bb02d5cbc4a458529af80692",
+    "content-hash": "6fd7cc07f8119ce63de107ebb14a2d42",
     "packages": [
         {
             "name": "brick/math",
@@ -7392,19 +7392,20 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "5143de10d4ca185330913494ddbf1b72816c05ea"
+                "reference": "25d7c67051c37e4121700e121415d19ab7dc7435"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/5143de10d4ca185330913494ddbf1b72816c05ea",
-                "reference": "5143de10d4ca185330913494ddbf1b72816c05ea",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/25d7c67051c37e4121700e121415d19ab7dc7435",
+                "reference": "25d7c67051c37e4121700e121415d19ab7dc7435",
                 "shasum": ""
             },
             "require": {
-                "ezyang/htmlpurifier": ">=4.14.0",
-                "firebase/php-jwt": ">=6.3.2",
-                "laravel/lumen-framework": ">=8.0.0",
-                "php": ">=8.2.0"
+                "ezyang/htmlpurifier": "v4.17.0",
+                "firebase/php-jwt": "v6.10.0",
+                "laravel/lumen-framework": "v10.0.3",
+                "php": ">=8.2.0",
+                "phpseclib/phpseclib": "v3.0.37"
             },
             "require-dev": {
                 "phpunit/php-timer": "v5.0.3",
@@ -7438,9 +7439,9 @@
             "homepage": "http://www.tsugi.org/",
             "support": {
                 "issues": "https://github.com/tsugiproject/tsugi-php/issues",
-                "source": "https://github.com/tsugiproject/tsugi-php/tree/24.5.1"
+                "source": "https://github.com/tsugiproject/tsugi-php/tree/master"
             },
-            "time": "2024-04-01T01:55:37+00:00"
+            "time": "2024-05-15T15:05:31+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
