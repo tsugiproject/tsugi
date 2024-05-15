@@ -135,7 +135,7 @@ $json->scope = "https://purl.imsglobal.org/spec/lti-ags/scope/score https://purl
 $tool->product_family_code = "tsugi.org";
 $tool->target_link_uri = $CFG->wwwroot . '/lti/store/';
 
-$pieces = parse_url($CFG->apphome);
+$pieces = parse_url(is_string($CFG->apphome) ? $CFG->apphome : $CFG->apphome);
 if ( U::get($pieces, 'host') ) $tool->domain = U::get($pieces, 'host');
 
 if ( isset($CFG->servicedesc) && $CFG->servicedesc ) {

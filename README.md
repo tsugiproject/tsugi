@@ -46,12 +46,12 @@ Mostly because PHP is evolving from version 7.0 to version 9.0 in ways that brea
 dependencies, we are maintaining several long term branches for those stuck on older versions
 of PHP - we maintain these as branches.
 
-* Branch: master - Requires PHP 8.2 or greater - probably wqould work on 8.1 but not 8.0
+* Branch: master - Requires PHP 8.2 or greater - probably would work on 8.1 but not 8.0
 
 * Branch: php-80-x - If you are running PHP 8.0 or a late version of PHP 7.x this is a good branch
 
-* Branch: php-74-x - This branch a little earlier than php-80-x and should run on late versions of
-PHP 7.x and PHP 8.0
+* Branch: php-74-x - This branch is a little earlier than php-80-x and should
+run on late versions of PHP 7.x and PHP 8.0
 
 * Branch: php-72-x - If you have a system that is lower than PHP 7.4, this is a safe branch
 

@@ -379,7 +379,7 @@ $CFG->prefer_lti1_for_grade_send = true;
 // then git is not setup in your path
 // (Control Panel > System and Security > System > Advanced System Settings > Environment Variables)
 // (3) Then here in "config.php":
-// $CFG->git_command = 'git'
+// $CFG->git_command = 'git';
 
 // In order to run git from the a PHP script, we may need a setuid version
 // of git - example commands if you are not root:
