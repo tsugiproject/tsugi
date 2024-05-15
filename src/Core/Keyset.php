@@ -14,9 +14,10 @@ use Tsugi\Google\JWT;
 
 class Keyset {
 
-     public static $ttl = 10*60;
-     public static $expire = 5*60;
-     // public static $expire = 0; // Debug only
+     public static $key_rotate_days = 30;
+     public static $apc_ttl = 10*60;
+     public static $apc_expire = 5*60;
+     // public static $apc_expire = 0; // Debug only
      public static $verbose = false;  // Debug only
 
      // Auto populate and/or rotate the lti_keyset data
@@ -30,12 +31,12 @@ class Keyset {
         $kid = U::appCacheGet('keyset_kid', null);
 
         $delta = abs($now-$apc_check);
-        if ( is_string($kid) && is_string($privkey) && $apc_check > 0 && $delta < self::$expire ) {
+        if ( is_string($kid) && is_string($privkey) && $apc_check > 0 && $delta < self::$apc_expire ) {
             if ( self::$verbose ) error_log("Keyset::maintain Last key rotation check seconds=".$delta);
             return;
         }
 
-        U::appCacheSet('keyset_last_check', $now, self::$ttl);
+        U::appCacheSet('keyset_last_check', $now, self::$apc_ttl);
 
         $sql = "SELECT *, NOW() as now FROM {$CFG->dbprefix}lti_keyset ORDER BY created_at DESC LIMIT 10";
         $rows = $PDOX->allRowsDie($sql);
@@ -48,7 +49,7 @@ class Keyset {
             $days = $delta->days;
         }
 
-        if ( $days == -1 || $days >= 30) {
+        if ( $days == -1 || $days >= self::$key_rotate_days) {
             error_log("Adding a row to lti_keyset days=".$days);
             // Returns those call by reference parms
             $success = \Tsugi\Util\LTI13::generatePKCS8Pair($publicKey, $privateKey);
@@ -64,21 +65,25 @@ class Keyset {
             );
             $stmt = $PDOX->queryReturnError($sql, $values);
 
-            if ( $stmt->rowCount() > 0 ) {
-                error_log("KeySet::maintain table cleanup rows=".$stmt->rowCount());
-            }
-
-            $kid = LTIX::getKidForKey($publicKey);
-            error_log("Keyset::maintain Key rotated days=".$days." new kid=".$kid);
-
             if ( ! $stmt->success ) {
                 error_log("Keyset::maintain Unable to insert new key into keyset\n");
                 return;
             }
 
-            // Clean up very old records
+            // Reload our key
+            $kid = LTIX::getKidForKey($publicKey);
+            error_log("Keyset::maintain Key rotated days=".$days." new kid=".$kid);
+
+            // Clean up very old records after six periods
+            $days_to_wait = self::$key_rotate_days*6;
+            if ( $days_to_wait < 5 ) $days_to_wait = 5;
+
             $stmt = $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}lti_keyset WHERE
-                 created_at < (CURDATE() - INTERVAL 1 MONTH);");
+                 created_at < (CURDATE() - INTERVAL ".$days_to_wait." DAY);");
+
+            if ( $stmt->rowCount() > 0 ) {
+                error_log("KeySet::maintain table cleanup rows=".$stmt->rowCount());
+            }
 
         } else {
             if ( self::$verbose ) error_log("Keyset::maintain No key rotation necessary days=".$days);
@@ -99,7 +104,7 @@ class Keyset {
 
         // No more than once per expiration period
         $delta = abs($now-$last_load);
-        if ( is_string($kid) && is_string($privkey) && $delta < self::$expire ) {
+        if ( is_string($kid) && is_string($privkey) && $delta < self::$apc_expire ) {
             if ( self::$verbose ) error_log("Keyset::getSigning cache hit seconds=".$delta);
             return;
         }
@@ -114,9 +119,9 @@ class Keyset {
 
         // Save for later
         if ( is_string($kid) && is_string($privkey)) {
-            U::appCacheSet('keyset_last_load', $now, self::$ttl);
-            U::appCacheSet('keyset_privkey', $privkey, self::$ttl);
-            U::appCacheSet('keyset_kid', $kid, self::$ttl);
+            U::appCacheSet('keyset_last_load', $now, self::$apc_ttl);
+            U::appCacheSet('keyset_privkey', $privkey, self::$apc_ttl);
+            U::appCacheSet('keyset_kid', $kid, self::$apc_ttl);
         } else {
             U::appCacheDelete('keyset_last_load');
             U::appCacheDelete('keyset_privkey');
