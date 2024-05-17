@@ -32,8 +32,8 @@ class Keyset {
 
         $delta = abs($now-$apc_check);
         if ( is_string($kid) && is_string($privkey) && $apc_check > 0 && $delta < self::$apc_expire ) {
-            if ( self::$verbose ) error_log("Keyset::maintain Last key rotation check seconds=".$delta);
-            return;
+            if ( self::$verbose ) $retval = "Keyset::maintain Last key rotation check seconds=".$delta;
+            return true;
         }
 
         U::appCacheSet('keyset_last_check', $now, self::$apc_ttl);
@@ -66,8 +66,9 @@ class Keyset {
             $stmt = $PDOX->queryReturnError($sql, $values);
 
             if ( ! $stmt->success ) {
-                error_log("Keyset::maintain Unable to insert new key into keyset\n");
-                return;
+                $retval = "Keyset::maintain Unable to insert new key into keyset\n";
+                if ( self::$verbose ) error_log($retval);
+                return $retval;
             }
 
             // Reload our key
@@ -85,9 +86,13 @@ class Keyset {
                 error_log("KeySet::maintain table cleanup rows=".$stmt->rowCount());
             }
 
+            return true;
+
         } else {
             if ( self::$verbose ) error_log("Keyset::maintain No key rotation necessary days=".$days);
+            return true;
         }
+
      }
 
      // Get the private key and kid - call by reference
@@ -95,7 +100,8 @@ class Keyset {
         global $PDOX, $CFG;
 
         // Make sure we have a key and it is recent
-        self::maintain();
+        $success = self::maintain();
+        if ( is_string($success) ) return $success;
 
         $now = time();
         $last_load = U::appCacheGet('keyset_last_load', 0);
@@ -106,7 +112,7 @@ class Keyset {
         $delta = abs($now-$last_load);
         if ( is_string($kid) && is_string($privkey) && $delta < self::$apc_expire ) {
             if ( self::$verbose ) error_log("Keyset::getSigning cache hit seconds=".$delta);
-            return;
+            return true;
         }
 
         $sql = "SELECT * FROM {$CFG->dbprefix}lti_keyset ORDER BY created_at DESC LIMIT 1";
@@ -122,10 +128,12 @@ class Keyset {
             U::appCacheSet('keyset_last_load', $now, self::$apc_ttl);
             U::appCacheSet('keyset_privkey', $privkey, self::$apc_ttl);
             U::appCacheSet('keyset_kid', $kid, self::$apc_ttl);
+            return true;
         } else {
             U::appCacheDelete('keyset_last_load');
             U::appCacheDelete('keyset_privkey');
             U::appCacheDelete('keyset_kid');
+            return "Keyset::getSigning could not load key";
         }
     }
 

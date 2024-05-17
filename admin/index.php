@@ -60,6 +60,11 @@ echo("</p>\n");
 </li>
 <hr/>
 <li>
+  <a href="#" title="Manage OAuth2 Keyset"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'keyset', _TSUGI.spinnerUrl); return false;" >
+  Check Keyset
+  </a></li>
+<li>
   <a href="#" title="Check Cache"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'cache', _TSUGI.spinnerUrl); return false;" >
   Check Cache
