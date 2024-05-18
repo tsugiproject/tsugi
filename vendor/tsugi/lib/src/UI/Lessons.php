@@ -469,6 +469,8 @@ class Lessons {
 
             if ( isset($module->videos) ) {
                 $videos = $module->videos;
+                $media_folder = $CFG->getExtension('media_folder', null);
+                $media_base = $CFG->getExtension('media_base', null);
                 echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-videos">');
                 $videotitle = __(self::getSetting('videos-title', 'Videos'));
                 echo("<p>");
@@ -477,11 +479,19 @@ class Lessons {
                 echo('<ul class="tsugi-lessons-module-videos-ul">'."\n");
                 $lecno = 0;
                 foreach($videos as $video ) {
+                    $media_file = $video->media ?? null;
                     echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
-                    $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
-                    $lecno = $lecno + 1;
-                    $navid = md5($lecno.$yurl);
-                    // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
+                    if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
+                        file_exists($media_folder . '/' . $media_file) ) {
+                        $media_path = $media_base . '/' . $media_file;
+?>
+<a href="<?= $media_path ?>" target="_blank"><?= htmlentities($video->title) ?></a>
+<?php
+                    } else {
+                        $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
+                        $lecno = $lecno + 1;
+                        $navid = md5($lecno.$yurl);
+                        // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
 ?>
 <div id="<?= $navid ?>" class="w3schools-overlay">
   <div class="w3schools-overlay-content" style="background-color: black;">
@@ -490,6 +500,7 @@ class Lessons {
 </div>
 <a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></a>
 <?php
+                    }
                     echo("</li>\n");
                 }
                 echo("</ul></li>\n");
