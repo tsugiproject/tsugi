@@ -61,7 +61,7 @@ if ( U::apcuAvailable() ) {
       echo("<p>Cached KID: ".$kid."\n");
       echo("<p>Cached Private Key:: ".substr($privkey,0, 80)." ...\n");
     } else {
-      echo("<p>There is no key in the cache. Cache is emptry until a key is retrieved.  Keys in the cache expire after 10 minutes.</p>\n");
+      echo("<p>There is no key in the cache. Cache is empty until a key is retrieved.  Keys in the cache expire after 10 minutes.</p>\n");
     }
 } else {
     echo("<p>Cache is not available</p>\n");
