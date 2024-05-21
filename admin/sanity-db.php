@@ -10,6 +10,7 @@ try {
     $msg = $ex->getMessage();
     error_log("DB connection: ".$msg);
     echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
+    echo("<p>Database error detail: ".$msg."</p>\n");
   if ( strpos($msg, 'Unknown database') !== false ||
        strpos($msg, 'Access denied for user') !== false ) {
     echo("<p>An error has occurred.  Either your database has 
@@ -18,13 +19,15 @@ not yet been created or you cannot connect to the database.
 <p>If you have full access to your MySql instance (i.e. like
 MAMP or XAMPP, you may need to run commands like this:</p>
 <pre>
+    USE mysql;
     CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
     CREATE USER 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
-    GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost';
     CREATE USER 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
+    FLUSH PRIVILEGES;
+    USE tsugi;
+    GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost';
     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1';
 </pre>
-<p>Note: MySQL 8.0 may require different commands.</p>
 <p>Make sure to choose appropriate passwords when setting this up.</p>
 <p>If you are running in a hosted environment and are using an admin tool like
 CPanel (or equivalent).  You must user this interface to create a database,
@@ -69,16 +72,14 @@ omit "port=" in the PDO string it assumes 3306.  If you are using MAMP
 this is usually moved to port 8889.  If neither 3306 nor 8889 works you
 probably have a bad host name.  Or talk to your system administrator.
 </p>
-<p>Note: Tsugi works best with MySQL 5.x.   Some of the setup and commands may need
-to be different for MySQL 8.0.
+<p>Note: Tsugi works best with MySQL 8.x.
 </p>
 ');
 } else {
 echo("<p>There is a problem with your database connection.</p>\n");
-echo("<p>Tsugi works best with MySQL 5.x.</p>\n");
+echo("<p>Tsugi works best with MySQL 8.x.</p>\n");
 }
 
-    echo("<p>Database error detail: ".$msg."</p>\n");
     echo("<p>Once you have fixed the problem, come back to this page and refresh
 to see if this message goes away.</p>");
     echo('<p>Installation instructions are avaiable at <a href="http://www.tsugi.org/"

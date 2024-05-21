@@ -25,12 +25,13 @@ try {
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
+require_once("admin/sanity-db.php");
+
 if ( $PDOX !== false ) LTIX::loginSecureCookie();
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 
-require_once("admin/sanity-db.php");
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
