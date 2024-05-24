@@ -1123,6 +1123,9 @@ class LTIX {
                 $retval['lti11_transition_user_id'] = $lti11_transition->user_id;
                 $retval['lti11_transition_oauth_consumer_key'] = $lti11_transition->oauth_consumer_key;
                 $retval['lti11_transition_oauth_consumer_key_sign'] = $lti11_transition->oauth_consumer_key_sign;
+                if (isset($lti11_transition->resource_link_id)) {
+                    $retval['lti11_transition_resource_link_id'] = $lti11_transition->resource_link_id;
+                }
             }
         }
 
