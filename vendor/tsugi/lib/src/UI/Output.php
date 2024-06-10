@@ -616,12 +616,26 @@ $('a').each(function (x) {
     }
 
     function footerEnd() {
-        $end = "\n</div></body>\n</html>\n";
-        if ( $this->buffer ) {
-            return $end;
-        } else {
-            echo($end);
+        ob_start();
+
+        if ( $this->session_get('lti.gradeChangeNotify') ) {
+?>
+<script>
+            if ( typeof lti_gradeChangeNotify === 'function' ) {
+                console.debug('Tsugi sending lti.gradeChangeNotify');
+                lti_gradeChangeNotify();
+            }
+</script>
+<?php
+            $this->session_forget('lti.gradeChangeNotify');
         }
+
+        echo("\n</div></body>\n</html>\n");
+
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $this->buffer ) return $ob_output;
+        echo($ob_output);
     }
 
     function footer() {
