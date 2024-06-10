@@ -389,6 +389,9 @@ class Result extends Entity {
                 if ( is_array($debug_log) )  $debug_log[] = $msg;
                 error_log($msg);
             }
+
+            // Send notification
+            $this->session_put('lti.gradeChangeNotify', true);
         } else {
             $msg = 'Grade failure '.$grade.' id='.$USER->id.' via '.$GradeSendTransport;
             if ( is_array($debug_log) )  $debug_log[] = $msg;
