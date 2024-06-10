@@ -1978,70 +1978,6 @@ class LTIX {
     }
 
     /**
-     * Restore an LTI session and check if it worked
-     *
-     * If we are using memcached with php_serialize serialization,
-     * we take a wild guess that we might be having a race condition
-     * with memcache.  So we wait a tic, and re-try the read.
-     */
-    public static function restoreLTISession($session_id) {
-        global $CFG;
-
-        // You would think that this would just work :)
-        if ( session_id() == "" ) {
-            session_id($session_id);
-            session_start();
-        }
-
-        if ( U::get($_SESSION, 'lti') && U::get($_SESSION, 'lti_post') ) return;
-
-        // https://stackoverflow.com/questions/35728486/read-php-session-without-actually-starting-it
-        $serializer = ini_get('session.serialize_handler');
-        if ( ! isset($CFG->memcached) || U::isEmpty($CFG->memcached) || $serializer != 'php_serialize') return;
-
-        sleep(1);
-        try {
-            $servers = explode(',', $CFG->memcached);
-            $c = count($servers);
-            for ($i = 0; $i < $c; ++$i) {
-                $servers[$i] = explode(':', $servers[$i]);
-            }
-
-            $memcached = new \Memcached();
-            $memcached->addServers($servers);
-            $sessionPrefix = ini_get('memcached.sess_prefix');
-
-            $rawData = $memcached->get($sessionPrefix.$session_id);
-            if ( ! $rawData ) {
-                error_log("restoreLTISession - nothing to retrieve from memcached ".$session_id);
-                return;
-            }
-
-            // Keep unserialize() from issuing a notice
-            $data = $rawData ? @unserialize($rawData) : false;
-            if ( ! is_array($data) ) {
-                error_log("restoreLTISession - could not unserialize () ".$session_id);
-                return;
-            }
-
-            if ( count($data) < 1 ) {
-                error_log("restoreLTISession - empty memcached data ".$session_id);
-                return;
-            }
-
-            // Copy into session
-            $fields = "";
-            foreach($data as $k => $v) {
-                $_SESSION[$k] = $data[$k];
-                if ( strlen($fields) < 50 && is_string($data[$k]) ) $fields .= ' '.$k.'='.$data[$k];
-            }
-            error_log("restoreLTISession copied ".count($data)." ".$session_id.$fields);
-        } catch(\Exception $e) {
-            error_log("restoreLTISession exception ".$e->getMessage());
-        }
-    }
-
-    /**
      * Internal method to handle the data setup
      */
     public static function requireDataPrivate($needed=self::ALL,
@@ -2102,7 +2038,10 @@ class LTIX {
                 if ( $newlaunch || isset($_POST[$sess]) || isset($_GET[$sess]) ) {
                     $session_id = $_POST[$sess] ?? $_GET[$sess] ?? null;
                     // Do our best to restore a session
-                    if ( $session_id ) self::restoreLTISession($session_id);
+                    if ( $session_id && session_id() == "" ) {
+                        session_id($session_id);
+                        session_start();
+                    }
                 } else {
                     self::wrapped_session_flush($session_object);
                     self::send403();
