@@ -6,7 +6,9 @@ use Tsugi\Util\U;
 
 // See the end of the file for some documentation references
 
-$guid = U::get($_GET,"guid",false);
+// Allow for sakai-config/123 or sakai-config?guid=123
+$rest_path = U::rest_path();
+$guid = U::get($_GET, "guid", $rest_path->action);
 
 $json = new \stdClass();
 

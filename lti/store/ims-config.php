@@ -11,7 +11,11 @@ use Tsugi\Util\U;
 // See also:
 // https://tools.ietf.org/html/rfc7591
 
-$guid = U::get($_GET,"guid",false);
+
+// Allow for ims-config/123 or ims-config?guid=123
+
+$rest_path = U::rest_path();
+$guid = U::get($_GET, "guid", $rest_path->action);
 
 $json = new \stdClass();
 

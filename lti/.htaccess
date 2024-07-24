@@ -1,7 +1,5 @@
 <IfModule mod_rewrite.c>
     RewriteEngine on
-    RewriteRule ^oidc_login/(.*)$ oidc_login.php?guid=$1 [L,QSA]
-    RewriteRule ^keyset/(.*)$ keyset.php?issuer_guid=$1 [L,QSA]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !=/favicon.ico

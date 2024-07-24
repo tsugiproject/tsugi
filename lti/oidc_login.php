@@ -11,6 +11,8 @@ use \Tsugi\Crypt\AesCtr;
 
 require_once "../config.php";
 
+$rest_path = U::rest_path();
+
 // We will switch these defaults in the future...
 $postverify_enabled = isset($CFG->postverify) ? $CFG->postverify : false;
 $postmessage_enabled = isset($CFG->postmessage) ? $CFG->postmessage : false;
@@ -18,7 +20,7 @@ $postmessage_enabled = isset($CFG->postmessage) ? $CFG->postmessage : false;
 // target_link_uri and lti_message_hint are not required by Tsugi
 $login_hint = U::get($_REQUEST, 'login_hint');
 $iss = U::get($_REQUEST, 'iss');
-$issuer_guid = U::get($_REQUEST, 'guid');
+$issuer_guid = U::get($_REQUEST, 'guid', $rest_path->action);
 $lti_storage_target = U::get($_REQUEST, 'web_message_target');
 $lti_storage_target = U::get($_REQUEST, 'ims_web_message_target', $lti_storage_target);
 $lti_storage_target = U::get($_REQUEST, 'lti_storage_target', $lti_storage_target);

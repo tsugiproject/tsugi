@@ -1,7 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine on
-    RewriteRule ^sakai-config/(.*)$ sakai-config.php?guid=$1 [L,QSA]
-    RewriteRule ^ims-config/(.*)$ ims-config.php?guid=$1 [L,QSA]
+    RewriteRule ^sakai-config sakai-config.php [L,QSA]
+    RewriteRule ^ims-config ims-config.php [L,QSA]
+    RewriteRule ^sakai-config/(.*)$ sakai-config.php/$1 [L,QSA]
+    RewriteRule ^ims-config/(.*)$ ims-config.php/$1 [L,QSA]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !=/favicon.ico
