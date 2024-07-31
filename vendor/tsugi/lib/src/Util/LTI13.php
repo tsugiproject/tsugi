@@ -42,12 +42,14 @@ class LTI13 {
     const DEEPLINK_CLAIM =      'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings';
 
     const CUSTOM_CLAIM =        'https://purl.imsglobal.org/spec/lti/claim/custom';
+    const GROUPS_CLAIM =        'https://purl.imsglobal.org/spec/lti-gs/claim/groupsservice';
 
     const MEDIA_TYPE_MEMBERSHIPS = 'application/vnd.ims.lti-nrps.v2.membershipcontainer+json';
     const MEDIA_TYPE_LINEITEM = 'application/vnd.ims.lis.v2.lineitem+json';
     const MEDIA_TYPE_LINEITEMS = 'application/vnd.ims.lis.v2.lineitemcontainer+json';
     const SCORE_TYPE = 'application/vnd.ims.lis.v1.score+json';
     const RESULTS_TYPE = 'application/vnd.ims.lis.v2.resultcontainer+json';
+    const MEDIA_TYPE_GROUPS = 'application/vnd.ims.lti-gs.v1.contextgroupcontainer+json';
 
     // https://www.imsglobal.org/spec/lti/v1p3/#platform-instance-claim
     const TOOL_PLATFORM_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/tool_platform';
@@ -376,6 +378,22 @@ class LTI13 {
         return self::extract_access_token($roster_token_data, $debug_log);
     }
 
+    /** Retrieve a Course Group Service token
+     *
+     * @param array $debug_log An optional array passed by reference.   Actions taken will be
+     * logged into this array.
+     *
+     * @return mixed Returns the token (string) or false on error.
+     */
+    public static function getGroupsToken($subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, &$debug_log=false) {
+
+         $groups_token_data = self::get_access_token([
+            "https://purl.imsglobal.org/spec/lti-gs/scope/contextgroup.readonly"
+        ], $subject, $lti13_token_url, $lti13_privkey, $lti13_kid, $lti13_token_audience, $deployment_id, $debug_log);
+
+        return self::extract_access_token($groups_token_data, $debug_log);
+    }
+
     /** Retrieve a LineItems token
      *
      * @param array $debug_log An optional array passed by reference.   Actions taken will be
@@ -576,6 +594,106 @@ class LTI13 {
             if ( is_array($debug_log) ) {
                 $debug_log[] = "Error status: $status";
                 if (is_array($debug_log) ) $debug_log[] = substr($membership, 0, 3000);
+            }
+            return $status;
+        }
+    }
+
+
+    /**
+     * Load the groups if we can get them from the LMS
+     *
+     * @param string $context_groups_url The REST endpoint for memberships
+     * @param $access_token The access token for this request
+     * @param array $debug_log If this is an array, debug information is returned as the
+     * process progresses.
+     *
+     * @return mixed If this works it returns the NRPS object.  If it fails,
+     * it returns a string.
+     */
+    public static function loadGroups($context_groups_url, $access_token, &$debug_log=false) {
+
+        $return_array = null;
+
+        $context_groups_url = trim($context_groups_url);
+
+        // Handle paging
+        while(1) {
+            if ( is_array($debug_log) ) $debug_log[] = 'Loading: ' . $context_groups_url;
+
+            $ch = curl_init();
+
+            $headers = [
+                'Authorization: Bearer '. $access_token,
+                'Accept: '.self::MEDIA_TYPE_GROUPS,
+                'Content-Type: '.self::MEDIA_TYPE_GROUPS
+            ];
+
+            curl_setopt($ch, CURLOPT_URL, $context_groups_url);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_HEADER, true); // Ask for headers in the return data
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+            if ( is_array($debug_log) ) $debug_log[] = $context_groups_url;
+            if ( is_array($debug_log) ) $debug_log[] = $headers;
+
+            $lti_groups = curl_exec($ch);
+            if ( $lti_groups === false ) return self::handle_curl_error($ch, $debug_log);
+
+            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $headerSize = curl_getinfo($ch , CURLINFO_HEADER_SIZE );
+            curl_close ($ch);
+            if ( is_array($debug_log) ) $debug_log[] = "Sent groups request, received status=$httpcode (".U::strlen($lti_groups)." characters)";
+
+            if ( empty($lti_groups) ) {
+                return "No data retrieved status=" . $httpcode;
+            }
+
+            $headerStr = substr( $lti_groups , 0 , $headerSize );
+            $lti_groups = substr( $lti_groups , $headerSize );
+            $response_headers = Net::parseHeaders($headerStr);
+
+            if (is_array($debug_log) ) $debug_log[] = $response_headers;
+
+            $nextUrl = null;
+            $link_header = U::get($response_headers, 'Link', null);
+            if ( is_string($link_header) ) {
+                if ( is_array($debug_log) ) $debug_log[] = 'Link header: ' . $link_header;
+                $linkHeader = LinkHeader::fromString($link_header);
+                $nextRel = is_object($linkHeader) ? $linkHeader->getRel('next') : null;
+                $nextUrl = is_object($nextRel) ? $nextRel->getUri() : null;
+            }
+
+            $json = json_decode($lti_groups, false);   // Top level object
+            if ( $json === null ) {
+                $retval = "Unable to parse returned groups JSON:". json_last_error_msg();
+                if ( is_array($debug_log) ) {
+                    if (is_array($debug_log) ) $debug_log[] = $retval;
+                    if (is_array($debug_log) ) $debug_log[] = substr($lti_groups, 0, 3000);
+                }
+                return $retval;
+            }
+
+            if ( Net::httpSuccess($httpcode) && isset($json->groups) ) {
+                if ( is_array($debug_log) ) $debug_log[] = "Loaded ".count($json->groups)." groups entries";
+                if ( $return_array == null ) {
+                    $return_array = $json;
+                } else {
+                    $return_array->groups = array_merge($return_array->groups, $json->groups);
+                }
+                if ( $nextUrl == null ) {
+                    if ( is_array($debug_log) ) $debug_log[] = "Returning ".count($return_array->groups)." groups entries";
+                    return $return_array;
+                }
+                if ( is_array($debug_log) ) $debug_log[] = 'Retrieving Next URL: ' . $nextUrl;
+                $context_groups_url = trim($nextUrl);
+                continue;
+            }
+
+            $status = isset($json->error) ? $json->error : "Unable to load results";
+            if ( is_array($debug_log) ) {
+                $debug_log[] = "Error status: $status";
+                if (is_array($debug_log) ) $debug_log[] = substr($lti_groups, 0, 3000);
             }
             return $status;
         }

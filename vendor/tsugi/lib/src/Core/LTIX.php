@@ -1210,6 +1210,18 @@ class LTIX {
             $retval['lti13_membership_url'] = $body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url;
         }
 
+        // Get data from the groups claim
+        $retval['lti13_context_groups_url'] = null;
+        if ( isset($body->{LTI13::GROUPS_CLAIM}) &&
+            isset($body->{LTI13::GROUPS_CLAIM}->context_groups_url) &&
+            is_string($body->{LTI13::GROUPS_CLAIM}->context_groups_url) &&
+            isset($body->{LTI13::GROUPS_CLAIM}->service_versions) &&
+            is_array($body->{LTI13::GROUPS_CLAIM}->service_versions) &&
+            in_array("1.0", $body->{LTI13::GROUPS_CLAIM}->service_versions)
+        ) {
+            $retval['lti13_context_groups_url'] = $body->{LTI13::GROUPS_CLAIM}->context_groups_url;
+        }
+
         // Get the error url...
         $retval['launch_presentation_return_url'] = null;
         if ( isset($body->{LTI13::PRESENTATION_CLAIM}) &&
@@ -1307,6 +1319,9 @@ class LTIX {
         $LTI13 = $issuer_key !== false;
         $for_user_subject = U::get($post, "for_user_subject", false);
 
+        // TODO: Remove this some time after 2024-07-30
+        $PDOX->insureColumnExists("{$CFG->dbprefix}lti_context", "lti13_context_groups_url", "TEXT NULL");
+
         if ( $LTI13 ) {
             $sql = "SELECT i.issuer_id, i.issuer_key, i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
                 i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_token_audience,
@@ -1326,6 +1341,7 @@ class LTIX {
             c.ext_memberships_id AS ext_memberships_id, c.ext_memberships_url AS ext_memberships_url,
             c.lineitems_url AS lineitems_url, c.memberships_url AS memberships_url,
             c.lti13_lineitems AS lti13_lineitems, c.lti13_membership_url AS lti13_membership_url,
+            c.lti13_context_groups_url AS lti13_context_groups_url,
             c.settings AS context_settings,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
             l.lti13_lineitem AS lti13_lineitem, l.settings AS link_settings,
@@ -1770,6 +1786,7 @@ class LTIX {
         if ( ! isset($post['result_url']) ) $post['result_url'] = null;
         if ( ! isset($post['lti13_lineitem']) ) $post['lti13_lineitem'] = null;
         if ( ! isset($post['lti13_membership_url']) ) $post['lti13_membership_url'] = null;
+        if ( ! isset($post['lti13_context_groups_url']) ) $post['lti13_context_groups_url'] = null;
         if ( ! isset($post['lti13_lineitems']) ) $post['lti13_lineitems'] = null;
         if ( ! isset($row['service']) ) {
             $row['service'] = null;
@@ -1822,6 +1839,20 @@ class LTIX {
             $row['lti13_membership_url'] = $post['lti13_membership_url'];
             $actions[] = "=== Updated result id=".$row['result_id']." lti13_membership_url=".$row['lti13_membership_url'];
         }
+
+        // Here we handle lti13_context_groups_url
+        if ( isset($row['context_id']) && isset($post['lti13_context_groups_url']) &&
+            array_key_exists('lti13_context_groups_url',$row) && $post['lti13_context_groups_url'] != $row['lti13_context_groups_url'] ) {
+            $sql = "UPDATE {$p}lti_context
+                SET lti13_context_groups_url = :lti13_context_groups_url, updated_at = NOW()
+                WHERE context_id = :context_id";
+            $PDOX->queryDie($sql, array(
+                ':lti13_context_groups_url' => $post['lti13_context_groups_url'],
+                ':context_id' => $row['context_id']));
+            $row['lti13_context_groups_url'] = $post['lti13_context_groups_url'];
+            $actions[] = "=== Updated result id=".$row['result_id']." lti13_context_groups_url=".$row['lti13_context_groups_url'];
+        }
+
 
         // Here we handle lti13_lineitems
         if ( isset($row['context_id']) && isset($post['lti13_lineitems']) &&
