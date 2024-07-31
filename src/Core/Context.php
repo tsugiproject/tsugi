@@ -134,6 +134,63 @@ class Context extends Entity {
         return $nrps;
     }
 
+    /**
+     * Load all the groups if we can them from the LMS
+     *
+     * @param array $debug_log If this is an array, debug information is returned as the
+     * process progresses.
+     *
+     * @return mixed If this works it returns the Groups object.  If it fails,
+     * it returns a string.
+     *
+     */
+    public function loadAllGroups(&$debug_log=false) {
+        return self::loadGroups(null, $debug_log);
+    }
+
+    /**
+     * Load the groups from the LMS
+     *
+     * @param string $user_id If this is a string, then only the groups for the user_id are retrieved
+     * @param array $debug_log If this is an array, debug information is returned as the
+     * process progresses.
+     *
+     * @return mixed If this works it returns the Groups object.  If it fails,
+     * it returns a string.
+     *
+     */
+    public function loadGroups($user_id, &$debug_log=false) {
+        global $CFG;
+
+        $missing = $this->loadLTI13Data($lti13_token_url, $privkey, $kid, $lti13_token_audience, $issuer_client, $deployment_id);
+        $lti13_context_groups_url = $this->launch->ltiParameter('lti13_context_groups_url');
+        if ( empty($lti13_context_groups_url) ) $missing .= ' ' . 'context_groups_url';
+        $missing = trim($missing);
+
+        if ( is_string($missing) && U::strlen($missing) > 0 ) {
+            if ( is_array($debug_log) ) $debug_log[] = 'Missing: '.$missing;
+            return $missing;
+        }
+
+        // TODO: In the future we might cache this access token perhaps in session for a while
+
+        // TODO: Also note that in LTI13 the basicoutcome claim is suppressed to make the cert suite happy
+        // so these two things to the same thing for now.
+        $groups_access_token = LTI13::getGroupsToken($issuer_client, $lti13_token_url, $privkey, $kid, $lti13_token_audience, $deployment_id, $debug_log);
+
+        if ( $groups_access_token === false ) {
+            $debug_log[] = "Groups data could not be retrieved";
+            return;
+        }
+
+        if ( is_string($user_id) && strlen($user_id) > 0 ) {
+            $lti13_context_groups_url = add_url_parm($lti13_context_groups_url, 'user_id', $user_id);
+        }
+
+        $nrps = LTI13::loadGroups($lti13_context_groups_url, $groups_access_token, $debug_log);
+        return $nrps;
+    }
+
     /** Wrapper to get line items token so we can add caching
      *
      * @param string $missing This is a non-empty string with error detail if there

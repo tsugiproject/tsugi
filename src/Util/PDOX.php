@@ -378,6 +378,25 @@ class PDOX extends \PDO {
     }
 
     /**
+     * Insure that a column exists
+     *
+     * @param $table The name of the table like '{$CFG->dbprefix}lti_result'
+     * @param $column The name of the column like 'grading_progress'
+     * @param $type Desired type for the column like 'TINYINT(1) NOT NULL DEFAULT 0'
+     *
+     * @return mixed - Either true or a string with a message
+     */
+    function insureColumnExists($table, $column, $type)
+    {
+        if ( self::columnExists($column, $table ) ) return true;
+        $sql= "ALTER TABLE {$CFG->dbprefix}$table ADD $column $type";
+        $retval = "Adding column: ".$sql;
+        $q = self::queryReturnError($sql);
+        error_log($retval);
+        return $retval;
+    }
+
+    /**
      * Get the column type
      *
      * @param $fieldname The name of the column
