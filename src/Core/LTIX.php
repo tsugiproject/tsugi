@@ -612,14 +612,21 @@ class LTIX {
                 self::abort_with_error_log('JWT validation fail key='.$issuer_key.' error='.$e->getMessage());
             }
 
-            // Check validity of LTI 1.1 transition data if it exists
+            // Check validity of LTI 1.1 transition data if it exists, if validation fails,
+            // just ignore it - don't fail.  Some LMS's seem to drop in an LTI 1.1 transition claim
+            // with not real data "just in case".  It it verifies, we are cool, if not ignore it.
             $lti11_transition_user_id = U::get($post, 'lti11_transition_user_id');
             if ( U::isNotEmpty($lti11_transition_user_id) ) {
                 $lti11_oauth_consumer_key = $row['key_key'];  // From the join
                 $lti11_oauth_consumer_secret = self::decrypt_secret($row['secret']);
                 $check = LTI13::checkLTI11Transition($jwt->body, $lti11_oauth_consumer_key, $lti11_oauth_consumer_secret);
-                if ( is_string($check) ) self::abort_with_error_log('LTI 1.1 Transition error: '.$check);
-                if ( ! $check ) self::abort_with_error_log('LTI 1.1 Transition signature mis-match key='.$lti11_oauth_consumer_key);
+                if ( is_string($check) ) {
+                    error_log('LTI 1.1 Transition error: '.$check);
+                    unset($post['lti11_transition_user_id']);
+                } else if ( ! $check ) {
+                    error_log('LTI 1.1 Transition signature mis-match key='.$lti11_oauth_consumer_key);
+                    unset($post['lti11_transition_user_id']);
+                }
             }
 
             $row['lti13_token_url'] = $token_url;
