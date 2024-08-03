@@ -349,13 +349,14 @@ if ( isset($_GET['install']) ) {
     if ( is_array($submissionReview) ) $additionalParams['submissionReview'] = $submissionReview;
 
     $custom = array(
-        'availableStart' => '$ResourceLink.available.startDateTime',
-        'availableEnd' => '$ResourceLink.available.endDateTime',
-        'submissionStart' => '$ResourceLink.submission.startDateTime',
-        'submissionEnd' => '$ResourceLink.submission.endDateTime',
+        'availablestart' => '$ResourceLink.available.startDateTime',
+        'availableend' => '$ResourceLink.available.endDateTime',
+        'submissionstart' => '$ResourceLink.submission.startDateTime',
+        'submissionend' => '$ResourceLink.submission.endDateTime',
         'resourcelink_id_history' => '$ResourceLink.id.history',
         'context_id_history' => '$Context.id.history',
         'canvas_caliper_url' => '$Caliper.url',
+        'coursegroup_id' => '$CourseGroup.id',
     );
 
     $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $scoreMaximum, $resourceId, $additionalParams);
