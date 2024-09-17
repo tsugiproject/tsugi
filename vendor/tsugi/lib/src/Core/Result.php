@@ -659,4 +659,41 @@ class Result extends Entity {
             die();
         }
     }
+
+    /**
+     * Retrieve the number of attempts and latest attempt
+     *
+     * @return object with attempted_at and attempts
+     */
+    public function getAttempts() {
+        global $CFG;
+        $PDOX = $this->launch->pdox;
+
+        $retval = new \stdClass();
+        $retval->attempts = 0;
+        $retval->attempted_at = 0;
+
+        if ( ($this->id ?? null) == null ) return $retval;
+        $p = $CFG->dbprefix;
+        $sql = "SELECT COALESCE(attempts, 0) AS attempts, COALESCE(attempted_at, 0) AS attempted_at FROM {$p}lti_result WHERE result_id = :RID";
+        $stmt = $PDOX->queryReturnError($sql, array( ":RID" => $this->id));
+        if ( $stmt->success ) {
+            $row = $stmt->fetch(\PDO::FETCH_OBJ);
+            if ( is_object($row) ) return $row;
+        }
+        return $retval;
+    }
+
+    /**
+     * Record an attempt on this result - different than submitting a grade
+     */
+    public function recordAttempt() {
+        global $CFG;
+        $PDOX = $this->launch->pdox;
+
+        if ( ($this->id ?? null) == null ) return;
+        $p = $CFG->dbprefix;
+        $sql = "UPDATE {$p}lti_result SET attempts = COALESCE(attempts, 0) + 1, attempted_at = NOW() WHERE result_id = :RID";
+        $stmt = $PDOX->queryReturnError($sql, array( ":RID" => $this->id));
+    }
 }
