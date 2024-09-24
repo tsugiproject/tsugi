@@ -446,7 +446,7 @@ class LTIX {
                 session_start();
             // if we're using a cookie session, the session may already have been started; if not, start it now
             // (if we call session_start() and the session has already been started, php will generate a notice, which we don't want)
-            } else if (U::isEmpty($_SESSION)) {
+            } else if (U::isEmpty($_SESSION ?? null)) {
                 session_start();
             }
             $session_id = session_id();
