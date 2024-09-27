@@ -1239,7 +1239,7 @@ EOF;
         self::safe_var_cleanup($x, 0);
         var_dump($x);
         $result = ob_get_clean();
-        return $result;
+        return htmlent_utf8($result);
     }
 
     public static function safe_print_r($x) {
@@ -1247,7 +1247,7 @@ EOF;
         self::safe_var_cleanup($x, 0);
         print_r($x);
         $result = ob_get_clean();
-        return $result;
+        return htmlent_utf8($result);
     }
 
     public static function htmlError($message,$detail,$next=false) {
