@@ -63,7 +63,7 @@ if ( !function_exists('_me') ) {
 if ( defined('COOKIE_SESSION') ) {
     ini_set('session.cookie_httponly', '1');
     ini_set('session.cookie_secure', $CFG->DEVELOPER ? '0' : '1');
-    ini_set('session.use_strict_mode', '1');
+    // ini_set('session.use_strict_mode', '1');
 } else {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);
