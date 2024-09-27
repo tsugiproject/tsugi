@@ -25,6 +25,7 @@ function login_redirect($path=false) {
 $PDOX = LTIX::getConnection();
 
 session_start();
+session_regenerate_id(true);
 error_log('Session in login '.session_id());
 
 $oauth_consumer_key = 'google.com';

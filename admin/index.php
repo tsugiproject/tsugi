@@ -5,6 +5,7 @@ use \Tsugi\Util\U;
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../config.php");
 session_start();
+session_regenerate_id(true);
 require_once("gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
