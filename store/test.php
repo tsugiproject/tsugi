@@ -127,7 +127,7 @@ if ($registrations && isset($registrations[$install])) {
     <div class="header-back-nav">
         <ol class="breadcrumb">
             <li><a href="<?= $rest_path->parent; ?>">Store</a></li>
-            <li><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>"><?= $title; ?></a></li>
+            <li><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>"><?= htmlent_utf8($title); ?></a></li>
             <li class="active">Try It</li>
         </ol>
     </div>

@@ -280,7 +280,7 @@ $register_good = $json_obj && isset($json_obj->name);
     <div class="header-back-nav">
         <ol class="breadcrumb">
         <li><a href="../index.php">Store</a></li>
-        <li class="active"><?= $title ?></li>
+        <li class="active"><?= htmlent_utf8($title) ?></li>
         </ol>
     </div>
     <div class="detail-header">
