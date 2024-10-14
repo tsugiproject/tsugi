@@ -68,6 +68,20 @@ unset($apphome);
 // you will forward to in your apache config
 // $CFG->websocket_proxyport = 8080;
 
+// If the web server is NOT behind a reverse proxy, you may optionally wish
+// to ignore forwarded IP headers such as x-forwarded-for and variations by
+// setting this to false. This will help to preserve authenticity of IPs by
+// only trusting IP addresses directly seen by the server.
+//
+// Never set this to false if you ARE behind a reverse proxy, otherwise all
+// requests will appear to originate from the same IP address (the proxy).
+//
+// If behind a reverse proxy, set to `true`:
+//     $CFG->trust_forwarded_ip = true; // (default)
+//
+// If not using a reverse proxy, set to `false`:
+//     $CFG->trust_forwarded_ip = false;
+
 // Database connection information to configure the PDO connection
 // You need to point this at a database with am account and password
 // that can create tables.   To make the initial tables go into Admin
