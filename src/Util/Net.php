@@ -476,6 +476,8 @@ class Net {
      */
     public static function getIP() {
 
+        global $CFG;
+
         //Just get the headers if we can or else use the SERVER global
         if ( function_exists( 'apache_request_headers' ) ) {
             $rawheaders = apache_request_headers();
@@ -496,6 +498,11 @@ class Net {
         $filter_option = 0;
 
         $the_ip = false;
+
+        // When not behind proxy, trust IP from web server over headers
+        if ( $CFG->trust_forwarded_ip === false && array_key_exists( 'REMOTE_ADDR', $_SERVER ) ) {
+            $the_ip = filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, $filter_option );
+        }
 
         // Check Cloudflare headers
         if ( $the_ip === false && array_key_exists( 'http_cf_connecting_ip', $headers ) ) {
