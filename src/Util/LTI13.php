@@ -946,6 +946,10 @@ class LTI13 {
      * @return mixed If this works it returns an array including the new line item url.  If it fails, it returns a string.
      */
     public static function createLineItem($lineitems_url, $access_token, $lineitem, &$debug_log = false) {
+        $scoreMaximum = $lineitem->scoreMaximum ?? 100;
+        $lineitem->scoreMaximum = is_numeric($scoreMaximum) ? floatval($scoreMaximum) : 100;
+        if ( ! is_string($lineitem->label ?? null) ) $lineitem->label = strval($lineitem->label ?? null);
+        if ( ! is_string($lineitem->resourceId ?? null) ) $lineitem->resourceId = strval($lineitem->resourceId ?? null);
 
         $lineitems_url = trim($lineitems_url);
 
