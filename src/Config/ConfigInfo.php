@@ -730,6 +730,23 @@ class ConfigInfo {
     public $websocket_url = false;
     public $websocket_proxyport = false;
 
+    /**
+     * If the web server is NOT behind a reverse proxy, you may optionally wish
+     * to ignore forwarded IP headers such as x-forwarded-for and variations by
+     * setting this to false. This will help to preserve authenticity of IPs by
+     * only trusting IP addresses directly seen by the server.
+     *
+     * Never set this to false if you ARE behind a reverse proxy, otherwise all
+     * requests will appear to originate from the same IP address (the proxy).
+     *
+     * If behind a reverse proxy, set to `true`:
+     *     $CFG->trust_forwarded_ip = true; // (default)
+     *
+     * If not using a reverse proxy, set to `false`:
+     *     $CFG->trust_forwarded_ip = false;
+     */
+    public $trust_forwarded_ip = true;
+
     /*
      * This is the internal version of the datbase.   This is an internal
      * value and set in setup.php and read in migrate.php - you should not
