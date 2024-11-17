@@ -70,6 +70,11 @@ if ( defined('COOKIE_SESSION') ) {
     ini_set('session.use_trans_sid',1);
 }
 
+// Check for non-embeddable pages and declare appropriate CSP
+if ( preg_match('/(\/admin\/|\/login)/i', $_SERVER['REQUEST_URI']) ) {
+    header("Content-Security-Policy: frame-ancestors 'self';");
+}
+
 if ( ! isset($CFG->staticroot) ) die_with_error_log('$CFG->staticroot not defined in config.php');
 if ( ! isset($CFG->timezone) ) die_with_error_log('$CFG->timezone not defined in config.php');
 if ( strpos($CFG->dbprefix, ' ') !== false ) die_with_error_log('$CFG->dbprefix cannot have spaces in it');
