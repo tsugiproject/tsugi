@@ -71,8 +71,11 @@ if ( defined('COOKIE_SESSION') ) {
 }
 
 // Check for non-embeddable pages and declare appropriate CSP
-if ( preg_match('/(\/admin\/|\/login)/i', $_SERVER['REQUEST_URI']) ) {
-    header("Content-Security-Policy: frame-ancestors 'self';");
+// Allow the Dynamic Registration URL to be embedded as it is required
+if ( preg_match('/(\/admin\/|\/login)/i', $_SERVER['REQUEST_URI'] ?? "") ) {
+    if ( ! preg_match('/(\/admin\/key\/auto.php)/i', $_SERVER['REQUEST_URI']) ) {
+        header("Content-Security-Policy: frame-ancestors 'self';");
+    }
 }
 
 if ( ! isset($CFG->staticroot) ) die_with_error_log('$CFG->staticroot not defined in config.php');
