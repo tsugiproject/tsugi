@@ -655,6 +655,7 @@ if ( $registrations && $allow_lti ) {
                                 <label>Description</label>
                                 <textarea class="form-control" rows="5" name="description"><?=htmlent_utf8($text)?></textarea>
                             </div>
+<?php if ( ! $deeplink ) { // Only do this for ContentItem (1.1) ?>
                             <div class="form-group">
                                 <label for="presentationDocumentTarget_<?= $count ?>">Link Target</label> (Not all LMS's support all options)
                                 <select name="presentationDocumentTarget" id="presentationDocumentTarget_<?= $count ?>">
@@ -663,6 +664,7 @@ if ( $registrations && $allow_lti ) {
                                     <option value="window">New Window</option>
                                 </select>
                             </div>
+<?php } ?>
                             <div class="form-group tsugi-form-embedded-size" style="display:none;">
                                 <label>Width (pixels)</label>
                                 <input type="number" class="form-control placementWidth" name="placementWidth">
