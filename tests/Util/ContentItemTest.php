@@ -31,7 +31,7 @@ class ContentItemTest extends \PHPUnit\Framework\TestCase
             "text": "title",
             "url": "path",
             "placementAdvice": {
-                "presentationDocumentTarget": "iframe"
+                "presentationDocumentTarget": "window"
             },
             "icon": {
                 "@id": "icon",
@@ -48,7 +48,7 @@ class ContentItemTest extends \PHPUnit\Framework\TestCase
             "text": "r->title",
             "url": "r->url",
             "placementAdvice": {
-                "presentationDocumentTarget": "iframe",
+                "presentationDocumentTarget": "window",
                 "displayWidth": "640",
                 "displayHeight": "480"
             },

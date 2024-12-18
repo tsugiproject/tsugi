@@ -190,8 +190,8 @@ class ContentItem {
             $params['points'] = false;
         if (empty($params['activityId']))
             $params['activityId'] = false;
-        if (empty($params['placementTarget']))
-            $params['placementTarget'] = 'iframe';
+        if (empty($params['presentationDocumentTarget']))
+            $params['presentationDocumentTarget'] = 'window';
         if (empty($params['placementWindowTarget']))
             $params['placementWindowTarget'] = '';
         if (empty($params['placementWidth']))
@@ -250,8 +250,8 @@ class ContentItem {
             unset($json->lineItem);
         }
 
-        if ($params['placementTarget'])
-            $json->placementAdvice->presentationDocumentTarget = $params['placementTarget'];
+        if ($params['presentationDocumentTarget'])
+            $json->placementAdvice->presentationDocumentTarget = $params['presentationDocumentTarget'];
         if ($params['placementWindowTarget'])
             $json->placementAdvice->windowTarget = $params['placementWindowTarget'];
         if (! empty($params['placementWidth']))
@@ -285,8 +285,8 @@ class ContentItem {
             'fa_icon' => $fa_icon,
         );
         // package the parameter list into an array for the helper function
-        if (! empty($additionalParams['placementTarget']))
-            $params['placementTarget'] = $additionalParams['placementTarget'];
+        if (! empty($additionalParams['presentationDocumentTarget']))
+            $params['presentationDocumentTarget'] = $additionalParams['presentationDocumentTarget'];
         if (! empty($additionalParams['placementWidth']))
             $params['placementWidth'] = $additionalParams['placementWidth'];
         if (! empty($additionalParams['placementHeight']))
@@ -312,8 +312,8 @@ class ContentItem {
             $params['icon'] = false;
         if (empty($params['fa_icon']))
             $params['fa_icon'] = false;
-        if (empty($params['placementTarget']))
-            $params['placementTarget'] = 'iframe';
+        if (empty($params['presentationDocumentTarget']))
+            $params['presentationDocumentTarget'] = 'window';
         if (empty($params['placementWindowTarget']))
             $params['placementWindowTarget'] = '';
         if (empty($params['placementWidth']))
@@ -348,8 +348,8 @@ class ContentItem {
         if ( $params['icon'] ) $json->{'icon'}->{'@id'} = $params['icon'];
         if ( $params['fa_icon'] ) $json->icon->fa_icon = $params['fa_icon'];
 
-        if ($params['placementTarget'])
-            $json->placementAdvice->presentationDocumentTarget = $params['placementTarget'];
+        if ($params['presentationDocumentTarget'])
+            $json->placementAdvice->presentationDocumentTarget = $params['presentationDocumentTarget'];
         if ($params['placementWindowTarget'])
             $json->placementAdvice->windowTarget = $params['placementWindowTarget'];
         if (! empty($params['placementWidth']))
@@ -367,7 +367,7 @@ class ContentItem {
      *
      * @param url The launch URL of the tool that is about to be placed
      * @param title A plain text title of the content-item.
-     * @params additionalParams Array of configurable parameters for LTI placement (options: placementTarget, placementWidth, placementHeight)
+     * @params additionalParams Array of configurable parameters for LTI placement (options: presentationDocumentTarget, placementWidth, placementHeight)
      *
      */
     public function addFileItem($url, $title=false, $additionalParams = array())
@@ -384,8 +384,8 @@ class ContentItem {
   }
 }';
 
-        if (empty($additionalParams['placementTarget']))
-            $additionalParams['placementTarget'] = 'window';
+        if (empty($additionalParams['presentationDocumentTarget']))
+            $additionalParams['presentationDocumentTarget'] = 'window';
         if (empty($additionalParams['placementWindowTarget']))
             $additionalParams['placementWindowTarget'] = '_blank';
         if (empty($additionalParams['placementWidth']))
@@ -401,8 +401,8 @@ class ContentItem {
         $datetime = substr($datetime,0,19) . 'Z';
         $json->expiresAt = $datetime;
 
-        if ($additionalParams['placementTarget'])
-            $json->placementAdvice->presentationDocumentTarget = $additionalParams['placementTarget'];
+        if ($additionalParams['presentationDocumentTarget'])
+            $json->placementAdvice->presentationDocumentTarget = $additionalParams['presentationDocumentTarget'];
         if ($additionalParams['placementWindowTarget'])
             $json->placementAdvice->windowTarget = $additionalParams['placementWindowTarget'];
         if (! empty($additionalParams['placementWidth']))
