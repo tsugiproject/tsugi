@@ -1368,7 +1368,11 @@ EOF;
      */
     public static function get_theme() {
         global $CFG, $TSUGI_LAUNCH;
-        $PDOX = LTIX::getConnection(); // Not globally accessible in tool details
+        if ( U::isNotEmpty($CFG->pdo) ) {
+            $PDOX = LTIX::getConnection(); // Not globally accessible in tool details
+        } else {
+            $PDOX = null;
+        }
 
         // TODO: Enable this
         if ( false && is_object($TSUGI_LAUNCH) ) {
@@ -1401,7 +1405,7 @@ EOF;
         }
 
         // Override the config AND launch values if the user's preference is set in the $_SESSION
-        if (isset($_SESSION) && isset($_SESSION['profile_id'])) {
+        if (is_object($PDOX) && isset($_SESSION) && isset($_SESSION['profile_id'])) {
             $stmt = $PDOX->queryDie(
                 "SELECT json FROM {$CFG->dbprefix}profile WHERE profile_id = :PID",
                 array('PID' => $_SESSION['profile_id'])
