@@ -146,6 +146,9 @@ $tool->claims = array( "iss", "sub", "name", "given_name", "family_name", "email
 
 // TODO: Issue #53 - Define placements...
 // TODO: Issue #59 - Message parsing order - Sakai takes first, Moodle takes last
+$custom_parameters = array(
+    "tsugi_from" => "www.tsugi.org",
+);
 $tool->messages = array(
     // TODO: ContextPlacementLaunch
     // Issue #59 - For LMS's that take the "first"
@@ -153,40 +156,47 @@ $tool->messages = array(
         "type" => "LtiDeepLinkingRequest",
         "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/lti/store/',
+        "custom_parameters" => $custom_parameters,
     ),
     array(
         "type" => "LtiDataPrivacyLaunchRequest",
         "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot,
+        "custom_parameters" => $custom_parameters,
     ),
     array(
         "type" => "MartinImportRequest",
         "label" => $json->client_name,
         "target_link_uri" => __("Import from") . " ". $CFG->wwwroot . '/cc/export/',
+        "custom_parameters" => $custom_parameters,
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
         "label" => __("Import from") . " ".$json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/cc/export',
-        "placements" => array( "migration_selection")
+        "placements" => array( "migration_selection"),
+        "custom_parameters" => $custom_parameters,
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
         "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=link_selection',
-        "placements" => array( "link_selection")
+        "placements" => array( "link_selection"),
+        "custom_parameters" => $custom_parameters,
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
         "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=editor_button',
-        "placements" => array( "editor_button")
+        "placements" => array( "editor_button"),
+        "custom_parameters" => $custom_parameters,
     ),
     array(
         "type" => "LtiDeepLinkingRequest",
         "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=assignment_selection',
-        "placements" => array( "assignment_selection")
+        "placements" => array( "assignment_selection"),
+        "custom_parameters" => $custom_parameters,
     ),
     // TODO: Make this not needed
     // Issue #59 - For LMS's that take the "last" (i.e. like Moodle)
@@ -194,6 +204,7 @@ $tool->messages = array(
         "type" => "LtiDeepLinkingRequest",
         "label" => $json->client_name,
         "target_link_uri" => $CFG->wwwroot . '/lti/store/',
+        "custom_parameters" => $custom_parameters,
     ),
 );
 
