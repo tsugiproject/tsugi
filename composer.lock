@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ca370b102f032d128f8a3a5b9620bda4",
+    "content-hash": "9b33973d17dca537e7d4a652e53ba787",
     "packages": [
         {
             "name": "brick/math",
@@ -7392,12 +7392,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "9bb6209469110bef6eca5dcd2ca8d6993f256b08"
+                "reference": "0b8a8a4886b3b798d77980734c67200e5855248f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/9bb6209469110bef6eca5dcd2ca8d6993f256b08",
-                "reference": "9bb6209469110bef6eca5dcd2ca8d6993f256b08",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/0b8a8a4886b3b798d77980734c67200e5855248f",
+                "reference": "0b8a8a4886b3b798d77980734c67200e5855248f",
                 "shasum": ""
             },
             "require": {
@@ -7441,7 +7441,7 @@
                 "issues": "https://github.com/tsugiproject/tsugi-php/issues",
                 "source": "https://github.com/tsugiproject/tsugi-php/tree/master"
             },
-            "time": "2024-12-18T02:05:29+00:00"
+            "time": "2025-02-01T14:44:19+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
@@ -7664,14 +7664,14 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "tsugi/lib": 20,
-        "koseu/lib": 20
+        "koseu/lib": 20,
+        "tsugi/lib": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.2.0"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }
