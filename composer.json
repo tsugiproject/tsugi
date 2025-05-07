@@ -21,8 +21,8 @@
         ]
     },
     "require": {
-        "php": ">=8.2.0",
-        "laravel/lumen-framework": "v10.0.3",
-        "tsugi/lib": "dev-master#e4fbf3a1c2b02aea675878d5c098daaf38b0e105"
+        "php": ">=8.4.0",
+        "laravel/lumen-framework": "v11.2.0",
+        "tsugi/lib": "dev-php-84-x#b58dd66c9f479eac17184eb544779b4a7e7da9ef"
     }
 }
