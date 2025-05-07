@@ -19,6 +19,14 @@ namespace Google\Service\CloudDataplex;
 
 class GoogleCloudDataplexV1DataScanJob extends \Google\Model
 {
+  /**
+   * @var string
+   */
+  public $createTime;
+  protected $dataDiscoveryResultType = GoogleCloudDataplexV1DataDiscoveryResult::class;
+  protected $dataDiscoveryResultDataType = '';
+  protected $dataDiscoverySpecType = GoogleCloudDataplexV1DataDiscoverySpec::class;
+  protected $dataDiscoverySpecDataType = '';
   protected $dataProfileResultType = GoogleCloudDataplexV1DataProfileResult::class;
   protected $dataProfileResultDataType = '';
   protected $dataProfileSpecType = GoogleCloudDataplexV1DataProfileSpec::class;
@@ -56,6 +64,48 @@ class GoogleCloudDataplexV1DataScanJob extends \Google\Model
    */
   public $uid;
 
+  /**
+   * @param string
+   */
+  public function setCreateTime($createTime)
+  {
+    $this->createTime = $createTime;
+  }
+  /**
+   * @return string
+   */
+  public function getCreateTime()
+  {
+    return $this->createTime;
+  }
+  /**
+   * @param GoogleCloudDataplexV1DataDiscoveryResult
+   */
+  public function setDataDiscoveryResult(GoogleCloudDataplexV1DataDiscoveryResult $dataDiscoveryResult)
+  {
+    $this->dataDiscoveryResult = $dataDiscoveryResult;
+  }
+  /**
+   * @return GoogleCloudDataplexV1DataDiscoveryResult
+   */
+  public function getDataDiscoveryResult()
+  {
+    return $this->dataDiscoveryResult;
+  }
+  /**
+   * @param GoogleCloudDataplexV1DataDiscoverySpec
+   */
+  public function setDataDiscoverySpec(GoogleCloudDataplexV1DataDiscoverySpec $dataDiscoverySpec)
+  {
+    $this->dataDiscoverySpec = $dataDiscoverySpec;
+  }
+  /**
+   * @return GoogleCloudDataplexV1DataDiscoverySpec
+   */
+  public function getDataDiscoverySpec()
+  {
+    return $this->dataDiscoverySpec;
+  }
   /**
    * @param GoogleCloudDataplexV1DataProfileResult
    */

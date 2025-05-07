@@ -88,14 +88,44 @@ final class Psr18Client implements ClientInterface, RequestFactoryInterface, Str
     {
         try {
             $body = $request->getBody();
+            $headers = $request->getHeaders();
 
-            if ($body->isSeekable()) {
-                $body->seek(0);
+            $size = $request->getHeader('content-length')[0] ?? -1;
+            if (0 > $size && 0 < $size = $body->getSize() ?? -1) {
+                $headers['Content-Length'] = [$size];
+            }
+
+            if (0 === $size) {
+                $body = '';
+            } elseif (0 < $size && $size < 1 << 21) {
+                if ($body->isSeekable()) {
+                    try {
+                        $body->seek(0);
+                    } catch (\RuntimeException) {
+                        // ignore
+                    }
+                }
+
+                $body = $body->getContents();
+            } else {
+                $body = static function (int $size) use ($body) {
+                    if ($body->isSeekable()) {
+                        try {
+                            $body->seek(0);
+                        } catch (\RuntimeException) {
+                            // ignore
+                        }
+                    }
+
+                    while (!$body->eof()) {
+                        yield $body->read($size);
+                    }
+                };
             }
 
             $options = [
-                'headers' => $request->getHeaders(),
-                'body' => $body->getContents(),
+                'headers' => $headers,
+                'body' => $body,
             ];
 
             if ('1.0' === $request->getProtocolVersion()) {
@@ -128,7 +158,7 @@ final class Psr18Client implements ClientInterface, RequestFactoryInterface, Str
             return new Request($method, $uri);
         }
 
-        throw new \LogicException(sprintf('You cannot use "%s()" as no PSR-17 factories have been found. Try running "composer require php-http/discovery psr/http-factory-implementation:*".', __METHOD__));
+        throw new \LogicException(\sprintf('You cannot use "%s()" as no PSR-17 factories have been found. Try running "composer require php-http/discovery psr/http-factory-implementation:*".', __METHOD__));
     }
 
     public function createStream(string $content = ''): StreamInterface
@@ -136,7 +166,11 @@ final class Psr18Client implements ClientInterface, RequestFactoryInterface, Str
         $stream = $this->streamFactory->createStream($content);
 
         if ($stream->isSeekable()) {
-            $stream->seek(0);
+            try {
+                $stream->seek(0);
+            } catch (\RuntimeException) {
+                // ignore
+            }
         }
 
         return $stream;
@@ -166,7 +200,7 @@ final class Psr18Client implements ClientInterface, RequestFactoryInterface, Str
             return new Uri($uri);
         }
 
-        throw new \LogicException(sprintf('You cannot use "%s()" as no PSR-17 factories have been found. Try running "composer require php-http/discovery psr/http-factory-implementation:*".', __METHOD__));
+        throw new \LogicException(\sprintf('You cannot use "%s()" as no PSR-17 factories have been found. Try running "composer require php-http/discovery psr/http-factory-implementation:*".', __METHOD__));
     }
 
     public function reset(): void
@@ -182,12 +216,11 @@ final class Psr18Client implements ClientInterface, RequestFactoryInterface, Str
  */
 class Psr18NetworkException extends \RuntimeException implements NetworkExceptionInterface
 {
-    private RequestInterface $request;
-
-    public function __construct(TransportExceptionInterface $e, RequestInterface $request)
-    {
+    public function __construct(
+        TransportExceptionInterface $e,
+        private RequestInterface $request,
+    ) {
         parent::__construct($e->getMessage(), 0, $e);
-        $this->request = $request;
     }
 
     public function getRequest(): RequestInterface
@@ -201,12 +234,11 @@ class Psr18NetworkException extends \RuntimeException implements NetworkExceptio
  */
 class Psr18RequestException extends \InvalidArgumentException implements RequestExceptionInterface
 {
-    private RequestInterface $request;
-
-    public function __construct(TransportExceptionInterface $e, RequestInterface $request)
-    {
+    public function __construct(
+        TransportExceptionInterface $e,
+        private RequestInterface $request,
+    ) {
         parent::__construct($e->getMessage(), 0, $e);
-        $this->request = $request;
     }
 
     public function getRequest(): RequestInterface

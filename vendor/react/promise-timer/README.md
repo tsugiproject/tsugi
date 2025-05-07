@@ -288,7 +288,7 @@ This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-composer require react/promise-timer:^1.10
+composer require react/promise-timer:^1.11
 ```
 
 See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.

@@ -76,7 +76,7 @@ abstract class CredentialsLoader implements
      */
     public static function fromEnv()
     {
-        $path = getenv(self::ENV_VAR);
+        $path = self::getEnv(self::ENV_VAR);
         if (empty($path)) {
             return null;
         }
@@ -85,6 +85,7 @@ abstract class CredentialsLoader implements
             throw new \DomainException(self::unableToReadEnv($cause));
         }
         $jsonKey = file_get_contents($path);
+
         return json_decode((string) $jsonKey, true);
     }
 
@@ -103,7 +104,7 @@ abstract class CredentialsLoader implements
     public static function fromWellKnownFile()
     {
         $rootEnv = self::isOnWindows() ? 'APPDATA' : 'HOME';
-        $path = [getenv($rootEnv)];
+        $path = [self::getEnv($rootEnv)];
         if (!self::isOnWindows()) {
             $path[] = self::NON_WINDOWS_WELL_KNOWN_PATH_BASE;
         }
@@ -118,6 +119,12 @@ abstract class CredentialsLoader implements
 
     /**
      * Create a new Credentials instance.
+     *
+     * **Important**: If you accept a credential configuration (credential JSON/File/Stream) from an
+     * external source for authentication to Google Cloud Platform, you must validate it before
+     * providing it to any Google API or library. Providing an unvalidated credential configuration to
+     * Google APIs can compromise the security of your systems and data. For more information
+     * {@see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials}
      *
      * @param string|string[] $scope the scope of the access request, expressed
      *        either as an Array or as a space-delimited String.
@@ -165,15 +172,15 @@ abstract class CredentialsLoader implements
      *
      * @param FetchAuthTokenInterface $fetcher is used to fetch the auth token
      * @param array<mixed> $httpClientOptions (optional) Array of request options to apply.
-     * @param callable $httpHandler (optional) http client to fetch the token.
-     * @param callable $tokenCallback (optional) function to be called when a new token is fetched.
+     * @param callable|null $httpHandler (optional) http client to fetch the token.
+     * @param callable|null $tokenCallback (optional) function to be called when a new token is fetched.
      * @return \GuzzleHttp\Client
      */
     public static function makeHttpClient(
         FetchAuthTokenInterface $fetcher,
         array $httpClientOptions = [],
-        callable $httpHandler = null,
-        callable $tokenCallback = null
+        ?callable $httpHandler = null,
+        ?callable $tokenCallback = null
     ) {
         $middleware = new Middleware\AuthTokenMiddleware(
             $fetcher,
@@ -208,7 +215,7 @@ abstract class CredentialsLoader implements
      */
     public static function quotaProjectFromEnv()
     {
-        return getenv(self::QUOTA_PROJECT_ENV_VAR) ?: null;
+        return self::getEnv(self::QUOTA_PROJECT_ENV_VAR) ?: null;
     }
 
     /**
@@ -244,7 +251,7 @@ abstract class CredentialsLoader implements
      */
     public static function shouldLoadClientCertSource()
     {
-        return filter_var(getenv(self::MTLS_CERT_ENV_VAR), FILTER_VALIDATE_BOOLEAN);
+        return filter_var(self::getEnv(self::MTLS_CERT_ENV_VAR), FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -253,7 +260,7 @@ abstract class CredentialsLoader implements
     private static function loadDefaultClientCertSourceFile()
     {
         $rootEnv = self::isOnWindows() ? 'APPDATA' : 'HOME';
-        $path = sprintf('%s/%s', getenv($rootEnv), self::MTLS_WELL_KNOWN_PATH);
+        $path = sprintf('%s/%s', self::getEnv($rootEnv), self::MTLS_WELL_KNOWN_PATH);
         if (!file_exists($path)) {
             return null;
         }
@@ -284,5 +291,10 @@ abstract class CredentialsLoader implements
     public function getUniverseDomain(): string
     {
         return self::DEFAULT_UNIVERSE_DOMAIN;
+    }
+
+    private static function getEnv(string $env): mixed
+    {
+        return getenv($env) ?: $_ENV[$env] ?? null;
     }
 }

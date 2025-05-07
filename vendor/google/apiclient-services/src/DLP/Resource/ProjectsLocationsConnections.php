@@ -37,8 +37,10 @@ class ProjectsLocationsConnections extends \Google\Service\Resource
   /**
    * Create a Connection to an external data source. (connections.create)
    *
-   * @param string $parent Required. Parent resource name in the format:
-   * "projects/{project}/locations/{location}".
+   * @param string $parent Required. Parent resource name. The format of this
+   * value varies depending on the scope of the request (project or organization):
+   * + Projects scope: `projects/{project_id}/locations/{location_id}` +
+   * Organizations scope: `organizations/{org_id}/locations/{location_id}`
    * @param GooglePrivacyDlpV2CreateConnectionRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GooglePrivacyDlpV2Connection
@@ -55,7 +57,7 @@ class ProjectsLocationsConnections extends \Google\Service\Resource
    *
    * @param string $name Required. Resource name of the Connection to be deleted,
    * in the format:
-   * "projects/{project}/locations/{location}/connections/{connection}".
+   * `projects/{project}/locations/{location}/connections/{connection}`.
    * @param array $optParams Optional parameters.
    * @return GoogleProtobufEmpty
    * @throws \Google\Service\Exception
@@ -70,7 +72,7 @@ class ProjectsLocationsConnections extends \Google\Service\Resource
    * Get a Connection by name. (connections.get)
    *
    * @param string $name Required. Resource name in the format:
-   * "projects/{project}/locations/{location}/connections/{connection}".
+   * `projects/{project}/locations/{location}/connections/{connection}`.
    * @param array $optParams Optional parameters.
    * @return GooglePrivacyDlpV2Connection
    * @throws \Google\Service\Exception
@@ -82,13 +84,15 @@ class ProjectsLocationsConnections extends \Google\Service\Resource
     return $this->call('get', [$params], GooglePrivacyDlpV2Connection::class);
   }
   /**
-   * Lists Connections in a parent. (connections.listProjectsLocationsConnections)
+   * Lists Connections in a parent. Use SearchConnections to see all connections
+   * within an organization. (connections.listProjectsLocationsConnections)
    *
-   * @param string $parent Required. Parent name, for example: "projects/project-
-   * id/locations/global".
+   * @param string $parent Required. Resource name of the organization or project,
+   * for example, `organizations/433245324/locations/europe` or `projects/project-
+   * id/locations/asia`.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string filter Optional. * Supported fields/values - `state` -
+   * @opt_param string filter Optional. Supported field/value: `state` -
    * MISSING|AVAILABLE|ERROR
    * @opt_param int pageSize Optional. Number of results per page, max 1000.
    * @opt_param string pageToken Optional. Page token from a previous page to
@@ -107,7 +111,7 @@ class ProjectsLocationsConnections extends \Google\Service\Resource
    * Update a Connection. (connections.patch)
    *
    * @param string $name Required. Resource name in the format:
-   * "projects/{project}/locations/{location}/connections/{connection}".
+   * `projects/{project}/locations/{location}/connections/{connection}`.
    * @param GooglePrivacyDlpV2UpdateConnectionRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GooglePrivacyDlpV2Connection
@@ -122,11 +126,12 @@ class ProjectsLocationsConnections extends \Google\Service\Resource
   /**
    * Searches for Connections in a parent. (connections.search)
    *
-   * @param string $parent Required. Parent name, typically an organization,
-   * without location. For example: "organizations/12345678".
+   * @param string $parent Required. Resource name of the organization or project
+   * with a wildcard location, for example, `organizations/433245324/locations/-`
+   * or `projects/project-id/locations/-`.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string filter Optional. * Supported fields/values - `state` -
+   * @opt_param string filter Optional. Supported field/value: - `state` -
    * MISSING|AVAILABLE|ERROR
    * @opt_param int pageSize Optional. Number of results per page, max 1000.
    * @opt_param string pageToken Optional. Page token from a previous page to

@@ -19,6 +19,8 @@ namespace Google\Service\DiscoveryEngine;
 
 class GoogleCloudDiscoveryengineV1ImportDocumentsRequest extends \Google\Model
 {
+  protected $alloyDbSourceType = GoogleCloudDiscoveryengineV1AlloyDbSource::class;
+  protected $alloyDbSourceDataType = '';
   /**
    * @var bool
    */
@@ -35,6 +37,10 @@ class GoogleCloudDiscoveryengineV1ImportDocumentsRequest extends \Google\Model
   protected $fhirStoreSourceDataType = '';
   protected $firestoreSourceType = GoogleCloudDiscoveryengineV1FirestoreSource::class;
   protected $firestoreSourceDataType = '';
+  /**
+   * @var bool
+   */
+  public $forceRefreshContent;
   protected $gcsSourceType = GoogleCloudDiscoveryengineV1GcsSource::class;
   protected $gcsSourceDataType = '';
   /**
@@ -54,6 +60,20 @@ class GoogleCloudDiscoveryengineV1ImportDocumentsRequest extends \Google\Model
    */
   public $updateMask;
 
+  /**
+   * @param GoogleCloudDiscoveryengineV1AlloyDbSource
+   */
+  public function setAlloyDbSource(GoogleCloudDiscoveryengineV1AlloyDbSource $alloyDbSource)
+  {
+    $this->alloyDbSource = $alloyDbSource;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1AlloyDbSource
+   */
+  public function getAlloyDbSource()
+  {
+    return $this->alloyDbSource;
+  }
   /**
    * @param bool
    */
@@ -151,6 +171,20 @@ class GoogleCloudDiscoveryengineV1ImportDocumentsRequest extends \Google\Model
   public function getFirestoreSource()
   {
     return $this->firestoreSource;
+  }
+  /**
+   * @param bool
+   */
+  public function setForceRefreshContent($forceRefreshContent)
+  {
+    $this->forceRefreshContent = $forceRefreshContent;
+  }
+  /**
+   * @return bool
+   */
+  public function getForceRefreshContent()
+  {
+    return $this->forceRefreshContent;
   }
   /**
    * @param GoogleCloudDiscoveryengineV1GcsSource

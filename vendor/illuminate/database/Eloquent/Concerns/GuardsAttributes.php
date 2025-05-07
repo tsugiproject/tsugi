@@ -214,14 +214,19 @@ trait GuardsAttributes
      */
     protected function isGuardableColumn($key)
     {
+        if ($this->hasSetMutator($key) || $this->hasAttributeSetMutator($key)) {
+            return true;
+        }
+
         if (! isset(static::$guardableColumns[get_class($this)])) {
             $columns = $this->getConnection()
-                        ->getSchemaBuilder()
-                        ->getColumnListing($this->getTable());
+                ->getSchemaBuilder()
+                ->getColumnListing($this->getTable());
 
             if (empty($columns)) {
                 return true;
             }
+
             static::$guardableColumns[get_class($this)] = $columns;
         }
 

@@ -26,9 +26,27 @@ class GoogleCloudAiplatformV1DeploymentResourcePool extends \Google\Model
   protected $dedicatedResourcesType = GoogleCloudAiplatformV1DedicatedResources::class;
   protected $dedicatedResourcesDataType = '';
   /**
+   * @var bool
+   */
+  public $disableContainerLogging;
+  protected $encryptionSpecType = GoogleCloudAiplatformV1EncryptionSpec::class;
+  protected $encryptionSpecDataType = '';
+  /**
    * @var string
    */
   public $name;
+  /**
+   * @var bool
+   */
+  public $satisfiesPzi;
+  /**
+   * @var bool
+   */
+  public $satisfiesPzs;
+  /**
+   * @var string
+   */
+  public $serviceAccount;
 
   /**
    * @param string
@@ -59,6 +77,34 @@ class GoogleCloudAiplatformV1DeploymentResourcePool extends \Google\Model
     return $this->dedicatedResources;
   }
   /**
+   * @param bool
+   */
+  public function setDisableContainerLogging($disableContainerLogging)
+  {
+    $this->disableContainerLogging = $disableContainerLogging;
+  }
+  /**
+   * @return bool
+   */
+  public function getDisableContainerLogging()
+  {
+    return $this->disableContainerLogging;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1EncryptionSpec
+   */
+  public function setEncryptionSpec(GoogleCloudAiplatformV1EncryptionSpec $encryptionSpec)
+  {
+    $this->encryptionSpec = $encryptionSpec;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1EncryptionSpec
+   */
+  public function getEncryptionSpec()
+  {
+    return $this->encryptionSpec;
+  }
+  /**
    * @param string
    */
   public function setName($name)
@@ -71,6 +117,48 @@ class GoogleCloudAiplatformV1DeploymentResourcePool extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param bool
+   */
+  public function setSatisfiesPzi($satisfiesPzi)
+  {
+    $this->satisfiesPzi = $satisfiesPzi;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzi()
+  {
+    return $this->satisfiesPzi;
+  }
+  /**
+   * @param bool
+   */
+  public function setSatisfiesPzs($satisfiesPzs)
+  {
+    $this->satisfiesPzs = $satisfiesPzs;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzs()
+  {
+    return $this->satisfiesPzs;
+  }
+  /**
+   * @param string
+   */
+  public function setServiceAccount($serviceAccount)
+  {
+    $this->serviceAccount = $serviceAccount;
+  }
+  /**
+   * @return string
+   */
+  public function getServiceAccount()
+  {
+    return $this->serviceAccount;
   }
 }
 

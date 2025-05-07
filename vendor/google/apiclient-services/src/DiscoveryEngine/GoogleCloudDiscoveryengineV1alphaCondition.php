@@ -22,10 +22,12 @@ class GoogleCloudDiscoveryengineV1alphaCondition extends \Google\Collection
   protected $collection_key = 'queryTerms';
   protected $activeTimeRangeType = GoogleCloudDiscoveryengineV1alphaConditionTimeRange::class;
   protected $activeTimeRangeDataType = 'array';
-  public $activeTimeRange = [];
+  /**
+   * @var string
+   */
+  public $queryRegex;
   protected $queryTermsType = GoogleCloudDiscoveryengineV1alphaConditionQueryTerm::class;
   protected $queryTermsDataType = 'array';
-  public $queryTerms = [];
 
   /**
    * @param GoogleCloudDiscoveryengineV1alphaConditionTimeRange[]
@@ -40,6 +42,20 @@ class GoogleCloudDiscoveryengineV1alphaCondition extends \Google\Collection
   public function getActiveTimeRange()
   {
     return $this->activeTimeRange;
+  }
+  /**
+   * @param string
+   */
+  public function setQueryRegex($queryRegex)
+  {
+    $this->queryRegex = $queryRegex;
+  }
+  /**
+   * @return string
+   */
+  public function getQueryRegex()
+  {
+    return $this->queryRegex;
   }
   /**
    * @param GoogleCloudDiscoveryengineV1alphaConditionQueryTerm[]

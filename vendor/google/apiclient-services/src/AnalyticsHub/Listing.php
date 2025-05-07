@@ -26,12 +26,18 @@ class Listing extends \Google\Collection
    * @var string[]
    */
   public $categories;
+  protected $commercialInfoType = GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfo::class;
+  protected $commercialInfoDataType = '';
   protected $dataProviderType = DataProvider::class;
   protected $dataProviderDataType = '';
   /**
    * @var string
    */
   public $description;
+  /**
+   * @var string
+   */
+  public $discoveryType;
   /**
    * @var string
    */
@@ -45,6 +51,10 @@ class Listing extends \Google\Collection
    */
   public $icon;
   /**
+   * @var bool
+   */
+  public $logLinkedDatasetQueryUserEmail;
+  /**
    * @var string
    */
   public $name;
@@ -54,10 +64,16 @@ class Listing extends \Google\Collection
   public $primaryContact;
   protected $publisherType = Publisher::class;
   protected $publisherDataType = '';
+  protected $pubsubTopicType = PubSubTopicSource::class;
+  protected $pubsubTopicDataType = '';
   /**
    * @var string
    */
   public $requestAccess;
+  /**
+   * @var string
+   */
+  public $resourceType;
   protected $restrictedExportConfigType = RestrictedExportConfig::class;
   protected $restrictedExportConfigDataType = '';
   /**
@@ -94,6 +110,20 @@ class Listing extends \Google\Collection
     return $this->categories;
   }
   /**
+   * @param GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfo
+   */
+  public function setCommercialInfo(GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfo $commercialInfo)
+  {
+    $this->commercialInfo = $commercialInfo;
+  }
+  /**
+   * @return GoogleCloudBigqueryAnalyticshubV1ListingCommercialInfo
+   */
+  public function getCommercialInfo()
+  {
+    return $this->commercialInfo;
+  }
+  /**
    * @param DataProvider
    */
   public function setDataProvider(DataProvider $dataProvider)
@@ -120,6 +150,20 @@ class Listing extends \Google\Collection
   public function getDescription()
   {
     return $this->description;
+  }
+  /**
+   * @param string
+   */
+  public function setDiscoveryType($discoveryType)
+  {
+    $this->discoveryType = $discoveryType;
+  }
+  /**
+   * @return string
+   */
+  public function getDiscoveryType()
+  {
+    return $this->discoveryType;
   }
   /**
    * @param string
@@ -164,6 +208,20 @@ class Listing extends \Google\Collection
     return $this->icon;
   }
   /**
+   * @param bool
+   */
+  public function setLogLinkedDatasetQueryUserEmail($logLinkedDatasetQueryUserEmail)
+  {
+    $this->logLinkedDatasetQueryUserEmail = $logLinkedDatasetQueryUserEmail;
+  }
+  /**
+   * @return bool
+   */
+  public function getLogLinkedDatasetQueryUserEmail()
+  {
+    return $this->logLinkedDatasetQueryUserEmail;
+  }
+  /**
    * @param string
    */
   public function setName($name)
@@ -206,6 +264,20 @@ class Listing extends \Google\Collection
     return $this->publisher;
   }
   /**
+   * @param PubSubTopicSource
+   */
+  public function setPubsubTopic(PubSubTopicSource $pubsubTopic)
+  {
+    $this->pubsubTopic = $pubsubTopic;
+  }
+  /**
+   * @return PubSubTopicSource
+   */
+  public function getPubsubTopic()
+  {
+    return $this->pubsubTopic;
+  }
+  /**
    * @param string
    */
   public function setRequestAccess($requestAccess)
@@ -218,6 +290,20 @@ class Listing extends \Google\Collection
   public function getRequestAccess()
   {
     return $this->requestAccess;
+  }
+  /**
+   * @param string
+   */
+  public function setResourceType($resourceType)
+  {
+    $this->resourceType = $resourceType;
+  }
+  /**
+   * @return string
+   */
+  public function getResourceType()
+  {
+    return $this->resourceType;
   }
   /**
    * @param RestrictedExportConfig

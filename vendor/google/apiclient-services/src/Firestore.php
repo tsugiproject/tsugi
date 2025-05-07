@@ -75,7 +75,17 @@ class Firestore extends \Google\Service
         'databases',
         [
           'methods' => [
-            'create' => [
+            'bulkDeleteDocuments' => [
+              'path' => 'v1/{+name}:bulkDeleteDocuments',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'create' => [
               'path' => 'v1/{+parent}/databases',
               'httpMethod' => 'POST',
               'parameters' => [
@@ -141,6 +151,10 @@ class Firestore extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+                'showDeleted' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],'patch' => [
@@ -792,6 +806,10 @@ class Firestore extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
               ],
             ],

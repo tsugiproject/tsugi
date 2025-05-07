@@ -35,9 +35,11 @@ class ProjectsLocationsFeaturestoresEntityTypesFeatures extends \Google\Service\
   /**
    * Creates a batch of Features in a given EntityType. (features.batchCreate)
    *
-   * @param string $parent Required. The resource name of the EntityType to create
-   * the batch of Features under. Format: `projects/{project}/locations/{location}
-   * /featurestores/{featurestore}/entityTypes/{entity_type}`
+   * @param string $parent Required. The resource name of the
+   * EntityType/FeatureGroup to create the batch of Features under. Format: `proje
+   * cts/{project}/locations/{location}/featurestores/{featurestore}/entityTypes/{
+   * entity_type}`
+   * `projects/{project}/locations/{location}/featureGroups/{feature_group}`
    * @param GoogleCloudAiplatformV1BatchCreateFeaturesRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleLongrunningOperation
@@ -181,7 +183,8 @@ class ProjectsLocationsFeaturestoresEntityTypesFeatures extends \Google\Service\
    * then only the non-empty fields present in the request will be overwritten.
    * Set the update_mask to `*` to override all fields. Updatable fields: *
    * `description` * `labels` * `disable_monitoring` (Not supported for
-   * FeatureRegistry Feature)
+   * FeatureRegistryService Feature) * `point_of_contact` (Not supported for
+   * FeaturestoreService FeatureStore)
    * @return GoogleCloudAiplatformV1Feature
    * @throws \Google\Service\Exception
    */

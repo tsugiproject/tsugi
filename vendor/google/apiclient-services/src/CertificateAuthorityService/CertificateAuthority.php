@@ -61,6 +61,14 @@ class CertificateAuthority extends \Google\Collection
    */
   public $pemCaCertificates;
   /**
+   * @var bool
+   */
+  public $satisfiesPzi;
+  /**
+   * @var bool
+   */
+  public $satisfiesPzs;
+  /**
    * @var string
    */
   public $state;
@@ -78,6 +86,8 @@ class CertificateAuthority extends \Google\Collection
    * @var string
    */
   public $updateTime;
+  protected $userDefinedAccessUrlsType = UserDefinedAccessUrls::class;
+  protected $userDefinedAccessUrlsDataType = '';
 
   /**
    * @param AccessUrls
@@ -248,6 +258,34 @@ class CertificateAuthority extends \Google\Collection
     return $this->pemCaCertificates;
   }
   /**
+   * @param bool
+   */
+  public function setSatisfiesPzi($satisfiesPzi)
+  {
+    $this->satisfiesPzi = $satisfiesPzi;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzi()
+  {
+    return $this->satisfiesPzi;
+  }
+  /**
+   * @param bool
+   */
+  public function setSatisfiesPzs($satisfiesPzs)
+  {
+    $this->satisfiesPzs = $satisfiesPzs;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzs()
+  {
+    return $this->satisfiesPzs;
+  }
+  /**
    * @param string
    */
   public function setState($state)
@@ -316,6 +354,20 @@ class CertificateAuthority extends \Google\Collection
   public function getUpdateTime()
   {
     return $this->updateTime;
+  }
+  /**
+   * @param UserDefinedAccessUrls
+   */
+  public function setUserDefinedAccessUrls(UserDefinedAccessUrls $userDefinedAccessUrls)
+  {
+    $this->userDefinedAccessUrls = $userDefinedAccessUrls;
+  }
+  /**
+   * @return UserDefinedAccessUrls
+   */
+  public function getUserDefinedAccessUrls()
+  {
+    return $this->userDefinedAccessUrls;
   }
 }
 

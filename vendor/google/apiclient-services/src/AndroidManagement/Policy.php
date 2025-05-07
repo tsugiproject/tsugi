@@ -49,6 +49,10 @@ class Policy extends \Google\Collection
   /**
    * @var string
    */
+  public $assistContentPolicy;
+  /**
+   * @var string
+   */
   public $autoDateAndTimeZone;
   /**
    * @var bool
@@ -118,6 +122,8 @@ class Policy extends \Google\Collection
   protected $deviceOwnerLockScreenInfoDataType = '';
   protected $deviceRadioStateType = DeviceRadioState::class;
   protected $deviceRadioStateDataType = '';
+  protected $displaySettingsType = DisplaySettings::class;
+  protected $displaySettingsDataType = '';
   /**
    * @var string
    */
@@ -452,6 +458,20 @@ class Policy extends \Google\Collection
   /**
    * @param string
    */
+  public function setAssistContentPolicy($assistContentPolicy)
+  {
+    $this->assistContentPolicy = $assistContentPolicy;
+  }
+  /**
+   * @return string
+   */
+  public function getAssistContentPolicy()
+  {
+    return $this->assistContentPolicy;
+  }
+  /**
+   * @param string
+   */
   public function setAutoDateAndTimeZone($autoDateAndTimeZone)
   {
     $this->autoDateAndTimeZone = $autoDateAndTimeZone;
@@ -742,6 +762,20 @@ class Policy extends \Google\Collection
   public function getDeviceRadioState()
   {
     return $this->deviceRadioState;
+  }
+  /**
+   * @param DisplaySettings
+   */
+  public function setDisplaySettings(DisplaySettings $displaySettings)
+  {
+    $this->displaySettings = $displaySettings;
+  }
+  /**
+   * @return DisplaySettings
+   */
+  public function getDisplaySettings()
+  {
+    return $this->displaySettings;
   }
   /**
    * @param string

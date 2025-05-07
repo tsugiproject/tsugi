@@ -17,6 +17,7 @@
 
 namespace Google\Service\Firestore\Resource;
 
+use Google\Service\Firestore\GoogleFirestoreAdminV1BulkDeleteDocumentsRequest;
 use Google\Service\Firestore\GoogleFirestoreAdminV1Database;
 use Google\Service\Firestore\GoogleFirestoreAdminV1ExportDocumentsRequest;
 use Google\Service\Firestore\GoogleFirestoreAdminV1ImportDocumentsRequest;
@@ -35,6 +36,28 @@ use Google\Service\Firestore\GoogleLongrunningOperation;
 class ProjectsDatabases extends \Google\Service\Resource
 {
   /**
+   * Bulk deletes a subset of documents from Google Cloud Firestore. Documents
+   * created or updated after the underlying system starts to process the request
+   * will not be deleted. The bulk delete occurs in the background and its
+   * progress can be monitored and managed via the Operation resource that is
+   * created. For more details on bulk delete behavior, refer to:
+   * https://cloud.google.com/firestore/docs/manage-data/bulk-delete
+   * (databases.bulkDeleteDocuments)
+   *
+   * @param string $name Required. Database to operate. Should be of the form:
+   * `projects/{project_id}/databases/{database_id}`.
+   * @param GoogleFirestoreAdminV1BulkDeleteDocumentsRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
+   */
+  public function bulkDeleteDocuments($name, GoogleFirestoreAdminV1BulkDeleteDocumentsRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('bulkDeleteDocuments', [$params], GoogleLongrunningOperation::class);
+  }
+  /**
    * Create a database. (databases.create)
    *
    * @param string $parent Required. A parent name of the form
@@ -46,7 +69,7 @@ class ProjectsDatabases extends \Google\Service\Resource
    * will become the final component of the database's resource name. This value
    * should be 4-63 characters. Valid characters are /a-z-/ with first character a
    * letter and the last a letter or a number. Must not be UUID-like
-   * /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/. "(default)" database id is also
+   * /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/. "(default)" database ID is also
    * valid.
    * @return GoogleLongrunningOperation
    * @throws \Google\Service\Exception
@@ -143,6 +166,8 @@ class ProjectsDatabases extends \Google\Service\Resource
    * @param string $parent Required. A parent name of the form
    * `projects/{project_id}`
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param bool showDeleted If true, also returns deleted resources.
    * @return GoogleFirestoreAdminV1ListDatabasesResponse
    * @throws \Google\Service\Exception
    */

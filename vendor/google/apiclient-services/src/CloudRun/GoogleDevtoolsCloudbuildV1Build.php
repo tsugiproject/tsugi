@@ -34,12 +34,16 @@ class GoogleDevtoolsCloudbuildV1Build extends \Google\Collection
    * @var string
    */
   public $createTime;
+  protected $dependenciesType = GoogleDevtoolsCloudbuildV1Dependency::class;
+  protected $dependenciesDataType = 'array';
   protected $failureInfoType = GoogleDevtoolsCloudbuildV1FailureInfo::class;
   protected $failureInfoDataType = '';
   /**
    * @var string
    */
   public $finishTime;
+  protected $gitConfigType = GoogleDevtoolsCloudbuildV1GitConfig::class;
+  protected $gitConfigDataType = '';
   /**
    * @var string
    */
@@ -184,6 +188,20 @@ class GoogleDevtoolsCloudbuildV1Build extends \Google\Collection
     return $this->createTime;
   }
   /**
+   * @param GoogleDevtoolsCloudbuildV1Dependency[]
+   */
+  public function setDependencies($dependencies)
+  {
+    $this->dependencies = $dependencies;
+  }
+  /**
+   * @return GoogleDevtoolsCloudbuildV1Dependency[]
+   */
+  public function getDependencies()
+  {
+    return $this->dependencies;
+  }
+  /**
    * @param GoogleDevtoolsCloudbuildV1FailureInfo
    */
   public function setFailureInfo(GoogleDevtoolsCloudbuildV1FailureInfo $failureInfo)
@@ -210,6 +228,20 @@ class GoogleDevtoolsCloudbuildV1Build extends \Google\Collection
   public function getFinishTime()
   {
     return $this->finishTime;
+  }
+  /**
+   * @param GoogleDevtoolsCloudbuildV1GitConfig
+   */
+  public function setGitConfig(GoogleDevtoolsCloudbuildV1GitConfig $gitConfig)
+  {
+    $this->gitConfig = $gitConfig;
+  }
+  /**
+   * @return GoogleDevtoolsCloudbuildV1GitConfig
+   */
+  public function getGitConfig()
+  {
+    return $this->gitConfig;
   }
   /**
    * @param string

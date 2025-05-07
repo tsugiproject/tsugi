@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.11.0 (2024-06-04)
+
+*   Feature: Improve PHP 8.4+ support by avoiding implicitly nullable type declarations.
+    (#70 by @clue)
+
+*   Feature: Full PHP 8.3 compatibility.
+    (#68 by @clue)
+
 ## 1.10.0 (2023-07-20)
 
 *   Feature: Use Promise v3 template types.

@@ -102,7 +102,7 @@ class Caliper {
      * @param $duration This is the duration of the activity on the page.
      */
     public static function sensorCanvasPageView ($user, $application, $page,
-            $timestamp=false, $name, $duration='PT5M30S') {
+            $timestamp=false, $name = null, $duration='PT5M30S') {
 
         $caliper = json_decode('{
             "@context" : "http://purl.imsglobal.org/ctx/caliper/v1/ViewEvent",

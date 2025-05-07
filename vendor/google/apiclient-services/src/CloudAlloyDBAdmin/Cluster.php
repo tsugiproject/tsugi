@@ -27,6 +27,8 @@ class Cluster extends \Google\Model
   protected $automatedBackupPolicyDataType = '';
   protected $backupSourceType = BackupSource::class;
   protected $backupSourceDataType = '';
+  protected $cloudsqlBackupRunSourceType = CloudSQLBackupRunSource::class;
+  protected $cloudsqlBackupRunSourceDataType = '';
   /**
    * @var string
    */
@@ -65,6 +67,8 @@ class Cluster extends \Google\Model
    * @var string[]
    */
   public $labels;
+  protected $maintenanceScheduleType = MaintenanceSchedule::class;
+  protected $maintenanceScheduleDataType = '';
   protected $maintenanceUpdatePolicyType = MaintenanceUpdatePolicy::class;
   protected $maintenanceUpdatePolicyDataType = '';
   protected $migrationSourceType = MigrationSource::class;
@@ -99,6 +103,16 @@ class Cluster extends \Google\Model
    * @var string
    */
   public $state;
+  /**
+   * @var string
+   */
+  public $subscriptionType;
+  /**
+   * @var string[]
+   */
+  public $tags;
+  protected $trialMetadataType = TrialMetadata::class;
+  protected $trialMetadataDataType = '';
   /**
    * @var string
    */
@@ -149,6 +163,20 @@ class Cluster extends \Google\Model
   public function getBackupSource()
   {
     return $this->backupSource;
+  }
+  /**
+   * @param CloudSQLBackupRunSource
+   */
+  public function setCloudsqlBackupRunSource(CloudSQLBackupRunSource $cloudsqlBackupRunSource)
+  {
+    $this->cloudsqlBackupRunSource = $cloudsqlBackupRunSource;
+  }
+  /**
+   * @return CloudSQLBackupRunSource
+   */
+  public function getCloudsqlBackupRunSource()
+  {
+    return $this->cloudsqlBackupRunSource;
   }
   /**
    * @param string
@@ -319,6 +347,20 @@ class Cluster extends \Google\Model
     return $this->labels;
   }
   /**
+   * @param MaintenanceSchedule
+   */
+  public function setMaintenanceSchedule(MaintenanceSchedule $maintenanceSchedule)
+  {
+    $this->maintenanceSchedule = $maintenanceSchedule;
+  }
+  /**
+   * @return MaintenanceSchedule
+   */
+  public function getMaintenanceSchedule()
+  {
+    return $this->maintenanceSchedule;
+  }
+  /**
    * @param MaintenanceUpdatePolicy
    */
   public function setMaintenanceUpdatePolicy(MaintenanceUpdatePolicy $maintenanceUpdatePolicy)
@@ -485,6 +527,48 @@ class Cluster extends \Google\Model
   public function getState()
   {
     return $this->state;
+  }
+  /**
+   * @param string
+   */
+  public function setSubscriptionType($subscriptionType)
+  {
+    $this->subscriptionType = $subscriptionType;
+  }
+  /**
+   * @return string
+   */
+  public function getSubscriptionType()
+  {
+    return $this->subscriptionType;
+  }
+  /**
+   * @param string[]
+   */
+  public function setTags($tags)
+  {
+    $this->tags = $tags;
+  }
+  /**
+   * @return string[]
+   */
+  public function getTags()
+  {
+    return $this->tags;
+  }
+  /**
+   * @param TrialMetadata
+   */
+  public function setTrialMetadata(TrialMetadata $trialMetadata)
+  {
+    $this->trialMetadata = $trialMetadata;
+  }
+  /**
+   * @return TrialMetadata
+   */
+  public function getTrialMetadata()
+  {
+    return $this->trialMetadata;
   }
   /**
    * @param string

@@ -36,13 +36,13 @@ class ProjectsLocationsFeatureGroups extends \Google\Service\Resource
    * (featureGroups.create)
    *
    * @param string $parent Required. The resource name of the Location to create
-   * FeatureGroups. Format: `projects/{project}/locations/{location}'`
+   * FeatureGroups. Format: `projects/{project}/locations/{location}`
    * @param GoogleCloudAiplatformV1FeatureGroup $postBody
    * @param array $optParams Optional parameters.
    *
    * @opt_param string featureGroupId Required. The ID to use for this
    * FeatureGroup, which will become the final component of the FeatureGroup's
-   * resource name. This value may be up to 60 characters, and valid characters
+   * resource name. This value may be up to 128 characters, and valid characters
    * are `[a-z0-9_]`. The first character cannot be a number. The value must be
    * unique within the project and location.
    * @return GoogleLongrunningOperation
@@ -113,9 +113,9 @@ class ProjectsLocationsFeatureGroups extends \Google\Service\Resource
    * FeatureGroups will be returned. The maximum value is 100; any value greater
    * than 100 will be coerced to 100.
    * @opt_param string pageToken A page token, received from a previous
-   * FeatureGroupAdminService.ListFeatureGroups call. Provide this to retrieve the
+   * FeatureRegistryService.ListFeatureGroups call. Provide this to retrieve the
    * subsequent page. When paginating, all other parameters provided to
-   * FeatureGroupAdminService.ListFeatureGroups must match the call that provided
+   * FeatureRegistryService.ListFeatureGroups must match the call that provided
    * the page token.
    * @return GoogleCloudAiplatformV1ListFeatureGroupsResponse
    * @throws \Google\Service\Exception
@@ -140,7 +140,8 @@ class ProjectsLocationsFeatureGroups extends \Google\Service\Resource
    * field will be overwritten if it is in the mask. If the user does not provide
    * a mask then only the non-empty fields present in the request will be
    * overwritten. Set the update_mask to `*` to override all fields. Updatable
-   * fields: * `labels`
+   * fields: * `labels` * `description` * `big_query` *
+   * `big_query.entity_id_columns` * `service_agent_type`
    * @return GoogleLongrunningOperation
    * @throws \Google\Service\Exception
    */

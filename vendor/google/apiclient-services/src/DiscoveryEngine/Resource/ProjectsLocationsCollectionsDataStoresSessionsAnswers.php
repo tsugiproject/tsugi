@@ -17,7 +17,7 @@
 
 namespace Google\Service\DiscoveryEngine\Resource;
 
-use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1betaAnswer;
+use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1Answer;
 
 /**
  * The "answers" collection of methods.
@@ -33,17 +33,17 @@ class ProjectsLocationsCollectionsDataStoresSessionsAnswers extends \Google\Serv
    * Gets a Answer. (answers.get)
    *
    * @param string $name Required. The resource name of the Answer to get. Format:
-   * `projects/{project_number}/locations/{location_id}/collections/{collection}/e
-   * ngines/{engine_id}/sessions/{session_id}/answers/{answer_id}`
+   * `projects/{project}/locations/{location}/collections/{collection}/engines/{en
+   * gine_id}/sessions/{session_id}/answers/{answer_id}`
    * @param array $optParams Optional parameters.
-   * @return GoogleCloudDiscoveryengineV1betaAnswer
+   * @return GoogleCloudDiscoveryengineV1Answer
    * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
-    return $this->call('get', [$params], GoogleCloudDiscoveryengineV1betaAnswer::class);
+    return $this->call('get', [$params], GoogleCloudDiscoveryengineV1Answer::class);
   }
 }
 

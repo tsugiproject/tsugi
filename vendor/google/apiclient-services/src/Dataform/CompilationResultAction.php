@@ -29,6 +29,12 @@ class CompilationResultAction extends \Google\Model
    * @var string
    */
   public $filePath;
+  /**
+   * @var string
+   */
+  public $internalMetadata;
+  protected $notebookType = Notebook::class;
+  protected $notebookDataType = '';
   protected $operationsType = Operations::class;
   protected $operationsDataType = '';
   protected $relationType = Relation::class;
@@ -91,6 +97,34 @@ class CompilationResultAction extends \Google\Model
   public function getFilePath()
   {
     return $this->filePath;
+  }
+  /**
+   * @param string
+   */
+  public function setInternalMetadata($internalMetadata)
+  {
+    $this->internalMetadata = $internalMetadata;
+  }
+  /**
+   * @return string
+   */
+  public function getInternalMetadata()
+  {
+    return $this->internalMetadata;
+  }
+  /**
+   * @param Notebook
+   */
+  public function setNotebook(Notebook $notebook)
+  {
+    $this->notebook = $notebook;
+  }
+  /**
+   * @return Notebook
+   */
+  public function getNotebook()
+  {
+    return $this->notebook;
   }
   /**
    * @param Operations

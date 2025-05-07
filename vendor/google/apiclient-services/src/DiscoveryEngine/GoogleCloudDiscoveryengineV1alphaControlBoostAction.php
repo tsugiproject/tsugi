@@ -26,7 +26,17 @@ class GoogleCloudDiscoveryengineV1alphaControlBoostAction extends \Google\Model
   /**
    * @var string
    */
+  public $dataStore;
+  /**
+   * @var string
+   */
   public $filter;
+  /**
+   * @var float
+   */
+  public $fixedBoost;
+  protected $interpolationBoostSpecType = GoogleCloudDiscoveryengineV1alphaControlBoostActionInterpolationBoostSpec::class;
+  protected $interpolationBoostSpecDataType = '';
 
   /**
    * @param float
@@ -45,6 +55,20 @@ class GoogleCloudDiscoveryengineV1alphaControlBoostAction extends \Google\Model
   /**
    * @param string
    */
+  public function setDataStore($dataStore)
+  {
+    $this->dataStore = $dataStore;
+  }
+  /**
+   * @return string
+   */
+  public function getDataStore()
+  {
+    return $this->dataStore;
+  }
+  /**
+   * @param string
+   */
   public function setFilter($filter)
   {
     $this->filter = $filter;
@@ -55,6 +79,34 @@ class GoogleCloudDiscoveryengineV1alphaControlBoostAction extends \Google\Model
   public function getFilter()
   {
     return $this->filter;
+  }
+  /**
+   * @param float
+   */
+  public function setFixedBoost($fixedBoost)
+  {
+    $this->fixedBoost = $fixedBoost;
+  }
+  /**
+   * @return float
+   */
+  public function getFixedBoost()
+  {
+    return $this->fixedBoost;
+  }
+  /**
+   * @param GoogleCloudDiscoveryengineV1alphaControlBoostActionInterpolationBoostSpec
+   */
+  public function setInterpolationBoostSpec(GoogleCloudDiscoveryengineV1alphaControlBoostActionInterpolationBoostSpec $interpolationBoostSpec)
+  {
+    $this->interpolationBoostSpec = $interpolationBoostSpec;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1alphaControlBoostActionInterpolationBoostSpec
+   */
+  public function getInterpolationBoostSpec()
+  {
+    return $this->interpolationBoostSpec;
   }
 }
 

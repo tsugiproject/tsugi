@@ -23,11 +23,16 @@ use Google\Client;
  * Service definition for CloudSourceRepositories (v1).
  *
  * <p>
- * Accesses source code repositories hosted by Google.</p>
+ * Accesses source code repositories hosted by Google. Important: Cloud Source
+ * Repositories is scheduled for end of sales starting June 17, 2024. Customers
+ * who have enabled the API prior to this date will not be affected and can
+ * continue to use Cloud Source Repositories. Organizations or projects who have
+ * not previously enabled the API cannot use Cloud Source Repositories after
+ * this date. View Cloud Source Repositories documentation for more info.</p>
  *
  * <p>
  * For more information about this service, see the API
- * <a href="https://cloud.google.com/source-repositories/docs/apis" target="_blank">Documentation</a>
+ * <a href="https://cloud.google.com/source-repositories/docs" target="_blank">Documentation</a>
  * </p>
  *
  * @author Google, Inc.

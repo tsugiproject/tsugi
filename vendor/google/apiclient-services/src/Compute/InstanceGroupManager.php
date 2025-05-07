@@ -48,6 +48,8 @@ class InstanceGroupManager extends \Google\Collection
    * @var string
    */
   public $id;
+  protected $instanceFlexibilityPolicyType = InstanceGroupManagerInstanceFlexibilityPolicy::class;
+  protected $instanceFlexibilityPolicyDataType = '';
   /**
    * @var string
    */
@@ -77,9 +79,19 @@ class InstanceGroupManager extends \Google\Collection
    */
   public $region;
   /**
+   * @var bool
+   */
+  public $satisfiesPzi;
+  /**
+   * @var bool
+   */
+  public $satisfiesPzs;
+  /**
    * @var string
    */
   public $selfLink;
+  protected $standbyPolicyType = InstanceGroupManagerStandbyPolicy::class;
+  protected $standbyPolicyDataType = '';
   protected $statefulPolicyType = StatefulPolicy::class;
   protected $statefulPolicyDataType = '';
   protected $statusType = InstanceGroupManagerStatus::class;
@@ -92,6 +104,14 @@ class InstanceGroupManager extends \Google\Collection
    * @var int
    */
   public $targetSize;
+  /**
+   * @var int
+   */
+  public $targetStoppedSize;
+  /**
+   * @var int
+   */
+  public $targetSuspendedSize;
   protected $updatePolicyType = InstanceGroupManagerUpdatePolicy::class;
   protected $updatePolicyDataType = '';
   protected $versionsType = InstanceGroupManagerVersion::class;
@@ -228,6 +248,20 @@ class InstanceGroupManager extends \Google\Collection
     return $this->id;
   }
   /**
+   * @param InstanceGroupManagerInstanceFlexibilityPolicy
+   */
+  public function setInstanceFlexibilityPolicy(InstanceGroupManagerInstanceFlexibilityPolicy $instanceFlexibilityPolicy)
+  {
+    $this->instanceFlexibilityPolicy = $instanceFlexibilityPolicy;
+  }
+  /**
+   * @return InstanceGroupManagerInstanceFlexibilityPolicy
+   */
+  public function getInstanceFlexibilityPolicy()
+  {
+    return $this->instanceFlexibilityPolicy;
+  }
+  /**
    * @param string
    */
   public function setInstanceGroup($instanceGroup)
@@ -340,6 +374,34 @@ class InstanceGroupManager extends \Google\Collection
     return $this->region;
   }
   /**
+   * @param bool
+   */
+  public function setSatisfiesPzi($satisfiesPzi)
+  {
+    $this->satisfiesPzi = $satisfiesPzi;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzi()
+  {
+    return $this->satisfiesPzi;
+  }
+  /**
+   * @param bool
+   */
+  public function setSatisfiesPzs($satisfiesPzs)
+  {
+    $this->satisfiesPzs = $satisfiesPzs;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzs()
+  {
+    return $this->satisfiesPzs;
+  }
+  /**
    * @param string
    */
   public function setSelfLink($selfLink)
@@ -352,6 +414,20 @@ class InstanceGroupManager extends \Google\Collection
   public function getSelfLink()
   {
     return $this->selfLink;
+  }
+  /**
+   * @param InstanceGroupManagerStandbyPolicy
+   */
+  public function setStandbyPolicy(InstanceGroupManagerStandbyPolicy $standbyPolicy)
+  {
+    $this->standbyPolicy = $standbyPolicy;
+  }
+  /**
+   * @return InstanceGroupManagerStandbyPolicy
+   */
+  public function getStandbyPolicy()
+  {
+    return $this->standbyPolicy;
   }
   /**
    * @param StatefulPolicy
@@ -408,6 +484,34 @@ class InstanceGroupManager extends \Google\Collection
   public function getTargetSize()
   {
     return $this->targetSize;
+  }
+  /**
+   * @param int
+   */
+  public function setTargetStoppedSize($targetStoppedSize)
+  {
+    $this->targetStoppedSize = $targetStoppedSize;
+  }
+  /**
+   * @return int
+   */
+  public function getTargetStoppedSize()
+  {
+    return $this->targetStoppedSize;
+  }
+  /**
+   * @param int
+   */
+  public function setTargetSuspendedSize($targetSuspendedSize)
+  {
+    $this->targetSuspendedSize = $targetSuspendedSize;
+  }
+  /**
+   * @return int
+   */
+  public function getTargetSuspendedSize()
+  {
+    return $this->targetSuspendedSize;
   }
   /**
    * @param InstanceGroupManagerUpdatePolicy

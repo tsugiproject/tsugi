@@ -213,6 +213,8 @@ class Product extends \Google\Collection
   public $linkTemplate;
   protected $loyaltyProgramType = LoyaltyProgram::class;
   protected $loyaltyProgramDataType = '';
+  protected $loyaltyProgramsType = LoyaltyProgram::class;
+  protected $loyaltyProgramsDataType = 'array';
   /**
    * @var string
    */
@@ -343,6 +345,8 @@ class Product extends \Google\Collection
   protected $structuredTitleDataType = '';
   protected $subscriptionCostType = ProductSubscriptionCost::class;
   protected $subscriptionCostDataType = '';
+  protected $sustainabilityIncentivesType = ProductSustainabilityIncentive::class;
+  protected $sustainabilityIncentivesDataType = 'array';
   /**
    * @var string
    */
@@ -1107,6 +1111,20 @@ class Product extends \Google\Collection
     return $this->loyaltyProgram;
   }
   /**
+   * @param LoyaltyProgram[]
+   */
+  public function setLoyaltyPrograms($loyaltyPrograms)
+  {
+    $this->loyaltyPrograms = $loyaltyPrograms;
+  }
+  /**
+   * @return LoyaltyProgram[]
+   */
+  public function getLoyaltyPrograms()
+  {
+    return $this->loyaltyPrograms;
+  }
+  /**
    * @param string
    */
   public function setMaterial($material)
@@ -1665,6 +1683,20 @@ class Product extends \Google\Collection
   public function getSubscriptionCost()
   {
     return $this->subscriptionCost;
+  }
+  /**
+   * @param ProductSustainabilityIncentive[]
+   */
+  public function setSustainabilityIncentives($sustainabilityIncentives)
+  {
+    $this->sustainabilityIncentives = $sustainabilityIncentives;
+  }
+  /**
+   * @return ProductSustainabilityIncentive[]
+   */
+  public function getSustainabilityIncentives()
+  {
+    return $this->sustainabilityIncentives;
   }
   /**
    * @param string

@@ -22,7 +22,15 @@ class InstancePolicyOrTemplate extends \Google\Model
   /**
    * @var bool
    */
+  public $blockProjectSshKeys;
+  /**
+   * @var bool
+   */
   public $installGpuDrivers;
+  /**
+   * @var bool
+   */
+  public $installOpsAgent;
   /**
    * @var string
    */
@@ -30,6 +38,20 @@ class InstancePolicyOrTemplate extends \Google\Model
   protected $policyType = InstancePolicy::class;
   protected $policyDataType = '';
 
+  /**
+   * @param bool
+   */
+  public function setBlockProjectSshKeys($blockProjectSshKeys)
+  {
+    $this->blockProjectSshKeys = $blockProjectSshKeys;
+  }
+  /**
+   * @return bool
+   */
+  public function getBlockProjectSshKeys()
+  {
+    return $this->blockProjectSshKeys;
+  }
   /**
    * @param bool
    */
@@ -43,6 +65,20 @@ class InstancePolicyOrTemplate extends \Google\Model
   public function getInstallGpuDrivers()
   {
     return $this->installGpuDrivers;
+  }
+  /**
+   * @param bool
+   */
+  public function setInstallOpsAgent($installOpsAgent)
+  {
+    $this->installOpsAgent = $installOpsAgent;
+  }
+  /**
+   * @return bool
+   */
+  public function getInstallOpsAgent()
+  {
+    return $this->installOpsAgent;
   }
   /**
    * @param string

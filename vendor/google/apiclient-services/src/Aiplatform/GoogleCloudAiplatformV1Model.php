@@ -34,6 +34,10 @@ class GoogleCloudAiplatformV1Model extends \Google\Collection
   public $createTime;
   protected $dataStatsType = GoogleCloudAiplatformV1ModelDataStats::class;
   protected $dataStatsDataType = '';
+  /**
+   * @var string
+   */
+  public $defaultCheckpointId;
   protected $deployedModelsType = GoogleCloudAiplatformV1DeployedModelRef::class;
   protected $deployedModelsDataType = 'array';
   /**
@@ -82,6 +86,14 @@ class GoogleCloudAiplatformV1Model extends \Google\Collection
   public $pipelineJob;
   protected $predictSchemataType = GoogleCloudAiplatformV1PredictSchemata::class;
   protected $predictSchemataDataType = '';
+  /**
+   * @var bool
+   */
+  public $satisfiesPzi;
+  /**
+   * @var bool
+   */
+  public $satisfiesPzs;
   /**
    * @var string[]
    */
@@ -194,6 +206,20 @@ class GoogleCloudAiplatformV1Model extends \Google\Collection
   public function getDataStats()
   {
     return $this->dataStats;
+  }
+  /**
+   * @param string
+   */
+  public function setDefaultCheckpointId($defaultCheckpointId)
+  {
+    $this->defaultCheckpointId = $defaultCheckpointId;
+  }
+  /**
+   * @return string
+   */
+  public function getDefaultCheckpointId()
+  {
+    return $this->defaultCheckpointId;
   }
   /**
    * @param GoogleCloudAiplatformV1DeployedModelRef[]
@@ -404,6 +430,34 @@ class GoogleCloudAiplatformV1Model extends \Google\Collection
   public function getPredictSchemata()
   {
     return $this->predictSchemata;
+  }
+  /**
+   * @param bool
+   */
+  public function setSatisfiesPzi($satisfiesPzi)
+  {
+    $this->satisfiesPzi = $satisfiesPzi;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzi()
+  {
+    return $this->satisfiesPzi;
+  }
+  /**
+   * @param bool
+   */
+  public function setSatisfiesPzs($satisfiesPzs)
+  {
+    $this->satisfiesPzs = $satisfiesPzs;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzs()
+  {
+    return $this->satisfiesPzs;
   }
   /**
    * @param string[]

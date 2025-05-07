@@ -35,6 +35,10 @@ class DeviceConnectivityManagement extends \Google\Model
    * @var string
    */
   public $wifiDirectSettings;
+  protected $wifiRoamingPolicyType = WifiRoamingPolicy::class;
+  protected $wifiRoamingPolicyDataType = '';
+  protected $wifiSsidPolicyType = WifiSsidPolicy::class;
+  protected $wifiSsidPolicyDataType = '';
 
   /**
    * @param string
@@ -91,6 +95,34 @@ class DeviceConnectivityManagement extends \Google\Model
   public function getWifiDirectSettings()
   {
     return $this->wifiDirectSettings;
+  }
+  /**
+   * @param WifiRoamingPolicy
+   */
+  public function setWifiRoamingPolicy(WifiRoamingPolicy $wifiRoamingPolicy)
+  {
+    $this->wifiRoamingPolicy = $wifiRoamingPolicy;
+  }
+  /**
+   * @return WifiRoamingPolicy
+   */
+  public function getWifiRoamingPolicy()
+  {
+    return $this->wifiRoamingPolicy;
+  }
+  /**
+   * @param WifiSsidPolicy
+   */
+  public function setWifiSsidPolicy(WifiSsidPolicy $wifiSsidPolicy)
+  {
+    $this->wifiSsidPolicy = $wifiSsidPolicy;
+  }
+  /**
+   * @return WifiSsidPolicy
+   */
+  public function getWifiSsidPolicy()
+  {
+    return $this->wifiSsidPolicy;
   }
 }
 

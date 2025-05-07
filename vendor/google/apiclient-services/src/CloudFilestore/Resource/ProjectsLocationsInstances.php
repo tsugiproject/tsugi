@@ -20,6 +20,7 @@ namespace Google\Service\CloudFilestore\Resource;
 use Google\Service\CloudFilestore\Instance;
 use Google\Service\CloudFilestore\ListInstancesResponse;
 use Google\Service\CloudFilestore\Operation;
+use Google\Service\CloudFilestore\PromoteReplicaRequest;
 use Google\Service\CloudFilestore\RestoreInstanceRequest;
 use Google\Service\CloudFilestore\RevertInstanceRequest;
 
@@ -126,7 +127,9 @@ class ProjectsLocationsInstances extends \Google\Service\Resource
    *
    * @opt_param string updateMask Mask of fields to update. At least one path must
    * be supplied in this field. The elements of the repeated paths field may only
-   * include these fields: * "description" * "file_shares" * "labels"
+   * include these fields: * "description" * "file_shares" * "labels" *
+   * "performance_config" * "deletion_protection_enabled" *
+   * "deletion_protection_reason"
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -135,6 +138,23 @@ class ProjectsLocationsInstances extends \Google\Service\Resource
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('patch', [$params], Operation::class);
+  }
+  /**
+   * Promote the standby instance (replica). (instances.promoteReplica)
+   *
+   * @param string $name Required. The resource name of the instance, in the
+   * format
+   * `projects/{project_id}/locations/{location_id}/instances/{instance_id}`.
+   * @param PromoteReplicaRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function promoteReplica($name, PromoteReplicaRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('promoteReplica', [$params], Operation::class);
   }
   /**
    * Restores an existing instance's file share from a backup. The capacity of the

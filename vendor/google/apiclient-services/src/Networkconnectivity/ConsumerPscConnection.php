@@ -41,7 +41,19 @@ class ConsumerPscConnection extends \Google\Model
   /**
    * @var string
    */
+  public $ipVersion;
+  /**
+   * @var string
+   */
   public $network;
+  /**
+   * @var string
+   */
+  public $producerInstanceId;
+  /**
+   * @var string[]
+   */
+  public $producerInstanceMetadata;
   /**
    * @var string
    */
@@ -150,6 +162,20 @@ class ConsumerPscConnection extends \Google\Model
   /**
    * @param string
    */
+  public function setIpVersion($ipVersion)
+  {
+    $this->ipVersion = $ipVersion;
+  }
+  /**
+   * @return string
+   */
+  public function getIpVersion()
+  {
+    return $this->ipVersion;
+  }
+  /**
+   * @param string
+   */
   public function setNetwork($network)
   {
     $this->network = $network;
@@ -160,6 +186,34 @@ class ConsumerPscConnection extends \Google\Model
   public function getNetwork()
   {
     return $this->network;
+  }
+  /**
+   * @param string
+   */
+  public function setProducerInstanceId($producerInstanceId)
+  {
+    $this->producerInstanceId = $producerInstanceId;
+  }
+  /**
+   * @return string
+   */
+  public function getProducerInstanceId()
+  {
+    return $this->producerInstanceId;
+  }
+  /**
+   * @param string[]
+   */
+  public function setProducerInstanceMetadata($producerInstanceMetadata)
+  {
+    $this->producerInstanceMetadata = $producerInstanceMetadata;
+  }
+  /**
+   * @return string[]
+   */
+  public function getProducerInstanceMetadata()
+  {
+    return $this->producerInstanceMetadata;
   }
   /**
    * @param string
