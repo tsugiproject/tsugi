@@ -37,8 +37,8 @@
         "react/dns" : ">=1.13.0",
         "react/socket" : ">=1.16.0",
 
-        "tsugi/lib": "dev-php-84-x#2057bdb45b6ac2f82b4e84abbb31846dc0396e37",
-        "koseu/lib": "dev-php-84-x#f8cebbcef99677c1d2df91a1eff87ad8e93d8ad9"
+        "tsugi/lib": "dev-master#ae69dfc503d9ddef430fdec924343b48a5cac2bd",
+        "koseu/lib": "dev-master#c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b"
     },
     "config": {
         "preferred-install": "dist"

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3e8beea0ccb69081117da617c6ac8b45",
+    "content-hash": "bae0d0d8f219cbc5aae04eb9927ef3e2",
     "packages": [
         {
             "name": "brick/math",
@@ -2846,23 +2846,24 @@
         },
         {
             "name": "koseu/lib",
-            "version": "dev-php-84-x",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "f8cebbcef99677c1d2df91a1eff87ad8e93d8ad9"
+                "reference": "c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/f8cebbcef99677c1d2df91a1eff87ad8e93d8ad9",
-                "reference": "f8cebbcef99677c1d2df91a1eff87ad8e93d8ad9",
+                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b",
+                "reference": "c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b",
                 "shasum": ""
             },
             "require": {
                 "laravel/lumen-framework": "v11.2.0",
                 "php": ">=8.4.0",
-                "tsugi/lib": "dev-php-84-x#2057bdb45b6ac2f82b4e84abbb31846dc0396e37"
+                "tsugi/lib": "dev-master#ae69dfc503d9ddef430fdec924343b48a5cac2bd"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -2890,9 +2891,9 @@
             "homepage": "http://www.koseu.org/",
             "support": {
                 "issues": "https://github.com/tsugiproject/koseu-php/issues",
-                "source": "https://github.com/tsugiproject/koseu-php/tree/php-84-x"
+                "source": "https://github.com/tsugiproject/koseu-php/tree/master"
             },
-            "time": "2025-05-07T11:55:56+00:00"
+            "time": "2025-06-05T09:36:42+00:00"
         },
         {
             "name": "laravel/lumen-framework",
@@ -7337,16 +7338,16 @@
         },
         {
             "name": "tsugi/lib",
-            "version": "dev-php-84-x",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "2057bdb45b6ac2f82b4e84abbb31846dc0396e37"
+                "reference": "ae69dfc503d9ddef430fdec924343b48a5cac2bd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/2057bdb45b6ac2f82b4e84abbb31846dc0396e37",
-                "reference": "2057bdb45b6ac2f82b4e84abbb31846dc0396e37",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/ae69dfc503d9ddef430fdec924343b48a5cac2bd",
+                "reference": "ae69dfc503d9ddef430fdec924343b48a5cac2bd",
                 "shasum": ""
             },
             "require": {
@@ -7360,6 +7361,7 @@
                 "phpunit/php-timer": "v5.0.3",
                 "phpunit/phpunit": "9.*"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -7387,9 +7389,9 @@
             "homepage": "http://www.tsugi.org/",
             "support": {
                 "issues": "https://github.com/tsugiproject/tsugi-php/issues",
-                "source": "https://github.com/tsugiproject/tsugi-php/tree/php-84-x"
+                "source": "https://github.com/tsugiproject/tsugi-php/tree/master"
             },
-            "time": "2025-05-07T11:53:54+00:00"
+            "time": "2025-06-05T09:31:46+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
