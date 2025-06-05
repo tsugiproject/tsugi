@@ -79,6 +79,10 @@ class Settings extends \Google\Collection
   /**
    * @var bool
    */
+  public $enableDataplexIntegration;
+  /**
+   * @var bool
+   */
   public $enableGoogleMlIntegration;
   protected $insightsConfigType = InsightsConfig::class;
   protected $insightsConfigDataType = '';
@@ -98,6 +102,10 @@ class Settings extends \Google\Collection
    * @var string
    */
   public $pricingPlan;
+  /**
+   * @var int
+   */
+  public $replicationLagMaxSeconds;
   /**
    * @var string
    */
@@ -370,6 +378,20 @@ class Settings extends \Google\Collection
   /**
    * @param bool
    */
+  public function setEnableDataplexIntegration($enableDataplexIntegration)
+  {
+    $this->enableDataplexIntegration = $enableDataplexIntegration;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableDataplexIntegration()
+  {
+    return $this->enableDataplexIntegration;
+  }
+  /**
+   * @param bool
+   */
   public function setEnableGoogleMlIntegration($enableGoogleMlIntegration)
   {
     $this->enableGoogleMlIntegration = $enableGoogleMlIntegration;
@@ -478,6 +500,20 @@ class Settings extends \Google\Collection
   public function getPricingPlan()
   {
     return $this->pricingPlan;
+  }
+  /**
+   * @param int
+   */
+  public function setReplicationLagMaxSeconds($replicationLagMaxSeconds)
+  {
+    $this->replicationLagMaxSeconds = $replicationLagMaxSeconds;
+  }
+  /**
+   * @return int
+   */
+  public function getReplicationLagMaxSeconds()
+  {
+    return $this->replicationLagMaxSeconds;
   }
   /**
    * @param string

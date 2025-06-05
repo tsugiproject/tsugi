@@ -23,6 +23,8 @@ class GoogleCloudRecaptchaenterpriseV1Assessment extends \Google\Model
   protected $accountDefenderAssessmentDataType = '';
   protected $accountVerificationType = GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo::class;
   protected $accountVerificationDataType = '';
+  protected $assessmentEnvironmentType = GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment::class;
+  protected $assessmentEnvironmentDataType = '';
   protected $eventType = GoogleCloudRecaptchaenterpriseV1Event::class;
   protected $eventDataType = '';
   protected $firewallPolicyAssessmentType = GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment::class;
@@ -35,6 +37,8 @@ class GoogleCloudRecaptchaenterpriseV1Assessment extends \Google\Model
    * @var string
    */
   public $name;
+  protected $phoneFraudAssessmentType = GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment::class;
+  protected $phoneFraudAssessmentDataType = '';
   protected $privatePasswordLeakVerificationType = GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification::class;
   protected $privatePasswordLeakVerificationDataType = '';
   protected $riskAnalysisType = GoogleCloudRecaptchaenterpriseV1RiskAnalysis::class;
@@ -69,6 +73,20 @@ class GoogleCloudRecaptchaenterpriseV1Assessment extends \Google\Model
   public function getAccountVerification()
   {
     return $this->accountVerification;
+  }
+  /**
+   * @param GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment
+   */
+  public function setAssessmentEnvironment(GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment $assessmentEnvironment)
+  {
+    $this->assessmentEnvironment = $assessmentEnvironment;
+  }
+  /**
+   * @return GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment
+   */
+  public function getAssessmentEnvironment()
+  {
+    return $this->assessmentEnvironment;
   }
   /**
    * @param GoogleCloudRecaptchaenterpriseV1Event
@@ -139,6 +157,20 @@ class GoogleCloudRecaptchaenterpriseV1Assessment extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * @param GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment
+   */
+  public function setPhoneFraudAssessment(GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment $phoneFraudAssessment)
+  {
+    $this->phoneFraudAssessment = $phoneFraudAssessment;
+  }
+  /**
+   * @return GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment
+   */
+  public function getPhoneFraudAssessment()
+  {
+    return $this->phoneFraudAssessment;
   }
   /**
    * @param GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification

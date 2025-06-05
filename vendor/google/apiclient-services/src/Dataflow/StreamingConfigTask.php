@@ -32,12 +32,22 @@ class StreamingConfigTask extends \Google\Collection
    * @var string
    */
   public $maxWorkItemCommitBytes;
+  protected $operationalLimitsType = StreamingOperationalLimits::class;
+  protected $operationalLimitsDataType = '';
   protected $streamingComputationConfigsType = StreamingComputationConfig::class;
   protected $streamingComputationConfigsDataType = 'array';
   /**
    * @var string[]
    */
   public $userStepToStateFamilyNameMap;
+  /**
+   * @var string
+   */
+  public $userWorkerRunnerV1Settings;
+  /**
+   * @var string
+   */
+  public $userWorkerRunnerV2Settings;
   /**
    * @var string
    */
@@ -90,6 +100,20 @@ class StreamingConfigTask extends \Google\Collection
     return $this->maxWorkItemCommitBytes;
   }
   /**
+   * @param StreamingOperationalLimits
+   */
+  public function setOperationalLimits(StreamingOperationalLimits $operationalLimits)
+  {
+    $this->operationalLimits = $operationalLimits;
+  }
+  /**
+   * @return StreamingOperationalLimits
+   */
+  public function getOperationalLimits()
+  {
+    return $this->operationalLimits;
+  }
+  /**
    * @param StreamingComputationConfig[]
    */
   public function setStreamingComputationConfigs($streamingComputationConfigs)
@@ -116,6 +140,34 @@ class StreamingConfigTask extends \Google\Collection
   public function getUserStepToStateFamilyNameMap()
   {
     return $this->userStepToStateFamilyNameMap;
+  }
+  /**
+   * @param string
+   */
+  public function setUserWorkerRunnerV1Settings($userWorkerRunnerV1Settings)
+  {
+    $this->userWorkerRunnerV1Settings = $userWorkerRunnerV1Settings;
+  }
+  /**
+   * @return string
+   */
+  public function getUserWorkerRunnerV1Settings()
+  {
+    return $this->userWorkerRunnerV1Settings;
+  }
+  /**
+   * @param string
+   */
+  public function setUserWorkerRunnerV2Settings($userWorkerRunnerV2Settings)
+  {
+    $this->userWorkerRunnerV2Settings = $userWorkerRunnerV2Settings;
+  }
+  /**
+   * @return string
+   */
+  public function getUserWorkerRunnerV2Settings()
+  {
+    return $this->userWorkerRunnerV2Settings;
   }
   /**
    * @param string

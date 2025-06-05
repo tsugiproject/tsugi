@@ -26,6 +26,14 @@ class GoogleCloudDiscoveryengineV1alphaImportCompletionSuggestionsMetadata exten
   /**
    * @var string
    */
+  public $failureCount;
+  /**
+   * @var string
+   */
+  public $successCount;
+  /**
+   * @var string
+   */
   public $updateTime;
 
   /**
@@ -41,6 +49,34 @@ class GoogleCloudDiscoveryengineV1alphaImportCompletionSuggestionsMetadata exten
   public function getCreateTime()
   {
     return $this->createTime;
+  }
+  /**
+   * @param string
+   */
+  public function setFailureCount($failureCount)
+  {
+    $this->failureCount = $failureCount;
+  }
+  /**
+   * @return string
+   */
+  public function getFailureCount()
+  {
+    return $this->failureCount;
+  }
+  /**
+   * @param string
+   */
+  public function setSuccessCount($successCount)
+  {
+    $this->successCount = $successCount;
+  }
+  /**
+   * @return string
+   */
+  public function getSuccessCount()
+  {
+    return $this->successCount;
   }
   /**
    * @param string

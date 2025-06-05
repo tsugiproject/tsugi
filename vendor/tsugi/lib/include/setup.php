@@ -65,9 +65,12 @@ if ( defined('COOKIE_SESSION') ) {
     ini_set('session.cookie_secure', $CFG->DEVELOPER ? '0' : '1');
     // ini_set('session.use_strict_mode', '1');
 } else {
+    $previous = error_reporting();
+    error_reporting(0);
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);
     ini_set('session.use_trans_sid',1);
+    error_reporting($previous);
 }
 
 // Check for non-embeddable pages and declare appropriate CSP

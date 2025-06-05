@@ -71,13 +71,17 @@ class ProjectsLocationsRepositoriesCompilationResults extends \Google\Service\Re
    * @param array $optParams Optional parameters.
    *
    * @opt_param string filter Optional. Filter for the returned list.
+   * @opt_param string orderBy Optional. This field only supports ordering by
+   * `name` and `create_time`. If unspecified, the server will choose the
+   * ordering. If specified, the default order is ascending for the `name` field.
    * @opt_param int pageSize Optional. Maximum number of compilation results to
    * return. The server may return fewer items than requested. If unspecified, the
    * server will pick an appropriate default.
    * @opt_param string pageToken Optional. Page token received from a previous
    * `ListCompilationResults` call. Provide this to retrieve the subsequent page.
-   * When paginating, all other parameters provided to `ListCompilationResults`
-   * must match the call that provided the page token.
+   * When paginating, all other parameters provided to `ListCompilationResults`,
+   * with the exception of `page_size`, must match the call that provided the page
+   * token.
    * @return ListCompilationResultsResponse
    * @throws \Google\Service\Exception
    */
@@ -102,8 +106,8 @@ class ProjectsLocationsRepositoriesCompilationResults extends \Google\Service\Re
    * @opt_param string pageToken Optional. Page token received from a previous
    * `QueryCompilationResultActions` call. Provide this to retrieve the subsequent
    * page. When paginating, all other parameters provided to
-   * `QueryCompilationResultActions` must match the call that provided the page
-   * token.
+   * `QueryCompilationResultActions`, with the exception of `page_size`, must
+   * match the call that provided the page token.
    * @return QueryCompilationResultActionsResponse
    * @throws \Google\Service\Exception
    */

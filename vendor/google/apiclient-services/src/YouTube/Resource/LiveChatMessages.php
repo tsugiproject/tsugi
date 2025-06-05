@@ -68,14 +68,15 @@ class LiveChatMessages extends \Google\Service\Resource
    * @param string $liveChatId The id of the live chat for which comments should
    * be returned.
    * @param string|array $part The *part* parameter specifies the liveChatComment
-   * resource parts that the API response will include. Supported values are id
-   * and snippet.
+   * resource parts that the API response will include. Supported values are id,
+   * snippet, and authorDetails.
    * @param array $optParams Optional parameters.
    *
    * @opt_param string hl Specifies the localization language in which the system
    * messages should be returned.
    * @opt_param string maxResults The *maxResults* parameter specifies the maximum
-   * number of items that should be returned in the result set.
+   * number of items that should be returned in the result set. Not used in the
+   * streaming RPC.
    * @opt_param string pageToken The *pageToken* parameter identifies a specific
    * page in the result set that should be returned. In an API response, the
    * nextPageToken property identify other pages that could be retrieved.
@@ -89,6 +90,24 @@ class LiveChatMessages extends \Google\Service\Resource
     $params = ['liveChatId' => $liveChatId, 'part' => $part];
     $params = array_merge($params, $optParams);
     return $this->call('list', [$params], LiveChatMessageListResponse::class);
+  }
+  /**
+   * Transition a durable chat event. (liveChatMessages.transition)
+   *
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string id The ID that uniquely identify the chat message event to
+   * transition.
+   * @opt_param string status The status to which the chat event is going to
+   * transition.
+   * @return LiveChatMessage
+   * @throws \Google\Service\Exception
+   */
+  public function transition($optParams = [])
+  {
+    $params = [];
+    $params = array_merge($params, $optParams);
+    return $this->call('transition', [$params], LiveChatMessage::class);
   }
 }
 

@@ -19,7 +19,7 @@ namespace Google\Service\CloudDeploy;
 
 class RepairRolloutRule extends \Google\Collection
 {
-  protected $collection_key = 'sourcePhases';
+  protected $collection_key = 'repairPhases';
   protected $conditionType = AutomationRuleCondition::class;
   protected $conditionDataType = '';
   /**
@@ -30,12 +30,12 @@ class RepairRolloutRule extends \Google\Collection
    * @var string[]
    */
   public $jobs;
-  protected $repairModesType = RepairMode::class;
-  protected $repairModesDataType = 'array';
   /**
    * @var string[]
    */
-  public $sourcePhases;
+  public $phases;
+  protected $repairPhasesType = RepairPhaseConfig::class;
+  protected $repairPhasesDataType = 'array';
 
   /**
    * @param AutomationRuleCondition
@@ -80,32 +80,32 @@ class RepairRolloutRule extends \Google\Collection
     return $this->jobs;
   }
   /**
-   * @param RepairMode[]
-   */
-  public function setRepairModes($repairModes)
-  {
-    $this->repairModes = $repairModes;
-  }
-  /**
-   * @return RepairMode[]
-   */
-  public function getRepairModes()
-  {
-    return $this->repairModes;
-  }
-  /**
    * @param string[]
    */
-  public function setSourcePhases($sourcePhases)
+  public function setPhases($phases)
   {
-    $this->sourcePhases = $sourcePhases;
+    $this->phases = $phases;
   }
   /**
    * @return string[]
    */
-  public function getSourcePhases()
+  public function getPhases()
   {
-    return $this->sourcePhases;
+    return $this->phases;
+  }
+  /**
+   * @param RepairPhaseConfig[]
+   */
+  public function setRepairPhases($repairPhases)
+  {
+    $this->repairPhases = $repairPhases;
+  }
+  /**
+   * @return RepairPhaseConfig[]
+   */
+  public function getRepairPhases()
+  {
+    return $this->repairPhases;
   }
 }
 

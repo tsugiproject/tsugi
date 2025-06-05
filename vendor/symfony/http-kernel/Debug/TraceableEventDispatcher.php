@@ -27,7 +27,7 @@ class TraceableEventDispatcher extends BaseTraceableEventDispatcher
     {
         switch ($eventName) {
             case KernelEvents::REQUEST:
-                $event->getRequest()->attributes->set('_stopwatch_token', substr(hash('sha256', uniqid(mt_rand(), true)), 0, 6));
+                $event->getRequest()->attributes->set('_stopwatch_token', bin2hex(random_bytes(3)));
                 $this->stopwatch->openSection();
                 break;
             case KernelEvents::VIEW:
@@ -66,7 +66,11 @@ class TraceableEventDispatcher extends BaseTraceableEventDispatcher
                 if (null === $sectionId) {
                     break;
                 }
-                $this->stopwatch->stopSection($sectionId);
+                try {
+                    $this->stopwatch->stopSection($sectionId);
+                } catch (\LogicException) {
+                    // The stop watch service might have been reset in the meantime
+                }
                 break;
             case KernelEvents::TERMINATE:
                 // In the special case described in the `preDispatch` method above, the `$token` section

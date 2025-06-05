@@ -113,7 +113,7 @@ final class HttplugClient implements ClientInterface, HttpAsyncClient, RequestFa
     public function sendAsyncRequest(RequestInterface $request): HttplugPromise
     {
         if (!$promisePool = $this->promisePool) {
-            throw new \LogicException(sprintf('You cannot use "%s()" as the "guzzlehttp/promises" package is not installed. Try running "composer require guzzlehttp/promises".', __METHOD__));
+            throw new \LogicException(\sprintf('You cannot use "%s()" as the "guzzlehttp/promises" package is not installed. Try running "composer require guzzlehttp/promises".', __METHOD__));
         }
 
         try {
@@ -160,7 +160,7 @@ final class HttplugClient implements ClientInterface, HttpAsyncClient, RequestFa
         } elseif (class_exists(Request::class)) {
             $request = new Request($method, $uri);
         } else {
-            throw new \LogicException(sprintf('You cannot use "%s()" as no PSR-17 factories have been found. Try running "composer require php-http/discovery psr/http-factory-implementation:*".', __METHOD__));
+            throw new \LogicException(\sprintf('You cannot use "%s()" as no PSR-17 factories have been found. Try running "composer require php-http/discovery psr/http-factory-implementation:*".', __METHOD__));
         }
 
         return $request;
@@ -195,7 +195,7 @@ final class HttplugClient implements ClientInterface, HttpAsyncClient, RequestFa
             return new Uri($uri);
         }
 
-        throw new \LogicException(sprintf('You cannot use "%s()" as no PSR-17 factories have been found. Try running "composer require php-http/discovery psr/http-factory-implementation:*".', __METHOD__));
+        throw new \LogicException(\sprintf('You cannot use "%s()" as no PSR-17 factories have been found. Try running "composer require php-http/discovery psr/http-factory-implementation:*".', __METHOD__));
     }
 
     public function __sleep(): array
@@ -224,14 +224,44 @@ final class HttplugClient implements ClientInterface, HttpAsyncClient, RequestFa
     {
         try {
             $body = $request->getBody();
+            $headers = $request->getHeaders();
 
-            if ($body->isSeekable()) {
-                $body->seek(0);
+            $size = $request->getHeader('content-length')[0] ?? -1;
+            if (0 > $size && 0 < $size = $body->getSize() ?? -1) {
+                $headers['Content-Length'] = [$size];
+            }
+
+            if (0 === $size) {
+                $body = '';
+            } elseif (0 < $size && $size < 1 << 21) {
+                if ($body->isSeekable()) {
+                    try {
+                        $body->seek(0);
+                    } catch (\RuntimeException) {
+                        // ignore
+                    }
+                }
+
+                $body = $body->getContents();
+            } else {
+                $body = static function (int $size) use ($body) {
+                    if ($body->isSeekable()) {
+                        try {
+                            $body->seek(0);
+                        } catch (\RuntimeException) {
+                            // ignore
+                        }
+                    }
+
+                    while (!$body->eof()) {
+                        yield $body->read($size);
+                    }
+                };
             }
 
             $options = [
-                'headers' => $request->getHeaders(),
-                'body' => $body->getContents(),
+                'headers' => $headers,
+                'body' => $body,
                 'buffer' => $buffer,
             ];
 

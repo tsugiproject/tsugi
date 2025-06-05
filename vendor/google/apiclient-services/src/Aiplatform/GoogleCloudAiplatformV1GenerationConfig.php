@@ -21,6 +21,10 @@ class GoogleCloudAiplatformV1GenerationConfig extends \Google\Collection
 {
   protected $collection_key = 'stopSequences';
   /**
+   * @var bool
+   */
+  public $audioTimestamp;
+  /**
    * @var int
    */
   public $candidateCount;
@@ -31,15 +35,41 @@ class GoogleCloudAiplatformV1GenerationConfig extends \Google\Collection
   /**
    * @var int
    */
+  public $logprobs;
+  /**
+   * @var int
+   */
   public $maxOutputTokens;
+  /**
+   * @var string
+   */
+  public $mediaResolution;
   /**
    * @var float
    */
   public $presencePenalty;
   /**
+   * @var bool
+   */
+  public $responseLogprobs;
+  /**
    * @var string
    */
   public $responseMimeType;
+  /**
+   * @var string[]
+   */
+  public $responseModalities;
+  protected $responseSchemaType = GoogleCloudAiplatformV1Schema::class;
+  protected $responseSchemaDataType = '';
+  protected $routingConfigType = GoogleCloudAiplatformV1GenerationConfigRoutingConfig::class;
+  protected $routingConfigDataType = '';
+  /**
+   * @var int
+   */
+  public $seed;
+  protected $speechConfigType = GoogleCloudAiplatformV1SpeechConfig::class;
+  protected $speechConfigDataType = '';
   /**
    * @var string[]
    */
@@ -57,6 +87,20 @@ class GoogleCloudAiplatformV1GenerationConfig extends \Google\Collection
    */
   public $topP;
 
+  /**
+   * @param bool
+   */
+  public function setAudioTimestamp($audioTimestamp)
+  {
+    $this->audioTimestamp = $audioTimestamp;
+  }
+  /**
+   * @return bool
+   */
+  public function getAudioTimestamp()
+  {
+    return $this->audioTimestamp;
+  }
   /**
    * @param int
    */
@@ -88,6 +132,20 @@ class GoogleCloudAiplatformV1GenerationConfig extends \Google\Collection
   /**
    * @param int
    */
+  public function setLogprobs($logprobs)
+  {
+    $this->logprobs = $logprobs;
+  }
+  /**
+   * @return int
+   */
+  public function getLogprobs()
+  {
+    return $this->logprobs;
+  }
+  /**
+   * @param int
+   */
   public function setMaxOutputTokens($maxOutputTokens)
   {
     $this->maxOutputTokens = $maxOutputTokens;
@@ -98,6 +156,20 @@ class GoogleCloudAiplatformV1GenerationConfig extends \Google\Collection
   public function getMaxOutputTokens()
   {
     return $this->maxOutputTokens;
+  }
+  /**
+   * @param string
+   */
+  public function setMediaResolution($mediaResolution)
+  {
+    $this->mediaResolution = $mediaResolution;
+  }
+  /**
+   * @return string
+   */
+  public function getMediaResolution()
+  {
+    return $this->mediaResolution;
   }
   /**
    * @param float
@@ -114,6 +186,20 @@ class GoogleCloudAiplatformV1GenerationConfig extends \Google\Collection
     return $this->presencePenalty;
   }
   /**
+   * @param bool
+   */
+  public function setResponseLogprobs($responseLogprobs)
+  {
+    $this->responseLogprobs = $responseLogprobs;
+  }
+  /**
+   * @return bool
+   */
+  public function getResponseLogprobs()
+  {
+    return $this->responseLogprobs;
+  }
+  /**
    * @param string
    */
   public function setResponseMimeType($responseMimeType)
@@ -126,6 +212,76 @@ class GoogleCloudAiplatformV1GenerationConfig extends \Google\Collection
   public function getResponseMimeType()
   {
     return $this->responseMimeType;
+  }
+  /**
+   * @param string[]
+   */
+  public function setResponseModalities($responseModalities)
+  {
+    $this->responseModalities = $responseModalities;
+  }
+  /**
+   * @return string[]
+   */
+  public function getResponseModalities()
+  {
+    return $this->responseModalities;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1Schema
+   */
+  public function setResponseSchema(GoogleCloudAiplatformV1Schema $responseSchema)
+  {
+    $this->responseSchema = $responseSchema;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1Schema
+   */
+  public function getResponseSchema()
+  {
+    return $this->responseSchema;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1GenerationConfigRoutingConfig
+   */
+  public function setRoutingConfig(GoogleCloudAiplatformV1GenerationConfigRoutingConfig $routingConfig)
+  {
+    $this->routingConfig = $routingConfig;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1GenerationConfigRoutingConfig
+   */
+  public function getRoutingConfig()
+  {
+    return $this->routingConfig;
+  }
+  /**
+   * @param int
+   */
+  public function setSeed($seed)
+  {
+    $this->seed = $seed;
+  }
+  /**
+   * @return int
+   */
+  public function getSeed()
+  {
+    return $this->seed;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1SpeechConfig
+   */
+  public function setSpeechConfig(GoogleCloudAiplatformV1SpeechConfig $speechConfig)
+  {
+    $this->speechConfig = $speechConfig;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1SpeechConfig
+   */
+  public function getSpeechConfig()
+  {
+    return $this->speechConfig;
   }
   /**
    * @param string[]

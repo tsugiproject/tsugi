@@ -276,6 +276,16 @@ class CloudFilestore extends \Google\Service
                   'type' => 'string',
                 ],
               ],
+            ],'promoteReplica' => [
+              'path' => 'v1/{+name}:promoteReplica',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'restore' => [
               'path' => 'v1/{+name}:restore',
               'httpMethod' => 'POST',
@@ -364,6 +374,10 @@ class CloudFilestore extends \Google\Service
                 'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'returnPartialSuccess' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],'patch' => [

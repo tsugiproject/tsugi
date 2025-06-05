@@ -4,7 +4,7 @@ namespace Tsugi\Crypt;
 
 class SimpleEncryption {
 
-    public static CIPHER = "AES/CBC/PKCS5Padding";
+    // public static CIPHER = "AES/CBC/PKCS5Padding";
    
     public static encrypt($key, $plaintext) {
     }

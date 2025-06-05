@@ -17,8 +17,8 @@
 
 namespace Google\Service\DiscoveryEngine\Resource;
 
-use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1betaListSessionsResponse;
-use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1betaSession;
+use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1ListSessionsResponse;
+use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1Session;
 use Google\Service\DiscoveryEngine\GoogleProtobufEmpty;
 
 /**
@@ -36,26 +36,26 @@ class ProjectsLocationsCollectionsEnginesSessions extends \Google\Service\Resour
    * error is returned. (sessions.create)
    *
    * @param string $parent Required. Full resource name of parent data store.
-   * Format: `projects/{project_number}/locations/{location_id}/collections/{colle
-   * ction}/dataStores/{data_store_id}`
-   * @param GoogleCloudDiscoveryengineV1betaSession $postBody
+   * Format: `projects/{project}/locations/{location}/collections/{collection}/dat
+   * aStores/{data_store_id}`
+   * @param GoogleCloudDiscoveryengineV1Session $postBody
    * @param array $optParams Optional parameters.
-   * @return GoogleCloudDiscoveryengineV1betaSession
+   * @return GoogleCloudDiscoveryengineV1Session
    * @throws \Google\Service\Exception
    */
-  public function create($parent, GoogleCloudDiscoveryengineV1betaSession $postBody, $optParams = [])
+  public function create($parent, GoogleCloudDiscoveryengineV1Session $postBody, $optParams = [])
   {
     $params = ['parent' => $parent, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
-    return $this->call('create', [$params], GoogleCloudDiscoveryengineV1betaSession::class);
+    return $this->call('create', [$params], GoogleCloudDiscoveryengineV1Session::class);
   }
   /**
    * Deletes a Session. If the Session to delete does not exist, a NOT_FOUND error
    * is returned. (sessions.delete)
    *
    * @param string $name Required. The resource name of the Session to delete.
-   * Format: `projects/{project_number}/locations/{location_id}/collections/{colle
-   * ction}/dataStores/{data_store_id}/sessions/{session_id}`
+   * Format: `projects/{project}/locations/{location}/collections/{collection}/dat
+   * aStores/{data_store_id}/sessions/{session_id}`
    * @param array $optParams Optional parameters.
    * @return GoogleProtobufEmpty
    * @throws \Google\Service\Exception
@@ -70,66 +70,71 @@ class ProjectsLocationsCollectionsEnginesSessions extends \Google\Service\Resour
    * Gets a Session. (sessions.get)
    *
    * @param string $name Required. The resource name of the Session to get.
-   * Format: `projects/{project_number}/locations/{location_id}/collections/{colle
-   * ction}/dataStores/{data_store_id}/sessions/{session_id}`
+   * Format: `projects/{project}/locations/{location}/collections/{collection}/dat
+   * aStores/{data_store_id}/sessions/{session_id}`
    * @param array $optParams Optional parameters.
-   * @return GoogleCloudDiscoveryengineV1betaSession
+   *
+   * @opt_param bool includeAnswerDetails Optional. If set to true, the full
+   * session including all answer details will be returned.
+   * @return GoogleCloudDiscoveryengineV1Session
    * @throws \Google\Service\Exception
    */
   public function get($name, $optParams = [])
   {
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
-    return $this->call('get', [$params], GoogleCloudDiscoveryengineV1betaSession::class);
+    return $this->call('get', [$params], GoogleCloudDiscoveryengineV1Session::class);
   }
   /**
    * Lists all Sessions by their parent DataStore.
    * (sessions.listProjectsLocationsCollectionsEnginesSessions)
    *
    * @param string $parent Required. The data store resource name. Format: `projec
-   * ts/{project_number}/locations/{location_id}/collections/{collection}/dataStor
-   * es/{data_store_id}`
+   * ts/{project}/locations/{location}/collections/{collection}/dataStores/{data_s
+   * tore_id}`
    * @param array $optParams Optional parameters.
    *
    * @opt_param string filter A filter to apply on the list results. The supported
    * features are: user_pseudo_id, state. Example: "user_pseudo_id = some_id"
    * @opt_param string orderBy A comma-separated list of fields to order by,
    * sorted in ascending order. Use "desc" after a field name for descending.
-   * Supported fields: * `update_time` * `create_time` * `session_name` Example:
-   * "update_time desc" "create_time"
+   * Supported fields: * `update_time` * `create_time` * `session_name` *
+   * `is_pinned` Example: * "update_time desc" * "create_time" * "is_pinned
+   * desc,update_time desc": list sessions by is_pinned first, then by
+   * update_time.
    * @opt_param int pageSize Maximum number of results to return. If unspecified,
    * defaults to 50. Max allowed value is 1000.
    * @opt_param string pageToken A page token, received from a previous
    * `ListSessions` call. Provide this to retrieve the subsequent page.
-   * @return GoogleCloudDiscoveryengineV1betaListSessionsResponse
+   * @return GoogleCloudDiscoveryengineV1ListSessionsResponse
    * @throws \Google\Service\Exception
    */
   public function listProjectsLocationsCollectionsEnginesSessions($parent, $optParams = [])
   {
     $params = ['parent' => $parent];
     $params = array_merge($params, $optParams);
-    return $this->call('list', [$params], GoogleCloudDiscoveryengineV1betaListSessionsResponse::class);
+    return $this->call('list', [$params], GoogleCloudDiscoveryengineV1ListSessionsResponse::class);
   }
   /**
    * Updates a Session. Session action type cannot be changed. If the Session to
    * update does not exist, a NOT_FOUND error is returned. (sessions.patch)
    *
-   * @param string $name Immutable. Fully qualified name
-   * `project/locations/global/collections/{collection}/engines/{engine}/sessions`
-   * @param GoogleCloudDiscoveryengineV1betaSession $postBody
+   * @param string $name Immutable. Fully qualified name `projects/{project}/locat
+   * ions/global/collections/{collection}/engines/{engine}/sessions`
+   * @param GoogleCloudDiscoveryengineV1Session $postBody
    * @param array $optParams Optional parameters.
    *
    * @opt_param string updateMask Indicates which fields in the provided Session
    * to update. The following are NOT supported: * Session.name If not set or
    * empty, all supported fields are updated.
-   * @return GoogleCloudDiscoveryengineV1betaSession
+   * @return GoogleCloudDiscoveryengineV1Session
    * @throws \Google\Service\Exception
    */
-  public function patch($name, GoogleCloudDiscoveryengineV1betaSession $postBody, $optParams = [])
+  public function patch($name, GoogleCloudDiscoveryengineV1Session $postBody, $optParams = [])
   {
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
-    return $this->call('patch', [$params], GoogleCloudDiscoveryengineV1betaSession::class);
+    return $this->call('patch', [$params], GoogleCloudDiscoveryengineV1Session::class);
   }
 }
 

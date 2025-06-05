@@ -17,8 +17,11 @@
 
 namespace Google\Service\AnalyticsHub;
 
-class Subscription extends \Google\Model
+class Subscription extends \Google\Collection
 {
+  protected $collection_key = 'linkedResources';
+  protected $commercialInfoType = GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo::class;
+  protected $commercialInfoDataType = '';
   /**
    * @var string
    */
@@ -33,10 +36,16 @@ class Subscription extends \Google\Model
   public $lastModifyTime;
   protected $linkedDatasetMapType = LinkedResource::class;
   protected $linkedDatasetMapDataType = 'map';
+  protected $linkedResourcesType = LinkedResource::class;
+  protected $linkedResourcesDataType = 'array';
   /**
    * @var string
    */
   public $listing;
+  /**
+   * @var bool
+   */
+  public $logLinkedDatasetQueryUserEmail;
   /**
    * @var string
    */
@@ -52,12 +61,30 @@ class Subscription extends \Google\Model
   /**
    * @var string
    */
+  public $resourceType;
+  /**
+   * @var string
+   */
   public $state;
   /**
    * @var string
    */
   public $subscriberContact;
 
+  /**
+   * @param GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo
+   */
+  public function setCommercialInfo(GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo $commercialInfo)
+  {
+    $this->commercialInfo = $commercialInfo;
+  }
+  /**
+   * @return GoogleCloudBigqueryAnalyticshubV1SubscriptionCommercialInfo
+   */
+  public function getCommercialInfo()
+  {
+    return $this->commercialInfo;
+  }
   /**
    * @param string
    */
@@ -115,6 +142,20 @@ class Subscription extends \Google\Model
     return $this->linkedDatasetMap;
   }
   /**
+   * @param LinkedResource[]
+   */
+  public function setLinkedResources($linkedResources)
+  {
+    $this->linkedResources = $linkedResources;
+  }
+  /**
+   * @return LinkedResource[]
+   */
+  public function getLinkedResources()
+  {
+    return $this->linkedResources;
+  }
+  /**
    * @param string
    */
   public function setListing($listing)
@@ -127,6 +168,20 @@ class Subscription extends \Google\Model
   public function getListing()
   {
     return $this->listing;
+  }
+  /**
+   * @param bool
+   */
+  public function setLogLinkedDatasetQueryUserEmail($logLinkedDatasetQueryUserEmail)
+  {
+    $this->logLinkedDatasetQueryUserEmail = $logLinkedDatasetQueryUserEmail;
+  }
+  /**
+   * @return bool
+   */
+  public function getLogLinkedDatasetQueryUserEmail()
+  {
+    return $this->logLinkedDatasetQueryUserEmail;
   }
   /**
    * @param string
@@ -169,6 +224,20 @@ class Subscription extends \Google\Model
   public function getOrganizationId()
   {
     return $this->organizationId;
+  }
+  /**
+   * @param string
+   */
+  public function setResourceType($resourceType)
+  {
+    $this->resourceType = $resourceType;
+  }
+  /**
+   * @return string
+   */
+  public function getResourceType()
+  {
+    return $this->resourceType;
   }
   /**
    * @param string

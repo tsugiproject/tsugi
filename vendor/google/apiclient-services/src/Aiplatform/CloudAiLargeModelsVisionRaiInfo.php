@@ -23,12 +23,64 @@ class CloudAiLargeModelsVisionRaiInfo extends \Google\Collection
   /**
    * @var string[]
    */
+  public $blockedEntities;
+  protected $detectedLabelsType = CloudAiLargeModelsVisionRaiInfoDetectedLabels::class;
+  protected $detectedLabelsDataType = 'array';
+  /**
+   * @var string
+   */
+  public $modelName;
+  /**
+   * @var string[]
+   */
   public $raiCategories;
   /**
    * @var float[]
    */
   public $scores;
 
+  /**
+   * @param string[]
+   */
+  public function setBlockedEntities($blockedEntities)
+  {
+    $this->blockedEntities = $blockedEntities;
+  }
+  /**
+   * @return string[]
+   */
+  public function getBlockedEntities()
+  {
+    return $this->blockedEntities;
+  }
+  /**
+   * @param CloudAiLargeModelsVisionRaiInfoDetectedLabels[]
+   */
+  public function setDetectedLabels($detectedLabels)
+  {
+    $this->detectedLabels = $detectedLabels;
+  }
+  /**
+   * @return CloudAiLargeModelsVisionRaiInfoDetectedLabels[]
+   */
+  public function getDetectedLabels()
+  {
+    return $this->detectedLabels;
+  }
+  /**
+   * @param string
+   */
+  public function setModelName($modelName)
+  {
+    $this->modelName = $modelName;
+  }
+  /**
+   * @return string
+   */
+  public function getModelName()
+  {
+    return $this->modelName;
+  }
   /**
    * @param string[]
    */

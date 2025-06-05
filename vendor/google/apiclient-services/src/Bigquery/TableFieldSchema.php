@@ -26,6 +26,8 @@ class TableFieldSchema extends \Google\Collection
    * @var string
    */
   public $collation;
+  protected $dataPoliciesType = DataPolicyOption::class;
+  protected $dataPoliciesDataType = 'array';
   /**
    * @var string
    */
@@ -36,6 +38,10 @@ class TableFieldSchema extends \Google\Collection
   public $description;
   protected $fieldsType = TableFieldSchema::class;
   protected $fieldsDataType = 'array';
+  /**
+   * @var string
+   */
+  public $foreignTypeDefinition;
   /**
    * @var string
    */
@@ -98,6 +104,20 @@ class TableFieldSchema extends \Google\Collection
     return $this->collation;
   }
   /**
+   * @param DataPolicyOption[]
+   */
+  public function setDataPolicies($dataPolicies)
+  {
+    $this->dataPolicies = $dataPolicies;
+  }
+  /**
+   * @return DataPolicyOption[]
+   */
+  public function getDataPolicies()
+  {
+    return $this->dataPolicies;
+  }
+  /**
    * @param string
    */
   public function setDefaultValueExpression($defaultValueExpression)
@@ -138,6 +158,20 @@ class TableFieldSchema extends \Google\Collection
   public function getFields()
   {
     return $this->fields;
+  }
+  /**
+   * @param string
+   */
+  public function setForeignTypeDefinition($foreignTypeDefinition)
+  {
+    $this->foreignTypeDefinition = $foreignTypeDefinition;
+  }
+  /**
+   * @return string
+   */
+  public function getForeignTypeDefinition()
+  {
+    return $this->foreignTypeDefinition;
   }
   /**
    * @param string

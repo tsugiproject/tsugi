@@ -36,12 +36,18 @@ class DatabaseResourceMetadata extends \Google\Collection
   public $currentState;
   protected $customMetadataType = CustomMetadataData::class;
   protected $customMetadataDataType = '';
+  /**
+   * @var string
+   */
+  public $edition;
   protected $entitlementsType = Entitlement::class;
   protected $entitlementsDataType = 'array';
   /**
    * @var string
    */
   public $expectedState;
+  protected $gcbdrConfigurationType = GCBDRConfiguration::class;
+  protected $gcbdrConfigurationDataType = '';
   protected $idType = DatabaseResourceId::class;
   protected $idDataType = '';
   /**
@@ -52,8 +58,14 @@ class DatabaseResourceMetadata extends \Google\Collection
    * @var string
    */
   public $location;
+  protected $machineConfigurationType = MachineConfiguration::class;
+  protected $machineConfigurationDataType = '';
   protected $primaryResourceIdType = DatabaseResourceId::class;
   protected $primaryResourceIdDataType = '';
+  /**
+   * @var string
+   */
+  public $primaryResourceLocation;
   protected $productType = Product::class;
   protected $productDataType = '';
   /**
@@ -67,13 +79,15 @@ class DatabaseResourceMetadata extends \Google\Collection
   /**
    * @var string
    */
+  public $suspensionReason;
+  protected $tagsSetType = Tags::class;
+  protected $tagsSetDataType = '';
+  /**
+   * @var string
+   */
   public $updationTime;
   protected $userLabelSetType = UserLabels::class;
   protected $userLabelSetDataType = '';
-  /**
-   * @var string[]
-   */
-  public $userLabels;
 
   /**
    * @param AvailabilityConfiguration
@@ -160,6 +174,20 @@ class DatabaseResourceMetadata extends \Google\Collection
     return $this->customMetadata;
   }
   /**
+   * @param string
+   */
+  public function setEdition($edition)
+  {
+    $this->edition = $edition;
+  }
+  /**
+   * @return string
+   */
+  public function getEdition()
+  {
+    return $this->edition;
+  }
+  /**
    * @param Entitlement[]
    */
   public function setEntitlements($entitlements)
@@ -186,6 +214,20 @@ class DatabaseResourceMetadata extends \Google\Collection
   public function getExpectedState()
   {
     return $this->expectedState;
+  }
+  /**
+   * @param GCBDRConfiguration
+   */
+  public function setGcbdrConfiguration(GCBDRConfiguration $gcbdrConfiguration)
+  {
+    $this->gcbdrConfiguration = $gcbdrConfiguration;
+  }
+  /**
+   * @return GCBDRConfiguration
+   */
+  public function getGcbdrConfiguration()
+  {
+    return $this->gcbdrConfiguration;
   }
   /**
    * @param DatabaseResourceId
@@ -230,6 +272,20 @@ class DatabaseResourceMetadata extends \Google\Collection
     return $this->location;
   }
   /**
+   * @param MachineConfiguration
+   */
+  public function setMachineConfiguration(MachineConfiguration $machineConfiguration)
+  {
+    $this->machineConfiguration = $machineConfiguration;
+  }
+  /**
+   * @return MachineConfiguration
+   */
+  public function getMachineConfiguration()
+  {
+    return $this->machineConfiguration;
+  }
+  /**
    * @param DatabaseResourceId
    */
   public function setPrimaryResourceId(DatabaseResourceId $primaryResourceId)
@@ -242,6 +298,20 @@ class DatabaseResourceMetadata extends \Google\Collection
   public function getPrimaryResourceId()
   {
     return $this->primaryResourceId;
+  }
+  /**
+   * @param string
+   */
+  public function setPrimaryResourceLocation($primaryResourceLocation)
+  {
+    $this->primaryResourceLocation = $primaryResourceLocation;
+  }
+  /**
+   * @return string
+   */
+  public function getPrimaryResourceLocation()
+  {
+    return $this->primaryResourceLocation;
   }
   /**
    * @param Product
@@ -288,6 +358,34 @@ class DatabaseResourceMetadata extends \Google\Collection
   /**
    * @param string
    */
+  public function setSuspensionReason($suspensionReason)
+  {
+    $this->suspensionReason = $suspensionReason;
+  }
+  /**
+   * @return string
+   */
+  public function getSuspensionReason()
+  {
+    return $this->suspensionReason;
+  }
+  /**
+   * @param Tags
+   */
+  public function setTagsSet(Tags $tagsSet)
+  {
+    $this->tagsSet = $tagsSet;
+  }
+  /**
+   * @return Tags
+   */
+  public function getTagsSet()
+  {
+    return $this->tagsSet;
+  }
+  /**
+   * @param string
+   */
   public function setUpdationTime($updationTime)
   {
     $this->updationTime = $updationTime;
@@ -312,20 +410,6 @@ class DatabaseResourceMetadata extends \Google\Collection
   public function getUserLabelSet()
   {
     return $this->userLabelSet;
-  }
-  /**
-   * @param string[]
-   */
-  public function setUserLabels($userLabels)
-  {
-    $this->userLabels = $userLabels;
-  }
-  /**
-   * @return string[]
-   */
-  public function getUserLabels()
-  {
-    return $this->userLabels;
   }
 }
 

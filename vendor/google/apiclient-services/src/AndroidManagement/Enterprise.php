@@ -34,8 +34,22 @@ class Enterprise extends \Google\Collection
    * @var string
    */
   public $enterpriseDisplayName;
+  /**
+   * @var string
+   */
+  public $enterpriseType;
+  protected $googleAuthenticationSettingsType = GoogleAuthenticationSettings::class;
+  protected $googleAuthenticationSettingsDataType = '';
   protected $logoType = ExternalData::class;
   protected $logoDataType = '';
+  /**
+   * @var string
+   */
+  public $managedGoogleDomainType;
+  /**
+   * @var string
+   */
+  public $managedGooglePlayAccountsEnterpriseType;
   /**
    * @var string
    */
@@ -110,6 +124,34 @@ class Enterprise extends \Google\Collection
     return $this->enterpriseDisplayName;
   }
   /**
+   * @param string
+   */
+  public function setEnterpriseType($enterpriseType)
+  {
+    $this->enterpriseType = $enterpriseType;
+  }
+  /**
+   * @return string
+   */
+  public function getEnterpriseType()
+  {
+    return $this->enterpriseType;
+  }
+  /**
+   * @param GoogleAuthenticationSettings
+   */
+  public function setGoogleAuthenticationSettings(GoogleAuthenticationSettings $googleAuthenticationSettings)
+  {
+    $this->googleAuthenticationSettings = $googleAuthenticationSettings;
+  }
+  /**
+   * @return GoogleAuthenticationSettings
+   */
+  public function getGoogleAuthenticationSettings()
+  {
+    return $this->googleAuthenticationSettings;
+  }
+  /**
    * @param ExternalData
    */
   public function setLogo(ExternalData $logo)
@@ -122,6 +164,34 @@ class Enterprise extends \Google\Collection
   public function getLogo()
   {
     return $this->logo;
+  }
+  /**
+   * @param string
+   */
+  public function setManagedGoogleDomainType($managedGoogleDomainType)
+  {
+    $this->managedGoogleDomainType = $managedGoogleDomainType;
+  }
+  /**
+   * @return string
+   */
+  public function getManagedGoogleDomainType()
+  {
+    return $this->managedGoogleDomainType;
+  }
+  /**
+   * @param string
+   */
+  public function setManagedGooglePlayAccountsEnterpriseType($managedGooglePlayAccountsEnterpriseType)
+  {
+    $this->managedGooglePlayAccountsEnterpriseType = $managedGooglePlayAccountsEnterpriseType;
+  }
+  /**
+   * @return string
+   */
+  public function getManagedGooglePlayAccountsEnterpriseType()
+  {
+    return $this->managedGooglePlayAccountsEnterpriseType;
   }
   /**
    * @param string

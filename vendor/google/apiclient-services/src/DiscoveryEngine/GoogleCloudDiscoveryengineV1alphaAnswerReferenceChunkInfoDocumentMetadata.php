@@ -28,6 +28,10 @@ class GoogleCloudDiscoveryengineV1alphaAnswerReferenceChunkInfoDocumentMetadata 
    */
   public $pageIdentifier;
   /**
+   * @var array[]
+   */
+  public $structData;
+  /**
    * @var string
    */
   public $title;
@@ -63,6 +67,20 @@ class GoogleCloudDiscoveryengineV1alphaAnswerReferenceChunkInfoDocumentMetadata 
   public function getPageIdentifier()
   {
     return $this->pageIdentifier;
+  }
+  /**
+   * @param array[]
+   */
+  public function setStructData($structData)
+  {
+    $this->structData = $structData;
+  }
+  /**
+   * @return array[]
+   */
+  public function getStructData()
+  {
+    return $this->structData;
   }
   /**
    * @param string

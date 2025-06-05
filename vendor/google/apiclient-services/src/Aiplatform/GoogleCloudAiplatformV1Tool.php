@@ -20,11 +20,31 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1Tool extends \Google\Collection
 {
   protected $collection_key = 'functionDeclarations';
+  protected $codeExecutionType = GoogleCloudAiplatformV1ToolCodeExecution::class;
+  protected $codeExecutionDataType = '';
   protected $functionDeclarationsType = GoogleCloudAiplatformV1FunctionDeclaration::class;
   protected $functionDeclarationsDataType = 'array';
+  protected $googleSearchType = GoogleCloudAiplatformV1ToolGoogleSearch::class;
+  protected $googleSearchDataType = '';
+  protected $googleSearchRetrievalType = GoogleCloudAiplatformV1GoogleSearchRetrieval::class;
+  protected $googleSearchRetrievalDataType = '';
   protected $retrievalType = GoogleCloudAiplatformV1Retrieval::class;
   protected $retrievalDataType = '';
 
+  /**
+   * @param GoogleCloudAiplatformV1ToolCodeExecution
+   */
+  public function setCodeExecution(GoogleCloudAiplatformV1ToolCodeExecution $codeExecution)
+  {
+    $this->codeExecution = $codeExecution;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1ToolCodeExecution
+   */
+  public function getCodeExecution()
+  {
+    return $this->codeExecution;
+  }
   /**
    * @param GoogleCloudAiplatformV1FunctionDeclaration[]
    */
@@ -38,6 +58,34 @@ class GoogleCloudAiplatformV1Tool extends \Google\Collection
   public function getFunctionDeclarations()
   {
     return $this->functionDeclarations;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1ToolGoogleSearch
+   */
+  public function setGoogleSearch(GoogleCloudAiplatformV1ToolGoogleSearch $googleSearch)
+  {
+    $this->googleSearch = $googleSearch;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1ToolGoogleSearch
+   */
+  public function getGoogleSearch()
+  {
+    return $this->googleSearch;
+  }
+  /**
+   * @param GoogleCloudAiplatformV1GoogleSearchRetrieval
+   */
+  public function setGoogleSearchRetrieval(GoogleCloudAiplatformV1GoogleSearchRetrieval $googleSearchRetrieval)
+  {
+    $this->googleSearchRetrieval = $googleSearchRetrieval;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1GoogleSearchRetrieval
+   */
+  public function getGoogleSearchRetrieval()
+  {
+    return $this->googleSearchRetrieval;
   }
   /**
    * @param GoogleCloudAiplatformV1Retrieval

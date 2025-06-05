@@ -58,7 +58,9 @@ class BuyersProposals extends \Google\Service\Resource
     return $this->call('accept', [$params], Proposal::class);
   }
   /**
-   * Creates a note for this proposal and sends to the seller. (proposals.addNote)
+   * Creates a note for this proposal and sends to the seller. This method is not
+   * supported for proposals with DealType set to 'PRIVATE_AUCTION'.
+   * (proposals.addNote)
    *
    * @param string $proposal Name of the proposal. Format:
    * `buyers/{accountId}/proposals/{proposalId}`
@@ -147,8 +149,8 @@ class BuyersProposals extends \Google\Service\Resource
    * specified in the UpdateProposalRequest.update_mask will be updated; Fields
    * noted as 'Immutable' or 'Output only' yet specified in the
    * UpdateProposalRequest.update_mask will be ignored and left unchanged.
-   * Updating a private auction proposal is not allowed and will result in an
-   * error. (proposals.patch)
+   * Updating a private auction proposal is only allowed for buyer private data,
+   * all other fields are immutable. (proposals.patch)
    *
    * @param string $name Immutable. The name of the proposal serving as a unique
    * identifier. Format: buyers/{accountId}/proposals/{proposalId}
