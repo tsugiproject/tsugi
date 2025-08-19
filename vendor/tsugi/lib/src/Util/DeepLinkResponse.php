@@ -152,6 +152,24 @@ $text='{
         if ( U::get($params, 'icon') ) $json->{'icon_url'} = U::get($params, 'icon');
         if ( U::get($params, 'fa_icon') ) $json->{'fa_icon'} = U::get($params, 'fa_icon');
 
+        if ( U::get($params, 'thumbnail_url') ) {
+            $json->{'thumbnail'}->{'url'} = U::get($params, 'thumbnail_url');
+            if ( U::get($params, 'thumbnail_height') ) {
+                $json->{'thumbnail'}->{'height'} = U::get($params, 'thumbnail_height');
+            }
+            if ( U::get($params, 'thumbnail_width') ) {
+                $json->{'thumbnail'}->{'width'} = U::get($params, 'thumbnail_width');
+            }
+        } else if ( $CFG->getExtension('thumbnail_url', false) ) {
+            $json->{'thumbnail'}->{'url'} = $CFG->getExtension('thumbnail_url', false);
+            if ( $CFG->getExtension('thumbnail_height', false) ) {
+                $json->{'thumbnail'}->{'height'} = $CFG->getExtension('thumbnail_height', false);
+            }
+            if ( $CFG->getExtension('thumbnail_width', false) ) {
+                $json->{'thumbnail'}->{'width'} = $CFG->getExtension('thumbnail_width', false);
+            }
+        }
+
         unset($json->custom);
         if ( U::get($params, 'custom') ) $json->{'custom'} = U::get($params, 'custom');
 

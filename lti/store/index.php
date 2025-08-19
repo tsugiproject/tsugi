@@ -346,6 +346,17 @@ if ( isset($_GET['install']) ) {
         if ( ! $value ) continue;
         $additionalParams[$parm] = $value;
     }
+
+    $registerParmList = array(
+        "thumbnail_url", "thumbnail_height", "thumbnail_width"
+    );
+
+    foreach ( $registerParmList as $parm ) {
+        $value = U::get($tool, $parm);
+        if ( ! $value ) continue;
+        $additionalParams[$parm] = $value;
+    }
+
     if ( is_array($submissionReview) ) $additionalParams['submissionReview'] = $submissionReview;
 
     $custom = array(
