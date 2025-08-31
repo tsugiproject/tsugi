@@ -2188,7 +2188,7 @@ class LTIX {
         // We don't have any launch data and don't need it
         $LTI = self::wrapped_session_get($session_object, 'lti', null);
         if ( count($needed) == 0 && $LTI === null ) {
-            return null;
+            return $TSUGI_LAUNCH;
         }
 
         if ( is_array($needed) ) {
