@@ -2080,7 +2080,7 @@ class LTIX {
                         session_id($session_id);
                         session_start();
                     }
-                } else {
+                } else if ( count($needed) > 0 ) {
                     self::wrapped_session_flush($session_object);
                     self::send403();
                     $msg = 'This tool should be launched from a learning system using LTI';
@@ -2113,7 +2113,7 @@ class LTIX {
         // Check to see if we switched browsers or IP addresses
         // TODO: Change these to warnings once we get more data
         $session_agent = self::wrapped_session_get($session_object, 'HTTP_USER_AGENT', null);
-        if ( (!$trusted) && $session_agent != null ) {
+        if ( count($needed) > 0 && (!$trusted) && $session_agent != null ) {
             if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
                 $_SERVER['HTTP_USER_AGENT'] != $session_agent ) {
                 self::wrapped_session_flush($session_object);
@@ -2136,7 +2136,7 @@ class LTIX {
         $ipaddr = Net::getIP();
         $browser_mark = self::getBrowserMark();
         $session_browser_mark = self::wrapped_session_get($session_object, 'BROWSER_MARK', null);
-        if ( (!$trusted) &&  $session_addr && $ipaddr &&
+        if ( count($needed) > 0 && (!$trusted) &&  $session_addr && $ipaddr &&
             Net::isRoutable($session_addr) && Net::isRoutable($ipaddr) ) {
             $sess_pieces = explode('.',$session_addr);
             $serv_pieces = explode('.',$ipaddr);
@@ -2188,7 +2188,7 @@ class LTIX {
         // We don't have any launch data and don't need it
         $LTI = self::wrapped_session_get($session_object, 'lti', null);
         if ( count($needed) == 0 && $LTI === null ) {
-            return $TSUGI_LAUNCH;
+            return null;
         }
 
         if ( is_array($needed) ) {
