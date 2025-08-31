@@ -263,6 +263,12 @@ $register_good = $json_obj && isset($json_obj->name);
 </div>
 <div id="url-dialog" title="URL Dialog" style="display: none;">
     <h1>Single Tool URLs</h1>
+<?php if ( isset($tool['messages']) && is_array($tool['messages']) && in_array('anonymous', $tool['messages']) ) { ?>
+    <p>Anonymous Launch URL (LTI launch not needed)<br/>
+    <a href="<?= $tool['url'] ?>" target="_blank"><?= $tool['url'] ?></a>
+    (No grades sent on anonymous lauches)
+    </p>
+<?php } ?>
     <p>LTI 1.x Launch URL (Expects an LTI launch)<br/><?= $tool['url'] ?>
     (requires key and secret)
     </p>
