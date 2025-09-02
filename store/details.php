@@ -312,6 +312,21 @@ $register_good = $json_obj && isset($json_obj->name);
             echo('<div class="button-container">');
             echo('<input type="submit" class="btn btn-primary" value="Try It"></form> ');
             echo('</div>');
+            if ( is_string(U::get($tool, 'documentation')) ) {
+                $doc_url = U::get($tool, 'documentation');
+                $tool_base = $tool['url'];
+                if ( U::startsWith($doc_url, "https://") || U::startsWith($doc_url, "http://") ) {
+                    // Let it ride...
+                } else {
+                    $doc_url = $tool_base . $doc_url;
+                }
+                ?>
+                <div class="tool-link-container">
+                    <div class="sidebar-header">Documentation</div>
+		    <a href="<?= $doc_url ?>" target="_blank">View in new window</a>.
+                </div>
+                <?php
+            }
             if ( is_string(U::get($tool, 'video')) ) {
                 ?>
                 <div class="tool-link-container">
