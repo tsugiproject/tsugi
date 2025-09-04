@@ -235,8 +235,16 @@ $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
         "Finish Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
 
 ksort($parms);
-$content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']),
-       "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency");
+
+// targets is not present or included "iframe"
+$iframeattr = "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency";
+
+// "targets" =>  array("window"),
+if ( isset($tool["targets"]) && is_array($tool["targets"]) && ! in_array("iframe", $tool["targets"]) ) {
+    $iframeattr = "_blank";
+    echo("<p>Content Opened in New Browser Tab</p>\n");
+}
+$content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']), $iframeattr);
 print($content);
 ?>
   </div>
