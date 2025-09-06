@@ -65,6 +65,8 @@ class Output {
 
     public $buffer = false;
 
+    const SUPPRESS_SITE_NAV = 'TSUGI_OUTPUT_SUPPRESS_SITE_NAV';
+
     /**
      * Set the JSON header
      */
@@ -852,6 +854,14 @@ $('a').each(function (x) {
         }
     }
 
+    function suppressSiteNav() {
+        $this->session_put(self::SUPPRESS_SITE_NAV, true);
+    }
+
+    function enableSiteNav() {
+        $this->session_delete(self:SUPPRESS_SITE_NAV);
+    }
+
     /**
      * Emit the top navigation block and optionally the tool navigation
      *
@@ -919,7 +929,12 @@ $('a').each(function (x) {
             $menu_set = self::closeMenuSet();
         }
 
-        $menu_txt = self::menuNav($menu_set);
+        $suppressSiteNav = $this->session_get(self::SUPPRESS_SITE_NAV, false);
+        if (  $suppressSiteNav ) {
+          $menu_txt = "";
+        } else {
+          $menu_txt = self::menuNav($menu_set);
+        }
         if ( $tool_menu ) $menu_txt .= self::menuNav($tool_menu, true);
 
         // Show / hide / adjust the navigation
