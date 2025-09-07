@@ -733,7 +733,11 @@ class Lessons {
                     $rest_path = U::rest_path();
                     $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $lti->resource_link_id;
                     $title = isset($lti->title) ? $lti->title : "Autograder";
-                    echo('<li class="tsugi-lessons-module-lti"><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
+                    $target = isset($lti->target) ? $lti->target : false;
+
+                    echo('<li class="tsugi-lessons-module-lti"><a');
+                    if ( $target == "_blank" ) echo(' target="_blank" onclick="alert(\'Link will open in a new browser tab...\');" ');
+                    echo(' href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
                     echo("\n</li>\n");
                 }
 
