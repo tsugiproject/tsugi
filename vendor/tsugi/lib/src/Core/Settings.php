@@ -98,6 +98,27 @@ class Settings {
     }
 
     /**
+     * Get a key value or fall back to a custom value in the launch
+     *
+     * @params $key The key to set in settings.
+     */
+    public static function linkGetCustom($key)
+    {
+        global $LINK, $LAUNCH;
+        if ( ! $LINK ) return null;
+        $value = $LINK->settingsGet($key, null);
+        if ( $value !== null ) return $value; // Already set
+
+        if ( ! $LAUNCH ) return null;
+        $custom = $LAUNCH->ltiCustomGet($key, null);
+        if ( $custom === null ) return null; // Nothing in custom, no current value
+
+        // Set the local settings value from custom as the default
+        $LINK->settingsSet($key, $custom);
+        return $custom;
+    }
+
+    /**
      * Set or update a number of keys to new values in link settings.
      *
      * @params $keyvals An array of key value pairs that are to be placed in the
