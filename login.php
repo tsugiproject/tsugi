@@ -517,7 +517,7 @@ if ( $doLogin ) {
 
 // Display login form
 $OUTPUT->header();
-$OUTPUT->bodyStart();
+$OUTPUT->bodyStart(false);  // false = POST already handled
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
