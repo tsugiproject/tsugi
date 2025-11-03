@@ -168,7 +168,10 @@ function ldap_authenticate($username, $password) {
 $PDOX = LTIX::getConnection();
 
 session_start();
-session_regenerate_id(true);
+// Only regenerate session ID on GET requests, not POST (to preserve CSRF token)
+if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
+    session_regenerate_id(true);
+}
 error_log('Session in login '.session_id());
 
 // Use LDAP domain as the consumer key
