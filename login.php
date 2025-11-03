@@ -45,12 +45,32 @@ function ldap_authenticate($username, $password) {
 
     // Build LDAP connection string
     $ldap_url = $CFG->ldap_host;
-    if ( isset($CFG->ldap_port) && $CFG->ldap_port ) {
-        $ldap_url .= ':' . $CFG->ldap_port;
+
+    // Validate and normalize LDAP URL
+    if ( empty($ldap_url) ) {
+        error_log('LDAP Error: ldap_host is empty or not configured');
+        return false;
     }
 
+    // Ensure protocol is present
+    if ( stripos($ldap_url, 'ldap://') !== 0 && stripos($ldap_url, 'ldaps://') !== 0 ) {
+        $ldap_url = 'ldap://' . $ldap_url;
+    }
+
+    // Add port if specified and not already in URL
+    if ( isset($CFG->ldap_port) && $CFG->ldap_port && strpos($ldap_url, ':' . $CFG->ldap_port) === false ) {
+        // Check if port is already in the URL
+        if ( preg_match('/:\d+$/', $ldap_url) ) {
+            error_log('LDAP Warning: Port already specified in ldap_host, ignoring ldap_port setting');
+        } else {
+            $ldap_url .= ':' . $CFG->ldap_port;
+        }
+    }
+
+    error_log('LDAP: Attempting connection to: ' . $ldap_url);
+
     // Connect to LDAP server
-    $ldap_conn = ldap_connect($ldap_url);
+    $ldap_conn = @ldap_connect($ldap_url);
 
     if ( !$ldap_conn ) {
         error_log('LDAP Error: Could not connect to LDAP server: ' . $ldap_url);
