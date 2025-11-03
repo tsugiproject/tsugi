@@ -22,28 +22,206 @@ function login_redirect($path=false) {
     }
 }
 
+/**
+ * Authenticate user against Active Directory LDAP
+ * Returns array with user info on success, false on failure
+ */
+function ldap_authenticate($username, $password) {
+    global $CFG;
+
+    // Validate LDAP configuration
+    if ( !isset($CFG->ldap_host) || !$CFG->ldap_host ) {
+        error_log('LDAP Error: LDAP host not configured');
+        return false;
+    }
+
+    if ( !isset($CFG->ldap_basedn) || !$CFG->ldap_basedn ) {
+        error_log('LDAP Error: LDAP base DN not configured');
+        return false;
+    }
+
+    // Sanitize username to prevent LDAP injection
+    $username = ldap_escape($username, '', LDAP_ESCAPE_FILTER);
+
+    // Build LDAP connection string
+    $ldap_url = $CFG->ldap_host;
+    if ( isset($CFG->ldap_port) && $CFG->ldap_port ) {
+        $ldap_url .= ':' . $CFG->ldap_port;
+    }
+
+    // Connect to LDAP server
+    $ldap_conn = ldap_connect($ldap_url);
+
+    if ( !$ldap_conn ) {
+        error_log('LDAP Error: Could not connect to LDAP server: ' . $ldap_url);
+        return false;
+    }
+
+    // Set LDAP options
+    ldap_set_option($ldap_conn, LDAP_OPT_PROTOCOL_VERSION, $CFG->ldap_protocol_version ?? 3);
+    ldap_set_option($ldap_conn, LDAP_OPT_REFERRALS, 0);
+
+    // Use TLS if configured
+    if ( isset($CFG->ldap_use_tls) && $CFG->ldap_use_tls ) {
+        if ( !ldap_start_tls($ldap_conn) ) {
+            error_log('LDAP Error: Could not start TLS');
+            ldap_close($ldap_conn);
+            return false;
+        }
+    }
+
+    // Bind with service account if configured, otherwise try anonymous bind
+    if ( isset($CFG->ldap_bind_dn) && $CFG->ldap_bind_dn ) {
+        $bind_result = @ldap_bind($ldap_conn, $CFG->ldap_bind_dn, $CFG->ldap_bind_password);
+    } else {
+        $bind_result = @ldap_bind($ldap_conn);
+    }
+
+    if ( !$bind_result ) {
+        error_log('LDAP Error: Could not bind to LDAP server: ' . ldap_error($ldap_conn));
+        ldap_close($ldap_conn);
+        return false;
+    }
+
+    // Build search filter
+    $search_filter = $CFG->ldap_search_filter ?? '(&(objectClass=user)(sAMAccountName={USERNAME}))';
+    $search_filter = str_replace('{USERNAME}', $username, $search_filter);
+
+    // Search for user
+    $search_result = @ldap_search($ldap_conn, $CFG->ldap_basedn, $search_filter);
+
+    if ( !$search_result ) {
+        error_log('LDAP Error: Search failed: ' . ldap_error($ldap_conn));
+        ldap_close($ldap_conn);
+        return false;
+    }
+
+    $entries = ldap_get_entries($ldap_conn, $search_result);
+
+    if ( $entries['count'] == 0 ) {
+        error_log('LDAP Error: User not found: ' . $username);
+        ldap_close($ldap_conn);
+        return false;
+    }
+
+    if ( $entries['count'] > 1 ) {
+        error_log('LDAP Error: Multiple users found for: ' . $username);
+        ldap_close($ldap_conn);
+        return false;
+    }
+
+    // Get user DN
+    $user_dn = $entries[0]['dn'];
+
+    // Try to bind as the user to verify password
+    $user_bind = @ldap_bind($ldap_conn, $user_dn, $password);
+
+    if ( !$user_bind ) {
+        error_log('LDAP Error: Invalid credentials for user: ' . $username);
+        ldap_close($ldap_conn);
+        return false;
+    }
+
+    // Extract user attributes
+    $user_entry = $entries[0];
+
+    $firstName = false;
+    $lastName = false;
+    $userEmail = false;
+    $displayName = false;
+
+    // Get attribute names from config or use defaults
+    $attr_firstname = $CFG->ldap_attr_firstname ?? 'givenName';
+    $attr_lastname = $CFG->ldap_attr_lastname ?? 'sn';
+    $attr_email = $CFG->ldap_attr_email ?? 'mail';
+    $attr_displayname = $CFG->ldap_attr_displayname ?? 'displayName';
+
+    // Extract attributes (LDAP attributes are case-insensitive, stored lowercase in array)
+    if ( isset($user_entry[strtolower($attr_firstname)][0]) ) {
+        $firstName = $user_entry[strtolower($attr_firstname)][0];
+    }
+
+    if ( isset($user_entry[strtolower($attr_lastname)][0]) ) {
+        $lastName = $user_entry[strtolower($attr_lastname)][0];
+    }
+
+    if ( isset($user_entry[strtolower($attr_email)][0]) ) {
+        $userEmail = $user_entry[strtolower($attr_email)][0];
+    }
+
+    if ( isset($user_entry[strtolower($attr_displayname)][0]) ) {
+        $displayName = $user_entry[strtolower($attr_displayname)][0];
+    }
+
+    ldap_close($ldap_conn);
+
+    // Return user information
+    return array(
+        'username' => $username,
+        'firstName' => $firstName,
+        'lastName' => $lastName,
+        'email' => $userEmail,
+        'displayName' => $displayName
+    );
+}
+
 $PDOX = LTIX::getConnection();
 
 session_start();
 session_regenerate_id(true);
 error_log('Session in login '.session_id());
 
-$oauth_consumer_key = 'google.com';
+// Use LDAP domain as the consumer key
+$oauth_consumer_key = 'ldap.local';
+if ( isset($CFG->ldap_basedn) && $CFG->ldap_basedn ) {
+    // Extract domain from base DN (e.g., DC=example,DC=com -> example.com)
+    $base_parts = explode(',', $CFG->ldap_basedn);
+    $domain_parts = array();
+    foreach ( $base_parts as $part ) {
+        $part = trim($part);
+        if ( stripos($part, 'DC=') === 0 ) {
+            $domain_parts[] = substr($part, 3);
+        }
+    }
+    if ( count($domain_parts) > 0 ) {
+        $oauth_consumer_key = implode('.', $domain_parts);
+    }
+}
 
-// First we make sure that there is a google.com key
+// First we make sure that there is a key for LDAP authentication
 $stmt = $PDOX->queryDie(
     "SELECT key_id, secret FROM {$CFG->dbprefix}lti_key
         WHERE key_sha256 = :SHA LIMIT 1",
     array('SHA' => lti_sha256($oauth_consumer_key))
 );
 $key_row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Auto-create the key if it doesn't exist
 if ( $key_row === false ) {
-    die_with_error_log('Error: No key defined for accounts from google.com');
+    error_log('LDAP key not found for domain: ' . $oauth_consumer_key . ', creating automatically');
+
+    // Generate a random secret for the key
+    $ldap_secret = bin2hex(random_bytes(32));
+
+    $sql = "INSERT INTO {$CFG->dbprefix}lti_key
+            (key_sha256, key_key, secret, created_at, updated_at)
+            VALUES (:SHA, :KEY, :SECRET, NOW(), NOW())";
+
+    $PDOX->queryDie($sql, array(
+        ':SHA' => lti_sha256($oauth_consumer_key),
+        ':KEY' => $oauth_consumer_key,
+        ':SECRET' => $ldap_secret
+    ));
+
+    $ldap_key_id = $PDOX->lastInsertId();
+    error_log('Created LDAP key with key_id: ' . $ldap_key_id . ' for domain: ' . $oauth_consumer_key);
+} else {
+    $ldap_key_id = $key_row['key_id']+0;
+    $ldap_secret = $key_row['secret'];
 }
-$google_key_id = $key_row['key_id']+0;
-$google_secret = $key_row['secret'];
-if ( $google_key_id < 1 ) {
-    die_with_error_log('Error: No key for accounts from google.com');
+
+if ( $ldap_key_id < 1 ) {
+    die_with_error_log('Error: Failed to create or retrieve key for LDAP authentication domain: ' . $oauth_consumer_key);
 }
 
 $context_key = false;
@@ -55,7 +233,7 @@ if ( isset($CFG->context_title) ) {
     $row = $PDOX->rowDie(
         "SELECT context_id FROM {$CFG->dbprefix}lti_context
             WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
-        array(':SHA' => lti_sha256($context_key), ':KID' => $google_key_id)
+        array(':SHA' => lti_sha256($context_key), ':KID' => $ldap_key_id)
     );
 
     if ( $row != false ) {
@@ -68,18 +246,10 @@ if ( isset($CFG->context_title) ) {
                 ':context_key' => $context_key,
                 ':context_sha256' => lti_sha256($context_key),
                 ':title' => $CFG->context_title,
-                ':key_id' => $google_key_id));
+                ':key_id' => $ldap_key_id));
         $context_id = $PDOX->lastInsertId();
     }
 }
-
-// Google Login Object
-$come_back = $CFG->wwwroot.'/login.php';
-if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
-    $come_back = $CFG->wwwroot.'/login';
-}
-$glog = new \Tsugi\Google\GoogleLogin($CFG->google_client_id,$CFG->google_client_secret,
-      $come_back,$CFG->wwwroot);
 
 $errormsg = false;
 $success = false;
@@ -89,118 +259,72 @@ $user_key = false;
 $firstName = false;
 $lastName = false;
 $userEmail = false;
+$userName = false;
 
+// Handle developer offline mode
 if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
-    $user_key = 'http://notgoogle.com/1234567';
+    $user_key = 'ldap:fake_person';
     $firstName = 'Fake';
     $lastName = 'Person';
-    $userEmail = 'fake_person@notgoogle.com';
+    $userEmail = 'fake_person@example.com';
+    $userName = 'fake_person';
     $doLogin = true;
 } else {
-
-    if ( ! isset($CFG->google_client_id) || ! $CFG->google_client_id ) {
-        echo("<p>"._m('You need to set $CFG->google_client_id in order to use Google\'s Login')."</p>\n");
+    // Check if LDAP is configured
+    if ( ! isset($CFG->ldap_host) || ! $CFG->ldap_host ) {
+        echo("<p>"._m('LDAP authentication is not configured. Please set LDAP configuration in config.php')."</p>\n");
         if ( strpos($CFG->wwwroot, '//localhost') !== false ) {
-            echo("<p>"._m('There is no need to log in to do local adminstration or local development')."</p>\n");
+            echo("<p>"._m('There is no need to log in to do local administration or local development')."</p>\n");
         }
         die();
     }
 
-    if ( isset($_GET['code']) ) {
-        if ( isset($_SESSION['GOOGLE_STATE']) && isset($_GET['state']) ) {
-            if ( $_SESSION['GOOGLE_STATE'] != $_GET['state'] ) {
-                $errormsg = "Missing important session data - could not log you in.  Sorry.";
-                error_log("Google Login state mismatch");
-                unset($_SESSION['GOOGLE_STATE']);
-            }
+    // Handle login form submission
+    if ( isset($_POST['username']) && isset($_POST['password']) ) {
+        // Verify CSRF token
+        if ( !isset($_POST['session_id']) || $_POST['session_id'] != session_id() ) {
+            $errormsg = "Session error - please try logging in again.";
+            error_log("LDAP Login CSRF check failed");
         } else {
-            $errormsg = "Missing important session data info- could not log you in.  Sorry.";
-            error_log("Error missing state");
-            unset($_SESSION['GOOGLE_STATE']);
-        }
+            $username = trim($_POST['username']);
+            $password = $_POST['password'];
 
-        $google_code = $_GET['code'];
-        $authObj = $glog->getAccessToken($google_code);
-        $user = $glog->getUserInfo();
-        // echo("<pre>\nUser\n");print_r($user);echo("</pre>\n");
+            if ( empty($username) || empty($password) ) {
+                $errormsg = "Please enter both username and password.";
+            } else {
+                // Authenticate against LDAP
+                $ldap_user = ldap_authenticate($username, $password);
 
-        $firstName = isset($user->given_name) ? $user->given_name : false;
-        $lastName = isset($user->family_name) ? $user->family_name : false;
-        $userEmail = isset($user->email) ? $user->email : false;
-        $userAvatar = isset($user->picture) ? $user->picture : false;
-        // If we can derive a gravatar URL - lets check now
-        if ( $userAvatar === false && $userEmail !== false ) {
-            $gravatarurl = 'http://www.gravatar.com/avatar/';
-            $gravatarurl .= md5( strtolower( trim( $email ) ) );
-            $url = $gravatarurl . '?d=404';
-            $x =  get_headers($url);
-            if ( is_array($x) && strpos($x[0]," 200 ") > 0 ) {
-                $userAvatar = $gravatarurl;
+                if ( $ldap_user === false ) {
+                    $errormsg = "Invalid username or password.";
+                    error_log('LDAP Login failed for user: ' . $username);
+                } else {
+                    // Successful authentication
+                    $userName = $ldap_user['username'];
+                    $firstName = $ldap_user['firstName'];
+                    $lastName = $ldap_user['lastName'];
+                    $userEmail = $ldap_user['email'];
+
+                    // Create user key based on username and domain
+                    $user_key = 'ldap:' . $oauth_consumer_key . ':' . $userName;
+
+                    $doLogin = true;
+                }
             }
         }
-        $userHomePage = isset($user->link) ? $user->link : false;
-
-        // flawed $user_key computation prior to 11-Jan-2016
-        // Note that $user->openid_id can be false (oops)
-        // Note that $user->openid_id and $user->id change over time
-        // So we just trust the email from google as our user_key (in this tenant)
-        // $user_key = isset($user->openid_id) ? $user->openid_id :
-            // ( isset($user->id) ? $user->id : false );
-
-        // New user_key is just based on the Google email which
-        // (a) we demand and (b) is consistent over time
-        $user_key = 'googlemail:'.$userEmail;
-
-        // echo("i=$user_key f=$firstName l=$lastName e=$userEmail a=$userAvatar h=$userHomePage\n");
-        $doLogin = true;
     }
 }
 
 if ( $doLogin ) {
     if ( $firstName === false || $lastName === false || $userEmail === false ) {
-        error_log('Google-Missing:'.$user_key.','.$firstName.','.$lastName.','.$userEmail);
-        $_SESSION["error"] = "You do not have a first name, last name, and email in Google or you did not share it with us.";
+        error_log('LDAP-Missing:'.$user_key.','.$firstName.','.$lastName.','.$userEmail);
+        $_SESSION["error"] = "Could not retrieve your first name, last name, or email from LDAP directory.";
         login_redirect();
         return;
     } else {
 
         $userSHA = lti_sha256($user_key);
         $displayName = $firstName . ' ' . $lastName;
-
-        // Compensating/updating old lti_user records that are broken
-        // First we find the most recently added account with matching email
-        // if it exists
-        $stmt = $PDOX->queryDie(
-                "SELECT user_id, user_key, user_sha256, user_key FROM {$CFG->dbprefix}lti_user
-                    WHERE key_id = :KEY AND email = :EM
-                    ORDER BY updated_at DESC, created_at DESC
-                    LIMIT 1;",
-                array(':EM' => $userEmail, ':KEY' => $google_key_id)
-        );
-        $user_row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ( $user_row !== false ) {
-            $old_user_key = $user_row['user_key'];
-            $old_user_sha = $user_row['user_sha256'];
-            $selected_user_id = $user_row['user_id'];
-            if ( $old_user_key != $user_key || $old_user_sha != $userSHA ) {
-                $stmt = $PDOX->queryDie(
-                    "UPDATE {$CFG->dbprefix}lti_user
-                        SET user_key=:NEWK, user_sha256=:NEWSHA
-                        WHERE user_key=:OLDK AND user_sha256=:OLDSHA AND key_id = :KEY",
-                    array(':NEWK' => $user_key, ':NEWSHA' => $userSHA,
-                        ':OLDK' => $old_user_key, ':OLDSHA' => $old_user_sha,
-                        ':KEY' => $google_key_id)
-                );
-                $stmt = $PDOX->queryDie(
-                    "UPDATE {$CFG->dbprefix}profile
-                        SET profile_sha256=:NEWSHA, profile_key=:NEWK
-                        WHERE profile_sha256=:OLDSHA AND key_id = :KEY",
-                    array(':NEWK' => $user_key, ':NEWSHA' => $userSHA,
-                        ':KEY' => $google_key_id, ':OLDSHA' => $old_user_sha)
-                );
-                error_log("User record adjusted old_key=$old_user_key, old_sha=$old_user_sha, new_key=$user_key, new_sha=$userSHA");
-            }
-        }
 
         // Load the profile checking to see if everything matches
         $stmt = $PDOX->queryDie(
@@ -212,7 +336,7 @@ if ( $doLogin ) {
                     P.displayname = U.displayname AND user_sha256 = profile_sha256 AND
                     P.key_id = U.key_id
                 WHERE profile_sha256 = :SHA AND P.key_id = :ID LIMIT 1",
-            array('SHA' => $userSHA, ":ID" => $google_key_id)
+            array('SHA' => $userSHA, ":ID" => $ldap_key_id)
         );
         $profile_row = $stmt->fetch(PDO::FETCH_ASSOC);
         $profile_id = 0;
@@ -222,10 +346,10 @@ if ( $doLogin ) {
         if ( $profile_row === false ) {
             $stmt = $PDOX->queryDie(
                 "INSERT INTO {$CFG->dbprefix}profile
-                (profile_sha256, profile_key, key_id, email, displayname, image, created_at, updated_at, login_at) ".
-                    "VALUES ( :SHA, :UKEY, :KEY, :EMAIL, :DN, :IM, NOW(), NOW(), NOW() )",
-                 array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $google_key_id,
-                    ':EMAIL' => $userEmail, ':DN' => $displayName, ':IM' => $userAvatar)
+                (profile_sha256, profile_key, key_id, email, displayname, created_at, updated_at, login_at) ".
+                    "VALUES ( :SHA, :UKEY, :KEY, :EMAIL, :DN, NOW(), NOW(), NOW() )",
+                 array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $ldap_key_id,
+                    ':EMAIL' => $userEmail, ':DN' => $displayName)
             );
 
             if ( $stmt->success) $profile_id = $PDOX->lastInsertId();
@@ -239,10 +363,10 @@ if ( $doLogin ) {
             }
             $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}profile
-                SET email = :EMAIL, displayname = :DN, image = :IM, login_at = NOW()
+                SET email = :EMAIL, displayname = :DN, login_at = NOW()
                 WHERE profile_id = :PRID",
                  array('PRID' => $profile_id,
-                    ':EMAIL' => $userEmail, ':DN' => $displayName, ':IM' => $userAvatar)
+                    ':EMAIL' => $userEmail, ':DN' => $displayName)
             );
         }
 
@@ -259,7 +383,7 @@ if ( $doLogin ) {
             $stmt = $PDOX->queryDie(
                 "SELECT user_id FROM {$CFG->dbprefix}lti_user
                 WHERE user_sha256 = :SHA AND key_id = :ID LIMIT 1",
-                array('SHA' => $userSHA, ":ID" => $google_key_id)
+                array('SHA' => $userSHA, ":ID" => $ldap_key_id)
             );
             $user_row = $stmt->fetch(PDO::FETCH_ASSOC);
             $user_id = 0;
@@ -270,21 +394,21 @@ if ( $doLogin ) {
         if ( $user_id > 0 ) {
             $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}lti_user
-                 SET displayname=:DN, email=:EMAIL, image=:IM, login_at=NOW(), ipaddr=:IP
+                 SET displayname=:DN, email=:EMAIL, login_at=NOW(), ipaddr=:IP
                  WHERE user_id=:ID",
                 array(':DN' => $displayName,':IP' => Net::getIP(),
-                    ':ID' => $user_id, ':IM' => $userAvatar, ':EMAIL' => $userEmail)
+                    ':ID' => $user_id, ':EMAIL' => $userEmail)
             );
             error_log('User-Update:'.$user_key.','.$displayName.','.$userEmail);
         } else if ( $user_row === false ) { // Lets insert!
             $stmt = $PDOX->queryReturnError(
                 "INSERT INTO {$CFG->dbprefix}lti_user
                 (user_sha256, user_key, key_id, profile_id,
-                    email, displayname, image, created_at, updated_at, login_at, ipaddr) ".
-                "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, :IM, NOW(), NOW(), NOW(), :IP )",
-                 array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $google_key_id,
+                    email, displayname, created_at, updated_at, login_at, ipaddr) ".
+                "VALUES ( :SHA, :UKEY, :KEY, :PROF, :EMAIL, :DN, NOW(), NOW(), NOW(), :IP )",
+                 array('SHA' => $userSHA, ':UKEY' => $user_key, ':KEY' => $ldap_key_id,
                     ':PROF' => $profile_id, ':EMAIL' => $userEmail, ':DN' => $displayName,
-                    ':IM' => $userAvatar, ':IP' => Net::getIP())
+                    ':IP' => Net::getIP())
             );
 
             if ( $stmt->success ) {
@@ -296,10 +420,10 @@ if ( $doLogin ) {
             $user_id = $user_row['user_id']+0;
             $stmt = $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}lti_user
-                 SET email=:EMAIL, displayname=:DN, image=:IM, profile_id = :PRID, login_at=NOW(), ipaddr=:IP
+                 SET email=:EMAIL, displayname=:DN, profile_id = :PRID, login_at=NOW(), ipaddr=:IP
                  WHERE user_id=:ID",
                 array(':EMAIL' => $userEmail, ':DN' => $displayName,':IP' => Net::getIP(),
-                    ':ID' => $user_id, ':PRID' => $profile_id, ':IM' => $userAvatar)
+                    ':ID' => $user_id, ':PRID' => $profile_id)
             );
             error_log('User-Update:'.$user_key.','.$displayName.','.$userEmail);
         }
@@ -330,14 +454,14 @@ if ( $doLogin ) {
 
         // Also set up a fake LTI launch
         $lti = array();
-        $lti['key_id'] = $google_key_id;
+        $lti['key_id'] = $ldap_key_id;
 
         $_SESSION["oauth_consumer_key"] = $oauth_consumer_key;
         $lti['key_key'] = $oauth_consumer_key;
 
-        if ( is_string($google_secret) && strlen($google_secret) > 1 ) {
-            $_SESSION['secret'] = LTIX::encrypt_secret($google_secret);
-            $lti['secret'] = LTIX::encrypt_secret($google_secret);
+        if ( is_string($ldap_secret) && strlen($ldap_secret) > 1 ) {
+            $_SESSION['secret'] = LTIX::encrypt_secret($ldap_secret);
+            $lti['secret'] = LTIX::encrypt_secret($ldap_secret);
         } else {
             unset($_SESSION['secret']);
         }
@@ -359,12 +483,6 @@ if ( $doLogin ) {
 
         $_SESSION["profile_id"] = $profile_id;
         $lti["profile_id"] = $profile_id;
-
-        if ( isset($userAvatar) ) {
-            $_SESSION["avatar"] = $userAvatar; // TODO: Remove
-            $_SESSION["image"] = $userAvatar;
-            $lti["image"] = $userAvatar;
-        }
 
         if ( isset($CFG->context_title) ) {
             $_SESSION['context_title'] = $CFG->context_title;
@@ -396,10 +514,8 @@ if ( $doLogin ) {
         return;
     }
 }
-// We need a login URL
-$_SESSION['GOOGLE_STATE'] = md5(uniqid(rand(), TRUE));
-$loginUrl = $glog->getLoginUrl($_SESSION['GOOGLE_STATE']);
 
+// Display login form
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -410,33 +526,46 @@ $login_return = 'index';
 if ( isset($_SESSION['login_return']) ) $login_return = $_SESSION['login_return'];
 if ( $errormsg !== false ) {
     echo('<div style="margin-top: 10px;" class="alert alert-error">');
-    echo($errormsg);
+    echo(htmlentities($errormsg));
     echo("</div>\n");
 }
 if ( $success !== false ) {
     echo('<div style="margin-top: 10px;" class="alert alert-success">');
-    echo($success);
+    echo(htmlentities($success));
     echo("</div>\n");
 }
 ?>
 <div style="margin: 30px">
+<h2><?= htmlentities(__('Sign in to ' . $CFG->servicename)) ?></h2>
 <p>
-We here at <?php echo($CFG->servicename); ?> use Google Accounts as our sole login.
-We do not want to spend a lot of time verifying identity, resetting passwords,
-detecting robot-login storms, and other issues so we let Google do that hard work.
+<?= _m('Please enter your Active Directory credentials to log in.') ?>
 </p>
-<form method="post">
-    <a href="<?= $loginUrl ?>"><img src="<?= $CFG->staticroot ?>/img/google_signin_buttons/2x/btn_google_signin_dark_normal_web@2x.png"
-    title="<?= htmlentities(__('Sign in with Google')) ?>"
-    style="height: 3em;"></a>
-    <input class="btn btn-warning" type="button" onclick="location.href='<?php echo($login_return); ?>'; return false;" value="Cancel" style="height: 2.5em;"/>
+<form method="post" style="max-width: 400px;">
+    <input type="hidden" name="session_id" value="<?= htmlentities(session_id()) ?>">
+
+    <div class="form-group">
+        <label for="username"><?= htmlentities(__('Username')) ?>:</label>
+        <input type="text" class="form-control" id="username" name="username"
+               placeholder="<?= htmlentities(__('Enter your username')) ?>"
+               required autofocus autocomplete="username">
+    </div>
+
+    <div class="form-group">
+        <label for="password"><?= htmlentities(__('Password')) ?>:</label>
+        <input type="password" class="form-control" id="password" name="password"
+               placeholder="<?= htmlentities(__('Enter your password')) ?>"
+               required autocomplete="current-password">
+    </div>
+
+    <div class="form-group" style="margin-top: 15px;">
+        <button type="submit" class="btn btn-primary"><?= htmlentities(__('Sign In')) ?></button>
+        <input class="btn btn-warning" type="button"
+               onclick="location.href='<?= htmlentities($login_return) ?>'; return false;"
+               value="<?= htmlentities(__('Cancel')) ?>"/>
+    </div>
 </form>
-<p>
-So you must have a Google account and we will require your
-name and email address to login.  We do not need and do not receive your password - only Google
-will ask you for your password.  When you press login, you will be directed to the Google
-authentication system where you will be given the option to share your
-information with <?php echo($CFG->servicename); ?>.
+<p style="margin-top: 20px; color: #666; font-size: 0.9em;">
+<?= _m('Your credentials are authenticated against the Active Directory server. Your password is not stored by this application.') ?>
 </p>
 </div>
 <?php
