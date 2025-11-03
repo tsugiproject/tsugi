@@ -57,6 +57,8 @@ function ldap_authenticate($username, $password) {
         return false;
     }
 
+    error_log('LDAP SUCCESS: Connected to LDAP server: ' . $ldap_url);
+
     // Set LDAP options
     ldap_set_option($ldap_conn, LDAP_OPT_PROTOCOL_VERSION, $CFG->ldap_protocol_version ?? 3);
     ldap_set_option($ldap_conn, LDAP_OPT_REFERRALS, 0);
@@ -82,6 +84,8 @@ function ldap_authenticate($username, $password) {
         ldap_close($ldap_conn);
         return false;
     }
+
+    error_log('LDAP SUCCESS: Successfully bound to LDAP server');
 
     // Build search filter
     $search_filter = $CFG->ldap_search_filter ?? '(&(objectClass=user)(sAMAccountName={USERNAME}))';
@@ -110,8 +114,11 @@ function ldap_authenticate($username, $password) {
         return false;
     }
 
+    error_log('LDAP SUCCESS: Found user in directory: ' . $username);
+
     // Get user DN
     $user_dn = $entries[0]['dn'];
+    error_log('LDAP SUCCESS: User DN: ' . $user_dn);
 
     // Try to bind as the user to verify password
     $user_bind = @ldap_bind($ldap_conn, $user_dn, $password);
@@ -121,6 +128,8 @@ function ldap_authenticate($username, $password) {
         ldap_close($ldap_conn);
         return false;
     }
+
+    error_log('LDAP SUCCESS: User authenticated successfully: ' . $username);
 
     // Extract user attributes
     $user_entry = $entries[0];
