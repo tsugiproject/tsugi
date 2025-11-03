@@ -296,10 +296,14 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
                 $errormsg = "Please enter both username and password.";
             } else {
                 // Authenticate against LDAP
+                error_log('LDAP authentication attempt for user: ' . $username);
+                error_log('LDAP config - host: ' . (isset($CFG->ldap_host) ? $CFG->ldap_host : 'NOT SET'));
+                error_log('LDAP config - basedn: ' . (isset($CFG->ldap_basedn) ? $CFG->ldap_basedn : 'NOT SET'));
+
                 $ldap_user = ldap_authenticate($username, $password);
 
                 if ( $ldap_user === false ) {
-                    $errormsg = "Invalid username or password.";
+                    $errormsg = "Invalid username or password. Check error logs for details.";
                     error_log('LDAP Login failed for user: ' . $username);
                 } else {
                     // Successful authentication
