@@ -79,23 +79,33 @@ function ldap_authenticate($username, $password) {
 
     error_log('LDAP SUCCESS: Connected to LDAP server: ' . $ldap_url);
 
-    // Set LDAP options
+    // Set LDAP options (must be done before bind)
     ldap_set_option($ldap_conn, LDAP_OPT_PROTOCOL_VERSION, $CFG->ldap_protocol_version ?? 3);
     ldap_set_option($ldap_conn, LDAP_OPT_REFERRALS, 0);
+    ldap_set_option($ldap_conn, LDAP_OPT_NETWORK_TIMEOUT, $CFG->ldap_timeout ?? 10);
+
+    // Enable debugging for more details
+    if ( $CFG->DEVELOPER ) {
+        ldap_set_option($ldap_conn, LDAP_OPT_DEBUG_LEVEL, 7);
+    }
 
     // Use TLS if configured
     if ( isset($CFG->ldap_use_tls) && $CFG->ldap_use_tls ) {
-        if ( !ldap_start_tls($ldap_conn) ) {
-            error_log('LDAP Error: Could not start TLS');
+        error_log('LDAP: Starting TLS negotiation');
+        if ( !@ldap_start_tls($ldap_conn) ) {
+            error_log('LDAP Error: Could not start TLS: ' . ldap_error($ldap_conn));
             ldap_close($ldap_conn);
             return false;
         }
+        error_log('LDAP SUCCESS: TLS started');
     }
 
     // Bind with service account if configured, otherwise try anonymous bind
     if ( isset($CFG->ldap_bind_dn) && $CFG->ldap_bind_dn ) {
+        error_log('LDAP: Attempting bind with DN: ' . $CFG->ldap_bind_dn);
         $bind_result = @ldap_bind($ldap_conn, $CFG->ldap_bind_dn, $CFG->ldap_bind_password);
     } else {
+        error_log('LDAP: Attempting anonymous bind');
         $bind_result = @ldap_bind($ldap_conn);
     }
 
