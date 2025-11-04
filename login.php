@@ -40,7 +40,11 @@ function ldap_authenticate($username, $password) {
         return false;
     }
 
-    // Sanitize username to prevent LDAP injection
+    // Check if direct bind mode is enabled
+    $direct_bind_mode = isset($CFG->ldap_direct_bind) && $CFG->ldap_direct_bind;
+
+    // Sanitize username to prevent LDAP injection (but preserve original for UPN)
+    $original_username = $username;
     $username = ldap_escape($username, '', LDAP_ESCAPE_FILTER);
 
     // Build LDAP connection string
@@ -100,66 +104,118 @@ function ldap_authenticate($username, $password) {
         error_log('LDAP SUCCESS: TLS started');
     }
 
-    // Bind with service account if configured, otherwise try anonymous bind
-    if ( isset($CFG->ldap_bind_dn) && $CFG->ldap_bind_dn ) {
-        error_log('LDAP: Attempting bind with DN: ' . $CFG->ldap_bind_dn);
-        $bind_result = @ldap_bind($ldap_conn, $CFG->ldap_bind_dn, $CFG->ldap_bind_password);
+    // Direct bind mode: bind as the user directly without service account
+    if ( $direct_bind_mode ) {
+        error_log('LDAP: Using direct bind mode');
+
+        // Extract domain from basedn (e.g., DC=g03,DC=company,DC=local -> g03.company.local)
+        $domain_parts = array();
+        preg_match_all('/DC=([^,]+)/i', $CFG->ldap_basedn, $matches);
+        if ( !empty($matches[1]) ) {
+            $domain = implode('.', $matches[1]);
+        } else {
+            $domain = 'company.local'; // Fallback
+        }
+
+        // Try UPN format: username@domain
+        $user_upn = $original_username . '@' . $domain;
+        error_log('LDAP: Attempting direct bind as user: ' . $user_upn);
+
+        $user_bind = @ldap_bind($ldap_conn, $user_upn, $password);
+
+        if ( !$user_bind ) {
+            error_log('LDAP Error: Direct bind failed for user: ' . $original_username . ' (' . ldap_error($ldap_conn) . ')');
+            ldap_close($ldap_conn);
+            return false;
+        }
+
+        error_log('LDAP SUCCESS: Direct bind successful for user: ' . $original_username);
+
+        // Now search for the user's attributes using their own credentials
+        $search_filter = $CFG->ldap_search_filter ?? '(&(objectClass=user)(sAMAccountName={USERNAME}))';
+        $search_filter = str_replace('{USERNAME}', $username, $search_filter);
+
+        error_log('LDAP: Searching for user attributes with filter: ' . $search_filter);
+        $search_result = @ldap_search($ldap_conn, $CFG->ldap_basedn, $search_filter);
+
+        if ( !$search_result ) {
+            error_log('LDAP Error: Search failed after direct bind: ' . ldap_error($ldap_conn));
+            ldap_close($ldap_conn);
+            return false;
+        }
+
+        $entries = ldap_get_entries($ldap_conn, $search_result);
+
+        if ( $entries['count'] == 0 ) {
+            error_log('LDAP Error: User not found after direct bind: ' . $username);
+            ldap_close($ldap_conn);
+            return false;
+        }
+
+        error_log('LDAP SUCCESS: User authenticated successfully via direct bind: ' . $username);
+
     } else {
-        error_log('LDAP: Attempting anonymous bind');
-        $bind_result = @ldap_bind($ldap_conn);
+        // Normal mode: service account or anonymous bind, then search, then user bind
+        if ( isset($CFG->ldap_bind_dn) && $CFG->ldap_bind_dn ) {
+            error_log('LDAP: Attempting bind with DN: ' . $CFG->ldap_bind_dn);
+            $bind_result = @ldap_bind($ldap_conn, $CFG->ldap_bind_dn, $CFG->ldap_bind_password);
+        } else {
+            error_log('LDAP: Attempting anonymous bind');
+            $bind_result = @ldap_bind($ldap_conn);
+        }
+
+        if ( !$bind_result ) {
+            error_log('LDAP Error: Could not bind to LDAP server: ' . ldap_error($ldap_conn));
+            ldap_close($ldap_conn);
+            return false;
+        }
+
+        error_log('LDAP SUCCESS: Successfully bound to LDAP server');
+
+        // Build search filter
+        $search_filter = $CFG->ldap_search_filter ?? '(&(objectClass=user)(sAMAccountName={USERNAME}))';
+        $search_filter = str_replace('{USERNAME}', $username, $search_filter);
+
+        // Search for user
+        $search_result = @ldap_search($ldap_conn, $CFG->ldap_basedn, $search_filter);
+
+        if ( !$search_result ) {
+            error_log('LDAP Error: Search failed: ' . ldap_error($ldap_conn));
+            ldap_close($ldap_conn);
+            return false;
+        }
+
+        $entries = ldap_get_entries($ldap_conn, $search_result);
+
+        if ( $entries['count'] == 0 ) {
+            error_log('LDAP Error: User not found: ' . $username);
+            ldap_close($ldap_conn);
+            return false;
+        }
+
+        if ( $entries['count'] > 1 ) {
+            error_log('LDAP Error: Multiple users found for: ' . $username);
+            ldap_close($ldap_conn);
+            return false;
+        }
+
+        error_log('LDAP SUCCESS: Found user in directory: ' . $username);
+
+        // Get user DN
+        $user_dn = $entries[0]['dn'];
+        error_log('LDAP SUCCESS: User DN: ' . $user_dn);
+
+        // Try to bind as the user to verify password
+        $user_bind = @ldap_bind($ldap_conn, $user_dn, $password);
+
+        if ( !$user_bind ) {
+            error_log('LDAP Error: Invalid credentials for user: ' . $username);
+            ldap_close($ldap_conn);
+            return false;
+        }
+
+        error_log('LDAP SUCCESS: User authenticated successfully: ' . $username);
     }
-
-    if ( !$bind_result ) {
-        error_log('LDAP Error: Could not bind to LDAP server: ' . ldap_error($ldap_conn));
-        ldap_close($ldap_conn);
-        return false;
-    }
-
-    error_log('LDAP SUCCESS: Successfully bound to LDAP server');
-
-    // Build search filter
-    $search_filter = $CFG->ldap_search_filter ?? '(&(objectClass=user)(sAMAccountName={USERNAME}))';
-    $search_filter = str_replace('{USERNAME}', $username, $search_filter);
-
-    // Search for user
-    $search_result = @ldap_search($ldap_conn, $CFG->ldap_basedn, $search_filter);
-
-    if ( !$search_result ) {
-        error_log('LDAP Error: Search failed: ' . ldap_error($ldap_conn));
-        ldap_close($ldap_conn);
-        return false;
-    }
-
-    $entries = ldap_get_entries($ldap_conn, $search_result);
-
-    if ( $entries['count'] == 0 ) {
-        error_log('LDAP Error: User not found: ' . $username);
-        ldap_close($ldap_conn);
-        return false;
-    }
-
-    if ( $entries['count'] > 1 ) {
-        error_log('LDAP Error: Multiple users found for: ' . $username);
-        ldap_close($ldap_conn);
-        return false;
-    }
-
-    error_log('LDAP SUCCESS: Found user in directory: ' . $username);
-
-    // Get user DN
-    $user_dn = $entries[0]['dn'];
-    error_log('LDAP SUCCESS: User DN: ' . $user_dn);
-
-    // Try to bind as the user to verify password
-    $user_bind = @ldap_bind($ldap_conn, $user_dn, $password);
-
-    if ( !$user_bind ) {
-        error_log('LDAP Error: Invalid credentials for user: ' . $username);
-        ldap_close($ldap_conn);
-        return false;
-    }
-
-    error_log('LDAP SUCCESS: User authenticated successfully: ' . $username);
 
     // Extract user attributes
     $user_entry = $entries[0];
