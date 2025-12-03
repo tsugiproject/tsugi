@@ -181,4 +181,7 @@ $USER = false;
 $CONTEXT = false;
 $LINK = false;
 
+if (!defined('TSUGI_VERSION')) {
+    define('TSUGI_VERSION', '2025.12');   // ← update this occasionally
+}
 // No trailer

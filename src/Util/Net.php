@@ -151,6 +151,38 @@ class Net {
         return $response;
     }
 
+    /**
+     * Set the User-Agent header on a cURL handle.
+     *
+     * Canvas and other LMS platforms increasingly require a User-Agent
+     * identifying the originating product.  Tsugi provides a default but
+     * allows override using the CFG extension mechanism in your config.php file:
+     *
+     *     $CFG->setExtension('user_agent', 'MyTool/1.0 Tsugi/25.05');
+     *
+     * The default looks like this:
+     *
+     *     Tsugi/2025.12 (https://www.py4e/tsugi) PHP/8.4.1
+     *
+     * @param resource $ch A cURL handle
+     * @return void
+     */
+    public static function setUserAgentCurl($ch) {
+        global $CFG;
+
+        // Construct a robust default User-Agent
+        $default_agent = 'Tsugi/' .
+            (defined('TSUGI_VERSION') ? TSUGI_VERSION : 'dev') .
+            ' (' . (isset($CFG->wwwroot) ? $CFG->wwwroot : 'https://www.tsugi.org') . ')' .
+            ' PHP/' . phpversion();
+
+        // Allow overrides via extension mechanism
+        $user_agent = $CFG->getExtension('user_agent', $default_agent);
+
+        curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
+    }
+
+
     // Note - handles port numbers in URL automatically
     public static function getCurl($url, $header=false) {
       if ( ! function_exists('curl_init') ) return false;
@@ -183,6 +215,8 @@ class Net {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
       }
+
+      self::setUserAgentCurl($ch); // Set the User-Agent header
 
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
@@ -409,6 +443,8 @@ class Net {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
       }
+
+      self::setUserAgentCurl($ch); // Set the User-Agent header
 
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
