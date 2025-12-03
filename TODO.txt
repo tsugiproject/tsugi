@@ -1,10 +1,5 @@
 
+Move all htmlent_utf8() to htmlentities() since the default is now UTF-8
 
-Refactor all Outcome code into classes.
-
-Build lti.php load balancer.
-
-Figure out the top level I18N - Wish POEDIT had an exclude
-
-Look into context and resource_link override
+Remove the non-curl Net code
 
