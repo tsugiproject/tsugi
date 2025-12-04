@@ -33,12 +33,29 @@ require_once("sanity-db.php");
 </div>
 <h1>Administration Console</h1>
 <?php
-$recommended = '7.2.0';
-echo("<p>\nCurrent PHP Version: ". phpversion(). "\n");
-if ( version_compare(PHP_VERSION, $recommended) < 0 ) {
-    echo(' - <span style="color: red;">Soon Tsugi will require a minimum version of PHP '.$recommended.".</span>\n");
+echo("<p>\n");
+echo("Current Tsugi Version: ". TSUGI_VERSION. "<br/>\n");
+echo("Current PHP Version: ". phpversion(). "\n");
+if ( version_compare(PHP_VERSION, TSUGI_MINIMUM_PHP) < 0 ) {
+    echo(' - <span style="color: red;">The recommended minimum PHP version is '.TSUGI_MINIMUM_PHP.".</span>\n");
 }
 echo("</p>\n");
+if ( function_exists('curl_init') ) {
+    $curl_version = curl_version();
+    echo("<!-- cURL Extension: Available (version ".$curl_version['version'].") -->\n");
+} else {
+    echo("<p>\n");
+    echo('<span style="color: red;">cURL Extension: Not Available - cURL is required for LTI grade passback and other HTTP operations</span>'."\n");
+    echo("</p>\n");
+}
+$php_charset = ini_get('default_charset');
+if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
+    echo("<p>\n");
+    echo('<span style="color: red;">PHP Default Character Set: '.htmlentities($php_charset).' - UTF-8 is recommended for proper international character support</span>'."\n");
+    echo("</p>\n");
+} else if ( $php_charset ) {
+    echo("<!-- PHP Default Character Set: ".htmlentities($php_charset)." -->\n");
+}
 ?>
 </p>
 <ul>

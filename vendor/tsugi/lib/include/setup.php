@@ -184,4 +184,8 @@ $LINK = false;
 if (!defined('TSUGI_VERSION')) {
     define('TSUGI_VERSION', '2025.12');   // ← update this occasionally
 }
+
+if (!defined('TSUGI_MINIMUM_PHP')) {
+    define('TSUGI_MINIMUM_PHP', '8.4');   // ← update this occasionally
+}
 // No trailer
