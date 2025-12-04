@@ -6,17 +6,14 @@ use \Tsugi\Util\U;
 use \Tsugi\Core\Cache;
 
 /**
- * This is a class to provide access to the resource context level data.
+ * This is a class to provide access to user data from the LTI launch.
  *
  * This data comes from the LTI launch from the LMS.
- * A context is the equivalent of a "class" or course.   A context
- * has a roster of users and each user has a role within the context.
- * A launch may or may not contain a context.  If there
- * is a link without a context, it is a "system-wide" link
- * like "view profile" or "show all courses"
+ * A user represents a person who has launched the tool.
+ * Each user has properties like display name, email, and role.
+ * Users are associated with contexts (courses/classes) through memberships.
  *
  */
-
 class User {
 
     // Needed to implement the Entity methods
@@ -84,6 +81,8 @@ class User {
 
     /**
      * Construct the user's name / email combination
+     *
+     * @return string|false Formatted string with name and email, or false if no data available
      */
     public function getNameAndEmail() {
         return self::getDisplay($this->id, $this->displayname, $this->email);
@@ -91,6 +90,11 @@ class User {
 
     /**
      * Construct the user's name / email combination
+     *
+     * @param int $user_id The user ID
+     * @param string|null $displayname The user's display name
+     * @param string|null $email The user's email address
+     * @return string|false Formatted string with name and email, or false if no data available
      */
     public static function getDisplay($user_id, $displayname, $email) {
         if ( !is_string($displayname) ) $displayname = '';
@@ -112,8 +116,11 @@ class User {
 
     /**
      * Get the user's first name, falling back to email
+     *
+     * @param string|null $displayname Optional display name to parse. If null, uses getNameAndEmail()
+     * @return string|null The first name, or null if not available
      */
-    function getFirstName($displayname=null) {
+    public function getFirstName($displayname=null) {
         if ( $displayname === null ) $displayname = $this->getNameAndEmail();
         if ( $displayname === null ) return null;
         $pieces = explode(' ',$displayname);
@@ -126,6 +133,9 @@ class User {
      *
      * We make sure that the user is a member of the current
      * context so as not to slide across silos.
+     *
+     * @param int $user_id The user ID to load
+     * @return array|false Associative array with displayname, email, user_key, or false if not found
      */
     public static function loadUserInfoBypass($user_id)
     {
@@ -149,10 +159,13 @@ class User {
     }
 
     /**
-     * Load a user's info from the user's subbect
+     * Load a user's info from the user's subject
      *
      * We make sure that the user is a member of the current
      * context and key so as not to slide across silos.
+     *
+     * @param string $user_subject The user's subject identifier from LTI launch
+     * @return array|null Associative array with user_id, displayname, email, user_key, or null if not found
      */
     public function loadUserInfoBypassBySubject($user_subject)
     {
