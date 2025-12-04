@@ -25,6 +25,10 @@ to avoid instabilities in the composer ecosystem.  We want every Tsugi instance 
 the *exact same dependencies* and we want to tag and upgrade them together with upgrades
 related to new versions of PHP.
 
+Most of the folder `vendor` is ignored except for the `vendor/tsugi` folder.  This is a copy of
+the code in https://github.com/tsugiproject/tsugi-php - To test changes to `tsugi-php` you simply edit
+the code in `vendor/tsugi`, test it and then move the changes into the `tsugi-php` repo.
+
 New versions of PHP
 -------------------
 
