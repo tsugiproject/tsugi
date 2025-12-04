@@ -353,27 +353,39 @@ class ConfigInfo {
     public $sessionsalt = "warning:please-change-sessionsalt-89b543";
 
     /**
-     * Configure analytics for this Tsugi instance.
+     * Store sessions in database instead of default PHP session storage
      *
-     * Set to false if you do not want analytics - this uses the ga.js
-     * analytics and sets three custom parameters
-     * (oauth_consumer_key, context_id, and context_title)
-     * is they are set.
-     */
-    public $analytics_key = false;  // "UA-423997-16";
-    public $analytics_name = false; // "dr-chuck.com";
-
-    /**
-     * Configure universal analytics for this Tsugi instance.
+     * When enabled, Tsugi will use database-backed session storage
+     * instead of the default PHP session handler.
      *
-     * Set to false if you do not want universal analytics
+     * $CFG->sessions_in_db = false;
      */
-    public $universal_analytics = false;  // "UA-423997-16";
+    public $sessions_in_db = false;
 
     /*
-     * The default language for this systyem
+     * The default language for this system
      */
     public $lang = 'en';
+
+    /**
+     * Fallback locale when Accept-Language header is not available
+     *
+     * If set, this locale will be used when the browser doesn't provide
+     * an Accept-Language header or when locale detection fails.
+     *
+     * $CFG->fallbacklocale = 'de_DE';
+     */
+    public $fallbacklocale = false;
+
+    /**
+     * Enable translation checking/recording
+     *
+     * When enabled, Tsugi will record all translatable strings to the
+     * database for translation management.
+     *
+     * $CFG->checktranslation = true;
+     */
+    public $checktranslation = false;
 
     /**
      * Enable Google Translate on this site
@@ -789,6 +801,9 @@ class ConfigInfo {
     public $bootswatch = false;
     public $bootswatch_color = false;
     public $fontawesome = false;
+    public $analytics_key = false;
+    public $analytics_name = false;
+    public $universal_analytics = false;
 
     /**
      * Badge generation settings - once you start issuing badges - don't change these
