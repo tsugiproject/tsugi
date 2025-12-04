@@ -454,11 +454,6 @@ EOF;
 <div id="google_translate_element" style="position: fixed; right: 1em; bottom: 0.25em;"></div><script type="text/javascript">
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({pageLanguage: "en", layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-<?php
-    if ( U::allow_track() && $CFG->universal_analytics ) {
-        echo(', gaTrack: true, gaId: "'.$CFG->universal_analytics.'"'."\n");
-    }
-?>
     }, "google_translate_element");
 }
 </script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
@@ -467,8 +462,6 @@ function googleTranslateElementInit() {
         }
 
         if ( $this->session_get('APP_FOOTER') ) echo($this->session_get('APP_FOOTER'));
-
-        if ( U::allow_track() ) $this->doAnalytics();
 
         // This was originallly supposed to be Fixed in 7.1.9 - but this seems to regress
         // periodically in PHP so - we will just keep doing it
@@ -650,21 +643,6 @@ $('a').each(function (x) {
         }
     }
 
-    function doAnalytics() {
-        global $CFG;
-        if ( $CFG->universal_analytics ) { ?>
-            <script>
-              (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-              (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-              })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-              ga('create', '<?= $CFG->universal_analytics ?>', 'auto');
-              ga('send', 'pageview');
-
-            </script>
-        <?php }
-    }
 
     /**
       * Welcome the user to the course
