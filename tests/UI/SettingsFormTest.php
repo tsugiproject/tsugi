@@ -6,10 +6,9 @@ use \Tsugi\UI\SettingsForm;
 
 class SettingsFormTest extends \PHPUnit\Framework\TestCase
 {
-    public function testConstruct() {
+    public function testInstantiation() {
         $settingsForm = new SettingsForm();
-        $this->assertTrue(is_object($settingsForm));
+        $this->assertInstanceOf(\Tsugi\UI\SettingsForm::class, $settingsForm, 'SettingsForm should instantiate correctly');
     }
-
 
 }

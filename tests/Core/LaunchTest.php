@@ -17,7 +17,7 @@ class LaunchTest extends \PHPUnit\Framework\TestCase
     // Which probably is not there in a unit test
     public function testWrappedSessionNothing() {
         $launch = new \Tsugi\Core\Launch();
-        $this->assertEquals($launch->session_get('x', 'sam'), 'sam');
+        $this->assertEquals('sam', $launch->session_get('x', 'sam'), 'Session get should return default when no session object');
         $launch->session_put('x', 'y');
         $launch->session_forget('x');
         $launch->session_put('a', 'b');
@@ -29,21 +29,21 @@ class LaunchTest extends \PHPUnit\Framework\TestCase
         $launch = new \Tsugi\Core\Launch();
         $launch->session_object = $sess;
         $launch->session_put('x', 'y');
-        $this->assertEquals($launch->session_get('x', 'sam'), 'y');
+        $this->assertEquals('y', $launch->session_get('x', 'sam'), 'Session get should return stored value');
         $launch->session_forget('x');
-        $this->assertEquals($launch->session_get('x', 'sam'), 'sam');
+        $this->assertEquals('sam', $launch->session_get('x', 'sam'), 'Session get should return default after forget');
         $launch->session_put('a', 'b');
-        $this->assertEquals($launch->session_get('a', 'sam'), 'b');
+        $this->assertEquals('b', $launch->session_get('a', 'sam'), 'Session get should return stored value');
         $launch->session_put('a', 'c');
-        $this->assertEquals($launch->session_get('a', 'sam'), 'c');
+        $this->assertEquals('c', $launch->session_get('a', 'sam'), 'Session put should overwrite existing value');
         $launch->session_flush();
-        $this->assertEquals($launch->session_get('a', 'sam'), 'sam');
+        $this->assertEquals('sam', $launch->session_get('a', 'sam'), 'Session get should return default after flush');
         for($i=1; $i< 100; $i++) {
             $launch->session_put($i, $i*$i);
         }
-        $this->assertEquals($launch->session_get(10, 42), 100);
+        $this->assertEquals(100, $launch->session_get(10, 42), 'Session get should return stored numeric value');
         $launch->session_flush();
-        $this->assertEquals($launch->session_get(10, 42), 42);
+        $this->assertEquals(42, $launch->session_get(10, 42), 'Session get should return default after flush');
     }
 
     public function testWrappedSessionArray() {
@@ -60,10 +60,10 @@ class LaunchTest extends \PHPUnit\Framework\TestCase
         $sess = new MockSession();
         $launch = new \Tsugi\Core\Launch();
         $launch->session_object = $sess;
-        $this->assertFalse($launch->isSakai());
-        $this->assertFalse($launch->isCanvas());
-        $this->assertFalse($launch->isMoodle());
-        $this->assertFalse($launch->isCoursera());
+        $this->assertFalse($launch->isSakai(), 'isSakai should return false for empty session');
+        $this->assertFalse($launch->isCanvas(), 'isCanvas should return false for empty session');
+        $this->assertFalse($launch->isMoodle(), 'isMoodle should return false for empty session');
+        $this->assertFalse($launch->isCoursera(), 'isCoursera should return false for empty session');
     }
 
     public function testCascadeSetting() {
@@ -71,7 +71,7 @@ class LaunchTest extends \PHPUnit\Framework\TestCase
         $launch = new \Tsugi\Core\Launch();
         $launch->session_object = $sess;
         $zap = $launch->settingsCascade('bob','sarah');
-        $this->assertEquals($zap, 'sarah');
+        $this->assertEquals('sarah', $zap, 'settingsCascade should return default value when setting not found');
     }
 
 
