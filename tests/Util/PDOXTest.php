@@ -16,26 +16,11 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(is_array($describe));
         $PDOX = new mockPDOX();
         $column = $PDOX->describeColumn("key_id", $describe);
-        $this->assertArrayHasKey("Field", $column);
-        $this->assertArrayHasKey("Type", $column);
-        $this->assertArrayHasKey("Null", $column);
-        try {
-            $PDOX->columnIsNull("zap", $describe);
-            $this->assertTrue(false);
-        } catch(Exception $e) {
-        }
-        try {
-            $PDOX->columnType("zap", $describe);
-            $this->assertTrue(false);
-        } catch(Exception $e) {
-        }
-        try {
-            $PDOX->columnLength("zap", $describe);
-            $this->assertTrue(false);
-        } catch(Exception $e) {
-        }
+        $this->assertArrayHasKey("Field", $column, 'Column description should have Field key');
+        $this->assertArrayHasKey("Type", $column, 'Column description should have Type key');
+        $this->assertArrayHasKey("Null", $column, 'Column description should have Null key');
 
-        $this->assertFalse($PDOX->columnIsNull("key_id", $describe));
+        $this->assertFalse($PDOX->columnIsNull("key_id", $describe), 'key_id should not be null');
         $this->assertEquals("int", $PDOX->columnType("key_id", $describe));
         $this->assertEquals(11, $PDOX->columnLength("key_id", $describe));
 
@@ -47,9 +32,30 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals("char", $PDOX->columnType("key_sha256", $describe));
         $this->assertEquals(64, $PDOX->columnLength("key_sha256", $describe));
 
-        $this->assertFalse($PDOX->columnIsNull("deleted", $describe));
-        $this->assertEquals("tinyint", $PDOX->columnType("deleted", $describe));
-        $this->assertEquals(1, $PDOX->columnLength("deleted", $describe));
+        $this->assertFalse($PDOX->columnIsNull("deleted", $describe), 'deleted should not be null');
+        $this->assertEquals("tinyint", $PDOX->columnType("deleted", $describe), 'deleted should be tinyint type');
+        $this->assertEquals(1, $PDOX->columnLength("deleted", $describe), 'deleted should have length 1');
+    }
+
+    public function testColumnIsNullThrowsException() {
+        $describe = self::mockDescribe();
+        $PDOX = new mockPDOX();
+        $this->expectException(Exception::class);
+        $PDOX->columnIsNull("zap", $describe);
+    }
+
+    public function testColumnTypeThrowsException() {
+        $describe = self::mockDescribe();
+        $PDOX = new mockPDOX();
+        $this->expectException(Exception::class);
+        $PDOX->columnType("zap", $describe);
+    }
+
+    public function testColumnLengthThrowsException() {
+        $describe = self::mockDescribe();
+        $PDOX = new mockPDOX();
+        $this->expectException(Exception::class);
+        $PDOX->columnLength("zap", $describe);
     }
 
     public function mockDescribe() {

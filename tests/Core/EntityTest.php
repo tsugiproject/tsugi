@@ -6,9 +6,9 @@ use \Tsugi\Core\Entity;
 
 class EntityTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $x = new  \Tsugi\Core\Entity();
-        $this->assertTrue(true);
+    public function testInstantiation() {
+        $entity = new \Tsugi\Core\Entity();
+        $this->assertInstanceOf(\Tsugi\Core\Entity::class, $entity, 'Entity should instantiate correctly');
     }
 
 }

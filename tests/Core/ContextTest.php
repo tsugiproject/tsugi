@@ -5,9 +5,10 @@ use \Tsugi\Core\Context;
 
 class ContextTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $x = new  \Tsugi\Core\Context();
-        $this->assertTrue(true);
+    public function testInstantiation() {
+        $context = new \Tsugi\Core\Context();
+        $this->assertInstanceOf(\Tsugi\Core\Context::class, $context, 'Context should instantiate correctly');
+        $this->assertInstanceOf(\Tsugi\Core\Entity::class, $context, 'Context should extend Entity');
     }
 
 }

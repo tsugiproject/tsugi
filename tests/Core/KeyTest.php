@@ -5,9 +5,10 @@ use \Tsugi\Core\Key;
 
 class KeyTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $x = new  \Tsugi\Core\Key();
-        $this->assertTrue(true);
+    public function testInstantiation() {
+        $key = new \Tsugi\Core\Key();
+        $this->assertInstanceOf(\Tsugi\Core\Key::class, $key, 'Key should instantiate correctly');
+        $this->assertInstanceOf(\Tsugi\Core\Entity::class, $key, 'Key should extend Entity');
     }
 
 }

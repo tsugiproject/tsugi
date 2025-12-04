@@ -5,9 +5,9 @@ use \Tsugi\Core\Rest;
 
 class RestTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $x = new  \Tsugi\Core\Rest();
-        $this->assertTrue(true);
+    public function testInstantiation() {
+        $rest = new \Tsugi\Core\Rest();
+        $this->assertInstanceOf(\Tsugi\Core\Rest::class, $rest, 'Rest should instantiate correctly');
     }
 
 }

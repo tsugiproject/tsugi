@@ -5,39 +5,76 @@ use \Tsugi\Config\ConfigInfo;
 
 class UTest extends \PHPUnit\Framework\TestCase
 {
-    public function testGet() {
-        $this->assertFalse(U::goodFolder(' '));
-        $this->assertFalse(U::goodFolder('a b'));
-        $this->assertTrue(U::goodFolder('ab'));
-        $this->assertFalse(U::goodFolder('1a'));
-        $this->assertFalse(U::goodFolder('ai!'));
-        $this->assertFalse(U::goodFolder('ASJHJGAai!'));
-        $this->assertTrue(U::goodFolder('ASJHJGAai'));
-        $this->assertTrue(U::goodFolder('ASJ-JGAai'));
-        $this->assertTrue(U::goodFolder('ASJ_JGAai'));
-        $this->assertFalse(U::goodFolder('-ASJ_JGAai'));
-        $this->assertFalse(U::goodFolder('_ASJ_JGAai'));
+    /**
+     * @dataProvider goodFolderProvider
+     */
+    public function testGoodFolder($folder, $expected, $description) {
+        $this->assertEquals($expected, U::goodFolder($folder), $description);
     }
 
-    public function testRest() {
-        // Note this is normally $_SERVER['REQUEST_URI'] so there is not http:// ...
-        $this->assertEquals(U::get_rest_path('/py4e/lessons/intro'), '/py4e/lessons/intro');
-        $this->assertEquals(U::get_rest_path('/py4e/lessons/intro/'), '/py4e/lessons/intro');
-        $this->assertEquals(U::get_rest_path('/py4e/lessons/intro?x=2'), '/py4e/lessons/intro');
-        $this->assertEquals(U::get_rest_path('/py4e/lessons/intro/?x=2'), '/py4e/lessons/intro');
-
-        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro'), '/py4e/lessons');
-        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro?x=2'), '/py4e/lessons');
-        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro/'), '/py4e/lessons/intro');
-        $this->assertEquals(U::get_rest_parent('/py4e/lessons/intro/?x=2'), '/py4e/lessons/intro');
+    public function goodFolderProvider() {
+        return [
+            'Space character' => [' ', false, 'Folder with space should be invalid'],
+            'Space in middle' => ['a b', false, 'Folder with space in middle should be invalid'],
+            'Valid simple' => ['ab', true, 'Simple valid folder name'],
+            'Starts with number' => ['1a', false, 'Folder starting with number should be invalid'],
+            'Contains exclamation' => ['ai!', false, 'Folder with exclamation mark should be invalid'],
+            'Contains exclamation uppercase' => ['ASJHJGAai!', false, 'Folder with exclamation mark should be invalid'],
+            'Valid uppercase' => ['ASJHJGAai', true, 'Valid uppercase folder name'],
+            'Valid with hyphen' => ['ASJ-JGAai', true, 'Valid folder name with hyphen'],
+            'Valid with underscore' => ['ASJ_JGAai', true, 'Valid folder name with underscore'],
+            'Starts with hyphen' => ['-ASJ_JGAai', false, 'Folder starting with hyphen should be invalid'],
+            'Starts with underscore' => ['_ASJ_JGAai', false, 'Folder starting with underscore should be invalid'],
+        ];
     }
 
-    public function testRelative() {
-        $this->assertEquals(U::remove_relative_path('/a/b/c'), '/a/b/c');
-        $this->assertEquals(U::remove_relative_path('/a/b/c/'), '/a/b/c/');
-        $this->assertEquals(U::remove_relative_path('/a/./c/'), '/a/c/');
-        $this->assertEquals(U::remove_relative_path('/a/../c/'), '/c/');
-        $this->assertEquals(U::remove_relative_path('/a/b/../../c/'), '/c/');
+    /**
+     * @dataProvider restPathProvider
+     */
+    public function testGetRestPath($input, $expected, $description) {
+        $this->assertEquals($expected, U::get_rest_path($input), $description);
+    }
+
+    public function restPathProvider() {
+        return [
+            'Simple path' => ['/py4e/lessons/intro', '/py4e/lessons/intro', 'Simple path should remain unchanged'],
+            'Path with trailing slash' => ['/py4e/lessons/intro/', '/py4e/lessons/intro', 'Trailing slash should be removed'],
+            'Path with query string' => ['/py4e/lessons/intro?x=2', '/py4e/lessons/intro', 'Query string should be removed'],
+            'Path with trailing slash and query' => ['/py4e/lessons/intro/?x=2', '/py4e/lessons/intro', 'Trailing slash and query should be removed'],
+        ];
+    }
+
+    /**
+     * @dataProvider restParentProvider
+     */
+    public function testGetRestParent($input, $expected, $description) {
+        $this->assertEquals($expected, U::get_rest_parent($input), $description);
+    }
+
+    public function restParentProvider() {
+        return [
+            'Simple path' => ['/py4e/lessons/intro', '/py4e/lessons', 'Parent path should be one level up'],
+            'Path with query string' => ['/py4e/lessons/intro?x=2', '/py4e/lessons', 'Query string should be ignored'],
+            'Path with trailing slash' => ['/py4e/lessons/intro/', '/py4e/lessons/intro', 'Trailing slash should be preserved in parent'],
+            'Path with trailing slash and query' => ['/py4e/lessons/intro/?x=2', '/py4e/lessons/intro', 'Trailing slash preserved, query ignored'],
+        ];
+    }
+
+    /**
+     * @dataProvider relativePathProvider
+     */
+    public function testRemoveRelativePath($input, $expected, $description) {
+        $this->assertEquals($expected, U::remove_relative_path($input), $description);
+    }
+
+    public function relativePathProvider() {
+        return [
+            'No relative parts' => ['/a/b/c', '/a/b/c', 'Path without relative parts should remain unchanged'],
+            'Trailing slash' => ['/a/b/c/', '/a/b/c/', 'Path with trailing slash should remain unchanged'],
+            'Current directory' => ['/a/./c/', '/a/c/', 'Current directory (.) should be removed'],
+            'Parent directory' => ['/a/../c/', '/c/', 'Parent directory (..) should navigate up'],
+            'Multiple parent directories' => ['/a/b/../../c/', '/c/', 'Multiple parent directories should navigate correctly'],
+        ];
     }
 
     public function testParseController() {
@@ -306,25 +343,43 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($out, null);
     }
 
-    public function testStartsWith() {
-        $this->assertTrue(U::startsWith("csev@umich.edu", "csev"));
-        $this->assertTrue(U::startsWith("csev@umich.edu", ""));
-        $this->assertFalse(U::startsWith("csev@umich.edu", "cxev"));
-        $this->assertFalse(U::startsWith("edu", "@umich.edu"));
-        $this->assertFalse(U::startsWith(null, "@umich.edu"));
-        $this->assertFalse(U::startsWith(null, null));
-        $this->assertFalse(U::startsWith("edu", null));
+    /**
+     * @dataProvider startsWithProvider
+     */
+    public function testStartsWith($haystack, $needle, $expected, $description) {
+        $this->assertEquals($expected, U::startsWith($haystack, $needle), $description);
+    }
+
+    public function startsWithProvider() {
+        return [
+            'Valid prefix' => ["csev@umich.edu", "csev", true, 'String should start with valid prefix'],
+            'Empty prefix' => ["csev@umich.edu", "", true, 'Empty prefix should always match'],
+            'Invalid prefix' => ["csev@umich.edu", "cxev", false, 'String should not start with invalid prefix'],
+            'Prefix longer than string' => ["edu", "@umich.edu", false, 'Prefix longer than string should return false'],
+            'Null haystack' => [null, "@umich.edu", false, 'Null haystack should return false'],
+            'Both null' => [null, null, false, 'Both null should return false'],
+            'Null needle' => ["edu", null, false, 'Null needle should return false'],
+        ];
     }
 
 
-    public function testEndsWith() {
-        $this->assertTrue(U::endsWith("csev@umich.edu", "@umich.edu"));
-        $this->assertTrue(U::endsWith("csev@umich.edu", ""));
-        $this->assertFalse(U::endsWith("csev@umich.edu", "@xmich.edu"));
-        $this->assertFalse(U::endsWith("edu", "@umich.edu"));
-        $this->assertFalse(U::endsWith(null, "@umich.edu"));
-        $this->assertFalse(U::endsWith(null, null));
-        $this->assertFalse(U::endsWith("edu", null));
+    /**
+     * @dataProvider endsWithProvider
+     */
+    public function testEndsWith($haystack, $needle, $expected, $description) {
+        $this->assertEquals($expected, U::endsWith($haystack, $needle), $description);
+    }
+
+    public function endsWithProvider() {
+        return [
+            'Valid suffix' => ["csev@umich.edu", "@umich.edu", true, 'String should end with valid suffix'],
+            'Empty suffix' => ["csev@umich.edu", "", true, 'Empty suffix should always match'],
+            'Invalid suffix' => ["csev@umich.edu", "@xmich.edu", false, 'String should not end with invalid suffix'],
+            'Suffix longer than string' => ["edu", "@umich.edu", false, 'Suffix longer than string should return false'],
+            'Null haystack' => [null, "@umich.edu", false, 'Null haystack should return false'],
+            'Both null' => [null, null, false, 'Both null should return false'],
+            'Null needle' => ["edu", null, false, 'Null needle should return false'],
+        ];
     }
 
 }

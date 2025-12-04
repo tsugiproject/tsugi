@@ -5,8 +5,8 @@ use \Tsugi\Core\SessionTrait;
 
 class SessionTraitTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $this->assertTrue(true);
+    public function testTraitExists() {
+        $this->assertTrue(trait_exists(\Tsugi\Core\SessionTrait::class), 'SessionTrait should exist');
     }
 
 }

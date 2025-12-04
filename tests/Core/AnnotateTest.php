@@ -5,9 +5,9 @@ use \Tsugi\Core\Annotate;
 
 class AnnotateTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $x = new  \Tsugi\Core\Annotate();
-        $this->assertTrue(true);
+    public function testInstantiation() {
+        $annotate = new \Tsugi\Core\Annotate();
+        $this->assertInstanceOf(\Tsugi\Core\Annotate::class, $annotate, 'Annotate should instantiate correctly');
     }
 
 }

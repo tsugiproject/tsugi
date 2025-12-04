@@ -42,13 +42,13 @@ class BlobTest extends \PHPUnit\Framework\TestCase
         self::recursiveRemoveDirectory($tmp);
         mkdir($tmp);
         $blob_dir = BlobUtil::getBlobFolder('abcdef0123456789', $tmp);
-        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/ab/cd') > 0);
-        $this->assertFalse(file_exists($blob_dir));
+        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/ab/cd') > 0, 'Blob folder path should contain expected subdirectory structure');
+        $this->assertFalse(file_exists($blob_dir), 'Blob folder should not exist before mkdirSha256');
         $blob_dir = BlobUtil::mkdirSha256('abcdef0123456789', $tmp);
-        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/ab/cd') > 0);
-        $this->assertTrue(file_exists($blob_dir));
+        $this->assertTrue(strpos($blob_dir, 'tsugi_unit/ab/cd') > 0, 'Blob folder path should contain expected subdirectory structure');
+        $this->assertTrue(file_exists($blob_dir), 'Blob folder should exist after mkdirSha256');
         self::recursiveRemoveDirectory($tmp);
-        $this->assertFalse(file_exists($blob_dir));
+        $this->assertFalse(file_exists($blob_dir), 'Blob folder should not exist after cleanup');
     }
 
 }

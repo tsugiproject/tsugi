@@ -5,9 +5,10 @@ use \Tsugi\Core\Link;
 
 class LinkTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $x = new  \Tsugi\Core\Link();
-        $this->assertTrue(true);
+    public function testInstantiation() {
+        $link = new \Tsugi\Core\Link();
+        $this->assertInstanceOf(\Tsugi\Core\Link::class, $link, 'Link should instantiate correctly');
+        $this->assertInstanceOf(\Tsugi\Core\Entity::class, $link, 'Link should extend Entity');
     }
 
 }

@@ -5,9 +5,10 @@ use \Tsugi\Core\Tool;
 
 class ToolTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $x = new  \Tsugi\Core\Tool();
-        $this->assertTrue(true);
+    public function testInstantiation() {
+        $tool = new \Tsugi\Core\Tool();
+        $this->assertInstanceOf(\Tsugi\Core\Tool::class, $tool, 'Tool should instantiate correctly');
+        $this->assertTrue(property_exists($tool, 'analytics'), 'Tool should have analytics property');
     }
 
 }

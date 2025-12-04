@@ -5,8 +5,8 @@ use \Tsugi\Core\SettingsTrait;
 
 class SettingsTraitTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $this->assertTrue(true);
+    public function testTraitExists() {
+        $this->assertTrue(trait_exists(\Tsugi\Core\SettingsTrait::class), 'SettingsTrait should exist');
     }
 
 }

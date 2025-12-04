@@ -5,9 +5,9 @@ use \Tsugi\Core\Activity;
 
 class ActivityTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $x = new  \Tsugi\Core\Activity();
-        $this->assertTrue(true);
+    public function testInstantiation() {
+        $activity = new \Tsugi\Core\Activity();
+        $this->assertInstanceOf(\Tsugi\Core\Activity::class, $activity, 'Activity should instantiate correctly');
     }
 
 }

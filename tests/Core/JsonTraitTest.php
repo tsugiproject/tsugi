@@ -5,8 +5,8 @@ use \Tsugi\Core\JsonTrait;
 
 class JsonTraitTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $this->assertTrue(true);
+    public function testTraitExists() {
+        $this->assertTrue(trait_exists(\Tsugi\Core\JsonTrait::class), 'JsonTrait should exist');
     }
 
 }

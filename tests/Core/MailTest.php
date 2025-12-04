@@ -5,9 +5,9 @@ use \Tsugi\Core\Mail;
 
 class MailTest extends \PHPUnit\Framework\TestCase
 {
-    public function testTrivial() {
-        $x = new  \Tsugi\Core\Mail();
-        $this->assertTrue(true);
+    public function testInstantiation() {
+        $mail = new \Tsugi\Core\Mail();
+        $this->assertInstanceOf(\Tsugi\Core\Mail::class, $mail, 'Mail should instantiate correctly');
     }
 
 }
