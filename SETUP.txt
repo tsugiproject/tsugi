@@ -2,7 +2,7 @@ To set up the database for this application,
 
 (1) Create a database if you can do so:
 
-CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
+CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8mb4;
 CREATE USER 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
 CREATE USER 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
 GRANT ALL ON tsugi.* TO ltiuser@'localhost';

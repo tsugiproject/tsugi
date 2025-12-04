@@ -34,7 +34,6 @@ require_once("sanity-db.php");
 <h1>Administration Console</h1>
 <?php
 echo("<p>\n");
-echo("Current Tsugi Version: ". TSUGI_VERSION. "<br/>\n");
 echo("Current PHP Version: ". phpversion(). "\n");
 if ( version_compare(PHP_VERSION, TSUGI_MINIMUM_PHP) < 0 ) {
     echo(' - <span style="color: red;">The recommended minimum PHP version is '.TSUGI_MINIMUM_PHP.".</span>\n");
@@ -145,6 +144,30 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
 Best viewed with <a href="https://www.mozilla.org/en-US/firefox/" target="_new">FireFox</a> since 
 Chrome tends to hang iframes in Modals.
 </p>
+<?php
+echo("Current Tsugi Version: ". TSUGI_VERSION. "<br/>\n");
+if ( isset($PDOX) && $PDOX !== false ) {
+    try {
+        $db_charset = false;
+        if ( $PDOX->isMySQL() ) {
+            $row = $PDOX->rowDie("SHOW VARIABLES LIKE 'character_set_database'");
+            if ( $row && isset($row['Value']) ) {
+                $db_charset = $row['Value'];
+            }
+        } else if ( $PDOX->isPgSQL() ) {
+            $row = $PDOX->rowDie("SELECT pg_encoding_to_char(encoding) AS charset FROM pg_database WHERE datname = current_database()");
+            if ( $row && isset($row['charset']) ) {
+                $db_charset = $row['charset'];
+            }
+        }
+        if ( $db_charset ) {
+            echo("Database Character Set: ".htmlentities($db_charset)."<br/>\n");
+        }
+    } catch(\Exception $ex) {
+        // Silently fail if we can't check charset
+    }
+}
+?>
 <?php if ( $CFG->DEVELOPER ) { ?>
 <p>Note: You have $CFG-&gt;DEVELOPER enabled. When this is enabled, there are developer-oriented
 "testing" menus shown and the Admin links are more obvious.

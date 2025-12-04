@@ -73,7 +73,7 @@ your web server can read it
 * Create a database and get authentication info for the database (MySQL 8.0
 will need different commands):
 
-        CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
+        CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8mb4;
         CREATE USER 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
         GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost';
         CREATE USER 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
@@ -81,7 +81,7 @@ will need different commands):
 
         Or
 
-        CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
+        CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8mb4;
         GRANT ALL ON tsugi.* TO ltiuser@'localhost';
         GRANT ALL ON tsugi.* TO ltiuser@'127.0.0.1';
         SET PASSWORD FOR 'ltiuser'@'localhost' = PASSWORD('ltipassword');
