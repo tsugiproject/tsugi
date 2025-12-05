@@ -117,7 +117,7 @@ if ( count($threads) < 1 ) {
     if ( $unread > 0 ) $unread_str = ' <span class="tdiscus-thread-item-title-badge">'.$unread.'</span>';
 ?>
   <a href="<?= $TOOL_ROOT.'/thread/'.$thread['thread_id'] ?>">
-  <b<?= ($hidden ? ' style="text-decoration: line-through;"' : '') ?>><?= htmlentities($thread['title']) ?><?= $unread_str ?></b></a>
+  <b<?= ($hidden ? ' style="text-decoration: line-through;"' : '') ?>><?= htmlentities($thread['title'] ?? '') ?><?= $unread_str ?></b></a>
 <?php if ( $thread['owned'] || $LAUNCH->user->instructor ) { ?>
     <span class="tdiscus-thread-owned-menu">
     <a href="<?= $TOOL_ROOT ?>/threadform/<?= $thread['thread_id'] ?>"><i class="fa fa-pencil"></i></a>
@@ -140,7 +140,7 @@ if ( count($threads) < 1 ) {
     if ( $thread['staffcreate'] > 0 ) {
         echo('<span class="tdiscus-staff-created">'.__('Staff Created').'</span>');
         echo(" ".__("Created by")." ");
-        echo('<span class="tdiscus-user-name">'.htmlentities($thread['displayname']).'</span>');
+        echo('<span class="tdiscus-user-name">'.htmlentities($thread['displayname'] ?? '').'</span>');
         echo(' - '.__("last post").' <time class="timeago" datetime="'.$thread['modified_at'].'">'.$thread['modified_at'].'</time>');
     } else {
         if ( $thread['staffread'] > 0 ) echo('<span class="tdiscus-staff-read">'.__('Staff Read')."</span>\n");

@@ -58,7 +58,7 @@ echo("<h1>".__('Delete Thread')."</h1>\n");
 ?>
 <p><?= __("Title:") ?> <br/>
 <?php
-echo('<b>'.htmlentities($old_thread['title']).'</b></br>');
+echo('<b>'.htmlentities($old_thread['title'] ?? '').'</b></br>');
 ?>
 </p>
 <p><?= __("Description:") ?> <br/>

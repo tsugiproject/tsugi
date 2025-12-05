@@ -78,7 +78,7 @@ if ( $old_thread ) {
 <input type="text" name="title" class="form-control"
 <?php 
 if ( $old_thread ) {
-    echo('value="'.htmlentities($old_thread['title']).'" ');
+    echo('value="'.htmlentities($old_thread['title'] ?? '').'" ');
 }
 ?>
 >

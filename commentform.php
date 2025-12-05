@@ -63,7 +63,7 @@ if ( $old_comment ) {
 <input type="text" name="comment" class="form-control"
 <?php 
 if ( $old_comment ) {
-    echo('value="'.htmlentities($old_comment['comment']).'" ');
+    echo('value="'.htmlentities($old_comment['comment'] ?? '').'" ');
 }
 ?>
 >

@@ -105,7 +105,7 @@ foreach($sortby as $sort) {
             echo('<span '.($locked == 0 ? 'style="display:none;"' : '').'><i class="fa fa-lock fa-rotate-270" style="color: orange;"></i></span>');
         }
 ?>
-  <span class="tdiscus-user-name"><?= htmlentities($comment['displayname']) ?></span>
+  <span class="tdiscus-user-name"><?= htmlentities($comment['displayname'] ?? '') ?></span>
   <time class="timeago" datetime="<?= $comment['modified_at'] ?>"><?= $comment['modified_at'] ?></time>
   <?php if ( $comment['owned'] || $LAUNCH->user->instructor ) { ?>
     <a href="<?= self::toolRoot() ?>/commentform/<?= $comment['comment_id'] ?>"><i class="fa fa-pencil"></i></a>
@@ -130,7 +130,7 @@ foreach($sortby as $sort) {
 */
 ?>
   <br/>
-  <div style="padding-left: 10px;<?= ($hidden ? ' text-decoration: line-through;' : '') ?>"><?= htmlentities($comment['comment']) ?></div>
+  <div style="padding-left: 10px;<?= ($hidden ? ' text-decoration: line-through;' : '') ?>"><?= htmlentities($comment['comment'] ?? '') ?></div>
   </p>
 <?php
         if ( Threads::maxDepth() > 0 ) {

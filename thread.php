@@ -85,7 +85,7 @@ $OUTPUT->flashMessages();
 echo('<div class="tdiscus-thread-container">'."\n");
 echo('<p>');
 echo('<a style="float: right;" href="'.$TOOL_ROOT.'/"><i class="fa fa-home" title="'.__('All Threads').'"></i> '.__('All Threads').'</a></p>');
-echo('<span class="tdiscus-thread-title"><a href="'.$page_base.'"'.($thread['hidden'] ? ' style="text-decoration: line-through;"' : '').'>'.htmlentities($thread['title']).'</a>');
+echo('<span class="tdiscus-thread-title"><a href="'.$page_base.'"'.($thread['hidden'] ? ' style="text-decoration: line-through;"' : '').'>'.htmlentities($thread['title'] ?? '').'</a>');
 echo("</span></p>\n");
 ?>
 <p class="tdiscus-thread-info">

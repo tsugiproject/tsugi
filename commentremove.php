@@ -61,7 +61,7 @@ echo("<h1>".__('Delete Comment')."</h1>\n");
 <form id="delete-comment-form" method="post">
 <p><?= __("Comment:") ?> <br/>
 <?php
-echo('<b>'.htmlentities($old_comment['comment']).'</b></br>');
+echo('<b>'.htmlentities($old_comment['comment'] ?? '').'</b></br>');
 ?>
 </p>
 <p>
