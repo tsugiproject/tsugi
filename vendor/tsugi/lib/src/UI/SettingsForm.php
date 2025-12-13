@@ -123,9 +123,10 @@ class SettingsForm {
     }
 
 
-    public static function start() {
+    public static function start($title=null) {
         global $USER, $OUTPUT, $LINK;
         if ( ! $USER ) return;
+        if ( ! is_string($title) ) $title = $LINK->title;
 ?>
 <!-- Modal -->
 <div id="tsugi_settings_dialog" class="modal fade" role="dialog" style="display: none;">
@@ -135,7 +136,7 @@ class SettingsForm {
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span class="fa fa-close" aria-hidden="true"></span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title"><?=htmlentities($LINK->title)?> <?=__("Settings")?></h4>
+        <h4 class="modal-title"><?=htmlentities($title)?> <?=__("Settings")?></h4>
       </div>
       <div class="modal-body">
       <?php if ( $USER->instructor ) { ?>
@@ -245,6 +246,21 @@ class SettingsForm {
             echo('>'.$display.'</option>'."\n");
         }
         echo('</select></div>');
+    }
+
+    /**
+     * Handle a settings note
+     */
+    public static function note($title=false)
+    {
+        global $USER;
+        if ( ! $USER ) return false;
+
+        ?>
+        <div class="form-group">
+            <label><?=htmlent_utf8($title)?></label>
+        </div>
+        <?php
     }
 
     /**
