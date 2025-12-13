@@ -59,16 +59,14 @@ class Context extends Entity {
     /**
      * Load the LTI 1.3 data from the session, checking for sanity
      *
-     * @param $lti13_token_url The token URL (output)
-     * @param $privkey The current private key (output)
-     * @param $kid The current kid for the public key (output)
-     * @param $lti13_token_audience The current optional token audience (output)
-     * @param $issuer_client The current client_id (output)
-     * @param $deployment_id The current deployment_id (output)
+     * @param string &$lti13_token_url The token URL (output parameter)
+     * @param string &$privkey The current private key (output parameter)
+     * @param string &$kid The current kid for the public key (output parameter)
+     * @param string &$lti13_token_audience The current optional token audience (output parameter)
+     * @param string &$issuer_client The current client_id (output parameter)
+     * @param string &$deployment_id The current deployment_id (output parameter)
      *
-     * @return string When the string is non-empty, it means an error has occurred and
-     * the string contains the error detail.
-     *
+     * @return string Empty string if successful, otherwise contains error details
      */
     private function loadLTI13Data(&$lti13_token_url, &$privkey, &$kid, &$lti13_token_audience, &$issuer_client, &$deployment_id)
     {
@@ -94,13 +92,12 @@ class Context extends Entity {
     /**
      * Load the roster if we can get it from the LMS
      *
-     * @param $with_sourcedids If true, ask for the sourcedids
-     * @param array $debug_log If this is an array, debug information is returned as the
+     * @param bool $with_sourcedids If true, ask for the sourcedids
+     * @param array|false &$debug_log If this is an array, debug information is returned as the
      * process progresses.
      *
-     * @return mixed If this works it returns the NRPS object.  If it fails,
-     * it returns a string.
-     *
+     * @return object|string|false If this works it returns the NRPS object.  If it fails,
+     * it returns a string with error details or false.
      */
     public function loadNamesAndRoles($with_sourcedids=false, &$debug_log=false) {
         global $CFG;
@@ -135,14 +132,13 @@ class Context extends Entity {
     }
 
     /**
-     * Load all the groups if we can them from the LMS
+     * Load all the groups if we can get them from the LMS
      *
-     * @param array $debug_log If this is an array, debug information is returned as the
+     * @param array|false &$debug_log If this is an array, debug information is returned as the
      * process progresses.
      *
-     * @return mixed If this works it returns the Groups object.  If it fails,
-     * it returns a string.
-     *
+     * @return object|string|false If this works it returns the Groups object.  If it fails,
+     * it returns a string with error details or false.
      */
     public function loadAllGroups(&$debug_log=false) {
         return self::loadGroups(null, $debug_log);
@@ -151,13 +147,12 @@ class Context extends Entity {
     /**
      * Load the groups from the LMS
      *
-     * @param string $user_id If this is a string, then only the groups for the user_id are retrieved
-     * @param array $debug_log If this is an array, debug information is returned as the
+     * @param string|null $user_id If this is a string, then only the groups for the user_id are retrieved
+     * @param array|false &$debug_log If this is an array, debug information is returned as the
      * process progresses.
      *
-     * @return mixed If this works it returns the Groups object.  If it fails,
-     * it returns a string.
-     *
+     * @return object|string|false If this works it returns the Groups object.  If it fails,
+     * it returns a string with error details or false.
      */
     public function loadGroups($user_id, &$debug_log=false) {
         global $CFG;
@@ -227,11 +222,11 @@ class Context extends Entity {
     /**
      * Load our lineitems from the LMS
      *
-     * @param $search mixed - search values to apply to the load
-     * @param $debug_log Returns a log of actions taken
+     * @param array|false $search Search values to apply to the load (tag, lti_link_id, resource_id)
+     * @param array|false &$debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns the LineItems array.  If it fails,
-     * it returns a string.
+     * @return array|string If this works it returns the LineItems array.  If it fails,
+     * it returns a string with error details.
      */
     public function loadLineItems($search=false, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
@@ -250,13 +245,12 @@ class Context extends Entity {
     }
 
     /**
-     * Load the detiail for a lineitem from the LMS
+     * Load the detail for a lineitem from the LMS
      *
-     * @param $id mixed - search values to apply to the load
-     *     $lineitem_id = $lineitems[0]->id;
-     * @param $debug_log Returns a log of actions taken
+     * @param string $id The line item ID (REST endpoint URL)
+     * @param array|false &$debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
+     * @return object|string If this works it returns the LineItem.  If it fails, it returns a string.
      */
     public function loadLineItem($id, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
@@ -270,17 +264,17 @@ class Context extends Entity {
     /**
      * Create a lineitem in the LMS
      *
-     * @param object $newitem The fields to update
-     *
+     * @param object $newitem The fields for the new line item
+     *     Example:
      *     $newitem = new \stdClass();
      *     $newitem->scoreMaximum = 100;
      *     $newitem->label = 'Week 3 Feedback';
      *     $newitem->resourceId = '2987487943';
      *     $newitem->tag = 'optional';
      *
-     * @param $debug_log Returns a log of actions taken
+     * @param array|false &$debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
+     * @return object|string If this works it returns the LineItem.  If it fails, it returns a string.
      */
     public function createLineItem($newitem, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
@@ -295,11 +289,10 @@ class Context extends Entity {
     /**
      * Delete a lineitem from the LMS
      *
-     * @param $id mixed - search values to apply to the load
-     *     $lineitem_id = $lineitems[0]->id;
-     * @param $debug_log Returns a log of actions taken
+     * @param string $id The line item ID (REST endpoint URL)
+     * @param array|false &$debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns true.  If it fails, it returns a string.
+     * @return bool|string If this works it returns true.  If it fails, it returns a string with error details.
      */
     public function deleteLineItem($id, &$debug_log=false) {
         $lineitems_access_token = self::getLineItemsToken($missing, $lti13_lineitems, $debug_log);
@@ -313,19 +306,18 @@ class Context extends Entity {
     /**
      * Update a lineitem in the LMS
      *
-     * @param $id mixed - search values to apply to the load
-     *     $lineitem_id = $lineitems[0]->id;
+     * @param string $id The line item ID (REST endpoint URL)
      * @param object $newitem The fields to update
-     *
+     *     Example:
      *     $newitem = new \stdClass();
      *     $newitem->scoreMaximum = 100;
      *     $newitem->label = 'Week 3 Feedback';
      *     $newitem->resourceId = '2987487943';
      *     $newitem->tag = 'optional';
      *
-     * @param $debug_log Returns a log of actions taken
+     * @param array|false &$debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns the LineItem.  If it fails, it returns a string.
+     * @return object|string If this works it returns the LineItem.  If it fails, it returns a string.
      */
     public function updateLineItem($id, $newitem, &$debug_log=false) {
         $grade_token = self::getGradeToken($missing, $subject, $debug_log);
@@ -369,15 +361,15 @@ class Context extends Entity {
     /**
      * Send a lineitem result to the LMS
      *
-     * @param $id The REST endpoint (id) for this line item
-     * @param $user_key The user for this grade
-     * @param $grade Value to send
-     * @param $scoreMaximum What the score is relative to
-     * @param $comment An optional comment
-     * @param $debug_log Returns a log of actions taken
-     * @param $extra13 A key/value store of extra LTI1.3 parameters
+     * @param string $id The REST endpoint (id) for this line item
+     * @param string $user_key The user for this grade
+     * @param float $grade Value to send
+     * @param float $scoreMaximum What the score is relative to
+     * @param string|null $comment An optional comment
+     * @param array|false &$debug_log Returns a log of actions taken
+     * @param array|false $extra13 A key/value store of extra LTI1.3 parameters
      *
-     * @return mixed If this is a success a true is returned, if not a string with an error
+     * @return bool|string If this is a success a true is returned, if not a string with an error
      * is returned.
      */
     public function sendLineItemResult($id, $user_key, $grade, $scoreMaximum, $comment, &$debug_log=false, $extra13=false) {
@@ -394,11 +386,11 @@ class Context extends Entity {
     /**
      * Load the results for a line item
      *
-     * @param $id The REST endpoint (id) for this line item
-     * @param $debug_log Returns a log of actions taken
+     * @param string $id The REST endpoint (id) for this line item
+     * @param array|false &$debug_log Returns a log of actions taken
      *
-     * @return mixed If this works it returns the Results array.  If it fails,
-     * it returns a string.
+     * @return array|string If this works it returns the Results array.  If it fails,
+     * it returns a string with error details.
      */
     public function loadResults($id, &$debug_log=false) {
 

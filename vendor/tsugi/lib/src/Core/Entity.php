@@ -5,7 +5,13 @@ namespace Tsugi\Core;
 use \Tsugi\Core\LTIX;
 
 /**
- * This is a class holding commmon functionality to be extended by various other classes.
+ * This is a class holding common functionality to be extended by various other classes.
+ *
+ * Entity provides base functionality for classes that represent database entities.
+ * Extending classes must define:
+ * - protected $TABLE_NAME - The database table name
+ * - protected $PRIMARY_KEY - The primary key column name
+ * - public $id - The entity's ID value
  */
 
 class Entity {

@@ -106,6 +106,10 @@ class Launch {
 
     /**
      * Get a key from the session
+     *
+     * @param string $key The session key to retrieve
+     * @param mixed $default The default value if key doesn't exist
+     * @return mixed The session value or default
      */
     public function session_get($key, $default=null) {
         return LTIX::wrapped_session_get($this->session_object,$key,$default);
@@ -113,6 +117,10 @@ class Launch {
 
     /**
      * Set a key in the session
+     *
+     * @param string $key The session key to set
+     * @param mixed $value The value to store
+     * @return void
      */
     public function session_put($key, $value) {
         return LTIX::wrapped_session_put($this->session_object,$key,$value);
@@ -120,13 +128,18 @@ class Launch {
 
     /**
      * Forget a key in the session
+     *
+     * @param string $key The session key to remove
+     * @return void
      */
     public function session_forget($key) {
         return LTIX::wrapped_session_forget($this->session_object,$key);
     }
 
     /**
-     * Flush the session
+     * Flush the session (clear all session data)
+     *
+     * @return void
      */
     public function session_flush() {
         return LTIX::wrapped_session_flush($this->session_object);
@@ -134,6 +147,8 @@ class Launch {
 
     /**
      * Pull a keyed variable from the LTI data in the current session with default
+     *
+     * @return array|false The LTI parameter array or false if not available
      */
     public function ltiParameterArray() {
         $row = $this->session_get('lti', false);
@@ -142,6 +157,10 @@ class Launch {
 
     /**
      * Pull a keyed variable from the LTI data in the current session with default
+     *
+     * @param string $varname The LTI parameter name
+     * @param mixed $default The default value if parameter doesn't exist
+     * @return mixed The parameter value or default
      */
     public function ltiParameter($varname, $default=false) {
         $row = $this->ltiParameterArray();
@@ -152,6 +171,10 @@ class Launch {
 
     /**
      * Update a keyed variable from the LTI data in the current session with default
+     *
+     * @param string $varname The LTI parameter name to update
+     * @param mixed $value The value to set
+     * @return void
      */
     public function ltiParameterUpdate($varname, $value) {
         $lti = $this->ltiParameterArray();
@@ -162,6 +185,8 @@ class Launch {
 
     /**
      * Return the original $_POST array
+     *
+     * @return array|false The original LTI POST array or false if not available
      */
     public function ltiRawPostArray() {
         $lti_post = $this->session_get('lti_post', false);
@@ -169,7 +194,9 @@ class Launch {
     }
 
     /**
-     * Return the original JWT
+     * Return the original JWT (JSON Web Token) from the launch
+     *
+     * @return object|null The JWT object or null if not available
      */
     public function ltiRawJWT() {
         $lti_jwt = $this->session_get('tsugi_jwt', null);
@@ -178,6 +205,10 @@ class Launch {
 
     /**
      * Pull a keyed variable from the original LTI post data in the current session with default
+     *
+     * @param string $varname The parameter name from the original POST
+     * @param mixed $default The default value if parameter doesn't exist
+     * @return mixed The parameter value or default
      */
     public function ltiRawParameter($varname, $default=false) {
         $lti_post = $this->ltiRawPostArray();
@@ -188,6 +219,10 @@ class Launch {
 
     /**
      * Pull a claim from the body of the Launch JWT
+     *
+     * @param string $claim The claim name to retrieve
+     * @param mixed $default The default value if claim doesn't exist
+     * @return mixed The claim value or default
      */
     public function ltiJWTClaim($claim, $default=null) {
         $lti_jwt = $this->ltiRawJWT();
@@ -198,7 +233,9 @@ class Launch {
     }
 
     /**
-     * Return whether this is an LTI13 launch or not
+     * Return whether this is an LTI 1.3 launch or not
+     *
+     * @return bool True if this is an LTI 1.3 launch, false otherwise
      */
     public function isLTI13() {
         $issuer_client = $this->ltiParameter('issuer_client');
@@ -207,6 +244,8 @@ class Launch {
 
     /**
      * Return the LTI 1.3 Message Type with Reasonable Fall Backs
+     *
+     * @return string The message type (e.g., 'LtiResourceLinkRequest')
      */
     public function ltiMessageType() {
         $lti_jwt = $this->ltiRawJWT();
@@ -223,7 +262,11 @@ class Launch {
      * Pull out a custom variable from the LTIX session.
      *
      * For LTI 1.1, it adds the "custom_" prefix automatically and looks in POST values
-     * For LTI Advantage, the data is pulled from the Java Web Token (JWT)
+     * For LTI Advantage, the data is pulled from the JSON Web Token (JWT)
+     *
+     * @param string $varname The custom variable name (without 'custom_' prefix)
+     * @param mixed $default The default value if variable doesn't exist
+     * @return mixed The custom variable value or default
      */
     public function ltiCustomGet($varname, $default=false) {
         $claim = $this->ltiJWTClaim(LTI13::CUSTOM_CLAIM);
@@ -245,6 +288,10 @@ class Launch {
      * (3) From a Context Setting
      * (2) From a Link Setting
      * (1) From a custom launch variable prefixed by "tsugi_setting"
+     *
+     * @param string $key The setting key to look up
+     * @param mixed $retval The default value if setting is not found
+     * @return mixed The setting value or default
      */
     public function settingsCascade($key, $retval=null)
     {
@@ -272,7 +319,7 @@ class Launch {
     /**
      * Indicate if this launch came from Sakai
      *
-     * if ( $LTI->isSakai() ) echo("SAKAI");
+     * @return bool True if launch is from Sakai, false otherwise
      */
     public function isSakai() {
         $claim = $this->ltiJWTClaim(LTI13::TOOL_PLATFORM_CLAIM, null);
@@ -291,7 +338,7 @@ class Launch {
     /**
      * Indicate if this launch came from Canvas
      *
-     * if ( $LTI->isCanvas() ) echo("CANVAS");
+     * @return bool True if launch is from Canvas, false otherwise
      */
     public function isCanvas() {
         $claim = $this->ltiJWTClaim(LTI13::TOOL_PLATFORM_CLAIM, null);
@@ -309,7 +356,7 @@ class Launch {
     /**
      * Indicate if this launch came from Moodle
      *
-     * if ( $LTI->isMoodle() ) echo("MOODLE");
+     * @return bool True if launch is from Moodle, false otherwise
      */
     public function isMoodle() {
         $claim = $this->ltiJWTClaim(LTI13::TOOL_PLATFORM_CLAIM, null);
@@ -328,7 +375,7 @@ class Launch {
     /**
      * Indicate if this launch came from Coursera
      *
-     * if ( $LTI->isCoursera() ) echo("Coursera");
+     * @return bool True if launch is from Coursera, false otherwise
      */
     public function isCoursera() {
         $claim = $this->ltiJWTClaim(LTI13::TOOL_PLATFORM_CLAIM, null);
@@ -348,6 +395,8 @@ class Launch {
     /**
      * Return the document target
      * The value for this property MUST be one of: frame, iframe, or window.
+     *
+     * @return string|null The document target value or null if not set
      */
     public function documentTarget() {
         $claim = $this->ltiJWTClaim(LTI13::PRESENTATION_CLAIM, null);
@@ -364,7 +413,9 @@ class Launch {
     }
 
     /**
-     * Return the return Url
+     * Return the return URL
+     *
+     * @return string|null The return URL or null if not set
      */
     public function returnUrl() {
         $claim = $this->ltiJWTClaim(LTI13::PRESENTATION_CLAIM, null);
@@ -381,14 +432,20 @@ class Launch {
     }
 
     /**
-     * Return a boolean is this is an LTI Advantage launch
+     * Return a boolean indicating if this is an LTI Advantage launch
+     *
+     * @return bool True if this is an LTI Advantage launch, false otherwise
      */
     public function isLTIAdvantage() {
         return $this->ltiRawJWT() !== null;
     }
 
     /**
-     * set up parameters for an outbound launch from this launch
+     * Set up parameters for an outbound launch from this launch
+     *
+     * @param bool $send_name Whether to include user name in launch parameters
+     * @param bool $send_email Whether to include user email in launch parameters
+     * @return array Associative array of LTI launch parameters
      */
     public function newLaunch($send_name=true, $send_email=true) {
         $parms = array(
@@ -431,6 +488,8 @@ class Launch {
     /**
      * Dump out the internal data structures associated with the
      * current launch.  Best if used within a pre tag.
+     *
+     * @return void
      */
     public function var_dump() {
         var_dump($this);

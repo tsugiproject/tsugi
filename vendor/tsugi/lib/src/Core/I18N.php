@@ -9,19 +9,28 @@ use Symfony\Component\Translation\Loader\MoFileLoader;
 use \Tsugi\Util\U;
 
 /**
- * Some really small, simple, and self-contained utility public static functions
+ * Internationalization (i18n) utility class for translation support
+ *
+ * Provides translation functions similar to WordPress pattern.
+ * Supports both legacy gettext and Symfony Translation component.
  */
 class I18N {
 
     /**
-     * Translate a messege from the master domain
+     * Translate a message from the master domain
+     *
+     * @param string $message The message to translate
+     * @return string The translated message
      */
     public static function _m($message) {
         return self::__($message, "master");
     }
 
     /**
-     * Echo translated a message from the master domain
+     * Echo a translated message from the master domain
+     *
+     * @param string $message The message to translate and echo
+     * @return void
      */
     public static function _me($message) {
         echo(self::_m($message));
@@ -29,15 +38,23 @@ class I18N {
 
     /**
      * Echo a translated message from a textdomain
+     *
+     * @param string $message The message to translate and echo
+     * @param string|false $textdomain The text domain to use, or false for current domain
+     * @return void
      */
     public static function _e($message, $textdomain=false) {
         echo(self::__($message, $textdomain));
     }
 
     /**
-     * Translate a messege from the master domain
+     * Translate a message from a textdomain
      *
-     * Pattern borrowed from WordPress
+     * Pattern borrowed from WordPress. This is the core translation function.
+     *
+     * @param string $message The message to translate
+     * @param string|false $textdomain The text domain to use, or false for current domain
+     * @return string The translated message
      */
     public static function __($message, $textdomain=false) {
         global $CFG, $PDOX, $TSUGI_LOCALE, $TSUGI_LOCALE_RELOAD, $TSUGI_TRANSLATE;
@@ -81,7 +98,10 @@ class I18N {
     }
 
     /**
-     * Set the LOCAL for the current user
+     * Set the locale for the current user
+     *
+     * @param string|null $locale The locale to set (e.g., 'en_US', 'fr_FR'). If null, detects from HTTP headers
+     * @return void
      */
     public static function setLocale($locale=null)
     {
@@ -127,7 +147,12 @@ class I18N {
     }
 
     /**
-     * Set up the translation entities
+     * Set up the translation text domain
+     *
+     * Configures the translation system with master and domain-specific translation files.
+     * Uses Symfony Translation component if available, falls back to legacy gettext.
+     *
+     * @return void
      */
     public static function setupTextDomain() {
         global $CFG, $TSUGI_LOCALE, $TSUGI_LOCALE_RELOAD, $TSUGI_TRANSLATE;
