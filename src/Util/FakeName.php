@@ -8,38 +8,66 @@ namespace Tsugi\Util;
 class FakeName {
 
     final const ADJECTIVES = [
-        'Able','Accurate','Alert','Attentive','Balanced','Calm','Careful','Centered','Clear','Collected',
-        'Composed','Considerate','Consistent','Contained','Curious','Decisive','Deliberate','Direct','Discrete','Diligent',
-        'Earnest','Efficient','Even','Exact','Fair','Firm','Focused','Gentle','Grounded','Humble',
-        'Intent','Judicious','Kind','Level','Logical','Measured','Methodical','Mindful','Moderate','Modest',
-        'Neutral','Nimble','Observant','Open','Orderly','Patient','Perceptive','Plain','Poised','Practical',
-        'Precise','Prepared','Quiet','Rational','Ready','Reflective','Reliable','Reserved','Resolute','Responsive',
-        'Sincere','Sound','Stable','Steady','Subtle','Supportive','Systematic','Thoughtful','Thorough','Timely',
-        'Tranquil','Trustworthy','Unassuming','Understanding','Upright','Useful','Vigilant','Warm','Wary','Wise',
+        'Active','Aligned','Anchored','Applied','Attentive','Balanced','Baseline',
+        'Careful','Centered','Clear','Coherent','Consistent','Contained','Contextual',
+        'Deliberate','Defined','Directed','Discrete','Documented',
+        'Economical','Even','Explicit','Exact',
+        'Focused','Formal','Framed','Functional',
+        'Grounded','Handled','Incremental','Indexed','Intentional',
+        'Level','Limited','Linear','Local','Logical',
+        'Measured','Methodical','Moderate','Modular',
+        'Neutral','Noted','Observed','Operational','Ordered',
+        'Plain','Positioned','Prepared','Primary','Procedural',
+        'Qualified','Referenced','Regular','Related',
+        'Scoped','Secondary','Selective','Sequential','Situated',
+        'Specified','Stable','Structured','Subtle','Supported',
+        'Systematic','Technical','Temporal','Traceable','Typical',
+        'Unbiased','Unified','Validated','Variable','Visible',
 
-        'Adaptable','Anchored','Assured','Attuned','Balanced','Careful','Clearheaded','Coherent','Considered','Delicate',
-        'Dependable','Detached','Disciplined','Economical','Elastic','Evenhanded','Exacting','Flexible','Frank','Genuine',
-        'Harmonious','Honest','Impartial','Intentional','Measured','Natural','Objective','Ordered','Patient','Plainspoken',
-        'Prudent','Reasoned','Reflective','Regular','Reserved','Sensible','Serene','Steadfast','Temperate','Unbiased',
-        'Watchful','Wellplaced','Welltimed','Whole','Yielding','Settled','Centered','Grounded','Lucid','Balanced'
+        // extra depth
+        'Abstracted','Aggregated','Annotated','Bounded','Calibrated',
+        'Classified','Compared','Constrained','Delimited','Derived',
+        'Enumerated','Estimated','Examined','Filtered','Grouped',
+        'Identified','Isolated','Mapped','Normalized','Outlined',
+        'Parsed','Reduced','Separated','Summarized','Tracked',
+
+        // Nerdy / systems
+        'Binary','Canonical','Deterministic',
+        'Idempotent','Immutable','Orthogonal',
+        'Portable','Predictable','Queryable','Serializable',
+        'Stateless','Stateful','Synchronous','Versioned',
+        'Composable','Invariant','Monotonic','Referential','Reproducible',
+        'Convergent','Declarative','Idiosyncratic',
+        'Interoperable','Isomorphic','Probabilistic','Observable',
+
+         // AI / data
+         'Stochastic','Predictive','Generative','Embedded','Latent',
+         'Parametric','Trained','Ephemeral', 'Symmetric',
      ];
 
     final const ANIMALS = [
-        'Antelope','Badger','Beaver','Bison','Butterfly','Camel','Caribou','Cat','Cheetah','Crane',
-        'Deer','Dolphin','Dove','Duck','Eagle','Egret','Elk','Falcon','Finch','Fox',
-        'Frog','Gazelle','Goat','Goose','Heron','Horse','Hummingbird','Ibex','Ibis','Jay',
-        'Kestrel','Koala','Lark','Lynx','Mallard','Manatee','Marten','Moose','Moth','Newt',
-        'Otter','Owl','Panda','Parrot','Pelican','Penguin','Plover','Quail','Rabbit','Raven',
-        'Robin','Salamander','Seal','Shearwater','Shrike','Sparrow','Squirrel','Starling','Stork','Swan',
-        'Tern','Thrush','Tortoise','Toucan','Trout','Turkey','Turtle','Vole','Wallaby','Weasel',
-        'Wigeon','Wolf','Woodcock','Woodpecker','Wren','Yak','Zebra','Chipmunk','Porpoise',
+        // Birds
+        'Finch','Sparrow','Wren','Thrush','Starling','Robin','Lark','Jay','Ibis','Egret','Heron',
+        'Duck','Teal','Quail','Plover','Sandpiper','Mallard','Kestrel','Grouse','Magpie','Murre',
+        'Nuthatch','Oriole','Osprey','Pipit','Puffin','Rail','Redstart','Roedeer','Skylark','Snipe',
+        'Sole','Stonechat','Sunbird','Waxwing','Whimbrel','Wigeon',
 
-        'Anchovy','Anole','Auk','Barracuda','Bobcat','Bonobo','Bream','Bunting','Capybara',
-        'Cormorant','Courser','Cuttlefish','Darter','Dormouse','Eland','Fieldfare','Firefly','Gannet','Grouse',
-        'Hare','Harrier','Kingfisher','Lamprey','Leafhopper','Lemming','Loach','Magpie','Mink','Murre',
-        'Nuthatch','Oriole','Osprey','Pangolin','Pipit','Puffin','Rail','Redstart','Roedeer','Sandpiper',
-        'Skylark','Slowworm','Snipe','Sole','Springbok','Stonechat','Sunbird','Teal','Treefrog','Waxwing',
-        'Whimbrel','Whitefish','Wombat','Yellowhammer','Zebu','Zander','Pika','Jerboa','Tamarin','Duiker'
+        // Mammals
+        'Deer','Goat','Sheep','Rabbit','Hare','Caribou','Elk','Ibex','Capybara',
+        'Bobcat','Bonobo','Koala','Marten','Mink','Wombat','Pangolin','Jerboa','Tamarin','Pika','Chipmunk','Otter',
+
+        // Amphibians / Reptiles
+        'Frog','Newt','Salamander','Tortoise','Terrapin','Treefrog',
+
+        // Fish
+        'Minnow','Bream','Whitefish','Trout','Goby','Barracuda','Cuttlefish','Darter','Loach','Lamprey','Anchovy',
+
+        // Invertebrates / insects
+        'Anole','Auk','Bunting','Cormorant','Courser','Leafhopper',
+
+        // Nerdy Nouns
+        'Array', 'Matrix', 'Vector', 'Bit', 'Byte', 'Packet',
+        'Thread', 'Core', 'Process',
     ];
 
     /**
@@ -50,7 +78,7 @@ class FakeName {
      * based on the provided seed value, meaning the same seed will always produce
      * the same name.
      *
-     * The name format is: "{Adjective} {Animal}" (e.g., "Able Antelope", "Wise Wolf")
+     * The name format is: "{Adjective} {Animal}" (e.g., "Active Antelope", "Neutral Trout")
      *
      * @param mixed $seed The seed value used to generate the name. Can be any type
      *                    that can be converted to a string (e.g., user ID, email, etc.).
