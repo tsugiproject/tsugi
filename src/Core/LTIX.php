@@ -154,6 +154,7 @@ class LTIX {
     {
         global $CFG;
         if ( ! is_string($secret) ) return null;
+        if ( ! is_string($CFG->cookiesecret) ) return null;
         if ( startsWith($secret,'AES::') ) return $secret;
         $encr = AesOpenSSL::encrypt($secret, $CFG->cookiesecret) ;
         return 'AES::'.$encr;
@@ -167,11 +168,17 @@ class LTIX {
         global $CFG;
         if ( $secret === null || $secret === false ) return $secret;
         if ( ! startsWith($secret,'AES::') ) return $secret;
+        if ( ! is_string($CFG->cookiesecret) ) return $secret;
+        // Remove the AES:: prefix
         $secret = substr($secret, 5);
         // TODO: Switch to AesOpenSSL after time passes from March 1, 2022
-        // $decr = AesOpenSSL::decrypt($secret, $CFG->cookiesecret) ;
-        $decr = \Tsugi\Crypt\AesCtr::decrypt($secret, $CFG->cookiesecret, 256) ;
-        return $decr;
+        // Parallel decryption to check for mismatches started December 15, 2025
+        $decr = AesOpenSSL::decrypt($secret, $CFG->cookiesecret) ;
+        $decrlegacy = \Tsugi\Crypt\AesCtr::decrypt($secret, $CFG->cookiesecret, 256) ;
+        if ( $decr !== $decrlegacy ) {
+            error_log("Decryption mismatch: AesOpenSSL and AesCtr produced different results. secret: $secret");
+        }
+        return $decrlegacy;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Tsugi\Core;
 
 use \Tsugi\Util\U;
+use \Tsugi\Core\LTIX;
 
 /**
  * This is a class holding convienence methods to access settings from core objects.
@@ -63,7 +64,9 @@ trait SettingsTrait {
      * Retrieve a particular key from the settings.
      *
      * Returns the value found in settings or false if the key was not found.
-     *
+     * 
+     * If the value is encrypted, it is decrypted using the LTIX::decrypt_secret method.
+     * 
      * @param $key - The key to get from the settings.
      * @param $default - What to return if the key is not present
      */
@@ -71,7 +74,7 @@ trait SettingsTrait {
     {
         $allSettings = $this->settingsGetAll();
         if ( array_key_exists ($key, $allSettings ) ) {
-            return $allSettings[$key];
+            return LTIX::decrypt_secret($allSettings[$key]);
         } else {
             return $default;
         }
