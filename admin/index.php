@@ -87,6 +87,11 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   Check Cache
   </a></li>
 <li>
+  <a href="#" title="Encrypt/Decrypt Strings"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'crypt', _TSUGI.spinnerUrl); return false;" >
+  Encrypt/Decrypt Strings
+  </a></li>
+<li>
   <a href="#" title="Check Nonces"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'nonce', _TSUGI.spinnerUrl); return false;" >
   Check Nonces

@@ -4,6 +4,7 @@ namespace Tsugi\Core;
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\Cache;
+use \Tsugi\Core\LTIX;
 
 /**
  * This is a class to provide access to the resource link level data.
@@ -166,7 +167,7 @@ class Link extends Entity {
             $value = $linkSettings[$key];
             // Return if value is not null and not empty string
             if ( $value !== null && $value !== '' ) {
-                return $value;
+                return LTIX::decrypt_secret($value);
             }
             // If value is null or empty string, continue to next level
         }
@@ -178,7 +179,7 @@ class Link extends Entity {
                 $value = $contextSettings[$key];
                 // Return if value is not null and not empty string
                 if ( $value !== null && $value !== '' ) {
-                    return $value;
+                    return LTIX::decrypt_secret($value);
                 }
                 // If value is null or empty string, continue to next level
             }
@@ -191,7 +192,7 @@ class Link extends Entity {
                 $value = $keySettings[$key];
                 // Return if value is not null and not empty string
                 if ( $value !== null && $value !== '' ) {
-                    return $value;
+                    return LTIX::decrypt_secret($value);
                 }
                 // If value is null or empty string, continue to next level
             }
@@ -202,7 +203,7 @@ class Link extends Entity {
             $value = $CFG->getExtension("globalsetting_".$key, null);
             // Return if value is not null and not empty string
             if ( $value !== null && $value !== '' ) {
-                return $value;
+                return LTIX::decrypt_secret($value);
             }
         }
 
