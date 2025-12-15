@@ -52,6 +52,7 @@ $OUTPUT->flashMessages();
 ?>
 <p>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Contexts</a>
+  <a href="context-settings?context_id=<?= htmlentities($_REQUEST['context_id']) ?>" class="btn btn-success">View/Edit Context Settings</a>
 </p>
 <?php
 

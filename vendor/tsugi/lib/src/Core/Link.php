@@ -141,4 +141,73 @@ class Link extends Entity {
         $this->settingsSetAll($oldsettings);
     }
 
+    /**
+     * Retrieve a setting by bubbling up from link to context to key to system level
+     * 
+     * This overrides the settingsGet method in the SettingsTrait.
+     *
+     * This method looks for a setting at the link level first. If not found or empty,
+     * it checks the context level. If still not found or empty, it checks the key level.
+     * If still not found or empty, it checks the system-wide extension settings via $CFG->getExtension()
+     * adding a prefix of "globalsetting_" to the key.
+     * Returns the first non-null value found, or the default if none is found.
+     *
+     * @param string $key The setting key to retrieve
+     * @param mixed $default The default value to return if setting is not found or null at any level
+     * @return mixed The setting value found at the lowest level that is not null, or the default
+     */
+    public function settingsGet($key, $default = false)
+    {
+        global $CFG;
+
+        // First check link level
+        $linkSettings = $this->settingsGetAll();
+        if ( array_key_exists($key, $linkSettings) ) {
+            $value = $linkSettings[$key];
+            // Return if value is not null and not empty string
+            if ( $value !== null && $value !== '' ) {
+                return $value;
+            }
+            // If value is null or empty string, continue to next level
+        }
+
+        // Then check context level
+        if ( isset($this->launch->context) && is_object($this->launch->context) ) {
+            $contextSettings = $this->launch->context->settingsGetAll();
+            if ( array_key_exists($key, $contextSettings) ) {
+                $value = $contextSettings[$key];
+                // Return if value is not null and not empty string
+                if ( $value !== null && $value !== '' ) {
+                    return $value;
+                }
+                // If value is null or empty string, continue to next level
+            }
+        }
+
+        // Then check key level
+        if ( isset($this->launch->key) && is_object($this->launch->key) ) {
+            $keySettings = $this->launch->key->settingsGetAll();
+            if ( array_key_exists($key, $keySettings) ) {
+                $value = $keySettings[$key];
+                // Return if value is not null and not empty string
+                if ( $value !== null && $value !== '' ) {
+                    return $value;
+                }
+                // If value is null or empty string, continue to next level
+            }
+        }
+
+        // Finally check system-wide extension settings
+        if ( isset($CFG) && is_object($CFG) && method_exists($CFG, 'getExtension') ) {
+            $value = $CFG->getExtension("globalsetting_".$key, null);
+            // Return if value is not null and not empty string
+            if ( $value !== null && $value !== '' ) {
+                return $value;
+            }
+        }
+
+        // Not found at any level or all values were null/empty, return default
+        return $default;
+    }
+
 }

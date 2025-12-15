@@ -131,6 +131,7 @@ $OUTPUT->flashMessages();
 ?>
 <h1>Tenant Details
   <a class="btn btn-default" href="#" onclick="window.location.reload(); return false;">Refresh</a>
+  <a class="btn btn-success" href="key-settings.php?key_id=<?= htmlentities($row['key_id']) ?>">View/Edit Key Settings</a>
   <a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">Exit</a>
 </h1>
 <p>
