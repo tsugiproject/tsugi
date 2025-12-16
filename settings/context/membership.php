@@ -26,9 +26,10 @@ $sql = "SELECT membership_id, 'detail' AS 'Membership', M.context_id AS Context,
         FROM {$CFG->dbprefix}lti_membership as M
         JOIN {$CFG->dbprefix}lti_user AS U ON M.user_id = U.user_id
         JOIN {$CFG->dbprefix}lti_context AS C ON M.context_id = C.context_id
-        WHERE M.context_id = :CID AND
-         C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
-         OR C.user_id = :UID";
+        WHERE M.context_id = :CID AND (
+            C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
+            OR C.user_id = :UID
+        )";
 $query_parms = array(
     ":CID" => $_REQUEST['context_id'],
     ":UID" => $_SESSION['id']
@@ -47,8 +48,11 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
-
 ?>
+<p>
+  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Contexts</a>
+  <a href="context-settings?context_id=<?= htmlentities($_REQUEST['context_id']) ?>" class="btn btn-success">View/Edit Context Settings</a>
+</p>
 <h1>Roster / Membership</h1>
 <?php
 
