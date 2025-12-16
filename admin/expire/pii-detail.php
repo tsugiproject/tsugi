@@ -26,8 +26,9 @@ if ($days < 1 ) die('bad value for pii_days');
 
 $fields = array('login_at', 'user_id', 'email', 'displayname', 'created_at');
 
+$where = get_pii_where($days);
 $sql = "SELECT login_at, user_id, email, displayname, email, created_at 
-        FROM {$CFG->dbprefix}lti_user " . get_pii_where($days);
+        FROM {$CFG->dbprefix}lti_user " . $where['sql'];
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -39,11 +40,13 @@ $extra_buttons = array(
 );
 
 
-$query_parms = array();
+$query_parms = $where['params'];
 $searchfields = $fields;
 $orderfields = $fields;
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);
-// echo("<pre>\n$newsql\n</pre>\n");
+// For debugging: uncomment to see SQL with actual values
+// $sql_display = \Tsugi\Util\PDOX::sqlDisplay($newsql, $query_parms);
+// echo("<pre>\n$sql_display\n</pre>\n");
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {

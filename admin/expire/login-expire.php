@@ -21,18 +21,27 @@ if ( $base == 'user' ) {
     $table = 'lti_user';
     $limit = 100; // Takes about 10 seconds
     $where = '';
-    $where = " AND user_id <> ".$_SESSION['id'].' ';
+    $where_clause = " AND user_id <> :UID ";
+    $where_params = array(':UID' => $_SESSION['id']);
 } else if ( $base == 'context' ) {
     $table = 'lti_context';
     $limit = 10;
     $where = '';
+    $where_clause = '';
+    $where_params = array();
 } else if ( $base == 'tenant' ) {
     $table = 'lti_key';
     $limit = 1;
-    $where = " AND ".get_safe_key_where().' ';
+    $where = '';
+    $where_clause = " AND ".get_safe_key_where().' ';
+    $where_params = array();
 } else {
     die('Invalid base value');
 }
+
+// Validate limit is a safe integer (MySQL LIMIT doesn't support parameters)
+if ( !is_numeric($limit) || $limit < 1 ) die('Invalid limit value');
+$limit = (int)$limit;
 
 if ( ! isset($_GET['days']) ) die('Required parameter days');
 if ( ! is_numeric($_GET['days']) ) die('days must be a number');
@@ -44,16 +53,21 @@ if ( is_string($check) ) die($check);
 
 $count = get_expirable_records($table, $days);
 
+$where_data = get_expirable_where($days);
 $sql = "DELETE FROM {$CFG->dbprefix}{$table}\n".
-    get_expirable_where($days)."\n".$where.
-    "ORDER BY login_at LIMIT $limit";
+    $where_data['sql']."\n".$where_clause.
+    "ORDER BY login_at LIMIT " . $limit;
+$params = array_merge($where_data['params'], $where_params);
+
+// Create display version of SQL with actual values substituted (for display only)
+$sql_display = \Tsugi\Util\PDOX::sqlDisplay($sql, $params);
 
 if ( isset($_POST['doDelete']) && isset($_POST['days']) ) {
     echo("<pre>\n");
     $start = time();
 
     $stmt = $PDOX->prepare($sql);
-    $stmt->execute();
+    $stmt->execute($params);
 
     $count = $stmt->rowCount();
     echo("Rows updated: $count\n");
@@ -70,7 +84,7 @@ if ( isset($_POST['doDelete']) && isset($_POST['days']) ) {
 Preparing to delete <?= $count ?> <?= htmlentities(ucfirst($base)) ?>s &gt; <?= $days ?>  days 
 since last login:
 <pre>
-<?= $sql ?>
+<?= htmlspecialchars($sql_display) ?>
 </pre>
 <form method="post">
 <input type="hidden" name="days" value="<?= $days ?>">

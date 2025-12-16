@@ -46,8 +46,10 @@ if ( ! is_numeric($_GET['days']) ) die('days must be a number');
 $days = $_GET['days'] + 0;
 if ($days < 1 ) die('Bad value for days');
 
+$where_data = get_expirable_where($days);
 $sql = "SELECT login_at, {$select}, created_at 
-        FROM {$CFG->dbprefix}{$table} " . get_expirable_where($days) . $where;
+        FROM {$CFG->dbprefix}{$table} " . $where_data['sql'] . $where;
+$query_parms = $where_data['params'];
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -61,11 +63,12 @@ $extra_buttons = array(
 );
 
 
-$query_parms = array();
 $searchfields = $fields;
 $orderfields = $fields;
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);
-// echo("<pre>\n$newsql\n</pre>\n");
+// For debugging: uncomment to see SQL with actual values
+// $sql_display = \Tsugi\Util\PDOX::sqlDisplay($newsql, $query_parms);
+// echo("<pre>\n$sql_display\n</pre>\n");
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
 $newrows = array();
 foreach ( $rows as $row ) {

@@ -26,10 +26,14 @@ if ( $count < 1 ) {
 
 $dryrun = ! ( isset($argv[1]) && $argv[1] == 'remove');
 
+$where = get_pii_where($days);
 $sql = "UPDATE {$CFG->dbprefix}lti_user
-    SET displayname=NULL, email=NULL " .get_pii_where($days);
+    SET displayname=NULL, email=NULL " . $where['sql'];
+$params = $where['params'];
 
-echo($sql."\n");
+// Create display version of SQL with actual values substituted (for display only)
+$sql_display = \Tsugi\Util\PDOX::sqlDisplay($sql, $params);
+echo($sql_display."\n");
 
 if ( $dryrun ) {
     echo("This is a dry run, use 'php ".$argv[0]." remove' to actually remove the data.\n");
@@ -45,7 +49,7 @@ if ( $dryrun ) {
 $start = time();
 
 $stmt = $PDOX->prepare($sql);
-$stmt->execute();
+$stmt->execute($params);
 
 $count = $stmt->rowCount();
 echo("Rows updated: $count\n");

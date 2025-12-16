@@ -46,11 +46,19 @@ if ( $count < 1 ) {
     return;
 }
 
-$sql = "DELETE FROM {$CFG->dbprefix}{$table}\n".
-    get_expirable_where($days)."\n".$where.
-    "ORDER BY login_at LIMIT $limit";
+// Validate limit is a safe integer (MySQL LIMIT doesn't support parameters)
+if ( !is_numeric($limit) || $limit < 1 ) die('Invalid limit value');
+$limit = (int)$limit;
 
-echo($sql."\n");
+$where_data = get_expirable_where($days);
+$sql = "DELETE FROM {$CFG->dbprefix}{$table}\n".
+    $where_data['sql']."\n".$where.
+    "ORDER BY login_at LIMIT " . $limit;
+$params = $where_data['params'];
+
+// Create display version of SQL with actual values substituted (for display only)
+$sql_display = \Tsugi\Util\PDOX::sqlDisplay($sql, $params);
+echo($sql_display."\n");
 
 if ( $dryrun ) {
     echo("This is a dry run, use 'php ".$argv[0]." $base remove' to actually remove the data.\n");
@@ -66,7 +74,7 @@ if ( $dryrun ) {
 $start = time();
 
 $stmt = $PDOX->prepare($sql);
-$stmt->execute();
+$stmt->execute($params);
 
 $count = $stmt->rowCount();
 echo("Rows updated: $count\n");
