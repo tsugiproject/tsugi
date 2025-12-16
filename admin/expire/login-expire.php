@@ -21,6 +21,9 @@ if ( $base == 'user' ) {
     $table = 'lti_user';
     $limit = 100; // Takes about 10 seconds
     $where = '';
+    if ( !isset($_SESSION['id']) || !is_numeric($_SESSION['id']) ) {
+        die('Must be logged in to expire user data');
+    }
     $where_clause = " AND user_id <> :UID ";
     $where_params = array(':UID' => $_SESSION['id']);
 } else if ( $base == 'context' ) {
