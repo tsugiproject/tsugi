@@ -9,8 +9,19 @@ class mockPDOX extends \Tsugi\Util\PDOX
 
 }
 
+/**
+ * Tests for PDOX utility methods
+ * 
+ * This test suite covers the utility methods added to PDOX for timestamp conversion,
+ * SQL display formatting, and variable filtering. These methods are static helpers
+ * that don't require a database connection.
+ */
 class PDOXTest extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * Test column metadata methods (describeColumn, columnIsNull, columnType, columnLength)
+     * These methods parse MySQL SHOW COLUMNS output to extract column information.
+     */
     public function testDescribe() {
         $describe = self::mockDescribe();
         $this->assertTrue(is_array($describe));
@@ -385,6 +396,12 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
 ]', true);
     }
 
+    /**
+     * Test timeFromMySQLTimeStamp() - converts MySQL timestamp string to Unix timestamp
+     * 
+     * This method converts MySQL datetime format (YYYY-MM-DD HH:MM:SS) to a Unix timestamp integer.
+     * Uses PHP's strtotime() internally, so it respects server timezone settings.
+     */
     public function testTimeFromMySQLTimeStamp() {
         // Test with a valid MySQL timestamp
         $datetime = "2024-01-15 14:30:45";
@@ -403,6 +420,13 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(strtotime($datetime3), $result3);
     }
 
+    /**
+     * Test timeToMySQLTimeStamp() - converts Unix timestamp to MySQL format string
+     * 
+     * This method converts a Unix timestamp integer to MySQL datetime format (YYYY-MM-DD HH:MM:SS).
+     * Uses PHP's date() function, which respects server timezone settings (not UTC).
+     * Important: The zero timestamp test accounts for timezone differences.
+     */
     public function testTimeToMySQLTimeStamp() {
         // Test with a Unix timestamp - use strtotime to ensure timezone consistency
         $datetime = "2024-01-15 14:30:45";
@@ -425,6 +449,22 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $result3);
     }
 
+    /**
+     * Test sqlDisplay() - creates display version of SQL with parameter substitution
+     * 
+     * This method is for debugging/display purposes only - never use for actual SQL execution!
+     * It substitutes placeholders with actual values for easier debugging.
+     * 
+     * Key features tested:
+     * - Numeric values inserted without quotes
+     * - String values wrapped in single quotes with HTML escaping
+     * - Null values displayed as unquoted 'NULL' (prevents errors)
+     * - Overlapping placeholder names handled correctly (longest first)
+     * - HTML special characters escaped to prevent XSS
+     * 
+     * Critical: Placeholders are sorted by length (longest first) to prevent partial matches.
+     * Example: :X1 must be replaced before :X, otherwise :X would corrupt :X1.
+     */
     public function testSqlDisplay() {
         // Test with numeric parameters
         $sql = "SELECT * FROM users WHERE id = :UID AND age > :AGE";
@@ -477,8 +517,9 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $result6 = \Tsugi\Util\PDOX::sqlDisplay($sql6, $params6);
         $this->assertEquals($sql6, $result6);
 
-        // Test overlapping placeholder names - longer placeholders must be replaced first
-        // This ensures :X1 is replaced before :X to avoid partial matches
+        // Test overlapping placeholder names - CRITICAL: longer placeholders must be replaced first
+        // Problem solved: Without sorting by length, :X would be replaced first, causing :X1 to become "short1"
+        // instead of "longer". The implementation sorts placeholders by length (longest first) to prevent this.
         $sql7 = "SELECT :X, :X1 FROM users WHERE id = :ID";
         $params7 = array(':X' => 'short', ':X1' => 'longer', ':ID' => 123);
         $result7 = \Tsugi\Util\PDOX::sqlDisplay($sql7, $params7);
@@ -495,12 +536,46 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $sql8 = "SELECT :DAYS, :DAYS2 FROM users";
         $params8 = array(':DAYS' => 30, ':DAYS2' => 60);
         $result8 = \Tsugi\Util\PDOX::sqlDisplay($sql8, $params8);
-        // Both should be replaced correctly
+        // Both should be replaced correctly (DAYS2 before DAYS)
         $this->assertStringContainsString('30', $result8);
         $this->assertStringContainsString('60', $result8);
         $this->assertStringNotContainsString(':DAYS', $result8);
+
+        // Test null value handling - shows NULL instead of causing errors
+        // Recent change: null values are explicitly checked and displayed as unquoted 'NULL'
+        // This prevents warnings/errors when null values are passed to the function
+        $sql9 = "SELECT * FROM users WHERE id = :ID AND name = :NAME";
+        $params9 = array(':ID' => 123, ':NAME' => null);
+        $result9 = \Tsugi\Util\PDOX::sqlDisplay($sql9, $params9);
+        $this->assertStringContainsString('123', $result9);
+        $this->assertStringContainsString('NULL', $result9);
+        $this->assertStringNotContainsString(':ID', $result9);
+        $this->assertStringNotContainsString(':NAME', $result9);
+        // NULL should not be quoted (matches SQL syntax)
+        $this->assertStringNotContainsString("'NULL'", $result9);
+        $this->assertStringNotContainsString("NULL'", $result9);
+
+        // Test multiple null values
+        $sql10 = "INSERT INTO users (id, name, email) VALUES (:ID, :NAME, :EMAIL)";
+        $params10 = array(':ID' => 456, ':NAME' => null, ':EMAIL' => null);
+        $result10 = \Tsugi\Util\PDOX::sqlDisplay($sql10, $params10);
+        $this->assertStringContainsString('456', $result10);
+        $this->assertEquals(2, substr_count($result10, 'NULL'), 'Should have two NULL values');
+        $this->assertStringNotContainsString(':ID', $result10);
+        $this->assertStringNotContainsString(':NAME', $result10);
+        $this->assertStringNotContainsString(':EMAIL', $result10);
     }
 
+    /**
+     * Test limitVars() - filters SQL substitution variables to only those used in the query
+     * 
+     * This method extracts only the variables from an array that are actually referenced
+     * in the SQL query. Useful for cleaning up parameter arrays before execution.
+     * 
+     * Limitation: Placeholders must be followed by whitespace to be detected.
+     * Placeholders immediately followed by commas (e.g., :UID,) won't match because
+     * the function splits SQL by whitespace.
+     */
     public function testLimitVars() {
         // Test filtering variables that exist in SQL (placeholders must be followed by whitespace)
         $sql = "SELECT * FROM users WHERE id = :UID AND age > :AGE AND name = :NAME";

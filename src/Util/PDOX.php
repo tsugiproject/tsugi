@@ -941,7 +941,10 @@ class PDOX extends \PDO {
             $value = $params[$key];
             // Replace placeholder with actual value
             // For numeric values, use as-is; for strings, add quotes
-            if (is_numeric($value)) {
+            // Handle null values explicitly
+            if ($value === null) {
+                $display = str_replace($key, 'NULL', $display);
+            } else if (is_numeric($value)) {
                 $display = str_replace($key, (string)$value, $display);
             } else {
                 $display = str_replace($key, "'" . htmlspecialchars($value, ENT_QUOTES) . "'", $display);
