@@ -47,10 +47,68 @@ function expire_sanity_check() {
     if ( $_SESSION['id'] == 0 ) die('Cannot be super user');
 }
 
+/**
+ * Get owner clause with parameterized query
+ * Returns array with 'sql' and 'params' keys
+ */
+function get_owner_clause() {
+    global $PDOX, $CFG;
+    expire_sanity_check();
+    return array(
+        'sql' => " key_id IN (SELECT key_id from {$CFG->dbprefix}lti_key WHERE user_id = :UID) ",
+        'params' => array(':UID' => $_SESSION['id'])
+    );
+}
+
+/**
+ * Get expirable WHERE clause with parameterized query
+ * Returns array with 'sql' and 'params' keys
+ */
+function get_expirable_where($days) {
+    if ( !is_numeric($days) || $days < 0 ) {
+        die('Invalid days parameter');
+    }
+    $owner = get_owner_clause();
+    return array(
+        'sql' => "WHERE created_at <= (CURRENT_DATE() - INTERVAL :DAYS DAY)
+        AND (login_at IS NULL OR login_at <= (CURRENT_DATE() - INTERVAL :DAYS2 DAY))
+        AND ( " . $owner['sql'] . ")",
+        'params' => array_merge(
+            array(':DAYS' => (int)$days, ':DAYS2' => (int)$days),
+            $owner['params']
+        )
+    );
+}
+
+/**
+ * Get PII WHERE clause with parameterized query
+ * Returns array with 'sql' and 'params' keys
+ */
+function get_pii_where($days) {
+    global $CFG;
+    if ( !is_numeric($days) || $days < 0 ) {
+        die('Invalid days parameter');
+    }
+    $owner = get_owner_clause();
+    return array(
+        'sql' => "
+        WHERE created_at <= (CURRENT_DATE() - INTERVAL :DAYS DAY)
+        AND (login_at IS NULL OR login_at <= (CURRENT_DATE() - INTERVAL :DAYS2 DAY))
+        AND (displayname IS NOT NULL OR email IS NOT NULL)
+        AND ( " . $owner['sql'] . ")",
+        'params' => array_merge(
+            array(':DAYS' => (int)$days, ':DAYS2' => (int)$days),
+            $owner['params']
+        )
+    );
+}
+
 function get_count_table($table) {
     global $PDOX, $CFG;
     expire_sanity_check();
-    $row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}{$table} WHERE ".get_owner_clause());
+    $owner = get_owner_clause();
+    $sql = "SELECT COUNT(*) AS count FROM {$CFG->dbprefix}{$table} WHERE " . $owner['sql'];
+    $row = $PDOX->rowDie($sql, $owner['params']);
     $count = $row ? $row['count'] : 0;
     return $count;
 }
@@ -58,7 +116,9 @@ function get_count_table($table) {
 function get_expirable_records($table, $days) {
     global $PDOX, $CFG;
     expire_sanity_check();
-    $row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}{$table} ".get_expirable_where($days));
+    $where = get_expirable_where($days);
+    $sql = "SELECT COUNT(*) AS count FROM {$CFG->dbprefix}{$table} " . $where['sql'];
+    $row = $PDOX->rowDie($sql, $where['params']);
     $count = $row ? $row['count'] : 0;
     return $count;
 }
@@ -67,35 +127,13 @@ function get_safe_key_where() {
     return "(key_key <> 'google.com' AND key_key <> '12345')";
 }
 
-function get_expirable_where($days) {
-    $sql = "WHERE created_at <= (CURRENT_DATE() - INTERVAL $days DAY)
-        AND (login_at IS NULL OR login_at <= (CURRENT_DATE() - INTERVAL $days DAY))
-        AND ( " .get_owner_clause() . ")";
-    return $sql;
-}
-
 function get_pii_count($days) {
     global $PDOX, $CFG;
     expire_sanity_check();
-    $sql = "SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_user ".get_pii_where($days);
-    $row = $PDOX->rowDie($sql);
+    $where = get_pii_where($days);
+    $sql = "SELECT COUNT(*) AS count FROM {$CFG->dbprefix}lti_user " . $where['sql'];
+    $row = $PDOX->rowDie($sql, $where['params']);
     $count = $row ? $row['count'] : 0;
     return $count;
-}
-
-function get_owner_clause() {
-    global $PDOX, $CFG;
-    expire_sanity_check();
-    $clause = " key_id IN (SELECT key_id from {$CFG->dbprefix}lti_key WHERE user_id = ".$_SESSION['id'].") ";
-    return $clause;
-}
-
-function get_pii_where($days) {
-    global $PDOX, $CFG;
-    return "
-        WHERE created_at <= (CURRENT_DATE() - INTERVAL $days DAY)
-        AND (login_at IS NULL OR login_at <= (CURRENT_DATE() - INTERVAL $days DAY))
-        AND (displayname IS NOT NULL OR email IS NOT NULL)
-        AND ( " .get_owner_clause() . ")";
 }
 

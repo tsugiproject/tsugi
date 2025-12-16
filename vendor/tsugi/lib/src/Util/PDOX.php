@@ -920,4 +920,26 @@ class PDOX extends \PDO {
         return date("Y-m-d H:i:s",$when);
     }
 
+    /**
+     * Create a display version of SQL with actual values substituted for placeholders
+     * This is for display/debugging purposes only - the actual query should use parameterized queries
+     * 
+     * @param string $sql SQL query with placeholders
+     * @param array $params Parameters array (e.g., array(':UID' => 123, ':DAYS' => 180))
+     * @return string SQL with values substituted
+     */
+    public static function sqlDisplay($sql, $params) {
+        $display = $sql;
+        foreach ($params as $key => $value) {
+            // Replace placeholder with actual value
+            // For numeric values, use as-is; for strings, add quotes
+            if (is_numeric($value)) {
+                $display = str_replace($key, (string)$value, $display);
+            } else {
+                $display = str_replace($key, "'" . htmlspecialchars($value, ENT_QUOTES) . "'", $display);
+            }
+        }
+        return $display;
+    }
+
 }

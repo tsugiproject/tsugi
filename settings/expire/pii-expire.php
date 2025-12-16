@@ -22,8 +22,14 @@ if ( ! U::get($_SESSION,'id') ) {
 \Tsugi\Core\LTIX::getConnection();
 
 $limit = 5000;
+// Validate limit is a safe integer (MySQL LIMIT doesn't support parameters)
+if ( !is_numeric($limit) || $limit < 1 ) die('Invalid limit value');
+$limit = (int)$limit;
 
-$days = $_REQUEST['pii_days'];
+if ( ! isset($_REQUEST['pii_days']) ) die('Required parameter pii_days');
+if ( ! is_numeric($_REQUEST['pii_days']) ) die('pii_days must be a number');
+$days = $_REQUEST['pii_days'] + 0;
+if ($days < 1 ) die('bad value for pii_days');
 
 $check = sanity_check_days('PII', $days);
 
@@ -32,16 +38,22 @@ if ( is_string($check) ) die($check);
 $pii_count = get_pii_count($days);
 
 // Note pii_where includes only non-null PII users
+$where = get_pii_where($days);
+// MySQL LIMIT doesn't support parameterized queries, so we use the validated integer directly
 $sql = "UPDATE {$CFG->dbprefix}lti_user 
-    SET displayname=NULL, email=NULL " .get_pii_where($days)."
-    ORDER BY login_at LIMIT $limit";
+    SET displayname=NULL, email=NULL " . $where['sql'] . "
+    ORDER BY login_at LIMIT " . $limit;
+$params = $where['params'];
+
+// Create display version of SQL with actual values substituted (for display only)
+$sql_display = \Tsugi\Util\PDOX::sqlDisplay($sql, $params);
 
 if ( isset($_POST['doDelete']) && isset($_POST['pii_days']) ) {
     echo("<pre>\n");
     $start = time();
 
     $stmt = $PDOX->prepare($sql);
-    $stmt->execute();
+    $stmt->execute($params);
 
     $count = $stmt->rowCount();
     echo("Rows updated: $count\n");
@@ -58,7 +70,7 @@ if ( isset($_POST['doDelete']) && isset($_POST['pii_days']) ) {
 Preparing to delete PII &gt; <?= $days ?>  days old for <?= $pii_count ?> users
 using the following SQL:
 <pre>
-<?= $sql ?>
+<?= htmlspecialchars($sql_display) ?>
 </pre>
 <form method="post">
 <input type="hidden" name="pii_days" value="<?= $days ?>">
