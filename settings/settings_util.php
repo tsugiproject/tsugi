@@ -15,6 +15,39 @@ function settings_key_count() {
     return $key_count;
 }
 
+/**
+ * Check if a context is administrable by the current logged-in user.
+ * A context is administrable if the user owns the key associated with it
+ * or if the user is the owner of the context.
+ * 
+ * @param int $context_id The context ID to check
+ * @return array|false Returns the context row if administrable, false otherwise
+ */
+function settings_context_administrable($context_id) {
+    global $CFG, $PDOX;
+    
+    if ( ! U::get($_SESSION, 'id') ) {
+        return false;
+    }
+    
+    $row = $PDOX->rowDie("SELECT context_id FROM {$CFG->dbprefix}lti_context
+        WHERE context_id = :CID AND (
+            key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
+            OR user_id = :UID
+        )",
+        array(
+            ':CID' => $context_id,
+            ':UID' => $_SESSION['id']
+        )
+    );
+    
+    if ( $row === false || ! isset($row['context_id']) ) {
+        return false;
+    }
+    
+    return $row;
+}
+
 function settings_status($key_count) {
     global $CFG;
     if ( ! U::get($_SESSION,'id') ) {

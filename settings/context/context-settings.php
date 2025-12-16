@@ -2,6 +2,7 @@
 // In the top frame, we use cookies for session.
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
+require_once("../settings_util.php");
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
@@ -24,18 +25,8 @@ if ( ! isset($_REQUEST['context_id']) ) {
 $context_id = $_REQUEST['context_id'];
 
 // Verify user has access to this context (owns it or owns the key)
-$context_check = $PDOX->rowDie("SELECT context_id FROM {$CFG->dbprefix}lti_context
-    WHERE context_id = :CID AND (
-        key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
-        OR user_id = :UID
-    )",
-    array(
-        ':CID' => $context_id,
-        ':UID' => $_SESSION['id']
-    )
-);
-
-if ( $context_check === false || ! isset($context_check['context_id']) ) {
+$context_check = settings_context_administrable($context_id);
+if ( $context_check === false ) {
     $_SESSION['error'] = "You do not have access to this context";
     header('Location: '.LTIX::curPageUrlFolder());
     return;

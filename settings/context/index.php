@@ -16,14 +16,14 @@ if ( ! U::get($_SESSION,'id') ) {
     die('Must be logged in');
 }
 
-$query_parms = false;
+$query_parms = array(":UID" => $_SESSION['id']);
 $searchfields = array("C.context_id", "title", "C.created_at", "C.updated_at", "C.login_at", "C.login_count");
 $sql = "SELECT C.context_id AS context_id, title, count(M.user_id) AS members, C.key_id AS key_value,
             C.login_at, C.login_count, C.created_at, C.updated_at
         FROM {$CFG->dbprefix}lti_context AS C
         LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
-        WHERE C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = ".$_SESSION['id'].") 
-         OR C.user_id = ".$_SESSION['id']."
+        WHERE C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID ) 
+         OR C.user_id = :UID
         GROUP BY C.context_id";
 $orderfields = array("C.context_id", "key_value", "title", "C.created_at", "C.updated_at", "C.login_at", "C.login_count");
 
