@@ -930,7 +930,15 @@ class PDOX extends \PDO {
      */
     public static function sqlDisplay($sql, $params) {
         $display = $sql;
-        foreach ($params as $key => $value) {
+        // Sort keys by length (longest first) to avoid partial replacements
+        // e.g., :DAYS2 should be replaced before :DAYS
+        $keys = array_keys($params);
+        usort($keys, function($a, $b) {
+            return strlen($b) - strlen($a);
+        });
+        
+        foreach ($keys as $key) {
+            $value = $params[$key];
             // Replace placeholder with actual value
             // For numeric values, use as-is; for strings, add quotes
             if (is_numeric($value)) {
