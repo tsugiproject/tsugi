@@ -21,11 +21,13 @@ if ( $base == 'user' ) {
     $table = 'lti_user';
     $limit = 100; // Takes about 10 seconds
     $where = '';
-    if ( !isset($_SESSION['id']) || !is_numeric($_SESSION['id']) ) {
-        die('Must be logged in to expire user data');
+    if ( !isset($CFG->DEVELOPER) || !$CFG->DEVELOPER ) {
+        if ( !isset($_SESSION['id']) || !is_numeric($_SESSION['id']) ) {
+            die('Must be logged in to expire user data');
+        }
     }
     $where_clause = " AND user_id <> :UID ";
-    $where_params = array(':UID' => $_SESSION['id']);
+    $where_params = array(':UID' => U::get($_SESSION, 'id', 0));
 } else if ( $base == 'context' ) {
     $table = 'lti_context';
     $limit = 10;
