@@ -18,7 +18,21 @@ if ( ! isAdmin() ) {
     return;
 }
 
-$query_parms = array();
+if ( ! isset($_REQUEST['context_id']) ) {
+    $_SESSION['error'] = "No context_id provided";
+    header('Location: '.LTIX::curPageUrlFolder());
+    return;
+}
+
+if ( ! is_numeric($_REQUEST['context_id']) ) {
+    $_SESSION['error'] = "Invalid context_id";
+    header('Location: '.LTIX::curPageUrlFolder());
+    return;
+}
+
+$context_id = $_REQUEST['context_id'] + 0;
+
+$query_parms = array(":CID" => $context_id);
 
 $searchfields = array("M.membership_id", "context_id", "M.user_id", "role", "role_override", 
 	"M.created_at", "U.login_at", "email", "displayname", "user_key");
@@ -28,7 +42,6 @@ $sql = "SELECT membership_id, 'detail' AS 'Membership', context_id AS Context, M
         FROM {$CFG->dbprefix}lti_membership as M
         JOIN {$CFG->dbprefix}lti_user AS U ON M.user_id = U.user_id
         WHERE context_id = :CID";
-$query_parms = array(":CID" => $_REQUEST['context_id']);
 
 if ( !isAdmin() ) {
     die ("Fix this");
@@ -52,7 +65,7 @@ $OUTPUT->flashMessages();
 ?>
 <p>
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Contexts</a>
-  <a href="context-settings?context_id=<?= htmlentities($_REQUEST['context_id']) ?>" class="btn btn-success">View/Edit Context Settings</a>
+  <a href="context-settings?context_id=<?= htmlentities($context_id) ?>" class="btn btn-success">View/Edit Context Settings</a>
 </p>
 <?php
 

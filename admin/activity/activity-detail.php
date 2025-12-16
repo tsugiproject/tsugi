@@ -20,8 +20,17 @@ if ( ! isset($_REQUEST['link_id']) ) {
     die('No link_id');
 }
 
-$link_id = $_REQUEST['link_id'] / 10000;
-$event = $_REQUEST['link_id'] % 10000;
+if ( ! is_numeric($_REQUEST['link_id']) ) {
+    die('Invalid link_id');
+}
+
+$link_id_raw = $_REQUEST['link_id'] + 0;
+if ( $link_id_raw < 1 ) {
+    die('Invalid link_id value');
+}
+
+$link_id = intval($link_id_raw / 10000);
+$event = $link_id_raw % 10000;
 $order_by = U::get($_REQUEST,'order_by');
 
 $sql = "SELECT A.link_id AS link_id, L.title AS link_title, link_count, C.title AS context_title, A.created_at, A.updated_at, event, L.path

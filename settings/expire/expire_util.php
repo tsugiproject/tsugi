@@ -63,6 +63,12 @@ function get_owner_clause() {
 /**
  * Get expirable WHERE clause with parameterized query
  * Returns array with 'sql' and 'params' keys
+ * 
+ * Note: We use both :DAYS and :DAYS2 even though they have the same value.
+ * PDO requires unique placeholder names within a single query - you cannot
+ * reuse the same placeholder name (:DAYS) multiple times in one SQL statement.
+ * Both parameters check the same number of days but are used in different
+ * parts of the WHERE clause (created_at vs login_at).
  */
 function get_expirable_where($days) {
     if ( !is_numeric($days) || $days < 0 ) {
@@ -83,6 +89,12 @@ function get_expirable_where($days) {
 /**
  * Get PII WHERE clause with parameterized query
  * Returns array with 'sql' and 'params' keys
+ * 
+ * Note: We use both :DAYS and :DAYS2 even though they have the same value.
+ * PDO requires unique placeholder names within a single query - you cannot
+ * reuse the same placeholder name (:DAYS) multiple times in one SQL statement.
+ * Both parameters check the same number of days but are used in different
+ * parts of the WHERE clause (created_at vs login_at).
  */
 function get_pii_where($days) {
     global $CFG;
