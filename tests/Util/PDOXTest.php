@@ -476,6 +476,29 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $params6 = array();
         $result6 = \Tsugi\Util\PDOX::sqlDisplay($sql6, $params6);
         $this->assertEquals($sql6, $result6);
+
+        // Test overlapping placeholder names - longer placeholders must be replaced first
+        // This ensures :X1 is replaced before :X to avoid partial matches
+        $sql7 = "SELECT :X, :X1 FROM users WHERE id = :ID";
+        $params7 = array(':X' => 'short', ':X1' => 'longer', ':ID' => 123);
+        $result7 = \Tsugi\Util\PDOX::sqlDisplay($sql7, $params7);
+        // Verify :X1 was replaced correctly (not partially replaced by :X)
+        $this->assertStringContainsString("'longer'", $result7);
+        $this->assertStringContainsString("'short'", $result7);
+        $this->assertStringContainsString('123', $result7);
+        // Ensure :X1 wasn't corrupted by :X replacement
+        $this->assertStringNotContainsString(':X1', $result7);
+        $this->assertStringNotContainsString(':X', $result7);
+        $this->assertStringNotContainsString(':ID', $result7);
+        
+        // Test another overlapping case with numeric values
+        $sql8 = "SELECT :DAYS, :DAYS2 FROM users";
+        $params8 = array(':DAYS' => 30, ':DAYS2' => 60);
+        $result8 = \Tsugi\Util\PDOX::sqlDisplay($sql8, $params8);
+        // Both should be replaced correctly
+        $this->assertStringContainsString('30', $result8);
+        $this->assertStringContainsString('60', $result8);
+        $this->assertStringNotContainsString(':DAYS', $result8);
     }
 
     public function testLimitVars() {
