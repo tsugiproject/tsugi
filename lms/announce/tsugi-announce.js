@@ -25,30 +25,48 @@ class TsugiAnnounce extends LitElement {
         :host {
             display: inline-block;
             position: relative;
+            padding: 0 0.05em;
         }
         
         .bullhorn-icon {
-            font-size: 24px;
+            font-size: 1em;
             cursor: pointer;
             user-select: none;
             position: relative;
             display: inline-block;
+            width: 1em;
+            height: 1em;
+            line-height: 1;
+            vertical-align: middle;
+            padding: 0 0.15em;
+        }
+        
+        .bell-icon {
+            width: 100%;
+            height: 100%;
+            fill: none !important;
+            stroke: currentColor;
+            stroke-width: 1.5;
+        }
+        
+        .bell-icon path {
+            fill: none !important;
         }
         
         .badge {
             position: absolute;
-            top: -8px;
-            right: -8px;
+            top: -0.5em;
+            right: -0.1em;
             background-color: #d9534f;
             color: white;
-            border-radius: 10px;
-            padding: 2px 6px;
-            font-size: 11px;
+            border-radius: 0.35em;
+            padding: 0.08em 0.25em;
+            font-size: 0.45em;
             font-weight: bold;
             line-height: 1.2;
-            min-width: 16px;
+            min-width: 0.7em;
             text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            box-shadow: 0 0.05em 0.15em rgba(0,0,0,0.3);
         }
         
         .popup {
@@ -293,7 +311,9 @@ class TsugiAnnounce extends LitElement {
         
         return html`
             <span class="bullhorn-icon" @click=${this.togglePopup}>
-                📢
+                <svg class="bell-icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" fill="none"/>
+                </svg>
                 ${this.undismissedCount > 0 ? html`<span class="badge">${this.undismissedCount}</span>` : ''}
             </span>
             ${this.popupOpen ? html`

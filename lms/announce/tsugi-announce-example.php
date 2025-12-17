@@ -29,20 +29,50 @@ $component_js_url = addSession($base_path . '/tsugi-announce.js');
     <h1>Announcements Component Example</h1>
     
     <p>Place the component anywhere:</p>
-    <tsugi-announce 
-        json-url="<?= htmlspecialchars($json_url) ?>" 
-        dismiss-url="<?= htmlspecialchars($dismiss_url) ?>" 
-        view-url="<?= htmlspecialchars($view_url) ?>">
-    </tsugi-announce>
-    
-    <p>Or in a navigation bar:</p>
-    <nav style="text-align: right; padding: 10px;">
+    <span style="font-size: 2em;">
+        Notify
         <tsugi-announce 
             json-url="<?= htmlspecialchars($json_url) ?>" 
             dismiss-url="<?= htmlspecialchars($dismiss_url) ?>" 
             view-url="<?= htmlspecialchars($view_url) ?>">
         </tsugi-announce>
+        Notify
+    </span>
+    
+    <p>Or in a navigation bar:</p>
+    <nav style="text-align: right; padding: 10px;">
+        <span style="font-size: 2em;">
+            Notify
+            <tsugi-announce 
+                json-url="<?= htmlspecialchars($json_url) ?>" 
+                dismiss-url="<?= htmlspecialchars($dismiss_url) ?>" 
+                view-url="<?= htmlspecialchars($view_url) ?>">
+            </tsugi-announce>
+            Notify
+        </span>
     </nav>
+    
+    <p>75% size (1.5em):</p>
+    <span style="font-size: 1.5em;">
+        Notify
+        <tsugi-announce 
+            json-url="<?= htmlspecialchars($json_url) ?>" 
+            dismiss-url="<?= htmlspecialchars($dismiss_url) ?>" 
+            view-url="<?= htmlspecialchars($view_url) ?>">
+        </tsugi-announce>
+        Notify
+    </span>
+    
+    <p>50% size (1em):</p>
+    <span style="font-size: 1em;">
+        Notify
+        <tsugi-announce 
+            json-url="<?= htmlspecialchars($json_url) ?>" 
+            dismiss-url="<?= htmlspecialchars($dismiss_url) ?>" 
+            view-url="<?= htmlspecialchars($view_url) ?>">
+        </tsugi-announce>
+        Notify
+    </span>
     
     <!-- Load Lit Element from CDN -->
     <script type="module" src="<?= htmlspecialchars($component_js_url) ?>"></script>
