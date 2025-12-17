@@ -6,6 +6,8 @@ require_once "src/UI/Menu.php";
 require_once "src/UI/MenuSet.php";
 require_once "src/UI/Output.php";
 require_once "src/Config/ConfigInfo.php";
+require_once "src/Core/Launch.php";
+require_once "tests/Mock/MockSession.php";
 
 
 class MenuSetTest extends \PHPUnit\Framework\TestCase
@@ -94,6 +96,91 @@ class MenuSetTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($menu_xml->nav->div->div[1]['class'].'','navbar-collapse collapse');
         $this->assertEquals($menu_xml->nav->div->div[1]->ul->li[1]->ul->li->a['href'].'','http://www.sakaiproject.org/');
         // echo(json_encode($set,JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * Test addRight with push=false parameter and session export/import
+     * 
+     * When addRight is called with push=false, items should be appended (not prepended)
+     * to the menu, maintaining the order they were added. This differs from the default
+     * behavior where items are prepended (push=true).
+     * 
+     * Also tests the ability to export a menu to JSON, store it in session, and import
+     * it back while preserving the order.
+     */
+    public function testAddRightWithPushFalseAndSessionExportImport() {
+        global $CFG;
+        $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__),'http://localhost');
+        
+        // Create a MenuSet and add items to the right menu with push=false
+        // This should append items in the order they're added (not prepend them)
+        $set = new \Tsugi\UI\MenuSet();
+        $set->setHome('Home', 'http://www.tsugi.org/')
+            ->addRight('First Item', 'first.php', false)  // push=false means append
+            ->addRight('Second Item', 'second.php', false)
+            ->addRight('Third Item', 'third.php', false);
+        
+        // Verify items are in the order they were added (not reversed)
+        // With push=false, items should appear: First, Second, Third
+        $this->assertNotNull($set->right);
+        $this->assertTrue(is_object($set->right));
+        $this->assertEquals('First Item', $set->right->menu[0]->link);
+        $this->assertEquals('Second Item', $set->right->menu[1]->link);
+        $this->assertEquals('Third Item', $set->right->menu[2]->link);
+        
+        // Export the menu to JSON
+        $export_str = $set->export(false);
+        $this->assertIsString($export_str);
+        $this->assertStringContainsString('First Item', $export_str);
+        $this->assertStringContainsString('Second Item', $export_str);
+        $this->assertStringContainsString('Third Item', $export_str);
+        
+        // Import the menu back from JSON
+        $imported_set = \Tsugi\UI\MenuSet::import($export_str);
+        $this->assertNotNull($imported_set);
+        $this->assertTrue(is_object($imported_set));
+        
+        // Verify the imported menu maintains the correct order
+        $this->assertNotNull($imported_set->right);
+        $this->assertTrue(is_object($imported_set->right));
+        $this->assertEquals('First Item', $imported_set->right->menu[0]->link);
+        $this->assertEquals('Second Item', $imported_set->right->menu[1]->link);
+        $this->assertEquals('Third Item', $imported_set->right->menu[2]->link);
+        
+        // Verify export/import round-trip produces identical JSON
+        $re_export_str = $imported_set->export(false);
+        $this->assertEquals($export_str, $re_export_str);
+        
+        // Test storing in session and retrieving
+        // Create a Launch object with a mock session for Output to use
+        $launch = new \Tsugi\Core\Launch();
+        $launch->session_object = new MockSession();
+        
+        $O = new \Tsugi\UI\Output();
+        $O->launch = $launch;
+        $O->topNavSession($set);
+        
+        // Retrieve from session
+        $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
+        $session_export = $O->session_get($sess_key);
+        $this->assertNotNull($session_export);
+        $this->assertEquals($export_str, $session_export);
+        
+        // Import from session
+        $session_set = \Tsugi\UI\MenuSet::import($session_export);
+        $this->assertNotNull($session_set);
+        $this->assertTrue(is_object($session_set));
+        
+        // Verify the session-imported menu maintains the correct order
+        $this->assertNotNull($session_set->right);
+        $this->assertTrue(is_object($session_set->right));
+        $this->assertEquals('First Item', $session_set->right->menu[0]->link);
+        $this->assertEquals('Second Item', $session_set->right->menu[1]->link);
+        $this->assertEquals('Third Item', $session_set->right->menu[2]->link);
+        
+        // Verify session round-trip produces identical JSON
+        $session_re_export = $session_set->export(false);
+        $this->assertEquals($export_str, $session_re_export);
     }
 
 }
