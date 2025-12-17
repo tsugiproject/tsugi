@@ -31,8 +31,11 @@ if ( ! $l ) {
 }
 
 // Get anchor from URL path
+// Check PATH_INFO first (set by Apache rewrite: /lessons/launch/{anchor} -> launch.php/{anchor})
 $anchor = null;
-if ( isset($path->action) && U::strlen($path->action) > 0 ) {
+if ( isset($_SERVER['PATH_INFO']) && U::strlen($_SERVER['PATH_INFO']) > 0 ) {
+    $anchor = ltrim($_SERVER['PATH_INFO'], '/');
+} else if ( isset($path->action) && U::strlen($path->action) > 0 ) {
     $anchor = $path->action;
 } else if ( isset($path->parameters) && count($path->parameters) > 0 ) {
     $anchor = $path->parameters[0];
@@ -104,7 +107,14 @@ if ( isset($lti->custom) ) {
     }
 }
 
-$return_url = $path->parent . '/' . str_replace('_launch', '', $path->controller) . '/' . $module->anchor;
+// Construct return URL: /lms/lessons/{module_anchor} (not /lms/lessons/launch/{module_anchor})
+// We're in /lms/lessons/launch.php, so the base path should be /lms/lessons
+// Get the directory path relative to wwwroot
+$script_dir = dirname($_SERVER['SCRIPT_NAME']); // e.g., /py4e/tsugi/lms/lessons
+// Remove /launch if present, but keep /lms/lessons
+$base_path = str_replace('/launch', '', $script_dir);
+$base_path = rtrim($base_path, '/');
+$return_url = $base_path . '/' . $module->anchor;
 $parms['launch_presentation_return_url'] = $return_url;
 
 $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;

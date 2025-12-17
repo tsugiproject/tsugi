@@ -49,7 +49,13 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 $l->header();
 echo('<div class="container">');
+ob_start();
 $l->render();
+$content = ob_get_clean();
+// Replace launch URLs to always use /lessons/launch/ instead of /lessons/{anchor}_launch/ or /lessons/{anchor}/launch/
+// This ensures launch URLs are always relative to the lessons base, not the module/anchor
+$content = preg_replace('/(href=["\'])([^"\']*\/lessons\/)[^\/]+(_launch\/|launch\/)([^"\']*)(["\'])/', '$1$2launch/$4$5', $content);
+echo($content);
 echo('</div>');
 $OUTPUT->footerStart();
 $l->footer();

@@ -49,7 +49,13 @@ $OUTPUT->topNav($menu);
 $OUTPUT->flashMessages();
 $t->header();
 echo('<div class="container">');
+ob_start();
 $t->render();
+$content = ob_get_clean();
+// Replace launch URLs to always use /topics/launch/ instead of /topics/{anchor}_launch/ or /topics/{anchor}/launch/
+// This ensures launch URLs are always relative to the topics base, not the module/anchor
+$content = preg_replace('/(href=["\'])([^"\']*\/topics\/)[^\/]+(_launch\/|launch\/)([^"\']*)(["\'])/', '$1$2launch/$4$5', $content);
+echo($content);
 echo('</div>');
 $OUTPUT->footerStart();
 $t->footer();
