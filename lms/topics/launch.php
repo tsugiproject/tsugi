@@ -108,13 +108,9 @@ if ( isset($lti->custom) ) {
 }
 
 // Construct return URL: /lms/topics/{topic_anchor} (not /lms/topics/launch/{topic_anchor})
-// We're in /lms/topics/launch.php, so the base path should be /lms/topics
-// Get the directory path relative to wwwroot
-$script_dir = dirname($_SERVER['SCRIPT_NAME']); // e.g., /py4e/tsugi/lms/topics
-// Remove /launch if present, but keep /lms/topics
-$base_path = str_replace('/launch', '', $script_dir);
-$base_path = rtrim($base_path, '/');
-$return_url = $base_path . '/' . $topic->anchor;
+    // $path->parent is the directory containing launch.php (e.g., /py4e/tsugi/lms/topics)
+// This is exactly what we need for the return URL
+$return_url = $path->parent . '/' . $topic->anchor;
 $parms['launch_presentation_return_url'] = $return_url;
 
 $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
