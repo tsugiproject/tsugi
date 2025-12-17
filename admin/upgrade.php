@@ -76,6 +76,18 @@ foreach($tools as $k => $tool ) {
     }
 }
 
+echo("Checking LMS Features Tables...<br/>\n");
+// Scan the lms folder for database.php files
+$lmstools = searchTwoLevels("database.php", $CFG->dirroot.'/lms');
+for($i=0; $i<count($lmstools); $i++) {
+    $lmstools[$i] = U::remove_relative_path($lmstools[$i]);
+}
+// Add lms database.php files, not already in the list
+foreach($lmstools as $tool) {
+    if ( in_array($tool, $tools) ) continue;
+    $tools[] = $tool;
+}
+
 echo("Checking Installed Modules Tables...<br/>\n");
 // Scan the tools folders
 $moretools = findToolFiles("database.php", $CFG->dirroot);

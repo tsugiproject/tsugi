@@ -29,6 +29,13 @@ Most of the folder `vendor` is ignored except for the `vendor/tsugi` folder.  Th
 the code in https://github.com/tsugiproject/tsugi-php - To test changes to `tsugi-php` you simply edit
 the code in `vendor/tsugi`, test it and then move the changes into the `tsugi-php` repo.
 
+JQuery
+------
+
+While the existing code base uses and depends on jQuery a lot, new code should avoid using jQuery and prefer
+vanilla JavaScript.  We look for any opportunity to move towards vanilla JS.  We could even add routines
+in tsugiscripts.js to support vanilla JS use cases to avoind a lot of boilerplat spread all around?
+
 New versions of PHP
 -------------------
 
