@@ -36,7 +36,7 @@ $stmt = $PDOX->queryDie(
         WHERE key_sha256 = :SHA LIMIT 1",
     array('SHA' => lti_sha256($oauth_consumer_key))
 );
-$key_row = $stmt->fetch(PDO::FETCH_ASSOC);
+$key_row = $stmt->fetch(\PDO::FETCH_ASSOC);
 if ( $key_row === false ) {
     die_with_error_log('Error: No key defined for accounts from google.com');
 }
@@ -131,7 +131,7 @@ if ( $CFG->DEVELOPER && $CFG->OFFLINE ) {
         // If we can derive a gravatar URL - lets check now
         if ( $userAvatar === false && $userEmail !== false ) {
             $gravatarurl = 'http://www.gravatar.com/avatar/';
-            $gravatarurl .= md5( strtolower( trim( $email ) ) );
+            $gravatarurl .= md5( strtolower( trim( $userEmail ) ) );
             $url = $gravatarurl . '?d=404';
             $x =  get_headers($url);
             if ( is_array($x) && strpos($x[0]," 200 ") > 0 ) {
@@ -177,7 +177,7 @@ if ( $doLogin ) {
                     LIMIT 1;",
                 array(':EM' => $userEmail, ':KEY' => $google_key_id)
         );
-        $user_row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $user_row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( $user_row !== false ) {
             $old_user_key = $user_row['user_key'];
             $old_user_sha = $user_row['user_sha256'];
@@ -214,7 +214,7 @@ if ( $doLogin ) {
                 WHERE profile_sha256 = :SHA AND P.key_id = :ID LIMIT 1",
             array('SHA' => $userSHA, ":ID" => $google_key_id)
         );
-        $profile_row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $profile_row = $stmt->fetch(\PDO::FETCH_ASSOC);
         $profile_id = 0;
         $user_id = 0;
 
@@ -261,7 +261,7 @@ if ( $doLogin ) {
                 WHERE user_sha256 = :SHA AND key_id = :ID LIMIT 1",
                 array('SHA' => $userSHA, ":ID" => $google_key_id)
             );
-            $user_row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user_row = $stmt->fetch(\PDO::FETCH_ASSOC);
             $user_id = 0;
         }
 
@@ -335,7 +335,7 @@ if ( $doLogin ) {
         $_SESSION["oauth_consumer_key"] = $oauth_consumer_key;
         $lti['key_key'] = $oauth_consumer_key;
 
-        if ( is_string($google_secret) && strlen($google_secret) > 1 ) {
+        if ( is_string($google_secret) && U::strlen($google_secret) > 1 ) {
             $_SESSION['secret'] = LTIX::encrypt_secret($google_secret);
             $lti['secret'] = LTIX::encrypt_secret($google_secret);
         } else {
