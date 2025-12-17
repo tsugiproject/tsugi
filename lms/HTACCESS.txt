@@ -1,0 +1,35 @@
+RewriteEngine On
+
+# -----------------------------
+# Localhost rules (e.g., /py4e)
+# -----------------------------
+RewriteCond %{HTTP_HOST} ^localhost(:[0-9]+)?$
+
+# Lessons
+RewriteRule ^py4e/lessons(/.*)?$ /py4e/lms/lessons$1 [L,QSA]
+# Badges
+RewriteRule ^py4e/badges(/.*)?$ /py4e/lms/badges$1 [L,QSA]
+
+# Fallback to index.php if file/directory doesn't exist
+RewriteCond %{HTTP_HOST} ^localhost(:[0-9]+)?$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^py4e/(lessons|badges)(/.*)?$ /py4e/lms/$1/index.php [L,QSA]
+
+# -----------------------------
+# Live server rules (www.py4e.com)
+# -----------------------------
+RewriteCond %{HTTP_HOST} !^localhost(:[0-9]+)?$
+
+# Lessons
+RewriteRule ^lessons(/.*)?$ /lms/lessons$1 [L,QSA]
+# Badges
+RewriteRule ^badges(/.*)?$ /lms/badges$1 [L,QSA]
+
+# Fallback to index.php if file/directory doesn't exist
+RewriteCond %{HTTP_HOST} !^localhost(:[0-9]+)?$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(lessons|badges)(/.*)?$ /lms/$1/index.php [L,QSA]
+
+
