@@ -1,11 +1,15 @@
 <IfModule mod_rewrite.c>
     RewriteEngine on
+    # Route /launch/... to launch.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^discussions_launch/(.*)$ launch.php/$1 [L]
+    # Route everything else to index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !=/favicon.ico
     RewriteRule ^(.*)$ index.php/$1 [L]
 </IfModule>
-
 <IfModule !mod_rewrite.c>
     FallbackResource index.php
 </IfModule>
