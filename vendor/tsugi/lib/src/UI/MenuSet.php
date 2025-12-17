@@ -128,7 +128,7 @@ class MenuSet {
         if ( ! is_array($entry) ) {
             $link = $entry->link;
             $href = $entry->href;
-            if ( is_string($href) ) {
+            if ( is_string($href) || !is_object($href) ) {
                 return new \Tsugi\UI\MenuEntry($link, $href);
             }
             $submenu = self::importRecurse($href, $depth+1);
