@@ -28,5 +28,9 @@ $OUTPUT->bodyStart();
 $menu = false;
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
-$l->renderDiscussions(false);
+$content = $l->renderDiscussions(true);
+// Ths is a hack but it works.  Someday we might want to adjust rest_path so there is always a controller even when there is a / at the end of the url
+$content = str_replace('/_launch/', '/discussions_launch/', $content);
+echo($content);
+
 $OUTPUT->footer();
