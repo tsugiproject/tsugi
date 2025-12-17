@@ -17,12 +17,17 @@ if ( ! isset($CFG->topics) ) {
 }
 
 // Get anchor from URL path
-$path = U::rest_path();
 $anchor = null;
-if ( isset($path->action) && U::strlen($path->action) > 0 ) {
-    $anchor = $path->action;
-} else if ( isset($path->parameters) && count($path->parameters) > 0 ) {
-    $anchor = $path->parameters[0];
+// Check PATH_INFO first (set by Apache rewrite)
+if ( isset($_SERVER['PATH_INFO']) && U::strlen($_SERVER['PATH_INFO']) > 0 ) {
+    $anchor = ltrim($_SERVER['PATH_INFO'], '/');
+} else {
+    $path = U::rest_path();
+    if ( isset($path->action) && U::strlen($path->action) > 0 ) {
+        $anchor = $path->action;
+    } else if ( isset($path->parameters) && count($path->parameters) > 0 ) {
+        $anchor = $path->parameters[0];
+    }
 }
 
 // Turning on and off styling
