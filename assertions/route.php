@@ -208,21 +208,21 @@ switch ($resource) {
             
             <h3>Assertion Formats</h3>
             <ul>
-                <li><a href="<?= htmlspecialchars($ob2_url) ?>">Open Badges 2.0 (OB2) JSON</a></li>
-                <li><a href="<?= htmlspecialchars($ob3_url) ?>">Open Badges 3.0 / Verifiable Credential (OB3) JSON</a></li>
+                <li><a href="<?= htmlspecialchars($ob2_url) ?>" target="_blank">Open Badges 2.0 (OB2) JSON</a></li>
+                <li><a href="<?= htmlspecialchars($ob3_url) ?>" target="_blank">Open Badges 3.0 / Verifiable Credential (OB3) JSON</a></li>
             </ul>
             
             <h3>Related Resources</h3>
             <ul>
-                <li><a href="<?= htmlspecialchars($badge_url) ?>">Badge Class (OB2)</a></li>
-                <li><a href="<?= htmlspecialchars($issuer_url) ?>">Issuer Profile</a></li>
-                <li><a href="<?= htmlspecialchars($achievement_url) ?>">Achievement (OB3)</a></li>
-                <li><a href="<?= htmlspecialchars($legacy_url) ?>">Legacy OB1 Assertion</a></li>
+                <li><a href="<?= htmlspecialchars($badge_url) ?>" target="_blank">Badge Class (OB2)</a></li>
+                <li><a href="<?= htmlspecialchars($issuer_url) ?>" target="_blank">Issuer Profile</a></li>
+                <li><a href="<?= htmlspecialchars($achievement_url) ?>" target="_blank">Achievement (OB3)</a></li>
+                <li><a href="<?= htmlspecialchars($legacy_url) ?>" target="_blank">Legacy OB1 Assertion</a></li>
                 <li><a href="<?= htmlspecialchars($legacy_image_url) ?>" target="_blank">Legacy Baked Badge Image (OB1)</a></li>
             </ul>
             
             <h3>Evidence</h3>
-            <p><a href="<?= htmlspecialchars($CFG->apphome) ?>"><?= htmlspecialchars($CFG->apphome) ?></a></p>
+            <p><a href="<?= htmlspecialchars($CFG->apphome) ?>" target="_blank"><?= htmlspecialchars($CFG->apphome) ?></a></p>
         </div>
         <?php
         $OUTPUT->footer();
