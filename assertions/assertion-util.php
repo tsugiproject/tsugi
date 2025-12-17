@@ -77,8 +77,8 @@ function get_ob2_assertion($encrypted, $date, $code, $badge, $title, $email) {
     $image = $CFG->badge_url.'/'.$code.'.png';
     $recipient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
     $assert_id = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . ".json";
-    $badge_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/badge.json";
-    $issuer_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/issuer.json";
+    $badge_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
+    $issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
     
     // Evidence - same as OB1
     $evidence = $CFG->apphome;
@@ -128,8 +128,8 @@ function get_ob2_badge($encrypted, $code, $badge, $title) {
     global $CFG;
 
     $image = $CFG->badge_url.'/'.$code.'.png';
-    $badge_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/badge.json";
-    $issuer_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/issuer.json";
+    $badge_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
+    $issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
     
     $badge_class = array(
         "@context" => "https://purl.imsglobal.org/spec/ob/v2p1/context.json",
@@ -154,7 +154,7 @@ function get_ob2_badge($encrypted, $code, $badge, $title) {
 function get_ob2_issuer($encrypted, $code, $badge, $title) {
     global $CFG;
 
-    $issuer_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/issuer.json";
+    $issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
     
     $issuer = array(
         "@context" => "https://purl.imsglobal.org/spec/ob/v2p1/context.json",
@@ -182,8 +182,8 @@ function get_ob3_assertion($encrypted, $date, $code, $badge, $title, $email) {
     $image = $CFG->badge_url.'/'.$code.'.png';
     $recipient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
     $credential_id = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . ".vc.json";
-    $achievement_id = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/achievement.json";
-    $issuer_id = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/issuer.json?format=ob3";
+    $achievement_id = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=ob3";
+    $issuer_id = $CFG->wwwroot . "/assertions/issuer.json?format=ob3";
     
     // Evidence - same as OB1
     $evidence = $CFG->apphome;
@@ -252,8 +252,8 @@ function get_ob3_achievement($encrypted, $code, $badge, $title) {
     global $CFG;
 
     $image = $CFG->badge_url.'/'.$code.'.png';
-    $achievement_id = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/achievement.json";
-    $issuer_id = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/issuer.json?format=ob3";
+    $achievement_id = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=ob3";
+    $issuer_id = $CFG->wwwroot . "/assertions/issuer.json?format=ob3";
     
     $achievement = array(
         "@context" => array(
@@ -287,7 +287,7 @@ function get_ob3_achievement($encrypted, $code, $badge, $title) {
 function get_ob3_issuer($encrypted, $code, $badge, $title) {
     global $CFG;
 
-    $issuer_id = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/issuer.json?format=ob3";
+    $issuer_id = $CFG->wwwroot . "/assertions/issuer.json?format=ob3";
     
     $issuer = array(
         "@context" => array(

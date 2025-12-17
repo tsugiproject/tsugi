@@ -32,6 +32,74 @@ if (empty($path_parts)) {
 
 $first_part = $path_parts[0];
 
+// Handle fixed issuer route: /assertions/issuer.json
+if ($first_part === 'issuer.json') {
+    if ( ! isset($CFG->lessons) ) {
+        die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+    }
+    $format = isset($_GET['format']) ? $_GET['format'] : 'ob2';
+    if ($format === 'ob3') {
+        $text = get_ob3_issuer(null, null, null, null);
+    } else {
+        $text = get_ob2_issuer(null, null, null, null);
+    }
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    echo($text);
+    return;
+}
+
+// Handle badge class route: /assertions/badge/{code}.json
+if ($first_part === 'badge' && count($path_parts) === 2) {
+    $badge_file = $path_parts[1];
+    if (strpos($badge_file, '.json') !== false) {
+        $code = urldecode(str_replace('.json', '', $badge_file));
+        // Remove ?format=ob3 if present
+        $code = str_replace('?format=ob3', '', $code);
+        $code = str_replace('&format=ob3', '', $code);
+        
+        if ( ! isset($CFG->lessons) ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        }
+        
+        $PDOX = LTIX::getConnection();
+        $l = new Lessons($CFG->lessons);
+        
+        // Find the badge by code
+        $badge = null;
+        foreach($l->lessons->badges as $b) {
+            if ($b->image == $code.'.png') {
+                $badge = $b;
+                break;
+            }
+        }
+        
+        if ($badge === null) {
+            http_response_code(404);
+            $OUTPUT->header();
+            $OUTPUT->bodyStart();
+            $OUTPUT->topNav();
+            echo("<h2>Badge not found.</h2>\n");
+            $OUTPUT->footer();
+            return;
+        }
+        
+        // Get a default title (use first context title or servicename)
+        $title = isset($CFG->servicename) ? $CFG->servicename : 'Course';
+        
+        $format = isset($_GET['format']) ? $_GET['format'] : 'ob2';
+        if ($format === 'ob3') {
+            $text = get_ob3_achievement(null, $code, $badge, $title);
+        } else {
+            $text = get_ob2_badge(null, $code, $badge, $title);
+        }
+        header('Content-Type: application/json');
+        header('Access-Control-Allow-Origin: *');
+        echo($text);
+        return;
+    }
+}
+
 // Check if it ends with .json or .vc.json
 if (strpos($first_part, '.vc.json') !== false) {
     // /assertions/{encrypted-id}.vc.json - OB3/VC Assertion (explicit)
@@ -179,9 +247,9 @@ switch ($resource) {
         
         $ob2_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . ".json";
         $ob3_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . ".vc.json";
-        $badge_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/badge.json";
-        $issuer_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/issuer.json";
-        $achievement_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . "/achievement.json";
+        $badge_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
+        $issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
+        $achievement_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=ob3";
         $legacy_url = $CFG->wwwroot . "/badges/assert.php?id=" . urlencode($encrypted);
         $legacy_image_url = $CFG->wwwroot . "/badges/images/" . urlencode($encrypted) . ".png";
         

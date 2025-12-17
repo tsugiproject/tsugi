@@ -101,8 +101,9 @@ function get_badge($encrypted, $code, $badge, $title) {
     global $CFG;
 
     $image = $CFG->badge_url.'/'.$code.'.png';
-    $badge_url = $CFG->wwwroot . "/badges/badge-info.php?id=". $encrypted;
-    $badge_issuer = $CFG->wwwroot . "/badges/badge-issuer.php?id=". $encrypted;
+    // Use code-based URL instead of encrypted ID
+    $badge_url = $CFG->wwwroot . "/badges/badge-info.php?code=". urlencode($code);
+    $badge_issuer = $CFG->wwwroot . "/badges/badge-issuer.php";
     $retval = <<< EOF
 {
   "@context": "https://w3id.org/openbadges/v2",
@@ -122,8 +123,8 @@ EOF;
 function get_issuer($encrypted, $code, $badge, $title) {
     global $CFG;
 
-    $image = $CFG->badge_url.'/'.$code.'.png';
-    $badge_issuer = $CFG->wwwroot . "/badges/badge-issuer.php?id=". $encrypted;
+    // Issuer is now installation-wide, no encrypted ID needed
+    $badge_issuer = $CFG->wwwroot . "/badges/badge-issuer.php";
     $parse = parse_url($CFG->wwwroot);
     $domain = $parse['host'];
     $retval = <<< EOF
