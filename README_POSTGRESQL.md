@@ -2,12 +2,14 @@
 Tsugi support for PostgreSQL
 ============================
 
-Tsugi is adding support for PostgreSQL as an experimental feature.  It is being build and tested
-but until it is used in production, it should be considered experimental.
+**DEPRECATED / DISABLED**: PostgreSQL support in Tsugi was an experiment and is now deprecated.
+If you configure Tsugi to use a `pgsql:` PDO connection string, Tsugi will intentionally fail
+all database operations (by calling `die()` when it detects a PostgreSQL PDO driver).
 
-Tsugi PHP was built with MySQL from the beginning back in 2010.   Tsugi PHP will not use an ORM.
-Of course without an ORM, portability is a challenge.  But at this point, it is likely that
-Tsugi PHP will never support any database other than MySQL and PostgreSQL.
+Tsugi is MySQL-only going forward.
+
+Tsugi PHP was built with MySQL from the beginning back in 2010. Tsugi PHP will not use an ORM.
+Without an ORM, portability is a challenge; Tsugi is MySQL-only.
 
 With this as backdrop the experiment is to use the \Tsugi\Util\PDOX abstraction to transform
 the (generally simpler) MySQL syntax into PostgreSQL automatically wherever possible and provide

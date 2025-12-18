@@ -490,7 +490,11 @@ class PDOX extends \PDO {
      */
     function isPgSQL()
     {
-        return self::getPDOXDriverName() == 'pgsql';
+        if ( self::getPDOXDriverName() == 'pgsql' ) {
+            error_log('Fatal: PostgreSQL support is deprecated/disabled in Tsugi. Refusing to run with a pgsql PDO driver.');
+            die('Tsugi no longer supports PostgreSQL. Configure $CFG->pdo to use MySQL.');
+        }
+        return false;
     }
 
     /**
@@ -498,7 +502,11 @@ class PDOX extends \PDO {
      */
     function isSQLite()
     {
-        return self::getPDOXDriverName() == 'sqlite';
+        if ( self::getPDOXDriverName() == 'sqlite' ) {
+            error_log('Fatal: SQLite support is deprecated/disabled in Tsugi. Refusing to run with a sqlite PDO driver.');
+            die('Tsugi no longer supports SQLite. Configure $CFG->pdo to use MySQL.');
+        }
+        return false;
     }
 
     /**
