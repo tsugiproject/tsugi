@@ -347,14 +347,14 @@ function addPageLinkButtonToToolbar() {
     var separator = document.createElement('span');
     separator.className = 'ck ck-toolbar__separator';
     
-    // Create the page link button
+    // Create the page link button with shopping cart icon
     var button = document.createElement('button');
     button.className = 'ck ck-button ck-toolbar__item';
     button.type = 'button';
     button.setAttribute('aria-label', 'Insert Page Link');
     button.setAttribute('title', 'Insert Page Link');
     button.setAttribute('data-page-link-button', 'true');
-    button.innerHTML = '<svg class="ck-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;"><path d="M11.217 8.5L8.5 11.217l-.707-.707L10.51 7.793a1 1 0 0 1 1.414 0l2.717 2.717-.707.707L11.217 8.5z"/><path fill-rule="evenodd" d="M3 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4zm1 0v12h12V4H4z"/></svg>';
+    button.innerHTML = '<svg class="ck-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; fill: currentColor;"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.15.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>';
     
     button.onclick = function(e) {
         e.preventDefault();
@@ -362,9 +362,9 @@ function addPageLinkButtonToToolbar() {
         showPageLinkModal();
     };
     
-    // Insert after link button if found, otherwise append to toolbar
+    // Insert after link button if found, otherwise find a good spot in toolbar
     if (linkButton && linkButton.parentElement) {
-        // Insert separator and button after link button
+        // Insert separator and button right after link button
         var parent = linkButton.parentElement;
         if (linkButton.nextSibling) {
             parent.insertBefore(separator, linkButton.nextSibling);
@@ -374,9 +374,10 @@ function addPageLinkButtonToToolbar() {
             parent.appendChild(button);
         }
     } else {
-        // Append to toolbar
-        toolbar.appendChild(separator);
-        toolbar.appendChild(button);
+        // Try to find the toolbar group and append there
+        var toolbarGroup = toolbar.querySelector('.ck-toolbar__items') || toolbar;
+        toolbarGroup.appendChild(separator);
+        toolbarGroup.appendChild(button);
     }
     
     console.log('Page link button added to toolbar');
