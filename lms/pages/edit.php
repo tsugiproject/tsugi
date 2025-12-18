@@ -8,6 +8,10 @@ require_once "../../config.php";
 require_once "../lms-util.php";
 require_once "page-util.php";
 
+// Get base path for REST-style URLs
+$path = U::rest_path();
+$pages_base = $path->parent;
+
 LTIX::getConnection();
 
 header('Content-Type: text/html; charset=utf-8');
@@ -175,9 +179,28 @@ $OUTPUT->footerStart();
 ?>
 <style>
 .ckeditor-container { min-height: 400px; }
+#page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+#page-link-modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 400px; max-width: 90%; }
+#page-link-list { max-height: 300px; overflow-y: auto; margin: 10px 0; }
+.page-link-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #ddd; }
+.page-link-item:hover { background-color: #f0f0f0; }
+[data-page-link-button] { display: inline-flex !important; align-items: center !important; }
+[data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
 </style>
+<div id="page-link-modal">
+    <div id="page-link-modal-content">
+        <h3>Select a page to link</h3>
+        <div id="page-link-list"></div>
+        <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
+    </div>
+</div>
+
 <script src="https://cdn.ckeditor.com/ckeditor5/16.0.0/classic/ckeditor.js"></script>
 <script type="text/javascript">
+// Get pages JSON URL and base path
+var pagesJsonUrl = '<?= addSession("json.php") ?>';
+var pagesBase = '<?= htmlspecialchars($pages_base) ?>';
+
 ClassicEditor.defaultConfig = {
     toolbar: {
         items: [
@@ -198,12 +221,85 @@ ClassicEditor.defaultConfig = {
 };
 
 var editor;
+var pagesList = [];
+
+// Load pages list
+fetch(pagesJsonUrl)
+    .then(response => response.json())
+    .then(pages => {
+        pagesList = pages;
+        populatePageLinkList();
+    })
+    .catch(error => {
+        console.error('Error loading pages:', error);
+    });
+
+function populatePageLinkList() {
+    var listDiv = document.getElementById('page-link-list');
+    if (!listDiv) return;
+    
+    listDiv.innerHTML = '';
+    
+    if (pagesList.length === 0) {
+        listDiv.innerHTML = '<p>No pages available.</p>';
+        return;
+    }
+    
+    pagesList.forEach(function(page) {
+        var item = document.createElement('div');
+        item.className = 'page-link-item';
+        item.textContent = page.title;
+        item.onclick = function() {
+            insertPageLink(page);
+            closePageLinkModal();
+        };
+        listDiv.appendChild(item);
+    });
+}
+
+function showPageLinkModal() {
+    document.getElementById('page-link-modal').style.display = 'block';
+}
+
+function closePageLinkModal() {
+    document.getElementById('page-link-modal').style.display = 'none';
+}
+
+function insertPageLink(page) {
+    if (!editor) return;
+    
+    const model = editor.model;
+    const selection = model.document.selection;
+    const url = pagesBase + '/' + encodeURIComponent(page.logical_key);
+    
+    model.change(writer => {
+        if (selection.isCollapsed) {
+            // No text selected - insert page title as link
+            const textNode = writer.createText(page.title);
+            const insertPosition = selection.getFirstPosition();
+            model.insertContent(textNode, insertPosition);
+            
+            // Select the inserted text
+            const range = writer.createRange(insertPosition, writer.createPositionAfter(textNode));
+            writer.setSelection(range);
+        }
+        
+        // Apply link using CKEditor's link command
+        // The link command will use the selected text
+        editor.execute('link', url);
+    });
+}
 
 $(document).ready( function () {
     ClassicEditor
         .create( document.querySelector( '#editor_body' ), ClassicEditor.defaultConfig )
         .then(ed => {
             editor = ed;
+            
+            // Add custom pageLink button to toolbar after editor is ready
+            setTimeout(function() {
+                addPageLinkButtonToToolbar();
+            }, 500);
         })
         .catch( error => {
             console.error( error );
@@ -215,7 +311,76 @@ $(document).ready( function () {
             $('#editor_body').val(editor.getData());
         }
     });
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        var modal = document.getElementById('page-link-modal');
+        if (event.target == modal) {
+            closePageLinkModal();
+        }
+    };
 });
+
+function addPageLinkButtonToToolbar() {
+    // Find the CKEditor toolbar - try multiple selectors
+    var toolbar = document.querySelector('.ck-editor .ck-toolbar') || 
+                  document.querySelector('.ck.ck-toolbar') ||
+                  document.querySelector('[class*="ck-toolbar"]');
+    
+    if (!toolbar) {
+        console.log('Toolbar not found, retrying...');
+        setTimeout(addPageLinkButtonToToolbar, 200);
+        return;
+    }
+    
+    // Check if button already exists
+    if (toolbar.querySelector('[data-page-link-button]')) {
+        return;
+    }
+    
+    // Find the link button - try multiple selectors
+    var linkButton = toolbar.querySelector('button[aria-label*="Link" i]') ||
+                     toolbar.querySelector('button[title*="Link" i]') ||
+                     toolbar.querySelector('.ck-button[class*="link" i]');
+    
+    // Create a separator
+    var separator = document.createElement('span');
+    separator.className = 'ck ck-toolbar__separator';
+    
+    // Create the page link button
+    var button = document.createElement('button');
+    button.className = 'ck ck-button ck-toolbar__item';
+    button.type = 'button';
+    button.setAttribute('aria-label', 'Insert Page Link');
+    button.setAttribute('title', 'Insert Page Link');
+    button.setAttribute('data-page-link-button', 'true');
+    button.innerHTML = '<svg class="ck-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;"><path d="M11.217 8.5L8.5 11.217l-.707-.707L10.51 7.793a1 1 0 0 1 1.414 0l2.717 2.717-.707.707L11.217 8.5z"/><path fill-rule="evenodd" d="M3 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4zm1 0v12h12V4H4z"/></svg>';
+    
+    button.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showPageLinkModal();
+    };
+    
+    // Insert after link button if found, otherwise append to toolbar
+    if (linkButton && linkButton.parentElement) {
+        // Insert separator and button after link button
+        var parent = linkButton.parentElement;
+        if (linkButton.nextSibling) {
+            parent.insertBefore(separator, linkButton.nextSibling);
+            parent.insertBefore(button, separator.nextSibling);
+        } else {
+            parent.appendChild(separator);
+            parent.appendChild(button);
+        }
+    } else {
+        // Append to toolbar
+        toolbar.appendChild(separator);
+        toolbar.appendChild(button);
+    }
+    
+    console.log('Page link button added to toolbar');
+}
 </script>
 <?php
 $OUTPUT->footerEnd();
