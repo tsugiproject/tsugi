@@ -13,22 +13,16 @@ LTIX::getConnection();
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! U::get($_SESSION,'id') ) {
-    die('Must be logged in');
-}
-
-if ( ! isset($_SESSION['context_id']) ) {
-    die('Context required');
-}
-
-// Record learner analytics (synthetic lti_link in this context)
-lmsRecordLaunchAnalytics('/lms/discussions', 'Discussions');
-
 if ( ! isset($CFG->lessons) ) {
     die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
 }
 
-// Check if user is instructor/admin for analytics button
+// Record learner analytics (synthetic lti_link in this context) - only if logged in with context
+if ( U::get($_SESSION,'id') && isset($_SESSION['context_id']) ) {
+    lmsRecordLaunchAnalytics('/lms/discussions', 'Discussions');
+}
+
+// Check if user is instructor/admin for analytics button (handles missing id/context gracefully)
 $is_instructor = isInstructor();
 $is_admin = isAdmin();
 $show_analytics = $is_instructor || $is_admin;
