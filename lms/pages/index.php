@@ -101,6 +101,12 @@ $OUTPUT->flashMessages();
             <?= $page['body'] ?>
         </div>
     <?php else: ?>
+        <h1 style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Pages</span>
+            <?php if ($is_instructor): ?>
+                <a href="<?= addSession('manage.php') ?>" class="btn btn-default">Manage Pages</a>
+            <?php endif; ?>
+        </h1>
         <div class="alert alert-info">
             <p>No page found.</p>
         </div>
