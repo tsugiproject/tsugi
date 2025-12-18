@@ -25,6 +25,11 @@ if ( ! isset($CFG->lessons) ) {
     die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
 }
 
+// Check if user is instructor/admin for analytics button
+$is_instructor = isInstructor();
+$is_admin = isAdmin();
+$show_analytics = $is_instructor || $is_admin;
+
 // Load the Lesson
 $l = new Lessons($CFG->lessons);
 
@@ -41,5 +46,8 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
+if ( $show_analytics ) {
+    echo('<p style="text-align: right;"><a href="analytics.php" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></p>');
+}
 $l->renderBadges($allgrades, false);
 $OUTPUT->footer();

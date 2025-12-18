@@ -6,11 +6,28 @@ use \Tsugi\Util\U;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../../config.php";
+require_once "../lms-util.php";
 
 LTIX::getConnection();
 
 header('Content-Type: text/html; charset=utf-8');
 session_start();
+
+if ( ! U::get($_SESSION,'id') ) {
+    die('Must be logged in');
+}
+
+if ( ! isset($_SESSION['context_id']) ) {
+    die('Context required');
+}
+
+// Record learner analytics (synthetic lti_link in this context)
+lmsRecordLaunchAnalytics('/lms/lessons', 'Lessons');
+
+// Check if user is instructor/admin for analytics button
+$is_instructor = isInstructor();
+$is_admin = isAdmin();
+$show_analytics = $is_instructor || $is_admin;
 
 if ( ! isset($CFG->lessons) ) {
     die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
@@ -47,6 +64,9 @@ $OUTPUT->bodyStart();
 $menu = false;
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
+if ( $show_analytics ) {
+    echo('<p style="text-align: right;"><a href="analytics.php" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></p>');
+}
 $l->header();
 echo('<div class="container">');
 ob_start();

@@ -24,8 +24,13 @@ if ( ! isset($_SESSION['context_id']) ) {
 $context_id = $_SESSION['context_id'];
 $user_id = $_SESSION['id'];
 
+// Record learner analytics (synthetic lti_link in this context)
+lmsRecordLaunchAnalytics('/lms/announce', 'Announcements');
+
 // Check if user is instructor/admin for this context
 $is_context_admin = isInstructor();
+$is_admin = isAdmin();
+$show_analytics = $is_context_admin || $is_admin;
 
 // Get announcements using shared utility
 $announcement_data = getAnnouncementsForUser($context_id, $user_id);
@@ -43,9 +48,16 @@ $OUTPUT->flashMessages();
 ?>
 <div class="container">
     <h1>Announcements
-        <?php if ($is_context_admin): ?>
-            <a href="<?= addSession('manage.php') ?>" class="btn btn-default pull-right">Manage Announcements</a>
-        <?php endif; ?>
+        <span class="pull-right">
+            <?php if ( $show_analytics ): ?>
+                <a href="analytics.php" class="btn btn-default">
+                    <span class="glyphicon glyphicon-signal"></span> Analytics
+                </a>
+            <?php endif; ?>
+            <?php if ($is_context_admin): ?>
+                <a href="manage.php" class="btn btn-default">Manage Announcements</a>
+            <?php endif; ?>
+        </span>
     </h1>
     
     <?php if (count($announcements) == 0): ?>
