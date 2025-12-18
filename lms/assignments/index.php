@@ -7,6 +7,7 @@ use \Tsugi\Util\U;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../../config.php";
+require_once "../lms-util.php";
 
 LTIX::getConnection();
 
@@ -16,6 +17,9 @@ session_start();
 if ( ! U::get($_SESSION,'id') ) {
     die('Must be logged in');
 }
+
+// Record learner analytics (synthetic lti_link in this context)
+lmsRecordLaunchAnalytics('/lms/assignments', 'Assignments');
 
 if ( ! isset($CFG->lessons) ) {
     die_with_error_log('Cannot find lessons.json ($CFG->lessons)');

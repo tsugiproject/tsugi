@@ -84,6 +84,16 @@ if ( $logical_key ) {
     }
 }
 
+// Record learner analytics for this tool (not per-page within the tool)
+$analytics_path = '/lms/pages';
+$analytics_title = 'Pages';
+$analytics_link_id = lmsRecordLaunchAnalytics($analytics_path, $analytics_title);
+
+// If instructor/admin, add an analytics button (no menu in this UI)
+$is_admin = isAdmin();
+$show_analytics = $is_instructor || $is_admin;
+$analytics_page_url = $show_analytics ? 'analytics.php' : null;
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -93,9 +103,16 @@ $OUTPUT->flashMessages();
     <?php if ($page): ?>
         <h1 style="display: flex; justify-content: space-between; align-items: center;">
             <span><?= htmlspecialchars($page['title']) ?></span>
-            <?php if ($is_instructor): ?>
-                <a href="<?= addSession('manage.php') ?>" class="btn btn-default">Manage Pages</a>
+            <span>
+            <?php if ( $analytics_page_url ): ?>
+                <a href="<?= $analytics_page_url ?>" class="btn btn-default">
+                    <span class="glyphicon glyphicon-signal"></span> Analytics
+                </a>
             <?php endif; ?>
+            <?php if ($is_instructor): ?>
+                <a href="manage.php" class="btn btn-default">Manage Pages</a>
+            <?php endif; ?>
+            </span>
         </h1>
         <div class="page-content">
             <?= $page['body'] ?>
@@ -103,9 +120,16 @@ $OUTPUT->flashMessages();
     <?php else: ?>
         <h1 style="display: flex; justify-content: space-between; align-items: center;">
             <span>Pages</span>
-            <?php if ($is_instructor): ?>
-                <a href="<?= addSession('manage.php') ?>" class="btn btn-default">Manage Pages</a>
+            <span>
+            <?php if ( $analytics_page_url ): ?>
+                <a href="<?= $analytics_page_url ?>" class="btn btn-default">
+                    <span class="glyphicon glyphicon-signal"></span> Analytics
+                </a>
             <?php endif; ?>
+            <?php if ($is_instructor): ?>
+                <a href="manage.php" class="btn btn-default">Manage Pages</a>
+            <?php endif; ?>
+            </span>
         </h1>
         <div class="alert alert-info">
             <p>No page found.</p>
