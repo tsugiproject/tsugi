@@ -5,7 +5,7 @@ use \Tsugi\Util\U;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../../config.php";
-require_once "../../admin/admin_util.php";
+require_once "../lms-util.php";
 
 LTIX::getConnection();
 
@@ -24,38 +24,7 @@ $context_id = $_SESSION['context_id'];
 $user_id = $_SESSION['id'];
 
 // Check if user is instructor/admin for this context
-$is_context_admin = false;
-if ( isAdmin() ) {
-    $is_context_admin = true;
-} else if ( U::get($_SESSION, 'id') ) {
-    // Check if user is instructor/admin for this context
-    $membership = $PDOX->rowDie(
-        "SELECT role FROM {$CFG->dbprefix}lti_membership 
-         WHERE context_id = :CID AND user_id = :UID",
-        array(':CID' => $context_id, ':UID' => $user_id)
-    );
-    if ( $membership && isset($membership['role']) ) {
-        $role = $membership['role'] + 0;
-        // ROLE_INSTRUCTOR = 1000, ROLE_ADMINISTRATOR = 5000
-        if ( $role >= LTIX::ROLE_INSTRUCTOR ) {
-            $is_context_admin = true;
-        }
-    }
-    // Also check if user owns the context or its key
-    if ( ! $is_context_admin ) {
-        $context_check = $PDOX->rowDie(
-            "SELECT context_id FROM {$CFG->dbprefix}lti_context
-             WHERE context_id = :CID AND (
-                 key_id IN (SELECT key_id FROM {$CFG->dbprefix}lti_key WHERE user_id = :UID)
-                 OR user_id = :UID
-             )",
-            array(':CID' => $context_id, ':UID' => $user_id)
-        );
-        if ( $context_check ) {
-            $is_context_admin = true;
-        }
-    }
-}
+$is_context_admin = isInstructor();
 
 if ( ! $is_context_admin ) {
     $_SESSION['error'] = "You must be an administrator or instructor for this context";
