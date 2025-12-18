@@ -1,0 +1,7 @@
+RewriteEngine On
+
+# Route /lms/pages/logical_key to index.php with logical_key parameter
+RewriteRule ^([a-z0-9-]+)$ index.php?logical_key=$1 [L,QSA]
+
+# Route /lms/pages to index.php
+RewriteRule ^$ index.php [L,QSA]
