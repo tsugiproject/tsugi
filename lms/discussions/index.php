@@ -17,6 +17,10 @@ if ( ! U::get($_SESSION,'id') ) {
     die('Must be logged in');
 }
 
+if ( ! isset($_SESSION['context_id']) ) {
+    die('Context required');
+}
+
 // Record learner analytics (synthetic lti_link in this context)
 lmsRecordLaunchAnalytics('/lms/discussions', 'Discussions');
 
@@ -38,7 +42,7 @@ $menu = false;
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 if ( $show_analytics ) {
-    echo('<p style="text-align: right;"><a href="analytics.php" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></p>');
+    echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="analytics.php" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></span>');
 }
 $content = $l->renderDiscussions(true);
 // Ths is a hack but it works.  Someday we might want to adjust rest_path so there is always a controller even when there is a / at the end of the url

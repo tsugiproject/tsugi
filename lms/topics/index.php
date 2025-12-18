@@ -64,10 +64,10 @@ $OUTPUT->bodyStart();
 $menu = false;
 $OUTPUT->topNav($menu);
 $OUTPUT->flashMessages();
-if ( $show_analytics ) {
-    echo('<p style="text-align: right;"><a href="analytics.php" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></p>');
-}
 $t->header();
+if ( $show_analytics ) {
+    echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="analytics.php" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></span>');
+}
 echo('<div class="container">');
 ob_start();
 $t->render();

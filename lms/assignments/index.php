@@ -50,7 +50,7 @@ $menu = false;
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 if ( $show_analytics ) {
-    echo('<p style="text-align: right;"><a href="analytics.php" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></p>');
+    echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="analytics.php" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></span>');
 }
 $l->renderAssignments($allgrades, $alldates, false);
 $OUTPUT->footer();
