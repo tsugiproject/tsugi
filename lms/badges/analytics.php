@@ -7,10 +7,8 @@ if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../../config.php";
 require_once "../lms-util.php";
 
-// Wrapper around shared analytics viewer (no redirects).
-$LMS_ANALYTICS_TOOL = 'badges';
-$LMS_ANALYTICS_TITLE = 'Badges';
-$LMS_ANALYTICS_BACK = 'badges/';
-$LMS_ANALYTICS_STABLE_PATH = '/lms/badges';
+// Load analytics configuration from register.php
+require_once(__DIR__ . '/register.php');
 
+// Wrapper around shared analytics viewer (no redirects).
 require_once(__DIR__ . '/../tool_support/analytics.php');
