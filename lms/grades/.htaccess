@@ -1,0 +1,4 @@
+RewriteEngine On
+
+# Route /lms/grades to index.php
+RewriteRule ^$ index.php [L,QSA]
