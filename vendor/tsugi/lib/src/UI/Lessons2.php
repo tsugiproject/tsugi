@@ -1023,7 +1023,6 @@ class Lessons2 {
                 }
             }
             echo("<br clear=\"all\"/>\n");
-            echo("$percent\n");
             if ( isset($module->description) ) {
                 $desc = $module->description;
                 if ( strlen($desc) > 1000 ) $desc = substr($desc, 0, 1000);
