@@ -45,7 +45,11 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         return;
     }
 
-    $profile = json_decode($profile_row['json']);
+    $json_data = U::get($profile_row, 'json');
+    $profile = null;
+    if ( $json_data && U::strlen($json_data) > 0 ) {
+        $profile = json_decode($json_data);
+    }
     if ( ! is_object($profile) ) $profile = new \stdClass();
 
     $profile->subscribe = U::get($_POST, 'subscribe', 0) + 0;
@@ -96,7 +100,11 @@ if ( $profile_row === false ) {
     return;
 }
 
-$profile = json_decode($profile_row['json']);
+$json_data = U::get($profile_row, 'json');
+$profile = null;
+if ( $json_data && U::strlen($json_data) > 0 ) {
+    $profile = json_decode($json_data);
+}
 if ( ! is_object($profile) ) $profile = new \stdClass();
 
 $themeId = 0;
