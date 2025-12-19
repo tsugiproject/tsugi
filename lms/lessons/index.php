@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\UI\Lessons;
+use \Tsugi\UI\Lessons2;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\U;
 
@@ -50,8 +51,13 @@ if ( isset($_GET['nostyle']) ) {
     }
 }
 
-// Load the Lesson
-$l = new Lessons($CFG->lessons, $anchor);
+// Load the Lesson - use Lessons2 if enabled
+$use_lessons2 = $CFG->getExtension('lessons2_enable', false);
+if ( $use_lessons2 ) {
+    $l = new Lessons2($CFG->lessons, $anchor);
+} else {
+    $l = new Lessons($CFG->lessons, $anchor);
+}
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
