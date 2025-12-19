@@ -64,6 +64,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $body = U::get($_POST, 'body', '');
     $published = U::get($_POST, 'published', 0) ? 1 : 0;
     $is_main = U::get($_POST, 'is_main', 0) ? 1 : 0;
+    $is_front_page = U::get($_POST, 'is_front_page', 0) ? 1 : 0;
     
     if ( empty($title) ) {
         $_SESSION['error'] = 'Title is required';
@@ -105,9 +106,17 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
             );
         }
         
+        // If this is marked as front page, unset all other front pages first
+        if ( $is_front_page ) {
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}pages SET is_front_page = 0 WHERE context_id = :CID",
+                array(':CID' => $context_id)
+            );
+        }
+        
         $sql = "UPDATE {$CFG->dbprefix}pages 
                 SET title = :title, logical_key = :key, body = :body, 
-                    published = :published, is_main = :main, updated_at = NOW()
+                    published = :published, is_main = :main, is_front_page = :front_page, updated_at = NOW()
                 WHERE page_id = :PID AND context_id = :CID";
         $values = array(
             ':title' => $title,
@@ -115,6 +124,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
             ':body' => $body,
             ':published' => $published,
             ':main' => $is_main,
+            ':front_page' => $is_front_page,
             ':PID' => $page_id,
             ':CID' => $context_id
         );
@@ -166,6 +176,15 @@ $OUTPUT->flashMessages();
                 This is the main page
             </label>
             <p class="help-block">If checked, this page will become the main page (shown at /lms/pages). Any existing main page will be unset.</p>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_front_page" value="1" 
+                       <?= (U::get($_POST, 'is_front_page', $page['is_front_page'] ?? 0)) ? 'checked' : '' ?>>
+                This is the front page
+            </label>
+            <p class="help-block">If checked, this page will be marked as the front page. Any existing front page will be unset.</p>
         </div>
         
         <p>

@@ -41,6 +41,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $body = U::get($_POST, 'body', '');
     $published = U::get($_POST, 'published', 0) ? 1 : 0;
     $is_main = U::get($_POST, 'is_main', 0) ? 1 : 0;
+    $is_front_page = U::get($_POST, 'is_front_page', 0) ? 1 : 0;
     
     if ( empty($title) ) {
         $_SESSION['error'] = 'Title is required';
@@ -91,9 +92,17 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
             );
         }
         
+        // If this is marked as front page, unset all other front pages first
+        if ( $is_front_page ) {
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}pages SET is_front_page = 0 WHERE context_id = :CID",
+                array(':CID' => $context_id)
+            );
+        }
+        
         $sql = "INSERT INTO {$CFG->dbprefix}pages 
-                (context_id, title, logical_key, body, published, is_main, user_id, created_at, updated_at) 
-                VALUES (:CID, :title, :key, :body, :published, :main, :UID, NOW(), NOW())";
+                (context_id, title, logical_key, body, published, is_main, is_front_page, user_id, created_at, updated_at) 
+                VALUES (:CID, :title, :key, :body, :published, :main, :front_page, :UID, NOW(), NOW())";
         $values = array(
             ':CID' => $context_id,
             ':title' => $title,
@@ -101,6 +110,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
             ':body' => $body,
             ':published' => $published,
             ':main' => $is_main,
+            ':front_page' => $is_front_page,
             ':UID' => $user_id
         );
         $q = $PDOX->queryReturnError($sql, $values);
@@ -151,6 +161,15 @@ $OUTPUT->flashMessages();
                 This is the main page
             </label>
             <p class="help-block">If checked, this page will become the main page (shown at /lms/pages). Any existing main page will be unset.</p>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_front_page" value="1" 
+                       <?= U::get($_POST, 'is_front_page') ? 'checked' : '' ?>>
+                This is the front page
+            </label>
+            <p class="help-block">If checked, this page will be marked as the front page. Any existing front page will be unset.</p>
         </div>
         
         <p>

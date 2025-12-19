@@ -62,29 +62,6 @@ if ( $action === 'delete' && $page_id ) {
     return;
 }
 
-// Handle set main action
-if ( $action === 'set_main' && $page_id ) {
-    // First, unset all main pages for this context
-    $PDOX->queryDie(
-        "UPDATE {$CFG->dbprefix}pages SET is_main = 0 WHERE context_id = :CID",
-        array(':CID' => $context_id)
-    );
-    
-    // Set this page as main
-    $q = $PDOX->queryReturnError(
-        "UPDATE {$CFG->dbprefix}pages SET is_main = 1 
-         WHERE page_id = :PID AND context_id = :CID",
-        array(':PID' => $page_id, ':CID' => $context_id)
-    );
-    if ( $q->success ) {
-        $_SESSION['success'] = 'Main page updated successfully';
-    } else {
-        $_SESSION['error'] = 'Error updating main page';
-    }
-    header('Location: ' . addSession('manage.php'));
-    return;
-}
-
 // Handle toggle published action
 if ( $action === 'toggle_published' && $page_id ) {
     $q = $PDOX->queryReturnError(
@@ -104,10 +81,10 @@ if ( $action === 'toggle_published' && $page_id ) {
 
 // Get all pages for this context
 $pages = $PDOX->allRowsDie(
-    "SELECT page_id, title, logical_key, published, is_main, created_at, updated_at 
+    "SELECT page_id, title, logical_key, published, is_main, is_front_page, created_at, updated_at 
      FROM {$CFG->dbprefix}pages 
      WHERE context_id = :CID 
-     ORDER BY is_main DESC, title ASC",
+     ORDER BY is_main DESC, is_front_page DESC, title ASC",
     array(':CID' => $context_id)
 );
 
@@ -132,7 +109,6 @@ $OUTPUT->flashMessages();
                     <th>Title</th>
                     <th>Logical Key</th>
                     <th>Status</th>
-                    <th>Main</th>
                     <th>Updated</th>
                     <th>Actions</th>
                 </tr>
@@ -156,16 +132,11 @@ $OUTPUT->flashMessages();
                             <?php else: ?>
                                 <span class="label label-default">Draft</span>
                             <?php endif; ?>
-                        </td>
-                        <td>
                             <?php if ($page['is_main']): ?>
                                 <span class="label label-primary">Main</span>
-                            <?php else: ?>
-                                <form method="post" style="display: inline;">
-                                    <input type="hidden" name="action" value="set_main">
-                                    <input type="hidden" name="page_id" value="<?= $page['page_id'] ?>">
-                                    <button type="submit" class="btn btn-xs btn-link">Set as Main</button>
-                                </form>
+                            <?php endif; ?>
+                            <?php if (isset($page['is_front_page']) && $page['is_front_page']): ?>
+                                <span class="label label-info">Front Page</span>
                             <?php endif; ?>
                         </td>
                         <td>
