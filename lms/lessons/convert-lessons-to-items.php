@@ -67,21 +67,30 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert carousel (can be single item or array)
-    if (isset($module['carousel'])) {
+    if (isset($module['carousel']) && !empty($module['carousel'])) {
         $carousel_items = $module['carousel'];
         if (!is_array($carousel_items)) {
             $carousel_items = array($carousel_items);
         }
-        if (count($carousel_items) > 0) {
+        $carousel_video_items = array();
+        foreach($carousel_items as $video) {
+            if (!empty($video)) {
+                $video_arr = is_array($video) ? $video : (array)$video;
+                // Must have at least youtube, media, or title to be valid
+                if (isset($video_arr['youtube']) && !empty($video_arr['youtube']) ||
+                    isset($video_arr['media']) && !empty($video_arr['media']) ||
+                    isset($video_arr['title']) && !empty($video_arr['title'])) {
+                    $carousel_video_items[] = array_merge(array('type' => 'video'), $video_arr);
+                }
+            }
+        }
+        if (count($carousel_video_items) > 0) {
             $items[] = array(
                 'type' => 'header',
                 'text' => 'Videos',
                 'level' => 2
             );
-            foreach($carousel_items as $video) {
-                $video_arr = is_array($video) ? $video : (array)$video;
-                $items[] = array_merge(array('type' => 'video'), $video_arr);
-            }
+            $items = array_merge($items, $carousel_video_items);
         }
     }
     
@@ -96,7 +105,7 @@ foreach($lessons['modules'] as &$module) {
     };
     
     // Convert slides (can be string, single object, or array)
-    if (isset($module['slides'])) {
+    if (isset($module['slides']) && !empty($module['slides'])) {
         $slide_items = array();
         if (is_string($module['slides']) && !empty($module['slides'])) {
             // Single string slide
@@ -116,40 +125,39 @@ foreach($lessons['modules'] as &$module) {
                         'title' => basename($slide),
                         'href' => $slide_url
                     );
-                } else if (!is_array($slide)) {
+                } else if (!is_array($slide) && !empty($slide)) {
                     // Single object slide
                     $slide_arr = (array)$slide;
-                    // Normalize href or url if present
-                    if (isset($slide_arr['href'])) {
+                    // Must have href or url to be valid
+                    if (isset($slide_arr['href']) && !empty($slide_arr['href'])) {
                         $slide_arr['href'] = $normalizeUrl($slide_arr['href']);
-                    }
-                    if (isset($slide_arr['url'])) {
+                        $slide_items[] = array_merge(array('type' => 'slide'), $slide_arr);
+                    } else if (isset($slide_arr['url']) && !empty($slide_arr['url'])) {
                         $slide_arr['url'] = $normalizeUrl($slide_arr['url']);
+                        $slide_items[] = array_merge(array('type' => 'slide'), $slide_arr);
                     }
-                    $slide_items[] = array_merge(array('type' => 'slide'), $slide_arr);
-                } else {
-                    // Array slide object
-                    // Normalize href or url if present
-                    if (isset($slide['href'])) {
+                } else if (is_array($slide) && !empty($slide)) {
+                    // Array slide object - must have href or url to be valid
+                    if (isset($slide['href']) && !empty($slide['href'])) {
                         $slide['href'] = $normalizeUrl($slide['href']);
-                    }
-                    if (isset($slide['url'])) {
+                        $slide_items[] = array_merge(array('type' => 'slide'), $slide);
+                    } else if (isset($slide['url']) && !empty($slide['url'])) {
                         $slide['url'] = $normalizeUrl($slide['url']);
+                        $slide_items[] = array_merge(array('type' => 'slide'), $slide);
                     }
-                    $slide_items[] = array_merge(array('type' => 'slide'), $slide);
                 }
             }
         } else if (!is_array($module['slides']) && !empty($module['slides'])) {
             // Single object slide
             $slide_obj = (array)$module['slides'];
-            // Normalize href or url if present
-            if (isset($slide_obj['href'])) {
+            // Must have href or url to be valid
+            if (isset($slide_obj['href']) && !empty($slide_obj['href'])) {
                 $slide_obj['href'] = $normalizeUrl($slide_obj['href']);
-            }
-            if (isset($slide_obj['url'])) {
+                $slide_items[] = array_merge(array('type' => 'slide'), $slide_obj);
+            } else if (isset($slide_obj['url']) && !empty($slide_obj['url'])) {
                 $slide_obj['url'] = $normalizeUrl($slide_obj['url']);
+                $slide_items[] = array_merge(array('type' => 'slide'), $slide_obj);
             }
-            $slide_items[] = array_merge(array('type' => 'slide'), $slide_obj);
         }
         
         // Only add header if we have slide items
@@ -164,47 +172,60 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert videos (can be single item or array)
-    if (isset($module['videos'])) {
+    if (isset($module['videos']) && !empty($module['videos'])) {
         $videos = $module['videos'];
         if (!is_array($videos)) {
             $videos = array($videos);
         }
-        if (count($videos) > 0) {
+        $video_items = array();
+        foreach($videos as $video) {
+            if (!empty($video)) {
+                $video_arr = is_array($video) ? $video : (array)$video;
+                // Must have at least youtube, media, or title to be valid
+                if (isset($video_arr['youtube']) && !empty($video_arr['youtube']) ||
+                    isset($video_arr['media']) && !empty($video_arr['media']) ||
+                    isset($video_arr['title']) && !empty($video_arr['title'])) {
+                    $video_items[] = array_merge(array('type' => 'video'), $video_arr);
+                }
+            }
+        }
+        if (count($video_items) > 0) {
             $items[] = array(
                 'type' => 'header',
                 'text' => 'Videos',
                 'level' => 2
             );
-            foreach($videos as $video) {
-                $video_arr = is_array($video) ? $video : (array)$video;
-                $items[] = array_merge(array('type' => 'video'), $video_arr);
-            }
+            $items = array_merge($items, $video_items);
         }
     }
     
     // Convert references (can be single item or array)
-    if (isset($module['references'])) {
+    if (isset($module['references']) && !empty($module['references'])) {
         $references = $module['references'];
         if (!is_array($references)) {
             $references = array($references);
         }
-        if (count($references) > 0) {
+        $ref_items = array();
+        foreach($references as $ref) {
+            if (!empty($ref)) {
+                $ref_arr = is_array($ref) ? $ref : (array)$ref;
+                // Must have href to be valid reference
+                if (isset($ref_arr['href']) && !empty($ref_arr['href'])) {
+                    $ref_arr['href'] = $normalizeUrl($ref_arr['href']);
+                    $ref_items[] = array_merge(array('type' => 'reference'), $ref_arr);
+                } else if (isset($ref_arr['url']) && !empty($ref_arr['url'])) {
+                    $ref_arr['url'] = $normalizeUrl($ref_arr['url']);
+                    $ref_items[] = array_merge(array('type' => 'reference'), $ref_arr);
+                }
+            }
+        }
+        if (count($ref_items) > 0) {
             $items[] = array(
                 'type' => 'header',
                 'text' => 'References',
                 'level' => 2
             );
-            foreach($references as $ref) {
-                $ref_arr = is_array($ref) ? $ref : (array)$ref;
-                // Normalize href or url if present
-                if (isset($ref_arr['href'])) {
-                    $ref_arr['href'] = $normalizeUrl($ref_arr['href']);
-                }
-                if (isset($ref_arr['url'])) {
-                    $ref_arr['url'] = $normalizeUrl($ref_arr['url']);
-                }
-                $items[] = array_merge(array('type' => 'reference'), $ref_arr);
-            }
+            $items = array_merge($items, $ref_items);
         }
     }
     
@@ -245,26 +266,34 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert discussions (can be single item or array)
-    if (isset($module['discussions'])) {
+    if (isset($module['discussions']) && !empty($module['discussions'])) {
         $discussions = $module['discussions'];
         if (!is_array($discussions)) {
             $discussions = array($discussions);
         }
-        if (count($discussions) > 0) {
+        $disc_items = array();
+        foreach($discussions as $disc) {
+            if (!empty($disc)) {
+                $disc_arr = is_array($disc) ? $disc : (array)$disc;
+                // Must have launch or resource_link_id to be valid
+                if ((isset($disc_arr['launch']) && !empty($disc_arr['launch'])) ||
+                    (isset($disc_arr['resource_link_id']) && !empty($disc_arr['resource_link_id']))) {
+                    $disc_items[] = array_merge(array('type' => 'discussion'), $disc_arr);
+                }
+            }
+        }
+        if (count($disc_items) > 0) {
             $items[] = array(
                 'type' => 'header',
                 'text' => 'Discussions',
                 'level' => 2
             );
-            foreach($discussions as $disc) {
-                $disc_arr = is_array($disc) ? $disc : (array)$disc;
-                $items[] = array_merge(array('type' => 'discussion'), $disc_arr);
-            }
+            $items = array_merge($items, $disc_items);
         }
     }
     
     // Convert lti (can be single object or array)
-    if (isset($module['lti'])) {
+    if (isset($module['lti']) && !empty($module['lti'])) {
         $ltis_raw = $module['lti'];
         // Normalize to array of LTI items
         // Check if it's already an array of LTIs (numeric keys) or a single LTI object (associative array)
@@ -283,48 +312,60 @@ foreach($lessons['modules'] as &$module) {
             $ltis = array($ltis_raw);
         }
         
-        if (count($ltis) > 0) {
-            $items[] = array(
-                'type' => 'header',
-                'text' => 'Tools',
-                'level' => 2
-            );
-            foreach($ltis as $lti) {
-                // Preserve the entire LTI structure intact - just add type field
-                if (is_array($lti)) {
+        $lti_items = array();
+        foreach($ltis as $lti) {
+            if (empty($lti)) continue;
+            // Preserve the entire LTI structure intact - just add type field
+            if (is_array($lti)) {
+                // Must have launch or resource_link_id to be valid
+                if ((isset($lti['launch']) && !empty($lti['launch'])) ||
+                    (isset($lti['resource_link_id']) && !empty($lti['resource_link_id']))) {
                     // Already an array (from json_decode with true), create new array with type first
                     $lti_item = array('type' => 'lti');
                     // Copy all fields from LTI array
                     foreach($lti as $key => $value) {
                         $lti_item[$key] = $value;
                     }
-                    $items[] = $lti_item;
-                } else if (is_object($lti)) {
-                    // Object - convert via json_encode/json_decode to preserve nested structures
-                    $lti_json = json_encode($lti, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-                    if ($lti_json === false) {
-                        echo("Warning: Failed to encode LTI object: " . json_last_error_msg() . "\n");
-                        continue;
-                    }
-                    $lti_arr = json_decode($lti_json, true);
-                    if ($lti_arr === null && json_last_error() !== JSON_ERROR_NONE) {
-                        echo("Warning: Failed to decode LTI JSON: " . json_last_error_msg() . "\n");
-                        continue;
-                    }
-                    if (is_array($lti_arr)) {
+                    $lti_items[] = $lti_item;
+                }
+            } else if (is_object($lti)) {
+                // Object - convert via json_encode/json_decode to preserve nested structures
+                $lti_json = json_encode($lti, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                if ($lti_json === false) {
+                    echo("Warning: Failed to encode LTI object: " . json_last_error_msg() . "\n");
+                    continue;
+                }
+                $lti_arr = json_decode($lti_json, true);
+                if ($lti_arr === null && json_last_error() !== JSON_ERROR_NONE) {
+                    echo("Warning: Failed to decode LTI JSON: " . json_last_error_msg() . "\n");
+                    continue;
+                }
+                if (is_array($lti_arr)) {
+                    // Must have launch or resource_link_id to be valid
+                    if ((isset($lti_arr['launch']) && !empty($lti_arr['launch'])) ||
+                        (isset($lti_arr['resource_link_id']) && !empty($lti_arr['resource_link_id']))) {
                         $lti_item = array('type' => 'lti');
                         foreach($lti_arr as $key => $value) {
                             $lti_item[$key] = $value;
                         }
-                        $items[] = $lti_item;
-                    } else {
-                        echo("Warning: LTI decoded to non-array type: " . gettype($lti_arr) . "\n");
+                        $lti_items[] = $lti_item;
                     }
                 } else {
-                    // Unexpected type - skip
-                    echo("Warning: Unexpected LTI type: " . gettype($lti) . " - skipping\n");
+                    echo("Warning: LTI decoded to non-array type: " . gettype($lti_arr) . "\n");
                 }
+            } else {
+                // Unexpected type - skip
+                echo("Warning: Unexpected LTI type: " . gettype($lti) . " - skipping\n");
             }
+        }
+        
+        if (count($lti_items) > 0) {
+            $items[] = array(
+                'type' => 'header',
+                'text' => 'Tools',
+                'level' => 2
+            );
+            $items = array_merge($items, $lti_items);
         }
     }
     
