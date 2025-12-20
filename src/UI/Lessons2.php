@@ -430,6 +430,32 @@ class Lessons2 {
 
         $module = $this->module;
 
+        // Load all the Grades so far for progress badges
+        $allgrades = array();
+        if ( isset($_SESSION['id']) && isset($_SESSION['context_id'])) {
+            $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
+            foreach($rows as $row) {
+                $allgrades[$row['resource_link_id']] = $row['grade'];
+            }
+        }
+
+        // Calculate progress for legacy format (scan lti array for resource_link_ids)
+        $possible_points = 0;
+        $actual_points = 0;
+        if ( isset($module->lti) && !isset($module->items) ) {
+            // Only calculate for legacy format (when items array is not present)
+            $ltis = $module->lti;
+            if ( ! is_array($ltis) ) $ltis = array($ltis);
+            foreach($ltis as $lti) {
+                if ( isset($lti->resource_link_id) ) {
+                    $possible_points += 1.0;
+                    if ( isset($allgrades[$lti->resource_link_id]) && is_numeric($allgrades[$lti->resource_link_id]) ) {
+                        $actual_points += $allgrades[$lti->resource_link_id];
+                    }
+                }
+            }
+        }
+
 	if ( $nostyle && isset($_SESSION['gc_count']) ) {
 ?>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
@@ -462,7 +488,21 @@ class Lessons2 {
                 echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
             }
             echo("</ul></div>\n");
-            echo('<h1 property="oer:name" class="tsugi-lessons-module-title">'.$module->title."</h1>\n");
+            echo('<h1 property="oer:name" class="tsugi-lessons-module-title">'.$module->title);
+            // Display progress badges for legacy format
+            if ( $possible_points > 0 ) {
+                $percent = round(($actual_points / $possible_points)*100);
+                if ( $percent == 0 ) {
+                    // No badge for 0%
+                } else if ( $percent == 100 ) {
+                    // Green badge with 100% for complete
+                    echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
+                } else {
+                    // Blue badge with percentage for 1-99%
+                    echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
+                }
+            }
+            echo("</h1>\n");
             $lessonurl = $CFG->apphome . U::get_rest_path();
             if ( $nostyle ) {
                 self::nostyleUrl($module->title, $lessonurl);
