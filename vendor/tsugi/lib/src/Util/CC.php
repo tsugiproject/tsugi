@@ -49,6 +49,18 @@ class CC extends \Tsugi\Util\TsugiDOM {
     public $canvas_modules = null;
     public $canvas_items = null;
 
+    /**
+     * Identifier generator for deterministic, hash-based identifiers
+     * @var CCIdentifier
+     */
+    private $idGenerator = null;
+
+    /**
+     * Map of DOMNode to module path for tracking parent paths
+     * @var array
+     */
+    private $modulePaths = array();
+
     function __construct() {
         parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
 <manifest identifier="cctd0015" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1" xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource" xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd">
@@ -101,6 +113,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
         // course_settings/module_meta.xml
         // Canvas extension to CC
         $this->canvas_module_meta = new CanvasModuleMeta();
+        
+        // Initialize identifier generator for deterministic IDs
+        $this->idGenerator = new CCIdentifier();
     }
 
     /*
@@ -137,19 +152,25 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * Adds a module to the manifest
      *
      * @param $title The title of the module
+     * @param $parentPath Optional parent path for deterministic ID generation (e.g., "")
      *
      * @return the DOMNode of the newly added module
      */
-    public function add_module($title) {
-        $this->resource_count++;
-        $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
-        $this->last_identifier = 'T_'.$resource_str;
+    public function add_module($title, $parentPath = '') {
+        // Generate deterministic identifier
+        $this->last_identifier = $this->idGenerator->makeIdentifier('module', $title, $parentPath);
+        
+        // Store module path for later lookups
+        $modulePath = $parentPath ? $parentPath . '|' . $title : $title;
 
         $xpath = new \DOMXpath($this);
 
         $items = $xpath->query(CC::item_xpath)->item(0);
         $module = $this->add_child_ns(CC::CC_1_1_CP, $items, 'item', null, array('identifier' => $this->last_identifier));
         $new_title = $this->add_child_ns(CC::CC_1_1_CP, $module, 'title', $title);
+        
+        // Store path for this module node
+        $this->modulePaths[spl_object_hash($module)] = $modulePath;
 
         if ( $this->canvas_module_meta ) {
             $this->canvas_modules = $this->canvas_module_meta->add_module($title, $this->last_identifier);
@@ -166,18 +187,30 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * sub-module trees, other LMS's prefer a strict two-layer
      * module / submodule structure.
      *
-     * @param $sub_module DOMNode The module where we are adding the submodule
+     * @param $module DOMNode The module where we are adding the submodule
      * @param $title The title of the sub module
+     * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
      *
      * @return the DOMNode of the newly added sub module
      */
-    public function add_sub_module($module, $title) {
-        $this->resource_count++;
-        $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
-        $this->last_identifier = 'T_'.$resource_str;
-
+    public function add_sub_module($module, $title, $parentPath = null) {
+        // Get parent path if not provided
+        if ($parentPath === null) {
+            $moduleHash = spl_object_hash($module);
+            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
+        }
+        
+        // Generate deterministic identifier
+        $this->last_identifier = $this->idGenerator->makeIdentifier('submodule', $title, $parentPath);
+        
+        // Store module path for later lookups
+        $modulePath = $parentPath ? $parentPath . '|' . $title : $title;
         $sub_module = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $this->last_identifier));
         $new_title = $this->add_child_ns(CC::CC_1_1_CP, $sub_module, 'title',$title);
+        
+        // Store path for this submodule node
+        $this->modulePaths[spl_object_hash($sub_module)] = $modulePath;
+        
         return $sub_module;
     }
 
@@ -190,14 +223,29 @@ class CC extends \Tsugi\Util\TsugiDOM {
      *
      * @param $module DOMNode The module or sub module where we are adding the web link
      * @param $title The title of the link
+     * @param $url Optional URL for deterministic ID generation
+     * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    public function add_web_link($module, $title=null) {
-        $this->resource_count++;
-        $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
-        $file = 'xml/WL_'.$resource_str.'.xml';
-        $this->last_identifier = 'T_'.$resource_str;
+    public function add_web_link($module, $title=null, $url=null, $parentPath=null) {
+        // Get parent path if not provided
+        if ($parentPath === null) {
+            $moduleHash = spl_object_hash($module);
+            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
+        }
+        
+        // Generate deterministic identifier
+        $additionalProps = array();
+        if ($url !== null) {
+            $additionalProps['url'] = $url;
+        }
+        $this->last_identifier = $this->idGenerator->makeIdentifier('weblink', $title ?: '', $parentPath, $additionalProps);
+        
+        // Generate file name based on identifier (use last part of hash)
+        $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
+        $file = 'xml/WL_'.$fileHash.'.xml';
+        
         $type = 'imswl_xmlv1p1';
         $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
         return $file;
@@ -212,14 +260,29 @@ class CC extends \Tsugi\Util\TsugiDOM {
      *
      * @param $module DOMNode The module or sub module where we are adding the web link
      * @param $title The title of the link
+     * @param $text Optional text content for deterministic ID generation
+     * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    public function add_topic($module, $title=null) {
-        $this->resource_count++;
-        $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
-        $file = 'xml/TO_'.$resource_str.'.xml';
-        $this->last_identifier = 'T_'.$resource_str;
+    public function add_topic($module, $title=null, $text=null, $parentPath=null) {
+        // Get parent path if not provided
+        if ($parentPath === null) {
+            $moduleHash = spl_object_hash($module);
+            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
+        }
+        
+        // Generate deterministic identifier
+        $additionalProps = array();
+        if ($text !== null) {
+            $additionalProps['text'] = $text;
+        }
+        $this->last_identifier = $this->idGenerator->makeIdentifier('topic', $title ?: '', $parentPath, $additionalProps);
+        
+        // Generate file name based on identifier (use last part of hash)
+        $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
+        $file = 'xml/TO_'.$fileHash.'.xml';
+        
         $type = 'imsdt_v1p1';
         $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
         return $file;
@@ -234,14 +297,33 @@ class CC extends \Tsugi\Util\TsugiDOM {
      *
      * @param $module DOMNode The module or sub module where we are adding the lti link
      * @param $title The title of the LTI link
+     * @param $url Optional URL/endpoint for deterministic ID generation
+     * @param $resourceLinkId Optional resource_link_id for deterministic ID generation
+     * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
      *
      * @return The name of a file to contain the lti link XML in the ZIP.
      */
-    public function add_lti_link($module, $title=null) {
-        $this->resource_count++;
-        $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
-        $file = 'xml/LT_'.$resource_str.'.xml';
-        $this->last_identifier = 'T_'.$resource_str;
+    public function add_lti_link($module, $title=null, $url=null, $resourceLinkId=null, $parentPath=null) {
+        // Get parent path if not provided
+        if ($parentPath === null) {
+            $moduleHash = spl_object_hash($module);
+            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
+        }
+        
+        // Generate deterministic identifier
+        $additionalProps = array();
+        if ($url !== null) {
+            $additionalProps['url'] = $url;
+        }
+        if ($resourceLinkId !== null) {
+            $additionalProps['resource_link_id'] = $resourceLinkId;
+        }
+        $this->last_identifier = $this->idGenerator->makeIdentifier('lti', $title ?: '', $parentPath, $additionalProps);
+        
+        // Generate file name based on identifier (use last part of hash)
+        $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
+        $file = 'xml/LT_'.$fileHash.'.xml';
+        
         $type = 'imsbasiclti_xmlv1p0';
         $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
         return $file;
@@ -279,11 +361,12 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $module DOMNode The module or sub module where we are adding the web link
      * @param $title The title of the link
      * @param $url The url for the link
+     * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    function zip_add_url_to_module($zip, $module, $title, $url) {
-        $file = $this->add_web_link($module, $title);
+    function zip_add_url_to_module($zip, $module, $title, $url, $parentPath=null) {
+        $file = $this->add_web_link($module, $title, $url, $parentPath);
         $web_dom = new CC_WebLink();
         $web_dom->set_title($title);
         $web_dom->set_url($url, array("target" => "_iframe"));
@@ -309,11 +392,13 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $url The url/endpoint for the link
      * @param $custom An optional array of custom parameters for this link
      * @param $extenions An optional array of tsugi extensions for this link
+     * @param $resourceLinkId Optional resource_link_id for deterministic ID generation
+     * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    function zip_add_lti_to_module($zip, $module, $title, $url, $custom=null, $extensions=null) {
-        $file = $this->add_lti_link($module, $title);
+    function zip_add_lti_to_module($zip, $module, $title, $url, $custom=null, $extensions=null, $resourceLinkId=null, $parentPath=null) {
+        $file = $this->add_lti_link($module, $title, $url, $resourceLinkId, $parentPath);
         $lti_dom = new CC_LTI();
         $lti_dom->set_title($title);
         // $lti_dom->set_description('Create a single SQL table and insert some records.');
@@ -346,11 +431,13 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $url The url/endpoint for the link
      * @param $custom An optional array of custom parameters for this link
      * @param $extenions An optional array of tsugi extensions for this link
+     * @param $resourceLinkId Optional resource_link_id for deterministic ID generation
+     * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    function zip_add_lti_outcome_to_module($zip, $module, $title, $url, $custom=null, $extensions=null) {
-        $file = $this->add_lti_link($module, $title);
+    function zip_add_lti_outcome_to_module($zip, $module, $title, $url, $custom=null, $extensions=null, $resourceLinkId=null, $parentPath=null) {
+        $file = $this->add_lti_link($module, $title, $url, $resourceLinkId, $parentPath);
         $lti_dom = new CC_LTI_Outcome();
         $lti_dom->set_title($title);
         // $lti_dom->set_description('Create a single SQL table and insert some records.');
@@ -379,13 +466,19 @@ class CC extends \Tsugi\Util\TsugiDOM {
      *
      * @param $module DOMNode The module or sub module where we are adding the header
      * @param $title The title/text of the header
+     * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
      *
      * @return The DOMNode of the newly added header item
      */
-    public function add_header_item($module, $title) {
-        $this->resource_count++;
-        $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
-        $this->last_identifier = 'H_'.$resource_str;
+    public function add_header_item($module, $title, $parentPath=null) {
+        // Get parent path if not provided
+        if ($parentPath === null) {
+            $moduleHash = spl_object_hash($module);
+            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
+        }
+        
+        // Generate deterministic identifier
+        $this->last_identifier = $this->idGenerator->makeIdentifier('header', $title, $parentPath);
 
         // Add item to manifest without identifierref (Canvas sub-header)
         $header_item = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $this->last_identifier));
@@ -410,11 +503,12 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $module DOMNode The module or sub module where we are adding the web link
      * @param $title The title of the link
      * @param $text The url for the link
+     * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    function zip_add_topic_to_module($zip, $module, $title, $text) {
-        $file = $this->add_topic($module, $title);
+    function zip_add_topic_to_module($zip, $module, $title, $text, $parentPath=null) {
+        $file = $this->add_topic($module, $title, $text, $parentPath);
         $web_dom = new CC_Topic();
         $web_dom->set_title($title);
         $web_dom->set_text($text);
