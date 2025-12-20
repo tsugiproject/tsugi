@@ -18,6 +18,15 @@ $l = new Lessons($CFG->lessons);
 $OUTPUT->header();
 $OUTPUT->bodystart(false);
 
+    // Check if wwwroot is localhost and show warning
+    if ( strpos($CFG->wwwroot, '//localhost') !== false ) {
+        echo('<div class="alert alert-warning" role="alert">');
+        echo('<strong>Warning:</strong> You are running on localhost. ');
+        echo('Cartridges exported from localhost may have problems importing into cloud-based LMS systems. ');
+        echo('The URLs in the cartridge will point to localhost, which will not be accessible from cloud LMS instances.');
+        echo('</div>');
+    }
+
     echo("<p>Course: ".htmlentities($l->lessons->title)."</p>\n");
     echo("<p>".htmlentities($l->lessons->description)."</p>\n");
     $resource_count = 0;
