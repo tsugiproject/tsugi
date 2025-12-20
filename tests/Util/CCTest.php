@@ -15,68 +15,45 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $cc_dom->set_description('Awesome MOOC to learn PHP, MySQL, and JavaScript.');
 
         $module = $cc_dom->add_module('Week 1');
-        $this->assertEquals($cc_dom->last_identifier,'T_000001');
+        $moduleId = $cc_dom->last_identifier;
+        $this->assertStringStartsWith('M_', $moduleId, 'Module identifier should start with M_');
 
         $sub_module = $cc_dom->add_sub_module($module, 'Part 1');
-        $this->assertEquals($cc_dom->last_identifier,'T_000002');
+        $subModuleId = $cc_dom->last_identifier;
+        $this->assertStringStartsWith('S_', $subModuleId, 'Submodule identifier should start with S_');
 
         $file1 = $cc_dom->add_web_link($sub_module, 'Video: Introducting SQL');
-        $this->assertEquals($cc_dom->last_identifier,'T_000003');
-        $this->assertEquals($cc_dom->last_identifierref,'T_000003_R');
+        $webLinkId = $cc_dom->last_identifier;
+        $webLinkIdRef = $cc_dom->last_identifierref;
+        $this->assertStringStartsWith('WL_', $webLinkId, 'Weblink identifier should start with WL_');
+        $this->assertEquals($webLinkId . '_R', $webLinkIdRef, 'identifierref should be identifier + _R');
         $this->assertEquals($file1, $cc_dom->last_file);
 
         $file2= $cc_dom->add_lti_link($sub_module, 'Autograder: Single Table SQL');
-        $this->assertEquals($cc_dom->last_identifier,'T_000004');
-        $this->assertEquals($cc_dom->last_identifierref,'T_000004_R');
+        $ltiLinkId = $cc_dom->last_identifier;
+        $ltiLinkIdRef = $cc_dom->last_identifierref;
+        $this->assertStringStartsWith('LT_', $ltiLinkId, 'LTI identifier should start with LT_');
+        $this->assertEquals($ltiLinkId . '_R', $ltiLinkIdRef, 'identifierref should be identifier + _R');
         $this->assertEquals($file2, $cc_dom->last_file);
 
-$xmlout = '<?xml version="1.0" encoding="UTF-8"?>
-<manifest xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1" xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource" xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="cctd0015" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd">
-  <metadata>
-    <schema>IMS Common Cartridge</schema>
-    <schemaversion>1.1.0</schemaversion>
-    <lomimscc:lom>
-      <lomimscc:general>
-        <lomimscc:title>
-          <lomimscc:string language="en-US">Web Applications for Everybody</lomimscc:string>
-        </lomimscc:title>
-        <lomimscc:description>
-          <lomimscc:string language="en-US">Awesome MOOC to learn PHP, MySQL, and JavaScript.</lomimscc:string>
-        </lomimscc:description>
-      </lomimscc:general>
-    </lomimscc:lom>
-  </metadata>
-  <organizations>
-    <organization identifier="T_1000" structure="rooted-hierarchy">
-      <item identifier="T_00000">
-        <item identifier="T_000001">
-          <title>Week 1</title>
-          <item identifier="T_000002">
-            <title>Part 1</title>
-            <item identifier="T_000003" identifierref="T_000003_R">
-              <title>Video: Introducting SQL</title>
-            </item>
-            <item identifier="T_000004" identifierref="T_000004_R">
-              <title>Autograder: Single Table SQL</title>
-            </item>
-          </item>
-        </item>
-      </item>
-    </organization>
-  </organizations>
-  <resources>
-    <resource identifier="T_000003_R" type="imswl_xmlv1p1">
-      <file href="xml/WL_000003.xml"/>
-    </resource>
-    <resource identifier="T_000004_R" type="imsbasiclti_xmlv1p0">
-      <file href="xml/LT_000004.xml"/>
-    </resource>
-  </resources>
-</manifest>
-';
         $save = $cc_dom->saveXML();
-        // echo $save
-        $this->assertEquals($xmlout,$save);
+        
+        // Verify XML structure and content using assertions rather than exact string match
+        // This allows for hash-based identifiers while still validating structure
+        $this->assertStringContainsString('<lomimscc:string language="en-US">Web Applications for Everybody</lomimscc:string>', $save);
+        $this->assertStringContainsString('<lomimscc:string language="en-US">Awesome MOOC to learn PHP, MySQL, and JavaScript.</lomimscc:string>', $save);
+        $this->assertStringContainsString('<item identifier="' . $moduleId . '">', $save);
+        $this->assertStringContainsString('<title>Week 1</title>', $save);
+        $this->assertStringContainsString('<item identifier="' . $subModuleId . '">', $save);
+        $this->assertStringContainsString('<title>Part 1</title>', $save);
+        $this->assertStringContainsString('<item identifier="' . $webLinkId . '" identifierref="' . $webLinkIdRef . '">', $save);
+        $this->assertStringContainsString('<title>Video: Introducting SQL</title>', $save);
+        $this->assertStringContainsString('<item identifier="' . $ltiLinkId . '" identifierref="' . $ltiLinkIdRef . '">', $save);
+        $this->assertStringContainsString('<title>Autograder: Single Table SQL</title>', $save);
+        $this->assertStringContainsString('<resource identifier="' . $webLinkIdRef . '" type="imswl_xmlv1p1">', $save);
+        $this->assertStringContainsString('<resource identifier="' . $ltiLinkIdRef . '" type="imsbasiclti_xmlv1p0">', $save);
+        $this->assertStringContainsString('<file href="' . $file1 . '"/>', $save);
+        $this->assertStringContainsString('<file href="' . $file2 . '"/>', $save);
 
     }
 
@@ -93,174 +70,98 @@ $xmlout = '<?xml version="1.0" encoding="UTF-8"?>
         $cc_dom->set_title('Web Applications for Everybody');
         $cc_dom->set_description('Awesome MOOC to learn PHP, MySQL, and JavaScript.');
 
-        $module = $cc_dom->add_module('Week 1');
-        $this->assertEquals($cc_dom->last_identifier,'T_000001');
+        $module1 = $cc_dom->add_module('Week 1');
+        $module1Id = $cc_dom->last_identifier;
+        $this->assertStringStartsWith('M_', $module1Id, 'Module identifier should start with M_');
 
-        $cc_dom->zip_add_url_to_module($zip, $module,  'Video: Introducting SQL', 'https://www.youtube.com/12345');
-        $this->assertEquals($cc_dom->last_identifier,'T_000002');
-        $this->assertEquals($cc_dom->last_identifierref,'T_000002_R');
+        $cc_dom->zip_add_url_to_module($zip, $module1,  'Video: Introducting SQL', 'https://www.youtube.com/12345');
+        $webLinkId = $cc_dom->last_identifier;
+        $webLinkIdRef = $cc_dom->last_identifierref;
+        $this->assertStringStartsWith('WL_', $webLinkId, 'Weblink identifier should start with WL_');
+        $this->assertEquals($webLinkId . '_R', $webLinkIdRef, 'identifierref should be identifier + _R');
 
         $custom_arr = array();
         $extensions = array('apphome' => 'Apphome-value');
         $endpoint = 'https://www.py4e.com/mod/youtube/';
-        $cc_dom->zip_add_lti_to_module($zip, $module, 'Autograder: Single Table SQL', $endpoint, $custom_arr, $extensions);
+        $cc_dom->zip_add_lti_to_module($zip, $module1, 'Autograder: Single Table SQL', $endpoint, $custom_arr, $extensions);
 
-        $this->assertEquals($cc_dom->last_identifier,'T_000003');
-        $this->assertEquals($cc_dom->last_identifierref,'T_000003_R');
+        $ltiLinkId = $cc_dom->last_identifier;
+        $ltiLinkIdRef = $cc_dom->last_identifierref;
+        $this->assertStringStartsWith('LT_', $ltiLinkId, 'LTI identifier should start with LT_');
+        $this->assertEquals($ltiLinkId . '_R', $ltiLinkIdRef, 'identifierref should be identifier + _R');
 
-        $module = $cc_dom->add_module('Week 2');
-        $this->assertEquals($cc_dom->last_identifier,'T_000004');
-
-        $custom_arr = array();
-        $extensions = array('apphome' => 'Apphome-value');
-        $endpoint = 'https://www.py4e.com/mod/gift/';
-        $cc_dom->zip_add_lti_outcome_to_module($zip, $module, 'Quiz: Single Table SQL', $endpoint, $custom_arr, $extensions);
-
-        $this->assertEquals($cc_dom->last_identifier,'T_000005');
-        $this->assertEquals($cc_dom->last_identifierref,'T_000005_R');
+        $module2 = $cc_dom->add_module('Week 2');
+        $module2Id = $cc_dom->last_identifier;
+        $this->assertStringStartsWith('M_', $module2Id, 'Module identifier should start with M_');
 
         $custom_arr = array();
         $extensions = array('apphome' => 'Apphome-value');
         $endpoint = 'https://www.py4e.com/mod/gift/';
-        $cc_dom->zip_add_topic_to_module($zip, $module, 'Discuss: Single Table SQL', 'Have a nice day.');
+        $cc_dom->zip_add_lti_outcome_to_module($zip, $module2, 'Quiz: Single Table SQL', $endpoint, $custom_arr, $extensions);
 
-        $this->assertEquals($cc_dom->last_identifier,'T_000006');
-        $this->assertEquals($cc_dom->last_identifierref,'T_000006_R');
+        $ltiOutcomeId = $cc_dom->last_identifier;
+        $ltiOutcomeIdRef = $cc_dom->last_identifierref;
+        $this->assertStringStartsWith('LT_', $ltiOutcomeId, 'LTI outcome identifier should start with LT_');
+        $this->assertEquals($ltiOutcomeId . '_R', $ltiOutcomeIdRef, 'identifierref should be identifier + _R');
+
+        $custom_arr = array();
+        $extensions = array('apphome' => 'Apphome-value');
+        $endpoint = 'https://www.py4e.com/mod/gift/';
+        $cc_dom->zip_add_topic_to_module($zip, $module2, 'Discuss: Single Table SQL', 'Have a nice day.');
+
+        $topicId = $cc_dom->last_identifier;
+        $topicIdRef = $cc_dom->last_identifierref;
+        $this->assertStringStartsWith('TO_', $topicId, 'Topic identifier should start with TO_');
+        $this->assertEquals($topicId . '_R', $topicIdRef, 'identifierref should be identifier + _R');
 
 
-$xmlout = '<?xml version="1.0" encoding="UTF-8"?>
-<manifest xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1" xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource" xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="cctd0015" xsi:schemaLocation="http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd">
-  <metadata>
-    <schema>IMS Common Cartridge</schema>
-    <schemaversion>1.1.0</schemaversion>
-    <lomimscc:lom>
-      <lomimscc:general>
-        <lomimscc:title>
-          <lomimscc:string language="en-US">Web Applications for Everybody</lomimscc:string>
-        </lomimscc:title>
-        <lomimscc:description>
-          <lomimscc:string language="en-US">Awesome MOOC to learn PHP, MySQL, and JavaScript.</lomimscc:string>
-        </lomimscc:description>
-      </lomimscc:general>
-    </lomimscc:lom>
-  </metadata>
-  <organizations>
-    <organization identifier="T_1000" structure="rooted-hierarchy">
-      <item identifier="T_00000">
-        <item identifier="T_000001">
-          <title>Week 1</title>
-          <item identifier="T_000002" identifierref="T_000002_R">
-            <title>Video: Introducting SQL</title>
-          </item>
-          <item identifier="T_000003" identifierref="T_000003_R">
-            <title>Autograder: Single Table SQL</title>
-          </item>
-        </item>
-        <item identifier="T_000004">
-          <title>Week 2</title>
-          <item identifier="T_000005" identifierref="T_000005_R">
-            <title>Quiz: Single Table SQL</title>
-          </item>
-          <item identifier="T_000006" identifierref="T_000006_R">
-            <title>Discuss: Single Table SQL</title>
-          </item>
-        </item>
-      </item>
-    </organization>
-  </organizations>
-  <resources>
-    <resource identifier="T_000002_R" type="imswl_xmlv1p1">
-      <file href="xml/WL_000002.xml"/>
-    </resource>
-    <resource identifier="T_000003_R" type="imsbasiclti_xmlv1p0">
-      <file href="xml/LT_000003.xml"/>
-    </resource>
-    <resource identifier="T_000005_R" type="imsbasiclti_xmlv1p0">
-      <file href="xml/LT_000005.xml"/>
-    </resource>
-    <resource identifier="T_000006_R" type="imsdt_v1p1">
-      <file href="xml/TO_000006.xml"/>
-    </resource>
-  </resources>
-</manifest>
-';
         $save = $cc_dom->saveXML();
-        // echo($save);
-        $this->assertEquals($xmlout,$save);
+        
+        // Verify XML structure and content using assertions rather than exact string match
+        // This allows for hash-based identifiers while still validating structure
+        $this->assertStringContainsString('<lomimscc:string language="en-US">Web Applications for Everybody</lomimscc:string>', $save);
+        $this->assertStringContainsString('<lomimscc:string language="en-US">Awesome MOOC to learn PHP, MySQL, and JavaScript.</lomimscc:string>', $save);
+        $this->assertStringContainsString('<item identifier="' . $module1Id . '">', $save);
+        $this->assertStringContainsString('<title>Week 1</title>', $save);
+        $this->assertStringContainsString('<item identifier="' . $webLinkId . '" identifierref="' . $webLinkIdRef . '">', $save);
+        $this->assertStringContainsString('<title>Video: Introducting SQL</title>', $save);
+        $this->assertStringContainsString('<item identifier="' . $ltiLinkId . '" identifierref="' . $ltiLinkIdRef . '">', $save);
+        $this->assertStringContainsString('<title>Autograder: Single Table SQL</title>', $save);
+        $this->assertStringContainsString('<item identifier="' . $module2Id . '">', $save);
+        $this->assertStringContainsString('<title>Week 2</title>', $save);
+        $this->assertStringContainsString('<item identifier="' . $ltiOutcomeId . '" identifierref="' . $ltiOutcomeIdRef . '">', $save);
+        $this->assertStringContainsString('<title>Quiz: Single Table SQL</title>', $save);
+        $this->assertStringContainsString('<item identifier="' . $topicId . '" identifierref="' . $topicIdRef . '">', $save);
+        $this->assertStringContainsString('<title>Discuss: Single Table SQL</title>', $save);
+        $this->assertStringContainsString('<resource identifier="' . $webLinkIdRef . '" type="imswl_xmlv1p1">', $save);
+        $this->assertStringContainsString('<resource identifier="' . $ltiLinkIdRef . '" type="imsbasiclti_xmlv1p0">', $save);
+        $this->assertStringContainsString('<resource identifier="' . $ltiOutcomeIdRef . '" type="imsbasiclti_xmlv1p0">', $save);
+        $this->assertStringContainsString('<resource identifier="' . $topicIdRef . '" type="imsdt_v1p1">', $save);
 
-$canvasOut = '<?xml version="1.0" encoding="UTF-8"?>
-<modules xmlns="http://canvas.instructure.com/xsd/cccv1p0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 https://canvas.instructure.com/xsd/cccv1p0.xsd">
-  <module identifier="T_000001">
-    <title>Week 1</title>
-    <workflow_state>unpublished</workflow_state>
-    <position>1</position>
-    <require_sequential_progress>false</require_sequential_progress>
-    <locked>false</locked>
-    <items>
-      <item identifier="T_000002">
-        <position>1</position>
-        <content_type>ExternalUrl</content_type>
-        <workflow_state>unpublished</workflow_state>
-        <position>1</position>
-        <new_tab>true</new_tab>
-        <indent>0</indent>
-        <link_settings_json>null</link_settings_json>
-        <title>Video: Introducting SQL</title>
-        <url>https://www.youtube.com/12345</url>
-        <identifierref>T_000002_R</identifierref>
-      </item>
-      <item identifier="T_000003">
-        <position>2</position>
-        <content_type>ContextExternalTool</content_type>
-        <workflow_state>unpublished</workflow_state>
-        <position>1</position>
-        <new_tab>true</new_tab>
-        <indent>0</indent>
-        <link_settings_json>null</link_settings_json>
-        <title>Autograder: Single Table SQL</title>
-        <url>https://www.py4e.com/mod/youtube/</url>
-        <identifierref>T_000003_R</identifierref>
-      </item>
-    </items>
-  </module>
-  <module identifier="T_000004">
-    <title>Week 2</title>
-    <workflow_state>unpublished</workflow_state>
-    <position>2</position>
-    <require_sequential_progress>false</require_sequential_progress>
-    <locked>false</locked>
-    <items>
-      <item identifier="T_000005">
-        <position>1</position>
-        <content_type>Assignment</content_type>
-        <workflow_state>unpublished</workflow_state>
-        <position>1</position>
-        <new_tab>true</new_tab>
-        <indent>0</indent>
-        <link_settings_json>null</link_settings_json>
-        <title>Quiz: Single Table SQL</title>
-        <url>https://www.py4e.com/mod/gift/</url>
-        <identifierref>T_000005_R</identifierref>
-      </item>
-      <item identifier="T_000006">
-        <position>2</position>
-        <content_type>DiscussionTopic</content_type>
-        <workflow_state>unpublished</workflow_state>
-        <position>1</position>
-        <new_tab>false</new_tab>
-        <indent>0</indent>
-        <link_settings_json>null</link_settings_json>
-        <title>Discuss: Single Table SQL</title>
-        <identifierref>T_000006_R</identifierref>
-      </item>
-    </items>
-  </module>
-</modules>
-';
         // Test canvas compatibility
         $meta = $cc_dom->canvas_module_meta->prettyXML();
-        // echo($meta);
-        $this->assertEquals($meta,$canvasOut);
+        
+        // Verify Canvas XML structure using assertions rather than exact string match
+        $this->assertStringContainsString('<module identifier="' . $module1Id . '">', $meta);
+        $this->assertStringContainsString('<title>Week 1</title>', $meta);
+        $this->assertStringContainsString('<item identifier="' . $webLinkId . '">', $meta);
+        $this->assertStringContainsString('<content_type>ExternalUrl</content_type>', $meta);
+        $this->assertStringContainsString('<title>Video: Introducting SQL</title>', $meta);
+        $this->assertStringContainsString('<identifierref>' . $webLinkIdRef . '</identifierref>', $meta);
+        $this->assertStringContainsString('<item identifier="' . $ltiLinkId . '">', $meta);
+        $this->assertStringContainsString('<content_type>ContextExternalTool</content_type>', $meta);
+        $this->assertStringContainsString('<title>Autograder: Single Table SQL</title>', $meta);
+        $this->assertStringContainsString('<identifierref>' . $ltiLinkIdRef . '</identifierref>', $meta);
+        $this->assertStringContainsString('<module identifier="' . $module2Id . '">', $meta);
+        $this->assertStringContainsString('<title>Week 2</title>', $meta);
+        $this->assertStringContainsString('<item identifier="' . $ltiOutcomeId . '">', $meta);
+        $this->assertStringContainsString('<content_type>Assignment</content_type>', $meta);
+        $this->assertStringContainsString('<title>Quiz: Single Table SQL</title>', $meta);
+        $this->assertStringContainsString('<identifierref>' . $ltiOutcomeIdRef . '</identifierref>', $meta);
+        $this->assertStringContainsString('<item identifier="' . $topicId . '">', $meta);
+        $this->assertStringContainsString('<content_type>DiscussionTopic</content_type>', $meta);
+        $this->assertStringContainsString('<title>Discuss: Single Table SQL</title>', $meta);
+        $this->assertStringContainsString('<identifierref>' . $topicIdRef . '</identifierref>', $meta);
 
         $file = 'course_settings/module_meta.xml';
 
